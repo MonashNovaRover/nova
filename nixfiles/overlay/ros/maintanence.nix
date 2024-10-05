@@ -101,7 +101,7 @@ self: super:
         rev = "v0.6.2";
         fetchgitArgs.hash = "sha256-RYk3zuZrJXPcF27eMhdoZAio4DZ+I+nFaUEg1g/aLNk=";
       }).overrideAttrs ({ preFixup ? "", nativeBuildInputs ? "", ... }: {
-        
+
         nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
 
         preFixup = preFixup + ''
@@ -112,39 +112,37 @@ self: super:
 
       });
 
-      geometric-shapes = rosSuper.geometric-shapes.overrideAttrs ({ postPatch ? "", ... }: {
-        version = "2.2.1-1";
-        src = self.fetchzip {
-          name = "geometric-shapes";
-          url = "https://github.com/ros2-gbp/geometric_shapes-release/archive/release/jazzy/geometric_shapes/2.2.1-1.tar.gz";
-          hash = "sha256-o2Eck5v0SgZlsbOmbpf5qikEjkjDqv/wJ2kTdTiq2RQ=";
-        };
-        postPatch = postPatch + ''
-        sed -i 's|find_package(octomap 1.9.7...<1.10.0 REQUIRED)|find_package(octomap 1.9.7...1.10.0 REQUIRED)|' CMakeLists.txt
-        '';
+      geometric-shapes = rosSuper.geometric-shapes.overrideAttrs ({ patches ? [ ], ... }: {
+        patches = patches ++ [
+          # https://github.com/moveit/geometric_shapes/pull/241
+          (self.fetchpatch {
+            url = "https://github.com/moveit/geometric_shapes/commit/78898826b16b7547c69c63ce28b9bddcd167a09e.patch";
+            includes = [ "CMakeLists.txt" ];
+            revert = true;
+            hash = "sha256-elLSrqVnyTyG5P+iPXIx0RccC7TmdPVAZtbhpJcYUO0=";
+          })
+        ];
       });
 
-      moveit-core = rosSuper.moveit-core.overrideAttrs ({postPatch ? "", nativeBuildInputs ? "", ...}: {
-        version = "2.10.0-1";
+      moveit-core = rosSuper.moveit-core.overrideAttrs ({ postPatch ? "", ... }: {
         src = self.fetchzip {
           name = "moveit-core";
           url = "https://github.com/ros2-gbp/moveit2-release/archive/release/jazzy/moveit_core/2.10.0-1.tar.gz";
           sha256 = "sha256-WwWn+S+POgbqVVFiTNS9YCPW4HwH0UtkvCrAYRmEuIE=";
         };
         postPatch = postPatch + ''
-        sed -i 's|find_package(octomap 1.9.7...<1.10.0 REQUIRED)|find_package(octomap 1.9.7...1.10.0 REQUIRED)|' CMakeLists.txt
+          substituteInPlace CMakeLists.txt --replace 'find_package(octomap 1.9.7...<1.10.0 REQUIRED)' 'find_package(octomap 1.9.7...1.10.0 REQUIRED)'
         '';
       });
 
       moveit-ros-occupancy-map-monitor = rosSuper.moveit-ros-occupancy-map-monitor.overrideAttrs ({ postPatch ? "", ... }: {
-        version = "2.10.0-r1";
         src = self.fetchzip {
           name = "ros-jazzy-moveit-ros-occupancy-map-monitor";
           url = "https://github.com/ros2-gbp/moveit2-release/archive/release/jazzy/moveit_ros_occupancy_map_monitor/2.10.0-1.tar.gz";
           hash = "sha256-WHbMOwEkQoPOrHQOeH/0GJyEa7g/ez3LJsJTZw6jUUw=";
         };
         postPatch = postPatch + ''
-        sed -i 's|find_package(octomap 1.9.7...<1.10.0 REQUIRED)|find_package(octomap 1.9.7...1.10.0 REQUIRED)|' CMakeLists.txt
+          substituteInPlace CMakeLists.txt --replace 'find_package(octomap 1.9.7...<1.10.0 REQUIRED)' 'find_package(octomap 1.9.7...1.10.0 REQUIRED)'
         '';
       });
     } // (
