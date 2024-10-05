@@ -27,13 +27,17 @@ import useSampler from "../../hooks/webgl/program/sampler/useSampler.ts";
 import useUniform from "../../hooks/webgl/program/uniform/useUniform.ts";
 import useAttribute from "../../hooks/webgl/program/attribute/useAttribute.ts";
 import AutosizedGLCanvas from "../AutosizedGLCanvas/AutosizedGLCanvas.tsx";
-import {useGenericStore} from "../../hooks/useGenericStore.ts";
+import {useGenericStore} from "../../redux/actions/useGenericStore.ts";
 import {Site} from "../../redux/models/genericStores/CurrentSiteStore.ts";
 import {SiteData, SiteDataState} from "../../redux/models/genericStores/SiteDataState.ts";
 
 export interface ThresholdingFileEntry {
   threshold: number,
   brightness: number
+}
+
+export interface ThresholdingFile {
+  entries: ThresholdingFileEntry[]
 }
 
 const onFloatChanged = (mutator: (x: string) => void) => (userInput: string) => {
