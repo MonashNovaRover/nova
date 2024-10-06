@@ -3,43 +3,24 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { RosTopic } from "../../ros/topics/rosTopic";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
+import BatteryGauge from 'react-battery-gauge'
 
-export const BatteryWidget = ({
-  size = "28px",
-  batteryOutlineColor = "#B0AFAF",
-  lowBatteryColor = "#f00",
-  fullBatteryColor = "#FFF",
-  colorChangeThreshold = 20,
-}) => {
+export const BatteryWidget = () => {
   
   const batteryLevel = useSelector((state: RootState) => state.batteryStore.voltage);
-  const clampedLevel = Math.max(0, Math.min(batteryLevel, 100));
-  const batteryFillColor = clampedLevel > colorChangeThreshold ? fullBatteryColor : lowBatteryColor;
   const bifrost = useBifrost({ topic: RosTopic.BATTERY_STATE });
-  
-  useEffect(() => {
-    bifrost.syncWithTopic();
-  }, [bifrost]);
+
+  useEffect(() => {bifrost.syncWithTopic();}, [bifrost]);
 
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      width={size} height={size}
-    >
-      <rect 
-        x="2" y="6"  width="19" height="12" rx="2" ry="2"
-        stroke={batteryOutlineColor} fill="none" strokeWidth="1"
-      />
-      <rect 
-        x="21" y="9.5" width="2" height="5" 
-        stroke={batteryOutlineColor} fill="none" strokeWidth="1"
-      />
-      <rect 
-        x="3" y="7" rx="1" ry="1" width={`${clampedLevel * 0.17}px`}  height="10"
-        fill={batteryFillColor}
-      />
-    </svg>
+    <BatteryGauge size={35} value={batteryLevel} customization={{
+      batteryBody: { cornerRadius: 10, fill: '#878686', strokeColor: '#fff' },
+      batteryCap: { strokeColor: '#fff'},
+      batteryMeter: { fill: '#fff', lowBatteryValue: 21, outerGap: 2 },
+      readingText: {
+        lightContrastColor: '#111', darkContrastColor: '#111', lowBatteryColor: '#111',
+        fontSize: 30, y: '53%', showPercentage: false
+      }
+    }}/>
   );
 };
-

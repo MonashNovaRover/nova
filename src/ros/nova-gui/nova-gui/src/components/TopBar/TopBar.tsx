@@ -129,8 +129,13 @@ export const NovaTopBar: React.FC = () => {
             </DropdownMenu>
           </Dropdown>
         </NavbarItem>
-        <NavbarItem className="h-8 flex items-center">
+        <NavbarItem className="">
+          <Button
+            radius="sm"
+            size="sm"
+          >
             <BatteryWidget />
+          </Button>
         </NavbarItem>
         <NavbarItem>
           {/*Controller Help Modal*/}
