@@ -15,7 +15,10 @@
 
     secrets = lib.mkMerge [
       {
-        "hydra/password" = {};
+        "hydra/password" = { };
+        "nova/hashed_password" = {
+          neededForUsers = true;
+        };
       }
 
       # These secrets are only needed by CI
