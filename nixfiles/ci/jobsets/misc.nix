@@ -28,5 +28,22 @@ lib.novaForAllSystems (nova: {
     pluginlib
     ## Nav2
     nav2-bringup
-    navigation2;
+    navigation2
+
+    ament-cmake-core 
+    ament-cmake-export-definitions 
+    ament-cmake-export-dependencies 
+    ament-cmake-export-include-directories 
+    ament-cmake-export-interfaces 
+    ament-cmake-export-libraries 
+    ament-cmake-export-link-flags 
+    ament-cmake-export-targets 
+    ament-cmake-gen-version-h 
+    ament-cmake-libraries 
+    ament-cmake-python 
+    ament-cmake-target-dependencies 
+    ament-cmake-test 
+    ament-cmake-version 
+    cmake
+    ;
 })
