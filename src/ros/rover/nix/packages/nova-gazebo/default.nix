@@ -9,7 +9,11 @@
 let
   terrain = stdenv.mkDerivation {
     name = "nova-terrain";
-    src = ../../../nova_gazebo/nova_terrain;
+    src = builtins.path rec {
+      name = "nova_terrain";
+      path = ../../../nova_gazebo/nova_terrain;
+      filter = lib.novaSourceFilter [ ] path;
+    };
     dontBuild = true;
 
     postPatch = ''
