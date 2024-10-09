@@ -109,9 +109,12 @@ export const NovaTopBar: React.FC = () => {
               <Button
                 radius="sm"
                 size="sm"
-                endContent={<ChevronDown className="w-4 h-4" />}
+                className={"w-24 pr-0"}
               >
-                {prettyViewNames.has(viewName) ? prettyViewNames.get(viewName) : "General"}
+                <div className="DriveModeButtonContainer">
+                  <div className="grow">{prettyViewNames.has(viewName) ? prettyViewNames.get(viewName) : "General"}</div>
+                  <div className="DriveModeButtonIconContainer"><ChevronDown className="w-4 h-4"/></div>
+                </div>
               </Button>
             </DropdownTrigger>
             <DropdownMenu aria-label="Operation Mode">
