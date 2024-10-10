@@ -21,6 +21,7 @@ import humanizeString from "humanize-string";
 import { BLCMDStatusButton } from "../BLCMDStatusModal/BLCMDStatusButton";
 import "./TopBar.css";
 import { List } from "react-bootstrap-icons";
+import {useState} from "react";
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
@@ -107,7 +108,7 @@ export const NovaTopBar: React.FC = () => {
           <Dropdown placement="bottom-end" backdrop="blur">
             <DropdownTrigger>
               <Button radius="sm" size="sm">
-                <div className="w-12">
+                <div className="w-10">
                   {prettyViewNames.has(viewName) ? prettyViewNames.get(viewName) : "General"}
                 </div>
                 <ChevronDown className="w-4 h-4"/>
