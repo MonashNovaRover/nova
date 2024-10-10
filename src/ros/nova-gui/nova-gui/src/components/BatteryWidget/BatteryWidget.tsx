@@ -10,7 +10,9 @@ export const BatteryWidget = () => {
   const batteryLevel = useSelector((state: RootState) => state.batteryStore.voltage);
   const bifrost = useBifrost({ topic: RosTopic.BATTERY_STATE });
 
-  useEffect(() => {bifrost.syncWithTopic();}, [bifrost]);
+  useEffect(() => {
+    bifrost.syncWithTopic();
+  }, [bifrost]);
 
   return (
     <BatteryGauge size={35} value={batteryLevel} customization={{
