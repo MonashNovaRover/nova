@@ -106,15 +106,11 @@ export const NovaTopBar: React.FC = () => {
         <NavbarItem>
           <Dropdown placement="bottom-end" backdrop="blur">
             <DropdownTrigger>
-              <Button
-                radius="sm"
-                size="sm"
-                className={"w-24 pr-0"}
-              >
-                <div className="DriveModeButtonContainer">
-                  <div className="grow">{prettyViewNames.has(viewName) ? prettyViewNames.get(viewName) : "General"}</div>
-                  <div className="DriveModeButtonIconContainer"><ChevronDown className="w-4 h-4"/></div>
+              <Button radius="sm" size="sm">
+                <div className="w-12">
+                  {prettyViewNames.has(viewName) ? prettyViewNames.get(viewName) : "General"}
                 </div>
+                <ChevronDown className="w-4 h-4"/>
               </Button>
             </DropdownTrigger>
             <DropdownMenu aria-label="Operation Mode">
