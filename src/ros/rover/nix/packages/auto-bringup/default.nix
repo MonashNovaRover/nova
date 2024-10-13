@@ -9,9 +9,6 @@
 , robot-state-publisher
 , controller-manager
 , ros2-control
-, gazebo-ros
-, gazebo-ros2-control
-, gazebo-ros-pkgs
 , ros2-controllers
 , pluginlib
 , robot-localization
@@ -48,9 +45,6 @@ buildRosPackage rec {
       robot-state-publisher
       controller-manager
       ros2-control
-      gazebo-ros
-      gazebo-ros2-control
-      gazebo-ros-pkgs
       ros2-controllers
       aruco-opencv
       aruco-opencv-msgs
