@@ -21,7 +21,6 @@ import humanizeString from "humanize-string";
 import { BLCMDStatusButton } from "../BLCMDStatusModal/BLCMDStatusButton";
 import "./TopBar.css";
 import { List } from "react-bootstrap-icons";
-import {useState} from "react";
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
