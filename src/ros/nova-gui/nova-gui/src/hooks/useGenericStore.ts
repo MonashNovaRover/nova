@@ -1,12 +1,13 @@
 import {useDispatch, useSelector} from "react-redux";
-import {RootState} from "../RootState.ts";
+import {RootState} from "../redux/RootState.ts";
 import {useCallback} from "react";
-import {GenericStoreState} from "../models/genericStores/GenericStoreState.ts";
+import {GenericStoreState} from "../redux/models/genericStores/GenericStoreState.ts";
 
 /**
- * Like useState except uses a GenericStore in redux
+ * Returns a stateful value stored in redux, and a function to update it.
  *
- * See the generic_store.md in the docs folder for more information
+ * See the [generic store doc]{@link https://github.com/MonashNovaRover/nova/blob/master/src/ros/nova-gui/docs/generic_store.md}
+ * for more information
  *
  * @param storeName the name of the store in redux
  */
