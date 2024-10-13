@@ -4,7 +4,7 @@ import {Box, Droplet} from "react-feather";
 import SpaceResourceSiteType from "../../../components/nir-probe/SpaceResourcesSiteType.tsx";
 import SpaceResourcesSiteType from "../../../components/nir-probe/SpaceResourcesSiteType.tsx";
 import SegmentedPicker from "../../../components/SegmentedPicker/SegmentedPicker.tsx";
-import {useGenericStore} from "../../../redux/actions/useGenericStore.ts";
+import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 
 export const siteFilenames = [
   "site1",

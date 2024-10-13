@@ -1,6 +1,6 @@
 import SiteSelectWidget, {siteFilenames} from "./SiteSelectWidget.tsx";
 import {Card, CardBody} from "@nextui-org/react";
-import {useGenericStore} from "../../../redux/actions/useGenericStore.ts";
+import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 
 
 export default function SiteSelectorTest() {

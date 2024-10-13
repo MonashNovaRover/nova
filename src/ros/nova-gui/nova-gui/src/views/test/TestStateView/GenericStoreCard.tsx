@@ -1,5 +1,5 @@
 import {Button, Card, CardHeader} from "@nextui-org/react";
-import {useGenericStore} from "../../../redux/actions/useGenericStore.ts";
+import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 
 /**
  * A card that displays a counter and increments and decrements it
