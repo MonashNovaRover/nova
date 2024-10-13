@@ -47,6 +47,13 @@ let
         url = "https://github.com/lopsided98/nix-ros-overlay/commit/b620de3c64484c410fbee3924d3ce251a9e61150.patch";
         hash = "sha256-B4GQS4afAQdnTEWQ1bxkugjrFtGYDG2ZfQmATSymBsI=";
       })
+
+      # patch for lib64 moving issue
+      # https://github.com/lopsided98/nix-ros-overlay/commit/dabd41fd0d43b92ce134386900f9af5d61546e8d
+      (pkgs.fetchpatch {
+        url = "https://github.com/lopsided98/nix-ros-overlay/commit/dabd41fd0d43b92ce134386900f9af5d61546e8d.patch";
+        hash = "sha256-LDbOm7Wn2sqlhxy52GsP6ARaeiKnam63d9eh3u+FgmE=";
+      })
     ];
   });
 
