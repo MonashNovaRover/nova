@@ -4,17 +4,28 @@ A generic store is a redux store template that can be used to quickly
 create a redux store without the need to create slices, models, reducers
 and actions.
 
-The generic store is only intended for use in situations like useState, when
-you want access to the current value and to set the new value.
+A generic store is intended for use in situations where:
 
-example use case:
+- you want access to a state from anywhere within the gui.
+- you only need "set" functionality (completely overriding the stored value every update)
+
+For those familiar with `useState`, a generic store is meant to emulate that behaviour but
+with global, persistence and tab-sync properties.
+
+## useGenericStore
 
 ```typescript
-const [currentSite, setCurrentSite] = useGenericStore<number>("currentSite");
+const [value, setValue] = useGenericStore<type>("storeName");
 ```
-`currentSite` and `setCurrentSite` can then be used exactly like `useState`.
 
-`useGenericStore` has the following properties by default:
+### Returns
+useGenericStore returns an array with exactly two values:
+
+- The current state.
+- The set function that lets you update the state to a different value and trigger a re-render.
+
+### Properties
+A generic store has the following properties by default:
 
 - can be accessed from any component
 - persists after tab refresh 
@@ -33,7 +44,7 @@ export interface RootState {
   
   // Generic stores
   // example:
-  currentSite: GenericStoreState<number>;
+  currentSite: GenericStoreState<Site>;
   
   // add yours here in the form:
   <store name>: GenericStoreState<type of store>
@@ -53,7 +64,7 @@ export const rootReducer = combineReducers({
   
   // Generic stores
   // example:
-  currentSite: createGenericStore("currentSite", 0),
+  currentSite: createGenericStore("currentSite", SITE.SITE_1),
   
   // add yours here in the form:
   <store name>: createGenericStore("<store name>", <initial value>),
@@ -66,7 +77,7 @@ Here value can be any name, but `store name` must be the same as what
 was defined before.
 
 ```typescript
-const [<value>, <setValue>] = useGenericStore("<store name>")
+const [<value>, <setValue>] = useGenericStore<type>("<store name>")
 ```
 
 ## Persist and Tab syncing
