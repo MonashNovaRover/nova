@@ -19,6 +19,9 @@ lib.novaForAllSystems (nova: {
     # Autonomous
     librealsense2-gui
 
+    # Arm
+    moveit-ros
+
     # Temporary
     ## Gazebo and ros2-control
     gazebo-ros-pkgs
