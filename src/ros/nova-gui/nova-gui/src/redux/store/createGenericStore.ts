@@ -1,5 +1,5 @@
 import {createSlice} from "@reduxjs/toolkit";
-import {StoreContext} from "../models/StoreContext.ts";
+import {StoreContext, StoreType} from "../models/StoreContext.ts";
 
 /**
  * creates a generic store from the provided name and initial value
@@ -34,7 +34,7 @@ export const createGenericStore = <T>(name: string, initialValue: T, shouldPersi
   }).reducer;
 
   return {
-    name: name,
+    storeType: StoreType.GENERIC,
     initialValue: initialValue,
     reducer: reducer,
     shouldPersist: shouldPersist,

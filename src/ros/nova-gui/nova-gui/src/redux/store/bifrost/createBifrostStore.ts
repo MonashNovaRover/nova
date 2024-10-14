@@ -1,14 +1,11 @@
-import { Reducer } from "@reduxjs/toolkit";
-import {
-  BifrostActionType,
-  BifrostActionTypes,
-} from "../../actions/bifrost/createBifrostAction";
-import { RosTopic } from "../../../ros/topics/rosTopic";
-import { RosTopicInterfaces } from "../../../ros/topics/rosTopicTypes";
-import { RosService } from "../../../ros/services/rosService";
-import { RosServiceInterface } from "../../../ros/services/rosServiceTypes";
-import { BifrostProps } from "../../actions/bifrost/useBifrostAction";
-import {StoreContext} from "../../models/StoreContext.ts";
+import {Reducer} from "@reduxjs/toolkit";
+import {BifrostActionType, BifrostActionTypes,} from "../../actions/bifrost/createBifrostAction";
+import {RosTopic} from "../../../ros/topics/rosTopic";
+import {RosTopicInterfaces} from "../../../ros/topics/rosTopicTypes";
+import {RosService} from "../../../ros/services/rosService";
+import {RosServiceInterface} from "../../../ros/services/rosServiceTypes";
+import {BifrostProps} from "../../actions/bifrost/useBifrostAction";
+import {StoreContext, StoreType} from "../../models/StoreContext.ts";
 
 export const createCustomReducer = <S, H extends object>(
   initialState: S,
@@ -62,7 +59,7 @@ export const createBifrostStore = (
   );
 
   return {
-    name: "",
+    storeType: StoreType.BIFROST,
     initialValue: initialState,
     reducer: reducer,
     shouldPersist: false,

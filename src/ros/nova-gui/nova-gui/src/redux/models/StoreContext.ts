@@ -1,5 +1,11 @@
 import {Reducer} from "@reduxjs/toolkit";
 
+export enum StoreType {
+  OTHER,
+  BIFROST,
+  GENERIC,
+}
+
 /**
  * StoreContext gives more context to a designated store
  *
@@ -7,7 +13,7 @@ import {Reducer} from "@reduxjs/toolkit";
  * as other config fields.
  */
 export interface StoreContext {
-  name: string;
+  storeType: StoreType;
   initialValue: unknown;
   reducer: Reducer;
   shouldPersist: boolean;
