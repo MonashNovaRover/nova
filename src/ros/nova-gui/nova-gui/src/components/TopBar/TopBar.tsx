@@ -108,7 +108,7 @@ export const NovaTopBar: React.FC = () => {
             <DropdownTrigger>
               <Button radius="sm" size="sm">
                 <div className="w-10">
-                  {prettyViewNames.has(viewName) ? prettyViewNames.get(viewName) : "General"}
+                  {prettyViewNames.has(viewName) ? prettyViewNames.get(viewName) : "???"}
                 </div>
                 <ChevronDown className="w-4 h-4"/>
               </Button>
