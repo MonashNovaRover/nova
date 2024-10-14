@@ -2,7 +2,6 @@ import {Action, ListenerEffectAPI, UnknownAction} from '@reduxjs/toolkit'
 import {v4 as uuidv4} from "uuid";
 import {BroadcastChannel} from "broadcast-channel";
 import {Dispatch} from "redux";
-import {BifrostActionTypes} from "../../actions/bifrost/createBifrostAction.ts";
 
 const SYNC_CHANNEL_NAME = "tab-sync-channel";
 
@@ -16,14 +15,6 @@ export interface TabSyncBlacklist {
   stores: string[],
   actions: string[],
 }
-
-const BIFROST_COMPONENTS = [
-  BifrostActionTypes.UPDATE_TOPIC_STATE.toString(),
-  BifrostActionTypes.UPDATE_SERVICE_STATE.toString(),
-  BifrostActionTypes.INITIATE_CONTACT.toString(),
-  BifrostActionTypes.CONNECTION_UPDATE.toString(),
-  BifrostActionTypes.SUBSCRIBE_TOPIC.toString(),
-]
 
 /**
  * Handler for broadcast messages, when a message is received it will dispatch the associated action.
@@ -51,6 +42,7 @@ export const tabSyncMiddleware = <S, D extends Dispatch>() => {
   let addedEventListener = false;
 
   return (action: Action, listenerAPI: ListenerEffectAPI<S, D>) => {
+    console.log(action.type);
 
     // add the event listener only once when there is access to dispatch
     if (!addedEventListener)
@@ -82,5 +74,5 @@ export const tabSyncPredicate = (blacklist: TabSyncBlacklist) => (action: Action
     return false
 
   // skip any blacklisted stores and bifrost stores
-  return !((blacklist.stores.includes(actionParts[0]) || (BIFROST_COMPONENTS.includes(actionParts[1]))))
+  return !(blacklist.stores.includes(actionParts[0]))
 }
