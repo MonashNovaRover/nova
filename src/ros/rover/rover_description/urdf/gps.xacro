@@ -29,7 +29,7 @@ which is how it gets added to the gazebo sim. Author/s: Dylan Gonzalez-->
 
   <gazebo reference="gps">
     <sensor name="skytraq_gps" type="gps">
-      <plugin filename="libgazebo_ros_gps_sensor.so" name="gps_plugin">
+      <plugin filename="gz-sim-navsat-system" name="gz::sim::systems::NavSat">
         <ros>
           <remapping>~/out:=/fix</remapping>
         </ros>
