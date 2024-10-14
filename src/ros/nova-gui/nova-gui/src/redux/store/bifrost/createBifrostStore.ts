@@ -8,6 +8,7 @@ import { RosTopicInterfaces } from "../../../ros/topics/rosTopicTypes";
 import { RosService } from "../../../ros/services/rosService";
 import { RosServiceInterface } from "../../../ros/services/rosServiceTypes";
 import { BifrostProps } from "../../actions/bifrost/useBifrostAction";
+import {StoreContext} from "../../models/StoreContext.ts";
 
 export const createCustomReducer = <S, H extends object>(
   initialState: S,
@@ -28,7 +29,7 @@ export const createCustomReducer = <S, H extends object>(
 export const createBifrostStore = (
   props: BifrostProps,
   initialState: object
-) => {
+): StoreContext => {
   const { service = RosService.NULL_SERVICE, topic = RosTopic.NULL_TOPIC } =
     props;
 
@@ -55,8 +56,16 @@ export const createBifrostStore = (
     },
   };
 
-  return createCustomReducer<object, typeof reducerFunctions>(
+  const reducer = createCustomReducer<object, typeof reducerFunctions>(
     initialState,
     reducerFunctions
   );
+
+  return {
+    name: "",
+    initialValue: initialState,
+    reducer: reducer,
+    shouldPersist: false,
+    shouldTabSync: false,
+  } as StoreContext
 };

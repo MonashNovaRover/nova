@@ -1,19 +1,20 @@
 import {configureStore, createListenerMiddleware} from "@reduxjs/toolkit";
-import {rootReducer} from "../RootReducer";
 import {FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE} from 'redux-persist'
 import storage from 'redux-persist/lib/storage';
 import {UIActions} from "../slices/UISlice.ts";
 import {tabSyncMiddleware, tabSyncPredicate} from "./middleware/crossTabSync.ts";
-import {bifrostStores} from "./bifrost/bifrostStores.ts";
+import {filterRootReducer, getReducers} from "./rootReducerFilters.ts";
 
 export default function configureRootStore() {
+
   const persistConfig = {
-    key: 'root',
+    key: 'nova-gui',
     storage,
-    // stores that should not be persisted includes all bifrost stores
-    // any stores that should not be persisted should be added here.
+    // stores that should not be persisted
+    // any stores that should not be persisted should be added here
+    // unless a StoreContext is used.
     blacklist: [
-      ...bifrostStores,
+      ...filterRootReducer("shouldPersist"),
       "cartographerState",
       "cameraStreamerState",
     ]
@@ -22,9 +23,11 @@ export default function configureRootStore() {
   const tabSyncConfig = {
     // blacklist of actions to be synced across tabs upon update
     // any actions that should not be synced across tabs should be added here
+    // unless a StoreContext is used
     predicate: tabSyncPredicate({
       // specific stores not to sync
       stores: [
+        ...filterRootReducer("shouldTabSync"),
         "cameraStreamerState",
         "persist",
       ],
@@ -43,12 +46,12 @@ export default function configureRootStore() {
   const listenerMiddleware = createListenerMiddleware();
 
   const store = configureStore({
-    reducer: persistReducer(persistConfig, rootReducer),
+    reducer: persistReducer(persistConfig, getReducers()),
     devTools: true,
 
-    // complains about non-serialised data in actions if this is not included
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
+        // complains about non-serialised data in actions if this is not included
         serializableCheck: {
           ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
         },
@@ -59,8 +62,8 @@ export default function configureRootStore() {
   // wrap the store in redux-persist
   const persistor = persistStore(store);
 
+  // start tab sync middleware
   listenerMiddleware.startListening(tabSyncConfig);
 
   return {store, persistor};
 }
-

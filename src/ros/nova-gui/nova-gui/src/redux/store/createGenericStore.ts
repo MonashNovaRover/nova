@@ -1,16 +1,21 @@
 import {createSlice} from "@reduxjs/toolkit";
+import {StoreContext} from "../models/StoreContext.ts";
 
 /**
- * creates a generic store reducer from the provided name and initial value
+ * creates a generic store from the provided name and initial value
  *
- * see docs/generic_store.md for more information for how to use
+ * See the [generic store doc]{@link https://github.com/MonashNovaRover/nova/blob/master/src/ros/nova-gui/docs/generic_store.md}
+ * for more information
  *
  * @param name name of the store
  * @param initialValue initial value of the store
+ * @param shouldPersist optional, whether the store should persist, defaults to true
+ * @param shouldTabSync optional, whether the store should tab sync, defaults to true
+ * @returns StoreContext of the generic store
  */
-export const createGenericStore = <T>(name: string, initialValue: T) => {
+export const createGenericStore = <T>(name: string, initialValue: T, shouldPersist = true, shouldTabSync = true): StoreContext => {
 
-  return createSlice({
+  const reducer = createSlice({
     name: name,
     initialState: {value: initialValue},
     reducers: {
@@ -27,4 +32,12 @@ export const createGenericStore = <T>(name: string, initialValue: T) => {
       },
     },
   }).reducer;
+
+  return {
+    name: name,
+    initialValue: initialValue,
+    reducer: reducer,
+    shouldPersist: shouldPersist,
+    shouldTabSync: shouldTabSync,
+  } as StoreContext
 }
