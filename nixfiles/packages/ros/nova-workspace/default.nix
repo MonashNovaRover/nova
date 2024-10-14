@@ -3,6 +3,7 @@
 , buildEnv
 , rviz2
 , ros-gz
+, gz-ros2-control
 , rqt
 , rqt-common-plugins
 , gdb
@@ -101,6 +102,7 @@ in
     inherit
       rviz2
       ros-gz
+      gz-ros2-control
       gps-umd
       rqt rqt-common-plugins;
   }) // extraPackages;

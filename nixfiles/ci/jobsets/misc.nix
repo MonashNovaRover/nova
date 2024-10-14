@@ -23,6 +23,7 @@ lib.novaForAllSystems (nova: {
     # Temporary
     ## Gazebo and ros2-control
     ros-gz
+    gz-ros2-control
     ros2-control
     ros2-controllers
     pluginlib
