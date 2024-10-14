@@ -35,6 +35,7 @@ const prettyViewNames = new Map<string, string>([
   ["arc", "ARC"],
   ["urc", "URC"],
   ["test", "Test"],
+  ["cameras", "Cameras"],
 ]);
 
 export const NovaTopBar: React.FC = () => {
