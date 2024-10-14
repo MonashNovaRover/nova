@@ -12,6 +12,13 @@ A generic store is intended for use in situations where:
 For those familiar with `useState`, a generic store is meant to emulate that behaviour but
 with global, persistence and tab-sync properties.
 
+### Properties
+A generic store has the following properties by default:
+
+- can be accessed from any component
+- persists after tab refresh
+- syncs across tabs
+
 ## useGenericStore
 
 ```typescript
@@ -23,14 +30,6 @@ useGenericStore returns an array with exactly two values:
 
 - The current state.
 - The set function that lets you update the state to a different value and trigger a re-render.
-
-### Properties
-A generic store has the following properties by default:
-
-- can be accessed from any component
-- persists after tab refresh 
-- syncs across tabs
-
 
 ## Setup
 
@@ -71,6 +70,18 @@ export const rootReducer = combineReducers({
 })
 ```
 
+#### CreateGenericStore
+
+`CreateGenericStore` takes in 2-4 arguments:
+
+- `name`: the name of the store.
+- `initialValue`: the initial value of the store.
+- `shouldPersist`: optional, whether the store should persist, defaults to true
+- `shouldTabSync`: optional, whether the store should tab sync, defaults to true
+
+if you wish for a store to not persist or tab sync the respective field must be set
+to false.
+
 ### 3. Use hook 
 
 Here value can be any name, but `store name` must be the same as what
@@ -80,60 +91,4 @@ was defined before.
 const [<value>, <setValue>] = useGenericStore<type>("<store name>")
 ```
 
-## Persist and Tab syncing
-
-By default, any generic stores will persist and sync across tabs, this can
-be disabled if required.
-
-### Disable Tab Sync
-
-To disable tab sync add the store name to the tab sync middleware blacklist
-in `redux/store/configureRootStore.ts` 
-
-```typescript
-  const tabSyncConfig = {
-  // blacklist of actions to be synced across tabs upon update
-  // any actions that should not be synced across tabs should be added here
-  predicate: tabSyncPredicate({
-    stores: [
-      "cameraStreamerState",
-      "persist",
-      
-      // add store name here
-      "<store name>",
-      
-    ],
-    actions: [
-      UIActions.SETTINGS_MODAL_UPDATE.toString(),
-      UIActions.CONTROLLER_HELP_MODAL_UPDATE.toString(),
-      UIActions.SIDEBAR_UPDATE.toString(),
-      UIActions.BLCMD_STATUS_MODAL_UPDATE.toString(),
-    ],
-  }),
-  // the function that is called for every action that matches one of the whitelisted actions.
-  effect: tabSyncMiddleware(),
-};
-```
-
-### Disable redux-persist
-
-To disable state persistence add the store name to the redux persist 
-blacklist config in `redux/store/configureRootStore.ts`
-
-```typescript
-const persistConfig = {
-  key: 'root',
-  storage,
-  // stores that should not be persisted includes all bifrost stores
-  // any stores that should not be persisted should be added here.
-  blacklist: [
-    ...bifrostStores,
-    "cartographerState",
-    "cameraStreamerState",
-    
-    // add store name here
-    "<store name>",
-  ]
-};
-```
-
+And that's it, you're ready to go!

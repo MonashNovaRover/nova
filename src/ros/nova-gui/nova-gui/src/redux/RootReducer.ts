@@ -15,11 +15,18 @@ import {uiSlice} from "./slices/UISlice";
 import {cameraStreamerSlice} from "./slices/CameraStreamSlice";
 import {BLCMD_INDEX} from "../constants";
 import {localStorageSlice} from "./slices/LocalStorageSlice.ts";
-import {combineReducers} from "@reduxjs/toolkit";
 import {createGenericStore} from "./store/createGenericStore.ts";
 import SpaceResourceSiteType from "../components/nir-probe/SpaceResourcesSiteType.tsx";
 
-export const rootReducer = combineReducers({
+export type RootReducerKey = keyof typeof rootReducer;
+
+/**
+ * The rootReducer contains all values stored in redux.
+ *
+ * Each value in this struct can either be a Reducer or
+ * a StoreContext.
+ */
+export const rootReducer = {
   // Bifrost Stores
   bifrostStatus: BifrostStatusStore(),
 
@@ -230,4 +237,4 @@ export const rootReducer = combineReducers({
   currentSite: createGenericStore("currentSite", 0),
   currentSiteType: createGenericStore("currentSiteType", SpaceResourceSiteType.WATER),
   counter: createGenericStore("counter", 0),
-});
+};
