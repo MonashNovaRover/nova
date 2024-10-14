@@ -37,6 +37,7 @@
 , nova-python-control ? throw "python-control is needed, but not available!"
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-utils ? throw "nova-utils is needed, but not available!"
+, nova-object-detection ? throw "object-detection is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -82,6 +83,8 @@
 
   ## Extra packages to add to the workspace.
 , extraPackages ? { 
+	inherit
+	nova-object-detection;
 }
 }:
 
