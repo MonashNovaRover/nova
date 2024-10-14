@@ -7,10 +7,12 @@ import {combineReducers} from "@reduxjs/toolkit";
  */
 export const getReducers = () => {
   const reducers = Object.keys(rootReducer).reduce((acc, val) => {
+    // nothing changes when the store is already a reducer
     const key = val as RootReducerKey
     if (rootReducer[val as RootReducerKey] instanceof Function)
       return acc
 
+    // set the store to the reducer when store is a StoreContext
     const reducerKey = "reducer" as keyof typeof rootReducer[typeof key]
     if (rootReducer[key][reducerKey] !== undefined)
       return {...acc, [key]: rootReducer[key][reducerKey]}
@@ -32,10 +34,12 @@ export const getReducers = () => {
 export const filterRootReducer = (field: string) => {
   return Object.keys(rootReducer)
     .filter((val) => {
+      // ignore non StoreContext types
       const key = val as RootReducerKey
       if (rootReducer[val as RootReducerKey] instanceof Function)
         return false
 
+      // check if a StoreContext has the field set to false
       const reducerKey = field as keyof typeof rootReducer[typeof key]
       return rootReducer[key][reducerKey] !== undefined && !rootReducer[key][reducerKey]
     })
