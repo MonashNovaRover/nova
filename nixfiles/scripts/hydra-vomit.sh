@@ -29,4 +29,4 @@ nix-instantiate ~/nova/nixfiles/ci/jobsets/"$jobset".nix \
   -A x86_64-linux \
 | xargs nix-store --query --requisites \
 | xargs nix-store --realise \
-| NIX_SSHOPTS="-i $oraclekey}" xargs nix-copy-closure --to root@hydra.novarover.space --use-substitutes --log-format bar-with-logs
+| NIX_SSHOPTS="-i $oraclekey" xargs nix-copy-closure --to root@hydra.novarover.space --use-substitutes --log-format bar-with-logs
