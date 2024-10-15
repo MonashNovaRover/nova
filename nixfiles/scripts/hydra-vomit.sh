@@ -15,6 +15,7 @@ echo ""
 
 nix-instantiate ~/nova/nixfiles/ci/jobsets/"$jobset".nix \
   --arg nixpkgs '<nixpkgs>' \
+  --arg nixpkgs-stable '(import <nixpkgs> {}).fetchFromGitHub { owner="NixOS"; repo="nixpkgs"; rev="nixos-23.05"; hash="sha256-LWvKHp7kGxk/GEtlrGYV68qIvPHkU9iToomNFGagixU="; }' \
   --arg nova-monorepo ~/nova \
   --arg supportedSystems '[ "x86_64-linux" ]' \
   --argstr rosDistro jazzy \
@@ -23,6 +24,7 @@ nix-instantiate ~/nova/nixfiles/ci/jobsets/"$jobset".nix \
 
 nix-instantiate ~/nova/nixfiles/ci/jobsets/"$jobset".nix \
   --arg nixpkgs '<nixpkgs>' \
+  --arg nixpkgs-stable '(import <nixpkgs> {}).fetchFromGitHub { owner="NixOS"; repo="nixpkgs"; rev="nixos-23.05"; hash="sha256-LWvKHp7kGxk/GEtlrGYV68qIvPHkU9iToomNFGagixU="; }' \
   --arg nova-monorepo ~/nova \
   --arg supportedSystems '[ "x86_64-linux" ]' \
   --argstr rosDistro jazzy \
