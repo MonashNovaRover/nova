@@ -48,11 +48,19 @@ let
         hash = "sha256-B4GQS4afAQdnTEWQ1bxkugjrFtGYDG2ZfQmATSymBsI=";
       })
 
-      # patch for lib64 moving issue
-      # https://github.com/lopsided98/nix-ros-overlay/commit/dabd41fd0d43b92ce134386900f9af5d61546e8d
+      # fix: gz vendor
+      # https://github.com/lopsided98/nix-ros-overlay/pull/472
       (pkgs.fetchpatch {
-        url = "https://github.com/lopsided98/nix-ros-overlay/commit/dabd41fd0d43b92ce134386900f9af5d61546e8d.patch";
-        hash = "sha256-LDbOm7Wn2sqlhxy52GsP6ARaeiKnam63d9eh3u+FgmE=";
+        url = "https://github.com/lopsided98/nix-ros-overlay/commit/6d04148eac0727be34e5333f6e12cfc7e86673c3.patch";
+        excludes = [ "examples/ros2-gz-example.nix" ];
+        hash = "sha256-nJD6ltAIpp+yOyegn1PdUA4oK6JB4m+6PpCdsPB2/oU=";
+      })
+
+      # Some more Gazebo improvements
+      # https://github.com/muellerbernd/nix-ros-overlay/pull/2
+      (pkgs.fetchpatch {
+        url = "https://github.com/lopsided98/nix-ros-overlay/compare/6d04148eac0727be34e5333f6e12cfc7e86673c3...eca9687ce15335bbb2d4b7b14fbf74ce0e957f43.patch";
+        hash = "sha256-c6DD2U6Lo2dcs0APxEHg9l0bz1Ioa5aX5FoATajXYAc=";
       })
     ];
   });
