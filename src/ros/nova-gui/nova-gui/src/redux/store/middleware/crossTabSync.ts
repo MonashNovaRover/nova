@@ -42,7 +42,6 @@ export const tabSyncMiddleware = <S, D extends Dispatch>() => {
   let addedEventListener = false;
 
   return (action: Action, listenerAPI: ListenerEffectAPI<S, D>) => {
-    console.log(action.type);
 
     // add the event listener only once when there is access to dispatch
     if (!addedEventListener)

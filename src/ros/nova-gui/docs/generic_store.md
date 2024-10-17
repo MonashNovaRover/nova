@@ -7,7 +7,7 @@ and actions.
 A generic store is intended for use in situations where:
 
 - you want access to a state from anywhere within the gui.
-- you only need "set" functionality (completely overriding the stored value every update)
+- you only need "set" functionality (update the state to a new value)
 
 For those familiar with `useState`, a generic store is meant to emulate that behaviour but
 with global, persistence and tab-sync properties.
@@ -19,6 +19,8 @@ A generic store has the following properties by default:
 - persists after tab refresh
 - syncs across tabs
 
+The later two can be disabled if needed when creating a generic store.
+
 ## useGenericStore
 
 ```typescript
@@ -29,7 +31,7 @@ const [value, setValue] = useGenericStore<type>("storeName");
 useGenericStore returns an array with exactly two values:
 
 - The current state.
-- The set function that lets you update the state to a different value and trigger a re-render.
+- The set function that lets you update the state to a different value.
 
 ## Setup
 
@@ -50,8 +52,11 @@ export interface RootState {
 }
 ```
 
-if additional type definitions needed (eg need a custom interface) please 
+if additional type definitions are needed (eg a custom interface) please 
 define the interface/type definition in the `redux/models/genericStores` folder.
+
+Please note that union types or interfaces with optional fields won't work due to internal
+validation that occurs.
 
 ### 2. Define store and initial value in `redux/RootReducer.ts`
 
