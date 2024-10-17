@@ -1,9 +1,9 @@
 import {rootReducer, RootReducerKey} from "../RootReducer.ts";
 import {combineReducers} from "@reduxjs/toolkit";
 
-
 /**
- * converts all StoreContexts to reducers from rootReducer
+ * converts rootReducer which is a mix of StoreContexts and Reducers
+ * into a single reducer
  */
 export const getReducers = () => {
   const reducers = Object.keys(rootReducer).reduce((acc, val) => {
