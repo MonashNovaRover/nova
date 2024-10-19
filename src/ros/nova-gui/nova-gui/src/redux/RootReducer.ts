@@ -20,7 +20,7 @@ import SpaceResourceSiteType from "../components/nir-probe/SpaceResourcesSiteTyp
 import {getReducers} from "./store/rootReducerFilters.ts";
 
 /**
- * rootStores contains all stores in redux as either it's Reducer
+ * reduxStores contains all stores in redux as either it's Reducer
  * or it's StoreContext.
  */
 export const reduxStores = {

@@ -3,7 +3,7 @@ import {FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, RE
 import storage from 'redux-persist/lib/storage';
 import {UIActions} from "../slices/UISlice.ts";
 import {tabSyncMiddleware, tabSyncPredicate} from "./middleware/crossTabSync.ts";
-import {filterRootStores} from "./rootReducerFilters.ts";
+import {filterStores} from "./rootReducerFilters.ts";
 import {rootReducer, reduxStores} from "../RootReducer.ts";
 
 export default function configureRootStore() {
@@ -15,7 +15,7 @@ export default function configureRootStore() {
     // any stores that should not be persisted should be added here
     // unless a StoreContext is used.
     blacklist: [
-      ...filterRootStores(reduxStores, "shouldPersist"),
+      ...filterStores(reduxStores, "shouldPersist"),
       "cartographerState",
       "cameraStreamerState",
     ]
@@ -28,7 +28,7 @@ export default function configureRootStore() {
     predicate: tabSyncPredicate({
       // specific stores not to sync
       stores: [
-        ...filterRootStores(reduxStores, "shouldTabSync"),
+        ...filterStores(reduxStores, "shouldTabSync"),
         "cameraStreamerState",
         "persist",
       ],
