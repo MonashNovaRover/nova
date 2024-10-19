@@ -17,16 +17,13 @@ import {BLCMD_INDEX} from "../constants";
 import {localStorageSlice} from "./slices/LocalStorageSlice.ts";
 import {createGenericStore} from "./store/createGenericStore.ts";
 import SpaceResourceSiteType from "../components/nir-probe/SpaceResourcesSiteType.tsx";
-
-export type RootReducerKey = keyof typeof rootReducer;
+import {getReducers} from "./store/rootReducerFilters.ts";
 
 /**
- * The rootReducer contains all values stored in redux.
- *
- * Each value in this struct can either be a Reducer or
- * a StoreContext.
+ * rootStores contains all stores in redux as either it's Reducer
+ * or it's StoreContext.
  */
-export const rootReducer = {
+export const reduxStores = {
   // Bifrost Stores
   bifrostStatus: BifrostStatusStore(),
 
@@ -238,3 +235,6 @@ export const rootReducer = {
   currentSiteType: createGenericStore("currentSiteType", SpaceResourceSiteType.WATER),
   counter: createGenericStore("counter", 0),
 };
+
+// all store reducers
+export const rootReducer = getReducers(reduxStores);

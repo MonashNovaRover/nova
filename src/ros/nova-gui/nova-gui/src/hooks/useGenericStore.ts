@@ -2,35 +2,35 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../redux/RootState.ts";
 import {useCallback, useMemo} from "react";
 import {GenericStoreState} from "../redux/models/genericStores/GenericStoreState.ts";
-import {rootReducer, RootReducerKey} from "../redux/RootReducer.ts";
+import {reduxStores} from "../redux/RootReducer.ts";
 import {StoreType} from "../redux/models/StoreContext.ts";
 
 /**
  * Returns a stateful value stored in redux, and a function to update it.
  *
- * See the [generic store doc]{@link https://github.com/MonashNovaRover/nova/blob/master/src/ros/nova-gui/docs/generic_store.md}
- * for more information
- *
- * @param storeName the name of the store in redux
+ * @param reduxStore struct of stores in Reducer or StoreContext forms to check types against.
+ * @param storeName name of the store in redux to query and update.
  */
-export function useGenericStore<T>(storeName: string): [T, (a: T) => void] {
+function useGenericStoreWithStore<T, S extends object>(reduxStore: S, storeName: string): [T, (a: T) => void] {
+  // the initial value of this store to use for type checks
   const initialValue = useMemo(() => {
     // check there is a store with the provided name in redux
-    const key = storeName as RootReducerKey
-    if (rootReducer[key] === undefined) {
+    const key = storeName as keyof typeof reduxStore
+    if (reduxStore[key] === undefined) {
       console.error(`${storeName} is not a store in redux`);
       throw new Error(`${storeName} is not a store in redux`);
     }
 
     // check that the store is a generic store
-    const store = rootReducer[key]
-    const typeKey = "storeType" as keyof typeof rootReducer[typeof key]
+    const store = reduxStore[key]
+    const typeKey = "storeType" as keyof typeof reduxStore[typeof key]
     if ((store instanceof Function) || store[typeKey] !== StoreType.GENERIC) {
       console.error(`${storeName} is not a generic store`);
       throw new Error(`${storeName} is not a generic store`);
     }
 
-    return store.initialValue as T;
+    const initialValueKey = "initialValue" as keyof typeof reduxStore[typeof key]
+    return store[initialValueKey] as T;
   }, [storeName]);
 
   // create a setValue function using dispatch
@@ -55,4 +55,16 @@ export function useGenericStore<T>(storeName: string): [T, (a: T) => void] {
   })
 
   return [value, setValue]
+}
+
+/**
+ * Returns a stateful value stored in redux, and a function to update it.
+ *
+ * See the [generic store doc]{@link https://github.com/MonashNovaRover/nova/blob/master/src/ros/nova-gui/docs/generic_store.md}
+ * for more information.
+ *
+ * @param storeName the name of the store in redux
+ */
+export function useGenericStore<T>(storeName: string): [T, (a: T) => void] {
+  return useGenericStoreWithStore(reduxStores, storeName);
 }

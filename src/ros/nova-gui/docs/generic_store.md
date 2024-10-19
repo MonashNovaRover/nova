@@ -63,7 +63,7 @@ validation that occurs.
 Ensure that store name matches here
 
 ```typescript
-export const rootReducer = combineReducers({
+export const reduxStores = {
   // ...
   
   // Generic stores
@@ -72,7 +72,7 @@ export const rootReducer = combineReducers({
   
   // add yours here in the form:
   <store name>: createGenericStore("<store name>", <initial value>),
-})
+}
 ```
 
 #### CreateGenericStore
