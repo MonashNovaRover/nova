@@ -9,40 +9,42 @@ import {combineReducers} from "@reduxjs/toolkit";
 export const getReducers = <T extends object>(stores: T) => {
   const reducers = Object.keys(stores).reduce((acc, val) => {
     // nothing changes when the store is already a reducer
-    const key = val as keyof typeof stores
+    const key = val as keyof typeof stores;
     if (stores[key] instanceof Function)
-      return acc
+      return acc;
 
     // set the store to the reducer when store is a StoreContext
-    const reducerKey = "reducer" as keyof typeof stores[typeof key]
+    const reducerKey = "reducer" as keyof typeof stores[typeof key];
     if (stores[key][reducerKey] !== undefined)
-      return {...acc, [key]: stores[key][reducerKey]}
+      return {...acc, [key]: stores[key][reducerKey]};
 
     console.log(`root stores item is not a Reducer or a StoreContext: ${stores[key]}`)
     throw Error(`root stores item is not a Reducer or a StoreContext: ${stores[key]}`)
   }, stores)
 
-  return combineReducers(reducers)
+  return combineReducers(reducers);
 }
 
 /**
- * Filters the stores and creates a blacklist which includes all
- * store names that have the designated field marked as false if they
- * are a StoreContext
+ * Filters the stores against the provided field and value and returns all stores
+ * where the corresponding field is set to the provided value.
+ *
+ * Ignores all reducers.
  *
  * @param stores a struct containing stores that are either StoreContexts or Reducers
  * @param field the field of a StoreContext to create a blacklist from
+ * @param value the value to check the field against, defaults to false
  */
-export const filterRootStores = <T extends object>(stores: T, field: string) => {
+export const filterStores = <T extends object>(stores: T, field: string, value = false) => {
   return Object.keys(stores)
     .filter((val) => {
       // ignore non StoreContext types
-      const key = val as keyof typeof stores
+      const key = val as keyof typeof stores;
       if (stores[key] instanceof Function)
-        return false
+        return false;
 
       // check if a StoreContext has the field set to false
-      const reducerKey = field as keyof typeof stores[typeof key]
-      return stores[key][reducerKey] !== undefined && !stores[key][reducerKey]
+      const reducerKey = field as keyof typeof stores[typeof key];
+      return stores[key][reducerKey] !== undefined && stores[key][reducerKey] === value;
     })
 }
