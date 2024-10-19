@@ -18,7 +18,6 @@ import {localStorageSlice} from "./slices/LocalStorageSlice.ts";
 import {createGenericStore} from "./store/createGenericStore.ts";
 import {Site} from "./models/genericStores/CurrentSiteStore.ts";
 import {initialNIRProbeFilesState} from "./models/genericStores/SiteDataState.ts";
-import SpaceResourceSiteType from "../components/nir-probe/SpaceResourcesSiteType.tsx";
 import {getReducers} from "./store/rootReducerFilters.ts";
 
 /**

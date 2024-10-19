@@ -1,6 +1,6 @@
 import React from "react";
 import SegmentedPicker from "../SegmentedPicker/SegmentedPicker.tsx";
-import {useGenericStore} from "../../redux/actions/useGenericStore.ts";
+import {useGenericStore} from "../../hooks/useGenericStore.ts";
 import {Site} from "../../redux/models/genericStores/CurrentSiteStore.ts";
 
 export interface SiteSelectWidgetProps {
