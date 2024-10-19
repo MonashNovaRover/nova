@@ -6,7 +6,7 @@ import NIRCalibrationCurveWidget, {EMPTY_CALIBRATION_DATA, NIRCalibrationData} f
 import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 import TOFHeight from "../../AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
 import {DEFAULT_WATER_CALIBRATION} from "./DefaultWaterCalibration.ts";
-import {useGenericStore} from "../../../redux/actions/useGenericStore.ts";
+import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 import {SiteData, SiteDataState} from "../../../redux/models/genericStores/SiteDataState.ts";
 import {SpaceResourcesSiteType} from "../SpaceResourcesSiteType.tsx";
