@@ -26,16 +26,16 @@ export const getReducers = <T extends object>(stores: T) => {
 }
 
 /**
- * Filters the stores against the provided field and value and returns all stores
+ * Filters the stores against the provided field and value and returns all store names
  * where the corresponding field is set to the provided value.
  *
  * Ignores all reducers.
  *
  * @param stores a struct containing stores that are either StoreContexts or Reducers
  * @param field the field of a StoreContext to create a blacklist from
- * @param value the value to check the field against, defaults to false
+ * @param value the value to check the field against
  */
-export const filterStores = <T extends object>(stores: T, field: string, value = false) => {
+export const filterStores = <T extends object, V>(stores: T, field: string, value: V): string[] => {
   return Object.keys(stores)
     .filter((val) => {
       // ignore non StoreContext types

@@ -15,7 +15,7 @@ export default function configureRootStore() {
     // any stores that should not be persisted should be added here
     // unless a StoreContext is used.
     blacklist: [
-      ...filterStores(reduxStores, "shouldPersist"),
+      ...filterStores(reduxStores, "shouldPersist", false),
       "cartographerState",
       "cameraStreamerState",
     ]
@@ -28,7 +28,7 @@ export default function configureRootStore() {
     predicate: tabSyncPredicate({
       // specific stores not to sync
       stores: [
-        ...filterStores(reduxStores, "shouldTabSync"),
+        ...filterStores(reduxStores, "shouldTabSync", false),
         "cameraStreamerState",
         "persist",
       ],
