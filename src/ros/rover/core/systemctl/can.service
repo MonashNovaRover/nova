@@ -6,8 +6,11 @@ After=network-online.target network.target local-fs.target
 [Service]
 User=root
 Group=sudo
-Type=forking
-ExecStart=/home/nvidia/nova_ws/src/rover/core/systemctl/can.sh
+Type=oneshot
+ExecStartPre=-/home/nvidia/.nix-profile/bin/can stop can0
+ExecStartPre=-/home/nvidia/.nix-profile/bin/can stop can1
+ExecStart=/home/nvidia/.nix-profile/bin/can start can0
+ExecStart=/home/nvidia/.nix-profile/bin/can start can1
 TimeoutStartSec=5
 Restart=on-failure
 

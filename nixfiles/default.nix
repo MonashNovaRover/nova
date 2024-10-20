@@ -34,20 +34,9 @@ let
       inherit (revisions.nix-ros-overlay) rev hash;
     };
     patches = [
-      # Patch and fix gz-*-vendor packages for Jazzy and Rolling
-      # https://github.com/lopsided98/nix-ros-overlay/pull/422
-      (pkgs.fetchpatch {
-        url = "https://github.com/lopsided98/nix-ros-overlay/commit/aa846d382c40809f812b2f1c7d8b92d901a75da5.patch";
-        hash = "sha256-GdUjgcOgW2+8qceMPGO5EvOMwUc/iMNYYdQqfkCc1UA=";
-      })
-
       # fix: gz vendor
       # https://github.com/lopsided98/nix-ros-overlay/pull/472
-      (pkgs.fetchpatch {
-        url = "https://github.com/lopsided98/nix-ros-overlay/commit/6d04148eac0727be34e5333f6e12cfc7e86673c3.patch";
-        excludes = [ "examples/ros2-gz-example.nix" ];
-        hash = "sha256-nJD6ltAIpp+yOyegn1PdUA4oK6JB4m+6PpCdsPB2/oU=";
-      })
+      ./overlay/ros/patches/nix-ros-workspace.patch
 
       # Some more Gazebo improvements
       # https://github.com/muellerbernd/nix-ros-overlay/pull/2
