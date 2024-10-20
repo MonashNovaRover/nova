@@ -19,7 +19,6 @@
 #, gazebo-ros2-control
 , ros2-controllers
 , pluginlib
-#, gazebo-ros-pkgs
 , robot-localization
 , nova-behavior-tree
 , nova-costmap-2d
@@ -49,13 +48,10 @@ buildRosPackage rec {
       joint-state-publisher
       controller-manager
       ros2-control
-      #gazebo-ros
-      #gazebo-ros2-control
       ros2-controllers
       pluginlib
       image-view
       robot-localization
-      #gazebo-ros-pkgs
       navigation2
       depthai-ros;
   };
