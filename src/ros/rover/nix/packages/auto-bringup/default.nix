@@ -26,6 +26,7 @@
 , nova-bt-navigators
 , rviz-imu-plugin
 , imu-transformer
+, nova-pivot-drive-controller
 }:
 
 buildRosPackage rec {
@@ -64,6 +65,7 @@ buildRosPackage rec {
       nova-auto-interfaces
       nova-bt-navigators
       rviz-imu-plugin
+      nova-pivot-drive-controller
       imu-transformer;
   };
 }
