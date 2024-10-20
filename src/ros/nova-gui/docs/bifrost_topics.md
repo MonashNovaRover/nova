@@ -72,7 +72,7 @@ Remember, this is just the structure. Creating the store is described below.
 This file contains the Reducers for the stores and resembles states on `RootState`. For creating a store for `temperatureStore`, we use the function `createBifrostStore(<BifrostProps>,<Initial State>)`
 
 ```ts
-export const rootReducer = {
+export const reduxStores = {
   // Previous Stores
   temperatureStore: createBifrostStore(
     { topic: RosTopics.TEMP_SENSOR },

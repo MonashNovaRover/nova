@@ -17,7 +17,7 @@ export default function LSObjectCard() {
     return (
         <Card className="flex flex-col grow">
             <CardHeader className="justify-center">
-                LS with Object
+                useLocalStorage
             </CardHeader>
             <div className="grid grid-cols-2 gap-4 mx-4 mt-2">
                 <Button onClick={() => setTwoCounters({...twoCounters, counterOne: twoCounters.counterOne + 1})}>

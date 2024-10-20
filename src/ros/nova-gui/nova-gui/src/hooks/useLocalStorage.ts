@@ -11,6 +11,8 @@ export type NoConflict<T> = T & Exclude<T, undefined> & NoUnion<T>
  * Like useState, but persists using localStorage and redux
  * Note: T cannot be a union type, or undefined
  *
+ * @deprecated please use useGenericStore instead
+ *
  * @param key The local storage key to use
  * @param initialValue The initial value to assign when there is nothing in local storage
  * @param dependencies Dependencies to update the value from local storage when changed

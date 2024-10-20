@@ -11,6 +11,11 @@ export interface Message {
   action: Action,
 }
 
+export interface TabSyncBlacklist {
+  actionPrefixes: string[],
+  actions: string[],
+}
+
 /**
  * Handler for broadcast messages, when a message is received it will dispatch the associated action.
  * @param myID ID of this tab, to ensure the tab does not dispatch the sync messages it sends.
@@ -51,4 +56,19 @@ export const tabSyncMiddleware = <S, D extends Dispatch>() => {
       });
     }
   }
+}
+
+/**
+ * skips any blacklisted stores and actions, and bifrost actions
+ * @param blacklist blacklist of stores and actions
+ */
+export const tabSyncPredicate = (blacklist: TabSyncBlacklist) => (action: Action) => {
+  // skip any blacklisted actions
+  if (blacklist.actions.includes(action.type))
+    return false
+
+  const actionParts = action.type.split('/');
+
+  // skip any blacklisted stores and bifrost stores
+  return !(blacklist.actionPrefixes.includes(actionParts[0]))
 }

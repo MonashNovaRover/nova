@@ -15,9 +15,15 @@ import {uiSlice} from "./slices/UISlice";
 import {cameraStreamerSlice} from "./slices/CameraStreamSlice";
 import {BLCMD_INDEX} from "../constants";
 import {localStorageSlice} from "./slices/LocalStorageSlice.ts";
-import {combineReducers} from "@reduxjs/toolkit";
+import {createGenericStore} from "./store/createGenericStore.ts";
+import SpaceResourceSiteType from "../components/nir-probe/SpaceResourcesSiteType.tsx";
+import {getReducers} from "./store/rootReducerFilters.ts";
 
-export const rootReducer = combineReducers({
+/**
+ * reduxStores contains all stores in redux as either it's Reducer
+ * or it's StoreContext.
+ */
+export const reduxStores = {
   // Bifrost Stores
   bifrostStatus: BifrostStatusStore(),
 
@@ -223,4 +229,12 @@ export const rootReducer = combineReducers({
   ),
 
   cartographerState: cartographerSlice.reducer,
-});
+
+  // generic stores
+  currentSite: createGenericStore("currentSite", 0),
+  currentSiteType: createGenericStore("currentSiteType", SpaceResourceSiteType.WATER),
+  counter: createGenericStore("counter", 0),
+};
+
+// all store reducers
+export const rootReducer = getReducers(reduxStores);
