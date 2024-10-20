@@ -8,10 +8,10 @@ export type NoUnion<T, U = T> = T extends U ? [U] extends [T] ? T : never : neve
 export type NoConflict<T> = T & Exclude<T, undefined> & NoUnion<T>
 
 /**
- * DEPRECATED please use useGenericStore instead
- *
  * Like useState, but persists using localStorage and redux
  * Note: T cannot be a union type, or undefined
+ *
+ * @deprecated please use useGenericStore instead
  *
  * @param key The local storage key to use
  * @param initialValue The initial value to assign when there is nothing in local storage
