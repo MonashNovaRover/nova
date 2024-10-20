@@ -12,7 +12,7 @@ export interface Message {
 }
 
 export interface TabSyncBlacklist {
-  stores: string[],
+  actionPrefixes: string[],
   actions: string[],
 }
 
@@ -69,9 +69,6 @@ export const tabSyncPredicate = (blacklist: TabSyncBlacklist) => (action: Action
 
   const actionParts = action.type.split('/');
 
-  if (actionParts.length < 2)
-    return false
-
   // skip any blacklisted stores and bifrost stores
-  return !(blacklist.stores.includes(actionParts[0]))
+  return !(blacklist.actionPrefixes.includes(actionParts[0]))
 }
