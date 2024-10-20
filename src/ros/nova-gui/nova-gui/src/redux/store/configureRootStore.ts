@@ -18,6 +18,7 @@ export default function configureRootStore() {
       ...filterStores(reduxStores, "shouldPersist", false),
       "cartographerState",
       "cameraStreamerState",
+      "bifrostStatus",
     ]
   };
 
@@ -30,6 +31,7 @@ export default function configureRootStore() {
       stores: [
         ...filterStores(reduxStores, "shouldTabSync", false),
         "cameraStreamerState",
+        "bifrostStatus",
         "persist",
       ],
       // specific actions not to sync
