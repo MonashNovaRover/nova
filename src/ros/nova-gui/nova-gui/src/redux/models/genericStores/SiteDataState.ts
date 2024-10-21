@@ -23,7 +23,7 @@ const EMPTY_SITE_DATA: SiteData = {
   thresholdingEntries: []
 };
 
-export const initialNIRProbeFilesState: SiteDataState = {
+export const initialSiteDataState: SiteDataState = {
   [Site.SITE_1]: EMPTY_SITE_DATA,
   [Site.SITE_2]: EMPTY_SITE_DATA,
   [Site.SITE_3]: EMPTY_SITE_DATA,
