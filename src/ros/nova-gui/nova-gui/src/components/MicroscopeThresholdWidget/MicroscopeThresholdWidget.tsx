@@ -36,10 +36,6 @@ export interface ThresholdingFileEntry {
   brightness: number
 }
 
-export interface ThresholdingFile {
-  entries: ThresholdingFileEntry[]
-}
-
 const onFloatChanged = (mutator: (x: string) => void) => (userInput: string) => {
   if (userInput.match(/((([1-9]([0-9]*))|0)((.([0-9]*))?))|(^$)/))
     mutator(userInput);
