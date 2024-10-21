@@ -13,7 +13,7 @@ export default function SiteSelectorTest() {
         <SiteTypeSelectWidget/>
       </CardBody>
       <CardBody className="text-center">
-        {currentSite}
+        {`site ${currentSite.valueOf() + 1}`}
       </CardBody>
     </Card>
   )
