@@ -17,7 +17,7 @@ import {BLCMD_INDEX} from "../constants";
 import {localStorageSlice} from "./slices/LocalStorageSlice.ts";
 import {createGenericStore} from "./store/createGenericStore.ts";
 import {Site} from "./models/genericStores/CurrentSiteStore.ts";
-import {initialNIRProbeFilesState} from "./models/genericStores/SiteDataState.ts";
+import {initialSiteDataState} from "./models/genericStores/SiteDataState.ts";
 import {getReducers} from "./store/rootReducerFilters.ts";
 
 /**
@@ -231,9 +231,9 @@ export const reduxStores = {
 
   cartographerState: cartographerSlice.reducer,
 
-  // generic stores
+  // Generic stores
   currentSite: createGenericStore("currentSite", Site.SITE_1),
-  siteData: createGenericStore("siteData", initialNIRProbeFilesState),
+  siteData: createGenericStore("siteData", initialSiteDataState),
   counter: createGenericStore("counter", 0),
 };
 
