@@ -5,7 +5,7 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
   
   <gazebo>
-    <plugin name="gazebo_ros_p3d" filename="libgazebo_ros_p3d.so">
+    <plugin name="gz::sim::systems::PosePublisher" filename="gz-sim-pose-publisher-system">
       <ros>
         <remapping>odom:=odom/gazebo</remapping>
       </ros>
