@@ -33,7 +33,7 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
           <far>100.0</far>
         </clip>
       </camera>
-      <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+      <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
         <frame_name>oak_rgb_camera_optical_frame</frame_name>
             <ros>
               <remapping>/oak/image_raw:=/oak/rgb/image_rect</remapping>
@@ -54,7 +54,7 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
 
   <gazebo reference="oak_imu_frame">
     <sensor name="imu_sensor" type="imu">
-    <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu">
     <frame_name>oak_imu_frame</frame_name>
         <ros>
           <remapping>~/out:=/oak/imu/transformed</remapping>

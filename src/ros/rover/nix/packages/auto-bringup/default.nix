@@ -9,11 +9,7 @@
 , robot-state-publisher
 , controller-manager
 , ros2-control
-# TODO: Replace with gazebo harmonic, after migrating the launch files
-# https://gazebosim.org/docs/harmonic/migrating_gazebo_classic_ros2_packages/
-#, gazebo-ros
-#, gazebo-ros2-control
-#, gazebo-ros-pkgs
+, ros-gz
 , ros2-controllers
 , pluginlib
 , robot-localization
@@ -30,6 +26,7 @@
 , nova-bt-navigators
 , rviz-imu-plugin
 , imu-transformer
+, nova-pivot-drive-controller
 }:
 
 buildRosPackage rec {
@@ -50,6 +47,7 @@ buildRosPackage rec {
       robot-state-publisher
       controller-manager
       ros2-control
+      ros-gz
       ros2-controllers
       aruco-opencv
       aruco-opencv-msgs
@@ -67,6 +65,7 @@ buildRosPackage rec {
       nova-auto-interfaces
       nova-bt-navigators
       rviz-imu-plugin
+      nova-pivot-drive-controller
       imu-transformer;
   };
 }

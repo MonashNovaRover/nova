@@ -2,21 +2,25 @@
 <sdf version="1.6">
   <world name="urc_er">
     <include>
-      <uri>model://ground_plane</uri>
+      <uri>
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Ground Plane
+      </uri>
     </include>
 
     <include>
-      <uri>model://sun</uri>
+      <uri>
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun
+      </uri>
       <pose>2 -10 10 0.8 -0.8 0</pose>
     </include>
 
     <!-- Random features for visual odometry and obstacle avoidance -->
     
-    <include>
+    <!-- <include>
       <uri>model://ar_tag</uri>
       <pose>2.985127 -4.943043 0 0 -0 0</pose>
     </include>
-   
+    -->
 
     <spherical_coordinates>
       <!-- currently gazebo has a bug: instead of outputting lat, long, altitude in ENU

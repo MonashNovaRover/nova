@@ -13,11 +13,8 @@ PACKAGE: 	core
 CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-
-from ament_index_python.packages import get_package_share_path, get_package_share_directory
-
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -30,7 +27,7 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
     rover_description_dir = FindPackageShare('rover_description')
-    gazebo_dir = FindPackageShare('gazebo_ros')
+    ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
 
     pose = {'x': LaunchConfiguration('x_pose', default='-2.0'),
@@ -68,7 +65,7 @@ def generate_launch_description():
         'world',
         # TODO(orduno) Switch back once ROS argument passing has been fixed upstream
         #              https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/91
-        # default_value=os.path.join(get_package_share_directory('turtlebot3_gazebo'),
+        # default_value=PathJoinSubstitution([get_package_share_directory('turtlebot3_gazebo']),
         # worlds/turtlebot3_worlds/waffle.model')
         default_value=PathJoinSubstitution([nova_gazebo_dir, "worlds", 'flat.model']),
         description='Full path to world model file to load')
@@ -86,12 +83,13 @@ def generate_launch_description():
     )
 
     start_gazebo_server_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(PathJoinSubstitution([gazebo_dir, 'launch', 'gzserver.launch.py'])),
-        launch_arguments={"world": world}.items()
+        PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
+        launch_arguments={'gz_args': ['-r -s -v4 ', world], 'on_exit_shutdown': 'true'}.items()
     )
 
     start_gazebo_client_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(PathJoinSubstitution([gazebo_dir, 'launch', 'gzclient.launch.py'])),
+        PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
+        launch_arguments={'gz_args': '-g -v4 '}.items(),
         condition=UnlessCondition(headless),
     )
 
@@ -103,15 +101,19 @@ def generate_launch_description():
     )
 
     spawn_rover_cmd = Node(
-        package='gazebo_ros',
-        executable='spawn_entity.py',
+        package='ros_gz_sim',
+        executable='create',
         output='screen',
         arguments=[
             '-topic', 'robot_description',
-            '-entity', robot_name,
+            '-name', robot_name,
             '-robot_namespace', namespace,
             '-x', pose['x'], '-y', pose['y'], '-z', pose['z'],
             '-R', pose['R'], '-P', pose['P'], '-Y', pose['Y']])
+
+    set_env_vars_resources = AppendEnvironmentVariable(
+        'GZ_SIM_RESOURCE_PATH',
+        PathJoinSubstitution([nova_gazebo_dir, 'models']))
 
     return LaunchDescription([
         namespace_arg,
@@ -125,4 +127,5 @@ def generate_launch_description():
         start_gazebo_client_cmd,
         spawn_rover_cmd,
         control_cmd,
+        set_env_vars_resources,
     ])
