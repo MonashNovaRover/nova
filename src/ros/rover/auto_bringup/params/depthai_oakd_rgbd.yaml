@@ -7,7 +7,6 @@
       i_disable_resize: true
       i_num_inference_threads: 2
       i_num_pool_frames: 4
-      i_nn_config_path: /home/nova/nova/src/ros/rover/auto_bringup/resources/URC_V5/URC_V5.json
     imu:
       i_enable_rotation: true
       i_message_type: IMU
