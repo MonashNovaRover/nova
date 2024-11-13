@@ -1,8 +1,8 @@
 {
     "model": {
-        "xml": "/home/nova/nova/src/ros/rover/auto_bringup/resources/URC_V5/URC_V5.xml",
-        "bin": "/home/nova/nova/src/ros/rover/auto_bringup/resources/URC_V5/URC_V5.bin",
-        "model_name": "/home/nova/nova/src/ros/rover/auto_bringup/resources/URC_V5/URC_V5_openvino_2022.1_5shave.blob",
+        "xml": "auto_bringup/resources/URC_V5/URC_V5.xml",
+        "bin": "auto_bringup/resources/URC_V5/URC_V5.bin",
+        "model_name": "auto_bringup/resources/URC_V5/URC_V5_openvino_2022.1_5shave.blob",
         "zoo": "path"
     },
     "nn_config": {

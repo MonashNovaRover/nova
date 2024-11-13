@@ -1,4 +1,5 @@
 { lib
+, pkgs
 , buildRosPackage
 , ament-cmake
 , launch
@@ -68,4 +69,32 @@ buildRosPackage rec {
       nova-pivot-drive-controller
       imu-transformer;
   };
+
+  # After installing params and resources folders in nix store's auto_bringup, 
+  # we need to generate absolute filepaths for files in that auto_bringup, to 
+  # point to the nix store's folders
+  buildInputs = [ pkgs.jq pkgs.yq ];
+  postInstall = ''
+    # Generate absolute nix store filepaths for JSON files
+    jsonFilepath="$out/share/auto_bringup/resources/URC_V5/URC_V5.json"
+    jsonFile=$(cat $jsonFilepath)
+
+    updatedJsonFile=$(echo "$jsonFile" | jq --arg out "$out" '. + {
+      model: {
+        bin: "\($out)/share/auto_bringup/resources/URC_V5/URC_V5.bin",
+        model_name: "\($out)/share/auto_bringup/resources/URC_V5/URC_V5_openvino_2022.1_5shave.blob",
+        xml: "\($out)/share/auto_bringup/resources/URC_V5/URC_V5.xml",
+        zoo: "path"
+      }
+    }')
+
+    echo "$updatedJsonFile" > $jsonFilepath
+
+    # Generate absolute nix store filepaths for YAML files
+    yamlFilepath="$out/share/auto_bringup/params/depthai_oakd_rgbd.yaml"
+
+    yq -y -i "
+      .\"/oak\".ros__parameters.nn.i_nn_config_path = \"$jsonFilepath\"
+    " $yamlFilepath
+  '';
 }
