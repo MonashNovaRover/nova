@@ -14,20 +14,25 @@ CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction, GroupAction
+from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-
-from launch_ros.actions import Node
+from launch_ros.actions import Node, ComposableNodeContainer, LoadComposableNodes
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
+from launch_ros.descriptions import ComposableNode
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
-    ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
+    ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
+    config_file = LaunchConfiguration('config_file')
+    headless = LaunchConfiguration('headless')
+    launch_robot_desciption = LaunchConfiguration('launch_robot_description')
+    model = LaunchConfiguration('model')
+    namespace = LaunchConfiguration('namespace')
     pose = {'x': LaunchConfiguration('x').perform(context),
             'y': LaunchConfiguration('y').perform(context),
             'z': LaunchConfiguration('z').perform(context),
@@ -35,13 +40,24 @@ def launch_setup(context, *args, **kwargs):
             'P': LaunchConfiguration('P').perform(context),
             'Y': LaunchConfiguration('Y').perform(context)}
     robot_name = LaunchConfiguration('robot_name')
-    headless = LaunchConfiguration('headless')
     world = LaunchConfiguration('world')
-    namespace = LaunchConfiguration('namespace')
-    model = LaunchConfiguration('model')
-    launch_robot_desciption = LaunchConfiguration('launch_robot_description')
 
     return [
+        Node(
+            package='ros_gz_bridge',
+            executable='bridge_node',
+            name='ros_gz_bridge',
+            namespace=namespace,
+            output='screen',
+            respawn=False,
+            respawn_delay=2.0,
+            parameters=[{'config_file': config_file}],
+            arguments=['--ros-args', '--log-level', 'info'],
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
+            launch_arguments={'gazebo': 'true'}.items(),
+        ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
             condition=IfCondition(launch_robot_desciption),
@@ -55,10 +71,6 @@ def launch_setup(context, *args, **kwargs):
             PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
             launch_arguments={'gz_args': '-g -v4 '}.items(),
             condition=UnlessCondition(headless),
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
-            launch_arguments={'gazebo': 'true'}.items(),
         ),
         Node(
             package='ros_gz_sim',
@@ -78,10 +90,26 @@ def launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-    rover_description_dir = FindPackageShare('rover_description')
+    auto_bringup_dir = FindPackageShare('auto_bringup')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
+    rover_description_dir = FindPackageShare('rover_description')
 
     declared_arguments = [
+        DeclareLaunchArgument(
+            name='config_file',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'ros_gz_bridge.yaml']), 
+            description='Absolute path to YAML file that maps between ROS and Gazebo topics',
+        ),
+        DeclareLaunchArgument(
+            name='headless',
+            default_value='False',
+            description='Whether to execute gzclient',
+        ),
+        DeclareLaunchArgument(
+            name='launch_robot_description',
+            default_value='True',
+            description='Should gazebo launch its own robot description, or is one already running?',
+        ),
         DeclareLaunchArgument(
             name='model', 
             default_value=PathJoinSubstitution([rover_description_dir, 'urdf', 'rover.urdf.xacro']), 
@@ -93,11 +121,6 @@ def generate_launch_description():
             description='Top-level namespace',
         ),
         DeclareLaunchArgument(
-            name='headless',
-            default_value='False',
-            description='Whether to execute gzclient',
-        ),
-        DeclareLaunchArgument(
             name='robot_name',
             default_value='Waratah',
             description='name of the robot',
@@ -106,11 +129,6 @@ def generate_launch_description():
             name='world',
             default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'flat.model']),
             description='Full path to world model file to load',
-        ),
-        DeclareLaunchArgument(
-            name='launch_robot_description',
-            default_value='True',
-            description='Should gazebo launch its own robot description, or is one already running?',
         ),
         DeclareLaunchArgument(name='x', default_value='-2.0', description='x_pose'),
         DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),

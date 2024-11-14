@@ -1,0 +1,5 @@
+- ros_topic_name: "/oak/rgb/image_rect"
+  gz_topic_name: "/world/urc_er/model/Waratah/link/base_link/sensor/oak/depth_image"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS  # BIDIRECTIONAL or ROS_TO_GZ
