@@ -1,5 +1,27 @@
+# gz oak depth camera to ros
 - ros_topic_name: "/oak/rgb/image_rect"
   gz_topic_name: "/world/urc_er/model/Waratah/link/base_link/sensor/oak/depth_image"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
   direction: GZ_TO_ROS  # BIDIRECTIONAL or ROS_TO_GZ
+
+# gz imu to ros
+  - ros_topic_name: "/oak/imu/transformed" # not sure what to name this one vs old is oak/imu/transformed but doesn't seem the same
+  gz_topic_name: "/world/urc_er/model/Waratah/link/base_link/sensor/imu_sensor/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
+
+# gz points to ros | plz check this one
+- ros_topic_name: "/oak/points"
+  gz_topic_name: "/world/urc_er/model/Waratah/link/base_link/sensor/oak/depth_image/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
+  direction: GZ_TO_ROS
+
+# gz gps to ros
+- ros_topic_name: "/fix" # guessing this one could also be /gps_plugin/vel ?
+  gz_topic_name: "/world/urc_er/model/Waratah/link/base_link/sensor/skytraq_gps/navsat"
+  ros_type_name: "sensor_msgs/msg/NavSatFix" # or "gps_msgs/msg/GPSFix"
+  gz_type_name: "gz.msgs.NavSat"             #    "gz.msgs.NavSat" but i doubt it
+  direction: GZ_TO_ROS
