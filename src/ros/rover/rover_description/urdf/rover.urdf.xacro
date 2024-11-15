@@ -557,7 +557,7 @@
       <material
         name="">
         <color
-          rgba="0.533333333 0.545098039 0.552941176 1" /> />
+          rgba="0.533333333 0.545098039 0.552941176 1" />
       </material>
     </visual>
     <collision>
@@ -669,8 +669,8 @@
   </xacro:unless>
 
   <xacro:if value="$(arg auto_camera)">
-    <xacro:include filename="auto_camera.xacro" />
+    <xacro:include filename="auto_camera.xacro"/>
   </xacro:if>
-  <xacro:include filename="p3d.xacro" />
-  <xacro:include filename="gps.xacro" />
+  <xacro:include filename="p3d.xacro"/>
+  <xacro:include filename="gps.xacro"/>
 </robot>
