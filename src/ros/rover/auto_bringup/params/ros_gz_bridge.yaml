@@ -6,7 +6,7 @@
   direction: GZ_TO_ROS  # BIDIRECTIONAL or ROS_TO_GZ
 
 # gz imu to ros
-  - ros_topic_name: "/oak/imu/transformed" # not sure what to name this one vs old is oak/imu/transformed but doesn't seem the same
+- ros_topic_name: "/oak/imu/transformed" # not sure what to name this one vs old is oak/imu/transformed but doesn't seem the same
   gz_topic_name: "/world/urc_er/model/Waratah/link/base_link/sensor/imu_sensor/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"

@@ -54,6 +54,12 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{'config_file': config_file}],
             arguments=['--ros-args', '--log-level', 'info'],
         ),
+        # Node(
+        #     package='ros_gz_image',
+        #     executable='image_bridge',
+        #     arguments=['/oak/rgb/image_rect'],
+        #     output='screen',
+        # ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
             launch_arguments={'gazebo': 'true'}.items(),
