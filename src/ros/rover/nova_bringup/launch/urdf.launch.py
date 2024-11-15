@@ -34,7 +34,7 @@ def launch_setup(context, *args, **kwargs):
                     LaunchConfiguration('rover_urdf_path'),
                     ' arm:=',
                     LaunchConfiguration('arm'),
-                    ' depth_camera:=false'
+                    ' auto_camera:=false'
                 ]
             ),
             value_type=str
@@ -46,7 +46,7 @@ def launch_setup(context, *args, **kwargs):
                 [
                     'xacro ', 
                     LaunchConfiguration('arm_urdf_path'),
-                    ' depth_camera:=false'
+                    ' auto_camera:=false'
                 ]
             ),
             value_type=str
