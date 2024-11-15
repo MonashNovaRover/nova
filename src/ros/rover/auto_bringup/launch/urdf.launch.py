@@ -28,7 +28,6 @@ from launch_ros.substitutions import FindPackageShare
 # Generate the launch file with all inputs
 def generate_launch_description():
     rover_description_dir = FindPackageShare('rover_description')
-    default_model_path = PathJoinSubstitution([rover_description_dir, 'urdf', 'rover.urdf'])
 
     gazebo = LaunchConfiguration('gazebo')
 
