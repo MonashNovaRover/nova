@@ -18,6 +18,7 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
 
   <gazebo reference="oak_rgb_camera_frame">
     <sensor type="depth" name="oak">
+      <topic>oak/depth_image</topic>
       <pose>0 0 0 0 0 0</pose>
       <visualize>true</visualize>
       <update_rate>5</update_rate>
@@ -35,17 +36,6 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
       </camera>
       <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
         <frame_name>oak_rgb_camera_optical_frame</frame_name>
-            <ros>
-              <remapping>/oak/image_raw:=/oak/rgb/image_rect</remapping>
-              <remapping>/oak/image_raw/compressed:=/oak/rgb/image_raw/compressed</remapping>
-              <remapping>/oak/image_raw/compressedDepth:=/oak/rgb/image_raw/compressedDepth</remapping>
-              <remapping>/oak/image_raw/theora:=/oak/rgb/image_raw/theora</remapping>
-              <remapping>/oak/camera_info:=/oak/rgb/camera_info</remapping>
-              <remapping>/oak/depth/image_raw/compressed:=/oak/stereo/image_raw/compressed</remapping>
-              <remapping>/oak/depth/image_raw/compressedDepth:=/oak/stereo/image_raw/compressedDepth</remapping>
-              <remapping>/oak/depth/image_raw/theora:=/oak/depth/image_raw/theora</remapping>
-              <remapping>/oak/depth/camera_info:=/oak/stereo/camera_info</remapping>
-            </ros>
         <min_depth>0.3</min_depth>
         <max_depth>12.0</max_depth>
       </plugin>
@@ -54,11 +44,9 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
 
   <gazebo reference="oak_imu_frame">
     <sensor name="imu_sensor" type="imu">
-    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu">
-    <frame_name>oak_imu_frame</frame_name>
-        <ros>
-          <remapping>~/out:=/oak/imu/transformed</remapping>
-        </ros>
+      <topic>oak/imu</topic>
+      <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu">
+      <frame_name>oak_imu_frame</frame_name>
         <initial_orientation_as_reference>false</initial_orientation_as_reference>
       </plugin>
       <always_on>true</always_on>
