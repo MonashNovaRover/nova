@@ -9,7 +9,7 @@
   <xacro:arg name="gazebo" default="false"/>
   <xacro:arg name="use_mock_hardware" default="false"/>
   <xacro:arg name="arm" default="false"/>
-  <xacro:arg name="depth_camera" default="true"/>
+  <xacro:arg name="auto_camera" default="true"/>
 
 
   <!-- Manually added links-->
@@ -668,8 +668,8 @@
     <xacro:rover_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
   </xacro:unless>
 
-  <xacro:if value="$(arg depth_camera)">
-    <xacro:include filename="depth_camera.xacro" />
+  <xacro:if value="$(arg auto_camera)">
+    <xacro:include filename="auto_camera.xacro" />
   </xacro:if>
   <xacro:include filename="p3d.xacro" />
   <xacro:include filename="gps.xacro" />
