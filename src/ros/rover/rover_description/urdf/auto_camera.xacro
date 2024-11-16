@@ -17,11 +17,33 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
    cam_roll = "0.0" cam_pitch = "0.0" cam_yaw = "0.0"/>
 
   <gazebo reference="oak_rgb_camera_frame">
-    <sensor type="depth" name="oak">
-      <topic>oak/depth_image</topic>
-      <pose>0 0 0 0 0 0</pose>
+    <sensor name="oak/stereo" type="depth_camera">
+      <topic>oak/stereo</topic>
       <visualize>true</visualize>
-      <update_rate>5</update_rate>
+      <update_rate>30</update_rate>
+      <always_on>1</always_on>
+      <camera>
+        <horizontal_fov>${radians(82)}</horizontal_fov>
+        <image>
+          <width>600</width>
+          <height>400</height>
+        </image>
+        <clip>
+          <near>0.4</near>
+          <far>100.0</far>
+        </clip>
+      </camera>
+      <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
+        <!-- <frame_name>oak_rgb_camera_optical_frame</frame_name>
+        <min_depth>0.3</min_depth>
+        <max_depth>12.0</max_depth> -->
+      </plugin>
+    </sensor>
+    <sensor name="oak/rgb" type="camera">
+      <topic>oak/rgb</topic>
+      <visualize>true</visualize>
+      <update_rate>30</update_rate>
+      <always_on>1</always_on>
       <camera>
         <horizontal_fov>${radians(82)}</horizontal_fov>
         <image>
@@ -34,11 +56,6 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
           <far>100.0</far>
         </clip>
       </camera>
-      <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
-        <frame_name>oak_rgb_camera_optical_frame</frame_name>
-        <min_depth>0.3</min_depth>
-        <max_depth>12.0</max_depth>
-      </plugin>
     </sensor>
   </gazebo>
 
