@@ -6,6 +6,7 @@
 , gz-ros2-control
 , rqt
 , rqt-common-plugins
+, tf2-tools
 , gdb
 , gps-umd
 
@@ -104,7 +105,8 @@ in
       ros-gz
       gz-ros2-control
       gps-umd
-      rqt rqt-common-plugins;
+      rqt rqt-common-plugins
+      tf2-tools;
   }) // extraPackages;
   prebuiltShellPackages = {
     inherit
