@@ -4,7 +4,7 @@ import storage from 'redux-persist/lib/storage';
 import {UIActions} from "../slices/UISlice.ts";
 import {TabSyncBlacklist, tabSyncMiddleware, tabSyncPredicate} from "./middleware/crossTabSync.ts";
 import {filterStores} from "./rootReducerFilters.ts";
-import {rootReducer, reduxStores} from "../RootReducer.ts";
+import {rootReducer, reduxStores, bifrostStores} from "../RootReducer.ts";
 import {BifrostActionTypes} from "../actions/bifrost/createBifrostAction.ts";
 
 export default function configureRootStore() {
@@ -34,7 +34,8 @@ export default function configureRootStore() {
       // is in the blacklist.
       // This is usually the name given in the "createSlice" function.
       actionPrefixes: [
-        ...filterStores(reduxStores, "shouldTabSync", false),
+        // can ignore all bifrost stores since their actions prefixes are BifrostActionTypes
+        ...filterStores(reduxStores, "shouldTabSync", false).filter(val => !bifrostStores.includes(val)),
         "CameraStreamReducer",
         "persist",
 
