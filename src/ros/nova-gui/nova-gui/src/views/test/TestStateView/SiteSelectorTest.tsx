@@ -1,21 +1,19 @@
-import SiteSelectWidget, {siteFilenames} from "./SiteSelectWidget.tsx";
 import {Card, CardBody} from "@nextui-org/react";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
-
+import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
+import SiteTypeSelectWidget from "../../../components/SiteSelectWidget/SiteTypeSelectWidget.tsx";
 
 export default function SiteSelectorTest() {
 
-  const [currentSite, _] = useGenericStore<number>("currentSite");
+  const [currentSite, _] = useGenericStore<Site>("currentSite");
 
   return (
     <Card>
       <CardBody>
-        <SiteSelectWidget
-          hideSiteType={false}
-        />
+        <SiteTypeSelectWidget/>
       </CardBody>
       <CardBody className="text-center">
-        {siteFilenames[currentSite]}
+        {`site ${currentSite.valueOf() + 1}`}
       </CardBody>
     </Card>
   )
