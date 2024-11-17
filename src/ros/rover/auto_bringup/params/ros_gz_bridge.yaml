@@ -1,6 +1,6 @@
 # gz oak stereo camera to ros
 - ros_topic_name: "/oak/stereo/image_rect"
-  gz_topic_name: "/oak/depth_image"
+  gz_topic_name: "/oak/stereo"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
   direction: GZ_TO_ROS  # BIDIRECTIONAL or ROS_TO_GZ
@@ -21,7 +21,7 @@
 
 # gz pointcloud to ros
 - ros_topic_name: "/oak/points"
-  gz_topic_name: "/oak/depth_image/points"
+  gz_topic_name: "/oak/stereo/points"
   ros_type_name: "sensor_msgs/msg/PointCloud2"
   gz_type_name: "gz.msgs.PointCloudPacked"
   direction: GZ_TO_ROS
