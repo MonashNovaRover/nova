@@ -672,5 +672,6 @@
     <xacro:include filename="auto_camera.xacro"/>
   </xacro:if>
   <xacro:include filename="p3d.xacro"/>
+  <xacro:include filename="odom.xacro"/>
   <xacro:include filename="gps.xacro"/>
 </robot>
