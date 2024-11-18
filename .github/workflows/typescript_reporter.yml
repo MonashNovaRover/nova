@@ -13,4 +13,4 @@ jobs:
       - name: TypeScript report
         uses: fersilva16/ts-report-action@1.1.0
         with:
-          project: src/ros/nova-gui/nova-gui/tsconfig.json
+          project: src/ros/nova-gui/nova-gui
