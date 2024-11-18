@@ -10,6 +10,7 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: TypeScript report
         uses: fersilva16/ts-report-action@1.1.0
         with:
