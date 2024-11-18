@@ -1,0 +1,16 @@
+name: Typescript Reporter
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: TypeScript report
+        uses: fersilva16/ts-report-action@1.1.0
+        with:
+          project: path/to/tsconfig.json
