@@ -147,17 +147,13 @@ self: super:
       });
 
       nav2-rviz-plugins = rosSuper.nav2-rviz-plugins.overrideAttrs ({ postPatch ? "", ... }: {
-          #src = self.fetchFromGitHub {
-          #  owner = "ros-navigation";
-          #  repo = "navigation2";
-          #  rev = "3140a6a65c2ecbcf975dac94e3f3c64c0d9efc84"; # jazzy 1.3.3
-          #  sha256 = "sha256-3140a6a65c2ecbcf975dac94e3f3c64c0d9efc84=";
-          #};
+        # remove broken updateAutoDeactivate() symbol, 20/11/2024, Navigation2 1.3.2
         postPatch = postPatch + ''
-          ls
-          echo "rviz plugin was patched rohit is cool :D"
           substituteInPlace src/costmap_cost_tool.cpp --replace "SLOT(updateAutoDeactivate())" "nullptr"
-          cat src/costmap_cost_tool.cpp
+          substituteInPlace include/nav2_rviz_plugins/costmap_cost_tool.hpp --replace "private Q_SLOTS:" "" 
+          substituteInPlace include/nav2_rviz_plugins/costmap_cost_tool.hpp --replace "void updateAutoDeactivate();" ""
+          cat include/nav2_rviz_plugins/costmap_cost_tool.hpp
+          echo "nav2_rviz_plugin was patched, removing broken updateAutoDeactivate() symbol | rohit is cool :D"
         '';
       });
 
