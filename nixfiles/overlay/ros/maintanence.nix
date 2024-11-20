@@ -145,6 +145,22 @@ self: super:
           substituteInPlace CMakeLists.txt --replace 'find_package(octomap 1.9.7...<1.10.0 REQUIRED)' 'find_package(octomap 1.9.7...1.10.0 REQUIRED)'
         '';
       });
+
+      nav2-rviz-plugins = rosSuper.nav2-rviz-plugins.overrideAttrs ({ postPatch ? "", ... }: {
+          #src = self.fetchFromGitHub {
+          #  owner = "ros-navigation";
+          #  repo = "navigation2";
+          #  rev = "3140a6a65c2ecbcf975dac94e3f3c64c0d9efc84"; # jazzy 1.3.3
+          #  sha256 = "sha256-3140a6a65c2ecbcf975dac94e3f3c64c0d9efc84=";
+          #};
+        postPatch = postPatch + ''
+          ls
+          echo "rviz plugin was patched rohit is cool :D"
+          substituteInPlace src/costmap_cost_tool.cpp --replace "SLOT(updateAutoDeactivate())" "nullptr"
+          cat src/costmap_cost_tool.cpp
+        '';
+      });
+
     } // (
       let
         fixRtabmapDependent = pkg: pkg.overrideAttrs ({ buildInputs ? [ ], ... }: {
