@@ -145,6 +145,17 @@ self: super:
           substituteInPlace CMakeLists.txt --replace 'find_package(octomap 1.9.7...<1.10.0 REQUIRED)' 'find_package(octomap 1.9.7...1.10.0 REQUIRED)'
         '';
       });
+
+      nav2-rviz-plugins = rosSuper.nav2-rviz-plugins.overrideAttrs ({ postPatch ? "", ... }: {
+        # remove broken updateAutoDeactivate() symbol, 20/11/2024, Navigation2 1.3.2
+        # https://github.com/MonashNovaRover/nova/issues/96
+        postPatch = postPatch + ''
+          substituteInPlace src/costmap_cost_tool.cpp --replace "SLOT(updateAutoDeactivate())" "nullptr"
+          substituteInPlace include/nav2_rviz_plugins/costmap_cost_tool.hpp --replace "private Q_SLOTS:" "" 
+          substituteInPlace include/nav2_rviz_plugins/costmap_cost_tool.hpp --replace "void updateAutoDeactivate();" ""
+        '';
+      });
+
     } // (
       let
         fixRtabmapDependent = pkg: pkg.overrideAttrs ({ buildInputs ? [ ], ... }: {
