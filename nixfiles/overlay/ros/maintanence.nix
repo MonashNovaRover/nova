@@ -152,8 +152,6 @@ self: super:
           substituteInPlace src/costmap_cost_tool.cpp --replace "SLOT(updateAutoDeactivate())" "nullptr"
           substituteInPlace include/nav2_rviz_plugins/costmap_cost_tool.hpp --replace "private Q_SLOTS:" "" 
           substituteInPlace include/nav2_rviz_plugins/costmap_cost_tool.hpp --replace "void updateAutoDeactivate();" ""
-          cat include/nav2_rviz_plugins/costmap_cost_tool.hpp
-          echo "nav2_rviz_plugin was patched, removing broken updateAutoDeactivate() symbol | rohit is cool :D"
         '';
       });
 
