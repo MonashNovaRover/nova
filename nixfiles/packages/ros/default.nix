@@ -3,7 +3,7 @@
 {
   depthai = callPackage ./depthai { };
   librealsense2-gui = callPackage ./librealsense2-gui { };
-  imu-transformer = callPackage ./imu-transformer { };
+  #imu-transformer = callPackage ./imu-transformer { };
   nova-workspace = callPackage ./nova-workspace { };
   rclnodejs = callPackage ./rclnodejs { };
   realsense-patches = callPackage ./realsense-patches { };
