@@ -8,6 +8,7 @@
 , rqt-common-plugins
 , gdb
 , gps-umd
+, imu-transformer
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -104,7 +105,8 @@ in
       ros-gz
       gz-ros2-control
       gps-umd
-      rqt rqt-common-plugins;
+      rqt rqt-common-plugins
+      imu-transformer;
   }) // extraPackages;
   prebuiltShellPackages = {
     inherit
