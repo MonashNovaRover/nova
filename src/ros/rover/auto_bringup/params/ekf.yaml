@@ -1,40 +1,98 @@
-### ekf config file ###
+# ### ekf config file ###
+# ekf_filter_node:
+#     ros__parameters:
+# # The frequency, in Hz, at which the filter will output a position estimate. Note that the filter will not begin
+# # computation until it receives at least one message from one of theinputs. It will then run continuously at the
+# # frequency specified here, regardless of whether it receives more measurements. Defaults to 30 if unspecified.
+#         frequency: 30.0
+
+# # ekf_localization_node and ukf_localization_node both use a 3D omnidirectional motion model. If this parameter is
+# # set to true, no 3D information will be used in your state estimate. Use this if you are operating in a planar
+# # environment and want to ignore the effect of small variations in the ground plane that might otherwise be detected
+# # by, for example, an IMU. Defaults to false if unspecified.
+#         two_d_mode: false
+
+# # Whether to publish the acceleration state. Defaults to false if unspecified.
+#         publish_acceleration: false
+
+# # Whether to broadcast the transformation over the /tf topic. Defaultsto true if unspecified.
+#         publish_tf: true
+
+# # 1. Set the map_frame, odom_frame, and base_link frames to the appropriate frame names for your system.
+# #     1a. If your system does not have a map_frame, just remove it, and make sure "world_frame" is set to the value of odom_frame.
+# # 2. If you are fusing continuous position data such as wheel encoder odometry, visual odometry, or IMU data, set "world_frame"
+# #    to your odom_frame value. This is the default behavior for robot_localization's state estimation nodes.
+# # 3. If you are fusing global absolute position data that is subject to discrete jumps (e.g., GPS or position updates from landmark
+# #    observations) then:
+# #     3a. Set your "world_frame" to your map_frame value
+# #     3b. MAKE SURE something else is generating the odom->base_link transform. Note that this can even be another state estimation node
+# #         from robot_localization! However, that instance should *not* fuse the global data.
+#         map_frame: map              # Defaults to "map" if unspecified
+#         odom_frame: odom            # Defaults to "odom" if unspecified
+#         base_link_frame: base_link  # Defaults to "base_link" ifunspecified
+#         world_frame: odom           # Defaults to the value ofodom_frame if unspecified
+
+#         odom0: /pivot_drive_controller/odom
+#         odom0_config: [false,  false,  false,   # X, Y, Z
+#                        false, false, false,  # roll, pitch, yaw
+#                        true, false, false,  # X', Y', Z'
+#                        false, false, true,   # roll', pitch', yaw'
+#                        false, false, false]  # X'', Y'', Z''
+
+### ekf.yaml ###
 ekf_filter_node:
-    ros__parameters:
-# The frequency, in Hz, at which the filter will output a position estimate. Note that the filter will not begin
-# computation until it receives at least one message from one of theinputs. It will then run continuously at the
-# frequency specified here, regardless of whether it receives more measurements. Defaults to 30 if unspecified.
-        frequency: 30.0
+  ros__parameters:
+    # General parameters
+    frequency: 30.0               # Filter update frequency (Hz)
+    two_d_mode: false             # Set true if operating in a 2D environment
+    publish_acceleration: false   # Disable acceleration state publishing if not needed
+    publish_tf: true              # Enable broadcasting the transform
+    map_frame: map                # Frame for the map
+    odom_frame: odom              # Frame for odometry
+    base_link_frame: base_link    # Robot's base frame
+    world_frame: odom             # World frame to use (map or odom)
 
-# ekf_localization_node and ukf_localization_node both use a 3D omnidirectional motion model. If this parameter is
-# set to true, no 3D information will be used in your state estimate. Use this if you are operating in a planar
-# environment and want to ignore the effect of small variations in the ground plane that might otherwise be detected
-# by, for example, an IMU. Defaults to false if unspecified.
-        two_d_mode: false
+    # IMU configuration
+    imu0: /oak/imu/transformed    # Topic for the IMU data
+    imu0_config: [false, false, false,   # X, Y, Z positions (unused)
+                  false, false, true,    # Roll, pitch, yaw (use yaw only)
+                  false, false, false,   # X', Y', Z' velocities (unused)
+                  false, false, true,    # Roll', pitch', yaw' velocities (use yaw rate)
+                  false, false, false]   # X'', Y'', Z'' accelerations (unused)
 
-# Whether to publish the acceleration state. Defaults to false if unspecified.
-        publish_acceleration: false
+    imu0_differential: false               # Do not calculate differences
+    imu0_relative: false                   # Do not use relative measurements
+    imu0_queue_size: 10                    # Number of messages to queue
+    imu0_remove_gravitational_acceleration: true # Compensate for gravity effects
 
-# Whether to broadcast the transformation over the /tf topic. Defaultsto true if unspecified.
-        publish_tf: true
+    # Process noise covariance matrix
+    # Tune these values based on your system
+    process_noise_covariance: [1e-3, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  1e-3, 0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.0,  1e-3, 0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.0,  0.0,  0.3,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.0,  0.0,  0.0,  0.3,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.0,  0.0,  0.0,  0.0,  0.01, 0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.5,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.5,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0]
 
-# 1. Set the map_frame, odom_frame, and base_link frames to the appropriate frame names for your system.
-#     1a. If your system does not have a map_frame, just remove it, and make sure "world_frame" is set to the value of odom_frame.
-# 2. If you are fusing continuous position data such as wheel encoder odometry, visual odometry, or IMU data, set "world_frame"
-#    to your odom_frame value. This is the default behavior for robot_localization's state estimation nodes.
-# 3. If you are fusing global absolute position data that is subject to discrete jumps (e.g., GPS or position updates from landmark
-#    observations) then:
-#     3a. Set your "world_frame" to your map_frame value
-#     3b. MAKE SURE something else is generating the odom->base_link transform. Note that this can even be another state estimation node
-#         from robot_localization! However, that instance should *not* fuse the global data.
-        map_frame: map              # Defaults to "map" if unspecified
-        odom_frame: odom            # Defaults to "odom" if unspecified
-        base_link_frame: base_link  # Defaults to "base_link" ifunspecified
-        world_frame: odom           # Defaults to the value ofodom_frame if unspecified
+    # Initial estimate covariance matrix (set low uncertainty if the initial pose is known)
+    initial_estimate_covariance: [1e-9, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                   0.0,  1e-9, 0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                   0.0,  0.0,  1e-9, 0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0]
 
-        odom0: /pivot_drive_controller/odom
-        odom0_config: [false,  false,  false,   # X, Y, Z
-                       false, false, false,  # roll, pitch, yaw
-                       true, false, false,  # X', Y', Z'
-                       false, false, true,   # roll', pitch', yaw'
-                       false, false, false]  # X'', Y'', Z''
+    # Disable odometry and other sensors
+    odom0:                      # Remove or comment out odometry topics
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+
+    # Disable GPS if present
+    gps0:
+    gps0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false]
