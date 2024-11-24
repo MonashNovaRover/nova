@@ -3,6 +3,8 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactPlugin from "eslint-plugin-react";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
+import { fixupPluginRules } from "@eslint/compat";
 
 export default tseslint.config({
     extends: [
@@ -10,9 +12,11 @@ export default tseslint.config({
         tseslint.configs.recommended,
     ],
     plugins: {
-        "@eslint-plugin-react": reactPlugin,
+        "react": reactPlugin,
+        "react-hooks": fixupPluginRules(reactHooksPlugin),
     },
     rules: {
+        ...reactHooksPlugin.configs.recommended.rules,
         '@typescript-eslint/no-duplicate-enum-values': 'warn',
         '@typescript-eslint/no-empty-object-type': 'off',
         "@typescript-eslint/no-unused-vars": [

@@ -138,7 +138,7 @@ const StepperWidget: React.FC<StepperWidgetProps> = (props) => {
       }
       setActionSent(false);
     }
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[actionSent, goalResponse]);
 
   useEffect(() => {
@@ -148,12 +148,14 @@ const StepperWidget: React.FC<StepperWidgetProps> = (props) => {
     if (targetPosition === null && feedback) {
       setTargetPosition(stepperFeedback.goal_position);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[feedback]);
 
   useEffect(() => {
     console.log(`Locations ${locations.toString()}`);
     console.log(`Target Location Index: ${targetLocationIndex}`);
     console.log(`Target Location: ${targetLocationIndex !== null ? locations[targetLocationIndex].display : "Unknown"}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentLocationIndex]);
 
 

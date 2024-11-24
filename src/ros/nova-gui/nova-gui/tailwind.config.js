@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-const { nextui } = require("@nextui-org/react");
+import { nextui } from "@nextui-org/react";
 
 export default {
   content: [
@@ -26,9 +26,6 @@ export default {
         //   navbkground: "#1A1A1A",
         // },
       },
-      spacing: {
-      '154': '38.5rem',
-      }
     },
   },
   darkMode: "class",
