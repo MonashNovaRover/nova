@@ -45,7 +45,7 @@ const RamanCCDInputs: React.FC = () => {
         if (response.continuousendedsignal == true) {
             setCurrentlyInContinuous(false);
         }
-      }, [bifrost]);
+      }, [bifrost, response.continuousendedsignal]);
 
     return (
         <Card className="h-40 m-1 p-5 flex flex-row flex-wrap flex-1 space-x-10">

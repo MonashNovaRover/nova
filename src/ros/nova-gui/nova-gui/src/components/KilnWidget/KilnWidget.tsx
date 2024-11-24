@@ -37,6 +37,7 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
           result[index] = 1.1*kilnData.temp[index];
           setMaxTemp(result);
       }})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataBifrost]);
 
   const toggleKiln = (
