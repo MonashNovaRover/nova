@@ -65,6 +65,7 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
       setLongitude(props.longitude?.toString() ?? "");
       setLatitude(props.latitude?.toString() ?? "");
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [props.isOpen]
   )
 

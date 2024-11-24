@@ -112,7 +112,7 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
       setActionSent(false);
     }
 
-  },[actionSent, goalResponse]);
+  }, [actionSent, goalResponse, pumpsGoalResponse.success, feedback, selectedPumpIndex, pumpsFeedback.time_to_run]);
 
 
 

@@ -70,8 +70,7 @@ export const useCameraStream = (
     }
     setStreamingState(StreamingState.LOADING);
     sendJsonMessage({ type: "startSession", peerId });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sendJsonMessage, peerId, isWsOpen]);
+  }, [sendJsonMessage, peerId, isWsOpen, cameraSerial]);
 
   const [streamingState, setStreamingState] = useState<StreamingState>(
     StreamingState.STOPPED
