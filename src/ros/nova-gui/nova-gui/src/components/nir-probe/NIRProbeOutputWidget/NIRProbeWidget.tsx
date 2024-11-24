@@ -29,7 +29,7 @@ const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
   // set the current site's file to a new file
   const setFileForCurrentSite = useCallback((newFile: SiteData) => {
     setSiteData({...siteData, [currentSite]: newFile})
-  }, [siteData, currentSite])
+  }, [siteData, currentSite, setSiteData])
 
 
   // The currently selected site's file

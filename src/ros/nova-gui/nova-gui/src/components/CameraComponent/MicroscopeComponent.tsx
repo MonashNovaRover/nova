@@ -42,6 +42,7 @@ const MicroscopeComponent: React.FC = () => {
     if (microscopeServoState.angle !== zoom) {
       setZoomFocus(zoom);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zoom]);
 
   return (

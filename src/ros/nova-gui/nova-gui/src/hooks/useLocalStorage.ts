@@ -56,6 +56,7 @@ export function useLocalStorage<T>(key: string, initialValue: NoConflict<T>, dep
 
     // The value is a valid value and matches the type of what is in storage.
     setValue({key: key, value: value});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, dependencies)
 
   const lsSetValue = useCallback((newValue: NoConflict<T> | ((previousValue: NoConflict<T>) => NoConflict<T>)) => {
