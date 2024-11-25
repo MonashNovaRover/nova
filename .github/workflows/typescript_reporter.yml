@@ -1,17 +1,48 @@
-name: Typescript Reporter
+name: React Build with Reviewdog
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
-  pull_request:
 
 jobs:
-  checks:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: TypeScript report
-        uses: fersilva16/ts-report-action@1.1.0
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          project: src/ros/nova-gui/nova-gui
+          node-version: '16' # Match your project's Node.js version
+
+      - name: Install dependencies
+        working-directory: src/ros/nova-gui/nova-gui
+        run: yarn install
+
+      - name: Run build
+        id: build
+        working-directory: src/ros/nova-gui/nova-gui
+        run: |
+          yarn build 2> build_errors.txt || true
+
+      - name: Install reviewdog
+        uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
+
+      - name: Run reviewdog for build errors
+        if: always()
+        working-directory: src/ros/nova-gui/nova-gui
+        run: |
+          cat build_errors.txt | reviewdog -f=checkstyle \
+            -name="React Build Errors" \
+            -reporter=github-pr-check \
+            -level=error
+
+
