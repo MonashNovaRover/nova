@@ -36,7 +36,7 @@ jobs:
           reviewdog_version: latest
 
       - name: Run reviewdog for build errors
-        if: always()
+        if: ${{ always() }}  # Correct syntax for the "always" condition
         working-directory: src/ros/nova-gui/nova-gui
         run: |
           cat build_errors.txt | reviewdog -f=checkstyle \
