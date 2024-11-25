@@ -18,7 +18,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16' # Match your project's Node.js version
+          node-version: '20.15.1' # Match your project's Node.js version
 
       - name: Install dependencies
         working-directory: src/ros/nova-gui/nova-gui
