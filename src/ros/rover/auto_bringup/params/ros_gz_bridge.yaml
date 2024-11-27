@@ -1,9 +1,16 @@
-# gz oak stereo camera to ros
-- ros_topic_name: "/oak/stereo/image_rect"
+# gz oak depth map camera to ros
+- ros_topic_name: "/oak/stereo"
   gz_topic_name: "/oak/stereo"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
   direction: GZ_TO_ROS  # BIDIRECTIONAL or ROS_TO_GZ
+
+# gz oak stereo camera to ros
+- ros_topic_name: "/oak/stereo/image_rect"
+  gz_topic_name: "/oak/stereo/image_rect"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
 
 # gz oak rgb camera to ros
 - ros_topic_name: "/oak/rgb/image_rect"
