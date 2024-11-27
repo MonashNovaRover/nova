@@ -19,6 +19,7 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
   <gazebo reference="oak_rgb_camera_frame">
     <sensor name="oak/stereo" type="depth_camera">
       <topic>oak/stereo</topic>
+      <gz_frame_id>camera_link</gz_frame_id>
       <visualize>true</visualize>
       <update_rate>30</update_rate>
       <always_on>1</always_on>
