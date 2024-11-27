@@ -1,0 +1,32 @@
+name: GUI_CI
+on: [push]
+
+jobs:
+  build:    
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set Node.js 22.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22.x
+
+      - name: Run install
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: install
+          dir: nova-gui
+
+      - name: Test the app
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: test # will run `yarn test` command
+          dir: nova-gui
+
+      - name: Build the project
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: build # will run `yarn dev` command
+          dir: nova-gui
