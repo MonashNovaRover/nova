@@ -1,9 +1,16 @@
+# gz clock to ros 
+- ros_topic_name: "/clock"
+  gz_topic_name: "/clock"
+  ros_type_name: "rosgraph_msgs/msg/Clock"
+  gz_type_name: "gz.msgs.Clock"
+  direction: GZ_TO_ROS # BIDIRECTIONAL or ROS_TO_GZ
+
 # gz oak depth map camera to ros 
 - ros_topic_name: "/oak/stereo"
   gz_topic_name: "/oak/stereo"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
-  direction: GZ_TO_ROS  # BIDIRECTIONAL or ROS_TO_GZ
+  direction: GZ_TO_ROS
 
 # gz oak rgb camera to ros
 - ros_topic_name: "/oak/rgb/image_rect"

@@ -103,7 +103,7 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             name='config_file',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'ros_gz_bridge.yaml']), 
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'gz_bridge.yaml']), 
             description='Absolute path to YAML file that maps between ROS and Gazebo topics',
         ),
         DeclareLaunchArgument(
@@ -133,7 +133,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='world',
-            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'flat.model']),
+            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'flat.sdf']),
             description='Full path to world model file to load',
         ),
         DeclareLaunchArgument(name='x', default_value='-2.0', description='x_pose'),
