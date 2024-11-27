@@ -1,6 +1,45 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="urc_er">
+
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="gz-sim-contact-system"
+      name="gz::sim::systems::Contact">
+    </plugin>
+
+    <physics type="ode">
+      <real_time_update_rate>1000.0</real_time_update_rate>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>150</iters>
+          <precon_iters>0</precon_iters>
+          <sor>1.400000</sor>
+          <use_dynamic_moi_rescaling>1</use_dynamic_moi_rescaling>
+        </solver>
+        <constraints>
+          <cfm>0.00001</cfm>
+          <erp>0.2</erp>
+          <contact_max_correcting_vel>2000.000000</contact_max_correcting_vel>
+          <contact_surface_layer>0.01000</contact_surface_layer>
+        </constraints>
+      </ode>
+    </physics>
+
     <include>
       <uri>
         https://fuel.gazebosim.org/1.0/OpenRobotics/models/Ground Plane
@@ -12,15 +51,7 @@
         https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun
       </uri>
       <pose>2 -10 10 0.8 -0.8 0</pose>
-    </include>
-
-    <!-- Random features for visual odometry and obstacle avoidance -->
-    
-    <!-- <include>
-      <uri>model://ar_tag</uri>
-      <pose>2.985127 -4.943043 0 0 -0 0</pose>
-    </include>
-    -->
+    </include>  
 
     <spherical_coordinates>
       <!-- currently gazebo has a bug: instead of outputting lat, long, altitude in ENU
@@ -33,6 +64,8 @@
       <elevation>1370.0</elevation>
       <heading_deg>180</heading_deg>
     </spherical_coordinates>
+
+    <!-- Random features for visual odometry and obstacle avoidance -->
 
     <model name='box_0'>
       <pose>5.78862 -3.02551 0.5 0 -0 0</pose>
@@ -210,25 +243,5 @@
       </camera>
     </gui>
 
-    <physics type="ode">
-      <real_time_update_rate>1000.0</real_time_update_rate>
-      <max_step_size>0.001</max_step_size>
-      <real_time_factor>1</real_time_factor>
-      <ode>
-        <solver>
-          <type>quick</type>
-          <iters>150</iters>
-          <precon_iters>0</precon_iters>
-          <sor>1.400000</sor>
-          <use_dynamic_moi_rescaling>1</use_dynamic_moi_rescaling>
-        </solver>
-        <constraints>
-          <cfm>0.00001</cfm>
-          <erp>0.2</erp>
-          <contact_max_correcting_vel>2000.000000</contact_max_correcting_vel>
-          <contact_surface_layer>0.01000</contact_surface_layer>
-        </constraints>
-      </ode>
-    </physics>
   </world>
 </sdf>
