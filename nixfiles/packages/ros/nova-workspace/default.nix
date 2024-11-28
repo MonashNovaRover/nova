@@ -37,6 +37,7 @@
 , nova-python-control ? throw "python-control is needed, but not available!"
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-utils ? throw "nova-utils is needed, but not available!"
+, auger-controller ? throw "auger-controller is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -77,7 +78,8 @@
       nova-gazebo
       nova-python-control
       nova-excavation-construction
-      nova-utils;
+      nova-utils
+      auger-controller;
   }
 
   ## Extra packages to add to the workspace.
