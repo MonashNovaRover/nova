@@ -44,9 +44,6 @@
         izz="0.0330392069237774" />
     </inertial>
     <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="file://$(find rover_description)/meshes/chassis.STL" />
@@ -57,15 +54,6 @@
           rgba="1 0.0784 0.576470588 1" />
       </material>
     </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="file://$(find rover_description)/meshes/chassis.STL" />
-      </geometry>
-    </collision>
   </link>
 
   <!-- Positions the chassis mesh in space relative to the wheel base -->
@@ -104,9 +92,6 @@
         izz="0.00170040442773973" /> sure we start by add
     </inertial>
     <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="file://$(find rover_description)/meshes/left_leg.STL" />
@@ -117,15 +102,6 @@
           rgba="0.533333333 0.545098039 0.552941176 1" />
       </material>
     </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="file://$(find rover_description)/meshes/left_leg.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="left_leg_to_chassis"
@@ -157,9 +133,6 @@
         izz="0.00065621231398329" />
     </inertial>
     <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="file://$(find rover_description)/meshes/front_left_pivot.STL" />
@@ -170,15 +143,6 @@
           rgba="0.533333333 0.545098039 0.552941176 1" /> />
       </material>
     </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="file://$(find rover_description)/meshes/front_left_pivot.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="flp"
@@ -195,9 +159,8 @@
     <limit
       lower="-3.141592654"
       upper="3.141592654"
-      effort="1"
+      effort="20"
       velocity="1" />
-    <dynamics damping="10.0" friction="10.0"/>
   </joint>
   <link
     name="front_left_wheel">
@@ -216,9 +179,6 @@
         izz="0.0147659923233673" />
     </inertial>
     <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="file://$(find rover_description)/meshes/front_left_wheel.STL" />
@@ -230,9 +190,6 @@
       </material>
     </visual>
     <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="file://$(find rover_description)/meshes/wheel_collision.stl" />
@@ -269,9 +226,6 @@
         izz="0.000656212398774585" />
     </inertial>
     <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="file://$(find rover_description)/meshes/back_left_pivot.STL" />
@@ -282,34 +236,19 @@
           rgba="0.533333333 0.545098039 0.552941176 1" /> />
       </material>
     </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="file://$(find rover_description)/meshes/back_left_pivot.STL" />
-      </geometry>
-    </collision>
   </link>
-  <joint
-    name="blp"
-    type="revolute">
-    <origin
-      xyz="-0.0093548 0.20893 0.87956"
-      rpy="0.10777 0.18 1.5292" />
+  <joint name="blp" type="revolute">
+    <origin xyz="-0.0093548 0.20893 0.87956" rpy="0.10777 0.18 1.5292" />
     <parent
       link="left_leg" />
     <child
       link="back_left_pivot" />
     <axis
       xyz="0 1 0" />
-    <limit
-      lower="-3.141592654"
+    <limit lower="-3.141592654"
       upper="3.141592654"
-      effort="1"
+      effort="20"
       velocity="1" />
-    <dynamics damping="10.0" friction="10.0"/>
   </joint>
   <link
     name="back_left_wheel">
@@ -328,9 +267,6 @@
         izz="0.0147659923485163" />
     </inertial>
     <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="file://$(find rover_description)/meshes/back_left_wheel.STL" />
@@ -342,9 +278,6 @@
       </material>
     </visual>
     <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="file://$(find rover_description)/meshes/wheel_collision.stl" />
@@ -381,9 +314,6 @@
         izz="0.00111752715569272" />
     </inertial>
     <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="file://$(find rover_description)/meshes/right_leg.STL" />
@@ -394,15 +324,6 @@
           rgba="0.533333333 0.545098039 0.552941176 1" /> />
       </material>
     </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="file://$(find rover_description)/meshes/right_leg.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="right_leg_to_chassis"
@@ -434,9 +355,6 @@
         izz="0.000656207197300882" />
     </inertial>
     <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="file://$(find rover_description)/meshes/front_right_pivot.STL" />
@@ -447,15 +365,6 @@
           rgba="0.533333333 0.545098039 0.552941176 1" />
       </material>
     </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="file://$(find rover_description)/meshes/front_right_pivot.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="frp"
@@ -472,9 +381,8 @@
     <limit
       lower="-3.141592654"
       upper="3.141592654"
-      effort="1"
+      effort="20"
       velocity="1" />
-    <dynamics damping="10.0" friction="10.0"/>
   </joint>
 
   <link
@@ -494,9 +402,6 @@
         izz="0.0147659923102889" />
     </inertial>
     <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="file://$(find rover_description)/meshes/front_right_wheel.STL" />
@@ -508,9 +413,6 @@
       </material>
     </visual>
     <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="file://$(find rover_description)/meshes/wheel_collision.stl" />
@@ -547,9 +449,6 @@
         izz="0.000656207198097132" />
     </inertial>
     <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="file://$(find rover_description)/meshes/back_right_pivot.STL" />
@@ -560,15 +459,6 @@
           rgba="0.533333333 0.545098039 0.552941176 1" />
       </material>
     </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="file://$(find rover_description)/meshes/back_right_pivot.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="brp"
@@ -585,9 +475,8 @@
     <limit
       lower="-3.141592654"
       upper="3.141592654"
-      effort="1"
+      effort="20"
       velocity="1" />
-    <dynamics damping="10.0" friction="10.0"/>
   </joint>
   <link
     name="back_right_wheel">
@@ -606,9 +495,6 @@
         izz="0.0147659923102887" />
     </inertial>
     <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="file://$(find rover_description)/meshes/back_right_wheel.STL" />
@@ -620,9 +506,6 @@
       </material>
     </visual>
     <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="file://$(find rover_description)/meshes/wheel_collision.stl" />
@@ -644,7 +527,7 @@
   </joint>
 
   <xacro:if value="$(arg gazebo)">
-    <xacro:include filename="$(find rover_description)/urdf/gazebo_ros2_control.xacro" />
+    <xacro:include filename="$(find rover_description)/urdf/gz_ros2_control.xacro" />
   </xacro:if>
 
   <xacro:if value="$(arg arm)">
