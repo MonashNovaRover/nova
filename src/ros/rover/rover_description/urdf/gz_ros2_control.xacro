@@ -30,9 +30,6 @@
       <state_interface name="velocity">
         <param name="initial_value">0.0</param>
       </state_interface>
-      <state_interface name="velocity">
-        <param name="initial_value">0.0</param>
-      </state_interface>
       <state_interface name="position">
         <param name="initial_value">0.0</param>
       </state_interface>
@@ -141,9 +138,9 @@
   </ros2_control>
 
   <gazebo>
-      <plugin filename="libgz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-          <parameters>$(find auto_bringup)/params/controllers.yaml</parameters>
-      </plugin>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+        <parameters>$(find auto_bringup)/params/controllers.yaml</parameters>
+    </plugin>
   </gazebo>
 
 
