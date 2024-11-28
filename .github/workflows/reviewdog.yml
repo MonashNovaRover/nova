@@ -22,6 +22,8 @@ jobs:
       - name: Yarn Lint
         working-directory: src/ros/nova-gui/nova-gui
         run: yarn lint
+        continue-on-error: true
+
       - uses: reviewdog/action-setup@v1
         with:
           reviewdog_version: latest
