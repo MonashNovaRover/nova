@@ -19,6 +19,9 @@ jobs:
       - name: Install dependencies
         working-directory: src/ros/nova-gui/nova-gui
         run: yarn install
+      - name: Yarn Lint
+        working-directory: src/ros/nova-gui/nova-gui
+        run: yarn lint
       - uses: reviewdog/action-eslint@v1
         with:
           reporter: github-check
