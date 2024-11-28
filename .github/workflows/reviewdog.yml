@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  lint:
+  reviewdog:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,7 +27,7 @@ jobs:
 
       - name: Run ESLint
         run: |
-          cd frontend
+          cd src/ros/nova-gui/nova-gui
           npx eslint . --ext .js,.jsx,.ts,.tsx -f json -o eslint-report.json
         continue-on-error: true
 
