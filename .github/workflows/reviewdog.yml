@@ -29,7 +29,7 @@ jobs:
           reviewdog_version: latest
       - name: reviewdog
         working-directory: src/ros/nova-gui/nova-gui
-        run: yarn lint | reviewdog -f=typescript -diff="git diff FETCH_HEAD"
+        run: yarn lint | reviewdog -f=eslint -diff="git diff FETCH_HEAD"
 
       - uses: reviewdog/action-eslint@v1
         with:
