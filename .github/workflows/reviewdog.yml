@@ -28,7 +28,7 @@ jobs:
       - name: Run ESLint
         run: |
           cd src/ros/nova-gui/nova-gui
-          npx eslint . --ext .js,.jsx,.ts,.tsx -f json -o eslint-report.json
+          npx eslint . -f json -o eslint-report.json
         continue-on-error: true
 
       - name: Reviewdog - ESLint
