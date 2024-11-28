@@ -1,0 +1,43 @@
+name: reviewdog 🐶
+
+on:
+  pull_request:
+    paths:
+      - 'src/ros/nova-gui/nova-gui'  # Only run when files in the nova-gui folder change
+  push:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.15.1"
+
+      - name: Install dependencies
+        working-directory: src/ros/nova-gui/nova-gui
+        run: yarn install
+
+      - name: Run ESLint
+        run: |
+          cd frontend
+          npx eslint . --ext .js,.jsx,.ts,.tsx -f json -o eslint-report.json
+        continue-on-error: true
+
+      - name: Reviewdog - ESLint
+        uses: reviewdog/action-eslint@v1
+        with:
+          tool_name: eslint
+          reporter: github-pr-check # Or github-pr-review for comments
+          level: warning # Can be info, warning, or error
+          filter_mode: added # Only show issues in lines changed in the PR
+          fail_on_error: true
+          reviewdog_flags: "-f eslint --json eslint-report.json"
+          path: "src/ros/nova-gui/nova-gui"
