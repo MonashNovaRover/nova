@@ -16,7 +16,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - run: yarn install
+      - name: Install dependencies
+        working-directory: src/ros/nova-gui/nova-gui
+        run: yarn install
       - uses: reviewdog/action-eslint@v1
         with:
           reporter: github-check
