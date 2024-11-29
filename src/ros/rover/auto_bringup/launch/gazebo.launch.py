@@ -14,14 +14,12 @@ CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction, GroupAction
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration, PythonExpression
-from launch.conditions import IfCondition, UnlessCondition
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction
+from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
+from launch.conditions import UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch_ros.actions import Node, ComposableNodeContainer, LoadComposableNodes
-from launch_ros.parameter_descriptions import ParameterValue
+from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from launch_ros.descriptions import ComposableNode
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
@@ -30,7 +28,6 @@ def launch_setup(context, *args, **kwargs):
 
     config_file = LaunchConfiguration('config_file')
     headless = LaunchConfiguration('headless')
-    launch_robot_desciption = LaunchConfiguration('launch_robot_description')
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
     pose = {'x': LaunchConfiguration('x').perform(context),
@@ -43,30 +40,15 @@ def launch_setup(context, *args, **kwargs):
     world = LaunchConfiguration('world')
 
     return [
-        Node(
-            package='ros_gz_bridge',
-            executable='bridge_node',
-            name='ros_gz_bridge',
-            namespace=namespace,
-            output='screen',
-            respawn=False,
-            respawn_delay=2.0,
-            parameters=[{'config_file': config_file}],
-            arguments=['--ros-args', '--log-level', 'info'],
-        ),
-        # Node(
-        #     package='ros_gz_image',
-        #     executable='image_bridge',
-        #     arguments=['/oak/rgb/image_rect'],
-        #     output='screen',
-        # ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
             launch_arguments={'gazebo': 'true'}.items(),
         ),
         IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rviz.launch.py'])),
+        ),
+        IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            condition=IfCondition(launch_robot_desciption),
             launch_arguments={'model': model, 'gazebo': 'true'}.items(),
         ),
         IncludeLaunchDescription(
@@ -89,6 +71,17 @@ def launch_setup(context, *args, **kwargs):
                 '-x', pose['x'], '-y', pose['y'], '-z', pose['z'],
                 '-R', pose['R'], '-P', pose['P'], '-Y', pose['Y'],
         ]),
+        Node(
+            package='ros_gz_bridge',
+            executable='bridge_node',
+            name='ros_gz_bridge',
+            namespace=namespace,
+            output='screen',
+            respawn=False,
+            respawn_delay=2.0,
+            parameters=[{'config_file': config_file}],
+            arguments=['--ros-args', '--log-level', 'info'],
+        ),
         AppendEnvironmentVariable(
             'GZ_SIM_RESOURCE_PATH', PathJoinSubstitution([nova_gazebo_dir, 'models'])
         ),
@@ -104,7 +97,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             name='config_file',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'gz_bridge.yaml']), 
-            description='Absolute path to YAML file that maps between ROS and Gazebo topics',
+            description='Absolute path to ros_gz_bridge params file',
         ),
         DeclareLaunchArgument(
             name='headless',
