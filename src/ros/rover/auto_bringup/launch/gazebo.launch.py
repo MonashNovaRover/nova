@@ -16,7 +16,7 @@ CREATION:	27/04/2023
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
-from launch.conditions import UnlessCondition
+from launch.conditions import UnlessCondition, IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -37,6 +37,7 @@ def launch_setup(context, *args, **kwargs):
             'P': LaunchConfiguration('P').perform(context),
             'Y': LaunchConfiguration('Y').perform(context)}
     robot_name = LaunchConfiguration('robot_name')
+    rviz = LaunchConfiguration('rviz')
     world = LaunchConfiguration('world')
 
     return [
@@ -46,6 +47,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rviz.launch.py'])),
+            condition=IfCondition(rviz),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
@@ -123,6 +125,11 @@ def generate_launch_description():
             name='robot_name',
             default_value='Waratah',
             description='name of the robot',
+        ),
+        DeclareLaunchArgument(
+            name='rviz',
+            default_value='false',
+            description='Whether to launch rviz',
         ),
         DeclareLaunchArgument(
             name='world',
