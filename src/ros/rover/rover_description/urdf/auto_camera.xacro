@@ -35,9 +35,7 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
         </clip>
       </camera>
       <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
-        <!-- <frame_name>oak_rgb_camera_optical_frame</frame_name>
-        <min_depth>0.3</min_depth>
-        <max_depth>12.0</max_depth> -->
+        <frame_name>oak_rgb_camera_optical_frame</frame_name>
       </plugin>
     </sensor>
     <sensor name="oak/rgb" type="camera">
@@ -56,6 +54,7 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
           <far>100.0</far>
         </clip>
       </camera>
+      <!-- <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system"></plugin> -->
     </sensor>
   </gazebo>
 
@@ -63,7 +62,7 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
     <sensor name="imu_sensor" type="imu">
       <topic>oak/imu</topic>
       <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu">
-      <frame_name>oak_imu_frame</frame_name>
+        <frame_name>oak_imu_frame</frame_name>
         <initial_orientation_as_reference>false</initial_orientation_as_reference>
       </plugin>
       <always_on>true</always_on>
