@@ -58,7 +58,16 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
+<<<<<<< HEAD
             launch_arguments={'gz_args': ['-r -v4 ', world], 'on_exit_shutdown': 'True'}.items(),
+=======
+            launch_arguments={'gz_args': ['-r -s -v4 ', world], 'on_exit_shutdown': 'True'}.items(),
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
+            launch_arguments={'gz_args': '-g -v4 '}.items(),
+            condition=UnlessCondition(headless),
+>>>>>>> a1ab665 (cleaned up launch files)
         ),
         Node(
             package='ros_gz_sim',
