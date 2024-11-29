@@ -6,7 +6,7 @@ on:
       - 'src/ros/nova-gui/nova-gui/**'  # Only run when files in the nova-gui folder change
   push:
     branches:
-      - main
+      - main                            # and on pushes to the main branch
 
 jobs:
   reviewdog:
@@ -19,17 +19,12 @@ jobs:
       - name: Install dependencies
         working-directory: src/ros/nova-gui/nova-gui
         run: yarn install
-      - name: Yarn Lint
-        working-directory: src/ros/nova-gui/nova-gui
-        run: yarn lint
-        continue-on-error: true
-
       - uses: reviewdog/action-setup@v1
         with:
           reviewdog_version: latest
-      - name: reviewdog
-        working-directory: src/ros/nova-gui/nova-gui
-        run: yarn lint | reviewdog -f=eslint -diff="git diff FETCH_HEAD"
+#      - name: reviewdog
+#        working-directory: src/ros/nova-gui/nova-gui
+#        run: yarn lint | reviewdog -f=eslint -diff="git diff FETCH_HEAD"
 
       - uses: reviewdog/action-eslint@v1
         with:
