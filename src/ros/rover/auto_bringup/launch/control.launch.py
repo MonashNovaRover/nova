@@ -1,4 +1,4 @@
-"""
+'''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
@@ -12,7 +12,7 @@ NODES:
 PACKAGE: 	core
 CREATION:	15/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-"""
+'''
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import UnlessCondition
@@ -69,8 +69,8 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='gazebo',
-            default_value='false',
-            description='Use simulation (Gazebo) clock if true',
+            default_value='False',
+            description='Use simulation (Gazebo) clock if True',
         ),
         DeclareLaunchArgument(
             name='model', 

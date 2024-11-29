@@ -1,4 +1,4 @@
-"""
+'''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
@@ -12,7 +12,7 @@ NODES:
 PACKAGE: 	auto_bringup
 CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-"""
+'''
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -29,12 +29,11 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    led_node = Node(
+
+    return LaunchDescription([
+        Node(
         package='electronics',
         executable='LED_transmitter.py',
         name='LED',
-    )
-
-    return LaunchDescription([
-        led_node,
+        ),
     ])
