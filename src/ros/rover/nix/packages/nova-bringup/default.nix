@@ -5,6 +5,9 @@
 , launch
 , launch-ros
 , joint-state-publisher
+, foxglove-bridge
+, foxglove-msgs
+
 }:
 
 buildRosPackage {
@@ -18,5 +21,5 @@ buildRosPackage {
   };
 
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
-  propagatedBuildInputs = [ launch launch-ros joint-state-publisher ];
+  propagatedBuildInputs = [ launch launch-ros joint-state-publisher  foxglove-bridge foxglove-msgs];
 }
