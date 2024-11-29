@@ -13,7 +13,7 @@ teleop_drive_joy:
   axis_angular:  # Left thumb stick horizontal
     yaw: {
       type: int,
-      default_value: 2,
+      default_value: 3,
     }
   scale_angular:
     yaw: {
@@ -23,13 +23,13 @@ teleop_drive_joy:
 
   button_unlock: {
     type: int,
-    default_value: 11,
+    default_value: 9,
     description: "Unlock gamepad [menu button]",
   }
 
   button_lock: {
     type: int,
-    default_value: 15,
+    default_value: 10,
     description: "Lock gamepad",
   }
 
