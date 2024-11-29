@@ -1,4 +1,4 @@
-name: reviewdog 🐶
+name: eslint 🐶
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ on:
       - main                            # and on pushes to the main branch
 
 jobs:
-  reviewdog:
+  eslint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,19 +19,13 @@ jobs:
       - name: Install dependencies
         working-directory: src/ros/nova-gui/nova-gui
         run: yarn install
-      - name: Yarn Lint
+
+      # Option 1 - will run eslint over the whole project and display all issues
+      - name: yarn lint
         working-directory: src/ros/nova-gui/nova-gui
         run: yarn lint
 
-# doesn't work
-#      - uses: reviewdog/action-setup@v1
-#        with:
-#          reviewdog_version: latest
-#      - name: reviewdog
-#        working-directory: src/ros/nova-gui/nova-gui
-#        run: yarn lint | reviewdog -f=eslint -diff="git diff FETCH_HEAD"
-
-# only shows issues with current pr
+      # Option 2 - will only display issues that were generated from the raised PR
 #      - uses: reviewdog/action-eslint@v1
 #        with:
 #          reporter: github-check
