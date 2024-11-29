@@ -19,13 +19,19 @@ jobs:
       - name: Install dependencies
         working-directory: src/ros/nova-gui/nova-gui
         run: yarn install
-      - uses: reviewdog/action-setup@v1
-        with:
-          reviewdog_version: latest
-      - name: reviewdog
+      - name: Yarn Lint
         working-directory: src/ros/nova-gui/nova-gui
-        run: yarn lint | reviewdog -f=eslint -diff="git diff FETCH_HEAD"
+        run: yarn lint
 
+# doesn't work
+#      - uses: reviewdog/action-setup@v1
+#        with:
+#          reviewdog_version: latest
+#      - name: reviewdog
+#        working-directory: src/ros/nova-gui/nova-gui
+#        run: yarn lint | reviewdog -f=eslint -diff="git diff FETCH_HEAD"
+
+# only shows issues with current pr
 #      - uses: reviewdog/action-eslint@v1
 #        with:
 #          reporter: github-check
