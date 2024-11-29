@@ -1,4 +1,4 @@
-"""
+'''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
@@ -12,7 +12,7 @@ NODES:
 PACKAGE: 	auto_bringup
 CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-"""
+'''
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
@@ -30,7 +30,7 @@ def launch_setup(context, *args, **kwargs):
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[{'robot_description': 
-                ParameterValue(Command(['xacro ', model, " ", "gazebo:=", gazebo]), value_type=str)
+                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo]), value_type=str)
             }]
         )
     ]
@@ -42,7 +42,7 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             name='gazebo', 
-            default_value='true',
+            default_value='True',
             description='Launch with gazebo or not',
         ),
         DeclareLaunchArgument(

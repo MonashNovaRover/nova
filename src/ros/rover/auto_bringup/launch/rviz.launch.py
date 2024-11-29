@@ -9,14 +9,12 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
 
-    rviz_node = Node(
+    return LaunchDescription([
+        Node(
             package='rviz2',
             namespace='',
             executable='rviz2',
             name='rviz2',
             arguments=['-d', [PathJoinSubstitution([FindPackageShare('auto_bringup'), 'rviz', 'navigation.rviz'])]]
-        )
-
-    return LaunchDescription([
-        rviz_node,
+        ),
     ])
