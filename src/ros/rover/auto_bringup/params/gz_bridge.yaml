@@ -5,14 +5,14 @@
   gz_type_name: "gz.msgs.Clock"
   direction: GZ_TO_ROS # BIDIRECTIONAL or ROS_TO_GZ
 
-# gz oak depth map camera to ros 
+# gz oak depth image to ros 
 - ros_topic_name: "/oak/depth"
   gz_topic_name: "/oak/depth"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
   direction: GZ_TO_ROS
 
-# gz oak rgb camera to ros
+# gz oak rgb image to ros
 - ros_topic_name: "/oak/rgb/image_rect"
   gz_topic_name: "/oak/rgb"
   ros_type_name: "sensor_msgs/msg/Image"
@@ -40,7 +40,7 @@
   gz_type_name: "gz.msgs.NavSat"
   direction: GZ_TO_ROS
 
-# gz p3d to ros
+# gz pose to ros
 - ros_topic_name: "/odom/gazebo"
   gz_topic_name: "/model/Waratah/pose"
   ros_type_name: "geometry_msgs/msg/Pose"

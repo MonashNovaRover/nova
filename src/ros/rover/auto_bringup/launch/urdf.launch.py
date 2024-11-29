@@ -13,13 +13,9 @@ PACKAGE: 	auto_bringup
 CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-
-from ament_index_python.packages import get_package_share_directory
-
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
-from launch.conditions import IfCondition, UnlessCondition
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
