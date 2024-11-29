@@ -11,7 +11,7 @@ using namespace std::chrono_literals;
 namespace
 {
   constexpr auto DEFAULT_INPUT_TOPIC = "/joy";
-  constexpr auto DEFAULT_OUTPUT_TOPIC = "/drive_input";
+  constexpr auto DEFAULT_OUTPUT_TOPIC = "/pivot_drive_controller/drive_input";
   constexpr auto DEFAULT_OUTPUT_TOPIC_TWIST = "/cmd_vel";
   constexpr auto DEFAULT_OUTPUT_TOPIC_INFO = "/drive_info";
   constexpr auto BUTTON_DEBOUNCE_INTERVAL = std::chrono::milliseconds(200);
