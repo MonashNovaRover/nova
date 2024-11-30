@@ -46,35 +46,34 @@ namespace strafe_controller
 
         STRAFE_CONTROLLER_PUBLIC
         controller_interface::return_type update(
-            const rclcpp::Time & time, const rclcpp::Duration & period) override;
-
+            const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
         STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_init() override;
 
         STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_configure(
-            const rclcpp_lifecycle::State & previous_state) override;
+            const rclcpp_lifecycle::State &previous_state) override;
 
         STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_activate(
-            const rclcpp_lifecycle::State & previous_state) override;
+            const rclcpp_lifecycle::State &previous_state) override;
 
         STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_deactivate(
-            const rclcpp_lifecycle::State & previous_state) override;
+            const rclcpp_lifecycle::State &previous_state) override;
 
         STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_cleanup(
-            const rclcpp_lifecycle::State & previous_state) override;
+            const rclcpp_lifecycle::State &previous_state) override;
 
         STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_error(
-            const rclcpp_lifecycle::State & previous_state) override;
+            const rclcpp_lifecycle::State &previous_state) override;
 
         STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_shutdown(
-            const rclcpp_lifecycle::State & previous_state) override;
+            const rclcpp_lifecycle::State &previous_state) override;
 
     protected:
         struct WheelHandle
@@ -83,12 +82,12 @@ namespace strafe_controller
             std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
         };
 
-        const char * drive_feedback_type() const;
-        const char * pivot_feedback_type() const;
+        const char *drive_feedback_type() const;
+        const char *pivot_feedback_type() const;
 
         controller_interface::CallbackReturn configure_drive_pivots(
-            const std::vector<std::string> & wheel_names,
-            std::vector<WheelHandle> & registered_handles, const char * feedback_type);
+            const std::vector<std::string> &wheel_names,
+            std::vector<WheelHandle> &registered_handles, const char *feedback_type);
 
         std::vector<WheelHandle> registered_left_drive_handles_;
         std::vector<WheelHandle> registered_right_drive_handles_;
@@ -98,7 +97,7 @@ namespace strafe_controller
         // Parameters from ROS for strafe_controller
         std::shared_ptr<ParamListener> param_listener_;
         Params params_;
-        
+
         Odometry odometry_;
 
         // Timeout to consider cmd_vel commands old
@@ -115,24 +114,22 @@ namespace strafe_controller
         bool subscriber_is_active_ = false;
         rclcpp::Subscription<drive_interfaces::msg::DriveInputStamped>::SharedPtr drive_input_subscriber_ = nullptr;
         rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_subscriber_ = nullptr;
-        rclcpp::Subscription<drive_interfaces::msg::DriveInput>::SharedPtr drive_input_unstamped_subscriber_ = nullptr;
-        rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr twist_unstamped_subscriber_ = nullptr;
 
         realtime_tools::RealtimeBox<std::shared_ptr<drive_interfaces::msg::DriveInputStamped>> received_drive_input_msg_ptr_{nullptr};
         realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_msg_ptr_{nullptr};
 
-        std::queue<drive_interfaces::msg::DriveInputStamped> previous_commands_;  // last two commands
-        std::queue<geometry_msgs::msg::TwistStamped> previous_twist_commands_;  // last two commands
+        std::queue<drive_interfaces::msg::DriveInputStamped> previous_commands_; // last two commands
+        std::queue<geometry_msgs::msg::TwistStamped> previous_twist_commands_;   // last two commands
 
         // speed limiters
         SpeedLimiter limiter_linear_;
 
-        float angle_offset = params_.steering_track / params_.wheel_base; 
+        float angle_offset = params_.steering_track / params_.wheel_base;
         float best_effort_velocity = 0.0;
 
         double max_d_theta;
         double max_d_vel;
-        
+
         rclcpp::Time previous_update_timestamp_{0};
 
         // publish rate limiter
@@ -145,7 +142,5 @@ namespace strafe_controller
         bool reset();
         void halt();
     };
-} //namespace strafe_controller
+} // namespace strafe_controller
 #endif // STRAFE_CONTROLLER__STRAFE_CONTROLLER_HPP_
-
-
