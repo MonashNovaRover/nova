@@ -13,8 +13,9 @@ PACKAGE: 	core
 CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
+import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction, SetEnvironmentVariable
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch.conditions import UnlessCondition, IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -24,6 +25,7 @@ from launch_ros.substitutions import FindPackageShare
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
+    leo_gz_worlds_dir = FindPackageShare('leo_gz_worlds')
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
     config_file = LaunchConfiguration('config_file')
@@ -39,6 +41,22 @@ def launch_setup(context, *args, **kwargs):
     world = LaunchConfiguration('world')
 
     return [
+        AppendEnvironmentVariable(
+            name='GZ_SIM_RESOURCE_PATH', 
+            value=PathJoinSubstitution([nova_gazebo_dir, 'nova_terrain'])
+        ),
+        AppendEnvironmentVariable(
+            name='GZ_SIM_RESOURCE_PATH', 
+            value=PathJoinSubstitution([nova_gazebo_dir, 'worlds'])
+        ),
+        AppendEnvironmentVariable(
+            name='GZ_SIM_RESOURCE_PATH', 
+            value=PathJoinSubstitution([leo_gz_worlds_dir, 'models'])
+        ),
+        AppendEnvironmentVariable(
+            name='GZ_SIM_RESOURCE_PATH', 
+            value=PathJoinSubstitution([leo_gz_worlds_dir, 'worlds'])
+        ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
             launch_arguments={'gazebo': 'True'}.items(),
@@ -73,15 +91,13 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{'config_file': config_file}],
             arguments=['--ros-args', '--log-level', 'info'],
         ),
-        AppendEnvironmentVariable(
-            'GZ_SIM_RESOURCE_PATH', PathJoinSubstitution([nova_gazebo_dir, 'models'])
-        ),
     ]
 
 
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
+    leo_gz_worlds_dir = FindPackageShare('leo_gz_worlds')
     rover_description_dir = FindPackageShare('rover_description')
 
     declared_arguments = [

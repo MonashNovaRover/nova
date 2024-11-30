@@ -4,6 +4,7 @@
 , launch
 , launch-ros
 , stdenv
+, leo-simulator
 }:
 
 let
@@ -16,19 +17,19 @@ let
     };
     dontBuild = true;
 
-    postPatch = ''
-      substituteInPlace urc_er_terrain/model.sdf \
-        --replace "model://urc_er_terrain/" ""
+    # postPatch = ''
+    #   substituteInPlace urc_er_terrain/model.sdf \
+    #     --replace "model://urc_er_terrain/" ""
 
-      substituteInPlace urc_auto_terrain/model.sdf \
-        --replace "model://urc_er_terrain/" "../urc_er_terrain/" \
-        --replace "model://urc_auto_terrain/" ""
-    '';
+    #   substituteInPlace urc_auto_terrain/model.sdf \
+    #     --replace "model://urc_er_terrain/" "../urc_er_terrain/" \
+    #     --replace "model://urc_auto_terrain/" ""
+    # '';
 
-    installPhase = ''
-      mkdir -p $out
-      cp -r ./ $out/
-    '';
+    # installPhase = ''
+    #   mkdir -p $out
+    #   cp -r ./ $out/
+    # '';
   };
 in
 
@@ -43,10 +44,10 @@ buildRosPackage rec {
   };
 
   nativeBuildInputs = [ ament-cmake ];
-  propagatedBuildInputs = [ launch launch-ros ];
+  propagatedBuildInputs = [ launch launch-ros leo-simulator ];
 
-  postPatch = ''
-    substituteInPlace worlds/urc_er.model \
-      --replace '/nova_terrain_directory' '${terrain}'
-  '';
+  # postPatch = ''
+  #   substituteInPlace worlds/urc_er.model \
+  #     --replace '/nova_terrain_directory' '${terrain}'
+  # '';
 }
