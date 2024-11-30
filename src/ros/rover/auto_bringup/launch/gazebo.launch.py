@@ -43,7 +43,7 @@ def launch_setup(context, *args, **kwargs):
     return [
         AppendEnvironmentVariable(
             name='GZ_SIM_RESOURCE_PATH', 
-            value=PathJoinSubstitution([nova_gazebo_dir, 'nova_terrain'])
+            value=PathJoinSubstitution([nova_gazebo_dir, 'models'])
         ),
         AppendEnvironmentVariable(
             name='GZ_SIM_RESOURCE_PATH', 
@@ -128,15 +128,15 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='world',
-            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'flat.sdf']),
+            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto.sdf']),
             description='Full path to world model file to load',
         ),
-        DeclareLaunchArgument(name='x', default_value='-2.0', description='x_pose'),
-        DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
-        DeclareLaunchArgument(name='z', default_value='0.05', description='z_pose'),
-        DeclareLaunchArgument(name='R', default_value='0.00', description='roll'),
-        DeclareLaunchArgument(name='P', default_value='0.00', description='pitch'),
-        DeclareLaunchArgument(name='Y', default_value='0.00', description='yaw'),
+        DeclareLaunchArgument(name='x', default_value='0.0', description='x_pose'),
+        DeclareLaunchArgument(name='y', default_value='0.0', description='y_pose'),
+        DeclareLaunchArgument(name='z', default_value='2.0', description='z_pose'),
+        DeclareLaunchArgument(name='R', default_value='0.0', description='roll'),
+        DeclareLaunchArgument(name='P', default_value='0.0', description='pitch'),
+        DeclareLaunchArgument(name='Y', default_value='0.0', description='yaw'),
     ]
 
     return LaunchDescription(  
