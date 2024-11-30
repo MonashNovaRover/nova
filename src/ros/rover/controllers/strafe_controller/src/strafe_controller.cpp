@@ -390,7 +390,7 @@ namespace strafe_controller
         // Fill last two commands with default constructed commands
         RCLCPP_INFO(get_node()->get_logger(), "twist_cmd: initializing subscriber");
         received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>(empty_twist));
-        recieved_command_msg_ptr_.set(std::make_shared<drive_interfaces::msg::DriveInputStamped>(empty_drive_input));
+        received_drive_input_msg_ptr_.set(std::make_shared<drive_interfaces::msg::DriveInputStamped>(empty_drive_input));
 
         // Fill last two commands with default constructed commands
         previous_twist_commands_.emplace(empty_twist);
