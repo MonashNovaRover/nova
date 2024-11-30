@@ -152,10 +152,10 @@ strafe_controller:
     description: "Publish limited velocity value.",
   }
   publish_rate: {
-    type: double,
-    default_value: 50.0, # Hz
-    description: "Publishing rate (Hz) of the odometry and TF messages.",
-  }
+      type: double,
+      default_value: 50.0, # Hz
+      description: "Publishing rate (Hz) of the odometry and TF messages.",
+    }
   max_theta: {
     type: double,
     default_value: 3.5342, #2*pi
