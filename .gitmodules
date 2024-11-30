@@ -10,6 +10,3 @@
 [submodule "src/other/libcanmd"]
 	path = src/other/libcanmd
 	url = git@github.com:MonashNovaRover/libcanmd
-[submodule "src/ros/rover/nova_gazebo/nova_terrain"]
-	path = src/ros/rover/nova_gazebo/nova_terrain
-	url = git@github.com:MonashNovaRover/nova_terrain
