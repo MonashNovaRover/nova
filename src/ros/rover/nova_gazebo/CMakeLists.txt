@@ -23,6 +23,7 @@ find_package(ament_cmake REQUIRED)
 
 # Add all the installation directories
 install(DIRECTORY
+  nova_terrain
   worlds 
   DESTINATION share/${PROJECT_NAME}
 )
