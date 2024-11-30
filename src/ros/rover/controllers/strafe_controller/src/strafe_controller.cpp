@@ -158,7 +158,10 @@ namespace strafe_controller
             const auto age_of_last_command = time - last_twist_command_msg->header.stamp;
             if (age_of_last_command > cmd_vel_timeout_)
             {
-                RCLCPP_WARN(logger, "Twist that is stamped older than %ld milliseconds has been received :(", cmd_vel_timeout_.count());
+                if (last_twist_command_msg->header.stamp.sec != 0 || last_twist_command_msg->header.stamp.nanosec != 0)
+                {
+                    RCLCPP_WARN(logger, "Twist that is stamped older than %ld milliseconds has been received :(", cmd_vel_timeout_.count());
+                }
                 last_twist_command_msg->twist.linear.x = 0.0;
                 last_twist_command_msg->twist.angular.z = 0.0;
             }
@@ -200,7 +203,10 @@ namespace strafe_controller
             // Brake if drive_input_cmd has timeout, override the stored command
             if (age_of_last_command > cmd_vel_timeout_)
             {
-                RCLCPP_WARN(logger, "DriveInput that is stamped older than %ld milliseconds has been received :(", cmd_vel_timeout_.count());
+                if (last_command_msg->header.stamp.sec != 0 || last_command_msg->header.stamp.nanosec != 0)
+                {
+                    RCLCPP_WARN(logger, "DriveInput that is stamped older than %ld milliseconds has been received :(", cmd_vel_timeout_.count());
+                }
                 last_command_msg->drive_input.speed = 0.0;
                 last_command_msg->drive_input.radius = 0.0;
             }
