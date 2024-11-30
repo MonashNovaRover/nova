@@ -56,21 +56,21 @@ def launch_setup(context, *args, **kwargs):
         ),
     ]
 
-    model_arg = DeclareLaunchArgument(name='model', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'urdf', 'rover.urdf.xacro']),
-            description='Absolute path to robot urdf file')
-    
+    model_arg = DeclareLaunchArgument(
+        name="model",
+        default_value=PathJoinSubstitution(
+            [rover_description_dir, "urdf", "rover.urdf.xacro"]
+        ),
+        description="Absolute path to robot urdf file",
+    )
+
     controllers_arg = DeclareLaunchArgument(
-            name="controllers",
-            default_value=PathJoinSubstitution(
-                [
-                    auto_bringup_dir, 
-                    "params", 
-                    "controllers.yaml"
-                ]       
-            ),
-        description="Path of the controller params file"
-        )
+        name="controllers",
+        default_value=PathJoinSubstitution(
+            [auto_bringup_dir, "params", "controllers.yaml"]
+        ),
+        description="Path of the controller params file",
+    )
 
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
@@ -101,41 +101,43 @@ def generate_launch_description():
     strafe_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["strafe_controller", "--inactive"]
+        arguments=["strafe_controller"],
     )
 
     nova_diff_drive_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["nova_diff_drive_controller", "--inactive"]
+        arguments=["nova_diff_drive_controller", "--inactive"],
     )
 
     pivot_drive_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["pivot_drive_controller"]
+        arguments=["pivot_drive_controller", "--inactive"],
     )
 
     urdf_launch_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([auto_bringup_dir, "launch", "urdf.launch.py"])
+        ),
         condition=UnlessCondition(gazebo),
-        launch_arguments={"model": model, "gazebo": 'false'}.items()
+        launch_arguments={"model": model, "gazebo": "false"}.items(),
     )
 
     joint_broad = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["joint_broad"]
+        package="controller_manager", executable="spawner", arguments=["joint_broad"]
     )
 
-    return LaunchDescription([
-        gazebo_arg,
-        model_arg,
-        controllers_arg,
-        urdf_launch_cmd,
-        control_node,
-        pivot_drive_controller,
-        strafe_controller,
-        #nova_diff_drive_controller,
-        joint_broad,
-    ])
+    return LaunchDescription(
+        [
+            gazebo_arg,
+            model_arg,
+            controllers_arg,
+            urdf_launch_cmd,
+            control_node,
+            pivot_drive_controller,
+            strafe_controller,
+            # nova_diff_drive_controller,
+            joint_broad,
+        ]
+    )
