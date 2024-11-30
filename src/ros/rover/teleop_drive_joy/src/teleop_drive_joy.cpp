@@ -35,7 +35,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 #include "teleop_drive_joy/teleop_drive_joy.hpp"
 
-
 #define ROS_INFO_NAMED RCUTILS_LOG_INFO_NAMED
 #define ROS_INFO_COND_NAMED RCUTILS_LOG_INFO_EXPRESSION_NAMED
 
@@ -44,7 +43,7 @@ using namespace std::chrono_literals;
 namespace
 {
   constexpr auto DEFAULT_INPUT_TOPIC = "/joy";
-  constexpr auto DEFAULT_OUTPUT_TOPIC = "/pivot_drive_controller/drive_input";
+  constexpr auto DEFAULT_OUTPUT_TOPIC = "/drive_input";
   constexpr auto DEFAULT_OUTPUT_TOPIC_TWIST = "/cmd_vel";
   constexpr auto DEFAULT_OUTPUT_TOPIC_INFO = "/drive_info";
 }
@@ -61,12 +60,12 @@ namespace teleop_drive_joy
   /**
    * Constructs TeleopDriveJoy.
    */
-  TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions& options) : node_{ std::make_shared<rclcpp::Node>("teleop_drive_joy_node_", options)}
+  TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions &options) : node_{std::make_shared<rclcpp::Node>("teleop_drive_joy_node_", options)}
   {
     drive_input_pub = node_->create_publisher<drive_interfaces::msg::DriveInputStamped>(DEFAULT_OUTPUT_TOPIC, 50);
     cmd_vel_pub = node_->create_publisher<geometry_msgs::msg::TwistStamped>(DEFAULT_OUTPUT_TOPIC_TWIST, 50);
     drive_info_pub = node_->create_publisher<drive_interfaces::msg::DriveInfo>(DEFAULT_OUTPUT_TOPIC_INFO, 50);
-    
+
     joy_sub = node_->create_subscription<sensor_msgs::msg::Joy>(DEFAULT_INPUT_TOPIC, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joyCallback, this, _1));
 
     switch_controller_client = node_->create_client<controller_manager_msgs::srv::SwitchController>("/controller_manager/switch_controller");
@@ -74,15 +73,16 @@ namespace teleop_drive_joy
     param_listener_ = std::make_shared<ParamListener>(node_);
     params_ = param_listener_->get_params();
 
-    if (param_listener_->is_old(params_)) {
+    if (param_listener_->is_old(params_))
+    {
       params_ = param_listener_->get_params();
     }
 
     parameters_client = node_->create_client<rcl_interfaces::srv::SetParameters>("/pivot_drive_controller/set_parameters");
   }
 
-  double TeleopDriveJoy::getVal(const sensor_msgs::msg::Joy::SharedPtr joy_msg, const std::map<std::string, int64_t>& axis_map,
-                const std::map<std::string, double>& scale_map, const std::string& fieldname)
+  double TeleopDriveJoy::getVal(const sensor_msgs::msg::Joy::SharedPtr joy_msg, const std::map<std::string, int64_t> &axis_map,
+                                const std::map<std::string, double> &scale_map, const std::string &fieldname)
   {
     if (axis_map.find(fieldname) == axis_map.end() ||
         axis_map.at(fieldname) == -1L ||
@@ -96,26 +96,29 @@ namespace teleop_drive_joy
   }
 
   void TeleopDriveJoy::sendCmdVelMsg(const sensor_msgs::msg::Joy::SharedPtr joy_msg,
-                                           const std::string& which_map)
+                                     const std::string &which_map)
   {
-    //RCLCPP_INFO(node_->get_logger(), "sending cmd_vel msg...");
+    // RCLCPP_INFO(node_->get_logger(), "sending cmd_vel msg...");
 
     // Initializes with zeros by default.
 
     auto request = std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
 
-    auto modeToController = [](const unsigned char mode) -> std::string {
-      switch (mode) {
-        case drive_interfaces::msg::DriveInput::STRAFE:
-          return "strafe_controller";
-        case drive_interfaces::msg::DriveInput::PIVOT:
-          return "pivot_drive_controller";
-        case drive_interfaces::msg::DriveInput::TANK:
-          return "nova_diff_drive_controller";
+    auto modeToController = [](const unsigned char mode) -> std::string
+    {
+      switch (mode)
+      {
+      case drive_interfaces::msg::DriveInput::STRAFE:
+        return "strafe_controller";
+      case drive_interfaces::msg::DriveInput::PIVOT:
+        return "pivot_drive_controller";
+      case drive_interfaces::msg::DriveInput::TANK:
+        return "nova_diff_drive_controller";
       }
     };
 
-    auto setControllerControlType = [this, modeToController](const unsigned char mode, bool enable_twist_cmd) -> void {
+    auto setControllerControlType = [this, modeToController](const unsigned char mode, bool enable_twist_cmd) -> void
+    {
       RCLCPP_INFO(node_->get_logger(), "Setting controller's enable_twist_cmd to: %s", enable_twist_cmd ? "true" : "false");
       auto request = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();
 
@@ -127,8 +130,10 @@ namespace teleop_drive_joy
 
       request->parameters.push_back(parameter);
 
-      if (!parameters_client->wait_for_service(1s)) {
-        if (!rclcpp::ok()) {
+      if (!parameters_client->wait_for_service(1s))
+      {
+        if (!rclcpp::ok())
+        {
           RCLCPP_ERROR(node_->get_logger(), "Interrupted while waiting for the parameter service. Exiting.");
           rclcpp::shutdown();
         }
@@ -148,12 +153,12 @@ namespace teleop_drive_joy
       request->activate_controllers.emplace_back(activate_controller);
       request->deactivate_controllers.emplace_back(deactivate_controller);
       request->strictness = 2;
-      //request->start_asap = false;
+      // request->start_asap = false;
       builtin_interfaces::msg::Duration duration;
       duration.sec = 0.0;
       duration.nanosec = 0.0;
       request->timeout = duration;
-      
+
       while (!switch_controller_client->wait_for_service(1s))
       {
         if (!rclcpp::ok())
@@ -176,8 +181,9 @@ namespace teleop_drive_joy
 
     if (current_state.autonomous_mode)
     {
-      if (!previous_state.autonomous_mode) setControllerControlType(drive_interfaces::msg::DriveInput::PIVOT, true);
-     
+      if (!previous_state.autonomous_mode)
+        setControllerControlType(drive_interfaces::msg::DriveInput::PIVOT, true);
+
       auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
       cmd_vel_msg->twist.angular.z = angular;
       cmd_vel_msg->twist.linear.x = linear;
@@ -187,12 +193,14 @@ namespace teleop_drive_joy
     }
     else
     {
-      if (previous_state.autonomous_mode) setControllerControlType(drive_interfaces::msg::DriveInput::PIVOT, false);
+      if (previous_state.autonomous_mode)
+        setControllerControlType(drive_interfaces::msg::DriveInput::PIVOT, false);
 
       auto drive_input_msg = std::make_unique<drive_interfaces::msg::DriveInputStamped>();
 
       drive_input_msg->drive_input.radius = angular == 0 ? INFINITY : (1.0 / pow(abs(angular), 2)) - 1;
-      drive_input_msg->drive_input.direction = angular > 0 ? -1 : angular < 0 ? 1 : 0;
+      drive_input_msg->drive_input.direction = angular > 0 ? -1 : angular < 0 ? 1
+                                                                              : 0;
       drive_input_msg->drive_input.speed = linear;
       drive_input_msg->drive_input.mode = previous_state.drive_mode;
       drive_input_msg->header.stamp = node_->now();
@@ -226,7 +234,7 @@ namespace teleop_drive_joy
     {
       current_state.locked = false;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: unlock");
-    } 
+    }
     else if (joy_msg->buttons[params_.button_lock] && !current_state.locked)
     {
       current_state.locked = true;
@@ -272,14 +280,14 @@ namespace teleop_drive_joy
       speed_change_button_pressed = true;
     }
 
-    //reset speed change axes state
+    // reset speed change axes state
     if (!joy_msg->axes[params_.axis_speed_change_fine] && !joy_msg->axes[params_.axis_speed_change_coarse])
     {
       speed_change_button_pressed = false;
     }
 
-    //FOR TESTING PURPOSES: try TwistStamped control with operators 
-    //if (!locked && manual_teleop)
+    // FOR TESTING PURPOSES: try TwistStamped control with operators
+    // if (!locked && manual_teleop)
     if (!current_state.locked)
     {
       sendCmdVelMsg(joy_msg, "normal");
@@ -302,8 +310,8 @@ namespace teleop_drive_joy
       }
       else
       {
-        //We want to continously publish a zero commmand to override any continuous autonomous messages
-        
+        // We want to continously publish a zero commmand to override any continuous autonomous messages
+
         // Initializes with zeros by default.
         auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
         cmd_vel_pub->publish(std::move(cmd_vel_msg));
@@ -311,7 +319,7 @@ namespace teleop_drive_joy
     }
   }
 
-}  // namespace teleop_drive_joy
+} // namespace teleop_drive_joy
 
 #include "rclcpp_components/register_node_macro.hpp"
 RCLCPP_COMPONENTS_REGISTER_NODE(teleop_drive_joy::TeleopDriveJoy)
