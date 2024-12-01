@@ -14,8 +14,6 @@ const SiteSelectWidget: React.FC<SiteSelectWidgetProps> = (
 
   const [currentSite, setCurrentSite] = useGenericStore<Site>("currentSite");
 
-  currentSite.append(1)
-
   return (
     <SegmentedPicker
       fullWidth
