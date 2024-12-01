@@ -1,89 +1,44 @@
+# Configuration for the Latest XBOX Controller
 teleop_drive_joy:
-  axis_linear:  # Left thumb stick vertical x: { type: int,
-    x: {
-      type: int,
-      default_value: 1,
-    }
-  scale_linear:
-    x: {
-      type: double,
-      default_value: 0.1,
-    }
+  ros__parameters:
+    pivot_drive_controller:
+      axis_linear:
+        x: 1
+      scale_linear:
+        x: 0.1
+      axis_angular:
+        z: 3
+      scale_angular:
+        z: 1
 
-  axis_angular:  # Left thumb stick horizontal
-    yaw: {
-      type: int,
-      default_value: 3,
-    }
-  scale_angular:
-    yaw: {
-      type: double,
-      default_value: 1,
-    }
+    strafe_controller:
+      axis_linear:
+        x: 1
+      scale_linear:
+        x: 0.1
+      axis_angular:
+        z: 3
+      scale_angular:
+        z: 1
 
-  button_unlock: {
-    type: int,
-    default_value: 9,
-    description: "Unlock gamepad [menu button]",
-  }
+    nova_diff_drive_controller:
+      axis_linear:
+        x: 1
+      scale_linear:
+        x: 0.1
+      axis_angular:
+        z: 3
+      scale_angular:
+        z: 1
 
-  button_lock: {
-    type: int,
-    default_value: 10,
-    description: "Lock gamepad",
-  }
-
-
-  button_strafe_mode: {
-    type: int,
-    default_value: 6,
-    description: "Switch to strafe_controller",
-  }
-
-  button_pivot_drive_mode: {
-    type: int,
-    default_value: 7,
-    description: "Switch to pivot_drive_controller",
-  }
-
-  button_diff_drive_mode: {
-    type: int,
-    default_value: 4,
-    description: "Switch to nova_diff_drive_controller",
-  }
-
-  button_autonomous_control: {
-    type: int,
-    default_value: 0,
-    description: "Enable autonomous operation - set enable_twist_cmd true for pivot_drive_controller",
-  }
-
-  button_manual_control: {
-    type: int,
-    default_value: 1,
-    description: "Enable manual operation - set enable_twist_cmd false for pivot_drive_controller",
-  }
-
-  axis_speed_change_coarse: {
-    type: int,
-    default_value: 7,
-    description: "Button to increment current speed scaling."
-  }
-
-  axis_speed_change_fine: {
-    type: int,
-    default_value: 6,
-    description: "Button to increment current speed scaling."
-  }
-
-  speed_change_coarse_val: {
-    type: double,
-    default_value: 0.1,
-    description: "Value to change speed when the speed_change_coarse axis is pressed",
-  }
-
-  speed_change_fine_val: {
-    type: double,
-    default_value: 0.02,
-    description: "Value to change speed when the speed_change_fine axis is pressed",
-  }
+    button_unlock: 9
+    button_lock: 10
+    button_strafe_controller: 6
+    button_pivot_drive_controller: 7
+    button_nova_diff_drive_controller: 4
+    button_autonomous_control: 0
+    button_manual_control: 1
+    axis_speed_change_coarse: 7
+    axis_speed_change_fine: 6
+    speed_change_coarse_val: 0.1
+    speed_change_fine_val: 0.02
