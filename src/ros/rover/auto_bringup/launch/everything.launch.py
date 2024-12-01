@@ -32,7 +32,6 @@ def launch_setup(context, *args, **kwargs):
 
     autostart = LaunchConfiguration('autostart')
     gazebo = LaunchConfiguration('gazebo')
-    headless = LaunchConfiguration('headless')
     localization = LaunchConfiguration('localization')
     log_level = LaunchConfiguration('log_level')
     namespace = LaunchConfiguration('namespace')
@@ -49,7 +48,6 @@ def launch_setup(context, *args, **kwargs):
             launch_arguments={
                 'namespace': namespace, 
                 'world': world, 
-                'headless': headless, 
             }.items(),
         ),
         IncludeLaunchDescription(
@@ -147,11 +145,6 @@ def generate_launch_description():
             name='navigation', 
             default_value='True',
             description='Flag to launch navigation stack',
-        ),
-        DeclareLaunchArgument(
-            name='headless', 
-            default_value='True',
-            description='Flag to launch gazeboclient',
         ),
     ]
 
