@@ -57,9 +57,6 @@ namespace teleop_drive_joy
     return node_->get_node_base_interface();
   }
 
-  /**
-   * Constructs TeleopDriveJoy.
-   */
   TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions &options) : node_{std::make_shared<rclcpp::Node>("teleop_drive_joy_node_", options)}
   {
     drive_input_pub = node_->create_publisher<drive_interfaces::msg::DriveInputStamped>(DEFAULT_OUTPUT_TOPIC, 50);
@@ -98,14 +95,13 @@ namespace teleop_drive_joy
   void TeleopDriveJoy::sendDriveCommand(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
 
-    double angular = joy_msg->axes[params_.axis_angular.z] * params_.scale_angular.z;
-    double linear = joy_msg->axes[params_.axis_linear.x] * params_.scale_linear.x;
+    auto controller_params = params_.controllers_map.at(modeToController(control_mode));
+
+    double angular = joy_msg->axes[controller_params.axis_angular.z] * controller_params.scale_angular.z;
+    double linear = joy_msg->axes[controller_params.axis_linear.x] * controller_params.scale_linear.x;
 
     if (current_state.autonomous_mode)
     {
-      if (!previous_state.autonomous_mode)
-        setControllerControlType(drive_interfaces::msg::DriveInput::PIVOT, true);
-
       auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
       cmd_vel_msg->twist.angular.z = angular;
       cmd_vel_msg->twist.linear.x = linear;
@@ -115,9 +111,6 @@ namespace teleop_drive_joy
     }
     else
     {
-      if (previous_state.autonomous_mode)
-        setControllerControlType(drive_interfaces::msg::DriveInput::PIVOT, false);
-
       auto drive_input_msg = std::make_unique<drive_interfaces::msg::DriveInputStamped>();
 
       drive_input_msg->drive_input.radius = angular == 0 ? INFINITY : (1.0 / pow(abs(angular), 2)) - 1;
@@ -207,11 +200,6 @@ namespace teleop_drive_joy
   {
 
     handleButtonCallbacks(joy_msg);
-    // reset speed change axes state
-    if (!joy_msg->axes[params_.axis_speed_change_fine] && !joy_msg->axes[params_.axis_speed_change_coarse])
-    {
-      speed_change_button_pressed = false;
-    }
 
     if (!current_state.locked)
     {
@@ -220,7 +208,7 @@ namespace teleop_drive_joy
     else
     {
       // When lock button is pressed, immediately send a single no-motion command
-      // in order to stop the robot.
+      // in order to stop the rover.
 
       if (!current_state.autonomous_mode)
       {
@@ -241,19 +229,6 @@ namespace teleop_drive_joy
         auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
         cmd_vel_pub->publish(std::move(cmd_vel_msg));
       }
-    }
-  }
-
-  auto extractParamForController(const teleop_drive_joy::Params params, const ControlMode control_mode)
-  {
-    switch (control_mode)
-    {
-    case ControlMode::PIVOT_DRIVE:
-      return params.pivot_drive_controller;
-    case ControlMode::STRAFE_DRIVE:
-      return params.strafe_controller;
-    case ControlMode::DIFF_DRIVE:
-      return params.nova_diff_drive_controller;
     }
   }
 
