@@ -4,15 +4,11 @@ Default Config
 ```yaml
 teleop_drive_joy:
   ros__parameters:
-    __map_controllers:
-      axis_angular:
-        z: 3.0
-      axis_linear:
-        x: 1.0
-      scale_angular:
-        z: 1.0
-      scale_linear:
-        x: 0.1
+    <controllers>:
+      axis_angular_z: 3.0
+      axis_linear_x: 1.0
+      scale_angular_z: 1.0
+      scale_linear_x: 0.1
     axis_speed_change_coarse: 7.0
     axis_speed_change_fine: 6.0
     button_autonomous_control: 0.0
@@ -35,34 +31,6 @@ List Of Controllers that can be used with teleop
 * Type: `string_array`
 * Default Value: {"pivot_drive_controller", "strafe_controller", "nova_diff_drive_controller"}
 * Read only: True
-
-## __map_controllers.axis_linear.x
-
-The Axis controlling linear velocity. Usually refers to the Left Stick Verical Axis
-
-* Type: `int`
-* Default Value: 1
-
-## __map_controllers.scale_linear.x
-
-A scale parameter applied on linear velocity
-
-* Type: `double`
-* Default Value: 0.1
-
-## __map_controllers.axis_angular.z
-
-The Axis controlling angular velocity. Usually refers to the Right Stick Horizontal Axis
-
-* Type: `int`
-* Default Value: 3
-
-## __map_controllers.scale_angular.z
-
-A scale parameter applied on angular velocity
-
-* Type: `double`
-* Default Value: 1.0
 
 ## button_unlock
 
@@ -141,3 +109,30 @@ Value to change speed when the speed_change_fine axis is pressed
 * Type: `double`
 * Default Value: 0.02
 
+## <controllers>.axis_linear_x
+
+The Axis controlling linear velocity. Usually refers to the Left Stick Verical Axis
+
+* Type: `int`
+* Default Value: 1
+
+## <controllers>.scale_linear_x
+
+A scale parameter applied on linear velocity
+
+* Type: `double`
+* Default Value: 0.1
+
+## <controllers>.axis_angular_z
+
+The Axis controlling angular velocity. Usually refers to the Right Stick Horizontal Axis
+
+* Type: `int`
+* Default Value: 3
+
+## <controllers>.scale_angular_z
+
+A scale parameter applied on angular velocity
+
+* Type: `double`
+* Default Value: 1.0
