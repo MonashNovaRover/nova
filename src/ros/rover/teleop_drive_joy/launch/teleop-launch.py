@@ -7,12 +7,8 @@ import launch_ros.actions
 
 
 def generate_launch_description():
-    joystick = launch.substitutions.LaunchConfiguration(
-        "joystick", description="Either xbox, ps5 or nintendo"
-    )
-    joy_dev = launch.substitutions.LaunchConfiguration(
-        "joy_dev", description="Topic to publish Twist Messages. Default: /cmd_vel"
-    )
+    joystick = launch.substitutions.LaunchConfiguration("joystick")
+    joy_dev = launch.substitutions.LaunchConfiguration("joy_dev")
     config_filepath = launch.substitutions.LaunchConfiguration("config_filepath")
 
     return launch.LaunchDescription(
