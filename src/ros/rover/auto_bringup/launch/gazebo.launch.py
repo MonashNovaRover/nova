@@ -27,7 +27,6 @@ def launch_setup(context, *args, **kwargs):
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
     config_file = LaunchConfiguration('config_file')
-    headless = LaunchConfiguration('headless')
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
     pose = {'x': LaunchConfiguration('x').perform(context),
@@ -50,12 +49,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
-            launch_arguments={'gz_args': ['-r -s -v4 ', world], 'on_exit_shutdown': 'True'}.items(),
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
-            launch_arguments={'gz_args': '-g -v4 '}.items(),
-            condition=UnlessCondition(headless),
+            launch_arguments={'gz_args': ['-r -v4 ', world], 'on_exit_shutdown': 'True'}.items(),
         ),
         Node(
             package='ros_gz_sim',
@@ -95,11 +89,6 @@ def generate_launch_description():
             name='config_file',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'gz_bridge.yaml']), 
             description='Absolute path to ros_gz_bridge params file',
-        ),
-        DeclareLaunchArgument(
-            name='headless',
-            default_value='False',
-            description='Whether to execute gzclient',
         ),
         DeclareLaunchArgument(
             name='launch_robot_description',
