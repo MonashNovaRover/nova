@@ -33,6 +33,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   # Message definitions
   "msg/ActuatorLimit.msg"
   "msg/DistanceData.msg"
+  "msg/DriveInfo.msg"
+  "msg/DriveInput.msg"
+  "msg/DriveInputStamped.msg"
   "msg/EMCData.msg"
   "msg/Heartbeat.msg"
   "msg/HydraprobeData.msg"
