@@ -8,6 +8,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   controller_manager_msgs
   drive_interfaces
   input_interfaces
+  nova_interfaces
   pluginlib
   rclcpp
   rclcpp_components
@@ -33,7 +34,7 @@ include_directories(
 # This library provides a way of loading parameters using a yaml
 generate_parameter_library(
   teleop_drive_joy_parameters
-  config/teleop.config.yaml
+  src/parameters.yaml
 )
 
 # This library provides a C++ interface for sending realtime twist or joint commands to a robot

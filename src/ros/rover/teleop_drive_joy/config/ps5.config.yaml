@@ -1,4 +1,4 @@
-# Vanilla XBox Series X / S Controller
+# Dualsense PS5 Controller
 teleop_drive_joy:
   ros__parameters:
     controllers: "{pivot_drive_controller, strafe_controller, nova_diff_drive_controller}"
