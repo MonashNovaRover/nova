@@ -1,6 +1,5 @@
 import {Button, Card, CardHeader} from "@nextui-org/react";
 import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
-import {useCallback} from "react";
 
 export interface TwoCounters {
     counterOne: number,
@@ -14,10 +13,6 @@ export interface TwoCounters {
 export default function LSObjectCard() {
 
     const [twoCounters, setTwoCounters] = useLocalStorage("counterObj", {counterOne: 0, counterTwo: 0} as TwoCounters);
-
-    const someFunc = useCallback(() => {
-      const red = twoCounters.counterTwo + 1;
-    }, [])
 
     return (
         <Card className="flex flex-col grow">
