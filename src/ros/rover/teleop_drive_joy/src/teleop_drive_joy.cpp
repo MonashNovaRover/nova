@@ -95,88 +95,10 @@ namespace teleop_drive_joy
     return joy_msg->axes[axis_map.at(fieldname)] * scale_map.at(fieldname);
   }
 
-  void TeleopDriveJoy::sendCmdVelMsg(const sensor_msgs::msg::Joy::SharedPtr joy_msg,
-                                     const std::string &which_map)
+  void TeleopDriveJoy::sendDriveCommand(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
-    // RCLCPP_INFO(node_->get_logger(), "sending cmd_vel msg...");
 
-    // Initializes with zeros by default.
-
-    auto request = std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
-
-    auto modeToController = [](const unsigned char mode) -> std::string
-    {
-      switch (mode)
-      {
-      case drive_interfaces::msg::DriveInput::STRAFE:
-        return "strafe_controller";
-      case drive_interfaces::msg::DriveInput::PIVOT:
-        return "pivot_drive_controller";
-      case drive_interfaces::msg::DriveInput::TANK:
-        return "nova_diff_drive_controller";
-      }
-    };
-
-    auto setControllerControlType = [this, modeToController](const unsigned char mode, bool enable_twist_cmd) -> void
-    {
-      RCLCPP_INFO(node_->get_logger(), "Setting controller's enable_twist_cmd to: %s", enable_twist_cmd ? "true" : "false");
-      auto request = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();
-
-      auto parameter = rcl_interfaces::msg::Parameter();
-
-      parameter.name = "enable_twist_cmd";
-      parameter.value.type = 1;
-      parameter.value.bool_value = enable_twist_cmd;
-
-      request->parameters.push_back(parameter);
-
-      if (!parameters_client->wait_for_service(1s))
-      {
-        if (!rclcpp::ok())
-        {
-          RCLCPP_ERROR(node_->get_logger(), "Interrupted while waiting for the parameter service. Exiting.");
-          rclcpp::shutdown();
-        }
-        RCLCPP_INFO(node_->get_logger(), "Parameter service not available, waiting again...");
-      }
-
-      auto result = parameters_client->async_send_request(request);
-      rclcpp::Parameter enable_twist_cmd_param = rclcpp::Parameter("enable_twist_cmd", enable_twist_cmd);
-    };
-
-    if (current_state.drive_mode != previous_state.drive_mode)
-    {
-      RCLCPP_INFO(node_->get_logger(), "Changing from %s to %s", modeToController(previous_state.drive_mode).c_str(), modeToController(current_state.drive_mode).c_str());
-      std::string activate_controller = modeToController(current_state.drive_mode);
-      std::string deactivate_controller = modeToController(previous_state.drive_mode);
-
-      request->activate_controllers.emplace_back(activate_controller);
-      request->deactivate_controllers.emplace_back(deactivate_controller);
-      request->strictness = 2;
-      // request->start_asap = false;
-      builtin_interfaces::msg::Duration duration;
-      duration.sec = 0.0;
-      duration.nanosec = 0.0;
-      request->timeout = duration;
-
-      while (!switch_controller_client->wait_for_service(1s))
-      {
-        if (!rclcpp::ok())
-        {
-          RCLCPP_ERROR(node_->get_logger(), "Interrupted while waiting for the service. Exiting.");
-        }
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service not available, waiting again...");
-      }
-
-      auto future = switch_controller_client->async_send_request(request);
-
-      if (future.wait_for(0s) != std::future_status::ready)
-      {
-        RCLCPP_ERROR(node_->get_logger(), "service call failed :(");
-      }
-    }
-
-    double angular = joy_msg->axes[params_.axis_angular.yaw] * params_.scale_angular.yaw;
+    double angular = joy_msg->axes[params_.axis_angular.z] * params_.scale_angular.z;
     double linear = joy_msg->axes[params_.axis_linear.x] * params_.scale_linear.x;
 
     if (current_state.autonomous_mode)
@@ -213,23 +135,9 @@ namespace teleop_drive_joy
     drive_info_pub->publish(std::move(current_state));
   }
 
-  void TeleopDriveJoy::joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  void TeleopDriveJoy::handleButtonCallbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
-    /*
-    if (enable_turbo_button >= 0 &&
-        static_cast<int>(joy_msg->buttons.size()) > enable_turbo_button &&
-        joy_msg->buttons[enable_turbo_button])
-    {
-      sendCmdVelMsg(joy_msg, "turbo");
-    }
-    else if (!require_enable_button ||
-       (static_cast<int>(joy_msg->buttons.size()) > enable_button &&
-             joy_msg->buttons[enable_button]))
-    {
-      sendCmdVelMsg(joy_msg, "normal");
-    }
-    */
-
+    // Lock and Unlock
     if (joy_msg->buttons[params_.button_unlock] && current_state.locked)
     {
       current_state.locked = false;
@@ -240,6 +148,8 @@ namespace teleop_drive_joy
       current_state.locked = true;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: lock");
     }
+
+    // Autonomous and Manual
     if (joy_msg->buttons[params_.button_autonomous_control] && !current_state.autonomous_mode)
     {
       current_state.autonomous_mode = true;
@@ -250,47 +160,62 @@ namespace teleop_drive_joy
       current_state.autonomous_mode = false;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: manual_control");
     }
-    if (joy_msg->buttons[params_.button_strafe_mode] && current_state.drive_mode != drive_interfaces::msg::DriveInput::STRAFE)
+
+    // Controller Switches
+    if (joy_msg->buttons[params_.button_pivot_drive_controller] && current_state.drive_mode != drive_interfaces::msg::DriveInput::PIVOT)
     {
-      current_state.drive_mode = drive_interfaces::msg::DriveInput::STRAFE;
-      RCLCPP_INFO(node_->get_logger(), "BUTTON: strafe_mode");
-    }
-    else if (joy_msg->buttons[params_.button_diff_drive_mode] && current_state.drive_mode != drive_interfaces::msg::DriveInput::TANK)
-    {
-      current_state.drive_mode = drive_interfaces::msg::DriveInput::TANK;
-      RCLCPP_INFO(node_->get_logger(), "BUTTON: diff_drive_mode");
-    }
-    else if (joy_msg->buttons[params_.button_pivot_drive_mode] && current_state.drive_mode != drive_interfaces::msg::DriveInput::PIVOT)
-    {
-      current_state.drive_mode = drive_interfaces::msg::DriveInput::PIVOT;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: pivot_drive_mode");
+      switchController(ControlMode::PIVOT_DRIVE);
     }
-    else if (joy_msg->axes[params_.axis_speed_change_coarse] && !speed_change_button_pressed)
+    else if (joy_msg->buttons[params_.button_strafe_controller] && current_state.drive_mode != drive_interfaces::msg::DriveInput::STRAFE)
     {
-      params_.scale_linear.x += params_.speed_change_coarse_val * joy_msg->axes[params_.axis_speed_change_coarse];
-      RCLCPP_INFO(node_->get_logger(), "Current max speed: %f", params_.scale_linear.x);
-
-      speed_change_button_pressed = true;
+      RCLCPP_INFO(node_->get_logger(), "BUTTON: strafe_mode");
+      switchController(ControlMode::STRAFE_DRIVE);
     }
-    else if (joy_msg->axes[params_.axis_speed_change_fine] && !speed_change_button_pressed)
+    else if (joy_msg->buttons[params_.button_nova_diff_drive_controller] && current_state.drive_mode != drive_interfaces::msg::DriveInput::TANK)
     {
-      params_.scale_linear.x += params_.speed_change_fine_val * joy_msg->axes[params_.axis_speed_change_fine] * (-1); //-1 value for reversing direction of Joy axes
-      RCLCPP_INFO(node_->get_logger(), "Current max speed: %f", params_.scale_linear.x);
-
-      speed_change_button_pressed = true;
+      RCLCPP_INFO(node_->get_logger(), "BUTTON: diff_drive_mode");
+      switchController(ControlMode::DIFF_DRIVE);
     }
+  }
 
+  void TeleopDriveJoy::switchController(const ControlMode requested_control_mode)
+  {
+    if (requested_control_mode == control_mode)
+      return;
+    RCLCPP_INFO(node_->get_logger(), "Changing from %s to %s", prettyPrintMode(control_mode).c_str(), prettyPrintMode(requested_control_mode).c_str());
+    std::string activate_controller = modeToController(requested_control_mode);
+    std::string deactivate_controller = modeToController(control_mode);
+
+    auto request = std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
+    request->activate_controllers.emplace_back(activate_controller);
+    request->deactivate_controllers.emplace_back(deactivate_controller);
+    request->strictness = 2;
+    request->activate_asap = true;
+
+    switch_controller_client->async_send_request(request, [this, requested_control_mode](rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedFuture result)
+                                                 {
+    if (result.get()->ok) {
+      RCLCPP_INFO(node_->get_logger(), "Successfully switched to %s.", prettyPrintMode(requested_control_mode).c_str());
+      control_mode = requested_control_mode;
+    } else {
+      RCLCPP_ERROR(node_->get_logger(), "Failed to switch to %s. Is drive.launch.py running?", prettyPrintMode(requested_control_mode).c_str());
+    } });
+  }
+
+  void TeleopDriveJoy::joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+
+    handleButtonCallbacks(joy_msg);
     // reset speed change axes state
     if (!joy_msg->axes[params_.axis_speed_change_fine] && !joy_msg->axes[params_.axis_speed_change_coarse])
     {
       speed_change_button_pressed = false;
     }
 
-    // FOR TESTING PURPOSES: try TwistStamped control with operators
-    // if (!locked && manual_teleop)
     if (!current_state.locked)
     {
-      sendCmdVelMsg(joy_msg, "normal");
+      sendDriveCommand(joy_msg);
     }
     else
     {
@@ -316,6 +241,19 @@ namespace teleop_drive_joy
         auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
         cmd_vel_pub->publish(std::move(cmd_vel_msg));
       }
+    }
+  }
+
+  auto extractParamForController(const teleop_drive_joy::Params params, const ControlMode control_mode)
+  {
+    switch (control_mode)
+    {
+    case ControlMode::PIVOT_DRIVE:
+      return params.pivot_drive_controller;
+    case ControlMode::STRAFE_DRIVE:
+      return params.strafe_controller;
+    case ControlMode::DIFF_DRIVE:
+      return params.nova_diff_drive_controller;
     }
   }
 
