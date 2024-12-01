@@ -30,10 +30,10 @@ include_directories(
 ## C++ Libraries ##
 ###################
 
-# This library provides a way of loading parameters for servo
+# This library provides a way of loading parameters using a yaml
 generate_parameter_library(
   teleop_drive_joy_parameters
-  config/xbox.config.yaml
+  config/teleop.config.yaml
 )
 
 # This library provides a C++ interface for sending realtime twist or joint commands to a robot
