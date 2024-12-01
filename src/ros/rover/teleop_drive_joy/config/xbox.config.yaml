@@ -1,35 +1,36 @@
 # Configuration for the Latest XBOX Controller
 teleop_drive_joy:
   ros__parameters:
-    pivot_drive_controller:
-      axis_linear:
-        x: 1
-      scale_linear:
-        x: 0.1
-      axis_angular:
-        z: 3
-      scale_angular:
-        z: 1
+    controllers_map:
+      pivot_drive_controller:
+        axis_linear:
+          x: 1
+        scale_linear:
+          x: 0.1
+        axis_angular:
+          z: 3
+        scale_angular:
+          z: 1
 
-    strafe_controller:
-      axis_linear:
-        x: 1
-      scale_linear:
-        x: 0.1
-      axis_angular:
-        z: 3
-      scale_angular:
-        z: 1
+      strafe_controller:
+        axis_linear:
+          x: 1
+        scale_linear:
+          x: 0.1
+        axis_angular:
+          z: 3
+        scale_angular:
+          z: 1
 
-    nova_diff_drive_controller:
-      axis_linear:
-        x: 1
-      scale_linear:
-        x: 0.1
-      axis_angular:
-        z: 3
-      scale_angular:
-        z: 1
+      nova_diff_drive_controller:
+        axis_linear:
+          x: 1
+        scale_linear:
+          x: 0.1
+        axis_angular:
+          z: 3
+        scale_angular:
+          z: 1
 
     button_unlock: 9
     button_lock: 10

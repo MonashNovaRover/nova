@@ -86,14 +86,14 @@ namespace teleop_drive_joy
     void handleButtonCallbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 
     /**
-     * @brief Sends a Drive Commmand on /drive_input or /cmd_vel based on joystick input.
+     * @brief Sends a Drive Commmand on /drive_input or /cmd_vel based on joy.
      * @param joy_msg Shared pointer to the joystick message.
      * @param which_map Specifies which map to use for the command.
      */
     void sendDriveCommand(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 
     /**
-     * @brief Switches the controller by calling a controller_manager service
+     * @brief Switches the controller by calling controller_manager/switch_controller service
      *
      * @param control_mode The desired control mode to switch to.
      */
@@ -116,7 +116,6 @@ namespace teleop_drive_joy
     const rclcpp::Node::SharedPtr node_;
     std::shared_ptr<teleop_drive_joy::ParamListener> param_listener_;
     teleop_drive_joy::Params params_;
-    auto extractParamForController(const teleop_drive_joy::Params params, const ControlMode control_mode);
 
     // ROS2 Pubs and Subs
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_pub;
