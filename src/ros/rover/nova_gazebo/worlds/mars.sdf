@@ -2,7 +2,7 @@
 <sdf version="1.6">
   <world name="urc_er">
     <include>
-      <uri>model://arc_terrain</uri>
+      <uri>model://auto_terrain</uri>
     </include>
 
     <light type="directional" name="sun">
