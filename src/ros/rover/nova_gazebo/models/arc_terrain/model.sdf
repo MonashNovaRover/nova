@@ -7,13 +7,13 @@
       <diffuse>1 1 1 1</diffuse>
       <specular>1 1 1 1</specular>
   </light>
-  <model name="auto_terrain">
+  <model name="arc_terrain">
     <static>true</static>
     <link name="terrain">
       <collision name="terrain_collision">
         <geometry>
           <heightmap>
-            <uri>model://auto_terrain/arc/heightmap.png</uri>
+            <uri>model://arc_terrain/textures/heightmap.png</uri>
             <size>50 50 1.8</size>
             <pos>0 0 0</pos>
           </heightmap>
@@ -38,12 +38,12 @@
         <geometry>
           <heightmap>
             <use_terrain_paging>false</use_terrain_paging>
-            <uri>model://auto_terrain/arc/heightmap.png</uri>
+            <uri>model://arc_terrain/textures/heightmap.png</uri>
             <size>50 50 1.8</size>
             <pos>0 0 0</pos>
             <texture>
-              <diffuse>model://auto_terrain/arc/minecraftsand.png</diffuse>
-              <normal>model://auto_terrain/arc/blanknormal.png</normal>
+              <diffuse>model://arc_terrain/textures/minecraftsand.png</diffuse>
+              <normal>model://arc_terrain/textures/blanknormal.png</normal>
               <ambient>0.4 0.4 0.4 1</ambient>
               <size>1</size>
             </texture>
@@ -64,7 +64,7 @@
         <visual name="visual">
           <geometry>
             <mesh>
-              <uri>model://auto_terrain/arc/walls.stl</uri> <!-- Path to the mesh file -->
+              <uri>model://arc_terrain/meshes/walls.stl</uri> <!-- Path to the mesh file -->
             </mesh>
           </geometry>
 
@@ -81,7 +81,7 @@
         <collision name="collision">
           <geometry>
             <mesh>
-              <uri>model://auto_terrain/arc/walls.stl</uri> <!-- Path to the collision mesh -->
+              <uri>model://arc_terrain/meshes/walls.stl</uri> <!-- Path to the collision mesh -->
             </mesh>
           </geometry>
         </collision>
@@ -109,7 +109,7 @@
         <visual name="visual">
           <geometry>
             <mesh>
-              <uri>model://auto_terrain/arc/equipment.stl</uri> <!-- Path to the mesh file -->
+              <uri>model://arc_terrain/meshes/equipment.stl</uri> <!-- Path to the mesh file -->
             </mesh>
           </geometry>
 
@@ -126,7 +126,7 @@
         <collision name="collision">
           <geometry>
             <mesh>
-              <uri>model://auto_terrain/arc/equipment.stl</uri> <!-- Path to the collision mesh -->
+              <uri>model://arc_terrain/meshes/equipment.stl</uri> <!-- Path to the collision mesh -->
             </mesh>
           </geometry>
         </collision>
