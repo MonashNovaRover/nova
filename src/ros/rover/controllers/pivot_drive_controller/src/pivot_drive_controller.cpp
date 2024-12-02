@@ -15,7 +15,7 @@
 
 namespace
 {
-    constexpr auto DEFAULT_INPUT_TOPIC = "~/drive_input";
+    constexpr auto DEFAULT_INPUT_TOPIC = "/drive_input";
     constexpr auto DEFAULT_INPUT_TOPIC_TWIST = "/cmd_vel";
     constexpr auto DEFAULT_OUTPUT_TOPIC = "~/cmd_vel_out";
     constexpr auto DEFAULT_ODOMETRY_TOPIC = "~/odom";
