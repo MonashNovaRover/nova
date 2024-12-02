@@ -79,7 +79,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     return [
-        cocontroller_manager,
+        controller_manager,
         pivot_drive_controller,
         strafe_controller,
         nova_diff_drive_controller,
