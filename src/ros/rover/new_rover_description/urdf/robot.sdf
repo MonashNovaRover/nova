@@ -1,6 +1,6 @@
 <sdf version="1.6">
     <model name="rover">
-        <self_collide>true</self_collide>
+        <self_collide>false</self_collide>
         <link name="chassis">
             <frame name="chassis_frame">
                 <pose>0 0 0 0 -0 0</pose>
@@ -1068,20 +1068,6 @@
             </inertial>
         </link>
 
-        <joint name="diffend_left_join" type="fixed">
-            <pose>0.40426600250801236758 0.30025535313025775164 0.053851334870506306629
-                -1.8619274120612665513 -1.3359274760854644715 -0.94867820928403723268</pose>
-            <parent>leftleg</parent>
-            <child>diffend_2</child>
-            <axis>
-                <xyz>0 0 1</xyz>
-                <limit>
-                    <effort>1</effort>
-                    <velocity>20</velocity>
-                </limit>
-            </axis>
-        </joint>
-
         <link name="difflink">
             <frame name="difflink_frame">
                 <pose>0 0 0 0 -0 0</pose>
@@ -1127,9 +1113,9 @@
             </inertial>
         </link>
 
-        <joint name="closing_diff_bl" type="ball">
-            <parent>diffend_2</parent>
-            <child>difflink</child>
+        <joint name="diff_bl" type="ball">
+            <parent>difflink</parent>
+            <child>diffend_2</child>
             <axis>
                 <limit>
                     <lower>-0.261799</lower>
@@ -1194,20 +1180,6 @@
             </inertial>
         </link>
 
-        <joint name="diffend_right_join" type="fixed">
-            <pose>-0.44247573240134774331 0.27749379793288275753 0.10927620857091185913
-                -1.1277727216537536403 -0.34595260740530425769 1.7685930445325686033</pose>
-            <parent>rightleg</parent>
-            <child>diffend</child>
-            <axis>
-                <xyz>0 0 1</xyz>
-                <limit>
-                    <effort>1</effort>
-                    <velocity>20</velocity>
-                </limit>
-            </axis>
-        </joint>
-
         <link name="difflink_2">
             <frame name="difflink_2_frame">
                 <pose>0 0 0 0 -0 0</pose>
@@ -1253,11 +1225,11 @@
             </inertial>
         </link>
 
-        <joint name="closing_diff_br" type="ball">
+        <joint name="diff_br" type="ball">
             <pose>-0.42018647057532404476 0.28581546734043072888 0.098791046410866723004
                 -2.4424363901660610665 -1.0158567024141180735 -0.42270258282768780056</pose>
-            <parent>diffend</parent>
-            <child>difflink_2</child>
+            <parent>difflink_2</parent>
+            <child>diffend</child>
             <axis>
                 <limit>
                     <lower>-0.261799</lower>
@@ -1278,6 +1250,50 @@
                 </limit>
             </axis>
         </joint>
+
+        <!-- Replace diffend to leg joins with detachable joint system plugins to fulfill CKCs
+        <joint name="diffend_left_join" type="fixed">
+            <pose>0.40426600250801236758 0.30025535313025775164 0.053851334870506306629
+                -1.8619274120612665513 -1.3359274760854644715 -0.94867820928403723268</pose>
+            <parent>leftleg</parent>
+            <child>diffend_2</child>
+            <axis>
+                <xyz>0 0 1</xyz>
+                <limit>
+                    <effort>1</effort>
+                    <velocity>20</velocity>
+                </limit>
+            </axis>
+        </joint>
+
+        <joint name="diffend_right_join" type="fixed">
+            <pose>-0.44247573240134774331 0.27749379793288275753 0.10927620857091185913
+                -1.1277727216537536403 -0.34595260740530425769 1.7685930445325686033</pose>
+            <parent>rightleg</parent>
+            <child>diffend</child>
+            <axis>
+                <xyz>0 0 1</xyz>
+                <limit>
+                    <effort>1</effort>
+                    <velocity>20</velocity>
+                </limit>
+            </axis>
+        </joint>
+        -->
+
+        <plugin filename="libgz-sim-detachable-joint-system.so" name="gz::sim::systems::DetachableJoint">
+            <parent_link>leftleg</parent_link>
+            <child_model>rover</child_model>
+            <child_link>diffend_2</child_link>
+            <attach_topic>close_loop_left</attach_topic>
+        </plugin>
+
+        <plugin filename="libgz-sim-detachable-joint-system.so" name="gz::sim::systems::DetachableJoint">
+            <parent_link>rightleg</parent_link>
+            <child_model>rover</child_model>
+            <child_link>diffend</child_link>
+            <attach_topic>close_loop_right</attach_topic>
+        </plugin>
 
     </model>
 </sdf>
