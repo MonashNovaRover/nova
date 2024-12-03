@@ -59,7 +59,7 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
-    rover_description_dir = FindPackageShare('rover_description')
+    rover_description_dir = FindPackageShare('new_rover_description')
 
     declared_arguments = [      
         DeclareLaunchArgument(

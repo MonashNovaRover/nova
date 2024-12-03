@@ -231,11 +231,6 @@
       </link>
     </model>
 
-    <include>
-      <uri>model://../../new_rover_description/urdf/robot.sdf</uri>
-      <pose>0 0 1 0 0 0</pose>
-    </include>
-
     <scene>
       <shadows>true</shadows>
     </scene>
