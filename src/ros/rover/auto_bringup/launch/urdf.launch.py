@@ -24,13 +24,18 @@ from launch_ros.substitutions import FindPackageShare
 def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo').perform(context)
     model = LaunchConfiguration('model').perform(context)
+    robot_name = LaunchConfiguration('robot_name').perform(context)
     
     return [
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[{'robot_description': 
+<<<<<<< HEAD
                 ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo]), value_type=str)
+=======
+                ParameterValue(Command(['xacro ', model, " ", "gazebo:=", gazebo, " ", "robot_name:=", robot_name]), value_type=str)
+>>>>>>> c7c6662 (Model fully formed. No controllers yet)
             }]
         )
     ]
@@ -49,6 +54,11 @@ def generate_launch_description():
             name='model', 
             default_value=PathJoinSubstitution([rover_description_dir, 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
+        ),
+        DeclareLaunchArgument(
+            name='robot_name',
+            default_value='Rover7',
+            description='name of the robot',
         ),
     ]
     
