@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Configure Closed Kinetic Chains for Rover -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+    <gazebo>
+        <plugin filename="libgz-sim-detachable-joint-system.so" name="gz::sim::systems::DetachableJoint">
+            <parent_link>leftleg</parent_link>
+            <child_model>Rover7</child_model>
+            <child_link>diffend_2</child_link>
+            <attach_topic>close_loop_left</attach_topic>
+        </plugin>
+
+        <plugin filename="libgz-sim-detachable-joint-system.so" name="gz::sim::systems::DetachableJoint">
+            <parent_link>rightleg</parent_link>
+            <child_model>Rover7</child_model>
+            <child_link>diffend</child_link>
+            <attach_topic>close_loop_right</attach_topic>
+        </plugin>
+    </gazebo>
+</robot>
+
+<!-- Currently, the child_model must be named the rover's namespace which in the rover.urdf.xacro file is rover,
+ but if running using our launch files, gets changed to Rover7 or Waratah, how do we prevent hard coding?-->

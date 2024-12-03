@@ -13,7 +13,7 @@ buildRosPackage {
   buildType = "ament_cmake";
 
   src = builtins.path rec {
-    name = "rover-description-source";
+    name = "new-rover-description-source";
     path = ../../../new_rover_description;
     filter = lib.novaSourceFilter [ ] path;
   };

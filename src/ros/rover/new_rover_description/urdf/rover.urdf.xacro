@@ -1,0 +1,1075 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated using onshape-to-robot and modified to include CKCs and ball joints by Anthony Lew -->
+<!-- Notes:
+      - Need to rename ankle pivots and wheels to fit current joint controller naming scheme
+      - CKC is handled in ckc.xacro
+      - joints.xacro handles ball joints and other non-vanilla joints
+-->
+<robot name="rover"  xmlns:xacro="http://www.ros.org/wiki/xacro" >
+
+    <!-- Loading args -->
+    <xacro:arg name="gazebo" default="false"/>
+    <xacro:arg name="use_mock_hardware" default="false"/>
+    <xacro:arg name="arm" default="false"/>
+    <xacro:arg name="auto_camera" default="true"/>
+
+    <!-- Dummy base link to prevent issues-->
+    <link name="base_link" />
+    <!-- Positions the chassis mesh in space relative to the wheel base (Stolen from Waratah and may need to be configured)-->
+    <joint name="base_to_chassis" type="fixed">
+        <parent link="base_link"/>
+        <child link="chassis"/>
+        <origin xyz="0. -0. 0.38" rpy="0. 0. ${-pi/2}"/>
+    </joint>
+
+    <link name="chassis">
+        <visual>
+            <origin xyz="-0.018984610583012817564 -0.11072106393638803112 0.061040732012669463025"
+                rpy="1.110223024625156146e-15 6.106226635438357028e-16 2.7755575615628895022e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/chassis.stl" />
+            </geometry>
+            <material name="chassis_material">
+                <color
+                    rgba="0.67843137254901964006 0.17647058823529412908 0.40392156862745098866 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="-0.018984610583012817564 -0.11072106393638803112 0.061040732012669463025"
+                rpy="1.110223024625156146e-15 6.106226635438357028e-16 2.7755575615628895022e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/chassis.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-0.019045218507636810235 -0.087993046828656773517 0.087385944696220851924"
+                rpy="0 0 0" />
+            <mass value="7.6906345059940948161" />
+            <inertia ixx="0.44733237602571912506" ixy="-0.00012066720320086161587"
+                ixz="-0.00020251363375000226924" iyy="0.19488738906767785752"
+                iyz="0.0095851903407345208363" izz="0.56806231569085507971" />
+        </inertial>
+    </link>
+
+    <link name="crossbar">
+        <visual>
+            <origin
+                xyz="-2.7755575615628913511e-17 -5.5511151231257827021e-17 -0.14100000000000956213"
+                rpy="1.570796326794896558 1.570796326794896558 0" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/crossbar.stl" />
+            </geometry>
+            <material name="crossbar_material">
+                <color
+                    rgba="0.91764705882352937127 0.91764705882352937127 0.91764705882352937127 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin
+                xyz="-2.7755575615628913511e-17 -5.5511151231257827021e-17 -0.14100000000000956213"
+                rpy="1.570796326794896558 1.570796326794896558 0" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/crossbar.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-0.0010899117823054067008 4.0413800272093150103e-06 -0.1399993129761559485"
+                rpy="0 0 0" />
+            <mass value="0.61929085260862071216" />
+            <inertia ixx="0.022394047093070128251" ixy="-6.3774127350866009372e-09"
+                ixz="2.4803302241999911587e-10" iyy="0.022366401167997828486"
+                iyz="-1.5472398701492628437e-08" izz="0.00052067562621966299603" />
+        </inertial>
+    </link>
+
+    <link name="rightleg">
+        <visual>
+            <origin xyz="0.074734192136231336612 0.15002553566875342916 -0.27453363429541915997"
+                rpy="-1.5976312533649206227 -0.14736445394616992655 -5.841052856855955895e-18" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/rightleg.stl" />
+            </geometry>
+            <material name="rightleg_material">
+                <color
+                    rgba="0.49803921568627451677 0.49803921568627451677 0.49803921568627451677 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.074734192136231336612 0.15002553566875342916 -0.27453363429541915997"
+                rpy="-1.5976312533649206227 -0.14736445394616992655 -5.841052856855955895e-18" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/rightleg.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin
+                xyz="0.0039717287152238600623 -0.0038738969203747086745 -0.053343764207219812601"
+                rpy="0 0 0" />
+            <mass value="3.3445666178870414598" />
+            <inertia ixx="0.0097840090697630006933" ixy="0.013186503315028193228"
+                ixz="0.0014151848627837386538" iyy="0.49540614693113899092"
+                iyz="0.00019502537856914164863" izz="0.49156963066925923878" />
+        </inertial>
+    </link>
+
+    <link name="fr_ankle">
+        <visual>
+            <origin xyz="0.015614489500176853554 0.67994599685157042224 0.18062285001424138731"
+                rpy="-0.080461825812964266058 -0.08792239097089690758 -5.8568768164772501268e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/ankle.stl" />
+            </geometry>
+            <material name="ankle_material">
+                <color
+                    rgba="0.64705882352941179736 0.64705882352941179736 0.64705882352941179736 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.015614489500176853554 0.67994599685157042224 0.18062285001424138731"
+                rpy="-0.080461825812964266058 -0.08792239097089690758 -5.8568768164772501268e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/ankle.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-0.044294303560196875147 -0.051143872404985656066 -0.07162417341397339654"
+                rpy="0 0 0" />
+            <mass value="0.40704209227750914879" />
+            <inertia ixx="0.0020666572037422062218" ixy="-0.00036892344710024777997"
+                ixz="-0.0005270304242319385872" iyy="0.0019576639497774187167"
+                iyz="-0.00060807735844362184249" izz="0.0011614748478770173072" />
+        </inertial>
+    </link>
+
+    <link name="fr_anklemotor">
+        <visual>
+            <origin xyz="0.62946589948944542403 -0.30151197824312137019 0.41046026989988010358"
+                rpy="1.389724805628755222 0.85047616912755763519 -5.818813789397256689e-18" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/anklemotor.stl" />
+            </geometry>
+            <material name="anklemotor_material">
+                <color
+                    rgba="0.97254901960784312376 0.52941176470588235947 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.62946589948944542403 -0.30151197824312137019 0.41046026989988010358"
+                rpy="1.389724805628755222 0.85047616912755763519 -5.818813789397256689e-18" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/anklemotor.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-0.021959006082670595728 0.03562303636279906538 -0.023997480599055761447"
+                rpy="0 0 0" />
+            <mass value="0.67137253036121347094" />
+            <inertia ixx="0.00067218986057567616139" ixy="-3.5904904907073095582e-05"
+                ixz="7.9308197451476638579e-09" iyy="0.00100880238518442477"
+                iyz="6.7335639484740268811e-08" izz="0.001027383014246707315" />
+        </inertial>
+    </link>
+
+    <link name="fr_wheel">
+        <visual>
+            <origin xyz="-0.38259960033318879402 0.46918983337575870252 -0.51922643103692456279"
+                rpy="-1.5750276880577298577 0.71253568943758915921 1.4063130289565325269e-16" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/wheel.stl" />
+            </geometry>
+            <material name="wheel_material">
+                <color
+                    rgba="0.49803921568627451677 0.49803921568627451677 0.49803921568627451677 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="-0.38259960033318879402 0.46918983337575870252 -0.51922643103692456279"
+                rpy="-1.5750276880577298577 0.71253568943758915921 1.4063130289565325269e-16" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/wheel.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin
+                xyz="-4.4336846478920666215e-08 -5.0174766008659332783e-09 1.2572917233201474918e-05"
+                rpy="0 0 0" />
+            <mass value="1.8501383764095644668" />
+            <inertia ixx="0.020701697509521672924" ixy="2.9116893000832806047e-05"
+                ixz="2.3771624222687381634e-09" iyy="0.020861646227223414746"
+                iyz="4.0000680648983471388e-09" izz="0.032713950134905432632" />
+        </inertial>
+    </link>
+
+    <joint name="frw" type="continuous">
+        <origin xyz="0.053292508052297793419 0.046508209944849943085 -0.02400000000000451772"
+            rpy="1.5707963267948876762 -1.0191759065537659978 -1.4372802468726955105" />
+        <parent link="fr_anklemotor" />
+        <child link="fr_wheel" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="fr_ankle_motor_join" type="fixed">
+        <origin xyz="-0.057783171745668049368 -0.02986169737344709918 -0.2020000000000001239"
+            rpy="-1.570796326794896558 -0.13351607992219322041 0.85490567283933871501" />
+        <parent link="fr_ankle" />
+        <child link="fr_anklemotor" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="frp" type="revolute">
+        <origin xyz="-0.47013767878255990906 -0.026528595964174069011 -0.10561814293695770406"
+            rpy="1.570796326794901665 1.0073002592573416791 3.1148421188216253164" />
+        <parent link="rightleg" />
+        <child link="fr_ankle" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <link name="br_ankle">
+        <visual>
+            <origin xyz="0.015614489500176909065 0.67994599685157053326 0.18062285001424135955"
+                rpy="-0.080461825812964266058 -0.08792239097089690758 1.5540142649877242431e-16" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/ankle.stl" />
+            </geometry>
+            <material name="ankle_material">
+                <color
+                    rgba="0.64705882352941179736 0.64705882352941179736 0.64705882352941179736 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.015614489500176909065 0.67994599685157053326 0.18062285001424135955"
+                rpy="-0.080461825812964266058 -0.08792239097089690758 1.5540142649877242431e-16" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/ankle.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-0.044294303560196812697 -0.051143872404985447899 -0.071624173413973424296"
+                rpy="0 0 0" />
+            <mass value="0.40704209227750914879" />
+            <inertia ixx="0.0020666572037422066555" ixy="-0.00036892344710024734629"
+                ixz="-0.0005270304242319385872" iyy="0.001957663949777418283"
+                iyz="-0.00060807735844362195091" izz="0.0011614748478770173072" />
+        </inertial>
+    </link>
+
+    <link name="br_anklemotor">
+        <visual>
+            <origin xyz="0.62946589948944531301 -0.30151197824312137019 0.41046026989988015909"
+                rpy="1.389724805628755222 0.85047616912755752416 1.5281364615785625407e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/anklemotor.stl" />
+            </geometry>
+            <material name="anklemotor_material">
+                <color
+                    rgba="0.97254901960784312376 0.52941176470588235947 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.62946589948944531301 -0.30151197824312137019 0.41046026989988015909"
+                rpy="1.389724805628755222 0.85047616912755752416 1.5281364615785625407e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/anklemotor.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-0.02195900608267070675 0.035623036362799120891 -0.023997480599055709405"
+                rpy="0 0 0" />
+            <mass value="0.67137253036121347094" />
+            <inertia ixx="0.00067218986057567605297" ixy="-3.5904904907073163344e-05"
+                ixz="7.930819745086399553e-09" iyy="0.00100880238518442477"
+                iyz="6.7335639484739990879e-08" izz="0.001027383014246707315" />
+        </inertial>
+    </link>
+
+    <link name="br_wheel">
+        <visual>
+            <origin xyz="-0.38259960033318890504 0.46918983337575886905 -0.51922643103692467381"
+                rpy="-1.5750276880577298577 0.71253568943758904819 5.8062294179693922442e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/wheel.stl" />
+            </geometry>
+            <material name="wheel_material">
+                <color
+                    rgba="0.49803921568627451677 0.49803921568627451677 0.49803921568627451677 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="-0.38259960033318890504 0.46918983337575886905 -0.51922643103692467381"
+                rpy="-1.5750276880577298577 0.71253568943758904819 5.8062294179693922442e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/wheel.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin
+                xyz="-4.4336846478920666215e-08 -5.0174764343324795846e-09 1.2572917233097391509e-05"
+                rpy="0 0 0" />
+            <mass value="1.8501383764095644668" />
+            <inertia ixx="0.020701697509521690271" ixy="2.9116893000836648189e-05"
+                ixz="2.3771624253482232233e-09" iyy="0.020861646227223414746"
+                iyz="4.0000680666284557741e-09" izz="0.032713950134905432632" />
+        </inertial>
+    </link>
+
+    <joint name="brw" type="continuous">
+        <origin xyz="0.053292508052299625287 0.046508209944850109618 -0.024000000000004684253"
+            rpy="-1.5707963267948903408 0.73294095305798723228 1.7043124067170898339" />
+        <parent link="br_anklemotor" />
+        <child link="br_wheel" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="br_ankle_motor_join" type="fixed">
+        <origin xyz="-0.057783171745668007735 -0.029861697373447015913 -0.20200000000000015166"
+            rpy="-1.5707963267948961139 -0.13351607992219349796 0.85490567283933771581" />
+        <parent link="br_ankle" />
+        <child link="br_anklemotor" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="brp" type="revolute">
+        <origin xyz="0.47757721986905665723 -0.051886525235696145941 -0.10803770039684268411"
+            rpy="1.5707963267948990005 1.0028589426541167917 3.1148421188216195432" />
+        <parent link="rightleg" />
+        <child link="br_ankle" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="right_leg" type="revolute">
+        <origin xyz="-6.9388939039072283776e-17 2.1510571102112407971e-16 0.16084999999999188836"
+            rpy="3.1415926535897908956 -4.2351985592036797581e-15 -0.042632639835202497391" />
+        <parent link="crossbar" />
+        <child link="rightleg" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <link name="leftleg">
+        <visual>
+            <origin xyz="0.00045352860844379006 0.0043256320617981597332 -0.076344780845679083292"
+                rpy="1.5707963296915061768 0.074503596471802949197 -3.8891004251505655424e-18" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/leftleg.stl" />
+            </geometry>
+            <material name="leftleg_material">
+                <color
+                    rgba="0.76862745098039220171 0.88627450980392152857 0.95294117647058818044 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.00045352860844379006 0.0043256320617981597332 -0.076344780845679083292"
+                rpy="1.5707963296915061768 0.074503596471802949197 -3.8891004251505655424e-18" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/leftleg.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.0015089324131137497442 0.0038104466220293016498 -0.05408618279303881865"
+                rpy="0 0 0" />
+            <mass value="3.3446456224080054476" />
+            <inertia ixx="0.0098744070807949089336" ixy="-0.013941467692686450655"
+                ixz="0.00024284010892889566074" iyy="0.50330615819129198574"
+                iyz="-0.00018936422829514727045" izz="0.49945091029511440306" />
+        </inertial>
+    </link>
+
+    <link name="fl_ankle">
+        <visual>
+            <origin xyz="0.015614489500176909065 0.67994599685157064428 0.1806228500142413318"
+                rpy="-0.08046182581296425218 -0.087922390970896921458 1.3775207290911618473e-18" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/ankle.stl" />
+            </geometry>
+            <material name="ankle_material">
+                <color
+                    rgba="0.64705882352941179736 0.64705882352941179736 0.64705882352941179736 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.015614489500176909065 0.67994599685157064428 0.1806228500142413318"
+                rpy="-0.08046182581296425218 -0.087922390970896921458 1.3775207290911618473e-18" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/ankle.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-0.044294303560196889025 -0.051143872404985551983 -0.071624173413973424296"
+                rpy="0 0 0" />
+            <mass value="0.40704209227750914879" />
+            <inertia ixx="0.0020666572037422049207" ixy="-0.00036892344710024745471"
+                ixz="-0.00052703042423193847878" iyy="0.001957663949777419584"
+                iyz="-0.00060807735844362184249" izz="0.0011614748478770173072" />
+        </inertial>
+    </link>
+
+    <link name="fl_anklemotor">
+        <visual>
+            <origin xyz="0.62946589948944509096 -0.30151197824312137019 0.41046026989987999256"
+                rpy="1.389724805628755222 0.85047616912755763519 4.3026009868508784938e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/anklemotor.stl" />
+            </geometry>
+            <material name="anklemotor_material">
+                <color
+                    rgba="0.97254901960784312376 0.52941176470588235947 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.62946589948944509096 -0.30151197824312137019 0.41046026989987999256"
+                rpy="1.389724805628755222 0.85047616912755763519 4.3026009868508784938e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/anklemotor.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-0.02195900608267070675 0.035623036362799120891 -0.023997480599055744099"
+                rpy="0 0 0" />
+            <mass value="0.67137253036121347094" />
+            <inertia ixx="0.00067218986057567583613" ixy="-3.5904904907073122687e-05"
+                ixz="7.9308197448951305799e-09" iyy="0.00100880238518442477"
+                iyz="6.7335639484727298619e-08" izz="0.0010273830142467070981" />
+        </inertial>
+    </link>
+
+    <link name="fl_wheel">
+        <visual>
+            <origin xyz="-0.38259960033318929362 0.46918983337575881354 -0.51922643103692445177"
+                rpy="-1.5750276880577298577 0.71253568943758904819 -1.177614494774887625e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/wheel.stl" />
+            </geometry>
+            <material name="wheel_material">
+                <color
+                    rgba="0.49803921568627451677 0.49803921568627451677 0.49803921568627451677 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="-0.38259960033318929362 0.46918983337575881354 -0.51922643103692445177"
+                rpy="-1.5750276880577298577 0.71253568943758904819 -1.177614494774887625e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/wheel.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin
+                xyz="-4.4336846763415316275e-08 -5.0174764898436308158e-09 1.257291723318759713e-05"
+                rpy="0 0 0" />
+            <mass value="1.8501383764095644668" />
+            <inertia ixx="0.020701697509521683332" ixy="2.9116893000830241232e-05"
+                ixz="2.3771624290623266258e-09" iyy="0.020861646227223414746"
+                iyz="4.0000680656624510937e-09" izz="0.032713950134905425693" />
+        </inertial>
+    </link>
+
+    <joint name="flw" type="continuous">
+        <origin xyz="0.053292508052297515864 0.046508209944849832063 -0.024000000000004684253"
+            rpy="-1.5707963267948825692 -1.2851019603589761697 1.7043124067170818403" />
+        <parent link="fl_anklemotor" />
+        <child link="fl_wheel" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="fl_ankle_motor_join" type="fixed">
+        <origin xyz="-0.057783171745668215902 -0.029861697373447015913 -0.20200000000000017941"
+            rpy="-1.570796326794896336 -0.13351607992219258203 0.85490567283933827092" />
+        <parent link="fl_ankle" />
+        <child link="fl_anklemotor" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="flp" type="revolute">
+        <origin xyz="-0.4796458670490280074 0.025616433642942915139 -0.10826706190837964705"
+            rpy="1.5707963267948739094 1.5659311285153076909 0.028123902821195780749" />
+        <parent link="leftleg" />
+        <child link="fl_ankle" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <link name="bl_ankle">
+        <visual>
+            <origin xyz="0.015614489500176853554 0.67994599685157064428 0.18062285001424135955"
+                rpy="-0.080461825812964266058 -0.087922390970896921458 -3.3978761297262253659e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/ankle.stl" />
+            </geometry>
+            <material name="ankle_material">
+                <color
+                    rgba="0.64705882352941179736 0.64705882352941179736 0.64705882352941179736 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.015614489500176853554 0.67994599685157064428 0.18062285001424135955"
+                rpy="-0.080461825812964266058 -0.087922390970896921458 -3.3978761297262253659e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/ankle.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-0.044294303560196951475 -0.051143872404985434021 -0.071624173413973368785"
+                rpy="0 0 0" />
+            <mass value="0.40704209227750914879" />
+            <inertia ixx="0.0020666572037422053544" ixy="-0.00036892344710024745471"
+                ixz="-0.0005270304242319385872" iyy="0.0019576639497774187167"
+                iyz="-0.00060807735844362173407" izz="0.0011614748478770173072" />
+        </inertial>
+    </link>
+
+    <link name="bl_anklemotor">
+        <visual>
+            <origin xyz="0.62946589948944509096 -0.30151197824312137019 0.41046026989988032563"
+                rpy="1.389724805628755222 0.85047616912755763519 2.5123200317259393945e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/anklemotor.stl" />
+            </geometry>
+            <material name="anklemotor_material">
+                <color
+                    rgba="0.97254901960784312376 0.52941176470588235947 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.62946589948944509096 -0.30151197824312137019 0.41046026989988032563"
+                rpy="1.389724805628755222 0.85047616912755763519 2.5123200317259393945e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/anklemotor.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-0.021959006082670901039 0.03562303636279906538 -0.023997480599055605321"
+                rpy="0 0 0" />
+            <mass value="0.67137253036121347094" />
+            <inertia ixx="0.00067218986057567605297" ixy="-3.5904904907073041372e-05"
+                ixz="7.930819745144729021e-09" iyy="0.00100880238518442477"
+                iyz="6.733563948469904213e-08" izz="0.0010273830142467075318" />
+        </inertial>
+    </link>
+
+    <link name="bl_wheel">
+        <visual>
+            <origin xyz="-0.38259960033318884953 0.46918983337575881354 -0.51922643103692445177"
+                rpy="-1.5750276880577298577 0.71253568943758915921 7.182976594618403319e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/wheel.stl" />
+            </geometry>
+            <material name="wheel_material">
+                <color
+                    rgba="0.49803921568627451677 0.49803921568627451677 0.49803921568627451677 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="-0.38259960033318884953 0.46918983337575881354 -0.51922643103692445177"
+                rpy="-1.5750276880577298577 0.71253568943758915921 7.182976594618403319e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/wheel.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin
+                xyz="-4.4336846416470621079e-08 -5.0174764343324795846e-09 1.2572917233201474918e-05"
+                rpy="0 0 0" />
+            <mass value="1.8501383764095644668" />
+            <inertia ixx="0.020701697509521683332" ixy="2.9116893000834384917e-05"
+                ixz="2.3771624194922791404e-09" iyy="0.020861646227223414746"
+                iyz="4.0000680665386768992e-09" izz="0.032713950134905432632" />
+        </inertial>
+    </link>
+
+    <joint name="blw" type="continuous">
+        <origin xyz="0.053292508052297571375 0.046508209944849859818 -0.024000000000004240164"
+            rpy="-1.5707963267948905628 -0.6583535580898899342 1.7043124067170840608" />
+        <parent link="bl_anklemotor" />
+        <child link="bl_wheel" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="bl_ankle_motor_join" type="fixed">
+        <origin xyz="-0.057783171745668035491 -0.029861697373446960402 -0.20200000000000015166"
+            rpy="-1.57079632679489678 -0.13351607992219377552 0.85490567283933860399" />
+        <parent link="bl_ankle" />
+        <child link="bl_anklemotor" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="blp" type="revolute">
+        <origin xyz="0.47750427808995582479 0.05254233073255795694 -0.10804254714164401863"
+            rpy="-1.57079632679489678 0.53888166266597947729 -3.1134687507683778129" />
+        <parent link="leftleg" />
+        <child link="bl_ankle" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="left_leg" type="revolute">
+        <origin xyz="-1.5265566588595902431e-16 4.8572257327350598644e-17 -0.44085000000001295373"
+            rpy="2.5422135065142641694e-16 9.5705447758151045673e-16 -0.0090414092394688044124" />
+        <parent link="crossbar" />
+        <child link="leftleg" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="cross_right_join" type="fixed">
+        <origin xyz="-0.15498461058301396531 -0.11072106393638785071 0.061040732012669497719"
+            rpy="-1.5707963267948961139 -1.1102230246251549627e-15 1.5707963267948972241" />
+        <parent link="chassis" />
+        <child link="crossbar" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <link name="diffmount">
+        <visual>
+            <origin xyz="0.060992749676203147913 -0.10444400883589051443 -0.001896031500127015601"
+                rpy="1.5888520752199890573 -0.079868273196195729846 3.6847461586994759709e-19" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/diffmount.stl" />
+            </geometry>
+            <material name="diffmount_material">
+                <color
+                    rgba="0.97254901960784312376 0.52941176470588235947 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.060992749676203147913 -0.10444400883589051443 -0.001896031500127015601"
+                rpy="1.5888520752199890573 -0.079868273196195729846 3.6847461586994759709e-19" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/diffmount.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.018499878822859076866 1.3265492243980103737e-05 -0.014774137486399142871"
+                rpy="0 0 0" />
+            <mass value="0.041267741831762065619" />
+            <inertia ixx="1.2301238255448137629e-05" ixy="-1.6154421395031096867e-09"
+                ixz="1.9449697740903841557e-10" iyy="1.4223623820227314078e-05"
+                iyz="1.4088534117249053499e-10" izz="4.615858087690448144e-06" />
+        </inertial>
+    </link>
+
+    <link name="diffbar">
+        <visual>
+            <origin xyz="0.04249275449065251925 0.10445735554553572944 0.021896031500127699498"
+                rpy="-1.5527405783698040587 0.079868273196195785357 -9.4337562964472226044e-18" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/diffbar.stl" />
+            </geometry>
+            <material name="diffbar_material">
+                <color
+                    rgba="0.86666666666666669627 0.32156862745098041545 0.15686274509803921351 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.04249275449065251925 0.10445735554553572944 0.021896031500127699498"
+                rpy="-1.5527405783698040587 0.079868273196195785357 -9.4337562964472226044e-18" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/diffbar.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin
+                xyz="-0.0046325031628372467796 0.029950435987357068579 5.6551985316843911278e-16"
+                rpy="0 0 0" />
+            <mass value="0.41604445274443707659" />
+            <inertia ixx="0.00069051715503048451909" ixy="-0.0028951365691400545062"
+                ixz="2.2458720994929389336e-08" iyy="0.01896063010771729257"
+                iyz="-1.0250324667907931751e-07" izz="0.019624856180076692691" />
+        </inertial>
+    </link>
+
+    <link name="difflinktop">
+        <visual>
+            <origin xyz="0.054374427853885090589 0.020781238484850694803 -0.0060532242689920190415"
+                rpy="2.7207913016761242631 1.3813882514123458911 -1.3757862017019204275e-16" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/difflinktop.stl" />
+            </geometry>
+            <material name="difflinktop_material">
+                <color
+                    rgba="0.97254901960784312376 0.52941176470588235947 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.054374427853885090589 0.020781238484850694803 -0.0060532242689920190415"
+                rpy="2.7207913016761242631 1.3813882514123458911 -1.3757862017019204275e-16" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/difflinktop.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.009179146420314058738 0.0035713065058396303852 -0.0047499999999999808001"
+                rpy="0 0 0" />
+            <mass value="0.013606078196486367723" />
+            <inertia ixx="8.98730511976385892e-07" ixy="-8.355386417941221571e-07"
+                ixz="-6.0725600799834667973e-21" iyy="2.7211919051775394344e-06"
+                iyz="-1.1578325807454240228e-21" izz="3.4319611912568939363e-06" />
+        </inertial>
+    </link>
+
+    <link name="difflinkbody">
+        <visual>
+            <origin
+                xyz="0.0013242618427471986031 0.00025741209445184765059 -0.029209249612775167043"
+                rpy="-0.043616411896557703842 0.17637808716108951956 8.4325370877299107976e-18" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/difflinkbody.stl" />
+            </geometry>
+            <material name="difflinkbody_material">
+                <color
+                    rgba="0.61568627450980395466 0.81176470588235294379 0.92941176470588238168 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin
+                xyz="0.0013242618427471986031 0.00025741209445184765059 -0.029209249612775167043"
+                rpy="-0.043616411896557703842 0.17637808716108951956 8.4325370877299107976e-18" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/difflinkbody.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin
+                xyz="3.8597597340483957851e-17 -2.2797044742402236244e-17 -0.028750000000000011657"
+                rpy="0 0 0" />
+            <mass value="0.012008474024564124924" />
+            <inertia ixx="3.4513655264616814399e-06" ixy="7.367260689099900819e-23"
+                ixz="1.9918003410251836982e-22" iyy="3.4513655264616814399e-06"
+                iyz="-2.9499139165119523425e-23" izz="2.8556151230413454125e-07" />
+        </inertial>
+    </link>
+
+    <link name="difflinkbottom">
+        <visual>
+            <origin
+                xyz="0.0013242618427471986031 -0.00025741209445195867289 -0.026924680982795559658"
+                rpy="3.0979762416932357105 -0.17637808716108951956 3.3648097806216327789e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/difflinkbottom.stl" />
+            </geometry>
+            <material name="difflinkbottom_material">
+                <color
+                    rgba="0.64705882352941179736 0.64705882352941179736 0.64705882352941179736 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin
+                xyz="0.0013242618427471986031 -0.00025741209445195867289 -0.026924680982795559658"
+                rpy="3.0979762416932357105 -0.17637808716108951956 3.3648097806216327789e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/difflinkbottom.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin
+                xyz="1.2143064331837649661e-17 -2.1250362580715886907e-17 0.020516655251079509575"
+                rpy="0 0 0" />
+            <mass value="0.013606078196486367723" />
+            <inertia ixx="3.3943133003665109625e-06" ixy="1.1446830573265843015e-07"
+                ixz="-1.435408256792232265e-22" iyy="3.0839206315490944109e-06"
+                iyz="4.293256612133721829e-22" izz="5.7364967649520563078e-07" />
+        </inertial>
+    </link>
+
+    <link name="diffend">
+        <visual>
+            <origin xyz="0.17971073405358456432 0.21588039448377255303 -0.40807535825979807109"
+                rpy="-1.9818930137193269125 1.2855609164377961307 -1.9701239263939328356e-16" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/diffend.stl" />
+            </geometry>
+            <material name="diffend_material">
+                <color rgba="0.2313725490196078538 0.38039215686274507888 0.7058823529411765163 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.17971073405358456432 0.21588039448377255303 -0.40807535825979807109"
+                rpy="-1.9818930137193269125 1.2855609164377961307 -1.9701239263939328356e-16" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/diffend.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin
+                xyz="1.8041124150158793782e-16 2.7755575615628913511e-16 0.008258979843549507649"
+                rpy="0 0 0" />
+            <mass value="0.0171894836514326875" />
+            <inertia ixx="2.730044632303749642e-06" ixy="1.9543480626141576145e-23"
+                ixz="-3.0372491011410687077e-21" iyy="2.730044632303749642e-06"
+                iyz="-4.1142037103564275694e-22" izz="4.1163841102364694153e-07" />
+        </inertial>
+    </link>
+
+    <joint name="bl_difflinkeye" type="revolute">
+        <origin xyz="5.5511151231257827021e-17 -1.1102230246251565404e-16 -0.057499999999999849842"
+            rpy="3.1415926535897877869 1.6500462979968233033e-16 -6.0166141116235384674e-16" />
+        <parent link="difflinkbody" />
+        <child link="difflinkbottom" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" lower="0" upper="0" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="tl_difflinkeye" type="revolute">
+        <origin xyz="0.030163508761813104253 0.011735637514357022404 -0.0047499999999997544187"
+            rpy="1.5707963267949633934 1.5136504879344332419 -1.1997499986778861203" />
+        <parent link="difflinktop" />
+        <child link="difflinkbody" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" lower="0" upper="0" />
+        <joint_properties friction="0.0" />
+    </joint>   
+
+    <link name="difflinktop_2">
+        <visual>
+            <origin xyz="0.054374427853885132222 0.020781238484850694803 -0.0013032242689919870671"
+                rpy="2.720791301676123819 1.3813882514123458911 -1.3317334688083011734e-16" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/difflinktop.stl" />
+            </geometry>
+            <material name="difflinktop_material">
+                <color
+                    rgba="0.97254901960784312376 0.52941176470588235947 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.054374427853885132222 0.020781238484850694803 -0.0013032242689919870671"
+                rpy="2.720791301676123819 1.3813882514123458911 -1.3317334688083011734e-16" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/difflinktop.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin
+                xyz="0.0091791464203140951672 0.0035713065058396303852 5.1391182975812916335e-17"
+                rpy="0 0 0" />
+            <mass value="0.013606078196486367723" />
+            <inertia ixx="8.9873051197638568024e-07" ixy="-8.3553864179412162771e-07"
+                ixz="-6.1031669480745591635e-21" iyy="2.7211919051775390109e-06"
+                iyz="-1.210772139948817794e-21" izz="3.4319611912568939363e-06" />
+        </inertial>
+    </link>
+
+    <link name="difflinkbody_2">
+        <visual>
+            <origin
+                xyz="0.0013242618427471153364 0.00025741209445184765059 -0.029209249612775156635"
+                rpy="-0.043616411896557787109 0.1763780871610894363 3.6940213086892164253e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/difflinkbody.stl" />
+            </geometry>
+            <material name="difflinkbody_material">
+                <color
+                    rgba="0.61568627450980395466 0.81176470588235294379 0.92941176470588238168 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin
+                xyz="0.0013242618427471153364 0.00025741209445184765059 -0.029209249612775156635"
+                rpy="-0.043616411896557787109 0.1763780871610894363 3.6940213086892164253e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/difflinkbody.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin
+                xyz="-4.5102810375396978292e-17 -2.2863113312288074752e-17 -0.028750000000000001249"
+                rpy="0 0 0" />
+            <mass value="0.012008474024564124924" />
+            <inertia ixx="3.4513655264616835575e-06" ixy="-1.0094027558374226099e-23"
+                ixz="2.3440511271652466313e-22" iyy="3.4513655264616822869e-06"
+                iyz="-3.6340862482337613535e-22" izz="2.8556151230413443537e-07" />
+        </inertial>
+    </link>
+
+    <link name="difflinkbottom_2">
+        <visual>
+            <origin
+                xyz="0.0013242618427472263587 -0.00025741209445195867289 -0.026924680982795535372"
+                rpy="3.0979762416932357105 -0.17637808716108951956 1.4633093608102992105e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/difflinkbottom.stl" />
+            </geometry>
+            <material name="difflinkbottom_material">
+                <color
+                    rgba="0.64705882352941179736 0.64705882352941179736 0.64705882352941179736 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin
+                xyz="0.0013242618427472263587 -0.00025741209445195867289 -0.026924680982795535372"
+                rpy="3.0979762416932357105 -0.17637808716108951956 1.4633093608102992105e-17" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/difflinkbottom.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin
+                xyz="3.9248118643975260511e-17 -2.3852447794681097548e-17 0.020516655251079533862"
+                rpy="0 0 0" />
+            <mass value="0.013606078196486367723" />
+            <inertia ixx="3.3943133003665118095e-06" ixy="1.1446830573265817869e-07"
+                ixz="6.8217411134351846515e-23" iyy="3.0839206315490961049e-06"
+                iyz="3.8962099181082685451e-22" izz="5.7364967649520563078e-07" />
+        </inertial>
+    </link>
+
+    <link name="diffend_2">
+        <visual>
+            <origin xyz="0.17971073405358450881 0.21588039448377252527 -0.40807535825979801558"
+                rpy="-1.9818930137193269125 1.2855609164377961307 -1.9392777479968261169e-16" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/diffend.stl" />
+            </geometry>
+            <material name="diffend_material">
+                <color rgba="0.2313725490196078538 0.38039215686274507888 0.7058823529411765163 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.17971073405358450881 0.21588039448377252527 -0.40807535825979801558"
+                rpy="-1.9818930137193269125 1.2855609164377961307 -1.9392777479968261169e-16" />
+            <geometry>
+                <mesh filename="file://$(find new_rover_description)/meshes/diffend.stl" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin
+                xyz="6.9388939039072283776e-17 2.2204460492503130808e-16 0.0082589798435496741824"
+                rpy="0 0 0" />
+            <mass value="0.0171894836514326875" />
+            <inertia ixx="2.730044632303750489e-06" ixy="3.7186515862117178356e-23"
+                ixz="-3.1047886014605535333e-21" iyy="2.730044632303749642e-06"
+                iyz="-4.4615072623911518149e-22" izz="4.1163841102364710035e-07" />
+        </inertial>
+    </link>
+
+    <joint name="br_difflinkeye" type="revolute">
+        <origin xyz="-8.3266726846886740532e-17 0 -0.057500000000000064948"
+            rpy="-3.1415926535897926719 -1.6856081184980035453e-16 -1.3497253989245220489e-15" />
+        <parent link="difflinkbody_2" />
+        <child link="difflinkbottom_2" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" lower="0" upper="0" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="tr_difflinkeye" type="revolute">
+        <origin xyz="0.026435714894117279261 0.010285274497740637401 2.2204460492503130808e-16"
+            rpy="1.5707963267949069941 1.2034607255017701899 -1.1997499986779587289" />
+        <parent link="difflinktop_2" />
+        <child link="difflinkbody_2" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" lower="0" upper="0" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="diffbar_joint" type="revolute">
+        <origin xyz="0.018499995185549067411 1.3346709641412490832e-05 0.019799999999998652012"
+            rpy="-3.1415926535897917837 1.7332256379891775137e-17 0.17052131402235523594" />
+        <parent link="diffmount" />
+        <child link="diffbar" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" lower="0" upper="0" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="diffmount_join" type="fixed">
+        <origin xyz="-0.037484610583013076857 0.33527893606361253154 0.10755952820599778974"
+            rpy="-1.5707963267948956698 6.2866740546731004924e-16 3.4368525624018690139e-16" />
+        <parent link="chassis" />
+        <child link="diffmount" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <!-- Ball joints with pitch and yaw restricted to 15 deg -->
+    <!-- Redefined in joints.xacro since gazebo doesn't support it yet
+         When gazebo does, make sure to change the type to ball and change the axis and limits properly
+    <joint name="br_difflink" type="revolute">
+        <origin xyz="-2.7755575615628913511e-17 0 0.030366069404429957279"
+            rpy="-1.8211554193643901822 0.38630147202971765186 1.6973296137818383311" />
+        <parent link="difflinkbottom_2" />
+        <child link="diffend_2" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="tr_difflink" type="revolute">
+        <origin xyz="-0.38912669878348526975 0.0080507423534933592046 7.771561172376095783e-16"
+            rpy="1.5453959963367629449 0.84953874853766309094 -1.271352236581491546" />
+        <parent link="diffbar" />
+        <child link="difflinktop_2" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+     <joint name="bl_difflink" type="revolute">
+        <origin xyz="1.6653345369377348106e-16 -1.1102230246251565404e-16 0.03036606940442982544"
+            rpy="1.8137134713184706047 0.40491568475361000568 2.0095824661262473576" />
+        <parent link="difflinkbottom" />
+        <child link="diffend" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="tl_difflink" type="revolute">
+        <origin xyz="0.36851088408476390113 0.12523629853057588468 1.6653345369377348106e-16"
+            rpy="1.4197870096866769263 0.82783261508436067899 -1.5853143941314711274" />
+        <parent link="diffbar" />
+        <child link="difflinktop" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint> -->
+
+    <!-- Include additional xacro files-->
+    <xacro:include filename="ckc.xacro"/>
+    <xacro:include filename="joints.xacro"/>
+
+    <xacro:if value="$(arg auto_camera)">
+        <xacro:include filename="$(find new_rover_description)/urdf/auto_camera.xacro"/>
+    </xacro:if>
+
+    
+    <xacro:if value="$(arg arm)">
+        <xacro:include filename="$(find rover_description)/urdf/arm.urdf.xacro" />
+        <!-- Add arm to chassis joint here-->
+    </xacro:if>
+
+    <xacro:unless value="$(arg gazebo)">
+        <xacro:include filename="$(find new_rover_description)/urdf/ros2_control.xacro" />
+        <xacro:rover_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
+    </xacro:unless>
+
+    <xacro:if value="$(arg gazebo)">
+        <xacro:include filename="$(find new_rover_description)/urdf/gz_ros2_control.xacro" />
+    </xacro:if>
+</robot>
