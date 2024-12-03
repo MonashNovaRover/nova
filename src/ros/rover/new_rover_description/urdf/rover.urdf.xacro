@@ -12,6 +12,12 @@
     <xacro:arg name="use_mock_hardware" default="false"/>
     <xacro:arg name="arm" default="false"/>
     <xacro:arg name="auto_camera" default="true"/>
+    <xacro:arg name="robot_name" default="rover"/>
+
+    <!-- Robot properties-->
+    <gazebo>
+        <self_collide>false</self_collide>
+    </gazebo>
 
     <!-- Dummy base link to prevent issues-->
     <link name="base_link" />
@@ -1007,8 +1013,8 @@
         <joint_properties friction="0.0" />
     </joint>
 
-    <!-- Ball joints with pitch and yaw restricted to 15 deg -->
-    <!-- Redefined in joints.xacro since gazebo doesn't support it yet
+    <!-- Ball joints with pitch and yaw restricted to 15 deg
+        Redefined in joints.xacro since gazebo doesn't support it yet -->
          When gazebo does, make sure to change the type to ball and change the axis and limits properly
     <joint name="br_difflink" type="revolute">
         <origin xyz="-2.7755575615628913511e-17 0 0.030366069404429957279"
@@ -1048,11 +1054,13 @@
         <axis xyz="0 0 1" />
         <limit effort="1" velocity="20" />
         <joint_properties friction="0.0" />
-    </joint> -->
+    </joint> 
 
     <!-- Include additional xacro files-->
     <xacro:include filename="ckc.xacro"/>
-    <xacro:include filename="joints.xacro"/>
+    <xacro:call_ckc robot_name="$(arg robot_name)"/>
+
+    <!--<xacro:include filename="joints.xacro"/>-->
 
     <xacro:if value="$(arg auto_camera)">
         <xacro:include filename="$(find new_rover_description)/urdf/auto_camera.xacro"/>

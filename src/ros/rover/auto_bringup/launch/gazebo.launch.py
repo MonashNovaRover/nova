@@ -54,7 +54,11 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
+<<<<<<< HEAD
             launch_arguments={'model': model, 'gazebo': 'True'}.items(),
+=======
+            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name}.items(),
+>>>>>>> c7c6662 (Model fully formed. No controllers yet)
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
