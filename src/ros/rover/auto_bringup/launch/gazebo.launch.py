@@ -88,7 +88,7 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
-    rover_description_dir = FindPackageShare('rover_description')
+    rover_description_dir = FindPackageShare('new_rover_description')
 
     declared_arguments = [
         DeclareLaunchArgument(
@@ -113,7 +113,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='robot_name',
-            default_value='Waratah',
+            default_value='Rover7',
             description='name of the robot',
         ),
         DeclareLaunchArgument(

@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Handle custom joints that are not supported by gazebo -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+    <!-- Ball joint for tr_difflink-->
+    <!-- Intermediate link 1 -->
+    <link name="tr_difflink_1">
+        <inertial>
+        <mass value="0.1"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <!-- Intermediate link 2 -->
+    <link name="tr_difflink_2">
+        <inertial>
+        <mass value="0.1"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <!-- Roll Joint -->
+    <joint name="tr_difflink_roll" type="revolute">
+        <parent link="diffbar"/>
+        <child link="tr_difflink_1"/>
+        <origin xyz="-0.38912669878348526975 0.0080507423534933592046 7.771561172376095783e-16"
+            rpy="1.5453959963367629449 0.84953874853766309094 -1.271352236581491546" />
+        <axis xyz="1 0 0"/>
+        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <dynamics damping="0.01" friction="0.0"/>
+    </joint>
+
+    <!-- Pitch Joint -->
+    <joint name="tr_difflink_pitch" type="revolute">
+        <parent link="tr_difflink_1"/>
+        <child link="tr_difflink_2"/>
+        <origin xyz="-0.38912669878348526975 0.0080507423534933592046 7.771561172376095783e-16"
+            rpy="1.5453959963367629449 0.84953874853766309094 -1.271352236581491546" />
+        <axis xyz="0 1 0"/>
+        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <dynamics damping="0.01" friction="0.0"/>
+    </joint>
+
+    <!-- Yaw Joint -->
+    <joint name="tr_difflink_yaw" type="revolute">
+        <parent link="tr_difflink_2"/>
+        <child link="difflinktop_2"/>
+        <origin xyz="-0.38912669878348526975 0.0080507423534933592046 7.771561172376095783e-16"
+            rpy="1.5453959963367629449 0.84953874853766309094 -1.271352236581491546" />
+        <axis xyz="0 0 1"/>
+        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <dynamics damping="0.01" friction="0.0"/>
+    </joint>
+
+
+
+    <!-- Ball joint for br_difflink-->
+    <!-- Intermediate link 1 -->
+    <link name="br_difflink_1">
+        <inertial>
+        <mass value="0.1"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <!-- Intermediate link 2 -->
+    <link name="br_difflink_2">
+        <inertial>
+        <mass value="0.1"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <!-- Roll Joint -->
+    <joint name="br_difflink_roll" type="revolute">
+        <parent link="difflinkbottom_2"/>
+        <child link="br_difflink_1"/>
+        <origin xyz="-2.7755575615628913511e-17 0 0.030366069404429957279"
+            rpy="-1.8211554193643901822 0.38630147202971765186 1.6973296137818383311" />
+        <axis xyz="1 0 0"/>
+        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <dynamics damping="0.01" friction="0.0"/>
+    </joint>
+
+    <!-- Pitch Joint -->
+    <joint name="br_difflink_pitch" type="revolute">
+        <parent link="br_difflink_1"/>
+        <child link="br_difflink_2"/>
+        <origin xyz="-2.7755575615628913511e-17 0 0.030366069404429957279"
+            rpy="-1.8211554193643901822 0.38630147202971765186 1.6973296137818383311" />
+        <axis xyz="0 1 0"/>
+        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <dynamics damping="0.01" friction="0.0"/>
+    </joint>
+
+    <!-- Yaw Joint -->
+    <joint name="br_difflink_yaw" type="revolute">
+        <parent link="br_difflink_2"/>
+        <child link="diffend_2"/>
+        <origin xyz="-2.7755575615628913511e-17 0 0.030366069404429957279"
+            rpy="-1.8211554193643901822 0.38630147202971765186 1.6973296137818383311" />
+        <axis xyz="0 0 1"/>
+        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <dynamics damping="0.01" friction="0.0"/>
+    </joint>
+
+
+    <!-- Ball joint for bl_difflink-->
+    <!-- Intermediate link 1 -->
+    <link name="bl_difflink_1">
+        <inertial>
+        <mass value="0.1"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <!-- Intermediate link 2 -->
+    <link name="bl_difflink_2">
+        <inertial>
+        <mass value="0.1"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <!-- Roll Joint -->
+    <joint name="bl_difflink_roll" type="revolute">
+        <parent link="difflinkbottom"/>
+        <child link="bl_difflink_1"/>
+        <origin xyz="1.6653345369377348106e-16 -1.1102230246251565404e-16 0.03036606940442982544"
+            rpy="1.8137134713184706047 0.40491568475361000568 2.0095824661262473576" />
+        <axis xyz="1 0 0"/>
+        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <dynamics damping="0.01" friction="0.0"/>
+    </joint>
+
+    <!-- Pitch Joint -->
+    <joint name="bl_difflink_pitch" type="revolute">
+        <parent link="bl_difflink_1"/>
+        <child link="bl_difflink_2"/>
+        <origin xyz="1.6653345369377348106e-16 -1.1102230246251565404e-16 0.03036606940442982544"
+            rpy="1.8137134713184706047 0.40491568475361000568 2.0095824661262473576" />
+        <axis xyz="0 1 0"/>
+        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <dynamics damping="0.01" friction="0.0"/>
+    </joint>
+
+    <!-- Yaw Joint -->
+    <joint name="bl_difflink_yaw" type="revolute">
+        <parent link="bl_difflink_2"/>
+        <child link="diffend"/>
+        <origin xyz="1.6653345369377348106e-16 -1.1102230246251565404e-16 0.03036606940442982544"
+            rpy="1.8137134713184706047 0.40491568475361000568 2.0095824661262473576" />
+        <axis xyz="0 0 1"/>
+        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <dynamics damping="0.01" friction="0.0"/>
+    </joint>
+
+
+
+    <!-- Ball joint for tl_difflink-->
+    <!-- Intermediate link 1 -->
+    <link name="tl_difflink_1">
+        <inertial>
+        <mass value="0.1"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <!-- Intermediate link 2 -->
+    <link name="tl_difflink_2">
+        <inertial>
+        <mass value="0.1"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <!-- Roll Joint -->
+    <joint name="tl_difflink_roll" type="revolute">
+        <parent link="diffbar"/>
+        <child link="tl_difflink_1"/>
+        <origin xyz="0.36851088408476390113 0.12523629853057588468 1.6653345369377348106e-16"
+            rpy="1.4197870096866769263 0.82783261508436067899 -1.5853143941314711274" />
+        <axis xyz="1 0 0"/>
+        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <dynamics damping="0.01" friction="0.0"/>
+    </joint>
+
+    <!-- Pitch Joint -->
+    <joint name="tl_difflink_pitch" type="revolute">
+        <parent link="tl_difflink_1"/>
+        <child link="tl_difflink_2"/>
+        <origin xyz="0.36851088408476390113 0.12523629853057588468 1.6653345369377348106e-16"
+            rpy="1.4197870096866769263 0.82783261508436067899 -1.5853143941314711274" />
+        <axis xyz="0 1 0"/>
+        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <dynamics damping="0.01" friction="0.0"/>
+    </joint>
+
+    <!-- Yaw Joint -->
+    <joint name="tl_difflink_yaw" type="revolute">
+        <parent link="tl_difflink_2"/>
+        <child link="difflinktop"/>
+        <origin xyz="0.36851088408476390113 0.12523629853057588468 1.6653345369377348106e-16"
+            rpy="1.4197870096866769263 0.82783261508436067899 -1.5853143941314711274" />
+        <axis xyz="0 0 1"/>
+        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <dynamics damping="0.01" friction="0.0"/>
+    </joint>
+</robot>

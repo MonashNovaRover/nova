@@ -23,6 +23,7 @@
     nova-auto-bringup = callPackage ./nix/packages/auto-bringup { };
     nova-interfaces = callPackage ./nix/packages/nova-interfaces { };
     nova-rover-description = callPackage ./nix/packages/rover-description { };
+    nova-new-rover-description = callPackage ./nix/packages/new-rover-description { };
     nova-gazebo = callPackage ./nix/packages/nova-gazebo { };
     nova-python-control = callPackage ./nix/packages/python-control { };
     nova-excavation-construction = callPackage ./nix/packages/excavation-construction { };
