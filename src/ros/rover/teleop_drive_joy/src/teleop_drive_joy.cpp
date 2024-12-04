@@ -119,7 +119,7 @@ namespace teleop_drive_joy
         // Initializes with zeros by default.
         auto drive_input_msg = std::make_unique<nova_interfaces::msg::DriveInputStamped>();
         drive_input_pub->publish(std::move(drive_input_msg));
-
+        drive_info_pub->publish(std::move(current_state));
         sent_lock_msg = true;
       }
     }
@@ -130,6 +130,7 @@ namespace teleop_drive_joy
       // Initializes with zeros by default.
       auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
       cmd_vel_pub->publish(std::move(cmd_vel_msg));
+      drive_info_pub->publish(std::move(current_state));
     }
   }
 
@@ -170,7 +171,7 @@ namespace teleop_drive_joy
       RCLCPP_INFO(node_->get_logger(), "BUTTON: strafe_mode");
       switchController(ControlMode::STRAFE_DRIVE);
     }
-    else if (joy_msg->buttons[params_.button_nova_diff_drive_controller] && control_mode != ControlMode::STRAFE_DRIVE)
+    else if (joy_msg->buttons[params_.button_nova_diff_drive_controller] && control_mode != ControlMode::DIFF_DRIVE)
     {
       RCLCPP_INFO(node_->get_logger(), "BUTTON: diff_drive_mode");
       switchController(ControlMode::DIFF_DRIVE);
