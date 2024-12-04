@@ -158,6 +158,8 @@ namespace teleop_drive_joy
     nova_interfaces::msg::DriveInfo current_state; // DriveMode is managed as ControlMode packed into an enum for better management
     nova_interfaces::msg::DriveInfo previous_state;
 
+    std::map<int, rclcpp::Time> last_button_press_time_;                   ///< Keeps track of last processed time for each button
+
     std::map<std::string, int64_t> axis_linear_map;                        ///< Map of linear axis names to their indices.
     std::map<std::string, std::map<std::string, double>> scale_linear_map; ///< Map of linear axis names to their scaling factors.
 
