@@ -8,6 +8,9 @@
 , rqt-common-plugins
 , gdb
 , gps-umd
+, python3Packages
+, pkg-config
+, fetchPypi
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -39,6 +42,7 @@
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-utils ? throw "nova-utils is needed, but not available!"
 
+, onshape-to-robot ? import ../../python/onshape-to-robot { lib = lib; python3Packages = python3Packages; pkg-config = pkg-config; fetchPypi = fetchPypi;}
   # Configuration options
   ## Include graphical applications in the workspace.
 , graphical ? true
@@ -83,7 +87,10 @@
   }
 
   ## Extra packages to add to the workspace.
-, extraPackages ? { }
+, extraPackages ? { 
+  inherit
+    onshape-to-robot;
+}
 }:
 
 let

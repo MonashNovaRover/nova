@@ -1,44 +1,34 @@
-{ lib, buildPythonPackage, fetchPypi, python3Packages
-, setup-tools
-, numpy
-, pandas
-, colorama
-, commentjson
-, numpy-stl
-, pybullet
-, requests
-, sphinx
-, sphinx-rtd-theme
-, transforms3d
-}:
+{ lib, fetchPypi, python3Packages, pkg-config }:
 
-python3Packages.buildPythonApplication rec {
+with python3Packages;
+
+buildPythonApplication rec {
   pname = "onshape-to-robot";
   version = "0.3.26"; # Ensure this is the correct version
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "0sswn3cm8zs8j11zsiva0sblw2jahzyxz44nmqrv3g1ya8zksfda"; # Replace with the correct hash
+    hash = "sha256-aMxfZw1B/J1NgRbbUXRwjM2hEbUlTXfVIt9r2dVtOuY="; # Replace with the correct hash
   };
 
-  build-system = with python3Packages; [
-    setup-tools
+  build-system = [
+    setuptools
+    wheel
   ];
 
-  dependencies = with python3Packages; [
+  propagatedBuildInputs = [
     numpy
-    pandas
-    colorama
-    commentjson
-    numpy-stl
     pybullet
     requests
-    sphinx
-    sphinx-rtd-theme
+    commentjson
+    colorama
+    numpy-stl
     transforms3d
   ];
 
-  doCheck = false;
+  nativeBuildInputs = [
+    pkg-config
+  ];
 
   meta = with lib; {
     description = "A Python library to convert Onshape assemblies into URDF or SDF robots";
