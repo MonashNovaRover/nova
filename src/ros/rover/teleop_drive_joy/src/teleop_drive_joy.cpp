@@ -28,6 +28,7 @@ namespace
   constexpr auto DEFAULT_OUTPUT_TOPIC = "/drive_input";
   constexpr auto DEFAULT_OUTPUT_TOPIC_TWIST = "/cmd_vel";
   constexpr auto DEFAULT_OUTPUT_TOPIC_INFO = "/drive_info";
+  constexpr auto BUTTON_DEBOUNCE_INTERVAL = std::chrono::milliseconds(200);
 }
 
 using std::placeholders::_1;
@@ -136,6 +137,19 @@ namespace teleop_drive_joy
 
   void TeleopDriveJoy::handleButtonCallbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
+    auto now = node_->now();
+
+    auto isDebounced = [&](int button_index) -> bool {
+      if (joy_msg->buttons[button_index] &&
+          (last_button_press_time_.find(button_index) == last_button_press_time_.end() ||
+          (now - last_button_press_time_[button_index]) > rclcpp::Duration(BUTTON_DEBOUNCE_INTERVAL)))
+      {
+        last_button_press_time_[button_index] = now;
+        return true;
+      }
+      return false;
+    };
+
     // Lock and Unlock
     if (joy_msg->buttons[params_.button_unlock] && current_state.locked)
     {
@@ -161,17 +175,17 @@ namespace teleop_drive_joy
     }
 
     // Controller Switches
-    if (joy_msg->buttons[params_.button_pivot_drive_controller] && control_mode != ControlMode::PIVOT_DRIVE)
+    if (isDebounced(params_.button_pivot_drive_controller) && control_mode != ControlMode::PIVOT_DRIVE)
     {
       RCLCPP_INFO(node_->get_logger(), "BUTTON: pivot_drive_mode");
       switchController(ControlMode::PIVOT_DRIVE);
     }
-    else if (joy_msg->buttons[params_.button_strafe_controller] && control_mode != ControlMode::STRAFE_DRIVE)
+    else if (isDebounced(params_.button_strafe_controller) && control_mode != ControlMode::STRAFE_DRIVE)
     {
       RCLCPP_INFO(node_->get_logger(), "BUTTON: strafe_mode");
       switchController(ControlMode::STRAFE_DRIVE);
     }
-    else if (joy_msg->buttons[params_.button_nova_diff_drive_controller] && control_mode != ControlMode::DIFF_DRIVE)
+    else if (isDebounced(params_.button_nova_diff_drive_controller) && control_mode != ControlMode::DIFF_DRIVE)
     {
       RCLCPP_INFO(node_->get_logger(), "BUTTON: diff_drive_mode");
       switchController(ControlMode::DIFF_DRIVE);
