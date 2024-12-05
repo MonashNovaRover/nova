@@ -151,24 +151,24 @@ namespace teleop_drive_joy
     };
 
     // Lock and Unlock
-    if (joy_msg->buttons[params_.button_unlock] && current_state.locked)
+    if (isDebounced(params_.button_unlock) && current_state.locked)
     {
       current_state.locked = false;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: unlock");
     }
-    else if (joy_msg->buttons[params_.button_lock] && !current_state.locked)
+    else if (isDebounced(params_.button_lock) && !current_state.locked)
     {
       current_state.locked = true;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: lock");
     }
 
     // Autonomous and Manual
-    if (joy_msg->buttons[params_.button_autonomous_control] && !current_state.autonomous_mode)
+    if (isDebounced(params_.button_autonomous_control) && !current_state.autonomous_mode)
     {
       current_state.autonomous_mode = true;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: autonomous_control");
     }
-    else if (joy_msg->buttons[params_.button_manual_control] && current_state.autonomous_mode)
+    else if (isDebounced(params_.button_manual_control) && current_state.autonomous_mode)
     {
       current_state.autonomous_mode = false;
       RCLCPP_INFO(node_->get_logger(), "BUTTON: manual_control");
