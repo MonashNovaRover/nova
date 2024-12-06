@@ -23,8 +23,9 @@
 #include "realtime_tools/realtime_buffer.h"
 #include "realtime_tools/realtime_publisher.h"
 #include "std_srvs/srv/empty.hpp"
+#include "std_srvs/srv/trigger.hpp"
 #include "tf2_msgs/msg/tf_message.hpp"
-#include "drive_interfaces/msg/drive_input_stamped.hpp"
+#include "nova_interfaces/msg/drive_input_stamped.hpp"
 #include "pivot_drive_controller/visibility_control.h"
 
 #include "pivot_drive_controller_parameters.hpp"
@@ -122,15 +123,15 @@ namespace pivot_drive_controller
             realtime_odometry_transform_publisher_ = nullptr;
 
         bool subscriber_is_active_ = false;
-        rclcpp::Subscription<drive_interfaces::msg::DriveInputStamped>::SharedPtr drive_input_subscriber_ = nullptr;
+        rclcpp::Subscription<nova_interfaces::msg::DriveInputStamped>::SharedPtr drive_input_subscriber_ = nullptr;
         rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_subscriber_ = nullptr;
-        rclcpp::Subscription<drive_interfaces::msg::DriveInput>::SharedPtr drive_input_unstamped_subscriber_ = nullptr;
-        rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr twist_unstamped_subscriber_ = nullptr;
+        rclcpp::Subscription<nova_interfaces::msg::DriveInputStamped>::SharedPtr drive_input_unstamped_subscriber_ = nullptr;
+        rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_unstamped_subscriber_ = nullptr;
 
-        realtime_tools::RealtimeBox<std::shared_ptr<drive_interfaces::msg::DriveInputStamped>> received_drive_input_msg_ptr_{nullptr};
+        realtime_tools::RealtimeBox<std::shared_ptr<nova_interfaces::msg::DriveInputStamped>> received_drive_input_msg_ptr_{nullptr};
         realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_msg_ptr_{nullptr};
 
-        std::queue<drive_interfaces::msg::DriveInputStamped> previous_commands_;  // last two commands
+        std::queue<nova_interfaces::msg::DriveInputStamped> previous_commands_;  // last two commands
         std::queue<geometry_msgs::msg::TwistStamped> previous_twist_commands_;  // last two commands
 
 
@@ -161,6 +162,11 @@ namespace pivot_drive_controller
 
         bool reset();
         void halt();
+
+    private:
+        rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr set_parameter_service_;
+        rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr set_parameter_client_;
+        void toggle_enable_twist_cmd();
     };
 } //namespace pivot_drive_controller
 #endif // PIVOT_DRIVE_CONTROLLER__PIVOT_DRIVE_CONTROLLER_HPP_
