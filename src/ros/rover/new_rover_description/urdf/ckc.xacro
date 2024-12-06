@@ -22,5 +22,4 @@
     </xacro:macro>
 </robot>
 
-<!-- Currently, the child_model must be named the rover's namespace which in the rover.urdf.xacro file is rover,
- but if running using our launch files, gets changed to Rover7 or Waratah, how do we prevent hard coding?-->
+<!-- diffend_2 is on the left leg, diffend is on the right leg, could be renamed? -->
