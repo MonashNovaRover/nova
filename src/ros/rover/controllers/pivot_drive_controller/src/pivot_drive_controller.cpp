@@ -175,7 +175,7 @@ namespace pivot_drive_controller
             RCLCPP_INFO(logger, "Parameters were updated");
         }
         
-        RCLCPP_INFO(logger, "enable_twist_cmd: %d", params_.enable_twist_cmd);
+        // RCLCPP_INFO(logger, "enable_twist_cmd: %d", params_.enable_twist_cmd);
 
         if (params_.enable_twist_cmd) {
             received_twist_msg_ptr_.get(last_twist_command_msg);
