@@ -17,6 +17,8 @@
 , tf2-msgs
 , geometry-msgs
 , nova-drive-interfaces
+, nova-input-interfaces
+, nova-interfaces
 }:
 
 buildRosPackage {
@@ -47,5 +49,7 @@ buildRosPackage {
     tf2-msgs
     geometry-msgs
     nova-drive-interfaces
+    nova-input-interfaces
+    nova-interfaces
   ];
 }
