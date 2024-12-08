@@ -46,11 +46,17 @@ namespace teleop_drive_joy
     {
       params_ = param_listener_->get_params();
     }
+    speed = params_.controllers_map.at(modeToController(control_mode)).scale_linear_x;
+  }
+
+  void TeleopDriveJoy::handleSpeedChange(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
   }
 
   void TeleopDriveJoy::joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     handleButtonCallbacks(joy_msg);
+    handleSpeedChange(joy_msg);
 
     if (!current_state.locked)
     {
@@ -67,7 +73,7 @@ namespace teleop_drive_joy
     auto controller_params = params_.controllers_map.at(modeToController(control_mode));
 
     double angular = joy_msg->axes[controller_params.axis_angular_z] * controller_params.scale_angular_z;
-    double linear = joy_msg->axes[controller_params.axis_linear_x] * controller_params.scale_linear_x;
+    double linear = joy_msg->axes[controller_params.axis_linear_x] * speed;
 
     if (current_state.autonomous_mode)
     {
@@ -139,57 +145,71 @@ namespace teleop_drive_joy
   {
     auto now = this->now();
 
-    auto isDebounced = [&](int button_index) -> bool
+    auto isDebounced = [&](int buttonValue, int buttonIndex) -> bool
     {
-      if (joy_msg->buttons[button_index] &&
-          (last_button_press_time_.find(button_index) == last_button_press_time_.end() ||
-           (now - last_button_press_time_[button_index]) > rclcpp::Duration(BUTTON_DEBOUNCE_INTERVAL)))
+      if (last_button_press_time_.find(buttonIndex) == last_button_press_time_.end() ||
+          (now - last_button_press_time_[buttonIndex]) > rclcpp::Duration(BUTTON_DEBOUNCE_INTERVAL))
       {
-        last_button_press_time_[button_index] = now;
-        return true;
+        last_button_press_time_[buttonIndex] = now;
+        return buttonValue;
       }
-      return false;
+      return 0;
     };
 
     // Lock and Unlock
-    if (isDebounced(params_.button_unlock) && current_state.locked)
+    if (isDebounced(joy_msg->buttons[params_.button_unlock], params_.button_unlock) && current_state.locked)
     {
       current_state.locked = false;
       RCLCPP_INFO(this->get_logger(), "BUTTON: unlock");
     }
-    else if (isDebounced(params_.button_lock) && !current_state.locked)
+    else if (isDebounced(joy_msg->buttons[params_.button_lock], params_.button_lock) && !current_state.locked)
     {
       current_state.locked = true;
       RCLCPP_INFO(this->get_logger(), "BUTTON: lock");
     }
 
     // Autonomous and Manual
-    if (isDebounced(params_.button_autonomous_control) && !current_state.autonomous_mode)
+    if (isDebounced(joy_msg->buttons[params_.button_autonomous_control], params_.button_autonomous_control) && !current_state.autonomous_mode)
     {
       current_state.autonomous_mode = true;
       RCLCPP_INFO(this->get_logger(), "BUTTON: autonomous_control");
     }
-    else if (isDebounced(params_.button_manual_control) && current_state.autonomous_mode)
+    else if (isDebounced(joy_msg->buttons[params_.button_manual_control], params_.button_manual_control) && current_state.autonomous_mode)
     {
       current_state.autonomous_mode = false;
       RCLCPP_INFO(this->get_logger(), "BUTTON: manual_control");
     }
 
     // Controller Switches
-    if (isDebounced(params_.button_pivot_drive_controller) && control_mode != ControlMode::PIVOT_DRIVE)
+    if (isDebounced(joy_msg->buttons[params_.button_pivot_drive_controller], params_.button_pivot_drive_controller) && control_mode != ControlMode::PIVOT_DRIVE)
     {
       RCLCPP_INFO(this->get_logger(), "BUTTON: pivot_drive_mode");
       switchController(ControlMode::PIVOT_DRIVE);
     }
-    else if (isDebounced(params_.button_strafe_controller) && control_mode != ControlMode::STRAFE_DRIVE)
+    else if (isDebounced(joy_msg->buttons[params_.button_strafe_controller], params_.button_strafe_controller) && control_mode != ControlMode::STRAFE_DRIVE)
     {
       RCLCPP_INFO(this->get_logger(), "BUTTON: strafe_mode");
       switchController(ControlMode::STRAFE_DRIVE);
     }
-    else if (isDebounced(params_.button_nova_diff_drive_controller) && control_mode != ControlMode::DIFF_DRIVE)
+    else if (isDebounced(joy_msg->buttons[params_.button_nova_diff_drive_controller], params_.button_nova_diff_drive_controller) && control_mode != ControlMode::DIFF_DRIVE)
     {
       RCLCPP_INFO(this->get_logger(), "BUTTON: diff_drive_mode");
       switchController(ControlMode::DIFF_DRIVE);
+    }
+
+    if (current_state.locked)
+      return;
+
+    // Need for Speed (only when controller is unlock'd)
+    if (isDebounced(joy_msg->axes[params_.axis_speed_change_fine], params_.axis_speed_change_fine + 30) != 0) // 30 is magic number added here to avoid conflicts with other buttons on the Debouncer
+    {
+      speed = std::clamp(speed + joy_msg->axes[params_.axis_speed_change_fine] * params_.speed_change_fine_val, params_.speed_limit_min, params_.speed_limit_max);
+      RCLCPP_INFO(this->get_logger(), "Speed: %f", speed);
+    }
+    else if (isDebounced(joy_msg->axes[params_.axis_speed_change_coarse], params_.axis_speed_change_coarse + 30) != 0)
+    {
+      speed = std::clamp(speed + joy_msg->axes[params_.axis_speed_change_coarse] * params_.speed_change_coarse_val, params_.speed_limit_min, params_.speed_limit_max);
+      RCLCPP_INFO(this->get_logger(), "Speed: %f", speed);
     }
   }
 
@@ -232,7 +252,7 @@ namespace teleop_drive_joy
     }
   }
 
-} // namespace teleop_drive_joy
+}
 
 int main(int argc, char *argv[])
 {
