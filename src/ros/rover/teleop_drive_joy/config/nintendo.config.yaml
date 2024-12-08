@@ -32,4 +32,4 @@ teleop_drive_joy_node:
     button_strafe_controller: 6
     button_unlock: 10
     speed_change_coarse_val: 0.1
-    speed_change_fine_val: 0.02
+    speed_change_fine_val: -0.02 # DPad is Flipp'd on Japanese Version
