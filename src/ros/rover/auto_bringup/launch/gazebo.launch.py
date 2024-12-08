@@ -54,11 +54,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-<<<<<<< HEAD
-            launch_arguments={'model': model, 'gazebo': 'True'}.items(),
-=======
             launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name}.items(),
->>>>>>> c7c6662 (Model fully formed. No controllers yet)
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
@@ -127,10 +123,10 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(name='x', default_value='0.0', description='x_pose'),
         DeclareLaunchArgument(name='y', default_value='0.0', description='y_pose'),
-        DeclareLaunchArgument(name='z', default_value='2.0', description='z_pose'),
-        DeclareLaunchArgument(name='R', default_value='0.0', description='roll'),
-        DeclareLaunchArgument(name='P', default_value='0.0', description='pitch'),
-        DeclareLaunchArgument(name='Y', default_value='0.0', description='yaw'),
+        DeclareLaunchArgument(name='z', default_value='0.45', description='z_pose'),
+        DeclareLaunchArgument(name='R', default_value='0.00', description='roll'),
+        DeclareLaunchArgument(name='P', default_value='0.00', description='pitch'),
+        DeclareLaunchArgument(name='Y', default_value='1.57', description='yaw'),
     ]
 
     return LaunchDescription(  
