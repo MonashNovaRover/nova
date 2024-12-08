@@ -53,38 +53,9 @@ def launch_setup(context, *args, **kwargs):
                     PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
                     launch_arguments={'model': model, 'gazebo': gazebo}.items(),
                 )],
-    )
-
-    pivot_drive_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["pivot_drive_controller"],
-    )
-    strafe_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["strafe_controller","--inactive"],
-    )
-
-    nova_diff_drive_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["nova_diff_drive_controller", "--inactive"],
-    )
-
-    joint_state_broadcaster=Node(
-            package='controller_manager',
-            executable='spawner',
-            arguments=['joint_state_broadcaster']
-    )
-
-    return [
-        controller_manager,
-        pivot_drive_controller,
-        strafe_controller,
-        nova_diff_drive_controller,
-        joint_state_broadcaster
+        ),
     ]
+
 
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')

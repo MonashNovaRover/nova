@@ -125,14 +125,14 @@ namespace strafe_controller
         max_d_vel = params_.max_acceleration * period.seconds();
 
         std::shared_ptr<geometry_msgs::msg::TwistStamped> last_twist_command_msg;
-        std::shared_ptr<drive_interfaces::msg::DriveInputStamped> last_command_msg;
+        std::shared_ptr<nova_interfaces::msg::DriveInputStamped> last_command_msg;
 
         double tmp1 = 0.0;
         double tmp2 = 0.0;
         double &linear_command = tmp1;
         double &angular_command = tmp2;
 
-        drive_interfaces::msg::DriveInputStamped command;
+        nova_interfaces::msg::DriveInputStamped command;
 
         float target_radius, target_direction;
         angle_offset = atan(params_.steering_track / params_.wheel_base);
@@ -390,13 +390,13 @@ namespace strafe_controller
             return controller_interface::CallbackReturn::ERROR;
         }
 
-        const drive_interfaces::msg::DriveInputStamped empty_drive_input;
+        const nova_interfaces::msg::DriveInputStamped empty_drive_input;
         const geometry_msgs::msg::TwistStamped empty_twist;
 
         // Fill last two commands with default constructed commands
         RCLCPP_INFO(get_node()->get_logger(), "twist_cmd: initializing subscriber");
         received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>(empty_twist));
-        received_drive_input_msg_ptr_.set(std::make_shared<drive_interfaces::msg::DriveInputStamped>(empty_drive_input));
+        received_drive_input_msg_ptr_.set(std::make_shared<nova_interfaces::msg::DriveInputStamped>(empty_drive_input));
 
         // Fill last two commands with default constructed commands
         previous_twist_commands_.emplace(empty_twist);
@@ -430,9 +430,9 @@ namespace strafe_controller
                 received_twist_msg_ptr_.set(std::move(msg));
             });
 
-        drive_input_subscriber_ = get_node()->create_subscription<drive_interfaces::msg::DriveInputStamped>(
+        drive_input_subscriber_ = get_node()->create_subscription<nova_interfaces::msg::DriveInputStamped>(
             DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
-            [this](const std::shared_ptr<drive_interfaces::msg::DriveInputStamped> msg) -> void
+            [this](const std::shared_ptr<nova_interfaces::msg::DriveInputStamped> msg) -> void
             {
                 if (!subscriber_is_active_)
                 {
@@ -602,7 +602,7 @@ namespace strafe_controller
             return controller_interface::CallbackReturn::ERROR;
         }
 
-        received_drive_input_msg_ptr_.set(std::make_shared<drive_interfaces::msg::DriveInputStamped>());
+        received_drive_input_msg_ptr_.set(std::make_shared<nova_interfaces::msg::DriveInputStamped>());
         received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>());
 
         return controller_interface::CallbackReturn::SUCCESS;
@@ -622,7 +622,7 @@ namespace strafe_controller
         odometry_.resetOdometry();
 
         // release the old queue
-        std::queue<drive_interfaces::msg::DriveInputStamped> empty;
+        std::queue<nova_interfaces::msg::DriveInputStamped> empty;
         std::swap(previous_commands_, empty);
         std::queue<geometry_msgs::msg::TwistStamped> empty_twist;
         std::swap(previous_twist_commands_, empty_twist);
