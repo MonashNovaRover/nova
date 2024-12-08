@@ -125,6 +125,13 @@ namespace teleop_drive_joy
     void handleButtonCallbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 
     /**
+     * @brief Handles changes in speed based on joystick input.
+     *
+     * @param joy_msg A shared pointer to the joystick message containing the input data.
+     */
+    void handleSpeedChange(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
+
+    /**
      * @brief Switches the controller by calling the switch_controller service.
      * @param requested_control_mode The desired control mode to switch to.
      */
@@ -137,11 +144,13 @@ namespace teleop_drive_joy
     rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub;
     rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr switch_controller_client;
     std::shared_ptr<ParamListener> param_listener_;
+
     Params params_;
     bool sent_lock_msg = false;
     State current_state;
     State previous_state;
     ControlMode control_mode = ControlMode::PIVOT_DRIVE;
+    double speed; // Linear Speed Multiplier that can be incremented
     std::map<int, rclcpp::Time> last_button_press_time_;
   };
 

@@ -70,26 +70,40 @@ teleop_drive_joy:
     {
       type: int,
       default_value: 7,
-      description: "Button to increment current speed scaling.",
+      description: "Axis to increment current speed on a Coarse Scale. This is usually mapped to DPad Vertical",
     }
 
   axis_speed_change_fine:
     {
       type: int,
       default_value: 6,
-      description: "Button to increment current speed scaling.",
+      description: "Axis to increment current speed on a Coarse Scale. This is usually mapped to DPad Horizontal",
     }
 
   speed_change_coarse_val:
     {
       type: double,
       default_value: 0.1,
-      description: "Value to change speed when the speed_change_coarse axis is pressed",
+      description: "Value to change speed when the speed_change_coarse is invoked",
     }
 
   speed_change_fine_val:
     {
       type: double,
       default_value: 0.02,
-      description: "Value to change speed when the speed_change_fine axis is pressed",
+      description: "Value to change speed when the speed_change_fine is invoked",
+    }
+
+  speed_limit_max:
+    {
+      type: double,
+      default_value: 1.2,
+      description: "Max speed that gets the Rover Arrested or the Max Clipping Value of Linear Velocity",
+    }
+
+  speed_limit_min:
+    {
+      type: double,
+      default_value: 0.05,
+      description: "Min speed that gets the Rover get Honked At or the Min Clipping Value of Linear Velocity",
     }
