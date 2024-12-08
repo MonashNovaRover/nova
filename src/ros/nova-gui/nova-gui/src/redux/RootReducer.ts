@@ -16,9 +16,17 @@ import {uiSlice} from "./slices/UISlice";
 import {cameraStreamerSlice} from "./slices/CameraStreamSlice";
 import {BLCMD_INDEX} from "../constants";
 import {localStorageSlice} from "./slices/LocalStorageSlice.ts";
-import {combineReducers} from "@reduxjs/toolkit";
+import {createGenericStore} from "./store/createGenericStore.ts";
+import {Site} from "./models/genericStores/CurrentSiteStore.ts";
+import {initialSiteDataState} from "./models/genericStores/SiteDataState.ts";
+import {filterStores, getReducers} from "./store/rootReducerFilters.ts";
+import {StoreType} from "./models/StoreContext.ts";
 
-export const rootReducer = combineReducers({
+/**
+ * reduxStores contains all stores in redux as either it's Reducer
+ * or it's StoreContext.
+ */
+export const reduxStores = {
   // Bifrost Stores
   bifrostStatus: BifrostStatusStore(),
 
@@ -247,5 +255,16 @@ export const rootReducer = combineReducers({
       location: "",
       serial_number: ""
     }
-  )
-});
+  ),
+
+  // Generic stores
+  currentSite: createGenericStore("currentSite", Site.SITE_1),
+  siteData: createGenericStore("siteData", initialSiteDataState),
+  counter: createGenericStore("counter", 0),
+};
+
+// all store reducers
+export const rootReducer = getReducers(reduxStores);
+
+// names of all bifrost stores
+export const bifrostStores = filterStores(reduxStores, "storeType", StoreType.BIFROST)

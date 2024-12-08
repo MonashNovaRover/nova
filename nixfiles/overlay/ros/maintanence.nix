@@ -93,6 +93,69 @@ self: super:
       grid-map-cv = rosSuper.grid-map-cv.overrideAttrs ({ CXXFLAGS ? "", ... }: {
         CXXFLAGS = "${CXXFLAGS} -Wno-error=stringop-overflow";
       });
+
+      # osqp-vendor CMakeLists patched to not try to pull from osqp during build
+      osqp-vendor = (rosSelf.lib.patchExternalProjectGit rosSuper.osqp-vendor {
+        url = "https://github.com/osqp/osqp.git";
+        originalRev = "";
+        rev = "v0.6.2";
+        fetchgitArgs.hash = "sha256-RYk3zuZrJXPcF27eMhdoZAio4DZ+I+nFaUEg1g/aLNk=";
+      }).overrideAttrs ({ preFixup ? "", nativeBuildInputs ? "", ... }: {
+
+        nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
+
+        preFixup = preFixup + ''
+          mv "$out/lib64/cmake/"* "$out/lib/cmake"
+          rmdir "$out/lib64/cmake"
+          
+        '';
+
+      });
+
+      geometric-shapes = rosSuper.geometric-shapes.overrideAttrs ({ patches ? [ ], ... }: {
+        patches = patches ++ [
+          # https://github.com/moveit/geometric_shapes/pull/241
+          (self.fetchpatch {
+            url = "https://github.com/moveit/geometric_shapes/commit/78898826b16b7547c69c63ce28b9bddcd167a09e.patch";
+            includes = [ "CMakeLists.txt" ];
+            revert = true;
+            hash = "sha256-elLSrqVnyTyG5P+iPXIx0RccC7TmdPVAZtbhpJcYUO0=";
+          })
+        ];
+      });
+
+      moveit-core = rosSuper.moveit-core.overrideAttrs ({ postPatch ? "", ... }: {
+        src = self.fetchzip {
+          name = "moveit-core";
+          url = "https://github.com/ros2-gbp/moveit2-release/archive/release/jazzy/moveit_core/2.10.0-1.tar.gz";
+          sha256 = "sha256-WwWn+S+POgbqVVFiTNS9YCPW4HwH0UtkvCrAYRmEuIE=";
+        };
+        postPatch = postPatch + ''
+          substituteInPlace CMakeLists.txt --replace 'find_package(octomap 1.9.7...<1.10.0 REQUIRED)' 'find_package(octomap 1.9.7...1.10.0 REQUIRED)'
+        '';
+      });
+
+      moveit-ros-occupancy-map-monitor = rosSuper.moveit-ros-occupancy-map-monitor.overrideAttrs ({ postPatch ? "", ... }: {
+        src = self.fetchzip {
+          name = "ros-jazzy-moveit-ros-occupancy-map-monitor";
+          url = "https://github.com/ros2-gbp/moveit2-release/archive/release/jazzy/moveit_ros_occupancy_map_monitor/2.10.0-1.tar.gz";
+          hash = "sha256-WHbMOwEkQoPOrHQOeH/0GJyEa7g/ez3LJsJTZw6jUUw=";
+        };
+        postPatch = postPatch + ''
+          substituteInPlace CMakeLists.txt --replace 'find_package(octomap 1.9.7...<1.10.0 REQUIRED)' 'find_package(octomap 1.9.7...1.10.0 REQUIRED)'
+        '';
+      });
+
+      nav2-rviz-plugins = rosSuper.nav2-rviz-plugins.overrideAttrs ({ postPatch ? "", ... }: {
+        # remove broken updateAutoDeactivate() symbol, 20/11/2024, Navigation2 1.3.2
+        # https://github.com/MonashNovaRover/nova/issues/96
+        postPatch = postPatch + ''
+          substituteInPlace src/costmap_cost_tool.cpp --replace "SLOT(updateAutoDeactivate())" "nullptr"
+          substituteInPlace include/nav2_rviz_plugins/costmap_cost_tool.hpp --replace "private Q_SLOTS:" "" 
+          substituteInPlace include/nav2_rviz_plugins/costmap_cost_tool.hpp --replace "void updateAutoDeactivate();" ""
+        '';
+      });
+
     } // (
       let
         fixRtabmapDependent = pkg: pkg.overrideAttrs ({ buildInputs ? [ ], ... }: {
@@ -305,26 +368,7 @@ self: super:
 
         image-proc = rosSuper.image-proc.overrideAttrs ({ patches ? [ ], ... }: {
           patches = patches ++ [
-            # Revert "Add TrackMarkerNode to image_proc" (requires OpenCV <= 4.6.0)
-            # https://github.com/ros-perception/image_pipeline/pull/930
-            (self.fetchpatch {
-              url = "https://github.com/ros-perception/image_pipeline/commit/f8c88a2970e7fcc16fd2457f5e5873df6b3e2769.patch";
-              revert = true;
-              stripLen = 1;
-              hash = "sha256-z0hfjFWRx0vBwa5aWIiJ4plICwaCAe1rGAacVPKmgC0=";
-            })
-          ];
-        });
-
-        depth-image-proc = rosSuper.depth-image-proc.overrideAttrs ({ patches ? [ ], ... }: {
-          patches = patches ++ [
-            # Fix signature issue from #943
-            # https://github.com/ros-perception/image_pipeline/pull/1018
-            (self.fetchpatch {
-              url = "https://github.com/ros-perception/image_pipeline/commit/a7c0b09c5e37fcaf7e3153e6d353687a793ee3f9.patch";
-              stripLen = 1;
-              hash = "sha256-wXUSSfRBzCTxrilCvSJFhpq384+7hvL7vxnIyLaW5zs=";
-            })
+            ./patches/image_proc.patch
           ];
         });
 

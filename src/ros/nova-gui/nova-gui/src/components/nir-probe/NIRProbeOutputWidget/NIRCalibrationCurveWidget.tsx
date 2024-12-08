@@ -10,14 +10,14 @@ import {
   ModalContent,
   ModalHeader,
 } from "@nextui-org/react";
-import {ISpaceResourcesFile} from "./NIRProbeWidget.tsx";
-import SpaceResourceSiteType from "../SpaceResourcesSiteType.tsx";
+import {ISpaceResourcesFile, SpaceResourcesSiteType} from "../SpaceResourcesSiteType.tsx";
 import NIRCalibrationSettingsTable from "./NIRCalibrationSettingsTable.tsx";
 import {MoreHorizontal} from "react-feather";
+import {SiteDataState} from "../../../redux/models/genericStores/SiteDataState.ts";
 
 export interface NIRCalibrationCurveWidgetProps {
-  files: {[key: string] : ISpaceResourcesFile},
-  type: SpaceResourceSiteType,
+  files: SiteDataState,
+  type: SpaceResourcesSiteType,
   absorbance: (v: number) => number,
   calibrationFunction: (v: number) => number,
   calibrationData: NIRCalibrationData,
@@ -34,8 +34,6 @@ export interface NIRCalibrationData {
   yIntercept: number,
   gradient: number,
   chemBlankDifference: number,
-
-
 }
 
 export const EMPTY_CALIBRATION_DATA: NIRCalibrationData = {
@@ -52,13 +50,12 @@ export const SITE_GRAPH_COLOURS = [
   "#8b5cf6",
 ]
 
-
 const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({
   files, type, calibrationFunction, absorbance, calibrationData, setCalibrationData
 }) => {
   const [calibrationModalIsOpen, setCalibrationModalIsOpen] = useState<boolean>(false)
 
-  const typeName = type === SpaceResourceSiteType.WATER ? "Water" : "Ilmenite"
+  const typeName = type === SpaceResourcesSiteType.WATER ? "Water" : "Ilmenite"
 
   const options : ApexCharts.ApexOptions = {
     chart: {

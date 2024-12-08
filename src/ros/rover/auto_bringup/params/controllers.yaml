@@ -21,7 +21,7 @@ controller_manager:
     nova_diff_drive_controller:
       type: nova_diff_drive_controller/NovaDiffDriveController
 
-    joint_broad:
+    joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
 wheel_velocity_controller:
@@ -40,7 +40,7 @@ pivot_position_controller:
       - brp
       - frp
 
-joint_broad:
+joint_state_broadcaster:
   ros__parameters:
     interfaces:
        ["position",

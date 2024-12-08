@@ -170,6 +170,21 @@ const arcSidebarData: SidebarInterface = {
   ],
 };
 
+const generalSideBarData: SidebarInterface = {
+  ["General"]: [
+    {
+      title: "Dashboard",
+      route: "/general/drive",
+      icon: <Home />,
+    },
+    {
+      title: "Camaras",
+      route: "/general/cameras",
+      icon: <Camera/>,
+    },
+  ]
+}
+
 export const NeoSidebar = () => {
   const uiActions = useUIActions();
   const uiState = useSelector((state: RootState) => state.uiState);
@@ -182,6 +197,7 @@ export const NeoSidebar = () => {
   const sidebarData =
       location.pathname.startsWith("/arc") ? arcSidebarData :
       location.pathname.startsWith("/urc") ? urcSidebarData :
+      location.pathname.startsWith("/general") ? generalSideBarData :
       {};
 
   return (

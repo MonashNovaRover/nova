@@ -1,4 +1,5 @@
 { lib
+, pkgs
 , buildRosPackage
 , ament-cmake
 , launch
@@ -9,9 +10,7 @@
 , robot-state-publisher
 , controller-manager
 , ros2-control
-, gazebo-ros
-, gazebo-ros2-control
-, gazebo-ros-pkgs
+, ros-gz
 , ros2-controllers
 , pluginlib
 , robot-localization
@@ -28,6 +27,7 @@
 , nova-bt-navigators
 , rviz-imu-plugin
 , imu-transformer
+, nova-pivot-drive-controller
 }:
 
 buildRosPackage rec {
@@ -48,9 +48,7 @@ buildRosPackage rec {
       robot-state-publisher
       controller-manager
       ros2-control
-      gazebo-ros
-      gazebo-ros2-control
-      gazebo-ros-pkgs
+      ros-gz
       ros2-controllers
       aruco-opencv
       aruco-opencv-msgs
@@ -68,6 +66,35 @@ buildRosPackage rec {
       nova-auto-interfaces
       nova-bt-navigators
       rviz-imu-plugin
+      nova-pivot-drive-controller
       imu-transformer;
   };
+
+  # After installing params and resources folders in nix store's auto_bringup, 
+  # we need to generate absolute filepaths for files in that auto_bringup, to 
+  # point to the nix store's folders
+  buildInputs = [ pkgs.jq pkgs.yq ];
+  postInstall = ''
+    # Generate absolute nix store filepaths for JSON files
+    jsonFilepath="$out/share/auto_bringup/resources/URC_V5/URC_V5.json"
+    jsonFile=$(cat $jsonFilepath)
+
+    updatedJsonFile=$(echo "$jsonFile" | jq --arg out "$out" '. + {
+      model: {
+        bin: "\($out)/share/auto_bringup/resources/URC_V5/URC_V5.bin",
+        model_name: "\($out)/share/auto_bringup/resources/URC_V5/URC_V5_openvino_2022.1_5shave.blob",
+        xml: "\($out)/share/auto_bringup/resources/URC_V5/URC_V5.xml",
+        zoo: "path"
+      }
+    }')
+
+    echo "$updatedJsonFile" > $jsonFilepath
+
+    # Generate absolute nix store filepaths for YAML files
+    yamlFilepath="$out/share/auto_bringup/params/depthai_oakd_rgbd.yaml"
+
+    yq -y -i "
+      .\"/oak\".ros__parameters.nn.i_nn_config_path = \"$jsonFilepath\"
+    " $yamlFilepath
+  '';
 }

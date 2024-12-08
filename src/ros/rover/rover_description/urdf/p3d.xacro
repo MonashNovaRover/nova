@@ -3,17 +3,11 @@
 which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
-  
   <gazebo>
-    <plugin name="gazebo_ros_p3d" filename="libgazebo_ros_p3d.so">
-      <ros>
-        <remapping>odom:=odom/gazebo</remapping>
-      </ros>
+    <plugin name="gz::sim::systems::PosePublisher" filename="gz-sim-pose-publisher-system">
       <body_name>base_link</body_name>
       <frame_name>odom</frame_name>
-      <update_rate>30</update_rate>
-      <!-- <gaussian_noise>0.05</gaussian_noise> -->
+      <update_frequency>30</update_frequency>
     </plugin>
   </gazebo>
-
 </robot>

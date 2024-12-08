@@ -8,6 +8,9 @@ let
 
   inherit (import ../inputs.nix args) mkGitHubInput;
 
+  # converts "nova" to "nova-monorepo"
+  fixNovaMonorepoInputName = name: if name == "nova" then "nova-monorepo" else name;
+
   novaPrs = builtins.foldl'
     (allPrs: repo:
       let
@@ -39,7 +42,7 @@ in
         description = "${description} - ${pr.base.repo.name}#${toString pr.number} (${pr.title})";
         inputs = inputs // {
           # Replace the input in question with the PR's merge ref.
-          ${pr.base.repo.name} = mkGitHubInput {
+          ${fixNovaMonorepoInputName pr.base.repo.name} = mkGitHubInput {
             owner = pr.head.repo.owner.login;
             repo = pr.head.repo.name;
             branch = "pull/${pr.number}/merge";

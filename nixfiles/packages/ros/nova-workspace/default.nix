@@ -2,7 +2,8 @@
 , buildROSWorkspace
 , buildEnv
 , rviz2
-, gazebo
+, ros-gz
+, gz-ros2-control
 , rqt
 , rqt-common-plugins
 , gdb
@@ -100,7 +101,8 @@ in
   prebuiltPackages = (lib.optionalAttrs graphical {
     inherit
       rviz2
-      gazebo
+      ros-gz
+      gz-ros2-control
       gps-umd
       rqt rqt-common-plugins;
   }) // extraPackages;

@@ -13,106 +13,72 @@ PACKAGE: 	core
 CREATION:	15/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-from ament_index_python.packages import get_package_share_directory
-
-# Include the required launch parameters
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import UnlessCondition
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from launch_ros.descriptions import ParameterValue
 
 
-# Generate the launch file with all inputs
+def launch_setup(context, *args, **kwargs):
+    auto_bringup_dir = FindPackageShare('auto_bringup')
+    
+    controllers = LaunchConfiguration('controllers')
+    gazebo = LaunchConfiguration('gazebo')
+    model = LaunchConfiguration('model')
+
+    return [
+        Node(
+            package='controller_manager',
+            executable='spawner',
+            arguments=['joint_state_broadcaster']
+        ),
+        Node(
+            package='controller_manager',
+            executable='spawner',
+            arguments=['pivot_drive_controller'] #, '--inactive']
+        ),
+        GroupAction(
+            condition=UnlessCondition(gazebo),
+            actions=[
+                Node(
+                    package='controller_manager',
+                    executable='ros2_control_node',
+                    parameters=[controllers],
+                    remappings=[('/controller_manager/robot_description', '/robot_description')],
+                ),
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
+                    launch_arguments={'model': model, 'gazebo': gazebo}.items(),
+                )],
+        ),
+    ]
+
+
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
     rover_description_dir = FindPackageShare('rover_description')
-    gazebo = LaunchConfiguration('gazebo', default=False)
-    model = LaunchConfiguration('model')
-    controllers = LaunchConfiguration('controllers')
 
-    gazebo_arg = DeclareLaunchArgument(
-        'gazebo',
-        default_value='False',
-        description='Use simulation (Gazebo) clock if true')
-
-    model_arg = DeclareLaunchArgument(name='model', 
+    declared_arguments = [      
+        DeclareLaunchArgument(
+            name='controllers',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
+            description='Absolute path to controller params file',
+        ),
+        DeclareLaunchArgument(
+            name='gazebo',
+            default_value='false',
+            description='Use simulation (Gazebo) clock if true',
+        ),
+        DeclareLaunchArgument(
+            name='model', 
             default_value=PathJoinSubstitution([rover_description_dir, 'urdf', 'rover.urdf.xacro']),
-            description='Absolute path to robot urdf file')
-    
-    controllers_arg = DeclareLaunchArgument(
-            name="controllers",
-            default_value=PathJoinSubstitution(
-                [
-                    auto_bringup_dir, 
-                    "params", 
-                    "controllers.yaml"
-                ]       
-            ),
-            description="Path of the controller params file"
-        )
+            description='Absolute path to robot urdf file',
+        ),  
+    ]
 
-    control_node = Node(
-        package="controller_manager",
-        executable="ros2_control_node",
-        parameters=[controllers],
-        remappings=[('/controller_manager/robot_description', '/robot_description')],
-        condition = UnlessCondition(gazebo)
+    return LaunchDescription(  
+        declared_arguments + [OpaqueFunction(function=launch_setup)]
     )
-
-    wheel_velocity_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["wheel_velocity_controller"]
-    )
-
-    pivot_joint_trajectory_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["pivot_joint_trajectory_controller"]
-    )
-
-    strafe_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["strafe_controller", "--inactive"]
-    )
-
-    nova_diff_drive_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["nova_diff_drive_controller", "--inactive"]
-    )
-
-    pivot_drive_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["pivot_drive_controller"]
-    )
-
-    urdf_launch_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-        condition=UnlessCondition(gazebo),
-        launch_arguments={"model": model, "gazebo": 'false'}.items()
-    )
-
-    joint_broad = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["joint_broad"]
-    )
-
-    return LaunchDescription([
-        gazebo_arg,
-        model_arg,
-        controllers_arg,
-        urdf_launch_cmd,
-        control_node,
-        pivot_drive_controller,
-        #strafe_controller,
-        #nova_diff_drive_controller,
-        joint_broad,
-    ])

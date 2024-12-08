@@ -1,6 +1,5 @@
 {
   rosPackages = pkgs: with pkgs; {
-    nova-autonomous = callPackage ./nix/packages/autonomous { };
     nova-electronics = callPackage ./nix/packages/electronics { };
     nova-science = callPackage ./nix/packages/science { };
     nova-blcmd-hardware = callPackage ./nix/packages/blcmd-hardware { };
@@ -40,20 +39,15 @@
 
   shellAliases = {
     # Launching aliases
-    base = "ros2 launch core base.launch.py";
-    drive = "ros2 launch core drive.launch.py";
-    arm = "ros2 launch core arm.launch.py";
-    arm_spoof = "ros2 launch core arm_spoof.launch.py";
-    sci = "ros2 launch core science.launch.py";
-    unity = "ros2 launch core visualisation.launch.py";
-    auto_drive = "ros2 launch core auto_drive.launch.py";
-    localisation = "ros2 launch core localisation.launch.py";
-    urdf = "ros2 launch core urdf.launch.py";
-    launch_viz = "ros2 launch core viz.launch.py";
-    launch_vis = "ros2 launch core viz.launch.py";
+    base = "ros2 launch nova_bringup base.launch.py";
+    drive = "ros2 launch nova_bringup drive.launch.py";
+    arm = "ros2 launch nova_bringup arm.launch.py";
+    sci = "ros2 launch nova_bringup urc_science.launch.py";
+    auto_drive = "ros2 launch auto_bringup control.launch.py";
+    localisation = "ros2 launch auto_bringup localization.launch.py";
+    localization = "ros2 launch auto_bringup localization.launch.py";
+    urdf = "ros2 launch nova_bringup urdf.launch.py";
     rosbridge = "ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
-    ec_jetson = "ros2 launch core ec_jetson_launch.py";
-    ec_base = "ros2 launch core base.launch.py";
 
     # Service aliases
     arm_config_info = "ros2 service call control/arm_config_info arm_interfaces/srv/ArmConfigInfo";

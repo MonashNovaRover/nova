@@ -37,37 +37,38 @@ in
             ws-shell = "${nova-shell} -A pkgs.ros.nova-workspace.env";
 
             # Directory aliases
-            nova = "cd ${cfg.sourceDir}";
-            rover = "${nova}/ros/rover";
-            core = "${nova}/ros/rover/core";
-            control = "${nova}/ros/rover/control";
-            electronics = "${nova}/ros/rover/electronics";
+            nova = "cd ${cfg.sourceDir}/..";
+            nixfiles = "cd ${cfg.nixfileDir}";
+            rover = "${nova}/src/ros/rover";
+            core = "${nova}/src/ros/rover/core";
+            control = "${nova}/src/ros/rover/control";
+            electronics = "${nova}/src/ros/rover/electronics";
             elec = electronics;
-            visualisation = "${nova}/ros/visualisation";
+            visualisation = "${nova}/src/ros/visualisation";
             visualization = visualisation;
             vis = visualisation;
-            viz = vis;
-            science = "${nova}/ros/rover/science";
-            camerasdir = "${nova}/ros/cameras2";
-            autonomous = "${nova}/ros/rover/autonomous";
+            viz = visualisation;
+            science = "${nova}/src/ros/rover/science";
+            camerasdir = "${nova}/src/ros/cameras2";
+            autonomous = "${nova}/src/ros/rover/autonomous";
             auto = autonomous;
-            gui = "${nova}/ros/gui";
-            tutorials = "${nova}/ros/tutorials";
-            pic = "${nova}/other/pics";
+            gui = "${nova}/src/ros/nova-gui";
+            tutorials = "${nova}/src/ros/tutorials";
+            pic = "${nova}/src/other/pics";
             pics = pic;
-            arduino = "${nova}/other/arduinos";
+            arduino = "${nova}/src/other/arduinos";
             arduinos = arduino;
-            ik = "${nova}/other/ik_machine";
-            coms = "${nova}/other/coms_utils";
+            ik = "${nova}/src/other/ik_machine";
+            coms = "${nova}/src/other/coms_utils";
 
             # Networking aliases
             jetson = "ssh -Y nvidia@10.0.0.10";
             jetson_wifi = "ssh -Y nvidia@tegra-ubuntu";
             orin-devkit-1 = "ssh -Y nova@orin-devkit-1";
-            N1 = "ssh -Y nvidia@10.0.2.11";
-            N2 = "ssh -Y nvidia@10.0.2.12";
-            N3 = "ssh -Y nvidia@10.0.2.13";
-            N4 = "ssh -Y nvidia@10.0.2.14";
+            O1 = "ssh -Y nvidia@10.0.2.11";
+            O2 = "ssh -Y nvidia@10.0.2.12";
+            O3 = "ssh -Y nvidia@10.0.2.13";
+            O4 = "ssh -Y nvidia@10.0.2.14";
             J1 = "ssh -Y nvidia@10.0.2.21";
             J2 = "ssh -Y nvidia@10.0.2.22";
             J3 = "ssh -Y nvidia@10.0.2.23";
@@ -93,6 +94,9 @@ in
             base_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_super_client_configuration.xml}";
             rover_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/rover_super_client_configuration.xml}";
             base_pi_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_pi_super_client_configuration.xml}";
+
+            # Hydra aliases
+            hydra-vomit = "${pkgs.bash}/bin/bash ${../../../scripts/hydra-vomit.sh}";
           }
         ];
 

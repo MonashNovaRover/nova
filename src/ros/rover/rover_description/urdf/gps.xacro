@@ -24,20 +24,18 @@ which is how it gets added to the gazebo sim. Author/s: Dylan Gonzalez-->
   <joint name="gps_joint" type="fixed">
     <parent link="base_link"/>
     <child link="gps"/>
-    <origin xyz="0.04 -0.26 0.614" rpy="0 0 0"/> <!-- copied from imu.xacro -->
+    <origin xyz="0.04 -0.26 0.614" rpy="0 0 0"/>
   </joint>
 
   <gazebo reference="gps">
     <sensor name="skytraq_gps" type="gps">
-      <plugin filename="libgazebo_ros_gps_sensor.so" name="gps_plugin">
-        <ros>
-          <remapping>~/out:=/fix</remapping>
-        </ros>
+      <topic>gps</topic>
+      <plugin 
+        filename="gz-sim-navsat-system" 
+        name="gz::sim::systems::NavSat">
       </plugin>
-
       <always_on>true</always_on>
       <update_rate>1</update_rate>
-      <pose>0 0 0 0 0 0</pose>
       <gps>
         <position_sensing>
           <horizontal>

@@ -31,6 +31,14 @@ const connectionStatusColor: {
   [BifrostConnectionStatus.DISCONNECTED]: "danger",
 };
 
+const prettyViewNames = new Map<string, string>([
+  ["general", "General"],
+  ["arc", "ARC"],
+  ["urc", "URC"],
+  ["test", "Test"],
+  ["cameras", "Cameras"],
+]);
+
 export const NovaTopBar: React.FC = () => {
   const uiActions = useUIActions();
 
@@ -46,6 +54,7 @@ export const NovaTopBar: React.FC = () => {
     .split("/")
     .filter((val) => !["/", ""].includes(val));
 
+  const viewName = parsedLocation[0];
   const title = parsedLocation.reverse()[0];
 
   return (
@@ -99,12 +108,11 @@ export const NovaTopBar: React.FC = () => {
         <NavbarItem>
           <Dropdown placement="bottom-end" backdrop="blur">
             <DropdownTrigger>
-              <Button
-                radius="sm"
-                size="sm"
-                endContent={<ChevronDown className="w-4 h-4" />}
-              >
-                General
+              <Button radius="sm" size="sm">
+                <div className="w-10">
+                  {prettyViewNames.has(viewName) ? prettyViewNames.get(viewName) : "???"}
+                </div>
+                <ChevronDown className="w-4 h-4"/>
               </Button>
             </DropdownTrigger>
             <DropdownMenu aria-label="Operation Mode">
