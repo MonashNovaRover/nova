@@ -1075,48 +1075,9 @@
         <origin xyz="0.030163508761813340175 0.011735637514357077915 2.2204460492503130808e-16" rpy="1.5707963267949085484 -1.2457784155648281565 -1.1997499986779709413" />
         <parent link="difflinktop_2" />
         <child link="difflinkbody_2" />
-<<<<<<< HEAD
         <axis xyz="0 0 1"/>
         <limit effort="1" velocity="20" lower="0" upper="0"/>
         <joint_properties friction="0.0"/>
-=======
-        <axis xyz="0 0 1" />
-        <limit effort="1" velocity="20" lower="0" upper="0" />
-        <joint_properties friction="0.0" />
-    </joint>
-
-    <joint name="diffbar_joint" type="revolute">
-        <origin xyz="0.018499995185549067411 1.3346709641412490832e-05 0.019799999999998652012"
-            rpy="-3.1415926535897917837 1.7332256379891775137e-17 0.17052131402235523594" />
-        <parent link="diffmount" />
-        <child link="diffbar" />
-        <axis xyz="0 0 1" />
-        <limit effort="1" velocity="20" lower="0" upper="0" />
-        <joint_properties friction="0.0" />
-    </joint>
-
-    <joint name="diffmount_join" type="fixed">
-        <origin xyz="-0.037484610583013076857 0.33527893606361253154 0.10755952820599778974"
-            rpy="-1.5707963267948956698 6.2866740546731004924e-16 3.4368525624018690139e-16" />
-        <parent link="chassis" />
-        <child link="diffmount" />
-        <axis xyz="0 0 1" />
-        <limit effort="1" velocity="20" />
-        <joint_properties friction="0.0" />
-    </joint>
-
-    <!-- Ball joints with pitch and yaw restricted to 15 deg
-        Redefined in joints.xacro since gazebo doesn't support it yet -->
-         When gazebo does, make sure to change the type to ball and change the axis and limits properly
-    <joint name="br_difflink" type="revolute">
-        <origin xyz="-2.7755575615628913511e-17 0 0.030366069404429957279"
-            rpy="-1.8211554193643901822 0.38630147202971765186 1.6973296137818383311" />
-        <parent link="difflinkbottom_2" />
-        <child link="diffend_2" />
-        <axis xyz="0 0 1" />
-        <limit effort="1" velocity="20" />
-        <joint_properties friction="0.0" />
->>>>>>> ab25130 (Model fully formed. No controllers yet)
     </joint>
 
     <joint name="tr_difflink" type="revolute">
@@ -1143,15 +1104,9 @@
         <child link="diffmount" />
         <axis xyz="0 0 1"/>
         <limit effort="1" velocity="20" />
-<<<<<<< HEAD
         <joint_properties friction="0.0"/>
     </joint>
     <!-- End of Generated URDF -->
-=======
-        <joint_properties friction="0.0" />
-    </joint> 
-
->>>>>>> ab25130 (Model fully formed. No controllers yet)
     <!-- Include additional xacro files-->
     <xacro:include filename="ckc.xacro"/>
     <xacro:call_ckc robot_name="$(arg robot_name)"/>
