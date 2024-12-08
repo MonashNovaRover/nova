@@ -11,7 +11,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   nova_interfaces
   pluginlib
   rclcpp
-  rclcpp_components
   realtime_tools
   std_msgs
   std_srvs
@@ -31,45 +30,55 @@ include_directories(
 ## C++ Libraries ##
 ###################
 
-# This library provides a way of loading parameters using a yaml
+# Generate parameter library
 generate_parameter_library(
   teleop_drive_joy_parameters
   src/parameters.yaml
 )
 
-# This library provides a C++ interface for sending realtime twist or joint commands to a robot
-add_library(${PROJECT_NAME} SHARED
+# Build the node executable
+add_executable(${PROJECT_NAME}_node
   src/teleop_drive_joy.cpp
 )
-set_target_properties(${PROJECT_NAME} PROPERTIES VERSION "${teleop_drive_joy_VERSION}")
-target_link_libraries(${PROJECT_NAME} teleop_drive_joy_parameters)
-ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-# Create a separate library for the plugin
-add_library(teleop_drive_joy_plugin SHARED src/teleop_drive_joy.cpp)
-set_target_properties(teleop_drive_joy_plugin PROPERTIES VERSION "${teleop_drive_joy_VERSION}")
-target_link_libraries(teleop_drive_joy_plugin ${PROJECT_NAME})
-ament_target_dependencies(teleop_drive_joy_plugin ${THIS_PACKAGE_INCLUDE_DEPENDS})
+set_target_properties(${PROJECT_NAME}_node PROPERTIES VERSION "${PROJECT_VERSION}")
 
-# Register the plugin
-rclcpp_components_register_node(
-  teleop_drive_joy_plugin
-  PLUGIN "teleop_drive_joy::TeleopDriveJoy"
-  EXECUTABLE teleop_drive_joy_node
+target_link_libraries(${PROJECT_NAME}_node
+  teleop_drive_joy_parameters
 )
+
+ament_target_dependencies(${PROJECT_NAME}_node ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 #############
 ## Install ##
 #############
-# Install Libraries
+
+# Install the executable
 install(
   TARGETS
-    ${PROJECT_NAME}
-    teleop_drive_joy_plugin
+    ${PROJECT_NAME}_node
     teleop_drive_joy_parameters
   EXPORT teleop_drive_joyTargets
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include/${PROJECT_NAME}
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
+
+# Install header files
+install(
+  DIRECTORY include/
+  DESTINATION include/${PROJECT_NAME}
+)
+
+# Install launch files
+install(
+  DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME}/launch
+)
+
+# Install config files
+install(
+  DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/config
+)
+
+ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
+ament_package()
