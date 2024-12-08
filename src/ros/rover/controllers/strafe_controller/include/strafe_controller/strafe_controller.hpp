@@ -24,7 +24,7 @@
 #include "realtime_tools/realtime_publisher.h"
 #include "std_srvs/srv/empty.hpp"
 #include "tf2_msgs/msg/tf_message.hpp"
-#include "drive_interfaces/msg/drive_input_stamped.hpp"
+#include "nova_interfaces/msg/drive_input_stamped.hpp"
 #include "strafe_controller/visibility_control.h"
 
 #include "strafe_controller_parameters.hpp"
@@ -112,14 +112,14 @@ namespace strafe_controller
             realtime_odometry_transform_publisher_ = nullptr;
 
         bool subscriber_is_active_ = false;
-        rclcpp::Subscription<drive_interfaces::msg::DriveInputStamped>::SharedPtr drive_input_subscriber_ = nullptr;
+        rclcpp::Subscription<nova_interfaces::msg::DriveInputStamped>::SharedPtr drive_input_subscriber_ = nullptr;
         rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_subscriber_ = nullptr;
 
-        realtime_tools::RealtimeBox<std::shared_ptr<drive_interfaces::msg::DriveInputStamped>> received_drive_input_msg_ptr_{nullptr};
+        realtime_tools::RealtimeBox<std::shared_ptr<nova_interfaces::msg::DriveInputStamped>> received_drive_input_msg_ptr_{nullptr};
         realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_msg_ptr_{nullptr};
 
-        std::queue<drive_interfaces::msg::DriveInputStamped> previous_commands_; // last two commands
-        std::queue<geometry_msgs::msg::TwistStamped> previous_twist_commands_;   // last two commands
+        std::queue<nova_interfaces::msg::DriveInputStamped> previous_commands_; // last two commands
+        std::queue<geometry_msgs::msg::TwistStamped> previous_twist_commands_;  // last two commands
 
         // speed limiters
         SpeedLimiter limiter_linear_;
