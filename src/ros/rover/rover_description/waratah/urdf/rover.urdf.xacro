@@ -10,7 +10,7 @@
   <xacro:arg name="use_mock_hardware" default="false"/>
   <xacro:arg name="auto_camera" default="true"/>
   <xacro:arg name="robot_name" default="rover"/>
-
+  <xacro:arg name="angle" default="0"/>
 
   <!-- Manually added links-->
   <link name="base_link" />
@@ -537,6 +537,7 @@
 
   <xacro:if value="$(arg auto_camera)">
     <xacro:include filename="$(find rover_description)/waratah/urdf/auto_camera.xacro"/>
+    <xacro:auto_cam angle="$(arg angle)"></xacro:auto_cam>
   </xacro:if>
 
   <xacro:include filename="$(find rover_description)/waratah/urdf/p3d.xacro"/>
