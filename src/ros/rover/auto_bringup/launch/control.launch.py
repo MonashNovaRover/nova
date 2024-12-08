@@ -25,6 +25,7 @@ from launch_ros.substitutions import FindPackageShare
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
     
+    angle = LaunchConfiguration('angle')
     controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
     model = LaunchConfiguration('model')
@@ -61,7 +62,7 @@ def launch_setup(context, *args, **kwargs):
                 ),
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-                    launch_arguments={'model': model, 'gazebo': gazebo}.items(),
+                    launch_arguments={'model': model, 'gazebo': gazebo, 'angle': angle}.items(),
                 )],
         ),
     ]
@@ -71,7 +72,12 @@ def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
     rover_description_dir = FindPackageShare('rover_description')
 
-    declared_arguments = [      
+    declared_arguments = [     
+        DeclareLaunchArgument(
+            name='angle', 
+            default_value='0.436332',
+            description='Angle at which the camera is mounted',
+        ), 
         DeclareLaunchArgument(
             name='controllers',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'old_controllers.yaml']),
