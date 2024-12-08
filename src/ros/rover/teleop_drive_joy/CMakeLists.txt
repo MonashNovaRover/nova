@@ -45,17 +45,15 @@ set_target_properties(${PROJECT_NAME} PROPERTIES VERSION "${teleop_drive_joy_VER
 target_link_libraries(${PROJECT_NAME} teleop_drive_joy_parameters)
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-add_library(teleop_drive_joy_ros SHARED src/teleop_drive_joy.cpp)
-set_target_properties(teleop_drive_joy_ros PROPERTIES VERSION "${teleop_drive_joy_VERSION}")
-target_link_libraries(teleop_drive_joy_ros ${PROJECT_NAME})
-ament_target_dependencies(teleop_drive_joy_ros ${THIS_PACKAGE_INCLUDE_DEPENDS})
+# Create a separate library for the plugin
+add_library(teleop_drive_joy_plugin SHARED src/teleop_drive_joy.cpp)
+set_target_properties(teleop_drive_joy_plugin PROPERTIES VERSION "${teleop_drive_joy_VERSION}")
+target_link_libraries(teleop_drive_joy_plugin ${PROJECT_NAME})
+ament_target_dependencies(teleop_drive_joy_plugin ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-######################
-## Components ##
-######################
-
+# Register the plugin
 rclcpp_components_register_node(
-  teleop_drive_joy_ros 
+  teleop_drive_joy_plugin
   PLUGIN "teleop_drive_joy::TeleopDriveJoy"
   EXECUTABLE teleop_drive_joy_node
 )
@@ -63,12 +61,11 @@ rclcpp_components_register_node(
 #############
 ## Install ##
 #############
-
 # Install Libraries
 install(
   TARGETS
     ${PROJECT_NAME}
-    teleop_drive_joy_ros
+    teleop_drive_joy_plugin
     teleop_drive_joy_parameters
   EXPORT teleop_drive_joyTargets
   LIBRARY DESTINATION lib
@@ -76,22 +73,3 @@ install(
   RUNTIME DESTINATION bin
   INCLUDES DESTINATION include/${PROJECT_NAME}
 )
-
-# Install Binaries
-install(
-  TARGETS
-  teleop_drive_joy
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION lib/${PROJECT_NAME}
-)
-
-# Install include, launch, config directories
-install(DIRECTORY include/ DESTINATION include/${PROJECT_NAME})
-install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
-install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
-
-ament_export_targets(teleop_drive_joyTargets HAS_LIBRARY_TARGET)
-ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
-
-ament_package()

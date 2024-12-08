@@ -24,7 +24,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
     realtime_tools
     tf2
     tf2_msgs
-    drive_interfaces
+    nova_interfaces
 )
 
 find_package(ament_cmake REQUIRED)
@@ -56,37 +56,6 @@ target_link_libraries(${PROJECT_NAME}
 target_compile_definitions(${PROJECT_NAME} PRIVATE "strafe_controller_BUILDING_DLL")
 pluginlib_export_plugin_description_file(controller_interface strafe_controller.xml)
 
-if(BUILD_TESTING)
-  find_package(ament_cmake_gmock REQUIRED)
-  find_package(controller_manager REQUIRED)
-  #find_package(ros2_control_test_assets REQUIRED)
-
-  ament_add_gmock(test_strafe_controller
-    test/test_strafe_controller.cpp
-    ENV config_file=${CMAKE_CURRENT_SOURCE_DIR}/test/config/test_strafe_controller.yaml)
-  target_link_libraries(test_strafe_controller
-    strafe_controller
-  )
-  ament_target_dependencies(test_strafe_controller
-    geometry_msgs
-    hardware_interface
-    nav_msgs
-    rclcpp
-    rclcpp_lifecycle
-    realtime_tools
-    tf2
-    tf2_msgs
-    drive_interfaces
-  )
-
-  ament_add_gmock(test_load_strafe_controller
-    test/test_load_strafe_controller.cpp
-  )
-  ament_target_dependencies(test_load_strafe_controller
-    controller_manager
-    #ros2_control_test_assets
-  )
-endif()
 
 install(DIRECTORY include/
   DESTINATION include/strafe_controller

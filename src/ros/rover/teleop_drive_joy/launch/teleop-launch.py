@@ -13,6 +13,7 @@ def generate_launch_description():
 
     return launch.LaunchDescription(
         [
+            launch.actions.LogInfo(msg=["Joystick Loaded: ", joystick]),
             launch.actions.DeclareLaunchArgument("joy_vel", default_value="cmd_vel"),
             launch.actions.DeclareLaunchArgument(
                 "joystick", default_value="xbox"
