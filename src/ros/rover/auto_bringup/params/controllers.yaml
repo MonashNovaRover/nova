@@ -58,7 +58,7 @@ pivot_drive_controller:
     right_drive_names: ["frw", "brw"]
     left_pivot_names: ["flp", "blp"]
     right_pivot_names: ["frp", "brp"]
-    enable_twist_cmd: true
+    enable_twist_cmd: false
     open_loop: false
     use_unstamped_msg: false
     has_velocity_limits: true
