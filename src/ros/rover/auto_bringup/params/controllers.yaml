@@ -85,8 +85,8 @@ strafe_controller:
     open_loop: true
     use_unstamped_msg: true
     max_acceleration: 5.0
-    wheel_radius: 0.16
-    wheel_base: 0.875
+    wheel_radius: 0.15692321
+    wheel_base: 0.95548662
     steering_track: 0.76
 
 nova_diff_drive_controller:
@@ -97,8 +97,8 @@ nova_diff_drive_controller:
     right_pivot_names: ["frp", "brp"]
     wheels_per_side: 2
     steering_track: 0.7
-    wheel_base: 0.84
-    wheel_radius: 0.1488
+    wheel_base: 0.95548662
+    wheel_radius: 0.15692321
     enable_twist_cmd: false
     use_unstamped_msg: true
     linear:
