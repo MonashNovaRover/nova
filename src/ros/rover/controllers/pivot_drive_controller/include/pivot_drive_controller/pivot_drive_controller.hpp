@@ -159,11 +159,6 @@ namespace pivot_drive_controller
 
         bool reset();
         void halt();
-
-    private:
-        rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr set_parameter_service_;
-        rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr set_parameter_client_;
-        void toggle_enable_twist_cmd();
     };
 } // namespace pivot_drive_controller
 #endif // PIVOT_DRIVE_CONTROLLER__PIVOT_DRIVE_CONTROLLER_HPP_

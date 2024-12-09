@@ -57,15 +57,7 @@ namespace pivot_drive_controller
             return controller_interface::CallbackReturn::ERROR;
         }
 
-        set_parameter_client_ = get_node()->create_client<std_srvs::srv::Trigger>("set_parameter");
-        set_parameter_service_ = get_node()->create_service<std_srvs::srv::Trigger>(
-            "set_parameter",
-            [this](const std::shared_ptr<std_srvs::srv::Trigger::Request>,
-                std::shared_ptr<std_srvs::srv::Trigger::Response> response) {
-                this->toggle_enable_twist_cmd();
-                response->success = true;
-                response->message = "enable_twist_cmd parameter toggled.";
-            });
+
 
         zero_radius_ = sqrt(params_.wheel_base*params_.wheel_base/4 + params_.steering_track*params_.steering_track/4);
         RCLCPP_INFO_STREAM(get_node()->get_logger(), "zero_radius_: " << zero_radius_);
