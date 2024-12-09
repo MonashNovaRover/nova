@@ -231,6 +231,8 @@ namespace pivot_drive_controller
 
             command = *last_command_msg;
             target_speed = command.drive_input.speed;
+            target_radius = command.drive_input.radius;
+            target_direction = command.drive_input.direction;
 
             const auto age_of_last_command = time - last_command_msg->header.stamp;
 
