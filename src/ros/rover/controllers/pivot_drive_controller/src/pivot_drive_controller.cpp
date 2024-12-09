@@ -261,7 +261,7 @@ namespace pivot_drive_controller
 
         if (target_direction == 0) target_direction = 1;
 
-//        RCLCPP_INFO(get_node()->get_logger(), "Target radius of %f and direction of %f", target_radius, target_direction);
+       RCLCPP_INFO(get_node()->get_logger(), "Target radius of %f and direction of %f", target_radius, target_direction);
 
         float radius;
         int direction;
@@ -272,8 +272,8 @@ namespace pivot_drive_controller
         left_angle = get_pivot_angle_from_radius(radius, true, direction);
         right_angle = get_pivot_angle_from_radius(radius, false, direction);
 
-        //RCLCPP_INFO(get_node()->get_logger(), "left_angle command: %f", left_angle);
-        //RCLCPP_INFO(get_node()->get_logger(), "right_angle command: %f", right_angle);
+        RCLCPP_INFO(get_node()->get_logger(), "left_angle command: %f", left_angle);
+        RCLCPP_INFO(get_node()->get_logger(), "right_angle command: %f", right_angle);
 
         registered_left_pivot_handles_.at(0).command.get().set_value(left_angle);
         registered_left_pivot_handles_.at(1).command.get().set_value(-left_angle);
