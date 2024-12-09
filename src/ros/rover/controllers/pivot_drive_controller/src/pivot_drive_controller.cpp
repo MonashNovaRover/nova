@@ -67,22 +67,22 @@ namespace pivot_drive_controller
         return controller_interface::CallbackReturn::SUCCESS;
     }
 
-    void PivotDriveController::toggle_enable_twist_cmd()
-    {
-        auto logger = get_node()->get_logger();
-        bool current_value;
+    // void PivotDriveController::toggle_enable_twist_cmd()
+    // {
+    //     auto logger = get_node()->get_logger();
+    //     bool current_value;
 
-        if (get_node()->get_parameter("enable_twist_cmd", current_value))
-        {
-            bool new_value = !current_value;
-            get_node()->set_parameter(rclcpp::Parameter("enable_twist_cmd", new_value));
-            RCLCPP_INFO(logger, "Toggled enable_twist_cmd to: %s", new_value ? "true" : "false");
-        }
-        else
-        {
-            RCLCPP_WARN(logger, "Parameter 'enable_twist_cmd' not found.");
-        }
-    }
+    //     if (get_node()->get_parameter("enable_twist_cmd", current_value))
+    //     {
+    //         bool new_value = !current_value;
+    //         get_node()->set_parameter(rclcpp::Parameter("enable_twist_cmd", new_value));
+    //         RCLCPP_INFO(logger, "Toggled enable_twist_cmd to: %s", new_value ? "true" : "false");
+    //     }
+    //     else
+    //     {
+    //         RCLCPP_WARN(logger, "Parameter 'enable_twist_cmd' not found.");
+    //     }
+    // }
 
 
     InterfaceConfiguration PivotDriveController::command_interface_configuration() const
