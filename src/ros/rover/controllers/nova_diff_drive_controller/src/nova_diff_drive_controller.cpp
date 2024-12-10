@@ -13,9 +13,9 @@
 namespace
 {
   constexpr auto DEFAULT_INPUT_TOPIC_TWIST = "/cmd_vel";
-  constexpr auto DEFAULT_INPUT_TOPIC_TWIST_STAMPED = "/cmd_vel_stamped";
+  constexpr auto DEFAULT_INPUT_TOPIC_TWIST_STAMPED = "/cmd_vel";
   constexpr auto DEFAULT_INPUT_TOPIC = "/drive_input";
-  constexpr auto DEFAULT_INPUT_TOPIC_STAMPED = "/drive_input_stamped";
+  constexpr auto DEFAULT_INPUT_TOPIC_STAMPED = "/drive_input";
   constexpr auto DEFAULT_COMMAND_OUT_TOPIC = "~/cmd_vel_out";
   constexpr auto DEFAULT_ODOMETRY_TOPIC = "~/odom";
   constexpr auto DEFAULT_TRANSFORM_TOPIC = "/tf";
