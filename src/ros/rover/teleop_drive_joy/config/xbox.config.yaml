@@ -33,5 +33,5 @@ teleop_drive_joy_node:
     button_unlock: 7
     speed_change_coarse_val: 0.1
     speed_change_fine_val: 0.02
-    soeed_limit_max: 1.2
-    soeed_limit_min: 0.05
+    speed_limit_max: 1.2
+    speed_limit_min: 0.05

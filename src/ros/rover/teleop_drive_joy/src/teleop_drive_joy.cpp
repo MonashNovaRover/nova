@@ -33,6 +33,9 @@ namespace teleop_drive_joy
         DEFAULT_INPUT_TOPIC, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joyCallback, this, _1));
 
     switch_controller_client = this->create_client<controller_manager_msgs::srv::SwitchController>("/controller_manager/switch_controller");
+    pivot_drive_client = this->create_client<rcl_interfaces::srv::SetParameters>("/pivot_drive_controller/set_parameters");
+    strafe_client = this->create_client<rcl_interfaces::srv::SetParameters>("/strafe_controller/set_parameters");
+    nova_diff_drive_client = this->create_client<rcl_interfaces::srv::SetParameters>("/nova_diff_drive_controller/set_parameters");
 
     control_mode = ControlMode::PIVOT_DRIVE;
   }
@@ -57,6 +60,8 @@ namespace teleop_drive_joy
   {
     handleButtonCallbacks(joy_msg);
     handleSpeedChange(joy_msg);
+
+    RCLCPP_INFO(this->get_logger(), "We are currently %s", current_state.locked ? "true" : "false");
 
     if (!current_state.locked)
     {
@@ -172,11 +177,17 @@ namespace teleop_drive_joy
     if (isDebounced(joy_msg->buttons[params_.button_autonomous_control], params_.button_autonomous_control) && !current_state.autonomous_mode)
     {
       current_state.autonomous_mode = true;
+      setEnableTwistCmdForController(pivot_drive_client, true);
+      setEnableTwistCmdForController(strafe_client, true);
+	    setEnableTwistCmdForController(nova_diff_drive_client, true);
       RCLCPP_INFO(this->get_logger(), "BUTTON: autonomous_control");
     }
     else if (isDebounced(joy_msg->buttons[params_.button_manual_control], params_.button_manual_control) && current_state.autonomous_mode)
     {
       current_state.autonomous_mode = false;
+      setEnableTwistCmdForController(pivot_drive_client, false);
+      setEnableTwistCmdForController(strafe_client, false);
+      setEnableTwistCmdForController(nova_diff_drive_client, false);
       RCLCPP_INFO(this->get_logger(), "BUTTON: manual_control");
     }
 
@@ -250,6 +261,39 @@ namespace teleop_drive_joy
     {
       RCLCPP_ERROR(this->get_logger(), "Service call failed: %s", e.what());
     }
+  }
+
+  void TeleopDriveJoy::setEnableTwistCmdForController(const std::shared_ptr<rclcpp::Client<rcl_interfaces::srv::SetParameters>> &client, bool enable)
+  {
+    if (!client->service_is_ready())
+    {
+      RCLCPP_ERROR(this->get_logger(), "Service is not ready for client.");
+      return;
+    }
+
+    // Create the parameter request
+    auto request = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();
+
+    // Construct the parameter manually
+    rcl_interfaces::msg::Parameter param;
+    param.name = "enable_twist_cmd";
+    param.value.type = rcl_interfaces::msg::ParameterType::PARAMETER_BOOL;
+    param.value.bool_value = enable; // Use rclcpp::ParameterValue to set the bool value
+    // Add the parameter to the request
+    request->parameters.push_back(param);
+    // Debug output of the request
+    // std::ostringstream debug_msg;
+    // debug_msg << "Sending SetParameters request: {"
+    //           << "name: " << param.name << ", "
+    //           << "type: " << param.value.type << ", "
+    //           << "bool_value: " << std::boolalpha << param.value.bool_value
+    //           << "}";
+    // RCLCPP_INFO(this->get_logger(), debug_msg.str().c_str());
+
+    // TODO: Add confirmation of parameter change
+    auto future = client->async_send_request(request);
+
+    // RCLCPP_ERROR(this->get_logger(), "Service has been sent a parameter change request");
   }
 
 }

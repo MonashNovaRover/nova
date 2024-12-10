@@ -67,24 +67,6 @@ namespace pivot_drive_controller
         return controller_interface::CallbackReturn::SUCCESS;
     }
 
-    // void PivotDriveController::toggle_enable_twist_cmd()
-    // {
-    //     auto logger = get_node()->get_logger();
-    //     bool current_value;
-
-    //     if (get_node()->get_parameter("enable_twist_cmd", current_value))
-    //     {
-    //         bool new_value = !current_value;
-    //         get_node()->set_parameter(rclcpp::Parameter("enable_twist_cmd", new_value));
-    //         RCLCPP_INFO(logger, "Toggled enable_twist_cmd to: %s", new_value ? "true" : "false");
-    //     }
-    //     else
-    //     {
-    //         RCLCPP_WARN(logger, "Parameter 'enable_twist_cmd' not found.");
-    //     }
-    // }
-
-
     InterfaceConfiguration PivotDriveController::command_interface_configuration() const
     {
         std::vector<std::string> conf_names;
@@ -203,9 +185,9 @@ namespace pivot_drive_controller
             previous_twist_commands_.emplace(twist_command);
 
             target_radius = angular_command == 0 ? INFINITY : abs(linear_command / angular_command);
-            RCLCPP_DEBUG(logger, "Target_radius: %f", target_radius);
-
-            RCLCPP_DEBUG(logger, "Target_speed: %f", target_speed);
+//            RCLCPP_DEBUG(logger, "Target_radius: %f", target_radius);
+//
+//            RCLCPP_DEBUG(logger, "Target_speed: %f", target_speed);
 
             //target_radius = angular_command == 0 ? 0 : linear_command / abs(angular_command);
             target_direction = angular_command > 0 ? -1 : 1;
@@ -255,7 +237,7 @@ namespace pivot_drive_controller
 
         if (target_direction == 0) target_direction = 1;
 
-       RCLCPP_INFO(get_node()->get_logger(), "Target radius of %f and direction of %f", target_radius, target_direction);
+//       RCLCPP_INFO(get_node()->get_logger(), "Target radius of %f and direction of %f", target_radius, target_direction);
 
         float radius;
         int direction;
@@ -266,8 +248,8 @@ namespace pivot_drive_controller
         left_angle = get_pivot_angle_from_radius(radius, true, direction);
         right_angle = get_pivot_angle_from_radius(radius, false, direction);
 
-        RCLCPP_INFO(get_node()->get_logger(), "left_angle command: %f", left_angle);
-        RCLCPP_INFO(get_node()->get_logger(), "right_angle command: %f", right_angle);
+//        RCLCPP_INFO(get_node()->get_logger(), "left_angle command: %f", left_angle);
+//        RCLCPP_INFO(get_node()->get_logger(), "right_angle command: %f", right_angle);
 
         registered_left_pivot_handles_.at(0).command.get().set_value(left_angle);
         registered_left_pivot_handles_.at(1).command.get().set_value(-left_angle);
