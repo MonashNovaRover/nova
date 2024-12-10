@@ -126,7 +126,7 @@ nova_diff_drive_controller:
   }
   use_unstamped_msg: {
     type: bool,
-    default_value: true,
+    default_value: false,
     description: "Subscribe to stamped or unstamped messages. Msg type depends on enable_twist_cmd parameter",
   }
 

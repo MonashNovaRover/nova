@@ -234,6 +234,11 @@ namespace teleop_drive_joy
     std::string activate_controller = modeToController(requested_control_mode);
     std::string deactivate_controller = modeToController(control_mode);
 
+    if (!switch_controller_client->service_is_ready()) {
+        RCLCPP_ERROR(this->get_logger(), "Controller manager service not available.");
+        return;
+    }
+
     auto request = std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
     request->activate_controllers.emplace_back(activate_controller);
     request->deactivate_controllers.emplace_back(deactivate_controller);
@@ -241,24 +246,9 @@ namespace teleop_drive_joy
     request->activate_asap = true;
 
     auto future = switch_controller_client->async_send_request(request);
+    RCLCPP_INFO(this->get_logger(), "Request sent, waiting for response...");
 
-    try
-    {
-      auto result = future.get();
-      if (result->ok)
-      {
-        RCLCPP_INFO(this->get_logger(), "Successfully switched to %s.", prettyPrintMode(requested_control_mode).c_str());
-        control_mode = requested_control_mode;
-      }
-      else
-      {
-        RCLCPP_ERROR(this->get_logger(), "Failed to switch to %s. Is drive.launch.py running?", prettyPrintMode(requested_control_mode).c_str());
-      }
-    }
-    catch (const std::exception &e)
-    {
-      RCLCPP_ERROR(this->get_logger(), "Service call failed: %s", e.what());
-    }
+    control_mode = requested_control_mode;
   }
 
   void TeleopDriveJoy::setEnableTwistCmdForController(const std::shared_ptr<rclcpp::Client<rcl_interfaces::srv::SetParameters>> &client, bool enable)
@@ -279,19 +269,9 @@ namespace teleop_drive_joy
     param.value.bool_value = enable; // Use rclcpp::ParameterValue to set the bool value
     // Add the parameter to the request
     request->parameters.push_back(param);
-    // Debug output of the request
-    // std::ostringstream debug_msg;
-    // debug_msg << "Sending SetParameters request: {"
-    //           << "name: " << param.name << ", "
-    //           << "type: " << param.value.type << ", "
-    //           << "bool_value: " << std::boolalpha << param.value.bool_value
-    //           << "}";
-    // RCLCPP_INFO(this->get_logger(), debug_msg.str().c_str());
 
     // TODO: Add confirmation of parameter change
     auto future = client->async_send_request(request);
-
-    // RCLCPP_ERROR(this->get_logger(), "Service has been sent a parameter change request");
   }
 
 }
