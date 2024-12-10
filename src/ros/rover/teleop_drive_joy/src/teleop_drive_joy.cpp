@@ -61,8 +61,6 @@ namespace teleop_drive_joy
     handleButtonCallbacks(joy_msg);
     handleSpeedChange(joy_msg);
 
-    RCLCPP_INFO(this->get_logger(), "We are currently %s", current_state.locked ? "true" : "false");
-
     if (!current_state.locked)
     {
       sendDriveCommand(joy_msg);
