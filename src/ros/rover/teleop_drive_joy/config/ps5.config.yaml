@@ -12,19 +12,16 @@ teleop_drive_joy_node:
       axis_linear_x: 1
       scale_angular_z: 1.0
       scale_linear_x: 0.1
-      scale_linear_y: 0.1
     strafe_controller:
       axis_angular_z: 3
-      axis_linear_x: 1
+      axis_linear_x: 0
       scale_angular_z: 1.0
       scale_linear_x: 0.1
-      scale_linear_y: 0.1
     nova_diff_drive_controller:
       axis_angular_z: 3
       axis_linear_x: 1
       scale_angular_z: 1.0
       scale_linear_x: 0.1
-      scale_linear_y: 0.1
     axis_speed_change_coarse: 7
     axis_speed_change_fine: 6
     button_autonomous_control: 0
@@ -36,3 +33,5 @@ teleop_drive_joy_node:
     button_unlock: 9
     speed_change_coarse_val: 0.1
     speed_change_fine_val: 0.02
+    speed_limit_max: 1.2
+    speed_limit_min: 0.05

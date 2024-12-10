@@ -3,7 +3,6 @@
  * @brief Header file for the TeleopDriveJoy class, which handles joystick input for teleoperation.
  * Last Edited by Kabi
  */
-
 #ifndef TELEOP_DRIVE_JOY_HPP
 #define TELEOP_DRIVE_JOY_HPP
 
@@ -137,12 +136,17 @@ namespace teleop_drive_joy
      */
     void switchController(const ControlMode requested_control_mode);
 
+    void setEnableTwistCmdForController(const std::shared_ptr<rclcpp::Client<rcl_interfaces::srv::SetParameters>> &client, bool enable);
+
     // Member variables
     rclcpp::Publisher<nova_interfaces::msg::DriveInputStamped>::SharedPtr drive_input_pub;
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_pub;
     rclcpp::Publisher<nova_interfaces::msg::DriveInfo>::SharedPtr drive_info_pub;
     rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub;
     rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr switch_controller_client;
+    rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr pivot_drive_client;
+    rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr strafe_client;
+    rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr nova_diff_drive_client;
     std::shared_ptr<ParamListener> param_listener_;
 
     Params params_;
