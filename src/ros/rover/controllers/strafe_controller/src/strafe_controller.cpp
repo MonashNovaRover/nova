@@ -198,6 +198,8 @@ namespace strafe_controller
 
             command = *last_command_msg;
             linear_command = command.drive_input.speed;
+            target_radius = command.drive_input.radius;
+            target_direction = command.drive_input.direction;
             const auto age_of_last_command = time - last_command_msg->header.stamp;
 
             // Brake if drive_input_cmd has timeout, override the stored command
