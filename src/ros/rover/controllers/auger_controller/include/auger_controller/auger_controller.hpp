@@ -32,8 +32,8 @@ TODO:
 #include "controller_interface/controller_interface.hpp"
 #include "input_interfaces/msg/input_joystick.hpp"
 #include "rclcpp/node.hpp"
+#include "rclcpp/qos.hpp"
 #include "rclcpp/rclcpp.hpp"
-
 
 namespace auger_controller
 {
@@ -82,6 +82,21 @@ public:
   AUGER_CONTROLLER_PUBLIC
   controller_interface::CallbackReturn on_shutdown(
     const rclcpp_lifecycle::State & previous_state) override;
+
+  void stop_auger();
+  void stop_drill();
+
+  void deadline_callback(); // might not need this
+
+  // why do we need this? commenting until i'm certain we don't need this
+  //bool check_joystick_lock();
+  void update_joystick_lock(input_interfaces::msg::InputJoystick joystick_l);
+  
+  void update_auger_height(input_interfaces::msg::InputJoystick joystick_r);
+  void update_drill_spin(input_interfaces::msg::InputJoystick joystick_r);
+  void joystick_l_callback(input_interfaces::msg::InputJoystick msg);
+  void joystick_r_callback(input_interfaces::msg::InputJoystick msg);
+
 
 protected:
   int auger_direction;
