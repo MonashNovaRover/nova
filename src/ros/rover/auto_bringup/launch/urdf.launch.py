@@ -31,11 +31,7 @@ def launch_setup(context, *args, **kwargs):
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[{'robot_description': 
-<<<<<<< HEAD
-                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo]), value_type=str)
-=======
                 ParameterValue(Command(['xacro ', model, " ", "gazebo:=", gazebo, " ", "robot_name:=", robot_name]), value_type=str)
->>>>>>> c7c6662 (Model fully formed. No controllers yet)
             }]
         )
     ]
