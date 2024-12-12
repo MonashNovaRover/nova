@@ -25,6 +25,7 @@
 
 namespace generic_can_hardware
 {
+
 hardware_interface::CallbackReturn GenericCANHardware::on_init(
         const hardware_interface::HardwareInfo & info)
 {
@@ -35,11 +36,11 @@ hardware_interface::CallbackReturn GenericCANHardware::on_init(
 
     GenericCANHardwareLoggerName = info_.name;
 
-    if (info_.joints.size() != 1)
+    if (info_.gpios.size() != 1)
     {
       RCLCPP_FATAL_STREAM(
         rclcpp::get_logger(GenericCANHardwareLoggerName),
-        "Hardware interface '" << info_.name << "got " << info_.joints.size() << " joints but expected 1");
+        "Hardware interface '" << info_.name << "got " << info_.gpios.size() << " gpios but expected 1");
       return CallbackReturn::ERROR;
     }
 
@@ -72,66 +73,18 @@ hardware_interface::CallbackReturn GenericCANHardware::on_init(
     RCLCPP_INFO_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
                        "Got clock rate: " << clock_rate_);
 
-    auto revolution_pulses_search = info_.hardware_parameters.find("revolution_pulses");
-
-    if (revolution_pulses_search == info_.hardware_parameters.end()){
-        RCLCPP_FATAL(rclcpp::get_logger(GenericCANHardwareLoggerName), "No revolution pulses provided");
-        return CallbackReturn::ERROR;
-    }
-
-    revolution_pulses_ = std::stoul(revolution_pulses_search->second);
-
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                       "Resolver pulses: " << revolution_pulses_);
-
-    auto mock_search = info_.hardware_parameters.find("mock");
-    if (mock_search != info_.hardware_parameters.end() && mock_search->second == "true"){
-        mock_ = true;
-    }
-
-    auto reversed_search = info_.hardware_parameters.find("reversed");
-    if (reversed_search != info_.hardware_parameters.end() && reversed_search->second == "true"){
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                       "Interface is reversed");
-        reversed_multiplier_ = -1;
-    }
-
-    auto integrate_velocity_search = info_.hardware_parameters.find("integrate_velocity");
-    if (integrate_velocity_search != info_.hardware_parameters.end() && integrate_velocity_search->second == "true"){
-        RCLCPP_INFO_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                           "Integrating velocity to provide position estimate");
-        integrate_velocity_ = true;
-    }
-
-    auto min_interval_search = info_.hardware_parameters.find("min_interval");
-    if (min_interval_search != info_.hardware_parameters.end() && mock_){
-        min_interval_ = std::stol(min_interval_search->second);
-    }
-
-    auto gear_ratio_search = info_.hardware_parameters.find("gear_ratio");
-    if (gear_ratio_search == info_.hardware_parameters.end()){
-        RCLCPP_FATAL(rclcpp::get_logger(GenericCANHardwareLoggerName), "No gear ratio provided");
-        return CallbackReturn::ERROR;
-    }
-    gear_ratio_ = std::stod(gear_ratio_search->second);
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                       "Got gear ratio: " << gear_ratio_);
-
-
-    for (const auto& interface : info_.joints[0].command_interfaces){
+    /* for (const auto& interface : info_.gpios[0].command_interfaces) {
         if(!set_control_interface(interface, true)){
             return CallbackReturn::ERROR;
         }
-    }
+    } */
 
-    for (const auto& interface : info_.joints[0].state_interfaces){
-        if(!set_control_interface(interface, false)){
+    for (const auto& interface : info_.gpios[0].state_interfaces) {
+        if (!set_control_interface(interface, false)){
             return CallbackReturn::ERROR;
         }
     }
 
-    control_mode_ = generic_can_hardware::ControlMode::Undefined;
-	
     bus_ = leigh::jcan::new_bus();
     can_setup();
 
@@ -152,90 +105,15 @@ hardware_interface::CallbackReturn GenericCANHardware::on_configure(
         return CallbackReturn::ERROR;
     }
 
-
-        if (!mock_) {
-        //get min_interval
-            if (hw_velocity_.state.has_value()) {
-                RCLCPP_INFO_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                                   "Getting min interval on GenericCAN " << can_id_);
-                auto min_interval = get_config<uint16_t>(GenericCANConfigCommand::MIN_INTERVAL);
-
-                if (min_interval.has_value()) {
-                    min_interval_ = min_interval.value();
-                    RCLCPP_INFO_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                                       "Min interval on GenericCAN " << can_id_ << " is " << min_interval_);
-                } else {
-                    RCLCPP_FATAL_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                                        "Error getting min interval on GenericCAN " << can_id_);
-                    return CallbackReturn::ERROR;
-                }
-        }
-
-        // check for resolver if there is a position interface
-        if (hw_position_.state.has_value() || hw_position_.command.has_value()) {
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                               "Checking for resolver on GenericCAN " << can_id_);
-
-            auto resolver_check = get_config<uint16_t>(GenericCANConfigCommand::HAS_RESOLVER);
-            if (resolver_check.has_value()) {
-                if (resolver_check.value()) {
-                    RCLCPP_INFO_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                                       "Resolver detected on GenericCAN " << can_id_);
-                    return CallbackReturn::SUCCESS;
-                } else {
-                    RCLCPP_FATAL_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                                        "No resolver detected on GenericCAN " << can_id_);
-                    return CallbackReturn::ERROR;
-                }
-            }
-            RCLCPP_FATAL_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                                "Error with resolver request on GenericCAN" << can_id_);
-            return CallbackReturn::ERROR;
-
-        }
-    }
-    
   return CallbackReturn::SUCCESS;
-}
-
-template<typename T>
-std::optional<T> GenericCANHardware::get_config(GenericCANConfigCommand command) {
-
-    const leigh::jcan::Frame min_interval_request = {
-            make_can_id(GenericCANSendCommand::GET_CONFIG),
-            {static_cast<uint8_t>(command)},
-    };
-    auto start = std::chrono::steady_clock::now();
-    bus_->send(min_interval_request);
-
-    while (std::chrono::steady_clock::now() - start < std::chrono::seconds(1)) {
-        try {
-            auto frame = bus_->receive_with_timeout(1000);
-            if (frame.id == make_can_id(GenericCANReceiveCommand::CONFIG_DATA)) {
-                auto config_value = from_bytes<T>(&frame.data[0]);
-                return std::optional(config_value);
-            }
-        } catch (std::exception &e) {
-            return std::nullopt;
-        }
-    }
-    return std::nullopt;
 }
 
 std::vector<hardware_interface::StateInterface> GenericCANHardware::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
-  if (hw_position_.state.has_value()) {
+  if (state_interface.state.has_value()) {
       state_interfaces.emplace_back(
-              info_.joints[0].name, hardware_interface::HW_IF_POSITION, &hw_position_.state.value());
-  }
-  if (hw_velocity_.state.has_value()) {
-      state_interfaces.emplace_back(
-              info_.joints[0].name, hardware_interface::HW_IF_VELOCITY, &hw_velocity_.state.value());
-  }
-  if (hw_effort_.state.has_value()) {
-      state_interfaces.emplace_back(
-              info_.joints[0].name, hardware_interface::HW_IF_EFFORT, &hw_effort_.state.value());
+              info_.gpios[0].name, state_interface.name, &state_interface.state.value());
   }
 
   return state_interfaces;
@@ -244,18 +122,6 @@ std::vector<hardware_interface::StateInterface> GenericCANHardware::export_state
 std::vector<hardware_interface::CommandInterface> GenericCANHardware::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
-    if (hw_position_.command.has_value()) {
-        command_interfaces.emplace_back(
-                info_.joints[0].name, hardware_interface::HW_IF_POSITION, &hw_position_.command.value());
-    }
-    if (hw_velocity_.command.has_value()) {
-        command_interfaces.emplace_back(
-                info_.joints[0].name, hardware_interface::HW_IF_VELOCITY, &hw_velocity_.command.value());
-    }
-    if (hw_effort_.command.has_value()) {
-        command_interfaces.emplace_back(
-                info_.joints[0].name, hardware_interface::HW_IF_EFFORT, &hw_effort_.command.value());
-    }
 
   return command_interfaces;
 }
@@ -278,54 +144,13 @@ hardware_interface::return_type GenericCANHardware::read(
         const rclcpp::Time & time, const rclcpp::Duration & period)
 {
     bus_->spin();
-    if(integrate_velocity_ && hw_position_.state.has_value() && hw_velocity_.state.has_value()){
-        //RCLCPP_INFO_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName), "Velocity state: " << hw_velocity_.state.value()
-        //<< ", Position state: " << hw_position_.state.value() << ", Period: " << period.seconds());
-        hw_position_.state = hw_position_.state.value() + hw_velocity_.state.value()*period.seconds();
-        //RCLCPP_INFO_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName), "New position state: " << hw_position_.state.value());
-
-    }
     return hardware_interface::return_type::OK;
 }
 
 hardware_interface::return_type GenericCANHardware::write(
         const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-    switch(control_mode_){
-        case generic_can_hardware::ControlMode::Undefined:
-            break;
-        case generic_can_hardware::ControlMode::Position:
-            if (hw_position_.command.has_value()) {
-                RCLCPP_DEBUG_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                                   "Sending Position Command " << hw_position_.command.value());
-                send_scaled<int16_t>(make_can_id(GenericCANSendCommand::DRIVE_POSITION),
-                                     hw_position_.command.value() * reversed_multiplier_, hw_position_.max);
-            } else {
-                RCLCPP_FATAL(rclcpp::get_logger(GenericCANHardwareLoggerName), "No position command");
-                return hardware_interface::return_type::ERROR;
-            }
-            break;
-        case generic_can_hardware::ControlMode::Velocity:
-            if (hw_velocity_.command.has_value()) {
-               RCLCPP_DEBUG_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                                  "Sending velocity command " << hw_velocity_.command.value() * reversed_multiplier_);
-                send_scaled<int16_t>(make_can_id(GenericCANSendCommand::DRIVE_VELOCITY),
-                                     hw_velocity_.command.value() * reversed_multiplier_, hw_velocity_.max);
-            } else {
-                RCLCPP_FATAL(rclcpp::get_logger(GenericCANHardwareLoggerName), "No velocity command");
-                return hardware_interface::return_type::ERROR;
-            }
-            break;
-        case generic_can_hardware::ControlMode::Effort:
-            if (hw_effort_.command.has_value()) {
-                send_scaled<int16_t>(make_can_id(GenericCANSendCommand::DRIVE_CURRENT),
-                                     hw_effort_.command.value() * reversed_multiplier_, hw_effort_.max);
-            } else {
-                RCLCPP_FATAL(rclcpp::get_logger(GenericCANHardwareLoggerName), "No effort command");
-                return hardware_interface::return_type::ERROR;
-            }
-            break;
-    }
+    // Write values here!
     return hardware_interface::return_type::OK;
 }
 
@@ -347,84 +172,29 @@ hardware_interface::return_type
     return hardware_interface::return_type::OK;
 }
 
-bool GenericCANHardware::stop_interface(const std::string &interface){
-
+bool GenericCANHardware::stop_interface(const std::string &interface) {
     size_t delimiter_pos = interface.find('/');
 
-    std::string joint_name = interface.substr(0, delimiter_pos);
+    std::string gpio_name = interface.substr(0, delimiter_pos);
     std::string interface_name = interface.substr(delimiter_pos + 1);
 
-    if (joint_name != info_.joints[0].name){
+    if (gpio_name != info_.gpios[0].name){
         return true;
     }
 
-    if (interface_name == hardware_interface::HW_IF_POSITION) {
-        if (control_mode_ == generic_can_hardware::ControlMode::Position) {
-            control_mode_ = generic_can_hardware::ControlMode::Undefined;
-            return true;
-        } else {
-            RCLCPP_FATAL_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                                "Requested stop position when control mode was not position");
-            return false;
-        }
-    }
-    if (interface_name == hardware_interface::HW_IF_VELOCITY) {
-        if (control_mode_ == generic_can_hardware::ControlMode::Velocity) {
-            hw_velocity_.command = 0.0;
-            control_mode_ = generic_can_hardware::ControlMode::Undefined;
-            return true;
-        } else {
-            RCLCPP_FATAL_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                                "Requested stop " << interface_name.c_str() << "when control mode was not velocity");
-            return false;
-        }
-    }
-    if (interface_name == hardware_interface::HW_IF_EFFORT) {
-        if (control_mode_ == generic_can_hardware::ControlMode::Effort) {
-            hw_effort_.command = 0.0;
-            control_mode_ = generic_can_hardware::ControlMode::Undefined;
-            return true;
-        } else {
-            RCLCPP_FATAL_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                                "Requested stop " << interface_name.c_str() << "when control mode was not effort");
-            return false;
-        }
-    }
+    state_interface.state = 0;
+    state_interface.name = interface_name;
 
     RCLCPP_FATAL_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
                         "Unexpected interface " << interface_name.c_str());
     return false;
-
 }
 
-bool GenericCANHardware::start_interface(const std::string &interface){
-
+bool GenericCANHardware::start_interface(const std::string &interface) {
     size_t delimiter_pos = interface.find('/');
 
     std::string joint_name = interface.substr(0, delimiter_pos);
     std::string interface_name = interface.substr(delimiter_pos + 1);
-
-    if (joint_name != info_.joints[0].name){
-        return true;
-    }
-
-    if(control_mode_ != generic_can_hardware::ControlMode::Undefined){
-        RCLCPP_FATAL_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                            "Requested start interface " << interface.c_str() << " when control mode was not undefined");
-        return false;
-    }
-
-    if (interface_name == hardware_interface::HW_IF_POSITION){
-        control_mode_ = generic_can_hardware::ControlMode::Position;
-    } else if (interface_name == hardware_interface::HW_IF_VELOCITY){
-        control_mode_ = generic_can_hardware::ControlMode::Velocity;
-    } else if (interface_name == hardware_interface::HW_IF_EFFORT){
-        control_mode_ = generic_can_hardware::ControlMode::Effort;
-    } else {
-        RCLCPP_FATAL_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                            "Unexpected interface " << interface_name.c_str());
-        return false;
-    }
 
     return true;
 }
@@ -432,100 +202,36 @@ bool GenericCANHardware::start_interface(const std::string &interface){
 // TODO: better error handling
 bool GenericCANHardware::set_control_interface(
         const hardware_interface::InterfaceInfo &interface_info, bool command) {
-    if(interface_info.name == hardware_interface::HW_IF_POSITION){
-        //TODO: deal with case with state interface and no command interface
-        if (command){
-            hw_position_.max = std::stod(interface_info.max);
-            auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
-            if (resolver_reduction_search == info_.joints[0].parameters.end()){
-                RCLCPP_FATAL(rclcpp::get_logger(GenericCANHardwareLoggerName), "No resolver reduction provided");
-                return false;
-            }
-            hw_position_.resolver_reduction = std::stod(resolver_reduction_search->second);
-            hw_position_.command = 0.0;
-        } else {
-            hw_position_.state = 0.0;
-        }
-    } else if(interface_info.name == hardware_interface::HW_IF_VELOCITY){
-        if(command) {
-            hw_velocity_.max = (clock_rate_)/(min_interval_*revolution_pulses_*gear_ratio_) * 2 * M_PI;
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-            "Configured velocity interface with max velocity: " << hw_velocity_.max);
-            hw_velocity_.command = 0.0;
-        } else {
-            hw_velocity_.state = 0.0;
-        }
-    } else if(interface_info.name == hardware_interface::HW_IF_EFFORT){
-        if(command){
-            hw_effort_.max = std::stod(interface_info.max);;
-            hw_effort_.command = 0.0;
-        } else {
-            hw_effort_.state = 0.0;
-        }
-    } else {
-        RCLCPP_FATAL(rclcpp::get_logger(GenericCANHardwareLoggerName), "Unexpected interface %s",
-                     interface_info.name.c_str());
+
+    if (command)
         return false;
-    }
+
+    state_interface.state = 0;
+    state_interface.max = std::stod(interface_info.max);
     return true;
 }
 
     void GenericCANHardware::can_setup() {
-        std::vector<uint32_t> ids = {make_can_id(GenericCANReceiveCommand::CONFIG_DATA)};
-                if (hw_velocity_.state.has_value() || hw_effort_.state.has_value()) {
-            ids.push_back(make_can_id(TelemetryPacket::PACKET_1));
-        }
-        if (hw_position_.state.has_value() && !integrate_velocity_) {
-            ids.push_back(make_can_id(TelemetryPacket::PACKET_3));
-        }
-	bus_->set_id_filter(ids);
-        if (hw_velocity_.state.has_value() || hw_effort_.state.has_value()) {
+
+        std::vector<uint32_t> ids = {
+                can_id_
+        };
+
+        bus_->set_id_filter(ids);
+
+        if (state_interface.state.has_value()) {
             RCLCPP_INFO_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                               "Adding packet 1 callback to ID:" << make_can_id(TelemetryPacket::PACKET_1));
-            bus_->add_callback_to(make_can_id(TelemetryPacket::PACKET_1), this, &GenericCANHardware::packet_1_callback);
+                               "Adding packet callback to ID: " << can_id_);
+            bus_->add_callback_to(static_cast<int>(can_id_), this, &GenericCANHardware::packet_callback);
         }
-        if (hw_position_.state.has_value() && !integrate_velocity_) {
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(GenericCANHardwareLoggerName),
-                               "Adding packet 3 callback to ID:" << make_can_id(TelemetryPacket::PACKET_3));
-            bus_->add_callback_to(make_can_id(TelemetryPacket::PACKET_3), this, &GenericCANHardware::packet_3_callback);
-        }
+
+        // Later enabled in on_activate
         bus_->set_callbacks_enabled(false);
    }
 
-    uint32_t GenericCANHardware::make_can_id(GenericCANSendCommand command) const
-    {
-        return static_cast<uint32_t>(CanIdPrefix::SEND) << 8 | can_id_ << 4 |
-               static_cast<uint32_t>(command);
-    }
-
-    uint32_t GenericCANHardware::make_can_id(GenericCANReceiveCommand command) const
-    {
-        return static_cast<uint32_t>(CanIdPrefix::RECEIVE) << 8 | can_id_ << 4 |
-               static_cast<uint32_t>(command);
-    }
-
-    uint32_t GenericCANHardware::make_can_id(TelemetryPacket packet) const
-    {
-        return static_cast<uint32_t>(CanIdPrefix::RECEIVE) << 8 | can_id_ << 4|
-               static_cast<uint32_t>(packet);
-    }
-
-    void GenericCANHardware::packet_1_callback(leigh::jcan::Frame frame) {
-        if(hw_velocity_.state.has_value()) {
-
-            hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max) * 
-            reversed_multiplier_;
-
-        }
-        if(hw_effort_.state.has_value()) {
-            hw_effort_.state = convert_scaled<int16_t>(&frame.data[2], hw_effort_.max);
-        }
-    }
-
-    void GenericCANHardware::packet_3_callback(leigh::jcan::Frame frame) {
-        if(hw_position_.state.has_value()) {
-            hw_position_.state = convert_scaled<int16_t>(&frame.data[0], hw_position_.max) *
-                                 hw_position_.resolver_reduction * reversed_multiplier_;
+    void GenericCANHardware::packet_callback(leigh::jcan::Frame frame) {
+        if(state_interface.state.has_value()) {
+            state_interface.state = convert_scaled<int16_t>(&frame.data[0], state_interface.max);
         }
     }
 
