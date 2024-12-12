@@ -31,17 +31,17 @@ strafe_controller:
   }
   steering_track: {
     type: double,
-    default_value: 0.7,
+    default_value: 0.81564001,
     description: "Steering track: distance between center of left and right wheels",
   }
   wheel_base: {
     type: double,
-    default_value: 0.84,
+    default_value: 0.95752883,
     description: "Wheelbase: distance between center of front and rear wheels",
   }
   wheel_radius: {
     type: double,
-    default_value: 0.15,
+    default_value: 0.15692321,
     description: "Radius of wheels"
   }
   velocity_rolling_window_size: {

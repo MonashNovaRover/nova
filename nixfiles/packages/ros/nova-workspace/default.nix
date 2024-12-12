@@ -11,6 +11,7 @@
 , python3Packages
 , pkg-config
 , fetchPypi
+, onshape-to-robot ? import ../../python/onshape-to-robot { lib = lib; python3Packages = python3Packages; pkg-config = pkg-config; fetchPypi = fetchPypi;}
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -31,7 +32,6 @@
 , nova-bringup ? throw "nova-bringup is needed, but not available!"
 , nova-auto-bringup ? throw "auto-bringup is needed, but not available!"
 , nova-rover-description ? throw "rover-description is needed, but not available!"
-, nova-new-rover-description ? throw "new-rover-description is needed, but not available!"
 , nova-blcmd-hardware ? throw "nova-blcmd-hardware is needed, but not available!"
 , nova-pivot-drive-controller ? throw "nova-pivot-drive-controller is needed, but not available!"
 , nova-strafe-controller ? throw "nova-strafe-controller is needed, but not available!"
@@ -42,7 +42,6 @@
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-utils ? throw "nova-utils is needed, but not available!"
 
-, onshape-to-robot ? import ../../python/onshape-to-robot { lib = lib; python3Packages = python3Packages; pkg-config = pkg-config; fetchPypi = fetchPypi;}
   # Configuration options
   ## Include graphical applications in the workspace.
 , graphical ? true
@@ -79,7 +78,6 @@
       nova-bringup
       nova-auto-bringup
       nova-rover-description
-      nova-new-rover-description
       nova-gazebo
       nova-python-control
       nova-excavation-construction
