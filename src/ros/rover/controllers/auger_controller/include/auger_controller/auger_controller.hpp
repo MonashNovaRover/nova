@@ -103,6 +103,8 @@ protected:
   int drill_direction;
   int auger_velocity;
   int drill_velocity;
+  int auger_max_velocity;
+  int drill_max_velocity;
 
   bool top_limit;
   bool bottom_limit;

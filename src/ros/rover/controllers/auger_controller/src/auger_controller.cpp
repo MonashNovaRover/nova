@@ -15,7 +15,6 @@ namespace auger_controller
 
   AugerController::AugerController() : node("auger")
   {
-
   }
 
   AugerController::~AugerController()
@@ -29,7 +28,8 @@ namespace auger_controller
 
   controller_interface::CallbackReturn AugerController::on_init()
   {
-	
+	controller_interface::ControllerInterface::on_init();
+
 	node.declare_parameter(CAN_BUS_PARAM, CAN_BUS);
 	node.declare_parameter(AUGER_MAX_VELOCITY_PARAM, MAX_VELOCITY);
 	node.declare_parameter(DRILL_MAX_VELOCITY_PARAM, MAX_VELOCITY);
@@ -43,18 +43,21 @@ namespace auger_controller
 	top_limit = false;
 	bottom_limit = false;
 	joystick_lock = true;
-	
-	joystick_l_sub = node.create_subscription<input_interfaces::msg::InputJoystick>("/inputs/input_joystick_l", 
-			rclcpp::SystemDefaultsQoS(), &AugerController::joystick_l_callback);
-	joystick_r_sub = node.create_subscription<input_interfaces::msg::InputJoystick>("/inputs/input_joystick_r", 
-			rclcpp::SystemDefaultsQoS(), &AugerController::joystick_r_callback);
 
 	return CallbackReturn::SUCCESS;
   }
 
   controller_interface::CallbackReturn AugerController::on_configure(const rclcpp_lifecycle::State &previous_state)
   {
+	auger_max_velocity = node.get_parameter(AUGER_MAX_VELOCITY_PARAM).as_int();
+	drill_max_velocity = node.get_parameter(DRILL_MAX_VELOCITY_PARAM).as_int();
 
+	joystick_l_sub = node.create_subscription<input_interfaces::msg::InputJoystick>("/inputs/input_joystick_l", 
+			rclcpp::SystemDefaultsQoS(), &AugerController::joystick_l_callback);
+	joystick_r_sub = node.create_subscription<input_interfaces::msg::InputJoystick>("/inputs/input_joystick_r", 
+			rclcpp::SystemDefaultsQoS(), &AugerController::joystick_r_callback);
+
+	return CallbackReturn::SUCCESS;
   }
 
   controller_interface::CallbackReturn AugerController::on_activate(const rclcpp_lifecycle::State &previous_state)
@@ -140,7 +143,7 @@ namespace auger_controller
 	}
 	else
 	{
-	    auger_velocity = abs(node.get_parameter(AUGER_MAX_VELOCITY_PARAM).as_int() * joystick_r.ax_stick_x);
+	    auger_velocity = abs(auger_max_velocity * joystick_r.ax_stick_x);
 	}
   }
 
@@ -154,7 +157,7 @@ namespace auger_controller
 	    drill_direction = DRILL_COUNTERCLOCKWISE;
 	
 	// might not be needed anymore
-	drill_velocity = joystick_r.btn_thumb_u_state >= 1 ? node.get_parameter(DRILL_MAX_VELOCITY_PARAM).as_int() : 0;
+	drill_velocity = joystick_r.btn_thumb_u_state >= 1 ? drill_max_velocity : 0;
   }
 
   void AugerController::joystick_l_callback(input_interfaces::msg::InputJoystick msg)

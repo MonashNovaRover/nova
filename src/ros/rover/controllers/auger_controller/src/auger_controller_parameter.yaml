@@ -1,0 +1,16 @@
+auger_controller:
+  can_bus: {
+    type: string,
+    default_value: "can1",
+    description: "CAN bus to use"
+  }
+  auger_max_vel: {
+    type: int,
+    default_value: 0,
+    description: "Maximum velocity of the auger"
+  }
+  drill_max_vel: {
+    type: int,
+    default_value: 0,
+    description: "Maximum velocity of the drill"
+  }

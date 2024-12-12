@@ -3,9 +3,9 @@
 <package format="3">
   <name>auger_controller</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Auger controller for the big drill</description>
   <maintainer email="arbab.fahm@gmail.com">nova</maintainer>
-  <license>TODO: License declaration</license>
+  <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
