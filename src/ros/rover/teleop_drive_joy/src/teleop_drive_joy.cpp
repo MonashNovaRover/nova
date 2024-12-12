@@ -52,14 +52,9 @@ namespace teleop_drive_joy
     speed = params_.controllers_map.at(modeToController(control_mode)).scale_linear_x;
   }
 
-  void TeleopDriveJoy::handleSpeedChange(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
-  {
-  }
-
   void TeleopDriveJoy::joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     handleButtonCallbacks(joy_msg);
-    handleSpeedChange(joy_msg);
 
     if (!current_state.locked)
     {
@@ -246,7 +241,6 @@ namespace teleop_drive_joy
     request->activate_asap = true;
 
     auto future = switch_controller_client->async_send_request(request);
-    RCLCPP_INFO(this->get_logger(), "Request sent, waiting for response...");
 
     control_mode = requested_control_mode;
   }
