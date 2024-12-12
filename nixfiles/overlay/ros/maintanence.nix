@@ -5,10 +5,11 @@ self: super:
     # Overlay for all ROS distros.
     (rosSelf: rosSuper: {
       buildRosPackage = {
+        buildType ? "catkin",
         nativeBuildInputs ? [ ],
         ...
       }@args: rosSuper.buildRosPackage (args // {
-          nativeBuildInputs = nativeBuildInputs ++ [ self.ninja ];
+          nativeBuildInputs = nativeBuildInputs ++ (self.lib.optionals (buildType == "ament_cmake") [ self.ninja ]);
         }
       );
 
