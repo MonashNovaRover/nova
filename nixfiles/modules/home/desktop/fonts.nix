@@ -6,6 +6,7 @@ in
 {
   config = lib.mkIf cfg.enable {
     fonts.fontconfig.enable = true;
+    fonts.fontconfig.defaultFonts.monospace = [ "SauceCodePro" "SourceCodePro" ];
 
     home.packages = with pkgs; [
       nerd-fonts._0xproto
