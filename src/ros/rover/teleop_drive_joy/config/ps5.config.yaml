@@ -16,12 +16,12 @@ teleop_drive_joy_node:
       axis_angular_z: 3
       axis_linear_x: 0
       scale_angular_z: 1.0
-      scale_linear_x: 0.1
+      scale_linear_x: 0.8
     nova_diff_drive_controller:
       axis_angular_z: 3
       axis_linear_x: 1
       scale_angular_z: 1.0
-      scale_linear_x: 0.1
+      scale_linear_x: 0.8
     axis_speed_change_coarse: 7
     axis_speed_change_fine: 6
     button_autonomous_control: 0
