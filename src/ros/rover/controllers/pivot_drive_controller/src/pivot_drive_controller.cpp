@@ -335,7 +335,7 @@ namespace pivot_drive_controller
                         left_ratio = sqrt(pow(params_.wheel_base / 2, 2.0) +
                                           pow(mean_radius + (params_.steering_track / 2), 2.0))/abs(mean_radius);
                         right_ratio = sqrt(pow(params_.wheel_base / 2, 2.0) +
-                                           pow(mean_radius - (params_.wheel_base / 2), 2.0))/abs(mean_radius);
+                                           pow(mean_radius - (params_.steering_track / 2), 2.0))/abs(mean_radius);
                     }
 
                     // #TODO: More robust system for invalid radius detection
