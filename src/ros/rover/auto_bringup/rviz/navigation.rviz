@@ -289,7 +289,6 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-<<<<<<< HEAD
         map:
           odom:
             base_link:
@@ -326,17 +325,6 @@ Visualization Manager:
                     front_right_wheel:
                       {}
               gps:
-=======
-        base_link:
-          camera_link:
-            oak-d_frame:
-              oak_left_camera_frame:
-                oak_imu_frame:
-                  {}
-                oak_left_camera_optical_frame:
-                  {}
-              oak_model_origin:
->>>>>>> a1ab665 (cleaned up launch files)
                 {}
               oak_rgb_camera_frame:
                 oak_rgb_camera_optical_frame:
@@ -715,11 +703,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/ThirdPersonFollower
-<<<<<<< HEAD
       Distance: 10.429948806762695
-=======
-      Distance: 5.986961364746094
->>>>>>> a1ab665 (cleaned up launch files)
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1

@@ -58,16 +58,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
-<<<<<<< HEAD
             launch_arguments={'gz_args': ['-r -v4 ', world], 'on_exit_shutdown': 'True'}.items(),
-=======
-            launch_arguments={'gz_args': ['-r -s -v4 ', world], 'on_exit_shutdown': 'True'}.items(),
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
-            launch_arguments={'gz_args': '-g -v4 '}.items(),
-            condition=UnlessCondition(headless),
->>>>>>> a1ab665 (cleaned up launch files)
         ),
         Node(
             package='ros_gz_sim',
@@ -130,9 +121,9 @@ def generate_launch_description():
             default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto.sdf']),
             description='Full path to world model file to load',
         ),
-        DeclareLaunchArgument(name='x', default_value='0.0', description='x_pose'),
-        DeclareLaunchArgument(name='y', default_value='0.0', description='y_pose'),
-        DeclareLaunchArgument(name='z', default_value='0.45', description='z_pose'),
+        DeclareLaunchArgument(name='x', default_value='-2.0', description='x_pose'),
+        DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
+        DeclareLaunchArgument(name='z', default_value='0.05', description='z_pose'),
         DeclareLaunchArgument(name='R', default_value='0.00', description='roll'),
         DeclareLaunchArgument(name='P', default_value='0.00', description='pitch'),
         DeclareLaunchArgument(name='Y', default_value='0.00', description='yaw'),
