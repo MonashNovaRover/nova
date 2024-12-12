@@ -19,6 +19,10 @@ in
 
     home.packages = with pkgs; [
       nerd-fonts._0xproto
+<<<<<<< Updated upstream
+=======
+      nerd-fonts.sauce-code-pro
+>>>>>>> Stashed changes
     ];
   };
 }
