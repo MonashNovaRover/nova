@@ -11,9 +11,10 @@ in
 
         defaultFonts = {
           # nerdfonts don't display without this definition
-          monospace = [ "Monospace 12" ];
+          monospace = [ "Monospace 12" ]; 
         };
       };
+
     };
 
     home.packages = with pkgs; [
