@@ -5,15 +5,19 @@ let
 in
 {
   config = lib.mkIf cfg.enable {
-    fonts.fontconfig.enable = true;
-    fonts.fontconfig.defaultFonts.monospace = [ "SauceCodePro" "SourceCodePro" ];
+    fonts = {
+      fontconfig = {
+        enable = true;
+
+        defaultFonts = {
+          # nerdfonts don't display without this definition
+          monospace = [ "Monospace 12" ];
+        };
+      };
+    };
 
     home.packages = with pkgs; [
-<<<<<<< HEAD
       nerd-fonts._0xproto
-=======
-      # (nerdfonts.override { fonts = [ "SourceCodePro" ]; })
->>>>>>> 4116677 (fix: added sauce-code-pro using home manager)
       nerd-fonts.sauce-code-pro
     ];
   };
