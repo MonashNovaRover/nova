@@ -1,0 +1,9 @@
+<library path="generic_can_hardware">
+  <class name="generic_can_hardware/GenericCANHardware"
+         type="generic_can_hardware::GenericCANHardware"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      ros2_control generic CAN device hardware interface.
+    </description>
+  </class>
+</library>

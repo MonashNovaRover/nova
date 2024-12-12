@@ -66,7 +66,7 @@ pivot_drive_controller:
     right_pivot_names: ["frp", "brp"]
     enable_twist_cmd: true
     open_loop: false
-    use_unstamped_msg: true
+    use_unstamped_msg: false
     has_velocity_limits: true
     has_acceleration_limits: true
     max_velocity: 2.794144
@@ -83,7 +83,7 @@ strafe_controller:
     right_pivot_names: ["frp", "brp"]
     enable_twist_cmd: false
     open_loop: true
-    use_unstamped_msg: true
+    use_unstamped_msg: false
     max_acceleration: 5.0
     wheel_radius: 0.16
     wheel_base: 0.875
@@ -100,7 +100,7 @@ nova_diff_drive_controller:
     wheel_base: 0.84
     wheel_radius: 0.1488
     enable_twist_cmd: false
-    use_unstamped_msg: true
+    use_unstamped_msg: false
     linear:
       x:
         max_acceleration: 5.0
