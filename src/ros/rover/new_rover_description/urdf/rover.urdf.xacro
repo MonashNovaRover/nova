@@ -269,7 +269,7 @@
         <origin xyz="-0.470137678782559576 -0.026528595964174079419 -0.10561814293695809264" rpy="1.5707963267949007768 -0.86524793679314937478 3.1148421188216208755" />
         <parent link="rightleg" />
         <child link="fr_ankle" />
-        <axis xyz="0 0 1"/>
+        <axis xyz="0 0 -1"/>
         <limit lower="-3.141592654" upper="3.141592654" effort="20" velocity="20" />
         <joint_properties friction="0.0"/>
     </joint>
@@ -397,7 +397,7 @@
         <origin xyz="0.47757721986905654621 -0.051886525235696111247 -0.10803770039684290616" rpy="-1.5707963267948985564 -0.86524793679318090511 -0.026750534768166224497" />
         <parent link="rightleg" />
         <child link="br_ankle" />
-        <axis xyz="0 0 1"/>
+        <axis xyz="0 0 -1"/>
         <limit lower="-3.141592654" upper="3.141592654" effort="20" velocity="20" />
         <joint_properties friction="0.0"/>
     </joint>
@@ -606,7 +606,7 @@
         <origin xyz="-0.47964586704902795189 0.025616433642942949833 -0.10826706190837953603" rpy="1.570796326794896336 0.86524793679314671024 0.028123902821418928638" />
         <parent link="leftleg" />
         <child link="fl_ankle" />
-        <axis xyz="0 0 1"/>
+        <axis xyz="0 0 -1"/>
         <limit lower="-3.141592654" upper="3.141592654" effort="20" velocity="20" />
         <joint_properties friction="0.0"/>
     </joint>
@@ -734,7 +734,7 @@
         <origin xyz="0.47750427808995593582 0.05254233073255795694 -0.10804254714164407414" rpy="-1.57079632679489678 0.86524793679315703532 -3.113468750768373372" />
         <parent link="leftleg" />
         <child link="bl_ankle" />
-        <axis xyz="0 0 1"/>
+        <axis xyz="0 0 -1"/>
         <limit lower="-3.141592654" upper="3.141592654" effort="20" velocity="20" />
         <joint_properties friction="0.0"/>
     </joint>
