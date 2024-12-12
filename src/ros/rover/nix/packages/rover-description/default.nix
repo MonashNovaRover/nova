@@ -1,11 +1,6 @@
 { lib
 , buildRosPackage
 , ament-cmake
-, std-msgs
-, geometry-msgs
-, nav-msgs
-, launch
-, launch-ros
 }:
 
 buildRosPackage {
@@ -19,5 +14,4 @@ buildRosPackage {
   };
 
   nativeBuildInputs = [ ament-cmake ];
-  #propagatedBuildInputs = [std-msgs nav-msgs geometry-msgs launch launch-ros ];
 }

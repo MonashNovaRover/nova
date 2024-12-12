@@ -326,35 +326,6 @@ Visualization Manager:
                       {}
               gps:
                 {}
-              oak_rgb_camera_frame:
-                oak_rgb_camera_optical_frame:
-                  {}
-              oak_right_camera_frame:
-                oak_right_camera_optical_frame:
-                  {}
-          chassis:
-            left_leg:
-              back_left_pivot:
-                back_left_wheel:
-                  {}
-              front_left_pivot:
-                front_left_wheel:
-                  {}
-            mast_link:
-              {}
-            right_leg:
-              back_right_pivot:
-                back_right_wheel:
-                  {}
-              front_right_pivot:
-                front_right_wheel:
-                  {}
-          gps:
-            {}
-        map:
-          {}
-        odom:
-          {}
       Update Interval: 0
       Value: true
     - Class: rviz_common/Group
@@ -515,7 +486,8 @@ Visualization Manager:
           Enabled: true
           Name: Trajectories
           Namespaces:
-            {}
+            InvalidTrajectories: true
+            ValidTrajectories: true
           Topic:
             Depth: 5
             Durability Policy: Volatile
@@ -542,7 +514,7 @@ Visualization Manager:
       Enabled: true
       Name: MarkerArray
       Namespaces:
-        {}
+        "": true
       Topic:
         Depth: 5
         Durability Policy: Volatile
