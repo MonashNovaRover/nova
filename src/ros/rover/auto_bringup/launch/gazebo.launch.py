@@ -1,4 +1,4 @@
-"""
+'''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
@@ -12,7 +12,7 @@ NODES:
 PACKAGE: 	core
 CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-"""
+'''
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
@@ -27,7 +27,6 @@ def launch_setup(context, *args, **kwargs):
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
     config_file = LaunchConfiguration('config_file')
-    headless = LaunchConfiguration('headless')
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
     pose = {'x': LaunchConfiguration('x').perform(context),
@@ -37,30 +36,20 @@ def launch_setup(context, *args, **kwargs):
             'P': LaunchConfiguration('P').perform(context),
             'Y': LaunchConfiguration('Y').perform(context)}
     robot_name = LaunchConfiguration('robot_name')
-    rviz = LaunchConfiguration('rviz')
     world = LaunchConfiguration('world')
 
     return [
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
-            launch_arguments={'gazebo': 'true'}.items(),
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rviz.launch.py'])),
-            condition=IfCondition(rviz),
+            launch_arguments={'gazebo': 'True'}.items(),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'true'}.items(),
+            launch_arguments={'model': model, 'gazebo': 'True'}.items(),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
-            launch_arguments={'gz_args': ['-r -s -v4 ', world], 'on_exit_shutdown': 'true'}.items(),
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
-            launch_arguments={'gz_args': '-g -v4 '}.items(),
-            condition=UnlessCondition(headless),
+            launch_arguments={'gz_args': ['-r -v4 ', world], 'on_exit_shutdown': 'True'}.items(),
         ),
         Node(
             package='ros_gz_sim',
@@ -102,11 +91,6 @@ def generate_launch_description():
             description='Absolute path to ros_gz_bridge params file',
         ),
         DeclareLaunchArgument(
-            name='headless',
-            default_value='False',
-            description='Whether to execute gzclient',
-        ),
-        DeclareLaunchArgument(
             name='launch_robot_description',
             default_value='True',
             description='Should gazebo launch its own robot description, or is one already running?',
@@ -125,11 +109,6 @@ def generate_launch_description():
             name='robot_name',
             default_value='Waratah',
             description='name of the robot',
-        ),
-        DeclareLaunchArgument(
-            name='rviz',
-            default_value='false',
-            description='Whether to launch rviz',
         ),
         DeclareLaunchArgument(
             name='world',
