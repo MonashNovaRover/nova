@@ -25,7 +25,7 @@
         <origin xyz="-0.38912669878348526975 0.0080507423534933592046 7.771561172376095783e-16"
             rpy="1.5453959963367629449 0.84953874853766309094 -1.271352236581491546" />
         <axis xyz="1 0 0"/>
-        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <limit effort="20.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
         <dynamics damping="0.01" friction="0.0"/>
     </joint>
 
@@ -36,7 +36,7 @@
         <origin xyz="-0.38912669878348526975 0.0080507423534933592046 7.771561172376095783e-16"
             rpy="1.5453959963367629449 0.84953874853766309094 -1.271352236581491546" />
         <axis xyz="0 1 0"/>
-        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <limit effort="20.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
         <dynamics damping="0.01" friction="0.0"/>
     </joint>
 
@@ -47,7 +47,7 @@
         <origin xyz="-0.38912669878348526975 0.0080507423534933592046 7.771561172376095783e-16"
             rpy="1.5453959963367629449 0.84953874853766309094 -1.271352236581491546" />
         <axis xyz="0 0 1"/>
-        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <limit effort="20.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
         <dynamics damping="0.01" friction="0.0"/>
     </joint>
 
@@ -77,7 +77,7 @@
         <origin xyz="-2.7755575615628913511e-17 0 0.030366069404429957279"
             rpy="-1.8211554193643901822 0.38630147202971765186 1.6973296137818383311" />
         <axis xyz="1 0 0"/>
-        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <limit effort="20.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
         <dynamics damping="0.01" friction="0.0"/>
     </joint>
 
@@ -88,7 +88,7 @@
         <origin xyz="-2.7755575615628913511e-17 0 0.030366069404429957279"
             rpy="-1.8211554193643901822 0.38630147202971765186 1.6973296137818383311" />
         <axis xyz="0 1 0"/>
-        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <limit effort="20.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
         <dynamics damping="0.01" friction="0.0"/>
     </joint>
 
@@ -99,7 +99,7 @@
         <origin xyz="-2.7755575615628913511e-17 0 0.030366069404429957279"
             rpy="-1.8211554193643901822 0.38630147202971765186 1.6973296137818383311" />
         <axis xyz="0 0 1"/>
-        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <limit effort="20.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
         <dynamics damping="0.01" friction="0.0"/>
     </joint>
 
@@ -128,7 +128,7 @@
         <origin xyz="1.6653345369377348106e-16 -1.1102230246251565404e-16 0.03036606940442982544"
             rpy="1.8137134713184706047 0.40491568475361000568 2.0095824661262473576" />
         <axis xyz="1 0 0"/>
-        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <limit effort="20.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
         <dynamics damping="0.01" friction="0.0"/>
     </joint>
 
@@ -139,7 +139,7 @@
         <origin xyz="1.6653345369377348106e-16 -1.1102230246251565404e-16 0.03036606940442982544"
             rpy="1.8137134713184706047 0.40491568475361000568 2.0095824661262473576" />
         <axis xyz="0 1 0"/>
-        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <limit effort="20.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
         <dynamics damping="0.01" friction="0.0"/>
     </joint>
 
@@ -150,7 +150,7 @@
         <origin xyz="1.6653345369377348106e-16 -1.1102230246251565404e-16 0.03036606940442982544"
             rpy="1.8137134713184706047 0.40491568475361000568 2.0095824661262473576" />
         <axis xyz="0 0 1"/>
-        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <limit effort="20.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
         <dynamics damping="0.01" friction="0.0"/>
     </joint>
 
@@ -180,7 +180,7 @@
         <origin xyz="0.36851088408476390113 0.12523629853057588468 1.6653345369377348106e-16"
             rpy="1.4197870096866769263 0.82783261508436067899 -1.5853143941314711274" />
         <axis xyz="1 0 0"/>
-        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <limit effort="20.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
         <dynamics damping="0.01" friction="0.0"/>
     </joint>
 
@@ -191,7 +191,7 @@
         <origin xyz="0.36851088408476390113 0.12523629853057588468 1.6653345369377348106e-16"
             rpy="1.4197870096866769263 0.82783261508436067899 -1.5853143941314711274" />
         <axis xyz="0 1 0"/>
-        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <limit effort="20.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
         <dynamics damping="0.01" friction="0.0"/>
     </joint>
 
@@ -202,7 +202,7 @@
         <origin xyz="0.36851088408476390113 0.12523629853057588468 1.6653345369377348106e-16"
             rpy="1.4197870096866769263 0.82783261508436067899 -1.5853143941314711274" />
         <axis xyz="0 0 1"/>
-        <limit effort="1.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
+        <limit effort="20.0" velocity="20.0" lower="-0.2618" upper="0.2618"/> <!-- +/- 15 degrees -->
         <dynamics damping="0.01" friction="0.0"/>
     </joint>
 </robot>
