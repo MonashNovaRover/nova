@@ -33,16 +33,16 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['joint_state_broadcaster']
-        ),
-        Node(
-            package='controller_manager',
-            executable='spawner',
             arguments=['pivot_drive_controller'] #, '--inactive']
         ),
         GroupAction(
             condition=UnlessCondition(gazebo),
             actions=[
+                Node(
+                    package='controller_manager',
+                    executable='spawner',
+                    arguments=['joint_state_broadcaster']
+                ),
                 Node(
                     package='controller_manager',
                     executable='ros2_control_node',
