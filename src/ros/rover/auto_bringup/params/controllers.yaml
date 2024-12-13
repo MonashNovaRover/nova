@@ -93,8 +93,8 @@ nova_diff_drive_controller:
     left_pivot_names: ["flp", "blp"]
     right_pivot_names: ["frp", "brp"]
     wheels_per_side: 2
-    steering_track: 0.81564001
-    wheel_base: 0.95752883
+    steering_track: 0.65274049 # Shortest distance between the left and right wheels. If this parameter is wrong, the robot will not behave correctly in curves. NEEDS TO BE CHANGED
+    wheel_base: 0.64565131
     wheel_radius: 0.15692321
     enable_twist_cmd: false
     use_unstamped_msg: true
