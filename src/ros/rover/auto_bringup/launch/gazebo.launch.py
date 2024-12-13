@@ -123,7 +123,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(name='x', default_value='-2.0', description='x_pose'),
         DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
-        DeclareLaunchArgument(name='z', default_value='0.45', description='z_pose'),
+        DeclareLaunchArgument(name='z', default_value='0.00', description='z_pose'),
         DeclareLaunchArgument(name='R', default_value='0.00', description='roll'),
         DeclareLaunchArgument(name='P', default_value='0.00', description='pitch'),
         DeclareLaunchArgument(name='Y', default_value='0.00', description='yaw'),
