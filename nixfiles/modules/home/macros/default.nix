@@ -98,10 +98,10 @@ in
             # Hydra aliases
             hydra-vomit = "${pkgs.bash}/bin/bash ${../../../scripts/hydra-vomit.sh}";
 
-            # Rover aliases
-            rover-help = "more ~/nova/nixfiles/doc/roverhelp.md";
-            launch-base = "~/BUILDS/master/bin/ros2 launch nova_bringup base.launch.py";
-            launch-drive = "~/BUILDS/master/bin/ros2 launch nova_bringup drive.launch.py";
+            # Rover operator aliases
+            rover-help = "more ~/nova/nixfiles/doc/rover-help.md";
+            launch-base = "~/Builds/master/bin/ros2 launch nova_bringup base.launch.py";
+            launch-drive = "~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py";
           }
         ];
 
