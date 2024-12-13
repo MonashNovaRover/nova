@@ -41,8 +41,6 @@ add_executable(${PROJECT_NAME}_node
   src/teleop_drive_joy.cpp
 )
 
-set_target_properties(${PROJECT_NAME}_node PROPERTIES VERSION "${PROJECT_VERSION}")
-
 target_link_libraries(${PROJECT_NAME}_node
   teleop_drive_joy_parameters
 )
@@ -58,8 +56,7 @@ install(
   TARGETS
     ${PROJECT_NAME}_node
     teleop_drive_joy_parameters
-  EXPORT teleop_drive_joyTargets
-  RUNTIME DESTINATION lib/${PROJECT_NAME}
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 # Install header files
