@@ -13,16 +13,10 @@ PACKAGE: 	core
 CREATION:	15/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
-
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import UnlessCondition
-from launch.actions import (
-    DeclareLaunchArgument,
-    IncludeLaunchDescription,
-    OpaqueFunction,
-    GroupAction,
-)
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -74,21 +68,19 @@ def launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-    auto_bringup_dir = FindPackageShare("auto_bringup")
-    rover_description_dir = FindPackageShare("rover_description")
+    auto_bringup_dir = FindPackageShare('auto_bringup')
+    rover_description_dir = FindPackageShare('rover_description')
 
-    declared_arguments = [
+    declared_arguments = [      
         DeclareLaunchArgument(
-            name="controllers",
-            default_value=PathJoinSubstitution(
-                [auto_bringup_dir, "params", "controllers.yaml"]
-            ),
-            description="Absolute path to controller params file",
+            name='controllers',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
+            description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
-            name="gazebo",
-            default_value="false",
-            description="Use simulation (Gazebo) clock if true",
+            name='gazebo',
+            default_value='False',
+            description='Use simulation (Gazebo) clock if True',
         ),
         DeclareLaunchArgument(
             name='model', 
@@ -97,6 +89,6 @@ def generate_launch_description():
         ),  
     ]
 
-    return LaunchDescription(
+    return LaunchDescription(  
         declared_arguments + [OpaqueFunction(function=launch_setup)]
     )
