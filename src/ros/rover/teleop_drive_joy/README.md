@@ -1,95 +1,156 @@
-#teleop_drive_joy
-================
+# teleop\_drive\_joy
 
-# Overview
-The purpose of this package is to provide a generic facility for tele-operating the rover using Twist-based and DriveInput-based control with any standard game controller.
-It converts joy messages to velocity commands.
+\================
 
-This node provides no rate limiting or autorepeat functionality. It is expected that you take advantage of the features built into [joy](https://index.ros.org/p/joy/github-ros-drivers-joystick_drivers/#foxy) for this.
+## Overview
+
+The purpose of this package is to provide a flexible facility for tele-operating the rover using game controllers. It supports Twist-based and DriveInput-based control modes, translating joystick inputs into velocity commands or custom drive inputs.
+
+This package relies on the [joy](https://index.ros.org/p/joy/github-ros-drivers-joystick_drivers/#foxy) driver for reading joystick inputs. It does not implement rate limiting or autorepeat functionality, as these are available through the `joy` driver.
 
 ## Executables
-The package comes with the `teleop_node` that republishes `sensor_msgs/msg/Joy` messages as scaled `geometry_msgs/msg/Twist` messages.
+
+The package includes the `teleop_drive_joy_node`, which translates `sensor_msgs/msg/Joy` messages into:
+
+- `geometry_msgs/msg/Twist` messages for velocity commands (For use in Autonomous).
+- `nova_interfaces/msg/DriveInputStamped` messages for drive inputs.
 
 ## Subscribed Topics
-- `joy (sensor_msgs/msg/Joy)`
-  - Joystick messages to be translated to velocity commands.
+
+- `/joy (sensor_msgs/msg/Joy)`
+  - Joystick messages to be translated into commands.
 
 ## Published Topics
-- `cmd_vel (geometry_msgs/msg/Twist)`
-  - Command velocity messages arising from Joystick commands.
+
+- `/cmd_vel (geometry_msgs/msg/TwistStamped)`
+  - Velocity commands derived from joystick input.
+- `/drive_input (nova_interfaces/msg/DriveInputStamped)`
+  - Drive input messages for custom rover control.
+- `/drive_info (nova_interfaces/msg/DriveInfo)`
+  - Drive state information.
 
 ## Parameters
+
+### General Parameters
+
+- `joystick (string, default: 'xbox')`
+  - The type of joystick configuration file to load.
+- `joy_dev (string, default: '/dev/input/js0')`
+  - Path to the joystick device.
+
+### Control Parameters
+
 - `require_enable_button (bool, default: true)`
-  - Whether to require the enable button for enabling movement.
-
+  - Whether an enable button must be pressed to allow movement.
 - `enable_button (int, default: 0)`
-  - Joystick button to enable regular-speed movement.
-  
-- `enable_turbo_button (int, default: -1)`
-  - Joystick button to enable high-speed movement (disabled when -1).
+  - Joystick button to enable movement.
 
-- `axis_linear.<axis>`
-  - Joystick axis to use for linear movement control.
-  - `axis_linear.x (int, default: 5)`
-  - `axis_linear.y (int, default: -1)`
-  - `axis_linear.z (int, default: -1)`
+### Axis Mappings
 
-- `scale_linear.<axis>`
-  - Scale to apply to joystick linear axis for regular-speed movement.
-  - `scale_linear.x (double, default: 0.5)`
-  - `scale_linear.y (double, default: 0.0)`
-  - `scale_linear.z (double, default: 0.0)`
+- `axis_linear_<axis>`
 
-- `scale_linear_turbo.<axis>`
-  - Scale to apply to joystick linear axis for high-speed movement.
-  - `scale_linear_turbo.x (double, default: 1.0)`
-  - `scale_linear_turbo.y (double, default: 0.0)`
-  - `scale_linear_turbo.z (double, default: 0.0)`
+  - Specifies which joystick axis controls linear movement.
+  - `axis_linear_x (int)`
+  - `axis_linear_y (int)`
+  - `axis_linear_z (int)`
 
-- `axis_angular.<axis>`
-  - Joystick axis to use for angular movement control.
-  - `axis_angular.yaw (int, default: 2)`
-  - `axis_angular.pitch (int, default: -1)`
-  - `axis_angular.roll (int, default: -1)`
-  
-- `scale_angular.<axis>`
-  - Scale to apply to joystick angular axis.
-  - `scale_angular.yaw (double, default: 0.5)`
-  - `scale_angular.pitch (double, default: 0.0)`
-  - `scale_angular.roll (double, default: 0.0)`
-  
-- `scale_angular_turbo.<axis>`
-  - Scale to apply to joystick angular axis for high-speed movement.
-  - `scale_angular_turbo.yaw (double, default: 1.0)`
-  - `scale_angular_turbo.pitch (double, default: 0.0)`
-  - `scale_angular_turbo.roll (double, default: 0.0)`
-    
+- `axis_angular_<axis>`
 
-  
+  - Specifies which joystick axis controls angular movement.
+  - `axis_angular_x (int)`
+  - `axis_angular_y (int)`
+  - `axis_angular_z (int)`
+
+### Scaling Parameters
+
+- `scale_linear_<axis>`
+
+  - Scale factor for regular-speed linear movement.
+  - `scale_linear_x (double)`
+  - `scale_linear_y (double)`
+  - `scale_linear_z (double)`
+
+- `scale_angular_<axis>`
+
+  - Scale factor for regular-speed angular movement.
+  - `scale_angular_x (double)`
+  - `scale_angular_y (double)`
+  - `scale_angular_z (double)`
 
 
-# Usage
+## Usage
 
-## Install
-For most users building from source will not be required, execute `apt-get install ros-<rosdistro>-teleop-twist-joy` to install.
+### Running the Node
 
-## Run
-A launch file has been provided which has three arguments which can be changed in the terminal or via your own launch file.
-To configure the node to match your joystick a config file can be used. 
-There are several common ones provided in this package (atk3, ps3-holonomic, ps3, xbox, xd3), located here: https://github.com/ros2/teleop_twist_joy/tree/eloquent/config.
+A launch file is provided for convenience. To run the node with default settings:
 
-PS3 is default, to run for another config (e.g. xbox) use this:
-````
-ros2 launch teleop_twist_joy teleop.launch.py joy_config:='xbox'
-````
+```bash
+ros2 launch teleop_drive_joy teleop.launch.py
+```
 
-__Note:__ this launch file also launches the `joy` node so do not run it separately.
+### Custom Configuration
 
+To use a specific joystick configuration (e.g., `ps3` or `xbox`):
 
-## Arguments
-- `joy_config (string, default: 'ps3')`
-  - Config file to use
-- `joy_dev (string, default: 'dev/input/js0')`
-  - Joystick device to use
-- `config_filepath (string, default: '/opt/ros/<rosdistro>/share/teleop_twist_joy/config/' + LaunchConfig('joy_config') + '.config.yaml')`
-  - Path to config files
+```bash
+ros2 launch teleop_drive_joy teleop.launch.py joystick:=xbox
+```
+
+The package includes sample configuration files for common controllers (e.g., `ps3`, `xbox`) located in the `config` directory.
+
+#### Example Configuration File: Xbox Series X / S Controller
+
+Below is an example configuration for the Xbox Series X / S controller. This file specifies mappings and parameters for controlling the rover:
+
+```yaml
+# Vanilla XBox Series X / S Controller
+teleop_drive_joy_node:
+  ros__parameters:
+    controllers:
+      [
+        "pivot_drive_controller",
+        "strafe_controller",
+        "nova_diff_drive_controller",
+      ]
+    pivot_drive_controller:
+      axis_angular_z: 3
+      axis_linear_x: 1
+      scale_angular_z: 1.0
+      scale_linear_x: 0.1
+    strafe_controller:
+      axis_angular_z: 3
+      axis_linear_x: 0
+      scale_angular_z: 1.0
+      scale_linear_x: 0.1
+    nova_diff_drive_controller:
+      axis_angular_z: 3
+      axis_linear_x: 1
+      scale_angular_z: 1.0
+      scale_linear_x: 0.1
+    axis_speed_change_coarse: 7
+    axis_speed_change_fine: 6
+    button_autonomous_control: 0
+    button_lock: 6
+    button_manual_control: 1
+    button_nova_diff_drive_controller: 3
+    button_pivot_drive_controller: 5
+    button_strafe_controller: 4
+    button_unlock: 7
+    speed_change_coarse_val: 0.1
+    speed_change_fine_val: 0.02
+    speed_limit_max: 1.2
+    speed_limit_min: 0.05
+```
+
+### Launch Arguments
+
+- `joystick (string, default: 'xbox')`
+  - Specifies the joystick configuration.
+- `joy_dev (string, default: '/dev/input/js0')`
+  - Specifies the joystick device path.
+
+### Notes
+
+- The `joy` node is launched automatically by the provided launch file. Do not launch it separately.
+- Adding a new controller can be done by observing joy inputs using `ros2 topic echo /joy` and mapping controls to desired control parameters.
+
