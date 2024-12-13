@@ -5,26 +5,26 @@ Default Config
 ```yaml
 teleop_drive_joy_node:
   ros__parameters:
+    controllers:
+    [
+      "pivot_drive_controller",
+      "strafe_controller",
+      "nova_diff_drive_controller",
+    ]
     <controllers>:
-      axis_angular_z: 3.0
-      axis_linear_x: 1.0
+      axis_angular_z: 3
+      axis_linear_x: 1
       scale_angular_z: 1.0
       scale_linear_x: 0.1
-    axis_speed_change_coarse: 7.0
-    axis_speed_change_fine: 6.0
-    button_autonomous_control: 0.0
-    button_lock: 10.0
-    button_manual_control: 1.0
-    button_nova_diff_drive_controller: 4.0
-    button_pivot_drive_controller: 7.0
-    button_strafe_controller: 6.0
-    button_unlock: 9.0
-    controllers:
-      [
-        "pivot_drive_controller",
-        "strafe_controller",
-        "nova_diff_drive_controller",
-      ]
+    axis_speed_change_coarse: 7
+    axis_speed_change_fine: 6
+    button_autonomous_control: 0
+    button_lock: 10
+    button_manual_control: 1
+    button_nova_diff_drive_controller: 4
+    button_pivot_drive_controller: 7
+    button_strafe_controller: 6
+    button_unlock: 9
     speed_change_coarse_val: 0.1
     speed_change_fine_val: 0.02
     speed_limit_max: 1.2
@@ -148,14 +148,14 @@ A scale parameter applied on angular velocity
 - Type: `double`
 - Default Value: 1.0
 
-## soeed_limit_max
+## speed_limit_max
 
 Max speed that gets the Rover Arrested or the Max Clipping Value of Linear Velocity
 
 - Type: `double`
 - Default Value: 1.2
 
-## soeed_limit_min
+## speed_limit_min
 
 Min speed that gets the Rover get Honked At or the Min Clipping Value of Linear Velocity
 
