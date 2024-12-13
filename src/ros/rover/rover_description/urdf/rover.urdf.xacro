@@ -14,6 +14,7 @@
     <xacro:arg name="arm" default="false"/>
     <xacro:arg name="auto_camera" default="true"/>
     <xacro:arg name="robot_name" default="rover"/>
+    <xacro:arg name="use_diff_ball" default="false"/>
 
     <!-- Robot properties-->
     <gazebo>
@@ -859,6 +860,7 @@
         </inertial>
     </link>
 
+    <!--
     <joint name="bl_difflink" type="revolute">
         <origin xyz="2.7755575615628913511e-16 4.4408920985006261617e-16 0.03036606940442951319" rpy="-1.3819198339232898753 0.4052315082576601335 1.6592791076415036589" />
         <parent link="difflinkbottom" />
@@ -867,6 +869,7 @@
         <limit effort="1" velocity="20" lower="0" upper="0"/>
         <joint_properties friction="0.0"/>
     </joint>
+    -->
 
     <joint name="bl_difflinkeye" type="revolute">
         <origin xyz="-1.1102230246251565404e-16 1.1102230246251565404e-16 -0.059500000000000233258" rpy="3.1415926535897868987 5.0960784183182330152e-15 -2.3408550063658504214" />
@@ -886,6 +889,7 @@
         <joint_properties friction="0.0"/>
     </joint>
 
+    <!--
     <joint name="tl_difflink" type="revolute">
         <origin xyz="0.36851088408476384561 0.12523629853057594019 5.5511151231257827021e-17" rpy="-1.5857491383211548275 0.08564555364187358133 -1.4824560922687248787" />
         <parent link="diffbar" />
@@ -894,6 +898,7 @@
         <limit effort="1" velocity="20" lower="0" upper="0"/>
         <joint_properties friction="0.0"/>
     </joint>
+    -->
 
     <link name="difflinktop_2">
         <visual>
@@ -963,6 +968,7 @@
         </inertial>
     </link>
 
+    <!--
     <joint name="br_difflink" type="revolute">
         <origin xyz="-2.2204460492503130808e-16 -2.2204460492503130808e-16 0.030366069404429846257" rpy="1.3580572734639122512 0.40045540725920980574 1.5193397039318303765" />
         <parent link="difflinkbottom_2" />
@@ -971,6 +977,7 @@
         <limit effort="1" velocity="20" lower="0" upper="0"/>
         <joint_properties friction="0.0"/>
     </joint>
+    -->
 
     <joint name="br_difflinkeye" type="revolute">
         <origin xyz="1.6653345369377348106e-16 -1.1102230246251565404e-16 -0.059499795362094654028" rpy="-3.1415926535897402694 1.3056345544300866556e-14 -1.2925601884114563678" />
@@ -990,6 +997,7 @@
         <joint_properties friction="0.0"/>
     </joint>
 
+    <!--
     <joint name="tr_difflink" type="revolute">
         <origin xyz="-0.38912669878348532526 0.0080507423534932481823 7.2164496600635175128e-16" rpy="1.8972013954619286746 0.81245706006717677283 -1.1914339028340867888" />
         <parent link="diffbar" />
@@ -998,6 +1006,7 @@
         <limit effort="1" velocity="20" lower="0" upper="0"/>
         <joint_properties friction="0.0"/>
     </joint>
+    -->
 
     <joint name="diffbar_joint" type="revolute">
         <origin xyz="0.018499995185548932103 1.3346709641398613044e-05 0.019800000000001038991" rpy="3.141592653589793116 -6.9464785874916311517e-17 0.15327080924390459882" />
@@ -1017,12 +1026,52 @@
         <joint_properties friction="0.0"/>
     </joint>
     <!-- End of Generated URDF -->
+
+    <!-- Generated ball differential bar joints (Generated as revolute) -->
+    <xacro:unless value="$(arg use_diff_ball)">
+        <joint name="tl_difflink" type="revolute">
+            <origin xyz="0.36851088408476384561 0.12523629853057594019 5.5511151231257827021e-17" rpy="-1.5857491383211548275 0.08564555364187358133 -1.4824560922687248787" />
+            <parent link="diffbar" />
+            <child link="difflinktop" />
+            <axis xyz="0 0 1"/>
+            <limit effort="1" velocity="20" lower="0" upper="0"/>
+            <joint_properties friction="0.0"/>
+        </joint>
+
+        <joint name="tr_difflink" type="revolute">
+            <origin xyz="-0.38912669878348532526 0.0080507423534932481823 7.2164496600635175128e-16" rpy="1.8972013954619286746 0.81245706006717677283 -1.1914339028340867888" />
+            <parent link="diffbar" />
+            <child link="difflinktop_2" />
+            <axis xyz="0 0 1"/>
+            <limit effort="1" velocity="20" lower="0" upper="0"/>
+            <joint_properties friction="0.0"/>
+        </joint>
+
+        <joint name="bl_difflink" type="revolute">
+            <origin xyz="2.7755575615628913511e-16 4.4408920985006261617e-16 0.03036606940442951319" rpy="-1.3819198339232898753 0.4052315082576601335 1.6592791076415036589" />
+            <parent link="difflinkbottom" />
+            <child link="diffend" />
+            <axis xyz="0 0 1"/>
+            <limit effort="1" velocity="20" lower="0" upper="0"/>
+            <joint_properties friction="0.0"/>
+        </joint>
+
+        <joint name="br_difflink" type="revolute">
+            <origin xyz="-2.2204460492503130808e-16 -2.2204460492503130808e-16 0.030366069404429846257" rpy="1.3580572734639122512 0.40045540725920980574 1.5193397039318303765" />
+            <parent link="difflinkbottom_2" />
+            <child link="diffend_2" />
+            <axis xyz="0 0 1"/>
+            <limit effort="1" velocity="20" lower="0" upper="0"/>
+            <joint_properties friction="0.0"/>
+        </joint>
+    </xacro:unless>
     <!-- Include additional xacro files-->
     <xacro:include filename="ckc.xacro"/>
     <xacro:call_ckc robot_name="$(arg robot_name)"/>
 
-    <!--<xacro:include filename="joints.xacro"/>-->
-
+    <xacro:if value="$(arg use_diff_ball)">
+        <xacro:include filename="joints.xacro"/>
+    </xacro:if>
     <xacro:if value="$(arg auto_camera)">
         <xacro:include filename="$(find rover_description)/urdf/auto_camera.xacro"/>
     </xacro:if>
