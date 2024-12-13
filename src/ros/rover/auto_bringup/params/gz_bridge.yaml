@@ -53,3 +53,10 @@
   ros_type_name: "nav_msgs/msg/Odometry"
   gz_type_name: "gz.msgs.Odometry"
   direction: GZ_TO_ROS
+
+# gz dynamic joint states to ros
+- ros_topic_name: "/joint_states"
+  gz_topic_name: "/dynamic_joints"
+  ros_type_name: "sensor_msgs/msg/JointState"
+  gz_type_name: "gz.msgs.Model"
+  direction: GZ_TO_ROS
