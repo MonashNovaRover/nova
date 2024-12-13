@@ -163,8 +163,3 @@ pivot_drive_controller:
     default_value: false,
     description: "Enable the controller to subscribe to twist messages. By default, subscribe to DriveInputStamped.msg",
   }
-  use_unstamped_msg: {
-    type: bool,
-    default_value: false,
-    description: "Subscribe to unstamped messages. Msg type depends on enable_twist_cmd parameter",
-  }
