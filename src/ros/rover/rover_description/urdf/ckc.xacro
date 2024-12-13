@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Configure Closed Kinetic Chains for Rover -->
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
-    
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <xacro:macro name="call_ckc" params="robot_name">
-    
         <gazebo>
             <plugin filename="libgz-sim-detachable-joint-system.so" name="gz::sim::systems::DetachableJoint">
                 <parent_link>leftleg</parent_link>
