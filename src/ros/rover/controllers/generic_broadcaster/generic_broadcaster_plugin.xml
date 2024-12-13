@@ -1,0 +1,7 @@
+<library path="generic_publisher">
+  <class name="generic_publisher/GenericPublisher" type="generic_publisher::GenericPublisher" base_class_type="controller_interface::ControllerInterface">
+  <description>
+    A generic broadcaster for publishing state interfaces to ROS2 topics
+  </description>
+  </class>
+</library>
