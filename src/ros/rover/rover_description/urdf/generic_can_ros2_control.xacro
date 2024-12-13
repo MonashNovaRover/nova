@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:macro name="generic_can_ros2_control" params="use_mock_hardware">
+        <ros2_control name="FrontLeftWheel" type="system">
+
+            <hardware>
+                <plugin>generic_can_hardware/GenericCANHardware</plugin>
+                <param name="candevice">can0</param>
+                <param name="canid">0</param>
+            </hardware>
+
+            <gpio name="test">
+                <state_interface name="value">
+                    <param name="max">1</param>
+                </state_interface>
+            </gpio>
+
+        </ros2_control>
+    </xacro:macro>
+</robot>
