@@ -23,6 +23,22 @@ in
       COMPAL_AUTO_UNMASK=1
       . '${pkgs.complete-alias}/bin/complete_alias'
       complete -F _complete_alias "''${!BASH_ALIASES[@]}"
+      
+      cd() {
+        if [ "$1" = "nova" ]; then
+          builtin cd ~/nova
+        elif [ "$1" = "nixfiles" ]; then
+          builtin cd ~/nova/nixfiles
+        elif [ "$1" = "rover" ]; then
+          builtin cd ~/nova/src/ros/rover
+        elif [ "$1" = "science" ]; then
+          builtin cd ~/nova/src/ros/rover/science
+        elif [ "$1" = "gui" ]; then
+          builtin cd ~/nova/src/ros/nova-gui
+        else
+          builtin cd "$@"
+        fi
+      }
     '';
 
     home = {
@@ -40,26 +56,8 @@ in
             nova = "cd ${cfg.sourceDir}/..";
             nixfiles = "cd ${cfg.nixfileDir}";
             rover = "${nova}/src/ros/rover";
-            core = "${nova}/src/ros/rover/core";
-            control = "${nova}/src/ros/rover/control";
-            electronics = "${nova}/src/ros/rover/electronics";
-            elec = electronics;
-            visualisation = "${nova}/src/ros/visualisation";
-            visualization = visualisation;
-            vis = visualisation;
-            viz = visualisation;
-            science = "${nova}/src/ros/rover/science";
-            camerasdir = "${nova}/src/ros/cameras2";
-            autonomous = "${nova}/src/ros/rover/autonomous";
-            auto = autonomous;
+            science = "${rover}/science";
             gui = "${nova}/src/ros/nova-gui";
-            tutorials = "${nova}/src/ros/tutorials";
-            pic = "${nova}/src/other/pics";
-            pics = pic;
-            arduino = "${nova}/src/other/arduinos";
-            arduinos = arduino;
-            ik = "${nova}/src/other/ik_machine";
-            coms = "${nova}/src/other/coms_utils";
 
             # Networking aliases
             jetson = "ssh -Y nvidia@10.0.0.10";
@@ -75,13 +73,6 @@ in
 
             # Application aliases
             code = "codium";
-
-            # Stubs to ease migration
-            setup = ''echo 'The setup alias is no longer necessary. To try new changes, please use "ws-build" or "nixos-rebuild" instead.' #'';
-            check = ''echo 'The check alias is no longer relevant. Use "journalctl -u <service>" instead.' #'';
-            stop = ''echo 'The stop alias is no longer relevant. Use "systemctl stop <service>" instead.' #'';
-            restart = ''echo 'The restart alias is no longer relevant. Use "systemctl restart <service>" instead.' #'';
-            wifi = ''echo 'The wifi alias is no longer relevant. Use "nmtui" or "nmcli" instead.' #'';
 
             # Nano v Vim
             set_vim = "export EDITOR=vim";
