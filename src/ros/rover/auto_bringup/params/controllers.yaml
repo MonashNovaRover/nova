@@ -47,14 +47,8 @@ joint_state_broadcaster:
       "velocity"]
 
     joints:
-      ["blp",
-      "brp",
-      "flp",
-      "frp",
-      "blw",
-      "brw",
-      "flw",
-      "frw"]
+      ["blp", "brp", "flp", "frp",
+      "blw", "brw", "flw", "frw"]
 
     use_local_topics: false
     

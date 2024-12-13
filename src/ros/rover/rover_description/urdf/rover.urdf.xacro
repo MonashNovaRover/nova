@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generated using onshape-to-robot and modified to include CKCs and ball joints by Anthony Lew -->
-<!-- Notes:
-      - Need to rename ankle pivots and wheels to fit current joint controller naming scheme
-      - CKC is handled in ckc.xacro
-      - joints.xacro handles ball joints and other non-vanilla joints
-      - ankles collision handles both ankle and ankle motor
--->
 <robot name="rover"  xmlns:xacro="http://www.ros.org/wiki/xacro" >
 
     <!-- Loading args -->
@@ -1029,6 +1023,7 @@
 
     <!-- Generated ball differential bar joints (Generated as revolute) -->
     <xacro:unless value="$(arg use_diff_ball)">
+        <!-- Note: these aren't defined in controllers.yaml so the TF will break-->
         <joint name="tl_difflink" type="revolute">
             <origin xyz="0.36851088408476384561 0.12523629853057594019 5.5511151231257827021e-17" rpy="-1.5857491383211548275 0.08564555364187358133 -1.4824560922687248787" />
             <parent link="diffbar" />
@@ -1065,6 +1060,7 @@
             <joint_properties friction="0.0"/>
         </joint>
     </xacro:unless>
+    
     <!-- Include additional xacro files-->
     <xacro:include filename="ckc.xacro"/>
     <xacro:call_ckc robot_name="$(arg robot_name)"/>
@@ -1094,7 +1090,8 @@
         <xacro:include filename="$(find rover_description)/urdf/gz_ros2_control.xacro" />
     </xacro:if>
 
-    <xacro:include filename="p3d.xacro"/>
-    <xacro:include filename="odom.xacro"/>
-    <xacro:include filename="gps.xacro"/>
+    <xacro:include filename="$(find rover_description)/urdf/p3d.xacro"/>
+    <xacro:include filename="$(find rover_description)/urdf/odom.xacro"/>
+    <xacro:include filename="$(find rover_description)/urdf/gps.xacro"/>
+    <xacro:include filename="$(find rover_description)/urdf/dynamic_joints.xacro"/>
 </robot>
