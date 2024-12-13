@@ -22,7 +22,6 @@
 , nova-costmap-2d
 , nova-pointcloud-filter
 , nova-rover-description
-, nova-new-rover-description
 , nova-gazebo
 , nova-auto-interfaces
 , nova-bt-navigators
@@ -63,7 +62,6 @@ buildRosPackage rec {
       nova-costmap-2d
       nova-pointcloud-filter
       nova-rover-description
-      nova-new-rover-description
       nova-gazebo
       nova-auto-interfaces
       nova-bt-navigators
