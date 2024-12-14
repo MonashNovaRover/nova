@@ -34,7 +34,7 @@ Try the 'launch-arm' alias, otherwise use the command below.
 Launch this on the jetson.
 When running the construction & excavation payload, you DON'T need to run drive.
 Try the 'launch-ec' alias, otherwise use the command below.
-~/Builds/scraper/bin/ros2 launch nova_bringup ec_rover.launch.py
+~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py
 
 # Science
 
