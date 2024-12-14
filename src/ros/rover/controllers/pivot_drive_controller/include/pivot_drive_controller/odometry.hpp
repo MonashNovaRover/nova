@@ -6,7 +6,7 @@
 #include "rclcpp/time.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/macros.hpp"
-#include "rcppmath/rolling_mean_accumulator.hpp"
+#include "rcpputils/rolling_mean_accumulator.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/logging.hpp"
 
@@ -40,7 +40,7 @@ public:
   void setVelocityRollingWindowSize(size_t velocity_rolling_window_size);
 
 private:
-  using RollingMeanAccumulator = rcppmath::RollingMeanAccumulator<double>;
+  using RollingMeanAccumulator = rcpputils::RollingMeanAccumulator<double>;
   void integrateXY(double linear_x, double linear_y, double angular);
   void integrateRungeKutta2(double linear, double angular);
   void integrateExact(double linear, double angular);
