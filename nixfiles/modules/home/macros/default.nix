@@ -102,6 +102,8 @@ in
             rover-help = "more ~/nova/nixfiles/doc/rover-help.md";
             launch-base = "~/Builds/master/bin/ros2 launch nova_bringup base.launch.py";
             launch-drive = "~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py";
+            launch-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
+            launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
           }
         ];
 
