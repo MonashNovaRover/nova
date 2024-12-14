@@ -362,7 +362,6 @@ namespace nova_diff_drive_controller
       {
         registered_left_drive_handles_[index].command.get().set_value((best_effort_velocity * left_wheel_distances[index] / max_dist)/params_.wheel_radius);
         registered_right_drive_handles_[index].command.get().set_value((best_effort_velocity * right_wheel_distances[index] / max_dist)/params_.wheel_radius);
-        RCLCPP_INFO(logger, "left wheel speed: %f, right wheel speed: %f", registered_left_drive_handles_[index].command.get().get_value(), registered_right_drive_handles_[index].command.get().get_value());
 
         registered_left_pivot_handles_[index].command.get().set_value(angle_offset * (index == 0 ? 1 : -1));
         registered_right_pivot_handles_[index].command.get().set_value(angle_offset * (index == 0 ? -1 : 1));
