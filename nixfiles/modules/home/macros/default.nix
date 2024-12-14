@@ -25,13 +25,6 @@ in
       complete -F _complete_alias "''${!BASH_ALIASES[@]}"
       
       cd() {
-        echo "$1"
-        if [ -d "$1" ]; then
-          echo true
-        else
-          echo false
-        fi
-        
         if [ ! -d "$1" ] && [ "$1" = "nova" ]; then
           builtin cd "${cfg.sourceDir}/.."
         elif [ ! -d "$1" ] && [ "$1" = "nixfiles" ]; then
