@@ -1,50 +1,36 @@
-# Rover Operation Manual
+# Running the Rover
+=========================
 
-## Introduction
-This manual provides basic instructions for operating the rover safely and efficiently.
+## Connecting
+Type 'jetson' to SSH into the rover (via ethernet or base station). If you're on the makerspace wifi, you'll need to use one of the following commands.
+J1: ssh nvidia@10.0.2.21
+J2: ssh nvidia@10.0.2.22
+J3: ssh nvidia@10.0.2.23
 
----
+=========================
 
-## Safety Guidelines
-- Keep the operating area clear of obstacles.
-- Avoid contact with moving parts.
-- Check for exposed wires and ensure all connections are secure.
+## Base
+Launch this on the metabox. Try the 'launch-base' alias, otherwise use the command below.
+~/Builds/master/bin/ros2 launch nova_bringup base.launch.py
 
----
+## Drive
+Launch this on the jetson. Try the 'launch-drive' alias, otherwise use the command below.
+~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py
 
-## Pre-Operation
-1. Inspect the rover for any damage.
-2. Ensure the battery is fully charged.
-3. Verify that all sensors and actuators are connected properly.
+=========================
 
----
+## Arm
 
-## Starting the Rover
-1. Turn on the main power switch.
-2. Boot up any control systems.
-3. Check that all systems are ready for operation.
+## C&E
+If using the construction & excavation payload, you DON'T need to run drive, only base.
+~/Builds/scraper/bin/ros2 launch nova_bringup ec_rover.launch.py
 
----
+## Science
 
-## Controlling the Rover
-- **Manual Control**: Use the joystick or controller to steer and operate the rover.
-- **Autonomous Mode**: Upload a mission script and monitor its progress.
+=========================
 
----
+## Cameras
+Replace '?' with either 'arm', 'ce', or 'science'.
+cameras_all payload:=?
 
-## Shutting Down
-1. Stop all operations.
-2. Power off the control systems.
-3. Turn off the main power switch.
 
----
-
-## Maintenance
-- **After Each Use**: Clean the rover and charge the battery.
-- **Periodic Checks**: Inspect for wear and update software as needed.
-
----
-
-## Troubleshooting
-- If the rover doesn’t respond, check connections and restart the system.
-- If sensors fail, verify connections and replace if necessary.
