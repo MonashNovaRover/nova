@@ -4,7 +4,7 @@
 #include <cmath>
 
 #include "rclcpp/time.hpp"
-#include "rcppmath/rolling_mean_accumulator.hpp"
+#include "rcpputils/rolling_mean_accumulator.hpp"
 
 namespace nova_diff_drive_controller
 {
@@ -29,7 +29,7 @@ namespace nova_diff_drive_controller
     void setVelocityRollingWindowSize(size_t velocity_rolling_window_size);
 
   private:
-    using RollingMeanAccumulator = rcppmath::RollingMeanAccumulator<double>;
+    using RollingMeanAccumulator = rcpputils::RollingMeanAccumulator<double>;
 
     void integrateRungeKutta2(double linear, double angular);
     void integrateExact(double linear, double angular);

@@ -329,8 +329,8 @@ namespace nova_diff_drive_controller
     {
       for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
       {
-        registered_left_drive_handles_[index].command.get().set_value(best_effort_velocity);
-        registered_right_drive_handles_[index].command.get().set_value(best_effort_velocity);
+        registered_left_drive_handles_[index].command.get().set_value(best_effort_velocity/params_.wheel_radius);
+        registered_right_drive_handles_[index].command.get().set_value(best_effort_velocity/params_.wheel_radius);
       }
     }
     else
@@ -360,8 +360,9 @@ namespace nova_diff_drive_controller
 
       for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
       {
-        registered_left_drive_handles_[index].command.get().set_value(best_effort_velocity * left_wheel_distances[index] / max_dist);
-        registered_right_drive_handles_[index].command.get().set_value(best_effort_velocity * right_wheel_distances[index] / max_dist);
+        registered_left_drive_handles_[index].command.get().set_value((best_effort_velocity * left_wheel_distances[index] / max_dist)/params_.wheel_radius);
+        registered_right_drive_handles_[index].command.get().set_value((best_effort_velocity * right_wheel_distances[index] / max_dist)/params_.wheel_radius);
+        RCLCPP_INFO(logger, "left wheel speed: %f, right wheel speed: %f", registered_left_drive_handles_[index].command.get().get_value(), registered_right_drive_handles_[index].command.get().get_value());
 
         registered_left_pivot_handles_[index].command.get().set_value(angle_offset * (index == 0 ? 1 : -1));
         registered_right_pivot_handles_[index].command.get().set_value(angle_offset * (index == 0 ? -1 : 1));
@@ -482,8 +483,8 @@ namespace nova_diff_drive_controller
     {
         if (!subscriber_is_active_)
         {
-        RCLCPP_WARN(
-            get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+        // RCLCPP_WARN(
+        //     get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
         return;
         }
         if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
@@ -504,9 +505,9 @@ namespace nova_diff_drive_controller
     {
         if (!subscriber_is_active_)
         {
-        RCLCPP_WARN(
-            get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
-        return;
+        // RCLCPP_WARN(
+        //     get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+        // return;
         }
         if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
         {

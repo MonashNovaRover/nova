@@ -342,8 +342,8 @@ namespace strafe_controller
 
         for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
         {
-            registered_left_drive_handles_.at(index).command.get().set_value(best_effort_velocity * (index % 2 ? -1 : 1));
-            registered_right_drive_handles_.at(index).command.get().set_value(best_effort_velocity * (index % 2 ? 1 : -1));
+            registered_left_drive_handles_.at(index).command.get().set_value((best_effort_velocity * (index % 2 ? -1 : 1))/params_.wheel_radius);
+            registered_right_drive_handles_.at(index).command.get().set_value((best_effort_velocity * (index % 2 ? 1 : -1))/params_.wheel_radius);
 
             // fr and bl are -ve to fl and br
             registered_left_pivot_handles_.at(index).command.get().set_value((-M_PI_2 + angle_offset) * (index == 0 ? 1 : -1));
