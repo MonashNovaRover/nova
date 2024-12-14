@@ -25,18 +25,18 @@ in
       complete -F _complete_alias "''${!BASH_ALIASES[@]}"
       
       cd() {
-        if [ ! -d "$1" ] && [ "$1" = "nova" ]; then
-          builtin cd "${cfg.sourceDir}/.."
-        elif [ ! -d "$1" ] && [ "$1" = "nixfiles" ]; then
-          builtin cd "${cfg.nixfileDir}"
-        elif [ ! -d "$1" ] && [ "$1" = "rover" ]; then
-          builtin cd "${cfg.sourceDir}/ros/rover"
-        elif [ ! -d "$1" ] && [ "$1" = "science" ]; then
-          builtin cd "${cfg.sourceDir}/ros/rover/science"
-        elif [ ! -d "$1" ] && [ "$1" = "gui" ]; then
-          builtin cd "${cfg.sourceDir}/ros/nova-gui"
-        else
-          builtin cd "$1"
+        if [ -d $1 ]; then
+          builtin cd $1
+        elif [ $1 = nova ]; then
+          builtin cd ${cfg.sourceDir}/..
+        elif [ $1 = nixfiles ]; then
+          builtin cd ${cfg.nixfileDir}
+        elif [ $1 = rover ]; then
+          builtin cd ${cfg.sourceDir}/ros/rover
+        elif [ $1 = science ]; then
+          builtin cd ${cfg.sourceDir}/ros/rover/science
+        elif [ $1 = gui ]; then
+          builtin cd ${cfg.sourceDir}/ros/nova-gui
         fi
       }
     '';
