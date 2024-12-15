@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Publish dynamic joint states for Rover -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-    <xacro:unless value="$(arg use_diff_ball)">
+    <xacro:unless value="$(arg use_true_joints)">
         <gazebo>
             <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
                 <topic>dynamic_joints</topic>
@@ -21,13 +21,13 @@
                 <joint_name>bl_difflinkeye</joint_name>
                 <joint_name>br_difflinkeye</joint_name>
                 <joint_name>tl_difflink</joint_name>
-                <joint_name>tf_difflink</joint_name>
+                <joint_name>tr_difflink</joint_name>
                 <joint_name>bl_difflink</joint_name>
                 <joint_name>br_difflink</joint_name>
             </plugin>
         </gazebo>
     </xacro:unless>
-    <xacro:if value="$(arg use_diff_ball)">
+    <xacro:if value="$(arg use_true_joints)">
         <gazebo>
             <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
                 <topic>dynamic_joints</topic>
