@@ -6,7 +6,7 @@
     <link name="tr_difflink_1">
         <inertial>
         <mass value="0.00001"/>
-        <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
         </inertial>
     </link>
 
@@ -14,7 +14,7 @@
     <link name="tr_difflink_2">
         <inertial>
         <mass value="0.00001"/>
-        <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
         </inertial>
     </link>
 
@@ -54,7 +54,7 @@
     <link name="br_difflink_1">
         <inertial>
         <mass value="0.0001"/>
-        <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
         </inertial>
     </link>
 
@@ -62,7 +62,7 @@
     <link name="br_difflink_2">
         <inertial>
         <mass value="0.0001"/>
-        <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
         </inertial>
     </link>
 
@@ -100,7 +100,7 @@
     <link name="bl_difflink_1">
         <inertial>
         <mass value="0.0001"/>
-        <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
         </inertial>
     </link>
 
@@ -108,7 +108,7 @@
     <link name="bl_difflink_2">
         <inertial>
         <mass value="0.0001"/>
-        <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
         </inertial>
     </link>
 
@@ -147,7 +147,7 @@
     <link name="tl_difflink_1">
         <inertial>
         <mass value="0.0001"/>
-        <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
         </inertial>
     </link>
 
@@ -155,7 +155,7 @@
     <link name="tl_difflink_2">
         <inertial>
         <mass value="0.0001"/>
-        <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
         </inertial>
     </link>
 
@@ -201,7 +201,7 @@
     <link name="br_difflink_eye">
         <inertial>
         <mass value="0.00001"/>
-        <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
         </inertial>
     </link>
 
@@ -209,7 +209,7 @@
         <parent link="br_difflink_eye" />
         <child link="difflinkbottom_2" />
         <axis xyz="0 0 1"/>
-        <limit effort="1" velocity="2" lower="-0.002" upper="0.002"/>
+        <limit effort="1" velocity="2" lower="-0.01" upper="0.01"/>
         <joint_properties friction="0.0"/>
     </joint>
 
@@ -226,7 +226,7 @@
     <link name="tr_difflink_eye">
         <inertial>
         <mass value="0.00001"/>
-        <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
         </inertial>
     </link>
 
@@ -234,7 +234,7 @@
         <parent link="tr_difflink_eye" />
         <child link="difflinkbody_2" />
         <axis xyz="0 0 1"/>
-        <limit effort="1" velocity="2" lower="-0.002" upper="0.002"/>
+        <limit effort="1" velocity="2" lower="-0.01" upper="0.01"/>
         <joint_properties friction="0.0"/>
     </joint>
 
@@ -251,7 +251,7 @@
     <link name="bl_difflink_eye">
         <inertial>
         <mass value="0.00001"/>
-        <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
         </inertial>
     </link>
 
@@ -259,7 +259,7 @@
         <parent link="bl_difflink_eye" />
         <child link="difflinkbottom" />
         <axis xyz="0 0 1"/>
-        <limit effort="1" velocity="2" lower="-0.002" upper="0.002"/>
+        <limit effort="1" velocity="2" lower="-0.01" upper="0.01"/>
         <joint_properties friction="0.0"/>
     </joint>
 
@@ -276,7 +276,7 @@
     <link name="tl_difflink_eye">
         <inertial>
         <mass value="0.00001"/>
-        <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
         </inertial>
     </link>
 
@@ -284,32 +284,59 @@
         <parent link="tl_difflink_eye" />
         <child link="difflinkbody" />
         <axis xyz="0 0 1"/>
-        <limit effort="1" velocity="2" lower="-0.002" upper="0.002"/>
+        <limit effort="1" velocity="2" lower="-0.01" upper="0.01"/>
         <joint_properties friction="0.0"/>
     </joint>
 
-    <!-- Cylindrical joint for diffbar_joint-->
+    <!-- Planar joint for diffbar_joint-->
     <joint name="diffbar_joint" type="revolute">
         <origin xyz="0.018499995185548932103 1.3346709641398613044e-05 0.019800000000001038991" rpy="3.141592653589793116 -6.9464785874916311517e-17 0.15327080924390459882" />
         <parent link="diffmount" />
-        <child link="diffbar_joint_slide" />
+        <child link="diffbar_joint_slide_z" />
         <axis xyz="0 0 1"/>
         <limit effort="1" velocity="2" lower="-3.141592654" upper="3.141592654"/>
-        <joint_properties friction="0.0"/>
     </joint>
 
-    <link name="diffbar_joint_slide">
+    <link name="diffbar_joint_slide_z">
         <inertial>
         <mass value="0.00001"/>
-        <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
         </inertial>
     </link>
 
     <joint name="diffbar_joint_socket" type="prismatic">
-        <parent link="diffbar_joint_slide" />
-        <child link="diffbar" />
+        <parent link="diffbar_joint_slide_z" />
+        <child link="diffbar_joint_slide_x" />
         <axis xyz="0 0 1"/>
-        <limit effort="1" velocity="2" lower="-0.005" upper="0.0025"/>
-        <joint_properties friction="0.0"/>
+        <limit effort="1" velocity="2" lower="-0.005" upper="0.015"/>
     </joint>
+
+    <link name="diffbar_joint_slide_x">
+        <inertial>
+        <mass value="0.00001"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <joint name="diffbar_joint_bend_x" type="prismatic">
+        <parent link="diffbar_joint_slide_x" />
+        <child link="diffbar_joint_slide_y" />
+        <axis xyz="0 1 0"/>
+        <limit effort="1" velocity="2" lower="-0.002" upper="0.002"/>
+    </joint>
+
+    <link name="diffbar_joint_slide_y">
+        <inertial>
+        <mass value="0.00001"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <joint name="diffbar_joint_bend_y" type="prismatic">
+        <parent link="diffbar_joint_slide_y" />
+        <child link="diffbar" />
+        <axis xyz="1 0 0"/>
+        <limit effort="1" velocity="2" lower="-0.002" upper="0.002"/>
+    </joint>
+
 </robot>
