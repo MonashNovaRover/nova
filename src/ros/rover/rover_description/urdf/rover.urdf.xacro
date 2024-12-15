@@ -8,7 +8,8 @@
     <xacro:arg name="arm" default="false"/>
     <xacro:arg name="auto_camera" default="true"/>
     <xacro:arg name="robot_name" default="rover"/>
-    <xacro:arg name="use_diff_ball" default="true"/>
+    <xacro:arg name="use_true_joints" default="true"/>
+    <xacro:arg name="use_mimic" default="false"/>
 
     <!-- Robot properties-->
     <gazebo>
@@ -1066,13 +1067,13 @@
     <!-- End of Generated URDF -->
 
     <!-- Generated ball differential bar joints (Generated as revolute) -->
-    <xacro:unless value="$(arg use_diff_ball)">
+    <xacro:unless value="$(arg use_true_joints)">
         <joint name="tl_difflink" type="revolute">
             <origin xyz="0.36851088408476384561 0.12523629853057594019 5.5511151231257827021e-17" rpy="-1.5857491383211548275 0.08564555364187358133 -1.4824560922687248787" />
             <parent link="diffbar" />
             <child link="difflinktop" />
             <axis xyz="0 0 1"/>
-            <limit effort="1" velocity="20" lower="-3.141592654" upper="3.141592654"/>
+            <limit effort="20" velocity="20" lower="${-2 * pi}" upper="${2 * pi}"/>
             <joint_properties friction="0.0"/>
         </joint>
 
@@ -1081,7 +1082,7 @@
             <parent link="diffbar" />
             <child link="difflinktop_2" />
             <axis xyz="0 0 1"/>
-            <limit effort="1" velocity="20" lower="-3.141592654" upper="3.141592654"/>
+            <limit effort="20" velocity="20" lower="${-2 * pi}" upper="${2 * pi}"/>
             <joint_properties friction="0.0"/>
         </joint>
 
@@ -1090,7 +1091,7 @@
             <parent link="difflinkbottom" />
             <child link="diffend" />
             <axis xyz="0 0 1"/>
-            <limit effort="1" velocity="20" lower="-3.141592654" upper="3.141592654"/>
+            <limit effort="20" velocity="20" lower="${-2 * pi}" upper="${2 * pi}"/>
             <joint_properties friction="0.0"/>
         </joint>
 
@@ -1099,7 +1100,7 @@
             <parent link="difflinkbottom_2" />
             <child link="diffend_2" />
             <axis xyz="0 0 1"/>
-            <limit effort="1" velocity="20" lower="-3.141592654" upper="3.141592654"/>
+            <limit effort="20" velocity="20" lower="${-2 * pi}" upper="${2 * pi}"/>
             <joint_properties friction="0.0"/>
         </joint>
 
@@ -1109,7 +1110,7 @@
             <parent link="difflinkbody_2" />
             <child link="difflinkbottom_2" />
             <axis xyz="0 0 1"/>
-            <limit effort="1" velocity="20" lower="-3.141592654" upper="3.141592654"/>
+            <limit effort="20" velocity="20" lower="${-2 * pi}" upper="${2 * pi}"/>
             <joint_properties friction="0.0"/>
         </joint>
 
@@ -1118,7 +1119,7 @@
             <parent link="difflinktop_2" />
             <child link="difflinkbody_2" />
             <axis xyz="0 0 1"/>
-            <limit effort="1" velocity="20" lower="-3.141592654" upper="3.141592654"/>
+            <limit effort="20" velocity="20" lower="${-2 * pi}" upper="${2 * pi}"/>
             <joint_properties friction="0.0"/>
         </joint>
 
@@ -1127,7 +1128,7 @@
             <parent link="difflinkbody" />
             <child link="difflinkbottom" />
             <axis xyz="0 0 1"/>
-            <limit effort="1" velocity="20" lower="-3.141592654" upper="3.141592654"/>
+            <limit effort="20" velocity="20" lower="${-2 * pi}" upper="${2 * pi}"/>
             <joint_properties friction="0.0"/>
         </joint>
 
@@ -1136,7 +1137,7 @@
             <parent link="difflinktop" />
             <child link="difflinkbody" />
             <axis xyz="0 0 1"/>
-            <limit effort="1" velocity="20" lower="-3.141592654" upper="3.141592654"/>
+            <limit effort="20" velocity="20" lower="${-2 * pi}" upper="${2 * pi}"/>
             <joint_properties friction="0.0"/>
         </joint>
 
@@ -1145,16 +1146,21 @@
             <parent link="diffmount" />
             <child link="diffbar" />
             <axis xyz="0 0 1"/>
-            <limit effort="1" velocity="20" lower="-3.141592654" upper="3.141592654"/>
+            <limit effort="20" velocity="20" lower="${-2 * pi}" upper="${2 * pi}"/>
             <joint_properties friction="0.0"/>
         </joint>
     </xacro:unless>
     
     <!-- Include additional xacro files-->
-    <xacro:include filename="ckc.xacro"/>
-    <xacro:call_ckc robot_name="$(arg robot_name)"/>
+    <xacro:if value="$(arg use_mimic)">
+        <xacro:include filename="mimic.xacro"/>
+    </xacro:if>
+    <xacro:unless value="$(arg use_mimic)">
+        <xacro:include filename="ckc.xacro"/>
+        <xacro:call_ckc robot_name="$(arg robot_name)"/>
+    </xacro:unless>
 
-    <xacro:if value="$(arg use_diff_ball)">
+    <xacro:if value="$(arg use_true_joints)">
         <xacro:include filename="joints.xacro"/>
     </xacro:if>
     <xacro:if value="$(arg auto_camera)">
