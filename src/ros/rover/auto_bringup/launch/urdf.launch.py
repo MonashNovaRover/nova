@@ -25,13 +25,15 @@ def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo').perform(context)
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
+    mimic = LaunchConfiguration('use_mimic').perform(context)
+    joints = LaunchConfiguration('use_true_joints').perform(context)
     
     return [
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[{'robot_description': 
-                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name]), value_type=str)
+                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'use_mimic:=', mimic, ' ', 'use_true_joints:=', joints]), value_type=str)
             }]
         )
     ]
@@ -55,6 +57,16 @@ def generate_launch_description():
             name='robot_name',
             default_value='Rover7',
             description='name of the robot',
+        ),
+        DeclareLaunchArgument(
+            name='use_mimic',
+            default_value='False',
+            description='Use mimic joints to close the CKC loop? Defaults to DetachableJoint plugin.',
+        ),
+        DeclareLaunchArgument(
+            name='use_true_joints',
+            default_value='False',
+            description='Eumlate the ball and cylindrical joints.',
         ),
     ]
     
