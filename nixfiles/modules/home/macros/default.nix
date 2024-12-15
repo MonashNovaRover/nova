@@ -75,6 +75,7 @@ in
 
             # Application aliases
             code = "codium";
+            urdf-tool = "nix-shell ${cfg.nixfileDir}/home/macros/urdf-tool.nix";
 
             # Stubs to ease migration
             setup = ''echo 'The setup alias is no longer necessary. To try new changes, please use "ws-build" or "nixos-rebuild" instead.' #'';
