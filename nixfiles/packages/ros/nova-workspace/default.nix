@@ -8,10 +8,6 @@
 , rqt-common-plugins
 , gdb
 , gps-umd
-, python3Packages
-, pkg-config
-, fetchPypi
-, onshape-to-robot ? import ../../python/onshape-to-robot { lib = lib; python3Packages = python3Packages; pkg-config = pkg-config; fetchPypi = fetchPypi;}
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -86,8 +82,6 @@
 
   ## Extra packages to add to the workspace.
 , extraPackages ? { 
-  inherit
-    onshape-to-robot;
 }
 }:
 
