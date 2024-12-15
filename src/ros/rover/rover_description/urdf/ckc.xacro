@@ -9,7 +9,7 @@
                 <child_link>diffend_2</child_link>
                 <output_topic>close_loop_left</output_topic>
             </plugin>
-
+            
             <plugin filename="libgz-sim-detachable-joint-system.so" name="gz::sim::systems::DetachableJoint">
                 <parent_link>rightleg</parent_link>
                 <child_model>${robot_name}</child_model>
