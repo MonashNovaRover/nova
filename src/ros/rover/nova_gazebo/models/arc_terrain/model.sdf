@@ -13,7 +13,7 @@
       <collision name="terrain_collision">
         <geometry>
           <heightmap>
-            <uri>model://arc_terrain/textures/heightmap.png</uri>
+            <uri>model://arc_terrain/textures/heightmap2.png</uri>
             <size>50 50 1.8</size>
             <pos>0 0 0</pos>
           </heightmap>
@@ -38,7 +38,7 @@
         <geometry>
           <heightmap>
             <use_terrain_paging>false</use_terrain_paging>
-            <uri>model://arc_terrain/textures/heightmap.png</uri>
+            <uri>model://arc_terrain/textures/heightmap2.png</uri>
             <size>50 50 1.8</size>
             <pos>0 0 0</pos>
             <texture>
@@ -64,7 +64,7 @@
         <visual name="visual">
           <geometry>
             <mesh>
-              <uri>model://arc_terrain/meshes/walls.stl</uri> <!-- Path to the mesh file -->
+              <uri>model://arc_terrain/meshes/walls2.stl</uri> <!-- Path to the mesh file -->
             </mesh>
           </geometry>
 
@@ -81,7 +81,7 @@
         <collision name="collision">
           <geometry>
             <mesh>
-              <uri>model://arc_terrain/meshes/walls.stl</uri> <!-- Path to the collision mesh -->
+              <uri>model://arc_terrain/meshes/walls2.stl</uri> <!-- Path to the collision mesh -->
             </mesh>
           </geometry>
         </collision>
@@ -98,9 +98,9 @@
       </link>
     </model>
 
-  <model name="equipment">
+  <model name="lander">
       <static>true</static> <!-- This makes the model static (non-moving) -->
-      <pose>0 0 0 0 0 0</pose> <!-- Position and orientation in x, y, z, roll, pitch, yaw -->
+      <pose>11 -10 0 0 0 1</pose> <!-- Position and orientation in x, y, z, roll, pitch, yaw -->
       
       <link name="link">
         <pose>0 0 0 0 0 0</pose> <!-- Local position of the link -->
@@ -109,16 +109,16 @@
         <visual name="visual">
           <geometry>
             <mesh>
-              <uri>model://arc_terrain/meshes/equipment.stl</uri> <!-- Path to the mesh file -->
+              <uri>model://arc_terrain/meshes/lander.stl</uri> <!-- Path to the mesh file -->
             </mesh>
           </geometry>
 
           <material>
-            <ambient>0.5 0.5 0.5 1.0</ambient> <!-- Ambient color (RGB + Alpha) -->
-            <diffuse>0.8 0.8 0.8 1.0</diffuse> <!-- Diffuse color (RGB + Alpha) -->
-            <specular>0.2 0.2 0.2 1.0</specular> <!-- Specular color (highlight color) -->
-            <emissive>0 0 0 0.0</emissive> <!-- Emissive color (glowing effect) -->
-            <reflectivity>0.5</reflectivity> <!-- Reflectivity (shininess of the surface) -->
+            <ambient>0.3 0.3 0.3 1.0</ambient> 
+            <diffuse>0.8 0.8 0.8 1.0</diffuse> 
+            <specular>0.9 0.9 0.9 1.0</specular>
+            <emissive>0 0 0 0.0</emissive>
+            <reflectivity>0.8</reflectivity> 
           </material>
         </visual>
 
@@ -126,7 +126,95 @@
         <collision name="collision">
           <geometry>
             <mesh>
-              <uri>model://arc_terrain/meshes/equipment.stl</uri> <!-- Path to the collision mesh -->
+              <uri>model://arc_terrain/meshes/lander.stl</uri> <!-- Path to the collision mesh -->
+            </mesh>
+          </geometry>
+        </collision>
+
+        <!-- Inertial properties are generally not needed for static models -->
+        <inertial>
+          <mass>0.0</mass> <!-- No mass needed for static models -->
+          <inertia>
+            <ixx>0.0</ixx>
+            <iyy>0.0</iyy>
+            <izz>0.0</izz>
+          </inertia>
+        </inertial>
+      </link>
+    </model>
+    <model name="solar_array">
+      <static>true</static> <!-- This makes the model static (non-moving) -->
+      <pose>2.9 -2.2 0 0 0 1.9</pose> <!-- Position and orientation in x, y, z, roll, pitch, yaw -->
+      
+      <link name="link">
+        <pose>0 0 0 0 0 0</pose> <!-- Local position of the link -->
+
+        <!-- Visual representation of the model -->
+        <visual name="visual">
+          <geometry>
+            <mesh>
+              <uri>model://arc_terrain/meshes/solar_array.stl</uri> <!-- Path to the mesh file -->
+            </mesh>
+          </geometry>
+
+          <material>
+            <ambient>0.3 0.3 0.3 1.0</ambient> 
+            <diffuse>0.8 0.8 0.8 1.0</diffuse> 
+            <specular>0.9 0.9 0.9 1.0</specular>
+            <emissive>0 0 0 0.0</emissive>
+            <reflectivity>0.8</reflectivity> 
+          </material>
+        </visual>
+
+        <!-- Collision definition for the model (optional but recommended for accuracy) -->
+        <collision name="collision">
+          <geometry>
+            <mesh>
+              <uri>model://arc_terrain/meshes/solar_array.stl</uri> <!-- Path to the collision mesh -->
+            </mesh>
+          </geometry>
+        </collision>
+
+        <!-- Inertial properties are generally not needed for static models -->
+        <inertial>
+          <mass>0.0</mass> <!-- No mass needed for static models -->
+          <inertia>
+            <ixx>0.0</ixx>
+            <iyy>0.0</iyy>
+            <izz>0.0</izz>
+          </inertia>
+        </inertial>
+      </link>
+    </model>
+    <model name="processing">
+      <static>true</static> <!-- This makes the model static (non-moving) -->
+      <pose>-10.7 -8.9 0 0 0 0.3</pose> <!-- Position and orientation in x, y, z, roll, pitch, yaw -->
+      
+      <link name="link">
+        <pose>0 0 0 0 0 0</pose> <!-- Local position of the link -->
+
+        <!-- Visual representation of the model -->
+        <visual name="visual">
+          <geometry>
+            <mesh>
+              <uri>model://arc_terrain/meshes/processing.stl</uri> <!-- Path to the mesh file -->
+            </mesh>
+          </geometry>
+
+          <material>
+            <ambient>0.3 0.3 0.3 1.0</ambient> 
+            <diffuse>0.8 0.8 0.8 1.0</diffuse> 
+            <specular>0.9 0.9 0.9 1.0</specular>
+            <emissive>0 0 0 0.0</emissive>
+            <reflectivity>0.8</reflectivity> 
+          </material>
+        </visual>
+
+        <!-- Collision definition for the model (optional but recommended for accuracy) -->
+        <collision name="collision">
+          <geometry>
+            <mesh>
+              <uri>model://arc_terrain/meshes/processing.stl</uri> <!-- Path to the collision mesh -->
             </mesh>
           </geometry>
         </collision>
