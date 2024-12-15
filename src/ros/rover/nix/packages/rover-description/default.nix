@@ -1,6 +1,7 @@
 { lib
 , buildRosPackage
 , ament-cmake
+, gz-attach-links
 }:
 
 buildRosPackage {
@@ -14,4 +15,5 @@ buildRosPackage {
   };
 
   nativeBuildInputs = [ ament-cmake ];
+  propagatedBuildInputs = [ gz-attach-links ];
 }
