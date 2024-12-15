@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Handle custom joints that are not supported by gazebo -->
+<!-- Works except it breaks detachable joint for closing ckc -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
     <!-- Ball joint for tr_difflink-->
     <!-- Intermediate link 1 -->
@@ -338,5 +339,4 @@
         <axis xyz="1 0 0"/>
         <limit effort="1" velocity="2" lower="-0.002" upper="0.002"/>
     </joint>
-
 </robot>
