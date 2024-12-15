@@ -20,10 +20,6 @@ def launch_setup(context, *args, **kwargs):
         joints = ['joint_A', 'joint_D']
 
     return [
-        print(get_package_share_directory('qtbase')),
-        AppendEnvironmentVariable(
-            'QT_QPA_PLATFORM_PLUGIN_PATH', '/nix/store/k4riw99gl41nyvkr7bs4bmsmdpm96bj8-qtbase-5.15.14-bin/lib/qt-5.15.14/plugins/platforms'
-        ),
         Node(
             package='ros_gz_sim',
             executable='create',
