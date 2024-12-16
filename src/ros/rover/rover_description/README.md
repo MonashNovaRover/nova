@@ -1,8 +1,16 @@
 ## This is Nova Rover's 7th Rover named \_\_\_\_
-This was generated using the (onshape-to-robot tool)[https://github.com/Rhoban/onshape-to-robot]
-Still need meshlab stl simplification, but collisions are now done.
+This was generated using the [onshape-to-robot tool](https://github.com/Rhoban/onshape-to-robot)
+To regenerate, copy `onshape-to-robot-config.json` to a folder **OUTSIDE** of the nova repo, run `urdf-tool` then `onshape-to-robot foldername`.\
+Make sure to add your `.scad` files in the folder, or use `onshape-to-robot-edit-shape` to make them for simple shape approximation for collisions.
 
-### structure:
+### Structure:
+* `arm`\
+    contains arm related description files
+* `base`
+    contains rover related description files
+
+\
+Each folder contains the following:
 * `meshes`\
     contains the STL files
 * `urdf`\
@@ -12,4 +20,4 @@ Still need meshlab stl simplification, but collisions are now done.
     Keeping for reference!
 
 ### Notes:
-* Chassis, wheels and ankles have simplified collision (using scad), the rest have no collision.
+* 

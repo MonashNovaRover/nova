@@ -38,12 +38,6 @@ def launch_setup(context, *args, **kwargs):
             'Y': LaunchConfiguration('Y').perform(context)}
     robot_name = LaunchConfiguration('robot_name')
     world = LaunchConfiguration('world')
-    mimic = LaunchConfiguration('use_mimic').perform(context)
-    joints = LaunchConfiguration('use_true_joints')
-
-    gz_args = ['-r -v4 ', world]
-    if mimic == 'true' or mimic == 'True':
-        gz_args.append(' --physics-engine gz-physics-bullet-featherstone-plugin')
 
     return [
         AppendEnvironmentVariable(
@@ -60,11 +54,11 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'use_mimic': mimic}.items(),
+            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name}.items(),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
-            launch_arguments={'gz_args': gz_args, 'on_exit_shutdown': 'True'}.items(),
+            launch_arguments={'gz_args': ['-r -v4 ', world], 'on_exit_shutdown': 'True'}.items(),
         ),
         Node(
             package='ros_gz_sim',
@@ -109,7 +103,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='model', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'urdf', 'rover.urdf.xacro']), 
+            default_value=PathJoinSubstitution([rover_description_dir, 'base', 'urdf', 'rover.urdf.xacro']), 
             description='Absolute path to robot urdf file',
         ),
         DeclareLaunchArgument(
@@ -126,16 +120,6 @@ def generate_launch_description():
             name='world',
             default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto.sdf']),
             description='Full path to world model file to load',
-        ),
-        DeclareLaunchArgument(
-            name='use_mimic',
-            default_value='False',
-            description='Use mimic joints to close the CKC loop? Defaults to DetachableJoint plugin.',
-        ),
-        DeclareLaunchArgument(
-            name='use_true_joints',
-            default_value='False',
-            description='Eumlate the ball and cylindrical joints.',
         ),
         DeclareLaunchArgument(name='x', default_value='-2.0', description='x_pose'),
         DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
