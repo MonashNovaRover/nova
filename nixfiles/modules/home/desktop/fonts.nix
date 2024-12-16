@@ -19,6 +19,7 @@ in
 
     home.packages = with pkgs; [
       nerd-fonts._0xproto
+      nerd-fonts.sauce-code-pro
     ];
   };
 }
