@@ -129,7 +129,7 @@ namespace nova_diff_drive_controller
     if (param_listener_->is_old(params_))
     {
       params_ = param_listener_->get_params();
-      RCLCPP_INFO(logger, "Parameters were updated");
+      // RCLCPP_INFO(logger, "Parameters were updated");
     }
 
     if (params_.enable_twist_cmd)
@@ -257,7 +257,8 @@ namespace nova_diff_drive_controller
       {
         odometry_.updateFromVelocity(
             left_feedback_mean * left_wheel_radius * period.seconds(),
-            right_feedback_mean * right_wheel_radius * period.seconds(), time);
+            right_feedback_mean * right_wheel_radius * period.seconds(), time
+            );
       }
     }
 
@@ -324,13 +325,16 @@ namespace nova_diff_drive_controller
 
     angle_offset = atan(params_.steering_track / params_.wheel_base);
 
-    float radius = angular_command * target_direction;
+    float radius = 1/(angular_command * target_direction);
     if (radius == INFINITY || radius == -INFINITY || target_direction == 0)
     {
       for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
       {
         registered_left_drive_handles_[index].command.get().set_value(best_effort_velocity/params_.wheel_radius);
         registered_right_drive_handles_[index].command.get().set_value(best_effort_velocity/params_.wheel_radius);
+
+        registered_left_pivot_handles_[index].command.get().set_value(angle_offset * (index == 0 ? 1 : -1));
+        registered_right_pivot_handles_[index].command.get().set_value(angle_offset * (index == 0 ? -1 : 1));
       }
     }
     else
@@ -352,6 +356,9 @@ namespace nova_diff_drive_controller
           return sqrt(pow(radius - x, 2) + pow(y, 2));
         };
 
+        RCLCPP_INFO(logger, "left_wheel_%d: %f", index, wheel_dist(-wheel_x, wheel_y));
+        RCLCPP_INFO(logger, "right_wheel_%d: %f", index, wheel_dist(wheel_x, wheel_y));
+
         left_wheel_distances[index] = wheel_dist(-wheel_x, wheel_y);
         right_wheel_distances[index] = wheel_dist(wheel_x, wheel_y);
 
@@ -360,6 +367,7 @@ namespace nova_diff_drive_controller
 
       for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
       {
+        RCLCPP_INFO(logger, "left wheel distance: %f, right wheel distance: %f", left_wheel_distances[index], right_wheel_distances[index]);
         registered_left_drive_handles_[index].command.get().set_value((best_effort_velocity * left_wheel_distances[index] / max_dist)/params_.wheel_radius);
         registered_right_drive_handles_[index].command.get().set_value((best_effort_velocity * right_wheel_distances[index] / max_dist)/params_.wheel_radius);
 

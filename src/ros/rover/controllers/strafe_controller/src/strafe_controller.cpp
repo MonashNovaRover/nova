@@ -141,7 +141,7 @@ namespace strafe_controller
         if (param_listener_->is_old(params_))
         {
             params_ = param_listener_->get_params();
-            RCLCPP_INFO(logger, "Parameters were updated");
+            // RCLCPP_INFO(logger, "Parameters were updated");
         }
 
         if (params_.enable_twist_cmd)
@@ -563,8 +563,6 @@ namespace strafe_controller
 
         if (registered_left_pivot_handles_.empty() || registered_right_pivot_handles_.empty())
         {
-            RCLCPP_INFO(get_node()->get_logger(), "stuck here");
-
             RCLCPP_ERROR(
                 get_node()->get_logger(),
                 "Either left pivot interfaces, right pivot interfaces are non existent");

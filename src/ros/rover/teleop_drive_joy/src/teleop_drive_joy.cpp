@@ -227,8 +227,8 @@ namespace teleop_drive_joy
                 prettyPrintMode(control_mode).c_str(),
                 prettyPrintMode(requested_control_mode).c_str());
 
-    std::string activate_controller = modeToController(requested_control_mode);
     std::string deactivate_controller = modeToController(control_mode);
+    std::string activate_controller = modeToController(requested_control_mode);
 
     if (!switch_controller_client->service_is_ready()) {
         RCLCPP_ERROR(this->get_logger(), "Controller manager service not available.");
