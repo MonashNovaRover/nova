@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
-  <world name="urc_er">
+  <world name="mars">
     <include>
-      <uri>model://auto_terrain</uri>
+      <uri>model://mars_terrain</uri>
     </include>
 
     <light type="directional" name="sun">
