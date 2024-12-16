@@ -1,19 +1,29 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
-  <world name="urc_er">
+  <world name="auto">
     <include>
-      <uri>file:///nova_terrain_directory/urc_er_terrain</uri>
+      <uri>model://arc_terrain</uri>
     </include>
 
-    <include>
-      <uri>model://sun</uri>
-    </include>
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
 
     <scene>
       <shadows>false</shadows>
     </scene>
 
-        <spherical_coordinates>
+    <spherical_coordinates>
       <!-- currently gazebo has a bug: instead of outputting lat, long, altitude in ENU
       (x = East, y = North and z = Up) as the default configurations, it's outputting (-E)(-N)U,
       therefore we rotate the default frame 180 so that it would go back to ENU
