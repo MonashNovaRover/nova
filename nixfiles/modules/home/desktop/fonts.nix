@@ -8,7 +8,8 @@ in
     fonts.fontconfig.enable = true;
 
     home.packages = with pkgs; [
-      (nerdfonts.override { fonts = [ "SourceCodePro" ]; })
+      nerd-fonts._0xproto
+      nerd-fonts.sauce-code-pro
     ];
   };
 }
