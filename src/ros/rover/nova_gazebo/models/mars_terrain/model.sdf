@@ -2,6 +2,7 @@
 <sdf version="1.7">
   <model name="mars_terrain">
     <static>true</static>
+    
     <link name="terrain">
       <collision name="terrain_collision">
         <geometry>
@@ -27,6 +28,7 @@
           </friction>
         </surface>
       </collision>
+
       <visual name="terrain_visual">
         <geometry>
           <heightmap>
