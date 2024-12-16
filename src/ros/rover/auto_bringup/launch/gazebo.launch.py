@@ -25,7 +25,6 @@ from launch_ros.substitutions import FindPackageShare
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
-    leo_gz_worlds_dir = FindPackageShare('leo_gz_worlds')
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
     config_file = LaunchConfiguration('config_file')
@@ -48,14 +47,6 @@ def launch_setup(context, *args, **kwargs):
         AppendEnvironmentVariable(
             name='GZ_SIM_RESOURCE_PATH', 
             value=PathJoinSubstitution([nova_gazebo_dir, 'worlds'])
-        ),
-        AppendEnvironmentVariable(
-            name='GZ_SIM_RESOURCE_PATH', 
-            value=PathJoinSubstitution([leo_gz_worlds_dir, 'models'])
-        ),
-        AppendEnvironmentVariable(
-            name='GZ_SIM_RESOURCE_PATH', 
-            value=PathJoinSubstitution([leo_gz_worlds_dir, 'worlds'])
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
@@ -97,7 +88,6 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
-    leo_gz_worlds_dir = FindPackageShare('leo_gz_worlds')
     rover_description_dir = FindPackageShare('rover_description')
 
     declared_arguments = [
