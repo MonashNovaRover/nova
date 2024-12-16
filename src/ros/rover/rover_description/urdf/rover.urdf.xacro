@@ -160,7 +160,7 @@
       lower="-3.141592654"
       upper="3.141592654"
       effort="20"
-      velocity="1" />
+      velocity="20" />
   </joint>
   <link
     name="front_left_wheel">
@@ -248,7 +248,7 @@
     <limit lower="-3.141592654"
       upper="3.141592654"
       effort="20"
-      velocity="1" />
+      velocity="20" />
   </joint>
   <link
     name="back_left_wheel">
@@ -382,7 +382,7 @@
       lower="-3.141592654"
       upper="3.141592654"
       effort="20"
-      velocity="1" />
+      velocity="20" />
   </joint>
 
   <link
@@ -476,7 +476,7 @@
       lower="-3.141592654"
       upper="3.141592654"
       effort="20"
-      velocity="1" />
+      velocity="20" />
   </joint>
   <link
     name="back_right_wheel">
