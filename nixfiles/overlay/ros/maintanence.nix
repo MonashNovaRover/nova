@@ -4,6 +4,15 @@ self: super:
   rosPackages = (super.rosPackages.appendDistroOverlay
     # Overlay for all ROS distros.
     (rosSelf: rosSuper: {
+      buildRosPackage = {
+        buildType ? "catkin",
+        nativeBuildInputs ? [ ],
+        ...
+      }@args: rosSuper.buildRosPackage (args // {
+          nativeBuildInputs = nativeBuildInputs ++ (self.lib.optionals (buildType == "ament_cmake") [ self.ninja ]);
+        }
+      );
+
       # Newer versions of realsense-ros cannot generate point clouds on Jetsons.
       # https://github.com/IntelRealSense/realsense-ros/issues/2575#issuecomment-1346319645
       realsense2-camera = rosSuper.realsense2-camera.overrideAttrs ({ propagatedBuildInputs ? [ ], postPatch ? "", ... }: {
