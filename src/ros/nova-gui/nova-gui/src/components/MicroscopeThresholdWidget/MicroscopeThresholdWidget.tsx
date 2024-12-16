@@ -97,7 +97,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
         thresholdingEntries: newEntries
       } as SiteData
     } as SiteDataState)
-  }, [currentSite, siteData])
+  }, [currentSite, siteData, setSiteData])
 
   // Prepends a row to the file
   const prependFileEntry = useCallback((newEntry : ThresholdingFileEntry) => {
