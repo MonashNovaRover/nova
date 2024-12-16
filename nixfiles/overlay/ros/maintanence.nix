@@ -4,12 +4,14 @@ self: super:
   rosPackages = (super.rosPackages.appendDistroOverlay
     # Overlay for all ROS distros.
     (rosSelf: rosSuper: {
+
+      # Add ninja and mold to cmake for faster builds
       buildRosPackage = {
         buildType ? "catkin",
         nativeBuildInputs ? [ ],
         ...
       }@args: rosSuper.buildRosPackage (args // {
-          nativeBuildInputs = nativeBuildInputs ++ (self.lib.optionals (buildType == "ament_cmake") [ self.ninja ]);
+          nativeBuildInputs = nativeBuildInputs ++ (self.lib.optionals (buildType == "ament_cmake") [ self.ninja self.mold ]);
         }
       );
 
