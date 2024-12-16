@@ -25,7 +25,7 @@
         <visual>
             <origin xyz="1.2353683969592321892e-17 1.3877787807815553765e-17 -1.2992673251725723918e-16" rpy="-4.03091968774772598e-16 -5.9777162559529608526e-16 1.57079632679489678" />
             <geometry>
-                <mesh filename="$(find rover_description)/base/meshes/chassis.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/chassis.stl"/>
             </geometry>
             <material name="chassis_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -55,7 +55,7 @@
         <visual>
             <origin xyz="-7.9461177221464552678e-19 -7.285838599104098493e-20 -0.02099999999999946354" rpy="3.141592653589793116 3.7838655819744073932e-17 2.5353252380137503331e-18" />
             <geometry>
-                <mesh filename="$(find rover_description)/base/meshes/rightleg.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/rightleg.stl"/>
             </geometry>
             <material name="rightleg_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -127,7 +127,7 @@
         <visual>
             <origin xyz="0.12415341931613703419 -2.2204460492503130808e-16 -0.12500000000000027756" rpy="-1.57079632679489678 0.13351607992219352572 -1.4831077253695265766e-16" />
             <geometry>
-                <mesh filename="$(find rover_description)/base/meshes/fr_ankle.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/fr_ankle.stl"/>
             </geometry>
             <material name="fr_ankle_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -187,7 +187,7 @@
         <visual>
             <origin xyz="5.5511151231257827021e-17 0 1.6479873021779667397e-17" rpy="2.7962004130209052011e-17 1.2251534115966472012e-16 2.635730960242099906e-17" />
             <geometry>
-                <mesh filename="$(find rover_description)/base/meshes/fr_wheel.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/fr_wheel.stl"/>
             </geometry>
             <material name="fr_wheel_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -229,7 +229,7 @@
         <visual>
             <origin xyz="0.12415341931613717297 -1.1102230246251565404e-16 -0.12500000000000027756" rpy="-1.57079632679489678 0.13351607992219352572 -1.8058730347652897637e-17" />
             <geometry>
-                <mesh filename="$(find rover_description)/base/meshes/br_ankle.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/br_ankle.stl"/>
             </geometry>
             <material name="br_ankle_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -289,7 +289,7 @@
         <visual>
             <origin xyz="0 5.5511151231257827021e-17 2.9056618222611518831e-17" rpy="-2.1033615686544646559e-18 4.0753571111148506719e-17 -5.1049259856826943659e-17" />
             <geometry>
-                <mesh filename="$(find rover_description)/base/meshes/br_wheel.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/br_wheel.stl"/>
             </geometry>
             <material name="br_wheel_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -340,7 +340,7 @@
         <visual>
             <origin xyz="-1.307880673257705575e-20 8.6736173798839122125e-19 -0.021000000000000518252" rpy="3.141592653589793116 6.2280032059899110289e-19 6.6901195618365661673e-19" />
             <geometry>
-                <mesh filename="$(find rover_description)/base/meshes/leftleg.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/leftleg.stl"/>
             </geometry>
             <material name="leftleg_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -412,7 +412,7 @@
         <visual>
             <origin xyz="-0.12415341931613703419 2.2204460492503130808e-16 -0.12500000000000027756" rpy="-1.570796326794896558 -0.13351607992219352572 -9.2297733002794394222e-17" />
             <geometry>
-                <mesh filename="$(find rover_description)/base/meshes/fl_ankle.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/fl_ankle.stl"/>
             </geometry>
             <material name="fl_ankle_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -472,7 +472,7 @@
         <visual>
             <origin xyz="-1.1102230246251565404e-16 2.7755575615628913511e-17 1.9678269430611905477e-17" rpy="7.6465249148938200431e-18 1.8025269388467532324e-16 -6.7707851923284363593e-17" />
             <geometry>
-                <mesh filename="$(find rover_description)/base/meshes/fl_wheel.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/fl_wheel.stl"/>
             </geometry>
             <material name="fl_wheel_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -514,7 +514,7 @@
         <visual>
             <origin xyz="-0.12415341931613702031 2.2204460492503130808e-16 -0.12500000000000027756" rpy="-1.570796326794896558 -0.13351607992219355348 -6.6381828885871895555e-17" />
             <geometry>
-                <mesh filename="$(find rover_description)/base/meshes/bl_ankle.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/bl_ankle.stl"/>
             </geometry>
             <material name="bl_ankle_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -574,7 +574,7 @@
         <visual>
             <origin xyz="0 0 5.4426949058772322587e-17" rpy="2.0912147866144306179e-17 8.2022383815773806625e-17 2.4684305037247577125e-17" />
             <geometry>
-                <mesh filename="$(find rover_description)/base/meshes/bl_wheel.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/bl_wheel.stl"/>
             </geometry>
             <material name="bl_wheel_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -625,7 +625,7 @@
         <visual>
             <origin xyz="4.9770590770557066637e-14 -0.00015426611885745178387 -0.010000000000000730527" rpy="1.570796326794896558 -1.129128030717583274e-32 1.2668252701779880278e-25" />
             <geometry>
-                <mesh filename="$(find rover_description)/base/meshes/diffbar.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/diffbar.stl"/>
             </geometry>
             <material name="diffbar_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -655,7 +655,7 @@
         <visual>
             <origin xyz="-2.8310687127941491781e-15 -0.057750000000000092926 3.3306690738754696213e-16" rpy="1.5707963267948346076 -1.5127867282353739675 -3.1415926535897926719" />
             <geometry>
-                <mesh filename="$(find rover_description)/base/meshes/left_difflink.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/left_difflink.stl"/>
             </geometry>
             <material name="left_difflink_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -664,7 +664,7 @@
         <collision>
             <origin xyz="-2.8310687127941491781e-15 -0.057750000000000092926 3.3306690738754696213e-16" rpy="1.5707963267948346076 -1.5127867282353739675 -3.1415926535897926719" />
             <geometry>
-                <mesh filename="$(find rover_description)/base/meshes/left_difflink.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/left_difflink.stl"/>
             </geometry>
         </collision>
         <inertial>
@@ -704,7 +704,7 @@
         <visual>
             <origin xyz="6.3282712403633922804e-15 -0.057749999999999454547 -2.498001805406602216e-15" rpy="1.5707963267948279462 1.512786629442331332 -3.141592653589793116" />
             <geometry>
-                <mesh filename="$(find rover_description)/base/meshes/right_difflink.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/right_difflink.stl"/>
             </geometry>
             <material name="right_difflink_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -713,7 +713,7 @@
         <collision>
             <origin xyz="6.3282712403633922804e-15 -0.057749999999999454547 -2.498001805406602216e-15" rpy="1.5707963267948279462 1.512786629442331332 -3.141592653589793116" />
             <geometry>
-                <mesh filename="$(find rover_description)/base/meshes/right_difflink.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/right_difflink.stl"/>
             </geometry>
         </collision>
         <inertial>
