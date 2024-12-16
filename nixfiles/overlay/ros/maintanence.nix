@@ -11,7 +11,7 @@ self: super:
         nativeBuildInputs ? [ ],
         ...
       }@args: rosSuper.buildRosPackage (args // {
-          nativeBuildInputs = nativeBuildInputs ++ [ self.ninja self.mold ];
+          nativeBuildInputs = nativeBuildInputs ++ [ self.mold (self.lib.optionals (buildType == "ament_cmake") [ self.ninja ]) ];
         }
       );
 
