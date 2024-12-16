@@ -28,7 +28,7 @@ TEST(TestLoadPivotDriveController, load_controller)
     std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
 
   std::string rover_description_share_path = ament_index_cpp::get_package_share_directory("rover_description");
-  std::string urdf_path = rover_description_share_path + "/urdf/rover.urdf.xacro";
+  std::string urdf_path = rover_description_share_path + "/base/urdf/rover.urdf.xacro";
 
 
   controller_manager::ControllerManager cm(
