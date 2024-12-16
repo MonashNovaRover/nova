@@ -69,6 +69,7 @@ def generate_launch_description():
             default_value = PathJoinSubstitution(
                 [
                     description_dir, 
+                    'arm',
                     'urdf', 
                     'arm.urdf.xacro'
                 ]
