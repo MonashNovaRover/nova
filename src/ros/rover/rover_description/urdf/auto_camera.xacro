@@ -17,16 +17,17 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
    cam_roll = "0.0" cam_pitch = "0.0" cam_yaw = "0.0"/>
 
   <gazebo reference="oak_rgb_camera_frame">
-    <sensor type="depth" name="oak">
-      <pose>0 0 0 0 0 0</pose>
+    <sensor name="oak/stereo" type="depth_camera">
+      <topic>oak/depth</topic>
+      <gz_frame_id>camera_link</gz_frame_id> <!-- Sets the frame_id so that rviz2 correctly transforms it -->
       <visualize>true</visualize>
-      <update_rate>5</update_rate>
+      <update_rate>30</update_rate>
+      <always_on>1</always_on>
       <camera>
         <horizontal_fov>${radians(82)}</horizontal_fov>
         <image>
           <width>600</width>
           <height>400</height>
-          <format>B8G8R8</format>
         </image>
         <clip>
           <near>0.4</near>
@@ -35,30 +36,33 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
       </camera>
       <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
         <frame_name>oak_rgb_camera_optical_frame</frame_name>
-            <ros>
-              <remapping>/oak/image_raw:=/oak/rgb/image_rect</remapping>
-              <remapping>/oak/image_raw/compressed:=/oak/rgb/image_raw/compressed</remapping>
-              <remapping>/oak/image_raw/compressedDepth:=/oak/rgb/image_raw/compressedDepth</remapping>
-              <remapping>/oak/image_raw/theora:=/oak/rgb/image_raw/theora</remapping>
-              <remapping>/oak/camera_info:=/oak/rgb/camera_info</remapping>
-              <remapping>/oak/depth/image_raw/compressed:=/oak/stereo/image_raw/compressed</remapping>
-              <remapping>/oak/depth/image_raw/compressedDepth:=/oak/stereo/image_raw/compressedDepth</remapping>
-              <remapping>/oak/depth/image_raw/theora:=/oak/depth/image_raw/theora</remapping>
-              <remapping>/oak/depth/camera_info:=/oak/stereo/camera_info</remapping>
-            </ros>
-        <min_depth>0.3</min_depth>
-        <max_depth>12.0</max_depth>
       </plugin>
+    </sensor>
+    <sensor name="oak/rgb" type="camera">
+      <topic>oak/rgb</topic>
+      <visualize>true</visualize>
+      <update_rate>30</update_rate>
+      <always_on>1</always_on>
+      <camera>
+        <horizontal_fov>${radians(82)}</horizontal_fov>
+        <image>
+          <width>600</width>
+          <height>400</height>
+        </image>
+        <clip>
+          <near>0.4</near>
+          <far>100.0</far>
+        </clip>
+      </camera>
+      <!-- <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system"></plugin> -->
     </sensor>
   </gazebo>
 
   <gazebo reference="oak_imu_frame">
     <sensor name="imu_sensor" type="imu">
-    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu">
-    <frame_name>oak_imu_frame</frame_name>
-        <ros>
-          <remapping>~/out:=/oak/imu/transformed</remapping>
-        </ros>
+      <topic>oak/imu</topic>
+      <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu">
+        <frame_name>oak_imu_frame</frame_name>
         <initial_orientation_as_reference>false</initial_orientation_as_reference>
       </plugin>
       <always_on>true</always_on>
