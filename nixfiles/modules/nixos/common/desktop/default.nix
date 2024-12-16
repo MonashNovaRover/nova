@@ -34,8 +34,8 @@ in
       gnome-user-share.enable = false;
       gnome-remote-desktop.enable = false;
       rygel.enable = false;
-      tracker.enable = false;
-      tracker-miners.enable = false;
+      tinysparql.enable = false;
+      localsearch.enable = false;
       # gnome-online-miners.enable = false; # Set strongly for some reason
       gnome-online-accounts.enable = false;
       # evolution-data-server.enable = false; # Set strongly for some reason
