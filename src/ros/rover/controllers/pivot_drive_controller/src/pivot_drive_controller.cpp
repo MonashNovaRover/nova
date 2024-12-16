@@ -146,7 +146,7 @@ namespace pivot_drive_controller
         if (param_listener_->is_old(params_))
         {
             params_ = param_listener_->get_params();
-            RCLCPP_INFO(logger, "Parameters were updated");
+            // RCLCPP_INFO(logger, "Parameters were updated");
         }
         
         // RCLCPP_INFO(logger, "enable_twist_cmd: %d", params_.enable_twist_cmd);
@@ -901,7 +901,7 @@ namespace pivot_drive_controller
         {
             for (const auto & wheel_handle : wheel_handles)
             {
-            wheel_handle.command.get().set_value(INFINITY);
+            wheel_handle.command.get().set_value(0.0);
             }
         };
 
