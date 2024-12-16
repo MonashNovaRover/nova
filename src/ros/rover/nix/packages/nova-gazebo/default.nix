@@ -3,7 +3,6 @@
 , ament-cmake
 , launch
 , launch-ros
-, stdenv
 , leo-gz-worlds
 }:
 
