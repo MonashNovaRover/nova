@@ -901,7 +901,7 @@ namespace pivot_drive_controller
         {
             for (const auto & wheel_handle : wheel_handles)
             {
-            wheel_handle.command.get().set_value(0.0);
+            wheel_handle.command.get().set_value(INFINITY);
             }
         };
 

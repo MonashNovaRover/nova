@@ -114,6 +114,7 @@ namespace teleop_drive_joy
       if (!sent_lock_msg)
       {
         auto drive_input_msg = std::make_unique<nova_interfaces::msg::DriveInputStamped>();
+        drive_input_msg->drive_input.radius = INFINITY;
         drive_input_pub->publish(std::move(drive_input_msg));
 
         auto drive_info_msg = std::make_unique<nova_interfaces::msg::DriveInfo>();
