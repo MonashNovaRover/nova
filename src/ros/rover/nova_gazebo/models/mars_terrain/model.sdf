@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.7">
-  <model name="auto_terrain">
+  <model name="mars_terrain">
     <static>true</static>
     <link name="terrain">
       <collision name="terrain_collision">

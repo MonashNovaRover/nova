@@ -1,59 +1,59 @@
 <?xml version="1.0" ?>
 <sdf version="1.7">
 
-<model name="auto_world">
-  <light name="default_light" type="directional">
-      <pose>0 0 10 0 0 0</pose>
-      <diffuse>1 1 1 1</diffuse>
-      <specular>1 1 1 1</specular>
-  </light>
-  <model name="arc_terrain">
-    <static>true</static>
-    <link name="terrain">
-      <collision name="terrain_collision">
-        <geometry>
-          <heightmap>
-            <uri>model://arc_terrain/textures/heightmap2.png</uri>
-            <size>50 50 1.8</size>
-            <pos>0 0 0</pos>
-          </heightmap>
-        </geometry>
-        <surface>
-          <contact>
-            <ode>
-              <kp>1e15</kp>
-              <kd>1e13</kd>
-              <min_depth>0.005</min_depth>
-            </ode>
-          </contact>
-          <friction>
-            <ode>
-              <mu>1000</mu>
-              <mu2>1000</mu2>
-            </ode>
-          </friction>
-        </surface>
-      </collision>
-      <visual name="terrain_visual">
-        <geometry>
-          <heightmap>
-            <use_terrain_paging>false</use_terrain_paging>
-            <uri>model://arc_terrain/textures/heightmap2.png</uri>
-            <size>50 50 1.8</size>
-            <pos>0 0 0</pos>
-            <texture>
-              <diffuse>model://arc_terrain/textures/minecraftsand.png</diffuse>
-              <normal>model://arc_terrain/textures/blanknormal.png</normal>
-              <ambient>0.4 0.4 0.4 1</ambient>
-              <size>1</size>
-            </texture>
-          </heightmap>
-        </geometry>
-      </visual>
-    </link>
-  </model>
+  <model name="auto_world">
+    <light name="default_light" type="directional">
+        <pose>0 0 10 0 0 0</pose>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+    </light>
+    <model name="arc_terrain">
+      <static>true</static>
+      <link name="terrain">
+        <collision name="terrain_collision">
+          <geometry>
+            <heightmap>
+              <uri>model://arc_terrain/textures/height_map.png</uri>
+              <size>50 50 1.8</size>
+              <pos>0 0 0</pos>
+            </heightmap>
+          </geometry>
+          <surface>
+            <contact>
+              <ode>
+                <kp>1e15</kp>
+                <kd>1e13</kd>
+                <min_depth>0.005</min_depth>
+              </ode>
+            </contact>
+            <friction>
+              <ode>
+                <mu>1000</mu>
+                <mu2>1000</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="terrain_visual">
+          <geometry>
+            <heightmap>
+              <use_terrain_paging>false</use_terrain_paging>
+              <uri>model://arc_terrain/textures/height_map.png</uri>
+              <size>50 50 1.8</size>
+              <pos>0 0 0</pos>
+              <texture>
+                <diffuse>model://arc_terrain/textures/sand.png</diffuse>
+                <normal>model://arc_terrain/textures/blank_normal.png</normal>
+                <ambient>0.4 0.4 0.4 1</ambient>
+                <size>1</size>
+              </texture>
+            </heightmap>
+          </geometry>
+        </visual>
+      </link>
+    </model>
 
-  <model name="walls">
+    <model name="walls">
       <static>true</static> <!-- This makes the model static (non-moving) -->
       <pose>0 0 0 0 0 0</pose> <!-- Position and orientation in x, y, z, roll, pitch, yaw -->
       
@@ -98,7 +98,7 @@
       </link>
     </model>
 
-  <model name="lander">
+    <model name="lander">
       <static>true</static> <!-- This makes the model static (non-moving) -->
       <pose>11 -10 0 0 0 1</pose> <!-- Position and orientation in x, y, z, roll, pitch, yaw -->
       
@@ -142,6 +142,7 @@
         </inertial>
       </link>
     </model>
+
     <model name="solar_array">
       <static>true</static> <!-- This makes the model static (non-moving) -->
       <pose>2.9 -2.2 0 0 0 1.9</pose> <!-- Position and orientation in x, y, z, roll, pitch, yaw -->
@@ -186,6 +187,7 @@
         </inertial>
       </link>
     </model>
+
     <model name="processing">
       <static>true</static> <!-- This makes the model static (non-moving) -->
       <pose>-10.7 -8.9 0 0 0 0.3</pose> <!-- Position and orientation in x, y, z, roll, pitch, yaw -->
