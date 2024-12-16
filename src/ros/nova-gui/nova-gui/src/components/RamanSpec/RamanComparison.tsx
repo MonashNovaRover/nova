@@ -44,12 +44,12 @@ const RamanComparison: React.FC = () => {
         bifrost.syncWithTopic();
     }, [bifrost]);
 
-    let greenLaserOutput = [{
+    const greenLaserOutput = [{
         name: "CCD Output",
         data: spectrumStore.spectrum.map((element, index) => [Math.round(100*(LASER_GREEN_START + LASER_GREEN_RANGE*index/spectrumStore.spectrum.length)) / 100.0, Math.round(100*NORMALISED_SCALE_MAX*element/RAMAN_PEAK_VALUE)/100.0])
     }]
 
-    let redLaserOutput = [{
+    const redLaserOutput = [{
         name: "CCD Output",
         data: spectrumStore.spectrum.map((element, index) => [Math.round(100*(LASER_RED_START + LASER_RED_RANGE*index/spectrumStore.spectrum.length)) / 100.0, Math.round(100*NORMALISED_SCALE_MAX*element/RAMAN_PEAK_VALUE)/100.0])
     }]
@@ -62,7 +62,7 @@ const RamanComparison: React.FC = () => {
         }
     }
 
-    let outputData = determineOutput()
+    const outputData = determineOutput()
 
     const kerogendata = [10, 11, 9, 8, 9, 10, 12, 11, 9, 11, 10, 11, 10, 9, 11, 12, 13, 15, 17, 20, 23, 24, 28, 33, 39, 47, 58, 70, 66, 54, 50, 70, 90, 65, 40, 35, 34, 34, 35, 35, 34, 34, 33, 32, 31, 31, 30, 31, 32]
     const kerogen2data = [10, 11, 9, 8, 9, 10, 12, 13, 12, 9, 10, 11, 10, 9, 11, 12, 13, 15, 17, 20, 23, 24, 28, 33, 39, 47, 58, 70, 66, 54, 50, 70, 90, 65, 40, 35, 34, 34, 35, 35, 34, 34, 33, 32, 31, 31, 30, 31, 32]
@@ -75,6 +75,7 @@ const RamanComparison: React.FC = () => {
     }]]
 
     const alreadyInList = (name: string): boolean => {
+        // eslint-disable-next-line prefer-const
         let allNames: string[] = []
         elementData.forEach((value) => {allNames.push(value[0].name)})
         return allNames.includes(name)

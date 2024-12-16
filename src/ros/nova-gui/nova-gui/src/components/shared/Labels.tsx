@@ -1,6 +1,6 @@
 interface SubCardLabelProps {
     children: React.ReactNode;
-};
+}
 
 export const SubCardLabel : React.FC<SubCardLabelProps> = (props) => {
 
