@@ -10,7 +10,7 @@ teleop_drive_joy_node:
     pivot_drive_controller:
       axis_angular_z: 3
       axis_linear_x: 1
-      scale_angular_z: 0.80
+      scale_angular_z: 0.85
       scale_linear_x: 0.1
     strafe_controller:
       axis_angular_z: 3
@@ -21,6 +21,7 @@ teleop_drive_joy_node:
       axis_angular_z: 3
       axis_linear_x: 1
       scale_angular_z: 1.0
+      
       scale_linear_x: 0.1
     axis_speed_change_coarse: 7
     axis_speed_change_fine: 6
