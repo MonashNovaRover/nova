@@ -33,7 +33,6 @@ export default function useDownload(filename: string, callback: () => Blob | Blo
     // Actually save the file
     saveAs(blob, filename);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wrappedCallback, filename, filledOptions.type]);
 }
 

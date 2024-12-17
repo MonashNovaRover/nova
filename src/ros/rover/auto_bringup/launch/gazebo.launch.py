@@ -13,8 +13,9 @@ PACKAGE: 	core
 CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
+import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction, SetEnvironmentVariable
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch.conditions import UnlessCondition, IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -39,6 +40,14 @@ def launch_setup(context, *args, **kwargs):
     world = LaunchConfiguration('world')
 
     return [
+        AppendEnvironmentVariable(
+            name='GZ_SIM_RESOURCE_PATH', 
+            value=PathJoinSubstitution([nova_gazebo_dir, 'models'])
+        ),
+        AppendEnvironmentVariable(
+            name='GZ_SIM_RESOURCE_PATH', 
+            value=PathJoinSubstitution([nova_gazebo_dir, 'worlds'])
+        ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
             launch_arguments={'gazebo': 'True'}.items(),
@@ -72,9 +81,6 @@ def launch_setup(context, *args, **kwargs):
             respawn_delay=2.0,
             parameters=[{'config_file': config_file}],
             arguments=['--ros-args', '--log-level', 'info'],
-        ),
-        AppendEnvironmentVariable(
-            'GZ_SIM_RESOURCE_PATH', PathJoinSubstitution([nova_gazebo_dir, 'models'])
         ),
     ]
 
@@ -112,15 +118,15 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='world',
-            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'flat.sdf']),
+            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto.sdf']),
             description='Full path to world model file to load',
         ),
-        DeclareLaunchArgument(name='x', default_value='-2.0', description='x_pose'),
-        DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
-        DeclareLaunchArgument(name='z', default_value='0.05', description='z_pose'),
-        DeclareLaunchArgument(name='R', default_value='0.00', description='roll'),
-        DeclareLaunchArgument(name='P', default_value='0.00', description='pitch'),
-        DeclareLaunchArgument(name='Y', default_value='0.00', description='yaw'),
+        DeclareLaunchArgument(name='x', default_value='0.0', description='x_pose'),
+        DeclareLaunchArgument(name='y', default_value='0.0', description='y_pose'),
+        DeclareLaunchArgument(name='z', default_value='2.0', description='z_pose'),
+        DeclareLaunchArgument(name='R', default_value='0.0', description='roll'),
+        DeclareLaunchArgument(name='P', default_value='0.0', description='pitch'),
+        DeclareLaunchArgument(name='Y', default_value='0.0', description='yaw'),
     ]
 
     return LaunchDescription(  

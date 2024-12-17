@@ -23,6 +23,7 @@ find_package(ament_cmake REQUIRED)
 
 # Add all the installation directories
 install(DIRECTORY
+  models
   worlds 
   DESTINATION share/${PROJECT_NAME}
 )

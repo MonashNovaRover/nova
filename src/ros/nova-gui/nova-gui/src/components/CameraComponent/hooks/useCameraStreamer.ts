@@ -23,7 +23,7 @@ export const useCameraStreamer = () => {
 
   useEffect(() => {
     bifrost.syncWithTopic();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [bifrost]);
 
   const cameras = useSelector(
