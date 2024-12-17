@@ -38,24 +38,24 @@ ekf_filter_node_odom:
     map_frame: map              # Defaults to "map" if unspecified
     odom_frame: odom            # Defaults to "odom" if unspecified
     base_link_frame: base_link  # Defaults to "base_link" if unspecified
-    world_frame: odom           # Defaults to the value ofodom_frame if unspecified
+    world_frame: odom           # Defaults to the value of odom_frame if unspecified
 
     odom0: /pivot_drive_controller/odom
-    odom0_config: [false, false, false,
-                  false, false, false,
-                  true,  true,  true,
-                  false, false, true,
-                  false, false, false]
+    odom0_config: [false, false, false, # x,    y,      z
+                  false, false, false,  # roll, pitch,  yaw
+                  true,  true,  true,   # x',   y',     z'
+                  false, false, false,  # roll', pitch', yaw'
+                  false, false, false]  # x'',  y'',    z''
     odom0_queue_size: 10
     odom0_differential: false
     odom0_relative: false
 
     imu0: /oak/imu/transformed
-    imu0_config: [false, false, false,
-                  false, false,  true,
-                  false, false, false,
-                  false,  false,  false,
-                  false,  false,  false]
+    imu0_config: [false, false, false,    # x,    y,      z
+                  false, false,  true,    # roll, pitch,  yaw
+                  false, false, false,    # x',   y',     z'
+                  false,  false,  false,  # roll', pitch', yaw'
+                  false,  false,  false]  # x'',  y'',    z''
     imu0_differential: false
     imu0_relative: false
     imu0_queue_size: 10
@@ -105,32 +105,32 @@ ekf_filter_node_map:
 
 
     odom0: /pivot_drive_controller/odom
-    odom0_config: [false, false, false,
-                  false, false, false,
-                  true,  true,  true,
-                  false, false, true,
-                  false, false, false]
+    odom0_config: [false, false, false, # x,    y,      z
+                  false, false, false,  # roll, pitch,  yaw
+                  true,  true,  true,   # x',   y',     z'
+                  false, false, true,   # roll', pitch', yaw'
+                  false, false, false]  # x'',  y'',    z''
     odom0_queue_size: 10
     odom0_differential: false
     odom0_relative: false
 
-    odom1: /odometry/gps
-    odom1_config: [true, true, false, #https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html#configuring-robot-localization
-                  false, false, false,
-                  false,  false,  false,
-                  false, false, false,
-                  false, false, false]
+    odom1: /odometry/gps #https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html#configuring-robot-localization
+    odom1_config: [true, true, false,     # x,    y,      z
+                  false, false, false,    # roll, pitch,  yaw
+                  false,  false,  false,  # x',   y',     z'
+                  false, false, false,    # roll', pitch', yaw'
+                  false, false, false]    # x'',  y'',    z''
     odom1_queue_size: 10
     odom1_differential: false
     odom1_relative: false
 
 
     imu0: /oak/imu/transformed
-    imu0_config: [false, false, false,
-                  false, false,  true,
-                  false, false, false,
-                  false,  false,  false,
-                  false,  false,  false]
+    imu0_config: [false, false, false,    # x,    y,      z
+                  false, false,  true,    # roll, pitch,  yaw
+                  false, false, false,    # x',   y',     z'
+                  false,  false,  false,  # roll', pitch', yaw'
+                  false,  false,  false]  # x'',  y'',    z''
     imu0_differential: false
     imu0_relative: false
     imu0_queue_size: 10
