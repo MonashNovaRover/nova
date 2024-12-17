@@ -110,7 +110,6 @@ in
         gpsd
         # Cmake utilities
         ninja
-        mold
       ] ++ lib.optionals config.nova.desktop.enable [
         # Desktop apps
         gitkraken
