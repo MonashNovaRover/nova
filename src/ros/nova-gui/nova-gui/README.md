@@ -27,3 +27,25 @@ A component can do one or more of the following functions
 - Recieve on demand data from the Rover (like a REST API)
 - Send a command to the Rover to perform a Task
 - Please the Rover Operator by looking Cute and Cheerfull
+
+### Linting
+
+`eslint` has been set up for this repository, to utilise this locally, you can run in the development shell:
+
+```shell
+yarn lint
+```
+
+This will display any and all linting issues, please try and fix any issues that arise. If you are unsure what the issue is/don't know how to fix it, don't hesitate to reach out to the team.
+
+If you think your use-case is a valid case to ignore the linting warnings please place this line in front of the offending line:
+
+```typescript
+// template:
+// eslint-disable-next-line <rule to ignore>
+
+// example:
+// eslint-disable-next-line react-hooks/exhaustive-deps
+```
+
+Please try to ensure that there are no linting issues when merging in, there is a github workflow (eslint) that will pick up and give warnings for any linting errors/warnings.

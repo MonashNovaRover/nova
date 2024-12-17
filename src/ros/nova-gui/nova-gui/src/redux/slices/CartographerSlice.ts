@@ -99,7 +99,7 @@ export const cartographerSlice = createSlice({
         }
 
         default:
-          state;
+          return state;
       }
     },
     CLEAR_MEASURE: (state: CartographerState) => ({
