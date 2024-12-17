@@ -52,6 +52,7 @@ export const Cartographer = () => {
   
   useEffect(() => {
     setPoints([...storedPoints])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[storedPoints])
 
   return (

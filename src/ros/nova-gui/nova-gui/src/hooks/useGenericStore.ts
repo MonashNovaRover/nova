@@ -23,6 +23,10 @@ function useGenericStoreWithStore<T, S extends object>(reduxStore: S, storeName:
 
     // check that the store is a generic store
     const store = reduxStore[key]
+    if (store === null) {
+      throw new Error(`${storeName} is not a store`)
+    }
+
     const typeKey = "storeType" as keyof typeof reduxStore[typeof key]
     if ((store instanceof Function) || store[typeKey] !== StoreType.GENERIC) {
       console.error(`${storeName} is not a generic store`);
@@ -31,7 +35,7 @@ function useGenericStoreWithStore<T, S extends object>(reduxStore: S, storeName:
 
     const initialValueKey = "initialValue" as keyof typeof reduxStore[typeof key]
     return store[initialValueKey] as T;
-  }, [storeName]);
+  }, [storeName, reduxStore]);
 
   // create a setValue function using dispatch
   const dispatch = useDispatch();
@@ -40,7 +44,7 @@ function useGenericStoreWithStore<T, S extends object>(reduxStore: S, storeName:
       type: storeName + "/SET_VALUE",
       payload: value,
     })
-  }, [storeName])
+  }, [storeName, dispatch])
 
   // the current value from the store
   const value = useSelector((wholeStore: RootState) => {

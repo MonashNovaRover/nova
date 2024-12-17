@@ -31,6 +31,7 @@ export function SettingsModal() {
     if (uiState.roverIP != roverIP)
       setRoverIP(uiState.roverIP);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uiState.baseStationIP, uiState.roverIP]);
 
   const submit = () => {
