@@ -83,7 +83,7 @@ def launch_setup(context, *args, **kwargs):
             condition=UnlessCondition(gps),
             package='robot_localization',
             executable='ekf_node',
-            name='ekf_filter_node',
+            name='ekf_filter_node_odom',
             output='screen',
             parameters=[(params_file),  {'use_sim_time': use_sim_time}, real_odom_params if use_real_odometry else {}],
         ),
