@@ -325,7 +325,8 @@ namespace nova_diff_drive_controller
 
     angle_offset = atan(params_.steering_track / params_.wheel_base);
 
-    float radius = 1/(angular_command * target_direction);
+    float radius = angular_command * target_direction;
+    
     if (radius == INFINITY || radius == -INFINITY || target_direction == 0)
     {
       for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
@@ -356,49 +357,34 @@ namespace nova_diff_drive_controller
           return sqrt(pow(radius - x, 2) + pow(y, 2));
         };
 
-        RCLCPP_INFO(logger, "left_wheel_%d: %f", index, wheel_dist(-wheel_x, wheel_y));
-        RCLCPP_INFO(logger, "right_wheel_%d: %f", index, wheel_dist(wheel_x, wheel_y));
-
         left_wheel_distances[index] = wheel_dist(-wheel_x, wheel_y);
         right_wheel_distances[index] = wheel_dist(wheel_x, wheel_y);
 
         max_dist = std::max({max_dist, left_wheel_distances[index], right_wheel_distances[index]});
-      }
+        // Handle sharp turning when radius is very small
+        bool sharp_turn = abs(radius) < params_.steering_track;
+        float left_speed = best_effort_velocity * left_wheel_distances[index] / max_dist;
+        float right_speed = best_effort_velocity * right_wheel_distances[index] / max_dist;
 
-      for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
-      {
-        RCLCPP_INFO(logger, "left wheel distance: %f, right wheel distance: %f", left_wheel_distances[index], right_wheel_distances[index]);
-        registered_left_drive_handles_[index].command.get().set_value((best_effort_velocity * left_wheel_distances[index] / max_dist)/params_.wheel_radius);
-        registered_right_drive_handles_[index].command.get().set_value((best_effort_velocity * right_wheel_distances[index] / max_dist)/params_.wheel_radius);
+        if (sharp_turn)
+        {
+            if (target_direction < 0) // Left turn
+            {
+                left_speed = -left_speed;
+            }
+            else if (target_direction > 0) // Right turn
+            {
+                right_speed = -right_speed;
+            }
+        }
+
+        registered_left_drive_handles_[index].command.get().set_value(left_speed / params_.wheel_radius);
+        registered_right_drive_handles_[index].command.get().set_value(right_speed / params_.wheel_radius);
 
         registered_left_pivot_handles_[index].command.get().set_value(angle_offset * (index == 0 ? 1 : -1));
         registered_right_pivot_handles_[index].command.get().set_value(angle_offset * (index == 0 ? -1 : 1));
-      }
 
-      // Modify wheel directions if the turning centre is under the rover wheel_base
-      // Ignore the edge case where the turning centre is exactly below the centre of a wheel.
-      // Does not affect the behaviour in practice
-      if (abs(radius) < wheel_x)
-      {
-        // If the turning centre is...
-        if (radius > -wheel_x && radius <= 0 && target_direction < 0)
-        {
-          // Under the left half of the chassis, reverse the left wheels
-          // Also include cases where we are pivoting left
-          for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
-          {
-            registered_left_drive_handles_[index].command.get().set_value(registered_left_drive_handles_[index].state.get().get_value() * -1);
-          }
-        }
-        else if (radius >= 0 && radius < wheel_x && target_direction > 0)
-        {
-          // Under the right half of the chassis, reverse the right wheels
-          // Also include cases where we are pivoting right
-          for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
-          {
-            registered_right_drive_handles_[index].command.get().set_value(registered_right_drive_handles_[index].state.get().get_value() * -1);
-          }
-        }
+        RCLCPP_INFO(logger, "Left wheel speed: %f, Right wheel speed: %f", left_speed / params_.wheel_radius, right_speed / params_.wheel_radius);
       }
     }
 
