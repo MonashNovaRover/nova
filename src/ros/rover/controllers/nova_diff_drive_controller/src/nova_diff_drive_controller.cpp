@@ -361,21 +361,25 @@ namespace nova_diff_drive_controller
         right_wheel_distances[index] = wheel_dist(wheel_x, wheel_y);
 
         max_dist = std::max({max_dist, left_wheel_distances[index], right_wheel_distances[index]});
-        // Handle sharp turning when radius is very small
-        bool sharp_turn = abs(radius) < params_.steering_track;
+      }
+      // Handle sharp turning when radius is very small
+      for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
+      {
+       // Handle sharp turning when radius is very small
+        bool sharp_turn = abs(radius) < (params_.steering_track) / 2;
         float left_speed = best_effort_velocity * left_wheel_distances[index] / max_dist;
         float right_speed = best_effort_velocity * right_wheel_distances[index] / max_dist;
 
         if (sharp_turn)
         {
-            if (target_direction < 0) // Left turn
-            {
-                left_speed = -left_speed;
-            }
-            else if (target_direction > 0) // Right turn
-            {
-                right_speed = -right_speed;
-            }
+          if (target_direction < 0) // Left turn
+          {
+            left_speed = -left_speed;
+          }
+          else if (target_direction > 0) // Right turn
+          {
+            right_speed = -right_speed;
+          }
         }
 
         registered_left_drive_handles_[index].command.get().set_value(left_speed / params_.wheel_radius);

@@ -10,11 +10,11 @@ teleop_drive_joy_node:
     pivot_drive_controller:
       axis_angular_z: 2
       axis_linear_x: 1
-      scale_angular_z: 1.0
+      scale_angular_z: 0.8
       scale_linear_x: 0.1
     strafe_controller:
       axis_angular_z: 2
-      axis_linear_x: 1
+      axis_linear_x: 0 # This might be incorrect
       scale_angular_z: 1.0
       scale_linear_x: 0.1
     nova_diff_drive_controller:
@@ -33,3 +33,5 @@ teleop_drive_joy_node:
     button_unlock: 10
     speed_change_coarse_val: 0.1
     speed_change_fine_val: -0.02 # DPad is Flipp'd on Japanese Version
+    speed_limit_max: 1.2
+    speed_limit_min: 0.05
