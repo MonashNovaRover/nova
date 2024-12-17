@@ -34,8 +34,8 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([depthai_dir, 'launch', 'camera.launch.py'])),
             condition=IfCondition(use_camera),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([depthai_dir, 'launch', 'camera.launch.py'])),
             launch_arguments={'name': name,
                               'parent_frame': parent_frame,
                               'params_file': params_file,

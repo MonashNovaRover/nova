@@ -62,8 +62,8 @@ def launch_setup(context, *args, **kwargs):
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
                     launch_arguments={'model': model, 'gazebo': gazebo}.items(),
-                )],
-        ),
+                ),
+        ]),
     ]
 
 
