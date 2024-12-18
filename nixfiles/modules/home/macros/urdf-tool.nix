@@ -52,6 +52,15 @@ let
     };
   };
 
+  # Check if the Onshape API keys file exists before importing it
+  onshapeKeys = if builtins.pathExists "/etc/nixos/onshape_key/onshape-keys.nix" then
+    import /etc/nixos/onshape_key/onshape-keys.nix
+  else
+    {
+      ACCESS_KEY = "";
+      SECRET_KEY = "";
+    };  # If the file does not exist, use set with empty values to avoid errors
+
 in
 pkgs.mkShell {
   buildInputs = [
@@ -71,6 +80,15 @@ pkgs.mkShell {
   shellHook = ''
     export PATH=${onshapeToRobot}/bin:$PATH
     export PYTHONPATH=${pkgs.python3Packages.python.sitePackages}:${pkgs.python3Packages."numpy-stl"}/lib/python3.12/site-packages:$PYTHONPATH
+    export ONSHAPE_API=https://cad.onshape.com
+    # Check if Onshape API keys are defined, and warn if not
+    if [ -z "${onshapeKeys.ACCESS_KEY}" ] || [ -z "${onshapeKeys.SECRET_KEY}" ]; then
+      echo -e "\033[1;31mWARNING: Onshape API keys (ACCESS_KEY, SECRET_KEY) are not defined in /etc/nixos/onshapeAPI/onshape-keys.nix. Please configure them before using the Onshape API.\033[0m"
+    else
+      export ONSHAPE_ACCESS_KEY=${onshapeKeys.ACCESS_KEY}
+      export ONSHAPE_SECRET_KEY=${onshapeKeys.SECRET_KEY}
+    fi
+
     echo "OpenSCAD, MeshLab (2020.07), and Onshape-to-Robot are ready to use."
   '';
 }
