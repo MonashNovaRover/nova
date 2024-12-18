@@ -1,0 +1,9 @@
+<library path="auger_hardware">
+  <class name="auger_hardware/AugerHardware"
+         type="auger_hardware::AugerHardware"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      ros2_control auger hardware interface.
+    </description>
+  </class>
+</library>
