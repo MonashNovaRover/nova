@@ -1,4 +1,4 @@
-% scale(1000) import("rightleg.stl");
+% scale(1000) import("right_leg.stl");
 
 // Append pure shapes (cube, cylinder and sphere), e.g:
 // cube([10, 10, 10], center=true);
