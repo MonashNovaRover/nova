@@ -167,6 +167,23 @@ self: super:
         '';
       });
 
+      controller-manager = rosSuper.controller-manager.overrideAttrs ({ prePatch ? "", patches ? [ ], nativeBuildInputs ? [ ], ... }: {
+        nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
+        patches = patches ++ [
+          (self.fetchpatch {
+            url = "https://github.com/ros-controls/ros2_control/commit/23bd1c3c06c30d706f010628d85133a7198e226d.patch";
+            hash = "sha256-bM3I5Q4J1DQNJuP2l3mxF7Kh/4DgjjKyRa5FBZS9t9s=";
+            stripLen = 2;
+            extraPrefix = "";
+            excludes = [ "release_notes.rst" ];
+          })
+        ];
+
+        prePatch = prePatch + ''
+          pwd 
+        '';
+      });
+
     } // (
       let
         fixRtabmapDependent = pkg: pkg.overrideAttrs ({ buildInputs ? [ ], ... }: {
