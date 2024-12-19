@@ -38,6 +38,13 @@ struct ControlInterface {
     double max {std::numeric_limits<double>::quiet_NaN()};
 };
 
+enum class ControlMode {
+    Undefined,
+    Position,
+    Velocity,
+    Effort,
+};
+
 class AugerHardware : public hardware_interface::SystemInterface
 {
 public:

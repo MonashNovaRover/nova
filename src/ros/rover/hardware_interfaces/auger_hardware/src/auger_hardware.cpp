@@ -83,7 +83,9 @@ hardware_interface::CallbackReturn AugerHardware::on_init(
             return CallbackReturn::ERROR;
         }
     }
-	
+
+    control_mode_ = auger_hardware::ControlMode::Undefined;
+
     bus_ = leigh::jcan::new_bus();
     can_setup();
 
@@ -102,49 +104,6 @@ hardware_interface::CallbackReturn AugerHardware::on_configure(
         RCLCPP_FATAL(rclcpp::get_logger(AugerHardwareLoggerName), "Failed to start canbus with error: %s",
                      e.what());
         return CallbackReturn::ERROR;
-    }
-
-
-        if (!mock_) {
-        //get min_interval
-            if (hw_velocity_.state.has_value()) {
-                RCLCPP_INFO_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                                   "Getting min interval on Auger " << can_id_);
-                auto min_interval = get_config<uint16_t>(AugerConfigCommand::MIN_INTERVAL);
-
-                if (min_interval.has_value()) {
-                    min_interval_ = min_interval.value();
-                    RCLCPP_INFO_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                                       "Min interval on Auger " << can_id_ << " is " << min_interval_);
-                } else {
-                    RCLCPP_FATAL_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                                        "Error getting min interval on Auger " << can_id_);
-                    return CallbackReturn::ERROR;
-                }
-        }
-
-        // check for resolver if there is a position interface
-        if (hw_position_.state.has_value() || hw_position_.command.has_value()) {
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                               "Checking for resolver on Auger " << can_id_);
-
-            auto resolver_check = get_config<uint16_t>(AugerConfigCommand::HAS_RESOLVER);
-            if (resolver_check.has_value()) {
-                if (resolver_check.value()) {
-                    RCLCPP_INFO_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                                       "Resolver detected on Auger " << can_id_);
-                    return CallbackReturn::SUCCESS;
-                } else {
-                    RCLCPP_FATAL_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                                        "No resolver detected on Auger " << can_id_);
-                    return CallbackReturn::ERROR;
-                }
-            }
-            RCLCPP_FATAL_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                                "Error with resolver request on Auger" << can_id_);
-            return CallbackReturn::ERROR;
-
-        }
     }
     
   return CallbackReturn::SUCCESS;
@@ -201,8 +160,8 @@ hardware_interface::return_type AugerHardware::write(
             break;
         case auger_hardware::ControlMode::Effort:
             if (hw_effort_.command.has_value()) {
-                send_scaled<int16_t>(make_can_id(AugerSendCommand::DRIVE_CURRENT),
-                                     hw_effort_.command.value() * reversed_multiplier_, hw_effort_.max);
+                send_scaled<int16_t>(can_id_,
+                                     hw_effort_.command.value(), hw_effort_.max);
             } else {
                 RCLCPP_FATAL(rclcpp::get_logger(AugerHardwareLoggerName), "No effort command");
                 return hardware_interface::return_type::ERROR;
