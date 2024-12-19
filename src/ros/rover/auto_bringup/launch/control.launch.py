@@ -33,7 +33,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['pivot_drive_controller'] #, '--inactive']
+            arguments=['pivot_drive_controller', '--switch-timeout', '10'] #, '--inactive']
         ),
         GroupAction(
             condition=UnlessCondition(gazebo),
