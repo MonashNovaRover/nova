@@ -72,52 +72,6 @@ hardware_interface::CallbackReturn AugerHardware::on_init(
     RCLCPP_INFO_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
                        "Got clock rate: " << clock_rate_);
 
-    auto revolution_pulses_search = info_.hardware_parameters.find("revolution_pulses");
-
-    if (revolution_pulses_search == info_.hardware_parameters.end()){
-        RCLCPP_FATAL(rclcpp::get_logger(AugerHardwareLoggerName), "No revolution pulses provided");
-        return CallbackReturn::ERROR;
-    }
-
-    revolution_pulses_ = std::stoul(revolution_pulses_search->second);
-
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                       "Resolver pulses: " << revolution_pulses_);
-
-    auto mock_search = info_.hardware_parameters.find("mock");
-    if (mock_search != info_.hardware_parameters.end() && mock_search->second == "true"){
-        mock_ = true;
-    }
-
-    auto reversed_search = info_.hardware_parameters.find("reversed");
-    if (reversed_search != info_.hardware_parameters.end() && reversed_search->second == "true"){
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                       "Interface is reversed");
-        reversed_multiplier_ = -1;
-    }
-
-    auto integrate_velocity_search = info_.hardware_parameters.find("integrate_velocity");
-    if (integrate_velocity_search != info_.hardware_parameters.end() && integrate_velocity_search->second == "true"){
-        RCLCPP_INFO_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                           "Integrating velocity to provide position estimate");
-        integrate_velocity_ = true;
-    }
-
-    auto min_interval_search = info_.hardware_parameters.find("min_interval");
-    if (min_interval_search != info_.hardware_parameters.end() && mock_){
-        min_interval_ = std::stol(min_interval_search->second);
-    }
-
-    auto gear_ratio_search = info_.hardware_parameters.find("gear_ratio");
-    if (gear_ratio_search == info_.hardware_parameters.end()){
-        RCLCPP_FATAL(rclcpp::get_logger(AugerHardwareLoggerName), "No gear ratio provided");
-        return CallbackReturn::ERROR;
-    }
-    gear_ratio_ = std::stod(gear_ratio_search->second);
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                       "Got gear ratio: " << gear_ratio_);
-
-
     for (const auto& interface : info_.joints[0].command_interfaces){
         if(!set_control_interface(interface, true)){
             return CallbackReturn::ERROR;
@@ -129,8 +83,6 @@ hardware_interface::CallbackReturn AugerHardware::on_init(
             return CallbackReturn::ERROR;
         }
     }
-
-    control_mode_ = auger_hardware::ControlMode::Undefined;
 	
     bus_ = leigh::jcan::new_bus();
     can_setup();
@@ -198,41 +150,9 @@ hardware_interface::CallbackReturn AugerHardware::on_configure(
   return CallbackReturn::SUCCESS;
 }
 
-template<typename T>
-std::optional<T> AugerHardware::get_config(BLCMDConfigCommand command) {
-
-    const leigh::jcan::Frame min_interval_request = {
-            make_can_id(AugerSendCommand::GET_CONFIG),
-            {static_cast<uint8_t>(command)},
-    };
-    auto start = std::chrono::steady_clock::now();
-    bus_->send(min_interval_request);
-
-    while (std::chrono::steady_clock::now() - start < std::chrono::seconds(1)) {
-        try {
-            auto frame = bus_->receive_with_timeout(1000);
-            if (frame.id == make_can_id(AugerReceiveCommand::CONFIG_DATA)) {
-                auto config_value = from_bytes<T>(&frame.data[0]);
-                return std::optional(config_value);
-            }
-        } catch (std::exception &e) {
-            return std::nullopt;
-        }
-    }
-    return std::nullopt;
-}
-
 std::vector<hardware_interface::StateInterface> AugerHardware::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
-  if (hw_position_.state.has_value()) {
-      state_interfaces.emplace_back(
-              info_.joints[0].name, hardware_interface::HW_IF_POSITION, &hw_position_.state.value());
-  }
-  if (hw_velocity_.state.has_value()) {
-      state_interfaces.emplace_back(
-              info_.joints[0].name, hardware_interface::HW_IF_VELOCITY, &hw_velocity_.state.value());
-  }
   if (hw_effort_.state.has_value()) {
       state_interfaces.emplace_back(
               info_.joints[0].name, hardware_interface::HW_IF_EFFORT, &hw_effort_.state.value());
@@ -244,14 +164,6 @@ std::vector<hardware_interface::StateInterface> AugerHardware::export_state_inte
 std::vector<hardware_interface::CommandInterface> AugerHardware::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
-    if (hw_position_.command.has_value()) {
-        command_interfaces.emplace_back(
-                info_.joints[0].name, hardware_interface::HW_IF_POSITION, &hw_position_.command.value());
-    }
-    if (hw_velocity_.command.has_value()) {
-        command_interfaces.emplace_back(
-                info_.joints[0].name, hardware_interface::HW_IF_VELOCITY, &hw_velocity_.command.value());
-    }
     if (hw_effort_.command.has_value()) {
         command_interfaces.emplace_back(
                 info_.joints[0].name, hardware_interface::HW_IF_EFFORT, &hw_effort_.command.value());
@@ -278,13 +190,6 @@ hardware_interface::return_type AugerHardware::read(
         const rclcpp::Time & time, const rclcpp::Duration & period)
 {
     bus_->spin();
-    if(integrate_velocity_ && hw_position_.state.has_value() && hw_velocity_.state.has_value()){
-        //RCLCPP_INFO_STREAM(rclcpp::get_logger(AugerHardwareLoggerName), "Velocity state: " << hw_velocity_.state.value()
-        //<< ", Position state: " << hw_position_.state.value() << ", Period: " << period.seconds());
-        hw_position_.state = hw_position_.state.value() + hw_velocity_.state.value()*period.seconds();
-        //RCLCPP_INFO_STREAM(rclcpp::get_logger(AugerHardwareLoggerName), "New position state: " << hw_position_.state.value());
-
-    }
     return hardware_interface::return_type::OK;
 }
 
@@ -293,28 +198,6 @@ hardware_interface::return_type AugerHardware::write(
 {
     switch(control_mode_){
         case auger_hardware::ControlMode::Undefined:
-            break;
-        case auger_hardware::ControlMode::Position:
-            if (hw_position_.command.has_value()) {
-                RCLCPP_DEBUG_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                                   "Sending Position Command " << hw_position_.command.value());
-                send_scaled<int16_t>(make_can_id(AugerSendCommand::DRIVE_POSITION),
-                                     hw_position_.command.value() * reversed_multiplier_, hw_position_.max);
-            } else {
-                RCLCPP_FATAL(rclcpp::get_logger(AugerHardwareLoggerName), "No position command");
-                return hardware_interface::return_type::ERROR;
-            }
-            break;
-        case auger_hardware::ControlMode::Velocity:
-            if (hw_velocity_.command.has_value()) {
-               RCLCPP_DEBUG_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                                  "Sending velocity command " << hw_velocity_.command.value() * reversed_multiplier_);
-                send_scaled<int16_t>(make_can_id(AugerSendCommand::DRIVE_VELOCITY),
-                                     hw_velocity_.command.value() * reversed_multiplier_, hw_velocity_.max);
-            } else {
-                RCLCPP_FATAL(rclcpp::get_logger(AugerHardwareLoggerName), "No velocity command");
-                return hardware_interface::return_type::ERROR;
-            }
             break;
         case auger_hardware::ControlMode::Effort:
             if (hw_effort_.command.has_value()) {
@@ -358,27 +241,6 @@ bool AugerHardware::stop_interface(const std::string &interface){
         return true;
     }
 
-    if (interface_name == hardware_interface::HW_IF_POSITION) {
-        if (control_mode_ == auger_hardware::ControlMode::Position) {
-            control_mode_ = auger_hardware::ControlMode::Undefined;
-            return true;
-        } else {
-            RCLCPP_FATAL_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                                "Requested stop position when control mode was not position");
-            return false;
-        }
-    }
-    if (interface_name == hardware_interface::HW_IF_VELOCITY) {
-        if (control_mode_ == auger_hardware::ControlMode::Velocity) {
-            hw_velocity_.command = 0.0;
-            control_mode_ = auger_hardware::ControlMode::Undefined;
-            return true;
-        } else {
-            RCLCPP_FATAL_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                                "Requested stop " << interface_name.c_str() << "when control mode was not velocity");
-            return false;
-        }
-    }
     if (interface_name == hardware_interface::HW_IF_EFFORT) {
         if (control_mode_ == auger_hardware::ControlMode::Effort) {
             hw_effort_.command = 0.0;
@@ -414,11 +276,7 @@ bool AugerHardware::start_interface(const std::string &interface){
         return false;
     }
 
-    if (interface_name == hardware_interface::HW_IF_POSITION){
-        control_mode_ = auger_hardware::ControlMode::Position;
-    } else if (interface_name == hardware_interface::HW_IF_VELOCITY){
-        control_mode_ = auger_hardware::ControlMode::Velocity;
-    } else if (interface_name == hardware_interface::HW_IF_EFFORT){
+    if (interface_name == hardware_interface::HW_IF_EFFORT){
         control_mode_ = auger_hardware::ControlMode::Effort;
     } else {
         RCLCPP_FATAL_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
@@ -432,30 +290,7 @@ bool AugerHardware::start_interface(const std::string &interface){
 // TODO: better error handling
 bool AugerHardware::set_control_interface(
         const hardware_interface::InterfaceInfo &interface_info, bool command) {
-    if(interface_info.name == hardware_interface::HW_IF_POSITION){
-        //TODO: deal with case with state interface and no command interface
-        if (command){
-            hw_position_.max = std::stod(interface_info.max);
-            auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
-            if (resolver_reduction_search == info_.joints[0].parameters.end()){
-                RCLCPP_FATAL(rclcpp::get_logger(AugerHardwareLoggerName), "No resolver reduction provided");
-                return false;
-            }
-            hw_position_.resolver_reduction = std::stod(resolver_reduction_search->second);
-            hw_position_.command = 0.0;
-        } else {
-            hw_position_.state = 0.0;
-        }
-    } else if(interface_info.name == hardware_interface::HW_IF_VELOCITY){
-        if(command) {
-            hw_velocity_.max = (clock_rate_)/(min_interval_*revolution_pulses_*gear_ratio_) * 2 * M_PI;
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-            "Configured velocity interface with max velocity: " << hw_velocity_.max);
-            hw_velocity_.command = 0.0;
-        } else {
-            hw_velocity_.state = 0.0;
-        }
-    } else if(interface_info.name == hardware_interface::HW_IF_EFFORT){
+    if(interface_info.name == hardware_interface::HW_IF_EFFORT){
         if(command){
             hw_effort_.max = std::stod(interface_info.max);;
             hw_effort_.command = 0.0;
@@ -470,94 +305,55 @@ bool AugerHardware::set_control_interface(
     return true;
 }
 
-    void AugerHardware::can_setup() {
-        std::vector<uint32_t> ids = {make_can_id(AugerReceiveCommand::CONFIG_DATA)};
-                if (hw_velocity_.state.has_value() || hw_effort_.state.has_value()) {
-            ids.push_back(make_can_id(TelemetryPacket::PACKET_1));
-        }
-        if (hw_position_.state.has_value() && !integrate_velocity_) {
-            ids.push_back(make_can_id(TelemetryPacket::PACKET_3));
-        }
-	bus_->set_id_filter(ids);
-        if (hw_velocity_.state.has_value() || hw_effort_.state.has_value()) {
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                               "Adding packet 1 callback to ID:" << make_can_id(TelemetryPacket::PACKET_1));
-            bus_->add_callback_to(make_can_id(TelemetryPacket::PACKET_1), this, &AugerHardware::packet_1_callback);
-        }
-        if (hw_position_.state.has_value() && !integrate_velocity_) {
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
-                               "Adding packet 3 callback to ID:" << make_can_id(TelemetryPacket::PACKET_3));
-            bus_->add_callback_to(make_can_id(TelemetryPacket::PACKET_3), this, &AugerHardware::packet_3_callback);
-        }
-        bus_->set_callbacks_enabled(false);
-   }
+void AugerHardware::can_setup() {
+    std::vector<uint32_t> ids = {
+	can_id_
+    };
 
-    uint32_t AugerHardware::make_can_id(BLCMDSendCommand command) const
-    {
-        return static_cast<uint32_t>(CanIdPrefix::SEND) << 8 | can_id_ << 4 |
-               static_cast<uint32_t>(command);
+    bus_->set_id_filter(ids);
+    if (hw_effort_.state.has_value()) {
+        RCLCPP_INFO_STREAM(rclcpp::get_logger(AugerHardwareLoggerName),
+                "Adding packet 1 callback to ID: " << can_id_);
+        bus_->add_callback_to(static_cast<int>(can_id_), this, &AugerHardware::packet_callback);
     }
+    bus_->set_callbacks_enabled(false);
+}
 
-    uint32_t AugerHardware::make_can_id(BLCMDReceiveCommand command) const
-    {
-        return static_cast<uint32_t>(CanIdPrefix::RECEIVE) << 8 | can_id_ << 4 |
-               static_cast<uint32_t>(command);
+void AugerHardware::packet_callback(leigh::jcan::Frame frame) {
+    if(hw_effort_.state.has_value()) {
+        hw_effort_.state = convert_scaled<int16_t>(&frame.data[2], hw_effort_.max);
     }
+}
 
-    uint32_t AugerHardware::make_can_id(TelemetryPacket packet) const
-    {
-        return static_cast<uint32_t>(CanIdPrefix::RECEIVE) << 8 | can_id_ << 4|
-               static_cast<uint32_t>(packet);
+template<typename T>
+double AugerHardware::convert_scaled(const uint8_t *bytes, double max) {
+    return static_cast<double>(from_bytes<T>(bytes))/ std::numeric_limits<T>::max() * max;
+}
+
+template<typename T>
+T AugerHardware::from_bytes(const uint8_t *bytes) {
+    T data = bytes[0];
+    for(unsigned int i = 1; i < sizeof(T); i++) {
+        data = data << 8 | bytes[i];
     }
+    return data;
+}
 
-    void AugerHardware::packet_1_callback(leigh::jcan::Frame frame) {
-        if(hw_velocity_.state.has_value()) {
+template<typename T>
+void AugerHardware::send_scaled(uint32_t id, double value, double max) {
+    T data = static_cast<T>( (abs(value) > max ? (value > 0 ? 1 : -1) : value/max)* std::numeric_limits<T>::max());
+    send_raw(id, data);
+}
 
-            hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max) * 
-            reversed_multiplier_;
-
-        }
-        if(hw_effort_.state.has_value()) {
-            hw_effort_.state = convert_scaled<int16_t>(&frame.data[2], hw_effort_.max);
-        }
+template<typename T>
+void AugerHardware::send_raw(const uint32_t id, T data) {
+    leigh::jcan::Frame frame;
+    frame.id = id;
+    for(unsigned int i = 0; i < sizeof(T); i++) {
+        frame.data.push_back(data >> 8*(sizeof(T) - (i + 1)) & 0xFF);
     }
-
-    void AugerHardware::packet_3_callback(leigh::jcan::Frame frame) {
-        if(hw_position_.state.has_value()) {
-            hw_position_.state = convert_scaled<int16_t>(&frame.data[0], hw_position_.max) *
-                                 hw_position_.resolver_reduction * reversed_multiplier_;
-        }
-    }
-
-    template<typename T>
-    double AugerHardware::convert_scaled(const uint8_t *bytes, double max) {
-        return static_cast<double>(from_bytes<T>(bytes))/ std::numeric_limits<T>::max() * max;
-    }
-
-    template<typename T>
-    T AugerHardware::from_bytes(const uint8_t *bytes) {
-        T data = bytes[0];
-        for(unsigned int i = 1; i < sizeof(T); i++) {
-            data = data << 8 | bytes[i];
-        }
-        return data;
-    }
-
-    template<typename T>
-    void AugerHardware::send_scaled(uint32_t id, double value, double max) {
-        T data = static_cast<T>( (abs(value) > max ? (value > 0 ? 1 : -1) : value/max)* std::numeric_limits<T>::max());
-        send_raw(id, data);
-    }
-
-    template<typename T>
-    void AugerHardware::send_raw(const uint32_t id, T data) {
-        leigh::jcan::Frame frame;
-        frame.id = id;
-        for(unsigned int i = 0; i < sizeof(T); i++) {
-            frame.data.push_back(data >> 8*(sizeof(T) - (i + 1)) & 0xFF);
-        }
-        bus_->send(frame);
-    }
+    bus_->send(frame);
+}
 
 }  // namespace auger_hardware
 
