@@ -1,0 +1,49 @@
+name: Check PR Approval
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
+      - ready_for_review
+      - review_requested
+      - review_request_removed
+
+jobs:
+  check-approval:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Check PR approval status
+      - name: Check if PR is approved
+        id: check-approval
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { context } = require('@actions/github');
+            const pullRequest = context.payload.pull_request;
+
+            if (!pullRequest) {
+              throw new Error("This action can only be run on pull request events.");
+            }
+
+            const reviews = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pullRequest.number
+            });
+
+            // Check if at least one review has 'APPROVED' status
+            const hasApproval = reviews.data.some(review => review.state === 'APPROVED');
+
+            if (!hasApproval) {
+              throw new Error("Pull request has not been approved.");
+            } else {
+              console.log("Pull request has been approved.");
+            }

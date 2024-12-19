@@ -1,0 +1,17 @@
+name: PR approved 🔎
+
+on:
+  pull_request:
+  pull_request_review:
+    types: [submitted]
+
+
+jobs:
+  check-approval-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check approval status
+      - run: |
+        echo ${{ github.event.review.state }}
+
+        if [[ ${{ github.event.review.state }} ]] 
