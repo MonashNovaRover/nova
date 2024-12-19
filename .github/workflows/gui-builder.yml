@@ -19,4 +19,4 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Run `nova-build`
-        run: nova-build -A pkgs.ros.nova-gui
+        run: nix-build nixfiles -A pkgs.ros.nova-gui
