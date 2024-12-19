@@ -12,6 +12,4 @@ jobs:
     steps:
       - name: Check approval status
       - run: |
-        echo ${{ github.event.review.state }}
-
-        if [[ ${{ github.event.review.state }} ]] 
+          echo ${{ github.event.review.state }}
