@@ -51,17 +51,17 @@
         </inertial>
     </link>
 
-    <link name="rightleg">
+    <link name="right_leg">
         <visual>
             <origin xyz="-7.9461177221464552678e-19 -7.285838599104098493e-20 -0.02099999999999946354" rpy="3.141592653589793116 3.7838655819744073932e-17 2.5353252380137503331e-18" />
             <geometry>
-                <mesh filename="file://$(find rover_description)/base/meshes/rightleg.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/right_leg.stl"/>
             </geometry>
-            <material name="rightleg_material">
+            <material name="right_leg_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
             </material>
         </visual>
-        <!-- Shapes for rightleg -->
+        <!-- Shapes for right_leg -->
         <collision>
             <origin xyz="-7.9461177221464552678e-19 -7.285838599104098493e-20 -0.02099999999999946354" rpy="3.141592653589793116 3.7838655819744073932e-17 2.5353252380137503331e-18" />
             <geometry>
@@ -218,7 +218,7 @@
 
     <joint name="frp" type="revolute">
         <origin xyz="-0.47013767878255968702 0.026528595964174069011 0.083618142936957629008" rpy="-1.5707963267948923392 0.8652479366072932665 -3.11484211882162354" />
-        <parent link="rightleg" />
+        <parent link="right_leg" />
         <child link="fr_ankle" />
         <axis xyz="0 0 -1"/>
         <limit effort="20" velocity="20" lower="-3.141592653589793116" upper="3.141592653589793116"/>
@@ -320,7 +320,7 @@
 
     <joint name="brp" type="revolute">
         <origin xyz="0.47757721986905643519 0.051886525235696055736 0.086037700396842498041" rpy="1.5707963267948947816 0.86524793660728771538 0.02675053476816627307" />
-        <parent link="rightleg" />
+        <parent link="right_leg" />
         <child link="br_ankle" />
         <axis xyz="0 0 -1"/>
         <limit effort="20" velocity="20" lower="-3.141592653589793116" upper="3.141592653589793116"/>
@@ -330,23 +330,23 @@
     <joint name="r_leg" type="continuous">
         <origin xyz="-4.511276110173610435e-17 -0.32285000000001146114 -2.4144264060824868906e-16" rpy="-1.5707963267948972241 -0.04120766744252004482 -3.141592653589793116" />
         <parent link="chassis" />
-        <child link="rightleg" />
+        <child link="right_leg" />
         <axis xyz="0 0 1"/>
         <limit effort="20" velocity="20" />
         <joint_properties friction="0.0"/>
     </joint>
 
-    <link name="leftleg">
+    <link name="left_leg">
         <visual>
             <origin xyz="-1.307880673257705575e-20 8.6736173798839122125e-19 -0.021000000000000518252" rpy="3.141592653589793116 6.2280032059899110289e-19 6.6901195618365661673e-19" />
             <geometry>
-                <mesh filename="file://$(find rover_description)/base/meshes/leftleg.stl"/>
+                <mesh filename="file://$(find rover_description)/base/meshes/left_leg.stl"/>
             </geometry>
-            <material name="leftleg_material">
+            <material name="left_leg_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
             </material>
         </visual>
-        <!-- Shapes for leftleg -->
+        <!-- Shapes for left_leg -->
         <collision>
             <origin xyz="-1.307880673257705575e-20 8.6736173798839122125e-19 -0.021000000000000518252" rpy="3.141592653589793116 6.2280032059899110289e-19 6.6901195618365661673e-19" />
             <geometry>
@@ -503,7 +503,7 @@
 
     <joint name="flp" type="revolute">
         <origin xyz="-0.47964586704902811842 -0.025616433642942935955 0.086267061908379294444" rpy="-1.570796326794896558 -0.865247936793150485 -0.028123902821395457829" />
-        <parent link="leftleg" />
+        <parent link="left_leg" />
         <child link="fl_ankle" />
         <axis xyz="0 0 -1"/>
         <limit effort="20" velocity="20" lower="-3.141592653589793116" upper="3.141592653589793116"/>
@@ -605,7 +605,7 @@
 
     <joint name="blp" type="revolute">
         <origin xyz="0.47750427808995571377 -0.052542330732558047146 0.086042547141643943576" rpy="1.5707963267948954478 -0.86524793660727672417 3.1134687507683778129" />
-        <parent link="leftleg" />
+        <parent link="left_leg" />
         <child link="bl_ankle" />
         <axis xyz="0 0 -1"/>
         <limit effort="20" velocity="20" lower="-3.141592653589793116" upper="3.141592653589793116"/>
@@ -615,7 +615,7 @@
     <joint name="l_leg" type="continuous">
         <origin xyz="-3.4940027607927698323e-17 0.32284999999999253184 1.4340253524620971087e-16" rpy="1.5707963267948961139 -0.042581035495765612309 -3.141592653589793116" />
         <parent link="chassis" />
-        <child link="leftleg" />
+        <child link="left_leg" />
         <axis xyz="0 0 1"/>
         <limit effort="20" velocity="20" />
         <joint_properties friction="0.0"/>

@@ -3,14 +3,14 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <gazebo>
         <plugin filename="libgz-sim-detachable-joint-system.so" name="gz::sim::systems::DetachableJoint">
-            <parent_link>leftleg</parent_link>
+            <parent_link>left_leg</parent_link>
             <child_model>$(arg robot_name)</child_model>
             <child_link>diffend</child_link>
             <output_topic>close_loop_left</output_topic>
         </plugin>
         
         <plugin filename="libgz-sim-detachable-joint-system.so" name="gz::sim::systems::DetachableJoint">
-            <parent_link>rightleg</parent_link>
+            <parent_link>right_leg</parent_link>
             <child_model>$(arg robot_name)</child_model>
             <child_link>diffend_2</child_link>
             <output_topic>close_loop_right</output_topic>
