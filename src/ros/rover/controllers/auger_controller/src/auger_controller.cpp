@@ -10,6 +10,7 @@ AUTHOR(S):	Arbab Ahmed
 #include "auger_controller/auger_controller.hpp"
 #include <string>
 
+using std::placeholders::_1;
 namespace auger_controller
 {
 
@@ -53,38 +54,38 @@ namespace auger_controller
 	drill_max_velocity = node.get_parameter(DRILL_MAX_VELOCITY_PARAM).as_int();
 
 	joystick_l_sub = node.create_subscription<input_interfaces::msg::InputJoystick>("/inputs/input_joystick_l", 
-			rclcpp::SystemDefaultsQoS(), &AugerController::joystick_l_callback);
+			rclcpp::SystemDefaultsQoS(), std::bind(&AugerController::joystick_l_callback, this, _1));
 	joystick_r_sub = node.create_subscription<input_interfaces::msg::InputJoystick>("/inputs/input_joystick_r", 
-			rclcpp::SystemDefaultsQoS(), &AugerController::joystick_r_callback);
+			rclcpp::SystemDefaultsQoS(), std::bind(&AugerController::joystick_r_callback, this, _1));
 
 	return CallbackReturn::SUCCESS;
   }
 
   controller_interface::CallbackReturn AugerController::on_activate(const rclcpp_lifecycle::State &previous_state)
   {
-
+	return controller_interface::CallbackReturn::SUCCESS;
   }
 
 
   controller_interface::CallbackReturn AugerController::on_deactivate(const rclcpp_lifecycle::State &previous_state)
   {
-
+	return controller_interface::CallbackReturn::SUCCESS;
   }
 
   controller_interface::CallbackReturn AugerController::on_cleanup(const rclcpp_lifecycle::State &previous_state)
   {
-
+	return controller_interface::CallbackReturn::SUCCESS;
   }
 
 
   controller_interface::CallbackReturn AugerController::on_error(const rclcpp_lifecycle::State &previous_state)
   {
-
+	return controller_interface::CallbackReturn::SUCCESS;
   }
 
   controller_interface::CallbackReturn AugerController::on_shutdown(const rclcpp_lifecycle::State &previous_state)
   {
-
+	return controller_interface::CallbackReturn::SUCCESS;
   }
 
   void AugerController::stop_auger()
