@@ -28,6 +28,9 @@ in
         enable = true;
         userName = "Monash Nova Rover";
         userEmail = "novaroverteam@monash.edu";
+        lfs = {
+          enable = true;
+        };
       };
       gh.enable = true;
 
