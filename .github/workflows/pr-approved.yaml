@@ -11,5 +11,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check approval status
-      - run: |
+        run: |
           echo ${{ github.event.review.state }}
