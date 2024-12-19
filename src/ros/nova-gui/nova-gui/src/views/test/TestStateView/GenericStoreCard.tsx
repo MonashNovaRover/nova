@@ -9,6 +9,8 @@ export default function GenericStoreCard() {
 
     const [counter, setCounter] = useGenericStore<number>("counter");
 
+    counter.append(5)
+
     if (counter === undefined) {
       return <div/>
     }
