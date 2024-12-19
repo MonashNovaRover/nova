@@ -79,7 +79,7 @@
       nova-python-control
       nova-excavation-construction
       nova-utils
-      auger-controller;
+      nova-auger-controller;
   }
 
   ## Extra packages to add to the workspace.
