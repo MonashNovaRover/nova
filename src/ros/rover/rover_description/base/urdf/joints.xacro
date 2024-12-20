@@ -168,10 +168,11 @@
     </link>
 
     <joint name="diffbar_slide" type="prismatic">
+        <origin xyz="0 0 0.002" rpy="0 0 0" />
         <parent link="diffbar_mount" />
         <child link="diffbar" />
         <axis xyz="0 0 1"/>
-        <limit effort="20" velocity="20" lower="-0.01" upper="0"/>
+        <limit effort="20" velocity="20" lower="0" upper="0.007"/>
         <joint_properties friction="0.0"/>
     </joint>
 </robot>
