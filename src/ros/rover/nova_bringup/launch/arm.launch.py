@@ -19,13 +19,122 @@ CREATION:	17/12/2021
 
 # Include the required launch parameters
 from launch import LaunchDescription
-from launch_ros.actions import Node
-from launch_ros.substitutions import FindPackageShare
 from ament_index_python.packages import get_package_share_path
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
+
+
+def launch_setup(context, *args, **kwargs):
+    sim = LaunchConfiguration('sim')
+    urdf = LaunchConfiguration('urdf')
+    urdf_path = LaunchConfiguration('urdf_path')
+    rover_urdf = LaunchConfiguration('rover_urdf')
+    namespace = LaunchConfiguration('namespace')
+    chassis_cam = LaunchConfiguration('chassis_cam')
+
+    return [
+        Node(
+            package='arm', 
+            executable='arm_inputs', 
+            namespace=namespace,
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='arm', 
+            executable='arm_twistmapper', 
+            namespace=namespace,
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='arm', 
+            executable='arm_control', 
+            namespace=namespace,
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='arm', 
+            executable='arm_driver', 
+            namespace=namespace,
+            output='screen', 
+            emulate_tty=True, 
+            condition=UnlessCondition(sim),
+        ),
+        Node(
+            package='arm', 
+            executable='resolver_publisher.py', 
+            namespace=namespace,
+            condition=UnlessCondition(sim), 
+            parameters=[arm_params],
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='arm', 
+            executable='arm_rviz_publisher', 
+            namespace=namespace,
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='cmd_utils', 
+            executable='CMD_publisher.py', 
+            namespace=namespace,
+            condition=UnlessCondition(sim), 
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='arm', 
+            executable='resolver_spoofer', 
+            namespace=namespace,
+            output='screen', 
+            condition=IfCondition(sim), 
+            emulate_tty=True,
+        ),
+        Node(
+            package='arm', 
+            executable='hex_key.py', 
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='arm',
+            executable='lazers.py',
+            output='screen',
+            emulate_tty=True
+        ),
+        Node(
+            package='gimbal_cam', 
+            executable='gimbal_cam',
+            parameters=[{'chassis_cam': chassis_cam}],
+            output='screen', 
+            emulate_tty=True,
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution(
+                    [
+                        FindPackageShare('nova_bringup'),
+                        'launch',
+                        'urdf.launch.py'
+                    ]
+                )
+            ),
+            launch_arguments = {
+                "arm_urdf_path": LaunchConfiguration('arm_urdf_path'),
+                "arm": LaunchConfiguration('arm_urdf'),
+                "rover": LaunchConfiguration('rover_urdf')
+            }.items(),
+            condition=IfCondition(urdf)
+        ),
+    ]
 
 # Generate the launch file with all inputs
 def generate_launch_description():
@@ -33,14 +142,7 @@ def generate_launch_description():
     arm_params = PathJoinSubstitution([FindPackageShare('nova_bringup'), 'params', 'arm_params.yaml'])
     description_dir = FindPackageShare('rover_description')
 
-    sim = LaunchConfiguration('sim')
-    urdf = LaunchConfiguration('urdf')
-    urdf_path = LaunchConfiguration('urdf_path')
-    rover_urdf = LaunchConfiguration('rover_urdf')
-    namespace = LaunchConfiguration('namespace')
-    chassis_cam = LaunchConfiguration('chassis_cam')
-    
-    return LaunchDescription([      
+    declared_arguments = [
         DeclareLaunchArgument(
             'sim', 
             default_value='False'
@@ -84,113 +186,8 @@ def generate_launch_description():
             'chassis_cam',
             default_value = 'False'
         ),
+    ]
 
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                PathJoinSubstitution(
-                    [
-                        FindPackageShare('nova_bringup'),
-                        'launch',
-                        'urdf.launch.py'
-                    ]
-                )
-            ),
-            launch_arguments = {
-                "arm_urdf_path": LaunchConfiguration('arm_urdf_path'),
-                "arm": LaunchConfiguration('arm_urdf'),
-                "rover": LaunchConfiguration('rover_urdf')
-            }.items(),
-            condition=IfCondition(urdf)
-        ),
-
-        Node(
-            package='arm', 
-            executable='arm_inputs', 
-            namespace=namespace,
-            output='screen', 
-            emulate_tty=True
-        ),
-
-        Node(
-            package='arm', 
-            executable='arm_twistmapper', 
-            namespace=namespace,
-            output='screen', 
-            emulate_tty=True
-        ),
-
-        Node(
-            package='arm', 
-            executable='arm_control', 
-            namespace=namespace,
-            output='screen', 
-            emulate_tty=True
-        ),
-
-        Node(
-            package='arm', 
-            executable='arm_driver', 
-            namespace=namespace,
-            output='screen', 
-            emulate_tty=True, 
-            condition=UnlessCondition(sim)
-        ),
-
-        Node(
-            package='arm', 
-            executable='resolver_publisher.py', 
-            namespace=namespace,
-            condition=UnlessCondition(sim), 
-            parameters=[arm_params],
-            output='screen', 
-            emulate_tty=True
-        ),
-
-        Node(
-            package='arm', 
-            executable='arm_rviz_publisher', 
-            namespace=namespace,
-            output='screen', 
-            emulate_tty=True
-        ),
-
-        Node(
-            package='cmd_utils', 
-            executable='CMD_publisher.py', 
-            namespace=namespace,
-            condition=UnlessCondition(sim), 
-            output='screen', 
-            emulate_tty=True
-        ),
-
-        Node(
-            package='arm', 
-            executable='resolver_spoofer', 
-            namespace=namespace,
-            output='screen', 
-            condition=IfCondition(sim), 
-            emulate_tty=True
-        ),
-
-        Node(
-            package='arm', 
-            executable='hex_key.py', 
-            output='screen', 
-            emulate_tty=True
-        ),
-        
-        Node(
-            package='arm',
-            executable='lazers.py',
-            output='screen',
-            emulate_tty=True
-        ),
-
-        Node(
-            package='gimbal_cam', 
-            executable='gimbal_cam',
-            parameters=[{'chassis_cam':chassis_cam}],
-            output='screen', 
-            emulate_tty=True
-        ),
-    ])
+    return LaunchDescription(
+        declared_arguments + [OpaqueFunction(function=launch_setup)]
+    )
