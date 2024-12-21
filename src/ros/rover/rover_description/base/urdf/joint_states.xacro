@@ -14,8 +14,7 @@
             <joint_name>frw</joint_name>
             <joint_name>chassis_to_right_leg</joint_name>
             <joint_name>chassis_to_left_leg</joint_name>
-            <joint_name>chassis_to_diffbar_axle_dummy</joint_name>
-            <joint_name>diffbar_axle_dummy_to_diffbar</joint_name>
+            <joint_name>chassis_to_diffbar</joint_name>
             <joint_name>tl_ball_roll</joint_name>
             <joint_name>tl_ball_pitch</joint_name>
             <joint_name>tl_ball_yaw</joint_name>
