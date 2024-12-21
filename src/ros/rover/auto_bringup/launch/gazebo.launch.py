@@ -121,12 +121,12 @@ def generate_launch_description():
             default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto.sdf']),
             description='Full path to world model file to load',
         ),
-        DeclareLaunchArgument(name='x', default_value='-2.0', description='x_pose'),
-        DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
-        DeclareLaunchArgument(name='z', default_value='0.00', description='z_pose'),
-        DeclareLaunchArgument(name='R', default_value='0.00', description='roll'),
-        DeclareLaunchArgument(name='P', default_value='0.00', description='pitch'),
-        DeclareLaunchArgument(name='Y', default_value='0.00', description='yaw'),
+        DeclareLaunchArgument(name='x', default_value='11.2123871', description='x_pose'),
+        DeclareLaunchArgument(name='y', default_value='-10.1349831', description='y_pose'),
+        DeclareLaunchArgument(name='z', default_value='0.5', description='z_pose'),
+        DeclareLaunchArgument(name='R', default_value='0.0', description='roll'),
+        DeclareLaunchArgument(name='P', default_value='0.0', description='pitch'),
+        DeclareLaunchArgument(name='Y', default_value='2.5740044', description='yaw'),
     ]
 
     return LaunchDescription(  
