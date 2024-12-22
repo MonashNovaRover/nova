@@ -4,16 +4,16 @@
     <gazebo>
         <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
             <topic>joint_states</topic>
-            <joint_name>blp</joint_name>
-            <joint_name>brp</joint_name>
-            <joint_name>flp</joint_name>
-            <joint_name>frp</joint_name>
-            <joint_name>blw</joint_name>
-            <joint_name>brw</joint_name>
-            <joint_name>flw</joint_name>
-            <joint_name>frw</joint_name>
-            <joint_name>chassis_to_right_leg</joint_name>
             <joint_name>chassis_to_left_leg</joint_name>
+            <joint_name>flp</joint_name>
+            <joint_name>flw</joint_name>
+            <joint_name>blp</joint_name>
+            <joint_name>blw</joint_name>
+            <joint_name>chassis_to_right_leg</joint_name>
+            <joint_name>frp</joint_name>
+            <joint_name>frw</joint_name>
+            <joint_name>brp</joint_name>
+            <joint_name>brw</joint_name>
             <joint_name>chassis_to_diffbar</joint_name>
             <joint_name>tl_ball_roll</joint_name>
             <joint_name>tl_ball_pitch</joint_name>
