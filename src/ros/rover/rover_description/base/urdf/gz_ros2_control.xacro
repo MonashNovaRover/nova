@@ -21,20 +21,6 @@
       </state_interface>
     </joint>
 
-    <joint name='frw'>
-      <command_interface name="velocity">
-        <param name="min">-50</param>
-        <param name="max">50</param>
-      </command_interface>
-
-      <state_interface name="velocity">
-        <param name="initial_value">0.0</param>
-      </state_interface>
-      <state_interface name="position">
-        <param name="initial_value">0.0</param>
-      </state_interface>
-    </joint>
-
     <joint name='blw'>
       <command_interface name="velocity">
         <param name="min">-50</param>
@@ -47,6 +33,20 @@
       <state_interface name="position">
         <param name="initial_value">0.0</param>
       </state_interface>           
+    </joint>
+
+    <joint name='frw'>
+      <command_interface name="velocity">
+        <param name="min">-50</param>
+        <param name="max">50</param>
+      </command_interface>
+
+      <state_interface name="velocity">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
     </joint>
 
     <joint name='brw'>
@@ -81,7 +81,7 @@
       </state_interface>
     </joint>
 
-    <joint name="frp">
+    <joint name="blp">
       <command_interface name="position">
         <param name="min">-${pi}</param>
         <param name="max">${pi}</param>
@@ -99,7 +99,7 @@
       </state_interface>
     </joint>
 
-    <joint name="blp">
+    <joint name="frp">
       <command_interface name="position">
         <param name="min">-${pi}</param>
         <param name="max">${pi}</param>
@@ -139,7 +139,7 @@
 
   <gazebo>
     <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-        <parameters>$(find auto_bringup)/params/controllers.yaml</parameters>
+      <parameters>$(find auto_bringup)/params/controllers.yaml</parameters>
     </plugin>
   </gazebo>
 

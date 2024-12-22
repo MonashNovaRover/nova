@@ -54,7 +54,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'True'}.items(),
+            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name}.items(),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
@@ -103,7 +103,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='model', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'urdf', 'rover.urdf.xacro']), 
+            default_value=PathJoinSubstitution([rover_description_dir, 'base', 'urdf', 'rover.urdf.xacro']), 
             description='Absolute path to robot urdf file',
         ),
         DeclareLaunchArgument(
@@ -113,7 +113,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='robot_name',
-            default_value='Waratah',
+            default_value='Rover7',
             description='name of the robot',
         ),
         DeclareLaunchArgument(
@@ -121,12 +121,12 @@ def generate_launch_description():
             default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto.sdf']),
             description='Full path to world model file to load',
         ),
-        DeclareLaunchArgument(name='x', default_value='0.0', description='x_pose'),
-        DeclareLaunchArgument(name='y', default_value='0.0', description='y_pose'),
-        DeclareLaunchArgument(name='z', default_value='2.0', description='z_pose'),
+        DeclareLaunchArgument(name='x', default_value='11.2123871', description='x_pose'),
+        DeclareLaunchArgument(name='y', default_value='-10.1349831', description='y_pose'),
+        DeclareLaunchArgument(name='z', default_value='0.5', description='z_pose'),
         DeclareLaunchArgument(name='R', default_value='0.0', description='roll'),
         DeclareLaunchArgument(name='P', default_value='0.0', description='pitch'),
-        DeclareLaunchArgument(name='Y', default_value='0.0', description='yaw'),
+        DeclareLaunchArgument(name='Y', default_value='2.5740044', description='yaw'),
     ]
 
     return LaunchDescription(  
