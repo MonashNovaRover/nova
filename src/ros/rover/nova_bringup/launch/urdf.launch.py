@@ -90,12 +90,12 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             name='rover_urdf_path', 
-            default_value=PathJoinSubstitution([description_dir, 'urdf', 'rover.urdf.xacro']),
+            default_value=PathJoinSubstitution([description_dir, 'base', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to rover urdf file'
         ),
         DeclareLaunchArgument(
             name='arm_urdf_path', 
-            default_value=PathJoinSubstitution([description_dir, 'urdf', 'arm.urdf.xacro']),
+            default_value=PathJoinSubstitution([description_dir, 'arm', 'urdf', 'arm.urdf.xacro']),
             description='Absolute path to arm urdf file'
         ),
         DeclareLaunchArgument(

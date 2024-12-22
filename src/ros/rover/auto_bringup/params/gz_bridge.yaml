@@ -42,7 +42,7 @@
 
 # gz pose to ros
 - ros_topic_name: "/odom/gazebo"
-  gz_topic_name: "/model/Waratah/pose"
+  gz_topic_name: "/model/Rover7/pose"
   ros_type_name: "geometry_msgs/msg/Pose"
   gz_type_name: "gz.msgs.Pose"
   direction: GZ_TO_ROS
@@ -52,4 +52,11 @@
   gz_topic_name: "/odom"
   ros_type_name: "nav_msgs/msg/Odometry"
   gz_type_name: "gz.msgs.Odometry"
+  direction: GZ_TO_ROS
+
+# gz dynamic joint states to ros
+- ros_topic_name: "/joint_states"
+  gz_topic_name: "/joint_states"
+  ros_type_name: "sensor_msgs/msg/JointState"
+  gz_type_name: "gz.msgs.Model"
   direction: GZ_TO_ROS
