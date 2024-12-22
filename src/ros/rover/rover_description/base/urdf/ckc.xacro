@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Handle custom joints that are not supported by gazebo -->
+<!-- To create ball joints, the origin from the generated revolute joints have been copied to the first axis of the ball joint (roll) 
+     The generated revolute joints were then deleted. -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+    <!-- Plugin to allow Closed Kinetic Chains for Rover 
+         Defines a fixed joint between a dummy link with the inertia of the "diffend" (part of leg attached to the difflink) and the leg on each side
+         See Onshape for more details.
+    -->
+    <gazebo>
+        <plugin filename="libgz-sim-detachable-joint-system.so" name="gz::sim::systems::DetachableJoint">
+            <parent_link>left_leg</parent_link>
+            <child_model>$(arg robot_name)</child_model>
+            <child_link>left_diffend_dummy</child_link>
+            <output_topic>close_loop_left</output_topic>
+        </plugin>
+        
+        <plugin filename="libgz-sim-detachable-joint-system.so" name="gz::sim::systems::DetachableJoint">
+            <parent_link>right_leg</parent_link>
+            <child_model>$(arg robot_name)</child_model>
+            <child_link>right_diffend_dummy</child_link>
+            <output_topic>close_loop_right</output_topic>
+        </plugin>
+    </gazebo>
+
+    <!-- Ball joint for top left on diff bar-->
+    <link name="tl_ball">
+        <inertial>
+        <mass value="0.00001"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <link name="tl_ball_dummy">
+        <inertial>
+        <mass value="0.00001"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <joint name="tl_ball_roll" type="revolute">
+        <parent link="diffbar"/>
+        <child link="tl_ball"/>
+        <origin xyz="0.38332334967291109562 -0.067590248755372728251 -0.010000000000001008083" rpy="-1.2881840847457926014 -1.0674573312881561193 -1.7779955883383502524" />
+        <axis xyz="1 0 0"/>
+        <limit effort="20" velocity="20" lower="-0.26179938779914940783" upper="0.26179938779914940783"/>
+    </joint>
+
+    <joint name="tl_ball_pitch" type="revolute">
+        <parent link="tl_ball"/>
+        <child link="tl_ball_dummy"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="20" velocity="20" lower="-0.26179938779914940783" upper="0.26179938779914940783"/>
+    </joint>
+
+    <joint name="tl_ball_yaw" type="continuous">
+        <parent link="tl_ball_dummy"/>
+        <child link="left_difflink"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="20" velocity="20" />
+    </joint>
+
+    <!-- Ball joint for bottom left on diff bar-->
+    <link name="bl_ball">
+        <inertial>
+        <mass value="0.00001"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <link name="bl_ball_dummy">
+        <inertial>
+        <mass value="0.00001"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <joint name="bl_ball_roll" type="revolute">
+        <parent link="left_difflink"/>
+        <child link="bl_ball"/>
+        <origin xyz="-2.720046410331633524e-15 -0.11550000000000196221 3.6082248300317587564e-15" rpy="-3.1415926535897891192 0.2009365307950475299 3.1415926535897802374" />
+        <axis xyz="1 0 0"/>
+        <limit effort="20" velocity="20" lower="-0.26179938779914940783" upper="0.26179938779914940783"/>
+    </joint>
+
+    <joint name="bl_ball_pitch" type="revolute">
+        <parent link="bl_ball"/>
+        <child link="bl_ball_dummy"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="20" velocity="20" lower="-0.26179938779914940783" upper="0.26179938779914940783"/>
+    </joint>
+
+    <joint name="bl_ball_yaw" type="continuous">
+        <parent link="bl_ball_dummy"/>
+        <child link="left_diffend_dummy"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="20" velocity="20" />
+    </joint>
+
+        <!-- Ball joint for top right on diff bar-->
+    <link name="tr_ball">
+        <inertial>
+        <mass value="0.00001"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <link name="tr_ball_dummy">
+        <inertial>
+        <mass value="0.00001"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <joint name="tr_ball_roll" type="revolute">
+        <parent link="diffbar"/>
+        <child link="tr_ball"/>
+        <origin xyz="-0.3833233496293029785 -0.067590249002697777581 -0.0099999999999998423483" rpy="-1.9920835247378900768 -1.038397915447168085 -1.2040941380156902074" />
+        <axis xyz="1 0 0"/>
+        <limit effort="20" velocity="20" lower="-0.26179938779914940783" upper="0.26179938779914940783"/>
+    </joint>
+
+    <joint name="tr_ball_pitch" type="revolute">
+        <parent link="tr_ball"/>
+        <child link="tr_ball_dummy"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="20" velocity="20" lower="-0.26179938779914940783" upper="0.26179938779914940783"/>
+    </joint>
+
+    <joint name="tr_ball_yaw" type="continuous">
+        <parent link="tr_ball_dummy"/>
+        <child link="right_difflink"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="20" velocity="20" />
+    </joint>
+
+    <!-- Ball joint for bottom right on diff bar-->
+    <link name="br_ball">
+        <inertial>
+        <mass value="0.00001"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <link name="br_ball_dummy">
+        <inertial>
+        <mass value="0.00001"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <joint name="br_ball_roll" type="revolute">
+        <parent link="right_difflink"/>
+        <child link="br_ball"/>
+        <origin xyz="1.3655743202889425447e-14 -0.11549999999999870093 -5.9952043329758453183e-15" rpy="-3.6772342970642588874e-15 -0.42892757732776881641 -3.141592653589728279" />
+        <axis xyz="1 0 0"/>
+        <limit effort="20" velocity="20" lower="-0.26179938779914940783" upper="0.26179938779914940783"/>
+    </joint>
+
+    <joint name="br_ball_pitch" type="revolute">
+        <parent link="br_ball"/>
+        <child link="br_ball_dummy"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="20" velocity="20" lower="-0.26179938779914940783" upper="0.26179938779914940783"/>
+    </joint>
+
+    <joint name="br_ball_yaw" type="continuous">
+        <parent link="br_ball_dummy"/>
+        <child link="right_diffend_dummy"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="20" velocity="20" />
+    </joint>
+</robot>

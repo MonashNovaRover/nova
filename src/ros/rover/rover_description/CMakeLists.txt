@@ -23,8 +23,8 @@ find_package(ament_cmake REQUIRED)
 
 # Add all the installation directories
 install(DIRECTORY
-  meshes
-  urdf 
+  arm
+  base 
   DESTINATION share/${PROJECT_NAME}
 )
 
