@@ -1,7 +1,7 @@
 /**
  * @file teleop_drive_joy.cpp
  * @brief Teleop Drive Joy node to translate Joy messages from /joy to Drive commands
- * Last Edited by Kabi
+ * Edited by Kabi, Rohit, Victor
  */
 
 #include "teleop_drive_joy/teleop_drive_joy.hpp"
@@ -128,6 +128,8 @@ namespace teleop_drive_joy
     }
     else
     {
+      if (!sent_lock_msg)
+      {
       auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
       cmd_vel_pub->publish(std::move(cmd_vel_msg));
 
@@ -137,6 +139,8 @@ namespace teleop_drive_joy
       drive_info_msg->drive_mode = current_state.drive_mode;
 
       drive_info_pub->publish(std::move(drive_info_msg));
+      sent_lock_msg = true;
+      }
     }
   }
 
