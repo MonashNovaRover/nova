@@ -13,7 +13,8 @@ endif()
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
     controller_interface
-    geometry_msgs
+    generate_parameter_library
+	geometry_msgs
     hardware_interface
     nav_msgs
     std_srvs
@@ -33,8 +34,6 @@ find_package(backward_ros REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
-
-find_package(generate_parameter_library REQUIRED)
 
 generate_parameter_library(auger_controller_parameters
   src/auger_controller_parameter.yaml

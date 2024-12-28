@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:macro name="auger_ros2_control" params="use_mock_hardware">
+        <ros2_control name="FrontLeftWheel" type="system">
+
+            <xacro:unless value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>auger_hardware/AugerHardware</plugin>
+                    <param name="candevice">can0</param>
+                    <param name="canid">1</param>
+                    <param name="clock_rate">100000000</param>
+                </hardware>
+            </xacro:unless>
+            <xacro:if value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>mock_components/GenericSystem</plugin>
+                    <param name="calculate_dynamics">true</param>
+                </hardware>
+            </xacro:if>
+
+            <joint name="auger">
+                <command_interface name="effort">
+                    <param name="max">1</param>
+                </command_interface>
+	    </joint>
+
+            <joint name="drill">
+                <command_interface name="effort">
+                    <param name="max">1</param>
+                </command_interface>
+            </joint>
+        </ros2_control>
+    </xacro:macro>
+</robot>
