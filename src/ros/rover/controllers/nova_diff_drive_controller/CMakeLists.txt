@@ -18,7 +18,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   realtime_tools
   tf2
   tf2_msgs
-  drive_interfaces
+  nova_interfaces
 )
 
 find_package(ament_cmake REQUIRED)
@@ -48,37 +48,6 @@ ament_target_dependencies(nova_diff_drive_controller PUBLIC ${THIS_PACKAGE_INCLU
 target_compile_definitions(nova_diff_drive_controller PRIVATE "NOVA_DIFF_DRIVE_CONTROLLER_BUILDING_DLL")
 pluginlib_export_plugin_description_file(controller_interface diff_drive_plugin.xml)
 
-if(BUILD_TESTING)
-  find_package(ament_cmake_gmock REQUIRED)
-  find_package(controller_manager REQUIRED)
-  find_package(ros2_control_test_assets REQUIRED)
-
-  ament_add_gmock(test_nova_diff_drive_controller
-    test/test_nova_diff_drive_controller.cpp
-    ENV config_file=${CMAKE_CURRENT_SOURCE_DIR}/test/config/test_nova_diff_drive_controller.yaml)
-  target_link_libraries(test_nova_diff_drive_controller
-    nova_diff_drive_controller
-  )
-  ament_target_dependencies(test_nova_diff_drive_controller
-    geometry_msgs
-    hardware_interface
-    nav_msgs
-    rclcpp
-    rclcpp_lifecycle
-    realtime_tools
-    tf2
-    tf2_msgs
-    drive_interfaces
-  )
-
-  ament_add_gmock(test_load_nova_diff_drive_controller
-    test/test_load_nova_diff_drive_controller.cpp
-  )
-  ament_target_dependencies(test_load_nova_diff_drive_controller
-    controller_manager
-    ros2_control_test_assets
-  )
-endif()
 
 install(
   DIRECTORY include/

@@ -23,8 +23,9 @@
 #include "realtime_tools/realtime_buffer.h"
 #include "realtime_tools/realtime_publisher.h"
 #include "std_srvs/srv/empty.hpp"
+#include "std_srvs/srv/trigger.hpp"
 #include "tf2_msgs/msg/tf_message.hpp"
-#include "drive_interfaces/msg/drive_input_stamped.hpp"
+#include "nova_interfaces/msg/drive_input_stamped.hpp"
 #include "pivot_drive_controller/visibility_control.h"
 
 #include "pivot_drive_controller_parameters.hpp"
@@ -46,35 +47,34 @@ namespace pivot_drive_controller
 
         PIVOT_DRIVE_CONTROLLER_PUBLIC
         controller_interface::return_type update(
-            const rclcpp::Time & time, const rclcpp::Duration & period) override;
-
+            const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
         PIVOT_DRIVE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_init() override;
 
         PIVOT_DRIVE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_configure(
-            const rclcpp_lifecycle::State & previous_state) override;
+            const rclcpp_lifecycle::State &previous_state) override;
 
         PIVOT_DRIVE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_activate(
-            const rclcpp_lifecycle::State & previous_state) override;
+            const rclcpp_lifecycle::State &previous_state) override;
 
         PIVOT_DRIVE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_deactivate(
-            const rclcpp_lifecycle::State & previous_state) override;
+            const rclcpp_lifecycle::State &previous_state) override;
 
         PIVOT_DRIVE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_cleanup(
-            const rclcpp_lifecycle::State & previous_state) override;
+            const rclcpp_lifecycle::State &previous_state) override;
 
         PIVOT_DRIVE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_error(
-            const rclcpp_lifecycle::State & previous_state) override;
+            const rclcpp_lifecycle::State &previous_state) override;
 
         PIVOT_DRIVE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_shutdown(
-            const rclcpp_lifecycle::State & previous_state) override;
+            const rclcpp_lifecycle::State &previous_state) override;
 
     protected:
         struct WheelHandle
@@ -83,17 +83,17 @@ namespace pivot_drive_controller
             std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
         };
 
-        const char * drive_feedback_type() const;
-        const char * pivot_feedback_type() const;
+        const char *drive_feedback_type() const;
+        const char *pivot_feedback_type() const;
 
         controller_interface::CallbackReturn configure_drive_pivots(
-            const std::vector<std::string> & wheel_names,
-            std::vector<WheelHandle> & registered_handles, const char * feedback_type);
+            const std::vector<std::string> &wheel_names,
+            std::vector<WheelHandle> &registered_handles, const char *feedback_type);
 
         double get_pivot_angle_from_radius(float radius, bool left, int dir);
 
-        std::tuple<float,int> get_best_effort_radius_direction(float radius, float dir);
-        
+        std::tuple<float, int> get_best_effort_radius_direction(float radius, float dir);
+
         double get_radius_from_angle(double angle, bool left);
 
         std::vector<WheelHandle> registered_left_drive_handles_;
@@ -104,7 +104,6 @@ namespace pivot_drive_controller
         // Parameters from ROS for pivot_drive_controller
         std::shared_ptr<ParamListener> param_listener_;
         Params params_;
-
 
         Odometry odometry_;
 
@@ -122,17 +121,16 @@ namespace pivot_drive_controller
             realtime_odometry_transform_publisher_ = nullptr;
 
         bool subscriber_is_active_ = false;
-        rclcpp::Subscription<drive_interfaces::msg::DriveInputStamped>::SharedPtr drive_input_subscriber_ = nullptr;
+        rclcpp::Subscription<nova_interfaces::msg::DriveInputStamped>::SharedPtr drive_input_subscriber_ = nullptr;
         rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_subscriber_ = nullptr;
-        rclcpp::Subscription<drive_interfaces::msg::DriveInput>::SharedPtr drive_input_unstamped_subscriber_ = nullptr;
-        rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr twist_unstamped_subscriber_ = nullptr;
+        rclcpp::Subscription<nova_interfaces::msg::DriveInputStamped>::SharedPtr drive_input_unstamped_subscriber_ = nullptr;
+        rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_unstamped_subscriber_ = nullptr;
 
-        realtime_tools::RealtimeBox<std::shared_ptr<drive_interfaces::msg::DriveInputStamped>> received_drive_input_msg_ptr_{nullptr};
+        realtime_tools::RealtimeBox<std::shared_ptr<nova_interfaces::msg::DriveInputStamped>> received_drive_input_msg_ptr_{nullptr};
         realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_msg_ptr_{nullptr};
 
-        std::queue<drive_interfaces::msg::DriveInputStamped> previous_commands_;  // last two commands
+        std::queue<nova_interfaces::msg::DriveInputStamped> previous_commands_; // last two commands
         std::queue<geometry_msgs::msg::TwistStamped> previous_twist_commands_;  // last two commands
-
 
         // speed limiters
         SpeedLimiter limiter_linear_;
@@ -149,7 +147,7 @@ namespace pivot_drive_controller
 
         double prev_radius = INFINITY;
         double prev_dir = 0;
-        
+
         rclcpp::Time previous_update_timestamp_{0};
 
         // publish rate limiter
@@ -162,7 +160,5 @@ namespace pivot_drive_controller
         bool reset();
         void halt();
     };
-} //namespace pivot_drive_controller
+} // namespace pivot_drive_controller
 #endif // PIVOT_DRIVE_CONTROLLER__PIVOT_DRIVE_CONTROLLER_HPP_
-
-

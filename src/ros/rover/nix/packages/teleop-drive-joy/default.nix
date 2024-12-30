@@ -6,6 +6,7 @@
 , joy
 , nova-drive-interfaces
 , nova-input-interfaces
+, nova-interfaces
 , geometry-msgs
 , sensor-msgs
 , generate-parameter-library
@@ -40,6 +41,7 @@ buildRosPackage {
     geometry-msgs
     nova-drive-interfaces
     nova-input-interfaces
+    nova-interfaces
     sensor-msgs
     pluginlib
     rclcpp-components
