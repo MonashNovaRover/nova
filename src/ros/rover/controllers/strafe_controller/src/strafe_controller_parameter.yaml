@@ -2,32 +2,32 @@ strafe_controller:
   left_drive_names: {
     type: string_array,
     default_value: [],
-    description: "Link names of the left drive joints"
+    description: "Link names of the left drive joints",
   }
   right_drive_names: {
     type: string_array,
     default_value: [],
-    description: "Link names of the left drive joints"
+    description: "Link names of the left drive joints",
   }
   left_pivot_names: {
     type: string_array,
     default_value: [],
-    description: "Link names of the left drive joints"
+    description: "Link names of the left drive joints",
   }
   right_pivot_names: {
     type: string_array,
     default_value: [],
-    description: "Link names of the left drive joints"
+    description: "Link names of the left drive joints",
   }
   wheels_per_side: {
     type: int,
     default_value: 2,
-    description: "No. wheels per side of the vehicle"
+    description: "No. wheels per side of the vehicle",
   }
   wheel_steering_y_offset: {
     type: double,
     default_value: 0.0,
-    description: "Offset from the center of the steering joint and the center of the wheel joint"
+    description: "Offset from the center of the steering joint and the center of the wheel joint",
   }
   steering_track: {
     type: double,
@@ -42,7 +42,7 @@ strafe_controller:
   wheel_radius: {
     type: double,
     default_value: 0.15692321,
-    description: "Radius of wheels"
+    description: "Radius of wheels",
   }
   velocity_rolling_window_size: {
     type: int,
@@ -53,47 +53,49 @@ strafe_controller:
     type: double,
     default_value: 0.5, # Seconds
     description: "Timeout on cmd_vel command.",
-  }  
+  }
   has_velocity_limits: {
     type: bool,
     default_value: false,
-    description: "Enable to limit velocities to a max velocity"
+    description: "Enable to limit velocities to a max velocity",
   }
   has_acceleration_limits: {
     type: bool,
     default_value: false,
-    description: "Enable to limit acceleration to a max velocity"
+    description: "Enable to limit acceleration to a max velocity",
   }
   has_jerk_limits: {
     type: bool,
     default_value: false,
-    description: "Enable to limit acceleration to a max velocity"
+    description: "Enable to limit acceleration to a max velocity",
   }
   # Not sure if we need these params since the command_interfaces have min/max?
-  min_velocity: {
-    type: double,
-    default_value: 0.0,
+  ### START ###
+  min_velocity: { 
+    type: double, 
+    default_value: 0.0 
   }
-  max_velocity: {
-    type: double,
-    default_value: 0.0,
+  max_velocity: { 
+    type: double, 
+    default_value: 0.0 
   }
-  min_acceleration: {
-    type: double,
-    default_value: 0.0,
+  min_acceleration: { 
+    type: double, 
+    default_value: 0.0 
   }
-  max_acceleration: {
-    type: double,
-    default_value: 1.0,
+  max_acceleration: { 
+    type: double, 
+    default_value: 1.0 
   }
-  min_jerk: {
-    type: double,
-    default_value: 0.0,
+  min_jerk: { 
+    type: double, 
+    default_value: 0.0 
   }
-  max_jerk: {
-    type: double,
-    default_value: 0.0,
+  max_jerk: { 
+    type: double, 
+    default_value: 0.0 
   }
+  ### END ###
   drive_position_feedback: {
     type: bool,
     default_value: false,
@@ -107,17 +109,17 @@ strafe_controller:
   tf_frame_prefix_enable: {
     type: bool,
     default_value: true,
-    description:  "Enables or disables appending tf_prefix to tf frame id's.",
+    description: "Enables or disables appending tf_prefix to tf frame id's.",
   }
   tf_frame_prefix: {
     type: string,
     default_value: "",
-    description:  "(optional) Prefix to be appended to the tf frames, will be added to odom_id and base_frame_id before publishing. If the parameter is empty, controller's namespace will be used.",
+    description: "(optional) Prefix to be appended to the tf frames, will be added to odom_id and base_frame_id before publishing. If the parameter is empty, controller's namespace will be used.",
   }
   odom_frame_id: {
     type: string,
     default_value: "odom",
-    description:  "Name of the frame for odometry. This frame is parent of ``base_frame_id`` when controller publishes odometry.",
+    description: "Name of the frame for odometry. This frame is parent of ``base_frame_id`` when controller publishes odometry.",
   }
   base_frame_id: {
     type: string,
@@ -156,16 +158,11 @@ strafe_controller:
   }
   max_theta: {
     type: double,
-    default_value: 3.5342, #2*pi 
+    default_value: 3.5342, #2*pi
     description: "Max. theta displacement in one iteration",
   }
   enable_twist_cmd: {
     type: bool,
     default_value: false,
     description: "Enable the controller to subscribe to twist messages. By default, subscribe to DriveInputStamped.msg",
-  }
-  use_unstamped_msg: {
-    type: bool,
-    default_value: false,
-    description: "Subscribe to unstamped messages. Msg type depends on enable_twist_cmd parameter",
   }

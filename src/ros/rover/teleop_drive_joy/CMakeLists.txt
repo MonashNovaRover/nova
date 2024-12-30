@@ -8,9 +8,9 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   controller_manager_msgs
   drive_interfaces
   input_interfaces
+  nova_interfaces
   pluginlib
   rclcpp
-  rclcpp_components
   realtime_tools
   std_msgs
   std_srvs
@@ -30,67 +30,52 @@ include_directories(
 ## C++ Libraries ##
 ###################
 
-# This library provides a way of loading parameters for servo
+# Generate parameter library
 generate_parameter_library(
   teleop_drive_joy_parameters
-  config/xbox.config.yaml
+  src/parameters.yaml
 )
 
-# This library provides a C++ interface for sending realtime twist or joint commands to a robot
-add_library(${PROJECT_NAME} SHARED
+# Build the node executable
+add_executable(${PROJECT_NAME}_node
   src/teleop_drive_joy.cpp
 )
-set_target_properties(${PROJECT_NAME} PROPERTIES VERSION "${teleop_drive_joy_VERSION}")
-target_link_libraries(${PROJECT_NAME} teleop_drive_joy_parameters)
-ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-add_library(teleop_drive_joy_ros SHARED src/teleop_drive_joy.cpp)
-set_target_properties(teleop_drive_joy_ros PROPERTIES VERSION "${teleop_drive_joy_VERSION}")
-target_link_libraries(teleop_drive_joy_ros ${PROJECT_NAME})
-ament_target_dependencies(teleop_drive_joy_ros ${THIS_PACKAGE_INCLUDE_DEPENDS})
-
-######################
-## Components ##
-######################
-
-rclcpp_components_register_node(
-  teleop_drive_joy_ros 
-  PLUGIN "teleop_drive_joy::TeleopDriveJoy"
-  EXECUTABLE teleop_drive_joy_node
+target_link_libraries(${PROJECT_NAME}_node
+  teleop_drive_joy_parameters
 )
+
+ament_target_dependencies(${PROJECT_NAME}_node ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 #############
 ## Install ##
 #############
 
-# Install Libraries
+# Install the executable
 install(
   TARGETS
-    ${PROJECT_NAME}
-    teleop_drive_joy_ros
+    ${PROJECT_NAME}_node
     teleop_drive_joy_parameters
-  EXPORT teleop_drive_joyTargets
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include/${PROJECT_NAME}
+  DESTINATION lib/${PROJECT_NAME}
 )
 
-# Install Binaries
+# Install header files
 install(
-  TARGETS
-  teleop_drive_joy
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION lib/${PROJECT_NAME}
+  DIRECTORY include/
+  DESTINATION include/${PROJECT_NAME}
 )
 
-# Install include, launch, config directories
-install(DIRECTORY include/ DESTINATION include/${PROJECT_NAME})
-install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
-install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
+# Install launch files
+install(
+  DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME}/launch
+)
 
-ament_export_targets(teleop_drive_joyTargets HAS_LIBRARY_TARGET)
+# Install config files
+install(
+  DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/config
+)
+
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
-
 ament_package()

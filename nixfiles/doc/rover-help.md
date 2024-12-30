@@ -43,4 +43,3 @@ Try the 'launch-ec' alias, otherwise use the command below.
 # Cameras
 Replace '?' with either 'arm', 'ce', or 'science'.
 cameras_all payload:=?
-

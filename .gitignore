@@ -1,0 +1,31 @@
+build/
+
+## IDEs
+## vscode
+.vscode/
+
+## Pycharm
+.idea/
+
+## VIM
+*.swp
+
+
+## Environments
+.env
+.venv
+.cache
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+__pycache__/
+
+
+## Pycache
+__pycache__
+
+
+## Rope project settings
+.ropeproject
