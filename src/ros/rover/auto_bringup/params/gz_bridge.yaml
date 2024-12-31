@@ -1,15 +1,22 @@
-# gz clock to ros 
+# gz clock to ros
 - ros_topic_name: "/clock"
   gz_topic_name: "/clock"
   ros_type_name: "rosgraph_msgs/msg/Clock"
   gz_type_name: "gz.msgs.Clock"
   direction: GZ_TO_ROS # BIDIRECTIONAL or ROS_TO_GZ
 
-# gz oak depth image to ros 
+# gz oak depth image to ros
 - ros_topic_name: "/oak/depth"
   gz_topic_name: "/oak/depth"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+# gz depth camera info to ros
+- ros_topic_name: "/oak/depth/camera_info"
+  gz_topic_name: "/oak/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
 # gz oak rgb image to ros
@@ -17,6 +24,13 @@
   gz_topic_name: "/oak/rgb"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+# gz rgb camera info to ros
+- ros_topic_name: "/oak/rgb/camera_info"
+  gz_topic_name: "/oak/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
 # gz imu to ros
