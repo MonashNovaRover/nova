@@ -13,11 +13,9 @@ PACKAGE: 	core
 CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
-import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction, SetEnvironmentVariable
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
-from launch.conditions import UnlessCondition, IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -42,16 +40,20 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         AppendEnvironmentVariable(
-            name='GZ_SIM_RESOURCE_PATH', 
+            name='GZ_SIM_RESOURCE_PATH',
             value=PathJoinSubstitution([nova_gazebo_dir, 'models'])
         ),
         AppendEnvironmentVariable(
-            name='GZ_SIM_RESOURCE_PATH', 
+            name='GZ_SIM_RESOURCE_PATH',
             value=PathJoinSubstitution([nova_gazebo_dir, 'worlds'])
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
             launch_arguments={'controllers': controllers, 'gazebo': 'True'}.items(),
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
+            launch_arguments={'gazebo': 'True'}.items(),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
@@ -94,7 +96,7 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             name='config_file',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'gz_bridge.yaml']), 
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'gz_bridge.yaml']),
             description='Absolute path to ros_gz_bridge params file',
         ),
         DeclareLaunchArgument(
@@ -135,6 +137,6 @@ def generate_launch_description():
         DeclareLaunchArgument(name='Y', default_value='2.5740044', description='yaw'),
     ]
 
-    return LaunchDescription(  
+    return LaunchDescription(
         declared_arguments + [OpaqueFunction(function=launch_setup)]
     )
