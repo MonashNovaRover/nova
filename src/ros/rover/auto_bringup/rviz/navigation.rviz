@@ -295,37 +295,26 @@ Visualization Manager:
               camera_link:
                 oak-d_frame:
                   oak_left_camera_frame:
-                    oak_imu_frame:
-                      {}
-                    oak_left_camera_optical_frame:
-                      {}
-                  oak_model_origin:
-                    {}
+                    oak_imu_frame: {}
+                    oak_left_camera_optical_frame: {}
+                  oak_model_origin: {}
                   oak_rgb_camera_frame:
-                    oak_rgb_camera_optical_frame:
-                      {}
+                    oak_rgb_camera_optical_frame: {}
                   oak_right_camera_frame:
-                    oak_right_camera_optical_frame:
-                      {}
+                    oak_right_camera_optical_frame: {}
               chassis:
                 left_leg:
                   back_left_pivot:
-                    back_left_wheel:
-                      {}
+                    back_left_wheel: {}
                   front_left_pivot:
-                    front_left_wheel:
-                      {}
-                mast_link:
-                  {}
+                    front_left_wheel: {}
+                mast_link: {}
                 right_leg:
                   back_right_pivot:
-                    back_right_wheel:
-                      {}
+                    back_right_wheel: {}
                   front_right_pivot:
-                    front_right_wheel:
-                      {}
-              gps:
-                {}
+                    front_right_wheel: {}
+              gps: {}
       Update Interval: 0
       Value: true
     - Class: rviz_common/Group
@@ -534,7 +523,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /oak/rgb/image_rect
+        Value: /oak/rgb/image_raw
       Value: true
     - Class: rviz_default_plugins/Image
       Enabled: true
@@ -548,7 +537,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /oak/depth
+        Value: /oak/stereo/image_raw
       Value: true
     - Alpha: 1
       Class: rviz_default_plugins/Polygon

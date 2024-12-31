@@ -2,10 +2,11 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration,PathJoinSubstitution
 from launch_ros.actions import LoadComposableNodes, Node
 from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
+from launch_ros.actions import ComposableNodeContainer
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
@@ -18,25 +19,25 @@ def launch_setup(context, *args, **kwargs):
     roll = LaunchConfiguration('roll').perform(context)
     pitch = LaunchConfiguration('pitch').perform(context)
     yaw = LaunchConfiguration('yaw').perform(context)
-    camera = LaunchConfiguration('camera')
-    rtabmap_viz = LaunchConfiguration('rtabmap_viz')
+    camera = LaunchConfiguration('camera').perform(context)
+    rtabmap_viz = LaunchConfiguration('rtabmap_viz').perform(context)
 
     parameters={
           'frame_id':'base_link',
           'use_sim_time':use_sim_time,
           'subscribe_rgb': True,
           'subscribe_depth':True,
-          'subscribe_odom_info': True,
+          'subscribe_odom_info': False,
           'approx_sync':True,
           'odom_frame_id': 'odom',
           'Rtabmap/DetectionRate': '3.5',
     }
 
     remappings = [
-        ('rgb/image', name+'/rgb/image_rect'),
+        ('rgb/image', name+'/rgb/image_raw'),
         ('rgb/camera_info', name+'/rgb/camera_info'),
         ('depth/image', name+'/stereo/image_raw'),
-        ('imu', name+'/imu/data'),
+        # ('imu', name+'/imu/data'),
         ('odom', 'odom/visual'),
     ]
 
@@ -45,8 +46,11 @@ def launch_setup(context, *args, **kwargs):
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
             condition=IfCondition(camera),
         ),
-        LoadComposableNodes(
-            target_container=name + '_container',
+        ComposableNodeContainer(
+            name=f"{name}_image_mapping_container",
+            namespace='',
+            package="rclcpp_components",
+            executable="component_container",
             composable_node_descriptions=[
                 ComposableNode(
                     package='rtabmap_odom',
@@ -54,11 +58,7 @@ def launch_setup(context, *args, **kwargs):
                     name='rgbd_odometry',
                     parameters=[parameters, {'publish_tf': False, 'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}','publish_null_when_lost': False}],
                     remappings=remappings,
-                )],
-        ),
-        LoadComposableNodes(
-            target_container=name + '_container',
-            composable_node_descriptions=[
+                ),
                 ComposableNode(
                     package='rtabmap_slam',
                     plugin='rtabmap_slam::CoreWrapper',
@@ -66,7 +66,8 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[parameters,
                                 {'publish_tf':True, 'rtabmap_args':'--delete_db_on_start'}],
                     remappings=remappings,
-                )],
+                )
+            ]
         ),
         Node(
             package='rtabmap_viz',
@@ -77,9 +78,9 @@ def launch_setup(context, *args, **kwargs):
             remappings=remappings,
         ),
     ]
- 
 
-def generate_launch_description():    
+
+def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(name='name', default_value='oak'),
         DeclareLaunchArgument(name='rtabmap_viz', default_value='False'),
