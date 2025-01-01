@@ -1,4 +1,4 @@
-"""
+'''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
@@ -12,12 +12,11 @@ NODES:
   - control/auger.py                    [auger]
   - control/analysis_platform.py        [analysis_platform]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	core
-CREATION:	17/03/2024
+CREATED:    17/03/2024
+EDITED:     01/01/2025
+EDITED BY: Tristan Clark, Victor Bartlinski
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-"""
-
-# Include the required launch parameters
+'''
 from launch import LaunchDescription
 from launch.actions import OpaqueFunction
 from launch_ros.actions import Node

@@ -1,4 +1,4 @@
-"""
+'''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
@@ -12,15 +12,14 @@ NODES:
   - electronics/electronics             [resolver_publisher.py]
   - visualisation/arm_viz_publisher     [arm_viz_publisher]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	core
-CREATION:	17/12/2021
+CREATION:   17/12/2021
+EDITED:     01/01/2025
+EDITED BY: Taaj Street, Dylan Gonzalez, Tristan 
+    Clark, Matthew Gu, Victor Bartlinski
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-"""
-
-# Include the required launch parameters
+'''
 from launch import LaunchDescription
-from ament_index_python.packages import get_package_share_path
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -29,24 +28,18 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def launch_setup(context, *args, **kwargs):
+    nova_bringup_dir = FindPackageShare('nova_bringup')
+
     sim = LaunchConfiguration('sim')
     urdf = LaunchConfiguration('urdf')
-    urdf_path = LaunchConfiguration('urdf_path')
-    rover_urdf = LaunchConfiguration('rover_urdf')
     namespace = LaunchConfiguration('namespace')
     chassis_cam = LaunchConfiguration('chassis_cam')
+    params = LaunchConfiguration('params')
 
     return [
         Node(
             package='arm', 
-            executable='arm_inputs', 
-            namespace=namespace,
-            output='screen', 
-            emulate_tty=True,
-        ),
-        Node(
-            package='arm', 
-            executable='arm_twistmapper', 
+            executable='arm_rviz_publisher', 
             namespace=namespace,
             output='screen', 
             emulate_tty=True,
@@ -60,42 +53,16 @@ def launch_setup(context, *args, **kwargs):
         ),
         Node(
             package='arm', 
-            executable='arm_driver', 
-            namespace=namespace,
-            output='screen', 
-            emulate_tty=True, 
-            condition=UnlessCondition(sim),
-        ),
-        Node(
-            package='arm', 
-            executable='resolver_publisher.py', 
-            namespace=namespace,
-            condition=UnlessCondition(sim), 
-            parameters=[arm_params],
-            output='screen', 
-            emulate_tty=True,
-        ),
-        Node(
-            package='arm', 
-            executable='arm_rviz_publisher', 
+            executable='arm_inputs', 
             namespace=namespace,
             output='screen', 
             emulate_tty=True,
         ),
         Node(
-            package='cmd_utils', 
-            executable='CMD_publisher.py', 
-            namespace=namespace,
-            condition=UnlessCondition(sim), 
-            output='screen', 
-            emulate_tty=True,
-        ),
-        Node(
             package='arm', 
-            executable='resolver_spoofer', 
+            executable='arm_twistmapper', 
             namespace=namespace,
             output='screen', 
-            condition=IfCondition(sim), 
             emulate_tty=True,
         ),
         Node(
@@ -117,74 +84,85 @@ def launch_setup(context, *args, **kwargs):
             output='screen', 
             emulate_tty=True,
         ),
+        Node(
+            package='arm', 
+            executable='resolver_spoofer', 
+            namespace=namespace,
+            output='screen', 
+            condition=IfCondition(sim), 
+            emulate_tty=True,
+        ),
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                PathJoinSubstitution(
-                    [
-                        FindPackageShare('nova_bringup'),
-                        'launch',
-                        'urdf.launch.py'
-                    ]
-                )
-            ),
-            launch_arguments = {
-                "arm_urdf_path": LaunchConfiguration('arm_urdf_path'),
-                "arm": LaunchConfiguration('arm_urdf'),
-                "rover": LaunchConfiguration('rover_urdf')
-            }.items(),
-            condition=IfCondition(urdf)
+            condition=IfCondition(urdf),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'urdf.launch.py'])),
+        ),
+        GroupAction(
+            condition=UnlessCondition(sim),
+            actions=[
+                Node(
+                    package='arm', 
+                    executable='arm_driver', 
+                    namespace=namespace,
+                    output='screen', 
+                    emulate_tty=True, 
+                ),
+                Node(
+                    package='arm', 
+                    executable='resolver_publisher.py', 
+                    namespace=namespace,
+                    parameters=[params],
+                    output='screen', 
+                    emulate_tty=True,
+                ),
+                Node(
+                    package='cmd_utils', 
+                    executable='CMD_publisher.py', 
+                    namespace=namespace,
+                    output='screen', 
+                    emulate_tty=True,
+            )],
         ),
     ]
 
-# Generate the launch file with all inputs
 def generate_launch_description():
-    # Get the path to the parameters file in core/params
-    arm_params = PathJoinSubstitution([FindPackageShare('nova_bringup'), 'params', 'arm_params.yaml'])
-    description_dir = FindPackageShare('rover_description')
+    nova_bringup_dir = FindPackageShare('nova_bringup')
+    rover_description_dir = FindPackageShare('rover_description')
 
     declared_arguments = [
         DeclareLaunchArgument(
-            'sim', 
-            default_value='False'
-        ),
-
-        DeclareLaunchArgument(
-            'arm_urdf', 
-            default_value='True',
-            description="Include arm URDF in robot_description?"
-        ),
-
-        DeclareLaunchArgument(
-            'rover_urdf', 
-            default_value='True',
-            description="Include rover URDF in robot_description?"
-        ),
-                              
-        DeclareLaunchArgument(
-            'urdf', 
+            name='sim', 
             default_value='False',
-            description="Publish robot_description?"
         ),
-
         DeclareLaunchArgument(
-            'arm_urdf_path', 
-            default_value = PathJoinSubstitution(
-                [
-                    description_dir, 
-                    'arm',
-                    'urdf', 
-                    'arm.urdf.xacro'
-                ]
-            ), 
+            name='params', 
+            default_value=PathJoinSubstitution([nova_bringup_dir, 'params', 'arm_params.yaml']),
         ),
-
         DeclareLaunchArgument(
-            'namespace', 
+            name='arm', 
+            default_value='True',
+            description='Include arm URDF in robot_description?',
+        ),
+        DeclareLaunchArgument(
+            name='rover_urdf', 
+            default_value='True',
+            description='Include rover URDF in robot_description?',
+        ),
+        DeclareLaunchArgument(
+            name='urdf', 
+            default_value='False',
+            description='Publish robot_description?',
+        ),
+        DeclareLaunchArgument(
+            name='arm_urdf_path', 
+            default_value = PathJoinSubstitution([rover_description_dir, 'arm', 'urdf', 'arm.urdf.xacro']), 
+        ),
+        DeclareLaunchArgument(
+            name='namespace', 
             default_value = '',
         ),
         DeclareLaunchArgument(
-            'chassis_cam',
-            default_value = 'False'
+            name='chassis_cam',
+            default_value = 'False',
         ),
     ]
 

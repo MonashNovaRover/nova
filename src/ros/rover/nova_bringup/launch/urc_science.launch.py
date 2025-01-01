@@ -1,4 +1,4 @@
-"""
+'''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
@@ -12,58 +12,105 @@ NODES:
   - control/auger.py                    [auger]
   - control/analysis_platform.py        [analysis_platform]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	core
-CREATION:	17/03/2024
+CREATION:   17/03/2024
+EDITED:     01/01/2025
+EDITED BY: Tristan Clark, Josh Leivenzon, 
+    Victor Bartlinski
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-"""
-
-# Include the required launch parameters
+'''
 from launch import LaunchDescription
+from launch.actions import OpaqueFunction
 from launch_ros.actions import Node
 
+def launch_setup(context, *args, **kwargs):
+    return [
+        Node(
+            package='science', 
+            executable='urc_analysis_arm.py', 
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='science', 
+            executable='urc_auger.py', 
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='science', 
+            executable='urc_bme_sensor.py', 
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='science', 
+            executable='urc_cache.py', 
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='science', 
+            executable='urc_carousel.py', 
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='science', 
+            executable='urc_heater.py', 
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='science', 
+            executable='urc_hydraprobe.py', 
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='science', 
+            executable='urc_mixers.py', 
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='science', 
+            executable='urc_pumps.py', 
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='science', 
+            executable='urc_raman_spec_server.py', 
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='science', 
+            executable='urc_sample_tray.py', 
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='science', 
+            executable='urc_theta_360_cam.py', 
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='science', 
+            executable='urc_uv_vis_leds.py', 
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
+            package='science', 
+            executable='urc_uv_vis_spec.py', 
+            output='screen', 
+            emulate_tty=True,
+        ),
+    ]
 
 def generate_launch_description():
-    return LaunchDescription([
-        Node(
-            package='science', executable='urc_analysis_arm.py', output='screen', emulate_tty=True),
-
-        Node(
-            package='science', executable='urc_auger.py', output='screen', emulate_tty=True),
-
-        Node(
-            package='science', executable='urc_bme_sensor.py', output='screen', emulate_tty=True),
-        
-        Node(
-            package='science', executable='urc_cache.py', output='screen', emulate_tty=True),
-        
-        Node(
-            package='science', executable='urc_carousel.py', output='screen', emulate_tty=True),
-        
-        Node(
-            package='science', executable='urc_heater.py', output='screen', emulate_tty=True),
-
-        Node(
-            package='science', executable='urc_hydraprobe.py', output='screen', emulate_tty=True),
-
-        Node(
-            package='science', executable='urc_mixers.py', output='screen', emulate_tty=True),
-
-        Node(
-            package='science', executable='urc_pumps.py', output='screen', emulate_tty=True),
-
-        Node(
-            package='science', executable='urc_raman_spec_server.py', output='screen', emulate_tty=True),
-
-        Node(
-            package='science', executable='urc_sample_tray.py', output='screen', emulate_tty=True),
-
-        Node(
-            package='science', executable='urc_theta_360_cam.py', output='screen', emulate_tty=True),
-
-        Node(
-            package='science', executable='urc_uv_vis_leds.py', output='screen', emulate_tty=True),
-
-        Node(
-            package='science', executable='urc_uv_vis_spec.py', output='screen', emulate_tty=True),
-
-    ])
+    return LaunchDescription(
+        [OpaqueFunction(function=launch_setup)]
+    )
