@@ -104,6 +104,31 @@ enum class QCMDConfigCommand{
     PACKET_4_SPEED  = 0xE,
 };
 
+// From: https://www.notion.so/MNR-CANBUS-Standards-9dc47508ed3e4dfda2aa9ae97fe1ad54#a52b20fa4b874f1ab0bf73e6fa9dfc6c
+
+enum class QCMDSendCommand{
+    CONTROL = 0x0,              // Data is sent as a 16 bit signed integer
+    CURRENT_LIMIT = 0x2,        // Data is sent as a 7 bit unsigned integer
+}
+
+enum class QCMDMotorID{
+    PUMP_CLEANING = 0x011,      // 'NOT being used'
+    PUMP_MIX_TO_SHOT = 0x012,
+    AUGER_ACTUATION = 0x021,
+    AUGER_DRILL_SPIN = 0x022,
+    PUMP_SHOT_TO_SPEC = 0x031,
+    ANALYSIS_ARM_ACTUATION = 0x032,
+    MIXER_1 = 0x041,
+    MIXER_2 = 0x042,
+}
+
+enum class QCMDCommandData{
+    MAX_CURRENT = 0x7F,
+    MAX_MAGNITUDE = 0x7FFF, 
+    FORWARD_DIRECTION = 1,
+    REVERSE_DIRECTION = -1,
+}
+
 class QCMDHardware : public hardware_interface::SystemInterface
 {
 public:
