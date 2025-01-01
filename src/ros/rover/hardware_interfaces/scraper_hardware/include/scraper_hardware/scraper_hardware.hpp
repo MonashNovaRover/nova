@@ -54,6 +54,61 @@ enum class ControlMode {
     Effort,
 };
 
+// New commands for scraper
+
+// 3 command interfaces (arm, bucket, scoop) and 1 state interface (limit switch)
+
+enum class Scraper {
+    CAN_BUS = "can1",
+
+    // used to have "PERCENT" suffix
+    ARM_MAX_VELOCITY_SCALING = 1.0,
+    SCOOP_MAX_VELOCITY_SCALING = 1.0,
+    BUCKET_MAX_VELOCITY_SCALING = 0.6,
+
+    CAN_BUS_PARAM = "can_bus",
+    CARD_TYPE_PARAM = "card_type",
+    ARM_MAX_VEL_PERCENT_PARAM = "arm_max_vel_percent",
+    SCOOP_MAX_VEL_PERCENT_PARAM = "scoop_max_vel_percent",
+    BUCKET_MAX_VEL_PERCENT_PARAM = "bucket_max_vel_percent",
+}
+
+enum class ScraperJONO {
+    // CAN IDs
+    ARM_ID = 0x0A0,
+    SCOOP_ID = 0x0A0,
+    BUCKET_ID = 0x0A0,
+    LIMIT_SWITCH_ID = 0x4A2,
+
+    // first byte of data is this, then next byte of data determines magnitude of command (0 is minimum, FF is maximum)
+    ARM_FORWARDS = 0x04,
+    ARM_BACKWARDS = 0x03,
+    SCOOP_FORWARDS = 0x06,
+    SCOOP_BACKWARDS = 0x05,
+    BUCKET_OPEN = 0x01,
+    BUCKET_CLOSE = 0x02,
+
+    BUCKET_LIMIT_SWITCH_CLOSED = 0x01, // old code has this being the first byte of data received (if not, then the whole frame is invalid and should be ignored)
+    LIMIT_SWITCH_CLEAR = 0x00, // then if second byte is this, bucket can continue
+    LIMIT_SWITCH_HIT = 0xFF, // if second byte is this, bucket should be halted. FROM OLD CODE: "used to be 0x01"
+}
+
+// original code is defaulting to using CMD cards
+enum class ScraperCMD {
+    ARM_ID = 0x0B3,
+    SCOOP_ID = 0x0C3,
+    BUCKET_ID = 0x0D3,
+
+    ARM_FORWARDS = 1,
+    ARM_BACKWARDS = -1,
+    SCOOP_FORWARDS = 1,
+    SCOOP_BACKWARDS = -1,
+    BUCKET_CLOSE = 1,
+    BUCKET_OPEN = -1,
+}
+
+
+// BLCMD commands below
 enum class ScraperSendCommand {
     STOP                = 0x0,    // Disables all current through the motor, free spinning.
     FORWARD             = 0x1,    // Drive with FOC velocity control forward for 0.5s
