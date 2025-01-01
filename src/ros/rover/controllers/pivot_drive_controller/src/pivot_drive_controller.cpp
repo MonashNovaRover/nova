@@ -15,7 +15,7 @@
 
 namespace
 {
-    constexpr auto DEFAULT_INPUT_TOPIC = "~/drive_input";
+    constexpr auto DEFAULT_INPUT_TOPIC = "/drive_input";
     constexpr auto DEFAULT_INPUT_TOPIC_TWIST = "/cmd_vel";
     constexpr auto DEFAULT_OUTPUT_TOPIC = "~/cmd_vel_out";
     constexpr auto DEFAULT_ODOMETRY_TOPIC = "~/odom";
@@ -56,6 +56,8 @@ namespace pivot_drive_controller
             fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
             return controller_interface::CallbackReturn::ERROR;
         }
+
+
 
         zero_radius_ = sqrt(params_.wheel_base*params_.wheel_base/4 + params_.steering_track*params_.steering_track/4);
         RCLCPP_INFO_STREAM(get_node()->get_logger(), "zero_radius_: " << zero_radius_);
@@ -130,12 +132,12 @@ namespace pivot_drive_controller
 
         max_d_theta = params_.max_theta * period.seconds();
 
-        //RCLCPP_INFO(logger, "period: %f", period.seconds());
+        // RCLCPP_INFO(logger, "period: %f", period.seconds());
 
         std::shared_ptr<geometry_msgs::msg::TwistStamped> last_twist_command_msg;
-        std::shared_ptr<drive_interfaces::msg::DriveInputStamped> last_command_msg;
+        std::shared_ptr<nova_interfaces::msg::DriveInputStamped> last_command_msg;
 
-        drive_interfaces::msg::DriveInputStamped command;
+        nova_interfaces::msg::DriveInputStamped command;
 
         double target_radius, target_direction, target_speed;
         
@@ -144,8 +146,10 @@ namespace pivot_drive_controller
         if (param_listener_->is_old(params_))
         {
             params_ = param_listener_->get_params();
-            RCLCPP_INFO(logger, "Parameters were updated");
+            // RCLCPP_INFO(logger, "Parameters were updated");
         }
+        
+        // RCLCPP_INFO(logger, "enable_twist_cmd: %d", params_.enable_twist_cmd);
 
         if (params_.enable_twist_cmd) {
             received_twist_msg_ptr_.get(last_twist_command_msg);
@@ -181,9 +185,9 @@ namespace pivot_drive_controller
             previous_twist_commands_.emplace(twist_command);
 
             target_radius = angular_command == 0 ? INFINITY : abs(linear_command / angular_command);
-            RCLCPP_DEBUG(logger, "Target_radius: %f", target_radius);
-
-            RCLCPP_DEBUG(logger, "Target_speed: %f", target_speed);
+//            RCLCPP_DEBUG(logger, "Target_radius: %f", target_radius);
+//
+//            RCLCPP_DEBUG(logger, "Target_speed: %f", target_speed);
 
             //target_radius = angular_command == 0 ? 0 : linear_command / abs(angular_command);
             target_direction = angular_command > 0 ? -1 : 1;
@@ -201,6 +205,8 @@ namespace pivot_drive_controller
 
             command = *last_command_msg;
             target_speed = command.drive_input.speed;
+            target_radius = command.drive_input.radius;
+            target_direction = command.drive_input.direction;
 
             const auto age_of_last_command = time - last_command_msg->header.stamp;
 
@@ -225,31 +231,13 @@ namespace pivot_drive_controller
             //previous_commands only ever contains x2 values
             previous_commands_.pop();
             previous_commands_.emplace(command);
-
-
-            if(second_to_last_command.mode == drive_interfaces::msg::DriveInput::STRAFE && command.drive_input.mode == drive_interfaces::msg::DriveInput::PIVOT){
-                RCLCPP_INFO(logger, "switching from strafe to pivot drive");
-                target_radius = INFINITY;
-                target_direction = 0;
-
-                //initialise all pivot angles
-                for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
-                {
-                    registered_left_pivot_handles_.at(index).command.get().set_value(angle_offset_);
-                    registered_right_pivot_handles_.at(index).command.get().set_value(angle_offset_);
-                }
-                
-            } else {
-                target_radius = command.drive_input.radius;
-                target_direction = command.drive_input.direction;
-            }
         }
 
         previous_update_timestamp_ = time;
 
         if (target_direction == 0) target_direction = 1;
 
-//        RCLCPP_INFO(get_node()->get_logger(), "Target radius of %f and direction of %f", target_radius, target_direction);
+//       RCLCPP_INFO(get_node()->get_logger(), "Target radius of %f and direction of %f", target_radius, target_direction);
 
         float radius;
         int direction;
@@ -260,8 +248,8 @@ namespace pivot_drive_controller
         left_angle = get_pivot_angle_from_radius(radius, true, direction);
         right_angle = get_pivot_angle_from_radius(radius, false, direction);
 
-        //RCLCPP_INFO(get_node()->get_logger(), "left_angle command: %f", left_angle);
-        //RCLCPP_INFO(get_node()->get_logger(), "right_angle command: %f", right_angle);
+//        RCLCPP_INFO(get_node()->get_logger(), "left_angle command: %f", left_angle);
+//        RCLCPP_INFO(get_node()->get_logger(), "right_angle command: %f", right_angle);
 
         registered_left_pivot_handles_.at(0).command.get().set_value(left_angle);
         registered_left_pivot_handles_.at(1).command.get().set_value(-left_angle);
@@ -347,7 +335,7 @@ namespace pivot_drive_controller
                         left_ratio = sqrt(pow(params_.wheel_base / 2, 2.0) +
                                           pow(mean_radius + (params_.steering_track / 2), 2.0))/abs(mean_radius);
                         right_ratio = sqrt(pow(params_.wheel_base / 2, 2.0) +
-                                           pow(mean_radius - (params_.wheel_base / 2), 2.0))/abs(mean_radius);
+                                           pow(mean_radius - (params_.steering_track / 2), 2.0))/abs(mean_radius);
                     }
 
                     // #TODO: More robust system for invalid radius detection
@@ -652,7 +640,7 @@ namespace pivot_drive_controller
             return controller_interface::CallbackReturn::ERROR;
         }
 
-        drive_interfaces::msg::DriveInputStamped empty_drive_input;
+        nova_interfaces::msg::DriveInputStamped empty_drive_input;
         empty_drive_input.drive_input.radius = INFINITY;
         empty_drive_input.drive_input.direction = 0;
         empty_drive_input.drive_input.speed = 0;
@@ -661,7 +649,7 @@ namespace pivot_drive_controller
 
         // Fill last two commands with default constructed commands
         received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>(empty_twist));
-        received_drive_input_msg_ptr_.set(std::make_shared<drive_interfaces::msg::DriveInputStamped>(empty_drive_input));
+        received_drive_input_msg_ptr_.set(std::make_shared<nova_interfaces::msg::DriveInputStamped>(empty_drive_input));
 
         previous_twist_commands_.emplace(empty_twist);
         previous_twist_commands_.emplace(empty_twist);
@@ -670,90 +658,49 @@ namespace pivot_drive_controller
         previous_commands_.emplace(empty_drive_input);
         previous_commands_.emplace(empty_drive_input);
 
-        if (params_.use_unstamped_msg)
+        twist_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
+        DEFAULT_INPUT_TOPIC_TWIST, rclcpp::SystemDefaultsQoS(),
+        [this](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
         {
-          twist_unstamped_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::Twist>(
-            DEFAULT_INPUT_TOPIC_TWIST, rclcpp::SystemDefaultsQoS(),
-            [this](const std::shared_ptr<geometry_msgs::msg::Twist> msg) -> void
+            if (!subscriber_is_active_)
             {
-              if (!subscriber_is_active_)
-              {
-                RCLCPP_WARN_ONCE(
-                  get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
-                return;
-              }
-
-              // Write fake header in the stored stamped command
-              std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
-              received_twist_msg_ptr_.get(twist_stamped);
-              twist_stamped->twist = *msg;
-              twist_stamped->header.stamp = get_node()->get_clock()->now();
-            });
-
-
-          drive_input_unstamped_subscriber_ = get_node()->create_subscription<drive_interfaces::msg::DriveInput>(
-            DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
-            [this](const std::shared_ptr<drive_interfaces::msg::DriveInput> msg) -> void
+            RCLCPP_WARN_ONCE(
+                get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+            return;
+            }
+            if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
             {
-              if (!subscriber_is_active_)
-              {
-                RCLCPP_WARN_ONCE(
-                  get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
-                return;
-              }
+            RCLCPP_WARN_ONCE(
+                get_node()->get_logger(),
+                "Received TwistStamped with zero timestamp, setting it to current "
+                "time, this message will only be shown once");
+            msg->header.stamp = get_node()->get_clock()->now();
+            }
+            received_twist_msg_ptr_.set(std::move(msg));
+        });
 
-              // Write fake header in the stored stamped command
-              std::shared_ptr<drive_interfaces::msg::DriveInputStamped> drive_input_stamped;
-              received_drive_input_msg_ptr_.get(drive_input_stamped);
-              drive_input_stamped->drive_input = *msg;
-              drive_input_stamped->header.stamp = get_node()->get_clock()->now();
-            });
-        }
-        else
+
+        drive_input_subscriber_ = get_node()->create_subscription<nova_interfaces::msg::DriveInputStamped>(
+        DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
+        [this](const std::shared_ptr<nova_interfaces::msg::DriveInputStamped> msg) -> void
         {
-          twist_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
-            DEFAULT_INPUT_TOPIC_TWIST, rclcpp::SystemDefaultsQoS(),
-            [this](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
+            if (!subscriber_is_active_)
             {
-              if (!subscriber_is_active_)
-              {
-                RCLCPP_WARN_ONCE(
-                  get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
-                return;
-              }
-              if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
-              {
-                RCLCPP_WARN_ONCE(
-                  get_node()->get_logger(),
-                  "Received TwistStamped with zero timestamp, setting it to current "
-                  "time, this message will only be shown once");
-                msg->header.stamp = get_node()->get_clock()->now();
-              }
-              received_twist_msg_ptr_.set(std::move(msg));
-            });
-
-
-          drive_input_subscriber_ = get_node()->create_subscription<drive_interfaces::msg::DriveInputStamped>(
-            DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
-            [this](const std::shared_ptr<drive_interfaces::msg::DriveInputStamped> msg) -> void
+            RCLCPP_WARN_ONCE(
+                get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+            return;
+            }
+            if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
             {
-              if (!subscriber_is_active_)
-              {
-                RCLCPP_WARN_ONCE(
-                  get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
-                return;
-              }
-              if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
-              {
-                RCLCPP_WARN_ONCE(
-                  get_node()->get_logger(),
-                  "Received TwistStamped with zero timestamp, setting it to current "
-                  "time, this message will only be shown once");
-                msg->header.stamp = get_node()->get_clock()->now();
-              }
-              received_drive_input_msg_ptr_.set(std::move(msg));
-            });
-        }
+            RCLCPP_WARN_ONCE(
+                get_node()->get_logger(),
+                "Received TwistStamped with zero timestamp, setting it to current "
+                "time, this message will only be shown once");
+            msg->header.stamp = get_node()->get_clock()->now();
+            }
+            received_drive_input_msg_ptr_.set(std::move(msg));
+        });
+    
 
         // initialize odometry publisher and messasge
         odometry_publisher_ = get_node()->create_publisher<nav_msgs::msg::Odometry>(
@@ -899,7 +846,7 @@ namespace pivot_drive_controller
             return controller_interface::CallbackReturn::ERROR;
         }
 
-        received_drive_input_msg_ptr_.set(std::make_shared<drive_interfaces::msg::DriveInputStamped>());
+        received_drive_input_msg_ptr_.set(std::make_shared<nova_interfaces::msg::DriveInputStamped>());
         received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>());
 
         return controller_interface::CallbackReturn::SUCCESS;
@@ -919,7 +866,7 @@ namespace pivot_drive_controller
         odometry_.resetOdometry();
 
         // release the old queue
-        std::queue<drive_interfaces::msg::DriveInputStamped> empty;
+        std::queue<nova_interfaces::msg::DriveInputStamped> empty;
         std::queue<geometry_msgs::msg::TwistStamped> empty_twist;
         std::swap(previous_commands_, empty);
         std::swap(previous_twist_commands_, empty_twist);

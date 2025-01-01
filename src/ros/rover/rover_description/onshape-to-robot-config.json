@@ -1,0 +1,21 @@
+{
+    "documentId": "DOCUMENTID",
+    "outputFormat": "urdf",
+    "onshape_api": "https://cad.onshape.com",
+    "onshape_access_key": "ACCESSKEY",
+    "onshape_secret_key": "SECRETKEY",
+
+    "assemblyName": "ASSEMBLYTABNAME",
+    "robotName": "Rover7",
+
+    "addDummyBaseLink": true,
+    "simplifySTLs": "all",
+    "color": [0.866666666666666667, 0.074509803921568627, 0.325490196078431373],
+
+    "useScads": true,
+    "jointMaxEffort": 20,
+    "jointMaxVelocity": 20,
+    "ignore": ["diffend"],
+
+    "packageName": "$(find rover_description)/base/meshes/"
+}
