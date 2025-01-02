@@ -69,7 +69,7 @@ InterfaceConfiguration GenericBroadcaster::state_interface_configuration() const
     std::vector<std::string> conf_names;
 
     // Put whatever state interfaces you want to claim here
-    conf_names.emplace_back("test/value");
+    //conf_names.emplace_back("FrontLeftWheel/test/value");
 
     return {interface_configuration_type::INDIVIDUAL, conf_names};
 }

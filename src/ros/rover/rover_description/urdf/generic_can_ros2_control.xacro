@@ -1,21 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="idk">
 
-    <xacro:macro name="generic_can_ros2_control" params="use_mock_hardware">
-        <ros2_control name="FrontLeftWheel" type="system">
+    <link name="test">
+       <inertial>
+         <origin xyz="0 0 0.5" rpy="0 0 0"/>
+         <mass value="1"/>
+         <inertia ixx="100"  ixy="0"  ixz="0" iyy="100" iyz="0" izz="100" />
+       </inertial>
 
-            <hardware>
-                <plugin>generic_can_hardware/GenericCANHardware</plugin>
-                <param name="candevice">can0</param>
-                <param name="canid">0</param>
-            </hardware>
+       <visual>
+         <origin xyz="0 0 0" rpy="0 0 0" />
+         <geometry>
+           <box size="1 1 1" />
+         </geometry>
+         <material name="Cyan">
+           <color rgba="0 1.0 1.0 1.0"/>
+         </material>
+       </visual>
 
-            <gpio name="test">
-                <state_interface name="value">
-                    <param name="max">1</param>
-                </state_interface>
-            </gpio>
+       <collision>
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+           <cylinder radius="1" length="0.5"/>
+         </geometry>
+       </collision>
+    </link>
 
-        </ros2_control>
-    </xacro:macro>
+    <ros2_control name="GenericCanHardware" type="system">
+        <hardware>
+            <plugin>generic_can_hardware/GenericCANHardware</plugin>
+            <param name="candevice">can0</param>
+            <param name="canid">0</param>
+            <param name="clock_rate">100000000</param>
+        </hardware>
+
+        <gpio name="test">
+            <state_interface name="value">
+                <param name="max">1</param>
+            </state_interface>
+        </gpio>
+    </ros2_control>
+
 </robot>

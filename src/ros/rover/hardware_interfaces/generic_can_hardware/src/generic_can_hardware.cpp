@@ -1,4 +1,4 @@
-// Copyright (c) 2022, Stogl Robotics Consulting UG (haftungsbeschränkt) (template)
+/// Copyright (c) 2022, Stogl Robotics Consulting UG (haftungsbeschränkt) (template)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -111,10 +111,8 @@ hardware_interface::CallbackReturn GenericCANHardware::on_configure(
 std::vector<hardware_interface::StateInterface> GenericCANHardware::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
-  if (state_interface.state.has_value()) {
-      state_interfaces.emplace_back(
-              info_.gpios[0].name, state_interface.name, &state_interface.state.value());
-  }
+
+  state_interfaces.emplace_back(info_.gpios[0].name, state_interface.name, &state_interface.state.value());
 
   return state_interfaces;
 }

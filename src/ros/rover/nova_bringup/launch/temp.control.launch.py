@@ -17,7 +17,7 @@ from ament_index_python.packages import get_package_share_directory
 
 # Include the required launch parameters
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import UnlessCondition
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -34,10 +34,6 @@ def generate_launch_description():
     model = LaunchConfiguration('model')
     controllers = LaunchConfiguration('controllers')
 
-    gazebo_arg = DeclareLaunchArgument(
-        'gazebo',
-        default_value='False',
-        description='Use simulation (Gazebo) clock if true')
 
     model_arg = DeclareLaunchArgument(name='model', 
             default_value=PathJoinSubstitution([rover_description_dir, 'urdf', 'generic_can_ros2_control.xacro']),
@@ -49,7 +45,7 @@ def generate_launch_description():
                 [
                     nova_bringup_dir,
                     "params", 
-                    "controllers.yaml"
+                    "generic_can_urdf.yaml"
                 ]       
             ),
             description="Path of the controller params file"
@@ -66,27 +62,29 @@ def generate_launch_description():
     generic_broadcaster = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["generic_broadcaster"]
+        arguments=["generic_broadcaster"],
+    )
+    #
+    # urdf_launch_cmd = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'urdf.launch.py'])),
+    #     condition=UnlessCondition(gazebo),
+    #     launch_arguments={"model": PathJoinSubstitution([rover_description_dir, 'urdf', 'generic_can_ros2_control.xacro']), "gazebo": 'false'}.items()
+    # )
+
+    robot_state_publisher = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        parameters=[{'robot_description':
+                         ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo]), value_type=str)
+                     }]
     )
 
-    urdf_launch_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'urdf.launch.py'])),
-        condition=UnlessCondition(gazebo),
-        launch_arguments={"model": PathJoinSubstitution([rover_description_dir, 'urdf', 'generic_can_ros2_control.xacro']), "gazebo": 'false'}.items()
-    )
-
-    joint_broad = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["joint_broad"]
-    )
 
     return LaunchDescription([
-        gazebo_arg,
         model_arg,
         controllers_arg,
-        urdf_launch_cmd,
+        # urdf_launch_cmd,
         control_node,
         generic_broadcaster,
-        joint_broad,
+        robot_state_publisher
     ])
