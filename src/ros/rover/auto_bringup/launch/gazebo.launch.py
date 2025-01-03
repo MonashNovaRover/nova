@@ -38,6 +38,7 @@ def launch_setup(context, *args, **kwargs):
             'Y': LaunchConfiguration('Y').perform(context)}
     robot_name = LaunchConfiguration('robot_name')
     world = LaunchConfiguration('world')
+    controllers = LaunchConfiguration('controllers')
 
     return [
         AppendEnvironmentVariable(
@@ -50,7 +51,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
-            launch_arguments={'gazebo': 'True'}.items(),
+            launch_arguments={'controllers': controllers, 'gazebo': 'True'}.items(),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
@@ -95,6 +96,11 @@ def generate_launch_description():
             name='config_file',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'gz_bridge.yaml']), 
             description='Absolute path to ros_gz_bridge params file',
+        ),
+        DeclareLaunchArgument(
+            name='controllers',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']), 
+            description='Absolute path to controllers params file',
         ),
         DeclareLaunchArgument(
             name='launch_robot_description',

@@ -25,6 +25,7 @@ find_package(ament_cmake REQUIRED)
 install(DIRECTORY
   arm
   base 
+  waratah
   DESTINATION share/${PROJECT_NAME}
 )
 
