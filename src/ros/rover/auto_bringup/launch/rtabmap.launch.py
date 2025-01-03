@@ -3,7 +3,7 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, Opaq
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration,PathJoinSubstitution
-from launch_ros.actions import LoadComposableNodes, Node
+from launch_ros.actions import Node
 from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import ComposableNodeContainer
@@ -45,6 +45,10 @@ def launch_setup(context, *args, **kwargs):
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
             condition=IfCondition(camera),
+            launch_arguments={
+                'pointclouds':'False',
+                'gazebo': use_sim_time
+            }.items()
         ),
         ComposableNodeContainer(
             name=f"{name}_image_mapping_container",
