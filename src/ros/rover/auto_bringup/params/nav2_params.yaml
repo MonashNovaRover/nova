@@ -15,7 +15,7 @@ bt_navigator:
     navigate_through_poses:
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
     urc_navigator:
-      plugin: "nova_bt_navigators/URCNavigator"
+      plugin: "nova_bt_navigators::URCNavigator"
     plugin_lib_names:
       - nova_save_image_service_bt_node
       - nova_first_goal_reached_condition_bt_node
