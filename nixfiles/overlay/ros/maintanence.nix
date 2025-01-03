@@ -411,6 +411,19 @@ self: super:
             })
           ];
         });
+
+        robot-localization = rosSuper.robot-localization.overrideAttrs ({ patches ? [ ], ... }: {
+          patches = patches ++ [
+            # Add stamped_control as a parameter to support TwistStamped msgs.
+            # https://github.com/cra-ros-pkg/robot_localization/pull/900
+            (self.fetchpatch {
+              url = "https://patch-diff.githubusercontent.com/raw/cra-ros-pkg/robot_localization/pull/900.patch";
+              stripLen = 1;
+              extraPrefix = "";
+              hash = "sha256-Wh3WOLYYHGL25eFRqpGUbvosle2QW6g7OIhXrZ8EG6A=";
+            })
+          ];
+        });
       });
     }));
 

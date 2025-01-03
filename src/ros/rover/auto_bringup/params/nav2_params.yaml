@@ -1,5 +1,6 @@
 bt_navigator:
   ros__parameters:
+    enable_stamped_cmd_vel: True
     use_sim_time: False
     global_frame: map
     robot_base_frame: base_link
@@ -47,7 +48,8 @@ controller_server:
     progress_checker_plugins: ["progress_checker"]
     goal_checker_plugins: ["general_goal_checker"] # "precise_goal_checker"
     controller_plugins: ["FollowPath"]
-    use_realtime_priority: false
+    use_realtime_priority: False
+    enable_stamped_cmd_vel: True
 
     # Progress checker parameters
     progress_checker:
@@ -127,7 +129,7 @@ local_costmap:
       global_frame: map
       robot_base_frame: base_link
       use_sim_time: False
-      rolling_window: true
+      rolling_window: True
       width: 10
       height: 10
       origin_x: -5.0
@@ -135,7 +137,7 @@ local_costmap:
       resolution: 0.1
       footprint: "[[0.67, 0.55], [0.67, -0.55], [-0.67, -0.55], [-0.67, 0.55]]"
       track_unknown_space: False
-      plugins: ["height_mapper_layer"]#, "denoise_layer", "inflation_layer"]
+      plugins: ["height_mapper_layer"] #, "denoise_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 2.0
@@ -182,7 +184,7 @@ local_costmap:
           obstacle_min_range: 0.0
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"
-        enabled: false
+        enabled: False
         minimal_group_size: 3
         group_connectivity_type: 8
       always_send_full_costmap: False
@@ -260,8 +262,8 @@ planner_server:
     GridBased:
       plugin: "nav2_navfn_planner::NavfnPlanner"
       tolerance: 1.0
-      use_astar: true
-      allow_unknown: true
+      use_astar: True
+      allow_unknown: True
 
 smoother_server:
   ros__parameters:
@@ -306,12 +308,13 @@ behavior_server:
     max_rotational_vel: 1.0
     min_rotational_vel: 0.1
     rotational_acc_lim: 3.2
+    enable_stamped_cmd_vel: True
 
 waypoint_follower:
   ros__parameters:
     use_sim_time: False
     loop_rate: 20
-    stop_on_failure: false
+    stop_on_failure: False
     action_server_result_timeout: 900.0
     waypoint_task_executor_plugin: "wait_at_waypoint"
     wait_at_waypoint:
@@ -333,6 +336,7 @@ velocity_smoother:
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
+    enable_stamped_cmd_vel: True
 
 # collision_monitor:
 #   ros__parameters:
