@@ -58,7 +58,6 @@ pivot_drive_controller:
     right_drive_names: ["frw", "brw"]
     left_pivot_names: ["flp", "blp"]
     right_pivot_names: ["frp", "brp"]
-    enable_twist_cmd: false
     open_loop: false
     has_velocity_limits: true
     has_acceleration_limits: true
@@ -74,7 +73,6 @@ strafe_controller:
     right_drive_names: ["frw", "brw"]
     left_pivot_names: ["flp", "blp"]
     right_pivot_names: ["frp", "brp"]
-    enable_twist_cmd: false
     open_loop: true
     max_acceleration: 5.0
 
@@ -88,7 +86,6 @@ nova_diff_drive_controller:
     steering_track: 0.65274049 # Shortest distance between the left and right wheels. If this parameter is wrong, the robot will not behave correctly in curves. NEEDS TO BE CHANGED
     wheel_base: 0.64565131
     wheel_radius: 0.15692321
-    enable_twist_cmd: false
     linear:
       x:
         max_acceleration: 5.0
