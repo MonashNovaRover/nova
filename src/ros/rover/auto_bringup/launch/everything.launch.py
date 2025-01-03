@@ -14,18 +14,15 @@ CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 
-from ament_index_python.packages import get_package_share_path, get_package_share_directory
+from ament_index_python.packages import  get_package_share_directory
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration, AndSubstitution, NotSubstitution
+from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 from launch_ros.actions import Node
-from launch_ros.parameter_descriptions import ParameterValue
-from launch_ros.substitutions import FindPackageShare
-import os
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = get_package_share_directory('auto_bringup')
@@ -52,6 +49,7 @@ def launch_setup(context, *args, **kwargs):
                 'world': world, 
                 'controllers': controllers,
                 'model': model,
+                'camera':'False' # Todo: Remove when done with RTABMAP
             }.items(),
         ),
         IncludeLaunchDescription(
@@ -73,7 +71,7 @@ def launch_setup(context, *args, **kwargs):
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rviz.launch.py'])),
             condition=IfCondition(rviz)
-        ), 
+        ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'navigation.launch.py'])),
             condition=IfCondition(navigation),
@@ -113,7 +111,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='world',
-            default_value=PathJoinSubstitution([gazebo_dir, 'worlds', 'flat.sdf']),
+            default_value=PathJoinSubstitution([gazebo_dir, 'worlds', 'auto.sdf']),
             description='Full path to world model file to load',
         ),
         DeclareLaunchArgument(
@@ -122,12 +120,12 @@ def generate_launch_description():
             description='Full path to the ROS2 parameters file to use for all launched nodes',
         ),
         DeclareLaunchArgument(
-            name='autostart', 
+            name='autostart',
             default_value='True',
             description='Automatically startup the nav2 stack',
         ),
         DeclareLaunchArgument(
-            name='use_respawn', 
+            name='use_respawn',
             default_value='False',
             description='Whether to respawn if a node crashes. Applied when composition is disabled.',
         ),
@@ -137,22 +135,22 @@ def generate_launch_description():
             description='Flag to launch rviz',
         ),
         DeclareLaunchArgument(
-            name='localization', 
+            name='localization',
             default_value='True',
             description='Flag to robot localization nodes',
         ),
         DeclareLaunchArgument(
-            name='log_level', 
+            name='log_level',
             default_value='info',
             description='What level of logging output should be displayed',
         ),
         DeclareLaunchArgument(
-            name='gazebo', 
+            name='gazebo',
             default_value='True',
             description='Flag to launch gazebo',
         ),
         DeclareLaunchArgument(
-            name='navigation', 
+            name='navigation',
             default_value='True',
             description='Flag to launch navigation stack',
         ),
@@ -163,6 +161,6 @@ def generate_launch_description():
         ),
     ]
 
-    return LaunchDescription(  
+    return LaunchDescription(
         declared_arguments + [OpaqueFunction(function=launch_setup)]
     )

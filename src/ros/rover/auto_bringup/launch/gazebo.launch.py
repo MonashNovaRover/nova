@@ -1,3 +1,4 @@
+
 '''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
@@ -14,6 +15,7 @@ CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
+from launch.conditions import IfCondition
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -37,6 +39,7 @@ def launch_setup(context, *args, **kwargs):
     robot_name = LaunchConfiguration('robot_name')
     world = LaunchConfiguration('world')
     controllers = LaunchConfiguration('controllers')
+    camera = LaunchConfiguration('camera')
 
     return [
         AppendEnvironmentVariable(
@@ -53,6 +56,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
+            condition=IfCondition(camera),
             launch_arguments={'gazebo': 'True'}.items(),
         ),
         IncludeLaunchDescription(
@@ -135,6 +139,8 @@ def generate_launch_description():
         DeclareLaunchArgument(name='R', default_value='0.0', description='roll'),
         DeclareLaunchArgument(name='P', default_value='0.0', description='pitch'),
         DeclareLaunchArgument(name='Y', default_value='2.5740044', description='yaw'),
+        DeclareLaunchArgument(name='camera', default_value='True'),
+
     ]
 
     return LaunchDescription(
