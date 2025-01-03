@@ -66,11 +66,12 @@ def launch_setup(context, *args, **kwargs):
                     plugin='image_proc::RectifyNode',
                     name='rectify_color_node',
                     remappings=[
-                        ('image_raw', f'{name}/stereo/image_raw'),
-                        ('camera_info', f'{name}/stereo/camera_info'),
-                        ('image_rect', f'{name}/stereo/image_rect')
+                        ('image_raw', f'{name}/rgb/image_raw'),
+                        ('camera_info', f'{name}/rgb/camera_info'),
+                        ('image_rect', f'{name}/rgb/image_rect')
                     ]),
                 ComposableNode(
+                    condition=IfCondition(LaunchConfiguration('pointclouds')),
                     package='depth_image_proc',
                     plugin='depth_image_proc::PointCloudXyzNode',
                     name='point_cloud_xyz',
@@ -107,6 +108,8 @@ def generate_launch_description():
         DeclareLaunchArgument('ar_tag', default_value='True'),
         DeclareLaunchArgument('use_filter', default_value='False'), # To Be Exoerimented so False for now
         DeclareLaunchArgument('gazebo', default_value='False'),
+        DeclareLaunchArgument('pointclouds', default_value='True'),
+        DeclareLaunchArgument('rectify_image', default_value='True')
     ]
 
     return LaunchDescription(
