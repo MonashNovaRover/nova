@@ -160,6 +160,6 @@ pivot_drive_controller:
   }
   enable_twist_cmd: {
     type: bool,
-    default_value: false,
+    default_value: true,
     description: "Enable the controller to subscribe to twist messages. By default, subscribe to DriveInputStamped.msg",
   }
