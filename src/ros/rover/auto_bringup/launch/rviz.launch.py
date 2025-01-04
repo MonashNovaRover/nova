@@ -6,7 +6,7 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    params_file = LaunchConfiguration('params_file')
+    params = LaunchConfiguration('params')
 
     return [
         Node(
@@ -14,7 +14,7 @@ def launch_setup(context, *args, **kwargs):
             namespace='',
             executable='rviz2',
             name='rviz2',
-            arguments=['-d', [params_file]]
+            arguments=['-d', [params]]
         ),
     ]
 
@@ -23,7 +23,7 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='params_file',
+            name='params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'rviz', 'navigation.rviz']),
             description='Absolute path to rviz navigation params file',
         ),
