@@ -62,6 +62,7 @@ def launch_setup(context, *args, **kwargs):
             executable="component_container",
             composable_node_descriptions=[
                 ComposableNode(
+                    condition=IfCondition(LaunchConfiguration('rectify_image')),
                     package='image_proc',
                     plugin='image_proc::RectifyNode',
                     name='rectify_color_node',
