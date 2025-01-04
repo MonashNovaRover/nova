@@ -11,7 +11,10 @@
     imu:
       i_enable_rotation: true
       i_message_type: IMU
-        #i_rotation_vector_type: ROTATION_VECTOR
+      i_acc_cov: 1.0
+      i_gyro_cov: 1.0
+      i_rot_cov: 1.0
+      i_rotation_vector_type: GAME_ROTATION_VECTOR
     rgb:
       i_enable_nn: false
       i_enable_preview: false

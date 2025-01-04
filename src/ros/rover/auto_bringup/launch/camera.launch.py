@@ -88,7 +88,7 @@ def generate_launch_description():
         DeclareLaunchArgument('name', default_value='oak'),
         DeclareLaunchArgument('parent_frame', default_value='camera_link'),
         DeclareLaunchArgument('camera_model', default_value='OAK-D-LR'),
-        DeclareLaunchArgument('params_file', default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'depthai_oakd_rgbd.yaml'])),
+        DeclareLaunchArgument('params_file', default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'oakd.yaml'])),
         DeclareLaunchArgument('rectify_rgb', default_value='True'),
         DeclareLaunchArgument('rtabmap_pointcloud', default_value='True'),
         DeclareLaunchArgument('ar_tag', default_value='True'),

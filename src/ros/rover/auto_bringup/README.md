@@ -53,8 +53,7 @@
   * Parameters for the `aruco_tracker` node from the `aruco_opencv` ROS2 package, used for AR tag detection.
 * `auto_params`
 * `controllers`
-* `depthai_oakd`
-* `depthai_oakd_rgbd`
+* `oakd`
 * `ekf`
 * `nav2`
 * `pcl`
