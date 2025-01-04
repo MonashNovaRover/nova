@@ -4,11 +4,6 @@
     <gazebo>
         <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
             <topic>joint_states</topic>
-            <joint_name>base_to_chassis</joint_name>
-            <joint_name>mast_to_chassis</joint_name>
-            <joint_name>left_leg_to_chassis</joint_name>
-            <joint_name>right_leg_to_chassis</joint_name>
-            <joint_name>camera_joint</joint_name>
             <joint_name>flp</joint_name>
             <joint_name>flw</joint_name>
             <joint_name>blp</joint_name>
