@@ -21,22 +21,22 @@ nova_diff_drive_controller:
   }
   steering_track: {
     type: double,
-    default_value: 0.0,
+    default_value: 0.65274049,
     description: "Shortest distance between the left and right wheels. If this parameter is wrong, the robot will not behave correctly in curves.",
   }
   wheel_base: {
     type: double,
-    default_value: 0.0,
+    default_value: 0.64565131,
     description: "Shortest distance between the front and rear wheels. If this parameter is wrong, the robot will not behave correctly in curves.",
   }
   wheels_per_side: {
     type: int,
-    default_value: 0,
+    default_value: 2,
     description: "Number of wheels on each side of the robot. This is important to take the wheels slip into account when multiple wheels on each side are present. If there are more wheels then control signals for each side, you should enter number for control signals. For example, Husky has two wheels on each side, but they use one control signal, in this case '1' is the correct value of the parameter.",
   }
   wheel_radius: {
     type: double,
-    default_value: 0.0,
+    default_value: 0.15692321,
     description: "Radius of a wheel, i.e., wheels size, used for transformation of linear velocity into wheel rotations. If this parameter is wrong the robot will move faster or slower then expected.",
   }
   wheel_separation_multiplier: {
@@ -121,7 +121,7 @@ nova_diff_drive_controller:
   }
   enable_twist_cmd: {
     type: bool,
-    default_value: true,
+    default_value: false,
     description: "Subscribe to TwistStamped or DriveInputStamped",
   }
 

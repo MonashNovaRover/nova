@@ -5,6 +5,7 @@
  */
 
 #include "teleop_drive_joy/teleop_drive_joy.hpp"
+#include "teleop_drive_joy/colors.h"
 
 using namespace std::chrono_literals;
 
@@ -38,6 +39,24 @@ namespace teleop_drive_joy
     nova_diff_drive_client = this->create_client<rcl_interfaces::srv::SetParameters>("/nova_diff_drive_controller/set_parameters");
 
     control_mode = ControlMode::PIVOT_DRIVE;
+
+    RCLCPP_INFO_STREAM(this->get_logger(), C_TITLE << "Drive Controls:" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "       Left Stick Y      |  Forward/Back" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "       Right Stick X     |  Left/Right" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "      Right Trigger      |  Speed Multiplier" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "             DPAD Y      |  Speed Incr/Decr Course" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "             DPAD X      |  Speed Incr/Decr Fine" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "    Left Joy Button      |  Handbrake Enabled" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "   Right Joy Button      |  Handbrake Disabled" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "               Back      |  Lock" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "              Start      |  Unlock" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "                  A      |  Autonomous Control" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "                  B      |  Manual Control" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "                  Y      |  Tank Mode" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "       Right Bumper      |  Pivot Mode" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "       Left Bumper       |  Strafe Mode" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Gamepad Locked" << C_END);
+    RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Pivot Mode" << C_END);
   }
 
   void TeleopDriveJoy::initializeParams()
@@ -163,12 +182,12 @@ namespace teleop_drive_joy
     if (isDebounced(joy_msg->buttons[params_.button_unlock], params_.button_unlock) && current_state.locked)
     {
       current_state.locked = false;
-      RCLCPP_INFO(this->get_logger(), "BUTTON: unlock");
+      RCLCPP_INFO_STREAM(this->get_logger(), C_SUCCESS << "Gamepad Unlocked" << C_END);
     }
     else if (isDebounced(joy_msg->buttons[params_.button_lock], params_.button_lock) && !current_state.locked)
     {
       current_state.locked = true;
-      RCLCPP_INFO(this->get_logger(), "BUTTON: lock");
+      RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Gamepad Locked" << C_END);
     }
 
     // Autonomous and Manual
@@ -178,7 +197,7 @@ namespace teleop_drive_joy
       setEnableTwistCmdForController(pivot_drive_client, true);
       setEnableTwistCmdForController(strafe_client, true);
 	    setEnableTwistCmdForController(nova_diff_drive_client, true);
-      RCLCPP_INFO(this->get_logger(), "BUTTON: autonomous_control");
+      RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "Autonomous Control" << C_END);
     }
     else if (isDebounced(joy_msg->buttons[params_.button_manual_control], params_.button_manual_control) && current_state.autonomous_mode)
     {
@@ -186,23 +205,23 @@ namespace teleop_drive_joy
       setEnableTwistCmdForController(pivot_drive_client, false);
       setEnableTwistCmdForController(strafe_client, false);
       setEnableTwistCmdForController(nova_diff_drive_client, false);
-      RCLCPP_INFO(this->get_logger(), "BUTTON: manual_control");
+      RCLCPP_INFO_STREAM(this->get_logger(), C_INPUT << "Manual Control" << C_END);
     }
 
     // Controller Switches
     if (isDebounced(joy_msg->buttons[params_.button_pivot_drive_controller], params_.button_pivot_drive_controller) && control_mode != ControlMode::PIVOT_DRIVE)
     {
-      RCLCPP_INFO(this->get_logger(), "BUTTON: pivot_drive_mode");
+      RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Pivot Mode" << C_END);
       switchController(ControlMode::PIVOT_DRIVE);
     }
     else if (isDebounced(joy_msg->buttons[params_.button_strafe_controller], params_.button_strafe_controller) && control_mode != ControlMode::STRAFE_DRIVE)
     {
-      RCLCPP_INFO(this->get_logger(), "BUTTON: strafe_mode");
+      RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Strafe Mode" << C_END);
       switchController(ControlMode::STRAFE_DRIVE);
     }
     else if (isDebounced(joy_msg->buttons[params_.button_nova_diff_drive_controller], params_.button_nova_diff_drive_controller) && control_mode != ControlMode::DIFF_DRIVE)
     {
-      RCLCPP_INFO(this->get_logger(), "BUTTON: diff_drive_mode");
+      RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Tank Mode" << C_END);
       switchController(ControlMode::DIFF_DRIVE);
     }
 
