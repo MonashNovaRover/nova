@@ -1,0 +1,19 @@
+# Params for RTABMap SLAM
+rtabmap_slam:
+  ros__parameters:
+    frame_id: base_link
+    publish_tf: True
+    # The Default .db file is located at ~/.ros/rtabmap.db
+    # This paramenter is used to delete the default .db file on start
+    rtabmap_args: "--delete_db_on_start"
+    subscribe_rgb: True
+    subscribe_depth: True
+    subscribe_odom_info: False
+    approx_sync: True
+    odom_frame_id: odom
+    Rtabmap/DetectionRate: "3.0"
+# Params for RGBD Odom (VO)
+rtabmap_odom:
+  ros__parameters:
+    publish_tf: False
+    publish_null_when_lost: False
