@@ -22,16 +22,7 @@ def launch_setup(context, *args, **kwargs):
     camera = LaunchConfiguration('camera').perform(context)
     rtabmap_viz = LaunchConfiguration('rtabmap_viz').perform(context)
 
-    parameters={
-          'frame_id':'base_link',
-          'use_sim_time':use_sim_time,
-          'subscribe_rgb': True,
-          'subscribe_depth':True,
-          'subscribe_odom_info': False,
-          'approx_sync':True,
-          'odom_frame_id': 'odom',
-          'Rtabmap/DetectionRate': '3.5',
-    }
+    params_file = LaunchConfiguration('params_file').perform(context)
 
     remappings = [
         ('rgb/image', name+'/rgb/image_raw'),
@@ -51,7 +42,7 @@ def launch_setup(context, *args, **kwargs):
             }.items()
         ),
         ComposableNodeContainer(
-            name=f"{name}_image_mapping_container",
+            name=f"{name}_mapping_container",
             namespace='',
             package="rclcpp_components",
             executable="component_container",
@@ -59,36 +50,37 @@ def launch_setup(context, *args, **kwargs):
                 ComposableNode(
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::RGBDOdometry',
-                    name='rgbd_odometry',
-                    parameters=[parameters, {'publish_tf': False, 'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}','publish_null_when_lost': False}],
+                    name='rtabmap_odom',
+                    parameters=[params_file, {'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}',"use_sim_time": use_sim_time}],
                     remappings=remappings,
                 ),
                 ComposableNode(
                     package='rtabmap_slam',
                     plugin='rtabmap_slam::CoreWrapper',
-                    name='rtabmap',
-                    parameters=[parameters,
-                                {'publish_tf':True, 'rtabmap_args':'--delete_db_on_start'}],
+                    name='rtabmap_slam',
+                    parameters=[params_file,{"use_sim_time": use_sim_time}],
                     remappings=remappings,
                 )
-            ]
+            ],
         ),
         Node(
             package='rtabmap_viz',
             condition=IfCondition(rtabmap_viz),
             executable='rtabmap_viz',
             output='screen',
-            parameters=[parameters],
+            parameters=[params_file,{"use_sim_time": use_sim_time}],
             remappings=remappings,
         ),
     ]
 
 
 def generate_launch_description():
+    auto_bringup_dir = FindPackageShare('auto_bringup')
+
     declared_arguments = [
         DeclareLaunchArgument(name='name', default_value='oak'),
         DeclareLaunchArgument(name='rtabmap_viz', default_value='False'),
-        DeclareLaunchArgument(name='use_sim_time', default_value='False'),
+        DeclareLaunchArgument(name='use_sim_time', default_value='False'), # Revert ASAP
         DeclareLaunchArgument(name='camera', default_value='False'),
         DeclareLaunchArgument(name='x', default_value='0.0'),
         DeclareLaunchArgument(name='y', default_value='0.0'),
@@ -96,6 +88,11 @@ def generate_launch_description():
         DeclareLaunchArgument(name='roll', default_value='0.0'),
         DeclareLaunchArgument(name='pitch', default_value='0.0'),
         DeclareLaunchArgument(name='yaw', default_value='0.0'),
+        DeclareLaunchArgument(
+            name='params_file',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'rtabmap_params.yaml']),
+            description='Params file for RTABMap Nodes',
+        )
     ]
 
     return LaunchDescription(
