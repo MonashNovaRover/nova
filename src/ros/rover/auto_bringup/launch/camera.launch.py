@@ -67,7 +67,7 @@ def launch_setup(context, *args, **kwargs):
                     plugin='image_proc::RectifyNode',
                     name='rectify_color_node',
                     remappings=[
-                        ('image_raw', f'{name}/rgb/image_raw'),
+                        ('image', f'{name}/rgb/image_raw'),
                         ('camera_info', f'{name}/rgb/camera_info'),
                         ('image_rect', f'{name}/rgb/image_rect')
                     ]),
