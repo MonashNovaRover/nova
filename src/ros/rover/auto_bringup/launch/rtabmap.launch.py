@@ -25,9 +25,11 @@ def launch_setup(context, *args, **kwargs):
     params_file = LaunchConfiguration('params_file').perform(context)
 
     remappings = [
-        ('rgb/image', name+'/rgb/image_rect'),
+        ('rgb/image', name+'/rgb/image_raw'),
         ('rgb/camera_info', name+'/rgb/camera_info'),
         ('depth/image', name+'/stereo/image_raw'),
+        ('rgbd_image',name+'/rgbd/image_raw'),
+        ('rgbd_image/compressed',name+'/rgbd/image_raw_compressed'),
         # ('imu', name+'/imu/data'),
         ('odom', 'odom/visual'),
     ]
@@ -48,6 +50,13 @@ def launch_setup(context, *args, **kwargs):
             executable="component_container",
             composable_node_descriptions=[
                 ComposableNode(
+                    package='rtabmap_sync',
+                    plugin='rtabmap_sync::RGBDSync',
+                    name='rtabmap_sync',
+                    parameters = [params_file],
+                    remappings=remappings,
+                ),
+                ComposableNode(
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::RGBDOdometry',
                     name='rtabmap_odom',
@@ -58,7 +67,7 @@ def launch_setup(context, *args, **kwargs):
                     package='rtabmap_slam',
                     plugin='rtabmap_slam::CoreWrapper',
                     name='rtabmap_slam',
-                    parameters=[params_file,{"use_sim_time": use_sim_time}],
+                    parameters=[params_file,{"use_sim_time": use_sim_time,'rtabmap_args':'--delete_db_on_start'}],
                     remappings=remappings,
                 )
             ],
