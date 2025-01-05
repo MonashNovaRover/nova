@@ -25,7 +25,7 @@ def launch_setup(context, *args, **kwargs):
     params_file = LaunchConfiguration('params_file').perform(context)
 
     remappings = [
-        ('rgb/image', name+'/rgb/image_raw'),
+        ('rgb/image', name+'/rgb/image_rect'),
         ('rgb/camera_info', name+'/rgb/camera_info'),
         ('depth/image', name+'/stereo/image_raw'),
         # ('imu', name+'/imu/data'),
