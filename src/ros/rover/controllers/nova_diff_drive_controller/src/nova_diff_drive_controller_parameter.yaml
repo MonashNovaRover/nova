@@ -121,7 +121,7 @@ nova_diff_drive_controller:
   }
   enable_twist_cmd: {
     type: bool,
-    default_value: true,
+    default_value: false,
     description: "Subscribe to TwistStamped or DriveInputStamped",
   }
 

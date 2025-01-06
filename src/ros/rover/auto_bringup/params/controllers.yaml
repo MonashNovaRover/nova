@@ -54,6 +54,7 @@ joint_state_broadcaster:
     
 pivot_drive_controller:
   ros__parameters:
+    enable_twist_cmd: true
     left_drive_names: ["flw", "blw"]
     right_drive_names: ["frw", "brw"]
     left_pivot_names: ["flp", "blp"]
@@ -69,6 +70,7 @@ pivot_drive_controller:
 
 strafe_controller:
   ros__parameters:
+    enable_twist_cmd: true
     left_drive_names: ["flw", "blw"]
     right_drive_names: ["frw", "brw"]
     left_pivot_names: ["flp", "blp"]
@@ -78,6 +80,7 @@ strafe_controller:
 
 nova_diff_drive_controller:
   ros__parameters:
+    enable_twist_cmd: true
     left_drive_names: ["flw", "blw"]
     right_drive_names: ["frw", "brw"]
     left_pivot_names: ["flp", "blp"]

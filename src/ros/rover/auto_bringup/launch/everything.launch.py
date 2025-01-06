@@ -118,7 +118,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='params_file',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_params.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2.yaml']),
             description='Full path to the ROS2 parameters file to use for all launched nodes',
         ),
         DeclareLaunchArgument(

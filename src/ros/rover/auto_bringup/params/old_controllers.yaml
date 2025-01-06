@@ -60,13 +60,12 @@ joint_state_broadcaster:
     
 pivot_drive_controller:
   ros__parameters:
+    enable_twist_cmd: true
     left_drive_names: ["flw", "blw"]
     right_drive_names: ["frw", "brw"]
     left_pivot_names: ["flp", "blp"]
     right_pivot_names: ["frp", "brp"]
-    enable_twist_cmd: true
     open_loop: false
-    use_unstamped_msg: true
     has_velocity_limits: true
     has_acceleration_limits: true
     max_velocity: 2.794144
@@ -80,13 +79,12 @@ pivot_drive_controller:
 
 strafe_controller:
   ros__parameters:
+    enable_twist_cmd: true
     left_drive_names: ["flw", "blw"]
     right_drive_names: ["frw", "brw"]
     left_pivot_names: ["flp", "blp"]
     right_pivot_names: ["frp", "brp"]
-    enable_twist_cmd: false
     open_loop: true
-    use_unstamped_msg: true
     max_acceleration: 5.0
     wheel_radius: 0.16
     wheel_base: 0.875
@@ -94,6 +92,7 @@ strafe_controller:
 
 nova_diff_drive_controller:
   ros__parameters:
+    enable_twist_cmd: true
     left_drive_names: ["flw", "blw"]
     right_drive_names: ["frw", "brw"]
     left_pivot_names: ["flp", "blp"]
@@ -102,8 +101,6 @@ nova_diff_drive_controller:
     steering_track: 0.7
     wheel_base: 0.84
     wheel_radius: 0.1488
-    enable_twist_cmd: false
-    use_unstamped_msg: true
     linear:
       x:
         max_acceleration: 5.0
