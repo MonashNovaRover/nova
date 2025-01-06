@@ -29,7 +29,6 @@ def launch_setup(context, *args, **kwargs):
     controllers = LaunchConfiguration('controllers')
     rover_urdf = LaunchConfiguration('rover_urdf')
     teleop = LaunchConfiguration('teleop')
-    urdf = LaunchConfiguration('urdf')
 
     return [
         GroupAction(
@@ -105,11 +104,6 @@ def generate_launch_description():
 
     declared_arguments = [      
         DeclareLaunchArgument(
-            name='controllers',
-            default_value=PathJoinSubstitution([nova_bringup_dir, 'params', 'controllers.yaml']),
-            description='Absolute path to controller params file',
-        ),
-        DeclareLaunchArgument(
             name='arm_urdf', 
             default_value='False',
             description='Include arm URDF in robot_description?',
@@ -117,6 +111,11 @@ def generate_launch_description():
         DeclareLaunchArgument(
             name='arm_urdf_path', 
             default_value = PathJoinSubstitution([rover_description_dir, 'arm', 'urdf', 'arm.urdf.xacro']), 
+        ),
+        DeclareLaunchArgument(
+            name='controllers',
+            default_value=PathJoinSubstitution([nova_bringup_dir, 'params', 'controllers.yaml']),
+            description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
             name='rover_urdf', 
