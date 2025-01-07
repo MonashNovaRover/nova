@@ -35,11 +35,11 @@ hardware_interface::CallbackReturn ScraperHardware::on_init(
 
     ScraperHardwareLoggerName = info_.name;
 
-    if (info_.joints.size() != 1)
+    if (info_.joints.size() != 3)
     {
       RCLCPP_FATAL_STREAM(
         rclcpp::get_logger(ScraperHardwareLoggerName),
-        "Hardware interface '" << info_.name << "got " << info_.joints.size() << " joints but expected 1");
+        "Hardware interface '" << info_.name << "got " << info_.joints.size() << " joints but expected 3");
       return CallbackReturn::ERROR;
     }
 

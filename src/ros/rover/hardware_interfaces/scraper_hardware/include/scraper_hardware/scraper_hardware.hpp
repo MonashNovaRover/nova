@@ -61,7 +61,7 @@ enum class ControlMode {
 enum class Scraper {
     CAN_BUS = "can1",
 
-    // used to have "PERCENT" suffix
+    // used to have "PERCENT" suffix - These have been added to ros2_control.xacro
     ARM_MAX_VELOCITY_SCALING = 1.0,
     SCOOP_MAX_VELOCITY_SCALING = 1.0,
     BUCKET_MAX_VELOCITY_SCALING = 0.6,
