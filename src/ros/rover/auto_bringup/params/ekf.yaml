@@ -38,3 +38,5 @@ ekf_filter_node:
                        true, false, false,  # X', Y', Z'
                        false, false, true,   # roll', pitch', yaw'
                        false, false, false]  # X'', Y'', Z''
+                       
+        stamped_control: true

@@ -31,6 +31,7 @@ def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = get_package_share_directory('auto_bringup')
 
     autostart = LaunchConfiguration('autostart')
+    controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
     localization = LaunchConfiguration('localization')
     log_level = LaunchConfiguration('log_level')
@@ -40,6 +41,7 @@ def launch_setup(context, *args, **kwargs):
     rviz = LaunchConfiguration('rviz')
     use_respawn = LaunchConfiguration('use_respawn')
     world = LaunchConfiguration('world')
+    model = LaunchConfiguration('model')
 
     return [
         IncludeLaunchDescription(
@@ -48,6 +50,8 @@ def launch_setup(context, *args, **kwargs):
             launch_arguments={
                 'namespace': namespace, 
                 'world': world, 
+                'controllers': controllers,
+                'model': model,
             }.items(),
         ),
         IncludeLaunchDescription(
@@ -94,8 +98,14 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     auto_bringup_dir = get_package_share_directory('auto_bringup')
     gazebo_dir = get_package_share_directory('nova_gazebo')
+    rover_description_dir = get_package_share_directory('rover_description')
 
     declared_arguments = [
+        DeclareLaunchArgument(
+            name='controllers',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
+            description='Absolute path to controller params file',
+        ),
         DeclareLaunchArgument(
             name='namespace',
             default_value='',
@@ -108,7 +118,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='params_file',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_params.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2.yaml']),
             description='Full path to the ROS2 parameters file to use for all launched nodes',
         ),
         DeclareLaunchArgument(
@@ -145,6 +155,11 @@ def generate_launch_description():
             name='navigation', 
             default_value='True',
             description='Flag to launch navigation stack',
+        ),
+        DeclareLaunchArgument(
+            name='model', 
+            default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']), 
+            description='Absolute path to robot urdf file',
         ),
     ]
 
