@@ -48,7 +48,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='model', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'base', 'urdf', 'rover.urdf.xacro']),
+            default_value=PathJoinSubstitution([rover_description_dir, 'waratah', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
         ),
         DeclareLaunchArgument(

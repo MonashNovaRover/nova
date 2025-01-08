@@ -74,7 +74,7 @@ def generate_launch_description():
     declared_arguments = [      
         DeclareLaunchArgument(
             name='controllers',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'old_controllers.yaml']),
             description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
@@ -84,7 +84,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='model', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'base', 'urdf', 'rover.urdf.xacro']),
+            default_value=PathJoinSubstitution([rover_description_dir, 'waratah', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
         ),  
     ]
