@@ -21,16 +21,9 @@
                 <command_interface name="velocity">
                     <param name="max">1.0</param>
                 </command_interface>
-                <command_interface name="current_limit">
+                <command_interface name="current">
                     <param name="max">1.0</param>
                 </command_interface>
-
-                <state_interface name="velocity">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-                <state_interface name="current_limit">
-                    <param name="initial_value">1.0</param>
-                </state_interface>
             </joint>
         </ros2_control>
 
@@ -53,16 +46,9 @@
                 <command_interface name="velocity">
                     <param name="max">1.0</param>
                 </command_interface>
-                <command_interface name="current_limit">
+                <command_interface name="current">
                     <param name="max">1.0</param>
                 </command_interface>
-
-                <state_interface name="velocity">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-                <state_interface name="current_limit">
-                    <param name="initial_value">1.0</param>
-                </state_interface>
             </joint>
         </ros2_control>
 
@@ -85,16 +71,9 @@
                 <command_interface name="velocity">
                     <param name="max">1.0</param>
                 </command_interface>
-                <command_interface name="current_limit">
+                <command_interface name="current">
                     <param name="max">1.0</param>
                 </command_interface>
-
-                <state_interface name="velocity">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-                <state_interface name="current_limit">
-                    <param name="initial_value">1.0</param>
-                </state_interface>
             </joint>
         </ros2_control>
 
@@ -117,16 +96,9 @@
                 <command_interface name="velocity">
                     <param name="max">1.0</param>
                 </command_interface>
-                <command_interface name="current_limit">
+                <command_interface name="current">
                     <param name="max">1.0</param>
                 </command_interface>
-
-                <state_interface name="velocity">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-                <state_interface name="current_limit">
-                    <param name="initial_value">1.0</param>
-                </state_interface>
             </joint>
         </ros2_control>
 
@@ -149,16 +121,9 @@
                 <command_interface name="velocity">
                     <param name="max">1.0</param>
                 </command_interface>
-                <command_interface name="current_limit">
+                <command_interface name="current">
                     <param name="max">1.0</param>
                 </command_interface>
-
-                <state_interface name="velocity">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-                <state_interface name="current_limit">
-                    <param name="initial_value">1.0</param>
-                </state_interface>
             </joint>
         </ros2_control>
 
@@ -181,16 +146,9 @@
                 <command_interface name="velocity">
                     <param name="max">1.0</param>
                 </command_interface>
-                <command_interface name="current_limit">
+                <command_interface name="current">
                     <param name="max">1.0</param>
                 </command_interface>
-
-                <state_interface name="velocity">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-                <state_interface name="current_limit">
-                    <param name="initial_value">1.0</param>
-                </state_interface>
             </joint>
         </ros2_control>
 
@@ -213,16 +171,9 @@
                 <command_interface name="velocity">
                     <param name="max">1.0</param>
                 </command_interface>
-                <command_interface name="current_limit">
+                <command_interface name="current">
                     <param name="max">1.0</param>
                 </command_interface>
-
-                <state_interface name="velocity">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-                <state_interface name="current_limit">
-                    <param name="initial_value">1.0</param>
-                </state_interface>
             </joint>
         </ros2_control>
 
@@ -245,16 +196,9 @@
                 <command_interface name="velocity">
                     <param name="max">1.0</param>
                 </command_interface>
-                <command_interface name="current_limit">
+                <command_interface name="current">
                     <param name="max">1.0</param>
                 </command_interface>
-
-                <state_interface name="velocity">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-                <state_interface name="current_limit">
-                    <param name="initial_value">1.0</param>
-                </state_interface>
             </joint>
         </ros2_control>
     </xacro:macro>
