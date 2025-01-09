@@ -355,62 +355,22 @@
                 </state_interface>
             </joint>
         </ros2_control>
-
-	<ros2_control name="Auger" type="system">
+        <ros2_control name="Auger" type="system">
             <xacro:unless value="${use_mock_hardware}">
                 <hardware>
 		    <param name="can_bus_param">can1</param>
 		    <!-- What's the canid? Is it useful? -->
 		    <!-- <param name="canid">8</param> -->
+		    <param name="auger_max_vel">24575</param>
+		    <param name="drill_max_vel">24575</param>
                 </hardware>
-	    </xacro:unless>
-
+            </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
                 <hardware>
                     <plugin>mock_components/GenericSystem</plugin>
                     <param name="calculate_dynamics">true</param>
                 </hardware>
             </xacro:if>
-	    
-	    <joint name="auger">
-		<command_interface name="direction">
-		    <param name="min">-1</param>
-	      	    <param name="max">1</param>
-                </command_interface>
-
-                <command_interface name="velocity">
-		    <!-- 24575 = 32767 (max velocity) * 3/4 -->	
-		    <param name="max">24575</param>
-                </command_interface>
-		
-		<state_interface name="direction">
-                    <param name="initial_value">1</param>
-                </state_interface>
-		
-		<state_interface name="velocity">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-            </joint>
-	    
-	    <joint name="drill">
-		<command_interface name="direction">
-		    <param name="min">-1</param>
-	      	    <param name="max">1</param>
-                </command_interface>
-
-                <command_interface name="velocity">
-		    <!-- 24575 = 32767 (max velocity) * 3/4 -->	
-		    <param name="max">24575</param>
-                </command_interface>
-		
-		<state_interface name="direction">
-                    <param name="initial_value">1</param>
-                </state_interface>
-		
-		<state_interface name="velocity">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-            </joint>
         </ros2_control>
     </xacro:macro>
 </robot>
