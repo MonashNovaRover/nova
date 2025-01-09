@@ -30,6 +30,9 @@ def launch_setup(context, *args, **kwargs):
         ('depth/image', name+'/stereo/image_raw'),
         ('rgbd_image',name+'/rgbd/image_raw'),
         ('rgbd_image/compressed',name+'/rgbd/image_raw_compressed'),
+        ('cloud',name+'/depth/points'),
+        ('obstacles', name+'/obstacles'),
+        ('ground', name+'/ground'),
         # ('imu', name+'/imu/data'),
         ('odom', 'odom/visual'),
     ]
@@ -60,6 +63,7 @@ def launch_setup(context, *args, **kwargs):
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::RGBDOdometry',
                     name='rtabmap_odom',
+                    # arguments=['-d'],
                     parameters=[params_file, {'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}',"use_sim_time": use_sim_time}],
                     remappings=remappings,
                 ),
@@ -67,11 +71,22 @@ def launch_setup(context, *args, **kwargs):
                     package='rtabmap_slam',
                     plugin='rtabmap_slam::CoreWrapper',
                     name='rtabmap_slam',
+                    # arguments=['-d'],
                     parameters=[params_file,{"use_sim_time": use_sim_time,'rtabmap_args':'--delete_db_on_start'}],
                     remappings=remappings,
                 )
             ],
         ),
+        Node(
+            package='rtabmap_util', executable='point_cloud_xyz', output='screen',
+            parameters=[{'decimation': 2,
+                        'max_depth': 3.0,
+                        'voxel_size': 0.02}],
+            remappings=remappings),
+        Node(
+            package='rtabmap_util', executable='obstacles_detection', output='screen',
+            parameters=[params_file],
+            remappings=remappings),
         Node(
             package='rtabmap_viz',
             condition=IfCondition(rtabmap_viz),
