@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:macro name="rover_ros2_control" params="use_mock_hardware">
+        <ros2_control name="PumpCleaning" type="system">
+            <xacro:unless value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>qcmd_hardware/QCMDHardware</plugin>
+                    <param name="candevice">can1</param>
+                    <param name="canid">011</param> 
+                </hardware>
+            </xacro:unless>
+            <xacro:if value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>mock_components/GenericSystem</plugin>
+                    <param name="calculate_dynamics">true</param>
+                </hardware>
+            </xacro:if>
+
+            <joint name="motor">
+                <command_interface name="velocity">
+                    <param name="max">1.0</param>
+                </command_interface>
+                <command_interface name="current_limit">
+                    <param name="max">1.0</param>
+                </command_interface>
+
+                <state_interface name="velocity">
+                    <param name="initial_value">0.0</param>
+                </state_interface>
+                <state_interface name="current_limit">
+                    <param name="initial_value">1.0</param>
+                </state_interface>
+            </joint>
+        </ros2_control>
+
+        <ros2_control name="PumpMixToShot" type="system">
+            <xacro:unless value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>qcmd_hardware/QCMDHardware</plugin>
+                    <param name="candevice">can1</param>
+                    <param name="canid">012</param> 
+                </hardware>
+            </xacro:unless>
+            <xacro:if value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>mock_components/GenericSystem</plugin>
+                    <param name="calculate_dynamics">true</param>
+                </hardware>
+            </xacro:if>
+
+            <joint name="motor">
+                <command_interface name="velocity">
+                    <param name="max">1.0</param>
+                </command_interface>
+                <command_interface name="current_limit">
+                    <param name="max">1.0</param>
+                </command_interface>
+
+                <state_interface name="velocity">
+                    <param name="initial_value">0.0</param>
+                </state_interface>
+                <state_interface name="current_limit">
+                    <param name="initial_value">1.0</param>
+                </state_interface>
+            </joint>
+        </ros2_control>
+
+        <ros2_control name="AugerActuation" type="system">
+            <xacro:unless value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>qcmd_hardware/QCMDHardware</plugin>
+                    <param name="candevice">can1</param>
+                    <param name="canid">021</param> 
+                </hardware>
+            </xacro:unless>
+            <xacro:if value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>mock_components/GenericSystem</plugin>
+                    <param name="calculate_dynamics">true</param>
+                </hardware>
+            </xacro:if>
+
+            <joint name="motor">
+                <command_interface name="velocity">
+                    <param name="max">1.0</param>
+                </command_interface>
+                <command_interface name="current_limit">
+                    <param name="max">1.0</param>
+                </command_interface>
+
+                <state_interface name="velocity">
+                    <param name="initial_value">0.0</param>
+                </state_interface>
+                <state_interface name="current_limit">
+                    <param name="initial_value">1.0</param>
+                </state_interface>
+            </joint>
+        </ros2_control>
+
+        <ros2_control name="AugerDrillSpin" type="system">
+            <xacro:unless value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>qcmd_hardware/QCMDHardware</plugin>
+                    <param name="candevice">can1</param>
+                    <param name="canid">022</param> 
+                </hardware>
+            </xacro:unless>
+            <xacro:if value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>mock_components/GenericSystem</plugin>
+                    <param name="calculate_dynamics">true</param>
+                </hardware>
+            </xacro:if>
+
+            <joint name="motor">
+                <command_interface name="velocity">
+                    <param name="max">1.0</param>
+                </command_interface>
+                <command_interface name="current_limit">
+                    <param name="max">1.0</param>
+                </command_interface>
+
+                <state_interface name="velocity">
+                    <param name="initial_value">0.0</param>
+                </state_interface>
+                <state_interface name="current_limit">
+                    <param name="initial_value">1.0</param>
+                </state_interface>
+            </joint>
+        </ros2_control>
+
+        <ros2_control name="PumpShotToSpec" type="system">
+            <xacro:unless value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>qcmd_hardware/QCMDHardware</plugin>
+                    <param name="candevice">can1</param>
+                    <param name="canid">031</param> 
+                </hardware>
+            </xacro:unless>
+            <xacro:if value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>mock_components/GenericSystem</plugin>
+                    <param name="calculate_dynamics">true</param>
+                </hardware>
+            </xacro:if>
+
+            <joint name="motor">
+                <command_interface name="velocity">
+                    <param name="max">1.0</param>
+                </command_interface>
+                <command_interface name="current_limit">
+                    <param name="max">1.0</param>
+                </command_interface>
+
+                <state_interface name="velocity">
+                    <param name="initial_value">0.0</param>
+                </state_interface>
+                <state_interface name="current_limit">
+                    <param name="initial_value">1.0</param>
+                </state_interface>
+            </joint>
+        </ros2_control>
+
+        <ros2_control name="AnalysisArmActuation" type="system">
+            <xacro:unless value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>qcmd_hardware/QCMDHardware</plugin>
+                    <param name="candevice">can1</param>
+                    <param name="canid">032</param> 
+                </hardware>
+            </xacro:unless>
+            <xacro:if value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>mock_components/GenericSystem</plugin>
+                    <param name="calculate_dynamics">true</param>
+                </hardware>
+            </xacro:if>
+
+            <joint name="motor">
+                <command_interface name="velocity">
+                    <param name="max">1.0</param>
+                </command_interface>
+                <command_interface name="current_limit">
+                    <param name="max">1.0</param>
+                </command_interface>
+
+                <state_interface name="velocity">
+                    <param name="initial_value">0.0</param>
+                </state_interface>
+                <state_interface name="current_limit">
+                    <param name="initial_value">1.0</param>
+                </state_interface>
+            </joint>
+        </ros2_control>
+
+        <ros2_control name="MixerOne" type="system">
+            <xacro:unless value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>qcmd_hardware/QCMDHardware</plugin>
+                    <param name="candevice">can1</param>
+                    <param name="canid">041</param> 
+                </hardware>
+            </xacro:unless>
+            <xacro:if value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>mock_components/GenericSystem</plugin>
+                    <param name="calculate_dynamics">true</param>
+                </hardware>
+            </xacro:if>
+
+            <joint name="motor">
+                <command_interface name="velocity">
+                    <param name="max">1.0</param>
+                </command_interface>
+                <command_interface name="current_limit">
+                    <param name="max">1.0</param>
+                </command_interface>
+
+                <state_interface name="velocity">
+                    <param name="initial_value">0.0</param>
+                </state_interface>
+                <state_interface name="current_limit">
+                    <param name="initial_value">1.0</param>
+                </state_interface>
+            </joint>
+        </ros2_control>
+
+        <ros2_control name="MixerTwo" type="system">
+            <xacro:unless value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>qcmd_hardware/QCMDHardware</plugin>
+                    <param name="candevice">can1</param>
+                    <param name="canid">042</param> 
+                </hardware>
+            </xacro:unless>
+            <xacro:if value="${use_mock_hardware}">
+                <hardware>
+                    <plugin>mock_components/GenericSystem</plugin>
+                    <param name="calculate_dynamics">true</param>
+                </hardware>
+            </xacro:if>
+
+            <joint name="motor">
+                <command_interface name="velocity">
+                    <param name="max">1.0</param>
+                </command_interface>
+                <command_interface name="current_limit">
+                    <param name="max">1.0</param>
+                </command_interface>
+
+                <state_interface name="velocity">
+                    <param name="initial_value">0.0</param>
+                </state_interface>
+                <state_interface name="current_limit">
+                    <param name="initial_value">1.0</param>
+                </state_interface>
+            </joint>
+        </ros2_control>
+    </xacro:macro>
+</robot>

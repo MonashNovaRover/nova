@@ -106,12 +106,12 @@ enum class QCMDConfigCommand{
 
 // From: https://www.notion.so/MNR-CANBUS-Standards-9dc47508ed3e4dfda2aa9ae97fe1ad54#a52b20fa4b874f1ab0bf73e6fa9dfc6c
 
-enum class QCMDSendCommand{
+enum class QCMDCommandID {
     CONTROL = 0x0,              // Data is sent as a 16 bit signed integer
     CURRENT_LIMIT = 0x2,        // Data is sent as a 7 bit unsigned integer
-}
+};
 
-enum class QCMDMotorID{
+enum class QCMDMotorID {
     PUMP_CLEANING = 0x011,      // 'NOT being used'
     PUMP_MIX_TO_SHOT = 0x012,
     AUGER_ACTUATION = 0x021,
@@ -120,14 +120,14 @@ enum class QCMDMotorID{
     ANALYSIS_ARM_ACTUATION = 0x032,
     MIXER_1 = 0x041,
     MIXER_2 = 0x042,
-}
+};
 
-enum class QCMDCommandData{
+enum class QCMDCommandData {
     MAX_CURRENT = 0x7F,
     MAX_MAGNITUDE = 0x7FFF, 
     FORWARD_DIRECTION = 1,
     REVERSE_DIRECTION = -1,
-}
+};
 
 class QCMDHardware : public hardware_interface::SystemInterface
 {

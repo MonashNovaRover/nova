@@ -355,46 +355,5 @@
                 </state_interface>
             </joint>
         </ros2_control>
-
-        <ros2_control name="Scraper" type="system">
-
-            <xacro>
-                <hardware>
-                    <plugin>scraper_hardware/ScraperHardware</plugin>
-                    <param name="candevice">can1</param>
-                    <param name="canid">1</param>
-                    <param name="resolver_reduction">1.33333333333</param>
-                    <param name="clock_rate">100000000</param>
-                    <param name="revolution_pulses">8192</param>
-                    <param name="min_interval">122</param>
-                    <param name="gear_ratio">36.0</param>
-                    <param name="mock">true</param>
-                    <param name="reversed">true</param>
-                    <param name="integrate_velocity">true</param>
-                </hardware>
-            </xacro>
-
-            <joint name="arm">
-		        <command_interface name="velocity">
-                    <param name="max_scaling">1</param>
-                </command_interface>
-            </joint>
-
-            <joint name="bucket">
-                <command_interface name="velocity">
-                    <param name="max_scaling">0.6</param>
-                </command_interface>
-
-                <state_interface name="position">
-                    <param name="initial_value">0</param>
-                </state_interface>
-            </joint>
-
-            <joint name="scoop">
-		        <command_interface name="velocity">
-                    <param name="max_scaling">1</param>
-                </command_interface>
-            </joint>
-        </ros2_control>
     </xacro:macro>
 </robot>

@@ -1,9 +1,0 @@
-<library path="scraper_hardware">
-  <class name="scraper_hardware/ScraperHardware"
-         type="scraper_hardware::ScraperHardware"
-         base_class_type="hardware_interface::SystemInterface">
-    <description>
-      ros2_control scraper hardware interface.
-    </description>
-  </class>
-</library>
