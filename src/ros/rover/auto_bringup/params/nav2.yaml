@@ -4,7 +4,7 @@ bt_navigator:
     use_sim_time: False
     global_frame: map
     robot_base_frame: base_link
-    odom_topic: /pivot_drive_controller/odom
+    odom_topic: /odom/visual
     bt_loop_duration: 10
     default_server_timeout: 20
     wait_for_service_timeout: 1000
@@ -50,20 +50,10 @@ controller_server:
     controller_plugins: ["FollowPath"]
     use_realtime_priority: False
     enable_stamped_cmd_vel: True
-
-    # Progress checker parameters
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.5
       movement_time_allowance: 10.0
-    # Goal checker parameters
-    #precise_goal_checker:
-    #  plugin: "nav2_controller::SimpleGoalChecker"
-    #  xy_goal_tolerance: 0.25
-    #  yaw_goal_tolerance: 0.25
-    #  stateful: True
-    # Progress checker parameters
-
     general_goal_checker:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
@@ -74,27 +64,27 @@ controller_server:
       primary_controller: "dwb_core::DWBLocalPlanner"
       angular_dist_threshold: 0.785
       forward_sampling_distance: 0.5
-      rotate_to_heading_angular_vel: 0.4
+      rotate_to_heading_angular_vel: 0.05
       max_angular_accel: 3.2
       simulate_ahead_time: 1.0
-    # DWB parameters
+      # DWB parameters
       debug_trajectory_details: False
       min_vel_x: 0.0
       min_vel_y: 0.0
-      max_vel_x: 0.5
+      max_vel_x: 0.05
       max_vel_y: 0.0
-      max_vel_theta: 0.4
+      max_vel_theta: 0.05
       min_speed_xy: 0.0
-      max_speed_xy: 0.5
+      max_speed_xy: 0.05
       min_speed_theta: 0.0
       # Add high threshold velocity for turtlebot 3 issue.
       # https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/75
-      acc_lim_x: 2.5
+      acc_lim_x: 0.05
       acc_lim_y: 0.0
-      acc_lim_theta: 3.2
-      decel_lim_x: -2.5
+      acc_lim_theta: 0.05
+      decel_lim_x: -0.05
       decel_lim_y: 0.0
-      decel_lim_theta: -3.2
+      decel_lim_theta: -0.05
       vx_samples: 20
       vy_samples: 1
       vtheta_samples: 30
@@ -106,7 +96,15 @@ controller_server:
       trans_stopped_velocity: 0.25
       short_circuit_trajectory_evaluation: True
       stateful: True
-      critics: ["RotateToGoal", "Oscillation", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+      critics:
+        [
+          "RotateToGoal",
+          "Oscillation",
+          "GoalAlign",
+          "PathAlign",
+          "PathDist",
+          "GoalDist",
+        ]
       BaseObstacle.scale: 0.02
       ObstacleFootprint.scale: 0.02
       PathAlign.scale: 32.0
@@ -126,7 +124,7 @@ local_costmap:
     ros__parameters:
       update_frequency: 3.0
       publish_frequency: 3.0
-      global_frame: map
+      global_frame: odom
       robot_base_frame: base_link
       use_sim_time: False
       rolling_window: True
@@ -137,57 +135,50 @@ local_costmap:
       resolution: 0.1
       footprint: "[[0.67, 0.55], [0.67, -0.55], [-0.67, -0.55], [-0.67, 0.55]]"
       track_unknown_space: False
-      plugins: ["height_mapper_layer"] #, "denoise_layer", "inflation_layer"]
+      plugins: ["voxel_layer", "denoise_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 2.0
-        inflation_radius: 2.55
-      height_mapper_layer:
-        plugin: "nova_costmap_2d/HeightMapperLayer"
-        enabled: True
-        min_obstacle_height: -1.0
-        max_obstacle_height: 3.0
-        observation_sources: depth_camera
-        vertical_resolution: 0.025
-        max_safe_val: 1.6
-        min_plane_density: 0.2
-        depth_camera:
-          topic: /oak/no
-          min_obstacle_height: -1.0
-          max_obstacle_height: 3.0
-          clearing: False
-          marking: True
-          data_type: "PointCloud2"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 5.5
-          obstacle_min_range: 0.0
-      plane_mapper_layer:
-        plugin: "nova_costmap_2d/PlaneMapperLayer"
-        enabled: True
-        min_obstacle_height: -1.0
-        max_obstacle_height: 3.0
-        max_safe_inc: 25.0
-        observation_sources: depth_camera
-        vertical_resolution: 0.025
-        min_plane_density: 0.2
-        depth_camera:
-          topic: /oak/no
-          min_obstacle_height: -1.0
-          max_obstacle_height: 3.0
-          clearing: False
-          marking: True
-          data_type: "PointCloud2"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 5.5
-          obstacle_min_range: 0.0
+        cost_scaling_factor: 5.0
+        inflation_radius: 0.3
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"
-        enabled: False
+        enabled: True
         minimal_group_size: 3
         group_connectivity_type: 8
-      always_send_full_costmap: False
+      voxel_layer:
+        plugin: "nav2_costmap_2d::VoxelLayer"
+        enabled: True
+        publish_voxel_map: True
+        origin_z: 0.0
+        z_resolution: 0.05
+        z_voxels: 16
+        max_obstacle_height: 2.0
+        mark_threshold: 0
+        observation_sources: ground obstacles
+        ground:
+          topic: /oak/ground
+          max_obstacle_height: 0.4
+          clearing: True
+          marking: False
+          data_type: "PointCloud2"
+          raytrace_max_range: 3.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.5
+          obstacle_min_range: 0.0
+        obstacles:
+          topic: /oak/obstacles
+          max_obstacle_height: 0.4
+          clearing: True
+          marking: True
+          data_type: "PointCloud2"
+          raytrace_max_range: 3.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.5
+          obstacle_min_range: 0.0
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
+      always_send_full_costmap: True
 
 global_costmap:
   global_costmap:
@@ -196,63 +187,24 @@ global_costmap:
       publish_frequency: 1.0
       global_frame: map
       robot_base_frame: base_link
-      width: 50
-      height: 50
-      origin_x: -25.0
-      origin_y: -25.0
-      use_sim_time: False
-      rolling_window: True
-      footprint: "[[0.67, 0.55], [0.67, -0.55], [-0.67, -0.55], [-0.67, 0.55]]"
-      resolution: 0.4
-      track_unknown_space: False
-      plugins: ["height_mapper_layer", "plane_mapper_layer", "inflation_layer"]
-      height_mapper_layer:
-        plugin: "nova_costmap_2d/HeightMapperLayer"
+      use_sim_time: True
+      robot_radius: 0.22
+      resolution: 0.05
+      track_unknown_space: true
+      plugins: ["static_layer", "denoise_layer", "inflation_layer"]
+      denoise_layer:
+        plugin: "nav2_costmap_2d::DenoiseLayer"
         enabled: True
-        min_obstacle_height: -1.0
-        max_obstacle_height: 3.0
-        observation_sources: depth_camera
-        vertical_resolution: 0.025
-        max_safe_val: 1.6
-        min_plane_density: 0.1
-        resolution_ratio: 16
-        depth_camera:
-          topic: /oak/depth/points
-          min_obstacle_height: -1.0
-          max_obstacle_height: 3.0
-          clearing: False
-          marking: False
-          data_type: "PointCloud2"
-          raytrace_max_range: 12.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 12.0
-          obstacle_min_range: 0.0
-      plane_mapper_layer:
-        plugin: "nova_costmap_2d/PlaneMapperLayer"
-        enabled: True
-        min_obstacle_height: -1.0
-        max_obstacle_height: 3.0
-        resolution_ratio: 16
-        max_safe_inc: 25.0
-        observation_sources: depth_camera
-        vertical_resolution: 0.025
-        min_plane_density: 0.1
-        depth_camera:
-          topic: /oak/depth/points
-          min_obstacle_height: -1.0
-          max_obstacle_height: 3.0
-          clearing: False
-          marking: True
-          data_type: "PointCloud2"
-          raytrace_max_range: 12.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 12.0
-          obstacle_min_range: 0.0
+        minimal_group_size: 3
+        group_connectivity_type: 8
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 2.0
-        inflation_radius: 2.55
-      always_send_full_costmap: False
+        cost_scaling_factor: 3.0
+        inflation_radius: 0.55
+      always_send_full_costmap: True
 
 planner_server:
   ros__parameters:
@@ -328,16 +280,15 @@ velocity_smoother:
     smoothing_frequency: 3.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [0.5, 0.0, 0.4]
-    min_velocity: [-0.2, 0.0, -0.4]
-    max_accel: [2.5, 0.0, 3.2]
-    max_decel: [-2.5, 0.0, -3.2]
-    odom_topic: "/pivot_drive_controller/odom"
+    max_velocity: [0.05, 0.0, 0.05]
+    min_velocity: [-0.03, 0.0, -0.03]
+    max_accel: [0.05, 0.0, 3.2]
+    max_decel: [-0.03, 0.0, -0.03]
+    odom_topic: "/odom/visual"
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
     enable_stamped_cmd_vel: True
-
 # collision_monitor:
 #   ros__parameters:
 #     use_sim_time: True

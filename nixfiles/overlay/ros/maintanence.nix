@@ -198,16 +198,6 @@ self: super:
                 }
               );
 
-          gz-sensors-vendor = (
-            rosSelf.lib.patchAmentVendorGit rosSuper.gz-sensors-vendor {
-              # version = "8.2.1";
-              # hash = "sha256-wEUJoHbvvImuFbaKk84maw5AoKhoEhdU0uOYVBtHhI0=";
-              url = "https://github.com/gazebosim/gz-sensors";
-              rev = "gz-sensors8_8.2.1";
-              fetchgitArgs.hash = "sha256-wEUJoHbvvImuFbaKk84maw5AoKhoEhdU0uOYVBtHhI0=";
-            }
-          );
-
           geometric-shapes = rosSuper.geometric-shapes.overrideAttrs (
             {
               patches ? [ ],
@@ -276,7 +266,7 @@ self: super:
                 postPatch
                 + ''
                   substituteInPlace src/costmap_cost_tool.cpp --replace "SLOT(updateAutoDeactivate())" "nullptr"
-                  substituteInPlace include/nav2_rviz_plugins/costmap_cost_tool.hpp --replace "private Q_SLOTS:" "" 
+                  substituteInPlace include/nav2_rviz_plugins/costmap_cost_tool.hpp --replace "private Q_SLOTS:" ""
                   substituteInPlace include/nav2_rviz_plugins/costmap_cost_tool.hpp --replace "void updateAutoDeactivate();" ""
                 '';
             }
@@ -304,7 +294,7 @@ self: super:
               prePatch =
                 prePatch
                 + ''
-                  pwd 
+                  pwd
                 '';
             }
           );
@@ -568,32 +558,67 @@ self: super:
             }
           );
 
-        rosapi = rosSuper.rosapi.overrideAttrs ({ patches ? [ ], ... }: {
-          patches = patches ++ [
-            # Fix invalid import of get_parameter_value in rosapi for ROS2 Jazzy.
-            # https://github.com/RobotWebTools/rosbridge_suite/pull/932
-            (self.fetchpatch {
-              url = "https://github.com/RobotWebTools/rosbridge_suite/commit/d22f102b59e7d9fdeea0ec5e74aa8b98358585d7.patch";
-              stripLen = 1;
-              hash = "sha256-zmRHt7EgZk8kF2Dv1+QvTmox47RR7TBZOOdKfnIySog=";
-            })
-          ];
-        });
-
-        robot-localization = rosSuper.robot-localization.overrideAttrs ({ patches ? [ ], ... }: {
-          patches = patches ++ [
-            # Add stamped_control as a parameter to support TwistStamped msgs.
-            # https://github.com/cra-ros-pkg/robot_localization/pull/900
-            (self.fetchpatch {
-              url = "https://patch-diff.githubusercontent.com/raw/cra-ros-pkg/robot_localization/pull/900.patch";
-              stripLen = 1;
-              extraPrefix = "";
-              hash = "sha256-Wh3WOLYYHGL25eFRqpGUbvosle2QW6g7OIhXrZ8EG6A=";
-            })
-          ];
-        });
-      });
-    }));
+          jazzy = super.rosPackages.jazzy.overrideScope (
+            rosSelf: rosSuper: {
+              # Gazebo Classic is EOL, and the ROS packages have been removed from the
+              # distro. The Iron releases still work, though, so add them back.
+              gazebo-dev = rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-dev") { };
+              gazebo-plugins =
+                (rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-plugins") { }).overrideAttrs
+                  (
+                    {
+                      patches ? [ ],
+                      ...
+                    }:
+                    {
+                      patches = patches ++ [
+                        # Fix deprecation warnings
+                        # https://github.com/ros-simulation/gazebo_ros_pkgs/pull/1429
+                        (self.fetchpatch {
+                          url = "https://github.com/ros-simulation/gazebo_ros_pkgs/commit/4505d7ba69ce1cbf59553d3c499b6f2447cbbbb8.patch";
+                          stripLen = 1;
+                          includes = [
+                            "CMakeLists.txt"
+                            "src/**"
+                          ];
+                          hash = "sha256-JnCbQrhrVl5jKYAmemUFk+u0W+ByCG/QJPMGAFAxGkA=";
+                        })
+                      ];
+                    }
+                  );
+              gazebo-ros =
+                (rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-ros") { }).overrideAttrs
+                  (
+                    {
+                      patches ? [ ],
+                      ...
+                    }:
+                    {
+                      patches = patches ++ [
+                        # Fix deprecation warnings
+                        # https://github.com/ros-simulation/gazebo_ros_pkgs/pull/1429
+                        (self.fetchpatch {
+                          url = "https://github.com/ros-simulation/gazebo_ros_pkgs/commit/4505d7ba69ce1cbf59553d3c499b6f2447cbbbb8.patch";
+                          stripLen = 1;
+                          includes = [ "**.py" ];
+                          hash = "sha256-2l6Ft+3F7dskjjOpTeQj202AMnEjQSF+h9j81rxrqzk=";
+                        })
+                      ];
+                    }
+                  );
+              gazebo-ros2-control =
+                (rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-ros2-control") { }).overrideAttrs
+                  rec {
+                    version = "0.7.2";
+                    src = self.fetchFromGitHub {
+                      owner = "ros-controls";
+                      repo = "gazebo_ros2_control";
+                      rev = version;
+                      hash = "sha256-ya+HFf6qOGMVpKOVWlv8+Kp3h/G011MZA+Wnrztq3zg=";
+                    };
+                    sourceRoot = src.name + "/gazebo_ros2_control";
+                  };
+              gazebo-ros-pkgs = rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-ros-pkgs") { };
 
               image-proc = rosSuper.image-proc.overrideAttrs (
                 {
@@ -604,6 +629,14 @@ self: super:
                   patches = patches ++ [
                     ./patches/image_proc.patch
                   ];
+                }
+              );
+
+              gz-sensors-vendor = (
+                rosSelf.lib.patchAmentVendorGit rosSuper.gz-sensors-vendor {
+                  url = "https://github.com/gazebosim/gz-sensors";
+                  rev = "gz-sensors8_8.2.1";
+                  fetchgitArgs.hash = "sha256-wEUJoHbvvImuFbaKk84maw5AoKhoEhdU0uOYVBtHhI0=";
                 }
               );
 
@@ -620,6 +653,25 @@ self: super:
                       url = "https://github.com/RobotWebTools/rosbridge_suite/commit/d22f102b59e7d9fdeea0ec5e74aa8b98358585d7.patch";
                       stripLen = 1;
                       hash = "sha256-zmRHt7EgZk8kF2Dv1+QvTmox47RR7TBZOOdKfnIySog=";
+                    })
+                  ];
+                }
+              );
+
+              robot-localization = rosSuper.robot-localization.overrideAttrs (
+                {
+                  patches ? [ ],
+                  ...
+                }:
+                {
+                  patches = patches ++ [
+                    # Add stamped_control as a parameter to support TwistStamped msgs.
+                    # https://github.com/cra-ros-pkg/robot_localization/pull/900
+                    (self.fetchpatch {
+                      url = "https://patch-diff.githubusercontent.com/raw/cra-ros-pkg/robot_localization/pull/900.patch";
+                      stripLen = 1;
+                      extraPrefix = "";
+                      hash = "sha256-Wh3WOLYYHGL25eFRqpGUbvosle2QW6g7OIhXrZ8EG6A=";
                     })
                   ];
                 }
