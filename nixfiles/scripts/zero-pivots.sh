@@ -22,10 +22,23 @@ echo
 echo "cansend in progress..."
 echo
 
+# Zero pivot
 cansend can0 0${blcmd_id}8#
+sleep 0.5
+cansend can0 0${blcmd_id}8#
+
 sleep 1
+
+# Move to angle
 cansend can0 0${blcmd_id}4#c764
+sleep 0.5
+cansend can0 0${blcmd_id}4#c764
+
 sleep 1
+
+# Zero pivot
+cansend can0 0${blcmd_id}8#
+sleep 0.5
 cansend can0 0${blcmd_id}8#
 
 echo
