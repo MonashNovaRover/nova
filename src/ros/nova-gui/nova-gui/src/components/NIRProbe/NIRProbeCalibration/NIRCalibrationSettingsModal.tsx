@@ -6,8 +6,6 @@ import {
   NIRProbeCalibrationData
 } from "../../../redux/models/genericStores/NIRProbeCalibrationData.ts";
 
-const ROW_SIZE = 3;
-
 export interface NIRCalibrationSettingsModalProps {
   isOpen: boolean,
   setIsOpen: (v: boolean) => void,
@@ -27,18 +25,11 @@ const NIRCalibrationSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = 
   }
 
   const renderCoefficients = () => {
-    const inputs = calibrationData.coefficients.map((c, i) => <Input
+    return calibrationData.coefficients.map((c, i) => <Input
       label={"Coefficient " + `${i+1}`}
       value={formatPotentiallyNaNFloatString(c)}
       onValueChange={setCoefficient(i)}
     />)
-
-    return Array.from(
-      { length: Math.ceil(inputs.length / ROW_SIZE) },
-      (_, i) => <div className="flex flex-row gap-3">
-        {inputs.slice(i * ROW_SIZE, i * ROW_SIZE + ROW_SIZE)}
-      </div>
-    );
   }
 
   const resetCoefficients = () => {
@@ -60,7 +51,9 @@ const NIRCalibrationSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = 
           NIR Calibration Settings
         </ModalHeader>
         <ModalBody className="p-3 pt-0">
-          {renderCoefficients()}
+          <div className="grid grid-cols-3 gap-3">
+            {renderCoefficients()}
+          </div>
           <Button onClick={resetCoefficients}>
             Reset Coefficients
           </Button>

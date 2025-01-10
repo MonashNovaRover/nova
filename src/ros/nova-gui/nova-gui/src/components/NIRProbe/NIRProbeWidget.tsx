@@ -5,7 +5,7 @@ import NIRProbeFileTableWidget from "./NIRProbeOutputWidget/NIRProbeFileTableWid
 import NIRCalibrationCurveWidget, {EMPTY_CALIBRATION_DATA, NIRCalibrationData} from "./NIRProbeCalibration/NIRCalibrationCurveWidget.tsx";
 import {useLocalStorage} from "../../hooks/useLocalStorage.ts";
 import TOFHeight from "../AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
-import {DEFAULT_WATER_CALIBRATION} from "./NIRProbeCalibration/DefaultWaterCalibration.ts";
+import {DEFAULT_WATER_CALIBRATION} from "./NIRProbeCalibration/DefaultCalibrationPoints.ts";
 import {useGenericStore} from "../../hooks/useGenericStore.ts";
 import {Site} from "../../redux/models/genericStores/CurrentSiteStore.ts";
 import {SiteData, SiteDataState} from "../../redux/models/genericStores/SiteDataState.ts";
@@ -35,7 +35,7 @@ const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
   // The currently selected site's file
   const file = siteData[currentSite];
 
-  const [calibrationData, setCalibrationData] = useLocalStorage<NIRCalibrationData>(
+  const [calibrationData, setCali] = useLocalStorage<NIRCalibrationData>(
     file.siteType === SpaceResourcesSiteType.WATER ? "nir-calibration-water" : "nir-calibration-ilmenite",
     file.siteType === SpaceResourcesSiteType.WATER ? DEFAULT_WATER_CALIBRATION : EMPTY_CALIBRATION_DATA,
     [file.siteType]
@@ -55,8 +55,7 @@ const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
       <div className="flex flex-col gap-3 col-span-3">
         <NIRProbeLEDWidget/>
         <NIRProbeOutputSaveWidget file={file} setFile={setFileForCurrentSite} showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}/>
-        <NIRCalibrationCurveWidget files={siteData} type={file.siteType} absorbance={absorbance} calibrationFunction={calibrationFunction}
-                                   calibrationData={calibrationData} setCalibrationData={setCalibrationData}/>
+        <NIRCalibrationCurveWidget/>
       </div>
       <div className="flex flex-col gap-3 col-span-3">
         <TOFHeight/>

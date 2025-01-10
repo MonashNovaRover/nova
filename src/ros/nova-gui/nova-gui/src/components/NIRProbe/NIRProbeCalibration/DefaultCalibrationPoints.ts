@@ -1,20 +1,25 @@
-import React, {useState} from "react";
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-} from "@nextui-org/react";
-import {MoreHorizontal} from "react-feather";
-import NIR3DCalibrationCurve from "./NIR3DCalibrationCurve.tsx";
-import NIRCalibrationSettingsModal from "./NIRCalibrationSettingsModal.tsx";
-import {useGenericStore} from "../../../hooks/useGenericStore.ts";
-import {NIRProbeCalibrationData} from "../../../redux/models/genericStores/NIRProbeCalibrationData.ts";
-import {calibrationFunction} from "./NIRCalibration.ts";
+// TODO find a better solution for this
+export const DEFAULT_WATER_CALIBRATION = {
+  "points": [
+    {"difference":3029.5,"concentration":0},
+    {"difference":2245.666667,"concentration":2.5},
+    {"difference":2663.666667,"concentration":5},
+    {"difference":2311.833333,"concentration":7.5},
+    {"difference":1638,"concentration":10},
+    {"difference":1262.333333,"concentration":12.5},
+    {"difference":1494.5,"concentration":15},
+    {"difference":1247,"concentration":17.5},
+    {"difference":1304.666667,"concentration":20},
+    {"difference":886.5,"concentration":22.5},
+    {"difference":987,"concentration":25},
+    {"difference":571.3333333,"concentration":30}
+  ],
+  "yIntercept":0.00875,
+  "gradient":0.0218,
+  "chemBlankDifference":2155.833333
+};
 
-const GRANUALITY = 24
-
-const exampleData = [
+export const exampleData = [
   // 2d matrix, first col (number) in each row is the y value, first row is the x values, remaining numbers are the f(x,y)
   [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23],
   [0,27.80985,49.61936,83.08067,116.6632,130.414,150.7206,220.1871,156.1536,148.6416,203.7845,206.0386,107.1618,68.36975,45.3359,49.96142,21.89279,17.02552,11.74317,14.75226,13.6671,5.677561,3.31234,1.156517,-0.147662],
@@ -41,79 +46,4 @@ const exampleData = [
   [21,0.0,0.0,31.409,132.7418,185.5796,121.8299,185.3841,160.6566,116.1478,118.1078,141.7946,65.56351,48.84066,23.13864,18.12932,10.28531,6.029663,6.044627,5.694764,3.739085,3.896037,0.0,0.0,0.0],
   [22,0.0,0.0,19.58994,42.30355,96.26777,187.1207,179.6626,221.3898,154.2617,142.1604,148.5737,67.17937,40.69044,39.74512,26.10166,14.48469,8.65873,3.896037,3.571392,3.896037,3.896037,3.896037,1.077756,0.0],
   [23,0.0012296, 79,3.008948,5.909858,33.50574,104.3341,152.2165,198.1988,191.841,228.7349,168.1041,144.2759,110.7436,57.65214,42.63504,27.91891,15.41052,8.056102,3.90283,3.879774,3.936718,3.968634,0.1236256,3.985531,-0.1835741],
-  [24,0.0,5.626141,7.676256,63.16226,45.99762,79.56688,227.311,203.9287,172.5618,177.1462,140.4554,123.9905,110.346,65.12319,34.31887,24.5278,9.561069,3.334991,5.590495,5.487353,5.909499,5.868994,5.833817,3.568177]
-];
-
-export interface NIRCalibrationCurveWidgetProps {
-}
-
-export interface NIRCalibrationPoint {
-  difference: number,
-  concentration: number
-}
-
-export interface NIRCalibrationData {
-  points: NIRCalibrationPoint[]
-  yIntercept: number,
-  gradient: number,
-  chemBlankDifference: number,
-}
-
-export const EMPTY_CALIBRATION_DATA: NIRCalibrationData = {
-  points: [],
-  yIntercept: 0,
-  gradient: 0,
-  chemBlankDifference: 0
-}
-
-const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () => {
-  const [calibrationModalIsOpen, setCalibrationModalIsOpen] = useState<boolean>(false)
-  const [calibrationData, setCalibrationData] = useGenericStore<NIRProbeCalibrationData>("nirProbeCalibrationData");
-
-  const generateRange = (start: number, end: number, count: number): number[] => {
-    const step = (end - start) / (count - 1);
-    return Array.from({ length: count }, (_, i) => Math.round(start + i * step));
-  }
-
-  const generate2DArray = (
-    f: (x: number, y: number) => number,
-  ): number[][] => {
-    const xValues = generateRange(calibrationData.xRange[0], calibrationData.xRange[1], GRANUALITY)
-    const yValues = generateRange(calibrationData.yRange[0], calibrationData.yRange[1], GRANUALITY)
-    return [
-      // [...xValues],
-      // ...yValues.map(y => [y, ...xValues.map(x => f(x, y))]),
-      ...yValues.map(y => [...xValues.map(x => f(x, y))]),
-    ];
-  }
-
-  const renderData = ! calibrationData.zValues ? generate2DArray(calibrationFunction(calibrationData.coefficients)) : calibrationData.zValues
-
-  console.log(renderData)
-
-  return (
-    <Card>
-      <CardHeader className="pb-0 flex flex-row justify-center">
-        <div className="grow">NIR Calibration Curve</div>
-        <Button
-          variant={"light"}
-          isIconOnly
-          onPress={() => setCalibrationModalIsOpen(true)}
-        >
-          <MoreHorizontal/>
-        </Button>
-      </CardHeader>
-      <CardBody>
-        <NIR3DCalibrationCurve
-          data={renderData}
-        />
-      </CardBody>
-      <NIRCalibrationSettingsModal
-        isOpen={calibrationModalIsOpen}
-        setIsOpen={setCalibrationModalIsOpen}
-      />
-    </Card>
-  )
-}
-
-export default NIRCalibrationCurveWidget;
+  [24,0.0,5.626141,7.676256,63.16226,45.99762,79.56688,227.311,203.9287,172.5618,177.1462,140.4554,123.9905,110.346,65.12319,34.31887,24.5278,9.561069,3.334991,5.590495,5.487353,5.909499,5.868994,5.833817,3.568177]]
