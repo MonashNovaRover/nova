@@ -1,7 +1,7 @@
 /**
  * Number of coefficients required for the calibration function
  */
-export const COEFFICIENT_QUANTITY = 3
+export const COEFFICIENT_QUANTITY = 6
 
 /**
  * calibration function
@@ -15,5 +15,10 @@ export const calibrationFunction = (c: number[]) => (x: number, y: number): numb
     return 0
   }
 
-  return c[0] * Math.log10(x) + c[1] * Math.log10(y) + c[2]
+  return c[0] * Math.log10(x)
+    + c[1] * Math.log10(y)
+    + c[2] * Math.log10(x + y)
+    + c[3] * Math.log10(x - y)
+    + c[4] * Math.exp(x)
+    + c[5]
 }

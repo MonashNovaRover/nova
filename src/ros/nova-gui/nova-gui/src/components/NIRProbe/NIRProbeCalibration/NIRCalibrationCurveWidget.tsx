@@ -4,16 +4,12 @@ import {
   Card,
   CardBody,
   CardHeader,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalHeader,
 } from "@nextui-org/react";
 import {ISpaceResourcesFile, SpaceResourcesSiteType} from "../SpaceResourcesSiteType.tsx";
-import NIRCalibrationSettingsTable from "./NIRCalibrationSettingsTable.tsx";
 import {MoreHorizontal} from "react-feather";
 import {SiteDataState} from "../../../redux/models/genericStores/SiteDataState.ts";
 import NIR3DCalibrationCurve from "./NIR3DCalibrationCurve.tsx";
+import NIRCalibrationSettingsModal from "./NIRCalibrationSettingsModal.tsx";
 
 const exampleData = [
   // 2d matrix, first col (number) in each row is the y value, first row is the x values, remaining numbers are the f(x,y)
@@ -156,26 +152,10 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = ({
           data={exampleData}
         />
       </CardBody>
-
-      <Modal
-        size="2xl"
-        className="dark text-foreground"
+      <NIRCalibrationSettingsModal
         isOpen={calibrationModalIsOpen}
-        onClose={() => setCalibrationModalIsOpen(false)}
-      >
-        <ModalContent>
-          {() => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                NIR {typeName} Calibration Settings
-              </ModalHeader>
-              <ModalBody className="p-3 pt-0">
-                <NIRCalibrationSettingsTable setData={setCalibrationData} data={calibrationData}/>
-              </ModalBody>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+        setIsOpen={setCalibrationModalIsOpen}
+      />
     </Card>
   )
 }
