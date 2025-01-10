@@ -105,8 +105,9 @@ in
             launch-drive = "~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py";
             launch-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
             launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
-            zero-pivots = "cansend can0 0$8#";
-            angle-pivots = "cansend can0 0$4#c764";
+
+            # Rover troubleshooting aliases
+            zero-pivots = "${cfg.nixfileDir}/scripts/zero-pivots.sh";
           }
         ];
 
