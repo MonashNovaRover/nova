@@ -108,6 +108,7 @@ in
 
             # Rover troubleshooting aliases
             zero-pivots = "${cfg.nixfileDir}/scripts/zero-pivots.sh";
+            list-blcmds = "more ${cfg.nixfileDir}/doc/blcmd-ids.md";
           }
         ];
 
