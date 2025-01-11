@@ -2,6 +2,15 @@
 
 # This script zeroes out the pivot for the chosen BLCMD.
 
+# BLCMD IDs
+declare -A pivots
+pivots=(
+  [FLP]=5
+  [BLP]=6
+  [BRP]=7
+  [FRP]=8
+)
+
 echo "Ensure that drive is not running before starting the alignment process."
 echo
 
@@ -53,9 +62,10 @@ zero_pivot() {
 }
 
 if [[ "$blcmd_id" == "0" ]]; then
-  for id in 5 6 7 8; do
+  for pivot in "${!pivots[@]}"; do
+    id=${pivots[$pivot]}
     zero_pivot "$id"
-    echo "BLCMD ${id} successfully aligned."
+    echo "BLCMD ${id} (${pivot}) successfully aligned."
   done
 else
   zero_pivot "$blcmd_id"
