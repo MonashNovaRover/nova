@@ -83,9 +83,9 @@
     <model name='corridor'>
       <static>true</static>
       <pose>0 0 0.5 0 0 0</pose>
-      <link name='left'>
-        <pose>0 3 0 0 0 0</pose>
+      <link name='corridor'>
         <collision name='collision_left'>
+          <pose>0 3 0 0 0 0</pose>
           <geometry>
             <box>
               <size>15 3 1</size>
@@ -93,6 +93,7 @@
           </geometry>
         </collision>
         <visual name='visual_left'>
+          <pose>0 3 0 0 0 0</pose>
           <geometry>
             <box>
               <size>15 3 1</size>
@@ -105,17 +106,16 @@
             <emissive>0 0 0 1</emissive>
           </material>
         </visual>
-      </link>
-      <link name='right'>
-        <pose>-1.5 -3 0 0 0 0</pose>
         <collision name='collision_right'>
+          <pose>-1.5 -3 0 0 0 0</pose>
           <geometry>
             <box>
-              <size>12 -3 1</size>
+              <size>12 3 1</size>
             </box>
           </geometry>
         </collision>
         <visual name='visual_right'>
+          <pose>-1.5 -3 0 0 0 0</pose>
           <geometry>
             <box>
               <size>12 3 1</size>
@@ -128,10 +128,8 @@
             <emissive>0 0 0 1</emissive>
           </material>
         </visual>
-      </link>
-      <link name='top'>
-        <pose>9 0 0 0 0 0</pose>
         <collision name='collision_top'>
+          <pose>9 0 0 0 0 0</pose>
           <geometry>
             <box>
               <size>3 9 1</size>
@@ -139,6 +137,7 @@
           </geometry>
         </collision>
         <visual name='visual_top'>
+          <pose>9 0 0 0 0 0</pose>
           <geometry>
             <box>
               <size>3 9 1</size>
@@ -151,10 +150,8 @@
             <emissive>0 0 0 1</emissive>
           </material>
         </visual>
-      </link>
-      <link name='right_small'>
-        <pose>7.5 -6 0 0 0 0</pose>
         <collision name='collision_right_small'>
+          <pose>7.5 -6 0 0 0 0</pose>
           <geometry>
             <box>
               <size>6 3 1</size>
@@ -162,6 +159,7 @@
           </geometry>
         </collision>
         <visual name='visual_right_small'>
+          <pose>7.5 -6 0 0 0 0</pose>
           <geometry>
             <box>
               <size>6 3 1</size>
