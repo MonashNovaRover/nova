@@ -8,7 +8,6 @@ import {RootState} from "../../../redux/RootState.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
 
 interface INIRProbeLEDWidgetProps extends CardProps {
-
 }
 
 const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({...cardProps}) => {
@@ -28,7 +27,8 @@ const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({...cardProps}) =>
       color={led > 0 ? "primary" : "default"}
     >
       <>Off</>
-      <>On</>
+      <>LED 1 On</>
+      <>LED 2 On</>
     </SegmentedPicker>
   );
 

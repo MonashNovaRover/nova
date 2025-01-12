@@ -10,7 +10,9 @@ import {
   TableHeader, TableRow
 } from "@nextui-org/react";
 import React, {ReactElement, useCallback} from "react";
-import {SiteData} from "../../../redux/models/genericStores/SiteDataState.ts";
+import {SiteData, SiteDataState} from "../../../redux/models/genericStores/SiteDataState.ts";
+import {useGenericStore} from "../../../hooks/useGenericStore.ts";
+import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 
 export interface NIRProbeFileTableWidgetProps extends CardProps {
   file: SiteData,
@@ -36,6 +38,14 @@ const RowFromHeader = (tableHeader: ReactElement, numRows: number, key?: string)
 const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
   file, setFile, showAdvanced, absorbance, calibrationFunction, ...cardProps
 }) => {
+
+  // current site as provided by the site selector
+  const [currentSite, _] = useGenericStore<Site>("currentSite");
+
+  // data related to each site
+  const [siteData, setSiteData] = useGenericStore<SiteDataState>("siteData");
+
+
 
   const deleteEntry = useCallback((index: number) => {
     const newFile: SiteData = {

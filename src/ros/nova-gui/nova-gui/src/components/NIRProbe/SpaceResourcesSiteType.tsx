@@ -4,13 +4,12 @@ export enum SpaceResourcesSiteType {
 }
 
 export interface ISpaceResourcesEntry {
-  lightBlank?: number,
-  difference: number,
-  concentration?: number,
+  x: number,
+  y: number,
+  fxy?: number,
   label: string,
 }
 
 export interface ISpaceResourcesFile {
   entries: ISpaceResourcesEntry[],
-  type: SpaceResourcesSiteType,
 }

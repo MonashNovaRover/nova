@@ -2,18 +2,22 @@ import React from "react";
 import Plot from 'react-plotly.js';
 
 export interface NIR3DCalibrationCurveProps {
-  data: number[][],
+  xValues: number[],
+  yValues: number[],
+  zValues: number[][],
 }
 
 /**
  * 3D Visualisation of the Calibration Curve
  */
-const NIR3DCalibrationCurve: React.FC<NIR3DCalibrationCurveProps> = ({ data }) => {
+const NIR3DCalibrationCurve: React.FC<NIR3DCalibrationCurveProps> = ({ xValues, yValues, zValues }) => {
   return (
       <Plot
         data={[
           {
-            z: data,
+            x: xValues,
+            y: yValues,
+            z: zValues,
             type: 'surface',
           },
         ]}
