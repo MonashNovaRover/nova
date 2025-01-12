@@ -4,7 +4,7 @@ bt_navigator:
     use_sim_time: False
     global_frame: map
     robot_base_frame: base_link
-    odom_topic: /odom/visual
+    odom_topic: /pivot_drive_controller/odom
     bt_loop_duration: 10
     default_server_timeout: 20
     wait_for_service_timeout: 1000
@@ -284,7 +284,7 @@ velocity_smoother:
     min_velocity: [-0.03, 0.0, -0.03]
     max_accel: [0.05, 0.0, 3.2]
     max_decel: [-0.03, 0.0, -0.03]
-    odom_topic: "/odom/visual"
+    odom_topic: "/pivot_drive_controller/odom"
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
