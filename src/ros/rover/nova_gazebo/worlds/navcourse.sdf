@@ -67,7 +67,7 @@
 
     <!-- Obstacle Course designed on 2025-01-10 by Victor and Co (Implemented by Anthony Lew) -->
     <!-- Notes: 
-           Poles are not static (Can be moved)
+           Poles are static (Can not be moved), was originally not static but was too laggy
            Goal ball is static and has no collision (Can be used to see how close the planner comes goes into costly areas)
            Corridor is static
     -->
@@ -176,6 +176,7 @@
     </model>
 
     <model name='pole_wall_left'>
+      <static>true</static>
       <pose>-8 0 0.5 0 0 0</pose>
       <link name='pole_1'>
         <pose>-0.3 3.3 0 0 0 0</pose>
@@ -430,6 +431,7 @@
     </model>
 
     <model name='pole_wall_bottom'>
+      <static>true</static>
       <pose>-10.5 2.55 0.5 0 0 1.3708</pose>
       <link name='pole_1'>
         <pose>-0.3 3.3 0 0 0 0</pose>
@@ -684,6 +686,7 @@
     </model>
 
     <model name='pole_wall_right'>
+      <static>true</static>
       <pose>-15 0 0.5 0 0 3.1415</pose>
       <link name='pole_1'>
         <pose>-0.3 3.3 0 0 0 0</pose>
