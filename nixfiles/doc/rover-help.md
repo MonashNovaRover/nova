@@ -5,10 +5,11 @@ RUNNING THE ROVER
 
 # Connecting
 Type 'jetson' to SSH into the rover (via ethernet or base station).
-If you're on the makerspace wifi, you'll need to use 'J1', 'J2', or 'J3' instead (case sensitive). If these aliases don't work, the full commands are listed below.
+If you're on the makerspace wifi, you'll need to use 'J1', 'J2', 'J3', or 'N1' instead (case sensitive). If these aliases don't work, the full commands are listed below.
 J1: ssh nvidia@10.0.2.21
 J2: ssh nvidia@10.0.2.22
 J3: ssh nvidia@10.0.2.23
+N1: ssh nvidia@10.0.2.11
 
 =========================
 
