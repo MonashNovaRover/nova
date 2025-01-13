@@ -72,6 +72,7 @@ in
             J1 = "ssh -Y nvidia@10.0.2.21";
             J2 = "ssh -Y nvidia@10.0.2.22";
             J3 = "ssh -Y nvidia@10.0.2.23";
+            N1 = "ssh -Y nvidia@10.0.2.21";
 
             # Application aliases
             code = "codium";
