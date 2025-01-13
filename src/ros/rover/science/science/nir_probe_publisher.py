@@ -30,6 +30,7 @@ class NIRProbePublisher(Node):
     CAN_BUS = "can1"
     # Card IDs
     NIR_PROBE_ID = 0x0F0
+    # IDs for recieving info from PhotoDiodes ('PD')
     CARD_ID_RECEIVE_PD1 = 0x4F0
     CARD_ID_RECEIVE_PD2 = 0x4F1
 
@@ -37,8 +38,8 @@ class NIRProbePublisher(Node):
     NIR_PROBE_LED1_ON = 0x01 # Also turn LED2 off
     NIR_PROBE_LED2_ON = 0x02 # Also turn LED1 off
     NIR_PROBE_LED_OFF = 0x03
-    NIR_PROBE_READ_P1 = 0x04
-    NIR_PROBE_READ_P2 = 0x05
+    NIR_PROBE_READ_PD1 = 0x04
+    NIR_PROBE_READ_PD2 = 0x05
 
     CAN_BUS_PARAM = "can_bus"
 
