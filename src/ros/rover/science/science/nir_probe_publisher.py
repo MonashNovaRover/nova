@@ -96,24 +96,17 @@ class NIRProbePublisher(Node):
         self.led_service = self.create_service(SetNIRProbeLED, '/science/set_nir_probe_led', self.led_service_callback)
 
         # Initialise timers
-        self.photodiode_timers = [
-            self.photodiode1_timer,
-            self.photodiode2_timer,
-        ] = [
-            self.create_timer(self.READ_INTERVAL, self.send_read_command_callback),
-            self.create_timer(self.READ_INTERVAL, self.send_read_command_callback),
-        ]
-
-        for timer in self.photodiode_timers:
-            timer.cancel()
-        
-        self.timer_jcan_spin = self.create_timer(self.SEND_INTERVAL, self.bus.spin)
+        self.photodiode_timer = self.create_timer(self.READ_INTERVAL, self.send_read_command_callback)
+        self.phtodiode_timer.cancel()
 
         self.calibration_timer = self.create_timer(self.PHOTODIODE_CALIBRATION_PERIOD, self.calibration_callback)
         self.calibration_timer.cancel()
         self.calibrating = True
 
+        self.timer_jcan_spin = self.create_timer(self.SEND_INTERVAL, self.bus.spin)
+
         self.get_logger().info(f"NIR Probe Publisher started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
+
 
     def send_read_command_callback(self):
         """
@@ -125,6 +118,7 @@ class NIRProbePublisher(Node):
         except Exception as e:
             print(e)
             self.get_logger().error(f"Failed to send read command over CAN for photodiode {self.led}")
+
 
     def read_data_callback(self, frame: jcan.Frame):
         """
@@ -169,20 +163,19 @@ class NIRProbePublisher(Node):
             case self.LED_OFF:
                 self.get_logger().debug("Turning off LEDs and photodiodes.")
 
+                # Turn off photodiode timer
+                self.photodiode_timers[request.led%2].cancel()
+
             case self.LED_1_ON | self.LED2_ON:
                 # Turn LED on
                 self.calibration_timer.reset()
                 self.get_logger().info(f"Turning on NIR probe LED {request.led}")
 
-                # Turn on photodiode for led
+                # Turn on photodiode timer
                 self.photodiode_timers[request.led-1].reset()
-
-                # Turn off other photodiode
-                self.photodiode_timers[request.led%2].cancel()
 
             case _:
                 self.get_logger().error(f"Invalid LED request made: {request.led}")
-                response.success = False
                 return response
 
         try:
@@ -192,9 +185,7 @@ class NIRProbePublisher(Node):
             response.success = True
 
         except Exception as e:
-            self.get_logger().error(f"Failed to send led command over CAN: {e}\nTurning NIR probe LEDs OFF as fail safe")
-            self.bus.send(jcan.Frame(self.NIR_PROBE_ID, [self.TURN_LED_OFF]))
-            response.success = False
+            self.get_logger().error(f"Failed to send led command over CAN: {e}")
 
         self.led = request.led
         return response
