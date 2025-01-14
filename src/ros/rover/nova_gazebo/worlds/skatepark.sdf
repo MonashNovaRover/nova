@@ -1,0 +1,533 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="flat">
+
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="gz-sim-contact-system"
+      name="gz::sim::systems::Contact">
+    </plugin>
+
+    <physics type="ode">
+      <real_time_update_rate>1000.0</real_time_update_rate>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>150</iters>
+          <precon_iters>0</precon_iters>
+          <sor>1.400000</sor>
+          <use_dynamic_moi_rescaling>1</use_dynamic_moi_rescaling>
+        </solver>
+        <constraints>
+          <cfm>0.00001</cfm>
+          <erp>0.2</erp>
+          <contact_max_correcting_vel>2000.000000</contact_max_correcting_vel>
+          <contact_surface_layer>0.01000</contact_surface_layer>
+        </constraints>
+      </ode>
+    </physics>
+
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Ground Plane
+      </uri>
+    </include>
+
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun
+      </uri>
+      <pose>2 -10 10 0.8 -0.8 0</pose>
+    </include>  
+
+    <spherical_coordinates>
+      <!-- currently gazebo has a bug: instead of outputting lat, long, altitude in ENU
+      (x = East, y = North and z = Up) as the default configurations, it's outputting (-E)(-N)U,
+      therefore we rotate the default frame 180 so that it would go back to ENU
+      see: https://github.com/osrf/gazebo/issues/2022 -->
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>38.406863</latitude_deg>
+      <longitude_deg>-110.791055</longitude_deg>
+      <elevation>1370.0</elevation>
+      <heading_deg>180</heading_deg>
+    </spherical_coordinates>
+
+    <!-- Skatepark by Anthony Lew -->
+    <model name='skatepark'>
+      <static>true</static>
+      <pose>0 0 1.1 1.57080 0 0</pose>
+      <link name='floor'>
+        <pose>0 -1.049 0 0 0 0</pose>
+        <collision name='floor_collision'>
+          <geometry>
+            <box>
+              <size>20 0.1 20</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='floor_visual'>
+          <geometry>
+            <box>
+              <size>20 0.1 20</size>
+            </box>
+          </geometry>
+          <material> 
+            <ambient>0.4 0.4 0.4 1</ambient>
+            <diffuse>0.9 0.45 0.9 1</diffuse>
+            <specular>0 0 0 0</specular>
+            <emissive>0 0 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <link name='quarter_pipe'>
+        <collision name='quarter_pipe_collision'>
+          <geometry>
+            <polyline>
+              <point>0 -1</point>
+              <point>0.25882 -0.96593</point>
+              <point>0.5 -0.86603</point>
+              <point>0.70711 -0.70711</point>
+              <point>0.86603 -0.5</point>
+              <point>0.96593 -0.25882</point>
+              <point>1 0</point>
+              <point>1 -1.1</point>
+              <point>0 -1.1</point>
+              <height>1</height>
+            </polyline>
+          </geometry>
+        </collision>
+        <visual name='quarter_pipe_visual'>
+          <geometry>
+            <polyline>
+              <point>0 -1</point>
+              <point>0.25882 -0.96593</point>
+              <point>0.5 -0.86603</point>
+              <point>0.70711 -0.70711</point>
+              <point>0.86603 -0.5</point>
+              <point>0.96593 -0.25882</point>
+              <point>1 0</point>
+              <point>1 -1.1</point>
+              <point>0 -1.1</point>
+              <height>1</height>
+            </polyline>
+          </geometry>
+          <material> 
+            <ambient>0.4 0.4 0.4 1</ambient>
+            <diffuse>0.45 0.45 0.9 1</diffuse>
+            <specular>0 0 0 0</specular>
+            <emissive>0 0 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <link name='wave_ramp'>
+        <pose>-4 -1 0 0 0 0</pose>
+        <collision name='wave_collision'>
+          <geometry>
+            <polyline>
+              <point>0.0 0.0</point>
+              <point>0.031746031746031744 0.0049077367580995165</point>
+              <point>0.06349206349206349 0.018860198869620454</point>
+              <point>0.09523809523809523 0.03966618597710031</point>
+              <point>0.12698412698412698 0.06405816823362954</point>
+              <point>0.15873015873015872 0.08820544394566322</point>
+              <point>0.19047619047619047 0.10831574198936414</point>
+              <point>0.2222222222222222 0.12123078879911928</point>
+              <point>0.25396825396825395 0.12492230757618264</point>
+              <point>0.2857142857142857 0.11881055424390119</point>
+              <point>0.31746031746031744 0.10385536484980373</point>
+              <point>0.3492063492063492 0.0824054156407303</point>
+              <point>0.38095238095238093 0.05782936915084853</point>
+              <point>0.4126984126984127 0.03398683391542731</point>
+              <point>0.4444444444444444 0.014622222305063881</point>
+              <point>0.47619047619047616 0.0027766996383662146</point>
+              <point>0.5079365079365079 0.00031057653966240495</point>
+              <point>0.5396825396825397 0.007611151664360695</point>
+              <point>0.5714285714285714 0.023531887383829143</point>
+              <point>0.6031746031746031 0.04557247074106216</point>
+              <point>0.6349206349206349 0.07027148154046779</point>
+              <point>0.6666666666666666 0.09374999999999996</point>
+              <point>0.6984126984126984 0.11232078170143261</point>
+              <point>0.7301587301587301 0.12306733038931736</point>
+              <point>0.7619047619047619 0.12430192663907055</point>
+              <point>0.7936507936507936 0.11583068010200978</point>
+              <point>0.8253968253968254 0.09898397951467437</point>
+              <point>0.8571428571428571 0.07640755837226967</point>
+              <point>0.8888888888888888 0.051646988895816884</point>
+              <point>0.9206349206349206 0.028590858508390077</point>
+              <point>0.9523809523809523 0.010860076605250353</point>
+              <point>0.9841269841269841 0.0012392195094660247</point>
+              <point>1.0158730158730158 0.00123921950946599</point>
+              <point>1.0476190476190474 0.0108600766052502</point>
+              <point>1.0793650793650793 0.028590858508389945</point>
+              <point>1.1111111111111112 0.05164698889581684</point>
+              <point>1.1428571428571428 0.07640755837226962</point>
+              <point>1.1746031746031744 0.09898397951467425</point>
+              <point>1.2063492063492063 0.1158306801020097</point>
+              <point>1.2380952380952381 0.12430192663907054</point>
+              <point>1.2698412698412698 0.12306733038931739</point>
+              <point>1.3015873015873014 0.11232078170143278</point>
+              <point>1.3333333333333333 0.09375000000000008</point>
+              <point>1.3650793650793651 0.07027148154046783</point>
+              <point>1.3968253968253967 0.04557247074106231</point>
+              <point>1.4285714285714284 0.02353188738382936</point>
+              <point>1.4603174603174602 0.007611151664360792</point>
+              <point>1.492063492063492 0.0003105765396624188</point>
+              <point>1.5238095238095237 0.002776699638366152</point>
+              <point>1.5555555555555554 0.014622222305063819</point>
+              <point>1.5873015873015872 0.033986833915427124</point>
+              <point>1.619047619047619 0.05782936915084837</point>
+              <point>1.6507936507936507 0.08240541564073026</point>
+              <point>1.6825396825396823 0.10385536484980361</point>
+              <point>1.7142857142857142 0.11881055424390118</point>
+              <point>1.746031746031746 0.12492230757618265</point>
+              <point>1.7777777777777777 0.1212307887991193</point>
+              <point>1.8095238095238093 0.10831574198936428</point>
+              <point>1.8412698412698412 0.0882054439456633</point>
+              <point>1.873015873015873 0.06405816823362956</point>
+              <point>1.9047619047619047 0.03966618597710043</point>
+              <point>1.9365079365079363 0.018860198869620627</point>
+              <point>1.9682539682539681 0.004907736758099579</point>
+              <point>2.0 0.0</point>
+              <point>2.0 -0.1</point>
+              <point>0.0 -0.1</point>
+              <height>1</height>
+            </polyline>
+          </geometry>
+        </collision>
+        <visual name='wave_visual'>
+          <geometry>
+            <polyline>
+              <point>0.0 0.0</point>
+              <point>0.031746031746031744 0.0049077367580995165</point>
+              <point>0.06349206349206349 0.018860198869620454</point>
+              <point>0.09523809523809523 0.03966618597710031</point>
+              <point>0.12698412698412698 0.06405816823362954</point>
+              <point>0.15873015873015872 0.08820544394566322</point>
+              <point>0.19047619047619047 0.10831574198936414</point>
+              <point>0.2222222222222222 0.12123078879911928</point>
+              <point>0.25396825396825395 0.12492230757618264</point>
+              <point>0.2857142857142857 0.11881055424390119</point>
+              <point>0.31746031746031744 0.10385536484980373</point>
+              <point>0.3492063492063492 0.0824054156407303</point>
+              <point>0.38095238095238093 0.05782936915084853</point>
+              <point>0.4126984126984127 0.03398683391542731</point>
+              <point>0.4444444444444444 0.014622222305063881</point>
+              <point>0.47619047619047616 0.0027766996383662146</point>
+              <point>0.5079365079365079 0.00031057653966240495</point>
+              <point>0.5396825396825397 0.007611151664360695</point>
+              <point>0.5714285714285714 0.023531887383829143</point>
+              <point>0.6031746031746031 0.04557247074106216</point>
+              <point>0.6349206349206349 0.07027148154046779</point>
+              <point>0.6666666666666666 0.09374999999999996</point>
+              <point>0.6984126984126984 0.11232078170143261</point>
+              <point>0.7301587301587301 0.12306733038931736</point>
+              <point>0.7619047619047619 0.12430192663907055</point>
+              <point>0.7936507936507936 0.11583068010200978</point>
+              <point>0.8253968253968254 0.09898397951467437</point>
+              <point>0.8571428571428571 0.07640755837226967</point>
+              <point>0.8888888888888888 0.051646988895816884</point>
+              <point>0.9206349206349206 0.028590858508390077</point>
+              <point>0.9523809523809523 0.010860076605250353</point>
+              <point>0.9841269841269841 0.0012392195094660247</point>
+              <point>1.0158730158730158 0.00123921950946599</point>
+              <point>1.0476190476190474 0.0108600766052502</point>
+              <point>1.0793650793650793 0.028590858508389945</point>
+              <point>1.1111111111111112 0.05164698889581684</point>
+              <point>1.1428571428571428 0.07640755837226962</point>
+              <point>1.1746031746031744 0.09898397951467425</point>
+              <point>1.2063492063492063 0.1158306801020097</point>
+              <point>1.2380952380952381 0.12430192663907054</point>
+              <point>1.2698412698412698 0.12306733038931739</point>
+              <point>1.3015873015873014 0.11232078170143278</point>
+              <point>1.3333333333333333 0.09375000000000008</point>
+              <point>1.3650793650793651 0.07027148154046783</point>
+              <point>1.3968253968253967 0.04557247074106231</point>
+              <point>1.4285714285714284 0.02353188738382936</point>
+              <point>1.4603174603174602 0.007611151664360792</point>
+              <point>1.492063492063492 0.0003105765396624188</point>
+              <point>1.5238095238095237 0.002776699638366152</point>
+              <point>1.5555555555555554 0.014622222305063819</point>
+              <point>1.5873015873015872 0.033986833915427124</point>
+              <point>1.619047619047619 0.05782936915084837</point>
+              <point>1.6507936507936507 0.08240541564073026</point>
+              <point>1.6825396825396823 0.10385536484980361</point>
+              <point>1.7142857142857142 0.11881055424390118</point>
+              <point>1.746031746031746 0.12492230757618265</point>
+              <point>1.7777777777777777 0.1212307887991193</point>
+              <point>1.8095238095238093 0.10831574198936428</point>
+              <point>1.8412698412698412 0.0882054439456633</point>
+              <point>1.873015873015873 0.06405816823362956</point>
+              <point>1.9047619047619047 0.03966618597710043</point>
+              <point>1.9365079365079363 0.018860198869620627</point>
+              <point>1.9682539682539681 0.004907736758099579</point>
+              <point>2.0 0.0</point>
+              <point>2.0 -0.1</point>
+              <point>0.0 -0.1</point>
+              <height>1</height>
+            </polyline>
+          </geometry>
+          <material> 
+            <ambient>0.4 0.4 0.4 1</ambient>
+            <diffuse>0.45 0.45 0.9 1</diffuse>
+            <specular>0 0 0 0</specular>
+            <emissive>0 0 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <link name='half_pipe'>
+        <pose>0 0 2 0 0 0</pose>
+        <collision name='half_pipe_collision'>
+          <geometry>
+            <polyline>
+              <point>-3 0</point>
+              <point>-2.9659258262890683 -0.2588190451025208</point>
+              <point>-2.8660254037844388 -0.4999999999999997</point>
+              <point>-2.7071067811865477 -0.7071067811865475</point>
+              <point>-2.5000000000000004 -0.8660254037844384</point>
+              <point>-2.25881904510252063 -0.9659258262890683</point>
+              <point>-2 -1.0</point>
+              <point>2 -1.0</point>
+              <point>2.2588190451025203 -0.9659258262890684</point>
+              <point>2.5000000000000001 -0.8660254037844386</point>
+              <point>2.7071067811865474 -0.7071067811865477</point>
+              <point>2.8660254037844384 -0.5000000000000004</point>
+              <point>2.9659258262890683 -0.2588190451025207</point>
+              <point>3 0</point>
+              <point>3 -1.1</point>
+              <point>-3 -1.1</point>
+              <height>4</height>
+            </polyline>
+          </geometry>
+        </collision>
+        <visual name='half_pipe_visual'>
+          <geometry>
+            <polyline>
+              <point>-3 0</point>
+              <point>-2.9659258262890683 -0.2588190451025208</point>
+              <point>-2.8660254037844388 -0.4999999999999997</point>
+              <point>-2.7071067811865477 -0.7071067811865475</point>
+              <point>-2.5000000000000004 -0.8660254037844384</point>
+              <point>-2.25881904510252063 -0.9659258262890683</point>
+              <point>-2 -1.0</point>
+              <point>2 -1.0</point>
+              <point>2.2588190451025203 -0.9659258262890684</point>
+              <point>2.5000000000000001 -0.8660254037844386</point>
+              <point>2.7071067811865474 -0.7071067811865477</point>
+              <point>2.8660254037844384 -0.5000000000000004</point>
+              <point>2.9659258262890683 -0.2588190451025207</point>
+              <point>3 0</point>
+              <point>3 -1.1</point>
+              <point>-3 -1.1</point>
+              <height>4</height>
+            </polyline>
+          </geometry>
+          <material> 
+            <ambient>0.4 0.4 0.4 1</ambient>
+            <diffuse>0.45 0.45 0.9 1</diffuse>
+            <specular>0 0 0 0</specular>
+            <emissive>0 0 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <link name='spine'>
+        <pose>6 0 2 0 0 0</pose>
+        <collision name='spine_collision'>
+          <geometry>
+            <polyline>
+              <point>0 -1.0</point>
+              <point>0.2588190451025203 -0.9659258262890684</point>
+              <point>0.5000000000000001 -0.8660254037844386</point>
+              <point>0.7071067811865474 -0.7071067811865477</point>
+              <point>0.8660254037844384 -0.5000000000000004</point>
+              <point>0.9659258262890683 -0.2588190451025207</point>
+              <!--<point>1.0 0</point>
+              <point>1.0 0</point>-->
+              <point>1.0340741737109318 -0.2588190451025208</point>
+              <point>1.1339745962155612 -0.4999999999999997</point>
+              <point>1.2928932188134523 -0.7071067811865475</point>
+              <point>1.4999999999999996 -0.8660254037844384</point>
+              <point>1.7411809548974793 -0.9659258262890683</point>
+              <point>1.9999999999999998 -1.0</point>
+              <point>2 -1.1</point>
+              <point>0 -1.1</point>
+              <height>1</height>
+            </polyline>
+          </geometry>
+        </collision>
+        <visual name='spine_visual'>
+          <geometry>
+            <polyline>
+              <point>0 -1.0</point>
+              <point>0.2588190451025203 -0.9659258262890684</point>
+              <point>0.5000000000000001 -0.8660254037844386</point>
+              <point>0.7071067811865474 -0.7071067811865477</point>
+              <point>0.8660254037844384 -0.5000000000000004</point>
+              <point>0.9659258262890683 -0.2588190451025207</point>
+              <!--<point>1.0 0</point>
+              <point>1.0 0</point>-->
+              <point>1.0340741737109318 -0.2588190451025208</point>
+              <point>1.1339745962155612 -0.4999999999999997</point>
+              <point>1.2928932188134523 -0.7071067811865475</point>
+              <point>1.4999999999999996 -0.8660254037844384</point>
+              <point>1.7411809548974793 -0.9659258262890683</point>
+              <point>1.9999999999999998 -1.0</point>
+              <point>2 -1.1</point>
+              <point>0 -1.1</point>
+              <height>1</height>
+            </polyline>
+          </geometry>
+          <material> 
+            <ambient>0.4 0.4 0.4 1</ambient>
+            <diffuse>0.45 0.45 0.9 1</diffuse>
+            <specular>0 0 0 0</specular>
+            <emissive>0 0 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <link name='kicker_ramp'>
+        <pose>-3 -1 -5 0 0 0</pose>
+        <collision name='kicker_collision'>
+          <geometry>
+            <polyline>
+              <point>0 0</point>
+              <point>1.5 0.5</point>
+              <point>2 0</point>
+              <height>1</height>
+            </polyline>
+          </geometry>
+        </collision>
+        <visual name='kicker_visual'>
+          <geometry>
+            <polyline>
+              <point>0 -0.1</point>
+              <point>1.5 0.5</point>
+              <point>2 -0.1</point>
+              <height>1</height>
+            </polyline>
+          </geometry>
+          <material> 
+            <ambient>0.4 0.4 0.4 1</ambient>
+            <diffuse>0.45 0.45 0.9 1</diffuse>
+            <specular>0 0 0 0</specular>
+            <emissive>0 0 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <link name='big_ramp_pipe'>
+        <pose>-7 -1 0 0 1.57080 0</pose>
+        <collision name='big_ramp_collision'>
+          <geometry>
+            <polyline>
+              <point>-7.0 10</point>
+              <point>-5.0 10.0</point>
+              <point>-4.8 9.216</point>
+              <point>-4.6 8.463999999999999</point>
+              <point>-4.4 7.7440000000000015</point>
+              <point>-4.2 7.056000000000001</point>
+              <point>-4.0 6.4</point>
+              <point>-3.8 5.776</point>
+              <point>-3.6 5.184000000000001</point>
+              <point>-3.4 4.624</point>
+              <point>-3.2 4.096000000000001</point>
+              <point>-3.0 3.6</point>
+              <point>-2.8 3.1359999999999997</point>
+              <point>-2.6 2.7040000000000006</point>
+              <point>-2.4 2.304</point>
+              <point>-2.2 1.9360000000000004</point>
+              <point>-2.0 1.6</point>
+              <point>-1.8 1.2960000000000003</point>
+              <point>-1.6 1.0240000000000002</point>
+              <point>-1.4 0.7839999999999999</point>
+              <point>-1.2 0.576</point>
+              <point>-1.0 0.4</point>
+              <point>-0.8 0.25600000000000006</point>
+              <point>-0.6 0.144</point>
+              <point>-0.4 0.06400000000000002</point>
+              <point>-0.2 0.016000000000000004</point>
+              <point>0.0 0.0</point>
+              <point>0.4 0.013333333333333336</point>
+              <point>0.8 0.053333333333333344</point>
+              <point>1.2 0.12</point>
+              <point>1.6 0.21333333333333337</point>
+              <point>1.6 -0.1</point>
+              <point>-7.0 -0.1</point>
+              <height>2</height>
+            </polyline>
+          </geometry>
+        </collision>
+        <visual name='big_ramp_visual'>
+          <geometry>
+            <polyline>
+              <point>-7.0 10</point>
+              <point>-5.0 10.0</point>
+              <point>-4.8 9.216</point>
+              <point>-4.6 8.463999999999999</point>
+              <point>-4.4 7.7440000000000015</point>
+              <point>-4.2 7.056000000000001</point>
+              <point>-4.0 6.4</point>
+              <point>-3.8 5.776</point>
+              <point>-3.6 5.184000000000001</point>
+              <point>-3.4 4.624</point>
+              <point>-3.2 4.096000000000001</point>
+              <point>-3.0 3.6</point>
+              <point>-2.8 3.1359999999999997</point>
+              <point>-2.6 2.7040000000000006</point>
+              <point>-2.4 2.304</point>
+              <point>-2.2 1.9360000000000004</point>
+              <point>-2.0 1.6</point>
+              <point>-1.8 1.2960000000000003</point>
+              <point>-1.6 1.0240000000000002</point>
+              <point>-1.4 0.7839999999999999</point>
+              <point>-1.2 0.576</point>
+              <point>-1.0 0.4</point>
+              <point>-0.8 0.25600000000000006</point>
+              <point>-0.6 0.144</point>
+              <point>-0.4 0.06400000000000002</point>
+              <point>-0.2 0.016000000000000004</point>
+              <point>0.0 0.0</point>
+              <point>0.4 0.013333333333333336</point>
+              <point>0.8 0.053333333333333344</point>
+              <point>1.2 0.12</point>
+              <point>1.6 0.21333333333333337</point>
+              <point>1.6 -0.1</point>
+              <point>-7.0 -0.1</point>
+              <height>2</height>
+            </polyline>
+          </geometry>
+          <material> 
+            <ambient>0.4 0.4 0.4 1</ambient>
+            <diffuse>0.45 0.45 0.9 1</diffuse>
+            <specular>0 0 0 0</specular>
+            <emissive>0 0 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <scene>
+      <shadows>true</shadows>
+    </scene>
+
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose frame=''>0 0 15 0 1.570796 0</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+      </camera>
+    </gui>
+
+  </world>
+</sdf>
