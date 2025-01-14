@@ -5,9 +5,13 @@
 int32 data
 
 # enum for the current led
-byte LED_OFF = 0
 byte LED_WATER = 1
 byte LED_ICE = 2
+byte LED_OFF = 3
+
 
 # The LED (if any) used to take the reading
 byte led
+
+# Calibration period before turning light on
+bool calibrating

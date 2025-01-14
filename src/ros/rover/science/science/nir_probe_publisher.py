@@ -5,16 +5,24 @@
 Monash Nova Rover Team
 This file contains the ROS2 receiver code for the
 nir probe (v2) publisher
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: nir_probe_publisher
 TOPICS:
   - /science/nir_probe_data [NIRProbeData]
     [Published]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     science
-AUTHOR(S):   Brandon Chung, Bailey Chessum
-CREATION:    10/01/2025
-EDITED:      10/01/2025
+AUTHOR(S):   Brandon Chung
+CREATION:    14/01/2025
+EDITED:      14/01/2025
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This package bridges turning on LEDs with
+collecting NIR photodiode data.
+
+The only commands to send this publisher are:
+    1. Turn on LED 1
+    2. Turn on LED 2
+    3. Turn of LEDs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -27,53 +35,83 @@ from nova_interfaces.msg import NIRProbeData
 from nova_interfaces.srv import SetNIRProbeLED
 
 class NIRProbePublisher(Node):
+
+    # Selecting CAN
     CAN_BUS = "can1"
-    # Card IDs
-    NIR_PROBE_ID = 0x0F0
-    # IDs for recieving info from PhotoDiodes ('PD')
-    CARD_ID_RECEIVE_PD1 = 0x4F0
-    CARD_ID_RECEIVE_PD2 = 0x4F1
-
-    # Command data
-    NIR_PROBE_LED1_ON = 0x01 # Also turn LED2 off
-    NIR_PROBE_LED2_ON = 0x02 # Also turn LED1 off
-    NIR_PROBE_LED_OFF = 0x03
-    NIR_PROBE_READ_PD1 = 0x04
-    NIR_PROBE_READ_PD2 = 0x05
-
     CAN_BUS_PARAM = "can_bus"
 
-    LED_BYTES_OFF = (0).to_bytes(1, "big")
-    LED1_BYTES_ON = (1).to_bytes(1, "big")
-    LED2_BYTES_ON = (2).to_bytes(1, "big")
+    # CARD IDs
+    NIR_PROBE_ID = 0x0F0
+
+    NIR_RECEIVE_ID = [
+        ID_PHOTODIODE1 := 0x4F0,
+        ID_PHOTODIODE2 := 0x4F1,
+    ]
+
+    # Commands
+    LED_COMMANDS = [
+        TURN_LED1_ON := 0x01,
+        TURN_LED2_ON := 0x02,
+        TURN_LED_OFF := 0x03,
+    ]
+
+    PHOTODIODE_COMMANDS = [
+        READ_PHOTODIODE1 := 0x04,
+        READ_PHOTODIODE2 := 0x05
+    ]
+
+    # All states NIR Probe may be in
+    LEDS = [
+        LED1_ON, # Turns on LED 1, Turns off LED 2
+        LED2_ON, # Turns on LED 2, Turns off LED 1
+        LED_OFF, # Turns off both LEDs
+    ] = list(map(lambda i: (i).to_bytes(1, "big"), LED_COMMANDS))
+
+    # Timings
+    SEND_INTERVAL                 = 0.01
+    READ_INTERVAL                 = 0.1 # Keep this as a mutliple of send interval
+    PHOTODIODE_CALIBRATION_PERIOD = 1
 
     def __init__(self):
-        super().__init__('nir_probe_publisher')
 
+        # Initialise publisher
+        super().__init__('nir_probe_publisher')
         self.get_logger().set_level(logging.INFO)
         self.get_logger().info("NIR Probe Publisher starting")
-
-        self.declare_parameter(self.CAN_BUS_PARAM, self.CAN_BUS)
-
-        self.led = self.LED_BYTES_OFF
-        self.value = 0
-
         self.publisher = self.create_publisher(NIRProbeData, '/science/nir_probe_data', 10)
-
-        self.led_service = self.create_service(SetNIRProbeLED, '/science/set_nir_probe_led', self.led_service_callback)
-
+        
+        # Initialise CAN bus
+        self.declare_parameter(self.CAN_BUS_PARAM, self.CAN_BUS)
         self.bus = jcan.Bus()
-        self.bus.set_id_filter_mask(self.CARD_ID_RECEIVE_PD1, 0xFFF)
-        self.bus.add_callback(self.CARD_ID_RECEIVE_PD1, self.read_data_callback)
 
-        self.bus.set_id_filter_mask(self.CARD_ID_RECEIVE_PD2, 0xFFF)
-        self.bus.add_callback(self.CARD_ID_RECEIVE_PD2, self.read_data_callback)
-
+        # Only accept inputs being delivered to receiving CAN IDs
+        self.bus.set_id_filter(self.NIR_RECEIVE_ID)
+        for can_id in self.NIR_RECEIVE_ID:
+            self.bus.add_callback(can_id, self.read_data_callback)
 
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
 
-        self.timer = self.create_timer(0.1, self.send_read_command_callback)
-        self.timer_jcan_spin = self.create_timer(0.01, self.bus.spin)
+        # Initialise service for taking commands
+        self.led = self.LED_OFF
+        self.led_service = self.create_service(SetNIRProbeLED, '/science/set_nir_probe_led', self.led_service_callback)
+
+        # Initialise timers
+        self.photodiode_timers = [
+            self.photodiode1_timer,
+            self.photodiode2_timer,
+        ] = [
+            self.create_timer(self.READ_INTERVAL, self.send_read_command_callback),
+            self.create_timer(self.READ_INTERVAL, self.send_read_command_callback),
+        ]
+
+        for timer in self.photodiode_timers:
+            timer.cancel()
+        
+        self.timer_jcan_spin = self.create_timer(self.SEND_INTERVAL, self.bus.spin)
+
+        self.calibration_timer = self.create_timer(self.PHOTODIODE_CALIBRATION_PERIOD, self.calibration_callback)
+        self.calibration_timer.cancel()
+        self.calibrating = True
 
         self.get_logger().info(f"NIR Probe Publisher started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
 
@@ -81,33 +119,12 @@ class NIRProbePublisher(Node):
         """
         Sends the read command to the NIR probe
         """
-        frame_pd1 = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_READ_P1])
-        frame_pd2 = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_READ_P2])
-
         try:
-            self.bus.send(frame_pd1)
+            self.bus.send(jcan.Frame(self.NIR_PROBE_ID, [int.from_bytes(self.led, "big")]))
+
         except Exception as e:
             print(e)
-            self.get_logger().error("Failed to send read command over CAN for photodiode 1")
-
-        try:
-            self.bus.send(frame_pd2)
-        except Exception as e:
-            print(e)
-            self.get_logger().error("Failed to send read command over CAN for photodiode 2")
-
-    def publish_msg(self, frame: jcan.Frame):
-        """
-        Publish data as message
-        """
-        self.value = int.from_bytes(frame.data, "big")
-        msg = NIRProbeData()
-        msg.data = self.value
-        msg.led = self.led
-
-        self.get_logger().debug(f"Publishing {msg}")
-        self.publisher.publish(msg)
-
+            self.get_logger().error(f"Failed to send read command over CAN for photodiode {self.led}")
 
     def read_data_callback(self, frame: jcan.Frame):
         """
@@ -118,56 +135,68 @@ class NIRProbePublisher(Node):
         # Receive data if corresponding LED is on
         match frame.id:
 
-            case self.CARD_ID_RECEIVE_PD1:
-                if self.led == self.LED1_BYTES_ON:
-                    self.publish_msg(frame)
+            case self.ID_PHOTODIODE1 | self.ID_PHOTOIODE2:
+                msg = NIRProbeData()
+                msg.data = int.from_bytes(frame.data, "big")
+                msg.led = self.led
+                msg.calibrating = self.calibrating
 
-            case self.CARD_ID_RECEIVE_PD2:
-                if self.led == self.LED2_BYTES_ON:
-                    self.publish_msg(frame)
+                self.get_logger().debug(f"Publishing {msg}")
+                self.publisher.publish(msg)
 
             case _:
                 self.get_logger().warn(f"Received unknown frame {frame}")
+
+    def calibration_callback(self):
+        """
+        One-shot callback that deactivates calibration after period is over
+        """
+        self.calibrating = False
+        self.calibration_timer.cancel()
+
 
     def led_service_callback(self, request, response):
         """
         Callback to turn the NIR probe LEDs on or off
         """
-        frame = None
+        response.success = False
+        self.calibrating = True
+        message = int.from_bytes(request.led, "big")
 
+        # Check which led state NIR Probe publisher is in
         match request.led:
 
-            case self.LED_BYTES_OFF:
-                self.get_logger().info("Turning NIR probe LEDs OFF")
-                self.led = self.LED_BYTES_OFF
-                frame = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_LED_OFF])
+            case self.LED_OFF:
+                self.get_logger().debug("Turning off LEDs and photodiodes.")
 
-            case self.LED1_BYTES_ON:
-                self.get_logger().info("Turning NIR probe LED 1 ON AND LED 2 OFF")
-                self.led = self.LED1_BYTES_ON
-                frame = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_LED1_OFF])
+            case self.LED_1_ON | self.LED2_ON:
+                # Turn LED on
+                self.calibration_timer.reset()
+                self.get_logger().info(f"Turning on NIR probe LED {request.led}")
 
-            case self.LED2_BYTES_ON:
-                self.get_logger().info("Turning NIR probe LED 2 ON AND LED 1 OFF")
-                self.led = self.LED2_BYTES_ON
-                frame = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_LED2_ON])
+                # Turn on photodiode for led
+                self.photodiode_timers[request.led-1].reset()
 
-            # Fail safe if invalid request is made
+                # Turn off other photodiode
+                self.photodiode_timers[request.led%2].cancel()
+
             case _:
                 self.get_logger().error(f"Invalid LED request made: {request.led}")
-                self.get_logger().info("Turning NIR probe LEDs OFF as fail safe")
-                self.led = self.LED_BYTES_OFF
-                frame = jcan.Frame(self.NIR_PROBE_ID, [self.NIR_PROBE_LED_OFF])
+                response.success = False
+                return response
 
         try:
-            self.get_logger().debug(f"Sending {frame}")
-            self.bus.send(frame)
+            led_frame = jcan.Frame(self.NIR_PROBE_ID, [message])
+            self.get_logger().debug(f"Sending {led_frame}")
+            self.bus.send(led_frame)
             response.success = True
 
         except Exception as e:
-            self.get_logger().error(f"Failed to send led command over CAN: {e}")
+            self.get_logger().error(f"Failed to send led command over CAN: {e}\nTurning NIR probe LEDs OFF as fail safe")
+            self.bus.send(jcan.Frame(self.NIR_PROBE_ID, [self.TURN_LED_OFF]))
             response.success = False
 
+        self.led = request.led
         return response
 
 
