@@ -66,6 +66,7 @@ if [[ "$blcmd_id" == "0" ]]; then
     id=${pivots[$pivot]}
     zero_pivot "$id"
     echo "BLCMD ${id} (${pivot}) successfully aligned."
+    sleep 0.5
   done
 else
   zero_pivot "$blcmd_id"
@@ -74,3 +75,5 @@ fi
 
 echo
 echo "Done."
+echo
+echo "Remember to run the 'launch-drive' command so that the pivots to return to their zero position."
