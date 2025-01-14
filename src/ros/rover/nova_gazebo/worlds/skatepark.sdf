@@ -65,7 +65,9 @@
       <heading_deg>180</heading_deg>
     </spherical_coordinates>
 
-    <!-- Skatepark by Anthony Lew -->
+    <!-- Skatepark by Anthony Lew 
+    ~/result/bin/ros2 launch auto_bringup gazebo.launch.py world:=/home/nova/nova/src/ros/rover/nova_gazebo/worlds/skatepark.sdf x:=-6 y:=-6 z:=10 R:=0 P:=0 Y:=1.57080
+    -->
     <model name='skatepark'>
       <static>true</static>
       <pose>0 0 1.1 1.57080 0 0</pose>
