@@ -90,6 +90,12 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{'config_file': gz_params}],
             arguments=['--ros-args', '--log-level', 'info'],
         ),
+        Node(
+            condition=IfCondition(ar),
+            package='aruco_opencv',
+            executable='aruco_tracker_autostart',
+            arguments=['--ros-args', '--params-file', ar_params],
+        ),
     ]
 
 
