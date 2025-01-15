@@ -1,5 +1,5 @@
 import {Site} from "./CurrentSiteStore.ts";
-import {ISpaceResourcesEntry, SpaceResourcesSiteType} from "../../../components/nir-probe/SpaceResourcesSiteType.tsx";
+import {ISpaceResourcesEntry, SpaceResourcesSiteType} from "../../../components/NIRProbe/SpaceResourcesSiteType.tsx";
 import {ThresholdingFileEntry} from "../../../components/MicroscopeThresholdWidget/MicroscopeThresholdWidget.tsx";
 
 // Data that is associated with a site can be stored here.

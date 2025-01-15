@@ -60,7 +60,7 @@ const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
       <div className="flex flex-col gap-3 col-span-3">
         <TOFHeight/>
         <SiteTypeSelectWidget/>
-        <NIRProbeFileTableWidget file={file} setFile={setFileForCurrentSite} showAdvanced={showAdvanced} absorbance={absorbance} calibrationFunction={calibrationFunction}></NIRProbeFileTableWidget>
+        <NIRProbeFileTableWidget showAdvanced={showAdvanced} absorbance={absorbance} calibrationFunction={calibrationFunction}></NIRProbeFileTableWidget>
       </div>
     </div>
   );

@@ -10,13 +10,11 @@ import {
   TableHeader, TableRow
 } from "@nextui-org/react";
 import React, {ReactElement, useCallback} from "react";
-import {SiteData, SiteDataState} from "../../../redux/models/genericStores/SiteDataState.ts";
+import {SiteDataState} from "../../../redux/models/genericStores/SiteDataState.ts";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 
 export interface NIRProbeFileTableWidgetProps extends CardProps {
-  file: SiteData,
-  setFile: (newFile: SiteData) => void,
   showAdvanced : boolean,
   absorbance: (v: number) => number,
   calibrationFunction: (v: number) => number,
@@ -36,7 +34,7 @@ const RowFromHeader = (tableHeader: ReactElement, numRows: number, key?: string)
 }
 
 const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
-  file, setFile, showAdvanced, absorbance, calibrationFunction, ...cardProps
+  showAdvanced, absorbance, calibrationFunction, ...cardProps
 }) => {
 
   // current site as provided by the site selector
@@ -44,78 +42,60 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
 
   // data related to each site
   const [siteData, setSiteData] = useGenericStore<SiteDataState>("siteData");
-
+  const readings = siteData[currentSite].spaceResourcesEntries
 
 
   const deleteEntry = useCallback((index: number) => {
-    const newFile: SiteData = {
-      ...file,
-      spaceResourcesEntries: file.spaceResourcesEntries.filter((_, i) => i !== index)
-    };
-
-    setFile(newFile);
-  }, [file, setFile]);
+    setSiteData({
+      ...siteData,
+      [currentSite]: {
+        ...siteData[currentSite],
+        spaceResourcesEntries: readings.filter((_, i) => i !== index)
+      }
+    } as SiteDataState)
+  }, [currentSite, readings, setSiteData]);
 
   // Get a reversed list of entries, so the most recent values can be displayed first
-  const reversedFileEntries = [...file.spaceResourcesEntries];
+  const reversedFileEntries = [...readings];
   reversedFileEntries.reverse();
 
-  const tableHeader = (
-    showAdvanced ?
-      <TableHeader>
-        <TableColumn key="lightBlank">Light Blank</TableColumn>
-        <TableColumn key="difference">Difference</TableColumn>
-        <TableColumn key="concentration">Concentration</TableColumn>
-        <TableColumn key="label">Label</TableColumn>
-        <TableColumn>Action</TableColumn>
-      </TableHeader>
-      :
-      <TableHeader>
-        <TableColumn key="difference">Difference</TableColumn>
-        <TableColumn key="concentration">Concentration</TableColumn>
-        <TableColumn key="absorbance">Absorbance</TableColumn>
-        <TableColumn>Action</TableColumn>
-      </TableHeader>
-  )
+  const tableHeader = useCallback(() => {
+    const extras = showAdvanced ? [<TableColumn key="label">Label</TableColumn>] : [];
 
-  const entryRows = reversedFileEntries.map(({lightBlank, difference, concentration, label}, index) =>
-    showAdvanced ?
-      <TableRow key={index}>
-        <TableCell key="lightBlank">
-          { (lightBlank ?
-            <span className="text-gray-500">{lightBlank}</span> :
-            <span className="text-gray-800">{lightBlank ?? "None"}</span>)
-          }
-        </TableCell>
-        <TableCell key="difference">{difference}</TableCell>
-        <TableCell key="concentration">
-          { showAdvanced && (concentration !== undefined ?
-            <span className="text-gray-500">{concentration}</span> :
-            <span className="text-gray-800">None</span>)
-          }
-        </TableCell>
+    const columns = [
+      <TableColumn key="x">X</TableColumn>,
+      <TableColumn key="y">Y</TableColumn>,
+      <TableColumn key="fxy">f(x,y)</TableColumn>,
+      ...extras,
+      <TableColumn key="Action">Action</TableColumn>,
+    ]
+    return (
+      <TableHeader>
+        {columns}
+      </TableHeader>
+    )
+  }, [showAdvanced])
 
-        <TableCell key="label">{label}</TableCell>
-        <TableCell key="action">
-          <Button onPress={() => deleteEntry(reversedFileEntries.length - index - 1)}
-                  size="sm" color="danger" variant="light" className="block w-full">
-            Delete
-          </Button>
-        </TableCell>
-      </TableRow>
-      :
-      <TableRow key={index}>
-        <TableCell key="difference">{difference}</TableCell>
-        <TableCell key="concentration">{calibrationFunction(absorbance(difference)).toFixed(4)}</TableCell>
-        <TableCell key="absorbance">{absorbance(difference).toFixed(4)}</TableCell>
-        <TableCell key="action">
-          <Button onPress={() => deleteEntry(reversedFileEntries.length - index - 1)}
-                  size="sm" color="danger" variant="light" className="block w-full">
-            Delete
-          </Button>
-        </TableCell>
-      </TableRow>
-  );
+  const entryRows = reversedFileEntries.map(({x, y, fxy, label}, index) => {
+    const extras = showAdvanced ? [<TableCell key="label">{label}</TableCell>] : [];
+
+    const cells = [
+      <TableCell key={"x-"+index}>{x ? x : "None"}</TableCell>,
+      <TableCell key={"y-"+index}>{y ? y : "None"}</TableCell>,
+      <TableCell key={"fxy-"+index}>{fxy ? fxy.toFixed(4) : "None"}</TableCell>,
+      ...extras,
+      <TableCell key="action">
+        <Button onPress={() => deleteEntry(reversedFileEntries.length - index - 1)}
+                size="sm" color="danger" variant="light" className="block w-full">
+          Delete
+        </Button>
+      </TableCell>,
+    ];
+
+    return (<TableRow key={"NIRProbeEntry-"+index}>
+      {cells}
+    </TableRow>);
+  });
 
   const averageHeaderCell = <TableCell className="absolute text-small uppercase tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400" key={0}>Site Average</TableCell>;
   const averageHeaderRow = RowFromHeader(averageHeaderCell, showAdvanced ? 5 : 4, "averageHeader");
@@ -126,7 +106,7 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
   const noReadingHeaderCell = <TableCell className="absolute text-small tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400" key={0}>No readings recorded</TableCell>;
   const noReadingHeaderRow = RowFromHeader(noReadingHeaderCell, showAdvanced ? 5 : 4, "noReading");
 
-  const averageDifference = file.spaceResourcesEntries.map(entry => entry.difference).reduce((a,b) => a+b, 0) / Math.max(file.spaceResourcesEntries.length,1);
+  const averageDifference = readings.map(entry => entry.difference).reduce((a,b) => a+b, 0) / Math.max(readings.length,1);
   const averageRow = (
     showAdvanced ?
       <TableRow key="average">
@@ -151,7 +131,7 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       </TableRow>
   )
 
-  const tableRows = file.spaceResourcesEntries.length > 0 ?
+  const tableRows = readings.length > 0 ?
     [averageHeaderRow, averageRow, readingHeaderRow, ...entryRows] :
     [noReadingHeaderRow];
 
@@ -161,8 +141,8 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
         NIR Probe File Table
       </CardHeader>
       <CardBody className="flex flex-col gap-3 p-0">
-        <Table aria-label="NIR probe readings table">
-          {tableHeader}
+        <Table className="table-fixed" aria-label="NIR probe readings table">
+          {tableHeader()}
           <TableBody>
             {tableRows}
           </TableBody>
@@ -171,6 +151,5 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
     </Card>
   );
 }
-
 
 export default NIRProbeFileTableWidget;

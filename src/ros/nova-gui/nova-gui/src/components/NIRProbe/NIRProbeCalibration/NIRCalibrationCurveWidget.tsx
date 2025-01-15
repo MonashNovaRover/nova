@@ -63,23 +63,6 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
     console.log("zvalues updated", calibrationData.zValues)
   }, [calibrationData.xValues, calibrationData.yValues, calibrationData.coefficients]);
 
-  const xValues = calibrationData.xValues;
-  const yValues = calibrationData.yValues;
-  const zValues = calibrationData.zValues;
-
-  // const generate2DArray = (
-  //   f: (x: number, y: number) => number,
-  // ): NIR3DCalibrationCurveProps => {
-  //   const xValues = generateRange(calibrationData.xRange[0], calibrationData.xRange[1], GRANUALITY)
-  //   const yValues = generateRange(calibrationData.yRange[0], calibrationData.yRange[1], GRANUALITY)
-  //   return {
-  //     xValues: xValues,
-  //     yValues: yValues,
-  //     zValues: yValues.map(y => [...xValues.map(x => f(x, y))]),
-  //   }
-  // }
-
-
   return (
     <Card>
       <CardHeader className="pb-0 flex flex-row justify-center">
