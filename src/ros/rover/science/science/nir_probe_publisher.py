@@ -14,7 +14,7 @@ TOPICS:
 PACKAGE:     science
 AUTHOR(S):   Brandon Chung
 CREATION:    14/01/2025
-EDITED:      14/01/2025
+EDITED:      15/01/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This package bridges turning on LEDs with
 collecting NIR photodiode data.
@@ -27,6 +27,7 @@ The only commands to send this publisher are:
 """
 
 import logging
+from statistics import fmean, stdev
 import rclpy, jcan
 from rclpy.node import Node
 
@@ -44,8 +45,8 @@ class NIRProbePublisher(Node):
     NIR_PROBE_ID = 0x0F0
 
     NIR_RECEIVE_ID = [
-        ID_PHOTODIODE1 := 0x4F0,
-        ID_PHOTODIODE2 := 0x4F1,
+        PHOTODIODE1_ID := 0x4F0,
+        PHOTODIODE2_ID := 0x4F1,
     ]
 
     # Commands
@@ -57,20 +58,32 @@ class NIRProbePublisher(Node):
 
     PHOTODIODE_COMMANDS = [
         READ_PHOTODIODE1 := 0x04,
-        READ_PHOTODIODE2 := 0x05
+        READ_PHOTODIODE2 := 0x05,
     ]
 
     # All states NIR Probe may be in
     LEDS = [
-        LED1_ON, # Turns on LED 1, Turns off LED 2
-        LED2_ON, # Turns on LED 2, Turns off LED 1
-        LED_OFF, # Turns off both LEDs
-    ] = list(map(lambda i: (i).to_bytes(1, "big"), LED_COMMANDS))
+        LED_OFF := (0).to_bytes(1, "big"), # Turns off both LEDs
+        LED1_ON := (1).to_bytes(1, "big"), # Turns on LED 1, Turns off LED 2
+        LED2_ON := (2).to_bytes(1, "big"), # Turns on LED 2, Turns off LED 1
+    ]
 
     # Timings
     SEND_INTERVAL                 = 0.01
-    READ_INTERVAL                 = 0.1 # Keep this as a mutliple of send interval
-    PHOTODIODE_CALIBRATION_PERIOD = 1
+    READ_INTERVAL                 = SEND_INTERVAL
+
+    # Number of readings before moving on
+    PHOTODIODE_LIGHT_BLANK_PERIOD = READ_INTERVAL * 100
+    PHOTODIODE_CALIBRATION_PERIOD = READ_INTERVAL * 100
+    PHOTODIODE_ONLINE_PERIOD      = READ_INTERVAL * 30
+
+    # Stages of photodiode reading
+    STAGES = [
+        STAGE_OFFLINE     := 0,
+        STAGE_LIGHT_BLANK := 1,
+        STAGE_CALIBRATION := 2,
+        STAGE_ONLINE      := 3,
+    ]
 
     def __init__(self):
 
@@ -79,41 +92,110 @@ class NIRProbePublisher(Node):
         self.get_logger().set_level(logging.INFO)
         self.get_logger().info("NIR Probe Publisher starting")
         self.publisher = self.create_publisher(NIRProbeData, '/science/nir_probe_data', 10)
-        
+
         # Initialise CAN bus
         self.declare_parameter(self.CAN_BUS_PARAM, self.CAN_BUS)
         self.bus = jcan.Bus()
 
         # Only accept inputs being delivered to receiving CAN IDs
         self.bus.set_id_filter(self.NIR_RECEIVE_ID)
-        for can_id in self.NIR_RECEIVE_ID:
-            self.bus.add_callback(can_id, self.read_data_callback)
+        self.bus.add_callback(self.PHOTODIODE1_ID, self.read_data_callback)
+        self.bus.add_callback(self.PHOTODIODE2_ID, self.read_data_callback)
 
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
 
         # Initialise service for taking commands
-        self.led = self.LED_OFF
         self.led_service = self.create_service(SetNIRProbeLED, '/science/set_nir_probe_led', self.led_service_callback)
 
         # Initialise timers
-        self.photodiode_timer = self.create_timer(self.READ_INTERVAL, self.send_read_command_callback)
-        self.phtodiode_timer.cancel()
+        self.photodiode_timers = [
+            self.photodiode_data_timer,
+            self.photodiode_light_blank_timer,
+            self.photodiode_calibration_timer,
+            self.photodiode_online_timer,
+        ] = [
+            self.create_timer(self.READ_INTERVAL, self.send_read_data_callback),
+            self.create_timer(self.PHOTODIODE_LIGHT_BLANK_PERIOD, self.light_blank_callback),
+            self.create_timer(self.PHOTODIODE_CALIBRATION_PERIOD, self.calibration_callback),
+            self.create_timer(self.PHOTODIODE_STABLE_PERIOD, self.stable_callback),
+        ]
+        for timer in self.photodiode_timers:
+            timer.cancel()
 
-        self.calibration_timer = self.create_timer(self.PHOTODIODE_CALIBRATION_PERIOD, self.calibration_callback)
-        self.calibration_timer.cancel()
-        self.calibrating = True
+
+        # Variables
+        self.photodiode_on = False
+        self.led_on = False
+        self.led = self.LED_OFF
+        self.stage = self.STAGE_OFFLINE
+        self.data = [[0] for _ in range(3)]
+        self.average_data = [0.0, 0.0, 0.0]
+        self.standard_deviation = [0.0, 0.0, 0.0]
 
         self.timer_jcan_spin = self.create_timer(self.SEND_INTERVAL, self.bus.spin)
 
-        self.get_logger().info(f"NIR Probe Publisher started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
+        self.get_logger().info(f"NIR Probe Publisher started on {self.get_parameter(self.CAN_BUS_PARAM).value}") 
 
+    
+    """
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Support Functions
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    """
+    def reset_variables(self):
+        """
+        Function to disable all photodiode timers
+        Good for turning off photodiode
+        """
+        self.photodiode_on = False
+        self.led_on = False
+        self.led = self.LED_OFF
+        self.stage = self.STAGE_OFFLINE
+        self.data = [[0] for _ in range(3)]
+        self.average_data = [0.0, 0.0, 0.0]
+        self.standard_deviation = [0.0, 0.0, 0.0]
+        for timer in self.photodiode_timers:
+            timer.cancel()
+
+
+    def publish_msg(self, data: float, std_dev: float, led_on: bool, photodiode_on:bool):
+        """
+        Publish data to GUI
+        """
+        msg = NIRProbeData()
+        msg.data = data
+        msg.std_dev = std_dev
+        msg.led = self.led
+        msg.led_on = led_on
+        msg.photodiode_on = photodiode_on
+        self.get_logger().debug(f"Publishing {msg}")
+        self.publisher.publish(msg)
+
+
+    """
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ROS2 Functions
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    """
 
     def send_read_command_callback(self):
         """
-        Sends the read command to the NIR probe
+        Sends the read data command to the NIR probe
         """
         try:
-            self.bus.send(jcan.Frame(self.NIR_PROBE_ID, [int.from_bytes(self.led, "big")]))
+            command = self.TURN_LED_OFF
+
+            match self.led:
+                case self.LED1_ON:
+                    command = self.READ_PHOTODIODE1
+                case self.LED2_ON:
+                    command = self.READ_PHOTODIODE2
+                case self.LED_OFF:
+                    return
+                case _:
+                    self.get_logger().error(f"Invalid LED request received by read data callback: {self.led}")
+
+            self.bus.send(jcan.Frame(self.NIR_PROBE_ID, [command]))
 
         except Exception as e:
             print(e)
@@ -123,30 +205,81 @@ class NIRProbePublisher(Node):
     def read_data_callback(self, frame: jcan.Frame):
         """
         Callback for when data is received from the NIR probe
+        Save this data to send as one value at the end of online stage
         """
-        self.get_logger().debug(f"Received {hex(frame.id)} {frame.data}")
-
         # Receive data if corresponding LED is on
         match frame.id:
 
-            case self.ID_PHOTODIODE1 | self.ID_PHOTOIODE2:
-                msg = NIRProbeData()
-                msg.data = int.from_bytes(frame.data, "big")
-                msg.led = self.led
-                msg.calibrating = self.calibrating
+            case self.PHOTODIODE1_ID | self.PHOTODIODE2_ID:
+                self.get_logger().debug(f"Received {hex(frame.id)} {frame.data}")
 
-                self.get_logger().debug(f"Publishing {msg}")
-                self.publisher.publish(msg)
+                value = int.from_bytes(frame.data, "big")
+
+                self.data[self.stage-1].append(value) # Offset for offline stage
+
+                self.get_logger().debug(f"Saving {value} for stage {self.stage}")
 
             case _:
                 self.get_logger().warn(f"Received unknown frame {frame}")
 
-    def calibration_callback(self):
+
+    def photodiode_light_blank_callback(self):
         """
-        One-shot callback that deactivates calibration after period is over
+        One-shot callback that deactivates light blanking stage after period is over and activate calibration stage
         """
-        self.calibrating = False
-        self.calibration_timer.cancel()
+        try:
+            self.get_logger().debug(f"Sending {self.frame}")
+            self.bus.send(self.frame)
+
+        except Exception as e:
+            self.get_logger().error(f"Failed to send led command over CAN: {e}")
+
+
+        self.photodiode_light_blank_timer.cancel()
+        self.stage = self.STAGE_CALIBRATION
+
+        self.average_data[0] = fmean(self.data[0])
+        self.standard_deviation[0] = stdev(self.data[0])
+
+        self.get_logger().debug(f"Entering calibration mode\nSending light blank average to gui: {self.average_data[0]}")
+
+        self.publish_msg(self.average_data[0], self.standard_deviation[0], True, True)
+
+        self.photodiode_calibration_timer.reset()
+
+
+    def photodiode_calibration_callback(self):
+        """
+        One-shot callback that deactivates calibration stage after period is over and activates stable stage
+        """
+        self.photodiode_calibration_timer.cancel()
+        self.stage = self.STAGE_ONLINE
+        
+        self.average_data[1] = fmean(self.data[1])
+        self.standard_deviation[1] = stdev(self.data[1])
+
+        self.get_logger().debug(f"Entering online mode\nSending calibration mode average to gui: {self.average_data[1]}")
+
+        self.publish_msg(self.average_data[1], self.standard_deviation[1], True, True)
+
+        self.photodiode_online_timer.reset()
+
+
+    def photodiode_online_callback(self):
+        """
+        One-shot callback that deactivates photodiode after period is over
+        """
+        self.average_data[2] = fmean(self.data[2])
+        self.standard_deviation[2] = stdev(self.data[2])
+
+        # Calculate light difference
+        light_difference = self.average_data[2] - self.average_data[0]
+
+        self.get_logger().debug(f"Turning off photodiode and LED\nSending light difference to gui: {light_difference}")
+
+        self.publish_msg(light_difference, self.standard_deviation[2], False, False)
+
+        self.reset_variables()
 
 
     def led_service_callback(self, request, response):
@@ -154,7 +287,7 @@ class NIRProbePublisher(Node):
         Callback to turn the NIR probe LEDs on or off
         """
         response.success = False
-        self.calibrating = True
+
         message = int.from_bytes(request.led, "big")
 
         # Check which led state NIR Probe publisher is in
@@ -164,30 +297,31 @@ class NIRProbePublisher(Node):
                 self.get_logger().debug("Turning off LEDs and photodiodes.")
 
                 # Turn off photodiode timer
-                self.photodiode_timers[request.led%2].cancel()
+                self.reset_variables()
 
             case self.LED_1_ON | self.LED2_ON:
                 # Turn LED on
-                self.calibration_timer.reset()
                 self.get_logger().info(f"Turning on NIR probe LED {request.led}")
 
                 # Turn on photodiode timer
-                self.photodiode_timers[request.led-1].reset()
+                self.photodiode_light_blank.reset()
+                self.stage = self.STAGE_LIGHT_BLANK
 
             case _:
                 self.get_logger().error(f"Invalid LED request made: {request.led}")
                 return response
 
-        try:
-            led_frame = jcan.Frame(self.NIR_PROBE_ID, [message])
-            self.get_logger().debug(f"Sending {led_frame}")
-            self.bus.send(led_frame)
-            response.success = True
 
-        except Exception as e:
-            self.get_logger().error(f"Failed to send led command over CAN: {e}")
+        self.frame = jcan.Frame(self.NIR_PROBE_ID, [message]) # Send frame to turn on light at the end of light blanking
+
+        response.success = True
 
         self.led = request.led
+
+        self.get_logger().debug(f"Activating photodiode {request.led}")
+
+        self.publish_msg(-1, -1, False, True) # -1 to not consider this value
+
         return response
 
 
