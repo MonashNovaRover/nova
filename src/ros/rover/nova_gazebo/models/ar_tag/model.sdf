@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+  <model name="ar_tag">
+    <static>true</static>
+    <link name="link">
+      <inertial>
+        <mass>12.0</mass>
+        <inertia>
+          <ixx>5200.0</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>5200.0</iyy>
+          <iyz>0.0</iyz>
+          <izz>230.0</izz>
+        </inertia>
+      </inertial>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://ar_tag/meshes/ar_tag.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://ar_tag/textures/ar_tag.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>
