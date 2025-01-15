@@ -177,12 +177,11 @@ global_costmap:
 
 planner_server:
   ros__parameters:
-    expected_planner_frequency: 20.0
-    use_sim_time: True
-    planner_plugins: ["NavFnPlanner", "SmacHybrid", "SmacLattice", "ThetaStarPlanner"]
+    expected_planner_frequency: 5.0
+    use_sim_time: False
+    planner_plugins: [ "GridBased", "SmacHybrid", "SmacLattice", "ThetaStar" ]
     
-    #NavFn Planner config
-    NavFnPlanner:
+    GridBased:
       plugin: "nav2_navfn_planner::NavfnPlanner"
       tolerance: 0.5
       use_astar: true
@@ -203,7 +202,7 @@ planner_server:
       angle_quantization_bins: 64         # For Hybrid nodes: Number of angle bins for search, must be 1 for 2D node (no angle search)
       analytic_expansion_ratio: 3.5       # For Hybrid/Lattice nodes: The ratio to attempt analytic expansions during search for final approach.
       analytic_expansion_max_length: 3.0    # For Hybrid/Lattice nodes: The maximum length of the analytic expansion to be considered valid to prevent unsafe shortcutting (in meters). This should be scaled with minimum turning radius and be no less than 4-5x the minimum radius
-      analytic_expansion_max_cost: 200   # For Hybrid/Lattice nodes: The maximum single cost for any part of an analytic expansion to contain and be valid (except when necessary on approach to goal)
+      analytic_expansion_max_cost: 200.0   # For Hybrid/Lattice nodes: The maximum single cost for any part of an analytic expansion to contain and be valid (except when necessary on approach to goal)
       analytic_expansion_max_cost_override: false # For Hybrid/Lattice nodes: Whether or not to override the maximum cost setting if within critical distance to goal (ie probably required). If expansion is within 2*pi*min_r of the goal, then it will override the max cost if ``false``.
       minimum_turning_radius: 0.40        # For Hybrid/Lattice nodes: minimum turning radius in m of path / vehicle
       reverse_penalty: 2.1                # For Reeds-Shepp model: penalty to apply if motion is reversing, must be => 1
@@ -224,7 +223,6 @@ planner_server:
         tolerance: 1.0e-10
         do_refinement: true               # Whether to recursively run the smoother 3 times on the results from prior runs to refine the results further
     
-    #Smac Planner config
     SmacLattice:
       plugin: "nav2_smac_planner::SmacPlannerLattice" 
       allow_unknown: true                 # Allow traveling in unknown space
@@ -242,7 +240,7 @@ planner_server:
       cost_penalty: 2.0                   # Penalty to apply to higher cost areas when adding into the obstacle map dynamic programming distance expansion heuristic. This drives the robot more towards the center of passages. A value between 1.3 - 3.5 is reasonable.
       rotation_penalty: 5.0               # Penalty to apply to in-place rotations, if minimum control set contains them
       retrospective_penalty: 0.015
-      lattice_filepath: "/home/nova/nova/src/ros/rover/auto_bringup/params/lattice_config.json"                # The filepath to the state lattice graph
+      lattice_filepath: "/home/nova/nova/src/ros/rover/auto_bringup/params/state_lattice.json" # The filepath to the state lattice graph
       lookup_table_size: 20.0             # Size of the dubin/reeds-sheep distance window to cache, in meters.
       cache_obstacle_heuristic: false     # Cache the obstacle map dynamic programming distance expansion heuristic between subsequent replannings of the same goal location. Dramatically speeds up replanning performance (40x) if costmap is largely static.
       allow_reverse_expansion: false      # If true, allows the robot to use the primitives to expand in the mirrored opposite direction of the current robot's orientation (to reverse).
@@ -255,8 +253,7 @@ planner_server:
         do_refinement: true
         refinement_num: 2
 
-    #Theta* Planner config
-    ThetaStarPlanner:
+    ThetaStar:
       plugin: "nav2_theta_star_planner::ThetaStarPlanner"
       how_many_corners: 8
       w_euc_cost: 1.0
