@@ -149,6 +149,11 @@ def generate_launch_description():
             default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto.sdf']),
             description='Full path to world model file to load',
         ),
+        DeclareLaunchArgument(
+            name='gz_headless',
+            default_value='',
+            description='Whether to run gazebo sim in headless mode',
+        ),
     ]
 
     return LaunchDescription(
