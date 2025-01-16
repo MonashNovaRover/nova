@@ -1,0 +1,109 @@
+# This is only the schema for Node Parameters
+# This YAML will be converted to teleop_drive_joy_parameters.hpp upon build
+# Look at individual controller config for changing axes / buttons
+# Look here for docs about this YAML : https://github.com/PickNikRobotics/generate_parameter_library
+teleop_drive_joy:
+  controllers:
+    type: string_array
+    default_value:
+      [
+        "pivot_drive_controller",
+        "strafe_controller",
+        "nova_diff_drive_controller",
+      ]
+    description: "List Of Controllers that can be used with teleop"
+    read_only: true
+  __map_controllers:
+    axis_linear_x:
+      {
+        type: int,
+        default_value: 1,
+        description: "The Axis controlling linear velocity. Usually refers to the Left Stick Verical Axis",
+      }
+    scale_linear_x:
+      {
+        type: double,
+        default_value: 0.1,
+        description: "A scale parameter applied on linear velocity",
+      }
+    axis_angular_z:
+      {
+        type: int,
+        default_value: 3,
+        description: "The Axis controlling angular velocity. Usually refers to the Right Stick Horizontal Axis",
+      }
+    scale_angular_z:
+      {
+        type: double,
+        default_value: 1,
+        description: "A scale parameter applied on angular velocity",
+      }
+
+  button_unlock: { type: int, default_value: 9, description: "Unlock Gamepad" }
+
+  button_lock: { type: int, default_value: 10, description: "Lock Gamepad" }
+
+  button_strafe_controller:
+    { type: int, default_value: 6, description: "Switch to Strafe Mode" }
+
+  button_pivot_drive_controller:
+    { type: int, default_value: 7, description: "Switch to Pivot Mode" }
+
+  button_nova_diff_drive_controller:
+    { type: int, default_value: 4, description: "Switch to Tank Mode" }
+
+  button_autonomous_control:
+    {
+      type: int,
+      default_value: 0,
+      description: "Enable autonomous operation - set enable_twist_cmd true for pivot_drive_controller",
+    }
+
+  button_manual_control:
+    {
+      type: int,
+      default_value: 1,
+      description: "Enable manual operation - set enable_twist_cmd false for pivot_drive_controller",
+    }
+
+  axis_speed_change_coarse:
+    {
+      type: int,
+      default_value: 7,
+      description: "Axis to increment current speed on a Coarse Scale. This is usually mapped to DPad Vertical",
+    }
+
+  axis_speed_change_fine:
+    {
+      type: int,
+      default_value: 6,
+      description: "Axis to increment current speed on a Coarse Scale. This is usually mapped to DPad Horizontal",
+    }
+
+  speed_change_coarse_val:
+    {
+      type: double,
+      default_value: 0.1,
+      description: "Value to change speed when the speed_change_coarse is invoked",
+    }
+
+  speed_change_fine_val:
+    {
+      type: double,
+      default_value: 0.02,
+      description: "Value to change speed when the speed_change_fine is invoked",
+    }
+
+  speed_limit_max:
+    {
+      type: double,
+      default_value: 1.2,
+      description: "Max speed that gets the Rover Arrested or the Max Clipping Value of Linear Velocity",
+    }
+
+  speed_limit_min:
+    {
+      type: double,
+      default_value: 0.05,
+      description: "Min speed that gets the Rover get Honked At or the Min Clipping Value of Linear Velocity",
+    }
