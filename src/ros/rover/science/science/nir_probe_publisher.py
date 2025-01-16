@@ -253,7 +253,7 @@ class NIRProbePublisher(Node):
                 return response
 
 
-        self.frame = jcan.Frame(self.NIR_PROBE_ID, [message]) # Send frame to turn on light at the end of light blanking
+        self.frame = jcan.Frame(self.NIR_PROBE_ID, [message]) # Save frame to turn on light at the end of light blanking
 
         response.success = True
 
