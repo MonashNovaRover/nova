@@ -136,7 +136,7 @@ class NIRProbePublisher(Node):
 
         self.get_logger().info(f"NIR Probe Publisher started on {self.get_parameter(self.CAN_BUS_PARAM).value}") 
 
-    
+
     """
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Support Functions
@@ -223,6 +223,49 @@ class NIRProbePublisher(Node):
                 self.get_logger().warn(f"Received unknown frame {frame}")
 
 
+    def led_service_callback(self, request, response):
+        """
+        Callback to turn the NIR probe LEDs on or off
+        """
+        response.success = False
+
+        message = int.from_bytes(request.led, "big")
+
+        # Check which led state NIR Probe publisher is in
+        match request.led:
+
+            case self.LED_OFF:
+                self.get_logger().debug("Turning off LEDs and photodiodes.")
+
+                # Turn off photodiode timer
+                self.reset_variables()
+
+            case self.LED_1_ON | self.LED2_ON:
+                # Turn LED on
+                self.get_logger().info(f"Turning on NIR probe LED {request.led}")
+
+                # Turn on photodiode timer
+                self.photodiode_light_blank.reset()
+                self.stage = self.STAGE_LIGHT_BLANK
+
+            case _:
+                self.get_logger().error(f"Invalid LED request made: {request.led}")
+                return response
+
+
+        self.frame = jcan.Frame(self.NIR_PROBE_ID, [message]) # Send frame to turn on light at the end of light blanking
+
+        response.success = True
+
+        self.led = request.led
+
+        self.get_logger().debug(f"Activating photodiode {request.led}")
+
+        self.publish_msg(-1, -1, False, True) # -1 to not consider this value
+
+        return response
+
+
     def photodiode_light_blank_callback(self):
         """
         One-shot callback that deactivates light blanking stage after period is over and activate calibration stage
@@ -280,49 +323,6 @@ class NIRProbePublisher(Node):
         self.publish_msg(light_difference, self.standard_deviation[2], False, False)
 
         self.reset_variables()
-
-
-    def led_service_callback(self, request, response):
-        """
-        Callback to turn the NIR probe LEDs on or off
-        """
-        response.success = False
-
-        message = int.from_bytes(request.led, "big")
-
-        # Check which led state NIR Probe publisher is in
-        match request.led:
-
-            case self.LED_OFF:
-                self.get_logger().debug("Turning off LEDs and photodiodes.")
-
-                # Turn off photodiode timer
-                self.reset_variables()
-
-            case self.LED_1_ON | self.LED2_ON:
-                # Turn LED on
-                self.get_logger().info(f"Turning on NIR probe LED {request.led}")
-
-                # Turn on photodiode timer
-                self.photodiode_light_blank.reset()
-                self.stage = self.STAGE_LIGHT_BLANK
-
-            case _:
-                self.get_logger().error(f"Invalid LED request made: {request.led}")
-                return response
-
-
-        self.frame = jcan.Frame(self.NIR_PROBE_ID, [message]) # Send frame to turn on light at the end of light blanking
-
-        response.success = True
-
-        self.led = request.led
-
-        self.get_logger().debug(f"Activating photodiode {request.led}")
-
-        self.publish_msg(-1, -1, False, True) # -1 to not consider this value
-
-        return response
 
 
 # The main code that executes when starting
