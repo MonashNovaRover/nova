@@ -20,9 +20,9 @@ This package bridges turning on LEDs with
 collecting NIR photodiode data.
 
 The only commands to send this publisher are:
+    0. Turn off LEDs
     1. Turn on LED 1
     2. Turn on LED 2
-    3. Turn off LEDs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
