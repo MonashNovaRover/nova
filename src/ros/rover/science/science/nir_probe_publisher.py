@@ -128,7 +128,7 @@ class NIRProbePublisher(Node):
         self.led_on = False
         self.led = self.LED_OFF
         self.stage = self.STAGE_OFFLINE
-        self.data = [[0] for _ in range(3)]
+        self.data = [[] for _ in range(3)]
         self.average_data = [0.0, 0.0, 0.0]
         self.standard_deviation = [0.0, 0.0, 0.0]
 
@@ -151,7 +151,7 @@ class NIRProbePublisher(Node):
         self.led_on = False
         self.led = self.LED_OFF
         self.stage = self.STAGE_OFFLINE
-        self.data = [[0] for _ in range(3)]
+        self.data = [[] for _ in range(3)]
         self.average_data = [0.0, 0.0, 0.0]
         self.standard_deviation = [0.0, 0.0, 0.0]
         for timer in self.photodiode_timers:
