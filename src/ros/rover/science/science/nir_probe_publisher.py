@@ -22,7 +22,7 @@ collecting NIR photodiode data.
 The only commands to send this publisher are:
     1. Turn on LED 1
     2. Turn on LED 2
-    3. Turn of LEDs
+    3. Turn off LEDs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -117,7 +117,7 @@ class NIRProbePublisher(Node):
             self.create_timer(self.READ_INTERVAL, self.send_read_data_callback),
             self.create_timer(self.PHOTODIODE_LIGHT_BLANK_PERIOD, self.light_blank_callback),
             self.create_timer(self.PHOTODIODE_CALIBRATION_PERIOD, self.calibration_callback),
-            self.create_timer(self.PHOTODIODE_STABLE_PERIOD, self.stable_callback),
+            self.create_timer(self.PHOTODIODE_ONLINE_PERIOD, self.online_callback),
         ]
         for timer in self.photodiode_timers:
             timer.cancel()
@@ -250,7 +250,7 @@ class NIRProbePublisher(Node):
 
     def photodiode_calibration_callback(self):
         """
-        One-shot callback that deactivates calibration stage after period is over and activates stable stage
+        One-shot callback that deactivates calibration stage after period is over and activates online stage
         """
         self.photodiode_calibration_timer.cancel()
         self.stage = self.STAGE_ONLINE
