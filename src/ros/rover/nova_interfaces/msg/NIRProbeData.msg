@@ -5,16 +5,14 @@
 float32 data
 float32 std_dev
 
-# enum for the current led
-byte LED_OFF = 0
-byte LED_WATER = 1
-byte LED_ICE = 2
+# enum for the current photodiode
+byte PHOTODIODE_OFF = 0
+byte PHOTODIODE_WATER = 1
+byte PHOTODIODE_ICE = 2
 
-# The LED (if any) used to take the reading
-byte led
+# The photodiode (if any) used to take the reading
+# 0 = off | 1 = Photodiode 1 | 2 = Photodiode 2
+byte active_photodiode
 
 # Determine on GUI if LED is on
 bool led_on
-
-# Determine on GUI if photodiode is on
-bool photodiode_on
