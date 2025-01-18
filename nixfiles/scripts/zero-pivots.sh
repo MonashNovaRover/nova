@@ -15,10 +15,10 @@ echo "Ensure that drive is not running before starting the alignment process."
 echo
 
 while true; do
-  echo "Please enter a BLCMD ID (1-8). To zero all pivots, enter '0' instead."
+  echo "Please enter a BLCMD ID (5-8). To zero all pivots, enter '0' instead."
   read -p "BLCMD ID: " blcmd_id
 
-  if [[ "$blcmd_id" =~ ^[0-8]$ ]]; then
+  if [[ "$blcmd_id" =~ ^(0|[5-8])$ ]]; then
     break
   else
     echo "Invalid input. Use the 'list-blcmds' command to view all BLCMD IDs."
@@ -33,7 +33,7 @@ else
   echo "Please manually swivel the selected pivot to ensure the wheel is straight."
 fi
 
-read -p "Press any key to continue." -n1 -s
+read -p "Press any key to continue. " -n1 -s
 echo
 
 echo "Initiating cansend..."
