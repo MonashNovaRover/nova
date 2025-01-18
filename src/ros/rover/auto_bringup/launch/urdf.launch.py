@@ -26,13 +26,25 @@ def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo').perform(context)
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
-    
+    arm = LaunchConfiguration('arm').perform(context)
+
     return [
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[{'robot_description': 
-                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle]), value_type=str)
+                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle, ' ', 'arm:=', arm]), value_type=str)
+            }]
+        ),
+        # Launch joint states for arm
+        Node(
+            package='joint_state_publisher',
+            executable='joint_state_publisher',
+            namespace='',
+            output='screen',
+            emulate_tty=True,
+            parameters=[{
+                'source_list': ['/arm/joint_states', '/joint_states']
             }]
         )
     ]
@@ -43,7 +55,7 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='angle', 
+            name='angle',
             default_value='15',
             description='Angle (in degrees) at which the camera is mounted',
         ),
@@ -53,8 +65,10 @@ def generate_launch_description():
             description='Launch with gazebo or not',
         ),
         DeclareLaunchArgument(
-            name='model', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
+            name='model',
+            # TODO: Update Banksia's URDF for new arm too
+            # default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
+            default_value=PathJoinSubstitution([rover_description_dir, 'waratah', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
         ),
         DeclareLaunchArgument(
@@ -62,6 +76,11 @@ def generate_launch_description():
             default_value='Rover7',
             description='name of the robot',
         ),
+        DeclareLaunchArgument(
+            name='arm',
+            default_value='false',
+            description='whether to launch arm',
+        )
     ]
     
     return LaunchDescription(  

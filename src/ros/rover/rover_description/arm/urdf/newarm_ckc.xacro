@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Configure Closed Kinetic Chains for Arm -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <gazebo>
+        <plugin filename="libgz-sim-detachable-joint-system.so" name="gz::sim::systems::DetachableJoint">
+            <parent_link>l2_alpha_long</parent_link>
+            <child_model>$(arg robot_name)</child_model>
+            <child_link>l2_alpha_short</child_link>
+            <output_topic>close_arm_loop</output_topic>
+        </plugin>
+    </gazebo>
+</robot>

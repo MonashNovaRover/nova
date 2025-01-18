@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- publish joints for arm -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+     <gazebo>
+          <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+               <topic>arm_joints</topic>
+               <joint_name>J1_gbp_chassis</joint_name>
+               <joint_name>J2_l1a_bp</joint_name>
+               <joint_name>J3_l2b_bp</joint_name>
+               <joint_name>l1b_bp</joint_name>
+               <joint_name>l1b_tp</joint_name>
+               <joint_name>l1a_tp</joint_name>
+               
+               <joint_name>wrist_pitch</joint_name>
+               <joint_name>wrist_yaw</joint_name>
+               <joint_name>wrist_roll</joint_name>
+
+               <joint_name>rf_slide</joint_name>
+               <joint_name>lf_slide</joint_name>
+               <joint_name>actuator_head</joint_name>
+          </plugin>
+     </gazebo>
+</robot>

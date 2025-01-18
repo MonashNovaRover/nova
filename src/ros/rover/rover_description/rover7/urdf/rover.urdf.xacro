@@ -727,14 +727,20 @@
     </xacro:if>
     
     <xacro:if value="$(arg arm)">
-        <!-- Needs to be updated for new arm-->
-        <xacro:include filename="$(find rover_description)/arm/urdf/arm.urdf.xacro" />
-        <joint name="chassis_to_arm_base" type="fixed">
-            <origin xyz="0.18 0 -0.03" rpy="0 0 0"/>
+        <xacro:include filename="$(find rover_description)/arm/urdf/newarm.urdf.xacro" />
+        <joint name="J1_gbp_chassis" type="revolute">
+            <origin xyz="0.22899999999999565148 1.1102230246251564172e-16 0.11707476398169122667" rpy="-3.141592653589793116 -1.3309679851047901909e-16 0" />
             <parent link="chassis" />
-            <child link="arm_link" />
+            <child link="gearbox" />
+            <axis xyz="0 0 1"/>
+            <limit effort="20" velocity="20" lower="-3.141592653589793116" upper="3.141592653589793116"/>
+            <joint_properties friction="0.3"/>
         </joint>
+        <xacro:include filename="$(find rover_description)/arm/urdf/dynamic_joints_with_arm.xacro"/>
     </xacro:if>
+    <xacro:unless value="$(arg arm)">
+        <xacro:include filename="$(find rover_description)/rover7/urdf/joint_states.xacro"/>
+    </xacro:unless>
 
     <xacro:unless value="$(arg gazebo)">
         <xacro:include filename="$(find rover_description)/rover7/urdf/ros2_control.xacro" />
@@ -748,5 +754,4 @@
     <xacro:include filename="$(find rover_description)/rover7/urdf/p3d.xacro"/>
     <xacro:include filename="$(find rover_description)/rover7/urdf/odom.xacro"/>
     <xacro:include filename="$(find rover_description)/rover7/urdf/gps.xacro"/>
-    <xacro:include filename="$(find rover_description)/rover7/urdf/joint_states.xacro"/>
 </robot>
