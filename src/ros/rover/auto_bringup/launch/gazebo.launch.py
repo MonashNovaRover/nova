@@ -1,4 +1,3 @@
-
 '''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
@@ -41,6 +40,8 @@ def launch_setup(context, *args, **kwargs):
             'Y': LaunchConfiguration('Y').perform(context)}
     robot_name = LaunchConfiguration('robot_name')
     world = LaunchConfiguration('world')
+    controllers = LaunchConfiguration('controllers')
+    arm = LaunchConfiguration('arm')
 
     return [
         AppendEnvironmentVariable(
@@ -62,7 +63,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'angle': angle}.items(),
+            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'angle': angle, 'arm': arm}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
@@ -112,12 +113,12 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='angle', 
+            name='angle',
             default_value='15',
             description='Angle (in degrees) at which the camera is mounted',
         ),
         DeclareLaunchArgument(
-            name='camera', 
+            name='camera',
             default_value='True',
             description='',
         ),
@@ -150,6 +151,11 @@ def generate_launch_description():
             name='world',
             default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf']),
             description='Full path to world model file to load',
+        ),
+        DeclareLaunchArgument(
+            name='arm',
+            default_value='false',
+            description='whether to launch arm',
         ),
         DeclareLaunchArgument(name='x', default_value='13.22', description='x_pose'),
         DeclareLaunchArgument(name='y', default_value='-7.50', description='y_pose'),
