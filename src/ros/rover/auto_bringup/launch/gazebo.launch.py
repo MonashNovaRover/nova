@@ -39,6 +39,7 @@ def launch_setup(context, *args, **kwargs):
     robot_name = LaunchConfiguration('robot_name')
     world = LaunchConfiguration('world')
     controllers = LaunchConfiguration('controllers')
+    arm = LaunchConfiguration('arm')
 
     return [
         AppendEnvironmentVariable(
@@ -55,7 +56,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name}.items(),
+            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'arm': arm}.items(),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
@@ -126,6 +127,11 @@ def generate_launch_description():
             name='world',
             default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto.sdf']),
             description='Full path to world model file to load',
+        ),
+        DeclareLaunchArgument(
+            name='arm',
+            default_value='false',
+            description='whether to launch arm',
         ),
         DeclareLaunchArgument(name='x', default_value='11.2123871', description='x_pose'),
         DeclareLaunchArgument(name='y', default_value='-10.1349831', description='y_pose'),

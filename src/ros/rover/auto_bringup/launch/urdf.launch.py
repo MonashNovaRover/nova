@@ -25,13 +25,25 @@ def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo').perform(context)
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
+    arm = LaunchConfiguration('arm').perform(context)
     
     return [
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[{'robot_description': 
-                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name]), value_type=str)
+                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'arm:=', arm]), value_type=str)
+            }]
+        ),
+        # Launch joint states for arm
+        Node(
+            package='joint_state_publisher', 
+            executable='joint_state_publisher', 
+            namespace='',
+            output='screen', 
+            emulate_tty=True,
+            parameters=[{
+                'source_list': ['/arm/joint_states', '/joint_states']
             }]
         )
     ]
@@ -56,6 +68,11 @@ def generate_launch_description():
             default_value='Rover7',
             description='name of the robot',
         ),
+        DeclareLaunchArgument(
+            name='arm',
+            default_value='false',
+            description='whether to launch arm',
+        )
     ]
     
     return LaunchDescription(  
