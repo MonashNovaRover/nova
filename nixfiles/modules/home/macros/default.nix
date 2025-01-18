@@ -63,15 +63,15 @@ in
 
             # Networking aliases
             jetson = "ssh -Y nvidia@10.0.0.10";
-            jetson_wifi = "ssh -Y nvidia@tegra-ubuntu";
+            jetson-wifi = "ssh -Y nvidia@tegra-ubuntu";
+            orin = "ssh -Y nova@10.0.0.11";
             orin-devkit-1 = "ssh -Y nova@orin-devkit-1";
-            O1 = "ssh -Y nvidia@10.0.2.11";
-            O2 = "ssh -Y nvidia@10.0.2.12";
-            O3 = "ssh -Y nvidia@10.0.2.13";
-            O4 = "ssh -Y nvidia@10.0.2.14";
             J1 = "ssh -Y nvidia@10.0.2.21";
             J2 = "ssh -Y nvidia@10.0.2.22";
             J3 = "ssh -Y nvidia@10.0.2.23";
+            N1 = "ssh -Y nova@10.0.2.11";
+            N2 = "ssh -Y nova@10.0.2.12";
+            N3 = "ssh -Y nova@10.0.2.13";
 
             # Application aliases
             code = "codium";
@@ -105,6 +105,10 @@ in
             launch-drive = "~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py";
             launch-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
             launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
+
+            # Rover troubleshooting aliases
+            zero-pivots = "${pkgs.bash}/bin/bash ${../../../scripts/zero-pivots.sh}";
+            list-blcmds = "more ${cfg.nixfileDir}/doc/blcmd-ids.md";
           }
         ];
 
