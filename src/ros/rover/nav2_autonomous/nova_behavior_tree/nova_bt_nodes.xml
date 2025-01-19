@@ -26,6 +26,19 @@
       <input_port name="delay_max_s">Maximum delay in seconds between data emissions</input_port>
       <input_port name="repeat_limit">Number of times to emit data, set to -1 for infinite</input_port>
       <output_port name="output">Where to write the data to</output_port>
+    <Action ID="ComputeARTagGoals">
+      <output_port name="output_goals">"AR tag goals"</output_port>
+    </Action>
+
+    <Action ID="RemovePassedARTags">
+      <input_port name="input_goals"/>
+      <input_port name="visiting_goals"/>
+      <input_port name="radius"/>
+      <input_port name="global_frame"/>
+      <input_port name="robot_base_frame"/>
+      <input_port name="ar_id"/>
+      <output_port name="output_goals"/>
+      <output_port name="visited_goals"/>
     </Action>
 
     <Action ID="BackUp">
