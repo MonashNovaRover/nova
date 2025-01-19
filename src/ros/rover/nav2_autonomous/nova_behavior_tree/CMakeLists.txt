@@ -49,6 +49,15 @@ include_directories(
   include
 )
 
+add_library(nova_ar_tag_detected_condition_bt_node SHARED plugins/ar_tag_detected_condition.cpp)
+list(APPEND plugin_libs nova_ar_tag_detected_condition_bt_node)
+
+add_library(nova_compute_ar_tag_goals_action_bt_node SHARED plugins/compute_ar_tag_goals_action.cpp)
+list(APPEND plugin_libs nova_compute_ar_tag_goals_action_bt_node)
+
+add_library(nova_remove_passed_ar_tags_action_bt_node SHARED plugins/remove_passed_ar_tags_action.cpp)
+list(APPEND plugin_libs nova_remove_passed_ar_tags_action_bt_node)
+
 add_library(nova_save_image_service_bt_node SHARED plugins/save_image_service.cpp)
 list(APPEND plugin_libs nova_save_image_service_bt_node)
 
