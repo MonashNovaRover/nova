@@ -31,8 +31,8 @@ bt_navigator:
       - nova_get_first_goal_condition_bt_node
       - nova_led_service_bt_node
       - nova_ar_tag_detected_condition_bt_node
-      - nova_compute_ar_tag_goals_action_bt_node
-      - nova_remove_passed_ar_tags_action_bt_node
+      - nova_update_ar_tag_goal_action_bt_node
+      - nova_update_remove_passed_goals_and_ar_tags_action_bt_node
 
 bt_navigator_navigate_through_poses_rclcpp_node:
   ros__parameters:
