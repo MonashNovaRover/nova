@@ -2,19 +2,23 @@
 <root BTCPP_format="4">
   <TreeNodesModel>
     <!-- ############################### ACTION NODES ################################# -->
-    <Action ID="ComputeARTagGoals">
-      <output_port name="output_goals">"AR tag goals"</output_port>
+    <Action ID="UpdateARTagGoal">
+      <input_port name="input_goal">Goal to add as viapoint</input_port>
+      <input_port name="input_goals">Original goals to add viapoints into</input_port>
+      <input_port name="radius">Radius to next goal for it to be considered an update</input_port>
+      <output_port name="output_goals">Goals with new viapoints added/updated</output_port>
     </Action>
 
-    <Action ID="RemovePassedARTags">
-      <input_port name="input_goals"/>
-      <input_port name="visiting_goals"/>
-      <input_port name="radius"/>
-      <input_port name="global_frame"/>
-      <input_port name="robot_base_frame"/>
-      <input_port name="ar_id"/>
-      <output_port name="output_goals"/>
-      <output_port name="visited_goals"/>
+    <Action ID="RemovePassedGoalsAndARTags">
+      <input_port name="input_goal">AR tag goal</input_port>
+      <input_port name="id">ID of detected AR tag</input_port>
+      <input_port name="tag_tolerance">radius to AR tag goal for it to be considered as seen</input_port>
+      <input_port name="input_goals">Original goals to remove viapoints from</input_port>
+      <input_port name="radius">Radius to goal for it to be considered for removal</input_port>
+      <input_port name="global_frame">Global frame</input_port>
+      <input_port name="robot_base_frame">Robot base frame</input_port>
+      <output_port name="output_goals">Goals with passed viapoints removed</output_port>
+      <output_port name="seen_ids">IDs of visited AR tags</output_port>
     </Action>
 
     <Action ID="BackUp">
@@ -242,8 +246,9 @@
 
     <!-- ############################### CONDITION NODES ############################## -->
     <Condition ID="ARTagDetected">
-      <input_port name="visited_goals">Visited goals</input_port>
-      <output_port name="ar_id">AR tag ID</output_port>
+      <input_port name="seen_ids">Visited AR tags IDs</input_port>
+      <output_port name="id">Detected AR tag ID</output_port>
+      <output_port name="goal">Detected AR tag pose</output_port>
     </Condition>
 
     <Condition ID="GoalReached">
