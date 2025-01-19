@@ -16,6 +16,8 @@ bt_navigator:
       plugin: "nav2_bt_navigator::NavigateToPoseNavigator"
     navigate_through_poses:
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
+    default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/other/search_for_ar_tags.xml 
+    # $(find-pkg-share my_package)/behavior_tree/my_nav_through_poses_bt.xml
     urc_navigator:
       plugin: "nova_bt_navigators::URCNavigator"
     plugin_lib_names:
@@ -28,6 +30,9 @@ bt_navigator:
       - nova_get_final_goal_condition_bt_node
       - nova_get_first_goal_condition_bt_node
       - nova_led_service_bt_node
+      - nova_ar_tag_detected_condition_bt_node
+      - nova_compute_ar_tag_goals_action_bt_node
+      - nova_remove_passed_ar_tags_action_bt_node
 
 bt_navigator_navigate_through_poses_rclcpp_node:
   ros__parameters:
