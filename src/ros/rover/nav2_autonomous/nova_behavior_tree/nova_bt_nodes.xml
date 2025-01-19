@@ -2,6 +2,21 @@
 <root BTCPP_format="4">
   <TreeNodesModel>
     <!-- ############################### ACTION NODES ################################# -->
+    <Action ID="ComputeARTagGoals">
+      <output_port name="output_goals">"AR tag goals"</output_port>
+    </Action>
+
+    <Action ID="RemovePassedARTags">
+      <input_port name="input_goals"/>
+      <input_port name="visiting_goals"/>
+      <input_port name="radius"/>
+      <input_port name="global_frame"/>
+      <input_port name="robot_base_frame"/>
+      <input_port name="ar_id"/>
+      <output_port name="output_goals"/>
+      <output_port name="visited_goals"/>
+    </Action>
+
     <Action ID="BackUp">
       <input_port name="backup_dist">Distance to backup</input_port>
       <input_port name="backup_speed">Speed at which to backup</input_port>
@@ -226,6 +241,11 @@
     </Action>
 
     <!-- ############################### CONDITION NODES ############################## -->
+    <Condition ID="ARTagDetected">
+      <input_port name="visited_goals">Visited goals</input_port>
+      <output_port name="ar_id">AR tag ID</output_port>
+    </Condition>
+
     <Condition ID="GoalReached">
       <input_port name="goal">Destination</input_port>
       <input_port name="global_frame">Reference frame</input_port>
