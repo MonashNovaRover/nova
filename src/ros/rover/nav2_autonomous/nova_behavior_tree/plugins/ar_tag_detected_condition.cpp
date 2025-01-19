@@ -13,13 +13,16 @@
 // limitations under the License.
 
 #include <functional>
-#include <geometry_msgs/msg/pose_stamped.hpp>
 
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/pose.hpp>
 #include <aruco_opencv_msgs/msg/aruco_detection.hpp>
 #include <aruco_opencv_msgs/msg/marker_pose.hpp>
 #include <rclcpp/callback_group.hpp>
 #include <rclcpp/qos.hpp>
 #include <rclcpp/subscription_options.hpp>
+#include "rclcpp/logging.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 #include "nova_behavior_tree/ar_tag_detected_condition.hpp"
 
@@ -61,6 +64,9 @@ namespace nova_behavior_tree
         tag_found_ = false;
         for (aruco_opencv_msgs::msg::MarkerPose marker : msg->markers) {
             tag_id_ = marker.marker_id;
+            tag_header_ = msg->header;
+            tag_pose_.position.x = marker.pose.position.x;
+            tag_pose_.position.y = marker.pose.position.y;
             tag_found_ = true;
             return;
         }
@@ -84,21 +90,29 @@ namespace nova_behavior_tree
 
     bool ARTagDetectedCondition::detected()
     {
-        IDs visited_goals;
-        getInput("visited goals", visited_goals);
+        IDs seen_ids;
+        getInput("seen_ids", seen_ids);
+
         if (tag_found_)
         {
-            for (int id : visited_goals)
+            for (int id : seen_ids)
             {
                 if (id == tag_id_)
                 {
                     return false;
                 }
             }
-            setOutput("ar_id", tag_id_);
+            setOutput("id", tag_id_);
+            geometry_msgs::msg::PoseStamped goal;
+            goal.header = tag_header_;
+            goal.pose = tag_pose_;
+            setOutput("goal", goal);
+            RCLCPP_INFO(node_->get_logger(), "AR tag found, setting goal");
         }
+        
         return tag_found_;
     }
+
 
 } // namespace nova_behavior_tree
 

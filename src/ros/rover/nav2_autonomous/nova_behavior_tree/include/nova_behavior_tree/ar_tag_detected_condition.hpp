@@ -23,10 +23,11 @@
 #include <rclcpp/subscription.hpp>
 #include <string>
 #include <cstdlib>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/pose.hpp>
 
 #include <rclcpp/rclcpp.hpp>
 #include <vector>
-#include <vision_msgs/msg/detection3_d_array.hpp>
 
 #include "behaviortree_cpp/condition_node.h"
 
@@ -35,8 +36,7 @@ namespace nova_behavior_tree
 {
 
     /**
-     * @brief A BT::ConditionNode that returns SUCCESS when the first goal in a vector of poses
-     * is reached and FAILURE otherwise
+     * @brief A BT::ConditionNode that returns SUCCESS when an AR tag has been detected and FAILURE otherwise
      */
     class ARTagDetectedCondition : public BT::ConditionNode
     {
@@ -72,8 +72,9 @@ namespace nova_behavior_tree
         static BT::PortsList providedPorts()
         {
             return {
-                BT::InputPort<IDs>("visited_goals", "IDs of visited AR tags"),
-                BT::OutputPort<int>("ar_id", "ID of detected AR tag"),
+                BT::InputPort<IDs>("seen_ids", "IDs of visited AR tags"),
+                BT::OutputPort<int>("id", "ID of detected AR tag"),
+                BT::OutputPort<geometry_msgs::msg::PoseStamped>("goal", "Pose of detected AR tag"),
             };
         }
 
@@ -94,6 +95,8 @@ namespace nova_behavior_tree
         bool initialized_;
 
         int tag_id_;
+        std_msgs::msg::Header tag_header_;
+        geometry_msgs::msg::Pose tag_pose_;
         bool tag_found_;
 
         rclcpp::CallbackGroup::SharedPtr callback_group_;
