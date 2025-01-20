@@ -39,4 +39,5 @@ export const rosTopicMessages = {
   [RosTopic.RAMAN_SPEC_MSG]: "nova_interfaces/msg/RamanSpectrum",
   [RosTopic.RAMAN_MECH_MSG]: "nova_interfaces/msg/RamanState",
   [RosTopic.BME_SENSOR]: "nova_interfaces/msg/BMESensor",
+  [RosTopic.CAN_MESSAGE]: "nova_interfaces/msg/CANMessage",
 };

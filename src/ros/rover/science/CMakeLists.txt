@@ -73,6 +73,7 @@ install(PROGRAMS
   science/urc_bme_sensor.py
   science/urc_mixers.py
   science/urc_uv_vis_leds.py
+  science/can_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

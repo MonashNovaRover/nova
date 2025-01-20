@@ -17,6 +17,8 @@ import {
   IRosCameraMsgsGetIpListResponse,
   IRosStdSrvsSetBoolResponse,
   IRosStdSrvsSetBoolRequest,
+  IRosNovaInterfacesSendCanMessageRequest,
+  IRosNovaInterfacesSendCanMessageResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -100,5 +102,9 @@ export interface RosServiceInterface {
   [RosService.HEATER]: RosServiceMessage<
       IRosStdSrvsSetBoolRequest,
       IRosStdSrvsSetBoolResponse
+  >;
+  [RosService.SEND_CAN_MESSAGE]: RosServiceMessage<
+    IRosNovaInterfacesSendCanMessageRequest,
+    IRosNovaInterfacesSendCanMessageResponse
   >;
 }

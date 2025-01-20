@@ -26,4 +26,5 @@ export const rosServiceMessages = {
   [RosService.UV_VIS_LED_2]: "std_srvs/srv/SetBool",
   [RosService.CACHE]: "std_srvs/srv/SetBool",
   [RosService.HEATER]: "std_srvs/srv/SetBool",
+  [RosService.SEND_CAN_MESSAGE]: "nova_interfaces/srv/SendCANMessage"
 };

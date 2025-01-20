@@ -43,4 +43,6 @@ export enum RosTopic {
   // These Topics are for ED and Science
   ROVER_LOCATION = "/fix",
   BASE_LOCATION = "/gps_base/fix",
+
+  CAN_MESSAGE = "/science/can",
 }

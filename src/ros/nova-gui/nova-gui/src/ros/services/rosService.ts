@@ -29,4 +29,6 @@ export enum RosService {
   UV_VIS_LED_2 = "/science/uv_vis_led_2",
   CACHE = "/science/cache",
   HEATER = "/science/heater",
+
+  SEND_CAN_MESSAGE = "/science/can_send"
 }

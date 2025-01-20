@@ -50,6 +50,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RamanSpectrum.msg"
   "msg/RamanState.msg"
   "msg/BMESensor.msg"
+  "msg/CANMessage.msg"
 
   # Service definitions
   "srv/GpsOffset.srv"
@@ -61,6 +62,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetNIRProbeLED.srv"
   "srv/RamanSpec.srv"
   "srv/RamanMech.srv"
+  "srv/SendCANMessage.srv"
 
   # Action definitions
   "action/Stepper.action"
