@@ -73,10 +73,16 @@ const CanSendWidget: FC = () => {
         <div className="flex flex-row items-center w-full px-3 pt-0.5 h-full text-mono text-small">
           <span className="text-default-400 me-[0.25ch] text-small font-mono">0x</span>
           <span className="mx-[0.25ch] w-[3.0ch] inline-flex justify-start text-foreground-500">
-            {"0".repeat(3-canId.length)}
+            {"0".repeat(3 - canId.length)}
           </span>
           <span className={"text-default-400 ms-[0.25ch] " + (delimiter.length > 0 ? "opacity-0" : "")}>#</span>
-          {dataSpan}
+          <span className="opacity-0">{dataSpan}</span>
+          {data.length === 0 && (
+            <span className={"text-foreground-500 ps-[0.5ch]"}>00</span>
+          )}
+          {data.length % 2 !== 0 && (
+            <span className={"text-foreground-500"}>0</span>
+          )}
         </div>
       }
       noCentering
@@ -92,7 +98,7 @@ const CanSendWidget: FC = () => {
                 {canId}
               </span>
           {delimiter.length > 0 && (
-            <span className="text-default-400 ms-[0.25ch]">{delimiter}</span>
+            <span className="text-foreground-500 ms-[0.25ch]">{delimiter}</span>
           )}
           {dataSpan}
         </ContentEditable>
@@ -102,7 +108,7 @@ const CanSendWidget: FC = () => {
 
   return (
     <Card className="col-span-2">
-      <CardHeader className="pb-0">CAN Dump</CardHeader>
+      <CardHeader className="pb-0">CAN Send</CardHeader>
       <CardBody className="flex flex-col gap-2.5">
         <div className="flex flex-row justify-end gap-2">
           {inputField}
