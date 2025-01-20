@@ -15,7 +15,7 @@ const CanSendWidget: FC = () => {
   const [delimiter, setDelimiter] = useState<string>("");
 
   const setData = (value: string) => {
-    const filteredValue = value.toUpperCase().replace(/[^A-F0-9$]/g, "");
+    const filteredValue = value.toUpperCase().replace(/[^A-F0-9]/g, "");
     setDataRaw(filteredValue.length > 16 ? filteredValue.slice(0, 16) : filteredValue);
   }
 
@@ -31,7 +31,7 @@ const CanSendWidget: FC = () => {
 
     const frameDelimiter = sections[1].startsWith('#') || frameData.length > 0 ? '#' : ''
 
-    setCanId(frameCanId.toUpperCase().replace(/[^A-F0-9$]/g, ""))
+    setCanId(frameCanId.toUpperCase().replace(/[^A-F0-9]/g, ""))
     setDelimiter(frameDelimiter);
     setData(frameData);
   }
