@@ -25,6 +25,10 @@ export interface BifrostActionType<P> {
 
 type CustomDispatch<P> = (action: () => BifrostActionType<P>) => void;
 
+interface SyncWithTopicOptions<T> {
+  handleMessage?: (response: T) => void;
+}
+
 interface CallServiceOptions<T> {
   sendToRedux?: boolean;
   responseToast?: boolean;
@@ -101,7 +105,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
     /**
      * Synchronizes with a topic by subscribing to it and updating the topic state when a message is received.
      */
-    syncWithTopic() {
+    syncWithTopic(options?: SyncWithTopicOptions<RosTopicInterfaces[typeof topic]>) {
       return (
         dispatch: CustomDispatch<RosTopic>,
         getState: () => RootState
@@ -124,6 +128,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
 
         rosTopic.on("message", (message: RosTopicInterfaces[typeof topic]) => {
           this._updateTopicState(message);
+          options?.handleMessage?.(message);
         });
 
         dispatch(this._updateSubscribedTopics(topic));
