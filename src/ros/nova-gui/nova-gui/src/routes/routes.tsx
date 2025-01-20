@@ -28,6 +28,7 @@ import URCRamanView from "../views/urc/URCRamanView.tsx";
 import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
 import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
 import TestOverlayView from "../views/test/TestOverlayView/TestOverlayView.tsx";
+import CanView from "../views/general/CanView/CanView.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -123,6 +124,10 @@ export const generalRoutes: RouteObject[] = [
   {
     path: "/general/drive",
     element: <GeneralBaseView />,
+  },
+  {
+    path: "/general/can",
+    element: <CanView/>,
   },
 ];
 

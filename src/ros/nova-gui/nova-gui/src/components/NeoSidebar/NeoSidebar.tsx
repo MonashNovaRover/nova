@@ -10,7 +10,7 @@ import { RootState } from "../../redux/RootState";
 import { useSelector } from "react-redux";
 import { useUIActions } from "../../redux/actions/useUIActions";
 import novaLogo from "../../assets/nova-logo.png";
-import {Aperture, BarChart, BarChart2, Camera, Globe, Home, Image, Map} from "react-feather";
+import {Aperture, BarChart, BarChart2, Camera, Globe, Home, Image, Map, Activity} from "react-feather";
 import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {URCCompModes} from "../../views/shared/CamerasPage/CameraPageConstants.ts";
@@ -181,6 +181,11 @@ const generalSideBarData: SidebarInterface = {
       title: "Camaras",
       route: "/general/cameras",
       icon: <Camera/>,
+    },
+    {
+      title: "CAN Debug",
+      route: "/general/CAN",
+      icon: <Activity/>,
     },
   ]
 }
