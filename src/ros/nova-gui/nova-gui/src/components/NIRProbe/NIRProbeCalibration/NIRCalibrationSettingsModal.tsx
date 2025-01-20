@@ -11,6 +11,12 @@ export interface NIRCalibrationSettingsModalProps {
   setIsOpen: (v: boolean) => void,
 };
 
+/**
+ * Settings modal for the NIR Calibration Curve 3D visualisation.
+ * @param isOpen whether or not the modal is open
+ * @param setIsOpen function to set the isOpen value
+ * @constructor
+ */
 const NIRCalibrationSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = ({
   isOpen, setIsOpen
 }) => {
@@ -28,6 +34,8 @@ const NIRCalibrationSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = 
 
   const renderCoefficients = () => {
     return calibrationData.coefficients.map((c, i) => <Input
+      type="number"
+      step="0.1"
       label={"Coefficient " + `${i+1}`}
       value={formatPotentiallyNaNFloatString(c)}
       onValueChange={setCoefficient(i)}

@@ -17,6 +17,8 @@ import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
 import {Check, MoreHorizontal} from "react-feather";
 import {SiteData} from "../../../redux/models/genericStores/SiteDataState.ts";
+import {ISpaceResourcesEntry, XYNames} from "../SpaceResourcesSiteType.tsx";
+import {useNIRSiteData} from "../useNIRSiteData.ts";
 
 export interface NIRProbeOutputSaveWidgetProps extends CardProps {
   file: SiteData,
@@ -30,39 +32,28 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
 }) => {
   const bifrost = useBifrost({ topic: RosTopic.NIR_DATA });
   const nirData = useSelector((state: RootState) => state.nirStore.data);
-  const led = useSelector((state: RootState) => state.nirStore.led);
+  // const led = useSelector((state: RootState) => state.nirStore.led);
 
-  const [lightBlank, setLightBlank] = useState<number | undefined>();
-  const [concentration, setConcentration] = useState<number | undefined>();
-  const [manualReading, setManualReading] = useState<number | undefined>();
+  const [readings, setReadings] = useNIRSiteData();
+
+  const [x, setX] = useState<number | undefined>();
+  const [y, setY] = useState<number | undefined>();
   const [sampleLabel, setSampleLabel] = useState<string>("");
 
   useEffect(() => {
     bifrost.syncWithTopic();
   }, [bifrost]);
 
-  const updateLightBlank = useCallback(() => {
-    setLightBlank(manualReading ?? nirData);
-  }, [nirData, manualReading]);
-
-  const updateDifference = useCallback(() => {
-    const newEntry = {
-      lightBlank: lightBlank,
-      difference: (manualReading ?? nirData) - (lightBlank ?? 0),
-      concentration: concentration,
-      label: sampleLabel
-    };
-    const newFile: SiteData = { ...file, spaceResourcesEntries: [...file.spaceResourcesEntries, newEntry] };
-
-    setFile(newFile);
-  }, [file, nirData, manualReading, lightBlank, concentration, sampleLabel, setFile]);
-
   const onSave = useCallback(() => {
-    if (led === 0)
-      updateLightBlank();
-    else
-      updateDifference();
-  }, [led, updateLightBlank, updateDifference]);
+    setReadings([
+      ...readings,
+      {
+        x: x,
+        y: y,
+        label: sampleLabel,
+      } as ISpaceResourcesEntry
+    ])
+  }, [readings, setReadings, x, y, sampleLabel]);
 
   return (
     <Card {...cardProps}>
@@ -92,20 +83,9 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
         </CopyableOutput>
         <div className="grid auto-cols-fr gap-3 grid-flow-col">
           {
-            showAdvanced ? (
-              <>
-                <Button color="default" onPress={updateLightBlank}>
-                  Set Light Blank
-                </Button>
-                <Button color="primary" onPress={updateDifference}>
-                  Save Reading
-                </Button>
-              </>
-            ) : (
-              <Button color={led === 0 ? "default" : "primary"} onPress={onSave}>
-                {led === 0 ? "Set Light Blank" : "Save Reading"}
-              </Button>
-            )
+            <Button color="primary" onPress={onSave}>
+              Save Reading
+            </Button>
           }
         </div>
       </CardBody>
@@ -113,12 +93,11 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
       {
         showAdvanced &&
         <CardBody className="flex flex-row gap-3">
-          <Input onValueChange={onFloatChanged(setConcentration)} value={concentration?.toString() ?? ""} size="sm"
-                 labelPlacement="outside" label="Concentration">
+          <Input onValueChange={onFloatChanged(setX)} value={x?.toString() ?? ""} size="sm"
+                 labelPlacement="outside" label={`Manual ${XYNames.Y} Reading Entry`}>
           </Input>
-          <Input onValueChange={onFloatChanged(setManualReading)} value={manualReading?.toString() ?? ""} size="sm"
-                 labelPlacement="outside" label="Manual Reading Entry"
-                 color={manualReading === undefined ? "default" : "danger"}>
+          <Input onValueChange={onFloatChanged(setY)} value={y?.toString() ?? ""} size="sm"
+                 labelPlacement="outside" label={`Manual ${XYNames.Y} Reading Entry`}>
           </Input>
           <Input onValueChange={setSampleLabel} value={sampleLabel} size="sm"
                  labelPlacement="outside" label="Sample Label">

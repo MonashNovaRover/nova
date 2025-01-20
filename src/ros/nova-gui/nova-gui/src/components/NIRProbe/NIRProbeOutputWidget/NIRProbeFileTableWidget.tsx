@@ -10,14 +10,11 @@ import {
   TableHeader, TableRow
 } from "@nextui-org/react";
 import React, {ReactElement, useCallback} from "react";
-import {SiteDataState} from "../../../redux/models/genericStores/SiteDataState.ts";
-import {useGenericStore} from "../../../hooks/useGenericStore.ts";
-import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
+import {useCalibrationFunction} from "../NIRProbeCalibration/NIRCalibration.ts";
+import {useNIRSiteData} from "../useNIRSiteData.ts";
 
 export interface NIRProbeFileTableWidgetProps extends CardProps {
   showAdvanced : boolean,
-  absorbance: (v: number) => number,
-  calibrationFunction: (v: number) => number,
 }
 
 const RowFromHeader = (tableHeader: ReactElement, numRows: number, key?: string) => {
@@ -34,26 +31,17 @@ const RowFromHeader = (tableHeader: ReactElement, numRows: number, key?: string)
 }
 
 const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
-  showAdvanced, absorbance, calibrationFunction, ...cardProps
+  showAdvanced, ...cardProps
 }) => {
 
-  // current site as provided by the site selector
-  const [currentSite, _] = useGenericStore<Site>("currentSite");
+  const [readings, setReadings] = useNIRSiteData()
 
-  // data related to each site
-  const [siteData, setSiteData] = useGenericStore<SiteDataState>("siteData");
-  const readings = siteData[currentSite].spaceResourcesEntries
-
+  // calibration function
+  const calibrationFunc = useCalibrationFunction()
 
   const deleteEntry = useCallback((index: number) => {
-    setSiteData({
-      ...siteData,
-      [currentSite]: {
-        ...siteData[currentSite],
-        spaceResourcesEntries: readings.filter((_, i) => i !== index)
-      }
-    } as SiteDataState)
-  }, [currentSite, readings, setSiteData]);
+    setReadings(readings.filter((_, i) => i !== index))
+  }, [readings, setReadings]);
 
   // Get a reversed list of entries, so the most recent values can be displayed first
   const reversedFileEntries = [...readings];
@@ -106,35 +94,48 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
   const noReadingHeaderCell = <TableCell className="absolute text-small tracking-wider text-nowrap left-0 right-64 w-full top-0 h-1 text-foreground-400" key={0}>No readings recorded</TableCell>;
   const noReadingHeaderRow = RowFromHeader(noReadingHeaderCell, showAdvanced ? 5 : 4, "noReading");
 
-  const averageDifference = readings.map(entry => entry.difference).reduce((a,b) => a+b, 0) / Math.max(readings.length,1);
-  const averageRow = (
-    showAdvanced ?
+  const xList = readings.map(entry => entry.x).filter(x => x)
+  const averageX = xList.reduce((a,b) => a+b, 0) / Math.max(xList.length,1);
+
+  const yList = readings.map(entry => entry.y).filter(y => y)
+  const averageY = yList.reduce((a,b) => a+b, 0) / Math.max(yList.length,1);
+
+  const averageRow =
+    showAdvanced ? (
       <TableRow key="average">
-        <TableCell key={0}>{""}</TableCell>
         <TableCell key={1}>
-          {averageDifference}
+          {averageX}
         </TableCell>
         <TableCell key={2}>
-          {absorbance?.(averageDifference)}
+          {averageY}
         </TableCell>
-        <TableCell key={3}>{""}</TableCell>
-        <TableCell key={4}>{""}</TableCell>
+        <TableCell key={3}>
+          {averageY && averageX ? calibrationFunc(averageX, averageY) : "None"}
+        </TableCell>
+        <TableCell>{""}</TableCell>
+        <TableCell>{""}</TableCell>
       </TableRow>
-      :
+    ) : (
       <TableRow key="average">
         <TableCell key={1}>
-          {averageDifference}
+          {averageX}
         </TableCell>
-        <TableCell key={2}>{calibrationFunction(absorbance(averageDifference)).toFixed(4)}</TableCell>
-        <TableCell key={3}>{absorbance(averageDifference).toFixed(4)}</TableCell>
-        <TableCell key={4}>{""}</TableCell>
+        <TableCell key={2}>
+          {averageY}
+        </TableCell>
+        <TableCell key={3}>
+          {averageY && averageX ? calibrationFunc(averageX, averageY) : "None"}
+        </TableCell>
+        <TableCell key={0}>{""}</TableCell>
       </TableRow>
-  )
+    )
+
 
   const tableRows = readings.length > 0 ?
     [averageHeaderRow, averageRow, readingHeaderRow, ...entryRows] :
     [noReadingHeaderRow];
 
+  console.log(tableRows)
   return (
     <Card {...cardProps}>
       <CardHeader className="pb-0">

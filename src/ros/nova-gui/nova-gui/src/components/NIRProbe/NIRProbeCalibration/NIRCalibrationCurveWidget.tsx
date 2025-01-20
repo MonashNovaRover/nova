@@ -17,6 +17,13 @@ const GRANUALITY = 24
 export interface NIRCalibrationCurveWidgetProps {
 }
 
+/**
+ * Generates a range of values
+ * Array will be empty if start or end is NaN
+ * @param start start point of range
+ * @param end end point of range
+ * @param count number of points within range
+ */
 const generateRange = (start: number, end: number, count: number): number[] => {
   if (Number.isNaN(start) || Number.isNaN(end))
       return []
@@ -24,6 +31,11 @@ const generateRange = (start: number, end: number, count: number): number[] => {
   return Array.from({ length: count }, (_, i) => Math.round(start + i * step));
 }
 
+/**
+ * Widget containing the NIR Probe Calibration Curve
+ * Contains a 3d graph and settings modal
+ * @constructor
+ */
 const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () => {
   const [calibrationModalIsOpen, setCalibrationModalIsOpen] = useState<boolean>(false)
   const [calibrationData, _] = useGenericStore<NIRProbeCalibrationData>("nirProbeCalibrationData");
@@ -31,6 +43,7 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
   const xValues = useMemo(() => generateRange(calibrationData.xRange[0], calibrationData.xRange[1], GRANUALITY), [calibrationData])
   const yValues = useMemo(() => generateRange(calibrationData.yRange[0], calibrationData.yRange[1], GRANUALITY), [calibrationData])
 
+  // z values is a 2d array where each value is generated from the corresponding x and y values
   const zValues = useMemo(() => {
     return yValues.map(y => [...xValues.map(x => calibrationFunction(calibrationData.coefficients)(x, y))])
   }, [calibrationData])
