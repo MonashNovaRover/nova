@@ -12,5 +12,6 @@ byte LED_ICE = 2
 # The LED (if any) used to take the reading
 byte led
 
-# Whether or not the NIR probe is currently taking a reading
-bool reading_in_progress
+# Status of the NIR Probe
+# 0 = Off, 1 = Currently taking LED Water reading, 2 = Currently taking LED Ice reading
+bool status
