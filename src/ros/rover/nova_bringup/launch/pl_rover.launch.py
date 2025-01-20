@@ -38,7 +38,7 @@ def launch_setup(context, *args, **kwargs):
             package='electronics',
             executable='rfid_service.py',
             name='rfid_node',
-            parameters=[{'port': rfid_port}]
+            parameters=[{'port': rfid_port}],
         ),
     ]
     

@@ -40,7 +40,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
         ),
         IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'drive.launch.py']))
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'drive.launch.py'])),
         ),
     ]
 
@@ -54,6 +54,7 @@ def generate_launch_description():
             description='Card type for the scraper node',
         ),     
     ]
+    
     return LaunchDescription(
         declared_arguments + [OpaqueFunction(function=launch_setup)]
     )

@@ -29,13 +29,15 @@ def launch_setup(context, *args, **kwargs):
             executable='drive_inputs', 
             output='screen', 
             emulate_tty=True,
-            parameters=[{'use_sim_time': gazebo}]),
+            parameters=[{'use_sim_time': gazebo}],
+        ),
         Node(
             package='drive', 
             executable='driver', 
             output='screen', 
             emulate_tty=True,
-            parameters=[{'use_sim_time': gazebo, 'gazebo': gazebo}]),
+            parameters=[{'use_sim_time': gazebo, 'gazebo': gazebo}],
+        ),
         Node(
             package='blcmd_utils', 
             executable='status_monitor', 

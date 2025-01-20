@@ -25,34 +25,18 @@ from launch_ros.parameter_descriptions import ParameterValue
 def launch_setup(context, *args, **kwargs):
     nova_bringup_dir = FindPackageShare('nova_bringup')
     
+    arm = LaunchConfiguration('arm').perform(context)
+    arm_urdf_path = LaunchConfiguration('arm_urdf_path')
     rover = LaunchConfiguration('rover').perform(context)
+    rover_urdf_path = LaunchConfiguration('rover_urdf_path')
+    rvis = LaunchConfiguration('rviz')
 
-    if rover == 'True':
+    if bool(rover):
         fixed_frame = 'base_link'
-        robot_description = ParameterValue(
-            Command(
-                [
-                    'xacro ', 
-                    LaunchConfiguration('rover_urdf_path'),
-                    ' arm:=',
-                    LaunchConfiguration('arm'),
-                    ' auto_camera:=false'
-                ]
-            ),
-            value_type=str
-        )
+        robot_description = ParameterValue(Command(['xacro ', rover_urdf_path, ' arm:=', arm, ' auto_camera:=false']), value_type=str)
     else:
         fixed_frame = 'arm_link'
-        robot_description = ParameterValue(
-            Command(
-                [
-                    'xacro ', 
-                    LaunchConfiguration('arm_urdf_path'),
-                    ' auto_camera:=false'
-                ]
-            ),
-            value_type=str
-        )
+        robot_description = ParameterValue(Command(['xacro ', arm_urdf_path, ' auto_camera:=false']), value_type=str)
 
     return [
         Node(
@@ -82,29 +66,29 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='rover_urdf_path', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'waratah', 'urdf', 'rover.urdf.xacro']),
-            description='Absolute path to rover urdf file'
+            name='arm', 
+            default_value='True',
+            description='Include arm URDF in robot_description?',
         ),
         DeclareLaunchArgument(
             name='arm_urdf_path', 
             default_value=PathJoinSubstitution([rover_description_dir, 'arm', 'urdf', 'arm.urdf.xacro']),
-            description='Absolute path to arm urdf file'
-        ),
-        DeclareLaunchArgument(
-            name='arm', 
-            default_value='True',
-            description='Include arm URDF in robot_description'
+            description='Absolute path to arm urdf file',
         ),
         DeclareLaunchArgument(
             name='rover', 
             default_value='True',
-            description='Include rover URDF in robot_description'
+            description='Include rover URDF in robot_description?',
+        ),
+        DeclareLaunchArgument(
+            name='rover_urdf_path', 
+            default_value=PathJoinSubstitution([rover_description_dir, 'waratah', 'urdf', 'rover.urdf.xacro']),
+            description='Absolute path to rover urdf file',
         ),
         DeclareLaunchArgument(
             name='rviz', 
             default_value='True',
-            description='Launch rviz?'
+            description='Launch rviz?',
         ),
     ]
 

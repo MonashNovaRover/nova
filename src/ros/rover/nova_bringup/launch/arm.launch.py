@@ -30,12 +30,12 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 def launch_setup(context, *args, **kwargs):
     nova_bringup_dir = FindPackageShare('nova_bringup')
 
-    arm_urdf = LaunchConfiguration('arm_urdf')
+    arm = LaunchConfiguration('arm')
     arm_urdf_path = LaunchConfiguration('arm_urdf_path')
     chassic_cam = LaunchConfiguration('chassic_cam')
     namespace = LaunchConfiguration('namespace')
     params = LaunchConfiguration('params')
-    rover_urdf = LaunchConfiguration('rover_urdf')
+    rover = LaunchConfiguration('rover')
     sim = LaunchConfiguration('sim')
     urdf = LaunchConfiguration('urdf')
 
@@ -45,8 +45,8 @@ def launch_setup(context, *args, **kwargs):
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'urdf.launch.py'])),
             launch_arguments = {
                 'arm_urdf_path': arm_urdf_path,
-                'arm': arm_urdf,
-                'rover': rover_urdf,
+                'arm': arm,
+                'rover': rover,
             }.items(),
         ),
         Node(
@@ -55,7 +55,7 @@ def launch_setup(context, *args, **kwargs):
             executable='resolver_spoofer', 
             namespace=namespace,
             output='screen', 
-            emulate_tty=True
+            emulate_tty=True,
         ),
         GroupAction(
             condition=UnlessCondition(sim),
@@ -65,7 +65,7 @@ def launch_setup(context, *args, **kwargs):
                     executable='arm_driver', 
                     namespace=namespace,
                     output='screen', 
-                    emulate_tty=True, 
+                    emulate_tty=True,
                 ),
                 Node(
                     package='arm', 
@@ -73,14 +73,14 @@ def launch_setup(context, *args, **kwargs):
                     namespace=namespace,
                     parameters=[params],
                     output='screen', 
-                    emulate_tty=True
+                    emulate_tty=True,
                 ),
                 Node(
                     package='cmd_utils', 
                     executable='CMD_publisher.py', 
                     namespace=namespace,
                     output='screen', 
-                    emulate_tty=True
+                    emulate_tty=True,
                 ),
             ],
         ),
@@ -89,64 +89,57 @@ def launch_setup(context, *args, **kwargs):
             executable='arm_inputs', 
             namespace=namespace,
             output='screen', 
-            emulate_tty=True
+            emulate_tty=True,
         ),
         Node(
             package='arm', 
             executable='arm_twistmapper', 
             namespace=namespace,
             output='screen', 
-            emulate_tty=True
+            emulate_tty=True,
         ),
         Node(
             package='arm', 
             executable='arm_control', 
             namespace=namespace,
             output='screen', 
-            emulate_tty=True
+            emulate_tty=True,
         ),
         Node(
             package='arm', 
             executable='arm_rviz_publisher', 
             namespace=namespace,
             output='screen', 
-            emulate_tty=True
+            emulate_tty=True,
         ),
         Node(
             package='arm', 
             executable='hex_key.py', 
             output='screen', 
-            emulate_tty=True
+            emulate_tty=True,
         ),
         Node(
             package='arm',
             executable='lazers.py',
             output='screen',
-            emulate_tty=True
+            emulate_tty=True,
         ),
         Node(
             package='gimbal_cam', 
             executable='gimbal_cam',
             parameters=[{'chassis_cam':chassis_cam}],
             output='screen', 
-            emulate_tty=True
+            emulate_tty=True,
         ),
     ]
 
 def generate_launch_description():
     nova_bringup_dir = FindPackageShare('nova_bringup')
     rover_description_dir = FindPackageShare('rover_description')
-
-    sim = LaunchConfiguration('sim')
-    urdf = LaunchConfiguration('urdf')
-    urdf_path = LaunchConfiguration('urdf_path')
-    rover_urdf = LaunchConfiguration('rover_urdf')
-    namespace = LaunchConfiguration('namespace')
-    chassis_cam = LaunchConfiguration('chassis_cam')
     
     return LaunchDescription([     
         DeclareLaunchArgument(
-            name='arm_urdf', 
+            name='arm', 
             default_value='True',
             description='Include arm URDF in robot_description?',
         ), 
@@ -171,7 +164,7 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='rover_urdf', 
+            name='rover', 
             default_value='True',
             description='Include rover URDF in robot_description?',
         ),    

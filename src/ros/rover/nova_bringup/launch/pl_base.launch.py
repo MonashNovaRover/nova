@@ -33,7 +33,7 @@ def launch_setup(context, *args, **kwargs):
             namespace='',
             executable='rviz2',
             name='rviz2',
-            arguments=['-d', [PathJoinSubstitution([nova_bringup_dir, 'rviz', 'arm.rviz'])]]
+            arguments=['-d', [PathJoinSubstitution([nova_bringup_dir, 'rviz', 'arm.rviz'])]],
         ),
     ]
 
