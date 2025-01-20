@@ -1,6 +1,12 @@
 export enum SpaceResourcesSiteType {
   WATER = 0,
-  ILMENITE = 1
+  ILMENITE = 1,
+}
+
+export enum XYNames {
+  X = "Water",
+  Y = "Ice",
+  FXY = "Concentration",
 }
 
 export interface ISpaceResourcesEntry {

@@ -17,6 +17,8 @@ const NIRCalibrationSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = 
 
   const [calibrationData, setCalibrationData] = useGenericStore<NIRProbeCalibrationData>("nirProbeCalibrationData");
 
+  /* Coefficient Settings */
+
   const setCoefficient = (i: number) => (newVal: string) => {
     setCalibrationData({
       ...calibrationData,
@@ -39,6 +41,56 @@ const NIRCalibrationSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = 
     } as NIRProbeCalibrationData)
   }
 
+  /* Range Settings */
+
+  const setXRange = (range: number[]) => {
+    setCalibrationData({
+      ...calibrationData,
+      xRange: range,
+    } as NIRProbeCalibrationData)
+  }
+  const setYRange = (range: number[]) => {
+    setCalibrationData({
+      ...calibrationData,
+      yRange: range,
+    } as NIRProbeCalibrationData)
+  }
+
+  const renderRanges = () => {
+    return [
+      <div className="grid grid-cols-2 gap-3">
+        <Input
+          label={"X Min"}
+          value={formatPotentiallyNaNFloatString(calibrationData.xRange[0])}
+          onValueChange={(v: string) => setXRange([parseFloat(v), calibrationData.xRange[1]])}
+        />
+        <Input
+          label={"X Min"}
+          value={formatPotentiallyNaNFloatString(calibrationData.xRange[1])}
+          onValueChange={(v: string) => setXRange([calibrationData.xRange[0], parseFloat(v)])}
+        />
+      </div>,
+      <Button onClick={() => setXRange(DEFAULT_NIR_PROBE_CALIBRATION_DATA.xRange)} className="mb-4">
+        Reset X Range
+      </Button>,
+      <div className="grid grid-cols-2 gap-3">
+        <Input
+          label={"Y Min"}
+          value={formatPotentiallyNaNFloatString(calibrationData.yRange[0])}
+          onValueChange={(v: string) => setYRange([parseFloat(v), calibrationData.yRange[1]])}
+        />
+        <Input
+          label={"Y Min"}
+          value={formatPotentiallyNaNFloatString(calibrationData.yRange[1])}
+          onValueChange={(v: string) => setYRange([calibrationData.yRange[0], parseFloat(v)])}
+        />
+      </div>,
+      <Button onClick={() => setYRange(DEFAULT_NIR_PROBE_CALIBRATION_DATA.yRange)} className="mb-4">
+        Reset Y Range
+      </Button>,
+    ]
+  }
+
   return (
     <Modal
       size="2xl"
@@ -54,8 +106,12 @@ const NIRCalibrationSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = 
           <div className="grid grid-cols-3 gap-3">
             {renderCoefficients()}
           </div>
-          <Button onClick={resetCoefficients}>
+          <Button onClick={resetCoefficients} className="mb-4">
             Reset Coefficients
+          </Button>
+          {renderRanges()}
+          <Button onClick={() => setCalibrationData(DEFAULT_NIR_PROBE_CALIBRATION_DATA)} className="bg-danger">
+            Reset All
           </Button>
         </ModalBody>
       </ModalContent>
