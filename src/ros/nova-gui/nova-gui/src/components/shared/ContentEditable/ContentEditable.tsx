@@ -1,49 +1,90 @@
 import { useState, useEffect, FC, useCallback, HTMLProps, FormEvent, useMemo, useRef } from 'react';
 import { renderToString } from "react-dom/server";
+import useContextEditable from "./useContentEditable.ts";
+
+export interface ContentEditableEvent {
+  // Absolute offset of the cursor (read only)
+  startOffset: number,
+  endOffset: number,
+
+  // Allows the cursor position to be set
+  setCursorOffset: (absoluteStartOffset: number, absoluteEndOffset: number) => void
+  cancelEvent: () => void,
+}
 
 export interface ContentEditableProps extends HTMLProps<HTMLDivElement> {
-  onValueChange?: (value: string) => void;
+  onValueChange?: (value: string, event: ContentEditableEvent) => void;
   // Removes the span that wraps children, giving a worse typing experience.
   removeSpanWrapper?: boolean;
 }
 
+/**
+ * A text input that allows for dynamic styling of input text. A very fancy text input.
+ *
+ * ! Some words of warning:
+ * !   - Easy to cause infinite re-renders if your provided children don't match the modified text content given by
+ * !     `props.onValueChange`.
+ * !   - Does not work with undo and redo.
+ * !   - Renders children manually. Given children should NOT be stateful.
+ * @param props
+ * @constructor
+ */
 const ContentEditable: FC<ContentEditableProps> = (props) => {
   const divRef = useRef<HTMLDivElement>(null);
-  const selectionRangesRef = useRef<{ startNodeIdx: number, endNodeIdx: number, startOffset: number, endOffset: number } | null>(null);
+
+  const context = useContextEditable();
 
   // Increasing number to trigger re-renders
   const [valueId, setValueId] = useState<number>(0);
 
+  const getGrandchildren = useCallback((child: Node, defaultEmpty: Node[] = [],
+                                        nodeToFind: Node | undefined = undefined) => {
+    if (!child.hasChildNodes() || (nodeToFind !== undefined && child === nodeToFind))
+      return child.textContent !== null && child.textContent.trim().length > 0 ? [child] : defaultEmpty;
+
+    const children = [...child.childNodes.values()].filter(x =>
+      x !== undefined && x !== null && x.textContent !== null && x.textContent.trim().length > 0)
+
+    if (children.length === 0)
+      return defaultEmpty;
+
+    return children.flatMap((x: Node): Node[] => getGrandchildren(x))
+  }, []);
+
+  const textOf = useCallback((node: Node) => (
+    node.textContent ?? ""
+  ), []);
+
+  const relativeToAbsoluteOffset = useCallback((grandchildren: Node[], idx: number, relativeOffset: number) => {
+    if (idx >= grandchildren.length)
+      return Infinity;
+
+    if (idx == grandchildren.length - 1 && relativeOffset >= (grandchildren[grandchildren.length - 1].textContent?.length ?? 0))
+      return Infinity;
+
+    return grandchildren
+      .slice(0, idx)
+      .reduce((acc: number, val: Node): number => acc + textOf(val).length, 0)
+      + relativeOffset;
+  }, [textOf]);
+
   // Node ids are used to identify which element to add the cursor onto after the re-render
-  const getNodeIdx = (node: Node, offset: number) => {
-    const getGrandchildren = (child: Node, defaultEmpty: Node[] = []) => {
-      if (!child.hasChildNodes() || child === node)
-        return child.textContent !== null && child.textContent.trim().length > 0 ? [child] : defaultEmpty;
-
-      const children = [...child.childNodes.values()].filter(x =>
-        x !== undefined && x !== null && x.textContent !== null && x.textContent.trim().length > 0)
-
-      if (children.length === 0)
-        return defaultEmpty;
-
-      return children.flatMap((x: Node): Node[] => getGrandchildren(x))
-    };
-
-    const grandchildren = getGrandchildren(divRef.current!, [divRef.current!])
-    const idx = grandchildren.indexOf(node as ChildNode)
+  const getNodeIdx = useCallback((node: Node, offset: number, grandchildren?: Node[]) => {
+    const _grandchildren = grandchildren ?? getGrandchildren(divRef.current!, [divRef.current!], node)
+    const idx = _grandchildren.indexOf(node as ChildNode)
 
     // Snap to end of string when typing at end of string
-    if (idx >= grandchildren.length - 1 && offset >= (grandchildren[idx].textContent?.length ?? 0))
+    if (idx >= _grandchildren.length - 1 && offset >= (_grandchildren[idx].textContent?.length ?? 0))
       return [Infinity, Infinity]
 
     if (idx === Infinity)
       return [Infinity, Infinity]
 
     return [idx, offset];
-  }
+  }, [getGrandchildren]);
 
-  // Saves the current cursor selection to selectionRangesRef, and incre
-  const saveSelection = () => {
+  // Saves the current cursor selection to context
+  const saveSelection = useCallback(() => {
     const selection = window.getSelection();
     if (!selection || !selection.rangeCount) return;
 
@@ -53,38 +94,24 @@ const ContentEditable: FC<ContentEditableProps> = (props) => {
     const [endNodeIdx, endOffset] = getNodeIdx(range.endContainer, range.endOffset);
 
     // Save the start and end nodes along with their offsets
-    selectionRangesRef.current = {
-      startNodeIdx: startNodeIdx,
-      startOffset: startOffset,
-      endNodeIdx: endNodeIdx,
-      endOffset: endOffset,
-    };
-  };
+    const grandchildren = getGrandchildren(divRef.current!, [divRef.current!]);
+    context.startOffset = relativeToAbsoluteOffset(grandchildren, startNodeIdx, startOffset);
+    context.endOffset = relativeToAbsoluteOffset(grandchildren, endNodeIdx, endOffset);
+  }, [context, getGrandchildren, getNodeIdx, relativeToAbsoluteOffset]);
 
   // Tries to put the cursor back into the saved position
-  const applySelection = () => {
+  const applySelection = useCallback(() => {
     const selection = window.getSelection();
 
-    if (!selectionRangesRef.current || !selection || divRef.current === null)
+    if (!context || !selection || divRef.current === null)
       return;
 
-    const { startNodeIdx, endNodeIdx, startOffset, endOffset } = selectionRangesRef.current;
+    const { startOffset, endOffset } = context;
 
-    const getGrandchildren = (child: Node, defaultEmpty: Node[] = []) => {
-      if (!child.hasChildNodes())
-        return child.textContent !== null && child.textContent.trim().length > 0 ? [child] : defaultEmpty;
-
-      const children = [...child.childNodes.values()].filter(x =>
-        x !== undefined && x !== null && x.textContent !== null && x.textContent.trim().length > 0)
-
-      if (children.length === 0)
-        return defaultEmpty;
-
-      return children.flatMap((x: Node): Node[] => getGrandchildren(x))
-    };
+    const startNodeIdx = startOffset === Infinity ? Infinity : 0;
+    const endNodeIdx = endOffset === Infinity ? Infinity : 0;
 
     const grandchildren = getGrandchildren(divRef.current!, [divRef.current!]);
-    console.log(grandchildren)
 
     // Makes sure the given offset fits in the current node. Jumps to the next recursively node if needed.
     const normalizeRangeOffset = ([idx, offset]: [number, number]): [number, number] => {
@@ -134,16 +161,26 @@ const ContentEditable: FC<ContentEditableProps> = (props) => {
 
     selection.removeAllRanges();
     selection.addRange(range);
-  };
+  }, [context, getGrandchildren]);
 
   // Called whenever the user modifies the div
   const handleInput = useCallback((event: FormEvent<HTMLDivElement>) => {
     const html = event.currentTarget.textContent ?? "no text content";
-    props.onValueChange?.(html);
 
     saveSelection();
+
+    const ceEvent = {
+      startOffset: context.startOffset,
+      endOffset: context.endOffset,
+      setCursorOffset: (start: number, end: number) => {
+        context.startOffset = start;
+        context.endOffset = end;
+      },
+    } as ContentEditableEvent;
+
+    props.onValueChange?.(html, ceEvent);
     setValueId(x => x + 1); // Trigger re-render
-  }, [props]);
+  }, [context, props, saveSelection]);
 
   const children = props.children;
 
@@ -156,7 +193,7 @@ const ContentEditable: FC<ContentEditableProps> = (props) => {
 
   useEffect(() => {
     applySelection(); // Reapply selection after content change
-  }, [html, valueId]);
+  }, [applySelection, html, valueId]);
 
   return (
     <div

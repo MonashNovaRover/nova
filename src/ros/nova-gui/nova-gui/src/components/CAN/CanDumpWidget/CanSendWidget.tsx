@@ -4,8 +4,9 @@ import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
 import {IRosNovaInterfacesSendCanMessageRequest} from "../../../ros/rosTypes.ts";
-import ContentEditable from "./ContentEditable.tsx";
+import ContentEditable from "../../shared/ContentEditable/ContentEditable.tsx";
 import Overlay from "../../shared/Overlay/Overlay.tsx";
+import useContextEditable from "../../shared/ContentEditable/useContentEditable.ts";
 
 const CanSendWidget: FC = () => {
   const bifrost = useBifrost({topic: RosTopic.CAN_MESSAGE, service: RosService.SEND_CAN_MESSAGE});
@@ -18,6 +19,7 @@ const CanSendWidget: FC = () => {
     const filteredValue = value.toUpperCase().replace(/[^A-F0-9]/g, "");
     setDataRaw(filteredValue.length > 16 ? filteredValue.slice(0, 16) : filteredValue);
   }
+
 
   const setFrame = (value: string) => {
 
