@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright (c) 2021, Matthew Booker
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,15 +16,15 @@
 from collections import defaultdict
 from enum import Enum
 
-from helper import angle_difference, interpolate_yaws
+from lattice_primitive_generator.helper import angle_difference, interpolate_yaws
 
 import numpy as np
 
 from rtree import index
 
-from trajectory import Path, Trajectory, TrajectoryParameters
+from lattice_primitive_generator.trajectory import Path, Trajectory, TrajectoryParameters
 
-from trajectory_generator import TrajectoryGenerator
+from lattice_primitive_generator.trajectory_generator import TrajectoryGenerator
 
 
 class LatticeGenerator:

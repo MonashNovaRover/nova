@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright (c) 2021, Matthew Booker
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +20,8 @@ import logging
 from pathlib import Path
 import time
 
-import constants
-from lattice_generator import LatticeGenerator
+import lattice_primitive_generator.constants
+from lattice_primitive_generator.lattice_generator import LatticeGenerator
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -46,19 +47,19 @@ def handle_arg_parsing():
     parser.add_argument(
         '--config',
         type=Path,
-        default='./config.json',
+        default='/home/nova/nova/src/ros/rover/lattice_primitive_generator/lattice_primitive_generator/config.json',
         help='The config file containing the ' 'parameters to be used',
     )
     parser.add_argument(
         '--output',
         type=Path,
-        default='./output.json',
+        default='/home/nova/nova/src/ros/rover/lattice_primitive_generator/lattice_primitive_generator/output.json',
         help='The output file containing the ' 'trajectory data',
     )
     parser.add_argument(
         '--visualizations',
         type=Path,
-        default='./visualizations',
+        default='/home/nova/nova/src/ros/rover/lattice_primitive_generator/lattice_primitive_generator/visualizations',
         help='The output folder where the '
         'visualizations of the trajectories will be saved',
     )
@@ -124,7 +125,7 @@ def create_header(config: dict, minimal_set_trajectories: dict) -> dict:
 
     """
     header_dict = {
-        'version': constants.VERSION,
+        'version': lattice_primitive_generator.constants.VERSION,
         'date_generated': datetime.today().strftime('%Y-%m-%d'),
         'lattice_metadata': {},
         'primitives': [],
