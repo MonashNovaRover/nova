@@ -1,10 +1,10 @@
-import {FC, useCallback, useEffect, useRef, useState} from "react";
-import {Button, Card, CardBody, CardHeader, Input, Textarea} from "@nextui-org/react";
+import React, {FC, useCallback, useEffect, useMemo, useState} from "react";
+import {Button, Card, CardBody, CardHeader} from "@nextui-org/react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
 import {IRosNovaInterfacesSendCanMessageRequest} from "../../../ros/rosTypes.ts";
-import ContentEditable from "../../shared/ContentEditable/ContentEditable.tsx";
+import ContentEditable, {ContentEditableEvent} from "../../shared/ContentEditable/ContentEditable.tsx";
 import Overlay from "../../shared/Overlay/Overlay.tsx";
 import useContextEditable from "../../shared/ContentEditable/useContentEditable.ts";
 
@@ -15,14 +15,14 @@ const CanSendWidget: FC = () => {
   const [data, setDataRaw] = useState<string>("");
   const [delimiter, setDelimiter] = useState<string>("");
 
+  const contentEditable = useContextEditable();
+
   const setData = (value: string) => {
     const filteredValue = value.toUpperCase().replace(/[^A-F0-9]/g, "");
     setDataRaw(filteredValue.length > 16 ? filteredValue.slice(0, 16) : filteredValue);
   }
 
-
   const setFrame = (value: string) => {
-
     const sectionsRaw = value.split(/(?=#)/, 2).filter(x => x !== undefined);
     const sections = [...sectionsRaw, ...([...Array(2 - sectionsRaw.length)].map(() => ''))];
 
@@ -38,7 +38,9 @@ const CanSendWidget: FC = () => {
     setData(frameData);
   }
 
-  const splitData = data.match(/.{1,2}/g)?.map(match => match.toString()) ?? [];
+  const splitData = useMemo(() => (
+    data.match(/.{1,2}/g)?.map(match => match.toString()) ?? []
+  ), [data]);
 
   useEffect(() => {
     bifrost.syncWithTopic();
@@ -48,11 +50,13 @@ const CanSendWidget: FC = () => {
     const msg = {
       bus: 0,
       id: Number(`0x${canId}`),
-      data: splitData.map(chunk => Number(`0x${chunk}`)),
+      data: splitData.map(chunk => Number(`0x${chunk}` + (chunk.length === 1 ? "0" : ""))),
     } as IRosNovaInterfacesSendCanMessageRequest;
 
+    console.log(msg)
+
     bifrost.callService(msg);
-  }, [bifrost, canId, data]);
+  }, [bifrost, canId, splitData]);
 
   const dataSpan = (
     <>
@@ -67,9 +71,32 @@ const CanSendWidget: FC = () => {
     </>
   );
 
+  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    setTimeout(() => {
+      if (event.key === "Enter") {
+        console.log("ENTER KEY")
+        contentEditable.setCursorOffset(Infinity, Infinity);
+        send();
+        setData("");
+      }
+    })
+  };
+
+  const onValueChange = (value: string, event: ContentEditableEvent) => {
+    if (value.includes('\n')) {
+      event.setCursorOffset(Infinity, Infinity);
+      setFrame(value);
+      send();
+      return;
+    }
+
+    setFrame(value);
+  };
+
   const inputField = (
     <Overlay
       className="font-mono bg-default-100 px-3 rounded-xl grow h-10"
+      onKeyDown={onKeyDown}
 
       overlay={
         <div className="flex flex-row items-center w-full px-3 pt-0.5 h-full text-mono text-small">
@@ -92,9 +119,9 @@ const CanSendWidget: FC = () => {
       <div className="flex flex-row items-center h-10 pt-0.5">
         <span className="text-default-400 me-[0.25ch] text-small font-mono">0x</span>
         <ContentEditable
+          context={contentEditable}
           className="text-mono text-small grow items-center block outline-none"
-          autocorrect="off" autocapitalize="off" spellcheck="false"
-          onValueChange={setFrame}
+          onValueChange={onValueChange}
         >
               <span className="mx-[0.25ch] w-[3.0ch] inline-flex justify-end">
                 {canId}

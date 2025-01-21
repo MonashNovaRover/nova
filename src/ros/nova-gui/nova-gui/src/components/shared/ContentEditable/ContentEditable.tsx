@@ -1,6 +1,6 @@
 import { useState, useEffect, FC, useCallback, HTMLProps, FormEvent, useMemo, useRef } from 'react';
 import { renderToString } from "react-dom/server";
-import useContextEditable from "./useContentEditable.ts";
+import useContextEditable, {ContentEditableContext} from "./useContentEditable.ts";
 
 export interface ContentEditableEvent {
   // Absolute offset of the cursor (read only)
@@ -13,9 +13,10 @@ export interface ContentEditableEvent {
 }
 
 export interface ContentEditableProps extends HTMLProps<HTMLDivElement> {
-  onValueChange?: (value: string, event: ContentEditableEvent) => void;
-  // Removes the span that wraps children, giving a worse typing experience.
-  removeSpanWrapper?: boolean;
+  onValueChange?: (value: string, event: ContentEditableEvent) => void
+  // Removes the span that wraps children, giving a worse typing experience
+  removeSpanWrapper?: boolean
+  context?: ContentEditableContext
 }
 
 /**
@@ -32,7 +33,9 @@ export interface ContentEditableProps extends HTMLProps<HTMLDivElement> {
 const ContentEditable: FC<ContentEditableProps> = (props) => {
   const divRef = useRef<HTMLDivElement>(null);
 
-  const context = useContextEditable();
+  const defaultContext = useContextEditable();
+  const context = props.context ?? defaultContext;
+
 
   // Increasing number to trigger re-renders
   const [valueId, setValueId] = useState<number>(0);
@@ -162,6 +165,15 @@ const ContentEditable: FC<ContentEditableProps> = (props) => {
     selection.removeAllRanges();
     selection.addRange(range);
   }, [context, getGrandchildren]);
+
+  // Set content methods
+  useEffect(() => {
+    context.setCursorOffset = (start: number, end: number) => {
+      context.startOffset = start;
+      context.endOffset = end;
+      applySelection();
+    }
+  }, [applySelection, context]);
 
   // Called whenever the user modifies the div
   const handleInput = useCallback((event: FormEvent<HTMLDivElement>) => {

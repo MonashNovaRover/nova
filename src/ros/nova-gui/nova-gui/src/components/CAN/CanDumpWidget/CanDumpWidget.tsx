@@ -34,6 +34,9 @@ const CanDumpWidget: FC = () => {
       msg.data.map(x => x.toString(16)).join()
     }\n`)).join()
   )
+
+
+
   return (
     <Card>
       <CardHeader className="pb-0">CAN Dump</CardHeader>
