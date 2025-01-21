@@ -12,7 +12,7 @@ import {XYNames} from "../SpaceResourcesSiteType.tsx";
 export interface NIRProbeCalcTableProps extends CardProps {
 }
 
-const NIRProbeCalcTable: React.FC<NIRProbeCalcTableProps> = ({...cardProps}) => {
+const NIRProbeCalcTable: React.FC<NIRProbeCalcTableProps> = () => {
 
   const [readings, _] = useNIRSiteData()
 

@@ -34,6 +34,7 @@ const NIRCalibrationSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = 
 
   const renderCoefficients = () => {
     return calibrationData.coefficients.map((c, i) => <Input
+      key={`coefficient-${i}`}
       type="number"
       step="0.1"
       label={"Coefficient " + `${i+1}`}

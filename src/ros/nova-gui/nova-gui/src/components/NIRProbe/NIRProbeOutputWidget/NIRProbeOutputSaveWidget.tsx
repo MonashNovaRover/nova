@@ -46,12 +46,12 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
 
   const onSave = useCallback(() => {
     setReadings([
-      ...readings,
       {
         x: x,
         y: y,
         label: sampleLabel,
-      } as ISpaceResourcesEntry
+      } as ISpaceResourcesEntry,
+      ...readings
     ])
   }, [readings, setReadings, x, y, sampleLabel]);
 
