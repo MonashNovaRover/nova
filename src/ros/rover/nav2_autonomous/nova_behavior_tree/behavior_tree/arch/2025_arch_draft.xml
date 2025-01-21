@@ -22,10 +22,12 @@
     <Sequence>
       <ReactiveFallback>
         <GoalsEmpty goals=""/>
-        <Sequence name="NavigateToPlacardAndImage">
-          <SubTree ID="NavigateAndFindCubes"/>
-          <SubTree ID="TakePhotos"/>
-        </Sequence>
+        <KeepRunningUntilFailure>
+          <Sequence name="NavigateToPlacardAndImage">
+            <SubTree ID="NavigateAndFindCubes"/>
+            <SubTree ID="TakePhotos"/>
+          </Sequence>
+        </KeepRunningUntilFailure>
       </ReactiveFallback>
       <SubTree ID="SearchForCubes"
                _autoremap="false"/>
