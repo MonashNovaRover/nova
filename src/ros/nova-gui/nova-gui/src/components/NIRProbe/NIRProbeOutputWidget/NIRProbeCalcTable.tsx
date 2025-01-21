@@ -28,13 +28,13 @@ const NIRProbeCalcTable: React.FC<NIRProbeCalcTableProps> = () => {
   const tableRows = (
       <TableRow key="average">
         <TableCell key={1}>
-          {averageX}
+          {averageX.toFixed(4)}
         </TableCell>
         <TableCell key={2}>
-          {averageY}
+          {averageY.toFixed(4)}
         </TableCell>
         <TableCell key={3}>
-          {averageY && averageX ? calibrationFunc(averageX, averageY) : "None"}
+          {averageY && averageX ? calibrationFunc(averageX, averageY).toFixed(4) : "None"}
         </TableCell>
         <TableCell key={0}>{""}</TableCell>
       </TableRow>

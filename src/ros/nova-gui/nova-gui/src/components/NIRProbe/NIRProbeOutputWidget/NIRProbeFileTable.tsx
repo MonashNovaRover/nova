@@ -12,6 +12,7 @@ import {ISpaceResourcesEntry, XYNames} from "../SpaceResourcesSiteType.tsx";
 import {Minimize2, Trash2, X} from "react-feather";
 import {ToolTipButton} from "../../shared/TooltipButton.tsx";
 import {toInteger} from "lodash";
+import {useCalibrationFunction} from "../NIRProbeCalibration/NIRCalibration.ts";
 
 const toInt = (val: string | number | undefined) => {
   if (val === undefined)
@@ -36,7 +37,7 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({
   const [showMerge, setShowMerge] = useState<boolean>(false);
 
   // calibration function
-  // const calibrationFunc = useCalibrationFunction()
+  const calibrationFunc = useCalibrationFunction()
 
   const deleteEntry = useCallback((index: number) => {
     setReadings(readings.filter((_, i) => i !== index))
@@ -121,6 +122,8 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({
 
   const entryRows = readings.map(({x, y, fxy, label}, index) => {
     const extras = showAdvanced ? [<TableCell key="label">{label}</TableCell>] : [];
+    if (!fxy && x && y)
+      setReadings(readings.map((v, i) => i === index ? {...v, fxy: calibrationFunc(v.x, v.y)} : v));
 
     const cells = [
       <TableCell key={"x-"+index}>{x ? x : "-"}</TableCell>,
