@@ -1,11 +1,11 @@
 # The number suffix of the bus
-uint8 bus
+uint16 bus
 
 # Real CAN IDs only have 11 bits, but this is the smallest type that accommodates 11 bits
 uint16 id
 
 # This could be extended to <=64 if we move to can FD
-byte[<=8] data
+byte[] data
 
 ---
 

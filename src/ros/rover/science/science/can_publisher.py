@@ -46,12 +46,9 @@ class CANPublisher(Node):
         self.send_service = self.create_service(SendCANMessage, '/science/can_send', self.send_service_callback)
 
         self.bus = jcan.Bus()
-        all_ids = [x for x in range(2**2)]
+        # self.bus.set_id_filter_mask(0x0, 0x000)
 
-        for cid in all_ids:
-            self.get_logger().info(f"CAN Subscriber to 0")
-            self.bus.set_id_filter_mask(cid, 0xFFF)
-            self.bus.add_callback(cid, self.read_data_callback)
+        self.bus.add_callback(0x0, self.read_data_callback)
 
         # The number suffix for the can bus (can0 -> 0, vcan0 -> 0, can1 -> 1, etc).
         self.can_bus_number = int(self.get_parameter(self.CAN_BUS_PARAM).value[-1])
@@ -79,11 +76,12 @@ class CANPublisher(Node):
         """
         Callback to turn the NIR probe LED on or off
         """
+        self.get_logger().info(f"{request.bus} {request.id} {request.data}")
         if request.bus != self.can_bus_number:
             self.get_logger().debug(f"{request.bus} != {self.can_bus_number}")
             return
 
-        frame = jcan.Frame(request.id, request.data)
+        frame = jcan.Frame(request.id, [int.from_bytes(x) for x in request.data])
 
         try:
             self.get_logger().debug(f"Sending {hex(request.id)}#{''.join([hex(x) for x in frame.data])}")
