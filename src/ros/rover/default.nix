@@ -30,6 +30,7 @@
     nova-bt-navigators = callPackage ./nix/packages/nova-bt-navigators { };
     nova-auto-interfaces = callPackage ./nix/packages/nova-auto-interfaces { };
     nova-utils = callPackage ./nix/packages/nova-utils { };
+    lattice-primitive-generator = callPackage ./nix/packages/lattice-primitive-generator { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 
