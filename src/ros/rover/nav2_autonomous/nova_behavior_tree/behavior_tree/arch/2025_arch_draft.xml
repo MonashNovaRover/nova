@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="ComputeRecovery">
+    <Sequence>
+      <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
+      <ClearEntireCostmap name="ClearGlobalCostmap-Context"
+                          service_name="global_costmap/clear_entirely_global_costmap"
+                          server_timeout=""/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="FollowRecovery">
+    <Sequence>
+      <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
+      <ClearEntireCostmap name="ClearLocalCostmap-Context"
+                          service_name="local_costmap/clear_entirely_local_costmap"
+                          server_timeout=""/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="MainTree">
+    <Sequence>
+      <ReactiveFallback>
+        <GoalsEmpty goals=""/>
+        <Sequence name="NavigateToPlacardAndImage">
+          <SubTree ID="NavigateAndFindCubes"/>
+          <SubTree ID="TakePhotos"/>
+        </Sequence>
+      </ReactiveFallback>
+      <SubTree ID="SearchForCubes"
+               _autoremap="false"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="NavRecovery">
+    <Sequence>
+      <Fallback>
+        <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
+        <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
+      </Fallback>
+      <ReactiveFallback name="RecoveryFallback">
+        <GoalUpdated goal=""
+                     goals=""/>
+        <RoundRobin name="RecoveryActions">
+          <Sequence name="ClearingActions">
+            <ClearEntireCostmap name="ClearLocalCostmap-Subtree"
+                                service_name="local_costmap/clear_entirely_local_costmap"
+                                server_timeout=""/>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Subtree"
+                                service_name="global_costmap/clear_entirely_global_costmap"
+                                server_timeout=""/>
+          </Sequence>
+          <Spin spin_dist="1.57"
+                time_allowance=""
+                server_name=""
+                server_timeout=""
+                error_code_id="{spin_error_code}"/>
+          <Wait wait_duration="5.0"
+                server_name=""
+                server_timeout=""/>
+          <BackUp backup_dist="0.30"
+                  backup_speed="0.15"
+                  time_allowance=""
+                  server_name=""
+                  server_timeout=""
+                  error_code_id="{backup_error_code}"/>
+        </RoundRobin>
+      </ReactiveFallback>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="NavigateAndFindCubes">
+    <Sequence>
+      <CubeDetected found_count="{cube_count}"
+                    location="{cube_locations}"/>
+      <UpdateCurrentGoal input_goals="{goals}"
+                         next_goal="{current_goal}"/>
+      <ReactiveFallback>
+        <GoalReached goal="{current_goal}"
+                     global_frame=""
+                     robot_base_frame=""/>
+        <RecoveryNode name="NavigateRecovery"
+                      number_of_retries="6">
+          <PipelineSequence name="NavigateWithReplanning">
+            <RateController hz="0.333">
+              <RecoveryNode name="ComputePathThroughPoses"
+                            number_of_retries="1">
+                <ComputePathThroughPoses goals="{goals}"
+                                         start=""
+                                         server_name=""
+                                         server_timeout=""
+                                         planner_id="{selected_planner}"
+                                         path="{path}"
+                                         error_code_id="{compute_path_error_code}"/>
+                <SubTree ID="ComputeRecovery"
+                         _autoremap="false"/>
+              </RecoveryNode>
+            </RateController>
+            <RecoveryNode name="FollowPath"
+                          number_of_retries="1">
+              <FollowPath controller_id="{selected_controller}"
+                          path="{path}"
+                          goal_checker_id=""
+                          progress_checker_id=""
+                          service_name=""
+                          server_timeout=""
+                          error_code_id="{follow_path_error_code}"/>
+              <SubTree ID="FollowRecovery"/>
+            </RecoveryNode>
+          </PipelineSequence>
+          <SubTree ID="NavRecovery"/>
+        </RecoveryNode>
+      </ReactiveFallback>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="SearchForCubes">
+    <KeepRunningUntilFailure _skipIf="cube_count &gt;= 4">
+      <ReactiveFallback>
+        <RateController hz="4">
+          <CubeDetected found_count="{cube_count}"
+                        location="{cube_locations}"/>
+        </RateController>
+        <Wander/>
+      </ReactiveFallback>
+    </KeepRunningUntilFailure>
+  </BehaviorTree>
+
+  <BehaviorTree ID="TakePhotos">
+    <Sequence name="Wait and spin then final wait">
+      <Repeat num_cycles="5">
+        <Sequence name="Wait then spin">
+          <Wait wait_duration="1"
+                server_name=""
+                server_timeout=""/>
+          <SaveImage service_name="/image_capture/republish"
+                     server_timeout=""/>
+          <Spin spin_dist="1.046"
+                time_allowance=""
+                server_name=""
+                server_timeout=""
+                error_code_id=""/>
+        </Sequence>
+      </Repeat>
+      <Wait wait_duration="1"
+            server_name=""
+            server_timeout=""/>
+      <SaveImage service_name="/image_capture/republish"
+                 server_timeout=""/>
+      <RemovePassedGoals input_goals="{goals}"
+                         radius="1.5"
+                         global_frame=""
+                         robot_base_frame=""
+                         output_goals="{goals}"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="BackUp">
+      <input_port name="backup_dist">Distance to backup</input_port>
+      <input_port name="backup_speed">Speed at which to backup</input_port>
+      <input_port name="time_allowance">Allowed time for reversing</input_port>
+      <input_port name="server_name">Server name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <output_port name="error_code_id">"Back up error code"</output_port>
+    </Action>
+    <Action ID="ClearEntireCostmap">
+      <input_port name="service_name">Service name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+    </Action>
+    <Action ID="ComputePathThroughPoses">
+      <input_port name="goals">Destinations to plan through</input_port>
+      <input_port name="start">Start pose of the path if overriding current robot pose</input_port>
+      <input_port name="server_name">Server name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <input_port name="planner_id">Mapped name to the planner plugin type to use</input_port>
+      <output_port name="path">Path created by ComputePathToPose node</output_port>
+      <output_port name="error_code_id">"Compute path through poses error code"</output_port>
+    </Action>
+    <Condition ID="CubeDetected"
+               editable="true">
+      <inout_port name="found_count"/>
+      <output_port name="location"/>
+    </Condition>
+    <Action ID="FollowPath">
+      <input_port name="controller_id"
+                  default="FollowPath"/>
+      <input_port name="path">Path to follow</input_port>
+      <input_port name="goal_checker_id">Goal checker</input_port>
+      <input_port name="progress_checker_id">Progress checker</input_port>
+      <input_port name="service_name">Service name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <output_port name="error_code_id">Follow Path error code</output_port>
+    </Action>
+    <Condition ID="GoalReached">
+      <input_port name="goal">Destination</input_port>
+      <input_port name="global_frame">Reference frame</input_port>
+      <input_port name="robot_base_frame">Robot base frame</input_port>
+    </Condition>
+    <Condition ID="GoalUpdated">
+      <input_port name="goal">Vector of navigation goals</input_port>
+      <input_port name="goals">Navigation goal</input_port>
+    </Condition>
+    <Condition ID="GoalsEmpty">
+      <input_port name="goals">Waypoints</input_port>
+    </Condition>
+    <Control ID="PipelineSequence"/>
+    <Decorator ID="RateController">
+      <input_port name="hz">Rate</input_port>
+    </Decorator>
+    <Control ID="RecoveryNode">
+      <input_port name="number_of_retries">Number of retries</input_port>
+    </Control>
+    <Action ID="RemovePassedGoals">
+      <input_port name="input_goals">Input goals to remove if passed</input_port>
+      <input_port name="radius">Radius tolerance on a goal to consider it passed</input_port>
+      <input_port name="global_frame">Global frame</input_port>
+      <input_port name="robot_base_frame">Robot base frame</input_port>
+      <output_port name="output_goals">Set of goals after removing any passed</output_port>
+    </Action>
+    <Control ID="RoundRobin"/>
+    <Action ID="SaveImage">
+      <input_port name="service_name">Service name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+    </Action>
+    <Action ID="Spin">
+      <input_port name="spin_dist">Spin distance</input_port>
+      <input_port name="time_allowance">Allowed time for spinning</input_port>
+      <input_port name="server_name">Server name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <output_port name="error_code_id">Spin error code</output_port>
+    </Action>
+    <Action ID="UpdateCurrentGoal"
+            editable="true">
+      <input_port name="input_goals"/>
+      <output_port name="next_goal"/>
+    </Action>
+    <Action ID="Wait">
+      <input_port name="wait_duration">Wait time</input_port>
+      <input_port name="server_name">Server name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+    </Action>
+    <Action ID="Wander"
+            editable="true"/>
+    <Condition ID="WouldAControllerRecoveryHelp">
+      <input_port name="error_code">Error code</input_port>
+    </Condition>
+    <Condition ID="WouldAPlannerRecoveryHelp">
+      <input_port name="error_code">Error code</input_port>
+    </Condition>
+  </TreeNodesModel>
+
+</root>
