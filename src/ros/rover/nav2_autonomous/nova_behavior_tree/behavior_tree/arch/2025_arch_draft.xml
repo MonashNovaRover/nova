@@ -117,10 +117,8 @@
   <BehaviorTree ID="SearchForCubes">
     <KeepRunningUntilFailure _skipIf="cube_count &gt;= 4">
       <ReactiveFallback>
-        <RateController hz="4">
-          <CubeDetected found_count="{cube_count}"
-                        location="{cube_locations}"/>
-        </RateController>
+        <CubeDetected found_count="{cube_count}"
+                      location="{cube_locations}"/>
         <Wander/>
       </ReactiveFallback>
     </KeepRunningUntilFailure>
