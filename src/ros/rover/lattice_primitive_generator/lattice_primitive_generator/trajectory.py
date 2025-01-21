@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright (c) 2021, Matthew Booker
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +15,7 @@
 
 from dataclasses import dataclass
 
-from helper import angle_difference, normalize_angle
+from lattice_primitive_generator.helper import angle_difference, normalize_angle
 
 import numpy as np
 

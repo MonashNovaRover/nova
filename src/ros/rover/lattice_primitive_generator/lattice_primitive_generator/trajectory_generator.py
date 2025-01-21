@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright (c) 2021, Matthew Booker
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +18,7 @@ from typing import Tuple, Union
 
 import numpy as np
 
-from trajectory import Path, Trajectory, TrajectoryParameters
+from lattice_primitive_generator.trajectory import Path, Trajectory, TrajectoryParameters
 
 logger = logging.getLogger(__name__)
 
