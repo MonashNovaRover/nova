@@ -109,6 +109,9 @@ in
             # Rover troubleshooting aliases
             zero-pivots = "${pkgs.bash}/bin/bash ${../../../scripts/zero-pivots.sh}";
             list-blcmds = "more ${cfg.nixfileDir}/doc/blcmd-ids.md";
+
+            # Temporary aliases (remove when a better solution has been implemented)
+            cameras-legacy = '~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:="$HOME/nova/src/ros/cameras2/cameras2/params" autostart:=true payload:=arm'
           }
         ];
 
