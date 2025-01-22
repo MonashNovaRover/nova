@@ -73,8 +73,10 @@
 
   <BehaviorTree ID="NavigateAndFindCubes">
     <Sequence>
-      <CubeDetected found_count="{cube_count}"
-                    location="{cube_locations}"/>
+      <ForceSuccess>
+        <CubeDetected found_count="{cube_count}"
+                      location="{cube_locations}"/>
+      </ForceSuccess>
       <UpdateCurrentGoal input_goals="{goals}"
                          next_goal="{current_goal}"/>
       <ReactiveFallback>
