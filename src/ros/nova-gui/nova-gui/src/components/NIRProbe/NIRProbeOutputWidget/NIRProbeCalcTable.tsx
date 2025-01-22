@@ -4,7 +4,7 @@ import {
   TableColumn,
   TableHeader, TableRow
 } from "@nextui-org/react";
-import React from "react";
+import React, {useMemo} from "react";
 import {useCalibrationFunction} from "../NIRProbeCalibration/NIRCalibration.ts";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
 import {XYNames} from "../SpaceResourcesSiteType.tsx";
@@ -19,11 +19,17 @@ const NIRProbeCalcTable: React.FC<NIRProbeCalcTableProps> = () => {
   // calibration function
   const calibrationFunc = useCalibrationFunction()
 
-  const xList = readings.map(entry => entry.x).filter(x => x)
-  const averageX = xList.reduce((a,b) => a+b, 0) / Math.max(xList.length,1);
+  const xList = useMemo(() => readings.map(entry => entry.x).filter(x => x), [readings])
+  const averageX = useMemo(() =>
+    xList.reduce((a,b) => a+b, 0) / Math.max(xList.length,1),
+    [xList]
+  )
 
-  const yList = readings.map(entry => entry.y).filter(y => y)
-  const averageY = yList.reduce((a,b) => a+b, 0) / Math.max(yList.length,1);
+  const yList = useMemo(() => readings.map(entry => entry.y).filter(y => y), [readings])
+  const averageY = useMemo(() =>
+    yList.reduce((a,b) => a+b, 0) / Math.max(yList.length,1),
+    [yList]
+  )
 
   const tableRows = (
       <TableRow key="average">

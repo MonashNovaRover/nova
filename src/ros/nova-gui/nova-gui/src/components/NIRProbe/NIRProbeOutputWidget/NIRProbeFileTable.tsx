@@ -44,8 +44,6 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({
   }, [readings, setReadings]);
 
   const handleMergeClick = useCallback(() => {
-    console.log("handling click")
-
     if (selectedKeys.size != 2) {
       console.error("Trying to merge NIR Probe readings but two rows have not been selected")
       return
@@ -81,9 +79,8 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({
       : v
       ).filter((_, i) => i !== second)
     )
-    setShowMerge(false);
     setSelectedKeys(new Set([]))
-  }, [setShowMerge, setSelectedKeys, readings, setReadings, selectedKeys])
+  }, [selectedKeys, setSelectedKeys, readings, setReadings])
 
 
   const disabledKeys = () => {
@@ -106,7 +103,7 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({
     if (key === undefined)
       return false
 
-    return ((readings[key].x && readings[index].x) || (readings[key].y && readings[index].y)) as boolean
+    return !!((readings[key].x && readings[index].x) || (readings[key].y && readings[index].y))
  }
 
   const tableHeader = useCallback(() => {
