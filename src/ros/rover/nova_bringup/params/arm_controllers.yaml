@@ -1,0 +1,50 @@
+# Distrust the contents of this file. These are placeholders.
+# TODO: Figure out what controllers need to exist, and how we map them to the joints.
+
+controller_manager:
+  ros__parameters:
+    update_rate: 60
+    use_sim_time: false
+
+    arm_pivot_velocity_controller:
+      type: velocity_controllers/JointGroupVelocityController
+
+    arm_pivot_position_controller:
+      type: position_controllers/JointGroupPositionController
+
+    arm_pivot_joint_trajectory_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+arm_pivot_velocity_controller:
+  ros__parameters:
+    joints:
+      - J1_gbp_chassis
+      - J2_l1a_bp
+      - J3_l2b_bp
+      - l1b_bp
+      - l1b_tp
+      - l1a_tp
+      - wrist_pitch
+      - wrist_yaw
+      - wrist_roll
+      - rf_slide
+      - lf_slide
+      - actuator_head
+
+arm_pivot_position_controller:
+  ros__parameters:
+    joints:
+      - J1_gbp_chassis
+      - J2_l1a_bp
+      - J3_l2b_bp
+      - l1b_bp
+      - l1b_tp
+      - l1a_tp
+      - wrist_pitch
+      - wrist_yaw
+      - wrist_roll
+      - rf_slide
+      - lf_slide
+      - actuator_head
+
+
