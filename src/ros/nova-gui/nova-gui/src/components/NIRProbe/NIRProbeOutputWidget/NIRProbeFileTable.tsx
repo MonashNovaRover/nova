@@ -131,8 +131,8 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({
       <TableCell key={"fxy-"+index}>{fxy ? fxy.toFixed(4) : "-"}</TableCell>,
       ...extras,
       <TableCell key="action">
-        <Button onPress={() => deleteEntry(readings.length - index - 1)}
-                size="sm" color="danger" variant="light" className="">
+        <Button onPress={() => deleteEntry(index)}
+                size="sm" color="danger" variant="light" className="w-full">
           <Trash2/>
         </Button>
       </TableCell>,
