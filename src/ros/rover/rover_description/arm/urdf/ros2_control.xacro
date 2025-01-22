@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:macro name="newarm_ros2_control" params="use_mock_hardware">
+
+
+
+
+    </xacro:macro>
+</robot>
