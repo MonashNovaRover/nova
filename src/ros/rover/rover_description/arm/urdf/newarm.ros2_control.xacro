@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Test trying to make a ros2_control URDF for the new arm -->
+  <!-- Initial definition based on https://github.com/xArm-Developer/xarm_ros2/blob/master/xarm_description/urdf/xarm6/xarm6.ros2_control.xacro -->
+
+  <xacro:macro name="newarm_ros2_control" params="use_mock_hardware">
+
+    <ros2_control name="arm" type="system">
+      <hardware>
+        <!-- TODO: Figure out and add the Hardware interface -->
+        <plugin>${ros2_control_plugin}</plugin>
+      </hardware>
+    </ros2_control>
+
+
+  </xacro:macro>
+</robot>
