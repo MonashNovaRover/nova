@@ -1,0 +1,644 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot name="arm"  xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- Loading args -->
+    <xacro:arg name="gazebo" default="true"/>
+    <xacro:arg name="robot_name" default="arm"/>
+    <xacro:arg name="arm" default="false"/>
+
+    <!-- Generated URDF -->
+    <link name="gearbox">
+        <visual>
+            <origin xyz="0 2.4651903288156618919e-32 0" rpy="3.141592653589793116 -0 -8.5706935653614731626e-49" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/gearbox.stl"/>
+            </geometry>
+            <material name="gearbox_material">
+                <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 2.4651903288156618919e-32 -0.035000000000000003331" rpy="3.141592653589793116 -0 -8.5706935653614731626e-49" />
+            <geometry>
+                <cylinder length="0.010000000000000000208" radius="0.074999999999999997224" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="0 2.4651903288156618919e-32 -0.048000000000000000999" rpy="3.141592653589793116 -0 -8.5706935653614731626e-49" />
+            <geometry>
+                <cylinder length="0.035000000000000003331" radius="0.043999999999999997446" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="0.05999999999999999778 2.4651903288156618919e-32 -0.05999999999999999778" rpy="3.141592653589793116 -0 -1.570796326794896558" />
+            <geometry>
+                <box size="0.14999999999999999445 0.010000000000000000208 0.040000000000000000833" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="0.05999999999999999778 -0.055000000000000000278 -0.13500000000000000888" rpy="3.141592653589793116 -0 -1.570796326794896558" />
+            <geometry>
+                <box size="0.040000000000000000833 0.010000000000000000208 0.16000000000000000333" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="0.05999999999999999778 0.055000000000000000278 -0.13500000000000000888" rpy="3.141592653589793116 -0 -1.570796326794896558" />
+            <geometry>
+                <box size="0.040000000000000000833 0.010000000000000000208 0.16000000000000000333" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="-0.05999999999999999778 2.4651903288156618919e-32 -0.05999999999999999778" rpy="3.141592653589793116 -0 -1.570796326794896558" />
+            <geometry>
+                <box size="0.14999999999999999445 0.010000000000000000208 0.040000000000000000833" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="-0.05999999999999999778 -0.055000000000000000278 -0.13500000000000000888" rpy="3.141592653589793116 -0 -1.570796326794896558" />
+            <geometry>
+                <box size="0.040000000000000000833 0.010000000000000000208 0.16000000000000000333" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="-0.05999999999999999778 0.055000000000000000278 -0.13500000000000000888" rpy="3.141592653589793116 -0 -1.570796326794896558" />
+            <geometry>
+                <box size="0.040000000000000000833 0.010000000000000000208 0.16000000000000000333" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="0 2.4651903288156618919e-32 -0.16500000000000000777" rpy="-1.570796326794896558 -0 -8.5706935653614731626e-49" />
+            <geometry>
+                <cylinder length="0.16000000000000000333" radius="0.025000000000000001388" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="8.2522951990120668626e-49 0.09500000000000000111 -0.16500000000000000777" rpy="-1.570796326794896558 -0 -8.5706935653614731626e-49" />
+            <geometry>
+                <cylinder length="0.040000000000000000833" radius="0.074999999999999997224" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="1.0684550626089307014e-48 0.12299999999999999822 -0.16500000000000000777" rpy="-1.570796326794896558 -0 -8.5706935653614731626e-49" />
+            <geometry>
+                <cylinder length="0.035000000000000003331" radius="0.043999999999999997446" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="-8.2522951990120668626e-49 -0.09500000000000000111 -0.16500000000000000777" rpy="1.570796326794896558 -0 -8.5706935653614731626e-49" />
+            <geometry>
+                <cylinder length="0.040000000000000000833" radius="0.074999999999999997224" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="-1.0684550626089307014e-48 -0.12299999999999999822 -0.16500000000000000777" rpy="1.570796326794896558 -0 -8.5706935653614731626e-49" />
+            <geometry>
+                <cylinder length="0.035000000000000003331" radius="0.043999999999999997446" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="2.558521196269415307e-06 -2.5804048544815182493e-06 -0.11873329240962517128" rpy="0 0 0"/>
+            <mass value="7.8835913444856782206" />
+            <inertia ixx="0.092107948674126569055" ixy="2.7189957247125400849e-06" ixz="-2.3903157004658651547e-06" iyy="0.050452829745700415731" iyz="9.7642586194091336146e-06" izz="0.065017320943512479925" />
+        </inertial>
+    </link>
+
+    <link name="l1_alpha">
+        <visual>
+            <origin xyz="0 0 -0.036699999999999961819" rpy="1.570796326794896558 1.5707963267948938935 0" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/l1_alpha.stl"/>
+            </geometry>
+            <material name="l1_alpha_material">
+                <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="4.3478165439869462079e-18 -3.0830227432059023959e-17 -0.025699999999999955519" rpy="-3.1415926535897926719 -2.802747948369002084e-15 1.570796326794896558" />
+            <geometry>
+                <cylinder length="0.021999999999999998723" radius="0.032000000000000000666" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="4.3478165439860941765e-18 -0.27000000000000007327 -0.025700000000000711858" rpy="1.570796326794896558 1.5707963267948938935 0" />
+            <geometry>
+                <box size="0.025000000000000001388 0.037999999999999999056 0.47999999999999998224" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="2.4901131115561601639e-17 -1.7657312074724714451e-16 0.026300000000000045564" rpy="-3.1415926535897926719 -2.802747948369002084e-15 1.570796326794896558" />
+            <geometry>
+                <cylinder length="0.021999999999999998723" radius="0.032000000000000000666" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="2.4901131115560751149e-17 -0.2700000000000001843 0.026299999999999282285" rpy="1.570796326794896558 1.5707963267948938935 0" />
+            <geometry>
+                <box size="0.025000000000000001388 0.037999999999999999056 0.47999999999999998224" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-6.5605808530515644914e-16 -0.23328621342780628267 -6.2450045135165055399e-17" rpy="0 0 0"/>
+            <mass value="0.94332586983199562258" />
+            <inertia ixx="0.033448744649335601653" ixy="-2.9524164513920976063e-32" ixz="-2.0062381951294159102e-19" iyy="0.00087421429984669717008" iyz="-8.9875581047345195556e-17" izz="0.032941165271890511523" />
+        </inertial>
+    </link>
+
+    <link name="l2_alpha_long">
+        <visual>
+            <origin xyz="1.1102230246251565404e-16 0 1.2143064331837649661e-17" rpy="-3.141592653589793116 -2.2632479597972562571e-15 1.4791141972893424845e-30" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/l2_alpha_long.stl"/>
+            </geometry>
+            <material name="l2_alpha_long_material">
+                <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
+            </material>
+        </visual>
+        <!-- Shapes for l2_alpha_long -->
+        <collision>
+            <origin xyz="1.1102230246251565404e-16 0.014999999999999999445 1.2332512979113024229e-17" rpy="-3.141592653589793116 -2.2632479597972562571e-15 1.4791141972893424845e-30" />
+            <geometry>
+                <box size="0.035000000000000003331 0.05999999999999999778 0.021799999999999999933" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="1.110223024625157773e-16 0.25 1.5300541786427231954e-17" rpy="-3.141592653589793116 -2.2632479597972562571e-15 1.4791141972893424845e-30" />
+            <geometry>
+                <box size="0.037999999999999999056 0.46999999999999997335 0.025000000000000001388" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="1.1102230246251590056e-16 0.5 1.8458019241016814247e-17" rpy="-3.141592653589793116 -2.2632479597972562571e-15 1.4791141972893424845e-30" />
+            <geometry>
+                <box size="0.05999999999999999778 0.02999999999999999889 0.048000000000000000999" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="1.274308501710460247e-16 0.54849999999999998757 -0.0072499999999999812858" rpy="-3.141592653589793116 -2.2632479597972562571e-15 1.4791141972893424845e-30" />
+            <geometry>
+                <cylinder length="0.10000000000000000555" radius="0.043499999999999997002" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="2.6718641168852655864e-16 0.54849999999999998757 -0.068999999999999991895" rpy="-3.141592653589793116 -2.2632479597972562571e-15 1.4791141972893424845e-30" />
+            <geometry>
+                <cylinder length="0.0240000000000000005" radius="0.01200000000000000025" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-2.0101690449400311959e-16 0.14592092316588314849 -8.7916251313975982188e-17" rpy="0 0 0"/>
+            <mass value="0.41795070944222811882" />
+            <inertia ixx="0.010968252318546299964" ixy="1.6586140805282821319e-32" ixz="-7.6840734421473914162e-20" iyy="9.8064013102507565267e-05" iyz="-1.3771830278749218651e-19" izz="0.011002203850056069268" />
+        </inertial>
+    </link>
+
+    <joint name="l1a_tp" type="revolute">
+        <origin xyz="-1.3322676295501878485e-15 -0.50000000000000133227 -1.5026893879883321953e-18" rpy="1.1042302148529803472e-15 -7.3934705663056347212e-16 -1.5707963267948998887" />
+        <parent link="l1_alpha" />
+        <child link="l2_alpha_long" />
+        <axis xyz="0 0 1"/>
+        <limit effort="20" velocity="20" lower="-1.3788101090755202627" upper="3.141592653589793116"/>
+        <joint_properties friction="0.5" damping="0.5"/>
+    </joint>
+
+    <joint name="J2_l1a_bp" type="revolute">
+        <origin xyz="-1.6653345369377348106e-16 -2.3967136596913301438e-07 -0.16497726032863463397" rpy="1.5707963267948961139 6.0217020942552186975e-15 5.3207089380869679575e-16" />
+        <parent link="gearbox" />
+        <child link="l1_alpha" />
+        <axis xyz="0 0 1"/>
+        <limit effort="20" velocity="20" lower="-2.2689280275926284602" upper="2.2689280275926284602"/>
+        <joint_properties friction="0.5" damping="0.5"/>
+    </joint>
+
+    <link name="l2_beta">
+        <visual>
+            <origin xyz="0 5.5511151231257827021e-17 -3.4694469519536141888e-18" rpy="-3.141592653589793116 -5.71085303237718791e-16 -1.0324287375306363738e-31" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/l2_beta.stl"/>
+            </geometry>
+            <material name="l2_beta_material">
+                <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 5.5511151231257827021e-17 -3.4694469519536141888e-18" rpy="-3.141592653589793116 -5.7108530323771790353e-16 1.9975444575453675019e-30" />
+            <geometry>
+                <cylinder length="0.021999999999999998723" radius="0.032000000000000000666" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="-0.092999999999999999334 5.5511151231257642132e-17 -5.6580380153061379809e-17" rpy="-3.141592653589793116 -5.7108530323771790353e-16 1.9975444575453675019e-30" />
+            <geometry>
+                <box size="0.13400000000000000799 0.037999999999999999056 0.025000000000000001388" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-0.067222086625795207659 -2.2734157836893688816e-15 4.1346710175237741049e-16" rpy="0 0 0"/>
+            <mass value="0.28202404209848125349" />
+            <inertia ixx="7.0414185264169789355e-05" ixy="-4.8860468682764694418e-35" ixz="-4.5301784482906341954e-19" iyy="0.0008227401802816908076" iyz="-9.6972564277976928301e-21" izz="0.0008636719389845305293" />
+        </inertial>
+    </link>
+
+    <link name="l1_beta">
+        <visual>
+            <origin xyz="0 0 -2.7755575615628913511e-17" rpy="-1.5707963267949001107 3.3735685396344910483e-18 5.0536401740721068784e-31" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/l1_beta.stl"/>
+            </geometry>
+            <material name="l1_beta_material">
+                <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="-7.7592076411601941632e-20 0.24999999999999997224 -0.023000000000000880851" rpy="-1.5707963267949001107 3.3735685396347876415e-18 0" />
+            <geometry>
+                <box size="0.025000000000000001388 0.020000000000000000416 0.52000000000000001776" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="7.7592076411601941632e-20 0.25000000000000011102 0.022999999999999118372" rpy="-1.5707963267949001107 3.3735685396347876415e-18 0" />
+            <geometry>
+                <box size="0.025000000000000001388 0.020000000000000000416 0.52000000000000001776" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="2.798836614153263186e-16 0.24999999999999847344 -3.6337474806682215804e-17" rpy="1.5708 0 0"/>
+            <mass value="0.37975038798634441761" />
+            <inertia ixx="0.0087376642758323439658" ixy="-9.4160793574334216518e-33"  ixz="-2.3797630924453913318e-18" iyy="0.0086254087709059599348" iyz="-2.9737595635754853878e-17" izz="0.00016366413473864460919" />
+        </inertial>
+    </link>
+
+    <link name="l2_alpha_short">
+        <visual>
+            <origin xyz="0 0 1.040839379542004596e-17" rpy="3.141592653589793116 5.9743071005974240584e-16 -4.93038065763027281e-32" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/l2_alpha_short.stl"/>
+            </geometry>
+            <material name="l2_alpha_short_material">
+                <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
+            </material>
+        </visual>
+        <!-- Shapes for l2_alpha_short -->
+        <collision>
+            <origin xyz="-0.074999999999999997224 3.6977854932227044706e-33 5.52156970499007227e-17" rpy="3.141592653589793116 5.9743071005974240584e-16 -4.93038065763027281e-32" />
+            <geometry>
+                <box size="0.11999999999999999556 0.037999999999999999056 0.025000000000000001388" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="-0.01200000000000000025 5.9164567891563271188e-34 1.7577562316136954978e-17" rpy="3.141592653589793116 5.9743071005974240584e-16 -4.93038065763027281e-32" />
+            <geometry>
+                <box size="0.020000000000000000416 0.021999999999999998723 0.021799999999999999933" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="0 0 1.040839379542004596e-17" rpy="3.141592653589793116 5.9743071005974240584e-16 -4.93038065763027281e-32" />
+            <geometry>
+                <cylinder length="0.021799999999999999933" radius="0.010000000000000000208" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-0.043544020231667764087 -1.2809465666530898926e-16 -4.8153669152387651739e-17" rpy="0 0 0"/>
+            <mass value="0.15031228701511734069" />
+            <inertia ixx="2.9990353576770037848e-05" ixy="1.1785510520822123041e-35" ixz="1.1069940729575857458e-19" iyy="0.0002053495669084461192" iyz="2.424785936437313021e-22" izz="0.00021528281583517777848" />
+        </inertial>
+    </link>
+
+    <joint name="l1b_tp" type="revolute">
+        <origin xyz="-9.7144514654701197287e-17 0.50000000000000077716 -1.7928585235204219303e-16" rpy="-3.1415926535897926719 7.7419697890140603855e-17 3.141592653589793116" />
+        <parent link="l1_beta" />
+        <child link="l2_alpha_short" />
+        <axis xyz="0 0 1"/>
+        <limit effort="20" velocity="20" lower="-3.141592653589793116" upper="1.3962634015954635824"/>
+        <joint_properties friction="0.5" damping="0.5"/>
+    </joint>
+
+    <joint name="l1b_bp" type="revolute">
+        <origin xyz="-0.14999999999999968914 2.2204460492503130808e-16 1.4483511656307847607e-16" rpy="3.1415926535897926719 2.5448498731100300324e-15 -8.5834704353344191844e-15" />
+        <parent link="l2_beta" />
+        <child link="l1_beta" />
+        <axis xyz="0 0 1"/>
+        <limit effort="20" velocity="20" lower="-1.570796326794896558" upper="3.141592653589793116"/>
+        <joint_properties friction="0.5" damping="0.5"/>
+    </joint>
+
+    <joint name="J3_l2b_bp" type="revolute">
+        <origin xyz="2.7755575615628913511e-17 -2.3967136592029097706e-07 -0.1649772603286343009" rpy="1.570796326794896558 7.3420626327675113628e-16 -1.8112369360797040431e-15" />
+        <parent link="gearbox" />
+        <child link="l2_beta" />
+        <axis xyz="0 0 1"/>
+        <limit effort="20" velocity="20" lower="-0.69813170079773179122" upper="3.8397243543875250182"/>
+        <joint_properties friction="0.5" damping="0.5"/>
+    </joint>
+
+        <link name="wrist_base">
+        <visual>
+            <origin xyz="-0.8698274614268546312 -0.067179037801095395355 0.5051741548438247742" rpy="3.6531397435929253516e-16 1.3616764181204636941 2.539159475309284493e-30" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/wrist_base.stl"/>
+            </geometry>
+            <material name="wrist_base_material">
+                <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="-0.8698274614268546312 -0.067179037801095395355 0.5051741548438247742" rpy="3.6531397435929253516e-16 1.3616764181204636941 2.539159475309284493e-30" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/wrist_base.stl"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.00022142383999101958249 -0.0029216951159842974479 -0.064240355589534670067" rpy="0 0 0"/>
+            <mass value="1.2082462644559042175" />
+            <inertia ixx="0.0043513944585749919636" ixy="-1.2156132459723691896e-07" ixz="2.2627320885355476461e-05" iyy="0.0033607936718869951993" iyz="-0.0003053178521962343064" izz="0.0017777958572915036114" />
+        </inertial>
+    </link>
+
+    <link name="wrist_y">
+        <visual>
+            <origin xyz="3.6637359812630165834e-15 -0.019472222222249202517 -0.056404154590523086776" rpy="1.57079632679489678 -8.7768611008370995477e-16 -5.9164567891575885406e-31" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/wrist_y.stl"/>
+            </geometry>
+            <material name="wrist_y_material">
+                <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="3.6637359812630165834e-15 -0.019472222222249202517 -0.056404154590523086776" rpy="1.57079632679489678 -8.7768611008370995477e-16 -5.9164567891575885406e-31" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/wrist_y.stl"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-0.00018891439073690597999 -0.0031051262217681695199 -0.056472095043458014896" rpy="0 0 0"/>
+            <mass value="0.50335394890075380037" />
+            <inertia ixx="0.00033649678090681060891" ixy="1.0236561382054082051e-06" ixz="-2.8326670416610077628e-06" iyy="0.00057984402844556170217" iyz="-7.4786326924921533174e-07" izz="0.00031522264199886605458" />
+        </inertial>
+    </link>
+
+    <link name="wrist_z">
+        <visual>
+            <origin xyz="8.8416687166192886593e-16 -0.086000000000003851142 0.0075999999999962764008" rpy="1.5707963267948943376 7.503438127080070259e-09 -2.2461611352862218201e-30" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/wrist_z.stl"/>
+            </geometry>
+            <material name="wrist_z_material">
+                <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="8.8416687166192886593e-16 -0.086000000000003851142 0.0075999999999962764008" rpy="1.5707963267948943376 7.503438127080070259e-09 -2.2461611352862218201e-30" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/wrist_z.stl"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-8.6591673600461757112e-05 -0.05422662841967119951 0.0075826048742989793014" rpy="0 0 0"/>
+            <mass value="0.63441727994874086427" />
+            <inertia ixx="0.0011906186990863546187" ixy="-1.4982863741214071716e-06" ixz="1.0347484209167684391e-06" iyy="0.00081688665150028412585" iyz="-4.071613799946460942e-06" izz="0.00082405891158379837233" />
+        </inertial>
+    </link>
+
+    <link name="wrist_x">
+        <visual>
+            <origin xyz="4.3259666682171626917e-16 1.1102230246251565404e-16 0.0050000000000000044409" rpy="-4.2216384497550468781e-30 -1.342228260025201518e-17 3.141592653589793116" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/wrist_x.stl"/>
+            </geometry>
+            <material name="wrist_x_material">
+                <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="4.3259666682171626917e-16 1.1102230246251565404e-16 0.0050000000000000044409" rpy="-4.2216384497550468781e-30 -1.342228260025201518e-17 3.141592653589793116" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/wrist_x.stl"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="3.6896286142739082404e-09 0.00014152000142926432708 -0.0087737949989067035711" rpy="0 0 0"/>
+            <mass value="0.089619487694983790416" />
+            <inertia ixx="3.3344311196655885329e-05" ixy="1.1347059114350325291e-11" ixz="-5.7917924462758958631e-13" iyy="2.7454637031068149596e-05" iyz="2.6678736316725473389e-08" izz="5.1365095398502499924e-05" />
+        </inertial>
+    </link>
+
+    <link name="endeffector">
+        <visual>
+            <origin xyz="0.013169068536704964245 0.10471993463343576281 -0.017082461771415390073" rpy="1.570796326794896558 1.5707963267948961139 0" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/endeffector.stl"/>
+            </geometry>
+            <material name="endeffector_material">
+                <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.013169068536704964245 0.10471993463343576281 -0.017082461771415390073" rpy="1.570796326794896558 1.5707963267948961139 0" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/endeffector.stl"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.046425921955267304697 0.0545297563008692171 -0.049927852026562011267" rpy="0 0 0"/>
+            <mass value="0.87506226675421805439" />
+            <inertia ixx="0.0073187400224515690439" ixy="-0.001294567145964564377" ixz="-0.00016725535159065060636" iyy="0.0065538435018641988047" iyz="-0.00049799904754132000208" izz="0.0034636859773534405676" />
+        </inertial>
+    </link>
+
+    <link name="rightfinger">
+        <visual>
+            <origin xyz="-0.0038280201915051881301 -0.0662186492683292105 -0.062306000971862306181" rpy="-1.570796326794896558 -1.5707963267948961139 0" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/rightfinger.stl"/>
+            </geometry>
+            <material name="rightfinger_material">
+                <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="-0.0038280201915051881301 -0.0662186492683292105 -0.062306000971862306181" rpy="-1.570796326794896558 -1.5707963267948961139 0" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/rightfinger.stl"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="9.4168861722027007247e-06 -0.10779482125060108055 -0.0022829350450216459589" rpy="0 0 0"/>
+            <mass value="0.29980462795384704711" />
+            <inertia ixx="0.0011562665212638270022" ixy="3.3409839205300657825e-07" ixz="-2.2351786283388430174e-07" iyy="0.00022118329546272450393" iyz="0.00014053175319044133125" izz="0.0010337592644359418735" />
+        </inertial>
+    </link>
+
+    <joint name="rf_slide" type="prismatic">
+        <origin xyz="0.016997088728210041353 0.038501285365106330261 -0.086806011861509435601" rpy="3.1415926535897917837 2.0303880071270236139e-16 -2.6922974107278760987e-15" />
+        <parent link="endeffector" />
+        <child link="rightfinger" />
+        <axis xyz="0 0 1"/>
+        <limit effort="1" velocity="1" lower="-0.036999999999999998168" upper="0.050000000000000002776"/>
+        <joint_properties friction="0.0"/>
+    </joint>
+
+    <link name="leftfinger">
+        <visual>
+            <origin xyz="-0.0038280201915514844302 0.066218649268374729644 -0.051670924514692642693" rpy="1.570796326794896558 1.570796326794896336 0" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/leftfinger.stl"/>
+            </geometry>
+            <material name="leftfinger_material">
+                <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="-0.0038280201915514844302 0.066218649268374729644 -0.051670924514692642693" rpy="1.570796326794896558 1.570796326794896336 0" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/leftfinger.stl"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-3.9247710365430919246e-05 0.091116325080211696408 -0.013112018446182441278" rpy="0 0 0"/>
+            <mass value="0.25909722454588979268" />
+            <inertia ixx="0.00080276598949127904968" ixy="-2.1013472120517466236e-07" ixz="1.9150338494583977163e-07" iyy="7.8791455805628143449e-05" iyz="5.1139274068988138959e-05" izz="0.00081345557346948775459" />
+        </inertial>
+    </link>
+
+    <link name="actuator">
+        <visual>
+            <origin xyz="0.039170924514693186702 -0.0038230129788342503971 0.096281061460675054775" rpy="7.5616186785847547248e-05 -8.8571055390687568829e-16 -2.8639594395157376508e-31" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/actuator.stl"/>
+            </geometry>
+            <material name="actuator_material">
+                <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.039170924514693186702 -0.0038230129788342503971 0.096281061460675054775" rpy="7.5616186785847547248e-05 -8.8571055390687568829e-16 -2.8639594395157376508e-31" />
+            <geometry>
+                <mesh filename="file://$(find rover_description)/arm/newmeshes/actuator.stl"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-1.7829162451965530067e-09 2.7874518482862435838e-10 0.020804433981957873301" rpy="0 0 0"/>
+            <mass value="0.0049949255647874449965" />
+            <inertia ixx="1.9746367805634570348e-06" ixy="1.354893441064049574e-14" ixz="-3.0677562827649146694e-13" iyy="1.977584514312664286e-06" iyz="2.898608978946976878e-14" izz="7.3041747572561286302e-08" />
+        </inertial>
+    </link>
+
+    <joint name="actuator_head" type="prismatic">
+        <origin xyz="-1.2287630367202595494e-05 0.16249999953544680409 -0.012499999999999372724" rpy="1.5707207106081135795 1.5707963267948830133 0" />
+        <parent link="leftfinger" />
+        <child link="actuator" />
+        <axis xyz="0 0 1"/>
+        <limit effort="1" velocity="1" lower="-0.050000000000000002776" upper="0"/>
+        <joint_properties friction="0.0"/>
+    </joint>
+
+    <joint name="lf_slide" type="prismatic">
+        <origin xyz="0.016997088728210152375 0.038501285365106330261 0.057839261954157776546" rpy="8.5069187729094081759e-15 1.0192574742372495045e-14 2.6645355670169139211e-15" />
+        <parent link="endeffector" />
+        <child link="leftfinger" />
+        <axis xyz="0 0 1"/>
+        <limit effort="1" velocity="1" lower="-0.036999999999999998168" upper="0.050000000000000002776"/>
+        <joint_properties friction="0.0"/>
+    </joint>
+
+    <joint name="wrist_to_ee" type="fixed">
+        <origin xyz="-0.011500000127557708993 -0.016999999913710706068 -0.024999999999999911182" rpy="-1.5707963267948921171 -6.1390546218790660838e-07 1.5707963192914580208" />
+        <parent link="wrist_x" />
+        <child link="endeffector" />
+        <axis xyz="0 0 1"/>
+        <limit effort="1" velocity="1" />
+        <joint_properties friction="0.0"/>
+    </joint>
+
+    <joint name="wrist_roll" type="revolute">
+        <origin xyz="-0.00046582360769774496488 -0.086000000000003740119 0.00713417639229629863" rpy="-1.5707963267948990005 7.5034665064024681681e-09 1.0332187252429466388e-16" />
+        <parent link="wrist_z" />
+        <child link="wrist_x" />
+        <axis xyz="0 0 1"/>
+        <limit effort="1" velocity="1" lower="-3.141592653589793116" upper="3.141592653589793116"/>
+        <joint_properties friction="0.0"/>
+    </joint>
+
+    <joint name="wrist_yaw" type="revolute">
+        <origin xyz="-1.4432899320127035026e-15 -0.010372222222245208734 -0.056404154590515238887" rpy="-1.5707963267948328312 1.5707963267948086283 0" />
+        <parent link="wrist_y" />
+        <child link="wrist_z" />
+        <axis xyz="0 0 1"/>
+        <limit effort="1" velocity="1" lower="-3.141592653589793116" upper="3.141592653589793116"/>
+        <joint_properties friction="0.0"/>
+    </joint>
+
+    <joint name="wrist_pitch" type="revolute">
+        <origin xyz="4.4408920985006261617e-16 0.056950000000000632061 -0.19825000000000037037" rpy="-1.5707963267948878983 1.5707963267948819031 0" />
+        <parent link="wrist_base" />
+        <child link="wrist_y" />
+        <axis xyz="0 0 1"/>
+        <limit effort="1" velocity="1" lower="-6.283185307179586232" upper="6.283185307179586232"/>
+        <joint_properties friction="0.0"/>
+    </joint>
+
+    <joint name="l2_to_wrist" type="fixed">
+        <origin xyz="-5.5511151231257827021e-16 0.48499999999999943157 -2.608252672612406016e-17" rpy="1.57079632679489678 -2.2632479597972562571e-15 -7.2835139864340826345e-17" />
+        <parent link="l2_alpha_long" />
+        <child link="wrist_base" />
+        <axis xyz="0 0 1"/>
+        <limit effort="1" velocity="1" />
+        <joint_properties friction="0.0"/>
+    </joint>
+    <!-- End of Generated URDF -->
+
+    <!-- Close ckc -->
+    <xacro:include filename="newarm_ckc.xacro"/>
+
+    <!-- gazebo parameters-->
+    <gazebo>
+    </gazebo>
+    
+    <!--xacro:include filename="arm_odom.xacro"/ -->
+    <xacro:if value="$(arg gazebo)">
+        <xacro:include filename="$(find rover_description)/arm/urdf/newarm.ros2_control.xacro" />
+    </xacro:if>
+
+    <!-- Standalone arm definition -->
+    <xacro:unless value="$(arg arm)">
+        <link name="base_link"></link>
+        <joint name="base_link_to_chassis" type="fixed">
+            <parent link="base_link"/>
+            <child link="chassis" />
+            <origin rpy="0.0 0 0" xyz="0 0 0.07"/>
+        </joint>
+        <!-- Chassis for standalone arm -->
+        <link name="chassis">
+            <visual>
+                <origin xyz="0 0 0" rpy="0 -0 1.570796326794896558" />
+                <geometry>
+                    <mesh filename="file://$(find rover_description)/base/meshes/chassis.stl"/>
+                </geometry>
+                <material name="chassis_material">
+                    <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
+                </material>
+            </visual>
+            <collision>
+                <origin xyz="0 0 0" rpy="0 -0 1.570796326794896558" />
+                <geometry>
+                    <mesh filename="file://$(find rover_description)/base/meshes/chassis.stl"/>
+                </geometry>
+            </collision>
+            <inertial>
+                <origin xyz="-0.022980723180786852278 -0.00012909338240177009919 0.024515364506931154598" rpy="0 0 0"/>
+                <mass value="8.3419541100883822793" />
+                <inertia ixx="0.21737687093594909582" ixy="0.00013546851964914204689" ixz="-0.0088627259627339256831" iyy="0.45541406320296262678" iyz="-0.00021657327861208234047" izz="0.59726536058024171094" />
+            </inertial>
+        </link>
+
+        <joint name="J1_gbp_chassis" type="revolute">
+            <origin xyz="0.22899999999999565148 1.1102230246251564172e-16 0.11707476398169122667" rpy="-3.141592653589793116 -1.3309679851047901909e-16 0" />
+            <parent link="chassis" />
+            <child link="gearbox" />
+            <axis xyz="0 0 1"/>
+            <limit effort="1" velocity="1" lower="-3.141592653589793116" upper="3.141592653589793116"/>
+            <joint_properties damping="20.0" friction="0.1"/>
+        </joint>
+
+        <xacro:include filename="newarm_joints.xacro"/>
+    </xacro:unless>
+</robot>
