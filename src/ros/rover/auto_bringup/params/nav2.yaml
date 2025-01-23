@@ -1,32 +1,22 @@
 bt_navigator:
   ros__parameters:
-    enable_stamped_cmd_vel: True
-    use_sim_time: False
     global_frame: map
     robot_base_frame: base_link
-    odom_topic: /pivot_drive_controller/odom
+    odom_topic: /odometry/filtered
     bt_loop_duration: 10
     default_server_timeout: 20
     wait_for_service_timeout: 1000
     action_service_result_timeout: 900.0
     goal_reached_tol: 1.0
-    navigators: ["urc_navigator", "navigate_to_pose", "navigate_through_poses"]
+    default_nav_to_pose_bt_xml: $(find-pkg-share nova_behavior_tree)/behavior_tree/old/odometry_calibration.xml
+    navigators: ["navigate_to_pose", "navigate_through_poses"]
     navigate_to_pose:
       plugin: "nav2_bt_navigator::NavigateToPoseNavigator"
     navigate_through_poses:
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
-    urc_navigator:
-      plugin: "nova_bt_navigators::URCNavigator"
-    plugin_lib_names:
-      - nova_save_image_service_bt_node
-      - nova_first_goal_reached_condition_bt_node
-      - nova_goals_empty_condition_bt_node
-      - nova_compute_search_goals_condition_bt_node
-      - nova_query_position_condition_bt_node
-      - nova_check_detected_condition_bt_node
-      - nova_get_final_goal_condition_bt_node
-      - nova_get_first_goal_condition_bt_node
-      - nova_led_service_bt_node
+    error_code_names:
+          - compute_path_error_code
+          - follow_path_error_code
 
 bt_navigator_navigate_through_poses_rclcpp_node:
   ros__parameters:
@@ -40,84 +30,128 @@ controller_server:
   ros__parameters:
     use_sim_time: False
     controller_frequency: 20.0
-    min_x_velocity_threshold: 0.001
-    min_y_velocity_threshold: 0.5
+    min_x_velocity_threshold: 0.01
+    min_y_velocity_threshold: 0.0
     min_theta_velocity_threshold: 0.001
     forward_proune_distance: 0.5
     failure_tolerance: 0.3
     progress_checker_plugins: ["progress_checker"]
-    goal_checker_plugins: ["general_goal_checker"] # "precise_goal_checker"
+    goal_checker_plugins: ["goal_checker"]
     controller_plugins: ["FollowPath"]
     use_realtime_priority: False
     enable_stamped_cmd_vel: True
+    odom_topic: /odometry/filtered
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.5
+      required_movement_radius: 0.2
       movement_time_allowance: 10.0
-    general_goal_checker:
-      stateful: True
+    goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 1.00
-      yaw_goal_tolerance: 0.78
+      xy_goal_tolerance: 0.25
+      yaw_goal_tolerance: 0.25
+      stateful: False
     FollowPath:
-      plugin: "nav2_rotation_shim_controller::RotationShimController"
-      primary_controller: "dwb_core::DWBLocalPlanner"
-      angular_dist_threshold: 0.785
-      forward_sampling_distance: 0.5
-      rotate_to_heading_angular_vel: 0.05
-      max_angular_accel: 3.2
-      simulate_ahead_time: 1.0
-      # DWB parameters
-      debug_trajectory_details: False
-      min_vel_x: 0.0
-      min_vel_y: 0.0
-      max_vel_x: 0.05
-      max_vel_y: 0.0
-      max_vel_theta: 0.05
-      min_speed_xy: 0.0
-      max_speed_xy: 0.05
-      min_speed_theta: 0.0
-      # Add high threshold velocity for turtlebot 3 issue.
-      # https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/75
-      acc_lim_x: 0.05
-      acc_lim_y: 0.0
-      acc_lim_theta: 0.05
-      decel_lim_x: -0.05
-      decel_lim_y: 0.0
-      decel_lim_theta: -0.05
-      vx_samples: 20
-      vy_samples: 1
-      vtheta_samples: 30
-      sim_time: 1.7
-      linear_granularity: 0.05
-      angular_granularity: 0.025
-      transform_tolerance: 0.2
-      xy_goal_tolerance: 1.00
-      trans_stopped_velocity: 0.25
-      short_circuit_trajectory_evaluation: True
-      stateful: True
-      critics:
-        [
-          "RotateToGoal",
-          "Oscillation",
-          "GoalAlign",
-          "PathAlign",
-          "PathDist",
-          "GoalDist",
-        ]
-      BaseObstacle.scale: 0.02
-      ObstacleFootprint.scale: 0.02
-      PathAlign.scale: 32.0
-      PathAlign.forward_point_distance: 0.1
-      GoalAlign.scale: 24.0
-      GoalAlign.forward_point_distance: 0.1
-      PathDist.scale: 32.0
-      GoalDist.scale: 24.0
-      PreferForward.scale: 20.0
-      PreferForward.theta_scale: 24.0
-      RotateToGoal.scale: 32.0
-      RotateToGoal.slowing_factor: 5.0
-      RotateToGoal.lookahead_time: -1.0
+      plugin: "nav2_mppi_controller::MPPIController"
+      time_steps: 56
+      model_dt: 0.05
+      batch_size: 2000
+      vx_std: 0.2
+      vy_std: 0.2
+      wz_std: 0.4
+      vx_max: 0.5
+      vx_min: 0.2
+      vy_max: 0.5
+      wz_max: 1.9
+      ax_max: 3.0
+      ax_min: 1.0
+      ay_max: 3.0
+      az_max: 3.5
+      iteration_count: 1
+      prune_distance: 1.7
+      transform_tolerance: 0.1
+      temperature: 0.3
+      gamma: 0.015
+      motion_model: "Ackermann"
+      visualize: false
+      reset_period: 1.0 # (only in Humble)
+      regenerate_noises: false
+      AckermannConstraints:
+        min_turning_r: 0.3
+      TrajectoryVisualizer:
+        trajectory_step: 5
+        time_step: 3
+      critics: ["ConstraintCritic", "CostCritic", "GoalCritic", "GoalAngleCritic", "PathAlignCritic", "PathFollowCritic", "PathAngleCritic", "PreferForwardCritic"]
+      ConstraintCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 4.0
+      GoalCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+        threshold_to_consider: 1.4
+      GoalAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 3.0
+        threshold_to_consider: 0.5
+      PreferForwardCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+        threshold_to_consider: 0.5
+      # ObstaclesCritic:
+      #   enabled: true
+      #   cost_power: 1
+      #   repulsion_weight: 1.5
+      #   critical_weight: 20.0
+      #   consider_footprint: false
+      #   collision_cost: 10000.0
+      #   collision_margin_distance: 0.1
+      #   near_goal_distance: 0.5
+      #   inflation_radius: 0.55 # (only in Humble)
+      #   cost_scaling_factor: 10.0 # (only in Humble)
+      CostCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 3.81
+        critical_cost: 300.0
+        consider_footprint: true
+        collision_cost: 1000000.0
+        near_goal_distance: 1.0
+        trajectory_point_step: 2
+      PathAlignCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 14.0
+        max_path_occupancy_ratio: 0.05
+        trajectory_point_step: 4
+        threshold_to_consider: 0.5
+        offset_from_furthest: 20
+        use_path_orientations: false
+      PathFollowCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+        offset_from_furthest: 5
+        threshold_to_consider: 1.4
+      PathAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 2.0
+        offset_from_furthest: 4
+        threshold_to_consider: 0.5
+        max_angle_to_furthest: 1.0
+        mode: 0
+      # VelocityDeadbandCritic:
+      #   enabled: true
+      #   cost_power: 1
+      #   cost_weight: 35.0
+      #   deadband_velocities: [0.05, 0.05, 0.05]
+      # TwirlingCritic:
+      #   enabled: true
+      #   twirling_cost_power: 1
+      #   twirling_cost_weight: 10.0
 
 local_costmap:
   local_costmap:
@@ -139,7 +173,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 5.0
-        inflation_radius: 0.3
+        inflation_radius: 0.6
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"
         enabled: True
@@ -240,27 +274,26 @@ behavior_server:
     local_footprint_topic: local_costmap/published_footprint
     global_footprint_topic: global_costmap/published_footprint
     cycle_frequency: 10.0
-    behavior_plugins: ["spin", "backup", "drive_on_heading", "wait"]
+    behavior_plugins: ["spin", "backup", "drive_on_heading", "assisted_teleop", "wait"]
+    enable_stamped_cmd_vel: True
     spin:
       plugin: "nav2_behaviors::Spin"
-      max_rotational_vel: 0.4
-      min_rotational_vel: 0.1
     backup:
       plugin: "nav2_behaviors::BackUp"
     drive_on_heading:
       plugin: "nav2_behaviors::DriveOnHeading"
     wait:
       plugin: "nav2_behaviors::Wait"
+    assisted_teleop:
+      plugin: "nav2_behaviors::AssistedTeleop"
     local_frame: odom
     global_frame: map
     robot_base_frame: base_link
     transform_tolerance: 0.1
-    use_sim_time: False
     simulate_ahead_time: 2.0
-    max_rotational_vel: 1.0
+    max_rotational_vel: 0.4
     min_rotational_vel: 0.1
-    rotational_acc_lim: 3.2
-    enable_stamped_cmd_vel: True
+    rotational_acc_lim: 0.1
 
 waypoint_follower:
   ros__parameters:
@@ -282,56 +315,10 @@ velocity_smoother:
     feedback: "OPEN_LOOP"
     max_velocity: [0.05, 0.0, 0.05]
     min_velocity: [-0.03, 0.0, -0.03]
-    max_accel: [0.05, 0.0, 3.2]
+    max_accel: [0.05, 0.0, 0.03]
     max_decel: [-0.03, 0.0, -0.03]
-    odom_topic: "/pivot_drive_controller/odom"
+    odom_topic: /odometry/filtered
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
     enable_stamped_cmd_vel: True
-# collision_monitor:
-#   ros__parameters:
-#     use_sim_time: True
-#     base_frame_id: "base_link"
-#     odom_frame_id: "odom"
-#     cmd_vel_in_topic: "cmd_vel_smoothed"
-#     cmd_vel_out_topic: "cmd_vel"
-#     transform_tolerance: 0.5
-#     source_timeout: 5.0
-#     base_shift_correction: True
-#     stop_pub_timeout: 2.0
-#     # Polygons represent zone around the robot for "stop" and "slowdown" action types,
-#     # and robot footprint for "approach" action type.
-#     # Footprint could be "polygon" type with dynamically set footprint from footprint_topic
-#     # or "circle" type with static footprint set by radius. "footprint_topic" parameter
-#     # to be ignored in circular case.
-#     polygons: ["PolygonStop", "PolygonSlow", "FootprintApproach"]
-#     PolygonStop:
-#       type: "polygon"
-#       points: [0.67, 0.55, 0.67, -0.55, -0.2, -0.55, -0.2, 0.55]
-#       action_type: "stop"
-#       max_points: 3
-#       visualize: True
-#       polygon_pub_topic: "polygon_stop"
-#     PolygonSlow:
-#       type: "polygon"
-#       points: [1.5, 0.95, 1.5, -0.95, -0.4, -0.95, -0.4, 0.95]
-#       action_type: "slowdown"
-#       max_points: 3
-#       slowdown_ratio: 0.3
-#       visualize: True
-#       polygon_pub_topic: "polygon_slowdown"
-#     FootprintApproach:
-#       type: "polygon"
-#       action_type: "approach"
-#       footprint_topic: "/local_costmap/published_footprint"
-#       time_before_collision: 2.0
-#       simulation_time_step: 0.1
-#       max_points: 5
-#       visualize: True
-#     observation_sources: ["pointcloud"]
-#     pointcloud:
-#       type: "pointcloud"
-#       topic: "/oak/points"
-#       min_height: 0.2
-#       max_height: 0.5

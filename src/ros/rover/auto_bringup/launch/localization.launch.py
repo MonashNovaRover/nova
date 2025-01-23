@@ -21,8 +21,8 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    use_sim_time = LaunchConfiguration('use_sim_time').perform(context)
-    use_real_odometry = LaunchConfiguration('use_real_odometry').perform(context)
+    use_sim_time = LaunchConfiguration('use_sim_time').perform(context).lower()=='true'
+    use_real_odometry = LaunchConfiguration('use_real_odometry').perform(context).lower()=='true'
     gps = LaunchConfiguration('gps')
 
     # Params File Configurations
@@ -43,7 +43,7 @@ def launch_setup(context, *args, **kwargs):
         'odom0_relative': True,
         'odom0_config': [True, True, True,
                          True, True, True,
-                         True, False, False,
+                         False, False, False,
                          False, False, False,
                          False, False, False],
     }

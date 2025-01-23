@@ -10,9 +10,9 @@ rtabmap_slam:
     subscribe_odom_info: False
     approx_sync: True
     odom_frame_id: odom
-    Rtabmap/DetectionRate: "3.0"
-    sync_queue_size: 40
-    topic_queue_size: 40
+    Rtabmap/DetectionRate: "3.5"
+    # sync_queue_size: 40
+    # topic_queue_size: 40
 # Params for RGBD Odom (VO)
 rtabmap_odom:
   ros__parameters:
