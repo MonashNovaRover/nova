@@ -594,9 +594,9 @@
     </gazebo>
     
     <!--xacro:include filename="arm_odom.xacro"/ -->
-    <!--xacro:if value="$(arg gazebo)">
-        <xacro:include filename="$(find rover_description)/arm/urdf/newarm_ros2_control.xacro" />
-    </xacro:if-->
+    <xacro:if value="$(arg gazebo)">
+        <xacro:include filename="$(find rover_description)/arm/urdf/newarm.ros2_control.xacro" />
+    </xacro:if>
 
     <!-- Standalone arm definition -->
     <xacro:unless value="$(arg arm)">
