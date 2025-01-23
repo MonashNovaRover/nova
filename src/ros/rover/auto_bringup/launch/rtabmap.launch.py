@@ -1,3 +1,4 @@
+import os
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
 from launch.conditions import IfCondition
@@ -7,6 +8,20 @@ from launch_ros.actions import Node
 from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import ComposableNodeContainer
+
+# This function does what --delete_db_on_start
+# Because we are launching it as a ComposableNode, we can't pass arguments to the executable
+# Hence we delete the db file here for it to not mess with us later
+def delete_rtabmap_db(context, *args, **kwargs):
+    file_path = os.path.expanduser('~/.ros/rtabmap.db')
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print(f"Deleted rtabmap.db at {file_path}")
+        else:
+            print(f"rtabmap.db not found at {file_path}. You might have to delete the file manually, wherever it is")
+    except Exception as e:
+        print(f"Failed to delete file {file_path}: {e}")
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
@@ -38,6 +53,7 @@ def launch_setup(context, *args, **kwargs):
     ]
 
     return [
+        OpaqueFunction(function=delete_rtabmap_db),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
             condition=IfCondition(camera),
@@ -63,7 +79,6 @@ def launch_setup(context, *args, **kwargs):
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::RGBDOdometry',
                     name='rtabmap_odom',
-                    # arguments=['-d'],
                     parameters=[params_file, {'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}',"use_sim_time": use_sim_time}],
                     remappings=remappings,
                 ),
@@ -71,10 +86,14 @@ def launch_setup(context, *args, **kwargs):
                     package='rtabmap_slam',
                     plugin='rtabmap_slam::CoreWrapper',
                     name='rtabmap_slam',
-                    # arguments=['-d'],
                     parameters=[params_file,{"use_sim_time": use_sim_time,'rtabmap_args':'--delete_db_on_start'}],
                     remappings=remappings,
-                )
+                ),
+                # ComposableNode(
+                #     package='foxglove_bridge',
+                #     plugin='foxglove_bridge::FoxgloveBridge',
+                #     name='foxglove_bridge',
+                # )
             ],
         ),
         Node(

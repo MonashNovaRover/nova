@@ -54,13 +54,29 @@ def launch_setup(context, *args, **kwargs):
     # Create our own temporary YAML files that include substitutions
     param_substitutions = {
         'use_sim_time': use_sim_time,
-        'autostart': autostart}
+        'autostart': autostart,
+    }
+
+    sim_substitutions = {
+        'max_vel_x': '0.7',
+        'max_vel_theta': '0.7',
+        'max_speed_xy': '0.7',
+        'acc_lim_x': '0.35',
+        'acc_lim_theta': '0.35',
+        'decel_lim_x': '-0.35',
+        'decel_lim_theta': '-0.35',
+        'linear_granularity': '0.1',
+        'angular_granularity': '0.1',
+        'max_rotational_vel':'0.7',
+        'min_rotational_vel':'0.1',
+        'rotational_acc_lim':'0.35',
+    }
 
     configured_params = ParameterFile(
         RewrittenYaml(
             source_file=params_file,
             root_key=namespace,
-            param_rewrites=param_substitutions,
+            param_rewrites= {**param_substitutions,**(sim_substitutions if use_sim_time.perform(context).lower()=="false" else {})} ,
             convert_types=True),
         allow_substs=True,
     )

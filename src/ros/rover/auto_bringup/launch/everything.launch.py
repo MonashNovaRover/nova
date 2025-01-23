@@ -45,8 +45,8 @@ def launch_setup(context, *args, **kwargs):
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
             condition=IfCondition(gazebo),
             launch_arguments={
-                'namespace': namespace, 
-                'world': world, 
+                'namespace': namespace,
+                'world': world,
                 'controllers': controllers,
                 'model': model,
                 'camera':'False' # Todo: Remove when done with RTABMAP
@@ -155,8 +155,8 @@ def generate_launch_description():
             description='Flag to launch navigation stack',
         ),
         DeclareLaunchArgument(
-            name='model', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']), 
+            name='model',
+            default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
         ),
     ]

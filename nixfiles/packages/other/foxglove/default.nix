@@ -27,12 +27,12 @@
 
 stdenv.mkDerivation rec {
   name = "foxglove-studio-v${version}";
-  version = "2.2.0";
+  version = "2.19.2";
 
   # the actual app is extracted out of a .deb package
   src = fetchurl {
-    url = "https://get.foxglove.dev/desktop/v2.2.0/foxglove-studio-2.2.0-linux-amd64.deb";
-    sha256 = "sha256-+m2RBC0RPTtoLFu8PniEFaR+XAObJG+yhbVETNq5ScU=";
+    url = "https://get.foxglove.dev/desktop/v2.19.2/foxglove-studio-2.19.2-linux-amd64.deb";
+    sha256 = "sha256-PzChwhUebsnGZx9nWD/dZWu4Zog0AQ8qGNOy+nUwpm8=";
   };
 
   nativeBuildInputs = [
@@ -77,6 +77,9 @@ stdenv.mkDerivation rec {
 
   # this is needed alongside with autoPatchelfHook to make foxglove happy
   runtimeDependencies = buildInputs;
+
+  dontBuild = true;
+  dontPatchELF = true;
 
   unpackCmd = "mkdir tmp && dpkg -x $curSrc $_";
 
