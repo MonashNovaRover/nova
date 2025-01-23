@@ -14,4 +14,4 @@ byte led
 
 # Status of the NIR Probe
 # 0 = Off, 1 = Currently taking LED Water reading, 2 = Currently taking LED Ice reading
-bool status
+byte status
