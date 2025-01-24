@@ -3,7 +3,7 @@ import {
   Card,
   CardBody,
   CardHeader,
-  CardProps,
+  CardProps, Chip,
   Dropdown, DropdownItem,
   DropdownMenu,
   DropdownTrigger,
@@ -15,7 +15,7 @@ import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
-import {Check, MoreHorizontal} from "react-feather";
+import {Check, Droplet, MoreHorizontal, Square, XCircle} from "react-feather";
 import {SiteData} from "../../../redux/models/genericStores/SiteDataState.ts";
 import {ISpaceResourcesEntry, XYNames} from "../SpaceResourcesSiteType.tsx";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
@@ -27,11 +27,29 @@ export interface NIRProbeOutputSaveWidgetProps extends CardProps {
   setShowAdvanced : (newShowAdvanced: boolean) => void,
 }
 
+const CHIP_DATA = {
+  0: {
+    name: "Off",
+    icon: <XCircle size={18}/>,
+    colour: "default",
+  },
+  1: {
+    name: "Water",
+    icon: <Droplet size={18}/>,
+    colour: "primary",
+  },
+  2: {
+    name: "Ice",
+    icon: <Square size={18}/>,
+    colour: "secondary",
+  },
+}
+
 const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   file, setFile, showAdvanced, setShowAdvanced, ...cardProps
 }) => {
   const bifrost = useBifrost({ topic: RosTopic.NIR_DATA });
-  const nirData = useSelector((state: RootState) => state.nirStore.data);
+  const nirData = useSelector((state: RootState) => state.nirStore);
   // const led = useSelector((state: RootState) => state.nirStore.led);
 
   const [readings, setReadings] = useNIRSiteData();
@@ -78,9 +96,20 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
         </Dropdown>
       </CardHeader>
       <CardBody className="flex flex-col gap-3">
-        <CopyableOutput className="tracking-wide" classNames={{pre: "text-lg pt-1"}}>
-          {nirData}
-        </CopyableOutput>
+        <div className="flex flex-row gap-3 items-center">
+          <Chip size="lg"
+                startContent={CHIP_DATA[nirData.led].icon}
+                color={CHIP_DATA[nirData.led].colour}
+                classNames={{
+                  base: "min-w-24",
+                }}
+          >
+            {CHIP_DATA[nirData.led].name}
+          </Chip>
+          <CopyableOutput className="tracking-wide grow" classNames={{pre: "text-lg pt-1"}}>
+            {nirData.data}
+          </CopyableOutput>
+        </div>
         <div className="grid auto-cols-fr gap-3 grid-flow-col">
           {
             <Button color="primary" onPress={onSave}>
