@@ -12,6 +12,7 @@
 #include <controller_manager_msgs/srv/switch_controller.hpp>
 
 #include "teleop_arm_joy_parameters.hpp"
+#include "JoyDevice.hpp"
 
 namespace teleop_arm_joy
 {
