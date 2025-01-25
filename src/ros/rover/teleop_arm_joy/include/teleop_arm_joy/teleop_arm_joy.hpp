@@ -13,6 +13,8 @@
 
 #include "teleop_arm_joy_parameters.hpp"
 #include "JoyDevice.hpp"
+#include "JoyButton.hpp"
+#include "JoyAxis.hpp"
 
 namespace teleop_arm_joy
 {
@@ -79,12 +81,6 @@ namespace teleop_arm_joy
 
   private:
     /**
-     * @brief Callback function for joystick messages.
-     * @param joy_msg Shared pointer to the joystick message.
-     */
-    void joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
-
-    /**
      * @brief Sends Commands for the arm based on joystick input.
      * @param joy_msg Shared pointer to the joystick message.
      */
@@ -116,11 +112,15 @@ namespace teleop_arm_joy
     void switchController(const ControlMode requested_control_mode);
 
     // Member variables
-    rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub;
+    // rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub;
     rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr switch_controller_client;
     rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr fk_client;
     rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr ik_client;
     std::shared_ptr<ParamListener> param_listener_;
+
+    std::vector<JoyDevice> devices;
+    std::map<std::string, shared_ptr<JoyButton>> buttons;
+    std::map<std::string, shared_ptr<JoyAxis>> axes;
 
     Params params_;
     bool sent_lock_msg = false;

@@ -3,6 +3,18 @@
 # Look at individual controller config for changing axes / buttons
 # Look here for docs about this YAML : https://github.com/PickNikRobotics/generate_parameter_library
 teleop_arm_joy:
+
+#  controllers:
+#    type: string_array
+#    default_value:
+#      [
+#        "pivot_drive_controller",
+#        "strafe_controller",
+#        "nova_diff_drive_controller",
+#      ]
+#    description: "List Of Controllers that can be used with teleop"
+#    read_only: true
+
   devices:
     type: string_array
     default_value: [
@@ -45,16 +57,12 @@ teleop_arm_joy:
         __map_axis_definitions:
           id:
             type: int
+            default_value: -1
       buttons:
         __map_button_definitions:
           id:
             type: int
-
-
-
-
-
-
+            default_value: -1
 
 #  controllers:
 #    type: string_array
@@ -62,4 +70,3 @@ teleop_arm_joy:
 #    description: "The list of controllers that can be used with arm teleop."
 #    read_only: true
 #  __map_controllers:
-
