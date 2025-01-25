@@ -21,6 +21,7 @@
 
     <scene>
       <shadows>false</shadows>
+      <sky></sky>
     </scene>
 
     <spherical_coordinates>

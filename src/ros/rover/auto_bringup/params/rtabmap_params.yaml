@@ -11,8 +11,48 @@ rtabmap_slam:
     approx_sync: True
     odom_frame_id: odom
     Rtabmap/DetectionRate: "3.5"
-    # sync_queue_size: 40
-    # topic_queue_size: 40
+    # Grid Parameters are responsible for the Occupancy Grid Generated
+    # Crucial for Costmap Generation
+    Grid/MaxGroundAngle: "35"
+    Grid/RangeMax: "10.0"
+    Grid/3D: "false" # Only Needed for 3D Planning
+    Grid/MaxObstacleHeight: "1.0"
+    Grid/NoiseFilteringRadius: "0.25"
+    Grid/NoiseFilteringMinNeighbors: "5"
+    Grid/CellSize: "0.1"
+    GridGlobal/MinSize: "40.0"
+    # Defaults Below
+    Grid/ClusterRadius: "0.1"
+    Grid/DepthDecimation: "4"
+    Grid/DepthRoiRatios: 0.0 0.0 0.0 0.0
+    Grid/FlatObstacleDetected: "true"
+    Grid/FootprintHeight: "0.0"
+    Grid/FootprintLength: "0.0"
+    Grid/FootprintWidth: "0.0"
+    Grid/GroundIsObstacle: "false"
+    Grid/MapFrameProjection: "false"
+    Grid/MaxGroundHeight: "0.0"
+    Grid/MinClusterSize: "10"
+    Grid/MinGroundHeight: "0.0"
+    Grid/NormalK: "20"
+    Grid/NormalsSegmentation: "true"
+    Grid/PreVoxelFiltering: "true"
+    Grid/RangeMin: "0.0"
+    Grid/RayTracing: "false"
+    Grid/Scan2dUnknownSpaceFilled: "false"
+    Grid/ScanDecimation: "1"
+    Grid/Sensor: "1"
+    GridGlobal/AltitudeDelta: "0"
+    GridGlobal/Eroded: "false"
+    GridGlobal/FloodFillDepth: "0"
+    GridGlobal/FootprintRadius: "0.0"
+    GridGlobal/MaxNodes: "0"
+    GridGlobal/OccupancyThr: "0.5"
+    GridGlobal/ProbClampingMax: "0.971"
+    GridGlobal/ProbClampingMin: "0.1192"
+    GridGlobal/ProbHit: "0.7"
+    GridGlobal/ProbMiss: "0.4"
+    GridGlobal/UpdateError: "0.01"
 # Params for RGBD Odom (VO)
 rtabmap_odom:
   ros__parameters:
