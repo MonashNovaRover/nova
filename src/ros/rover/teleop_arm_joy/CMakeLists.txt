@@ -38,6 +38,9 @@ generate_parameter_library(
 # Build the node executable
 add_executable(${PROJECT_NAME}_node
   src/teleop_arm_joy.cpp
+        src/JoyDevice.cpp
+        src/JoyButton.cpp
+        src/JoyAxis.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_node
