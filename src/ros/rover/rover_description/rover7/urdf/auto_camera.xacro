@@ -49,12 +49,12 @@ which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
       <camera name="oak">
         <horizontal_fov>${radians(82)}</horizontal_fov>
         <image>
-          <width>600</width>
-          <height>400</height>
+          <width>1280</width>
+          <height>900</height>
         </image>
         <clip>
           <near>0.4</near>
-          <far>100.0</far>
+          <far>10.0</far>
         </clip>
       </camera>
       <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">

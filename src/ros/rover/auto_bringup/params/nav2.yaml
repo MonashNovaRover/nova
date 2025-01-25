@@ -72,7 +72,7 @@ controller_server:
       temperature: 0.3
       gamma: 0.015
       motion_model: "Ackermann"
-      visualize: false
+      visualize: true
       reset_period: 1.0 # (only in Humble)
       regenerate_noises: false
       AckermannConstraints:
