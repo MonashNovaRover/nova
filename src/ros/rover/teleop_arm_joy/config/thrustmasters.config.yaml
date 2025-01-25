@@ -1,0 +1,47 @@
+teleop_arm_joy_node:
+  ros__parameters:
+    devices: ["Left", "Right"]
+    device_mappings:
+      Left:
+        axes:
+          j1:
+            id: 2
+          j2:
+            id: 0
+          j3:
+            id: 1
+          offset:
+            id: 3
+        buttons:
+          limit_on:
+            id: 4
+          limit_off:
+            id: 9
+          lock:
+            id: 5
+          unlock:
+            id: 8
+          # trigger:
+          #   id: 0
+          # top down:
+          #   id: 1
+          # top left:
+          #   id: 2
+          # top right:
+          #   id: 0
+      Right:
+        axes:
+          j4:
+            id: 1
+            invert: true
+          j5:
+            id: 0
+            invert: true
+          j6:
+            id: 2
+          speed:
+            id: 3
+
+
+
+
