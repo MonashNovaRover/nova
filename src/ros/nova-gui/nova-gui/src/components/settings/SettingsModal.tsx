@@ -10,6 +10,10 @@ import { useUIActions } from "../../redux/actions/useUIActions";
 import StoreSettings from "./StoreSettings.tsx";
 import {IPSettings} from "./IPSettings.tsx";
 
+/**
+ * Settings Model containing GUI settings
+ * @constructor
+ */
 export function SettingsModal() {
   const uiActions = useUIActions();
   const uiState = useSelector((state: RootState) => state.uiState);

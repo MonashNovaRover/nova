@@ -4,9 +4,10 @@ import {reduxStores} from "../redux/RootReducer.ts";
 import {StoreType} from "../redux/models/StoreContext.ts";
 
 /**
- * Returns a stateful value stored in redux, and a function to update it.
+ * Returns a function that will reset the provided redux store to it's initial value
  *
- * @param reduxStore struct of stores in Reducer or StoreContext forms to check types against.
+ * @param reduxStore struct of stores in Reducer or StoreContext forms to reset to.
+ * @return whether or not the reset was successful
  */
 function useResetGenericStoreWithStore<T, S extends object>(reduxStore: S): (a: string) => boolean {
 
@@ -48,10 +49,12 @@ function useResetGenericStoreWithStore<T, S extends object>(reduxStore: S): (a: 
 }
 
 /**
- * Returns a stateful value stored in redux, and a function to update it.
+ * Returns a function that will reset the provided redux store to it's initial value
  *
  * See the [generic store doc]{@link https://github.com/MonashNovaRover/nova/blob/master/src/ros/nova-gui/docs/generic_store.md}
  * for more information.
+ *
+ * @return whether or not the reset was successful
  */
 export function useResetGenericStore(): (a: string) => boolean {
   return useResetGenericStoreWithStore(reduxStores);

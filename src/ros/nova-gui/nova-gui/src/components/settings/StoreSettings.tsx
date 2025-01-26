@@ -3,7 +3,7 @@ import {useResetGenericStore} from "../../hooks/useResetGenericStore.ts";
 import {useState} from "react";
 
 /**
- * Advanced Settings component containing UI for resetting generic stores.
+ * Store Settings component containing UI for resetting generic stores.
  * @constructor
  */
 function StoreSettings() {

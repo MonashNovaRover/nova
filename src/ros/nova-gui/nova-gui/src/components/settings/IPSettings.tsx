@@ -9,6 +9,10 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { isIPAddress } from "../../utils/regexUtils";
 
+/**
+ * IP Settings component containing UI for setting IP addresses.
+ * @constructor
+ */
 export function IPSettings() {
   const uiActions = useUIActions();
   const uiState = useSelector((state: RootState) => state.uiState);
