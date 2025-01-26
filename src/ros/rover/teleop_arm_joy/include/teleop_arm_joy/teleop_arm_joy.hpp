@@ -18,7 +18,6 @@
 
 namespace teleop_arm_joy
 {
-
   /**
    * @enum ControlMode
    * @brief Enum class for different control modes.
@@ -79,7 +78,10 @@ namespace teleop_arm_joy
 
     void initializeParams();
 
+
   private:
+    void onDeviceUpdated(string& device_name);
+
     /**
      * @brief Sends Commands for the arm based on joystick input.
      * @param joy_msg Shared pointer to the joystick message.
@@ -109,7 +111,7 @@ namespace teleop_arm_joy
      * @brief Switches the controller by calling the switch_controller service.
      * @param requested_control_mode The desired control mode to switch to.
      */
-    void switchController(const ControlMode requested_control_mode);
+    void switchController(ControlMode requested_control_mode);
 
     // Member variables
     // rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub;
@@ -121,6 +123,8 @@ namespace teleop_arm_joy
     std::vector<JoyDevice> devices;
     std::map<std::string, shared_ptr<JoyButton>> buttons;
     std::map<std::string, shared_ptr<JoyAxis>> axes;
+
+    int update_id = 0;
 
     Params params_;
     bool sent_lock_msg = false;
