@@ -58,40 +58,53 @@ void TeleopArmJoy::initializeParams()
   buttons.clear();
   axes.clear();
 
+  // Validate that there is at least one device
+  if (params_.device_names.empty()) {
+    RCLCPP_ERROR(this->get_logger(), "No device names defined!");
+    return;
+  }
+
   // Create device instances
-  auto device_configs = params_.device_mappings.devices_map;
+  auto device_configs = params_.devices.device_names_map;
   devices.reserve(device_configs.size());
 
-  // Loop over each device config and create a device for it
-  for (auto& [name, config] : device_configs) {
-    auto listeners = vector<shared_ptr<JoyMessageListener>>();
-    listeners.reserve(config.buttons.button_definitions_map.size() + config.axes.axis_definitions_map.size());
-
-    // Create button and axis objects
-    for (auto& [button_name, button_config] : config.buttons.button_definitions_map) {
-      // Buttons without a definition will have their value be -1 by default, so we can filter them out.
-      if (button_config.id < 0)
-        continue;
-
-      shared_ptr<JoyButton> button(new JoyButton(button_config));
-      buttons[button_name] = button;
-      listeners.emplace_back(button);
-    }
-
-    for (auto& [axis_name, axis_config] : config.axes.axis_definitions_map) {
-      // Axes without a definition will have their value be -1 by default, so we can filter them out.
-      if (axis_config.id < 0)
-        continue;
-
-      shared_ptr<JoyAxis> axis(new JoyAxis(axis_config));
-      axes[axis_name] = axis;
-      listeners.emplace_back(axis);
-    }
-
-    // Give axes and axes to a joy device to be managed
-    auto device = JoyDevice(name, listeners);
-    devices.emplace_back(device);
+  // Create listener collections for each device, that we can add buttons and axes to later create JoyDevices from.
+  auto listeners = map<string, vector<shared_ptr<JoyMessageListener>>*>();
+  for (auto& name : params_.device_names) {
+    listeners[name] = new vector<shared_ptr<JoyMessageListener>>();
   }
+  listeners[""] = listeners[params_.device_names[0]];
+
+  // Create button and axis objects
+  for (auto& [button_name, button_config] : params_.buttons.button_definitions_map) {
+    // Buttons without a definition will have their value be -1 by default, so we can filter them out.
+    if (button_config.id < 0)
+      continue;
+
+    shared_ptr<JoyButton> button(new JoyButton(button_config));
+    buttons[button_name] = button;
+    listeners[button_config.device]->emplace_back(button);
+  }
+
+  for (auto& [axis_name, axis_config] : params_.axes.axis_definitions_map) {
+    // Axes without a definition will have their value be -1 by default, so we can filter them out.
+    if (axis_config.id < 0)
+      continue;
+
+    shared_ptr<JoyAxis> axis(new JoyAxis(axis_config));
+    axes[axis_name] = axis;
+    listeners[axis_config.device]->emplace_back(axis);
+  }
+
+  // Give axes and axes to a joy device to be managed
+  for (auto& [name, config] : device_configs) {
+    auto device = JoyDevice(name, *listeners[name]);
+    devices.emplace_back(device);
+
+    // Clean up
+    delete listeners[name];
+  }
+  listeners.clear();
 
 }
 
