@@ -21,10 +21,6 @@ namespace
   */
 } // namespace
 
-
-// need to drive J4, J5, J6 based on mesages from teleop-arm
-// start with just wrist roll? (I think that's J6?)
-
 namespace nova_arm_controller
 {
   using namespace std::chrono_literals;
@@ -99,10 +95,17 @@ namespace nova_arm_controller
         halt();
         is_halted = true;
       }
+
       return controller_interface::return_type::OK;
     }
 
-    //RCLCPP_INFO(logger, "Left wheel speed: %f, Right wheel speed: %f", left_speed / params_.wheel_radius, right_speed / params_.wheel_radius);
+    for (const auto &joint_handle : registered_joint_handles_)
+    {
+      float joint_speed = 0.0;
+      RCLCPP_INFO(logger, "%s speed: %f", joint_handle.name, joint_speed);
+      joint_handle.command.get().set_value(joint_speed);
+    }
+
 
     return controller_interface::return_type::OK;
   }
@@ -221,7 +224,7 @@ namespace nova_arm_controller
     {
       for (const auto &joint_handle : joint_handles)
       {
-        joint_handle.command.get().set_value(0.0); // XXX: check this
+        joint_handle.command.get().set_value(0.0);
       }
     };
 
@@ -275,7 +278,7 @@ namespace nova_arm_controller
       }
 
       registered_handles.emplace_back(
-          JointHandle{std::ref(*state_handle), std::ref(*command_handle)});
+          JointHandle{joint_name, std::ref(*state_handle), std::ref(*command_handle)});
     }
 
     return controller_interface::CallbackReturn::SUCCESS;

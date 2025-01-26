@@ -59,11 +59,12 @@ namespace nova_arm_controller
   protected:
     struct JointHandle
     {
+      std::string name;
       std::reference_wrapper<const hardware_interface::LoanedStateInterface> state;
       std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
-      float target_direction;
-      float max_j_rot_vel;
-      float best_effort_rotational_velocity;
+      float target_direction = 0.0;
+      float max_j_rot_vel = 0.0;
+      float best_effort_rotational_velocity = 0.0;
       // store per joint odometry here maybe?
     };
     controller_interface::CallbackReturn configure_joints(
