@@ -12,6 +12,7 @@
 #include "JoyMessageListener.hpp"
 #include "teleop_arm_joy_parameters.hpp"
 
+
 namespace teleop_arm_joy
 {
 
@@ -27,6 +28,7 @@ public:
   explicit JoyButton(const Params::Buttons::MapButtonDefinitions &config);
 
   void joyCallback(sensor_msgs::msg::Joy::SharedPtr joy_msg) override;
+  void debounce(const rclcpp::Time& now) override;
 
   [[nodiscard]] bool value() const;
 
@@ -35,16 +37,15 @@ public:
    */
   [[nodiscard]] bool down() const;
 
-  /**
-   * @brief Gets if this button was just released.
-   */
-  [[nodiscard]] bool up() const;
-
 private:
-  long id;
+  long id_;
 
-  bool currentValue = false;
-  bool previousValue = false;
+  std::optional<rclcpp::Time> last_press_time_;
+
+  bool current_value_ = false;
+  bool debounce_previous_value_ = false;
+  // True when for this most recent call of debounce() that the button is considered to have just been pressed
+  bool debounce_down_ = false;
 };
 
 }

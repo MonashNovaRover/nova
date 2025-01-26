@@ -120,7 +120,7 @@ namespace teleop_arm_joy
     rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr ik_client;
     std::shared_ptr<ParamListener> param_listener_;
 
-    std::vector<JoyDevice> devices;
+    std::vector<shared_ptr<JoyDevice>> devices;
     std::map<std::string, shared_ptr<JoyButton>> buttons;
     std::map<std::string, shared_ptr<JoyAxis>> axes;
 

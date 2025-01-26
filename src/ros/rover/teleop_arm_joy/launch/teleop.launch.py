@@ -24,28 +24,26 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='joy',
             executable='joy_node',
-            name='joy_node',
+            name='joy_node_L',
             parameters=[
-                {'dev': joy_device_L,
+                {'device_id': joy_device_L,
                  'deadzone': 0.1,
                  'autorepeat_rate': 20.0}
             ],
             remappings=[
-                ('__node', '/joy_node_L'),
                 ('joy', 'joy_L')
             ]
         ),
         Node(
             package='joy',
             executable='joy_node',
-            name='joy_node',
+            name='joy_node_R',
             parameters=[
-                {'dev': joy_device_R,
+                {'device_id': joy_device_R,
                  'deadzone': 0.1,
                  'autorepeat_rate': 20.0}
             ],
             remappings=[
-                ('__node', '/joy_node_R'),
                 ('joy', 'joy_R')
             ]
         ),
@@ -70,11 +68,11 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='joy_dev_L',
-            default_value='/dev/input/js0',
+            default_value='0',
         ),
         DeclareLaunchArgument(
             name='joy_dev_R',
-            default_value='/dev/input/js1',
+            default_value='1',
         ),
         DeclareLaunchArgument(
             name='joy_vel',

@@ -5,6 +5,7 @@
 #ifndef JOYMESSAGELISTENER_HPP
 #define JOYMESSAGELISTENER_HPP
 
+#include <rclcpp/time.hpp>
 #include <sensor_msgs/msg/joy.hpp>
 
 namespace teleop_arm_joy {
@@ -16,12 +17,8 @@ class JoyMessageListener {
 public:
   virtual ~JoyMessageListener() = default;
 
-  // TODO: Add distinct step for debouncing / updating, so that we can sync between devices
-
-
-  virtual void debounce();
-
   virtual void joyCallback(sensor_msgs::msg::Joy::SharedPtr joy_msg) = 0;
+  virtual void debounce(const rclcpp::Time& now) = 0;
 };
 
 } // teleop_arm_joy
