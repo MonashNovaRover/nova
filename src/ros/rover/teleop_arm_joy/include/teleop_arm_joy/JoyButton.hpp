@@ -24,24 +24,24 @@ public:
   /**
    * @brief Constructor for the joy Button.
    */
-  explicit JoyButton(Params::DeviceMappings::MapDevices::Buttons::MapButtonDefinitions config);
+  explicit JoyButton(const Params::Buttons::MapButtonDefinitions &config);
 
-  void joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg) override;
+  void joyCallback(sensor_msgs::msg::Joy::SharedPtr joy_msg) override;
 
-  bool value() const;
+  [[nodiscard]] bool value() const;
 
   /**
    * @brief Gets if this button was just pressed down.
    */
-  bool down() const;
+  [[nodiscard]] bool down() const;
 
   /**
    * @brief Gets if this button was just released.
    */
-  bool up() const;
+  [[nodiscard]] bool up() const;
 
 private:
-  int id;
+  long id;
 
   bool currentValue = false;
   bool previousValue = false;

@@ -7,7 +7,7 @@
 
 #include "teleop_arm_joy/JoyButton.hpp"
 
-teleop_arm_joy::JoyButton::JoyButton(Params::DeviceMappings::MapDevices::Buttons::MapButtonDefinitions config) {
+teleop_arm_joy::JoyButton::JoyButton(const Params::Buttons::MapButtonDefinitions &config) {
   id = config.id;
 }
 

@@ -15,12 +15,19 @@ teleop_arm_joy:
 #    description: "List Of Controllers that can be used with teleop"
 #    read_only: true
 
-  devices:
+  device_names:
     type: string_array
     default_value: [
       "Left",
       "Right"
     ]
+
+  devices:
+    __map_device_names:
+      topic:
+        type: string
+        description: "The topic to get sensor_msgs/msg/Joy messages from for this device"
+
 
   axis_definitions:
     type: string_array
@@ -48,21 +55,24 @@ teleop_arm_joy:
     description: "The list of mappable axes."
     read_only: true
 
-  device_mappings:
-    __map_devices:
-      topic:
+  axes:
+    __map_axis_definitions:
+      id:
+        type: int
+        default_value: -1
+      device:
         type: string
-        description: "The topic to get sensor_msgs/msg/Joy messages from for this device"
-      axes:
-        __map_axis_definitions:
-          id:
-            type: int
-            default_value: -1
-      buttons:
-        __map_button_definitions:
-          id:
-            type: int
-            default_value: -1
+        default_value: ""
+        description: "The device that this axis is mapped to. Must be an element of device_names, and maps to the first device in device_names by default."
+  buttons:
+    __map_button_definitions:
+      id:
+        type: int
+        default_value: -1
+      device:
+        type: string
+        default_value: ""
+        description: "The device that this axis is mapped to. Must be an element of device_names, and maps to the first device in device_names by default."
 
 #  controllers:
 #    type: string_array

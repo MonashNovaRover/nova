@@ -7,7 +7,7 @@
 
 #include "teleop_arm_joy/JoyAxis.hpp"
 
-teleop_arm_joy::JoyAxis::JoyAxis(const Params::DeviceMappings::MapDevices::Axes::MapAxisDefinitions config) {
+teleop_arm_joy::JoyAxis::JoyAxis(const Params::Axes::MapAxisDefinitions &config) {
   id = config.id;
 }
 
