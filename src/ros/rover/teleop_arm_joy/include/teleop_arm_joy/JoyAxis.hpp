@@ -25,13 +25,21 @@ public:
   explicit JoyAxis(const Params::Axes::MapAxisDefinitions &config);
 
   void joyCallback(sensor_msgs::msg::Joy::SharedPtr joy_msg) override;
+  void debounce(const rclcpp::Time& now) override;
 
   [[nodiscard]] float value() const;
+
+  /**
+   * @returns true if the value changed since last debounce
+   */
+  [[nodiscard]] bool changed() const;
 
 private:
   long id;
 
-  float currentValue = false;
+  float current_value_ = 0.0f;
+  float current_debounce_value_ = 0.0f;
+  float last_debounce_value_ = 0.0f;
 };
 
 }
