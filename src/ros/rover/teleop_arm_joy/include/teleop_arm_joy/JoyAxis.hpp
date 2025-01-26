@@ -22,14 +22,14 @@ public:
   /**
    * @brief Constructor for the joy axis.
    */
-  JoyAxis(Params::DeviceMappings::MapDevices::Axes::MapAxisDefinitions config);
+  explicit JoyAxis(const Params::Axes::MapAxisDefinitions &config);
 
-  void joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg) override;
+  void joyCallback(sensor_msgs::msg::Joy::SharedPtr joy_msg) override;
 
-  float value() const;
+  [[nodiscard]] float value() const;
 
 private:
-  int id;
+  long id;
 
   float currentValue = false;
 };
