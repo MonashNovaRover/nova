@@ -7,13 +7,20 @@
 
 #include "teleop_arm_joy/JoyDevice.hpp"
 
-teleop_arm_joy::JoyDevice::JoyDevice(const string &name, const vector<shared_ptr<JoyMessageListener>> &listeners) {
+teleop_arm_joy::JoyDevice::JoyDevice(rclcpp::Node& parent, const string& name, const Params::Devices::MapDeviceNames& config, const vector<shared_ptr<JoyMessageListener>>& listeners, const function<void(string&)>& callback) {
   this->name = name;
   this->listeners = listeners;
+  this->callback = callback;
+
+  joy_sub = parent.create_subscription<sensor_msgs::msg::Joy>(
+    config.topic, rclcpp::QoS(10), std::bind(&JoyDevice::joyCallback, this, placeholders::_1));
 }
 
-void teleop_arm_joy::JoyDevice::joyCallback(sensor_msgs::msg::Joy::SharedPtr joy_msg) {
-  for (const auto& listener : this->listeners) {
+void teleop_arm_joy::JoyDevice::joyCallback(const sensor_msgs::msg::Joy::SharedPtr& joy_msg) {
+  for (const auto& listener: this->listeners) {
     listener->joyCallback(joy_msg);
   }
+
+  // Alert other devices!
+  callback(name);
 }
