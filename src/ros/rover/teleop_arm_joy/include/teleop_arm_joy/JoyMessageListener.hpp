@@ -18,7 +18,7 @@ public:
 
   // TODO: Add distinct step for debouncing / updating, so that we can sync between devices
 
-  virtual void joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg) = 0;
+  virtual void joyCallback(sensor_msgs::msg::Joy::SharedPtr joy_msg) = 0;
 };
 
 } // teleop_arm_joy
