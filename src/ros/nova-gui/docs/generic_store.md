@@ -12,6 +12,10 @@ A generic store is intended for use in situations where:
 For those familiar with `useState`, a generic store is meant to emulate that behaviour but
 with global, persistence and tab-sync properties.
 
+Once established, generic stores can be reset within the top right settings modal (where the 
+IP addresses are set) where you can reset a generic store if you need to reset the data 
+stored in localstorage.
+
 ### Properties
 A generic store has the following properties by default:
 
