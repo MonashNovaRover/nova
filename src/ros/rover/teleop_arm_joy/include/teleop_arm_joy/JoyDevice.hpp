@@ -33,19 +33,27 @@ public:
    * this device.
    * @param callback Callback function for after receiving a joy message and updating listeners
    */
-  JoyDevice(rclcpp::Node& parent, const string& name, const Params::Devices::MapDeviceNames& config, const vector<shared_ptr<JoyMessageListener>>& listeners, const function<void(string&)>& callback);
+  JoyDevice(rclcpp::Node* parent, const string& name, const Params::Devices::MapDeviceNames& config, const vector<shared_ptr<JoyMessageListener>>& listeners, const function<void(string&)>& callback);
+
+  // Accessors
+  [[nodiscard]] const string& name() const {
+    return name_;
+  }
+
+  void debounce();
 
 private:
-  string name;
+  string name_;
   vector<shared_ptr<JoyMessageListener>> listeners;
   rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub;
   function<void(string&)> callback;
+  rclcpp::Node* parent_;
 
   /**
    * @brief Callback function for joystick messages.
    * @param joy_msg Shared pointer to the joystick message.
    */
-  void joyCallback(const sensor_msgs::msg::Joy::SharedPtr& joy_msg);
+  void joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 };
 
 } // teleop_arm_joy
