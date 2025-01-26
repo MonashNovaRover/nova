@@ -10,9 +10,6 @@ using namespace std::chrono_literals;
 
 namespace
 {
-  constexpr auto DEFAULT_INPUT_TOPIC = "/joy";
-  constexpr auto DEFAULT_OUTPUT_TOPIC = "/"; // TODO
-  constexpr auto DEFAULT_OUTPUT_TOPIC_INFO = "/"; // TODO
   constexpr auto BUTTON_DEBOUNCE_INTERVAL = std::chrono::milliseconds(100);
 }
 
@@ -38,7 +35,7 @@ TeleopArmJoy::TeleopArmJoy(const rclcpp::NodeOptions &options)
 
   control_mode = ControlMode::FK;
 
-  devices = std::vector<JoyDevice>();
+  devices = std::vector<shared_ptr<JoyDevice>>();
   speed = 0;
 }
 
@@ -96,23 +93,48 @@ void TeleopArmJoy::initializeParams()
     listeners[axis_config.device]->emplace_back(axis);
   }
 
-  // Give axes and axes to a joy device to be managed
+  // Populate unspecified buttons and axes with duds
+  shared_ptr<JoyButton> default_button(new JoyButton(Params::Buttons::MapButtonDefinitions()));
+  for (auto& name : params_.button_definitions) {
+    buttons.insert(make_pair(name, default_button));
+  }
+
+  shared_ptr<JoyAxis> default_axis(new JoyAxis(Params::Axes::MapAxisDefinitions()));
+  for (auto& name : params_.button_definitions) {
+    axes.insert(make_pair(name, default_axis));
+  }
+
+  // Give axes and buttons to a joy device to be managed
   for (auto& [name, config] : device_configs) {
-    auto device = JoyDevice(*this, name, config, *listeners[name], bind(&TeleopArmJoy::onDeviceUpdated, this, _1));
+    shared_ptr<JoyDevice> device(new JoyDevice(this, name, config, *listeners[name], bind(&TeleopArmJoy::onDeviceUpdated, this, _1)));
     devices.emplace_back(device);
 
     // Clean up
     delete listeners[name];
   }
   listeners.clear();
+
+  RCLCPP_INFO(this->get_logger(), "Finished initializing params");
 }
 
 void TeleopArmJoy::onDeviceUpdated(string &device_name) {
+  for (auto& device : devices) {
+    device->debounce();
+  }
 
-  // TODO: Update other devices for debouncing
+  // Log any button presses
+  for (auto& [name, button] : buttons) {
+    if (button->down()) {
+      RCLCPP_INFO(this->get_logger(), "  > %s pressed", name.c_str());
+    }
+  }
 
-
-  // TODO: Maybe send off a new arm command based on the updated input
+  // Log any button presses
+  for (auto& [name, axis] : axes) {
+    if (axis->changed()) {
+      RCLCPP_INFO(this->get_logger(), "  > %s : %f", name.c_str(), axis->value());
+    }
+  }
 
 }
 
