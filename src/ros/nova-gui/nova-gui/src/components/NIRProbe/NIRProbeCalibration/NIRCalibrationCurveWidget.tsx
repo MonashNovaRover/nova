@@ -40,13 +40,22 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
   const [calibrationModalIsOpen, setCalibrationModalIsOpen] = useState<boolean>(false)
   const [calibrationData, _] = useGenericStore<NIRProbeCalibrationData>("nirProbeCalibrationData");
 
+  /* Plotting readings on the calibration curve */
+
+  // const [readings, ,] = useNIRSiteData()
+  // const scatterData = useMemo(() => ({
+  //   x: readings.map
+  // } as Scatter3DPlotData), [readings])
+
+  /* Generating points on the calibration curve */
+
   const xValues = useMemo(() => generateRange(calibrationData.xRange[0], calibrationData.xRange[1], GRANUALITY), [calibrationData])
   const yValues = useMemo(() => generateRange(calibrationData.yRange[0], calibrationData.yRange[1], GRANUALITY), [calibrationData])
 
   // z values is a 2d array where each value is generated from the corresponding x and y values
   const zValues = useMemo(() => {
     return yValues.map(y => [...xValues.map(x => calibrationFunction(calibrationData.coefficients)(x, y))])
-  }, [calibrationData])
+  }, [calibrationData, xValues, yValues])
 
   return (
     <Card>
@@ -62,9 +71,8 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
       </CardHeader>
       <CardBody>
         <NIR3DCalibrationCurve
-          zValues={zValues}
-          xValues={xValues}
-          yValues={yValues}
+          surfaceData={{x: xValues, y: yValues, z: zValues}}
+          scatterData={{x: [], y: [], z: []}}
         />
       </CardBody>
       <NIRCalibrationSettingsModal

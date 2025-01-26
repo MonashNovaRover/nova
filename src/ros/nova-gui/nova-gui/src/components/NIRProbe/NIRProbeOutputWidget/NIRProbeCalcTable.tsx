@@ -1,13 +1,8 @@
-import {
-  CardProps, Table, TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader, TableRow
-} from "@nextui-org/react";
+import {CardProps, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow} from "@nextui-org/react";
 import React, {useMemo} from "react";
 import {useCalibrationFunction} from "../NIRProbeCalibration/NIRCalibration.ts";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
-import {XYNames} from "../SpaceResourcesSiteType.tsx";
+import {NIRProbeReadingType, XYNames} from "../SpaceResourcesSiteType.tsx";
 
 export interface NIRProbeCalcTableProps extends CardProps {
 }
@@ -19,13 +14,21 @@ const NIRProbeCalcTable: React.FC<NIRProbeCalcTableProps> = () => {
   // calibration function
   const calibrationFunc = useCalibrationFunction()
 
-  const xList = useMemo(() => readings.map(entry => entry.x).filter(x => x), [readings])
+  // average water reading
+  const xList = useMemo(() => readings
+    .filter((entry) => entry.type === NIRProbeReadingType.WATER)
+    .map(entry => entry.data),
+    [readings])
   const averageX = useMemo(() =>
     xList.reduce((a,b) => a+b, 0) / Math.max(xList.length,1),
     [xList]
   )
 
-  const yList = useMemo(() => readings.map(entry => entry.y).filter(y => y), [readings])
+  // average ice reading
+  const yList = useMemo(() => readings
+      .filter((entry) => entry.type === NIRProbeReadingType.ICE)
+      .map(entry => entry.data),
+    [readings])
   const averageY = useMemo(() =>
     yList.reduce((a,b) => a+b, 0) / Math.max(yList.length,1),
     [yList]

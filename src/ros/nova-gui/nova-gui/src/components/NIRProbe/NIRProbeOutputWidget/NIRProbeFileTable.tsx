@@ -37,7 +37,7 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({
 
     return (
       <TableHeader>
-        {cols.map((v) => <TableColumn>{v}</TableColumn>)}
+        {cols.map((v) => <TableColumn key={`header-${v}`}>{v}</TableColumn>)}
       </TableHeader>
     )
   }, [showAdvanced])
@@ -52,7 +52,7 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({
         ...extras,
         <TableCell key="action">
           <Button onPress={() => deleteEntry(index)}
-                  size="sm" color="danger" variant="light" className="w-full">
+                  size="sm" color="danger" variant="light" className="w-full" key="delete-button">
             <Trash2/>
           </Button>
         </TableCell>,
