@@ -11,6 +11,13 @@ interface INIRProbeLEDWidgetProps extends CardProps {
 
 }
 
+/**
+ * to test:
+ *
+ * publish data: ~/result/bin/ros2 topic pub /science/nir_probe_data nova_interfaces/msg/NIRProbeData "{data: 0, led: 0, status: 1}"
+ *
+ */
+
 const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({...cardProps}) => {
   const bifrost = useBifrost({ topic: RosTopic.NIR_DATA, service: RosService.SET_NIR_PROBE_LED });
   const led = useSelector((state: RootState) => state.nirStore.led);

@@ -1,14 +1,32 @@
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {NIRProbeCalibrationData} from "../../../redux/models/genericStores/NIRProbeCalibrationData.ts";
+import {NIRProbeReadingType} from "../SpaceResourcesSiteType.tsx";
 
 /**
  * Number of coefficients required for the calibration function
  */
-export const COEFFICIENT_QUANTITY = 6
+export const COEFFICIENT_QUANTITY = 6;
+
+// TODO make part of calibration data
+export const WATER_OFFSET = 300;
+export const ICE_OFFSET = 250;
+
+const absorbCoef = 3000
+
+/**
+ * Takes in the difference between reading and light blank and applies the offset and absorbance function
+ * @param type reading type (Water or Ice)
+ * @param data nir probe reading
+ */
+export const absorbance = (type: NIRProbeReadingType, data: number) => {
+  const offset = type === NIRProbeReadingType.WATER ? WATER_OFFSET : ICE_OFFSET;
+  return Math.log10(absorbCoef / (data + offset));
+}
+
 
 /**
  * calibration function
- * @param c c for each
+ * @param coef c for each
  * @param x difference in absorption for water readings
  * @param y difference in absorption for ice readings
  */

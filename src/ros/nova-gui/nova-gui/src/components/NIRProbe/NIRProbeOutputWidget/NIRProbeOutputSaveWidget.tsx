@@ -3,11 +3,15 @@ import {
   Card,
   CardBody,
   CardHeader,
-  CardProps, Chip,
-  Dropdown, DropdownItem,
+  CardProps,
+  Chip,
+  Dropdown,
+  DropdownItem,
   DropdownMenu,
   DropdownTrigger,
-  Input
+  Input,
+  Select,
+  SelectItem
 } from "@nextui-org/react";
 import CopyableOutput from "../../CopyableOutput/CopyableOutput.tsx";
 import React, {useCallback, useEffect, useState} from "react";
@@ -15,9 +19,9 @@ import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
-import {Check, Droplet, MoreHorizontal, Square, XCircle} from "react-feather";
+import {Check, MoreHorizontal} from "react-feather";
 import {SiteData} from "../../../redux/models/genericStores/SiteDataState.ts";
-import {ISpaceResourcesEntry, XYNames} from "../SpaceResourcesSiteType.tsx";
+import {ISpaceResourcesEntry, NIRProbeReadingType, NIRPRobeReadingTypeInfo,} from "../SpaceResourcesSiteType.tsx";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
 
 export interface NIRProbeOutputSaveWidgetProps extends CardProps {
@@ -27,35 +31,16 @@ export interface NIRProbeOutputSaveWidgetProps extends CardProps {
   setShowAdvanced : (newShowAdvanced: boolean) => void,
 }
 
-const CHIP_DATA = {
-  0: {
-    name: "Off",
-    icon: <XCircle size={18}/>,
-    colour: "default",
-  },
-  1: {
-    name: "Water",
-    icon: <Droplet size={18}/>,
-    colour: "primary",
-  },
-  2: {
-    name: "Ice",
-    icon: <Square size={18}/>,
-    colour: "secondary",
-  },
-}
-
 const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   file, setFile, showAdvanced, setShowAdvanced, ...cardProps
 }) => {
   const bifrost = useBifrost({ topic: RosTopic.NIR_DATA });
   const nirData = useSelector((state: RootState) => state.nirStore);
-  // const led = useSelector((state: RootState) => state.nirStore.led);
 
   const [readings, setReadings] = useNIRSiteData();
 
-  const [x, setX] = useState<number | undefined>();
-  const [y, setY] = useState<number | undefined>();
+  const [data, setData] = useState<number | undefined>();
+  const [type, setType] = useState<NIRProbeReadingType>(NIRProbeReadingType.WATER);
   const [sampleLabel, setSampleLabel] = useState<string>("");
 
   useEffect(() => {
@@ -65,13 +50,18 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   const onSave = useCallback(() => {
     setReadings([
       {
-        x: x,
-        y: y,
+        data: data,
+        type: type,
         label: sampleLabel,
       } as ISpaceResourcesEntry,
       ...readings
     ])
-  }, [readings, setReadings, x, y, sampleLabel]);
+  }, [readings, setReadings, data, type, sampleLabel]);
+
+  const onTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (+e.target.value !== 0)
+      setType(+e.target.value as NIRProbeReadingType)
+  }
 
   return (
     <Card {...cardProps}>
@@ -98,13 +88,13 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
       <CardBody className="flex flex-col gap-3">
         <div className="flex flex-row gap-3 items-center">
           <Chip size="lg"
-                startContent={CHIP_DATA[nirData.led].icon}
-                color={CHIP_DATA[nirData.led].colour}
+                startContent={NIRPRobeReadingTypeInfo[nirData.led].icon}
+                color={NIRPRobeReadingTypeInfo[nirData.led].colour as "default" | "secondary" | "primary"}
                 classNames={{
                   base: "min-w-24",
                 }}
           >
-            {CHIP_DATA[nirData.led].name}
+            {NIRPRobeReadingTypeInfo[nirData.led].name}
           </Chip>
           <CopyableOutput className="tracking-wide grow" classNames={{pre: "text-lg pt-1"}}>
             {nirData.data}
@@ -122,14 +112,34 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
       {
         showAdvanced &&
         <CardBody className="flex flex-row gap-3">
-          <Input onValueChange={onFloatChanged(setX)} value={x?.toString() ?? ""} size="sm"
-                 labelPlacement="outside" label={`Manual ${XYNames.Y} Reading Entry`}>
+          <Input onValueChange={onFloatChanged(setData)} value={data?.toString() ?? ""} size="sm"
+            labelPlacement="outside" label={`Manual Reading Entry`}>
           </Input>
-          <Input onValueChange={onFloatChanged(setY)} value={y?.toString() ?? ""} size="sm"
-                 labelPlacement="outside" label={`Manual ${XYNames.Y} Reading Entry`}>
-          </Input>
+          <Select
+            selectedKeys={[`${type}`]}
+            size="sm"
+            {...NIRPRobeReadingTypeInfo
+              .slice(1)
+              .map(({type, name, icon}) => (
+              <SelectItem key={`${type}`} value={type} startContent={icon}>
+                {name}
+              </SelectItem>
+            ))}
+
+            labelPlacement="outside"
+            label="Reading Type"
+            onChange={onTypeChange}
+            aria-label="NIR Probe Type"
+            startContent={NIRPRobeReadingTypeInfo[type].icon}
+          >
+            {NIRPRobeReadingTypeInfo.slice(1).map(({type, name, icon}) => (
+              <SelectItem key={`${type}`} value={type} startContent={icon}>
+                {name}
+              </SelectItem>
+            ))}
+          </Select>
           <Input onValueChange={setSampleLabel} value={sampleLabel} size="sm"
-                 labelPlacement="outside" label="Sample Label">
+            labelPlacement="outside" label="Sample Label">
           </Input>
         </CardBody>
       }
