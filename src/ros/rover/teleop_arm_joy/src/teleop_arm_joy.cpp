@@ -98,19 +98,26 @@ void TeleopArmJoy::initializeParams()
 
   // Give axes and axes to a joy device to be managed
   for (auto& [name, config] : device_configs) {
-    auto device = JoyDevice(name, *listeners[name]);
+    auto device = JoyDevice(*this, name, config, *listeners[name], bind(&TeleopArmJoy::onDeviceUpdated, this, _1));
     devices.emplace_back(device);
 
     // Clean up
     delete listeners[name];
   }
   listeners.clear();
+}
+
+void TeleopArmJoy::onDeviceUpdated(string &device_name) {
+
+  // TODO: Update other devices for debouncing
+
+
+  // TODO: Maybe send off a new arm command based on the updated input
 
 }
 
 void TeleopArmJoy::sendArmCommand(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
 {
-  // auto controller_params = params_.controllers_map.at(modeToController(control_mode));
 
 
 }

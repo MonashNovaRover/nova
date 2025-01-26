@@ -18,6 +18,9 @@ public:
 
   // TODO: Add distinct step for debouncing / updating, so that we can sync between devices
 
+
+  virtual void debounce();
+
   virtual void joyCallback(sensor_msgs::msg::Joy::SharedPtr joy_msg) = 0;
 };
 
