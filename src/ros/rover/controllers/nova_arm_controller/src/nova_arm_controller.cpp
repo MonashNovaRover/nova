@@ -8,7 +8,6 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 #include "rclcpp/logging.hpp"
-#include "tf2/LinearMath/Quaternion.h"
 
 namespace
 {
@@ -36,11 +35,6 @@ namespace nova_arm_controller
   const char *NovaArmController::joint_feedback_type() const
   {
     return params_.joint_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
-  }
-
-  const char *NovaArmController::linear_feedback_type() const
-  {
-    return params_.linear_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
   }
 
   controller_interface::CallbackReturn NovaArmController::on_init()
@@ -102,10 +96,9 @@ namespace nova_arm_controller
     for (const auto &joint_handle : registered_joint_handles_)
     {
       float joint_speed = 0.0;
-      RCLCPP_INFO(logger, "%s speed: %f", joint_handle.name, joint_speed);
+      RCLCPP_INFO(logger, "%s speed: %f", joint_handle.name.c_str(), joint_speed);
       joint_handle.command.get().set_value(joint_speed);
     }
-
 
     return controller_interface::return_type::OK;
   }
@@ -126,6 +119,8 @@ namespace nova_arm_controller
       RCLCPP_ERROR(logger, "Joint names parameter is empty!");
       return controller_interface::CallbackReturn::ERROR;
     }
+
+    // TODO: validate angular limits
 
     /*limiter_angular_ = SpeedLimiter(
         params_.angular.z.has_velocity_limits, params_.angular.z.has_acceleration_limits,
@@ -149,7 +144,6 @@ namespace nova_arm_controller
   {
     const auto joints_result =
         configure_joints(params_.joint_names, registered_joint_handles_, joint_feedback_type());
-    // same for linear actuator?
 
     if (joints_result == controller_interface::CallbackReturn::ERROR)
     {
@@ -159,10 +153,10 @@ namespace nova_arm_controller
       return controller_interface::CallbackReturn::ERROR;
     }
 
-
     is_halted = false;
     subscriber_is_active_ = true;
 
+    // TODO: setup sub and pub
     //RCLCPP_DEBUG(get_node()->get_logger(), "Subscriber and publisher are now active.");
     return controller_interface::CallbackReturn::SUCCESS;
   }
@@ -177,7 +171,7 @@ namespace nova_arm_controller
       is_halted = true;
     }
     registered_joint_handles_.clear();
-    // TODO: same for linear?
+
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -188,7 +182,6 @@ namespace nova_arm_controller
     {
       return controller_interface::CallbackReturn::ERROR;
     }
-    // ???
 
     return controller_interface::CallbackReturn::SUCCESS;
   }
@@ -214,22 +207,15 @@ namespace nova_arm_controller
   controller_interface::CallbackReturn NovaArmController::on_shutdown(
       const rclcpp_lifecycle::State &)
   {
-    //???
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
   void NovaArmController::halt()
   {
-    const auto halt_blcmds = [](auto &joint_handles)
+    for (const auto &joint_handle : registered_joint_handles_)
     {
-      for (const auto &joint_handle : joint_handles)
-      {
-        joint_handle.command.get().set_value(0.0);
-      }
-    };
-
-    halt_blcmds(registered_joint_handles_);
-    // same for linear?
+      joint_handle.command.get().set_value(0.0);
+    }
   }
 
   controller_interface::CallbackReturn NovaArmController::configure_joints(
@@ -246,6 +232,7 @@ namespace nova_arm_controller
 
     // register handles
     registered_handles.reserve(joint_names.size());
+    //TODO: pos/vel/etc limits
     for (const auto &joint_name : joint_names)
     {
       const auto interface_name = feedback_type;
@@ -268,7 +255,7 @@ namespace nova_arm_controller
           [&joint_name, &interface_name](const auto &interface)
           {
             return interface.get_prefix_name() == joint_name &&
-                   interface.get_interface_name() == interface_name;
+                   interface.get_interface_name() == interface_name; //TODO: might need this to not be same as state interface
           });
 
       if (command_handle == command_interfaces_.end())

@@ -4,6 +4,7 @@
 #include <cmath>
 
 //TODO: in the case of the arm joints, its rotational not translational velocity
+//TODO: support position limit as well
 namespace nova_arm_controller
 {
   class SpeedLimiter
