@@ -19,6 +19,7 @@
 #include "realtime_tools/realtime_buffer.h"
 #include "realtime_tools/realtime_publisher.h"
 #include "tf2_msgs/msg/tf_message.hpp"
+#include "nova_arm_controller/speed_limiter.hpp"
 
 #include "nova_arm_controller_parameters.hpp"
 
@@ -62,8 +63,8 @@ namespace nova_arm_controller
       std::string name;
       std::reference_wrapper<const hardware_interface::LoanedStateInterface> state;
       std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
+      SpeedLimiter speed_limiter;
       float target_direction = 0.0;
-      float max_j_rot_vel = 0.0;
       float best_effort_rotational_velocity = 0.0;
       // store per joint odometry here maybe?
     };
@@ -72,14 +73,8 @@ namespace nova_arm_controller
         std::vector<JointHandle> &registered_handles, const char *feedback_type);
 
     const char *joint_feedback_type() const;
-    const char *linear_feedback_type() const;
-
-    controller_interface::CallbackReturn configure_arm_pivots(
-        const std::vector<std::string> &joint_names,
-        std::vector<JointHandle> &registered_handles, const char *feedback_type);
 
     std::vector<JointHandle> registered_joint_handles_;
-    //std::vector<JointHandle> registered_arm_linear_handles;
 
     // Parameters from ROS for nova_diff_drive_controller
     std::shared_ptr<ParamListener> param_listener_;
