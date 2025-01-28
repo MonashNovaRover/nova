@@ -70,7 +70,7 @@ namespace nova_behavior_tree
                 BT::InputPort<double>("delay_min_s", 0.0, "Minimum delay in seconds between data emissions"),
                 BT::InputPort<double>("delay_max_s", 0.0, "Maximum delay in seconds between data emissions"),
                 BT::InputPort<int>("repeat_limit", 0, "Number of times to emit data, set to -1 for infinite"),
-                BT::InputPort<std::string>("output_key", "Key to write the data to"),
+                BT::OutputPort<T>("output", "Where to write the data to"),
             };
         }
 
@@ -80,7 +80,7 @@ namespace nova_behavior_tree
 
             if (delay_ == 0.0)
             {
-                setOutput(output_key_, generateData());
+                setOutput("output", generateData());
 
                 if (repeats_left_-- == 0)
                 {
@@ -96,7 +96,7 @@ namespace nova_behavior_tree
         {
             if (system_clock::now() >= deadline_)
             {
-                setOutput(output_key_, generateData());
+                setOutput("output", generateData());
 
                 if (repeats_left_-- == 0)
                 {
