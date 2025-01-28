@@ -34,7 +34,7 @@ const NIR3DCalibrationCurve: React.FC<NIR3DCalibrationCurveProps> = ({ surfaceDa
             ...surfaceData,
             type: 'surface',
           },
-          // docs for scatter3d struct type: https://plotly.com/javascript/reference/scatter3d/
+          // docs for scatter 3d struct type: https://plotly.com/javascript/reference/scatter3d/
           {
             ...scatterData,
             type: 'scatter3d',
