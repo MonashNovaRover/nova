@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4"
+      main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <DummyDetectCube delay_min_s="2"
+                     delay_max_s="4"
+                     repeat_limit="-1"
+                     output_key="cube_location"/>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="DummyDetectCube">
+      <input_port name="delay_min_s">Minimum delay in seconds between data emissions</input_port>
+      <input_port name="delay_max_s">Maximum delay in seconds between data emissions</input_port>
+      <input_port name="repeat_limit">Number of times to emit data, set to -1 for infinite</input_port>
+      <input_port name="output_key">Key to write the data to</input_port>
+    </Action>
+  </TreeNodesModel>
+
+</root>
