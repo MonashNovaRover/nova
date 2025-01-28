@@ -51,7 +51,6 @@ namespace nova_behavior_tree
             getInput("delay_min_s", delay_min_);
             getInput("delay_max_s", delay_max_);
             getInput("repeat_limit", repeats_left_);
-            getInput("output_key", output_key_);
 
             // Ensure valid delay values
             delay_min_ = std::max(0.0, delay_min_);
@@ -125,7 +124,6 @@ namespace nova_behavior_tree
         double delay_min_;
         double delay_max_;
         int repeats_left_;
-        std::string output_key_;
 
         double delay_;
         std::uniform_real_distribution<double> unif;
