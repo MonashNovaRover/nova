@@ -49,7 +49,7 @@ namespace nova_behavior_tree
     protected:
         geometry_msgs::msg::PoseStamped generateData() override
         {
-            RCLCPP_INFO(node_->get_logger(), "Detected cube at %s", poseStampedToString(cube_pose_).c_str());
+            RCLCPP_INFO(node_->get_logger(), "Detected cube after %.2lfs%s", delay_, poseStampedToString(cube_pose_).c_str());
             return cube_pose_;
         }
 
