@@ -1,7 +1,7 @@
 import React, {useCallback, useState} from "react";
 import NIRProbeOutputSaveWidget from "./NIRProbeOutputWidget/NIRProbeOutputSaveWidget.tsx";
 import NIRProbeLEDWidget from "./NIRProbeLEDWidget/NIRProbeLEDWidget.tsx";
-import NIRProbeFileTableWidget from "./NIRProbeOutputWidget/NIRProbeFileTableWidget.tsx";
+import NIRProbeFileTableWidget from "./NIRProbeFileTable/NIRProbeFileTableWidget.tsx";
 import NIRCalibrationCurveWidget from "./NIRProbeCalibration/NIRCalibrationCurveWidget.tsx";
 import TOFHeight from "../AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
 import {useGenericStore} from "../../hooks/useGenericStore.ts";

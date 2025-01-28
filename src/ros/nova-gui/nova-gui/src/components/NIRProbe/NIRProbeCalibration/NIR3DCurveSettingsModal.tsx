@@ -9,7 +9,7 @@ import {
 export interface NIRCalibrationSettingsModalProps {
   isOpen: boolean,
   setIsOpen: (v: boolean) => void,
-};
+}
 
 /**
  * Settings modal for the NIR Calibration Curve 3D visualisation.
@@ -17,38 +17,11 @@ export interface NIRCalibrationSettingsModalProps {
  * @param setIsOpen function to set the isOpen value
  * @constructor
  */
-const NIRCalibrationSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = ({
+const NIR3DCurveSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = ({
   isOpen, setIsOpen
 }) => {
 
   const [calibrationData, setCalibrationData] = useGenericStore<NIRProbeCalibrationData>("nirProbeCalibrationData");
-
-  /* Coefficient Settings */
-
-  const setCoefficient = (i: number) => (newVal: string) => {
-    setCalibrationData({
-      ...calibrationData,
-      coefficients: calibrationData.coefficients.map((v, index) => index == i ? parseFloat(newVal) : v)
-    } as NIRProbeCalibrationData)
-  }
-
-  const renderCoefficients = () => {
-    return calibrationData.coefficients.map((c, i) => <Input
-      key={`coefficient-${i}`}
-      type="number"
-      step="0.1"
-      label={"Coefficient " + `${i+1}`}
-      value={formatPotentiallyNaNFloatString(c)}
-      onValueChange={setCoefficient(i)}
-    />)
-  }
-
-  const resetCoefficients = () => {
-    setCalibrationData({
-      ...calibrationData,
-      coefficients: DEFAULT_NIR_PROBE_CALIBRATION_DATA.coefficients,
-    } as NIRProbeCalibrationData)
-  }
 
   /* Range Settings */
 
@@ -67,6 +40,7 @@ const NIRCalibrationSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = 
 
   const renderRanges = () => {
     return [
+      <span>X Range</span>,
       <div key="XRange-input" className="grid grid-cols-2 gap-3">
         <Input
           label={"X Min"}
@@ -82,6 +56,7 @@ const NIRCalibrationSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = 
       <Button onClick={() => setXRange(DEFAULT_NIR_PROBE_CALIBRATION_DATA.xRange)} className="mb-4" key="reset-x-range">
         Reset X Range
       </Button>,
+      <span>Y Range</span>,
       <div className="grid grid-cols-2 gap-3" key="YRange-input">
         <Input
           label={"Y Min"}
@@ -111,17 +86,8 @@ const NIRCalibrationSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = 
         <ModalHeader className="flex flex-col gap-1">
           NIR Calibration Settings
         </ModalHeader>
-        <ModalBody className="p-3 pt-0">
-          <div className="grid grid-cols-3 gap-3">
-            {renderCoefficients()}
-          </div>
-          <Button onClick={resetCoefficients} className="mb-4">
-            Reset Coefficients
-          </Button>
+        <ModalBody>
           {renderRanges()}
-          <Button onClick={() => setCalibrationData(DEFAULT_NIR_PROBE_CALIBRATION_DATA)} className="bg-danger">
-            Reset All
-          </Button>
         </ModalBody>
       </ModalContent>
     </Modal>
@@ -130,4 +96,4 @@ const NIRCalibrationSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = 
 
 const formatPotentiallyNaNFloatString = (value: number) => isNaN(value) ? "" : `${value}`;
 
-export default NIRCalibrationSettingsModal;
+export default NIR3DCurveSettingsModal;

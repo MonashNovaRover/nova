@@ -7,7 +7,7 @@ import {
 } from "@nextui-org/react";
 import {MoreHorizontal} from "react-feather";
 import NIR3DCalibrationCurve from "./NIR3DCalibrationCurve.tsx";
-import NIRCalibrationSettingsModal from "./NIRCalibrationSettingsModal.tsx";
+import NIR3DCurveSettingsModal from "./NIR3DCurveSettingsModal.tsx";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {NIRProbeCalibrationData} from "../../../redux/models/genericStores/NIRProbeCalibrationData.ts";
 import {calibrationFunction} from "./NIRCalibration.ts";
@@ -75,7 +75,7 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
           scatterData={{x: [], y: [], z: []}}
         />
       </CardBody>
-      <NIRCalibrationSettingsModal
+      <NIR3DCurveSettingsModal
         isOpen={calibrationModalIsOpen}
         setIsOpen={setCalibrationModalIsOpen}
       />

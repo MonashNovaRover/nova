@@ -14,7 +14,7 @@ import React, {useCallback, useMemo} from "react";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
 import {ISpaceResourcesEntry, NIRProbeReadingType} from "../SpaceResourcesSiteType.tsx";
 import {Droplet, Square, Trash2} from "react-feather";
-import {absorbance} from "../NIRProbeCalibration/NIRCalibration.ts";
+import {useAbsorbance} from "../NIRProbeCalibration/NIRCalibration.ts";
 
 export interface NIRProbeFileTableProps extends CardProps {
   showAdvanced : boolean,
@@ -25,7 +25,8 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({
 }) => {
 
   // NIR Probe readings data corresponding to the currently selected site.
-  const [readings, setReadings] = useNIRSiteData()
+  const [readings, setReadings] = useNIRSiteData();
+  const absorbance = useAbsorbance();
 
   const deleteEntry = useCallback((index: number) => {
     setReadings(readings.filter((_, i) => i !== index))

@@ -7,22 +7,27 @@ import {NIRProbeReadingType} from "../SpaceResourcesSiteType.tsx";
  */
 export const COEFFICIENT_QUANTITY = 6;
 
-// TODO make part of calibration data
-export const WATER_OFFSET = 300;
-export const ICE_OFFSET = 250;
-
 const absorbCoef = 3000
 
 /**
  * Takes in the difference between reading and light blank and applies the offset and absorbance function
+ * @param waterOffset offset of the raw water difference readings
+ * @param iceOffset offset of the raw ice difference readings
  * @param type reading type (Water or Ice)
  * @param data nir probe reading
  */
-export const absorbance = (type: NIRProbeReadingType, data: number) => {
-  const offset = type === NIRProbeReadingType.WATER ? WATER_OFFSET : ICE_OFFSET;
+export const absorbance = (waterOffset: number, iceOffset: number) => (type: NIRProbeReadingType, data: number) => {
+  const offset = type === NIRProbeReadingType.WATER ? waterOffset : iceOffset;
   return Math.log10(absorbCoef / (data + offset));
 }
 
+/**
+ * Absorbance function with the current offsets stored in the generic store.
+ */
+export const useAbsorbance = () => {
+  const [calibrationData, _] = useGenericStore<NIRProbeCalibrationData>("nirProbeCalibrationData");
+  return absorbance(calibrationData.xOffset, calibrationData.yOffset);
+}
 
 /**
  * calibration function
@@ -33,7 +38,7 @@ export const absorbance = (type: NIRProbeReadingType, data: number) => {
 export const calibrationFunction = (coef: number[]) => (x: number, y: number): number => {
   if (coef.length != COEFFICIENT_QUANTITY) {
     console.log("invalid number of c:", coef);
-    return 0
+    return 0;
   }
 
   const c = coef.map(v => Number.isNaN(v) ? 0 : v)
@@ -49,5 +54,5 @@ export const calibrationFunction = (coef: number[]) => (x: number, y: number): n
  */
 export const useCalibrationFunction = () => {
   const [calibrationData, _] = useGenericStore<NIRProbeCalibrationData>("nirProbeCalibrationData");
-  return calibrationFunction(calibrationData.coefficients)
+  return calibrationFunction(calibrationData.coefficients);
 }
