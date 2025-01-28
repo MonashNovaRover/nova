@@ -1,8 +1,12 @@
 import React from "react";
-import Plot from 'react-plotly.js';
 
-// uses react-plotly, docs can be found here:
-
+// There doesn't exist a typescript definition for this package
+// I tried and failed to create a module type dependency.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import Plotly from "plotly.js-gl3d-dist-min";
+import createPlotlyComponent from 'react-plotly.js/factory';
+const Plot = createPlotlyComponent(Plotly)
 export interface NIR3DCalibrationCurveProps {
   surfaceData: SurfacePlotData,
   scatterData: Scatter3DPlotData,
