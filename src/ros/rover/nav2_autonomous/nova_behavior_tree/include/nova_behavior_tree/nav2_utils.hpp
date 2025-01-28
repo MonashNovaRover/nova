@@ -27,18 +27,18 @@ namespace nova_behavior_tree
     std::string poseStampedToString(const geometry_msgs::msg::PoseStamped &pose)
     {
         std::ostringstream oss;
-        oss << "PoseStamped :"
-            << "  Header:"
-            << "    frame_id: " << pose.header.frame_id.c_str()
-            << "    stamp: " << pose.header.stamp.sec << "." << pose.header.stamp.nanosec
-            << "  Pose:"
+        oss << "\nPoseStamped :\n"
+            << "  Header:\n"
+            << "    frame_id: " << pose.header.frame_id.c_str() << "\n"
+            << "    stamp: " << pose.header.stamp.sec << "." << pose.header.stamp.nanosec << "\n"
+            << "  Pose:\n"
             << "    position: " << "[x: " << pose.pose.position.x 
                                 << ", y: " << pose.pose.position.y 
-                                << ", z: " << pose.pose.position.z << "]"
+                                << ", z: " << pose.pose.position.z << "]\n"
             << "    orientation: " << "[x: " << pose.pose.orientation.x 
                                    << ", y: " << pose.pose.orientation.y 
                                    << ", z: " << pose.pose.orientation.z 
-                                   << ", w: " << pose.pose.orientation.w << "]";
+                                   << ", w: " << pose.pose.orientation.w << "]\n";
         
         return oss.str();
     }
