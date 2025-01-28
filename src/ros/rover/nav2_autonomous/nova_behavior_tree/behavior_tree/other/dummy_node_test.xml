@@ -5,7 +5,7 @@
     <DummyDetectCube delay_min_s="2"
                      delay_max_s="4"
                      repeat_limit="-1"
-                     output_key="cube_location"/>
+                     output="{cube_location}"/>
   </BehaviorTree>
 
   <!-- Description of Node Models (used by Groot) -->
@@ -14,7 +14,7 @@
       <input_port name="delay_min_s">Minimum delay in seconds between data emissions</input_port>
       <input_port name="delay_max_s">Maximum delay in seconds between data emissions</input_port>
       <input_port name="repeat_limit">Number of times to emit data, set to -1 for infinite</input_port>
-      <input_port name="output_key">Key to write the data to</input_port>
+      <output_port name="output">Where to write the data to</output_port>
     </Action>
   </TreeNodesModel>
 
