@@ -39,18 +39,18 @@ namespace nova_behavior_tree
 
             tf_ = config().blackboard->get<std::shared_ptr<tf2_ros::Buffer>>("tf_buffer");
             node_->get_parameter("transform_tolerance", transform_tolerance_);
-            nav2util::getCurrentPose(current_pose_, *tf_, "map", "base_link", transform_tolerance_);
+            nav2_util::getCurrentPose(current_pose_, *tf_, "map", "base_link", transform_tolerance_);
             
             cube_pose_ = current_pose_;
-            cube_pose.pose.position.x += 5.0;
-            cube_pose.pose.position.y += 3.0;
+            cube_pose_.pose.position.x += 5.0;
+            cube_pose_.pose.position.y += 3.0;
         }
 
     protected:
         geometry_msgs::msg::PoseStamped generateData() override
         {
             RCLCPP_INFO(node_->get_logger(), "Detected cube at %s", poseStampedToString(cube_pose_).c_str());
-            return cube_pose;
+            return cube_pose_;
         }
 
     private:
@@ -58,7 +58,7 @@ namespace nova_behavior_tree
         double transform_tolerance_;
         geometry_msgs::msg::PoseStamped current_pose_;
         geometry_msgs::msg::PoseStamped cube_pose_;
-    }
+    };
 
 } // namespace nova_behavior_tree
 
