@@ -46,7 +46,7 @@ namespace nova_behavior_tree
         /**
          * @brief Function to read parameters and initialize class variables
          */
-        void initialize()
+        virtual void initialize()
         {
             getInput("delay_min_s", delay_min_);
             getInput("delay_max_s", delay_max_);
@@ -74,7 +74,7 @@ namespace nova_behavior_tree
             };
         }
 
-        NodeStatus onStart() override
+        BT::NodeStatus onStart() override
         {
             initialize();
 
@@ -84,15 +84,15 @@ namespace nova_behavior_tree
 
                 if (repeats_left_-- == 0)
                 {
-                    return NodeStatus::SUCCESS;
+                    return BT::NodeStatus::SUCCESS;
                 }
             }
 
-            deadline_ = system_clock::now() + duration<double>(delay_);
-            return NodeStatus::RUNNING;
+            deadline_ = system_clock::now() + milliseconds(int(delay_ * 1000.0));
+            return BT::NodeStatus::RUNNING;
         }
 
-        NodeStatus onRunning() override
+        BT::NodeStatus onRunning() override
         {
             if (system_clock::now() >= deadline_)
             {
@@ -100,14 +100,14 @@ namespace nova_behavior_tree
 
                 if (repeats_left_-- == 0)
                 {
-                    return NodeStatus::SUCCESS;
+                    return BT::NodeStatus::SUCCESS;
                 }
 
                 delay_ = unif(re);
-                deadline_ = system_clock::now() + duration<double>(delay_);
+                deadline_ = system_clock::now() + milliseconds(int(delay_ * 1000.0));
             }
 
-            return NodeStatus::RUNNING;
+            return BT::NodeStatus::RUNNING;
         }
 
         void onHalted() override
