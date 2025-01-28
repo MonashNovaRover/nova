@@ -118,6 +118,8 @@ namespace nova_behavior_tree
 
     protected:
         virtual T generateData() = 0;
+        
+        double delay_;
         rclcpp::Node::SharedPtr node_;
 
     private:
@@ -125,7 +127,6 @@ namespace nova_behavior_tree
         double delay_max_;
         int repeats_left_;
 
-        double delay_;
         std::uniform_real_distribution<double> unif;
         std::default_random_engine re;
         system_clock::time_point deadline_;
