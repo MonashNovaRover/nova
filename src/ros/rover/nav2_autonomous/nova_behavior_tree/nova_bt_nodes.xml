@@ -25,7 +25,7 @@
       <input_port name="delay_min_s">Minimum delay in seconds between data emissions</input_port>
       <input_port name="delay_max_s">Maximum delay in seconds between data emissions</input_port>
       <input_port name="repeat_limit">Number of times to emit data, set to -1 for infinite</input_port>
-      <input_port name="output_key">Key to write the data to</input_port>
+      <output_port name="output">Where to write the data to</output_port>
     </Action>
 
     <Action ID="BackUp">
