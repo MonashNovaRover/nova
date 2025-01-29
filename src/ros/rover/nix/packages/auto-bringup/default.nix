@@ -101,7 +101,7 @@ buildRosPackage rec {
     echo "$updatedJsonFile" > $jsonFilepath
 
     # Generate absolute nix store filepaths for YAML files
-    yamlFilepath="$out/share/auto_bringup/params/depthai_oakd_rgbd.yaml"
+    yamlFilepath="$out/share/auto_bringup/params/oak.yaml"
 
     yq -y -i "
       .\"/oak\".ros__parameters.nn.i_nn_config_path = \"$jsonFilepath\"
