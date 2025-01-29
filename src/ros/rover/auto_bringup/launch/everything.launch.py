@@ -13,32 +13,29 @@ PACKAGE: 	auto_bringup
 CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
-
-from ament_index_python.packages import  get_package_share_directory
-
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
 from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    auto_bringup_dir = get_package_share_directory('auto_bringup')
+    auto_bringup_dir = FindPackageShare('auto_bringup')
 
     autostart = LaunchConfiguration('autostart')
     controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
     localization = LaunchConfiguration('localization')
     log_level = LaunchConfiguration('log_level')
+    model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
     navigation = LaunchConfiguration('navigation')
-    params_file = LaunchConfiguration('params_file')
+    nav2_params = LaunchConfiguration('nav2_params')
     rviz = LaunchConfiguration('rviz')
     use_respawn = LaunchConfiguration('use_respawn')
     world = LaunchConfiguration('world')
-    model = LaunchConfiguration('model')
 
     return [
         IncludeLaunchDescription(
@@ -79,7 +76,7 @@ def launch_setup(context, *args, **kwargs):
                 'namespace': namespace,
                 'use_sim_time': gazebo,
                 'autostart': autostart,
-                'params_file': params_file,
+                'params_file': nav2_params,
                 'use_respawn': use_respawn,
                 'container_name': 'nav2_container',
                 'log_level': log_level,
@@ -94,45 +91,25 @@ def launch_setup(context, *args, **kwargs):
     ]
 
 def generate_launch_description():
-    auto_bringup_dir = get_package_share_directory('auto_bringup')
-    gazebo_dir = get_package_share_directory('nova_gazebo')
-    rover_description_dir = get_package_share_directory('rover_description')
+    auto_bringup_dir = FindPackageShare('auto_bringup')
+    nova_gazebo_dir = FindPackageShare('nova_gazebo')
+    rover_description_dir = FindPackageShare('rover_description')
 
     declared_arguments = [
-        DeclareLaunchArgument(
-            name='controllers',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
-            description='Absolute path to controller params file',
-        ),
-        DeclareLaunchArgument(
-            name='namespace',
-            default_value='',
-            description='Top-level namespace',
-        ),
-        DeclareLaunchArgument(
-            name='world',
-            default_value=PathJoinSubstitution([gazebo_dir, 'worlds', 'auto.sdf']),
-            description='Full path to world model file to load',
-        ),
-        DeclareLaunchArgument(
-            name='params_file',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2.yaml']),
-            description='Full path to the ROS2 parameters file to use for all launched nodes',
-        ),
         DeclareLaunchArgument(
             name='autostart',
             default_value='True',
             description='Automatically startup the nav2 stack',
         ),
         DeclareLaunchArgument(
-            name='use_respawn',
-            default_value='False',
-            description='Whether to respawn if a node crashes. Applied when composition is disabled.',
+            name='controllers',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
+            description='Absolute path to controller params file',
         ),
-        DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
-            name='rviz',
+        DeclareLaunchArgument(
+            name='gazebo',
             default_value='True',
-            description='Flag to launch rviz',
+            description='Flag to launch gazebo',
         ),
         DeclareLaunchArgument(
             name='localization',
@@ -145,9 +122,14 @@ def generate_launch_description():
             description='What level of logging output should be displayed',
         ),
         DeclareLaunchArgument(
-            name='gazebo',
-            default_value='True',
-            description='Flag to launch gazebo',
+            name='model',
+            default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
+            description='Absolute path to robot urdf file',
+        ),
+        DeclareLaunchArgument(
+            name='namespace',
+            default_value='',
+            description='Top-level namespace',
         ),
         DeclareLaunchArgument(
             name='navigation',
@@ -155,9 +137,24 @@ def generate_launch_description():
             description='Flag to launch navigation stack',
         ),
         DeclareLaunchArgument(
-            name='model',
-            default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
-            description='Absolute path to robot urdf file',
+            name='nav2_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2.yaml']),
+            description='Full path to the ROS2 parameters file to use for all launched nodes',
+        ),
+        DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
+            name='rviz',
+            default_value='True',
+            description='Flag to launch rviz',
+        ),
+        DeclareLaunchArgument(
+            name='use_respawn',
+            default_value='False',
+            description='Whether to respawn if a node crashes. Applied when composition is disabled.',
+        ),
+        DeclareLaunchArgument(
+            name='world',
+            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto.sdf']),
+            description='Full path to world model file to load',
         ),
     ]
 
