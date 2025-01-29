@@ -3,15 +3,20 @@ from rclpy.node import Node
 from sensor_msgs.msg import BatteryState
 import jcan
 
-class BatteryStatusNode(Node):
+import rclpy
+from rclpy.node import Node
+from sensor_msgs.msg import BatteryState
+import jcan
+
+class BatteryStateNode(Node):  # Changed class name to BatteryStateNode
     def __init__(self):
-        super().__init__('battery_status_node')
-        self.publisher_ = self.create_publisher(BatteryState, 'battery_status', 10)
+        super().__init__('battery_state_node')  # Changed node name to 'battery_state_node'
+        self.publisher_ = self.create_publisher(BatteryState, 'battery_state', 10)
         self.can_interface = jcan.CanInterface('can0')  # Replace 'can0' with your CAN interface
         self.can_interface.add_listener(self.can_message_received)
         self.battery_state = BatteryState()
         self.battery_state.cell_voltage = [0.0] * 8  # Initialize with 8 cells
-        self.get_logger().info('Battery Status Node has been started.')
+        self.get_logger().info('Battery State Node has been started.')
 
     def can_message_received(self, message):
         if message.id == 0x4B0:
@@ -33,14 +38,8 @@ class BatteryStatusNode(Node):
             voltages.append(voltage)
         return voltages
 
-    def parse_total_voltage_and_current(self, data):
-        current = int.from_bytes(data[0:2], byteorder='big') / 1000.0  # Convert to amps
-        total_voltage = int.from_bytes(data[2:4], byteorder='big') / 1000.0  # Convert to volts
-        return current, total_voltage
-
     def publish_status(self):
         self.publisher_.publish(self.battery_state)
-        self.get_logger().info(f'Published battery status: {self.battery_state}')
 
 def main(args=None):
     rclpy.init(args=args)
