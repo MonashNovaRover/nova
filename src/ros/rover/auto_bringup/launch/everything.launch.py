@@ -36,6 +36,8 @@ def launch_setup(context, *args, **kwargs):
     rviz = LaunchConfiguration('rviz')
     use_respawn = LaunchConfiguration('use_respawn')
     world = LaunchConfiguration('world')
+    model = LaunchConfiguration('model')
+    headless = LaunchConfiguration('headless')
 
     return [
         IncludeLaunchDescription(
@@ -45,8 +47,7 @@ def launch_setup(context, *args, **kwargs):
                 'camera':'True',
                 'controllers': controllers,
                 'model': model,
-                'namespace': namespace,
-                'world': world,
+                'headless': headless,
             }.items(),
         ),
         IncludeLaunchDescription(
@@ -150,9 +151,9 @@ def generate_launch_description():
             description='Full path to world model file to load',
         ),
         DeclareLaunchArgument(
-            name='gz_headless',
+            name='headless',
             default_value='',
-            description='Whether to run gazebo sim in headless mode',
+            description='Run gazebo sim in headless mode / open gazebo sim GUI?',
         ),
     ]
 

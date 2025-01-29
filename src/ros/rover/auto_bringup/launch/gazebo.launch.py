@@ -15,9 +15,10 @@ CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.conditions import IfCondition
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, 
+    OpaqueFunction, SetEnvironmentVariable, SetLaunchConfiguration
+from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, EqualsSubstitution
+from launch.conditions import UnlessCondition, IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -64,8 +65,8 @@ def launch_setup(context, *args, **kwargs):
             launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name}.items(),
         ),
         IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
-            launch_arguments={'gz_args': ['-r -v4 ', world], 'on_exit_shutdown': 'True'}.items(),
+            PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
+            launch_arguments={'gz_args': ['-r -v4 ', '-s ' if headless, world], 'on_exit_shutdown': 'True'}.items(),
         ),
         Node(
             package='ros_gz_sim',
@@ -114,8 +115,13 @@ def generate_launch_description():
             description='Absolute path to controllers params file',
         ),
         DeclareLaunchArgument(
-            name='model',
-            default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
+            name='headless',
+            default_value='False',
+            description='Run gazebo sim in headless mode / open gazebo sim GUI?',
+        ),
+        DeclareLaunchArgument(
+            name='model', 
+            default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']), 
             description='Absolute path to robot urdf file',
         ),
         DeclareLaunchArgument(
