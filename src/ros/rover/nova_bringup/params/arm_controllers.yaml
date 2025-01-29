@@ -6,6 +6,9 @@ controller_manager:
     update_rate: 60
     use_sim_time: false
 
+    nova_arm_controller:
+      type: velocity_controllers/NovaArmController
+
     arm_pivot_velocity_controller:
       type: velocity_controllers/JointGroupVelocityController
 
