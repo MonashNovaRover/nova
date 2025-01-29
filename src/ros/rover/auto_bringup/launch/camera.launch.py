@@ -25,7 +25,7 @@ def launch_setup(context, *args, **kwargs):
     depthai_dir = FindPackageShare('depthai_ros_driver')
 
     ar = LaunchConfiguration('ar')
-    ar_params = LaunchConfiguration('ar')
+    ar_params = LaunchConfiguration('ar_params')
     camera_model = LaunchConfiguration('camera_model')
     gazebo = LaunchConfiguration('gazebo')
     name = LaunchConfiguration('name').perform(context)
