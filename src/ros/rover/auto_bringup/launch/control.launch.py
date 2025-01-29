@@ -30,9 +30,15 @@ def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo')
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
+    arm = LaunchConfiguration('arm').perform(context)
     use_local_mesh = LaunchConfiguration('use_local_mesh')
 
     return [
+        Node( # TODO: only when arm is enabled
+            package='controller_manager',
+            executable='spawner',
+            arguments=['nova_arm_controller', '--switch-timeout', '10'] #, '--inactive']
+        ),
         Node(
             package='controller_manager',
             executable='spawner',
@@ -91,10 +97,10 @@ def generate_launch_description():
             description='Use simulation (Gazebo) clock if True',
         ),
         DeclareLaunchArgument(
-            name='log_level', 
+            name='log_level',
             default_value='warn',
             description='',
-        ),  
+        ),
         DeclareLaunchArgument(
             name='model', 
             default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
