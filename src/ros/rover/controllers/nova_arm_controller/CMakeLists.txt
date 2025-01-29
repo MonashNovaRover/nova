@@ -47,6 +47,10 @@ ament_target_dependencies(nova_arm_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPE
 target_compile_definitions(nova_arm_controller PRIVATE "NOVA_ARM_CONTROLLER_BUILDING_DLL")
 pluginlib_export_plugin_description_file(controller_interface arm_plugin.xml)
 
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 install(
   DIRECTORY include/
