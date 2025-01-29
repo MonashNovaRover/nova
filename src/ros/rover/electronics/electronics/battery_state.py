@@ -3,20 +3,22 @@ from rclpy.node import Node
 from sensor_msgs.msg import BatteryState
 import jcan
 
-import rclpy
-from rclpy.node import Node
-from sensor_msgs.msg import BatteryState
-import jcan
-
-class BatteryStateNode(Node):  # Changed class name to BatteryStateNode
+class BatteryStateNode(Node):
     def __init__(self):
-        super().__init__('battery_state_node')  # Changed node name to 'battery_state_node'
+        super().__init__('battery_state_node')
         self.publisher_ = self.create_publisher(BatteryState, 'battery_state', 10)
-        self.can_interface = jcan.CanInterface('can0')  # Replace 'can0' with your CAN interface
+        self.can_interface = jcan.CanInterface('can0')
         self.can_interface.add_listener(self.can_message_received)
         self.battery_state = BatteryState()
-        self.battery_state.cell_voltage = [0.0] * 8  # Initialize with 8 cells
+        self.battery_state.cell_voltage = [0.0] * 8
         self.get_logger().info('Battery State Node has been started.')
+
+    def check_node(self):
+        # Check if the node is initialized correctly
+        assert self.publisher_ is not None, "Publisher not initialized"
+        assert self.can_interface is not None, "CAN interface not initialized"
+        assert self.battery_state is not None, "Battery state not initialized"
+        self.get_logger().info('BatteryStateNode initialization check passed.')
 
     def can_message_received(self, message):
         if message.id == 0x4B0:
@@ -30,6 +32,7 @@ class BatteryStateNode(Node):  # Changed class name to BatteryStateNode
             self.battery_state.current = current
             self.battery_state.voltage = total_voltage
         self.publish_status()
+        self.get_logger().info('CAN message received and processed.')
 
     def parse_cell_voltages(self, data):
         voltages = []
@@ -43,7 +46,8 @@ class BatteryStateNode(Node):  # Changed class name to BatteryStateNode
 
 def main(args=None):
     rclpy.init(args=args)
-    node = BatteryStatusNode()
+    node = BatteryStateNode()
+    node.check_node()  # Check if the node works
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
