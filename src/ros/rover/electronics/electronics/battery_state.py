@@ -1,6 +1,7 @@
 import rclpy
 from python_control.ControllerNode import ControllerNode
 from sensor_msgs.msg import BatteryState
+import array
 
 class BatteryStateNode(ControllerNode):
 
@@ -28,10 +29,10 @@ class BatteryStateNode(ControllerNode):
     def can_message_received(self, message):
         if message.id == self.VOLTAGE_RECV_FRAME_ID_1:
             voltages = self.parse_cell_voltages(message.data)
-            self.battery_state.cell_voltage[0:4] = voltages
+            self.battery_state.cell_voltage[0:4] = array.array('f', voltages)
         elif message.id == self.VOLTAGE_RECV_FRAME_ID_2:
             voltages = self.parse_cell_voltages(message.data)
-            self.battery_state.cell_voltage[4:8] = voltages
+            self.battery_state.cell_voltage[4:8] = array.array('f', voltages)
         elif message.id == self.CURRENT_VOLTAGE_RECV_FRAME_ID:
             current, total_voltage = self.parse_total_voltage_and_current(message.data)
             self.battery_state.current = current

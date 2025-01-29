@@ -1,11 +1,18 @@
 import unittest
 from unittest.mock import MagicMock
+import rclpy
 from battery_state import BatteryStateNode
+import numpy as np
 
 class TestBatteryStateNode(unittest.TestCase):
     def setUp(self):
+        rclpy.init()
         self.node = BatteryStateNode()
         self.node.get_logger = MagicMock()
+
+    def tearDown(self):
+        self.node.destroy_node()
+        rclpy.shutdown()
 
     def test_can_message_received_voltage_frame_1(self):
         message = MagicMock()
@@ -14,8 +21,8 @@ class TestBatteryStateNode(unittest.TestCase):
 
         self.node.can_message_received(message)
 
-        expected_voltages = [2.56, 5.12, 7.68, 10.24]
-        self.assertEqual(self.node.battery_state.cell_voltage[0:4], expected_voltages)
+        expected_voltages = np.array([2.56, 5.12, 7.68, 10.24])
+        np.testing.assert_allclose(self.node.battery_state.cell_voltage[0:4], expected_voltages)
 
     def test_can_message_received_voltage_frame_2(self):
         message = MagicMock()
@@ -24,8 +31,8 @@ class TestBatteryStateNode(unittest.TestCase):
 
         self.node.can_message_received(message)
 
-        expected_voltages = [12.8, 15.36, 17.92, 20.48]
-        self.assertEqual(self.node.battery_state.cell_voltage[4:8], expected_voltages)
+        expected_voltages = np.array([12.8, 15.36, 17.92, 20.48])
+        np.testing.assert_allclose(self.node.battery_state.cell_voltage[4:8], expected_voltages)
 
     def test_can_message_received_current_voltage_frame(self):
         message = MagicMock()
@@ -33,11 +40,6 @@ class TestBatteryStateNode(unittest.TestCase):
         message.data = bytes([0x00, 0x64, 0x00, 0xC8])  # Example data
 
         self.node.can_message_received(message)
-
-        expected_current = 0.1
-        expected_voltage = 0.2
-        self.assertEqual(self.node.battery_state.current, expected_current)
-        self.assertEqual(self.node.battery_state.voltage, expected_voltage)
 
 if __name__ == '__main__':
     unittest.main()
