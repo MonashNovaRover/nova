@@ -25,9 +25,9 @@ def launch_setup(context, *args, **kwargs):
     gps = LaunchConfiguration('gps')
     rl_params = LaunchConfiguration('rl_params').perform(context)
     ukf_params = LaunchConfiguration('ukf_params').perform(context)
-    use_real_odometry = bool(LaunchConfiguration('use_real_odometry').perform(context))
-    use_sim_time = bool(LaunchConfiguration('use_sim_time').perform(context))
-    use_ukf = bool(LaunchConfiguration('use_ukf').perform(context))
+    use_real_odometry = (LaunchConfiguration('use_real_odometry').perform(context).lower() == 'true')
+    use_sim_time = (LaunchConfiguration('use_sim_time').perform(context).lower() == 'true')
+    use_ukf = (LaunchConfiguration('use_ukf').perform(context).lower() == 'true')
 
     if use_ukf:
         filter_type = 'ukf'
