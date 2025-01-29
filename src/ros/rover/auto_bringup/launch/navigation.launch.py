@@ -14,8 +14,8 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable, OpaqueFunction
-from launch.conditions import IfCondition, UnlessCondition, LaunchConfigurationNotEquals
-from launch.substitutions import LaunchConfiguration, PythonExpression, PathJoinSubstitution
+from launch.conditions import IfCondition, UnlessCondition
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import LoadComposableNodes
 from launch_ros.actions import Node
 from launch_ros.descriptions import ComposableNode, ParameterFile
@@ -23,19 +23,18 @@ from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import RewrittenYaml
 
 def launch_setup(context, *args, **kwargs):
-    namespace = LaunchConfiguration('namespace')
-    use_sim_time = LaunchConfiguration('use_sim_time')
     autostart = LaunchConfiguration('autostart')
-    params_file = LaunchConfiguration('params_file')
-    use_composition = LaunchConfiguration('use_composition')
     container_name = LaunchConfiguration('container_name')
     container_name_full = (namespace, '/', container_name)
-    use_respawn = LaunchConfiguration('use_respawn')
     log_level = LaunchConfiguration('log_level')
-    map_yaml_file = LaunchConfiguration('map')
+    namespace = LaunchConfiguration('namespace')
+    params_file = LaunchConfiguration('params_file')
+    use_composition = LaunchConfiguration('use_composition')
+    use_respawn = LaunchConfiguration('use_respawn')
+    use_sim_time = LaunchConfiguration('use_sim_time').perform(context)
 
     lifecycle_nodes = ['controller_server',
-                        'smoother_server',
+                       'smoother_server',
                        'planner_server',
                        'behavior_server',
                        'bt_navigator',
@@ -76,7 +75,7 @@ def launch_setup(context, *args, **kwargs):
         RewrittenYaml(
             source_file=params_file,
             root_key=namespace,
-            param_rewrites= {**param_substitutions,**(sim_substitutions if use_sim_time.perform(context).lower()=="false" else {})} ,
+            param_rewrites= {**param_substitutions,**(sim_substitutions if not bool(use_sim_time) else {})},
             convert_types=True),
         allow_substs=True,
     )
@@ -193,13 +192,13 @@ def launch_setup(context, *args, **kwargs):
                             parameters=[configured_params],
                             remappings=remappings + [('cmd_vel', 'cmd_vel_nav')],
                         ),
-                        # ComposableNode(
-                        #     package='nav2_smoother',
-                        #     plugin='nav2_smoother::SmootherServer',
-                        #     name='smoother_server',
-                        #     parameters=[configured_params],
-                        #     remappings=remappings,
-                        # ),
+                        ComposableNode(
+                            package='nav2_smoother',
+                            plugin='nav2_smoother::SmootherServer',
+                            name='smoother_server',
+                            parameters=[configured_params],
+                            remappings=remappings,
+                        ),
                         ComposableNode(
                             package='nav2_planner',
                             plugin='nav2_planner::PlannerServer',
@@ -236,13 +235,13 @@ def launch_setup(context, *args, **kwargs):
                         #     remappings=remappings +
                         #     [('cmd_vel', 'cmd_vel_nav')]
                         # ),
-                        ComposableNode(
-                            package='nav2_map_server',
-                            plugin='nav2_map_server::MapServer',
-                            name='map_server',
-                            parameters=[configured_params, {'yaml_filename': map_yaml_file}],
-                            remappings=remappings + [('map', 'static_map')],
-                        ),
+                        # ComposableNode(
+                        #     package='nav2_map_server',
+                        #     plugin='nav2_map_server::MapServer',
+                        #     name='map_server',
+                        #     parameters=[configured_params, {'yaml_filename': map_yaml_file}],
+                        #     remappings=remappings + [('map', 'static_map')],
+                        # ),
                         ComposableNode(
                             package='nav2_bt_navigator',
                             plugin='nav2_bt_navigator::BtNavigator',
@@ -268,29 +267,9 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='namespace',
-            default_value='',
-            description='Top-level namespace',
-        ),
-        DeclareLaunchArgument(
-            name='use_sim_time',
-            default_value='False',
-            description='Use simulation (Gazebo) clock if True',
-        ),
-        DeclareLaunchArgument(
-            name='params_file',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2.yaml']),
-            description='Full path to the ROS2 parameters file to use for all launched nodes',
-        ),
-        DeclareLaunchArgument(
             name='autostart',
             default_value='True',
             description='Automatically startup the nav2 stack',
-        ),
-        DeclareLaunchArgument(
-            name='use_composition',
-            default_value='False',
-            description='Use composed bringup if True',
         ),
         DeclareLaunchArgument(
             name='container_name',
@@ -298,14 +277,34 @@ def generate_launch_description():
             description='the name of conatiner that nodes will load in if use composition',
         ),
         DeclareLaunchArgument(
-            name='use_respawn',
-            default_value='False',
-            description='Whether to respawn if a node crashes. Applied when composition is disabled.',
+            name='namespace',
+            default_value='',
+            description='Top-level namespace',
         ),
         DeclareLaunchArgument(
             name='log_level',
             default_value='info',
             description='log level',
+        ),
+        DeclareLaunchArgument(
+            name='params_file',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2.yaml']),
+            description='Full path to the ROS2 parameters file to use for all launched nodes',
+        ),
+        DeclareLaunchArgument(
+            name='use_composition',
+            default_value='False',
+            description='Use composed bringup if True',
+        ),
+        DeclareLaunchArgument(
+            name='use_respawn',
+            default_value='False',
+            description='Whether to respawn if a node crashes. Applied when composition is disabled.',
+        ),
+        DeclareLaunchArgument(
+            name='use_sim_time',
+            default_value='False',
+            description='Use simulation (Gazebo) clock if True',
         ),
     ]
 
