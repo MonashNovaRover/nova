@@ -1,7 +1,6 @@
 import rclpy
 from python_control.ControllerNode import ControllerNode
 from sensor_msgs.msg import BatteryState
-from nova_interfaces.msg import CANFrame
 
 class BatteryStateNode(ControllerNode):
 
