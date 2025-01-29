@@ -28,6 +28,9 @@ in
         enable = true;
         userName = "Monash Nova Rover";
         userEmail = "novaroverteam@monash.edu";
+        lfs = {
+          enable = true;
+        };
       };
       gh.enable = true;
 
@@ -108,6 +111,8 @@ in
         pciutils
         usbutils
         gpsd
+        # Cmake utilities
+        ninja
       ] ++ lib.optionals config.nova.desktop.enable [
         # Desktop apps
         gitkraken

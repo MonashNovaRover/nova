@@ -1,4 +1,4 @@
-"""
+'''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
@@ -12,7 +12,7 @@ NODES:
 PACKAGE: 	core
 CREATION:	15/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-"""
+'''
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import UnlessCondition
@@ -33,16 +33,26 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['joint_state_broadcaster']
+            arguments=['pivot_drive_controller', '--switch-timeout', '10'] #, '--inactive']
         ),
         Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['pivot_drive_controller'] #, '--inactive']
+            arguments=['strafe_controller', '--inactive']
+        ),
+        Node(
+            package='controller_manager',
+            executable='spawner',
+            arguments=['nova_diff_drive_controller', '--inactive']
         ),
         GroupAction(
             condition=UnlessCondition(gazebo),
             actions=[
+                Node(
+                    package='controller_manager',
+                    executable='spawner',
+                    arguments=['joint_state_broadcaster']
+                ),
                 Node(
                     package='controller_manager',
                     executable='ros2_control_node',
@@ -64,17 +74,17 @@ def generate_launch_description():
     declared_arguments = [      
         DeclareLaunchArgument(
             name='controllers',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'old_controllers.yaml']),
             description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
             name='gazebo',
-            default_value='false',
-            description='Use simulation (Gazebo) clock if true',
+            default_value='False',
+            description='Use simulation (Gazebo) clock if True',
         ),
         DeclareLaunchArgument(
             name='model', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'urdf', 'rover.urdf.xacro']),
+            default_value=PathJoinSubstitution([rover_description_dir, 'waratah', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
         ),  
     ]

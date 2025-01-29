@@ -17,12 +17,12 @@ const CopyableOutput: React.FC<SnippetProps> = ({
     <Snippet
       {...props}
       hideSymbol={hideSymbol ?? true}
-      className={"overflow-hidden " + className ?? ""}
+      className={"overflow-hidden " + (className ?? "")}
       classNames={{
         ...classNames,
         pre: "absolute top-0 left-0 right-0 bottom-0 flex flex-col justify-around content-center "
-          + classNames?.pre ?? "",
-        base: "justify-end relative overflow-hidden" + classNames?.base ?? "",
+          + (classNames?.pre ?? ""),
+        base: "justify-end relative overflow-hidden" + (classNames?.base ?? ""),
       }}
     >
       <div className=" text-center">{children}</div>

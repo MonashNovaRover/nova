@@ -23,8 +23,9 @@ find_package(ament_cmake REQUIRED)
 
 # Add all the installation directories
 install(DIRECTORY
-  meshes
-  urdf 
+  arm
+  rover7 
+  waratah
   DESTINATION share/${PROJECT_NAME}
 )
 

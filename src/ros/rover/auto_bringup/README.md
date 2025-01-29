@@ -56,7 +56,7 @@
 * `depthai_oakd`
 * `depthai_oakd_rgbd`
 * `ekf`
-* `nav2_params`
+* `nav2`
 * `pcl`
 * `rl`
 * `ukf`

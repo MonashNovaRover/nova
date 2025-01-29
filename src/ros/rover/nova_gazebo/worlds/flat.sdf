@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
-  <world name="urc_er">
+  <world name="flat">
 
     <plugin
       filename="gz-sim-physics-system"

@@ -55,7 +55,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
     const newFile: SiteData = { ...file, spaceResourcesEntries: [...file.spaceResourcesEntries, newEntry] };
 
     setFile(newFile);
-  }, [file, nirData, manualReading, lightBlank, concentration, sampleLabel]);
+  }, [file, nirData, manualReading, lightBlank, concentration, sampleLabel, setFile]);
 
   const onSave = useCallback(() => {
     if (led === 0)

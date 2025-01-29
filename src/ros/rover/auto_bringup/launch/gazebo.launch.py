@@ -1,4 +1,4 @@
-"""
+'''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
@@ -12,9 +12,10 @@ NODES:
 PACKAGE: 	core
 CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-"""
+'''
+import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction, SetEnvironmentVariable
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch.conditions import UnlessCondition, IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -27,7 +28,6 @@ def launch_setup(context, *args, **kwargs):
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
     config_file = LaunchConfiguration('config_file')
-    headless = LaunchConfiguration('headless')
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
     pose = {'x': LaunchConfiguration('x').perform(context),
@@ -37,30 +37,29 @@ def launch_setup(context, *args, **kwargs):
             'P': LaunchConfiguration('P').perform(context),
             'Y': LaunchConfiguration('Y').perform(context)}
     robot_name = LaunchConfiguration('robot_name')
-    rviz = LaunchConfiguration('rviz')
     world = LaunchConfiguration('world')
+    controllers = LaunchConfiguration('controllers')
 
     return [
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
-            launch_arguments={'gazebo': 'true'}.items(),
+        AppendEnvironmentVariable(
+            name='GZ_SIM_RESOURCE_PATH', 
+            value=PathJoinSubstitution([nova_gazebo_dir, 'models'])
+        ),
+        AppendEnvironmentVariable(
+            name='GZ_SIM_RESOURCE_PATH', 
+            value=PathJoinSubstitution([nova_gazebo_dir, 'worlds'])
         ),
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rviz.launch.py'])),
-            condition=IfCondition(rviz),
+            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
+            launch_arguments={'controllers': controllers, 'gazebo': 'True'}.items(),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'true'}.items(),
+            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name}.items(),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
-            launch_arguments={'gz_args': ['-r -s -v4 ', world], 'on_exit_shutdown': 'true'}.items(),
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
-            launch_arguments={'gz_args': '-g -v4 '}.items(),
-            condition=UnlessCondition(headless),
+            launch_arguments={'gz_args': ['-r -v4 ', world], 'on_exit_shutdown': 'True'}.items(),
         ),
         Node(
             package='ros_gz_sim',
@@ -84,9 +83,6 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{'config_file': config_file}],
             arguments=['--ros-args', '--log-level', 'info'],
         ),
-        AppendEnvironmentVariable(
-            'GZ_SIM_RESOURCE_PATH', PathJoinSubstitution([nova_gazebo_dir, 'models'])
-        ),
     ]
 
 
@@ -102,9 +98,9 @@ def generate_launch_description():
             description='Absolute path to ros_gz_bridge params file',
         ),
         DeclareLaunchArgument(
-            name='headless',
-            default_value='False',
-            description='Whether to execute gzclient',
+            name='controllers',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']), 
+            description='Absolute path to controllers params file',
         ),
         DeclareLaunchArgument(
             name='launch_robot_description',
@@ -113,7 +109,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='model', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'urdf', 'rover.urdf.xacro']), 
+            default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']), 
             description='Absolute path to robot urdf file',
         ),
         DeclareLaunchArgument(
@@ -123,25 +119,20 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='robot_name',
-            default_value='Waratah',
+            default_value='Rover7',
             description='name of the robot',
         ),
         DeclareLaunchArgument(
-            name='rviz',
-            default_value='false',
-            description='Whether to launch rviz',
-        ),
-        DeclareLaunchArgument(
             name='world',
-            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'flat.sdf']),
+            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto.sdf']),
             description='Full path to world model file to load',
         ),
-        DeclareLaunchArgument(name='x', default_value='-2.0', description='x_pose'),
-        DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
-        DeclareLaunchArgument(name='z', default_value='0.05', description='z_pose'),
-        DeclareLaunchArgument(name='R', default_value='0.00', description='roll'),
-        DeclareLaunchArgument(name='P', default_value='0.00', description='pitch'),
-        DeclareLaunchArgument(name='Y', default_value='0.00', description='yaw'),
+        DeclareLaunchArgument(name='x', default_value='11.2123871', description='x_pose'),
+        DeclareLaunchArgument(name='y', default_value='-10.1349831', description='y_pose'),
+        DeclareLaunchArgument(name='z', default_value='0.5', description='z_pose'),
+        DeclareLaunchArgument(name='R', default_value='0.0', description='roll'),
+        DeclareLaunchArgument(name='P', default_value='0.0', description='pitch'),
+        DeclareLaunchArgument(name='Y', default_value='2.5740044', description='yaw'),
     ]
 
     return LaunchDescription(  

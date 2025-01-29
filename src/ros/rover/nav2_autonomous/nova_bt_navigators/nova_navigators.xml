@@ -1,7 +1,7 @@
 <class_libraries>
 	<library path="nova_bt_navigators">
 	  <class
-	  	name="nova_bt_navigators/URCNavigator"
+	  	name="nova_bt_navigators::URCNavigator"
 	  	type="nova_bt_navigators::URCNavigator"
 	  	base_class_type="nav2_core::NavigatorBase">
 	    <description>University Rover Challenge Navigator</description>

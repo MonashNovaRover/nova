@@ -63,18 +63,19 @@ in
 
             # Networking aliases
             jetson = "ssh -Y nvidia@10.0.0.10";
-            jetson_wifi = "ssh -Y nvidia@tegra-ubuntu";
+            jetson-wifi = "ssh -Y nvidia@tegra-ubuntu";
+            orin = "ssh -Y nova@10.0.0.11";
             orin-devkit-1 = "ssh -Y nova@orin-devkit-1";
-            O1 = "ssh -Y nvidia@10.0.2.11";
-            O2 = "ssh -Y nvidia@10.0.2.12";
-            O3 = "ssh -Y nvidia@10.0.2.13";
-            O4 = "ssh -Y nvidia@10.0.2.14";
             J1 = "ssh -Y nvidia@10.0.2.21";
             J2 = "ssh -Y nvidia@10.0.2.22";
             J3 = "ssh -Y nvidia@10.0.2.23";
+            N1 = "ssh -Y nova@10.0.2.11";
+            N2 = "ssh -Y nova@10.0.2.12";
+            N3 = "ssh -Y nova@10.0.2.13";
 
             # Application aliases
             code = "codium";
+            urdf-tool = "nix-shell ${cfg.nixfileDir}/home/macros/urdf-tool.nix";
 
             # Stubs to ease migration
             setup = ''echo 'The setup alias is no longer necessary. To try new changes, please use "ws-build" or "nixos-rebuild" instead.' #'';
@@ -97,6 +98,20 @@ in
 
             # Hydra aliases
             hydra-vomit = "${pkgs.bash}/bin/bash ${../../../scripts/hydra-vomit.sh}";
+
+            # Rover operator aliases
+            rover-help = "more ${cfg.nixfileDir}/doc/rover-help.md";
+            launch-base = "~/Builds/master/bin/ros2 launch nova_bringup base.launch.py";
+            launch-drive = "~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py";
+            launch-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
+            launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
+
+            # Rover troubleshooting aliases
+            zero-pivots = "${pkgs.bash}/bin/bash ${../../../scripts/zero-pivots.sh}";
+            list-blcmds = "more ${cfg.nixfileDir}/doc/blcmd-ids.md";
+
+            # Temporary aliases (remove when a better solution has been implemented)
+            cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
           }
         ];
 

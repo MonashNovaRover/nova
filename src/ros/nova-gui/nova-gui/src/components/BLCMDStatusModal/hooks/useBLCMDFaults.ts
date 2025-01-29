@@ -15,7 +15,6 @@ export const useBLCMDFaults = () => {
 
   useEffect(() => {
     bifrost.syncWithTopic();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bifrost]);
 
   const newStatus = useSelector(

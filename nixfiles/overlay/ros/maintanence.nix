@@ -4,6 +4,17 @@ self: super:
   rosPackages = (super.rosPackages.appendDistroOverlay
     # Overlay for all ROS distros.
     (rosSelf: rosSuper: {
+
+      # Add ninja to cmake for faster builds
+      buildRosPackage = {
+        buildType ? "catkin",
+        nativeBuildInputs ? [ ],
+        ...
+      }@args: rosSuper.buildRosPackage (args // {
+          nativeBuildInputs = nativeBuildInputs ++ (self.lib.optionals (buildType == "ament_cmake") [ self.ninja ]);
+        }
+      );
+
       # Newer versions of realsense-ros cannot generate point clouds on Jetsons.
       # https://github.com/IntelRealSense/realsense-ros/issues/2575#issuecomment-1346319645
       realsense2-camera = rosSuper.realsense2-camera.overrideAttrs ({ propagatedBuildInputs ? [ ], postPatch ? "", ... }: {
@@ -153,6 +164,23 @@ self: super:
           substituteInPlace src/costmap_cost_tool.cpp --replace "SLOT(updateAutoDeactivate())" "nullptr"
           substituteInPlace include/nav2_rviz_plugins/costmap_cost_tool.hpp --replace "private Q_SLOTS:" "" 
           substituteInPlace include/nav2_rviz_plugins/costmap_cost_tool.hpp --replace "void updateAutoDeactivate();" ""
+        '';
+      });
+
+      controller-manager = rosSuper.controller-manager.overrideAttrs ({ prePatch ? "", patches ? [ ], nativeBuildInputs ? [ ], ... }: {
+        nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
+        patches = patches ++ [
+          (self.fetchpatch {
+            url = "https://github.com/ros-controls/ros2_control/commit/23bd1c3c06c30d706f010628d85133a7198e226d.patch";
+            hash = "sha256-bM3I5Q4J1DQNJuP2l3mxF7Kh/4DgjjKyRa5FBZS9t9s=";
+            stripLen = 2;
+            extraPrefix = "";
+            excludes = [ "release_notes.rst" ];
+          })
+        ];
+
+        prePatch = prePatch + ''
+          pwd 
         '';
       });
 
@@ -380,6 +408,19 @@ self: super:
               url = "https://github.com/RobotWebTools/rosbridge_suite/commit/d22f102b59e7d9fdeea0ec5e74aa8b98358585d7.patch";
               stripLen = 1;
               hash = "sha256-zmRHt7EgZk8kF2Dv1+QvTmox47RR7TBZOOdKfnIySog=";
+            })
+          ];
+        });
+
+        robot-localization = rosSuper.robot-localization.overrideAttrs ({ patches ? [ ], ... }: {
+          patches = patches ++ [
+            # Add stamped_control as a parameter to support TwistStamped msgs.
+            # https://github.com/cra-ros-pkg/robot_localization/pull/900
+            (self.fetchpatch {
+              url = "https://patch-diff.githubusercontent.com/raw/cra-ros-pkg/robot_localization/pull/900.patch";
+              stripLen = 1;
+              extraPrefix = "";
+              hash = "sha256-Wh3WOLYYHGL25eFRqpGUbvosle2QW6g7OIhXrZ8EG6A=";
             })
           ];
         });

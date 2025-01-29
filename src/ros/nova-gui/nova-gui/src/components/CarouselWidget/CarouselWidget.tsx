@@ -57,7 +57,7 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
 
   const changeCuvette = (e: React.ChangeEvent<HTMLSelectElement>) => {
     console.log(e.target.value);
-    e.target.value ? setSelectedCuvette(e.target.value) : setSelectedCuvette("1");
+    setSelectedCuvette(e.target.value ? e.target.value : "1");
   }
 
   
@@ -80,7 +80,7 @@ const CarouselWidget: React.FC<CarouselWidgetProps> = (props) => {
 
   const changeInstrument = (e: React.ChangeEvent<HTMLSelectElement>) => {
     console.log(e.target.value);
-    e.target.value ? setOffset(Number(e.target.value)) : setOffset(1);
+    setOffset(e.target.value ? Number(e.target.value) : 1);
   }
 
   const changeLED1 = (value: boolean) => {

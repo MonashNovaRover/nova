@@ -10,6 +10,7 @@ const defaultVariablePeakFinder = (resolution: number, peak_percentage_diff: num
     * The amount of points to each side of a peak that must show a downwards trend away from the peak
     */
 
+    // eslint-disable-next-line prefer-const
     let peaks: number[][] = [];                                                                             
     const scale_factor = 1 + peak_percentage_diff/100;
     

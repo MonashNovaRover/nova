@@ -81,7 +81,8 @@
   }
 
   ## Extra packages to add to the workspace.
-, extraPackages ? { }
+, extraPackages ? { 
+}
 }:
 
 let

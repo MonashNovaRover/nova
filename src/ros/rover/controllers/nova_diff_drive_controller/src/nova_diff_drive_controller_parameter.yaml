@@ -121,13 +121,8 @@ nova_diff_drive_controller:
   }
   enable_twist_cmd: {
     type: bool,
-    default_value: true,
+    default_value: false,
     description: "Subscribe to TwistStamped or DriveInputStamped",
-  }
-  use_unstamped_msg: {
-    type: bool,
-    default_value: true,
-    description: "Subscribe to stamped or unstamped messages. Msg type depends on enable_twist_cmd parameter",
   }
 
   publish_rate: {
