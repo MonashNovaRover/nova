@@ -11,13 +11,7 @@
 
 namespace
 {
-  // communication with teleop-arm?
-  /*constexpr auto DEFAULT_INPUT_TOPIC_TWIST = "/cmd_vel";
-  constexpr auto DEFAULT_INPUT_TOPIC = "/drive_input";
-  constexpr auto DEFAULT_COMMAND_OUT_TOPIC = "~/cmd_vel_out";
-  constexpr auto DEFAULT_ODOMETRY_TOPIC = "~/odom";
-  constexpr auto DEFAULT_TRANSFORM_TOPIC = "/tf";
-  */
+  constexpr auto DEFAULT_INPUT_TOPIC_ARM_JOINT_VELOCITY = "/ARM_TESTING"; // TODO: changeme
 } // namespace
 
 namespace nova_arm_controller
