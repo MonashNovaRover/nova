@@ -29,8 +29,14 @@ def launch_setup(context, *args, **kwargs):
     controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
     model = LaunchConfiguration('model')
+    arm = LaunchConfiguration('arm').perform(context)
 
     return [
+        Node( # TODO: only when arm is enabled
+            package='controller_manager',
+            executable='spawner',
+            arguments=['nova_arm_controller', '--switch-timeout', '10'] #, '--inactive']
+        ),
         Node(
             package='controller_manager',
             executable='spawner',
