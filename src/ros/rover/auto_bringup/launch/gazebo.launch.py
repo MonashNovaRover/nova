@@ -30,7 +30,7 @@ def launch_setup(context, *args, **kwargs):
     camera = LaunchConfiguration('camera')
     controllers = LaunchConfiguration('controllers')
     gz_params = LaunchConfiguration('gz_params')
-    headless = LaunchConfiguration('headless').perform(context).lower() == 'true'
+    headless = (LaunchConfiguration('headless').perform(context).lower() == 'true')
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
     pose = {'x': LaunchConfiguration('x').perform(context),
