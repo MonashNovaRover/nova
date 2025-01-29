@@ -7,7 +7,7 @@ import BatteryGauge from 'react-battery-gauge'
 
 export const BatteryWidget = () => {
   
-  const batteryLevel = useSelector((state: RootState) => state.batteryStore.voltage);
+  const batteryLevel = useSelector((state: RootState) => state.batteryStore.percentage);
   const bifrost = useBifrost({ topic: RosTopic.BATTERY_STATE });
 
   useEffect(() => {
