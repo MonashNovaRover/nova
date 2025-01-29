@@ -13,6 +13,10 @@ class BatteryStateNode(ControllerNode):
     VOLTAGE_RECV_FRAME_ID_2 = 0x4B1
     CURRENT_VOLTAGE_RECV_FRAME_ID = 0x4B2
 
+    # Voltage Ranges (in mV)
+    MAX_VOLTAGE = 33600 / 1000
+    MIN_VOLTAGE = 26720 / 1000
+
     def __init__(self):
         super(BatteryStateNode, self).__init__(name="BatteryStateNode", can_bus=self.CAN_BUS)
         logger = self.get_logger()
@@ -37,8 +41,15 @@ class BatteryStateNode(ControllerNode):
             current, total_voltage = self.parse_total_voltage_and_current(message.data)
             self.battery_state.current = current
             self.battery_state.voltage = total_voltage
+            
+            self.battery_state.percentage = max(0.0, min(100.0, 
+                ((total_voltage - self.MIN_VOLTAGE) / (self.MAX_VOLTAGE - self.MIN_VOLTAGE)) * 100
+            ))
+
         self.publish_status()
-        self.get_logger().info('CAN message received and processed.')
+        self.get_logger().info(f"Battery Status Updated: Voltage={self.battery_state.voltage}V, "
+                               f"Current={self.battery_state.current}A, "
+                               f"Percentage={self.battery_state.percentage}%")
 
     def parse_cell_voltages(self, data):
         voltages = []
