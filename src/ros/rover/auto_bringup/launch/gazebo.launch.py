@@ -15,10 +15,9 @@ CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, 
-    OpaqueFunction, SetEnvironmentVariable, SetLaunchConfiguration
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, EqualsSubstitution
-from launch.conditions import UnlessCondition, IfCondition
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction
+from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -29,8 +28,9 @@ def launch_setup(context, *args, **kwargs):
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
     camera = LaunchConfiguration('camera')
-    gz_params = LaunchConfiguration('gz_params')
     controllers = LaunchConfiguration('controllers')
+    gz_params = LaunchConfiguration('gz_params')
+    headless = LaunchConfiguration('headless').perform(context).lower() == 'true'
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
     pose = {'x': LaunchConfiguration('x').perform(context),
@@ -66,7 +66,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
-            launch_arguments={'gz_args': ['-r -v4 ', '-s ' if headless, world], 'on_exit_shutdown': 'True'}.items(),
+            launch_arguments={'gz_args': ['-r -v4 ', '-s ' if headless else '', world], 'on_exit_shutdown': 'True'}.items(),
         ),
         Node(
             package='ros_gz_sim',
@@ -105,14 +105,14 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='gz_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'gz_bridge.yaml']),
-            description='Absolute path to ros_gz_bridge params file',
-        ),
-        DeclareLaunchArgument(
             name='controllers',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
             description='Absolute path to controllers params file',
+        ),
+        DeclareLaunchArgument(
+            name='gz_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'gz_bridge.yaml']),
+            description='Absolute path to ros_gz_bridge params file',
         ),
         DeclareLaunchArgument(
             name='headless',
