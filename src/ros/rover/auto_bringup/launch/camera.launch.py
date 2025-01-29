@@ -46,10 +46,10 @@ def launch_setup(context, *args, **kwargs):
                               }.items()
         ),
         ComposableNodeContainer(
-            name=f"{name}_image_proc_container",
+            name=f'{name}_image_proc_container',
             namespace='',
-            package="rclcpp_components",
-            executable="component_container",
+            package='rclcpp_components',
+            executable='component_container',
             composable_node_descriptions=[
                 ComposableNode(
                     condition=IfCondition(rectify_image),

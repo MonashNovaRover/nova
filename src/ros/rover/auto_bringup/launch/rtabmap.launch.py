@@ -3,7 +3,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration,PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
@@ -17,11 +17,11 @@ def delete_rtabmap_db(context, *args, **kwargs):
     try:
         if os.path.exists(file_path):
             os.remove(file_path)
-            print(f"Deleted rtabmap.db at {file_path}")
+            print(f'Deleted rtabmap.db at {file_path}')
         else:
-            print(f"rtabmap.db not found at {file_path}. You might have to delete the file manually, wherever it is")
+            print(f'rtabmap.db not found at {file_path}. You might have to delete the file manually, wherever it is')
     except Exception as e:
-        print(f"Failed to delete file {file_path}: {e}")
+        print(f'Failed to delete file {file_path}: {e}')
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
@@ -36,8 +36,7 @@ def launch_setup(context, *args, **kwargs):
     yaw = LaunchConfiguration('yaw').perform(context)
     camera = LaunchConfiguration('camera').perform(context)
     rtabmap_viz = LaunchConfiguration('rtabmap_viz').perform(context)
-
-    params_file = LaunchConfiguration('params_file').perform(context)
+    rtabmap_params = LaunchConfiguration('rtabmap_params').perform(context)
 
     remappings = [
         ('rgb/image', name+'/rgb/image_raw'),
@@ -55,38 +54,38 @@ def launch_setup(context, *args, **kwargs):
     return [
         OpaqueFunction(function=delete_rtabmap_db),
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
             condition=IfCondition(camera),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
             launch_arguments={
                 'pointclouds':'False',
-                'gazebo': use_sim_time
+                'gazebo': use_sim_time,
             }.items()
         ),
         ComposableNodeContainer(
-            name=f"{name}_mapping_container",
+            name=f'{name}_mapping_container',
             namespace='',
-            package="rclcpp_components",
-            executable="component_container",
+            package='rclcpp_components',
+            executable='component_container',
             composable_node_descriptions=[
                 ComposableNode(
                     package='rtabmap_sync',
                     plugin='rtabmap_sync::RGBDSync',
                     name='rtabmap_sync',
-                    parameters = [params_file],
+                    parameters=[rtabmap_params],
                     remappings=remappings,
                 ),
                 ComposableNode(
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::RGBDOdometry',
                     name='rtabmap_odom',
-                    parameters=[params_file, {'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}',"use_sim_time": use_sim_time}],
+                    parameters=[rtabmap_params, {'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}', 'use_sim_time': use_sim_time}],
                     remappings=remappings,
                 ),
                 ComposableNode(
                     package='rtabmap_slam',
                     plugin='rtabmap_slam::CoreWrapper',
                     name='rtabmap_slam',
-                    parameters=[params_file,{"use_sim_time": use_sim_time,'rtabmap_args':'--delete_db_on_start'}],
+                    parameters=[rtabmap_params, {'use_sim_time': use_sim_time, 'rtabmap_args': '--delete_db_on_start'}],
                     remappings=remappings,
                 ),
                 # ComposableNode(
@@ -101,17 +100,19 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{'decimation': 2,
                         'max_depth': 3.0,
                         'voxel_size': 0.02}],
-            remappings=remappings),
+            remappings=remappings,
+        ),
         Node(
             package='rtabmap_util', executable='obstacles_detection', output='screen',
-            parameters=[params_file],
-            remappings=remappings),
+            parameters=[rtabmap_params],
+            remappings=remappings,
+        ),
         Node(
-            package='rtabmap_viz',
             condition=IfCondition(rtabmap_viz),
+            package='rtabmap_viz',
             executable='rtabmap_viz',
             output='screen',
-            parameters=[params_file,{"use_sim_time": use_sim_time}],
+            parameters=[rtabmap_params, {'use_sim_time': use_sim_time}],
             remappings=remappings,
         ),
     ]
@@ -132,10 +133,10 @@ def generate_launch_description():
         DeclareLaunchArgument(name='pitch', default_value='0.0'),
         DeclareLaunchArgument(name='yaw', default_value='0.0'),
         DeclareLaunchArgument(
-            name='params_file',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'rtabmap_params.yaml']),
+            name='rtabmap_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'rtabmap.yaml']),
             description='Params file for RTABMap Nodes',
-        )
+        ),
     ]
 
     return LaunchDescription(
