@@ -31,8 +31,8 @@ def launch_setup(context, *args, **kwargs):
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
-    navigation = LaunchConfiguration('navigation')
     nav2_params = LaunchConfiguration('nav2_params')
+    navigation = LaunchConfiguration('navigation')
     rviz = LaunchConfiguration('rviz')
     use_respawn = LaunchConfiguration('use_respawn')
     world = LaunchConfiguration('world')
@@ -42,11 +42,11 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(gazebo),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
             launch_arguments={
-                'namespace': namespace,
-                'world': world,
+                'camera':'True',
                 'controllers': controllers,
                 'model': model,
-                'camera':'True'
+                'namespace': namespace,
+                'world': world,
             }.items(),
         ),
         IncludeLaunchDescription(
@@ -60,8 +60,8 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(localization),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'localization.launch.py'])),
             launch_arguments={
-                'use_sim_time': gazebo,
                 'load_map': localization,
+                'use_sim_time': gazebo,
             }.items()
         ),
         IncludeLaunchDescription(
@@ -72,13 +72,13 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(navigation),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'navigation.launch.py'])),
             launch_arguments={
-                'namespace': namespace,
-                'use_sim_time': gazebo,
                 'autostart': autostart,
-                'params_file': nav2_params,
-                'use_respawn': use_respawn,
                 'container_name': 'nav2_container',
                 'log_level': log_level,
+                'namespace': namespace,
+                'params_file': nav2_params,
+                'use_respawn': use_respawn,
+                'use_sim_time': gazebo,
             }.items()
         ),
     ]
@@ -125,14 +125,14 @@ def generate_launch_description():
             description='Top-level namespace',
         ),
         DeclareLaunchArgument(
-            name='navigation',
-            default_value='True',
-            description='Flag to launch navigation stack',
-        ),
-        DeclareLaunchArgument(
             name='nav2_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2.yaml']),
             description='Full path to the ROS2 parameters file to use for all launched nodes',
+        ),
+        DeclareLaunchArgument(
+            name='navigation',
+            default_value='True',
+            description='Flag to launch navigation stack',
         ),
         DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
             name='rviz',
