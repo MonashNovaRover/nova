@@ -39,39 +39,38 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
             condition=IfCondition(gazebo),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
             launch_arguments={
                 'namespace': namespace,
                 'world': world,
                 'controllers': controllers,
                 'model': model,
-                'camera':'False' # Todo: Remove when done with RTABMAP
+                'camera':'True'
             }.items(),
         ),
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'led.launch.py'])),
-            condition=IfCondition(gazebo),
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
             condition=UnlessCondition(gazebo),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
         ),
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'localization.launch.py'])),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'led.launch.py'])),
+        ),
+        IncludeLaunchDescription(
             condition=IfCondition(localization),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'localization.launch.py'])),
             launch_arguments={
                 'use_sim_time': gazebo,
                 'load_map': localization,
             }.items()
         ),
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rviz.launch.py'])),
-            condition=IfCondition(rviz)
+            condition=IfCondition(rviz),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rviz.launch.py'])),
         ),
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'navigation.launch.py'])),
             condition=IfCondition(navigation),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'navigation.launch.py'])),
             launch_arguments={
                 'namespace': namespace,
                 'use_sim_time': gazebo,
@@ -81,12 +80,6 @@ def launch_setup(context, *args, **kwargs):
                 'container_name': 'nav2_container',
                 'log_level': log_level,
             }.items()
-        ),
-        Node(
-                condition=IfCondition(gazebo),
-                package='aruco_opencv',
-                executable='aruco_tracker_autostart',
-                arguments=['--ros-args', '--params-file', PathJoinSubstitution([auto_bringup_dir, 'params', 'aruco_tracker.yaml'])],
         ),
     ]
 
