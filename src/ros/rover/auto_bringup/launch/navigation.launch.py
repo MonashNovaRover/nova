@@ -31,7 +31,7 @@ def launch_setup(context, *args, **kwargs):
     params_file = LaunchConfiguration('params_file')
     use_composition = LaunchConfiguration('use_composition')
     use_respawn = LaunchConfiguration('use_respawn')
-    use_sim_time = LaunchConfiguration('use_sim_time').perform(context)
+    use_sim_time = LaunchConfiguration('use_sim_time').perform(context).lower()
 
     lifecycle_nodes = ['controller_server',
                        'smoother_server',
@@ -75,7 +75,7 @@ def launch_setup(context, *args, **kwargs):
         RewrittenYaml(
             source_file=params_file,
             root_key=namespace,
-            param_rewrites= {**param_substitutions,**(sim_substitutions if not bool(use_sim_time) else {})},
+            param_rewrites= {**param_substitutions,**(sim_substitutions if (use_sim_time == 'false') else {})},
             convert_types=True),
         allow_substs=True,
     )
