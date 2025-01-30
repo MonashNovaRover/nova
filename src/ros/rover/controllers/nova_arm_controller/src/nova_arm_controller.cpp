@@ -22,7 +22,6 @@ namespace nova_arm_controller
   using controller_interface::InterfaceConfiguration;
   using hardware_interface::HW_IF_POSITION;
   using hardware_interface::HW_IF_VELOCITY;
-  using hardware_interface::HW_IF_EFFORT;
   using lifecycle_msgs::msg::State;
 
   NovaArmController::NovaArmController() : controller_interface::ControllerInterface() {}
@@ -55,10 +54,6 @@ namespace nova_arm_controller
     for (const auto &joint_name : params_.joint_names)
     {
       conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
-    }
-    for (const auto &joint_name : params_.joint_names)
-    {
-      conf_names.push_back(joint_name + "/" + HW_IF_EFFORT);
     }
     return {interface_configuration_type::INDIVIDUAL, conf_names};
   }
