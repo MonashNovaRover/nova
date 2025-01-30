@@ -40,6 +40,7 @@
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-utils ? throw "nova-utils is needed, but not available!"
 , nova-arm-controller ? throw "nova-arm-controller is needed, but not available!"
+, nova-ik-controller ? throw "nova-ik-controller is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -82,8 +83,9 @@
       nova-python-control
       nova-excavation-construction
       nova-utils
+      reolink
       nova-arm-controller
-      reolink;
+      nova-ik-controller;
   }
 
   ## Extra packages to add to the workspace.
