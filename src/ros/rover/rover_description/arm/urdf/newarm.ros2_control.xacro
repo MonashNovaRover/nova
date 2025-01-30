@@ -36,7 +36,7 @@
 	  </hardware>
 	  -->	  
 	  
-	  <joint name="J1_gbp_chassis">
+	  <joint name="J1">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -54,7 +54,7 @@
 		</state_interface>
       </joint>
 
-	  <joint name="J2_l1a_bp">
+	  <joint name="J2">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -72,7 +72,7 @@
 		</state_interface>
       </joint>
 
-	  <joint name="J2_l2b_bp">
+	  <joint name="J3">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -90,7 +90,7 @@
 		</state_interface>
       </joint>
 
-	  <joint name="l1b_bp">
+	  <joint name="J4">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -108,7 +108,7 @@
 		</state_interface>
       </joint>
 
-	  <joint name="l1b_tp">
+	  <joint name="J5">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -126,7 +126,7 @@
 		</state_interface>
       </joint>
 
-	  <joint name="l1a_tp">
+	  <joint name="J6">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
