@@ -6077,6 +6077,11 @@ react-apexcharts@^1.4.1:
   dependencies:
     prop-types "^15.8.1"
 
+react-battery-gauge@1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/react-battery-gauge/-/react-battery-gauge-1.0.7.tgz#24e2a0fc848bfa60a9390b50c63b8fed1e006005"
+  integrity sha512-4T2w5SX0Jg6RfstwlhYuLUioKY8qdQ9owTxjJn5opNPKDSbt09KV97Qv3Gs4quGPei1/h+ewkjEExDrBbIOzyg==
+
 react-bootstrap-icons@^1.10.3:
   version "1.11.4"
   resolved "https://registry.yarnpkg.com/react-bootstrap-icons/-/react-bootstrap-icons-1.11.4.tgz#f4d5a852af58b5e0523df7162758b77f6fef2eec"
