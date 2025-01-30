@@ -10,7 +10,8 @@ using namespace std::chrono_literals;
 
 namespace
 {
-  constexpr auto BUTTON_DEBOUNCE_INTERVAL = std::chrono::milliseconds(100);
+  constexpr auto BUTTON_DEBOUNCE_INTERVAL = std::chrono::milliseconds(50);
+  constexpr auto DEFAULT_FK_VELOCITY_TOPIC = "/arm_fk_velocity_target";
 }
 
 using std::placeholders::_1;
@@ -24,8 +25,8 @@ TeleopArmJoy::TeleopArmJoy(const rclcpp::NodeOptions &options)
   // Create publishers
 
   // Create subscribers
-  //    joy_sub = this->create_subscription<sensor_msgs::msg::Joy>(
-  //        DEFAULT_INPUT_TOPIC, rclcpp::QoS(10), std::bind(&TeleopArmJoy::joyCallback, this, _1));
+  fk_velocity_pub = this->create_publisher<nova_interfaces::msg::ArmFkVelocityTargets>(
+    DEFAULT_FK_VELOCITY_TOPIC, 50);
 
   // Create service clients
   switch_controller_client = this->create_client<controller_manager_msgs::srv::SwitchController>("/controller_manager/switch_controller");
@@ -136,41 +137,69 @@ void TeleopArmJoy::onDeviceUpdated(string &device_name) {
     }
   }
 
+  // Do actual stuff
+  updateState();
+  sendArmCommand();
 }
 
-void TeleopArmJoy::sendArmCommand(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
-{
+void TeleopArmJoy::updateState() {
+  previous_state = current_state;
 
+  // Lock and unlock
+  if (current_state.locked) {
+    if (buttons["lock"]->down())
+      current_state.locked = true;
+  }
+  else {
+    if (buttons["unlock"]->down())
+      current_state.locked = true;
+  }
 
+  // TODO: put speed into state
+  handleSpeedChange();
 }
 
-void TeleopArmJoy::sendHaltCommand()
+// TODO: Implement strategy pattern for sendArmCommand and sendHaltCommand
+
+void TeleopArmJoy::sendArmCommand()
 {
-}
-
-void TeleopArmJoy::handleButtonCallbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
-{
-  auto now = this->now();
-
-  auto isDebounced = [&](int buttonValue, int buttonIndex) -> bool
-  {
-    if (last_button_press_time_.find(buttonIndex) == last_button_press_time_.end() ||
-        (now - last_button_press_time_[buttonIndex]) > rclcpp::Duration(BUTTON_DEBOUNCE_INTERVAL))
-    {
-      last_button_press_time_[buttonIndex] = now;
-      return buttonValue;
-    }
-    return 0;
-  };
-
-  // Lock and Unlock
-
-  // TODO: Controller switching when the respective button is pressed
-
   if (current_state.locked)
     return;
 
-  // TODO: Speed change input
+  auto msg = std::make_unique<nova_interfaces::msg::ArmFkVelocityTargets>();
+
+  msg->header.stamp = this->now();
+
+  for (auto [joint_name, joint_config] : params_.joints.joint_definitions_map) {
+    msg->name.emplace_back(joint_name);
+
+    const float input = axes[joint_name]->value();
+    double velocity = static_cast<double>(input) * speed * joint_config.max_speed;
+
+    msg->velocity.emplace_back(velocity);
+  }
+
+  fk_velocity_pub->publish(std::move(msg));
+}
+
+
+void TeleopArmJoy::sendHaltCommand()
+{
+  // Send all zeroes
+  auto msg = std::make_unique<nova_interfaces::msg::ArmFkVelocityTargets>();
+
+  msg->header.stamp = this->now();
+
+  for (auto [joint_name, joint_config] : params_.joints.joint_definitions_map) {
+    msg->name.emplace_back(joint_name);
+    msg->velocity.emplace_back(0.0);
+  }
+
+  fk_velocity_pub->publish(std::move(msg));
+}
+
+void TeleopArmJoy::handleSpeedChange() {
+  speed = 0.5f * (axes["speed"]->value() + 1.f);
 }
 
 void TeleopArmJoy::switchController(const ControlMode requested_control_mode)

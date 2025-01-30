@@ -1,5 +1,18 @@
 teleop_arm_joy_node:
   ros__parameters:
+    joints:
+      j1:
+        max_speed: 1.0
+      j2:
+        max_speed: 1.0
+      j3:
+        max_speed: 1.0
+      j4:
+        max_speed: 1.0
+      j5:
+        max_speed: 1.0
+      j6:
+        max_speed: 1.0
     device_names: ["Left", "Right"]
     devices:
       Left:
