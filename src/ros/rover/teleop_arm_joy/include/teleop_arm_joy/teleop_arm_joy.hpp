@@ -9,6 +9,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joy.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
+#include <nova_interfaces/msg/arm_fk_velocity_targets.hpp>
 #include <controller_manager_msgs/srv/switch_controller.hpp>
 
 #include "teleop_arm_joy_parameters.hpp"
@@ -78,15 +79,18 @@ namespace teleop_arm_joy
 
     void initializeParams();
 
-
   private:
     void onDeviceUpdated(string& device_name);
 
     /**
-     * @brief Sends Commands for the arm based on joystick input.
-     * @param joy_msg Shared pointer to the joystick message.
+     * @brief Update controller independent input state (control mode, locked, speed, etc)
      */
-    void sendArmCommand(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
+    void updateState();
+
+    /**
+     * @brief Sends Commands for the arm based on joystick input.
+     */
+    void sendArmCommand();
 
     /**
      * @brief Sends a halt command to stop the rover.
@@ -95,17 +99,9 @@ namespace teleop_arm_joy
     void sendHaltCommand();
 
     /**
-     * @brief Handles button callbacks.
-     * @param joy_msg Shared pointer to the joystick message.
-     */
-    void handleButtonCallbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
-
-    /**
      * @brief Handles changes in speed based on joystick input.
-     *
-     * @param joy_msg A shared pointer to the joystick message containing the input data.
      */
-    void handleSpeedChange(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
+    void handleSpeedChange();
 
     /**
      * @brief Switches the controller by calling the switch_controller service.
@@ -120,19 +116,18 @@ namespace teleop_arm_joy
     rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr ik_client;
     std::shared_ptr<ParamListener> param_listener_;
 
+    rclcpp::Publisher<nova_interfaces::msg::ArmFkVelocityTargets>::SharedPtr fk_velocity_pub;
+
     std::vector<shared_ptr<JoyDevice>> devices;
     std::map<std::string, shared_ptr<JoyButton>> buttons;
     std::map<std::string, shared_ptr<JoyAxis>> axes;
 
-    int update_id = 0;
-
     Params params_;
-    bool sent_lock_msg = false;
     State current_state;
     State previous_state;
+
     ControlMode control_mode = ControlMode::FK;
     double speed; // Linear Speed Multiplier that can be incremented
-    std::map<int, rclcpp::Time> last_button_press_time_;
   };
 
 } // namespace teleop_arm_joy
