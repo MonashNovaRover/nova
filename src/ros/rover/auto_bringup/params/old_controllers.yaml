@@ -30,7 +30,7 @@ controller_manager:
 nova_arm_controller:
   ros__parameters:
     joint_names:
-      ["j1", "j2", "j3", "j4", "j5", "j6"]
+      ["J1_gbp_chassis", "J2_l1a_bp", "J3_l2b_bp", "wrist_pitch", "wrist_yaw", "wrist_roll"]
 
 wheel_velocity_controller:
   ros__parameters:
