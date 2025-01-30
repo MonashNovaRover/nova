@@ -36,12 +36,10 @@ class AnalysisArm(JoystickControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    CMD_ID_PARAM = "cmd_id"
     CMD_ID = 0x032
 
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
-    TOF_FRAME_ID_PARAM = "tof_frame_id"
     TOF_FRAME_ID = 0x456 
 
     # CONTROL NAMES
@@ -71,17 +69,12 @@ class AnalysisArm(JoystickControllerNode):
         super(AnalysisArm, self).__init__(name="AnalysisArm", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
-        # Setting ROS parameters
-        # This is done so that the parameters can be changed during runtime if desired
-        self.declare_parameter(self.CMD_ID_PARAM, self.CMD_ID)
-        self.declare_parameter(self.TOF_FRAME_ID_PARAM, self.TOF_FRAME_ID)
-
         ## Add Flags as required
         self.twitch_enable = True
         self.twitch_button_released = True
 
         ## Add CAN ID Filters
-        self.bus.set_id_filter([self.get_parameter(self.TOF_FRAME_ID_PARAM)])
+        self.bus.set_id_filter([self.TOF_FRAME_ID])
 
         ## Add Publishers
         self.tof_publisher = self.create_publisher(Range, "/science/analysis_arm", 10)
@@ -90,7 +83,7 @@ class AnalysisArm(JoystickControllerNode):
         tof_sensor = RangeSensor(
             logger=logger,
             bus=self.bus,
-            frame_id=self.get_parameter(self.TOF_FRAME_ID_PARAM),
+            frame_id=self.TOF_FRAME_ID,
             maximum=self.TIME_OF_FLIGHT_MAX,
             minimum=self.TIME_OF_FLIGHT_MIN,
             offset=self.TIME_OF_FLIGHT_OFFSET,
@@ -118,7 +111,7 @@ class AnalysisArm(JoystickControllerNode):
         self.platform_controller = CMDVelocityController(
             logger=logger,
             bus=self.bus,
-            frame_id=self.get_parameter(self.CMD_ID_PARAM),
+            frame_id=self.CMD_ID,
             control=self.platform,
         )
         
