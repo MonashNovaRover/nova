@@ -40,15 +40,15 @@ const NIR3DCurveSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = ({
 
   const renderRanges = () => {
     return [
-      <span>X Range</span>,
+      <span key="xrange-title">X Range</span>,
       <div key="XRange-input" className="grid grid-cols-2 gap-3">
         <Input
-          label={"X Min"}
+          label="X Min"
           value={formatPotentiallyNaNFloatString(calibrationData.xRange[0])}
           onValueChange={(v: string) => setXRange([parseFloat(v), calibrationData.xRange[1]])}
         />
         <Input
-          label={"X Min"}
+          label="X Max"
           value={formatPotentiallyNaNFloatString(calibrationData.xRange[1])}
           onValueChange={(v: string) => setXRange([calibrationData.xRange[0], parseFloat(v)])}
         />
@@ -56,15 +56,15 @@ const NIR3DCurveSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = ({
       <Button onClick={() => setXRange(DEFAULT_NIR_PROBE_CALIBRATION_DATA.xRange)} className="mb-4" key="reset-x-range">
         Reset X Range
       </Button>,
-      <span>Y Range</span>,
+      <span key="yrange-title">Y Range</span>,
       <div className="grid grid-cols-2 gap-3" key="YRange-input">
         <Input
-          label={"Y Min"}
+          label="Y Min"
           value={formatPotentiallyNaNFloatString(calibrationData.yRange[0])}
           onValueChange={(v: string) => setYRange([parseFloat(v), calibrationData.yRange[1]])}
         />
         <Input
-          label={"Y Min"}
+          label="Y Max"
           value={formatPotentiallyNaNFloatString(calibrationData.yRange[1])}
           onValueChange={(v: string) => setYRange([calibrationData.yRange[0], parseFloat(v)])}
         />
