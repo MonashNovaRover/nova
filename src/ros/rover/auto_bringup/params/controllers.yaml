@@ -27,6 +27,11 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
+nova_arm_controller:
+  ros__parameters:
+    joint_names:
+      ["j1", "j2", "j3", "j4", "j5", "j6"]
+
 wheel_velocity_controller:
   ros__parameters:
     joints:
