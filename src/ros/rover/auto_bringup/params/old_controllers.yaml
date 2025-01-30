@@ -3,6 +3,9 @@ controller_manager:
     update_rate: 20 
     use_sim_time: false
 
+    nova_arm_controller:
+      type: nova_arm_controller/NovaArmController
+
     wheel_velocity_controller:
       type: velocity_controllers/JointGroupVelocityController
 
@@ -23,6 +26,11 @@ controller_manager:
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
+
+nova_arm_controller:
+  ros__parameters:
+    joint_names:
+      ["j1", "j2", "j3", "j4", "j5", "j6"]
 
 wheel_velocity_controller:
   ros__parameters:
