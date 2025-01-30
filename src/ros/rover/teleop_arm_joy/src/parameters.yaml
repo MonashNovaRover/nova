@@ -28,6 +28,25 @@ teleop_arm_joy:
         type: string
         description: "The topic to get sensor_msgs/msg/Joy messages from for this device"
 
+  joint_definitions:
+    type: string_array
+    default_value: [
+      "j1",
+      "j2",
+      "j3",
+      "j4",
+      "j5",
+      "j6"
+    ]
+    description: "The set of joints to send commands for. Must be a subset of axis_definitions (for each joint added 
+    here, include an axis of the same name)."
+
+  joints:
+    __map_joint_definitions:
+      max_speed:
+        type: double
+        description: "The max value sent to the ros2_control controllers when the speed is set to max, and a max input 
+        is given. Should be in rad/s."
 
   axis_definitions:
     type: string_array
@@ -42,7 +61,6 @@ teleop_arm_joy:
       "offset"
     ]
     description: "The list of mappable axes."
-    read_only: true
 
   button_definitions:
     type: string_array
@@ -54,6 +72,7 @@ teleop_arm_joy:
     ]
     description: "The list of mappable axes."
     read_only: true
+
 
   axes:
     __map_axis_definitions:
