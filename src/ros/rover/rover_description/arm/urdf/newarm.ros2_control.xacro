@@ -50,7 +50,7 @@
 		</state_interface>
       </joint>
 	</ros2_control>
-	  
+
 	<ros2_control name="arm_J2" type="system">
 	  <xacro:unless value="${use_mock_hardware}">
         <hardware>
