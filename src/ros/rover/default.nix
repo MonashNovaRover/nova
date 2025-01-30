@@ -7,6 +7,7 @@
     nova-behavior-tree = callPackage ./nix/packages/nova-behavior-tree { };
     nova-cube-localisation = callPackage ./nix/packages/nova-cube-localisation { };
     nova-teleop-drive-joy = callPackage ./nix/packages/teleop-drive-joy { };
+    nova-teleop-arm-joy = callPackage ./nix/packages/teleop-arm-joy { };
     nova-pointcloud-filter = callPackage ./nix/packages/nova-pointcloud-filter { };
     nova-drive = callPackage ./nix/packages/drive { };
     nova-drive-interfaces = callPackage ./nix/packages/drive-interfaces { };

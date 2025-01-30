@@ -1,0 +1,101 @@
+# This is only the schema for Node Parameters
+# This YAML will be converted to teleop_drive_joy_parameters.hpp upon build
+# Look at individual controller config for changing axes / buttons
+# Look here for docs about this YAML : https://github.com/PickNikRobotics/generate_parameter_library
+teleop_arm_joy:
+
+#  controllers:
+#    type: string_array
+#    default_value:
+#      [
+#        "pivot_drive_controller",
+#        "strafe_controller",
+#        "nova_diff_drive_controller",
+#      ]
+#    description: "List Of Controllers that can be used with teleop"
+#    read_only: true
+
+  device_names:
+    type: string_array
+    default_value: [
+      "Left",
+      "Right"
+    ]
+
+  devices:
+    __map_device_names:
+      topic:
+        type: string
+        description: "The topic to get sensor_msgs/msg/Joy messages from for this device"
+
+  joint_definitions:
+    type: string_array
+    default_value: [
+      "j1",
+      "j2",
+      "j3",
+      "j4",
+      "j5",
+      "j6"
+    ]
+    description: "The set of joints to send commands for. Must be a subset of axis_definitions (for each joint added 
+    here, include an axis of the same name)."
+
+  joints:
+    __map_joint_definitions:
+      max_speed:
+        type: double
+        description: "The max value sent to the ros2_control controllers when the speed is set to max, and a max input 
+        is given. Should be in rad/s."
+
+  axis_definitions:
+    type: string_array
+    default_value: [
+      "j1",
+      "j2",
+      "j3",
+      "j4",
+      "j5",
+      "j6",
+      "speed",
+      "offset"
+    ]
+    description: "The list of mappable axes."
+
+  button_definitions:
+    type: string_array
+    default_value: [
+      "limit_on",
+      "limit_off",
+      "lock",
+      "unlock"
+    ]
+    description: "The list of mappable axes."
+    read_only: true
+
+
+  axes:
+    __map_axis_definitions:
+      id:
+        type: int
+        default_value: -1
+      device:
+        type: string
+        default_value: ""
+        description: "The device that this axis is mapped to. Must be an element of device_names, and maps to the first device in device_names by default."
+  buttons:
+    __map_button_definitions:
+      id:
+        type: int
+        default_value: -1
+      device:
+        type: string
+        default_value: ""
+        description: "The device that this axis is mapped to. Must be an element of device_names, and maps to the first device in device_names by default."
+
+#  controllers:
+#    type: string_array
+#    default_value: []
+#    description: "The list of controllers that can be used with arm teleop."
+#    read_only: true
+#  __map_controllers:
