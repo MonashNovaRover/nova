@@ -1,4 +1,4 @@
-'''
+"""
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
@@ -24,33 +24,33 @@ from launch_ros.actions import Node
 def launch_setup(context, *args, **kwargs):
     return [
         Node(
-            package='science', 
-            executable='nir_probe_publisher.py', 
-            output='screen', 
+            package='science',
+            executable='nir_probe_publisher.py',
+            output='screen',
             emulate_tty=True,
         ),
         Node(
-            package='science', 
-            executable='microscope_servo.py', 
-            output='screen', 
+            package='science',
+            executable='microscope_servo.py',
+            output='screen',
             emulate_tty=True,
         ),
         Node(
-            package='science', 
-            executable='kiln_server.py', 
-            output='screen', 
+            package='science',
+            executable='kiln_server.py',
+            output='screen',
             emulate_tty=True,
         ),
         Node(
-            package='science', 
-            executable='auger.py', 
-            output='screen', 
+            package='science',
+            executable='urc_auger.py',
+            output='screen',
             emulate_tty=True,
         ),
         Node(
-            package='science', 
-            executable='analysis_platform.py', 
-            output='screen', 
+            package='science',
+            executable='urc_analysis_arm.py',
+            output='screen',
             emulate_tty=True,
         ),
     ]
