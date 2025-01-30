@@ -30,6 +30,7 @@ find_package(tf2_ros REQUIRED)
 find_package(nav2_util REQUIRED)
 find_package(nav2_behavior_tree REQUIRED)
 find_package(behaviortree_cpp REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 
 set(dep_pkgs
   rclcpp
@@ -41,6 +42,7 @@ set(dep_pkgs
   nav2_util
   nav2_behavior_tree
   behaviortree_cpp
+  ament_index_cpp
 )
 
 # === Build ===
@@ -93,6 +95,10 @@ list(APPEND plugin_libs nova_check_detected_condition_bt_node)
 
 add_library(nova_led_service_bt_node SHARED plugins/led_service.cpp)
 list(APPEND plugin_libs nova_led_service_bt_node)
+
+add_library(nova_blackboard_publisher_bt_node SHARED plugins/blackboard_publisher_node.cpp)
+list(APPEND plugin_libs nova_blackboard_publisher_bt_node)
+
 
 foreach(bt_plugin ${plugin_libs})
   ament_target_dependencies(${bt_plugin} ${dep_pkgs})
