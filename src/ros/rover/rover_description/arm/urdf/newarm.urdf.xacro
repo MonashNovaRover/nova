@@ -598,6 +598,7 @@
     </xacro:if>
     <!-- XXX: ask why this isn't enabled for not gazebo -->
         <xacro:include filename="$(find rover_description)/arm/urdf/newarm.ros2_control.xacro" />
+        <xacro:newarm_ros2_control use_mock_hardware="$(arg use_mock_hardware)" />
 
     <!-- Standalone arm definition -->
     <xacro:unless value="$(arg arm)">
