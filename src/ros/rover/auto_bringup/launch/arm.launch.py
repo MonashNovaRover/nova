@@ -24,6 +24,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
+    teleop_dir = FindPackageShare('teleop_arm_joy')
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
     robot_name = LaunchConfiguration('robot_name')
@@ -34,6 +35,9 @@ def launch_setup(context, *args, **kwargs):
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
             launch_arguments={'controllers': controllers}.items(),
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(PathJoinSubstitution([teleop_dir, 'launch', 'teleop.launch.py'])),
         ),
         # IncludeLaunchDescription(
         #     PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
@@ -79,7 +83,7 @@ def generate_launch_description():
         # ),
         DeclareLaunchArgument(
             name='arm',
-            default_value='false',
+            default_value='true',
             description='whether to launch arm',
         )
     ]
