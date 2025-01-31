@@ -139,20 +139,30 @@ void TeleopArmJoy::onDeviceUpdated(string &device_name) {
 
   // Do actual stuff
   updateState();
-  sendArmCommand();
+
+  if (current_state.locked) {
+    sendHaltCommand();
+  }
+  else {
+    sendArmCommand();
+  }
 }
 
 void TeleopArmJoy::updateState() {
   previous_state = current_state;
 
   // Lock and unlock
-  if (current_state.locked) {
-    if (buttons["lock"]->down())
+  if (!current_state.locked) {
+    if (buttons["lock"]->down()) {
       current_state.locked = true;
+      RCLCPP_INFO(this->get_logger(), "LOCKED");
+    }
   }
   else {
-    if (buttons["unlock"]->down())
-      current_state.locked = true;
+    if (buttons["unlock"]->down()) {
+      current_state.locked = false;
+      RCLCPP_INFO(this->get_logger(), "UNLOCKED");
+    }
   }
 
   // TODO: put speed into state
@@ -170,7 +180,7 @@ void TeleopArmJoy::sendArmCommand()
 
   msg->header.stamp = this->now();
 
-  for (auto [joint_name, joint_config] : params_.joints.joint_definitions_map) {
+  for (const auto& [joint_name, joint_config] : params_.joints.joint_definitions_map) {
     msg->name.emplace_back(joint_name);
 
     const float input = axes[joint_name]->value();
@@ -181,7 +191,6 @@ void TeleopArmJoy::sendArmCommand()
 
   fk_velocity_pub->publish(std::move(msg));
 }
-
 
 void TeleopArmJoy::sendHaltCommand()
 {
@@ -215,8 +224,8 @@ void TeleopArmJoy::switchController(const ControlMode requested_control_mode)
   std::string activate_controller = modeToController(requested_control_mode);
 
   if (!switch_controller_client->service_is_ready()) {
-      RCLCPP_ERROR(this->get_logger(), "Controller manager service not available.");
-      return;
+    RCLCPP_ERROR(this->get_logger(), "Controller manager service not available.");
+    return;
   }
 
   auto request = std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
