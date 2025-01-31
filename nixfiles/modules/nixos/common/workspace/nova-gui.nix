@@ -2,7 +2,7 @@
 
 {
   systemd.services.nova-gui = {
-    description = "Launches nova-gui frontend and backend";
+    description = "nova-gui service";
     after = [ "network.target" "roscore.service" ];
 
     serviceConfig = {
@@ -10,20 +10,15 @@
       WorkingDirectory = "/home/nova/nova/src/ros/nova-gui/nova-gui";
       Environment = "HOME=/home/nova";
 
-      # First, run `nova-shell` to set up the environment
       ExecStartPre = ''
         nova-shell -A pkgs.ros.nova-gui
+        ${pkgs.nodejs}/bin/yarn install
       '';
 
-      # Run yarn install to install dependencies (after nova-shell setup)
-      ExecStartPre = "${pkgs.nodejs}/bin/yarn install";
-
-      # Launch the backend (rosbridge)
       ExecStartPost = ''
         ros2 launch rosbridge_server rosbridge_websocket_launch.xml &
       '';
 
-      # Start the frontend (yarn dev)
       ExecStart = "${pkgs.nodejs}/bin/yarn dev";
 
       Restart = "always";
