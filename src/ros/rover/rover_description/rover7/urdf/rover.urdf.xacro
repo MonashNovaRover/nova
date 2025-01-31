@@ -728,7 +728,7 @@
     
     <xacro:if value="$(arg arm)">
         <xacro:include filename="$(find rover_description)/arm/urdf/newarm.urdf.xacro" />
-        <joint name="J1_gbp_chassis" type="revolute">
+        <joint name="j1" type="revolute">
             <origin xyz="0.22899999999999565148 1.1102230246251564172e-16 0.11707476398169122667" rpy="-3.141592653589793116 -1.3309679851047901909e-16 0" />
             <parent link="chassis" />
             <child link="gearbox" />

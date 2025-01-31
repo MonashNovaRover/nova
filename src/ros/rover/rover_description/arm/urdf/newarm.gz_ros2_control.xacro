@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <ros2_control name="GazeboSimSystem" type="system">
+  
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+
+    <joint name="j1">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+
+	  <joint name="j2">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+
+	  <joint name="j3">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+
+	  <!-- <joint name="l1b_bp">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+
+	  <joint name="l1b_tp">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+
+	  <joint name="l1a_tp">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint> -->
+
+	  <joint name="j4">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+
+	  <joint name="j5">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+
+	  <joint name="j6">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+
+	  <joint name="rf_slide">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+
+	  <joint name="lf_slide">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+
+	  <joint name="actuator_head">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+
+  </ros2_control>
+
+  <!-- <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(find auto_bringup)/params/controllers.yaml</parameters>
+    </plugin>
+  </gazebo> -->
+
+
+</robot>

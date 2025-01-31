@@ -29,16 +29,16 @@
                 <joint_name>br_ball_yaw</joint_name>
 
                 <!-- Arm joints -->
-                <joint_name>J1_gbp_chassis</joint_name>
-                <joint_name>J2_l1a_bp</joint_name>
-                <joint_name>J3_l2b_bp</joint_name>
+                <joint_name>j1</joint_name>
+                <joint_name>j2</joint_name>
+                <joint_name>j3</joint_name>
                 <joint_name>l1b_bp</joint_name>
                 <joint_name>l1b_tp</joint_name>
                 <joint_name>l1a_tp</joint_name>
                 
-                <joint_name>wrist_pitch</joint_name>
-                <joint_name>wrist_yaw</joint_name>
-                <joint_name>wrist_roll</joint_name>
+                <joint_name>j4</joint_name>
+                <joint_name>j5</joint_name>
+                <joint_name>j6</joint_name>
 
                 <joint_name>rf_slide</joint_name>
                 <joint_name>lf_slide</joint_name>
