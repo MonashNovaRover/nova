@@ -249,7 +249,7 @@
 	  <xacro:unless value="${use_mock_hardware}">
         <hardware>
 		  <plugin>blcmd_hardware/BLCMDHardware</plugin>
-		  <param name="candevice">can1</param>
+		  <param name="candevice">can0</param>
       	  <param name="canid">5</param>
 		  <param name="resolver_reduction">1.33333333333</param>
 		  <param name="clock_rate">100000000</param>
