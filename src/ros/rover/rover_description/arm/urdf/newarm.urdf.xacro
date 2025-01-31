@@ -199,7 +199,7 @@
         <joint_properties friction="0.5" damping="0.5"/>
     </joint>
 
-    <joint name="J2_l1a_bp" type="revolute">
+    <joint name="j2" type="revolute">
         <origin xyz="-1.6653345369377348106e-16 -2.3967136596913301438e-07 -0.16497726032863463397" rpy="1.5707963267948961139 6.0217020942552186975e-15 5.3207089380869679575e-16" />
         <parent link="gearbox" />
         <child link="l1_alpha" />
@@ -320,7 +320,7 @@
         <joint_properties friction="0.5" damping="0.5"/>
     </joint>
 
-    <joint name="J3_l2b_bp" type="revolute">
+    <joint name="j3" type="revolute">
         <origin xyz="2.7755575615628913511e-17 -2.3967136592029097706e-07 -0.1649772603286343009" rpy="1.570796326794896558 7.3420626327675113628e-16 -1.8112369360797040431e-15" />
         <parent link="gearbox" />
         <child link="l2_beta" />
@@ -549,7 +549,7 @@
         <joint_properties friction="0.0"/>
     </joint>
 
-    <joint name="wrist_roll" type="revolute">
+    <joint name="j6" type="revolute">
         <origin xyz="-0.00046582360769774496488 -0.086000000000003740119 0.00713417639229629863" rpy="-1.5707963267948990005 7.5034665064024681681e-09 1.0332187252429466388e-16" />
         <parent link="wrist_z" />
         <child link="wrist_x" />
@@ -558,7 +558,7 @@
         <joint_properties friction="0.0"/>
     </joint>
 
-    <joint name="wrist_yaw" type="revolute">
+    <joint name="j5" type="revolute">
         <origin xyz="-1.4432899320127035026e-15 -0.010372222222245208734 -0.056404154590515238887" rpy="-1.5707963267948328312 1.5707963267948086283 0" />
         <parent link="wrist_y" />
         <child link="wrist_z" />
@@ -567,7 +567,7 @@
         <joint_properties friction="0.0"/>
     </joint>
 
-    <joint name="wrist_pitch" type="revolute">
+    <joint name="j4" type="revolute">
         <origin xyz="4.4408920985006261617e-16 0.056950000000000632061 -0.19825000000000037037" rpy="-1.5707963267948878983 1.5707963267948819031 0" />
         <parent link="wrist_base" />
         <child link="wrist_y" />
@@ -594,11 +594,36 @@
     </gazebo>
     
     <!--xacro:include filename="arm_odom.xacro"/ -->
+<<<<<<< Updated upstream
     <xacro:if value="$(arg gazebo)">
+=======
+    <!-- <xacro:if value="$(arg gazebo)">
+        <xacro:include filename="$(find rover_description)/arm/urdf/newarm.ros2_control.xacro" />
+    </xacro:if> -->
+
+    <!-- gz start -->
+
+    <xacro:unless value="$(arg gazebo)">
+        <!-- not gazebo start -->
+        <xacro:include filename="$(find rover_description)/arm/urdf/newarm.ros2_control.xacro" />
+        <!-- not gazebo middle -->
+        <xacro:newarm_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
+        <!-- not gazebo end -->
+    </xacro:unless>
+
+    <!-- gz middle -->
+
+    <xacro:if value="$(arg gazebo)">
+        <!-- heehee gazebo start -->
+        <xacro:include filename="$(find rover_description)/arm/urdf/newarm.gz_ros2_control.xacro" />
+        <!-- hahah gazebo end -->
+>>>>>>> Stashed changes
     </xacro:if>
     <!-- XXX: ask why this isn't enabled for not gazebo -->
         <xacro:include filename="$(find rover_description)/arm/urdf/newarm.ros2_control.xacro" />
         <xacro:newarm_ros2_control use_mock_hardware="$(arg use_mock_hardware)" />
+
+    <!-- gz end -->
 
     <!-- Standalone arm definition -->
     <xacro:unless value="$(arg arm)">
@@ -632,7 +657,7 @@
             </inertial>
         </link>
 
-        <joint name="J1_gbp_chassis" type="revolute">
+        <joint name="j1" type="revolute">
             <origin xyz="0.22899999999999565148 1.1102230246251564172e-16 0.11707476398169122667" rpy="-3.141592653589793116 -1.3309679851047901909e-16 0" />
             <parent link="chassis" />
             <child link="gearbox" />

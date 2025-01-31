@@ -29,7 +29,32 @@
         </hardware>
 	  </xacro:if>
 	  
+<<<<<<< Updated upstream
 	  <joint name="J1_gbp_chassis">
+=======
+	  <!--
+	  <hardware>
+        TODO: Figure out and add the Hardware interface
+	  <plugin>${ros2_control_plugin}</plugin>
+	  </hardware>
+	  -->	  
+	  
+	  <joint name="j1">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+
+	  <joint name="j2">
+>>>>>>> Stashed changes
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -47,6 +72,7 @@
 		</state_interface>
       </joint>
 
+<<<<<<< Updated upstream
     </ros2_control>
 
     <ros2_control name="J2" type="system">
@@ -73,6 +99,9 @@
 	  </xacro:if>
 
 	  <joint name="J2_l1a_bp">
+=======
+	  <joint name="j3">
+>>>>>>> Stashed changes
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -90,6 +119,7 @@
 		</state_interface>
       </joint>
 
+<<<<<<< Updated upstream
     </ros2_control>
 
     <ros2_control name="J3" type="system">
@@ -157,8 +187,8 @@
           <param name="calculate_dynamics">true</param>
         </hardware>
 	  </xacro:if>
-
-	  <joint name="wrist_pitch">
+=======
+	  <!-- <joint name="l1b_bp">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -176,6 +206,62 @@
 		</state_interface>
       </joint>
 
+	  <joint name="l1b_tp">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<command_interface name="effort">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+
+	  <joint name="l1a_tp">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<command_interface name="effort">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint> -->
+>>>>>>> Stashed changes
+
+	  <joint name="j4">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<command_interface name="effort">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+
+<<<<<<< Updated upstream
     </ros2_control>
 
     <ros2_control name="J5" type="system">
@@ -203,6 +289,9 @@
 
 
 	  <joint name="wrist_yaw">
+=======
+	  <joint name="j5">
+>>>>>>> Stashed changes
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -220,6 +309,7 @@
 		</state_interface>
       </joint>
 
+<<<<<<< Updated upstream
     </ros2_control>
 
     <ros2_control name="J6" type="system">
@@ -247,6 +337,9 @@
 
 
 	  <joint name="wrist_roll">
+=======
+	  <joint name="j6">
+>>>>>>> Stashed changes
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
