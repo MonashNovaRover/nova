@@ -10,12 +10,20 @@
       WorkingDirectory = "/home/nova/nova/src/ros/nova-gui/nova-gui";
       Environment = "HOME=/home/nova";
 
-      ExecStartPre = "${pkgs.nodejs}/bin/yarn install"; 
+      # Run nova-shell to set up the environment before starting the app
+      ExecStartPre = ''
+        nova-shell -A pkgs.ros.nova-gui
+      '';
 
+      # Run yarn install to install dependencies
+      ExecStartPre += "${pkgs.nodejs}/bin/yarn install";  # Added yarn install to ensure dependencies are set up
+
+      # Launch the backend (rosbridge)
       ExecStartPost = ''
         ros2 launch rosbridge_server rosbridge_websocket_launch.xml &
       '';
 
+      # Start the frontend (yarn dev)
       ExecStart = "${pkgs.nodejs}/bin/yarn dev";
 
       Restart = "always";
