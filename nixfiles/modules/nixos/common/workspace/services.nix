@@ -80,6 +80,8 @@ in
             Restart = "always";
           };
           script = ''
+            nova-shell -A pkgs.ros.nova-gui
+
             echo "Starting gui-frontend service..."
             # Ensure directory exists and symlink is set up
             if [ ! -d "/home/nova/nova/src/ros/nova-gui/nova-gui" ]; then
