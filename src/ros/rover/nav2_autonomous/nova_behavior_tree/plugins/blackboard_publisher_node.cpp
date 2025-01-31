@@ -1,5 +1,3 @@
-#include <string>
-#include <memory>
 #include "nova_behavior_tree/blackboard_publisher_node.hpp"
 #include "behaviortree_cpp/bt_factory.h"
 
@@ -7,55 +5,49 @@ namespace nova_behavior_tree
 {
 
 BlackboardPublisherNode::BlackboardPublisherNode(
-  const std::string & xml_tag_name,
-  const BT::NodeConfiguration & conf)
-: BT::ActionNodeBase(xml_tag_name, conf), topic_name_("blackboard_data")
+  const std::string & name,
+  const BT::NodeConfiguration & config)
+: BT::ActionNodeBase(name, config), topic_name_("blackboard_data")
 {
-  // Initialize parameters from XML input ports (if any)
+  // The constructor simply stores defaults. 
+  // We do actual ROS setup in initialize() to ensure we have the blackboard.
 }
 
 void BlackboardPublisherNode::initialize()
 {
-  // Get ROS node handle from the blackboard
+  // Retrieve the shared pointer to the ROS 2 node from the blackboard
   node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
-  
-  // Get topic name from input port (or use default)
+
+  // If "topic_name" was passed as an input port, override the default:
   getInput("topic_name", topic_name_);
-  
-  // Initialize publisher
+
+  // Create a publisher for std_msgs/String messages
   publisher_ = node_->create_publisher<std_msgs::msg::String>(
-    topic_name_, rclcpp::SystemDefaultsQoS());
+    topic_name_,
+    rclcpp::QoS(10)  // Or SystemDefaultsQoS(), etc.
+  );
 }
 
 BT::NodeStatus BlackboardPublisherNode::tick()
 {
+  // If this node is not yet active, do the one-time setup
   if (!BT::isStatusActive(status())) {
     initialize();
   }
 
-  // Get all entries from the Blackboard
-  const auto& blackboard = config().blackboard;
-  auto entries = blackboard->entries();
-
-  // Convert to JSON-like string
-  std::string json_str = "{";
-  for (const auto& [key, value] : entries) {
-    json_str += "\"" + key + "\":\"" + value.value().toString() + "\",";
-  }
-  if (!entries.empty()) json_str.pop_back();  // Remove trailing comma
-  json_str += "}";
-
-  // Publish to ROS
+  // Here is where you can read from the blackboard if you wish.
+  // For this minimal example, we simply publish a fixed string.
   std_msgs::msg::String msg;
-  msg.data = json_str;
+  msg.data = "WE ARE READING THE BLACKBOARD";
   publisher_->publish(msg);
 
+  // Indicate that we have successfully completed this action in one tick
   return BT::NodeStatus::SUCCESS;
 }
 
 }  // namespace nova_behavior_tree
 
-#include "behaviortree_cpp/bt_factory.h"
+// Register this node to make it available via XML <BlackboardPublisher/>
 BT_REGISTER_NODES(factory)
 {
   factory.registerNodeType<nova_behavior_tree::BlackboardPublisherNode>("BlackboardPublisher");
