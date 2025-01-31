@@ -1,9 +1,5 @@
 { config, pkgs, lib, ... }:
 
-let
-  # Directly set the path for the nixfileDir
-  nixfileDir = "/home/nova/nova/nixfiles";  # Adjust this path as needed
-in
 {
   systemd.services.nova-gui = {
     description = "Launches nova-gui frontend and backend";
@@ -14,10 +10,9 @@ in
       WorkingDirectory = "/home/nova/nova/src/ros/nova-gui/nova-gui";
       Environment = "HOME=/home/nova";
 
-      # Directly use nix-shell to set up the environment and run yarn install
+      # Use the system-wide nix-shell to run yarn install
       ExecStartPre = ''
-        # Use nix-shell to set up the environment and run yarn install
-        nix-shell ${nixfileDir} -A pkgs.ros.nova-gui --run "${pkgs.nodejs}/bin/yarn install"
+        nix-shell /home/nova/nova/nixfiles -A pkgs.ros.nova-gui --run "${pkgs.nodejs}/bin/yarn install"
       '';
 
       # Launch the backend (rosbridge)
@@ -25,7 +20,7 @@ in
         ros2 launch rosbridge_server rosbridge_websocket_launch.xml &
       '';
 
-      # Start the frontend (yarn dev)
+      # Start the frontend (yarn dev) using system-wide yarn
       ExecStart = "${pkgs.nodejs}/bin/yarn dev";
 
       Restart = "always";
