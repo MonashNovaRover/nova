@@ -1,9 +1,8 @@
 { config, pkgs, lib, ... }:
 
 let
-  # Extract the correct directory paths based on the configuration options
-  cfg = config.nova.macros;
-  nixfileDir = lib.strings.concatStringsSep "/" [ cfg.sourceDir ".." "nixfiles" ];
+  # Directly set the path for the nixfileDir
+  nixfileDir = "/home/nova/nova/nixfiles";  # Adjust this path as needed
 in
 {
   systemd.services.nova-gui = {
@@ -15,7 +14,7 @@ in
       WorkingDirectory = "/home/nova/nova/src/ros/nova-gui/nova-gui";
       Environment = "HOME=/home/nova";
 
-      # Ensure the correct environment is set up with nix-shell
+      # Directly use nix-shell to set up the environment and run yarn install
       ExecStartPre = ''
         # Use nix-shell to set up the environment and run yarn install
         nix-shell ${nixfileDir} -A pkgs.ros.nova-gui --run "${pkgs.nodejs}/bin/yarn install"
