@@ -11,7 +11,7 @@
         <hardware>
 		  <plugin>blcmd_hardware/BLCMDHardware</plugin>
 		  <param name="candevice">can1</param>
-      	  <param name="canid">4</param>
+      	  <param name="canid">4F1</param>
 		  <param name="resolver_reduction">1.33333333333</param>
 		  <param name="clock_rate">100000000</param>
 		  <param name="revolution_pulses">8192</param>
@@ -56,7 +56,7 @@
         <hardware>
 		  <plugin>blcmd_hardware/BLCMDHardware</plugin>
 		  <param name="candevice">can1</param>
-      	  <param name="canid">4</param>
+      	  <param name="canid">4F1</param>
 		  <param name="resolver_reduction">1.33333333333</param>
 		  <param name="clock_rate">100000000</param>
 		  <param name="revolution_pulses">8192</param>
@@ -94,7 +94,7 @@
         <hardware>
 		  <plugin>blcmd_hardware/BLCMDHardware</plugin>
 		  <param name="candevice">can1</param>
-      	  <param name="canid">4</param>
+      	  <param name="canid">4F1</param>
 		  <param name="resolver_reduction">1.33333333333</param>
 		  <param name="clock_rate">100000000</param>
 		  <param name="revolution_pulses">8192</param>
@@ -174,7 +174,7 @@
         <hardware>
 		  <plugin>blcmd_hardware/BLCMDHardware</plugin>
 		  <param name="candevice">can1</param>
-      	  <param name="canid">4</param>
+      	  <param name="canid">4F1</param>
 		  <param name="resolver_reduction">1.33333333333</param>
 		  <param name="clock_rate">100000000</param>
 		  <param name="revolution_pulses">8192</param>
@@ -212,7 +212,7 @@
         <hardware>
 		  <plugin>blcmd_hardware/BLCMDHardware</plugin>
 		  <param name="candevice">can1</param>
-      	  <param name="canid">4</param>
+      	  <param name="canid">4F1</param>
 		  <param name="resolver_reduction">1.33333333333</param>
 		  <param name="clock_rate">100000000</param>
 		  <param name="revolution_pulses">8192</param>
@@ -250,7 +250,7 @@
         <hardware>
 		  <plugin>blcmd_hardware/BLCMDHardware</plugin>
 		  <param name="candevice">can1</param>
-      	  <param name="canid">4</param>
+      	  <param name="canid">5</param>
 		  <param name="resolver_reduction">1.33333333333</param>
 		  <param name="clock_rate">100000000</param>
 		  <param name="revolution_pulses">8192</param>
