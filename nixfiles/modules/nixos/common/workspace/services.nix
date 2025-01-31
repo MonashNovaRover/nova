@@ -58,10 +58,10 @@ in
           wantedBy = [ "multi-user.target" ];
           requires = [];
           after = [];
+          workingDirectory = "/home/nova/nova/src/ros/nova-gui/nova-gui";  # Set the working directory directly
           path = with pkgs; [
             (writeShellScriptBin "start-nova-gui-frontend" ''
               #!/bin/sh
-              cd /home/nova/nova/src/ros/nova-gui/nova-gui
               yarn install
               yarn dev
             '')
@@ -77,7 +77,8 @@ in
             /bin/sh $PATH_TO_START_ROSBRIDGE &
             wait
           '';
-          serviceConfig.DynamicUser = true;
+          serviceConfig.User = "nova-workspace";  # Ensure this is the correct user
+          serviceConfig.Group = "nova-workspace";  # Ensure this is the correct group
           serviceConfig.AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
         };
       };
