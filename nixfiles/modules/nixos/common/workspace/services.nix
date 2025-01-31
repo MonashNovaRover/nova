@@ -13,6 +13,9 @@ in
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
+      # Ensure the group exists before defining the user
+      users.groups.nova-workspace = { };
+
       users.users.nova-workspace = {
         isSystemUser = true;
         group = "nova-workspace";
