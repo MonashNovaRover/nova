@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <ros2_control name="GazeboSimSystem" type="system">
+  <ros2_control name="GazeboSimSystemArm" type="system">
   
     <hardware>
       <plugin>gz_ros2_control/GazeboSimSystem</plugin>
@@ -177,11 +177,11 @@
 
   </ros2_control>
 
-  <!-- <gazebo>
+  <gazebo>
     <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
       <parameters>$(find auto_bringup)/params/controllers.yaml</parameters>
     </plugin>
-  </gazebo> -->
+  </gazebo>
 
 
 </robot>

@@ -594,9 +594,6 @@
     </gazebo>
     
     <!--xacro:include filename="arm_odom.xacro"/ -->
-<<<<<<< Updated upstream
-    <xacro:if value="$(arg gazebo)">
-=======
     <!-- <xacro:if value="$(arg gazebo)">
         <xacro:include filename="$(find rover_description)/arm/urdf/newarm.ros2_control.xacro" />
     </xacro:if> -->
@@ -617,7 +614,6 @@
         <!-- heehee gazebo start -->
         <xacro:include filename="$(find rover_description)/arm/urdf/newarm.gz_ros2_control.xacro" />
         <!-- hahah gazebo end -->
->>>>>>> Stashed changes
     </xacro:if>
     <!-- XXX: ask why this isn't enabled for not gazebo -->
         <xacro:include filename="$(find rover_description)/arm/urdf/newarm.ros2_control.xacro" />
