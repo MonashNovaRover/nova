@@ -6,7 +6,7 @@ nova_arm_controller:
   }
   joint_position_feedback: {
     type: bool,
-    default_value: true, # for the arm I dunno if we will ever not have this, maybe this option should be removed
+    default_value: false, # for the arm I dunno if we will ever not have this, maybe this option should be removed
     description: "Is there position feedback from joint hardware.",
   }
   cmd_timeout: {

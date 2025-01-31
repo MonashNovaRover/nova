@@ -4,7 +4,7 @@ controller_manager:
     use_sim_time: false
 
     nova_arm_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+      type: nova_arm_controller/NovaArmController
 
     wheel_velocity_controller:
       type: velocity_controllers/JointGroupVelocityController
@@ -29,7 +29,7 @@ controller_manager:
 
 nova_arm_controller:
   ros__parameters:
-    joints:
+    joint_names:
       - j1
       - j2 
       - j3 
