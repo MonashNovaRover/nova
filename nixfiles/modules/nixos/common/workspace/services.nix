@@ -5,9 +5,9 @@ let
 in
 {
   options.nova.workspace.services = {
-    enable = lib.mkEnableOption "workspace services" // { default = config.nova.workspace.enable; };
+    enable = lib.mkEnableOption "workspace services";
     gui = {
-      enable = lib.mkEnableOption "GUI services" // { default = true; };
+      enable = lib.mkEnableOption "GUI services";
       frontendPackage = lib.mkPackageOption pkgs "frontend resource" {
         default = [ "nova" "nova-gui-frontend" ];
       };
@@ -21,13 +21,15 @@ in
         groups.nova-workspace = { };
         users.nova-workspace = {
           isSystemUser = true;
-          group = config.users.groups.nova-workspace.name;
+          group = "nova-workspace";
+          home = "/home/nova-workspace";  # Ensure the home directory is correct
+          createHome = true;
         };
       };
 
       lib.nova.mkWorkspaceService = { path ? [ ], script, ... }@args: args // {
-        serviceConfig.User = config.users.users.nova-workspace.name;
-        serviceConfig.Group = config.users.users.nova-workspace.group;
+        serviceConfig.User = "nova-workspace";
+        serviceConfig.Group = "nova-workspace";
         serviceConfig.StateDirectory = "nova-workspace";
         serviceConfig.StateDirectoryMode = 0750;
         serviceConfig.LogsDirectory = "nova-workspace";
@@ -51,37 +53,43 @@ in
       };
     }
 
-        # GUI services
+    # GUI services
     (lib.mkIf cfg.gui.enable {
-      systemd.services = {
-        gui-backend = config.lib.nova.mkWorkspaceService {
-          description = "Nova ROSBridge WebSocket Server";
-          script = "ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
+      systemd.services.gui-frontend = {
+        wantedBy = [ "multi-user.target" ];
+        requires = [ "gui-backend.service" ];
+        after = [ "gui-backend.service" ];
+        serviceConfig = {
+          Type = "simple";
+          User = "nova-workspace";  # Ensuring the service runs as nova-workspace
+          Group = "nova-workspace";  # Ensuring the service runs in the nova-workspace group
+          WorkingDirectory = "/home/nova-workspace/nova/src/ros/nova-gui/nova-gui";
+          Restart = "always";
+          Environment = [
+            "ROS_TS_DEFINITIONS=/home/nova-workspace/nova/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts"
+          ];
         };
 
-        gui-frontend = {
-          wantedBy = [ "multi-user.target" ];
-          requires = [ "gui-backend.service" ];
-          after = [ "gui-backend.service" ];
-          path = with pkgs; [
-            (nova.nova-gui-frontend-server.override {
-              nova-gui-frontend = cfg.gui.frontendPackage;
-            })
-            nodejs
-            yarn
-          ];
-          script = ''
-            cd nova/src/ros/nova-gui/nova-gui
-            yarn install
+        script = ''
+          if [ ! -d "/home/nova-workspace/nova/src/ros/nova-gui/nova-gui" ]; then
+            echo "Creating the nova-gui directory..."
+            mkdir -p /home/nova-workspace/nova/src/ros/nova-gui/nova-gui
+          fi
+
+          if [ ! -L "src/ros/rosTypes.ts" ]; then
+            echo "Creating symlink for rosTypes.ts..."
             ln -sf "$ROS_TS_DEFINITIONS" src/ros/rosTypes.ts
-            yarn dev
-          '';
-          serviceConfig.DynamicUser = true;
-          serviceConfig.AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
-        };
+          fi
+
+          if [ ! -d "node_modules" ]; then
+            echo "Installing dependencies..."
+            yarn install
+          fi
+          yarn dev
+        '';
       };
 
-      networking.firewall.allowedTCPPorts = [ 80 ];
+      networking.firewall.allowedTCPPorts = [ 80 ];  # Allow traffic on port 80 for the frontend
     })
   ]);
 }
