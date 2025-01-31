@@ -7,14 +7,13 @@ in
   options.nova.workspace.services = {
     enable = lib.mkEnableOption "workspace services";
     gui = {
-      enable = lib.mkEnableOption "GUI services" // { default = true; };
+      enable = lib.mkEnableOption "GUI services"; 
       frontendPackage = lib.mkPackageOption pkgs "frontend resource" {
         default = [ "nova" "nova-gui-frontend" ];
       };
     };
   };
 
-  # Ensure the user and group for nova-workspace are set up correctly
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
       users = {
@@ -22,7 +21,6 @@ in
         users.nova-workspace = {
           isSystemUser = true;
           group = config.users.groups.nova-workspace.name;
-          shell = pkgs.zsh;  # Or whichever shell is used
           home = "/home/nova";
         };
       };
@@ -57,5 +55,5 @@ in
         wantedBy = [ "multi-user.target" ];
       };
     }
-  ];
+  ]);
 }
