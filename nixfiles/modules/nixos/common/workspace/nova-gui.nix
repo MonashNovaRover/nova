@@ -6,19 +6,16 @@
     after = [ "network.target" "roscore.service" ];
 
     serviceConfig = {
-      User = "nova-workspace";
+      User = "root";
+      Group = "root";
+
       WorkingDirectory = "/home/nova/nova/src/ros/nova-gui/nova-gui";
       Environment = "HOME=/home/nova";
 
-      # Use the full path to nix-shell
       ExecStartPre = "/run/current-system/sw/bin/nix-shell /home/nova/nova/nixfiles -A pkgs.ros.nova-gui --run yarn install";
-
-      # Launch the backend (rosbridge)
       ExecStartPost = ''
         ros2 launch rosbridge_server rosbridge_websocket_launch.xml &
       '';
-
-      # Start the frontend (yarn dev)
       ExecStart = "${pkgs.yarn}/bin/yarn dev";
 
       Restart = "always";
