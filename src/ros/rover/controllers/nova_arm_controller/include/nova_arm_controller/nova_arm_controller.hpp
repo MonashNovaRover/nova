@@ -20,6 +20,7 @@
 #include "realtime_tools/realtime_publisher.h"
 #include "tf2_msgs/msg/tf_message.hpp"
 #include "nova_arm_controller/speed_limiter.hpp"
+#include <nova_interfaces/msg/arm_fk_velocity_targets.hpp>
 
 #include "nova_arm_controller_parameters.hpp"
 
@@ -83,6 +84,10 @@ namespace nova_arm_controller
     // Timeout to consider cmd_vel commands old
     std::chrono::milliseconds cmd_vel_timeout_{500};
     bool subscriber_is_active_ = false; // not sure what this is for yet
+    rclcpp::Subscription<nova_interfaces::msg::ArmFkVelocityTargets>::SharedPtr input_subscriber_ = nullptr;
+
+    realtime_tools::RealtimeBox<std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets>> received_msg_ptr_{nullptr};
+
     rclcpp::Time previous_update_timestamp_{0};
 
     // publish rate limiter

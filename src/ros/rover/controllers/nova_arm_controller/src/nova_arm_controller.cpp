@@ -11,8 +11,9 @@
 
 namespace
 {
-  constexpr auto DEFAULT_INPUT_TOPIC_ARM_JOINT_VELOCITY = "/ARM_TESTING"; // TODO: changeme
+  constexpr auto DEFAULT_INPUT_TOPIC_ARM_JOINT_VELOCITY = "/arm_fk_velocity_target"; // TODO: changeme
 } // namespace
+
 
 namespace nova_arm_controller
 {
@@ -87,9 +88,32 @@ namespace nova_arm_controller
       return controller_interface::return_type::OK;
     }
 
+
+    // Get last input message
+    std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets> last_msg;
+    received_msg_ptr_.get(last_msg);
+
+    // Validation of message
+    if (last_msg == nullptr)
+    {
+      RCLCPP_WARN(logger, "Velocity message received was a nullptr.");
+      return controller_interface::return_type::ERROR;
+    }
+
+    if (last_msg->name.size() != last_msg->velocity.size()) {
+      RCLCPP_WARN(logger, "Velocity message received had a different number of names and velocities.");
+      return controller_interface::return_type::ERROR;
+    }
+
+    // Make map of joint name -> velocity
+    auto velocities = std::map<std::string, double>();
+    for (int i = 0; i < last_msg->name.size(); ++i) {
+      velocities[last_msg->name[i]] = last_msg->velocity[i];
+    }
+
     for (const auto &joint_handle : registered_joint_handles_)
     {
-      float joint_speed = 0.0;
+      const auto joint_speed = static_cast<float>(velocities[joint_handle.name]);
       RCLCPP_INFO(logger, "%s speed: %f", joint_handle.name.c_str(), joint_speed);
       joint_handle.command.get().set_value(joint_speed);
     }
@@ -129,6 +153,31 @@ namespace nova_arm_controller
     }
 
     // TODO: setup publishers?
+
+
+
+    input_subscriber_ = get_node()->create_subscription<nova_interfaces::msg::ArmFkVelocityTargets>(
+    DEFAULT_INPUT_TOPIC_ARM_JOINT_VELOCITY, rclcpp::SystemDefaultsQoS(),
+    [this](const std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets> msg) -> void
+    {
+      if (!subscriber_is_active_)
+      {
+        RCLCPP_WARN_ONCE(
+            get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+        return;
+      }
+      if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
+      {
+        RCLCPP_WARN_ONCE(
+            get_node()->get_logger(),
+            "Received message with zero timestamp, setting it to current "
+            "time, this message will only be shown once");
+        msg->header.stamp = get_node()->get_clock()->now();
+      }
+
+      received_msg_ptr_.set(std::move(msg));
+    });
+
     previous_update_timestamp_ = get_node()->get_clock()->now();
     return controller_interface::CallbackReturn::SUCCESS;
   }
