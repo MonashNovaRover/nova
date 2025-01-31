@@ -88,7 +88,6 @@ namespace nova_arm_controller
       return controller_interface::return_type::OK;
     }
 
-
     // Get last input message
     std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets> last_msg;
     received_msg_ptr_.get(last_msg);
@@ -113,7 +112,15 @@ namespace nova_arm_controller
 
     for (const auto &joint_handle : registered_joint_handles_)
     {
+      // Ensure the map contains the handle
+      if (velocities.find(joint_handle.name) == velocities.end()) {
+        RCLCPP_WARN(logger, "Joint '%s' not defined in input message from teleop-arm-joy.", joint_handle.name.c_str());
+        joint_handle.command.get().set_value(0.0);
+        continue;
+      }
+
       const auto joint_speed = static_cast<float>(velocities[joint_handle.name]);
+
       RCLCPP_INFO(logger, "%s speed: %f", joint_handle.name.c_str(), joint_speed);
       joint_handle.command.get().set_value(joint_speed);
     }
