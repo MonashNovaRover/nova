@@ -63,26 +63,19 @@ in
           Type = "simple";
           User = "nova-workspace";  # Ensuring the service runs as nova-workspace
           Group = "nova-workspace";  # Ensuring the service runs in the nova-workspace group
-          WorkingDirectory = "/home/nova-workspace/nova/src/ros/nova-gui/nova-gui";
+          WorkingDirectory = "/home/nova-workspace/src/ros/nova-gui/nova-gui";
           Restart = "always";
           Environment = [
-            "ROS_TS_DEFINITIONS=/home/nova-workspace/nova/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts"
+            "ROS_TS_DEFINITIONS=/home/nova-workspace/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts"
           ];
         };
 
         script = ''
-          if [ ! -d "/home/nova-workspace/nova/src/ros/nova-gui/nova-gui" ]; then
-            echo "Creating the nova-gui directory..."
-            mkdir -p /home/nova-workspace/nova/src/ros/nova-gui/nova-gui
-          fi
-
           if [ ! -L "src/ros/rosTypes.ts" ]; then
-            echo "Creating symlink for rosTypes.ts..."
             ln -sf "$ROS_TS_DEFINITIONS" src/ros/rosTypes.ts
           fi
 
           if [ ! -d "node_modules" ]; then
-            echo "Installing dependencies..."
             yarn install
           fi
           yarn dev
