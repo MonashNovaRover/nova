@@ -55,9 +55,11 @@ in
     (lib.mkIf cfg.gui.enable {
       systemd.services = {
         gui-backend = config.lib.nova.mkWorkspaceService {
-          # TODO: Don't call clear in the GUI backend script
           path = with pkgs; [ (writeShellScriptBin "clear" "") ];
-          script = "ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
+          script = ''
+            source /opt/ros/${config.nova.workspace.package.rosDistro}/setup.bash
+            ros2 launch rosbridge_server rosbridge_websocket_launch.xml || exit 1
+          '';
         };
 
         gui-frontend = {
@@ -69,13 +71,37 @@ in
               nova-gui-frontend = cfg.gui.frontendPackage;
             })
           ];
-          script = "
-            cd /home/nova/nova/src/ros/nova-gui/nova-gui
-            yarn install
-            yarn dev
-          ";
-          serviceConfig.DynamicUser = true;
-          serviceConfig.AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
+          serviceConfig = {
+            DynamicUser = true;
+            AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
+            User = "nova-workspace";
+            Group = "nova-workspace";
+            WorkingDirectory = "/home/nova/nova/src/ros/nova-gui/nova-gui";  # Ensure full path
+            Restart = "always";
+          };
+          script = ''
+            echo "Starting gui-frontend service..."
+            # Ensure directory exists and symlink is set up
+            if [ ! -d "/home/nova/nova/src/ros/nova-gui/nova-gui" ]; then
+              echo "Directory does not exist: /home/nova/nova/src/ros/nova-gui/nova-gui"
+              exit 1
+            fi
+
+            echo "Setting up symlink for rosTypes.ts..."
+            if [ ! -L "src/ros/rosTypes.ts" ]; then
+              ln -sf "$ROS_TS_DEFINITIONS" src/ros/rosTypes.ts
+            fi
+
+            # Install dependencies if not installed
+            if [ ! -d "node_modules" ]; then
+              echo "Installing dependencies..."
+              yarn install || exit 1
+            fi
+
+            # Start the frontend server
+            echo "Starting frontend server..."
+            yarn dev || exit 1
+          '';
         };
       };
 
