@@ -54,31 +54,33 @@ in
     # GUI services
     (lib.mkIf cfg.gui.enable {
       systemd.services = {
+        # Backend service
+        gui-backend = {
+          wantedBy = [ "multi-user.target" ];
+          script = ''
+            # Start the rosbridge server
+            ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+          '';
+          serviceConfig.User = "nova-workspace";
+          serviceConfig.Group = "nova-workspace";
+        };
+
+        # Frontend service
         gui-frontend = {
           wantedBy = [ "multi-user.target" ];
-          requires = [];
-          after = [];
-          workingDirectory = "/home/nova/nova/src/ros/nova-gui/nova-gui";  # Set the working directory directly
+          requires = [ "gui-backend.service" ];
+          after = [ "gui-backend.service" ];
           path = with pkgs; [
             (writeShellScriptBin "start-nova-gui-frontend" ''
               #!/bin/sh
+              cd /home/nova/nova/src/ros/nova-gui/nova-gui
               yarn install
               yarn dev
             '')
-            (writeShellScriptBin "start-rosbridge" ''
-              #!/bin/sh
-              ros2 launch rosbridge_server rosbridge_websocket_launch.xml
-            '')
           ];
-          script = ''
-            # Start the frontend
-            /bin/sh $PATH_TO_START_NOVA_GUI_FRONTEND &
-            # Start the rosbridge server
-            /bin/sh $PATH_TO_START_ROSBRIDGE &
-            wait
-          '';
-          serviceConfig.User = "nova-workspace";  # Ensure this is the correct user
-          serviceConfig.Group = "nova-workspace";  # Ensure this is the correct group
+          script = "start-nova-gui-frontend";
+          serviceConfig.User = "nova-workspace";
+          serviceConfig.Group = "nova-workspace";
           serviceConfig.AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
         };
       };
