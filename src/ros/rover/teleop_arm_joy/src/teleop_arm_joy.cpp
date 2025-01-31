@@ -31,7 +31,7 @@ TeleopArmJoy::TeleopArmJoy(const rclcpp::NodeOptions &options)
   // Create service clients
   switch_controller_client = this->create_client<controller_manager_msgs::srv::SwitchController>("/controller_manager/switch_controller");
   // TODO: Make good for actual controller implementations
-  fk_client = this->create_client<rcl_interfaces::srv::SetParameters>("/pivot_drive_controller/set_parameters");
+  fk_client = this->create_client<rcl_interfaces::srv::SetParameters>("/nova_arm_controller/set_parameters");
   ik_client = this->create_client<rcl_interfaces::srv::SetParameters>("/strafe_controller/set_parameters");
 
   control_mode = ControlMode::FK;
