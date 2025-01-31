@@ -6,8 +6,8 @@
     after = [ "network.target" "roscore.service" ];
 
     serviceConfig = {
-      User = "root";
-      Group = "root";
+      User = "nova";
+      Group = "nova";
 
       WorkingDirectory = "/home/nova/nova/src/ros/nova-gui/nova-gui";
       Environment = "HOME=/home/nova";
