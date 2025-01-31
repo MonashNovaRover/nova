@@ -70,7 +70,7 @@ in
             })
           ];
           script = "
-            cd src/ros/nova-gui/nova-gui
+            cd /home/nova/nova/src/ros/nova-gui/nova-gui
             yarn install
             yarn dev
           ";
