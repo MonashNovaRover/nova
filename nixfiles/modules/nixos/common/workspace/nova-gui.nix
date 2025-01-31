@@ -10,13 +10,13 @@
       WorkingDirectory = "/home/nova/nova/src/ros/nova-gui/nova-gui";
       Environment = "HOME=/home/nova";
 
-      # Run nova-shell to set up the environment before starting the app
+      # First, run `nova-shell` to set up the environment
       ExecStartPre = ''
         nova-shell -A pkgs.ros.nova-gui
       '';
 
-      # Run yarn install to install dependencies
-      ExecStartPre += "${pkgs.nodejs}/bin/yarn install";  # Added yarn install to ensure dependencies are set up
+      # Run yarn install to install dependencies (after nova-shell setup)
+      ExecStartPre = "${pkgs.nodejs}/bin/yarn install";
 
       # Launch the backend (rosbridge)
       ExecStartPost = ''
