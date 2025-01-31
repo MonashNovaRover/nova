@@ -33,6 +33,7 @@ namespace nova_arm_controller
 
   controller_interface::CallbackReturn NovaArmController::on_init()
   {
+    RCLCPP_INFO(get_node()->get_logger(), "Controller Initialising");
     try
     {
       // Create the parameter listener and get the parameters
@@ -74,6 +75,8 @@ namespace nova_arm_controller
     auto logger = get_node()->get_logger();
     if (get_lifecycle_state().id() == State::PRIMARY_STATE_INACTIVE)
     {
+      RCLCPP_INFO(logger, "Update cancelled because inactive");
+
       if (!is_halted)
       {
         halt();
@@ -82,6 +85,8 @@ namespace nova_arm_controller
 
       return controller_interface::return_type::OK;
     }
+
+    RCLCPP_INFO(logger, "Getting input");
 
     // Get last input message
     std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets> last_msg;
@@ -105,6 +110,8 @@ namespace nova_arm_controller
       velocities[last_msg->name[i]] = last_msg->velocity[i];
     }
 
+    RCLCPP_INFO(logger, "Setting joint velocities");
+
     for (const auto &joint_handle : registered_joint_handles_)
     {
       // Ensure the map contains the handle
@@ -127,6 +134,8 @@ namespace nova_arm_controller
       const rclcpp_lifecycle::State &)
   {
     auto logger = get_node()->get_logger();
+
+    RCLCPP_INFO(get_node()->get_logger(), "on configure");
 
     // update parameters if they have changed
     if (param_listener_->is_old(params_))
@@ -156,7 +165,7 @@ namespace nova_arm_controller
 
     // TODO: setup publishers?
 
-
+    RCLCPP_INFO(get_node()->get_logger(), "Creating subscriber");
 
     input_subscriber_ = get_node()->create_subscription<nova_interfaces::msg::ArmFkVelocityTargets>(
     DEFAULT_INPUT_TOPIC_ARM_JOINT_VELOCITY, rclcpp::SystemDefaultsQoS(),
@@ -177,6 +186,8 @@ namespace nova_arm_controller
         msg->header.stamp = get_node()->get_clock()->now();
       }
 
+      RCLCPP_INFO(get_node()->get_logger(), "Subscriber callback");
+
       received_msg_ptr_.set(std::move(msg));
     });
 
@@ -187,6 +198,7 @@ namespace nova_arm_controller
   controller_interface::CallbackReturn NovaArmController::on_activate(
       const rclcpp_lifecycle::State &)
   {
+    RCLCPP_INFO(get_node()->get_logger(), "On activate");
     const auto joints_result =
         configure_joints(params_.joint_names, registered_joint_handles_, joint_feedback_type());
 
