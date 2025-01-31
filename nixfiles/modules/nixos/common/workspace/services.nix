@@ -5,9 +5,9 @@ let
 in
 {
   options.nova.workspace.services = {
-    enable = lib.mkEnableOption "workspace services";
+    enable = lib.mkEnableOption "workspace services" // { default = config.nova.workspace.enable; };
     gui = {
-      enable = lib.mkEnableOption "GUI services";
+      enable = lib.mkEnableOption "GUI services" // { default = true; };
       frontendPackage = lib.mkPackageOption pkgs "frontend resource" {
         default = [ "nova" "nova-gui-frontend" ];
       };
@@ -54,33 +54,23 @@ in
     # GUI services
     (lib.mkIf cfg.gui.enable {
       systemd.services = {
-        # Backend service
-        gui-backend = {
-          wantedBy = [ "multi-user.target" ];
-          script = ''
-            # Start the rosbridge server
-            ros2 launch rosbridge_server rosbridge_websocket_launch.xml
-          '';
-          serviceConfig.User = "nova-workspace";
-          serviceConfig.Group = "nova-workspace";
+        gui-backend = config.lib.nova.mkWorkspaceService {
+          # TODO: Don't call clear in the GUI backend script
+          path = with pkgs; [ (writeShellScriptBin "clear" "") ];
+          script = "ros2 run gui flask";
         };
 
-        # Frontend service
         gui-frontend = {
           wantedBy = [ "multi-user.target" ];
           requires = [ "gui-backend.service" ];
           after = [ "gui-backend.service" ];
           path = with pkgs; [
-            (writeShellScriptBin "start-nova-gui-frontend" ''
-              #!/bin/sh
-              cd /home/nova/nova/src/ros/nova-gui/nova-gui
-              yarn install
-              yarn dev
-            '')
+            (nova.nova-gui-frontend-server.override {
+              nova-gui-frontend = cfg.gui.frontendPackage;
+            })
           ];
-          script = "start-nova-gui-frontend";
-          serviceConfig.User = "nova-workspace";
-          serviceConfig.Group = "nova-workspace";
+          script = "gui-frontend-server -l tcp://0.0.0.0:80";
+          serviceConfig.DynamicUser = true;
           serviceConfig.AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
         };
       };
