@@ -18,7 +18,9 @@ class URCAuger(JoystickControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
+    AUGER_ACTUATION_CANID_PARAM = "auger_actuation_canid"
     AUGER_ACTUATION_SEND_FRAME_ID = 0x0D1
+    AUGER_DRILL_CANID_PARAM = "auger_drill_canid"
     AUGER_DRILL_SEND_FRAME_ID = 0x0C1
     
     # RECEIVING CARD IDS
@@ -54,6 +56,9 @@ class URCAuger(JoystickControllerNode):
         super(URCAuger, self).__init__(name="URCAuger", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
+        # Setting ROS parameters
+        self.declare_parameter(self.AUGER_ACTUATION_CANID_PARAM, self.AUGER_ACTUATION_SEND_FRAME_ID)
+        self.declare_parameter(self.AUGER_DRILL_CANID_PARAM, self.AUGER_DRILL_SEND_FRAME_ID)
 
         ## Add CAN ID Filters
         self.bus.set_id_filter([self.AUGER_LIMIT_RECV_ID])
@@ -92,13 +97,13 @@ class URCAuger(JoystickControllerNode):
         self.auger_actuation_controller = CMDVelocityController(
             logger=logger,
             bus=self.bus,
-            frame_id=self.AUGER_ACTUATION_SEND_FRAME_ID,
+            frame_id=self.get_parameter(self.AUGER_ACTUATION_CANID_PARAM),
             control=self.auger_actuation
         )
         self.auger_drill_controller = CMDVelocityController(
             logger=logger,
             bus=self.bus,
-            frame_id=self.AUGER_DRILL_SEND_FRAME_ID,
+            frame_id=self.get_parameter(self.AUGER_DRILL_CANID_PARAM),
             control=self.auger_drill
         )
 

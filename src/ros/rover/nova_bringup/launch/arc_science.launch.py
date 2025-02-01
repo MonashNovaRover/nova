@@ -9,12 +9,12 @@ NODES:
   - science/nir_probe_publisher.py      [nir_probe_publisher]
   - science/microscope_servo.py         [microscope_servo]
   - science/kiln_server.py'             [kiln_server]
-  - control/auger.py                    [auger]
-  - control/analysis_platform.py        [analysis_platform]
+  - control/urc_auger.py                [urc_auger]
+  - control/urc_analysis_arm.py         [urc_analysis_arm]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATED:    17/03/2024
-EDITED:     04/02/2025
-EDITED BY: Tristan Clark, Victor Bartlinski
+EDITED:     13/02/2025
+EDITED BY: Tristan Clark, Victor Bartlinski, Felicity Matthews
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
@@ -56,6 +56,14 @@ def launch_setup(context, *args, **kwargs):
     ]
 
 def generate_launch_description():
+    declared_arguments = [
+        DeclareLaunchArgument("auger_drill_canid", defaultValue=0x0C1),
+        DeclareLaunchArgument("auger_drill_canid", defaultValue=0x0C1),
+        DeclareLaunchArgument("auger_actuation_canid", defaultValue=0x0D1),
+        DeclareLaunchArgument("analysis_arm_cmd_canid", defaultValue=0x0D2),
+        DeclareLaunchArgument("tof_canid", defaultValue=0x456)
+    ]
+
     return LaunchDescription(
-        [OpaqueFunction(function=launch_setup)]
+        declared_arguments + [OpaqueFunction(function=launch_setup)]
     )
