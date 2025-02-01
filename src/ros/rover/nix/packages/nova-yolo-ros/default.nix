@@ -28,10 +28,4 @@ buildRosPackage
     rclpy
     python3Packages.pytorch
   ];
-
-  postPatch = ''
-      # The package name is just "opencv", not "opencv-python".
-      # https://discourse.nixos.org/t/how-to-give-opencv-dependency-to-python-package/16949
-      sed -i 's/opencv-python/opencv/g' requirements.txt
-    '';
 }
