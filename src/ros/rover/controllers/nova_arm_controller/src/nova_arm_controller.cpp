@@ -75,8 +75,6 @@ namespace nova_arm_controller
     auto logger = get_node()->get_logger();
     if (get_lifecycle_state().id() == State::PRIMARY_STATE_INACTIVE)
     {
-      RCLCPP_INFO(logger, "Update cancelled because inactive");
-
       if (!is_halted)
       {
         halt();
@@ -86,17 +84,14 @@ namespace nova_arm_controller
       return controller_interface::return_type::OK;
     }
 
-    RCLCPP_INFO(logger, "Getting input");
-
     // Get last input message
     std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets> last_msg;
     received_msg_ptr_.get(last_msg);
 
     // Validation of message
-    if (last_msg == nullptr)
-    {
+    if (last_msg == nullptr) {
       RCLCPP_WARN(logger, "Velocity message received was a nullptr.");
-      return controller_interface::return_type::ERROR;
+      return controller_interface::return_type::OK;
     }
 
     if (last_msg->name.size() != last_msg->velocity.size()) {
@@ -110,8 +105,6 @@ namespace nova_arm_controller
       velocities[last_msg->name[i]] = last_msg->velocity[i];
     }
 
-    RCLCPP_INFO(logger, "Setting joint velocities");
-
     for (const auto &joint_handle : registered_joint_handles_)
     {
       // Ensure the map contains the handle
@@ -123,7 +116,6 @@ namespace nova_arm_controller
 
       const auto joint_speed = static_cast<float>(velocities[joint_handle.name]);
 
-      RCLCPP_INFO(logger, "%s speed: %f", joint_handle.name.c_str(), joint_speed);
       joint_handle.command.get().set_value(joint_speed);
     }
 
@@ -134,8 +126,6 @@ namespace nova_arm_controller
       const rclcpp_lifecycle::State &)
   {
     auto logger = get_node()->get_logger();
-
-    RCLCPP_INFO(get_node()->get_logger(), "on configure");
 
     // update parameters if they have changed
     if (param_listener_->is_old(params_))
@@ -185,8 +175,6 @@ namespace nova_arm_controller
             "time, this message will only be shown once");
         msg->header.stamp = get_node()->get_clock()->now();
       }
-
-      RCLCPP_INFO(get_node()->get_logger(), "Subscriber callback");
 
       received_msg_ptr_.set(std::move(msg));
     });
@@ -293,6 +281,7 @@ namespace nova_arm_controller
     for (const auto &joint_name : joint_names)
     {
       const auto interface_name = feedback_type;
+      // TODO: Change this filter to be useful, and not get the same as the command_interface
       const auto state_handle = std::find_if(
           state_interfaces_.cbegin(), state_interfaces_.cend(),
           [&joint_name, &interface_name](const auto &interface)
@@ -307,6 +296,7 @@ namespace nova_arm_controller
         return controller_interface::CallbackReturn::ERROR;
       }
 
+      // TODO: Change this filter to be useful, and not get the same as the state_interface
       const auto command_handle = std::find_if(
           command_interfaces_.begin(), command_interfaces_.end(),
           [&joint_name, &interface_name](const auto &interface)
