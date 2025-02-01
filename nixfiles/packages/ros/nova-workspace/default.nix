@@ -38,6 +38,8 @@
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-utils ? throw "nova-utils is needed, but not available!"
 , nova-object-detection ? throw "object-detection is needed, but not available!"
+, nova-yolo-ros ? throw "yolo-ros is needed, but not available!"
+, nova-yolo-msgs ? throw "yolo-msgs is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -84,7 +86,9 @@
   ## Extra packages to add to the workspace.
 , extraPackages ? { 
 	inherit
-	nova-object-detection;
+	nova-object-detection
+  nova-yolo-ros
+  nova-yolo-msgs;
 }
 }:
 
