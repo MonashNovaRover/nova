@@ -8,7 +8,6 @@
 , nav-msgs
 , opencv
 , tf2-ros
-, pythonPackages
 }:
 
 buildRosPackage {
@@ -34,6 +33,5 @@ buildRosPackage {
   propagatedBuildInputs = [
     rclcpp
     opencv
-    pythonPackages.ultralytics
   ];
 }
