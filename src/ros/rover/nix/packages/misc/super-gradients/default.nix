@@ -6,7 +6,7 @@
 
 let
   data-gradients = callPackage ./data-gradients.nix { };
-  onnx-simplifier = callPackage ./onnx-simplifier.nix { };
+  #onnx-simplifier = callPackage ./onnx-simplifier.nix { };
 in
 buildPythonPackage rec {
   pname = "super-gradients";
@@ -47,7 +47,7 @@ buildPythonPackage rec {
     stringcase
     rapidfuzz
     json-tricks
-    onnx-simplifier
+    #onnx-simplifier i hate this dependency chain
     data-gradients
     albumentations
     fonttools
