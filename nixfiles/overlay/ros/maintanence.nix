@@ -1,3 +1,4 @@
+
 self: super:
 
 {
@@ -481,60 +482,41 @@ self: super:
         )
         // (
           let
-            replaceUbloxSrc =
-              pkg:
-              pkg.overrideAttrs (
-                { src, version, ... }:
-                {
-                  src = self.fetchFromGitHub {
-                    owner = "MonashNovaRover";
-                    repo = "ublox_dgnss_leigh";
-                    rev = "8be8326dcb2e5157b35e54364d2247c4cc253911";
-                    hash = "sha256-JfqHRoOdTdd9z7Qweg2+MNZH9IoX0DtpHtIr79ECg1M=";
-                  };
+            replaceUbloxSrc = pkg: pkg.overrideAttrs ({ src, version, ... }: {
+              src = self.fetchFromGitHub {
+                owner = "vic-bart";
+                repo = "ublox_dgnss";
+                rev = "1cf2a02a7befd74ba6deb86dd91016cae5dbd690";
+                hash = "sha256-AoY48EZjShgXsXXYysGQ5rG+/T5YRXXe8XvDYuqR8XM=";
+              };
 
-                  version = "0.2.3-unstable-2024-05-28";
-                }
-              );
+              version = "0.5.4-r2";
+            });
           in
           {
-            ublox-dgnss = (replaceUbloxSrc rosSuper.ublox-dgnss).overrideAttrs (
-              { ... }:
-              {
-                sourceRoot = "source/ublox_dgnss";
-              }
-            );
+            ntrip-client-node = (replaceUbloxSrc rosSuper.ntrip-client-node).overrideAttrs ({ ... }: {
+              sourceRoot = "source/ntrip_client_node";
+            });
 
-            ublox-dgnss-node = (replaceUbloxSrc rosSuper.ublox-dgnss-node).overrideAttrs (
-              {
-                propagatedBuildInputs ? [ ],
-                ...
-              }:
-              {
-                sourceRoot = "source/ublox_dgnss_node";
+            ublox-dgnss = (replaceUbloxSrc rosSuper.ublox-dgnss).overrideAttrs ({ ... }: {
+              sourceRoot = "source/ublox_dgnss";
+            });
 
-                propagatedBuildInputs =
-                  propagatedBuildInputs
-                  ++ (with rosSuper; [
-                    sensor-msgs
-                    geometry-msgs
-                  ]);
-              }
-            );
+            ublox-dgnss-node = (replaceUbloxSrc rosSuper.ublox-dgnss-node).overrideAttrs ({ ... }: {
+              sourceRoot = "source/ublox_dgnss_node";
+            });
 
-            ublox-ubx-interfaces = (replaceUbloxSrc rosSuper.ublox-ubx-interfaces).overrideAttrs (
-              { ... }:
-              {
-                sourceRoot = "source/ublox_ubx_interfaces";
-              }
-            );
+            ublox-nav-sat-fix-hp-node = (replaceUbloxSrc rosSuper.ublox-nav-sat-fix-hp-node).overrideAttrs ({ ... }: {
+              sourceRoot = "source/ublox_nav_sat_fix_hp_node";
+            });
 
-            ublox-ubx-msgs = (replaceUbloxSrc rosSuper.ublox-ubx-msgs).overrideAttrs (
-              { ... }:
-              {
-                sourceRoot = "source/ublox_ubx_msgs";
-              }
-            );
+            ublox-ubx-interfaces = (replaceUbloxSrc rosSuper.ublox-ubx-interfaces).overrideAttrs ({ ... }: {
+              sourceRoot = "source/ublox_ubx_interfaces";
+            });
+
+            ublox-ubx-msgs = (replaceUbloxSrc rosSuper.ublox-ubx-msgs).overrideAttrs ({ ... }: {
+              sourceRoot = "source/ublox_ubx_msgs";
+            });
           }
         )
       )
