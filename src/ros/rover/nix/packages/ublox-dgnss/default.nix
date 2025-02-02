@@ -1,5 +1,5 @@
 { lib
-, fetchgit
+, fetchFromGitHub
 , buildRosPackage
 , ament-cmake
 , std-msgs
@@ -15,11 +15,11 @@ buildRosPackage {
   name = "ublox-dgnss-custom";
   buildType = "ament_cmake";
 
-  src = fetchgit {
-  	url = "https://github.com/JoelAKruger/ublox_dgnss.git";
-  	sparseCheckout = ["ublox_ubx_msgs"];
+  src = fetchFromGitHub {
+  	owner = "JoelAKruger";
+  	repo = "ublox_dgnss";
   	rev = "d6c2fdb";
-  	hash = "sha256-4+znWCmibeKvB2HcBiGusHpVaqE22rmxxZG6LCVok1k=";
+  	hash = "sha256-cvGmsn3TkV9/HILkPwE+6IBG8N60DFBe6Miafey4WY8=";
   };
 
   nativeBuildInputs = [ament-cmake rclcpp rclcpp-components rtcm-msgs libcurl-vendor rosidl-default-generators sensor-msgs];
