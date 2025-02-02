@@ -1,5 +1,6 @@
 # this is a dump of all params RTABMAP uses
-# This is just a referference, do not use this file to set params
+# This is just a reference, do not use this file to set params
+# Do not delete; this does not exist on the internet and had to be found using ros2 param dump
 /rtabmap:
   ros__parameters:
     BRIEF/Bytes: "32"
