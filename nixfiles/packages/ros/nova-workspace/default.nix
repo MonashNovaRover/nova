@@ -38,6 +38,7 @@
 , nova-python-control ? throw "python-control is needed, but not available!"
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-utils ? throw "nova-utils is needed, but not available!"
+, ublox-dgnss-custom ? throw "ublox-dgnss-custom is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -79,7 +80,8 @@
       nova-python-control
       nova-excavation-construction
       nova-utils
-      reolink;
+      reolink
+      ublox-dgnss-custom;
   }
 
   ## Extra packages to add to the workspace.
