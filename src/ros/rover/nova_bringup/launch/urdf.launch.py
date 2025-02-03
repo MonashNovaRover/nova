@@ -10,7 +10,7 @@ NODES:
   - rover_state_publisher
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATION:   13/05/2024
-EDITED:     01/01/2025
+EDITED:     04/02/2025
 EDITED BY:  Matthew Gu, Dylan Gonzalez, Jed Wong
     Taaj Street, Victor Bartlinski
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -27,11 +27,11 @@ def launch_setup(context, *args, **kwargs):
     
     arm = LaunchConfiguration('arm').perform(context)
     arm_urdf_path = LaunchConfiguration('arm_urdf_path')
-    rover = LaunchConfiguration('rover').perform(context)
+    rover = LaunchConfiguration('rover').perform(context).lower()
     rover_urdf_path = LaunchConfiguration('rover_urdf_path')
     rvis = LaunchConfiguration('rviz')
 
-    if bool(rover):
+    if rover == 'true':
         fixed_frame = 'base_link'
         robot_description = ParameterValue(Command(['xacro ', rover_urdf_path, ' arm:=', arm, ' auto_camera:=false']), value_type=str)
     else:
@@ -42,7 +42,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
-            parameters=[{'robot_description': robot_description}]
+            parameters=[{'robot_description': robot_description}],
         ),
         Node(
             package='joint_state_publisher', 
@@ -50,14 +50,14 @@ def launch_setup(context, *args, **kwargs):
             namespace='',
             output='screen', 
             emulate_tty=True,
-            parameters=[{'source_list': ['/arm/joint_states', '/joint_states']}]
+            parameters=[{'source_list': ['/arm/joint_states', '/joint_states']}],
         ),
         Node(
             package='rviz2',
             namespace='',
             executable='rviz2',
             name='rviz2',
-            arguments=['-d', [PathJoinSubstitution([nova_bringup_dir, 'rviz', 'default.rviz'])], '-f', fixed_frame]
+            arguments=['-d', [PathJoinSubstitution([nova_bringup_dir, 'rviz', 'default.rviz'])], '-f', fixed_frame],
         ),
     ]
 

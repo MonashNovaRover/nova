@@ -13,7 +13,7 @@ NODES:
   - visualisation/arm_viz_publisher     [arm_viz_publisher]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATION:   17/12/2021
-EDITED:     01/01/2025
+EDITED:     04/02/2025
 EDITED BY: Taaj Street, Dylan Gonzalez, Tristan 
     Clark, Matthew Gu, Victor Bartlinski
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -22,7 +22,7 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from ament_index_python.packages import get_package_share_path
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpqaueFunction, GroupAction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -32,7 +32,7 @@ def launch_setup(context, *args, **kwargs):
 
     arm = LaunchConfiguration('arm')
     arm_urdf_path = LaunchConfiguration('arm_urdf_path')
-    chassic_cam = LaunchConfiguration('chassic_cam')
+    chassis_cam = LaunchConfiguration('chassis_cam')
     namespace = LaunchConfiguration('namespace')
     params = LaunchConfiguration('params')
     rover = LaunchConfiguration('rover')
@@ -41,7 +41,7 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         IncludeLaunchDescription(
-            condition=IfCondition(urdf)
+            condition=IfCondition(urdf),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'urdf.launch.py'])),
             launch_arguments = {
                 'arm_urdf_path': arm_urdf_path,
@@ -137,7 +137,7 @@ def generate_launch_description():
     nova_bringup_dir = FindPackageShare('nova_bringup')
     rover_description_dir = FindPackageShare('rover_description')
     
-    return LaunchDescription([     
+    declared_arguments = [     
         DeclareLaunchArgument(
             name='arm', 
             default_value='True',
@@ -178,7 +178,7 @@ def generate_launch_description():
             default_value='False',
             description='Publish robot_description?',
         ),
-    ])
+    ]
 
     return LaunchDescription(
         declared_arguments + [OpaqueFunction(function=launch_setup)]

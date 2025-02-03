@@ -8,12 +8,12 @@ Execute this code on the rover to start all
 NODES:
   - science/nir_probe_publisher.py      [nir_probe_publisher]
   - science/microscope_servo.py         [microscope_servo]
-  - science/kiln_server.py'             [kiln_server]
+  - science/kiln_server.py              [kiln_server]
   - control/auger.py                    [auger]
   - control/analysis_platform.py        [analysis_platform]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATION:   17/03/2024
-EDITED:     01/01/2025
+EDITED:     04/02/2025
 EDITED BY: Tristan Clark, Josh Leivenzon, 
     Victor Bartlinski
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

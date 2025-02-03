@@ -10,7 +10,7 @@ NODES:
   - electronics/electronics/radio_monitor.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATION:   15/12/2021
-EDITED:     01/01/2025
+EDITED:     04/02/2025
 EDITED BY: Taaj Street, Victor Bartlinski
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
@@ -47,9 +47,10 @@ def generate_launch_description():
         DeclareLaunchArgument(
             name='rfid_port', 
             default_value='/dev/ttyUSB0',
+            description='',
         ),
     ]
 
     return LaunchDescription(
-        [OpaqueFunction(function=launch_setup)]
+        declared_arguments + [OpaqueFunction(function=launch_setup)]
     )
