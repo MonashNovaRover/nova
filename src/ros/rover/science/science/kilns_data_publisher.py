@@ -4,9 +4,9 @@
 Monash Nova Rover Team
 This file contains the ROS2 receiver code for the kilns and bilns data publisher.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PACKAGE:     electronics
-AUTHOR(S):   Niko Verrios
+AUTHOR(S):   Niko Verrios, Tash Lee
 CREATION:    18/03/2023
-EDITED:      22/03/2023
+EDITED:      03/02/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy

@@ -15,7 +15,7 @@ interface KilnWidgetProps extends CardProps {
 
 
 const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
-  const [maxTemp, setMaxTemp] = useState(120);
+  const [maxTemp, setMaxTemp] = useState(130);
   const [goalTemp, setGoalTemp] = useState<number>(25);
   const [inputGoalTemp, setInputGoalTemp] = useState<string>("25");
 
@@ -26,6 +26,7 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
     setInputGoalTemp(goalTemp.toString());
   };
 
+  // set up to 'refresh' kilnData state
   const kilnData = useSelector(
     (state: RootState) => state.kilnData
   );
@@ -36,10 +37,12 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
 
   const dataBifrost = useBifrost({topic: RosTopic.KILN_DATA});
   const serviceBifrost = useBifrost({service: RosService.KILN_COMMAND});
+  //const serviceBifrost = useBifrost({service: RosService.KILN_COMMAND});
   const toggleKilnState = () => serviceBifrost.callServiceToRedux({state: !kilnData.state});
+  const sendTarget = () => serviceBifrost.callServiceToRedux({target: goalTemp});
 
   useEffect(() => {
-    dataBifrost.syncWithTopic();
+    dataBifrost.syncWithTopic(); // calling ros bridge to subscribe to topic
     // update max temps if current temps exceed them
     if (kilnData.temp[0] > maxTemp) {
       const result = maxTemp;
@@ -64,8 +67,36 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
     </div>
   );
 
+  const tempInput = ({children, ...props}) => (
+    <output {...props}>
+      <Tooltip
+        className="text-tiny text-default-500 rounded-md"
+        content="Press Enter to confirm"
+        placement="centre"
+      >
+        <input
+          aria-label="Temperature value"
+          className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
+          type="text"
+          value={goalTemp}
+          onChange={(e) => {
+            const v = e.target.value;
+
+            setGoalTemp(v);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !isNaN(Number(goalTemp))) {
+              setGoalTemp(Number(goalTemp));
+            }
+          }}
+        />
+      </Tooltip>
+    </output>
+  )
+
   // <div className="flex content-stretch gap-5">
   const goalTempSlider = (
+
 
     <Slider
       size="lg"
@@ -74,54 +105,25 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
         size: "lg",
         label: "text-medium",
         track: "mx-0",
-        filler: "bg-gradient-to-r from-primary-500 to-primary-500",
+
       }}
-      color="foreground"
+      color="primary"
       label="Target"
-      maxValue={120}
+      maxValue={maxTemp}
       minValue={0}
 
-      renderThumb={(props) => (
-        <div
-          {...props}
-          className="group p-1 top-1/2 bg-background border-small border-default-200 dark:border-default-400/50 shadow-medium rounded-full cursor-grab data-[dragging=true]:cursor-grabbing"
-        >
-          <span className="transition-transform bg-gradient-to-br shadow-small from-secondary-100 to-secondary-500 rounded-full w-5 h-5 block group-data-[dragging=true]:scale-80" />
-        </div>
-      )}
+
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      renderValue={({children, ...props}) => (
-        <output {...props}>
-          <Tooltip
-            className="text-tiny text-default-500 rounded-md"
-            content="Press Enter to confirm"
-            placement="centre"
-          >
-            <input
-              aria-label="Temperature value"
-              className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
-              type="text"
-              value={goalTemp}
-              onChange={(e) => {
-                const v = e.target.value;
+      renderValue={tempInput}
 
-                setGoalTemp(v);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !isNaN(Number(goalTemp))) {
-                  setGoalTemp(Number(goalTemp));
-                }
-              }}
-            />
-          </Tooltip>
-        </output>
-      )}
-      size="sm"
       // we extract the default children to render the input
       step={0.01}
       value={goalTemp}
-      onChange={handleChange}
+      onChange={(v) => {
+        setGoalTemp(Array.isArray(v) ? v[0] : v);
+      }}
+      onChangeEnd={sendTarget}
     />
   );
 

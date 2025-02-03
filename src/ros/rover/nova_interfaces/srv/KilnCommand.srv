@@ -1,4 +1,8 @@
 # turn on and off kiln
 bool state
+
+# set target temp
+int16 target
+
 ---
 bool success

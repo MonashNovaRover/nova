@@ -13,9 +13,9 @@ SERVICES:
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
-AUTHOR(S):      Connor Macdougall
+AUTHOR(S):      Connor Macdougall, Tash Lee
 CREATION:       29/02/2024
-EDITED:         30/02/2024
+EDITED:         03/02/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -123,6 +123,7 @@ class KilnServer(Node):
                 # Turn on the kiln
                 self.send_kiln_on()
                 self.is_on = True
+                self.target = request.target
             else:
                 # Turn off the kiln
                 self.send_kiln_off()
@@ -141,7 +142,7 @@ class KilnServer(Node):
         Performs this continuously otherwise the kiln will turn off
         """
         try:
-            if self.is_on:
+            if self.is_on && self.target>self.temp:
                 self.send_kiln_on()
             else:
                 self.send_kiln_off()
