@@ -109,7 +109,7 @@ in
             # Rover setup aliases
             zero-pivots = "${pkgs.bash}/bin/bash ${../../../scripts/zero-pivots.sh}";
             list-blcmds = "more ${cfg.nixfileDir}/doc/blcmd-ids.md";
-            zero-arm    = "${pkgs.bash}/bin/bash ${../../../scripts/zero-arm.sh}";
+            zero-arm = "${pkgs.bash}/bin/bash ${../../../scripts/zero-arm.sh}";
 
             # Temporary aliases (remove when a better solution has been implemented)
             cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
