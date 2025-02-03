@@ -24,7 +24,9 @@ while true; do
   if [[ "$joint_id" =~ ^(0|[1-6])$ ]]; then
     break
   else
+    echo
     echo "Invalid input. Please enter a valid integer."
+    echo
   fi
 done
 
