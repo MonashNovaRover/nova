@@ -48,6 +48,7 @@ if [[ "$joint_id" == "0" ]]; then
   echo "This can be done with the joysticks, or by using the twitch kit."
   read -p "Press any key to continue. " -n1 -s
   echo
+  echo
   echo "Initiating cansend..."
   
   for joint in {1..6}; do
@@ -57,6 +58,7 @@ else
   echo "Please manually move J${joint_id} to the zero position."
   echo "This can be done with the joysticks, or by using the twitch kit."
   read -p "Press any key to continue. " -n1 -s
+  echo
   echo
   echo "Initiating cansend..."
   
