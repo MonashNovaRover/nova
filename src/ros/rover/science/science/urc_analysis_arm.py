@@ -75,6 +75,7 @@ class AnalysisArm(JoystickControllerNode):
         # This is done so that the parameters can be changed during runtime if desired
         self.declare_parameter(self.CMD_ID_PARAM, self.CMD_ID)
         self.declare_parameter(self.TOF_FRAME_ID_PARAM, self.TOF_FRAME_ID)
+        self.get_logger().info(f"CAN IDs: CMD = {self.get_parameter(self.CMD_ID_PARAM)} TOF = {self.get_parameter(self.TOF_FRAME_ID_PARAM)}")
 
         ## Add Flags as required
         self.twitch_enable = True

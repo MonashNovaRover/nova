@@ -59,6 +59,7 @@ class URCAuger(JoystickControllerNode):
         # Setting ROS parameters
         self.declare_parameter(self.AUGER_ACTUATION_CANID_PARAM, self.AUGER_ACTUATION_SEND_FRAME_ID)
         self.declare_parameter(self.AUGER_DRILL_CANID_PARAM, self.AUGER_DRILL_SEND_FRAME_ID)
+        self.get_logger().info(f"CAN IDs: Actuation = {self.get_parameter(self.AUGER_ACTUATION_CANID_PARAM)} Drill = {self.get_parameter(self.AUGER_DRILL_CANID_PARAM)}")
 
         ## Add CAN ID Filters
         self.bus.set_id_filter([self.AUGER_LIMIT_RECV_ID])
