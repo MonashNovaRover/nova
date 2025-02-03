@@ -30,19 +30,6 @@ done
 
 echo
 
-if [[ "$joint_id" == "0" ]]; then
-  echo "Please manually move each joint to the zero position."
-else
-  echo "Please manually move the selected joint to the zero position."
-fi
-echo "This can be done with the joysticks, or by using the twitch kit."
-
-read -p "Press any key to continue. " -n1 -s
-echo
-
-echo "Initiating cansend..."
-echo
-
 zero_joint() {
   local joint_number=$1
   local joint_id=${joints[$joint_number]}
