@@ -23,7 +23,7 @@ def generate_launch_description():
                 ),
                 launch_arguments={
                     "model": LaunchConfiguration("model", default=model_dir),
-                    "tracker": LaunchConfiguration("tracker", default="bytetrack.yaml"),
+                    #"tracker": LaunchConfiguration("tracker", default="bytetrack.yaml"),
                     "device": LaunchConfiguration("device", default="cuda:0"),
                     "enable": LaunchConfiguration("enable", default="True"),
                     "threshold": LaunchConfiguration("threshold", default="0.5"),
@@ -37,10 +37,13 @@ def generate_launch_description():
                         "input_depth_info_topic", default="/oak/camera_info"
                     ),
                     "image_reliability": LaunchConfiguration(
-                        "image_reliability", default="2"
+                        "image_reliability", default="1"
                     ),
                     "namespace": LaunchConfiguration("namespace", default="yolo"),
-                    "use_3d": LaunchConfiguration("use_3d", default="True"),
+                    "use_3d": LaunchConfiguration("use_3d", default="False"),
+                    "use_tracking": LaunchConfiguration("use_tracking", default="False"),
+                    "Imgsz_height": LaunchConfiguration("Imgsz_height", default="640"),
+                    "Imgsz_width": LaunchConfiguration("Imgsz_width", default="640"),
                 }.items(),
             )
         ]
