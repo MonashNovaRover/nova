@@ -11,7 +11,6 @@
 
 namespace
 {
-  constexpr auto DEFAULT_INPUT_TOPIC_IK_JOINT_VELOCITY = "/IK_TESTING"; // TODO: changeme
 } // namespace
 
 namespace nova_ik_controller
@@ -19,16 +18,12 @@ namespace nova_ik_controller
   using namespace std::chrono_literals;
   using controller_interface::interface_configuration_type;
   using controller_interface::InterfaceConfiguration;
-  using hardware_interface::HW_IF_POSITION;
-  using hardware_interface::HW_IF_VELOCITY;
-  using hardware_interface::HW_IF_EFFORT;
   using lifecycle_msgs::msg::State;
 
-  NovaIKController::NovaIKController() : controller_interface::ControllerInterface() {}
+  NovaIKController::NovaIKController() : controller_interface::ControllerInterface(), node("ik") {}
 
   const char *NovaIKController::joint_feedback_type() const
   {
-    return params_.joint_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
   }
 
   controller_interface::CallbackReturn NovaIKController::on_init()
@@ -36,7 +31,7 @@ namespace nova_ik_controller
     try
     {
       // Create the parameter listener and get the parameters
-      param_listener_ = std::make_shared<ParamListener>(get_node());
+      param_listener_ = std::make_shared<ParamListener>(node);
       params_ = param_listener_->get_params();
     }
     catch (const std::exception &e)
@@ -50,32 +45,17 @@ namespace nova_ik_controller
 
   InterfaceConfiguration NovaIKController::command_interface_configuration() const
   {
-    std::vector<std::string> conf_names;
-    for (const auto &joint_name : params_.joint_names)
-    {
-      conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
-    }
-    for (const auto &joint_name : params_.joint_names)
-    {
-      conf_names.push_back(joint_name + "/" + HW_IF_EFFORT);
-    }
-    return {interface_configuration_type::INDIVIDUAL, conf_names};
   }
 
   InterfaceConfiguration NovaIKController::state_interface_configuration() const
   {
-    std::vector<std::string> conf_names;
-    for (const auto &joint_name : params_.joint_names)
-    {
-      conf_names.push_back(joint_name + "/" + joint_feedback_type());
-    }
-    return {interface_configuration_type::INDIVIDUAL, conf_names};
+  
   }
 
   controller_interface::return_type NovaIKController::update(
       const rclcpp::Time &time, const rclcpp::Duration &period)
   {
-    auto logger = get_node()->get_logger();
+    auto logger = node.get_logger();
     if (get_lifecycle_state().id() == State::PRIMARY_STATE_INACTIVE)
     {
       if (!is_halted)
@@ -94,13 +74,15 @@ namespace nova_ik_controller
       joint_handle.command.get().set_value(joint_speed);
     }
 
+	// feed inputs into IK
+	
     return controller_interface::return_type::OK;
   }
 
   controller_interface::CallbackReturn NovaIKController::on_configure(
       const rclcpp_lifecycle::State &)
   {
-    auto logger = get_node()->get_logger();
+    auto logger = node.get_logger();
 
     // update parameters if they have changed
     if (param_listener_->is_old(params_))
@@ -114,22 +96,16 @@ namespace nova_ik_controller
       return controller_interface::CallbackReturn::ERROR;
     }
 
-    // TODO: validate angular limits
-
-    /*limiter_angular_ = SpeedLimiter(
-        params_.angular.z.has_velocity_limits, params_.angular.z.has_acceleration_limits,
-        params_.angular.z.has_jerk_limits, params_.angular.z.min_velocity,
-        params_.angular.z.max_velocity, params_.angular.z.min_acceleration,
-        params_.angular.z.max_acceleration, params_.angular.z.min_jerk, params_.angular.z.max_jerk);
-        */ // need to do this for each joint? ^
     // TODO: maybe limit position so arm doesn't collide?
     if (!reset())
     {
       return controller_interface::CallbackReturn::ERROR;
     }
 
-    // TODO: setup publishers?
-    previous_update_timestamp_ = get_node()->get_clock()->now();
+    // TODO: insert correct subscriber here
+	teleop_sub = node.create_subscription<tf2_msgs::msg::TFMessage>("aaaa", rclcpp::SystemDefaultsQoS(), nullptr);
+
+    previous_update_timestamp_ = node.get_clock()->now();
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -142,16 +118,16 @@ namespace nova_ik_controller
     if (joints_result == controller_interface::CallbackReturn::ERROR)
     {
       RCLCPP_ERROR(
-          get_node()->get_logger(),
+          node.get_logger(),
           "Some joint interfaces are non existent");
       return controller_interface::CallbackReturn::ERROR;
     }
 
     is_halted = false;
     subscriber_is_active_ = true;
-
+	
     // TODO: setup sub and pub
-    //RCLCPP_DEBUG(get_node()->get_logger(), "Subscriber and publisher are now active.");
+    RCLCPP_DEBUG(node.get_logger(), "Subscriber and publisher are now active.");
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -216,7 +192,7 @@ namespace nova_ik_controller
       const std::vector<std::string> &joint_names,
       std::vector<JointHandle> &registered_handles, const char *feedback_type)
   {
-    auto logger = get_node()->get_logger();
+    auto logger = node.get_logger();
 
     if (joint_names.empty())
     {
@@ -263,6 +239,24 @@ namespace nova_ik_controller
     }
 
     return controller_interface::CallbackReturn::SUCCESS;
+  }
+
+
+  void NovaIKController::calculate_ik(tf2_msgs::msg::TFMessage frame, geometry_msgs::msg::Pose wristPose, geometry_msgs::msg::Pose effPose)
+  {
+	
+  }
+
+  void NovaIKController::teleop_callback(tf2_msgs::msg::TFMessage msg)
+  {	
+    auto logger = node.get_logger();
+	RCLCPP_DEBUG(logger, "Message received");
+
+	// decompose the message
+	
+	// send it to IK
+	
+	// forward the output of IK into the FK controller
   }
 } // namespace nova_ik_controller
 
