@@ -36,6 +36,8 @@ private:
   rclcpp::Node::SharedPtr node_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
   std::string topic_name_;
+  std::shared_ptr<BT::Blackboard> bb;
+  std::vector<BT::StringView> keys;
 };
 
 }  // namespace nova_behavior_tree

@@ -25,6 +25,13 @@ void BlackboardPublisherNode::initialize()
     topic_name_,
     rclcpp::QoS(10)
   );
+
+  // Blackboard pointer
+  bb = config().blackboard;
+
+  // We assume your version of BehaviorTree.CPP provides getKeys() 
+  // to list all the keys. If not, you'll have to store them manually.
+  keys = bb->getKeys();
 }
 
 BT::NodeStatus BlackboardPublisherNode::tick()
@@ -33,13 +40,6 @@ BT::NodeStatus BlackboardPublisherNode::tick()
   if (!BT::isStatusActive(status())) {
     initialize();
   }
-
-  // Blackboard pointer
-  auto bb = config().blackboard;
-
-  // We assume your version of BehaviorTree.CPP provides getKeys() 
-  // to list all the keys. If not, you'll have to store them manually.
-  std::vector<std::string> keys = bb->getKeys();
 
   // We'll build a string that lists each key and its value line-by-line
   std::string output;
@@ -51,7 +51,7 @@ BT::NodeStatus BlackboardPublisherNode::tick()
 
     // Try int
     try {
-      int val = bb->get<int>(key);
+      int val = bb->get<int>(std::string(key));
       value_str = std::to_string(val);
       found = true;
     } catch(...) {}
@@ -59,7 +59,7 @@ BT::NodeStatus BlackboardPublisherNode::tick()
     // Try double
     if (!found) {
       try {
-        double val = bb->get<double>(key);
+        double val = bb->get<double>(std::string(key));
         value_str = std::to_string(val);
         found = true;
       } catch(...) {}
@@ -68,7 +68,7 @@ BT::NodeStatus BlackboardPublisherNode::tick()
     // Try bool
     if (!found) {
       try {
-        bool val = bb->get<bool>(key);
+        bool val = bb->get<bool>(std::string(key));
         value_str = val ? "true" : "false";
         found = true;
       } catch(...) {}
@@ -77,7 +77,7 @@ BT::NodeStatus BlackboardPublisherNode::tick()
     // Try std::string
     if (!found) {
       try {
-        std::string val = bb->get<std::string>(key);
+        std::string val = bb->get<std::string>(std::string(key));
         value_str = val;
         found = true;
       } catch(...) {}
@@ -89,7 +89,7 @@ BT::NodeStatus BlackboardPublisherNode::tick()
     }
 
     // Append "key: value\n" to output
-    output += key + ": " + value_str + "\n";
+    output += std::string(key) + ": " + value_str + "\n";
   }
 
   // Publish our line-by-line string
