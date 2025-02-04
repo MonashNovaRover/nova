@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect, DOMAttributes} from "react";
 import {Button, Card, CardHeader, CardBody, CardProps, Slider, Tooltip} from "@nextui-org/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
@@ -16,15 +16,27 @@ interface KilnWidgetProps extends CardProps {
 
 const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
   const [maxTemp, setMaxTemp] = useState(130);
-  const [goalTemp, setGoalTemp] = useState<number>(25);
+  const [goalTemp, setGoalTempRaw] = useState<number>(25);
   const [inputGoalTemp, setInputGoalTemp] = useState<string>("25");
 
-  const handleChange = (goalTemp) => {
+  function setGoalTemp(goalTemp: number): void {
+    const roundedGoalTemp = Math.round(goalTemp);
+    setGoalTempRaw(roundedGoalTemp);
+  }
+
+  const handleChange = (goalTemp: number | number[]) => {
+    if (Array.isArray(goalTemp)) {
+      console.error("goalTemp was unexpectedly an array?? what?");
+      return;
+    }
+
     if (isNaN(Number(goalTemp))) return;
 
-    setGoalTemp(goalTemp);
+    setGoalTemp(Number(goalTemp));
     setInputGoalTemp(goalTemp.toString());
   };
+
+  // value.split('.')[0]
 
   // set up to 'refresh' kilnData state
   const kilnData = useSelector(
@@ -45,9 +57,7 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
     dataBifrost.syncWithTopic(); // calling ros bridge to subscribe to topic
     // update max temps if current temps exceed them
     if (kilnData.temp[0] > maxTemp) {
-      const result = maxTemp;
-      result[0] = 1.1 * kilnData.temp[0];
-      setMaxTemp(result);
+      setMaxTemp(1.1 * kilnData.temp[0]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataBifrost]);
@@ -67,60 +77,59 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
     </div>
   );
 
-  const tempInput = ({children, ...props}) => (
-    <output {...props}>
-      <Tooltip
-        className="text-tiny text-default-500 rounded-md"
-        content="Press Enter to confirm"
-        placement="centre"
-      >
-        <input
-          aria-label="Temperature value"
-          className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
-          type="text"
-          value={goalTemp}
-          onChange={(e) => {
-            const v = e.target.value;
+  const tempInput = (originalProps: DOMAttributes<HTMLOutputElement>) => {
+    const {children: ReactElement, ...props} = originalProps;
 
-            setGoalTemp(v);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !isNaN(Number(goalTemp))) {
-              setGoalTemp(Number(goalTemp));
-            }
-          }}
-        />
-      </Tooltip>
-    </output>
-  )
+    return (
+      <output {...props}>
+        <Tooltip
+          className="text-tiny text-default-500 rounded-md"
+          content="Press Enter to confirm"
+          placement="left"
+        >
+          <input
+            aria-label="Temperature value"
+            className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
+            type="text"
+            value={inputGoalTemp}
+            onChange={(e) => {
+              const v = e.target.value;
+
+              setInputGoalTemp(v);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !isNaN(Number(inputGoalTemp))) {
+                setGoalTemp(Number(inputGoalTemp));
+                sendTarget();
+              }
+            }}
+          />
+        </Tooltip>
+      </output>
+    ) as React.ReactNode;
+  };
 
   // <div className="flex content-stretch gap-5">
   const goalTempSlider = (
-
-
     <Slider
       size="lg"
       classNames={{
         base: "",
-        size: "lg",
         label: "text-medium",
         track: "mx-0",
-
       }}
       color="primary"
       label="Target"
       maxValue={maxTemp}
       minValue={0}
 
-
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       renderValue={tempInput}
 
       // we extract the default children to render the input
       step={0.01}
       value={goalTemp}
       onChange={(v) => {
+        handleChange(v);
         setGoalTemp(Array.isArray(v) ? v[0] : v);
       }}
       onChangeEnd={sendTarget}
@@ -128,14 +137,6 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
   );
 
   const sensors = [
-    {
-      name: "THERMISTOR 1",
-      enabled: false
-    },
-    {
-      name: "THERMISTOR 2",
-      enabled: false
-    },
     {
       name: "INFRARED",
       enabled: true
@@ -155,7 +156,7 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
                 key={index}
                 size="lg"
                 value={kilnData.temp[index]}
-                maxValue={maxTemp[index]}
+                maxValue={maxTemp}
                 aria-label="Temperature Sensor Reading"
                 autoColor={true}
                 disableAnimation={false}
