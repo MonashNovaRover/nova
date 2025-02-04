@@ -10,7 +10,7 @@
 , nav2-behavior-tree
 , nav-msgs
 , nav2-msgs
-, behaviortree-cpp-v3
+, behaviortree-cpp
 , std-srvs
 , nav2-util
 , nav2-core
@@ -34,7 +34,7 @@ buildRosPackage {
 
   nativeBuildInputs = [ ament-cmake nav2-common ];
   buildInputs = [
-    behaviortree-cpp-v3
+    behaviortree-cpp
     rclcpp
     rclcpp-action
     rclcpp-lifecycle
