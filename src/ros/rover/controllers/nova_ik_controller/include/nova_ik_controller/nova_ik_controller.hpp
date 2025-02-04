@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "visibility_control.h"
 #include "controller_interface/controller_interface.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
@@ -15,6 +16,7 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
+#include "rclcpp/node.hpp"
 #include "realtime_tools/realtime_box.h"
 #include "realtime_tools/realtime_buffer.h"
 #include "realtime_tools/realtime_publisher.h"
@@ -56,6 +58,10 @@ namespace nova_ik_controller
 
     controller_interface::CallbackReturn on_shutdown(
         const rclcpp_lifecycle::State &previous_state) override;
+	
+	void calculate_ik(tf2_msgs::msg::TFMessage frame, geometry_msgs::msg::Pose wristPose, geometry_msgs::msg::Pose effPose);
+	
+	void teleop_callback(tf2_msgs::msg::TFMessage msg);
 
   protected:
     struct JointHandle
@@ -68,6 +74,12 @@ namespace nova_ik_controller
       float best_effort_rotational_velocity = 0.0;
       // store per joint odometry here maybe?
     };
+	
+	rclcpp::Node node;
+
+	// TODO: change this message when we get one
+	rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr teleop_sub;
+
     controller_interface::CallbackReturn configure_joints(
         const std::vector<std::string> &joint_names,
         std::vector<JointHandle> &registered_handles, const char *feedback_type);
