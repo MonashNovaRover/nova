@@ -24,6 +24,12 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
     setGoalTempRaw(roundedGoalTemp);
   }
 
+  function showRoundedTarget(inputGoalTemp: string): void {
+    //Altenrate method (rounds down always): const roundedInputGoalTemp = inputGoalTemp.split('.')[0];
+    const roundedInputGoalTemp = Math.round(Number(inputGoalTemp));
+    setInputGoalTemp(String(roundedInputGoalTemp));
+  }
+
   const handleChange = (goalTemp: number | number[]) => {
     if (Array.isArray(goalTemp)) {
       console.error("goalTemp was unexpectedly an array?? what?");
@@ -35,8 +41,6 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
     setGoalTemp(Number(goalTemp));
     setInputGoalTemp(goalTemp.toString());
   };
-
-  // value.split('.')[0]
 
   // set up to 'refresh' kilnData state
   const kilnData = useSelector(
@@ -51,7 +55,7 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
   const serviceBifrost = useBifrost({service: RosService.KILN_COMMAND});
   //const serviceBifrost = useBifrost({service: RosService.KILN_COMMAND});
   const toggleKilnState = () => serviceBifrost.callServiceToRedux({state: !kilnData.state});
-  const sendTarget = () => serviceBifrost.callServiceToRedux({target: goalTemp});
+  const sendTarget = () => serviceBifrost.callServiceToRedux({target: Math.round(goalTemp)});
 
   useEffect(() => {
     dataBifrost.syncWithTopic(); // calling ros bridge to subscribe to topic
@@ -100,6 +104,7 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
             onKeyDown={(e) => {
               if (e.key === "Enter" && !isNaN(Number(inputGoalTemp))) {
                 setGoalTemp(Number(inputGoalTemp));
+                showRoundedTarget(inputGoalTemp);
                 sendTarget();
               }
             }}
@@ -123,7 +128,7 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
       maxValue={maxTemp}
       minValue={0}
 
-      renderValue={tempInput}
+      renderValue={Math.round(tempInput)}
 
       // we extract the default children to render the input
       step={0.01}
