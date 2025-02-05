@@ -141,10 +141,10 @@ class YoloNode(LifecycleNode):
 
         self._enable_srv = self.create_service(SetBool, "enable", self.enable_cb)
 
-        if isinstance(self.yolo):
-            self._set_classes_srv = self.create_service(
-                SetClasses, "set_classes", self.set_classes_cb
-            )
+        #if isinstance(self.yolo): # this line prevents the node from activating but commenting it seems to not affect anything
+        self._set_classes_srv = self.create_service(
+            SetClasses, "set_classes", self.set_classes_cb
+        )
 
         self._sub = self.create_subscription(
             Image, "image_raw", self.image_cb, self.image_qos_profile
