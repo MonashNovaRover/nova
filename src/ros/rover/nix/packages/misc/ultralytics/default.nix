@@ -1,21 +1,8 @@
 { buildPythonPackage
 , fetchFromGitHub
 , callPackage
-, matplotlib
-, numpy
+, python3Packages
 , opencv4
-, pillow
-, pyyaml
-, requests
-, scipy
-, torch
-, torchvision
-, tqdm
-, pandas
-, seaborn
-, psutil
-, py-cpuinfo
-, setuptools
 }:
 
 let
@@ -23,20 +10,17 @@ let
 in
   buildPythonPackage rec {
     pname = "ultralytics";
-    version = "8.0.146";
+    version = "8.3.71";
+    pyproject = true;
 
     src = fetchFromGitHub {
       owner = pname;
       repo = pname;
-
-      # There are no version tags.
-      # https://github.com/ultralytics/ultralytics/issues/4039
-      rev = "c3c27b019a9516a9b2c78c291b61ef7cf97ff7f3";
-      hash = "sha256-QX+ly2UDye4b10HaFXf7XxJGWDxd30Vq6ecBtNI7BHE=";
+      rev = "5bca9341e8da3f5c99cb9edbb747fda7ddfe78fb";
+      hash = "sha256-KczxqflfyDl1i8I/Zn7PxkzAqITbflydZAhzP5p4DpI=";
     };
 
-    propagatedBuildInputs = [
-      # Base
+    propagatedBuildInputs = with python3Packages; [
       matplotlib
       numpy
       opencv4
@@ -47,24 +31,25 @@ in
       torch
       torchvision
       tqdm
-
-      # Plotting
       pandas
       seaborn
-
-      # Extras
       psutil
       py-cpuinfo
-
-      # update
       ultralytics-thop
+    ];
+
+    nativeBuildInputs = with python3Packages; [
+      pip
       setuptools
     ];
 
-    postPatch = ''
-      # The package name is just "opencv", not "opencv-python".
-      # https://discourse.nixos.org/t/how-to-give-opencv-dependency-to-python-package/16949
-      sed -i 's/opencv-python/opencv/g' requirements.txt
+    # lock torchvision version
+    # https://github.com/NixOS/nixpkgs/issues/308154
+    # The package name is just "opencv", not "opencv-python".
+    # https://discourse.nixos.org/t/how-to-give-opencv-dependency-to-python-package/16949
+    preBuild = ''
+      sed -i '/torchvision>=0.9.0/d' pyproject.toml
+      sed -i 's/opencv-python/opencv/g' pyproject.toml
     '';
 
     # https://github.com/ultralytics/ultralytics/issues/3961
