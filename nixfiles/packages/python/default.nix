@@ -6,5 +6,5 @@
   
   ultralytics = callPackage ./ultralytics { };
   super-gradients = callPackage ./super-gradients { };
-  lap-python = callPackage ./lap { };
+  lap = callPackage ./lap { };
 }
