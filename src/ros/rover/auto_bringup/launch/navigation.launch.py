@@ -25,13 +25,12 @@ from nav2_common.launch import RewrittenYaml
 def launch_setup(context, *args, **kwargs):
     autostart = LaunchConfiguration('autostart')
     container_name = LaunchConfiguration('container_name')
-    container_name_full = (namespace, '/', container_name)
     log_level = LaunchConfiguration('log_level')
     namespace = LaunchConfiguration('namespace')
     params_file = LaunchConfiguration('params_file')
     use_composition = LaunchConfiguration('use_composition')
     use_respawn = LaunchConfiguration('use_respawn')
-    use_sim_time = LaunchConfiguration('use_sim_time').perform(context).lower()
+    use_sim_time = LaunchConfiguration('use_sim_time')
 
     lifecycle_nodes = ['controller_server',
                        'smoother_server',
@@ -56,26 +55,28 @@ def launch_setup(context, *args, **kwargs):
         'autostart': autostart,
     }
 
-    sim_substitutions = {
-        'max_vel_x': '0.7',
-        'max_vel_theta': '0.7',
-        'max_speed_xy': '0.7',
-        'acc_lim_x': '0.35',
-        'acc_lim_theta': '0.35',
-        'decel_lim_x': '-0.35',
-        'decel_lim_theta': '-0.35',
-        'linear_granularity': '0.1',
-        'angular_granularity': '0.1',
-        'max_rotational_vel':'0.7',
-        'min_rotational_vel':'0.1',
-        'rotational_acc_lim':'0.35',
-    }
+    # sim_substitutions = {
+    #     'max_vel_x': '20.0',
+    #     'max_vel_theta': '20.0',
+    #     'max_speed_xy': '20.0',
+    #     'acc_lim_x': '20.0',
+    #     'acc_lim_theta': '20.0',
+    #     'decel_lim_x': '-0.35',
+    #     'decel_lim_theta': '-0.35',
+    #     'linear_granularity': '0.1',
+    #     'angular_granularity': '0.1',
+    #     'max_rotational_vel':'20.0',
+    #     'min_rotational_vel':'0.1',
+    #     'rotational_acc_lim':'20.0',
+    # }
+
+    in_sim = (use_sim_time.perform(context).lower() == 'true')
 
     configured_params = ParameterFile(
         RewrittenYaml(
             source_file=params_file,
             root_key=namespace,
-            param_rewrites= {**param_substitutions,**(sim_substitutions if (use_sim_time == 'false') else {})},
+            param_rewrites= {**param_substitutions}, #**(sim_substitutions if in_sim else {})},
             convert_types=True),
         allow_substs=True,
     )
@@ -183,7 +184,7 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(use_composition),
             actions=[
                 LoadComposableNodes(
-                    target_container=container_name_full,
+                    target_container=(namespace, '/', container_name),
                     composable_node_descriptions=[
                         ComposableNode(
                             package='nav2_controller',
