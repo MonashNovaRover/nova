@@ -1,4 +1,21 @@
-# Based on yolov8.launch.py
+'''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+Execute this code to run cube detection on sim
+    Launches yolo.launch.py with specified args
+Listens to 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODES:
+  - yolo_node
+  - debug_node
+  - tracking_node
+  - detect_3d_node
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE: 	auto_bringup
+CREATION:	06/02/2025
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+'''
 
 import os
 from launch import LaunchDescription
@@ -24,7 +41,7 @@ def generate_launch_description():
                 launch_arguments={
                     "model": LaunchConfiguration("model", default=model_dir),
                     "tracker": LaunchConfiguration("tracker", default="bytetrack.yaml"),
-                    "device": LaunchConfiguration("device", default="0"),
+                    "device": LaunchConfiguration("device", default="cpu"),
                     "enable": LaunchConfiguration("enable", default="True"),
                     "threshold": LaunchConfiguration("threshold", default="0.5"),
                     "input_image_topic": LaunchConfiguration(
