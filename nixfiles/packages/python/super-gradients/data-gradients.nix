@@ -1,6 +1,7 @@
 { buildPythonPackage
 , fetchFromGitHub
 , python3Packages
+, opencv4
 }:
 
 buildPythonPackage rec {
@@ -21,7 +22,7 @@ buildPythonPackage rec {
     pygments
     tqdm
     platformdirs
-    #opencv-python
+    opencv4
     pillow
     werkzeug
     tensorboard
@@ -38,8 +39,6 @@ buildPythonPackage rec {
     #imagededup duplicate error
     fonttools
     wheel
-
-    opencv4
   ];
 
   postPatch = ''

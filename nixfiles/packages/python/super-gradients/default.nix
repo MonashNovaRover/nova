@@ -47,7 +47,7 @@ buildPythonPackage rec {
     stringcase
     rapidfuzz
     json-tricks
-    #onnx-simplifier i hate this dependency chain
+    #onnx-simplifier i hate this dependency chain so i deleted it lol
     data-gradients
     albumentations
     fonttools

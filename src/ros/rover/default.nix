@@ -31,17 +31,12 @@
     nova-auto-interfaces = callPackage ./nix/packages/nova-auto-interfaces { };
     nova-utils = callPackage ./nix/packages/nova-utils { };
     nova-object-detection = callPackage ./nix/packages/nova-object-detection { };
-    nova-yolo-ros = callPackage ./nix/packages/nova-yolo-ros { };
-    nova-yolo-msgs = callPackage ./nix/packages/nova-yolo-msgs { };
-    nova-yolo-bringup = callPackage ./nix/packages/nova-yolo-bringup { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 
-  pythonPackages = pythonPackages: with pythonPackages; {
-    ultralytics = pythonPackages.callPackage ./nix/packages/misc/ultralytics { };
-    lap = pythonPackages.callPackage ./nix/packages/misc/lap { };
-    super-gradients = pythonPackages.callPackage ./nix/packages/misc/super-gradients { };
-  };
+  #pythonPackages = pythonPackages: with pythonPackages; {
+    
+  #};
 
   shellAliases = {
     # Launching aliases

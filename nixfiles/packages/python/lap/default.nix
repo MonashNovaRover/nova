@@ -12,9 +12,6 @@
     src = fetchFromGitHub {
       owner = "gatagat";
       repo = pname;
-
-      # There are no version tags.
-      # https://github.com/ultralytics/ultralytics/issues/4039
       rev = "600c210d9bef793ee0fe502cbc350e676a6e083a";
       hash = "sha256-ktLwdeb7UWhdihOhdeYIi6Geyp7aJsVPPec22MtI9Jo=";
     };
