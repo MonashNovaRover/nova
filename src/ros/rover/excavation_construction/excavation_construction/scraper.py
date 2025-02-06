@@ -38,10 +38,11 @@ class ScraperNode(Node):
     CAN_BUS = "can0"
     # card IDs
     CARD = Card.CMD
-    # only used when card = CMD
-    CMD_ID_ARM = 0x0B3
-    CMD_ID_SCOOP = 0x0C3
-    CMD_ID_BUCKET = 0x0D3
+    # only used when card = CMD, works with QCMDs
+    # 0x0C? ports can handle slightly higher current on QCMDs, 0x0D? ports are slightly weaker
+    CMD_ID_ARM = 0x0C1
+    CMD_ID_SCOOP = 0x0D1
+    CMD_ID_BUCKET = 0x0C2
     # only used when card = JONO
     JONO_ID_ARM = 0x0A0
     JONO_ID_SCOOP = 0x0A0
