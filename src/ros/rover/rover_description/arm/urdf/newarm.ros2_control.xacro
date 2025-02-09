@@ -6,7 +6,7 @@
 
   <xacro:macro name="newarm_ros2_control" params="use_mock_hardware">
 
-    <ros2_control name="arm_j1" type="system">
+    <ros2_control name="arm_J1" type="system">
 	  <xacro:unless value="${use_mock_hardware}">
         <hardware>
 		  <plugin>blcmd_hardware/BLCMDHardware</plugin>
@@ -36,7 +36,7 @@
 	  </hardware>
 	  -->	  
 	  
-	  <joint name="j1">
+	  <joint name="J1">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -51,7 +51,7 @@
       </joint>
 	</ros2_control>
 	  
-	<ros2_control name="arm_j2" type="system">
+	<ros2_control name="arm_J2" type="system">
 	  <xacro:unless value="${use_mock_hardware}">
         <hardware>
 		  <plugin>blcmd_hardware/BLCMDHardware</plugin>
@@ -74,7 +74,7 @@
         </hardware>
 	  </xacro:if>
 
-	  <joint name="j2">
+	  <joint name="J2">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -89,7 +89,7 @@
       </joint>
 	</ros2_control>
 
-	<ros2_control name="arm_j3" type="system">
+	<ros2_control name="arm_J3" type="system">
 	  <xacro:unless value="${use_mock_hardware}">
         <hardware>
 		  <plugin>blcmd_hardware/BLCMDHardware</plugin>
@@ -112,7 +112,7 @@
         </hardware>
 	  </xacro:if>
 
-	  <joint name="j3">
+	  <joint name="J3">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -127,49 +127,7 @@
       </joint>
 	</ros2_control>
 
-	  <!-- <joint name="l1b_bp">
-		<command_interface name="velocity">
-		  <param name="max">1</param>
-		</command_interface>
-
-		<state_interface name="velocity">
-		  <param name="initial_value">0.0</param>
-		</state_interface>
-
-		<state_interface name="position"> 
-		  <param name="initial_value">0.0</param>
-		</state_interface>
-      </joint>
-
-	  <joint name="l1b_tp">
-		<command_interface name="velocity">
-		  <param name="max">1</param>
-		</command_interface>
-
-		<state_interface name="velocity">
-		  <param name="initial_value">0.0</param>
-		</state_interface>
-
-		<state_interface name="position"> 
-		  <param name="initial_value">0.0</param>
-		</state_interface>
-      </joint>
-
-	  <joint name="l1a_tp">
-		<command_interface name="velocity">
-		  <param name="max">1</param>
-		</command_interface>
-
-		<state_interface name="velocity">
-		  <param name="initial_value">0.0</param>
-		</state_interface>
-
-		<state_interface name="position"> 
-		  <param name="initial_value">0.0</param>
-		</state_interface>
-      </joint> -->
-
-	<ros2_control name="arm_j4" type="system">
+	<ros2_control name="arm_J4" type="system">
 	  <xacro:unless value="${use_mock_hardware}">
         <hardware>
 		  <plugin>blcmd_hardware/BLCMDHardware</plugin>
@@ -192,7 +150,7 @@
         </hardware>
 	  </xacro:if>
 
-	  <joint name="j4">
+	  <joint name="J4">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -207,7 +165,7 @@
       </joint>
 	</ros2_control>
 
-	<ros2_control name="arm_j5" type="system">
+	<ros2_control name="arm_J6" type="system">
 	  <xacro:unless value="${use_mock_hardware}">
         <hardware>
 		  <plugin>blcmd_hardware/BLCMDHardware</plugin>
@@ -230,7 +188,7 @@
         </hardware>
 	  </xacro:if>
 
-	  <joint name="j5">
+	  <joint name="J6">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -245,7 +203,7 @@
       </joint>
 	</ros2_control>
 
-	<ros2_control name="arm_j6" type="system">
+	<ros2_control name="arm_J6" type="system">
 	  <xacro:unless value="${use_mock_hardware}">
         <hardware>
 		  <plugin>blcmd_hardware/BLCMDHardware</plugin>
@@ -268,7 +226,7 @@
         </hardware>
 	  </xacro:if>
 
-	  <joint name="j6">
+	  <joint name="J6">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
