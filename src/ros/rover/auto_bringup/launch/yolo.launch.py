@@ -73,6 +73,12 @@ def generate_launch_description():
                     "Imgsz_height": LaunchConfiguration("Imgsz_height", default="640"), # must be same as model's trained image width and height
                     "Imgsz_width": LaunchConfiguration("Imgsz_width", default="640"),
                 }.items(),
-            )
+            ),
+            Node(
+                #condition=IfCondition(),
+                package='nova_utils',
+                executable='yolo_3d_to_marker',
+                #arguments=[],
+            ),
         ]
     )
