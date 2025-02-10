@@ -18,7 +18,6 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, Opaq
 from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
@@ -67,6 +66,9 @@ def launch_setup(context, *args, **kwargs):
         IncludeLaunchDescription(
             condition=IfCondition(rviz),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rviz.launch.py'])),
+            launch_arguments={
+                'use_sim_time': gazebo,
+            }.items()
         ),
         IncludeLaunchDescription(
             condition=IfCondition(navigation),

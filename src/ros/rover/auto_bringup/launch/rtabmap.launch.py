@@ -88,19 +88,7 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[rtabmap_params, {'use_sim_time': use_sim_time, 'rtabmap_args': '--delete_db_on_start'}],
                     remappings=remappings,
                 ),
-                # ComposableNode(
-                #     package='foxglove_bridge',
-                #     plugin='foxglove_bridge::FoxgloveBridge',
-                #     name='foxglove_bridge',
-                # )
             ],
-        ),
-        Node(
-            package='rtabmap_util', executable='point_cloud_xyz', output='screen',
-            parameters=[{'decimation': 2,
-                        'max_depth': 3.0,
-                        'voxel_size': 0.02}],
-            remappings=remappings,
         ),
         Node(
             package='rtabmap_util', executable='obstacles_detection', output='screen',
