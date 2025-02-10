@@ -59,6 +59,25 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         <frame_name>camera_link_optical</frame_name>
       </plugin>
     </sensor>
+    <sensor name="oak/rgb" type="camera">
+      <topic>oak/rgb</topic>
+      <gz_frame_id>camera_link</gz_frame_id>
+      <visualize>true</visualize>
+      <update_rate>30</update_rate>
+      <always_on>1</always_on>
+      <camera>
+        <horizontal_fov>${radians(82)}</horizontal_fov>
+        <image>
+          <width>600</width>
+          <height>400</height>
+        </image>
+        <clip>
+          <near>0.4</near>
+          <far>100.0</far>
+        </clip>
+      </camera>
+      <!-- <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system"></plugin> -->
+    </sensor>
   </gazebo>
 
   <!-- IMU for Gazebo-->

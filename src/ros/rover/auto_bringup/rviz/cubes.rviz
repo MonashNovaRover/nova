@@ -737,6 +737,18 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /yolo/dbg_image
       Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: MarkerArray
+      Namespaces:
+        cube: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /yolo/cubes/markers
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -782,18 +794,18 @@ Visualization Manager:
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -4.4936628341674805
-        Y: -0.1160430908203125
-        Z: -5.245208740234375e-06
+        X: 1.8554747104644775
+        Y: -3.9612655639648438
+        Z: -4.291534423828125e-06
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3403984606266022
+      Pitch: 0.525398313999176
       Target Frame: <Fixed Frame>
       Value: ThirdPersonFollower (rviz_default_plugins)
-      Yaw: 3.1735854148864746
+      Yaw: 4.808591365814209
     Saved:
       - Class: rviz_default_plugins/ThirdPersonFollower
         Distance: 10

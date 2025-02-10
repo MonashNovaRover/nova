@@ -32,6 +32,7 @@ install(PROGRAMS
   nova_utils/quaternion_to_euler.py
   nova_utils/nn_3d_to_marker.py
   nova_utils/detection_overlay.py
+  nova_utils/yolo_3d_to_marker.py
 
   DESTINATION lib/${PROJECT_NAME}
 )
