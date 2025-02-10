@@ -17,7 +17,7 @@ def launch_setup(context, *args, **kwargs):
         namespace='',
         executable='rviz2',
         name='rviz2',
-        arguments=['-d', [PathJoinSubstitution([FindPackageShare('auto_bringup'), 'rviz', 'navigation.rviz'])]]
+        arguments=['-d', [PathJoinSubstitution([FindPackageShare('auto_bringup'), 'rviz', 'cubes.rviz'])]]
     )
 
     rtabmap_ros_node = Node(
