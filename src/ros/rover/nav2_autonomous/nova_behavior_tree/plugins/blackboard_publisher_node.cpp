@@ -1,5 +1,8 @@
 #include "nova_behavior_tree/blackboard_publisher_node.hpp"
 #include "behaviortree_cpp/bt_factory.h"
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <nav_msgs/msg/path.hpp>
+
 
 namespace nova_behavior_tree
 {
@@ -49,6 +52,59 @@ BT::NodeStatus BlackboardPublisherNode::tick()
     std::string value_str;
     bool found = false;
 
+  // Hard Coded "goals" key
+    if (!found && key == "goals") {
+      try {
+          auto goals = bb->get<std::vector<geometry_msgs::msg::PoseStamped>>(std::string(key));
+          std::ostringstream ss;
+
+          // Simplified formatting for testing
+          ss << "Goals:";
+          int idx = 1;
+          for (const auto& goal_pose : goals) {
+              ss << " [" << idx << "] ("
+                << goal_pose.pose.position.x << ", "
+                << goal_pose.pose.position.y << ")";
+              idx++;
+          }
+
+          value_str = ss.str();  // Assign simplified string
+          found = true;
+      } catch(const std::exception& e) {
+          value_str = std::string("Failed to retrieve goals: ") + e.what();
+      } catch(...) {
+          value_str = "Unknown error while retrieving goals.";
+      }
+    }
+
+  // Hard Coded "path" key
+    if (!found && key == "path") {
+      try {
+          auto path = bb->get<nav_msgs::msg::Path>(std::string(key));
+          std::ostringstream ss;
+
+          // Simplified formatting for testing
+          ss << "Path:";
+          int idx = 1;
+          for (const auto& pose_stamped : path.poses) {
+              ss << " [" << idx << "] ("
+                << pose_stamped.pose.position.x << ", "
+                << pose_stamped.pose.position.y << ")";
+              idx++;
+          }
+
+          value_str = ss.str();  // Assign simplified string
+          found = true;
+      } catch(const std::exception& e) {
+          value_str = std::string("Failed to retrieve path: ") + e.what();
+      } catch(...) {
+          value_str = "Unknown error while retrieving path.";
+      }
+    }
+
+
+
+
     // Try int
     try {
       int val = bb->get<int>(std::string(key));
@@ -82,6 +138,44 @@ BT::NodeStatus BlackboardPublisherNode::tick()
         found = true;
       } catch(...) {}
     }
+    //try node name
+    if (!found) {
+      try {
+        auto node_ptr = bb->get<rclcpp::Node::SharedPtr>(std::string(key));
+        value_str = std::string("Node Name: ") + node_ptr->get_name();
+        found = true;
+      } catch(...) {}
+    }
+
+
+    //Hard Coded "goal" key
+    if (!found && key == "goal") {
+      try {
+        auto goal_pose = bb->get<geometry_msgs::msg::PoseStamped>("goal");
+        std::ostringstream ss;
+        ss << "Goal: ("
+          << goal_pose.pose.position.x << ", "
+          << goal_pose.pose.position.y << ", "
+          << goal_pose.pose.position.z << ") "
+          << "Orientation: ("
+          << goal_pose.pose.orientation.x << ", "
+          << goal_pose.pose.orientation.y << ", "
+          << goal_pose.pose.orientation.z << ", "
+          << goal_pose.pose.orientation.w << ")";
+        value_str = ss.str();
+        found = true;
+      } catch(const std::exception& e) {
+        value_str = std::string("Failed to retrieve goal: ") + e.what();
+      } catch(...) {
+        value_str = "Unknown error while retrieving goal.";
+      }
+    }
+
+  
+
+
+
+
 
     // If we still didn't find a matching type, it's unsupported
     if (!found) {
