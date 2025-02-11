@@ -754,13 +754,13 @@ Visualization Manager:
       Enabled: true
       Name: MarkerArray
       Namespaces:
-        cube: true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /yolo/cubes/markers
+        Value: /yolo/cubes
       Value: true
   Enabled: true
   Global Options:
