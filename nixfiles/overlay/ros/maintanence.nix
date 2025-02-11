@@ -167,8 +167,7 @@ self: super:
         '';
       });
 
-      controller-manager = rosSuper.controller-manager.overrideAttrs ({ prePatch ? "", patches ? [ ], nativeBuildInputs ? [ ], ... }: {
-        nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
+      controller-manager = rosSuper.controller-manager.overrideAttrs ({ prePatch ? "", patches ? [ ], ... }: {
         patches = patches ++ [
           (self.fetchpatch {
             url = "https://github.com/ros-controls/ros2_control/commit/23bd1c3c06c30d706f010628d85133a7198e226d.patch";
