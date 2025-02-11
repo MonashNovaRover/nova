@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /TF1/Frames1
         - /TF1/Tree1
+        - /MarkerArray2
       Splitter Ratio: 0.5833333134651184
     Tree Height: 140
   - Class: rviz_common/Selection
@@ -741,13 +742,13 @@ Visualization Manager:
       Enabled: true
       Name: MarkerArray
       Namespaces:
-        cube: true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /yolo/cubes/markers
+        Value: /yolo/cubes
       Value: true
   Enabled: true
   Global Options:

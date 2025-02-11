@@ -18,7 +18,7 @@ CREATION:	10/02/2025
 EDITED:		10/02/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - Implement transform from bbox to map
+ - Confirm boxes on map, base on cube_tracker.py by Max Tory
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -32,44 +32,54 @@ from yolo_msgs.msg import DetectionArray, Detection, BoundingBox3D
 
 COLORS = {'red':[1.0,0.0,0.0], 'green':[0.0,1.0,0.0], 'blue':[0.0,0.0,1.0], 'white':[1.0,1.0,1.0]}
 
-SUBSCRIBE_TOPIC = "/yolo/detections_3d"
-PUBLISHER_MARKER_TOPIC = "/yolo/cubes/markers"
-NAMESPACE = "cube"
-CUBE_SIZE = 0.15
+DETECTION_TOPIC = "/detections_3d"
+MARKER_TOPIC = "/cubes"
+DETECTION_TYPES = ["detected", "confirmed"]
+RVIZ_CUBE_SIZE = 0.15
 
 class MarkerPublisher(Node):
     def __init__(self):
         super().__init__("marker_publisher")
-        self.sub_goals = self.create_subscription(DetectionArray, SUBSCRIBE_TOPIC, self.cb, 10)
-
-        self.publisher = self.create_publisher(MarkerArray, PUBLISHER_MARKER_TOPIC, 10)
-        #self.publisher_text = self.create_publisher(MarkerArray, PUBLISHER_TEXT_TOPIC, 10)
+        self.declare_parameter('namespace', '/yolo')
+        self.subscription = self.create_subscription(
+            DetectionArray,
+            self.get_parameter('namespace').get_parameter_value().string_value + DETECTION_TOPIC, 
+            self.callback, 
+            10
+        )
+        self.publisher = self.create_publisher(
+            MarkerArray,
+            self.get_parameter('namespace').get_parameter_value().string_value + MARKER_TOPIC,
+            10
+        )
 
         self.detection_array: DetectionArray = None
 
-    def cb(self, msg: DetectionArray):
+    def callback(self, msg: DetectionArray):
         self.detection_array = msg
-        self.pub()
+        self.publish()
 
     def get_marker(self, detection: Detection) -> None:
         """Returns a marker derived from the detection"""
         marker = Marker()
-        marker.pose = detection.bbox3d.center # replace this line with proper calculation using depth points and bounding box center from bbox not bbox3d, then disable tracking and 3d nodes
+        marker.pose = detection.bbox3d.center
+        # rotate 90 deg around x and -90 deg around z from camera_link
+        marker.pose.position.x, marker.pose.position.y, marker.pose.position.z = detection.bbox3d.center.position.z, -1*detection.bbox3d.center.position.x, -1*detection.bbox3d.center.position.y
         marker.type = Marker.CUBE
-        marker.scale.x = CUBE_SIZE
-        marker.scale.y = CUBE_SIZE
-        marker.scale.z = CUBE_SIZE
+        marker.scale.x = RVIZ_CUBE_SIZE
+        marker.scale.y = RVIZ_CUBE_SIZE
+        marker.scale.z = RVIZ_CUBE_SIZE
         marker.color.r = COLORS[detection.class_name][0]
         marker.color.g = COLORS[detection.class_name][1]
         marker.color.b = COLORS[detection.class_name][2]
         marker.color.a = 1.0
 
-        marker.lifetime = Duration(seconds=0.2).to_msg()
-        marker.ns = NAMESPACE
+        marker.lifetime = Duration(seconds=0.3).to_msg()
+        marker.ns = DETECTION_TYPES[0]
         marker.id = detection.class_id
         return marker
 
-    def pub(self):
+    def publish(self):
         """Generates and publishes the markers."""
         msg = MarkerArray()
         det : Detection

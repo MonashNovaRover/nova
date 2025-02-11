@@ -54,9 +54,9 @@ def generate_launch_description():
                     "model": LaunchConfiguration("model", default=model_dir),
                     "tracker": LaunchConfiguration("tracker", default="bytetrack.yaml"),        # could optimise our tracker params? currently using default ultralytic params
                     "device": LaunchConfiguration("device", default="cpu"),                     # get CUDA working later?
-                    "enable": LaunchConfiguration("enable", default="True"),                    # check if the original yolo_node is actually needed or if we just need 3D and/or tracking
+                    "enable": LaunchConfiguration("enable", default="True"),                    # 2d bounding box generator node
                     "threshold": LaunchConfiguration("threshold", default="0.5"),               # threshold to find a match e.g > 0.5 = a match
-                    "target_frame": LaunchConfiguration("target_frame", default="base_link"), # target frame to tranform the 3D boxes
+                    "target_frame": LaunchConfiguration("target_frame", default="camera_link"), # frame from which image originates (important for bb3d accuracy)
                     "input_image_topic": LaunchConfiguration(
                         "input_image_topic", default="/oak/rgb/image_rect"
                     ),
@@ -69,18 +69,22 @@ def generate_launch_description():
                     "image_reliability": LaunchConfiguration(
                         "image_reliability", default="1"
                     ),
+                    "depth_image_units_divisor": LaunchConfiguration(
+                        "depth_image_units_divisor", default="1"
+                    ),                                                                          # amount to divide to convert depth input to meters
                     "namespace": LaunchConfiguration("namespace", default="yolo"),              # sets the ROS topic output e.g /yolo/
-                    "use_3d": LaunchConfiguration("use_3d", default="True"),                    # enables 3D node
-                    "use_tracking": LaunchConfiguration("use_tracking", default="False"),       # enables tracking node
+                    "use_3d": LaunchConfiguration("use_3d", default="True"),                    # enables 3D node, needed for bb3d
+                    "use_tracking": LaunchConfiguration("use_tracking", default="False"),       # enables tracking node, may not be needed?
                     "Imgsz_height": LaunchConfiguration("Imgsz_height", default="400"),         # must be same as model's trained image width and height
-                    "Imgsz_width": LaunchConfiguration("Imgsz_width", default="600"),
+                    "Imgsz_width": LaunchConfiguration("Imgsz_width", default="600"),           # above comment may be wrong? as it works fine using depth cam's resolution
+                    
                 }.items(),
             ),
             Node(
                 #condition=IfCondition(),
                 package='nova_utils',
                 executable='yolo_3d_to_marker.py',
-                #arguments=[],
+                parameters=[{'namespace':'/yolo'}],
             ),
         ]
     )
