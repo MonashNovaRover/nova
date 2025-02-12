@@ -1,4 +1,4 @@
-import React, {useState, useEffect, DOMAttributes} from "react";
+import React, {useState, useEffect} from "react";
 import {Button, Card, CardHeader, CardBody, CardProps, Slider, Tooltip} from "@nextui-org/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
@@ -16,12 +16,27 @@ interface KilnWidgetProps extends CardProps {
 
 const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
   const [maxTemp, setMaxTemp] = useState(130);
-  const [goalTemp, setGoalTempRaw] = useState<number>(25);
+  const [goalTemp, setGoalTemp] = useState<number>(25);
   const [inputGoalTemp, setInputGoalTemp] = useState<string>("25");
 
-  function setGoalTemp(goalTemp: number): void {
+  // set up to 'refresh' kilnData state
+  const kilnData = useSelector(
+    (state: RootState) => state.kilnData
+  );
+
+  const kilnServiceData = useSelector(
+    (state: RootState) => state.kilnCommand
+  );
+
+  const dataBifrost = useBifrost({topic: RosTopic.KILN_DATA});
+  const serviceBifrost = useBifrost({service: RosService.KILN_COMMAND});
+  //const serviceBifrost = useBifrost({service: RosService.KILN_COMMAND});
+  const toggleKilnState = () => serviceBifrost.callServiceToRedux({state: !kilnData.state});
+  const sendTarget = () => serviceBifrost.callServiceToRedux({target: Math.round(goalTemp)});
+
+  function setRoundGoalTemp(goalTemp: number): void {
     const roundedGoalTemp = Math.round(goalTemp);
-    setGoalTempRaw(roundedGoalTemp);
+    setGoalTemp(roundedGoalTemp);
   }
 
   function showRoundedTarget(inputGoalTemp: string): void {
@@ -38,24 +53,9 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
 
     if (isNaN(Number(goalTemp))) return;
 
-    setGoalTemp(Number(goalTemp));
+    setRoundGoalTemp(Number(goalTemp));
     setInputGoalTemp(goalTemp.toString());
   };
-
-  // set up to 'refresh' kilnData state
-  const kilnData = useSelector(
-    (state: RootState) => state.kilnData
-  );
-
-  const kilnServiceData = useSelector(
-    (state: RootState) => state.kilnCommand
-  );
-
-  const dataBifrost = useBifrost({topic: RosTopic.KILN_DATA});
-  const serviceBifrost = useBifrost({service: RosService.KILN_COMMAND});
-  //const serviceBifrost = useBifrost({service: RosService.KILN_COMMAND});
-  const toggleKilnState = () => serviceBifrost.callServiceToRedux({state: !kilnData.state});
-  const sendTarget = () => serviceBifrost.callServiceToRedux({target: Math.round(goalTemp)});
 
   useEffect(() => {
     dataBifrost.syncWithTopic(); // calling ros bridge to subscribe to topic
@@ -81,38 +81,37 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
     </div>
   );
 
-  const tempInput = (originalProps: DOMAttributes<HTMLOutputElement>) => {
-    const {children: ReactElement, ...props} = originalProps;
-
-    return (
-      <output {...props}>
-        <Tooltip
-          className="text-tiny text-default-500 rounded-md"
-          content="Press Enter to confirm"
-          placement="left"
-        >
-          <input
-            aria-label="Temperature value"
-            className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
-            type="text"
-            value={inputGoalTemp}
-            onChange={(e) => {
-              const v = e.target.value;
-
-              setInputGoalTemp(v);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !isNaN(Number(inputGoalTemp))) {
-                setGoalTemp(Number(inputGoalTemp));
-                showRoundedTarget(inputGoalTemp);
-                sendTarget();
-              }
-            }}
-          />
-        </Tooltip>
-      </output>
-    ) as React.ReactNode;
-  };
+  // const tempInput = (originalProps: DOMAttributes<HTMLOutputElement>) => {
+  //   const {children: ReactElement, ...props} = originalProps;
+  //   return (
+  //     <output {...props}>
+  //       <Tooltip
+  //         className="text-tiny text-default-500 rounded-md"
+  //         content="Press Enter to confirm"
+  //         placement="left"
+  //       >
+  //         <input
+  //           aria-label="Temperature value"
+  //           className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
+  //           type="text"
+  //           value={inputGoalTemp}
+  //           onChange={(e) => {
+  //             const v = e.target.value;
+  //
+  //             setInputGoalTemp(v);
+  //           }}
+  //           onKeyDown={(e) => {
+  //             if (e.key === "Enter" && !isNaN(Number(inputGoalTemp))) {
+  //               setRoundGoalTemp(Number(inputGoalTemp));
+  //               showRoundedTarget(inputGoalTemp);
+  //               sendTarget();
+  //             }
+  //           }}
+  //         />
+  //       </Tooltip>
+  //     </output>
+  //   ) as React.ReactNode;
+  // };
 
   // <div className="flex content-stretch gap-5">
   const goalTempSlider = (
@@ -128,10 +127,64 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
       maxValue={maxTemp}
       minValue={0}
 
-      renderValue={Math.round(tempInput)}
+      //renderValue={inputGoalTemp}
+      renderValue={({children, ...props}) => (
+
+        <output {...props}>
+          <Tooltip
+            className="text-tiny text-default-500 rounded-md"
+            content="Press Enter to confirm"
+            placement="left"
+          >
+            <input
+              aria-label="Temperature value"
+              className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
+              type="text"
+              value={inputGoalTemp}
+              onChange={(e) => {
+                const v = e.target.value;
+
+                setInputGoalTemp(v);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !isNaN(Number(inputGoalTemp))) {
+                  setRoundGoalTemp(Number(inputGoalTemp));
+                  showRoundedTarget(inputGoalTemp);
+                  sendTarget();
+                }
+              }}
+            />
+          </Tooltip>
+        </output>
+
+        // <output {...props}>
+        //   <Tooltip
+        //     className="text-tiny text-default-500 rounded-md"
+        //     content="Press Enter to confirm"
+        //     placement="left"
+        //   >
+        //     <input
+        //       aria-label="Temperature value"
+        //       className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
+        //       type="text"
+        //       value={inputGoalTemp}
+        //       onChange={(e) => {
+        //         const v = e.target.value;
+        //
+        //         setInputGoalTemp(v);
+        //       }}
+        //       onKeyDown={(e) => {
+        //         if (e.key === "Enter" && !isNaN(Number(inputGoalTemp))) {
+        //           setRoundGoalTemp(Number(inputGoalTemp));
+        //         }
+        //       }}
+        //     />
+        //   </Tooltip>
+        // </output>
+      )}
 
       // we extract the default children to render the input
-      step={0.01}
+      step={1}
       value={goalTemp}
       onChange={(v) => {
         handleChange(v);
