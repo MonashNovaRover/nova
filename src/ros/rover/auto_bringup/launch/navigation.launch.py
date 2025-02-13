@@ -23,11 +23,17 @@ from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import RewrittenYaml
 
 def launch_setup(context, *args, **kwargs):
+    auto_bringup_dir = FindPackageShare('auto_bringup')
+
     autostart = LaunchConfiguration('autostart')
     container_name = LaunchConfiguration('container_name')
     log_level = LaunchConfiguration('log_level')
+    max_accel = LaunchConfiguration('max_accel')
+    max_decel = LaunchConfiguration('max_decel')
+    max_velocity = LaunchConfiguration('max_velocity')
+    min_velocity = LaunchConfiguration('min_velocity')
     namespace = LaunchConfiguration('namespace')
-    params_file = LaunchConfiguration('params_file')
+    nav2_params = LaunchConfiguration('nav2_params')
     use_composition = LaunchConfiguration('use_composition')
     use_respawn = LaunchConfiguration('use_respawn')
     use_sim_time = LaunchConfiguration('use_sim_time')
@@ -50,18 +56,13 @@ def launch_setup(context, *args, **kwargs):
                   ('/tf_static', 'tf_static')]
 
     # Create our own temporary YAML files that include substitutions
-    param_substitutions = {
+    substitution_params = {
         'use_sim_time': use_sim_time,
         'autostart': autostart,
     }
 
-    sim_substitutions = {
-        'velocity_smoother.ros__parameters.max_velocity': [1.2, 0.0, 0.5],
-        'velocity_smoother.ros__parameters.min_velocity': [-1.2, 0.0, -0.5],
-        'velocity_smoother.ros__parameters.max_accel': [0.1, 0.0, 0.1],
-        'velocity_smoother.ros__parameters.max_decel': [-0.5, 0.0, -0.5],
-    }
-
+    sim_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_sim.yaml'])
+    
     in_sim = (use_sim_time.perform(context).lower() == 'true')
 
     return [
@@ -74,7 +75,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     respawn=use_respawn,
                     respawn_delay=2.0,
-                    parameters=[params_file, param_substitutions, sim_substitutions],
+                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                     arguments=['--ros-args', '--log-level', log_level],
                     remappings=remappings + [('cmd_vel', 'cmd_vel_nav')],
                 ),
@@ -85,7 +86,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     respawn=use_respawn,
                     respawn_delay=2.0,
-                    parameters=[params_file, param_substitutions, sim_substitutions],
+                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                     arguments=['--ros-args', '--log-level', log_level],
                     remappings=remappings,
                 ),
@@ -96,7 +97,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     respawn=use_respawn,
                     respawn_delay=2.0,
-                    parameters=[params_file, param_substitutions, sim_substitutions],
+                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                     arguments=['--ros-args', '--log-level', log_level],
                     remappings=remappings,
                 ),
@@ -107,7 +108,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     respawn=use_respawn,
                     respawn_delay=2.0,
-                    parameters=[params_file, param_substitutions, sim_substitutions],
+                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                     arguments=['--ros-args', '--log-level', log_level],
                     remappings=remappings,
                 ),
@@ -118,7 +119,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     respawn=use_respawn,
                     respawn_delay=2.0,
-                    parameters=[params_file, param_substitutions, sim_substitutions],
+                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                     arguments=['--ros-args', '--log-level', log_level],
                     remappings=remappings,
                 ),
@@ -129,7 +130,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     respawn=use_respawn,
                     respawn_delay=2.0,
-                    parameters=[params_file, param_substitutions, sim_substitutions],
+                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                     arguments=['--ros-args', '--log-level', log_level],
                     remappings=remappings + [('cmd_vel', 'cmd_vel_nav'), ('cmd_vel_smoothed', 'cmd_vel')],
                 ),
@@ -139,7 +140,7 @@ def launch_setup(context, *args, **kwargs):
                 #     name='collision_monitor',
                 #     output='screen',
                 #     emulate_tty=True,  # https://github.com/ros2/launch/issues/188
-                #     parameters=[params_file, param_substitutions, sim_substitutions],
+                #     parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                 # ),
                 Node(
                     package='nav2_lifecycle_manager',
@@ -158,7 +159,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     respawn=use_respawn,
                     respawn_delay=2.0,
-                    parameters=[params_file, param_substitutions, sim_substitutions],
+                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                     arguments=['--ros-abt_navigatorrgs', '--log-level', log_level],
                     remappings=remappings,
                 )],
@@ -173,49 +174,49 @@ def launch_setup(context, *args, **kwargs):
                             package='nav2_controller',
                             plugin='nav2_controller::ControllerServer',
                             name='controller_server',
-                            parameters=[params_file, param_substitutions, sim_substitutions],
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                             remappings=remappings + [('cmd_vel', 'cmd_vel_nav')],
                         ),
                         ComposableNode(
                             package='nav2_smoother',
                             plugin='nav2_smoother::SmootherServer',
                             name='smoother_server',
-                            parameters=[params_file, param_substitutions, sim_substitutions],
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                             remappings=remappings,
                         ),
                         ComposableNode(
                             package='nav2_planner',
                             plugin='nav2_planner::PlannerServer',
                             name='planner_server',
-                            parameters=[params_file, param_substitutions, sim_substitutions],
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                             remappings=remappings,
                         ),
                         ComposableNode(
                             package='nav2_behaviors',
                             plugin='behavior_server::BehaviorServer',
                             name='behavior_server',
-                            parameters=[params_file, param_substitutions, sim_substitutions],
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                             remappings=remappings,
                         ),
                         ComposableNode(
                             package='nav2_waypoint_follower',
                             plugin='nav2_waypoint_follower::WaypointFollower',
                             name='waypoint_follower',
-                            parameters=[params_file, param_substitutions, sim_substitutions],
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                             remappings=remappings,
                         ),
                         ComposableNode(
                             package='nav2_velocity_smoother',
                             plugin='nav2_velocity_smoother::VelocitySmoother',
                             name='velocity_smoother',
-                            parameters=[params_file, param_substitutions, sim_substitutions],
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                             remappings=remappings + [('cmd_vel', 'cmd_vel_nav'), ('cmd_vel_smoothed', 'cmd_vel')],
                         ),
                         # ComposableNode(
                         #     package='nav2_collision_monitor',
                         #     plugin='nav2_collision_monitor::CollisionMonitor',
                         #     name='collision_monitor',
-                        #     parameters=[params_file, param_substitutions, sim_substitutions],
+                        #     parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                         #     remappings=remappings +
                         #     [('cmd_vel', 'cmd_vel_nav')]
                         # ),
@@ -223,14 +224,14 @@ def launch_setup(context, *args, **kwargs):
                         #     package='nav2_map_server',
                         #     plugin='nav2_map_server::MapServer',
                         #     name='map_server',
-                        #     parameters=[params_file, param_substitutions, sim_substitutions, {'yaml_filename': map_yaml_file}],
+                        #     parameters=[nav2_params, substitution_params, sim_params if in_sim else {}, {'yaml_filename': map_yaml_file}],
                         #     remappings=remappings + [('map', 'static_map')],
                         # ),
                         ComposableNode(
                             package='nav2_bt_navigator',
                             plugin='nav2_bt_navigator::BtNavigator',
                             name='bt_navigator',
-                            parameters=[params_file, param_substitutions, sim_substitutions],
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                             remappings=remappings,
                         ),
                         ComposableNode(
@@ -261,17 +262,37 @@ def generate_launch_description():
             description='the name of conatiner that nodes will load in if use composition',
         ),
         DeclareLaunchArgument(
-            name='namespace',
-            default_value='',
-            description='Top-level namespace',
-        ),
-        DeclareLaunchArgument(
             name='log_level',
             default_value='info',
             description='log level',
         ),
         DeclareLaunchArgument(
-            name='params_file',
+            name='max_accel',
+            default_value=['0.1', '0.0', '0.1'],
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='max_decel',
+            default_value=['-0.5', '0.0', '-0.5'],
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='max_velocity',
+            default_value=['1.2', '0.0', '0.5'],
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='min_velocity',
+            default_value=['-1.2', '0.0', '-0.5'],
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='namespace',
+            default_value='',
+            description='Top-level namespace',
+        ),
+        DeclareLaunchArgument(
+            name='nav2_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2.yaml']),
             description='Full path to the ROS2 parameters file to use for all launched nodes',
         ),
