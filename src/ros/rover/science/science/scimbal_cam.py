@@ -19,6 +19,7 @@ EDITED:		12/02/2025
 
 import rclpy, jcan, logging
 from rclpy.node import Node
+from enum import Enum
 
 from nova_interfaces.srv import MoveScimbalCam
 
@@ -34,7 +35,7 @@ class ScimbalCamNode(Node):
     CAN_BUS = "can1"
 
     # card IDs
-    SERVO_IDS = [0x0B0, 0x0B0]
+    SERVO_IDS = [0x011, 0x022]
 
     # command data
     MOVE_SERVO_COMMAND = 0x0D
@@ -68,7 +69,7 @@ class ScimbalCamNode(Node):
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
         self.timer_can_commands = self.create_timer(0.2, self.send_can_commands)
 
-        self.get_logger().info(f"Microscope Servo started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
+        self.get_logger().info(f"Scimbal Cam started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
 
 
     def move_servo(self, target_angles):
@@ -89,10 +90,10 @@ class ScimbalCamNode(Node):
 
         try:
             self.move_servo(self.current_angles)
-            self.get_logger().info(f"scimbal cam angles updated to {self.current_angles}, request: {request.angles}")
+            self.get_logger().info(f"Scimbal Cam angles updated to {self.current_angles}, request: {request.angles}")
             response.success = True
         except Exception as e:
-            self.get_logger().error(f"Microscope angle update request {request.angle} interrupted by error: {str(e)}")
+            self.get_logger().error(f"Scimbal Cam angle update request {request.angle} interrupted by error: {str(e)}")
             response.success = False
         return response
 
