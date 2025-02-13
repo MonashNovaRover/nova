@@ -106,7 +106,8 @@ in
             launch-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
             launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
 
-            # Rover troubleshooting aliases
+            # Rover setup aliases
+            zero-arm = "${pkgs.bash}/bin/bash ${../../../scripts/zero-arm.sh}";
             zero-pivots = "${pkgs.bash}/bin/bash ${../../../scripts/zero-pivots.sh}";
             list-blcmds = "more ${cfg.nixfileDir}/doc/blcmd-ids.md";
 
