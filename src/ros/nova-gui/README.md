@@ -2,6 +2,29 @@
 
 Nova-GUI is the Primary Means of Communication and Control of the Rover During Operation and this repo contains the end to end implementation of the Graphical User Interface for the Rover. Nova-GUI is designed to be modular in nature, where Layouts are composed using Individul Components which work independent of each other.
 
+<details>
+<summary>Common Commands</summary>
+
+```
+nova-shell -A pkgs.ros.nova-gui
+```
+```
+ln -sf "$ROS_TS_DEFINITIONS" src/ros/rosTypes.ts
+```
+```
+ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+```
+```
+cd nova-gui 
+```
+```
+yarn install
+```
+```
+yarn dev
+```
+</details>
+
 ### Tech Stack
 
 Nova-GUI is a React Powered Webapp which uses the following
