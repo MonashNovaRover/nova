@@ -1,9 +1,11 @@
 import React, {useState, useEffect, useCallback} from "react";
 import {Button, Card, CardHeader, CardBody, CardProps, Slider, Tooltip} from "@nextui-org/react";
+
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction";
 import { RosTopic } from "../../ros/topics/rosTopic";
+
 import { RosService } from "../../ros/services/rosService";
 import { SubCardLabel } from "../shared/Labels";
 import { Square, Power } from "react-feather";
@@ -12,7 +14,6 @@ import { OverlayedProgress } from "../OverlayedProgress/OverlayedProgress";
 interface KilnWidgetProps extends CardProps {
 
 }
-
 
 const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
   const [maxTemp, setMaxTemp] = useState(130);
@@ -34,16 +35,16 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
   const toggleKilnState = () => serviceBifrost.callServiceToRedux({state: !kilnData.state});
   const sendTarget = () => serviceBifrost.callServiceToRedux({target: Math.round(goalTemp)});
 
-  const setRoundGoalTemp = useCallback((goalTemp) => {
+  const setRoundGoalTemp = useCallback((goalTemp: number) => {
     const roundedGoalTemp = Math.round(goalTemp);
     setGoalTemp(roundedGoalTemp);
-  });
+  }, [setGoalTemp]);
 
-  const showRoundedTarget = useCallback((inputGoalTemp) => {
+  const showRoundedTarget = useCallback((inputGoalTemp: string) => {
     //Altenrate method (rounds down always): const roundedInputGoalTemp = inputGoalTemp.split('.')[0];
     const roundedInputGoalTemp = Math.round(Number(inputGoalTemp));
     setInputGoalTemp(String(roundedInputGoalTemp));
-  });
+  }, [setInputGoalTemp]);
 
   const handleChange = useCallback((goalTemp: number | number[]) => {
     if (Array.isArray(goalTemp)) {
@@ -55,7 +56,7 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
 
     setRoundGoalTemp(Number(goalTemp));
     setInputGoalTemp(goalTemp.toString());
-  });
+  }, [setInputGoalTemp]);
 
   useEffect(() => {
     dataBifrost.syncWithTopic(); // calling ros bridge to subscribe to topic
