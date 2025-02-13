@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useCallback} from "react";
 import {Button, Card, CardHeader, CardBody, CardProps, Slider, Tooltip} from "@nextui-org/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/RootState";
@@ -34,18 +34,18 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
   const toggleKilnState = () => serviceBifrost.callServiceToRedux({state: !kilnData.state});
   const sendTarget = () => serviceBifrost.callServiceToRedux({target: Math.round(goalTemp)});
 
-  function setRoundGoalTemp(goalTemp: number): void {
+  const setRoundGoalTemp = useCallback((goalTemp) => {
     const roundedGoalTemp = Math.round(goalTemp);
     setGoalTemp(roundedGoalTemp);
-  }
+  });
 
-  function showRoundedTarget(inputGoalTemp: string): void {
+  const showRoundedTarget = useCallback((inputGoalTemp) => {
     //Altenrate method (rounds down always): const roundedInputGoalTemp = inputGoalTemp.split('.')[0];
     const roundedInputGoalTemp = Math.round(Number(inputGoalTemp));
     setInputGoalTemp(String(roundedInputGoalTemp));
-  }
+  });
 
-  const handleChange = (goalTemp: number | number[]) => {
+  const handleChange = useCallback((goalTemp: number | number[]) => {
     if (Array.isArray(goalTemp)) {
       console.error("goalTemp was unexpectedly an array?? what?");
       return;
@@ -55,7 +55,7 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
 
     setRoundGoalTemp(Number(goalTemp));
     setInputGoalTemp(goalTemp.toString());
-  };
+  });
 
   useEffect(() => {
     dataBifrost.syncWithTopic(); // calling ros bridge to subscribe to topic
