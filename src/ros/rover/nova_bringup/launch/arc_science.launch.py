@@ -8,17 +8,17 @@ Execute this code on the rover to start all
 NODES:
   - science/nir_probe_publisher.py      [nir_probe_publisher]
   - science/microscope_servo.py         [microscope_servo]
-  - science/kiln_server.py'             [kiln_server]
-  - control/urc_auger.py                [urc_auger]
-  - control/urc_analysis_arm.py         [urc_analysis_arm]
+  - science/kiln_server.py              [kiln_server]
+  - science/urc_auger.py                [urc_auger]
+  - science/urc_analysis_arm.py         [urc_analysis_arm]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATED:    17/03/2024
 EDITED:     13/02/2025
 EDITED BY: Tristan Clark, Victor Bartlinski, Felicity Matthews
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-'''
+"""
 from launch import LaunchDescription
-from launch.actions import OpaqueFunction
+from launch.actions import OpaqueFunction, DeclareLaunchArgument
 from launch_ros.actions import Node
 
 def launch_setup(context, *args, **kwargs):
