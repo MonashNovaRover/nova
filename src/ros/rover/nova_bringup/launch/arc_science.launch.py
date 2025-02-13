@@ -9,8 +9,8 @@ NODES:
   - science/nir_probe_publisher.py      [nir_probe_publisher]
   - science/microscope_servo.py         [microscope_servo]
   - science/kiln_server.py              [kiln_server]
-  - science/urc_auger.py                [urc_auger]
-  - science/urc_analysis_arm.py         [urc_analysis_arm]
+  - science/urc_auger.py                [auger]
+  - science/urc_analysis_arm.py         [analysis_arm]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATED:    17/03/2024
 EDITED:     13/02/2025
@@ -19,9 +19,16 @@ EDITED BY: Tristan Clark, Victor Bartlinski, Felicity Matthews
 """
 from launch import LaunchDescription
 from launch.actions import OpaqueFunction, DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 def launch_setup(context, *args, **kwargs):
+    # parameterised canIDs
+    auger_drill_canid = LaunchConfiguration('uger_drill_canid')
+    auger_actuation_canid = LaunchConfiguration('auger_actuation_canid')
+    analysis_arm_cmd_canid = LaunchConfiguration('analysis_arm_cmd_canid')
+    tof_canid = LaunchConfiguration('tof_canid')
+
     return [
         Node(
             package='science',
@@ -46,18 +53,25 @@ def launch_setup(context, *args, **kwargs):
             executable='urc_auger.py',
             output='screen',
             emulate_tty=True,
+            parameters=[{
+                "auger_drill_canid": auger_drill_canid,
+                "auger_actuation_canid": auger_actuation_canid
+            }]
         ),
         Node(
             package='science',
             executable='urc_analysis_arm.py',
             output='screen',
             emulate_tty=True,
+            parameters=[{
+                "cmd_id": analysis_arm_cmd_canid,
+                "tof_frame_id": tof_canid
+            }],
         ),
     ]
 
 def generate_launch_description():
     declared_arguments = [
-        DeclareLaunchArgument("auger_drill_canid", defaultValue=0x0C1),
         DeclareLaunchArgument("auger_drill_canid", defaultValue=0x0C1),
         DeclareLaunchArgument("auger_actuation_canid", defaultValue=0x0D1),
         DeclareLaunchArgument("analysis_arm_cmd_canid", defaultValue=0x0D2),

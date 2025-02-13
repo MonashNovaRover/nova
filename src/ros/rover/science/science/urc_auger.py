@@ -19,9 +19,9 @@ class URCAuger(JoystickControllerNode):
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
     AUGER_ACTUATION_CANID_PARAM = "auger_actuation_canid"
-    AUGER_ACTUATION_SEND_FRAME_ID = 0x0D1
+    AUGER_ACTUATION_SEND_FRAME_ID = 0x083
     AUGER_DRILL_CANID_PARAM = "auger_drill_canid"
-    AUGER_DRILL_SEND_FRAME_ID = 0x0C1
+    AUGER_DRILL_SEND_FRAME_ID = 0x073
     
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here

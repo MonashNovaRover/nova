@@ -37,7 +37,7 @@ class AnalysisArm(JoystickControllerNode):
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
     CMD_ID_PARAM = "cmd_id"
-    CMD_ID = 0x0D2
+    CMD_ID = 0x032
 
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
