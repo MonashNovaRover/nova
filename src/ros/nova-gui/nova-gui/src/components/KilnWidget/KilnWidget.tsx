@@ -81,46 +81,12 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
     </div>
   );
 
-  // const tempInput = (originalProps: DOMAttributes<HTMLOutputElement>) => {
-  //   const {children: ReactElement, ...props} = originalProps;
-  //   return (
-  //     <output {...props}>
-  //       <Tooltip
-  //         className="text-tiny text-default-500 rounded-md"
-  //         content="Press Enter to confirm"
-  //         placement="left"
-  //       >
-  //         <input
-  //           aria-label="Temperature value"
-  //           className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
-  //           type="text"
-  //           value={inputGoalTemp}
-  //           onChange={(e) => {
-  //             const v = e.target.value;
-  //
-  //             setInputGoalTemp(v);
-  //           }}
-  //           onKeyDown={(e) => {
-  //             if (e.key === "Enter" && !isNaN(Number(inputGoalTemp))) {
-  //               setRoundGoalTemp(Number(inputGoalTemp));
-  //               showRoundedTarget(inputGoalTemp);
-  //               sendTarget();
-  //             }
-  //           }}
-  //         />
-  //       </Tooltip>
-  //     </output>
-  //   ) as React.ReactNode;
-  // };
-
   // <div className="flex content-stretch gap-5">
   const goalTempSlider = (
     <Slider
       size="lg"
       classNames={{
-        base: "",
         label: "text-medium",
-        track: "mx-0",
       }}
       color="primary"
       label="Target"
@@ -156,31 +122,6 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
             />
           </Tooltip>
         </output>
-
-        // <output {...props}>
-        //   <Tooltip
-        //     className="text-tiny text-default-500 rounded-md"
-        //     content="Press Enter to confirm"
-        //     placement="left"
-        //   >
-        //     <input
-        //       aria-label="Temperature value"
-        //       className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
-        //       type="text"
-        //       value={inputGoalTemp}
-        //       onChange={(e) => {
-        //         const v = e.target.value;
-        //
-        //         setInputGoalTemp(v);
-        //       }}
-        //       onKeyDown={(e) => {
-        //         if (e.key === "Enter" && !isNaN(Number(inputGoalTemp))) {
-        //           setRoundGoalTemp(Number(inputGoalTemp));
-        //         }
-        //       }}
-        //     />
-        //   </Tooltip>
-        // </output>
       )}
 
       // we extract the default children to render the input
