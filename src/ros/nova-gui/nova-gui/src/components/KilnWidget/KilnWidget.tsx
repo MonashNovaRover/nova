@@ -31,9 +31,14 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
 
   const dataBifrost = useBifrost({topic: RosTopic.KILN_DATA});
   const serviceBifrost = useBifrost({service: RosService.KILN_COMMAND});
-  //const serviceBifrost = useBifrost({service: RosService.KILN_COMMAND});
   const toggleKilnState = () => serviceBifrost.callServiceToRedux({state: !kilnData.state});
-  const sendTarget = () => serviceBifrost.callServiceToRedux({target: Math.round(goalTemp)});
+  const sendTarget = () => {
+    try {
+      serviceBifrost.callServiceToRedux({target: Math.round(goalTemp)}, {noErrorToast: false, responseToast: true});
+    } catch (e) {
+      console.error(e);
+    }
+  }
 
   const setRoundGoalTemp = useCallback((goalTemp: number) => {
     const roundedGoalTemp = Math.round(goalTemp);
