@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "controller_interface/controller_interface.hpp"
+#include "controller_interface/chainable_controller_interface.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "hardware_interface/handle.hpp"
@@ -26,7 +27,7 @@
 
 namespace nova_arm_controller
 {
-  class NovaArmController : public controller_interface::ControllerInterface
+  class NovaArmController : public controller_interface::ChainableControllerInterface
   {
   public:
     NovaArmController();
@@ -35,8 +36,8 @@ namespace nova_arm_controller
 
     controller_interface::InterfaceConfiguration state_interface_configuration() const override;
 
-    controller_interface::return_type update(
-        const rclcpp::Time &time, const rclcpp::Duration &period) override;
+    controller_interface::return_type update_and_write_commands(
+      const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
     controller_interface::CallbackReturn on_init() override;
 
@@ -48,6 +49,8 @@ namespace nova_arm_controller
 
     controller_interface::CallbackReturn on_deactivate(
         const rclcpp_lifecycle::State &previous_state) override;
+
+    bool on_set_chained_mode(bool chained_mode) override;
 
     controller_interface::CallbackReturn on_cleanup(
         const rclcpp_lifecycle::State &previous_state) override;
@@ -69,9 +72,13 @@ namespace nova_arm_controller
       float best_effort_rotational_velocity = 0.0;
       // store per joint odometry here maybe?
     };
+
     controller_interface::CallbackReturn configure_joints(
         const std::vector<std::string> &joint_names,
         std::vector<JointHandle> &registered_handles, const char *feedback_type);
+
+    controller_interface::return_type update_reference_from_subscribers(
+        const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
     const char *joint_feedback_type() const;
 

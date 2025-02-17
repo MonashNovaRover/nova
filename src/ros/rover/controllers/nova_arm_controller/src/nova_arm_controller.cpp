@@ -24,7 +24,7 @@ namespace nova_arm_controller
   using hardware_interface::HW_IF_VELOCITY;
   using lifecycle_msgs::msg::State;
 
-  NovaArmController::NovaArmController() : controller_interface::ControllerInterface() {}
+  NovaArmController::NovaArmController() : controller_interface::ChainableControllerInterface() {}
 
   const char *NovaArmController::joint_feedback_type() const
   {
@@ -69,7 +69,7 @@ namespace nova_arm_controller
     return {interface_configuration_type::INDIVIDUAL, conf_names};
   }
 
-  controller_interface::return_type NovaArmController::update(
+  controller_interface::return_type NovaArmController::update_and_write_commands(
       const rclcpp::Time &time, const rclcpp::Duration &period)
   {
     auto logger = get_node()->get_logger();
@@ -218,6 +218,11 @@ namespace nova_arm_controller
     registered_joint_handles_.clear();
 
     return controller_interface::CallbackReturn::SUCCESS;
+  }
+
+  bool NovaArmController::on_set_chained_mode(bool chained_mode) {
+    // This method is called when the chained mode is set.
+    return true;
   }
 
   controller_interface::CallbackReturn NovaArmController::on_cleanup(
