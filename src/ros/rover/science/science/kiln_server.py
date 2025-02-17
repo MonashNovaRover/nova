@@ -46,6 +46,8 @@ class KilnServer(Node):
     KILN_DATA_TOPIC = "/science/kiln_data"
     # ROS Services
     KILN_COMMAND_SERVICE = "/science/kiln_command"
+    # Default target
+    DEFAULT_TARGET_TEMP = 25
 
     def __init__(self):
         super().__init__('kiln_server')
@@ -78,6 +80,7 @@ class KilnServer(Node):
 
         self.temp = [0, 0, 0]
         self.is_on = False
+        self.target = self.DEFAULT_TARGET_TEMP
 
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
 
@@ -124,6 +127,7 @@ class KilnServer(Node):
                 self.send_kiln_on()
                 self.is_on = True
                 self.target = request.target
+                self.get_logger().info(f"Kiln target temp updated to: {self.target}")
             else:
                 # Turn off the kiln
                 self.send_kiln_off()
