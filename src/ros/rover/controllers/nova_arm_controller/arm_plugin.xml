@@ -1,5 +1,7 @@
 <library path="nova_arm_controller">
-  <class name="nova_arm_controller/NovaArmController" type="nova_arm_controller::NovaArmController" base_class_type="controller_interface::ControllerInterface">
+  <class name="nova_arm_controller/NovaArmController"
+         type="nova_arm_controller::NovaArmController"
+         base_class_type="controller_interface::ChainableControllerInterface">
   <description>
     The arm controller TODO XXX
   </description>

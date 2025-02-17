@@ -10,6 +10,7 @@
 
 #include "controller_interface/controller_interface.hpp"
 #include "controller_interface/chainable_controller_interface.hpp"
+#include "controller_interface/controller_interface.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "hardware_interface/handle.hpp"
@@ -30,7 +31,7 @@ namespace nova_arm_controller
   class NovaArmController : public controller_interface::ChainableControllerInterface
   {
   public:
-    NovaArmController();
+    //NovaArmController();
 
     controller_interface::InterfaceConfiguration command_interface_configuration() const override;
 
@@ -85,8 +86,8 @@ namespace nova_arm_controller
     std::vector<JointHandle> registered_joint_handles_;
 
     // Parameters from ROS for nova_diff_drive_controller
-    std::shared_ptr<ParamListener> param_listener_;
-    Params params_;
+    std::shared_ptr<ParamListener> param_listener_{};
+    Params params_{};
 
     // Timeout to consider cmd_vel commands old
     std::chrono::milliseconds cmd_vel_timeout_{500};
