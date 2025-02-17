@@ -61,7 +61,7 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
 
     setRoundGoalTemp(Number(goalTemp));
     setInputGoalTemp(goalTemp.toString());
-  }, [setInputGoalTemp]);
+  }, [setRoundGoalTemp, setInputGoalTemp]);
 
   useEffect(() => {
     dataBifrost.syncWithTopic(); // calling ros bridge to subscribe to topic
