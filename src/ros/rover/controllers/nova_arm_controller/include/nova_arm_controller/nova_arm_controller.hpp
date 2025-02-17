@@ -37,6 +37,8 @@ namespace nova_arm_controller
 
     controller_interface::InterfaceConfiguration state_interface_configuration() const override;
 
+    std::vector<hardware_interface::CommandInterface> on_export_reference_interfaces() override;
+
     controller_interface::return_type update_and_write_commands(
       const rclcpp::Time & time, const rclcpp::Duration & period) override;
 

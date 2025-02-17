@@ -12,6 +12,7 @@
 namespace
 {
   constexpr auto DEFAULT_INPUT_TOPIC_ARM_JOINT_VELOCITY = "/arm_fk_velocity_target"; // TODO: changeme
+  constexpr auto DEFAULT_REFERENCE_INTERFACE_ARM_JOINT_VELOCITY = "arm_fk_velocity_target"; // TODO: changeme
 } // namespace
 
 
@@ -59,14 +60,21 @@ InterfaceConfiguration NovaArmController::command_interface_configuration() cons
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
 
-InterfaceConfiguration NovaArmController::state_interface_configuration() const
-{
+InterfaceConfiguration NovaArmController::state_interface_configuration() const {
   std::vector<std::string> conf_names;
-  for (const auto &joint_name : params_.joint_names)
-  {
+  for (const auto &joint_name: params_.joint_names) {
     conf_names.push_back(joint_name + "/" + joint_feedback_type());
   }
   return {interface_configuration_type::INDIVIDUAL, conf_names};
+}
+
+std::vector<hardware_interface::CommandInterface> NovaArmController::on_export_reference_interfaces() {
+  std::vector<hardware_interface::CommandInterface> reference_interfaces;
+
+  reference_interfaces.push_back(hardware_interface::CommandInterface(
+    get_node()->get_name(), DEFAULT_REFERENCE_INTERFACE_ARM_JOINT_VELOCITY, &reference_interfaces_[0]));
+
+  return reference_interfaces;
 }
 
 controller_interface::return_type NovaArmController::update_and_write_commands(
@@ -178,6 +186,12 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
 
     received_msg_ptr_.set(std::move(msg));
   });
+
+  // Set number of reference interface. Currently set to 1, for the input interface.
+  // https://github.com/ros-controls/ros2_control_demos/blob/332ede0ee44f9c3382666df91a0b7d49a368652f/example_12/controllers/src/passthrough_controller.cpp#L78
+  constexpr unsigned int reference_interface_count = 1;
+  command_interfaces_.reserve(reference_interface_count);
+  reference_interfaces_.resize(reference_interface_count, std::numeric_limits<double>::quiet_NaN());
 
   previous_update_timestamp_ = get_node()->get_clock()->now();
   return controller_interface::CallbackReturn::SUCCESS;
