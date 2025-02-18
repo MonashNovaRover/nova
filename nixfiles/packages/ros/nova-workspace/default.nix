@@ -8,7 +8,6 @@
 , rqt-common-plugins
 , gdb
 , gps-umd
-, lattice-primitive-generator
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -106,8 +105,7 @@ in
       ros-gz
       gz-ros2-control
       gps-umd
-      rqt rqt-common-plugins
-      lattice-primitive-generator;
+      rqt rqt-common-plugins;
   }) // extraPackages;
   prebuiltShellPackages = {
     inherit

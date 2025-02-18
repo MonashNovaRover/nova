@@ -30,6 +30,7 @@
   imu-transformer,
   nova-pivot-drive-controller,
   tf2-tools,
+  lattice-primitive-generator,
 }:
 
 buildRosPackage rec {
@@ -74,6 +75,7 @@ buildRosPackage rec {
       nova-pivot-drive-controller
       tf2-tools
       imu-transformer
+      lattice-primitive-generator
       ;
   };
 

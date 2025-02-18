@@ -26,9 +26,12 @@ from lattice_primitive_generator.lattice_generator import LatticeGenerator
 import matplotlib.pyplot as plt
 import numpy as np
 
+from ament_index_python.packages import get_package_share_directory
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+auto_bringup_dir = get_package_share_directory('auto_bringup')
+lattice_primitive_generator_dir = get_package_share_directory('lattice_primitive_generator')
 
 
 def handle_arg_parsing():
@@ -47,19 +50,19 @@ def handle_arg_parsing():
     parser.add_argument(
         '--config',
         type=Path,
-        default='/home/nova/nova/src/ros/rover/lattice_primitive_generator/lattice_primitive_generator/config.json',
+        default=f'{lattice_primitive_generator_dir}/lattice_primitive_generator/config.json',
         help='The config file containing the ' 'parameters to be used',
     )
     parser.add_argument(
         '--output',
         type=Path,
-        default='/home/nova/nova/src/ros/rover/lattice_primitive_generator/lattice_primitive_generator/output.json',
+        default=f'/home/nova/nova/src/ros/rover/auto_bringup/params/state_lattice.json',
         help='The output file containing the ' 'trajectory data',
     )
     parser.add_argument(
         '--visualizations',
         type=Path,
-        default='/home/nova/nova/src/ros/rover/lattice_primitive_generator/lattice_primitive_generator/visualizations',
+        default=f'/home/nova/nova/src/ros/rover/lattice_primitive_generator/lattice_primitive_generator/visualizations',
         help='The output folder where the '
         'visualizations of the trajectories will be saved',
     )
@@ -264,7 +267,7 @@ def main():
     print(f'Finished Generating. Took {time.time() - start} seconds')
 
     write_to_json(args.output, minimal_set_trajectories, config)
-    save_visualizations(args.visualizations, minimal_set_trajectories)
+    # save_visualizations(args.visualizations, minimal_set_trajectories)
 
 if __name__ == "__main__":
     main()
