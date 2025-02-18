@@ -48,15 +48,18 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   }, [bifrost]);
 
   const onSave = useCallback(() => {
+    if (!showAdvanced && nirData.led === 0)
+      return
+
     setReadings([
       {
-        data: data,
-        type: type,
+        data: showAdvanced && data ? data : nirData.data,
+        type: showAdvanced && type ? type : nirData.led,
         label: sampleLabel,
       } as ISpaceResourcesEntry,
       ...readings
     ])
-  }, [readings, setReadings, data, type, sampleLabel]);
+  }, [readings, setReadings, data, type, sampleLabel, showAdvanced, nirData]);
 
   const onTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (+e.target.value !== 0)
@@ -99,6 +102,10 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
           <CopyableOutput className="tracking-wide grow" classNames={{pre: "text-lg pt-1"}}>
             {nirData.data}
           </CopyableOutput>
+          <Input onValueChange={setSampleLabel} value={sampleLabel} size="sm"
+                 labelPlacement="inside" label="Sample Label"
+                  className="w-1/4">
+          </Input>
         </div>
         <div className="grid auto-cols-fr gap-3 grid-flow-col">
           {

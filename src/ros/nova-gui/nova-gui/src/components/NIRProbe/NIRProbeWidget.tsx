@@ -41,7 +41,7 @@ const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
       <div className="flex flex-col gap-3 col-span-3">
         <TOFHeight/>
         <SiteTypeSelectWidget/>
-        <NIRProbeFileTableWidget showAdvanced={showAdvanced}/>
+        <NIRProbeFileTableWidget/>
       </div>
     </div>
   );

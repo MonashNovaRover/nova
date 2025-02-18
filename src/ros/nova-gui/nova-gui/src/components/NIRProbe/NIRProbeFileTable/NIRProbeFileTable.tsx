@@ -17,11 +17,9 @@ import {Droplet, Square, Trash2} from "react-feather";
 import {useAbsorbance} from "../NIRProbeCalibration/NIRCalibration.ts";
 
 export interface NIRProbeFileTableProps extends CardProps {
-  showAdvanced : boolean,
 }
 
 const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({
-  showAdvanced
 }) => {
 
   // NIR Probe readings data corresponding to the currently selected site.
@@ -32,37 +30,28 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({
     setReadings(readings.filter((_, i) => i !== index))
   }, [readings, setReadings]);
 
-  const tableHeader = useCallback(() => {
-    const cols = showAdvanced ? ["Reading (Difference)", "Absorbance", "Label", "Action"]
-      : ["Reading (Difference)", "Absorbance", "Action"];
-
-    return (
-      <TableHeader>
-        {cols.map((v) => <TableColumn key={`header-${v}`}>{v}</TableColumn>)}
-      </TableHeader>
-    )
-  }, [showAdvanced])
+  const tableHeader = useCallback(() => (
+    <TableHeader>
+      {["Reading (Difference)", "Absorbance", "Label", "Action"]
+        .map((v) => <TableColumn key={`header-${v}`}>{v}</TableColumn>)}
+    </TableHeader>
+  ), [])
 
   const entryRows = useCallback((type: NIRProbeReadingType) => readings
     .filter((v: ISpaceResourcesEntry) => v.type == type)
-    .map(({data, type, label}, index) => {
-      const extras = showAdvanced ? [<TableCell key="label">{label}</TableCell>] : [];
-      const cells = [
-        <TableCell key={"reading-"+index}>{data}</TableCell>,
-        <TableCell key={"absorbance-"+index}>{absorbance(type, data).toFixed(4)}</TableCell>,
-        ...extras,
+    .map(({data, type, label}, index) => (
+      <TableRow key={index}>
+        <TableCell key={"reading-"+index}>{data}</TableCell>
+        <TableCell key={"absorbance-"+index}>{absorbance(type, data).toFixed(4)}</TableCell>
+        <TableCell key="label">{label}</TableCell>
         <TableCell key="action">
           <Button onPress={() => deleteEntry(index)}
                   size="sm" color="danger" variant="light" className="w-full" key="delete-button">
             <Trash2/>
           </Button>
-        </TableCell>,
-      ];
-
-      return (<TableRow key={index}>
-        {cells}
-      </TableRow>);
-  }), [readings, deleteEntry, showAdvanced])
+        </TableCell>
+      </TableRow>
+    )), [readings, deleteEntry, absorbance])
 
   const table = useCallback((type: NIRProbeReadingType) => (
     <Table

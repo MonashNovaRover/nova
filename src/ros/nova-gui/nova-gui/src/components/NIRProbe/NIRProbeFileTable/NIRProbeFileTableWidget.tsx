@@ -12,11 +12,10 @@ import {MoreHorizontal} from "react-feather";
 import NIRCalibrationSettingsModal from "./NIRCalibrationSettingsModal.tsx";
 
 export interface NIRProbeFileTableWidgetProps extends CardProps {
-  showAdvanced : boolean,
 }
 
 const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
-  showAdvanced, ...cardProps
+  ...cardProps
 }) => {
   const [calibrationModalIsOpen, setCalibrationModalIsOpen] = useState<boolean>(false)
 
@@ -34,7 +33,7 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       </CardHeader>
       <CardBody className="flex flex-col gap-3 p-3">
         <NIRProbeCalcTable/>
-        <NIRProbeFileTable showAdvanced={showAdvanced}/>
+        <NIRProbeFileTable/>
       </CardBody>
       <NIRCalibrationSettingsModal
         isOpen={calibrationModalIsOpen}
