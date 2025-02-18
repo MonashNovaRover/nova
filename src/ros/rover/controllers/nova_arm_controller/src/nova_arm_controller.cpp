@@ -77,9 +77,20 @@ std::vector<hardware_interface::CommandInterface> NovaArmController::on_export_r
   return reference_interfaces;
 }
 
+// Called before update_and_write_commands
+controller_interface::return_type NovaArmController::update_reference_from_subscribers(const rclcpp::Time &time, const rclcpp::Duration &period) {
+  // TODO: Get data from the subscriber message and put them into the reference interfaces
+
+
+  return controller_interface::return_type::OK;
+}
+
 controller_interface::return_type NovaArmController::update_and_write_commands(
     const rclcpp::Time &time, const rclcpp::Duration &period)
 {
+  // TODO: change implementation to use values from reference_interfaces_ rather than the subscriber message.
+  // (anything related to the subscriber should not exist in this function)
+
   auto logger = get_node()->get_logger();
   if (get_lifecycle_state().id() == State::PRIMARY_STATE_INACTIVE)
   {
@@ -336,6 +347,7 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
+
 } // namespace nova_arm_controller
 
 #include "class_loader/register_macro.hpp"
