@@ -75,7 +75,7 @@ InterfaceConfiguration NovaArmController::state_interface_configuration() const 
 std::vector<hardware_interface::CommandInterface> NovaArmController::on_export_reference_interfaces() {
   std::vector<hardware_interface::CommandInterface> reference_interfaces;
 
-  constexpr auto joint_count = params_.joint_names.size();
+  const auto joint_count = params_.joint_names.size();
   reference_interfaces_.reserve(joint_count);
 
   // Either "position" or "velocity" based on params_.use_position_control
@@ -83,7 +83,7 @@ std::vector<hardware_interface::CommandInterface> NovaArmController::on_export_r
 
   // Make a velocity interface for each joint
   for (unsigned int i = 0; i < joint_count; i++) {
-    constexpr auto name = params_.joint_names[i] + "/" + interface_name_suffix;
+    const auto name = params_.joint_names[i] + "/" + interface_name_suffix;
     reference_interfaces.push_back(hardware_interface::CommandInterface(get_node()->get_name(), name,
                                                                         &reference_interfaces_[i]));
   }
@@ -232,7 +232,7 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
 
   // Set number of reference interface.
   // https://github.com/ros-controls/ros2_control_demos/blob/332ede0ee44f9c3382666df91a0b7d49a368652f/example_12/controllers/src/passthrough_controller.cpp#L78
-  constexpr unsigned int reference_interface_count = params_.joint_names.size();
+  const unsigned int reference_interface_count = params_.joint_names.size();
   command_interfaces_.reserve(reference_interface_count);
   reference_interfaces_.resize(reference_interface_count, std::numeric_limits<double>::quiet_NaN());
 
