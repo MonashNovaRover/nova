@@ -35,18 +35,20 @@ title: Controller in chained mode (for IK, using position control)
 %%{init: {'themeVariables': { 'fontFamily': 'Monospace'}}}%%
 flowchart LR
     classDef controller fill:#1f2020,stroke:#cccccc,stroke-width:2px,rx:10,ry:10 
-    classDef hidden fill:#00000000,height:0
+    classDef hidden fill:#00000000,height:0,font-size:0pt
     classDef elipses fill:#00000000,stroke:#00000000,stroke-width:0,height:0,font-size:32pt
 
     subgraph reference_interfaces["`Reference
     interfaces`"]
+        empty0["."]:::hidden
         ref_j1(nova_arm_controller/j1/position)
         ref_j2(nova_arm_controller/j2/position)
-        elipses1["⋮"]:::elipses
+        elipses1[":"]:::elipses
         ref_j6(nova_arm_controller/j6/position)
     end
     
     subgraph nova_ik_controller["`nova_ik_controller`"]
+        empty1["."]:::hidden
         _r_h1["."] ~~~ _r_h1b["."]
         _r_h2["."] ~~~ _r_h2b["."]
         _r_h3["."] ~~~ _r_h3b["."]
@@ -55,6 +57,7 @@ flowchart LR
     class nova_ik_controller controller;
 
     subgraph nova_arm_controller["`nova_arm_controller`"]
+        empty2["."]:::hidden
         _h1["."] 
         _h1b["."]
         _h2["."] 
@@ -66,9 +69,10 @@ flowchart LR
 
     subgraph hardware_interfaces["`
     Interfaces`"]
+    empty3["."]:::hidden
     j1(j1/position)
     j2(j2/position)
-    elipses2["⋮"]:::elipses
+    elipses2[":"]:::elipses
     j6(j6/position)
     end
 
@@ -83,7 +87,7 @@ flowchart LR
     class _h6,_h6b,_r_h6,_r_h6b hidden;
 ```
 
-Chainable controllers can be toggled between chained and non-chained mode. Irrespective of chained mode being enabled, 
+Chainable controllers can be toggled between chained and non-chained mode. Irrespective of chained mode being enabled,
 when not in chained mode, the controller maintains a ROS2 topic subscription to teleop inputs. When not in chained mode,
 the controller runs `update_reference_from_subscribers`, which populates the reference interface values with those from
 the most recently received ROS2 topic message.
@@ -95,46 +99,46 @@ title: Controller **not** in chained mode (using velocity control)
 %%{init: {'themeVariables': { 'fontFamily': 'Monospace'}}}%%
 flowchart LR
     classDef controller fill:#1f2020,stroke:#cccccc,stroke-width:2px,rx:10,ry:10 
-    classDef hidden fill:#00000000,height:0
+    classDef hidden fill:#00000000,height:0,font-size:0pt
     classDef elipses fill:#00000000,stroke:#00000000,stroke-width:0,height:0,font-size:32pt
         
-    _h["."] ~~~ subscription["`ROS2 topic subscription`"] ~~~ _hb["."]
+    subscription["`ROS2 topic subscription`"] ~~~ _hb["."]
 
     subgraph reference_interfaces["`Reference
     interfaces`"]
+        empty1["."]:::hidden
             
         ref_j1(nova_arm_controller/j1/velocity)
         ref_j2(nova_arm_controller/j2/velocity)
-        elipses1["⋮"]:::elipses
+        elipses1[":"]:::elipses
         ref_j6(nova_arm_controller/j6/velocity)
     end
     
     subgraph nova_arm_controller["`nova_arm_controller`"]
+        empty2["."]:::hidden
         _h1["."]
-        _h1c["."]
         _h1b["."]
         
         _h2["."]
-        _h2c["."]
         _h2b["."]
         
         _h6["."]
-        _h6c["."]
         _h6b["."]
     end
     class nova_arm_controller controller;
 
     subgraph hardware_interfaces["`
     Interfaces`"]
+        empty3["."]:::hidden
         j1(j1/velocity)
         j2(j2/velocity)
-        elipses2["⋮"]:::elipses
+        elipses2[":"]:::elipses
         j6(j6/velocity)
     end
 
-    ref_j1 --> _h1 ~~~ _h1c ~~~ _h1b -- cmd --> j1
-    ref_j2 --> _h2 ~~~ _h2c ~~~ _h2b -- cmd --> j2
-    ref_j6 --> _h6 ~~~ _h6c ~~~ _h6b -- cmd --> j6
+    ref_j1 --> _h1 ~~~ _h1b -- cmd --> j1
+    ref_j2 --> _h2 ~~~ _h2b -- cmd --> j2
+    ref_j6 --> _h6 ~~~ _h6b -- cmd --> j6
         
     subscription -.-> ref_j1
     subscription -.-> ref_j2
@@ -148,4 +152,3 @@ flowchart LR
     class _h5,_h5b,_h5c,_r_h5b hidden;
     class _h6,_h6b,_h6c,_r_h6b hidden;
 ```
-
