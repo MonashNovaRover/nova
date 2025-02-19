@@ -55,6 +55,8 @@ export const CameraComponent = (props: CameraComponentProps) => {
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
 
+//   const [dragging, setDragging] = useState(false);
+//   const [position, setPosition] = useState({ top: 100, left: 100 }); // Initial position of the camera card
 
   const openCameraInTab = () =>
     window.open(
@@ -87,6 +89,43 @@ export const CameraComponent = (props: CameraComponentProps) => {
       toast("Unable to Take a Screenshot");
     }
   }, [videoRef, cameraSerial]);
+
+  //   const handleMouseDown = (event: React.MouseEvent) => {
+//     if (isHovered && cameraSerial === "SCIENCE_GIMBAL") {  // Only allow drag if hovering and it's the Science Gimbal
+//       setDragging(true);
+//     }
+//   };
+//
+//   const handleMouseMove = (event: React.MouseEvent) => {
+//     if (dragging && cameraSerial === "SCIENCE_GIMBAL") {  // Only move if dragging and it's the Science Gimbal
+//       setPosition((prevPosition) => ({
+//         top: prevPosition.top + event.movementY,
+//         left: prevPosition.left + event.movementX,
+//       }));
+//     }
+//   };
+//
+//   const handleMouseUp = () => {
+//     setDragging(false);
+//   };
+
+  // // Attach mouse events to the card
+  // useEffect(() => {
+  //   const cardElement = cardRef.current;
+  //   if (cardElement) {
+  //     cardElement.addEventListener("mousedown", handleMouseDown);
+  //     cardElement.addEventListener("mousemove", handleMouseMove);
+  //     cardElement.addEventListener("mouseup", handleMouseUp);
+  //   }
+  //
+  //   return () => {
+  //     if (cardElement) {
+  //       cardElement.removeEventListener("mousedown", handleMouseDown);
+  //       cardElement.removeEventListener("mousemove", handleMouseMove);
+  //       cardElement.removeEventListener("mouseup", handleMouseUp);
+  //     }
+  //   };
+  // }, [dragging, isHovered, cameraSerial]);  // Make sure drag only happens for the right camera
 
   useEffect(() => {
     const handleMouseEnter = () => {
