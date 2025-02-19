@@ -23,6 +23,7 @@ import {
   IRosNovaInterfacesHydraprobeData,
   IRosStdSrvsSetBoolResponse,
   IRosNovaInterfacesBmeSensor,
+  IRosSensorMsgsBatteryState,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -87,4 +88,6 @@ export interface RootState {
   currentSite: GenericStoreState<Site>;
   siteData: GenericStoreState<SiteDataState>;
   counter: GenericStoreState<number>;
+
+  batteryStore: IRosSensorMsgsBatteryState;
 }
