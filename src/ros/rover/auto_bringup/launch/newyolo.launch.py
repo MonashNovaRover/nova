@@ -67,17 +67,17 @@ def launch_setup(context, *args, **kwargs):
         #    remappings=[("image_raw", input_image_topic)],
         #    condition=IfCondition(PythonExpression([str(use_tracking)])),
         #),
-        Node(
-            package="yolo_ros",
-            executable="detect_3d_node",
-            name="detect_3d_node",
-            namespace=namespace,
-            parameters=[params],
-            remappings=[
-                ("depth_image", depth_image),
-                ("depth_info", depth_image_info),
-            ],
-        ),
+        #Node(
+        #    package="yolo_ros",
+        #    executable="detect_3d_node",
+        #    name="detect_3d_node",
+        #    namespace=namespace,
+        #    parameters=[params],
+        #    remappings=[
+        #        ("depth_image", depth_image),
+        #        ("depth_info", depth_image_info),
+        #    ],
+        #),
         Node(
             package="yolo_ros",
             executable="debug_node",
