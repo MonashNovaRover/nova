@@ -51,7 +51,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
     sendSessionStartMessage,
     isCameraOnline,
     closeSession,
-  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
+  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted); // TO TEST WITH WEBCAM useWebcam(videoRef);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
 
