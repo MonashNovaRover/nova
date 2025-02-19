@@ -12,7 +12,6 @@
 namespace
 {
   constexpr auto DEFAULT_INPUT_TOPIC_ARM_JOINT_VELOCITY = "/arm_fk_velocity_target"; // TODO: changeme
-  constexpr auto DEFAULT_REFERENCE_INTERFACE_ARM_JOINT_VELOCITY = "arm_fk_velocity_target"; // TODO: changeme
 } // namespace
 
 
@@ -27,9 +26,14 @@ using lifecycle_msgs::msg::State;
 
 // NovaArmController::NovaArmController() : controller_interface::ChainableControllerInterface() {}
 
-const char *NovaArmController::joint_feedback_type() const
-{
-  return params_.joint_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
+const char *NovaArmController::joint_feedback_type() const {
+  // TODO: Verify what feedback we are actually interested. I have a suspicion that we ALWAYS want to see the position.
+  return HW_IF_POSITION;
+  //return params_.joint_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
+}
+
+const char *NovaArmController::joint_command_type() const {
+  return params_.use_position_control ? HW_IF_POSITION : HW_IF_VELOCITY;
 }
 
 controller_interface::CallbackReturn NovaArmController::on_init()
@@ -71,16 +75,63 @@ InterfaceConfiguration NovaArmController::state_interface_configuration() const 
 std::vector<hardware_interface::CommandInterface> NovaArmController::on_export_reference_interfaces() {
   std::vector<hardware_interface::CommandInterface> reference_interfaces;
 
-  reference_interfaces.push_back(hardware_interface::CommandInterface(
-    get_node()->get_name(), DEFAULT_REFERENCE_INTERFACE_ARM_JOINT_VELOCITY, &reference_interfaces_[0]));
+  constexpr auto joint_count = params_.joint_names.size();
+  reference_interfaces_.reserve(joint_count);
+
+  // Either "position" or "velocity" based on params_.use_position_control
+  const auto& interface_name_suffix = joint_command_type();
+
+  // Make a velocity interface for each joint
+  for (unsigned int i = 0; i < joint_count; i++) {
+    constexpr auto name = params_.joint_names[i] + "/" + interface_name_suffix;
+    reference_interfaces.push_back(hardware_interface::CommandInterface(get_node()->get_name(), name,
+                                                                        &reference_interfaces_[i]));
+  }
 
   return reference_interfaces;
 }
 
 // Called before update_and_write_commands
 controller_interface::return_type NovaArmController::update_reference_from_subscribers(const rclcpp::Time &time, const rclcpp::Duration &period) {
-  // TODO: Get data from the subscriber message and put them into the reference interfaces
+  // TODO: implement position control, and have it choose between position or velocity functions based on some state or parameter
+  return update_velocity_reference_from_subscribers();
+}
 
+controller_interface::return_type NovaArmController::update_velocity_reference_from_subscribers() {
+  auto logger = get_node()->get_logger();
+
+  std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets> last_msg;
+  received_msg_ptr_.get(last_msg);
+
+  if (last_msg == nullptr) {
+    RCLCPP_WARN_ONCE(logger, "Velocity message received was a nullptr.");
+    return controller_interface::return_type::OK;
+  }
+
+  if (last_msg->name.size() != last_msg->velocity.size()) {
+    RCLCPP_WARN(logger, "Velocity message received had a different number of names and velocities.");
+    return controller_interface::return_type::ERROR;
+  }
+
+  // Make map of joint name -> velocity (from message)
+  auto velocities = std::map<std::string, double>();
+  for (unsigned int i = 0; i < last_msg->name.size(); ++i) {
+    velocities[last_msg->name[i]] = last_msg->velocity[i];
+  }
+
+  for (unsigned int i = 0; i < params_.joint_names.size(); i++)
+  {
+    const auto& joint_name = params_.joint_names[i];
+
+    // Ensure the map contains the handle
+    if (velocities.find(joint_name) == velocities.end()) {
+      RCLCPP_WARN(logger, "Joint '%s' not defined in input message from teleop-arm-joy.", joint_name.c_str());
+      reference_interfaces_[i] = 0;
+      continue;
+    }
+
+    reference_interfaces_[i] = velocities[joint_name];
+  }
 
   return controller_interface::return_type::OK;
 }
@@ -103,39 +154,20 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     return controller_interface::return_type::OK;
   }
 
-  // Get last input message
-  std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets> last_msg;
-  received_msg_ptr_.get(last_msg);
+  // TODO: Make sure we have state for halting and we halt when necessary
 
-  // Validation of message
-  if (last_msg == nullptr) {
-    RCLCPP_WARN_ONCE(logger, "Velocity message received was a nullptr.");
-    return controller_interface::return_type::OK;
-  }
-
-  if (last_msg->name.size() != last_msg->velocity.size()) {
-    RCLCPP_WARN(logger, "Velocity message received had a different number of names and velocities.");
-    return controller_interface::return_type::ERROR;
-  }
-
-  // Make map of joint name -> velocity
-  auto velocities = std::map<std::string, double>();
-  for (int i = 0; i < last_msg->name.size(); ++i) {
-    velocities[last_msg->name[i]] = last_msg->velocity[i];
-  }
-
-  for (const auto &joint_handle : registered_joint_handles_)
+  for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
   {
-    // Ensure the map contains the handle
-    if (velocities.find(joint_handle.name) == velocities.end()) {
-      RCLCPP_WARN(logger, "Joint '%s' not defined in input message from teleop-arm-joy.", joint_handle.name.c_str());
-      joint_handle.command.get().set_value(0.0);
+    const auto& joint_handle = registered_joint_handles_[i];
+
+    // We use this assumption to index into the reference interface arrays using the same index
+    assert(joint_handle.name == params_.joint_names[i]);
+
+    const auto reference_value = reference_interfaces_[i];
+    if (std::isnan(reference_value))
       continue;
-    }
 
-    const auto joint_speed = static_cast<float>(velocities[joint_handle.name]);
-
-    joint_handle.command.get().set_value(joint_speed);
+    joint_handle.command.get().set_value(reference_value);
   }
 
   return controller_interface::return_type::OK;
@@ -198,9 +230,9 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
     received_msg_ptr_.set(std::move(msg));
   });
 
-  // Set number of reference interface. Currently set to 1, for the input interface.
+  // Set number of reference interface.
   // https://github.com/ros-controls/ros2_control_demos/blob/332ede0ee44f9c3382666df91a0b7d49a368652f/example_12/controllers/src/passthrough_controller.cpp#L78
-  constexpr unsigned int reference_interface_count = 1;
+  constexpr unsigned int reference_interface_count = params_.joint_names.size();
   command_interfaces_.reserve(reference_interface_count);
   reference_interfaces_.resize(reference_interface_count, std::numeric_limits<double>::quiet_NaN());
 
@@ -212,8 +244,7 @@ controller_interface::CallbackReturn NovaArmController::on_activate(
     const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(get_node()->get_logger(), "On activate");
-  const auto joints_result =
-      configure_joints(params_.joint_names, registered_joint_handles_, joint_feedback_type());
+  const auto joints_result = configure_joints(params_.joint_names, registered_joint_handles_);
 
   if (joints_result == controller_interface::CallbackReturn::ERROR)
   {
@@ -225,6 +256,12 @@ controller_interface::CallbackReturn NovaArmController::on_activate(
 
   is_halted = false;
   subscriber_is_active_ = true;
+
+  // Reset reference interfaces
+  // https://github.com/ros-controls/ros2_control_demos/blob/f09c24040243973d48f7a102afc70559b2dc3908/example_12/controllers/src/passthrough_controller.cpp#L115
+  std::fill(
+    reference_interfaces_.begin(), reference_interfaces_.end(),
+    std::numeric_limits<double>::quiet_NaN());
 
   // TODO: setup sub and pub
   //RCLCPP_DEBUG(get_node()->get_logger(), "Subscriber and publisher are now active.");
@@ -272,6 +309,8 @@ controller_interface::CallbackReturn NovaArmController::on_error(const rclcpp_li
 
 bool NovaArmController::reset()
 {
+  // TODO: Confirm behaviour in a failure state, and ensure that we stay failed for critical errors
+
   // release the old queue
   subscriber_is_active_ = false;
 
@@ -295,7 +334,7 @@ void NovaArmController::halt()
 
 controller_interface::CallbackReturn NovaArmController::configure_joints(
     const std::vector<std::string> &joint_names,
-    std::vector<JointHandle> &registered_handles, const char *feedback_type)
+    std::vector<JointHandle> &registered_handles)
 {
   auto logger = get_node()->get_logger();
 
@@ -310,14 +349,16 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
   //TODO: pos/vel/etc limits
   for (const auto &joint_name : joint_names)
   {
-    const auto interface_name = feedback_type;
+    const auto state_interface_name = joint_feedback_type();
+    const auto command_interface_name = joint_command_type();
+
     // TODO: Change this filter to be useful, and not get the same as the command_interface
     const auto state_handle = std::find_if(
         state_interfaces_.cbegin(), state_interfaces_.cend(),
-        [&joint_name, &interface_name](const auto &interface)
+        [&joint_name, &state_interface_name](const auto &interface)
         {
           return interface.get_prefix_name() == joint_name &&
-                 interface.get_interface_name() == interface_name;
+                 interface.get_interface_name() == state_interface_name;
         });
 
     if (state_handle == state_interfaces_.cend())
@@ -329,10 +370,10 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
     // TODO: Change this filter to be useful, and not get the same as the state_interface
     const auto command_handle = std::find_if(
         command_interfaces_.begin(), command_interfaces_.end(),
-        [&joint_name, &interface_name](const auto &interface)
+        [&joint_name, &command_interface_name](const auto &interface)
         {
           return interface.get_prefix_name() == joint_name &&
-                 interface.get_interface_name() == interface_name; //TODO: might need this to not be same as state interface
+                 interface.get_interface_name() == command_interface_name;
         });
 
     if (command_handle == command_interfaces_.end())

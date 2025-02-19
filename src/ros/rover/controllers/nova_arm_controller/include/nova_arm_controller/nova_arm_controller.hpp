@@ -78,13 +78,16 @@ protected:
 
   controller_interface::CallbackReturn configure_joints(
       const std::vector<std::string> &joint_names,
-      std::vector<JointHandle> &registered_handles, const char *feedback_type);
+      std::vector<JointHandle> &registered_handles);
 
   controller_interface::return_type update_reference_from_subscribers(
       const rclcpp::Time & time, const rclcpp::Duration & period) override;
+  controller_interface::return_type update_velocity_reference_from_subscribers();
 
   const char *joint_feedback_type() const;
+  const char *joint_command_type() const;
 
+  /// Joints being used by the controller. Order should match that of the joint name definitions in parameters
   std::vector<JointHandle> registered_joint_handles_;
 
   // Parameters from ROS for nova_diff_drive_controller
@@ -94,8 +97,9 @@ protected:
   // Timeout to consider cmd_vel commands old
   std::chrono::milliseconds cmd_vel_timeout_{500};
   bool subscriber_is_active_ = false; // not sure what this is for yet
-  rclcpp::Subscription<nova_interfaces::msg::ArmFkVelocityTargets>::SharedPtr input_subscriber_ = nullptr;
 
+  // Subscription
+  rclcpp::Subscription<nova_interfaces::msg::ArmFkVelocityTargets>::SharedPtr input_subscriber_ = nullptr;
   realtime_tools::RealtimeBox<std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets>> received_msg_ptr_{nullptr};
 
   rclcpp::Time previous_update_timestamp_{0};
