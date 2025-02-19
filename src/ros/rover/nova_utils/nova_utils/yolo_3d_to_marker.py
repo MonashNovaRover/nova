@@ -51,7 +51,6 @@ class MarkerPublisher(Node):
     def __init__(self):
         super().__init__("cube_publisher")
 
-        self.declare_parameter('namespace', '/yolo')
         self.frame = self.declare_parameter('target_frame', 'camera_link').get_parameter_value().string_value # the frame from which the detections are expected to originate from, same arg name as yolo to keep consistent
        
         self.min_samples = self.declare_parameter('min_samples', 5).get_parameter_value().integer_value
@@ -67,13 +66,13 @@ class MarkerPublisher(Node):
 
         self.publisher = self.create_publisher(
             MarkerArray,
-            self.get_parameter('namespace').get_parameter_value().string_value + MARKER_TOPIC,
+            self.get_namespace() + MARKER_TOPIC,
             10
         )
 
         self.subscription = self.create_subscription(
             DetectionArray,
-            self.get_parameter('namespace').get_parameter_value().string_value + DETECTION_TOPIC, 
+            self.get_namespace() + DETECTION_TOPIC, 
             self.callback, 
             10
         )
