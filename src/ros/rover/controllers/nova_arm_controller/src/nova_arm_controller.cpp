@@ -66,9 +66,11 @@ InterfaceConfiguration NovaArmController::command_interface_configuration() cons
 
 InterfaceConfiguration NovaArmController::state_interface_configuration() const {
   std::vector<std::string> conf_names;
+  /*
   for (const auto &joint_name: params_.joint_names) {
     conf_names.push_back(joint_name + "/" + joint_feedback_type());
   }
+   */
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
 
@@ -351,7 +353,7 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
   {
     const auto state_interface_name = joint_feedback_type();
     const auto command_interface_name = joint_command_type();
-
+/*
     // TODO: Change this filter to be useful, and not get the same as the command_interface
     const auto state_handle = std::find_if(
         state_interfaces_.cbegin(), state_interfaces_.cend(),
@@ -366,7 +368,7 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
       RCLCPP_ERROR(logger, "Unable to obtain joint state handle for %s", joint_name.c_str());
       return controller_interface::CallbackReturn::ERROR;
     }
-
+*/
     // TODO: Change this filter to be useful, and not get the same as the state_interface
     const auto command_handle = std::find_if(
         command_interfaces_.begin(), command_interfaces_.end(),
@@ -383,7 +385,8 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
     }
 
     registered_handles.emplace_back(
-        JointHandle{joint_name, std::ref(*state_handle), std::ref(*command_handle)});
+        JointHandle{joint_name, std::ref(*command_handle)});
+    // std::ref(*state_handle),
   }
 
   return controller_interface::CallbackReturn::SUCCESS;
