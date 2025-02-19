@@ -21,7 +21,12 @@ import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
 import {Check, MoreHorizontal} from "react-feather";
 import {SiteData} from "../../../redux/models/genericStores/SiteDataState.ts";
-import {ISpaceResourcesEntry, NIRProbeReadingType, NIRPRobeReadingTypeInfo,} from "../SpaceResourcesSiteType.tsx";
+import {
+  ISpaceResourcesEntries,
+  ISpaceResourcesEntry,
+  NIRProbeReadingType,
+  NIRPRobeReadingTypeInfo,
+} from "../SpaceResourcesSiteType.tsx";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
 
 export interface NIRProbeOutputSaveWidgetProps extends CardProps {
@@ -36,12 +41,13 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
 }) => {
   const bifrost = useBifrost({ topic: RosTopic.NIR_DATA });
   const nirData = useSelector((state: RootState) => state.nirStore);
+  const [sampleLabel, setSampleLabel] = useState<string>("");
 
   const [readings, setReadings] = useNIRSiteData();
 
   const [data, setData] = useState<number | undefined>();
-  const [type, setType] = useState<NIRProbeReadingType>(NIRProbeReadingType.WATER);
-  const [sampleLabel, setSampleLabel] = useState<string>("");
+  const [type, setType] = useState<NIRProbeReadingType.WATER | NIRProbeReadingType.ICE>(NIRProbeReadingType.WATER);
+  const [advancedSampleLabel, setAdvancedSampleLabel] = useState<string>("");
 
   useEffect(() => {
     bifrost.syncWithTopic();
@@ -51,19 +57,23 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
     if (!showAdvanced && nirData.led === 0)
       return
 
-    setReadings([
-      {
-        data: showAdvanced && data ? data : nirData.data,
-        type: showAdvanced && type ? type : nirData.led,
-        label: sampleLabel,
-      } as ISpaceResourcesEntry,
-      ...readings
-    ])
-  }, [readings, setReadings, data, type, sampleLabel, showAdvanced, nirData]);
+    const saveType = showAdvanced && type ? type : nirData.led as keyof ISpaceResourcesEntries
+    setReadings({
+      ...readings,
+      [saveType]: [
+        {
+          data: showAdvanced && data ? data : nirData.data,
+          type: saveType,
+          label: showAdvanced ? advancedSampleLabel : sampleLabel,
+        } as ISpaceResourcesEntry,
+        ...readings[saveType],
+      ]
+    })
+  }, [readings, setReadings, data, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
 
   const onTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (+e.target.value !== 0)
-      setType(+e.target.value as NIRProbeReadingType)
+      setType(+e.target.value as NIRProbeReadingType.WATER | NIRProbeReadingType.ICE)
   }
 
   return (
@@ -145,7 +155,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
               </SelectItem>
             ))}
           </Select>
-          <Input onValueChange={setSampleLabel} value={sampleLabel} size="sm"
+          <Input onValueChange={setAdvancedSampleLabel} value={advancedSampleLabel} size="sm"
             labelPlacement="outside" label="Sample Label">
           </Input>
         </CardBody>

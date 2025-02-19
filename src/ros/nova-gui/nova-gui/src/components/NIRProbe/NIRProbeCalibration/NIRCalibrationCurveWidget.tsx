@@ -6,11 +6,12 @@ import {
   CardHeader,
 } from "@nextui-org/react";
 import {MoreHorizontal} from "react-feather";
-import NIR3DCalibrationCurve from "./NIR3DCalibrationCurve.tsx";
+import NIR3DCalibrationCurve, {Scatter3DPlotData} from "./NIR3DCalibrationCurve.tsx";
 import NIR3DCurveSettingsModal from "./NIR3DCurveSettingsModal.tsx";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {NIRProbeCalibrationData} from "../../../redux/models/genericStores/NIRProbeCalibrationData.ts";
 import {calibrationFunction} from "./NIRCalibration.ts";
+import {useNIRSiteData} from "../useNIRSiteData.ts";
 
 const GRANUALITY = 24
 
@@ -43,6 +44,8 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
   /* Plotting readings on the calibration curve */
 
   // const [readings, ,] = useNIRSiteData()
+  // const pairs = readings.map()
+  //
   // const scatterData = useMemo(() => ({
   //   x: readings.map
   // } as Scatter3DPlotData), [readings])

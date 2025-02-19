@@ -38,6 +38,11 @@ export enum XYNames {
   FXY = "Concentration",
 }
 
+export interface ISpaceResourcesEntries {
+  [NIRProbeReadingType.WATER]: ISpaceResourcesEntry[]
+  [NIRProbeReadingType.ICE]: ISpaceResourcesEntry[]
+}
+
 export interface ISpaceResourcesEntry {
   data: number,
   type: NIRProbeReadingType,

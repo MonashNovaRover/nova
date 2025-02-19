@@ -2,9 +2,9 @@ import {useGenericStore} from "../../hooks/useGenericStore.ts";
 import {Site} from "../../redux/models/genericStores/CurrentSiteStore.ts";
 import {SiteDataState} from "../../redux/models/genericStores/SiteDataState.ts";
 import {useCallback} from "react";
-import {ISpaceResourcesEntry} from "./SpaceResourcesSiteType.tsx";
+import {ISpaceResourcesEntries} from "./SpaceResourcesSiteType.tsx";
 
-export function useNIRSiteData(): [ISpaceResourcesEntry[], (a: ISpaceResourcesEntry[]) => void] {
+export function useNIRSiteData(): [ISpaceResourcesEntries, (a: ISpaceResourcesEntries) => void] {
   // current site as provided by the site selector
   const [currentSite, _] = useGenericStore<Site>("currentSite");
 
@@ -13,7 +13,7 @@ export function useNIRSiteData(): [ISpaceResourcesEntry[], (a: ISpaceResourcesEn
   const readings = siteData[currentSite].spaceResourcesEntries
 
   // function to update the current space resource entries
-  const setReadings = useCallback((data: ISpaceResourcesEntry[]) => {
+  const setReadings = useCallback((data: ISpaceResourcesEntries) => {
     setSiteData({
       ...siteData,
       [currentSite]: {

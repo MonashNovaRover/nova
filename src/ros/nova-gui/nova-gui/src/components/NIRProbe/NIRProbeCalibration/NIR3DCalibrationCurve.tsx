@@ -12,7 +12,7 @@ export interface NIR3DCalibrationCurveProps {
   scatterData: Scatter3DPlotData,
 }
 
-// Data required to plot a react-plotly surface plot, docs:
+// Data required to plot a react-plotly surface plot
 export interface SurfacePlotData {
   x: number[],
   y: number[],
@@ -31,33 +31,33 @@ export interface Scatter3DPlotData {
  */
 const NIR3DCalibrationCurve: React.FC<NIR3DCalibrationCurveProps> = ({ surfaceData, scatterData }) => {
   return (
-      <Plot
-        data={[
-          // docs for surface struct type: https://plotly.com/javascript/reference/surface/
-          {
-            ...surfaceData,
-            type: 'surface',
-          },
-          // docs for scatter 3d struct type: https://plotly.com/javascript/reference/scatter3d/
-          {
-            ...scatterData,
-            type: 'scatter3d',
-          }
-        ]}
-        layout={
-          {
-            autosize: true,
-            paper_bgcolor: "#18191a",
-            plot_bgcolor: "#18191a",
-            margin: {
-              t: 0,
-              b: 0,
-              l: 0,
-              r: 0,
-            }
+    <Plot
+      data={[
+        // docs for surface struct type: https://plotly.com/javascript/reference/surface/
+        {
+          ...surfaceData,
+          type: 'surface',
+        },
+        // docs for scatter 3d struct type: https://plotly.com/javascript/reference/scatter3d/
+        {
+          ...scatterData,
+          type: 'scatter3d',
+        }
+      ]}
+      layout={
+        {
+          autosize: true,
+          paper_bgcolor: "#18191a",
+          plot_bgcolor: "#18191a",
+          margin: {
+            t: 0,
+            b: 0,
+            l: 0,
+            r: 0,
           }
         }
-      />
+      }
+    />
   )
 }
 

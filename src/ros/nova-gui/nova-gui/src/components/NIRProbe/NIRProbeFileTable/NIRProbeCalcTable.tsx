@@ -2,7 +2,10 @@ import {CardProps, Table, TableBody, TableCell, TableColumn, TableHeader, TableR
 import React, {useMemo} from "react";
 import {useCalibrationFunction} from "../NIRProbeCalibration/NIRCalibration.ts";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
-import {NIRProbeReadingType, XYNames} from "../SpaceResourcesSiteType.tsx";
+import {
+  NIRProbeReadingType,
+  XYNames
+} from "../SpaceResourcesSiteType.tsx";
 
 export interface NIRProbeCalcTableProps extends CardProps {
 }
@@ -15,8 +18,7 @@ const NIRProbeCalcTable: React.FC<NIRProbeCalcTableProps> = () => {
   const calibrationFunc = useCalibrationFunction()
 
   // average water reading
-  const xList = useMemo(() => readings
-    .filter((entry) => entry.type === NIRProbeReadingType.WATER)
+  const xList = useMemo(() => readings[NIRProbeReadingType.WATER]
     .map(entry => entry.data),
     [readings])
   const averageX = useMemo(() =>
@@ -25,8 +27,7 @@ const NIRProbeCalcTable: React.FC<NIRProbeCalcTableProps> = () => {
   )
 
   // average ice reading
-  const yList = useMemo(() => readings
-      .filter((entry) => entry.type === NIRProbeReadingType.ICE)
+  const yList = useMemo(() => readings[NIRProbeReadingType.ICE]
       .map(entry => entry.data),
     [readings])
   const averageY = useMemo(() =>

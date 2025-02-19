@@ -1,6 +1,6 @@
 import {
   Button,
-  CardProps,
+  CardProps, Input,
   Tab,
   Table,
   TableBody,
@@ -12,23 +12,35 @@ import {
 } from "@nextui-org/react";
 import React, {useCallback, useMemo} from "react";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
-import {ISpaceResourcesEntry, NIRProbeReadingType} from "../SpaceResourcesSiteType.tsx";
+import {ISpaceResourcesEntries, NIRProbeReadingType} from "../SpaceResourcesSiteType.tsx";
 import {Droplet, Square, Trash2} from "react-feather";
 import {useAbsorbance} from "../NIRProbeCalibration/NIRCalibration.ts";
 
 export interface NIRProbeFileTableProps extends CardProps {
 }
 
-const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({
-}) => {
+const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = () => {
 
   // NIR Probe readings data corresponding to the currently selected site.
   const [readings, setReadings] = useNIRSiteData();
   const absorbance = useAbsorbance();
 
-  const deleteEntry = useCallback((index: number) => {
-    setReadings(readings.filter((_, i) => i !== index))
+  const deleteEntry = useCallback((index: number, type: keyof ISpaceResourcesEntries) => {
+    setReadings({
+      ...readings,
+      [type]: readings[type].filter((_, i) => i !== index)
+    })
   }, [readings, setReadings]);
+
+  const setLabel = useCallback((index: number, type: keyof ISpaceResourcesEntries) => (label: string) => {
+    setReadings({
+      ...readings,
+      [type]: readings[type].map((v, i) => i !== index ? v : {
+        ...v,
+        label: label,
+      }),
+    })
+  }, [readings, setReadings])
 
   const tableHeader = useCallback(() => (
     <TableHeader>
@@ -37,23 +49,25 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({
     </TableHeader>
   ), [])
 
-  const entryRows = useCallback((type: NIRProbeReadingType) => readings
-    .filter((v: ISpaceResourcesEntry) => v.type == type)
-    .map(({data, type, label}, index) => (
-      <TableRow key={index}>
-        <TableCell key={"reading-"+index}>{data}</TableCell>
-        <TableCell key={"absorbance-"+index}>{absorbance(type, data).toFixed(4)}</TableCell>
-        <TableCell key="label">{label}</TableCell>
-        <TableCell key="action">
-          <Button onPress={() => deleteEntry(index)}
-                  size="sm" color="danger" variant="light" className="w-full" key="delete-button">
-            <Trash2/>
-          </Button>
-        </TableCell>
-      </TableRow>
-    )), [readings, deleteEntry, absorbance])
+  const entryRows = useCallback((type: NIRProbeReadingType.WATER | NIRProbeReadingType.ICE) =>
+    readings[type]
+      .map(({data, type, label}, index) => (
+        <TableRow key={index}>
+          <TableCell key={"reading-"+index}>{data}</TableCell>
+          <TableCell key={"absorbance-"+index}>{absorbance(type, data).toFixed(4)}</TableCell>
+          <TableCell key="label">
+            <Input size="sm" value={label} onValueChange={setLabel(index, type as keyof ISpaceResourcesEntries)}/>
+          </TableCell>
+          <TableCell key="action">
+            <Button onPress={() => deleteEntry(index, type as keyof ISpaceResourcesEntries)}
+                    size="sm" color="danger" variant="light" className="w-full" key="delete-button">
+              <Trash2/>
+            </Button>
+          </TableCell>
+        </TableRow>
+    )), [readings, deleteEntry, absorbance, setLabel])
 
-  const table = useCallback((type: NIRProbeReadingType) => (
+  const table = useCallback((type: NIRProbeReadingType.WATER | NIRProbeReadingType.ICE) => (
     <Table
       removeWrapper
       layout={"fixed"}
