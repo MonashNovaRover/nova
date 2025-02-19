@@ -129,6 +129,7 @@ const arcScienceCams = [
   CameraSerials.SCIENCE_AUGER_BOTTOM,
   CameraSerials.SCIENCE_ANALYSIS_BOTTOM,
   CameraSerials.SCIENCE_MICROSCOPE,
+  CameraSerials.SCIENCE_GIMBAL,
 ];
 
 
