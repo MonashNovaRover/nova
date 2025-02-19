@@ -80,10 +80,10 @@ def generate_launch_description():
                     
                 }.items(),
             ),
-            Node(
-                package='nova_utils',
-                executable='yolo_3d_to_marker.py',
-                parameters=[{'namespace':'/yolo'}],
-            ),
+            #Node(
+            #    package='nova_utils',
+            #    executable='yolo_3d_to_marker.py',
+            #    parameters=[{'namespace':'/yolo'}],
+            #),
         ]
     )
