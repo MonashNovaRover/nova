@@ -1,0 +1,41 @@
+yolo:
+  yolo_node:
+    ros__parameters:
+      model_type: "YOLO"
+      #model: "/path/to/model.pt"
+      device: "cpu"
+      enable: True
+      threshold: 0.5
+      #iou: 0.7
+      imgsz_height: 400
+      imgsz_width: 600
+      half: False
+      max_det: 300
+      #augment: False
+      #agnostic_nms: False
+      #retina_masks: False
+      image_reliability: 0
+
+  #tracking_node:
+  #  ros__parameters:
+  #    tracker: tracker 
+  #    image_reliability": 1
+
+  detect_3d_node:
+    ros__parameters:
+      target_frame: "camera_link"
+      #maximum_detection_threshold": 0.3
+      depth_image_units_divisor": 1
+      depth_image_reliability": 0
+      depth_info_reliability": 0
+
+  debug_node:
+    ros__parameters:
+      image_reliability: 1
+
+  yolo_3d_to_marker:
+    ros__parameters:
+      min_samples: 5
+      max_std_dev: 0.2
+      target_frame: "camera_link"
+
