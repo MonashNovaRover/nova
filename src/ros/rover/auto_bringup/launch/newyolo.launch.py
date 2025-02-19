@@ -72,7 +72,7 @@ def launch_setup(context, *args, **kwargs):
             executable="detect_3d_node",
             name="detect_3d_node",
             namespace=namespace,
-            parameters=[params, ('depth_image_units_divisor', '1')],
+            parameters=[params],
             remappings=[
                 ("depth_image", depth_image),
                 ("depth_info", depth_image_info),
@@ -92,8 +92,6 @@ def launch_setup(context, *args, **kwargs):
             package='nova_utils',
             executable='yolo_3d_to_marker.py',
             namespace=namespace,
-            parameters=[],
-            #remappings=[("detections_3d","/yolo/detections_3d")],
         ),
     ]
 

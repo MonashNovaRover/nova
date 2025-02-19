@@ -14,7 +14,7 @@ yolo:
       #augment: False
       #agnostic_nms: False
       #retina_masks: False
-      image_reliability: 0
+      image_reliability: 2
 
   #tracking_node:
   #  ros__parameters:
@@ -26,16 +26,16 @@ yolo:
       target_frame: "camera_link"
       #maximum_detection_threshold": 0.3
       depth_image_units_divisor": 1
-      depth_image_reliability": 0
-      depth_info_reliability": 0
+      depth_image_reliability": 2
+      depth_info_reliability": 2
 
   debug_node:
     ros__parameters:
-      image_reliability: 1
+      image_reliability: 2
 
   yolo_3d_to_marker:
     ros__parameters:
       min_samples: 5
       max_std_dev: 0.2
-      target_frame: "camera_link"
+      target_frame: "map"
 
