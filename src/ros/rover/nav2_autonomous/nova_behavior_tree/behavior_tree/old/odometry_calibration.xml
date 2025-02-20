@@ -1,19 +1,18 @@
 <!--
   This Behavior Tree drives in a square for odometry calibration experiments
 -->
-
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <Repeat num_cycles="3">
       <Sequence name="Drive in a square">
-        <DriveOnHeading dist_to_travel="1.0" speed="0.4" time_allowance="12"/>
-        <Spin spin_dist="1.570796" is_recovery="false"/>
-        <DriveOnHeading dist_to_travel="1.0" speed="0.4" time_allowance="12"/>
-        <Spin spin_dist="1.570796" is_recovery="false"/>
-        <DriveOnHeading dist_to_travel="1.0" speed="0.4" time_allowance="12"/>
-        <Spin spin_dist="1.570796" is_recovery="false"/>
-        <DriveOnHeading dist_to_travel="1.0" speed="0.4" time_allowance="12"/>
-        <Spin spin_dist="1.570796" is_recovery="false"/>
+        <DriveOnHeading dist_to_travel="2.0" speed="0.3" time_allowance="24" />
+        <Spin spin_dist="1.570796" is_recovery="false" time_allowance="24" />
+        <DriveOnHeading dist_to_travel="2.0" speed="0.3" time_allowance="24" />
+        <Spin spin_dist="1.570796" is_recovery="false" time_allowance="24" />
+        <DriveOnHeading dist_to_travel="2.0" speed="0.3" time_allowance="24" />
+        <Spin spin_dist="1.570796" is_recovery="false" time_allowance="24" />
+        <DriveOnHeading dist_to_travel="2.0" speed="0.3" time_allowance="24" />
+        <Spin spin_dist="1.570796" is_recovery="false" time_allowance="24" />
       </Sequence>
     </Repeat>
   </BehaviorTree>
