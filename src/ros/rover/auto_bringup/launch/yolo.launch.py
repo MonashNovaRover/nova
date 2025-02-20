@@ -32,11 +32,12 @@ from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
+    gazebo = LaunchConfiguration('gazebo').perform(context)
     namespace = LaunchConfiguration('namespace')
     params = LaunchConfiguration('params')
     yolo_model = LaunchConfiguration('yolo_model')
@@ -57,6 +58,7 @@ def launch_setup(context, *args, **kwargs):
             namespace=namespace,
             parameters=[{'model': yolo_model}, params],
             remappings=[("image_raw", rgb_image)],
+            condition=IfCondition(gazebo)
         ),
         Node(
             package="yolo_ros",
@@ -66,11 +68,12 @@ def launch_setup(context, *args, **kwargs):
             parameters=[params],
             remappings=[("image_raw", rgb_image), 
                         ("dbg_image", debug_image)],
-            condition=IfCondition(PythonExpression([use_debug])),
+            condition=IfCondition(str(use_debug and gazebo)),
         ),
         Node(
             package='nova_utils',
             executable='cube_localiser.py',
+            parameters=[{'sim': bool(gazebo)}, params],
             namespace=namespace,
         ),
     ]
@@ -117,6 +120,11 @@ def generate_launch_description():
             name='use_debug',
             default_value='True',
             description='Enable yolo_ros debug node',
+        ),
+        DeclareLaunchArgument(
+            name='gazebo',
+            default_value='True',
+            description='Are we running this on gazebo?',
         ),
     ]
 

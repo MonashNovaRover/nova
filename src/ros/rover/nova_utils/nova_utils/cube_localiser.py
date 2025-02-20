@@ -33,9 +33,14 @@ from rclpy.qos import QoSHistoryPolicy, QoSDurabilityPolicy, QoSProfile
 
 from visualization_msgs.msg import MarkerArray, Marker
 from geometry_msgs.msg import Pose, Vector3, TransformStamped
-from yolo_msgs.msg import DetectionArray, Detection, BoundingBox3D
 from sensor_msgs.msg import Image, CameraInfo
 from builtin_interfaces.msg import Time
+
+# im pretty sure these are almost identical in how we use them except for getting the colour of the name
+# vision_msgs hides the class_name behind a class_id
+from yolo_msgs.msg import DetectionArray, Detection, BoundingBox2D 
+from vision_msgs.msg import Detection2DArray, Detection2D, BoundingBox2D
+
 
 from tf2_ros.transform_broadcaster import TransformBroadcaster
 from tf2_ros import Buffer, TransformListener
@@ -53,6 +58,10 @@ type Point = Tuple[float, float, float] # point = (x,y,z)
 
 COLORS = {'red':[1.0,0.0,0.0], 'green':[0.0,1.0,0.0], 'blue':[0.0,0.0,1.0], 'white':[1.0,1.0,1.0]}
 DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
+
+# Assumed color ids:
+IDS_COLOR = {0: "red", 1: "green", 2: "blue", 3: "white"} 
+# could replace with an array ['red', 'green', 'blue', 'white'] as indexes are implicit, but this is better for readability
 
 # change these topics using remapping in launch file
 DEPTH_IMAGE_TOPIC = "/oak/depth"
@@ -86,6 +95,8 @@ class DetectionTransformer(Node):
         # variables for statistical analysis
         self.min_samples = self.declare_parameter('min_samples', 5).get_parameter_value().integer_value
         self.max_std_dev = self.declare_parameter('max_std_dev', 0.2).get_parameter_value().double_value
+
+        self.using_yolo_ros = self.declare_parameter('sim', True).get_parameter_value().bool_value
 
         self.transform_broadcaster = TransformBroadcaster(self)
         self.tf_buffer = Buffer()
@@ -180,6 +191,11 @@ class DetectionTransformer(Node):
             if position is not None:
                 new_position = self.tf_to_map(position, detections_msg.header.stamp)
                 if new_position is not None:
+                    color: str
+                    if self.using_yolo_ros: # Detection will be of Detection from yolo_msgs
+                        color = detection.class_name
+                    else:                   # Detection will be of Detection2D from vision_msgs
+                        color = IDS_COLOR[detection.results.hypothesis.class_id]
                     new_detections.append((detection.class_name, new_position))
 
         return new_detections
