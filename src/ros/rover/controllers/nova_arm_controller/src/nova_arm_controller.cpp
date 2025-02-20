@@ -88,11 +88,11 @@ namespace nova_arm_controller
     std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets> last_msg;
     received_msg_ptr_.get(last_msg);
 
-    // // Validation of message
-    // if (last_msg == nullptr) {
-    //   RCLCPP_WARN(logger, "Velocity message received was a nullptr.");
-    //   return controller_interface::return_type::OK;
-    // }
+    // Validation of message
+    if (last_msg == nullptr) {
+      RCLCPP_WARN_ONCE(logger, "Velocity message received was a nullptr.");
+      return controller_interface::return_type::OK;
+    }
 
     if (last_msg->name.size() != last_msg->velocity.size()) {
       RCLCPP_WARN(logger, "Velocity message received had a different number of names and velocities.");

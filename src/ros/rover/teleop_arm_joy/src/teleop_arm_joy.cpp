@@ -201,7 +201,7 @@ void TeleopArmJoy::sendHaltCommand()
 
   for (auto [joint_name, joint_config] : params_.joints.joint_definitions_map) {
     msg->name.emplace_back(joint_name);
-    msg->velocity.emplace_back(0.0);
+    msg->velocity.emplace_back(0.5);
   }
 
   fk_velocity_pub->publish(std::move(msg));

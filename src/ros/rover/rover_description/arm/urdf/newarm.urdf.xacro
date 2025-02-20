@@ -612,7 +612,7 @@
 
     <xacro:if value="$(arg gazebo)">
         <!-- heehee gazebo start -->
-        <xacro:include filename="$(find rover_description)/arm/urdf/newarm.gz_ros2_control.xacro" />
+        <!-- <xacro:include filename="$(find rover_description)/arm/urdf/newarm.gz_ros2_control.xacro" /> -->
         <!-- hahah gazebo end -->
     </xacro:if>
     <!-- gz end -->
