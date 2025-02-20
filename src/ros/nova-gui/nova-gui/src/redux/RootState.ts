@@ -23,7 +23,7 @@ import {
   IRosNovaInterfacesHydraprobeData,
   IRosStdSrvsSetBoolResponse,
   IRosNovaInterfacesBmeSensor,
-  IRosSensorMsgsBatteryState,
+  IRosSensorMsgsBatteryState, IRosNovaInterfacesMoveScimbalCamResponse,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -62,6 +62,7 @@ export interface RootState {
   localStorageState: LocalStorageState;
 
   // Science Stores
+  scimbalCamResponse: IRosNovaInterfacesMoveScimbalCamResponse;
   tofStore: IRosSensorMsgsRange;
   nirStore: IRosNovaInterfacesNirProbeData;
   kilnData: IRosNovaInterfacesKilnData;

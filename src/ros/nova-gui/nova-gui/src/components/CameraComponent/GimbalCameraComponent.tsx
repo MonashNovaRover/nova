@@ -108,17 +108,20 @@ export interface GimbalCameraComponentProps {
 
 const GimbalCameraComponent: FC = (props: GimbalCameraComponentProps) => {
 
-  // // Bifrost and service stuff stolen from kiln widget... service/state names to be changed when scimbal ones are made
-  // const scimbalServiceData = useSelector(
-  //   (state: RootState) => state.kilnCommand
-  // );
-  //
-  // const serviceBifrost = useBifrost({ service: RosService.KILN_COMMAND});
+  //Access response from ros2 node
+  const scimbalServiceData = useSelector(
+    (state: RootState) => state.scimbalCamResponse
+  );
 
+  const serviceBifrost = useBifrost({ service: RosService.SCIMBAL_COMMAND});
+
+  useEffect(() => {
+    serviceBifrost.syncWithTopic();
+  }, [serviceBifrost]);
 
   const onPress = () => {
     //do stuff on press
-
+    serviceBifrost.callServiceToRedux()
   }
   return(
     <CameraComponent onPress={onPress}>

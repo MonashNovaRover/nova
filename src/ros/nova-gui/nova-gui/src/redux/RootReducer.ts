@@ -122,6 +122,12 @@ export const reduxStores = {
       state: false, // current status of Kiln: True if On
     }
   ),
+  scimbalCamResponse: createBifrostStore(
+    { service: RosService.SCIMBAL_COMMAND },
+    {
+      success: true, // whether the last service request succeeded or not
+    }
+  ),
   kilnCommand: createBifrostStore(
     { service: RosService.KILN_COMMAND },
     {

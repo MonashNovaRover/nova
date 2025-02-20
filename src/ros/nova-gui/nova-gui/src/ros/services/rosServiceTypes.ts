@@ -16,7 +16,7 @@ import {
   IRosNovaInterfacesRamanMechResponse,
   IRosCameraMsgsGetIpListResponse,
   IRosStdSrvsSetBoolResponse,
-  IRosStdSrvsSetBoolRequest,
+  IRosStdSrvsSetBoolRequest, IRosNovaInterfacesMoveScimbalCamRequest, IRosNovaInterfacesMoveScimbalCamResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -57,6 +57,10 @@ export interface RosServiceInterface {
   >;
 
   // Science Related
+  [RosService.SCIMBAL_COMMAND]: RosServiceMessage<
+    IRosNovaInterfacesMoveScimbalCamRequest,
+    IRosNovaInterfacesMoveScimbalCamResponse
+  >;
   [RosService.MIXERS]: RosServiceMessage<
     IRosStdSrvsSetBoolRequest,
     IRosStdSrvsSetBoolResponse
