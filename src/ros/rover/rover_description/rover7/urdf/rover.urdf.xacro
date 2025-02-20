@@ -728,12 +728,12 @@
     
     <xacro:if value="$(arg arm)">
         <xacro:include filename="$(find rover_description)/arm/urdf/newarm.urdf.xacro" />
-        <joint name="J1" type="revolute">
+        <joint name="J1" type="continuous">
             <origin xyz="0.22899999999999565148 1.1102230246251564172e-16 0.11707476398169122667" rpy="-3.141592653589793116 -1.3309679851047901909e-16 0" />
             <parent link="chassis" />
             <child link="gearbox" />
             <axis xyz="0 0 1"/>
-            <limit effort="20" velocity="20" lower="-3.141592653589793116" upper="3.141592653589793116"/>
+            <limit effort="20" velocity="20"/>
             <joint_properties friction="0.3"/>
         </joint>
         <xacro:include filename="$(find rover_description)/arm/urdf/dynamic_joints_with_arm.xacro"/>
