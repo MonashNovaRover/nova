@@ -37,8 +37,9 @@ class TilePlacerNode(JoystickControllerNode):
     # can bus
     CAN_BUS = "can0"
     # card IDs
-    # only used when card = CMD
-    CMD_ID_TILE_PLACER = 0x0E3 # TODO: get the correct id
+    # only used when card = CMD, works with QCMDs
+    # 0x0C? ports can handle slightly higher current on QCMDs, 0x0D? ports are slightly weaker
+    CMD_ID_TILE_PLACER = 0x0D2
     # only used when card = JONO
     JONO_ID_TILE_PLACER = 0x0A0
     # jono commands
