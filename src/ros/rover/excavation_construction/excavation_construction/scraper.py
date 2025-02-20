@@ -27,7 +27,7 @@ from python_control.controls.OneAxisVelocityControl import OneAxisVelocityContro
 from python_control.controllers.CMDVelocityController import CMDVelocityController
 from python_control.controllers.JonoVelocityController import JonoVelocityController
 from python_control.JoystickControllerNode import JoystickControllerNode
-import rclpy, jcan, logging
+import rclpy, jcan
 
 # import the joystick ROS message we are listening to
 from input_interfaces.msg import InputJoystick
@@ -81,14 +81,10 @@ class ScraperNode(JoystickControllerNode):
 
     def __init__(self):
         super().__init__("scraper", can_bus=self.CAN_BUS)
-
-        self.get_logger().set_level(logging.INFO)
-        self.get_logger().info("Scraper starting")
         logger = self.get_logger()
 
         # Setting ROS parameters
         # This is done so that the parameters can be changed during runtime if desired
-        self.declare_parameter(self.CAN_BUS_PARAM, self.CAN_BUS)
         self.declare_parameter(self.CARD_TYPE_PARAM, self.CARD.value)
 
         self.declare_parameter(self.ARM_MAX_VEL_PERCENT_PARAM, self.ARM_MAX_VELOCITY_PERCENT)
@@ -124,13 +120,10 @@ class ScraperNode(JoystickControllerNode):
         else:
             raise ValueError(f"Unknown card type: {self.get_parameter(self.CARD_TYPE_PARAM).value}")
 
-        # Create the CAN bus
-        self.bus = jcan.Bus()
         self.bus.set_id_filter([self.JONO_ID_LIMIT_SWITCH])
-
         self.bus.add_callback(self.JONO_ID_LIMIT_SWITCH, self.callback_receive_can_limit_switch)
 
-        self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
+        self.start_can()
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
 
         self.get_logger().info(f"Scraper started on {self.get_parameter(self.CAN_BUS_PARAM).value} using {self.get_parameter(self.CARD_TYPE_PARAM).value} card type")
