@@ -36,17 +36,17 @@ def launch_setup(context, *args, **kwargs):
                 ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle, ' ', 'arm:=', arm]), value_type=str)
             }]
         ),
-        # # Launch joint states for arm
-        # Node(
-        #     package='joint_state_publisher',
-        #     executable='joint_state_publisher',
-        #     namespace='',
-        #     output='screen',
-        #     emulate_tty=True,
-        #     parameters=[{
-        #         'source_list': ['/arm/joint_states', '/joint_states']
-        #     }]
-        # )
+        # Launch joint states for arm
+        Node(
+            package='joint_state_publisher',
+            executable='joint_state_publisher',
+            namespace='',
+            output='screen',
+            emulate_tty=True,
+            parameters=[{
+                'source_list': ['/arm/joint_states', '/joint_states']
+            }]
+        )
     ]
 
 
