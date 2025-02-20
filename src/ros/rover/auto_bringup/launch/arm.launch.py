@@ -35,10 +35,10 @@ def launch_setup(context, *args, **kwargs):
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
             launch_arguments={'controllers': controllers}.items(),
         ),
-        # IncludeLaunchDescription(
-        #     PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-        #     launch_arguments={'model': model, 'gazebo': 'false', 'robot_name': robot_name, 'arm': arm}.items(),
-        # ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
+            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'arm': arm}.items(),
+        ),
     ]
 
 

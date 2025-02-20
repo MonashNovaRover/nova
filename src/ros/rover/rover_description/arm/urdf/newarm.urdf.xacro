@@ -587,7 +587,7 @@
     <!-- End of Generated URDF -->
 
     <!-- Close ckc -->
-    <xacro:include filename="newarm_ckc.xacro"/>
+    <!-- <xacro:include filename="newarm_ckc.xacro"/> -->
 
     <!-- gazebo parameters-->
     <gazebo>
