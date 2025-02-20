@@ -106,23 +106,7 @@ const CameraVideo: React.FC<CameraVideoProps> = ({ videoRef, filters }) => {
 
     console.log("CameraSerials.SCIENCE_GIMBAL:", CameraSerials.SCIENCE_GIMBAL);
 
-    if (CameraSerials.SCIENCE_GIMBAL) { // Camera is not scimbal camera
-        return (
-            <video
-                style={{
-                    transform: `${scaling} ${rotation}`,
-                    filter: `${contrast} ${brightness} ${inversion}`,
-                }}
-                controls={false}
-                autoPlay
-                loop
-                muted
-                playsInline
-                ref={videoRef}
-                className="z-0 w-full h-full object-cover"
-            />
-        );
-    } else {
+
         console.log("Check working")
         return (
             <video
@@ -139,22 +123,6 @@ const CameraVideo: React.FC<CameraVideoProps> = ({ videoRef, filters }) => {
                 className="z-0 w-full h-full object-cover"
             />
         );
-    }
-  // return (
-  //   <video
-  //     style={{
-  //       transform: `${scaling} ${rotation}`,
-  //       filter: `${contrast} ${brightness} ${inversion}`,
-  //     }}
-  //     controls={false}
-  //     autoPlay
-  //     loop
-  //     muted
-  //     playsInline
-  //     ref={videoRef}
-  //     className="z-0 w-full h-full object-cover"
-  //   />
-  // );
-};
+    };
 
 export default CameraVideo;
