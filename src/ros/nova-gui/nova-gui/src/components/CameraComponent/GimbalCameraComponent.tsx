@@ -121,7 +121,6 @@ const GimbalCameraComponent: FC = (props: GimbalCameraComponentProps) => {
 
   const onPress = () => {
     //do stuff on press
-    serviceBifrost.callServiceToRedux()
   }
   return(
     <CameraComponent onPress={onPress}>
