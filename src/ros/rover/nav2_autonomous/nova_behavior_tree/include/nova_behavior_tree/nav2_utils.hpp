@@ -18,13 +18,17 @@
 #include <string>
 #include <sstream>
 
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "rclcpp/logging.hpp"
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/pose.hpp>
+#include <geometry_msgs/msg/quaternion.hpp>
+#include <rclcpp/logging.hpp>
 
 namespace nova_behavior_tree
 {
 
-    std::string poseStampedToString(const geometry_msgs::msg::PoseStamped &pose)
+    using namespace geometry_msgs::msg;
+
+    std::string poseStampedToString(const PoseStamped &pose)
     {
         std::ostringstream oss;
         oss << "\nPoseStamped:\n"
@@ -41,6 +45,41 @@ namespace nova_behavior_tree
                                    << ", w: " << pose.pose.orientation.w << "]\n";
         
         return oss.str();
+    }
+
+    Quaternion eulerToQuaternion(double roll, double pitch, double yaw)
+    {
+        double cr = cos(roll * 0.5);
+        double sr = sin(roll * 0.5);
+        double cp = cos(pitch * 0.5);
+        double sp = sin(pitch * 0.5);
+        double cy = cos(yaw * 0.5);
+        double sy = sin(yaw * 0.5);
+
+        Quaternion q;
+        q.w = cr * cp * cy + sr * sp * sy;
+        q.x = sr * cp * cy - cr * sp * sy;
+        q.y = cr * sp * cy + sr * cp * sy;
+        q.z = cr * cp * sy - sr * sp * cy;
+
+        return q;
+    }
+
+    PoseStamped poseStampedFromGzPose(
+        const std::string &frame_id, rclcpp::Node::SharedPtr node, // to get current time
+        const double x,const double y, const double z,
+        const double roll, const double pitch, const double yaw
+    )
+    {
+        PoseStamped pose;
+        pose.header.frame_id = frame_id;
+        pose.header.stamp = node->now();
+        pose.pose.position.x = x;
+        pose.pose.position.y = y;
+        pose.pose.position.z = z;
+        pose.pose.orientation = eulerToQuaternion(roll, pitch, yaw);
+
+        return pose;
     }
 
 }
