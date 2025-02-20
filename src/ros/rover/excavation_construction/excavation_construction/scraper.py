@@ -15,9 +15,9 @@ PACKAGE: control
 COMMAND: ros2 run control scraper.py
 RUN ON: Rover
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-AUTHOR(S):	Tristan Clark
+AUTHOR(S):	Tristan Clark, Felicity Matthews
 CREATION:	02/02/2024
-EDITED:		09/03/2024
+EDITED:		20/02/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
