@@ -14,28 +14,28 @@ yolo:
       #augment: False
       #agnostic_nms: False
       #retina_masks: False
-      image_reliability: 2
-
-  #tracking_node:
-  #  ros__parameters:
-  #    tracker: tracker 
-  #    image_reliability": 1
-
-  detect_3d_node:
-    ros__parameters:
-      target_frame: "camera_link"
-      #maximum_detection_threshold": 0.3
-      depth_image_units_divisor": 1
-      depth_image_reliability": 2
-      depth_info_reliability": 2
+      image_reliability: 1
 
   debug_node:
     ros__parameters:
-      image_reliability: 2
+      image_reliability: 1
 
-  yolo_3d_to_marker:
+  cube_localiser:
     ros__parameters:
+      depth_image_units_divisor: 1
+      maximum_detection_threshold: 0.3
+      significant_threshold: 0.01
+
+      use_markers: True
+      marker_ns: "detected_cubes"
+      marker_duration: 1
+      marker_size: 0.15
+
+      tf_publisher_timer_period: 0.1
+
+      map_frame: "map"
+      camera_frame: "camera_link"
+
       min_samples: 5
-      max_std_dev: 0.2
-      target_frame: "map"
+      max_std_dev: 1
 
