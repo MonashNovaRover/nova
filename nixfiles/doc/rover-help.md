@@ -9,11 +9,13 @@ If you're on the makerspace wifi, you'll need to use 'J1', 'J2', 'J3', or 'N1' i
              J1: ssh nvidia@10.0.2.21
              J2: ssh nvidia@10.0.2.22
              J3: ssh nvidia@10.0.2.23
-jetson (radios): ssh nvidia@10.0.0.10
+             
              N1: ssh nova@10.0.2.11
              N2: ssh nova@10.0.2.12
              N3: ssh nova@10.0.2.13
-  orin (radios): ssh nova@10.0.0.11
+             
+             Jetson Radios: ssh nvidia@10.0.0.10
+             Orin Radios: ssh nova@10.0.0.11
 
 =========================
 
@@ -47,4 +49,14 @@ Try the 'launch-ec' alias, otherwise use the command below.
 
 # Cameras
 Replace '?' with either 'arm', 'ce', or 'science'.
-cameras_all payload:=?
+cameras-legacy payload:=?
+
+=========================
+
+# Zero Pivots
+Type 'zero-pivots' and follow the prompts. Use 'list-blcmds' if you're looking for the ID of a specific BLCMD.
+
+# Zero Arm
+Type 'zero-arm' and follow the prompts.
+
+=========================

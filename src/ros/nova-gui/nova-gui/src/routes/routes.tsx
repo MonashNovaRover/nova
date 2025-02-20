@@ -27,6 +27,7 @@ import URC360CamView from "../views/urc/URC360CamView.tsx";
 import URCRamanView from "../views/urc/URCRamanView.tsx";
 import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
 import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
+import TestOverlayView from "../views/test/TestOverlayView/TestOverlayView.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -134,6 +135,10 @@ export const testRoutes: RouteObject[] = [
     path: "/test/state",
     element: <TestStateView/>
   },
+  {
+    path: "/test/overlay",
+    element: <TestOverlayView/>
+  },
 ];
 
 const cameraRoutes: RouteObject[] = [
@@ -151,7 +156,7 @@ export const routes: RouteObject[] = [
     children: [
       {
         path: "/",
-        element: <Navigate to="/urc" />,
+        element: <Navigate to="/arc" />,
       },
       {
         path: "/arc",
