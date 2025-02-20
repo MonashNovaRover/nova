@@ -17,13 +17,14 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 #include "rclcpp/node.hpp"
-#include "realtime_tools/realtime_box.h"
-#include "realtime_tools/realtime_buffer.h"
-#include "realtime_tools/realtime_publisher.h"
+//#include "realtime_tools/realtime_box.h"
+//#include "realtime_tools/realtime_buffer.h"
+//#include "realtime_tools/realtime_publisher.h"
 #include "tf2_msgs/msg/tf_message.hpp"
+#include "tf2/LinearMath/Scalar.h"
 #include "nova_ik_controller/speed_limiter.hpp"
 
-#include "nova_ik_controller_parameters.hpp"
+//#include "nova_ik_controller_parameters.hpp"
 
 namespace nova_ik_controller
 {
@@ -59,8 +60,21 @@ namespace nova_ik_controller
     controller_interface::CallbackReturn on_shutdown(
         const rclcpp_lifecycle::State &previous_state) override;
 	
-	void calculate_ik(tf2_msgs::msg::TFMessage frame, geometry_msgs::msg::Pose wristPose, geometry_msgs::msg::Pose effPose);
+
+	/*
+	 * Calculates the IK given a frame, pose and set of lengths.
+	 * See Keenan's IK notes.
+	 * pose is a struct combining a position (x,y,z) and a quaternion (x,y,z,w).
+	 * Lengths are [fill this].
+	 * Returns [fill this].
+	 */
+	void calculate_ik(tf2_msgs::msg::TFMessage frame, geometry_msgs::msg::Pose pose, const double lengths[3]);
 	
+	// Helper functions to cut down on code reuse. Gets sin/cos/tan from degrees instead of radians.
+	tf2Scalar sind(tf2Scalar angle) { return tf2Sin(tf2Radians(angle)); }
+	tf2Scalar cosd(tf2Scalar angle) { return tf2Cos(tf2Radians(angle)); }
+	tf2Scalar tand(tf2Scalar angle) { return tf2Tan(tf2Radians(angle)); }
+
 	void teleop_callback(tf2_msgs::msg::TFMessage msg);
 
   protected:
@@ -89,8 +103,9 @@ namespace nova_ik_controller
     std::vector<JointHandle> registered_joint_handles_;
 
     // Parameters from ROS for nova_diff_drive_controller
-    std::shared_ptr<ParamListener> param_listener_;
-    Params params_;
+    // TODO add them back
+	//std::shared_ptr<ParamListener> param_listener_;
+    //`;Params params_;
 
     // Timeout to consider cmd_vel commands old
     std::chrono::milliseconds cmd_vel_timeout_{500};

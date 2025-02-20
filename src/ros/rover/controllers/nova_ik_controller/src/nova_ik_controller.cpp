@@ -8,10 +8,16 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 #include "rclcpp/logging.hpp"
+#include "tf2_geometry_msgs/tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+//#include "tf2_eigen/tf2_eigen/tf2_eigen.hpp"
+#include <tf2/tf2/LinearMath/Scalar.h>
+#include <Eigen/Dense>
 
 namespace
 {
 } // namespace
+
+using std::placeholders::_1;
 
 namespace nova_ik_controller
 {
@@ -31,8 +37,8 @@ namespace nova_ik_controller
     try
     {
       // Create the parameter listener and get the parameters
-      param_listener_ = std::make_shared<ParamListener>(node);
-      params_ = param_listener_->get_params();
+      //param_listener_ = std::make_shared<ParamListener>(node);
+      //params_ = param_listener_->get_params();
     }
     catch (const std::exception &e)
     {
@@ -85,7 +91,8 @@ namespace nova_ik_controller
     auto logger = node.get_logger();
 
     // update parameters if they have changed
-    if (param_listener_->is_old(params_))
+    /*
+	if (param_listener_->is_old(params_))
     {
       params_ = param_listener_->get_params();
       RCLCPP_INFO(logger, "Parameters were updated");
@@ -95,7 +102,7 @@ namespace nova_ik_controller
       RCLCPP_ERROR(logger, "Joint names parameter is empty!");
       return controller_interface::CallbackReturn::ERROR;
     }
-
+	*/
     // TODO: maybe limit position so arm doesn't collide?
     if (!reset())
     {
@@ -103,7 +110,7 @@ namespace nova_ik_controller
     }
 
     // TODO: insert correct subscriber here
-	teleop_sub = node.create_subscription<tf2_msgs::msg::TFMessage>("aaaa", rclcpp::SystemDefaultsQoS(), nullptr);
+	teleop_sub = node.create_subscription<tf2_msgs::msg::TFMessage>("aaaa", rclcpp::SystemDefaultsQoS(), std::bind(&NovaIKController::teleop_callback, this, _1));
 
     previous_update_timestamp_ = node.get_clock()->now();
     return controller_interface::CallbackReturn::SUCCESS;
@@ -112,7 +119,8 @@ namespace nova_ik_controller
   controller_interface::CallbackReturn NovaIKController::on_activate(
       const rclcpp_lifecycle::State &)
   {
-    const auto joints_result =
+	/*
+	  const auto joints_result =
         configure_joints(params_.joint_names, registered_joint_handles_, joint_feedback_type());
 
     if (joints_result == controller_interface::CallbackReturn::ERROR)
@@ -122,7 +130,7 @@ namespace nova_ik_controller
           "Some joint interfaces are non existent");
       return controller_interface::CallbackReturn::ERROR;
     }
-
+	*/
     is_halted = false;
     subscriber_is_active_ = true;
 	
@@ -241,10 +249,32 @@ namespace nova_ik_controller
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
-
-  void NovaIKController::calculate_ik(tf2_msgs::msg::TFMessage frame, geometry_msgs::msg::Pose wristPose, geometry_msgs::msg::Pose effPose)
+  // See Keenan's IK notes
+  // TODO: remember to add something for the effector pose
+  void NovaIKController::calculate_ik(tf2_msgs::msg::TFMessage frame, geometry_msgs::msg::Pose pose, const double lengths[3])
   {
+	double x = pose.position.x;
+	double y = pose.position.y;
+	double z = pose.position.z;
+	double roll, pitch, yaw;
+
+	tf2::Quaternion tf2_quat;
+	tf2::fromMsg(pose.orientation, tf2_quat);
+	tf2::Matrix3x3(tf2_quat).getRPY(roll, pitch, yaw);
+
+	pitch += 90;
 	
+	double l1r = lengths[0];
+	double l2r = lengths[1];
+	double l3 = lengths[2];
+	
+	tf2::Matrix3x3 rz_alp = tf2::Matrix3x3(cosd(yaw), -sind(yaw), 0, sind(yaw), cosd(yaw), 0, 0, 0, 1); // Yaw
+	tf2::Matrix3x3 ry_beta = tf2::Matrix3x3(cosd(pitch), 0, sind(pitch), 0, 1, 0, -sind(pitch), 0, cosd(pitch)); // Pitch
+	tf2::Matrix3x3 rx_gam = tf2::Matrix3x3(1, 0, 0, 0, cosd(roll), -sind(roll), 0, sind(roll), cosd(roll)); // Roll
+  	tf2::Matrix3x3 rxyz = rz_alp * ry_beta * rx_gam; // rxyz orientation matrix
+  
+	Eigen::Matrix4d t07r = Eigen::Matrix4d::Zero();
+	//t07r.topLeftCorner<2,2>() = rxyz;
   }
 
   void NovaIKController::teleop_callback(tf2_msgs::msg::TFMessage msg)
