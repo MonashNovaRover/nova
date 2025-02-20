@@ -29,61 +29,97 @@ CREATION:	06/02/2025
 
 import os
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
-from launch.actions import IncludeLaunchDescription
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.conditions import IfCondition
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from ament_index_python.packages import get_package_share_directory
 
+def launch_setup(context, *args, **kwargs):
+    namespace = LaunchConfiguration('namespace')
+    params = LaunchConfiguration('params')
+    yolo_model = LaunchConfiguration('yolo_model')
+
+    rgb_image = LaunchConfiguration('rgb_image')
+    depth_image = LaunchConfiguration('depth_image')
+    depth_image_info = LaunchConfiguration('depth_image_info')
+    debug_image = LaunchConfiguration('debug_image')
+    use_debug = LaunchConfiguration('use_debug')
+
+    auto_bringup_dir = FindPackageShare('auto_bringup')
+    
+    return [
+        Node(
+            package="yolo_ros",
+            executable="yolo_node",
+            name="yolo_node",
+            namespace=namespace,
+            parameters=[{'model': yolo_model}, params],
+            remappings=[("image_raw", rgb_image)],
+        ),
+        Node(
+            package="yolo_ros",
+            executable="debug_node",
+            name="debug_node",
+            namespace=namespace,
+            parameters=[params],
+            remappings=[("image_raw", rgb_image), 
+                        ("dbg_image", debug_image)],
+            condition=IfCondition(PythonExpression([use_debug])),
+        ),
+        Node(
+            package='nova_utils',
+            executable='cube_localiser.py',
+            namespace=namespace,
+        ),
+    ]
 
 def generate_launch_description():
-    model_dir = PathJoinSubstitution([FindPackageShare('auto_bringup'), 'resources', 'ARC_2025_sim', 'model.pt'])
-    return LaunchDescription(
-        [
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(
-                    os.path.join(
-                        get_package_share_directory("yolo_bringup"),
-                        "launch",
-                        "yolo.launch.py",
-                    )
-                ),
-                ### For more arguments go see yolo.launch.py in the yolo_ros repo: https://github.com/mgonzs13/yolo_ros
-                launch_arguments={
-                    "model": LaunchConfiguration("model", default=model_dir),
-                    "tracker": LaunchConfiguration("tracker", default="bytetrack.yaml"),        # could optimise our tracker params? currently using default ultralytic params
-                    "device": LaunchConfiguration("device", default="cpu"),                     # get CUDA working later?
-                    "enable": LaunchConfiguration("enable", default="True"),                    # 2d bounding box generator node
-                    "threshold": LaunchConfiguration("threshold", default="0.5"),               # threshold to find a match e.g > 0.5 = a match
-                    "target_frame": LaunchConfiguration("target_frame", default="camera_link"), # frame from which image originates (important for bb3d accuracy)
-                    "input_image_topic": LaunchConfiguration(
-                        "input_image_topic", default="/oak/rgb/image_rect"
-                    ),
-                    "input_depth_topic": LaunchConfiguration(
-                        "input_depth_topic", default="/oak/depth"
-                    ),
-                    "input_depth_info_topic": LaunchConfiguration(
-                        "input_depth_info_topic", default="/oak/camera_info"
-                    ),
-                    "image_reliability": LaunchConfiguration(
-                        "image_reliability", default="1"
-                    ),
-                    "depth_image_units_divisor": LaunchConfiguration(
-                        "depth_image_units_divisor", default="1"
-                    ),                                                                          # amount to divide to convert depth input to meters
-                    "namespace": LaunchConfiguration("namespace", default="yolo"),              # sets the ROS topic output e.g /yolo/
-                    "use_3d": LaunchConfiguration("use_3d", default="True"),                    # enables 3D node, needed for bb3d
-                    "use_tracking": LaunchConfiguration("use_tracking", default="False"),       # enables tracking node, may not be needed?
-                    "Imgsz_height": LaunchConfiguration("Imgsz_height", default="400"),         # must be same as model's trained image width and height
-                    "Imgsz_width": LaunchConfiguration("Imgsz_width", default="600"),           # above comment may be wrong? as it works fine using depth cam's resolution
-                    
-                }.items(),
-            ),
-            #Node(
-            #    package='nova_utils',
-            #    executable='yolo_3d_to_marker.py',
-            #    parameters=[{'namespace':'/yolo'}],
-            #),
-        ]
+    auto_bringup_dir = FindPackageShare('auto_bringup')
+    declared_arguments = [
+        DeclareLaunchArgument(
+            name='yolo_model',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'resources', 'ARC_2025_sim', 'model.pt']),
+            description='Absolute path to yolo weights file',
+        ),
+        DeclareLaunchArgument(
+            name='namespace',
+            default_value='yolo',
+            description='Top-level namespace',
+        ),
+        DeclareLaunchArgument(
+            name='params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'yolo_ros.yaml']),
+            description='Full path to the ROS2 parameters file to use for all launched nodes',
+        ),
+        DeclareLaunchArgument(
+            name='depth_image',
+            default_value='/oak/depth',
+            description='Depth image topic used for yolo_ros',
+        ),
+        DeclareLaunchArgument(
+            name='depth_image_info',
+            default_value='/oak/camera_info',
+            description='Depth image info topic used for yolo_ros',
+        ),
+        DeclareLaunchArgument(
+            name='rgb_image',
+            default_value='/oak/rgb/image_rect',
+            description='RGB image topic used for yolo_ros',
+        ),
+        DeclareLaunchArgument(
+            name='debug_image',
+            default_value='debug_image',
+            description='Debug image topic used for yolo_ros',
+        ),
+        DeclareLaunchArgument(
+            name='use_debug',
+            default_value='True',
+            description='Enable yolo_ros debug node',
+        ),
+    ]
+
+    return LaunchDescription(  
+        declared_arguments + [OpaqueFunction(function=launch_setup)]
     )
