@@ -128,7 +128,7 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument("auger_drill_canid", defaultValue=0x0C1),
-        DeclareLaunchArgument("auger_actuation_canid", defaultValue=0x0D1),
+        DeclareLaunchArgument("auger_actuation_canid", defaultValue=0x0C2),
         DeclareLaunchArgument("analysis_arm_cmd_canid", defaultValue=0x032),
         DeclareLaunchArgument("tof_canid", defaultValue=0x456)
     ]
