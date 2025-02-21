@@ -178,7 +178,7 @@ const generalSideBarData: SidebarInterface = {
       icon: <Home />,
     },
     {
-      title: "Camaras",
+      title: "Cameras",
       route: "/general/cameras",
       icon: <Camera/>,
     },
