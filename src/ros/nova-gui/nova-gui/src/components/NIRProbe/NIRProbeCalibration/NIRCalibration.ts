@@ -1,6 +1,8 @@
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {NIRProbeCalibrationData} from "../../../redux/models/genericStores/NIRProbeCalibrationData.ts";
 import {NIRProbeReadingType} from "../SpaceResourcesSiteType.tsx";
+import {useNIRSiteData} from "../useNIRSiteData.ts";
+import {useMemo} from "react";
 
 /**
  * Number of coefficients required for the calibration function
@@ -55,4 +57,34 @@ export const calibrationFunction = (coef: number[]) => (x: number, y: number): n
 export const useCalibrationFunction = () => {
   const [calibrationData, _] = useGenericStore<NIRProbeCalibrationData>("nirProbeCalibrationData");
   return calibrationFunction(calibrationData.coefficients);
+}
+
+/**
+ * Calculates the average reading
+ * returns an array containing:
+ *  - averageX
+ *  - averageY
+ *  - calibratedResult
+ */
+export const useAverageReading = (): [number, number, number] => {
+  const [readings, _] = useNIRSiteData()
+  const calibrationFunc = useCalibrationFunction()
+
+  // average water reading
+  const averageX = useMemo(() => {
+    const xList = readings[NIRProbeReadingType.WATER]
+      .map(entry => entry.data)
+    return xList.reduce((a, b) => a + b, 0) / Math.max(xList.length, 1)
+  }, [readings])
+
+  // average ice reading
+  const averageY = useMemo(() => {
+    const yList = readings[NIRProbeReadingType.ICE]
+      .map(entry => entry.data)
+    return yList.reduce((a,b) => a+b, 0) / Math.max(yList.length,1)
+  }, [readings])
+
+  const calibratedResult = calibrationFunc(averageX, averageY)
+
+  return [averageX, averageY, calibratedResult]
 }

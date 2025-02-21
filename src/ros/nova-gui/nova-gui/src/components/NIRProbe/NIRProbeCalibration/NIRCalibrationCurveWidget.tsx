@@ -1,14 +1,13 @@
 import React, {useMemo, useState} from "react";
 import {Button, Card, CardBody, CardHeader,} from "@nextui-org/react";
 import {MoreHorizontal} from "react-feather";
-import NIR3DCalibrationCurve from "./NIR3DCalibrationCurve.tsx";
+import NIR3DCalibrationCurve, {Scatter3DPlotData} from "./NIR3DCalibrationCurve.tsx";
 import NIR3DCurveSettingsModal from "./NIR3DCurveSettingsModal.tsx";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {NIRProbeCalibrationData} from "../../../redux/models/genericStores/NIRProbeCalibrationData.ts";
-import {useCalibrationFunction} from "./NIRCalibration.ts";
+import {useAverageReading, useCalibrationFunction} from "./NIRCalibration.ts";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
 import {ISpaceResourcesEntry, NIRProbeReadingType} from "../SpaceResourcesSiteType.tsx";
-import {isNumber, zip} from "lodash";
 
 const GRANUALITY = 24
 
@@ -38,18 +37,24 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
   const [calibrationModalIsOpen, setCalibrationModalIsOpen] = useState<boolean>(false)
   const [calibrationData, _] = useGenericStore<NIRProbeCalibrationData>("nirProbeCalibrationData");
   const calibrationFunc = useCalibrationFunction()
+  const [readings, ,] = useNIRSiteData()
+  const [averageX, averageY, calibratedResult] = useAverageReading()
 
   /* Plotting readings on the calibration curve */
 
-  const [readings, ,] = useNIRSiteData()
-  const valuesScatter = readings[NIRProbeReadingType.WATER]
-    .map(v => [v.data, readings[NIRProbeReadingType.ICE].filter(val => val.label === v.label)] as [number, ISpaceResourcesEntry[]])
-    .filter(arr => arr[1].length > 0)
-    .map(arr => [arr[0], arr[1][0].data])
-  const zValuesScatter = valuesScatter
-    .map(v => v[0] !== undefined && v[1] !== undefined ? calibrationFunc(v[0], v[1]) : 0)
+  const readingsScatterData = useMemo(() => {
+    const xAndAllY = readings[NIRProbeReadingType.WATER]
+      .map(v => [v.data, readings[NIRProbeReadingType.ICE].filter(val => val.label === v.label)] as [number, ISpaceResourcesEntry[]])
+      .filter(arr => arr[1].length > 0)
+    const labels = xAndAllY
+      .map(arr => arr[1][0].label)
+    const valuesScatter = xAndAllY
+      .map(arr => [arr[0], arr[1][0].data])
+    const zValuesScatter = valuesScatter
+      .map(v => v[0] !== undefined && v[1] !== undefined ? calibrationFunc(v[0], v[1]) : 0)
 
-  console.log(valuesScatter, zValuesScatter)
+    return {x: valuesScatter.map(v => v[0]), y: valuesScatter.map(v => v[1]), z: zValuesScatter, text: labels} as Scatter3DPlotData
+  }, [readings, calibrationFunc])
 
   /* Generating points on the calibration curve */
 
@@ -59,7 +64,7 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
   // z values is a 2d array where each value is generated from the corresponding x and y values
   const zValuesSurface = useMemo(() => {
     return yValuesSurface.map(y => [...xValuesSurface.map(x => calibrationFunc(x, y))])
-  }, [calibrationData, xValuesSurface, yValuesSurface])
+  }, [xValuesSurface, yValuesSurface, calibrationFunc])
 
   return (
     <Card>
@@ -76,7 +81,8 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
       <CardBody>
         <NIR3DCalibrationCurve
           surfaceData={{x: xValuesSurface, y: yValuesSurface, z: zValuesSurface}}
-          scatterData={{x: valuesScatter.map(v => v[0]), y: valuesScatter.map(v => v[1]), z: zValuesScatter}}
+          readingsScatterData={readingsScatterData}
+          averageScatterData={{x: [averageX], y: [averageY], z: [calibratedResult], text: []}}
         />
       </CardBody>
       <NIR3DCurveSettingsModal
