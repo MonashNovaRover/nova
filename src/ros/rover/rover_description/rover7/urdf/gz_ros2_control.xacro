@@ -135,7 +135,7 @@
       </state_interface>
     </joint>
 
-        <joint name="J1">
+        <joint name="j1">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -149,7 +149,7 @@
 		</state_interface>
       </joint>
 
-	  <joint name="J2">
+	  <joint name="j2">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -163,7 +163,7 @@
 		</state_interface>
       </joint>
 
-	  <joint name="J3">
+	  <joint name="j3">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -219,7 +219,7 @@
 		</state_interface>
       </joint> -->
 
-	  <joint name="J4">
+	  <joint name="j4">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -233,7 +233,7 @@
 		</state_interface>
       </joint>
 
-	  <joint name="J5">
+	  <joint name="j5">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -247,7 +247,7 @@
 		</state_interface>
       </joint>
 
-	  <joint name="J6">
+	  <joint name="j6">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
