@@ -87,6 +87,23 @@ const NIR3DCalibrationCurve: React.FC<NIR3DCalibrationCurveProps> = ({ surfaceDa
             x: 0,
             y: 0,
           },
+          scene: {
+            xaxis: {
+              title: {
+                text: 'Water',
+              },
+            },
+            yaxis: {
+              title: {
+                text: 'Ice',
+              },
+            },
+            zaxis: {
+              title: {
+                text: 'Concentration',
+              },
+            },
+          }
         }
       }
     />
