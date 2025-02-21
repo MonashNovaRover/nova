@@ -4,7 +4,6 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /RobotModel1/Status1
         - /TF1/Frames1
         - /TF1/Tree1
       Splitter Ratio: 0.5833333134651184
@@ -185,6 +184,7 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+          Value: true
         gps:
           Alpha: 1
           Show Axes: false
@@ -223,6 +223,7 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+          Value: true
         oak_rgb_camera_frame:
           Alpha: 1
           Show Axes: false
@@ -369,8 +370,6 @@ Visualization Manager:
       Show Names: false
       Tree:
         map:
-          marker_17:
-            {}
           odom:
             base_link:
               chassis:
@@ -681,7 +680,7 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz_default_plugins/PointCloud2
       Color: 255; 255; 255
-      Color Transformer: Intensity
+      Color Transformer: RGB8
       Decay Time: 0
       Enabled: false
       Invert Rainbow: false
