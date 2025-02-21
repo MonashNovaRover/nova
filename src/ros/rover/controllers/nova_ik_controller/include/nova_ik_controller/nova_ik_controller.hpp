@@ -23,6 +23,7 @@
 #include "tf2_msgs/msg/tf_message.hpp"
 #include "tf2/LinearMath/Scalar.h"
 #include "nova_ik_controller/speed_limiter.hpp"
+#include <Eigen/Dense>
 
 //#include "nova_ik_controller_parameters.hpp"
 
@@ -61,19 +62,31 @@ namespace nova_ik_controller
         const rclcpp_lifecycle::State &previous_state) override;
 	
 
-	/*
-	 * Calculates the IK given a frame, pose and set of lengths.
-	 * See Keenan's IK notes.
-	 * pose is a struct combining a position (x,y,z) and a quaternion (x,y,z,w).
-	 * Lengths are [fill this].
-	 * Returns [fill this].
-	 */
-	void calculate_ik(tf2_msgs::msg::TFMessage frame, geometry_msgs::msg::Pose pose, const double lengths[3]);
+	/// @brief Calculates the IK given a frame, pose and set of lengths.
+	/// @brief See Keenan's IK notes.
+	/// @param frame is ???
+	/// @param pose is a struct combining a position (x,y,z) and a quaternion (x,y,z,w).
+	/// @param Lengths are [fill this].
+	/// @returns an array of joint angles in joint space for each of J1 through J6, through joints.
+	void calculate_ik(tf2_msgs::msg::TFMessage frame, geometry_msgs::msg::Pose pose, const double lengths[3], double joints[6]);
 	
 	// Helper functions to cut down on code reuse. Gets sin/cos/tan from degrees instead of radians.
-	tf2Scalar sind(tf2Scalar angle) { return tf2Sin(tf2Radians(angle)); }
-	tf2Scalar cosd(tf2Scalar angle) { return tf2Cos(tf2Radians(angle)); }
-	tf2Scalar tand(tf2Scalar angle) { return tf2Tan(tf2Radians(angle)); }
+	tf2Scalar sind(tf2Scalar angle) const { return tf2Sin(tf2Radians(angle)); }
+	tf2Scalar cosd(tf2Scalar angle) const { return tf2Cos(tf2Radians(angle)); }
+	tf2Scalar tand(tf2Scalar angle) const { return tf2Tan(tf2Radians(angle)); }
+	
+	// substitutes values into our DH table.
+	// see: https://www.notion.so/Inverse-Kinematics-ddfe35179c1f4959850bd28b2195be8a
+	// equivalent line: DHs = [cos(the) -sin(the) 0 a; sin(the)*cos(alp) cos(the)*cos(alp) -sin(alp) -sin(alp)*d; sin(the)*sin(alp) cos(the)*sin(alp) cos(alp) cos(alp)*d; 0 0 0 1];
+	Eigen::Matrix4d sub_dh(double alp, double a, double d, double the) const
+	{
+		return Eigen::Matrix4d {
+			{ cos(the), 			-sin(the), 			0, 			a },
+			{ sin(the)*cos(alp),	cos(the)*cos(alp), 	-sin(alp), 	-sin(alp)*d },
+			{ sin(the)*sin(alp),	cos(the)*sin(alp),	cos(alp),	cos(alp)*d },
+			{ 0,					0,					0,			1 }
+		};
+	}
 
 	void teleop_callback(tf2_msgs::msg::TFMessage msg);
 

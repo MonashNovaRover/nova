@@ -10,8 +10,6 @@
 #include "rclcpp/logging.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 //#include "tf2_eigen/tf2_eigen/tf2_eigen.hpp"
-#include <tf2/tf2/LinearMath/Scalar.h>
-#include <Eigen/Dense>
 
 namespace
 {
@@ -251,7 +249,7 @@ namespace nova_ik_controller
 
   // See Keenan's IK notes
   // TODO: remember to add something for the effector pose
-  void NovaIKController::calculate_ik(tf2_msgs::msg::TFMessage frame, geometry_msgs::msg::Pose pose, const double lengths[3])
+  void NovaIKController::calculate_ik(tf2_msgs::msg::TFMessage frame, geometry_msgs::msg::Pose pose, const double lengths[3], double joints[6])
   {
 	double x = pose.position.x;
 	double y = pose.position.y;
@@ -261,20 +259,66 @@ namespace nova_ik_controller
 	tf2::Quaternion tf2_quat;
 	tf2::fromMsg(pose.orientation, tf2_quat);
 	tf2::Matrix3x3(tf2_quat).getRPY(roll, pitch, yaw);
-
 	pitch += 90;
 	
 	double l1r = lengths[0];
 	double l2r = lengths[1];
 	double l3 = lengths[2];
 	
-	tf2::Matrix3x3 rz_alp = tf2::Matrix3x3(cosd(yaw), -sind(yaw), 0, sind(yaw), cosd(yaw), 0, 0, 0, 1); // Yaw
-	tf2::Matrix3x3 ry_beta = tf2::Matrix3x3(cosd(pitch), 0, sind(pitch), 0, 1, 0, -sind(pitch), 0, cosd(pitch)); // Pitch
-	tf2::Matrix3x3 rx_gam = tf2::Matrix3x3(1, 0, 0, 0, cosd(roll), -sind(roll), 0, sind(roll), cosd(roll)); // Roll
-  	tf2::Matrix3x3 rxyz = rz_alp * ry_beta * rx_gam; // rxyz orientation matrix
+	Eigen::Matrix3d rz_alp { {cosd(yaw), -sind(yaw), 0}, {sind(yaw), cosd(yaw), 0}, {0, 0, 1} }; // Yaw
+	Eigen::Matrix3d ry_beta { {cosd(pitch), 0, sind(pitch)}, {0, 1, 0}, { -sind(pitch), 0, cosd(pitch)} }; // Pitch
+	Eigen::Matrix3d rx_gam { {1, 0, 0}, {0, cosd(roll), -sind(roll)}, {0, sind(roll), cosd(roll)} }; // Roll
+	Eigen::Matrix3d rxyz = rz_alp * ry_beta * rx_gam; // rxyz orientation matrix
   
 	Eigen::Matrix4d t07r = Eigen::Matrix4d::Zero();
-	//t07r.topLeftCorner<2,2>() = rxyz;
+	t07r.topLeftCorner<3,3>() = rxyz;
+
+	t07r(3, 3) = 1;
+	t07r(0, 3) = x;
+	t07r(1, 3) = y;
+	t07r(2, 3) = z;
+
+	Eigen::Matrix4d t67 { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, l3}, {0, 0, 0, 1} };
+	Eigen::Matrix4d t0_wrist = t07r * t67.inverse();
+		
+	double wrist_x = t0_wrist(0, 3);
+	double wrist_y = t0_wrist(1, 3);
+	double wrist_z = t0_wrist(2, 3);
+
+	double j1 = atan2(wrist_y, wrist_x);
+	double l = sqrt(pow(wrist_x, 2) + pow(wrist_y, 2));
+	double j3a = acos((pow(l, 2) + pow(wrist_z, 2) - pow(l1r, 2) - pow(l2r, 2)) / (2 * l1r * l2r));
+	double j3b = -j3a; // expands to -acos((l^2+wrist_z^2-L1r^2-L2r^2)/(2*L1r*L2r)) as per keenan's notes
+	double j3ao = j3a + M_PI / 2;
+	double j3bo = j3b + M_PI / 2;
+	
+	double k1a = l1r + l2r * cos(j3a);
+	double k2a = l2r * sin(j3a);
+	double k1b = l1r + l2r * cos(j3b);
+	double k2b = l2r * sin(j3b);
+	
+	double j2a = atan2(wrist_z, l) - atan2(k2a, k1a);
+	double j2b = atan2(wrist_z, l) - atan2(k2b, k1b);
+	double j2ao = j2a - M_PI / 2;
+	double j2bo = j2b - M_PI / 2;
+	
+	Eigen::Matrix4d t01 = sub_dh(0, 0, 0, j1);
+	Eigen::Matrix4d t12 = sub_dh(M_PI / 2, 0, 0, j2bo + M_PI / 2);
+	Eigen::Matrix4d t23 = sub_dh(0, l1r, 0, j3bo - M_PI / 2);
+	Eigen::Matrix4d t02 = t01 * t12;
+	Eigen::Matrix4d t03_wrist = t02 * t23;
+	Eigen::Matrix3d r03_wrist = t03_wrist.topLeftCorner<3, 3>(); // R03_wrist = T03_wrist(1:3,1:3); in matlab
+	Eigen::Matrix3d r07r = t07r.topLeftCorner<3, 3>(); // see above
+	Eigen::Matrix3d r37r = r03_wrist.inverse() * r07r;
+
+	double j4 = atan2(r37r(1, 2), r37r(0, 2));
+	double j5 = atan2(-r37r(2, 2), r37r(0, 2) / cos(j4));
+	double j6 = atan2(-r37r(2, 1) / cos(j5), r37r(2, 0) / cos(j5));
+
+	double new_joints[6] = { j1, j2bo, j3bo, j4, j5, j6 };
+	// converts all elements in new_joints from radians to degrees, then puts them into joints to be returned
+	for (int i = 0; i < 6; i++)
+		joints[i] = new_joints[i] / (M_PI / 180);
   }
 
   void NovaIKController::teleop_callback(tf2_msgs::msg::TFMessage msg)
