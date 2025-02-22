@@ -82,10 +82,10 @@ namespace nova_behavior_tree
       return {
           BT::InputPort<IDs>("visited_ids", "visited_ids[i] = true if visited, false otherwise"),
           BT::InputPort<int>(
-              "filter_strength",
+              "filter_strength", 0,
               "Number of detections within the specified filter_tolerance needed for a valid detection"),
           BT::InputPort<int>(
-              "filter_tolerance",
+              "filter_tolerance", 0,
               "Number of previous detections to consider (should exceed filter_strength)"),
           BT::OutputPort<int>("id", "ID of detected cube"),
           BT::OutputPort<geometry_msgs::msg::PoseStamped>("goal", "Pose of detected cube"),
