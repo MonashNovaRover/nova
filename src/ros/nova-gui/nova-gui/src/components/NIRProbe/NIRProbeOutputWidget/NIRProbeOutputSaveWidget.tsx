@@ -20,7 +20,6 @@ import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
 import {Check, MoreHorizontal} from "react-feather";
-import {SiteData} from "../../../redux/models/genericStores/SiteDataState.ts";
 import {
   ISpaceResourcesEntries,
   ISpaceResourcesEntry,
@@ -30,14 +29,19 @@ import {
 import {useNIRSiteData} from "../useNIRSiteData.ts";
 
 export interface NIRProbeOutputSaveWidgetProps extends CardProps {
-  file: SiteData,
-  setFile: (newFile: SiteData) => void,
   showAdvanced : boolean,
   setShowAdvanced : (newShowAdvanced: boolean) => void,
 }
 
+/**
+ * Widget for displaying and saving data received from the NIR Probe
+ * @param showAdvanced
+ * @param setShowAdvanced
+ * @param cardProps
+ * @constructor
+ */
 const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
-  file, setFile, showAdvanced, setShowAdvanced, ...cardProps
+  showAdvanced, setShowAdvanced, ...cardProps
 }) => {
   const bifrost = useBifrost({ topic: RosTopic.NIR_DATA });
   const nirData = useSelector((state: RootState) => state.nirStore);

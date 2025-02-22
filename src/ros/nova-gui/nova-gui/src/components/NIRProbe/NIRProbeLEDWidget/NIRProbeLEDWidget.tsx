@@ -11,6 +11,11 @@ import {IRosNovaInterfacesNirProbeDataConst} from "../../../ros/rosTypes.ts";
 interface INIRProbeLEDWidgetProps extends CardProps {
 }
 
+/**
+ * Widget containing buttons to call the ros2 service "/science/take_nir_probe_reading"
+ * @param cardProps
+ * @constructor
+ */
 const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({...cardProps}) => {
   const bifrost = useBifrost({ topic: RosTopic.NIR_DATA, service: RosService.SET_NIR_PROBE_LED });
   const status = useSelector((state: RootState) => state.nirStore.status);

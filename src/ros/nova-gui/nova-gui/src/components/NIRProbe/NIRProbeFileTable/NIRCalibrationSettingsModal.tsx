@@ -1,5 +1,5 @@
 import {Button, Input, Modal, ModalBody, ModalContent, ModalHeader} from "@nextui-org/react";
-import React, {useMemo} from "react";
+import React, {useCallback, useMemo} from "react";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {
   DEFAULT_NIR_PROBE_CALIBRATION_DATA,
@@ -44,12 +44,12 @@ const NIRCalibrationSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = 
       />)
   }, [calibrationData, setCalibrationData])
 
-  const resetCoefficients = () => {
+  const resetCoefficients = useCallback(() => {
     setCalibrationData({
       ...calibrationData,
       coefficients: DEFAULT_NIR_PROBE_CALIBRATION_DATA.coefficients,
     } as NIRProbeCalibrationData)
-  }
+  }, [setCalibrationData, calibrationData])
 
   /* Offset settings */
 
@@ -88,13 +88,13 @@ const NIRCalibrationSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = 
     ]
   }, [calibrationData, setCalibrationData])
 
-  const resetOffsets = () => {
+  const resetOffsets = useCallback(() => {
     setCalibrationData({
       ...calibrationData,
       xOffset: DEFAULT_NIR_PROBE_CALIBRATION_DATA.xOffset,
       yOffset: DEFAULT_NIR_PROBE_CALIBRATION_DATA.yOffset,
     } as NIRProbeCalibrationData)
-  }
+  }, [setCalibrationData, calibrationData])
 
   return (
     <Modal

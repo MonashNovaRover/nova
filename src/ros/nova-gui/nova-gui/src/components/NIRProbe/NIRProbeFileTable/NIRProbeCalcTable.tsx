@@ -8,6 +8,10 @@ import {
 export interface NIRProbeCalcTableProps extends CardProps {
 }
 
+/**
+ * Table containing the average reading and concentration
+ * @constructor
+ */
 const NIRProbeCalcTable: React.FC<NIRProbeCalcTableProps> = () => {
   const [averageX, averageY, calibratedResult] = useAverageReading()
 

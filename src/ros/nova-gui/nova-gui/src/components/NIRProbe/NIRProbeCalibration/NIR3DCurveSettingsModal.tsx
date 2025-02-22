@@ -13,6 +13,7 @@ export interface NIRCalibrationSettingsModalProps {
 
 /**
  * Settings modal for the NIR Calibration Curve 3D visualisation.
+ * Sets the min/max x/y values of the calibration curve
  * @param isOpen whether or not the modal is open
  * @param setIsOpen function to set the isOpen value
  * @constructor

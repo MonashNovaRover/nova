@@ -14,6 +14,11 @@ import NIRCalibrationSettingsModal from "./NIRCalibrationSettingsModal.tsx";
 export interface NIRProbeFileTableWidgetProps extends CardProps {
 }
 
+/**
+ * Widget containing the saved NIR Probe readings and the averages
+ * @param cardProps
+ * @constructor
+ */
 const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
   ...cardProps
 }) => {

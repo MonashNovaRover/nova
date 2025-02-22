@@ -19,6 +19,10 @@ import {useAbsorbance} from "../NIRProbeCalibration/NIRCalibration.ts";
 export interface NIRProbeFileTableProps extends CardProps {
 }
 
+/**
+ * Table containing all recorded NIR Probe readings
+ * @constructor
+ */
 const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = () => {
 
   // NIR Probe readings data corresponding to the currently selected site.
