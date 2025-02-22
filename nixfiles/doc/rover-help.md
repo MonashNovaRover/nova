@@ -35,14 +35,15 @@ Try the 'launch-drive' alias, otherwise use the command below.
 Launch the following on the metabox.
 
 In one terminal:
-1. Try the 'nova-shell' alias otherwise: nova-shell -A pkgs.ros.nova-gui
-2. Try the 'gui' alias otherwise: cd ~/nova/src/../src/ros/nova-gui
-3. cd nova-gui
-4. yarn dev
+1. Try the 'gui-shell' alias otherwise:
+     nova-shell -A pkgs.ros.nova-gui
+3. Try the 'gui' alias otherwise:
+     cd ~/nova/src/ros/nova-gui/nova-gui
+5. yarn install
+6. yarn dev
 
 In another terminal:
-1. Try the 'nova-shell' alias otherwise: nova-shell -A pkgs.ros.nova-gui
-2. Try the 'rosbridge' alias otherwise: 
+1. Try the 'gui-rosbridge' alias otherwise: 
     ros2 launch rosbridge_server rosbridge_websocket_launch.xml
 
 =========================
