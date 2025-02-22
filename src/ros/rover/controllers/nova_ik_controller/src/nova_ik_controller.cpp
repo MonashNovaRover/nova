@@ -58,6 +58,8 @@ namespace nova_ik_controller
   {
     std::vector<std::string> conf_names;
 
+    // TODO: Add state interfaces for setting the initial twistmapper position
+
     return {interface_configuration_type::INDIVIDUAL, conf_names};
   }
 
@@ -114,9 +116,9 @@ namespace nova_ik_controller
     // TODO: insert correct subscriber here
     teleop_sub = node.create_subscription<tf2_msgs::msg::TFMessage>("aaaa", rclcpp::SystemDefaultsQoS(), std::bind(&NovaIKController::teleop_callback, this, _1));
 
-      previous_update_timestamp_ = node.get_clock()->now();
-      return controller_interface::CallbackReturn::SUCCESS;
-    }
+    previous_update_timestamp_ = node.get_clock()->now();
+    return controller_interface::CallbackReturn::SUCCESS;
+  }
 
   controller_interface::CallbackReturn NovaIKController::on_activate(
       const rclcpp_lifecycle::State &)

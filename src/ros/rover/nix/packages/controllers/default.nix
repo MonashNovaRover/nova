@@ -7,5 +7,5 @@ with pkgs;
   nova-strafe-controller = callPackage ./strafe-controller { };
   nova-diff-drive-controller = callPackage ./nova-diff-drive-controller { };
   nova-arm-controller = callPackage ./nova-arm-controller { };
-  # nova-ik-controller = callPackage ./nova-ik-controller { };
+  nova-ik-controller = callPackage ./nova-ik-controller { };
 }

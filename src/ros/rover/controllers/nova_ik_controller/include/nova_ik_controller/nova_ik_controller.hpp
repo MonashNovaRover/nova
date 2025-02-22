@@ -31,111 +31,119 @@
 
 namespace nova_ik_controller
 {
-  class NovaIKController : public controller_interface::ControllerInterface
+class NovaIKController : public controller_interface::ControllerInterface
+{
+public:
+  NovaIKController();
+
+  controller_interface::InterfaceConfiguration command_interface_configuration() const override;
+
+  controller_interface::InterfaceConfiguration state_interface_configuration() const override;
+
+  controller_interface::return_type update(
+    const rclcpp::Time &time, const rclcpp::Duration &period) override;
+
+  controller_interface::CallbackReturn on_init() override;
+
+  controller_interface::CallbackReturn on_configure(
+    const rclcpp_lifecycle::State &previous_state) override;
+
+  // TODO: Reset twistmapper output pose to state interface reported positions
+  controller_interface::CallbackReturn on_activate(
+    const rclcpp_lifecycle::State &previous_state) override;
+
+  controller_interface::CallbackReturn on_deactivate(
+    const rclcpp_lifecycle::State &previous_state) override;
+
+  controller_interface::CallbackReturn on_cleanup(
+    const rclcpp_lifecycle::State &previous_state) override;
+
+  controller_interface::CallbackReturn on_error(
+    const rclcpp_lifecycle::State &previous_state) override;
+
+  controller_interface::CallbackReturn on_shutdown(
+    const rclcpp_lifecycle::State &previous_state) override;
+
+  /// @brief Calculates the IK given a frame, pose and set of lengths.
+  /// @brief See Keenan's IK notes.
+  /// @param frame is ???
+  /// @param pose is a struct combining a position (x,y,z) and a quaternion (x,y,z,w).
+  /// @param Lengths are [fill this].
+  /// @returns an array of joint angles in joint space for each of J1 through J6, through joints.
+  void calculate_ik(tf2_msgs::msg::TFMessage frame, geometry_msgs::msg::Pose pose, const double lengths[3], double joints[6]);
+
+  // Helper functions to cut down on code reuse. Gets sin/cos/tan from degrees instead of radians.
+  tf2Scalar sind(tf2Scalar angle) const { return tf2Sin(tf2Radians(angle)); }
+  tf2Scalar cosd(tf2Scalar angle) const { return tf2Cos(tf2Radians(angle)); }
+  tf2Scalar tand(tf2Scalar angle) const { return tf2Tan(tf2Radians(angle)); }
+
+  // substitutes values into our DH table.
+  // see: https://www.notion.so/Inverse-Kinematics-ddfe35179c1f4959850bd28b2195be8a
+  // equivalent line: DHs = [cos(the) -sin(the) 0 a; sin(the)*cos(alp) cos(the)*cos(alp) -sin(alp) -sin(alp)*d; sin(the)*sin(alp) cos(the)*sin(alp) cos(alp) cos(alp)*d; 0 0 0 1];
+  Eigen::Matrix4d sub_dh(double alp, double a, double d, double the) const
   {
-  public:
-    NovaIKController();
+    return Eigen::Matrix4d {
+      { cos(the), 			-sin(the), 			0, 			a },
+      { sin(the)*cos(alp),	cos(the)*cos(alp), 	-sin(alp), 	-sin(alp)*d },
+      { sin(the)*sin(alp),	cos(the)*sin(alp),	cos(alp),	cos(alp)*d },
+      { 0,					0,					0,			1 }
+    };
+  }
 
-    controller_interface::InterfaceConfiguration command_interface_configuration() const override;
-
-    controller_interface::InterfaceConfiguration state_interface_configuration() const override;
-
-    controller_interface::return_type update(
-        const rclcpp::Time &time, const rclcpp::Duration &period) override;
-
-    controller_interface::CallbackReturn on_init() override;
-
-    controller_interface::CallbackReturn on_configure(
-        const rclcpp_lifecycle::State &previous_state) override;
-
-    controller_interface::CallbackReturn on_activate(
-        const rclcpp_lifecycle::State &previous_state) override;
-
-    controller_interface::CallbackReturn on_deactivate(
-        const rclcpp_lifecycle::State &previous_state) override;
-
-    controller_interface::CallbackReturn on_cleanup(
-        const rclcpp_lifecycle::State &previous_state) override;
-
-    controller_interface::CallbackReturn on_error(
-        const rclcpp_lifecycle::State &previous_state) override;
-
-    controller_interface::CallbackReturn on_shutdown(
-        const rclcpp_lifecycle::State &previous_state) override;
-	
-
-	/// @brief Calculates the IK given a frame, pose and set of lengths.
-	/// @brief See Keenan's IK notes.
-	/// @param frame is ???
-	/// @param pose is a struct combining a position (x,y,z) and a quaternion (x,y,z,w).
-	/// @param Lengths are [fill this].
-	/// @returns an array of joint angles in joint space for each of J1 through J6, through joints.
-	void calculate_ik(tf2_msgs::msg::TFMessage frame, geometry_msgs::msg::Pose pose, const double lengths[3], double joints[6]);
-	
-	// Helper functions to cut down on code reuse. Gets sin/cos/tan from degrees instead of radians.
-	tf2Scalar sind(tf2Scalar angle) const { return tf2Sin(tf2Radians(angle)); }
-	tf2Scalar cosd(tf2Scalar angle) const { return tf2Cos(tf2Radians(angle)); }
-	tf2Scalar tand(tf2Scalar angle) const { return tf2Tan(tf2Radians(angle)); }
-	
-	// substitutes values into our DH table.
-	// see: https://www.notion.so/Inverse-Kinematics-ddfe35179c1f4959850bd28b2195be8a
-	// equivalent line: DHs = [cos(the) -sin(the) 0 a; sin(the)*cos(alp) cos(the)*cos(alp) -sin(alp) -sin(alp)*d; sin(the)*sin(alp) cos(the)*sin(alp) cos(alp) cos(alp)*d; 0 0 0 1];
-	Eigen::Matrix4d sub_dh(double alp, double a, double d, double the) const
-	{
-		return Eigen::Matrix4d {
-			{ cos(the), 			-sin(the), 			0, 			a },
-			{ sin(the)*cos(alp),	cos(the)*cos(alp), 	-sin(alp), 	-sin(alp)*d },
-			{ sin(the)*sin(alp),	cos(the)*sin(alp),	cos(alp),	cos(alp)*d },
-			{ 0,					0,					0,			1 }
-		};
-	}
-
-	void teleop_callback(tf2_msgs::msg::TFMessage msg);
+  void teleop_callback(tf2_msgs::msg::TFMessage msg);
 
 protected:
-	struct JointHandle
-	{
-		std::string name;
-		std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
-		// SpeedLimiter speed_limiter;
-		// float target_direction = 0.0;
-		// float best_effort_rotational_velocity = 0.0;
-		// store per joint odometry here maybe?
-	};
+  struct JointHandle
+  {
+    std::string name;
+    std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
+    // TODO: Add state interfaces to be used by the twistmapper for resetting on activation (or after activation upon receiving the first bit of meaningful data)
+    // SpeedLimiter speed_limiter;
+    // float target_direction = 0.0;
+    // float best_effort_rotational_velocity = 0.0;
+    // store per joint odometry here maybe?
+  };
 
-	// Helpers
-	std::string joint_to_command_interface_name(const std::string& joint_name) const;
-	
-	rclcpp::Node node;
+  controller_interface::CallbackReturn configure_joints(
+    const std::vector<std::string> &joint_names,
+    std::vector<JointHandle> &registered_handles);
 
-	// TODO: change this message when we get one
-	rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr teleop_sub;
+  // Helpers
+  std::string joint_to_command_interface_name(const std::string& joint_name) const;
 
-	controller_interface::CallbackReturn configure_joints(
-			const std::vector<std::string> &joint_names,
-			std::vector<JointHandle> &registered_handles);
+  rclcpp::Node node;
 
-	const char *joint_feedback_type() const;
+  // TODO: change this message when we get one
+  rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr teleop_sub;
 
-	std::vector<JointHandle> registered_joint_handles_;
+  std::vector<JointHandle> registered_joint_handles_;
 
-	// Parameters from ROS for nova_diff_drive_controller
-	std::shared_ptr<ParamListener> param_listener_;
-	Params params_;
+  // Parameters from ROS for nova_diff_drive_controller
+  std::shared_ptr<ParamListener> param_listener_;
+  Params params_;
 
-	// Timeout to consider cmd_vel commands old
-	std::chrono::milliseconds cmd_vel_timeout_{500};
-	bool subscriber_is_active_ = false; // not sure what this is for yet
-	rclcpp::Time previous_update_timestamp_{0};
+  // Twistmapper
+  // TODO: Add a twist message input
+  // TODO: Initialize twist stamped topic and write callback
+  // TODO: Twist state, in the appropriate container, set by the topic callback, and used in integration
+  // TODO: Pose state
+  // TODO: Timeout and halt for safety!
 
-	// publish rate limiter
-	double publish_rate_ = 50.0;
-	rclcpp::Duration publish_period_ = rclcpp::Duration::from_nanoseconds(0);
-	rclcpp::Time previous_publish_timestamp_{0, 0, RCL_CLOCK_UNINITIALIZED};
-	bool is_halted = false;
-	bool reset();
-	void halt();
+  // TODO: Implement
+  void update_twistmapper(const rclcpp::Time &time, const rclcpp::Duration &period);
 
+  // Timeout to consider cmd_vel commands old
+  std::chrono::milliseconds cmd_vel_timeout_{500};
+  bool subscriber_is_active_ = false; // not sure what this is for yet
+  rclcpp::Time previous_update_timestamp_{0};
+
+  // publish rate limiter
+  double publish_rate_ = 50.0;
+  rclcpp::Duration publish_period_ = rclcpp::Duration::from_nanoseconds(0);
+  rclcpp::Time previous_publish_timestamp_{0, 0, RCL_CLOCK_UNINITIALIZED};
+  bool is_halted = false;
+  bool reset();
+  void halt();
 };
 } // namespace nova_ik_controller
 #endif // NOVA_IK_CONTROLLER__NOVA_IK_CONTROLLER_HPP_
