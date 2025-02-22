@@ -1,4 +1,9 @@
 nova_ik_controller:
+  chained_controller_name: {
+    type: string,
+    default_value: "nova_arm_controller",
+    description: "The name of the chainable controller to capture reference interfaces from. Leave empty to use hardware interfaces."
+  }
   joint_names: {
     type: string_array,
     default_value: [],

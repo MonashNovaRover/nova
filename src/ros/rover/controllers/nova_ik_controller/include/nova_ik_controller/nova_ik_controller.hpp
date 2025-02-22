@@ -25,7 +25,9 @@
 #include "nova_ik_controller/speed_limiter.hpp"
 #include <Eigen/Dense>
 
-//#include "nova_ik_controller_parameters.hpp"
+// To test in development, run from the root nova_ik_controller dir:
+// generate_parameter_library_cpp include/nova_ik_controller/nova_ik_controller_parameters.hpp src/nova_ik_controller_parameter.yaml
+#include "nova_ik_controller_parameters.hpp"
 
 namespace nova_ik_controller
 {
@@ -90,49 +92,50 @@ namespace nova_ik_controller
 
 	void teleop_callback(tf2_msgs::msg::TFMessage msg);
 
-  protected:
-    struct JointHandle
-    {
-      std::string name;
-      std::reference_wrapper<const hardware_interface::LoanedStateInterface> state;
-      std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
-      SpeedLimiter speed_limiter;
-      float target_direction = 0.0;
-      float best_effort_rotational_velocity = 0.0;
-      // store per joint odometry here maybe?
-    };
+protected:
+	struct JointHandle
+	{
+		std::string name;
+		std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
+		// SpeedLimiter speed_limiter;
+		// float target_direction = 0.0;
+		// float best_effort_rotational_velocity = 0.0;
+		// store per joint odometry here maybe?
+	};
+
+	// Helpers
+	std::string joint_to_command_interface_name(const std::string& joint_name) const;
 	
 	rclcpp::Node node;
 
 	// TODO: change this message when we get one
 	rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr teleop_sub;
 
-    controller_interface::CallbackReturn configure_joints(
-        const std::vector<std::string> &joint_names,
-        std::vector<JointHandle> &registered_handles, const char *feedback_type);
+	controller_interface::CallbackReturn configure_joints(
+			const std::vector<std::string> &joint_names,
+			std::vector<JointHandle> &registered_handles);
 
-    const char *joint_feedback_type() const;
+	const char *joint_feedback_type() const;
 
-    std::vector<JointHandle> registered_joint_handles_;
+	std::vector<JointHandle> registered_joint_handles_;
 
-    // Parameters from ROS for nova_diff_drive_controller
-    // TODO add them back
-	//std::shared_ptr<ParamListener> param_listener_;
-    //`;Params params_;
+	// Parameters from ROS for nova_diff_drive_controller
+	std::shared_ptr<ParamListener> param_listener_;
+	Params params_;
 
-    // Timeout to consider cmd_vel commands old
-    std::chrono::milliseconds cmd_vel_timeout_{500};
-    bool subscriber_is_active_ = false; // not sure what this is for yet
-    rclcpp::Time previous_update_timestamp_{0};
+	// Timeout to consider cmd_vel commands old
+	std::chrono::milliseconds cmd_vel_timeout_{500};
+	bool subscriber_is_active_ = false; // not sure what this is for yet
+	rclcpp::Time previous_update_timestamp_{0};
 
-    // publish rate limiter
-    double publish_rate_ = 50.0;
-    rclcpp::Duration publish_period_ = rclcpp::Duration::from_nanoseconds(0);
-    rclcpp::Time previous_publish_timestamp_{0, 0, RCL_CLOCK_UNINITIALIZED};
-    bool is_halted = false;
-    bool reset();
-    void halt();
+	// publish rate limiter
+	double publish_rate_ = 50.0;
+	rclcpp::Duration publish_period_ = rclcpp::Duration::from_nanoseconds(0);
+	rclcpp::Time previous_publish_timestamp_{0, 0, RCL_CLOCK_UNINITIALIZED};
+	bool is_halted = false;
+	bool reset();
+	void halt();
 
-  };
+};
 } // namespace nova_ik_controller
 #endif // NOVA_IK_CONTROLLER__NOVA_IK_CONTROLLER_HPP_
