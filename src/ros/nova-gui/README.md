@@ -75,6 +75,8 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    nova-shell -A env.nova-gui
 
    # or (currently working better) for dev dependencies
+   gui-shell 
+   # alias for:
    nova-shell -A pkgs.ros.nova-gui
    ```
 
@@ -112,6 +114,8 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    
    ```sh
    # Run with dev dependencies
+   gui-link
+   # alias for
    ln -sf "$ROS_TS_DEFINITIONS" src/ros/rosTypes.ts
    ```
    
@@ -125,6 +129,8 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
 
    ```sh
    # Run with runtime dependencies
+   rosbridge
+   # alias for
    ros2 launch rosbridge_server rosbridge_websocket_launch.xml
    ```
 
