@@ -36,7 +36,7 @@ Launch the following on the metabox.
 
 In one terminal:
 1. Try the 'nova-shell' alias otherwise: nova-shell -A pkgs.ros.nova-gui
-2. Try the 'gui' alias otherwise: /src/ros/nova-gui
+2. Try the 'gui' alias otherwise: cd ~/nova/src/../src/ros/nova-gui
 3. cd nova-gui
 4. yarn dev
 
