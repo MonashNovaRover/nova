@@ -14,7 +14,7 @@
 
 /**
  * @brief Action node for saving cube poses to a file. Intended to be used with a
- * Delay or RateController decorator to update the file periodically.
+ * RateController decorator to update the file periodically.
  * 
  * @authors Terry Tian
  */
