@@ -7,47 +7,111 @@ controller_manager:
     use_sim_time: false
 
     nova_arm_controller:
-      type: velocity_controllers/NovaArmController
+      type: nova_arm_controller/NovaArmController
 
-    arm_pivot_velocity_controller:
+    wheel_velocity_controller:
       type: velocity_controllers/JointGroupVelocityController
 
-    arm_pivot_position_controller:
+    pivot_position_controller:
       type: position_controllers/JointGroupPositionController
 
-    arm_pivot_joint_trajectory_controller:
+    pivot_joint_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
-arm_pivot_velocity_controller:
+    pivot_drive_controller:
+      type: pivot_drive_controller/PivotDriveController
+
+    strafe_controller:
+      type: strafe_controller/StrafeController
+
+    nova_diff_drive_controller:
+      type: nova_diff_drive_controller/NovaDiffDriveController
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+nova_arm_controller:
+  ros__parameters:
+    joint_names:
+      - J1
+      - J2
+      - J3
+      - J4
+      - J5
+      - J6
+
+    command_interfaces: ["velocity"]
+    state_interfaces: ["position", "velocity"]
+    use_position_control: False
+
+wheel_velocity_controller:
   ros__parameters:
     joints:
-      - J1_gbp_chassis
-      - J2_l1a_bp
-      - J3_l2b_bp
-      - l1b_bp
-      - l1b_tp
-      - l1a_tp
-      - wrist_pitch
-      - wrist_yaw
-      - wrist_roll
-      - rf_slide
-      - lf_slide
-      - actuator_head
+      - flw
+      - blw
+      - brw
+      - frw
 
-arm_pivot_position_controller:
+pivot_position_controller:
   ros__parameters:
     joints:
-      - J1_gbp_chassis
-      - J2_l1a_bp
-      - J3_l2b_bp
-      - l1b_bp
-      - l1b_tp
-      - l1a_tp
-      - wrist_pitch
-      - wrist_yaw
-      - wrist_roll
-      - rf_slide
-      - lf_slide
-      - actuator_head
+      - flp
+      - blp
+      - brp
+      - frp
 
+joint_state_broadcaster:
+  ros__parameters:
+    interfaces:
+      ["position",
+       "velocity"]
+
+    joints:
+      ["blp", "brp", "flp", "frp",
+       "blw", "brw", "flw", "frw",
+       "J1", "J2", "J3", "J4", "J5", "J6"]
+
+    use_local_topics: false
+
+pivot_drive_controller:
+  ros__parameters:
+    enable_twist_cmd: true
+    left_drive_names: ["flw", "blw"]
+    right_drive_names: ["frw", "brw"]
+    left_pivot_names: ["flp", "blp"]
+    right_pivot_names: ["frp", "brp"]
+    open_loop: false
+    has_velocity_limits: true
+    has_acceleration_limits: true
+    max_velocity: 2.794144
+    min_velocity: -2.794144
+    max_acceleration: 0.1
+    min_acceleration: -0.1
+    twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+
+strafe_controller:
+  ros__parameters:
+    enable_twist_cmd: true
+    left_drive_names: ["flw", "blw"]
+    right_drive_names: ["frw", "brw"]
+    left_pivot_names: ["flp", "blp"]
+    right_pivot_names: ["frp", "brp"]
+    open_loop: true
+    max_acceleration: 5.0
+
+nova_diff_drive_controller:
+  ros__parameters:
+    enable_twist_cmd: true
+    left_drive_names: ["flw", "blw"]
+    right_drive_names: ["frw", "brw"]
+    left_pivot_names: ["flp", "blp"]
+    right_pivot_names: ["frp", "brp"]
+    wheels_per_side: 2
+    steering_track: 0.65274049 # Shortest distance between the left and right wheels. If this parameter is wrong, the robot will not behave correctly in curves. NEEDS TO BE CHANGED
+    wheel_base: 0.64565131
+    wheel_radius: 0.15692321
+    linear:
+      x:
+        max_acceleration: 5.0
+    twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 

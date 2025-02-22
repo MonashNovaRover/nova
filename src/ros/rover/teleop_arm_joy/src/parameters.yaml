@@ -31,12 +31,12 @@ teleop_arm_joy:
   joint_definitions:
     type: string_array
     default_value: [
-      "j1",
-      "j2",
-      "j3",
-      "j4",
-      "j5",
-      "j6"
+      "J1",
+      "J2",
+      "J3",
+      "J4",
+      "J5",
+      "J6"
     ]
     description: "The set of joints to send commands for. Must be a subset of axis_definitions (for each joint added 
     here, include an axis of the same name)."
@@ -51,12 +51,12 @@ teleop_arm_joy:
   axis_definitions:
     type: string_array
     default_value: [
-      "j1",
-      "j2",
-      "j3",
-      "j4",
-      "j5",
-      "j6",
+      "J1",
+      "J2",
+      "J3",
+      "J4",
+      "J5",
+      "J6",
       "speed",
       "offset"
     ]

@@ -216,9 +216,14 @@ std::optional<T> BLCMDHardware::get_config(BLCMDConfigCommand command) {
                 return std::optional(config_value);
             }
         } catch (std::exception &e) {
+            RCLCPP_ERROR(rclcpp::get_logger(BLCMDHardwareLoggerName), "Failed to get BLCMD config with error: %s",
+                         e.what());
             return std::nullopt;
         }
     }
+
+    RCLCPP_ERROR(rclcpp::get_logger(BLCMDHardwareLoggerName), "Failed to get BLCMD config, as the received frame ID wasn't config data.");
+
     return std::nullopt;
 }
 
