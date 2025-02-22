@@ -84,7 +84,9 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
 
    You must be in the nova-gui directory to install the correct packages and run nova-gui. If your nova-gui directory is in the standard location, you may run the command.
    ```sh
-   cd src/ros/nova-gui/nova-gui
+   gui
+   # alias for:
+   cd ~/nova/src/ros/nova-gui/nova-gui
    ```
    
    > If your nova-gui directory is in a non-standard
@@ -129,7 +131,7 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
 
    ```sh
    # Run with runtime dependencies
-   rosbridge
+   gui-rosbridge
    # alias for
    ros2 launch rosbridge_server rosbridge_websocket_launch.xml
    ```
