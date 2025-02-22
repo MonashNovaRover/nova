@@ -185,14 +185,17 @@ namespace nova_behavior_tree
         }
 
         // update filter
-        filter_.push(detections);
-        int front = filter_.front();
-        filter_.pop();
-
-        for (size_t i = 4; i > 0; i--)
+        if (!filter.empty())
         {
-            filter_detections_count_[i] -= front & 1;
-            front >>= 1;
+            filter_.push(detections);
+            int front = filter_.front();
+            filter_.pop();
+
+            for (size_t i = 4; i > 0; i--)
+            {
+                filter_detections_count_[i] -= front & 1;
+                front >>= 1;
+            }
         }
 
         if (cube_id != -1)
