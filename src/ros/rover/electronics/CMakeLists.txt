@@ -63,6 +63,7 @@ install(PROGRAMS
   electronics/LED_transmitter.py
   electronics/dgps/base_gps_sub.py
   electronics/dgps/gps_publisher.py
+  electronics/battery_state.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
