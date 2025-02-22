@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Samsung Research America
+// Copyright (c) 2021 Samsung ReseCh America
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,34 +15,20 @@
 #include <string>
 #include <memory>
 #include <limits>
+#include <sstream>
+#include <vector>
 
 #include "nav_msgs/msg/path.hpp"
 #include "nav2_util/geometry_utils.hpp"
 #include "rclcpp/logging.hpp"
 
-#include "tf2/utils.h"      
-#include <cmath>
-
-#include "nova_behavior_tree/remove_passed_goals_and_ar_tags_action.hpp"
+#include "nova_behavior_tree/remove_passed_goals_and_cubes_action.hpp"
 #include "nova_behavior_tree/utils.hpp"
 
 namespace nova_behavior_tree
 {
 
-    // Small helper to replicate angles::shortest_angular_distance
-    inline double shortestAngularDistance(double from, double to)
-    {
-    // Normalizes the difference into (-π, +π]
-    double angle = std::fmod(to - from, 2.0 * M_PI);
-    if (angle > M_PI) {
-        angle -= 2.0 * M_PI;
-    } else if (angle <= -M_PI) {
-        angle += 2.0 * M_PI;
-    }
-    return angle;
-    }
-
-    RemovePassedGoalsAndARTagsAction::RemovePassedGoalsAndARTagsAction(
+    RemovePassedGoalsAndCubesAction::RemovePassedGoalsAndCubesAction(
         const std::string & name,
         const BT::NodeConfiguration & conf)
         : BT::ActionNodeBase(name, conf),
@@ -50,10 +36,10 @@ namespace nova_behavior_tree
     {
     }
 
-    void RemovePassedGoalsAndARTagsAction::initialize()
+    void RemovePassedGoalsAndCubesAction::initialize()
     {
         getInput("radius", viapoint_achieved_radius_);
-        getInput("tag_tolerance", tag_tolerance_);
+        getInput("cube_tolerance", cube_tolerance_);
 
         tf_ = config().blackboard->get<std::shared_ptr<tf2_ros::Buffer>>("tf_buffer");
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
@@ -62,7 +48,7 @@ namespace nova_behavior_tree
         node_, "robot_base_frame", this);
     }
 
-    inline BT::NodeStatus RemovePassedGoalsAndARTagsAction::tick()
+    inline BT::NodeStatus RemovePassedGoalsAndCubesAction::tick()
     {
         if (!BT::isStatusActive(status())) 
         {
@@ -89,12 +75,9 @@ namespace nova_behavior_tree
         }
 
         double dist_to_goal;
-        double dist_to_tag;
-        geometry_msgs::msg::PoseStamped tag;
-        getInput("input_goal", tag);
-
-        // Define orientation tolerance (~14 degrees)
-        double yaw_goal_tolerance = 0.25;  // radians
+        double dist_to_cube;
+        geometry_msgs::msg::PoseStamped cube;
+        getInput("input_goal", cube);
 
         while (goal_poses.size() > 1) 
         {
@@ -105,40 +88,22 @@ namespace nova_behavior_tree
                 break;
             }
 
+            dist_to_cube = euclidean_distance(goal_poses[0].pose, cube.pose);
 
-            // Orientation check
-            double current_yaw = tf2::getYaw(current_pose.pose.orientation);
-            double goal_yaw = tf2::getYaw(goal_poses[0].pose.orientation);
-
-            // Use our custom function instead of angles::shortest_angular_distance
-            double dyaw = shortestAngularDistance(current_yaw, goal_yaw);
-
-            if (std::fabs(dyaw) > yaw_goal_tolerance) 
+            if (dist_to_cube < cube_tolerance_) 
             {
-                // Orientation mismatch, break
-                break;
-            }
-
-            dist_to_tag = euclidean_distance(goal_poses[0].pose, tag.pose);
-
-            if (dist_to_tag < tag_tolerance_) 
-            {
-                IDs seen_ids;
-                getInput("seen_ids", seen_ids);                
                 int id;
                 getInput("id", id);
 
-                RCLCPP_INFO(
-                    node_->get_logger(), "New ID %i being added to seen_ids: %s",
-                    id, utils::vectorToString<int>(seen_ids).c_str()
-                );
+                RCLCPP_INFO(node_->get_logger(), "New cube visited: %s", COLORS[id].c_str());
 
-                seen_ids.push_back(id);
-                setOutput("seen_ids", seen_ids);
+                visited_ids_[id] = true;
+                setOutput("visited_ids", visited_ids_);
+                visited_colors_.push_back(COLORS[id]);
 
                 RCLCPP_INFO(
-                    node_->get_logger(), "seen_ids: %s",
-                    utils::vectorToString<int>(seen_ids).c_str()
+                    node_->get_logger(), "Visited cubes: %s",
+                    utils::vectorToString<std::string>(visited_colors_).c_str()
                 );
             }
 
@@ -155,5 +120,5 @@ namespace nova_behavior_tree
 #include "behaviortree_cpp/bt_factory.h"
 BT_REGISTER_NODES(factory)
 {
-  factory.registerNodeType<nova_behavior_tree::RemovePassedGoalsAndARTagsAction>("RemovePassedGoalsAndARTags");
+  factory.registerNodeType<nova_behavior_tree::RemovePassedGoalsAndCubesAction>("RemovePassedGoalsAndCubes");
 }

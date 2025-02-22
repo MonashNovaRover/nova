@@ -21,12 +21,12 @@
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "rclcpp/logging.hpp"
 
-#include "nova_behavior_tree/update_ar_tag_goal_action.hpp"
+#include "nova_behavior_tree/update_goal_action.hpp"
 
 namespace nova_behavior_tree
 {
 
-    UpdateARTagGoalAction::UpdateARTagGoalAction(
+    UpdateGoalAction::UpdateGoalAction(
     const std::string & name,
     const BT::NodeConfiguration & conf)
     : BT::ActionNodeBase(name, conf),
@@ -34,13 +34,14 @@ namespace nova_behavior_tree
     {
     }
 
-    void UpdateARTagGoalAction::initialize()
+    void UpdateGoalAction::initialize()
     {
         getInput("radius", viapoint_overwrite_tolerance_);
+        getInput("goal_type", goal_type_);
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
     }
 
-    inline BT::NodeStatus UpdateARTagGoalAction::tick()
+    inline BT::NodeStatus UpdateGoalAction::tick()
     {
         if (!BT::isStatusActive(status())) 
         {
@@ -63,12 +64,12 @@ namespace nova_behavior_tree
         if (dist_between_goals < viapoint_overwrite_tolerance_) 
         {
             goal_poses[0].pose = goal.pose;
-            RCLCPP_INFO(node_->get_logger(), "Updating existing AR tag goal");
+            RCLCPP_INFO(node_->get_logger(), "Updating existing %s goal", goal_type_.c_str());
         }
         else 
         {
             goal_poses.insert(goal_poses.begin(), goal);
-            RCLCPP_INFO(node_->get_logger(), "Inserting new AR tag goal");
+            RCLCPP_INFO(node_->get_logger(), "Inserting new %s goal", goal_type_.c_str());
         }
 
         setOutput("output_goals", goal_poses);
@@ -81,5 +82,5 @@ namespace nova_behavior_tree
 #include "behaviortree_cpp/bt_factory.h"
 BT_REGISTER_NODES(factory)
 {
-  factory.registerNodeType<nova_behavior_tree::UpdateARTagGoalAction>("UpdateARTagGoal");
+  factory.registerNodeType<nova_behavior_tree::UpdateGoalAction>("UpdateGoal");
 }

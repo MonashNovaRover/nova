@@ -23,65 +23,64 @@
 #include <geometry_msgs/msg/quaternion.hpp>
 #include <rclcpp/logging.hpp>
 
-namespace nova_behavior_tree
+namespace nova_behavior_tree::utils::nav2
 {
 
-    using namespace geometry_msgs::msg;
+  using namespace geometry_msgs::msg;
 
-    std::string poseStampedToString(const PoseStamped &pose)
-    {
-        std::ostringstream oss;
-        oss << "\nPoseStamped:\n"
-            << "  Header:\n"
-            << "    frame_id: " << pose.header.frame_id.c_str() << "\n"
-            << "    stamp: " << pose.header.stamp.sec << "." << pose.header.stamp.nanosec << "\n"
-            << "  Pose:\n"
-            << "    position: " << "[x: " << pose.pose.position.x 
-                                << ", y: " << pose.pose.position.y 
-                                << ", z: " << pose.pose.position.z << "]\n"
-            << "    orientation: " << "[x: " << pose.pose.orientation.x 
-                                   << ", y: " << pose.pose.orientation.y 
-                                   << ", z: " << pose.pose.orientation.z 
-                                   << ", w: " << pose.pose.orientation.w << "]\n";
-        
-        return oss.str();
-    }
+  std::string poseStampedToString(const PoseStamped &pose)
+  {
+    std::ostringstream oss;
+    oss << "\nPoseStamped:\n"
+        << "  Header:\n"
+        << "    frame_id: " << pose.header.frame_id.c_str() << "\n"
+        << "    stamp: " << pose.header.stamp.sec << "." << pose.header.stamp.nanosec << "\n"
+        << "  Pose:\n"
+        << "    position: " << "[x: " << pose.pose.position.x
+        << ", y: " << pose.pose.position.y
+        << ", z: " << pose.pose.position.z << "]\n"
+        << "    orientation: " << "[x: " << pose.pose.orientation.x
+        << ", y: " << pose.pose.orientation.y
+        << ", z: " << pose.pose.orientation.z
+        << ", w: " << pose.pose.orientation.w << "]\n";
 
-    Quaternion eulerToQuaternion(double roll, double pitch, double yaw)
-    {
-        double cr = cos(roll * 0.5);
-        double sr = sin(roll * 0.5);
-        double cp = cos(pitch * 0.5);
-        double sp = sin(pitch * 0.5);
-        double cy = cos(yaw * 0.5);
-        double sy = sin(yaw * 0.5);
+    return oss.str();
+  }
 
-        Quaternion q;
-        q.w = cr * cp * cy + sr * sp * sy;
-        q.x = sr * cp * cy - cr * sp * sy;
-        q.y = cr * sp * cy + sr * cp * sy;
-        q.z = cr * cp * sy - sr * sp * cy;
+  Quaternion eulerToQuaternion(double roll, double pitch, double yaw)
+  {
+    double cr = cos(roll * 0.5);
+    double sr = sin(roll * 0.5);
+    double cp = cos(pitch * 0.5);
+    double sp = sin(pitch * 0.5);
+    double cy = cos(yaw * 0.5);
+    double sy = sin(yaw * 0.5);
 
-        return q;
-    }
+    Quaternion q;
+    q.w = cr * cp * cy + sr * sp * sy;
+    q.x = sr * cp * cy - cr * sp * sy;
+    q.y = cr * sp * cy + sr * cp * sy;
+    q.z = cr * cp * sy - sr * sp * cy;
 
-    PoseStamped poseStampedFromGzPose(
-        const std::string &frame_id, rclcpp::Node::SharedPtr node, // to get current time
-        const double x,const double y, const double z,
-        const double roll, const double pitch, const double yaw
-    )
-    {
-        PoseStamped pose;
-        pose.header.frame_id = frame_id;
-        pose.header.stamp = node->now();
-        pose.pose.position.x = x;
-        pose.pose.position.y = y;
-        pose.pose.position.z = z;
-        pose.pose.orientation = eulerToQuaternion(roll, pitch, yaw);
+    return q;
+  }
 
-        return pose;
-    }
+  PoseStamped poseStampedFromGzPose(
+      const std::string &frame_id, rclcpp::Node::SharedPtr node, // to get current time
+      const double x, const double y, const double z,
+      const double roll, const double pitch, const double yaw)
+  {
+    PoseStamped pose;
+    pose.header.frame_id = frame_id;
+    pose.header.stamp = node->now();
+    pose.pose.position.x = x;
+    pose.pose.position.y = y;
+    pose.pose.position.z = z;
+    pose.pose.orientation = eulerToQuaternion(roll, pitch, yaw);
 
+    return pose;
+  }
+  
 }
 
 #endif // NOVA_BEHAVIOR_TREE__NAV2_UTILS_HPP_

@@ -62,8 +62,6 @@ private:
   void halt() override {}
   BT::NodeStatus tick() override;
 
-  std::string vectorToString(const std::vector<int>& vec);
-
   rclcpp::Node::SharedPtr node_;
 
   double viapoint_achieved_radius_;
