@@ -12,6 +12,7 @@ namespace
 {
   constexpr auto BUTTON_DEBOUNCE_INTERVAL = std::chrono::milliseconds(50);
   constexpr auto DEFAULT_FK_VELOCITY_TOPIC = "/arm_fk_velocity_target";
+  constexpr auto DEFAULT_IK_TWIST_TOPIC = "/arm_ik_twist_stamped";
 }
 
 using std::placeholders::_1;
@@ -27,6 +28,9 @@ TeleopArmJoy::TeleopArmJoy(const rclcpp::NodeOptions &options)
   // Create subscribers
   fk_velocity_pub = this->create_publisher<nova_interfaces::msg::ArmFkVelocityTargets>(
     DEFAULT_FK_VELOCITY_TOPIC, 50);
+
+  ik_twist_pub = this->create_publisher<geometry_msgs::msg::TwistStamped>(
+    DEFAULT_IK_TWIST_TOPIC, 50);
 
   // Create service clients
   switch_controller_client = this->create_client<controller_manager_msgs::srv::SwitchController>("/controller_manager/switch_controller");
@@ -176,6 +180,16 @@ void TeleopArmJoy::sendArmCommand()
   if (current_state.locked)
     return;
 
+  if (control_mode == ControlMode::FK) {
+    sendJointSpaceCommand();
+  }
+  else if (control_mode == ControlMode::IK) {
+    sendTwistCommand();
+  }
+}
+
+void TeleopArmJoy::sendJointSpaceCommand()
+{
   auto msg = std::make_unique<nova_interfaces::msg::ArmFkVelocityTargets>();
 
   msg->header.stamp = this->now();
@@ -195,6 +209,30 @@ void TeleopArmJoy::sendArmCommand()
   }
 
   fk_velocity_pub->publish(std::move(msg));
+
+}
+
+void TeleopArmJoy::sendTwistCommand() {
+  auto msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
+
+  msg->header.stamp = this->now();
+
+  const auto linear_speed = speed * params_.twist.linear_max;
+  auto linear = geometry_msgs::msg::Vector3();
+  linear.x = axes["twist_x"]->value() * linear_speed;
+  linear.y = axes["twist_y"]->value() * linear_speed;
+  linear.z = axes["twist_z"]->value() * linear_speed;
+
+  const auto angular_speed = speed * params_.twist.angular_max;
+  auto angular = geometry_msgs::msg::Vector3();
+  angular.x = axes["twist_roll" ]->value() * angular_speed;
+  angular.y = axes["twist_pitch"]->value() * angular_speed;
+  angular.z = axes["twist_yaw"  ]->value() * angular_speed;
+
+  msg->twist.linear = linear;
+  msg->twist.angular = angular;
+
+  ik_twist_pub->publish(std::move(msg));
 }
 
 void TeleopArmJoy::sendHaltCommand()
@@ -204,9 +242,9 @@ void TeleopArmJoy::sendHaltCommand()
 
   msg->header.stamp = this->now();
 
-  for (auto [joint_name, joint_config] : params_.joints.joint_definitions_map) {
+  for (const auto& [joint_name, joint_config] : params_.joints.joint_definitions_map) {
     msg->name.emplace_back(joint_name);
-    msg->velocity.emplace_back(0.5);
+    msg->velocity.emplace_back(0.0);
   }
 
   fk_velocity_pub->publish(std::move(msg));

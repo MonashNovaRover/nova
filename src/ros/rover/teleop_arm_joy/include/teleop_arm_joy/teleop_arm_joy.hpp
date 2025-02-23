@@ -88,9 +88,19 @@ namespace teleop_arm_joy
     void updateState();
 
     /**
-     * @brief Sends Commands for the arm based on joystick input.
+     * @brief Sends Commands for the arm based on joystick input, and current control mode
      */
     void sendArmCommand();
+
+    /**
+     * @brief Sends a joint space velocity commands for the arm based on joystick input.
+     */
+    void sendJointSpaceCommand();
+
+    /**
+     * @brief Sends a task space twist command for the arm based on joystick input.
+     */
+    void sendTwistCommand();
 
     /**
      * @brief Sends a halt command to stop the rover.
@@ -117,6 +127,7 @@ namespace teleop_arm_joy
     std::shared_ptr<ParamListener> param_listener_;
 
     rclcpp::Publisher<nova_interfaces::msg::ArmFkVelocityTargets>::SharedPtr fk_velocity_pub;
+    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr ik_twist_pub;
 
     std::vector<shared_ptr<JoyDevice>> devices;
     std::map<std::string, shared_ptr<JoyButton>> buttons;
