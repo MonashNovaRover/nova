@@ -91,7 +91,7 @@ public:
     };
   }
 
-  void teleop_callback(tf2_msgs::msg::TFMessage msg);
+  void teleop_callback(std::shared_ptr<geometry_msgs::msg::TwistStamped> msg);
 
 protected:
   struct JointHandle
@@ -115,7 +115,6 @@ protected:
   rclcpp::Node node;
 
   // TODO: change this message when we get one
-  rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr tf_sub;
 
   std::vector<JointHandle> registered_joint_handles_;
 
@@ -126,10 +125,9 @@ protected:
   // Twistmapper
 
   // TODO: Initialize twist stamped topic and write callback
-  // TODO: Twist state, in the appropriate container, set by the topic callback, and used in integration
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_stamped_sub;
   realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_stamped_ptr{nullptr};
-  /// Result of the twistmapper, and input to IK
+  /// Result of the twistmapper, and input to IK. Desired position and orientation of the end effector relative to the base.
   tf2::Transform _twistmapper_pose = tf2::Transform();
   /// True when initial state has been received to confirm that the value in _twistmapper_pose is safe and valid
   // TODO: Make invalid when deactivated

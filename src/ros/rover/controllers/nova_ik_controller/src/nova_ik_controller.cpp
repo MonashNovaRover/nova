@@ -13,6 +13,7 @@
 
 namespace
 {
+  constexpr auto DEFAULT_INPUT_TOPIC_END_EFFECTOR_TWIST = "/arm_ik_twist_stamped"; // TODO: changeme
 } // namespace
 
 using std::placeholders::_1;
@@ -114,7 +115,12 @@ namespace nova_ik_controller
     }
 
     // TODO: insert correct subscriber here
-    tf_sub = node.create_subscription<tf2_msgs::msg::TFMessage>("aaaa", rclcpp::SystemDefaultsQoS(), std::bind(&NovaIKController::teleop_callback, this, _1));
+    twist_stamped_sub = node.create_subscription<geometry_msgs::msg::TwistStamped>(
+      DEFAULT_INPUT_TOPIC_END_EFFECTOR_TWIST,
+      rclcpp::SystemDefaultsQoS(),
+      std::bind(&NovaIKController::teleop_callback, this, _1));
+
+
 
     previous_update_timestamp_ = node.get_clock()->now();
     return controller_interface::CallbackReturn::SUCCESS;
@@ -175,7 +181,6 @@ namespace nova_ik_controller
   }
 
   void NovaIKController::update_twistmapper(const rclcpp::Time &time, const rclcpp::Duration &period) {
-    // TODO: Implement
     std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
     received_twist_stamped_ptr.get(twist_stamped);
 
@@ -217,11 +222,17 @@ namespace nova_ik_controller
 
   void NovaIKController::halt()
   {
-    // ! Don't do this!!!! We will send the arm flying to 0,0,0,0,0,0
-    // for (const auto &joint_handle : registered_joint_handles_)
-    // {
-    //   joint_handle.command.get().set_value(0.0);
-    // }
+    // Set twistmapper velocities to 0
+    std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
+    received_twist_stamped_ptr.get(twist_stamped);
+
+    twist_stamped->twist.linear.x = 0;
+    twist_stamped->twist.linear.y = 0;
+    twist_stamped->twist.linear.z = 0;
+
+    twist_stamped->twist.angular.x = 0;
+    twist_stamped->twist.angular.y = 0;
+    twist_stamped->twist.angular.z = 0;
   }
 
   std::string NovaIKController::joint_to_command_interface_name(const std::string& joint_name) const {
@@ -343,18 +354,24 @@ namespace nova_ik_controller
     // converts all elements in new_joints from radians to degrees, then puts them into joints to be returned
     for (int i = 0; i < 6; i++)
       joints[i] = new_joints[i] / (M_PI / 180);
+  }
+
+  void NovaIKController::teleop_callback(const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg)
+  {
+    if (!subscriber_is_active_)
+    {
+      RCLCPP_WARN_ONCE(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+      return;
+    }
+    if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
+    {
+      RCLCPP_WARN_ONCE(get_node()->get_logger(),
+          "Received message with zero timestamp, setting it to current "
+          "time, this message will only be shown once");
+      msg->header.stamp = get_node()->get_clock()->now();
     }
 
-    void NovaIKController::teleop_callback(tf2_msgs::msg::TFMessage msg)
-    {
-      auto logger = node.get_logger();
-    RCLCPP_DEBUG(logger, "Message received");
-
-    // decompose the message
-
-    // send it to IK
-
-    // forward the output of IK into the FK controller
+    received_twist_stamped_ptr.set(msg);
   }
 } // namespace nova_ik_controller
 
