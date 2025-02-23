@@ -183,6 +183,11 @@ void TeleopArmJoy::sendArmCommand()
   for (const auto& [joint_name, joint_config] : params_.joints.joint_definitions_map) {
     msg->name.emplace_back(joint_name);
 
+    if (!axes.count(joint_name)) {
+      RCLCPP_WARN(this->get_logger(), "Axis for joint with name '%s' does not exist!", joint_name.c_str());
+      continue;
+    }
+
     const float input = axes[joint_name]->value();
     double velocity = static_cast<double>(input) * speed * joint_config.max_speed;
 

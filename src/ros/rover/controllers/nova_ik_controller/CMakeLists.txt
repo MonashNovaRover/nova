@@ -18,7 +18,9 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   realtime_tools
   tf2
   tf2_msgs
+  tf2_geometry_msgs
   nova_interfaces
+  Eigen3
 )
 
 find_package(ament_cmake REQUIRED)
@@ -26,6 +28,10 @@ find_package(backward_ros REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
+
+include_directories(
+	${EIGEN3_INCLUDE_DIRS}
+)
 
 generate_parameter_library(nova_ik_controller_parameters
   src/nova_ik_controller_parameter.yaml

@@ -1,9 +1,23 @@
 nova_ik_controller:
+  chained_controller_name: {
+    type: string,
+    default_value: "nova_arm_controller",
+    description: "The name of the chainable controller to capture reference interfaces from. Leave empty to use hardware interfaces."
+  }
   joint_names: {
     type: string_array,
     default_value: [],
     description: "Names of the joints in the ik. Other arrays in this config must be in the same order",
   }
+
+  # Twistmapper
+  twist_stamped_topic: {
+    type: string,
+    default_value: "/arm/ik_twist",
+    description: "The name of the topic to get teleop twist stamped messages from."
+  }
+
+  # Old, potentially unused?
   joint_position_feedback: {
     type: bool,
     default_value: true, # for the ik I dunno if we will ever not have this, maybe this option should be removed
