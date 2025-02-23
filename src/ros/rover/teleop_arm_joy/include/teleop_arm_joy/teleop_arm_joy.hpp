@@ -87,6 +87,8 @@ namespace teleop_arm_joy
      */
     void updateState();
 
+    void setControlMode(ControlMode new_control_mode);
+
     /**
      * @brief Sends Commands for the arm based on joystick input, and current control mode
      */
