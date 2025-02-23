@@ -26,7 +26,7 @@ namespace nova_ik_controller
   using controller_interface::InterfaceConfiguration;
   using lifecycle_msgs::msg::State;
 
-  NovaIKController::NovaIKController() : controller_interface::ControllerInterface(), node("ik") {}
+  NovaIKController::NovaIKController() : controller_interface::ControllerInterface(), node("nova_ik_controller") {}
 
   controller_interface::CallbackReturn NovaIKController::on_init()
   {
@@ -273,13 +273,19 @@ namespace nova_ik_controller
         command_interfaces_.begin(), command_interfaces_.end(),
         [&joint_name, &command_interface_name](const auto &interface)
         {
-          return interface.get_prefix_name() == joint_name &&
-                 interface.get_interface_name() == command_interface_name;
+          return interface.name() == command_interface_name;
         });
 
       if (command_handle == command_interfaces_.end())
       {
-        RCLCPP_ERROR(logger, "Unable to obtain joint command handle for %s", joint_name.c_str());
+        RCLCPP_ERROR(logger, "Unable to obtain joint command handle '%s' for %s", command_interface_name.c_str(), joint_name.c_str());
+
+        RCLCPP_ERROR(logger, "command_interfaces_:");
+        for (const auto& command_interface : command_interfaces_) {
+          RCLCPP_ERROR(logger, "  > interface_name: %s", command_interface.get_interface_name().c_str());
+          RCLCPP_ERROR(logger, "    prefix_name: %s", command_interface.get_prefix_name().c_str());
+          RCLCPP_ERROR(logger, "    name: %s", command_interface.get_name().c_str());
+        }
         return controller_interface::CallbackReturn::ERROR;
       }
 
