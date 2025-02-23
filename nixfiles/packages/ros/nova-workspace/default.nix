@@ -8,6 +8,7 @@
 , rqt-common-plugins
 , gdb
 , gps-umd
+, tf2-tools
 , reolink
 , ublox-dgnss
 
@@ -94,8 +95,9 @@
 
   ## Extra packages to add to the workspace.
 , extraPackages ? { 
-  inherit
-    gpsd-client;
+    inherit
+      tf2-tools
+      gpsd-client;
 }
 }:
 
