@@ -59,7 +59,7 @@ InterfaceConfiguration NovaArmController::command_interface_configuration() cons
   std::vector<std::string> conf_names;
   for (const auto &joint_name : params_.joint_names)
   {
-    conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
+    conf_names.push_back(joint_name + "/" + joint_command_type());
   }
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
