@@ -171,6 +171,19 @@ void TeleopArmJoy::updateState() {
 
   // TODO: put speed into state
   handleSpeedChange();
+
+  setControlMode(buttons["twist_mode"]->value() ? ControlMode::IK : ControlMode::FK);
+}
+
+void TeleopArmJoy::setControlMode(const ControlMode new_control_mode) {
+  if (control_mode == new_control_mode)
+    return;
+
+  control_mode = new_control_mode;
+
+  sendHaltCommand();
+
+  // TODO: Enable and disable controllers
 }
 
 // TODO: Implement strategy pattern for sendArmCommand and sendHaltCommand
@@ -237,7 +250,7 @@ void TeleopArmJoy::sendTwistCommand() {
 
 void TeleopArmJoy::sendHaltCommand()
 {
-  // Send all zeroes
+  // Send all zeroes for joint space
   auto msg = std::make_unique<nova_interfaces::msg::ArmFkVelocityTargets>();
 
   msg->header.stamp = this->now();
@@ -248,6 +261,22 @@ void TeleopArmJoy::sendHaltCommand()
   }
 
   fk_velocity_pub->publish(std::move(msg));
+
+  // Send halt command for IK
+  auto ik_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
+
+  ik_msg->header.stamp = this->now();
+
+  auto linear = geometry_msgs::msg::Vector3();
+  linear.x = linear.y = linear.z = 0;
+
+  auto angular = geometry_msgs::msg::Vector3();
+  angular.x = angular.y = angular.z = 0;
+
+  ik_msg->twist.linear = linear;
+  ik_msg->twist.angular = angular;
+
+  ik_twist_pub->publish(std::move(ik_msg));
 }
 
 void TeleopArmJoy::handleSpeedChange() {
