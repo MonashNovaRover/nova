@@ -4,6 +4,11 @@ nova_arm_controller:
     default_value: [],
     description: "Names of the joints in the arm. Other arrays in this config must be in the same order",
   }
+  use_position_control: {
+    type: bool,
+    default_value: false,
+    description: "When true, the arm is driven using position control. Otherwise, it is driven using velocity control."
+  }
   joint_position_feedback: {
     type: bool,
     default_value: false, # for the arm I dunno if we will ever not have this, maybe this option should be removed
