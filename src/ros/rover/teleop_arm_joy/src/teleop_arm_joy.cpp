@@ -66,6 +66,16 @@ void TeleopArmJoy::initializeParams()
     return;
   }
 
+  // Create sinks for axes and buttons that don't get defined in the parameter file.
+  shared_ptr<JoyAxis> sink_axis(new JoyAxis(Params::Axes::MapAxisDefinitions()));
+  for (auto& axis_name : params_.axis_definitions) {
+    axes[axis_name] = sink_axis;
+  }
+  shared_ptr<JoyButton> sink_button(new JoyButton(Params::Buttons::MapButtonDefinitions()));
+  for (auto& button_name : params_.button_definitions) {
+    buttons[button_name] = sink_button;
+  }
+
   // Create device instances
   auto device_configs = params_.devices.device_names_map;
   devices.reserve(device_configs.size());
@@ -218,6 +228,7 @@ void TeleopArmJoy::sendJointSpaceCommand()
 
     if (!axes.count(joint_name)) {
       RCLCPP_WARN(this->get_logger(), "Axis for joint with name '%s' does not exist!", joint_name.c_str());
+      msg->velocity.emplace_back(0);
       continue;
     }
 
