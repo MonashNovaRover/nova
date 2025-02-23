@@ -71,7 +71,7 @@ public:
   /// @param pose is a struct combining a position (x,y,z) and a quaternion (x,y,z,w).
   /// @param Lengths are [fill this].
   /// @returns an array of joint angles in joint space for each of J1 through J6, through joints.
-  void calculate_ik(tf2_msgs::msg::TFMessage frame, geometry_msgs::msg::Pose pose, const double lengths[3], double joints[6]);
+  std::array<double, 6> calculate_ik(tf2::Transform pose, std::array<double, 3> lengths);
 
   // Helper functions to cut down on code reuse. Gets sin/cos/tan from degrees instead of radians.
   tf2Scalar sind(tf2Scalar angle) const { return tf2Sin(tf2Radians(angle)); }

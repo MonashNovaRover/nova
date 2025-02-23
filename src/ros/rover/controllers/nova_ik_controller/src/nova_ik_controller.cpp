@@ -9,6 +9,7 @@
 #include "lifecycle_msgs/msg/state.hpp"
 #include "rclcpp/logging.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+#include "tf2/LinearMath/Scalar.h"
 //#include "tf2_eigen/tf2_eigen/tf2_eigen.hpp"
 
 namespace
@@ -64,6 +65,31 @@ namespace nova_ik_controller
     return {interface_configuration_type::INDIVIDUAL, conf_names};
   }
 
+  void NovaIKController::update_twistmapper(const rclcpp::Time &time, const rclcpp::Duration &period) {
+    std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
+    received_twist_stamped_ptr.get(twist_stamped);
+
+    const auto& twist = twist_stamped->twist;
+
+    // Create rotation matrix from twist.angular as XYZ euler
+    auto rotation_matrix = tf2::Matrix3x3();
+    rotation_matrix.setRPY(
+      twist.angular.x * period.seconds(),
+      twist.angular.y * period.seconds(),
+      twist.angular.z * period.seconds());
+
+    const auto linear = tf2::Vector3(
+      twist.linear.x * period.seconds(),
+      twist.linear.y * period.seconds(),
+      twist.linear.z * period.seconds());
+
+    // TODO: Test this actually works as expected.
+    // TODO: Add a tf buffer and make use of the header.frame_id from the twist_stamped to allow IK to be done relative to anything. Then Teleop would just need to use the end effector frame by default
+    // TODO: If using tf like this, also have the twistmapper broadcast the target frame, so it can reference itself.
+    const auto displacement = tf2::Transform(rotation_matrix, linear);
+    _twistmapper_pose *= displacement;
+  }
+
   controller_interface::return_type NovaIKController::update(
       const rclcpp::Time &time, const rclcpp::Duration &period)
   {
@@ -79,14 +105,23 @@ namespace nova_ik_controller
       return controller_interface::return_type::OK;
     }
 
-    for (const auto &joint_handle : registered_joint_handles_)
-    {
-      float joint_speed = 0.0;
-      RCLCPP_INFO(logger, "%s speed: %f", joint_handle.name.c_str(), joint_speed);
-      joint_handle.command.get().set_value(joint_speed);
+    update_twistmapper(time, period);
+
+    // TODO: Retrieve these values from the robot description, rather than specifying them directly
+    constexpr std::array<double, 3> lengths = {0.8, 0.8, 0.4};
+
+    auto joint_angles = calculate_ik(_twistmapper_pose, lengths);
+
+    if (registered_joint_handles_.size() != joint_angles.size()) {
+      RCLCPP_ERROR_ONCE(node.get_logger(), "There are %lu joints registered, but the IK function is written for %lu!",
+        registered_joint_handles_.size(), joint_angles.size());
     }
 
-    // feed inputs into IK
+    for (unsigned int i = 0; i < joint_angles.size(); i++)
+    {
+      auto& joint_handle = registered_joint_handles_[i];
+      joint_handle.command.get().set_value(joint_angles[i]);
+    }
 
     return controller_interface::return_type::OK;
   }
@@ -119,8 +154,6 @@ namespace nova_ik_controller
       DEFAULT_INPUT_TOPIC_END_EFFECTOR_TWIST,
       rclcpp::SystemDefaultsQoS(),
       std::bind(&NovaIKController::teleop_callback, this, _1));
-
-
 
     previous_update_timestamp_ = node.get_clock()->now();
     return controller_interface::CallbackReturn::SUCCESS;
@@ -178,31 +211,6 @@ namespace nova_ik_controller
       return controller_interface::CallbackReturn::ERROR;
     }
     return controller_interface::CallbackReturn::SUCCESS;
-  }
-
-  void NovaIKController::update_twistmapper(const rclcpp::Time &time, const rclcpp::Duration &period) {
-    std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
-    received_twist_stamped_ptr.get(twist_stamped);
-
-    const auto& twist = twist_stamped->twist;
-
-    // Create rotation matrix from twist.angular as XYZ euler
-    auto rotation_matrix = tf2::Matrix3x3();
-    rotation_matrix.setRPY(
-      twist.angular.x * period.seconds(),
-      twist.angular.y * period.seconds(),
-      twist.angular.z * period.seconds());
-
-    const auto linear = tf2::Vector3(
-      twist.linear.x * period.seconds(),
-      twist.linear.y * period.seconds(),
-      twist.linear.z * period.seconds());
-
-    // TODO: Test this actually works as expected.
-    // TODO: Add a tf buffer and make use of the header.frame_id from the twist_stamped to allow IK to be done relative to anything. Then Teleop would just need to use the end effector frame by default
-    // TODO: If using tf like this, also have the twistmapper broadcast the target frame, so it can reference itself.
-    const auto displacement = tf2::Transform(rotation_matrix, linear);
-    _twistmapper_pose *= displacement;
   }
 
   bool NovaIKController::reset()
@@ -284,16 +292,15 @@ namespace nova_ik_controller
 
   // See Keenan's IK notes
   // TODO: remember to add something for the effector pose
-  void NovaIKController::calculate_ik(tf2_msgs::msg::TFMessage frame, geometry_msgs::msg::Pose pose, const double lengths[3], double joints[6])
+  std::array<double, 6> NovaIKController::calculate_ik(tf2::Transform pose, std::array<double, 3> lengths)
   {
-    double x = pose.position.x;
-    double y = pose.position.y;
-    double z = pose.position.z;
+    auto origin = pose.getOrigin();
+    auto x = origin.getX();
+    auto y = origin.getY();
+    auto z = origin.getZ();
     double roll, pitch, yaw;
 
-    tf2::Quaternion tf2_quat;
-    tf2::fromMsg(pose.orientation, tf2_quat);
-    tf2::Matrix3x3(tf2_quat).getRPY(roll, pitch, yaw);
+    pose.getBasis().getRPY(roll, pitch, yaw);
     pitch += 90;
 
     double l1r = lengths[0];
@@ -350,10 +357,14 @@ namespace nova_ik_controller
     double j5 = atan2(-r37r(2, 2), r37r(0, 2) / cos(j4));
     double j6 = atan2(-r37r(2, 1) / cos(j5), r37r(2, 0) / cos(j5));
 
-    double new_joints[6] = { j1, j2bo, j3bo, j4, j5, j6 };
-    // converts all elements in new_joints from radians to degrees, then puts them into joints to be returned
-    for (int i = 0; i < 6; i++)
-      joints[i] = new_joints[i] / (M_PI / 180);
+    std::array<double, 6> new_joints = { j1, j2bo, j3bo, j4, j5, j6 };
+
+    // Removed this conversion, as im 99% sure ros2 control uses radians rather than degrees: - Bailey
+    //   converts all elements in new_joints from radians to degrees, then puts them into joints to be returned
+    //for (int i = 0; i < 6; i++)
+    //  new_joints[i] = new_joints[i] / (M_PI / 180);
+
+    return new_joints;
   }
 
   void NovaIKController::teleop_callback(const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg)

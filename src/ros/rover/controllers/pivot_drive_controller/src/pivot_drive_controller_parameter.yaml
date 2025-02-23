@@ -39,7 +39,7 @@ pivot_drive_controller:
     default_value: 0.95752883,
     description: "Wheelbase: distance between center of front and rear wheels",
   }
-  wheel_radius: {
+  wheel_aadius: {
     type: double,
     default_value: 0.15692321,
     description: "Radius of wheels"
