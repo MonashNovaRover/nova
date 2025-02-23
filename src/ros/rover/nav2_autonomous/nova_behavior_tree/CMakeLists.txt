@@ -51,32 +51,24 @@ include_directories(
   include
 )
 
-add_library(nova_dummy_detect_cube_action_bt_node SHARED plugins/dummy_detect_cube_action.cpp)
-list(APPEND plugin_libs nova_dummy_detect_cube_action_bt_node)
 
 add_library(nova_ar_tag_detected_condition_bt_node SHARED plugins/ar_tag_detected_condition.cpp)
 list(APPEND plugin_libs nova_ar_tag_detected_condition_bt_node)
 
-add_library(nova_update_ar_tag_goal_action_bt_node SHARED plugins/update_ar_tag_goal_action.cpp)
-list(APPEND plugin_libs nova_update_ar_tag_goal_action_bt_node)
+add_library(nova_blackboard_publisher_bt_node SHARED plugins/blackboard_publisher_node.cpp)
+list(APPEND plugin_libs nova_blackboard_publisher_bt_node)
 
-add_library(nova_update_remove_passed_goals_and_ar_tags_action_bt_node SHARED plugins/remove_passed_goals_and_ar_tags_action.cpp)
-list(APPEND plugin_libs nova_update_remove_passed_goals_and_ar_tags_action_bt_node)
+add_library(nova_check_detected_condition_bt_node SHARED plugins/check_detected_condition.cpp)
+list(APPEND plugin_libs nova_check_detected_condition_bt_node)
 
-add_library(nova_compute_ar_tag_goals_action_bt_node SHARED plugins/compute_ar_tag_goals_action.cpp)
-list(APPEND plugin_libs nova_compute_ar_tag_goals_action_bt_node)
+add_library(nova_compute_search_goals_condition_bt_node SHARED plugins/compute_search_goals_condition.cpp)
+list(APPEND plugin_libs nova_compute_search_goals_condition_bt_node)
 
-add_library(nova_remove_passed_ar_tags_action_bt_node SHARED plugins/remove_passed_ar_tags_action.cpp)
-list(APPEND plugin_libs nova_remove_passed_ar_tags_action_bt_node)
-
-add_library(nova_save_image_service_bt_node SHARED plugins/save_image_service.cpp)
-list(APPEND plugin_libs nova_save_image_service_bt_node)
+add_library(nova_dummy_detect_cube_action_bt_node SHARED plugins/dummy_detect_cube_action.cpp)
+list(APPEND plugin_libs nova_dummy_detect_cube_action_bt_node)
 
 add_library(nova_first_goal_reached_condition_bt_node SHARED plugins/first_goal_reached_condition.cpp)
 list(APPEND plugin_libs nova_first_goal_reached_condition_bt_node)
-
-add_library(nova_goals_empty_condition_bt_node SHARED plugins/goals_empty_condition.cpp)
-list(APPEND plugin_libs nova_goals_empty_condition_bt_node)
 
 add_library(nova_get_final_goal_condition_bt_node SHARED plugins/get_final_goal_condition.cpp)
 list(APPEND plugin_libs nova_get_final_goal_condition_bt_node)
@@ -84,21 +76,23 @@ list(APPEND plugin_libs nova_get_final_goal_condition_bt_node)
 add_library(nova_get_first_goal_condition_bt_node SHARED plugins/get_first_goal_condition.cpp)
 list(APPEND plugin_libs nova_get_first_goal_condition_bt_node)
 
-add_library(nova_query_position_condition_bt_node SHARED plugins/query_position_condition.cpp)
-list(APPEND plugin_libs nova_query_position_condition_bt_node)
-
-add_library(nova_compute_search_goals_condition_bt_node SHARED plugins/compute_search_goals_condition.cpp)
-list(APPEND plugin_libs nova_compute_search_goals_condition_bt_node)
-
-add_library(nova_check_detected_condition_bt_node SHARED plugins/check_detected_condition.cpp)
-list(APPEND plugin_libs nova_check_detected_condition_bt_node)
+add_library(nova_goals_empty_condition_bt_node SHARED plugins/goals_empty_condition.cpp)
+list(APPEND plugin_libs nova_goals_empty_condition_bt_node)
 
 add_library(nova_led_service_bt_node SHARED plugins/led_service.cpp)
 list(APPEND plugin_libs nova_led_service_bt_node)
 
-add_library(nova_blackboard_publisher_bt_node SHARED plugins/blackboard_publisher_node.cpp)
-list(APPEND plugin_libs nova_blackboard_publisher_bt_node)
+add_library(nova_query_position_condition_bt_node SHARED plugins/query_position_condition.cpp)
+list(APPEND plugin_libs nova_query_position_condition_bt_node)
 
+add_library(nova_update_remove_passed_goals_and_ar_tags_action_bt_node SHARED plugins/remove_passed_goals_and_ar_tags_action.cpp)
+list(APPEND plugin_libs nova_update_remove_passed_goals_and_ar_tags_action_bt_node)
+
+add_library(nova_save_image_service_bt_node SHARED plugins/save_image_service.cpp)
+list(APPEND plugin_libs nova_save_image_service_bt_node)
+
+add_library(nova_update_ar_tag_goal_action_bt_node SHARED plugins/update_ar_tag_goal_action.cpp)
+list(APPEND plugin_libs nova_update_ar_tag_goal_action_bt_node)
 
 foreach(bt_plugin ${plugin_libs})
   ament_target_dependencies(${bt_plugin} ${dep_pkgs})
