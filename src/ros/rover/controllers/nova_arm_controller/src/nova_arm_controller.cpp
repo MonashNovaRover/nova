@@ -76,6 +76,7 @@ InterfaceConfiguration NovaArmController::state_interface_configuration() const 
 
 std::vector<hardware_interface::CommandInterface> NovaArmController::on_export_reference_interfaces() {
   std::vector<hardware_interface::CommandInterface> reference_interfaces;
+  RCLCPP_INFO(get_node()->get_logger(), "Export reference interfaces");
 
   const auto joint_count = params_.joint_names.size();
   reference_interfaces_.reserve(joint_count);
@@ -101,6 +102,8 @@ controller_interface::return_type NovaArmController::update_reference_from_subsc
 
 controller_interface::return_type NovaArmController::update_velocity_reference_from_subscribers() {
   auto logger = get_node()->get_logger();
+
+  RCLCPP_INFO(get_node()->get_logger(), "Update velocity reference from subscribers");
 
   std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets> last_msg;
   received_msg_ptr_.get(last_msg);
@@ -141,10 +144,12 @@ controller_interface::return_type NovaArmController::update_velocity_reference_f
 controller_interface::return_type NovaArmController::update_and_write_commands(
     const rclcpp::Time &time, const rclcpp::Duration &period)
 {
+  auto logger = get_node()->get_logger();
+
   // TODO: change implementation to use values from reference_interfaces_ rather than the subscriber message.
   // (anything related to the subscriber should not exist in this function)
+  RCLCPP_INFO(logger, "Update and write commands");
 
-  auto logger = get_node()->get_logger();
   if (get_lifecycle_state().id() == State::PRIMARY_STATE_INACTIVE)
   {
     if (!is_halted)
@@ -158,12 +163,21 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
 
   // TODO: Make sure we have state for halting and we halt when necessary
 
+  if (registered_joint_handles_.size() != params_.joint_names.size()) {
+    RCLCPP_ERROR(logger, "Assertion failed: %lu != %lu", registered_joint_handles_.size(), params_.joint_names.size());
+    return controller_interface::return_type::ERROR;
+  }
+
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
   {
     const auto& joint_handle = registered_joint_handles_[i];
 
     // We use this assumption to index into the reference interface arrays using the same index
-    assert(joint_handle.name == params_.joint_names[i]);
+    // assert(joint_handle.name == params_.joint_names[i]);
+    if (joint_handle.name != params_.joint_names[i]) {
+      RCLCPP_ERROR(logger, "Assertion failed: %s != %s", joint_handle.name.c_str(), params_.joint_names[i].c_str());
+      return controller_interface::return_type::ERROR;
+    }
 
     const auto reference_value = reference_interfaces_[i];
     if (std::isnan(reference_value))
@@ -338,6 +352,8 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
     const std::vector<std::string> &joint_names,
     std::vector<JointHandle> &registered_handles)
 {
+  RCLCPP_INFO(get_node()->get_logger(), "Configure joints");
+
   auto logger = get_node()->get_logger();
 
   if (joint_names.empty())
