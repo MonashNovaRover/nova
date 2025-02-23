@@ -114,7 +114,7 @@ namespace nova_ik_controller
     }
 
     // TODO: insert correct subscriber here
-    teleop_sub = node.create_subscription<tf2_msgs::msg::TFMessage>("aaaa", rclcpp::SystemDefaultsQoS(), std::bind(&NovaIKController::teleop_callback, this, _1));
+    tf_sub = node.create_subscription<tf2_msgs::msg::TFMessage>("aaaa", rclcpp::SystemDefaultsQoS(), std::bind(&NovaIKController::teleop_callback, this, _1));
 
     previous_update_timestamp_ = node.get_clock()->now();
     return controller_interface::CallbackReturn::SUCCESS;
@@ -172,6 +172,32 @@ namespace nova_ik_controller
       return controller_interface::CallbackReturn::ERROR;
     }
     return controller_interface::CallbackReturn::SUCCESS;
+  }
+
+  void NovaIKController::update_twistmapper(const rclcpp::Time &time, const rclcpp::Duration &period) {
+    // TODO: Implement
+    std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
+    received_twist_stamped_ptr.get(twist_stamped);
+
+    const auto& twist = twist_stamped->twist;
+
+    // Create rotation matrix from twist.angular as XYZ euler
+    auto rotation_matrix = tf2::Matrix3x3();
+    rotation_matrix.setRPY(
+      twist.angular.x * period.seconds(),
+      twist.angular.y * period.seconds(),
+      twist.angular.z * period.seconds());
+
+    const auto linear = tf2::Vector3(
+      twist.linear.x * period.seconds(),
+      twist.linear.y * period.seconds(),
+      twist.linear.z * period.seconds());
+
+    // TODO: Test this actually works as expected.
+    // TODO: Add a tf buffer and make use of the header.frame_id from the twist_stamped to allow IK to be done relative to anything. Then Teleop would just need to use the end effector frame by default
+    // TODO: If using tf like this, also have the twistmapper broadcast the target frame, so it can reference itself.
+    const auto displacement = tf2::Transform(rotation_matrix, linear);
+    _twistmapper_pose *= displacement;
   }
 
   bool NovaIKController::reset()

@@ -17,13 +17,14 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 #include "rclcpp/node.hpp"
-//#include "realtime_tools/realtime_box.h"
+#include "realtime_tools/realtime_box.h"
 //#include "realtime_tools/realtime_buffer.h"
 //#include "realtime_tools/realtime_publisher.h"
 #include "tf2_msgs/msg/tf_message.hpp"
 #include "tf2/LinearMath/Scalar.h"
 #include "nova_ik_controller/speed_limiter.hpp"
 #include <Eigen/Dense>
+#include <tf2/LinearMath/Transform.h>
 
 // To test in development, run from the root nova_ik_controller dir:
 // generate_parameter_library_cpp include/nova_ik_controller/nova_ik_controller_parameters.hpp src/nova_ik_controller_parameter.yaml
@@ -114,7 +115,7 @@ protected:
   rclcpp::Node node;
 
   // TODO: change this message when we get one
-  rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr teleop_sub;
+  rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr tf_sub;
 
   std::vector<JointHandle> registered_joint_handles_;
 
@@ -123,10 +124,19 @@ protected:
   Params params_;
 
   // Twistmapper
-  // TODO: Add a twist message input
+
   // TODO: Initialize twist stamped topic and write callback
   // TODO: Twist state, in the appropriate container, set by the topic callback, and used in integration
-  // TODO: Pose state
+  rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_stamped_sub;
+  realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_stamped_ptr{nullptr};
+  /// Result of the twistmapper, and input to IK
+  tf2::Transform _twistmapper_pose = tf2::Transform();
+  /// True when initial state has been received to confirm that the value in _twistmapper_pose is safe and valid
+  // TODO: Make invalid when deactivated
+  bool _twistmapper_pose_validated = false;
+
+  // TODO: Detection of initial state, setting initial twistmapper pose
+
   // TODO: Timeout and halt for safety!
 
   // TODO: Implement
