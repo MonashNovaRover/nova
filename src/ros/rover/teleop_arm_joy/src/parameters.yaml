@@ -58,13 +58,20 @@ teleop_arm_joy:
       "J5",
       "J6",
       "speed",
-      "offset"
+      "offset",
+      "twist_x",
+      "twist_y",
+      "twist_z",
+      "twist_yaw",
+      "twist_pitch",
+      "twist_roll"
     ]
     description: "The list of mappable axes."
 
   button_definitions:
     type: string_array
     default_value: [
+      "twist_mode",
       "limit_on",
       "limit_off",
       "lock",
