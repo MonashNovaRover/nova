@@ -16,7 +16,10 @@
 , tf2
 , tf2-msgs
 , geometry-msgs
+, tf2-geometry-msgs
 , nova-interfaces
+, eigen
+, tf2-eigen
 }:
 
 buildRosPackage {
@@ -46,7 +49,10 @@ buildRosPackage {
     tf2
     tf2-msgs
     geometry-msgs
+    tf2-geometry-msgs
     nova-interfaces
+    eigen
+    tf2-eigen
   ];
 }
 
