@@ -24,6 +24,14 @@ teleop_arm_joy:
       type: double
       default_value: 0.2
       description: "The maximum allowed value for the angular component of speed."
+    controllers:
+      type: string_array
+      default_value:
+        [
+          "nova_ik_position_controller",
+          "nova_ik_controller"
+        ]
+      description: "Controllers to activate/deactivate for twist ik control"
 
   device_names:
     type: string_array
