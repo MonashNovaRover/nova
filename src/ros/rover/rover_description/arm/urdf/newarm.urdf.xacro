@@ -4,6 +4,7 @@
     <xacro:arg name="gazebo" default="true"/>
     <xacro:arg name="robot_name" default="arm"/>
     <xacro:arg name="arm" default="false"/>
+    <xacro:arg name="use_mock_hardware" default="false"/>
 
     <!-- Generated URDF -->
     <link name="gearbox">

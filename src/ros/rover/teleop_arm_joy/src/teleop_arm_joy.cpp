@@ -184,6 +184,12 @@ void TeleopArmJoy::setControlMode(const ControlMode new_control_mode) {
   sendHaltCommand();
 
   // TODO: Enable and disable controllers
+  if (new_control_mode == ControlMode::FK) {
+    RCLCPP_INFO(get_logger(), "Switched to FK control.");
+  }
+  else if (new_control_mode == ControlMode::IK) {
+    RCLCPP_INFO(get_logger(), "Switched to IK control.");
+  }
 }
 
 // TODO: Implement strategy pattern for sendArmCommand and sendHaltCommand
@@ -310,8 +316,6 @@ void TeleopArmJoy::switchController(const ControlMode requested_control_mode)
 
   control_mode = requested_control_mode;
 }
-
-
 }
 
 int main(int argc, char *argv[])

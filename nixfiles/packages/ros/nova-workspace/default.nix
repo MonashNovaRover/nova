@@ -8,6 +8,7 @@
 , rqt-common-plugins
 , gdb
 , gps-umd
+, tf2-tools
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -88,6 +89,8 @@
 
   ## Extra packages to add to the workspace.
 , extraPackages ? { 
+    inherit
+      tf2-tools;
 }
 }:
 
