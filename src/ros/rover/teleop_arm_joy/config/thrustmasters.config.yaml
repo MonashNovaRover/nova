@@ -40,13 +40,38 @@ teleop_arm_joy_node:
       J6:
         device: "Right"
         id: 2
+
       speed:
         device: "Right"
         id: 3
       offset:
         device: "Left"
         id: 3
+
+      twist_x:
+        device: "Right"
+        id: 1
+      twist_y:
+        device: "Right"
+        id: 0
+      twist_z:
+        device: ""
+        id: 2
+
+      twist_yaw:
+        device: "Left"
+        id: 1
+      twist_pitch:
+        device: "Left"
+        id: 0
+      twist_roll:
+        device: "Left"
+        id: 2
+
     buttons:
+      twist_mode:
+        device: "Right"
+        id: 0
       limit_on:
         device: "Left"
         id: 4
