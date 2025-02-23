@@ -14,13 +14,19 @@ namespace
 
 teleop_arm_joy::JoyAxis::JoyAxis(const Params::Axes::MapAxisDefinitions &config) {
   id = config.id;
+  invert = config.invert;
 }
 
 void teleop_arm_joy::JoyAxis::joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg) {
   if (joy_msg->buttons.size() <= id)
     return;
 
-  current_value_ = joy_msg->axes[id];
+  if (invert) {
+    current_value_ = -joy_msg->axes[id];
+  }
+  else {
+    current_value_ = joy_msg->axes[id];
+  }
 }
 
 void teleop_arm_joy::JoyAxis::debounce(const rclcpp::Time& now) {
