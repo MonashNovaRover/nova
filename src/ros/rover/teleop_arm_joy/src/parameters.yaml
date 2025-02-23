@@ -15,6 +15,16 @@ teleop_arm_joy:
 #    description: "List Of Controllers that can be used with teleop"
 #    read_only: true
 
+  twist:
+    linear_max:
+      type: double
+      default_value: 0.2
+      description: "The maximum allowed value for the linear component of speed."
+    angular_max:
+      type: double
+      default_value: 0.2
+      description: "The maximum allowed value for the angular component of speed."
+
   device_names:
     type: string_array
     default_value: [
