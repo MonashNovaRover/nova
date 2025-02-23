@@ -45,11 +45,12 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
     rover_description_dir = FindPackageShare('rover_description')
+    nova_bringup_dir = FindPackageShare('nova_bringup')
 
     declared_arguments = [
         DeclareLaunchArgument(
             name='controllers',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']), 
+            default_value=PathJoinSubstitution([nova_bringup_dir, 'params', 'arm_controllers.yaml']),
             description='Absolute path to controllers params file',
         ),
         DeclareLaunchArgument(
