@@ -108,6 +108,10 @@ teleop_arm_joy:
         type: string
         default_value: ""
         description: "The device that this axis is mapped to. Must be an element of device_names, and maps to the first device in device_names by default."
+      invert:
+        type: bool
+        default_value: false
+        description: "Inverts the given axis when true."
   buttons:
     __map_button_definitions:
       id:

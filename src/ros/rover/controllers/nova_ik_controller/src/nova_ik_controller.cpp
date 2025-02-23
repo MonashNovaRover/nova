@@ -66,48 +66,39 @@ namespace nova_ik_controller
   }
 
   void NovaIKController::update_twistmapper(const rclcpp::Time &time, const rclcpp::Duration &period) {
-
-    RCLCPP_INFO(get_node()->get_logger(), "Update twistmapper");
     std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
     received_twist_stamped_ptr.get(twist_stamped);
 
-    RCLCPP_INFO(get_node()->get_logger(), "1");
+    if (twist_stamped == nullptr) {
+      RCLCPP_WARN_ONCE(get_node()->get_logger(), "Haven't yet received a TwistStamped message to use for the twistmapper.");
+      return;
+    }
+
     const auto& twist = twist_stamped->twist;
 
-    RCLCPP_INFO(get_node()->get_logger(), "2");
     // Create rotation matrix from twist.angular as XYZ euler
     auto rotation_matrix = tf2::Matrix3x3();
-    RCLCPP_INFO(get_node()->get_logger(), "2.1");
-    RCLCPP_INFO(get_node()->get_logger(), "Thing %f", twist.angular.x);
-    RCLCPP_INFO(get_node()->get_logger(), "period %f", period.seconds());
     rotation_matrix.setRPY(
       twist.angular.x * period.seconds(),
       twist.angular.y * period.seconds(),
       twist.angular.z * period.seconds());
 
-    RCLCPP_INFO(get_node()->get_logger(), "3");
     const auto linear = tf2::Vector3(
       twist.linear.x * period.seconds(),
       twist.linear.y * period.seconds(),
       twist.linear.z * period.seconds());
 
-    RCLCPP_INFO(get_node()->get_logger(), "4");
     // TODO: Test this actually works as expected.
     // TODO: Add a tf buffer and make use of the header.frame_id from the twist_stamped to allow IK to be done relative to anything. Then Teleop would just need to use the end effector frame by default
     // TODO: If using tf like this, also have the twistmapper broadcast the target frame, so it can reference itself.
     const auto displacement = tf2::Transform(rotation_matrix, linear);
 
-    RCLCPP_INFO(get_node()->get_logger(), "5");
-
     _twistmapper_pose *= displacement;
-
-    RCLCPP_INFO(get_node()->get_logger(), "End Update twistmapper");
   }
 
   controller_interface::return_type NovaIKController::update(
       const rclcpp::Time &time, const rclcpp::Duration &period)
   {
-    RCLCPP_INFO(get_node()->get_logger(), "Update");
     auto logger = node.get_logger();
     if (get_lifecycle_state().id() == State::PRIMARY_STATE_INACTIVE)
     {
@@ -124,23 +115,13 @@ namespace nova_ik_controller
 
     // TODO: Retrieve these values from the robot description, rather than specifying them directly
     constexpr std::array<double, 3> lengths = {0.8, 0.8, 0.4};
-
-
     auto joint_angles = calculate_ik(_twistmapper_pose, lengths);
 
-    if (registered_joint_handles_.size() != joint_angles.size()) {
-      RCLCPP_ERROR_ONCE(node.get_logger(), "There are %lu joints registered, but the IK function is written for %lu!",
-        registered_joint_handles_.size(), joint_angles.size());
-    }
-
-    RCLCPP_INFO(get_node()->get_logger(), "Applying calculated joint angles");
     for (unsigned int i = 0; i < joint_angles.size(); i++)
     {
       auto& joint_handle = registered_joint_handles_[i];
       joint_handle.command.get().set_value(joint_angles[i]);
     }
-
-    RCLCPP_INFO(get_node()->get_logger(), "Applied to joints");
 
     return controller_interface::return_type::OK;
   }
@@ -148,18 +129,15 @@ namespace nova_ik_controller
   controller_interface::CallbackReturn NovaIKController::on_configure(
       const rclcpp_lifecycle::State &)
   {
-    RCLCPP_INFO(get_node()->get_logger(), "On configure");
     auto logger = node.get_logger();
 
     // update parameters if they have changed
     if (param_listener_->is_old(params_))
     {
       params_ = param_listener_->get_params();
-      RCLCPP_INFO(logger, "Parameters were updated");
     }
     if (params_.joint_names.empty())
     {
-      RCLCPP_ERROR(logger, "Joint names parameter is empty!");
       return controller_interface::CallbackReturn::ERROR;
     }
 
@@ -175,6 +153,15 @@ namespace nova_ik_controller
       rclcpp::SystemDefaultsQoS(),
       std::bind(&NovaIKController::teleop_callback, this, _1));
 
+    // Initialize the twist stamped
+    std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
+    received_twist_stamped_ptr.get(twist_stamped);
+    auto* init_twist_stamped = new geometry_msgs::msg::TwistStamped();
+    init_twist_stamped->twist = geometry_msgs::msg::Twist();
+    init_twist_stamped->twist.angular = geometry_msgs::msg::Vector3();
+    init_twist_stamped->twist.angular = geometry_msgs::msg::Vector3();
+    twist_stamped.reset(init_twist_stamped);
+
     previous_update_timestamp_ = node.get_clock()->now();
     return controller_interface::CallbackReturn::SUCCESS;
   }
@@ -182,7 +169,6 @@ namespace nova_ik_controller
   controller_interface::CallbackReturn NovaIKController::on_activate(
       const rclcpp_lifecycle::State &)
   {
-    RCLCPP_INFO(get_node()->get_logger(), "On activate");
     const auto joints_result = configure_joints(params_.joint_names, registered_joint_handles_);
 
     if (joints_result == controller_interface::CallbackReturn::ERROR)
@@ -203,8 +189,6 @@ namespace nova_ik_controller
   controller_interface::CallbackReturn NovaIKController::on_deactivate(
       const rclcpp_lifecycle::State &)
   {
-    RCLCPP_INFO(get_node()->get_logger(), "On deactivate");
-
     subscriber_is_active_ = false;
     if (!is_halted)
     {
@@ -219,7 +203,6 @@ namespace nova_ik_controller
   controller_interface::CallbackReturn NovaIKController::on_cleanup(
       const rclcpp_lifecycle::State &)
   {
-    RCLCPP_INFO(get_node()->get_logger(), "On cleanup");
     if (!reset())
     {
       return controller_interface::CallbackReturn::ERROR;
@@ -230,7 +213,6 @@ namespace nova_ik_controller
 
   controller_interface::CallbackReturn NovaIKController::on_error(const rclcpp_lifecycle::State &)
   {
-    RCLCPP_INFO(get_node()->get_logger(), "On error");
     if (!reset())
     {
       return controller_interface::CallbackReturn::ERROR;
@@ -240,7 +222,6 @@ namespace nova_ik_controller
 
   bool NovaIKController::reset()
   {
-    RCLCPP_INFO(get_node()->get_logger(), "Reset");
     // release the old queue
     subscriber_is_active_ = false;
 
@@ -251,13 +232,11 @@ namespace nova_ik_controller
   controller_interface::CallbackReturn NovaIKController::on_shutdown(
       const rclcpp_lifecycle::State &)
   {
-    RCLCPP_INFO(get_node()->get_logger(), "On shutdown");
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
   void NovaIKController::halt()
   {
-    RCLCPP_INFO(get_node()->get_logger(), "Halt");
     // Set twistmapper velocities to 0
     std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
     received_twist_stamped_ptr.get(twist_stamped);
@@ -272,7 +251,6 @@ namespace nova_ik_controller
   }
 
   std::string NovaIKController::joint_to_command_interface_name(const std::string& joint_name) const {
-    RCLCPP_INFO(get_node()->get_logger(), "joint to cmd interface name");
     // If chained_controller_name is non-empty, prepend it plus "/"
     // Example result: "nova_arm_controller/J1/position"
     const auto prefix = params_.chained_controller_name.empty() ? "" : params_.chained_controller_name + "/";
@@ -283,7 +261,6 @@ namespace nova_ik_controller
       const std::vector<std::string> &joint_names,
       std::vector<JointHandle> &registered_handles)
   {
-    RCLCPP_INFO(get_node()->get_logger(), "Configure joints");
     auto logger = node.get_logger();
 
     if (joint_names.empty())
@@ -333,7 +310,6 @@ namespace nova_ik_controller
   // TODO: remember to add something for the effector pose
   std::array<double, 6> NovaIKController::calculate_ik(tf2::Transform pose, std::array<double, 3> lengths)
   {
-    RCLCPP_INFO(get_node()->get_logger(), "Calculate IK");
     auto origin = pose.getOrigin();
     auto x = origin.getX();
     auto y = origin.getY();
@@ -409,7 +385,6 @@ namespace nova_ik_controller
 
   void NovaIKController::teleop_callback(const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg)
   {
-    RCLCPP_INFO(get_node()->get_logger(), "Teleop callback");
     if (!subscriber_is_active_)
     {
       RCLCPP_WARN_ONCE(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
