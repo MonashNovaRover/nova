@@ -244,9 +244,9 @@ namespace nova_ik_controller
   }
 
   std::string NovaIKController::joint_to_command_interface_name(const std::string& joint_name) const {
-    const auto prefix = params_.chained_controller_name.empty() ? ""
-      : params_.chained_controller_name + "/";
-
+    // If chained_controller_name is non-empty, prepend it plus "/"
+    // Example result: "nova_arm_controller/J1/position"
+    const auto prefix = params_.chained_controller_name.empty() ? "" : params_.chained_controller_name + "/";
     return prefix + joint_name + "/" + hardware_interface::HW_IF_POSITION;
   }
 
