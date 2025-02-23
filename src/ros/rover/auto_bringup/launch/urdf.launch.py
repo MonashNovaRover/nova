@@ -27,13 +27,14 @@ def launch_setup(context, *args, **kwargs):
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
     arm = LaunchConfiguration('arm').perform(context)
+    use_mock_hardware = LaunchConfiguration('use_mock_hardware').perform(context)
 
     return [
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[{'robot_description': 
-                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle, ' ', 'arm:=', arm]), value_type=str)
+                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle, ' ', 'arm:=', arm, ' ', 'use_mock_hardware:=', use_mock_hardware]), value_type=str)
             }]
         ),
         # Launch joint states for arm
@@ -66,9 +67,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='model',
-            # TODO: Update Banksia's URDF for new arm too
-            # default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
-            default_value=PathJoinSubstitution([rover_description_dir, 'waratah', 'urdf', 'rover.urdf.xacro']),
+            default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
         ),
         DeclareLaunchArgument(
@@ -80,6 +79,11 @@ def generate_launch_description():
             name='arm',
             default_value='false',
             description='whether to launch arm',
+        ),
+        DeclareLaunchArgument(
+            name='use_mock_hardware',
+            default_value='false',
+            description='whether to use mock hardware for hardware interfaces',
         )
     ]
     

@@ -50,12 +50,13 @@ teleop_arm_joy_node:
 
       twist_x:
         device: "Right"
-        id: 1
+        id: 0
+        invert: true
       twist_y:
         device: "Right"
-        id: 0
+        id: 1
       twist_z:
-        device: ""
+        device: "Right"
         id: 2
 
       twist_yaw:
