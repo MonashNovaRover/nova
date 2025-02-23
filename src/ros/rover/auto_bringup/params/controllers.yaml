@@ -8,6 +8,11 @@ controller_manager:
 
     nova_arm_controller:
       type: nova_arm_controller/NovaArmController
+#    nova_arm_velocity_controller:
+#      type: nova_arm_controller/NovaArmController
+#
+#    nova_arm_position_controller:
+#      type: nova_arm_controller/NovaArmController
 
     wheel_velocity_controller:
       type: velocity_controllers/JointGroupVelocityController
@@ -32,6 +37,8 @@ controller_manager:
 
 nova_ik_controller:
   ros__parameters:
+    # nova_arm_controller/J1/position
+    # nova_arm_controller/J1/position
     joint_names:
       - J1
       - J2
@@ -76,8 +83,7 @@ pivot_position_controller:
 joint_state_broadcaster:
   ros__parameters:
     interfaces:
-       ["position",
-      "velocity"]
+       ["position", "velocity"]
 
     joints:
       ["blp", "brp", "flp", "frp",
