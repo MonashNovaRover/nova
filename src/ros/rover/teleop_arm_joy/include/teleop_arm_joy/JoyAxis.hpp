@@ -36,6 +36,7 @@ public:
 
 private:
   long id;
+  bool invert = false;
 
   float current_value_ = 0.0f;
   float current_debounce_value_ = 0.0f;
