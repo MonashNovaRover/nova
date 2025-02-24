@@ -35,12 +35,12 @@ def launch_setup(context, *args, **kwargs):
         Node( # TODO: only when arm is enabled
             package='controller_manager',
             executable='spawner',
-            arguments=['nova_ik_controller', '--inactive']
+            arguments=['nova_arm_controller', '--switch-timeout', '10'] #, '--inactive']
         ),
         Node( # TODO: only when arm is enabled
             package='controller_manager',
             executable='spawner',
-            arguments=['nova_arm_controller', '--switch-timeout', '10'] #, '--inactive']
+            arguments=['nova_ik_controller', '--switch-timeout', '10']
         ),
         Node(
             package='controller_manager',
