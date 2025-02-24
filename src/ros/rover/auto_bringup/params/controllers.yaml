@@ -3,16 +3,14 @@ controller_manager:
     update_rate: 144
     use_sim_time: false
 
+    nova_arm_velocity_controller:
+      type: nova_arm_controller/NovaArmController
+
+    nova_arm_position_controller:
+      type: nova_arm_controller/NovaArmController
+
     nova_ik_controller:
       type: nova_ik_controller/NovaIKController
-
-    nova_arm_controller:
-      type: nova_arm_controller/NovaArmController
-#    nova_arm_velocity_controller:
-#      type: nova_arm_controller/NovaArmController
-#
-#    nova_arm_position_controller:
-#      type: nova_arm_controller/NovaArmController
 
     wheel_velocity_controller:
       type: velocity_controllers/JointGroupVelocityController
@@ -35,10 +33,31 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
+nova_arm_velocity_controller:
+  ros__parameters:
+    joint_names:
+      - J1
+      - J2
+      - J3
+      - J4
+      - J5
+      - J6
+    use_position_control: false
+
+nova_arm_position_controller:
+  ros__parameters:
+    joint_names:
+      - J1
+      - J2
+      - J3
+      - J4
+      - J5
+      - J6
+    use_position_control: true
+
 nova_ik_controller:
   ros__parameters:
-    # nova_arm_controller/J1/position
-    # nova_arm_controller/J1/position
+    chained_controller_name: "nova_arm_position_controller"
     joint_names:
       - J1
       - J2
@@ -46,23 +65,6 @@ nova_ik_controller:
       - J4
       - J5
       - J6
-
-    command_interfaces: ["position", "velocity"]
-    state_interfaces: ["position", "velocity"]
-
-nova_arm_controller:
-  ros__parameters:
-    joint_names:
-      - J1
-      - J2
-      - J3
-      - J4
-      - J5
-      - J6
-
-    command_interfaces: ["position", "velocity"]
-    state_interfaces: ["position", "velocity"]
-    use_position_control: true
 
 wheel_velocity_controller:
   ros__parameters:

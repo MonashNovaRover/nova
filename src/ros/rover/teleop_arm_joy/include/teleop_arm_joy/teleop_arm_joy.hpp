@@ -42,18 +42,6 @@ namespace teleop_arm_joy
     }
   }
 
-  inline std::string modeToController(const ControlMode mode)
-  {
-    switch (mode)
-    {
-    case ControlMode::FK:
-      return "";  // TODO
-    case ControlMode::IK:
-      return "";  // TODO
-    default:
-      return "unknown_controller";
-    }
-  }
 
   /**
    * @brief Struct representing the current state.
@@ -114,6 +102,8 @@ namespace teleop_arm_joy
      * @brief Handles changes in speed based on joystick input.
      */
     void handleSpeedChange();
+
+    std::vector<std::string> modeToControllers(ControlMode mode);
 
     /**
      * @brief Switches the controller by calling the switch_controller service.
