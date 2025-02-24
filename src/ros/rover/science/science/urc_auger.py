@@ -59,7 +59,7 @@ class URCAuger(JoystickControllerNode):
         # Setting ROS parameters
         self.declare_parameter(self.AUGER_ACTUATION_CANID_PARAM, self.AUGER_ACTUATION_SEND_FRAME_ID)
         self.declare_parameter(self.AUGER_DRILL_CANID_PARAM, self.AUGER_DRILL_SEND_FRAME_ID)
-        self.get_logger().info(f"CAN IDs: Actuation = {self.get_parameter(self.AUGER_ACTUATION_CANID_PARAM)} Drill = {self.get_parameter(self.AUGER_DRILL_CANID_PARAM)}")
+        self.get_logger().info(f"CAN IDs: Actuation = {self.get_parameter(self.AUGER_ACTUATION_CANID_PARAM).value} Drill = {self.get_parameter(self.AUGER_DRILL_CANID_PARAM).value}")
 
         ## Add CAN ID Filters
         self.bus.set_id_filter([self.AUGER_LIMIT_RECV_ID])
@@ -98,13 +98,13 @@ class URCAuger(JoystickControllerNode):
         self.auger_actuation_controller = CMDVelocityController(
             logger=logger,
             bus=self.bus,
-            frame_id=self.get_parameter(self.AUGER_ACTUATION_CANID_PARAM),
+            frame_id=self.get_parameter(self.AUGER_ACTUATION_CANID_PARAM).value,
             control=self.auger_actuation
         )
         self.auger_drill_controller = CMDVelocityController(
             logger=logger,
             bus=self.bus,
-            frame_id=self.get_parameter(self.AUGER_DRILL_CANID_PARAM),
+            frame_id=self.get_parameter(self.AUGER_DRILL_CANID_PARAM).value,
             control=self.auger_drill
         )
 

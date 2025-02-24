@@ -75,14 +75,14 @@ class AnalysisArm(JoystickControllerNode):
         # This is done so that the parameters can be changed during runtime if desired
         self.declare_parameter(self.CMD_ID_PARAM, self.CMD_ID)
         self.declare_parameter(self.TOF_FRAME_ID_PARAM, self.TOF_FRAME_ID)
-        self.get_logger().info(f"CAN IDs: CMD = {self.get_parameter(self.CMD_ID_PARAM)} TOF = {self.get_parameter(self.TOF_FRAME_ID_PARAM)}")
+        self.get_logger().info(f"CAN IDs: CMD = {self.get_parameter(self.CMD_ID_PARAM).value} TOF = {self.get_parameter(self.TOF_FRAME_ID_PARAM).value}")
 
         ## Add Flags as required
         self.twitch_enable = True
         self.twitch_button_released = True
 
         ## Add CAN ID Filters
-        self.bus.set_id_filter([self.get_parameter(self.TOF_FRAME_ID_PARAM)])
+        self.bus.set_id_filter([self.get_parameter(self.TOF_FRAME_ID_PARAM).value])
 
         ## Add Publishers
         self.tof_publisher = self.create_publisher(Range, "/science/analysis_arm", 10)
@@ -91,7 +91,7 @@ class AnalysisArm(JoystickControllerNode):
         tof_sensor = RangeSensor(
             logger=logger,
             bus=self.bus,
-            frame_id=self.get_parameter(self.TOF_FRAME_ID_PARAM),
+            frame_id=self.get_parameter(self.TOF_FRAME_ID_PARAM).value,
             maximum=self.TIME_OF_FLIGHT_MAX,
             minimum=self.TIME_OF_FLIGHT_MIN,
             offset=self.TIME_OF_FLIGHT_OFFSET,
@@ -119,7 +119,7 @@ class AnalysisArm(JoystickControllerNode):
         self.platform_controller = CMDVelocityController(
             logger=logger,
             bus=self.bus,
-            frame_id=self.get_parameter(self.CMD_ID_PARAM),
+            frame_id=self.get_parameter(self.CMD_ID_PARAM).value,
             control=self.platform,
         )
         
