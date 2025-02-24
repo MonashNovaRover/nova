@@ -1,5 +1,8 @@
 teleop_arm_joy_node:
   ros__parameters:
+    twist:
+      linear_max: 0.1
+
     joints:
       J1:
         max_speed: 1.0
@@ -25,12 +28,12 @@ teleop_arm_joy_node:
       J2:
         device: "Gamepad"
         id: 1
-#      J3:
-#        device: "Gamepad"
-#        id: 1
-      J4:
+      J3:
         device: "Gamepad"
         id: 3
+#      J4:
+#        device: "Gamepad"
+#        id: 3
       J5:
         device: "Gamepad"
         id: 2
@@ -53,16 +56,16 @@ teleop_arm_joy_node:
       twist_y:
         device: "Gamepad"
         id: 1
-#      twist_z:
-#        device: "Gamepad"
-#        id:
-
-      twist_yaw:
+      twist_z:
         device: "Gamepad"
         id: 2
-      twist_pitch:
-        device: "Gamepad"
-        id: 3
+
+#      twist_yaw:
+#        device: "Gamepad"
+#        id: 2
+#      twist_pitch:
+#        device: "Gamepad"
+#        id: 3
 #      twist_roll:
 #        device: "Gamepad"
 #        id: 2
