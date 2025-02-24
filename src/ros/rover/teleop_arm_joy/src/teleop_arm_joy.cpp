@@ -240,6 +240,20 @@ void TeleopArmJoy::sendJointSpaceCommand()
 
   fk_velocity_pub->publish(std::move(msg));
 
+  auto ik_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
+
+  ik_msg->header.stamp = this->now();
+
+  auto linear = geometry_msgs::msg::Vector3();
+  linear.x = linear.y = linear.z = 0;
+
+  auto angular = geometry_msgs::msg::Vector3();
+  angular.x = angular.y = angular.z = 0;
+
+  ik_msg->twist.linear = linear;
+  ik_msg->twist.angular = angular;
+
+  ik_twist_pub->publish(std::move(ik_msg));
 }
 
 void TeleopArmJoy::sendTwistCommand() {

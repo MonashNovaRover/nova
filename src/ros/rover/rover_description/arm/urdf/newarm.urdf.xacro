@@ -198,6 +198,8 @@
         <axis xyz="0 0 1"/>
         <limit effort="20" velocity="20" lower="-1.3788101090755202627" upper="3.141592653589793116"/>
         <joint_properties friction="0.5" damping="0.5"/>
+        <!-- Elbow -->
+        <mimic joint="J3" multiplier="1"/>
     </joint>
 
     <joint name="J2" type="revolute">
@@ -319,6 +321,7 @@
         <axis xyz="0 0 1"/>
         <limit effort="20" velocity="20" lower="-1.570796326794896558" upper="3.141592653589793116"/>
         <joint_properties friction="0.5" damping="0.5"/>
+        <mimic joint="J2" multiplier="-1"/>
     </joint>
 
     <joint name="J3" type="revolute">
@@ -599,6 +602,7 @@
         <xacro:include filename="$(find rover_description)/arm/urdf/newarm.ros2_control.xacro" />
     </xacro:if> -->
 
+
     <!-- gz start -->
 
     <xacro:unless value="$(arg gazebo)">
@@ -659,6 +663,28 @@
             <joint_properties damping="20.0" friction="0.1"/>
         </joint>
 
+        <!-- Origin of arm for IK. Should align with J1, but not -->
+        <link name="arm_kinematics_origin"/>
+        <joint name="arm_kinematics_origin_joint" type="fixed">
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+            <parent link="chassis" />
+            <child link="arm_kinematics_origin" />
+        </joint>
+        <!-- Origin of arm for IK -->
+
         <xacro:include filename="newarm_joints.xacro"/>
     </xacro:unless>
+    <xacro:if value="$(arg arm)">
+        <!-- Origin of arm for IK. Should align with J1, but not -->
+        <link name="arm_kinematics_origin"/>
+        <joint name="arm_kinematics_origin_joint" type="fixed">
+            <origin xyz="0.22899999999999565148 1.1102230246251564172e-16 0.28205202431" rpy="0.0 0.0 0.0" />
+            <parent link="chassis" />
+            <child link="arm_kinematics_origin" />
+        </joint>
+        <!-- Origin of arm for IK -->
+
+    </xacro:if>
+
+
 </robot>

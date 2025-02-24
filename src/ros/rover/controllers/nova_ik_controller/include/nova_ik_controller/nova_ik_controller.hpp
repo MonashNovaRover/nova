@@ -25,6 +25,7 @@
 #include "nova_ik_controller/speed_limiter.hpp"
 #include <Eigen/Dense>
 #include <tf2/LinearMath/Transform.h>
+#include <tf2_ros/transform_broadcaster.h>
 
 // To test in development, run from the root nova_ik_controller dir:
 // generate_parameter_library_cpp include/nova_ik_controller/nova_ik_controller_parameters.hpp src/nova_ik_controller_parameter.yaml
@@ -112,7 +113,6 @@ protected:
   // Helpers
   std::string joint_to_command_interface_name(const std::string& joint_name) const;
 
-  rclcpp::Node node;
 
   // TODO: change this message when we get one
 
@@ -129,9 +129,16 @@ protected:
   realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_stamped_ptr{nullptr};
   /// Result of the twistmapper, and input to IK. Desired position and orientation of the end effector relative to the base.
   tf2::Transform _twistmapper_pose = tf2::Transform();
+  rclcpp::Time _twistmapper_pose_update_time = rclcpp::Time();
   /// True when initial state has been received to confirm that the value in _twistmapper_pose is safe and valid
   // TODO: Make invalid when deactivated
   bool _twistmapper_pose_validated = false;
+
+
+  std::thread tf_thread_;                   // Separate thread for TF updates
+  std::atomic<bool> tf_thread_running_{false}; // Control flag for the thread
+  std::mutex tf_mutex_;                      // Protects shared TF data
+  geometry_msgs::msg::TransformStamped latest_transform_;
 
   // TODO: Detection of initial state, setting initial twistmapper pose
 

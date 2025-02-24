@@ -148,7 +148,7 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
 
   // TODO: change implementation to use values from reference_interfaces_ rather than the subscriber message.
   // (anything related to the subscriber should not exist in this function)
-  RCLCPP_INFO(logger, "Update and write commands");
+  //RCLCPP_INFO(logger, "Update and write commands");
 
   if (get_lifecycle_state().id() == State::PRIMARY_STATE_INACTIVE)
   {
