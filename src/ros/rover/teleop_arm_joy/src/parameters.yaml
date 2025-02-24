@@ -28,10 +28,20 @@ teleop_arm_joy:
       type: string_array
       default_value:
         [
-          "nova_ik_position_controller",
+          "nova_arm_position_controller",
           "nova_ik_controller"
         ]
       description: "Controllers to activate/deactivate for twist ik control"
+
+  joint_space:
+    controllers:
+      type: string_array
+      default_value:
+        [
+          "nova_arm_velocity_controller",
+        ]
+      description: "Controllers to activate/deactivate for joint space control"
+
 
   device_names:
     type: string_array
