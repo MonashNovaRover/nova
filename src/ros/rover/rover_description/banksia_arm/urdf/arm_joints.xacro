@@ -4,6 +4,9 @@
      <gazebo>
           <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
                <topic>arm_joints</topic>
+
+               <joint_name>arm_kinematics_origin_joint</joint_name>
+
                <joint_name>J1</joint_name>
                <joint_name>J2</joint_name>
                <joint_name>J3</joint_name>
