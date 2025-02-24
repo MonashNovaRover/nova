@@ -1,7 +1,7 @@
 teleop_arm_joy_node:
   ros__parameters:
     twist:
-      linear_max: 0.1
+      linear_max: 0.25
 
     joints:
       J1:
