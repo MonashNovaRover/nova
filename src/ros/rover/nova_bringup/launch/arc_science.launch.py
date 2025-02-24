@@ -24,7 +24,7 @@ from launch_ros.actions import Node
 
 def launch_setup(context, *args, **kwargs):
     # parameterised canIDs
-    auger_drill_canid = LaunchConfiguration('uger_drill_canid')
+    auger_drill_canid = LaunchConfiguration('auger_drill_canid')
     auger_actuation_canid = LaunchConfiguration('auger_actuation_canid')
     analysis_arm_cmd_canid = LaunchConfiguration('analysis_arm_cmd_canid')
     tof_canid = LaunchConfiguration('tof_canid')
@@ -72,10 +72,10 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     declared_arguments = [
-        DeclareLaunchArgument("auger_drill_canid", defaultValue=0x0C1),
-        DeclareLaunchArgument("auger_actuation_canid", defaultValue=0x0D1),
-        DeclareLaunchArgument("analysis_arm_cmd_canid", defaultValue=0x0D2),
-        DeclareLaunchArgument("tof_canid", defaultValue=0x456)
+        DeclareLaunchArgument("auger_drill_canid", default_value='0x0C1'),
+        DeclareLaunchArgument("auger_actuation_canid", default_value='0x0D1'),
+        DeclareLaunchArgument("analysis_arm_cmd_canid", default_value='0x0D2'),
+        DeclareLaunchArgument("tof_canid", default_value='0x456')
     ]
 
     return LaunchDescription(
