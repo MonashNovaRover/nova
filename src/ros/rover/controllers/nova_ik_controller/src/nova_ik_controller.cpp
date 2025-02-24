@@ -424,7 +424,7 @@ namespace nova_ik_controller
     double j5 = atan2(-r37r(2, 2), r37r(0, 2) / cos(j4));
     double j6 = atan2(-r37r(2, 1) / cos(j5), r37r(2, 0) / cos(j5));
 
-    std::array<double, 6> new_joints = { j1, j2bo, j3bo, j4, j5, j6 };
+    std::array<double, 6> new_joints = { -j1, -j2bo, -j3bo, -j4, -j5, j6 };
 
     // Removed this conversion, as im 99% sure ros2 control uses radians rather than degrees: - Bailey
     //   converts all elements in new_joints from radians to degrees, then puts them into joints to be returned
