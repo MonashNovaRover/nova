@@ -189,11 +189,11 @@ void TeleopArmJoy::setControlMode(const ControlMode new_control_mode) {
   if (control_mode == new_control_mode)
     return;
 
+  sendHaltCommand();
+  switchController(new_control_mode);
+
   control_mode = new_control_mode;
 
-  sendHaltCommand();
-
-  // TODO: Enable and disable controllers
   if (new_control_mode == ControlMode::FK) {
     RCLCPP_INFO(get_logger(), "Switched to FK control.");
   }
@@ -201,8 +201,6 @@ void TeleopArmJoy::setControlMode(const ControlMode new_control_mode) {
     RCLCPP_INFO(get_logger(), "Switched to IK control.");
   }
 }
-
-// TODO: Implement strategy pattern for sendArmCommand and sendHaltCommand
 
 void TeleopArmJoy::sendArmCommand()
 {
@@ -314,6 +312,19 @@ void TeleopArmJoy::handleSpeedChange() {
   speed = 0.5f * (axes["speed"]->value() + 1.f);
 }
 
+std::vector<std::string> TeleopArmJoy::modeToControllers(const ControlMode mode) {
+  switch (mode)
+  {
+    case ControlMode::FK:
+      return params_.joint_space.controllers;
+    case ControlMode::IK:
+      return params_.twist.controllers;
+    default:
+      RCLCPP_WARN(get_logger(), "Unknown control type given to modeToControllers. Returning no controllers.");
+      return {};
+  }
+}
+
 void TeleopArmJoy::switchController(const ControlMode requested_control_mode)
 {
   if (requested_control_mode == control_mode)
@@ -323,8 +334,8 @@ void TeleopArmJoy::switchController(const ControlMode requested_control_mode)
               prettyPrintMode(control_mode).c_str(),
               prettyPrintMode(requested_control_mode).c_str());
 
-  std::string deactivate_controller = modeToController(control_mode);
-  std::string activate_controller = modeToController(requested_control_mode);
+  vector<std::string> deactivate_controllers = modeToControllers(control_mode);
+  vector<std::string> activate_controllers = modeToControllers(requested_control_mode);
 
   if (!switch_controller_client->service_is_ready()) {
     RCLCPP_ERROR(this->get_logger(), "Controller manager service not available.");
@@ -332,15 +343,15 @@ void TeleopArmJoy::switchController(const ControlMode requested_control_mode)
   }
 
   auto request = std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
-  request->activate_controllers.emplace_back(activate_controller);
-  request->deactivate_controllers.emplace_back(deactivate_controller);
+  request->deactivate_controllers = deactivate_controllers;
+  request->activate_controllers = activate_controllers;
   request->strictness = 2;
   request->activate_asap = true;
 
   auto future = switch_controller_client->async_send_request(request);
-
   control_mode = requested_control_mode;
 }
+
 }
 
 int main(int argc, char *argv[])
