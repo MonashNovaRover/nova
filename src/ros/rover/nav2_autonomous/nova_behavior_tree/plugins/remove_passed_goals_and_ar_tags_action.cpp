@@ -22,10 +22,26 @@
 #include "nav2_util/geometry_utils.hpp"
 #include "rclcpp/logging.hpp"
 
+#include "tf2/utils.h"      
+#include <cmath>
+
 #include "nova_behavior_tree/remove_passed_goals_and_ar_tags_action.hpp"
 
 namespace nova_behavior_tree
 {
+
+    // Small helper to replicate angles::shortest_angular_distance
+    inline double shortestAngularDistance(double from, double to)
+    {
+    // Normalizes the difference into (-π, +π]
+    double angle = std::fmod(to - from, 2.0 * M_PI);
+    if (angle > M_PI) {
+        angle -= 2.0 * M_PI;
+    } else if (angle <= -M_PI) {
+        angle += 2.0 * M_PI;
+    }
+    return angle;
+    }
 
     RemovePassedGoalsAndARTagsAction::RemovePassedGoalsAndARTagsAction(
         const std::string & name,
@@ -78,12 +94,29 @@ namespace nova_behavior_tree
         geometry_msgs::msg::PoseStamped tag;
         getInput("input_goal", tag);
 
+        // Define orientation tolerance (~14 degrees)
+        double yaw_goal_tolerance = 0.25;  // radians
+
         while (goal_poses.size() > 1) 
         {
             dist_to_goal = euclidean_distance(goal_poses[0].pose, current_pose.pose);
 
             if (dist_to_goal > viapoint_achieved_radius_) 
             {
+                break;
+            }
+
+
+            // Orientation check
+            double current_yaw = tf2::getYaw(current_pose.pose.orientation);
+            double goal_yaw = tf2::getYaw(goal_poses[0].pose.orientation);
+
+            // Use our custom function instead of angles::shortest_angular_distance
+            double dyaw = shortestAngularDistance(current_yaw, goal_yaw);
+
+            if (std::fabs(dyaw) > yaw_goal_tolerance) 
+            {
+                // Orientation mismatch, break
                 break;
             }
 
