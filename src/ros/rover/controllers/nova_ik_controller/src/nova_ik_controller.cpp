@@ -15,6 +15,9 @@
 namespace
 {
   constexpr auto DEFAULT_INPUT_TOPIC_END_EFFECTOR_TWIST = "/arm_ik_twist_stamped"; // TODO: changeme
+  const auto ENDEFFECTOR_BASIS = tf2::Matrix3x3(tf2::Quaternion(-0.5, 0.5, -0.5, -0.5));
+  constexpr auto ENDEFFECTOR_KINEMATICS_FRAME = "endeffector_kinematics";
+  constexpr auto KINEMATICS_ORIGIN_FRAME = "arm_kinematics_origin";
 } // namespace
 
 using std::placeholders::_1;
@@ -76,19 +79,25 @@ namespace nova_ik_controller
 
     const auto& twist = twist_stamped->twist;
 
+
+    tf2::Vector3 tf2_twist_angular;
+    tf2::fromMsg(twist.angular, tf2_twist_angular);
+
+    twistmapper_pose_rpy_ = twistmapper_pose_rpy_ + tf2_twist_angular * period.seconds();
+
     // Create rotation matrix from twist.angular as XYZ euler
     auto rotation_matrix = tf2::Matrix3x3();
-    rotation_matrix.setRPY(
+    /*rotation_matrix.setRPY(
       twist.angular.x * period.seconds(),
       twist.angular.y * period.seconds(),
       twist.angular.z * period.seconds());
+      */
+    rotation_matrix.setRPY(twistmapper_pose_rpy_.x(), twistmapper_pose_rpy_.y(), twistmapper_pose_rpy_.z());
 
     const auto linear = tf2::Vector3(
       twist.linear.x * period.seconds(),
       twist.linear.y * period.seconds(),
       twist.linear.z * period.seconds());
-
-    RCLCPP_INFO(get_node()->get_logger(), "Linear displacement: [%f, %f, %f]", linear.x(), linear.y(), linear.z());
 
     // TODO: Test this actually works as expected.
     // TODO: Add a tf buffer and make use of the header.frame_id from the twist_stamped to allow IK to be done relative to anything. Then Teleop would just need to use the end effector frame by default
@@ -96,28 +105,28 @@ namespace nova_ik_controller
     const auto displacement = tf2::Transform(rotation_matrix, linear);
 
     // _twistmapper_pose.mult(tf2::Transform(_twistmapper_pose), displacement);
-    _twistmapper_pose.setOrigin(linear + _twistmapper_pose.getOrigin());
+    twistmapper_pose_.setOrigin(linear + twistmapper_pose_.getOrigin());
+    //twistmapper_pose_.setBasis(twistmapper_pose_.getBasis() * rotation_matrix);
+    twistmapper_pose_.setBasis(rotation_matrix);
 
-    auto origin = _twistmapper_pose.getOrigin();
-    auto quat = _twistmapper_pose.getRotation();
-    RCLCPP_INFO(get_node()->get_logger(), "Pose: [%f, %f, %f], [%f, %f, %f, %f]", origin.x(), origin.y(), origin.z(), quat.x(), quat.y(), quat.z(), quat.w());
+    auto origin = twistmapper_pose_.getOrigin();
+    auto quat = twistmapper_pose_.getRotation();
+    RCLCPP_INFO_ONCE(get_node()->get_logger(), "Pose: [%f, %f, %f], [%f, %f, %f, %f]", origin.x(), origin.y(), origin.z(), quat.x(), quat.y(), quat.z(), quat.w());
 
     // Publish twistmapper pose to tf2
-    tf2_ros::TransformBroadcaster _twistmapper_pose_tf_broadcaster(*get_node());
-
     geometry_msgs::msg::TransformStamped transform_stamped;
-    transform_stamped.transform = toMsg(_twistmapper_pose);
+    transform_stamped.transform = toMsg(twistmapper_pose_);
     transform_stamped.header.stamp = time;
 
     // TODO: Parameterize
     transform_stamped.child_frame_id = "arm_twistmapper_target";
-    transform_stamped.header.frame_id = "arm_kinematics_origin";
+    transform_stamped.header.frame_id = KINEMATICS_ORIGIN_FRAME;
 
     RCLCPP_INFO_ONCE(get_node()->get_logger(), "Broadcasting twistmapper pose as '%s', child of '%s'.",
                      transform_stamped.child_frame_id.c_str(),
                      transform_stamped.header.frame_id.c_str());
 
-    _twistmapper_pose_tf_broadcaster.sendTransform(transform_stamped);
+    twistmapper_pose_tf_broadcaster_->sendTransform(transform_stamped);
   }
 
   controller_interface::return_type NovaIKController::update(
@@ -138,9 +147,10 @@ namespace nova_ik_controller
     update_twistmapper(time, period);
 
     // TODO: Retrieve these values from the robot description, rather than specifying them directly
+    // TODO: Or even simpler, just put these in params!!!
     constexpr std::array<double, 3> lengths = {0.5, 0.68332, 0.11073};
 
-    auto joint_angles = calculate_ik(_twistmapper_pose, lengths);
+    auto joint_angles = calculate_ik(twistmapper_pose_, lengths);
 
     for (unsigned int i = 0; i < joint_angles.size(); i++)
     {
@@ -173,6 +183,10 @@ namespace nova_ik_controller
       return controller_interface::CallbackReturn::ERROR;
     }
 
+    twistmapper_pose_tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(tf2_ros::TransformBroadcaster(*get_node()));
+    tf_buffer_ = std::make_unique<tf2_ros::Buffer>(get_node()->get_clock());
+    tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+
     // TODO: insert correct subscriber here
     twist_stamped_sub = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
       DEFAULT_INPUT_TOPIC_END_EFFECTOR_TWIST,
@@ -200,8 +214,6 @@ namespace nova_ik_controller
         received_twist_stamped_ptr.set(std::move(msg));
       });
     subscriber_is_active_ = true;
-
-    _twistmapper_pose.setOrigin(tf2::Vector3(0, 0, 1));
 
     RCLCPP_INFO(logger, "Created twist stamped subscription");
 
@@ -233,6 +245,33 @@ namespace nova_ik_controller
     }
     is_halted = false;
     subscriber_is_active_ = true;
+
+    try {
+      auto tf_transform = tf_buffer_->lookupTransform(KINEMATICS_ORIGIN_FRAME, ENDEFFECTOR_KINEMATICS_FRAME, tf2::TimePointZero);
+      tf2::fromMsg(tf_transform.transform, twistmapper_pose_);
+
+      double roll, pitch, yaw;
+      twistmapper_pose_.getBasis().getRPY(roll, pitch, yaw);
+      RCLCPP_INFO(get_node()->get_logger(), "Initial pose RPY -- R: %f, P: %f, Y: %f", roll, pitch, yaw);
+
+      // The orientation of the endeffector at the zero position is not the identity matrix. So, rotate the pose so these orientations line up
+      // twistmapper_pose_.setBasis(ENDEFFECTOR_BASIS.inverse() * twistmapper_pose_.getBasis());
+      twistmapper_pose_.getBasis().getRPY(roll, pitch, yaw);
+
+      RCLCPP_INFO(get_node()->get_logger(), "Initial pose RPY after ro -- R: %f, P: %f, Y: %f", roll, pitch, yaw);
+
+      twistmapper_pose_rpy_.setX(roll);
+      twistmapper_pose_rpy_.setY(pitch);
+      twistmapper_pose_rpy_.setZ(yaw);
+
+      RCLCPP_INFO(get_node()->get_logger(), "R: %f, P: %f, Y: %f *", roll, pitch, yaw);
+
+    } catch (const tf2::TransformException & ex) {
+      RCLCPP_INFO(
+        get_node()->get_logger(), "Could not transform %s to %s: %s",
+        ENDEFFECTOR_KINEMATICS_FRAME, KINEMATICS_ORIGIN_FRAME, ex.what());
+      return controller_interface::CallbackReturn::FAILURE;
+    }
 
     // TODO: setup sub and pub
     RCLCPP_DEBUG(get_node()->get_logger(), "Subscriber and publisher are now active.");
@@ -367,17 +406,35 @@ namespace nova_ik_controller
     auto z = origin.getZ();
     double roll, pitch, yaw;
 
-    pose.getBasis().getRPY(roll, pitch, yaw);
-    pitch += 90;
+
+//  pose.getBasis().getRPY(roll, pitch, yaw);
+
+    roll = twistmapper_pose_rpy_.x();
+    pitch = twistmapper_pose_rpy_.y();
+    yaw = twistmapper_pose_rpy_.z();
+
+    tf2::Matrix3x3 rotated_basis = pose.getBasis() * ENDEFFECTOR_BASIS.inverse();
+
+    constexpr double rad_to_deg = 57.2957795131;
+    roll *= rad_to_deg;
+    pitch *= rad_to_deg;
+    yaw *= rad_to_deg;
+
+    RCLCPP_INFO(get_node()->get_logger(), "R: %f, P: %f, Y: %f", roll, pitch, yaw);
+    // pitch += 90;
 
     double l1r = lengths[0];
     double l2r = lengths[1];
     double l3 = lengths[2];
 
-    Eigen::Matrix3d rz_alp { {cosd(yaw), -sind(yaw), 0}, {sind(yaw), cosd(yaw), 0}, {0, 0, 1} }; // Yaw
-    Eigen::Matrix3d ry_beta { {cosd(pitch), 0, sind(pitch)}, {0, 1, 0}, { -sind(pitch), 0, cosd(pitch)} }; // Pitch
-    Eigen::Matrix3d rx_gam { {1, 0, 0}, {0, cosd(roll), -sind(roll)}, {0, sind(roll), cosd(roll)} }; // Roll
-    Eigen::Matrix3d rxyz = rz_alp * ry_beta * rx_gam; // rxyz orientation matrix
+//    Eigen::Matrix3d rz_alp { {cosd(yaw), -sind(yaw), 0}, {sind(yaw), cosd(yaw), 0}, {0, 0, 1} }; // Yaw
+//    Eigen::Matrix3d ry_beta { {cosd(pitch), 0, sind(pitch)}, {0, 1, 0}, { -sind(pitch), 0, cosd(pitch)} }; // Pitch
+//    Eigen::Matrix3d rx_gam { {1, 0, 0}, {0, cosd(roll), -sind(roll)}, {0, sind(roll), cosd(roll)} }; // Roll
+    Eigen::Matrix3d rxyz {
+      {rotated_basis[0][0], rotated_basis[0][1], rotated_basis[0][2]},
+      {rotated_basis[1][0], rotated_basis[1][1], rotated_basis[1][2]},
+      {rotated_basis[2][0], rotated_basis[2][1], rotated_basis[2][2]}
+    };  /// = rz_alp * ry_beta * rx_gam; // rxyz orientation matrix
 
     Eigen::Matrix4d t07r = Eigen::Matrix4d::Zero();
     t07r.topLeftCorner<3,3>() = rxyz;
@@ -424,7 +481,9 @@ namespace nova_ik_controller
     double j5 = atan2(-r37r(2, 2), r37r(0, 2) / cos(j4));
     double j6 = atan2(-r37r(2, 1) / cos(j5), r37r(2, 0) / cos(j5));
 
-    std::array<double, 6> new_joints = { -j1, -j2bo, -j3bo, -j4, -j5, j6 };
+    std::array<double, 6> new_joints = { -j1, -j2bo, -j3bo, -j4, -j5, -j6 };
+
+    RCLCPP_INFO(get_node()->get_logger(), "{ %f, %f, %f, %f, %f, %f }", -j1, -j2bo, -j3bo, -j4, -j5, -j6);
 
     // Removed this conversion, as im 99% sure ros2 control uses radians rather than degrees: - Bailey
     //   converts all elements in new_joints from radians to degrees, then puts them into joints to be returned
