@@ -16,7 +16,7 @@ namespace
 {
   constexpr auto DEFAULT_INPUT_TOPIC_END_EFFECTOR_TWIST = "/arm_ik_twist_stamped"; // TODO: changeme
   /// The inverse of the global orientation the kinematics origin frame wants to rotate to for a roll,pitch,yaw of 0,0,0
-  const auto ENDEFFECTOR_BASIS_INVERSE = tf2::Matrix3x3(tf2::Quaternion(-0.5, 0.5, -0.5, -0.5));
+  const auto ENDEFFECTOR_BASIS_INVERSE = tf2::Matrix3x3(tf2::Quaternion(-0.5, 0.5, -0.5, -0.5)).inverse();
   constexpr auto ENDEFFECTOR_KINEMATICS_FRAME = "endeffector_kinematics";
   constexpr auto KINEMATICS_ORIGIN_FRAME = "arm_kinematics_origin";
   constexpr auto TWISTMAPPER_TARGET_FRAME = "arm_twistmapper_target";
