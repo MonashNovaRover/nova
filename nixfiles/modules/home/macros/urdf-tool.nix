@@ -15,11 +15,11 @@ let
   # Define onshape-to-robot build
   onshapeToRobot = pkgs.python3Packages.buildPythonApplication rec {
     pname = "onshape-to-robot";
-    version = "0.3.26";
+    version = "1.0.9";
 
     src = pkgs.fetchPypi {
       inherit pname version;
-      hash = "sha256-aMxfZw1B/J1NgRbbUXRwjM2hEbUlTXfVIt9r2dVtOuY=";
+      hash = "sha256-8XzIX+6mmAIJTO57QI2GCQr1opwMZ0Uscr0tTnX+bJY=";
     };
 
     buildInputs = with pkgs.python3Packages; [
