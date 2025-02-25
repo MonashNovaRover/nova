@@ -2,6 +2,10 @@
 <root BTCPP_format="4">
   <TreeNodesModel>
     <!-- ############################### ACTION NODES ################################# -->
+    <Action ID="BlackboardPublisher">
+      <input_port name="topic_name">ROS topic for publishing</input_port>
+    </Action>
+    
     <Action ID="UpdateARTagGoal">
       <input_port name="input_goal">Goal to add as viapoint</input_port>
       <input_port name="input_goals">Original goals to add viapoints into</input_port>
