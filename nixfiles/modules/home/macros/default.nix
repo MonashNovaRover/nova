@@ -117,7 +117,7 @@ in
             # GUI aliases
             gui-shell = "nova-shell -A pkgs.ros.nova-gui";
             gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" src/ros/rosTypes.ts";
-            gui-rosbridge = "~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml"
+            gui-rosbridge = "~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
           }
         ];
 
