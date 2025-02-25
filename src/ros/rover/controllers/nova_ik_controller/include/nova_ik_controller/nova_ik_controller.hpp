@@ -52,7 +52,6 @@ public:
   controller_interface::CallbackReturn on_configure(
     const rclcpp_lifecycle::State &previous_state) override;
 
-  // TODO: Reset twistmapper output pose to state interface reported positions
   controller_interface::CallbackReturn on_activate(
     const rclcpp_lifecycle::State &previous_state) override;
 
@@ -76,11 +75,6 @@ public:
   /// @returns an array of joint angles in joint space for each of J1 through J6, through joints.
   std::array<double, 6> calculate_ik(tf2::Transform pose, std::array<double, 3> lengths);
 
-  // Helper functions to cut down on code reuse. Gets sin/cos/tan from degrees instead of radians.
-  tf2Scalar sind(tf2Scalar angle) const { return tf2Sin(tf2Radians(angle)); }
-  tf2Scalar cosd(tf2Scalar angle) const { return tf2Cos(tf2Radians(angle)); }
-  tf2Scalar tand(tf2Scalar angle) const { return tf2Tan(tf2Radians(angle)); }
-
   // substitutes values into our DH table.
   // see: https://www.notion.so/Inverse-Kinematics-ddfe35179c1f4959850bd28b2195be8a
   // equivalent line: DHs = [cos(the) -sin(the) 0 a; sin(the)*cos(alp) cos(the)*cos(alp) -sin(alp) -sin(alp)*d; sin(the)*sin(alp) cos(the)*sin(alp) cos(alp) cos(alp)*d; 0 0 0 1];
@@ -93,8 +87,6 @@ public:
       { 0,					0,					0,			1 }
     };
   }
-
-  void teleop_callback(std::shared_ptr<geometry_msgs::msg::TwistStamped> msg);
 
 protected:
   struct JointHandle
@@ -114,7 +106,6 @@ protected:
 
   // Helpers
   std::string joint_to_command_interface_name(const std::string& joint_name) const;
-
 
   // TODO: change this message when we get one
 
