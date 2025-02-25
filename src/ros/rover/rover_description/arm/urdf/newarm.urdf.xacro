@@ -686,5 +686,20 @@
 
     </xacro:if>
 
+    <link name="endeffector_kinematics"/>
+    <joint name="endeffector_kinematics_joint" type="fixed">
+        <!-- before rotating to match IK function expected 0: 1.5707963 0.0 1.5707963 -->
+        <origin xyz="0.0138 0.0 -0.012512" rpy="1.5707963 0.0 1.5707963" />
+        <parent link="endeffector" />
+        <child link="endeffector_kinematics" />
+    </joint>
+
+<!--    z at 1.2321-->
+
+<!--    1.0232 0.012512 1.2183-->
+
+<!--    up 0.0138-->
+<!--    forward 0.012512-->
+
 
 </robot>
