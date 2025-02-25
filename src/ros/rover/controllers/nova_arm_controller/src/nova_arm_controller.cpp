@@ -173,7 +173,6 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     const auto& joint_handle = registered_joint_handles_[i];
 
     // We use this assumption to index into the reference interface arrays using the same index
-    // assert(joint_handle.name == params_.joint_names[i]);
     if (joint_handle.name != params_.joint_names[i]) {
       RCLCPP_ERROR(logger, "Assertion failed: %s != %s", joint_handle.name.c_str(), params_.joint_names[i].c_str());
       return controller_interface::return_type::ERROR;

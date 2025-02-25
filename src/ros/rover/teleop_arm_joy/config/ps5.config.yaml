@@ -50,13 +50,13 @@ teleop_arm_joy_node:
         device: "Gamepad"
         id: 4
 
-#      twist_x:
-#        device: "Gamepad"
-#        id: 0
-#      twist_y:
-#        device: "Gamepad"
-#        id: 1
-#        invert: true
+      twist_x:
+        device: "Gamepad"
+        id: 0
+      twist_y:
+        device: "Gamepad"
+        id: 1
+        invert: true
       twist_z:
         device: "Gamepad"
         id: 3
@@ -64,12 +64,12 @@ teleop_arm_joy_node:
       twist_yaw:
         device: "Gamepad"
         id: 2
-      twist_pitch:
-        device: "Gamepad"
-        id: 0
-      twist_roll:
-        device: "Gamepad"
-        id: 1
+#      twist_pitch:
+#        device: "Gamepad"
+#        id: 0
+#      twist_roll:
+#        device: "Gamepad"
+#        id: 1
 
     buttons:
       twist_mode:
