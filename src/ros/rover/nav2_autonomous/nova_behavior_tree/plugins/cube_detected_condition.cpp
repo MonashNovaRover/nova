@@ -185,7 +185,7 @@ namespace nova_behavior_tree
         }
 
         // update filter
-        if (!filter.empty())
+        if (!filter_.empty())
         {
             filter_.push(detections);
             int front = filter_.front();
