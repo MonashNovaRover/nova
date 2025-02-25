@@ -26,6 +26,8 @@
 #include <Eigen/Dense>
 #include <tf2/LinearMath/Transform.h>
 #include <tf2_ros/transform_broadcaster.h>
+#include "tf2_ros/transform_listener.h"
+#include "tf2_ros/buffer.h"
 
 // To test in development, run from the root nova_ik_controller dir:
 // generate_parameter_library_cpp include/nova_ik_controller/nova_ik_controller_parameters.hpp src/nova_ik_controller_parameter.yaml
@@ -128,17 +130,18 @@ protected:
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_stamped_sub = nullptr;
   realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_stamped_ptr{nullptr};
   /// Result of the twistmapper, and input to IK. Desired position and orientation of the end effector relative to the base.
-  tf2::Transform _twistmapper_pose = tf2::Transform();
-  rclcpp::Time _twistmapper_pose_update_time = rclcpp::Time();
+  tf2::Transform twistmapper_pose_ = tf2::Transform();
+  tf2::Vector3 twistmapper_pose_rpy_ = tf2::Vector3();
+  rclcpp::Time twistmapper_pose_update_time_ = rclcpp::Time();
   /// True when initial state has been received to confirm that the value in _twistmapper_pose is safe and valid
   // TODO: Make invalid when deactivated
-  bool _twistmapper_pose_validated = false;
+  bool twistmapper_pose_validated_ = false;
 
-
-  std::thread tf_thread_;                   // Separate thread for TF updates
-  std::atomic<bool> tf_thread_running_{false}; // Control flag for the thread
-  std::mutex tf_mutex_;                      // Protects shared TF data
-  geometry_msgs::msg::TransformStamped latest_transform_;
+  // broadcasting twistmapper
+  std::shared_ptr<tf2_ros::TransformBroadcaster> twistmapper_pose_tf_broadcaster_;
+  // FK for getting the initial state for twistmapper_pose_
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
+  std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 
   // TODO: Detection of initial state, setting initial twistmapper pose
 

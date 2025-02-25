@@ -103,7 +103,7 @@ controller_interface::return_type NovaArmController::update_reference_from_subsc
 controller_interface::return_type NovaArmController::update_velocity_reference_from_subscribers() {
   auto logger = get_node()->get_logger();
 
-  RCLCPP_INFO(get_node()->get_logger(), "Update velocity reference from subscribers");
+  RCLCPP_INFO_ONCE(get_node()->get_logger(), "Update velocity reference from subscribers");
 
   std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets> last_msg;
   received_msg_ptr_.get(last_msg);
