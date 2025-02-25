@@ -75,6 +75,8 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    nova-shell -A env.nova-gui
 
    # or (currently working better) for dev dependencies
+   gui-shell 
+   # alias for:
    nova-shell -A pkgs.ros.nova-gui
    ```
 
@@ -82,7 +84,9 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
 
    You must be in the nova-gui directory to install the correct packages and run nova-gui. If your nova-gui directory is in the standard location, you may run the command.
    ```sh
-   cd src/ros/nova-gui/nova-gui
+   gui
+   # alias for:
+   cd ~/nova/src/ros/nova-gui/nova-gui
    ```
    
    > If your nova-gui directory is in a non-standard
@@ -112,6 +116,8 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    
    ```sh
    # Run with dev dependencies
+   gui-link
+   # alias for
    ln -sf "$ROS_TS_DEFINITIONS" src/ros/rosTypes.ts
    ```
    
@@ -125,7 +131,12 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
 
    ```sh
    # Run with runtime dependencies
+   rosbridge
+   # alias for
    ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+   # or 
+   gui-rosbridge # alias for
+   ~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml
    ```
 
 7. Offline Maps (OPTIONAL)
