@@ -113,6 +113,11 @@ in
 
             # Temporary aliases (remove when a better solution has been implemented)
             cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
+          
+            # GUI aliases
+            gui-shell = "nova-shell -A pkgs.ros.nova-gui";
+            gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" src/ros/rosTypes.ts";
+            gui-rosbridge = "~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml"
           }
         ];
 
