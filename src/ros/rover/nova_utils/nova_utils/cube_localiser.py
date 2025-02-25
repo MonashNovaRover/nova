@@ -64,10 +64,10 @@ IDS_COLOR = {0: "red", 1: "green", 2: "blue", 3: "white"}
 # could replace with an array ['red', 'green', 'blue', 'white'] as indexes are implicit, but this is better for readability
 
 # change these topics using remapping in launch file
-DEPTH_IMAGE_TOPIC = "/oak/depth"
-DEPTH_INFO_TOPIC = "/oak/camera_info"
-DETECTION_TOPIC = "/yolo/detections"
-MARKER_TOPIC = "/yolo/cubes"
+DEPTH_IMAGE_TOPIC = "image_raw"
+DEPTH_INFO_TOPIC = "camera_info"
+DETECTION_TOPIC = "detections"
+MARKER_TOPIC = "cubes"
 
 
 class DetectionTransformer(Node):

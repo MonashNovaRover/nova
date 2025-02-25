@@ -74,6 +74,10 @@ def launch_setup(context, *args, **kwargs):
             package='nova_utils',
             executable='cube_localiser.py',
             parameters=[{'sim': bool(gazebo)}, params],
+            remappings=[("image_raw", depth_image), 
+                        ("camera_info", depth_image_info)
+                        ("detections", "/yolo/detections")
+                        ("cubes", "/yolo/cubes")],
             namespace=namespace,
         ),
     ]
@@ -98,17 +102,17 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='depth_image',
-            default_value='/oak/depth',
+            default_value='/oak/stereo/image_raw',
             description='Depth image topic used for yolo_ros',
         ),
         DeclareLaunchArgument(
             name='depth_image_info',
-            default_value='/oak/camera_info',
+            default_value='/oak/stereo/camera_info',
             description='Depth image info topic used for yolo_ros',
         ),
         DeclareLaunchArgument(
             name='rgb_image',
-            default_value='/oak/rgb/image_rect',
+            default_value='/oak/rgb/image_raw',
             description='RGB image topic used for yolo_ros',
         ),
         DeclareLaunchArgument(

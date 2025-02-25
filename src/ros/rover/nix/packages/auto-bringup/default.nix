@@ -30,8 +30,9 @@
   imu-transformer,
   nova-pivot-drive-controller,
   tf2-tools,
-, yolo-bringup
-, yolo-msgs
+  yolo-ros,
+  yolo-bringup,
+  yolo-msgs,
 }:
 
 buildRosPackage rec {
@@ -76,6 +77,7 @@ buildRosPackage rec {
       nova-pivot-drive-controller
       tf2-tools
       imu-transformer
+      yolo-ros
       yolo-bringup
       yolo-msgs;
   };
