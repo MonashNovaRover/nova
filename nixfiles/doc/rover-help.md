@@ -31,6 +31,23 @@ Try the 'launch-drive' alias, otherwise use the command below.
 
 =========================
 
+# GUI
+Launch the following on the metabox.
+
+In one terminal:
+1. Try the 'gui-shell' alias otherwise:
+     nova-shell -A pkgs.ros.nova-gui
+3. Try the 'gui' alias otherwise:
+     cd ~/nova/src/ros/nova-gui/nova-gui
+5. yarn install
+6. yarn dev
+
+In another terminal:
+1. Try the 'gui-rosbridge' alias otherwise: 
+    ~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+
+=========================
+
 # Arm
 Launch this on the jetson.
 When running the arm payload, you DO need to run drive.
