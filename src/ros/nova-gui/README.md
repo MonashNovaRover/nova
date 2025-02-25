@@ -131,9 +131,12 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
 
    ```sh
    # Run with runtime dependencies
-   gui-rosbridge
+   rosbridge
    # alias for
    ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+   # or 
+   gui-rosbridge # alias for
+   ~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml
    ```
 
 7. Offline Maps (OPTIONAL)

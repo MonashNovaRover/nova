@@ -44,7 +44,7 @@ In one terminal:
 
 In another terminal:
 1. Try the 'gui-rosbridge' alias otherwise: 
-    ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+    ~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml
 
 =========================
 
