@@ -142,7 +142,9 @@ void DriveInputs::input_callback(const input_interfaces::msg::InputGamepad::Shar
         }
        
         } else if (msg->btn_x_state == 1) {
-              // PLACEHOLDER
+            if(cop_mode)
+                system("bash -c '~/nova/nixfiles/scripts/cop-mode.sh'");
+            cop_mode = !cop_mode;
         }
    
         if (msg->btn_thumb_l_state == 1) {
