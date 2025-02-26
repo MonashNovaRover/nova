@@ -1,0 +1,41 @@
+yolo:
+  yolo_node:
+    ros__parameters:
+      model_type: "YOLO"
+      #model: "/path/to/model.pt"
+      device: "cpu"
+      enable: True
+      threshold: 0.5
+      #iou: 0.7
+      imgsz_height: 400
+      imgsz_width: 600
+      half: False
+      max_det: 300
+      #augment: False
+      #agnostic_nms: False
+      #retina_masks: False
+      image_reliability: 1
+
+  debug_node:
+    ros__parameters:
+      image_reliability: 1
+
+  cube_localiser:
+    ros__parameters:
+      depth_image_units_divisor: 1
+      maximum_detection_threshold: 0.3
+      significant_threshold: 0.01
+
+      use_markers: True
+      marker_ns: "detected_cubes"
+      marker_duration: 1
+      marker_size: 0.15
+
+      tf_publisher_timer_period: 0.1
+
+      map_frame: "map"
+      camera_frame: "camera_link"
+
+      min_samples: 5
+      max_std_dev: 1
+

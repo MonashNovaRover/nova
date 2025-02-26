@@ -6,7 +6,7 @@
 , nav-msgs
 , vision-msgs
 , visualization-msgs 
-
+, yolo-msgs
 }:
 
 buildRosPackage rec {
@@ -20,5 +20,5 @@ buildRosPackage rec {
   
   nativeBuildInputs = [ ament-cmake ];
   buildInputs = [ std-msgs nav-msgs ];
-  propagatedBuildInputs = [ vision-msgs visualization-msgs geometry-msgs std-msgs ];
+  propagatedBuildInputs = [ vision-msgs visualization-msgs geometry-msgs std-msgs yolo-msgs ];
 }
