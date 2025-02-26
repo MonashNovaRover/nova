@@ -30,7 +30,7 @@
   imu-transformer,
   nova-pivot-drive-controller,
   tf2-tools,
-  yolo-bringup,
+  yolo-ros,
 }:
 
 buildRosPackage rec {
@@ -75,7 +75,7 @@ buildRosPackage rec {
       nova-pivot-drive-controller
       tf2-tools
       imu-transformer
-      yolo-bringup;
+      yolo-ros;
   };
 
   # After installing params and resources folders in nix store's auto_bringup,

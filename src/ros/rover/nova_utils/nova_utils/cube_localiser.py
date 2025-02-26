@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-
-"""
+'''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Purpose: Republish yolo_ros DetectionArray msg 
 as a transform for cube localisation
@@ -25,7 +24,7 @@ TODO:
  - Refine the standard dev and min samples params
  - Convert to work for oak camera
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-"""
+'''
 import rclpy
 from rclpy.node import Node
 from rclpy.duration import Duration
@@ -60,19 +59,19 @@ COLORS = {'red':[1.0,0.0,0.0], 'green':[0.0,1.0,0.0], 'blue':[0.0,0.0,1.0], 'whi
 DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
 
 # Assumed color ids:
-IDS_COLOR = {0: "red", 1: "green", 2: "blue", 3: "white"} 
+IDS_COLOR = {0: 'red', 1: 'green', 2: 'blue', 3: 'white'} 
 # could replace with an array ['red', 'green', 'blue', 'white'] as indexes are implicit, but this is better for readability
 
 # change these topics using remapping in launch file
-DEPTH_IMAGE_TOPIC = "image_raw"
-DEPTH_INFO_TOPIC = "camera_info"
-DETECTION_TOPIC = "detections"
-MARKER_TOPIC = "cubes"
+DEPTH_IMAGE_TOPIC = 'image_raw'
+DEPTH_INFO_TOPIC = 'camera_info'
+DETECTION_TOPIC = 'detections'
+MARKER_TOPIC = 'cubes'
 
 
 class DetectionTransformer(Node):
     def __init__(self):
-        super().__init__("detection_transformer")
+        super().__init__('detection_transformer')
 
         # variables affecting detection of cubes
         self.depth_image_units_divisor = self.declare_parameter('depth_image_units_divisor', 1.0).get_parameter_value().double_value
@@ -137,7 +136,7 @@ class DetectionTransformer(Node):
 
 
     def on_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray) -> None:
-        """Process and publish detected cubes"""
+        '''Process and publish detected cubes'''
         detections = self.process_detections(depth_msg, depth_info_msg, detections_msg)
 
         # Markers
@@ -156,35 +155,35 @@ class DetectionTransformer(Node):
             self.detected_cubes[detection[0]].append(detection[1])
 
     def publish_cubes(self) -> None:
-        """Publish the current transform of all detected cubes"""
+        '''Publish the current transform of all detected cubes'''
         for color, points in self.detected_cubes.items():
             if len(points) >= self.min_samples:
                 clean_points = self.remove_outlier_pos(points)  # remove outliers from all the cube points
 
                 if len(clean_points) >= self.min_samples:       # ensure there is enough samples
-                    self.get_logger().debug(f"Validating consistency of target {color}")
+                    self.get_logger().debug(f'Validating consistency of target {color}')
                     avg_pos = np.mean(clean_points, axis=0)   # Calculate the average position of the block
                     std_dev = np.std(clean_points, axis=0)    # Calculate the standard deviation of the block's position
 
                     if np.all(std_dev < self.max_std_dev):      # Check that the standard deviation is small enough to be considered a confirmed block
-                        self.get_logger().debug(f"Confirmed target {color} consistent pos at {avg_pos}")
+                        self.get_logger().debug(f'Confirmed target {color} consistent pos at {avg_pos}')
                         self.publish_tf(color, avg_pos, self.get_clock().now().to_msg())
 
                     else:
-                        self.get_logger().debug(f"Target {color} is not consistent enough.")
+                        self.get_logger().debug(f'Target {color} is not consistent enough.')
                 else:
-                    self.get_logger().debug(f"{color} has not enough samples to confirm")
+                    self.get_logger().debug(f'{color} has not enough samples to confirm')
                 
 
     def process_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray) -> List[Tuple[str,Point]]:
-        """Process detections into a list of points with their respective colour"""
+        '''Process detections into a list of points with their respective colour'''
         if not detections_msg.detections:
             return []
 
-        self.get_logger().debug(f"Processing new detections")
+        self.get_logger().debug(f'Processing new detections')
 
         new_detections = []
-        depth_image = self.cv_bridge.imgmsg_to_cv2(depth_msg, desired_encoding="32FC1")
+        depth_image = self.cv_bridge.imgmsg_to_cv2(depth_msg, desired_encoding='32FC1')
 
         for detection in detections_msg.detections:
             position = self.convert_bb_to_point(depth_image, depth_info_msg, detection)
@@ -201,10 +200,10 @@ class DetectionTransformer(Node):
         return new_detections
 
     def convert_bb_to_point(self, depth_image: np.ndarray, depth_info: CameraInfo, detection: Detection) -> Point | None:
-        """ Converts the bounding box center to a point relative to the image frame
+        ''' Converts the bounding box center to a point relative to the image frame
             Modified from convert_bb_to_3d in https://github.com/mgonzs13/yolo_ros/blob/main/yolo_ros/yolo_ros/detect_3d_node.py
-        """
-        self.get_logger().debug(f"Calculating cube world position relative to image frame")
+        '''
+        self.get_logger().debug(f'Calculating cube world position relative to image frame')
         center_x = int(detection.bbox.center.position.x)
         center_y = int(detection.bbox.center.position.y)
         size_x = int(detection.bbox.size.x)
@@ -252,7 +251,7 @@ class DetectionTransformer(Node):
         return (z, -1*x, -1*y)
 
     def quaternion_to_rotation_matrix(self, q: Tuple[float, float, float, float]) -> np.array:
-        """Convert a quaternion (x, y, z, w) into a 3x3 rotation matrix."""
+        '''Convert a quaternion (x, y, z, w) into a 3x3 rotation matrix.'''
         x, y, z, w = q
         return np.array([
             [1 - 2 * (y ** 2 + z ** 2), 2 * (x * y - z * w), 2 * (x * z + y * w)],
@@ -261,8 +260,8 @@ class DetectionTransformer(Node):
         ])
 
     def tf_to_map(self, camera_to_cube: Point, stamp: Time) -> Point | None:
-        """Calculates the position tf from map to cube"""
-        self.get_logger().debug(f"Calculating map to cube tf")
+        '''Calculates the position tf from map to cube'''
+        self.get_logger().debug(f'Calculating map to cube tf')
         try:
             map_to_camera = self.tf_buffer.lookup_transform(self.map_frame, self.camera_frame, stamp).transform
 
@@ -273,11 +272,11 @@ class DetectionTransformer(Node):
             # apply the camera_to_cube tf to the rotated map_to_camera
             return (map_to_camera.translation.x+rotated_translation[0], map_to_camera.translation.y+rotated_translation[1], map_to_camera.translation.z+rotated_translation[2])
         except Exception as e:
-            self.get_logger().debug(f"Error in calculating map to cube tf {e}")
+            self.get_logger().debug(f'Error in calculating map to cube tf {e}')
             return None
 
     def get_marker(self, id:int, color:str, point: Point, stamp: Time, frame:str) -> Marker:
-        """Returns a marker derived from the detection"""
+        '''Returns a marker derived from the detection'''
         marker = Marker()
         marker.pose.position.x, marker.pose.position.y, marker.pose.position.z = point
         marker.pose.orientation.x, marker.pose.orientation.y, marker.pose.orientation.z, marker.pose.orientation.w = DEFAULT_QUATERNION
@@ -301,21 +300,21 @@ class DetectionTransformer(Node):
         return marker
 
     def remove_outlier_pos(self, pos_vals: List[T]) -> List[T]:
-        """
+        '''
         Removes any outlier positions from the list of positions. An outlier is defined as a position that is
         more than 3 standard deviations away from the mean.
-        """
+        '''
         mean = np.mean(pos_vals, axis=0)
         std_dev = np.std(pos_vals, axis=0)
 
         return [pos for pos in pos_vals if np.all(np.abs(pos - mean) < 2 * std_dev)]
 
     def publish_tf(self, color:str, position: Point, stamp: Time) -> None:
-        """Publish the transform of a confirmed cube"""
+        '''Publish the transform of a confirmed cube'''
         tfs = TransformStamped()
         tfs.header.stamp = stamp
         tfs.header.frame_id = self.map_frame
-        tfs.child_frame_id = color + "_cube"
+        tfs.child_frame_id = color + '_cube'
         tfs.transform.translation.x,  tfs.transform.translation.y, tfs.transform.translation.z, = position
         tfs.transform.rotation.x, tfs.transform.rotation.y, tfs.transform.rotation.z, tfs.transform.rotation.w = DEFAULT_QUATERNION
 
@@ -332,5 +331,5 @@ def main():
     rclpy.spin(node)
     rclpy.shutdown()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

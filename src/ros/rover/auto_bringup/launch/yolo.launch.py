@@ -26,30 +26,26 @@ AUTHOR:     Anthony Lew
 CREATION:	06/02/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
-
-import os
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.conditions import IfCondition, UnlessCondition
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, AndSubstitution
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.conditions import IfCondition
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    gazebo = LaunchConfiguration('gazebo').perform(context)
-    namespace = LaunchConfiguration('namespace')
-    params = LaunchConfiguration('params')
-    yolo_model = LaunchConfiguration('yolo_model')
+    auto_bringup_dir = FindPackageShare('auto_bringup')
 
-    rgb_image = LaunchConfiguration('rgb_image')
+    gazebo = LaunchConfiguration('gazebo')
+    debug_image = LaunchConfiguration('debug_image')
     depth_image = LaunchConfiguration('depth_image')
     depth_image_info = LaunchConfiguration('depth_image_info')
-    debug_image = LaunchConfiguration('debug_image')
+    namespace = LaunchConfiguration('namespace')
+    params = LaunchConfiguration('params')
+    rgb_image = LaunchConfiguration('rgb_image')
     use_debug = LaunchConfiguration('use_debug')
+    yolo_model = LaunchConfiguration('yolo_model')
 
-    auto_bringup_dir = FindPackageShare('auto_bringup')
-    
     return [
         Node(
             package='yolo_ros',
@@ -68,12 +64,12 @@ def launch_setup(context, *args, **kwargs):
             parameters=[params],
             remappings=[('image_raw', rgb_image), 
                         ('dbg_image', debug_image)],
-            condition=IfCondition(str(use_debug and gazebo)),
+            condition=IfCondition(AndSubstitution(use_debug, gazebo)),
         ),
         Node(
             package='nova_utils',
             executable='cube_localiser.py',
-            parameters=[{'sim': bool(gazebo)}, params],
+            parameters=[{'sim': gazebo}, params],
             remappings=[('image_raw', depth_image), 
                         ('camera_info', depth_image_info),
                         ('detections', '/yolo/detections'),
@@ -84,21 +80,17 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
+
     declared_arguments = [
         DeclareLaunchArgument(
-            name='yolo_model',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'resources', 'ARC_2025_sim', 'model.pt']),
-            description='Absolute path to yolo weights file',
+            name='gazebo',
+            default_value='True',
+            description='Are we running this on gazebo?',
         ),
         DeclareLaunchArgument(
-            name='namespace',
-            default_value='yolo',
-            description='Top-level namespace',
-        ),
-        DeclareLaunchArgument(
-            name='params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'yolo_ros.yaml']),
-            description='Full path to the ROS2 parameters file to use for all launched nodes',
+            name='debug_image',
+            default_value='debug_image',
+            description='Debug image topic used for yolo_ros',
         ),
         DeclareLaunchArgument(
             name='depth_image',
@@ -111,14 +103,19 @@ def generate_launch_description():
             description='Depth image info topic used for yolo_ros',
         ),
         DeclareLaunchArgument(
+            name='namespace',
+            default_value='yolo',
+            description='Top-level namespace',
+        ),
+        DeclareLaunchArgument(
+            name='params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'yolo.yaml']),
+            description='Full path to the ROS2 parameters file to use for all launched nodes',
+        ),
+        DeclareLaunchArgument(
             name='rgb_image',
             default_value='/oak/rgb/image_raw',
             description='RGB image topic used for yolo_ros',
-        ),
-        DeclareLaunchArgument(
-            name='debug_image',
-            default_value='debug_image',
-            description='Debug image topic used for yolo_ros',
         ),
         DeclareLaunchArgument(
             name='use_debug',
@@ -126,9 +123,9 @@ def generate_launch_description():
             description='Enable yolo_ros debug node',
         ),
         DeclareLaunchArgument(
-            name='gazebo',
-            default_value='True',
-            description='Are we running this on gazebo?',
+            name='yolo_model',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'resources', 'ARC_2025_sim', 'model.pt']),
+            description='Absolute path to yolo weights file',
         ),
     ]
 
