@@ -88,6 +88,9 @@ private:
     // A lock on the controls - can be unlocked
     bool locked = true;
 
+    // Extra mode
+    bool cop_mode = false;
+
     // Autonomous mode
     bool autonomous = false;
 
