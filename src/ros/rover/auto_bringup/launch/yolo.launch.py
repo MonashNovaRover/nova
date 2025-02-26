@@ -52,32 +52,32 @@ def launch_setup(context, *args, **kwargs):
     
     return [
         Node(
-            package="yolo_ros",
-            executable="yolo_node",
-            name="yolo_node",
+            package='yolo_ros',
+            executable='yolo_node',
+            name='yolo_node',
             namespace=namespace,
             parameters=[{'model': yolo_model}, params],
-            remappings=[("image_raw", rgb_image)],
+            remappings=[('image_raw', rgb_image)],
             condition=IfCondition(gazebo)
         ),
         Node(
-            package="yolo_ros",
-            executable="debug_node",
-            name="debug_node",
+            package='yolo_ros',
+            executable='debug_node',
+            name='debug_node',
             namespace=namespace,
             parameters=[params],
-            remappings=[("image_raw", rgb_image), 
-                        ("dbg_image", debug_image)],
+            remappings=[('image_raw', rgb_image), 
+                        ('dbg_image', debug_image)],
             condition=IfCondition(str(use_debug and gazebo)),
         ),
         Node(
             package='nova_utils',
             executable='cube_localiser.py',
             parameters=[{'sim': bool(gazebo)}, params],
-            remappings=[("image_raw", depth_image), 
-                        ("camera_info", depth_image_info)
-                        ("detections", "/yolo/detections")
-                        ("cubes", "/yolo/cubes")],
+            remappings=[('image_raw', depth_image), 
+                        ('camera_info', depth_image_info),
+                        ('detections', '/yolo/detections'),
+                        ('cubes', '/yolo/cubes')],
             namespace=namespace,
         ),
     ]
