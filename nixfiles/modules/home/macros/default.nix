@@ -129,6 +129,7 @@ in
             leds-100 = "cansend can0 091#FF00";
             leds-75 = "cansend can0 091#C000"
             leds-50 = "cansend can0 091#8000"
+            leds-off = "cansend can0 091#0000"
 
             # Bonus
             cop-mode = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh}";
