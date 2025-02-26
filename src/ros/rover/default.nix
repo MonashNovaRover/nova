@@ -33,9 +33,9 @@
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 
-  pythonPackages = pythonPackages: with pythonPackages; {
-    ultralytics = pythonPackages.callPackage ./nix/packages/misc/ultralytics { };
-  };
+  #pythonPackages = pythonPackages: with pythonPackages; {
+    
+  #};
 
   shellAliases = {
     # Launching aliases

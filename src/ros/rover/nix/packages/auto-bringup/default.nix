@@ -30,6 +30,7 @@
   imu-transformer,
   nova-pivot-drive-controller,
   tf2-tools,
+  yolo-ros,
 }:
 
 buildRosPackage rec {
@@ -74,7 +75,7 @@ buildRosPackage rec {
       nova-pivot-drive-controller
       tf2-tools
       imu-transformer
-      ;
+      yolo-ros;
   };
 
   # After installing params and resources folders in nix store's auto_bringup,
@@ -86,14 +87,14 @@ buildRosPackage rec {
   ];
   postInstall = ''
     # Generate absolute nix store filepaths for JSON files
-    jsonFilepath="$out/share/auto_bringup/resources/URC_V5/URC_V5.json"
+    jsonFilepath="$out/share/auto_bringup/resources/ARC_2025/model.json"
     jsonFile=$(cat $jsonFilepath)
 
     updatedJsonFile=$(echo "$jsonFile" | jq --arg out "$out" '. + {
       model: {
-        bin: "\($out)/share/auto_bringup/resources/URC_V5/URC_V5.bin",
-        model_name: "\($out)/share/auto_bringup/resources/URC_V5/URC_V5_openvino_2022.1_5shave.blob",
-        xml: "\($out)/share/auto_bringup/resources/URC_V5/URC_V5.xml",
+        bin: "\($out)/share/auto_bringup/resources/ARC_2025/model.bin",
+        model_name: "\($out)/share/auto_bringup/resources/ARC_2025/model_openvino_2022.1_6shave.blob",
+        xml: "\($out)/share/auto_bringup/resources/ARC_2025/model.xml",
         zoo: "path"
       }
     }')
