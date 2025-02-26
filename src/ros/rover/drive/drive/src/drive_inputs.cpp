@@ -139,11 +139,10 @@ void DriveInputs::input_callback(const input_interfaces::msg::InputGamepad::Shar
             if (autonomous)
                 RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Autonomous Mode Disabled" << C_END);
             autonomous = false;
-        }
        
         } else if (msg->btn_x_state == 1) {
             if(cop_mode)
-                system("bash -c '~/nova/nixfiles/scripts/cop-mode.sh'");
+                system(("bash ~/nova/nixfiles/scripts/cop-mode.sh " + std::string(cop_mode ? "off" : "on")).c_str());
             cop_mode = !cop_mode;
         }
    
