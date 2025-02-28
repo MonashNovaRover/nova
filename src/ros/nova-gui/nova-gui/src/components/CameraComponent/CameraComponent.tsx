@@ -7,23 +7,30 @@ import {
   PopoverTrigger,
   Spinner,
 } from "@nextui-org/react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera as CameraIcon, Info } from "react-feather";
+import {ReactNode, useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {Camera as CameraIcon, Info} from "react-feather";
 import { CameraInfoModal } from "./components/CameraInfoModal";
 import { StreamingState, useCameraStream } from "./hooks/useCameraStream";
 import { CameraSettingsForm } from "./components/CameraSettingsForm";
 import CameraVideo from "./components/CameraVideo";
-import { defaultCamFilters, initialisedFilters } from "../../views/shared/CamerasPage/CameraPageConstants";
+import {
+  defaultCameraOverlays,
+  defaultCamFilters,
+  initialisedFilters
+} from "../../views/shared/CamerasPage/CameraPageConstants";
 import { BooleanChip } from "./components/BooleanChip";
 import humanizeString from "humanize-string";
 import { ExternalLink } from "react-feather";
 import toast from "react-hot-toast";
 import CameraSessionStartStopButton from "./components/CameraSessionStartStopButton.tsx";
+import useWebcam from "../../hooks/webgl/program/sampler/useWebcam.ts";
+import Overlay from "../shared/Overlay/Overlay.tsx";
 
 const ASPECT_RATIO = 4 / 3;
 
 export interface CameraComponentProps {
   cameraSerial: string;
+  overlayMap?: { [k: string]: ReactNode },
   autostart?: boolean;
 }
 
@@ -51,10 +58,12 @@ export const CameraComponent = (props: CameraComponentProps) => {
     sendSessionStartMessage,
     isCameraOnline,
     closeSession,
-  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
+  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted); // TO TEST WITH WEBCAM useWebcam(videoRef);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
-
+  const overlay = useMemo(() => {
+    return props.overlayMap ? props.overlayMap[cameraSerial] : defaultCameraOverlays[cameraSerial];
+  }, [props, cameraSerial])
 
   const openCameraInTab = () =>
     window.open(
@@ -119,7 +128,10 @@ export const CameraComponent = (props: CameraComponentProps) => {
         isModalOpen={isCameraInfoModalOpen}
         setCameraModalOpen={setCameraInfoModalOpen}
       />
-      <CameraVideo videoRef={videoRef} filters={filters} />
+      <div/>
+      <Overlay overlay={overlay}>
+        <CameraVideo videoRef={videoRef} filters={filters} />
+      </Overlay>
       {/* Overlay */}
       <div className="absolute top-0 right-0 w-full h-full flex flex-col justify-center items-center">
         {streamingState === StreamingState.STOPPED && (

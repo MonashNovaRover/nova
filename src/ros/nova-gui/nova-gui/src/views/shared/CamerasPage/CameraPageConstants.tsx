@@ -1,4 +1,6 @@
 import { CameraFilters } from "../../../components/CameraComponent/CameraComponent";
+import {ReactNode} from "react";
+import {Plus} from "react-feather";
 
 export interface CameraView {
   viewTitle: string;
@@ -102,7 +104,6 @@ const mastCams = [
   CameraSerials.MAST_FORWARD,
   CameraSerials.MAST_BACKWARD,
   CameraSerials.MAST_ARM_STOW,
-
 ];
 
 const armCams = [
@@ -111,7 +112,6 @@ const armCams = [
   CameraSerials.ARM_END_PERISCOPE,
   CameraSerials.ARM_GIMBAL,
   CameraSerials.ARM_END_SIDE,
-
 ];
 
 const ecCams = [
@@ -127,7 +127,6 @@ const arcScienceCams = [
   CameraSerials.SCIENCE_ANALYSIS_BOTTOM,
   CameraSerials.SCIENCE_MICROSCOPE,
 ];
-
 
 const urcScienceCams = [
   CameraSerials.URC_SCIENCE_CUVETTE,
@@ -274,4 +273,8 @@ export const urcCameraSetup = {
   [URCCompModes.URC_DELIVERY]: urc_delivery_views,
   [URCCompModes.URC_SCIENCE]: urc_science_views,
   [URCCompModes.URC_AUTONOMOUS]: urc_autonomous_views,
+}
+
+export const defaultCameraOverlays: { [k: string]: ReactNode } = {
+  [CameraSerials.ARM_END_FINGER]: <Plus className="self-center"/>
 }
