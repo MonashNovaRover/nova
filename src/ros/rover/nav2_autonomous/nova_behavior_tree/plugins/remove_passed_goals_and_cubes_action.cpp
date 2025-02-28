@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Samsung ReseCh America
+// Copyright (c) 2021 Samsung Research America
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,8 +21,10 @@
 #include "nav_msgs/msg/path.hpp"
 #include "nav2_util/geometry_utils.hpp"
 #include "rclcpp/logging.hpp"
+#include "tf2/utils.h"
 
 #include "nova_behavior_tree/remove_passed_goals_and_cubes_action.hpp"
+#include "nova_behavior_tree/nav2_utils.hpp"
 #include "nova_behavior_tree/utils.hpp"
 
 namespace nova_behavior_tree
@@ -38,19 +40,21 @@ namespace nova_behavior_tree
 
     void RemovePassedGoalsAndCubesAction::initialize()
     {
-        getInput("radius", viapoint_achieved_radius_);
-        getInput("cube_tolerance", cube_tolerance_);
-
         tf_ = config().blackboard->get<std::shared_ptr<tf2_ros::Buffer>>("tf_buffer");
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
         node_->get_parameter("transform_tolerance", transform_tolerance_);
-        robot_base_frame_ = BT::deconflictPortAndParamFrame<std::string>(
-        node_, "robot_base_frame", this);
+        robot_base_frame_ = BT::deconflictPortAndParamFrame<std::string>(node_, "robot_base_frame", this);
+        
+        getInput("radius", viapoint_achieved_radius_);
+        getInput("cube_tolerance", cube_tolerance_);
+        getInput("yaw_tolerance", yaw_tolerance_);
+
+        initialized_ = true;
     }
 
     inline BT::NodeStatus RemovePassedGoalsAndCubesAction::tick()
     {
-        if (!BT::isStatusActive(status())) 
+        if (!initialized_)
         {
             initialize();
         }
@@ -85,6 +89,19 @@ namespace nova_behavior_tree
 
             if (dist_to_goal > viapoint_achieved_radius_) 
             {
+                break;
+            }
+
+            // Orientation check
+            double current_yaw = tf2::getYaw(current_pose.pose.orientation);
+            double goal_yaw = tf2::getYaw(goal_poses[0].pose.orientation);
+
+            // Use our custom function instead of angles::shortest_angular_distance
+            double dyaw = utils::nav2::shortestAngularDistance(current_yaw, goal_yaw);
+
+            if (std::fabs(dyaw) > yaw_tolerance_) 
+            {
+                // Orientation mismatch, break
                 break;
             }
 

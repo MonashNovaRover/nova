@@ -36,18 +36,21 @@ namespace nova_behavior_tree
 
     void UpdateGoalAction::initialize()
     {
+        node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
+        
         getInput("radius", viapoint_overwrite_tolerance_);
         getInput("goal_type", goal_type_);
-        node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
+        
+        initialized_ = true;
     }
 
     inline BT::NodeStatus UpdateGoalAction::tick()
     {
-        if (!BT::isStatusActive(status())) 
+        if (!initialized_)
         {
             initialize();
         }
-
+        
         Goals goal_poses;
         getInput("input_goals", goal_poses);
         geometry_msgs::msg::PoseStamped goal;

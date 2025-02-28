@@ -13,8 +13,8 @@
 // limitations under the License.
 
 /**
- * @brief Action node for saving cube poses to a file. Intended to be used with a
- * RateController decorator to update the file periodically.
+ * @brief Action node for saving cube poses to a file. To avoid having to rewrite
+ * potentially huge amounts of data every time, the poses are appended to file instead.
  * 
  * @authors Terry Tian
  */
@@ -41,18 +41,35 @@ namespace nova_behavior_tree
     void SaveCubePosesAction::initialize()
     {
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
-        getInput("cube_poses", cube_poses_);
+        
+        // these shouldn't change in lifecycle of BT
         getInput("file_path", file_path_);
+        getInput("cube_poses", cube_poses_);
+
+        // avoid overwriting existing files
+        std::ifstream file(file_path_);
+        std::string og_file_path = file_path_;
+        size_t i = 1;
+        while (file.good())
+        {
+            std::ostringstream oss;
+            oss << og_file_path << "(" << i << ")";
+            file_path_ = oss.str();
+            file.open(file_path_);
+            i += 1;
+        }
+        
+        initialized_ = true;
     }
 
     inline BT::NodeStatus SaveCubePosesAction::tick()
     {
-        if (!BT::isStatusActive(status())) 
+        if (!initialized_)
         {
             initialize();
         }
-
-        file_.open(file_path_);
+        
+        file_.open(file_path_, std::ios::app);
 
         if (!file_.is_open())
         {
@@ -60,7 +77,7 @@ namespace nova_behavior_tree
             return BT::NodeStatus::FAILURE;
         }
 
-        file_ << CubePosesToString(*cube_poses_);
+        file_ << CubePosesToString(*cube_poses_, start_points_);
         RCLCPP_INFO(node_->get_logger(), "Saved cube poses to %s", file_path_.c_str());
 
         file_.close();
@@ -68,16 +85,16 @@ namespace nova_behavior_tree
         return BT::NodeStatus::SUCCESS;
     }
 
-    std::string SaveCubePosesAction::CubePosesToString(const CubePoses& cube_poses)
+    std::string SaveCubePosesAction::CubePosesToString(const CubePoses& cube_poses, size_t (&start_points)[4])
     {
         std::ostringstream oss;
         
         for (size_t i = 0; i < 4; ++i)
         {
             oss << COLORS[i] << ": ";
-            if (!cube_poses[i].empty())
+            if (cube_poses[i].size() > start_points[i])
             {
-                for (size_t j = 0; j < cube_poses[i].size() - 1; j++)
+                for (size_t j = start_points[i]; j < cube_poses[i].size() - 1; j++)
                 {
                     const auto& pose = cube_poses[i][j];
                     oss << "(" << pose.position.x << ", " << pose.position.y << ", " 
@@ -86,9 +103,12 @@ namespace nova_behavior_tree
                 const auto& pose = cube_poses[i].back();
                 oss << "(" << pose.position.x << ", " << pose.position.y << ", " 
                     << pose.position.z << ")";
+                
+                start_points[i] = cube_poses[i].size();
             }
             oss << '\n';
         }
+        oss << '\n';
 
         return oss.str();
     }
