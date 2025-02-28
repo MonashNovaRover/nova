@@ -16,9 +16,13 @@ const snapTo90 = (value: number): number => {
 export const CameraSettingsForm = ({
   cameraFilters,
   setCameraFilters,
+  overlayToggle,
+  toggleOverlay,
 }: {
   cameraFilters: CameraFilters;
   setCameraFilters: React.Dispatch<React.SetStateAction<CameraFilters>>;
+  overlayToggle: boolean;
+  toggleOverlay: () => void;
 }) => {
   return (
     <div className="mt-2 flex flex-col gap-3 w-full">
@@ -99,6 +103,13 @@ export const CameraSettingsForm = ({
           })
         }
       />
+      <Switch
+        size="sm"
+        isSelected={overlayToggle}
+        onChange={(_) => toggleOverlay()}
+      >
+        Toggle Overlay
+      </Switch>
     </div>
   );
 };

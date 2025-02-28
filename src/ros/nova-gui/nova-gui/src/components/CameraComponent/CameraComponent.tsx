@@ -7,8 +7,8 @@ import {
   PopoverTrigger,
   Spinner,
 } from "@nextui-org/react";
-import {ReactNode, useCallback, useEffect, useMemo, useRef, useState} from "react";
-import {Camera as CameraIcon, Info} from "react-feather";
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Camera as CameraIcon, Info } from "react-feather";
 import { CameraInfoModal } from "./components/CameraInfoModal";
 import { StreamingState, useCameraStream } from "./hooks/useCameraStream";
 import { CameraSettingsForm } from "./components/CameraSettingsForm";
@@ -23,7 +23,6 @@ import humanizeString from "humanize-string";
 import { ExternalLink } from "react-feather";
 import toast from "react-hot-toast";
 import CameraSessionStartStopButton from "./components/CameraSessionStartStopButton.tsx";
-import useWebcam from "../../hooks/webgl/program/sampler/useWebcam.ts";
 import Overlay from "../shared/Overlay/Overlay.tsx";
 
 const ASPECT_RATIO = 4 / 3;
@@ -58,9 +57,10 @@ export const CameraComponent = (props: CameraComponentProps) => {
     sendSessionStartMessage,
     isCameraOnline,
     closeSession,
-  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted); // TO TEST WITH WEBCAM useWebcam(videoRef);
+  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
+  const [overlayToggle, setOverlayToggle] = useState(true)
   const overlay = useMemo(() => {
     return props.overlayMap ? props.overlayMap[cameraSerial] : defaultCameraOverlays[cameraSerial];
   }, [props, cameraSerial])
@@ -129,7 +129,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
         setCameraModalOpen={setCameraInfoModalOpen}
       />
       <div/>
-      <Overlay overlay={overlay}>
+      <Overlay overlay={overlayToggle && streamingState === StreamingState.STREAMING ? overlay : undefined}>
         <CameraVideo videoRef={videoRef} filters={filters} />
       </Overlay>
       {/* Overlay */}
@@ -179,6 +179,8 @@ export const CameraComponent = (props: CameraComponentProps) => {
                     <CameraSettingsForm
                       cameraFilters={filters}
                       setCameraFilters={setFilters}
+                      overlayToggle={overlayToggle}
+                      toggleOverlay={() => setOverlayToggle(!overlayToggle)}
                     />
                   </div>
                 </PopoverContent>

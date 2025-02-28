@@ -1,6 +1,6 @@
 import { CameraFilters } from "../../../components/CameraComponent/CameraComponent";
 import {ReactNode} from "react";
-import {Plus} from "react-feather";
+import {Minus} from "react-feather";
 
 export interface CameraView {
   viewTitle: string;
@@ -276,5 +276,9 @@ export const urcCameraSetup = {
 }
 
 export const defaultCameraOverlays: { [k: string]: ReactNode } = {
-  [CameraSerials.ARM_END_FINGER]: <Plus className="self-center"/>
+  [CameraSerials.ARM_END_TOP]: <Minus className="self-center" color="black"/>,
+  [CameraSerials.ARM_END_FINGER]: <Minus className="self-center" color="black"/>,
+  [CameraSerials.ARM_END_PERISCOPE]: <Minus className="self-center" color="black"/>,
+  [CameraSerials.ARM_GIMBAL]: <Minus className="self-center" color="black"/>,
+  [CameraSerials.ARM_END_SIDE]: <Minus className="self-center" color="black"/>,
 }
