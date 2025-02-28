@@ -20,10 +20,10 @@
                   <ARTagDetected seen_ids="{seen_ids}"
                                  id="{id}"
                                  goal="{goal}"/>
-                  <UpdateARTagGoal input_goal="{goal}"
-                                   input_goals="{goals}"
-                                   radius="5"
-                                   output_goals="{goals}"/>
+                  <UpdateGoal input_goal="{goal}"
+                              input_goals="{goals}"
+                              radius="5"
+                              output_goals="{goals}"/>
                 </ReactiveSequence>
               </ForceSuccess>
               <ReactiveSequence>

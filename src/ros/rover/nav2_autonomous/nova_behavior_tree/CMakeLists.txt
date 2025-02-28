@@ -99,9 +99,6 @@ list(APPEND plugin_libs nova_save_cube_poses_action_bt_node)
 add_library(nova_save_image_service_bt_node SHARED plugins/save_image_service.cpp)
 list(APPEND plugin_libs nova_save_image_service_bt_node)
 
-add_library(nova_update_ar_tag_goal_action_bt_node SHARED plugins/update_ar_tag_goal_action.cpp)
-list(APPEND plugin_libs nova_update_ar_tag_goal_action_bt_node)
-
 foreach(bt_plugin ${plugin_libs})
   ament_target_dependencies(${bt_plugin} ${dep_pkgs})
   target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)
