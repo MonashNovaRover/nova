@@ -105,8 +105,6 @@ in
             launch-drive = "~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py";
             launch-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
             launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
-            launch-science-arc = "~/Builds/master/bin/ros2 launch nova_bringup arc_science.launch.py";
-            launch-science-urc = "~/Builds/master/bin/ros2 launch nova_bringup urc_science.launch.py";
 
             # Rover setup aliases
             zero-arm = "${pkgs.bash}/bin/bash ${../../../scripts/zero-arm.sh}";
@@ -117,16 +115,20 @@ in
             gui-shell = "nova-shell -A pkgs.ros.nova-gui";
             gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" src/ros/rosTypes.ts";
             gui-rosbridge = "~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
-
+            
             # LEDs
             leds-red = "cansend can0 095#0100";
             leds-green = "cansend can0 095#0200";
             leds-blue = "cansend can0 095#0300";
-            leds-pink = "cansend can9 096#";
-            leds-100 = "cansend can0 091#FF00";
-            leds-75 = "cansend can0 091#C000";
-            leds-50 = "cansend can0 091#8000";
+            leds-pink = "cansend can0 096#";
+            leds-100 = "cansend can0 091#8000";
+            leds-75 = "cansend can0 091#6000";
+            leds-50 = "cansend can0 091#4000";
             leds-off = "cansend can0 091#0000";
+
+            # Reolink camera
+            reolink-low = "mpv --rtsp-transport=udp --no-cache --untimed --video-sync=display-resample --deinterlace=no --profile=low-latency --demuxer-max-bytes=512K --demuxer-max-back-bytes=512K rtsp://admin:Lab188b37@10.0.1.100:554/h264Preview_01_sub";
+            reolink-high = "mpv --rtsp-transport=udp --no-cache --untimed --video-sync=display-resample --deinterlace=no --profile=low-latency --demuxer-max-bytes=1M --demuxer-max-back-bytes=1M rtsp://admin:Lab188b37@10.0.1.100:554/h264Preview_01_main";
 
             # Bonus
             cop-mode-on = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} on";

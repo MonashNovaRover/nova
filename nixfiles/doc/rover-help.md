@@ -1,4 +1,3 @@
-
 =========================
 RUNNING THE ROVER
 =========================
@@ -94,10 +93,25 @@ http://10.0.1.100
 
 =========================
 
+# LEDs
+leds-red: cansend can0 095#0100
+leds-green: cansend can0 095#0200
+leds-blue: cansend can0 095#0300
+leds-pink: cansend can0 096#
+leds-off: cansend can0 091#0000
+
+=========================
+
 # Zero Pivots
 Type 'zero-pivots' and follow the prompts. Use 'list-blcmds' if you're looking for the ID of a specific BLCMD.
 
 # Zero Arm
 Type 'zero-arm' and follow the prompts.
+
+=========================
+
+# NixOS
+nix-enable: sudo systemctl enable nix-daemon.service
+nix-start: sudo systemctl start nix-daemon.service
 
 =========================
