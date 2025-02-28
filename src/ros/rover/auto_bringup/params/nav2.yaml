@@ -4,7 +4,7 @@ bt_navigator:
     robot_base_frame: base_link
     odom_topic: /odometry/filtered
     bt_loop_duration: 10
-    default_server_timeout: 20
+    default_server_timeout: 60000
     wait_for_service_timeout: 1000
     action_service_result_timeout: 900.0
     goal_reached_tol: 1.0
@@ -16,7 +16,7 @@ bt_navigator:
       plugin: "nav2_bt_navigator::NavigateToPoseNavigator"
     navigate_through_poses:
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
-    default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/other/search_for_ar_tags.xml 
+    default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/arch/2025_arch_through_poses.xml 
     # $(find-pkg-share my_package)/behavior_tree/my_nav_through_poses_bt.xml
     urc_navigator:
       plugin: "nova_bt_navigators::URCNavigator"
