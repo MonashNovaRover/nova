@@ -6,7 +6,25 @@
       <input_port name="topic_name">ROS topic for publishing</input_port>
     </Action>
     
-    <Action ID="UpdateARTagGoal">
+    <Action ID="SaveCubePoses">
+      <input_port name="cube_poses">List of cube poses</input_port>
+      <input_port name="file_path">File to save cube poses to</input_port>
+    </Action>
+
+    <Action ID="RemovePassedGoalsAndCubes">
+      <input_port name="input_goal">Cube goal</input_port>
+      <input_port name="id">ID of detected cube</input_port>
+      <input_port name="cube_tolerance">Radius to determine whether the current goal is the cube goal</input_port>
+      <input_port name="input_goals">Original goals to remove viapoints from</input_port>
+      <input_port name="radius">Radius to goal for it to be considered for removal</input_port>
+      <input_port name="global_frame">Global frame</input_port>
+      <input_port name="robot_base_frame">Robot base frame</input_port>
+      <output_port name="output_goals">Goals with passed viapoints removed</output_port>
+      <output_port name="visited_ids">visited_ids[i] = true if visited, false otherwise</output_port>
+    </Action>
+    
+    <Action ID="UpdateGoal">
+      <input_port name="goal_type">Type of goal being updated (for logging)</input_port>
       <input_port name="input_goal">Goal to add as viapoint</input_port>
       <input_port name="input_goals">Original goals to add viapoints into</input_port>
       <input_port name="radius">Radius to next goal for it to be considered an update</input_port>
@@ -16,20 +34,13 @@
     <Action ID="RemovePassedGoalsAndARTags">
       <input_port name="input_goal">AR tag goal</input_port>
       <input_port name="id">ID of detected AR tag</input_port>
-      <input_port name="tag_tolerance">radius to AR tag goal for it to be considered as seen</input_port>
+      <input_port name="tag_tolerance">Radius to determine whether the current goal is the AR tag goal</input_port>
       <input_port name="input_goals">Original goals to remove viapoints from</input_port>
       <input_port name="radius">Radius to goal for it to be considered for removal</input_port>
       <input_port name="global_frame">Global frame</input_port>
       <input_port name="robot_base_frame">Robot base frame</input_port>
       <output_port name="output_goals">Goals with passed viapoints removed</output_port>
       <output_port name="seen_ids">IDs of visited AR tags</output_port>
-    </Action>
-
-    <Action ID="DummyDetectCube">
-      <input_port name="delay_min_s">Minimum delay in seconds between data emissions</input_port>
-      <input_port name="delay_max_s">Maximum delay in seconds between data emissions</input_port>
-      <input_port name="repeat_limit">Number of times to emit data, set to -1 for infinite</input_port>
-      <output_port name="output">Where to write the data to</output_port>
     </Action>
 
     <Action ID="BackUp">
@@ -256,6 +267,15 @@
     </Action>
 
     <!-- ############################### CONDITION NODES ############################## -->
+    <Condition ID="CubeDetected">
+      <input_port name="visited_ids">visited_ids[i] = true if visited, false otherwise</input_port>
+      <input_port name="filter_strength">Number of detections within the specified filter_tolerance needed for a valid detection</input_port>
+      <input_port name="filter_tolerance">Number of previous detections to consider (should exceed filter_strength)</input_port>
+      <output_port name="id">ID of detected cube</output_port>
+      <output_port name="goal">Pose of detected cube</output_port>
+      <output_port name="cube_poses">List of cube poses</output_port>
+    </Condition>
+    
     <Condition ID="ARTagDetected">
       <input_port name="seen_ids">Visited AR tags IDs</input_port>
       <output_port name="id">Detected AR tag ID</output_port>
