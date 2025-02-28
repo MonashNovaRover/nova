@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__UPDATE_AR_TAG_GOAL_ACTION_HPP_
-#define NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__UPDATE_AR_TAG_GOAL_ACTION_HPP_
+#ifndef NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__UPDATE_GOAL_ACTION_HPP_
+#define NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__UPDATE_GOAL_ACTION_HPP_
 
 #include <vector>
 #include <memory>
@@ -27,12 +27,12 @@
 namespace nova_behavior_tree
 {
 
-class UpdateARTagGoalAction : public BT::ActionNodeBase
+class UpdateGoalAction : public BT::ActionNodeBase
 {
 public:
   typedef std::vector<geometry_msgs::msg::PoseStamped> Goals;
 
-  UpdateARTagGoalAction(
+  UpdateGoalAction(
     const std::string & xml_tag_name,
     const BT::NodeConfiguration & conf);
 
@@ -44,6 +44,7 @@ public:
   static BT::PortsList providedPorts()
   {
     return {
+      BT::InputPort<std::string>("goal_type", "Type of goal being updated (for logging)"),
       BT::InputPort<geometry_msgs::msg::PoseStamped>("input_goal", "Goal to add as viapoint"),
       BT::InputPort<Goals>("input_goals", "Original goals to add viapoints into"),
       BT::InputPort<double>("radius", 0.5, "Radius to next goal for it to be considered an update"),
@@ -58,8 +59,9 @@ private:
   rclcpp::Node::SharedPtr node_;
 
   double viapoint_overwrite_tolerance_;
+  std::string goal_type_;
 };
 
 }  // namespace nova_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__UPDATE_AR_TAG_GOAL_ACTION_HPP_
+#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__UPDATE_GOAL_ACTION_HPP_

@@ -48,7 +48,7 @@ public:
     return {
       BT::InputPort<geometry_msgs::msg::PoseStamped>("input_goal", "AR tag goal"),
       BT::InputPort<int>("id", "ID of detected AR tag"),
-      BT::InputPort<double>("tag_tolerance", "radius to AR tag goal for it to be considered as seen"),
+      BT::InputPort<double>("tag_tolerance", "Radius to determine whether the current goal is the AR tag goal"),
       BT::InputPort<Goals>("input_goals", "Original goals to remove viapoints from"),
       BT::InputPort<double>("radius", 0.5, "Radius to goal for it to be considered for removal"),
       BT::InputPort<std::string>("global_frame", "Global frame"),
@@ -61,8 +61,6 @@ public:
 private:
   void halt() override {}
   BT::NodeStatus tick() override;
-
-  std::string vectorToString(const std::vector<int>& vec);
 
   rclcpp::Node::SharedPtr node_;
 
