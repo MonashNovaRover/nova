@@ -37,7 +37,8 @@ public:
     const BT::NodeConfiguration & conf);
 
   /**
-   * @brief Function to read parameters and initialize class variables
+   * @brief Function to initialize variables,
+   * called only once in the lifecycle of the BT
    */
   void initialize();
 
@@ -60,6 +61,8 @@ private:
 
   double viapoint_overwrite_tolerance_;
   std::string goal_type_;
+  
+  bool initialized_ = false;
 };
 
 }  // namespace nova_behavior_tree

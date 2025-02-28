@@ -20,6 +20,7 @@
 
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/pose.hpp>
+#include <geometry_msgs/msg/point.hpp>
 #include <geometry_msgs/msg/quaternion.hpp>
 #include <rclcpp/logging.hpp>
 
@@ -80,7 +81,35 @@ namespace nova_behavior_tree::utils::nav2
 
     return pose;
   }
+
+  // Small helper to replicate angles::shortest_angular_distance
+  inline double shortestAngularDistance(double from, double to)
+  {
+    // Normalizes the difference into (-π, +π]
+    double angle = std::fmod(to - from, 2.0 * M_PI);
+    if (angle > M_PI)
+    {
+      angle -= 2.0 * M_PI;
+    }
+    else if (angle <= -M_PI)
+    {
+      angle += 2.0 * M_PI;
+    }
+    return angle;
+  }
   
+  bool isClose(double a, double b, double tolerance = 0.0)
+  {
+    return abs(a - b) <= tolerance;
+  }
+
+  bool arePointsEqual(Point p1, Point p2, double tolerance = 0.0)
+  {
+    return isClose(p1.x, p2.x, tolerance) && 
+           isClose(p1.y, p2.y, tolerance) && 
+           isClose(p1.z, p2.z, tolerance);
+  }
+
 }
 
 #endif // NOVA_BEHAVIOR_TREE__NAV2_UTILS_HPP_

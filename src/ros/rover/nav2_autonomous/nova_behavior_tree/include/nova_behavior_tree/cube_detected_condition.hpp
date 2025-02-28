@@ -63,7 +63,8 @@ namespace nova_behavior_tree
     CubeDetectedCondition() = delete;
 
     /**
-     * @brief Function to read parameters and initialize class variables
+     * @brief Function to initialize variables,
+     * called only once in the lifecycle of the BT
      */
     void initialize();
 
@@ -106,11 +107,14 @@ namespace nova_behavior_tree
     std::shared_ptr<CubePoses> cube_poses_;
 
     double transform_tolerance_;
+    std::string global_frame_;
+    std::string robot_base_frame_;
     int filter_strength_;
     int filter_tolerance_;
     std::queue<int> filter_;
     std::array<int, 4> filter_detections_count_{};
-
+    
+    bool initialized_ = false;
     const std::string COLORS[4] = {"red", "green", "blue", "white"};
   };
 

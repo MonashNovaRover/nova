@@ -39,7 +39,9 @@
 #include "nav2_util/geometry_utils.hpp"
 #include "nav2_util/robot_utils.hpp"
 #include "rclcpp/logging.hpp"
+#include "nav2_behavior_tree/bt_utils.hpp"
 
+#include "nova_behavior_tree/nav2_utils.hpp"
 #include "nova_behavior_tree/cube_detected_condition.hpp"
 
 namespace nova_behavior_tree
@@ -56,6 +58,9 @@ namespace nova_behavior_tree
     {
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
         node_->get_parameter("transform_tolerance", transform_tolerance_);
+        
+        global_frame_ = BT::deconflictPortAndParamFrame<std::string>(node_, "global_frame", this);
+        robot_base_frame_ = BT::deconflictPortAndParamFrame<std::string>(node_, "robot_base_frame", this);
 
         tf_ = config().blackboard->get<std::shared_ptr<tf2_ros::Buffer>>("tf_buffer");
         tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_);
@@ -72,11 +77,13 @@ namespace nova_behavior_tree
         {
             filter_.push(0b0000);
         }
+
+        initialized_ = true;
     }
 
     BT::NodeStatus CubeDetectedCondition::tick()
     {
-        if (!BT::isStatusActive(status())) 
+        if (!initialized_)
         {
             initialize();
         }
@@ -94,7 +101,6 @@ namespace nova_behavior_tree
         using namespace nav2_util::geometry_utils;
 
         geometry_msgs::msg::TransformStamped t;
-        std::string parent_frame = "map";
         geometry_msgs::msg::PoseStamped goal;
         geometry_msgs::msg::PoseStamped current_pose;
         double dist_to_goal = std::numeric_limits<double>::infinity();
@@ -105,7 +111,7 @@ namespace nova_behavior_tree
         getInput("visited_ids", visited_ids);
 
         // get current robot pose
-        if (!nav2_util::getCurrentPose(current_pose, *tf_, parent_frame, "base_link", transform_tolerance_))
+        if (!nav2_util::getCurrentPose(current_pose, *tf_, global_frame_, robot_base_frame_, transform_tolerance_))
         {
             RCLCPP_ERROR(node_->get_logger(), "Failed to get current pose of rover");
             return false;
@@ -125,33 +131,32 @@ namespace nova_behavior_tree
             try
             {
                 t = tf_->lookupTransform(
-                    parent_frame, child_frame,
+                    global_frame_, child_frame,
                     tf2::TimePointZero
                 );
             }
             catch (tf2::TransformException &ex)
             {
-                RCLCPP_INFO(
-                    node_->get_logger(), "Could not transform %s to %s: %s",
-                    parent_frame.c_str(), child_frame.c_str(), ex.what()
-                );
-                
                 continue;
             }
 
-            RCLCPP_INFO(node_->get_logger(), "%s cube detected", COLORS[i].c_str());
-            
             cube_pose.position.x = t.transform.translation.x;
             cube_pose.position.y = t.transform.translation.y;
             cube_pose.position.z = t.transform.translation.z;
             cube_pose.orientation = t.transform.rotation;
-
-            (*cube_poses_)[i].push_back(cube_pose);
+            
+            if ((*cube_poses_)[i].empty() || 
+                !utils::nav2::arePointsEqual((*cube_poses_)[i].back().position, cube_pose.position))
+            {
+                (*cube_poses_)[i].push_back(cube_pose);
+            }
+            
+            RCLCPP_INFO(node_->get_logger(), "%s cube detected, added pose to cube_poses", COLORS[i].c_str());
 
             double dist_to_cube = euclidean_distance(cube_pose, current_pose.pose);
             if (dist_to_cube < dist_to_goal)
             {
-                goal.header.frame_id = parent_frame;
+                goal.header.frame_id = global_frame_;
                 goal.header.stamp = t.header.stamp;
                 goal.pose = cube_pose;
                 dist_to_goal = dist_to_cube;
@@ -176,7 +181,7 @@ namespace nova_behavior_tree
                 double dist_to_cube = euclidean_distance(cube_pose, current_pose.pose);
                 if (dist_to_cube < dist_to_goal)
                 {
-                    goal.header.frame_id = parent_frame;
+                    goal.header.frame_id = global_frame_;
                     goal.pose = cube_pose;
                     dist_to_goal = dist_to_cube;
                     cube_id = i;
