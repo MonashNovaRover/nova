@@ -1,6 +1,7 @@
 import { CameraFilters } from "../../../components/CameraComponent/CameraComponent";
 import {ReactNode} from "react";
 import {Plus} from "react-feather";
+import {GimbalCamOverlay} from "../../../components/shared/Overlay/GimbalCamOverlay.tsx";
 
 export interface CameraView {
   viewTitle: string;
@@ -277,5 +278,7 @@ export const urcCameraSetup = {
 }
 
 export const defaultCameraOverlays: { [k: string]: ReactNode } = {
-  [CameraSerials.ARM_END_FINGER]: <Plus className="self-center"/>
+  [CameraSerials.ARM_END_FINGER]: <Plus className="self-center"/>,
+  [CameraSerials.SCIENCE_GIMBAL]: <GimbalCamOverlay/>
 }
+
