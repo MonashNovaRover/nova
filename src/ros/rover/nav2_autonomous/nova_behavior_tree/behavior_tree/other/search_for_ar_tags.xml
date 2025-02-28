@@ -2,89 +2,86 @@
 <root BTCPP_format="4"
       main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
-    <ReactiveSequence>
-      <BlackboardPublisher topic_name="/blackboard_debug" />
-      <RecoveryNode name="NavigateRecovery"
-                    number_of_retries="6">
-        <PipelineSequence name="NavigateWithReplanning">
-          <ControllerSelector topic_name="controller_selector"
-                              default_controller="FollowPath"
-                              selected_controller="{selected_controller}"/>
-          <PlannerSelector topic_name="planner_selector"
-                          default_planner="GridBased"
-                          selected_planner="{selected_planner}"/>
-          <RateController hz="1.0">
-            <RecoveryNode name="ComputePathToPose"
-                          number_of_retries="1">
-              <ReactiveSequence>
-                <ForceSuccess>
-                  <ReactiveSequence>
-                    <ARTagDetected seen_ids="{seen_ids}"
-                                  id="{id}"
-                                  goal="{goal}"/>
-                    <UpdateARTagGoal input_goal="{goal}"
-                                    input_goals="{goals}"
-                                    radius="5"
-                                    output_goals="{goals}"/>
-                  </ReactiveSequence>
-                </ForceSuccess>
-                <ReactiveSequence>
-                  <RemovePassedGoalsAndARTags input_goal="{goal}"
-                                              id="{id}"
-                                              tag_tolerance="3"
-                                              input_goals="{goals}"
-                                              radius="2"
-                                              output_goals="{goals}"
-                                              seen_ids="{seen_ids}"/>
-                  <ComputePathThroughPoses goals="{goals}"
-                                          planner_id="{selected_planner}"
-                                          path="{path}"
-                                          error_code_id="{compute_path_error_code}"/>
-                </ReactiveSequence>
-              </ReactiveSequence>
-              <Sequence>
-                <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
-                <ClearEntireCostmap name="ClearGlobalCostmap-Context"
-                                    service_name="global_costmap/clear_entirely_global_costmap"/>
-              </Sequence>
-            </RecoveryNode>
-          </RateController>
-          <RecoveryNode name="FollowPath"
+    <RecoveryNode name="NavigateRecovery"
+                  number_of_retries="6">
+      <PipelineSequence name="NavigateWithReplanning">
+        <ControllerSelector topic_name="controller_selector"
+                            default_controller="FollowPath"
+                            selected_controller="{selected_controller}"/>
+        <PlannerSelector topic_name="planner_selector"
+                         default_planner="GridBased"
+                         selected_planner="{selected_planner}"/>
+        <RateController hz="1.0">
+          <RecoveryNode name="ComputePathToPose"
                         number_of_retries="1">
-            <FollowPath controller_id="{selected_controller}"
-                        path="{path}"
-                        error_code_id="{follow_path_error_code}"/>
+            <ReactiveSequence>
+              <ForceSuccess>
+                <ReactiveSequence>
+                  <ARTagDetected seen_ids="{seen_ids}"
+                                 id="{id}"
+                                 goal="{goal}"/>
+                  <UpdateGoal input_goal="{goal}"
+                              input_goals="{goals}"
+                              radius="5"
+                              output_goals="{goals}"/>
+                </ReactiveSequence>
+              </ForceSuccess>
+              <ReactiveSequence>
+                <RemovePassedGoalsAndARTags input_goal="{goal}"
+                                            id="{id}"
+                                            tag_tolerance="3"
+                                            input_goals="{goals}"
+                                            radius="2"
+                                            output_goals="{goals}"
+                                            seen_ids="{seen_ids}"/>
+                <ComputePathThroughPoses goals="{goals}"
+                                         planner_id="{selected_planner}"
+                                         path="{path}"
+                                         error_code_id="{compute_path_error_code}"/>
+              </ReactiveSequence>
+            </ReactiveSequence>
             <Sequence>
-              <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
-              <ClearEntireCostmap name="ClearLocalCostmap-Context"
-                                  service_name="local_costmap/clear_entirely_local_costmap"/>
+              <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
+              <ClearEntireCostmap name="ClearGlobalCostmap-Context"
+                                  service_name="global_costmap/clear_entirely_global_costmap"/>
             </Sequence>
           </RecoveryNode>
-        </PipelineSequence>
-        <Sequence>
-          <Fallback>
+        </RateController>
+        <RecoveryNode name="FollowPath"
+                      number_of_retries="1">
+          <FollowPath controller_id="{selected_controller}"
+                      path="{path}"
+                      error_code_id="{follow_path_error_code}"/>
+          <Sequence>
             <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
-            <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
-          </Fallback>
-          <ReactiveFallback name="RecoveryFallback">
-            <GoalUpdated/>
-            <RoundRobin name="RecoveryActions">
-              <Sequence name="ClearingActions">
-                <ClearEntireCostmap name="ClearLocalCostmap-Subtree"
-                                    service_name="local_costmap/clear_entirely_local_costmap"/>
-                <ClearEntireCostmap name="ClearGlobalCostmap-Subtree"
-                                    service_name="global_costmap/clear_entirely_global_costmap"/>
-              </Sequence>
-              <Spin spin_dist="1.57"
-                    error_code_id="{spin_error_code}"/>
-              <Wait wait_duration="5.0"/>
-              <BackUp backup_dist="0.30"
-                      backup_speed="0.15"
-                      error_code_id="{backup_code_id}"/>
-            </RoundRobin>
-          </ReactiveFallback>
-        </Sequence>
-      </RecoveryNode>
-    </ReactiveSequence>
+            <ClearEntireCostmap name="ClearLocalCostmap-Context"
+                                service_name="local_costmap/clear_entirely_local_costmap"/>
+          </Sequence>
+        </RecoveryNode>
+      </PipelineSequence>
+      <Sequence>
+        <Fallback>
+          <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
+          <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
+        </Fallback>
+        <ReactiveFallback name="RecoveryFallback">
+          <GoalUpdated/>
+          <RoundRobin name="RecoveryActions">
+            <Sequence name="ClearingActions">
+              <ClearEntireCostmap name="ClearLocalCostmap-Subtree"
+                                  service_name="local_costmap/clear_entirely_local_costmap"/>
+              <ClearEntireCostmap name="ClearGlobalCostmap-Subtree"
+                                  service_name="global_costmap/clear_entirely_global_costmap"/>
+            </Sequence>
+            <Spin spin_dist="1.57"
+                  error_code_id="{spin_error_code}"/>
+            <Wait wait_duration="5.0"/>
+            <BackUp backup_dist="0.30"
+                    backup_speed="0.15"
+                    error_code_id="{backup_code_id}"/>
+          </RoundRobin>
+        </ReactiveFallback>
+      </Sequence>
+    </RecoveryNode>
   </BehaviorTree>
 </root>
