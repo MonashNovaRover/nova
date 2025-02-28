@@ -124,9 +124,9 @@ in
             leds-blue = "cansend can0 095#0300";
             leds-pink = "cansend can9 096#";
             leds-100 = "cansend can0 091#FF00";
-            leds-75 = "cansend can0 091#C000"
-            leds-50 = "cansend can0 091#8000"
-            leds-off = "cansend can0 091#0000"
+            leds-75 = "cansend can0 091#C000";
+            leds-50 = "cansend can0 091#8000";
+            leds-off = "cansend can0 091#0000";
 
             # Bonus
             cop-mode-on = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh on}";
@@ -134,8 +134,8 @@ in
 
             # Temporary aliases (remove when a better solution has been implemented)
             cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
-            nix-enable = "sudo systemctl enable nix-daemon.service"
-            nix-start = "sudo systemctl start nix-daemon.service"
+            nix-enable = "sudo systemctl enable nix-daemon.service";
+            nix-start = "sudo systemctl start nix-daemon.service";
           }
         ];
 
