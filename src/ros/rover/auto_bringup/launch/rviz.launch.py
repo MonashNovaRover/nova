@@ -10,6 +10,7 @@ from launch.actions import OpaqueFunction
 def launch_setup(context, *args, **kwargs):
     rtabmap_viz = LaunchConfiguration('rtabmap_viz').perform(context)
     use_sim_time = LaunchConfiguration('use_sim_time')
+    config = LaunchConfiguration('config')
 
 
     rviz_node = Node(
@@ -17,7 +18,7 @@ def launch_setup(context, *args, **kwargs):
         namespace='',
         executable='rviz2',
         name='rviz2',
-        arguments=['-d', [PathJoinSubstitution([FindPackageShare('auto_bringup'), 'rviz', 'navigation.rviz'])]]
+        arguments=['-d', [PathJoinSubstitution([FindPackageShare('auto_bringup'), 'rviz', config])]]
     )
 
     rtabmap_ros_node = Node(
@@ -42,6 +43,7 @@ def generate_launch_description():
             description='Launch rtabmap_viz for mapping visualisation'),
 
         DeclareLaunchArgument('use_sim_time', default_value='false'),
+        DeclareLaunchArgument('config', default_value='navigation.rviz'),
     ]
 
     return LaunchDescription( launch_args + [OpaqueFunction(function=launch_setup)])

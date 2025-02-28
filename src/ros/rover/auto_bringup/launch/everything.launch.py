@@ -33,6 +33,7 @@ def launch_setup(context, *args, **kwargs):
     nav2_params = LaunchConfiguration('nav2_params')
     navigation = LaunchConfiguration('navigation')
     rviz = LaunchConfiguration('rviz')
+    rviz_config = LaunchConfiguration('rviz_config')
     use_respawn = LaunchConfiguration('use_respawn')
     world = LaunchConfiguration('world')
 
@@ -65,6 +66,7 @@ def launch_setup(context, *args, **kwargs):
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rviz.launch.py'])),
             launch_arguments={
                 'use_sim_time': gazebo,
+                'config': rviz_config,
             }.items()
         ),
         IncludeLaunchDescription(
@@ -137,6 +139,11 @@ def generate_launch_description():
             name='rviz',
             default_value='True',
             description='Flag to launch rviz',
+        ),
+        DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
+            name='rviz_config',
+            default_value='navigation.rviz',
+            description='RViz configuration file',
         ),
         DeclareLaunchArgument(
             name='use_respawn',
