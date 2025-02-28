@@ -89,7 +89,7 @@ private:
     bool locked = true;
 
     // Extra mode
-    bool cop_mode = false;
+    bool bonus_mode = false;
 
     // Autonomous mode
     bool autonomous = false;
