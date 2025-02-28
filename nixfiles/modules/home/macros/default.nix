@@ -132,7 +132,8 @@ in
             leds-off = "cansend can0 091#0000"
 
             # Bonus
-            cop-mode = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh}";
+            cop-mode-on = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh on}";
+            cop-mode-off = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh off}";
           }
         ];
 
