@@ -40,7 +40,8 @@ namespace nova_behavior_tree
         const BT::NodeConfiguration &conf);
 
     /**
-     * @brief Function to read parameters and initialize class variables
+     * @brief Function to initialize variables,
+     * called only once in the lifecycle of the BT
      */
     void initialize();
 
@@ -52,6 +53,7 @@ namespace nova_behavior_tree
           BT::InputPort<double>("cube_tolerance", "Radius to determine whether the current goal is the cube goal"),
           BT::InputPort<Goals>("input_goals", "Original goals to remove viapoints from"),
           BT::InputPort<double>("radius", 0.5, "Radius to goal for it to be considered for removal"),
+          BT::InputPort<double>("yaw_tolerance", 0.25, "Orientation tolerance in radians"), // (0.25 = ~14 degrees)
           BT::InputPort<std::string>("global_frame", "Global frame"),
           BT::InputPort<std::string>("robot_base_frame", "Robot base frame"),
           BT::OutputPort<Goals>("output_goals", "Goals with passed viapoints removed"),
@@ -69,10 +71,12 @@ namespace nova_behavior_tree
 
     double viapoint_achieved_radius_;
     double cube_tolerance_;
+    double yaw_tolerance_;
     double transform_tolerance_;
     IDs visited_ids_{};
     std::vector<std::string> visited_colors_;
-
+    
+    bool initialized_ = false;
     const std::string COLORS[4] = {"red", "green", "blue", "white"};
   };
 

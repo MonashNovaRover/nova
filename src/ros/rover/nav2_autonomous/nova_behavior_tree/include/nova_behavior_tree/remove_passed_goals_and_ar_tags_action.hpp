@@ -39,7 +39,8 @@ public:
     const BT::NodeConfiguration & conf);
 
   /**
-   * @brief Function to read parameters and initialize class variables
+   * @brief Function to initialize variables,
+   * called only once in the lifecycle of the BT
    */
   void initialize();
 
@@ -51,6 +52,7 @@ public:
       BT::InputPort<double>("tag_tolerance", "Radius to determine whether the current goal is the AR tag goal"),
       BT::InputPort<Goals>("input_goals", "Original goals to remove viapoints from"),
       BT::InputPort<double>("radius", 0.5, "Radius to goal for it to be considered for removal"),
+      BT::InputPort<double>("yaw_tolerance", 0.25, "Orientation tolerance in radians"), // (0.25 = ~14 degrees)
       BT::InputPort<std::string>("global_frame", "Global frame"),
       BT::InputPort<std::string>("robot_base_frame", "Robot base frame"),
       BT::OutputPort<Goals>("output_goals", "Goals with passed viapoints removed"),
@@ -66,9 +68,12 @@ private:
 
   double viapoint_achieved_radius_;
   double tag_tolerance_;
+  double yaw_tolerance_;
   double transform_tolerance_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
   std::string robot_base_frame_;
+  
+  bool initialized_ = false;
 };
 
 }  // namespace nova_behavior_tree

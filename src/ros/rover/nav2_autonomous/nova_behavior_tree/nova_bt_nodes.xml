@@ -17,6 +17,7 @@
       <input_port name="cube_tolerance">Radius to determine whether the current goal is the cube goal</input_port>
       <input_port name="input_goals">Original goals to remove viapoints from</input_port>
       <input_port name="radius">Radius to goal for it to be considered for removal</input_port>
+      <input_port name="yaw_tolerance">Orientation tolerance in radians</input_port>
       <input_port name="global_frame">Global frame</input_port>
       <input_port name="robot_base_frame">Robot base frame</input_port>
       <output_port name="output_goals">Goals with passed viapoints removed</output_port>
@@ -37,6 +38,7 @@
       <input_port name="tag_tolerance">Radius to determine whether the current goal is the AR tag goal</input_port>
       <input_port name="input_goals">Original goals to remove viapoints from</input_port>
       <input_port name="radius">Radius to goal for it to be considered for removal</input_port>
+      <input_port name="yaw_tolerance">Orientation tolerance in radians</input_port>
       <input_port name="global_frame">Global frame</input_port>
       <input_port name="robot_base_frame">Robot base frame</input_port>
       <output_port name="output_goals">Goals with passed viapoints removed</output_port>

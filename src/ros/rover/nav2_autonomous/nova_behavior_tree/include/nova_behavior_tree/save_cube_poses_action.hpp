@@ -51,7 +51,8 @@ namespace nova_behavior_tree
         const BT::NodeConfiguration &conf);
 
     /**
-     * @brief Function to read parameters and initialize class variables
+     * @brief Function to initialize variables,
+     * called only once in the lifecycle of the BT
      */
     void initialize();
 
@@ -74,14 +75,16 @@ namespace nova_behavior_tree
     }
 
   private:
-    std::string CubePosesToString(const CubePoses &cube_poses);
+    std::string CubePosesToString(const CubePoses &cube_poses, size_t (&start_points)[4]);
 
     rclcpp::Node::SharedPtr node_;
 
     std::shared_ptr<CubePoses> cube_poses_;
     std::string file_path_;
     std::ofstream file_;
-
+    
+    bool initialized_ = false;
+    size_t start_points_[4] = {};
     const std::string COLORS[4] = {"red", "green", "blue", "white"};
   };
 

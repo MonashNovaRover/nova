@@ -20,7 +20,8 @@
                   <ARTagDetected seen_ids="{seen_ids}"
                                  id="{id}"
                                  goal="{goal}"/>
-                  <UpdateGoal input_goal="{goal}"
+                  <UpdateGoal goal_type="AR tag"
+                              input_goal="{goal}"
                               input_goals="{goals}"
                               radius="5"
                               output_goals="{goals}"/>
