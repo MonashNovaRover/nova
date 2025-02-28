@@ -113,9 +113,6 @@ in
             zero-pivots = "${pkgs.bash}/bin/bash ${../../../scripts/zero-pivots.sh}";
             list-blcmds = "more ${cfg.nixfileDir}/doc/blcmd-ids.md";
 
-            # Temporary aliases (remove when a better solution has been implemented)
-            cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
-          
             # GUI aliases
             gui-shell = "nova-shell -A pkgs.ros.nova-gui";
             gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" src/ros/rosTypes.ts";
@@ -134,6 +131,11 @@ in
             # Bonus
             cop-mode-on = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh on}";
             cop-mode-off = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh off}";
+
+            # Temporary aliases (remove when a better solution has been implemented)
+            cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
+            nix-enable = "sudo systemctl enable nix-daemon.service"
+            nix-start = "sudo systemctl start nix-daemon.service"
           }
         ];
 
