@@ -141,8 +141,8 @@ void DriveInputs::input_callback(const input_interfaces::msg::InputGamepad::Shar
             autonomous = false;
        
         } else if (msg->btn_x_state == 1) {
-            cop_mode = !cop_mode;
-            system(("bash ~/nova/nixfiles/scripts/cop-mode.sh " + std::string(cop_mode ? "on" : "off") + " &").c_str());
+            bonus_mode = !bonus_mode;
+            // system(("bash ~/nova/nixfiles/scripts/cop-mode.sh " + std::string(cop_mode ? "on" : "off") + " &").c_str());
         }
    
         if (msg->btn_thumb_l_state == 1) {
