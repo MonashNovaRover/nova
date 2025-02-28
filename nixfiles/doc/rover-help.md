@@ -68,6 +68,20 @@ Try the 'launch-ec' alias, otherwise use the command below.
 Replace '?' with either 'arm', 'ce', or 'science'.
 cameras-legacy payload:=?
 
+# Reolink Camera (low quality, low latency)
+First, run the command below.
+nix-shell -p mpv
+
+Use the 'reolink-low' alias to run the camera in low quality, low latency mode. Otherwise, try the command below.
+mpv --rtsp-transport=udp --no-cache --untimed --video-sync=display-resample --deinterlace=no --profile=low-latency --demuxer-max-bytes=512K --demuxer-max-back-bytes=512K rtsp://admin:Lab188b37@10.0.1.100:554/h264Preview_01_sub
+
+# Reolink Camera (high quality, high latency)
+Use the 'reolink-high' alias to run the camera in high quality, high latency mode. Otherwise, try the command below.
+mpv --rtsp-transport=udp --no-cache --untimed --video-sync=display-resample --deinterlace=no --profile=low-latency --demuxer-max-bytes=1M --demuxer-max-back-bytes=1M rtsp://admin:Lab188b37@10.0.1.100:554/h264Preview_01_main
+
+Access the camera at the web address below, using the password used for the workshop computers.
+http://10.0.1.100
+
 =========================
 
 # Zero Pivots
