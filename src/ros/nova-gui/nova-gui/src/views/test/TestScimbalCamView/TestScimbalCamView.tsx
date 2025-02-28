@@ -1,7 +1,7 @@
 import {CameraComponent} from "../../../components/CameraComponent/CameraComponent.tsx";
 import {CameraSerials} from "../../shared/CamerasPage/CameraPageConstants.ts";
 
-export default function TestStateView () {
+export default function TestScimbalCamView () {
 
   return (
     <div>
