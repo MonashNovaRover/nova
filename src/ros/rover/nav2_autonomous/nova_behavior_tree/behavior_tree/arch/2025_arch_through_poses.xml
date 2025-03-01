@@ -18,21 +18,21 @@
               <ForceSuccess>
                 <Sequence>
                   <CubeDetected visited_ids="{visited_ids}"
-                                id="{id}"
-                                goal="{goal}"
+                                current_pose="{current_pose}"
+                                cube_goals="{cube_goals}"
                                 cube_poses="{cube_poses}"/>
-                  <UpdateGoal goal_type="cube"
-                              input_goal="{goal}"
-                              input_goals="{goals}"
-                              radius="1"
-                              output_goals="{goals}"/>
+                  <UpdateGoals goal_type="cube"
+                                current_pose="{current_pose}"
+                                goals="{cube_goals}"
+                                input_goals="{goals}"
+                                radius="1"
+                                output_goals="{goals}"/>
                   <SaveCubePoses cube_poses="{cube_poses}"
                                   file_path="/home/nova/cube_poses.txt"/>
                 </Sequence>
               </ForceSuccess>
               <ReactiveSequence>
-                <RemovePassedGoalsAndCubes input_goal="{goal}"
-                                            id="{id}"
+                <RemovePassedGoalsAndCubes cube_poses="{cube_poses}"
                                             cube_tolerance="2"
                                             input_goals="{goals}"
                                             radius="2"

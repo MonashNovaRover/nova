@@ -30,6 +30,8 @@
 namespace nova_behavior_tree
 {
 
+    using namespace nav2_util::geometry_utils;
+
     RemovePassedGoalsAndCubesAction::RemovePassedGoalsAndCubesAction(
         const std::string & name,
         const BT::NodeConfiguration & conf)
@@ -45,6 +47,7 @@ namespace nova_behavior_tree
         node_->get_parameter("transform_tolerance", transform_tolerance_);
         robot_base_frame_ = BT::deconflictPortAndParamFrame<std::string>(node_, "robot_base_frame", this);
         
+        getInput("cube_poses", cube_poses_);
         getInput("radius", viapoint_achieved_radius_);
         getInput("cube_tolerance", cube_tolerance_);
         getInput("yaw_tolerance", yaw_tolerance_);
@@ -59,33 +62,25 @@ namespace nova_behavior_tree
             initialize();
         }
 
-        Goals goal_poses;
-        getInput("input_goals", goal_poses);
+        getInput("input_goals", input_goals_);
 
-        if (goal_poses.empty()) 
+        if (input_goals_.empty()) 
         {
-            setOutput("output_goals", goal_poses);
+            setOutput("output_goals", input_goals_);
             return BT::NodeStatus::SUCCESS;
         }
 
-        using namespace nav2_util::geometry_utils;  // NOLINT
-
         geometry_msgs::msg::PoseStamped current_pose;
         if (!nav2_util::getCurrentPose(
-            current_pose, *tf_, goal_poses[0].header.frame_id, robot_base_frame_,
+            current_pose, *tf_, input_goals_[0].header.frame_id, robot_base_frame_,
             transform_tolerance_))
         {
             return BT::NodeStatus::FAILURE;
         }
 
-        double dist_to_goal;
-        double dist_to_cube;
-        geometry_msgs::msg::PoseStamped cube;
-        getInput("input_goal", cube);
-
-        while (goal_poses.size() > 1) 
+        while (input_goals_.size() > 1) 
         {
-            dist_to_goal = euclidean_distance(goal_poses[0].pose, current_pose.pose);
+            double dist_to_goal = euclidean_distance(input_goals_[0].pose, current_pose.pose);
 
             if (dist_to_goal > viapoint_achieved_radius_) 
             {
@@ -94,7 +89,7 @@ namespace nova_behavior_tree
 
             // Orientation check
             double current_yaw = tf2::getYaw(current_pose.pose.orientation);
-            double goal_yaw = tf2::getYaw(goal_poses[0].pose.orientation);
+            double goal_yaw = tf2::getYaw(input_goals_[0].pose.orientation);
 
             // Use our custom function instead of angles::shortest_angular_distance
             double dyaw = utils::nav2::shortestAngularDistance(current_yaw, goal_yaw);
@@ -105,29 +100,31 @@ namespace nova_behavior_tree
                 break;
             }
 
-            dist_to_cube = euclidean_distance(goal_poses[0].pose, cube.pose);
-
-            if (dist_to_cube < cube_tolerance_) 
+            for (size_t i = 0; i < 4; ++i)
             {
-                int id;
-                getInput("id", id);
+                if ((*cube_poses_)[i].empty())
+                {
+                    continue;
+                }
 
-                RCLCPP_INFO(node_->get_logger(), "New cube visited: %s", COLORS[id].c_str());
-
-                visited_ids_[id] = true;
-                setOutput("visited_ids", visited_ids_);
-                visited_colors_.push_back(COLORS[id]);
-
-                RCLCPP_INFO(
-                    node_->get_logger(), "Visited cubes: %s",
-                    utils::vectorToString<std::string>(visited_colors_).c_str()
-                );
+                double dist_to_cube = euclidean_distance(input_goals_[0].pose, (*cube_poses_)[i].back());
+    
+                if (dist_to_cube < cube_tolerance_) 
+                {
+                    visited_ids_[i] = true;
+                    setOutput("visited_ids", visited_ids_);
+                    
+                    RCLCPP_INFO(
+                        node_->get_logger(), "New cube visited: %s\nVisited cubes: %s",
+                        COLORS[i].c_str(), utils::arrayToString(visited_ids_).c_str()
+                    );
+                }
             }
 
-            goal_poses.erase(goal_poses.begin());
+            input_goals_.erase(input_goals_.begin());
         }
 
-        setOutput("output_goals", goal_poses);
+        setOutput("output_goals", input_goals_);
 
         return BT::NodeStatus::SUCCESS;
     }
