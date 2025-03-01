@@ -27,7 +27,6 @@ def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
 
     use_sim_time = LaunchConfiguration('use_sim_time')
-    name = LaunchConfiguration('name').perform(context)
     x = LaunchConfiguration('x').perform(context)
     y = LaunchConfiguration('y').perform(context)
     z = LaunchConfiguration('z').perform(context)
@@ -39,14 +38,6 @@ def launch_setup(context, *args, **kwargs):
     rtabmap_params = LaunchConfiguration('rtabmap_params').perform(context)
 
     remappings = [
-        ('rgb/image', name+'/rgb/image_raw'),
-        ('rgb/camera_info', name+'/rgb/camera_info'),
-        ('depth/image', name+'/stereo/image_raw'),
-        ('rgbd_image',name+'/rgbd/image_raw'),
-        ('rgbd_image/compressed',name+'/rgbd/image_raw_compressed'),
-        ('cloud',name+'/depth/points'),
-        ('obstacles', name+'/obstacles'),
-        ('ground', name+'/ground'),
         # ('imu', name+'/imu/data'),
         ('odom', 'odom/visual'),
     ]
@@ -62,7 +53,7 @@ def launch_setup(context, *args, **kwargs):
             }.items()
         ),
         ComposableNodeContainer(
-            name=f'{name}_mapping_container',
+            name='rtabmap_mapping_container',
             namespace='',
             package='rclcpp_components',
             executable='component_container',
@@ -71,29 +62,60 @@ def launch_setup(context, *args, **kwargs):
                     package='rtabmap_sync',
                     plugin='rtabmap_sync::RGBDSync',
                     name='oak_rtabmap_sync',
+                    remappings=[
+                        ('rgb/image','/oak/rgb/image_rect'),
+                        ('depth/image','/oak/stereo/image_raw'),
+                        ('rgb/camera_info', '/oak/rgb/camera_info'),
+                        ('rgbd_image','/oak/rgbd/image_raw'),
+                        ('rgbd_image/compressed','/oak/rgbd/image_raw_compressed'),
+                    ],
                     parameters=[rtabmap_params],
-                    remappings=remappings,
+                ),
+                ComposableNode(
+                    package='rtabmap_sync',
+                    plugin='rtabmap_sync::RGBDSync',
+                    name='realsense_rtabmap_sync',
+                    parameters=[rtabmap_params],
+                    remappings=[
+                        ('rgb/image','/booty/rgb/image_rect'),
+                        ('depth/image','/booty/stereo/image_raw'),
+                        ('rgb/camera_info', '/booty/rgb/camera_info'),
+                        ('rgbd_image','/booty/rgbd/image_raw'),
+                        ('rgbd_image/compressed','/booty/rgbd/image_raw_compressed'),
+                    ],
+                ),
+                ComposableNode(
+                    package='rtabmap_sync',
+                    plugin='rtabmap_sync::RGBDXSync',
+                    name='rgbdx_sync',
+                    parameters=[rtabmap_params],
+                    remappings=[
+                        ('rgbd_image0','/oak/rgbd/image_raw'),
+                        ('rgbd_image1','/booty/rgbd/image_raw'),
+                        ('rgbd_images','/rtabmap/rgbd_images')
+                    ],
                 ),
                 ComposableNode(
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::RGBDOdometry',
                     name='rtabmap_odom',
                     parameters=[rtabmap_params, {'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}', 'use_sim_time': use_sim_time}],
-                    remappings=remappings,
+                    remappings=[
+                        ('odom', '/odom/visual'),
+                        ('odom_info', '/odom/visual/odom_info'),
+                        ('rgbd_images', '/rtabmap/rgbd_images')
+                    ],
                 ),
                 ComposableNode(
                     package='rtabmap_slam',
                     plugin='rtabmap_slam::CoreWrapper',
                     name='rtabmap_slam',
                     parameters=[rtabmap_params, {'use_sim_time': use_sim_time, 'rtabmap_args': '--delete_db_on_start'}],
-                    remappings=remappings,
+                    remappings=[
+                        ('rgbd_images', '/rtabmap/rgbd_images')
+                    ],
                 ),
             ],
-        ),
-        Node(
-            package='rtabmap_util', executable='obstacles_detection', output='screen',
-            parameters=[rtabmap_params],
-            remappings=remappings,
         ),
         Node(
             condition=IfCondition(rtabmap_viz),
@@ -110,7 +132,6 @@ def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
 
     declared_arguments = [
-        DeclareLaunchArgument(name='name', default_value='oak'),
         DeclareLaunchArgument(name='rtabmap_viz', default_value='False'),
         DeclareLaunchArgument(name='use_sim_time', default_value='False'), # Revert ASAP
         DeclareLaunchArgument(name='camera', default_value='False'),

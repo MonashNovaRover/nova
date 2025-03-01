@@ -16,16 +16,13 @@ CREATION:	13/11/2024
 '''
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import  ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
-from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
 
-    realsense_params = LaunchConfiguration('realsense_params').perform(context)
-
-    parent_frame = LaunchConfiguration('parent_frame')
+    camera_frame = LaunchConfiguration('camera_frame').perform(context)
 
     remappings = [
         ('/camera/realsense2_camera_node/color/image_raw','/bootie/rgb/image_raw'),
@@ -45,7 +42,7 @@ def launch_setup(context, *args, **kwargs):
                     name='realsense2_camera_node',
                     package='realsense2_camera',
                     plugin='realsense2_camera::RealSenseNodeFactory',
-                    parameters=[realsense_params],
+                    parameters=[{"base_frame_id":camera_frame}],
                     remappings=remappings
                 )
             ],
@@ -55,17 +52,11 @@ def launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-    auto_bringup_dir = FindPackageShare('auto_bringup')
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='realsense_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'realsense.yaml']),
-            description='',
-        ),
-        DeclareLaunchArgument(
-            name='parent_frame',
-            default_value='booty_camera_link',
+            name='camera_frame',
+            default_value='bootie_camera_link',
             description='',
         ),
     ]

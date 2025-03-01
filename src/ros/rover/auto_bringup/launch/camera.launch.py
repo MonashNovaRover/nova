@@ -73,6 +73,14 @@ def launch_setup(context, *args, **kwargs):
                                 ('depth/camera_info', f'{name}/stereo/camera_info'),
                                 ('cloud', f'{name}/depth/points')],
                 ),
+                ComposableNode(
+                    package='rtabmap_util',
+                    plugin='rtabmap_util::ObstaclesDetection',
+                    name='obstacle_segmenter',
+                    remappings=[('cloud',name+'/depth/points'),
+                                ('obstacles', name+'/obstacles'),
+                                ('ground', name+'/ground')],
+                ),
             ],
         ),
         Node(

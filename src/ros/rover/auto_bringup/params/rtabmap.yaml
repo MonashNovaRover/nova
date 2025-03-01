@@ -6,7 +6,7 @@ rtabmap_slam:
     subscribe_rgb: False
     subscribe_depth: False
     subscribe_rgbd: True
-    rgbd_cameras: 1
+    rgbd_cameras: 0 # Use RGBDX Images
     subscribe_odom_info: False
     approx_sync: True
     odom_frame_id: odom
@@ -22,10 +22,27 @@ rtabmap_slam:
     Grid/CellSize: "0.1"
     GridGlobal/MinSize: "40.0"
     Grid/RayTracing: "true"
+
 # Params for RGBD Odom (VO)
 rtabmap_odom:
   ros__parameters:
     publish_tf: False
     publish_null_when_lost: False
     subscribe_rgbd: true
-    rgbd_cameras: 1
+    rgbd_cameras: 0 # Use RGBDX Images
+
+# Params for Oak Synchronizer
+oak_rtabmap_sync:
+  ros__parameters:
+    approx_sync: True
+
+# Params for Realsense Synchronizer
+realsense_rtabmap_sync:
+  ros__parameters:
+    approx_sync: True # Try False
+
+# Params for RGBDX Synchronizer (Stage 2 Combining Oak and Realsense)
+rgbdx_sync:
+  ros__parameters:
+    approx_sync: True
+    rgbd_cameras: 2
