@@ -16,6 +16,13 @@ class ContinuousOneAxisPositionControl(Control):
         """Get the target position of the motor"""
         return self.target_position
 
+    def displace(self, displacement: int):
+        """Apply displacement to the target position of the motor"""
+        self.set_position(self.target_position + displacement)
+
     def set_position(self, new_pos: int):
         """Set the target position of the motor"""
         self.target_position = max(self.min_angle, min(new_pos, self.max_angle))
+
+    def stop(self):
+        pass
