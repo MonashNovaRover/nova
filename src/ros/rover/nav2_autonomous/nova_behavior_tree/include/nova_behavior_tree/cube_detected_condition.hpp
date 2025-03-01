@@ -14,16 +14,8 @@
 
 /**
  * @brief Condition node for checking for detected cubes. Detected cubes' poses
- * are added as goals to the front of the goals list, and saved to a list for
- * future reference.
- *
- * The filter keeps track of the past n detections, determined by filter_tolerance.
- * It's implemented as a queue of ints in the form of binary literals, e.g. 0b1010.
- * Each bit represents whether that cube has been detected.
- *
- * e.g. 0b   0    1     0    1
- *          red green blue white
- *
+ * are added as viapoints in UpdateGoals, and saved to a list for future reference.
+ * 
  * @authors Terry Tian
  */
 
@@ -33,7 +25,6 @@
 #include <vector>
 #include <memory>
 #include <array>
-#include <queue>
 
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/pose.hpp"
@@ -50,6 +41,8 @@ namespace nova_behavior_tree
   public:
     typedef std::array<bool, 4> IDs;
     typedef std::array<std::vector<geometry_msgs::msg::Pose>, 4> CubePoses;
+    typedef geometry_msgs::msg::PoseStamped Goal;
+    typedef std::vector<Goal> Goals;
 
     /**
      * @brief A constructor for nova_behavior_tree::ARTagDetectedCondition
@@ -82,14 +75,8 @@ namespace nova_behavior_tree
     {
       return {
           BT::InputPort<IDs>("visited_ids", "visited_ids[i] = true if visited, false otherwise"),
-          BT::InputPort<int>(
-              "filter_strength", 0,
-              "Number of detections within the specified filter_tolerance needed for a valid detection"),
-          BT::InputPort<int>(
-              "filter_tolerance", 0,
-              "Number of previous detections to consider (should exceed filter_strength)"),
-          BT::OutputPort<int>("id", "ID of detected cube"),
-          BT::OutputPort<geometry_msgs::msg::PoseStamped>("goal", "Pose of detected cube"),
+          BT::OutputPort<Goal>("current_pose", "The current pose of the rover"),
+          BT::OutputPort<Goals>("cube_goals", "Goals of detected cubes"),
           BT::OutputPort<std::shared_ptr<CubePoses>>("cube_poses", "List of cube poses"),
       };
     }
@@ -109,10 +96,6 @@ namespace nova_behavior_tree
     double transform_tolerance_;
     std::string global_frame_;
     std::string robot_base_frame_;
-    int filter_strength_;
-    int filter_tolerance_;
-    std::queue<int> filter_;
-    std::array<int, 4> filter_detections_count_{};
     
     bool initialized_ = false;
     const std::string COLORS[4] = {"red", "green", "blue", "white"};

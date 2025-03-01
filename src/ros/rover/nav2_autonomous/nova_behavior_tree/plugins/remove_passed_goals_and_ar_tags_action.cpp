@@ -115,7 +115,7 @@ namespace nova_behavior_tree
 
                 RCLCPP_INFO(
                     node_->get_logger(), "New ID %i being added to seen_ids: %s",
-                    id, utils::vectorToString<int>(seen_ids).c_str()
+                    id, utils::vectorToString(seen_ids).c_str()
                 );
 
                 seen_ids.push_back(id);
@@ -123,7 +123,7 @@ namespace nova_behavior_tree
 
                 RCLCPP_INFO(
                     node_->get_logger(), "seen_ids: %s",
-                    utils::vectorToString<int>(seen_ids).c_str()
+                    utils::vectorToString(seen_ids).c_str()
                 );
             }
 

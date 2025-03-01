@@ -15,6 +15,8 @@
 /**
  * @brief Action node for saving cube poses to a file. To avoid having to rewrite
  * potentially huge amounts of data every time, the poses are appended to file instead.
+ * If the file already exists, the file name is incremented to avoid overwriting.
+ * e.g. poses.txt -> poses_1.txt -> poses_2.txt -> ...
  * 
  * @authors Terry Tian
  */
@@ -48,13 +50,16 @@ namespace nova_behavior_tree
 
         // avoid overwriting existing files
         std::ifstream file(file_path_);
-        std::string og_file_path = file_path_;
+        std::string file_name = file_path_.substr(0, file_path_.find_last_of('.'));
+        std::string file_ext = file_path_.substr(file_path_.find_last_of('.'));
         size_t i = 1;
         while (file.good())
         {
             std::ostringstream oss;
-            oss << og_file_path << "(" << i << ")";
+            oss << file_name << "_" << i << file_ext;
             file_path_ = oss.str();
+            
+            file.close();
             file.open(file_path_);
             i += 1;
         }
