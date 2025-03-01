@@ -70,7 +70,7 @@ def launch_setup(context, *args, **kwargs):
                 ComposableNode(
                     package='rtabmap_sync',
                     plugin='rtabmap_sync::RGBDSync',
-                    name='rtabmap_sync',
+                    name='oak_rtabmap_sync',
                     parameters=[rtabmap_params],
                     remappings=remappings,
                 ),
