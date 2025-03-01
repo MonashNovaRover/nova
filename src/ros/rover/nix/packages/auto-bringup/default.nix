@@ -31,6 +31,8 @@
   nova-pivot-drive-controller,
   tf2-tools,
   yolo-ros,
+  realsense2-camera,
+  realsense2-description,
 }:
 
 buildRosPackage rec {
@@ -75,6 +77,8 @@ buildRosPackage rec {
       nova-pivot-drive-controller
       tf2-tools
       imu-transformer
+      realsense2-camera
+      realsense2-description
       yolo-ros;
   };
 
