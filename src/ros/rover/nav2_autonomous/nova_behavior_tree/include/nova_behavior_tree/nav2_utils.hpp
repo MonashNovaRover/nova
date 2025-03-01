@@ -110,6 +110,17 @@ namespace nova_behavior_tree::utils::nav2
            isClose(p1.z, p2.z, tolerance);
   }
 
+  bool areQuaternionsEqual(Quaternion q1, Quaternion q2)
+  {
+    return q1.x == q2.x && q1.y == q2.y && q1.z == q2.z && q1.w == q2.w;
+  }
+
+  bool isDefaultPose(Pose p)
+  {
+    return arePointsEqual(p.position, Point()) &&
+           areQuaternionsEqual(p.orientation, Quaternion());
+  }
+
 }
 
 #endif // NOVA_BEHAVIOR_TREE__NAV2_UTILS_HPP_

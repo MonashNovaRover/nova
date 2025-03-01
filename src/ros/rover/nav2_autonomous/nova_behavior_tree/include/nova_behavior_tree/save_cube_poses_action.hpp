@@ -13,9 +13,11 @@
 // limitations under the License.
 
 /**
- * @brief Action node for saving cube poses to a file. Intended to be used with a
- * RateController decorator to update the file periodically.
- *
+ * @brief Action node for saving cube poses to a file. To avoid having to rewrite
+ * potentially huge amounts of data every time, the poses are appended to file instead.
+ * If the file already exists, the file name is incremented to avoid overwriting.
+ * e.g. poses.txt -> poses_1.txt -> poses_2.txt -> ...
+ * 
  * @authors Terry Tian
  */
 

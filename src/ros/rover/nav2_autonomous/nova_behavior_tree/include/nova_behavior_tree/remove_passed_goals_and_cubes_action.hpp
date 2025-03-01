@@ -34,6 +34,7 @@ namespace nova_behavior_tree
   public:
     typedef std::vector<geometry_msgs::msg::PoseStamped> Goals;
     typedef std::array<bool, 4> IDs;
+    typedef std::array<std::vector<geometry_msgs::msg::Pose>, 4> CubePoses;
 
     RemovePassedGoalsAndCubesAction(
         const std::string &xml_tag_name,
@@ -48,8 +49,7 @@ namespace nova_behavior_tree
     static BT::PortsList providedPorts()
     {
       return {
-          BT::InputPort<geometry_msgs::msg::PoseStamped>("input_goal", "Cube goal"),
-          BT::InputPort<int>("id", "ID of detected cube"),
+          BT::InputPort<std::shared_ptr<CubePoses>>("cube_poses", "List of cube poses"),
           BT::InputPort<double>("cube_tolerance", "Radius to determine whether the current goal is the cube goal"),
           BT::InputPort<Goals>("input_goals", "Original goals to remove viapoints from"),
           BT::InputPort<double>("radius", 0.5, "Radius to goal for it to be considered for removal"),
@@ -69,12 +69,13 @@ namespace nova_behavior_tree
     std::shared_ptr<tf2_ros::Buffer> tf_;
     std::string robot_base_frame_;
 
+    std::shared_ptr<CubePoses> cube_poses_;
+    Goals input_goals_;
     double viapoint_achieved_radius_;
     double cube_tolerance_;
     double yaw_tolerance_;
     double transform_tolerance_;
     IDs visited_ids_{};
-    std::vector<std::string> visited_colors_;
     
     bool initialized_ = false;
     const std::string COLORS[4] = {"red", "green", "blue", "white"};

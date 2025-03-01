@@ -16,6 +16,7 @@
 #define NOVA_BEHAVIOR_TREE__UTILS_HPP
 
 #include <vector>
+#include <array>
 #include <string>
 #include <sstream>
 
@@ -34,6 +35,23 @@ namespace nova_behavior_tree::utils
           oss << vec[i] << ", ";
         }
         oss << vec.back();
+      }
+      oss << "]";
+      return oss.str();
+    }
+
+    template <typename T, size_t N>
+    std::string arrayToString(const std::array<T, N> &arr)
+    {
+      std::ostringstream oss;
+      oss << "[";
+      if (N > 0)
+      {
+        for (size_t i = 0; i < N - 1; ++i)
+        {
+          oss << arr[i] << ", ";
+        }
+        oss << arr[N - 1];
       }
       oss << "]";
       return oss.str();

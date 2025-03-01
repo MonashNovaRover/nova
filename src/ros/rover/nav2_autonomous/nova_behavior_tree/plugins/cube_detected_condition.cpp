@@ -14,24 +14,18 @@
 
 /**
  * @brief Condition node for checking for detected cubes. Detected cubes' poses
- * are added as goals to the front of the goals list, and saved to a list for
- * future reference.
- * 
- * The filter keeps track of the past n detections, determined by filter_tolerance.
- * It's implemented as a queue of ints in the form of binary literals, e.g. 0b1010.
- * Each bit represents whether that cube has been detected.
- * 
- * e.g. 0b   0    1     0    1
- *          red green blue white
+ * are added as viapoints in UpdateGoals, and saved to a list for future reference.
  * 
  * @authors Terry Tian
  */
 
 #include <string>
+#include <vector>
 #include <memory>
 #include <limits>
-#include <queue>
 #include <algorithm>
+#include <chrono>
+#include <thread>
 
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/pose.hpp"
@@ -41,8 +35,8 @@
 #include "rclcpp/logging.hpp"
 #include "nav2_behavior_tree/bt_utils.hpp"
 
-#include "nova_behavior_tree/nav2_utils.hpp"
 #include "nova_behavior_tree/cube_detected_condition.hpp"
+#include "nova_behavior_tree/nav2_utils.hpp"
 
 namespace nova_behavior_tree
 {
@@ -68,16 +62,6 @@ namespace nova_behavior_tree
         cube_poses_ = std::make_shared<CubePoses>();
         setOutput("cube_poses", cube_poses_);
 
-        getInput("filter_strength", filter_strength_);
-        getInput("filter_tolerance", filter_tolerance_);
-        // just in case filter_tolerance is less than filter_strength
-        filter_tolerance_ = std::max(filter_tolerance_, filter_strength_);
-
-        for (size_t i = 0; i < (unsigned int)filter_tolerance_; i++)
-        {
-            filter_.push(0b0000);
-        }
-
         initialized_ = true;
     }
 
@@ -86,6 +70,8 @@ namespace nova_behavior_tree
         if (!initialized_)
         {
             initialize();
+            // !!! DO NOT REMOVE, IT WILL NOT WORK OTHERWISE IDK WHY AAAAAAAA
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
         if (detected())
@@ -100,12 +86,10 @@ namespace nova_behavior_tree
     {
         using namespace nav2_util::geometry_utils;
 
+        bool result = false;
         geometry_msgs::msg::TransformStamped t;
-        geometry_msgs::msg::PoseStamped goal;
-        geometry_msgs::msg::PoseStamped current_pose;
-        double dist_to_goal = std::numeric_limits<double>::infinity();
-        int cube_id = -1;
-        int detections = 0b0000;
+        Goal current_pose;
+        Goals goals(4);
         
         IDs visited_ids;
         getInput("visited_ids", visited_ids);
@@ -116,11 +100,13 @@ namespace nova_behavior_tree
             RCLCPP_ERROR(node_->get_logger(), "Failed to get current pose of rover");
             return false;
         }
+        
+        setOutput("current_pose", current_pose);
 
         // query cube poses
         for (size_t i = 0; i < 4; i++)
         {
-            if (visited_ids[i] || filter_detections_count_[i] < filter_strength_)
+            if (visited_ids[i])
             {
                 continue;
             }
@@ -140,78 +126,35 @@ namespace nova_behavior_tree
                 continue;
             }
 
+            Goal goal;
+
             cube_pose.position.x = t.transform.translation.x;
             cube_pose.position.y = t.transform.translation.y;
             cube_pose.position.z = t.transform.translation.z;
             cube_pose.orientation = t.transform.rotation;
-            
-            if ((*cube_poses_)[i].empty() || 
-                !utils::nav2::arePointsEqual((*cube_poses_)[i].back().position, cube_pose.position))
+
+            if (!(*cube_poses_)[i].empty() &&
+                utils::nav2::arePointsEqual((*cube_poses_)[i].back().position, cube_pose.position))
             {
-                (*cube_poses_)[i].push_back(cube_pose);
+                continue;
             }
+            
+            (*cube_poses_)[i].push_back(cube_pose);
             
             RCLCPP_INFO(node_->get_logger(), "%s cube detected, added pose to cube_poses", COLORS[i].c_str());
-
-            double dist_to_cube = euclidean_distance(cube_pose, current_pose.pose);
-            if (dist_to_cube < dist_to_goal)
-            {
-                goal.header.frame_id = global_frame_;
-                goal.header.stamp = t.header.stamp;
-                goal.pose = cube_pose;
-                dist_to_goal = dist_to_cube;
-                cube_id = i;
-            }
             
-            detections |= 1 << (3 - i);
-            filter_detections_count_[i]++;
+            goal.header.frame_id = global_frame_;
+            goal.header.stamp = t.header.stamp;
+            goal.pose = cube_pose;
+            
+            goals[i] = goal;
+
+            result = true;
         }
 
-        // if no cube is detected currently, retrieve nearest last seen cube that has not been visited
-        if (cube_id == -1)
-        {
-            for (size_t i = 0; i < 4; i++)
-            {
-                if (visited_ids[i] || (*cube_poses_)[i].empty())
-                {
-                    continue;
-                }
-                
-                geometry_msgs::msg::Pose cube_pose = (*cube_poses_)[i].back();
-                double dist_to_cube = euclidean_distance(cube_pose, current_pose.pose);
-                if (dist_to_cube < dist_to_goal)
-                {
-                    goal.header.frame_id = global_frame_;
-                    goal.pose = cube_pose;
-                    dist_to_goal = dist_to_cube;
-                    cube_id = i;
-                }
-            }
-        }
+        setOutput("cube_goals", goals);
 
-        // update filter
-        if (!filter_.empty())
-        {
-            filter_.push(detections);
-            int front = filter_.front();
-            filter_.pop();
-
-            for (size_t i = 4; i > 0; i--)
-            {
-                filter_detections_count_[i] -= front & 1;
-                front >>= 1;
-            }
-        }
-
-        if (cube_id != -1)
-        {
-            setOutput("goal", goal);
-            setOutput("id", cube_id);
-            RCLCPP_INFO(node_->get_logger(), "Pathing towards %s cube", COLORS[cube_id].c_str());
-            return true;
-        }
-
-        return false;
+        return result;
     }
 
 }
