@@ -1,8 +1,7 @@
-import {BaseCameraComponentProps, CameraComponent, CameraComponentProps} from "../CameraComponent.tsx";
+import {CameraComponent, CameraComponentProps} from "../CameraComponent.tsx";
 import {FC, ReactNode, useState} from "react";
 import {Switch} from "@nextui-org/react";
 import Overlay from "../../shared/Overlay/Overlay.tsx";
-import {ArmLineOverlay} from "../../shared/Overlay/ArmLineOverlay.tsx";
 import CameraVideo, {CameraVideoProps} from "../components/CameraVideo.tsx";
 
 export interface OverlayedCameraComponentProps extends CameraComponentProps {
@@ -41,9 +40,5 @@ const OverlayedCameraComponent: FC<OverlayedCameraComponentProps> = (props) => {
       />
   )
 };
-
-export const CrosshairOverlayedCameraComponent: FC<BaseCameraComponentProps> = (props) => (
-  <OverlayedCameraComponent {...props} overlay={<ArmLineOverlay/>}/>
-)
 
 export default OverlayedCameraComponent;

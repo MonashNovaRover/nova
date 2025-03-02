@@ -35,7 +35,11 @@ export interface CameraComponentProps extends BaseCameraComponentProps {
   // Children to pass to the settings form
   settingsFormChildren?: ReactNode
 
+  // Camera video component to pass in
   cameraVideoComponent?: React.FC<CameraVideoProps>
+
+  // Called when the streaming state changes
+  onStreamingStateChange?: (s: StreamingState) => void
 }
 
 export interface CameraFilters {
@@ -65,6 +69,11 @@ export const CameraComponent = (props: CameraComponentProps) => {
   } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
+
+  useEffect(() => {
+    if (props.onStreamingStateChange)
+      props.onStreamingStateChange(streamingState)
+  }, [streamingState, props]);
 
   const openCameraInTab = () =>
     window.open(
