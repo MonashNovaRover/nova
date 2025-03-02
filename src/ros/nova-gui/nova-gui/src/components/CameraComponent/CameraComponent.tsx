@@ -7,30 +7,33 @@ import {
   PopoverTrigger,
   Spinner,
 } from "@nextui-org/react";
-import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { Camera as CameraIcon, Info } from "react-feather";
 import { CameraInfoModal } from "./components/CameraInfoModal";
 import { StreamingState, useCameraStream } from "./hooks/useCameraStream";
 import { CameraSettingsForm } from "./components/CameraSettingsForm";
 import CameraVideo from "./components/CameraVideo";
 import {
-  defaultCameraOverlays,
   defaultCamFilters,
   initialisedFilters
-} from "../../views/shared/CamerasPage/CameraPageConstants";
+} from "../../views/shared/CamerasPage/CameraFilterConstants";
 import { BooleanChip } from "./components/BooleanChip";
 import humanizeString from "humanize-string";
 import { ExternalLink } from "react-feather";
 import toast from "react-hot-toast";
 import CameraSessionStartStopButton from "./components/CameraSessionStartStopButton.tsx";
-import Overlay from "../shared/Overlay/Overlay.tsx";
 
 const ASPECT_RATIO = 4 / 3;
 
-export interface CameraComponentProps {
+/// Subset of props needed to call the camera components from the serialMappedCameraComponent function
+export interface BaseCameraComponentProps {
   cameraSerial: string;
-  overlayMap?: { [k: string]: ReactNode },
   autostart?: boolean;
+}
+
+export interface CameraComponentProps extends BaseCameraComponentProps {
+  // Children to pass to the settings form
+  settingsFormChildren?: ReactNode
 }
 
 export interface CameraFilters {
@@ -60,10 +63,6 @@ export const CameraComponent = (props: CameraComponentProps) => {
   } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
-  const [overlayToggle, setOverlayToggle] = useState(true)
-  const overlay = useMemo(() => {
-    return props.overlayMap ? props.overlayMap[cameraSerial] : defaultCameraOverlays[cameraSerial];
-  }, [props, cameraSerial])
 
   const openCameraInTab = () =>
     window.open(
@@ -129,9 +128,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
         setCameraModalOpen={setCameraInfoModalOpen}
       />
       <div/>
-      <Overlay overlay={overlayToggle && streamingState === StreamingState.STREAMING ? overlay : undefined}>
-        <CameraVideo videoRef={videoRef} filters={filters} />
-      </Overlay>
+      <CameraVideo videoRef={videoRef} filters={filters} />
       {/* Overlay */}
       <div className="absolute top-0 right-0 w-full h-full flex flex-col justify-center items-center">
         {streamingState === StreamingState.STOPPED && (
@@ -179,9 +176,9 @@ export const CameraComponent = (props: CameraComponentProps) => {
                     <CameraSettingsForm
                       cameraFilters={filters}
                       setCameraFilters={setFilters}
-                      overlayToggle={overlayToggle}
-                      toggleOverlay={() => setOverlayToggle(!overlayToggle)}
-                    />
+                    >
+                      {props.settingsFormChildren}
+                    </CameraSettingsForm>
                   </div>
                 </PopoverContent>
               </Popover>

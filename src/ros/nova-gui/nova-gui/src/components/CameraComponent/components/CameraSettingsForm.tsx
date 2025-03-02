@@ -6,6 +6,7 @@ import {
 } from "react-bootstrap-icons";
 import { Droplet, RotateCcw } from "react-feather";
 import { CameraFilters } from "../CameraComponent";
+import {ReactNode} from "react";
 
 const snapTo90 = (value: number): number => {
   const remainder = value % 90;
@@ -16,13 +17,11 @@ const snapTo90 = (value: number): number => {
 export const CameraSettingsForm = ({
   cameraFilters,
   setCameraFilters,
-  overlayToggle,
-  toggleOverlay,
+  children
 }: {
   cameraFilters: CameraFilters;
   setCameraFilters: React.Dispatch<React.SetStateAction<CameraFilters>>;
-  overlayToggle: boolean;
-  toggleOverlay: () => void;
+  children?: ReactNode
 }) => {
   return (
     <div className="mt-2 flex flex-col gap-3 w-full">
@@ -103,13 +102,7 @@ export const CameraSettingsForm = ({
           })
         }
       />
-      <Switch
-        size="sm"
-        isSelected={overlayToggle}
-        onChange={(_) => toggleOverlay()}
-      >
-        Toggle Overlay
-      </Switch>
+      {children}
     </div>
   );
 };

@@ -1,8 +1,3 @@
-import { CameraFilters } from "../../../components/CameraComponent/CameraComponent";
-import {ReactNode} from "react";
-import {Minus} from "react-feather";
-import {ArmLineOverlay} from "../../../components/shared/Overlay/ArmLineOverlay.tsx";
-
 export interface CameraView {
   viewTitle: string;
   cameraSerials: string[];
@@ -21,14 +16,6 @@ export enum URCCompModes {
   URC_SCIENCE = "science",
   URC_AUTONOMOUS = "autonomous-navigation",
 }
-
-export const initialisedFilters: CameraFilters = {
-  flipCamera: false,
-  invertCamera: false,
-  rotation: 0,
-  contrast: 100, // In %
-  brightness: 100, // in %
-};
 
 export enum CameraSerials {
   MAST_FISHEYE = "mast_fisheye",
@@ -57,44 +44,6 @@ export enum CameraSerials {
   URC_SCIENCE_CUVETTE = "science_cuvettes",
   URC_SCIENCE_PAYLOAD_FRONT = "science_payload_front",
   URC_SCIENCE_PAYLOAD_DOWN = "science_payload_down",
-}
-
-export const defaultCamFilters: { [key: string]: CameraFilters } = {
-  arm_end_forward: {
-    flipCamera: true,
-    invertCamera: false,
-    rotation: 0,
-    contrast: 100,
-    brightness: 100,
-  },
-  arm_end_finger: {
-    flipCamera: false,
-    invertCamera: false,
-    rotation: -90,
-    contrast: 100,
-    brightness: 100,
-  },
-  "science_kiln": {
-    flipCamera: false,
-    invertCamera: false,
-    rotation: 0,
-    contrast: 100,
-    brightness: 100,
-  },
-  mast_down: {
-    flipCamera: false,
-    invertCamera: false,
-    rotation: 0,
-    contrast: 100,
-    brightness: 100,
-  },
-  science_analysis_bottom: {
-    flipCamera: false,
-    invertCamera: false,
-    rotation: -90,
-    contrast: 100,
-    brightness: 100,
-  }
 }
 
 export const allCams = [];
@@ -274,12 +223,4 @@ export const urcCameraSetup = {
   [URCCompModes.URC_DELIVERY]: urc_delivery_views,
   [URCCompModes.URC_SCIENCE]: urc_science_views,
   [URCCompModes.URC_AUTONOMOUS]: urc_autonomous_views,
-}
-
-export const defaultCameraOverlays: { [k: string]: ReactNode } = {
-  [CameraSerials.ARM_END_TOP]: <ArmLineOverlay/>,
-  [CameraSerials.ARM_END_FINGER]: <ArmLineOverlay/>,
-  [CameraSerials.ARM_END_PERISCOPE]: <ArmLineOverlay/>,
-  [CameraSerials.ARM_GIMBAL]: <ArmLineOverlay/>,
-  [CameraSerials.ARM_END_SIDE]: <ArmLineOverlay/>,
 }
