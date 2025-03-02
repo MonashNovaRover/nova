@@ -7,7 +7,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
 
 <!-- Need to be fixed, OR ADD AUTO CAMERA MOUNT to URDF-->
   <joint name="camera_joint" type="fixed">
-    <origin xyz="0.795 0 0.535" rpy="0 0 0" />
+    <origin xyz="0.795 0 0.535" rpy="0 0.5236 0" />
     <parent link="chassis" />
     <child link="camera_link" />
   </joint>
@@ -16,7 +16,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
 
 <!-- Need to be fixed, OR ADD AUTO CAMERA MOUNT to URDF-->
   <joint name="bootie_camera_joint" type="fixed">
-    <origin xyz="-0.330 0 0.115" rpy="0 0 0" />
+    <origin xyz="-0.330 0 0.115" rpy="0 0.5236 0" />
     <parent link="chassis" />
     <child link="bootie_camera_link" />
   </joint>
