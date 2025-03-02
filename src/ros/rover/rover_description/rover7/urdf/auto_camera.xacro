@@ -39,7 +39,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
   <link name='bootie_camera_link' />
 
     <joint name="bootie_camera_joint" type="fixed">
-      <origin xyz="-0.437 0 0.280" rpy="0 0.523599 0" />
+      <origin xyz="-0.437 0 0.280" rpy="0 0.523599 3.14" />
       <parent link="chassis" />
       <child link="bootie_camera_link" />
     </joint>
