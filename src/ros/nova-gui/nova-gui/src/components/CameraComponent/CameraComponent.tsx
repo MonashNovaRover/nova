@@ -7,12 +7,12 @@ import {
   PopoverTrigger,
   Spinner,
 } from "@nextui-org/react";
-import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { Camera as CameraIcon, Info } from "react-feather";
 import { CameraInfoModal } from "./components/CameraInfoModal";
 import { StreamingState, useCameraStream } from "./hooks/useCameraStream";
 import { CameraSettingsForm } from "./components/CameraSettingsForm";
-import CameraVideo from "./components/CameraVideo";
+import CameraVideo, {CameraVideoProps} from "./components/CameraVideo";
 import {
   defaultCamFilters,
   initialisedFilters
@@ -34,6 +34,8 @@ export interface BaseCameraComponentProps {
 export interface CameraComponentProps extends BaseCameraComponentProps {
   // Children to pass to the settings form
   settingsFormChildren?: ReactNode
+
+  cameraVideoComponent?: React.FC<CameraVideoProps>
 }
 
 export interface CameraFilters {
@@ -119,6 +121,10 @@ export const CameraComponent = (props: CameraComponentProps) => {
     };
   }, []);
 
+  const cameraVideo = props.cameraVideoComponent?.({videoRef, filters}) ?? (
+    <CameraVideo videoRef={videoRef} filters={filters} />
+  )
+
   return (
     <Card className={` aspect-[${ASPECT_RATIO}] `} ref={cardRef}>
       <CameraInfoModal
@@ -128,7 +134,9 @@ export const CameraComponent = (props: CameraComponentProps) => {
         setCameraModalOpen={setCameraInfoModalOpen}
       />
       <div/>
-      <CameraVideo videoRef={videoRef} filters={filters} />
+
+      {cameraVideo}
+
       {/* Overlay */}
       <div className="absolute top-0 right-0 w-full h-full flex flex-col justify-center items-center">
         {streamingState === StreamingState.STOPPED && (
