@@ -5,6 +5,8 @@
  * Author: Bailey Chessum
  */
 
+#include <cmath>
+
 #include "teleop_arm_joy/JoyAxis.hpp"
 
 namespace
@@ -15,17 +17,33 @@ namespace
 teleop_arm_joy::JoyAxis::JoyAxis(const Params::Axes::MapAxisDefinitions &config) {
   id = config.id;
   invert = config.invert;
+
+  button_id_negative_ = config.button_id_negative;
+  button_id_positive_ = config.button_id_positive;
 }
 
 void teleop_arm_joy::JoyAxis::joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg) {
-  if (joy_msg->buttons.size() <= id)
-    return;
+  current_value_ = 0.0f;
 
-  if (invert) {
-    current_value_ = -joy_msg->axes[id];
+  // Construct base axis value from message
+  if (id >= 0 && joy_msg->axes.size() > id) {
+    current_value_ += joy_msg->axes[id];
   }
-  else {
-    current_value_ = joy_msg->axes[id];
+
+  if (button_id_positive_ >= 0) {
+    current_value_ += static_cast<float>(joy_msg->buttons[button_id_positive_]);
+  }
+
+  if (button_id_negative_ >= 0) {
+    current_value_ -= static_cast<float>(joy_msg->buttons[button_id_negative_]);
+  }
+
+  // Clamp value between -1 and 1
+  current_value_ = std::fmin(1.0f, std::fmax(-1.0f, current_value_));
+
+  // Apply inversion
+  if (invert) {
+    current_value_ = -current_value_;
   }
 }
 
