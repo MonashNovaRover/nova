@@ -69,11 +69,12 @@ export const CameraComponent = (props: CameraComponentProps) => {
   } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
+  const onStreamingStateChange = props.onStreamingStateChange
 
   useEffect(() => {
-    if (props.onStreamingStateChange)
-      props.onStreamingStateChange(streamingState)
-  }, [streamingState, props]);
+    if (onStreamingStateChange)
+      onStreamingStateChange(streamingState)
+  }, [streamingState, onStreamingStateChange]);
 
   const openCameraInTab = () =>
     window.open(
