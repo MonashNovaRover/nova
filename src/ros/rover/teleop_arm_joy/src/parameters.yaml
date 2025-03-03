@@ -42,7 +42,6 @@ teleop_arm_joy:
         ]
       description: "Controllers to activate/deactivate for joint space control"
 
-
   device_names:
     type: string_array
     default_value: [
@@ -108,7 +107,6 @@ teleop_arm_joy:
     description: "The list of mappable axes."
     read_only: true
 
-
   axes:
     __map_axis_definitions:
       id:
@@ -122,6 +120,17 @@ teleop_arm_joy:
         type: bool
         default_value: false
         description: "Inverts the given axis when true."
+      button_id_negative:
+        type: int
+        default_value: -1
+        description: "The button id that maps to -1 for this axis."
+      button_id_positive:
+        type: int
+        default_value: -1
+        description: "The button id that maps to +1 for this axis."
+
+
+
   buttons:
     __map_button_definitions:
       id:

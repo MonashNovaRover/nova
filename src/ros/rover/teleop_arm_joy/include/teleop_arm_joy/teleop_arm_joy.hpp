@@ -42,14 +42,12 @@ namespace teleop_arm_joy
     }
   }
 
-
   /**
    * @brief Struct representing the current state.
    */
   struct State
   {
     bool locked = true;
-
   };
 
   /**
