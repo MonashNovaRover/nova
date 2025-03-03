@@ -26,12 +26,14 @@ find_package(vision_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(yolo_msgs REQUIRED)
 
 
 install(PROGRAMS
   nova_utils/quaternion_to_euler.py
   nova_utils/nn_3d_to_marker.py
   nova_utils/detection_overlay.py
+  nova_utils/cube_localiser.py
 
   DESTINATION lib/${PROJECT_NAME}
 )

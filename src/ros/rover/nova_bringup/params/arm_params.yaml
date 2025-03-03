@@ -1,3 +1,0 @@
-/resolver_publisher:
-  ros__parameters:
-    use_arm_data: true

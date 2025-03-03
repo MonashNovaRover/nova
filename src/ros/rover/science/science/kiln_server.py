@@ -13,9 +13,9 @@ SERVICES:
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
-AUTHOR(S):      Connor Macdougall
+AUTHOR(S):      Connor Macdougall, Tash Lee
 CREATION:       29/02/2024
-EDITED:         30/02/2024
+EDITED:         03/02/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -46,6 +46,8 @@ class KilnServer(Node):
     KILN_DATA_TOPIC = "/science/kiln_data"
     # ROS Services
     KILN_COMMAND_SERVICE = "/science/kiln_command"
+    # Default target
+    DEFAULT_TARGET_TEMP = 25
 
     def __init__(self):
         super().__init__('kiln_server')
@@ -78,6 +80,7 @@ class KilnServer(Node):
 
         self.temp = [0, 0, 0]
         self.is_on = False
+        self.target = self.DEFAULT_TARGET_TEMP
 
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
 
@@ -123,6 +126,8 @@ class KilnServer(Node):
                 # Turn on the kiln
                 self.send_kiln_on()
                 self.is_on = True
+                self.target = request.target
+                self.get_logger().info(f"Kiln target temp updated to: {self.target}")
             else:
                 # Turn off the kiln
                 self.send_kiln_off()
@@ -141,7 +146,7 @@ class KilnServer(Node):
         Performs this continuously otherwise the kiln will turn off
         """
         try:
-            if self.is_on:
+            if self.is_on and self.target>self.temp[0]:
                 self.send_kiln_on()
             else:
                 self.send_kiln_off()
