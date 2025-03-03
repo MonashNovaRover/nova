@@ -41,6 +41,9 @@ private:
   float current_value_ = 0.0f;
   float current_debounce_value_ = 0.0f;
   float last_debounce_value_ = 0.0f;
+
+  long button_id_negative_ = -1;
+  long button_id_positive_ = -1;
 };
 
 }

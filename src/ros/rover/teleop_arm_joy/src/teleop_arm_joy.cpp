@@ -88,20 +88,26 @@ void TeleopArmJoy::initializeParams()
   listeners[""] = listeners[params_.device_names[0]];
 
   // Create button and axis objects
+  RCLCPP_INFO(this->get_logger(), "Registered Buttons:");
   for (auto& [button_name, button_config] : params_.buttons.button_definitions_map) {
     // Buttons without a definition will have their value be -1 by default, so we can filter them out.
     if (button_config.id < 0)
       continue;
+
+    RCLCPP_INFO(this->get_logger(), "  %s", button_name.c_str());
 
     shared_ptr<JoyButton> button(new JoyButton(button_config));
     buttons[button_name] = button;
     listeners[button_config.device]->emplace_back(button);
   }
 
+  RCLCPP_INFO(this->get_logger(), "Registered Axes:");
   for (auto& [axis_name, axis_config] : params_.axes.axis_definitions_map) {
     // Axes without a definition will have their value be -1 by default, so we can filter them out.
-    if (axis_config.id < 0)
+    if (axis_config.id < 0 && axis_config.button_id_negative < 0 && axis_config.button_id_positive < 0)
       continue;
+
+    RCLCPP_INFO(this->get_logger(), "  %s", axis_name.c_str());
 
     shared_ptr<JoyAxis> axis(new JoyAxis(axis_config));
     axes[axis_name] = axis;
