@@ -28,10 +28,6 @@ def launch_setup(context, *args, **kwargs):
     autostart = LaunchConfiguration('autostart')
     container_name = LaunchConfiguration('container_name')
     log_level = LaunchConfiguration('log_level')
-    max_accel = LaunchConfiguration('max_accel')
-    max_decel = LaunchConfiguration('max_decel')
-    max_velocity = LaunchConfiguration('max_velocity')
-    min_velocity = LaunchConfiguration('min_velocity')
     namespace = LaunchConfiguration('namespace')
     nav2_params = LaunchConfiguration('nav2_params')
     use_composition = LaunchConfiguration('use_composition')
@@ -265,26 +261,6 @@ def generate_launch_description():
             name='log_level',
             default_value='info',
             description='log level',
-        ),
-        DeclareLaunchArgument(
-            name='max_accel',
-            default_value=['0.1', '0.0', '0.1'],
-            description='',
-        ),
-        DeclareLaunchArgument(
-            name='max_decel',
-            default_value=['-0.5', '0.0', '-0.5'],
-            description='',
-        ),
-        DeclareLaunchArgument(
-            name='max_velocity',
-            default_value=['1.2', '0.0', '0.5'],
-            description='',
-        ),
-        DeclareLaunchArgument(
-            name='min_velocity',
-            default_value=['-1.2', '0.0', '-0.5'],
-            description='',
         ),
         DeclareLaunchArgument(
             name='namespace',

@@ -12,6 +12,7 @@
     <xacro:arg name="arm" default="false"/>
     <xacro:arg name="auto_camera" default="true"/>
     <xacro:arg name="robot_name" default="rover"/>
+    <xacro:arg name="angle" default="0"/>
 
     <!-- Robot properties-->
     <gazebo>
@@ -722,6 +723,7 @@
 
     <xacro:if value="$(arg auto_camera)">
         <xacro:include filename="$(find rover_description)/rover7/urdf/auto_camera.xacro"/>
+        <xacro:auto_cam angle="$(arg angle)"></xacro:auto_cam>
     </xacro:if>
     
     <xacro:if value="$(arg arm)">
