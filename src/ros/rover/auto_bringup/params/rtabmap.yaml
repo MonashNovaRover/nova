@@ -20,7 +20,7 @@ rtabmap_slam:
     Grid/NoiseFilteringRadius: "0.25"
     Grid/NoiseFilteringMinNeighbors: "5"
     Grid/CellSize: "0.1"
-    GridGlobal/MinSize: "40.0"
+    GridGlobal/MinSize: "100.0"
     Grid/RayTracing: "true"
 # Params for RGBD Odom (VO)
 rtabmap_odom:
