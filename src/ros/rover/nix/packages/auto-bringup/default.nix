@@ -31,6 +31,7 @@
   nova-pivot-drive-controller,
   tf2-tools,
   yolo-ros,
+  lattice-primitive-generator,
 }:
 
 buildRosPackage rec {
@@ -75,7 +76,8 @@ buildRosPackage rec {
       nova-pivot-drive-controller
       tf2-tools
       imu-transformer
-      yolo-ros;
+      yolo-ros
+      lattice-primitive-generator;
   };
 
   # After installing params and resources folders in nix store's auto_bringup,

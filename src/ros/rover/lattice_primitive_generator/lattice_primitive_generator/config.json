@@ -1,0 +1,8 @@
+
+{
+    "motion_model": "diff",
+    "turning_radius": 1.5,
+    "grid_resolution": 0.4,
+    "stopping_threshold": 5,
+    "num_of_headings": 8
+}
