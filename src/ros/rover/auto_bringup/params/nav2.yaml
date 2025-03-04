@@ -92,9 +92,9 @@ controller_server:
       use_cost_regulated_linear_velocity_scaling: false
       regulated_linear_scaling_min_radius: 0.9
       regulated_linear_scaling_min_speed: 0.25
-      use_rotate_to_heading: true
+      use_rotate_to_heading: false
       allow_reversing: false
-      rotate_to_heading_min_angle: 0.785
+      rotate_to_heading_min_angle: 0.5
       max_angular_accel: 3.2
       max_robot_pose_search_dist: 10.0
 
@@ -113,7 +113,7 @@ local_costmap:
       origin_x: -5.0
       origin_y: -5.0
       resolution: 0.1
-      footprint: "[[0.67, 0.55], [0.67, -0.55], [-0.67, -0.55], [-0.67, 0.55]]"
+      footprint: "[[0.61, 0.72], [0.61, -0.72], [-0.61, -0.72], [-0.61, 0.72]]"
       track_unknown_space: False
       plugins: ["voxel_layer", "denoise_layer", "inflation_layer"]
       inflation_layer:
@@ -167,7 +167,7 @@ global_costmap:
       global_frame: map
       robot_base_frame: base_link
       use_sim_time: True
-      robot_radius: 0.22
+      footprint: "[[0.61, 0.72], [0.61, -0.72], [-0.61, -0.72], [-0.61, 0.72]]"
       resolution: 0.05
       track_unknown_space: false
       plugins: ["static_layer", "denoise_layer", "inflation_layer"]
@@ -207,7 +207,7 @@ planner_server:
       max_iterations: 1000000                     # Maximum total iterations to search for before failing (in case unreachable), set to -1 to disable
       max_on_approach_iterations: 1000            # Maximum number of iterations after within tolerances to continue to try to find exact solution
       max_planning_time: 5.0                      # Max time in s for planner to plan, smooth
-      non_straight_penalty: 1.05                  # Penalty to apply if motion is non-straight, must be => 1
+      non_straight_penalty: 1.2                   # Penalty to apply if motion is non-straight, must be => 1
       plugin: "nav2_smac_planner::SmacPlannerLattice" 
       retrospective_penalty: 0.015                # For Hybrid/Lattice nodes: penalty to prefer later maneuvers before earlier along the path. Saves search time since earlier nodes are not expanded until it is necessary. Must be >= 0.0 and <= 1.0
       reverse_penalty: 2.0                        # Penalty to apply if motion is reversing, must be => 1
