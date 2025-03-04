@@ -27,6 +27,7 @@ def launch_setup(context, *args, **kwargs):
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
+    angle = LaunchConfiguration('angle')
     camera = LaunchConfiguration('camera')
     gz_params = LaunchConfiguration('gz_params')
     controllers = LaunchConfiguration('controllers')
@@ -61,7 +62,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name}.items(),
+            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'angle': angle}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
@@ -98,6 +99,11 @@ def generate_launch_description():
     rover_description_dir = FindPackageShare('rover_description')
 
     declared_arguments = [
+        DeclareLaunchArgument(
+            name='angle', 
+            default_value='30',
+            description='Angle (in degrees) at which the camera is mounted',
+        ),
         DeclareLaunchArgument(
             name='camera', 
             default_value='True',
