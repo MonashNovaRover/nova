@@ -105,8 +105,8 @@ in
             launch-drive = "~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py";
             launch-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
             launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
-            launch-science-arc = "~/Builds/master/bin/ros2 launch nova_bringup arc_science.launch.py"
-            launch-science-urc = "~/Builds/master/bin/ros2 launch nova_bringup urc_science.launch.py"
+            launch-science-arc = "~/Builds/master/bin/ros2 launch nova_bringup arc_science.launch.py";
+            launch-science-urc = "~/Builds/master/bin/ros2 launch nova_bringup urc_science.launch.py";
 
             # Rover setup aliases
             zero-arm = "${pkgs.bash}/bin/bash ${../../../scripts/zero-arm.sh}";
