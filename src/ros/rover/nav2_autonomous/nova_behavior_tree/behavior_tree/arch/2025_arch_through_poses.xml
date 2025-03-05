@@ -27,8 +27,6 @@
                                 input_goals="{goals}"
                                 radius="1"
                                 output_goals="{goals}"/>
-                  <SaveCubePoses cube_poses="{cube_poses}"
-                                  file_path="/home/nova/cube_poses.txt"/>
                 </Sequence>
               </ForceSuccess>
               <ReactiveSequence>

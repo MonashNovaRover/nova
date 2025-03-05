@@ -40,7 +40,7 @@ namespace nova_behavior_tree
   {
   public:
     typedef std::array<bool, 4> IDs;
-    typedef std::array<std::vector<geometry_msgs::msg::Pose>, 4> CubePoses;
+    typedef std::array<geometry_msgs::msg::Pose, 4> CubePoses;
     typedef geometry_msgs::msg::PoseStamped Goal;
     typedef std::vector<Goal> Goals;
 
@@ -77,7 +77,7 @@ namespace nova_behavior_tree
           BT::InputPort<IDs>("visited_ids", "visited_ids[i] = true if visited, false otherwise"),
           BT::OutputPort<Goal>("current_pose", "The current pose of the rover"),
           BT::OutputPort<Goals>("cube_goals", "Goals of detected cubes"),
-          BT::OutputPort<std::shared_ptr<CubePoses>>("cube_poses", "List of cube poses"),
+          BT::OutputPort<CubePoses>("cube_poses", "List of most recent cube poses"),
       };
     }
 
@@ -91,7 +91,7 @@ namespace nova_behavior_tree
     rclcpp::Node::SharedPtr node_;
     std::shared_ptr<tf2_ros::Buffer> tf_;
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
-    std::shared_ptr<CubePoses> cube_poses_;
+    CubePoses cube_poses_{};
 
     double transform_tolerance_;
     std::string global_frame_;
