@@ -12,7 +12,7 @@
     </Action>
 
     <Action ID="RemovePassedGoalsAndCubes">
-      <input_port name="cube_poses">List of cube poses</input_port>
+      <input_port name="cube_poses">List of most recent cube poses</input_port>
       <input_port name="cube_tolerance">Radius to determine whether the current goal is the cube goal</input_port>
       <input_port name="input_goals">Original goals to remove viapoints from</input_port>
       <input_port name="radius">Radius to goal for it to be considered for removal</input_port>
@@ -281,7 +281,7 @@
       <input_port name="visited_ids">visited_ids[i] = true if visited, false otherwise</input_port>
       <output_port name="current_pose">The current pose of the rover</output_port>
       <output_port name="cube_goals">Goals of detected cubes</output_port>
-      <output_port name="cube_poses">List of cube poses</output_port>
+      <output_port name="cube_poses">List of most recent cube poses</output_port>
     </Condition>
     
     <Condition ID="ARTagDetected">
