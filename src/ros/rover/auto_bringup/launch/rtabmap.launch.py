@@ -26,7 +26,7 @@ def delete_rtabmap_db(context, *args, **kwargs):
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
 
-    use_sim_time = LaunchConfiguration('use_sim_time')
+    gazebo = LaunchConfiguration('gazebo')
     name = LaunchConfiguration('name').perform(context)
     x = LaunchConfiguration('x').perform(context)
     y = LaunchConfiguration('y').perform(context)
@@ -58,7 +58,7 @@ def launch_setup(context, *args, **kwargs):
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
             launch_arguments={
                 'pointclouds':'False',
-                'gazebo': use_sim_time,
+                'gazebo': gazebo,
             }.items()
         ),
         ComposableNodeContainer(
@@ -78,14 +78,14 @@ def launch_setup(context, *args, **kwargs):
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::RGBDOdometry',
                     name='rtabmap_odom',
-                    parameters=[rtabmap_params, {'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}', 'use_sim_time': use_sim_time}],
+                    parameters=[rtabmap_params, {'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}', 'use_sim_time': gazebo}],
                     remappings=remappings,
                 ),
                 ComposableNode(
                     package='rtabmap_slam',
                     plugin='rtabmap_slam::CoreWrapper',
                     name='rtabmap_slam',
-                    parameters=[rtabmap_params, {'use_sim_time': use_sim_time, 'rtabmap_args': '--delete_db_on_start'}],
+                    parameters=[rtabmap_params, {'use_sim_time': gazebo, 'rtabmap_args': '--delete_db_on_start'}],
                     remappings=remappings,
                 ),
             ],
@@ -100,7 +100,7 @@ def launch_setup(context, *args, **kwargs):
             package='rtabmap_viz',
             executable='rtabmap_viz',
             output='screen',
-            parameters=[rtabmap_params, {'use_sim_time': use_sim_time}],
+            parameters=[rtabmap_params, {'use_sim_time': gazebo}],
             remappings=remappings,
         ),
     ]
@@ -112,7 +112,7 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(name='name', default_value='oak'),
         DeclareLaunchArgument(name='rtabmap_viz', default_value='False'),
-        DeclareLaunchArgument(name='use_sim_time', default_value='False'), # Revert ASAP
+        DeclareLaunchArgument(name='gazebo', default_value='False'),
         DeclareLaunchArgument(name='camera', default_value='False'),
         DeclareLaunchArgument(name='x', default_value='0.0'),
         DeclareLaunchArgument(name='y', default_value='0.0'),
