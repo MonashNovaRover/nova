@@ -59,9 +59,6 @@ namespace nova_behavior_tree
         tf_ = config().blackboard->get<std::shared_ptr<tf2_ros::Buffer>>("tf_buffer");
         tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_);
 
-        cube_poses_ = std::make_shared<CubePoses>();
-        setOutput("cube_poses", cube_poses_);
-
         initialized_ = true;
     }
 
@@ -133,13 +130,12 @@ namespace nova_behavior_tree
             cube_pose.position.z = t.transform.translation.z;
             cube_pose.orientation = t.transform.rotation;
 
-            if (!(*cube_poses_)[i].empty() &&
-                utils::nav2::arePointsEqual((*cube_poses_)[i].back().position, cube_pose.position))
+            if (utils::nav2::arePointsEqual(cube_poses_[i].position, cube_pose.position))
             {
                 continue;
             }
             
-            (*cube_poses_)[i].push_back(cube_pose);
+            cube_poses_[i] = cube_pose;
             
             RCLCPP_INFO(node_->get_logger(), "%s cube detected, added pose to cube_poses", COLORS[i].c_str());
             

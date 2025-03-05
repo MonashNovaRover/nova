@@ -47,23 +47,23 @@ namespace nova_behavior_tree
         node_->get_parameter("transform_tolerance", transform_tolerance_);
         robot_base_frame_ = BT::deconflictPortAndParamFrame<std::string>(node_, "robot_base_frame", this);
         
-        getInput("cube_poses", cube_poses_);
         getInput("radius", viapoint_achieved_radius_);
         getInput("cube_tolerance", cube_tolerance_);
         getInput("yaw_tolerance", yaw_tolerance_);
-
+        
         initialized_ = true;
     }
-
+    
     inline BT::NodeStatus RemovePassedGoalsAndCubesAction::tick()
     {
         if (!initialized_)
         {
             initialize();
         }
-
+        
+        getInput("cube_poses", cube_poses_);
         getInput("input_goals", input_goals_);
-
+        
         if (input_goals_.empty()) 
         {
             setOutput("output_goals", input_goals_);
@@ -102,12 +102,12 @@ namespace nova_behavior_tree
 
             for (size_t i = 0; i < 4; ++i)
             {
-                if ((*cube_poses_)[i].empty())
+                if (utils::nav2::isDefaultPose(cube_poses_[i]))
                 {
                     continue;
                 }
 
-                double dist_to_cube = euclidean_distance(input_goals_[0].pose, (*cube_poses_)[i].back());
+                double dist_to_cube = euclidean_distance(input_goals_[0].pose, cube_poses_[i]);
     
                 if (dist_to_cube < cube_tolerance_) 
                 {
