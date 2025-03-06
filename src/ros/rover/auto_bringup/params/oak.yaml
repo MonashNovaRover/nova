@@ -7,7 +7,7 @@
       i_disable_resize: true
       i_num_inference_threads: 2
       i_num_pool_frames: 4
-      i_nn_config_path: auto_bringup/resources/ARC_2025/model.json
+      i_nn_config_path: auto_bringup/resources/YOLOv11/best.json
     imu:
       i_enable_rotation: true
       i_message_type: IMU
