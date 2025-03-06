@@ -14,7 +14,7 @@ ACTIONS: None
 PACKAGE:    science
 AUTHOR(S):	Brandon Chung
 CREATION:	05/03/2025
-EDITED:		05/03/2025
+EDITED:		06/03/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -26,7 +26,7 @@ from python_control.controls.ContinuousOneAxisPositionControl import ContinuousO
 from python_control.controllers.JonoPositionController import JonoPositionController
 
 
-class SpinnyPartNode(ControllerNode):
+class SweepyNode(ControllerNode):
     # CAN BUS NAME
     CAN_BUS = "can1"
 
@@ -35,9 +35,6 @@ class SpinnyPartNode(ControllerNode):
 
     # SENDING COMMAND IDS
     MOVE_SERVO_COMMAND = 0x10
-
-    # CONTROL DIRECTIONS
-    POSITION_CLOCKWISE = Direction.POSITIVE
 
     # BASE VELOCITY
     DEFAULT_BASE_VELOCITY = 5
@@ -80,31 +77,14 @@ class SpinnyPartNode(ControllerNode):
 
         match joystick_l.btn_thumb_u_state:
             case 1, 2: # Spin the sweeper
-                self.get_logger().debug("Spinny Part ANTICLOCKWISE")
+                self.get_logger().debug("Spinning sweepy")
                 self.spinny_part.displace(
                 self.velocity_multiplier
                 * self.get_parameter(self.BASE_VELOCITY_PARAM).value
-                * self.POSITION_CLOCKWISE
                 )
-
-
-        if joystick_l.btn_thumb_l_state >= 1:
-            self.get_logger().debug("Spinny Part ANTICLOCKWISE")
-            self.spinny_part.displace(
-                self.velocity_multiplier
-                * self.get_parameter(self.BASE_VELOCITY_PARAM).value
-                * self.POSITION_ANTICLOCKWISE
-            )
-        elif joystick_l.btn_thumb_r_state >= 1:
-            self.get_logger().debug("Spinny Part CLOCKWISE")
-            self.spinny_part.displace(
-                self.velocity_multiplier
-                * self.get_parameter(self.BASE_VELOCITY_PARAM).value
-                * self.POSITION_CLOCKWISE
-            )
 
 def main():
     rclpy.init()
-    node = SpinnyPartNode()
+    node = SweepyNode()
     rclpy.spin(node)
     rclpy.shutdown()
