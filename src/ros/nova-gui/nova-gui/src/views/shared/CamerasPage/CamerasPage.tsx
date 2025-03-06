@@ -1,10 +1,10 @@
 import { Button, Tab, Tabs } from "@nextui-org/react";
-import { CameraComponent } from "../../../components/CameraComponent/CameraComponent";
 import { Play, Square } from "react-feather";
 import { useCameraStreamer } from "../../../components/CameraComponent/hooks/useCameraStreamer";
 import { CameraView } from "./CameraPageConstants";
 import { useState } from "react";
 import { CameraControlPanelModal } from "../../../components/CameraComponent/components/CamerasControlPanelModal";
+import SerialMappedCameraComponent from "./SerialMappedCameraComponent.tsx";
 
 export interface CameraPageProps {
   views: CameraView[];
@@ -68,7 +68,7 @@ export const CameraPage = (props: CameraPageProps) => {
           <Tab title={view.viewTitle} key={i}>
             <div className="grid grid-cols-4 gap-3">
               {view.cameraSerials.map((serial, i) => (
-                <CameraComponent
+                <SerialMappedCameraComponent
                   cameraSerial={serial}
                   key={i}
                   autostart={allCamsOn}

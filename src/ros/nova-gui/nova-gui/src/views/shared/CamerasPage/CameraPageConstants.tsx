@@ -52,7 +52,6 @@ export enum CameraSerials {
   SCIENCE_AUGER_BOTTOM = "science_auger_bottom",
   SCIENCE_ANALYSIS_BOTTOM = "science_analysis_bottom",
   SCIENCE_MICROSCOPE = "science_microscope",
-  SCIENCE_GIMBAL = "science_gimbal",
 
   URC_SCIENCE_UV_VIS = "science_spectroscope",
   URC_SCIENCE_CUVETTE = "science_cuvettes",
@@ -106,6 +105,7 @@ const mastCams = [
   CameraSerials.MAST_FORWARD,
   CameraSerials.MAST_BACKWARD,
   CameraSerials.MAST_ARM_STOW,
+
 ];
 
 const armCams = [
@@ -114,6 +114,7 @@ const armCams = [
   CameraSerials.ARM_END_PERISCOPE,
   CameraSerials.ARM_GIMBAL,
   CameraSerials.ARM_END_SIDE,
+
 ];
 
 const ecCams = [
@@ -129,6 +130,7 @@ const arcScienceCams = [
   CameraSerials.SCIENCE_ANALYSIS_BOTTOM,
   CameraSerials.SCIENCE_MICROSCOPE,
 ];
+
 
 const urcScienceCams = [
   CameraSerials.URC_SCIENCE_CUVETTE,
@@ -276,9 +278,3 @@ export const urcCameraSetup = {
   [URCCompModes.URC_SCIENCE]: urc_science_views,
   [URCCompModes.URC_AUTONOMOUS]: urc_autonomous_views,
 }
-
-export const defaultCameraOverlays: { [k: string]: ReactNode } = {
-  [CameraSerials.ARM_END_FINGER]: <Plus className="self-center"/>,
-  [CameraSerials.SCIENCE_GIMBAL]: <GimbalCamOverlay/>
-}
-

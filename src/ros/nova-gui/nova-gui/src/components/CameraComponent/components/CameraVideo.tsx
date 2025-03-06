@@ -1,7 +1,7 @@
 import React, { LegacyRef } from "react";
 import { CameraFilters } from "../CameraComponent";
 
-interface CameraVideoProps {
+export interface CameraVideoProps {
   videoRef: LegacyRef<HTMLVideoElement> | undefined;
   filters: CameraFilters;
 }
@@ -12,6 +12,7 @@ const CameraVideo: React.FC<CameraVideoProps> = ({ videoRef, filters }) => {
   const contrast = `contrast(${filters.contrast}%)`;
   const brightness = `brightness(${filters.brightness}%)`;
   const inversion = `invert(${filters.invertCamera ? 1 : 0})`;
+
   return (
     <video
       style={{
@@ -28,4 +29,5 @@ const CameraVideo: React.FC<CameraVideoProps> = ({ videoRef, filters }) => {
     />
   );
 };
+
 export default CameraVideo;

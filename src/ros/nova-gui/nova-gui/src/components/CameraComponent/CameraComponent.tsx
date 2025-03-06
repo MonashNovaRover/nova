@@ -28,10 +28,22 @@ import Overlay from "../shared/Overlay/Overlay.tsx";
 
 const ASPECT_RATIO = 4 / 3;
 
-export interface CameraComponentProps {
+/// Subset of props needed to call the camera components from the serialMappedCameraComponent function
+export interface BaseCameraComponentProps {
   cameraSerial: string;
   overlayMap?: { [k: string]: ReactNode },
   autostart?: boolean;
+}
+
+export interface CameraComponentProps extends BaseCameraComponentProps {
+  // Children to pass to the settings form
+  settingsFormChildren?: ReactNode
+
+  // Camera video component to pass in
+  cameraVideoComponent?: React.FC<CameraVideoProps>
+
+  // Called when the streaming state changes
+  onStreamingStateChange?: (s: StreamingState) => void
 }
 
 export interface CameraFilters {
@@ -58,16 +70,10 @@ export const CameraComponent = (props: CameraComponentProps) => {
     sendSessionStartMessage,
     isCameraOnline,
     closeSession,
-  } = useWebcam(videoRef);
-  // } = useCameraStream(cameraSerial, videoRef, allCamerasStarted); // TO TEST WITH WEBCAM useWebcam(videoRef);
+  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
-  const overlay = useMemo(() => {
-    return props.overlayMap ? props.overlayMap[cameraSerial] : defaultCameraOverlays[cameraSerial];
-  }, [props, cameraSerial])
 
-//   const [dragging, setDragging] = useState(false);
-//   const [position, setPosition] = useState({ top: 100, left: 100 }); // Initial position of the camera card
 
   const openCameraInTab = () =>
     window.open(
@@ -101,43 +107,6 @@ export const CameraComponent = (props: CameraComponentProps) => {
     }
   }, [videoRef, cameraSerial]);
 
-  //   const handleMouseDown = (event: React.MouseEvent) => {
-//     if (isHovered && cameraSerial === "SCIENCE_GIMBAL") {  // Only allow drag if hovering and it's the Science Gimbal
-//       setDragging(true);
-//     }
-//   };
-//
-//   const handleMouseMove = (event: React.MouseEvent) => {
-//     if (dragging && cameraSerial === "SCIENCE_GIMBAL") {  // Only move if dragging and it's the Science Gimbal
-//       setPosition((prevPosition) => ({
-//         top: prevPosition.top + event.movementY,
-//         left: prevPosition.left + event.movementX,
-//       }));
-//     }
-//   };
-//
-//   const handleMouseUp = () => {
-//     setDragging(false);
-//   };
-
-  // // Attach mouse events to the card
-  // useEffect(() => {
-  //   const cardElement = cardRef.current;
-  //   if (cardElement) {
-  //     cardElement.addEventListener("mousedown", handleMouseDown);
-  //     cardElement.addEventListener("mousemove", handleMouseMove);
-  //     cardElement.addEventListener("mouseup", handleMouseUp);
-  //   }
-  //
-  //   return () => {
-  //     if (cardElement) {
-  //       cardElement.removeEventListener("mousedown", handleMouseDown);
-  //       cardElement.removeEventListener("mousemove", handleMouseMove);
-  //       cardElement.removeEventListener("mouseup", handleMouseUp);
-  //     }
-  //   };
-  // }, [dragging, isHovered, cameraSerial]);  // Make sure drag only happens for the right camera
-
   useEffect(() => {
     const handleMouseEnter = () => {
       setIsHovered(true);
@@ -169,10 +138,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
         isModalOpen={isCameraInfoModalOpen}
         setCameraModalOpen={setCameraInfoModalOpen}
       />
-      <div/>
-      <Overlay overlay={overlay}>
-        <CameraVideo videoRef={videoRef} filters={filters} />
-      </Overlay>
+      <CameraVideo videoRef={videoRef} filters={filters} />
       {/* Overlay */}
       <div className="absolute top-0 right-0 w-full h-full flex flex-col justify-center items-center">
         {streamingState === StreamingState.STOPPED && (
