@@ -1,5 +1,3 @@
-import { CameraFilters } from "../../../components/CameraComponent/CameraComponent";
-
 export interface CameraView {
   viewTitle: string;
   cameraSerials: string[];
@@ -18,14 +16,6 @@ export enum URCCompModes {
   URC_SCIENCE = "science",
   URC_AUTONOMOUS = "autonomous-navigation",
 }
-
-export const initialisedFilters: CameraFilters = {
-  flipCamera: false,
-  invertCamera: false,
-  rotation: 0,
-  contrast: 100, // In %
-  brightness: 100, // in %
-};
 
 export enum CameraSerials {
   MAST_FISHEYE = "mast_fisheye",
@@ -56,44 +46,6 @@ export enum CameraSerials {
   URC_SCIENCE_PAYLOAD_DOWN = "science_payload_down",
 }
 
-export const defaultCamFilters: { [key: string]: CameraFilters } = {
-  arm_end_forward: {
-    flipCamera: true,
-    invertCamera: false,
-    rotation: 0,
-    contrast: 100,
-    brightness: 100,
-  },
-  arm_end_finger: {
-    flipCamera: false,
-    invertCamera: false,
-    rotation: -90,
-    contrast: 100,
-    brightness: 100,
-  },
-  "science_kiln": {
-    flipCamera: false,
-    invertCamera: false,
-    rotation: 0,
-    contrast: 100,
-    brightness: 100,
-  },
-  mast_down: {
-    flipCamera: false,
-    invertCamera: false,
-    rotation: 0,
-    contrast: 100,
-    brightness: 100,
-  },
-  science_analysis_bottom: {
-    flipCamera: false,
-    invertCamera: false,
-    rotation: -90,
-    contrast: 100,
-    brightness: 100,
-  }
-}
-
 export const allCams = [];
 
 const mastCams = [
@@ -102,7 +54,6 @@ const mastCams = [
   CameraSerials.MAST_FORWARD,
   CameraSerials.MAST_BACKWARD,
   CameraSerials.MAST_ARM_STOW,
-
 ];
 
 const armCams = [
@@ -111,7 +62,6 @@ const armCams = [
   CameraSerials.ARM_END_PERISCOPE,
   CameraSerials.ARM_GIMBAL,
   CameraSerials.ARM_END_SIDE,
-
 ];
 
 const ecCams = [
@@ -127,7 +77,6 @@ const arcScienceCams = [
   CameraSerials.SCIENCE_ANALYSIS_BOTTOM,
   CameraSerials.SCIENCE_MICROSCOPE,
 ];
-
 
 const urcScienceCams = [
   CameraSerials.URC_SCIENCE_CUVETTE,
