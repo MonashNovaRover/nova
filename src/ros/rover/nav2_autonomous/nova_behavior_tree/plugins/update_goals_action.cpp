@@ -24,9 +24,16 @@
 #include <memory>
 #include <limits>
 #include <vector>
+#include <cmath>
+#include <utility>
 
 #include "nav2_util/geometry_utils.hpp"
 #include "rclcpp/logging.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/point.hpp"
+#include "tf2/LinearMath/Vector3.h"
+#include "tf2/LinearMath/Quaternion.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 
 #include "nova_behavior_tree/update_goals_action.hpp"
 #include "nova_behavior_tree/nav2_utils.hpp"
@@ -48,7 +55,8 @@ namespace nova_behavior_tree
     {
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
         
-        getInput("radius", viapoint_overwrite_tolerance_);
+        getInput("update_radius", viapoint_overwrite_tolerance_);
+        getInput("goal_radius", goal_radius_);
         getInput("goal_type", goal_type_);
         
         initialized_ = true;
@@ -65,39 +73,70 @@ namespace nova_behavior_tree
         getInput("goals", goals_);
         getInput("input_goals", input_goals_);
 
-        for (auto goal : goals_)
+        for (size_t i = 0; i < goals_.size(); ++i)
         {
-            if (utils::nav2::isDefaultPose(goal.pose))
+            if (utils::nav2::isDefaultPose(goals[i].pose))
             {
                 continue;
             }
 
-            double dist_to_rover = euclidean_distance(current_pose_.pose, goal.pose);
+            // calculate offset goal so rover doesn't try to path through an object
+            geometry_msgs::msg::Point p1 = current_pose_.pose.position;
+            geometry_msgs::msg::Point p2 = goals[i].pose.position;
+            
+            tf2::Vector3 v1(p1.x, p1.y, p1.z);
+            tf2::Vector3 v2(p2.x, p2.y, p2.z);
+            
+            tf2::Vector3 rover_to_goal_normal = (v2 - v1).normalized();
+            tf2::Vector3 offset_position = v2 - rover_to_goal_normal * goal_radius_;
+            tf2::Vector3 ref_axis = Vector(1.0, 0.0, 0.0);
+            tf2::Vector3 axis = ref_axis.cross(rover_to_goal_normal); // already normalized
+            tf2::Quaternion tf2_orientation;
+            tf2_orientation.setRotation(axis, std::acos(ref_axis.dot(rover_to_goal_normal)));
 
-            size_t i = 0;
+            geometry_msgs::msg::PoseStamped offset_goal;
+            offset_goal.header = goals[i].header;
+            tf2::toMsg(offset_position, offset_goal.position);
+            offset_goal.pose.orientation = tf2::toMsg(tf2_orientation);
+
+            // check if goal already exists
+            bool exists = false;
+            for (auto &prev_goal : prev_goals_)
+            {
+                if (utils::nav2::isDefaultPose(prev_goal.pose))
+                {
+                    continue;
+                }
+
+                if (euclidean_distance(prev_goal.pose, goals[i].pose) < viapoint_overwrite_tolerance_)
+                {
+                    input_goals[prev_goal.index] = offset_goal;
+                    prev_goals_[i].pose = goals[i].pose;
+                    exists = true;
+                    RCLCPP_INFO(node_->get_logger(), "Updating existing %s goal", goal_type_.c_str());
+                    
+                    break;
+                }
+            }
+
+            if (exists)
+            {
+                continue;
+            }
+
+            // goal doesn't exist, insert goal
+            double dist_to_rover = euclidean_distance(current_pose_.pose, goals[i].pose);
+
+            size_t j = 0;
             while (i < input_goals_.size() && 
-                   dist_to_rover > euclidean_distance(current_pose_.pose, input_goals_[i].pose))
+                   dist_to_rover > euclidean_distance(current_pose_.pose, input_goals_[j].pose))
             {
-                i += 1;
+                j += 1;
             }
 
-            if (i > 0 &&
-                euclidean_distance(input_goals_[i - 1].pose, goal.pose) < viapoint_overwrite_tolerance_)
-            {
-                input_goals_[i - 1].pose = goal.pose;
-                RCLCPP_INFO(node_->get_logger(), "Updating existing %s goal", goal_type_.c_str());
-            }
-            else if (i < input_goals_.size() - 1 &&
-                  euclidean_distance(input_goals_[i + 1].pose, goal.pose) < viapoint_overwrite_tolerance_)
-            {
-                input_goals_[i + 1].pose = goal.pose;
-                RCLCPP_INFO(node_->get_logger(), "Updating existing %s goal", goal_type_.c_str());
-            }
-            else
-            {
-                input_goals_.insert(input_goals_.begin() + i, goal);
-                RCLCPP_INFO(node_->get_logger(), "Inserting new %s goal", goal_type_.c_str());
-            }
+            input_goals_.insert(input_goals_.begin() + j, offset_goal);
+            prev_goals_[i] = {goals[i].pose, j};
+            RCLCPP_INFO(node_->get_logger(), "Inserting new %s goal", goal_type_.c_str());
         }
 
         setOutput("output_goals", input_goals_);

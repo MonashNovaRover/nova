@@ -49,7 +49,8 @@
       <input_port name="current_pose">The current pose of the rover</input_port>
       <input_port name="goals">Goals to add as viapoints</input_port>
       <input_port name="input_goals">Original goals to add viapoints into</input_port>
-      <input_port name="radius">Radius to next goal for it to be considered an update</input_port>
+      <input_port name="update_radius">Radius to next goal for it to be considered an update</input_port>
+      <input_port name="goal_radius">Radius away from actual pose to set goal</input_port>
       <output_port name="output_goals">Goals with new viapoints added/updated</output_port>
     </Action>
 

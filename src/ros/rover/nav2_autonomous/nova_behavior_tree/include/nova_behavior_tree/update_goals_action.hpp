@@ -28,6 +28,7 @@
 #include <string>
 
 #include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/pose.hpp"
 #include "nav2_util/geometry_utils.hpp"
 #include "behaviortree_cpp/action_node.h"
 #include "nav2_behavior_tree/bt_utils.hpp"
@@ -58,7 +59,8 @@ public:
       BT::InputPort<Goal>("current_pose", "The current pose of the rover"),
       BT::InputPort<Goals>("goals", "Goals to add as viapoints"),
       BT::InputPort<Goals>("input_goals", "Original goals to add viapoints into"),
-      BT::InputPort<double>("radius", 0.5, "Radius to next goal for it to be considered an update"),
+      BT::InputPort<double>("update_radius", 0.5, "Radius to next goal for it to be considered an update"),
+      BT::InputPort<double>("goal_radius", 1.0, "Radius away from actual pose to set goal"),
       BT::OutputPort<Goals>("output_goals", "Goals with new viapoints added/updated"),
     };
   }
@@ -70,10 +72,16 @@ private:
   rclcpp::Node::SharedPtr node_;
 
   double viapoint_overwrite_tolerance_;
+  double goal_radius_;
   std::string goal_type_;
   Goal current_pose_;
   Goals goals_;
   Goals input_goals_;
+  
+  struct {
+    geometry_msgs::msg::Pose pose;
+    size_t index;
+  } prev_goals_[4] = {};
   
   bool initialized_ = false;
 };
