@@ -177,7 +177,7 @@ void JoystickTranslate::get_twist_inputs(arm_interfaces::msg::ArmControlScheme& 
 
 float JoystickTranslate::scale_speed (float value){
     // Max scale factor 1.00, min scale factor 0.05
-    return ((pow(value, 2)) * 0.95) + 0.01;
+    return (value * value * 0.99) + 0.01;
 }
 
 bool JoystickTranslate::is_connected()
