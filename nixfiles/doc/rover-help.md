@@ -98,6 +98,9 @@ leds-red: cansend can0 095#0100
 leds-green: cansend can0 095#0200
 leds-blue: cansend can0 095#0300
 leds-pink: cansend can0 096#
+leds-100 = "cansend can0 091#8000";
+leds-75 = "cansend can0 091#6000";
+leds-50 = "cansend can0 091#4000";
 leds-off: cansend can0 091#0000
 
 =========================
