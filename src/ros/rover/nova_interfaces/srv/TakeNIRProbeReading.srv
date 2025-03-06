@@ -1,0 +1,8 @@
+# Used to take a NIR Probe reading for a specified LED.
+
+# 1 = LED 1, 2 = LED 2
+byte led
+
+---
+
+bool success

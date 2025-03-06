@@ -1,7 +1,0 @@
-# Used to change which LED is enabled on the NIR probe
-
-byte command
-
----
-
-bool success

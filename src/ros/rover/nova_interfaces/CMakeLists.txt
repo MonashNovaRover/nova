@@ -58,7 +58,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/MoveMicroscopeServo.srv"
   "srv/RFIDCommand.srv"
   "srv/ScienceCommand.srv"
-  "srv/SetNIRProbeLED.srv"
+  "srv/TakeNIRProbeReading.srv"
   "srv/RamanSpec.srv"
   "srv/RamanMech.srv"
 

@@ -2,17 +2,16 @@
 
 # The latest reading from the NIR probe
 # Units are arbitrary, and need to be applied to a calibration curve to get meaningful data.
-float32 data
-float32 std_dev
+int32 data
 
-# enum for the current photodiode
-byte PHOTODIODE_OFF = 0
-byte PHOTODIODE_WATER = 1
-byte PHOTODIODE_ICE = 2
+# enum for the current led
+byte LED_OFF = 0
+byte LED_WATER = 1
+byte LED_ICE = 2
 
-# The photodiode (if any) used to take the reading
-# 0 = off | 1 = Photodiode 1 | 2 = Photodiode 2
-byte active_photodiode
+# The LED (if any) used to take the reading
+byte led
 
-# Determine on GUI if LED is on
-bool led_on
+# Status of the NIR Probe
+# 0 = Off, 1 = Currently taking LED Water reading, 2 = Currently taking LED Ice reading
+byte status
