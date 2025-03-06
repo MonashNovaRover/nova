@@ -15,6 +15,8 @@
 #ifndef NOVA_BEHAVIOR_TREE__NAV2_UTILS_HPP
 #define NOVA_BEHAVIOR_TREE__NAV2_UTILS_HPP
 
+#define PI 3.14159265358979323846
+
 #include <string>
 #include <sstream>
 
@@ -86,16 +88,26 @@ namespace nova_behavior_tree::utils::nav2
   inline double shortestAngularDistance(double from, double to)
   {
     // Normalizes the difference into (-π, +π]
-    double angle = std::fmod(to - from, 2.0 * M_PI);
-    if (angle > M_PI)
+    double angle = std::fmod(to - from, 2.0 * PI);
+    if (angle > PI)
     {
-      angle -= 2.0 * M_PI;
+      angle -= 2.0 * PI;
     }
-    else if (angle <= -M_PI)
+    else if (angle <= -PI)
     {
-      angle += 2.0 * M_PI;
+      angle += 2.0 * PI;
     }
     return angle;
+  }
+
+  double radians(double degrees)
+  {
+    return degrees * PI / 180.0;
+  }
+
+  double degrees(double radians)
+  {
+    return radians * 180.0 / PI;
   }
   
   bool isClose(double a, double b, double tolerance = 0.0)

@@ -42,6 +42,11 @@ public:
   typedef geometry_msgs::msg::PoseStamped Goal;
   typedef std::vector<Goal> Goals;
 
+  struct GoalEntry {
+    geometry_msgs::msg::Pose pose{};
+    size_t index = 0;
+  };
+
   UpdateGoalsAction(
     const std::string & xml_tag_name,
     const BT::NodeConfiguration & conf);
@@ -68,6 +73,7 @@ public:
 private:
   void halt() override {}
   BT::NodeStatus tick() override;
+  void update_goals();
 
   rclcpp::Node::SharedPtr node_;
 
@@ -77,11 +83,7 @@ private:
   Goal current_pose_;
   Goals goals_;
   Goals input_goals_;
-  
-  struct {
-    geometry_msgs::msg::Pose pose;
-    size_t index;
-  } prev_goals_[4] = {};
+  std::vector<GoalEntry> prev_goals_;
   
   bool initialized_ = false;
 };

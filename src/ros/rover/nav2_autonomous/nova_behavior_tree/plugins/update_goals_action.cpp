@@ -34,6 +34,7 @@
 #include "tf2/LinearMath/Vector3.h"
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+#include "tf2/utils.h"
 
 #include "nova_behavior_tree/update_goals_action.hpp"
 #include "nova_behavior_tree/nav2_utils.hpp"
@@ -73,75 +74,83 @@ namespace nova_behavior_tree
         getInput("goals", goals_);
         getInput("input_goals", input_goals_);
 
+        update_goals();
+
+        return BT::NodeStatus::SUCCESS;
+    }
+
+    void UpdateGoalsAction::update_goals()
+    {
         for (size_t i = 0; i < goals_.size(); ++i)
         {
-            if (utils::nav2::isDefaultPose(goals[i].pose))
-            {
-                continue;
-            }
-
             // calculate offset goal so rover doesn't try to path through an object
             geometry_msgs::msg::Point p1 = current_pose_.pose.position;
-            geometry_msgs::msg::Point p2 = goals[i].pose.position;
+            geometry_msgs::msg::Point p2 = goals_[i].pose.position;
             
             tf2::Vector3 v1(p1.x, p1.y, p1.z);
             tf2::Vector3 v2(p2.x, p2.y, p2.z);
             
             tf2::Vector3 rover_to_goal_normal = (v2 - v1).normalized();
             tf2::Vector3 offset_position = v2 - rover_to_goal_normal * goal_radius_;
-            tf2::Vector3 ref_axis = Vector(1.0, 0.0, 0.0);
+            tf2::Vector3 ref_axis(1.0, 0.0, 0.0);
             tf2::Vector3 axis = ref_axis.cross(rover_to_goal_normal); // already normalized
-            tf2::Quaternion tf2_orientation;
-            tf2_orientation.setRotation(axis, std::acos(ref_axis.dot(rover_to_goal_normal)));
+            tf2::Quaternion goal_orientation;
+            goal_orientation.setRotation(axis, std::acos(ref_axis.dot(rover_to_goal_normal)));
 
             geometry_msgs::msg::PoseStamped offset_goal;
-            offset_goal.header = goals[i].header;
-            tf2::toMsg(offset_position, offset_goal.position);
-            offset_goal.pose.orientation = tf2::toMsg(tf2_orientation);
+            offset_goal.header = goals_[i].header;
+            tf2::toMsg(offset_position, offset_goal.pose.position);
+            offset_goal.pose.orientation = tf2::toMsg(goal_orientation);
+
+            auto log_goal_info = [&]()
+            {
+                RCLCPP_INFO(
+                    node_->get_logger(), "Offset goal: (%.2f, %.2f, %.2f) Cube position: (%.2f, %.2f, %.2f)",
+                    offset_goal.pose.position.x, offset_goal.pose.position.y, offset_goal.pose.position.z,
+                    goals_[i].pose.position.x, goals_[i].pose.position.y, goals_[i].pose.position.z
+                );
+                RCLCPP_INFO(
+                    node_->get_logger(), "Rover orientation: %d° Goal orientation: %d°",
+                    (int)std::round(utils::nav2::degrees(tf2::getYaw(current_pose_.pose.orientation))),
+                    (int)std::round(utils::nav2::degrees(tf2::getYaw(offset_goal.pose.orientation)))
+                );
+            };
 
             // check if goal already exists
-            bool exists = false;
+            bool updated = false;
             for (auto &prev_goal : prev_goals_)
             {
-                if (utils::nav2::isDefaultPose(prev_goal.pose))
+                if (euclidean_distance(prev_goal.pose, goals_[i].pose) < viapoint_overwrite_tolerance_)
                 {
-                    continue;
-                }
-
-                if (euclidean_distance(prev_goal.pose, goals[i].pose) < viapoint_overwrite_tolerance_)
-                {
-                    input_goals[prev_goal.index] = offset_goal;
-                    prev_goals_[i].pose = goals[i].pose;
-                    exists = true;
+                    input_goals_[prev_goal.index] = offset_goal;
+                    prev_goal.pose = goals_[i].pose;
+                    updated = true;
                     RCLCPP_INFO(node_->get_logger(), "Updating existing %s goal", goal_type_.c_str());
-                    
+                    log_goal_info();
                     break;
                 }
             }
 
-            if (exists)
+            if (updated)
             {
                 continue;
             }
 
             // goal doesn't exist, insert goal
-            double dist_to_rover = euclidean_distance(current_pose_.pose, goals[i].pose);
-
+            double dist_to_rover = euclidean_distance(current_pose_.pose, goals_[i].pose);
             size_t j = 0;
-            while (i < input_goals_.size() && 
-                   dist_to_rover > euclidean_distance(current_pose_.pose, input_goals_[j].pose))
+            while (j < input_goals_.size() && dist_to_rover > euclidean_distance(current_pose_.pose, input_goals_[j].pose))
             {
                 j += 1;
             }
 
             input_goals_.insert(input_goals_.begin() + j, offset_goal);
-            prev_goals_[i] = {goals[i].pose, j};
+            prev_goals_.emplace_back(GoalEntry{goals_[i].pose, j});
             RCLCPP_INFO(node_->get_logger(), "Inserting new %s goal", goal_type_.c_str());
+            log_goal_info();
         }
 
         setOutput("output_goals", input_goals_);
-
-        return BT::NodeStatus::SUCCESS;
     }
 
 }  // namespace nova_behavior_tree

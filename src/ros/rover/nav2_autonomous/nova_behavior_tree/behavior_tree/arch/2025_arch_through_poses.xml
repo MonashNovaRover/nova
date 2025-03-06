@@ -25,7 +25,7 @@
                                 current_pose="{current_pose}"
                                 goals="{cube_goals}"
                                 input_goals="{goals}"
-                                radius="1"
+                                update_radius="1.0"
                                 output_goals="{goals}"/>
                 </Sequence>
               </ForceSuccess>

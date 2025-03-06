@@ -91,14 +91,14 @@ namespace nova_behavior_tree
     rclcpp::Node::SharedPtr node_;
     std::shared_ptr<tf2_ros::Buffer> tf_;
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
-    CubePoses cube_poses_{};
+    CubePoses cube_poses_;
 
     double transform_tolerance_;
     std::string global_frame_;
     std::string robot_base_frame_;
     
     bool initialized_ = false;
-    const std::string COLORS[4] = {"red", "green", "blue", "white"};
+    const std::array<std::string, 4> COLORS = {"red", "green", "blue", "white"};
   };
 
 } // namespace nova_behavior_tree
