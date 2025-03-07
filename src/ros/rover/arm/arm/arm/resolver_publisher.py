@@ -81,6 +81,9 @@ class ResolverTransceiver(CANTransceiver):
         self.set_log_level("critical")
         self.logger = logger
 
+        # Store joint states in a dictionary when messages are received
+        self.joint_states = {}
+
         # Create mapping of joint names to their respective Joint objects
         # Initialise using default discontinuity angles and active status,
         # update in the managing ROS node using info from the arm model
@@ -108,6 +111,9 @@ class ResolverTransceiver(CANTransceiver):
                 Joint("end-rotation", 0x1C, False)
         }
 
+        # Enable automatic mode
+        self.enable_auto_mode()
+
         # Define an additonal transmitter for zeroing
         # Change the ID for sending to 0x0A3, make the receive timeout longer
         kwargs["arbitration_id"] = 0x0A3
@@ -115,6 +121,48 @@ class ResolverTransceiver(CANTransceiver):
         self.zero_transceiver = CANTransceiver(**kwargs)
         self.zero_transceiver.set_log_level("critical")
         self.zero_transceiver.logger = logger
+
+    def enable_auto_mode(self):
+        """ Sends a CAN message to enable automatic resolver updates. """
+        self.logger.info("Enabling automatic resolver mode (sending 0x0A2)...")
+        enable_message = self.pack([0xA2])  # Pack message with ID 0x0A2
+        if not self.transmit(enable_message):
+            self.logger.error("Failed to send auto mode enable command!")
+
+    def check_for_messages(self):
+        """ Checks for new CAN messages and processes them. """
+        can_msg = self.receive()
+        if can_msg:
+            self.process_incoming_message(can_msg)
+
+    def process_incoming_message(self, can_msg):
+        """ Processes incoming CAN messages and stores resolver readings. """
+        if can_msg is None:
+            return
+
+        received_id, flags, integer_data = self.unpack(can_msg.data)
+
+        # Identify which joint the message belongs to
+        joint_name = None
+        for name, joint in self.joint_map.items():
+            if joint.id == received_id:
+                joint_name = name
+                break
+
+        if joint_name is None:
+            self.logger.warn(f"Received unknown resolver ID: {received_id}")
+            return
+
+        # Process data like poll_resolver did
+        if flags & 0x01:
+            self.logger.warn(f"RS485 read timeout for {joint_name}")
+            return
+        if flags & 0x02:
+            self.logger.warn(f"Invalid checksum from {joint_name}")
+            return
+
+        # Store the integer data for use in position()
+        self.joint_states[joint_name] = integer_data
 
     def get_joint(self, joint_name: str, exclude_inactive: bool=True) -> Joint:
         """
@@ -226,54 +274,40 @@ class ResolverTransceiver(CANTransceiver):
     
     def position(self, joint_name: str) -> float:
         """
-        Method to read a given encoder
-
-        Returns float value in [0, 2 pi) or None on failure
-
-        Raises KeyError if invalid joint name given
+        Returns the latest received resolver position for the given joint.
         """
-        # Poll resolver and decode into radians
-        integer_data = self.poll_resolver(joint_name)
+        # Get the stored integer value
+        integer_data = self.joint_states.get(joint_name, None)
         if integer_data is None:
-            return None
+            return None  # No data received yet
+
+        # Convert to radians
         angle_data = self._convert_to_rad(integer_data)
-        
-        # Get the joint object for post-processing
+
+        # Process based on joint properties
         joint = self.get_joint(joint_name)
 
-        # Handle rotation counting if gear ratio is not 1
+        # Handle gear ratio-based rotation counting
         if joint.gear_ratio != 1:
-            # Update the sector count
-            # Compare current and previous reading to determine if, and in which direction
-            # we have crossed between 2*pi and 0
-            # (3*pi)/4 chosen as an arbitrarily large angle to show that the resolver
-            # must have crossed between 2*pi and 0
-            
             if joint.last_reading is None:
-                # Initialisation for first reading
-                self.logger.info(f'Getting initial reading for geared resolver {joint_name}')
+                self.logger.info(f'Initializing reading for {joint_name}')
                 success = self.reset_sector_count(joint_name)
                 if not success:
                     return None
-            elif angle_data - joint.last_reading < -3*pi/4:
-                # Resolver has crossed from 2*pi to 0, so joint is in the next sector
+            elif angle_data - joint.last_reading < -3 * pi / 4:
                 joint.sector_count = (joint.sector_count + 1) % joint.gear_ratio
-            elif angle_data - joint.last_reading > 3*pi/4:
-                # Resolver has crossed from 0 to 2*pi, so joint is in the previous sector
+            elif angle_data - joint.last_reading > 3 * pi / 4:
                 joint.sector_count = (joint.sector_count - 1) % joint.gear_ratio
-            # Update last reading 
+
             joint.last_reading = angle_data
+            angle_data = (angle_data + 2 * pi * joint.sector_count) / joint.gear_ratio
 
-            # Modify the joint output angle to account for the gearing
-            angle_data = (angle_data + 2*pi*joint.sector_count) / joint.gear_ratio
-
-        # Reverse the increasing direction if necessary
+        # Reverse direction if necessary
         if joint.reverse:
             angle_data = self._reverse_direction(angle_data)
 
-        # Shift the angle discontinuity out of each joint's range of motion
+        # Move discontinuity out of normal joint motion range
         angle_data = self._move_discontinuity(angle_data, joint.discontinuity_angle)
-
         return angle_data
 
     @staticmethod
@@ -345,7 +379,7 @@ class ResolverPublisher(Node):
 
     def start_node(self):
         """
-        Setup the node for the application. Create pubs and subs, initialise data members
+        Setup the node for the application. Create publishers, services, and initialize data members.
         """
         # Delay between each bus reading. In practice maxs out at 750+-50 us
         self.receive_deadtime = 0.0005
@@ -354,17 +388,17 @@ class ResolverPublisher(Node):
         # Delay between each ROS publish. In practice maxs out at 15+-1 ms
         resolver_pub_timer_period = 0.01
 
-        # Initialise the transceiver
+        # Initialize the transceiver (keep it as originally structured)
         self.resolver_transceiver = ResolverTransceiver(
-            logger = self.get_logger(),
-            channel = 'can1',
-            bitrate = 200000,
-            filter_ids = [0x0A0],
-            receive_timeout = self.receive_timeout,
-            receive_fmt = '>BBH',  # Big-endian. uint8, uint8, uint16
-            arbitration_id = 0x0A1,
-            transmit_fmt = '>B',  # Big-endian. uint8
-            )
+            logger=self.get_logger(),
+            channel="can1",
+            bitrate=200000,
+            filter_ids=[0x0A0],
+            receive_timeout=self.receive_timeout,
+            receive_fmt=">BBH",  # Big-endian. uint8, uint8, uint16
+            arbitration_id=0x0A1,
+            transmit_fmt=">B",  # Big-endian. uint8
+        )
 
         # Handle if the node is being run without the arm model
         use_arm_data = self.get_parameter("use_arm_data").value
@@ -376,15 +410,15 @@ class ResolverPublisher(Node):
                 self.arm_config_info.joint_names.append(joint_name)
             # Assume no joint limits
             num_joints = len(self.arm_config_info.joint_names)
-            self.arm_config_info.joint_limits_lower = [-2*pi] * num_joints
-            self.arm_config_info.joint_limits_upper = [2*pi] * num_joints
+            self.arm_config_info.joint_limits_lower = [-2 * pi] * num_joints
+            self.arm_config_info.joint_limits_upper = [2 * pi] * num_joints
 
         # Create the output message type to track the resolver state
         self.resolver_state = JointState()
         joint_names = self.arm_config_info.joint_names
         self.resolver_state.name = joint_names
         self.resolver_state.position = [0.0] * len(joint_names)
-        # Initialise unused fields to have correct lengths for consistency
+        # Initialize unused fields to have correct lengths for consistency
         self.resolver_state.velocity = [0.0] * len(joint_names)
         self.resolver_state.effort = [0.0] * len(joint_names)
 
@@ -399,15 +433,26 @@ class ResolverPublisher(Node):
             joint_limit_lower = self.arm_config_info.joint_limits_lower[i]
             joint_limit_upper = self.arm_config_info.joint_limits_upper[i]
             joint.discontinuity_angle = self.wrap_to_2pi((joint_limit_lower + joint_limit_upper) / 2 + pi)
-        
+
         # Construct and start the resolver publisher
-        #self.publisher = self.create_publisher(JointState, '/arm/resolvers', 10)
-        self.joint_states_publisher = self.create_publisher(JointState, '/arm/joint_states', 10)
-        self.resolver_pub_timer = self.create_timer(resolver_pub_timer_period, self.publish)
+        self.joint_states_publisher = self.create_publisher(JointState, "/arm/joint_states", 10)
+
+        # Timer to periodically check for new CAN messages
+        self.create_timer(0.01, self.process_can_messages)
+
+        # Timer to publish joint states
+        self.create_timer(resolver_pub_timer_period, self.publish)
+
         # Construct the service to zero resolvers
         self.zero_service = self.create_service(StringTrigger, "/arm/resolver_zero_service", self.zero_callback)
         # Construct the service to zero resolver sector
-        self.sector_zero_service = self.create_service(StringTrigger, "arm/resolver_sector_zero_service", self.sector_zero_callback)
+        self.sector_zero_service = self.create_service(StringTrigger, "/arm/resolver_sector_zero_service", self.sector_zero_callback)
+
+    def process_can_messages(self):
+        """
+        Periodically checks for incoming CAN messages and updates resolver states.
+        """
+        self.resolver_transceiver.check_for_messages()
 
     def zero_callback(self, request: StringTrigger.Request, response: StringTrigger.Response):
         """
@@ -472,21 +517,17 @@ class ResolverPublisher(Node):
         return angle
 
     def publish(self):
-        """
-        callback to publish position of all joints
-        """
-        for i, joint_name in enumerate(self.arm_config_info.joint_names):
+        """Publishes the latest joint states every 10ms."""
+        resolver_state = JointState()
+        resolver_state.name = list(self.resolver_transceiver.joint_map.keys())
 
-            joint_position = self.resolver_transceiver.position(joint_name)
-            if joint_position is not None:
-                # Successful transmit and receive, update value to be published
-                self.resolver_state.position[i] = joint_position
-            # Delay a little to not overwhelm the RS485 bus
-            time.sleep(self.receive_deadtime)
+        resolver_state.position = [
+            self.resolver_transceiver.position(joint_name) or 0.0
+            for joint_name in resolver_state.name
+        ]
 
-        self.resolver_state.header.stamp = self.get_clock().now().to_msg()
-        #self.publisher.publish(self.resolver_state)
-        self.joint_states_publisher.publish(self.resolver_state)
+        resolver_state.header.stamp = self.get_clock().now().to_msg()
+        self.joint_states_publisher.publish(resolver_state)
 
     def destroy_node(self):
         """
