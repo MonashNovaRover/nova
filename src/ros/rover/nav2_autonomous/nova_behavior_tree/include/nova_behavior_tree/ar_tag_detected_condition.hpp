@@ -42,6 +42,7 @@ namespace nova_behavior_tree
     {
     public:
         typedef std::vector<int> IDs;
+        typedef std::vector<geometry_msgs::msg::PoseStamped> Goals;
 
         /**
          * @brief A constructor for nova_behavior_tree::ARTagDetectedCondition
@@ -71,11 +72,13 @@ namespace nova_behavior_tree
          */
         static BT::PortsList providedPorts()
         {
-            return {
-                BT::InputPort<IDs>("seen_ids", "IDs of visited AR tags"),
-                BT::OutputPort<int>("id", "ID of detected AR tag"),
-                BT::OutputPort<geometry_msgs::msg::PoseStamped>("goal", "Pose of detected AR tag"),
-            };
+        return {
+            BT::InputPort<IDs>("seen_ids", "IDs of visited AR tags"),
+            BT::OutputPort<int>("id", "ID of detected AR tag"),
+            BT::OutputPort<geometry_msgs::msg::PoseStamped>("goal", "Pose of detected AR tag"),
+            // NEW:
+            BT::OutputPort<Goals>("ar_tag_goals", "Goals of detected (unvisited) AR tags"),
+        };
         }
 
     private:
@@ -102,6 +105,9 @@ namespace nova_behavior_tree
         rclcpp::CallbackGroup::SharedPtr callback_group_;
         rclcpp::executors::MultiThreadedExecutor callback_group_executor_;
         rclcpp::Subscription<aruco_opencv_msgs::msg::ArucoDetection>::SharedPtr sub_ar_tag_;
+        
+        std::unordered_map<int, geometry_msgs::msg::Pose> ar_tag_poses_;
+
     };
 
 } // namespace nova_behavior_tree
