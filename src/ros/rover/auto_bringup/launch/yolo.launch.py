@@ -36,7 +36,7 @@ from launch_ros.substitutions import FindPackageShare
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
 
-    gazebo = LaunchConfiguration('gazebo')
+    gazebo = LaunchConfiguration('gazebo').perform(context)
     debug_image = LaunchConfiguration('debug_image')
     depth_image = LaunchConfiguration('depth_image')
     depth_image_info = LaunchConfiguration('depth_image_info')
@@ -45,6 +45,11 @@ def launch_setup(context, *args, **kwargs):
     rgb_image = LaunchConfiguration('rgb_image')
     use_debug = LaunchConfiguration('use_debug')
     yolo_model = LaunchConfiguration('yolo_model')
+
+    if gazebo.lower() == 'true':
+        detections = '/yolo/detections'
+    else:
+        detections = '/oak/nn/spatial_detections'
 
     return [
         Node(
@@ -72,7 +77,7 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{'sim': gazebo}, params],
             remappings=[('image_raw', depth_image), 
                         ('camera_info', depth_image_info),
-                        ('detections', '/yolo/detections'),
+                        ('detections', detections),
                         ('cubes', '/yolo/cubes')],
             namespace=namespace,
         ),
