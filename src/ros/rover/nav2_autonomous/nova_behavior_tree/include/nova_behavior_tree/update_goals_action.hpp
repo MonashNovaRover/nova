@@ -65,7 +65,7 @@ public:
       BT::InputPort<Goals>("goals", "Goals to add as viapoints"),
       BT::InputPort<Goals>("input_goals", "Original goals to add viapoints into"),
       BT::InputPort<double>("update_radius", 0.5, "Radius to next goal for it to be considered an update"),
-      BT::InputPort<double>("goal_radius", 1.0, "Radius away from actual pose to set goal"),
+      BT::InputPort<double>("goal_radius", 0.5, "Radius away from actual pose to set goal"),
       BT::OutputPort<Goals>("output_goals", "Goals with new viapoints added/updated"),
     };
   }
