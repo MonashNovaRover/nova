@@ -5,7 +5,7 @@ export default function TestScimbalCamView () {
 
   return (
     <div className="p-3">
-      <CameraComponent cameraSerial={CameraSerials.SCIENCE_GIMBAL}/>
+      <GimbalOverlayedCameraComponent cameraSerial={CameraSerials.SCIENCE_GIMBAL}/>
     </div>
   );
 }

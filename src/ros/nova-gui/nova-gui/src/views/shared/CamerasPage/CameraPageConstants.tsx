@@ -1,7 +1,4 @@
 import { CameraFilters } from "../../../components/CameraComponent/CameraComponent";
-import {ReactNode} from "react";
-import {Plus} from "react-feather";
-import {GimbalCamOverlay} from "../../../components/shared/Overlay/GimbalCamOverlay.tsx";
 
 export interface CameraView {
   viewTitle: string;
@@ -52,6 +49,7 @@ export enum CameraSerials {
   SCIENCE_AUGER_BOTTOM = "science_auger_bottom",
   SCIENCE_ANALYSIS_BOTTOM = "science_analysis_bottom",
   SCIENCE_MICROSCOPE = "science_microscope",
+  SCIENCE_GIMBAL = "science_gimbal",
 
   URC_SCIENCE_UV_VIS = "science_spectroscope",
   URC_SCIENCE_CUVETTE = "science_cuvettes",
