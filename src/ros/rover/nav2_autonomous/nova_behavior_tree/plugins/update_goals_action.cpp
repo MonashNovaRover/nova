@@ -72,15 +72,31 @@ namespace nova_behavior_tree
         
         getInput("current_pose", current_pose_);
         getInput("goals", goals_);
+        size_t input_goals_count = input_goals_.size();
         getInput("input_goals", input_goals_);
+        int removed_goals_count = input_goals_count - input_goals_.size();
 
-        update_goals();
+        update_goals(removed_goals_count);
 
         return BT::NodeStatus::SUCCESS;
     }
 
-    void UpdateGoalsAction::update_goals()
+    void UpdateGoalsAction::update_goals(size_t removed_goals_count)
     {
+        // update prev_goals_ in case goals have been removed
+        for (size_t i = 0; i < prev_goals_.size();)
+        {
+            prev_goals_[i].index -= removed_goals_count;
+            if (prev_goals_[i].index < 0)
+            {
+                prev_goals_.erase(prev_goals_.begin() + i);
+            }
+            else
+            {
+                i += 1;
+            }
+        }
+
         for (size_t i = 0; i < goals_.size(); ++i)
         {
             // calculate offset goal so rover doesn't try to path through an object

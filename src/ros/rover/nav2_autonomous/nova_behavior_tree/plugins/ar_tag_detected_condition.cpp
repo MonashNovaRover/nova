@@ -65,7 +65,7 @@ void ARTagDetectedCondition::initialize()
     initialized_ = true;
 }
 
-void ARTagDetectedCondition::callback_ar_tag(const aruco_opencv_msgs::msg::ArucoDetection>::SharedPtr msg)
+void ARTagDetectedCondition::callback_ar_tag(const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg)
 {
     // Save first ar tag id
     tag_found_ = false;

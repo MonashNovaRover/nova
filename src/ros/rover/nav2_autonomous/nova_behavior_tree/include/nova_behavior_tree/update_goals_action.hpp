@@ -44,7 +44,7 @@ public:
 
   struct GoalEntry {
     geometry_msgs::msg::Pose pose{};
-    size_t index = 0;
+    int index = 0;
   };
 
   UpdateGoalsAction(
@@ -73,7 +73,7 @@ public:
 private:
   void halt() override {}
   BT::NodeStatus tick() override;
-  void update_goals();
+  void update_goals(size_t removed_goals_count);
 
   rclcpp::Node::SharedPtr node_;
 
