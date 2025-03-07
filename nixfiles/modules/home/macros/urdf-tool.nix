@@ -51,11 +51,34 @@ let
       SECRET_KEY = "";
     };  # If the file does not exist, use set with empty values to avoid errors
 
+  urdf-modifier = pkgs.python3Packages.buildPythonApplication rec {
+    pname = "urdf-modifier";
+    version = "1.0";
+
+    src = pkgs.fetchFromGitHub {
+      owner = "V01DBREAKER";
+      repo = pname;
+      rev = "eac72564eadf6778ea63e4d89b3cd588ecb3c316";
+      hash = "sha256-OtwYxlHKxruVxJmosMbvT//FM5gPV+75MCG1zKyEuuE=";
+    };
+
+    buildInputs = with pkgs.python3Packages; [
+      pymeshlab
+    ];
+
+    meta = with pkgs.lib; {
+      description = "A Python script used to modify generated URDFs and recalculate inertias.";
+      homepage = "https://github.com/V01DBREAKER/urdf-modifier";
+      license = licenses.mit;
+    };
+  };
+
 in
 pkgs.mkShell {
   buildInputs = [
     pkgs.openscad
     onshapeToRobot
+    urdf-modifier
     pkgs.python3Packages.numpy
     pkgs.python3Packages.pybullet
     pkgs.python3Packages.requests
@@ -70,6 +93,7 @@ pkgs.mkShell {
   # Set up PYTHONPATH to include all dependencies
   shellHook = ''
     export PATH=${onshapeToRobot}/bin:$PATH
+    export PATH=${urdf-modifier}/bin:$PATH
     export PYTHONPATH=${pkgs.python3Packages.python.sitePackages}:${pkgs.python3Packages."numpy-stl"}/lib/python3.12/site-packages:$PYTHONPATH
     export ONSHAPE_API=https://cad.onshape.com
     # Check if Onshape API keys are defined, and warn if not
