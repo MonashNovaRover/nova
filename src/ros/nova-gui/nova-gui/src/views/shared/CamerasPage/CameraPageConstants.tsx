@@ -30,10 +30,10 @@ export enum CameraSerials {
   ARM_END_PERISCOPE = "arm_end_periscope",
   ARM_GIMBAL = "arm_gimbal",
 
-  EC_SCRAPER = "ec_1",
-  EC_FORKLIFT_DOWN = "ec_2",
-  EC_FORKLIFT_FORWARD = "ec_3",
-  EC_SCRAPER_LEG = "ec_4",
+  EC_SCRAPER = "ec_scraper",
+  EC_FORKLIFT_DOWN = "ec_forklift_down",
+  EC_FORKLIFT_FORWARD = "ec_forklift_forward",
+  EC_SCRAPER_LEG = "ec_scraper_leg",
 
   SCIENCE_KILN = "science_kiln",
   SCIENCE_AUGER_BOTTOM = "science_auger_bottom",
