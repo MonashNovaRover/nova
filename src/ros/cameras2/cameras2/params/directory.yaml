@@ -31,13 +31,13 @@ camera_directory:
           '3:1.0': mast_forward
           '4:1.0': mast_backward
         arm:
-          '1:1.0': arm_gimbal
+          '1:1.0': arm_test
           '2.1:1.0': arm_end_finger
           '2.2:1.0': arm_end_side
           '2.3:1.0': arm_end_periscope
           '2.4:1.0': arm_end_top
-        ce:
-          '4:1.0': ce_1
-          '3:1.0': ce_2
-          '2:1.0': ce_3
-          '1:1.0': ce_4
+        ec:
+          '4:1.0': ec_1
+          '3:1.0': ec_2
+          '2:1.0': ec_3
+          '1:1.0': ec_4
