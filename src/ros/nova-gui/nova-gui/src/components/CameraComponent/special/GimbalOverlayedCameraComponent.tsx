@@ -1,19 +1,27 @@
 
-import React, {useEffect, useState} from "react";
+import React, {ReactNode, useEffect, useState} from "react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
 import OverlayedCameraComponent from "./OverlayedCameraComponent.tsx";
-import {Tooltip} from "@nextui-org/react";
+import {BaseCameraComponentProps} from "../CameraComponent.tsx";
+import {CameraSerials} from "../../../views/shared/CamerasPage/CameraPageConstants.tsx";
+import {StreamingState} from "../hooks/useCameraStream.ts";
+//import {Tooltip} from "@nextui-org/react";
 
-interface GimbalCamOverlayProps {}
+// export interface GimbalCamOverlayProps {
+//   cameraSerial: string;
+//   overlayMap?: { [k: string]: ReactNode },
+//   autostart?: boolean;
+// }
 
-export const GimbalOverlayedCameraComponent: React.FC<GimbalCamOverlayProps> = (props) => {
+export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> = (props) => {
+  const [showOverlay, setShowOverlay] = useState<boolean>(false)
 
   // Default stepsize for incrementing angles
   const [step, setStep] = useState(1);
   //const [inputValue, setInputValue] = React.useState("1");
 
-  const serviceBifrost = useBifrost({ service: RosService.SCIMBAL_COMMAND});
+  const serviceBifrost = useBifrost({service: RosService.SCIMBAL_COMMAND});
   const incrementTilt = (step: number) => serviceBifrost.callServiceToRedux({
     angles: [step, 0]
   });
@@ -47,8 +55,8 @@ export const GimbalOverlayedCameraComponent: React.FC<GimbalCamOverlayProps> = (
 
   //WASD Controls
   useEffect(() => {
-    window.addEventListener('keydown', (e) =>{
-      switch(e.key){
+    window.addEventListener('keydown', (e) => {
+      switch (e.key) {
         case 'a':
           incrementPan(-step)
           break
@@ -91,9 +99,12 @@ export const GimbalOverlayedCameraComponent: React.FC<GimbalCamOverlayProps> = (
 
 
   return (
-    <OverlayedCameraComponent >
-      <p id="demoCoords"></p>
+    <OverlayedCameraComponent
+      onStreamingStateChange={(s) => setShowOverlay(s === StreamingState.STREAMING)}
+      {...props}
+      overlay={showOverlay ? <div className="self-center grow h-0.5 bg-black"/> : <div/>}
+      //<p id="demoCoords"></p>
+    />
 
-    </OverlayedCameraComponent>
   );
 }
