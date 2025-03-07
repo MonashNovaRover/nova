@@ -36,3 +36,8 @@ camera_directory:
           '2.2:1.0': arm_end_side
           '2.3:1.0': arm_end_periscope
           '2.4:1.0': arm_end_top
+        ce:
+          '2.4:1.0': ce_1
+          '2.3:1.0': ce_2
+          '2.2:1.0': ce_3
+          '2.1:1.0': ce_4
