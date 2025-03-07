@@ -30,7 +30,7 @@ from rclpy.node import Node
 from rclpy.duration import Duration
 from rclpy.qos import QoSHistoryPolicy, QoSDurabilityPolicy, QoSProfile
 
-from visualization_msgs.msg import MarkerArray, Marker
+from visualization_msgs.msg import MarkerArray, Marker, Detection3DArray
 from geometry_msgs.msg import Pose, Vector3, TransformStamped
 from sensor_msgs.msg import Image, CameraInfo
 from builtin_interfaces.msg import Time
@@ -135,7 +135,7 @@ class DetectionTransformer(Node):
         self.create_timer(self.tf_publisher_timer_period, self.publish_cubes)
 
 
-    def on_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray) -> None:
+    def on_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray | Detection3DArray) -> None:
         '''Process and publish detected cubes'''
         detections = self.process_detections(depth_msg, depth_info_msg, detections_msg)
 
@@ -175,7 +175,7 @@ class DetectionTransformer(Node):
                     self.get_logger().debug(f'{color} has not enough samples to confirm')
                 
 
-    def process_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray) -> List[Tuple[str,Point]]:
+    def process_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray | Detection3DArray) -> List[Tuple[str,Point]]:
         '''Process detections into a list of points with their respective colour'''
         if not detections_msg.detections:
             return []
@@ -183,18 +183,25 @@ class DetectionTransformer(Node):
         self.get_logger().debug(f'Processing new detections')
 
         new_detections = []
-        depth_image = self.cv_bridge.imgmsg_to_cv2(depth_msg, desired_encoding='32FC1')
 
-        for detection in detections_msg.detections:
-            position = self.convert_bb_to_point(depth_image, depth_info_msg, detection)
-            if position is not None:
+        if self.using_yolo_ros:
+            depth_image = self.cv_bridge.imgmsg_to_cv2(depth_msg, desired_encoding='32FC1')
+
+            for detection in detections_msg.detections:
+                position = self.convert_bb_to_point(depth_image, depth_info_msg, detection)
+                if position is not None:
+                    new_position = self.tf_to_map(position, detections_msg.header.stamp)
+                    if new_position is not None:
+                        # Detection will be of Detection from yolo_msgs
+                        color: str = detection.class_name
+                        new_detections.append((detection.class_name, new_position))
+        else:
+            for detection in detections_msg.detections:
+                position = detection.results.pose.pose.position
                 new_position = self.tf_to_map(position, detections_msg.header.stamp)
                 if new_position is not None:
-                    color: str
-                    if self.using_yolo_ros: # Detection will be of Detection from yolo_msgs
-                        color = detection.class_name
-                    else:                   # Detection will be of Detection2D from vision_msgs
-                        color = IDS_COLOR[detection.results.hypothesis.class_id]
+                    # Detection will be of Detection3D from vision_msgs
+                    color: str = IDS_COLOR[detection.results.hypothesis.class_id]
                     new_detections.append((detection.class_name, new_position))
 
         return new_detections
@@ -264,9 +271,9 @@ class DetectionTransformer(Node):
         self.get_logger().debug(f'Calculating map to cube tf')
         try:
             map_to_camera = self.tf_buffer.lookup_transform(self.map_frame, self.camera_frame, stamp).transform
-
+            
             # rotate the map_to_camera position by its orientation 
-            rot_matrix = self.quaternion_to_rotation_matrix([map_to_camera.rotation.x,map_to_camera.rotation.y, map_to_camera.rotation.z, map_to_camera.rotation.w])
+            rot_matrix = self.quaternion_to_rotation_matrix([map_to_camera.rotation.x, map_to_camera.rotation.y, map_to_camera.rotation.z, map_to_camera.rotation.w])
             rotated_translation = np.dot(rot_matrix, camera_to_cube)
 
             # apply the camera_to_cube tf to the rotated map_to_camera
