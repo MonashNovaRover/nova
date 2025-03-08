@@ -15,9 +15,9 @@ ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics
 AUTHOR(S):   Jory Braun, Tom Newton, Josh Cherubino
-EDITED BY:   Rohit Pilakkat
+EDITED BY:   Rohit Pilakkat, Jonathan Chin
 CREATION:    14/02/2022
-EDITED:      07/03/2025
+EDITED:      08/03/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
     - Setup appropriate QoS profile for publisher
@@ -101,15 +101,15 @@ class ResolverTransceiver(CANTransceiver):
             "arm_j5":    
                 Joint("arm_j5", 0x14, False),
             "arm_j6":    
-                Joint("arm_j6", 0x18, False, gear_ratio=4),
-            "spmx": 
-                Joint("spmx", 0x20, True),
-            "spmy":      
-                Joint("spmy", 0x24, True),
-            "spmz":      
-                Joint("spmz", 0x28, True),
-            "end-rotation": 
-                Joint("end-rotation", 0x1C, False)
+                Joint("arm_j6", 0x18, False, gear_ratio=4)
+            # "spmx": 
+            #     Joint("spmx", 0x20, True),
+            # "spmy":      
+            #     Joint("spmy", 0x24, True),
+            # "spmz":      
+            #     Joint("spmz", 0x28, True),
+            # "end-rotation": 
+            #     Joint("end-rotation", 0x1C, False)
         }
 
         # Enable automatic mode
@@ -126,7 +126,7 @@ class ResolverTransceiver(CANTransceiver):
     def enable_auto_mode(self):
         """ Sends a CAN message to enable automatic resolver updates. """
         self.logger.info("Enabling automatic resolver mode (sending 0x0A2)...")
-        enable_message = self.pack([0xA2])  # Pack message with ID 0x0A2
+        enable_message = self.pack([0x00])  # Pack message with default polling period
         if not self.transmit(enable_message):
             self.logger.error("Failed to send auto mode enable command!")
 
@@ -397,7 +397,7 @@ class ResolverPublisher(Node):
             filter_ids=[0x0A0],
             receive_timeout=self.receive_timeout,
             receive_fmt=">BBH",  # Big-endian. uint8, uint8, uint16
-            arbitration_id=0x0A1,
+            arbitration_id=0x0A2,
             transmit_fmt=">B",  # Big-endian. uint8
         )
 
