@@ -127,11 +127,6 @@ class ResolverTransceiver(CANTransceiver):
         if not self.transmit(enable_message):
             self.logger.error("Failed to send auto mode enable command!")
 
-    def enable_auto_timer_callback(self):
-        """Re-send the 0x0A2 command every 1 second."""
-        self.get_logger().info("Re-sending 0x0A2 enable auto mode command...")
-        self.resolver_transceiver.enable_auto_mode()
-
     def check_for_messages(self):
         """ Checks for new CAN messages and processes them. """
         can_msg = self.receive()
@@ -143,7 +138,6 @@ class ResolverTransceiver(CANTransceiver):
         if can_msg is None:
             return
     
-
         #Verify the CAN ID is 0x0A0
         if can_msg.arbitration_id != 0x0A0:
             return  # Skip any other IDs
@@ -471,6 +465,11 @@ class ResolverPublisher(Node):
         self.zero_service = self.create_service(StringTrigger, "/arm/resolver_zero_service", self.zero_callback)
         # Construct the service to zero resolver sector
         self.sector_zero_service = self.create_service(StringTrigger, "/arm/resolver_sector_zero_service", self.sector_zero_callback)
+
+    def enable_auto_timer_callback(self):
+        """Re-send the 0x0A2 command every 1 second."""
+        self.get_logger().info("Re-sending 0x0A2 enable auto mode command...")y
+        self.resolver_transceiver.enable_auto_mode()
 
     def process_can_messages(self):
         while True:
