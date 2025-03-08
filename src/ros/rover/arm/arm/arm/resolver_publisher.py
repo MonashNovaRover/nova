@@ -141,6 +141,19 @@ class ResolverTransceiver(CANTransceiver):
         if can_msg is None:
             return
 
+        #Verify the CAN ID is 0x0A0
+        if can_msg.arbitration_id != 0x0A0:
+            return  # Skip any other IDs
+
+        # Verify the data length is exactly 4 bytes
+        expected_size = calcsize(self.receive_fmt)  # should be 4 if receive_fmt=">BBH"
+        if len(can_msg.data) != expected_size:
+            self.logger.warn(
+                f"Ignoring 0x{can_msg.arbitration_id:X} frame: "
+                f"expected {expected_size} bytes, got {len(can_msg.data)}."
+            )
+            return
+
         received_id, flags, integer_data = self.unpack(can_msg.data)
 
         # Identify which joint the message belongs to
