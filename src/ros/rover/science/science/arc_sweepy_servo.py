@@ -26,7 +26,7 @@ from python_control.controls.ContinuousOneAxisPositionControl import ContinuousO
 from python_control.controllers.JonoPositionController import JonoPositionController
 
 
-class SweepyNode(ControllerNode):
+class SweepyNode(JoystickControllerNode):
     # CAN BUS NAME
     CAN_BUS = "can1"
 
@@ -35,6 +35,10 @@ class SweepyNode(ControllerNode):
 
     # SENDING COMMAND IDS
     MOVE_SERVO_COMMAND = 0x10
+
+    # CONTROL DIRECTIONS
+    POSITION_CLOCKWISE = Direction.POSITIVE
+    POSITION_ANTICLOCKWISE = Direction.NEGATIVE
 
     # BASE VELOCITY
     DEFAULT_BASE_VELOCITY = 5
@@ -68,20 +72,31 @@ class SweepyNode(ControllerNode):
         ## Start the CAN bus
         self.start_can()
 
-    def joystick_l(self, joystick_l: InputJoystick):
+    def joystick_r(self, joystick_r: InputJoystick):
         """
         Updates the classes internal msg state
         :return: None
         """
-        self.velocity_multiplier = abs(joystick_l.ax_slider)
-
-        match joystick_l.btn_thumb_u_state:
-            case 1, 2: # Spin the sweeper
-                self.get_logger().debug("Spinning sweepy")
-                self.spinny_part.displace(
+        if joystick_r.btn_thumb_l_state >= 1:
+            self.get_logger().debug("Sweeper ANTICLOCKWISE")
+            self.spinny_part.displace(
                 self.velocity_multiplier
                 * self.get_parameter(self.BASE_VELOCITY_PARAM).value
-                )
+                * self.POSITION_ANTICLOCKWISE
+            )
+        elif joystick_r.btn_thumb_r_state >= 1:
+            self.get_logger().debug("Sweeper CLOCKWISE")
+            self.spinny_part.displace(
+                self.velocity_multiplier
+                * self.get_parameter(self.BASE_VELOCITY_PARAM).value
+                * self.POSITION_CLOCKWISE
+            )
+
+    def joystick_l(self, joystick_l: InputJoystick):
+        """
+        Right joystick callback function
+        """
+        self.velocity_multiplier = abs(joystick_l.ax_slider)
 
 def main():
     rclpy.init()

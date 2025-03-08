@@ -27,7 +27,7 @@ from python_control.controls.ContinuousOneAxisPositionControl import ContinuousO
 from python_control.controllers.JonoPositionController import JonoPositionController
 
 
-class SpinnyPartNode(ControllerNode):
+class SpinnyPartNode(JoystickControllerNode):
     # CAN BUS NAME
     CAN_BUS = "can1"
 
