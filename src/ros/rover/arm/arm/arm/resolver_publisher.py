@@ -112,13 +112,6 @@ class ResolverTransceiver(CANTransceiver):
             #     Joint("end-rotation", 0x1C, False)
         }
 
-        # Enable automatic mode
-        # Create a 1 Hz timer to periodically enable auto mode
-        self.enable_auto_timer = self.create_timer(
-            1.0,  # 1 second
-            self.enable_auto_timer_callback
-        )
-
         # Define an additonal transmitter for zeroing
         # Change the ID for sending to 0x0A3, make the receive timeout longer
         kwargs["arbitration_id"] = 0x0A3
@@ -424,6 +417,13 @@ class ResolverPublisher(Node):
             transmit_fmt=">B",  # Big-endian. uint8
         )
 
+        # Immediately enable auto mode once at startup
+        self.resolver_transceiver.enable_auto_mode()
+
+        # Create a 1 Hz timer to keep re-sending 0x0A2
+        self.enable_auto_timer = self.create_timer(1.0, self.enable_auto_timer_callback)
+
+
         # Handle if the node is being run without the arm model
         use_arm_data = self.get_parameter("use_arm_data").value
         if not use_arm_data:
@@ -478,6 +478,11 @@ class ResolverPublisher(Node):
         """
         self.resolver_transceiver.check_for_messages()
 
+    def enable_auto_timer_callback(self):
+        """Called every 1 second to re-send 0x0A2 auto mode command."""
+        self.get_logger().info("Re-sending 0x0A2 enable auto mode command...")
+        self.resolver_transceiver.enable_auto_mode()
+
     def zero_callback(self, request: StringTrigger.Request, response: StringTrigger.Response):
         """
         Callback for the resolver zero service
@@ -501,6 +506,11 @@ class ResolverPublisher(Node):
                 else:
                     response.message += f"\nFailed to reset sector count got joint {joint_name}"
                     return response
+
+            # -- Re-enable auto mode immediately after zeroing --
+            if response.success:
+                self.get_logger().info("Re-enabling auto mode after zeroing resolvers.")
+                self.resolver_transceiver.enable_auto_mode()
             
         except KeyError as e:
             response.success = False
