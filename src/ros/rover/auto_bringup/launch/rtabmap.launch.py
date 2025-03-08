@@ -112,7 +112,7 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(name='name', default_value='oak'),
         DeclareLaunchArgument(name='rtabmap_viz', default_value='False'),
-        DeclareLaunchArgument(name='gazebo', default_value='False'), # Revert ASAP
+        DeclareLaunchArgument(name='gazebo', default_value='False'),
         DeclareLaunchArgument(name='camera', default_value='False'),
         DeclareLaunchArgument(name='x', default_value='0.0'),
         DeclareLaunchArgument(name='y', default_value='0.0'),

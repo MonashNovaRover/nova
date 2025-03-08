@@ -136,7 +136,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='world',
-            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto.sdf']),
+            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf']),
             description='Full path to world model file to load',
         ),
         DeclareLaunchArgument(name='x', default_value='15.19', description='x_pose'),

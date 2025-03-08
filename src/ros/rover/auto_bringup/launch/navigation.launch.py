@@ -30,6 +30,7 @@ def launch_setup(context, *args, **kwargs):
     log_level = LaunchConfiguration('log_level')
     namespace = LaunchConfiguration('namespace')
     nav2_params = LaunchConfiguration('nav2_params')
+    publish_goals = LaunchConfiguration('publish_goals')
     use_composition = LaunchConfiguration('use_composition')
     use_respawn = LaunchConfiguration('use_respawn')
     use_sim_time = LaunchConfiguration('use_sim_time')
@@ -235,11 +236,17 @@ def launch_setup(context, *args, **kwargs):
                             plugin='nav2_lifecycle_manager::LifecycleManager',
                             name='lifecycle_manager_navigation',
                             parameters=[{'use_sim_time': use_sim_time,
-                                        'autostart': autostart,
-                                        'node_names': lifecycle_nodes}],
+                                         'autostart': autostart,
+                                         'node_names': lifecycle_nodes}],
                         )])],
         ),
         SetEnvironmentVariable('RCUTILS_LOGGING_BUFFERED_STREAM', '1'),
+        Node(
+            condition=IfCondition(publish_goals),
+            package='nova_utils',
+            executable='goal_marker.py',
+            namespace=namespace,
+        ),
     ]
 
 
@@ -271,6 +278,11 @@ def generate_launch_description():
             name='nav2_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2.yaml']),
             description='Full path to the ROS2 parameters file to use for all launched nodes',
+        ),
+        DeclareLaunchArgument(
+            name='publish_goals',
+            default_value='True',
+            description='Publish Nav2 goals as a MarkerArray?',
         ),
         DeclareLaunchArgument(
             name='use_composition',

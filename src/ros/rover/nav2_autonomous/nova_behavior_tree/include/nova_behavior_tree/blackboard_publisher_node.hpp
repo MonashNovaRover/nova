@@ -21,7 +21,7 @@ public:
   static BT::PortsList providedPorts()
   {
     return {
-      BT::InputPort<std::string>("topic_name", "blackboard_data", 
+      BT::InputPort<std::string>("topic_name", "blackboard", 
         "ROS topic for publishing")
     };
   }

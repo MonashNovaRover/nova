@@ -33,7 +33,7 @@ def launch_setup(context, *args, **kwargs):
     nav2_params = LaunchConfiguration('nav2_params')
     navigation = LaunchConfiguration('navigation')
     rviz = LaunchConfiguration('rviz')
-    rviz_config = LaunchConfiguration('rviz_config')
+    rviz_params = LaunchConfiguration('rviz_params')
     use_respawn = LaunchConfiguration('use_respawn')
     world = LaunchConfiguration('world')
 
@@ -65,8 +65,8 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(rviz),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rviz.launch.py'])),
             launch_arguments={
-                'use_sim_time': gazebo,
-                'config': rviz_config,
+                'gazebo': gazebo,
+                'rviz_params': rviz_params,
             }.items()
         ),
         IncludeLaunchDescription(
@@ -141,7 +141,7 @@ def generate_launch_description():
             description='Flag to launch rviz',
         ),
         DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
-            name='rviz_config',
+            name='rviz_params',
             default_value='navigation.rviz',
             description='RViz configuration file',
         ),
@@ -152,7 +152,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='world',
-            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto.sdf']),
+            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf']),
             description='Full path to world model file to load',
         ),
     ]
