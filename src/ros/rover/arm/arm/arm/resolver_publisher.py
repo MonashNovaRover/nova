@@ -122,14 +122,14 @@ class ResolverTransceiver(CANTransceiver):
 
     def enable_auto_mode(self):
         """ Sends a CAN message to enable automatic resolver updates. """
-        self.logger.info("Enabling automatic resolver mode (sending 0x0A2)...")
+        # self.logger.info("Enabling automatic resolver mode (sending 0x0A2)...")
         enable_message = self.pack([0x00])  # Pack message with default polling period
         if not self.transmit(enable_message):
             self.logger.error("Failed to send auto mode enable command!")
 
     def enable_auto_timer_callback(self):
         """Re-send the 0x0A2 command every 1 second."""
-        self.get_logger().info("Re-sending 0x0A2 enable auto mode command...")
+        # self.get_logger().info("Re-sending 0x0A2 enable auto mode command...")
         self.resolver_transceiver.enable_auto_mode()
 
     def check_for_messages(self):
