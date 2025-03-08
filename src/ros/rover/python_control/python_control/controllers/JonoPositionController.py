@@ -4,7 +4,7 @@ from logging import Logger
 import jcan
 from python_control.controllers.Card import Card
 from python_control.controllers.Controller import Controller
-from python_control.python_control.controls.ContinuousOneAxisPositionControl import ContinuousOneAxisPositionControl
+from python_control.controls.ContinuousOneAxisPositionControl import ContinuousOneAxisPositionControl
 
 
 class JonoVelocityController(Controller):
