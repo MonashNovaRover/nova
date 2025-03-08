@@ -17,6 +17,7 @@ export const rosServiceMessages = {
   // Science Related
   [RosService.MIXERS]: "std_srvs/srv/SetBool",
   [RosService.KILN_COMMAND]: "nova_interfaces/srv/KilnCommand",
+  [RosService.SCIMBAL_COMMAND]: 'nova_interfaces/srv/MoveScimbalCam',
   [RosService.TAKE_NIR_PROBE_READING]: "nova_interfaces/srv/TakeNIRProbeReading",
   [RosService.MOVE_MICROSCOPE_SERVO]: "nova_interfaces/srv/MoveMicroscopeServo",
   [RosService.THETA_360_CAM_CAPTURE]: "std_srvs/srv/Trigger",
