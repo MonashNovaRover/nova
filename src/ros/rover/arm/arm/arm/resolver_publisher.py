@@ -473,10 +473,11 @@ class ResolverPublisher(Node):
         self.sector_zero_service = self.create_service(StringTrigger, "/arm/resolver_sector_zero_service", self.sector_zero_callback)
 
     def process_can_messages(self):
-        """
-        Periodically checks for incoming CAN messages and updates resolver states.
-        """
-        self.resolver_transceiver.check_for_messages()
+        while True:
+            can_msg = self.resolver_transceiver.receive()
+            if can_msg is None:
+                break
+            self.resolver_transceiver.process_incoming_message(can_msg)
 
     def enable_auto_timer_callback(self):
         """Called every 1 second to re-send 0x0A2 auto mode command."""
