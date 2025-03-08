@@ -399,11 +399,11 @@ class ResolverPublisher(Node):
         Setup the node for the application. Create publishers, services, and initialize data members.
         """
         # Delay between each bus reading. In practice maxs out at 750+-50 us
-        self.receive_deadtime = 0.01
+        self.receive_deadtime = 0.001
         # Time to wait for a valid reading
-        self.receive_timeout = 0.5
+        self.receive_timeout = 0.1
         # Delay between each ROS publish. In practice maxs out at 15+-1 ms
-        resolver_pub_timer_period = 0.05
+        resolver_pub_timer_period = 0.015
 
         # Initialize the transceiver (keep it as originally structured)
         self.resolver_transceiver = ResolverTransceiver(
