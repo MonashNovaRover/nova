@@ -15,8 +15,9 @@ ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics
 AUTHOR(S):   Jory Braun, Tom Newton, Josh Cherubino
+EDITED BY:   Rohit Pilakkat
 CREATION:    14/02/2022
-EDITED:      08/05/2023
+EDITED:      07/03/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
     - Setup appropriate QoS profile for publisher
