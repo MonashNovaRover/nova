@@ -1,12 +1,11 @@
 
-import React, {ReactNode, useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
 import OverlayedCameraComponent from "./OverlayedCameraComponent.tsx";
 import {BaseCameraComponentProps} from "../CameraComponent.tsx";
-import {CameraSerials} from "../../../views/shared/CamerasPage/CameraPageConstants.tsx";
 import {StreamingState} from "../hooks/useCameraStream.ts";
-//import {Tooltip} from "@nextui-org/react";
+import {Tooltip} from "@nextui-org/react";
 
 // export interface GimbalCamOverlayProps {
 //   cameraSerial: string;
@@ -17,9 +16,9 @@ import {StreamingState} from "../hooks/useCameraStream.ts";
 export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> = (props) => {
   const [showOverlay, setShowOverlay] = useState<boolean>(false)
 
-  // Default stepsize for incrementing angles
+  // Default step size for incrementing angles
   const [step, setStep] = useState(1);
-  //const [inputValue, setInputValue] = React.useState("1");
+  const [inputValue, setInputValue] = React.useState("1");
 
   const serviceBifrost = useBifrost({service: RosService.SCIMBAL_COMMAND});
   const incrementTilt = (step: number) => serviceBifrost.callServiceToRedux({
@@ -29,29 +28,7 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
     angles: [0, step]
   });
 
-  // // input for varying stepsize
-  // <Tooltip
-  //   className="text-tiny text-default-500 rounded-md"
-  //   content="Press Enter to confirm"
-  //   placement="left"
-  // >
-  //   <input
-  //     aria-label="Temperature value"
-  //     className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
-  //     type="text"
-  //     value={inputValue}
-  //     onChange={(e) => {
-  //       const v = e.target.value;
-  //
-  //       setInputValue(v);
-  //     }}
-  //     onKeyDown={(e) => {
-  //       if (e.key === "Enter" && !isNaN(Number(inputValue))) {
-  //         setStep(Number(inputValue));
-  //       }
-  //     }}
-  //   />
-  // </Tooltip>
+
 
   //WASD Controls
   useEffect(() => {
@@ -73,7 +50,7 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
           break
       }
     });
-  }, []);
+  }, [incrementPan, incrementTilt, step]);
 
   // // CLICK & HOLD CONTROLS
   // const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -99,12 +76,38 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
 
 
   return (
+    <div>
     <OverlayedCameraComponent
       onStreamingStateChange={(s) => setShowOverlay(s === StreamingState.STREAMING)}
       {...props}
       overlay={showOverlay ? <div className="self-center grow h-0.5 bg-black"/> : <div/>}
-      //<p id="demoCoords"></p>
+
     />
 
+      Step Size:
+    <Tooltip
+      className="text-tiny text-default-500 rounded-md"
+      content="Press Enter to confirm"
+      placement="left"
+    >
+      <input
+        aria-label="Temperature value"
+        className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
+        type="text"
+        value={inputValue}
+        onChange={(e) => {
+          const v = e.target.value;
+
+          setInputValue(v);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !isNaN(Number(inputValue))) {
+            setStep(Number(inputValue));
+          }
+        }}
+      />
+    </Tooltip>
+      <p id="demoCoords"></p>
+    </div>
   );
 }
