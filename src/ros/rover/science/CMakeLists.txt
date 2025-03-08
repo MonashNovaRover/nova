@@ -55,6 +55,7 @@ install(PROGRAMS
   science/actuator_limit_publisher.py
   science/microscope_servo.py
   science/nir_probe_publisher.py
+  science/scimbal_cam.py
   science/urc_raman_spec_server.py
   science/urc_analysis_arm.py
   science/urc_auger.py
