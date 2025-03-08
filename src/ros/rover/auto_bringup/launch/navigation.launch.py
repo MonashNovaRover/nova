@@ -34,6 +34,7 @@ def launch_setup(context, *args, **kwargs):
     use_composition = LaunchConfiguration('use_composition')
     use_respawn = LaunchConfiguration('use_respawn')
     use_sim_time = LaunchConfiguration('use_sim_time')
+    map_yaml_file = LaunchConfiguration('map_yaml_file')
 
     lifecycle_nodes = ['controller_server',
                        'smoother_server',
@@ -41,7 +42,8 @@ def launch_setup(context, *args, **kwargs):
                        'behavior_server',
                        'bt_navigator',
                        'waypoint_follower',
-                       'velocity_smoother']
+                       'velocity_smoother',
+                       'map_server']
 
     # Map fully qualified names to relative ones so the node's namespace can be prepended.
     # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
@@ -140,6 +142,13 @@ def launch_setup(context, *args, **kwargs):
                 #     parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                 # ),
                 Node(
+                    package='nav2_map_server',
+                    executable='map_server',
+                    name='map_server',
+                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}, {'yaml_filename': map_yaml_file}],
+                    remappings=remappings + [('map', 'static_map')],
+                ),
+                Node(
                     package='nav2_lifecycle_manager',
                     executable='lifecycle_manager',
                     name='lifecycle_manager_navigation',
@@ -217,13 +226,13 @@ def launch_setup(context, *args, **kwargs):
                         #     remappings=remappings +
                         #     [('cmd_vel', 'cmd_vel_nav')]
                         # ),
-                        # ComposableNode(
-                        #     package='nav2_map_server',
-                        #     plugin='nav2_map_server::MapServer',
-                        #     name='map_server',
-                        #     parameters=[nav2_params, substitution_params, sim_params if in_sim else {}, {'yaml_filename': map_yaml_file}],
-                        #     remappings=remappings + [('map', 'static_map')],
-                        # ),
+                        ComposableNode(
+                            package='nav2_map_server',
+                            plugin='nav2_map_server::MapServer',
+                            name='map_server',
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}, {'yaml_filename': map_yaml_file}],
+                            remappings=remappings + [('map', 'static_map')],
+                        ),
                         ComposableNode(
                             package='nav2_bt_navigator',
                             plugin='nav2_bt_navigator::BtNavigator',

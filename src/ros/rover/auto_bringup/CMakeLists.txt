@@ -27,6 +27,7 @@ install(DIRECTORY
   params
   resources
   rviz
+  maps
   DESTINATION share/${PROJECT_NAME}
 )
 

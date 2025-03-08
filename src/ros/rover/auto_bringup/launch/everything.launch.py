@@ -80,6 +80,7 @@ def launch_setup(context, *args, **kwargs):
                 'params_file': nav2_params,
                 'use_respawn': use_respawn,
                 'use_sim_time': gazebo,
+                'map_yaml_file': PathJoinSubstitution([auto_bringup_dir, 'maps', 'static_map_layer.yaml']),
             }.items()
         ),
     ]

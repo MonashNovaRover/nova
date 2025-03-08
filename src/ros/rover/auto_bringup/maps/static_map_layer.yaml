@@ -1,6 +1,40 @@
-image: comp_map.png
-resolution: 0.400000
-origin: [-10.0, -28.0, 0.0]
-negate: 0
-occupied_thresh: 0.65
-free_thresh: 0.196
+# publishes to /map (and is remapped to /static_map in navigation.launch.py)
+# subscribed to by global_costmap layer in the static_layer plugin under map_topic parameter
+
+# Rover will always be spawned at 0,0 in 2D POSE (at least in gazebo, haven't tested IRL)
+# Open picture in application that can view pixels, MS Paint for Windows or Pinta for Nixos (nix-shell -p pinta)
+# To calculate the rover's position on the map image:
+#   Pixel[x] = -1 * Origin[x] / resolution
+#   Pixel[y] = -1 * height - (origin[y] / resolution)
+# To place rover in specific spot on map image:
+#   Choose pixel coordinates for rover, then follow this formula:
+#   Origin[x] = -1 * pixel[x] * resolution
+#   Origin[y] = -1 * (height - pixel[y]) * resolution
+#   Where height is the height of the map image
+#   Notice the difference between x and y's calculation.
+# Yaw is the counterclockwise rotation of the rover in radians
+# IMPORTANT! Yaw is ignored by the global costmap and rover will face the right side of the static map
+
+# ARCh 2024
+image: comp_map.png         
+resolution: 0.400000        # meters per pixel
+origin: [-8.4, -21.2, 0]    # 2D pose of lower left pixel of map (x, y, yaw)
+negate: 0                   # negate = 0 therefore white = free, black = occupied
+occupied_thresh: 0.65       # pixels with occupancy greater than this value are considered completely occupied
+free_thresh: 0.196          # same as above but for free (these are used if there are grey pixels)
+
+# clear map (no obstacles)
+# image: clear_map.png     
+# resolution: 0.400000
+# origin: [-8.4, -21.2, 0]
+# negate: 0
+# occupied_thresh: 0.65
+# free_thresh: 0.196 
+
+# 2025 Comp Sims
+# image: comp_sim_ARCh_2025.png
+# resolution: 0.1 # 10 cm per pixel
+# origin []
+# negate: 0
+# occupied_thresh: 0.65
+# free_thresh: 0.196         
