@@ -36,3 +36,8 @@ camera_directory:
           '2.2:1.0': arm_end_side
           '2.3:1.0': arm_end_periscope
           '2.4:1.0': arm_end_top
+        ec:
+          '4:1.0': ec_scraper             # ec hub 1 -> camera in USB position 1 as labeled on the E&C CAMS USB Hub
+          '3:1.0': ec_forklift_down       # ec hub 2
+          '2:1.0': ec_forklift_forward    # ec hub 3
+          '1:1.0': ec_scraper_leg         # ec hub 4
