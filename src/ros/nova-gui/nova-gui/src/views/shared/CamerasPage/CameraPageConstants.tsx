@@ -40,7 +40,6 @@ export enum CameraSerials {
   SCIENCE_MICROSCOPE = "science_microscope",
   SCIENCE_GIMBAL = "science_gimbal_cam",
 
-
   URC_SCIENCE_UV_VIS = "science_spectroscope",
   URC_SCIENCE_CUVETTE = "science_cuvettes",
   URC_SCIENCE_PAYLOAD_FRONT = "science_payload_front",
@@ -85,6 +84,7 @@ const urcScienceCams = [
   CameraSerials.URC_SCIENCE_PAYLOAD_DOWN,
   CameraSerials.URC_SCIENCE_PAYLOAD_FRONT,
   CameraSerials.URC_SCIENCE_UV_VIS,
+  CameraSerials.SCIENCE_GIMBAL,
 ]
 
 export const post_landing_views: CameraView[] = [
