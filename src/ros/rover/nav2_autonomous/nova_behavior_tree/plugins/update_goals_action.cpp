@@ -59,6 +59,16 @@ namespace nova_behavior_tree
         getInput("update_radius", viapoint_overwrite_tolerance_);
         getInput("goal_radius", goal_radius_);
         getInput("goal_type", goal_type_);
+
+        double footprint_radius;;
+        if (node_->get_parameter("local_costmap.local_costmap.ros__parameters.robot_radius", footprint_radius))
+        {
+            goal_radius_ += footprint_radius;
+        }
+        else
+        {
+            RCLCPP_ERROR(node_->get_logger(), "Failed to get local footprint");
+        }
         
         initialized_ = true;
     }
