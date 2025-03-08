@@ -9,6 +9,7 @@
 # Update git
 echo "Refreshing git repo"
 git -C ~/nova pull
+git switch master
 
 jobset=${1:-workspaces}
 oraclekey=${2:-~/nova-oracle.key}
