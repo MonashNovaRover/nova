@@ -1,22 +1,36 @@
-# gz clock to ros 
+# gz clock to ros
 - ros_topic_name: "/clock"
   gz_topic_name: "/clock"
   ros_type_name: "rosgraph_msgs/msg/Clock"
   gz_type_name: "gz.msgs.Clock"
   direction: GZ_TO_ROS # BIDIRECTIONAL or ROS_TO_GZ
 
-# gz oak depth image to ros 
-- ros_topic_name: "/oak/depth"
-  gz_topic_name: "/oak/depth"
+# gz oak depth image to ros
+- ros_topic_name: "/oak/stereo/image_raw"
+  gz_topic_name: "/oak/depth_image"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
   direction: GZ_TO_ROS
 
+# gz depth camera info to ros
+- ros_topic_name: "/oak/stereo/camera_info"
+  gz_topic_name: "/oak/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
+
 # gz oak rgb image to ros
-- ros_topic_name: "/oak/rgb/image_rect"
-  gz_topic_name: "/oak/rgb"
+- ros_topic_name: "/oak/rgb/image_raw"
+  gz_topic_name: "/oak/image"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+# gz rgb camera info to ros ( Intrinsics Identical to DepthImages )
+- ros_topic_name: "/oak/rgb/camera_info"
+  gz_topic_name: "/oak/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
 # gz imu to ros
@@ -27,11 +41,11 @@
   direction: GZ_TO_ROS
 
 # gz pointcloud to ros
-- ros_topic_name: "/oak/depth/points"
-  gz_topic_name: "/oak/depth/points"
-  ros_type_name: "sensor_msgs/msg/PointCloud2"
-  gz_type_name: "gz.msgs.PointCloudPacked"
-  direction: GZ_TO_ROS
+# - ros_topic_name: "/oak/depth/points"
+#   gz_topic_name: "/oak/points"
+#   ros_type_name: "sensor_msgs/msg/PointCloud2"
+#   gz_type_name: "gz.msgs.PointCloudPacked"
+#   direction: GZ_TO_ROS
 
 # gz gps to ros
 - ros_topic_name: "/fix" # guessing this one could also be /gps_plugin/vel ?

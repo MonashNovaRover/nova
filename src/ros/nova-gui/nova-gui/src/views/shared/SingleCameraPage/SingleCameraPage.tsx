@@ -1,9 +1,9 @@
 import { useParams } from "react-router-dom";
 import { useCameraStreamer } from "../../../components/CameraComponent/hooks/useCameraStreamer";
-import { CameraComponent } from "../../../components/CameraComponent/CameraComponent";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState";
 import { Spinner } from "@nextui-org/react";
+import SerialMappedCameraComponent from "../CamerasPage/SerialMappedCameraComponent.tsx";
 
 export const SingleCameraPage = () => {
   const { serial } = useParams<{ serial: string }>();
@@ -29,5 +29,5 @@ export const SingleCameraPage = () => {
       </div>
     );
 
-  return <CameraComponent cameraSerial={serial} />;
+  return <SerialMappedCameraComponent cameraSerial={serial} />;
 };

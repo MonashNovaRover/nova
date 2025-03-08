@@ -17,7 +17,7 @@ import {
   URCCompModes,
   arcCameraSetup,
   urcCameraSetup,
-} from "../views/shared/CamerasPage/CameraPageConstants.ts";
+} from "../views/shared/CamerasPage/CameraPageConstants";
 import GeneralBaseView from "../views/general/GeneralBaseView.tsx";
 import { ARCNIRProbeView } from "../views/arc/ARCNIRProbeView.tsx";
 import { ARCMicroscopeView } from "../views/arc/ARCMicroscopeView.tsx";
@@ -156,7 +156,7 @@ export const routes: RouteObject[] = [
     children: [
       {
         path: "/",
-        element: <Navigate to="/urc" />,
+        element: <Navigate to="/arc" />,
       },
       {
         path: "/arc",
