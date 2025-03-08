@@ -39,6 +39,7 @@ export enum CameraSerials {
   SCIENCE_AUGER_BOTTOM = "science_auger_bottom",
   SCIENCE_ANALYSIS_BOTTOM = "science_analysis_bottom",
   SCIENCE_MICROSCOPE = "science_microscope",
+  SCIENCE_GIMBAL = "science_gimbal_cam",
 
   URC_SCIENCE_UV_VIS = "science_spectroscope",
   URC_SCIENCE_CUVETTE = "science_cuvettes",
@@ -84,6 +85,7 @@ const urcScienceCams = [
   CameraSerials.URC_SCIENCE_PAYLOAD_DOWN,
   CameraSerials.URC_SCIENCE_PAYLOAD_FRONT,
   CameraSerials.URC_SCIENCE_UV_VIS,
+  CameraSerials.SCIENCE_GIMBAL,
 ]
 
 export const post_landing_views: CameraView[] = [
@@ -159,6 +161,7 @@ export const space_resources_views: CameraView[] = [
       CameraSerials.MAST_BACKWARD,
 
       CameraSerials.SCIENCE_ANALYSIS_BOTTOM,
+      CameraSerials.SCIENCE_GIMBAL,
       
     ],
     viewTitle: "All Cams",
