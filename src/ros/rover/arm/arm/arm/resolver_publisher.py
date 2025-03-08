@@ -149,6 +149,7 @@ class ResolverTransceiver(CANTransceiver):
         """ Processes incoming CAN messages and stores resolver readings. """
         if can_msg is None:
             return
+    
 
         #Verify the CAN ID is 0x0A0
         if can_msg.arbitration_id != 0x0A0:
@@ -407,9 +408,9 @@ class ResolverPublisher(Node):
         # Delay between each bus reading. In practice maxs out at 750+-50 us
         self.receive_deadtime = 0.01
         # Time to wait for a valid reading
-        self.receive_timeout = 0.6
+        self.receive_timeout = 0.5
         # Delay between each ROS publish. In practice maxs out at 15+-1 ms
-        resolver_pub_timer_period = 0.6
+        resolver_pub_timer_period = 0.05
 
         # Initialize the transceiver (keep it as originally structured)
         self.resolver_transceiver = ResolverTransceiver(
