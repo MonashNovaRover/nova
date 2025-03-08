@@ -192,22 +192,22 @@ class ResolverTransceiver(CANTransceiver):
         joint = self.get_joint(joint_name)
         if joint.gear_ratio != 1:
             self.logger.info(f'Resetting sector for geared joint {joint_name}')
-            
-            # Get an initial reading
-            integer_data = self.poll_resolver(joint_name)
+
+            # Instead of poll_resolver, just read from the auto-updated joint_states
+            integer_data = self.joint_states.get(joint_name, None)
             if integer_data is None:
+                self.logger.warn(f"No auto-stream data for {joint_name}, cannot reset sector.")
                 return False
+
             angle_data = self._convert_to_rad(integer_data)
             joint.last_reading = angle_data
 
-            # Set sector
-            # Joint angle will be close to zero, but may be just above or just below
-            # Set sector to first or last depending on which one
+            # Decide which sector to put the joint in:
+            #   - If angle < π, assume it is near 0 sector
+            #   - If angle >= π, assume it is near the last sector
             if angle_data < pi:
-                # Joint is in the first sector
                 joint.sector_count = 0
-            if angle_data >= pi:
-                # Joint is in the last sector
+            else:
                 joint.sector_count = joint.gear_ratio - 1
 
         return True
