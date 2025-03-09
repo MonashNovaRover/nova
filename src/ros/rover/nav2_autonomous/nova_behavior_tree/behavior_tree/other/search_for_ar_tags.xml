@@ -17,9 +17,20 @@
             <ReactiveSequence>
               <ForceSuccess>
                 <ReactiveSequence>
+                  <!-- 
+                       ADDED: ar_tag_goals="{tag_goals}"
+                       This port outputs a vector of AR-tag goals
+                       just like "cube_goals" does for cubes 
+                  -->
                   <ARTagDetected seen_ids="{seen_ids}"
                                  id="{id}"
-                                 goal="{goal}"/>
+                                 goal="{goal}"
+                                 ar_tag_goals="{tag_goals}"/>
+
+                  <!-- 
+                       CHANGED: We pass tag_goals as input_goals
+                       so the UpdateGoal node can offset each AR tag
+                  -->
                   <UpdateGoal goal_type="AR tag"
                               input_goal="{goal}"
                               input_goals="{goals}"

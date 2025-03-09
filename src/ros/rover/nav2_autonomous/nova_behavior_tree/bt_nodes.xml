@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <root BTCPP_format="4">
   <TreeNodesModel>
+    <!-- ############################### NOVA NODES ################################### -->
     <!-- ############################### ACTION NODES ################################# -->
     <Action ID="BlackboardPublisher">
       <input_port name="topic_name">ROS topic for publishing</input_port>
@@ -49,10 +50,106 @@
       <input_port name="current_pose">The current pose of the rover</input_port>
       <input_port name="goals">Goals to add as viapoints</input_port>
       <input_port name="input_goals">Original goals to add viapoints into</input_port>
-      <input_port name="radius">Radius to next goal for it to be considered an update</input_port>
+      <input_port name="update_radius">Radius to next goal for it to be considered an update</input_port>
+      <input_port name="goal_radius">Radius away from actual pose to set goal</input_port>
       <output_port name="output_goals">Goals with new viapoints added/updated</output_port>
     </Action>
 
+    <Action ID="SaveImage">
+      <input_port name="service_name">Service name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+    </Action>
+
+    <Action ID="LED">
+      <input_port name="service_name">Service name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+    </Action>
+
+    <!-- ############################### CONDITION NODES ############################## -->
+    <Condition ID="CubeDetected">
+      <input_port name="visited_ids">visited_ids[i] = true if visited, false otherwise</input_port>
+      <output_port name="current_pose">The current pose of the rover</output_port>
+      <output_port name="cube_goals">Goals of detected cubes</output_port>
+      <output_port name="cube_poses">List of most recent cube poses</output_port>
+    </Condition>
+    
+    <Condition ID="ARTagDetected">
+      <input_port name="seen_ids">Visited AR tags IDs</input_port>
+      <output_port name="id">Detected AR tag ID</output_port>
+      <output_port name="goal">Detected AR tag pose</output_port>
+    </Condition>
+
+    <Condition ID="GetFirstGoal">
+      <input_port name="goals">List of goals</input_port>
+      <output_port name="first_goal">First Goal</output_port>
+    </Condition>
+
+    <Condition ID="CheckDetected">
+      <input_port name="id">id as string</input_port>
+      <input_port name="detection_type">tag or object</input_port>
+    </Condition>
+
+    <Condition ID="GetFinalGoal">
+      <input_port name="goals">List of goals</input_port>
+      <output_port name="final_goal">Final Goal</output_port>
+    </Condition>
+
+    <Condition ID="QueryPosition">
+      <input_port name="id">ID of tag or object</input_port>
+      <input_port name="detection_type">'tag' or 'object'</input_port>
+      <output_port name="position">PoseStamped</output_port>
+    </Condition>
+
+    <Condition ID="ComputeSearchGoals">
+      <input_port name="search_origin">The center of the search region</input_port>
+      <input_port name="search_radius">The radius (m) to search around the center</input_port>
+      <input_port name="num_points">Num points in search circle</input_port>
+      <output_port name="search_goals">Search Goals</output_port>
+    </Condition>
+
+    <Condition ID="FirstGoalReached">
+      <input_port name="goals">Waypoints</input_port>
+      <input_port name="global_frame">Reference frame</input_port>
+      <input_port name="robot_base_frame">Robot base frame</input_port>
+    </Condition>
+
+    <Condition ID="GoalsEmpty">
+      <input_port name="goals">Waypoints</input_port>
+    </Condition>
+
+    <!-- ############################### CONTROL NODES ################################ -->
+
+    <!-- ############################### DECORATOR NODES ############################## -->
+
+    <!-- ############################### SUBTREE NODES ################################ -->
+    <SubTree ID="NavThroughPosesWithReplanningAndRecovery">
+      <input_port default="true" name="__shared_blackboard">If false (default), the Subtree has an
+        isolated blackboard and needs port remapping</input_port>
+      <input_port default="{goals}" name="goals" />
+    </SubTree>
+
+    <SubTree ID="NavToPoseWithReplanningAndRecovery">
+      <input_port default="true" name="__shared_blackboard">If false (default), the Subtree has an
+        isolated blackboard and needs port remapping</input_port>
+      <input_port default="{goal}" name="goal" />
+    </SubTree>
+
+    <SubTree ID="Recovery">
+      <input_port default="false" name="__shared_blackboard">If false (default), the Subtree has an
+        isolated blackboard and needs port remapping</input_port>
+    </SubTree>
+
+
+
+
+
+
+
+
+
+
+    <!-- ############################### NAV2 NODES ################################### -->
+    <!-- ############################### ACTION NODES ################################# -->
     <Action ID="BackUp">
       <input_port name="backup_dist">Distance to backup</input_port>
       <input_port name="backup_speed">Speed at which to backup</input_port>
@@ -147,7 +244,7 @@
     </Action>
 
     <Action ID="SmoothPath">
-      <input_port name="smoother_id" default="SmoothPath" />
+      <input_port name="smoother_id" default="SmoothPath"/>
       <input_port name="unsmoothed_path">Path to be smoothed</input_port>
       <input_port name="max_smoothing_duration">Maximum smoothing duration</input_port>
       <input_port name="check_for_collisions">Bool if collision check should be performed</input_port>
@@ -157,7 +254,7 @@
     </Action>
 
     <Action ID="FollowPath">
-      <input_port name="controller_id" default="FollowPath" />
+      <input_port name="controller_id" default="FollowPath"/>
       <input_port name="path">Path to follow</input_port>
       <input_port name="goal_checker_id">Goal checker</input_port>
       <input_port name="progress_checker_id">Progress checker</input_port>
@@ -167,30 +264,30 @@
     </Action>
 
     <Action ID="NavigateToPose">
-      <input_port name="goal">Goal</input_port>
-      <input_port name="server_name">Server name</input_port>
-      <input_port name="server_timeout">Server timeout</input_port>
-      <input_port name="behavior_tree">Behavior tree to run</input_port>
-      <output_port name="error_code_id">Navigate to pose error code</output_port>
+        <input_port name="goal">Goal</input_port>
+        <input_port name="server_name">Server name</input_port>
+        <input_port name="server_timeout">Server timeout</input_port>
+        <input_port name="behavior_tree">Behavior tree to run</input_port>
+        <output_port name="error_code_id">Navigate to pose error code</output_port>
     </Action>
 
     <Action ID="NavigateThroughPoses">
-      <input_port name="goals">Goals</input_port>
-      <input_port name="server_name">Server name</input_port>
-      <input_port name="server_timeout">Server timeout</input_port>
-      <input_port name="behavior_tree">Behavior tree to run</input_port>
-      <output_port name="error_code_id">Navigate through poses error code</output_port>
+        <input_port name="goals">Goals</input_port>
+        <input_port name="server_name">Server name</input_port>
+        <input_port name="server_timeout">Server timeout</input_port>
+        <input_port name="behavior_tree">Behavior tree to run</input_port>
+        <output_port name="error_code_id">Navigate through poses error code</output_port>
     </Action>
 
     <Action ID="ReinitializeGlobalLocalization">
-      <input_port name="service_name">Service name</input_port>
-      <input_port name="server_timeout">Server timeout</input_port>
+        <input_port name="service_name">Service name</input_port>
+        <input_port name="server_timeout">Server timeout</input_port>
     </Action>
 
     <Action ID="TruncatePath">
-      <input_port name="distance">Distance before goal to truncate</input_port>
-      <input_port name="input_path">Path to truncate</input_port>
-      <output_port name="output_path">Truncated path to utilize</output_port>
+        <input_port name="distance">Distance before goal to truncate</input_port>
+        <input_port name="input_path">Path to truncate</input_port>
+        <output_port name="output_path">Truncated path to utilize</output_port>
     </Action>
 
     <Action ID="TruncatePathLocal">
@@ -199,49 +296,39 @@
       <input_port name="robot_frame">Robot base frame id</input_port>
       <input_port name="transform_tolerance">Transform lookup tolerance</input_port>
       <input_port name="pose">Manually specified pose to be used if overriding current robot pose</input_port>
-      <input_port name="angular_distance_weight">Weight of angular distance relative to positional
-        distance when finding which path pose is closest to robot. Not applicable on paths without
-        orientations assigned</input_port>
-      <input_port name="max_robot_pose_search_dist">Maximum forward integrated distance along the
-        path (starting from the last detected pose) to bound the search for the closest pose to the
-        robot. When set to infinity (default), whole path is searched every time</input_port>
+      <input_port name="angular_distance_weight">Weight of angular distance relative to positional distance when finding which path pose is closest to robot. Not applicable on paths without orientations assigned</input_port>
+      <input_port name="max_robot_pose_search_dist">Maximum forward integrated distance along the path (starting from the last detected pose) to bound the search for the closest pose to the robot. When set to infinity (default), whole path is searched every time</input_port>
       <output_port name="output_path">Truncated path to utilize</output_port>
     </Action>
 
     <Action ID="PlannerSelector">
-      <input_port name="topic_name">Name of the topic to receive planner selection commands</input_port>
-      <input_port name="default_planner">Default planner of the planner selector</input_port>
-      <output_port name="selected_planner">Name of the selected planner received from the topic
-        subcription</output_port>
+        <input_port name="topic_name">Name of the topic to receive planner selection commands</input_port>
+        <input_port name="default_planner">Default planner of the planner selector</input_port>
+        <output_port name="selected_planner">Name of the selected planner received from the topic subcription</output_port>
     </Action>
 
     <Action ID="ControllerSelector">
-      <input_port name="topic_name">Name of the topic to receive controller selection commands</input_port>
-      <input_port name="default_controller">Default controller of the controller selector</input_port>
-      <output_port name="selected_controller">Name of the selected controller received from the
-        topic subcription</output_port>
+        <input_port name="topic_name">Name of the topic to receive controller selection commands</input_port>
+        <input_port name="default_controller">Default controller of the controller selector</input_port>
+        <output_port name="selected_controller">Name of the selected controller received from the topic subcription</output_port>
     </Action>
 
     <Action ID="SmootherSelector">
-      <input_port name="topic_name">Name of the topic to receive smoother selection commands</input_port>
-      <input_port name="default_smoother">Default smoother of the smoother selector</input_port>
-      <output_port name="selected_smoother">Name of the selected smoother received from the topic
-        subcription</output_port>
+        <input_port name="topic_name">Name of the topic to receive smoother selection commands</input_port>
+        <input_port name="default_smoother">Default smoother of the smoother selector</input_port>
+        <output_port name="selected_smoother">Name of the selected smoother received from the topic subcription</output_port>
     </Action>
 
     <Action ID="GoalCheckerSelector">
-      <input_port name="topic_name">Name of the topic to receive goal checker selection commands</input_port>
-      <input_port name="default_goal_checker">Default goal checker of the controller selector</input_port>
-      <output_port name="selected_goal_checker">Name of the selected goal checker received from the
-        topic subcription</output_port>
+        <input_port name="topic_name">Name of the topic to receive goal checker selection commands</input_port>
+        <input_port name="default_goal_checker">Default goal checker of the controller selector</input_port>
+        <output_port name="selected_goal_checker">Name of the selected goal checker received from the topic subcription</output_port>
     </Action>
 
     <Action ID="ProgressCheckerSelector">
-      <input_port name="topic_name">Name of the topic to receive progress checker selection commands</input_port>
-      <input_port name="default_progress_checker">Default progress checker of the controller
-        selector</input_port>
-      <output_port name="selected_progress_checker">Name of the selected progress checker received
-        from the topic subcription</output_port>
+        <input_port name="topic_name">Name of the topic to receive progress checker selection commands</input_port>
+        <input_port name="default_progress_checker">Default progress checker of the controller selector</input_port>
+        <output_port name="selected_progress_checker">Name of the selected progress checker received from the topic subcription</output_port>
     </Action>
 
     <Action ID="Spin">
@@ -258,16 +345,6 @@
       <input_port name="server_timeout">Server timeout</input_port>
     </Action>
 
-    <Action ID="SaveImage">
-      <input_port name="service_name">Service name</input_port>
-      <input_port name="server_timeout">Server timeout</input_port>
-    </Action>
-
-    <Action ID="LED">
-      <input_port name="service_name">Service name</input_port>
-      <input_port name="server_timeout">Server timeout</input_port>
-    </Action>
-
     <Action ID="AssistedTeleop">
       <input_port name="time_allowance">Allowed time for spinning</input_port>
       <input_port name="is_recovery">If true recovery count will be incremented</input_port>
@@ -277,60 +354,13 @@
     </Action>
 
     <!-- ############################### CONDITION NODES ############################## -->
-    <Condition ID="CubeDetected">
-      <input_port name="visited_ids">visited_ids[i] = true if visited, false otherwise</input_port>
-      <output_port name="current_pose">The current pose of the rover</output_port>
-      <output_port name="cube_goals">Goals of detected cubes</output_port>
-      <output_port name="cube_poses">List of most recent cube poses</output_port>
-    </Condition>
-    
-    <Condition ID="ARTagDetected">
-      <input_port name="seen_ids">Visited AR tags IDs</input_port>
-      <output_port name="id">Detected AR tag ID</output_port>
-      <output_port name="goal">Detected AR tag pose</output_port>
-    </Condition>
-
     <Condition ID="GoalReached">
-      <input_port name="goal">Destination</input_port>
-      <input_port name="global_frame">Reference frame</input_port>
-      <input_port name="robot_base_frame">Robot base frame</input_port>
+        <input_port name="goal">Destination</input_port>
+        <input_port name="global_frame">Reference frame</input_port>
+        <input_port name="robot_base_frame">Robot base frame</input_port>
     </Condition>
 
-    <Condition ID="GetFirstGoal">
-      <input_port name="goals">List of goals</input_port>
-      <output_port name="first_goal">First Goal</output_port>
-    </Condition>
-
-    <Condition ID="CheckDetected">
-      <input_port name="id">id as string</input_port>
-      <input_port name="detection_type">tag or object</input_port>
-    </Condition>
-
-    <Condition ID="GetFinalGoal">
-      <input_port name="goals">List of goals</input_port>
-      <output_port name="final_goal">Final Goal</output_port>
-    </Condition>
-
-    <Condition ID="QueryPosition">
-      <input_port name="id">ID of tag or object</input_port>
-      <input_port name="detection_type">'tag' or 'object'</input_port>
-      <output_port name="position">PoseStamped</output_port>
-    </Condition>
-
-    <Condition ID="ComputeSearchGoals">
-      <input_port name="search_origin">The center of the search region</input_port>
-      <input_port name="search_radius">The radius (m) to search around the center</input_port>
-      <input_port name="num_points">Num points in search circle</input_port>
-      <output_port name="search_goals">Search Goals</output_port>
-    </Condition>
-
-    <Condition ID="FirstGoalReached">
-      <input_port name="goals">Waypoints</input_port>
-      <input_port name="global_frame">Reference frame</input_port>
-      <input_port name="robot_base_frame">Robot base frame</input_port>
-    </Condition>
-
-    <Condition ID="IsStuck" />
+    <Condition ID="IsStuck"/>
 
     <Condition ID="TransformAvailable">
       <input_port name="child">Child frame for transform</input_port>
@@ -340,10 +370,6 @@
     <Condition ID="GoalUpdated">
       <input_port name="goal">Vector of navigation goals</input_port>
       <input_port name="goals">Navigation goal</input_port>
-    </Condition>
-
-    <Condition ID="GoalsEmpty">
-      <input_port name="goals">Waypoints</input_port>
     </Condition>
 
     <Condition ID="GlobalUpdatedGoal">
@@ -405,13 +431,13 @@
 
 
     <!-- ############################### CONTROL NODES ################################ -->
-    <Control ID="PipelineSequence" />
+    <Control ID="PipelineSequence"/>
 
     <Control ID="RecoveryNode">
       <input_port name="number_of_retries">Number of retries</input_port>
     </Control>
 
-    <Control ID="RoundRobin" />
+    <Control ID="RoundRobin"/>
 
     <!-- ############################### DECORATOR NODES ############################## -->
     <Decorator ID="RateController">
@@ -444,30 +470,12 @@
     <Decorator ID="PathLongerOnApproach">
       <input_port name="path">Planned Path</input_port>
       <input_port name="prox_len">Proximity length (m) for the path to be longer on approach</input_port>
-      <input_port name="length_factor">Length multiplication factor to check if the path is
-        significantly longer </input_port>
+      <input_port name="length_factor">Length multiplication factor to check if the path is significantly longer </input_port>
     </Decorator>
 
     <Decorator ID="GoalUpdatedController">
       <input_port name="goal">Vector of navigation goals</input_port>
       <input_port name="goals">Navigation goal</input_port>
     </Decorator>
-
-    <SubTree ID="NavThroughPosesWithReplanningAndRecovery">
-      <input_port default="true" name="__shared_blackboard">If false (default), the Subtree has an
-        isolated blackboard and needs port remapping</input_port>
-      <input_port default="{goals}" name="goals" />
-    </SubTree>
-
-    <SubTree ID="NavToPoseWithReplanningAndRecovery">
-      <input_port default="true" name="__shared_blackboard">If false (default), the Subtree has an
-        isolated blackboard and needs port remapping</input_port>
-      <input_port default="{goal}" name="goal" />
-    </SubTree>
-
-    <SubTree ID="Recovery">
-      <input_port default="false" name="__shared_blackboard">If false (default), the Subtree has an
-        isolated blackboard and needs port remapping</input_port>
-    </SubTree>
   </TreeNodesModel>
 </root>
