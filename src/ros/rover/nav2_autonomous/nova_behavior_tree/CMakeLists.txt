@@ -126,7 +126,7 @@ install(DIRECTORY include/
 )
 
 install(FILES
-  nova_bt_nodes.xml
+  bt_nodes.xml
   DESTINATION share/${PROJECT_NAME}
 )
 

@@ -28,8 +28,10 @@ def launch_setup(context, *args, **kwargs):
     autostart = LaunchConfiguration('autostart')
     container_name = LaunchConfiguration('container_name')
     log_level = LaunchConfiguration('log_level')
+    map_params = LaunchConfiguration('map_params')
     namespace = LaunchConfiguration('namespace')
     nav2_params = LaunchConfiguration('nav2_params')
+    publish_goals = LaunchConfiguration('publish_goals')
     use_composition = LaunchConfiguration('use_composition')
     use_respawn = LaunchConfiguration('use_respawn')
     use_sim_time = LaunchConfiguration('use_sim_time')
@@ -40,7 +42,8 @@ def launch_setup(context, *args, **kwargs):
                        'behavior_server',
                        'bt_navigator',
                        'waypoint_follower',
-                       'velocity_smoother']
+                       'velocity_smoother',
+                       'map_server']
 
     # Map fully qualified names to relative ones so the node's namespace can be prepended.
     # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
@@ -139,6 +142,13 @@ def launch_setup(context, *args, **kwargs):
                 #     parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                 # ),
                 Node(
+                    package='nav2_map_server',
+                    executable='map_server',
+                    name='map_server',
+                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}, {'yaml_filename': map_params}],
+                    remappings=remappings + [('map', 'static_map')],
+                ),
+                Node(
                     package='nav2_lifecycle_manager',
                     executable='lifecycle_manager',
                     name='lifecycle_manager_navigation',
@@ -216,13 +226,13 @@ def launch_setup(context, *args, **kwargs):
                         #     remappings=remappings +
                         #     [('cmd_vel', 'cmd_vel_nav')]
                         # ),
-                        # ComposableNode(
-                        #     package='nav2_map_server',
-                        #     plugin='nav2_map_server::MapServer',
-                        #     name='map_server',
-                        #     parameters=[nav2_params, substitution_params, sim_params if in_sim else {}, {'yaml_filename': map_yaml_file}],
-                        #     remappings=remappings + [('map', 'static_map')],
-                        # ),
+                        ComposableNode(
+                            package='nav2_map_server',
+                            plugin='nav2_map_server::MapServer',
+                            name='map_server',
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}, {'yaml_filename': map_params}],
+                            remappings=remappings + [('map', 'static_map')],
+                        ),
                         ComposableNode(
                             package='nav2_bt_navigator',
                             plugin='nav2_bt_navigator::BtNavigator',
@@ -235,11 +245,17 @@ def launch_setup(context, *args, **kwargs):
                             plugin='nav2_lifecycle_manager::LifecycleManager',
                             name='lifecycle_manager_navigation',
                             parameters=[{'use_sim_time': use_sim_time,
-                                        'autostart': autostart,
-                                        'node_names': lifecycle_nodes}],
+                                         'autostart': autostart,
+                                         'node_names': lifecycle_nodes}],
                         )])],
         ),
         SetEnvironmentVariable('RCUTILS_LOGGING_BUFFERED_STREAM', '1'),
+        Node(
+            condition=IfCondition(publish_goals),
+            package='nova_utils',
+            executable='goal_marker.py',
+            namespace=namespace,
+        ),
     ]
 
 
@@ -263,6 +279,11 @@ def generate_launch_description():
             description='log level',
         ),
         DeclareLaunchArgument(
+            name='map_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'map.yaml']),
+            description='Full path to the parameters file to use for static map layer',
+        ),
+        DeclareLaunchArgument(
             name='namespace',
             default_value='',
             description='Top-level namespace',
@@ -270,7 +291,12 @@ def generate_launch_description():
         DeclareLaunchArgument(
             name='nav2_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2.yaml']),
-            description='Full path to the ROS2 parameters file to use for all launched nodes',
+            description='Full path to the ROS2 parameters file to use for all launched Nav2 nodes',
+        ),
+        DeclareLaunchArgument(
+            name='publish_goals',
+            default_value='True',
+            description='Publish Nav2 goals as a MarkerArray?',
         ),
         DeclareLaunchArgument(
             name='use_composition',

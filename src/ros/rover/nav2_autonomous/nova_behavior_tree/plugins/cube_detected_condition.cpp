@@ -86,7 +86,8 @@ namespace nova_behavior_tree
         bool result = false;
         geometry_msgs::msg::TransformStamped t;
         Goal current_pose;
-        Goals goals(4);
+        Goals goals;
+        goals.reserve(4);
         
         IDs visited_ids;
         getInput("visited_ids", visited_ids);
@@ -137,13 +138,13 @@ namespace nova_behavior_tree
             
             cube_poses_[i] = cube_pose;
             
-            RCLCPP_INFO(node_->get_logger(), "%s cube detected, added pose to cube_poses", COLORS[i].c_str());
+            RCLCPP_INFO(node_->get_logger(), "%s cube detected, updating/inserting goal", COLORS[i].c_str());
             
             goal.header.frame_id = global_frame_;
             goal.header.stamp = t.header.stamp;
             goal.pose = cube_pose;
             
-            goals[i] = goal;
+            goals.push_back(goal);
 
             result = true;
         }

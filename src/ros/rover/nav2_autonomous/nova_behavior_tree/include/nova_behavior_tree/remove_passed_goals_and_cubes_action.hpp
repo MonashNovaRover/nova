@@ -78,7 +78,7 @@ namespace nova_behavior_tree
     IDs visited_ids_{};
     
     bool initialized_ = false;
-    const std::string COLORS[4] = {"red", "green", "blue", "white"};
+    const std::array<std::string, 4> COLORS = {"red", "green", "blue", "white"};
   };
 
 } // namespace nova_behavior_tree

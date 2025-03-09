@@ -27,8 +27,9 @@
 #include <memory>
 #include <string>
 
-#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav2_util/geometry_utils.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/pose.hpp"
 #include "behaviortree_cpp/action_node.h"
 #include "nav2_behavior_tree/bt_utils.hpp"
 
@@ -40,6 +41,11 @@ class UpdateGoalsAction : public BT::ActionNodeBase
 public:
   typedef geometry_msgs::msg::PoseStamped Goal;
   typedef std::vector<Goal> Goals;
+
+  struct GoalEntry {
+    geometry_msgs::msg::Pose pose{};
+    int index = 0;
+  };
 
   UpdateGoalsAction(
     const std::string & xml_tag_name,
@@ -58,7 +64,8 @@ public:
       BT::InputPort<Goal>("current_pose", "The current pose of the rover"),
       BT::InputPort<Goals>("goals", "Goals to add as viapoints"),
       BT::InputPort<Goals>("input_goals", "Original goals to add viapoints into"),
-      BT::InputPort<double>("radius", 0.5, "Radius to next goal for it to be considered an update"),
+      BT::InputPort<double>("update_radius", 0.5, "Radius to next goal for it to be considered an update"),
+      BT::InputPort<double>("goal_radius", 1.0, "Radius away from actual pose to set goal"),
       BT::OutputPort<Goals>("output_goals", "Goals with new viapoints added/updated"),
     };
   }
@@ -66,14 +73,17 @@ public:
 private:
   void halt() override {}
   BT::NodeStatus tick() override;
+  void update_goals(size_t removed_goals_count);
 
   rclcpp::Node::SharedPtr node_;
-
+  
   double viapoint_overwrite_tolerance_;
+  double goal_radius_;
   std::string goal_type_;
   Goal current_pose_;
   Goals goals_;
   Goals input_goals_;
+  std::vector<GoalEntry> prev_goals_;
   
   bool initialized_ = false;
 };

@@ -10,7 +10,7 @@ namespace nova_behavior_tree
 BlackboardPublisherNode::BlackboardPublisherNode(
   const std::string & name,
   const BT::NodeConfiguration & config)
-: BT::ActionNodeBase(name, config), topic_name_("blackboard_data")
+: BT::ActionNodeBase(name, config), topic_name_("blackboard")
 {
   // Constructor: store defaults here. 
 }
@@ -52,20 +52,40 @@ BT::NodeStatus BlackboardPublisherNode::tick()
     std::string value_str;
     bool found = false;
 
-  // Hard Coded "goals" key
+    // Hard Coded "goal" key
+    // if (!found && key == "goal") {
+    //   try {
+    //     auto goal_pose = bb->get<geometry_msgs::msg::PoseStamped>("goal");
+    //     std::ostringstream ss;
+    //     ss << "Goal: ("
+    //       << goal_pose.pose.position.x << ", "
+    //       << goal_pose.pose.position.y << ", "
+    //       << goal_pose.pose.position.z << ") "
+    //       << "Orientation: ("
+    //       << goal_pose.pose.orientation.x << ", "
+    //       << goal_pose.pose.orientation.y << ", "
+    //       << goal_pose.pose.orientation.z << ", "
+    //       << goal_pose.pose.orientation.w << ")";
+    //     value_str = ss.str();
+    //     found = true;
+    //   } catch(const std::exception& e) {
+    //     value_str = std::string("Failed to retrieve goal: ") + e.what();
+    //   } catch(...) {
+    //     value_str = "Unknown error while retrieving goal.";
+    //   }
+    // }
+
+    // Hard Coded "goals" key
     if (!found && key == "goals") {
       try {
           auto goals = bb->get<std::vector<geometry_msgs::msg::PoseStamped>>(std::string(key));
           std::ostringstream ss;
 
           // Simplified formatting for testing
-          ss << "Goals:";
-          int idx = 1;
           for (const auto& goal_pose : goals) {
-              ss << " [" << idx << "] ("
+              ss << "("
                 << goal_pose.pose.position.x << ", "
-                << goal_pose.pose.position.y << ")";
-              idx++;
+                << goal_pose.pose.position.y << ") ";
           }
 
           value_str = ss.str();  // Assign simplified string
@@ -77,33 +97,30 @@ BT::NodeStatus BlackboardPublisherNode::tick()
       }
     }
 
-  // Hard Coded "path" key
-    if (!found && key == "path") {
-      try {
-          auto path = bb->get<nav_msgs::msg::Path>(std::string(key));
-          std::ostringstream ss;
+    // Hard Coded "path" key
+    // if (!found && key == "path") {
+    //   try {
+    //       auto path = bb->get<nav_msgs::msg::Path>(std::string(key));
+    //       std::ostringstream ss;
 
-          // Simplified formatting for testing
-          ss << "Path:";
-          int idx = 1;
-          for (const auto& pose_stamped : path.poses) {
-              ss << " [" << idx << "] ("
-                << pose_stamped.pose.position.x << ", "
-                << pose_stamped.pose.position.y << ")";
-              idx++;
-          }
+    //       // Simplified formatting for testing
+    //       ss << "Path:";
+    //       int idx = 1;
+    //       for (const auto& pose_stamped : path.poses) {
+    //           ss << " [" << idx << "] ("
+    //             << pose_stamped.pose.position.x << ", "
+    //             << pose_stamped.pose.position.y << ")";
+    //           idx++;
+    //       }
 
-          value_str = ss.str();  // Assign simplified string
-          found = true;
-      } catch(const std::exception& e) {
-          value_str = std::string("Failed to retrieve path: ") + e.what();
-      } catch(...) {
-          value_str = "Unknown error while retrieving path.";
-      }
-    }
-
-
-
+    //       value_str = ss.str();  // Assign simplified string
+    //       found = true;
+    //   } catch(const std::exception& e) {
+    //       value_str = std::string("Failed to retrieve path: ") + e.what();
+    //   } catch(...) {
+    //       value_str = "Unknown error while retrieving path.";
+    //   }
+    // }
 
     // Try int
     try {
@@ -146,36 +163,6 @@ BT::NodeStatus BlackboardPublisherNode::tick()
         found = true;
       } catch(...) {}
     }
-
-
-    //Hard Coded "goal" key
-    if (!found && key == "goal") {
-      try {
-        auto goal_pose = bb->get<geometry_msgs::msg::PoseStamped>("goal");
-        std::ostringstream ss;
-        ss << "Goal: ("
-          << goal_pose.pose.position.x << ", "
-          << goal_pose.pose.position.y << ", "
-          << goal_pose.pose.position.z << ") "
-          << "Orientation: ("
-          << goal_pose.pose.orientation.x << ", "
-          << goal_pose.pose.orientation.y << ", "
-          << goal_pose.pose.orientation.z << ", "
-          << goal_pose.pose.orientation.w << ")";
-        value_str = ss.str();
-        found = true;
-      } catch(const std::exception& e) {
-        value_str = std::string("Failed to retrieve goal: ") + e.what();
-      } catch(...) {
-        value_str = "Unknown error while retrieving goal.";
-      }
-    }
-
-  
-
-
-
-
 
     // If we still didn't find a matching type, it's unsupported
     if (!found) {
