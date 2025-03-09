@@ -6,11 +6,12 @@ as a transform for cube localisation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: yolo_3d_to_marker
 TOPICS:
-  - subscriber: /yolo/detections [yolo_msgs/msg/DetectionArray]
-  - subscriber: /oak/depth       [sensor_msgs/msg/Image]
-  - subscriber: /oak/camera_info [sensor_msgs/msg/CameraInfo]
-  - publisher: /yolo/cubes       [visualization_msgs.MarkerArray]
-  - publisher: /tf               [geometry_msgs/msg/TransformStamped]
+  - subscriber: /yolo/detections           [yolo_msgs/msg/DetectionArray]
+  - subscriber: /oak/depth                 [sensor_msgs/msg/Image]
+  - subscriber: /oak/camera_info           [sensor_msgs/msg/CameraInfo]
+  - subscriber: /oak/nn/spatial_detections [vision_msgs/msg/Detection3DArray]
+  - publisher: /yolo/cubes                 [visualization_msgs/msg/MarkerArray]
+  - publisher: /tf                         [geometry_msgs/msg/TransformStamped]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -30,7 +31,7 @@ from rclpy.node import Node
 from rclpy.duration import Duration
 from rclpy.qos import QoSHistoryPolicy, QoSDurabilityPolicy, QoSProfile
 
-from visualization_msgs.msg import MarkerArray, Marker, Detection3DArray
+from visualization_msgs.msg import MarkerArray, Marker
 from geometry_msgs.msg import Pose, Vector3, TransformStamped
 from sensor_msgs.msg import Image, CameraInfo
 from builtin_interfaces.msg import Time
@@ -38,7 +39,7 @@ from builtin_interfaces.msg import Time
 # im pretty sure these are almost identical in how we use them except for getting the colour of the name
 # vision_msgs hides the class_name behind a class_id
 from yolo_msgs.msg import DetectionArray, Detection, BoundingBox2D 
-from vision_msgs.msg import Detection2DArray, Detection2D, BoundingBox2D
+from vision_msgs.msg import Detection3DArray, Detection2DArray, Detection2D, BoundingBox2D
 
 
 from tf2_ros.transform_broadcaster import TransformBroadcaster
@@ -65,7 +66,7 @@ IDS_COLOR = {0: 'red', 1: 'green', 2: 'blue', 3: 'white'}
 # change these topics using remapping in launch file
 DEPTH_IMAGE_TOPIC = 'image_raw'
 DEPTH_INFO_TOPIC = 'camera_info'
-DETECTION_TOPIC = 'detections'
+DETECTION_TOPIC = '/oak/nn/spatial_detections'
 MARKER_TOPIC = 'cubes'
 
 
@@ -117,8 +118,16 @@ class DetectionTransformer(Node):
         self.depth_info_sub = message_filters.Subscriber(
             self, CameraInfo, DEPTH_INFO_TOPIC, qos_profile=self.default_qos_profile
         )
+
+        if DETECTION_TOPIC == '/yolo/detections':
+            DETECTION_TYPE = DetectionArray
+        elif DETECTION_TOPIC == '/oak/nn/detections':
+            DETECTION_TYPE = Detection2DArray
+        elif DETECTION_TOPIC == '/oak/nn/spatial_detections':
+            DETECTION_TYPE = Detection3DArray
+        
         self.detections_sub = message_filters.Subscriber(
-            self, DetectionArray, DETECTION_TOPIC
+            self, DETECTION_TYPE, DETECTION_TOPIC
         )
         # synchronise information from topics and run function upon all information received
         self._synchronizer = message_filters.ApproximateTimeSynchronizer(
@@ -168,7 +177,6 @@ class DetectionTransformer(Node):
                     if np.all(std_dev < self.max_std_dev):      # Check that the standard deviation is small enough to be considered a confirmed block
                         self.get_logger().debug(f'Confirmed target {color} consistent pos at {avg_pos}')
                         self.publish_tf(color, avg_pos, self.get_clock().now().to_msg())
-
                     else:
                         self.get_logger().debug(f'Target {color} is not consistent enough.')
                 else:
@@ -193,16 +201,17 @@ class DetectionTransformer(Node):
                     new_position = self.tf_to_map(position, detections_msg.header.stamp)
                     if new_position is not None:
                         # Detection will be of Detection from yolo_msgs
-                        color: str = detection.class_name
-                        new_detections.append((detection.class_name, new_position))
+                        color:str = detection.class_name
+                        new_detections.append((color, new_position))
         else:
             for detection in detections_msg.detections:
-                position = detection.results.pose.pose.position
-                new_position = self.tf_to_map(position, detections_msg.header.stamp)
-                if new_position is not None:
-                    # Detection will be of Detection3D from vision_msgs
-                    color: str = IDS_COLOR[detection.results.hypothesis.class_id]
-                    new_detections.append((detection.class_name, new_position))
+                for result in detection.results:
+                    position = (float(result.pose.pose.position.x), float(result.pose.pose.position.y), float(result.pose.pose.position.z))
+                    new_position = self.tf_to_map(position, detections_msg.header.stamp)
+                    if new_position is not None:
+                        # Detection will be of Detection3D from vision_msgs
+                        color:str = IDS_COLOR[int(result.hypothesis.class_id)]
+                        new_detections.append((color, new_position))
 
         return new_detections
 
@@ -271,15 +280,13 @@ class DetectionTransformer(Node):
         self.get_logger().debug(f'Calculating map to cube tf')
         try:
             map_to_camera = self.tf_buffer.lookup_transform(self.map_frame, self.camera_frame, stamp).transform
-            
             # rotate the map_to_camera position by its orientation 
             rot_matrix = self.quaternion_to_rotation_matrix([map_to_camera.rotation.x, map_to_camera.rotation.y, map_to_camera.rotation.z, map_to_camera.rotation.w])
             rotated_translation = np.dot(rot_matrix, camera_to_cube)
-
             # apply the camera_to_cube tf to the rotated map_to_camera
             return (map_to_camera.translation.x+rotated_translation[0], map_to_camera.translation.y+rotated_translation[1], map_to_camera.translation.z+rotated_translation[2])
         except Exception as e:
-            self.get_logger().debug(f'Error in calculating map to cube tf {e}')
+            self.get_logger().warn(f'Error in calculating map to cube tf {e}')
             return None
 
     def get_marker(self, id:int, color:str, point: Point, stamp: Time, frame:str) -> Marker:
