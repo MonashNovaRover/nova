@@ -65,7 +65,7 @@ export interface RosServiceInterface {
     IRosNovaInterfacesKilnCommandRequest,
     IRosNovaInterfacesKilnCommandResponse
   >;
-  [RosService.SET_NIR_PROBE_LED]: RosServiceMessage<
+  [RosService.TAKE_NIR_PROBE_READING]: RosServiceMessage<
     IRosNovaInterfacesTakeNirProbeReadingRequest,
     IRosNovaInterfacesTakeNirProbeReadingResponse
   >;
