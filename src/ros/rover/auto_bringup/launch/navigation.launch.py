@@ -28,13 +28,13 @@ def launch_setup(context, *args, **kwargs):
     autostart = LaunchConfiguration('autostart')
     container_name = LaunchConfiguration('container_name')
     log_level = LaunchConfiguration('log_level')
+    map_params = LaunchConfiguration('map_params')
     namespace = LaunchConfiguration('namespace')
     nav2_params = LaunchConfiguration('nav2_params')
     publish_goals = LaunchConfiguration('publish_goals')
     use_composition = LaunchConfiguration('use_composition')
     use_respawn = LaunchConfiguration('use_respawn')
     use_sim_time = LaunchConfiguration('use_sim_time')
-    map_yaml_file = LaunchConfiguration('map_yaml_file')
 
     lifecycle_nodes = ['controller_server',
                        'smoother_server',
@@ -145,7 +145,7 @@ def launch_setup(context, *args, **kwargs):
                     package='nav2_map_server',
                     executable='map_server',
                     name='map_server',
-                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}, {'yaml_filename': map_yaml_file}],
+                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}, {'yaml_filename': map_params}],
                     remappings=remappings + [('map', 'static_map')],
                 ),
                 Node(
@@ -230,7 +230,7 @@ def launch_setup(context, *args, **kwargs):
                             package='nav2_map_server',
                             plugin='nav2_map_server::MapServer',
                             name='map_server',
-                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}, {'yaml_filename': map_yaml_file}],
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}, {'yaml_filename': map_params}],
                             remappings=remappings + [('map', 'static_map')],
                         ),
                         ComposableNode(
@@ -279,6 +279,11 @@ def generate_launch_description():
             description='log level',
         ),
         DeclareLaunchArgument(
+            name='map_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'map.yaml']),
+            description='Full path to the parameters file to use for static map layer',
+        ),
+        DeclareLaunchArgument(
             name='namespace',
             default_value='',
             description='Top-level namespace',
@@ -286,7 +291,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             name='nav2_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2.yaml']),
-            description='Full path to the ROS2 parameters file to use for all launched nodes',
+            description='Full path to the ROS2 parameters file to use for all launched Nav2 nodes',
         ),
         DeclareLaunchArgument(
             name='publish_goals',

@@ -28,6 +28,7 @@ def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo')
     localization = LaunchConfiguration('localization')
     log_level = LaunchConfiguration('log_level')
+    map_params = LaunchConfiguration('map_params')
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
     nav2_params = LaunchConfiguration('nav2_params')
@@ -80,7 +81,7 @@ def launch_setup(context, *args, **kwargs):
                 'params_file': nav2_params,
                 'use_respawn': use_respawn,
                 'use_sim_time': gazebo,
-                'map_yaml_file': PathJoinSubstitution([auto_bringup_dir, 'maps', 'static_map_layer.yaml']),
+                'map_params': map_params,
             }.items()
         ),
     ]
@@ -115,6 +116,11 @@ def generate_launch_description():
             name='log_level',
             default_value='info',
             description='What level of logging output should be displayed',
+        ),
+        DeclareLaunchArgument(
+            name='map_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'map.yaml']),
+            description='Full path to the parameters file to use for static map layer',
         ),
         DeclareLaunchArgument(
             name='model',

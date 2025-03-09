@@ -16,15 +16,15 @@
 # IMPORTANT! Yaw is ignored by the global costmap and rover will face the right side of the static map
 
 # ARCh 2024
-image: comp_map.png         
-resolution: 0.400000        # meters per pixel
-origin: [-8.4, -21.2, 0]    # 2D pose of lower left pixel of map (x, y, yaw)
-negate: 0                   # negate = 0 therefore white = free, black = occupied
-occupied_thresh: 0.65       # pixels with occupancy greater than this value are considered completely occupied
-free_thresh: 0.196          # same as above but for free (these are used if there are grey pixels)
+# image: ../maps/comp_map.png # Path to the image file containing the occupancy data; can be absolute, or relative to the location of the YAML file
+# resolution: 0.400000        # Resolution of the map, meters / pixel
+# origin: [-8.4, -21.2, 0]    # The 2-D pose of the lower-left pixel in the map, as (x, y, yaw), with yaw as counterclockwise rotation (yaw=0 means no rotation). Many parts of the system currently ignore yaw
+# negate: 0                   # Whether the white/black free/occupied semantics should be reversed (interpretation of thresholds is unaffected)
+# occupied_thresh: 0.65       # Pixels with occupancy probability greater than this threshold are considered completely occupied.
+# free_thresh: 0.196          # Pixels with occupancy probability less than this threshold are considered completely free.
 
 # clear map (no obstacles)
-# image: clear_map.png     
+# image: ../maps/clear_map.png     
 # resolution: 0.400000
 # origin: [-8.4, -21.2, 0]
 # negate: 0
@@ -32,9 +32,9 @@ free_thresh: 0.196          # same as above but for free (these are used if ther
 # free_thresh: 0.196 
 
 # 2025 Comp Sims
-# image: comp_sim_ARCh_2025.png
-# resolution: 0.1 # 10 cm per pixel
-# origin []
-# negate: 0
-# occupied_thresh: 0.65
-# free_thresh: 0.196         
+image: ../maps/comp_sim_ARCh_2025.png
+resolution: 0.1 # 10 cm per pixel
+origin: [-1, -5, 0]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196         
