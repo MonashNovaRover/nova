@@ -33,7 +33,7 @@ yolo:
 
       tf_publisher_timer_period: 0.1
 
-      map_frame: "map"
+      map_frame: "oak"
       camera_frame: "oak_rgb_camera_optical_frame" # "camera_link"
 
       min_samples: 5
