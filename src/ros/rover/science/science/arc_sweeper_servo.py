@@ -34,16 +34,16 @@ class SweeperNode(JoystickControllerNode):
     SERVO_ID = 0x0F1 # todo adjust accordingly
 
     # SENDING COMMAND IDS
-    MOVE_SWEEPER_CLOCKWISE = 0x01 # todo adjust
-    MOVE_SWEEPER_ANTICLOCKWISE = 0x02 # todo adjust
+    SWEEP_CLOCKWISE = 0x01 # todo adjust
+    SWEEP_ANTICLOCKWISE = 0x02 # todo adjust
 
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
     SWEEPER_MAX_PERCENT = 0.7
 
     # CONTROL DIRECTIONS
-    SWEEPER_CLOCKWISE = Direction.POSITIVE
-    SWEEPER_ANTICLOCKWISE = Direction.NEGATIVE
+    DIRECTION_CLOCKWISE = Direction.POSITIVE
+    DIRECTION_ANTICLOCKWISE = Direction.NEGATIVE
 
 
     def __init__(self):
@@ -51,8 +51,6 @@ class SweeperNode(JoystickControllerNode):
         logger = self.get_logger()
 
         self.velocity = 0.5
-
-        self.declare_parameter(self.BASE_VELOCITY_PARAM, self.DEFAULT_BASE_VELOCITY)
 
         ## Create CONTROLS
         self.sweeper_servo = OneAxisPositionControl(
@@ -65,8 +63,8 @@ class SweeperNode(JoystickControllerNode):
             logger=logger,
             bus=self.bus,
             frame_id=self.SERVO_ID,
-            pos_command=self.MOVE_SWEEPER_CLOCKWISE,
-            neg_command=self.MOVE_SWEEPER_ANTICLOCKWISE,
+            pos_command=self.SWEEP_CLOCKWISE,
+            neg_command=self.SWEEP_ANTICLOCKWISE,
             control=self.sweeper_servo,
         )
 
@@ -83,14 +81,14 @@ class SweeperNode(JoystickControllerNode):
         """
         if joystick_r.btn_thumb_l_state >= 1:
             self.get_logger().info("Sweeper moving ANTICLOCKWISE")
-            self.sweeper_servo.update_direction(self.SWEEPER_ANTICLOCKWISE)
+            self.sweeper_servo.update_direction(self.DIRECTION_ANTICLOCKWISE)
             self.sweeper_servo.update_velocity(self.velocity)
         elif joystick_r.btn_thumb_r_state >= 1:
             self.get_logger().info("Sweeper moving CLOCKWISE")
-            self.sweeper_servo.update_direction(self.SWEEPER_CLOCKWISE)
+            self.sweeper_servo.update_direction(self.DIRECTION_CLOCKWISE)
             self.sweeper_servo.update_velocity(self.velocity)
         else:
-            self.stop()
+            self.sweeper_servo.stop()
 
     def joystick_l(self, joystick_l: InputJoystick):
         """
