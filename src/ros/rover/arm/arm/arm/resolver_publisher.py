@@ -468,7 +468,7 @@ class ResolverPublisher(Node):
 
     def enable_auto_timer_callback(self):
         """Re-send the 0x0A2 command every 1 second."""
-        self.get_logger().info("Re-sending 0x0A2 enable auto mode command...")y
+        self.get_logger().info("Re-sending 0x0A2 enable auto mode command...")
         self.resolver_transceiver.enable_auto_mode()
 
     def process_can_messages(self):
