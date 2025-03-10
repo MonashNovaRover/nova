@@ -41,6 +41,7 @@ class SpinnyPartNode(JoystickControllerNode):
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
     SPIN_MAX_PERCENT = 0.7
+    SPIN_CONTROL_NAME = "Analysis Arm Spinny Part"
 
     # CONTROL DIRECTIONS
     DIRECTION_CLOCKWISE = Direction.POSITIVE
@@ -69,7 +70,7 @@ class SpinnyPartNode(JoystickControllerNode):
         )
 
         ## Add the CONTROLLERS to the node's controllers
-        self.add_controller(self.spinny_part, self.spinny_part_controller)
+        self.add_controller(self.SPIN_CONTROL_NAME, self.spinny_part_controller)
 
         ## Start the CAN bus
         self.start_can()
