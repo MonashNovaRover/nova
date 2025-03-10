@@ -23,8 +23,8 @@ import rclpy
 from python_control.JoystickControllerNode import JoystickControllerNode
 from python_control.controls.Direction import Direction
 from input_interfaces.msg import InputJoystick
-from python_control.controls.OneAxisPositionControl import OneAxisPositionControl
-from python_control.controllers.JonoPositionController import JonoPositionController
+from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
+from python_control.controllers.JonoVelocityController import JonoVelocityController
 
 
 class SpinnyPartNode(JoystickControllerNode):
@@ -53,13 +53,13 @@ class SpinnyPartNode(JoystickControllerNode):
         self.velocity = 0.5
 
         ## Create CONTROLS
-        self.spinny_part = OneAxisPositionControl(
+        self.spinny_part = OneAxisVelocityControl(
             logger=logger,
             max_percent=self.SPIN_MAX_PERCENT,
         )
 
         ## Create CONTROLLERS
-        self.spinny_part_controller = JonoPositionController(
+        self.spinny_part_controller = JonoVelocityController(
             logger=logger,
             bus=self.bus,
             frame_id=self.SERVO_ID,

@@ -22,8 +22,8 @@ import rclpy
 from python_control.controls.Direction import Direction
 from input_interfaces.msg import InputJoystick
 from python_control.JoystickControllerNode import JoystickControllerNode
-from python_control.controls.OneAxisPositionControl import OneAxisPositionControl
-from python_control.controllers.JonoPositionController import JonoPositionController
+from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
+from python_control.controllers.JonoVelocityController import JonoVelocityController
 
 
 class SweeperNode(JoystickControllerNode):
@@ -53,13 +53,13 @@ class SweeperNode(JoystickControllerNode):
         self.velocity = 0.5
 
         ## Create CONTROLS
-        self.sweeper_servo = OneAxisPositionControl(
+        self.sweeper_servo = OneAxisVelocityControl(
             logger=logger,
             max_percent=self.SWEEPER_MAX_PERCENT,
         )
 
         ## Create CONTROLLERS
-        self.sweeper_servo_controller = JonoPositionController(
+        self.sweeper_servo_controller = JonoVelocityController(
             logger=logger,
             bus=self.bus,
             frame_id=self.SERVO_ID,
@@ -88,8 +88,6 @@ class SweeperNode(JoystickControllerNode):
             self.sweeper_servo.update_direction(self.DIRECTION_CLOCKWISE)
             self.sweeper_servo.update_velocity(self.velocity)
         else:# Called when the script executes
-if __name__=="__main__":
-    main()
             self.sweeper_servo.stop()
 
     def joystick_l(self, joystick_l: InputJoystick):
