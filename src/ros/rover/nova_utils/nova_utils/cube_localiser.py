@@ -53,8 +53,9 @@ import numpy as np
 
 from typing import Dict, List, Tuple, TypeVar
 T = TypeVar('T')
-type Point = Tuple[float, float, float] # point = (x,y,z)
-type BBox = Tuple[float, float, float, float] # bounding_box = (pos_x, pos_y, size_x, size_y)
+type Point = Tuple[float, float, float]         # point = (x,y,z)
+type BBox = Tuple[float, float, float, float]   # bounding_box = (pos_x, pos_y, size_x, size_y)
+type CubePoint = Tuple[str, Point]              # cube_point = (color, Point)
 
 
 COLORS = {'red':[1.0,0.0,0.0], 'green':[0.0,1.0,0.0], 'blue':[0.0,0.0,1.0], 'white':[1.0,1.0,1.0]}
@@ -91,7 +92,7 @@ class DetectionTransformer(Node):
 
         # variables determining the mode of use
         self.using_oak = self.declare_parameter('using_oak', False).get_parameter_value().bool_value
-        self.using_3D = self.declare_parameter('using_3D', False).get_parameter_value().bool_value
+        self.using_3d = self.declare_parameter('using_3d', False).get_parameter_value().bool_value
 
         # Topics to subscribe to:
         self.depth_info_topic = self.declare_parameter('depth_info_topic', 'camera_info').get_parameter_value().string_value
@@ -114,7 +115,7 @@ class DetectionTransformer(Node):
         )
 
         # subscribe and synchronise depth image topics if not using 3D
-        if not self.using_3D:
+        if not self.using_3d:
             self.depth_sub = message_filters.Subscriber(
                 self, Image, self.depth_image_topic, qos_profile=self.default_qos_profile
             )
@@ -135,6 +136,10 @@ class DetectionTransformer(Node):
                 (self.depth_sub, self.depth_info_sub, self.detections_sub), 10, 0.5)
             self._synchronizer.registerCallback(self.on_detections)
 
+            self.get_logger().info(
+                f"[{self.get_name()}] Using depth topics to calculate pose: {self.depth_image_topic} and {self.depth_info_topic} for {self.detection_topic}"
+            )
+
         # otherwise just subscribe to DetectionArray
         else:
             if not self.using_oak:
@@ -142,10 +147,16 @@ class DetectionTransformer(Node):
             else:
                 detection_type = Detection3DArray
             self.detections_sub = self.create_subscription(
-                detection_type, self.detection_topic, self.on_detections, 10
+                detection_type, self.detection_topic, self.on_detections_3d, 10
             )
+            self.get_logger().info(
+                f"[{self.get_name()}] Reusing pose from detection topic: {self.detection_topic}"
+            )
+
         # publish to the marker topic
-        self.publisher = self.create_publisher(MarkerArray, MARKER_TOPIC, 10)
+        if self.use_markers:
+            self.publisher = self.create_publisher(MarkerArray, self.marker_topic, 10)
+            self.get_logger().info(f"[{self.get_name()}] Publishing markers to: {self.marker_topic}")
 
         self.detected_cubes : Dict[str, List[Point]] \
             = {'red':[], 'green':[], 'blue':[], 'white':[]}
@@ -156,24 +167,33 @@ class DetectionTransformer(Node):
         self.get_logger().info(f"[{self.get_name()}] Activated!")
 
 
-    def on_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray | Detection3DArray) -> None:
-        '''Process and publish detected cubes'''
+    def on_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray | Detection2DArray) -> None:
+        '''Process and publish detected cubes for 2D/rgb mode'''
         detections = self.process_detections(depth_msg, depth_info_msg, detections_msg)
+        self.process_cubes(detections, detections_msg.header.stamp)
 
+
+    def on_detections_3d(self, detections_3d_msg: DetectionArray | Detection3DArray) -> None:
+        '''Process and publish detected cubes for 3D/spatial mode'''
+        detections_3d = self.process_detections_3d(detections_3d_msg)
+        self.process_cubes(detections_3d, detections_3d_msg.header.stamp)
+
+
+    def process_cubes(self, cubes: List[CubePoint], stamp: Time) -> None:
+        '''Publish markers and add cubes to detection list'''
         # Markers
         if (self.use_markers):
             msg = MarkerArray()
-            detection: Tuple[str, Point]
-            for i, detection in enumerate(detections):
-                marker = self.get_marker(i, detection[0], detection[1], detections_msg.header.stamp, self.map_frame)
+            for i, cube in enumerate(cubes):
+                marker = self.get_marker(i, cube[0], cube[1], stamp, self.map_frame)
                 msg.markers.append(marker)
             
             self.publisher.publish(msg)
         
         # Transforms
-        detection: Tuple[str, Point]
-        for i, detection in enumerate(detections):
-            self.detected_cubes[detection[0]].append(detection[1])
+        for i, cube in enumerate(cubes):
+            self.detected_cubes[cube[0]].append(cube[1])
+
 
     def publish_cubes(self) -> None:
         '''Publish the current transform of all detected cubes'''
@@ -195,68 +215,74 @@ class DetectionTransformer(Node):
                     self.get_logger().debug(f'{color} has not enough samples to confirm')
                 
 
-    def process_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray | Detection2DArray | Detection3DArray) -> List[Tuple[str,Point]]:
-        '''Process detections into a list of points with their respective colour'''
+    def process_detections_3d(self, detections_msg: DetectionArray | Detection3DArray) -> List[CubePoint]:
+        '''Process 3d detections into a list of points with their respective colour'''
         if not detections_msg.detections:
             return []
-
-        self.get_logger().debug(f'Processing new detections')
-
+        self.get_logger().debug(f'Processing 3d detections')
         new_detections = []
 
         def get_pose_point(pose: Pose) -> Point:
-            return pose.position.x, pose.position.y, pose.position.z
+            return float(pose.position.x), float(pose.position.y), float(pose.position.z)
 
-        if self.using_3D:
-            # Get position from 3D detections and append to new_detections
-            if self.using_oak:
-                # detections_msg will be of Detection3DArray type. (vision_msgs)
-                detection: Detection3D
-                for detection in detections_msg.detection:
-                    hypothesis: ObjectHypothesisWithPose
-                    for hypothesis in detection.results:
-                        position = get_pose_point(hypothesis.pose.pose)
-                        map_position = self.tf_to_map(position, detections_msg.header.stamp)
-                        if map_position is not None:
-                            color:str = IDS_COLOR[hypothesis.id]
-                            new_detections.append((color, map_position))
-            
-            else:
-                # detections_msg will be of DetectionArray type and have BoundingBox3D defined for each detection. (yolo_msgs)
-                for detection in detections_msg.detection:
-                    detection: Detection
-                    position = get_pose_point(detection.pose)
+        if self.using_oak:
+            # detections_msg will be of Detection3DArray type. (vision_msgs)
+            detection: Detection3D
+            for detection in detections_msg.detections:
+                hypothesis: ObjectHypothesisWithPose
+                for hypothesis in detection.results:
+                    position = get_pose_point(hypothesis.pose.pose)
                     map_position = self.tf_to_map(position, detections_msg.header.stamp)
                     if map_position is not None:
-                        color = detection.class_name
+                        color:str = IDS_COLOR[hypothesis.id]
                         new_detections.append((color, map_position))
         
         else:
-            # otherwise calculate positions from bounding boxes
-            def bbox_to_map_pos(bbox: BBox, depth_image:Image, depth_info_msg: CameraInfo):
-                position = self.convert_bb_to_point(depth_image, depth_info_msg, bbox)
-                if position is not None:
-                    new_position = self.tf_to_map(position, detections_msg.header.stamp)
-                    if new_position is not None:
-                        return new_position
-                return None
+            # NOTE: Currently this doesn't work with yolo_ros for some reason so just use 2D mode for sim, this node copies the bbox to point code anyway
+            # detections_msg will be of DetectionArray type and have BoundingBox3D defined for each detection. (yolo_msgs)
+            for detection in detections_msg.detections:
+                detection: Detection
+                position = get_pose_point(detection.bbox3d.center)
+                map_position = self.tf_to_map(position, detections_msg.header.stamp)
+                if map_position is not None:
+                    color = detection.class_name
+                    new_detections.append((color, map_position))
+        
+        return new_detections
 
-            depth_image = self.cv_bridge.imgmsg_to_cv2(depth_msg, desired_encoding='32FC1')
-            if self.using_oak:
-                for detection in detections_msg.detections:
-                    # Detection will be of type Detection2D from vision_msgs
-                    bbox = (detection.bbox.center.x, detection.bbox.center.y, detection.bbox.size_x, detection.bbox.size_y)
-                    position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
-                    if position is not None:
-                        color:str = IDS_COLOR[detection.result.id]
-            else:
-                for detection in detections_msg.detections:
-                    # Detection will be of type Detection from yolo_msgs
-                    bbox = (detection.bbox.center.position.x, detection.bbox.center.position.y, detection.bbox.size.x, detection.bbox.size.y)
-                    position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
-                    if position is not None:
-                        color:str = detection.class_name
-                        new_detections.append((color, position))
+
+    def process_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray | Detection2DArray | Detection3DArray) -> List[CubePoint]:
+        '''Process detections into a list of points with their respective colour'''
+        if not detections_msg.detections:
+            return []
+        self.get_logger().debug(f'Processing detections')
+        new_detections = []
+
+        # calculate positions from bounding boxes
+        def bbox_to_map_pos(bbox: BBox, depth_image:np.ndarray, depth_info_msg: CameraInfo):
+            position = self.convert_bb_to_point(depth_image, depth_info_msg, bbox)
+            if position is not None:
+                new_position = self.tf_to_map(position, detections_msg.header.stamp)
+                if new_position is not None:
+                    return new_position
+            return None
+
+        depth_image = self.cv_bridge.imgmsg_to_cv2(depth_msg, desired_encoding='32FC1')
+        if self.using_oak:
+            for detection in detections_msg.detections:
+                # Detection will be of type Detection2D from vision_msgs
+                bbox = (float(detection.bbox.center.x), float(detection.bbox.center.y), float(detection.bbox.size_x), float(detection.bbox.size_y))
+                position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
+                if position is not None:
+                    color:str = IDS_COLOR[detection.result.id]
+        else:
+            for detection in detections_msg.detections:
+                # Detection will be of type Detection from yolo_msgs
+                bbox = (float(detection.bbox.center.position.x), float(detection.bbox.center.position.y), float(detection.bbox.size.x), float(detection.bbox.size.y))
+                position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
+                if position is not None:
+                    color:str = detection.class_name
+                    new_detections.append((color, position))
 
         return new_detections
 
@@ -265,7 +291,7 @@ class DetectionTransformer(Node):
             Modified from convert_bb_to_3d in https://github.com/mgonzs13/yolo_ros/blob/main/yolo_ros/yolo_ros/detect_3d_node.py
         '''
         self.get_logger().debug(f'Calculating cube world position relative to image frame')
-        center_x, center_y, size_x, size_y = bbox
+        center_x, center_y, size_x, size_y = [int(x) for x in bbox]
 
         # crop depth image by the 2d BB
         u_min = max(center_x - size_x // 2, 0)
@@ -305,8 +331,7 @@ class DetectionTransformer(Node):
         #h = z * (size_y / fy)
         #d = float(z_max - z_min)
 
-        # rotate 90 deg around x and -90 deg around z from camera_link
-        return (z, -1*x, -1*y)
+        return (x, y, z)
 
     def quaternion_to_rotation_matrix(self, q: Tuple[float, float, float, float]) -> np.array:
         '''Convert a quaternion (x, y, z, w) into a 3x3 rotation matrix.'''
