@@ -69,7 +69,7 @@ class SweeperNode(JoystickControllerNode):
         )
 
         ## Add the CONTROLLERS to the node's controllers
-        self.add_controller(self.sweepy_servo, self.sweepy_servo_controller)
+        self.add_controller(self.sweeper_servo, self.sweeper_servo_controller)
 
         ## Start the CAN bus
         self.start_can()
