@@ -40,6 +40,7 @@ class SweeperNode(JoystickControllerNode):
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
     SWEEPER_MAX_PERCENT = 0.7
+    SWEEPER_CONTROL_NAME = "Sweeper"
 
     # CONTROL DIRECTIONS
     DIRECTION_CLOCKWISE = Direction.POSITIVE
@@ -69,7 +70,7 @@ class SweeperNode(JoystickControllerNode):
         )
 
         ## Add the CONTROLLERS to the node's controllers
-        self.add_controller(self.sweeper_servo, self.sweeper_servo_controller)
+        self.add_controller(self.SWEEPER_CONTROL_NAME, self.sweeper_servo_controller)
 
         ## Start the CAN bus
         self.start_can()
