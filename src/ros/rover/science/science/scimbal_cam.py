@@ -104,7 +104,7 @@ class ScimbalCamNode(ControllerNode):
 def main():
     rclpy.init()
     scimbal_cam = ScimbalCamNode()
-    rclpy.spin(microscopeServo)
+    rclpy.spin(scimbal_cam)
     rclpy.shutdown()
 
 
