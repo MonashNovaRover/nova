@@ -28,7 +28,8 @@
                                   goals="{cube_goals}"
                                   input_goals="{goals}"
                                   update_radius="1.0"
-                                  output_goals="{goals}"/>
+                                  output_goals="{goals}"
+                                  cube_goal_entries="{cube_goal_entries}"/>
                   </Sequence>
                 </ForceSuccess>
                 <ReactiveSequence>
@@ -38,6 +39,9 @@
                                               radius="2"
                                               output_goals="{goals}"
                                               visited_ids="{visited_ids}"/>
+                  <SnapInCollisionGoals cube_goal_entries="{cube_goal_entries}"
+                                        input_goals="{goals}"
+                                        output_goals="{goals}"/>
                   <ComputePathThroughPoses goals="{goals}"
                                             planner_id="{selected_planner}"
                                             path="{path}"

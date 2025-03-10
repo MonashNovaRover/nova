@@ -36,16 +36,16 @@
 namespace nova_behavior_tree
 {
 
+struct GoalEntry {
+  geometry_msgs::msg::Pose pose{};
+  int index = 0;
+};
+
 class UpdateGoalsAction : public BT::ActionNodeBase
 {
 public:
   typedef geometry_msgs::msg::PoseStamped Goal;
   typedef std::vector<Goal> Goals;
-
-  struct GoalEntry {
-    geometry_msgs::msg::Pose pose{};
-    int index = 0;
-  };
 
   UpdateGoalsAction(
     const std::string & xml_tag_name,
@@ -67,6 +67,7 @@ public:
       BT::InputPort<double>("update_radius", 0.5, "Radius to next goal for it to be considered an update"),
       BT::InputPort<double>("goal_radius", 1.0, "Radius away from actual pose to set goal"),
       BT::OutputPort<Goals>("output_goals", "Goals with new viapoints added/updated"),
+      BT::OutputPort<std::vector<GoalEntry>>("cube_goal_entries", "Cube goals with their position in the input_goals vector"),
     };
   }
 
@@ -83,7 +84,7 @@ private:
   Goal current_pose_;
   Goals goals_;
   Goals input_goals_;
-  std::vector<GoalEntry> prev_goals_;
+  std::vector<GoalEntry> prev_cube_goals_;
   
   bool initialized_ = false;
 };

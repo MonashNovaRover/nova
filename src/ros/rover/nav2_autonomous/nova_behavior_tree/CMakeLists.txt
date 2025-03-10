@@ -96,6 +96,9 @@ list(APPEND plugin_libs nova_update_goals_action_bt_node)
 add_library(nova_remove_passed_goals_and_ar_tags_action_bt_node SHARED plugins/remove_passed_goals_and_ar_tags_action.cpp)
 list(APPEND plugin_libs nova_remove_passed_goals_and_ar_tags_action_bt_node)
 
+add_library(nova_snap_in_collision_goals_action_bt_node SHARED plugins/snap_in_collision_goals_action.cpp)
+list(APPEND plugin_libs nova_snap_in_collision_goals_action_bt_node)
+
 add_library(nova_save_cube_poses_action_bt_node SHARED plugins/save_cube_poses_action.cpp)
 list(APPEND plugin_libs nova_save_cube_poses_action_bt_node)
 
