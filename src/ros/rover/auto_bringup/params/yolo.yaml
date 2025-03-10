@@ -20,22 +20,36 @@ yolo:
     ros__parameters:
       image_reliability: 1
 
+  bbox3d_node:
+    target_frame: "map"               # same as map_frame for cube_localiser
+    maximum_detection_threshold: 0.3
+    depth_image_units_divisor: 1
+    #depth_image_reliability: 1
+    #depth_info_reliability: 1
+
   cube_localiser:
     ros__parameters:
-      depth_image_units_divisor: 1
-      maximum_detection_threshold: 0.3
-      significant_threshold: 0.01
+      depth_image_units_divisor: 1        # define the divisor to get the depth value to be meters
+      maximum_detection_threshold: 0.3    # the maximum variance in depth value to calculate a point for a bounding box (2d mode only)
 
       use_markers: True
-      marker_ns: "detected_cubes"
-      marker_duration: 1
+      marker_ns: "detected_cubes"         # the marker namespace
+      marker_duration: 1                  # in seconds
       marker_size: 0.15
 
-      tf_publisher_timer_period: 0.1
+      tf_publisher_timer_period: 0.1      # how often to publish tf
 
-      map_frame: "oak"
-      camera_frame: "oak_rgb_camera_optical_frame" # "camera_link"
+      map_frame: "map"                    # the reference frame to transform cubes to (e.g cubes start as a position defined relative to the camera, so this will define cubes relative to the map)
+      camera_frame: "oak_rgb_camera_optical_frame" # the starting reference frame 
 
-      min_samples: 5
-      max_std_dev: 1
+      min_samples: 5      # number of samples of a cube before publishing its transform
+      max_std_dev: 1      # maximum standard deviation in cube samples before the node stops publishing the transform of the cube
+
+    # using_oak: False    # are we using the oak camera? Commented out so it can be changed in launch file
+    # using_3D: False     # are we using the 3D node of yolo_ros or spatial mode of the oak nn? If false, the node will calculate positions based on the detection bounding boxes
+
+      depth_info_topic: "/oak/stereo/camera_info"  # topic for depth info
+      depth_image_topic: "/oak/stereo/image_raw"   # topic for depth image
+      detection_topic: "/oak/nn/detections"       # "/oak/nn/spatial_detections" (if using spatial detections topic, make sure to set using_3D to true)
+      marker_topic: "/yolo/cubes"                 # topic to publish markers
 
