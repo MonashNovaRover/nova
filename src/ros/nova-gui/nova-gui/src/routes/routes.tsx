@@ -149,6 +149,10 @@ export const testRoutes: RouteObject[] = [
     path: "/test/overlay",
     element: <TestOverlayView/>
   },
+  {
+    path: "/test/scimbal_cam",
+    element: <TestScimbalCamView/>
+  },
 ];
 
 const cameraRoutes: RouteObject[] = [
