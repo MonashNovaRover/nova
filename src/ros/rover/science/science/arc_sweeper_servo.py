@@ -87,7 +87,9 @@ class SweeperNode(JoystickControllerNode):
             self.get_logger().info("Sweeper moving CLOCKWISE")
             self.sweeper_servo.update_direction(self.DIRECTION_CLOCKWISE)
             self.sweeper_servo.update_velocity(self.velocity)
-        else:
+        else:# Called when the script executes
+if __name__=="__main__":
+    main()
             self.sweeper_servo.stop()
 
     def joystick_l(self, joystick_l: InputJoystick):
@@ -102,3 +104,6 @@ def main():
     node = SweeperNode()
     rclpy.spin(node)
     rclpy.shutdown()
+
+if __name__=="__main__":
+    main()
