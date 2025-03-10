@@ -93,10 +93,10 @@ class ScimbalCamNode(ControllerNode):
             for i in range(len(request.angles)):
                 angle = request.angles[i]
                 self.scimbal_cam[i].displace(angle)
-            self.get_logger().info(f"Scimbal Cam angles updated: TILT: {self.scimbal_cam[0].get_target_angle()}, PAN: {self.scimbal_cam[1].get_target_angle()}, request: {request.angles}")
+            self.get_logger().info(f"Scimbal Cam angles updated: TILT: {self.scimbal_cam[0].get_target_position()}, PAN: {self.scimbal_cam[1].get_target_position()}, request: {request.angles}")
             response.success = True
         except Exception as e:
-            self.get_logger().error(f"Scimbal Cam angle update request {request.angle} interrupted by error: {str(e)}")
+            self.get_logger().error(f"Scimbal Cam angle update request {request.angles} interrupted by error: {str(e)}")
             response.success = False
         return response
 
