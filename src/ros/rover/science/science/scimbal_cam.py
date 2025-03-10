@@ -68,7 +68,7 @@ class ScimbalCamNode(ControllerNode):
             scimbal_cam_control = ContinuousOneAxisPositionControl(
                 logger=logger,
                 max_angle=self.MAX_ANGLES[i],
-            ),
+            )
             scimbal_cam_control.set_position(self.START_ANGLES[i])
             self.scimbal_cam[i] = scimbal_cam_control
 
@@ -80,7 +80,7 @@ class ScimbalCamNode(ControllerNode):
                 frame_id=self.SERVO_IDS[i],
                 control=scimbal_cam_control,
                 max_value=self.MAX_VALUE,
-            ),
+            )
 
             ## Add the CONTROLLERS to the node's controllers
             self.add_controller(self.scimbal_cam[i], self.scimbal_cam_controllers[i])
@@ -103,7 +103,7 @@ class ScimbalCamNode(ControllerNode):
 
 def main():
     rclpy.init()
-    microscopeServo = ScimbalCamNode()
+    scimbal_cam = ScimbalCamNode()
     rclpy.spin(microscopeServo)
     rclpy.shutdown()
 
