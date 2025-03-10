@@ -60,39 +60,30 @@ class ScimbalCamNode(ControllerNode):
         ## Add Service
         self.service = self.create_service(ScimbalCamNode.SERVICE_TYPE, ScimbalCamNode.SERVICE_NAME, self.request_servo)
 
-        ## Create CONTROLS
-        self.scimbal_cam = [
-            ContinuousOneAxisPositionControl(
-                logger=logger,
-                max_angle=self.MAX_ANGLES[0],
-            ),
-            ContinuousOneAxisPositionControl(
-                logger=logger,
-                max_angle=self.MAX_ANGLES[1],
-            ),
-        ]
-        self.scimbal_cam[0].set_position(self.START_ANGLES[0])
-        self.scimbal_cam[1].set_position(self.START_ANGLES[1])
+        self.scimbal_cam = [None] * len(self.SERVO_IDS)
+        self.scimbal_cam_controllers = [None] * len(self.SERVO_IDS)
 
-        ## Create CONTROLLERS
-        self.scimbal_cam_controllers = [
-            JonoPositionController(
+        for i in range(len(self.SERVO_IDS)):
+            ## Create CONTROLS
+            scimbal_cam_control = ContinuousOneAxisPositionControl(
+                logger=logger,
+                max_angle=self.MAX_ANGLES[i],
+            ),
+            scimbal_cam_control.set_position(self.START_ANGLES[i])
+            self.scimbal_cam[i] = scimbal_cam_control
+
+            ## Create CONTROLLERS
+            self.scimbal_cam_controllers[i] = JonoPositionController(
                 logger=logger,
                 bus=self.bus,
                 pos_command=self.MOVE_SERVO_COMMAND,
-                frame_id=self.SERVO_ID[0],
-                control=self.scimbal_cam[0],
+                frame_id=self.SERVO_IDS[i],
+                control=scimbal_cam_control,
                 max_value=self.MAX_VALUE,
             ),
-            JonoPositionController(
-                logger=logger,
-                bus=self.bus,
-                pos_command=self.MOVE_SERVO_COMMAND,
-                frame_id=self.SERVO_ID[1],
-                control=self.scimbal_cam[1],
-                max_value=self.MAX_VALUE,
-            )
-        ]
+
+            ## Add the CONTROLLERS to the node's controllers
+            self.add_controller(self.scimbal_cam[i], self.scimbal_cam_controllers[i])
 
         ## Start the CAN bus
         self.start_can()
