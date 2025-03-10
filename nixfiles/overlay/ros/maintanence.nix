@@ -7,6 +7,18 @@ self: super:
       (
         rosSelf: rosSuper:
         {
+          fastrtps = rosSuper.fastrtps.overrideAttrs (
+            {
+            ...
+            }:
+            {
+              src = self.fetchurl {
+                url = "https://github.com/ros2-gbp/fastrtps-release/archive/release/jazzy/fastrtps/2.14.1-1.tar.gz";
+                name = "2.14.4-1.tar.gz";
+                hash = "sha256-3E1qecQ22aoYCmOvNOWmtjqm4Q4nwn43wFsczKnoDhM=";
+              };
+            }
+          );
 
           # Add ninja to cmake for faster builds
           buildRosPackage =
