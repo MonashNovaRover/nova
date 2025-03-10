@@ -17,7 +17,7 @@ EDITED:		09/03/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-import rclpy, jcan, logging
+import rclpy
 from enum import Enum
 
 from nova_interfaces.srv import MoveScimbalCam
@@ -38,6 +38,7 @@ class ScimbalCamNode(ControllerNode):
 
     # card IDs
     SERVO_IDS = [0x011, 0x022]
+    SERVO_CONTROL_NAMES = ["TILT", "PAN"]
 
     # command data
     MOVE_SERVO_COMMAND = 0x10
@@ -60,8 +61,8 @@ class ScimbalCamNode(ControllerNode):
         ## Add Service
         self.service = self.create_service(ScimbalCamNode.SERVICE_TYPE, ScimbalCamNode.SERVICE_NAME, self.request_servo)
 
-        self.scimbal_cam = [None] * len(self.SERVO_IDS)
-        self.scimbal_cam_controllers = [None] * len(self.SERVO_IDS)
+        self.scimbal_cam: list[ContinuousOneAxisPositionControl] = [None] * len(self.SERVO_IDS)
+        self.scimbal_cam_controllers: list[JonoPositionController] = [None] * len(self.SERVO_IDS)
 
         for i in range(len(self.SERVO_IDS)):
             ## Create CONTROLS
@@ -83,7 +84,7 @@ class ScimbalCamNode(ControllerNode):
             )
 
             ## Add the CONTROLLERS to the node's controllers
-            self.add_controller(self.scimbal_cam[i], self.scimbal_cam_controllers[i])
+            self.add_controller(self.SERVO_CONTROL_NAMES[i], self.scimbal_cam_controllers[i])
 
         ## Start the CAN bus
         self.start_can()
