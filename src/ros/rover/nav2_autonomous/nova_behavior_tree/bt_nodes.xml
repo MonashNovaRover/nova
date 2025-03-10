@@ -7,6 +7,14 @@
       <input_port name="topic_name">ROS topic for publishing</input_port>
     </Action>
     
+    <Action ID="SnapInCollisionGoals">
+      <input_port name="initial_goals_offset">Approximate distance the initial goals are offset</input_port>
+      <input_port name="max_snap_radius">Maximum radius (m) to snap goals to</input_port>
+      <input_port name="cube_goal_entries">Cube goals with their index in the input_goals vector</input_port>
+      <input_port name="input_goals">Original goals to snap if in collision</input_port>
+      <output_port name="output_goals">Goals with all in collision goals snapped</output_port>
+    </Action>
+
     <Action ID="SaveCubePoses">
       <input_port name="cube_poses">List of cube poses</input_port>
       <input_port name="file_path">File to save cube poses to</input_port>
@@ -53,6 +61,7 @@
       <input_port name="update_radius">Radius to next goal for it to be considered an update</input_port>
       <input_port name="goal_radius">Radius away from actual pose to set goal</input_port>
       <output_port name="output_goals">Goals with new viapoints added/updated</output_port>
+      <output_port name="cube_goal_entries">Cube goals with their index in the input_goals vector</output_port>
     </Action>
 
     <Action ID="SaveImage">

@@ -93,13 +93,13 @@ namespace nova_behavior_tree
 
     void UpdateGoalsAction::update_goals(size_t removed_goals_count)
     {
-        // update prev_goals_ in case goals have been removed
-        for (size_t i = 0; i < prev_goals_.size();)
+        // update prev_cube_goals_ in case goals have been removed
+        for (size_t i = 0; i < prev_cube_goals_.size();)
         {
-            prev_goals_[i].index -= removed_goals_count;
-            if (prev_goals_[i].index < 0)
+            prev_cube_goals_[i].index -= removed_goals_count;
+            if (prev_cube_goals_[i].index < 0)
             {
-                prev_goals_.erase(prev_goals_.begin() + i);
+                prev_cube_goals_.erase(prev_cube_goals_.begin() + i);
             }
             else
             {
@@ -144,7 +144,7 @@ namespace nova_behavior_tree
 
             // check if goal already exists
             bool updated = false;
-            for (auto &prev_goal : prev_goals_)
+            for (auto &prev_goal : prev_cube_goals_)
             {
                 if (euclidean_distance(prev_goal.pose, goals_[i].pose) < viapoint_overwrite_tolerance_)
                 {
@@ -171,11 +171,12 @@ namespace nova_behavior_tree
             }
 
             input_goals_.insert(input_goals_.begin() + j, offset_goal);
-            prev_goals_.emplace_back(GoalEntry{goals_[i].pose, j});
+            prev_cube_goals_.emplace_back(GoalEntry{goals_[i].pose, static_cast<int>(j)});
             RCLCPP_INFO(node_->get_logger(), "Inserting new %s goal", goal_type_.c_str());
             log_goal_info();
         }
 
+        setOutput("cube_goal_entries", prev_cube_goals_);
         setOutput("output_goals", input_goals_);
     }
 
