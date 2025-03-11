@@ -12,13 +12,15 @@
 #
 # The options are:
 #   drive -  CAN 0 Line 250k
-#   arm   -  CAN 1 Line 200k
 #   ec    -  CAN 0 Line 250k 
+#   arm   -  CAN 1 Line 200k
 #   sci   -  CAN 1 Line 250k
 #
 #   can0 -  CAN 0 Line
 #   can1 -  CAN 1 Line
-#   all -   CAN 0 and CAN 1 Line
+#   can2 -  CAN 2 Line
+#   all -   CAN 0, CAN 1 and CAN2 Line
+
 #   vcan0 - Virtual CAN 0 Line
 #   vcan1 - Virtual CAN 1 Line
 #
@@ -57,6 +59,9 @@ then
 elif [[ $2 = "can1" ]]
 then
     can="can1"
+elif [[ $2 = "can2" ]]
+then
+    can="can2"
 elif [[ $2 = "drive" ]]
 then
     can="can0"
@@ -81,11 +86,12 @@ elif [[ $2 = "all" ]]
 then
     can start can0
     can start can1
+    can start can2
     failed="1"
 
 # If invalid argument
 else
-    information "Incorrect CAN line. Please enter one of:\n\t['can0', 'can1', 'all', 'vcan0', 'vcan1']"
+    information "Incorrect CAN line. Please enter one of:\n\t['drive, 'ec', arm', 'sci', 'can0', 'can1', 'can2', 'all', 'vcan0', 'vcan1']"
     failed="1"
 fi
 
@@ -93,6 +99,9 @@ fi
 # If the bitrate parameter exists
 if [[ -z "${3:-}" ]]; then
     if [[ $2 = "can0" ]]
+    then
+        bitrate=250000
+    if [[ $2 = "can2" ]]
     then
         bitrate=250000
     elif [[ $2 = "vcan0" ]]
@@ -107,6 +116,9 @@ if [[ -z "${3:-}" ]]; then
     elif [[ $2 = "ec" ]]
     then
         bitrate=250000
+    elif [[ $2 = "arm" ]]
+    then
+        bitrate=200000
     else
         bitrate=200000   # Default
     fi
