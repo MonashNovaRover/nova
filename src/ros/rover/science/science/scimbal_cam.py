@@ -41,7 +41,7 @@ class ScimbalCamNode(ControllerNode):
     SERVO_CONTROL_NAMES = ["TILT", "PAN"]
 
     # command data
-    MOVE_SERVO_COMMAND = 0x10
+    MOVE_SERVO_COMMANDS = [0x05, 0x06]
 
     # angle
     # position 0 = TILT, 1 = PAN
@@ -77,7 +77,7 @@ class ScimbalCamNode(ControllerNode):
             self.scimbal_cam_controllers[i] = JonoPositionController(
                 logger=logger,
                 bus=self.bus,
-                pos_command=self.MOVE_SERVO_COMMAND,
+                pos_command=self.MOVE_SERVO_COMMANDS[i],
                 frame_id=self.SERVO_IDS[i],
                 control=scimbal_cam_control,
                 max_value=self.MAX_VALUE,

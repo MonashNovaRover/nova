@@ -31,11 +31,11 @@ class SweeperNode(JoystickControllerNode):
     CAN_BUS = "can1"
 
     # SENDING CARD IDS
-    SERVO_ID = 0x0F1 # todo adjust accordingly
+    SERVO_ID = 0x0A0 # todo adjust accordingly
 
     # SENDING COMMAND IDS
-    SWEEP_CLOCKWISE = 0x01 # todo adjust
-    SWEEP_ANTICLOCKWISE = 0x02 # todo adjust
+    SWEEP_CLOCKWISE = 0x03 # todo adjust
+    SWEEP_ANTICLOCKWISE = 0x04 # todo adjust
 
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
