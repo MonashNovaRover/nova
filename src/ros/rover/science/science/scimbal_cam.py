@@ -37,7 +37,7 @@ class ScimbalCamNode(ControllerNode):
     CAN_BUS = "can1"
 
     # card IDs
-    SERVO_IDS = [0x011, 0x022]
+    SERVO_IDS = [0x0A0, 0x0A0]
     SERVO_CONTROL_NAMES = ["TILT", "PAN"]
 
     # command data
