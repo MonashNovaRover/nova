@@ -717,7 +717,8 @@
     <xacro:include filename="$(find rover_description)/rover7/urdf/ckc.xacro"/>
 
     <xacro:if value="$(arg auto_camera)">
-        <xacro:include filename="$(find rover_description)/rover7/urdf/auto_camera.xacro"/>
+        <xacro:include filename="$(find rover_description)/rover7/urdf/auto/auto_camera.xacro"/>
+        <xacro:include filename="$(find rover_description)/rover7/urdf/auto/auto_mount.xacro"/>
         <xacro:auto_cam angle="$(arg angle)"></xacro:auto_cam>
     </xacro:if>
     
