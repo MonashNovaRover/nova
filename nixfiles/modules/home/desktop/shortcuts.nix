@@ -9,7 +9,7 @@ in
       "org/gnome/shell" = {
         favorite-apps = [
           "org.gnome.Nautilus.desktop"
-          "com.raggesilver.BlackBox.desktop"
+          "com.mitchellh.ghostty.desktop"
         ]
         ++ lib.optional config.nova.desktop.browser.enable "chromium-browser.desktop"
         ++ [
