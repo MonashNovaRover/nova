@@ -125,7 +125,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 1.5
-        inflation_radius: 0.6
+        inflation_radius: 0.58
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"
         enabled: True
@@ -195,7 +195,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 1.5
-        inflation_radius: 0.55
+        inflation_radius: 0.7
       always_send_full_costmap: True
 
 planner_server:

@@ -39,7 +39,8 @@
                                               radius="2"
                                               output_goals="{goals}"
                                               visited_ids="{visited_ids}"/>
-                  <SnapInCollisionGoals cube_goal_entries="{cube_goal_entries}"
+                  <SnapInCollisionGoals initial_goals_offset="1.5"
+                                        cube_goal_entries="{cube_goal_entries}"
                                         input_goals="{goals}"
                                         output_goals="{goals}"/>
                   <ComputePathThroughPoses goals="{goals}"

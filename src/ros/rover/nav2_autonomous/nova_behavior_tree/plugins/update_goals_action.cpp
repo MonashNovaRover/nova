@@ -59,6 +59,7 @@ namespace nova_behavior_tree
         getInput("update_radius", viapoint_overwrite_tolerance_);
         getInput("goal_radius", goal_radius_);
         getInput("goal_type", goal_type_);
+        setOutput("cube_goal_entries", prev_cube_goals_);
 
         double footprint_radius;;
         if (node_->get_parameter("local_costmap.local_costmap.ros__parameters.robot_radius", footprint_radius))
