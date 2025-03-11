@@ -94,3 +94,9 @@ if [[ "$command" == "start" ]]; then
 else
     sudo ip link set down "$can"
 fi
+
+# Check if an error occurred
+if [[ "$failed" -eq 1 ]]; then
+    information "An error occurred. Exiting."
+    exit 1
+fi
