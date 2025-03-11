@@ -27,7 +27,6 @@ from rclpy.node import Node
 from urllib.parse import quote
 from serial import Serial
 
-from core.srv import RFIDCommand
 from std_msgs.msg import String
 from std_srvs.srv import Trigger
 
