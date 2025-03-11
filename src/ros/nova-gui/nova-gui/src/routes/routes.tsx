@@ -29,6 +29,7 @@ import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
 import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
 import TestOverlayView from "../views/test/TestOverlayView/TestOverlayView.tsx";
 import ScimbalCamView from "../views/shared/ScimbalCamPage.tsx";
+import NIRProbeWidget from "../components/NIRProbe/NIRProbeWidget.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -146,8 +147,19 @@ export const testRoutes: RouteObject[] = [
     element: <TestStateView/>
   },
   {
+    path: "/test/nirprobe",
+    element:
+      <div className="p-3">
+        <NIRProbeWidget/>
+      </div>,
+  },
+  {
     path: "/test/overlay",
     element: <TestOverlayView/>
+  },
+  {
+    path: "/test/scimbal_cam",
+    element: <TestScimbalCamView/>
   },
 ];
 

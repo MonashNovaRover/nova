@@ -8,15 +8,18 @@ import {
   IRosStdSrvsTriggerResponse,
   IRosNovaInterfacesKilnCommandRequest,
   IRosNovaInterfacesKilnCommandResponse,
-  IRosNovaInterfacesSetNirProbeLedRequest,
-  IRosNovaInterfacesSetNirProbeLedResponse,
   IRosNovaInterfacesRamanSpecRequest,
   IRosNovaInterfacesRamanSpecResponse,
   IRosNovaInterfacesRamanMechRequest,
   IRosNovaInterfacesRamanMechResponse,
   IRosCameraMsgsGetIpListResponse,
   IRosStdSrvsSetBoolResponse,
-  IRosStdSrvsSetBoolRequest, IRosNovaInterfacesMoveScimbalCamRequest, IRosNovaInterfacesMoveScimbalCamResponse,
+  IRosStdSrvsSetBoolRequest,
+  IRosNovaInterfacesMoveScimbalCamRequest,
+  IRosNovaInterfacesMoveScimbalCamResponse,
+  IRosNovaInterfacesTakeNirProbeReadingRequest,
+  IRosNovaInterfacesTakeNirProbeReadingResponse,
+
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -65,13 +68,13 @@ export interface RosServiceInterface {
     IRosNovaInterfacesKilnCommandRequest,
     IRosNovaInterfacesKilnCommandResponse
   >;
+  [RosService.TAKE_NIR_PROBE_READING]: RosServiceMessage<
+    IRosNovaInterfacesTakeNirProbeReadingRequest,
+    IRosNovaInterfacesTakeNirProbeReadingResponse
+  >;
   [RosService.SCIMBAL_COMMAND]: RosServiceMessage<
     IRosNovaInterfacesMoveScimbalCamRequest,
     IRosNovaInterfacesMoveScimbalCamResponse
-  >;
-  [RosService.SET_NIR_PROBE_LED]: RosServiceMessage<
-    IRosNovaInterfacesSetNirProbeLedRequest,
-    IRosNovaInterfacesSetNirProbeLedResponse
   >;
   [RosService.MOVE_MICROSCOPE_SERVO]: RosServiceMessage<
     IRosNovaInterfacesMoveMicroscopeServoRequest,

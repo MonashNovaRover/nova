@@ -36,8 +36,7 @@ export enum CameraSerials {
   EC_SCRAPER_LEG = "ec_scraper_leg",
 
   SCIENCE_KILN = "science_kiln",
-  SCIENCE_AUGER_BOTTOM = "science_auger_bottom",
-  SCIENCE_ANALYSIS_BOTTOM = "science_analysis_bottom",
+  SCIENCE_KILN_BOTTOM = "science_kiln_bottom",
   SCIENCE_MICROSCOPE = "science_microscope",
   SCIENCE_GIMBAL = "science_gimbal_cam",
 
@@ -74,9 +73,9 @@ const ecCams = [
 
 const arcScienceCams = [
   CameraSerials.SCIENCE_KILN,
-  CameraSerials.SCIENCE_AUGER_BOTTOM,
-  CameraSerials.SCIENCE_ANALYSIS_BOTTOM,
+  CameraSerials.SCIENCE_KILN_BOTTOM,
   CameraSerials.SCIENCE_MICROSCOPE,
+  CameraSerials.SCIENCE_GIMBAL,
 ];
 
 const urcScienceCams = [
@@ -150,20 +149,7 @@ export const excavation_and_construction_views: CameraView[] = [
 
 export const space_resources_views: CameraView[] = [
   {
-    cameraSerials: [
-      CameraSerials.MAST_FISHEYE,
-      CameraSerials.MAST_FORWARD,
-
-      CameraSerials.SCIENCE_AUGER_BOTTOM,
-      CameraSerials.SCIENCE_KILN,
-
-      CameraSerials.MAST_DOWN,
-      CameraSerials.MAST_BACKWARD,
-
-      CameraSerials.SCIENCE_ANALYSIS_BOTTOM,
-      CameraSerials.SCIENCE_GIMBAL,
-      
-    ],
+    cameraSerials: [...mastCams, ...arcScienceCams],
     viewTitle: "All Cams",
   },
   {
