@@ -23,6 +23,14 @@ in
       COMPAL_AUTO_UNMASK=1
       . '${pkgs.complete-alias}/bin/complete_alias'
       complete -F _complete_alias "''${!BASH_ALIASES[@]}"
+
+      # Rover operator shell functions (act as aliases that can take arguments)
+      launch-base() { ~/Builds/"${1:-master}"/bin/ros2 launch nova_bringup base.launch.py; }
+      launch-drive() { ~/Builds/"${1:-master}"/bin/ros2 launch nova_bringup drive.launch.py; }
+      launch-arm() { ~/Builds/"${1:-master}"/bin/ros2 launch nova_bringup arm.launch.py; }
+      launch-ec() { ~/Builds/"${1:-master}"/bin/ros2 launch nova_bringup ec_rover.launch.py; }
+      launch-science-arc() { ~/Builds/"${1:-master}"/bin/ros2 launch nova_bringup arc_science.launch.py; }
+      launch-science-urc() { ~/Builds/"${1:-master}"/bin/ros2 launch nova_bringup urc_science.launch.py; }
     '';
 
     home = {
@@ -101,12 +109,6 @@ in
 
             # Rover operator aliases
             rover-help = "more ${cfg.nixfileDir}/doc/rover-help.md";
-            launch-base = "~/Builds/master/bin/ros2 launch nova_bringup base.launch.py";
-            launch-drive = "~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py";
-            launch-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
-            launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
-            launch-science-arc = "~/Builds/master/bin/ros2 launch nova_bringup arc_science.launch.py";
-            launch-science-urc = "~/Builds/master/bin/ros2 launch nova_bringup urc_science.launch.py";
             launch-cameras = "~/Builds/master/bin/ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params'";
             launch-cameras-all = "${launch-cameras} autostart:=true";
 
