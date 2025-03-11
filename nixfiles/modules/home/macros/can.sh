@@ -11,11 +11,16 @@
 #   can stop vcan0
 #
 # The options are:
-#   can0 -  CAN 1 Line
-#   can1 -  CAN 2 Line
-#   all -   CAN 1 and CAN 2 Line
-#   vcan0 - Virtual CAN 1 Line
-#   vcan1 - Virtual CAN 2 Line
+#   drive -  CAN 0 Line 250k
+#   arm   -  CAN 1 Line 200k
+#   ec    -  CAN 0 Line 250k 
+#   sci   -  CAN 1 Line 250k
+#
+#   can0 -  CAN 0 Line
+#   can1 -  CAN 1 Line
+#   all -   CAN 0 and CAN 1 Line
+#   vcan0 - Virtual CAN 0 Line
+#   vcan1 - Virtual CAN 1 Line
 #
 # +--------------------------------------------+
 
@@ -52,6 +57,18 @@ then
 elif [[ $2 = "can1" ]]
 then
     can="can1"
+elif [[ $2 = "drive" ]]
+then
+    can="can0"
+elif [[ $2 = "ec" ]]
+then
+    can="can0"
+elif [[ $2 = "arm" ]]
+then
+    can="can1"
+elif [[ $2 = "sci" ]]
+then
+    can="can1"
 elif [[ $2 = "vcan0" ]]
 then
     can="vcan0"
@@ -78,11 +95,23 @@ if [[ -z "${3:-}" ]]; then
     if [[ $2 = "can0" ]]
     then
         bitrate=250000
+    elif [[ $2 = "vcan0" ]]
+    then
+        bitrate=250000
+    elif [[ $2 = "sci" ]]
+    then
+        bitrate=250000
+    elif [[ $2 = "drive" ]]
+    then
+        bitrate=250000
+    elif [[ $2 = "ec" ]]
+    then
+        bitrate=250000
     else
         bitrate=200000   # Default
     fi
 else
-    bitrate=$3
+    bitrate=200000
 fi
 
 
