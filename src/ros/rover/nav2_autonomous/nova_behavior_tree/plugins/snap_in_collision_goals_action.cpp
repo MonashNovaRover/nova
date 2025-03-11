@@ -13,8 +13,12 @@
 // limitations under the License.
 
 /**
- * @brief Action node for snapping goals that are in collision to the closest
- * valid position.
+ * @brief Action node for snapping goals that are in collision to the closest valid position.
+ * To ensure correct orientation, 'toward points' are used to determine the orientation of the
+ * snapped goal. Toward points are points to which the original goals were pointed towards.
+ * 
+ * To find a suitable pose to snap to, a spiral search pattern is used to find the nearest free
+ * or unknown cell in the occupancy grid.
  * 
  * @authors Terry Tian
  */
@@ -24,6 +28,8 @@
 #include <array>
 #include <cmath>
 #include <algorithm>
+#include <chrono>
+#include <thread>
 
 #include "nav2_util/geometry_utils.hpp"
 #include "rclcpp/logging.hpp"
@@ -55,6 +61,7 @@ namespace nova_behavior_tree
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
 
         getInput("max_snap_radius", max_snap_radius_);
+        getInput("update_radius", update_radius_);
         
         double initial_goals_offset;
         getInput("initial_goals_offset", initial_goals_offset);
@@ -76,19 +83,36 @@ namespace nova_behavior_tree
 
         // subscribe to local and global costmaps' occupancy grids
         local_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
-            "/local_costmap/costmap", 10,
+            "/local_costmap/costmap", 1,
             [this](const OccupancyGrid::SharedPtr msg) -> void
             {
+                RCLCPP_INFO(node_->get_logger(), "Received local costmap");
                 local_occu_grid_ = msg;
             }
         );
         global_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
-            "/global_costmap/costmap", 10,
+            "/global_costmap/costmap", 1,
             [this](const OccupancyGrid::SharedPtr msg) -> void
             {
+                RCLCPP_INFO(node_->get_logger(), "Received global costmap");
                 global_occu_grid_ = msg;
             }
         );
+
+        // measure time to initialize
+        auto start = std::chrono::high_resolution_clock::now();
+        while (!local_occu_grid_ || !global_occu_grid_)
+        {
+            rclcpp::spin_some(node_);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        auto end = std::chrono::high_resolution_clock::now();
+        RCLCPP_INFO(
+            node_->get_logger(), "SnapInCollisionGoalsAction waited %.2fms for occupancy grids",
+            std::chrono::duration<double, std::milli>(end - start).count()
+        );
+
+        RCLCPP_INFO(node_->get_logger(), "SnapInCollisionGoalsAction successfully initialized");
         
         initialized_ = true;
     }
@@ -99,10 +123,25 @@ namespace nova_behavior_tree
         {
             initialize();
         }
+
+        if (!local_occu_grid_)
+        {
+            throw std::runtime_error("Local occupancy grid is not available");
+        }
+        if (!global_occu_grid_)
+        {
+            throw std::runtime_error("Global occupancy grid is not available");
+        }
         
         getInput("cube_goal_entries", cube_goal_entries_);
         getInput("input_goals", input_goals_);
 
+        // update toward points if goals have been removed
+        while (toward_points_.size() > input_goals_.size())
+        {
+            toward_points_.erase(toward_points_.begin());
+        }
+        
         // update toward points with cube goals
         std::sort(cube_goal_entries_.begin(), cube_goal_entries_.end(),
             [](const GoalEntry &a, const GoalEntry &b) -> bool
@@ -122,7 +161,21 @@ namespace nova_behavior_tree
                 continue;
             }
 
-            toward_points_.insert(toward_points_.begin() + entry.index, entry.pose.position);
+            if (entry.index == toward_points_.size())
+            {
+                toward_points_.push_back(entry.pose.position);
+                continue;
+            }
+
+            // update or insert?
+            if (euclidean_distance(entry.pose.position, toward_points_[entry.index]) < update_radius_)
+            {
+                toward_points_[entry.index] = entry.pose.position;
+            }
+            else
+            {
+                toward_points_.insert(toward_points_.begin() + entry.index, entry.pose.position);
+            }
         }
 
         // snap!
@@ -137,6 +190,7 @@ namespace nova_behavior_tree
     bool SnapInCollisionGoalsAction::snap_goals()
     {
         unsigned int failed_snaps = 0;
+        Goals output_goals_;
 
         for (size_t i = 0; i < input_goals_.size(); ++i)
         {
@@ -144,42 +198,55 @@ namespace nova_behavior_tree
             Point2D goal_point_2d = {goal.pose.position.x, goal.pose.position.y};
             SearchResult result = find_nearest_free_cell(goal_point_2d);
 
-            if (result.found)
-            {
-                goal.pose.position.x = grid_cell_to_world(result.cell, global_occu_grid_).x;
-                goal.pose.position.y = grid_cell_to_world(result.cell, global_occu_grid_).y;
-
-                // TODO: refactor this into a function in nova_behavior_tree/nav2_utils.hpp
-                // reorient to corresponding toward point
-                tf2::Vector3 v1;
-                tf2::Vector3 v2;
-                tf2::fromMsg(goal.pose.position, v1);
-                tf2::fromMsg(toward_points_[i], v2);
-
-                tf2::Vector3 direction_normal = (v2 - v1).normalized();
-                tf2::Vector3 ref_axis(1.0, 0.0, 0.0);
-                tf2::Vector3 axis = ref_axis.cross(direction_normal);
-                tf2::Quaternion goal_orientation;
-                goal_orientation.setRotation(axis, std::acos(ref_axis.dot(direction_normal)));
-
-                goal.pose.orientation = tf2::toMsg(goal_orientation);
-                output_goals_.push_back(goal);
-
-                RCLCPP_INFO(
-                    node_->get_logger(), "Snapped goal (%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f)",
-                    goal_point_2d.x, goal_point_2d.y, goal.pose.position.z,
-                    goal.pose.position.x, goal.pose.position.y, goal.pose.position.z
-                );
-            }
-            else
+            if (!result.found)
             {
                 failed_snaps += 1;
                 RCLCPP_WARN(
                     node_->get_logger(), "Failed to snap goal (%.2f, %.2f, %.2f) to a free cell",
                     goal.pose.position.x, goal.pose.position.y, goal.pose.position.z
                 );
+                continue;
+            }
+            
+            goal.pose.position.x = grid_cell_to_world(result.cell, global_occu_grid_).x;
+            goal.pose.position.y = grid_cell_to_world(result.cell, global_occu_grid_).y;
+
+            // TODO: refactor this into a function in nova_behavior_tree/nav2_utils.hpp
+            // reorient to corresponding toward point
+            tf2::Vector3 v1;
+            tf2::Vector3 v2;
+            tf2::fromMsg(goal.pose.position, v1);
+            tf2::fromMsg(toward_points_[i], v2);
+
+            tf2::Vector3 direction_normal = (v2 - v1).normalized();
+            tf2::Vector3 ref_axis(1.0, 0.0, 0.0);
+            tf2::Vector3 axis = ref_axis.cross(direction_normal);
+            tf2::Quaternion goal_orientation;
+            goal_orientation.setRotation(axis, std::acos(ref_axis.dot(direction_normal)));
+
+            goal.pose.orientation = tf2::toMsg(goal_orientation);
+            output_goals_.push_back(goal);
+
+            geometry_msgs::msg::Point original_point;
+            original_point.x = goal_point_2d.x;
+            original_point.y = goal_point_2d.y;
+            original_point.z = goal.pose.position.z;
+            if (euclidean_distance(original_point, goal.pose.position) > 0.01)
+            {
+                RCLCPP_INFO(
+                    node_->get_logger(), "Snapped goal (%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f)",
+                    goal_point_2d.x, goal_point_2d.y, goal.pose.position.z,
+                    goal.pose.position.x, goal.pose.position.y, goal.pose.position.z
+                );
+                RCLCPP_INFO(
+                    node_->get_logger(), "Original orientation: %d° Snapped orientation: %d°",
+                    static_cast<int>(std::round(utils::nav2::degrees(tf2::getYaw(input_goals_[i].pose.orientation)))),
+                    static_cast<int>(std::round(utils::nav2::degrees(tf2::getYaw(goal.pose.orientation))))
+                );
             }
         }
+
+        setOutput("output_goals", output_goals_);
 
         if (failed_snaps > 0)
         {
@@ -225,7 +292,6 @@ namespace nova_behavior_tree
     bool SnapInCollisionGoalsAction::is_cell_free(const GridCell &global_cell)
     {
         GridCell local_cell = world_to_grid_cell(grid_cell_to_world(global_cell, global_occu_grid_), local_occu_grid_);
-
         return is_cell_free(global_cell, global_occu_grid_) && is_cell_free(local_cell, local_occu_grid_);
     }
 
@@ -234,7 +300,7 @@ namespace nova_behavior_tree
         if (cell.x < 0 || cell.x >= static_cast<int>((*grid).info.width) ||
             cell.y < 0 || cell.y >= static_cast<int>((*grid).info.height))
         {
-            return false;
+            return true; // treat out-of-bound (unknown) cells as free
         }
         int index = cell.y * (*grid).info.width + cell.x;
         return (*grid).data[index] <= 0;

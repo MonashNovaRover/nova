@@ -13,8 +13,12 @@
 // limitations under the License.
 
 /**
- * @brief Action node for snapping goals that are in collision to the closest
- * valid position.
+ * @brief Action node for snapping goals that are in collision to the closest valid position.
+ * To ensure correct orientation, 'toward points' are used to determine the orientation of the
+ * snapped goal. Toward points are points to which the original goals were pointed towards.
+ * 
+ * To find a suitable pose to snap to, a spiral search pattern is used to find the nearest free
+ * or unknown cell in the occupancy grid.
  * 
  * @authors Terry Tian
  */
@@ -76,6 +80,8 @@ public:
     return {
       BT::InputPort<double>("initial_goals_offset", 0.0, "Approximate distance the initial goals are offset"),
       BT::InputPort<double>("max_snap_radius", 5.0, "Maximum radius (m) to snap goals to"),
+      BT::InputPort<double>("update_radius", 0.5,
+        "Radius for cube goals to be considered an update, should be set to the same value as in UpdateGoalsAction"),
       BT::InputPort<std::vector<GoalEntry>>("cube_goal_entries", "Cube goals with their index in the input_goals vector"),
       BT::InputPort<Goals>("input_goals", "Original goals to snap if in collision"),
       BT::OutputPort<Goals>("output_goals", "Goals with all in collision goals snapped"),
@@ -101,9 +107,9 @@ private:
   
   std::vector<Point> toward_points_;
   double max_snap_radius_;
+  double update_radius_;
   std::vector<GoalEntry> cube_goal_entries_;
   Goals input_goals_;
-  Goals output_goals_;
   
   bool initialized_ = false;
 };
