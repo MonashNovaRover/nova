@@ -35,8 +35,8 @@ class SpinnyPartNode(JoystickControllerNode):
     SERVO_ID = 0x0A0 # todo adjust accordingly
 
     # SENDING COMMAND IDS
-    SPIN_CLOCKWISE = 0x01 # todo adjust
-    SPIN_ANTICLOCKWISE = 0x02 # todo adjust
+    SPIN_CLOCKWISE = 0x03 # todo adjust
+    SPIN_ANTICLOCKWISE = 0x04 # todo adjust
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
     SPIN_MAX_PERCENT = 0.7
