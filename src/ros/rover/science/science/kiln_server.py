@@ -31,7 +31,7 @@ from nova_interfaces.srv import KilnCommand
 class KilnServer(Node):
     # Jono Card IDs
     KILN_CARD_SEND_IDS = [0x0A0, 0x0B0]
-    KILN_TEMP_FEEDBACK_ID = 0x4B3
+    KILN_TEMP_FEEDBACK_ID = 0x4E0
     # Kiln Command
     KILN_POWER_COMMAND = 0x07
     # Kiln Power States
