@@ -23,33 +23,27 @@
     <link name="base_link"></link>
 
     <link name="chassis">
+        <inertial>
+            <origin xyz="-2.0406452760e-04 1.4041380148e-01 1.6607310545e-02" rpy="0 0 0" />
+            <mass value="5.45693" />
+            <inertia ixx="2.0399116109e-01" ixy="-2.7566460856e-04" ixz="-2.0923415351e-04" iyy="1.6687723829e-01" iyz="-7.4614396417e-03" izz="3.2174651883e-01" />
+        </inertial>
+        
         <visual>
-            <origin xyz="1.2353683969592321892e-17 1.3877787807815553765e-17 -1.2992673251725723918e-16" rpy="-4.03091968774772598e-16 -5.9777162559529608526e-16 1.57079632679489678" />
+            <origin xyz="0 0 0" rpy="3.26128e-16 -1.01395e-15 1.5708" />
             <geometry>
-                <mesh filename="file://$(find rover_description)/rover7/meshes/chassis.stl"/>
+                <mesh filename="file://$(find rover_description)/rover7/meshes/chassis.stl" />
             </geometry>
             <material name="chassis_material">
-                <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
+                <color rgba="0.866667 0.0745098 0.32549 1.0" />
             </material>
         </visual>
-        <!-- Shapes for chassis -->
         <collision>
-            <origin xyz="-0.17250000000000031974 9.3018238151966802719e-18 0.023499999999999854339" rpy="-4.03091968774772598e-16 -5.9777162559529608526e-16 1.57079632679489678" />
+            <origin xyz="-0.1725 6.96421e-18 0.0235" rpy="3.26128e-16 -1.01395e-15 1.5708" />
             <geometry>
-                <box size="0.47999999999999998224 0.54500000000000003997 0.1749999999999999889" />
+                <box size="0.48 0.545 0.175" />
             </geometry>
         </collision>
-        <collision>
-            <origin xyz="0.22700000000000039591 2.8459855857991392753e-18 0.033500000000000043632" rpy="-4.03091968774772598e-16 -5.9777162559529608526e-16 1.57079632679489678" />
-            <geometry>
-                <box size="0.34000000000000002442 0.26000000000000000888 0.19500000000000000666" />
-            </geometry>
-        </collision>
-        <inertial>
-            <origin xyz="-0.022980723180787008403 -0.00012909338240173079686 0.024515364506931026228" rpy="0 0 0"/>
-            <mass value="8.3419541100883876084" />
-            <inertia ixx="0.21737687093594976195" ixy="0.00013546851964915839124" ixz="-0.0088627259627339308873" iyy="0.45541406320296751176" iyz="-0.00021657327861196811977" izz="0.59726536058024382037" />
-        </inertial>
     </link>
 
     <link name="left_leg">
@@ -722,7 +716,8 @@
     <xacro:include filename="$(find rover_description)/rover7/urdf/ckc.xacro"/>
 
     <xacro:if value="$(arg auto_camera)">
-        <xacro:include filename="$(find rover_description)/rover7/urdf/auto_camera.xacro"/>
+        <xacro:include filename="$(find rover_description)/rover7/urdf/auto/auto_camera.xacro"/>
+        <xacro:include filename="$(find rover_description)/rover7/urdf/auto/auto_mount.xacro"/>
         <xacro:auto_cam angle="$(arg angle)"></xacro:auto_cam>
     </xacro:if>
     
