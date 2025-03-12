@@ -139,8 +139,12 @@ void DriveInputs::input_callback(const input_interfaces::msg::InputGamepad::Shar
             if (autonomous)
                 RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Autonomous Mode Disabled" << C_END);
             autonomous = false;
-        }
-
+       
+        } //else if (msg->btn_x_state == 1) {
+            //bonus_mode = !bonus_mode;
+            //system(("bash ~/nova/nixfiles/scripts/cop-mode.sh " + std::string(cop_mode ? "on" : "off") + " &").c_str());
+        //}
+   
         if (msg->btn_thumb_l_state == 1) {
             if (!latest_drive_input.handbrake)
                 RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Handbrake Enabled" << C_END);
