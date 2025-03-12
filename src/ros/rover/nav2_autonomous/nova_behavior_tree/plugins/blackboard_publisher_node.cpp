@@ -85,7 +85,12 @@ BT::NodeStatus BlackboardPublisherNode::tick()
           for (const auto& goal_pose : goals) {
               ss << "("
                 << goal_pose.pose.position.x << ", "
-                << goal_pose.pose.position.y << ") ";
+                << goal_pose.pose.position.y << ", "
+                << goal_pose.pose.position.z << ", "
+                << goal_pose.pose.orientation.x << ", "
+                << goal_pose.pose.orientation.y << ", "
+                << goal_pose.pose.orientation.z << ", "
+                << goal_pose.pose.orientation.w << ")";
           }
 
           value_str = ss.str();  // Assign simplified string

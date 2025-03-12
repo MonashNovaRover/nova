@@ -14,7 +14,7 @@ ACTIONS: None
 PACKAGE:    nova_utils
 EDITED BY:	Victor Bartlinski
 CREATION:	08/03/2025
-EDITED:		08/03/2025
+EDITED:		13/03/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -33,7 +33,7 @@ from builtin_interfaces.msg import Time
 
 from typing import Dict, List, Tuple, TypeVar
 T = TypeVar('T')
-type Point = Tuple[float, float, float] # point = (x,y,z)
+type Point = Tuple[Tuple[float, float, float], Tuple[float, float, float, float]] # point = ((x,y,z), (X,Y,Z,W))
 
 class GoalMarker(Node):
     def __init__(self):
@@ -62,23 +62,20 @@ class GoalMarker(Node):
 
 
     def blacboard_sub_callback(self, str_msg: String) -> None:
-        string:str = str_msg.data # goals: (6.62776, -3.91223) (24.7118, 0.596144) 
+        string:str = str_msg.data
         goals = []
         try:
             string_goals = string.split('goals: ')[1].split('\n')[0].split('(')[1:]
-            print(string_goals)
             for string_goal in string_goals:
                 coords = string_goal.split(')')[0].split(', ')
-                print(coords)
-                goals.append((float(coords[0]), float(coords[1])))
-            print(goals)
+                goals.append(((float(coords[0]), float(coords[1]), float(coords[2])), (float(coords[3]), float(coords[4]), float(coords[5]), float(coords[6]))))
         except Exception as e:
             self.get_logger().debug(f'Error in publishing marker goal: {e}')
             return None
 
         marker_msg = MarkerArray()
         for i, goal in enumerate(goals):
-            marker = self.get_marker(i, (goal[0], goal[1], 0.0), 'map')
+            marker = self.get_marker(i, goal, 'map')
             marker_msg.markers.append(marker)
 
         self.marker_pub.publish(marker_msg)
@@ -88,13 +85,13 @@ class GoalMarker(Node):
     def get_marker(self, id:int, point: Point, frame:str) -> Marker:
         '''Returns a marker derived from the detection'''
         marker = Marker()
-        marker.pose.position.x, marker.pose.position.y, marker.pose.position.z = point
-        marker.pose.orientation.x, marker.pose.orientation.y, marker.pose.orientation.z, marker.pose.orientation.w = [0.0, 0.0, 0.0, 1.0]
+        marker.pose.position.x, marker.pose.position.y, marker.pose.position.z = point[0]
+        marker.pose.orientation.x, marker.pose.orientation.y, marker.pose.orientation.z, marker.pose.orientation.w = point[1]
 
-        marker.type = Marker.SPHERE
-        marker.scale.x = self.marker_size
-        marker.scale.y = self.marker_size
-        marker.scale.z = self.marker_size
+        marker.type = Marker.ARROW
+        marker.scale.x = self.marker_size * 3.0
+        marker.scale.y = self.marker_size * 0.5
+        marker.scale.z = self.marker_size * 0.5
         marker.color.r = 0.0
         marker.color.g = 1.0
         marker.color.b = 0.0
