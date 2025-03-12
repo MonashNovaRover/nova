@@ -695,4 +695,11 @@ self: super:
   );
 
   # Overlays for non-ROS packages
+  opencv4 = super.opencv4.overrideAttrs ({ nativeBuildInputs ? [ ], buildInputs ? [ ], ... }: {
+  nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
+  # buildsInputs =
+  #   buildInputs ++
+  #   [self.nvidia-optical-flow-sdk]
+  #   -- [self.cudaPackages.nvidia-optical-flow-sdk];
+  });
 }
