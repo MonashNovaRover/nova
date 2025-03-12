@@ -113,8 +113,6 @@ namespace nova_behavior_tree
                 if (dist_to_cube < cube_tolerance_) 
                 {
                     visited_ids_[i] = true;
-                    setOutput("visited_ids", visited_ids_);
-                    
                     RCLCPP_INFO(
                         node_->get_logger(), "New cube visited: %s\nVisited cubes: %s",
                         COLORS[i].c_str(), utils::arrayToString(visited_ids_).c_str()
@@ -125,6 +123,7 @@ namespace nova_behavior_tree
             input_goals_.erase(input_goals_.begin());
         }
 
+        setOutput("visited_ids", visited_ids_);
         setOutput("output_goals", input_goals_);
 
         return BT::NodeStatus::SUCCESS;

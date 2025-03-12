@@ -48,6 +48,7 @@ struct GridCell {
 struct SearchResult {
   GridCell cell;
   bool found;
+  int search_radius;
 };
 
 struct GoalEntry {
@@ -104,6 +105,7 @@ public:
 
 private:
   bool snap_goals();
+  void update_toward_points();
   SearchResult find_nearest_free_cell(const Point &origin);
   bool is_cell_free(const GridCell &global_cell);
   bool is_cell_free(const GridCell &cell, const OccupancyGrid::SharedPtr &grid);
