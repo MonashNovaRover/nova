@@ -58,6 +58,7 @@ namespace nova_behavior_tree
           BT::InputPort<std::string>("robot_base_frame", "Robot base frame"),
           BT::OutputPort<Goals>("output_goals", "Goals with passed viapoints removed"),
           BT::OutputPort<IDs>("visited_ids", "visited_ids[i] = true if visited, false otherwise"),
+          BT::OutputPort<double>("distance_to_goal", "Distance from the rover to current goal"),
       };
     }
 

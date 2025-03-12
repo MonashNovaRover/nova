@@ -31,6 +31,7 @@
       <input_port name="robot_base_frame">Robot base frame</input_port>
       <output_port name="output_goals">Goals with passed viapoints removed</output_port>
       <output_port name="visited_ids">visited_ids[i] = true if visited, false otherwise</output_port>
+      <output_port name="distance_to_goal">Distance from the rover to current goal</output_port>
     </Action>
 
     <Action ID="RemovePassedGoalsAndARTags">

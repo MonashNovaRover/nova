@@ -42,8 +42,10 @@
                                               input_goals="{goals}"
                                               radius="2"
                                               output_goals="{goals}"
-                                              visited_ids="{visited_ids}"/>
-                  <ComputePathThroughPoses goals="{goals}"
+                                              visited_ids="{visited_ids}"
+                                              distance_to_goal="{dist_to_goal}"/>
+                  <ComputePathThroughPoses _skipIf="dist_to_goal < 2.0"
+                                            goals="{goals}"
                                             planner_id="{selected_planner}"
                                             path="{path}"
                                             error_code_id="{compute_path_error_code}"/>

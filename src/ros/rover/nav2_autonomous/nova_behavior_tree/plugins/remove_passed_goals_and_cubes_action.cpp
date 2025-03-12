@@ -78,11 +78,12 @@ namespace nova_behavior_tree
             return BT::NodeStatus::FAILURE;
         }
 
-        while (input_goals_.size() > 1) 
+        while (input_goals_.size() > 0) 
         {
             double dist_to_goal = euclidean_distance(input_goals_[0].pose, current_pose.pose);
+            setOutput("distance_to_goal", dist_to_goal);
 
-            if (dist_to_goal > viapoint_achieved_radius_) 
+            if (dist_to_goal > viapoint_achieved_radius_ || input_goals_.size() <= 1)
             {
                 break;
             }
