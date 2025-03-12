@@ -25,12 +25,12 @@ in
       complete -F _complete_alias "''${!BASH_ALIASES[@]}"
 
       # Rover operator shell functions (act as aliases that can take arguments)
-      launch-base() { ~/Builds/"${1:-master}"/bin/ros2 launch nova_bringup base.launch.py; }
-      launch-drive() { ~/Builds/"${1:-master}"/bin/ros2 launch nova_bringup drive.launch.py; }
-      launch-arm() { ~/Builds/"${1:-master}"/bin/ros2 launch nova_bringup arm.launch.py; }
-      launch-ec() { ~/Builds/"${1:-master}"/bin/ros2 launch nova_bringup ec_rover.launch.py; }
-      launch-science-arc() { ~/Builds/"${1:-master}"/bin/ros2 launch nova_bringup arc_science.launch.py; }
-      launch-science-urc() { ~/Builds/"${1:-master}"/bin/ros2 launch nova_bringup urc_science.launch.py; }
+      launch-base() { ~/Builds/"''${1:-master}"/bin/ros2 launch nova_bringup base.launch.py; }
+      launch-drive() { ~/Builds/"''${1:-master}"/bin/ros2 launch nova_bringup drive.launch.py; }
+      launch-arm() { ~/Builds/"''${1:-master}"/bin/ros2 launch nova_bringup arm.launch.py; }
+      launch-ec() { ~/Builds/"''${1:-master}"/bin/ros2 launch nova_bringup ec_rover.launch.py; }
+      launch-science-arc() { ~/Builds/"''${1:-master}"/bin/ros2 launch nova_bringup arc_science.launch.py; }
+      launch-science-urc() { ~/Builds/"''${1:-master}"/bin/ros2 launch nova_bringup urc_science.launch.py; }
     '';
 
     home = {
