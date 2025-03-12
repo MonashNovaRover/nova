@@ -32,7 +32,6 @@
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "tf2/LinearMath/Vector3.h"
-#include "tf2/LinearMath/Quaternion.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "tf2/utils.h"
 
@@ -59,7 +58,6 @@ namespace nova_behavior_tree
         getInput("update_radius", viapoint_overwrite_tolerance_);
         getInput("goal_radius", goal_radius_);
         getInput("goal_type", goal_type_);
-        setOutput("cube_goal_entries", prev_cube_goals_);
 
         double footprint_radius;;
         if (node_->get_parameter("local_costmap.local_costmap.ros__parameters.robot_radius", footprint_radius))
@@ -111,23 +109,18 @@ namespace nova_behavior_tree
         for (size_t i = 0; i < goals_.size(); ++i)
         {
             // calculate offset goal so rover doesn't try to path through an object
-            geometry_msgs::msg::Point p1 = current_pose_.pose.position;
-            geometry_msgs::msg::Point p2 = goals_[i].pose.position;
+            tf2::Vector3 rover;
+            tf2::Vector3 goal;
+            tf2::fromMsg(current_pose_.pose.position, rover);
+            tf2::fromMsg(goals_[i].pose.position, goal);
             
-            tf2::Vector3 v1(p1.x, p1.y, p1.z);
-            tf2::Vector3 v2(p2.x, p2.y, p2.z);
-            
-            tf2::Vector3 rover_to_goal_normal = (v2 - v1).normalized();
-            tf2::Vector3 offset_position = v2 - rover_to_goal_normal * goal_radius_;
-            tf2::Vector3 ref_axis(1.0, 0.0, 0.0);
-            tf2::Vector3 axis = ref_axis.cross(rover_to_goal_normal); // already normalized
-            tf2::Quaternion goal_orientation;
-            goal_orientation.setRotation(axis, std::acos(ref_axis.dot(rover_to_goal_normal)));
+            tf2::Vector3 rover_to_goal_normal = (goal - rover).normalized();
+            tf2::Vector3 offset_position = goal - rover_to_goal_normal * goal_radius_;
 
             geometry_msgs::msg::PoseStamped offset_goal;
             offset_goal.header = goals_[i].header;
             tf2::toMsg(offset_position, offset_goal.pose.position);
-            offset_goal.pose.orientation = tf2::toMsg(goal_orientation);
+            utils::nav2::OrientTowards(offset_goal.pose, goals_[i].pose.position);
 
             auto log_goal_info = [&]()
             {

@@ -100,6 +100,7 @@ namespace nova_behavior_tree
                 break;
             }
 
+            // check if the goal is a cube
             for (size_t i = 0; i < 4; ++i)
             {
                 if (utils::nav2::isDefaultPose(cube_poses_[i]))
