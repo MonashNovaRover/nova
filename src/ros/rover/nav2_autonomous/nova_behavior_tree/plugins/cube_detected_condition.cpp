@@ -138,7 +138,7 @@ namespace nova_behavior_tree
             
             cube_poses_[i] = cube_pose;
             
-            RCLCPP_INFO(node_->get_logger(), "%s cube detected, updating/inserting goal", COLORS[i].c_str());
+            RCLCPP_INFO(node_->get_logger(), "%s cube detected", COLORS[i].c_str());
             
             goal.header.frame_id = global_frame_;
             goal.header.stamp = t.header.stamp;
@@ -149,6 +149,7 @@ namespace nova_behavior_tree
             result = true;
         }
 
+        setOutput("cube_poses", cube_poses_);
         setOutput("cube_goals", goals);
 
         return result;

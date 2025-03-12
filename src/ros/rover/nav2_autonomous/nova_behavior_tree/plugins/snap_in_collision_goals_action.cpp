@@ -151,13 +151,26 @@ namespace nova_behavior_tree
         getInput("cube_goal_entries", cube_goal_entries_);
         getInput("input_goals", input_goals_);
 
-        // update toward points if goals have been removed
+        update_toward_points();
+
+        // snap!
+        if (snap_goals())
+        {
+            return BT::NodeStatus::SUCCESS;
+        }
+
+        return BT::NodeStatus::FAILURE;
+    }
+
+    void SnapInCollisionGoalsAction::update_toward_points()
+    {
+        // update if goals have been removed
         while (toward_points_.size() > input_goals_.size())
         {
             toward_points_.erase(toward_points_.begin());
         }
         
-        // update toward points with cube goals
+        // update with cube goals
         std::sort(cube_goal_entries_.begin(), cube_goal_entries_.end(),
             [](const GoalEntry &a, const GoalEntry &b) -> bool
             {
@@ -182,7 +195,7 @@ namespace nova_behavior_tree
                 continue;
             }
 
-            // update or insert?
+            // existing or new cube goal?
             if (euclidean_distance(entry.pose.position, toward_points_[entry.index]) < update_radius_)
             {
                 toward_points_[entry.index] = entry.pose.position;
@@ -192,14 +205,6 @@ namespace nova_behavior_tree
                 toward_points_.insert(toward_points_.begin() + entry.index, entry.pose.position);
             }
         }
-
-        // snap!
-        if (snap_goals())
-        {
-            return BT::NodeStatus::SUCCESS;
-        }
-
-        return BT::NodeStatus::FAILURE;
     }
 
     bool SnapInCollisionGoalsAction::snap_goals()
@@ -222,18 +227,17 @@ namespace nova_behavior_tree
                 continue;
             }
             
-            Point goal_point = goal.pose.position;
-            Point snapped_point = grid_cell_to_world(result.cell, global_occu_grid_);
-            if (euclidean_distance(goal_point, snapped_point) >= 0.05)
+            if (result.search_radius > 0)
             {
-                goal.pose.position = snapped_point;
+                Point original_pos = goal.pose.position;
+                goal.pose.position = grid_cell_to_world(result.cell, global_occu_grid_);
                 // reorient to corresponding toward point
                 utils::nav2::OrientTowards(goal.pose, toward_points_[i]);
     
                 RCLCPP_INFO(
                     node_->get_logger(), "Snapped goal (%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f)",
-                    goal_point.x, goal_point.y, goal_point.z,
-                    snapped_point.x, snapped_point.y, snapped_point.z
+                    original_pos.x, original_pos.y, original_pos.z,
+                    goal.pose.position.x, goal.pose.position.y, goal.pose.position.z
                 );
                 RCLCPP_INFO(
                     node_->get_logger(), "Original orientation: %d° Snapped orientation: %d°",
@@ -268,7 +272,7 @@ namespace nova_behavior_tree
             int y = global_cell.y - r;
             if (is_cell_free({x, y}))
             {
-                return {{x, y}, true};
+                return {{x, y}, true, r};
             }
 
             for (int i = 0; i < 4; ++i)
@@ -279,13 +283,13 @@ namespace nova_behavior_tree
                     y += directions[i][1];
                     if (is_cell_free({x, y}))
                     {
-                        return {{x, y}, true};
+                        return {{x, y}, true, r};
                     }
                 }
             }
         }
 
-        return {global_cell, false};
+        return {global_cell, false, max_radius};
     }
 
     bool SnapInCollisionGoalsAction::is_cell_free(const GridCell &global_cell)
@@ -299,7 +303,7 @@ namespace nova_behavior_tree
         if (cell.x < 0 || cell.x >= static_cast<int>((*grid).info.width) ||
             cell.y < 0 || cell.y >= static_cast<int>((*grid).info.height))
         {
-            return true; // treat out-of-bound (unknown) cells as free
+            return true; // treat out-of-bounds cells as free
         }
         int index = cell.y * (*grid).info.width + cell.x;
         return (*grid).data[index] <= 0;
@@ -315,10 +319,9 @@ namespace nova_behavior_tree
 
     Point SnapInCollisionGoalsAction::grid_cell_to_world(const GridCell &cell, const OccupancyGrid::SharedPtr &grid)
     {
-        // 0.5 is added to use the center of the cell, rather than the corner
         Point point;
-        point.x = (*grid).info.origin.position.x + (cell.x + 0.5) * (*grid).info.resolution;
-        point.y = (*grid).info.origin.position.y + (cell.y + 0.5) * (*grid).info.resolution;
+        point.x = (*grid).info.origin.position.x + (cell.x * (*grid).info.resolution);
+        point.y = (*grid).info.origin.position.y + (cell.y * (*grid).info.resolution);
         return point;
     }
 

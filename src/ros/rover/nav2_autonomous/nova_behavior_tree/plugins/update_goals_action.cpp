@@ -125,12 +125,11 @@ namespace nova_behavior_tree
             auto log_goal_info = [&]()
             {
                 RCLCPP_INFO(
-                    node_->get_logger(), "Offset goal: (%.2f, %.2f, %.2f) Cube position: (%.2f, %.2f, %.2f)",
+                    node_->get_logger(),
+                    "Offset goal: (%.2f, %.2f, %.2f) Cube position: (%.2f, %.2f, %.2f)\n"
+                    "Rover orientation: %d° Goal orientation: %d°",
                     offset_goal.pose.position.x, offset_goal.pose.position.y, offset_goal.pose.position.z,
-                    goals_[i].pose.position.x, goals_[i].pose.position.y, goals_[i].pose.position.z
-                );
-                RCLCPP_INFO(
-                    node_->get_logger(), "Rover orientation: %d° Goal orientation: %d°",
+                    goals_[i].pose.position.x, goals_[i].pose.position.y, goals_[i].pose.position.z,
                     (int)std::round(utils::nav2::degrees(tf2::getYaw(current_pose_.pose.orientation))),
                     (int)std::round(utils::nav2::degrees(tf2::getYaw(offset_goal.pose.orientation)))
                 );
@@ -142,11 +141,14 @@ namespace nova_behavior_tree
             {
                 if (euclidean_distance(prev_goal.pose, goals_[i].pose) < viapoint_overwrite_tolerance_)
                 {
-                    input_goals_[prev_goal.index] = offset_goal;
-                    prev_goal.pose = goals_[i].pose;
+                    if (!utils::nav2::arePointsEqual(prev_goal.pose.position, goals_[i].pose.position))
+                    {
+                        input_goals_[prev_goal.index] = offset_goal;
+                        prev_goal.pose = goals_[i].pose;
+                        RCLCPP_INFO(node_->get_logger(), "Updating existing %s goal", goal_type_.c_str());
+                        log_goal_info();
+                    }
                     updated = true;
-                    RCLCPP_INFO(node_->get_logger(), "Updating existing %s goal", goal_type_.c_str());
-                    log_goal_info();
                     break;
                 }
             }

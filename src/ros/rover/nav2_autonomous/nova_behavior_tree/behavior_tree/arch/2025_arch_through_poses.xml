@@ -33,16 +33,16 @@
                   </Sequence>
                 </ForceSuccess>
                 <ReactiveSequence>
+                  <SnapInCollisionGoals initial_goals_offset="1.5"
+                                        cube_goal_entries="{cube_goal_entries}"
+                                        input_goals="{goals}"
+                                        output_goals="{goals}"/>
                   <RemovePassedGoalsAndCubes cube_poses="{cube_poses}"
                                               cube_tolerance="2"
                                               input_goals="{goals}"
                                               radius="2"
                                               output_goals="{goals}"
                                               visited_ids="{visited_ids}"/>
-                  <SnapInCollisionGoals initial_goals_offset="1.5"
-                                        cube_goal_entries="{cube_goal_entries}"
-                                        input_goals="{goals}"
-                                        output_goals="{goals}"/>
                   <ComputePathThroughPoses goals="{goals}"
                                             planner_id="{selected_planner}"
                                             path="{path}"

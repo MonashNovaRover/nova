@@ -20,12 +20,11 @@
 #include <string>
 #include <sstream>
 
+#include "nav2_util/geometry_utils.hpp"
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/pose.hpp>
 #include <geometry_msgs/msg/point.hpp>
 #include <geometry_msgs/msg/quaternion.hpp>
-#include "nav2_util/geometry_utils.hpp"
-#include <rclcpp/logging.hpp>
 
 namespace nova_behavior_tree::utils::nav2
 {
@@ -68,22 +67,6 @@ namespace nova_behavior_tree::utils::nav2
     q.z = cr * cp * sy - sr * sp * cy;
 
     return q;
-  }
-
-  inline PoseStamped poseStampedFromGzPose(
-      const std::string &frame_id, rclcpp::Node::SharedPtr node, // to get current time
-      const double x, const double y, const double z,
-      const double roll, const double pitch, const double yaw)
-  {
-    PoseStamped pose;
-    pose.header.frame_id = frame_id;
-    pose.header.stamp = node->now();
-    pose.pose.position.x = x;
-    pose.pose.position.y = y;
-    pose.pose.position.z = z;
-    pose.pose.orientation = eulerToQuaternion(roll, pitch, yaw);
-
-    return pose;
   }
 
   // Small helper to replicate angles::shortest_angular_distance
