@@ -35,9 +35,6 @@
 #include "rclcpp/logging.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/point.hpp"
-#include "tf2/LinearMath/Vector3.h"
-#include "tf2/LinearMath/Quaternion.h"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "tf2/utils.h"
 
 #include "nova_behavior_tree/snap_in_collision_goals_action.hpp"
@@ -47,6 +44,7 @@ namespace nova_behavior_tree
 {
 
     using namespace nav2_util::geometry_utils;
+    using namespace geometry_msgs::msg;
     using namespace nav_msgs::msg;
 
     SnapInCollisionGoalsAction::SnapInCollisionGoalsAction(
@@ -60,27 +58,10 @@ namespace nova_behavior_tree
     {
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
 
+        getInput("initial_goals_offset", initial_goals_offset_);
         getInput("max_snap_radius", max_snap_radius_);
         getInput("update_radius", update_radius_);
         
-        double initial_goals_offset;
-        getInput("initial_goals_offset", initial_goals_offset);
-        getInput("input_goals", input_goals_);
-
-        // calculate toward points for intial goals
-        for (const auto &goal : input_goals_)
-        {
-            geometry_msgs::msg::Point p = goal.pose.position;
-            
-            tf2::Vector3 v(p.x, p.y, p.z);
-            v += v.normalized() * initial_goals_offset;
-
-            geometry_msgs::msg::Point toward_point;
-            tf2::toMsg(v, toward_point);
-
-            toward_points_.push_back(toward_point);
-        }
-
         // subscribe to local and global costmaps' occupancy grids
         local_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
             "/local_costmap/costmap", 1,
@@ -112,16 +93,50 @@ namespace nova_behavior_tree
             std::chrono::duration<double, std::milli>(end - start).count()
         );
 
-        RCLCPP_INFO(node_->get_logger(), "SnapInCollisionGoalsAction successfully initialized");
+        RCLCPP_INFO(node_->get_logger(), "SnapInCollisionGoalsAction successfully initialized!");
         
         initialized_ = true;
     }
 
-    inline BT::NodeStatus SnapInCollisionGoalsAction::tick()
+    void SnapInCollisionGoalsAction::setup()
     {
         if (!initialized_)
         {
             initialize();
+        }
+
+        getInput("input_goals", input_goals_);
+
+        // calculate toward points for intial goals
+        for (const auto &goal : input_goals_)
+        {
+            Point p = goal.pose.position;
+            
+            tf2::Vector3 v(p.x, p.y, p.z);
+            v += v.normalized() * initial_goals_offset_;
+
+            Point toward_point;
+            tf2::toMsg(v, toward_point);
+
+            toward_points_.push_back(toward_point);
+        }
+
+        RCLCPP_INFO(node_->get_logger(), "SnapInCollisionGoalsAction successfully set up!");
+        
+        set_up_ = true;
+    }
+    
+    void SnapInCollisionGoalsAction::halt()
+    {
+        toward_points_.clear();
+        set_up_ = false;
+    }
+
+    inline BT::NodeStatus SnapInCollisionGoalsAction::tick()
+    {
+        if (!set_up_)
+        {
+            setup();
         }
 
         if (!local_occu_grid_)
@@ -195,8 +210,7 @@ namespace nova_behavior_tree
         for (size_t i = 0; i < input_goals_.size(); ++i)
         {
             Goal goal = input_goals_[i];
-            Point2D goal_point_2d = {goal.pose.position.x, goal.pose.position.y};
-            SearchResult result = find_nearest_free_cell(goal_point_2d);
+            SearchResult result = find_nearest_free_cell(goal.pose.position);
 
             if (!result.found)
             {
@@ -208,35 +222,18 @@ namespace nova_behavior_tree
                 continue;
             }
             
-            goal.pose.position.x = grid_cell_to_world(result.cell, global_occu_grid_).x;
-            goal.pose.position.y = grid_cell_to_world(result.cell, global_occu_grid_).y;
-
-            // TODO: refactor this into a function in nova_behavior_tree/nav2_utils.hpp
-            // reorient to corresponding toward point
-            tf2::Vector3 v1;
-            tf2::Vector3 v2;
-            tf2::fromMsg(goal.pose.position, v1);
-            tf2::fromMsg(toward_points_[i], v2);
-
-            tf2::Vector3 direction_normal = (v2 - v1).normalized();
-            tf2::Vector3 ref_axis(1.0, 0.0, 0.0);
-            tf2::Vector3 axis = ref_axis.cross(direction_normal);
-            tf2::Quaternion goal_orientation;
-            goal_orientation.setRotation(axis, std::acos(ref_axis.dot(direction_normal)));
-
-            goal.pose.orientation = tf2::toMsg(goal_orientation);
-            output_goals_.push_back(goal);
-
-            geometry_msgs::msg::Point original_point;
-            original_point.x = goal_point_2d.x;
-            original_point.y = goal_point_2d.y;
-            original_point.z = goal.pose.position.z;
-            if (euclidean_distance(original_point, goal.pose.position) > 0.01)
+            Point goal_point = goal.pose.position;
+            Point snapped_point = grid_cell_to_world(result.cell, global_occu_grid_);
+            if (euclidean_distance(goal_point, snapped_point) >= 0.05)
             {
+                goal.pose.position = snapped_point;
+                // reorient to corresponding toward point
+                utils::nav2::OrientTowards(goal.pose, toward_points_[i]);
+    
                 RCLCPP_INFO(
                     node_->get_logger(), "Snapped goal (%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f)",
-                    goal_point_2d.x, goal_point_2d.y, goal.pose.position.z,
-                    goal.pose.position.x, goal.pose.position.y, goal.pose.position.z
+                    goal_point.x, goal_point.y, goal_point.z,
+                    snapped_point.x, snapped_point.y, snapped_point.z
                 );
                 RCLCPP_INFO(
                     node_->get_logger(), "Original orientation: %d° Snapped orientation: %d°",
@@ -244,6 +241,8 @@ namespace nova_behavior_tree
                     static_cast<int>(std::round(utils::nav2::degrees(tf2::getYaw(goal.pose.orientation))))
                 );
             }
+            
+            output_goals_.push_back(goal);
         }
 
         setOutput("output_goals", output_goals_);
@@ -256,7 +255,7 @@ namespace nova_behavior_tree
         return failed_snaps == 0;
     }
 
-    SearchResult SnapInCollisionGoalsAction::find_nearest_free_cell(const Point2D &origin)
+    SearchResult SnapInCollisionGoalsAction::find_nearest_free_cell(const Point &origin)
     {
         GridCell global_cell = world_to_grid_cell(origin, global_occu_grid_);
 
@@ -306,7 +305,7 @@ namespace nova_behavior_tree
         return (*grid).data[index] <= 0;
     }
 
-    GridCell SnapInCollisionGoalsAction::world_to_grid_cell(const Point2D &point, const OccupancyGrid::SharedPtr &grid)
+    GridCell SnapInCollisionGoalsAction::world_to_grid_cell(const Point &point, const OccupancyGrid::SharedPtr &grid)
     {
         GridCell cell;
         cell.x = (point.x - (*grid).info.origin.position.x) / (*grid).info.resolution;
@@ -314,10 +313,10 @@ namespace nova_behavior_tree
         return cell;
     }
 
-    Point2D SnapInCollisionGoalsAction::grid_cell_to_world(const GridCell &cell, const OccupancyGrid::SharedPtr &grid)
+    Point SnapInCollisionGoalsAction::grid_cell_to_world(const GridCell &cell, const OccupancyGrid::SharedPtr &grid)
     {
         // 0.5 is added to use the center of the cell, rather than the corner
-        Point2D point;
+        Point point;
         point.x = (*grid).info.origin.position.x + (cell.x + 0.5) * (*grid).info.resolution;
         point.y = (*grid).info.origin.position.y + (cell.y + 0.5) * (*grid).info.resolution;
         return point;

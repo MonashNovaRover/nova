@@ -16,7 +16,6 @@
 #define NOVA_BEHAVIOR_TREE__NAV2_UTILS_HPP
 
 #define PI 3.14159265358979323846
-#define PI_2 1.57079632679489661923
 
 #include <string>
 #include <sstream>
@@ -25,14 +24,16 @@
 #include <geometry_msgs/msg/pose.hpp>
 #include <geometry_msgs/msg/point.hpp>
 #include <geometry_msgs/msg/quaternion.hpp>
+#include "nav2_util/geometry_utils.hpp"
 #include <rclcpp/logging.hpp>
 
 namespace nova_behavior_tree::utils::nav2
 {
 
   using namespace geometry_msgs::msg;
+  using namespace nav2_util::geometry_utils;
 
-  std::string poseStampedToString(const PoseStamped &pose)
+  inline std::string poseStampedToString(const PoseStamped &pose)
   {
     std::ostringstream oss;
     oss << "\nPoseStamped:\n"
@@ -51,7 +52,7 @@ namespace nova_behavior_tree::utils::nav2
     return oss.str();
   }
 
-  Quaternion eulerToQuaternion(double roll, double pitch, double yaw)
+  inline Quaternion eulerToQuaternion(const double &roll, const double &pitch, const double &yaw)
   {
     double cr = cos(roll * 0.5);
     double sr = sin(roll * 0.5);
@@ -69,7 +70,7 @@ namespace nova_behavior_tree::utils::nav2
     return q;
   }
 
-  PoseStamped poseStampedFromGzPose(
+  inline PoseStamped poseStampedFromGzPose(
       const std::string &frame_id, rclcpp::Node::SharedPtr node, // to get current time
       const double x, const double y, const double z,
       const double roll, const double pitch, const double yaw)
@@ -86,7 +87,7 @@ namespace nova_behavior_tree::utils::nav2
   }
 
   // Small helper to replicate angles::shortest_angular_distance
-  inline double shortestAngularDistance(double from, double to)
+  inline double shortestAngularDistance(const double &from, const double &to)
   {
     // Normalizes the difference into (-π, +π]
     double angle = std::fmod(to - from, 2.0 * PI);
@@ -101,34 +102,43 @@ namespace nova_behavior_tree::utils::nav2
     return angle;
   }
 
-  double radians(double degrees)
+  /**
+   * @brief Orient the pose towards a target point
+   */
+  inline void OrientTowards(Pose &pose, const Point &target)
+  {
+    double dx = target.x - pose.position.x;
+    double dy = target.y - pose.position.y;
+    double yaw = atan2(dy, dx);
+    pose.orientation = orientationAroundZAxis(yaw);
+  }
+
+  inline double radians(const double &degrees)
   {
     return degrees * PI / 180.0;
   }
 
-  double degrees(double radians)
+  inline double degrees(const double &radians)
   {
     return radians * 180.0 / PI;
   }
-  
-  bool isClose(double a, double b, double tolerance = 0.0)
+
+  inline bool arePointsEqual(const Point &p1, const Point &p2)
   {
-    return abs(a - b) <= tolerance;
+    return p1.x == p2.x &&
+           p1.y == p2.y &&
+           p1.z == p2.z;
   }
 
-  bool arePointsEqual(Point p1, Point p2, double tolerance = 0.0)
+  inline bool areQuaternionsEqual(const Quaternion &q1, const Quaternion &q2)
   {
-    return isClose(p1.x, p2.x, tolerance) && 
-           isClose(p1.y, p2.y, tolerance) && 
-           isClose(p1.z, p2.z, tolerance);
+    return q1.x == q2.x &&
+           q1.y == q2.y &&
+           q1.z == q2.z &&
+           q1.w == q2.w;
   }
 
-  bool areQuaternionsEqual(Quaternion q1, Quaternion q2)
-  {
-    return q1.x == q2.x && q1.y == q2.y && q1.z == q2.z && q1.w == q2.w;
-  }
-
-  bool isDefaultPose(Pose p)
+  inline bool isDefaultPose(const Pose &p)
   {
     return arePointsEqual(p.position, Point()) &&
            areQuaternionsEqual(p.orientation, Quaternion());

@@ -41,10 +41,6 @@ namespace nova_behavior_tree
 using namespace geometry_msgs::msg;
 using namespace nav_msgs::msg;
 
-struct Point2D {
-  double x, y;
-};
-
 struct GridCell {
   int x, y;
 };
@@ -71,9 +67,27 @@ public:
 
   /**
    * @brief Function to initialize variables,
-   * called only once in the lifecycle of the BT
+   * called only once in the lifecycle of the navigator
    */
   void initialize();
+
+  /**
+   * @brief Function to setup variables, called every time
+   * navigation is started
+   */
+  void setup();
+
+  /**
+   * @brief The main override required by a BT node
+   * @return BT::NodeStatus Status of tick execution
+   */
+  BT::NodeStatus tick() override;
+  
+  /**
+   * @brief Function called when the BT is halted,
+   * use to cleanup or reset state
+   */
+  void halt() override;
 
   static BT::PortsList providedPorts()
   {
@@ -89,15 +103,12 @@ public:
   }
 
 private:
-  void halt() override {}
-  BT::NodeStatus tick() override;
-  
   bool snap_goals();
-  SearchResult find_nearest_free_cell(const Point2D &origin);
+  SearchResult find_nearest_free_cell(const Point &origin);
   bool is_cell_free(const GridCell &global_cell);
   bool is_cell_free(const GridCell &cell, const OccupancyGrid::SharedPtr &grid);
-  GridCell world_to_grid_cell(const Point2D &point, const OccupancyGrid::SharedPtr &grid);
-  Point2D grid_cell_to_world(const GridCell &cell, const OccupancyGrid::SharedPtr &grid);
+  GridCell world_to_grid_cell(const Point &point, const OccupancyGrid::SharedPtr &grid);
+  Point grid_cell_to_world(const GridCell &cell, const OccupancyGrid::SharedPtr &grid);
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::Subscription<OccupancyGrid>::SharedPtr local_occu_grid_sub_;
@@ -105,6 +116,7 @@ private:
   OccupancyGrid::SharedPtr local_occu_grid_;
   OccupancyGrid::SharedPtr global_occu_grid_;
   
+  double initial_goals_offset_;
   std::vector<Point> toward_points_;
   double max_snap_radius_;
   double update_radius_;
@@ -112,6 +124,7 @@ private:
   Goals input_goals_;
   
   bool initialized_ = false;
+  bool set_up_ = false;
 };
 
 }  // namespace nova_behavior_tree
