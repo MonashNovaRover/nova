@@ -1,5 +1,3 @@
-import { CameraFilters } from "../../../components/CameraComponent/CameraComponent";
-
 export interface CameraView {
   viewTitle: string;
   cameraSerials: string[];
@@ -18,14 +16,6 @@ export enum URCCompModes {
   URC_SCIENCE = "science",
   URC_AUTONOMOUS = "autonomous-navigation",
 }
-
-export const initialisedFilters: CameraFilters = {
-  flipCamera: false,
-  invertCamera: false,
-  rotation: 0,
-  contrast: 100, // In %
-  brightness: 100, // in %
-};
 
 export enum CameraSerials {
   MAST_FISHEYE = "mast_fisheye",
@@ -46,52 +36,15 @@ export enum CameraSerials {
   EC_SCRAPER_LEG = "ec_scraper_leg",
 
   SCIENCE_KILN = "science_kiln",
-  SCIENCE_AUGER_BOTTOM = "science_auger_bottom",
-  SCIENCE_ANALYSIS_BOTTOM = "science_analysis_bottom",
+  SCIENCE_KILN_BOTTOM = "science_kiln_bottom",
   SCIENCE_MICROSCOPE = "science_microscope",
+  SCIENCE_GIMBAL = "science_gimbal_cam",
+
 
   URC_SCIENCE_UV_VIS = "science_spectroscope",
   URC_SCIENCE_CUVETTE = "science_cuvettes",
   URC_SCIENCE_PAYLOAD_FRONT = "science_payload_front",
   URC_SCIENCE_PAYLOAD_DOWN = "science_payload_down",
-}
-
-export const defaultCamFilters: { [key: string]: CameraFilters } = {
-  arm_end_forward: {
-    flipCamera: true,
-    invertCamera: false,
-    rotation: 0,
-    contrast: 100,
-    brightness: 100,
-  },
-  arm_end_finger: {
-    flipCamera: false,
-    invertCamera: false,
-    rotation: -90,
-    contrast: 100,
-    brightness: 100,
-  },
-  "science_kiln": {
-    flipCamera: false,
-    invertCamera: false,
-    rotation: 0,
-    contrast: 100,
-    brightness: 100,
-  },
-  mast_down: {
-    flipCamera: false,
-    invertCamera: false,
-    rotation: 0,
-    contrast: 100,
-    brightness: 100,
-  },
-  science_analysis_bottom: {
-    flipCamera: false,
-    invertCamera: false,
-    rotation: -90,
-    contrast: 100,
-    brightness: 100,
-  }
 }
 
 export const allCams = [];
@@ -102,7 +55,6 @@ const mastCams = [
   CameraSerials.MAST_FORWARD,
   CameraSerials.MAST_BACKWARD,
   CameraSerials.MAST_ARM_STOW,
-
 ];
 
 const armCams = [
@@ -111,7 +63,6 @@ const armCams = [
   CameraSerials.ARM_END_PERISCOPE,
   CameraSerials.ARM_GIMBAL,
   CameraSerials.ARM_END_SIDE,
-
 ];
 
 const ecCams = [
@@ -123,11 +74,10 @@ const ecCams = [
 
 const arcScienceCams = [
   CameraSerials.SCIENCE_KILN,
-  CameraSerials.SCIENCE_AUGER_BOTTOM,
-  CameraSerials.SCIENCE_ANALYSIS_BOTTOM,
+  CameraSerials.SCIENCE_KILN_BOTTOM,
   CameraSerials.SCIENCE_MICROSCOPE,
+  CameraSerials.SCIENCE_GIMBAL,
 ];
-
 
 const urcScienceCams = [
   CameraSerials.URC_SCIENCE_CUVETTE,
@@ -199,19 +149,7 @@ export const excavation_and_construction_views: CameraView[] = [
 
 export const space_resources_views: CameraView[] = [
   {
-    cameraSerials: [
-      CameraSerials.MAST_FISHEYE,
-      CameraSerials.MAST_FORWARD,
-
-      CameraSerials.SCIENCE_AUGER_BOTTOM,
-      CameraSerials.SCIENCE_KILN,
-
-      CameraSerials.MAST_DOWN,
-      CameraSerials.MAST_BACKWARD,
-
-      CameraSerials.SCIENCE_ANALYSIS_BOTTOM,
-      
-    ],
+    cameraSerials: [...mastCams, ...arcScienceCams],
     viewTitle: "All Cams",
   },
   {

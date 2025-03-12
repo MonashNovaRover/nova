@@ -37,10 +37,9 @@ Launch the following on the metabox.
 In one terminal:
 1. Try the 'gui-shell' alias otherwise:
      nova-shell -A pkgs.ros.nova-gui
-3. Try the 'gui' alias otherwise:
+2. Try the 'gui-run' alias otherwise:
      cd ~/nova/src/ros/nova-gui/nova-gui
-5. yarn install
-6. yarn dev
+     yarn dev
 
 In another terminal:
 1. Try the 'gui-rosbridge' alias, otherwise: 
@@ -56,7 +55,7 @@ Try the 'launch-arm' alias, otherwise use the command below.
 
 # C&E
 Launch this on the jetson.
-When running the construction & excavation payload, you DON'T need to run drive.
+When running the excavation & construction payload, you DON'T need to run drive.
 Try the 'launch-ec' alias, otherwise use the command below.
 ~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py
 
@@ -75,7 +74,11 @@ Try the 'launch-science-urc' alias, otherwise use the command below.
 =========================
 
 # Cameras
-Replace '?' with either 'arm', 'ce', or 'science'.
+Launch this on the jetson
+Replace '?' with either 'arm', 'ec', or 'arc_science'.
+launch-cameras payload:=?
+
+if that doesn't work try:
 cameras-legacy payload:=?
 
 # Reolink Camera
