@@ -27,44 +27,35 @@ def launch_setup(context, *args, **kwargs):
     ar = LaunchConfiguration('ar')
     ar_params = LaunchConfiguration('ar_params')
     front_name = LaunchConfiguration('front_name').perform(context)
-    back_name = LaunchConfiguration('back_name').perform(context)
     gazebo = LaunchConfiguration('gazebo')
-    name = LaunchConfiguration('name').perform(context)
     oak_params = LaunchConfiguration('oak_params')
     bootie_params = LaunchConfiguration('bootie_params')
+    parent_frame = LaunchConfiguration('parent_frame')
     pointclouds = LaunchConfiguration('pointclouds')
 
     return [
-        # IncludeLaunchDescription(
-        #     condition=UnlessCondition(gazebo),
-        #     launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([depthai_dir, 'launch', 'camera.launch.py'])),
-        #     launch_arguments={'name': front_name,
-        #                       'params_file': oak_params,
-        #                       'rectify_rgb': 'false',
-        #                       }.items()
-        # ),
-        # IncludeLaunchDescription(
-        #     condition=UnlessCondition(gazebo),
-        #     launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([depthai_dir, 'launch', 'camera.launch.py'])),
-        #     launch_arguments={'name': 'bootie',
-        #                       'params_file': bootie_params,
-        #                       'rectify_rgb': 'false',
-        #                       }.items()
-        # ),
+        IncludeLaunchDescription(
+            condition=UnlessCondition(gazebo),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([depthai_dir, 'launch', 'camera.launch.py'])),
+            launch_arguments={'name': front_name,
+                              'params_file': oak_params,
+                              'rectify_rgb': 'false',
+                              }.items()
+        ),
+        IncludeLaunchDescription(
+            condition=UnlessCondition(gazebo),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([depthai_dir, 'launch', 'camera.launch.py'])),
+            launch_arguments={'name': 'bootie',
+                              'params_file': bootie_params,
+                              'rectify_rgb': 'false',
+                              }.items()
+        ),
         ComposableNodeContainer(
-            name=f'{front_name}_image_proc_container',
+            name='camera_image_proc_container',
             package='rclcpp_components',
             namespace='',
-            package='rclcpp_components',
             executable='component_container',
             composable_node_descriptions=[
-                ComposableNode(
-                    condition=UnlessCondition(gazebo),
-                    package="depthai_ros_driver",
-                    plugin="depthai_ros_driver::Camera",
-                    name=front_name,
-                    parameters=[oak_params],
-                ),
                 ComposableNode(
                     condition=IfCondition(pointclouds),
                     package='rtabmap_util',
@@ -73,9 +64,9 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[{'decimation': 2,
                                 'max_depth': 10.0,
                                 'voxel_size': 0.1}],
-                    remappings=[('depth/image', f'{name}/stereo/image_raw'),
-                                ('depth/camera_info', f'{name}/stereo/camera_info'),
-                                ('cloud', f'{name}/depth/points')],
+                    remappings=[('depth/image', f'{front_name}/stereo/image_raw'),
+                                ('depth/camera_info', f'{front_name}/stereo/camera_info'),
+                                ('cloud', f'{front_name}/depth/points')],
                 ),
                 ComposableNode(
                     package='imu_transformer',
@@ -144,8 +135,13 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='name',
+            name='front_name',
             default_value='oak',
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='back_name',
+            default_value='bootie',
             description='',
         ),
         DeclareLaunchArgument(
@@ -154,8 +150,8 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='parent_frame',
-            default_value='camera_link',
+            name='bootie_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'bootie.yaml']),
             description='',
         ),
         DeclareLaunchArgument(
