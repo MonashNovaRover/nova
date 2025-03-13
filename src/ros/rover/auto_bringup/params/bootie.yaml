@@ -5,11 +5,11 @@
       i_enable_sync: true
       i_enable_imu: true
       i_mx_id: 19443010E167712700 # Look for the B-Camera Sticker
-      i_tf_parent_frame: map
-      i_tf_base_frame: bootie_link
+      i_tf_parent_frame: base_link
       i_tf_camera_model: OAK-D-LR
       i_tf_camera_name: bootie
-      i_publish_tf_from_calibration: true
+      i_publish_tf_from_calibration: false
+      i_tf_base_frame: bootie_link
     nn:
       i_disable_resize: true
       i_num_inference_threads: 2
