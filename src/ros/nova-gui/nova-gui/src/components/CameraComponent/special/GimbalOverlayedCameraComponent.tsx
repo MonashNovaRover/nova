@@ -34,7 +34,7 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
 
   //WASD Controls
   useEffect(() => {
-    window.addEventListener('keydown', (e) => {
+    window.addEventListener('keyup', (e) => {
       switch (e.key) {
         case 'a':
           incrementPan(-step)
