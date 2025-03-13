@@ -1,9 +1,9 @@
-/oak:
+/bootie:
   ros__parameters:
     camera:
       i_nn_type: none
       i_enable_imu: true
-      i_mx_id: 18443010315748F500 # Look for the O-Camera Sticker
+      i_mx_id: 19443010E167712700 # Look for the B-Camera Sticker
       i_tf_parent_frame: camera_link
       i_tf_camera_model: OAK-D-LR
       i_publish_tf_from_calibration: true
@@ -11,7 +11,7 @@
       i_disable_resize: true
       i_num_inference_threads: 2
       i_num_pool_frames: 4
-      i_nn_config_path: auto_bringup/resources/YOLOv11/best.json
+      i_nn_config_path: auto_bringup/resources/ARC_2025/model.json
     imu:
       i_enable_rotation: true
       i_message_type:
