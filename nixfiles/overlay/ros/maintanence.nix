@@ -319,9 +319,12 @@ self: super:
               pkg.overrideAttrs (
                 {
                   buildInputs ? [ ],
+                  cmakeFlags ? [ ],
                   ...
                 }:
                 {
+                  cmakeFlags = cmakeFlags ++ [ "-DRTABMAP_SYNC_MULTI_RGBD=ON" ];
+
                   buildInputs =
                     buildInputs
                     ++ (with self; [
@@ -329,6 +332,7 @@ self: super:
                       # propagatedBuildInputs.
                       (pcl.override { vtk = vtkWithQt5; })
                     ]);
+
                 }
               );
           in
