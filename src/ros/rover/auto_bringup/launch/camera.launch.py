@@ -26,10 +26,10 @@ def launch_setup(context, *args, **kwargs):
 
     ar = LaunchConfiguration('ar')
     ar_params = LaunchConfiguration('ar_params')
-    camera_model = LaunchConfiguration('camera_model')
+    front_name = LaunchConfiguration('front_name').perform(context)
     gazebo = LaunchConfiguration('gazebo')
-    name = LaunchConfiguration('name').perform(context)
     oak_params = LaunchConfiguration('oak_params')
+    bootie_params = LaunchConfiguration('bootie_params')
     parent_frame = LaunchConfiguration('parent_frame')
     pointclouds = LaunchConfiguration('pointclouds')
     rectify_image = LaunchConfiguration('rectify_image')
@@ -38,29 +38,25 @@ def launch_setup(context, *args, **kwargs):
         IncludeLaunchDescription(
             condition=UnlessCondition(gazebo),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([depthai_dir, 'launch', 'camera.launch.py'])),
-            launch_arguments={'name': name,
-                              'parent_frame': parent_frame,
+            launch_arguments={'name': front_name,
                               'params_file': oak_params,
-                              'camera_model': camera_model,
+                              'rectify_rgb': 'false',
+                              }.items()
+        ),
+        IncludeLaunchDescription(
+            condition=UnlessCondition(gazebo),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([depthai_dir, 'launch', 'camera.launch.py'])),
+            launch_arguments={'name': 'bootie',
+                              'params_file': bootie_params,
                               'rectify_rgb': 'false',
                               }.items()
         ),
         ComposableNodeContainer(
-            name=f'{name}_image_proc_container',
-            namespace='',
+            name='camera_image_proc_container',
             package='rclcpp_components',
+            namespace='',
             executable='component_container',
             composable_node_descriptions=[
-                ComposableNode(
-                    condition=IfCondition(rectify_image),
-                    package='image_proc',
-                    plugin='image_proc::RectifyNode',
-                    name='rectify_color_node',
-                    remappings=[
-                        ('image', f'{name}/rgb/image_raw'),
-                        ('camera_info', f'{name}/rgb/camera_info'),
-                        ('image_rect', f'{name}/rgb/image_rect')],
-                ),
                 ComposableNode(
                     condition=IfCondition(pointclouds),
                     package='rtabmap_util',
@@ -69,9 +65,9 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[{'decimation': 2,
                                 'max_depth': 10.0,
                                 'voxel_size': 0.1}],
-                    remappings=[('depth/image', f'{name}/stereo/image_raw'),
-                                ('depth/camera_info', f'{name}/stereo/camera_info'),
-                                ('cloud', f'{name}/depth/points')],
+                    remappings=[('depth/image', f'{front_name}/stereo/image_raw'),
+                                ('depth/camera_info', f'{front_name}/stereo/camera_info'),
+                                ('cloud', f'{front_name}/depth/points')],
                 ),
             ],
         ),
@@ -117,8 +113,13 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='name',
+            name='front_name',
             default_value='oak',
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='back_name',
+            default_value='bootie',
             description='',
         ),
         DeclareLaunchArgument(
@@ -127,8 +128,8 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='parent_frame',
-            default_value='camera_link',
+            name='bootie_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'bootie.yaml']),
             description='',
         ),
         DeclareLaunchArgument(
