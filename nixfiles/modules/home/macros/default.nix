@@ -139,8 +139,11 @@ in
             cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
             nix-enable = "sudo systemctl enable nix-daemon.service";
             nix-start = "sudo systemctl start nix-daemon.service";
-            reolink-low = "mpv --rtsp-transport=udp --no-cache --untimed --video-sync=display-resample --deinterlace=no --profile=low-latency --demuxer-max-bytes=512K --demuxer-max-back-bytes=512K rtsp://admin:Lab188b37@10.0.1.100:554/h264Preview_01_sub";
-            reolink-high = "mpv --rtsp-transport=udp --no-cache --untimed --video-sync=display-resample --deinterlace=no --profile=low-latency --demuxer-max-bytes=1M --demuxer-max-back-bytes=1M rtsp://admin:Lab188b37@10.0.1.100:554/h264Preview_01_main";
+            # TODO: dont have password here.
+            # Also fwiw, I don't think latency is lower for the low resolution stream - Orlando
+            # some of these arguments might not help at all, but its hard to exactly measure
+            reolink-low = "ffplay -rtsp_transport udp -i rtsp://admin:Lab188b37@10.0.1.100:554/Preview_01_sub -flags low_delay -fflags nobuffer -framedrop -rc_lookahead 0 -probesize 32 -analyzeduration 0 -vf setpts=0 -tune zerolateny";
+            reolink-high = "ffplay -rtsp_transport udp -i rtsp://admin:Lab188b37@10.0.1.100:554/Preview_01_main -flags low_delay -fflags nobuffer -framedrop -rc_lookahead 0 -probesize 32 -analyzeduration 0 -vf setpts=0 -tune zerolateny";
 
           }
         ];
