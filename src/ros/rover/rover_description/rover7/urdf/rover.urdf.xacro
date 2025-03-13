@@ -1176,7 +1176,7 @@
         />
         <parent link="chassis" />
         <child link="left_leg" />
-        <!-- <axis xyz="0 0 1" />
+        <axis xyz="0 0 1"/>
         <limit effort="20" velocity="20" />
         <joint_properties friction="0.0" /> -->
     </joint>
@@ -1246,7 +1246,7 @@
         />
         <parent link="chassis" />
         <child link="right_leg" />
-        <axis xyz="0 0 1" />
+        <axis xyz="0 0 1"/>
         <limit effort="20" velocity="20" />
         <joint_properties friction="0.0" />
     </joint>

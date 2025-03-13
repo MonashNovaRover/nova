@@ -5,33 +5,21 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
   <xacro:macro name="auto_cam" params="angle">
     <link name="camera_link"/>
 
- <xacro:include
+    <!-- <xacro:include
         filename="$(find depthai_descriptions)/urdf/include/depthai_macro.urdf.xacro"
-    />
+    /> -->
 
-    <xacro:include filename="$(find depthai_descriptions)/urdf/include/depthai_macro.urdf.xacro"/>
-    <xacro:depthai_camera
-      camera_name="oak"
-      parent="camera_link"
-      camera_model="OAK-D-LR"
-      base_frame="oak-d_frame"
-      cam_pos_x="0.0"
-      cam_pos_y="0.0"
-      cam_pos_z="0.0"
-      cam_roll="0.0"
-      cam_pitch="0.0"
-      cam_yaw="0.0"
-    />
+  <link name="camera_link" />
 
-    <link name="camera_link_optical"/>
+<!-- Need to be fixed, OR ADD AUTO CAMERA MOUNT to URDF-->
+  <joint name="camera_joint" type="fixed">
+    <origin xyz="0.26 0 0.2" rpy="0 0 0" />
+    <parent link="chassis" />
+    <child link="camera_link" />
+  </joint>
 
-    <joint name="camera_optical_joint" type="fixed">
-      <origin xyz="0.0 0 0.0" rpy="${-pi/2} 0 ${-pi/2}"/>
-      <parent link="camera_link"/>
-      <child link="camera_link_optical"/>
-    </joint>
 
-    <xacro:depthai_camera
+    <!-- <xacro:depthai_camera
         camera_name="oak"
         parent="camera_link"
         camera_model="OAK-D-LR"
@@ -42,7 +30,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         cam_roll="0.0"
         cam_pitch="0.0"
         cam_yaw="0.0"
-    />
+    /> -->
 
   <link name="bootie_link" />
 
@@ -53,7 +41,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
     <child link="bootie_link" />
   </joint>
 
-  <xacro:depthai_camera
+  <!-- <xacro:depthai_camera
         camera_name="bootie"
         parent="bootie_link"
         camera_model="OAK-D-LR"
@@ -64,7 +52,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         cam_roll="0.0"
         cam_pitch="0.0"
         cam_yaw="0.0"
-    />
+    /> -->
 
   <link name="camera_link_optical" />
 

@@ -22,34 +22,48 @@ from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    depthai_dir = FindPackageShare('depthai_ros_driver')
+    # depthai_dir = FindPackageShare('depthai_ros_driver')
 
     ar = LaunchConfiguration('ar')
     ar_params = LaunchConfiguration('ar_params')
-    camera_model = LaunchConfiguration('camera_model')
+    front_name = LaunchConfiguration('front_name').perform(context)
+    back_name = LaunchConfiguration('back_name').perform(context)
     gazebo = LaunchConfiguration('gazebo')
     name = LaunchConfiguration('name').perform(context)
     oak_params = LaunchConfiguration('oak_params')
-    parent_frame = LaunchConfiguration('parent_frame')
+    bootie_params = LaunchConfiguration('bootie_params')
     pointclouds = LaunchConfiguration('pointclouds')
-    rectify_image = LaunchConfiguration('rectify_image')
 
     return [
+        # IncludeLaunchDescription(
+        #     condition=UnlessCondition(gazebo),
+        #     launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([depthai_dir, 'launch', 'camera.launch.py'])),
+        #     launch_arguments={'name': front_name,
+        #                       'params_file': oak_params,
+        #                       'rectify_rgb': 'false',
+        #                       }.items()
+        # ),
+        # IncludeLaunchDescription(
+        #     condition=UnlessCondition(gazebo),
+        #     launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([depthai_dir, 'launch', 'camera.launch.py'])),
+        #     launch_arguments={'name': 'bootie',
+        #                       'params_file': bootie_params,
+        #                       'rectify_rgb': 'false',
+        #                       }.items()
+        # ),
         ComposableNodeContainer(
-            name=f'{name}_image_proc_container',
+            name=f'{front_name}_image_proc_container',
+            package='rclcpp_components',
             namespace='',
             package='rclcpp_components',
             executable='component_container',
             composable_node_descriptions=[
                 ComposableNode(
-                    condition=IfCondition(rectify_image),
-                    package='image_proc',
-                    plugin='image_proc::RectifyNode',
-                    name='rectify_color_node',
-                    remappings=[
-                        ('image', f'{name}/rgb/image_raw'),
-                        ('camera_info', f'{name}/rgb/camera_info'),
-                        ('image_rect', f'{name}/rgb/image_rect')],
+                    condition=UnlessCondition(gazebo),
+                    package="depthai_ros_driver",
+                    plugin="depthai_ros_driver::Camera",
+                    name=front_name,
+                    parameters=[oak_params],
                 ),
                 ComposableNode(
                     condition=IfCondition(pointclouds),
@@ -73,20 +87,35 @@ def launch_setup(context, *args, **kwargs):
                 )
             ],
         ),
+        ComposableNodeContainer(
+            name=f'{back_name}_image_proc_container',
+            package='rclcpp_components',
+            namespace='',
+            executable='component_container',
+            composable_node_descriptions=[
+                ComposableNode(
+                    condition=UnlessCondition(gazebo),
+                    package="depthai_ros_driver",
+                    plugin="depthai_ros_driver::Camera",
+                    name=back_name,
+                    parameters=[bootie_params],
+                )
+            ]
+        ),
         Node(
             condition=IfCondition(ar),
             package='aruco_opencv',
             executable='aruco_tracker_autostart',
             arguments=['--ros-args', '--params-file', ar_params],
         ),
-        Node(
-            package='imu_transformer',
-            executable='imu_transformer_node',
-            name='imu_transformer',
-            remappings=[('/imu_in', '/oak/imu/data'),
-                        ('/imu_out', '/oak/imu/transformed')],
-            parameters=[{'target_frame': 'oak'}]
-        ),
+        # Node(
+        #     package='imu_transformer',
+        #     executable='imu_transformer_node',
+        #     name='imu_transformer',
+        #     remappings=[('/imu_in', '/oak/imu/data'),
+        #                 ('/imu_out', '/oak/imu/transformed')],
+        #     parameters=[{'target_frame': 'oak'}]
+        # ),
     ]
 
 

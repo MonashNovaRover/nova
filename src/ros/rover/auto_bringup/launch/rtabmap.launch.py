@@ -51,7 +51,7 @@ def launch_setup(context, *args, **kwargs):
             }.items()
         ),
         ComposableNodeContainer(
-            name=f'{name}_mapping_container',
+            name='rtabmap_mapping_container',
             namespace='',
             package='rclcpp_components',
             executable='component_container',

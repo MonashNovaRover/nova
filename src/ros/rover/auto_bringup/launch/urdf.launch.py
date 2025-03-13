@@ -26,13 +26,13 @@ def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo').perform(context)
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
-    
+
     return [
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
-            parameters=[{'robot_description': 
-                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle]), value_type=str)
+            parameters=[{'robot_description':
+                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name]), value_type=str)
             }]
         )
     ]
@@ -43,17 +43,12 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='angle', 
-            default_value='15',
-            description='Angle (in degrees) at which the camera is mounted',
-        ),
-        DeclareLaunchArgument(
-            name='gazebo', 
+            name='gazebo',
             default_value='True',
             description='Launch with gazebo or not',
         ),
         DeclareLaunchArgument(
-            name='model', 
+            name='model',
             default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
         ),
@@ -63,7 +58,7 @@ def generate_launch_description():
             description='name of the robot',
         ),
     ]
-    
-    return LaunchDescription(  
+
+    return LaunchDescription(
         declared_arguments + [OpaqueFunction(function=launch_setup)]
     )
