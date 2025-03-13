@@ -24,7 +24,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
-    
+
     controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
     model = LaunchConfiguration('model')
@@ -71,7 +71,7 @@ def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
     rover_description_dir = FindPackageShare('rover_description')
 
-    declared_arguments = [      
+    declared_arguments = [
         DeclareLaunchArgument(
             name='controllers',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'old_controllers.yaml']),
@@ -83,12 +83,12 @@ def generate_launch_description():
             description='Use simulation (Gazebo) clock if True',
         ),
         DeclareLaunchArgument(
-            name='model', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'waratah', 'urdf', 'rover.urdf.xacro']),
+            name='model',
+            default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
-        ),  
+        ),
     ]
 
-    return LaunchDescription(  
+    return LaunchDescription(
         declared_arguments + [OpaqueFunction(function=launch_setup)]
     )

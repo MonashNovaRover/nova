@@ -3,35 +3,61 @@
 which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi Velmurugan Sujatha -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <link name="camera_link"/>
+    <!-- <xacro:include
+        filename="$(find depthai_descriptions)/urdf/include/depthai_macro.urdf.xacro"
+    /> -->
+
+  <link name="camera_link" />
 
 <!-- Need to be fixed, OR ADD AUTO CAMERA MOUNT to URDF-->
   <joint name="camera_joint" type="fixed">
-    <origin xyz="0.26 0 0.2" rpy="0 0 0"/>
-    <parent link="chassis"/>
-    <child link="camera_link"/>
+    <origin xyz="0.26 0 0.2" rpy="0 0 0" />
+    <parent link="chassis" />
+    <child link="camera_link" />
   </joint>
 
-  <xacro:include filename="$(find depthai_descriptions)/urdf/include/depthai_macro.urdf.xacro"/>
-  <xacro:depthai_camera
-    camera_name="oak"
-    parent="camera_link"
-    camera_model="OAK-D-LR"
-    base_frame="oak-d_frame"
-    cam_pos_x="0.0"
-    cam_pos_y="0.0"
-    cam_pos_z="0.0"
-    cam_roll="0.0"
-    cam_pitch="0.0"
-    cam_yaw="0.0"
-  />
 
-  <link name="camera_link_optical"/>
+    <!-- <xacro:depthai_camera
+        camera_name="oak"
+        parent="camera_link"
+        camera_model="OAK-D-LR"
+        base_frame="oak-base-frame"
+        cam_pos_x="0.0"
+        cam_pos_y="0.0"
+        cam_pos_z="0.0"
+        cam_roll="0.0"
+        cam_pitch="0.0"
+        cam_yaw="0.0"
+    /> -->
+
+  <link name="bootie_link" />
+
+<!-- Need to be fixed, OR ADD AUTO CAMERA MOUNT to URDF-->
+  <joint name="bootie_joint" type="fixed">
+    <origin xyz="0.20 0 0.19" rpy="0 0 3.14" />
+    <parent link="chassis" />
+    <child link="bootie_link" />
+  </joint>
+
+  <!-- <xacro:depthai_camera
+        camera_name="bootie"
+        parent="bootie_link"
+        camera_model="OAK-D-LR"
+        base_frame="bootie-base-frame"
+        cam_pos_x="0.0"
+        cam_pos_y="0.0"
+        cam_pos_z="0.0"
+        cam_roll="0.0"
+        cam_pitch="0.0"
+        cam_yaw="0.0"
+    /> -->
+
+  <link name="camera_link_optical" />
 
   <joint name="camera_optical_joint" type="fixed">
-    <origin xyz="0.0 0 0.0" rpy="${-pi/2} 0 ${-pi/2}"/>
-    <parent link="camera_link"/>
-    <child link="camera_link_optical"/>
+    <origin xyz="0.0 0 0.0" rpy="${-pi/2} 0 ${-pi/2}" />
+    <parent link="camera_link" />
+    <child link="camera_link_optical" />
   </joint>
 
   <!-- Depth Camera for Gazebo-->
@@ -67,7 +93,8 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
       <topic>oak/imu</topic>
       <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu">
         <frame_name>oak_imu_frame</frame_name>
-        <initial_orientation_as_reference>false</initial_orientation_as_reference>
+        <initial_orientation_as_reference
+                >false</initial_orientation_as_reference>
       </plugin>
       <always_on>true</always_on>
       <update_rate>200</update_rate>
