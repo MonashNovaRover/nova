@@ -3,9 +3,9 @@
 which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi Velmurugan Sujatha -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-    <!-- <xacro:include
+ <xacro:include
         filename="$(find depthai_descriptions)/urdf/include/depthai_macro.urdf.xacro"
-    /> -->
+    />
 
   <link name="camera_link" />
 
@@ -17,7 +17,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
   </joint>
 
 
-    <!-- <xacro:depthai_camera
+    <xacro:depthai_camera
         camera_name="oak"
         parent="camera_link"
         camera_model="OAK-D-LR"
@@ -28,7 +28,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         cam_roll="0.0"
         cam_pitch="0.0"
         cam_yaw="0.0"
-    /> -->
+    />
 
   <link name="bootie_link" />
 
@@ -39,7 +39,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
     <child link="bootie_link" />
   </joint>
 
-  <!-- <xacro:depthai_camera
+  <xacro:depthai_camera
         camera_name="bootie"
         parent="bootie_link"
         camera_model="OAK-D-LR"
@@ -50,7 +50,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         cam_roll="0.0"
         cam_pitch="0.0"
         cam_yaw="0.0"
-    /> -->
+    />
 
   <link name="camera_link_optical" />
 
