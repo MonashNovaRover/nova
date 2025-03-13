@@ -8,10 +8,16 @@ var HOSTNAME = '10.0.1.100',
 	USERNAME = 'admin',
 	PASSWORD = '***REMOVED***', // TODO: remove password somehow
 	STOP_DELAY_MS = 200,
-  SPEED = 2;
+  SPEED = 1,
+  AUTO_TIMING = 6000;
 
 var Cam = require('onvif').Cam;
 var keypress = require('keypress');
+
+var autoMode = false;
+var autoDir = -1;
+var auto_timer;
+var auto_count = 0; // how many move cmds left till we turn
 
 
 new Cam({
@@ -65,6 +71,7 @@ new Cam({
 
 		console.log('');
 		console.log('Use Arrow Keys to move camera. + and - to zoom. q to quit');
+    console.log('Use a to toggle auto mode (repeated panning left and right forever)');
 
 		// keypress handler
 		process.stdin.on('keypress', function(ch, key) {
@@ -87,6 +94,8 @@ new Cam({
 
 			// On English keyboards '+' is "Shift and = key"
 			// Accept the "=" key as zoom in
+      // TODO: flip controls if upside down? Easiest way would be to negate speed
+      // although that won't work for zoom.
 			if (key && key.name == 'up') {
         new_velocity.Y = SPEED;
 			} else if (key && key.name == 'down') {
@@ -101,21 +110,42 @@ new Cam({
         new_velocity.Zoom = SPEED;
 			} else if (ch  && ch       == '=') {
         new_velocity.Zoom = SPEED;
-			}
-      // TODO: focus control?
-      if (
-        (new_velocity.X == velocity.X) 
-        && (new_velocity.Y == velocity.Y) 
-        && !new_velocity.Zoom //(new_velocity.Zoom == velocity.Zoom) 
-      ) {
-        // reschedule timeout
-        schedule_stop();
-      } else {
-        velocity = new_velocity;
-			  move(velocity.X,velocity.Y,velocity.Zoom);
+			} else if (ch && ch        == 'a') {
+        autoMode = !autoMode;
+        console.log("Auto Mode", autoMode);
+        if (autoMode) {
+          auto_cb();
+        }
+      }
+      // TODO: focus control? -- if you zoom, then wait a little it will autofocus
+      if (!autoMode) {
+        move(new_velocity);
       }
 		});
 	}
+
+  function schedule_auto_timer() {
+    if (autoMode) {
+		  if (auto_timer) {clearTimeout(auto_timer);}
+		  auto_timer = setTimeout(auto_cb,STOP_DELAY_MS/2);
+    }
+
+  }
+  function auto_cb() {
+      var new_velocity = {
+        X: autoDir * SPEED,
+        Y: 0,
+        Zoom: 0
+      }
+    if (auto_count) {
+      auto_count = auto_count -1;
+    } else {
+      auto_count = 2*AUTO_TIMING / STOP_DELAY_MS;
+      autoDir = -autoDir;
+    }
+    move(new_velocity);
+    schedule_auto_timer();
+  }
 
   function clear_stop() {
 		if (stop_timer) {clearTimeout(stop_timer);}
@@ -127,7 +157,21 @@ new Cam({
   }
 
 
-	function move(x_speed, y_speed, zoom_speed) {
+	function move(new_velocity) {
+    // check if we need to update the currently running move command
+    if (
+      (new_velocity.X == velocity.X) 
+      && (new_velocity.Y == velocity.Y) 
+      // for some reason zoom works better if we send the command repeatedly.
+      && !new_velocity.Zoom //(new_velocity.Zoom == velocity.Zoom) 
+    ) {
+      // reschedule timeout
+      schedule_stop();
+      return;
+    }
+
+    velocity = new_velocity;
+
 		// Pause keyboard processing
 		ignore_keypress = true;
 
@@ -135,15 +179,15 @@ new Cam({
     clear_stop()
 
 		// Move the camera
-		cam_obj.continuousMove({x: x_speed,
-			y: y_speed,
-			zoom: zoom_speed } ,
+		cam_obj.continuousMove({x: velocity.X,
+			y: velocity.Y,
+			zoom: velocity.Zoom } ,
 		// completion callback function
 		function(err, stream, xml) {
 			if (err) {
 				console.log(err);
 			} else {
-				console.log('move command sent ', x_speed, y_speed, zoom_speed);
+				console.log('move command sent ', velocity);
         schedule_stop()
 			}
 			// Resume keyboard processing
@@ -159,7 +203,7 @@ new Cam({
 				if (err) {
 					console.log(err);
 				} else {
-					//console.log('stop command sent');
+          //console.log('stop command sent');
 				}
 			});
     velocity.Y = 0;
