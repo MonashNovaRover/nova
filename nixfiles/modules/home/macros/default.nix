@@ -142,8 +142,9 @@ in
             # TODO: dont have password here.
             # Also fwiw, I don't think latency is lower for the low resolution stream - Orlando
             # some of these arguments might not help at all, but its hard to exactly measure
-            reolink-low = "ffplay -rtsp_transport udp -i rtsp://admin:Lab188b37@10.0.1.100:554/Preview_01_sub -flags low_delay -fflags nobuffer -framedrop -rc_lookahead 0 -probesize 32 -analyzeduration 0 -vf setpts=0 -tune zerolateny";
-            reolink-high = "ffplay -rtsp_transport udp -i rtsp://admin:Lab188b37@10.0.1.100:554/Preview_01_main -flags low_delay -fflags nobuffer -framedrop -rc_lookahead 0 -probesize 32 -analyzeduration 0 -vf setpts=0 -tune zerolateny";
+            # for upside down add `-vf vflip,hflip`, but adding to the end doesn't seem to work, before -flags seems to be ok instead
+            reolink-low = "ffplay -rtsp_transport udp -i rtsp://admin:Lab188b37@10.0.1.100:554/Preview_01_sub -flags low_delay -fflags nobuffer -framedrop -rc_lookahead 0 -probesize 32 -analyzeduration 0 -vf setpts=0 -tune zerolatency -window_title \"Banksia Cam\"";
+            reolink-high = "ffplay -rtsp_transport udp -i rtsp://admin:Lab188b37@10.0.1.100:554/Preview_01_main -flags low_delay -fflags nobuffer -framedrop -rc_lookahead 0 -probesize 32 -analyzeduration 0 -vf setpts=0 -tune zerolatency -window_title \"Banksia Cam\"";
 
           }
         ];
