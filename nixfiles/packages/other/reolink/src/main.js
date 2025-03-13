@@ -7,7 +7,7 @@ var HOSTNAME = '10.0.1.100',
 	PORT = 80,
 	USERNAME = 'admin',
 	PASSWORD = 'Lab188b37', // TODO: remove password somehow
-	STOP_DELAY_MS = 100,
+	STOP_DELAY_MS = 200,
   SPEED = 2;
 
 var Cam = require('onvif').Cam;
@@ -29,14 +29,13 @@ new Cam({
 	var cam_obj = this;
 	var ignore_keypress = false;
 
-  var velocityX = 0;
-  var velocityY = 0;
-  var velocityZoom = 0;
+  var velocity = {
+    X: 0,
+    Y: 0,
+    Zoom: 0
+  }
 
-  var stop_timer
-  var timeoutX;
-  var timeoutY;
-  var timeoutZoom;
+  var stop_timer;
 
 	cam_obj.getStreamUri({
 		protocol: 'RTSP'
@@ -80,48 +79,60 @@ new Cam({
 				return;
 			}
 
-			if (key) {
-				console.log('got "keypress"',key.name);
-			} else {
-				if (ch){console.log('got "keypress character"',ch);}
-			}
-
+      var new_velocity = {
+        X: 0,
+        Y: 0,
+        Zoom: 0
+      }
 
 			// On English keyboards '+' is "Shift and = key"
 			// Accept the "=" key as zoom in
 			if (key && key.name == 'up') {
-        velocityY = SPEED;
+        new_velocity.Y = SPEED;
 			} else if (key && key.name == 'down') {
-        velocityY = -SPEED;
+        new_velocity.Y = -SPEED;
 			} else if (key && key.name == 'left') {
-        velocityX = -SPEED;
+        new_velocity.X = -SPEED;
 			} else if (key && key.name == 'right') {
-        velocityX = SPEED;
+        new_velocity.X = SPEED;
 			} else if (ch  && ch       == '-') {
-        velocityZoom = -SPEED;
+        new_velocity.Zoom = -SPEED;
 			} else if (ch  && ch       == '+') {
-        velocityZoom = SPEED;
+        new_velocity.Zoom = SPEED;
 			} else if (ch  && ch       == '=') {
-        velocityZoom = SPEED;
+        new_velocity.Zoom = SPEED;
 			}
       // TODO: focus control?
-			move(velocityX,velocityY,velocityZoom);
+      if (
+        (new_velocity.X == velocity.X) 
+        && (new_velocity.Y == velocity.Y) 
+        && !new_velocity.Zoom //(new_velocity.Zoom == velocity.Zoom) 
+      ) {
+        // reschedule timeout
+        schedule_stop();
+      } else {
+        velocity = new_velocity;
+			  move(velocity.X,velocity.Y,velocity.Zoom);
+      }
 		});
 	}
 
+  function clear_stop() {
+		if (stop_timer) {clearTimeout(stop_timer);}
+  }
+
+  function schedule_stop() {
+    clear_stop()
+		stop_timer = setTimeout(stop,STOP_DELAY_MS);
+  }
+
 
 	function move(x_speed, y_speed, zoom_speed) {
-		// Step 1 - Turn off the keyboard processing (so keypresses do not buffer up)
-		// Step 2 - Clear any existing 'stop' timeouts. We will re-schedule a new 'stop' command in this function
-		// Step 3 - Send the Pan/Tilt/Zoom 'move' command.
-		// Step 4 - In the callback from the PTZ 'move' command we schedule the ONVIF Stop command to be executed after a short delay and re-enable the keyboard
-
 		// Pause keyboard processing
 		ignore_keypress = true;
 
 		// Clear any pending 'stop' commands
-		if (stop_timer) {clearTimeout(stop_timer);}
-
+    clear_stop()
 
 		// Move the camera
 		cam_obj.continuousMove({x: x_speed,
@@ -132,23 +143,28 @@ new Cam({
 			if (err) {
 				console.log(err);
 			} else {
-				console.log('move command sent ' + msg);
-				// schedule a Stop command to run in the future
-				stop_timer = setTimeout(stop,STOP_DELAY_MS);
+				console.log('move command sent ', x_speed, y_speed, zoom_speed);
+        schedule_stop()
 			}
 			// Resume keyboard processing
 			ignore_keypress = false;
 		});
 	}
 
-
 	function stop() {
 		// send a stop command, stopping Pan/Tilt and stopping zoom
-		console.log('sending stop command');
-    move(0,0,0)
-    velocityY = 0;
-    velocityX=0;
-    velocityZoom=0;
+		//console.log('sending stop command');
+    cam_obj.stop({panTilt: true, zoom: true},
+			function(err,stream, xml){
+				if (err) {
+					console.log(err);
+				} else {
+					//console.log('stop command sent');
+				}
+			});
+    velocity.Y = 0;
+    velocity.X=0;
+    velocity.Zoom=0;
 	}
 
-);
+});
