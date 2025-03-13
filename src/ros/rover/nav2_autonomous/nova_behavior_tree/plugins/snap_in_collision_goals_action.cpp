@@ -312,8 +312,8 @@ namespace nova_behavior_tree
     GridCell SnapInCollisionGoalsAction::world_to_grid_cell(const Point &point, const OccupancyGrid::SharedPtr &grid)
     {
         GridCell cell;
-        cell.x = (point.x - (*grid).info.origin.position.x) / (*grid).info.resolution;
-        cell.y = (point.y - (*grid).info.origin.position.y) / (*grid).info.resolution;
+        cell.x = static_cast<int>(std::round((point.x - (*grid).info.origin.position.x) / (*grid).info.resolution));
+        cell.y = static_cast<int>(std::round((point.y - (*grid).info.origin.position.y) / (*grid).info.resolution));
         return cell;
     }
 
