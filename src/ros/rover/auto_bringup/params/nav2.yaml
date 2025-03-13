@@ -73,7 +73,7 @@ controller_server:
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.5
       yaw_goal_tolerance: 0.523599                      # 30 degrees in radians.
-      stateful: true                                    # Whether to check for XY position tolerance after rotating to goal orientation in case of minor localization changes.
+      stateful: false                                   # Whether to check for XY position tolerance after rotating to goal orientation in case of minor localization changes.
     FollowPath:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       desired_linear_vel: 0.4                           # The desired maximum linear velocity (m/s) to use.
