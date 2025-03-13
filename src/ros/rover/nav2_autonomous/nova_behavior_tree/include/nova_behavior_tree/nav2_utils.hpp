@@ -86,9 +86,9 @@ namespace nova_behavior_tree::utils::nav2
   }
 
   /**
-   * @brief Orient the pose towards a target point
+   * @brief Orient the pose in 2D towards a target point
    */
-  inline void OrientTowards(Pose &pose, const Point &target)
+  inline void orientTowards(Pose &pose, const Point &target)
   {
     double dx = target.x - pose.position.x;
     double dy = target.y - pose.position.y;

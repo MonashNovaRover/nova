@@ -232,7 +232,7 @@ namespace nova_behavior_tree
                 Point original_pos = goal.pose.position;
                 goal.pose.position = grid_cell_to_world(result.cell, global_occu_grid_);
                 // reorient to corresponding toward point
-                utils::nav2::OrientTowards(goal.pose, toward_points_[i]);
+                utils::nav2::orientTowards(goal.pose, toward_points_[i]);
     
                 RCLCPP_INFO(
                     node_->get_logger(), "Snapped goal (%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f)",

@@ -120,7 +120,7 @@ namespace nova_behavior_tree
             geometry_msgs::msg::PoseStamped offset_goal;
             offset_goal.header = goals_[i].header;
             tf2::toMsg(offset_position, offset_goal.pose.position);
-            utils::nav2::OrientTowards(offset_goal.pose, goals_[i].pose.position);
+            utils::nav2::orientTowards(offset_goal.pose, goals_[i].pose.position);
 
             auto log_goal_info = [&]()
             {
