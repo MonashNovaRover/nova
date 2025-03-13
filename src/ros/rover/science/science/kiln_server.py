@@ -146,7 +146,7 @@ class KilnServer(Node):
         Performs this continuously otherwise the kiln will turn off
         """
         try:
-            if self.is_on and self.target>self.temp[0]:
+            if self.is_on and self.target>self.temp[2]:
                 self.send_kiln_on()
             else:
                 self.send_kiln_off()
@@ -163,7 +163,7 @@ class KilnServer(Node):
             sensor_id = frame.data[0]
             sensor_index = sensor_id - 1
             if sensor_id in KilnServer.KILN_SENSOR_IDS:
-                reading = frame.data[1] * 2**8 + frame.data[2]  # as reading is returned as two bytes (16 bit integer)
+                reading = frame.data[1] # * 2**8 + frame.data[2]  # as reading is returned as two bytes (16 bit integer)
                 self.temp[sensor_index] = self.convert(reading)
                 self.get_logger().debug(f"Sensor {sensor_id} reading updated to {self.temp[sensor_index]} using {reading}")
             else:
