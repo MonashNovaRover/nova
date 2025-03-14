@@ -34,22 +34,6 @@ def launch_setup(context, *args, **kwargs):
     pointclouds = LaunchConfiguration('pointclouds')
 
     return [
-        # IncludeLaunchDescription(
-        #     condition=UnlessCondition(gazebo),
-        #     launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([depthai_dir, 'launch', 'camera.launch.py'])),
-        #     launch_arguments={'name': front_name,
-        #                       'params_file': oak_params,
-        #                       'rectify_rgb': 'false',
-        #                       }.items()
-        # ),
-        # IncludeLaunchDescription(
-        #     condition=UnlessCondition(gazebo),
-        #     launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([depthai_dir, 'launch', 'camera.launch.py'])),
-        #     launch_arguments={'name': 'bootie',
-        #                       'params_file': bootie_params,
-        #                       'rectify_rgb': 'false',
-        #                       }.items()
-        # ),
         ComposableNodeContainer(
             name=f'{front_name}_image_proc_container',
             package='rclcpp_components',
@@ -75,6 +59,14 @@ def launch_setup(context, *args, **kwargs):
                                 ('depth/camera_info', f'{front_name}/stereo/camera_info'),
                                 ('cloud', f'{front_name}/depth/points')],
                 ),
+                ComposableNode(
+                    package='imu_transformer',
+                    plugin='imu_transformer::ImuTransformer',
+                    name=f'{front_name}_imu_transformer_node',
+                    remappings=[('/imu_in', '/oak/imu/data'),
+                                ('/imu_out', '/oak/imu/transformed')],
+                    parameters=[{'target_frame': front_name}]
+                )
             ],
         ),
         ComposableNodeContainer(
@@ -98,14 +90,14 @@ def launch_setup(context, *args, **kwargs):
             executable='aruco_tracker_autostart',
             arguments=['--ros-args', '--params-file', ar_params],
         ),
-        # Node(
-        #     package='imu_transformer',
-        #     executable='imu_transformer_node',
-        #     name='imu_transformer',
-        #     remappings=[('/imu_in', '/oak/imu/data'),
-        #                 ('/imu_out', '/oak/imu/transformed')],
-        #     parameters=[{'target_frame': 'oak'}]
-        # ),
+        Node(
+            package='imu_transformer',
+            executable='imu_transformer_node',
+            name='imu_transformer',
+            remappings=[('/imu_in', '/oak/imu/data'),
+                        ('/imu_out', '/oak/imu/transformed')],
+            parameters=[{'target_frame': 'oak'}]
+        ),
     ]
 
 
