@@ -107,7 +107,7 @@ private:
   bool snap_goals();
   void update_toward_points();
   SearchResult find_nearest_free_cell(const Point &origin);
-  bool is_area_free(const GridCell &center, double footprint_radius);
+  bool is_area_free(const GridCell &center);
   bool is_cell_free(const GridCell &global_cell);
   bool is_cell_free(const GridCell &cell, const OccupancyGrid::SharedPtr &grid);
   GridCell world_to_grid_cell(const Point &point, const OccupancyGrid::SharedPtr &grid);
