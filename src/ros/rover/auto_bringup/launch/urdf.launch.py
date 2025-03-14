@@ -32,7 +32,7 @@ def launch_setup(context, *args, **kwargs):
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[{'robot_description':
-                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name]), value_type=str)
+                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle]), value_type=str)
             }]
         )
     ]
@@ -42,6 +42,11 @@ def generate_launch_description():
     rover_description_dir = FindPackageShare('rover_description')
 
     declared_arguments = [
+        DeclareLaunchArgument(
+            name='angle', 
+            default_value='15',
+            description='Angle (in degrees) at which the camera is mounted',
+        ),
         DeclareLaunchArgument(
             name='gazebo',
             default_value='True',
