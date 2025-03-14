@@ -311,6 +311,7 @@ class DetectionTransformer(Node):
 
         roi = roi / self.depth_image_units_divisor  # convert to meters
         if not np.any(roi):
+            self.get_logger().warn(f'AA')
             return None
 
         # find the z coordinate on the 3D BB
@@ -321,6 +322,7 @@ class DetectionTransformer(Node):
         z_diff = np.abs(roi - bb_center_z_coord)
         mask_z = z_diff <= self.maximum_detection_threshold
         if not np.any(mask_z):
+            self.get_logger().warn(f'BB')
             return None
 
         roi = roi[mask_z]
@@ -328,6 +330,7 @@ class DetectionTransformer(Node):
         z = (z_max + z_min) / 2
 
         if z == 0:
+            self.get_logger().warn(f'CC')
             return None
 
         # project from image to world space
