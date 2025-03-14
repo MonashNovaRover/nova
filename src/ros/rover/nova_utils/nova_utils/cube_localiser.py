@@ -62,7 +62,7 @@ COLORS = {'red':[1.0,0.0,0.0], 'green':[0.0,1.0,0.0], 'blue':[0.0,0.0,1.0], 'whi
 DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
 
 # Assumed color ids:
-IDS_COLOR = {0: 'red', 1: 'green', 2: 'blue', 3: 'white'} 
+IDS_COLOR = {3: 'red', 1: 'green', 2: 'blue', 0: 'white'} 
 
 
 class DetectionTransformer(Node):
@@ -72,6 +72,9 @@ class DetectionTransformer(Node):
         # variables affecting detection of cubes
         self.depth_image_units_divisor = self.declare_parameter('depth_image_units_divisor', 1.0).get_parameter_value().double_value        # Used to calculate position from bounding box
         self.maximum_detection_threshold = self.declare_parameter('maximum_detection_threshold', 0.3).get_parameter_value().double_value    # any detections with a depth below this will be ignored (used to convert bb to point)
+        self.rgb_resolution = [ self.declare_parameter('rgb_height', 800).get_parameter_value().integer_value, 
+                                self.declare_parameter('rgb_width', 1200).get_parameter_value().integer_value ]
+
 
         # variables affecting cube markers in rviz
         self.use_markers = self.declare_parameter('use_markers', True).get_parameter_value().bool_value
@@ -181,6 +184,7 @@ class DetectionTransformer(Node):
 
     def process_cubes(self, cubes: List[CubePoint], stamp: Time) -> None:
         '''Publish markers and add cubes to detection list'''
+        self.get_logger().debug(f'{cubes}')
         # Markers
         if (self.use_markers):
             msg = MarkerArray()
@@ -229,16 +233,26 @@ class DetectionTransformer(Node):
                 new_position = self.tf_to_map(position, detections_msg.header.stamp)
                 if new_position is not None:
                     return new_position
+                else:
+                    self.get_logger().warn(f'tf_to_map failed')
+            else:
+                self.get_logger().warn(f'bb_to_point failed')
             return None
 
         depth_image = self.cv_bridge.imgmsg_to_cv2(depth_msg, desired_encoding='32FC1')
         if self.using_oak:
             for detection in detections_msg.detections:
                 # Detection will be of type Detection2D from vision_msgs
-                bbox = (float(detection.bbox.center.position.x), float(detection.bbox.center.position.y), float(detection.bbox.size_x), float(detection.bbox.size_y))
+
+                bbox = (float(detection.bbox.center.position.x), 
+                        float(detection.bbox.center.position.y), 
+                        float(detection.bbox.size_x), float(detection.bbox.size_y))
                 position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
                 if position is not None:
-                    color:str = IDS_COLOR[detection.result.id]
+                    score = 0
+                    for result in detection.results:
+                        if float(result.hypothesis.score) > score:
+                            color:str = IDS_COLOR[int(result.hypothesis.class_id)]
                     new_detections.append((color, position))
         else:
             for detection in detections_msg.detections:
@@ -293,28 +307,45 @@ class DetectionTransformer(Node):
             Modified from convert_bb_to_3d in https://github.com/mgonzs13/yolo_ros/blob/main/yolo_ros/yolo_ros/detect_3d_node.py
         '''
         self.get_logger().debug(f'Calculating cube world position relative to image frame')
-        center_x, center_y, size_x, size_y = [int(x) for x in bbox]
 
+        def resize_point(point:float, axis:int):
+            """resize the point from rgb to depth resolution to account for differences"""
+            return point / self.rgb_resolution[axis] * depth_image.shape[axis]
+
+        center_x, center_y, size_x, size_y = [int(resize_point(x, (i+1) % 2)) for i, x in enumerate(bbox)]
+        
         # crop depth image by the 2d BB
         u_min = max(center_x - size_x // 2, 0)
         u_max = min(center_x + size_x // 2, depth_image.shape[1] - 1)
         v_min = max(center_y - size_y // 2, 0)
         v_max = min(center_y + size_y // 2, depth_image.shape[0] - 1)
 
+        # swap the values incase of weird bug with bb
+        #if u_min > u_max:
+        #    u_max, u_min = u_min, u_max
+        #if v_min > v_max:
+        #    v_max, v_min = v_min, v_max
+
         roi = depth_image[v_min:v_max, u_min:u_max]
 
         roi = roi / self.depth_image_units_divisor  # convert to meters
         if not np.any(roi):
+            self.get_logger().warn(f"roi issue\n{depth_image[v_min:v_max, u_min:u_max]}\n{v_min},{v_max},{u_min},{u_max}{np.any(depth_image)}")
             return None
 
         # find the z coordinate on the 3D BB
-        bb_center_z_coord = (
-            depth_image[int(center_y)][int(center_x)] / self.depth_image_units_divisor
-        )
+        try:
+            bb_center_z_coord = (
+                depth_image[int(center_y)][int(center_x)] / self.depth_image_units_divisor
+            )
+        except IndexError: # handle occassional error by dropping it (bad fix lol)
+            self.get_logger().warn("depth image index issue")
+            return None
 
         z_diff = np.abs(roi - bb_center_z_coord)
         mask_z = z_diff <= self.maximum_detection_threshold
         if not np.any(mask_z):
+            self.get_logger().warn("difference between center of object and average z value in roi not high enough")
             return None
 
         roi = roi[mask_z]
@@ -322,6 +353,7 @@ class DetectionTransformer(Node):
         z = (z_max + z_min) / 2
 
         if z == 0:
+            self.get_logger().warn("z value fail") # idk what this checks for
             return None
 
         # project from image to world space
