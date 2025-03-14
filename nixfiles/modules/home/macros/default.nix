@@ -141,18 +141,14 @@ in
             cameras-orin = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
             nix-enable = "sudo systemctl enable nix-daemon.service";
             nix-start = "sudo systemctl start nix-daemon.service";
-            # TODO: dont have password here.
-            # Also fwiw, I don't think latency is lower for the low resolution stream - Orlando
-            # some of these arguments might not help at all, but its hard to exactly measure
-            # for upside down add `-vf vflip,hflip`, but adding to the end doesn't seem to work, before -flags seems to be ok instead
-            reolink-low = "ffplay -rtsp_transport udp -i rtsp://admin:Lab188b37@10.0.1.100:554/Preview_01_sub -flags low_delay -fflags nobuffer -framedrop -rc_lookahead 0 -probesize 32 -analyzeduration 0 -vf setpts=0 -tune zerolatency -window_title \"Banksia Cam\"";
-            reolink-high = "ffplay -rtsp_transport udp -i rtsp://admin:Lab188b37@10.0.1.100:554/Preview_01_main -flags low_delay -fflags nobuffer -framedrop -rc_lookahead 0 -probesize 32 -analyzeduration 0 -vf setpts=0 -tune zerolatency -window_title \"Banksia Cam\"";
+            reolink = "~/nova/nixfiles/modules/home/macros/reolink.sh"; # TODO: fix this so it works like can.sh
 
           }
         ];
 
       packages = with pkgs.nova-scripts; [
         can
+        #reolink TODO
       ];
     };
 
@@ -177,6 +173,11 @@ in
             name = "can";
             runtimeInputs = [ kmod iproute2 ];
             text = builtins.readFile ./can.sh;
+          #}, TODO help meeeee
+          #reolink = writeShellApplication {
+          #  name = "reolink";
+          #  runtimeInputs = [ ffmpeg ];
+          #  text = builtins.readFile ./reolink.sh;
           };
         });
       })
