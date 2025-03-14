@@ -277,7 +277,7 @@ class DetectionTransformer(Node):
                     position = get_pose_point(hypothesis.pose.pose)
                     map_position = self.tf_to_map(position, detections_msg.header.stamp)
                     if map_position is not None:
-                        color:str = IDS_COLOR[hypothesis.id]
+                        color:str = IDS_COLOR[hypothesis.hypothesis.class_id]
                         new_detections.append((color, map_position))
         
         else:
@@ -315,7 +315,6 @@ class DetectionTransformer(Node):
 
         roi = roi / self.depth_image_units_divisor  # convert to meters
         if not np.any(roi):
-            self.get_logger().warn(f'AA')
             return None
 
         # find the z coordinate on the 3D BB
