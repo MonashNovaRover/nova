@@ -277,7 +277,7 @@ class DetectionTransformer(Node):
                     position = get_pose_point(hypothesis.pose.pose)
                     map_position = self.tf_to_map(position, detections_msg.header.stamp)
                     if map_position is not None:
-                        color:str = IDS_COLOR[hypothesis.hypothesis.class_id]
+                        color:str = IDS_COLOR[int(hypothesis.hypothesis.class_id)]
                         new_detections.append((color, map_position))
         
         else:
