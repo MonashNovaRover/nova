@@ -276,7 +276,7 @@ namespace nova_behavior_tree
         {
             int x = global_cell.x - r;
             int y = global_cell.y - r;
-            if (is_cell_free({x, y}))
+            if (is_area_free({x, y}))
             {
                 return {{x, y}, true, r};
             }
@@ -287,7 +287,7 @@ namespace nova_behavior_tree
                 {
                     x += directions[i][0];
                     y += directions[i][1];
-                    if (is_cell_free({x, y}))
+                    if (is_area_free({x, y}))
                     {
                         return {{x, y}, true, r};
                     }
@@ -298,10 +298,10 @@ namespace nova_behavior_tree
         return {global_cell, false, max_radius};
     }
 
-    bool SnapInCollisionGoalsAction::is_area_free(const GridCell &center, double footprint_radius)
+    bool SnapInCollisionGoalsAction::is_area_free(const GridCell &center)
     {
         std::array<int, 2> directions[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
-        int radius = std::ceil(footprint_radius / (*global_occu_grid_).info.resolution);
+        int radius = std::ceil(footprint_radius_ / (*global_occu_grid_).info.resolution);
         for (int r = 0; r < radius; ++r)
         {
             int x = center.x - r;
