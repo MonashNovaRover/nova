@@ -61,6 +61,12 @@ namespace nova_behavior_tree
         getInput("initial_goals_offset", initial_goals_offset_);
         getInput("max_snap_radius", max_snap_radius_);
         getInput("update_radius", update_radius_);
+
+        if (!node_->get_parameter("local_costmap.local_costmap.ros__parameters.robot_radius", footprint_radius_))
+        {
+            RCLCPP_ERROR(node_->get_logger(), "Failed to get local footprint, using default value of 0.85m");
+        }
+        max_snap_radius_ += footprint_radius_;
         
         // subscribe to local and global costmaps' occupancy grids
         local_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
@@ -290,6 +296,36 @@ namespace nova_behavior_tree
         }
 
         return {global_cell, false, max_radius};
+    }
+
+    bool SnapInCollisionGoalsAction::is_area_free(const GridCell &center, double footprint_radius)
+    {
+        std::array<int, 2> directions[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+        int radius = std::ceil(footprint_radius / (*global_occu_grid_).info.resolution);
+        for (int r = 0; r < radius; ++r)
+        {
+            int x = center.x - r;
+            int y = center.y - r;
+            if (!is_cell_free({x, y}))
+            {
+                return false;
+            }
+
+            for (int i = 0; i < 4; ++i)
+            {
+                for (int _ = 0; _ < 2 * r; ++_)
+                {
+                    x += directions[i][0];
+                    y += directions[i][1];
+                    if (!is_cell_free({x, y}))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
     bool SnapInCollisionGoalsAction::is_cell_free(const GridCell &global_cell)
