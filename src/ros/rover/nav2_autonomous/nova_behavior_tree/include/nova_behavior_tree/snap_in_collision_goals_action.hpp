@@ -123,7 +123,7 @@ private:
   std::vector<Point> toward_points_;
   double max_snap_radius_;
   double update_radius_;
-  double footprint_radius_;
+  double footprint_radius_ = 0.85;
   std::vector<GoalEntry> cube_goal_entries_;
   Goals input_goals_;
   
