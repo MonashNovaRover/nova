@@ -213,7 +213,43 @@ class DetectionTransformer(Node):
                         self.get_logger().debug(f'Target {color} is not consistent enough.')
                 else:
                     self.get_logger().debug(f'{color} has not enough samples to confirm')
-                
+
+
+    def process_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray | Detection2DArray) -> List[CubePoint]:
+        '''Process detections into a list of points with their respective colour'''
+        if not detections_msg.detections:
+            return []
+        self.get_logger().debug(f'Processing detections')
+        new_detections = []
+
+        # calculate positions from bounding boxes
+        def bbox_to_map_pos(bbox: BBox, depth_image:np.ndarray, depth_info_msg: CameraInfo):
+            position = self.convert_bb_to_point(depth_image, depth_info_msg, bbox)
+            if position is not None:
+                new_position = self.tf_to_map(position, detections_msg.header.stamp)
+                if new_position is not None:
+                    return new_position
+            return None
+
+        depth_image = self.cv_bridge.imgmsg_to_cv2(depth_msg, desired_encoding='32FC1')
+        if self.using_oak:
+            for detection in detections_msg.detections:
+                # Detection will be of type Detection2D from vision_msgs
+                bbox = (float(detection.bbox.center.x), float(detection.bbox.center.y), float(detection.bbox.size_x), float(detection.bbox.size_y))
+                position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
+                if position is not None:
+                    color:str = IDS_COLOR[detection.result.id]
+        else:
+            for detection in detections_msg.detections:
+                # Detection will be of type Detection from yolo_msgs
+                bbox = (float(detection.bbox.center.position.x), float(detection.bbox.center.position.y), float(detection.bbox.size.x), float(detection.bbox.size.y))
+                position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
+                if position is not None:
+                    color:str = detection.class_name
+                    new_detections.append((color, position))
+
+        return new_detections
+
 
     def process_detections_3d(self, detections_msg: DetectionArray | Detection3DArray) -> List[CubePoint]:
         '''Process 3d detections into a list of points with their respective colour'''
@@ -250,41 +286,6 @@ class DetectionTransformer(Node):
         
         return new_detections
 
-
-    def process_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray | Detection2DArray | Detection3DArray) -> List[CubePoint]:
-        '''Process detections into a list of points with their respective colour'''
-        if not detections_msg.detections:
-            return []
-        self.get_logger().debug(f'Processing detections')
-        new_detections = []
-
-        # calculate positions from bounding boxes
-        def bbox_to_map_pos(bbox: BBox, depth_image:np.ndarray, depth_info_msg: CameraInfo):
-            position = self.convert_bb_to_point(depth_image, depth_info_msg, bbox)
-            if position is not None:
-                new_position = self.tf_to_map(position, detections_msg.header.stamp)
-                if new_position is not None:
-                    return new_position
-            return None
-
-        depth_image = self.cv_bridge.imgmsg_to_cv2(depth_msg, desired_encoding='32FC1')
-        if self.using_oak:
-            for detection in detections_msg.detections:
-                # Detection will be of type Detection2D from vision_msgs
-                bbox = (float(detection.bbox.center.x), float(detection.bbox.center.y), float(detection.bbox.size_x), float(detection.bbox.size_y))
-                position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
-                if position is not None:
-                    color:str = IDS_COLOR[detection.result.id]
-        else:
-            for detection in detections_msg.detections:
-                # Detection will be of type Detection from yolo_msgs
-                bbox = (float(detection.bbox.center.position.x), float(detection.bbox.center.position.y), float(detection.bbox.size.x), float(detection.bbox.size.y))
-                position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
-                if position is not None:
-                    color:str = detection.class_name
-                    new_detections.append((color, position))
-
-        return new_detections
 
     def convert_bb_to_point(self, depth_image: np.ndarray, depth_info: CameraInfo, bbox: BBox) -> Point | None:
         ''' Converts the bounding box center to a point relative to the image frame

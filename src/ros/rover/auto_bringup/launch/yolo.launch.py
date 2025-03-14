@@ -89,7 +89,7 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             name='using_oak',
-            default_value='False',
+            default_value='True',
             description='Are we running this with the OAK camera?',
         ),
         DeclareLaunchArgument(
