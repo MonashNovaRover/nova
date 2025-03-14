@@ -29,14 +29,14 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='excavation_construction', 
             executable='scraper_old',
-            output='screen', 
+            output='screen',
             emulate_tty=True, 
             parameters=[{'card_type': scraper_card_type}],
         ),
         Node(
             package='excavation_construction', 
             executable='tile_placer_old',
-            output='screen', 
+            output='screen',
             emulate_tty=True,
         ),
         IncludeLaunchDescription(
