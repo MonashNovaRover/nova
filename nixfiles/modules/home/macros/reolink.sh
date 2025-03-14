@@ -2,6 +2,14 @@
 
 set -euo pipefail
 
+#TODO: remove once nix is working properly
+if which ffplay 2>/dev/null; then
+  :
+else
+  echo "Please run me in a \`nix-shell -p ffmepg\`"
+  exit 1
+fi
+
 
 IP="10.0.1.100"
 PORT="554"
@@ -32,5 +40,5 @@ LOW_LATENCY_ARGS="-flags low_delay -fflags nobuffer -framedrop -rc_lookahead 0 -
 
 exec ffplay -rtsp_transport udp \
   -i rtsp://$USERNAME:$PASSWORD@$IP:$PORT/$STREAM_NAME \
-  $FLIP $LOW_LATENCY_ARGS -window_title $NAME
+  $FLIP $LOW_LATENCY_ARGS -window_title "$NAME"
 
