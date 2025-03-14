@@ -36,11 +36,10 @@ camera_directory:
           '1:1.0': science_kiln_bottom    # science hub port 3
           '4:1.0': science_microscope     # science hub port 4  
         arm:
-          '1:1.0': arm_gimbal
-          '2.1:1.0': arm_end_finger
-          '2.2:1.0': arm_end_side
-          '2.3:1.0': arm_end_periscope
-          '2.4:1.0': arm_end_top
+          '1:1.0': arm_end_finger
+          '2:1.0': arm_end_side
+          '3:1.0': arm_end_periscope
+          '4:1.0': arm_end_top
         ec:
           '4:1.0': ec_scraper             # ec hub 1 -> camera in USB position 1 as labeled on the E&C CAMS USB Hub
           '3:1.0': ec_forklift_down       # ec hub 2
