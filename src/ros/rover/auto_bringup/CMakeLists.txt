@@ -17,18 +17,9 @@ endif()
 
 # Find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclpy REQUIRED)  
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
-
-# Install Python scripts to make them available with `ros2 run auto_bringup <script_name>`
-install(
-  PROGRAMS
-    rviz/save_waypoints.py
-    rviz/load_waypoints.py
-  DESTINATION lib/${PROJECT_NAME}
-)
 
 # Add all the installation directories
 install(DIRECTORY
@@ -41,5 +32,3 @@ install(DIRECTORY
 )
 
 ament_package()
-
-
