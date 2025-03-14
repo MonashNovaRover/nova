@@ -159,6 +159,7 @@ class KilnServer(Node):
         """
         try: 
             self.get_logger().debug("Kiln temp feedback received")
+            self.get_logger().debug(f"Frame: {frame}")
             sensor_id = frame.data[0]
             for i in range(len(KilnServer.KILN_SENSOR_IDS)):
                 if KilnServer.KILN_SENSOR_IDS[i] != sensor_id:
