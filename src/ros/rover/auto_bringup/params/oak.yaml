@@ -1,7 +1,7 @@
 /oak:
   ros__parameters:
     camera:
-      i_nn_type: spatial
+      i_nn_type: rgb
       i_enable_imu: true
     nn:
       i_disable_resize: true

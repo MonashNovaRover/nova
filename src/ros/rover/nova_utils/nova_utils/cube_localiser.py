@@ -235,7 +235,7 @@ class DetectionTransformer(Node):
         if self.using_oak:
             for detection in detections_msg.detections:
                 # Detection will be of type Detection2D from vision_msgs
-                bbox = (float(detection.bbox.center.x), float(detection.bbox.center.y), float(detection.bbox.size_x), float(detection.bbox.size_y))
+                bbox = (float(detection.bbox.center.position.x), float(detection.bbox.center.position.y), float(detection.bbox.size_x), float(detection.bbox.size_y))
                 position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
                 if position is not None:
                     color:str = IDS_COLOR[detection.result.id]
