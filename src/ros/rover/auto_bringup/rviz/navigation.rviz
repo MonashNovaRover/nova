@@ -43,7 +43,7 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 0.699999988079071
+    - Alpha: 0.499999988079071
       Binary representation: false
       Binary threshold: 100
       Class: rviz_default_plugins/Map
