@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * Adapted from work by Roger Hardiman <opensource@rjh.org.uk>
  * https://github.com/agsh/onvif/blob/master/examples/example3.js
