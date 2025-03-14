@@ -30,7 +30,7 @@ from nova_interfaces.srv import KilnCommand
 
 class KilnServer(Node):
     # Jono Card IDs
-    KILN_CARD_SEND_IDS = [0x0A0, 0x0B0]
+    KILN_CARD_SEND_IDS = [0x0A0]
     KILN_TEMP_FEEDBACK_ID = 0x4E0
     # Kiln Command
     KILN_POWER_COMMAND = 0x07
@@ -38,7 +38,7 @@ class KilnServer(Node):
     KILN_OFF = 0x00 
     KILN_ON = 0xFF
     # Kiln Sensor IDs
-    KILN_SENSOR_IDS = [0x01, 0x02, 0x03]
+    KILN_SENSOR_IDS = [0x03]
     # ROS Params
     CAN_BUS_PARAM = "can_bus"
     KILN_TEMP_CONVERSION_PARAM = "science_temp_conversion"
@@ -78,15 +78,14 @@ class KilnServer(Node):
         self.send_can_timer = self.create_timer(0.2, self.send_can_command)
         self.publish_data_timer = self.create_timer(1, self.publish_data)
 
-        self.temp = [0, 0, 0]
+        self.temp = [0]
         self.is_on = False
         self.target = self.DEFAULT_TARGET_TEMP
 
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
 
         self.get_logger().info(f"Kiln Server started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
-        self.get_logger().info(f"temp: {self.temp}")
-    
+
     def convert(self, reading: int):
         """
         Converts the reading from the kiln to the correct temperature
@@ -160,19 +159,17 @@ class KilnServer(Node):
         """
         try: 
             self.get_logger().debug("Kiln temp feedback received")
-            self.get_logger().debug(f"Frame: {frame}")
             sensor_id = frame.data[0]
-            sensor_index = sensor_id - 1
-            if sensor_id in KilnServer.KILN_SENSOR_IDS:
+            for i in range(len(KilnServer.KILN_SENSOR_IDS)):
+                if KilnServer.KILN_SENSOR_IDS[i] != sensor_id:
+                    continue
                 reading = frame.data[1] # * 2**8 + frame.data[2]  # as reading is returned as two bytes (16 bit integer)
-                self.temp[sensor_index] = self.convert(reading)
-                self.get_logger().debug(f"Sensor {sensor_id} reading updated to {self.temp[sensor_index]} using {reading}")
+                self.temp[i] = self.convert(reading)
+                self.get_logger().debug(f"Sensor {sensor_id} reading updated to {self.temp[i]} using {reading}")
             else:
                 self.get_logger().debug(f"Sensor {sensor_id} not in list of sensors")
         except Exception as e:
             self.get_logger().error(f"Failed to update temp: {str(e)}")
-        self.get_logger().info(f"temp: {self.temp} frame: {str(frame)}")
-
     
     def publish_data(self):
         """
