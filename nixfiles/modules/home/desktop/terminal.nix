@@ -5,10 +5,11 @@ let
 in
 {
   config = lib.mkIf cfg.enable {
-    home.packages = with pkgs; [ blackbox-terminal ];
+    home.packages = with pkgs; [ blackbox-terminal ghostty ];
 
-    dconf.settings."com/raggesilver/BlackBox" = {
-      headerbar-drag-area = true;
-    };
+    programs.ssh.extraConfig = ''
+      Host *
+        SetEnv TERM=xterm-256color
+    '';
   };
 }
