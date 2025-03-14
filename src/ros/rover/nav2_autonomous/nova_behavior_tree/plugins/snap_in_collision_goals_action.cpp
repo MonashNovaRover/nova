@@ -62,12 +62,6 @@ namespace nova_behavior_tree
         getInput("max_snap_radius", max_snap_radius_);
         getInput("update_radius", update_radius_);
 
-        if (!node_->get_parameter("local_costmap.local_costmap.ros__parameters.robot_radius", footprint_radius_))
-        {
-            RCLCPP_ERROR(node_->get_logger(), "Failed to get local footprint, using default value of 0.85m");
-        }
-        max_snap_radius_ += footprint_radius_;
-        
         // subscribe to local and global costmaps' occupancy grids
         local_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
             "/local_costmap/costmap", 1,
@@ -98,6 +92,13 @@ namespace nova_behavior_tree
             node_->get_logger(), "SnapInCollisionGoalsAction waited %.2fms for occupancy grids",
             std::chrono::duration<double, std::milli>(end - start).count()
         );
+
+        // get footprint radius
+        if (!node_->get_parameter("local_costmap.local_costmap.ros__parameters.robot_radius", footprint_radius_))
+        {
+            RCLCPP_ERROR(node_->get_logger(), "Failed to get local footprint, using default value of 0.85m");
+        }
+        max_snap_radius_ += footprint_radius_;
 
         RCLCPP_INFO(node_->get_logger(), "SnapInCollisionGoalsAction successfully initialized!");
         
