@@ -94,7 +94,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='using_3d',
-            default_value='False',
+            default_value='True',
             description='Is 3D points already being handled by YOLO?',
         ),
         DeclareLaunchArgument(
