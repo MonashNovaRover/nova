@@ -80,7 +80,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='controllers',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'old_controllers.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
             description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
