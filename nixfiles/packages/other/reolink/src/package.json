@@ -1,5 +1,7 @@
 {
   "name": "reolink-ctl",
+  "version": "0.0.1",
+  "bin": "main.js",
   "dependencies": {
     "keypress": "^0.2.1",
     "onvif": "^0.8.0"
