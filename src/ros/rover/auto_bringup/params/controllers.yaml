@@ -68,6 +68,9 @@ pivot_drive_controller:
     max_acceleration: 0.1
     min_acceleration: -0.1
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+    steering_track: 0.65274049
+    wheel_base: 0.64565131
+    wheel_radius: 0.15692321
 
 strafe_controller:
   ros__parameters:
@@ -78,6 +81,9 @@ strafe_controller:
     right_pivot_names: ["frp", "brp"]
     open_loop: true
     max_acceleration: 5.0
+    steering_track: 0.65274049
+    wheel_base: 0.64565131
+    wheel_radius: 0.15692321
 
 nova_diff_drive_controller:
   ros__parameters:
