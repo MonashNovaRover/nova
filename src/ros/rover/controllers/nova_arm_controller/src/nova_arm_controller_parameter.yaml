@@ -78,3 +78,11 @@ nova_arm_controller:
       type: double_array,
       default_value: [],
     }
+  velocity_limit: {
+    type: double,
+    default_value: 0.5,
+  }
+  position_limit: {
+    type: double,
+    default_value: 0.5,
+  }

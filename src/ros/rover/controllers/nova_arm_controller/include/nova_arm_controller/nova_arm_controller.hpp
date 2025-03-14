@@ -76,6 +76,8 @@ protected:
     // store per joint odometry here maybe?
   };
 
+  SpeedLimiter speed_limiter;
+
   controller_interface::CallbackReturn configure_joints(
       const std::vector<std::string> &joint_names,
       std::vector<JointHandle> &registered_handles);
@@ -83,6 +85,7 @@ protected:
   controller_interface::return_type update_reference_from_subscribers(
       const rclcpp::Time & time, const rclcpp::Duration & period) override;
   controller_interface::return_type update_velocity_reference_from_subscribers();
+  controller_interface::return_type update_position_reference_from_subscribers();
 
   const char *joint_feedback_type() const;
   const char *joint_command_type() const;

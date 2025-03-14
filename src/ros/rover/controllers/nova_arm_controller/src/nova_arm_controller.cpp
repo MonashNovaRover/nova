@@ -60,17 +60,27 @@ InterfaceConfiguration NovaArmController::command_interface_configuration() cons
   for (const auto &joint_name : params_.joint_names)
   {
     conf_names.push_back(joint_name + "/" + joint_command_type());
+    //conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
+    //conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
   }
+
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
 
 InterfaceConfiguration NovaArmController::state_interface_configuration() const {
-  std::vector<std::string> conf_names;
   /*
   for (const auto &joint_name: params_.joint_names) {
     conf_names.push_back(joint_name + "/" + joint_feedback_type());
   }
    */
+  // fix later
+  std::vector<std::string> conf_names;
+  //for (const auto &joint_name : params_.joint_names)
+  //{
+    //conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
+    //conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
+  //}
+
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
 
@@ -96,7 +106,9 @@ std::vector<hardware_interface::CommandInterface> NovaArmController::on_export_r
 // Called before update_and_write_commands
 controller_interface::return_type NovaArmController::update_reference_from_subscribers(const rclcpp::Time &time, const rclcpp::Duration &period) {
   // TODO: implement position control, and have it choose between position or velocity functions based on some state or parameter
-  return update_velocity_reference_from_subscribers();
+  
+  return params_.joint_position_feedback ? update_position_reference_from_subscribers() : update_velocity_reference_from_subscribers();
+  //return update_velocity_reference_from_subscribers();
 }
 
 controller_interface::return_type NovaArmController::update_velocity_reference_from_subscribers() {
@@ -118,7 +130,9 @@ controller_interface::return_type NovaArmController::update_velocity_reference_f
   // Make map of joint name -> velocity (from message)
   auto velocities = std::map<std::string, double>();
   for (unsigned int i = 0; i < last_msg->name.size(); ++i) {
-    velocities[last_msg->name[i]] = last_msg->velocity[i];
+    double vel = last_msg->velocity[i];
+	speed_limiter.limit_velocity(vel);
+	velocities[last_msg->name[i]] = vel;
   }
 
   for (unsigned int i = 0; i < params_.joint_names.size(); i++)
@@ -133,6 +147,46 @@ controller_interface::return_type NovaArmController::update_velocity_reference_f
     }
 
     reference_interfaces_[i] = velocities[joint_name];
+  }
+
+  return controller_interface::return_type::OK;
+}
+
+controller_interface::return_type NovaArmController::update_position_reference_from_subscribers() {
+  auto logger = get_node()->get_logger();
+
+  // change the line below to target position
+  std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets> last_msg;
+  received_msg_ptr_.get(last_msg);
+  
+  if (last_msg == nullptr) {
+    RCLCPP_WARN_ONCE(logger, "Position message received was a nullptr.");
+    return controller_interface::return_type::OK;
+  }
+
+  if (last_msg->name.size() != last_msg->velocity.size()) {
+    RCLCPP_WARN(logger, "Position message received had a different number of names and positions.");
+    return controller_interface::return_type::ERROR;
+  }
+
+  // Make map of joint name -> position (from message)
+  auto positions = std::map<std::string, double>();
+  for (unsigned int i = 0; i < last_msg->name.size(); ++i) {
+  	// limit position here
+  }
+
+  for (unsigned int i = 0; i < params_.joint_names.size(); i++)
+  {
+    const auto& joint_name = params_.joint_names[i];
+
+    // Ensure the map contains the handle
+    if (positions.find(joint_name) == positions.end()) {
+      RCLCPP_WARN(logger, "Joint '%s' not defined in input message from teleop-arm-joy.", joint_name.c_str());
+      reference_interfaces_[i] = 0;
+      continue;
+    }
+
+    reference_interfaces_[i] = positions[joint_name];
   }
 
   return controller_interface::return_type::OK;
@@ -201,6 +255,10 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
       params_.angular.z.max_acceleration, params_.angular.z.min_jerk, params_.angular.z.max_jerk);
       */ // need to do this for each joint? ^
   // TODO: maybe limit position so arm doesn't collide?
+  //
+  
+  speed_limiter = SpeedLimiter(false, false, false, -params_.velocity_limit, params_.velocity_limit, NAN, NAN, NAN, NAN); 
+  
   if (!reset())
   {
     return controller_interface::CallbackReturn::ERROR;
