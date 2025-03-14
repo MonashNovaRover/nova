@@ -75,38 +75,69 @@ class GoalMarker(Node):
 
         marker_msg = MarkerArray()
         for i, goal in enumerate(goals):
-            marker = self.get_marker(i, goal, 'map')
+            marker = self.get_marker(i+len(goals), 'arrow', goal, 'map')
+            marker_msg.markers.append(marker)
+        for i, goal in enumerate(goals):
+            marker = self.get_marker(i, 'text', goal, 'map')
             marker_msg.markers.append(marker)
 
         self.marker_pub.publish(marker_msg)
         return None
 
 
-    def get_marker(self, id:int, point: Point, frame:str) -> Marker:
+    def get_marker(self, id:int, type:str, point:Point, frame:str) -> (Marker, Marker):
         '''Returns a marker derived from the detection'''
-        marker = Marker()
-        marker.pose.position.x, marker.pose.position.y, marker.pose.position.z = point[0]
-        marker.pose.orientation.x, marker.pose.orientation.y, marker.pose.orientation.z, marker.pose.orientation.w = point[1]
+        if type == 'arrow':
+            marker = Marker()
+            marker.pose.position.x, marker.pose.position.y, marker.pose.position.z = point[0]
+            marker.pose.orientation.x, marker.pose.orientation.y, marker.pose.orientation.z, marker.pose.orientation.w = point[1]
+            marker.lifetime = Duration(seconds=self.marker_duration).to_msg()
+            marker.ns = self.marker_ns
+            marker.id = id
 
-        marker.type = Marker.ARROW
-        marker.scale.x = self.marker_size * 3.0
-        marker.scale.y = self.marker_size * 0.5
-        marker.scale.z = self.marker_size * 0.5
-        marker.color.r = 0.0
-        marker.color.g = 1.0
-        marker.color.b = 0.0
-        marker.color.a = 1.0
+            time = self.get_clock().now()
+            stamp = Time()
+            stamp.sec, stamp.nanosec = time.seconds_nanoseconds()
 
-        marker.lifetime = Duration(seconds=self.marker_duration).to_msg()
-        marker.ns = self.marker_ns
-        marker.id = id
+            marker.header.stamp = stamp
+            marker.header.frame_id = frame
 
-        time = self.get_clock().now()
-        stamp = Time()
-        stamp.sec, stamp.nanosec = time.seconds_nanoseconds()
+            marker.type = Marker.ARROW
+            marker.action = Marker.ADD
+            marker.scale.x = self.marker_size * 3.0
+            marker.scale.y = self.marker_size * 0.5
+            marker.scale.z = self.marker_size * 0.5
+            marker.color.r = 0.0
+            marker.color.g = 1.0
+            marker.color.b = 0.0
+            marker.color.a = 1.0
 
-        marker.header.stamp = stamp
-        marker.header.frame_id = frame
+        elif type == 'text':
+            marker = Marker()
+            marker.pose.position.x, marker.pose.position.y, marker.pose.position.z = point[0]
+            marker.pose.orientation.x, marker.pose.orientation.y, marker.pose.orientation.z, marker.pose.orientation.w = point[1]
+            marker.pose.position.z += 0.5
+            marker.lifetime = Duration(seconds=self.marker_duration).to_msg()
+            marker.ns = self.marker_ns
+            marker.id = id
+
+            time = self.get_clock().now()
+            stamp = Time()
+            stamp.sec, stamp.nanosec = time.seconds_nanoseconds()
+
+            marker.header.stamp = stamp
+            marker.header.frame_id = frame
+
+            marker.type = Marker.TEXT_VIEW_FACING
+            marker.action = Marker.ADD
+            marker.scale.x = self.marker_size
+            marker.scale.y = self.marker_size
+            marker.scale.z = self.marker_size * 3.0
+            marker.color.r = 1.0
+            marker.color.g = 1.0
+            marker.color.b = 1.0
+            marker.color.a = 1.0
+            marker.text = f"{id}"
 
         return marker
 
