@@ -35,16 +35,6 @@ def launch_setup(context, *args, **kwargs):
     rectify_image = LaunchConfiguration('rectify_image')
 
     return [
-        IncludeLaunchDescription(
-            condition=UnlessCondition(gazebo),
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([depthai_dir, 'launch', 'camera.launch.py'])),
-            launch_arguments={'name': name,
-                              'parent_frame': parent_frame,
-                              'params_file': oak_params,
-                              'camera_model': camera_model,
-                              'rectify_rgb': 'false',
-                              }.items()
-        ),
         ComposableNodeContainer(
             name=f'{name}_image_proc_container',
             namespace='',
@@ -73,6 +63,14 @@ def launch_setup(context, *args, **kwargs):
                                 ('depth/camera_info', f'{name}/stereo/camera_info'),
                                 ('cloud', f'{name}/depth/points')],
                 ),
+                ComposableNode(
+                    package='imu_transformer',
+                    plugin='imu_transformer::ImuTransformer',
+                    name=f'{front_name}_imu_transformer_node',
+                    remappings=[('/imu_in', '/oak/imu/data'),
+                                ('/imu_out', '/oak/imu/transformed')],
+                    parameters=[{'target_frame': front_name}]
+                )
             ],
         ),
         Node(
