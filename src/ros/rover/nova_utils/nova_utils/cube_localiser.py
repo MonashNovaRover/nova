@@ -239,6 +239,7 @@ class DetectionTransformer(Node):
                 position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
                 if position is not None:
                     color:str = IDS_COLOR[detection.result.id]
+                    new_detections.append((color, position))
         else:
             for detection in detections_msg.detections:
                 # Detection will be of type Detection from yolo_msgs
