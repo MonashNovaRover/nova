@@ -85,6 +85,7 @@ class KilnServer(Node):
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
 
         self.get_logger().info(f"Kiln Server started on {self.get_parameter(self.CAN_BUS_PARAM).value}")
+        self.get_logger().info(f"temp: {self.temp}")
     
     def convert(self, reading: int):
         """
@@ -170,6 +171,7 @@ class KilnServer(Node):
                 self.get_logger().debug(f"Sensor {sensor_id} not in list of sensors")
         except Exception as e:
             self.get_logger().error(f"Failed to update temp: {str(e)}")
+        self.get_logger().info(f"temp: {self.temp} frame: {str(frame)}")
 
     
     def publish_data(self):
