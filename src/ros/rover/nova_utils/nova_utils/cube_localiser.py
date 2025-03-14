@@ -233,13 +233,19 @@ class DetectionTransformer(Node):
 
         depth_image = self.cv_bridge.imgmsg_to_cv2(depth_msg, desired_encoding='32FC1')
         if self.using_oak:
+            self.get_logger().warn(f'A')
             for detection in detections_msg.detections:
                 # Detection will be of type Detection2D from vision_msgs
                 bbox = (float(detection.bbox.center.position.x), float(detection.bbox.center.position.y), float(detection.bbox.size_x), float(detection.bbox.size_y))
+                self.get_logger().warn(f'B')
                 position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
+                self.get_logger().warn(f'C')
                 if position is not None:
+                    self.get_logger().warn(f'D')
                     color:str = IDS_COLOR[detection.result.id]
+                    self.get_logger().warn(f'E')
                     new_detections.append((color, position))
+                    self.get_logger().warn(f'F {new_detections}')
         else:
             for detection in detections_msg.detections:
                 # Detection will be of type Detection from yolo_msgs
