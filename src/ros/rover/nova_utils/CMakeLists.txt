@@ -30,10 +30,13 @@ find_package(yolo_msgs REQUIRED)
 
 
 install(PROGRAMS
-  nova_utils/quaternion_to_euler.py
-  nova_utils/nn_3d_to_marker.py
-  nova_utils/detection_overlay.py
   nova_utils/cube_localiser.py
+  nova_utils/detection_overlay.py
+  nova_utils/goal_marker.py
+  nova_utils/load_waypoint.py
+  nova_utils/nn_3d_to_marker.py
+  nova_utils/quaternion_to_euler.py
+  nova_utils/save_waypoint.py
 
   DESTINATION lib/${PROJECT_NAME}
 )
