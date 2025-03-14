@@ -299,7 +299,11 @@ class DetectionTransformer(Node):
             Modified from convert_bb_to_3d in https://github.com/mgonzs13/yolo_ros/blob/main/yolo_ros/yolo_ros/detect_3d_node.py
         '''
         self.get_logger().debug(f'Calculating cube world position relative to image frame')
+        self.get_logger().warn(f'DD')
         center_x, center_y, size_x, size_y = [int(x) for x in bbox]
+        self.get_logger().warn(f'EE')
+        self.get_logger().warn(f'{center_x}, {center_y}, {size_x}, {size_y}')
+        self.get_logger().warn(f'FF')
 
         # crop depth image by the 2d BB
         u_min = max(center_x - size_x // 2, 0)
