@@ -55,7 +55,7 @@ def launch_setup(context, *args, **kwargs):
             executable=f'{filter_type}_node',
             name=f'{filter_type}_filter_node',
             output='screen',
-            parameters=[gps_params,  {'use_sim_time': use_sim_time}, real_odom_params if use_real_odometry else {}],
+            parameters=[gps_params, {'use_sim_time': use_sim_time}, real_odom_params if use_real_odometry else {}],
         ),
         GroupAction(
             condition=IfCondition(gps),
@@ -65,7 +65,7 @@ def launch_setup(context, *args, **kwargs):
                     executable='ekf_node',
                     name='ekf_filter_node_odom',
                     output='screen',
-                    parameters=[rl_params,  {'use_sim_time': use_sim_time}],
+                    parameters=[rl_params, {'use_sim_time': use_sim_time}],
                     remappings=[('odometry/filtered', 'odometry/local')],
                 ),
                 Node(
