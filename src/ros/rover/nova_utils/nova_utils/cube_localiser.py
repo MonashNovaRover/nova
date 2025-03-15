@@ -233,19 +233,13 @@ class DetectionTransformer(Node):
 
         depth_image = self.cv_bridge.imgmsg_to_cv2(depth_msg, desired_encoding='32FC1')
         if self.using_oak:
-            self.get_logger().warn(f'A')
             for detection in detections_msg.detections:
                 # Detection will be of type Detection2D from vision_msgs
                 bbox = (float(detection.bbox.center.position.x), float(detection.bbox.center.position.y), float(detection.bbox.size_x), float(detection.bbox.size_y))
-                self.get_logger().warn(f'B')
                 position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
-                self.get_logger().warn(f'C')
                 if position is not None:
-                    self.get_logger().warn(f'D')
                     color:str = IDS_COLOR[detection.result.id]
-                    self.get_logger().warn(f'E')
                     new_detections.append((color, position))
-                    self.get_logger().warn(f'F {new_detections}')
         else:
             for detection in detections_msg.detections:
                 # Detection will be of type Detection from yolo_msgs
@@ -266,7 +260,7 @@ class DetectionTransformer(Node):
         new_detections = []
 
         def get_pose_point(pose: Pose) -> Point:
-            return float(pose.position.x), float(pose.position.y), float(pose.position.z)
+            return float(pose.position.x), float(pose.position.y), 0.0#float(pose.position.z)
 
         if self.using_oak:
             # detections_msg will be of Detection3DArray type. (vision_msgs)
@@ -299,11 +293,7 @@ class DetectionTransformer(Node):
             Modified from convert_bb_to_3d in https://github.com/mgonzs13/yolo_ros/blob/main/yolo_ros/yolo_ros/detect_3d_node.py
         '''
         self.get_logger().debug(f'Calculating cube world position relative to image frame')
-        self.get_logger().warn(f'DD')
         center_x, center_y, size_x, size_y = [int(x) for x in bbox]
-        self.get_logger().warn(f'EE')
-        self.get_logger().warn(f'{center_x}, {center_y}, {size_x}, {size_y}')
-        self.get_logger().warn(f'FF')
 
         # crop depth image by the 2d BB
         u_min = max(center_x - size_x // 2, 0)
@@ -325,7 +315,6 @@ class DetectionTransformer(Node):
         z_diff = np.abs(roi - bb_center_z_coord)
         mask_z = z_diff <= self.maximum_detection_threshold
         if not np.any(mask_z):
-            self.get_logger().warn(f'BB')
             return None
 
         roi = roi[mask_z]
@@ -333,7 +322,6 @@ class DetectionTransformer(Node):
         z = (z_max + z_min) / 2
 
         if z == 0:
-            self.get_logger().warn(f'CC')
             return None
 
         # project from image to world space
