@@ -18,6 +18,9 @@ export enum URCCompModes {
 }
 
 export enum CameraSerials {
+  WHEEL_TELEMETRY = "wheel_telemetry",
+  DRIVE_TELEMETRY = "drive_telemetry",
+
   MAST_FISHEYE = "mast_fisheye",
   MAST_DOWN = "mast_down",
   MAST_FORWARD = "mast_forward",
@@ -87,9 +90,14 @@ const urcScienceCams = [
   CameraSerials.SCIENCE_GIMBAL,
 ]
 
+const driveCams = [
+  CameraSerials.WHEEL_TELEMETRY,
+  CameraSerials.DRIVE_TELEMETRY,
+]
+
 export const post_landing_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams, ...armCams],
+    cameraSerials: [...mastCams, ...armCams, ...driveCams],
     viewTitle: "All Cams",
   },
   {
@@ -104,7 +112,7 @@ export const post_landing_views: CameraView[] = [
 
 export const urc_equipment_servicing_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams, ...armCams],
+    cameraSerials: [...mastCams, ...armCams, ...driveCams],
     viewTitle: "All Cams",
   },
   {
@@ -119,7 +127,7 @@ export const urc_equipment_servicing_views: CameraView[] = [
 
 export const urc_delivery_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams, ...armCams],
+    cameraSerials: [...mastCams, ...armCams, ...driveCams],
     viewTitle: "All Cams",
   },
   {
@@ -134,7 +142,7 @@ export const urc_delivery_views: CameraView[] = [
 
 export const excavation_and_construction_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams, ...ecCams],
+    cameraSerials: [...mastCams, ...ecCams, ...driveCams],
     viewTitle: "All Cams",
   },
   {
@@ -149,7 +157,7 @@ export const excavation_and_construction_views: CameraView[] = [
 
 export const space_resources_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams, ...arcScienceCams],
+    cameraSerials: [...mastCams, ...arcScienceCams, ...driveCams],
     viewTitle: "All Cams",
   },
   {
@@ -164,7 +172,7 @@ export const space_resources_views: CameraView[] = [
 
 export const autonomous_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams],
+    cameraSerials: [...mastCams, ...driveCams],
     viewTitle: "All Cams",
   },
   {
@@ -175,7 +183,7 @@ export const autonomous_views: CameraView[] = [
 
 export const urc_autonomous_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams],
+    cameraSerials: [...mastCams, ...driveCams],
     viewTitle: "All Cams",
   },
   {
@@ -186,7 +194,7 @@ export const urc_autonomous_views: CameraView[] = [
 
 export const urc_science_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams, ...urcScienceCams],
+    cameraSerials: [...mastCams, ...urcScienceCams, ...driveCams],
     viewTitle: "All Cams",
   },
   {
