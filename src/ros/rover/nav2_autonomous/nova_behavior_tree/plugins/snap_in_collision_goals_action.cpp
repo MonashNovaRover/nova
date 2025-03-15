@@ -28,6 +28,7 @@
 #include <array>
 #include <cmath>
 #include <algorithm>
+#include <queue>
 #include <chrono>
 #include <thread>
 
@@ -94,7 +95,7 @@ namespace nova_behavior_tree
         );
 
         // get footprint radius
-        if (!node_->get_parameter("local_costmap.local_costmap.ros__parameters.robot_radius", footprint_radius_))
+        if (!node_->get_parameter_or("local_costmap.local_costmap.ros__parameters.robot_radius", footprint_radius_, 0.85))
         {
             RCLCPP_ERROR(node_->get_logger(), "Failed to get local footprint, using default value of 0.85m");
         }
@@ -187,7 +188,7 @@ namespace nova_behavior_tree
 
         for (const auto &entry : cube_goal_entries_)
         {
-            if (entry.index > toward_points_.size())
+            if (entry.index > static_cast<int>(toward_points_.size()))
             {
                 RCLCPP_ERROR(
                     node_->get_logger(), "Cube goal index (%d) exceeds toward_points_ size (%lu)",
@@ -196,7 +197,7 @@ namespace nova_behavior_tree
                 continue;
             }
 
-            if (entry.index == toward_points_.size())
+            if (entry.index == static_cast<int>(toward_points_.size()))
             {
                 toward_points_.push_back(entry.pose.position);
                 continue;
@@ -299,29 +300,104 @@ namespace nova_behavior_tree
         return {global_cell, false, max_radius};
     }
 
+    /**
+     * @brief Check if the area around the center cell is free
+     * To actually check the area of a circle instead of a square, we mark a circle border as 'visited'
+     * using the midpoint circle algorithm https://www.youtube.com/watch?v=hpiILbMkF9w&ab_channel=NoBSCode
+     * so we can then run BFS from the center cell to check if the area is free.
+     * 
+     * The midpoint circle algorithm is very hard to understand by just looking at the code, so either
+     * watch the video or just accept that it works.
+     * 
+     * Note: the variant of the algorithm in the video starts drawing from (0, -r) because that is
+     * the top of the circle in screen space. I have modified it to start from (0, r), as we are
+     * not in screen space.
+     * 
+     * @param center The center cell of the area to check
+     */
     bool SnapInCollisionGoalsAction::is_area_free(const GridCell &center)
     {
-        std::array<int, 2> directions[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
-        int radius = std::ceil(footprint_radius_ / (*global_occu_grid_).info.resolution);
-        for (int r = 0; r < radius; ++r)
+        if (!is_cell_free(center))
         {
-            int x = center.x - r;
-            int y = center.y - r;
-            if (!is_cell_free({x, y}))
+            return false;
+        }
+
+        int radius = std::ceil(footprint_radius_ / (*global_occu_grid_).info.resolution);
+
+        // mark circle boundary as visited
+        int side = 2*radius + 1;
+        std::vector<bool> visited(side * side, false);
+        auto mark_visited = [&](int x, int y)
+        {
+            int index = (y + radius) * side + (x + radius);
+            visited[index] = true;
+        };
+        auto is_visited = [&](int x, int y) -> bool
+        {
+            int index = (y + radius) * side + (x + radius);
+            return visited[index];
+        };
+        auto rel_to_abs = [&](int x, int y) -> GridCell
+        {
+            return {center.x + x, center.y + y};
+        };
+
+        // midpoint circle algorithm
+        std::array<int, 2> quadrants[4] = {{1, 1}, {-1, 1}, {-1, -1}, {1, -1}};
+        int x = 0, y = radius, p = -radius;
+        while (x < y)
+        {
+            if (p > 0)
             {
-                return false;
+                y -= 1;
+                p += 2*(x-y) + 1;
+            }
+            else
+            {
+                p += 2*x + 1;
             }
 
-            for (int i = 0; i < 4; ++i)
+            for (auto &q : quadrants)
             {
-                for (int _ = 0; _ < 2 * r; ++_)
+                int dx = q[0] * x, dy = q[1] * y;
+
+                if (!is_cell_free(rel_to_abs(dx, dy)) || !is_cell_free(rel_to_abs(dy, dx)))
                 {
-                    x += directions[i][0];
-                    y += directions[i][1];
-                    if (!is_cell_free({x, y}))
+                    return false;
+                }
+
+                mark_visited(dx, dy);
+                mark_visited(dy, dx);
+            }
+        }
+
+        // BFS from center
+        std::array<int, 2> directions[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+        std::queue<GridCell> q;
+        mark_visited(0, 0);
+        q.push({0, 0});
+
+        while (!q.empty())
+        {
+            GridCell curr = q.front();
+            q.pop();
+
+            for (auto &d : directions)
+            {
+                int nx = curr.x + d[0], ny = curr.y + d[1];
+                if (nx < -radius || nx > radius || ny < -radius || ny > radius)
+                {
+                    continue;
+                }
+
+                if (!is_visited(nx, ny))
+                {
+                    if (!is_cell_free(rel_to_abs(nx, ny)))
                     {
                         return false;
                     }
+                    mark_visited(nx, ny);
+                    q.push({nx, ny});
                 }
             }
         }
