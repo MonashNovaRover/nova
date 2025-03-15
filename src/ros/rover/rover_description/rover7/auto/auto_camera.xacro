@@ -142,14 +142,14 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
     </joint> -->
 
     <joint name="oak_to_mount" type="fixed">
-      <origin xyz="0.004 0.12 0.039" rpy="0 0 1.5708" />
+      <origin xyz="-0.120 0.004 0.039" rpy="1.5708 0 3.14159" />
       <parent link="camera_holder_front" />
       <child link="camera_link" />
       <axis xyz="0 0 1" />
     </joint>
 
     <joint name="bootie_to_mount" type="fixed">
-      <origin xyz="0.004 0.12 0.039" rpy="1.5708 0 1.5708" />
+      <origin xyz="-0.120 -0.004 0.081" rpy="-1.5708 0 3.14159" />
       <parent link="camera_holder_back" />
       <child link="bootie_link" />
       <axis xyz="0 0 1" />
@@ -191,7 +191,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
       <child link="camera_link_optical"/>
     </joint>
 
-    <!-- Depth Camera for Gazebo-->
+    <!-- Front Oak Depth Camera for Gazebo-->
     <gazebo reference="camera_link">
       <sensor name="oak" type="rgbd_camera">
         <gz_frame_id>camera_link_optical</gz_frame_id>
@@ -218,7 +218,34 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
       </sensor>
     </gazebo>
 
-    <!-- IMU for Gazebo-->
+    <!-- Bootie Rear Depth Camera for Gazebo-->
+    <gazebo reference="bootie_link">
+      <sensor name="bootie" type="rgbd_camera">
+        <gz_frame_id>bootie_link_optical</gz_frame_id>
+        <!-- Link that corresponds to the Depth Point Clouds -->
+        <optical_frame_id>bootie_link</optical_frame_id>
+        <topic>bootie</topic>
+        <visualize>true</visualize>
+        <update_rate>30</update_rate>
+        <always_on>1</always_on>
+        <camera name="bootie">
+          <horizontal_fov>${radians(82)}</horizontal_fov>
+          <image>
+            <width>1280</width>
+            <height>900</height>
+          </image>
+          <clip>
+            <near>0.4</near>
+            <far>10.0</far>
+          </clip>
+        </camera>
+        <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
+          <frame_name>bootie_link_optical</frame_name>
+        </plugin>
+      </sensor>
+    </gazebo>
+
+    <!-- Front IMU for Gazebo-->
     <gazebo reference="oak_imu_frame">
       <sensor name="imu_sensor" type="imu">
         <topic>oak/imu</topic>
@@ -285,5 +312,74 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         </imu>
       </sensor>
     </gazebo>
+
+    <!-- Bootie for Gazebo-->
+    <gazebo reference="bootie_imu_frame">
+      <sensor name="bootie_imu_sensor" type="imu">
+        <topic>bootie/imu</topic>
+        <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu">
+          <frame_name>bootie_imu_frame</frame_name>
+          <initial_orientation_as_reference>false</initial_orientation_as_reference>
+        </plugin>
+        <always_on>true</always_on>
+        <update_rate>200</update_rate>
+        <visualize>true</visualize>
+        <imu>
+          <angular_velocity>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>2e-4</stddev>
+                <bias_mean>0.0000075</bias_mean>
+                <bias_stddev>0.0000008</bias_stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>2e-4</stddev>
+                <bias_mean>0.0000075</bias_mean>
+                <bias_stddev>0.0000008</bias_stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>2e-4</stddev>
+                <bias_mean>0.0000075</bias_mean>
+                <bias_stddev>0.0000008</bias_stddev>
+              </noise>
+            </z>
+          </angular_velocity>
+          <linear_acceleration>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>1.7e-2</stddev>
+                <bias_mean>0.1</bias_mean>
+                <bias_stddev>0.001</bias_stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>1.7e-2</stddev>
+                <bias_mean>0.1</bias_mean>
+                <bias_stddev>0.001</bias_stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>1.7e-2</stddev>
+                <bias_mean>0.1</bias_mean>
+                <bias_stddev>0.001</bias_stddev>
+              </noise>
+            </z>
+          </linear_acceleration>
+        </imu>
+      </sensor>
+    </gazebo>
+
   </xacro:macro>
 </robot>
