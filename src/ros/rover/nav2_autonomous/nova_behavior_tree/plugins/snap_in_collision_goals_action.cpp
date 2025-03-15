@@ -180,6 +180,10 @@ namespace nova_behavior_tree
         );
     }
 
+    /**
+     * @brief Update toward points with the most recent cube poses and according to
+     * whether any goals have been removed
+     */
     void SnapInCollisionGoalsAction::update_toward_points()
     {
         // update if goals have been removed
@@ -225,6 +229,9 @@ namespace nova_behavior_tree
         }
     }
 
+    /**
+     * @brief Core method of this node. Snaps goals that are in collision to the closest valid position.
+     */
     bool SnapInCollisionGoalsAction::snap_goals()
     {
         unsigned int failed_snaps = 0;
@@ -277,6 +284,12 @@ namespace nova_behavior_tree
         return failed_snaps == 0;
     }
 
+    /**
+     * @brief Find the nearest free cell using a simple spiral search. For every loop, the search
+     * starts from the bottom left corner and goes clockwise.
+     * 
+     * @param origin The origin point to search around
+     */
     SearchResult SnapInCollisionGoalsAction::find_nearest_free_cell(const Point &origin)
     {
         GridCell global_cell = world_to_grid_cell(origin, global_occu_grid_);
@@ -327,14 +340,13 @@ namespace nova_behavior_tree
      */
     bool SnapInCollisionGoalsAction::is_area_free(const GridCell &center)
     {
+        // avoid extra computation if center cell is not free
         if (!is_cell_free(center))
         {
             return false;
         }
 
         int radius = std::ceil(footprint_radius_ / (*global_occu_grid_).info.resolution);
-
-        // mark circle boundary as visited
         int side = 2*radius + 1;
         std::vector<bool> visited(side * side, false);
         auto mark_visited = [&](int x, int y)
@@ -351,7 +363,8 @@ namespace nova_behavior_tree
         {
             return {center.x + x, center.y + y};
         };
-
+        
+        // mark circle boundary as visited
         // midpoint circle algorithm
         std::array<int, 2> quadrants[4] = {{1, 1}, {-1, 1}, {-1, -1}, {1, -1}};
         int x = 0, y = radius, p = -radius;
@@ -414,12 +427,23 @@ namespace nova_behavior_tree
         return true;
     }
 
+    /**
+     * @brief Check if a cell is free in both the local and global occupancy grids
+     * 
+     * @param global_cell A cell with reference to the global occupancy grid
+     */
     bool SnapInCollisionGoalsAction::is_cell_free(const GridCell &global_cell)
     {
         GridCell local_cell = world_to_grid_cell(grid_cell_to_world(global_cell, global_occu_grid_), local_occu_grid_);
         return is_cell_free(global_cell, global_occu_grid_) && is_cell_free(local_cell, local_occu_grid_);
     }
 
+    /**
+     * @brief Check if a cell is free in a given occupancy grid
+     * 
+     * @param cell A cell with reference to the occupancy grid
+     * @param grid The occupancy grid to check
+     */
     bool SnapInCollisionGoalsAction::is_cell_free(const GridCell &cell, const OccupancyGrid::SharedPtr &grid)
     {
         if (cell.x < 0 || cell.x >= static_cast<int>((*grid).info.width) ||
@@ -431,6 +455,12 @@ namespace nova_behavior_tree
         return (*grid).data[index] <= 0;
     }
 
+    /**
+     * @brief Convert a world point to a grid cell in the specified occupancy grid
+     * 
+     * @param point The point to convert
+     * @param grid The occupancy grid to use for conversion
+     */
     GridCell SnapInCollisionGoalsAction::world_to_grid_cell(const Point &point, const OccupancyGrid::SharedPtr &grid)
     {
         GridCell cell;
@@ -439,6 +469,12 @@ namespace nova_behavior_tree
         return cell;
     }
 
+    /**
+     * @brief Convert a grid cell in the specified occupancy grid to a world point
+     * 
+     * @param cell The cell to convert
+     * @param grid The occupancy grid the cell is in
+     */
     Point SnapInCollisionGoalsAction::grid_cell_to_world(const GridCell &cell, const OccupancyGrid::SharedPtr &grid)
     {
         Point point;
