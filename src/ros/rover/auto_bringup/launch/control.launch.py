@@ -52,7 +52,8 @@ def launch_setup(context, *args, **kwargs):
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['joint_state_broadcaster']
+                    arguments=['joint_state_broadcaster'],
+                    # parameters=[controllers],
                 ),
                 Node(
                     package='controller_manager',

@@ -612,6 +612,15 @@
         <origin rpy="0.0 0 0" xyz="0 0 0.45"/>
     </joint>
 
+    <joint name="chassis_to_left_leg" type="continuous">
+        <origin xyz="-5.9970170628790449612e-17 0.32284999999999242082 1.2597556125372093456e-17" rpy="1.5707963267948943376 -0.032623180654612699003 -3.1415926535897904515" />
+        <parent link="chassis" />
+        <child link="left_leg" />
+        <axis xyz="0 0 1"/>
+        <limit effort="20" velocity="20" lower="0" upper="0"/>
+        <joint_properties friction="0.0"/>
+    </joint>
+
     <joint name="flp" type="revolute">
         <origin xyz="-0.4796458670490280074 -0.025616433642942942894 0.086267061908379405466" rpy="-1.5707963267948972241 -0.86524793679315337158 -0.028123902821415372455" />
         <parent link="left_leg" />
@@ -645,6 +654,15 @@
         <child link="bl_wheel" />
         <axis xyz="0 0 1"/>
         <limit effort="20" velocity="20" />
+        <joint_properties friction="0.0"/>
+    </joint>
+
+    <joint name="chassis_to_right_leg" type="continuous">
+        <origin xyz="-2.0093446532916618082e-17 -0.32285000000001151665 -3.7293141980345759136e-16" rpy="-1.5707963267948972241 -0.031249812601371270565 -3.141592653589793116" />
+        <parent link="chassis" />
+        <child link="right_leg" />
+        <axis xyz="0 0 1"/>
+        <limit effort="20" velocity="20" lower="0" upper="0"/>
         <joint_properties friction="0.0"/>
     </joint>
 
@@ -684,28 +702,6 @@
         <joint_properties friction="0.0"/>
     </joint>
 
-    <xacro:unless value="$(arg gazebo)">
-        <xacro:property name="gazebo" value="true"/>
-    </xacro:unless>
-    <xacro:property name="gazebo" value="false"/>
-
-    <joint name="chassis_to_right_leg" type="${'fixed' if gazebo == 'true' else 'continuous'}">
-        <origin xyz="-2.0093446532916618082e-17 -0.32285000000001151665 -3.7293141980345759136e-16" rpy="-1.5707963267948972241 -0.031249812601371270565 -3.141592653589793116" />
-        <parent link="chassis" />
-        <child link="right_leg" />
-        <axis xyz="0 0 1"/>
-        <limit effort="20" velocity="20" />
-        <joint_properties friction="0.0"/>
-    </joint>
-
-    <joint name="chassis_to_left_leg" type="${'fixed' if gazebo == 'true' else 'continuous'}">
-        <origin xyz="-5.9970170628790449612e-17 0.32284999999999242082 1.2597556125372093456e-17" rpy="1.5707963267948943376 -0.032623180654612699003 -3.1415926535897904515" />
-        <parent link="chassis" />
-        <child link="left_leg" />
-        <axis xyz="0 0 1"/>
-        <limit effort="20" velocity="20" />
-        <joint_properties friction="0.0"/>
-    </joint>
     <!-- Diffbar won't show up irl lol-->
     <joint name="chassis_to_diffbar" type="continuous">
         <origin xyz="-0.47600000000002590239 -4.8144507783734281313e-09 0.046505449483682070877" rpy="-1.5707963267949112129 -2.1008432044742341424e-09 1.570796326794896558" />
