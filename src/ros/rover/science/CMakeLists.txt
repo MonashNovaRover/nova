@@ -53,8 +53,11 @@ install(PROGRAMS
   science/kiln_server.py
   science/spectrometer_publisher.py
   science/actuator_limit_publisher.py
+  science/arc_spinny_part.py
+  science/arc_sweeper_servo.py
   science/microscope_servo.py
   science/nir_probe_publisher.py
+  science/scimbal_cam.py
   science/urc_raman_spec_server.py
   science/urc_analysis_arm.py
   science/urc_auger.py

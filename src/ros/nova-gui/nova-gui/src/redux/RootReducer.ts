@@ -21,6 +21,7 @@ import {Site} from "./models/genericStores/CurrentSiteStore.ts";
 import {initialSiteDataState} from "./models/genericStores/SiteDataState.ts";
 import {filterStores, getReducers} from "./store/rootReducerFilters.ts";
 import {StoreType} from "./models/StoreContext.ts";
+import {DEFAULT_NIR_PROBE_CALIBRATION_DATA} from "./models/genericStores/NIRProbeCalibrationData.ts";
 
 /**
  * reduxStores contains all stores in redux as either it's Reducer
@@ -260,6 +261,7 @@ export const reduxStores = {
   // Generic stores
   currentSite: createGenericStore("currentSite", Site.SITE_1),
   siteData: createGenericStore("siteData", initialSiteDataState),
+  nirProbeCalibrationData: createGenericStore("nirProbeCalibrationData", DEFAULT_NIR_PROBE_CALIBRATION_DATA),
   counter: createGenericStore("counter", 0),
 };
 

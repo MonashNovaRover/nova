@@ -68,6 +68,24 @@ def launch_setup(context, *args, **kwargs):
                 "tof_frame_id": tof_canid
             }],
         ),
+        Node(
+            package='science',
+            executable='arc_sweeper_servo.py',
+            output='screen',
+            emulate_tty=True,
+        ),
+        Node(
+            package='science',
+            executable='arc_spinny_part.py',
+            output='screen',
+            emulate_tty=True,
+        ),
+        Node(
+            package='science',
+            executable='scimbal_cam.py',
+            output='screen',
+            emulate_tty=True,
+        ),
     ]
 
 def generate_launch_description():

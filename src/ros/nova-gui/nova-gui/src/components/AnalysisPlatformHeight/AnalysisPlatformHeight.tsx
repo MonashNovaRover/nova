@@ -70,7 +70,7 @@ const TOFHeight: React.FC<TOFHeightProps> = (props) => {
 
     const tofReading = () => {
         return (
-            <CardBody className={`${outOfRange || dangerRange ? "bg-danger" :  warningRange ? "bg-orange-500" : "bg-default"} text-xl p-3 flex flex-row justify-center`}>
+            <CardBody className={`${outOfRange || dangerRange ? "bg-danger" :  warningRange ? "bg-orange-500" : "bg-default"} rounded-lg text-xl p-3 flex flex-row justify-center`}>
                 {
                     !outOfRange ? 
                         <p>Height: {range} mm</p> : 
