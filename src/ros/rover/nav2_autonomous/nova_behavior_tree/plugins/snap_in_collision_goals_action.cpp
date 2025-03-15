@@ -81,18 +81,7 @@ namespace nova_behavior_tree
             }
         );
 
-        // measure time to initialize
-        auto start = std::chrono::high_resolution_clock::now();
-        while (!local_occu_grid_ || !global_occu_grid_)
-        {
-            rclcpp::spin_some(node_);
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
-        auto end = std::chrono::high_resolution_clock::now();
-        RCLCPP_INFO(
-            node_->get_logger(), "SnapInCollisionGoalsAction waited %.2fms for occupancy grids",
-            std::chrono::duration<double, std::milli>(end - start).count()
-        );
+        wait_for_occu_grids();
 
         // get footprint radius
         if (!node_->get_parameter_or("local_costmap.local_costmap.ros__parameters.robot_radius", footprint_radius_, 0.85))
@@ -129,6 +118,11 @@ namespace nova_behavior_tree
             toward_points_.push_back(toward_point);
         }
 
+        if (!local_occu_grid_ || !global_occu_grid_)
+        {
+            wait_for_occu_grids();
+        }
+
         RCLCPP_INFO(node_->get_logger(), "SnapInCollisionGoalsAction successfully set up!");
         
         set_up_ = true;
@@ -147,19 +141,19 @@ namespace nova_behavior_tree
             setup();
         }
 
-        if (!local_occu_grid_)
+        // at this point, we should already have the occupancy grids
+        // however, this is just a safeguard
+        if (!local_occu_grid_ || !global_occu_grid_)
         {
-            throw std::runtime_error("Local occupancy grid is not available");
-        }
-        if (!global_occu_grid_)
-        {
-            throw std::runtime_error("Global occupancy grid is not available");
+            wait_for_occu_grids();
         }
         
         getInput("cube_goal_entries", cube_goal_entries_);
         getInput("input_goals", input_goals_);
 
         update_toward_points();
+        // this is necessary to receive updates on the occupancy grids
+        rclcpp::spin_some(node_);
 
         // snap!
         if (snap_goals())
@@ -168,6 +162,22 @@ namespace nova_behavior_tree
         }
 
         return BT::NodeStatus::FAILURE;
+    }
+
+    void SnapInCollisionGoalsAction::wait_for_occu_grids()
+    {
+        // measure time to initialize
+        auto start = std::chrono::high_resolution_clock::now();
+        while (!local_occu_grid_ || !global_occu_grid_)
+        {
+            rclcpp::spin_some(node_);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        auto end = std::chrono::high_resolution_clock::now();
+        RCLCPP_INFO(
+            node_->get_logger(), "SnapInCollisionGoalsAction waited %.2fms for occupancy grids",
+            std::chrono::duration<double, std::milli>(end - start).count()
+        );
     }
 
     void SnapInCollisionGoalsAction::update_toward_points()
@@ -313,7 +323,7 @@ namespace nova_behavior_tree
      * the top of the circle in screen space. I have modified it to start from (0, r), as we are
      * not in screen space.
      * 
-     * @param center The center cell of the area to check
+     * @param center The center cell of the area to check in the global occupancy grid
      */
     bool SnapInCollisionGoalsAction::is_area_free(const GridCell &center)
     {
@@ -357,7 +367,7 @@ namespace nova_behavior_tree
                 p += 2*x + 1;
             }
 
-            for (auto &q : quadrants)
+            for (const auto &q : quadrants)
             {
                 int dx = q[0] * x, dy = q[1] * y;
 
@@ -376,13 +386,12 @@ namespace nova_behavior_tree
         std::queue<GridCell> q;
         mark_visited(0, 0);
         q.push({0, 0});
-
         while (!q.empty())
         {
             GridCell curr = q.front();
             q.pop();
 
-            for (auto &d : directions)
+            for (const auto &d : directions)
             {
                 int nx = curr.x + d[0], ny = curr.y + d[1];
                 if (nx < -radius || nx > radius || ny < -radius || ny > radius)
