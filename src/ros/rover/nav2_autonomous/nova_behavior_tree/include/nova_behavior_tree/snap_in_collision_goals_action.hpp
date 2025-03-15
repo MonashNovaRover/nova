@@ -104,8 +104,9 @@ public:
   }
 
 private:
-  bool snap_goals();
+  void wait_for_occu_grids();
   void update_toward_points();
+  bool snap_goals();
   SearchResult find_nearest_free_cell(const Point &origin);
   bool is_area_free(const GridCell &center);
   bool is_cell_free(const GridCell &global_cell);
