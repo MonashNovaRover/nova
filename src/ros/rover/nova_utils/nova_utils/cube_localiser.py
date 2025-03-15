@@ -213,45 +213,9 @@ class DetectionTransformer(Node):
                         self.get_logger().debug(f'Target {color} is not consistent enough.')
                 else:
                     self.get_logger().debug(f'{color} has not enough samples to confirm')
-                
-
-    def process_detections_3d(self, detections_msg: DetectionArray | Detection3DArray) -> List[CubePoint]:
-        '''Process 3d detections into a list of points with their respective colour'''
-        if not detections_msg.detections:
-            return []
-        self.get_logger().debug(f'Processing 3d detections')
-        new_detections = []
-
-        def get_pose_point(pose: Pose) -> Point:
-            return float(pose.position.x), float(pose.position.y), float(pose.position.z)
-
-        if self.using_oak:
-            # detections_msg will be of Detection3DArray type. (vision_msgs)
-            detection: Detection3D
-            for detection in detections_msg.detections:
-                hypothesis: ObjectHypothesisWithPose
-                for hypothesis in detection.results:
-                    position = get_pose_point(hypothesis.pose.pose)
-                    map_position = self.tf_to_map(position, detections_msg.header.stamp)
-                    if map_position is not None:
-                        color:str = IDS_COLOR[hypothesis.id]
-                        new_detections.append((color, map_position))
-        
-        else:
-            # NOTE: Currently this doesn't work with yolo_ros for some reason so just use 2D mode for sim, this node copies the bbox to point code anyway
-            # detections_msg will be of DetectionArray type and have BoundingBox3D defined for each detection. (yolo_msgs)
-            for detection in detections_msg.detections:
-                detection: Detection
-                position = get_pose_point(detection.bbox3d.center)
-                map_position = self.tf_to_map(position, detections_msg.header.stamp)
-                if map_position is not None:
-                    color = detection.class_name
-                    new_detections.append((color, map_position))
-        
-        return new_detections
 
 
-    def process_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray | Detection2DArray | Detection3DArray) -> List[CubePoint]:
+    def process_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray | Detection2DArray) -> List[CubePoint]:
         '''Process detections into a list of points with their respective colour'''
         if not detections_msg.detections:
             return []
@@ -271,10 +235,11 @@ class DetectionTransformer(Node):
         if self.using_oak:
             for detection in detections_msg.detections:
                 # Detection will be of type Detection2D from vision_msgs
-                bbox = (float(detection.bbox.center.x), float(detection.bbox.center.y), float(detection.bbox.size_x), float(detection.bbox.size_y))
+                bbox = (float(detection.bbox.center.position.x), float(detection.bbox.center.position.y), float(detection.bbox.size_x), float(detection.bbox.size_y))
                 position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
                 if position is not None:
                     color:str = IDS_COLOR[detection.result.id]
+                    new_detections.append((color, position))
         else:
             for detection in detections_msg.detections:
                 # Detection will be of type Detection from yolo_msgs
@@ -285,6 +250,43 @@ class DetectionTransformer(Node):
                     new_detections.append((color, position))
 
         return new_detections
+
+
+    def process_detections_3d(self, detections_msg: DetectionArray | Detection3DArray) -> List[CubePoint]:
+        '''Process 3d detections into a list of points with their respective colour'''
+        if not detections_msg.detections:
+            return []
+        self.get_logger().debug(f'Processing 3d detections')
+        new_detections = []
+
+        def get_pose_point(pose: Pose) -> Point:
+            return float(pose.position.x), float(pose.position.y), 0.0#float(pose.position.z)
+
+        if self.using_oak:
+            # detections_msg will be of Detection3DArray type. (vision_msgs)
+            detection: Detection3D
+            for detection in detections_msg.detections:
+                hypothesis: ObjectHypothesisWithPose
+                for hypothesis in detection.results:
+                    position = get_pose_point(hypothesis.pose.pose)
+                    map_position = self.tf_to_map(position, detections_msg.header.stamp)
+                    if map_position is not None:
+                        color:str = IDS_COLOR[int(hypothesis.hypothesis.class_id)]
+                        new_detections.append((color, map_position))
+        
+        else:
+            # NOTE: Currently this doesn't work with yolo_ros for some reason so just use 2D mode for sim, this node copies the bbox to point code anyway
+            # detections_msg will be of DetectionArray type and have BoundingBox3D defined for each detection. (yolo_msgs)
+            for detection in detections_msg.detections:
+                detection: Detection
+                position = get_pose_point(detection.bbox3d.center)
+                map_position = self.tf_to_map(position, detections_msg.header.stamp)
+                if map_position is not None:
+                    color = detection.class_name
+                    new_detections.append((color, map_position))
+        
+        return new_detections
+
 
     def convert_bb_to_point(self, depth_image: np.ndarray, depth_info: CameraInfo, bbox: BBox) -> Point | None:
         ''' Converts the bounding box center to a point relative to the image frame

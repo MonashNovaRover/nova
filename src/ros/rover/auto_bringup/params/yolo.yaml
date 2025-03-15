@@ -42,6 +42,6 @@ cube_localiser:
 
     depth_info_topic:  /oak/stereo/camera_info   # topic for depth info
     depth_image_topic:  /oak/stereo/image_raw    # topic for depth image
-    detection_topic:  /oak/nn/detections         # "/oak/nn/spatial_detections" (if using spatial detections topic, make sure to set using_3D to true)
+    detection_topic:  /oak/nn/spatial_detections         # "/oak/nn/spatial_detections" (if using spatial detections topic, make sure to set using_3D to true)
     marker_topic:  /yolo/cubes                   # topic to publish markers
 
