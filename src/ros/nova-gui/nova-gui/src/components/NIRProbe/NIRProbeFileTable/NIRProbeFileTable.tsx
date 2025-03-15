@@ -88,42 +88,42 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = () => {
   const iceTable = useMemo(() => table(NIRProbeReadingType.ICE), [table])
 
   return (
-      <div className="flex w-full flex-col">
-        <Tabs
-          aria-label="NIR-Probe-Options"
-          classNames={{
-            tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
-            cursor: "w-full bg-[#22d3ee]",
-            tab: "max-w-fit px-0 h-12",
-            tabContent: "group-data-[selected=true]:text-[#06b6d4]",
-          }}
-          color="primary"
-          variant="underlined"
+    <div className="flex w-full flex-col">
+      <Tabs
+        aria-label="NIR-Probe-Options"
+        classNames={{
+          tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
+          cursor: "w-full bg-[#22d3ee]",
+          tab: "max-w-fit px-0 h-12",
+          tabContent: "group-data-[selected=true]:text-[#06b6d4]",
+        }}
+        color="primary"
+        variant="underlined"
+      >
+        <Tab
+          key={`${NIRProbeReadingType.WATER}`}
+          title={
+            <div className="flex items-center space-x-2">
+              <Droplet />
+              <span>Water</span>
+            </div>
+          }
         >
-          <Tab
-            key={`${NIRProbeReadingType.WATER}`}
-            title={
-              <div className="flex items-center space-x-2">
-                <Droplet />
-                <span>Water</span>
-              </div>
-            }
-          >
-            {waterTable}
-          </Tab>
-          <Tab
-            key={`${NIRProbeReadingType.ICE}`}
-            title={
-              <div className="flex items-center space-x-2">
-                <Square/>
-                <span>Ice</span>
-              </div>
-            }
-          >
-            {iceTable}
-          </Tab>
-        </Tabs>
-      </div>
+          {waterTable}
+        </Tab>
+        <Tab
+          key={`${NIRProbeReadingType.ICE}`}
+          title={
+            <div className="flex items-center space-x-2">
+              <Square/>
+              <span>Ice</span>
+            </div>
+          }
+        >
+          {iceTable}
+        </Tab>
+      </Tabs>
+    </div>
   );
 }
 
