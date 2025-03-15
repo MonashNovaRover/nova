@@ -35,6 +35,7 @@ import { LocalStorageState } from "./models/LocalStorageState.ts";
 import { GenericStoreState } from "./models/genericStores/GenericStoreState.ts";
 import {Site} from "./models/genericStores/CurrentSiteStore.ts";
 import {SiteDataState} from "./models/genericStores/SiteDataState.ts";
+import {NIRProbeCalibrationData} from "./models/genericStores/NIRProbeCalibrationData.ts";
 
 export interface RootState {
   // Bifrost Stores
@@ -87,6 +88,7 @@ export interface RootState {
   // Generic Stores
   currentSite: GenericStoreState<Site>;
   siteData: GenericStoreState<SiteDataState>;
+  nirProbeCalibrationData: GenericStoreState<NIRProbeCalibrationData>
   counter: GenericStoreState<number>;
 
   batteryStore: IRosSensorMsgsBatteryState;

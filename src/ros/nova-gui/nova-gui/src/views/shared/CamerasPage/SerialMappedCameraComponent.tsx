@@ -2,10 +2,14 @@ import {FC, memo} from "react";
 import {BaseCameraComponentProps, CameraComponent} from "../../../components/CameraComponent/CameraComponent.tsx";
 import {CameraSerials} from "./CameraPageConstants.tsx";
 import BarOverlayedCameraComponent from "../../../components/CameraComponent/special/BarOverlayedCameraComponent.tsx";
+import {
+  GimbalOverlayedCameraComponent
+} from "../../../components/CameraComponent/special/GimbalOverlayedCameraComponent.tsx";
 
 /// Defines special components to use for certain cameras
 export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentProps> } = {
-  [CameraSerials.ARM_END_PERISCOPE]: BarOverlayedCameraComponent
+  [CameraSerials.ARM_END_PERISCOPE]: BarOverlayedCameraComponent,
+  [CameraSerials.SCIENCE_GIMBAL]: GimbalOverlayedCameraComponent
 }
 
 /// Function that used the above map to get the component for a specified camera serial

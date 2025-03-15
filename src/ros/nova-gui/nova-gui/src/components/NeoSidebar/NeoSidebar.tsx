@@ -65,6 +65,11 @@ const urcSidebarData: SidebarInterface = {
       icon: <Globe />,
     },
     {
+      title: "Scimble Cam",
+      route: "/urc/scimbal-cam",
+      icon: <Globe />,
+    },
+    {
       title: "Cameras",
       route: `/urc/cameras/${URCCompModes.URC_SCIENCE}`,
       icon: <Camera />,
@@ -136,6 +141,11 @@ const arcSidebarData: SidebarInterface = {
       title: "Microscope",
       route: "/arc/space-resources/microscope",
       icon: <Image />,
+    },
+    {
+      title: "Scimble Cam",
+      route: "/arc/scimbal-cam",
+      icon: <Globe />,
     },
     {
       title: "Cameras",
