@@ -45,12 +45,15 @@ joint_state_broadcaster:
     interfaces:
        ["position",
       "velocity"]
+      
     joints:
       ["blp", "brp", "flp", "frp",
-       "blw", "brw", "flw", "frw"]
+      "blw", "brw", "flw", "frw"]
+
     extra_joints:
       ["chassis_to_left_leg",
        "chassis_to_right_leg"]
+
     use_local_topics: false
     
 pivot_drive_controller:

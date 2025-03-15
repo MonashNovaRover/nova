@@ -617,7 +617,7 @@
         <parent link="chassis" />
         <child link="left_leg" />
         <axis xyz="0 0 1"/>
-        <limit effort="20" velocity="20" lower="0" upper="0"/>
+        <limit effort="20" velocity="20" />
         <joint_properties friction="0.0"/>
     </joint>
 
@@ -662,7 +662,7 @@
         <parent link="chassis" />
         <child link="right_leg" />
         <axis xyz="0 0 1"/>
-        <limit effort="20" velocity="20" lower="0" upper="0"/>
+        <limit effort="20" velocity="20" />
         <joint_properties friction="0.0"/>
     </joint>
 
@@ -702,7 +702,7 @@
         <joint_properties friction="0.0"/>
     </joint>
 
-    <!-- Diffbar won't show up irl lol-->
+    <!-- Diffbar won't show up in irl TF tree unless u add its dynamic joints to controllers.yaml extra joints-->
     <joint name="chassis_to_diffbar" type="continuous">
         <origin xyz="-0.47600000000002590239 -4.8144507783734281313e-09 0.046505449483682070877" rpy="-1.5707963267949112129 -2.1008432044742341424e-09 1.570796326794896558" />
         <parent link="chassis" />
