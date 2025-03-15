@@ -21,6 +21,7 @@ from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitut
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
+from launch.conditions import IfCondition
 
 def launch_setup(context, *args, **kwargs):
     nova_bringup_dir = FindPackageShare('nova_bringup')
@@ -29,7 +30,7 @@ def launch_setup(context, *args, **kwargs):
     arm_urdf_path = LaunchConfiguration('arm_urdf_path')
     rover = LaunchConfiguration('rover').perform(context).lower()
     rover_urdf_path = LaunchConfiguration('rover_urdf_path')
-    rvis = LaunchConfiguration('rviz')
+    rviz = LaunchConfiguration('rviz')
 
     if rover == 'true':
         fixed_frame = 'base_link'
@@ -58,6 +59,7 @@ def launch_setup(context, *args, **kwargs):
             executable='rviz2',
             name='rviz2',
             arguments=['-d', [PathJoinSubstitution([nova_bringup_dir, 'rviz', 'default.rviz'])], '-f', fixed_frame],
+            condition=IfCondition(rviz),
         ),
     ]
 
@@ -72,7 +74,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='arm_urdf_path', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'arm', 'urdf', 'arm.urdf.xacro']),
+            default_value=PathJoinSubstitution([rover_description_dir, 'waratah_arm', 'urdf', 'arm.urdf.xacro']),
             description='Absolute path to arm urdf file',
         ),
         DeclareLaunchArgument(
@@ -82,7 +84,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='rover_urdf_path', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
+            default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to rover urdf file',
         ),
         DeclareLaunchArgument(

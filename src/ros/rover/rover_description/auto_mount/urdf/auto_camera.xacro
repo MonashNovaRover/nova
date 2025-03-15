@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--This is a file for the depth camera plugin for the rover in gazebo. This file is referenced at the bottom of rover.urdf.xacro,
 which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi Velmurugan Sujatha -->
+<!-- Auto mount is also appended to the top, however it has no simplified collisions -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
   <xacro:macro name="auto_cam" params="angle">
     <!-- Auto Mount start -->
@@ -14,7 +15,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         <visual>
             <origin xyz="0.138856 0.281 0.00511278" rpy="3.14159 -0.00348764 3.3577e-34" />
             <geometry>
-                <mesh filename="file://$(find rover_description)/rover7/auto/meshes/clam.stl" />
+                <mesh filename="file://$(find rover_description)/auto_mount/meshes/clam.stl" />
             </geometry>
             <material name="clam_material">
                 <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -23,7 +24,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         <collision>
             <origin xyz="0.138856 0.281 0.00511278" rpy="3.14159 -0.00348764 3.3577e-34" />
             <geometry>
-                <mesh filename="file://$(find rover_description)/rover7/auto/meshes/clam.stl" />
+                <mesh filename="file://$(find rover_description)/auto_mount/meshes/clam.stl" />
             </geometry>
         </collision>
     </link>
@@ -38,7 +39,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         <visual>
             <origin xyz="0.081 0.000713936 -0.025" rpy="4.93038e-32 6.86401e-31 -3.70732e-33" />
             <geometry>
-                <mesh filename="file://$(find rover_description)/rover7/auto/meshes/mount.stl" />
+                <mesh filename="file://$(find rover_description)/auto_mount/meshes/mount.stl" />
             </geometry>
             <material name="mount_material">
                 <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -47,7 +48,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         <collision>
             <origin xyz="0.081 0.000713936 -0.025" rpy="4.93038e-32 6.86401e-31 -3.70732e-33" />
             <geometry>
-                <mesh filename="file://$(find rover_description)/rover7/auto/meshes/mount.stl" />
+                <mesh filename="file://$(find rover_description)/auto_mount/meshes/mount.stl" />
             </geometry>
         </collision>
     </link>
@@ -62,7 +63,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         <visual>
             <origin xyz="-0.075 5.55112e-17 0.06" rpy="-1.5708 -1.5708 0" />
             <geometry>
-                <mesh filename="file://$(find rover_description)/rover7/auto/meshes/camera_holder.stl" />
+                <mesh filename="file://$(find rover_description)/auto_mount/meshes/camera_holder.stl" />
             </geometry>
             <material name="camera_holder_front_material">
                 <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -71,7 +72,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         <collision>
             <origin xyz="-0.075 5.55112e-17 0.06" rpy="-1.5708 -1.5708 0" />
             <geometry>
-                <mesh filename="file://$(find rover_description)/rover7/auto/meshes/camera_holder.stl" />
+                <mesh filename="file://$(find rover_description)/auto_mount/meshes/camera_holder.stl" />
             </geometry>
         </collision>
     </link>
@@ -93,7 +94,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         <visual>
             <origin xyz="-0.075 0 0.06" rpy="1.5708 1.5708 0" />
             <geometry>
-                <mesh filename="file://$(find rover_description)/rover7/auto/meshes/camera_holder.stl" />
+                <mesh filename="file://$(find rover_description)/auto_mount/meshes/camera_holder.stl" />
             </geometry>
             <material name="camera_holder_back_material">
                 <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -102,7 +103,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         <collision>
             <origin xyz="-0.075 0 0.06" rpy="1.5708 1.5708 0" />
             <geometry>
-                <mesh filename="file://$(find rover_description)/rover7/auto/meshes/camera_holder.stl" />
+                <mesh filename="file://$(find rover_description)/auto_mount/meshes/camera_holder.stl" />
             </geometry>
         </collision>
     </link>
