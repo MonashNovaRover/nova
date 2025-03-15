@@ -723,7 +723,7 @@
     
     <xacro:if value="$(arg arm)">
         <!-- Currently attaches waratah's arm, add banksia arm after ARCh-->
-        <xacro:include filename="/home/nova/nova/src/ros/rover/rover_description/waratah_arm/urdf/arm.urdf.xacro" />
+        <xacro:include filename="$(find rover_description)/waratah_arm/urdf/arm.urdf.xacro" />
         <joint name="chassis_to_arm_base" type="fixed">
             <origin xyz="0.2 0 -0.06" rpy="0 0 0"/>
             <parent link="chassis" />
