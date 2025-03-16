@@ -15,9 +15,9 @@ PACKAGE: control
 COMMAND: ros2 run control tile_placer.py
 RUN ON: Rover
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-AUTHOR(S):	Tristan Clark, Felicity Matthews
+AUTHOR(S):	Tristan Clark, Felicity Matthews, Brandon Chung
 CREATION:	02/02/2024
-EDITED:		20/02/2025
+EDITED:		16/03/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
@@ -53,6 +53,9 @@ class TilePlacerNode(JoystickControllerNode):
     # max_velocity percent
     TILE_PLACER_MAX_VELOCITY = 0.70
 
+    # how long to twitch tile placer for
+    TWITCH_PERIOD = 20
+
     # ROS param names
     CAN_BUS_PARAM = "can_bus"
     TILE_PLACER_MAX_VEL_PERCENT_PARAM = "tile_placer_max_vel_percent"
@@ -78,6 +81,9 @@ class TilePlacerNode(JoystickControllerNode):
 
         self.velocity_multiplier = 0.0
 
+        # check if tile placer is moving
+        self.twitching = 0
+
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
         self.start_can()
 
@@ -87,6 +93,13 @@ class TilePlacerNode(JoystickControllerNode):
         """Take current internal state and publish over CAN
         Sends can commands for tile placer
         """
+        # stop tile placer if twitching finished
+        if self.twitching >= self.TWITCH_PERIOD:
+            self.twitching = -1
+            self.tile_placer_stop()
+
+        self.twitching += 1
+
         # The list of values will be cast to uint8's by JCAN library - so be careful to double check the values!
         tilePlacerFrame = self.tile_placer_controller.get_frame()
 
@@ -104,16 +117,22 @@ class TilePlacerNode(JoystickControllerNode):
 
     def tile_placer_stop(self):
         self.tile_placer.stop()
+        self.twitching = 0
 
     def update_tile_placer(self, joystick_r: InputJoystick):
-        if joystick_r.btn_thumb_l_state >= 1:
+        # State 1 is when button is first pressed
+        if joystick_r.btn_thumb_l_state == 1 and self.twitching <= 0:
             self.get_logger().debug("Tile Placer UP")
             self.tile_placer.update_direction(self.TILE_PLACER_UP)
             self.tile_placer.update_velocity(self.velocity_multiplier)
-        elif joystick_r.btn_thumb_r_state >= 1:
+            self.twitching += 1
+        elif joystick_r.btn_thumb_r_state == 1 and self.twitching <= 0:
             self.get_logger().debug("Tile Placer DOWN")
             self.tile_placer.update_direction(self.TILE_PLACER_DOWN)
             self.tile_placer.update_velocity(self.velocity_multiplier)
+            self.twitching += 1
+        elif self.twitching > 0:
+            pass
         else:
             self.tile_placer_stop()
 
