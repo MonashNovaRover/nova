@@ -25,17 +25,19 @@
     nova-rover-description = callPackage ./nix/packages/rover-description { };
     nova-gazebo = callPackage ./nix/packages/nova-gazebo { };
     nova-python-control = callPackage ./nix/packages/python-control { };
+    nova-python-control-old = callPackage ./nix/packages/python-control-old { };
     nova-excavation-construction = callPackage ./nix/packages/excavation-construction { };
     nova-detection-overlay = callPackage ./nix/packages/nova-detection-overlay { };
     nova-bt-navigators = callPackage ./nix/packages/nova-bt-navigators { };
     nova-auto-interfaces = callPackage ./nix/packages/nova-auto-interfaces { };
     nova-utils = callPackage ./nix/packages/nova-utils { };
+    lattice-primitive-generator = callPackage ./nix/packages/lattice-primitive-generator { };
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers { inherit pkgs; };
 
-  pythonPackages = pythonPackages: with pythonPackages; {
-    ultralytics = pythonPackages.callPackage ./nix/packages/misc/ultralytics { };
-  };
+  #pythonPackages = pythonPackages: with pythonPackages; {
+    
+  #};
 
   shellAliases = {
     # Launching aliases

@@ -56,9 +56,10 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/KilnCommand.srv"
   "srv/LoadCellPoller.srv"
   "srv/MoveMicroscopeServo.srv"
+  "srv/MoveScimbalCam.srv"
   "srv/RFIDCommand.srv"
   "srv/ScienceCommand.srv"
-  "srv/SetNIRProbeLED.srv"
+  "srv/TakeNIRProbeReading.srv"
   "srv/RamanSpec.srv"
   "srv/RamanMech.srv"
 

@@ -16,8 +16,8 @@ class URCMixers(ControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    MIXER_1_SEND_FRAME_ID = 0x041
-    # MIXER_2_SEND_FRAME_ID = 0x042
+    MIXER_1_SEND_FRAME_ID = 0x0D1
+    # MIXER_2_SEND_FRAME_ID = 0x0D2
 
     # ROS2 SERVICES
     MIXER_SERVICE = "/science/mixers"

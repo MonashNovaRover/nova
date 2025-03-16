@@ -36,7 +36,6 @@ class DefaultHelpParser(argparse.ArgumentParser):
         self.print_help()
         sys.exit(2)
 
-
 class RFIDClient(Node):
 
     def __init__(self):

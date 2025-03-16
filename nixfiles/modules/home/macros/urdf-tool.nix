@@ -1,25 +1,16 @@
 { pkgs ? import <nixpkgs> { } }:
 
 let
-  # Fetch a specific version of nixpkgs for MeshLab 2020.07
-  olderNixpkgs = import
-    (builtins.fetchTarball {
-      url = "https://github.com/NixOS/nixpkgs/archive/5c1ffb7a9fc96f2d64ed3523c2bdd379bdb7b471.tar.gz";
-      sha256 = "081ca1ygnm76gn2igyry0fgzv5ar4c50mcg8j8vrpbrp36li9lw6";
-    })
-    { };
-
-  # Use the older version of MeshLab
-  meshlab = olderNixpkgs.meshlab;
-
   # Define onshape-to-robot build
   onshapeToRobot = pkgs.python3Packages.buildPythonApplication rec {
     pname = "onshape-to-robot";
-    version = "0.3.26";
+    version = "1.2.1";
 
-    src = pkgs.fetchPypi {
-      inherit pname version;
-      hash = "sha256-aMxfZw1B/J1NgRbbUXRwjM2hEbUlTXfVIt9r2dVtOuY=";
+    src = pkgs.fetchFromGitHub {
+      owner = "V01DBREAKER";
+      repo = pname;
+      rev = "03419bd1a20f901ff6325e467e07d43b502436bb";
+      hash = "sha256-/KguWFqhmLyqnDDLX96RFxrSeLvb9Wjkpbhy+7IZlbs=";
     };
 
     buildInputs = with pkgs.python3Packages; [
@@ -30,6 +21,8 @@ let
       colorama
       numpy-stl
       transforms3d
+      pymeshlab
+      python-dotenv
     ];
 
     nativeBuildInputs = [
@@ -40,9 +33,6 @@ let
       substituteInPlace onshape_to_robot/edit_shape.py \
         --replace "os.system('cd '+directory+'; openscad '+os.path.basename(fileName)+')'" \
         'subprocess.run(["openscad", os.path.basename(fileName)], cwd=directory, check=True)'
-
-        substituteInPlace onshape_to_robot/config.py \
-        --replace "/usr/bin/meshlabserver" "${meshlab}/bin/meshlabserver"
     '';
 
     meta = with pkgs.lib; {
@@ -61,12 +51,34 @@ let
       SECRET_KEY = "";
     };  # If the file does not exist, use set with empty values to avoid errors
 
+  urdf-modifier = pkgs.python3Packages.buildPythonApplication rec {
+    pname = "urdf-modifier";
+    version = "1.0";
+
+    src = pkgs.fetchFromGitHub {
+      owner = "V01DBREAKER";
+      repo = pname;
+      rev = "eac72564eadf6778ea63e4d89b3cd588ecb3c316";
+      hash = "sha256-OtwYxlHKxruVxJmosMbvT//FM5gPV+75MCG1zKyEuuE=";
+    };
+
+    buildInputs = with pkgs.python3Packages; [
+      pymeshlab
+    ];
+
+    meta = with pkgs.lib; {
+      description = "A Python script used to modify generated URDFs and recalculate inertias.";
+      homepage = "https://github.com/V01DBREAKER/urdf-modifier";
+      license = licenses.mit;
+    };
+  };
+
 in
 pkgs.mkShell {
   buildInputs = [
     pkgs.openscad
-    meshlab
     onshapeToRobot
+    urdf-modifier
     pkgs.python3Packages.numpy
     pkgs.python3Packages.pybullet
     pkgs.python3Packages.requests
@@ -74,11 +86,14 @@ pkgs.mkShell {
     pkgs.python3Packages.colorama
     pkgs.python3Packages.numpy-stl
     pkgs.python3Packages.transforms3d
+    pkgs.python3Packages.pymeshlab
+    pkgs.python3Packages.python-dotenv
   ];
 
   # Set up PYTHONPATH to include all dependencies
   shellHook = ''
     export PATH=${onshapeToRobot}/bin:$PATH
+    export PATH=${urdf-modifier}/bin:$PATH
     export PYTHONPATH=${pkgs.python3Packages.python.sitePackages}:${pkgs.python3Packages."numpy-stl"}/lib/python3.12/site-packages:$PYTHONPATH
     export ONSHAPE_API=https://cad.onshape.com
     # Check if Onshape API keys are defined, and warn if not
@@ -89,6 +104,6 @@ pkgs.mkShell {
       export ONSHAPE_SECRET_KEY=${onshapeKeys.SECRET_KEY}
     fi
 
-    echo "OpenSCAD, MeshLab (2020.07), and Onshape-to-Robot are ready to use."
+    echo "OpenSCAD and Onshape-to-Robot are ready to use."
   '';
 }

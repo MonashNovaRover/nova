@@ -17,7 +17,7 @@ import {
   URCCompModes,
   arcCameraSetup,
   urcCameraSetup,
-} from "../views/shared/CamerasPage/CameraPageConstants.ts";
+} from "../views/shared/CamerasPage/CameraPageConstants";
 import GeneralBaseView from "../views/general/GeneralBaseView.tsx";
 import { ARCNIRProbeView } from "../views/arc/ARCNIRProbeView.tsx";
 import { ARCMicroscopeView } from "../views/arc/ARCMicroscopeView.tsx";
@@ -28,6 +28,8 @@ import URCRamanView from "../views/urc/URCRamanView.tsx";
 import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
 import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
 import TestOverlayView from "../views/test/TestOverlayView/TestOverlayView.tsx";
+import ScimbalCamView from "../views/shared/ScimbalCamPage.tsx";
+import NIRProbeWidget from "../components/NIRProbe/NIRProbeWidget.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -59,6 +61,10 @@ export const arcRoutes: RouteObject[] = [
     element: <ARCAutonomousView />,
   },
   {
+    path: "/arc/scimbal-cam",
+    element: <ScimbalCamView />,
+  },
+  {
     path: "/arc/cameras",
     element: <CameraPage views={arcCameraSetup[ARCCompModes.ARC_POST_LANDING]} />,
   },
@@ -66,6 +72,7 @@ export const arcRoutes: RouteObject[] = [
     path: `/arc/cameras/${comp}`,
     element: <CameraPage views={arcCameraSetup[comp]} />,
   })),
+
 ];
 
 export const urcRoutes: RouteObject[] = [
@@ -102,6 +109,10 @@ export const urcRoutes: RouteObject[] = [
     element: <URCUVVisSpecView/>
   },
   {
+    path: "/urc/scimbal-cam",
+    element: <ScimbalCamView />,
+  },
+  {
     path: "/urc/360cam",
     element: <URC360CamView/>
   },
@@ -136,6 +147,13 @@ export const testRoutes: RouteObject[] = [
     element: <TestStateView/>
   },
   {
+    path: "/test/nirprobe",
+    element:
+      <div className="p-3">
+        <NIRProbeWidget/>
+      </div>,
+  },
+  {
     path: "/test/overlay",
     element: <TestOverlayView/>
   },
@@ -156,7 +174,7 @@ export const routes: RouteObject[] = [
     children: [
       {
         path: "/",
-        element: <Navigate to="/urc" />,
+        element: <Navigate to="/arc" />,
       },
       {
         path: "/arc",

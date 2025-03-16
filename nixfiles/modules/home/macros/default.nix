@@ -105,13 +105,45 @@ in
             launch-drive = "~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py";
             launch-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
             launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
+            launch-science-arc = "~/Builds/master/bin/ros2 launch nova_bringup arc_science.launch.py";
+            launch-science-urc = "~/Builds/master/bin/ros2 launch nova_bringup urc_science.launch.py";
+            launch-cameras = "~/Builds/master/bin/ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params'";
+            launch-cameras-all = "${launch-cameras} autostart:=true";
 
-            # Rover troubleshooting aliases
+            # Rover setup aliases
+            zero-arm = "${pkgs.bash}/bin/bash ${../../../scripts/zero-arm.sh}";
             zero-pivots = "${pkgs.bash}/bin/bash ${../../../scripts/zero-pivots.sh}";
             list-blcmds = "more ${cfg.nixfileDir}/doc/blcmd-ids.md";
 
+            # GUI aliases
+            gui-shell = "nova-shell -A pkgs.ros.nova-gui";
+            gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" ~/nova/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts";
+            gui-rosbridge = "~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
+            gui-run = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui dev";
+
+            # LEDs
+            leds-red = "cansend can0 095#0100";
+            leds-green = "cansend can0 095#0200";
+            leds-blue = "cansend can0 095#0300";
+            leds-pink = "cansend can0 096#";
+            leds-100 = "cansend can0 091#8000";
+            leds-75 = "cansend can0 091#6000";
+            leds-50 = "cansend can0 091#4000";
+            leds-off = "cansend can0 091#0000";
+
+            # Bonus
+            cop-mode-on = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} on";
+            cop-mode-off = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} off";
+            shitdown = "shutdown now";
+
             # Temporary aliases (remove when a better solution has been implemented)
             cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
+            cameras-orin = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
+            nix-enable = "sudo systemctl enable nix-daemon.service";
+            nix-start = "sudo systemctl start nix-daemon.service";
+            reolink-low = "mpv --rtsp-transport=udp --no-cache --untimed --video-sync=display-resample --deinterlace=no --profile=low-latency --demuxer-max-bytes=512K --demuxer-max-back-bytes=512K rtsp://admin:Lab188b37@10.0.1.100:554/h264Preview_01_sub";
+            reolink-high = "mpv --rtsp-transport=udp --no-cache --untimed --video-sync=display-resample --deinterlace=no --profile=low-latency --demuxer-max-bytes=1M --demuxer-max-back-bytes=1M rtsp://admin:Lab188b37@10.0.1.100:554/h264Preview_01_main";
+
           }
         ];
 
