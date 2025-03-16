@@ -54,7 +54,7 @@ class TilePlacerNode(JoystickControllerNode):
     TILE_PLACER_MAX_VELOCITY = 0.70
 
     # how long to twitch tile placer for
-    TWITCH_PERIOD = 20
+    TWITCH_PERIOD = 20 # To be tested with tile placer
 
     # ROS param names
     CAN_BUS_PARAM = "can_bus"
