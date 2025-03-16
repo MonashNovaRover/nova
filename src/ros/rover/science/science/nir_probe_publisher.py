@@ -100,6 +100,7 @@ class NIRProbePublisher(Node):
         self.timeout_timer = self.create_timer(self.get_parameter(self.TIMEOUT_PARAM_NAME).value, self.update_last_readings, autostart=False)
         self.last_read_timer = self.create_timer(0.1, self.publish_msg)
         self.timer_jcan_spin = self.create_timer(self.SEND_INTERVAL, self.bus.spin)
+        self.timer_poll_nir = self.create_timer(0.01, self.nir_poll_callback, autostart=False)
 
         # Internal State
         self.readings = []
@@ -208,11 +209,11 @@ class NIRProbePublisher(Node):
 
         if frame.id == self.PHOTODIODE1_ID and self.active_photodiode != self.PHOTODIODE1_ON:
             self.get_logger().warn(f"Received frame from wrong photodiode {frame}")
-            self.request_reading(self.active_photodiode)
+            self.timer_poll_nir.reset()
             return
         if frame.id == self.PHOTODIODE2_ID and self.active_photodiode != self.PHOTODIODE2_ON:
             self.get_logger().warn(f"Received frame from wrong photodiode {frame}")
-            self.request_reading(self.active_photodiode)
+            self.timer_poll_nir.reset()
             return
 
         self.get_logger().debug(f"Received {hex(frame.id)} {frame.data}")
@@ -225,7 +226,7 @@ class NIRProbePublisher(Node):
             self.update_last_readings()
             return
 
-        self.request_reading(self.active_photodiode)
+        self.timer_poll_nir.reset()
 
     def command_service_callback(self, request, response):
         """
@@ -234,6 +235,9 @@ class NIRProbePublisher(Node):
         response.success = self.request_reading(request.led)
         self.timeout_timer.reset()
         return response
+
+    def nir_poll_callback(self):
+        self.request_reading(self.active_photodiode)
 
 # The main code that executes when starting
 def main(args=None):
