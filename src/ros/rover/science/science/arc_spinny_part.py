@@ -64,14 +64,13 @@ class SpinnyPartNode(JoystickControllerNode):
         super().__init__(name="SpinnyPartNode", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
-        self.offset = 0
-
         ## Create CONTROLS
         self.spinny_part = OneAxisPositionControl(
             logger=logger,
             max_angle=self.SERVO_MAX_ANGLE,
             positions = self.POSITIONS
         )
+        self.spinny_part.update_position(self.NIR_PROBE)
 
         ## Create CONTROLLERS
         self.spinny_part_controller = JonoPositionController(
