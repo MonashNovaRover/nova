@@ -30,6 +30,7 @@ def launch_setup(context, *args, **kwargs):
     oak_params = LaunchConfiguration('oak_params')
     bootie_params = LaunchConfiguration('bootie_params')
     pointclouds = LaunchConfiguration('pointclouds')
+    rectify_image = LaunchConfiguration('rectify_image')
 
     return [
         ComposableNodeContainer(
@@ -46,6 +47,16 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[oak_params],
                 ),
                 ComposableNode(
+                    condition=IfCondition(rectify_image),
+                    package='image_proc',
+                    plugin='image_proc::RectifyNode',
+                    name=f'{front_name}_rectify_color_node',
+                    remappings=[
+                        ('image', f'{front_name}/rgb/image_raw'),
+                        ('camera_info', f'{front_name}/rgb/camera_info'),
+                        ('image_rect', f'{front_name}/rgb/image_rect')],
+                ),
+                ComposableNode(
                     condition=IfCondition(pointclouds),
                     package='rtabmap_util',
                     plugin='rtabmap_util::PointCloudXYZ',
@@ -57,14 +68,14 @@ def launch_setup(context, *args, **kwargs):
                                 ('depth/camera_info', f'{front_name}/stereo/camera_info'),
                                 ('cloud', f'{front_name}/depth/points')],
                 ),
-                ComposableNode(
-                    package='imu_transformer',
-                    plugin='imu_transformer::ImuTransformer',
-                    name=f'{front_name}_imu_transformer_node',
-                    remappings=[('/imu_in', '/oak/imu/data'),
-                                ('/imu_out', '/oak/imu/transformed')],
-                    parameters=[{'target_frame': front_name}]
-                )
+                #ComposableNode(
+                #    package='imu_transformer',
+                #    plugin='imu_transformer::ImuTransformer',
+                #    name=f'{front_name}_imu_transformer_node',
+                #    remappings=[('/imu_in', '/oak/imu/data'),
+                #                ('/imu_out', '/oak/imu/transformed')],
+                #    parameters=[{'target_frame': front_name}]
+                #)
             ],
         ),
         ComposableNodeContainer(
@@ -79,7 +90,17 @@ def launch_setup(context, *args, **kwargs):
                     plugin="depthai_ros_driver::Camera",
                     name=back_name,
                     parameters=[bootie_params],
-                )
+                ),
+                ComposableNode(
+                    condition=IfCondition(rectify_image),
+                    package='image_proc',
+                    plugin='image_proc::RectifyNode',
+                    name=f'{back_name}_rectify_color_node',
+                    remappings=[
+                        ('image', f'{back_name}/rgb/image_raw'),
+                        ('camera_info', f'{back_name}/rgb/camera_info'),
+                        ('image_rect', f'{back_name}/rgb/image_rect')],
+                ),
             ]
         ),
         Node(
