@@ -18,7 +18,9 @@ import RoverTopDownImage from "../../assets/rover-top-down-dark.png";
 import { RosTopic } from "../../ros/topics/rosTopic.ts";
 
 // Properties for the WheelTelemetryWidget component.
-export interface IDriveWheelWidgetProps extends CardProps { }
+export interface IDriveWheelWidgetProps extends CardProps {
+  hideImage?: boolean
+}
 
 /**
  * A component that displays wheel telemetry.
@@ -66,7 +68,7 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (
           <span className="text-default-300 text-opacity-80">
             <ChevronUp size={20}></ChevronUp>
           </span>
-          <Image className="mx-2" radius="none" src={RoverTopDownImage}></Image>
+          {!props.hideImage && <Image className="mx-2" radius="none" src={RoverTopDownImage}></Image>}
         </div>
         {cellProps.map((cellProp, index) => (
           <WheelTelemetryWidgetCell
