@@ -5,11 +5,16 @@ import BarOverlayedCameraComponent from "../../../components/CameraComponent/spe
 import {
   GimbalOverlayedCameraComponent
 } from "../../../components/CameraComponent/special/GimbalOverlayedCameraComponent.tsx";
+import DriveCameraComponent from "../../../components/CameraComponent/special/DriveCameraComponent.tsx";
+import WheelTelemetryCameraComponent
+  from "../../../components/CameraComponent/special/WheelTelemetryCameraComponent.tsx";
 
 /// Defines special components to use for certain cameras
 export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentProps> } = {
-  [CameraSerials.ARM_END_PERISCOPE]: BarOverlayedCameraComponent as FC<BaseCameraComponentProps>,
-  [CameraSerials.SCIENCE_GIMBAL]: GimbalOverlayedCameraComponent as FC<BaseCameraComponentProps>
+  [CameraSerials.ARM_END_PERISCOPE]: BarOverlayedCameraComponent,
+  [CameraSerials.SCIENCE_GIMBAL]: GimbalOverlayedCameraComponent,
+  [CameraSerials.WHEEL_TELEMETRY]: WheelTelemetryCameraComponent,
+  [CameraSerials.DRIVE_TELEMETRY]: DriveCameraComponent,
 }
 
 /// Function that used the above map to get the component for a specified camera serial
