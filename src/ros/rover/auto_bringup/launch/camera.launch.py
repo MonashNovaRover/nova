@@ -22,8 +22,6 @@ from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    # depthai_dir = FindPackageShare('depthai_ros_driver')
-
     ar = LaunchConfiguration('ar')
     ar_params = LaunchConfiguration('ar_params')
     front_name = LaunchConfiguration('front_name').perform(context)
@@ -89,14 +87,6 @@ def launch_setup(context, *args, **kwargs):
             package='aruco_opencv',
             executable='aruco_tracker_autostart',
             arguments=['--ros-args', '--params-file', ar_params],
-        ),
-        Node(
-            package='imu_transformer',
-            executable='imu_transformer_node',
-            name='imu_transformer',
-            remappings=[('/imu_in', '/oak/imu/data'),
-                        ('/imu_out', '/oak/imu/transformed')],
-            parameters=[{'target_frame': 'oak'}]
         ),
     ]
 

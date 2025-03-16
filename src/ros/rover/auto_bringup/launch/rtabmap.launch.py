@@ -91,16 +91,16 @@ def launch_setup(context, *args, **kwargs):
                         ('rgbd_image1',back_name+'/rgbd/image_raw'),
                     ],
                 ),
-                # ComposableNode(
-                #     package='rtabmap_slam',
-                #     plugin='rtabmap_slam::CoreWrapper',
-                #     name='rtabmap_slam',
-                #     parameters=[rtabmap_params, {'use_sim_time': gazebo, 'rtabmap_args': '--delete_db_on_start'}],
-                #     remappings=[
-                #         ('rgbd_image0',front_name+'/rgbd/image_raw'),
-                #         ('rgbd_image1',back_name+'/rgbd/image_raw'),
-                #     ],
-                # ),
+                ComposableNode(
+                    package='rtabmap_slam',
+                    plugin='rtabmap_slam::CoreWrapper',
+                    name='rtabmap_slam',
+                    parameters=[rtabmap_params, {'use_sim_time': gazebo, 'rtabmap_args': '--delete_db_on_start'}],
+                    remappings=[
+                        ('rgbd_image0',front_name+'/rgbd/image_raw'),
+                        ('rgbd_image1',back_name+'/rgbd/image_raw'),
+                    ],
+                ),
             ],
         ),
         Node(

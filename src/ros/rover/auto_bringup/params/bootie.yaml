@@ -17,8 +17,7 @@
       i_nn_config_path: auto_bringup/resources/ARC_2025/model.json
     imu:
       i_enable_rotation: true
-      i_message_type:
-        IMU
+      i_message_type: IMU
         #i_rotation_vector_type: ROTATION_VECTOR
     rgb:
       i_enable_nn: false
