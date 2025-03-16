@@ -143,7 +143,8 @@ class TilePlacerNode(JoystickControllerNode):
         Updates the classes internal msg state
         :return: None
         """
-        self.velocity_multiplier = abs(joystick_l.ax_slider)
+        #self.velocity_multiplier = abs(joystick_l.ax_slider)
+        pass
 
     def joystick_r(self, joystick_r: InputJoystick):
         """
@@ -152,8 +153,7 @@ class TilePlacerNode(JoystickControllerNode):
         :return: None
         """
         # Update inputs
-        #self.update_tile_placer(joystick_r)
-        pass
+        self.update_tile_placer(joystick_r)
 
 def main():
     rclpy.init()
