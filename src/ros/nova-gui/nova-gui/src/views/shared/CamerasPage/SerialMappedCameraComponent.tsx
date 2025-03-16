@@ -1,4 +1,4 @@
-import {FC, memo} from "react";
+import {FC, memo, useMemo} from "react";
 import {BaseCameraComponentProps, CameraComponent} from "../../../components/CameraComponent/CameraComponent.tsx";
 import {CameraSerials} from "./CameraPageConstants.tsx";
 import BarOverlayedCameraComponent from "../../../components/CameraComponent/special/BarOverlayedCameraComponent.tsx";
@@ -8,8 +8,8 @@ import {
 
 /// Defines special components to use for certain cameras
 export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentProps> } = {
-  [CameraSerials.ARM_END_PERISCOPE]: BarOverlayedCameraComponent,
-  [CameraSerials.SCIENCE_GIMBAL]: GimbalOverlayedCameraComponent
+  [CameraSerials.ARM_END_PERISCOPE]: BarOverlayedCameraComponent as FC<BaseCameraComponentProps>,
+  [CameraSerials.SCIENCE_GIMBAL]: GimbalOverlayedCameraComponent as FC<BaseCameraComponentProps>
 }
 
 /// Function that used the above map to get the component for a specified camera serial
@@ -20,7 +20,7 @@ const cameraSerialToComponent: (serial: string) => FC<BaseCameraComponentProps> 
 }
 
 const SerialMappedCameraComponentUnmemoed: FC<BaseCameraComponentProps> = (props) => {
-  const SerialMappedComponent = cameraSerialToComponent(props.cameraSerial);
+  const SerialMappedComponent = useMemo(() => cameraSerialToComponent(props.cameraSerial), [props.cameraSerial]);
   return <SerialMappedComponent {...props}></SerialMappedComponent>
 }
 
