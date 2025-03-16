@@ -53,6 +53,9 @@ class TilePlacerNode(JoystickControllerNode):
     # max_velocity percent
     TILE_PLACER_MAX_VELOCITY = 0.70
 
+    # slow_velocity percent
+    TILE_PLACER_SLOW_VELOCITY = 0.10
+
     # how long to twitch tile placer for
     TWITCH_PERIOD = 20 # To be tested with tile placer
 
@@ -79,8 +82,6 @@ class TilePlacerNode(JoystickControllerNode):
             control=self.tile_placer,
         )
 
-        self.velocity_multiplier = 0.0
-
         # check if tile placer is moving
         self.twitching = 0
 
@@ -98,7 +99,8 @@ class TilePlacerNode(JoystickControllerNode):
             self.twitching = -1
             self.tile_placer_stop()
 
-        self.twitching += 1
+        else:
+            self.twitching += 1
 
         # The list of values will be cast to uint8's by JCAN library - so be careful to double check the values!
         tilePlacerFrame = self.tile_placer_controller.get_frame()
@@ -124,12 +126,12 @@ class TilePlacerNode(JoystickControllerNode):
         if joystick_r.btn_thumb_l_state == 1 and self.twitching <= 0:
             self.get_logger().debug("Tile Placer UP")
             self.tile_placer.update_direction(self.TILE_PLACER_UP)
-            self.tile_placer.update_velocity(self.velocity_multiplier)
+            self.tile_placer.update_velocity(self.TILE_PLACER_MAX_VELOCITY)
             self.twitching += 1
         elif joystick_r.btn_thumb_r_state == 1 and self.twitching <= 0:
             self.get_logger().debug("Tile Placer DOWN")
             self.tile_placer.update_direction(self.TILE_PLACER_DOWN)
-            self.tile_placer.update_velocity(self.velocity_multiplier)
+            self.tile_placer.update_velocity(self.TILE_PLACER_MAX_VELOCITY)
             self.twitching += 1
         elif self.twitching > 0:
             pass
@@ -150,7 +152,8 @@ class TilePlacerNode(JoystickControllerNode):
         :return: None
         """
         # Update inputs
-        self.update_tile_placer(joystick_r)
+        #self.update_tile_placer(joystick_r)
+        pass
 
 def main():
     rclpy.init()
