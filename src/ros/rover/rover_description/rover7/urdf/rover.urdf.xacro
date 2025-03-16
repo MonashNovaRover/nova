@@ -730,7 +730,7 @@
         <!-- Needs to be updated for new arm-->
         <xacro:include filename="$(find rover_description)/arm/urdf/arm.urdf.xacro" />
         <joint name="chassis_to_arm_base" type="fixed">
-            <origin xyz="0 0.15 -0.06" rpy="0 0 1.57"/>
+            <origin xyz="0.18 0 -0.03" rpy="0 0 0"/>
             <parent link="chassis" />
             <child link="arm_link" />
         </joint>
