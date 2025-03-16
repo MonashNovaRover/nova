@@ -1,4 +1,4 @@
-import {FC, memo} from "react";
+import {FC, memo, useMemo} from "react";
 import {BaseCameraComponentProps, CameraComponent} from "../../../components/CameraComponent/CameraComponent.tsx";
 import {CameraSerials} from "./CameraPageConstants.tsx";
 import BarOverlayedCameraComponent from "../../../components/CameraComponent/special/BarOverlayedCameraComponent.tsx";
@@ -20,7 +20,7 @@ const cameraSerialToComponent: (serial: string) => FC<BaseCameraComponentProps> 
 }
 
 const SerialMappedCameraComponentUnmemoed: FC<BaseCameraComponentProps> = (props) => {
-  const SerialMappedComponent = cameraSerialToComponent(props.cameraSerial);
+  const SerialMappedComponent = useMemo(() => cameraSerialToComponent(props.cameraSerial), [props.cameraSerial]);
   return <SerialMappedComponent {...props}></SerialMappedComponent>
 }
 
