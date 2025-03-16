@@ -8,13 +8,13 @@ class ContinuousOneAxisPositionControl(Control):
 
     def __init__(self, logger: Logger, max_angle: int, min_angle: int = 0):
         super().__init__(logger=logger)
-        self.target_position = None # type: int | None
+        self.goal_position = None # type: int | None
         self.min_angle = min_angle  # type: int
         self.max_angle = max_angle  # type: int
 
-    def get_target_position(self):
+    def get_goal_position(self):
         """Get the target position of the motor"""
-        return self.target_position
+        return self.goal_position
 
     def get_max_angle(self):
         """Get the max angle of the positional motor"""
@@ -22,13 +22,13 @@ class ContinuousOneAxisPositionControl(Control):
 
     def displace(self, displacement: int):
         """Apply displacement to the target position of the motor"""
-        if self.target_position is None:
+        if self.goal_position is None:
             return
-        self.set_position(self.target_position + displacement)
+        self.set_position(self.goal_position + displacement)
 
     def set_position(self, new_pos: int):
         """Set the target position of the motor"""
-        self.target_position = max(self.min_angle, min(new_pos, self.max_angle))
+        self.goal_position = max(self.min_angle, min(new_pos, self.max_angle))
 
     def stop(self):
         pass

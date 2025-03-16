@@ -5,6 +5,7 @@ import jcan
 from python_control.controllers.Card import Card
 from python_control.controllers.Controller import Controller
 from python_control.controls.ContinuousOneAxisPositionControl import ContinuousOneAxisPositionControl
+from python_control.controls.OneAxisPositionControl import OneAxisPositionControl
 
 class JonoPositionController(Controller):
     """Class to control the JONO card on the CAN bus"""
@@ -15,7 +16,7 @@ class JonoPositionController(Controller):
             bus: jcan.Bus,
             logger: Logger,
             frame_id: hex,
-            control: ContinuousOneAxisPositionControl,
+            control: ContinuousOneAxisPositionControl | OneAxisPositionControl,
     ):
         super().__init__(
             card=Card.JONO,
@@ -28,16 +29,16 @@ class JonoPositionController(Controller):
 
     def get_frame(self) -> jcan.Frame:
         """Get the frame to send over the CAN bus"""
-        control: ContinuousOneAxisPositionControl = self.get_control()
+        control: ContinuousOneAxisPositionControl | OneAxisPositionControl = self.get_control()
 
-        if control.get_target_position() is None:
+        if control.get_goal_position() is None:
             return
 
         # Set the command based on the direction
         command = self.pos_command
 
         # Set the data based on the velocity, max value, and max percent
-        data = control.get_target_position() / control.get_max_angle() * self.get_max_value()
+        data = control.get_goal_position() / control.get_max_angle() * self.get_max_value()
 
         # Check if the data is greater than the max value
         # If it is, set the data to the max value
