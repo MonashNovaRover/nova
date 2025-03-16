@@ -203,7 +203,16 @@ class NIRProbePublisher(Node):
             return
 
         if self.active_photodiode == self.PHOTODIODE_OFF:
-            self.get_logger().warn(f"Reveived frame when active_photodiode is off {frame}")
+            self.get_logger().warn(f"Received frame when active_photodiode is off {frame}")
+            return
+
+        if frame.id == self.PHOTODIODE1_ID and self.active_photodiode != self.PHOTODIODE1_ON:
+            self.get_logger().warn(f"Received frame from wrong photodiode {frame}")
+            self.request_reading(self.active_photodiode)
+            return
+        if frame.id == self.PHOTODIODE2_ID and self.active_photodiode != self.PHOTODIODE2_ON:
+            self.get_logger().warn(f"Received frame from wrong photodiode {frame}")
+            self.request_reading(self.active_photodiode)
             return
 
         self.get_logger().debug(f"Received {hex(frame.id)} {frame.data}")
@@ -217,8 +226,6 @@ class NIRProbePublisher(Node):
             return
 
         self.request_reading(self.active_photodiode)
-
-
 
     def command_service_callback(self, request, response):
         """
