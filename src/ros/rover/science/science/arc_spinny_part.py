@@ -21,10 +21,9 @@ EDITED:		02/03/2025
 
 import rclpy
 from python_control.JoystickControllerNode import JoystickControllerNode
-from python_control.controls.Direction import Direction
 from input_interfaces.msg import InputJoystick
-from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
-from python_control.controllers.JonoVelocityController import JonoVelocityController
+from python_control.controls.OneAxisPositionControl import OneAxisPositionControl
+from python_control.controllers.JonoPositionController import JonoPositionController
 
 
 class SpinnyPartNode(JoystickControllerNode):
@@ -32,40 +31,55 @@ class SpinnyPartNode(JoystickControllerNode):
     CAN_BUS = "can1"
 
     # SENDING CARD IDS
-    SERVO_ID = 0x0A0 # todo adjust accordingly
+    SERVO_ID = 0x0A0
 
     # SENDING COMMAND IDS
-    SPIN_CLOCKWISE = 0x03 # todo adjust
-    SPIN_ANTICLOCKWISE = 0x04 # todo adjust
+    MOVE_SERVO_COMMAND = 0x04
+
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
-    SPIN_MAX_PERCENT = 0.7
+    SERVO_MAX_ANGLE = 360
+    MAX_VALUE = 0xFF
+
     SPIN_CONTROL_NAME = "Analysis Arm Spinny Part"
 
-    # CONTROL DIRECTIONS
-    DIRECTION_CLOCKWISE = Direction.POSITIVE
-    DIRECTION_ANTICLOCKWISE = Direction.NEGATIVE
+    # Positions
+    POSITION_NAMES = [
+        MICROSCOPE := "microscope",
+        SWEEPER := "sweeper",
+        NIR_PROBE := "nir_probe",
+    ]
+
+    POSITIONS = {
+        MICROSCOPE: 60,
+        SWEEPER: 180,
+        NIR_PROBE: 300,
+    }
+
+    # Offset variables
+    MAX_OFFSET = 60
+    MIN_OFFSET = -60
 
     def __init__(self):
         super().__init__(name="SpinnyPartNode", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
-        self.velocity = 0.5
-
         ## Create CONTROLS
-        self.spinny_part = OneAxisVelocityControl(
+        self.spinny_part = OneAxisPositionControl(
             logger=logger,
-            max_percent=self.SPIN_MAX_PERCENT,
+            max_angle=self.SERVO_MAX_ANGLE,
+            positions = self.POSITIONS
         )
+        self.spinny_part.update_position(self.NIR_PROBE)
 
         ## Create CONTROLLERS
-        self.spinny_part_controller = JonoVelocityController(
+        self.spinny_part_controller = JonoPositionController(
             logger=logger,
             bus=self.bus,
+            pos_command=self.MOVE_SERVO_COMMAND,
             frame_id=self.SERVO_ID,
-            pos_command=self.SPIN_CLOCKWISE,
-            neg_command=self.SPIN_ANTICLOCKWISE,
             control=self.spinny_part,
+            max_value=self.MAX_VALUE
         )
 
         ## Add the CONTROLLERS to the node's controllers
@@ -79,19 +93,19 @@ class SpinnyPartNode(JoystickControllerNode):
         Updates the classes internal msg state
         :return: None
         """
-        self.velocity = abs(joystick_l.ax_slider)
-        self.get_logger().debug(f"Velocity updated to {self.velocity}")
+        # change position
+        if joystick_l.btn_thumb_l_state == 1:
+            self.spinny_part.update_position(self.MICROSCOPE)
+        elif joystick_l.btn_thumb_d_state == 1:
+            self.spinny_part.update_position(self.SWEEPER)
+        elif joystick_l.btn_thumb_r_state == 1:
+            self.spinny_part.update_position(self.NIR_PROBE)
 
-        if joystick_l.btn_thumb_l_state >= 1:
-            self.get_logger().info(f"Spinny part moving ANTICLOCKWISE at velocity {self.velocity}")
-            self.spinny_part.update_direction(self.DIRECTION_ANTICLOCKWISE)
-            self.spinny_part.update_velocity(self.velocity)
-        elif joystick_l.btn_thumb_r_state >= 1:
-            self.get_logger().info(f"Spinny part moving CLOCKWISE at velocity {self.velocity}")
-            self.spinny_part.update_direction(self.DIRECTION_CLOCKWISE)
-            self.spinny_part.update_velocity(self.velocity)
-        else:
-            self.spinny_part.stop()
+        # twitch/update offset
+        if joystick_l.btn_bottom_r1_state == 1:
+            self.spinny_part.set_offset(min(self.MAX_OFFSET, self.spinny_part.get_offset() + 1))
+        elif joystick_l.btn_bottom_r2_state == 1:
+            self.spinny_part.set_offset(max(self.MIN_OFFSET, self.spinny_part.get_offset() - 1))
 
     def joystick_r(self, joystick_r: InputJoystick):
         """
