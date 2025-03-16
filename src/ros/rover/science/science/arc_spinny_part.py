@@ -43,6 +43,7 @@ class SpinnyPartNode(JoystickControllerNode):
 
     SPIN_CONTROL_NAME = "Analysis Arm Spinny Part"
 
+    # Positions
     POSITION_NAMES = [
         MICROSCOPE := "microscope",
         SWEEPER := "sweeper",
@@ -55,11 +56,15 @@ class SpinnyPartNode(JoystickControllerNode):
         NIR_PROBE: 300,
     }
 
+    # Offset variables
+    MAX_OFFSET = 60
+    MIN_OFFSET = -60
+
     def __init__(self):
         super().__init__(name="SpinnyPartNode", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
-        self.velocity = 0.5
+        self.offset = 0
 
         ## Create CONTROLS
         self.spinny_part = OneAxisPositionControl(
@@ -89,29 +94,19 @@ class SpinnyPartNode(JoystickControllerNode):
         Updates the classes internal msg state
         :return: None
         """
-        # TODO add twitch capabilities
-        # self.velocity = abs(joystick_l.ax_slider)
-        # self.get_logger().debug(f"Velocity updated to {self.velocity}")
-
-        # if joystick_l.btn_thumb_l_state >= 1:
-        #     self.get_logger().info(f"Spinny part moving ANTICLOCKWISE at velocity {self.velocity}")
-        #     self.spinny_part.update_direction(self.DIRECTION_ANTICLOCKWISE)
-        #     self.spinny_part.update_velocity(self.velocity)
-        # elif joystick_l.btn_thumb_r_state >= 1:
-        #     self.get_logger().info(f"Spinny part moving CLOCKWISE at velocity {self.velocity}")
-        #     self.spinny_part.update_direction(self.DIRECTION_CLOCKWISE)
-        #     self.spinny_part.update_velocity(self.velocity)
-        # else:
-        #     self.spinny_part.stop()
-
-        if joystick_l.btn_thumb_l_state >= 1:
+        # change position
+        if joystick_l.btn_thumb_l_state == 1:
             self.spinny_part.update_position(self.MICROSCOPE)
-        if joystick_l.btn_thumb_d_state >= 1:
+        elif joystick_l.btn_thumb_d_state == 1:
             self.spinny_part.update_position(self.SWEEPER)
-        if joystick_l.btn_thumb_r_state >= 1:
+        elif joystick_l.btn_thumb_r_state == 1:
             self.spinny_part.update_position(self.NIR_PROBE)
-        else:
-            self.spinny_part.stop()
+
+        # twitch/update offset
+        if joystick_l.btn_bottom_r1_state == 1:
+            self.spinny_part.set_offset(min(self.MAX_OFFSET, self.spinny_part.get_offset() + 1))
+        elif joystick_l.btn_bottom_r2_state == 1:
+            self.spinny_part.set_offset(max(self.MIN_OFFSET, self.spinny_part.get_offset() - 1))
 
     def joystick_r(self, joystick_r: InputJoystick):
         """
