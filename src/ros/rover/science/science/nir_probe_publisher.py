@@ -45,8 +45,8 @@ class NIRProbePublisher(Node):
     NIR_PROBE_ID = 0x0F0
 
     NIR_RECEIVE_ID = [
-        PHOTODIODE1_ID := 0x4F0,
-        PHOTODIODE2_ID := 0x4F1,
+        PHOTODIODE1_ID := 0x4F1,
+        PHOTODIODE2_ID := 0x4F0,
     ]
 
     # Commands
