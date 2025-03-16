@@ -8,8 +8,8 @@ import {
 
 /// Defines special components to use for certain cameras
 export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentProps> } = {
-  [CameraSerials.ARM_END_PERISCOPE]: BarOverlayedCameraComponent,
-  [CameraSerials.SCIENCE_GIMBAL]: GimbalOverlayedCameraComponent
+  [CameraSerials.ARM_END_PERISCOPE]: BarOverlayedCameraComponent as FC<BaseCameraComponentProps>,
+  [CameraSerials.SCIENCE_GIMBAL]: GimbalOverlayedCameraComponent as FC<BaseCameraComponentProps>
 }
 
 /// Function that used the above map to get the component for a specified camera serial
