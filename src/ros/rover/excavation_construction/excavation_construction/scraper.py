@@ -243,7 +243,7 @@ class ScraperNode(JoystickControllerNode):
             Left Joystick stick x-axis = direction / velocity
         """
         self.arm.update_velocity(abs(joystick_l.ax_stick_x) * self.velocity_multiplier)
-        self.arm.update_direction(self.ARM_FORWARDS if joystick_l.ax_stick_x >= 0 else self.ARM_BACKWARDS)
+        self.arm.update_direction(self.ARM_BACKWARDS if joystick_l.ax_stick_x >= 0 else self.ARM_FORWARDS)
 
     def update_scoop(self, joystick_r: InputJoystick):
         """
