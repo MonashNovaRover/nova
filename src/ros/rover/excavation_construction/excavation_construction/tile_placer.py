@@ -57,7 +57,7 @@ class TilePlacerNode(JoystickControllerNode):
     TILE_PLACER_SLOW_VELOCITY = 0.10
 
     # how long to twitch tile placer for
-    TWITCH_PERIOD = 20 # To be tested with tile placer
+    TWITCH_PERIOD = 10 # To be tested with tile placer
 
     # ROS param names
     CAN_BUS_PARAM = "can_bus"
@@ -84,6 +84,8 @@ class TilePlacerNode(JoystickControllerNode):
 
         # check if tile placer is moving
         self.twitching = 0
+
+        # self.velocity_multiplier = 0.00 # May be deleted
 
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
         self.start_can()
@@ -124,12 +126,12 @@ class TilePlacerNode(JoystickControllerNode):
     def update_tile_placer(self, joystick_r: InputJoystick):
         # State 1 is when button is first pressed
         if joystick_r.btn_thumb_l_state == 1 and self.twitching <= 0:
-            self.get_logger().debug("Tile Placer UP")
+            self.get_logger().debug("Twitching Tile Placer UP")
             self.tile_placer.update_direction(self.TILE_PLACER_UP)
             self.tile_placer.update_velocity(self.TILE_PLACER_MAX_VELOCITY)
             self.twitching += 1
         elif joystick_r.btn_thumb_r_state == 1 and self.twitching <= 0:
-            self.get_logger().debug("Tile Placer DOWN")
+            self.get_logger().debug("Twitching Tile Placer DOWN")
             self.tile_placer.update_direction(self.TILE_PLACER_DOWN)
             self.tile_placer.update_velocity(self.TILE_PLACER_MAX_VELOCITY)
             self.twitching += 1
@@ -140,7 +142,8 @@ class TilePlacerNode(JoystickControllerNode):
 
     def joystick_l(self, joystick_l: InputJoystick):
         """
-        Updates the classes internal msg state
+        Legacy stub. May be deleted
+        :param joystick_l: input_interfaces.msg.RoverPose message from the subscriber callback
         :return: None
         """
         #self.velocity_multiplier = abs(joystick_l.ax_slider)
