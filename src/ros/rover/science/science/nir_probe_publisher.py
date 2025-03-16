@@ -168,6 +168,7 @@ class NIRProbePublisher(Node):
         self.timeout_timer.cancel()
 
         # update last readings
+        self.get_logger().info(f"Recorded readings: {self.readings}")
         self.last_count = len(self.readings)
         self.last_led_on = self.active_photodiode
 
@@ -238,6 +239,7 @@ class NIRProbePublisher(Node):
 
     def nir_poll_callback(self):
         self.request_reading(self.active_photodiode)
+        self.timer_poll_nir.cancel()    
 
 # The main code that executes when starting
 def main(args=None):
