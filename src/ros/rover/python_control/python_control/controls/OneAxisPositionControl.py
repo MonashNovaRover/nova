@@ -9,14 +9,18 @@ class OneAxisPositionControl(Control):
     """Class to control a single axis motor"""
     ZERO = "zero"
 
-    def __init__(self, logger: Logger, positions: dict[str, int] = {}, position_sensor: IntegerSensor = None, zero_sensor: CommandSensor = None):
+    def __init__(self, logger: Logger, positions: dict[str, int] = {}, position_sensor: IntegerSensor = None, zero_sensor: CommandSensor = None, max_angle: int = 0):
         super().__init__(logger=logger)
         positions[self.ZERO] = 0
         self.position_name = self.ZERO # type: str
         self.positions = positions # type: dict[str, int]
         self.position_sensor = position_sensor # type: IntegerSensor
         self.zero_sensor = zero_sensor # type: CommandSensor
+        self.max_angle = max_angle # type int
 
+    def get_max_angle(self):
+        """Get the max angle of the motor if applicable"""
+        return self.max_angle
 
     def get_current_position(self):
         """Get the current position of the motor"""
