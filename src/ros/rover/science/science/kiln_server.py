@@ -146,7 +146,7 @@ class KilnServer(Node):
         Performs this continuously otherwise the kiln will turn off
         """
         try:
-            if self.is_on and self.target>self.temp[2]:
+            if self.is_on and self.target>self.temp[0]:
                 self.send_kiln_on()
             else:
                 self.send_kiln_off()
