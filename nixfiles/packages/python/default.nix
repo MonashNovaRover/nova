@@ -7,4 +7,5 @@
   ultralytics = callPackage ./ultralytics { };
   super-gradients = callPackage ./super-gradients { };
   lap = callPackage ./lap { };
+  linuxpy = callPackage ./linuxpy { };
 }
