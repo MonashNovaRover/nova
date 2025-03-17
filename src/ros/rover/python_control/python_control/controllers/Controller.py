@@ -7,7 +7,7 @@ from python_control.controls.Control import Control
 
 class Controller(abc.ABC):
     """Class to interface with the cards on the CAN bus"""
-    def __init__(self, card: Card, max_value: int, frame_id: hex, control: Control, bus: jcan.Bus, logger: Logger):
+    def __init__(self, card: Card, max_value: int, frame_id: hex, control: Control, bus: jcan.Bus, logger: Logger, send_continuously: bool = True):
         self.card = card # type: Card
         self.max_value = max_value # type: int
         # Card Id = 12 bits, (0x000 - 0xFFF)
@@ -15,6 +15,8 @@ class Controller(abc.ABC):
         self.control = control # type: Control
         self.bus = bus # type: jcan.Bus
         self.logger = logger
+        self.send_continuously = send_continuously # type: bool
+        self.last_frame = None
 
     def get_logger(self) -> Logger:
         return self.logger
@@ -35,6 +37,11 @@ class Controller(abc.ABC):
         frame = self.get_frame()
         if frame is None:
             return
+
+        # only send can command when they change if toggled
+        if self.send_continuously and self.last_frame == frame:
+            return
+
         self.get_logger().debug(f"Sending frame: {frame}")
         self.bus.send(frame)
 
