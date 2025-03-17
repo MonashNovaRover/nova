@@ -117,7 +117,7 @@ class URCAuger(JoystickControllerNode):
 
     def update_auger_actuation(self, joystick_r: InputJoystick):
         # Auger height direction is determined by the right joystick's x-axis direction
-        self.auger_actuation.update_direction(self.AUGER_ACTUATION_UP if joystick_r.ax_stick_x <= 0 else self.AUGER_ACTUATION_DOWN)
+        self.auger_actuation.update_direction(self.AUGER_ACTUATION_DOWN if joystick_r.ax_stick_x <= 0 else self.AUGER_ACTUATION_UP)
 
         # Auger velocity is determined by the right joystick's x-axis magnitude
         if joystick_r.btn_thumb_d_state >= 1 or joystick_r.ax_stick_x < 0:
