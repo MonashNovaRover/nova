@@ -68,16 +68,16 @@ namespace nova_behavior_tree
             "/local_costmap/costmap", 1,
             [this](const OccupancyGrid::SharedPtr msg) -> void
             {
-                RCLCPP_INFO(node_->get_logger(), "Received local costmap");
                 local_occu_grid_ = msg;
+                RCLCPP_INFO(node_->get_logger(), "Received local costmap");
             }
         );
         global_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
             "/global_costmap/costmap", 1,
             [this](const OccupancyGrid::SharedPtr msg) -> void
             {
-                RCLCPP_INFO(node_->get_logger(), "Received global costmap");
                 global_occu_grid_ = msg;
+                RCLCPP_INFO(node_->get_logger(), "Received global costmap");
             }
         );
 
@@ -186,12 +186,6 @@ namespace nova_behavior_tree
      */
     void SnapInCollisionGoalsAction::update_toward_points()
     {
-        // update if goals have been removed
-        while (toward_points_.size() > input_goals_.size())
-        {
-            toward_points_.erase(toward_points_.begin());
-        }
-        
         // update with cube goals
         std::sort(cube_goal_entries_.begin(), cube_goal_entries_.end(),
             [](const GoalEntry &a, const GoalEntry &b) -> bool
@@ -226,6 +220,12 @@ namespace nova_behavior_tree
             {
                 toward_points_.insert(toward_points_.begin() + entry.index, entry.pose.position);
             }
+        }
+
+        // update if goals have been removed
+        while (toward_points_.size() > input_goals_.size())
+        {
+            toward_points_.erase(toward_points_.begin());
         }
     }
 
