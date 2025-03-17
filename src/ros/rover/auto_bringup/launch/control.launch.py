@@ -28,13 +28,14 @@ def launch_setup(context, *args, **kwargs):
     angle = LaunchConfiguration('angle')
     controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
+    log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
 
     return [
         Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['pivot_drive_controller', '--switch-timeout', '10'] #, '--inactive']
+            arguments=['pivot_drive_controller', '--switch-timeout', '10', '--ros-args', '--log-level', log_level] #, '--inactive']
         ),
         Node(
             package='controller_manager',
@@ -88,6 +89,11 @@ def generate_launch_description():
             default_value='False',
             description='Use simulation (Gazebo) clock if True',
         ),
+        DeclareLaunchArgument(
+            name='log_level', 
+            default_value='warn',
+            description='',
+        ),  
         DeclareLaunchArgument(
             name='model', 
             default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
