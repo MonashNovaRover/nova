@@ -39,7 +39,7 @@ class Controller(abc.ABC):
             return
 
         # only send can command when they change if toggled
-        if self.send_continuously and self.last_frame == frame:
+        if not self.send_continuously and self.last_frame == frame:
             return
 
         self.get_logger().debug(f"Sending frame: {frame}")
