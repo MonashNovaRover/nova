@@ -1,8 +1,10 @@
 import React, {useCallback, useEffect, useState} from "react";
-import {Button, Card, CardProps, Input, Tooltip} from "@nextui-org/react";
+import {Card, CardHeader, CardProps, Input} from "@nextui-org/react";
 import {SubCardLabel} from "../shared/Labels";
 import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../ros/services/rosService.ts";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/RootState";
 import {useGenericStore} from "../../hooks/useGenericStore.ts";
 
 interface RGBInputWidgetProps extends CardProps {}
@@ -63,6 +65,32 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
         }
     },[r,g,b,serviceBifrost])
 
+    const serviceBifrost = useBifrost({service: RosService.RGBInput});
+
+    const rgbServiceResponse = useSelector(
+        (state: RootState) => state.RGBInputStore
+    )
+
+    const sendRGBValues = useCallback(() => {
+        try{
+            const rValue = Number(r);
+            const gValue = Number(g);
+            const bValue = Number(b);
+
+            if (isNaN(rValue) || isNaN(gValue) || isNaN(bValue) || rValue < 0 || gValue < 0 || bValue < 0 || rValue > 255 || gValue > 255 || bValue > 255) {
+                console.error("Invalid input for RGB values");
+                return;
+            }
+
+            serviceBifrost.callServiceToRedux(
+                {r:rValue, g:gValue, b:bValue},
+                {noErrorToast: false, responseToast:true},
+            );
+        }catch (e) {
+            console.error("Could not send RGB Values:",e)
+        }
+    },[r,g,b,serviceBifrost])
+
     const handleRChange = useCallback((value: string) => {
         const numValue = Number(value);
         if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setTempR(value)
@@ -78,7 +106,11 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
         if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setTempB(value)
     }, [rgbValues, setRgbValues]);
 
-    const colorPreview = `rgb(${tempR || 0}, ${tempG || 0}, ${tempB || 0})`;
+    useEffect(() => {
+        sendRGBValues();
+    }, [r,g,b,sendRGBValues]);
+
+    const colorPreview = `rgb(${r || 0}, ${g || 0}, ${b || 0})`;
 
     return (
         <Card {...props} className="space-y-3 p-3">
