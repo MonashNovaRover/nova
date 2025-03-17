@@ -8,6 +8,8 @@ import {
   IRosStdSrvsTriggerResponse,
   IRosNovaInterfacesKilnCommandRequest,
   IRosNovaInterfacesKilnCommandResponse,
+  IRosNovaInterfacesSetNirProbeLedRequest,
+  IRosNovaInterfacesSetNirProbeLedResponse,
   IRosNovaInterfacesRamanSpecRequest,
   IRosNovaInterfacesRamanSpecResponse,
   IRosNovaInterfacesRamanMechRequest,
@@ -113,5 +115,10 @@ export interface RosServiceInterface {
   [RosService.HEATER]: RosServiceMessage<
       IRosStdSrvsSetBoolRequest,
       IRosStdSrvsSetBoolResponse
+  >;
+
+  [RosService.RGBInput]: RosServiceMessage<
+      IRosNovaInterfacesRgbInputRequest,
+      IRosNovaInterfacesRgbInputResponse
   >;
 }
