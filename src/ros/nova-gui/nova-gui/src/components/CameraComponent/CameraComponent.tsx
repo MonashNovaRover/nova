@@ -22,7 +22,6 @@ import humanizeString from "humanize-string";
 import { ExternalLink } from "react-feather";
 import toast from "react-hot-toast";
 import CameraSessionStartStopButton from "./components/CameraSessionStartStopButton.tsx";
-import useWebcam from "../../hooks/webgl/program/sampler/useWebcam.ts";
 
 const ASPECT_RATIO = 4 / 3;
 
@@ -67,7 +66,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
     sendSessionStartMessage,
     isCameraOnline,
     closeSession,
-  } = useWebcam(videoRef)//useCameraStream(cameraSerial, videoRef, allCamerasStarted);
+  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
   const onStreamingStateChange = props.onStreamingStateChange
