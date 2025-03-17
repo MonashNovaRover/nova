@@ -18,7 +18,7 @@
  * snapped goal. Toward points are points to which the original goals were pointed towards.
  * 
  * To find a suitable pose to snap to, a spiral search pattern is used to find the nearest free
- * or unknown cell in the occupancy grid.
+ * or unknown cell in the costmap.
  * 
  * @authors Terry Tian
  */
@@ -33,13 +33,15 @@
 #include "geometry_msgs/msg/pose.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
+#include "nav2_msgs/srv/get_costmap.hpp"
 #include "behaviortree_cpp/action_node.h"
 
 namespace nova_behavior_tree
 {
 
 using namespace geometry_msgs::msg;
-using namespace nav_msgs::msg;
+using Costmap = nav2_msgs::msg::Costmap;
+using GetCostmap = nav2_msgs::srv::GetCostmap;
 
 struct GridCell {
   int x, y;
@@ -104,21 +106,18 @@ public:
   }
 
 private:
-  void wait_for_occu_grids();
   void update_toward_points();
   bool snap_goals();
   SearchResult find_nearest_free_cell(const Point &origin);
   bool is_area_free(const GridCell &center);
-  bool is_cell_free(const GridCell &global_cell);
-  bool is_cell_free(const GridCell &cell, const OccupancyGrid::SharedPtr &grid);
-  GridCell world_to_grid_cell(const Point &point, const OccupancyGrid::SharedPtr &grid);
-  Point grid_cell_to_world(const GridCell &cell, const OccupancyGrid::SharedPtr &grid);
+  bool is_cell_free(const GridCell &cell);
+  GridCell world_to_grid_cell(const Point &point);
+  Point grid_cell_to_world(const GridCell &cell);
 
   rclcpp::Node::SharedPtr node_;
-  rclcpp::Subscription<OccupancyGrid>::SharedPtr local_occu_grid_sub_;
-  rclcpp::Subscription<OccupancyGrid>::SharedPtr global_occu_grid_sub_;
-  OccupancyGrid::SharedPtr local_occu_grid_;
-  OccupancyGrid::SharedPtr global_occu_grid_;
+  rclcpp::Client<GetCostmap>::SharedPtr costmap_client_;
+  GetCostmap::Request::SharedPtr request_;
+  Costmap::SharedPtr costmap_;
   
   double initial_goals_offset_;
   std::vector<Point> toward_points_;
@@ -130,6 +129,12 @@ private:
   
   bool initialized_ = false;
   bool set_up_ = false;
+
+  // use trinary costmap values
+  // FREE and UNKNOWN are not needed because we just check if it's not OCCUPIED
+  // static const int UNKNOWN = 255;
+  static const int OCCUPIED = 254;
+  // static const int FREE = 0;
 };
 
 }  // namespace nova_behavior_tree
