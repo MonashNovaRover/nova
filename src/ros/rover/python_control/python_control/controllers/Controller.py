@@ -42,6 +42,7 @@ class Controller(abc.ABC):
         if not self.send_continuously and self.last_frame == frame:
             return
 
+        self.last_frame = frame
         self.get_logger().debug(f"Sending frame: {frame}")
         self.bus.send(frame)
 
