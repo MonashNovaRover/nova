@@ -1,6 +1,11 @@
-import React, { useState, useCallback } from "react";
-import { Input, Card, CardHeader, CardBody, CardProps } from "@nextui-org/react";
-import { SubCardLabel } from "../shared/Labels";
+import React, {useCallback, useEffect, useState} from "react";
+import {Card, CardHeader, CardProps, Input} from "@nextui-org/react";
+import {SubCardLabel} from "../shared/Labels";
+import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
+import {RosService} from "../../ros/services/rosService.ts";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/RootState";
+
 
 interface RGBInputWidgetProps extends CardProps {}
 
@@ -8,6 +13,32 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
     const [r, setR] = useState("0");
     const [g, setG] = useState("0");
     const [b, setB] = useState("0");
+
+    const serviceBifrost = useBifrost({service: RosService.RGBInput});
+
+    const rgbServiceResponse = useSelector(
+        (state: RootState) => state.RGBInputStore
+    )
+
+    const sendRGBValues = useCallback(() => {
+        try{
+            const rValue = Number(r);
+            const gValue = Number(g);
+            const bValue = Number(b);
+
+            if (isNaN(rValue) || isNaN(gValue) || isNaN(bValue) || rValue < 0 || gValue < 0 || bValue < 0 || rValue > 255 || gValue > 255 || bValue > 255) {
+                console.error("Invalid input for RGB values");
+                return;
+            }
+
+            serviceBifrost.callServiceToRedux(
+                {r:rValue, g:gValue, b:bValue},
+                {noErrorToast: false, responseToast:true},
+            );
+        }catch (e) {
+            console.error("Could not send RGB Values:",e)
+        }
+    },[r,g,b,serviceBifrost])
 
     const handleRChange = useCallback((value: string) => {
         const numValue = Number(value);
@@ -23,6 +54,10 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
         const numValue = Number(value);
         if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setB(value);
     }, []);
+
+    useEffect(() => {
+        sendRGBValues();
+    }, [r,g,b,sendRGBValues]);
 
     const colorPreview = `rgb(${r || 0}, ${g || 0}, ${b || 0})`;
 
