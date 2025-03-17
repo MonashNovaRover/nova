@@ -16,7 +16,7 @@ class Controller(abc.ABC):
         self.bus = bus # type: jcan.Bus
         self.logger = logger
         self.send_continuously = send_continuously # type: bool
-        self.last_frame = None
+        self.last_frame = jcan.Frame(000, [0000]) # type: jcan.Frame
 
     def get_logger(self) -> Logger:
         return self.logger
@@ -39,7 +39,7 @@ class Controller(abc.ABC):
             return
 
         # only send can command when they change if toggled
-        if not self.send_continuously and self.last_frame == frame:
+        if not self.send_continuously and self.last_frame.data == frame.data and self.last_frame.id == frame.id:
             return
 
         self.last_frame = frame
