@@ -94,11 +94,11 @@ class SpinnyPartNode(JoystickControllerNode):
         :return: None
         """
         # change position
-        if joystick_l.btn_bottom_r1_state == 1:
+        if joystick_l.btn_bottom_r4_state == 1:
             self.spinny_part.update_position(self.MICROSCOPE)
-        elif joystick_l.btn_bottom_r2_state == 1:
+        elif joystick_l.btn_bottom_r5_state == 1:
             self.spinny_part.update_position(self.SWEEPER)
-        elif joystick_l.btn_bottom_r3_state == 1:
+        elif joystick_l.btn_bottom_r6_state == 1:
             self.spinny_part.update_position(self.NIR_PROBE)
 
         # twitch/update offset
