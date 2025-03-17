@@ -97,5 +97,7 @@ export interface RootState {
   rgbLedStore: GenericStoreState<{ r: string; g: string; b: string }>;
 
   batteryStore: IRosSensorMsgsBatteryState;
+
+  RGBInputStore: IRosNovaInterfacesRgbInputResponse;
   activeStatusStore: IRosNovaInterfacesActiveNodeStatus;
 }

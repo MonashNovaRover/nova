@@ -31,6 +31,5 @@ export enum RosService {
   CACHE_1 = "/science/cache_command_1",
   CACHE_2 = "/science/cache_command_2",
   HEATER = "/science/heater",
-
   RGBInput = "/set_RGBInput",
 }
