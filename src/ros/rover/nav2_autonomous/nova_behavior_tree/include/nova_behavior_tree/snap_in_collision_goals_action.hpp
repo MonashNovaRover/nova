@@ -104,21 +104,18 @@ public:
   }
 
 private:
-  void wait_for_occu_grids();
+  void wait_for_occu_grid();
   void update_toward_points();
   bool snap_goals();
   SearchResult find_nearest_free_cell(const Point &origin);
   bool is_area_free(const GridCell &center);
-  bool is_cell_free(const GridCell &global_cell);
-  bool is_cell_free(const GridCell &cell, const OccupancyGrid::SharedPtr &grid);
-  GridCell world_to_grid_cell(const Point &point, const OccupancyGrid::SharedPtr &grid);
-  Point grid_cell_to_world(const GridCell &cell, const OccupancyGrid::SharedPtr &grid);
+  bool is_cell_free(const GridCell &cell);
+  GridCell world_to_grid_cell(const Point &point);
+  Point grid_cell_to_world(const GridCell &cell);
 
   rclcpp::Node::SharedPtr node_;
-  rclcpp::Subscription<OccupancyGrid>::SharedPtr local_occu_grid_sub_;
-  rclcpp::Subscription<OccupancyGrid>::SharedPtr global_occu_grid_sub_;
-  OccupancyGrid::SharedPtr local_occu_grid_;
-  OccupancyGrid::SharedPtr global_occu_grid_;
+  rclcpp::Subscription<OccupancyGrid>::SharedPtr occu_grid_sub_;
+  OccupancyGrid::SharedPtr occu_grid_;
   
   double initial_goals_offset_;
   std::vector<Point> toward_points_;
