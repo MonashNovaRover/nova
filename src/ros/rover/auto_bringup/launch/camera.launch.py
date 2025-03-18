@@ -68,14 +68,14 @@ def launch_setup(context, *args, **kwargs):
                                 ('depth/camera_info', f'{front_name}/stereo/camera_info'),
                                 ('cloud', f'{front_name}/depth/points')],
                 ),
-                #ComposableNode(
-                #    package='imu_transformer',
-                #    plugin='imu_transformer::ImuTransformer',
-                #    name=f'{front_name}_imu_transformer_node',
-                #    remappings=[('/imu_in', '/oak/imu/data'),
-                #                ('/imu_out', '/oak/imu/transformed')],
-                #    parameters=[{'target_frame': front_name}]
-                #)
+                ComposableNode(
+                   package='imu_transformer',
+                   plugin='imu_transformer::ImuTransformer',
+                   name=f'{front_name}_imu_transformer_node',
+                   remappings=[('/imu_in', '/oak/imu/data'),
+                               ('/imu_out', '/oak/imu/transformed')],
+                   parameters=[{'target_frame': front_name]
+                )
             ],
         ),
         ComposableNodeContainer(
