@@ -24,7 +24,9 @@ class JonoPositionController(Controller):
             frame_id=frame_id,
             control=control,
             bus=bus,
-            logger=logger)
+            logger=logger,
+            send_continuously=False,
+        )
         self.pos_command = pos_command
 
     def get_frame(self) -> jcan.Frame:
