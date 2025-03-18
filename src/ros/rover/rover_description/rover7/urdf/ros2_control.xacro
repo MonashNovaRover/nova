@@ -15,7 +15,7 @@
                     <param name="min_interval">122</param>
                     <param name="gear_ratio">15.0</param>
                     <param name="mock">true</param>
-                    <param name="reversed">false</param>
+                    <param name="reversed">true</param>
                     <param name="integrate_velocity">true</param>
                 </hardware>
             </xacro:unless>
@@ -57,7 +57,7 @@
                     <param name="min_interval">122</param>
                     <param name="gear_ratio">15.0</param>
                     <param name="mock">true</param>
-                    <param name="reversed">false</param>
+                    <param name="reversed">true</param>
                     <param name="integrate_velocity">true</param>
                 </hardware>
             </xacro:unless>
@@ -101,7 +101,7 @@
                     <param name="min_interval">122</param>
                     <param name="gear_ratio">15.0</param>
 	                <param name="mock">true</param>
-                    <param name="reversed">true</param>
+                    <param name="reversed">false</param>
                     <param name="integrate_velocity">true</param>
                 </hardware>
             </xacro:unless>
@@ -144,7 +144,7 @@
                     <param name="min_interval">122</param>
                     <param name="gear_ratio">15.0</param>
 	                <param name="mock">true</param>
-                    <param name="reversed">true</param>
+                    <param name="reversed">false</param>
                     <param name="integrate_velocity">true</param>
                 </hardware>
             </xacro:unless>
