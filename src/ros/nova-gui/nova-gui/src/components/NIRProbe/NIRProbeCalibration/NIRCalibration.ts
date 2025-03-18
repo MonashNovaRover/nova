@@ -9,7 +9,22 @@ import {useMemo} from "react";
  */
 export const COEFFICIENT_QUANTITY = 6;
 
-const absorbCoef = 3000
+export const defaultCoefficients = [
+  -0.0000007,
+  -0.00000071,
+  -0.00000156,
+  0.07925015,
+  0.08339676,
+  -2186.33845245
+]
+
+export const defaultXRange = [18000, 27000]
+export const defaultYRange = [18000, 27000]
+
+export const defaultXOffset = 0;
+export const defaultYOffset = 0;
+
+// const absorbCoef = 3000
 
 /**
  * Takes in the difference between reading and light blank and applies the offset and absorbance function
@@ -20,7 +35,8 @@ const absorbCoef = 3000
  */
 export const absorbance = (waterOffset: number, iceOffset: number) => (type: NIRProbeReadingType, data: number) => {
   const offset = type === NIRProbeReadingType.WATER ? waterOffset : iceOffset;
-  return Math.log10(absorbCoef / (data + offset));
+  return data + offset
+  // return Math.log10(absorbCoef / (data + offset));
 }
 
 /**
@@ -45,8 +61,14 @@ export const calibrationFunction = (coef: number[]) => (x: number, y: number): n
 
   const c = coef.map(v => Number.isNaN(v) ? 0 : v)
 
-  return (c[2] * Math.log10(x + y)
-  + c[5]);
+  return (
+    c[0] * (x ** 2)
+    + c[1] * (y ** 2)
+    + c[2] * (x * y)
+    + c[3] * x
+    + c[4] * y
+    + c[5]
+  );
 }
 
 /**
