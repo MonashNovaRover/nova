@@ -5,7 +5,7 @@ let
 in
 {
   config = lib.mkIf cfg.enable {
-    home.packages = with pkgs; [ blackbox-terminal ghostty ];
+    home.packages = with pkgs; [ blackbox-terminal ghostty ptyxis ];
 
     programs.ssh.extraConfig = ''
       Host *
