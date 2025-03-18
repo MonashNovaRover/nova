@@ -4,14 +4,14 @@
 <!-- Note: Rover pivots' z axis has been inverted to correct for pivot_drive_controller's zero angle.
            Therefore if exported from onshape, don't forget to add a negative sign to the z of the axis tag on each pivot 
      Note 2: Exporting from onshape has _continuous at the end of continuous joint names these have been removed post-export -->
-<robot name="rover"  xmlns:xacro="http://www.ros.org/wiki/xacro" >
+<robot name="rover7"  xmlns:xacro="http://www.ros.org/wiki/xacro" >
 
     <!-- Loading args -->
     <xacro:arg name="gazebo" default="false"/>
     <xacro:arg name="use_mock_hardware" default="false"/>
     <xacro:arg name="arm" default="false"/>
     <xacro:arg name="auto_camera" default="true"/>
-    <xacro:arg name="robot_name" default="rover"/>
+    <xacro:arg name="robot_name" default="rover7"/>
     <xacro:arg name="angle" default="0"/>
 
     <!-- Robot properties-->
@@ -617,7 +617,7 @@
         <parent link="chassis" />
         <child link="left_leg" />
         <axis xyz="0 0 1"/>
-        <limit effort="20" velocity="20" lower="0" upper="0"/>
+        <limit effort="20" velocity="20" />
         <joint_properties friction="0.0"/>
     </joint>
 
@@ -662,7 +662,7 @@
         <parent link="chassis" />
         <child link="right_leg" />
         <axis xyz="0 0 1"/>
-        <limit effort="20" velocity="20" lower="0" upper="0"/>
+        <limit effort="20" velocity="20" />
         <joint_properties friction="0.0"/>
     </joint>
 
@@ -702,7 +702,7 @@
         <joint_properties friction="0.0"/>
     </joint>
 
-    <!-- Diffbar won't show up irl lol-->
+    <!-- Diffbar won't show up in irl TF tree unless u add its dynamic joints to controllers.yaml extra joints-->
     <joint name="chassis_to_diffbar" type="continuous">
         <origin xyz="-0.47600000000002590239 -4.8144507783734281313e-09 0.046505449483682070877" rpy="-1.5707963267949112129 -2.1008432044742341424e-09 1.570796326794896558" />
         <parent link="chassis" />
@@ -717,15 +717,15 @@
     <xacro:include filename="$(find rover_description)/rover7/urdf/ckc.xacro"/>
 
     <xacro:if value="$(arg auto_camera)">
-        <xacro:include filename="$(find rover_description)/rover7/urdf/auto_camera.xacro"/>
+        <xacro:include filename="$(find rover_description)/auto_mount/urdf/auto_camera.xacro"/>
         <xacro:auto_cam angle="$(arg angle)"></xacro:auto_cam>
     </xacro:if>
     
     <xacro:if value="$(arg arm)">
-        <!-- Needs to be updated for new arm-->
-        <xacro:include filename="$(find rover_description)/arm/urdf/arm.urdf.xacro" />
+        <!-- Currently attaches waratah's arm, add rover7 arm after ARCh-->
+        <xacro:include filename="$(find rover_description)/waratah_arm/urdf/arm.urdf.xacro" />
         <joint name="chassis_to_arm_base" type="fixed">
-            <origin xyz="0.18 0 -0.03" rpy="0 0 0"/>
+            <origin xyz="0.2 0 -0.06" rpy="0 0 0"/>
             <parent link="chassis" />
             <child link="arm_link" />
         </joint>

@@ -543,4 +543,14 @@
   <xacro:include filename="$(find rover_description)/waratah/urdf/odom.xacro"/>
   <xacro:include filename="$(find rover_description)/waratah/urdf/gps.xacro"/>
   <xacro:include filename="$(find rover_description)/waratah/urdf/joint_states.xacro"/>
+
+  <xacro:if value="$(arg arm)">
+        <!-- Attaches waratah's arm -->
+        <xacro:include filename="$(find rover_description)/waratah_arm/urdf/arm.urdf.xacro" />
+        <joint name="chassis_to_arm_base" type="fixed">
+            <origin xyz="0 0.15 -0.06" rpy="0 0 1.57"/>
+            <parent link="chassis" />
+            <child link="arm_link" />
+        </joint>
+    </xacro:if>
 </robot>
