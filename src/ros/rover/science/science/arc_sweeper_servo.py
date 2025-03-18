@@ -31,11 +31,12 @@ class SweeperNode(JoystickControllerNode):
     CAN_BUS = "can1"
 
     # SENDING CARD IDS
-    SERVO_ID = 0x0A0 # todo adjust accordingly
+    SERVO_ID = 0x0A0
+    COMMAND_PERIOD = 0.3
 
     # SENDING COMMAND IDS
-    SWEEP_CLOCKWISE = 0x01 # todo adjust
-    SWEEP_ANTICLOCKWISE = 0x02 # todo adjust
+    SWEEP_CLOCKWISE = 0x01
+    SWEEP_ANTICLOCKWISE = 0x02
 
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
@@ -48,7 +49,7 @@ class SweeperNode(JoystickControllerNode):
 
 
     def __init__(self):
-        super().__init__(name="SweepyServoNode", can_bus=self.CAN_BUS)
+        super().__init__(name="SweepyServoNode", can_bus=self.CAN_BUS, command_period=self.COMMAND_PERIOD)
         logger = self.get_logger()
 
         self.velocity = 0.5
