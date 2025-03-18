@@ -98,9 +98,9 @@ def generate_launch_description():
             name='model', 
             default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
-        ),  
+        ),
     ]
 
-    return LaunchDescription(  
+    return LaunchDescription(
         declared_arguments + [OpaqueFunction(function=launch_setup)]
     )

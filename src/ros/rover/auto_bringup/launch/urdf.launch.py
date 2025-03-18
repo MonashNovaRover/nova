@@ -26,7 +26,7 @@ def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo').perform(context)
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
-    
+
     return [
         Node(
             package='robot_state_publisher',
@@ -63,7 +63,7 @@ def generate_launch_description():
             description='name of the robot',
         ),
     ]
-    
-    return LaunchDescription(  
+
+    return LaunchDescription(
         declared_arguments + [OpaqueFunction(function=launch_setup)]
     )
