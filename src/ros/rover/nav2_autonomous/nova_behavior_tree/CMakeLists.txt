@@ -53,9 +53,6 @@ include_directories(
   include
 )
 
-#add_library(nova_dummy_detect_cube_action_bt_node SHARED plugins/dummy_detect_cube_action.cpp)
-#list(APPEND plugin_libs nova_dummy_detect_cube_action_bt_node)
-
 add_library(nova_ar_tag_detected_condition_bt_node SHARED plugins/ar_tag_detected_condition.cpp)
 list(APPEND plugin_libs nova_ar_tag_detected_condition_bt_node)
 
