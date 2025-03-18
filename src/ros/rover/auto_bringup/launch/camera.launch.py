@@ -74,7 +74,7 @@ def launch_setup(context, *args, **kwargs):
                    name=f'{front_name}_imu_transformer_node',
                    remappings=[('/imu_in', '/oak/imu/data'),
                                ('/imu_out', '/oak/imu/transformed')],
-                   parameters=[{'target_frame': front_name]
+                   parameters=[{'target_frame': front_name}]
                 )
             ],
         ),
