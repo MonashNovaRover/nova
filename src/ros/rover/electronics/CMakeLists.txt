@@ -66,6 +66,7 @@ install(PROGRAMS
   electronics/dgps/gps_data_plotter.py
   electronics/dgps/gps_rover.py
   electronics/dgps/gps_test_localisation.py
+  electronics/led_strip.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
