@@ -25,7 +25,7 @@ find_package(ament_cmake REQUIRED)
 install(DIRECTORY
   waratah_arm
   waratah
-  banksia
+  rover7
   auto_mount
   DESTINATION share/${PROJECT_NAME}
 )
