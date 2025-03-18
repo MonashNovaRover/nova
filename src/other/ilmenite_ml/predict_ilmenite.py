@@ -8,7 +8,7 @@ from PIL import Image
 import sys
 
 # ==== CONFIGURATION ==== 
-MODEL_PATH = '~/nova/src/other/ilmenite_ml/models/best_model.pth'
+MODEL_PATH = '/home/nova/nova/src/other/ilmenite_ml/models/best_model.pth'
 # First argument is path to use for data
 DATA_DIR = "./" if len(sys.argv) <= 1 else sys.argv[1]
 IMG_SIZE = 224

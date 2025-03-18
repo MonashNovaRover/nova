@@ -9,7 +9,7 @@ in pkgs.mkShell {
     ]))
   ];
   shellHook = ''
-    alias predict = python3 ~/nova/src/other/ilmenite_ml/predict_imlenite.py
+    alias predict="python3 ~/nova/src/other/ilmenite_ml/predict_ilmenite.py"
   '';
 }
 
