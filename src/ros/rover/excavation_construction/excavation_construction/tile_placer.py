@@ -97,8 +97,8 @@ class TilePlacerNode(JoystickControllerNode):
         Sends can commands for tile placer
         """
         # stop tile placer if twitching finished
-        if self.twitching >= self.TWITCH_PERIOD:
-            self.twitching = -1
+        if self.twitching >= self.TWITCH_PERIOD or self.velocity_multiplier < 1:
+            self.twitching = 0
             self.tile_placer_stop()
 
         else:
