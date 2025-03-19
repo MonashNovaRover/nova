@@ -135,19 +135,19 @@ in
             cop-mode-on = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} on";
             cop-mode-off = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} off";
 
+            reolink = "${pkgs.bash}/bin/bash ${../../../scripts/reolink.sh}";
+
             # Temporary aliases (remove when a better solution has been implemented)
             cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
             cameras-orin = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
             nix-enable = "sudo systemctl enable nix-daemon.service";
             nix-start = "sudo systemctl start nix-daemon.service";
-            reolink = "~/nova/nixfiles/modules/home/macros/reolink.sh"; # TODO: fix this so it works like can.sh
 
           }
         ];
 
       packages = with pkgs.nova-scripts; [
         can
-        #reolink TODO
       ];
     };
 
@@ -172,11 +172,6 @@ in
             name = "can";
             runtimeInputs = [ kmod iproute2 ];
             text = builtins.readFile ./can.sh;
-          #}, TODO help meeeee
-          #reolink = writeShellApplication {
-          #  name = "reolink";
-          #  runtimeInputs = [ ffmpeg ];
-          #  text = builtins.readFile ./reolink.sh;
           };
         });
       })
