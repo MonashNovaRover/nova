@@ -136,13 +136,13 @@ in
             cop-mode-off = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} off";
             shitdown = "shutdown now";
 
+            reolink = "${pkgs.bash}/bin/bash ${../../../scripts/reolink.sh}";
+
             # Temporary aliases (remove when a better solution has been implemented)
             cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
             cameras-orin = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
             nix-enable = "sudo systemctl enable nix-daemon.service";
             nix-start = "sudo systemctl start nix-daemon.service";
-            reolink-low = "mpv --rtsp-transport=udp --no-cache --untimed --video-sync=display-resample --deinterlace=no --profile=low-latency --demuxer-max-bytes=512K --demuxer-max-back-bytes=512K rtsp://admin:Lab188b37@10.0.1.100:554/h264Preview_01_sub";
-            reolink-high = "mpv --rtsp-transport=udp --no-cache --untimed --video-sync=display-resample --deinterlace=no --profile=low-latency --demuxer-max-bytes=1M --demuxer-max-back-bytes=1M rtsp://admin:Lab188b37@10.0.1.100:554/h264Preview_01_main";
 
           }
         ];
