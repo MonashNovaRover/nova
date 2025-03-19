@@ -10,6 +10,7 @@ in pkgs.mkShell {
   ];
   shellHook = ''
     alias predict="python3 ~/nova/src/other/ilmenite_ml/predict_ilmenite.py"
+    alias predict-cpu="python3 ~/nova/src/other/ilmenite_ml/predict_ilmenite_cpu.py"
   '';
 }
 
