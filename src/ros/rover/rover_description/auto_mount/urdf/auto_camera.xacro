@@ -4,7 +4,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
 <!-- Auto mount is also appended to the top, however it has no simplified collisions -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
   <xacro:macro name="auto_cam" params="angle">
-    <!-- Auto Mount start -->
+  
     <link name="clam">
         <inertial>
             <origin xyz="3.7286529733e-03 5.0083863736e-02 6.6873566534e-02" rpy="0 0 0" />
@@ -130,10 +130,9 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         <axis xyz="0 0 1" />
         <limit effort="10" velocity="10" />
     </joint>
-    <!-- Auto Mount stop -->
 
     <link name="camera_link"/>
-    <link name="bootie_link"/> <!-- KABI OR SOMEONE ADD BOOTIE CAM GAZEBO SENSORS!!! -->
+    <link name="bootie_link"/>
 
     <joint name="oak_to_mount" type="fixed">
       <origin xyz="-0.120 0.004 0.039" rpy="1.5708 0 3.14159" />
@@ -177,6 +176,8 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
       cam_yaw="0.0"
     />
 
+    <!-- EVERYTHING BELOW IS FOR SENSOR PLUGINS! REMOVE IF CAUSING PROBLEMS IRL -->
+
     <link name="camera_link_optical"/>
 
     <joint name="camera_optical_joint" type="fixed">
@@ -184,6 +185,66 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
       <parent link="camera_link"/>
       <child link="camera_link_optical"/>
     </joint>
+
+    <link name="bootie_link_optical"/>
+
+    <joint name="bootie_optical_joint" type="fixed">
+      <origin xyz="0.0 0 0.0" rpy="${-pi/2} 0 ${-pi/2}"/>
+      <parent link="bootie_link"/>
+      <child link="bootie_link_optical"/>
+    </joint>
+
+    <!-- Oak Depth Camera for Gazebo-->
+    <gazebo reference="camera_link">
+      <sensor name="oak" type="rgbd_camera">
+        <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
+          <frame_name>camera_link_optical</frame_name>
+        </plugin>
+        <gz_frame_id>camera_link_optical</gz_frame_id>
+        <optical_frame_id>camera_link</optical_frame_id>
+        <topic>oak</topic>
+        <visualize>true</visualize>
+        <update_rate>30</update_rate>
+        <always_on>1</always_on>
+        <camera name="oak">
+          <horizontal_fov>${radians(82)}</horizontal_fov>
+          <image>
+            <width>1280</width>
+            <height>900</height>
+          </image>
+          <clip>
+            <near>0.4</near>
+            <far>10.0</far>
+          </clip>
+        </camera>
+      </sensor>
+    </gazebo> 
+
+    <!-- Bootie Depth Camera for Gazebo-->
+    <gazebo reference="bootie_link">
+      <sensor name="bootie" type="rgbd_camera">
+        <!-- <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
+          <frame_name>bootie_link_optical</frame_name>
+        </plugin> -->
+        <gz_frame_id>bootie_link_optical</gz_frame_id>
+        <optical_frame_id>bootie_link</optical_frame_id>
+        <topic>bootie</topic>
+        <visualize>true</visualize>
+        <update_rate>30</update_rate>
+        <always_on>1</always_on>
+        <camera name="bootie">
+          <horizontal_fov>${radians(82)}</horizontal_fov>
+          <image>
+            <width>1280</width>
+            <height>900</height>
+          </image>
+          <clip>
+            <near>0.4</near>
+            <far>10.0</far>
+          </clip>
+        </camera>
+      </sensor>
+    </gazebo>
 
   </xacro:macro>
 </robot>
