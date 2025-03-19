@@ -17,7 +17,7 @@ RUN ON: Rover
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 AUTHOR(S):	Tristan Clark, Felicity Matthews, Brandon Chung
 CREATION:	02/02/2024
-EDITED:		16/03/2025
+EDITED:		19/03/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
@@ -85,7 +85,7 @@ class TilePlacerNode(JoystickControllerNode):
         # check if tile placer is moving
         self.twitching = 0
 
-        # self.velocity_multiplier = 0.00 # May be deleted
+        self.velocity_multiplier = 0.00
 
         self.timer_jcan = self.create_timer(0.05, self.callback_send_can_commands)
         self.start_can()
@@ -125,16 +125,28 @@ class TilePlacerNode(JoystickControllerNode):
 
     def update_tile_placer(self, joystick_r: InputJoystick):
         # State 1 is when button is first pressed
-        if joystick_r.btn_thumb_l_state == 1 and self.twitching <= 0:
-            self.get_logger().debug("Twitching Tile Placer UP")
-            self.tile_placer.update_direction(self.TILE_PLACER_UP)
-            self.tile_placer.update_velocity(self.TILE_PLACER_MAX_VELOCITY)
-            self.twitching += 1
-        elif joystick_r.btn_thumb_r_state == 1 and self.twitching <= 0:
-            self.get_logger().debug("Twitching Tile Placer DOWN")
-            self.tile_placer.update_direction(self.TILE_PLACER_DOWN)
-            self.tile_placer.update_velocity(self.TILE_PLACER_MAX_VELOCITY)
-            self.twitching += 1
+        if joystick_r.btn_thumb_l_state == 1:
+            if self.velocity_multiplier < 1:
+                self.get_logger().debug("Precise Tile Placer UP")
+                self.tile_placer.update_direction(self.TILE_PLACER_UP)
+                self.tile_placer.update_velocity(self.velocity_multiplier)
+                self.twitching = 0
+            elif self.twitching <= 0:
+                self.get_logger().debug("Twitching Tile Placer UP")
+                self.tile_placer.update_direction(self.TILE_PLACER_UP)
+                self.tile_placer.update_velocity(self.TILE_PLACER_MAX_VELOCITY)
+                self.twitching += 1
+        elif joystick_r.btn_thumb_r_state == 1:
+            if self.velocity_multiplier < 1:
+                self.get_logger().debug("Precise Tile Placer DOWN")
+                self.tile_placer.update_direction(self.TILE_PLACER_DOWN)
+                self.tile_placer.update_velocity(self.velocity_multiplier)
+                self.twitching = 0
+            elif self.twitching <= 0:
+                self.get_logger().debug("Twitching Tile Placer DOWN")
+                self.tile_placer.update_direction(self.TILE_PLACER_DOWN)
+                self.tile_placer.update_velocity(self.TILE_PLACER_MAX_VELOCITY)
+                self.twitching += 1
         elif self.twitching > 0:
             pass
         else:
@@ -142,12 +154,11 @@ class TilePlacerNode(JoystickControllerNode):
 
     def joystick_l(self, joystick_l: InputJoystick):
         """
-        Legacy stub. May be deleted
+        Updates the classes internal msg state
         :param joystick_l: input_interfaces.msg.RoverPose message from the subscriber callback
         :return: None
         """
-        #self.velocity_multiplier = abs(joystick_l.ax_slider)
-        pass
+        self.velocity_multiplier = abs(joystick_l.ax_slider)
 
     def joystick_r(self, joystick_r: InputJoystick):
         """
