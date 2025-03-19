@@ -693,4 +693,7 @@ self: super:
   );
 
   # Overlays for non-ROS packages
+  cudaPackages = super.cudaPackages // {
+    nvidia-optical-flow-sdk = super.nvidia-optical-flow-sdk;
+  };
 }
