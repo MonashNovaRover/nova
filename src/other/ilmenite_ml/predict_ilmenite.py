@@ -31,7 +31,7 @@ class ResNetRegression(nn.Module):
         return self.model(x)
 
 model = ResNetRegression().to(DEVICE)
-model.load_state_dict(torch.load(MODEL_PATH), map_location=DEVICE)
+model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
 model.eval()
 
 # ==== DATA LOADING & TRANSFORM ==== 
