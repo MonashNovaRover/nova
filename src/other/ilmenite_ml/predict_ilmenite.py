@@ -10,7 +10,7 @@ import sys
 # ==== CONFIGURATION ==== 
 MODEL_PATH = '/home/nova/nova/src/other/ilmenite_ml/models/best_model.pth'
 # First argument is path to use for data
-DATA_DIR = "./" if len(sys.argv) <= 1 else sys.argv[1]
+DATA_DIR = "/home/nova/nova/src/other/ilmenite_ml/images" if len(sys.argv) <= 1 else sys.argv[1]
 IMG_SIZE = 224
 BATCH_SIZE = 16
 RESNET_MODEL = 18
@@ -31,7 +31,7 @@ class ResNetRegression(nn.Module):
         return self.model(x)
 
 model = ResNetRegression().to(DEVICE)
-model.load_state_dict(torch.load(MODEL_PATH))
+model.load_state_dict(torch.load(MODEL_PATH), map_location=DEVICE)
 model.eval()
 
 # ==== DATA LOADING & TRANSFORM ==== 
