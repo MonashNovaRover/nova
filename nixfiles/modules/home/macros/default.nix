@@ -142,7 +142,6 @@ in
             nix-enable = "sudo systemctl enable nix-daemon.service";
             nix-start = "sudo systemctl start nix-daemon.service";
             reolink = "~/nova/nixfiles/modules/home/macros/reolink.sh"; # TODO: fix this so it works like can.sh
-            reolink-ctl = "~/reolink-ctl/bin/reolink-ctl || echo please run 'nix-build ~/nova/nixfiles/packages/other/reolink -o ~/reolink-ctl', then try again. sorry this is not set up well yet"; # TODO: fix this as well...
 
           }
         ];
