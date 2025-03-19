@@ -42,7 +42,11 @@ transform = transforms.Compose([
 ])
 
 # Load the images from the directory
-image_paths = [os.path.join(DATA_DIR, f) for f in os.listdir(DATA_DIR) if os.path.isfile(os.path.join(DATA_DIR, f))]
+image_paths = [
+    os.path.join(DATA_DIR, f)
+    for f in os.listdir(DATA_DIR)
+    if os.path.isfile(os.path.join(DATA_DIR, f)) and not f.endswith((".md", ".gitkeep"))
+]
 
 # Function to predict on all images
 def predict_all_images(model, image_paths, transform):
