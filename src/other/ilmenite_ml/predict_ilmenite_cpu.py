@@ -1,3 +1,4 @@
+import argparse
 import torch
 import torch.nn as nn
 import numpy as np
@@ -8,13 +9,27 @@ from PIL import Image
 import sys
 
 # ==== CONFIGURATION ==== 
-MODEL_PATH = '/home/nova/nova/src/other/ilmenite_ml/models/best_model.pth'
-# First argument is path to use for data
-DATA_DIR = "./" if len(sys.argv) <= 1 else sys.argv[1]
 IMG_SIZE = 224
 BATCH_SIZE = 16
-RESNET_MODEL = 18
+
+# ==== PARSE ARGUMENTS ==== 
+parser = argparse.ArgumentParser(description="Ilmenite Machine Learning Model")
+parser.add_argument("--model-path", type=str, default="/home/nova/nova/src/other/ilmenite_ml/models/best_model.pth", help="Path to the model file (.pth)")
+parser.add_argument("--data-path", type=str, default="/home/nova/nova/src/other/ilmenite_ml/images", help="Path to the directory containing input images")
+#parser.add_argument("--device", type=str, choices=["cpu", "cuda"], default="cuda" if torch.cuda.is_available() else "cpu", help="Device to run predictions on (cuda or cpu)")
+parser.add_argument("--resnet-model", type=int, choices=[18, 34], default=18, help="ResNet model (18 or 34)")
+args = parser.parse_args()
+
+# ==== ARGUMENT VARIABLES ====
+MODEL_PATH = args.model_path
+DATA_DIR = args.data_dir
 DEVICE = torch.device("cpu")
+RESNET_MODEL = args.resnet_model
+
+print(f"MODEL_PATH: {MODEL_PATH}")
+print(f"DATA_PATH: {DATA_DIR}")
+print(f"DEVICE: {DEVICE}")
+print(f"RESNET_MODEL: ResNet-{RESNET_MODEL}")
 
 # ==== LOAD MODEL ==== 
 class ResNetRegression(nn.Module):
@@ -31,7 +46,7 @@ class ResNetRegression(nn.Module):
         return self.model(x)
 
 model = ResNetRegression().to(DEVICE)
-model.load_state_dict(torch.load(MODEL_PATH))
+model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
 model.eval()
 
 # ==== DATA LOADING & TRANSFORM ==== 
@@ -42,7 +57,11 @@ transform = transforms.Compose([
 ])
 
 # Load the images from the directory
-image_paths = [os.path.join(DATA_DIR, f) for f in os.listdir(DATA_DIR) if os.path.isfile(os.path.join(DATA_DIR, f))]
+image_paths = [
+    os.path.join(DATA_DIR, f)
+    for f in os.listdir(DATA_DIR)
+    if os.path.isfile(os.path.join(DATA_DIR, f)) and not f.endswith((".md", ".gitkeep"))
+]
 
 # Function to predict on all images
 def predict_all_images(model, image_paths, transform):
