@@ -6,7 +6,7 @@ set -euo pipefail
 if which ffplay 2>/dev/null; then
   :
 else
-  echo "Please run me in a \`nix-shell -p ffmepg\`"
+  echo "Please run me in a \`nix-shell -p ffmpeg\`"
   exit 1
 fi
 
