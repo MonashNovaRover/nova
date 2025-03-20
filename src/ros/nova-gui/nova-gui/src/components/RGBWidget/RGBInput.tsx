@@ -1,11 +1,8 @@
-import React, {useCallback, useEffect, useState} from "react";
-import {Card, CardHeader, CardProps, Input} from "@nextui-org/react";
+import React, {useCallback, useState} from "react";
+import {Button, Card, CardHeader, CardProps, Input} from "@nextui-org/react";
 import {SubCardLabel} from "../shared/Labels";
 import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../ros/services/rosService.ts";
-import { useSelector } from "react-redux";
-import { RootState } from "../../redux/RootState";
-
 
 interface RGBInputWidgetProps extends CardProps {}
 
@@ -15,10 +12,6 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
     const [b, setB] = useState("0");
 
     const serviceBifrost = useBifrost({service: RosService.RGBInput});
-
-    const rgbServiceResponse = useSelector(
-        (state: RootState) => state.RGBInputStore
-    )
 
     const sendRGBValues = useCallback(() => {
         try{
@@ -31,7 +24,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                 return;
             }
 
-            serviceBifrost.callServiceToRedux(
+            serviceBifrost.callService(
                 {r:rValue, g:gValue, b:bValue},
                 {noErrorToast: false, responseToast:true},
             );
@@ -55,15 +48,11 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
         if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setB(value);
     }, []);
 
-    useEffect(() => {
-        sendRGBValues();
-    }, [r,g,b,sendRGBValues]);
-
     const colorPreview = `rgb(${r || 0}, ${g || 0}, ${b || 0})`;
 
     return (
         <Card {...props} className="space-y-3 p-3">
-            <CardHeader className="text-h1 p-0">RGB Color  Input</CardHeader>
+            {/*<CardHeader className="text-h1 p-0">RGB Color  Input</CardHeader>*/}
             <Card className="space-y-3 p-3 bg-content2" shadow="sm">
                 {/*<SubCardLabel>RGB VALUES</SubCardLabel>*/}
                 <div className="flex gap-5">
@@ -118,6 +107,9 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                     </span>
                 </div>
             </Card>
+            <Button onClick={sendRGBValues} color="primary">
+                Set LEDs
+            </Button>
         </Card>
     );
 };
