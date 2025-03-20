@@ -10,6 +10,7 @@ in
         favorite-apps = [
           "org.gnome.Nautilus.desktop"
           "com.mitchellh.ghostty.desktop"
+          "org.gnome.Ptyxis.desktop"
         ]
         ++ lib.optional config.nova.desktop.browser.enable "chromium-browser.desktop"
         ++ [
