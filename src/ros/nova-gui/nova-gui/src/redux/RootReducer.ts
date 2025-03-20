@@ -115,13 +115,6 @@ export const reduxStores = {
     }
   ),
 
-  RGBInputStore: createBifrostStore(
-    { service: RosService.RGBInput },
-    {
-        success: true,
-    }
-  ),
-
   // Science Reduceers
   // Science Reducers
   kilnData: createBifrostStore(
