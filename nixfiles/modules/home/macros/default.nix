@@ -144,6 +144,9 @@ in
             nix-enable = "sudo systemctl enable nix-daemon.service";
             nix-start = "sudo systemctl start nix-daemon.service";
 
+            # Ilmenite ml
+            predict-shell = "nix-shell ~/nova/src/other/ilmenite_ml";
+
           }
         ];
 
