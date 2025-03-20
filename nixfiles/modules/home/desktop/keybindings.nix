@@ -10,7 +10,7 @@ in
         keybinds = {
           terminal = {
             name = "Terminal";
-            command = "ghostty";
+            command = "ptyxis";
             binding = "<Control><Alt>t";
           };
         };
