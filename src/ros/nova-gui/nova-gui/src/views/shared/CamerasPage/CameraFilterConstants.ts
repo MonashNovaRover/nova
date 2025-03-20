@@ -23,6 +23,13 @@ export const defaultCamFilters: { [key: string]: CameraFilters } = {
     contrast: 100,
     brightness: 100,
   },
+  arm_end_periscope: {
+    flipCamera: true,
+    invertCamera: false,
+    rotation: 0,
+    contrast: 100,
+    brightness: 100,
+  },
   "science_kiln": {
     flipCamera: false,
     invertCamera: false,
@@ -34,6 +41,13 @@ export const defaultCamFilters: { [key: string]: CameraFilters } = {
     flipCamera: false,
     invertCamera: false,
     rotation: 0,
+    contrast: 100,
+    brightness: 100,
+  },
+  mast_forward: {
+    flipCamera: false,
+    invertCamera: false,
+    rotation: 180,
     contrast: 100,
     brightness: 100,
   },
