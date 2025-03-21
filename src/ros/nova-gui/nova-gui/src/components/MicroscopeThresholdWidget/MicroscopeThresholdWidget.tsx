@@ -214,7 +214,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Card className="z-0">
+      <Card className="z-0" shadow="none">
         <CardBody className="flex flex-col gap-3 overflow-hidden">
           <div className="flex flex-row">
             <div className="grow justify-self-stretch text-left col-span-3">Microscope Thresholding</div>
