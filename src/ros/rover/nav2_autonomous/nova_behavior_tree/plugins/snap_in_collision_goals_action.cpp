@@ -63,17 +63,25 @@ namespace nova_behavior_tree
         getInput("max_snap_radius", max_snap_radius_);
         getInput("update_radius", update_radius_);
 
-        // subscribe to the global costmap occupancy grid
-        occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
+        // subscribe to local and global costmaps' occupancy grids
+        local_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
+            "/local_costmap/costmap", 1,
+            [this](const OccupancyGrid::SharedPtr msg) -> void
+            {
+                local_occu_grid_ = msg;
+                RCLCPP_INFO(node_->get_logger(), "Received local costmap");
+            }
+        );
+        global_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
             "/global_costmap/costmap", 1,
             [this](const OccupancyGrid::SharedPtr msg) -> void
             {
-                occu_grid_ = msg;
+                global_occu_grid_ = msg;
                 RCLCPP_INFO(node_->get_logger(), "Received global costmap");
             }
         );
 
-        wait_for_occu_grid();
+        wait_for_occu_grids();
 
         // get footprint radius
         if (!node_->get_parameter_or("local_costmap.local_costmap.ros__parameters.robot_radius", footprint_radius_, 0.85))
@@ -110,9 +118,9 @@ namespace nova_behavior_tree
             toward_points_.push_back(toward_point);
         }
 
-        if (!occu_grid_)
+        if (!local_occu_grid_ || !global_occu_grid_)
         {
-            wait_for_occu_grid();
+            wait_for_occu_grids();
         }
 
         RCLCPP_INFO(node_->get_logger(), "SnapInCollisionGoalsAction successfully set up!");
@@ -133,18 +141,18 @@ namespace nova_behavior_tree
             setup();
         }
 
-        // at this point, we should already have the occupancy grid
+        // at this point, we should already have the occupancy grids
         // however, this is just a safeguard
-        if (!occu_grid_)
+        if (!local_occu_grid_ || !global_occu_grid_)
         {
-            wait_for_occu_grid();
+            wait_for_occu_grids();
         }
         
         getInput("cube_goal_entries", cube_goal_entries_);
         getInput("input_goals", input_goals_);
 
         update_toward_points();
-        // this is necessary to receive updates on the occupancy grid
+        // this is necessary to receive updates on the occupancy grids
         rclcpp::spin_some(node_);
 
         // snap!
@@ -156,18 +164,18 @@ namespace nova_behavior_tree
         return BT::NodeStatus::FAILURE;
     }
 
-    void SnapInCollisionGoalsAction::wait_for_occu_grid()
+    void SnapInCollisionGoalsAction::wait_for_occu_grids()
     {
         // measure time to initialize
         auto start = std::chrono::high_resolution_clock::now();
-        while (!occu_grid_)
+        while (!local_occu_grid_ || !global_occu_grid_)
         {
             rclcpp::spin_some(node_);
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
         auto end = std::chrono::high_resolution_clock::now();
         RCLCPP_INFO(
-            node_->get_logger(), "SnapInCollisionGoalsAction waited %.2fms for the occupancy grid",
+            node_->get_logger(), "SnapInCollisionGoalsAction waited %.2fms for occupancy grids",
             std::chrono::duration<double, std::milli>(end - start).count()
         );
     }
@@ -247,7 +255,7 @@ namespace nova_behavior_tree
             if (result.search_radius > 0)
             {
                 Point original_pos = goal.pose.position;
-                goal.pose.position = grid_cell_to_world(result.cell);
+                goal.pose.position = grid_cell_to_world(result.cell, global_occu_grid_);
                 // reorient to corresponding toward point
                 utils::nav2::orientTowards(goal.pose, toward_points_[i]);
     
@@ -284,15 +292,15 @@ namespace nova_behavior_tree
      */
     SearchResult SnapInCollisionGoalsAction::find_nearest_free_cell(const Point &origin)
     {
-        GridCell center = world_to_grid_cell(origin);
+        GridCell global_cell = world_to_grid_cell(origin, global_occu_grid_);
 
         // search for the nearest free cell in a spiral pattern
         std::array<int, 2> directions[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
-        int max_radius = std::ceil(max_snap_radius_ / occu_grid_->info.resolution);
+        int max_radius = std::ceil(max_snap_radius_ / (*global_occu_grid_).info.resolution);
         for (int r = 0; r < max_radius; ++r)
         {
-            int x = center.x - r;
-            int y = center.y - r;
+            int x = global_cell.x - r;
+            int y = global_cell.y - r;
             if (is_area_free({x, y}))
             {
                 return {{x, y}, true, r};
@@ -312,7 +320,7 @@ namespace nova_behavior_tree
             }
         }
 
-        return {center, false, max_radius};
+        return {global_cell, false, max_radius};
     }
 
     /**
@@ -338,7 +346,7 @@ namespace nova_behavior_tree
             return false;
         }
 
-        int radius = std::ceil(footprint_radius_ / occu_grid_->info.resolution);
+        int radius = std::ceil(footprint_radius_ / (*global_occu_grid_).info.resolution);
         int side = 2*radius + 1;
         std::vector<bool> visited(side * side, false);
         auto mark_visited = [&](int x, int y)
@@ -420,19 +428,31 @@ namespace nova_behavior_tree
     }
 
     /**
-     * @brief Check if a cell is free in the occupancy grid
+     * @brief Check if a cell is free in both the local and global occupancy grids
+     * 
+     * @param global_cell A cell with reference to the global occupancy grid
+     */
+    bool SnapInCollisionGoalsAction::is_cell_free(const GridCell &global_cell)
+    {
+        GridCell local_cell = world_to_grid_cell(grid_cell_to_world(global_cell, global_occu_grid_), local_occu_grid_);
+        return is_cell_free(global_cell, global_occu_grid_) && is_cell_free(local_cell, local_occu_grid_);
+    }
+
+    /**
+     * @brief Check if a cell is free in a given occupancy grid
      * 
      * @param cell A cell with reference to the occupancy grid
+     * @param grid The occupancy grid to check
      */
-    bool SnapInCollisionGoalsAction::is_cell_free(const GridCell &cell)
+    bool SnapInCollisionGoalsAction::is_cell_free(const GridCell &cell, const OccupancyGrid::SharedPtr &grid)
     {
-        if (cell.x < 0 || cell.x >= static_cast<int>(occu_grid_->info.width) ||
-            cell.y < 0 || cell.y >= static_cast<int>(occu_grid_->info.height))
+        if (cell.x < 0 || cell.x >= static_cast<int>((*grid).info.width) ||
+            cell.y < 0 || cell.y >= static_cast<int>((*grid).info.height))
         {
             return true; // treat out-of-bounds cells as free
         }
-        int index = cell.y * occu_grid_->info.width + cell.x;
-        return occu_grid_->data[index] <= 0;
+        int index = cell.y * (*grid).info.width + cell.x;
+        return (*grid).data[index] <= 0;
     }
 
     /**
@@ -441,11 +461,11 @@ namespace nova_behavior_tree
      * @param point The point to convert
      * @param grid The occupancy grid to use for conversion
      */
-    GridCell SnapInCollisionGoalsAction::world_to_grid_cell(const Point &point)
+    GridCell SnapInCollisionGoalsAction::world_to_grid_cell(const Point &point, const OccupancyGrid::SharedPtr &grid)
     {
         GridCell cell;
-        cell.x = static_cast<int>(std::round((point.x - occu_grid_->info.origin.position.x) / occu_grid_->info.resolution));
-        cell.y = static_cast<int>(std::round((point.y - occu_grid_->info.origin.position.y) / occu_grid_->info.resolution));
+        cell.x = static_cast<int>(std::round((point.x - (*grid).info.origin.position.x) / (*grid).info.resolution));
+        cell.y = static_cast<int>(std::round((point.y - (*grid).info.origin.position.y) / (*grid).info.resolution));
         return cell;
     }
 
@@ -455,11 +475,11 @@ namespace nova_behavior_tree
      * @param cell The cell to convert
      * @param grid The occupancy grid the cell is in
      */
-    Point SnapInCollisionGoalsAction::grid_cell_to_world(const GridCell &cell)
+    Point SnapInCollisionGoalsAction::grid_cell_to_world(const GridCell &cell, const OccupancyGrid::SharedPtr &grid)
     {
         Point point;
-        point.x = occu_grid_->info.origin.position.x + (cell.x * occu_grid_->info.resolution);
-        point.y = occu_grid_->info.origin.position.y + (cell.y * occu_grid_->info.resolution);
+        point.x = (*grid).info.origin.position.x + (cell.x * (*grid).info.resolution);
+        point.y = (*grid).info.origin.position.y + (cell.y * (*grid).info.resolution);
         return point;
     }
 
