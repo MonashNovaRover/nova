@@ -263,6 +263,7 @@ export const reduxStores = {
   siteData: createGenericStore("siteData", initialSiteDataState),
   nirProbeCalibrationData: createGenericStore("nirProbeCalibrationData", DEFAULT_NIR_PROBE_CALIBRATION_DATA),
   counter: createGenericStore("counter", 0),
+  scimbalStepSize: createGenericStore("scimbalStepSize", "1"),
 };
 
 // all store reducers

@@ -90,6 +90,7 @@ export interface RootState {
   siteData: GenericStoreState<SiteDataState>;
   nirProbeCalibrationData: GenericStoreState<NIRProbeCalibrationData>
   counter: GenericStoreState<number>;
+  scimbalStepSize : GenericStoreState<string>;
 
   batteryStore: IRosSensorMsgsBatteryState;
 }
