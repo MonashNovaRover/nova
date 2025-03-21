@@ -124,29 +124,26 @@ class TilePlacerNode(JoystickControllerNode):
         self.twitching = 0
 
     def update_tile_placer(self, joystick_r: InputJoystick):
+        # State over or equal to 1 means button is clicked or being clicked
+        if joystick_r.btn_thumb_l_state >= 1 and self.velocity_multiplier < 1:
+            self.get_logger().debug("Precise Tile Placer UP")
+            self.tile_placer.update_direction(self.TILE_PLACER_UP)
+            self.tile_placer.update_velocity(self.velocity_multiplier)
+        elif joystick_r.btn_thumb_r_state >= 1 and self.velocity_multiplier < 1:
+            self.get_logger().debug("Precise Tile Placer DOWN")
+            self.tile_placer.update_direction(self.TILE_PLACER_DOWN)
+            self.tile_placer.update_velocity(self.velocity_multiplier)
         # State 1 is when button is first pressed
-        if joystick_r.btn_thumb_l_state == 1:
-            if self.velocity_multiplier < 1:
-                self.get_logger().debug("Precise Tile Placer UP")
-                self.tile_placer.update_direction(self.TILE_PLACER_UP)
-                self.tile_placer.update_velocity(self.velocity_multiplier)
-                self.twitching = 0
-            elif self.twitching <= 0:
-                self.get_logger().debug("Twitching Tile Placer UP")
-                self.tile_placer.update_direction(self.TILE_PLACER_UP)
-                self.tile_placer.update_velocity(self.TILE_PLACER_MAX_VELOCITY)
-                self.twitching += 1
-        elif joystick_r.btn_thumb_r_state == 1:
-            if self.velocity_multiplier < 1:
-                self.get_logger().debug("Precise Tile Placer DOWN")
-                self.tile_placer.update_direction(self.TILE_PLACER_DOWN)
-                self.tile_placer.update_velocity(self.velocity_multiplier)
-                self.twitching = 0
-            elif self.twitching <= 0:
-                self.get_logger().debug("Twitching Tile Placer DOWN")
-                self.tile_placer.update_direction(self.TILE_PLACER_DOWN)
-                self.tile_placer.update_velocity(self.TILE_PLACER_MAX_VELOCITY)
-                self.twitching += 1
+        elif joystick_r.btn_thumb_l_state == 1 and self.twitching <= 0:
+            self.get_logger().debug("Twitching Tile Placer UP")
+            self.tile_placer.update_direction(self.TILE_PLACER_UP)
+            self.tile_placer.update_velocity(self.TILE_PLACER_MAX_VELOCITY)
+            self.twitching += 1
+        elif joystick_r.btn_thumb_r_state == 1 and self.twitching <= 0:
+            self.get_logger().debug("Twitching Tile Placer DOWN")
+            self.tile_placer.update_direction(self.TILE_PLACER_DOWN)
+            self.tile_placer.update_velocity(self.TILE_PLACER_MAX_VELOCITY)
+            self.twitching += 1
         elif self.twitching > 0:
             pass
         else:
