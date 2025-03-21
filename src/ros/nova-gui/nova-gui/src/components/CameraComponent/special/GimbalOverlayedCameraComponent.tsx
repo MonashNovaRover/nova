@@ -1,18 +1,19 @@
-
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
 import OverlayedCameraComponent from "./OverlayedCameraComponent.tsx";
 import {BaseCameraComponentProps} from "../CameraComponent.tsx";
 import {StreamingState} from "../hooks/useCameraStream.ts";
-import {Tooltip} from "@nextui-org/react";
+import {Input, Tooltip} from "@nextui-org/react";
+import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 
 export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> = (props) => {
   const [showOverlay, setShowOverlay] = useState<boolean>(false)
 
   // Default step size for incrementing angles
-  const [step, setStep] = useState(1);
-  const [inputValue, setInputValue] = React.useState("1");
+  const [step, setStep] = useGenericStore<string>("scimbalStepSize");
+  const stepNumber = useMemo(() => parseInt(step),[step]);
+
 
   const serviceBifrost = useBifrost({service: RosService.SCIMBAL_COMMAND});
   const incrementTilt = useCallback((step: number) => serviceBifrost.callServiceToRedux({
@@ -31,16 +32,16 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
     window.addEventListener('keyup', (e) => {
       switch (e.key) {
         case 'a':
-          incrementPan(-step)
+          incrementPan(-stepNumber)
           break
         case 'd':
-          incrementPan(step)
+          incrementPan(stepNumber)
           break
         case 'w':
-          incrementTilt(step)
+          incrementTilt(stepNumber)
           break
         case 's':
-          incrementTilt(-step)
+          incrementTilt(-stepNumber)
           break
         default:
           break
@@ -48,38 +49,35 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
     });
   }, [incrementPan, incrementTilt, step]);
 
+  const stepSizeInput = (
+      <>
+        <Tooltip
+            className="text-tiny text-default-500 rounded-md"
+            content="Press Enter to confirm"
+            placement="right"
+            key={"Step Size"}
+        >
+          <Input
+              aria-label="Temperature value"
+              label= "Step size"
+              labelPlacement= "inside"
+              className=""
+              type= "number"
+              value={step}
+              onValueChange={setStep}
+          />
+        </Tooltip>
+      </>
+  )
+
   return (
     <div>
       <OverlayedCameraComponent
         onStreamingStateChange={(s) => setShowOverlay(s === StreamingState.STREAMING)}
         {...props}
         overlay={showOverlay ? <div className="self-center grow h-0.5 bg-black"/> : <div/>}
-
+        settingsFormChildren={stepSizeInput}
       />
-
-      Step Size:
-      <Tooltip
-        className="text-tiny text-default-500 rounded-md"
-        content="Press Enter to confirm"
-        placement="left"
-      >
-        <input
-          aria-label="Temperature value"
-          className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
-          type="text"
-          value={inputValue}
-          onChange={(e) => {
-            const v = e.target.value;
-
-            setInputValue(v);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !isNaN(Number(inputValue))) {
-              setStep(Number(inputValue));
-            }
-          }}
-        />
-      </Tooltip>
       <p id="demoCoords"></p>
     </div>
   );
