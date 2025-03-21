@@ -1,4 +1,20 @@
 #!/usr/bin/env python3
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+Handles the RGB values sent over ROS to the canbus.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: led_strip
+SERVICES:
+    - /nova_interfaces/srv/RGBInput.srv          [server]
+ACTIONS: None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:        electronics
+AUTHOR(S):      Matthew Hee
+CREATION:       18/03/2025
+EDITED:         18/03/2025
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 
 import rclpy, jcan
 from python_control.ControllerNode import ControllerNode

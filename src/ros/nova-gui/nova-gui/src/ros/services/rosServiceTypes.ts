@@ -8,8 +8,6 @@ import {
   IRosStdSrvsTriggerResponse,
   IRosNovaInterfacesKilnCommandRequest,
   IRosNovaInterfacesKilnCommandResponse,
-  IRosNovaInterfacesSetNirProbeLedRequest,
-  IRosNovaInterfacesSetNirProbeLedResponse,
   IRosNovaInterfacesRamanSpecRequest,
   IRosNovaInterfacesRamanSpecResponse,
   IRosNovaInterfacesRamanMechRequest,
@@ -23,7 +21,8 @@ import {
   IRosNovaInterfacesTakeNirProbeReadingResponse,
   IRosNovaInterfacesCacheCommandRequest,
   IRosNovaInterfacesCacheCommandResponse,
-
+  IRosNovaInterfacesRgbInputRequest,
+  IRosNovaInterfacesRgbInputResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 

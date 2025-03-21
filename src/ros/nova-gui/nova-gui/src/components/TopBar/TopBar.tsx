@@ -146,14 +146,6 @@ export const NovaTopBar: React.FC = () => {
             <BatteryWidget />
           </Button>
         </NavbarItem>
-        {/*<NavbarItem className="">*/}
-        {/*  <Button*/}
-        {/*      radius="sm"*/}
-        {/*      size="sm"*/}
-        {/*  >*/}
-        {/*    <RGBInputModal />*/}
-        {/*  </Button>*/}
-        {/*</NavbarItem>*/}
         <NavbarItem className="">
           <>
             <RGBInputModal />
