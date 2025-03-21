@@ -9,7 +9,8 @@ import {ThresholdingFileEntry} from "../../../components/MicroscopeThresholdWidg
 export interface SiteData {
   siteType: SpaceResourcesSiteType,
   spaceResourcesEntries: ISpaceResourcesEntries,
-  thresholdingEntries: ThresholdingFileEntry[]
+  thresholdingEntries: ThresholdingFileEntry[],
+  MLOutput: string,
 }
 
 export interface SiteDataState {
@@ -23,7 +24,8 @@ export interface SiteDataState {
 const EMPTY_SITE_DATA: SiteData = {
   siteType: SpaceResourcesSiteType.WATER,
   spaceResourcesEntries: {1: [], 2: []},
-  thresholdingEntries: []
+  thresholdingEntries: [],
+  MLOutput: "",
 };
 
 export const initialSiteDataState: SiteDataState = {
