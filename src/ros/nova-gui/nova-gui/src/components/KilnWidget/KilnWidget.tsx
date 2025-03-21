@@ -16,7 +16,7 @@ interface KilnWidgetProps extends CardProps {
 }
 
 const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
-  const [maxTemp, setMaxTemp] = useState(130);
+  const [maxTemp, setMaxTemp] = useState(150);
   const [goalTemp, setGoalTemp] = useState<number>(25);
   const [inputGoalTemp, setInputGoalTemp] = useState<string>("25");
 

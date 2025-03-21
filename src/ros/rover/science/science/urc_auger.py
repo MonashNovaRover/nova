@@ -49,8 +49,8 @@ class URCAuger(JoystickControllerNode):
     # Add any CONTROL DIRECTIONS here
     AUGER_ACTUATION_UP = Direction.NEGATIVE
     AUGER_ACTUATION_DOWN = Direction.POSITIVE
-    AUGER_DRILL_CLOCKWISE = Direction.NEGATIVE
-    AUGER_DRILL_COUNTERCLOCKWISE = Direction.POSITIVE
+    AUGER_DRILL_CLOCKWISE = Direction.POSITIVE
+    AUGER_DRILL_COUNTERCLOCKWISE = Direction.NEGATIVE
 
     def __init__(self):
         super(URCAuger, self).__init__(name="URCAuger", can_bus=self.CAN_BUS)

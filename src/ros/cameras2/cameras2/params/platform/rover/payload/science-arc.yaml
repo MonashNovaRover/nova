@@ -2,4 +2,4 @@ camera_directory:
   ros__parameters:
     serial_overrides:
       roots:
-        science_arc: platform-3530000.xhci-usb-0:3
+        science-arc: platform-3530000.xhci-usb-0:3
