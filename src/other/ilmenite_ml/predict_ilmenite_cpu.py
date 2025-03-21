@@ -15,14 +15,14 @@ BATCH_SIZE = 16
 # ==== PARSE ARGUMENTS ==== 
 parser = argparse.ArgumentParser(description="Ilmenite Machine Learning Model")
 parser.add_argument("--model-path", type=str, default="/home/nova/nova/src/other/ilmenite_ml/models/best_model.pth", help="Path to the model file (.pth)")
-parser.add_argument("--data-path", type=str, default="/home/nova/nova/src/other/ilmenite_ml/images", help="Path to the directory containing input images")
+parser.add_argument("--data", type=str, default="./", help="Path to the directory containing input images")
 #parser.add_argument("--device", type=str, choices=["cpu", "cuda"], default="cuda" if torch.cuda.is_available() else "cpu", help="Device to run predictions on (cuda or cpu)")
 parser.add_argument("--resnet-model", type=int, choices=[18, 34], default=18, help="ResNet model (18 or 34)")
 args = parser.parse_args()
 
 # ==== ARGUMENT VARIABLES ====
 MODEL_PATH = args.model_path
-DATA_DIR = args.data_dir
+DATA_DIR = args.data
 DEVICE = torch.device("cpu")
 RESNET_MODEL = args.resnet_model
 
