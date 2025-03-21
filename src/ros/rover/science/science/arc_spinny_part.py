@@ -59,10 +59,14 @@ class SpinnyPartNode(JoystickControllerNode):
     # Offset variables
     MAX_OFFSET = 60
     MIN_OFFSET = -60
+    OFFSET_STEP = 1
+    OFFSET_STEP_PARAM = "offset_step"
 
     def __init__(self):
         super().__init__(name="SpinnyPartNode", can_bus=self.CAN_BUS)
         logger = self.get_logger()
+
+        self.declare_parameter(self.OFFSET_STEP_PARAM, self.OFFSET_STEP)
 
         ## Create CONTROLS
         self.spinny_part = OneAxisPositionControl(
@@ -84,6 +88,7 @@ class SpinnyPartNode(JoystickControllerNode):
 
         ## Add the CONTROLLERS to the node's controllers
         self.add_controller(self.SPIN_CONTROL_NAME, self.spinny_part_controller)
+        self.get_logger().info(f"POSITIONS: {self.POSITIONS}")
 
         ## Start the CAN bus
         self.start_can()
@@ -96,16 +101,21 @@ class SpinnyPartNode(JoystickControllerNode):
         # change position
         if joystick_l.btn_bottom_r4_state == 1:
             self.spinny_part.update_position(self.MICROSCOPE)
+            self.get_logger().info(f"Moved to MICROSCOPE position {self.POSITIONS[self.MICROSCOPE] + self.spinny_part.get_offset()}")
         elif joystick_l.btn_bottom_r5_state == 1:
             self.spinny_part.update_position(self.SWEEPER)
+            self.get_logger().info(f"Moved to SWEEPER position {self.POSITIONS[self.SWEEPER] + self.spinny_part.get_offset()}")
         elif joystick_l.btn_bottom_r6_state == 1:
             self.spinny_part.update_position(self.NIR_PROBE)
+            self.get_logger().info(f"Moved to NIR PROBE position {self.POSITIONS[self.NIR_PROBE] + self.spinny_part.get_offset()}")
 
         # twitch/update offset
         if joystick_l.btn_bottom_r1_state == 1:
-            self.spinny_part.set_offset(min(self.MAX_OFFSET, self.spinny_part.get_offset() + 1))
+            self.spinny_part.set_offset(min(self.MAX_OFFSET, self.spinny_part.get_offset() + self.get_parameter(self.OFFSET_STEP_PARAM_PARAM).value))
+            self.get_logger().info(f"OFFSET updated {self.spinny_part.get_offset()}")
         elif joystick_l.btn_bottom_r2_state == 1:
-            self.spinny_part.set_offset(max(self.MIN_OFFSET, self.spinny_part.get_offset() - 1))
+            self.spinny_part.set_offset(max(self.MIN_OFFSET, self.spinny_part.get_offset() - self.get_parameter(self.OFFSET_STEP_PARAM_PARAM).value))
+            self.get_logger().info(f"OFFSET updated {self.spinny_part.get_offset()}")
 
     def joystick_r(self, joystick_r: InputJoystick):
         """
