@@ -10,9 +10,10 @@ NODES:
   - control/drive/driver            [driver]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATION:   15/12/2021
-EDITED:     19/03/2025
+EDITED:     21/03/2025
 EDITED BY: Max Tory, Taaj Street, 
-    Victor Bartlinski, Jared Landau
+    Victor Bartlinski, Jared Landau,
+    Bailey Chessum
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
@@ -26,8 +27,7 @@ try:
     print("can0 started successfully")
 except subprocess.CalledProcessError as e:
     print(f"Error: Failed to start can0.")
-    print("{e}")
-    exit(1)
+    print(f"{e}")
 
 def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo')
