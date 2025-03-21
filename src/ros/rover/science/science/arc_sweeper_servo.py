@@ -40,7 +40,7 @@ class SweeperNode(JoystickControllerNode):
 
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
-    SWEEPER_MAX_PERCENT = 0.7
+    SWEEPER_MAX_PERCENT = 1
     SWEEPER_CONTROL_NAME = "Sweeper"
 
     # CONTROL DIRECTIONS
@@ -81,11 +81,14 @@ class SweeperNode(JoystickControllerNode):
         Updates the classes internal msg state
         :return: None
         """
-        if joystick_r.btn_thumb_l_state >= 1:
+        self.velocity = abs(joystick_r.ax_slider)
+        self.get_logger().debug(f"Velocity updated to {self.velocity}")
+
+        if joystick_r.btn_bottom_r5_state >= 1:
             self.get_logger().info("Sweeper moving ANTICLOCKWISE")
             self.sweeper_servo.update_direction(self.DIRECTION_ANTICLOCKWISE)
             self.sweeper_servo.update_velocity(self.velocity)
-        elif joystick_r.btn_thumb_r_state >= 1:
+        elif joystick_r.btn_bottom_r6_state >= 1:
             self.get_logger().info("Sweeper moving CLOCKWISE")
             self.sweeper_servo.update_direction(self.DIRECTION_CLOCKWISE)
             self.sweeper_servo.update_velocity(self.velocity)
@@ -96,8 +99,7 @@ class SweeperNode(JoystickControllerNode):
         """
         Right joystick callback function
         """
-        self.velocity = abs(joystick_l.ax_slider)
-        self.get_logger().debug(f"Velocity updated to {self.velocity}")
+        pass
 
 def main():
     rclpy.init()

@@ -30,7 +30,7 @@ camera_directory:
           '2:1.0': mast_down
           '3:1.0': mast_forward
           '4:1.0': mast_backward
-        science_arc:
+        science-arc:
           '3:1.0': science_gimbal_cam     # science hub port 1
           '2:1.0': science_kiln           # science hub port 2
           '1:1.0': science_kiln_bottom    # science hub port 3
