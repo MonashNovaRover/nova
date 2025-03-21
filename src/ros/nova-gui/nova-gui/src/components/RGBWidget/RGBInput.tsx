@@ -104,7 +104,6 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
 
     return (
         <Card {...props} className="space-y-3 p-3">
-            {/*<CardHeader className="text-h1 p-0">RGB Color  Input</CardHeader>*/}
             <Card className="space-y-3 p-3 bg-content2" shadow="sm">
                 <div className="flex gap-5">
                     <div className="w-1/3">
