@@ -15,7 +15,7 @@ NODES:
 CREATION:   17/12/2021
 EDITED:     04/02/2025
 EDITED BY: Taaj Street, Dylan Gonzalez, Tristan 
-    Clark, Matthew Gu, Victor Bartlinski
+    Clark, Matthew Gu, Victor Bartlinski, Jared Landau
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
@@ -26,6 +26,15 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, Opaq
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+import subprocess
+
+try:
+    subprocess.run(["can", "start", "can1", "200000"], check=True)
+    print("can1 started successfully (200000)")
+except subprocess.CalledProcessError as e:
+    print(f"Error: Failed to start can1.")
+    print("{e}")
+    exit(1)
 
 def launch_setup(context, *args, **kwargs):
     nova_bringup_dir = FindPackageShare('nova_bringup')
