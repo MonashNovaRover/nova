@@ -5,7 +5,13 @@ import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../ros/services/rosService.ts";
 
 interface RGBInputWidgetProps extends CardProps {}
-
+/**
+ * Widget for changing the colors of the rover's LEDs through RGB input
+ * @param R
+ * @param G
+ * @param B
+ * @constructor
+ */
 const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
     const [r, setR] = useState("0");
     const [g, setG] = useState("0");
@@ -52,9 +58,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
 
     return (
         <Card {...props} className="space-y-3 p-3">
-            {/*<CardHeader className="text-h1 p-0">RGB Color  Input</CardHeader>*/}
             <Card className="space-y-3 p-3 bg-content2" shadow="sm">
-                {/*<SubCardLabel>RGB VALUES</SubCardLabel>*/}
                 <div className="flex gap-5">
                     <div className="w-1/3">
                         <label htmlFor="r" className="block text-sm font-semibold">R</label>
@@ -66,7 +70,6 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                             placeholder="0-255"
                             minLength={1}
                             maxLength={3}
-                            //isRequired
                         />
                     </div>
 
@@ -80,7 +83,6 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                             placeholder="0-255"
                             minLength={1}
                             maxLength={3}
-                            //isRequired
                         />
                     </div>
 
@@ -94,7 +96,6 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                             placeholder="0-255"
                             minLength={1}
                             maxLength={3}
-                            //isRequired
                         />
                     </div>
                 </div>

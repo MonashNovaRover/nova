@@ -8,8 +8,6 @@ import {
   IRosStdSrvsTriggerResponse,
   IRosNovaInterfacesKilnCommandRequest,
   IRosNovaInterfacesKilnCommandResponse,
-  IRosNovaInterfacesSetNirProbeLedRequest,
-  IRosNovaInterfacesSetNirProbeLedResponse,
   IRosNovaInterfacesRamanSpecRequest,
   IRosNovaInterfacesRamanSpecResponse,
   IRosNovaInterfacesRamanMechRequest,
@@ -23,6 +21,8 @@ import {
   IRosNovaInterfacesTakeNirProbeReadingResponse,
   IRosNovaInterfacesCacheCommandRequest,
   IRosNovaInterfacesCacheCommandResponse,
+  IRosNovaInterfacesRgbInputRequest,
+  IRosNovaInterfacesRgbInputResponse,
   IRosNovaInterfacesMoveHydraprobeRequest,
   IRosNovaInterfacesMoveHydraprobeResponse,
 
