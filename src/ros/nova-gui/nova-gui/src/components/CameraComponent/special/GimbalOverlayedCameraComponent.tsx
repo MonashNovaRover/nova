@@ -34,16 +34,16 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
     window.addEventListener('keyup', (e) => {
       switch (e.key) {
         case 'a':
-          incrementPan(-stepNumber)
+          incrementPan(-stepNumber) //negative pan is left
           break
         case 'd':
-          incrementPan(stepNumber)
+          incrementPan(stepNumber) //positive pan is right
           break
         case 'w':
-          incrementTilt(-stepNumber)
+          incrementTilt(-stepNumber) //negative tilt is up
           break
         case 's':
-          incrementTilt(stepNumber)
+          incrementTilt(stepNumber) //positive tilt is down
           break
         default:
           break
