@@ -8,8 +8,6 @@ import {Input, Tooltip} from "@nextui-org/react";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 
 export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> = (props) => {
-  const [showOverlay, setShowOverlay] = useState<boolean>(false)
-
   // Default step size for incrementing angles
   const [step, setStep] = useGenericStore<string>("scimbalStepSize");
   const stepNumber = useMemo(() => {
@@ -78,9 +76,7 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
   return (
     <div>
       <OverlayedCameraComponent
-        onStreamingStateChange={(s) => setShowOverlay(s === StreamingState.STREAMING)}
         {...props}
-        overlay={<div/>}
         settingsFormChildren={stepSizeInput}
       />
     </div>
