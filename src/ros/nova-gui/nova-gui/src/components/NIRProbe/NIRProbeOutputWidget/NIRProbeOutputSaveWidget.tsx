@@ -116,17 +116,9 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
           <CopyableOutput className="tracking-wide grow" classNames={{pre: "text-lg pt-1"}}>
             {nirData.data}
           </CopyableOutput>
-        </div>
-        <div className="flex flex-row gap-3 items-center">
-          <CopyableOutput className="tracking-wide grow" classNames={{pre: "text-lg pt-1"}}>
-            {nirData.stdv}
-          </CopyableOutput>
-          <CopyableOutput className="tracking-wide grow" classNames={{pre: "text-lg pt-1"}}>
-            {nirData.count}
-          </CopyableOutput>
           <Input onValueChange={setSampleLabel} value={sampleLabel} size="sm"
                  labelPlacement="inside" label="Sample Label"
-                 className="w-1/3">
+                  className="w-1/4">
           </Input>
         </div>
         <div className="grid auto-cols-fr gap-3 grid-flow-col">

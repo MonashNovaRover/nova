@@ -2,9 +2,7 @@
 
 # The latest reading from the NIR probe
 # Units are arbitrary, and need to be applied to a calibration curve to get meaningful data.
-float32 data
-float32 stdv
-int8 count              # number of data readings obtained.
+int32 data
 
 # enum for the current led
 byte LED_OFF = 0
