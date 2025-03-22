@@ -63,11 +63,11 @@ class NIRProbePublisher(Node):
     ]
 
     # Timings
-    SEND_INTERVAL = 0.2 # Must be greater than 0.1 because electrical has delay
+    SEND_INTERVAL = 0.1
     TIMEOUT_PERIOD = 15
     TIMEOUT_PARAM_NAME = "timeout"
 
-    DEFAULT_COUNT = 15
+    DEFAULT_COUNT = 30
     COUNT_PARAM_NAME = "count"
 
     def __init__(self):
