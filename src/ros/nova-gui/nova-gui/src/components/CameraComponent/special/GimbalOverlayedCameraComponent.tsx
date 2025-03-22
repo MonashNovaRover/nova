@@ -12,7 +12,12 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
 
   // Default step size for incrementing angles
   const [step, setStep] = useGenericStore<string>("scimbalStepSize");
-  const stepNumber = useMemo(() => parseInt(step),[step]);
+  const stepNumber = useMemo(() => {
+    const val = parseInt(step)
+    if (isNaN(val))
+      return 1
+    return val
+  }, [step]);
 
 
   const serviceBifrost = useBifrost({service: RosService.SCIMBAL_COMMAND});
