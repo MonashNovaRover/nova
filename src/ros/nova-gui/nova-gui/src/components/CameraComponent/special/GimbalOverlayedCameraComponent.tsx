@@ -1,9 +1,8 @@
-import React, {useCallback, useEffect, useMemo, useState} from "react";
+import React, {useCallback, useEffect, useMemo} from "react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
 import OverlayedCameraComponent from "./OverlayedCameraComponent.tsx";
 import {BaseCameraComponentProps} from "../CameraComponent.tsx";
-import {StreamingState} from "../hooks/useCameraStream.ts";
 import {Input, Tooltip} from "@nextui-org/react";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 
@@ -77,6 +76,7 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
     <div>
       <OverlayedCameraComponent
         {...props}
+        overlay={<div/>}
         settingsFormChildren={stepSizeInput}
       />
     </div>
