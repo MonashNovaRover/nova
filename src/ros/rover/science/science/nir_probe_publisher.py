@@ -98,7 +98,7 @@ class NIRProbePublisher(Node):
 
         # Initialise timers
         self.timeout_timer = self.create_timer(self.get_parameter(self.TIMEOUT_PARAM_NAME).value, self.update_last_readings, autostart=False)
-        self.last_read_timer = self.create_timer(self.SEND_INTERVAL, self.publish_msg)
+        self.last_read_timer = self.create_timer(0.1, self.publish_msg)
         self.timer_jcan_spin = self.create_timer(self.SEND_INTERVAL, self.bus.spin)
 
         # Internal State
