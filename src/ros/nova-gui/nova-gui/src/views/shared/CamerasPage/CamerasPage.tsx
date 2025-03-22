@@ -31,6 +31,7 @@ export const CameraPage = (props: CameraPageProps) => {
             <Button
               size="md"
               color="primary"
+              className="w-28"
               onPress={() => setAllCamsOn(true)}
             >
               <Play size="15px" fill="white" /> Start All
@@ -62,6 +63,7 @@ export const CameraPage = (props: CameraPageProps) => {
           size="md"
           color="primary"
           variant="ghost"
+          className="w-36"
           onPress={() => setControlPanelOpen(true)}
         >
           Control Panel
