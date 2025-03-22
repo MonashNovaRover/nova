@@ -34,6 +34,10 @@ interface CallServiceOptions<T> {
   handleResponse?: (response: T) => void;
 }
 
+interface SyncWithTopicOptions<T> {
+  onMessage: (message: T) => void
+}
+
 export function createBifrostAction(props: BifrostProps, ros?: Ros) {
   const { topic = RosTopic.NULL_TOPIC, service = RosService.NULL_SERVICE } =
     props;
@@ -101,7 +105,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
     /**
      * Synchronizes with a topic by subscribing to it and updating the topic state when a message is received.
      */
-    syncWithTopic() {
+    syncWithTopic(options: SyncWithTopicOptions<RosTopicInterfaces[typeof topic]>) {
       return (
         dispatch: CustomDispatch<RosTopic>,
         getState: () => RootState
@@ -124,6 +128,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
 
         rosTopic.on("message", (message: RosTopicInterfaces[typeof topic]) => {
           this._updateTopicState(message);
+          options?.onMessage?.(message);
         });
 
         dispatch(this._updateSubscribedTopics(topic));
