@@ -27,6 +27,8 @@ import {
   NIRPRobeReadingTypeInfo,
 } from "../SpaceResourcesSiteType.tsx";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
+import {SyncWithTopicOptions} from "../../../redux/actions/bifrost/createBifrostAction.ts";
+import {RosTopicInterfaces} from "../../../ros/topics/rosTopicTypes.ts";
 
 export interface NIRProbeOutputSaveWidgetProps extends CardProps {
   showAdvanced : boolean,
@@ -53,8 +55,32 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   const [type, setType] = useState<NIRProbeReadingType.WATER | NIRProbeReadingType.ICE>(NIRProbeReadingType.WATER);
   const [advancedSampleLabel, setAdvancedSampleLabel] = useState<string>("");
 
+  const save = useCallback((reading: number) => {
+    if (!showAdvanced && nirData.led === 0)
+      return
+
+    const saveType = showAdvanced && type ? type : nirData.led as keyof ISpaceResourcesEntries
+    setReadings({
+      ...readings,
+      [saveType]: [
+        {
+          data: reading,
+          type: saveType,
+          label: showAdvanced ? advancedSampleLabel : sampleLabel,
+        } as ISpaceResourcesEntry,
+        ...readings[saveType],
+      ]
+    })
+  }, [readings, setReadings, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
+
   useEffect(() => {
-    bifrost.syncWithTopic();
+    const cleanup = bifrost.syncWithTopic({
+      onMessage: save
+    } as SyncWithTopicOptions<RosTopicInterfaces[RosTopic.NIR_DATA]>);
+
+    return () => {
+      cleanup();
+    }
   }, [bifrost]);
 
   const onSave = useCallback(() => {
@@ -74,25 +100,6 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
       ]
     })
   }, [readings, setReadings, data, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
-
-  const save = useCallback((reading: number) => {
-    if (!showAdvanced && nirData.led === 0)
-      return
-
-    const saveType = showAdvanced && type ? type : nirData.led as keyof ISpaceResourcesEntries
-    setReadings({
-      ...readings,
-      [saveType]: [
-        {
-          data: reading,
-          type: saveType,
-          label: showAdvanced ? advancedSampleLabel : sampleLabel,
-        } as ISpaceResourcesEntry,
-        ...readings[saveType],
-      ]
-    })
-  }, [readings, setReadings, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
-
 
   const onTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (+e.target.value !== 0)
