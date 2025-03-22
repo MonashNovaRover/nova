@@ -24,9 +24,10 @@ from launch_ros.substitutions import FindPackageShare
 def launch_setup(context, *args, **kwargs):
     ar = LaunchConfiguration('ar')
     ar_params = LaunchConfiguration('ar_params')
-    front_name = LaunchConfiguration('front_name').perform(context)
     back_name = LaunchConfiguration('back_name').perform(context)
+    front_name = LaunchConfiguration('front_name').perform(context)
     gazebo = LaunchConfiguration('gazebo')
+    imu = LaunchConfiguration('imu')
     oak_params = LaunchConfiguration('oak_params')
     bootie_params = LaunchConfiguration('bootie_params')
     pointclouds = LaunchConfiguration('pointclouds')
@@ -41,8 +42,8 @@ def launch_setup(context, *args, **kwargs):
             composable_node_descriptions=[
                 ComposableNode(
                     condition=UnlessCondition(gazebo),
-                    package="depthai_ros_driver",
-                    plugin="depthai_ros_driver::Camera",
+                    package='depthai_ros_driver',
+                    plugin='depthai_ros_driver::Camera',
                     name=front_name,
                     parameters=[oak_params],
                 ),
@@ -69,12 +70,13 @@ def launch_setup(context, *args, **kwargs):
                                 ('cloud', f'{front_name}/depth/points')],
                 ),
                 ComposableNode(
-                   package='imu_transformer',
-                   plugin='imu_transformer::ImuTransformer',
-                   name=f'{front_name}_imu_transformer_node',
-                   remappings=[('/imu_in', '/oak/imu/data'),
-                               ('/imu_out', '/oak/imu/transformed')],
-                   parameters=[{'target_frame': front_name}]
+                    condition=IfCondition(imu),
+                    package='imu_transformer',
+                    plugin='imu_transformer::ImuTransformer',
+                    name=f'{front_name}_imu_transformer_node',
+                    remappings=[('/imu_in', '/oak/imu/data'),
+                                ('/imu_out', '/oak/imu/transformed')],
+                    parameters=[{'target_frame': front_name}]
                 )
             ],
         ),
@@ -86,8 +88,8 @@ def launch_setup(context, *args, **kwargs):
             composable_node_descriptions=[
                 ComposableNode(
                     condition=UnlessCondition(gazebo),
-                    package="depthai_ros_driver",
-                    plugin="depthai_ros_driver::Camera",
+                    package='depthai_ros_driver',
+                    plugin='depthai_ros_driver::Camera',
                     name=back_name,
                     parameters=[bootie_params],
                 ),
@@ -127,6 +129,16 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
+            name='back_name',
+            default_value='bootie',
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='front_name',
+            default_value='oak',
+            description='',
+        ),
+        DeclareLaunchArgument(
             name='camera_model',
             default_value='OAK-D-LR',
             description='',
@@ -137,13 +149,8 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='front_name',
-            default_value='oak',
-            description='',
-        ),
-        DeclareLaunchArgument(
-            name='back_name',
-            default_value='bootie',
+            name='imu',
+            default_value='True',
             description='',
         ),
         DeclareLaunchArgument(
