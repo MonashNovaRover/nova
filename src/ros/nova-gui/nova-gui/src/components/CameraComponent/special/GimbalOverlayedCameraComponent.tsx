@@ -38,10 +38,10 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
           incrementPan(stepNumber)
           break
         case 'w':
-          incrementTilt(stepNumber)
+          incrementTilt(-stepNumber)
           break
         case 's':
-          incrementTilt(-stepNumber)
+          incrementTilt(stepNumber)
           break
         default:
           break
@@ -58,7 +58,7 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
             key={"Step Size"}
         >
           <Input
-              aria-label="Temperature value"
+              aria-label="Scimbal cam step size"
               label= "Step size"
               labelPlacement= "inside"
               className=""
@@ -75,10 +75,9 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
       <OverlayedCameraComponent
         onStreamingStateChange={(s) => setShowOverlay(s === StreamingState.STREAMING)}
         {...props}
-        overlay={showOverlay ? <div className="self-center grow h-0.5 bg-black"/> : <div/>}
+        overlay={<div/>}
         settingsFormChildren={stepSizeInput}
       />
-      <p id="demoCoords"></p>
     </div>
   );
 }
