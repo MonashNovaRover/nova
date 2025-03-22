@@ -1,10 +1,11 @@
-import { Button, Tab, Tabs } from "@nextui-org/react";
+import { Button } from "@nextui-org/react";
 import { Play, Square } from "react-feather";
 import { useCameraStreamer } from "../../../components/CameraComponent/hooks/useCameraStreamer";
 import { CameraView } from "./CameraPageConstants";
 import { useState } from "react";
 import { CameraControlPanelModal } from "../../../components/CameraComponent/components/CamerasControlPanelModal";
 import SerialMappedCameraComponent from "./SerialMappedCameraComponent.tsx";
+import SegmentedPicker from "../../../components/SegmentedPicker/SegmentedPicker.tsx";
 
 export interface CameraPageProps {
   views: CameraView[];
@@ -24,7 +25,7 @@ export const CameraPage = (props: CameraPageProps) => {
 
   return (
     <div className="p-3 flex flex-col gap-0">
-      <div className="flex flex-row justify-between items-center gap-3 pl-1 mb-3">
+      <div className="flex flex-row justify-between items-center gap-32 pl-1 mb-3">
         <div className="flex flex-row gap-3 items-center">
           {!allCamsOn ? (
             <Button
@@ -44,6 +45,19 @@ export const CameraPage = (props: CameraPageProps) => {
             </Button>
           )}
         </div>
+
+        <SegmentedPicker
+          selectedIndex={selectedTab}
+          onIndexChange={setSelectedTab}
+          children={[
+            views.map(v => v.viewTitle)
+          ]}
+          color="primary"
+          className="pb-0"
+          fullWidth
+          variant="bordered"
+        />
+
         <Button
           size="md"
           color="primary"
@@ -53,31 +67,19 @@ export const CameraPage = (props: CameraPageProps) => {
           Control Panel
         </Button>
       </div>
-      <Tabs
-        size="lg"
-        color="primary"
-        className="pb-0"
-        fullWidth
-        variant="bordered"
-        selectedKey={selectedTab}
-        onSelectionChange={(key) => {
-          setSelectedTab(key as number);
-        }}
-      >
-        {views.map((view, i) => (
-          <Tab title={view.viewTitle} key={i}>
-            <div className="grid grid-cols-4 gap-3">
-              {view.cameraSerials.map((serial, i) => (
-                <SerialMappedCameraComponent
-                  cameraSerial={serial}
-                  key={i}
-                  autostart={allCamsOn}
-                />
-              ))}
-            </div>
-          </Tab>
-        ))}
-      </Tabs>
+
+      {
+        <div className="grid grid-cols-4 gap-3">
+          {views[selectedTab].cameraSerials.map((serial, i) => (
+            <SerialMappedCameraComponent
+              cameraSerial={serial}
+              key={i}
+              autostart={allCamsOn}
+            />
+          ))}
+        </div>
+      }
+
       <CameraControlPanelModal
         showModal={controlPanelOpen}
         closeModal={closeControlPanel}
