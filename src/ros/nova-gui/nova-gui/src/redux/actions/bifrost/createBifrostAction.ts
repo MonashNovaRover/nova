@@ -105,7 +105,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
     /**
      * Synchronizes with a topic by subscribing to it and updating the topic state when a message is received.
      */
-    syncWithTopic(options: SyncWithTopicOptions<RosTopicInterfaces[typeof topic]>) {
+    syncWithTopic(options?: SyncWithTopicOptions<RosTopicInterfaces[typeof topic]>) {
       return (
         dispatch: CustomDispatch<RosTopic>,
         getState: () => RootState
