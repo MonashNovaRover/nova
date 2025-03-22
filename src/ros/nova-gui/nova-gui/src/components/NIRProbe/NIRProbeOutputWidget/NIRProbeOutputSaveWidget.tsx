@@ -75,6 +75,25 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
     })
   }, [readings, setReadings, data, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
 
+  const save = useCallback((reading: number) => {
+    if (!showAdvanced && nirData.led === 0)
+      return
+
+    const saveType = showAdvanced && type ? type : nirData.led as keyof ISpaceResourcesEntries
+    setReadings({
+      ...readings,
+      [saveType]: [
+        {
+          data: reading,
+          type: saveType,
+          label: showAdvanced ? advancedSampleLabel : sampleLabel,
+        } as ISpaceResourcesEntry,
+        ...readings[saveType],
+      ]
+    })
+  }, [readings, setReadings, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
+
+
   const onTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (+e.target.value !== 0)
       setType(+e.target.value as NIRProbeReadingType.WATER | NIRProbeReadingType.ICE)
