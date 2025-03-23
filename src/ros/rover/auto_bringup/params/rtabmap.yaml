@@ -24,6 +24,9 @@ rtabmap_slam:
     Grid/CellSize: "0.1"
     GridGlobal/MinSize: "100.0"
     Grid/RayTracing: "true"
+    Grid/FootprintHeight: "1.2"
+    Grid/FootprintLength: "1.5"
+    Grid/FootprintWidth: "1.2"
 # Params for RGBD Odom (VO)
 rtabmap_odom:
   ros__parameters:
@@ -32,7 +35,7 @@ rtabmap_odom:
     publish_null_when_lost: False
     subscribe_rgbd: True
     rgbd_cameras: 2
-    Odom/Strategy: "9" # Using VINS-Fusion
+    Odom/Strategy: "10" # Using OpenVINS
     wait_imu_to_init: True
 
 oak_rgbd_sync:
