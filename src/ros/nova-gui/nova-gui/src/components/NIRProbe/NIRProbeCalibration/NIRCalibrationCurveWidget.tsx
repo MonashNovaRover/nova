@@ -66,6 +66,14 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
     return yValuesSurface.map(y => [...xValuesSurface.map(x => calibrationFunc(x, y))])
   }, [xValuesSurface, yValuesSurface, calibrationFunc])
 
+  const surfaceData = useMemo(() => ({
+    x: xValuesSurface, y: yValuesSurface, z: zValuesSurface
+  }), [xValuesSurface, yValuesSurface, zValuesSurface]);
+
+  const averageScatterData = useMemo(() => ({
+    x: [averageX], y: [averageY], z: [calibratedResult], text: []
+  }), [averageX, averageY, calibratedResult]);
+
   return (
     <Card>
       <CardHeader className="pb-0 flex flex-row justify-center">
@@ -80,9 +88,9 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
       </CardHeader>
       <CardBody>
         <NIR3DCalibrationCurve
-          surfaceData={{x: xValuesSurface, y: yValuesSurface, z: zValuesSurface}}
+          surfaceData={surfaceData}
           readingsScatterData={readingsScatterData}
-          averageScatterData={{x: [averageX], y: [averageY], z: [calibratedResult], text: []}}
+          averageScatterData={averageScatterData}
         />
       </CardBody>
       <NIR3DCurveSettingsModal

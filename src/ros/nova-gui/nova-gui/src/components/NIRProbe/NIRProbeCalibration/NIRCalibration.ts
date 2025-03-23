@@ -2,7 +2,7 @@ import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {NIRProbeCalibrationData} from "../../../redux/models/genericStores/NIRProbeCalibrationData.ts";
 import {NIRProbeReadingType} from "../SpaceResourcesSiteType.tsx";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
-import {useMemo} from "react";
+import {useCallback, useMemo} from "react";
 
 /**
  * Number of coefficients required for the calibration function
@@ -76,7 +76,9 @@ export const calibrationFunction = (coef: number[]) => (x: number, y: number): n
  */
 export const useCalibrationFunction = () => {
   const [calibrationData, _] = useGenericStore<NIRProbeCalibrationData>("nirProbeCalibrationData");
-  return calibrationFunction(calibrationData.coefficients);
+  return useCallback((x: number, y: number) => {
+    return calibrationFunction(calibrationData.coefficients)(x, y);
+  }, [calibrationData.coefficients]);
 }
 
 /**
