@@ -25,7 +25,7 @@ export interface BifrostActionType<P> {
 
 type CustomDispatch<P> = (action: () => BifrostActionType<P>) => void;
 
-export interface CallServiceOptions<T> {
+interface CallServiceOptions<T> {
   sendToRedux?: boolean;
   responseToast?: boolean;
   noErrorToast?: boolean;
@@ -34,7 +34,7 @@ export interface CallServiceOptions<T> {
   handleResponse?: (response: T) => void;
 }
 
-export interface SyncWithTopicOptions<T> {
+interface SyncWithTopicOptions<T> {
   onMessage: (message: T) => void
 }
 
@@ -124,24 +124,14 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
           messageType: rosTopicMessages[topic],
         });
 
-        const subscribeCallback = () => {};
+        rosTopic.subscribe(() => {});
 
-        rosTopic.subscribe(subscribeCallback);
-
-        const listenerFunction = (message: RosTopicInterfaces[typeof topic]) => {
+        rosTopic.on("message", (message: RosTopicInterfaces[typeof topic]) => {
           this._updateTopicState(message);
           options?.onMessage?.(message);
-        }
-
-        rosTopic.on("message", listenerFunction);
+        });
 
         dispatch(this._updateSubscribedTopics(topic));
-
-        // Call this function to clean up
-        return () => {
-          rosTopic.unsubscribe(subscribeCallback);
-          rosTopic.removeListener("message", listenerFunction)
-        };
       };
     },
     /**
