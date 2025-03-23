@@ -49,7 +49,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   const nirData = useSelector((state: RootState) => state.nirStore);
   const [sampleLabel, setSampleLabel] = useState<string>("");
 
-  const [_, setReadings] = useNIRSiteData();
+  const [readings, setReadings] = useNIRSiteData();
 
   const [data, setData] = useState<number | undefined>();
   const [type, setType] = useState<NIRProbeReadingType.WATER | NIRProbeReadingType.ICE>(NIRProbeReadingType.WATER);
@@ -66,18 +66,18 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
       return
 
     const saveType = showAdvanced && type ? type : nirData.led as keyof ISpaceResourcesEntries
-    setReadings(oldReadings => ({
-      ...oldReadings,
+    setReadings({
+      ...readings,
       [saveType]: [
         {
           data: showAdvanced && data ? data : nirData.data,
           type: saveType,
           label: showAdvanced ? advancedSampleLabel : sampleLabel,
         } as ISpaceResourcesEntry,
-        ...oldReadings[saveType],
+        ...readings[saveType],
       ]
-    }))
-  }, [setReadings, data, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
+    })
+  }, [readings, setReadings, data, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
 
   // For autosave
   const save = useCallback((reading: number, ledType: keyof ISpaceResourcesEntries) => {
@@ -85,18 +85,18 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
       return;
 
     const saveType = ledType;
-    setReadings(oldReadings => ({
-      ...oldReadings,
+    setReadings({
+      ...readings,
       [saveType]: [
         {
           data: reading,
           type: saveType,
           label: sampleLabel,
         } as ISpaceResourcesEntry,
-        ...oldReadings[saveType],
+        ...readings[saveType],
       ]
-    }))
-  }, [setReadings, sampleLabel]);
+    })
+  }, [readings, setReadings, sampleLabel]);
 
   // Autosave hook
   useRosSubscription(RosTopic.NIR_DATA, (message: RosTopicInterfaces[RosTopic.NIR_DATA]) => {

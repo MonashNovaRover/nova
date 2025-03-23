@@ -7,7 +7,7 @@ import {ISpaceResourcesEntries} from "./SpaceResourcesSiteType.tsx";
 /**
  * Returns the saved NIR Probe readings at the current site
  */
-export function useNIRSiteData(): [ISpaceResourcesEntries, (a: ((b: ISpaceResourcesEntries) => ISpaceResourcesEntries)) => void] {
+export function useNIRSiteData(): [ISpaceResourcesEntries, (a: ISpaceResourcesEntries) => void] {
   // current site as provided by the site selector
   const [currentSite, _] = useGenericStore<Site>("currentSite");
 
@@ -16,26 +16,15 @@ export function useNIRSiteData(): [ISpaceResourcesEntries, (a: ((b: ISpaceResour
   const readings = siteData[currentSite].spaceResourcesEntries
 
   // function to update the current space resource entries
-  // const setReadings = useCallback((data: ISpaceResourcesEntries) => {
-  //   setSiteData({
-  //     ...siteData,
-  //     [currentSite]: {
-  //       ...siteData[currentSite],
-  //       spaceResourcesEntries: data
-  //     }
-  //   } as SiteDataState)
-  // }, [currentSite, siteData, setSiteData]);
-
-  // function to update the current space resource entries
-  const setReadingsWithFunction = useCallback((reducer: ((b: ISpaceResourcesEntries) => ISpaceResourcesEntries)) => {
-    setSiteData(oldSiteData => ({
-      ...oldSiteData,
+  const setReadings = useCallback((data: ISpaceResourcesEntries) => {
+    setSiteData({
+      ...siteData,
       [currentSite]: {
         ...siteData[currentSite],
-        spaceResourcesEntries: reducer(oldSiteData[currentSite]?.spaceResourcesEntries ?? {})
+        spaceResourcesEntries: data
       }
-    }) as SiteDataState)
+    } as SiteDataState)
   }, [currentSite, siteData, setSiteData]);
 
-  return [readings, setReadingsWithFunction]
+  return [readings, setReadings]
 }
