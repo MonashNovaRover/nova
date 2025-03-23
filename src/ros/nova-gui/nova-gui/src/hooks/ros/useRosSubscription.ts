@@ -36,7 +36,7 @@ export const useRosSubscription = (topic: RosTopic, callback: (message: RosTopic
       rosTopicRef.current?.unsubscribe(subscriptionCallback);
       rosTopicRef.current?.removeListener("message", callback);
     }
-  }, [ros, rosTopicRef.current, callback, topic]);
+  }, [ros, callback, topic]);
 
   // Clean up at end
   useEffect(() => {
@@ -44,5 +44,4 @@ export const useRosSubscription = (topic: RosTopic, callback: (message: RosTopic
       rosTopicRef.current = undefined
     }
   }, [ros]);
-
 }
