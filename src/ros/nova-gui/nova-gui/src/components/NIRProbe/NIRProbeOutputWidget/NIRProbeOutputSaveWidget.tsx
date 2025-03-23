@@ -14,7 +14,7 @@ import {
   SelectItem
 } from "@nextui-org/react";
 import CopyableOutput from "../../CopyableOutput/CopyableOutput.tsx";
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
@@ -27,8 +27,6 @@ import {
   NIRPRobeReadingTypeInfo,
 } from "../SpaceResourcesSiteType.tsx";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
-import {useRosSubscription} from "../../../hooks/ros/useRosSubscription.ts";
-import {RosTopicInterfaces} from "../../../ros/topics/rosTopicTypes.ts";
 
 export interface NIRProbeOutputSaveWidgetProps extends CardProps {
   showAdvanced : boolean,
@@ -55,7 +53,8 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   const [type, setType] = useState<NIRProbeReadingType.WATER | NIRProbeReadingType.ICE>(NIRProbeReadingType.WATER);
   const [advancedSampleLabel, setAdvancedSampleLabel] = useState<string>("");
 
-  const [autosave, setAutosave] = useState<boolean>(true);
+  // Used for autosaving
+  const previousDataRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     bifrost.syncWithTopic();
@@ -79,12 +78,11 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
     })
   }, [readings, setReadings, data, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
 
-  // For autosave
   const save = useCallback((reading: number) => {
     if (!showAdvanced && nirData.led === 0)
       return
 
-    const saveType = type as keyof ISpaceResourcesEntries
+    const saveType = showAdvanced && type ? type : nirData.led as keyof ISpaceResourcesEntries
     setReadings({
       ...readings,
       [saveType]: [
@@ -98,11 +96,16 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
     })
   }, [readings, setReadings, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
 
-  // Autosave hook
-  useRosSubscription(RosTopic.NIR_DATA, (message: RosTopicInterfaces[RosTopic.NIR_DATA]) => {
-    if (autosave)
-      save(message.data);
-  }, [autosave, save]);
+  useEffect(() => {
+    if (data === undefined)
+      return;
+
+    if (data === previousDataRef.current)
+      return;
+
+    previousDataRef.current = data;
+    save(data);
+  }, [save, data, previousDataRef]);
 
   const onTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (+e.target.value !== 0)
@@ -127,10 +130,6 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
             <DropdownItem key="advanced" startContent={showAdvanced ? <Check/> : <></>}
                           onPress={() => setShowAdvanced(!showAdvanced)}>
               Show Advanced
-            </DropdownItem>
-            <DropdownItem key="autosave" startContent={autosave ? <Check/> : <></>}
-                          onPress={() => setAutosave(v => !v)}>
-              Autosave
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
@@ -197,6 +196,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
           </Input>
         </CardBody>
       }
+
     </Card>
   )
 }
