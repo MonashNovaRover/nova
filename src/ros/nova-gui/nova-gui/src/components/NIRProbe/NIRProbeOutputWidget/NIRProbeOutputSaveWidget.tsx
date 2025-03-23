@@ -80,28 +80,35 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   }, [readings, setReadings, data, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
 
   // For autosave
-  const save = useCallback((reading: number) => {
-    if (!showAdvanced && nirData.led === 0)
-      return
+  const save = useCallback((reading: number, ledType: keyof ISpaceResourcesEntries) => {
+    if (ledType <= 0 || ledType > 2)
+      return;
 
-    const saveType = type as keyof ISpaceResourcesEntries
+    const saveType = ledType;
     setReadings({
       ...readings,
       [saveType]: [
         {
           data: reading,
           type: saveType,
-          label: showAdvanced ? advancedSampleLabel : sampleLabel,
+          label: sampleLabel,
         } as ISpaceResourcesEntry,
         ...readings[saveType],
       ]
     })
-  }, [readings, setReadings, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
+  }, [readings, setReadings, sampleLabel]);
 
   // Autosave hook
   useRosSubscription(RosTopic.NIR_DATA, (message: RosTopicInterfaces[RosTopic.NIR_DATA]) => {
-    if (autosave)
-      save(message.data);
+    if (!autosave)
+      return;
+
+    if (message.led <= 0 || message.led > 2) {
+      console.warn(`Received an NIR probe reading with LED other than 1 or 2 (${message.led})`);
+      return;
+    }
+
+    save(message.data, message.led);
   }, [autosave, save]);
 
   const onTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
