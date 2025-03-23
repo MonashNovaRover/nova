@@ -14,7 +14,7 @@ import {
   SelectItem
 } from "@nextui-org/react";
 import CopyableOutput from "../../CopyableOutput/CopyableOutput.tsx";
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
@@ -52,6 +52,9 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   const [data, setData] = useState<number | undefined>();
   const [type, setType] = useState<NIRProbeReadingType.WATER | NIRProbeReadingType.ICE>(NIRProbeReadingType.WATER);
   const [advancedSampleLabel, setAdvancedSampleLabel] = useState<string>("");
+
+  // Used for autosaving
+  const previousDataRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     bifrost.syncWithTopic();
@@ -93,6 +96,16 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
     })
   }, [readings, setReadings, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
 
+  useEffect(() => {
+    if (data === undefined)
+      return;
+
+    if (data === previousDataRef.current)
+      return;
+
+    previousDataRef.current = data;
+    save(data);
+  }, [save, data, previousDataRef]);
 
   const onTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (+e.target.value !== 0)
