@@ -7,13 +7,15 @@ Execute this code on the rover to start all
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODES:
   - science/nir_probe_publisher.py      [nir_probe_publisher]
-  - science/microscope_servo.py         [microscope_servo]
   - science/kiln_server.py              [kiln_server]
   - science/urc_auger.py                [auger]
   - science/urc_analysis_arm.py         [analysis_arm]
+  - science/arc_sweeper_servo.py        [sweeper]
+  - science/arc_spinny_part.py          [spinny part] (analysis arm)
+  - science/scimbal_cam.py              [scimbal_cam]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATED:    17/03/2024
-EDITED:     13/02/2025
+EDITED:     20/03/2025
 EDITED BY: Tristan Clark, Victor Bartlinski, Felicity Matthews
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
@@ -33,12 +35,6 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='science',
             executable='nir_probe_publisher.py',
-            output='screen',
-            emulate_tty=True,
-        ),
-        Node(
-            package='science',
-            executable='microscope_servo.py',
             output='screen',
             emulate_tty=True,
         ),
@@ -67,6 +63,24 @@ def launch_setup(context, *args, **kwargs):
                 "cmd_id": analysis_arm_cmd_canid,
                 "tof_frame_id": tof_canid
             }],
+        ),
+        Node(
+            package='science',
+            executable='arc_sweeper_servo.py',
+            output='screen',
+            emulate_tty=True,
+        ),
+        Node(
+            package='science',
+            executable='arc_spinny_part.py',
+            output='screen',
+            emulate_tty=True,
+        ),
+        Node(
+            package='science',
+            executable='scimbal_cam.py',
+            output='screen',
+            emulate_tty=True,
         ),
     ]
 

@@ -288,11 +288,9 @@ self: super:
             {
               prePatch ? "",
               patches ? [ ],
-              nativeBuildInputs ? [ ],
               ...
             }:
             {
-              nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
               patches = patches ++ [
                 (self.fetchpatch {
                   url = "https://github.com/ros-controls/ros2_control/commit/23bd1c3c06c30d706f010628d85133a7198e226d.patch";
@@ -695,4 +693,7 @@ self: super:
   );
 
   # Overlays for non-ROS packages
+  cudaPackages = super.cudaPackages // {
+    nvidia-optical-flow-sdk = super.nvidia-optical-flow-sdk;
+  };
 }

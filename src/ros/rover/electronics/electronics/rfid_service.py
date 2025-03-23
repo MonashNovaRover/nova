@@ -27,7 +27,6 @@ from rclpy.node import Node
 from urllib.parse import quote
 from serial import Serial
 
-from core.srv import RFIDCommand
 from std_msgs.msg import String
 from std_srvs.srv import Trigger
 
@@ -36,7 +35,7 @@ class RFIDService(Node):
     def __init__(self):
         super().__init__('rfid_service')
         
-        self.declare_parameter('port', '/dev/USB0')
+        self.declare_parameter('port', '/dev/ttyUSB0')
         self.get_logger().info(f"Using port {self.get_parameter('port').value}.")
         self.get_logger().info("Waiting for RFID scanner to be plugged in.")
 

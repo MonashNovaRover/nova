@@ -25,6 +25,7 @@
     nova-rover-description = callPackage ./nix/packages/rover-description { };
     nova-gazebo = callPackage ./nix/packages/nova-gazebo { };
     nova-python-control = callPackage ./nix/packages/python-control { };
+    nova-python-control-old = callPackage ./nix/packages/python-control-old { };
     nova-excavation-construction = callPackage ./nix/packages/excavation-construction { };
     nova-detection-overlay = callPackage ./nix/packages/nova-detection-overlay { };
     nova-bt-navigators = callPackage ./nix/packages/nova-bt-navigators { };

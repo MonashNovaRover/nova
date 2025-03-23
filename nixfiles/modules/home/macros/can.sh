@@ -11,11 +11,12 @@
 #   can stop vcan0
 #
 # The options are:
-#   can0 -  CAN 1 Line
-#   can1 -  CAN 2 Line
-#   all -   CAN 1 and CAN 2 Line
-#   vcan0 - Virtual CAN 1 Line
-#   vcan1 - Virtual CAN 2 Line
+#   can0 -  CAN 0 Line
+#   can1 -  CAN 1 Line
+#   can2 -  CAN 2 Line
+#   all -   CAN 0, CAN 1, and CAN 2 Line
+#   vcan0 - Virtual CAN 0 Line
+#   vcan1 - Virtual CAN 1 Line
 #
 # +--------------------------------------------+
 
@@ -52,6 +53,9 @@ then
 elif [[ $2 = "can1" ]]
 then
     can="can1"
+elif [[ $2 = "can2" ]]
+then
+    can="can2"
 elif [[ $2 = "vcan0" ]]
 then
     can="vcan0"
@@ -64,6 +68,7 @@ elif [[ $2 = "all" ]]
 then
     can start can0
     can start can1
+    can start can2
     failed="1"
 
 # If invalid argument
@@ -76,6 +81,9 @@ fi
 # If the bitrate parameter exists
 if [[ -z "${3:-}" ]]; then
     if [[ $2 = "can0" ]]
+    then
+        bitrate=250000
+    elif [[ $2 = "can2" ]]
     then
         bitrate=250000
     else

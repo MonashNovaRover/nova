@@ -1,5 +1,0 @@
-camera_directory:
-  ros__parameters:
-    serial_overrides:
-      roots:
-        science_arc: pci-0000:00:14.0-usb-0:4 # USB slot on left of computer - left slot.
