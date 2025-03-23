@@ -102,10 +102,6 @@ export const CameraComponent = (props: CameraComponentProps) => {
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
-          // Create the filename string
-          const filename = `${currentSite}-${cameraSerial}-${Date.now()}.png`;
-          // Log the filename to the console
-          console.log("Screenshot file name:", filename);
           link.download = `Site${currentSite}-${cameraSerial}-${Date.now()}.png`;
           link.click();
         }
