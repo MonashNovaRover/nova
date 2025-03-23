@@ -11,7 +11,7 @@ import {StoreType} from "../redux/models/StoreContext.ts";
  * @param reduxStore struct of stores in Reducer or StoreContext forms to check types against.
  * @param storeName name of the store in redux to query and update.
  */
-function useGenericStoreWithStore<T, S extends object>(reduxStore: S, storeName: string): [T, (a: T | ((b: T) => T)) => void] {
+function useGenericStoreWithStore<T, S extends object>(reduxStore: S, storeName: string): [T, (a: T) => void] {
   // the initial value of this store to use for type checks
   const initialValue = useMemo(() => {
     // check there is a store with the provided name in redux
@@ -39,7 +39,7 @@ function useGenericStoreWithStore<T, S extends object>(reduxStore: S, storeName:
 
   // create a setValue function using dispatch
   const dispatch = useDispatch();
-  const setValue = useCallback((value: T | ((v: T) => T)) => {
+  const setValue = useCallback((value: T) => {
     dispatch({
       type: storeName + "/SET_VALUE",
       payload: value,
