@@ -32,6 +32,8 @@ rtabmap_odom:
     publish_null_when_lost: False
     subscribe_rgbd: True
     rgbd_cameras: 2
+    Odom/Strategy: "9" # Using VINS-Fusion
+    wait_imu_to_init: True
 
 oak_rgbd_sync:
   ros__parameters:

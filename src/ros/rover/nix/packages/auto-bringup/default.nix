@@ -27,7 +27,7 @@
   nova-auto-interfaces,
   nova-bt-navigators,
   rviz-imu-plugin,
-  imu-transformer,
+  imu-filter-madgwick,
   nova-pivot-drive-controller,
   tf2-tools,
   yolo-ros,
@@ -75,9 +75,10 @@ buildRosPackage rec {
       rviz-imu-plugin
       nova-pivot-drive-controller
       tf2-tools
-      imu-transformer
+      imu-filter-madgwick
       yolo-ros
-      lattice-primitive-generator;
+      lattice-primitive-generator
+      ;
   };
 
   # After installing params and resources folders in nix store's auto_bringup,

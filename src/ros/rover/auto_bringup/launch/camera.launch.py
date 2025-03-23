@@ -27,7 +27,6 @@ def launch_setup(context, *args, **kwargs):
     back_name = LaunchConfiguration('back_name').perform(context)
     front_name = LaunchConfiguration('front_name').perform(context)
     gazebo = LaunchConfiguration('gazebo')
-    imu = LaunchConfiguration('imu')
     oak_params = LaunchConfiguration('oak_params')
     bootie_params = LaunchConfiguration('bootie_params')
     pointclouds = LaunchConfiguration('pointclouds')
@@ -69,15 +68,6 @@ def launch_setup(context, *args, **kwargs):
                                 ('depth/camera_info', f'{front_name}/stereo/camera_info'),
                                 ('cloud', f'{front_name}/depth/points')],
                 ),
-                ComposableNode(
-                    condition=IfCondition(imu),
-                    package='imu_transformer',
-                    plugin='imu_transformer::ImuTransformer',
-                    name=f'{front_name}_imu_transformer_node',
-                    remappings=[('/imu_in', '/oak/imu/data'),
-                                ('/imu_out', '/oak/imu/transformed')],
-                    parameters=[{'target_frame': front_name}]
-                )
             ],
         ),
         ComposableNodeContainer(

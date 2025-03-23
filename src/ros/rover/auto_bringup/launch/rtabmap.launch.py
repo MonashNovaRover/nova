@@ -87,6 +87,7 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[rtabmap_params, {'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}', 'use_sim_time': gazebo}],
                     remappings=[
                         ('odom', 'odom/visual'),
+                        ('imu',front_name+'/imu/data'),
                         ('rgbd_image0',front_name+'/rgbd/image_raw'),
                         ('rgbd_image1',back_name+'/rgbd/image_raw'),
                     ],
