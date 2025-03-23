@@ -727,7 +727,7 @@
     <xacro:include filename="$(find rover_description)/rover7/urdf/ckc.xacro"/>
 
     <xacro:if value="$(arg auto_camera)">
-        <xacro:include filename="/home/nova/nova/src/ros/rover/rover_description/auto_mount/urdf/auto_camera.xacro"/>
+        <xacro:include filename="$(find rover_description)/auto_mount/urdf/auto_camera.xacro"/>
     </xacro:if>
     
     <xacro:if value="$(arg arm)">
