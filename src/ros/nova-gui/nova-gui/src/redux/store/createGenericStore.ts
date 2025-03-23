@@ -28,7 +28,12 @@ export const createGenericStore = <T>(name: string, initialValue: T, shouldPersi
           `match`);
         }
         // update value
-        state.value = action.payload;
+        if (action.payload instanceof Function) {
+          state.value = action.payload(state.value);
+        }
+        else {
+          state.value = action.payload;
+        }
       },
     },
   }).reducer;
