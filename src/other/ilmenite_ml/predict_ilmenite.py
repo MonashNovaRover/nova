@@ -86,11 +86,12 @@ predictions = predict_all_images(model, image_paths, transform)
 # ==== STATISTICS ==== 
 def calculate_statistics(predictions):
     avg_pred = np.mean(predictions)
+    median_pred = np.median(predictions)
     stdev_pred = np.std(predictions)
-    return avg_pred, stdev_pred
+    return avg_pred, median_pred, stdev_pred
 
 # Calculate and display statistics
-avg_pred, stdev_pred = calculate_statistics(predictions)
+avg_pred, median_pred, stdev_pred = calculate_statistics(predictions)
 
 print("Predictions for all images:")
 for idx, pred in enumerate(predictions):
@@ -98,4 +99,5 @@ for idx, pred in enumerate(predictions):
 
 print("")
 print(f"Average: {avg_pred:.2f}%")
+print(f"Median: {median_pred:.2f}%")
 print(f"Standard Deviation: {stdev_pred:.2f}%")
