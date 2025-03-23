@@ -27,7 +27,7 @@ import subprocess
 
 try:
     subprocess.run(["can", "start", "can1", "250000"], check=True)
-    print("can1 started successfully")
+    print("can1 started successfully (250000)")
 except subprocess.CalledProcessError as e:
     print(f"Error: Failed to start can1.")
     print("{e}")
