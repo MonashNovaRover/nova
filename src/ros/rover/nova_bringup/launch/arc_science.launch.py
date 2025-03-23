@@ -23,6 +23,15 @@ from launch import LaunchDescription
 from launch.actions import OpaqueFunction, DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+import subprocess
+
+try:
+    subprocess.run(["can", "start", "can1", "250000"], check=True)
+    print("can1 started successfully")
+except subprocess.CalledProcessError as e:
+    print(f"Error: Failed to start can1.")
+    print("{e}")
+    exit(1)
 
 def launch_setup(context, *args, **kwargs):
     # parameterised canIDs
