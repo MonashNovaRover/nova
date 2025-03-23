@@ -69,6 +69,6 @@ function useGenericStoreWithStore<T, S extends object>(reduxStore: S, storeName:
  *
  * @param storeName the name of the store in redux
  */
-export function useGenericStore<T>(storeName: string): [T, (a: T | ((b: T) => T)) => void] {
+export function useGenericStore<T>(storeName: string): [T, (a: T) => void] {
   return useGenericStoreWithStore(reduxStores, storeName);
 }
