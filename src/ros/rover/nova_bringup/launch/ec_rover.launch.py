@@ -19,6 +19,15 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+import subprocess
+
+try:
+    subprocess.run(["can", "start", "can1", "250000"], check=True)
+    print("can1 started successfully")
+except subprocess.CalledProcessError as e:
+    print(f"Error: Failed to start can1.")
+    print("{e}")
+    exit(1)
 
 def launch_setup(context, *args, **kwargs):
     nova_bringup_dir = FindPackageShare('nova_bringup')
