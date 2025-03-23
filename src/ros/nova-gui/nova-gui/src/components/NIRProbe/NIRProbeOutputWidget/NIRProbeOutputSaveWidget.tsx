@@ -53,6 +53,8 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   const [type, setType] = useState<NIRProbeReadingType.WATER | NIRProbeReadingType.ICE>(NIRProbeReadingType.WATER);
   const [advancedSampleLabel, setAdvancedSampleLabel] = useState<string>("");
 
+  const [autosave, setAutosave] = useState<boolean>(true);
+
   // Used for autosaving
   const previousDataRef = useRef<number | undefined>(undefined);
 
@@ -89,7 +91,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
         {
           data: reading,
           type: saveType,
-          label: showAdvanced ? advancedSampleLabel : sampleLabel,
+          label: "auto_" + (showAdvanced ? advancedSampleLabel : sampleLabel),
         } as ISpaceResourcesEntry,
         ...readings[saveType],
       ]
@@ -97,15 +99,18 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   }, [readings, setReadings, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
 
   useEffect(() => {
-    if (data === undefined)
+    if (!autosave)
       return;
 
-    if (data === previousDataRef.current)
+    if (nirData.data === undefined)
       return;
 
-    previousDataRef.current = data;
-    save(data);
-  }, [save, data, previousDataRef]);
+    if (nirData.data === previousDataRef.current)
+      return;
+
+    previousDataRef.current = nirData.data;
+    save(nirData.data);
+  }, [autosave, save, nirData.data, previousDataRef]);
 
   const onTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (+e.target.value !== 0)
@@ -130,6 +135,10 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
             <DropdownItem key="advanced" startContent={showAdvanced ? <Check/> : <></>}
                           onPress={() => setShowAdvanced(!showAdvanced)}>
               Show Advanced
+            </DropdownItem>
+            <DropdownItem key="autosave" startContent={autosave ? <Check/> : <></>}
+                          onPress={() => setAutosave(!autosave)}>
+              Autosave
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
