@@ -75,18 +75,17 @@ elif [ "save_" == "$OP"_ ]; then
   # we are saving to a file
   mkdir -p "$(dirname $FILENAME)"
   echo "Saving to $FILENAME"
-  
+
   # carefully handle errors here so we still print filename if user
   # stops ffmpeg with ctrl-c instead of bash exiting immediately
   set +e
-  ffmpeg -i "$URI" $FLIP "$FILENAME"
+  ffmpeg -i "$URI" -vcodec copy -acodec copy $FLIP "$FILENAME"
   RET=$?
   set -e
   echo "Saved to $FILENAME"
+  echo "To copy to your laptop: scp $USER@$(hostname -I | tr -d ' '):$FILENAME ./"
   exit $RET
 else
   echo invalid op $OP
   exit 1
 fi
-
-
