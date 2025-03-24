@@ -25,15 +25,15 @@ in
       complete -F _complete_alias "''${!BASH_ALIASES[@]}"
 
       # Rover operator shell functions (act as aliases that can take arguments)
-      launch-base() { 
-        local build="\${1:-master}"
-        echo "Running build: $build"
-        "${config.home.homeDirectory}/Builds/$build/bin/ros2" launch nova_bringup base.launch.py
+      launch-base() {
+          local build="${1:-master}"
+          echo "Running build: $build"
+          exec "~/Builds/$build/bin/ros2" launch nova_bringup base.launch.py
       }
-      launch-drive() { 
-        local build="\${1:-master}"
-        echo "Running build: $build"
-        "${config.home.homeDirectory}/Builds/$build/bin/ros2" launch nova_bringup drive.launch.py
+      launch-drive() {
+          local build="${1:-master}"
+          echo "Running build: $build"
+          exec "~/Builds/$build/bin/ros2" launch nova_bringup drive.launch.py
       }
       launch-arm() { 
         local build="\${1:-master}"
