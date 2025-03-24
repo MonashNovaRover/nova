@@ -28,40 +28,41 @@ in
       launch-base() { 
         local build="$${1:-master}"
         echo "Running build: $build"
-        ~/Builds/"$build"/bin/ros2 launch nova_bringup base.launch.py
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup base.launch.py
       }
       launch-drive() { 
         local build="$${1:-master}"
         echo "Running build: $build"
-        ~/Builds/"$build"/bin/ros2 launch nova_bringup drive.launch.py
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup drive.launch.py
       }
       launch-arm() { 
         local build="$${1:-master}"
         echo "Running build: $build"
-        ~/Builds/"$build"/bin/ros2 launch nova_bringup arm.launch.py
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup arm.launch.py
       }
       launch-ec() { 
         local build="$${1:-master}"
         echo "Running build: $build"
-        ~/Builds/"$build"/bin/ros2 launch nova_bringup ec_rover.launch.py
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup ec_rover.launch.py
       }
       launch-science-arc() { 
         local build="$${1:-master}"
         echo "Running build: $build"
-        ~/Builds/"$build"/bin/ros2 launch nova_bringup arc_science.launch.py
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup arc_science.launch.py
       }
       launch-science-urc() { 
         local build="$${1:-master}"
         echo "Running build: $build"
-        ~/Builds/"$build"/bin/ros2 launch nova_bringup urc_science.launch.py
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup urc_science.launch.py
       }
-      
+
       # Ensure functions are available if shell ($-) is interactive (*i*)
       if [[ $- == *i* ]]; then
         export -f launch-base launch-drive launch-arm launch-ec launch-science-arc launch-science-urc
       fi
     '';
   };
+
 
       
       # Ensure functions are available if shell ($-) is interactive (*i*)
