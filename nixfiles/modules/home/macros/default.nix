@@ -23,6 +23,76 @@ in
       COMPAL_AUTO_UNMASK=1
       . '${pkgs.complete-alias}/bin/complete_alias'
       complete -F _complete_alias "''${!BASH_ALIASES[@]}"
+
+      # Rover operator shell functions (now as functions that can take arguments)
+      shfunc-test() {
+        echo "test"
+        echo "$1"
+      }
+      launch-base() {
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
+        fi
+        echo "Running build: $build"
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup base.launch.py
+      }
+
+      launch-drive() {
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
+        fi
+        echo "Running build: $build"
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup drive.launch.py
+      }
+
+      launch-arm() {
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
+        fi
+        echo "Running build: $build"
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup arm.launch.py
+      }
+
+      launch-ec() {
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
+        fi
+        echo "Running build: $build"
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup ec_rover.launch.py
+      }
+
+      launch-science-arc() {
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
+        fi
+        echo "Running build: $build"
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup arc_science.launch.py
+      }
+
+      launch-science-urc() {
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
+        fi
+        echo "Running build: $build"
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup urc_science.launch.py
+      }
+      
+      # Ensure functions are available if shell ($-) is interactive (*i*)
+      if [[ $- == *i* ]]; then
+        export -f launch-base launch-drive launch-arm launch-ec launch-science-arc launch-science-urc shfunc-test
+      fi
     '';
 
     home = {
@@ -99,29 +169,20 @@ in
             # Hydra aliases
             hydra-vomit = "${pkgs.bash}/bin/bash ${../../../scripts/hydra-vomit.sh}";
 
-            # Launch rover or payloads
+            # Rover operator aliases
             rover-help = "more ${cfg.nixfileDir}/doc/rover-help.md";
-            launch-base = "~/Builds/master/bin/ros2 launch nova_bringup base.launch.py";
-            launch-drive = "~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py";
-            launch-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
-            launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
-            launch-science-arc = "~/Builds/master/bin/ros2 launch nova_bringup arc_science.launch.py";
-            launch-science-urc = "~/Builds/master/bin/ros2 launch nova_bringup urc_science.launch.py";
-
-            # Cameras
             launch-cameras = "~/Builds/master/bin/ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params'";
             launch-cameras-all = "${launch-cameras} autostart:=true";
-            reolink = "${pkgs.bash}/bin/bash ${../../../scripts/reolink.sh}";
 
-            # Setup rover
+            # Rover setup aliases
             zero-arm = "${pkgs.bash}/bin/bash ${../../../scripts/zero-arm.sh}";
             zero-pivots = "${pkgs.bash}/bin/bash ${../../../scripts/zero-pivots.sh}";
             list-blcmds = "more ${cfg.nixfileDir}/doc/blcmd-ids.md";
-            
-            # Shell
-            predict-shell = "nix-shell ~/nova/src/other/ilmenite_ml";
 
-            # GUI
+            # Temporary aliases (remove when a better solution has been implemented)
+            cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
+          
+            # GUI aliases
             gui-shell = "nova-shell -A pkgs.ros.nova-gui";
             gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" ~/nova/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts";
             gui-rosbridge = "~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
@@ -146,6 +207,9 @@ in
             cameras-orin = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
             nix-enable = "sudo systemctl enable nix-daemon.service";
             nix-start = "sudo systemctl start nix-daemon.service";
+            # Reolink camera
+            reolink-low = "mpv --rtsp-transport=udp --no-cache --untimed --video-sync=display-resample --deinterlace=no --profile=low-latency --demuxer-max-bytes=512K --demuxer-max-back-bytes=512K rtsp://admin:***REMOVED***@10.0.1.100:554/h264Preview_01_sub";
+            reolink-high = "mpv --rtsp-transport=udp --no-cache --untimed --video-sync=display-resample --deinterlace=no --profile=low-latency --demuxer-max-bytes=1M --demuxer-max-back-bytes=1M rtsp://admin:***REMOVED***@10.0.1.100:554/h264Preview_01_main";
 
           }
         ];
