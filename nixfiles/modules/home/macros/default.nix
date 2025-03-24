@@ -25,39 +25,56 @@ in
       complete -F _complete_alias "''${!BASH_ALIASES[@]}"
 
       # Rover operator shell functions (now as functions that can take arguments)
-  
       launch-base() {
-          local build="${1:-master}"
-          echo "Running build: $build"
-          exec "~/Builds/$build/bin/ros2" launch nova_bringup base.launch.py
+        local build="master"
+        if [ -n "\$1" ]; then
+          build="\$1"
+        fi
+        echo "Running build: $build"
+        exec "~/Builds/$build/bin/ros2" launch nova_bringup base.launch.py
       }
 
       launch-drive() {
-          local build="${1:-master}"
-          echo "Running build: $build"
-          exec "~/Builds/$build/bin/ros2" launch nova_bringup drive.launch.py
+        local build="master"
+        if [ -n "\$1" ]; then
+          build="\$1"
+        fi
+        echo "Running build: $build"
+        exec "~/Builds/$build/bin/ros2" launch nova_bringup drive.launch.py
       }
 
       launch-arm() {
-        local build="${1:-master}"
+        local build="master"
+        if [ -n "\$1" ]; then
+          build="\$1"
+        fi
         echo "Running build: $build"
         exec "~/Builds/$build/bin/ros2" launch nova_bringup arm.launch.py
       }
 
       launch-ec() {
-        local build="${1:-master}"
+        local build="master"
+        if [ -n "\$1" ]; then
+          build="\$1"
+        fi
         echo "Running build: $build"
         exec "~/Builds/$build/bin/ros2" launch nova_bringup ec_rover.launch.py
       }
 
       launch-science-arc() {
-        local build="${1:-master}"
+        local build="master"
+        if [ -n "\$1" ]; then
+          build="\$1"
+        fi
         echo "Running build: $build"
         exec "~/Builds/$build/bin/ros2" launch nova_bringup arc_science.launch.py
       }
 
       launch-science-urc() {
-        local build="${1:-master}"
+        local build="master"
+        if [ -n "\$1" ]; then
+          build="\$1"
+        fi
         echo "Running build: $build"
         exec "~/Builds/$build/bin/ros2" launch nova_bringup urc_science.launch.py
       }
