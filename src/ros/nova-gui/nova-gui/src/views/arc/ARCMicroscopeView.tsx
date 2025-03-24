@@ -13,11 +13,11 @@ export const ARCMicroscopeView = () => {
           <MicroscopeWidget cameraSerial="science_microscope" />
         </div>
         <div className="flex flex-col gap-3 col-span-3">
-          <TOFHeight/>
+          <KilnWidget />
           <DriveModeWidget />
           <WheelTelemetryWidget />
           <DriveSpeedWidget />
-          <KilnWidget />
+          <TOFHeight/>
         </div>
       </div>
     </div>
