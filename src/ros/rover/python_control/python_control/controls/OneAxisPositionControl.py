@@ -36,8 +36,8 @@ class OneAxisPositionControl(Control):
         return self.position_sensor.get_sensor_value()
 
     def get_goal_position(self):
-        """Get the position to move the motor to"""
-        return self.positions[self.position_name] + self.offset
+        """Get the position to move the motor to. Limited between 0 and self.max_angle."""
+        return max(0, min(self.max_angle, self.positions[self.position_name] + self.offset))
     
     def get_position_name(self):
         """Get the name of the current position to move the motor to"""
@@ -69,6 +69,7 @@ class OneAxisPositionControl(Control):
 
     def distance_to_position(self) -> int:
         """Get the distance to the set position"""
+        # TODO: Apply limits and offset
         return abs(self.positions[self.position_name] - self.position_sensor.get_sensor_value())
     
     def is_zeroed(self) -> bool:

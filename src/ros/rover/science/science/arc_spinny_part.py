@@ -38,41 +38,53 @@ class SpinnyPartNode(JoystickControllerNode):
 
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
-    SERVO_MAX_ANGLE = 360
+    SERVO_MAX_ANGLE_PARAM = "range"
+    SERVO_MAX_ANGLE_DEFAULT = 360
     MAX_VALUE = 0xFF
 
     SPIN_CONTROL_NAME = "Analysis Arm Spinny Part"
 
     # Positions
     POSITION_NAMES = [
-        MICROSCOPE := "microscope",
         SWEEPER := "sweeper",
+        MICROSCOPE := "microscope",
         NIR_PROBE := "nir_probe",
     ]
 
-    POSITIONS = {
-        MICROSCOPE: 60,
-        SWEEPER: 180,
-        NIR_PROBE: 300,
+    # New positions after testing (in CAN message units)
+    #   - 0x00 (sweeper)
+    #   - 0x80 (microscope)
+    #   - 0xFF (nir probe)
+    POSITION_DEFAULTS = {
+        SWEEPER: 0,
+        MICROSCOPE: 120,
+        NIR_PROBE: 240,
+    }
+
+    POSITION_PARAMS = {
+        SWEEPER: SWEEPER + "_pos",
+        MICROSCOPE: MICROSCOPE + "_pos",
+        NIR_PROBE: NIR_PROBE + "_pos",
     }
 
     # Offset variables
-    MAX_OFFSET = 60
-    MIN_OFFSET = -60
-    OFFSET_STEP = 1
+    OFFSET_STEP_DEFAULT = 1
     OFFSET_STEP_PARAM = "offset_step"
 
     def __init__(self):
         super().__init__(name="SpinnyPartNode", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
-        self.declare_parameter(self.OFFSET_STEP_PARAM, self.OFFSET_STEP)
+        self.declare_parameter(self.OFFSET_STEP_PARAM, self.OFFSET_STEP_DEFAULT)
+
+        # Create positions map from params
+        self.positions = { k: self.declare_parameter(v, self.POSITION_DEFAULTS[k]) for k, v in self.POSITION_PARAMS }
 
         ## Create CONTROLS
         self.spinny_part = OneAxisPositionControl(
             logger=logger,
-            max_angle=self.SERVO_MAX_ANGLE,
-            positions = self.POSITIONS
+            max_angle=self.declare_parameter(self.SERVO_MAX_ANGLE_PARAM, self.SERVO_MAX_ANGLE_DEFAULT).value,
+            positions = self.positions
         )
         self.spinny_part.update_position(self.NIR_PROBE)
 
@@ -100,21 +112,24 @@ class SpinnyPartNode(JoystickControllerNode):
         """
         # change position
         if joystick_l.btn_bottom_r4_state == 1:
-            self.spinny_part.update_position(self.MICROSCOPE)
-            self.get_logger().info(f"Moved to MICROSCOPE position {self.POSITIONS[self.MICROSCOPE] + self.spinny_part.get_offset()}")
-        elif joystick_l.btn_bottom_r5_state == 1:
+            self.spinny_part.set_offset(0)
             self.spinny_part.update_position(self.SWEEPER)
             self.get_logger().info(f"Moved to SWEEPER position {self.POSITIONS[self.SWEEPER] + self.spinny_part.get_offset()}")
+        elif joystick_l.btn_bottom_r5_state == 1:
+            self.spinny_part.set_offset(0)
+            self.spinny_part.update_position(self.MICROSCOPE)
+            self.get_logger().info(f"Moved to MICROSCOPE position {self.POSITIONS[self.MICROSCOPE] + self.spinny_part.get_offset()}")
         elif joystick_l.btn_bottom_r6_state == 1:
+            self.spinny_part.set_offset(0)
             self.spinny_part.update_position(self.NIR_PROBE)
             self.get_logger().info(f"Moved to NIR PROBE position {self.POSITIONS[self.NIR_PROBE] + self.spinny_part.get_offset()}")
 
         # twitch/update offset
         if joystick_l.btn_bottom_r1_state == 1:
-            self.spinny_part.set_offset(min(self.MAX_OFFSET, self.spinny_part.get_offset() + self.get_parameter(self.OFFSET_STEP_PARAM).value))
+            self.spinny_part.set_offset(self.spinny_part.get_offset() + self.get_parameter(self.OFFSET_STEP_PARAM).value)
             self.get_logger().info(f"OFFSET updated {self.spinny_part.get_offset()}")
         elif joystick_l.btn_bottom_r2_state == 1:
-            self.spinny_part.set_offset(max(self.MIN_OFFSET, self.spinny_part.get_offset() - self.get_parameter(self.OFFSET_STEP_PARAM).value))
+            self.spinny_part.set_offset(self.spinny_part.get_offset() - self.get_parameter(self.OFFSET_STEP_PARAM).value)
             self.get_logger().info(f"OFFSET updated {self.spinny_part.get_offset()}")
 
     def joystick_r(self, joystick_r: InputJoystick):
