@@ -30,57 +30,63 @@ in
         echo "$1"
       }
       launch-base() {
-        local build="master"
-        if [ -n "\$1" ]; then
-          build="\$1"
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
         fi
         echo "Running build: $build"
-        exec "~/Builds/$build/bin/ros2" launch nova_bringup base.launch.py
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup base.launch.py
       }
 
       launch-drive() {
-        local build="master"
-        if [ -n "\$1" ]; then
-          build="\$1"
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
         fi
         echo "Running build: $build"
-        exec "~/Builds/$build/bin/ros2" launch nova_bringup drive.launch.py
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup drive.launch.py
       }
 
       launch-arm() {
-        local build="master"
-        if [ -n "\$1" ]; then
-          build="\$1"
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
         fi
         echo "Running build: $build"
-        exec "~/Builds/$build/bin/ros2" launch nova_bringup arm.launch.py
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup arm.launch.py
       }
 
       launch-ec() {
-        local build="master"
-        if [ -n "\$1" ]; then
-          build="\$1"
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
         fi
         echo "Running build: $build"
-        exec "~/Builds/$build/bin/ros2" launch nova_bringup ec_rover.launch.py
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup ec_rover.launch.py
       }
 
       launch-science-arc() {
-        local build="master"
-        if [ -n "\$1" ]; then
-          build="\$1"
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
         fi
         echo "Running build: $build"
-        exec "~/Builds/$build/bin/ros2" launch nova_bringup arc_science.launch.py
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup arc_science.launch.py
       }
 
       launch-science-urc() {
-        local build="master"
-        if [ -n "\$1" ]; then
-          build="\$1"
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
         fi
         echo "Running build: $build"
-        exec "~/Builds/$build/bin/ros2" launch nova_bringup urc_science.launch.py
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup urc_science.launch.py
       }
       
       # Ensure functions are available if shell ($-) is interactive (*i*)
