@@ -9,7 +9,8 @@ var HOSTNAME = '10.0.1.100',
 	USERNAME = 'admin',
 	PASSWORD = 'Lab188b37', // TODO: remove password somehow
 	STOP_DELAY_MS = 200,
-  SPEED = 1; // doesn't change anything
+  SPEED = 1,
+  AUTO_TIMING = 6000;
 
 var Cam = require('onvif').Cam;
 var keypress = require('keypress');
@@ -19,8 +20,6 @@ var autoDir = -1;
 var auto_timer;
 var auto_count = 0; // how many move cmds left till we turn
 
-var auto_pan_duration = 20*1000; // how long camera pans to one side before switching (ms)
-var motion_sickness = 500; // how often to stop the camera in auto mode (ms)
 
 new Cam({
 	hostname: HOSTNAME,
@@ -59,19 +58,11 @@ new Cam({
 			console.log('Stream: = ' + stream.uri);
 			console.log('------------------------------');
 
-
 			// start processing the keyboard
 			read_and_process_keyboard();
 		}
 	}
 	);
-  
-  function print_user_modifiable_vars() {
-        console.log(
-          'speed: ' + motion_sickness/1000 
-          + ", auto pan duration: " + auto_pan_duration/1000 +"s"
-        );
-  }
 
 	function read_and_process_keyboard() {
 		// listen for the "keypress" events
@@ -82,7 +73,6 @@ new Cam({
 		console.log('');
 		console.log('Use Arrow Keys to move camera. + and - to zoom. q to quit');
     console.log('Use a to toggle auto mode (repeated panning left and right forever)');
-    console.log('Use keys 1, 2, 3, 4 to change the speed/period of auto mode. Speed control is very bad.');
 
 		// keypress handler
 		process.stdin.on('keypress', function(ch, key) {
@@ -90,8 +80,6 @@ new Cam({
 			/* Exit on 'q' or 'Q' or 'CTRL C' */
 			if ((key && key.ctrl && key.name == 'c')
 				|| (key && key.name == 'q')) {
-        stop();
-        print_user_modifiable_vars();
 				process.exit();
 			}
 
@@ -126,68 +114,37 @@ new Cam({
 			} else if (ch && ch        == 'a') {
         autoMode = !autoMode;
         console.log("Auto Mode", autoMode);
-        set_auto();
-			} else if (ch  && ch       == '1') {
-        auto_pan_duration -= 500;
-        if (auto_pan_duration <= 0) {
-          auto_pan_duration = 500;
+        if (autoMode) {
+          auto_cb();
         }
-        print_user_modifiable_vars();
-			} else if (ch  && ch       == '2') {
-        auto_pan_duration += 500;
-        print_user_modifiable_vars();
-			} else if (ch  && ch       == '3') {
-        motion_sickness -= 50;
-        if (motion_sickness <= 0) {
-          motion_sickness = 50;
-        }
-        print_user_modifiable_vars();
-			} else if (ch  && ch       == '4') {
-        motion_sickness += 50;
-        print_user_modifiable_vars();
       }
+      // TODO: focus control? -- if you zoom, then wait a little it will autofocus
       if (!autoMode) {
         move(new_velocity);
       }
 		});
 	}
 
-  function set_auto() {
-				console.log('set auto ');
-    if (autoMode) {
-      auto_cb();
-    } else {
-      clearTimeout(auto_timer);
-      stop();
-    }
-  }
-
   function schedule_auto_timer() {
-		  if (auto_timer) {
-        clearTimeout(auto_timer);
-      }
-		  auto_timer = setTimeout(auto_cb,motion_sickness);
-  }
+    if (autoMode) {
+		  if (auto_timer) {clearTimeout(auto_timer);}
+		  auto_timer = setTimeout(auto_cb,STOP_DELAY_MS/2);
+    }
 
+  }
   function auto_cb() {
-    //console.log("auto cb, " + auto_count + " " + autoDir);
+      var new_velocity = {
+        X: autoDir * SPEED,
+        Y: 0,
+        Zoom: 0
+      }
     if (auto_count) {
       auto_count = auto_count -1;
     } else {
-      auto_count = Math.floor(auto_pan_duration / motion_sickness);
+      auto_count = 2*AUTO_TIMING / STOP_DELAY_MS;
       autoDir = -autoDir;
     }
-		cam_obj.continuousMove({x: autoDir,
-			y: 0,
-			zoom: 0} ,
-		// completion callback function
-		function(err, stream, xml) {
-			if (err) {
-				console.log(err);
-			} else {
-			}
-		});
-
+    move(new_velocity);
     schedule_auto_timer();
   }
 
