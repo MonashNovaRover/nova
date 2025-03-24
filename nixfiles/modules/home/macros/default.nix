@@ -85,7 +85,7 @@ in
       
       # Ensure functions are available if shell ($-) is interactive (*i*)
       if [[ $- == *i* ]]; then
-        export -f launch-base launch-drive launch-arm launch-ec launch-science-arc launch-science-urc
+        export -f launch-base launch-drive launch-arm launch-ec launch-science-arc launch-science-urc shfunc-test
       fi
     '';
 
