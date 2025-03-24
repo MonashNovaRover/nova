@@ -1,18 +1,20 @@
-import React, {useCallback, useEffect, useMemo, useState} from "react";
+import React, {useCallback, useEffect, useMemo} from "react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
 import OverlayedCameraComponent from "./OverlayedCameraComponent.tsx";
 import {BaseCameraComponentProps} from "../CameraComponent.tsx";
-import {StreamingState} from "../hooks/useCameraStream.ts";
 import {Input, Tooltip} from "@nextui-org/react";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 
 export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> = (props) => {
-  const [showOverlay, setShowOverlay] = useState<boolean>(false)
-
   // Default step size for incrementing angles
   const [step, setStep] = useGenericStore<string>("scimbalStepSize");
-  const stepNumber = useMemo(() => parseInt(step),[step]);
+  const stepNumber = useMemo(() => {
+    const val = parseInt(step)
+    if (isNaN(val))
+      return 1
+    return val
+  }, [step]);
 
 
   const serviceBifrost = useBifrost({service: RosService.SCIMBAL_COMMAND});
@@ -58,7 +60,7 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
             key={"Step Size"}
         >
           <Input
-              aria-label="Temperature value"
+              aria-label="Scimbal cam step size"
               label= "Step size"
               labelPlacement= "inside"
               className=""
@@ -73,12 +75,10 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
   return (
     <div>
       <OverlayedCameraComponent
-        onStreamingStateChange={(s) => setShowOverlay(s === StreamingState.STREAMING)}
         {...props}
-        overlay={showOverlay ? <div className="self-center grow h-0.5 bg-black"/> : <div/>}
+        overlay={<div/>}
         settingsFormChildren={stepSizeInput}
       />
-      <p id="demoCoords"></p>
     </div>
   );
 }

@@ -35,7 +35,8 @@ class URCAuger(JoystickControllerNode):
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
     AUGER_ACTUATION_MAX_PERCENT = 0.75
-    AUGER_DRILL_MAX_PERCENT = 0.75
+    AUGER_DRILL_MAX_PERCENT = 1.0
+    AUGER_DRILL_MAX_PERCENT_PARAM = "max_percent"
 
     # SENDING COMMAND IDS
     # Add any CONTROL command ids here
@@ -59,6 +60,7 @@ class URCAuger(JoystickControllerNode):
         # Setting ROS parameters
         self.declare_parameter(self.AUGER_ACTUATION_CANID_PARAM, self.AUGER_ACTUATION_SEND_FRAME_ID)
         self.declare_parameter(self.AUGER_DRILL_CANID_PARAM, self.AUGER_DRILL_SEND_FRAME_ID)
+        self.declare_parameter(self.AUGER_DRILL_MAX_PERCENT_PARAM, self.AUGER_DRILL_MAX_PERCENT)
         self.get_logger().info(f"CAN IDs: Actuation = {self.get_parameter(self.AUGER_ACTUATION_CANID_PARAM).value} Drill = {self.get_parameter(self.AUGER_DRILL_CANID_PARAM).value}")
 
         ## Add CAN ID Filters
@@ -89,7 +91,7 @@ class URCAuger(JoystickControllerNode):
         )
         self.auger_drill = OneAxisVelocityControl(
             logger=logger,
-            max_percent=self.AUGER_DRILL_MAX_PERCENT,
+            max_percent=self.get_parameter(self.AUGER_DRILL_MAX_PERCENT_PARAM).value,
             direction=self.AUGER_DRILL_CLOCKWISE,
         )
 

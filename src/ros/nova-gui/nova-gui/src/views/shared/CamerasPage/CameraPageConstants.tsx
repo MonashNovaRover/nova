@@ -52,7 +52,6 @@ export enum CameraSerials {
 export const allCams = [];
 
 const mastCams = [
-  CameraSerials.MAST_FISHEYE,
   CameraSerials.MAST_DOWN,
   CameraSerials.MAST_FORWARD,
   CameraSerials.MAST_BACKWARD,
