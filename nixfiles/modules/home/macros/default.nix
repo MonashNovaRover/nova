@@ -25,6 +25,10 @@ in
       complete -F _complete_alias "''${!BASH_ALIASES[@]}"
 
       # Rover operator shell functions (now as functions that can take arguments)
+      shfunc-test() {
+        echo "test"
+        echo "$1"
+      }
       launch-base() {
         local build="master"
         if [ -n "\$1" ]; then
