@@ -24,36 +24,42 @@ in
       . '${pkgs.complete-alias}/bin/complete_alias'
       complete -F _complete_alias "''${!BASH_ALIASES[@]}"
 
-      # Rover operator shell functions (act as aliases that can take arguments)
+      # Rover operator shell functions (now as functions that can take arguments)
+  
       launch-base() {
           local build="${1:-master}"
           echo "Running build: $build"
           exec "~/Builds/$build/bin/ros2" launch nova_bringup base.launch.py
       }
+
       launch-drive() {
           local build="${1:-master}"
           echo "Running build: $build"
           exec "~/Builds/$build/bin/ros2" launch nova_bringup drive.launch.py
       }
-      launch-arm() { 
-        local build="\${1:-master}"
+
+      launch-arm() {
+        local build="${1:-master}"
         echo "Running build: $build"
-        "${config.home.homeDirectory}/Builds/$build/bin/ros2" launch nova_bringup arm.launch.py
+        exec "~/Builds/$build/bin/ros2" launch nova_bringup arm.launch.py
       }
-      launch-ec() { 
-        local build="\${1:-master}"
+
+      launch-ec() {
+        local build="${1:-master}"
         echo "Running build: $build"
-        "${config.home.homeDirectory}/Builds/$build/bin/ros2" launch nova_bringup ec_rover.launch.py
+        exec "~/Builds/$build/bin/ros2" launch nova_bringup ec_rover.launch.py
       }
-      launch-science-arc() { 
-        local build="\${1:-master}"
+
+      launch-science-arc() {
+        local build="${1:-master}"
         echo "Running build: $build"
-        "${config.home.homeDirectory}/Builds/$build/bin/ros2" launch nova_bringup arc_science.launch.py
+        exec "~/Builds/$build/bin/ros2" launch nova_bringup arc_science.launch.py
       }
-      launch-science-urc() { 
-        local build="\${1:-master}"
+
+      launch-science-urc() {
+        local build="${1:-master}"
         echo "Running build: $build"
-        "${config.home.homeDirectory}/Builds/$build/bin/ros2" launch nova_bringup urc_science.launch.py
+        exec "~/Builds/$build/bin/ros2" launch nova_bringup urc_science.launch.py
       }
       
       # Ensure functions are available if shell ($-) is interactive (*i*)
