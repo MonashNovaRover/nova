@@ -27,7 +27,6 @@ try:
 except subprocess.CalledProcessError as e:
     print(f"Error: Failed to start can1.")
     print("{e}")
-    exit(1)
 
 def launch_setup(context, *args, **kwargs):
     nova_bringup_dir = FindPackageShare('nova_bringup')
