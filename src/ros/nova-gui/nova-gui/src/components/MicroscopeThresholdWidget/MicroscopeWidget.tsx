@@ -3,7 +3,7 @@ import {CameraComponentProps} from "../CameraComponent/CameraComponent.tsx";
 import {Card, CardBody, Tab, Tabs} from "@nextui-org/react";
 import MicroscopeThresholdWidget from "./MicroscopeThresholdWidget.tsx";
 import {CameraSerials} from "../../views/shared/CamerasPage/CameraPageConstants.tsx";
-import MicroscopeMLWidget from "./MicroscopeMLWidget.tsx";
+import MicroscopeCamerasWidget from "./MicroscopeCamerasWidget.tsx";
 
 const MicroscopeWidget: React.FC<CameraComponentProps> = () => {
 
@@ -22,7 +22,7 @@ const MicroscopeWidget: React.FC<CameraComponentProps> = () => {
           variant="underlined"
         >
           <Tab title="Camera Feed">
-            <MicroscopeMLWidget/>
+            <MicroscopeCamerasWidget/>
           </Tab>
           <Tab title="Thresholding">
             <MicroscopeThresholdWidget cameraSerial={CameraSerials.SCIENCE_MICROSCOPE}/>
