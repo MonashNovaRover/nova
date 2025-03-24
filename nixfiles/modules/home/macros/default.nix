@@ -25,13 +25,6 @@ in
       complete -F _complete_alias "''${!BASH_ALIASES[@]}"
 
       # Rover operator shell functions (act as aliases that can take arguments)
-        config = lib.mkIf cfg.enable {
-    programs.bash.initExtra = lib.mkAfter ''
-      COMPAL_AUTO_UNMASK=1
-      . '${pkgs.complete-alias}/bin/complete_alias'
-      complete -F _complete_alias "''${!BASH_ALIASES[@]}"
-
-      # Rover operator shell functions (act as aliases that can take arguments)
       launch-base() { 
         local build="$${1:-master}"
         echo "Running build: $build"
