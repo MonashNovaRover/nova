@@ -38,8 +38,8 @@ class SpinnyPartNode(JoystickControllerNode):
 
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
-    SERVO_MAX_ANGLE_PARAM = "range"
-    SERVO_MAX_ANGLE_DEFAULT = 360
+    SERVO_MAX_ANGLE_PARAM = "max_angle"
+    SERVO_MAX_ANGLE_DEFAULT = 239
     MAX_VALUE = 0xFF
 
     SPIN_CONTROL_NAME = "Analysis Arm Spinny Part"
@@ -58,7 +58,7 @@ class SpinnyPartNode(JoystickControllerNode):
     POSITION_DEFAULTS = {
         SWEEPER: 0,
         MICROSCOPE: 120,
-        NIR_PROBE: 240,
+        NIR_PROBE: 239,
     }
 
     POSITION_PARAMS = {
