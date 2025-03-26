@@ -54,4 +54,3 @@ class JonoPositionController(Controller):
         frame = jcan.Frame(id=self.frame_id, data=packed_data)
 
         return frame
-data
