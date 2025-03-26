@@ -114,7 +114,6 @@ class SpinnyPartNode(JoystickControllerNode):
         :return: None
         """
         self.offset_step = int(abs(joystick_l.ax_slider) * self.get_parameter(self.OFFSET_MAX_STEP_PARAM).value)
-        self.get_logger().info(f"Offset step updated to {self.offset_step}")
 
         # change position
         if joystick_l.btn_bottom_r4_state == 1:
@@ -133,7 +132,7 @@ class SpinnyPartNode(JoystickControllerNode):
         # twitch/update offset
         if joystick_l.btn_bottom_r1_state == 1:
             self.spinny_part.set_offset(self.spinny_part.get_offset() + self.offset_step)
-            self.get_logger().info(f"OFFSET updated {self.spinny_part.get_offset()}")
+            self.get_logger().info(f"OFFSET updated {self.spinny_part.get_offset()}}")
         elif joystick_l.btn_bottom_r2_state == 1:
             self.spinny_part.set_offset(self.spinny_part.get_offset() - self.offset_step)
             self.get_logger().info(f"OFFSET updated {self.spinny_part.get_offset()}")
