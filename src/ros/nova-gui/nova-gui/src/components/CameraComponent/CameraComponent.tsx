@@ -22,6 +22,8 @@ import humanizeString from "humanize-string";
 import { ExternalLink } from "react-feather";
 import toast from "react-hot-toast";
 import CameraSessionStartStopButton from "./components/CameraSessionStartStopButton.tsx";
+import {useGenericStore} from "../../hooks/useGenericStore.ts";
+import {Site} from "../../redux/models/genericStores/CurrentSiteStore.ts";
 
 const ASPECT_RATIO = 4 / 3;
 
@@ -70,6 +72,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
   const onStreamingStateChange = props.onStreamingStateChange
+  const [currentSite, _] = useGenericStore<Site>("currentSite");
 
   useEffect(() => {
     if (onStreamingStateChange)
@@ -99,14 +102,14 @@ export const CameraComponent = (props: CameraComponentProps) => {
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
-          link.download = `${cameraSerial}-${Date.now()}.png`;
+          link.download = `site${(currentSite+1).toString()}-${cameraSerial}-${Date.now()}.png`;
           link.click();
         }
       }
     } else {
       toast("Unable to Take a Screenshot");
     }
-  }, [videoRef, cameraSerial]);
+  }, [videoRef, cameraSerial, currentSite]);
 
   useEffect(() => {
     const handleMouseEnter = () => {
