@@ -20,6 +20,7 @@ export enum URCCompModes {
 export enum CameraSerials {
   WHEEL_TELEMETRY = "wheel_telemetry",
   DRIVE_TELEMETRY = "drive_telemetry",
+  SITE_SELECT = "site_select",
 
   MAST_FISHEYE = "mast_fisheye",
   MAST_DOWN = "mast_down",
@@ -156,7 +157,7 @@ export const excavation_and_construction_views: CameraView[] = [
 
 export const space_resources_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams, ...arcScienceCams, ...driveCams],
+    cameraSerials: [...mastCams, ...arcScienceCams, ...driveCams, CameraSerials.SITE_SELECT],
     viewTitle: "All Cams",
   },
   {
