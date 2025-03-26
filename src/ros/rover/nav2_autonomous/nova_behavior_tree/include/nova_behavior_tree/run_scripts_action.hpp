@@ -64,8 +64,6 @@ private:
   void halt() override {}
   void run_scripts();
 
-  rclcpp::Node::SharedPtr node_;
-  
   std::vector<std::string> scripts_;
   std::string build_path_;
   

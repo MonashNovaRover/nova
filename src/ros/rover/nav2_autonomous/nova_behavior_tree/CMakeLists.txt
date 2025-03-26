@@ -57,7 +57,7 @@ list(APPEND plugin_libs nova_ar_tag_detected_condition_bt_node)
 add_library(nova_blackboard_publisher_bt_node SHARED plugins/blackboard_publisher_node.cpp)
 list(APPEND plugin_libs nova_blackboard_publisher_bt_node)
 
-add_library(nova_run_scripts_action_bt_node SHARED plugins/run_scripts_action_node.cpp)
+add_library(nova_run_scripts_action_bt_node SHARED plugins/run_scripts_action.cpp)
 list(APPEND plugin_libs nova_run_scripts_action_bt_node)
 
 add_library(nova_check_detected_condition_bt_node SHARED plugins/check_detected_condition.cpp)

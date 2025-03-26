@@ -26,9 +26,7 @@
 #include <string>
 #include <cstdlib>
 
-#include "rclcpp/logging.hpp"
-
-#include "nova_behavior_tree/update_goals_action.hpp"
+#include "nova_behavior_tree/run_scripts_action.hpp"
 
 namespace nova_behavior_tree
 {
@@ -42,8 +40,6 @@ namespace nova_behavior_tree
 
     void RunScriptsAction::initialize()
     {
-        node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
-        
         getInput("scripts", scripts_);
         getInput("build_path", build_path_);
 
@@ -62,7 +58,7 @@ namespace nova_behavior_tree
         return BT::NodeStatus::SUCCESS;
     }
 
-    inline void RunScriptsAction::run_script()
+    inline void RunScriptsAction::run_scripts()
     {
         for (const auto &script : scripts_)
         {
