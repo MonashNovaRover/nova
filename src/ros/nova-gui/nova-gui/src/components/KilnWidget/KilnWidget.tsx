@@ -10,6 +10,7 @@ import { RosService } from "../../ros/services/rosService";
 import { SubCardLabel } from "../shared/Labels";
 import { Square, Power } from "react-feather";
 import { OverlayedProgress } from "../OverlayedProgress/OverlayedProgress";
+import {useGenericStore} from "../../hooks/useGenericStore.ts";
 
 interface KilnWidgetProps extends CardProps {
 
@@ -17,8 +18,8 @@ interface KilnWidgetProps extends CardProps {
 
 const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
   const [maxTemp, setMaxTemp] = useState(150);
-  const [goalTemp, setGoalTemp] = useState<number>(150);
-  const [inputGoalTemp, setInputGoalTemp] = useState<string>("150");
+  const [goalTemp, setGoalTemp] = useGenericStore<number>("targetTemp");
+  const [inputGoalTemp, setInputGoalTemp] = useState<string>(goalTemp.toString());
 
   // set up to 'refresh' kilnData state
   const kilnData = useSelector(
@@ -46,7 +47,6 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
   }, [setGoalTemp]);
 
   const showRoundedTarget = useCallback((inputGoalTemp: string) => {
-    //Altenrate method (rounds down always): const roundedInputGoalTemp = inputGoalTemp.split('.')[0];
     const roundedInputGoalTemp = Math.round(Number(inputGoalTemp));
     setInputGoalTemp(String(roundedInputGoalTemp));
   }, [setInputGoalTemp]);
