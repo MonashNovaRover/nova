@@ -68,17 +68,20 @@ class SpinnyPartNode(JoystickControllerNode):
     }
 
     # Offset variables
-    OFFSET_STEP_DEFAULT = 1
-    OFFSET_STEP_PARAM = "offset_step"
+    OFFSET_STEP_DEFAULT = 5
+    OFFSET_MAX_STEP_DEFAULT = 30
+    OFFSET_MAX_STEP_PARAM = "step_max"
 
     def __init__(self):
         super().__init__(name="SpinnyPartNode", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
-        self.declare_parameter(self.OFFSET_STEP_PARAM, self.OFFSET_STEP_DEFAULT)
+        self.offset_step = self.OFFSET_STEP_DEFAULT
+        self.declare_parameter(self.OFFSET_MAX_STEP_PARAM, self.OFFSET_MAX_STEP_DEFAULT)
+        logger.info(f"Max offset step: {self.get_parameter(self.OFFSET_MAX_STEP_PARAM).value} | Current offset step: {self.offset_step}")
 
         # Create positions map from params
-        self.positions = { k: self.declare_parameter(v, self.POSITION_DEFAULTS[k]) for k, v in self.POSITION_PARAMS }
+        self.positions: {str: int} = { k: self.declare_parameter(v, self.POSITION_DEFAULTS[k]).value for k, v in self.POSITION_PARAMS }
 
         ## Create CONTROLS
         self.spinny_part = OneAxisPositionControl(
@@ -100,7 +103,7 @@ class SpinnyPartNode(JoystickControllerNode):
 
         ## Add the CONTROLLERS to the node's controllers
         self.add_controller(self.SPIN_CONTROL_NAME, self.spinny_part_controller)
-        self.get_logger().info(f"POSITIONS: {self.POSITIONS}")
+        self.get_logger().info(f"POSITIONS: {self.positions}")
 
         ## Start the CAN bus
         self.start_can()
@@ -110,26 +113,29 @@ class SpinnyPartNode(JoystickControllerNode):
         Updates the classes internal msg state
         :return: None
         """
+        self.offset_step = int(abs(joystick_l.ax_slider) * self.get_parameter(self.OFFSET_MAX_STEP_PARAM).value)
+        self.get_logger().info(f"Offset step updated to {self.offset_step}")
+
         # change position
         if joystick_l.btn_bottom_r4_state == 1:
             self.spinny_part.set_offset(0)
             self.spinny_part.update_position(self.SWEEPER)
-            self.get_logger().info(f"Moved to SWEEPER position {self.POSITIONS[self.SWEEPER] + self.spinny_part.get_offset()}")
+            self.get_logger().info(f"Moved to SWEEPER position {self.spinny_part.get_goal_position()}")
         elif joystick_l.btn_bottom_r5_state == 1:
             self.spinny_part.set_offset(0)
             self.spinny_part.update_position(self.MICROSCOPE)
-            self.get_logger().info(f"Moved to MICROSCOPE position {self.POSITIONS[self.MICROSCOPE] + self.spinny_part.get_offset()}")
+            self.get_logger().info(f"Moved to MICROSCOPE position {self.spinny_part.get_goal_position()}")
         elif joystick_l.btn_bottom_r6_state == 1:
             self.spinny_part.set_offset(0)
             self.spinny_part.update_position(self.NIR_PROBE)
-            self.get_logger().info(f"Moved to NIR PROBE position {self.POSITIONS[self.NIR_PROBE] + self.spinny_part.get_offset()}")
+            self.get_logger().info(f"Moved to NIR PROBE position {self.spinny_part.get_goal_position()}")
 
         # twitch/update offset
         if joystick_l.btn_bottom_r1_state == 1:
-            self.spinny_part.set_offset(self.spinny_part.get_offset() + self.get_parameter(self.OFFSET_STEP_PARAM).value)
+            self.spinny_part.set_offset(self.spinny_part.get_offset() + self.offset_step)
             self.get_logger().info(f"OFFSET updated {self.spinny_part.get_offset()}")
         elif joystick_l.btn_bottom_r2_state == 1:
-            self.spinny_part.set_offset(self.spinny_part.get_offset() - self.get_parameter(self.OFFSET_STEP_PARAM).value)
+            self.spinny_part.set_offset(self.spinny_part.get_offset() - self.offset_step)
             self.get_logger().info(f"OFFSET updated {self.spinny_part.get_offset()}")
 
     def joystick_r(self, joystick_r: InputJoystick):
