@@ -264,6 +264,7 @@ export const reduxStores = {
   nirProbeCalibrationData: createGenericStore("nirProbeCalibrationData", DEFAULT_NIR_PROBE_CALIBRATION_DATA),
   counter: createGenericStore("counter", 0),
   scimbalStepSize: createGenericStore("scimbalStepSize", "1"),
+  targetTemp: createGenericStore("targetTemp", 150),
 };
 
 // all store reducers
