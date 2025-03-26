@@ -35,7 +35,7 @@ class RFIDService(Node):
     def __init__(self):
         super().__init__('rfid_service')
         
-        self.declare_parameter('port', '/dev/ttyUSB0')
+        self.declare_parameter('port', '/dev/ttyUSB1')
         self.get_logger().info(f"Using port {self.get_parameter('port').value}.")
         self.get_logger().info("Waiting for RFID scanner to be plugged in.")
 
