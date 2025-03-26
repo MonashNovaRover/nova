@@ -132,7 +132,7 @@ class SpinnyPartNode(JoystickControllerNode):
         # twitch/update offset
         if joystick_l.btn_bottom_r1_state == 1:
             self.spinny_part.set_offset(self.spinny_part.get_offset() + self.offset_step)
-            self.get_logger().info(f"OFFSET updated {self.spinny_part.get_offset()}}")
+            self.get_logger().info(f"OFFSET updated {self.spinny_part.get_offset()}")
         elif joystick_l.btn_bottom_r2_state == 1:
             self.spinny_part.set_offset(self.spinny_part.get_offset() - self.offset_step)
             self.get_logger().info(f"OFFSET updated {self.spinny_part.get_offset()}")
