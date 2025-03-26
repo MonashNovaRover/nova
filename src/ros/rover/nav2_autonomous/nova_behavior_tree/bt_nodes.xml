@@ -6,6 +6,11 @@
     <Action ID="BlackboardPublisher">
       <input_port name="topic_name">ROS topic for publishing</input_port>
     </Action>
+
+    <Action ID="RunScripts">
+      <input_port name="scripts">Scripts to run (excluding build path)</input_port>
+      <input_port name="build_path">Build path to run the script from</input_port>
+    </Action>
     
     <Action ID="SnapInCollisionGoals">
       <input_port name="initial_goals_offset">Approximate distance the initial goals are offset</input_port>
