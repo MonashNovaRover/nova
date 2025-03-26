@@ -81,7 +81,7 @@ class SpinnyPartNode(JoystickControllerNode):
         logger.info(f"Max offset step: {self.get_parameter(self.OFFSET_MAX_STEP_PARAM).value} | Current offset step: {self.offset_step}")
 
         # Create positions map from params
-        self.positions: {str: int} = { k: self.declare_parameter(v, self.POSITION_DEFAULTS[k]).value for k, v in self.POSITION_PARAMS }
+        self.positions: {str: int} = { k: self.declare_parameter(v, self.POSITION_DEFAULTS[k]).value for k, v in self.POSITION_PARAMS.items() }
 
         ## Create CONTROLS
         self.spinny_part = OneAxisPositionControl(
