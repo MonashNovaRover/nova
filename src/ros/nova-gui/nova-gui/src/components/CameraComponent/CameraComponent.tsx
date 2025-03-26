@@ -24,6 +24,7 @@ import toast from "react-hot-toast";
 import CameraSessionStartStopButton from "./components/CameraSessionStartStopButton.tsx";
 import {useGenericStore} from "../../hooks/useGenericStore.ts";
 import {Site} from "../../redux/models/genericStores/CurrentSiteStore.ts";
+import useWebcam from "../../hooks/webgl/program/sampler/useWebcam.ts";
 
 const ASPECT_RATIO = 4 / 3;
 
@@ -68,11 +69,12 @@ export const CameraComponent = (props: CameraComponentProps) => {
     sendSessionStartMessage,
     isCameraOnline,
     closeSession,
-  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
+  } = useWebcam(videoRef)
+  // useCameraStream(cameraSerial, videoRef, allCamerasStarted);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
   const onStreamingStateChange = props.onStreamingStateChange
-  const currentSite = useGenericStore<Site>("currentSite");
+  const [currentSite, _] = useGenericStore<Site>("currentSite");
 
   useEffect(() => {
     if (onStreamingStateChange)
@@ -102,7 +104,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
-          link.download = `Site${currentSite}-${cameraSerial}-${Date.now()}.png`;
+          link.download = `site${currentSite.toString()}-${cameraSerial}-${Date.now()}.png`;
           link.click();
         }
       }
