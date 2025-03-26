@@ -24,7 +24,6 @@ import toast from "react-hot-toast";
 import CameraSessionStartStopButton from "./components/CameraSessionStartStopButton.tsx";
 import {useGenericStore} from "../../hooks/useGenericStore.ts";
 import {Site} from "../../redux/models/genericStores/CurrentSiteStore.ts";
-import useWebcam from "../../hooks/webgl/program/sampler/useWebcam.ts";
 
 const ASPECT_RATIO = 4 / 3;
 
@@ -69,8 +68,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
     sendSessionStartMessage,
     isCameraOnline,
     closeSession,
-  } = useWebcam(videoRef)
-  // useCameraStream(cameraSerial, videoRef, allCamerasStarted);
+  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
   const onStreamingStateChange = props.onStreamingStateChange
@@ -104,14 +102,14 @@ export const CameraComponent = (props: CameraComponentProps) => {
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
-          link.download = `site${currentSite.toString()}-${cameraSerial}-${Date.now()}.png`;
+          link.download = `site${(currentSite+1).toString()}-${cameraSerial}-${Date.now()}.png`;
           link.click();
         }
       }
     } else {
       toast("Unable to Take a Screenshot");
     }
-  }, [videoRef, cameraSerial]);
+  }, [videoRef, cameraSerial, currentSite]);
 
   useEffect(() => {
     const handleMouseEnter = () => {
