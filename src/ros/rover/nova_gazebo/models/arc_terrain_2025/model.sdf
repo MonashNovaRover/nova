@@ -1,0 +1,119 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+
+  <model name="arc_world">
+    <model name="arc_terrain">
+      <static>true</static>
+      <link name="terrain">
+        <collision name="terrain_collision">
+          <geometry>
+            <heightmap>
+              <uri>model://arc_terrain_2025/textures/height_map.png</uri>
+              <size>50 50 0.35</size>
+              <pos>0 0 0</pos>
+            </heightmap>
+          </geometry>
+          <surface>
+            <contact>
+              <ode>
+                <kp>1e15</kp>
+                <kd>1e13</kd>
+                <min_depth>0.005</min_depth>
+              </ode>
+            </contact>
+            <friction>
+              <ode>
+                <mu>1000</mu>
+                <mu2>1000</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="terrain_visual">
+          <geometry>
+            <heightmap>
+              <use_terrain_paging>false</use_terrain_paging>
+              <uri>model://arc_terrain_2025/textures/height_map.png</uri>
+              <size>50 50 0.35</size>
+              <pos>0 0 0</pos>
+              <texture>
+                <diffuse>model://arc_terrain_2025/textures/sand.png</diffuse>
+                <normal>model://arc_terrain_2025/textures/blank_normal.png</normal>
+                <size>1</size>
+              </texture>
+            </heightmap>
+          </geometry>
+          <material>
+            <shininess>0.0</shininess>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="arc_walls">
+      <static>true</static> <!-- This makes the model static (non-moving) -->
+      
+      <link name="walls">
+        <!-- Visual representation of the model -->
+        <visual name="walls_visual">
+          <geometry>
+            <mesh>
+              <uri>model://arc_terrain_2025/meshes/walls.stl</uri> <!-- Path to the mesh file -->
+            </mesh>
+          </geometry>
+
+          <material>
+            <ambient>0.5 0.5 0.5 1.0</ambient> <!-- Ambient color (RGB + Alpha) -->
+            <diffuse>0.8 0.8 0.8 1.0</diffuse> <!-- Diffuse color (RGB + Alpha) -->
+            <specular>0.2 0.2 0.2 1.0</specular> <!-- Specular color (highlight color) -->
+            <emissive>0 0 0 0.0</emissive> <!-- Emissive color (glowing effect) -->
+            <shininess>0.5</shininess> <!-- Shininess (shininess of the surface) -->
+          </material>
+        </visual>
+
+        <!-- Collision definition for the model (optional but recommended for accuracy) -->
+        <collision name="walls_collision">
+          <geometry>
+            <mesh>
+              <uri>model://arc_terrain_2025/meshes/walls.stl</uri> <!-- Path to the collision mesh -->
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="arc_solar_array">
+      <static>true</static> <!-- This makes the model static (non-moving) -->
+      <pose>4.5 0.5 0 0 0 -0.5</pose> <!-- Position and orientation in x, y, z, roll, pitch, yaw -->
+      
+      <link name="solar_array">
+        <!-- Visual representation of the model -->
+        <visual name="solar_array_visual">
+          <geometry>
+            <mesh>
+              <uri>model://arc_terrain_2025/meshes/solar_array.stl</uri> <!-- Path to the mesh file -->
+            </mesh>
+          </geometry>
+
+          <material>
+            <ambient>0.3 0.3 0.3 1.0</ambient> 
+            <diffuse>0.8 0.8 0.8 1.0</diffuse> 
+            <specular>0.9 0.9 0.9 1.0</specular>
+            <emissive>0 0 0 0.0</emissive>
+            <shininess>0.8</shininess> 
+          </material>
+        </visual>
+
+        <!-- Collision definition for the model (optional but recommended for accuracy) -->
+        <collision name="solar_array_collision">
+          <geometry>
+            <mesh>
+              <uri>model://arc_terrain_2025/meshes/solar_array.stl</uri> <!-- Path to the collision mesh -->
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+  </model>
+</sdf>
