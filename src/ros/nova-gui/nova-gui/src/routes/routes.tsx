@@ -28,7 +28,6 @@ import URCRamanView from "../views/urc/URCRamanView.tsx";
 import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
 import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
 import TestOverlayView from "../views/test/TestOverlayView/TestOverlayView.tsx";
-import ScimbalCamView from "../views/shared/ScimbalCamPage.tsx";
 import NIRProbeWidget from "../components/NIRProbe/NIRProbeWidget.tsx";
 
 export const arcRoutes: RouteObject[] = [
@@ -59,10 +58,6 @@ export const arcRoutes: RouteObject[] = [
   {
     path: "/arc/autonomous",
     element: <ARCAutonomousView />,
-  },
-  {
-    path: "/arc/scimbal-cam",
-    element: <ScimbalCamView />,
   },
   {
     path: "/arc/cameras",
@@ -107,10 +102,6 @@ export const urcRoutes: RouteObject[] = [
   {
     path: "/urc/uv-vis-spec",
     element: <URCUVVisSpecView/>
-  },
-  {
-    path: "/urc/scimbal-cam",
-    element: <ScimbalCamView />,
   },
   {
     path: "/urc/360cam",
