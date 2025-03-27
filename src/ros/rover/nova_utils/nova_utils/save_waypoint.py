@@ -11,7 +11,7 @@ class WaypointRecorder(Node):
     def __init__(self):
         super().__init__('waypoint_recorder')
         self.subscription = self.create_subscription(
-            String, '/blackboard', self.blackboard_callback, 10)
+            String, '/blackboard', self.blackboard_callback, 1)
         self.get_logger().info("🚀 WaypointRecorder started! Listening to /blackboard...")
         self.file_path = os.path.join(os.path.expanduser("~"), "waypoints.json")
 
@@ -39,9 +39,7 @@ class WaypointRecorder(Node):
             return None
 
         if waypoints:
-            # Save the waypoints and shutdown since we only need this data once
             self.save_waypoints(waypoints)
-            rclpy.shutdown()
 
 
     def save_waypoints(self, waypoints):

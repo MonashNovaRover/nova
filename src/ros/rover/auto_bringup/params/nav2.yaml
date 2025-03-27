@@ -23,6 +23,7 @@ bt_navigator:
     plugin_lib_names:
       - nova_ar_tag_detected_condition_bt_node
       - nova_blackboard_publisher_bt_node
+      - nova_run_scripts_action_bt_node
       - nova_check_detected_condition_bt_node
       - nova_compute_search_goals_condition_bt_node
       - nova_cube_detected_condition_bt_node
@@ -202,7 +203,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 0.1
-        inflation_radius: 0.65
+        inflation_radius: 0.7
       always_send_full_costmap: True
 
 planner_server:
