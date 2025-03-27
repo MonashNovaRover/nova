@@ -72,8 +72,7 @@ class DetectionTransformer(Node):
         # variables affecting detection of cubes
         self.depth_image_units_divisor = self.declare_parameter('depth_image_units_divisor', 1.0).get_parameter_value().double_value        # Used to calculate position from bounding box
         self.maximum_detection_threshold = self.declare_parameter('maximum_detection_threshold', 0.3).get_parameter_value().double_value    # any detections with a depth below this will be ignored (used to convert bb to point)
-        self.rgb_resolution = [ self.declare_parameter('rgb_height', 800).get_parameter_value().integer_value, 
-                                self.declare_parameter('rgb_width', 1200).get_parameter_value().integer_value ]
+        self.decimation_factor = self.declare_parameter('decimation_factor', 1).get_parameter_value().integer_value
 
 
         # variables affecting cube markers in rviz
@@ -310,7 +309,7 @@ class DetectionTransformer(Node):
 
         def resize_point(point:float, axis:int):
             """resize the point from rgb to depth resolution to account for differences"""
-            return point / self.rgb_resolution[axis] * depth_image.shape[axis]
+            return point / self.decimation_factor
 
         center_x, center_y, size_x, size_y = [int(resize_point(x, (i+1) % 2)) for i, x in enumerate(bbox)]
         
