@@ -71,7 +71,8 @@ def launch_setup(context, *args, **kwargs):
             namespace=namespace,
             parameters=[yolo_params],
             remappings=[('image_raw', rgb_image), 
-                        ('dbg_image', debug_image)],
+                        ('dbg_image', debug_image),
+                        ('detections', detections)],
             condition=IfCondition(AndSubstitution(use_debug, NotSubstitution(using_oak))),
         ),
         Node(
