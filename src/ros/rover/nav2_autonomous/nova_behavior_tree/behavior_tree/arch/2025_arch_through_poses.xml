@@ -3,7 +3,9 @@
       main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <ReactiveSequence>
-      <BlackboardPublisher topic_name="blackboard"/>
+      <BlackboardPublisher topic_name="blackboard"
+                            keys="goals"
+                            publish_frequency="1"/>
       <RecoveryNode name="NavigateRecovery"
                     number_of_retries="6">
         <PipelineSequence name="NavigateWithReplanning">
