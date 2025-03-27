@@ -74,10 +74,19 @@ def launch_setup(context, *args, **kwargs):
                     package='imu_transformer',
                     plugin='imu_transformer::ImuTransformer',
                     name=f'{front_name}_imu_transformer_node',
-                    remappings=[('/imu_in', '/oak/imu/data'),
-                                ('/imu_out', '/oak/imu/transformed')],
+                    remappings=[('/imu_in', f'/{front_name}/imu/data'),
+                        ('/imu_out', f'/{front_name}/imu/transformed')],
                     parameters=[{'target_frame': f'{front_name}_imu_frame'}]
-                )
+                ),
+                ComposableNode(
+                    condition=IfCondition(imu),
+                    package='imu_transformer',
+                    plugin='imu_transformer::ImuTransformer',
+                    name=f'{back_name}_imu_transformer_node',
+                    remappings=[('/imu_in', f'/{back_name}/imu/data'),
+                        ('/imu_out', f'/{back_name}/imu/transformed')],
+                    parameters=[{'target_frame': f'{back_name}_imu_frame'}]
+                ),
             ],
         ),
         ComposableNodeContainer(
