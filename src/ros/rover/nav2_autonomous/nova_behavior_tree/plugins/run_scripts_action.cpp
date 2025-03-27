@@ -62,7 +62,7 @@ namespace nova_behavior_tree
     {
         for (const auto &script : scripts_)
         {
-            system((build_path_ + script).c_str());
+            (void)system((build_path_ + script).c_str());
         }
     }
 

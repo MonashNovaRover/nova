@@ -200,7 +200,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 0.1
-        inflation_radius: 0.65
+        inflation_radius: 0.7
       always_send_full_costmap: True
 
 planner_server:

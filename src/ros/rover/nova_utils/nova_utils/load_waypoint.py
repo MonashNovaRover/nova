@@ -1,3 +1,11 @@
+"""
+Node that loads waypoints from a file and sends it to the /navigate_through_poses action
+server. It continuously checks the status of the action server to monitor if it has been
+aborted. If the action server has aborted, it will reload the waypoints to restart navigation.
+
+Authors: Tarik Thomas, Terry Tian
+"""
+
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
@@ -13,38 +21,41 @@ import sys
 import time
 
 class WaypointNavigator(Node):
-   def __init__(self, file_path):
+    def __init__(self, file_path):
         super().__init__('waypoint_navigator')
 
         # ✅ Action client for Nav2 NavigateThroughPoses
-        self.action_client = ActionClient(self, NavigateThroughPoses, '/navigate_through_poses')
+        self._action_client = ActionClient(self, NavigateThroughPoses, '/navigate_through_poses')
 
         # ✅ Load waypoints from JSON
-        self.file_path = file_path if file_path else os.path.expanduser("~/waypoints.json")
-        self.waypoints = self.load_waypoints()
+        self._file_path = file_path if file_path else os.path.expanduser("~/waypoints.json")
+        self._waypoints = self.load_waypoints()
 
-        if not self.waypoints:
+        if not self._waypoints:
             self.get_logger().error("❌ No waypoints found or failed to load JSON. Exiting.")
             return
 
         # ✅ Wait for the Nav2 action server
         self.get_logger().info("⏳ Waiting for /navigate_through_poses action server...")
-        if not self.action_client.wait_for_server(timeout_sec=10.0):
+        if not self._action_client.wait_for_server(timeout_sec=10.0):
             self.get_logger().error("❌ Action server not available. Exiting.")
             return
         self.get_logger().info("✅ Action server available!")
 
-        # ✅ Send waypoints as an action goal
-        self.send_goal()
+        # ✅ Send waypoints asynchronously as an action goal
+        self.send_goal_async()
+
+        # Create a timer to check navigation status every second
+        self._nav_check_timer = self.create_timer(1.0, self.check_nav_status)
 
 
-   def load_waypoints(self):
+    def load_waypoints(self):
         """Loads waypoints from JSON file and converts them into PoseStamped messages."""
-        if not os.path.exists(self.file_path):
-            self.get_logger().error(f"❌ Waypoints file not found: {self.file_path}")
+        if not os.path.exists(self._file_path):
+            self.get_logger().error(f"❌ Waypoints file not found: {self._file_path}")
             return None
 
-        with open(self.file_path, 'r') as f:
+        with open(self._file_path, 'r') as f:
             data = json.load(f)
 
         waypoints_data = data.get("waypoints", [])
@@ -70,11 +81,11 @@ class WaypointNavigator(Node):
         return waypoints
 
 
-   def publish_waypoint_markers(self):
+    def publish_waypoint_markers(self):
         """Publishes waypoints as markers to RViz for visualization. Currently not used."""
         marker_array = MarkerArray()
 
-        for idx, pose in enumerate(self.waypoints):
+        for idx, pose in enumerate(self._waypoints):
             marker = Marker()
             marker.header.frame_id = "map"
             marker.header.stamp = self.get_clock().now().to_msg()
@@ -111,34 +122,39 @@ class WaypointNavigator(Node):
             marker_array.markers.append(text_marker)
 
         self.marker_pub.publish(marker_array)
-        self.get_logger().info(f"📌 Published {len(self.waypoints)} waypoints to /waypoints for visualization.")
+        self.get_logger().info(f"📌 Published {len(self._waypoints)} waypoints to /waypoints for visualization.")
 
 
-   def send_goal(self):
+    def send_goal_async(self):
         """Sends the waypoints to the NavigateThroughPoses action server."""
         goal_msg = NavigateThroughPoses.Goal()
-        goal_msg.poses = self.waypoints  # List of PoseStamped
+        goal_msg.poses = self._waypoints  # List of PoseStamped
 
         # ✅ Send goal and wait for acceptance
         # for pose_stamped in goal_msg.poses:
         #     self.get_logger().warn(f"{pose_stamped.pose.position.z}")
             
         self.get_logger().info("🚀 Sending waypoints to /navigate_through_poses...")
-        send_future = self.action_client.send_goal_async(goal_msg)
-        rclpy.spin_until_future_complete(self, send_future)
+        send_future = self._action_client.send_goal_async(goal_msg)
+        send_future.add_done_callback(self.goal_response_callback)
 
-        goal_handle = send_future.result()
+
+    def goal_response_callback(self, future):
+        goal_handle = future.result()
         if not goal_handle.accepted:
             self.get_logger().error("❌ Goal was rejected by the action server.")
             return
 
         self.get_logger().info("✅ Goal accepted. Navigating through waypoints...")
+        self._goal_handle = goal_handle
 
-        # ✅ Wait for action to complete
+        # Set up asynchronous result callback
         result_future = goal_handle.get_result_async()
-        rclpy.spin_until_future_complete(self, result_future)
+        result_future.add_done_callback(self.result_callback)
 
-        result = result_future.result()
+    
+    def result_callback(self, future):
+        result = future.result()
         if result.status == GoalStatus.STATUS_SUCCEEDED:
             self.get_logger().info("✅ Navigation through all waypoints succeeded!")
         elif result.status == GoalStatus.STATUS_CANCELED:
@@ -148,8 +164,14 @@ class WaypointNavigator(Node):
         else:
             self.get_logger().error(f"❓ Navigation ended with unknown status: {result.status}")
 
-        # ✅ Shutdown after execution
-        self.destroy_node()
+
+    def check_nav_status(self):
+        status = self._goal_handle.status
+        if status == GoalStatus.STATUS_ABORTED:
+            self.get_logger().info("❌ Navigation aborted detected by timer callback!")
+            self.get_logger().info("🚀 Sending waypoints to restart navigation")
+            self._waypoints = self.load_waypoints()
+            self.send_goal_async()
 
 
 def main(args=None):
@@ -170,4 +192,4 @@ def main(args=None):
 
 
 if __name__ == '__main__':
-   main()
+    main()
