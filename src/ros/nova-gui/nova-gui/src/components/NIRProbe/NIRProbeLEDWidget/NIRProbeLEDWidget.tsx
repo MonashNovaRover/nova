@@ -34,14 +34,12 @@ const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({...cardProps}) =>
         <SpinnerButton
           onClick={() => takeReading(IRosNovaInterfacesNirProbeDataConst.LED_WATER)}
           isLoading={status === IRosNovaInterfacesNirProbeDataConst.LED_WATER}
-          isDisabled={status === IRosNovaInterfacesNirProbeDataConst.LED_ICE}
         >
           Take Water LED Reading
         </SpinnerButton>
         <SpinnerButton
           onClick={() => takeReading(IRosNovaInterfacesNirProbeDataConst.LED_ICE)}
           isLoading={status === IRosNovaInterfacesNirProbeDataConst.LED_ICE}
-          isDisabled={status === IRosNovaInterfacesNirProbeDataConst.LED_WATER}
         >
           Take Ice LED Reading
         </SpinnerButton>

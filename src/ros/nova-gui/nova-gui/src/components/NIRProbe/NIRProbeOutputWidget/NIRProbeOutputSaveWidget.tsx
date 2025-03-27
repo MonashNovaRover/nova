@@ -14,7 +14,7 @@ import {
   SelectItem
 } from "@nextui-org/react";
 import CopyableOutput from "../../CopyableOutput/CopyableOutput.tsx";
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
@@ -53,6 +53,11 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   const [type, setType] = useState<NIRProbeReadingType.WATER | NIRProbeReadingType.ICE>(NIRProbeReadingType.WATER);
   const [advancedSampleLabel, setAdvancedSampleLabel] = useState<string>("");
 
+  const [autosave, setAutosave] = useState<boolean>(true);
+
+  // Used for autosaving
+  const previousDataRef = useRef<number | undefined>(undefined);
+
   useEffect(() => {
     bifrost.syncWithTopic();
   }, [bifrost]);
@@ -74,6 +79,38 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
       ]
     })
   }, [readings, setReadings, data, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
+
+  const save = useCallback((reading: number) => {
+    if (!showAdvanced && nirData.led === 0)
+      return
+
+    const saveType = showAdvanced && type ? type : nirData.led as keyof ISpaceResourcesEntries
+    setReadings({
+      ...readings,
+      [saveType]: [
+        {
+          data: reading,
+          type: saveType,
+          label: "auto_" + (showAdvanced ? advancedSampleLabel : sampleLabel),
+        } as ISpaceResourcesEntry,
+        ...readings[saveType],
+      ]
+    })
+  }, [readings, setReadings, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
+
+  useEffect(() => {
+    if (!autosave)
+      return;
+
+    if (nirData.data === undefined)
+      return;
+
+    if (nirData.data === previousDataRef.current)
+      return;
+
+    previousDataRef.current = nirData.data;
+    save(nirData.data);
+  }, [autosave, save, nirData.data, previousDataRef]);
 
   const onTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (+e.target.value !== 0)
@@ -98,6 +135,10 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
             <DropdownItem key="advanced" startContent={showAdvanced ? <Check/> : <></>}
                           onPress={() => setShowAdvanced(!showAdvanced)}>
               Show Advanced
+            </DropdownItem>
+            <DropdownItem key="autosave" startContent={autosave ? <Check/> : <></>}
+                          onPress={() => setAutosave(!autosave)}>
+              Autosave
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
