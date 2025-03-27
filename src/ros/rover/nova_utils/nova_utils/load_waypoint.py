@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Node that loads waypoints from a file and sends it to the /navigate_through_poses action
 server. It continuously checks the status of the action server to monitor if it has been
@@ -6,7 +7,6 @@ aborted. If the action server has aborted, it will reload the waypoints to resta
 Authors: Tarik Thomas, Terry Tian
 """
 
-#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient

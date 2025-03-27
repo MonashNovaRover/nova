@@ -26,7 +26,7 @@ void BlackboardPublisherNode::initialize()
   getInput("topic_name", topic_name_);
   
   double publish_frequency;
-  getInput("publish_frequncy", publish_frequency);
+  getInput("publish_frequency", publish_frequency);
   // publish_delay_ is in ms
   publish_delay_ = 1000.0 / publish_frequency;
 
