@@ -40,18 +40,20 @@
                                               output_goals="{goals}"
                                               visited_ids="{visited_ids}"
                                               distance_to_goal="{dist_to_goal}"/>
-                  <SnapInCollisionGoals initial_goals_offset="1.5"
+                  <!-- <SnapInCollisionGoals initial_goals_offset="1.5"
                                         cube_goal_entries="{cube_goal_entries}"
                                         input_goals="{goals}"
-                                        output_goals="{goals}"/>
+                                        output_goals="{goals}"/> -->
                   <RecoveryNode number_of_retries="1">
                     <ComputePathThroughPoses _skipIf="dist_to_goal < 2.0"
                                               goals="{goals}"
                                               planner_id="{selected_planner}"
                                               path="{path}"
                                               error_code_id="{compute_path_error_code}"/>
-                    <RunScripts scripts="ros2 run nova_utils load_waypoint.py"
-                                build_path="~/Builds/bt/bin/"/>
+                    <Delay delay_msec="5000">
+                      <RunScripts scripts="ros2 run nova_utils load_waypoint.py"
+                                  build_path="~/Builds/load-waypoints-failure/bin/"/>
+                    </Delay>
                   </RecoveryNode>
                 </ReactiveSequence>
               </ReactiveSequence>
