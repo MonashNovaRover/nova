@@ -33,7 +33,7 @@ from rclpy.duration import Duration
 from rclpy.qos import QoSHistoryPolicy, QoSDurabilityPolicy, QoSProfile
 
 from visualization_msgs.msg import MarkerArray, Marker
-from geometry_msgs.msg import Pose, Vector3, TransformStamped
+from geometry_msgs.msg import Pose, Vector3, TransformStamped, PointStamped
 from sensor_msgs.msg import Image, CameraInfo
 from builtin_interfaces.msg import Time
 
@@ -47,6 +47,7 @@ from tf2_ros import Buffer, TransformListener
 from cv_bridge import CvBridge
 
 import message_filters
+import tf2_geometry_msgs
 
 import cv2
 import numpy as np
@@ -378,16 +379,27 @@ class DetectionTransformer(Node):
     def tf_to_map(self, camera_to_cube: Point, stamp: Time) -> Point | None:
         '''Calculates the position tf from map to cube'''
         self.get_logger().debug(f'Calculating map to cube tf')
+        point_stamped = PointStamped()
+        point_stamped.header.frame_id = self.camera_frame
+        point_stamped.header.stamp = stamp
+        point_stamped.point.x, point_stamped.point.y, point_stamped.point.z = camera_to_cube
         try:
-            map_to_camera = self.tf_buffer.lookup_transform(self.map_frame, self.camera_frame, stamp).transform
-            # rotate the map_to_camera position by its orientation 
-            rot_matrix = self.quaternion_to_rotation_matrix([map_to_camera.rotation.x, map_to_camera.rotation.y, map_to_camera.rotation.z, map_to_camera.rotation.w])
-            rotated_translation = np.dot(rot_matrix, camera_to_cube)
-            # apply the camera_to_cube tf to the rotated map_to_camera
-            return (map_to_camera.translation.x+rotated_translation[0], map_to_camera.translation.y+rotated_translation[1], map_to_camera.translation.z+rotated_translation[2])
+            transform = self.tf_buffer.lookup_transform(self.map_frame, self.camera_frame, stamp)
+            transformed_point = tf2_geometry_msgs.do_transform_point(point_stamped, transform)
         except Exception as e:
             self.get_logger().warn(f'Error in calculating map to cube tf {e}')
             return None
+        return (transformed_point.point.x, transformed_point.point.y, transformed_point.point.z)
+        # try:
+        #     map_to_camera = self.tf_buffer.lookup_transform(self.map_frame, self.camera_frame, stamp).transform
+        #     # rotate the map_to_camera position by its orientation 
+        #     rot_matrix = self.quaternion_to_rotation_matrix([map_to_camera.rotation.x, map_to_camera.rotation.y, map_to_camera.rotation.z, map_to_camera.rotation.w])
+        #     rotated_translation = np.dot(rot_matrix, camera_to_cube)
+        #     # apply the camera_to_cube tf to the rotated map_to_camera
+        #     return (map_to_camera.translation.x+rotated_translation[0], map_to_camera.translation.y+rotated_translation[1], map_to_camera.translation.z+rotated_translation[2])
+        # except Exception as e:
+        #     self.get_logger().warn(f'Error in calculating map to cube tf {e}')
+        #     return None
 
     def get_marker(self, id:int, color:str, point: Point, stamp: Time, frame:str) -> Marker:
         '''Returns a marker derived from the detection'''
