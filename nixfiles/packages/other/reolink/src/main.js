@@ -44,11 +44,50 @@ new Cam({
   var up = { ...velocity, y: 1};
   var down = { ...velocity, y: -1};
 
+  // TODO DRY
   autoSequence = [
-    {vel: left, time: 6500},
-    {vel: up, time: 1000},
-    {vel: right, time: 6500},
-    {vel: down, time: 800}
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: up, time: 800},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: down, time: 1000}
   ];
 
   var stop_timer;
@@ -89,6 +128,8 @@ new Cam({
 			/* Exit on 'q' or 'Q' or 'CTRL C' */
 			if ((key && key.ctrl && key.name == 'c')
 				|| (key && key.name == 'q')) {
+        autoMode = false;
+          schedule_auto_timer(); // will cancel it
         stop();
 				process.exit();
 			}
@@ -129,6 +170,7 @@ new Cam({
           auto_cb();
         } else {
           schedule_auto_timer(); // will cancel it
+          stop();
         }
       }
       if (!autoMode) {
@@ -138,12 +180,17 @@ new Cam({
 	}
 
   function schedule_auto_timer(time) {
-    if (autoMode) {
-		  if (auto_timer) {clearTimeout(auto_timer);}
+         if (auto_timer) {
+            clearTimeout(auto_timer);
+         }
+		  if (autoMode) {
+         if (auto_timer) {
+            clearTimeout(auto_timer);
+         }
 		  auto_timer = setTimeout(auto_cb,time);
     }
-
   }
+
   function auto_cb() {
 
 		cam_obj.continuousMove(autoSequence[auto_count].vel ,
