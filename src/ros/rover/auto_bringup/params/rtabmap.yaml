@@ -14,7 +14,7 @@ rtabmap_slam:
     Rtabmap/DetectionRate: "3.5"
     # Grid Parameters are responsible for the Occupancy Grid Generated
     # Crucial for Costmap Generation
-    Grid/MaxGroundAngle: "10"
+    Grid/MaxGroundAngle: "72"
     Grid/RangeMax: "5.0"
     Grid/RangeMin: "1.0"
     Grid/3D: "false" # Only Needed for 3D Planning
