@@ -619,7 +619,7 @@
     <joint name="base_link_to_chassis" type="fixed">
         <parent link="base_link"/>
         <child link="chassis" />
-        <origin rpy="0.0 0 0" xyz="0 0 0.45"/>
+        <origin rpy="0.0 0 0" xyz="0.637181 0.487444 0.434263"/>
     </joint>
 
     <joint name="chassis_to_left_leg" type="continuous">
