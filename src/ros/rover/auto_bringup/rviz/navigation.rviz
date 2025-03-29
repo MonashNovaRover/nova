@@ -100,7 +100,7 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /robot_description
-      Enabled: false
+      Enabled: true
       Links:
         All Links Enabled: true
         Expand Joint Details: false
@@ -229,8 +229,6 @@ Visualization Manager:
         tr_ball:
           Value: true
         tr_ball_dummy:
-          Value: true
-        white_cube:
           Value: true
       Marker Scale: 1
       Name: TF

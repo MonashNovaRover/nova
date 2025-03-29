@@ -30,6 +30,7 @@ def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo')
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
+    use_local_mesh = LaunchConfiguration('use_local_mesh')
 
     return [
         Node(
@@ -63,7 +64,7 @@ def launch_setup(context, *args, **kwargs):
                 ),
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-                    launch_arguments={'model': model, 'gazebo': gazebo, 'angle': angle}.items(),
+                    launch_arguments={'model': model, 'gazebo': gazebo, 'angle': angle, 'use_local_mesh': use_local_mesh}.items(),
                 )],
         ),
     ]
@@ -98,6 +99,11 @@ def generate_launch_description():
             name='model', 
             default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
+        ),
+        DeclareLaunchArgument(
+            name='use_local_mesh',
+            default_value='True',
+            description='Use local mesh paths instead of nix store paths',
         ),
     ]
 
