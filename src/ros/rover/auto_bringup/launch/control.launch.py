@@ -102,7 +102,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='use_local_mesh',
-            default_value='True',
+            default_value='False',
             description='Use local mesh paths instead of nix store paths',
         ),
     ]

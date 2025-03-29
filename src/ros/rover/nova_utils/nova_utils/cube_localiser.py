@@ -213,7 +213,8 @@ class DetectionTransformer(Node):
 
                     if np.all(std_dev < self.max_std_dev):      # Check that the standard deviation is small enough to be considered a confirmed block
                         self.get_logger().debug(f'Confirmed target {color} consistent pos at {avg_pos}')
-                        self.publish_tf(color, avg_pos, self.get_clock().now().to_msg())
+                        # don't publish tf for bt notes (TEMP until terry fixes bt pathing to cubes)
+                        # self.publish_tf(color, avg_pos, self.get_clock().now().to_msg())
                         self.get_logger().info(f"[{self.get_name()}] Cube {color} at ({avg_pos})")
                     else:
                         self.get_logger().debug(f'Target {color} is not consistent enough.')
