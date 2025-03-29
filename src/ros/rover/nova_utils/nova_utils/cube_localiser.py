@@ -214,6 +214,7 @@ class DetectionTransformer(Node):
                     if np.all(std_dev < self.max_std_dev):      # Check that the standard deviation is small enough to be considered a confirmed block
                         self.get_logger().debug(f'Confirmed target {color} consistent pos at {avg_pos}')
                         self.publish_tf(color, avg_pos, self.get_clock().now().to_msg())
+                        self.get_logger().info(f"[{self.get_name()}] Cube {color} at ({avg_pos})")
                     else:
                         self.get_logger().debug(f'Target {color} is not consistent enough.')
                 else:
@@ -331,7 +332,7 @@ class DetectionTransformer(Node):
 
         roi = roi / self.depth_image_units_divisor  # convert to meters
         if not np.any(roi):
-            self.get_logger().warn(f"roi issue\n{depth_image[v_min:v_max, u_min:u_max]}\n{v_min},{v_max},{u_min},{u_max}{np.any(depth_image)}")
+            self.get_logger().warn(f"roi issue")
             return None
 
         # find the z coordinate on the 3D BB
