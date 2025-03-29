@@ -110,35 +110,45 @@ controller_server:
 local_costmap:
   local_costmap:
     ros__parameters:
-      enable: False
-      # update_frequency: 3.0
-      # publish_frequency: 3.0
-      # global_frame: odom
-      # robot_base_frame: base_link
-      # use_sim_time: False
-      # rolling_window: True
-      # width: 10
-      # height: 10
-      # origin_x: -5.0
-      # origin_y: -5.0
-      # resolution: 0.1
-      # # [x, y], where x is length and y is width
-      # # ([wheel_base, steering_track] / 2) + wheel_radius
-      # footprint: "[[0.64, 0.57], [0.64, -0.57], [-0.64, -0.57], [-0.64, 0.57]]"
-      # # retrieved by update_goals_action_bt_node (not actually used by planner)
-      # # sqrt((wheel_base / 2 + wheel_radius)^2 + (steering_track / 2 + wheel_radius)^2)
-      # robot_radius: 0.85
-      # track_unknown_space: False
-      # plugins: []
-      # inflation_layer:
-      #   plugin: "nav2_costmap_2d::InflationLayer"
-      #   cost_scaling_factor: 1.5
-      #   inflation_radius: 0.58
-      # denoise_layer:
-      #   plugin: "nav2_costmap_2d::DenoiseLayer"
-      #   enabled: True
-      #   minimal_group_size: 3
-      #   group_connectivity_type: 8
+      enable: True
+      update_frequency: 3.0
+      publish_frequency: 3.0
+      global_frame: odom
+      robot_base_frame: base_link
+      use_sim_time: False
+      rolling_window: True
+      width: 10
+      height: 10
+      origin_x: -5.0
+      origin_y: -5.0
+      resolution: 0.1
+      # [x, y], where x is length and y is width
+      # ([wheel_base, steering_track] / 2) + wheel_radius
+      footprint: "[[0.64, 0.57], [0.64, -0.57], [-0.64, -0.57], [-0.64, 0.57]]"
+      # retrieved by update_goals_action_bt_node (not actually used by planner)
+      # sqrt((wheel_base / 2 + wheel_radius)^2 + (steering_track / 2 + wheel_radius)^2)
+      robot_radius: 0.85
+      track_unknown_space: False
+      plugins: ["rtabmap_layer", "denoise_layer", "inflation_layer"] # haven't added static map yet'
+      rtabmap_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
+        map_topic: /map
+      static_map_layer: # To be chucked in once we have a static map
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
+        map_topic: /static_map
+      denoise_layer:
+        plugin: "nav2_costmap_2d::DenoiseLayer"
+        enabled: True
+        minimal_group_size: 3
+        group_connectivity_type: 8
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 0.1
+        inflation_radius: 0.7
+      always_send_full_costmap: True
+
       # voxel_layer:
       #   plugin: "nav2_costmap_2d::VoxelLayer"
       #   enabled: True
@@ -171,7 +181,6 @@ local_costmap:
       # static_layer:
       #   plugin: "nav2_costmap_2d::StaticLayer"
       #   map_subscribe_transient_local: True
-      # always_send_full_costmap: True
 
 global_costmap:
   global_costmap:
