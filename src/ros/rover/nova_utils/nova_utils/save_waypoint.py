@@ -13,7 +13,7 @@ class WaypointRecorder(Node):
         self.subscription = self.create_subscription(
             String, '/blackboard', self.blackboard_callback, 1)
         self.get_logger().info("🚀 WaypointRecorder started! Listening to /blackboard...")
-        self.file_path = os.path.join(os.path.expanduser("~"), "waypoints.json")
+        self.file_path = os.path.join(os.path.expanduser("~"), "nova/waypoints.json")
 
     def blackboard_callback(self, msg):
         """ Extracts waypoints from the 'goals' section of the blackboard topic and saves them."""
