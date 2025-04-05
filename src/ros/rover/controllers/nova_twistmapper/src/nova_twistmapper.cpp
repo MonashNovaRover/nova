@@ -218,7 +218,8 @@ namespace nova_twistmapper
       return controller_interface::CallbackReturn::FAILURE;
     }
 
-    // TODO: Potentially initialise the command interface values
+    // Set the initial command interface values
+    pose_handle->set_value(twistmapper_pose_);
 
     RCLCPP_DEBUG(get_node()->get_logger(), "Subscriber and publisher are now active.");
     return controller_interface::CallbackReturn::SUCCESS;
