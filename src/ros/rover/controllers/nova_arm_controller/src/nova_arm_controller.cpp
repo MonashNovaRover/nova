@@ -51,7 +51,7 @@ controller_interface::CallbackReturn NovaArmController::on_init()
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  return controller_interface::CallbackReturn::SUCCESS;
+return controller_interface::CallbackReturn::SUCCESS;
 }
 
 InterfaceConfiguration NovaArmController::command_interface_configuration() const
@@ -75,6 +75,7 @@ InterfaceConfiguration NovaArmController::state_interface_configuration() const 
 }
 
 std::vector<hardware_interface::CommandInterface> NovaArmController::on_export_reference_interfaces() {
+
   std::vector<hardware_interface::CommandInterface> reference_interfaces;
   RCLCPP_INFO(get_node()->get_logger(), "Export reference interfaces");
 
