@@ -233,7 +233,9 @@ namespace nova_twistmapper
       halt();
       is_halted = true;
     }
-    // TODO: Clear PoseHandle
+
+    // Clean up command interfaces
+    pose_handle.reset();
 
     return controller_interface::CallbackReturn::SUCCESS;
   }
