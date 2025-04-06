@@ -1,0 +1,5 @@
+# defines a custom service for getting the position for a given key on the keyboard (relative to keyboard frame)
+# std_msgs/Header header
+string key
+---
+geometry_msgs/PointStamped position
