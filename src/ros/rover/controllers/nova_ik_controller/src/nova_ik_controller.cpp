@@ -335,7 +335,10 @@ namespace nova_ik_controller
     return new_joints;
   }
 
-
+  bool NovaIKController::on_set_chained_mode(bool chained_mode) {
+    // This method is called when the chained mode is set.
+    return true;
+  }
 } // namespace nova_ik_controller
 
 #include "class_loader/register_macro.hpp"
