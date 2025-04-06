@@ -11,6 +11,7 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 find_package(std_msgs)
+find_package(geometry_msgs)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -19,8 +20,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
   "srv/ArmConfigInfo.srv"
   "srv/StringTrigger.srv"
+  "srv/KeyPosition.srv"
   
-  DEPENDENCIES std_msgs
+  DEPENDENCIES std_msgs geometry_msgs
 )
 
 if(BUILD_TESTING)
