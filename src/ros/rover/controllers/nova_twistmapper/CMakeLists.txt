@@ -10,7 +10,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   generate_parameter_library
   geometry_msgs
   hardware_interface
-  nav_msgs
   pluginlib
   rclcpp
   rclcpp_lifecycle
@@ -19,8 +18,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2
   tf2_msgs
   tf2_geometry_msgs
-  nova_interfaces
-  Eigen3
 )
 
 find_package(ament_cmake REQUIRED)
