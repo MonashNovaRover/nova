@@ -29,7 +29,8 @@ teleop_arm_joy:
       default_value:
         [
           "nova_arm_position_controller",
-          "nova_ik_controller"
+          "nova_ik_controller",
+          "nova_twistmapper",
         ]
       description: "Controllers to activate/deactivate for twist ik control"
 

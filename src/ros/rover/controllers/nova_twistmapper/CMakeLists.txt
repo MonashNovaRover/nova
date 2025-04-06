@@ -27,7 +27,6 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
 endforeach()
 
 include_directories(
-	${EIGEN3_INCLUDE_DIRS}
 )
 
 generate_parameter_library(nova_twistmapper_parameters
@@ -35,8 +34,8 @@ generate_parameter_library(nova_twistmapper_parameters
 )
 
 add_library(nova_twistmapper SHARED
-  src/PoseHandle.cpp
   src/nova_twistmapper.cpp
+  src/PoseHandle.cpp
 )
 target_compile_features(nova_twistmapper PUBLIC cxx_std_17)
 target_include_directories(nova_twistmapper PUBLIC

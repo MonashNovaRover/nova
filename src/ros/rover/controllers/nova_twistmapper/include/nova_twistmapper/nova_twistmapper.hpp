@@ -82,7 +82,6 @@ protected:
   tf2::Transform twistmapper_pose_ = tf2::Transform();
   tf2::Vector3 twistmapper_pose_rpy_ = tf2::Vector3();
   rclcpp::Time twistmapper_pose_update_time_ = rclcpp::Time();
-  /// True when initial state has been received to confirm that the value in _twistmapper_pose is safe and valid
 
   // broadcasting twistmapper
   std::shared_ptr<tf2_ros::TransformBroadcaster> twistmapper_pose_tf_broadcaster_;

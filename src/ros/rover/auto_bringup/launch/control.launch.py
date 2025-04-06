@@ -47,6 +47,11 @@ def launch_setup(context, *args, **kwargs):
             executable='spawner',
             arguments=['nova_ik_controller', '--inactive']
         ),
+        Node( # TODO: only when arm is enabled
+            package='controller_manager',
+            executable='spawner',
+            arguments=['nova_twistmapper', '--inactive']
+        ),
         Node(
             package='controller_manager',
             executable='spawner',

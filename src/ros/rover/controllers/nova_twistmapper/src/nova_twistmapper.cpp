@@ -302,6 +302,13 @@ namespace nova_twistmapper
 
     twistmapper_pose_tf_broadcaster_->sendTransform(transform_stamped);
   }
+
+  std::string NovaTwistmapper::pose_component_to_command_interface_name(const std::string &component_name) const {
+    // If chained_controller_name is non-empty, prepend it plus "/"
+    // Example result: "nova_arm_controller/J1/position"
+    const auto prefix = params_.chained_controller_name.empty() ? "" : params_.chained_controller_name + "/";
+    return prefix + component_name;
+  }
 } // namespace nova_twistmapper
 
 #include "class_loader/register_macro.hpp"

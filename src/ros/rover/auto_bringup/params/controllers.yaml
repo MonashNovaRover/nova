@@ -12,6 +12,9 @@ controller_manager:
     nova_ik_controller:
       type: nova_ik_controller/NovaIKController
 
+    nova_twistmapper:
+      type: nova_twistmapper/NovaTwistmapper
+
     wheel_velocity_controller:
       type: velocity_controllers/JointGroupVelocityController
 
@@ -65,6 +68,10 @@ nova_ik_controller:
       - J4
       - J5
       - J6
+
+nova_twistmapper:
+  ros__parameters:
+    chained_controller_name: "nova_ik_controller"
 
 wheel_velocity_controller:
   ros__parameters:
