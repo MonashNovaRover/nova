@@ -102,6 +102,14 @@ namespace nova_ik_controller
       return controller_interface::return_type::OK;
     }
 
+    // Do nothing if any input is missing or invalid
+    for (auto& reference_value : reference_interfaces_) {
+      if (std::isnan(reference_value)) {
+        RCLCPP_WARN(get_node()->get_logger(), "Missing or NaN input received. Doing nothing.");
+        return controller_interface::return_type::OK;
+      }
+    }
+
     // Target pose from reference interfaces
     tf2::Vector3 reference_origin = tf2::Vector3(
       reference_interfaces_[0],
@@ -168,6 +176,12 @@ namespace nova_ik_controller
           "Some joint interfaces are non existent");
       return controller_interface::CallbackReturn::ERROR;
     }
+
+    // Reset reference interfaces
+    // https://github.com/ros-controls/ros2_control_demos/blob/f09c24040243973d48f7a102afc70559b2dc3908/example_12/controllers/src/passthrough_controller.cpp#L115
+    std::fill(
+      reference_interfaces_.begin(), reference_interfaces_.end(),
+      std::numeric_limits<double>::quiet_NaN());
 
     return controller_interface::CallbackReturn::SUCCESS;
   }
