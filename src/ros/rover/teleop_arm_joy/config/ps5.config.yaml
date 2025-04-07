@@ -2,7 +2,7 @@ teleop_arm_joy_node:
   ros__parameters:
     twist:
       linear_max: 0.25
-      angular_max: 1.57079632679
+      angular_max: 0.785398163395
     joints:
       J1:
         max_speed: 0.785398163395
@@ -37,10 +37,11 @@ teleop_arm_joy_node:
 
       J4:
         device: "Gamepad"
-        id: 1
+        id: 3
+        invert: true
       J5:
         device: "Gamepad"
-        id: 3
+        id: 2
         invert: true
       J6:
         device: "Gamepad"
@@ -57,14 +58,14 @@ teleop_arm_joy_node:
 
       twist_x:
         device: "Gamepad"
-        button_id_negative: 11
-        button_id_positive: 12
-        invert: true
+        button_id_negative: 12
+        button_id_positive: 11
+        id: 1
       twist_y:
         device: "Gamepad"
-        button_id_negative: 13
-        button_id_positive: 14
-        invert: true
+        button_id_negative: 14
+        button_id_positive: 13
+        id: 0
       twist_z:
         device: "Gamepad"
         button_id_negative: 0
@@ -75,8 +76,12 @@ teleop_arm_joy_node:
         id: 2
       twist_pitch:
         device: "Gamepad"
+        id: 3
+        invert: true
       twist_roll:
         device: "Gamepad"
+        button_id_negative: 2
+        button_id_positive: 1
 
     buttons:
       twist_mode:
