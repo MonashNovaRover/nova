@@ -104,9 +104,11 @@ public:
   }
 
 private:
-  bool snap_goals();
+  void wait_for_occu_grids();
   void update_toward_points();
+  bool snap_goals();
   SearchResult find_nearest_free_cell(const Point &origin);
+  bool is_area_free(const GridCell &center);
   bool is_cell_free(const GridCell &global_cell);
   bool is_cell_free(const GridCell &cell, const OccupancyGrid::SharedPtr &grid);
   GridCell world_to_grid_cell(const Point &point, const OccupancyGrid::SharedPtr &grid);
@@ -122,6 +124,7 @@ private:
   std::vector<Point> toward_points_;
   double max_snap_radius_;
   double update_radius_;
+  double footprint_radius_;
   std::vector<GoalEntry> cube_goal_entries_;
   Goals input_goals_;
   

@@ -7,7 +7,7 @@ yolo_ros_node:
     threshold: 0.5
     #iou: 0.7
     imgsz_height: 400
-    imgsz_width: 600
+    imgsz_width: 640
     half: False
     max_det: 300
     #augment: False
@@ -21,8 +21,11 @@ yolo_ros_debug_node:
 
 cube_localiser:
   ros__parameters:
-    depth_image_units_divisor: 1.0      # define the divisor to get the depth value to be meters
+    depth_image_units_divisor: 1000.0   # in irl  # 1.0 in gazebo  # define the divisor to get the depth value to be meters
     maximum_detection_threshold: 0.3    # the maximum variance in depth value to calculate a point for a bounding box (2d mode only)
+    x_scalar: 1.0                       # amount to multiply detection to account for image sizes
+    y_scalar: 0.625                     # (e.g to transform the y axis 640px detection frame to the 400px depth frame)
+    
 
     use_markers: True
     marker_ns: detected_cubes           # the marker namespace
@@ -31,7 +34,7 @@ cube_localiser:
 
     tf_publisher_timer_period: 0.1      # how often to publish tf
 
-    map_frame: "map"                             # the reference frame to transform cubes to (e.g cubes start as a position defined relative to the camera, so this will define cubes relative to the map)
+    map_frame: "map"                    # the reference frame to transform cubes to (e.g cubes start as a position defined relative to the camera, so this will define cubes relative to the map)
     camera_frame: "oak_rgb_camera_optical_frame" # the starting reference frame 
 
     min_samples: 5      # number of samples of a cube before publishing its transform
