@@ -30,7 +30,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/arm/meshes/arm_base.stl" />
+          filename="file://$(find rover_description)/waratah_arm/meshes/arm_base.stl" />
       </geometry>
       <material
         name="">
@@ -44,7 +44,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/arm/meshes/arm_base.stl" />
+          filename="file://$(find rover_description)/waratah_arm/meshes/arm_base.stl" />
       </geometry>
     </collision>
   </link>
@@ -70,7 +70,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/arm/meshes/base_to_j1.stl" />
+          filename="file://$(find rover_description)/waratah_arm/meshes/base_to_j1.stl" />
       </geometry>
       <material
         name="">
@@ -84,7 +84,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/arm/meshes/base_to_j1.stl" />
+          filename="file://$(find rover_description)/waratah_arm/meshes/base_to_j1.stl" />
       </geometry>
     </collision>
   </link>
@@ -128,7 +128,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/arm/meshes/j2_to_link1.stl" />
+          filename="file://$(find rover_description)/waratah_arm/meshes/j2_to_link1.stl" />
       </geometry>
       <material
         name="">
@@ -142,7 +142,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/arm/meshes/j2_to_link1.stl" />
+          filename="file://$(find rover_description)/waratah_arm/meshes/j2_to_link1.stl" />
       </geometry>
     </collision>
   </link>
@@ -186,7 +186,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/arm/meshes/j3_to_link2.stl" />
+          filename="file://$(find rover_description)/waratah_arm/meshes/j3_to_link2.stl" />
       </geometry>
       <material
         name="">
@@ -200,7 +200,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/arm/meshes/j3_to_link2.stl" />
+          filename="file://$(find rover_description)/waratah_arm/meshes/j3_to_link2.stl" />
       </geometry>
     </collision>
   </link>
@@ -244,7 +244,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/arm/meshes/link2_to_fixed_j4.stl" />
+          filename="file://$(find rover_description)/waratah_arm/meshes/link2_to_fixed_j4.stl" />
       </geometry>
       <material
         name="">
@@ -258,7 +258,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/arm/meshes/link2_to_fixed_j4.stl" />
+          filename="file://$(find rover_description)/waratah_arm/meshes/link2_to_fixed_j4.stl" />
       </geometry>
     </collision>
   </link>
@@ -297,7 +297,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/arm/meshes/j4_to_j5.stl" />
+          filename="file://$(find rover_description)/waratah_arm/meshes/j4_to_j5.stl" />
       </geometry>
       <material
         name="">
@@ -311,7 +311,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/arm/meshes/j4_to_j5.stl" />
+          filename="file://$(find rover_description)/waratah_arm/meshes/j4_to_j5.stl" />
       </geometry>
     </collision>
   </link>
@@ -355,7 +355,7 @@
         rpy="0 0 3.14" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/arm/meshes/j5_to_j6.stl" />
+          filename="file://$(find rover_description)/waratah_arm/meshes/j5_to_j6.stl" />
       </geometry>
       <material
         name="">
@@ -369,7 +369,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/arm/meshes/j5_to_j6.stl" />
+          filename="file://$(find rover_description)/waratah_arm/meshes/j5_to_j6.stl" />
       </geometry>
     </collision>
   </link>
@@ -413,7 +413,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/arm/meshes/j6_to_ee.stl" />
+          filename="file://$(find rover_description)/waratah_arm/meshes/j6_to_ee.stl" />
       </geometry>
       <material
         name="">
@@ -427,7 +427,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/arm/meshes/j6_to_ee.stl" />
+          filename="file://$(find rover_description)/waratah_arm/meshes/j6_to_ee.stl" />
       </geometry>
     </collision>
   </link>

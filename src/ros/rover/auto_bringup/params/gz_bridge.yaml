@@ -1,74 +1,95 @@
-# gz clock to ros
+# Clock
 - ros_topic_name: "/clock"
   gz_topic_name: "/clock"
   ros_type_name: "rosgraph_msgs/msg/Clock"
   gz_type_name: "gz.msgs.Clock"
   direction: GZ_TO_ROS # BIDIRECTIONAL or ROS_TO_GZ
 
-# gz oak depth image to ros
+# Oak depth image
 - ros_topic_name: "/oak/stereo/image_raw"
   gz_topic_name: "/oak/depth_image"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
   direction: GZ_TO_ROS
 
-# gz depth camera info to ros
+# Oak depth camera info 
 - ros_topic_name: "/oak/stereo/camera_info"
   gz_topic_name: "/oak/camera_info"
   ros_type_name: "sensor_msgs/msg/CameraInfo"
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
-# gz oak rgb image to ros
+# Oak rgb image
 - ros_topic_name: "/oak/rgb/image_raw"
   gz_topic_name: "/oak/image"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
   direction: GZ_TO_ROS
 
-# gz rgb camera info to ros ( Intrinsics Identical to DepthImages )
+# Oak rgb camera info ( Intrinsics Identical to DepthImages )
 - ros_topic_name: "/oak/rgb/camera_info"
   gz_topic_name: "/oak/camera_info"
   ros_type_name: "sensor_msgs/msg/CameraInfo"
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
-# gz imu to ros
+# Bootie depth image
+- ros_topic_name: "/bootie/stereo/image_raw"
+  gz_topic_name: "/bootie/depth_image"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+# Bootie depth camera info 
+- ros_topic_name: "/bootie/stereo/camera_info"
+  gz_topic_name: "/bootie/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
+
+# Bootie rgb image
+- ros_topic_name: "/bootie/rgb/image_raw"
+  gz_topic_name: "/bootie/image"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+# Bootie rgb camera info ( Intrinsics Identical to DepthImages )
+- ros_topic_name: "/bootie/rgb/camera_info"
+  gz_topic_name: "/bootie/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
+
+# Imu
 - ros_topic_name: "/oak/imu/transformed"
   gz_topic_name: "/oak/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
 
-# gz pointcloud to ros
-# - ros_topic_name: "/oak/depth/points"
-#   gz_topic_name: "/oak/points"
-#   ros_type_name: "sensor_msgs/msg/PointCloud2"
-#   gz_type_name: "gz.msgs.PointCloudPacked"
-#   direction: GZ_TO_ROS
-
-# gz gps to ros
+# Gps
 - ros_topic_name: "/fix" # guessing this one could also be /gps_plugin/vel ?
   gz_topic_name: "/gps"
   ros_type_name: "sensor_msgs/msg/NavSatFix" # or "gps_msgs/msg/GPSFix" ?
   gz_type_name: "gz.msgs.NavSat"
   direction: GZ_TO_ROS
 
-# gz pose to ros
+# Pose
 - ros_topic_name: "/odom/gazebo"
   gz_topic_name: "/model/Rover7/pose"
   ros_type_name: "geometry_msgs/msg/Pose"
   gz_type_name: "gz.msgs.Pose"
   direction: GZ_TO_ROS
 
-# gz odom to ros
+# Odom
 - ros_topic_name: "/odom"
   gz_topic_name: "/odom"
   ros_type_name: "nav_msgs/msg/Odometry"
   gz_type_name: "gz.msgs.Odometry"
   direction: GZ_TO_ROS
 
-# gz dynamic joint states to ros
+# Joint states
 - ros_topic_name: "/joint_states"
   gz_topic_name: "/joint_states"
   ros_type_name: "sensor_msgs/msg/JointState"

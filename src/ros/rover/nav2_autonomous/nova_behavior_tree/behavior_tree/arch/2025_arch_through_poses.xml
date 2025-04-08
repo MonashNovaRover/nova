@@ -3,7 +3,9 @@
       main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <ReactiveSequence>
-      <BlackboardPublisher topic_name="blackboard"/>
+      <BlackboardPublisher topic_name="blackboard"
+                            keys="goals"
+                            publish_frequency="1"/>
       <RecoveryNode name="NavigateRecovery"
                     number_of_retries="6">
         <PipelineSequence name="NavigateWithReplanning">
@@ -17,26 +19,22 @@
             <RecoveryNode name="ComputePathThroughPoses"
                           number_of_retries="1">
               <ReactiveSequence>
-                <ForceSuccess>
-                  <Sequence>
+                <Sequence>
+                  <ForceSuccess>
                     <CubeDetected visited_ids="{visited_ids}"
                                   current_pose="{current_pose}"
                                   cube_goals="{cube_goals}"
                                   cube_poses="{cube_poses}"/>
-                    <UpdateGoals goal_type="cube"
-                                  current_pose="{current_pose}"
-                                  goals="{cube_goals}"
-                                  input_goals="{goals}"
-                                  update_radius="1.0"
-                                  output_goals="{goals}"
-                                  cube_goal_entries="{cube_goal_entries}"/>
-                  </Sequence>
-                </ForceSuccess>
+                  </ForceSuccess>
+                  <UpdateGoals goal_type="cube"
+                                current_pose="{current_pose}"
+                                goals="{cube_goals}"
+                                input_goals="{goals}"
+                                update_radius="1.0"
+                                output_goals="{goals}"
+                                cube_goal_entries="{cube_goal_entries}"/>
+                </Sequence>
                 <ReactiveSequence>
-                  <SnapInCollisionGoals initial_goals_offset="1.5"
-                                        cube_goal_entries="{cube_goal_entries}"
-                                        input_goals="{goals}"
-                                        output_goals="{goals}"/>
                   <RemovePassedGoalsAndCubes cube_poses="{cube_poses}"
                                               cube_tolerance="2"
                                               input_goals="{goals}"
@@ -44,6 +42,10 @@
                                               output_goals="{goals}"
                                               visited_ids="{visited_ids}"
                                               distance_to_goal="{dist_to_goal}"/>
+                  <SnapInCollisionGoals initial_goals_offset="1.5"
+                                        cube_goal_entries="{cube_goal_entries}"
+                                        input_goals="{goals}"
+                                        output_goals="{goals}"/>
                   <ComputePathThroughPoses _skipIf="dist_to_goal < 2.0"
                                             goals="{goals}"
                                             planner_id="{selected_planner}"

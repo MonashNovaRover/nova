@@ -2,6 +2,7 @@
 #define NOVA_BEHAVIOR_TREE__BLACKBOARD_PUBLISHER_NODE_HPP_
 
 #include <string>
+#include <vector>
 #include "behaviortree_cpp/action_node.h"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
@@ -21,8 +22,9 @@ public:
   static BT::PortsList providedPorts()
   {
     return {
-      BT::InputPort<std::string>("topic_name", "blackboard", 
-        "ROS topic for publishing")
+      BT::InputPort<std::string>("topic_name", "blackboard", "ROS topic for publishing"),
+      BT::InputPort<std::vector<std::string>>("keys", "Blackboard keys to publish"),
+      BT::InputPort<double>("publish_frequency", 1, "Publish rate in hz")
     };
   }
 
@@ -32,12 +34,17 @@ public:
 private:
   // Called once at the start of a tick, to ensure everything is ready
   void initialize();
+  void publish_blackboard();
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
   std::string topic_name_;
-  std::shared_ptr<BT::Blackboard> bb;
-  std::vector<BT::StringView> keys;
+  double publish_delay_;
+  std::shared_ptr<BT::Blackboard> bb_;
+  std::vector<std::string> keys_;
+  std::chrono::steady_clock::time_point last_publish_;
+
+  bool initialized_ = false;
 };
 
 }  // namespace nova_behavior_tree

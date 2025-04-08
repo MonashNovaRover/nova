@@ -514,7 +514,7 @@ bool BLCMDHardware::set_control_interface(
         if(hw_velocity_.state.has_value()) {
 
             hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max) * 
-            reversed_multiplier_;
+            reversed_multiplier_*-1*0.5; // Dear Bro, ask chassis why this is -1
 
         }
         if(hw_effort_.state.has_value()) {

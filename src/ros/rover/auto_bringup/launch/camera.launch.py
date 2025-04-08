@@ -22,44 +22,40 @@ from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    depthai_dir = FindPackageShare('depthai_ros_driver')
-
     ar = LaunchConfiguration('ar')
     ar_params = LaunchConfiguration('ar_params')
-    camera_model = LaunchConfiguration('camera_model')
+    back_name = LaunchConfiguration('back_name').perform(context)
+    front_name = LaunchConfiguration('front_name').perform(context)
     gazebo = LaunchConfiguration('gazebo')
-    name = LaunchConfiguration('name').perform(context)
+    imu = LaunchConfiguration('imu')
     oak_params = LaunchConfiguration('oak_params')
-    parent_frame = LaunchConfiguration('parent_frame')
+    bootie_params = LaunchConfiguration('bootie_params')
     pointclouds = LaunchConfiguration('pointclouds')
     rectify_image = LaunchConfiguration('rectify_image')
 
     return [
-        IncludeLaunchDescription(
-            condition=UnlessCondition(gazebo),
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([depthai_dir, 'launch', 'camera.launch.py'])),
-            launch_arguments={'name': name,
-                              'parent_frame': parent_frame,
-                              'params_file': oak_params,
-                              'camera_model': camera_model,
-                              'rectify_rgb': 'false',
-                              }.items()
-        ),
         ComposableNodeContainer(
-            name=f'{name}_image_proc_container',
-            namespace='',
+            name=f'{front_name}_image_proc_container',
             package='rclcpp_components',
+            namespace='',
             executable='component_container',
             composable_node_descriptions=[
+                ComposableNode(
+                    condition=UnlessCondition(gazebo),
+                    package='depthai_ros_driver',
+                    plugin='depthai_ros_driver::Camera',
+                    name=front_name,
+                    parameters=[oak_params],
+                ),
                 ComposableNode(
                     condition=IfCondition(rectify_image),
                     package='image_proc',
                     plugin='image_proc::RectifyNode',
-                    name='rectify_color_node',
+                    name=f'{front_name}_rectify_color_node',
                     remappings=[
-                        ('image', f'{name}/rgb/image_raw'),
-                        ('camera_info', f'{name}/rgb/camera_info'),
-                        ('image_rect', f'{name}/rgb/image_rect')],
+                        ('image', f'{front_name}/rgb/image_raw'),
+                        ('camera_info', f'{front_name}/rgb/camera_info'),
+                        ('image_rect', f'{front_name}/rgb/image_rect')],
                 ),
                 ComposableNode(
                     condition=IfCondition(pointclouds),
@@ -69,25 +65,60 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[{'decimation': 2,
                                 'max_depth': 10.0,
                                 'voxel_size': 0.1}],
-                    remappings=[('depth/image', f'{name}/stereo/image_raw'),
-                                ('depth/camera_info', f'{name}/stereo/camera_info'),
-                                ('cloud', f'{name}/depth/points')],
+                    remappings=[('depth/image', f'{front_name}/stereo/image_raw'),
+                                ('depth/camera_info', f'{front_name}/stereo/camera_info'),
+                                ('cloud', f'{front_name}/depth/points')],
+                ),
+                ComposableNode(
+                    condition=IfCondition(imu),
+                    package='imu_transformer',
+                    plugin='imu_transformer::ImuTransformer',
+                    name=f'{front_name}_imu_transformer_node',
+                    remappings=[('/imu_in', f'/{front_name}/imu/data'),
+                        ('/imu_out', f'/{front_name}/imu/transformed')],
+                    parameters=[{'target_frame': f'{front_name}_imu_frame'}]
+                ),
+                ComposableNode(
+                    condition=IfCondition(imu),
+                    package='imu_transformer',
+                    plugin='imu_transformer::ImuTransformer',
+                    name=f'{back_name}_imu_transformer_node',
+                    remappings=[('/imu_in', f'/{back_name}/imu/data'),
+                        ('/imu_out', f'/{back_name}/imu/transformed')],
+                    parameters=[{'target_frame': f'{back_name}_imu_frame'}]
                 ),
             ],
+        ),
+        ComposableNodeContainer(
+            name=f'{back_name}_image_proc_container',
+            package='rclcpp_components',
+            namespace='',
+            executable='component_container',
+            composable_node_descriptions=[
+                ComposableNode(
+                    condition=UnlessCondition(gazebo),
+                    package='depthai_ros_driver',
+                    plugin='depthai_ros_driver::Camera',
+                    name=back_name,
+                    parameters=[bootie_params],
+                ),
+                ComposableNode(
+                    condition=IfCondition(rectify_image),
+                    package='image_proc',
+                    plugin='image_proc::RectifyNode',
+                    name=f'{back_name}_rectify_color_node',
+                    remappings=[
+                        ('image', f'{back_name}/rgb/image_raw'),
+                        ('camera_info', f'{back_name}/rgb/camera_info'),
+                        ('image_rect', f'{back_name}/rgb/image_rect')],
+                ),
+            ]
         ),
         Node(
             condition=IfCondition(ar),
             package='aruco_opencv',
             executable='aruco_tracker_autostart',
             arguments=['--ros-args', '--params-file', ar_params],
-        ),
-        Node(
-            package='imu_transformer',
-            executable='imu_transformer_node',
-            name='imu_transformer',
-            remappings=[('/imu_in', '/oak/imu/data'),
-                        ('/imu_out', '/oak/imu/transformed')],
-            parameters=[{'target_frame': 'oak'}]
         ),
     ]
 
@@ -107,6 +138,16 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
+            name='back_name',
+            default_value='bootie',
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='front_name',
+            default_value='oak',
+            description='',
+        ),
+        DeclareLaunchArgument(
             name='camera_model',
             default_value='OAK-D-LR',
             description='',
@@ -117,8 +158,8 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='name',
-            default_value='oak',
+            name='imu',
+            default_value='True',
             description='',
         ),
         DeclareLaunchArgument(
@@ -127,13 +168,13 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='parent_frame',
-            default_value='camera_link',
+            name='bootie_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'bootie.yaml']),
             description='',
         ),
         DeclareLaunchArgument(
             name='pointclouds',
-            default_value='True',
+            default_value='False',
             description='',
         ),
         DeclareLaunchArgument(
