@@ -17,7 +17,7 @@ import {
   URCCompModes,
   arcCameraSetup,
   urcCameraSetup,
-} from "../views/shared/CamerasPage/CameraPageConstants.ts";
+} from "../views/shared/CamerasPage/CameraPageConstants";
 import GeneralBaseView from "../views/general/GeneralBaseView.tsx";
 import { ARCNIRProbeView } from "../views/arc/ARCNIRProbeView.tsx";
 import { ARCMicroscopeView } from "../views/arc/ARCMicroscopeView.tsx";
@@ -28,6 +28,7 @@ import URCRamanView from "../views/urc/URCRamanView.tsx";
 import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
 import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
 import TestOverlayView from "../views/test/TestOverlayView/TestOverlayView.tsx";
+import NIRProbeWidget from "../components/NIRProbe/NIRProbeWidget.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -66,6 +67,7 @@ export const arcRoutes: RouteObject[] = [
     path: `/arc/cameras/${comp}`,
     element: <CameraPage views={arcCameraSetup[comp]} />,
   })),
+
 ];
 
 export const urcRoutes: RouteObject[] = [
@@ -134,6 +136,13 @@ export const testRoutes: RouteObject[] = [
   {
     path: "/test/state",
     element: <TestStateView/>
+  },
+  {
+    path: "/test/nirprobe",
+    element:
+      <div className="p-3">
+        <NIRProbeWidget/>
+      </div>,
   },
   {
     path: "/test/overlay",

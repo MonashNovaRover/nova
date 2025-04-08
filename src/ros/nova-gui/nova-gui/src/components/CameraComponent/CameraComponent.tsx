@@ -7,24 +7,41 @@ import {
   PopoverTrigger,
   Spinner,
 } from "@nextui-org/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { Camera as CameraIcon, Info } from "react-feather";
 import { CameraInfoModal } from "./components/CameraInfoModal";
 import { StreamingState, useCameraStream } from "./hooks/useCameraStream";
 import { CameraSettingsForm } from "./components/CameraSettingsForm";
-import CameraVideo from "./components/CameraVideo";
-import { defaultCamFilters, initialisedFilters } from "../../views/shared/CamerasPage/CameraPageConstants";
+import CameraVideo, {CameraVideoProps} from "./components/CameraVideo";
+import {
+  defaultCamFilters,
+  initialisedFilters
+} from "../../views/shared/CamerasPage/CameraFilterConstants";
 import { BooleanChip } from "./components/BooleanChip";
 import humanizeString from "humanize-string";
 import { ExternalLink } from "react-feather";
 import toast from "react-hot-toast";
 import CameraSessionStartStopButton from "./components/CameraSessionStartStopButton.tsx";
+import {useGenericStore} from "../../hooks/useGenericStore.ts";
+import {Site} from "../../redux/models/genericStores/CurrentSiteStore.ts";
 
 const ASPECT_RATIO = 4 / 3;
 
-export interface CameraComponentProps {
+/// Subset of props needed to call the camera components from the serialMappedCameraComponent function
+export interface BaseCameraComponentProps {
   cameraSerial: string;
   autostart?: boolean;
+}
+
+export interface CameraComponentProps extends BaseCameraComponentProps {
+  // Children to pass to the settings form
+  settingsFormChildren?: ReactNode
+
+  // Camera video component to pass in
+  cameraVideoComponent?: React.FC<CameraVideoProps>
+
+  // Called when the streaming state changes
+  onStreamingStateChange?: (s: StreamingState) => void
 }
 
 export interface CameraFilters {
@@ -54,7 +71,13 @@ export const CameraComponent = (props: CameraComponentProps) => {
   } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
+  const onStreamingStateChange = props.onStreamingStateChange
+  const [currentSite, _] = useGenericStore<Site>("currentSite");
 
+  useEffect(() => {
+    if (onStreamingStateChange)
+      onStreamingStateChange(streamingState)
+  }, [streamingState, onStreamingStateChange]);
 
   const openCameraInTab = () =>
     window.open(
@@ -79,14 +102,14 @@ export const CameraComponent = (props: CameraComponentProps) => {
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
-          link.download = `${cameraSerial}-${Date.now()}.png`;
+          link.download = `site${(currentSite+1).toString()}-${cameraSerial}-${Date.now()}.png`;
           link.click();
         }
       }
     } else {
       toast("Unable to Take a Screenshot");
     }
-  }, [videoRef, cameraSerial]);
+  }, [videoRef, cameraSerial, currentSite]);
 
   useEffect(() => {
     const handleMouseEnter = () => {
@@ -111,6 +134,10 @@ export const CameraComponent = (props: CameraComponentProps) => {
     };
   }, []);
 
+  const cameraVideo = props.cameraVideoComponent?.({videoRef, filters}) ?? (
+    <CameraVideo videoRef={videoRef} filters={filters} />
+  )
+
   return (
     <Card className={` aspect-[${ASPECT_RATIO}] `} ref={cardRef}>
       <CameraInfoModal
@@ -119,7 +146,10 @@ export const CameraComponent = (props: CameraComponentProps) => {
         isModalOpen={isCameraInfoModalOpen}
         setCameraModalOpen={setCameraInfoModalOpen}
       />
-      <CameraVideo videoRef={videoRef} filters={filters} />
+      <div/>
+
+      {cameraVideo}
+
       {/* Overlay */}
       <div className="absolute top-0 right-0 w-full h-full flex flex-col justify-center items-center">
         {streamingState === StreamingState.STOPPED && (
@@ -167,7 +197,9 @@ export const CameraComponent = (props: CameraComponentProps) => {
                     <CameraSettingsForm
                       cameraFilters={filters}
                       setCameraFilters={setFilters}
-                    />
+                    >
+                      {props.settingsFormChildren}
+                    </CameraSettingsForm>
                   </div>
                 </PopoverContent>
               </Popover>

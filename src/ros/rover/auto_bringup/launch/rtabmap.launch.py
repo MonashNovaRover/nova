@@ -26,8 +26,9 @@ def delete_rtabmap_db(context, *args, **kwargs):
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
 
-    use_sim_time = LaunchConfiguration('use_sim_time')
-    name = LaunchConfiguration('name').perform(context)
+    gazebo = LaunchConfiguration('gazebo')
+    front_name = LaunchConfiguration('front_name').perform(context)
+    back_name = LaunchConfiguration('back_name').perform(context)
     x = LaunchConfiguration('x').perform(context)
     y = LaunchConfiguration('y').perform(context)
     z = LaunchConfiguration('z').perform(context)
@@ -38,18 +39,6 @@ def launch_setup(context, *args, **kwargs):
     rtabmap_viz = LaunchConfiguration('rtabmap_viz').perform(context)
     rtabmap_params = LaunchConfiguration('rtabmap_params').perform(context)
 
-    remappings = [
-        ('rgb/image', name+'/rgb/image_raw'),
-        ('rgb/camera_info', name+'/rgb/camera_info'),
-        ('depth/image', name+'/stereo/image_raw'),
-        ('rgbd_image',name+'/rgbd/image_raw'),
-        ('rgbd_image/compressed',name+'/rgbd/image_raw_compressed'),
-        ('cloud',name+'/depth/points'),
-        ('obstacles', name+'/obstacles'),
-        ('ground', name+'/ground'),
-        # ('imu', name+'/imu/data'),
-        ('odom', 'odom/visual'),
-    ]
 
     return [
         OpaqueFunction(function=delete_rtabmap_db),
@@ -58,11 +47,11 @@ def launch_setup(context, *args, **kwargs):
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
             launch_arguments={
                 'pointclouds':'False',
-                'gazebo': use_sim_time,
+                'gazebo': gazebo,
             }.items()
         ),
         ComposableNodeContainer(
-            name=f'{name}_mapping_container',
+            name='rtabmap_mapping_container',
             namespace='',
             package='rclcpp_components',
             executable='component_container',
@@ -70,38 +59,70 @@ def launch_setup(context, *args, **kwargs):
                 ComposableNode(
                     package='rtabmap_sync',
                     plugin='rtabmap_sync::RGBDSync',
-                    name='rtabmap_sync',
+                    name=f'{front_name}_rgbd_sync',
                     parameters=[rtabmap_params],
-                    remappings=remappings,
+                    remappings=[
+                        ('rgb/image', front_name+'/rgb/image_raw'),
+                        ('rgb/camera_info', front_name+'/rgb/camera_info'),
+                        ('depth/image', front_name+'/stereo/image_raw'),
+                        ('rgbd_image',front_name+'/rgbd/image_raw')
+                    ],
+                ),
+                ComposableNode(
+                    package='rtabmap_sync',
+                    plugin='rtabmap_sync::RGBDSync',
+                    name=f'{back_name}_rgbd_sync',
+                    parameters=[rtabmap_params],
+                    remappings=[
+                        ('rgb/image', back_name+'/rgb/image_raw'),
+                        ('rgb/camera_info', back_name+'/rgb/camera_info'),
+                        ('depth/image', back_name+'/stereo/image_raw'),
+                        ('rgbd_image',back_name+'/rgbd/image_raw'),
+                    ],
                 ),
                 ComposableNode(
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::RGBDOdometry',
                     name='rtabmap_odom',
-                    parameters=[rtabmap_params, {'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}', 'use_sim_time': use_sim_time}],
-                    remappings=remappings,
+                    parameters=[rtabmap_params, {'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}', 'use_sim_time': gazebo}],
+                    remappings=[
+                        ('odom', 'odom/visual'),
+                        ('rgbd_image0',front_name+'/rgbd/image_raw'),
+                        ('rgbd_image1',back_name+'/rgbd/image_raw'),
+                    ],
                 ),
                 ComposableNode(
                     package='rtabmap_slam',
                     plugin='rtabmap_slam::CoreWrapper',
                     name='rtabmap_slam',
-                    parameters=[rtabmap_params, {'use_sim_time': use_sim_time, 'rtabmap_args': '--delete_db_on_start'}],
-                    remappings=remappings,
+                    parameters=[rtabmap_params, {'use_sim_time': gazebo, 'rtabmap_args': '--delete_db_on_start'}],
+                    remappings=[
+                        ('rgbd_image0',front_name+'/rgbd/image_raw'),
+                        ('rgbd_image1',back_name+'/rgbd/image_raw'),
+                    ],
                 ),
             ],
         ),
-        Node(
-            package='rtabmap_util', executable='obstacles_detection', output='screen',
-            parameters=[rtabmap_params],
-            remappings=remappings,
-        ),
+        # Node(
+        #     package='rtabmap_util', executable='obstacles_detection', output='screen',
+        #     parameters=[rtabmap_params],
+        #     remappings=[
+        #         ('cloud',front_name+'/depth/points'),
+        #         ('obstacles', front_name+'/obstacles'),
+        #         ('ground', front_name+'/ground'),
+        #     ],
+        # ),
         Node(
             condition=IfCondition(rtabmap_viz),
             package='rtabmap_viz',
             executable='rtabmap_viz',
             output='screen',
-            parameters=[rtabmap_params, {'use_sim_time': use_sim_time}],
-            remappings=remappings,
+            parameters=[rtabmap_params, {'use_sim_time': gazebo}],
+            remappings=[
+                ('rgbd_image0',front_name+'/rgbd/image_raw'),
+                ('rgbd_image1',back_name+'/rgbd/image_raw'),
+                ('odom', 'odom/visual'),
+            ]
         ),
     ]
 
@@ -110,9 +131,10 @@ def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
 
     declared_arguments = [
-        DeclareLaunchArgument(name='name', default_value='oak'),
+        DeclareLaunchArgument(name='front_name', default_value='oak'),
+        DeclareLaunchArgument(name='back_name', default_value='bootie'),
         DeclareLaunchArgument(name='rtabmap_viz', default_value='False'),
-        DeclareLaunchArgument(name='use_sim_time', default_value='False'), # Revert ASAP
+        DeclareLaunchArgument(name='gazebo', default_value='False'),
         DeclareLaunchArgument(name='camera', default_value='False'),
         DeclareLaunchArgument(name='x', default_value='0.0'),
         DeclareLaunchArgument(name='y', default_value='0.0'),

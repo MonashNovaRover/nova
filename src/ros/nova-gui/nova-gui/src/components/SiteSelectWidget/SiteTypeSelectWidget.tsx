@@ -3,7 +3,7 @@ import React from "react";
 import {Box, Droplet} from "react-feather";
 import {useGenericStore} from "../../hooks/useGenericStore.ts";
 import {SiteData, SiteDataState} from "../../redux/models/genericStores/SiteDataState.ts";
-import {SpaceResourcesSiteType} from "../nir-probe/SpaceResourcesSiteType.tsx";
+import {SpaceResourcesSiteType} from "../NIRProbe/SpaceResourcesSiteType.tsx";
 import SiteSelectWidget from "./SiteSelectWidget.tsx";
 import {Site} from "../../redux/models/genericStores/CurrentSiteStore.ts";
 

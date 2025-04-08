@@ -8,8 +8,9 @@ from launch_ros.substitutions import FindPackageShare
 from launch.actions import OpaqueFunction
 
 def launch_setup(context, *args, **kwargs):
+    gazebo = LaunchConfiguration('gazebo')
     rtabmap_viz = LaunchConfiguration('rtabmap_viz').perform(context)
-    use_sim_time = LaunchConfiguration('use_sim_time')
+    rviz_params = LaunchConfiguration('rviz_params')
 
 
     rviz_node = Node(
@@ -17,7 +18,7 @@ def launch_setup(context, *args, **kwargs):
         namespace='',
         executable='rviz2',
         name='rviz2',
-        arguments=['-d', [PathJoinSubstitution([FindPackageShare('auto_bringup'), 'rviz', 'navigation.rviz'])]]
+        arguments=['-d', [PathJoinSubstitution([FindPackageShare('auto_bringup'), 'rviz', rviz_params])]]
     )
 
     rtabmap_ros_node = Node(
@@ -25,7 +26,9 @@ def launch_setup(context, *args, **kwargs):
         package='rtabmap_viz',
         executable='rtabmap_viz',
         output='screen',
-        parameters=[{"subscribe_rgbd":True,"use_sim_time":use_sim_time}],
+        parameters=[{
+            "subscribe_rgbd": True,
+            "use_sim_time": gazebo}],
         remappings=[
             ('rgbd_image','oak/rgbd/image_raw'),
             ('odom', 'odom/visual'),
@@ -38,10 +41,20 @@ def generate_launch_description():
 
     launch_args = [
         DeclareLaunchArgument(
-            'rtabmap_viz', default_value='false',
-            description='Launch rtabmap_viz for mapping visualisation'),
-
-        DeclareLaunchArgument('use_sim_time', default_value='false'),
+            name='gazebo',
+            default_value='false',
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='rtabmap_viz',
+            default_value='false',
+            description='Launch rtabmap_viz for mapping visualisation',
+        ),
+        DeclareLaunchArgument(
+            name='rviz_params',
+            default_value='navigation.rviz',
+            description='',
+        ),
     ]
 
     return LaunchDescription( launch_args + [OpaqueFunction(function=launch_setup)])

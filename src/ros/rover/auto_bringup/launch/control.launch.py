@@ -25,15 +25,18 @@ from launch_ros.substitutions import FindPackageShare
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
     
+    angle = LaunchConfiguration('angle')
     controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
+    log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
+    use_local_mesh = LaunchConfiguration('use_local_mesh')
 
     return [
         Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['pivot_drive_controller', '--switch-timeout', '10'] #, '--inactive']
+            arguments=['pivot_drive_controller', '--switch-timeout', '10', '--ros-args', '--log-level', log_level] #, '--inactive']
         ),
         Node(
             package='controller_manager',
@@ -51,7 +54,7 @@ def launch_setup(context, *args, **kwargs):
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['joint_state_broadcaster']
+                    arguments=['joint_state_broadcaster'],
                 ),
                 Node(
                     package='controller_manager',
@@ -61,7 +64,7 @@ def launch_setup(context, *args, **kwargs):
                 ),
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-                    launch_arguments={'model': model, 'gazebo': gazebo}.items(),
+                    launch_arguments={'model': model, 'gazebo': gazebo, 'angle': angle, 'use_local_mesh': use_local_mesh}.items(),
                 )],
         ),
     ]
@@ -71,10 +74,15 @@ def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
     rover_description_dir = FindPackageShare('rover_description')
 
-    declared_arguments = [      
+    declared_arguments = [   
+        DeclareLaunchArgument(
+            name='angle', 
+            default_value='15',
+            description='Angle (in degrees) at which the camera is mounted',
+        ),
         DeclareLaunchArgument(
             name='controllers',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'old_controllers.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
             description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
@@ -83,12 +91,22 @@ def generate_launch_description():
             description='Use simulation (Gazebo) clock if True',
         ),
         DeclareLaunchArgument(
-            name='model', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'waratah', 'urdf', 'rover.urdf.xacro']),
-            description='Absolute path to robot urdf file',
+            name='log_level', 
+            default_value='warn',
+            description='',
         ),  
+        DeclareLaunchArgument(
+            name='model', 
+            default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
+            description='Absolute path to robot urdf file',
+        ),
+        DeclareLaunchArgument(
+            name='use_local_mesh',
+            default_value='False',
+            description='Use local mesh paths instead of nix store paths',
+        ),
     ]
 
-    return LaunchDescription(  
+    return LaunchDescription(
         declared_arguments + [OpaqueFunction(function=launch_setup)]
     )

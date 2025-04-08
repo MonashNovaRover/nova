@@ -27,6 +27,7 @@ def launch_setup(context, *args, **kwargs):
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
+    angle = LaunchConfiguration('angle')
     camera = LaunchConfiguration('camera')
     gz_params = LaunchConfiguration('gz_params')
     controllers = LaunchConfiguration('controllers')
@@ -61,7 +62,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name}.items(),
+            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'angle': angle}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
@@ -99,6 +100,11 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
+            name='angle', 
+            default_value='15',
+            description='Angle (in degrees) at which the camera is mounted',
+        ),
+        DeclareLaunchArgument(
             name='camera', 
             default_value='True',
             description='',
@@ -130,11 +136,11 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='world',
-            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto.sdf']),
+            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf']),
             description='Full path to world model file to load',
         ),
-        DeclareLaunchArgument(name='x', default_value='15.19', description='x_pose'),
-        DeclareLaunchArgument(name='y', default_value='-6.22', description='y_pose'),
+        DeclareLaunchArgument(name='x', default_value='13.22', description='x_pose'),
+        DeclareLaunchArgument(name='y', default_value='-7.50', description='y_pose'),
         DeclareLaunchArgument(name='z', default_value='0.5', description='z_pose'),
         DeclareLaunchArgument(name='R', default_value='0.0', description='roll'),
         DeclareLaunchArgument(name='P', default_value='0.0', description='pitch'),

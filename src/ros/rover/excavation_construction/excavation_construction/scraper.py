@@ -55,8 +55,8 @@ class ScraperNode(JoystickControllerNode):
     JONO_BUCKET_CLOSE = 0x02
 
     # directions
-    ARM_FORWARDS = Direction.POSITIVE
-    ARM_BACKWARDS = Direction.NEGATIVE
+    ARM_FORWARDS = Direction.NEGATIVE
+    ARM_BACKWARDS = Direction.POSITIVE # Flipped for Banksia/ Orin compatibility
     SCOOP_FORWARDS = Direction.POSITIVE
     SCOOP_BACKWARDS = Direction.NEGATIVE
     BUCKET_CLOSE = Direction.POSITIVE

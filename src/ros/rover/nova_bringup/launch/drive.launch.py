@@ -10,15 +10,24 @@ NODES:
   - control/drive/driver            [driver]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATION:   15/12/2021
-EDITED:     04/02/2025
+EDITED:     21/03/2025
 EDITED BY: Max Tory, Taaj Street, 
-    Victor Bartlinski
+    Victor Bartlinski, Jared Landau,
+    Bailey Chessum
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+import subprocess
+
+try:
+    subprocess.run(["can", "start", "can0", "250000"], check=True)
+    print("can0 started successfully")
+except subprocess.CalledProcessError as e:
+    print(f"Error: Failed to start can0.")
+    print(f"{e}")
 
 def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo')

@@ -5,6 +5,7 @@
 , pythonPackages
 , nova-python-control
 , nova-input-interfaces
+, nova-python-control-old
 }:
 
 buildRosPackage {
@@ -20,6 +21,7 @@ buildRosPackage {
   propagatedBuildInputs = [
     rclpy
     nova-python-control
+    nova-python-control-old
     pythonPackages.jcan
     nova-input-interfaces
   ];

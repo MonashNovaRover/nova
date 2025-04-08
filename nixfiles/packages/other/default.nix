@@ -14,4 +14,5 @@
   tileserver-gl = callPackage ./tileserver-gl { };
   tileserver-gl-shell = callPackage ./tileserver-gl-shell { };
   foxglove = callPackage ./foxglove { };
+  reolink = callPackage ./reolink { };
 }
