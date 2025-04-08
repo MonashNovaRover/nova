@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--This is a file for the depth camera plugin for the rover in gazebo. This file is referenced at the bottom of rover.urdf.xacro,
+which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi Velmurugan Sujatha -->
+<!-- Auto mount is also appended to the top, however it has no simplified collisions -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <link name="clam">
+      <inertial>
+          <origin xyz="3.7286529733e-03 5.0083863736e-02 6.6873566534e-02" rpy="0 0 0" />
+          <mass value="2.24247" />
+          <inertia ixx="8.0102667275e-02" ixy="5.4258492784e-04" ixz="-5.9405379924e-04" iyy="7.0962055048e-02" iyz="1.8867799978e-02" izz="6.1017587486e-02" />
+      </inertial>
+      
+      <visual>
+          <origin xyz="0.138856 0.281 0.00511278" rpy="3.14159 -0.00348764 3.3577e-34" />
+          <geometry>
+              <mesh filename="${mesh_path}/auto_mount/meshes/clam.stl" />
+          </geometry>
+          <material name="clam_material">
+              <color rgba="0.866667 0.0745098 0.32549 1.0" />
+          </material>
+      </visual>
+      <collision>
+          <origin xyz="0.138821 0.291 0.0151127" rpy="3.14159 -0.00348764 3.3577e-34"/>
+          <geometry>
+              <box size="0.3 0.02 0.06"/>
+          </geometry>
+      </collision>
+      <collision>
+          <origin xyz="0.278786 0.171 0.0256009" rpy="3.14159 -0.00348764 3.3577e-34"/>
+          <geometry>
+              <box size="0.02 0.25 0.04"/>
+          </geometry>
+      </collision>
+      <collision>
+          <origin xyz="-0.00121269 0.171 0.0246244" rpy="3.14159 -0.00348764 3.3577e-34"/>
+          <geometry>
+              <box size="0.02 0.25 0.04"/>
+          </geometry>
+      </collision>
+      <collision>
+          <origin xyz="0.0650716 0.3285 -0.200146" rpy="3.14159 3.01669e-06 -4.11764e-18"/>
+          <geometry>
+              <cylinder length="0.5" radius="0.013"/>
+          </geometry>
+      </collision>
+      <collision>
+          <origin xyz="0.226671 0.3285 -0.199582" rpy="3.14159 3.01669e-06 -4.11764e-18"/>
+          <geometry>
+              <cylinder length="0.5" radius="0.013"/>
+          </geometry>
+      </collision>
+  </link>
+  
+  <link name="mount">
+      <inertial>
+          <origin xyz="1.1693270418e-05 -7.2712111739e-04 -9.4424832751e-07" rpy="0 0 0" />
+          <mass value="0.675321" />
+          <inertia ixx="1.3346354813e-03" ixy="2.0144673110e-06" ixz="-7.4564560876e-12" iyy="1.8911012391e-03" iyz="8.5183270804e-12" izz="2.9426778309e-03" />
+      </inertial>
+      
+      <visual>
+          <origin xyz="0.081 0.000713936 -0.025" rpy="4.93038e-32 6.86401e-31 -3.70732e-33" />
+          <geometry>
+              <mesh filename="${mesh_path}/auto_mount/meshes/mount.stl" />
+          </geometry>
+          <material name="mount_material">
+              <color rgba="0.866667 0.0745098 0.32549 1.0" />
+          </material>
+      </visual>
+      <collision>
+          <origin xyz="0.081 0.000713936 -0.025" rpy="4.93038e-32 6.86401e-31 -3.70732e-33"/>
+          <geometry>
+              <box size="0.2 0.04 0.05"/>
+          </geometry>
+      </collision>
+  </link>
+  
+  <link name="camera_holder_front">
+      <inertial>
+          <origin xyz="-3.7228035090e-17 1.6127855240e-02 2.0602657902e-19" rpy="0 0 0" />
+          <mass value="0.138174" />
+          <inertia ixx="1.0267174221e-04" ixy="4.3986965268e-19" ixz="-3.1642726501e-10" iyy="3.8739942592e-04" iyz="-9.5101774211e-22" izz="4.4725908804e-04" />
+      </inertial>
+      
+      <visual>
+          <origin xyz="-0.075 5.55112e-17 0.06" rpy="-1.5708 -1.5708 0" />
+          <geometry>
+              <mesh filename="${mesh_path}/auto_mount/meshes/camera_holder.stl" />
+          </geometry>
+          <material name="camera_holder_front_material">
+              <color rgba="0.866667 0.0745098 0.32549 1.0" />
+          </material>
+      </visual>
+      <collision>
+          <origin xyz="-0.04 5.55112e-17 0.06" rpy="-1.5708 -1.5708 0"/>
+          <geometry>
+              <box size="0.143 0.086 0.05"/>
+          </geometry>
+      </collision>
+  </link>
+  
+  <joint name="mount_to_front_holder" type="fixed">
+      <origin xyz="0.141 0.045 -0.0075" rpy="1.5708 -${angle*(pi/180)} -1.5708" />
+      <parent link="mount" />
+      <child link="camera_holder_front" />
+      <axis xyz="0 0 -1" />
+  </joint>
+
+  <link name="camera_holder_back">
+      <inertial>
+          <origin xyz="-3.7228035090e-17 1.6127855240e-02 2.0602657902e-19" rpy="0 0 0" />
+          <mass value="0.138174" />
+          <inertia ixx="1.0267174221e-04" ixy="4.3986965268e-19" ixz="-3.1642726501e-10" iyy="3.8739942592e-04" iyz="-9.5101774211e-22" izz="4.4725908804e-04" />
+      </inertial>
+      
+      <visual>
+          <origin xyz="-0.075 0 0.06" rpy="1.5708 1.5708 0" />
+          <geometry>
+              <mesh filename="${mesh_path}/auto_mount/meshes/camera_holder.stl" />
+          </geometry>
+          <material name="camera_holder_back_material">
+              <color rgba="0.866667 0.0745098 0.32549 1.0" />
+          </material>
+      </visual>
+      <collision>
+          <origin xyz="-0.04 8.62817e-34 0.06" rpy="1.5708 1.5708 0"/>
+          <geometry>
+              <box size="0.143 0.086 0.05"/>
+          </geometry>
+      </collision>
+  </link>
+  
+  <joint name="mount_to_back_holder" type="fixed">
+      <origin xyz="0.141 -0.045 -0.0075" rpy="-1.5708 ${-angle*(pi/180)} 1.5708" />
+      <parent link="mount" />
+      <child link="camera_holder_back" />
+      <axis xyz="0 0 1" />
+  </joint>
+  
+  <joint name="clam_to_mount" type="fixed">
+      <origin xyz="0.2269 0.3285 -0.436186" rpy="3.14159 5.13507e-14 3.14159" />
+      <parent link="clam" />
+      <child link="mount" />
+      <axis xyz="0 0 1" />
+      <limit effort="10" velocity="10" />
+  </joint>
+  
+  <joint name="auto_mount_to_chassis" type="fixed">
+      <origin xyz="0.124 -0.141 0.04" rpy="3.14159 -1.01333e-15 1.5708" />
+      <parent link="chassis" />
+      <child link="clam" />
+      <axis xyz="0 0 1" />
+      <limit effort="10" velocity="10" />
+  </joint>
+
+  <link name="camera_link"/>
+  <link name="bootie_link"/>
+
+  <joint name="oak_to_mount" type="fixed">
+    <origin xyz="-0.120 0.004 0.039" rpy="1.5708 0 3.14159" />
+    <parent link="camera_holder_front" />
+    <child link="camera_link" />
+    <axis xyz="0 0 1" />
+  </joint>
+
+  <joint name="bootie_to_mount" type="fixed">
+    <origin xyz="-0.120 -0.004 0.081" rpy="-1.5708 0 3.14159" />
+    <parent link="camera_holder_back" />
+    <child link="bootie_link" />
+    <axis xyz="0 0 1" />
+  </joint>
+
+  <xacro:include filename="$(find depthai_descriptions)/urdf/include/depthai_macro.urdf.xacro"/>
+  <xacro:depthai_camera
+    camera_name="oak"
+    parent="camera_link"
+    camera_model="OAK-D-LR"
+    base_frame="oak-base-frame"
+    cam_pos_x="0.0"
+    cam_pos_y="0.0"
+    cam_pos_z="0.0"
+    cam_roll="0.0"
+    cam_pitch="0.0"
+    cam_yaw="0.0"
+  />
+
+  <xacro:include filename="$(find depthai_descriptions)/urdf/include/depthai_macro.urdf.xacro"/>
+  <xacro:depthai_camera
+    camera_name="bootie"
+    parent="bootie_link"
+    camera_model="OAK-D-LR"
+    base_frame="bootie-base-frame"
+    cam_pos_x="0.0"
+    cam_pos_y="0.0"
+    cam_pos_z="0.0"
+    cam_roll="0.0"
+    cam_pitch="0.0"
+    cam_yaw="0.0"
+  />
+
+  <!-- EVERYTHING BELOW IS FOR SENSOR PLUGINS! REMOVE IF CAUSING PROBLEMS IRL -->
+
+  <link name="camera_link_optical"/>
+
+  <joint name="camera_optical_joint" type="fixed">
+    <origin xyz="0.0 0 0.0" rpy="${-pi/2} 0 ${-pi/2}"/>
+    <parent link="camera_link"/>
+    <child link="camera_link_optical"/>
+  </joint>
+
+  <link name="bootie_link_optical"/>
+
+  <joint name="bootie_optical_joint" type="fixed">
+    <origin xyz="0.0 0 0.0" rpy="${-pi/2} 0 ${-pi/2}"/>
+    <parent link="bootie_link"/>
+    <child link="bootie_link_optical"/>
+  </joint>
+
+  <!-- Oak Depth Camera for Gazebo-->
+  <gazebo reference="camera_link">
+    <sensor name="oak" type="rgbd_camera">
+      <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
+        <frame_name>camera_link_optical</frame_name>
+      </plugin>
+      <gz_frame_id>camera_link_optical</gz_frame_id>
+      <optical_frame_id>camera_link</optical_frame_id>
+      <topic>oak</topic>
+      <visualize>true</visualize>
+      <update_rate>30</update_rate>
+      <always_on>1</always_on>
+      <camera name="oak">
+        <horizontal_fov>${radians(82)}</horizontal_fov>
+        <image>
+          <width>1280</width>
+          <height>900</height>
+        </image>
+        <clip>
+          <near>0.4</near>
+          <far>10.0</far>
+        </clip>
+      </camera>
+    </sensor>
+  </gazebo> 
+
+  <!-- Bootie Depth Camera for Gazebo-->
+  <gazebo reference="bootie_link">
+    <sensor name="bootie" type="rgbd_camera">
+      <!-- <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
+        <frame_name>bootie_link_optical</frame_name>
+      </plugin> -->
+      <gz_frame_id>bootie_link_optical</gz_frame_id>
+      <optical_frame_id>bootie_link</optical_frame_id>
+      <topic>bootie</topic>
+      <visualize>true</visualize>
+      <update_rate>30</update_rate>
+      <always_on>1</always_on>
+      <camera name="bootie">
+        <horizontal_fov>${radians(82)}</horizontal_fov>
+        <image>
+          <width>1280</width>
+          <height>900</height>
+        </image>
+        <clip>
+          <near>0.4</near>
+          <far>10.0</far>
+        </clip>
+      </camera>
+    </sensor>
+  </gazebo>
+</robot>

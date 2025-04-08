@@ -39,7 +39,7 @@ def launch_setup(context, *args, **kwargs):
     using_oak = LaunchConfiguration('using_oak')
     using_3d = LaunchConfiguration('using_3d')
     namespace = LaunchConfiguration('namespace')
-    params = LaunchConfiguration('params')
+    yolo_params = LaunchConfiguration('yolo_params')
 
     rgb_image = LaunchConfiguration('yolo_ros_rgb_image')
     use_debug = LaunchConfiguration('yolo_ros_use_debug')
@@ -59,7 +59,7 @@ def launch_setup(context, *args, **kwargs):
             executable='yolo_node',
             name='yolo_ros_node',
             namespace=namespace,
-            parameters=[{'model': yolo_model}, params],
+            parameters=[{'model': yolo_model}, yolo_params],
             remappings=[('image_raw', rgb_image),
                         ('detections', detections)],
             condition=UnlessCondition(using_oak)
@@ -69,16 +69,17 @@ def launch_setup(context, *args, **kwargs):
             executable='debug_node',
             name='yolo_ros_debug_node',
             namespace=namespace,
-            parameters=[params],
+            parameters=[yolo_params],
             remappings=[('image_raw', rgb_image), 
-                        ('dbg_image', debug_image)],
+                        ('dbg_image', debug_image),
+                        ('detections', detections)],
             condition=IfCondition(AndSubstitution(use_debug, NotSubstitution(using_oak))),
         ),
         Node(
             package='nova_utils',
             executable='cube_localiser.py',
             name='cube_localiser',
-            parameters=[{'using_oak': using_oak, 'using_3d': using_3d}, params],
+            parameters=[{'using_oak': using_oak, 'using_3d': using_3d}, yolo_params],
             namespace=namespace,
         ),
     ]
@@ -89,7 +90,7 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             name='using_oak',
-            default_value='False',
+            default_value='True',
             description='Are we running this with the OAK camera?',
         ),
         DeclareLaunchArgument(
@@ -103,11 +104,10 @@ def generate_launch_description():
             description='Top-level namespace',
         ),
         DeclareLaunchArgument(
-            name='params',
+            name='yolo_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'yolo.yaml']),
             description='Full path to the ROS2 parameters file to use for all launched nodes',
         ),
-
         DeclareLaunchArgument(
             name='yolo_ros_rgb_image',
             default_value='/oak/rgb/image_raw',
@@ -125,7 +125,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='yolo_ros_model',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'resources', 'ARC_2025_sim', 'model.pt']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'resources', 'YOLOv11', 'best.pt']),
             description='Absolute path to yolo weights file for yolo_ros',
         ),
         DeclareLaunchArgument(

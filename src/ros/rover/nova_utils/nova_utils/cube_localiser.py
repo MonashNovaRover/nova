@@ -33,7 +33,7 @@ from rclpy.duration import Duration
 from rclpy.qos import QoSHistoryPolicy, QoSDurabilityPolicy, QoSProfile
 
 from visualization_msgs.msg import MarkerArray, Marker
-from geometry_msgs.msg import Pose, Vector3, TransformStamped
+from geometry_msgs.msg import Pose, Vector3, TransformStamped, PointStamped
 from sensor_msgs.msg import Image, CameraInfo
 from builtin_interfaces.msg import Time
 
@@ -47,6 +47,7 @@ from tf2_ros import Buffer, TransformListener
 from cv_bridge import CvBridge
 
 import message_filters
+import tf2_geometry_msgs
 
 import cv2
 import numpy as np
@@ -62,7 +63,7 @@ COLORS = {'red':[1.0,0.0,0.0], 'green':[0.0,1.0,0.0], 'blue':[0.0,0.0,1.0], 'whi
 DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
 
 # Assumed color ids:
-IDS_COLOR = {0: 'red', 1: 'green', 2: 'blue', 3: 'white'} 
+IDS_COLOR = {2: 'red', 1: 'green', 0: 'blue', 3: 'white'} 
 
 
 class DetectionTransformer(Node):
@@ -72,6 +73,9 @@ class DetectionTransformer(Node):
         # variables affecting detection of cubes
         self.depth_image_units_divisor = self.declare_parameter('depth_image_units_divisor', 1.0).get_parameter_value().double_value        # Used to calculate position from bounding box
         self.maximum_detection_threshold = self.declare_parameter('maximum_detection_threshold', 0.3).get_parameter_value().double_value    # any detections with a depth below this will be ignored (used to convert bb to point)
+        self.scale_factor = [self.declare_parameter('x_scalar', 1.0).get_parameter_value().double_value,
+                             self.declare_parameter('y_scalar', 1.0).get_parameter_value().double_value]
+
 
         # variables affecting cube markers in rviz
         self.use_markers = self.declare_parameter('use_markers', True).get_parameter_value().bool_value
@@ -181,6 +185,7 @@ class DetectionTransformer(Node):
 
     def process_cubes(self, cubes: List[CubePoint], stamp: Time) -> None:
         '''Publish markers and add cubes to detection list'''
+        self.get_logger().debug(f'{cubes}')
         # Markers
         if (self.use_markers):
             msg = MarkerArray()
@@ -208,12 +213,61 @@ class DetectionTransformer(Node):
 
                     if np.all(std_dev < self.max_std_dev):      # Check that the standard deviation is small enough to be considered a confirmed block
                         self.get_logger().debug(f'Confirmed target {color} consistent pos at {avg_pos}')
-                        self.publish_tf(color, avg_pos, self.get_clock().now().to_msg())
+                        # don't publish tf for bt notes (TEMP until terry fixes bt pathing to cubes)
+                        # self.publish_tf(color, avg_pos, self.get_clock().now().to_msg())
+                        self.get_logger().info(f"[{self.get_name()}] Cube {color} at ({avg_pos})")
                     else:
                         self.get_logger().debug(f'Target {color} is not consistent enough.')
                 else:
                     self.get_logger().debug(f'{color} has not enough samples to confirm')
-                
+
+
+    def process_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray | Detection2DArray) -> List[CubePoint]:
+        '''Process detections into a list of points with their respective colour'''
+        if not detections_msg.detections:
+            return []
+        self.get_logger().debug(f'Processing detections')
+        new_detections = []
+
+        # calculate positions from bounding boxes
+        def bbox_to_map_pos(bbox: BBox, depth_image:np.ndarray, depth_info_msg: CameraInfo):
+            position = self.convert_bb_to_point(depth_image, depth_info_msg, bbox)
+            if position is not None:
+                new_position = self.tf_to_map(position, detections_msg.header.stamp)
+                if new_position is not None:
+                    return new_position
+                else:
+                    self.get_logger().warn(f'tf_to_map failed')
+            else:
+                self.get_logger().warn(f'bb_to_point failed')
+            return None
+
+        depth_image = self.cv_bridge.imgmsg_to_cv2(depth_msg, desired_encoding='32FC1')
+        if self.using_oak:
+            for detection in detections_msg.detections:
+                # Detection will be of type Detection2D from vision_msgs
+
+                bbox = (float(detection.bbox.center.position.x), 
+                        float(detection.bbox.center.position.y), 
+                        float(detection.bbox.size_x), float(detection.bbox.size_y))
+                position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
+                if position is not None:
+                    score = 0
+                    for result in detection.results:
+                        if float(result.hypothesis.score) > score:
+                            color:str = IDS_COLOR[int(result.hypothesis.class_id)]
+                    new_detections.append((color, position))
+        else:
+            for detection in detections_msg.detections:
+                # Detection will be of type Detection from yolo_msgs
+                bbox = (float(detection.bbox.center.position.x), float(detection.bbox.center.position.y), float(detection.bbox.size.x), float(detection.bbox.size.y))
+                position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
+                if position is not None:
+                    color:str = detection.class_name
+                    new_detections.append((color, position))
+
+        return new_detections
+
 
     def process_detections_3d(self, detections_msg: DetectionArray | Detection3DArray) -> List[CubePoint]:
         '''Process 3d detections into a list of points with their respective colour'''
@@ -223,7 +277,7 @@ class DetectionTransformer(Node):
         new_detections = []
 
         def get_pose_point(pose: Pose) -> Point:
-            return float(pose.position.x), float(pose.position.y), float(pose.position.z)
+            return float(pose.position.x), float(pose.position.y), 0.0#float(pose.position.z)
 
         if self.using_oak:
             # detections_msg will be of Detection3DArray type. (vision_msgs)
@@ -234,7 +288,7 @@ class DetectionTransformer(Node):
                     position = get_pose_point(hypothesis.pose.pose)
                     map_position = self.tf_to_map(position, detections_msg.header.stamp)
                     if map_position is not None:
-                        color:str = IDS_COLOR[hypothesis.id]
+                        color:str = IDS_COLOR[int(hypothesis.hypothesis.class_id)]
                         new_detections.append((color, map_position))
         
         else:
@@ -251,68 +305,50 @@ class DetectionTransformer(Node):
         return new_detections
 
 
-    def process_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray | Detection2DArray | Detection3DArray) -> List[CubePoint]:
-        '''Process detections into a list of points with their respective colour'''
-        if not detections_msg.detections:
-            return []
-        self.get_logger().debug(f'Processing detections')
-        new_detections = []
-
-        # calculate positions from bounding boxes
-        def bbox_to_map_pos(bbox: BBox, depth_image:np.ndarray, depth_info_msg: CameraInfo):
-            position = self.convert_bb_to_point(depth_image, depth_info_msg, bbox)
-            if position is not None:
-                new_position = self.tf_to_map(position, detections_msg.header.stamp)
-                if new_position is not None:
-                    return new_position
-            return None
-
-        depth_image = self.cv_bridge.imgmsg_to_cv2(depth_msg, desired_encoding='32FC1')
-        if self.using_oak:
-            for detection in detections_msg.detections:
-                # Detection will be of type Detection2D from vision_msgs
-                bbox = (float(detection.bbox.center.x), float(detection.bbox.center.y), float(detection.bbox.size_x), float(detection.bbox.size_y))
-                position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
-                if position is not None:
-                    color:str = IDS_COLOR[detection.result.id]
-        else:
-            for detection in detections_msg.detections:
-                # Detection will be of type Detection from yolo_msgs
-                bbox = (float(detection.bbox.center.position.x), float(detection.bbox.center.position.y), float(detection.bbox.size.x), float(detection.bbox.size.y))
-                position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
-                if position is not None:
-                    color:str = detection.class_name
-                    new_detections.append((color, position))
-
-        return new_detections
-
     def convert_bb_to_point(self, depth_image: np.ndarray, depth_info: CameraInfo, bbox: BBox) -> Point | None:
         ''' Converts the bounding box center to a point relative to the image frame
             Modified from convert_bb_to_3d in https://github.com/mgonzs13/yolo_ros/blob/main/yolo_ros/yolo_ros/detect_3d_node.py
         '''
         self.get_logger().debug(f'Calculating cube world position relative to image frame')
-        center_x, center_y, size_x, size_y = [int(x) for x in bbox]
 
+        def resize_point(point:float, axis:int):
+            """resize the point from rgb to depth resolution to account for differences"""
+            return point * self.scale_factor[axis]
+
+        center_x, center_y, size_x, size_y = [int(resize_point(x, i%2)) for i, x in enumerate(bbox)]
+        
         # crop depth image by the 2d BB
         u_min = max(center_x - size_x // 2, 0)
         u_max = min(center_x + size_x // 2, depth_image.shape[1] - 1)
         v_min = max(center_y - size_y // 2, 0)
         v_max = min(center_y + size_y // 2, depth_image.shape[0] - 1)
 
+        # swap the values incase of weird bug with bb
+        #if u_min > u_max:
+        #    u_max, u_min = u_min, u_max
+        #if v_min > v_max:
+        #    v_max, v_min = v_min, v_max
+
         roi = depth_image[v_min:v_max, u_min:u_max]
 
         roi = roi / self.depth_image_units_divisor  # convert to meters
         if not np.any(roi):
+            self.get_logger().warn(f"roi issue")
             return None
 
         # find the z coordinate on the 3D BB
-        bb_center_z_coord = (
-            depth_image[int(center_y)][int(center_x)] / self.depth_image_units_divisor
-        )
+        try:
+            bb_center_z_coord = (
+                depth_image[int(center_y)][int(center_x)] / self.depth_image_units_divisor
+            )
+        except IndexError: # handle occassional error by dropping it (bad fix lol)
+            self.get_logger().warn("depth image index issue")
+            return None
 
         z_diff = np.abs(roi - bb_center_z_coord)
         mask_z = z_diff <= self.maximum_detection_threshold
         if not np.any(mask_z):
+            self.get_logger().warn("difference between center of object and average z value in roi not high enough")
             return None
 
         roi = roi[mask_z]
@@ -320,6 +356,7 @@ class DetectionTransformer(Node):
         z = (z_max + z_min) / 2
 
         if z == 0:
+            self.get_logger().warn("z value fail") # idk what this checks for
             return None
 
         # project from image to world space
@@ -345,16 +382,27 @@ class DetectionTransformer(Node):
     def tf_to_map(self, camera_to_cube: Point, stamp: Time) -> Point | None:
         '''Calculates the position tf from map to cube'''
         self.get_logger().debug(f'Calculating map to cube tf')
+        point_stamped = PointStamped()
+        point_stamped.header.frame_id = self.camera_frame
+        point_stamped.header.stamp = stamp
+        point_stamped.point.x, point_stamped.point.y, point_stamped.point.z = camera_to_cube
         try:
-            map_to_camera = self.tf_buffer.lookup_transform(self.map_frame, self.camera_frame, stamp).transform
-            # rotate the map_to_camera position by its orientation 
-            rot_matrix = self.quaternion_to_rotation_matrix([map_to_camera.rotation.x, map_to_camera.rotation.y, map_to_camera.rotation.z, map_to_camera.rotation.w])
-            rotated_translation = np.dot(rot_matrix, camera_to_cube)
-            # apply the camera_to_cube tf to the rotated map_to_camera
-            return (map_to_camera.translation.x+rotated_translation[0], map_to_camera.translation.y+rotated_translation[1], map_to_camera.translation.z+rotated_translation[2])
+            transform = self.tf_buffer.lookup_transform(self.map_frame, self.camera_frame, stamp)
+            transformed_point = tf2_geometry_msgs.do_transform_point(point_stamped, transform)
         except Exception as e:
             self.get_logger().warn(f'Error in calculating map to cube tf {e}')
             return None
+        return (transformed_point.point.x, transformed_point.point.y, transformed_point.point.z)
+        # try:
+        #     map_to_camera = self.tf_buffer.lookup_transform(self.map_frame, self.camera_frame, stamp).transform
+        #     # rotate the map_to_camera position by its orientation 
+        #     rot_matrix = self.quaternion_to_rotation_matrix([map_to_camera.rotation.x, map_to_camera.rotation.y, map_to_camera.rotation.z, map_to_camera.rotation.w])
+        #     rotated_translation = np.dot(rot_matrix, camera_to_cube)
+        #     # apply the camera_to_cube tf to the rotated map_to_camera
+        #     return (map_to_camera.translation.x+rotated_translation[0], map_to_camera.translation.y+rotated_translation[1], map_to_camera.translation.z+rotated_translation[2])
+        # except Exception as e:
+        #     self.get_logger().warn(f'Error in calculating map to cube tf {e}')
+        #     return None
 
     def get_marker(self, id:int, color:str, point: Point, stamp: Time, frame:str) -> Marker:
         '''Returns a marker derived from the detection'''
