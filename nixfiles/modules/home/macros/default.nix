@@ -151,8 +151,6 @@ in
           cameras-orin = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
           nix-enable = "sudo systemctl enable nix-daemon.service";
           nix-start = "sudo systemctl start nix-daemon.service";
-            reolink = "${pkgs.bash}/bin/bash ${../../../scripts/reolink.sh}";
-
 
           # Auto Aliases
           launch-control = "~/Builds/auto/bin/ros2 launch auto_bringup control.launch.py";
