@@ -591,7 +591,7 @@
   <link name="arm_kinematics_origin"/>
   <joint name="arm_kinematics_origin_joint" type="fixed">
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
-    <parent link="armbase" />
+    <parent link="armmount" />
     <child link="arm_kinematics_origin" />
   </joint>
   <!-- Origin of arm for IK -->
@@ -600,7 +600,7 @@
   <joint name="endeffector_kinematics_joint" type="fixed">
     <!-- before rotating to match IK function expected 0: 1.5707963 0.0 1.5707963 -->
     <origin xyz="0.0138 0.0 -0.012512" rpy="1.5707963 0.0 1.5707963" />
-    <parent link="endeffector" />
+    <parent link="eebase" />
     <child link="endeffector_kinematics" />
   </joint>
   <!--    z at 1.2321-->
