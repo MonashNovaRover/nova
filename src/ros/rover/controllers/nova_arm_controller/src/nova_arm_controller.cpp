@@ -8,6 +8,7 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 #include "rclcpp/logging.hpp"
+#include "joint_limits/joint_limits_rosparam.hpp"
 
 namespace
 {
@@ -399,6 +400,12 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
     if (command_handle == command_interfaces_.end()) {
       RCLCPP_ERROR(logger, "Unable to obtain joint command handle for %s", joint_name.c_str());
       return controller_interface::CallbackReturn::ERROR;
+    }
+
+    //TODO: get_joint_limits is for limits in rosparams, we want to get limits from urdf...
+    joint_limits::JointLimits limits;
+    if (!joint_limits::get_joint_limits(joint_name, get_node(), limits)) {
+      RCLCPP_WARN(logger, "Unable to obtain joint limits for %s", joint_name.c_str());
     }
 
     registered_handles.emplace_back(
