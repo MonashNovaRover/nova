@@ -314,7 +314,7 @@
     </collision>
   </link>
 
-  <joint name="actuator_slide" type="prismatic">
+  <joint name="actuator_head" type="prismatic">
     <origin xyz="-1.2023e-05 -0.159 -0.0075" rpy="1.57072 -1.5708 0" />
     <parent link="leftfinger" />
     <child link="actuator" />
@@ -586,6 +586,39 @@
     <limit effort="10" velocity="10" />
   </joint>
 
-  <!-- gazebo bridge joints -->
+  <!-- Kinematics -->
+  <!-- Origin of arm for IK. Should align with J1, but not -->
+  <link name="arm_kinematics_origin"/>
+  <joint name="arm_kinematics_origin_joint" type="fixed">
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    <parent link="armbase" />
+    <child link="arm_kinematics_origin" />
+  </joint>
+  <!-- Origin of arm for IK -->
+
+  <link name="endeffector_kinematics"/>
+  <joint name="endeffector_kinematics_joint" type="fixed">
+    <!-- before rotating to match IK function expected 0: 1.5707963 0.0 1.5707963 -->
+    <origin xyz="0.0138 0.0 -0.012512" rpy="1.5707963 0.0 1.5707963" />
+    <parent link="endeffector" />
+    <child link="endeffector_kinematics" />
+  </joint>
+  <!--    z at 1.2321-->
+
+  <!--    1.0232 0.012512 1.2183-->
+
+  <!--    up 0.0138-->
+  <!--    forward 0.012512-->
+
+  <!-- Gazebo / IRL Control -->
   <xacro:include filename="$(find rover_description)/banksia_arm/urdf/arm_ckc.xacro"/>
+
+  <xacro:if value="$(arg gazebo)">
+    <xacro:include filename="$(find rover_description)/banksia_arm/urdf/arm.gz_ros2_control.xacro" />
+  </xacro:if> 
+  <xacro:unless value="$(arg gazebo)">
+    <xacro:include filename="$(find rover_description)/banksia_arm/urdf/arm.ros2_control.xacro" />
+    <xacro:arm_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
+  </xacro:unless>
+
 </robot>

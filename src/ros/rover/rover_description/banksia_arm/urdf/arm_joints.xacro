@@ -16,7 +16,7 @@
                <joint_name>J6</joint_name>
                <joint_name>right_slide</joint_name>
                <joint_name>left_slide</joint_name>
-               <joint_name>actuator_slide</joint_name>
+               <joint_name>actuator_head</joint_name>
           </plugin>
      </gazebo>
 </robot>
