@@ -26,6 +26,7 @@ install(DIRECTORY
   waratah_arm
   waratah
   rover7
+  banksia_arm
   auto_mount
   DESTINATION share/${PROJECT_NAME}
 )

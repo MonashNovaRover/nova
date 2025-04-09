@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated using onshape-to-robot -->
+<robot name="arm" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <link name="arm_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="0" />
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0" />
+    </inertial>
+  </link>
+
+  <link name="armmount">
+    <inertial>
+      <origin xyz="1.0026735524e-01 6.7184837695e-02 1.0892448831e-01" rpy="0 0 0" />
+      <mass value="2.89989" />
+      <inertia ixx="4.9625273467e-02" ixy="-5.5259699497e-07" ixz="-1.7120309274e-03" iyy="3.1308984575e-02" iyz="1.0531833651e-06" izz="5.6564003973e-02" />
+    </inertial>
+
+    <visual>
+      <origin xyz="-0.0671788 0.129712 -0.183721" rpy="-1.88173e-16 -1.99729e-09 -1.5708" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/armmount.stl" />
+      </geometry>
+      <material name="armmount_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0.0671788 0.129712 -0.183721" rpy="-1.88173e-16 -1.99729e-09 -1.5708" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/armmount.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="gearbox">
+    <inertial>
+      <origin xyz="-1.2331636752e-05 1.3040015217e-05 2.7098836583e-02" rpy="0 0 0" />
+      <mass value="1.06408" />
+      <inertia ixx="1.4833446998e-03" ixy="-1.2890219220e-08" ixz="-2.1069769764e-07" iyy="1.4833858085e-03" iyz="6.3619337619e-09" izz="2.4771191007e-03" />
+    </inertial>
+
+    <visual>
+      <origin xyz="5.10324e-19 1.01615e-19 0" rpy="3.14159 1.44159e-16 -5.55112e-17" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/gearbox.stl" />
+      </geometry>
+      <material name="gearbox_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="5.10324e-19 1.01615e-19 0" rpy="3.14159 1.44159e-16 -5.55112e-17" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/gearbox.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="linkagedrive">
+    <inertial>
+      <origin xyz="-1.0656111573e-03 2.1401083733e-04 6.7227229008e-02" rpy="0 0 0" />
+      <mass value="2.51191" />
+      <inertia ixx="4.8669036143e-03" ixy="2.0637286605e-05" ixz="-4.0273950215e-07" iyy="1.3472769657e-02" iyz="3.4332839524e-05" izz="1.2281214014e-02" />
+    </inertial>
+
+    <visual>
+      <origin xyz="-4.93038e-32 9.86076e-32 0" rpy="3.14159 1.07596e-32 -2.63358e-23" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/linkagedrive.stl" />
+      </geometry>
+      <material name="linkagedrive_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-4.93038e-32 9.86076e-32 0" rpy="3.14159 1.07596e-32 -2.63358e-23" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/linkagedrive.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="l1">
+    <inertial>
+      <origin xyz="9.8617717772e-05 -2.5902167046e-04 2.6363294133e-01" rpy="0 0 0" />
+      <mass value="1.03818" />
+      <inertia ixx="3.4637121821e-02" ixy="2.7028859609e-08" ixz="2.9471387303e-05" iyy="3.5662964589e-02" iyz="-2.3126360555e-07" izz="1.4733017478e-03" />
+    </inertial>
+
+    <visual>
+      <origin xyz="3.1635e-15 6.46705e-15 -0.0348" rpy="-1.5708 -1.5708 0" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l1.stl" />
+      </geometry>
+      <material name="l1_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="3.1635e-15 6.46705e-15 -0.0348" rpy="-1.5708 -1.5708 0" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l1.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="l2">
+    <inertial>
+      <origin xyz="3.9958382613e-03 -2.0455304049e-01 3.4576652711e-01" rpy="0 0 0" />
+      <mass value="1.28299" />
+      <inertia ixx="1.2195242124e-02" ixy="6.2402565541e-04" ixz="4.7783495469e-04" iyy="6.1811297328e-03" iyz="-5.5062214504e-03" izz="9.1557192586e-03" />
+    </inertial>
+
+    <visual>
+      <origin xyz="0.398641 0.301803 6.48063e-16" rpy="2.49358 1.5708 0" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l2.stl" />
+      </geometry>
+      <material name="l2_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.398641 0.301803 6.48063e-16" rpy="2.49358 1.5708 0" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l2.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="j5">
+    <inertial>
+      <origin xyz="1.6304453499e-04 1.3310885204e-04 4.9429943641e-02" rpy="0 0 0" />
+      <mass value="0.632837" />
+      <inertia ixx="4.2793037045e-04" ixy="-2.8799099692e-06" ixz="-1.2787619925e-06" iyy="5.5653102600e-04" iyz="5.1247237439e-06" izz="7.8687161656e-04" />
+    </inertial>
+
+    <visual>
+      <origin xyz="1.88738e-15 0.05075 -0.0795" rpy="1.5708 1.5708 0" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/j5.stl" />
+      </geometry>
+      <material name="j5_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="1.88738e-15 0.05075 -0.0795" rpy="1.5708 1.5708 0" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/j5.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="j6">
+    <inertial>
+      <origin xyz="1.1883033288e-04 4.2174023459e-04 4.5350143681e-02" rpy="0 0 0" />
+      <mass value="0.768628" />
+      <inertia ixx="1.9985920161e-03" ixy="-1.6005592251e-07" ixz="4.0364224668e-07" iyy="1.4889297725e-03" iyz="-8.2877165939e-06" izz="1.0636569880e-03" />
+    </inertial>
+
+    <visual>
+      <origin xyz="5.80265e-16 -0.1945 0.05075" rpy="-1.5708 -1.48145e-14 1.50156e-23" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/j6.stl" />
+      </geometry>
+      <material name="j6_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="5.80265e-16 -0.1945 0.05075" rpy="-1.5708 -1.48145e-14 1.50156e-23" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/j6.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="eebase">
+    <inertial>
+      <origin xyz="4.2518858921e-02 -1.3680332624e-02 5.1489918726e-02" rpy="0 0 0" />
+      <mass value="0.964685" />
+      <inertia ixx="3.9819443378e-03" ixy="-7.7314319464e-05" ixz="2.7737204681e-04" iyy="7.8827897449e-03" iyz="1.4686739679e-03" izz="6.8055990755e-03" />
+    </inertial>
+
+    <visual>
+      <origin xyz="0.00779684 -0.012972 -0.0215" rpy="3.14159 -4.61514e-15 -3.13799" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/eebase.stl" />
+      </geometry>
+      <material name="eebase_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.00779684 -0.012972 -0.0215" rpy="3.14159 -4.61514e-15 -3.13799" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/eebase.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="rightfinger">
+    <inertial>
+      <origin xyz="1.8050558411e-05 7.3968039193e-03 2.8621961810e-02" rpy="0 0 0" />
+      <mass value="0.299805" />
+      <inertia ixx="1.1544859455e-03" ixy="3.3371529469e-07" ixz="-2.2265830694e-07" iyy="2.2126179923e-04" iyz="1.4057271751e-04" izz="1.0316786208e-03" />
+    </inertial>
+
+    <visual>
+      <origin xyz="-3.64856e-05 0.115305 0.0109" rpy="-3.14159 2.34755e-20 -1.44686e-23" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/rightfinger.stl" />
+      </geometry>
+      <material name="rightfinger_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-3.64856e-05 0.115305 0.0109" rpy="-3.14159 2.34755e-20 -1.44686e-23" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/rightfinger.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="arm_end_side">
+    <inertial>
+      <origin xyz="5.0388580281e-20 -5.0000002375e-04 -2.0596424901e-20" rpy="0 0 0" />
+      <mass value="1e-09" />
+      <inertia ixx="6.3254056983e-15" ixy="-1.2661721154e-31" ixz="-1.4456719139e-31" iyy="1.2484144714e-14" iyz="7.0639301518e-32" izz="6.3254056983e-15" />
+    </inertial>
+
+    <visual>
+      <origin xyz="1.11022e-16 0 0" rpy="1.5708 -2.95924e-20 1.65753e-22" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/arm_end_side.stl" />
+      </geometry>
+      <material name="arm_end_side_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="1.11022e-16 0 0" rpy="1.5708 -2.95924e-20 1.65753e-22" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/arm_end_side.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="camera_ee_side" type="fixed">
+    <origin xyz="-0.000216235 0.178108 -0.0547417" rpy="3.14159 0.00174763 1.5708" />
+    <parent link="rightfinger" />
+    <child link="arm_end_side" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" />
+  </joint>
+
+  <joint name="right_slide" type="prismatic">
+    <origin xyz="-0.0124584 -4.4911e-05 -0.0635" rpy="-1.5708 6.15694e-07 -1.56719" />
+    <parent link="eebase" />
+    <child link="rightfinger" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" lower="-0.082904" upper="0.00109603" />
+  </joint>
+
+  <link name="leftfinger">
+    <inertial>
+      <origin xyz="-3.0819365233e-05 -2.4076960068e-02 1.7779582052e-02" rpy="0 0 0" />
+      <mass value="0.259097" />
+      <inertia ixx="8.0113149198e-04" ixy="-2.1275769915e-07" ixz="1.9237341889e-07" iyy="7.8712502757e-05" iyz="5.1221546509e-05" izz="8.1168185840e-04" />
+    </inertial>
+
+    <visual>
+      <origin xyz="-8.71485e-06 -0.115251 0.0109" rpy="-3.14159 4.9958e-15 -5.43641e-24" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/leftfinger.stl" />
+      </geometry>
+      <material name="leftfinger_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-8.71485e-06 -0.115251 0.0109" rpy="-3.14159 4.9958e-15 -5.43641e-24" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/leftfinger.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="actuator">
+    <inertial>
+      <origin xyz="-2.0984526232e-09 -1.7951021237e-09 3.6197018104e-02" rpy="0 0 0" />
+      <mass value="0.00499493" />
+      <inertia ixx="1.9746052847e-06" ixy="3.2584721895e-14" ixz="3.1261224204e-13" iyy="1.9775524756e-06" iyz="2.6609843251e-13" izz="7.2954357931e-08" />
+    </inertial>
+
+    <visual>
+      <origin xyz="0 -1.11022e-16 -0.058" rpy="1.438e-20 -2.38285e-23 -5.77756e-19" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/actuator.stl" />
+      </geometry>
+      <material name="actuator_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 -1.11022e-16 -0.058" rpy="1.438e-20 -2.38285e-23 -5.77756e-19" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/actuator.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="actuator_slide" type="prismatic">
+    <origin xyz="-1.2023e-05 -0.159 -0.0075" rpy="1.57072 -1.5708 0" />
+    <parent link="leftfinger" />
+    <child link="actuator" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" lower="-1.11022e-15" upper="0.055" />
+  </joint>
+
+  <link name="arm_end_finger">
+    <inertial>
+      <origin xyz="5.0388580281e-20 -5.0000002375e-04 -2.0596424901e-20" rpy="0 0 0" />
+      <mass value="1e-09" />
+      <inertia ixx="6.3254056983e-15" ixy="-1.2661721154e-31" ixz="-1.4456719139e-31" iyy="1.2484144714e-14" iyz="7.0639301518e-32" izz="6.3254056983e-15" />
+    </inertial>
+
+    <visual>
+      <origin xyz="2.77556e-17 -1.11022e-16 -1.11022e-16" rpy="1.5708 -6.4919e-19 1.95057e-19" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/arm_end_finger.stl" />
+      </geometry>
+      <material name="arm_end_finger_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="2.77556e-17 -1.11022e-16 -1.11022e-16" rpy="1.5708 -6.4919e-19 1.95057e-19" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/arm_end_finger.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="camera_ee_finger" type="fixed">
+    <origin xyz="1.96205e-05 -0.0711415 -0.0299814" rpy="-3.14152 1.52166 -1.5708" />
+    <parent link="leftfinger" />
+    <child link="arm_end_finger" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" />
+  </joint>
+
+  <joint name="left_slide" type="prismatic">
+    <origin xyz="0.0940034 0.000339072 -0.0635" rpy="1.5708 6.15694e-07 -1.56719" />
+    <parent link="eebase" />
+    <child link="leftfinger" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" lower="-0.00109603" upper="0.082904" />
+  </joint>
+
+  <link name="arm_end_top">
+    <inertial>
+      <origin xyz="5.0388580281e-20 -5.0000002375e-04 -2.0596424901e-20" rpy="0 0 0" />
+      <mass value="1e-09" />
+      <inertia ixx="6.3254056983e-15" ixy="-1.2661721154e-31" ixz="-1.4456719139e-31" iyy="1.2484144714e-14" iyz="7.0639301518e-32" izz="6.3254056983e-15" />
+    </inertial>
+
+    <visual>
+      <origin xyz="1.11022e-16 0 1.11022e-16" rpy="1.5708 -5.15005e-19 -1.12586e-21" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/arm_end_top.stl" />
+      </geometry>
+      <material name="arm_end_top_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="1.11022e-16 0 1.11022e-16" rpy="1.5708 -5.15005e-19 -1.12586e-21" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/arm_end_top.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="camera_ee_top" type="fixed">
+    <origin xyz="0.000362189 -0.100419 -0.231753" rpy="-1.7429e-12 1.56853 -1.56719" />
+    <parent link="eebase" />
+    <child link="arm_end_top" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" />
+  </joint>
+
+  <link name="arm_end_periscope">
+    <inertial>
+      <origin xyz="5.0388580281e-20 -5.0000002375e-04 -2.0596424901e-20" rpy="0 0 0" />
+      <mass value="1e-09" />
+      <inertia ixx="6.3254056983e-15" ixy="-1.2661721154e-31" ixz="-1.4456719139e-31" iyy="1.2484144714e-14" iyz="7.0639301518e-32" izz="6.3254056983e-15" />
+    </inertial>
+
+    <visual>
+      <origin xyz="0 -1.73472e-18 1.11022e-16" rpy="1.5708 -1.23722e-22 8.66917e-20" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/arm_end_periscope.stl" />
+      </geometry>
+      <material name="arm_end_periscope_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 -1.73472e-18 1.11022e-16" rpy="1.5708 -1.23722e-22 8.66917e-20" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/arm_end_periscope.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="camera_ee_periscope" type="fixed">
+    <origin xyz="-0.000286455 0.0378328 -0.0594947" rpy="4.64599e-15 -6.15694e-07 1.5744" />
+    <parent link="eebase" />
+    <child link="arm_end_periscope" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" />
+  </joint>
+
+  <joint name="J6" type="continuous">
+    <origin xyz="5.64652e-16 -0.1945 0.05075" rpy="-1.5708 -1.48145e-14 2.12504e-17" />
+    <parent link="j6" />
+    <child link="eebase" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" />
+  </joint>
+
+  <joint name="J5" type="revolute">
+    <origin xyz="1.77636e-15 -0.05115 -0.0795" rpy="-1.5708 -1.5708 0" />
+    <parent link="j5" />
+    <child link="j6" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" lower="-1.5708" upper="1.91986" />
+  </joint>
+
+  <joint name="J4" type="revolute">
+    <origin xyz="-0.000121636 0.418 -0.07275" rpy="3.14159 -1.82962e-14 -1.5708" />
+    <parent link="l2" />
+    <child link="j5" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" lower="-1.5708" upper="1.5708" />
+  </joint>
+
+  <joint name="l1a_tp" type="continuous">
+    <origin xyz="-5.57462e-15 0.5 -0.0348" rpy="-3.14159 -1.17807e-14 -1.5708" />
+    <parent link="l1" />
+    <child link="l2" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" />
+  </joint>
+
+  <joint name="J2" type="revolute">
+    <origin xyz="-0.0348 -1.85916e-13 -0.076" rpy="-1.5708 -2.19504e-14 1.5708" />
+    <parent link="linkagedrive" />
+    <child link="l1" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793" />
+  </joint>
+
+  <link name="l2prime">
+    <inertial>
+      <origin xyz="-1.4524564941e-05 3.0149772961e-02 2.1793835534e-02" rpy="0 0 0" />
+      <mass value="0.0907937" />
+      <inertia ixx="1.5997406751e-04" ixy="-3.9762644136e-08" ixz="-2.8726278375e-08" iyy="6.7912069238e-05" iyz="-4.1370372082e-05" izz="9.4237317873e-05" />
+    </inertial>
+
+    <visual>
+      <origin xyz="-2.13516e-17 -2.77556e-17 8.67362e-19" rpy="-2.21881 1.5708 0" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l2prime.stl" />
+      </geometry>
+      <material name="l2prime_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-2.13516e-17 -2.77556e-17 8.67362e-19" rpy="-2.21881 1.5708 0" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l2prime.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="l1prime">
+    <inertial>
+      <origin xyz="1.1518488510e-04 8.0812252228e-02 3.1034588234e-01" rpy="0 0 0" />
+      <mass value="0.255782" />
+      <inertia ixx="6.2106152449e-03" ixy="1.8229644206e-08" ixz="1.3610971182e-09" iyy="6.2047425736e-03" iyz="6.0315257493e-08" izz="2.9418298622e-05" />
+    </inertial>
+
+    <visual>
+      <origin xyz="-0.0797283 0.0603606 1.05415e-16" rpy="1.5708 1.5708 0" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l1prime.stl" />
+      </geometry>
+      <material name="l1prime_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0.0797283 0.0603606 1.05415e-16" rpy="1.5708 1.5708 0" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l1prime.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="l2cam">
+    <inertial>
+      <origin xyz="-9.6159014164e-19 4.7181909533e-02 5.3580982436e-01" rpy="0 0 0" />
+      <mass value="0.0452512" />
+      <inertia ixx="3.7348168434e-05" ixy="-6.8623910238e-22" ixz="-6.8299173640e-20" iyy="1.4674096352e-05" iyz="-1.3816530174e-05" izz="2.3754128787e-05" />
+    </inertial>
+
+    <visual>
+      <origin xyz="-0.0797283 0.560361 2.48639e-16" rpy="1.5708 1.5708 0" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l2cam.stl" />
+      </geometry>
+      <material name="l2cam_material">
+        <color rgba="0.866667 0.0745098 0.32549 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0.0797283 0.560361 2.48639e-16" rpy="1.5708 1.5708 0" />
+      <geometry>
+        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l2cam.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="l1b_tp" type="continuous">
+    <origin xyz="2.91434e-16 -0.5 5.77479e-16" rpy="-1.0988e-15 4.6261e-16 0.648016" />
+    <parent link="l1prime" />
+    <child link="l2cam" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" />
+  </joint>
+
+  <joint name="l1b_bp" type="continuous">
+    <origin xyz="-0.1 4.09117e-14 1.53793e-15" rpy="-9.81009e-23 -1.49984e-14 3.14159" />
+    <parent link="l2prime" />
+    <child link="l1prime" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" />
+  </joint>
+
+  <joint name="J3" type="revolute">
+    <origin xyz="8.91995e-15 9.91018e-16 -0.076" rpy="-1.5708 -4.53153e-29 -1.5708" />
+    <parent link="linkagedrive" />
+    <child link="l2prime" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793" />
+  </joint>
+
+  <joint name="J1" type="continuous">
+    <origin xyz="-4.69149e-16 1.527e-16 -0.0535" rpy="-2.23713e-17 9.64477e-17 1.5708" />
+    <parent link="gearbox" />
+    <child link="linkagedrive" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" />
+  </joint>
+
+  <joint name="base_to_gearbox" type="fixed">
+    <origin xyz="0 0 0.003" rpy="3.14159 1.70108e-16 -1.5708" />
+    <parent link="armmount" />
+    <child link="gearbox" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" />
+  </joint>
+
+  <joint name="arm_link_to_armmount" type="fixed">
+    <origin xyz="0 0 0" rpy="0 -0 0" />
+    <parent link="arm_link" />
+    <child link="armmount" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" />
+  </joint>
+
+  <!-- gazebo bridge joints -->
+  <xacro:include filename="$(find rover_description)/banksia_arm/urdf/arm_ckc.xacro"/>
+</robot>

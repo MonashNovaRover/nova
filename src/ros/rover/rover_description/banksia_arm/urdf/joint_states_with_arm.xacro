@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Publish dynamic joint states for Rover with banksia's arm-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <gazebo>
+        <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+            <topic>dynamic_joints</topic>
+
+            <joint_name>blp</joint_name>
+            <joint_name>brp</joint_name>
+            <joint_name>flp</joint_name>
+            <joint_name>frp</joint_name>
+            <joint_name>blw</joint_name>
+            <joint_name>brw</joint_name>
+            <joint_name>flw</joint_name>
+            <joint_name>frw</joint_name>
+            <joint_name>r_leg</joint_name>
+            <joint_name>l_leg</joint_name>
+            <joint_name>diffbar_pivot</joint_name>
+            <joint_name>diffbar_slide</joint_name>
+            <joint_name>tl_ball_roll</joint_name>
+            <joint_name>tl_ball_pitch</joint_name>
+            <joint_name>tl_ball_yaw</joint_name>
+            <joint_name>tr_ball_roll</joint_name>
+            <joint_name>tr_ball_pitch</joint_name>
+            <joint_name>tr_ball_yaw</joint_name>
+            <joint_name>bl_ball_roll</joint_name>
+            <joint_name>bl_ball_pitch</joint_name>
+            <joint_name>bl_ball_yaw</joint_name>
+            <joint_name>br_ball_roll</joint_name>
+            <joint_name>br_ball_pitch</joint_name>
+            <joint_name>br_ball_yaw</joint_name>
+
+            <!-- Arm joints -->
+            <joint_name>J1</joint_name>
+            <joint_name>J2</joint_name>
+            <joint_name>J3</joint_name>
+            <joint_name>l1b_bp</joint_name>
+            <joint_name>l1b_tp</joint_name>
+            <joint_name>l1a_tp</joint_name>
+            
+            <joint_name>J4</joint_name>
+            <joint_name>J5</joint_name>
+            <joint_name>J6</joint_name>
+            <joint_name>right_slide</joint_name>
+            <joint_name>left_slide</joint_name>
+            <joint_name>actuator_slide</joint_name>
+        </plugin>
+    </gazebo>
+</robot>
