@@ -28,7 +28,7 @@ class WaypointNavigator(Node):
         self._action_client = ActionClient(self, NavigateThroughPoses, '/navigate_through_poses')
 
         # ✅ Load waypoints from JSON
-        self._file_path = file_path if file_path else os.path.expanduser("~/nova/waypoints.json")
+        self._file_path = file_path if file_path else os.path.expanduser("~/nova/src/ros/rover/auto_bringup/params/waypoints.json")
         self._waypoints = self.load_waypoints()
 
         if not self._waypoints:
