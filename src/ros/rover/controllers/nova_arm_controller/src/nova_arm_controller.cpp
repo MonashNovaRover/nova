@@ -169,6 +169,15 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     return controller_interface::return_type::ERROR;
   }
 
+  joint_limits::JointLimitsStateDataType current, desired;
+  current.positions.resize(params_.joint_names.size());
+
+  if (this->joint_command_type() == HW_IF_POSITION) {
+    desired.positions.resize(params_.joint_names.size());
+  } else { // velocity
+    desired.velocities.resize(params_.joint_names.size());
+  }
+
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
   {
     const auto& joint_handle = registered_joint_handles_[i];
@@ -179,7 +188,24 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
       return controller_interface::return_type::ERROR;
     }
 
-    const auto reference_value = reference_interfaces_[i];
+    current.positions[i] = 0; //TODO: get actual current position etc
+    if (this->joint_command_type() == HW_IF_POSITION) {
+      desired.positions[i] = reference_interfaces_[i];
+    } else { // velocity
+      desired.velocities[i] = reference_interfaces_[i];
+    }
+  }
+  this->joint_limiter.enforce(current, desired, period);
+
+  for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
+  {
+    const auto& joint_handle = registered_joint_handles_[i];
+    double reference_value;
+    if (this->joint_command_type() == HW_IF_POSITION) {
+      reference_value = desired.positions.at(i);
+    } else { // velocity
+      reference_value = desired.velocities.at(i);
+    }
     if (std::isnan(reference_value))
       continue;
 
@@ -400,16 +426,12 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
       return controller_interface::CallbackReturn::ERROR;
     }
 
-    //TODO: get_joint_limits is for limits in rosparams, we want to get limits from urdf...
-    joint_limits::JointLimits limits;
-    if (!joint_limits::get_joint_limits(joint_name, get_node(), limits)) {
-      RCLCPP_WARN(logger, "Unable to obtain joint limits for %s", joint_name.c_str());
-    }
-
     registered_handles.emplace_back(
         JointHandle{joint_name, std::ref(*command_handle)});
     // std::ref(*state_handle),
   }
+
+  this->joint_limiter.init(joint_names, get_node());
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
