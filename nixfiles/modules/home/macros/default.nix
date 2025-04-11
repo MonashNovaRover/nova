@@ -28,6 +28,71 @@ in
       COMPAL_AUTO_UNMASK=1
       . '${pkgs.complete-alias}/bin/complete_alias'
       complete -F _complete_alias "''${!BASH_ALIASES[@]}"
+      
+      launch-base() {
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
+        fi
+        echo "Running build: $build"
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup base.launch.py
+      }
+
+      launch-drive() {
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
+        fi
+        echo "Running build: $build"
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup drive.launch.py
+      }
+
+      launch-arm() {
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
+        fi
+        echo "Running build: $build"
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup arm.launch.py
+      }
+
+      launch-ec() {
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
+        fi
+        echo "Running build: $build"
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup ec_rover.launch.py
+      }
+
+      launch-science-arc() {
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
+        fi
+        echo "Running build: $build"
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup arc_science.launch.py
+      }
+
+      launch-science-urc() {
+        if [ -z $1 ]; then
+          build="master"
+        elif [ -n $1 ]; then
+          build=$1
+        fi
+        echo "Running build: $build"
+        "$HOME/Builds/$build/bin/ros2" launch nova_bringup urc_science.launch.py
+      }
+      
+      # Ensure functions are available if shell ($-) is interactive (*i*)
+      if [[ $- == *i* ]]; then
+        export -f launch-base launch-drive launch-arm launch-ec launch-science-arc launch-science-urc
+      fi
     '';
 
     home = {
