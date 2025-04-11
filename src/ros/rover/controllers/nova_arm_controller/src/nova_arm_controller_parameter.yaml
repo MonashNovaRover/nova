@@ -29,52 +29,49 @@ nova_arm_controller:
     default_value: 50.0, # Hz
     description: "Publishing rate (Hz) of feedback messages",
   }
-  angular:
-    has_position_limits: {
-      type: bool_array,
-      default_value: [],
-    }
-    has_velocity_limits: {
-      type: bool_array,
-      default_value: [],
-    }
-    has_acceleration_limits: {
-      type: bool_array,
-      default_value: [],
-    }
-    has_jerk_limits: {
-      type: bool_array,
-      default_value: [],
-    }
-    max_position: {
-      type: double_array,
-      default_value: [],
-    }
-    min_position: {
-      type: double_array,
-      default_value: [],
-    }
-    max_velocity: {
-      type: double_array,
-      default_value: [],
-    }
-    min_velocity: {
-      type: double_array,
-      default_value: [],
-    }
-    max_acceleration: {
-      type: double_array,
-      default_value: [],
-    }
-    min_acceleration: {
-      type: double_array,
-      default_value: [],
-    }
-    max_jerk: {
-      type: double_array,
-      default_value: [],
-    }
-    min_jerk: {
-      type: double_array,
-      default_value: [],
-    }
+  joint_limits: # yes this is long but this is how get_joint_limits() expects it
+    J1:
+      has_position_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_position: {
+        type: double,
+        default_value: 0.5,
+      }
+      min_position: {
+        type: double,
+        default_value: 0,
+      }
+      has_velocity_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_velocity: {
+        type: double,
+        default_value: 0,
+      }
+      has_acceleration_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_acceleration: {
+        type: double,
+        default_value: 0.2,
+      }
+      has_deceleration_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_deceleration: {
+        type: double,
+        default_value: 0.2,
+      }
+      has_jerk_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_jerk: {
+        type: double,
+        default_value: 0.1,
+      }
