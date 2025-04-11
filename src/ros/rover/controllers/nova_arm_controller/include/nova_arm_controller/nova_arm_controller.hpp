@@ -23,6 +23,8 @@
 #include "tf2_msgs/msg/tf_message.hpp"
 #include "nova_arm_controller/speed_limiter.hpp"
 #include <nova_interfaces/msg/arm_fk_velocity_targets.hpp>
+#include "joint_limits/joint_saturation_limiter.hpp"
+#include "trajectory_msgs/msg/joint_trajectory_point.hpp"
 
 #include "nova_arm_controller_parameters.hpp"
 
@@ -75,6 +77,9 @@ protected:
     // float best_effort_rotational_velocity = 0.0;
     // store per joint odometry here maybe?
   };
+
+  // if you update ros, the template changes to joint_limits::JointControlInterfacesData btw
+  joint_limits::JointSaturationLimiter<joint_limits::JointLimits> joint_limiter;
 
   controller_interface::CallbackReturn configure_joints(
       const std::vector<std::string> &joint_names,

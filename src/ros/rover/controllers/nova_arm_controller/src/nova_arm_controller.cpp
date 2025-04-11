@@ -52,7 +52,7 @@ controller_interface::CallbackReturn NovaArmController::on_init()
     return controller_interface::CallbackReturn::ERROR;
   }
 
-return controller_interface::CallbackReturn::SUCCESS;
+  return controller_interface::CallbackReturn::SUCCESS;
 }
 
 InterfaceConfiguration NovaArmController::command_interface_configuration() const
@@ -65,17 +65,17 @@ InterfaceConfiguration NovaArmController::command_interface_configuration() cons
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
 
-InterfaceConfiguration NovaArmController::state_interface_configuration() const
-{
+InterfaceConfiguration NovaArmController::state_interface_configuration() const {
   std::vector<std::string> conf_names;
+  /*
   for (const auto &joint_name: params_.joint_names) {
     conf_names.push_back(joint_name + "/" + joint_feedback_type());
   }
+   */
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
 
 std::vector<hardware_interface::CommandInterface> NovaArmController::on_export_reference_interfaces() {
-
   std::vector<hardware_interface::CommandInterface> reference_interfaces;
   RCLCPP_INFO(get_node()->get_logger(), "Export reference interfaces");
 
@@ -169,6 +169,15 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     return controller_interface::return_type::ERROR;
   }
 
+  joint_limits::JointLimitsStateDataType current, desired;
+  current.positions.resize(params_.joint_names.size());
+
+  if (this->joint_command_type() == HW_IF_POSITION) {
+    desired.positions.resize(params_.joint_names.size());
+  } else { // velocity
+    desired.velocities.resize(params_.joint_names.size());
+  }
+
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
   {
     const auto& joint_handle = registered_joint_handles_[i];
@@ -179,15 +188,26 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
       return controller_interface::return_type::ERROR;
     }
 
-    const auto reference_value = reference_interfaces_[i];
-    if (std::isnan(reference_value)) {
-
-      // When dealing with invalid or missing inputs, don't move
-      const auto halt_value = params_.use_position_control ? joint_handle.state.get().get_value() : 0.0;
-      RCLCPP_WARN(get_node()->get_logger(), "Missing or NaN input received. Trying to do nothing with value %f for joint \"%s\".", halt_value, joint_handle.name.c_str());
-      joint_handle.command.get().set_value(halt_value);
-      continue;
+    current.positions[i] = 0; //TODO: get actual current position etc
+    if (this->joint_command_type() == HW_IF_POSITION) {
+      desired.positions[i] = reference_interfaces_[i];
+    } else { // velocity
+      desired.velocities[i] = reference_interfaces_[i];
     }
+  }
+  this->joint_limiter.enforce(current, desired, period);
+
+  for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
+  {
+    const auto& joint_handle = registered_joint_handles_[i];
+    double reference_value;
+    if (this->joint_command_type() == HW_IF_POSITION) {
+      reference_value = desired.positions.at(i);
+    } else { // velocity
+      reference_value = desired.velocities.at(i);
+    }
+    if (std::isnan(reference_value))
+      continue;
 
     joint_handle.command.get().set_value(reference_value);
   }
@@ -375,42 +395,43 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
   {
     const auto state_interface_name = joint_feedback_type();
     const auto command_interface_name = joint_command_type();
-
+/*
+    // TODO: Change this filter to be useful, and not get the same as the command_interface
     const auto state_handle = std::find_if(
-      state_interfaces_.begin(), state_interfaces_.end(),
-      [&joint_name, &state_interface_name](const auto &interface)
-      {
-        return interface.get_prefix_name() == joint_name &&
-               interface.get_interface_name() == state_interface_name;
-      });
+        state_interfaces_.cbegin(), state_interfaces_.cend(),
+        [&joint_name, &state_interface_name](const auto &interface)
+        {
+          return interface.get_prefix_name() == joint_name &&
+                 interface.get_interface_name() == state_interface_name;
+        });
 
-    if (state_handle == state_interfaces_.end()) {
+    if (state_handle == state_interfaces_.cend())
+    {
       RCLCPP_ERROR(logger, "Unable to obtain joint state handle for %s", joint_name.c_str());
       return controller_interface::CallbackReturn::ERROR;
     }
-
+*/
+    // TODO: Change this filter to be useful, and not get the same as the state_interface
     const auto command_handle = std::find_if(
-      command_interfaces_.begin(), command_interfaces_.end(),
-      [&joint_name, &command_interface_name](const auto &interface)
-      {
-        return interface.get_prefix_name() == joint_name &&
-               interface.get_interface_name() == command_interface_name;
-      });
+        command_interfaces_.begin(), command_interfaces_.end(),
+        [&joint_name, &command_interface_name](const auto &interface)
+        {
+          return interface.get_prefix_name() == joint_name &&
+                 interface.get_interface_name() == command_interface_name;
+        });
 
-    if (command_handle == command_interfaces_.end()) {
+    if (command_handle == command_interfaces_.end())
+    {
       RCLCPP_ERROR(logger, "Unable to obtain joint command handle for %s", joint_name.c_str());
       return controller_interface::CallbackReturn::ERROR;
     }
 
-    //TODO: get_joint_limits is for limits in rosparams, we want to get limits from urdf...
-    joint_limits::JointLimits limits;
-    if (!joint_limits::get_joint_limits(joint_name, get_node(), limits)) {
-      RCLCPP_WARN(logger, "Unable to obtain joint limits for %s", joint_name.c_str());
-    }
-
     registered_handles.emplace_back(
-        JointHandle{joint_name, std::ref(*state_handle), std::ref(*command_handle)});
+        JointHandle{joint_name, std::ref(*command_handle)});
+    // std::ref(*state_handle),
   }
+
+  this->joint_limiter.init(joint_names, get_node());
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
