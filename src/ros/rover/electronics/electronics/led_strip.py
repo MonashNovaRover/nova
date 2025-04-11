@@ -31,13 +31,24 @@ class LedStrip(ControllerNode):
     def __init__(self):
         super(LedStrip, self).__init__(name="led_strip", can_bus=self.CAN_BUS)
         self.led_service = self.create_service(RGBInput, '/set_RGBInput', self.led_service_callback)
+
+        self.green_timer = self.create_timer(0.1, self.set_green, autostart=False)
+        self.blue_timer = self.create_timer(0.2, self.set_blue, autostart=False)
+
+        self.last_green = 0
+        self.last_blue = 0
+
         self.start_can()
 
     def led_service_callback(self, request, response):
         self.get_logger().info(f"Received service request: {request}")
         self.set_duty_cycle(self.RED_CONTROL_ID, request.r)
-        self.set_duty_cycle(self.GREEN_CONTROL_ID, request.g)
-        self.set_duty_cycle(self.BLUE_CONTROL_ID, request.b)
+
+        self.last_green = request.g
+        self.last_blue = request.b
+        self.green_timer.reset()
+        self.blue_timer.reset()
+
         response.success = True
         return response
 
@@ -48,6 +59,14 @@ class LedStrip(ControllerNode):
             self.bus.send(frame)
         except Exception as e:
             self.get_logger().error(f"Failed to send CAN message: {e}")
+
+    def set_green(self):
+        self.green_timer.cancel()
+        self.set_duty_cycle(self.GREEN_CONTROL_ID, self.last_green)
+
+    def set_blue(self):
+        self.blue_timer.cancel()
+        self.set_duty_cycle(self.BLUE_CONTROL_ID, self.last_blue)
 
     def set_duty_cycle(self, control_id, level):
         data = [level, 0x00]
