@@ -21,7 +21,6 @@
 #include "realtime_tools/realtime_buffer.h"
 #include "realtime_tools/realtime_publisher.h"
 #include "tf2_msgs/msg/tf_message.hpp"
-#include "nova_arm_controller/speed_limiter.hpp"
 #include <nova_interfaces/msg/arm_fk_velocity_targets.hpp>
 #include "joint_limits/joint_saturation_limiter.hpp"
 #include "trajectory_msgs/msg/joint_trajectory_point.hpp"
@@ -70,7 +69,8 @@ protected:
   struct JointHandle
   {
     std::string name;
-    // std::reference_wrapper<const hardware_interface::LoanedStateInterface> state;
+    std::reference_wrapper<const hardware_interface::LoanedStateInterface> state_pos;
+    std::reference_wrapper<const hardware_interface::LoanedStateInterface> state_vel;
     std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
     // SpeedLimiter speed_limiter;
     // float target_direction = 0.0;
@@ -116,6 +116,8 @@ protected:
   bool is_halted = false;
   bool reset();
   void halt();
+
+  void get_joint_states(joint_limits::JointLimitsStateDataType &);
 
 };
 } // namespace nova_arm_controller

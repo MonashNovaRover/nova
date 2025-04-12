@@ -27,12 +27,6 @@ using lifecycle_msgs::msg::State;
 
 // NovaArmController::NovaArmController() : controller_interface::ChainableControllerInterface() {}
 
-const char *NovaArmController::joint_feedback_type() const {
-  // TODO: Verify what feedback we are actually interested. I have a suspicion that we ALWAYS want to see the position.
-  return HW_IF_POSITION;
-  //return params_.joint_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
-}
-
 const char *NovaArmController::joint_command_type() const {
   return params_.use_position_control ? HW_IF_POSITION : HW_IF_VELOCITY;
 }
@@ -67,11 +61,10 @@ InterfaceConfiguration NovaArmController::command_interface_configuration() cons
 
 InterfaceConfiguration NovaArmController::state_interface_configuration() const {
   std::vector<std::string> conf_names;
-  /*
   for (const auto &joint_name: params_.joint_names) {
-    conf_names.push_back(joint_name + "/" + joint_feedback_type());
+    conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
+    conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
   }
-   */
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
 
@@ -142,6 +135,22 @@ controller_interface::return_type NovaArmController::update_velocity_reference_f
   return controller_interface::return_type::OK;
 }
 
+// this assumes that the number of joints match
+void NovaArmController::get_joint_states(joint_limits::JointLimitsStateDataType &current) {
+  //TODO: maybe try to calculate accel and jerk as well
+  current.positions.resize(params_.joint_names.size());
+  current.velocities.resize(params_.joint_names.size());
+
+  for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
+  {
+    const auto& joint_handle = registered_joint_handles_[i];
+
+    current.positions[i] = joint_handle.state_pos.get().get_value();
+    current.velocities[i] = joint_handle.state_vel.get().get_value();
+  }
+  return;
+}
+
 controller_interface::return_type NovaArmController::update_and_write_commands(
     const rclcpp::Time &time, const rclcpp::Duration &period)
 {
@@ -169,8 +178,7 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     return controller_interface::return_type::ERROR;
   }
 
-  joint_limits::JointLimitsStateDataType current, desired;
-  current.positions.resize(params_.joint_names.size());
+  joint_limits::JointLimitsStateDataType desired, current;
 
   if (this->joint_command_type() == HW_IF_POSITION) {
     desired.positions.resize(params_.joint_names.size());
@@ -188,13 +196,13 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
       return controller_interface::return_type::ERROR;
     }
 
-    current.positions[i] = 0; //TODO: get actual current position etc
     if (this->joint_command_type() == HW_IF_POSITION) {
       desired.positions[i] = reference_interfaces_[i];
     } else { // velocity
       desired.velocities[i] = reference_interfaces_[i];
     }
   }
+  this->get_joint_states(current);
   this->joint_limiter.enforce(current, desired, period);
 
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
@@ -232,21 +240,15 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  // TODO: validate angular limits
-
-  /*limiter_angular_ = SpeedLimiter(
-      params_.angular.z.has_velocity_limits, params_.angular.z.has_acceleration_limits,
-      params_.angular.z.has_jerk_limits, params_.angular.z.min_velocity,
-      params_.angular.z.max_velocity, params_.angular.z.min_acceleration,
-      params_.angular.z.max_acceleration, params_.angular.z.min_jerk, params_.angular.z.max_jerk);
-      */ // need to do this for each joint? ^
-  // TODO: maybe limit position so arm doesn't collide?
   if (!reset())
   {
     return controller_interface::CallbackReturn::ERROR;
   }
 
   // TODO: setup publishers?
+  joint_limits::JointLimitsStateDataType current;
+  this->get_joint_states(current);
+  this->joint_limiter.configure(current);
 
   RCLCPP_INFO(get_node()->get_logger(), "Creating subscriber");
 
@@ -390,27 +392,39 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
 
   // register handles
   registered_handles.reserve(joint_names.size());
-  //TODO: pos/vel/etc limits
   for (const auto &joint_name : joint_names)
   {
-    const auto state_interface_name = joint_feedback_type();
     const auto command_interface_name = joint_command_type();
-/*
-    // TODO: Change this filter to be useful, and not get the same as the command_interface
-    const auto state_handle = std::find_if(
+
+    //TODO: DRY (same code twice for pos and vel)
+    const auto pos_state_handle = std::find_if(
         state_interfaces_.cbegin(), state_interfaces_.cend(),
-        [&joint_name, &state_interface_name](const auto &interface)
+        [&joint_name](const auto &interface)
         {
           return interface.get_prefix_name() == joint_name &&
-                 interface.get_interface_name() == state_interface_name;
+                 interface.get_interface_name() == HW_IF_POSITION;
         });
 
-    if (state_handle == state_interfaces_.cend())
+    const auto vel_state_handle = std::find_if(
+        state_interfaces_.cbegin(), state_interfaces_.cend(),
+        [&joint_name](const auto &interface)
+        {
+          return interface.get_prefix_name() == joint_name &&
+                 interface.get_interface_name() == HW_IF_VELOCITY;
+        });
+
+    if (pos_state_handle == state_interfaces_.cend())
     {
-      RCLCPP_ERROR(logger, "Unable to obtain joint state handle for %s", joint_name.c_str());
+      RCLCPP_ERROR(logger, "Unable to obtain position joint state handle for %s", joint_name.c_str());
       return controller_interface::CallbackReturn::ERROR;
     }
-*/
+    
+    if (vel_state_handle == state_interfaces_.cend())
+    {
+      RCLCPP_ERROR(logger, "Unable to obtain velocity joint state handle for %s", joint_name.c_str());
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
     // TODO: Change this filter to be useful, and not get the same as the state_interface
     const auto command_handle = std::find_if(
         command_interfaces_.begin(), command_interfaces_.end(),
@@ -427,8 +441,13 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
     }
 
     registered_handles.emplace_back(
-        JointHandle{joint_name, std::ref(*command_handle)});
-    // std::ref(*state_handle),
+        JointHandle{
+          joint_name,
+          std::ref(*pos_state_handle),
+          std::ref(*vel_state_handle),
+          std::ref(*command_handle)
+          }
+        );
   }
 
   this->joint_limiter.init(joint_names, get_node());
