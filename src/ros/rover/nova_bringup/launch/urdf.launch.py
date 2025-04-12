@@ -74,7 +74,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='arm_urdf_path', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'waratah_arm', 'urdf', 'arm.urdf.xacro']),
+            default_value=PathJoinSubstitution([rover_description_dir, 'banksia_arm', 'urdf', 'arm.urdf.xacro']),
             description='Absolute path to arm urdf file',
         ),
         DeclareLaunchArgument(
@@ -84,7 +84,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='rover_urdf_path', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
+            default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to rover urdf file',
         ),
         DeclareLaunchArgument(
