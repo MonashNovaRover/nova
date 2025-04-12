@@ -29,7 +29,7 @@ nova_arm_controller:
     default_value: 50.0, # Hz
     description: "Publishing rate (Hz) of feedback messages",
   }
-  joint_limits: # yes this is long but this is how get_joint_limits() expects it
+  joint_limits: # yes this is long but this is how get_joint_limits() expects it. units are radians and seconds
     J1:
       has_position_limits: {
         type: bool,
@@ -37,11 +37,11 @@ nova_arm_controller:
       }
       max_position: {
         type: double,
-        default_value: 0.5,
+        default_value: 1.57,
       }
       min_position: {
         type: double,
-        default_value: 0,
+        default_value: -1.57,
       }
       has_velocity_limits: {
         type: bool,
@@ -49,7 +49,7 @@ nova_arm_controller:
       }
       max_velocity: {
         type: double,
-        default_value: 0,
+        default_value: 0.4,
       }
       has_acceleration_limits: {
         type: bool,
@@ -57,21 +57,150 @@ nova_arm_controller:
       }
       max_acceleration: {
         type: double,
-        default_value: 0.2,
+        default_value: 0.3,
       }
-      has_deceleration_limits: {
+    J2:
+      has_position_limits: {
         type: bool,
         default_value: true,
       }
-      max_deceleration: {
+      max_position: {
         type: double,
-        default_value: 0.2,
+        default_value: 1.57,
       }
-      has_jerk_limits: {
+      min_position: {
+        type: double,
+        default_value: -1,
+      }
+      has_velocity_limits: {
         type: bool,
         default_value: true,
       }
-      max_jerk: {
+      max_velocity: {
         type: double,
-        default_value: 0.1,
+        default_value: 0.4,
+      }
+      has_acceleration_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_acceleration: {
+        type: double,
+        default_value: 0.3,
+      }
+    J3:
+      has_position_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_position: {
+        type: double,
+        default_value: 1,
+      }
+      min_position: {
+        type: double,
+        default_value: -0.5,
+      }
+      has_velocity_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_velocity: {
+        type: double,
+        default_value: 0.4,
+      }
+      has_acceleration_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_acceleration: {
+        type: double,
+        default_value: 0.3,
+      }
+    J4:
+      has_position_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_position: {
+        type: double,
+        default_value: 1.57,
+      }
+      min_position: {
+        type: double,
+        default_value: -1.57,
+      }
+      has_velocity_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_velocity: {
+        type: double,
+        default_value: 0.4,
+      }
+      has_acceleration_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_acceleration: {
+        type: double,
+        default_value: 0.3,
+      }
+    J5:
+      has_position_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_position: {
+        type: double,
+        default_value: 0.78,
+      }
+      min_position: {
+        type: double,
+        default_value: -0.78,
+      }
+      has_velocity_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_velocity: {
+        type: double,
+        default_value: 0.4,
+      }
+      has_acceleration_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_acceleration: {
+        type: double,
+        default_value: 0.3,
+      }
+    J6:
+      has_position_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_position: {
+        type: double,
+        default_value: 1.57,
+      }
+      min_position: {
+        type: double,
+        default_value: -1.57,
+      }
+      has_velocity_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_velocity: {
+        type: double,
+        default_value: 0.4,
+      }
+      has_acceleration_limits: {
+        type: bool,
+        default_value: true,
+      }
+      max_acceleration: {
+        type: double,
+        default_value: 0.3,
       }
