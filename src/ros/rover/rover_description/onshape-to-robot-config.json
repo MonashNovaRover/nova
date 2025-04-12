@@ -6,7 +6,7 @@
     "onshape_secret_key": "SECRETKEY",
 
     "assemblyName": "ASSEMBLYTABNAME",
-    "robotName": "Rover7",
+    "robotName": "Banksia",
 
     "addDummyBaseLink": true,
     "simplifySTLs": "all",
