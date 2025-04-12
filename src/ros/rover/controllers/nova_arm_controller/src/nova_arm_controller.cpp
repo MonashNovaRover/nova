@@ -137,7 +137,7 @@ controller_interface::return_type NovaArmController::update_velocity_reference_f
 
 // this assumes that the number of joints match
 void NovaArmController::get_joint_states(joint_limits::JointLimitsStateDataType &current) {
-  //TODO: maybe try to calculate accel and jerk as well
+  //TODO: maybe try to calculate accel as well - this is needed for jerk limits
   current.positions.resize(params_.joint_names.size());
   current.velocities.resize(params_.joint_names.size());
 
