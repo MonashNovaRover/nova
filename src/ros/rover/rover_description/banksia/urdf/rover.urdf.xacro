@@ -4,14 +4,14 @@
 <!-- Note: Rover pivots' z axis has been inverted to correct for pivot_drive_controller's zero angle.
            Therefore if exported from onshape, don't forget to add a negative sign to the z of the axis tag on each pivot 
      Note 2: Exporting from onshape has _continuous at the end of continuous joint names these have been removed post-export -->
-<robot name="rover7"  xmlns:xacro="http://www.ros.org/wiki/xacro" >
+<robot name="Banksia"  xmlns:xacro="http://www.ros.org/wiki/xacro" >
 
     <!-- Loading args -->
     <xacro:arg name="gazebo" default="false"/>
     <xacro:arg name="use_mock_hardware" default="false"/>
     <xacro:arg name="arm" default="false"/>
     <xacro:arg name="auto_camera" default="true"/>
-    <xacro:arg name="robot_name" default="rover7"/>
+    <xacro:arg name="robot_name" default="Banksia"/>
     <xacro:arg name="angle" default="0"/>
     <xacro:arg name="use_local_mesh" default="false"/>
 
@@ -42,7 +42,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="3.26128e-16 -1.01395e-15 1.5708" />
             <geometry>
-                <mesh filename="${mesh_path}/rover7/meshes/chassis.stl" />
+                <mesh filename="${mesh_path}/banksia/meshes/chassis.stl" />
             </geometry>
             <material name="chassis_material">
                 <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -60,7 +60,7 @@
         <visual>
             <origin xyz="-1.3078806732583218725e-20 8.6736173798840354721e-19 -0.021000000000000518252" rpy="-3.141592653589793116 6.2280032059897877693e-19 -4.1232880706353110482e-18" />
             <geometry>
-                <mesh filename="${mesh_path}/rover7/meshes/left_leg.stl"/>
+                <mesh filename="${mesh_path}/banksia/meshes/left_leg.stl"/>
             </geometry>
             <material name="left_leg_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -132,7 +132,7 @@
         <visual>
             <origin xyz="-0.12415341931613717297 2.2204460492503130808e-16 -0.1250000000000002498" rpy="-1.570796326794896558 -0.13351607992219349796 -5.9804098682663148249e-17" />
             <geometry>
-                <mesh filename="${mesh_path}/rover7/meshes/fl_ankle.stl"/>
+                <mesh filename="${mesh_path}/banksia/meshes/fl_ankle.stl"/>
             </geometry>
             <material name="fl_ankle_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -192,7 +192,7 @@
         <visual>
             <origin xyz="5.5511151231257827021e-17 0 5.963111948670274387e-18" rpy="7.279848939407052303e-17 1.0638440422271473935e-16 -6.3914183266779029169e-20" />
             <geometry>
-                <mesh filename="${mesh_path}/rover7/meshes/fl_wheel.stl"/>
+                <mesh filename="${mesh_path}/banksia/meshes/fl_wheel.stl"/>
             </geometry>
             <material name="fl_wheel_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -216,7 +216,7 @@
         <visual>
             <origin xyz="-0.12415341931613714521 2.2204460492503130808e-16 -0.1250000000000002498" rpy="-1.570796326794896558 -0.13351607992219349796 -7.1088909477657821376e-17" />
             <geometry>
-                <mesh filename="${mesh_path}/rover7/meshes/bl_ankle.stl"/>
+                <mesh filename="${mesh_path}/banksia/meshes/bl_ankle.stl"/>
             </geometry>
             <material name="bl_ankle_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -276,7 +276,7 @@
         <visual>
             <origin xyz="0 1.1102230246251565404e-16 1.7780915628762272718e-17" rpy="4.6040217445536182725e-17 1.0513492286565858337e-16 2.3412503191653332746e-19" />
             <geometry>
-                <mesh filename="${mesh_path}/rover7/meshes/bl_wheel.stl"/>
+                <mesh filename="${mesh_path}/banksia/meshes/bl_wheel.stl"/>
             </geometry>
             <material name="bl_wheel_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -300,7 +300,7 @@
         <visual>
             <origin xyz="-7.9461177221465168975e-19 -7.2858385990954703269e-20 -0.020999999999999519051" rpy="3.141592653589793116 3.7838655819744092421e-17 -5.8406613147999892266e-19" />
             <geometry>
-                <mesh filename="${mesh_path}/rover7/meshes/right_leg.stl"/>
+                <mesh filename="${mesh_path}/banksia/meshes/right_leg.stl"/>
             </geometry>
             <material name="right_leg_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -372,7 +372,7 @@
         <visual>
             <origin xyz="0.12415341931613695092 -2.2204460492503130808e-16 -0.12500000000000027756" rpy="-1.57079632679489678 0.13351607992219352572 9.9507186100571649487e-18" />
             <geometry>
-                <mesh filename="${mesh_path}/rover7/meshes/fr_ankle.stl"/>
+                <mesh filename="${mesh_path}/banksia/meshes/fr_ankle.stl"/>
             </geometry>
             <material name="fr_ankle_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -432,7 +432,7 @@
         <visual>
             <origin xyz="5.5511151231257827021e-17 -1.1102230246251565404e-16 -3.0791341698588325926e-17" rpy="-3.6194812825998444115e-17 1.0511409763610977507e-16 -2.2325341479697011877e-19" />
             <geometry>
-                <mesh filename="${mesh_path}/rover7/meshes/fr_wheel.stl"/>
+                <mesh filename="${mesh_path}/banksia/meshes/fr_wheel.stl"/>
             </geometry>
             <material name="fr_wheel_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -456,7 +456,7 @@
         <visual>
             <origin xyz="0.12415341931613720072 -2.2204460492503130808e-16 -0.12500000000000027756" rpy="-1.57079632679489678 0.13351607992219349796 -6.7670245197813334123e-17" />
             <geometry>
-                <mesh filename="${mesh_path}/rover7/meshes/br_ankle.stl"/>
+                <mesh filename="${mesh_path}/banksia/meshes/br_ankle.stl"/>
             </geometry>
             <material name="br_ankle_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -516,7 +516,7 @@
         <visual>
             <origin xyz="5.5511151231257827021e-17 0 5.8763757748714340323e-17" rpy="1.4537948349788456791e-16 1.0501738044156386319e-16 -7.6074648532850333807e-21" />
             <geometry>
-                <mesh filename="${mesh_path}/rover7/meshes/br_wheel.stl"/>
+                <mesh filename="${mesh_path}/banksia/meshes/br_wheel.stl"/>
             </geometry>
             <material name="br_wheel_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -540,7 +540,7 @@
         <visual>
             <origin xyz="4.9770590769729886024e-14 -0.00015426611885745872277 -0.010000000000000730527" rpy="1.570796326794896558 -3.0512890594788867116e-34 0" />
             <geometry>
-                <mesh filename="${mesh_path}/rover7/meshes/diffbar.stl"/>
+                <mesh filename="${mesh_path}/banksia/meshes/diffbar.stl"/>
             </geometry>
             <material name="diffbar_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -570,7 +570,7 @@
         <visual>
             <origin xyz="-2.7755575615628913511e-15 -0.057750000000000162315 3.3306690738754696213e-16" rpy="1.5707963267948350516 -1.5127867282353739675 -3.1415926535897926719" />
             <geometry>
-                <mesh filename="${mesh_path}/rover7/meshes/left_difflink.stl"/>
+                <mesh filename="${mesh_path}/banksia/meshes/left_difflink.stl"/>
             </geometry>
             <material name="left_difflink_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -595,7 +595,7 @@
         <visual>
             <origin xyz="6.2172489379008766264e-15 -0.057749999999999454547 -2.4424906541753443889e-15" rpy="1.5707963267948286123 1.512786629442331332 3.141592653589793116" />
             <geometry>
-                <mesh filename="${mesh_path}/rover7/meshes/right_difflink.stl"/>
+                <mesh filename="${mesh_path}/banksia/meshes/right_difflink.stl"/>
             </geometry>
             <material name="right_difflink_material">
                 <color rgba="0.86666666666666669627 0.074509803921568626417 0.32549019607843138191 1.0"/>
@@ -724,7 +724,7 @@
 
     <!-- End of Generated URDF -->
     <!-- Include additional xacro files-->
-    <xacro:include filename="$(find rover_description)/rover7/urdf/ckc.xacro"/>
+    <xacro:include filename="$(find rover_description)/banksia/urdf/ckc.xacro"/>
 
     <xacro:if value="$(arg auto_camera)">
         <xacro:include filename="$(find rover_description)/auto_mount/urdf/auto_camera.xacro"/>
@@ -748,20 +748,20 @@
         <xacro:include filename="$(find rover_description)/banksia_arm/urdf/joint_states_with_arm.xacro"/>
     </xacro:if>
      <xacro:unless value="$(arg arm)">
-        <xacro:include filename="$(find rover_description)/rover7/urdf/joint_states.xacro"/>
+        <xacro:include filename="$(find rover_description)/banksia/urdf/joint_states.xacro"/>
     </xacro:unless>
 
     <xacro:unless value="$(arg gazebo)">
-        <xacro:include filename="$(find rover_description)/rover7/urdf/ros2_control.xacro" />
+        <xacro:include filename="$(find rover_description)/banksia/urdf/ros2_control.xacro" />
         <xacro:rover_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
     </xacro:unless>
 
     <xacro:if value="$(arg gazebo)">
-        <xacro:include filename="$(find rover_description)/rover7/urdf/gz_ros2_control.xacro" />
+        <xacro:include filename="$(find rover_description)/banksia/urdf/gz_ros2_control.xacro" />
     </xacro:if>
 
-    <xacro:include filename="$(find rover_description)/rover7/urdf/p3d.xacro"/>
-    <xacro:include filename="$(find rover_description)/rover7/urdf/odom.xacro"/>
-    <xacro:include filename="$(find rover_description)/rover7/urdf/gps.xacro"/>
-    <xacro:include filename="$(find rover_description)/rover7/urdf/joint_states.xacro"/>
+    <xacro:include filename="$(find rover_description)/banksia/urdf/p3d.xacro"/>
+    <xacro:include filename="$(find rover_description)/banksia/urdf/odom.xacro"/>
+    <xacro:include filename="$(find rover_description)/banksia/urdf/gps.xacro"/>
+    <xacro:include filename="$(find rover_description)/banksia/urdf/joint_states.xacro"/>
 </robot>
