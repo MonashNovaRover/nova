@@ -19,6 +19,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2
   tf2_msgs
   nova_interfaces
+  joint_limits
 )
 
 find_package(ament_cmake REQUIRED)
@@ -33,7 +34,6 @@ generate_parameter_library(nova_arm_controller_parameters
 
 add_library(nova_arm_controller SHARED
   src/nova_arm_controller.cpp
-  src/speed_limiter.cpp
 )
 target_compile_features(nova_arm_controller PUBLIC cxx_std_17)
 target_include_directories(nova_arm_controller PUBLIC
