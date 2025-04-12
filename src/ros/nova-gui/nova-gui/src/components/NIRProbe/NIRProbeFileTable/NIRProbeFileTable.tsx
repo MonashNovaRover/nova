@@ -14,7 +14,6 @@ import React, {useCallback, useMemo} from "react";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
 import {ISpaceResourcesEntries, NIRProbeReadingType} from "../SpaceResourcesSiteType.tsx";
 import {Droplet, Square, Trash2} from "react-feather";
-import {useAbsorbance} from "../NIRProbeCalibration/NIRCalibration.ts";
 
 export interface NIRProbeFileTableProps extends CardProps {
 }
@@ -27,7 +26,6 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = () => {
 
   // NIR Probe readings data corresponding to the currently selected site.
   const [readings, setReadings] = useNIRSiteData();
-  const absorbance = useAbsorbance();
 
   const deleteEntry = useCallback((index: number, type: keyof ISpaceResourcesEntries) => {
     setReadings({
@@ -48,7 +46,7 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = () => {
 
   const tableHeader = useCallback(() => (
     <TableHeader>
-      {["Reading (Difference)", "Absorbance", "Label", "Action"]
+      {["Reading", "Label", "Action"]
         .map((v) => <TableColumn key={`header-${v}`}>{v}</TableColumn>)}
     </TableHeader>
   ), [])
@@ -58,7 +56,6 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = () => {
       .map(({data, type, label}, index) => (
         <TableRow key={index}>
           <TableCell key={"reading-"+index}>{data}</TableCell>
-          <TableCell key={"absorbance-"+index}>{absorbance(type, data).toFixed(4)}</TableCell>
           <TableCell key="label">
             <Input size="sm" value={label} onValueChange={setLabel(index, type as keyof ISpaceResourcesEntries)}/>
           </TableCell>
@@ -69,7 +66,7 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = () => {
             </Button>
           </TableCell>
         </TableRow>
-    )), [readings, deleteEntry, absorbance, setLabel])
+    )), [readings, deleteEntry, setLabel])
 
   const table = useCallback((type: NIRProbeReadingType.WATER | NIRProbeReadingType.ICE) => (
     <Table

@@ -5,6 +5,7 @@ import NIRProbeFileTableWidget from "./NIRProbeFileTable/NIRProbeFileTableWidget
 import NIRCalibrationCurveWidget from "./NIRProbeCalibration/NIRCalibrationCurveWidget.tsx";
 import TOFHeight from "../AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
 import SiteTypeSelectWidget from "../SiteSelectWidget/SiteTypeSelectWidget.tsx";
+import NIRProbeCalcTable from "./NIRProbeFileTable/NIRProbeCalcTable.tsx";
 
 interface INIRProbeWidgetProps {
 }
@@ -13,7 +14,7 @@ interface INIRProbeWidgetProps {
  * View of all NIR Probe widgets
  * @constructor
  */
-const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
+const ARCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
   // whether to show the advanced capabilities
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
 
@@ -27,10 +28,10 @@ const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
       <div className="flex flex-col gap-3 col-span-3">
         <TOFHeight/>
         <SiteTypeSelectWidget/>
-        <NIRProbeFileTableWidget/>
+        <NIRProbeFileTableWidget headerTable={<NIRProbeCalcTable/>}/>
       </div>
     </div>
   );
 }
 
-export default NIRProbeWidget;
+export default ARCNIRProbeWidget;

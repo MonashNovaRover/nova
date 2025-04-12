@@ -5,23 +5,24 @@ import {
   CardHeader,
   CardProps,
 } from "@nextui-org/react";
-import React, {useState} from "react";
+import React, {ReactNode, useState} from "react";
 import NIRProbeFileTable from "./NIRProbeFileTable.tsx";
-import NIRProbeCalcTable from "./NIRProbeCalcTable.tsx";
 import {MoreHorizontal} from "react-feather";
 import NIRCalibrationSettingsModal from "./NIRCalibrationSettingsModal.tsx";
 
 export interface NIRProbeFileTableWidgetProps extends CardProps {
+  headerTable: ReactNode
 }
 
 /**
  * Widget containing the saved NIR Probe readings and the averages
+ * @param headerTable the table to sit at the top of the widget
  * @param cardProps
  * @constructor
  */
 const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
-  ...cardProps
-}) => {
+  headerTable, ...cardProps
+}: NIRProbeFileTableWidgetProps) => {
   const [calibrationModalIsOpen, setCalibrationModalIsOpen] = useState<boolean>(false)
 
   return (
@@ -37,7 +38,7 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
         </Button>
       </CardHeader>
       <CardBody className="flex flex-col gap-3 p-3">
-        <NIRProbeCalcTable/>
+        {headerTable}
         <NIRProbeFileTable/>
       </CardBody>
       <NIRCalibrationSettingsModal
