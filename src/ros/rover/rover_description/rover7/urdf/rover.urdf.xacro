@@ -741,7 +741,7 @@
         <!-- Banksia's arm -->
         <xacro:include filename="$(find rover_description)/banksia_arm/urdf/arm.urdf.xacro" />
         <joint name="chassis_to_arm_base" type="fixed">
-            <origin xyz="0.22899999999999606781 1.1022818830789207535e-16 0.11707476398169149034" rpy="0 0 1.5708" />
+            <origin xyz="0.234 -0.001 0.116750" rpy="0 0 1.5708"/>
             <parent link="chassis" />
             <child link="arm_link" />
         </joint>
