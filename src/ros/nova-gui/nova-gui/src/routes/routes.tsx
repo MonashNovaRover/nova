@@ -165,7 +165,7 @@ export const routes: RouteObject[] = [
     children: [
       {
         path: "/",
-        element: <Navigate to="/arc" />,
+        element: <Navigate to="/urc/cameras" />,
       },
       {
         path: "/arc",
