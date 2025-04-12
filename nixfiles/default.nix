@@ -139,6 +139,11 @@ let
 
     # Make an alias to the nova-workspace environment for convenience.
     inherit (result.pkgs.ros.nova-workspace) env;
+
+    # Random things that don't fit anywhere else.
+    misc = {
+      cameras2-legacy = import ../src/ros/cameras2/nix/legacy/default.nix { nixpkgs = pkgs; };
+    };
   };
 in
 result

@@ -7,7 +7,8 @@ import {
   IRosCmdInterfacesCmDsFeedback,
   IRosNovaInterfacesNirProbeDataConst,
   IRosSensorMsgsRange,
-  IRosNovaInterfacesHydraprobeData
+  IRosNovaInterfacesHydraprobeData,
+  IRosStdMsgsHeader
 } from "../ros/rosTypes";
 import { cartographerSlice } from "./slices/CartographerSlice";
 import { initialNavSatMessage } from "./models/CartographerState";
@@ -20,6 +21,7 @@ import {Site} from "./models/genericStores/CurrentSiteStore.ts";
 import {initialSiteDataState} from "./models/genericStores/SiteDataState.ts";
 import {filterStores, getReducers} from "./store/rootReducerFilters.ts";
 import {StoreType} from "./models/StoreContext.ts";
+import {DEFAULT_NIR_PROBE_CALIBRATION_DATA} from "./models/genericStores/NIRProbeCalibrationData.ts";
 
 /**
  * reduxStores contains all stores in redux as either it's Reducer
@@ -130,7 +132,7 @@ export const reduxStores = {
   tofStore: createBifrostStore({ topic: RosTopic.TOF }, {
     header: {
       frame_id: "",
-    } as IRosSensorMsgsRange["header"],
+    } as IRosStdMsgsHeader,
     min_range: 0.0,
     max_range: 150.0,
     range: 0.0,
@@ -232,10 +234,37 @@ export const reduxStores = {
 
   cartographerState: cartographerSlice.reducer,
 
+  batteryStore: createBifrostStore(
+    { topic: RosTopic.BATTERY_STATE },
+    {
+      header: {
+        frame_id: "",
+      } as IRosStdMsgsHeader,
+      voltage: 0,
+      temperature: 0,
+      current: 0,
+      charge: 0,
+      capacity: 0,
+      design_capacity: 0,
+      percentage: 0,
+      power_supply_status: 0,
+      power_supply_health: 0,
+      power_supply_technology: 0,
+      present: false,
+      cell_voltage: [],
+      cell_temperature: [],
+      location: "",
+      serial_number: ""
+    }
+  ),
+
   // Generic stores
   currentSite: createGenericStore("currentSite", Site.SITE_1),
   siteData: createGenericStore("siteData", initialSiteDataState),
+  nirProbeCalibrationData: createGenericStore("nirProbeCalibrationData", DEFAULT_NIR_PROBE_CALIBRATION_DATA),
   counter: createGenericStore("counter", 0),
+  scimbalStepSize: createGenericStore("scimbalStepSize", "1"),
+  targetTemp: createGenericStore("targetTemp", 150),
 };
 
 // all store reducers

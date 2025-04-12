@@ -30,6 +30,7 @@ find_package(tf2_ros REQUIRED)
 find_package(nav2_util REQUIRED)
 find_package(nav2_behavior_tree REQUIRED)
 find_package(behaviortree_cpp REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 
 set(dep_pkgs
   rclcpp
@@ -41,6 +42,7 @@ set(dep_pkgs
   nav2_util
   nav2_behavior_tree
   behaviortree_cpp
+  ament_index_cpp
 )
 
 # === Build ===
@@ -49,14 +51,26 @@ include_directories(
   include
 )
 
-add_library(nova_save_image_service_bt_node SHARED plugins/save_image_service.cpp)
-list(APPEND plugin_libs nova_save_image_service_bt_node)
+add_library(nova_ar_tag_detected_condition_bt_node SHARED plugins/ar_tag_detected_condition.cpp)
+list(APPEND plugin_libs nova_ar_tag_detected_condition_bt_node)
+
+add_library(nova_blackboard_publisher_bt_node SHARED plugins/blackboard_publisher_node.cpp)
+list(APPEND plugin_libs nova_blackboard_publisher_bt_node)
+
+add_library(nova_run_scripts_action_bt_node SHARED plugins/run_scripts_action.cpp)
+list(APPEND plugin_libs nova_run_scripts_action_bt_node)
+
+add_library(nova_check_detected_condition_bt_node SHARED plugins/check_detected_condition.cpp)
+list(APPEND plugin_libs nova_check_detected_condition_bt_node)
+
+add_library(nova_compute_search_goals_condition_bt_node SHARED plugins/compute_search_goals_condition.cpp)
+list(APPEND plugin_libs nova_compute_search_goals_condition_bt_node)
+
+add_library(nova_cube_detected_condition_bt_node SHARED plugins/cube_detected_condition.cpp)
+list(APPEND plugin_libs nova_cube_detected_condition_bt_node)
 
 add_library(nova_first_goal_reached_condition_bt_node SHARED plugins/first_goal_reached_condition.cpp)
 list(APPEND plugin_libs nova_first_goal_reached_condition_bt_node)
-
-add_library(nova_goals_empty_condition_bt_node SHARED plugins/goals_empty_condition.cpp)
-list(APPEND plugin_libs nova_goals_empty_condition_bt_node)
 
 add_library(nova_get_final_goal_condition_bt_node SHARED plugins/get_final_goal_condition.cpp)
 list(APPEND plugin_libs nova_get_final_goal_condition_bt_node)
@@ -64,17 +78,35 @@ list(APPEND plugin_libs nova_get_final_goal_condition_bt_node)
 add_library(nova_get_first_goal_condition_bt_node SHARED plugins/get_first_goal_condition.cpp)
 list(APPEND plugin_libs nova_get_first_goal_condition_bt_node)
 
-add_library(nova_query_position_condition_bt_node SHARED plugins/query_position_condition.cpp)
-list(APPEND plugin_libs nova_query_position_condition_bt_node)
-
-add_library(nova_compute_search_goals_condition_bt_node SHARED plugins/compute_search_goals_condition.cpp)
-list(APPEND plugin_libs nova_compute_search_goals_condition_bt_node)
-
-add_library(nova_check_detected_condition_bt_node SHARED plugins/check_detected_condition.cpp)
-list(APPEND plugin_libs nova_check_detected_condition_bt_node)
+add_library(nova_goals_empty_condition_bt_node SHARED plugins/goals_empty_condition.cpp)
+list(APPEND plugin_libs nova_goals_empty_condition_bt_node)
 
 add_library(nova_led_service_bt_node SHARED plugins/led_service.cpp)
 list(APPEND plugin_libs nova_led_service_bt_node)
+
+add_library(nova_query_position_condition_bt_node SHARED plugins/query_position_condition.cpp)
+list(APPEND plugin_libs nova_query_position_condition_bt_node)
+
+add_library(nova_remove_passed_goals_and_cubes_action_bt_node SHARED plugins/remove_passed_goals_and_cubes_action.cpp)
+list(APPEND plugin_libs nova_remove_passed_goals_and_cubes_action_bt_node)
+
+add_library(nova_update_goal_action_bt_node SHARED plugins/update_goal_action.cpp)
+list(APPEND plugin_libs nova_update_goal_action_bt_node)
+
+add_library(nova_update_goals_action_bt_node SHARED plugins/update_goals_action.cpp)
+list(APPEND plugin_libs nova_update_goals_action_bt_node)
+
+add_library(nova_remove_passed_goals_and_ar_tags_action_bt_node SHARED plugins/remove_passed_goals_and_ar_tags_action.cpp)
+list(APPEND plugin_libs nova_remove_passed_goals_and_ar_tags_action_bt_node)
+
+add_library(nova_snap_in_collision_goals_action_bt_node SHARED plugins/snap_in_collision_goals_action.cpp)
+list(APPEND plugin_libs nova_snap_in_collision_goals_action_bt_node)
+
+add_library(nova_save_cube_poses_action_bt_node SHARED plugins/save_cube_poses_action.cpp)
+list(APPEND plugin_libs nova_save_cube_poses_action_bt_node)
+
+add_library(nova_save_image_service_bt_node SHARED plugins/save_image_service.cpp)
+list(APPEND plugin_libs nova_save_image_service_bt_node)
 
 foreach(bt_plugin ${plugin_libs})
   ament_target_dependencies(${bt_plugin} ${dep_pkgs})
@@ -100,7 +132,7 @@ install(DIRECTORY include/
 )
 
 install(FILES
-  nova_bt_nodes.xml
+  bt_nodes.xml
   DESTINATION share/${PROJECT_NAME}
 )
 

@@ -17,6 +17,8 @@ in
       (cfg.package.override {
         graphical = cfg.gui.enable;
       })
+      pkgs.libreoffice-qt6-fresh
+      pkgs.ffmpeg
     ];
 
     programs = {

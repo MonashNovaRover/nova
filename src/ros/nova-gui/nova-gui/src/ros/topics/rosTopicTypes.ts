@@ -17,6 +17,7 @@ import {
   IRosNovaInterfacesHydraprobeData,
   IRosSensorMsgsCompressedImage,
   IRosNovaInterfacesBmeSensor,
+  IRosSensorMsgsBatteryState,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -63,4 +64,6 @@ export interface RosTopicInterfaces {
   // Maps Related
   [RosTopic.ROVER_LOCATION]: IRosSensorMsgsNavSatFix;
   [RosTopic.BASE_LOCATION]: IRosSensorMsgsNavSatFix;
+
+  [RosTopic.BATTERY_STATE]: IRosSensorMsgsBatteryState;
 }

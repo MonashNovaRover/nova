@@ -3,7 +3,7 @@
 {
   github-gitignore = callPackage ./github-gitignore { };
   libgphoto2-theta = callPackage ./libgphoto2-theta { };
-  groot = callPackage ({ libsForQt5 }: libsForQt5.callPackage ./groot { }) { };
+  groot2 = callPackage ({ libsForQt5 }: libsForQt5.callPackage ./groot2 { }) { };
   gstthetauvc = callPackage ./gstthetauvc { };
   jcan = callPackage ./jcan { };
   libuvc-theta = callPackage ./libuvc-theta { };
@@ -13,4 +13,6 @@
   ros-typescript-generator = callPackage ./ros-typescript-generator { };
   tileserver-gl = callPackage ./tileserver-gl { };
   tileserver-gl-shell = callPackage ./tileserver-gl-shell { };
+  foxglove = callPackage ./foxglove { };
+  reolink = callPackage ./reolink { };
 }

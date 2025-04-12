@@ -13,7 +13,7 @@ import novaLogo from "../../assets/nova-logo.png";
 import {Aperture, BarChart, BarChart2, Camera, Globe, Home, Image, Map} from "react-feather";
 import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {URCCompModes} from "../../views/shared/CamerasPage/CameraPageConstants.ts";
+import {URCCompModes} from "../../views/shared/CamerasPage/CameraPageConstants";
 
 interface SidebarEntry {
   title: string;
@@ -178,7 +178,7 @@ const generalSideBarData: SidebarInterface = {
       icon: <Home />,
     },
     {
-      title: "Camaras",
+      title: "Cameras",
       route: "/general/cameras",
       icon: <Camera/>,
     },

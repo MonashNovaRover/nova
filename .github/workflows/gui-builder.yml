@@ -1,0 +1,21 @@
+name: gui builder 🔨
+
+on:
+  pull_request:
+    paths:
+      - 'src/ros/nova-gui/nova-gui/**'  # Only run when files in the nova-gui folder change
+  push:
+    branches:
+      - main                            # and on pushes to the main branch
+
+jobs:
+  build-gui:
+    runs-on: ubuntu-22.04
+    permissions:
+      id-token: "write"
+      contents: "read"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - name: Run `nova-build`
+        run: nix-build nixfiles -A pkgs.ros.nova-gui 

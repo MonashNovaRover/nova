@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--This is a file for the p3d plugin for the rover in gazebo. This file is referenced at the bottom of rover.urdf.xacro, 
+which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+  <gazebo>
+    <plugin name="gz::sim::systems::PosePublisher" filename="gz-sim-pose-publisher-system">
+      <body_name>base_link</body_name>
+      <frame_name>odom</frame_name>
+      <update_frequency>30</update_frequency>
+    </plugin>
+  </gazebo>
+</robot>

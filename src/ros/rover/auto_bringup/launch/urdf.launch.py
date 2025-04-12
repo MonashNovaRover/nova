@@ -22,16 +22,18 @@ from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
+    angle = LaunchConfiguration('angle').perform(context)
     gazebo = LaunchConfiguration('gazebo').perform(context)
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
-    
+    use_local_mesh = LaunchConfiguration('use_local_mesh').perform(context)
+
     return [
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[{'robot_description': 
-                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name]), value_type=str)
+                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle, ' ', 'use_local_mesh:=', use_local_mesh]), value_type=str)
             }]
         )
     ]
@@ -42,13 +44,18 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
+            name='angle', 
+            default_value='15',
+            description='Angle (in degrees) at which the camera is mounted',
+        ),
+        DeclareLaunchArgument(
             name='gazebo', 
             default_value='True',
             description='Launch with gazebo or not',
         ),
         DeclareLaunchArgument(
             name='model', 
-            default_value=PathJoinSubstitution([rover_description_dir, 'base', 'urdf', 'rover.urdf.xacro']),
+            default_value=PathJoinSubstitution([rover_description_dir, 'rover7', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
         ),
         DeclareLaunchArgument(
@@ -56,8 +63,13 @@ def generate_launch_description():
             default_value='Rover7',
             description='name of the robot',
         ),
+        DeclareLaunchArgument(
+            name='use_local_mesh',
+            default_value='False',
+            description='Use local mesh paths instead of nix store paths',
+        ),
     ]
-    
-    return LaunchDescription(  
+
+    return LaunchDescription(
         declared_arguments + [OpaqueFunction(function=launch_setup)]
     )

@@ -28,6 +28,12 @@ in
       settings.X11Forwarding = true;
     };
 
+    # For ghostty
+    programs.ssh.extraConfig = ''
+      Host *
+        SetEnv TERM=xterm-256color
+    '';
+
     # Most fingerprint hardware and software only supports 10 fingers.
     services.fprintd.enable = false;
 

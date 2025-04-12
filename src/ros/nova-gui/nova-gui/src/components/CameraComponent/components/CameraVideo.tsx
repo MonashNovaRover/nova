@@ -1,7 +1,7 @@
 import React, { LegacyRef } from "react";
 import { CameraFilters } from "../CameraComponent";
 
-interface CameraVideoProps {
+export interface CameraVideoProps {
   videoRef: LegacyRef<HTMLVideoElement> | undefined;
   filters: CameraFilters;
 }

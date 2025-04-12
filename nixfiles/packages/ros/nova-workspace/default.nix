@@ -8,6 +8,7 @@
 , rqt-common-plugins
 , gdb
 , gps-umd
+, reolink
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -79,7 +80,8 @@
       nova-gazebo
       nova-python-control
       nova-excavation-construction
-      nova-utils;
+      nova-utils
+      reolink;
   }
 
   ## Extra packages to add to the workspace.

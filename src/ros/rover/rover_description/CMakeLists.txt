@@ -23,8 +23,10 @@ find_package(ament_cmake REQUIRED)
 
 # Add all the installation directories
 install(DIRECTORY
-  arm
-  base 
+  waratah_arm
+  waratah
+  rover7
+  auto_mount
   DESTINATION share/${PROJECT_NAME}
 )
 
