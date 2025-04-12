@@ -731,14 +731,25 @@
     </xacro:if>
     
     <xacro:if value="$(arg arm)">
-        <!-- Currently attaches waratah's arm, add rover7 arm after ARCh-->
+        <!-- Waratah's arm
         <xacro:include filename="$(find rover_description)/waratah_arm/urdf/arm.urdf.xacro" />
         <joint name="chassis_to_arm_base" type="fixed">
             <origin xyz="0.2 0 -0.06" rpy="0 0 0"/>
             <parent link="chassis" />
             <child link="arm_link" />
+        </joint> -->
+        <!-- Banksia's arm -->
+        <xacro:include filename="$(find rover_description)/banksia_arm/urdf/arm.urdf.xacro" />
+        <joint name="chassis_to_arm_base" type="fixed">
+            <origin xyz="0.234 -0.001 0.116750" rpy="0 0 1.5708"/>
+            <parent link="chassis" />
+            <child link="arm_link" />
         </joint>
+        <xacro:include filename="$(find rover_description)/banksia_arm/urdf/joint_states_with_arm.xacro"/>
     </xacro:if>
+     <xacro:unless value="$(arg arm)">
+        <xacro:include filename="$(find rover_description)/rover7/urdf/joint_states.xacro"/>
+    </xacro:unless>
 
     <xacro:unless value="$(arg gazebo)">
         <xacro:include filename="$(find rover_description)/rover7/urdf/ros2_control.xacro" />
