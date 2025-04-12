@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+	<!-- Test trying to make a ros2_control URDF for the new arm -->
+	<!-- Initial definition based on https://github.com/xArm-Developer/xarm_ros2/blob/master/xarm_description/urdf/xarm6/xarm6.ros2_control.xacro -->
+
+	<xacro:macro name="arm_ros2_control" params="use_mock_hardware">
+
+		<ros2_control name="arm_J1" type="system">
+			<xacro:unless value="${use_mock_hardware}">
+				<hardware>
+					<plugin>blcmd_hardware/BLCMDHardware</plugin>
+					<param name="candevice">can1</param>
+					<param name="canid">4F1</param>
+					<param name="resolver_reduction">1.33333333333</param>
+					<param name="clock_rate">100000000</param>
+					<param name="revolution_pulses">8192</param>
+					<param name="min_interval">122</param>
+					<param name="gear_ratio">36.0</param>
+					<param name="mock">true</param>
+					<param name="reversed">true</param>
+					<param name="integrate_velocity">true</param>
+				</hardware>
+			</xacro:unless>
+			<xacro:if value="${use_mock_hardware}">
+				<hardware>
+					<plugin>mock_components/GenericSystem</plugin>
+					<param name="calculate_dynamics">true</param>
+				</hardware>
+			</xacro:if>
+
+			<!--
+	  <hardware>
+        TODO: Figure out and add the Hardware interface
+	  <plugin>${ros2_control_plugin}</plugin>
+	  </hardware>
+	  -->
+
+			<joint name="J1">
+				<command_interface name="velocity">
+					<param name="max">1</param>
+				</command_interface>
+				<command_interface name="position">
+				</command_interface>
+				<state_interface name="velocity">
+					<param name="initial_value">0.0</param>
+				</state_interface>
+				<state_interface name="position">
+					<param name="initial_value">0.0</param>
+				</state_interface>
+			</joint>
+		</ros2_control>
+
+		<ros2_control name="arm_J2" type="system">
+			<xacro:unless value="${use_mock_hardware}">
+				<hardware>
+					<plugin>blcmd_hardware/BLCMDHardware</plugin>
+					<param name="candevice">can1</param>
+					<param name="canid">4F2</param>
+					<param name="resolver_reduction">1.33333333333</param>
+					<param name="clock_rate">100000000</param>
+					<param name="revolution_pulses">8192</param>
+					<param name="min_interval">122</param>
+					<param name="gear_ratio">36.0</param>
+					<param name="mock">true</param>
+					<param name="reversed">true</param>
+					<param name="integrate_velocity">true</param>
+				</hardware>
+			</xacro:unless>
+			<xacro:if value="${use_mock_hardware}">
+				<hardware>
+					<plugin>mock_components/GenericSystem</plugin>
+					<param name="calculate_dynamics">true</param>
+				</hardware>
+			</xacro:if>
+
+			<joint name="J2">
+				<command_interface name="velocity">
+					<param name="max">1</param>
+				</command_interface>
+				<command_interface name="position">
+				</command_interface>
+				<state_interface name="velocity">
+					<param name="initial_value">0.0</param>
+				</state_interface>
+				<state_interface name="position">
+					<param name="initial_value">0.0</param>
+				</state_interface>
+			</joint>
+		</ros2_control>
+
+		<ros2_control name="arm_J3" type="system">
+			<xacro:unless value="${use_mock_hardware}">
+				<hardware>
+					<plugin>blcmd_hardware/BLCMDHardware</plugin>
+					<param name="candevice">can1</param>
+					<param name="canid">4F3</param>
+					<param name="resolver_reduction">1.33333333333</param>
+					<param name="clock_rate">100000000</param>
+					<param name="revolution_pulses">8192</param>
+					<param name="min_interval">122</param>
+					<param name="gear_ratio">36.0</param>
+					<param name="mock">true</param>
+					<param name="reversed">true</param>
+					<param name="integrate_velocity">true</param>
+				</hardware>
+			</xacro:unless>
+			<xacro:if value="${use_mock_hardware}">
+				<hardware>
+					<plugin>mock_components/GenericSystem</plugin>
+					<param name="calculate_dynamics">true</param>
+				</hardware>
+			</xacro:if>
+
+			<joint name="J3">
+				<command_interface name="velocity">
+					<param name="max">1</param>
+				</command_interface>
+				<command_interface name="position">
+				</command_interface>
+				<state_interface name="velocity">
+					<param name="initial_value">0.0</param>
+				</state_interface>
+				<state_interface name="position">
+					<param name="initial_value">0.0</param>
+				</state_interface>
+			</joint>
+		</ros2_control>
+
+		<ros2_control name="arm_J4" type="system">
+			<xacro:unless value="${use_mock_hardware}">
+				<hardware>
+					<plugin>blcmd_hardware/BLCMDHardware</plugin>
+					<param name="candevice">can1</param>
+					<param name="canid">4F4</param>
+					<param name="resolver_reduction">1.33333333333</param>
+					<param name="clock_rate">100000000</param>
+					<param name="revolution_pulses">8192</param>
+					<param name="min_interval">122</param>
+					<param name="gear_ratio">36.0</param>
+					<param name="mock">true</param>
+					<param name="reversed">true</param>
+					<param name="integrate_velocity">true</param>
+				</hardware>
+			</xacro:unless>
+			<xacro:if value="${use_mock_hardware}">
+				<hardware>
+					<plugin>mock_components/GenericSystem</plugin>
+					<param name="calculate_dynamics">true</param>
+				</hardware>
+			</xacro:if>
+
+			<joint name="J4">
+				<command_interface name="velocity">
+					<param name="max">1</param>
+				</command_interface>
+				<command_interface name="position">
+				</command_interface>
+				<state_interface name="velocity">
+					<param name="initial_value">0.0</param>
+				</state_interface>
+				<state_interface name="position">
+					<param name="initial_value">0.0</param>
+				</state_interface>
+			</joint>
+		</ros2_control>
+
+		<ros2_control name="arm_J5" type="system">
+			<xacro:unless value="${use_mock_hardware}">
+				<hardware>
+					<plugin>blcmd_hardware/BLCMDHardware</plugin>
+					<param name="candevice">can1</param>
+					<param name="canid">4F5</param>
+					<param name="resolver_reduction">1.33333333333</param>
+					<param name="clock_rate">100000000</param>
+					<param name="revolution_pulses">8192</param>
+					<param name="min_interval">122</param>
+					<param name="gear_ratio">36.0</param>
+					<param name="mock">true</param>
+					<param name="reversed">true</param>
+					<param name="integrate_velocity">true</param>
+				</hardware>
+			</xacro:unless>
+			<xacro:if value="${use_mock_hardware}">
+				<hardware>
+					<plugin>mock_components/GenericSystem</plugin>
+					<param name="calculate_dynamics">true</param>
+				</hardware>
+			</xacro:if>
+
+			<joint name="J5">
+				<command_interface name="velocity">
+					<param name="max">1</param>
+				</command_interface>
+				<command_interface name="position">
+				</command_interface>
+				<state_interface name="velocity">
+					<param name="initial_value">0.0</param>
+				</state_interface>
+				<state_interface name="position">
+					<param name="initial_value">0.0</param>
+				</state_interface>
+			</joint>
+		</ros2_control>
+
+		<ros2_control name="arm_J6" type="system">
+			<xacro:unless value="${use_mock_hardware}">
+				<hardware>
+					<plugin>blcmd_hardware/BLCMDHardware</plugin>
+					<param name="candevice">can1</param>
+					<param name="canid">4F6</param>
+					<param name="resolver_reduction">1.33333333333</param>
+					<param name="clock_rate">100000000</param>
+					<param name="revolution_pulses">8192</param>
+					<param name="min_interval">122</param>
+					<param name="gear_ratio">36.0</param>
+					<param name="mock">true</param>
+					<param name="reversed">true</param>
+					<param name="integrate_velocity">true</param>
+				</hardware>
+			</xacro:unless>
+			<xacro:if value="${use_mock_hardware}">
+				<hardware>
+					<plugin>mock_components/GenericSystem</plugin>
+					<param name="calculate_dynamics">true</param>
+				</hardware>
+			</xacro:if>
+
+			<joint name="J6">
+				<command_interface name="velocity">
+					<param name="max">1</param>
+				</command_interface>
+				<command_interface name="position">
+				</command_interface>
+				<state_interface name="velocity">
+					<param name="initial_value">0.0</param>
+				</state_interface>
+				<state_interface name="position">
+					<param name="initial_value">0.0</param>
+				</state_interface>
+			</joint>
+		</ros2_control>
+
+		<!--
+    <joint name="rf_slide">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+
+	  <joint name="lf_slide">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+
+	  <joint name="actuator_head">
+		<command_interface name="velocity">
+		  <param name="max">1</param>
+		</command_interface>
+
+		<state_interface name="velocity">
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+
+		<state_interface name="position"> 
+		  <param name="initial_value">0.0</param>
+		</state_interface>
+      </joint>
+    -->
+
+	</xacro:macro>
+</robot>
