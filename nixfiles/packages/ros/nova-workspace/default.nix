@@ -42,6 +42,7 @@
 , nova-utils ? throw "nova-utils is needed, but not available!"
 , nova-arm-controller ? throw "nova-arm-controller is needed, but not available!"
 , nova-ik-controller ? throw "nova-ik-controller is needed, but not available!"
+, nova-twistmapper ? throw "nova-twistmapper is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -86,7 +87,8 @@
       nova-utils
       reolink
       nova-arm-controller
-      nova-ik-controller;
+      nova-ik-controller
+      nova-twistmapper;
   }
 
   ## Extra packages to add to the workspace.

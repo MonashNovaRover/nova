@@ -68,7 +68,7 @@ protected:
   struct JointHandle
   {
     std::string name;
-    // std::reference_wrapper<const hardware_interface::LoanedStateInterface> state;
+    std::reference_wrapper<const hardware_interface::LoanedStateInterface> state;
     std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
     // SpeedLimiter speed_limiter;
     // float target_direction = 0.0;
