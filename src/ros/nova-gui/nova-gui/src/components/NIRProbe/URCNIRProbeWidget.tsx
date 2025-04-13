@@ -4,6 +4,7 @@ import NIRProbeLEDWidget from "./NIRProbeLEDWidget/NIRProbeLEDWidget.tsx";
 import NIRProbeFileTableWidget from "./NIRProbeFileTable/NIRProbeFileTableWidget.tsx";
 import SiteSelectWidget from "../SiteSelectWidget/SiteSelectWidget.tsx";
 import NIRProbeSiteAvgTable from "./NIRProbeFileTable/NIRProbeSiteAvgTable.tsx";
+import {URCNIRPRobeReadingTypeInfo} from "./SpaceResourcesSiteType.tsx";
 
 interface INIRProbeWidgetProps {
 }
@@ -18,10 +19,17 @@ const URCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
 
   return (
     <div className="flex flex-col gap-3 col-span-2 row-span-5">
-      <NIRProbeLEDWidget/>
-      <NIRProbeOutputSaveWidget showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}/>
+      <NIRProbeLEDWidget readingInfo={URCNIRPRobeReadingTypeInfo}/>
+      <NIRProbeOutputSaveWidget
+        showAdvanced={showAdvanced}
+        setShowAdvanced={setShowAdvanced}
+        readingInfo={URCNIRPRobeReadingTypeInfo}
+      />
       <SiteSelectWidget/>
-      <NIRProbeFileTableWidget headerTable={<NIRProbeSiteAvgTable/>}/>
+      <NIRProbeFileTableWidget
+        headerTable={<NIRProbeSiteAvgTable/>}
+        readingInfo={URCNIRPRobeReadingTypeInfo}
+      />
     </div>
   );
 }

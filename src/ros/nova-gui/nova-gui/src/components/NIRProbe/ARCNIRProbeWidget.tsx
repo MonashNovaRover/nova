@@ -6,6 +6,8 @@ import NIRCalibrationCurveWidget from "./NIRProbeCalibration/NIRCalibrationCurve
 import TOFHeight from "../AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
 import SiteTypeSelectWidget from "../SiteSelectWidget/SiteTypeSelectWidget.tsx";
 import NIRProbeCalcTable from "./NIRProbeFileTable/NIRProbeCalcTable.tsx";
+import NIRCalibrationSettingsModal from "./NIRProbeFileTable/NIRCalibrationSettingsModal.tsx";
+import {ARCNIRPRobeReadingTypeInfo} from "./SpaceResourcesSiteType.tsx";
 
 interface INIRProbeWidgetProps {
 }
@@ -21,14 +23,22 @@ const ARCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
   return (
     <div className="grid grid-flow-col auto-cols-fr gap-3">
       <div className="flex flex-col gap-3 col-span-3">
-        <NIRProbeLEDWidget/>
-        <NIRProbeOutputSaveWidget showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}/>
+        <NIRProbeLEDWidget readingInfo={ARCNIRPRobeReadingTypeInfo}/>
+        <NIRProbeOutputSaveWidget
+          showAdvanced={showAdvanced}
+          setShowAdvanced={setShowAdvanced}
+          readingInfo={ARCNIRPRobeReadingTypeInfo}
+        />
         <NIRCalibrationCurveWidget/>
       </div>
       <div className="flex flex-col gap-3 col-span-3">
         <TOFHeight/>
         <SiteTypeSelectWidget/>
-        <NIRProbeFileTableWidget headerTable={<NIRProbeCalcTable/>}/>
+        <NIRProbeFileTableWidget
+          Modal={NIRCalibrationSettingsModal}
+          headerTable={<NIRProbeCalcTable/>}
+          readingInfo={ARCNIRPRobeReadingTypeInfo}
+        />
       </div>
     </div>
   );

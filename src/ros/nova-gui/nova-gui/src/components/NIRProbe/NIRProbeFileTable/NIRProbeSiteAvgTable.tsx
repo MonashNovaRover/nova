@@ -22,17 +22,17 @@ const NIRProbeSiteAvgTable: React.FC<NIRProbeCalcTableProps> = () => {
   const tableRows = useMemo(() => [
     <TableRow key="average - PD1">
       <TableCell key={0}>PD1</TableCell>
-      <TableCell key={1}>{average(siteData[Site.SITE_1].spaceResourcesEntries[NIRProbeReadingType.WATER])}</TableCell>
-      <TableCell key={2}>{average(siteData[Site.SITE_2].spaceResourcesEntries[NIRProbeReadingType.WATER])}</TableCell>
-      <TableCell key={3}>{average(siteData[Site.SITE_3].spaceResourcesEntries[NIRProbeReadingType.WATER])}</TableCell>
-      <TableCell key={4}>{average(siteData[Site.SITE_4].spaceResourcesEntries[NIRProbeReadingType.WATER])}</TableCell>
+      <TableCell key={1}>{average(siteData[Site.SITE_1].spaceResourcesEntries[NIRProbeReadingType.PD1])}</TableCell>
+      <TableCell key={2}>{average(siteData[Site.SITE_2].spaceResourcesEntries[NIRProbeReadingType.PD1])}</TableCell>
+      <TableCell key={3}>{average(siteData[Site.SITE_3].spaceResourcesEntries[NIRProbeReadingType.PD1])}</TableCell>
+      <TableCell key={4}>{average(siteData[Site.SITE_4].spaceResourcesEntries[NIRProbeReadingType.PD1])}</TableCell>
     </TableRow>,
     <TableRow key="average - PD2">
       <TableCell key={0}>PD2</TableCell>
-      <TableCell key={1}>{average(siteData[Site.SITE_1].spaceResourcesEntries[NIRProbeReadingType.ICE])}</TableCell>
-      <TableCell key={2}>{average(siteData[Site.SITE_2].spaceResourcesEntries[NIRProbeReadingType.ICE])}</TableCell>
-      <TableCell key={3}>{average(siteData[Site.SITE_3].spaceResourcesEntries[NIRProbeReadingType.ICE])}</TableCell>
-      <TableCell key={4}>{average(siteData[Site.SITE_4].spaceResourcesEntries[NIRProbeReadingType.ICE])}</TableCell>
+      <TableCell key={1}>{average(siteData[Site.SITE_1].spaceResourcesEntries[NIRProbeReadingType.PD2])}</TableCell>
+      <TableCell key={2}>{average(siteData[Site.SITE_2].spaceResourcesEntries[NIRProbeReadingType.PD2])}</TableCell>
+      <TableCell key={3}>{average(siteData[Site.SITE_3].spaceResourcesEntries[NIRProbeReadingType.PD2])}</TableCell>
+      <TableCell key={4}>{average(siteData[Site.SITE_4].spaceResourcesEntries[NIRProbeReadingType.PD2])}</TableCell>
     </TableRow>,
   ], [siteData])
 

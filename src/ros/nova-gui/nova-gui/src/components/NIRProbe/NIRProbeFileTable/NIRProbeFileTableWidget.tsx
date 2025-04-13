@@ -8,10 +8,13 @@ import {
 import React, {ReactNode, useState} from "react";
 import NIRProbeFileTable from "./NIRProbeFileTable.tsx";
 import {MoreHorizontal} from "react-feather";
-import NIRCalibrationSettingsModal from "./NIRCalibrationSettingsModal.tsx";
+import {NIRSettingsModalProps} from "./NIRCalibrationSettingsModal.tsx";
+import {NIRProbeReadingTypeInfo} from "../SpaceResourcesSiteType.tsx";
 
 export interface NIRProbeFileTableWidgetProps extends CardProps {
+  Modal?: React.FC<NIRSettingsModalProps>
   headerTable: ReactNode
+  readingInfo: NIRProbeReadingTypeInfo[]
 }
 
 /**
@@ -21,7 +24,7 @@ export interface NIRProbeFileTableWidgetProps extends CardProps {
  * @constructor
  */
 const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
-  headerTable, ...cardProps
+  Modal, headerTable, readingInfo, ...cardProps
 }: NIRProbeFileTableWidgetProps) => {
   const [calibrationModalIsOpen, setCalibrationModalIsOpen] = useState<boolean>(false)
 
@@ -29,22 +32,24 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
     <Card {...cardProps}>
       <CardHeader className="pb-0 flex flex-row justify-center">
         <div className="grow">NIR Probe File Table</div>
-        <Button
-          variant={"light"}
-          isIconOnly
-          onPress={() => setCalibrationModalIsOpen(true)}
-        >
-          <MoreHorizontal/>
-        </Button>
+        {Modal &&
+          <Button
+            variant={"light"}
+            isIconOnly
+            onPress={() => setCalibrationModalIsOpen(true)}
+          >
+            <MoreHorizontal/>
+          </Button>
+        }
       </CardHeader>
       <CardBody className="flex flex-col gap-3 p-3">
         {headerTable}
-        <NIRProbeFileTable/>
+        <NIRProbeFileTable readingInfo={readingInfo}/>
       </CardBody>
-      <NIRCalibrationSettingsModal
+      {Modal && <Modal
         isOpen={calibrationModalIsOpen}
         setIsOpen={setCalibrationModalIsOpen}
-      />
+      />}
     </Card>
   );
 }

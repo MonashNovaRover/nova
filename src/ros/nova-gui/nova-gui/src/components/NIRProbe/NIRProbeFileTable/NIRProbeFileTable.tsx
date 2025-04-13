@@ -12,20 +12,23 @@ import {
 } from "@nextui-org/react";
 import React, {useCallback, useMemo} from "react";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
-import {ISpaceResourcesEntries, NIRProbeReadingType} from "../SpaceResourcesSiteType.tsx";
-import {Droplet, Square, Trash2} from "react-feather";
+import {ISpaceResourcesEntries, NIRProbeReadingType, NIRProbeReadingTypeInfo} from "../SpaceResourcesSiteType.tsx";
+import {Trash2} from "react-feather";
 
 export interface NIRProbeFileTableProps extends CardProps {
+  readingInfo: NIRProbeReadingTypeInfo[]
 }
 
 /**
  * Table containing all recorded NIR Probe readings
  * @constructor
  */
-const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = () => {
+const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({readingInfo}: NIRProbeFileTableProps) => {
 
   // NIR Probe readings data corresponding to the currently selected site.
   const [readings, setReadings] = useNIRSiteData();
+  const PD1Icon = useMemo(() => readingInfo[1].icon, [readingInfo])
+  const PD2Icon = useMemo(() => readingInfo[2].icon, [readingInfo])
 
   const deleteEntry = useCallback((index: number, type: keyof ISpaceResourcesEntries) => {
     setReadings({
@@ -51,7 +54,7 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = () => {
     </TableHeader>
   ), [])
 
-  const entryRows = useCallback((type: NIRProbeReadingType.WATER | NIRProbeReadingType.ICE) =>
+  const entryRows = useCallback((type: NIRProbeReadingType.PD1 | NIRProbeReadingType.PD2) =>
     readings[type]
       .map(({data, type, label}, index) => (
         <TableRow key={index}>
@@ -68,7 +71,7 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = () => {
         </TableRow>
     )), [readings, deleteEntry, setLabel])
 
-  const table = useCallback((type: NIRProbeReadingType.WATER | NIRProbeReadingType.ICE) => (
+  const table = useCallback((type: NIRProbeReadingType.PD1 | NIRProbeReadingType.PD2) => (
     <Table
       removeWrapper
       layout={"fixed"}
@@ -81,8 +84,8 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = () => {
     </Table>
   ), [entryRows, tableHeader])
 
-  const waterTable = useMemo(() => table(NIRProbeReadingType.WATER), [table])
-  const iceTable = useMemo(() => table(NIRProbeReadingType.ICE), [table])
+  const PD1Table = useMemo(() => table(NIRProbeReadingType.PD1), [table])
+  const PD2Table = useMemo(() => table(NIRProbeReadingType.PD2), [table])
 
   return (
     <div className="flex w-full flex-col">
@@ -98,26 +101,26 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = () => {
         variant="underlined"
       >
         <Tab
-          key={`${NIRProbeReadingType.WATER}`}
+          key={`${NIRProbeReadingType.PD1}`}
           title={
             <div className="flex items-center space-x-2">
-              <Droplet />
-              <span>Water</span>
+              <PD1Icon/>
+              <span>{readingInfo[1].name}</span>
             </div>
           }
         >
-          {waterTable}
+          {PD1Table}
         </Tab>
         <Tab
-          key={`${NIRProbeReadingType.ICE}`}
+          key={`${NIRProbeReadingType.PD2}`}
           title={
             <div className="flex items-center space-x-2">
-              <Square/>
-              <span>Ice</span>
+              <PD2Icon/>
+              <span>{readingInfo[2].name}</span>
             </div>
           }
         >
-          {iceTable}
+          {PD2Table}
         </Tab>
       </Tabs>
     </div>
