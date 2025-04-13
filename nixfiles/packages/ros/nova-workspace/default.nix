@@ -43,6 +43,7 @@
 , nova-utils ? throw "nova-utils is needed, but not available!"
 , nova-arm-controller ? throw "nova-arm-controller is needed, but not available!"
 , nova-ik-controller ? throw "nova-ik-controller is needed, but not available!"
+, nova-twistmapper ? throw "nova-twistmapper is needed, but not available!"
 , gpsd-client ? throw "gpsd-client is needed, but not available!"
 # , ublox-dgnss-custom ? throw "ublox-dgnss-custom is needed, but not available!"
 
@@ -90,6 +91,7 @@
       reolink
       nova-arm-controller
       nova-ik-controller
+      nova-twistmapper
       reolink;
       # ublox-dgnss-custom;
   }
