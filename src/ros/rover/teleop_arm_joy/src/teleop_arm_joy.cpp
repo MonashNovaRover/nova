@@ -340,7 +340,14 @@ void TeleopArmJoy::switchController(const ControlMode requested_control_mode)
               prettyPrintMode(control_mode).c_str(),
               prettyPrintMode(requested_control_mode).c_str());
 
-  vector<std::string> deactivate_controllers = modeToControllers(control_mode);
+  // The order of deactivation needs to be opposite to the activation order. This is the reverse to the final order.
+  vector<std::string> deactivate_controllers_reversed = modeToControllers(control_mode);
+  // Reverse the given order of controllers so they deactivate correctly; in order.
+  vector<std::string> deactivate_controllers(deactivate_controllers_reversed.size());
+  std::reverse_copy(deactivate_controllers_reversed.begin(), deactivate_controllers_reversed.end(),
+                    deactivate_controllers.begin());
+
+  // Given order of activated controllers is already correct
   vector<std::string> activate_controllers = modeToControllers(requested_control_mode);
 
   if (!switch_controller_client->service_is_ready()) {

@@ -1,0 +1,13 @@
+nova_twistmapper:
+  chained_controller_name: {
+    type: string,
+    default_value: "nova_ik_controller",
+    description: "The name of the chainable controller to capture reference interfaces from. Leave empty to use hardware interfaces."
+  }
+
+  # Twistmapper
+  twist_stamped_topic: {
+    type: string,
+    default_value: "/arm_ik_twist_stamped",
+    description: "The name of the topic to get teleop twist stamped messages from."
+  }

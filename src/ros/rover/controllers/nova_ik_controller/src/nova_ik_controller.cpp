@@ -14,12 +14,18 @@
 
 namespace
 {
-  constexpr auto DEFAULT_INPUT_TOPIC_END_EFFECTOR_TWIST = "/arm_ik_twist_stamped"; // TODO: changeme
   /// The inverse of the global orientation the kinematics origin frame wants to rotate to for a roll,pitch,yaw of 0,0,0
   const auto ENDEFFECTOR_BASIS_INVERSE = tf2::Matrix3x3(tf2::Quaternion(-0.5, 0.5, -0.5, -0.5)).inverse();
-  constexpr auto ENDEFFECTOR_KINEMATICS_FRAME = "endeffector_kinematics";
-  constexpr auto KINEMATICS_ORIGIN_FRAME = "arm_kinematics_origin";
-  constexpr auto TWISTMAPPER_TARGET_FRAME = "arm_twistmapper_target";
+
+  constexpr std::array<const char* const, 7> POSE_COMPONENTS = {
+    "x",
+    "y",
+    "z",
+    "qx",
+    "qy",
+    "qz",
+    "qw",
+  };
 } // namespace
 
 using std::placeholders::_1;
@@ -31,7 +37,7 @@ namespace nova_ik_controller
   using controller_interface::InterfaceConfiguration;
   using lifecycle_msgs::msg::State;
 
-  NovaIKController::NovaIKController() : controller_interface::ControllerInterface() {}
+  NovaIKController::NovaIKController() : controller_interface::ChainableControllerInterface() {}
 
   controller_interface::CallbackReturn NovaIKController::on_init()
   {
@@ -68,80 +74,58 @@ namespace nova_ik_controller
     return {interface_configuration_type::INDIVIDUAL, conf_names};
   }
 
-  void NovaIKController::update_twistmapper(const rclcpp::Time &time, const rclcpp::Duration &period) {
-    std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
-    received_twist_stamped_ptr.get(twist_stamped);
+  std::vector<hardware_interface::CommandInterface> NovaIKController::on_export_reference_interfaces() {
 
-    if (twist_stamped == nullptr) {
-      RCLCPP_WARN(get_node()->get_logger(), "Haven't yet received a TwistStamped message to use for the twistmapper.");
-      return;
+    std::vector<hardware_interface::CommandInterface> reference_interfaces;
+    reference_interfaces_.reserve(POSE_COMPONENTS.size());
+
+    for (unsigned int i = 0; i < POSE_COMPONENTS.size(); i++) {
+      const auto name = POSE_COMPONENTS[i];
+      reference_interfaces.push_back(hardware_interface::CommandInterface(get_node()->get_name(), name,
+                                                                          &reference_interfaces_[i]));
     }
 
-    const auto& twist = twist_stamped->twist;
-
-    tf2::Vector3 tf2_twist_angular;
-    tf2::fromMsg(twist.angular, tf2_twist_angular);
-
-    twistmapper_pose_rpy_ = twistmapper_pose_rpy_ + tf2_twist_angular * period.seconds();
-
-    // Create rotation matrix from twist.angular as XYZ euler
-    auto rotation_matrix = tf2::Matrix3x3();
-    /*rotation_matrix.setRPY(
-      twist.angular.x * period.seconds(),
-      twist.angular.y * period.seconds(),
-      twist.angular.z * period.seconds());
-      */
-    rotation_matrix.setRPY(twistmapper_pose_rpy_.x(), twistmapper_pose_rpy_.y(), twistmapper_pose_rpy_.z());
-
-    const auto linear = tf2::Vector3(
-      twist.linear.x * period.seconds(),
-      twist.linear.y * period.seconds(),
-      twist.linear.z * period.seconds());
-
-    // TODO: Test this actually works as expected.
-    // TODO: Add a tf buffer and make use of the header.frame_id from the twist_stamped to allow IK to be done relative to anything. Then Teleop would just need to use the end effector frame by default
-    // TODO: If using tf like this, also have the twistmapper broadcast the target frame, so it can reference itself.
-    twistmapper_pose_.setOrigin(linear + twistmapper_pose_.getOrigin());
-    twistmapper_pose_.setBasis(rotation_matrix);
-
-    // Publish twistmapper pose to tf2
-    geometry_msgs::msg::TransformStamped transform_stamped;
-    transform_stamped.transform = toMsg(twistmapper_pose_);
-    transform_stamped.header.stamp = time;
-
-    // TODO: Parameterize
-    transform_stamped.child_frame_id = TWISTMAPPER_TARGET_FRAME;
-    transform_stamped.header.frame_id = KINEMATICS_ORIGIN_FRAME;
-
-    RCLCPP_INFO_ONCE(get_node()->get_logger(), "Broadcasting twistmapper pose as '%s', child of '%s'.",
-                     transform_stamped.child_frame_id.c_str(),
-                     transform_stamped.header.frame_id.c_str());
-
-    twistmapper_pose_tf_broadcaster_->sendTransform(transform_stamped);
+    return reference_interfaces;
   }
 
-  controller_interface::return_type NovaIKController::update(
+  controller_interface::return_type NovaIKController::update_reference_from_subscribers(
+    const rclcpp::Time &time, const rclcpp::Duration &period) {
+    return controller_interface::return_type::OK;
+  }
+
+  controller_interface::return_type NovaIKController::update_and_write_commands(
       const rclcpp::Time &time, const rclcpp::Duration &period)
   {
     auto logger = get_node()->get_logger();
     if (get_lifecycle_state().id() == State::PRIMARY_STATE_INACTIVE)
     {
-      if (!is_halted)
-      {
-        halt();
-        is_halted = true;
-      }
-
       return controller_interface::return_type::OK;
     }
 
-    update_twistmapper(time, period);
+    // Do nothing if any input is missing or invalid
+    for (auto& reference_value : reference_interfaces_) {
+      if (std::isnan(reference_value)) {
+        RCLCPP_WARN(get_node()->get_logger(), "Missing or NaN input received. Doing nothing.");
+        return controller_interface::return_type::OK;
+      }
+    }
+
+    // Target pose from reference interfaces
+    tf2::Vector3 reference_origin = tf2::Vector3(
+      reference_interfaces_[0],
+      reference_interfaces_[1],
+      reference_interfaces_[2]);
+    tf2::Quaternion reference_quat = tf2::Quaternion(
+      reference_interfaces_[3],
+      reference_interfaces_[4],
+      reference_interfaces_[5],
+      reference_interfaces_[6]);
+    tf2::Transform reference_target_pose = tf2::Transform(reference_quat, reference_origin);
 
     // TODO: Retrieve these values from the robot description, rather than specifying them directly
     // TODO: Or even simpler, just put these in params!!!
     constexpr std::array<double, 3> lengths = {0.5, 0.68332, 0.11073};
-
-    auto joint_angles = calculate_ik(twistmapper_pose_, lengths);
+    auto joint_angles = calculate_ik(reference_target_pose, lengths);
 
     for (unsigned int i = 0; i < joint_angles.size(); i++)
     {
@@ -174,40 +158,8 @@ namespace nova_ik_controller
       return controller_interface::CallbackReturn::ERROR;
     }
 
-    twistmapper_pose_tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(tf2_ros::TransformBroadcaster(*get_node()));
-    tf_buffer_ = std::make_unique<tf2_ros::Buffer>(get_node()->get_clock());
-    tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
-
-    // TODO: insert correct subscriber here
-    twist_stamped_sub = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
-      DEFAULT_INPUT_TOPIC_END_EFFECTOR_TWIST,
-      rclcpp::SystemDefaultsQoS(),
-      [this, logger](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
-      {
-        RCLCPP_INFO_ONCE(logger, "Twist message received.");
-
-        if (!subscriber_is_active_)
-        {
-          RCLCPP_WARN_ONCE(
-            logger, "Can't accept new commands. subscriber is inactive");
-          return;
-        }
-        if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
-        {
-          RCLCPP_WARN_ONCE(
-            logger,
-            "Received message with zero timestamp, setting it to current "
-            "time, this message will only be shown once");
-          msg->header.stamp = get_node()->get_clock()->now();
-        }
-
-        received_twist_stamped_ptr.set(std::move(msg));
-      });
-    subscriber_is_active_ = true;
-
     RCLCPP_INFO(logger, "Created twist stamped subscription");
 
-    previous_update_timestamp_ = get_node()->get_clock()->now();
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -224,41 +176,19 @@ namespace nova_ik_controller
           "Some joint interfaces are non existent");
       return controller_interface::CallbackReturn::ERROR;
     }
-    is_halted = false;
-    subscriber_is_active_ = true;
 
-    try {
-      auto tf_transform = tf_buffer_->lookupTransform(
-        KINEMATICS_ORIGIN_FRAME, ENDEFFECTOR_KINEMATICS_FRAME, tf2::TimePointZero);
-      tf2::fromMsg(tf_transform.transform, twistmapper_pose_);
+    // Reset reference interfaces
+    // https://github.com/ros-controls/ros2_control_demos/blob/f09c24040243973d48f7a102afc70559b2dc3908/example_12/controllers/src/passthrough_controller.cpp#L115
+    std::fill(
+      reference_interfaces_.begin(), reference_interfaces_.end(),
+      std::numeric_limits<double>::quiet_NaN());
 
-      double roll, pitch, yaw;
-      twistmapper_pose_.getBasis().getRPY(roll, pitch, yaw);
-
-      twistmapper_pose_rpy_.setX(roll);
-      twistmapper_pose_rpy_.setY(pitch);
-      twistmapper_pose_rpy_.setZ(yaw);
-    } catch (const tf2::TransformException & ex) {
-      RCLCPP_INFO(
-        get_node()->get_logger(), "Could not transform %s to %s: %s",
-        ENDEFFECTOR_KINEMATICS_FRAME, KINEMATICS_ORIGIN_FRAME, ex.what());
-      return controller_interface::CallbackReturn::FAILURE;
-    }
-
-    // TODO: setup sub and pub
-    RCLCPP_DEBUG(get_node()->get_logger(), "Subscriber and publisher are now active.");
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
   controller_interface::CallbackReturn NovaIKController::on_deactivate(
       const rclcpp_lifecycle::State &)
   {
-    subscriber_is_active_ = false;
-    if (!is_halted)
-    {
-      halt();
-      is_halted = true;
-    }
     registered_joint_handles_.clear();
 
     return controller_interface::CallbackReturn::SUCCESS;
@@ -286,10 +216,6 @@ namespace nova_ik_controller
 
   bool NovaIKController::reset()
   {
-    // release the old queue
-    subscriber_is_active_ = false;
-
-    is_halted = false;
     return true;
   }
 
@@ -297,21 +223,6 @@ namespace nova_ik_controller
       const rclcpp_lifecycle::State &)
   {
     return controller_interface::CallbackReturn::SUCCESS;
-  }
-
-  void NovaIKController::halt()
-  {
-    // Set twistmapper velocities to 0
-    std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
-    received_twist_stamped_ptr.get(twist_stamped);
-
-    twist_stamped->twist.linear.x = 0;
-    twist_stamped->twist.linear.y = 0;
-    twist_stamped->twist.linear.z = 0;
-
-    twist_stamped->twist.angular.x = 0;
-    twist_stamped->twist.angular.y = 0;
-    twist_stamped->twist.angular.z = 0;
   }
 
   std::string NovaIKController::joint_to_command_interface_name(const std::string& joint_name) const {
@@ -437,9 +348,14 @@ namespace nova_ik_controller
     std::array<double, 6> new_joints = { -j1, -j2bo, -j3bo, -j4, -j5, -j6 };
     return new_joints;
   }
+
+  bool NovaIKController::on_set_chained_mode(bool chained_mode) {
+    // This method is called when the chained mode is set.
+    return true;
+  }
 } // namespace nova_ik_controller
 
 #include "class_loader/register_macro.hpp"
 
 CLASS_LOADER_REGISTER_CLASS(
-    nova_ik_controller::NovaIKController, controller_interface::ControllerInterface)
+    nova_ik_controller::NovaIKController, controller_interface::ChainableControllerInterface)

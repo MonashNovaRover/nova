@@ -54,8 +54,7 @@ namespace teleop_arm_joy
    * @class TeleopArmJoy
    * @brief Class for handling joystick input and publishing arm commands.
    */
-  class TeleopArmJoy : public rclcpp::Node
-  {
+class TeleopArmJoy : public rclcpp::Node {
   public:
     /**
      * @brief Constructor for TeleopArmJoy.
