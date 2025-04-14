@@ -1,5 +1,4 @@
 import React from "react";
-import PlatformWidget from "../../components/PlatformWidget/PlatformWidget";
 import HydroprobeWidget from "../../components/HydroprobeWidget/HydroprobeWidget";
 import CarouselWidget from "../../components/CarouselWidget/CarouselWidget";
 import TOFHeight from "../../components/AnalysisPlatformHeight/AnalysisPlatformHeight";
@@ -11,21 +10,32 @@ import DriveSpeedWidget from "../../components/DriveSpeedWidget/DriveSpeedWidget
 import GenericSetBoolWidget from "../../components/GenericSetBoolWidget/GenericSetBoolWidget.tsx";
 import {RosService} from "../../ros/services/rosService.ts";
 
-
 const URCScienceView: React.FC = () => {
   return (
-    <div className="grid w-full h-full gap-3 p-3 grid-cols-6">
-      <HydroprobeWidget className="row-start-1 w-full col-span-2 row-span-1"/>
-      <TOFHeight className="row-start-1 w-full col-span-1 row-span-1"/>
-      <BMESensor className="row-start-1 w-full col-span-1 row-span-1"/>
-      <PlatformWidget className="row-start-2 w-full col-span-2 row-span-2"/>
-      <CarouselWidget className="row-start-2 w-full col-span-2 row-span-2"/>
-      <PumpsWidget className="row-start-4 w-full col-span-2 row-span-2"/>
-      <DriveModeWidget className="row-start-1 w-full col-span-2 row-span-1"/>
-      <WheelTelemetryWidget className="row-start-2 w-full col-span-2"/>
-      <DriveSpeedWidget className="row-start-3 col-start-5 w-full col-span-2 row-span-1"/>
-      <GenericSetBoolWidget className="row-start-4 w-full col-span-1 row-span-1" label="Cache" service={RosService.CACHE}/>
-      <GenericSetBoolWidget className="row-start-4 w-full col-span-1 row-span-1" label="Heater" service={RosService.HEATER}/>
+    <div className="grid grid-flow-col auto-cols-fr gap-3 m-3">
+      <div className="flex flex-col gap-3 col-span-2">
+        <HydroprobeWidget/>
+        <PumpsWidget/>
+      </div>
+
+      <div className="flex flex-col gap-3 col-span-2">
+        <div className="flex flex-row gap-3">
+          <TOFHeight className="grow"/>
+          <BMESensor className="grow"/>
+        </div>
+        <CarouselWidget/>
+        <div className="flex flex-row gap-3">
+          <GenericSetBoolWidget className="w-full" label="Cache" service={RosService.CACHE}/>
+          <GenericSetBoolWidget className="w-full" label="Heater" service={RosService.HEATER}/>
+          <GenericSetBoolWidget className="w-full" label="Mixers" service={RosService.MIXERS}/>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 col-span-2">
+        <DriveModeWidget/>
+        <WheelTelemetryWidget/>
+        <DriveSpeedWidget/>
+      </div>
     </div>
   );
 };
