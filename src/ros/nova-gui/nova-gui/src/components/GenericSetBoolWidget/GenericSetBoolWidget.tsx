@@ -29,9 +29,9 @@ const GenericSetBoolWidget: React.FC<GenericSetBoolWidgetProps> = (props) => {
   }
 
   return <Card {...props}>
-    <CardHeader>{props.label ?? props.service}</CardHeader>
-    <CardBody>
-      <Switch isSelected={isOn} onChange={() => changeValue(!isOn)}/>
+    <CardHeader className="justify-center">{props.label ?? props.service}</CardHeader>
+    <CardBody className="items-center">
+      <Switch size="lg" isSelected={isOn} onChange={() => changeValue(!isOn)}/>
     </CardBody>
   </Card>
 }
