@@ -480,45 +480,6 @@ self: super:
             dwb-plugins = fixNav2Package rosSuper.dwb-plugins;
           }
         )
-        // (
-          let
-            replaceUbloxSrc = pkg: pkg.overrideAttrs ({ src, version, ... }: {
-              src = self.fetchFromGitHub {
-                owner = "vic-bart";
-                repo = "ublox_dgnss";
-                rev = "1cf2a02a7befd74ba6deb86dd91016cae5dbd690";
-                hash = "sha256-AoY48EZjShgXsXXYysGQ5rG+/T5YRXXe8XvDYuqR8XM=";
-              };
-
-              version = "0.5.4-r2";
-            });
-          in
-          {
-            ntrip-client-node = (replaceUbloxSrc rosSuper.ntrip-client-node).overrideAttrs ({ ... }: {
-              sourceRoot = "source/ntrip_client_node";
-            });
-
-            ublox-dgnss = (replaceUbloxSrc rosSuper.ublox-dgnss).overrideAttrs ({ ... }: {
-              sourceRoot = "source/ublox_dgnss";
-            });
-
-            ublox-dgnss-node = (replaceUbloxSrc rosSuper.ublox-dgnss-node).overrideAttrs ({ ... }: {
-              sourceRoot = "source/ublox_dgnss_node";
-            });
-
-            ublox-nav-sat-fix-hp-node = (replaceUbloxSrc rosSuper.ublox-nav-sat-fix-hp-node).overrideAttrs ({ ... }: {
-              sourceRoot = "source/ublox_nav_sat_fix_hp_node";
-            });
-
-            ublox-ubx-interfaces = (replaceUbloxSrc rosSuper.ublox-ubx-interfaces).overrideAttrs ({ ... }: {
-              sourceRoot = "source/ublox_ubx_interfaces";
-            });
-
-            ublox-ubx-msgs = (replaceUbloxSrc rosSuper.ublox-ubx-msgs).overrideAttrs ({ ... }: {
-              sourceRoot = "source/ublox_ubx_msgs";
-            });
-          }
-        )
       )
 
       # Overlays for individual ROS distros.
