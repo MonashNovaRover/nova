@@ -126,28 +126,23 @@ class RFIDService(Node):
     
     def read_data(self) -> str:
         '''
-        Read transmitted data terminated with EOM
+        Read raw binary data from serial until EOM_CHAR.
         '''
-        # read until EOM
-        self.get_logger().debug('Reading data')
-
-        # input_buffer_length = self.ser.in_waiting
-        # data = self.ser.read(size=input_buffer_length)
-        #data = data.strip(self.EOM) # remove EOM from response
-        # data = data.strip(b'\0') # strip any null chars from data
-        # self.get_logger().debug('data')
-
-        # print(data) #print raw bytes
-
-        # return as string
         try:
-            return "e"# str(data)
-        except Exception:
-            self.get_logger().error('Failed to decode RFID arduino response')
-            # dump raw hex to logger
-            #self.get_logger().error(f'Raw data: {data}')
-            return 'Service error: Failed to decode message'
+            data = bytearray()
+            while True:
+                byte = self.ser.read(1)
+                if byte == self.EOM or byte == b'':
+                    break
+                data.extend(byte)
 
+            # Log raw hex for debugging
+            self.get_logger().debug(f'Raw RFID response: {data.hex()}')
+
+            return data.decode('latin1')  # safe 1:1 byte mapping, nulls included
+        except Exception as e:
+            self.get_logger().error(f'Failed to read RFID response: {e}')
+            return ''
 
     def get_command_from_arduino(self):
         if self.ser.in_waiting > 0:
@@ -224,19 +219,18 @@ class RFIDService(Node):
     def on_received_data(self, data):
         data_values = data.strip().split(' ')
 
-        # Try convert
         def process_hex(value: str) -> str:
             try:
-                return chr(int(value, 16))
+                char = chr(int(value, 16))
+                if char == '\x00':
+                    return ''  # Disregard null bytes
+                return char
             except:
                 self.get_logger().warn(f"Tried to parse \"{quote(value)}\" as hex value when reading data.")
-                return '\0'
+                return ''
 
         chars = [process_hex(x) for x in data_values]
-        txt = ''.join(chars)
-
-        txt = txt.strip()
-        txt = txt.strip('\0').rstrip()
+        txt = ''.join(chars).strip()  # Assembled text without nulls
 
         self.get_logger().info(f"data: \"{txt}\".")
 
@@ -244,7 +238,6 @@ class RFIDService(Node):
         msg.data = txt
 
         self.data_publisher.publish(msg)
-
         return msg
 
     def write_msg(self, msg: str):

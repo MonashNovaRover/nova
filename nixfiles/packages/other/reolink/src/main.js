@@ -8,17 +8,14 @@ var HOSTNAME = '10.0.1.100',
 	PORT = 80,
 	USERNAME = 'admin',
 	PASSWORD = 'Lab188b37', // TODO: remove password somehow
-	STOP_DELAY_MS = 200,
-  SPEED = 1,
-  AUTO_TIMING = 6000;
+	STOP_DELAY_MS = 200
 
 var Cam = require('onvif').Cam;
 var keypress = require('keypress');
 
 var autoMode = false;
-var autoDir = -1;
 var auto_timer;
-var auto_count = 0; // how many move cmds left till we turn
+var auto_count;
 
 
 new Cam({
@@ -37,10 +34,61 @@ new Cam({
 	var ignore_keypress = false;
 
   var velocity = {
-    X: 0,
-    Y: 0,
-    Zoom: 0
+    x: 0,
+    y: 0,
+    zoom: 0
   }
+
+  var left = { ...velocity, x: -1};
+  var right = { ...velocity, x: 1};
+  var up = { ...velocity, y: 1};
+  var down = { ...velocity, y: -1};
+
+  // TODO DRY
+  autoSequence = [
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: left, time: 600},
+    {vel: up, time: 800},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: right, time: 600},
+    {vel: down, time: 1000}
+  ];
 
   var stop_timer;
 
@@ -80,6 +128,9 @@ new Cam({
 			/* Exit on 'q' or 'Q' or 'CTRL C' */
 			if ((key && key.ctrl && key.name == 'c')
 				|| (key && key.name == 'q')) {
+        autoMode = false;
+          schedule_auto_timer(); // will cancel it
+        stop();
 				process.exit();
 			}
 
@@ -88,9 +139,9 @@ new Cam({
 			}
 
       var new_velocity = {
-        X: 0,
-        Y: 0,
-        Zoom: 0
+        x: 0,
+        y: 0,
+        zoom: 0
       }
 
 			// On English keyboards '+' is "Shift and = key"
@@ -98,54 +149,60 @@ new Cam({
       // TODO: flip controls if upside down? Easiest way would be to negate speed
       // although that won't work for zoom.
 			if (key && key.name == 'up') {
-        new_velocity.Y = SPEED;
+        new_velocity = up;
 			} else if (key && key.name == 'down') {
-        new_velocity.Y = -SPEED;
+        new_velocity = down;
 			} else if (key && key.name == 'left') {
-        new_velocity.X = -SPEED;
+        new_velocity = left;
 			} else if (key && key.name == 'right') {
-        new_velocity.X = SPEED;
+        new_velocity = right;
 			} else if (ch  && ch       == '-') {
-        new_velocity.Zoom = -SPEED;
+        new_velocity.zoom = -1;
 			} else if (ch  && ch       == '+') {
-        new_velocity.Zoom = SPEED;
+        new_velocity.zoom = 1;
 			} else if (ch  && ch       == '=') {
-        new_velocity.Zoom = SPEED;
+        new_velocity.zoom = 1;
 			} else if (ch && ch        == 'a') {
         autoMode = !autoMode;
         console.log("Auto Mode", autoMode);
         if (autoMode) {
+          auto_count = 0;
           auto_cb();
+        } else {
+          schedule_auto_timer(); // will cancel it
+          stop();
         }
       }
-      // TODO: focus control? -- if you zoom, then wait a little it will autofocus
       if (!autoMode) {
         move(new_velocity);
       }
 		});
 	}
 
-  function schedule_auto_timer() {
-    if (autoMode) {
-		  if (auto_timer) {clearTimeout(auto_timer);}
-		  auto_timer = setTimeout(auto_cb,STOP_DELAY_MS/2);
+  function schedule_auto_timer(time) {
+         if (auto_timer) {
+            clearTimeout(auto_timer);
+         }
+		  if (autoMode) {
+         if (auto_timer) {
+            clearTimeout(auto_timer);
+         }
+		  auto_timer = setTimeout(auto_cb,time);
     }
-
   }
+
   function auto_cb() {
-      var new_velocity = {
-        X: autoDir * SPEED,
-        Y: 0,
-        Zoom: 0
+
+		cam_obj.continuousMove(autoSequence[auto_count].vel ,
+		// completion callback function
+		function(err, stream, xml) {
+			if (err) {
+				console.log(err);
+			} else {
+        schedule_auto_timer(autoSequence[auto_count].time);
+        auto_count = (auto_count + 1) % autoSequence.length;
       }
-    if (auto_count) {
-      auto_count = auto_count -1;
-    } else {
-      auto_count = 2*AUTO_TIMING / STOP_DELAY_MS;
-      autoDir = -autoDir;
-    }
-    move(new_velocity);
-    schedule_auto_timer();
+		});
   }
 
   function clear_stop() {
@@ -171,7 +228,7 @@ new Cam({
       return;
     }
 
-    velocity = new_velocity;
+    velocity = {...new_velocity};
 
 		// Pause keyboard processing
 		ignore_keypress = true;
@@ -180,9 +237,7 @@ new Cam({
     clear_stop()
 
 		// Move the camera
-		cam_obj.continuousMove({x: velocity.X,
-			y: velocity.Y,
-			zoom: velocity.Zoom } ,
+		cam_obj.continuousMove(velocity,
 		// completion callback function
 		function(err, stream, xml) {
 			if (err) {

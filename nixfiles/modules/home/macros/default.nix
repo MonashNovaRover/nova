@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   cfg = config.nova.macros;
@@ -26,131 +31,139 @@ in
     '';
 
     home = {
-      shellAliases =
-        lib.mkMerge [
-          pkgs.nova.nova.config.shellAliases
-          rec {
-            # Nix CLI shortcuts
-            nova-build = "nix-build ${cfg.nixfileDir}";
-            nova-shell = "nix-shell ${cfg.nixfileDir}";
-            ws-build = "${nova-build} -A pkgs.ros.nova-workspace";
-            ws-shell = "${nova-shell} -A pkgs.ros.nova-workspace.env";
+      shellAliases = lib.mkMerge [
+        pkgs.nova.nova.config.shellAliases
+        rec {
+          # Nix CLI shortcuts
+          nova-build = "nix-build ${cfg.nixfileDir}";
+          nova-shell = "nix-shell ${cfg.nixfileDir}";
+          ws-build = "${nova-build} -A pkgs.ros.nova-workspace";
+          ws-shell = "${nova-shell} -A pkgs.ros.nova-workspace.env";
 
-            # Directory aliases
-            nova = "cd ${cfg.sourceDir}/..";
-            nixfiles = "cd ${cfg.nixfileDir}";
-            rover = "${nova}/src/ros/rover";
-            core = "${nova}/src/ros/rover/core";
-            control = "${nova}/src/ros/rover/control";
-            electronics = "${nova}/src/ros/rover/electronics";
-            elec = electronics;
-            visualisation = "${nova}/src/ros/visualisation";
-            visualization = visualisation;
-            vis = visualisation;
-            viz = visualisation;
-            science = "${nova}/src/ros/rover/science";
-            camerasdir = "${nova}/src/ros/cameras2";
-            autonomous = "${nova}/src/ros/rover/autonomous";
-            auto = autonomous;
-            gui = "${nova}/src/ros/nova-gui";
-            tutorials = "${nova}/src/ros/tutorials";
-            pic = "${nova}/src/other/pics";
-            pics = pic;
-            arduino = "${nova}/src/other/arduinos";
-            arduinos = arduino;
-            ik = "${nova}/src/other/ik_machine";
-            coms = "${nova}/src/other/coms_utils";
+          # Directory aliases
+          nova = "cd ${cfg.sourceDir}/..";
+          nixfiles = "cd ${cfg.nixfileDir}";
+          rover = "${nova}/src/ros/rover";
+          core = "${nova}/src/ros/rover/core";
+          control = "${nova}/src/ros/rover/control";
+          electronics = "${nova}/src/ros/rover/electronics";
+          elec = electronics;
+          visualisation = "${nova}/src/ros/visualisation";
+          visualization = visualisation;
+          vis = visualisation;
+          viz = visualisation;
+          science = "${nova}/src/ros/rover/science";
+          camerasdir = "${nova}/src/ros/cameras2";
+          autonomous = "${nova}/src/ros/rover/autonomous";
+          auto = autonomous;
+          gui = "${nova}/src/ros/nova-gui";
+          tutorials = "${nova}/src/ros/tutorials";
+          pic = "${nova}/src/other/pics";
+          pics = pic;
+          arduino = "${nova}/src/other/arduinos";
+          arduinos = arduino;
+          ik = "${nova}/src/other/ik_machine";
+          coms = "${nova}/src/other/coms_utils";
 
-            # Networking aliases
-            jetson = "ssh -Y nvidia@10.0.0.10";
-            jetson-wifi = "ssh -Y nvidia@tegra-ubuntu";
-            orin = "ssh -Y nova@10.0.0.11";
-            orin-devkit-1 = "ssh -Y nova@orin-devkit-1";
-            J1 = "ssh -Y nvidia@10.0.2.21";
-            J2 = "ssh -Y nvidia@10.0.2.22";
-            J3 = "ssh -Y nvidia@10.0.2.23";
-            N1 = "ssh -Y nova@10.0.2.11";
-            N2 = "ssh -Y nova@10.0.2.12";
-            N3 = "ssh -Y nova@10.0.2.13";
+          # Networking aliases
+          jetson = "ssh -Y nvidia@10.0.0.10";
+          jetson-wifi = "ssh -Y nvidia@tegra-ubuntu";
+          orin = "ssh -Y nova@10.0.0.11";
+          orin-devkit-1 = "ssh -Y nova@orin-devkit-1";
+          J1 = "ssh -Y nvidia@10.0.2.21";
+          J2 = "ssh -Y nvidia@10.0.2.22";
+          J3 = "ssh -Y nvidia@10.0.2.23";
+          N1 = "ssh -Y nova@10.0.2.11";
+          N2 = "ssh -Y nova@10.0.2.12";
+          N3 = "ssh -Y nova@10.0.2.13";
 
-            # Application aliases
-            code = "codium";
-            urdf-tool = "nix-shell ${cfg.nixfileDir}/home/macros/urdf-tool.nix";
+          # Application aliases
+          code = "codium";
+          urdf-tool = "nix-shell ${cfg.nixfileDir}/home/macros/urdf-tool.nix";
 
-            # Stubs to ease migration
-            setup = ''echo 'The setup alias is no longer necessary. To try new changes, please use "ws-build" or "nixos-rebuild" instead.' #'';
-            check = ''echo 'The check alias is no longer relevant. Use "journalctl -u <service>" instead.' #'';
-            stop = ''echo 'The stop alias is no longer relevant. Use "systemctl stop <service>" instead.' #'';
-            restart = ''echo 'The restart alias is no longer relevant. Use "systemctl restart <service>" instead.' #'';
-            wifi = ''echo 'The wifi alias is no longer relevant. Use "nmtui" or "nmcli" instead.' #'';
+          # Stubs to ease migration
+          setup = ''echo 'The setup alias is no longer necessary. To try new changes, please use "ws-build" or "nixos-rebuild" instead.' #'';
+          check = ''echo 'The check alias is no longer relevant. Use "journalctl -u <service>" instead.' #'';
+          stop = ''echo 'The stop alias is no longer relevant. Use "systemctl stop <service>" instead.' #'';
+          restart = ''echo 'The restart alias is no longer relevant. Use "systemctl restart <service>" instead.' #'';
+          wifi = ''echo 'The wifi alias is no longer relevant. Use "nmtui" or "nmcli" instead.' #'';
 
-            # Nano v Vim
-            set_vim = "export EDITOR=vim";
-            set_nano = "export EDITOR=nano";
+          # Nano v Vim
+          set_vim = "export EDITOR=vim";
+          set_nano = "export EDITOR=nano";
 
-            # ROS Discovery Server
-            base_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_client_configuration.xml}";
-            rover_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/rover_client_configuration.xml}";
-            base_pi_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_pi_client_configuration.xml}";
-            base_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_super_client_configuration.xml}";
-            rover_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/rover_super_client_configuration.xml}";
-            base_pi_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_pi_super_client_configuration.xml}";
+          # ROS Discovery Server
+          base_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_client_configuration.xml}";
+          rover_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/rover_client_configuration.xml}";
+          base_pi_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_pi_client_configuration.xml}";
+          base_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_super_client_configuration.xml}";
+          rover_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/rover_super_client_configuration.xml}";
+          base_pi_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_pi_super_client_configuration.xml}";
 
-            # Hydra aliases
-            hydra-vomit = "${pkgs.bash}/bin/bash ${../../../scripts/hydra-vomit.sh}";
+          # Hydra aliases
+          hydra-vomit = "${pkgs.bash}/bin/bash ${../../../scripts/hydra-vomit.sh}";
 
-            # Launch rover or payloads
-            rover-help = "more ${cfg.nixfileDir}/doc/rover-help.md";
-            launch-base = "~/Builds/master/bin/ros2 launch nova_bringup base.launch.py";
-            launch-drive = "~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py";
-            launch-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
-            launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
-            launch-science-arc = "~/Builds/master/bin/ros2 launch nova_bringup arc_science.launch.py";
-            launch-science-urc = "~/Builds/master/bin/ros2 launch nova_bringup urc_science.launch.py";
+          # Launch rover or payloads
+          rover-help = "more ${cfg.nixfileDir}/doc/rover-help.md";
+          launch-base = "~/Builds/master/bin/ros2 launch nova_bringup base.launch.py";
+          launch-drive = "~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py";
+          launch-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
+          launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
+          launch-science-arc = "~/Builds/master/bin/ros2 launch nova_bringup arc_science.launch.py";
+          launch-science-urc = "~/Builds/master/bin/ros2 launch nova_bringup urc_science.launch.py";
 
-            # Cameras
-            launch-cameras = "~/Builds/master/bin/ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params'";
-            launch-cameras-all = "${launch-cameras} autostart:=true";
-            reolink = "${pkgs.bash}/bin/bash ${../../../scripts/reolink.sh}";
+          # Cameras
+          launch-cameras = "~/Builds/master/bin/ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params'";
+          launch-cameras-all = "${launch-cameras} autostart:=true";
+          reolink = "${pkgs.bash}/bin/bash ${../../../scripts/reolink.sh}";
 
-            # Setup rover
-            zero-arm = "${pkgs.bash}/bin/bash ${../../../scripts/zero-arm.sh}";
-            zero-pivots = "${pkgs.bash}/bin/bash ${../../../scripts/zero-pivots.sh}";
-            list-blcmds = "more ${cfg.nixfileDir}/doc/blcmd-ids.md";
-            
-            # Shell
-            predict-shell = "nix-shell ~/nova/src/other/ilmenite_ml";
+          # Setup rover
+          zero-arm = "${pkgs.bash}/bin/bash ${../../../scripts/zero-arm.sh}";
+          zero-pivots = "${pkgs.bash}/bin/bash ${../../../scripts/zero-pivots.sh}";
+          list-blcmds = "more ${cfg.nixfileDir}/doc/blcmd-ids.md";
+          
+          # Shell
+          predict-shell = "nix-shell ~/nova/src/other/ilmenite_ml";
 
-            # GUI
-            gui-shell = "nova-shell -A pkgs.ros.nova-gui";
-            gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" ~/nova/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts";
-            gui-rosbridge = "~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
-            gui-run = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui dev";
+          # GUI
+          gui-shell = "nova-shell -A pkgs.ros.nova-gui";
+          gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" ~/nova/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts";
+          gui-rosbridge = "~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
+          gui-run = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui dev";
 
-            # LEDs
-            leds-red = "cansend can0 095#0100";
-            leds-green = "cansend can0 095#0200";
-            leds-blue = "cansend can0 095#0300";
-            leds-pink = "cansend can0 096#";
-            leds-100 = "cansend can0 091#8000";
-            leds-75 = "cansend can0 091#6000";
-            leds-50 = "cansend can0 091#4000";
-            leds-off = "cansend can0 091#0000";
+          # LEDs
+          leds-red = "cansend can0 095#0100";
+          leds-green = "cansend can0 095#0200";
+          leds-blue = "cansend can0 095#0300";
+          leds-pink = "cansend can0 096#";
+          leds-100 = "cansend can0 091#8000";
+          leds-75 = "cansend can0 091#6000";
+          leds-50 = "cansend can0 091#4000";
+          leds-off = "cansend can0 091#0000";
 
-            # Bonus
-            cop-mode-on = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} on";
-            cop-mode-off = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} off";
-            shitdown = "shutdown now";
-            diddy = "sudo shitdown";
+          # Bonus
+          cop-mode-on = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} on";
+          cop-mode-off = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} off";
+          shitdown = "shutdown now";
+          diddy = "sudo shitdown";
 
-            # Temporary aliases (remove when a better solution has been implemented)
-            cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
-            cameras-orin = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
-            nix-enable = "sudo systemctl enable nix-daemon.service";
-            nix-start = "sudo systemctl start nix-daemon.service";
+          # Temporary aliases (remove when a better solution has been implemented)
+          cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
+          cameras-orin = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
+          nix-enable = "sudo systemctl enable nix-daemon.service";
+          nix-start = "sudo systemctl start nix-daemon.service";
 
-          }
-        ];
+          # Auto Aliases
+          launch-control = "~/Builds/auto/bin/ros2 launch auto_bringup control.launch.py";
+          launch-oaks = "~/Builds/auto/bin/ros2 launch auto_bringup camera.launch.py";
+          launch-localization = "~/Builds/auto/bin/ros2 launch auto_bringup localization.launch.py";
+          launch-rtabmap = "~/Builds/auto/bin/ros2 launch auto_bringup rtabmap.launch.py";
+          launch-nav = "~/Builds/auto/bin/ros2 launch auto_bringup navigation.launch.py";
+          launch-teleop = "~/Builds/auto/bin/ros2 launch telop_drive_joy teleop.launch.py";
+          launch-rviz = "~/Builds/auto/bin/ros2 launch auto_bringup rviz.launch.py";
+
+        }
+      ];
 
       packages = with pkgs.nova-scripts; [
         can
@@ -166,21 +179,26 @@ in
     #  };
     #  Service = {
     #    ExecStart = "${pkgs.writeShellScript "start-gpsd" ''
-    #      gpsd -nG /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0 
+    #      gpsd -nG /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0
     #    ''}";
     #  };
     #};
 
     nixpkgs.overlays = [
-      (self: super: with self; {
-        nova-scripts = self.lib.makeScope self.newScope (novaSelf: {
-          can = writeShellApplication {
-            name = "can";
-            runtimeInputs = [ kmod iproute2 ];
-            text = builtins.readFile ./can.sh;
-          };
-        });
-      })
+      (
+        self: super: with self; {
+          nova-scripts = self.lib.makeScope self.newScope (novaSelf: {
+            can = writeShellApplication {
+              name = "can";
+              runtimeInputs = [
+                kmod
+                iproute2
+              ];
+              text = builtins.readFile ./can.sh;
+            };
+          });
+        }
+      )
     ];
   };
 }

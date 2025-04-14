@@ -7,7 +7,7 @@ Panels:
         - /TF1/Frames1
         - /TF1/Tree1
       Splitter Ratio: 0.5833333134651184
-    Tree Height: 256
+    Tree Height: 822
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -43,7 +43,7 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 0.499999988079071
+    - Alpha: 0.5
       Binary representation: false
       Binary threshold: 100
       Class: rviz_default_plugins/Map
@@ -91,7 +91,7 @@ Visualization Manager:
       Value: true
     - Alpha: 1
       Class: rviz_default_plugins/RobotModel
-      Collision Enabled: false
+      Collision Enabled: true
       Description File: ""
       Description Source: Topic
       Description Topic:
@@ -107,177 +107,14 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        bl_ankle:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        bl_ball:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        bl_ball_dummy:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        bl_wheel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        br_ankle:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        br_ball:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        br_ball_dummy:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        br_wheel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_link_optical:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        chassis:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        diffbar:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        fl_ankle:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        fl_wheel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        fr_ankle:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        fr_wheel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        gps:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_diffend_dummy:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_difflink:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_leg:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        oak-d_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        oak_imu_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        oak_left_camera_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        oak_left_camera_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        oak_model_origin:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        oak_rgb_camera_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        oak_rgb_camera_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        oak_right_camera_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        oak_right_camera_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_diffend_dummy:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_difflink:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_leg:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        tl_ball:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        tl_ball_dummy:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        tr_ball:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        tr_ball_dummy:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
       Mass Properties:
         Inertia: false
         Mass: false
       Name: RobotModel
       TF Prefix: ""
       Update Interval: 0
-      Value: true
-      Visual Enabled: true
+      Value: false
+      Visual Enabled: false
     - Class: rviz_default_plugins/TF
       Enabled: true
       Filter (blacklist): ""
@@ -295,6 +132,28 @@ Visualization Manager:
           Value: true
         bl_wheel:
           Value: true
+        bootie-base-frame:
+          Value: true
+        bootie_imu_frame:
+          Value: true
+        bootie_left_camera_frame:
+          Value: true
+        bootie_left_camera_optical_frame:
+          Value: true
+        bootie_link:
+          Value: true
+        bootie_link_optical:
+          Value: true
+        bootie_model_origin:
+          Value: true
+        bootie_rgb_camera_frame:
+          Value: true
+        bootie_rgb_camera_optical_frame:
+          Value: true
+        bootie_right_camera_frame:
+          Value: true
+        bootie_right_camera_optical_frame:
+          Value: true
         br_ankle:
           Value: true
         br_ball:
@@ -303,12 +162,18 @@ Visualization Manager:
           Value: true
         br_wheel:
           Value: true
+        camera_holder_back:
+          Value: true
+        camera_holder_front:
+          Value: true
         camera_link:
           Value: false
         camera_link_optical:
           Value: true
         chassis:
           Value: false
+        clam:
+          Value: true
         diffbar:
           Value: true
         fl_ankle:
@@ -329,8 +194,10 @@ Visualization Manager:
           Value: false
         map:
           Value: true
-        oak-d_frame:
-          Value: false
+        mount:
+          Value: true
+        oak-base-frame:
+          Value: true
         oak_imu_frame:
           Value: false
         oak_left_camera_frame:
@@ -373,23 +240,44 @@ Visualization Manager:
           odom:
             base_link:
               chassis:
-                camera_link:
-                  camera_link_optical:
-                    {}
-                  oak-d_frame:
-                    oak_left_camera_frame:
-                      oak_imu_frame:
-                        {}
-                      oak_left_camera_optical_frame:
-                        {}
-                    oak_model_origin:
-                      {}
-                    oak_rgb_camera_frame:
-                      oak_rgb_camera_optical_frame:
-                        {}
-                    oak_right_camera_frame:
-                      oak_right_camera_optical_frame:
-                        {}
+                clam:
+                  mount:
+                    camera_holder_back:
+                      bootie_link:
+                        bootie-base-frame:
+                          bootie_left_camera_frame:
+                            bootie_imu_frame:
+                              {}
+                            bootie_left_camera_optical_frame:
+                              {}
+                          bootie_model_origin:
+                            {}
+                          bootie_rgb_camera_frame:
+                            bootie_rgb_camera_optical_frame:
+                              {}
+                          bootie_right_camera_frame:
+                            bootie_right_camera_optical_frame:
+                              {}
+                        bootie_link_optical:
+                          {}
+                    camera_holder_front:
+                      camera_link:
+                        camera_link_optical:
+                          {}
+                        oak-base-frame:
+                          oak_left_camera_frame:
+                            oak_imu_frame:
+                              {}
+                            oak_left_camera_optical_frame:
+                              {}
+                          oak_model_origin:
+                            {}
+                          oak_rgb_camera_frame:
+                            oak_rgb_camera_optical_frame:
+                              {}
+                          oak_right_camera_frame:
+                            oak_right_camera_optical_frame:
+                              {}
                 diffbar:
                   tl_ball:
                     tl_ball_dummy:
@@ -421,6 +309,8 @@ Visualization Manager:
                       {}
               gps:
                 {}
+          white_cube:
+            {}
       Update Interval: 0
       Value: true
     - Class: rviz_common/Group
@@ -628,6 +518,18 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /goals
       Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: MarkerArray
+      Namespaces:
+        detected_cubes: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /yolo/cubes
+      Value: true
     - Class: rviz_default_plugins/Image
       Enabled: false
       Max Value: 1
@@ -781,7 +683,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 12.60147476196289
+      Distance: 10.407072067260742
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -796,10 +698,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5703989863395691
+      Pitch: 0.3453994691371918
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz_default_plugins)
-      Yaw: 3.368565320968628
+      Yaw: 3.1785783767700195
     Saved:
       - Class: rviz_default_plugins/ThirdPersonFollower
         Distance: 10
@@ -833,7 +735,7 @@ Window Geometry:
     collapsed: false
   Navigation 2:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd00000004000000000000015600000395fc020000000cfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005d00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003f00000140000000cc00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb00000018004e0061007600690067006100740069006f006e0020003201000001850000024f000001f800fffffffb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000000000000000fb0000000a0049006d00610067006500000003b60000005c0000001700fffffffb0000000a00440065007000740068000000040d0000007d0000001700ffffff000000010000010000000395fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003f00000395000000a900fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004420000003efc0100000002fb0000000800540069006d00650100000000000004420000000000000000fb0000000800540069006d00650100000000000004500000000000000000000004ce0000039500000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000004000000000000024100000395fc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005d00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003f00000395000002170100001efa000000010100000002fb00000018004e0061007600690067006100740069006f006e002000320100000000ffffffff0000013a00fffffffb000000100044006900730070006c0061007900730100000000000001560000015600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000000000000000fb0000000a0049006d006100670065000000025c000001780000001700fffffffb0000000a00440065007000740068000000040d0000007d0000001700ffffff000000010000010000000395fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003f00000395000000a900fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004420000003efc0100000002fb0000000800540069006d00650100000000000004420000000000000000fb0000000800540069006d00650100000000000004500000000000000000000003e30000039500000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Tool Properties:

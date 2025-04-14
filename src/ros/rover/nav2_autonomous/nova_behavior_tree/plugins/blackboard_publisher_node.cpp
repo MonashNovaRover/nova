@@ -1,8 +1,10 @@
-#include "nova_behavior_tree/blackboard_publisher_node.hpp"
+#include <chrono>
+
 #include "behaviortree_cpp/bt_factory.h"
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <nav_msgs/msg/path.hpp>
 
+#include "nova_behavior_tree/blackboard_publisher_node.hpp"
 
 namespace nova_behavior_tree
 {
@@ -22,6 +24,13 @@ void BlackboardPublisherNode::initialize()
 
   // If "topic_name" was passed via an input port, override the default
   getInput("topic_name", topic_name_);
+  
+  double publish_frequency;
+  getInput("publish_frequency", publish_frequency);
+  // publish_delay_ is in ms
+  publish_delay_ = 1000.0 / publish_frequency;
+
+  getInput("keys", keys_);
 
   // Create the publisher
   publisher_ = node_->create_publisher<std_msgs::msg::String>(
@@ -30,55 +39,46 @@ void BlackboardPublisherNode::initialize()
   );
 
   // Blackboard pointer
-  bb = config().blackboard;
+  bb_ = config().blackboard;
 
-  // We assume your version of BehaviorTree.CPP provides getKeys() 
-  // to list all the keys. If not, you'll have to store them manually.
-  keys = bb->getKeys();
+  last_publish_ = std::chrono::steady_clock::now();
+
+  initialized_ = true;
 }
 
 BT::NodeStatus BlackboardPublisherNode::tick()
 {
   // Initialize once per activation
-  if (!BT::isStatusActive(status())) {
+  if (!initialized_) {
     initialize();
   }
 
+  auto now = std::chrono::steady_clock::now();
+  auto time_since_last_publish = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_publish_).count();
+  if (time_since_last_publish > publish_delay_)
+  {
+    last_publish_ = now;
+    publish_blackboard();
+    RCLCPP_INFO(node_->get_logger(), "Blackboard published!");
+  }
+
+  // Return SUCCESS every time for this demo
+  return BT::NodeStatus::SUCCESS;
+}
+
+void BlackboardPublisherNode::publish_blackboard()
+{
   // We'll build a string that lists each key and its value line-by-line
   std::string output;
-
-  for (const auto & key : keys)
+  for (const auto &key : keys_)
   {
     std::string value_str;
     bool found = false;
 
-    // Hard Coded "goal" key
-    // if (!found && key == "goal") {
-    //   try {
-    //     auto goal_pose = bb->get<geometry_msgs::msg::PoseStamped>("goal");
-    //     std::ostringstream ss;
-    //     ss << "Goal: ("
-    //       << goal_pose.pose.position.x << ", "
-    //       << goal_pose.pose.position.y << ", "
-    //       << goal_pose.pose.position.z << ") "
-    //       << "Orientation: ("
-    //       << goal_pose.pose.orientation.x << ", "
-    //       << goal_pose.pose.orientation.y << ", "
-    //       << goal_pose.pose.orientation.z << ", "
-    //       << goal_pose.pose.orientation.w << ")";
-    //     value_str = ss.str();
-    //     found = true;
-    //   } catch(const std::exception& e) {
-    //     value_str = std::string("Failed to retrieve goal: ") + e.what();
-    //   } catch(...) {
-    //     value_str = "Unknown error while retrieving goal.";
-    //   }
-    // }
-
     // Hard Coded "goals" key
     if (!found && key == "goals") {
       try {
-          auto goals = bb->get<std::vector<geometry_msgs::msg::PoseStamped>>(std::string(key));
+          auto goals = bb_->get<std::vector<geometry_msgs::msg::PoseStamped>>(key);
           std::ostringstream ss;
 
           // Simplified formatting for testing
@@ -102,34 +102,9 @@ BT::NodeStatus BlackboardPublisherNode::tick()
       }
     }
 
-    // Hard Coded "path" key
-    // if (!found && key == "path") {
-    //   try {
-    //       auto path = bb->get<nav_msgs::msg::Path>(std::string(key));
-    //       std::ostringstream ss;
-
-    //       // Simplified formatting for testing
-    //       ss << "Path:";
-    //       int idx = 1;
-    //       for (const auto& pose_stamped : path.poses) {
-    //           ss << " [" << idx << "] ("
-    //             << pose_stamped.pose.position.x << ", "
-    //             << pose_stamped.pose.position.y << ")";
-    //           idx++;
-    //       }
-
-    //       value_str = ss.str();  // Assign simplified string
-    //       found = true;
-    //   } catch(const std::exception& e) {
-    //       value_str = std::string("Failed to retrieve path: ") + e.what();
-    //   } catch(...) {
-    //       value_str = "Unknown error while retrieving path.";
-    //   }
-    // }
-
     // Try int
     try {
-      int val = bb->get<int>(std::string(key));
+      int val = bb_->get<int>(key);
       value_str = std::to_string(val);
       found = true;
     } catch(...) {}
@@ -137,7 +112,7 @@ BT::NodeStatus BlackboardPublisherNode::tick()
     // Try double
     if (!found) {
       try {
-        double val = bb->get<double>(std::string(key));
+        double val = bb_->get<double>(key);
         value_str = std::to_string(val);
         found = true;
       } catch(...) {}
@@ -146,7 +121,7 @@ BT::NodeStatus BlackboardPublisherNode::tick()
     // Try bool
     if (!found) {
       try {
-        bool val = bb->get<bool>(std::string(key));
+        bool val = bb_->get<bool>(key);
         value_str = val ? "true" : "false";
         found = true;
       } catch(...) {}
@@ -155,7 +130,7 @@ BT::NodeStatus BlackboardPublisherNode::tick()
     // Try std::string
     if (!found) {
       try {
-        std::string val = bb->get<std::string>(std::string(key));
+        std::string val = bb_->get<std::string>(key);
         value_str = val;
         found = true;
       } catch(...) {}
@@ -163,7 +138,7 @@ BT::NodeStatus BlackboardPublisherNode::tick()
     //try node name
     if (!found) {
       try {
-        auto node_ptr = bb->get<rclcpp::Node::SharedPtr>(std::string(key));
+        auto node_ptr = bb_->get<rclcpp::Node::SharedPtr>(key);
         value_str = std::string("Node Name: ") + node_ptr->get_name();
         found = true;
       } catch(...) {}
@@ -175,16 +150,13 @@ BT::NodeStatus BlackboardPublisherNode::tick()
     }
 
     // Append "key: value\n" to output
-    output += std::string(key) + ": " + value_str + "\n";
+    output += key + ": " + value_str + "\n";
   }
 
   // Publish our line-by-line string
   std_msgs::msg::String msg;
   msg.data = output.empty() ? "[No data in blackboard]" : output;
   publisher_->publish(msg);
-
-  // Return SUCCESS every time for this demo
-  return BT::NodeStatus::SUCCESS;
 }
 
 }  // namespace nova_behavior_tree
