@@ -15,8 +15,10 @@
 namespace
 {
   /// The inverse of the global orientation the kinematics origin frame wants to rotate to for a roll,pitch,yaw of 0,0,0
-  const auto ENDEFFECTOR_BASIS_INVERSE = tf2::Matrix3x3(tf2::Quaternion(-0.5, 0.5, -0.5, -0.5)).inverse();
-
+  // To find this value, set the rotation quat to 0,0,0,1. Ensure both the arm kinematics origin and endeffector
+  // kinematics frames have the z axis up and x axis facing drive forward when in the zero position. Run rviz, and enter
+  // IK mode from the zero position. Enter the rotation of the endeffector_kinematics frame after this.
+  const auto ENDEFFECTOR_BASIS_INVERSE = tf2::Matrix3x3(tf2::Quaternion(0.5, -0.5, 0.5, 0.5)).inverse();
   constexpr std::array<const char* const, 7> POSE_COMPONENTS = {
     "x",
     "y",
@@ -124,7 +126,7 @@ namespace nova_ik_controller
 
     // TODO: Retrieve these values from the robot description, rather than specifying them directly
     // TODO: Or even simpler, just put these in params!!!
-    constexpr std::array<double, 3> lengths = {0.5, 0.68332, 0.11073};
+    constexpr std::array<double, 3> lengths = {0.5, 0.41799975417, 0.417};
     auto joint_angles = calculate_ik(reference_target_pose, lengths);
 
     for (unsigned int i = 0; i < joint_angles.size(); i++)
@@ -345,7 +347,7 @@ namespace nova_ik_controller
     double j5 = atan2(-r37r(2, 2), r37r(0, 2) / cos(j4));
     double j6 = atan2(-r37r(2, 1) / cos(j5), r37r(2, 0) / cos(j5));
 
-    std::array<double, 6> new_joints = { -j1, -j2bo, -j3bo, -j4, -j5, -j6 };
+    std::array<double, 6> new_joints = { j1, j2bo, j3bo, -j4, j5, j6 };
     return new_joints;
   }
 
