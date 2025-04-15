@@ -197,9 +197,11 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     }
 
     if (this->joint_command_type() == HW_IF_POSITION) {
-      desired.positions[i] = reference_interfaces_[i];
+      desired.positions[i] = std::isnan(reference_interfaces_[i]) ? joint_handle.state_pos.get().get_value()
+        : reference_interfaces_[i];
     } else { // velocity
-      desired.velocities[i] = reference_interfaces_[i];
+      desired.velocities[i] = std::isnan(reference_interfaces_[i]) ? 0.0
+        : reference_interfaces_[i];
     }
   }
   this->get_joint_states(current);
@@ -214,8 +216,14 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     } else { // velocity
       reference_value = desired.velocities.at(i);
     }
-    if (std::isnan(reference_value))
+    if (std::isnan(reference_value)) {
+      // When dealing with invalid or missing inputs, don't move
+      const auto halt_value = params_.use_position_control ? joint_handle.state_pos.get().get_value() : 0.0;
+      RCLCPP_WARN(get_node()->get_logger(), "Missing or NaN input received. Trying to do nothing with value %f for "
+                                            "joint \"%s\".", halt_value, joint_handle.name.c_str());
+      joint_handle.command.get().set_value(halt_value);
       continue;
+    }
 
     joint_handle.command.get().set_value(reference_value);
   }
