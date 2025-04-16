@@ -33,7 +33,7 @@ which is how it gets added to the gazebo sim. Edited by: Anthony Lew -->
     </sensor>
   </gazebo>
   <gazebo reference="arm_end_periscope">
-    <sensor name="arm_end_periscope" type="rgbd_camera">
+    <sensor name="arm_end_periscope" type="camera">
       <gz_frame_id>arm_end_periscope</gz_frame_id>
       <optical_frame_id>arm_end_periscope</optical_frame_id>
       <topic>arm/periscope</topic>
