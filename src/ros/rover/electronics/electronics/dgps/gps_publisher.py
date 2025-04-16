@@ -11,17 +11,28 @@ SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
-AUTHOR(S):	shelby n
+AUTHOR(S):	shelby n, will middlewick
 CREATION:	25/02/2023
-EDITED:		25/04/2023
+EDITED:		16/04/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - convert log to debug
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
+
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+GPS MODULE TYPE
+supported types: ublox, skytraq
+"""
+GPS_MODULE = "ublox"
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
+
 from serial import Serial
 from pynmeagps import NMEAReader, NMEAMessage
-
+import re
 import rclpy
 from rclpy.node import Node
 
@@ -31,8 +42,6 @@ import logging
 class SkytraqNode (Node):
     def __init__ (self, com_no, baud):
         super().__init__('gps_data')
-        self.get_logger().set_level(logging.INFO)
-
         self.param_max_calibration_error = self.declare_parameter("max_calibration_error_degrees", 5e-5).value
 
         self.pose : RoverPoseGPS = RoverPoseGPS()
@@ -62,39 +71,70 @@ class SkytraqNode (Node):
             return
 
         self.get_logger().debug(f"raw message: {raw_msg}")
+        self.get_logger().debug(f"parsed message: {parsed_msg}")
 
         if parsed_msg is None:
             return
 
-        try:
-            if parsed_msg.talker == "P" and parsed_msg.msgID == "STI" and parsed_msg.msgId == "036":
-                # We are dealing with a PSTI036 message, which contains orientation information
-                if parsed_msg.mode == "R":
-                    # RTK (Real-Time Kinematic) mode. We have valid heading
-                    self.pose.heading_valid = True
-                    self.pose.pitch, self.pose.roll, self.pose.yaw = parsed_msg.pitch, parsed_msg.roll, parsed_msg.heading
-                else:
-                    # Not RTK mode. We don't have valid heading
-                    self.pose.heading_valid = False
+        if GPS_MODULE == "ublox":
+            # wills code for the ublox module (16/04/25)
+            ublox_msg_raw = str(parsed_msg)
+            if 'lat=' in ublox_msg_raw:
+                print("\nUblox GPS Module Data:")
+                print("\traw=", ublox_msg_raw)
+                match_lat = re.search(r'lat=([-\d.]+)', ublox_msg_raw)
+                match_lon = re.search(r'lon=([-\d.]+)', ublox_msg_raw)
+                latitude = 0
+                longtitude = 0
 
-            elif parsed_msg.talker == "GN" and parsed_msg.msgID == "RMC":
-                if parsed_msg.status == 'A':
-                    # Valid
+                if match_lat:
+                    latitude = float(match_lat.group(1))
+                    print("\tlatitude=", latitude)
+                
+                if match_lon:
+                    longtitude = float(match_lon.group(1))
+                    print("\tlongitude=", longtitude)  
+
+                if match_lat or match_lon:
                     self.pose.valid = True
-                    self.pose.latitude, self.pose.longitude = parsed_msg.lat, parsed_msg.lon
+                    self.pose.latitude, self.pose.longitude = latitude, longtitude
+                    self.pose.heading_valid = False # Not RTK mode. We don't have valid heading
                     self.publisher.publish(self.pose)
-                else:
+                else: 
+                    print("\tGPS data not available...")
                     self.pose.valid = False
+            
 
-            elif parsed_msg.talker == "GP" and parsed_msg.msgID == "GGA":
-                self.fix_type = parsed_msg.quality   # 1 = No fix, 2 = 2D fix, 3 = 3D fix
-        except Exception as e:
-            self.get_logger().warn(f"Bad message {parsed_msg}")
+        elif GPS_MODULE == "skytraq":
+            try:
+                if parsed_msg.talker == "P" and parsed_msg.msgID == "STI" and parsed_msg.msgId == "036":
+                    # We are dealing with a PSTI036 message, which contains orientation information
+                    if parsed_msg.mode == "R":
+                        # RTK (Real-Time Kinematic) mode. We have valid heading
+                        self.pose.heading_valid = True
+                        self.pose.pitch, self.pose.roll, self.pose.yaw = parsed_msg.pitch, parsed_msg.roll, parsed_msg.heading
+                    else:
+                        # Not RTK mode. We don't have valid heading
+                        self.pose.heading_valid = False
+
+                elif parsed_msg.talker == "GN" and parsed_msg.msgID == "RMC":
+                    if parsed_msg.status == 'A':
+                        # Valid
+                        self.pose.valid = True
+                        self.pose.latitude, self.pose.longitude = parsed_msg.lat, parsed_msg.lon
+                        self.publisher.publish(self.pose)
+                    else:
+                        self.pose.valid = False
+
+                elif parsed_msg.talker == "GP" and parsed_msg.msgID == "GGA":
+                    self.fix_type = parsed_msg.quality   # 1 = No fix, 2 = 2D fix, 3 = 3D fix
+            except Exception as e:
+                self.get_logger().warn(f"Bad message {parsed_msg}")
 
     def config_port(self, port_name, baud):
         self.ser.baudrate = baud
         if port_name == "":
-            port_name = "/dev/ttyUSB0"
+            port_name = "/dev/ttyACM0"
         self.ser.port = port_name
         self.ser.open()
 
