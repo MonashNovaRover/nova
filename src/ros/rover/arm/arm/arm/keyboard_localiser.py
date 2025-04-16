@@ -16,18 +16,19 @@ CREATION:	6/04/2024
 EDITED:     6/04/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - Properly implement auto transform
- - Verify the node works
+ - Find an IRL alignment
+ - Make a rectangle overlay on camera in GUI
+ - Make the OPENCV auto aligner (for more complex solution)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 
-from geometry_msgs.msg import PointStamped
-from arm_interfaces.srv import KeyPosition
+from geometry_msgs.msg import PointStamped, TransformStamped
+from arm_interfaces.srv import KeyPosition, StringTrigger
 
 import rclpy
 from rclpy.node import Node
 
-from tf2_ros import Buffer, TransformListener
+from tf2_ros import Buffer, TransformListener, TransformBroadcaster
 
 import numpy as np
 
@@ -43,6 +44,9 @@ KEY_MAP = {
     "lctrl": (-161, -48), "win": (-138, -48), "lalt": (-114, -48), "space": (-44, -48), "ralt": (29, -48), "fn": (53, -48), "menu": (76, -48), "rctrl": (101, -48), "larrow": (126, -48), "darrow": (145, -48), "rarrow": (164, -48) 
 }
 
+DEFAULT_POSITION = [0.0, 0.0, 0.0]
+DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
+
 """
 HOW TO TEST:
 nix-shell -p 'with import /home/nova/nova/nixfiles { }; pkgs.ros.nova-workspace.override {
@@ -52,27 +56,45 @@ nix-shell -p 'with import /home/nova/nova/nixfiles { }; pkgs.ros.nova-workspace.
 		nova-arm-interfaces;
 	};
 }'
-ros2 run arm keyboard_transformer.py
+ros2 run arm keyboard_localiser.py
 
 ros2 service call /get_key_position arm_interfaces/srv/KeyPosition '{key: "a"}'
+
+In separate terminal:
+- Run GUI
+- Navigate to urc/auto-typing
 """
 
-class KeyboardMapper(Node):
-    def __init__(self):
-        super().__init__('keyboard_mapper')
+KEY_SERVICE_NAME = '/arm/keyboard/get_key_position'
+KEYBOARD_TF_SERVICE_NAME = '/arm/keyboard/transform_toggle'
 
-        self.service_name = self.declare_parameter('service_name', 'get_key_position').get_parameter_value().string_value
+
+class KeyboardLocaliser(Node):
+    def __init__(self):
+        super().__init__('keyboard_localiser')
+
+        # key position initalisation
         self.keyboard_frame = self.declare_parameter('keyboard_frame', 'keyboard_frame').get_parameter_value().string_value
         self.base_frame = self.declare_parameter('base_frame', 'base_link').get_parameter_value().string_value
-
-        self.srv = self.create_service(KeyPosition, self.service_name, self.get_key_position_callback)
+        self.key_srv = self.create_service(KeyPosition, KEY_SERVICE_NAME, self.get_key_position_callback)
         self.key_map = KEY_MAP
 
-        # auto transform to base_link
+        # keyboard alignment initalisation
+        self.aligned_keyboard_position = self.declare_parameter('aligned_keyboard_position', DEFAULT_POSITION).get_parameter_value().double_array_value
+        self.aligned_keyboard_quaternion = self.declare_parameter('aligned_keyboard_quaternion', DEFAULT_QUATERNION).get_parameter_value().double_array_value
+        self.align_srv = self.create_service(StringTrigger, KEYBOARD_TF_SERVICE_NAME, self.get_align_callback)
+        self.is_aligned = False
+
+        # tf2 initalisation
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
+        self.transform_broadcaster = TransformBroadcaster(self)
+        
+        # timer to constantly publish tf at period/second
+        timer_period = self.declare_parameter('tf_publish_rate', 1.0).get_parameter_value().double_value
+        self.create_timer(timer_period, self.publish_tf)
 
-        self.get_logger().info(f"Running this service at {self.service_name}, looking for {self.keyboard_frame} to {self.base_frame}")
+        self.get_logger().info(f"Running this node with services: {KEY_SERVICE_NAME}, {KEYBOARD_TF_SERVICE_NAME}. Using keyboard: {self.keyboard_frame} for transforms and base link: {self.base_frame}")
 
     def get_key_position_callback(self, request, response):
         if request.key.lower() not in self.key_map:
@@ -82,19 +104,36 @@ class KeyboardMapper(Node):
         x, y = self.key_map[request.key.lower()]
         pos = PointStamped()
         pos.header.frame_id = self.keyboard_frame # can add support for multiple keyboards by changing response depending on request header frame
-        #pos.header.stamp = request.header.stamp
+        pos.header.stamp = request.header.stamp
         pos.point.x = x * 0.001 # convert mm to meters
         pos.point.y = y * 0.001
         pos.point.z = 0
+        
         # attempt to transform position to base_link
-        #transformed_pos = self.get_transform_to_base_link(pos)
-        #if transformed_pos is None:
-        #    self.get_logger().warn(f"Keyboard {self.keyboard_frame} transform could not be found.")
-        #    response.position = pos 
-        #    return response
-        #response.position = transformed_pos 
-        response.position = pos 
+        transformed = self.get_transform_to_base_link(pos)
+        if transformed is None:
+            self.get_logger().warn(f"Keyboard {self.keyboard_frame} transform could not be found.")
+            return response
+
+        response.position = transformed 
         self.get_logger().info(f"Returning request for {request.key}")
+        return response
+
+    def get_align_callback(self, request, response):
+        """Once aligned, begin publishing TF"""
+        self.get_logger().info(f"Toggling alignment for {request.value}")
+        if request.value == "start":
+            self.is_aligned = True
+            response.message = f"Aligned. TF has begun publishing under {self.keyboard_frame} relative to {self.base_frame}"
+        elif request.value == "stop":
+            self.is_aligned = False
+            response.message = f"TF publishing has been stopped"
+        else:
+            response.success = self.is_aligned
+            response.message = f"\"{request.value}\" not recognised as a valid value."
+            return response
+
+        response.success = self.is_aligned
         return response
 
     def get_transform_to_base_link(self, key_pos):
@@ -109,10 +148,24 @@ class KeyboardMapper(Node):
         except:
             return None
 
+    def publish_tf(self) -> None:
+        '''Publish the transform of the keyboard'''
+        if not self.is_aligned:
+            return
+        
+        tfs = TransformStamped()
+        tfs.header.stamp = self.get_clock().now().to_msg()
+        tfs.header.frame_id = self.base_frame
+        tfs.child_frame_id = self.keyboard_frame
+        tfs.transform.translation.x, tfs.transform.translation.y, tfs.transform.translation.z, = self.aligned_keyboard_position
+        tfs.transform.rotation.x, tfs.transform.rotation.y, tfs.transform.rotation.z, tfs.transform.rotation.w = self.aligned_keyboard_quaternion
+
+        self.transform_broadcaster.sendTransform(tfs)
+
 
 def main():
     rclpy.init()
-    node = KeyboardMapper()
+    node = KeyboardLocaliser()
     rclpy.spin(node)
     rclpy.shutdown()
 

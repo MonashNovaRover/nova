@@ -24,6 +24,7 @@ import {
   IRosStdSrvsSetBoolResponse,
   IRosNovaInterfacesBmeSensor,
   IRosSensorMsgsBatteryState,
+  IRosArmInterfacesStringTriggerResponse,
   IRosNovaInterfacesActiveNodeStatus,
 
 } from "../ros/rosTypes";
@@ -51,6 +52,7 @@ export interface RootState {
   // Arm Stores
   armTelemetryStore: IRosCmdInterfacesCmDsFeedback;
   rfidDataStore: IRosStdMsgsString;
+  keyboardData: IRosArmInterfacesStringTriggerResponse;
 
   // Camera Stores
   camerasStore: IRosCameraMsgsCameras;
