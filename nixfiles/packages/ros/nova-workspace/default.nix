@@ -39,6 +39,7 @@
 , nova-python-control ? throw "python-control is needed, but not available!"
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-utils ? throw "nova-utils is needed, but not available!"
+, gpsd-client ? throw "gpsd-client is needed, but not available!"
 # , ublox-dgnss-custom ? throw "ublox-dgnss-custom is needed, but not available!"
 
   # Configuration options
@@ -87,6 +88,8 @@
 
   ## Extra packages to add to the workspace.
 , extraPackages ? { 
+  inherit
+    gpsd-client;
 }
 }:
 
