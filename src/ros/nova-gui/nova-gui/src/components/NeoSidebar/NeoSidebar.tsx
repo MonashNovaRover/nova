@@ -89,6 +89,11 @@ const urcSidebarData: SidebarInterface = {
       icon: <Home />,
     },
     {
+      title: "Auto Typing",
+      route: `/urc/auto-typing`,
+      icon: <Camera />,
+    },
+    {
       title: "Cameras",
       route: `/urc/cameras/${URCCompModes.URC_EQUIPMENT_SERVICING}`,
       icon: <Camera />,
