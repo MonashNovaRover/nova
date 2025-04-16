@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--This is a file for the arm cameras in gazebo. This file is referenced at the bottom of arm.urdf.xacro,
+which is how it gets added to the gazebo sim. Edited by: Anthony Lew -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- Arm Cameras for Gazebo-->
+  <!-- Based on Microsoft Lifecam HD-3000 specs -->
+  <!-- https://dl2jx7zfbtwvr.cloudfront.net/specsheets/WEBC1010.pdf -->
+  <gazebo reference="arm_end_top">
+    <sensor name="arm_end_top" type="camera">
+      <!-- Note: plugin only needs to be loaded once, auto_mount also loads this plugin, so arm and auto_mount cannot both exist -->
+      <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system"></plugin>
+      <gz_frame_id>arm_end_top</gz_frame_id>
+      <optical_frame_id>arm_end_top</optical_frame_id>
+      <topic>arm/top</topic>
+      <visualize>true</visualize>
+      <update_rate>30</update_rate>
+      <always_on>1</always_on>
+      <camera name="arm_end_top">
+        <!-- "68.5° diagonal field of view" using DFOV and below aspect ratio here: https://vrguy.blogspot.com/2013/04/converting-diagonal-field-of-view-and.html
+             Note: HFOV must be in radians -->
+        <horizontal_fov>${radians(61.3727248)}</horizontal_fov>
+        <image>
+          <!-- "Motion Video: 1280 X 720 pixel resolution" is a 16:9 aspect ratio-->
+          <width>1280</width>
+          <height>720</height>
+        </image>
+        <clip>
+          <!-- "Fixed focus from 0.3m to 1.5m" since clip prevents seeing past each value, this has been relaxed to 0.3m to 10m-->
+          <near>0.3</near>
+          <far>10</far>
+        </clip>
+      </camera>
+    </sensor>
+  </gazebo>
+  <gazebo reference="arm_end_periscope">
+    <sensor name="arm_end_periscope" type="rgbd_camera">
+      <gz_frame_id>arm_end_periscope</gz_frame_id>
+      <optical_frame_id>arm_end_periscope</optical_frame_id>
+      <topic>arm/periscope</topic>
+      <visualize>true</visualize>
+      <update_rate>30</update_rate>
+      <always_on>1</always_on>
+      <camera name="arm_end_periscope">
+        <!-- "68.5° diagonal field of view" using DFOV and below aspect ratio here: https://vrguy.blogspot.com/2013/04/converting-diagonal-field-of-view-and.html
+             Note: HFOV must be in radians -->
+        <horizontal_fov>${radians(61.3727248)}</horizontal_fov>
+        <image>
+          <!-- "Motion Video: 1280 X 720 pixel resolution" is a 16:9 aspect ratio-->
+          <width>1280</width>
+          <height>720</height>
+        </image>
+        <clip>
+          <!-- "Fixed focus from 0.3m to 1.5m" since clip prevents seeing past each value, this has been relaxed to 0.3m to 10m-->
+          <near>0.3</near>
+          <far>10</far>
+        </clip>
+      </camera>
+    </sensor>
+  </gazebo>
+  <gazebo reference="arm_end_side">
+    <sensor name="arm_end_side" type="camera">
+      <gz_frame_id>arm_end_side</gz_frame_id>
+      <optical_frame_id>arm_end_side</optical_frame_id>
+      <topic>arm/side</topic>
+      <visualize>true</visualize>
+      <update_rate>30</update_rate>
+      <always_on>1</always_on>
+      <camera name="arm_end_side">
+        <!-- "68.5° diagonal field of view" using DFOV and below aspect ratio here: https://vrguy.blogspot.com/2013/04/converting-diagonal-field-of-view-and.html
+             Note: HFOV must be in radians -->
+        <horizontal_fov>${radians(61.3727248)}</horizontal_fov>
+        <image>
+          <!-- "Motion Video: 1280 X 720 pixel resolution" is a 16:9 aspect ratio-->
+          <width>1280</width>
+          <height>720</height>
+        </image>
+        <clip>
+          <!-- "Fixed focus from 0.3m to 1.5m" since clip prevents seeing past each value, this has been relaxed to 0.3m to 10m-->
+          <near>0.3</near>
+          <far>10</far>
+        </clip>
+      </camera>
+    </sensor>
+  </gazebo>
+  <gazebo reference="arm_end_finger">
+    <sensor name="arm_end_finger" type="camera">
+      <gz_frame_id>arm_end_finger</gz_frame_id>
+      <optical_frame_id>arm_end_finger</optical_frame_id>
+      <topic>arm/finger</topic>
+      <visualize>true</visualize>
+      <update_rate>30</update_rate>
+      <always_on>1</always_on>
+      <camera name="arm_end_finger">
+        <!-- "68.5° diagonal field of view" using DFOV and below aspect ratio here: https://vrguy.blogspot.com/2013/04/converting-diagonal-field-of-view-and.html
+             Note: HFOV must be in radians -->
+        <horizontal_fov>${radians(61.3727248)}</horizontal_fov>
+        <image>
+          <!-- "Motion Video: 1280 X 720 pixel resolution" is a 16:9 aspect ratio-->
+          <width>1280</width>
+          <height>720</height>
+        </image>
+        <clip>
+          <!-- "Fixed focus from 0.3m to 1.5m" since clip prevents seeing past each value, this has been relaxed to 0.3m to 10m-->
+          <near>0.3</near>
+          <far>10</far>
+        </clip>
+      </camera>
+    </sensor>
+  </gazebo>
+</robot>
+
+<!-- arm_end_top -->
+<!-- arm_end_periscope -->
+<!-- arm_end_finger -->

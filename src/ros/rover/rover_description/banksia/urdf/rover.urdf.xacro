@@ -739,7 +739,7 @@
             <child link="arm_link" />
         </joint> -->
         <!-- Banksia's arm -->
-        <xacro:include filename="$(find rover_description)/banksia_arm/urdf/arm.urdf.xacro" />
+        <xacro:include filename="/home/nova/nova/src/ros/rover/rover_description/banksia_arm/urdf/arm.urdf.xacro" />
         <joint name="chassis_to_arm_base" type="fixed">
             <origin xyz="0.234 -0.001 0.116750" rpy="0 0 1.5708"/>
             <parent link="chassis" />
@@ -763,5 +763,4 @@
     <xacro:include filename="$(find rover_description)/banksia/urdf/p3d.xacro"/>
     <xacro:include filename="$(find rover_description)/banksia/urdf/odom.xacro"/>
     <xacro:include filename="$(find rover_description)/banksia/urdf/gps.xacro"/>
-    <xacro:include filename="$(find rover_description)/banksia/urdf/joint_states.xacro"/>
 </robot>

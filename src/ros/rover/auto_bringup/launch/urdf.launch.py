@@ -30,6 +30,9 @@ def launch_setup(context, *args, **kwargs):
     use_mock_hardware = LaunchConfiguration('use_mock_hardware').perform(context)
     use_local_mesh = LaunchConfiguration('use_local_mesh').perform(context)
 
+    if arm.lower() in ['true', '1', 'yes']:
+        arm += ' auto_camera:=false'
+
     return [
         Node(
             package='robot_state_publisher',

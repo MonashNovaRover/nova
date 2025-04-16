@@ -279,7 +279,7 @@
       </state_interface>
     </joint>
 
-    <joint name="rf_slide">
+    <joint name="right_slide">
       <command_interface name="velocity">
         <param name="max">1</param>
       </command_interface>
@@ -296,7 +296,7 @@
       </state_interface>
     </joint>
 
-    <joint name="lf_slide">
+    <joint name="left_slide">
       <command_interface name="velocity">
         <param name="max">1</param>
       </command_interface>
