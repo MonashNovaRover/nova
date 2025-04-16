@@ -1,3 +1,15 @@
 /resolver_publisher:
   ros__parameters:
     use_arm_data: true
+
+/keyboard_localiser:
+  ros_parameters:
+    # key position params
+    keyboard_frame: keyboard_frame
+    base_frame: base_link
+
+    # keyboard alignment params
+    aligned_keyboard_position: [0.0, 0.0, 0.0]
+    aligned_keyboard_quaternion: [0.0, 0.0, 0.0, 1.0]
+    
+    tf_publish_rate: 1.0 # per second

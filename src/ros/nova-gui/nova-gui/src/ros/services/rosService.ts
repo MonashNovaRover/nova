@@ -10,6 +10,7 @@ export enum RosService {
 
   // Arm Related
   READ_RFID = "/electronics/rfid/read",
+  KEYBOARD_TF_TOGGLE = '/arm/keyboard/transform_toggle',
 
   // Cameras Related
   START_CAMS = "/camera_streamer/stream/start",
