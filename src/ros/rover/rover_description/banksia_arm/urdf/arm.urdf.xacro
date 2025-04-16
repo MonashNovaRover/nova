@@ -615,7 +615,7 @@
 
   <xacro:if value="$(arg gazebo)">
     <xacro:include filename="$(find rover_description)/banksia_arm/urdf/arm.gz_ros2_control.xacro" />
-    <xacro:include filename="/home/nova/nova/src/ros/rover/rover_description/banksia_arm/urdf/arm_sensors.xacro"/>
+    <xacro:include filename="$(find rover_description)/banksia_arm/urdf/arm_sensors.xacro"/>
   </xacro:if>
   <xacro:unless value="$(arg gazebo)">
     <xacro:include filename="$(find rover_description)/banksia_arm/urdf/arm.ros2_control.xacro" />
