@@ -97,6 +97,12 @@ export const reduxStores = {
       data: "",
     }
   ),
+  keyboardData: createBifrostStore(
+    { service: RosService.KEYBOARD_TF_TOGGLE },
+    {
+      success: false,
+    }
+  ),
 
   // Cameras2 Reducers
   camerasStore: createBifrostStore({ topic: RosTopic.CAMERAS }, { cameras: [] }),

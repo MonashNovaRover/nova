@@ -5,6 +5,8 @@ import {
   IRosBlcmdInterfacesBlcmdResetResponse,
   IRosNovaInterfacesMoveMicroscopeServoRequest,
   IRosNovaInterfacesMoveMicroscopeServoResponse,
+  IRosArmInterfacesStringTriggerRequest,
+  IRosArmInterfacesStringTriggerResponse,
   IRosStdSrvsTriggerResponse,
   IRosNovaInterfacesKilnCommandRequest,
   IRosNovaInterfacesKilnCommandResponse,
@@ -38,10 +40,14 @@ interface EmptyMessage {}
 export interface RosServiceInterface {
   [RosService.NULL_SERVICE]: RosServiceMessage<EmptyMessage, EmptyMessage>;
   
-  
+  // Arm related
   [RosService.READ_RFID]: RosServiceMessage<
     EmptyMessage,
     IRosStdSrvsTriggerResponse
+  >;
+  [RosService.KEYBOARD_TF_TOGGLE]: RosServiceMessage<
+    IRosArmInterfacesStringTriggerRequest,
+    IRosArmInterfacesStringTriggerResponse
   >;
 
   // Camera Related
