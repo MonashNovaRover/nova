@@ -1,8 +1,7 @@
-import React, { useCallback, useState } from "react";
+import React from "react";
 import AutoTypingWidget from "../../components/AutoTypingWidget/AutoTypingWidget.tsx";
 import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCameraComponent.tsx";
 import {CameraSerials} from "../shared/CamerasPage/CameraPageConstants.tsx";
-import { useLocalStorage } from "../../hooks/useLocalStorage.ts";
 
 
 const URCAutoTypingView: React.FC = () => {
