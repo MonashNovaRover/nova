@@ -1,7 +1,5 @@
-import {Button, Card, CardBody, CardHeader, CardProps} from "@nextui-org/react";
-import {useEffect} from "react";
+import {Button, Card, CardBody, CardProps} from "@nextui-org/react";
 import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
-import {RosTopic} from "../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../redux/RootState.ts";
 import {RosService} from "../../ros/services/rosService.ts";
@@ -16,7 +14,7 @@ interface IAutoTypingWidgetProps extends CardProps {
  * @param cardProps
  * @constructor
  */
-const AutoTypingWidget: React.FC<IAutoTypingWidgetProps> = ({...cardProps}) => {
+const AutoTypingWidget: React.FC<IAutoTypingWidgetProps> = () => {
   const keyboardTransform = useSelector(
       (state: RootState) => state.keyboardData
     );
