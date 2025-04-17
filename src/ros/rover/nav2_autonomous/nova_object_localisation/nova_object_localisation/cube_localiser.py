@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Purpose: Republish yolo_ros DetectionArray msg 
+Purpose: Republish OAK's DetectionArray msgs 
 as a transform for cube localisation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: cube_localiser
@@ -22,9 +22,10 @@ CREATION:	20/02/2025
 EDITED:		20/02/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
+ - Reenable /tf publishing
  - Refine the statistical analysis
  - Refine the standard dev and min samples params
- - Convert to work for oak camera
+ - Make 3D mode work again (e.g using spatial on OAK and 3d node with yolo_ros)
  - Add that thing about map boundaries (look in archive code)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
@@ -96,7 +97,7 @@ class CubeLocaliser(Node):
         self.max_std_dev = self.declare_parameter('max_std_dev', 0.2).get_parameter_value().double_value
 
         # variables determining the mode of use
-        self.using_oak = self.declare_parameter('using_oak', False).get_parameter_value().bool_value
+        self.using_oak = self.declare_parameter('using_oak', True).get_parameter_value().bool_value
         self.using_3d = self.declare_parameter('using_3d', False).get_parameter_value().bool_value
 
         # Topics to subscribe to:
