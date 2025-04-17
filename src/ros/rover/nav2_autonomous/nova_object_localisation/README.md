@@ -16,9 +16,22 @@ nix-shell -p 'with import /home/USER/nova/nixfiles { }; pkgs.ros.nova-workspace.
 
 Then run: `ros2 run nova_object_localisation object_localiser`
 
-Optional variations:
--  `ros2 run nova_object_localisation object_localiser using_oak:=True` for when using yolo_ros node to send detections instead of OAK-D-LR
+Testing in sim:
+  Perform object detection on a ros image topic using yolo-ros:
+	```nix
+	nix-shell -p 'with import /home/nova/nova/nixfiles { }; pkgs.ros.nova-workspace.override {
+		novaPackages = {
+			inherit (pkgs.ros)
+			yolo-bringup;
+		};
+	}'
+	
+	ros2 launch yolo_bringup yolo.launch.py
+	```
+ And `ros2 run nova_object_localisation object_localiser using_oak:=False`
 
-The `auto_bringup` package should have a `yolo.launch.py` file that will launch the most up to date object detection pipeline.
+ See here for more details: https://github.com/mgonzs13/yolo_ros
+
+The `auto_bringup` package should have a `yolo.launch.py` file that will launch the most up to date object detection pipeline for both sim and non-sim.
 
 I bet this README will age poorly and not work at all in a few years - Anthony Lew

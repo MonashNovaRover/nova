@@ -78,7 +78,7 @@ buildRosPackage rec {
       nova-pivot-drive-controller
       tf2-tools
       imu-transformer
-      yolo-ros
+      yolo-ros # this is only used in sim, so if space is needed on rover, comment out this package. (Used for nova-object-localisation)
       lattice-primitive-generator;
   };
 
