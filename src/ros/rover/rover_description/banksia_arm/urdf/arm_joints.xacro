@@ -3,7 +3,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
      <gazebo>
           <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
-               <topic>arm_joints</topic>
+               <topic>joint_states</topic>
 
                <joint_name>arm_kinematics_origin_joint</joint_name>
 
