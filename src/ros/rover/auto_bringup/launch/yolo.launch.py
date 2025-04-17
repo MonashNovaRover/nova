@@ -76,8 +76,8 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(AndSubstitution(use_debug, NotSubstitution(using_oak))),
         ),
         Node(
-            package='nova_utils',
-            executable='cube_localiser.py',
+            package='nova_object_localisation',
+            executable='cube_localiser',
             name='cube_localiser',
             parameters=[{'using_oak': using_oak, 'using_3d': using_3d}, yolo_params],
             namespace=namespace,
@@ -125,7 +125,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='yolo_ros_model',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'resources', 'YOLOv11', 'best.pt']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'resources', 'YOLO_ARCh_2025', 'best.pt']),
             description='Absolute path to yolo weights file for yolo_ros',
         ),
         DeclareLaunchArgument(
