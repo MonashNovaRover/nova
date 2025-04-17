@@ -9,6 +9,7 @@ which is how it gets added to the gazebo sim. Edited by: Anthony Lew -->
     <sensor name="arm_end_top" type="camera">
       <!-- Note: plugin only needs to be loaded once, auto_mount also loads this plugin, so arm and auto_mount cannot both exist -->
       <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system"></plugin>
+      <pose> 0 0 0 0 ${radians(-90)} ${radians(90)}</pose> <!-- To compensate for gazebo frame to ros optical frame-->
       <gz_frame_id>arm_end_top</gz_frame_id>
       <optical_frame_id>arm_end_top</optical_frame_id>
       <topic>arm/top</topic>
@@ -25,8 +26,7 @@ which is how it gets added to the gazebo sim. Edited by: Anthony Lew -->
           <height>720</height>
         </image>
         <clip>
-          <!-- "Fixed focus from 0.3m to 1.5m" since clip prevents seeing past each value, this has been relaxed to 0.3m to 10m-->
-          <near>0.3</near>
+          <near>0.001</near>
           <far>10</far>
         </clip>
       </camera>
@@ -34,6 +34,7 @@ which is how it gets added to the gazebo sim. Edited by: Anthony Lew -->
   </gazebo>
   <gazebo reference="arm_end_periscope">
     <sensor name="arm_end_periscope" type="camera">
+      <pose> 0 0 0 0 ${radians(-90)} ${radians(90)}</pose> <!-- To compensate for gazebo frame to ros optical frame-->
       <gz_frame_id>arm_end_periscope</gz_frame_id>
       <optical_frame_id>arm_end_periscope</optical_frame_id>
       <topic>arm/periscope</topic>
@@ -50,8 +51,7 @@ which is how it gets added to the gazebo sim. Edited by: Anthony Lew -->
           <height>720</height>
         </image>
         <clip>
-          <!-- "Fixed focus from 0.3m to 1.5m" since clip prevents seeing past each value, this has been relaxed to 0.3m to 10m-->
-          <near>0.3</near>
+          <near>0.05</near>
           <far>10</far>
         </clip>
       </camera>
@@ -59,6 +59,7 @@ which is how it gets added to the gazebo sim. Edited by: Anthony Lew -->
   </gazebo>
   <gazebo reference="arm_end_side">
     <sensor name="arm_end_side" type="camera">
+      <pose> 0 0 0 ${radians(-90)} 0 ${radians(-90)}</pose> <!-- To compensate for gazebo frame to ros optical frame-->
       <gz_frame_id>arm_end_side</gz_frame_id>
       <optical_frame_id>arm_end_side</optical_frame_id>
       <topic>arm/side</topic>
@@ -75,8 +76,7 @@ which is how it gets added to the gazebo sim. Edited by: Anthony Lew -->
           <height>720</height>
         </image>
         <clip>
-          <!-- "Fixed focus from 0.3m to 1.5m" since clip prevents seeing past each value, this has been relaxed to 0.3m to 10m-->
-          <near>0.3</near>
+          <near>0.01</near>
           <far>10</far>
         </clip>
       </camera>
@@ -84,6 +84,7 @@ which is how it gets added to the gazebo sim. Edited by: Anthony Lew -->
   </gazebo>
   <gazebo reference="arm_end_finger">
     <sensor name="arm_end_finger" type="camera">
+      <pose> 0 0 0 0 ${radians(-90)} ${radians(90)}</pose> <!-- To compensate for gazebo frame to ros optical frame-->
       <gz_frame_id>arm_end_finger</gz_frame_id>
       <optical_frame_id>arm_end_finger</optical_frame_id>
       <topic>arm/finger</topic>
@@ -100,8 +101,7 @@ which is how it gets added to the gazebo sim. Edited by: Anthony Lew -->
           <height>720</height>
         </image>
         <clip>
-          <!-- "Fixed focus from 0.3m to 1.5m" since clip prevents seeing past each value, this has been relaxed to 0.3m to 10m-->
-          <near>0.3</near>
+          <near>0.01</near>
           <far>10</far>
         </clip>
       </camera>
