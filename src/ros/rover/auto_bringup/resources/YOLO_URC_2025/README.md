@@ -3,7 +3,7 @@ This YOLO model detects an Orange mallet and a 1L water bottle with a wide mouth
 
 
 ### TEMPLATE
-This model was only used in RGB mode and with cube_localiser.py (in `rover/nova_utils`)
+This model was only used in RGB mode and with object_localiser.py (in `rover/nova_utils`)
 
 Trained using roboflow dataset and ultralytics by Joel Kruger
 Converted for use on OAK-D LR using https://tools.luxonis.com/

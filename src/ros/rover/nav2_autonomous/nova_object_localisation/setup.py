@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'cube_localiser = nova_object_localisation.cube_localiser:main',
+            'object_localiser = nova_object_localisation.object_localiser:main',
             #'image_capture = archive.image_capture:main'
         ],
     },

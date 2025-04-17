@@ -1,6 +1,6 @@
 This folder contains the YOLOv11 model we used at ARCh 2025.
 This YOLO model detects Cubes that are Blue, Red, Green and White.
-This model was only used in RGB mode and with cube_localiser.py (in `rover/nav2_autonomous/nova_object_localisation`)
+This model was only used in RGB mode and with object_localiser.py (in `rover/nav2_autonomous/nova_object_localisation`)
 
 Trained using roboflow dataset and ultralytics by Joel Kruger
 Converted for use on OAK-D LR using https://tools.luxonis.com/

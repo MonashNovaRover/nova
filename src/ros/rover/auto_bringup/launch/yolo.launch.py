@@ -53,7 +53,7 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         # yolo_ros nodes only run if using_oak is false
-        # 3d mode is not supported for yolo_ros as the 3d yolo_ros code is copied into cube_localiser anyway
+        # 3d mode is not supported for yolo_ros as the 3d yolo_ros code is copied into object_localiser anyway
         Node(
             package='yolo_ros',
             executable='yolo_node',
@@ -77,8 +77,8 @@ def launch_setup(context, *args, **kwargs):
         ),
         Node(
             package='nova_object_localisation',
-            executable='cube_localiser',
-            name='cube_localiser',
+            executable='object_localiser',
+            name='object_localiser',
             parameters=[{'using_oak': using_oak, 'using_3d': using_3d}, yolo_params],
             namespace=namespace,
         ),

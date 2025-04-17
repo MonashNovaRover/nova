@@ -2,16 +2,15 @@
 '''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Purpose: Republish OAK's DetectionArray msgs 
-as a transform for cube localisation
+as a transform for object localisation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: cube_localiser
+NODE: object_localiser
 TOPICS:
   - subscriber: /yolo/detections           [yolo_msgs/msg/DetectionArray]
+  - subscriber: /oak/nn/detections [vision_msgs/msg/Detection2DArray]
   - subscriber: /oak/depth                 [sensor_msgs/msg/Image]
   - subscriber: /oak/camera_info           [sensor_msgs/msg/CameraInfo]
-  - subscriber: /oak/nn/detections [vision_msgs/msg/Detection2DArray]
-  - subscriber: /oak/nn/spatial_detections [vision_msgs/msg/Detection3DArray]
-  - publisher: /yolo/cubes                 [visualization_msgs/msg/MarkerArray]
+  - publisher: /yolo/objects                 [visualization_msgs/msg/MarkerArray]
   - publisher: /tf                         [geometry_msgs/msg/TransformStamped]
 SERVICES: None
 ACTIONS: None
@@ -22,6 +21,7 @@ CREATION:	20/02/2025
 EDITED:		20/02/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
+ - Check for errors after replacing cube with object and colour with label in code lol
  - Reenable /tf publishing
  - Refine the statistical analysis
  - Refine the standard dev and min samples params
@@ -58,30 +58,33 @@ from typing import Dict, List, Tuple, TypeVar
 T = TypeVar('T')
 type Point = Tuple[float, float, float]         # point = (x,y,z)
 type BBox = Tuple[float, float, float, float]   # bounding_box = (pos_x, pos_y, size_x, size_y)
-type CubePoint = Tuple[str, Point]              # cube_point = (color, Point)
+type ObjectPoint = Tuple[str, Point]            # object_point = (label, Point)
 
 
-COLORS = {'red':[1.0,0.0,0.0], 'green':[0.0,1.0,0.0], 'blue':[0.0,0.0,1.0], 'white':[1.0,1.0,1.0]}
+#LABELS = {'red':[1.0,0.0,0.0], 'green':[0.0,1.0,0.0], 'blue':[0.0,0.0,1.0], 'white':[1.0,1.0,1.0]} # ARCh 2025
+LABELS = {'hammer':[1.0,0.0,0.0], 'bottle':[0.0,1.0,0.0]} # URC 2025, hammer will be red, bottle with be green
 DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
 
-# Assumed color ids:
-IDS_COLOR = {2: 'red', 1: 'green', 0: 'blue', 3: 'white'} 
+# Object ids:
+# Note: This has the same order as mappings in the generated .json file
+#IDS_LABEL = { 0: 'blue', 1: 'green', 2: 'red', 3: 'white'} # ARCh 2025
+IDS_LABEL = { 0: 'hammer', 1: 'bottle'} # URC 2025 (order to be decided from model training)
 
 
-class CubeLocaliser(Node):
+class ObjectLocaliser(Node):
     def __init__(self):
-        super().__init__('cube_localiser')
+        super().__init__('object_localiser')
 
-        # variables affecting detection of cubes
+        # variables affecting detection of objects
         self.depth_image_units_divisor = self.declare_parameter('depth_image_units_divisor', 1.0).get_parameter_value().double_value        # Used to calculate position from bounding box
         self.maximum_detection_threshold = self.declare_parameter('maximum_detection_threshold', 0.3).get_parameter_value().double_value    # any detections with a depth below this will be ignored (used to convert bb to point)
         self.scale_factor = [self.declare_parameter('x_scalar', 1.0).get_parameter_value().double_value,
                              self.declare_parameter('y_scalar', 1.0).get_parameter_value().double_value]
 
 
-        # variables affecting cube markers in rviz
+        # variables affecting object markers in rviz
         self.use_markers = self.declare_parameter('use_markers', True).get_parameter_value().bool_value
-        self.marker_ns = self.declare_parameter('marker_ns', 'detected_cubes').get_parameter_value().string_value
+        self.marker_ns = self.declare_parameter('marker_ns', 'detected_objects').get_parameter_value().string_value
         self.marker_duration = self.declare_parameter('marker_duration', 1.0).get_parameter_value().double_value
         self.marker_size = self.declare_parameter('marker_size', 0.15).get_parameter_value().double_value
 
@@ -89,7 +92,7 @@ class CubeLocaliser(Node):
         self.map_frame = self.declare_parameter('map_frame', 'map').get_parameter_value().string_value
         self.camera_frame = self.declare_parameter('camera_frame', 'camera_link').get_parameter_value().string_value
 
-        # timer period to publish cube transforms in seconds
+        # timer period to publish object transforms in seconds
         self.tf_publisher_timer_period = self.declare_parameter('tf_publisher_timer_period', 0.1).get_parameter_value().double_value
 
         # variables for statistical analysis
@@ -105,7 +108,7 @@ class CubeLocaliser(Node):
         self.depth_image_topic = self.declare_parameter('depth_image_topic', 'image_raw').get_parameter_value().string_value
         self.detection_topic = self.declare_parameter('detection_topic', 'detections').get_parameter_value().string_value
         # Topic to publish to:
-        self.marker_topic = self.declare_parameter('marker_topic', 'cubes').get_parameter_value().string_value
+        self.marker_topic = self.declare_parameter('marker_topic', 'objects').get_parameter_value().string_value
 
         self.transform_broadcaster = TransformBroadcaster(self)
         self.tf_buffer = Buffer()
@@ -164,67 +167,67 @@ class CubeLocaliser(Node):
             self.publisher = self.create_publisher(MarkerArray, self.marker_topic, 10)
             self.get_logger().info(f"[{self.get_name()}] Publishing markers to: {self.marker_topic}")
 
-        self.detected_cubes : Dict[str, List[Point]] \
+        self.detected_objects : Dict[str, List[Point]] \
             = {'red':[], 'green':[], 'blue':[], 'white':[]}
         
         # run the callback function every timer_period
-        self.create_timer(self.tf_publisher_timer_period, self.publish_cubes)
+        self.create_timer(self.tf_publisher_timer_period, self.publish_objects)
 
         self.get_logger().info(f"[{self.get_name()}] Activated!")
 
 
     def on_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray | Detection2DArray) -> None:
-        '''Process and publish detected cubes for 2D/rgb mode'''
+        '''Process and publish detected objects for 2D/rgb mode'''
         detections = self.process_detections(depth_msg, depth_info_msg, detections_msg)
-        self.process_cubes(detections, detections_msg.header.stamp)
+        self.process_objects(detections, detections_msg.header.stamp)
 
 
     def on_detections_3d(self, detections_3d_msg: DetectionArray | Detection3DArray) -> None:
-        '''Process and publish detected cubes for 3D/spatial mode'''
+        '''Process and publish detected objects for 3D/spatial mode'''
         detections_3d = self.process_detections_3d(detections_3d_msg)
-        self.process_cubes(detections_3d, detections_3d_msg.header.stamp)
+        self.process_objects(detections_3d, detections_3d_msg.header.stamp)
 
 
-    def process_cubes(self, cubes: List[CubePoint], stamp: Time) -> None:
-        '''Publish markers and add cubes to detection list'''
-        self.get_logger().debug(f'{cubes}')
+    def process_objects(self, objects: List[ObjectPoint], stamp: Time) -> None:
+        '''Publish markers and add objects to detection list'''
+        self.get_logger().debug(f'{objects}')
         # Markers
         if (self.use_markers):
             msg = MarkerArray()
-            for i, cube in enumerate(cubes):
-                marker = self.get_marker(i, cube[0], cube[1], stamp, self.map_frame)
+            for i, obj in enumerate(objects):
+                marker = self.get_marker(i, obj[0], obj[1], stamp, self.map_frame)
                 msg.markers.append(marker)
             
             self.publisher.publish(msg)
         
         # Transforms
-        for i, cube in enumerate(cubes):
-            self.detected_cubes[cube[0]].append(cube[1])
+        for i, obj in enumerate(objects):
+            self.detected_objects[obj[0]].append(obj[1])
 
 
-    def publish_cubes(self) -> None:
-        '''Publish the current transform of all detected cubes'''
-        for color, points in self.detected_cubes.items():
+    def publish_objects(self) -> None:
+        '''Publish the current transform of all detected objects'''
+        for label, points in self.detected_objects.items():
             if len(points) >= self.min_samples:
-                clean_points = self.remove_outlier_pos(points)  # remove outliers from all the cube points
+                clean_points = self.remove_outlier_pos(points)  # remove outliers from all the object points
 
                 if len(clean_points) >= self.min_samples:       # ensure there is enough samples
-                    self.get_logger().debug(f'Validating consistency of target {color}')
+                    self.get_logger().debug(f'Validating consistency of target {label}')
                     avg_pos = np.mean(clean_points, axis=0)   # Calculate the average position of the block
                     std_dev = np.std(clean_points, axis=0)    # Calculate the standard deviation of the block's position
 
                     if np.all(std_dev < self.max_std_dev):      # Check that the standard deviation is small enough to be considered a confirmed block
-                        self.get_logger().debug(f'Confirmed target {color} consistent pos at {avg_pos}')
-                        # don't publish tf for bt notes (TEMP until terry fixes bt pathing to cubes)
-                        # self.publish_tf(color, avg_pos, self.get_clock().now().to_msg())
-                        self.get_logger().info(f"[{self.get_name()}] Cube {color} at ({avg_pos})")
+                        self.get_logger().debug(f'Confirmed target {label} consistent pos at {avg_pos}')
+                        # don't publish tf for bt notes (TEMP until terry fixes bt pathing to objects)
+                        # self.publish_tf(label, avg_pos, self.get_clock().now().to_msg())
+                        self.get_logger().info(f"[{self.get_name()} Object {label} at ({avg_pos})")
                     else:
-                        self.get_logger().debug(f'Target {color} is not consistent enough.')
+                        self.get_logger().debug(f'Target {label} is not consistent enough.')
                 else:
-                    self.get_logger().debug(f'{color} has not enough samples to confirm')
+                    self.get_logger().debug(f'{label} has not enough samples to confirm')
 
 
-    def process_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray | Detection2DArray) -> List[CubePoint]:
+    def process_detections(self, depth_msg: Image, depth_info_msg: CameraInfo, detections_msg: DetectionArray | Detection2DArray) -> List[ObjectPoint]:
         '''Process detections into a list of points with their respective colour'''
         if not detections_msg.detections:
             return []
@@ -257,21 +260,21 @@ class CubeLocaliser(Node):
                     score = 0
                     for result in detection.results:
                         if float(result.hypothesis.score) > score:
-                            color:str = IDS_COLOR[int(result.hypothesis.class_id)]
-                    new_detections.append((color, position))
+                            label:str = IDS_LABEL[int(result.hypothesis.class_id)]
+                    new_detections.append((label, position))
         else:
             for detection in detections_msg.detections:
                 # Detection will be of type Detection from yolo_msgs
                 bbox = (float(detection.bbox.center.position.x), float(detection.bbox.center.position.y), float(detection.bbox.size.x), float(detection.bbox.size.y))
                 position = bbox_to_map_pos(bbox, depth_image, depth_info_msg)
                 if position is not None:
-                    color:str = detection.class_name
-                    new_detections.append((color, position))
+                    label:str = detection.class_name
+                    new_detections.append((label, position))
 
         return new_detections
 
 
-    def process_detections_3d(self, detections_msg: DetectionArray | Detection3DArray) -> List[CubePoint]:
+    def process_detections_3d(self, detections_msg: DetectionArray | Detection3DArray) -> List[ObjectPoint]:
         '''Process 3d detections into a list of points with their respective colour'''
         if not detections_msg.detections:
             return []
@@ -290,8 +293,8 @@ class CubeLocaliser(Node):
                     position = get_pose_point(hypothesis.pose.pose)
                     map_position = self.tf_to_map(position, detections_msg.header.stamp)
                     if map_position is not None:
-                        color:str = IDS_COLOR[int(hypothesis.hypothesis.class_id)]
-                        new_detections.append((color, map_position))
+                        label:str = IDS_LABEL[int(hypothesis.hypothesis.class_id)]
+                        new_detections.append((label, map_position))
         
         else:
             # NOTE: Currently this doesn't work with yolo_ros for some reason so just use 2D mode for sim, this node copies the bbox to point code anyway
@@ -301,8 +304,8 @@ class CubeLocaliser(Node):
                 position = get_pose_point(detection.bbox3d.center)
                 map_position = self.tf_to_map(position, detections_msg.header.stamp)
                 if map_position is not None:
-                    color = detection.class_name
-                    new_detections.append((color, map_position))
+                    label = detection.class_name
+                    new_detections.append((label, map_position))
         
         return new_detections
 
@@ -311,7 +314,7 @@ class CubeLocaliser(Node):
         ''' Converts the bounding box center to a point relative to the image frame
             Modified from convert_bb_to_3d in https://github.com/mgonzs13/yolo_ros/blob/main/yolo_ros/yolo_ros/detect_3d_node.py
         '''
-        self.get_logger().debug(f'Calculating cube world position relative to image frame')
+        self.get_logger().debug(f'Calculating obj world position relative to image frame')
 
         def resize_point(point:float, axis:int):
             """resize the point from rgb to depth resolution to account for differences"""
@@ -381,32 +384,32 @@ class CubeLocaliser(Node):
             [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x ** 2 + y ** 2)]
         ])
 
-    def tf_to_map(self, camera_to_cube: Point, stamp: Time) -> Point | None:
-        '''Calculates the position tf from map to cube'''
-        self.get_logger().debug(f'Calculating map to cube tf')
+    def tf_to_map(self, camera_to_obj: Point, stamp: Time) -> Point | None:
+        '''Calculates the position tf from map to obj'''
+        self.get_logger().debug(f'Calculating map to obj tf')
         point_stamped = PointStamped()
         point_stamped.header.frame_id = self.camera_frame
         point_stamped.header.stamp = stamp
-        point_stamped.point.x, point_stamped.point.y, point_stamped.point.z = camera_to_cube
+        point_stamped.point.x, point_stamped.point.y, point_stamped.point.z = camera_to_obj
         try:
             transform = self.tf_buffer.lookup_transform(self.map_frame, self.camera_frame, stamp)
             transformed_point = tf2_geometry_msgs.do_transform_point(point_stamped, transform)
         except Exception as e:
-            self.get_logger().warn(f'Error in calculating map to cube tf {e}')
+            self.get_logger().warn(f'Error in calculating map to obj tf {e}')
             return None
         return (transformed_point.point.x, transformed_point.point.y, transformed_point.point.z)
         # try:
         #     map_to_camera = self.tf_buffer.lookup_transform(self.map_frame, self.camera_frame, stamp).transform
         #     # rotate the map_to_camera position by its orientation 
         #     rot_matrix = self.quaternion_to_rotation_matrix([map_to_camera.rotation.x, map_to_camera.rotation.y, map_to_camera.rotation.z, map_to_camera.rotation.w])
-        #     rotated_translation = np.dot(rot_matrix, camera_to_cube)
-        #     # apply the camera_to_cube tf to the rotated map_to_camera
+        #     rotated_translation = np.dot(rot_matrix, camera_to_obj)
+        #     # apply the camera_to_obj tf to the rotated map_to_camera
         #     return (map_to_camera.translation.x+rotated_translation[0], map_to_camera.translation.y+rotated_translation[1], map_to_camera.translation.z+rotated_translation[2])
         # except Exception as e:
-        #     self.get_logger().warn(f'Error in calculating map to cube tf {e}')
+        #     self.get_logger().warn(f'Error in calculating map to obj tf {e}')
         #     return None
 
-    def get_marker(self, id:int, color:str, point: Point, stamp: Time, frame:str) -> Marker:
+    def get_marker(self, id:int, label:str, point: Point, stamp: Time, frame:str) -> Marker:
         '''Returns a marker derived from the detection'''
         marker = Marker()
         marker.pose.position.x, marker.pose.position.y, marker.pose.position.z = point
@@ -416,10 +419,10 @@ class CubeLocaliser(Node):
         marker.scale.x = self.marker_size
         marker.scale.y = self.marker_size
         marker.scale.z = self.marker_size
-        marker.color.r = COLORS[color][0]
-        marker.color.g = COLORS[color][1]
-        marker.color.b = COLORS[color][2]
-        marker.color.a = 1.0
+        marker.label.r = LABELS[label][0]
+        marker.label.g = LABELS[label][1]
+        marker.label.b = LABELS[label][2]
+        marker.label.a = 1.0
 
         marker.lifetime = Duration(seconds=self.marker_duration).to_msg()
         marker.ns = self.marker_ns
@@ -440,12 +443,12 @@ class CubeLocaliser(Node):
 
         return [pos for pos in pos_vals if np.all(np.abs(pos - mean) < 2 * std_dev)]
 
-    def publish_tf(self, color:str, position: Point, stamp: Time) -> None:
-        '''Publish the transform of a confirmed cube'''
+    def publish_tf(self, label:str, position: Point, stamp: Time) -> None:
+        '''Publish the transform of a confirmed object'''
         tfs = TransformStamped()
         tfs.header.stamp = stamp
         tfs.header.frame_id = self.map_frame
-        tfs.child_frame_id = color + '_cube'
+        tfs.child_frame_id = label + '_obj'
         tfs.transform.translation.x,  tfs.transform.translation.y, tfs.transform.translation.z, = position
         tfs.transform.rotation.x, tfs.transform.rotation.y, tfs.transform.rotation.z, tfs.transform.rotation.w = DEFAULT_QUATERNION
 
@@ -455,7 +458,7 @@ class CubeLocaliser(Node):
 
 def main():
     rclpy.init()
-    node = CubeLocaliser()
+    node = ObjectLocaliser()
     rclpy.spin(node)
     rclpy.shutdown()
 
