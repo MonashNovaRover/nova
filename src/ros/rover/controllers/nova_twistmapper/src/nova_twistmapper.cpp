@@ -7,6 +7,10 @@
 #include "lifecycle_msgs/msg/state.hpp"
 #include "rclcpp/logging.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+#include "hardware_interface/types/hardware_interface_type_values.hpp"
+#include "tf2_eigen/tf2_eigen.hpp"
+#include <urdf_parser/urdf_parser.h>
+#include <srdfdom/model.h>
 
 namespace
 {
@@ -34,6 +38,7 @@ namespace nova_twistmapper
   using controller_interface::interface_configuration_type;
   using controller_interface::InterfaceConfiguration;
   using lifecycle_msgs::msg::State;
+
 
   NovaTwistmapper::NovaTwistmapper() : controller_interface::ControllerInterface() {}
 
@@ -87,7 +92,6 @@ namespace nova_twistmapper
     tf2::fromMsg(twist.angular, tf2_twist_angular);
 
     twistmapper_pose_rpy_ = twistmapper_pose_rpy_ + tf2_twist_angular * period.seconds();
-
     // Create rotation matrix from twist.angular as XYZ euler
     auto rotation_matrix = tf2::Matrix3x3();
     rotation_matrix.setRPY(twistmapper_pose_rpy_.x(), twistmapper_pose_rpy_.y(), twistmapper_pose_rpy_.z());
@@ -181,9 +185,42 @@ namespace nova_twistmapper
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
+  std::string NovaTwistmapper::get_urdf_from_topic(const std::string &topic_name, double timeout_sec)
+  {
+    std::promise<std::string> urdf_promise;
+    auto future = urdf_promise.get_future();
+
+    auto sub = get_node().get()->create_subscription<std_msgs::msg::String>(
+      topic_name, 1,
+      [&urdf_promise](const std_msgs::msg::String::SharedPtr msg) {
+        urdf_promise.set_value(msg->data);
+      });
+
+    // Spin until we get the message or timeout
+    auto start = std::chrono::steady_clock::now();
+
+    while (rclcpp::ok() && future.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready)
+    {
+      if ((std::chrono::steady_clock::now() - start) > std::chrono::duration<double>(timeout_sec))
+      {
+        throw std::runtime_error("Timeout waiting for /robot_description topic");
+      }
+    }
+
+    return future.get();
+  }
+
   controller_interface::CallbackReturn NovaTwistmapper::on_activate(const rclcpp_lifecycle::State&)
   {
     RCLCPP_INFO(get_node()->get_logger(), "On activate");
+
+    // Set up joint state interfaces
+    const auto joints_result = configure_joints();
+    if (joints_result == controller_interface::CallbackReturn::ERROR)
+    {
+      RCLCPP_ERROR(get_node()->get_logger(), "Some joint interfaces are non existent");
+      return controller_interface::CallbackReturn::ERROR;
+    }
 
     const auto prefix = params_.chained_controller_name.empty() ? ""
       : params_.chained_controller_name + "/";
@@ -200,7 +237,51 @@ namespace nova_twistmapper
     is_halted = false;
     subscriber_is_active_ = true;
 
+    std::string urdf_str;
+
+    // Parse URDF
     try {
+      urdf_str = get_urdf_from_topic();
+    } catch (const std::runtime_error& e) {
+      RCLCPP_ERROR(get_node()->get_logger(), "Failed to get the rover URDF.", e.what());
+      return CallbackReturn::FAILURE;
+    }
+    auto urdf_model = urdf::parseURDF(urdf_str);
+    if (!urdf_model) {
+      throw std::runtime_error("Failed to parse URDF");
+    }
+
+    // Finally create the robot model
+    robot_model_ = std::make_shared<moveit::core::RobotModel>(urdf_model, nullptr);
+
+    moveit::core::RobotState robot_state(robot_model_);
+    robot_state.setToDefaultValues();  // Optional: start from known state
+
+    // Set position states of the rover to the initial state interface values
+    for (auto& joint : registered_joint_handles_) {
+      robot_state.setVariablePosition(joint.name, joint.state_pos.get().get_value());
+    }
+    robot_state.update();  // Compute transforms for above applied joint positions
+
+    bool frame_found = false;
+    auto endeffector_global_transform = robot_state.getFrameTransform(ENDEFFECTOR_KINEMATICS_FRAME, &frame_found);
+    if (!frame_found) {
+      RCLCPP_ERROR(get_node()->get_logger(), "Failed to get Transform for frame \'%s\'", ENDEFFECTOR_KINEMATICS_FRAME);
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
+    auto kinematics_origin_transform = robot_state.getFrameTransform(KINEMATICS_ORIGIN_FRAME, &frame_found);
+    if (!frame_found) {
+      RCLCPP_ERROR(get_node()->get_logger(), "Failed to get Transform for frame \'%s\'", KINEMATICS_ORIGIN_FRAME);
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
+    auto endeffector_transform = kinematics_origin_transform.inverse() * endeffector_global_transform;
+
+    convert(endeffector_transform, twistmapper_pose_);
+
+
+    /*try {
       auto tf_transform = tf_buffer_->lookupTransform(
         KINEMATICS_ORIGIN_FRAME, ENDEFFECTOR_KINEMATICS_FRAME, tf2::TimePointZero);
       tf2::fromMsg(tf_transform.transform, twistmapper_pose_);
@@ -216,7 +297,7 @@ namespace nova_twistmapper
         get_node()->get_logger(), "Could not transform %s to %s: %s",
         ENDEFFECTOR_KINEMATICS_FRAME, KINEMATICS_ORIGIN_FRAME, ex.what());
       return controller_interface::CallbackReturn::FAILURE;
-    }
+    }*/
 
     // Set the initial command interface values
     pose_handle->set_value(twistmapper_pose_);
@@ -303,6 +384,51 @@ namespace nova_twistmapper
                      transform_stamped.header.frame_id.c_str());
 
     twistmapper_pose_tf_broadcaster_->sendTransform(transform_stamped);
+  }
+
+  controller_interface::CallbackReturn NovaTwistmapper::configure_joints() {
+    auto logger = get_node()->get_logger();
+    RCLCPP_INFO(logger, "Configure joints");
+
+    if (params_.joint_names.empty())
+    {
+      RCLCPP_ERROR(logger, "No joint names specified");
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
+    // register handles
+    registered_joint_handles_.reserve(params_.joint_names.size());
+    // TODO: pos/vel/etc limits --> Do we need these here if we are hooking into nova_arm_controller? - Bailey
+    for (const auto &joint_name : params_.joint_names)
+    {
+      const auto state_interface_name = joint_name + "/" + hardware_interface::HW_IF_POSITION;
+
+      const auto state_handle = std::find_if(
+        state_interfaces_.begin(), state_interfaces_.end(),
+        [&state_interface_name](const auto &interface)
+        {
+          return interface.get_name() == state_interface_name;
+        });
+
+      if (state_handle == state_interfaces_.end())
+      {
+        RCLCPP_ERROR(logger, "Unable to obtain joint state handle '%s' for %s", hardware_interface::HW_IF_POSITION, joint_name.c_str());
+
+        RCLCPP_ERROR(logger, "state_interfaces_:");
+        for (const auto& state_interface : state_interfaces_) {
+          RCLCPP_ERROR(logger, "  > interface_name: %s", state_interface.get_interface_name().c_str());
+          RCLCPP_ERROR(logger, "    prefix_name: %s", state_interface.get_prefix_name().c_str());
+          RCLCPP_ERROR(logger, "    name: %s", state_interface.get_name().c_str());
+        }
+        return controller_interface::CallbackReturn::ERROR;
+      }
+
+      registered_joint_handles_.emplace_back(
+        JointHandle{joint_name, std::ref(*state_handle)});
+    }
+
+    return controller_interface::CallbackReturn::SUCCESS;
+
   }
 
   std::string NovaTwistmapper::pose_component_to_command_interface_name(const std::string &component_name) const {

@@ -16,6 +16,9 @@
 , tf2-msgs
 , geometry-msgs
 , tf2-geometry-msgs
+, moveit-core
+, moveit-ros-planning
+, moveit-ros-planning-interface
 }:
 
 buildRosPackage {
@@ -45,6 +48,9 @@ buildRosPackage {
     tf2-msgs
     geometry-msgs
     tf2-geometry-msgs
+    moveit-core
+    moveit-ros-planning
+    moveit-ros-planning-interface
   ];
 }
 

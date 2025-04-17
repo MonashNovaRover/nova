@@ -24,6 +24,9 @@
 #include "tf2_ros/transform_listener.h"
 #include "tf2_ros/buffer.h"
 #include "PoseHandle.hpp"
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_state/robot_state.h>
 
 // To test in development, run from the root nova_twistmapper dir:
 // generate_parameter_library_cpp include/nova_twistmapper/nova_twistmapper_parameters.hpp src/nova_twistmapper_parameter.yaml
@@ -64,8 +67,17 @@ public:
     const rclcpp_lifecycle::State &previous_state) override;
 
 protected:
+  struct JointHandle
+  {
+    std::string name;
+    std::reference_wrapper<hardware_interface::LoanedStateInterface> state_pos;
+  };
+
   // Holds command interfaces for different components of the pose
   std::optional<PoseHandle> pose_handle;
+  std::vector<JointHandle> registered_joint_handles_;
+
+  controller_interface::CallbackReturn configure_joints();
 
   // Helpers
   std::string pose_component_to_command_interface_name(const std::string& component_name) const;
@@ -89,7 +101,11 @@ protected:
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 
+  // MoveIt2 Structures
+  moveit::core::RobotModelPtr robot_model_;
+
   void update_twistmapper_pose(const rclcpp::Time &time, const rclcpp::Duration &period);
+  std::string NovaTwistmapper::get_urdf_from_topic(const std::string &topic_name = "/robot_description", double timeout_sec = 2.0);
 
   // Timeout to consider cmd_vel commands old
   std::chrono::milliseconds cmd_vel_timeout_{500};

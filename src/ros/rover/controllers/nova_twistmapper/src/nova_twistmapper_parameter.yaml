@@ -1,4 +1,16 @@
 nova_twistmapper:
+  joint_names: {
+    type: string_array,
+    default_value: [],
+    description: "Names of the joints in the ik. Other arrays in this config must be in the same order",
+  }
+
+  robot_description: {
+    type: string,
+    default_value: "",
+    description: "The robot_description URDF used to do forward kinematics."
+  }
+
   chained_controller_name: {
     type: string,
     default_value: "nova_ik_controller",

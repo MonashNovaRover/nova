@@ -18,6 +18,10 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2
   tf2_msgs
   tf2_geometry_msgs
+  moveit_core
+  moveit_ros_planning
+  moveit_ros_planning_interface
+  urdf
 )
 
 find_package(ament_cmake REQUIRED)
