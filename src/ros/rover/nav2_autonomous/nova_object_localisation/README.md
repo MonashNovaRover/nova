@@ -6,7 +6,7 @@ More details here: https://www.notion.so/Cube-Detection-19db713961718033b820fc40
 
 To run, build using NixOS:
 ```bash
-nix-shell -p 'with import /home/USER/nova/nixfiles { }; pkgs.ros.nova-workspace.override {
+nix-shell -p 'with import /.../nova/nixfiles { }; pkgs.ros.nova-workspace.override {
 	novaPackages = {
 		inherit (pkgs.ros)
 		nova-object-localisation;
@@ -18,16 +18,16 @@ Then run: `ros2 run nova_object_localisation object_localiser`
 
 Testing in sim:
   Perform object detection on a ros image topic using yolo-ros:
-	```nix
-	nix-shell -p 'with import /home/nova/nova/nixfiles { }; pkgs.ros.nova-workspace.override {
-		novaPackages = {
-			inherit (pkgs.ros)
-			yolo-bringup;
-		};
-	}'
-	
-	ros2 launch yolo_bringup yolo.launch.py
-	```
+```nix
+nix-shell -p 'with import /.../nova/nixfiles { }; pkgs.ros.nova-workspace.override {
+	novaPackages = {
+		inherit (pkgs.ros)
+		yolo-bringup;
+	};
+}'
+
+ros2 launch yolo_bringup yolo.launch.py
+```
  And `ros2 run nova_object_localisation object_localiser using_oak:=False`
 
  See here for more details: https://github.com/mgonzs13/yolo_ros

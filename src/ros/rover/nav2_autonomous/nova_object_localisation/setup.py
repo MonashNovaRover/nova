@@ -21,7 +21,6 @@ setup(
     entry_points={
         'console_scripts': [
             'object_localiser = nova_object_localisation.object_localiser:main',
-            #'image_capture = archive.image_capture:main'
         ],
     },
 )
