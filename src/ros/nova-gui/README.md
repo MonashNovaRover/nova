@@ -144,7 +144,7 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
 
    ```sh
    # Build tileserver (ONLY NEED TO DO FIRST TIME)
-   nix-build -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/173b74db07f26344f3517716edd4bff6987b512d.tar.gz -E 'with import <nixpkgs> { }; callPackage ~/nixfiles/packages/other/tileserver-gl-shell { }' -o tileserver-gl-shell
+   nix-build -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/173b74db07f26344f3517716edd4bff6987b512d.tar.gz -E 'with import <nixpkgs> { }; callPackage ~/nova/nixfiles/packages/other/tileserver-gl-shell { }' -o tileserver-gl-shell
 
    # Enter tileserver shell
    ./tileserver-gl-shell/bin/tileserver-gl-fhs
