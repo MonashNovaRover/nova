@@ -14,12 +14,13 @@ CREATION:	15/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import UnlessCondition
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def launch_setup(context, *args, **kwargs):
@@ -30,8 +31,23 @@ def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo')
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
+    robot_name = LaunchConfiguration('robot_name').perform(context)
     arm = LaunchConfiguration('arm').perform(context)
     use_local_mesh = LaunchConfiguration('use_local_mesh')
+    use_mock_hardware = LaunchConfiguration('use_mock_hardware')
+
+    robot_description_content = ParameterValue(
+        Command([
+            'xacro ', model,
+            ' gazebo:=', gazebo,
+            ' robot_name:=', robot_name,
+            ' angle:=', angle,
+            ' arm:=', arm,
+            ' use_mock_hardware:=', use_mock_hardware,
+            ' use_local_mesh:=', use_local_mesh
+        ]),
+        value_type=str
+    )
 
     return [
         Node( # TODO: only when arm is enabled
@@ -52,7 +68,8 @@ def launch_setup(context, *args, **kwargs):
         Node( # TODO: only when arm is enabled
             package='controller_manager',
             executable='spawner',
-            arguments=['nova_twistmapper', '--inactive']
+            arguments=['nova_twistmapper', '--inactive'],
+            parameters=[{'robot_description': robot_description_content}]
         ),
         Node(
             package='controller_manager',
@@ -117,9 +134,19 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
+            name='robot_name',
+            default_value='Banksia',
+            description='name of the robot',
+        ),
+        DeclareLaunchArgument(
             name='model', 
             default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
+        ),
+        DeclareLaunchArgument(
+            name='use_mock_hardware',
+            default_value='false',
+            description='whether to use mock hardware for hardware interfaces',
         ),
         DeclareLaunchArgument(
             name='use_local_mesh',

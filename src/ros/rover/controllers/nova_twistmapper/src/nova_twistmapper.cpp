@@ -240,18 +240,27 @@ namespace nova_twistmapper
     std::string urdf_str;
 
     // Parse URDF
+
+    urdf_str = params_.robot_description;
+
+    /*
     try {
       urdf_str = get_urdf_from_topic();
     } catch (const std::runtime_error& e) {
       RCLCPP_ERROR(get_node()->get_logger(), "Failed to get the rover URDF.", e.what());
       return CallbackReturn::FAILURE;
     }
+    */
+
     auto urdf_model = urdf::parseURDF(urdf_str);
     if (!urdf_model) {
-      throw std::runtime_error("Failed to parse URDF");
+      RCLCPP_ERROR(get_node()->get_logger(), "Failed to parse the given robot_description parameter");
+      return CallbackReturn::FAILURE;
     }
 
     // Finally create the robot model
+    auto robot_model = moveit::core::RobotModel(urdf_model, nullptr);
+
     robot_model_ = std::make_shared<moveit::core::RobotModel>(urdf_model, nullptr);
 
     moveit::core::RobotState robot_state(robot_model_);
@@ -398,7 +407,6 @@ namespace nova_twistmapper
 
     // register handles
     registered_joint_handles_.reserve(params_.joint_names.size());
-    // TODO: pos/vel/etc limits --> Do we need these here if we are hooking into nova_arm_controller? - Bailey
     for (const auto &joint_name : params_.joint_names)
     {
       const auto state_interface_name = joint_name + "/" + hardware_interface::HW_IF_POSITION;
