@@ -3,7 +3,6 @@
 , ament-cmake
 , pluginlib
 , rclcpp
-, rclcpp-lifecycle
 , rcpputils
 , backward-ros
 , tf2
@@ -30,7 +29,6 @@ buildRosPackage {
   buildInputs = [
     pluginlib
     rclcpp
-    rclcpp-lifecycle
     backward-ros
     tf2
     tf2-msgs
