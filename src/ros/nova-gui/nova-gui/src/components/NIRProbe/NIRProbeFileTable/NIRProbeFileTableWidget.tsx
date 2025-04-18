@@ -14,12 +14,14 @@ import {NIRProbeReadingTypeInfo} from "../SpaceResourcesSiteType.tsx";
 export interface NIRProbeFileTableWidgetProps extends CardProps {
   Modal?: React.FC<NIRSettingsModalProps>
   headerTable: ReactNode
-  readingInfo: NIRProbeReadingTypeInfo[]
+  readingInfo: NIRProbeReadingTypeInfo[] // list of NIRProbeReadingTypeInfo: [off, PD1, PD2]
 }
 
 /**
  * Widget containing the saved NIR Probe readings and the averages
+ * @param Modal an optional modal that can be added to the widget
  * @param headerTable the table to sit at the top of the widget
+ * @param readingInfo display information about each photodiode, should be of the form [off, PD1, PD2]
  * @param cardProps
  * @constructor
  */

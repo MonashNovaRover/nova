@@ -13,7 +13,7 @@ interface INIRProbeWidgetProps {
 }
 
 /**
- * View of all NIR Probe widgets
+ * View of all NIR Probe widgets for ARCh
  * @constructor
  */
 const ARCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {

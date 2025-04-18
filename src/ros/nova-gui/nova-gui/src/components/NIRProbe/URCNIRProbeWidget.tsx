@@ -10,7 +10,7 @@ interface INIRProbeWidgetProps {
 }
 
 /**
- * View of all NIR Probe widgets
+ * View of all NIR Probe widgets for URC
  * @constructor
  */
 const URCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
@@ -27,7 +27,7 @@ const URCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
       />
       <SiteSelectWidget/>
       <NIRProbeFileTableWidget
-        headerTable={<NIRProbeSiteAvgTable/>}
+        headerTable={<NIRProbeSiteAvgTable readingInfo={URCNIRPRobeReadingTypeInfo}/>}
         readingInfo={URCNIRPRobeReadingTypeInfo}
       />
     </div>

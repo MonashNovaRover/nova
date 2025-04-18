@@ -16,11 +16,12 @@ import {ISpaceResourcesEntries, NIRProbeReadingType, NIRProbeReadingTypeInfo} fr
 import {Trash2} from "react-feather";
 
 export interface NIRProbeFileTableProps extends CardProps {
-  readingInfo: NIRProbeReadingTypeInfo[]
+  readingInfo: NIRProbeReadingTypeInfo[] // list of NIRProbeReadingTypeInfo: [off, PD1, PD2]
 }
 
 /**
  * Table containing all recorded NIR Probe readings
+ * @param readingInfo display information about each photodiode, should be of the form [off, PD1, PD2]
  * @constructor
  */
 const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({readingInfo}: NIRProbeFileTableProps) => {

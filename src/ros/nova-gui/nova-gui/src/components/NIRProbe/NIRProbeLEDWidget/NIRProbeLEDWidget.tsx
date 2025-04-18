@@ -10,11 +10,12 @@ import {IRosNovaInterfacesNirProbeDataConst} from "../../../ros/rosTypes.ts";
 import {NIRProbeReadingTypeInfo} from "../SpaceResourcesSiteType.tsx";
 
 interface INIRProbeLEDWidgetProps extends CardProps {
-  readingInfo: NIRProbeReadingTypeInfo[]
+  readingInfo: NIRProbeReadingTypeInfo[], // list of NIRProbeReadingTypeInfo: [off, PD1, PD2]
 }
 
 /**
  * Widget containing buttons to call the ros2 service "/science/take_nir_probe_reading"
+ * @param readingInfo display information about each photodiode, should be of the form [off, PD1, PD2]
  * @param cardProps
  * @constructor
  */

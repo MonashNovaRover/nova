@@ -31,7 +31,7 @@ import {useNIRSiteData} from "../useNIRSiteData.ts";
 export interface NIRProbeOutputSaveWidgetProps extends CardProps {
   showAdvanced : boolean,
   setShowAdvanced : (newShowAdvanced: boolean) => void,
-  readingInfo: NIRProbeReadingTypeInfo[],
+  readingInfo: NIRProbeReadingTypeInfo[], // list of NIRProbeReadingTypeInfo: [off, PD1, PD2]
 }
 
 /**
@@ -39,7 +39,7 @@ export interface NIRProbeOutputSaveWidgetProps extends CardProps {
  * @param showAdvanced
  * @param setShowAdvanced
  * @param cardProps
- * @param readingInfo
+ * @param readingInfo display information about each photodiode, should be of the form [off, PD1, PD2]
  * @constructor
  */
 const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
