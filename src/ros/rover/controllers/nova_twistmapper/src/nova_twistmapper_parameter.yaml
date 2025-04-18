@@ -23,3 +23,9 @@ nova_twistmapper:
     default_value: "/arm_ik_twist_stamped",
     description: "The name of the topic to get teleop twist stamped messages from."
   }
+
+  kinematics_solver: {
+    type: string,
+    default_value: "kdl_kinematics_plugin/KDLKinematicsPlugin",
+    description: "The name of the kinematics solver plugin to use for forward and inverse kinematics."
+  }

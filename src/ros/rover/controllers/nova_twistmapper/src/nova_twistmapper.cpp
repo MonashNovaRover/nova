@@ -11,6 +11,9 @@
 #include "tf2_eigen/tf2_eigen.hpp"
 #include <urdf_parser/urdf_parser.h>
 #include <srdfdom/model.h>
+#include <pluginlib/class_loader.hpp>
+#include <moveit/kinematics_base/kinematics_base.h>
+
 
 namespace
 {
@@ -55,6 +58,8 @@ namespace nova_twistmapper
       fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
       return controller_interface::CallbackReturn::ERROR;
     }
+
+    ik_solver_loader_ = std::make_unique<pluginlib::ClassLoader<kinematics::KinematicsBase>>("moveit_core", "kinematics::KinematicsBase");
 
     return controller_interface::CallbackReturn::SUCCESS;
   }
@@ -180,6 +185,18 @@ namespace nova_twistmapper
     subscriber_is_active_ = true;
 
     RCLCPP_INFO(logger, "Created twist stamped subscription");
+
+    // Load kinematics
+    try
+    {
+      ik_solver_ = ik_solver_loader_->createSharedInstance(params_.kinematics_solver);
+    }
+    catch (const pluginlib::PluginlibException& ex)
+    {
+      RCLCPP_ERROR(logger, "Failed to load IK solver plugin \'%s\': %s", params_.kinematics_solver.c_str(), ex.what());
+      return controller_interface::CallbackReturn::ERROR;
+    }
+    RCLCPP_INFO(logger, "Loaded kinematics plugin \'%s\'", params_.kinematics_solver.c_str());
 
     previous_update_timestamp_ = get_node()->get_clock()->now();
     return controller_interface::CallbackReturn::SUCCESS;

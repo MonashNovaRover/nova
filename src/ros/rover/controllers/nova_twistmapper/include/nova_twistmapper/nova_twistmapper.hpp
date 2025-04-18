@@ -27,6 +27,7 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_state/robot_state.h>
+#include <pluginlib/class_loader.hpp>
 
 // To test in development, run from the root nova_twistmapper dir:
 // generate_parameter_library_cpp include/nova_twistmapper/nova_twistmapper_parameters.hpp src/nova_twistmapper_parameter.yaml
@@ -103,6 +104,8 @@ protected:
 
   // MoveIt2 Structures
   moveit::core::RobotModelPtr robot_model_;
+  std::unique_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase>> ik_solver_loader_;
+  std::shared_ptr<kinematics::KinematicsBase> ik_solver_;
 
   void update_twistmapper_pose(const rclcpp::Time &time, const rclcpp::Duration &period);
   std::string get_urdf_from_topic(const std::string &topic_name = "/robot_description", double timeout_sec = 2.0);

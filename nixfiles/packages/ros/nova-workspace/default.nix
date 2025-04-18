@@ -10,6 +10,7 @@
 , gps-umd
 , tf2-tools
 , reolink
+, moveit-core
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -96,7 +97,9 @@
   ## Extra packages to add to the workspace.
 , extraPackages ? { 
     inherit
-      tf2-tools;
+      tf2-tools
+      moveit-core   # needed to dynamically load the kinematics_solver plugin for nova_twistmapper
+      ;
 }
 }:
 
