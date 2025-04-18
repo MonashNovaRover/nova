@@ -66,11 +66,11 @@ nova_arm_controller:
       }
       max_position: {
         type: double,
-        default_value: 1.57,
+        default_value: 1,
       }
       min_position: {
         type: double,
-        default_value: -1,
+        default_value: -1.57,
       }
       has_velocity_limits: {
         type: bool,
@@ -95,11 +95,11 @@ nova_arm_controller:
       }
       max_position: {
         type: double,
-        default_value: 1,
+        default_value: 1.57,
       }
       min_position: {
         type: double,
-        default_value: -0.5,
+        default_value: -1,
       }
       has_velocity_limits: {
         type: bool,
