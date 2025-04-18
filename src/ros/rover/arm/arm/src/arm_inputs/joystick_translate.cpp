@@ -4,6 +4,8 @@ Monash Nova Rover Team
 
 PACKAGE: 	control
 AUTHOR(S):	Jess Hepworth, Jory Braun, Matthew Gu
+LAST EDIT: Rohit Pilakkat
+DATE: 13/4/25
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -176,8 +178,8 @@ void JoystickTranslate::get_twist_inputs(arm_interfaces::msg::ArmControlScheme& 
 }
 
 float JoystickTranslate::scale_speed (float value){
-    // Max scale factor 1.00, min scale factor 0.05
-    return (value * 0.95) + 0.05;
+    // Max scale factor 1.00, min scale factor 0.01
+    return (value * value * 0.99) + 0.01;
 }
 
 bool JoystickTranslate::is_connected()
