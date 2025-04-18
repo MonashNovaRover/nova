@@ -105,7 +105,7 @@ protected:
   moveit::core::RobotModelPtr robot_model_;
 
   void update_twistmapper_pose(const rclcpp::Time &time, const rclcpp::Duration &period);
-  std::string NovaTwistmapper::get_urdf_from_topic(const std::string &topic_name = "/robot_description", double timeout_sec = 2.0);
+  std::string get_urdf_from_topic(const std::string &topic_name = "/robot_description", double timeout_sec = 2.0);
 
   // Timeout to consider cmd_vel commands old
   std::chrono::milliseconds cmd_vel_timeout_{500};

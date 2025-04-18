@@ -46,7 +46,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
-            launch_arguments={'controllers': controllers, 'gazebo': 'False'}.items(),
+            launch_arguments={'controllers': controllers, 'model': model, 'gazebo': 'False', 'robot_name': robot_name, 'arm': arm, 'use_mock_hardware': 'True'}.items(),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
