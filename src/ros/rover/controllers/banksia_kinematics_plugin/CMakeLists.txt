@@ -40,10 +40,9 @@ ament_target_dependencies(banksia_kinematics_plugin PUBLIC ${THIS_PACKAGE_INCLUD
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(banksia_kinematics_plugin PRIVATE "BANKSIA_KINEMATICS_PLUGIN_BUILDING_DLL")
-pluginlib_export_plugin_description_file(kinematics_base banksia_kinematics_plugin.xml)
+pluginlib_export_plugin_description_file(moveit_core plugin_description.xml)
 
-install(DIRECTORY
-  #launch
+install(FILES plugin_description.xml
   DESTINATION share/${PROJECT_NAME}
 )
 

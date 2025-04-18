@@ -189,6 +189,12 @@ namespace nova_twistmapper
     // Load kinematics
     try
     {
+      RCLCPP_INFO(logger, "Attempting to find plugin for kinematics as one of the following plugins:");
+      auto plugins = ik_solver_loader_->getDeclaredClasses();
+      for (const auto& plugin : plugins) {
+        RCLCPP_INFO(logger, "  - %s", plugin.c_str());
+      }
+
       ik_solver_ = ik_solver_loader_->createSharedInstance(params_.kinematics_solver);
     }
     catch (const pluginlib::PluginlibException& ex)
