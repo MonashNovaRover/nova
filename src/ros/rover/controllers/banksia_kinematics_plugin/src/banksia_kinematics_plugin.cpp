@@ -27,11 +27,20 @@ namespace banksia_kinematics_plugin
                                            const std::string &base_frame,
                                            const std::vector<std::string> &tip_frames,
                                            double search_discretization) {
+    RCLCPP_INFO(node->get_logger(), "Initializing BanksiaKinematicsPlugin");
 
     setValues(robot_model.getName(), group_name, base_frame, tip_frames, search_discretization);
 
+    node_ = std::weak_ptr<rclcpp::Node>(node);
     joint_names_ = robot_model.getJointModelGroup(group_name)->getActiveJointModelNames();
     link_names_ = robot_model.getJointModelGroup(group_name)->getLinkModelNames();
+
+    // the robot model needs to outlive this class, and be cleaned up by the caller!
+    robot_model_ = std::shared_ptr<const moveit::core::RobotModel>(&robot_model, [](const moveit::core::RobotModel*){/* no-op deleter */});
+
+    if (!robot_model_) {
+      RCLCPP_ERROR(node->get_logger(), "robot_model_ pointer is not initialized.");
+    }
 
     // TODO: Calculate from the given RobotModel
     link_lengths_ = {0.5, 0.41799975417, 0.417};
@@ -146,12 +155,27 @@ namespace banksia_kinematics_plugin
   bool BanksiaKinematicsPlugin::getPositionFK(const std::vector<std::string> &link_names,
                                               const std::vector<double> &joint_angles,
                                               std::vector<geometry_msgs::msg::Pose> &poses) const {
+    if (node_.expired())
+      return false;
+    auto logger = node_.lock()->get_logger();
+
+    RCLCPP_INFO(logger, "joint_angles:");
+    for (auto& joint_angle : joint_angles) {
+      RCLCPP_INFO(logger, "  - %f", joint_angle);
+    }
+
+    RCLCPP_INFO(logger, "active joint model names in joint group:");
+    for (auto& joint_angle : robot_model_->getJointModelGroup(group_name_)->getActiveJointModelNames()) {
+      RCLCPP_INFO(logger, "  - %s", joint_angle.c_str());
+    }
+
+    RCLCPP_INFO(logger, "Get Position FK");
     // TODO: Actually solve FK
     poses.clear();
 
     if (!robot_model_)
     {
-      // RCLCPP_ERROR(LOGGER, "Robot model is not initialized.");
+      RCLCPP_ERROR(logger, "Robot model is not initialized.");
       return false;
     }
 
@@ -159,14 +183,55 @@ namespace banksia_kinematics_plugin
       robot_model_->getJointModelGroup(group_name_);
     if (!joint_model_group)
     {
-      // RCLCPP_ERROR(LOGGER, "Joint model group '%s' not found.", group_name_.c_str());
+      RCLCPP_ERROR(logger, "Joint model group '%s' not found.", group_name_.c_str());
       return false;
     }
 
     moveit::core::RobotState robot_state(robot_model_);
+
     robot_state.setToDefaultValues();  // optional: ensure known base state
     robot_state.setJointGroupPositions(joint_model_group, joint_angles);
     robot_state.update();
+
+    // Apply to mimic joints
+    for (const auto* joint_model : robot_model_->getMimicJointModels()) {
+      if (!joint_model)
+        continue;
+
+      const auto* source_joint = joint_model->getMimic();
+      if (!source_joint)
+        continue;
+
+      const auto* position_ptr = robot_state.getJointPositions(source_joint);
+      if (!position_ptr)
+        continue;
+
+      const auto position = joint_model->getMimicFactor() * (*position_ptr) + joint_model->getMimicOffset();
+      robot_state.setVariablePosition(joint_model->getName(), position);
+    }
+    robot_state.update();
+
+    RCLCPP_INFO(logger, "Full joint state (including mimic joints):");
+    for (const auto* joint_model : robot_model_->getJointModels()) {
+      if (!joint_model)
+        continue;
+
+      const std::string& name = joint_model->getName();
+      auto positions_ptr = robot_state.getJointPositions(joint_model);
+
+      auto position = (!positions_ptr) ? -9999 : (*positions_ptr) ;
+
+      // Check if this is a mimic joint
+      if (joint_model->getMimic()) {
+        const auto* source_joint = joint_model->getMimic();
+
+
+        RCLCPP_INFO(logger, "  - %s [mimics %s]: %f", name.c_str(), source_joint->getName().c_str(), position);
+      }
+      else {
+        RCLCPP_INFO(logger, "  - %s: %f", name.c_str(), position);
+      }
+    }
 
     auto base_transform_inverse = robot_state.getFrameTransform(base_frame_).inverse();
 
@@ -175,6 +240,7 @@ namespace banksia_kinematics_plugin
     {
       const Eigen::Isometry3d& tf = base_transform_inverse * robot_state.getGlobalLinkTransform(link_name);
       geometry_msgs::msg::Pose pose = tf2::toMsg(tf);
+      RCLCPP_INFO(logger, "%s pose = %s", link_name.c_str(), to_yaml(pose, false).c_str());
       poses.push_back(pose);
     }
 

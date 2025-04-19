@@ -119,6 +119,7 @@ private:
   std::vector<std::string> link_names_;
   std::array<double, 3> link_lengths_;  // L1, L2, L3
 
+  rclcpp::Node::WeakPtr node_;
 };
 } // namespace banksia_kinematics_plugin
 #endif // BANKSIA_KINEMATICS_PLUGIN__BANKSIA_KINEMATICS_PLUGIN_HPP_
