@@ -19,6 +19,9 @@ TODO:
  - Find an IRL alignment
  - Make a rectangle overlay on camera in GUI
  - Make the OPENCV auto aligner (for more complex solution)
+   - Basic logic done
+   - Determine how to make arm move
+   - Test!
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 
@@ -169,10 +172,24 @@ class KeyboardLocaliser(Node):
         self.transform_broadcaster.sendTransform(tfs)
 
 class RectangleAligner(Node):
+    """
+    Purpose of this node:
+    - Realign the arm between each key press so its always accurate.
+    - Can/Should be used when initally aligning the arm
+
+    How it works:
+    - Uses opencv to find the pose of the 2d rectangle 
+    """
     super().__init__('rectangle_aligner')
 
     PERISCOPE_IMAGE_TOPIC = '/arm/periscope'
-    CONTOUR_AREA_THRESHOLD = 30000 # given camera, what is the expected pixel area of the rectangle? Best determined emperically using print(cv2.contourArea(approx)) * (0.5 to 0.7). Any rectangles larger than this will be used
+    THRESHOLD_CONTOUR_AREA = (30000, 80000) # expected pixel area bounds of rectangle in image
+    IRL_TO_PIXEL_RATIO = 1                  # Used to convert rectangle to pixel expected width/height
+    THRESHOLD_X = 5                         # maximum pixel devation from expected position
+    THRESHOLD_Y = 5
+    THRESHOLD_ANGLE = 2
+    THRESHOLD_SCALE = 0.1
+
 
     def __init__(self):
         self.view_sub = self.create_subscription(Image, PERISCOPE_IMAGE_TOPIC, self.view_callback, qos_profile=qos_profile_sensor_data)
@@ -190,9 +207,13 @@ class RectangleAligner(Node):
             logger.error(str(e))
         return mat
 
-    def alignment_loop(self) -> None:
+    def alignment_check(self) -> None:
         """ Find rectangle in image, determine its properties and compared to desired alignment, then send pose to correct misalignment """
         image = self.msg_to_mat(self.get_logger(), self.view, 'bgr8')
+        height, width, _ = image.shape
+        expected_center = (width // 2, height // 2)
+        expected_angle = 0
+        expected_width, expected_height = KEYBOARD[1] * IRL_TO_PIXEL_RATIO, KEYBOARD[0] * IRL_TO_PIXEL_RATIO
 
         ### Find rectangle in image and determine its properties
         # Get contours
@@ -200,29 +221,43 @@ class RectangleAligner(Node):
         edges = cv2.Canny(gray, 50, 150)
         contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+        # look for best rectangle contour
         best_rect = None
-        # look for rectangle contour
         for cnt in contours:
-            # simplify contour polygon (0.02 *cv2 arcLength is 2% of perimeter)
+            # simplify contour polygon using algorithm (0.02 *cv2 arcLength is 2% of perimeter)
             approx = cv2.approxPolyDP(cnt, 0.02 * cv2.arcLength(cnt, True), True)
-            if len(approx) == 4 and cv2.contourArea(approx) > threshold:
+            if len(approx) == 4 and cv2.contourArea(approx) > threshold: # note: bigger rectangles may cause issues
                 best_rect = approx
         
         rect = cv2.minAreaRect(best_rect)  # Gives (center, (width, height), angle)
-        # Visualising contours
-        #box = cv2.boxPoints(rect)
-        #box = np.int0(box)
-        #cv2.drawContours(image, [box], 0, (0, 255, 0), 2)
-
-        center, (w, h), angle = rect
-        # Normalize angle
-        #if w < h:
-        #    angle = angle + 90  # Make it consistent
-        print(f"Center: {center}, Size: {w}x{h}, Angle: {angle}")
+        detected_center, (detected_width, detected_height), detected_angle = rect
+        # If camera is rotated, normalize the angle
+        if w < h:
+            detected_angle = detected_angle + 90  
+        self.get_logger().info(f"Center: {detected_center}, Size: {detected_width}x{detected_height}, Angle: {detected_angle}")
 
         ### Compare to desired alignment
+        dx = detected_center[0] - expected_center[0]
+        dy = detected_center[1] - expected_center[1]
+        dtheta = detected_angle - expected_angle
+        dscale = (detected_width * detected_height) / (expected_width * expected_height)
 
         ### Correct misalignment
+        if abs(dx) > X_THRESHOLD:
+            # correct for x
+            pass
+        elif abs(dy) > Y_THRESHOLD:
+            # correct for y
+            pass
+        elif abs(dtheta) > ANGLE_THRESHOLD:
+            # correct for angle
+            pass
+        elif abs(dscale - 1) > SCALE_THRESHOLD:
+            # correct for scale
+            pass
+        else:
+            # set aligned boolean to true
+            pass
 
 
 def main():
