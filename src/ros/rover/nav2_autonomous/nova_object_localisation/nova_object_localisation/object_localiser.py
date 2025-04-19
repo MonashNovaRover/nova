@@ -61,14 +61,14 @@ type BBox = Tuple[float, float, float, float]   # bounding_box = (pos_x, pos_y, 
 type ObjectPoint = Tuple[str, Point]            # object_point = (label, Point)
 
 
-#LABELS = {'red':[1.0,0.0,0.0], 'green':[0.0,1.0,0.0], 'blue':[0.0,0.0,1.0], 'white':[1.0,1.0,1.0]} # ARCh 2025
-LABELS = {'hammer':[1.0,0.0,0.0], 'bottle':[0.0,1.0,0.0]} # URC 2025, hammer will be red, bottle with be green
+LABELS = {'red':[1.0,0.0,0.0], 'green':[0.0,1.0,0.0], 'blue':[0.0,0.0,1.0], 'white':[1.0,1.0,1.0]} # ARCh 2025
+#LABELS = {'hammer':[1.0,0.0,0.0], 'bottle':[0.0,1.0,0.0]} # URC 2025, hammer will be red, bottle with be green
 DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
 
 # Object ids:
 # Note: This has the same order as mappings in the generated .json file
-#IDS_LABEL = { 0: 'blue', 1: 'green', 2: 'red', 3: 'white'} # ARCh 2025
-IDS_LABEL = { 0: 'hammer', 1: 'bottle'} # URC 2025 (order to be decided from model training)
+IDS_LABEL = { 0: 'blue', 1: 'green', 2: 'red', 3: 'white'} # ARCh 2025
+#IDS_LABEL = { 0: 'hammer', 1: 'bottle'} # URC 2025 (order to be decided from model training)
 
 
 class ObjectLocaliser(Node):
@@ -328,12 +328,6 @@ class ObjectLocaliser(Node):
         v_min = max(center_y - size_y // 2, 0)
         v_max = min(center_y + size_y // 2, depth_image.shape[0] - 1)
 
-        # swap the values incase of weird bug with bb
-        #if u_min > u_max:
-        #    u_max, u_min = u_min, u_max
-        #if v_min > v_max:
-        #    v_max, v_min = v_min, v_max
-
         roi = depth_image[v_min:v_max, u_min:u_max]
 
         roi = roi / self.depth_image_units_divisor  # convert to meters
@@ -398,16 +392,7 @@ class ObjectLocaliser(Node):
             self.get_logger().warn(f'Error in calculating map to obj tf {e}')
             return None
         return (transformed_point.point.x, transformed_point.point.y, transformed_point.point.z)
-        # try:
-        #     map_to_camera = self.tf_buffer.lookup_transform(self.map_frame, self.camera_frame, stamp).transform
-        #     # rotate the map_to_camera position by its orientation 
-        #     rot_matrix = self.quaternion_to_rotation_matrix([map_to_camera.rotation.x, map_to_camera.rotation.y, map_to_camera.rotation.z, map_to_camera.rotation.w])
-        #     rotated_translation = np.dot(rot_matrix, camera_to_obj)
-        #     # apply the camera_to_obj tf to the rotated map_to_camera
-        #     return (map_to_camera.translation.x+rotated_translation[0], map_to_camera.translation.y+rotated_translation[1], map_to_camera.translation.z+rotated_translation[2])
-        # except Exception as e:
-        #     self.get_logger().warn(f'Error in calculating map to obj tf {e}')
-        #     return None
+
 
     def get_marker(self, id:int, label:str, point: Point, stamp: Time, frame:str) -> Marker:
         '''Returns a marker derived from the detection'''
@@ -419,10 +404,10 @@ class ObjectLocaliser(Node):
         marker.scale.x = self.marker_size
         marker.scale.y = self.marker_size
         marker.scale.z = self.marker_size
-        marker.label.r = LABELS[label][0]
-        marker.label.g = LABELS[label][1]
-        marker.label.b = LABELS[label][2]
-        marker.label.a = 1.0
+        marker.color.r = LABELS[label][0]
+        marker.color.g = LABELS[label][1]
+        marker.color.b = LABELS[label][2]
+        marker.color.a = 1.0
 
         marker.lifetime = Duration(seconds=self.marker_duration).to_msg()
         marker.ns = self.marker_ns
