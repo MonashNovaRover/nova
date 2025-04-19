@@ -171,6 +171,126 @@ class KeyboardLocaliser(Node):
 
         self.transform_broadcaster.sendTransform(tfs)
 
+class KeyboardPoseEstimation(Node):
+    super().__init__('rectangle_aligner')
+
+    PERISCOPE_IMAGE_TOPIC = '/arm/periscope'
+    KEYBOARD_FRAME = 'keyboard_frame'
+    CAMERA_FRAME = 'camera_frame'
+    THRESHOLD_CONTOUR_AREA = (30000, 80000) # expected pixel area bounds of rectangle in image
+
+    # Corner points of the keyboard relative to the keyboard frame in mm (center of keyboard)
+    self.keyboard_points = np.array([
+        [0, 0, 0],                      # top-left
+        [KEYBOARD[1], 0, 0],            # top-right
+        [KEYBOARD[1], KEYBOARD[0], 0],  # bottom-right
+        [0, KEYBOARD[0], 0]             # bottom-left
+    ], dtype=np.float32)
+
+    # calibrated camera intrinsics TO BE CALIBRATED and determined for sim
+    focal_length = 600  # px
+    image_center = (320, 240)  # cx, cy
+
+    self.camera_matrix = np.array([
+        [focal_length, 0, image_center[0]],
+        [0, focal_length, image_center[1]],
+        [0, 0, 1]
+    ], dtype=np.float32)
+    # No distortion (or replace with your real ones)
+    self.dist_coeffs = np.zeros(5)
+
+    def __init__(self):
+        self.view_sub = self.create_subscription(Image, PERISCOPE_IMAGE_TOPIC, self.view_callback, qos_profile=qos_profile_sensor_data)
+
+    def view_callback(self, view):
+        """ Callback when Image is recieved (Stores msg for retrieval) """
+        self.view = view
+    
+    def msg_to_mat(self, logger, img, encoding):
+        """Converts Image msg to cv2 frame"""
+        mat = None
+        try:
+            mat = CvBridge().imgmsg_to_cv2(img, encoding)
+        except Exception as e:
+            logger.error(str(e))
+        return mat
+
+    def get_corners(self) -> np.array:
+        """ Get the sorted corners of the keyboard from the image msg """
+        image = self.msg_to_mat(self.get_logger(), self.view, 'bgr8')
+
+        # Get contours
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        edges = cv2.Canny(gray, 50, 150)
+        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # look for best rectangle contour
+        best_rect = None
+        for cnt in contours:
+            # simplify contour polygon using algorithm (0.02 *cv2 arcLength is 2% of perimeter)
+            approx = cv2.approxPolyDP(cnt, 0.02 * cv2.arcLength(cnt, True), True)
+            if len(approx) == 4 and cv2.contourArea(approx) > threshold: # note: bigger rectangles may cause issues
+                best_rect = approx
+        
+        # Extract and reshape points to 2D array
+        corners = best_rect.reshape(4, 2)
+
+        # Sort the points in order: top-left, top-right, bottom-right, bottom-left
+        def sort_corners(pts):
+            # pts: (4, 2)
+            sorted_pts = np.zeros((4, 2), dtype="float32")
+
+            s = pts.sum(axis=1)
+            diff = np.diff(pts, axis=1)
+
+            sorted_pts[0] = pts[np.argmin(s)]       # top-left
+            sorted_pts[2] = pts[np.argmax(s)]       # bottom-right
+            sorted_pts[1] = pts[np.argmin(diff)]    # top-right
+            sorted_pts[3] = pts[np.argmax(diff)]    # bottom-left
+
+            return sorted_pts
+
+        image_points = sort_corners(corners)
+        return image_points
+        
+    def estimate_pose(self) -> TransformStamped:
+        ## run solvePnP
+        image_points = self.get_corners()
+        success, rvec, tvec = cv2.solvePnP(self.object_points, self.image_points, self.camera_matrix, self.dist_coeffs)
+        ## convert rotation and transform vectors to transform message
+       
+        # Convert to rotation matrix then to quaternion
+        rotation_matrix, _ = cv2.Rodrigues(rvec)
+        rot = R.from_matrix(rotation_matrix)
+        quat = rot.as_quat()  # [x, y, z, w]
+
+        t = TransformStamped()
+        t.header.stamp = self.get_clock().now().to_msg()
+        t.header.frame_id = "keyboard"
+        t.child_frame_id = "camera"
+
+        t.transform.translation.x = tvec[0][0] / 1000.0  # mm → meters
+        t.transform.translation.y = tvec[1][0] / 1000.0
+        t.transform.translation.z = tvec[2][0] / 1000.0
+
+        t.transform.rotation.x = quat[0]
+        t.transform.rotation.y = quat[1]
+        t.transform.rotation.z = quat[2]
+        t.transform.rotation.w = quat[3]
+
+        return t
+
+def main():
+    rclpy.init()
+    node = KeyboardLocaliser()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+
 class RectangleAligner(Node):
     """
     Purpose of this node:
@@ -178,7 +298,10 @@ class RectangleAligner(Node):
     - Can/Should be used when initally aligning the arm
 
     How it works:
-    - Uses opencv to find the pose of the 2d rectangle 
+    - Uses opencv to find the pose of the 2d rectangle, then will send adjustments to arm to align the rectangle
+
+    Drawback:
+    - Only considers 2D
     """
     super().__init__('rectangle_aligner')
 
@@ -258,14 +381,3 @@ class RectangleAligner(Node):
         else:
             # set aligned boolean to true
             pass
-
-
-def main():
-    rclpy.init()
-    node = KeyboardLocaliser()
-    rclpy.spin(node)
-    rclpy.shutdown()
-
-
-if __name__ == "__main__":
-    main()
