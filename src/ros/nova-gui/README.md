@@ -144,19 +144,30 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
 
    ```sh
    # Build tileserver (ONLY NEED TO DO FIRST TIME)
+   tileserver-build
+   # alias for
    nix-build -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/173b74db07f26344f3517716edd4bff6987b512d.tar.gz -E 'with import <nixpkgs> { }; callPackage ~/nova/nixfiles/packages/other/tileserver-gl-shell { }' -o tileserver-gl-shell
 
    # Enter tileserver shell
+   tileserver-shell
+   # alias for
    ./tileserver-gl-shell/bin/tileserver-gl-fhs
    
    # Install tileserver packages (ONLY NEED TO DO FIRST TIME)
+   tileserver-install
+   # alias for
    npm install -g --prefix ~/.npm-global tileserver-gl
    
    # Run tileserver
+   tileserver-run <path to tiles>/MDRS_Hi_Res.mbtiles
+   # alias for
    ~/.npm-global/bin/tileserver-gl --file <path to tiles>/MDRS_Hi_Res.mbtiles
    ```
 
+   If you are getting errors first ensure that the gui and rosbridge is running.
+
    You will need the offline tiles for URC which are available [here](https://drive.google.com/drive/folders/18x0F8ZD5EzfDROY0BhEAxmZ71OYd6H4y?usp=drive_link).
+
 8. Launch the gui
 
    ```sh
