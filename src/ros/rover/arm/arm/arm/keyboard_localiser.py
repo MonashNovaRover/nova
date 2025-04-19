@@ -34,6 +34,7 @@ from rclpy.qos import qos_profile_sensor_data
 
 from tf2_ros import Buffer, TransformListener, TransformBroadcaster
 
+import math
 import numpy as np
 import cv2
 from cv_bridge import CvBridge
@@ -76,6 +77,7 @@ In separate terminal:
 
 KEY_SERVICE_NAME = '/arm/keyboard/get_key_position'
 KEYBOARD_TF_SERVICE_NAME = '/arm/keyboard/transform_toggle'
+IMAGE_TOPIC = '/arm/periscope'
 
 
 class KeyboardLocaliser(Node):
@@ -87,21 +89,50 @@ class KeyboardLocaliser(Node):
         self.base_frame = self.declare_parameter('base_frame', 'base_link').get_parameter_value().string_value
         self.key_srv = self.create_service(KeyPosition, KEY_SERVICE_NAME, self.get_key_position_callback)
         self.key_map = KEY_MAP
+        
+        THRESHOLD_CONTOUR_AREA = (30000, 80000) # expected pixel area bounds of rectangle in image
 
-        # keyboard alignment initalisation
+        # manual keyboard alignment initalisation
         self.aligned_keyboard_position = self.declare_parameter('aligned_keyboard_position', DEFAULT_POSITION).get_parameter_value().double_array_value
         self.aligned_keyboard_quaternion = self.declare_parameter('aligned_keyboard_quaternion', DEFAULT_QUATERNION).get_parameter_value().double_array_value
         self.align_srv = self.create_service(StringTrigger, KEYBOARD_TF_SERVICE_NAME, self.get_align_callback)
         self.is_aligned = False
 
+        # calibrated camera intrinsics
+        hfov = self.declare_parameter('hfov', 61.3727248).get_parameter_value().double_value
+        width = self.declare_parameter('image_width', 1280).get_parameter_value().integer_value
+        height = self.declare_parameter('image_height', 720).get_parameter_value().integer_value
+        focal_length = width / 2 / math.tan(math.radians(hfov)/2) # for defaults = 1078.467509; 
+        image_center = (width//2, height//2)
+        self.camera_matrix = np.array([
+            [focal_length, 0, image_center[0]],
+            [0, focal_length, image_center[1]],
+            [0, 0, 1]
+        ], dtype=np.float32)
+        self.dist_coeffs = self.declare_parameter('distortion_matrix', [0.0,0.0,0.0,0.0,0.0]).get_parameter_value().double_array_value
+
+        # keyboard pose analysis initalisation
+        self.camera_frame = self.declare_parameter('camera_frame', 'arm_end_periscope').get_parameter_value().string_value
+        min_area = self.declare_parameter('minimum_area', '0.5').get_parameter_value().double_value # the expected % range that the keyboard will take up in the camera
+        max_area = self.declare_parameter('maximum_area', '0.8').get_parameter_value().double_value
+        image_area = width * height
+        self.contour_bounds = (min_area*image_area, max_area*image_area)
+                                  
+        self.view_sub = self.create_subscription(Image, IMAGE_TOPIC, self.view_callback, qos_profile=qos_profile_sensor_data)
+        self.keyboard_points = np.array([   # Corner points of the keyboard relative to the keyboard frame in mm (center of keyboard)
+            [0, 0, 0],                      # top-left
+            [KEYBOARD[1], 0, 0],            # top-right
+            [KEYBOARD[1], KEYBOARD[0], 0],  # bottom-right
+            [0, KEYBOARD[0], 0]             # bottom-left
+        ], dtype=np.float32)
+
         # tf2 initalisation
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
         self.transform_broadcaster = TransformBroadcaster(self)
-        
-        # timer to constantly publish tf at period/second
         timer_period = self.declare_parameter('tf_publish_rate', 1.0).get_parameter_value().double_value
-        self.create_timer(timer_period, self.publish_tf)
+        self.create_timer(timer_period, self.publish_aligned_tf)
+        self.create_timer(timer_period, self.publish_analysis_tf)
 
         self.get_logger().info(f"Running this node with services: {KEY_SERVICE_NAME}, {KEYBOARD_TF_SERVICE_NAME}. Using keyboard: {self.keyboard_frame} for transforms and base link: {self.base_frame}")
 
@@ -157,8 +188,8 @@ class KeyboardLocaliser(Node):
         except:
             return None
 
-    def publish_tf(self) -> None:
-        '''Publish the transform of the keyboard'''
+    def publish_aligned_tf(self) -> None:
+        '''Publish the transform of the keyboard through the alignment method'''
         if not self.is_aligned:
             return
         
@@ -171,42 +202,20 @@ class KeyboardLocaliser(Node):
 
         self.transform_broadcaster.sendTransform(tfs)
 
-class KeyboardPoseEstimation(Node):
-    super().__init__('rectangle_aligner')
+    def publish_analysis_tf(self) -> None:
+        '''Publish the transform of the keyboard through the solvePnP method'''
+        if self.view is None:
+            return None
+        transform = self.estimate_pose()
+        if transform is None:
+            return None
+        self.transform_broadcaster.sendTransform(transform)
 
-    PERISCOPE_IMAGE_TOPIC = '/arm/periscope'
-    KEYBOARD_FRAME = 'keyboard_frame'
-    CAMERA_FRAME = 'camera_frame'
-    THRESHOLD_CONTOUR_AREA = (30000, 80000) # expected pixel area bounds of rectangle in image
-
-    # Corner points of the keyboard relative to the keyboard frame in mm (center of keyboard)
-    self.keyboard_points = np.array([
-        [0, 0, 0],                      # top-left
-        [KEYBOARD[1], 0, 0],            # top-right
-        [KEYBOARD[1], KEYBOARD[0], 0],  # bottom-right
-        [0, KEYBOARD[0], 0]             # bottom-left
-    ], dtype=np.float32)
-
-    # calibrated camera intrinsics TO BE CALIBRATED and determined for sim
-    focal_length = 600  # px
-    image_center = (320, 240)  # cx, cy
-
-    self.camera_matrix = np.array([
-        [focal_length, 0, image_center[0]],
-        [0, focal_length, image_center[1]],
-        [0, 0, 1]
-    ], dtype=np.float32)
-    # No distortion (or replace with your real ones)
-    self.dist_coeffs = np.zeros(5)
-
-    def __init__(self):
-        self.view_sub = self.create_subscription(Image, PERISCOPE_IMAGE_TOPIC, self.view_callback, qos_profile=qos_profile_sensor_data)
-
-    def view_callback(self, view):
+    def view_callback(self, view) -> None:
         """ Callback when Image is recieved (Stores msg for retrieval) """
         self.view = view
     
-    def msg_to_mat(self, logger, img, encoding):
+    def msg_to_mat(self, logger, img, encoding) -> np.array:
         """Converts Image msg to cv2 frame"""
         mat = None
         try:
@@ -215,7 +224,7 @@ class KeyboardPoseEstimation(Node):
             logger.error(str(e))
         return mat
 
-    def get_corners(self) -> np.array:
+    def get_corners(self) -> np.array | None:
         """ Get the sorted corners of the keyboard from the image msg """
         image = self.msg_to_mat(self.get_logger(), self.view, 'bgr8')
 
@@ -229,45 +238,45 @@ class KeyboardPoseEstimation(Node):
         for cnt in contours:
             # simplify contour polygon using algorithm (0.02 *cv2 arcLength is 2% of perimeter)
             approx = cv2.approxPolyDP(cnt, 0.02 * cv2.arcLength(cnt, True), True)
-            if len(approx) == 4 and cv2.contourArea(approx) > threshold: # note: bigger rectangles may cause issues
+            # rectangle must have 4 sides and area within the threshold
+            if len(approx) == 4 and (self.contour_bounds[0] > cv2.contourArea(approx) > self.contour_bounds[1]):
                 best_rect = approx
-        
+        if best_rect is None:
+            return None
+
         # Extract and reshape points to 2D array
         corners = best_rect.reshape(4, 2)
-
         # Sort the points in order: top-left, top-right, bottom-right, bottom-left
-        def sort_corners(pts):
-            # pts: (4, 2)
+        def sort_corners(pts) -> np.array:
             sorted_pts = np.zeros((4, 2), dtype="float32")
-
             s = pts.sum(axis=1)
             diff = np.diff(pts, axis=1)
-
             sorted_pts[0] = pts[np.argmin(s)]       # top-left
             sorted_pts[2] = pts[np.argmax(s)]       # bottom-right
             sorted_pts[1] = pts[np.argmin(diff)]    # top-right
             sorted_pts[3] = pts[np.argmax(diff)]    # bottom-left
-
             return sorted_pts
 
         image_points = sort_corners(corners)
         return image_points
         
-    def estimate_pose(self) -> TransformStamped:
+    def estimate_pose(self) -> TransformStamped | None:
         ## run solvePnP
         image_points = self.get_corners()
+        if image_points is None:
+            return None
         success, rvec, tvec = cv2.solvePnP(self.object_points, self.image_points, self.camera_matrix, self.dist_coeffs)
-        ## convert rotation and transform vectors to transform message
-       
+        
         # Convert to rotation matrix then to quaternion
         rotation_matrix, _ = cv2.Rodrigues(rvec)
         rot = R.from_matrix(rotation_matrix)
         quat = rot.as_quat()  # [x, y, z, w]
 
+        ## convert quaternion and transform vector to transform message
         t = TransformStamped()
         t.header.stamp = self.get_clock().now().to_msg()
-        t.header.frame_id = "keyboard"
-        t.child_frame_id = "camera"
+        t.header.frame_id = self.keyboard_frame
+        t.child_frame_id = self.camera_frame
 
         t.transform.translation.x = tvec[0][0] / 1000.0  # mm → meters
         t.transform.translation.y = tvec[1][0] / 1000.0
@@ -280,16 +289,6 @@ class KeyboardPoseEstimation(Node):
 
         return t
 
-def main():
-    rclpy.init()
-    node = KeyboardLocaliser()
-    rclpy.spin(node)
-    rclpy.shutdown()
-
-
-if __name__ == "__main__":
-    main()
-
 
 class RectangleAligner(Node):
     """
@@ -301,7 +300,7 @@ class RectangleAligner(Node):
     - Uses opencv to find the pose of the 2d rectangle, then will send adjustments to arm to align the rectangle
 
     Drawback:
-    - Only considers 2D
+    - Only considers 2D so camera must be parallel with rectangle
     """
     super().__init__('rectangle_aligner')
 
@@ -381,3 +380,13 @@ class RectangleAligner(Node):
         else:
             # set aligned boolean to true
             pass
+
+def main():
+    rclpy.init()
+    node = KeyboardLocaliser()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
