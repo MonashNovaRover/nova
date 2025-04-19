@@ -121,3 +121,12 @@ nix-enable: sudo systemctl enable nix-daemon.service
 nix-start: sudo systemctl start nix-daemon.service
 
 =========================
+
+# Tile Server (For GUI Cartography Page)
+
+tileserver-build (first time only)
+tileserver-shell
+tileserver-install (first time only)
+tileserver-run <path to map>
+
+=========================
