@@ -28,6 +28,7 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_state/robot_state.h>
 #include <pluginlib/class_loader.hpp>
+#include <stdexcept>
 
 // To test in development, run from the root nova_twistmapper dir:
 // generate_parameter_library_cpp include/nova_twistmapper/nova_twistmapper_parameters.hpp src/nova_twistmapper_parameter.yaml
@@ -91,6 +92,9 @@ protected:
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_stamped_sub = nullptr;
   realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_stamped_ptr{nullptr};
 
+  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr robot_description_sub_ = nullptr;
+  realtime_tools::RealtimeBox<std::shared_ptr<std_msgs::msg::String>> received_robot_description_ptr_{nullptr};
+
   /// Result of the twistmapper, and input to IK. Desired position and orientation of the end effector relative to the base.
   tf2::Transform twistmapper_pose_ = tf2::Transform();
   tf2::Vector3 twistmapper_pose_rpy_ = tf2::Vector3();
@@ -103,12 +107,23 @@ protected:
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 
   // MoveIt2 Structures
+  /// The URDF model for the arm. Needs to exist for the lifecycle of the kinematics_solver_ and robot_model_.
+  std::shared_ptr<urdf::ModelInterface> urdf_model_;
+  /// The SRDF model for the arm. Needs to exist for the lifecycle of the kinematics_solver_ and robot_model_.
+  std::shared_ptr<srdf::Model> srdf_model_;
+  /// Model of the arm used for kinematics.
   moveit::core::RobotModelPtr robot_model_;
-  std::unique_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase>> ik_solver_loader_;
-  std::shared_ptr<kinematics::KinematicsBase> ik_solver_;
+  /// Compatability node allowing for dependency injection to the MoveIt2 kinematics plugin, as we can't use a
+  /// LifecycleNode for this purpose.
+  rclcpp::Node::SharedPtr kinematics_compat_node_;
+  /// Loads the kinematics_solver_, and needs to stay alive during the whole lifecycle of the kinematics_solver_.
+  std::unique_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase>> kinematics_solver_loader_;
+  /// MoveIt2 plugin for solving forward and inverse kinematics.
+  std::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;
 
   void update_twistmapper_pose(const rclcpp::Time &time, const rclcpp::Duration &period);
-  std::string get_urdf_from_topic(const std::string &topic_name = "/robot_description", double timeout_sec = 2.0);
+  bool get_urdf_from_topic(double timeout_sec, std::string &urdf_string);
+  rclcpp::Node::SharedPtr create_compat_node_from_lifecycle(const rclcpp_lifecycle::LifecycleNode::SharedPtr& lifecycle_node);
 
   // Timeout to consider cmd_vel commands old
   std::chrono::milliseconds cmd_vel_timeout_{500};
@@ -124,6 +139,9 @@ protected:
   void halt();
 
   void publish_to_tf2(const rclcpp::Time &time);
+
+  std::basic_string<char, std::char_traits<char>, std::allocator<char>>
+  construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model, std::string joint_group_name);
 };
 } // namespace nova_twistmapper
 #endif // NOVA_TWISTMAPPER__NOVA_TWISTMAPPER_HPP_

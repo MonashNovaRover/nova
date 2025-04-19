@@ -16,7 +16,7 @@ CREATION:	15/12/2021
 from launch import LaunchDescription
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import UnlessCondition
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction, ExecuteProcess, LogInfo
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -25,31 +25,23 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
-    
-    angle = LaunchConfiguration('angle')
+
+
     controllers = LaunchConfiguration('controllers')
-    gazebo = LaunchConfiguration('gazebo')
     log_level = LaunchConfiguration('log_level')
-    model = LaunchConfiguration('model')
+
+    angle = LaunchConfiguration('angle').perform(context)
+    gazebo = LaunchConfiguration('gazebo').perform(context)
+    model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
     arm = LaunchConfiguration('arm').perform(context)
-    use_local_mesh = LaunchConfiguration('use_local_mesh')
-    use_mock_hardware = LaunchConfiguration('use_mock_hardware')
+    use_mock_hardware = LaunchConfiguration('use_mock_hardware').perform(context)
+    use_local_mesh = LaunchConfiguration('use_local_mesh').perform(context)
 
-    robot_description_content = ParameterValue(
-        Command([
-            'xacro ', model,
-            ' gazebo:=', gazebo,
-            ' robot_name:=', robot_name,
-            ' angle:=', angle,
-            ' arm:=', arm,
-            ' use_mock_hardware:=', use_mock_hardware,
-            ' use_local_mesh:=', use_local_mesh
-        ]),
-        value_type=str
-    )
+    robot_description_content = ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle, ' ', 'arm:=', arm, ' ', 'use_mock_hardware:=', use_mock_hardware, ' ', 'use_local_mesh:=', use_local_mesh]), value_type=str)
 
     return [
+        LogInfo(msg=Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle, ' ', 'arm:=', arm, ' ', 'use_mock_hardware:=', use_mock_hardware, ' ', 'use_local_mesh:=', use_local_mesh])),
         Node( # TODO: only when arm is enabled
             package='controller_manager',
             executable='spawner',

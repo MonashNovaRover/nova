@@ -13,6 +13,7 @@
 #include <srdfdom/model.h>
 #include <pluginlib/class_loader.hpp>
 #include <moveit/kinematics_base/kinematics_base.h>
+#include <stdexcept>
 
 
 namespace
@@ -59,7 +60,18 @@ namespace nova_twistmapper
       return controller_interface::CallbackReturn::ERROR;
     }
 
-    ik_solver_loader_ = std::make_unique<pluginlib::ClassLoader<kinematics::KinematicsBase>>("moveit_core", "kinematics::KinematicsBase");
+    kinematics_solver_loader_ = std::make_unique<pluginlib::ClassLoader<kinematics::KinematicsBase>>("moveit_core", "kinematics::KinematicsBase");
+
+    auto logger = get_node()->get_logger();
+    auto qos = rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable();
+    robot_description_sub_ = get_node()->create_subscription<std_msgs::msg::String>(
+      "/robot_description",
+      qos,
+      [this, logger](const std::shared_ptr<std_msgs::msg::String> msg) -> void
+      {
+        RCLCPP_INFO_ONCE(logger, "/robot_description received!");
+        received_robot_description_ptr_.set(std::move(msg));
+      });
 
     return controller_interface::CallbackReturn::SUCCESS;
   }
@@ -78,6 +90,10 @@ namespace nova_twistmapper
   InterfaceConfiguration NovaTwistmapper::state_interface_configuration() const
   {
     std::vector<std::string> conf_names;
+
+    for (const auto &joint_name: params_.joint_names) {
+      conf_names.push_back(joint_name + "/" + hardware_interface::HW_IF_POSITION);
+    }
 
     return {interface_configuration_type::INDIVIDUAL, conf_names};
   }
@@ -115,6 +131,7 @@ namespace nova_twistmapper
 
   controller_interface::return_type NovaTwistmapper::update(const rclcpp::Time &time, const rclcpp::Duration &period)
   {
+    RCLCPP_INFO(get_node()->get_logger(), "Update");
     auto logger = get_node()->get_logger();
     if (get_lifecycle_state().id() == State::PRIMARY_STATE_INACTIVE)
     {
@@ -190,12 +207,12 @@ namespace nova_twistmapper
     try
     {
       RCLCPP_INFO(logger, "Attempting to find plugin for kinematics as one of the following plugins:");
-      auto plugins = ik_solver_loader_->getDeclaredClasses();
+      auto plugins = kinematics_solver_loader_->getDeclaredClasses();
       for (const auto& plugin : plugins) {
         RCLCPP_INFO(logger, "  - %s", plugin.c_str());
       }
 
-      ik_solver_ = ik_solver_loader_->createSharedInstance(params_.kinematics_solver);
+      kinematics_solver_ = kinematics_solver_loader_->createSharedInstance(params_.kinematics_solver);
     }
     catch (const pluginlib::PluginlibException& ex)
     {
@@ -204,33 +221,85 @@ namespace nova_twistmapper
     }
     RCLCPP_INFO(logger, "Loaded kinematics plugin \'%s\'", params_.kinematics_solver.c_str());
 
+    // Parse URDF
+    std::string urdf_str = params_.robot_description;
+
+    if (urdf_str.empty()) {
+      RCLCPP_WARN(get_node()->get_logger(), "No URDF was provided in robot_description! Attempting to load from topic.");
+      if (!get_urdf_from_topic(0.2, urdf_str)) {
+        RCLCPP_ERROR(get_node()->get_logger(), "Failed to parse the given robot_description parameter");
+        return CallbackReturn::FAILURE;
+      }
+    }
+    else {
+      RCLCPP_INFO(logger, "Found URDF string from robot_description parameter");
+    }
+
+    urdf_model_ = urdf::parseURDF(urdf_str);
+    if (!urdf_model_) {
+      RCLCPP_ERROR(get_node()->get_logger(),
+                   "Failed to parse the given robot_description URDF string \"%s\"", urdf_str.c_str());
+      return CallbackReturn::FAILURE;
+    }
+
+    // Create an SRDF with a joint group for params_.joint_names
+    srdf_model_ = std::make_shared<srdf::Model>();
+    auto joint_group_name = std::basic_string(get_node()->get_name()) + "_joints";
+    auto srdf_string = construct_srdf_fallback_string(urdf_model_, joint_group_name);
+    srdf_model_->initString(*urdf_model_, srdf_string);
+
+    // Create the robot model
+    robot_model_ = std::make_shared<moveit::core::RobotModel>(urdf_model_, srdf_model_);
+
+    // Create an extra non-lifecycle node to allow us to initialize the kinematics solver
+    kinematics_compat_node_ = create_compat_node_from_lifecycle(get_node());
+
+    // Instantiate kinematics using the robot model
+    const std::basic_string<char> base_frame = KINEMATICS_ORIGIN_FRAME;
+    const std::vector<std::basic_string<char>> tip_frames {
+      ENDEFFECTOR_KINEMATICS_FRAME
+    };
+    // We currently don't use this. Reasonable values are in [0.01, 0.1] rads, and KDL uses 0.1 rads by default.
+    double search_discretization = 0.1;
+    kinematics_solver_->initialize(kinematics_compat_node_, *robot_model_, joint_group_name, base_frame, tip_frames,
+                                   search_discretization);
+
     previous_update_timestamp_ = get_node()->get_clock()->now();
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
-  std::string NovaTwistmapper::get_urdf_from_topic(const std::string &topic_name, double timeout_sec)
+  std::basic_string<char, std::char_traits<char>, std::allocator<char>>
+  NovaTwistmapper::construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model,
+                                                  std::string joint_group_name) {// Dynamically construct an SRDF that contains all of our joints in a joint group
+// TODO: Allow an SRDF to be provided
+    std::ostringstream srdf_stream;
+    srdf_stream << "<robot name=\"" << urdf_model->getName() << "\">\n";
+    srdf_stream << "  <group name=\"" << joint_group_name << "\">\n";
+    for (const auto& joint : params_.joint_names)
+      srdf_stream << "    <joint name=\"" << joint << "\"/>\n";
+    srdf_stream << "  </group>\n";
+    srdf_stream << "</robot>\n";
+    auto srdf_string = srdf_stream.str();
+    return srdf_string;
+  }
+
+  bool NovaTwistmapper::get_urdf_from_topic(double timeout_sec, std::string &urdf_string)
   {
-    std::promise<std::string> urdf_promise;
-    auto future = urdf_promise.get_future();
-
-    auto sub = get_node().get()->create_subscription<std_msgs::msg::String>(
-      topic_name, 1,
-      [&urdf_promise](const std_msgs::msg::String::SharedPtr msg) {
-        urdf_promise.set_value(msg->data);
-      });
-
-    // Spin until we get the message or timeout
+    std::shared_ptr<std_msgs::msg::String> robot_description_msg;
     auto start = std::chrono::steady_clock::now();
 
-    while (rclcpp::ok() && future.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready)
-    {
-      if ((std::chrono::steady_clock::now() - start) > std::chrono::duration<double>(timeout_sec))
-      {
-        throw std::runtime_error("Timeout waiting for /robot_description topic");
+    while (std::chrono::steady_clock::now() - start < std::chrono::duration<double>(timeout_sec)) {
+      received_robot_description_ptr_.get(robot_description_msg);
+      if (robot_description_msg) {
+        urdf_string = robot_description_msg->data;
+        return true;
       }
+
+      // Sleep briefly to avoid spinning hot
+      std::this_thread::sleep_for(10ms);
     }
 
-    return future.get();
+    return false;
   }
 
   controller_interface::CallbackReturn NovaTwistmapper::on_activate(const rclcpp_lifecycle::State&)
@@ -260,37 +329,26 @@ namespace nova_twistmapper
     is_halted = false;
     subscriber_is_active_ = true;
 
-    std::string urdf_str;
-
-    // Parse URDF
-
-    urdf_str = params_.robot_description;
-
-    /*
-    try {
-      urdf_str = get_urdf_from_topic();
-    } catch (const std::runtime_error& e) {
-      RCLCPP_ERROR(get_node()->get_logger(), "Failed to get the rover URDF.", e.what());
-      return CallbackReturn::FAILURE;
+    if (!robot_model_ || !robot_model_->getRootJoint()) {
+      RCLCPP_ERROR(get_node()->get_logger(), "robot_model_ is uninitialized or invalid");
+      return CallbackReturn::ERROR;
     }
-    */
-
-    auto urdf_model = urdf::parseURDF(urdf_str);
-    if (!urdf_model) {
-      RCLCPP_ERROR(get_node()->get_logger(), "Failed to parse the given robot_description parameter");
-      return CallbackReturn::FAILURE;
-    }
-
-    // Finally create the robot model
-    auto robot_model = moveit::core::RobotModel(urdf_model, nullptr);
-
-    robot_model_ = std::make_shared<moveit::core::RobotModel>(urdf_model, nullptr);
 
     moveit::core::RobotState robot_state(robot_model_);
     robot_state.setToDefaultValues();  // Optional: start from known state
 
     // Set position states of the rover to the initial state interface values
     for (auto& joint : registered_joint_handles_) {
+      if (!robot_model_->hasJointModel(joint.name)) {
+        RCLCPP_ERROR(get_node()->get_logger(), "Joint '%s' not found in robot model. Known variables names are:",
+                     joint.name.c_str());
+        for (auto& variable : robot_state.getVariableNames()) {
+          RCLCPP_INFO(get_node()->get_logger(), "  - %s", variable.c_str());
+        }
+
+        return controller_interface::CallbackReturn::ERROR;
+      }
+
       robot_state.setVariablePosition(joint.name, joint.state_pos.get().get_value());
     }
     robot_state.update();  // Compute transforms for above applied joint positions
@@ -302,6 +360,7 @@ namespace nova_twistmapper
       return controller_interface::CallbackReturn::ERROR;
     }
 
+    frame_found = false;
     auto kinematics_origin_transform = robot_state.getFrameTransform(KINEMATICS_ORIGIN_FRAME, &frame_found);
     if (!frame_found) {
       RCLCPP_ERROR(get_node()->get_logger(), "Failed to get Transform for frame \'%s\'", KINEMATICS_ORIGIN_FRAME);
@@ -311,7 +370,6 @@ namespace nova_twistmapper
     auto endeffector_transform = kinematics_origin_transform.inverse() * endeffector_global_transform;
 
     convert(endeffector_transform, twistmapper_pose_);
-
 
     /*try {
       auto tf_transform = tf_buffer_->lookupTransform(
@@ -340,6 +398,7 @@ namespace nova_twistmapper
 
   controller_interface::CallbackReturn NovaTwistmapper::on_deactivate(const rclcpp_lifecycle::State&)
   {
+    RCLCPP_INFO(get_node()->get_logger(), "On Deactivate");
     subscriber_is_active_ = false;
     if (!is_halted)
     {
@@ -347,14 +406,17 @@ namespace nova_twistmapper
       is_halted = true;
     }
 
-    // Clean up command interfaces
+    // Clean up command/state interfaces
     pose_handle.reset();
+    registered_joint_handles_.clear();
 
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
   controller_interface::CallbackReturn NovaTwistmapper::on_cleanup(const rclcpp_lifecycle::State&)
   {
+    RCLCPP_INFO(get_node()->get_logger(), "On Cleanup");
+
     if (!reset())
     {
       return controller_interface::CallbackReturn::ERROR;
@@ -365,6 +427,7 @@ namespace nova_twistmapper
 
   controller_interface::CallbackReturn NovaTwistmapper::on_error(const rclcpp_lifecycle::State&)
   {
+    RCLCPP_INFO(get_node()->get_logger(), "On Error");
     if (!reset())
     {
       return controller_interface::CallbackReturn::ERROR;
@@ -374,10 +437,25 @@ namespace nova_twistmapper
 
   bool NovaTwistmapper::reset()
   {
-    // release the old queue
-    subscriber_is_active_ = false;
+    RCLCPP_INFO(get_node()->get_logger(), "TEMP: Resetting.");
 
     is_halted = false;
+
+    // Reset pointers
+    kinematics_solver_.reset();
+    robot_model_.reset();
+    urdf_model_.reset();
+    srdf_model_.reset();
+    kinematics_compat_node_.reset();
+
+    twistmapper_pose_tf_broadcaster_.reset();
+    tf_buffer_.reset();
+    tf_listener_.reset();
+
+    // Reset subscriptions
+    twist_stamped_sub.reset();
+    subscriber_is_active_ = false;
+
     return true;
   }
 
@@ -402,6 +480,8 @@ namespace nova_twistmapper
   }
 
   void NovaTwistmapper::publish_to_tf2(const rclcpp::Time &time) {
+    RCLCPP_INFO(get_node()->get_logger(), "TEMP: Publishing to tf2.");
+
     // Publish twistmapper pose to tf2
     geometry_msgs::msg::TransformStamped transform_stamped;
     transform_stamped.transform = toMsg(twistmapper_pose_);
@@ -429,6 +509,11 @@ namespace nova_twistmapper
     }
 
     // register handles
+    if (!registered_joint_handles_.empty()) {
+      RCLCPP_ERROR(logger, "registered_joint_handles_ was not empty! Ensure this is propeprly cleaned up.");
+      registered_joint_handles_.clear();
+    }
+
     registered_joint_handles_.reserve(params_.joint_names.size());
     for (const auto &joint_name : params_.joint_names)
     {
@@ -467,6 +552,21 @@ namespace nova_twistmapper
     // Example result: "nova_arm_controller/J1/position"
     const auto prefix = params_.chained_controller_name.empty() ? "" : params_.chained_controller_name + "/";
     return prefix + component_name;
+  }
+
+  rclcpp::Node::SharedPtr NovaTwistmapper::create_compat_node_from_lifecycle(
+    const rclcpp_lifecycle::LifecycleNode::SharedPtr &lifecycle_node) {
+    RCLCPP_INFO(get_node()->get_logger(), "Creating compatability node");
+
+    auto options = rclcpp::NodeOptions()
+      .context(lifecycle_node->get_node_base_interface()->get_context());
+
+    std::string compat_node_name = std::string(lifecycle_node->get_name()) + "_kinematics_compat";
+
+    return std::make_shared<rclcpp::Node>(
+      compat_node_name,
+      lifecycle_node->get_namespace(),
+      options);
   }
 } // namespace nova_twistmapper
 
