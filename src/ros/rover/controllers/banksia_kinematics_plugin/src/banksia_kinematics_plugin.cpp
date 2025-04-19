@@ -113,7 +113,8 @@ namespace banksia_kinematics_plugin
     double j5 = atan2(-r37r(2, 2), r37r(0, 2) / cos(j4));
     double j6 = atan2(-r37r(2, 1) / cos(j5), r37r(2, 0) / cos(j5));
 
-    std::array<double, 6> new_joints = { j1, j2bo, j3bo, -j4, j5, j6 };
+    // Needs to be in the same order as when they get put in a joint group
+    std::array<double, 6> new_joints = { j1, j2bo, -j4, j5, j6, j3bo };
     return new_joints;
   }
 

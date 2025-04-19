@@ -39,7 +39,6 @@ generate_parameter_library(nova_twistmapper_parameters
 
 add_library(nova_twistmapper SHARED
   src/nova_twistmapper.cpp
-  src/PoseHandle.cpp
 )
 target_compile_features(nova_twistmapper PUBLIC cxx_std_17)
 target_include_directories(nova_twistmapper PUBLIC

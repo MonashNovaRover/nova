@@ -55,11 +55,6 @@ def launch_setup(context, *args, **kwargs):
         Node( # TODO: only when arm is enabled
             package='controller_manager',
             executable='spawner',
-            arguments=['nova_ik_controller', '--inactive']
-        ),
-        Node( # TODO: only when arm is enabled
-            package='controller_manager',
-            executable='spawner',
             arguments=['nova_twistmapper', '--inactive'],
             parameters=[{'robot_description': robot_description_content}]
         ),

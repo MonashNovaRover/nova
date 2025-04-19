@@ -23,7 +23,6 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include "tf2_ros/transform_listener.h"
 #include "tf2_ros/buffer.h"
-#include "PoseHandle.hpp"
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_state/robot_state.h>
@@ -73,10 +72,10 @@ protected:
   {
     std::string name;
     std::reference_wrapper<hardware_interface::LoanedStateInterface> state_pos;
+    std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
   };
 
   // Holds command interfaces for different components of the pose
-  std::optional<PoseHandle> pose_handle;
   std::vector<JointHandle> registered_joint_handles_;
 
   controller_interface::CallbackReturn configure_joints();
@@ -124,6 +123,7 @@ protected:
   void update_twistmapper_pose(const rclcpp::Time &time, const rclcpp::Duration &period);
   bool get_urdf_from_topic(double timeout_sec, std::string &urdf_string);
   rclcpp::Node::SharedPtr create_compat_node_from_lifecycle(const rclcpp_lifecycle::LifecycleNode::SharedPtr& lifecycle_node);
+  std::string joint_to_command_interface_name(const std::string& joint_name) const;
 
   // Timeout to consider cmd_vel commands old
   std::chrono::milliseconds cmd_vel_timeout_{500};
@@ -131,9 +131,6 @@ protected:
   rclcpp::Time previous_update_timestamp_{0};
 
   // publish rate limiter
-  // double publish_rate_ = 50.0;
-  // rclcpp::Duration publish_period_ = rclcpp::Duration::from_nanoseconds(0);
-  // rclcpp::Time previous_publish_timestamp_{0, 0, RCL_CLOCK_UNINITIALIZED};
   bool is_halted = false;
   bool reset();
   void halt();
