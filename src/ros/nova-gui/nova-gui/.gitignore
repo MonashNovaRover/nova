@@ -45,3 +45,4 @@
 
 # tiles
 *.mbtiles
+/tileserver-gl-shell
