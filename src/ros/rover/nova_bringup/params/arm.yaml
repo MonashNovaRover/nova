@@ -1,16 +1,16 @@
-/resolver_publisher:
+resolver_publisher:
   ros__parameters:
     use_arm_data: true
 
-/keyboard_localiser:
-  ros_parameters:
+keyboard_localiser:
+  ros__parameters:
     # key position initalisation params
     keyboard_frame: keyboard_frame
     base_frame: base_link
 
     # manual keyboard alignment params
-    aligned_keyboard_position: [0.0, 0.0, 0.0]
-    aligned_keyboard_quaternion: [0.0, 0.0, 0.0, 1.0]
+    aligned_keyboard_position: [0.0,0.0,0.0]
+    aligned_keyboard_quaternion: [0.0, 0.0, 0.0,1.0]
     
     # calibrated camera intrinsics
     hfov: 61.3727248
@@ -20,8 +20,6 @@
 
     # keyboard pose analysis initalisation
     camera_frame: arm_end_periscope
-    minimum_area: 0.5
-    maximum_area: 0.8
 
     # tf2 initalisation
     tf_publish_rate: 1.0 # per second

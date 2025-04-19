@@ -68,7 +68,7 @@
     <!-- Random features for visual odometry and obstacle avoidance -->
 
     <model name='rocket_panel'>
-      <pose>9 -7.5 0.5 0 -0 0</pose>
+      <pose>-1.85 -0.01 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>10</mass>
@@ -118,7 +118,7 @@
           </material>
         </visual>
         <collision name='keyboard_collision'>
-          <pose> 0.5 0 0.5 0 1.5708 0 </pose>
+          <pose> 0.5 0 0.7 0 1.5708 0 </pose>
           <geometry>
             <box>
               <size>0.123 0.357 0.037</size>
@@ -139,7 +139,7 @@
           </surface>
         </collision>
         <visual name='keyboard_visual'>
-          <pose> 0.5 0 0.5 0 1.5708 0 </pose>
+          <pose> 0.5 0 0.7 0 1.5708 0 </pose>
           <geometry>
             <box>
               <size>0.123 0.357 0.037</size>

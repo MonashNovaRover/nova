@@ -2,15 +2,15 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-Execute this code on the rover to publish the urdf
-    static transforms and associated joint states
+This launch file is used to test the keyboard localiser in gazebo sim
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODES:
-  - robot_state_publisher
-  - rover_state_publisher
+  - rviz2
+  - gazebo.launch.py
+  - keyboard_localiser
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	core
-CREATION:	27/04/2023
+PACKAGE: 	nova_bringup
+CREATION:	19/04/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 import os
@@ -34,7 +34,7 @@ def launch_setup(context, *args, **kwargs):
     return [
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
-            launch_arguments={'namespace': namespace, 'world': world, 'arm': arm}.items(),
+            launch_arguments={'namespace': namespace, 'world': world, 'arm': arm, 'x': '0', 'y': '0', 'z':'0'}.items(),
         ),
         Node(
             package='arm',
