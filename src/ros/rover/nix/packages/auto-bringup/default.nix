@@ -34,7 +34,7 @@
   yolo-ros,
   lattice-primitive-generator,
   spatio-temporal-voxel-layer,
-  nova-interfaces, 
+  nova-interfaces,
 }:
 
 buildRosPackage rec {
