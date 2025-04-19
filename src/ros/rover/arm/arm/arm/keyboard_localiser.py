@@ -27,12 +27,18 @@ from arm_interfaces.srv import KeyPosition, StringTrigger
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 
 from tf2_ros import Buffer, TransformListener, TransformBroadcaster
 
 import numpy as np
+import cv2
+from cv_bridge import CvBridge
 
-# hard coded coords (relative to center of keyboard in mm) 
+# Expected keyboard size:
+KEYBOARD = (123, 354, 37) # (L, W, H) in mm 
+# where L is length (column of keys direction [qaz]), W is width (row of keys direction [qwertyuiop]), H is height (From base to key)
+# Hard coded key coordinates in mm (relative to center of keyboard; looking down at keyboard with cable facing up) 
 # left = -x, right = +x, up = +y, down = -y 
 # "key": (x, y) 
 KEY_MAP = { 
@@ -161,6 +167,62 @@ class KeyboardLocaliser(Node):
         tfs.transform.rotation.x, tfs.transform.rotation.y, tfs.transform.rotation.z, tfs.transform.rotation.w = self.aligned_keyboard_quaternion
 
         self.transform_broadcaster.sendTransform(tfs)
+
+class RectangleAligner(Node):
+    super().__init__('rectangle_aligner')
+
+    PERISCOPE_IMAGE_TOPIC = '/arm/periscope'
+    CONTOUR_AREA_THRESHOLD = 30000 # given camera, what is the expected pixel area of the rectangle? Best determined emperically using print(cv2.contourArea(approx)) * (0.5 to 0.7). Any rectangles larger than this will be used
+
+    def __init__(self):
+        self.view_sub = self.create_subscription(Image, PERISCOPE_IMAGE_TOPIC, self.view_callback, qos_profile=qos_profile_sensor_data)
+
+    def view_callback(self, view):
+        """ Callback when Image is recieved (Stores msg for retrieval) """
+        self.view = view
+    
+    def msg_to_mat(self, logger, img, encoding):
+        """Converts Image msg to cv2 frame"""
+        mat = None
+        try:
+            mat = CvBridge().imgmsg_to_cv2(img, encoding)
+        except Exception as e:
+            logger.error(str(e))
+        return mat
+
+    def alignment_loop(self) -> None:
+        """ Find rectangle in image, determine its properties and compared to desired alignment, then send pose to correct misalignment """
+        image = self.msg_to_mat(self.get_logger(), self.view, 'bgr8')
+
+        ### Find rectangle in image and determine its properties
+        # Get contours
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        edges = cv2.Canny(gray, 50, 150)
+        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        best_rect = None
+        # look for rectangle contour
+        for cnt in contours:
+            # simplify contour polygon (0.02 *cv2 arcLength is 2% of perimeter)
+            approx = cv2.approxPolyDP(cnt, 0.02 * cv2.arcLength(cnt, True), True)
+            if len(approx) == 4 and cv2.contourArea(approx) > threshold:
+                best_rect = approx
+        
+        rect = cv2.minAreaRect(best_rect)  # Gives (center, (width, height), angle)
+        # Visualising contours
+        #box = cv2.boxPoints(rect)
+        #box = np.int0(box)
+        #cv2.drawContours(image, [box], 0, (0, 255, 0), 2)
+
+        center, (w, h), angle = rect
+        # Normalize angle
+        #if w < h:
+        #    angle = angle + 90  # Make it consistent
+        print(f"Center: {center}, Size: {w}x{h}, Angle: {angle}")
+
+        ### Compare to desired alignment
+
+        ### Correct misalignment
 
 
 def main():
