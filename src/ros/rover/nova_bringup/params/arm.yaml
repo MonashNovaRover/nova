@@ -19,7 +19,7 @@ keyboard_localiser:
     distortion_matrix: [0.0,0.0,0.0,0.0,0.0]
 
     # keyboard pose analysis initalisation
-    camera_frame: arm_end_periscope
+    camera_frame: arm_end_periscope_optical
 
     # tf2 initalisation
     tf_publish_rate: 1.0 # per second

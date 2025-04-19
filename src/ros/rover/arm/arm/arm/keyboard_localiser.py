@@ -113,7 +113,7 @@ class KeyboardLocaliser(Node):
         self.dist_coeffs = np.array(dist_arr)
 
         # keyboard pose analysis initalisation
-        self.camera_frame = self.declare_parameter('camera_frame', 'arm_end_periscope').get_parameter_value().string_value
+        self.camera_frame = self.declare_parameter('camera_frame', 'arm_end_periscope_optical').get_parameter_value().string_value
         self.view = None
         self.view_sub = self.create_subscription(Image, IMAGE_TOPIC, self.view_callback, qos_profile=qos_profile_sensor_data)
         self.keyboard_points = np.array([   # Corner points of the keyboard relative to the keyboard frame in mm (center of keyboard)

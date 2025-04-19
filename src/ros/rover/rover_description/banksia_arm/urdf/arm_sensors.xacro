@@ -5,7 +5,7 @@ which is how it gets added to the gazebo sim. Edited by: Anthony Lew -->
   <!-- Arm Cameras for Gazebo-->
   <!-- Based on Microsoft Lifecam HD-3000 specs -->
   <!-- https://dl2jx7zfbtwvr.cloudfront.net/specsheets/WEBC1010.pdf -->
-  <gazebo reference="arm_end_top">
+  <gazebo reference="arm_end_top_optical">
     <sensor name="arm_end_top" type="camera">
       <!-- Note: plugin only needs to be loaded once, auto_mount also loads this plugin, so arm and auto_mount cannot both exist -->
       <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system"></plugin>
@@ -32,7 +32,7 @@ which is how it gets added to the gazebo sim. Edited by: Anthony Lew -->
       </camera>
     </sensor>
   </gazebo>
-  <gazebo reference="arm_end_periscope">
+  <gazebo reference="arm_end_periscope_optical">
     <sensor name="arm_end_periscope" type="camera">
       <pose> 0 0 0 0 ${radians(-90)} ${radians(90)}</pose> <!-- To compensate for gazebo frame to ros optical frame-->
       <gz_frame_id>arm_end_periscope</gz_frame_id>
@@ -57,7 +57,7 @@ which is how it gets added to the gazebo sim. Edited by: Anthony Lew -->
       </camera>
     </sensor>
   </gazebo>
-  <gazebo reference="arm_end_side">
+  <gazebo reference="arm_end_side_optical">
     <sensor name="arm_end_side" type="camera">
       <pose> 0 0 0 ${radians(-90)} 0 ${radians(-90)}</pose> <!-- To compensate for gazebo frame to ros optical frame-->
       <gz_frame_id>arm_end_side</gz_frame_id>
@@ -82,7 +82,7 @@ which is how it gets added to the gazebo sim. Edited by: Anthony Lew -->
       </camera>
     </sensor>
   </gazebo>
-  <gazebo reference="arm_end_finger">
+  <gazebo reference="arm_end_finger_optical">
     <sensor name="arm_end_finger" type="camera">
       <pose> 0 0 0 0 ${radians(-90)} ${radians(90)}</pose> <!-- To compensate for gazebo frame to ros optical frame-->
       <gz_frame_id>arm_end_finger</gz_frame_id>
@@ -108,7 +108,3 @@ which is how it gets added to the gazebo sim. Edited by: Anthony Lew -->
     </sensor>
   </gazebo>
 </robot>
-
-<!-- arm_end_top -->
-<!-- arm_end_periscope -->
-<!-- arm_end_finger -->

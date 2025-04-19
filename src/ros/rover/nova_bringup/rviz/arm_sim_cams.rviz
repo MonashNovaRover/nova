@@ -7,6 +7,8 @@ Panels:
         - /Global Options1
         - /Status1
         - /TF1
+        - /TF1/Status1
+        - /TF1/Frames1
         - /Image1
         - /Image2
         - /Image3
@@ -75,22 +77,22 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        arm_end_finger:
+        arm_end_finger_optical:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        arm_end_periscope:
+        arm_end_periscope_optical:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        arm_end_side:
+        arm_end_side_optical:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        arm_end_top:
+        arm_end_top_optical:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -307,13 +309,13 @@ Visualization Manager:
         All Enabled: false
         actuator:
           Value: false
-        arm_end_finger:
+        arm_end_finger_optical:
           Value: false
-        arm_end_periscope:
+        arm_end_periscope_optical:
           Value: false
-        arm_end_side:
+        arm_end_side_optical:
           Value: false
-        arm_end_top:
+        arm_end_top_optical:
           Value: false
         arm_kinematics_origin:
           Value: false
@@ -420,20 +422,19 @@ Visualization Manager:
                         j5:
                           j6:
                             eebase:
-                              arm_end_periscope:
-                                keyboard_frame:
-                                  {}
-                              arm_end_top:
+                              arm_end_periscope_optical:
+                                {}
+                              arm_end_top_optical:
                                 {}
                               endeffector_kinematics:
                                 {}
                               leftfinger:
                                 actuator:
                                   {}
-                                arm_end_finger:
+                                arm_end_finger_optical:
                                   {}
                               rightfinger:
-                                arm_end_side:
+                                arm_end_side_optical:
                                   {}
                     l2prime:
                       l1prime:
@@ -589,10 +590,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.07979755103588104
+      Pitch: -0.00020245462656021118
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.608616590499878
+      Yaw: 1.6236127614974976
     Saved: ~
 Window Geometry:
   Displays:
