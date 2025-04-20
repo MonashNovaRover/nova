@@ -1,3 +1,31 @@
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+A MoveIt2 kinematics::KinematicsBase plugin for
+  Banksia's robotic arm payload, based on the
+  DH tables and inverse kinematics solutions by
+  Keenan.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:  banksia_kinematics_plugin
+AUTHORS:  Arbab Ahmed, Bailey Chessum
+CREATION:	19/04/2025
+EDITED:		20/04/2025
+EDITED BY:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TODO:
+ - Make IK fail when the target pose is out of
+   reach of the arm.
+ - Automatically calculate linkage lengths based
+   on the given robot model
+ - Make use of seed_state to choose the closest
+   solution for IK, rather than only elbow up.
+ - Implement remaining functions for MoveIt2
+ - Try reducing the number of type conversions
+   needed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
 #ifndef BANKSIA_KINEMATICS_PLUGIN__BANKSIA_KINEMATICS_PLUGIN_HPP_
 #define BANKSIA_KINEMATICS_PLUGIN__BANKSIA_KINEMATICS_PLUGIN_HPP_
 

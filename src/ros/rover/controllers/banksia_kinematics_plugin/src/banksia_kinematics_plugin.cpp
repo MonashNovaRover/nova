@@ -1,3 +1,12 @@
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+PACKAGE: 	  banksia_kinematics_plugin
+AUTHORS:    Arbab Ahmed, Bailey Chessum
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -160,17 +169,16 @@ namespace banksia_kinematics_plugin
       return false;
     auto logger = node_.lock()->get_logger();
 
-    RCLCPP_INFO(logger, "joint_angles:");
+    RCLCPP_DEBUG(logger, "joint_angles:");
     for (auto& joint_angle : joint_angles) {
       RCLCPP_INFO(logger, "  - %f", joint_angle);
     }
 
-    RCLCPP_INFO(logger, "active joint model names in joint group:");
+    RCLCPP_DEBUG(logger, "active joint model names in joint group:");
     for (auto& joint_angle : robot_model_->getJointModelGroup(group_name_)->getActiveJointModelNames()) {
       RCLCPP_INFO(logger, "  - %s", joint_angle.c_str());
     }
 
-    RCLCPP_INFO(logger, "Get Position FK");
     // TODO: Actually solve FK
     poses.clear();
 
@@ -212,6 +220,7 @@ namespace banksia_kinematics_plugin
     }
     robot_state.update();
 
+    /*
     RCLCPP_INFO(logger, "Full joint state (including mimic joints):");
     for (const auto* joint_model : robot_model_->getJointModels()) {
       if (!joint_model)
@@ -233,6 +242,7 @@ namespace banksia_kinematics_plugin
         RCLCPP_INFO(logger, "  - %s: %f", name.c_str(), position);
       }
     }
+    */
 
     auto base_transform_inverse = robot_state.getFrameTransform(base_frame_).inverse();
 
@@ -241,7 +251,7 @@ namespace banksia_kinematics_plugin
     {
       const Eigen::Isometry3d& tf = base_transform_inverse * robot_state.getGlobalLinkTransform(link_name);
       geometry_msgs::msg::Pose pose = tf2::toMsg(tf);
-      RCLCPP_INFO(logger, "%s pose = %s", link_name.c_str(), to_yaml(pose, false).c_str());
+      RCLCPP_DEBUG(logger, "%s pose:\n%s", link_name.c_str(), to_yaml(pose, false).c_str());
       poses.push_back(pose);
     }
 
