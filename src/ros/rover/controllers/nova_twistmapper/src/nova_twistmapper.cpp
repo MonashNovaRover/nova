@@ -389,6 +389,13 @@ namespace nova_twistmapper
     // Store result to twistmapper_pose_
     tf2::fromMsg(poses[0], twistmapper_pose_);
 
+    // Set twistmapper_pose_rpy_ to match
+    double roll, pitch, yaw;
+    twistmapper_pose_.getBasis().getRPY(roll, pitch, yaw);
+    twistmapper_pose_rpy_.setX(roll);
+    twistmapper_pose_rpy_.setY(pitch);
+    twistmapper_pose_rpy_.setZ(yaw);
+
     // TODO: Potentially set initial command interface values from state interface
 
     RCLCPP_INFO(get_node()->get_logger(), "Initial twistmapper pose set from forward kinematics.");
