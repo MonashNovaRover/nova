@@ -1,3 +1,31 @@
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+A ros2_control controller for Banksia's robotic
+  arm payload, which takes TwistStamped messages,
+  to translate a virtual target Transform reached
+  by inverse kinematics.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: node_name
+SUBSCRIPTIONS:
+  - /arm_ik_twist_stamped [geometry_msgs/TwistStamped]
+  - /robot_description    [std_msgs/String]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE: 	nova_twistmapper
+AUTHOR:   Bailey Chessum
+CREATION:	13/04/2025
+EDITED:		20/04/2025
+EDITED BY:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TODO:
+ - Remove RPY rotation
+ - Apply twist relative to the header.frame_id
+   reference frame, with the endeffector as
+   default
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
 #ifndef NOVA_TWISTMAPPER__NOVA_TWISTMAPPER_HPP_
 #define NOVA_TWISTMAPPER__NOVA_TWISTMAPPER_HPP_
 
@@ -83,6 +111,14 @@ protected:
   controller_interface::CallbackReturn configure_joints();
 
   /**
+   * @brief gets the current value for all position state interfaces from registerd_joint_handles_, in the same order as
+   * in registerd_joint_handles_.
+   *
+   * @returns A new vector of doubles containing the current position state interface value of each joint.
+   */
+  std::vector<double> get_state_pos_values();
+
+  /**
    * @brief Integrates to update twistmapper_pose_ based on the current received_twist_stamped_ptr_ value
    *
    * This will NOT order the joints correctly for MoveIt2.
@@ -147,8 +183,6 @@ protected:
 
   /// Holds command and state interfaces for each joint
   std::vector<JointHandle> registered_joint_handles_;
-  /// Cached mapping of registered_joint_handles_.state_pos, populated after on_activate
-  std::vector<JointHandle> joint_state_pos_handles_;
 
   // Parameters from ROS for nova_diff_drive_controller
   std::shared_ptr<ParamListener> param_listener_;
@@ -169,7 +203,7 @@ protected:
 
   // broadcasting twistmapper
   std::shared_ptr<tf2_ros::TransformBroadcaster> twistmapper_pose_tf_broadcaster_;
-  // FK for getting the initial state for twistmapper_pose_
+  // Previously used to get the initial value of twistmapper_pose_
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 
@@ -189,12 +223,12 @@ protected:
   std::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;
 
   // Timeout to consider cmd_vel commands old
-  std::chrono::milliseconds cmd_vel_timeout_{500};
   bool subscriber_is_active_ = false; // not sure what this is for yet
   rclcpp::Time previous_update_timestamp_{0};
 
   // publish rate limiter
   bool is_halted = false;
+
 };
 } // namespace nova_twistmapper
 #endif // NOVA_TWISTMAPPER__NOVA_TWISTMAPPER_HPP_

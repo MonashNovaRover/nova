@@ -1,3 +1,13 @@
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+PACKAGE: 	  nova_twistmapper
+AUTHOR:     Bailey Chessum
+EDITED BY:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
 #include <memory>
 #include <string>
 #include <utility>
@@ -136,19 +146,24 @@ namespace nova_twistmapper
       return controller_interface::return_type::OK;
     }
 
+    auto old_pose = twistmapper_pose_;
+
+    // Get a new pose
     update_twistmapper_pose(time, period);
     publish_to_tf2(time);
 
-    std::vector<double> joint_state_values;
+    // Do IK to find the joint values for that pose
+    std::vector<double> joint_state_values = get_state_pos_values();
     std::vector<double> solution;
     geometry_msgs::msg::Pose pose = tf2::toMsg(tf2::transformToEigen(tf2::toMsg(twistmapper_pose_)));
     moveit_msgs::msg::MoveItErrorCodes error_codes;
 
-    joint_state_values.reserve(registered_joint_handles_.size());
-    for (auto& joint_handle : registered_joint_handles_)
-      joint_state_values.emplace_back(joint_handle.state_pos.get().get_value());
-
-    kinematics_solver_->getPositionIK(pose, joint_state_values, solution, error_codes);
+    auto result = kinematics_solver_->getPositionIK(pose, joint_state_values, solution, error_codes);
+    if (!result) {
+      twistmapper_pose_ = old_pose;
+      RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 500, "Failed to find solution to inverse kinematics.");
+      return controller_interface::return_type::OK;
+    }
 
     // Apply solution to command interfaces
     for (size_t i = 0; i < solution.size(); i++) {
@@ -357,15 +372,8 @@ namespace nova_twistmapper
       return CallbackReturn::ERROR;
     }
 
-    RCLCPP_INFO(get_node()->get_logger(), "Doing FK");
-    std::vector<double> joint_values;
+    auto joint_values = get_state_pos_values();
     std::vector<geometry_msgs::msg::Pose> poses;
-
-    joint_values.reserve(registered_joint_handles_.size());
-    for (auto& joint_handle : registered_joint_handles_)
-      joint_values.emplace_back(joint_handle.state_pos.get().get_value());
-
-    RCLCPP_INFO(get_node()->get_logger(), "Calling kinematics plugin...");
 
     auto result = kinematics_solver_->getPositionFK({ENDEFFECTOR_KINEMATICS_FRAME}, joint_values, poses);
 
@@ -377,16 +385,13 @@ namespace nova_twistmapper
       RCLCPP_ERROR(get_node()->get_logger(), "No poses returned from forward kinematics!");
       return CallbackReturn::ERROR;
     }
-    RCLCPP_INFO(get_node()->get_logger(), "Kinematics done! Copying Pose message to a tf2 Transform...");
 
     // Store result to twistmapper_pose_
     tf2::fromMsg(poses[0], twistmapper_pose_);
 
-    RCLCPP_INFO(get_node()->get_logger(), "Done FK");
-
     // TODO: Potentially set initial command interface values from state interface
 
-    RCLCPP_DEBUG(get_node()->get_logger(), "Subscriber and publisher are now active.");
+    RCLCPP_INFO(get_node()->get_logger(), "Initial twistmapper pose set from forward kinematics.");
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -557,6 +562,15 @@ namespace nova_twistmapper
     }
 
     return controller_interface::CallbackReturn::SUCCESS;
+  }
+
+  std::vector<double> NovaTwistmapper::get_state_pos_values() {
+    std::vector<double> joint_values;
+
+    joint_values.reserve(registered_joint_handles_.size());
+    for (auto& joint_handle : registered_joint_handles_)
+      joint_values.emplace_back(joint_handle.state_pos.get().get_value());
+    return joint_values;
   }
 
   rclcpp::Node::SharedPtr NovaTwistmapper::create_compat_node_from_lifecycle(
