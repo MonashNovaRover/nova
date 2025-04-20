@@ -7,7 +7,7 @@ A ros2_control controller for Banksia's robotic
   to translate a virtual target Transform reached
   by inverse kinematics.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: node_name
+CONTROLLER: nova_twistmapper/NovaTwistmapper
 SUBSCRIPTIONS:
   - /arm_ik_twist_stamped [geometry_msgs/TwistStamped]
   - /robot_description    [std_msgs/String]
@@ -228,7 +228,6 @@ protected:
 
   // publish rate limiter
   bool is_halted = false;
-
 };
 } // namespace nova_twistmapper
 #endif // NOVA_TWISTMAPPER__NOVA_TWISTMAPPER_HPP_
