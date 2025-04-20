@@ -21,7 +21,7 @@ nova_twistmapper:
   twist_stamped_topic: {
     type: string,
     default_value: "/arm_ik_twist_stamped",
-    description: "The name of the topic to get teleop twist stamped messages from."
+    description: "The name of the topic to get teleop twist stamped messages from. Applies relative to the header.frame_id frame."
   }
 
   kinematics_solver: {

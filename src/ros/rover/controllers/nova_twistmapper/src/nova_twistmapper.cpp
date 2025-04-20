@@ -93,7 +93,7 @@ namespace nova_twistmapper
 
   void NovaTwistmapper::update_twistmapper_pose(const rclcpp::Time &time, const rclcpp::Duration &period) {
     std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
-    received_twist_stamped_ptr.get(twist_stamped);
+    received_twist_stamped_ptr_.get(twist_stamped);
 
     if (twist_stamped == nullptr) {
       RCLCPP_WARN(get_node()->get_logger(), "Haven't yet received a TwistStamped message to use for the twistmapper.");
@@ -179,7 +179,7 @@ namespace nova_twistmapper
     tf_buffer_ = std::make_unique<tf2_ros::Buffer>(get_node()->get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
-    twist_stamped_sub = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
+    twist_stamped_sub_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
       DEFAULT_INPUT_TOPIC_END_EFFECTOR_TWIST,
       rclcpp::SystemDefaultsQoS(),
       [this, logger](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
@@ -201,7 +201,7 @@ namespace nova_twistmapper
           msg->header.stamp = get_node()->get_clock()->now();
         }
 
-        received_twist_stamped_ptr.set(std::move(msg));
+        received_twist_stamped_ptr_.set(std::move(msg));
       });
     subscriber_is_active_ = true;
 
@@ -273,9 +273,8 @@ namespace nova_twistmapper
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
-  std::basic_string<char, std::char_traits<char>, std::allocator<char>>
-  NovaTwistmapper::construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model,
-                                                  std::string joint_group_name) {// Dynamically construct an SRDF that contains all of our joints in a joint group
+  std::string NovaTwistmapper::construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model,
+                                                              std::string joint_group_name) {
     // TODO: Allow an SRDF to be provided
     std::ostringstream srdf_stream;
     srdf_stream << "<robot name=\"" << urdf_model->getName() << "\">\n";
@@ -447,7 +446,7 @@ namespace nova_twistmapper
     tf_listener_.reset();
 
     // Reset subscriptions
-    twist_stamped_sub.reset();
+    twist_stamped_sub_.reset();
     subscriber_is_active_ = false;
 
     return true;
@@ -462,7 +461,7 @@ namespace nova_twistmapper
   {
     // Set twistmapper velocities to 0
     std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
-    received_twist_stamped_ptr.get(twist_stamped);
+    received_twist_stamped_ptr_.get(twist_stamped);
 
     twist_stamped->twist.linear.x = 0;
     twist_stamped->twist.linear.y = 0;

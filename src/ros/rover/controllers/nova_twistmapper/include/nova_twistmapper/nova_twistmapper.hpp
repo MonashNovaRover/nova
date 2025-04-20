@@ -75,22 +75,90 @@ protected:
     std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
   };
 
-  // Holds command interfaces for different components of the pose
-  std::vector<JointHandle> registered_joint_handles_;
-
+  /**
+   * @brief finds references to state and command interfaces for each joint, constructing  registered_joint_handles_.
+   *
+   * This will NOT order the joints correctly for MoveIt2.
+   */
   controller_interface::CallbackReturn configure_joints();
 
-  // Helpers
-  std::string pose_component_to_command_interface_name(const std::string& component_name) const;
+  /**
+   * @brief Integrates to update twistmapper_pose_ based on the current received_twist_stamped_ptr_ value
+   *
+   * This will NOT order the joints correctly for MoveIt2.
+   */
+  void update_twistmapper_pose(const rclcpp::Time &time, const rclcpp::Duration &period);
+
+  /**
+   * @brief Tries to get a URDF string the /robot_description topic. Blocking.
+   *
+   * Depends on robot_description_sub_ to be previously created, to populate received_robot_description_ptr_.
+   * Uses std::this_thread::sleep_for(10ms) in a loop checking for any received /robot_description values.
+   *
+   * @param[in]  timeout_sec        The number of seconds to wait for values from /robot_description.
+   * @param[out] urdf_string    The URDF string from robot_description
+   * @returns true if a urdf_string was found before the timeout. Otherwise, false.
+   */
+  bool get_urdf_from_topic(double timeout_sec, std::string &urdf_string);
+
+  /**
+   * @brief Creates an rclcpp::Node to give to the kinematics_sovler_ plugin, as we can't give it an
+   * rclcpp_lifecycle::LifecycleNode::SharedPtr (superclass of the controller).
+   */
+  rclcpp::Node::SharedPtr create_compat_node_from_lifecycle(const rclcpp_lifecycle::LifecycleNode::SharedPtr& lifecycle_node);
+
+  /**
+   * @brief formats command interface names correctly for a given joint, varying with params_.chained_controller_name
+   * @returns A string in the format of "chained_controller_name/joint_name/position", or "chained_controller_name" if
+   * no chained_controller_name is given
+   */
+  std::string joint_to_command_interface_name(const std::string& joint_name) const;
+
+  /**
+   * @brief Clears pointers to most stateful things created in on_configure
+   */
+  bool reset();
+
+  /**
+   * @brief Resets the TwistStamped, so that update_twistmapper_pose stops moving the twistmapper_pose_.
+   */
+  void halt();
+
+  /**
+   * @brief Publishes twistmapper_pose_ to tf2
+   *
+   * @param[in]  the time to stamp the published Transform with.
+   */
+  void publish_to_tf2(const rclcpp::Time &time);
+
+  /**
+   * @brief Generates an SRDF string for use with MoveIt2 libraries, based on params_.joint_names
+   *
+   * Note: order of joints in the joint group specified in the SRDF / in params_.joint_names will NOT necessarily match
+   * the order of joint in the final joint group used by MoveIt2. Since J3 is not part of the kinematic chain in
+   * Banksia's arm, it will be moved to the end of the joint group, for example. Joint handles must be rearranged in
+   * this final order.
+   *
+   * @param[in]  urdf_model         URDF model, used to find the name of the robot in the SRDF
+   * @param[out] joint_group_name   The name given to the joint group
+   * @return A string containing an XML format SRDF
+   */
+  std::string construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model, std::string joint_group_name);
+
+  /// Holds command and state interfaces for each joint
+  std::vector<JointHandle> registered_joint_handles_;
+  /// Cached mapping of registered_joint_handles_.state_pos, populated after on_activate
+  std::vector<JointHandle> joint_state_pos_handles_;
 
   // Parameters from ROS for nova_diff_drive_controller
   std::shared_ptr<ParamListener> param_listener_;
   Params params_;
 
-  // Twistmapper
-  rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_stamped_sub = nullptr;
-  realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_stamped_ptr{nullptr};
+  // Twist input
+  rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_stamped_sub_ = nullptr;
+  realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_stamped_ptr_{nullptr};
 
+  // Robot description subscription, serving as a fallback for params_.robot_description
   rclcpp::Subscription<std_msgs::msg::String>::SharedPtr robot_description_sub_ = nullptr;
   realtime_tools::RealtimeBox<std::shared_ptr<std_msgs::msg::String>> received_robot_description_ptr_{nullptr};
 
@@ -120,11 +188,6 @@ protected:
   /// MoveIt2 plugin for solving forward and inverse kinematics.
   std::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;
 
-  void update_twistmapper_pose(const rclcpp::Time &time, const rclcpp::Duration &period);
-  bool get_urdf_from_topic(double timeout_sec, std::string &urdf_string);
-  rclcpp::Node::SharedPtr create_compat_node_from_lifecycle(const rclcpp_lifecycle::LifecycleNode::SharedPtr& lifecycle_node);
-  std::string joint_to_command_interface_name(const std::string& joint_name) const;
-
   // Timeout to consider cmd_vel commands old
   std::chrono::milliseconds cmd_vel_timeout_{500};
   bool subscriber_is_active_ = false; // not sure what this is for yet
@@ -132,13 +195,6 @@ protected:
 
   // publish rate limiter
   bool is_halted = false;
-  bool reset();
-  void halt();
-
-  void publish_to_tf2(const rclcpp::Time &time);
-
-  std::basic_string<char, std::char_traits<char>, std::allocator<char>>
-  construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model, std::string joint_group_name);
 };
 } // namespace nova_twistmapper
 #endif // NOVA_TWISTMAPPER__NOVA_TWISTMAPPER_HPP_
