@@ -84,6 +84,9 @@ class KeyboardLocaliser(Node):
     def __init__(self):
         super().__init__('keyboard_localiser')
 
+        # Choose whether to use auto transform or manual align transform
+        self.node_is_auto = self.declare_parameter('using_auto', True).get_parameter_value().bool_value
+
         # key position initalisation
         self.keyboard_frame = self.declare_parameter('keyboard_frame', 'keyboard_frame').get_parameter_value().string_value
         self.base_frame = self.declare_parameter('base_frame', 'base_link').get_parameter_value().string_value
@@ -133,6 +136,7 @@ class KeyboardLocaliser(Node):
         self.get_logger().info(f"Running this node with services: {KEY_SERVICE_NAME}, {KEYBOARD_TF_SERVICE_NAME}. Using keyboard: {self.keyboard_frame} for transforms and base link: {self.base_frame}")
 
     def get_key_position_callback(self, request, response):
+        """Returns transform of the key requested from the service"""
         if request.key.lower() not in self.key_map:
             self.get_logger().warn(f"Key {request.key} not found in map.")
             return response
@@ -186,7 +190,7 @@ class KeyboardLocaliser(Node):
 
     def publish_aligned_tf(self) -> None:
         '''Publish the transform of the keyboard through the alignment method'''
-        if not self.is_aligned:
+        if not self.is_aligned or self.node_is_auto:
             return
         
         tfs = TransformStamped()
@@ -200,8 +204,8 @@ class KeyboardLocaliser(Node):
 
     def publish_analysis_tf(self) -> None:
         '''Publish the transform of the keyboard through the solvePnP method'''
-        if self.view is None:
-            return None
+        if self.view is None or not self.node_is_auto or not self.is_aligned:
+            return
         transform = self.estimate_pose()
         if transform is None:
             return None
@@ -262,6 +266,7 @@ class KeyboardLocaliser(Node):
         return image_points
         
     def estimate_pose(self) -> None | TransformStamped:
+        """Estimate pose of keyboard and return its transform"""
         ## run solvePnP
         image_points = self.get_corners()
         if image_points is None:
@@ -290,98 +295,6 @@ class KeyboardLocaliser(Node):
 
         return t
 
-
-class RectangleAligner(Node):
-    """
-    Purpose of this node:
-    - Realign the arm between each key press so its always accurate.
-    - Can/Should be used when initally aligning the arm
-
-    How it works:
-    - Uses opencv to find the pose of the 2d rectangle, then will send adjustments to arm to align the rectangle
-
-    Drawback:
-    - Only considers 2D so camera must be parallel with rectangle
-
-    Currently a backup as I spent like an hour writing this then realised solvePnP existed lol
-    """
-    PERISCOPE_IMAGE_TOPIC = '/arm/periscope'
-    THRESHOLD_CONTOUR_AREA = (30000, 80000) # expected pixel area bounds of rectangle in image
-    IRL_TO_PIXEL_RATIO = 1                  # Used to convert rectangle to pixel expected width/height
-    THRESHOLD_X = 5                         # maximum pixel devation from expected position
-    THRESHOLD_Y = 5
-    THRESHOLD_ANGLE = 2
-    THRESHOLD_SCALE = 0.1
-
-
-    def __init__(self):
-        super().__init__('rectangle_aligner')
-        self.view_sub = self.create_subscription(Image, PERISCOPE_IMAGE_TOPIC, self.view_callback, qos_profile=qos_profile_sensor_data)
-
-    def view_callback(self, view):
-        """ Callback when Image is recieved (Stores msg for retrieval) """
-        self.view = view
-    
-    def msg_to_mat(self, logger, img, encoding):
-        """Converts Image msg to cv2 frame"""
-        mat = None
-        try:
-            mat = CvBridge().imgmsg_to_cv2(img, encoding)
-        except Exception as e:
-            logger.error(str(e))
-        return mat
-
-    def alignment_check(self) -> None:
-        """ Find rectangle in image, determine its properties and compared to desired alignment, then send pose to correct misalignment """
-        image = self.msg_to_mat(self.get_logger(), self.view, 'bgr8')
-        height, width, _ = image.shape
-        expected_center = (width // 2, height // 2)
-        expected_angle = 0
-        expected_width, expected_height = KEYBOARD[1] * IRL_TO_PIXEL_RATIO, KEYBOARD[0] * IRL_TO_PIXEL_RATIO
-
-        ### Find rectangle in image and determine its properties
-        # Get contours
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        edges = cv2.Canny(gray, 50, 150)
-        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        # look for best rectangle contour
-        best_rect = None
-        for cnt in contours:
-            # simplify contour polygon using algorithm (0.02 *cv2 arcLength is 2% of perimeter)
-            approx = cv2.approxPolyDP(cnt, 0.02 * cv2.arcLength(cnt, True), True)
-            if len(approx) == 4 and cv2.contourArea(approx) > threshold: # note: bigger rectangles may cause issues
-                best_rect = approx
-        
-        rect = cv2.minAreaRect(best_rect)  # Gives (center, (width, height), angle)
-        detected_center, (detected_width, detected_height), detected_angle = rect
-        # If camera is rotated, normalize the angle
-        if w < h:
-            detected_angle = detected_angle + 90  
-        self.get_logger().info(f"Center: {detected_center}, Size: {detected_width}x{detected_height}, Angle: {detected_angle}")
-
-        ### Compare to desired alignment
-        dx = detected_center[0] - expected_center[0]
-        dy = detected_center[1] - expected_center[1]
-        dtheta = detected_angle - expected_angle
-        dscale = (detected_width * detected_height) / (expected_width * expected_height)
-
-        ### Correct misalignment
-        if abs(dx) > X_THRESHOLD:
-            # correct for x
-            pass
-        elif abs(dy) > Y_THRESHOLD:
-            # correct for y
-            pass
-        elif abs(dtheta) > ANGLE_THRESHOLD:
-            # correct for angle
-            pass
-        elif abs(dscale - 1) > SCALE_THRESHOLD:
-            # correct for scale
-            pass
-        else:
-            # set aligned boolean to true
-            pass
 
 def main():
     rclpy.init()
