@@ -32,7 +32,7 @@ class ActivatedJoystickControllerNode(JoystickControllerNode, metaclass=abc.ABCM
 
         self.active: bool = self.declare_parameter("active", True).value
         self.active_button: str = self.declare_parameter("active_button", "").value
-        self.inactive_button_pool: list[str] = self.declare_parameter("inactive_button_pool", []).value
+        self.inactive_button_pool: list[str] = self.declare_parameter("inactive_button_pool", [""]).get_parameter_value().string_array_value
         self.using_left_joystick: bool = self.declare_parameter("using_left_joystick", True).value
 
         self.get_logger().info(f"{name} is active: {self.active}")

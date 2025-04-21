@@ -5,12 +5,12 @@ from python_control.controls.Direction import Direction
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 from python_control.controllers.CMDVelocityController import CMDVelocityController
 from python_control.sensors.CommandSensor import CommandSensor
-from python_control.JoystickControllerNode import JoystickControllerNode
+from python_control.ActivatedJoystickControllerNode import ActivatedJoystickControllerNode
 import rclpy
 from input_interfaces.msg import InputJoystick
 
 
-class URCAuger(JoystickControllerNode):
+class URCAuger(ActivatedJoystickControllerNode):
 
     # CAN BUS NAME
     # The name of the CAN bus to use
