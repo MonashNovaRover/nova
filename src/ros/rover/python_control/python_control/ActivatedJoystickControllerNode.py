@@ -22,17 +22,18 @@ from python_control.JoystickControllerNode import JoystickControllerNode
 # import the joystick ROS message we are listening to
 from input_interfaces.msg import InputJoystick
 
-
 class ActivatedJoystickControllerNode(JoystickControllerNode, metaclass=abc.ABCMeta):
+    """ A Joystick controller node that activates and deactivated the node depending on what Joystick buttons are pressed.
+    """
     # ROS parameter names
 
     def __init__(self, name: str, can_bus: str, log_level: str = "INFO", command_period: float = 0.1):
         super().__init__(name=name, can_bus=can_bus, log_level=log_level, command_period=command_period)
 
-        self.active = self.declare_parameter("active", True).value
-        self.active_button = self.declare_parameter("active_button", "").value
-        self.button_pool = self.declare_parameter("button_pool", []).value
-        self.using_left_joystick = self.declare_parameter("using_left_joystick", True).value
+        self.active: bool = self.declare_parameter("active", True).value
+        self.active_button: str = self.declare_parameter("active_button", "").value
+        self.inactive_button_pool: list[str] = self.declare_parameter("inactive_button_pool", []).value
+        self.using_left_joystick: bool = self.declare_parameter("using_left_joystick", True).value
 
         self.get_logger().info(f"{name} is active: {self.active}")
 
@@ -46,9 +47,20 @@ class ActivatedJoystickControllerNode(JoystickControllerNode, metaclass=abc.ABCM
         if not self.active_button:
             return
 
-        # logic here for checking if active
+        # check active button
+        if not self.active and getattr(msg, self.active_button) > 0:
+            self.active = True
+            self.get_logger().info(f"{self.get_name()} ACTIVATED")
 
-        pass
+        if not self.active:
+            return
+
+        # check inactive buttons
+        for button in self.inactive_button_pool:
+            if getattr(msg, button) > 0:
+                self.active = False
+                self.get_logger().info(f"{self.get_name()} DEACTIVATED")
+                break
 
     def joystick_l_callback(self, msg: InputJoystick):
         """
@@ -63,7 +75,6 @@ class ActivatedJoystickControllerNode(JoystickControllerNode, metaclass=abc.ABCM
                 return
 
         super().joystick_l_callback(msg)
-
 
     def joystick_r_callback(self, msg: InputJoystick):
         """
