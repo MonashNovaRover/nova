@@ -46,6 +46,16 @@ controller_interface::CallbackReturn NovaArmController::on_init()
     fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
     return controller_interface::CallbackReturn::ERROR;
   }
+  
+  if (!this->joint_limiter.init(params_.joint_names, get_node())) {
+    RCLCPP_ERROR(get_node()->get_logger(), "Failed to init joint limiter");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+
+  if (!this->collision_limiter.init(params_.joint_names, get_node(), get_robot_description())) {
+    RCLCPP_ERROR(get_node()->get_logger(), "Failed to init collision limiter");
+    return controller_interface::CallbackReturn::ERROR;
+  }
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -209,6 +219,8 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
   }
   this->get_joint_states(current);
   this->joint_limiter.enforce(current, desired, period);
+  this->collision_limiter.enforce(current, desired, period);
+
 
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
   {
@@ -256,11 +268,22 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  // TODO: setup publishers?
+
+
+
   joint_limits::JointLimitsStateDataType current;
   this->get_joint_states(current);
-  this->joint_limiter.configure(current);
+  
+  if (!this->joint_limiter.configure(current)) {
+    RCLCPP_ERROR(logger, "Failed to configure joint limiter!");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+  if (!this->collision_limiter.configure(current)) {
+    RCLCPP_ERROR(logger, "Failed to configure collision limiter!");
+    return controller_interface::CallbackReturn::ERROR;
+  }
 
+  // TODO: setup publishers?
   RCLCPP_INFO(get_node()->get_logger(), "Creating subscriber");
 
   input_subscriber_ = get_node()->create_subscription<nova_interfaces::msg::ArmFkVelocityTargets>(
@@ -461,8 +484,6 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
           }
         );
   }
-
-  this->joint_limiter.init(joint_names, get_node());
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
