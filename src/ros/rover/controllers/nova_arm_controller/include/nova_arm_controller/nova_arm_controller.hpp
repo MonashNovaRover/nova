@@ -95,7 +95,7 @@ protected:
   /// Joints being used by the controller. Order should match that of the joint name definitions in parameters
   std::vector<JointHandle> registered_joint_handles_;
 
-  // Parameters from ROS for nova_diff_drive_controller
+  // Parameters from ROS for nova_arm_controller
   std::shared_ptr<ParamListener> param_listener_{};
   Params params_{};
 

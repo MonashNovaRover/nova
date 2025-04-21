@@ -10,9 +10,10 @@
 #include "rclcpp/logging.hpp"
 #include "joint_limits/joint_limits_rosparam.hpp"
 
+
 namespace
 {
-  constexpr auto DEFAULT_INPUT_TOPIC_ARM_JOINT_VELOCITY = "/arm_fk_velocity_target"; // TODO: changeme
+  constexpr auto DEFAULT_INPUT_TOPIC_ARM_JOINT_VELOCITY = "/arm_fk_velocity_target";
 } // namespace
 
 
@@ -91,6 +92,7 @@ std::vector<hardware_interface::CommandInterface> NovaArmController::on_export_r
 // Called before update_and_write_commands
 controller_interface::return_type NovaArmController::update_reference_from_subscribers(const rclcpp::Time &time, const rclcpp::Duration &period) {
   // TODO: implement position control, and have it choose between position or velocity functions based on some state or parameter
+  (void)time;(void)period; // slience unused vars
   return update_velocity_reference_from_subscribers();
 }
 
@@ -155,6 +157,7 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     const rclcpp::Time &time, const rclcpp::Duration &period)
 {
   auto logger = get_node()->get_logger();
+  (void)time;(void)period; // slience unused vars
 
   // TODO: change implementation to use values from reference_interfaces_ rather than the subscriber message.
   // (anything related to the subscriber should not exist in this function)
@@ -336,6 +339,7 @@ controller_interface::CallbackReturn NovaArmController::on_deactivate(
 
 bool NovaArmController::on_set_chained_mode(bool chained_mode) {
   // This method is called when the chained mode is set.
+  (void)chained_mode; // silence unused vars
   return true;
 }
 
