@@ -33,6 +33,13 @@
 <!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/armmount.stl" />-->
 <!--      </geometry>-->
 <!--    </collision>-->
+
+    <collision>
+      <origin xyz="0 0 -0.085" rpy="0 0 0" />
+      <geometry>
+        <box size="0.34 0.27 0.19"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="gearbox">
@@ -75,11 +82,25 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-    <collision>
-      <origin xyz="-1.58901e-15 -1.36391e-16 -5.55112e-17" rpy="6.68673e-23 -1.0222e-22 2.39693e-07" />
+<!--    <collision>-->
+<!--      <origin xyz="-1.58901e-15 -1.36391e-16 -5.55112e-17" rpy="6.68673e-23 -1.0222e-22 2.39693e-07" />-->
 <!--      <geometry>-->
 <!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/linkagedrive.stl" />-->
 <!--      </geometry>-->
+<!--    </collision>-->
+
+
+    <collision>
+      <origin xyz="0 0 0.065" rpy="0 0 0" />
+      <geometry>
+        <box size="0.17 0.13 0.13"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0 0 0.13" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder length="0.33" radius="0.065"/>
+      </geometry>
     </collision>
   </link>
 
@@ -578,6 +599,7 @@
 <!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l2prime.stl" />-->
 <!--      </geometry>-->
 <!--    </collision>-->
+
   </link>
 
   <link name="l1prime">
