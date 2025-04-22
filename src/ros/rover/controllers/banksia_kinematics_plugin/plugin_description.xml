@@ -1,0 +1,9 @@
+<library path="banksia_kinematics_plugin">
+  <class name="banksia_kinematics_plugin/BanksiaKinematicsPlugin"
+         type="banksia_kinematics_plugin::BanksiaKinematicsPlugin"
+         base_class_type="kinematics::KinematicsBase">
+  <description>
+    The kinematics plugin for banksia's arm special IK
+  </description>
+  </class>
+</library>
