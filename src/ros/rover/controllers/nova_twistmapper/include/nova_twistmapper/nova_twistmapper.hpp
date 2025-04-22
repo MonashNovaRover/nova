@@ -192,6 +192,10 @@ protected:
    */
   bool check_collisions_for_pose(const std::vector<double>& joint_positions);
 
+  /**
+   * @brief Automatically generates an allowed collision matrix in the planning_scene_ that ignores self intersections
+   * between joints that always self intersect by populating it with intersections from the arm's zero pose.
+   */
   void generate_allowed_collision_matrix();
 
   /// Holds command and state interfaces for each joint
