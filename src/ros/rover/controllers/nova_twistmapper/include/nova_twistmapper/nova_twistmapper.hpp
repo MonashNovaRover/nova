@@ -235,8 +235,6 @@ protected:
   // Self intersection check structures
   /// Structure that allows for intersection checks
   planning_scene::PlanningScenePtr planning_scene_;
-  /// Stores collisions that the self intersection check shouldn't care about
-  collision_detection::AllowedCollisionMatrix allowed_collision_matrix_;
 
   // Kinematics Plugin Structures
   /// Compatability node allowing for dependency injection to the MoveIt2 kinematics plugin, as we can't use a

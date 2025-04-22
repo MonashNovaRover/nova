@@ -105,6 +105,13 @@
 <!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l1.stl" />-->
 <!--      </geometry>-->
 <!--    </collision>-->
+
+    <collision>
+      <origin xyz="0 -0.255 0.024" rpy="0 0 0" />
+      <geometry>
+        <box size="0.043 0.53 0.1125"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="l2">
