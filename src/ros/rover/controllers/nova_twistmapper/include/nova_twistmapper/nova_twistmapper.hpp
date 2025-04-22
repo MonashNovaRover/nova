@@ -59,10 +59,10 @@ TODO:
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/collision_detection/collision_common.h>
 
-
 // To test in development, run from the root nova_twistmapper dir:
 // generate_parameter_library_cpp include/nova_twistmapper/nova_twistmapper_parameters.hpp src/nova_twistmapper_parameter.yaml
 #include "nova_twistmapper_parameters.hpp"
+
 
 namespace nova_twistmapper
 {
@@ -184,7 +184,6 @@ protected:
    */
   std::string construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model, std::string joint_group_name);
 
-
   /**
    * @brief Checks if a given pose is self intersecting.
    *
@@ -244,7 +243,6 @@ protected:
   std::unique_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase>> kinematics_solver_loader_;
   /// MoveIt2 plugin for solving forward and inverse kinematics.
   std::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;
-
 
   // Timeout to consider cmd_vel commands old
   bool subscriber_is_active_ = false; // not sure what this is for yet

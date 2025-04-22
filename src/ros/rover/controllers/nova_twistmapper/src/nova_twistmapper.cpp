@@ -251,6 +251,7 @@ namespace nova_twistmapper
 
     // Create an SRDF with a joint group for params_.joint_names
     srdf_model_ = std::make_shared<srdf::Model>();
+
     joint_group_name_ = std::basic_string(get_node()->get_name()) + "_joints";
     auto srdf_string = construct_srdf_fallback_string(urdf_model_, joint_group_name_);
     srdf_model_->initString(*urdf_model_, srdf_string);
@@ -350,6 +351,7 @@ namespace nova_twistmapper
       if (std::find(joint_group_names.begin(), joint_group_names.end(), handle.name) == joint_group_names.end()) {
         RCLCPP_ERROR(logger, "SRDF joint group \"%s\" doesn't contain the joint \"%s\".",
                      joint_group_name_.c_str(), handle.name.c_str());
+
         return CallbackReturn::FAILURE;
       }
     }
