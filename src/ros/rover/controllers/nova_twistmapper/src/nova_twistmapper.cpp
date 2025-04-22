@@ -612,33 +612,22 @@ namespace nova_twistmapper
   }
 
   bool NovaTwistmapper::check_collisions_for_pose(const std::vector<double> &joint_positions) {
+    // TODO: Implement max joint distance moved per check, and do multiple iterations for changes in joint values that
+    //  exceed that min step size.
     auto logger = get_node()->get_logger();
 
-    RCLCPP_INFO(logger, "Joint positions for self intersection check:");
     for (auto& joint_position : joint_positions) {
-      RCLCPP_INFO(logger, "  - %f", joint_position);
-
       if (std::isnan(joint_position) || std::isinf(joint_position)) {
         RCLCPP_ERROR(logger, "Received NaN or Inf position for joint in self intersection check.", joint_position);
         return false;
       }
     }
 
-//    assert(joint_positions.size() == robot_model_->getJointModelGroup(joint_group_name_)->getVariableCount());
-//    for (double pos : joint_positions) {
-//      assert(std::isfinite(pos));
-//    }
-
-
     // Create state matching joint_positions
     moveit::core::RobotState& state = planning_scene_->getCurrentStateNonConst();
     state.setToDefaultValues();
     state.setJointGroupPositions(joint_group_name_, joint_positions);
     state.update();
-
-//    std::stringstream ss;
-//    state.printStateInfo(ss);
-//    RCLCPP_INFO(get_node()->get_logger(), "%s", ss.str().c_str());
 
     // Just in case, also try update mimic joints
     for (const auto* joint_model : robot_model_->getMimicJointModels()) {
@@ -661,8 +650,7 @@ namespace nova_twistmapper
     collision_detection::CollisionRequest req;
     collision_detection::CollisionResult res;
 
-    // req.group_name = joint_group_name_;
-
+    // TODO: Only do this when requested
     req.contacts = true;           // Request contact info
     req.max_contacts = 10;         // Limit contact count
 
