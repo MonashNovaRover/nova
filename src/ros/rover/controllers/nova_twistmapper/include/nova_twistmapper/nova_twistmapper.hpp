@@ -56,6 +56,9 @@ TODO:
 #include <moveit/robot_state/robot_state.h>
 #include <pluginlib/class_loader.hpp>
 #include <stdexcept>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/collision_detection/collision_common.h>
+
 
 // To test in development, run from the root nova_twistmapper dir:
 // generate_parameter_library_cpp include/nova_twistmapper/nova_twistmapper_parameters.hpp src/nova_twistmapper_parameter.yaml
@@ -181,6 +184,17 @@ protected:
    */
   std::string construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model, std::string joint_group_name);
 
+
+  /**
+   * @brief Checks if a given pose is self intersecting.
+   *
+   * @param[in]  joint_positions    Current positions for each joint in the joint group
+   * @return True if the given joint_positions cause a self intersection, false otherwise.
+   */
+  bool check_collisions_for_pose(const std::vector<double>& joint_positions);
+
+  void generate_allowed_collision_matrix();
+
   /// Holds command and state interfaces for each joint
   std::vector<JointHandle> registered_joint_handles_;
 
@@ -214,6 +228,17 @@ protected:
   std::shared_ptr<srdf::Model> srdf_model_;
   /// Model of the arm used for kinematics.
   moveit::core::RobotModelPtr robot_model_;
+  /// Name of the joint group used for kinematics, containing all params_.joint_names (but not necessarily in the same
+  /// order!!!)
+  std::string joint_group_name_;
+
+  // Self intersection check structures
+  /// Structure that allows for intersection checks
+  planning_scene::PlanningScenePtr planning_scene_;
+  /// Stores collisions that the self intersection check shouldn't care about
+  collision_detection::AllowedCollisionMatrix allowed_collision_matrix_;
+
+  // Kinematics Plugin Structures
   /// Compatability node allowing for dependency injection to the MoveIt2 kinematics plugin, as we can't use a
   /// LifecycleNode for this purpose.
   rclcpp::Node::SharedPtr kinematics_compat_node_;
@@ -221,6 +246,7 @@ protected:
   std::unique_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase>> kinematics_solver_loader_;
   /// MoveIt2 plugin for solving forward and inverse kinematics.
   std::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;
+
 
   // Timeout to consider cmd_vel commands old
   bool subscriber_is_active_ = false; // not sure what this is for yet

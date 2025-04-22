@@ -165,6 +165,12 @@ namespace nova_twistmapper
       return controller_interface::return_type::OK;
     }
 
+    if (check_collisions_for_pose(solution)) {
+      twistmapper_pose_ = old_pose;
+      RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 500, "Inverse Kinematics solution self intersects!");
+      return controller_interface::return_type::OK;
+    }
+
     // Apply solution to command interfaces
     for (size_t i = 0; i < solution.size(); i++) {
       registered_joint_handles_[i].command.get().set_value(solution[i]);
@@ -245,12 +251,16 @@ namespace nova_twistmapper
 
     // Create an SRDF with a joint group for params_.joint_names
     srdf_model_ = std::make_shared<srdf::Model>();
-    auto joint_group_name = std::basic_string(get_node()->get_name()) + "_joints";
-    auto srdf_string = construct_srdf_fallback_string(urdf_model_, joint_group_name);
+    joint_group_name_ = std::basic_string(get_node()->get_name()) + "_joints";
+    auto srdf_string = construct_srdf_fallback_string(urdf_model_, joint_group_name_);
     srdf_model_->initString(*urdf_model_, srdf_string);
 
     // Create the robot model
     robot_model_ = std::make_shared<moveit::core::RobotModel>(urdf_model_, srdf_model_);
+
+    // Create the planning scene
+    planning_scene_ = std::make_shared<planning_scene::PlanningScene>(robot_model_);
+    generate_allowed_collision_matrix();
 
     // Create an extra non-lifecycle node to allow us to initialize the kinematics solver
     kinematics_compat_node_ = create_compat_node_from_lifecycle(get_node());
@@ -281,7 +291,7 @@ namespace nova_twistmapper
     // We currently don't use this. Reasonable values are in [0.01, 0.1] rads, and KDL uses 0.1 rads by default.
     double search_discretization = 0.1;
 
-    kinematics_solver_->initialize(kinematics_compat_node_, *robot_model_.get(), joint_group_name, base_frame, tip_frames,
+    kinematics_solver_->initialize(kinematics_compat_node_, *robot_model_.get(), joint_group_name_, base_frame, tip_frames,
                                    search_discretization);
 
     previous_update_timestamp_ = get_node()->get_clock()->now();
@@ -335,12 +345,11 @@ namespace nova_twistmapper
     }
 
     // Validate the joint group
-    auto joint_group_name = std::basic_string(get_node()->get_name()) + "_joints";
-    auto& joint_group_names = robot_model_->getJointModelGroup(joint_group_name)->getActiveJointModelNames();
+    auto& joint_group_names = robot_model_->getJointModelGroup(joint_group_name_)->getActiveJointModelNames();
     for (auto& handle : registered_joint_handles_) {
       if (std::find(joint_group_names.begin(), joint_group_names.end(), handle.name) == joint_group_names.end()) {
         RCLCPP_ERROR(logger, "SRDF joint group \"%s\" doesn't contain the joint \"%s\".",
-                     joint_group_name.c_str(), handle.name.c_str());
+                     joint_group_name_.c_str(), handle.name.c_str());
         return CallbackReturn::FAILURE;
       }
     }
@@ -600,6 +609,109 @@ namespace nova_twistmapper
     // Example result: "nova_arm_controller/J1/position"
     const auto prefix = params_.chained_controller_name.empty() ? "" : params_.chained_controller_name + "/";
     return prefix + joint_name + "/" + hardware_interface::HW_IF_POSITION;
+  }
+
+  bool NovaTwistmapper::check_collisions_for_pose(const std::vector<double> &joint_positions) {
+    auto logger = get_node()->get_logger();
+
+    RCLCPP_INFO(logger, "Joint positions for self intersection check:");
+    for (auto& joint_position : joint_positions) {
+      RCLCPP_INFO(logger, "  - %f", joint_position);
+
+      if (std::isnan(joint_position) || std::isinf(joint_position)) {
+        RCLCPP_ERROR(logger, "Received NaN or Inf position for joint in self intersection check.", joint_position);
+        return false;
+      }
+    }
+
+//    assert(joint_positions.size() == robot_model_->getJointModelGroup(joint_group_name_)->getVariableCount());
+//    for (double pos : joint_positions) {
+//      assert(std::isfinite(pos));
+//    }
+
+
+    // Create state matching joint_positions
+    moveit::core::RobotState& state = planning_scene_->getCurrentStateNonConst();
+    state.setToDefaultValues();
+    state.setJointGroupPositions(joint_group_name_, joint_positions);
+    state.update();
+
+//    std::stringstream ss;
+//    state.printStateInfo(ss);
+//    RCLCPP_INFO(get_node()->get_logger(), "%s", ss.str().c_str());
+
+    // Just in case, also try update mimic joints
+    for (const auto* joint_model : robot_model_->getMimicJointModels()) {
+      if (!joint_model)
+        continue;
+
+      const auto* source_joint = joint_model->getMimic();
+      if (!source_joint)
+        continue;
+
+      const auto* position_ptr = state.getJointPositions(source_joint);
+      if (!position_ptr)
+        continue;
+
+      const auto position = joint_model->getMimicFactor() * (*position_ptr) + joint_model->getMimicOffset();
+      state.setVariablePosition(joint_model->getName(), position);
+    }
+    state.update();
+
+    collision_detection::CollisionRequest req;
+    collision_detection::CollisionResult res;
+
+    // req.group_name = joint_group_name_;
+
+    req.contacts = true;           // Request contact info
+    req.max_contacts = 10;         // Limit contact count
+
+    planning_scene_->checkSelfCollision(req, res, state);
+
+    if (res.collision) {
+      RCLCPP_WARN(logger, "Self intersection detected for target pose!");
+
+      for (auto contact : res.contacts) {
+        RCLCPP_WARN(logger, "Self intersection check found contact between \"%s\" and \"%s\"",
+                    contact.first.first.c_str(), contact.first.second.c_str());
+      }
+
+      return true;
+    }
+
+    return false;
+  }
+
+  void NovaTwistmapper::generate_allowed_collision_matrix() {
+    auto logger = get_node()->get_logger();
+    RCLCPP_INFO(logger, "Generating allowed collision matrix for self intersection checks...");
+    auto acm = planning_scene_->getAllowedCollisionMatrix();
+
+    // Get the current state
+    moveit::core::RobotState& state = planning_scene_->getCurrentStateNonConst();
+    state.setToDefaultValues();
+    state.update();
+
+    // Set up request/result
+    collision_detection::CollisionRequest req;
+    collision_detection::CollisionResult res;
+    req.contacts = true;      // We get contact info to generate the allowed collision matrix from
+    req.max_contacts = 1024;  // This was chosen arbitrarily as some large number
+
+    // Perform self-collision check
+    planning_scene_->checkSelfCollision(req, res, state);
+
+    // Add all colliding pairs to the ACM
+    for (const auto &contact_pair : res.contacts)
+    {
+      RCLCPP_INFO(logger, "Ignoring contact between \"%s\" and \"%s\"",
+                  contact_pair.first.first.c_str(), contact_pair.first.second.c_str());
+      const auto &link1 = contact_pair.first.first;
+      const auto &link2 = contact_pair.first.second;
+      acm.setEntry(link1, link2, true);  // Mark this pair as allowed to collide
+    }
+
+    planning_scene_->setAllowedCollisionMatrix(acm);
   }
 } // namespace nova_twistmapper
 
