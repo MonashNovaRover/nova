@@ -10,6 +10,7 @@
 , gps-umd
 , tf2-tools
 , reolink
+, moveit-core
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -43,6 +44,7 @@
 , nova-arm-controller ? throw "nova-arm-controller is needed, but not available!"
 , nova-ik-controller ? throw "nova-ik-controller is needed, but not available!"
 , nova-twistmapper ? throw "nova-twistmapper is needed, but not available!"
+, nova-banksia-kinematics-plugin ? throw "nova-banksia-kinematics-plugin is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -88,13 +90,16 @@
       reolink
       nova-arm-controller
       nova-ik-controller
-      nova-twistmapper;
+      nova-twistmapper
+      nova-banksia-kinematics-plugin;
   }
 
   ## Extra packages to add to the workspace.
 , extraPackages ? { 
     inherit
-      tf2-tools;
+      tf2-tools
+      moveit-core   # needed to dynamically load the kinematics_solver plugin for nova_twistmapper
+      ;
 }
 }:
 
