@@ -25,5 +25,5 @@ buildRosPackage {
 
   nativeBuildInputs = [ ament-cmake ];
   buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs trajectory-msgs std-msgs std-srvs nova-interfaces ];
-  propagatedBuildInputs = with pythonPackages; [ nova-coms-utils pynmeagps ] ++ [ ublox-ubx-msgs ];
+  propagatedBuildInputs = with pythonPackages; [ nova-coms-utils pynmeagps pyrtcm ] ++ [ ublox-ubx-msgs ];
 }
