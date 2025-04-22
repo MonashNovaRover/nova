@@ -1,4 +1,16 @@
 nova_twistmapper:
+  joint_names: {
+    type: string_array,
+    default_value: [],
+    description: "Names of the joints in the ik. Other arrays in this config must be in the same order",
+  }
+
+  robot_description: {
+    type: string,
+    default_value: "",
+    description: "The robot_description URDF used to do forward kinematics."
+  }
+
   chained_controller_name: {
     type: string,
     default_value: "nova_ik_controller",
@@ -9,5 +21,11 @@ nova_twistmapper:
   twist_stamped_topic: {
     type: string,
     default_value: "/arm_ik_twist_stamped",
-    description: "The name of the topic to get teleop twist stamped messages from."
+    description: "The name of the topic to get teleop twist stamped messages from. Applies relative to the header.frame_id frame."
+  }
+
+  kinematics_solver: {
+    type: string,
+    default_value: "kdl_kinematics_plugin/KDLKinematicsPlugin",
+    description: "The name of the kinematics solver plugin to use for forward and inverse kinematics."
   }

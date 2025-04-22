@@ -18,6 +18,10 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2
   tf2_msgs
   tf2_geometry_msgs
+  moveit_core
+  moveit_ros_planning
+  moveit_ros_planning_interface
+  urdf
 )
 
 find_package(ament_cmake REQUIRED)
@@ -35,7 +39,6 @@ generate_parameter_library(nova_twistmapper_parameters
 
 add_library(nova_twistmapper SHARED
   src/nova_twistmapper.cpp
-  src/PoseHandle.cpp
 )
 target_compile_features(nova_twistmapper PUBLIC cxx_std_17)
 target_include_directories(nova_twistmapper PUBLIC
