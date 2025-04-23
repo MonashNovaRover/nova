@@ -297,7 +297,6 @@ namespace nova_twistmapper
 
   std::string NovaTwistmapper::construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model,
                                                               std::string joint_group_name) {
-    // TODO: Allow an SRDF to be provided
     std::ostringstream srdf_stream;
     srdf_stream << "<robot name=\"" << urdf_model->getName() << "\">\n";
     srdf_stream << "  <group name=\"" << joint_group_name << "\">\n";
