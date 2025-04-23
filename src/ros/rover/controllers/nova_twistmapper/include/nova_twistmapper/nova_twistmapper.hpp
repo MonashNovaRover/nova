@@ -212,7 +212,7 @@ protected:
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_stamped_sub_ = nullptr;
   realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_stamped_ptr_{nullptr};
   /// The last seen header.frame_id in the twist_stamped_sub_ callback. ONLY ACCESS FROM twist_stamped_sub_!
-  std::string last_frame_id = "";
+  std::string last_frame_id_ = "";
 
   /// Result of the twistmapper, and input to IK. Desired position and orientation of the end effector relative to the
   /// base.

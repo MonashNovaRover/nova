@@ -104,9 +104,26 @@ namespace nova_twistmapper
     }
 
     const auto twist_msg = twist_stamped->twist;
-
+    const auto twist_frame_id = twist_stamped->header.frame_id.empty() ? params_.fallback_frame_id
+                                                                       : twist_stamped->header.frame_id;
     // Stop holding the shared pointer
     twist_stamped.reset();
+
+    // Find the reference frame transform for the given frame_id
+    std::vector<geometry_msgs::msg::Pose> poses;
+    auto result = kinematics_solver_->getPositionFK({twist_frame_id}, seed_state, poses);
+
+    if (!result) {
+      RCLCPP_ERROR(get_node()->get_logger(), "Failed to do forward kinematics to find the twist frame");
+      return current_target_pose;
+    }
+    if (poses.empty()) {
+      RCLCPP_ERROR(get_node()->get_logger(), "No poses returned from forward kinematics!");
+      return current_target_pose;
+    }
+
+    Eigen::Isometry3d twist_frame;
+    Eigen::fromMsg(poses[0], twist_frame);
 
     // Extract data from the twist message into a usable format for math
     Eigen::Matrix<double, 6, 1> twist;
@@ -118,14 +135,14 @@ namespace nova_twistmapper
     Eigen::Isometry3d new_pose = current_target_pose;
 
     // Set translational components
-    new_pose.translation() = current_target_pose.translation() + twist_linear * period.seconds();
+    new_pose.translation() = current_target_pose.translation() + twist_frame.linear() * twist_linear * period.seconds();
 
     // Set angular components
     auto twist_angular_norm = twist_angular.norm();
     // Only apply rotation if it is non-zero enough to avoid precision errors
     if (twist_angular_norm > EPSILON) {
       // Create rotation matrix from twist_angular * period.seconds. This isn't an angular velocity, but a displacement.
-      Eigen::AngleAxisd angular_diff(twist_angular_norm * period.seconds(), twist_angular / twist_angular_norm);
+      Eigen::AngleAxisd angular_diff(twist_angular_norm * period.seconds(), twist_frame.linear() * twist_angular / twist_angular_norm);
 
       // This 'linear' does not mean the same thing as the twist's 'linear'!
       // It is the linear component of the affine transformation matrix.
@@ -225,8 +242,15 @@ namespace nova_twistmapper
 
         auto new_frame_id = msg->header.frame_id.empty() ? params_.fallback_frame_id : msg->header.frame_id;
 
-        if (msg->header.frame_id != last_frame_id) {
+        if (new_frame_id != last_frame_id_) {
           // Update references to new reference frame for the real-time thread here!
+          // We can do tricks to optimise the real-time thread by precomputing work here. For example, automatically
+          // checking if a frame is relative to the end effector to see if we can do a cheaper version of FK for any
+          // frames relative to the end effector.
+
+          // TODO: Do some optimisations and magic tricks here!
+
+          last_frame_id_ = new_frame_id;
         }
 
         received_twist_stamped_ptr_.set(std::move(msg));
