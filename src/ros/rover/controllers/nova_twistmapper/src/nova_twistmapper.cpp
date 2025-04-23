@@ -16,7 +16,6 @@ EDITED BY:
 #include "nova_twistmapper/nova_twistmapper.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 #include "rclcpp/logging.hpp"
-#include "tf2_geometry_msgs/tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "tf2_eigen/tf2_eigen.hpp"
 #include <urdf_parser/urdf_parser.h>
