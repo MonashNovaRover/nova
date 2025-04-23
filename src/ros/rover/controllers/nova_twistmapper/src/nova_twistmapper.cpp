@@ -381,7 +381,10 @@ namespace nova_twistmapper
     twistmapper_pose_rpy_.setY(pitch);
     twistmapper_pose_rpy_.setZ(yaw);
 
-    // TODO: Potentially set initial command interface values from state interface
+    // Set initial command interface values from state interface
+    for (auto& joint : registered_joint_handles_) {
+      joint.command.get().set_value(joint.state_pos.get().get_value());
+    }
 
     RCLCPP_INFO(get_node()->get_logger(), "Initial twistmapper pose set from forward kinematics.");
     return controller_interface::CallbackReturn::SUCCESS;
