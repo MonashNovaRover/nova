@@ -11,9 +11,9 @@ CONTROLLER: nova_twistmapper/NovaTwistmapper
 SUBSCRIPTIONS:
   - /arm_ik_twist_stamped [geometry_msgs/TwistStamped]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	nova_twistmapper
+PACKAGE:  nova_twistmapper
 AUTHOR:   Bailey Chessum
-CREATION:	13/04/2025
+CREATION: 13/04/2025
 EDITED:	  23/04/2025
 EDITED BY:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
