@@ -134,6 +134,7 @@ namespace nova_twistmapper
     }
 
     auto old_pose = twistmapper_pose_;
+    auto old_rpy = twistmapper_pose_rpy_;
 
     // Get a new pose
     update_twistmapper_pose(time, period);
@@ -148,12 +149,14 @@ namespace nova_twistmapper
     auto result = kinematics_solver_->getPositionIK(pose, joint_state_values, solution, error_codes);
     if (!result) {
       twistmapper_pose_ = old_pose;
+      twistmapper_pose_rpy_ = old_rpy;
       RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 500, "Failed to find solution to inverse kinematics.");
       return controller_interface::return_type::OK;
     }
 
     if (check_path_for_self_intersection(joint_state_values, solution)) {
       twistmapper_pose_ = old_pose;
+      twistmapper_pose_rpy_ = old_rpy;
       RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 500, "Inverse Kinematics solution self intersects!");
       return controller_interface::return_type::OK;
     }
