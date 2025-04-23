@@ -129,18 +129,6 @@ protected:
   void update_twistmapper_pose(const rclcpp::Time &time, const rclcpp::Duration &period);
 
   /**
-   * @brief Tries to get a URDF string the /robot_description topic. Blocking.
-   *
-   * Depends on robot_description_sub_ to be previously created, to populate received_robot_description_ptr_.
-   * Uses std::this_thread::sleep_for(10ms) in a loop checking for any received /robot_description values.
-   *
-   * @param[in]  timeout_sec        The number of seconds to wait for values from /robot_description.
-   * @param[out] urdf_string    The URDF string from robot_description
-   * @returns true if a urdf_string was found before the timeout. Otherwise, false.
-   */
-  bool get_urdf_from_topic(double timeout_sec, std::string &urdf_string);
-
-  /**
    * @brief Creates an rclcpp::Node to give to the kinematics_sovler_ plugin, as we can't give it an
    * rclcpp_lifecycle::LifecycleNode::SharedPtr (superclass of the controller).
    */
@@ -209,10 +197,6 @@ protected:
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_stamped_sub_ = nullptr;
   realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_stamped_ptr_{nullptr};
 
-  // Robot description subscription, serving as a fallback for params_.robot_description
-  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr robot_description_sub_ = nullptr;
-  realtime_tools::RealtimeBox<std::shared_ptr<std_msgs::msg::String>> received_robot_description_ptr_{nullptr};
-
   /// Result of the twistmapper, and input to IK. Desired position and orientation of the end effector relative to the base.
   tf2::Transform twistmapper_pose_ = tf2::Transform();
   tf2::Vector3 twistmapper_pose_rpy_ = tf2::Vector3();
@@ -221,8 +205,8 @@ protected:
   // broadcasting twistmapper
   std::shared_ptr<tf2_ros::TransformBroadcaster> twistmapper_pose_tf_broadcaster_;
   // Previously used to get the initial value of twistmapper_pose_
-  std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
-  std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+  // std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
+  // std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 
   // MoveIt2 Structures
   /// The URDF model for the arm. Needs to exist for the lifecycle of the kinematics_solver_ and robot_model_.

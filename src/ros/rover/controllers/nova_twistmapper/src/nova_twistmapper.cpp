@@ -64,17 +64,6 @@ namespace nova_twistmapper
     kinematics_solver_loader_ = std::make_unique<pluginlib::ClassLoader<kinematics::KinematicsBase>>(
       "moveit_core", "kinematics::KinematicsBase");
 
-    auto logger = get_node()->get_logger();
-    auto qos = rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable();
-    robot_description_sub_ = get_node()->create_subscription<std_msgs::msg::String>(
-      "/robot_description",
-      qos,
-      [this, logger](const std::shared_ptr<std_msgs::msg::String> msg) -> void
-      {
-        RCLCPP_INFO_ONCE(logger, "/robot_description received!");
-        received_robot_description_ptr_.set(std::move(msg));
-      });
-
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -197,8 +186,8 @@ namespace nova_twistmapper
     }
 
     twistmapper_pose_tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(tf2_ros::TransformBroadcaster(*get_node()));
-    tf_buffer_ = std::make_unique<tf2_ros::Buffer>(get_node()->get_clock());
-    tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+    // tf_buffer_ = std::make_unique<tf2_ros::Buffer>(get_node()->get_clock());
+    // tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
     twist_stamped_sub_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
       DEFAULT_INPUT_TOPIC_END_EFFECTOR_TWIST,
@@ -232,14 +221,12 @@ namespace nova_twistmapper
     std::string urdf_str = params_.robot_description;
 
     if (urdf_str.empty()) {
-      RCLCPP_WARN(get_node()->get_logger(), "No URDF was provided in robot_description! Attempting to load from topic.");
-      if (!get_urdf_from_topic(0.2, urdf_str)) {
-        RCLCPP_ERROR(get_node()->get_logger(), "Failed to parse the given robot_description parameter");
-        return CallbackReturn::FAILURE;
-      }
+      RCLCPP_WARN(get_node()->get_logger(), "No URDF was provided in robot_description. Load from "
+                                            "get_robot_description() instead.");
+      urdf_str = get_robot_description();
     }
     else {
-      RCLCPP_INFO(logger, "Found URDF string from robot_description parameter");
+      RCLCPP_INFO(logger, "Found URDF string from robot_description parameter.");
     }
 
     urdf_model_ = urdf::parseURDF(urdf_str);
@@ -311,25 +298,6 @@ namespace nova_twistmapper
     srdf_stream << "</robot>\n";
     auto srdf_string = srdf_stream.str();
     return srdf_string;
-  }
-
-  bool NovaTwistmapper::get_urdf_from_topic(double timeout_sec, std::string &urdf_string)
-  {
-    std::shared_ptr<std_msgs::msg::String> robot_description_msg;
-    auto start = std::chrono::steady_clock::now();
-
-    while (std::chrono::steady_clock::now() - start < std::chrono::duration<double>(timeout_sec)) {
-      received_robot_description_ptr_.get(robot_description_msg);
-      if (robot_description_msg) {
-        urdf_string = robot_description_msg->data;
-        return true;
-      }
-
-      // Sleep briefly to avoid spinning hot
-      std::this_thread::sleep_for(10ms);
-    }
-
-    return false;
   }
 
   controller_interface::CallbackReturn NovaTwistmapper::on_activate(const rclcpp_lifecycle::State&)
@@ -465,8 +433,8 @@ namespace nova_twistmapper
     kinematics_compat_node_.reset();
 
     twistmapper_pose_tf_broadcaster_.reset();
-    tf_buffer_.reset();
-    tf_listener_.reset();
+    // tf_buffer_.reset();
+    // tf_listener_.reset();
 
     // Reset subscriptions
     twist_stamped_sub_.reset();
