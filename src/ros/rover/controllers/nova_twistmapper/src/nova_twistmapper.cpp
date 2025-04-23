@@ -636,7 +636,7 @@ namespace nova_twistmapper
     for (auto& joint_position : joint_positions) {
       if (std::isnan(joint_position) || std::isinf(joint_position)) {
         RCLCPP_ERROR(logger, "Received NaN or Inf position for joint in self intersection check.", joint_position);
-        return false;
+        return true;
       }
     }
 
