@@ -58,8 +58,8 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(localization),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'localization.launch.py'])),
             launch_arguments={
-                'load_map': localization,
-                'use_sim_time': gazebo,
+                'load_map': localization, # unused?
+                'gazebo': gazebo,
             }.items()
         ),
         IncludeLaunchDescription(

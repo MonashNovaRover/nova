@@ -1,16 +1,19 @@
-# Copyright (c) 2018 Intel Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the 'License');
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an 'AS IS' BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+'''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+This launch file is responsible for navigation.
+It launches our nav2 stack.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODES:
+  -
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE: 	auto_bringup
+CREATION:	UNKNOWN
+EDITED:     24/04/2025
+EDITED BY:  Anthony Lew
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+'''
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable, OpaqueFunction
@@ -35,6 +38,7 @@ def launch_setup(context, *args, **kwargs):
     use_composition = LaunchConfiguration('use_composition')
     use_respawn = LaunchConfiguration('use_respawn')
     use_sim_time = LaunchConfiguration('use_sim_time')
+    use_static_map = LaunchConfiguration('use_static_map')
 
     lifecycle_nodes = ['controller_server',
                        'smoother_server',
@@ -42,8 +46,9 @@ def launch_setup(context, *args, **kwargs):
                        'behavior_server',
                        'bt_navigator',
                        'waypoint_follower',
-                       'velocity_smoother',
-                       'map_server']
+                       'velocity_smoother']
+    if use_static_map.perform(context).lower() == 'true':
+        lifecycle_nodes.append('map_server')
 
     # Map fully qualified names to relative ones so the node's namespace can be prepended.
     # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
@@ -142,6 +147,7 @@ def launch_setup(context, *args, **kwargs):
                 #     parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                 # ),
                 Node(
+                    condition=IfCondition(use_static_map),
                     package='nav2_map_server',
                     executable='map_server',
                     name='map_server',
@@ -227,6 +233,7 @@ def launch_setup(context, *args, **kwargs):
                         #     [('cmd_vel', 'cmd_vel_nav')]
                         # ),
                         ComposableNode(
+                            condition=IfCondition(use_static_map),
                             package='nav2_map_server',
                             plugin='nav2_map_server::MapServer',
                             name='map_server',
@@ -312,6 +319,11 @@ def generate_launch_description():
             name='use_sim_time',
             default_value='False',
             description='Use simulation (Gazebo) clock if True',
+        ),
+        DeclareLaunchArgument(
+            name='use_static_map',
+            default_value='False',
+            description='Use static map if True',
         ),
     ]
 
