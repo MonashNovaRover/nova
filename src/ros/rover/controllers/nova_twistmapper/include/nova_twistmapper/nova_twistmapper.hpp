@@ -14,11 +14,10 @@ SUBSCRIPTIONS:
 PACKAGE:  nova_twistmapper
 AUTHOR:   Bailey Chessum
 CREATION: 13/04/2025
-EDITED:	  23/04/2025
+EDITED:	  24/04/2025
 EDITED BY:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - Remove RPY rotation
  - Apply twist relative to the header.frame_id
    reference frame, with the endeffector as
    default
@@ -125,7 +124,8 @@ protected:
    *
    * This will NOT order the joints correctly for MoveIt2.
    */
-  void update_twistmapper_pose(const rclcpp::Time &time, const rclcpp::Duration &period);
+  Eigen::Isometry3d integrate_twist(const std::vector<double> &seed_state, const rclcpp::Duration &period,
+                                    const Eigen::Isometry3d &current_target_pose);
 
   /**
    * @brief Creates an rclcpp::Node to give to the kinematics_sovler_ plugin, as we can't give it an
@@ -146,16 +146,17 @@ protected:
   bool reset();
 
   /**
-   * @brief Resets the TwistStamped, so that update_twistmapper_pose stops moving the twistmapper_pose_.
+   * @brief Resets the TwistStamped, so that integrate_twist stops moving the twistmapper_pose_.
    */
   void halt();
 
   /**
-   * @brief Publishes twistmapper_pose_ to tf2
+   * @brief Publishes the given pose to tf2 as the twistmapper's target pose.
    *
-   * @param[in]  the time to stamp the published Transform with.
+   * @param[in]  time   The time to stamp the published Transform with.
+   * @param[in]  pose   The pose to publish to tf2 as the twistmapper target pose.
    */
-  void publish_to_tf2(const rclcpp::Time &time);
+  void publish_to_tf2(const rclcpp::Time &time, const Eigen::Isometry3d &pose);
 
   /**
    * @brief Generates an SRDF string for use with MoveIt2 libraries, based on params_.joint_names
@@ -210,17 +211,15 @@ protected:
   // Twist input
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_stamped_sub_ = nullptr;
   realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_stamped_ptr_{nullptr};
+  /// The last seen header.frame_id in the twist_stamped_sub_ callback. ONLY ACCESS FROM twist_stamped_sub_!
+  std::string last_frame_id = "";
 
-  /// Result of the twistmapper, and input to IK. Desired position and orientation of the end effector relative to the base.
-  tf2::Transform twistmapper_pose_ = tf2::Transform();
-  tf2::Vector3 twistmapper_pose_rpy_ = tf2::Vector3();
-  rclcpp::Time twistmapper_pose_update_time_ = rclcpp::Time();
+  /// Result of the twistmapper, and input to IK. Desired position and orientation of the end effector relative to the
+  /// base.
+  Eigen::Isometry3d twistmapper_pose_ = Eigen::Isometry3d::Identity();
 
   // broadcasting twistmapper
   std::shared_ptr<tf2_ros::TransformBroadcaster> twistmapper_pose_tf_broadcaster_;
-  // Previously used to get the initial value of twistmapper_pose_
-  // std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
-  // std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 
   // MoveIt2 Structures
   /// The URDF model for the arm. Needs to exist for the lifecycle of the kinematics_solver_ and robot_model_.
