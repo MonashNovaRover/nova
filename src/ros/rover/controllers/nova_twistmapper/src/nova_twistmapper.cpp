@@ -627,13 +627,10 @@ namespace nova_twistmapper
     planning_scene_->checkSelfCollision(req, res, state);
 
     if (res.collision) {
-      RCLCPP_WARN(logger, "Self intersection detected for target pose!");
-
-      for (auto contact : res.contacts) {
-        RCLCPP_WARN(logger, "Self intersection check found contact between \"%s\" and \"%s\"",
-                    contact.first.first.c_str(), contact.first.second.c_str());
+      RCLCPP_WARN(logger, "Self intersection detected for pose. Found collisions between:");
+      for (const auto& contact : res.contacts) {
+        RCLCPP_WARN(logger, "  - \"%s\" and \"%s\"", contact.first.first.c_str(), contact.first.second.c_str());
       }
-
       return true;
     }
 
@@ -642,7 +639,8 @@ namespace nova_twistmapper
 
   void NovaTwistmapper::generate_allowed_collision_matrix() {
     auto logger = get_node()->get_logger();
-    RCLCPP_INFO(logger, "Generating allowed collision matrix for self intersection checks...");
+    RCLCPP_DEBUG(logger, "Generating allowed collision matrix for self intersection checks. "
+                        "Ignoring collisions between:");
     auto acm = planning_scene_->getAllowedCollisionMatrix();
 
     // Get the current state
@@ -662,7 +660,7 @@ namespace nova_twistmapper
     // Add all colliding pairs to the ACM
     for (const auto &contact_pair : res.contacts)
     {
-      RCLCPP_INFO(logger, "Ignoring contact between \"%s\" and \"%s\"",
+      RCLCPP_DEBUG(logger, "  - \"%s\" and \"%s\"",
                   contact_pair.first.first.c_str(), contact_pair.first.second.c_str());
       const auto &link1 = contact_pair.first.first;
       const auto &link2 = contact_pair.first.second;
