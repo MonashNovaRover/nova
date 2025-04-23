@@ -10,7 +10,6 @@ A ros2_control controller for Banksia's robotic
 CONTROLLER: nova_twistmapper/NovaTwistmapper
 SUBSCRIPTIONS:
   - /arm_ik_twist_stamped [geometry_msgs/TwistStamped]
-  - /robot_description    [std_msgs/String]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	nova_twistmapper
 AUTHOR:   Bailey Chessum
@@ -170,16 +169,22 @@ protected:
    * @param[out] joint_group_name   The name given to the joint group
    * @return A string containing an XML format SRDF
    */
-  std::string construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model, std::string joint_group_name);
+  std::string construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model,
+                                             std::string joint_group_name);
 
   /**
-   * @brief Checks if moving from one pose to another pose would cause a self intersecting.
+   * @brief Checks if moving from one pose to another pose would cause a self intersection.
+   *
+   * This helps to prevent unsafe maneuvers from being executed where a self-intersecting state is 'jumped over' by the
+   * kinematics solver, by computing in-between steps between poses of at most self_intersection_max_step_size radians
+   * per joint.
    *
    * @param[in]  seed_state         Current positions for each joint in the joint group.
    * @param[in]  target_positions   Target positions for each joint in the joint group.
    * @return True if the given joint_positions cause a self intersection, false otherwise.
    */
-  bool check_path_self_intersection(const std::vector<double>& seed_state, const std::vector<double>& target_positions);
+  bool check_path_for_self_intersection(const std::vector<double> &seed_state,
+                                        const std::vector<double> &target_positions);
 
   /**
    * @brief Checks if a given pose is self intersecting.
@@ -187,7 +192,7 @@ protected:
    * @param[in]  joint_positions    Positions for each joint in the joint group to check for self intersections.
    * @return True if the given joint_positions cause a self intersection, false otherwise.
    */
-  bool check_pose_self_intersection(const std::vector<double>& joint_positions);
+  bool check_pose_for_self_intersection(const std::vector<double>& joint_positions);
 
   /**
    * @brief Automatically generates an allowed collision matrix in the planning_scene_ that ignores self intersections

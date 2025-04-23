@@ -152,7 +152,7 @@ namespace nova_twistmapper
       return controller_interface::return_type::OK;
     }
 
-    if (check_pose_self_intersection(solution)) {
+    if (check_path_for_self_intersection(joint_state_values, solution)) {
       twistmapper_pose_ = old_pose;
       RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 500, "Inverse Kinematics solution self intersects!");
       return controller_interface::return_type::OK;
@@ -587,28 +587,42 @@ namespace nova_twistmapper
     return prefix + joint_name + "/" + hardware_interface::HW_IF_POSITION;
   }
 
-  bool NovaTwistmapper::check_path_self_intersection(const std::vector<double> &seed_state,
-                                                     const std::vector<double> &target_positions) {
+  bool NovaTwistmapper::check_path_for_self_intersection(const std::vector<double> &seed_state,
+                                                         const std::vector<double> &target_positions) {
     // Find the largest difference between values in seed_state and target_positions
-    auto max_displacement = 0;
+    auto largest_displacement = 0;
     for (size_t i = 0; i < seed_state.size(); i++) {
       auto displacement = abs(target_positions[i] - seed_state[i]);
 
-      if (displacement > max_displacement) {
-        max_displacement = displacement;
+      if (displacement > largest_displacement) {
+        largest_displacement = displacement;
       }
-    };
+    }
 
-    // auto iterations = modf(max_displacement, params_.)
+    auto iterations = static_cast<int>(ceil(fmod(largest_displacement, params_.self_intersection_max_step_size)));
 
+    // Step N=(iterations-1) times from seed_state to target_positions, checking for self intersections.
+    // Excludes checking seed_state. target_positions is checked after this block.
+    std::vector<double> intermediate_positions(seed_state.size());
+    for (int i = 1; i < iterations; i++) {
+      auto interpolator = static_cast<double>(i) / iterations;
+      auto one_minus_interpolator = 1 - interpolator;
 
+      for (size_t j = 0; j < intermediate_positions.size(); j++) {
+        // Lerp between seed_state and target_positions
+        intermediate_positions[j] = seed_state[j] * one_minus_interpolator + target_positions[j] * interpolator;
+      }
 
+      if (check_pose_for_self_intersection(intermediate_positions)) {
+        return true;
+      }
+    }
 
-
-
+    // Always check the target position
+    return check_pose_for_self_intersection(target_positions);
   }
 
-  bool NovaTwistmapper::check_pose_self_intersection(const std::vector<double> &joint_positions) {
+  bool NovaTwistmapper::check_pose_for_self_intersection(const std::vector<double> &joint_positions) {
     // TODO: Implement max joint distance moved per check, and do multiple iterations for changes in joint values that
     //  exceed that min step size.
     auto logger = get_node()->get_logger();
