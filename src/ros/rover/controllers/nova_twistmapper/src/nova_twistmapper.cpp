@@ -23,8 +23,6 @@ EDITED BY:
 #include <srdfdom/model.h>
 #include <pluginlib/class_loader.hpp>
 #include <moveit/kinematics_base/kinematics_base.h>
-#include <stdexcept>
-#include <ranges>
 
 
 namespace
@@ -54,15 +52,15 @@ namespace nova_twistmapper
       // Create the parameter listener and get the parameters
       param_listener_ = std::make_shared<ParamListener>(get_node());
       params_ = param_listener_->get_params();
+
+      kinematics_solver_loader_ = std::make_unique<pluginlib::ClassLoader<kinematics::KinematicsBase>>(
+        "moveit_core", "kinematics::KinematicsBase");
     }
     catch (const std::exception &e)
     {
       fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
       return controller_interface::CallbackReturn::ERROR;
     }
-
-    kinematics_solver_loader_ = std::make_unique<pluginlib::ClassLoader<kinematics::KinematicsBase>>(
-      "moveit_core", "kinematics::KinematicsBase");
 
     return controller_interface::CallbackReturn::SUCCESS;
   }
@@ -154,7 +152,7 @@ namespace nova_twistmapper
       return controller_interface::return_type::OK;
     }
 
-    if (check_collisions_for_pose(solution)) {
+    if (check_pose_self_intersection(solution)) {
       twistmapper_pose_ = old_pose;
       RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 500, "Inverse Kinematics solution self intersects!");
       return controller_interface::return_type::OK;
@@ -221,26 +219,34 @@ namespace nova_twistmapper
     std::string urdf_str = params_.robot_description;
 
     if (urdf_str.empty()) {
-      RCLCPP_WARN(get_node()->get_logger(), "No URDF was provided in robot_description. Load from "
+      RCLCPP_DEBUG(get_node()->get_logger(), "No URDF was provided in robot_description. Loading from "
                                             "get_robot_description() instead.");
       urdf_str = get_robot_description();
     }
     else {
-      RCLCPP_INFO(logger, "Found URDF string from robot_description parameter.");
+      RCLCPP_DEBUG(logger, "Found URDF string from robot_description parameter.");
     }
 
     urdf_model_ = urdf::parseURDF(urdf_str);
     if (!urdf_model_) {
-      RCLCPP_ERROR(get_node()->get_logger(),
-                   "Failed to parse the given robot_description URDF string \"%s\"", urdf_str.c_str());
+      RCLCPP_ERROR(get_node()->get_logger(), "Failed to parse the given robot_description URDF string \"%s\"",
+                   urdf_str.c_str());
       return CallbackReturn::FAILURE;
     }
 
     // Create an SRDF with a joint group for params_.joint_names
+    joint_group_name_ = params_.kinematics_solver_group_name;
+    if (joint_group_name_.empty()) {
+      joint_group_name_ = std::basic_string(get_node()->get_name()) + "_joints";
+      RCLCPP_DEBUG(get_node()->get_logger(), "No kinematics_solver_group_name was specified. Using \"%s\".",
+                  joint_group_name_.c_str());
+    }
     srdf_model_ = std::make_shared<srdf::Model>();
-
-    joint_group_name_ = std::basic_string(get_node()->get_name()) + "_joints";
-    auto srdf_string = construct_srdf_fallback_string(urdf_model_, joint_group_name_);
+    auto srdf_string = params_.robot_description_semantic;
+    if (srdf_string.empty()) {
+      RCLCPP_DEBUG(get_node()->get_logger(), "No robot_description_semantic SRDF was specified. Making one up.");
+      srdf_string = construct_srdf_fallback_string(urdf_model_, joint_group_name_);
+    }
     srdf_model_->initString(*urdf_model_, srdf_string);
 
     // Create the robot model
@@ -277,7 +283,7 @@ namespace nova_twistmapper
       ENDEFFECTOR_KINEMATICS_FRAME
     };
     // We currently don't use this. Reasonable values are in [0.01, 0.1] rads, and KDL uses 0.1 rads by default.
-    double search_discretization = 0.1;
+    double search_discretization = params_.kinematics_solver_search_discretization;
 
     kinematics_solver_->initialize(kinematics_compat_node_, *robot_model_.get(), joint_group_name_, base_frame, tip_frames,
                                    search_discretization);
@@ -581,7 +587,28 @@ namespace nova_twistmapper
     return prefix + joint_name + "/" + hardware_interface::HW_IF_POSITION;
   }
 
-  bool NovaTwistmapper::check_collisions_for_pose(const std::vector<double> &joint_positions) {
+  bool NovaTwistmapper::check_path_self_intersection(const std::vector<double> &seed_state,
+                                                     const std::vector<double> &target_positions) {
+    // Find the largest difference between values in seed_state and target_positions
+    auto max_displacement = 0;
+    for (size_t i = 0; i < seed_state.size(); i++) {
+      auto displacement = abs(target_positions[i] - seed_state[i]);
+
+      if (displacement > max_displacement) {
+        max_displacement = displacement;
+      }
+    };
+
+    // auto iterations = modf(max_displacement, params_.)
+
+
+
+
+
+
+  }
+
+  bool NovaTwistmapper::check_pose_self_intersection(const std::vector<double> &joint_positions) {
     // TODO: Implement max joint distance moved per check, and do multiple iterations for changes in joint values that
     //  exceed that min step size.
     auto logger = get_node()->get_logger();

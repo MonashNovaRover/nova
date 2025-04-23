@@ -15,7 +15,7 @@ SUBSCRIPTIONS:
 PACKAGE: 	nova_twistmapper
 AUTHOR:   Bailey Chessum
 CREATION:	13/04/2025
-EDITED:		20/04/2025
+EDITED:	  23/04/2025
 EDITED BY:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
@@ -173,12 +173,21 @@ protected:
   std::string construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model, std::string joint_group_name);
 
   /**
-   * @brief Checks if a given pose is self intersecting.
+   * @brief Checks if moving from one pose to another pose would cause a self intersecting.
    *
-   * @param[in]  joint_positions    Current positions for each joint in the joint group
+   * @param[in]  seed_state         Current positions for each joint in the joint group.
+   * @param[in]  target_positions   Target positions for each joint in the joint group.
    * @return True if the given joint_positions cause a self intersection, false otherwise.
    */
-  bool check_collisions_for_pose(const std::vector<double>& joint_positions);
+  bool check_path_self_intersection(const std::vector<double>& seed_state, const std::vector<double>& target_positions);
+
+  /**
+   * @brief Checks if a given pose is self intersecting.
+   *
+   * @param[in]  joint_positions    Positions for each joint in the joint group to check for self intersections.
+   * @return True if the given joint_positions cause a self intersection, false otherwise.
+   */
+  bool check_pose_self_intersection(const std::vector<double>& joint_positions);
 
   /**
    * @brief Automatically generates an allowed collision matrix in the planning_scene_ that ignores self intersections
