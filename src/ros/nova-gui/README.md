@@ -166,7 +166,8 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
 
    If you are getting errors first ensure that the gui and rosbridge is running.
 
-   You will need the offline tiles for URC which are available [here](https://drive.google.com/drive/folders/18x0F8ZD5EzfDROY0BhEAxmZ71OYd6H4y?usp=drive_link).
+   You will need the offline tiles for URC which are available [here](https://drive.google.com/drive/folders/1hCndRiMLQjb3QWo5rAhBj52nR5KYZ-ou).
+   Instructions for how to generate these tiles can be found [here](https://www.notion.so/Creating-Map-Tiles-for-Cartographer-GUI-page-1dab71396171808893f8d37f5410992b)
 
 8. Launch the gui
 
