@@ -6,7 +6,7 @@ import {
   NIRProbeCalibrationData
 } from "../../../redux/models/genericStores/NIRProbeCalibrationData.ts";
 
-export interface NIRCalibrationSettingsModalProps {
+export interface NIRSettingsModalProps {
   isOpen: boolean,
   setIsOpen: (v: boolean) => void,
 }
@@ -17,7 +17,7 @@ export interface NIRCalibrationSettingsModalProps {
  * @param setIsOpen function to set the isOpen value
  * @constructor
  */
-const NIRCalibrationSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = ({
+const NIRCalibrationSettingsModal: React.FC<NIRSettingsModalProps> = ({
   isOpen, setIsOpen
 }) => {
 

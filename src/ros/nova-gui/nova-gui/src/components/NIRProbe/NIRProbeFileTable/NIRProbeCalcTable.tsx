@@ -30,10 +30,10 @@ const NIRProbeCalcTable: React.FC<NIRProbeCalcTableProps> = () => {
       </TableRow>,
       <TableRow>
         <TableCell key={21}>
-          {readings[NIRProbeReadingType.WATER].length}
+          {readings[NIRProbeReadingType.PD1].length}
         </TableCell>
         <TableCell key={22}>
-          {readings[NIRProbeReadingType.ICE].length}
+          {readings[NIRProbeReadingType.PD2].length}
         </TableCell>
         <TableCell key={23}>{""}</TableCell>
         <TableCell key={20}>{""}</TableCell>
