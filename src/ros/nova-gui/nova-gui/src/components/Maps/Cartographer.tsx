@@ -69,7 +69,7 @@ export const Cartographer = () => {
           mapTile={mapTile}
           overlay={
             <>
-              <div className="flex flex-col justify-end gap-2 absolute top-2 right-2">
+              <div className="flex flex-col justify-end gap-2 absolute top-2 right-2 mr-12">
                 <div className="flex flex-row justify-end gap-1">
                   {mapInteractionMode === MapInteractionMode.SELECT &&
                     mousePosition && (
@@ -104,7 +104,7 @@ export const Cartographer = () => {
                       )
                     }
                   >
-                    <MapPin size={20} />
+                    <MapPin size={18} />
                   </ToolTipButton>
                 </div>
                 <div className="flex flex-row justify-end gap-1">
@@ -152,9 +152,9 @@ export const Cartographer = () => {
                     }}
                   >
                     {measure.from && measure.to && !measure.measuring ? (
-                      <X size={20} />
+                      <X size={18} />
                     ) : (
-                      <Rulers size={20} />
+                      <Rulers size={18} />
                     )}
                   </ToolTipButton>
                 </div>
