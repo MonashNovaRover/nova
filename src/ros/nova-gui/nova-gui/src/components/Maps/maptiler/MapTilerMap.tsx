@@ -34,7 +34,6 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile 
 
     maptilersdk.config.apiKey = "PLZ ADD MEMES TO PR'S PLEASE"; // This Comment is to ensure that No API Key is Needed
     const newMap = new maptilersdk.Map({
-      navigationControl: false,
       maptilerLogo: false,
       geolocateControl: false,
       container: mapContainer.current,
