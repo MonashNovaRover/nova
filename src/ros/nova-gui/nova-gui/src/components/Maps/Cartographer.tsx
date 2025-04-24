@@ -104,7 +104,7 @@ export const Cartographer = () => {
                       )
                     }
                   >
-                    <MapPin size={18} />
+                    <MapPin size={20} />
                   </ToolTipButton>
                 </div>
                 <div className="flex flex-row justify-end gap-1">
@@ -152,9 +152,9 @@ export const Cartographer = () => {
                     }}
                   >
                     {measure.from && measure.to && !measure.measuring ? (
-                      <X size={18} />
+                      <X size={20} />
                     ) : (
-                      <Rulers size={18} />
+                      <Rulers size={20} />
                     )}
                   </ToolTipButton>
                 </div>
