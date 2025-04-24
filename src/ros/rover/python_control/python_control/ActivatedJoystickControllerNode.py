@@ -67,6 +67,13 @@ class ActivatedJoystickControllerNode(JoystickControllerNode, metaclass=abc.ABCM
         Updates the classes internal msg state
         :return: None
         """
+        self.get_logger().debug("Left Joystick")
+
+        self.update_joystick_lock(msg)
+
+        if self.check_joystick_lock():
+            return
+
         if self.active_button:
             if self.using_left_joystick:
                 self.update_active_status(msg)
@@ -74,7 +81,7 @@ class ActivatedJoystickControllerNode(JoystickControllerNode, metaclass=abc.ABCM
             if not self.check_active_status():
                 return
 
-        super().joystick_l_callback(msg)
+        self.joystick_l(msg)
 
     def joystick_r_callback(self, msg: InputJoystick):
         """
@@ -82,6 +89,11 @@ class ActivatedJoystickControllerNode(JoystickControllerNode, metaclass=abc.ABCM
         :param msg: core.msg.RoverPose message from the subscriber callback
         :return: None
         """
+        self.get_logger().debug("Right Joystick")
+
+        if self.check_joystick_lock():
+            return
+
         if self.active_button:
             if not self.using_left_joystick:
                 self.update_active_status(msg)
@@ -89,7 +101,7 @@ class ActivatedJoystickControllerNode(JoystickControllerNode, metaclass=abc.ABCM
             if not self.check_active_status():
                 return
 
-        super().joystick_l_callback(msg)
+        self.joystick_r(msg)
 
     @abc.abstractmethod
     def joystick_r(self, joystick_r: InputJoystick):
