@@ -43,8 +43,8 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
   /* Plotting readings on the calibration curve */
 
   const readingsScatterData = useMemo(() => {
-    const xAndAllY = readings[NIRProbeReadingType.WATER]
-      .map(v => [v.data, readings[NIRProbeReadingType.ICE].filter(val => val.label === v.label)] as [number, ISpaceResourcesEntry[]])
+    const xAndAllY = readings[NIRProbeReadingType.PD1]
+      .map(v => [v.data, readings[NIRProbeReadingType.PD2].filter(val => val.label === v.label)] as [number, ISpaceResourcesEntry[]])
       .filter(arr => arr[1].length > 0)
     const labels = xAndAllY
       .map(arr => arr[1][0].label)
