@@ -1,4 +1,4 @@
-import {Droplet, Square, XCircle} from "react-feather";
+import {Circle, Droplet, Icon, Square, XCircle} from "react-feather";
 
 export enum SpaceResourcesSiteType {
   WATER = 0,
@@ -7,27 +7,55 @@ export enum SpaceResourcesSiteType {
 
 export enum NIRProbeReadingType {
   OFF = 0,
-  WATER = 1,
-  ICE = 2,
+  PD1 = 1,
+  PD2 = 2,
 }
 
-export const NIRPRobeReadingTypeInfo = [
+export interface NIRProbeReadingTypeInfo {
+  type: NIRProbeReadingType
+  name: string
+  icon: Icon
+  colour: string
+}
+
+export const ARCNIRPRobeReadingTypeInfo: NIRProbeReadingTypeInfo[] = [
   {
     type: NIRProbeReadingType.OFF,
     name: "Off",
-    icon: <XCircle size={18}/>,
+    icon: XCircle,
     colour: "default",
   },
   {
-    type: NIRProbeReadingType.WATER,
+    type: NIRProbeReadingType.PD1,
     name: "Water",
-    icon: <Droplet size={18}/>,
+    icon: Droplet,
     colour: "primary",
   },
   {
-    type: NIRProbeReadingType.ICE,
+    type: NIRProbeReadingType.PD2,
     name: "Ice",
-    icon: <Square size={18}/>,
+    icon: Square,
+    colour: "secondary",
+  },
+]
+
+export const URCNIRPRobeReadingTypeInfo: NIRProbeReadingTypeInfo[] = [
+  {
+    type: NIRProbeReadingType.OFF,
+    name: "Off",
+    icon: XCircle,
+    colour: "default",
+  },
+  {
+    type: NIRProbeReadingType.PD1,
+    name: "PD1",
+    icon: Circle,
+    colour: "primary",
+  },
+  {
+    type: NIRProbeReadingType.PD2,
+    name: "PD2",
+    icon: Square,
     colour: "secondary",
   },
 ]
@@ -39,8 +67,8 @@ export enum XYNames {
 }
 
 export interface ISpaceResourcesEntries {
-  [NIRProbeReadingType.WATER]: ISpaceResourcesEntry[]
-  [NIRProbeReadingType.ICE]: ISpaceResourcesEntry[]
+  [NIRProbeReadingType.PD1]: ISpaceResourcesEntry[]
+  [NIRProbeReadingType.PD2]: ISpaceResourcesEntry[]
 }
 
 export interface ISpaceResourcesEntry {

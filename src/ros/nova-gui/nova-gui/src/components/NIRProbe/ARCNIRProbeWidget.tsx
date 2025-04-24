@@ -5,32 +5,43 @@ import NIRProbeFileTableWidget from "./NIRProbeFileTable/NIRProbeFileTableWidget
 import NIRCalibrationCurveWidget from "./NIRProbeCalibration/NIRCalibrationCurveWidget.tsx";
 import TOFHeight from "../AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
 import SiteTypeSelectWidget from "../SiteSelectWidget/SiteTypeSelectWidget.tsx";
+import NIRProbeCalcTable from "./NIRProbeFileTable/NIRProbeCalcTable.tsx";
+import NIRCalibrationSettingsModal from "./NIRProbeFileTable/NIRCalibrationSettingsModal.tsx";
+import {ARCNIRPRobeReadingTypeInfo} from "./SpaceResourcesSiteType.tsx";
 
 interface INIRProbeWidgetProps {
 }
 
 /**
- * View of all NIR Probe widgets
+ * View of all NIR Probe widgets for ARCh
  * @constructor
  */
-const NIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
+const ARCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
   // whether to show the advanced capabilities
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
 
   return (
     <div className="grid grid-flow-col auto-cols-fr gap-3">
       <div className="flex flex-col gap-3 col-span-3">
-        <NIRProbeLEDWidget/>
-        <NIRProbeOutputSaveWidget showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}/>
+        <NIRProbeLEDWidget readingInfo={ARCNIRPRobeReadingTypeInfo}/>
+        <NIRProbeOutputSaveWidget
+          showAdvanced={showAdvanced}
+          setShowAdvanced={setShowAdvanced}
+          readingInfo={ARCNIRPRobeReadingTypeInfo}
+        />
         <NIRCalibrationCurveWidget/>
       </div>
       <div className="flex flex-col gap-3 col-span-3">
         <TOFHeight/>
         <SiteTypeSelectWidget/>
-        <NIRProbeFileTableWidget/>
+        <NIRProbeFileTableWidget
+          Modal={NIRCalibrationSettingsModal}
+          headerTable={<NIRProbeCalcTable/>}
+          readingInfo={ARCNIRPRobeReadingTypeInfo}
+        />
       </div>
     </div>
   );
 }
 
-export default NIRProbeWidget;
+export default ARCNIRProbeWidget;

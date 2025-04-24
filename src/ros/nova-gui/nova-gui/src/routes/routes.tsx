@@ -29,7 +29,7 @@ import URCAutoTypingView from "../views/urc/URCAutoTypingView.tsx";
 import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
 import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
 import TestOverlayView from "../views/test/TestOverlayView/TestOverlayView.tsx";
-import NIRProbeWidget from "../components/NIRProbe/NIRProbeWidget.tsx";
+import ARCNIRProbeWidget from "../components/NIRProbe/ARCNIRProbeWidget.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -146,7 +146,7 @@ export const testRoutes: RouteObject[] = [
     path: "/test/nirprobe",
     element:
       <div className="p-3">
-        <NIRProbeWidget/>
+        <ARCNIRProbeWidget/>
       </div>,
   },
   {
