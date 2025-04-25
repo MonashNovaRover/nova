@@ -38,7 +38,6 @@ def launch_setup(context, *args, **kwargs):
     use_composition = LaunchConfiguration('use_composition')
     use_respawn = LaunchConfiguration('use_respawn')
     use_sim_time = LaunchConfiguration('use_sim_time')
-    use_static_map = LaunchConfiguration('use_static_map')
 
     lifecycle_nodes = ['controller_server',
                        'smoother_server',
@@ -46,9 +45,8 @@ def launch_setup(context, *args, **kwargs):
                        'behavior_server',
                        'bt_navigator',
                        'waypoint_follower',
-                       'velocity_smoother']
-    if use_static_map.perform(context).lower() == 'true':
-        lifecycle_nodes.append('map_server')
+                       'velocity_smoother',
+                       'map_server']
 
     # Map fully qualified names to relative ones so the node's namespace can be prepended.
     # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
@@ -147,7 +145,6 @@ def launch_setup(context, *args, **kwargs):
                 #     parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
                 # ),
                 Node(
-                    condition=IfCondition(use_static_map),
                     package='nav2_map_server',
                     executable='map_server',
                     name='map_server',
@@ -233,7 +230,6 @@ def launch_setup(context, *args, **kwargs):
                         #     [('cmd_vel', 'cmd_vel_nav')]
                         # ),
                         ComposableNode(
-                            condition=IfCondition(use_static_map),
                             package='nav2_map_server',
                             plugin='nav2_map_server::MapServer',
                             name='map_server',
@@ -297,7 +293,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='nav2_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc.yaml']),
             description='Full path to the ROS2 parameters file to use for all launched Nav2 nodes',
         ),
         DeclareLaunchArgument(
@@ -319,11 +315,6 @@ def generate_launch_description():
             name='use_sim_time',
             default_value='False',
             description='Use simulation (Gazebo) clock if True',
-        ),
-        DeclareLaunchArgument(
-            name='use_static_map',
-            default_value='False',
-            description='Use static map if True',
         ),
     ]
 

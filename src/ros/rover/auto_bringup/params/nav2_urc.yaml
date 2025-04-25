@@ -56,8 +56,8 @@ controller_server:
     min_x_velocity_threshold: 0.01
     min_y_velocity_threshold: 0.0
     min_theta_velocity_threshold: 0.001
-    failure_tolerance:
-      -1.0 # The maximum duration in seconds the called controller plugin can fail (i.e. the computeVelocityCommands function of the plugin
+    failure_tolerance: -1.0 
+      # The maximum duration in seconds the called controller plugin can fail (i.e. the computeVelocityCommands function of the plugin
       # throwing an exception) before the nav2_msgs::action::FollowPath action fails. Setting it to the special value of -1.0 makes it
       # infinite, 0 to disable, and any positive value for the appropriate timeout.
     progress_checker_plugins: ["progress_checker"]
@@ -65,7 +65,7 @@ controller_server:
     controller_plugins: ["FollowPath"]
     use_realtime_priority: False
     enable_stamped_cmd_vel: True
-    odom_topic: /odometry/local # nothing is published to this (in sim)
+    odom_topic: /odometry/global 
     progress_checker:
       plugin: "nav2_controller::PoseProgressChecker"
       required_movement_radius: 0.25
@@ -96,13 +96,13 @@ controller_server:
       use_cost_regulated_linear_velocity_scaling: false
       regulated_linear_scaling_min_radius: 0.9
       regulated_linear_scaling_min_speed: 0.25
-      use_rotate_to_heading:
-        true # Whether to enable rotating to rough heading and goal orientation when using holonomic planners. Recommended on for all robot types
+      use_rotate_to_heading: true 
+        # Whether to enable rotating to rough heading and goal orientation when using holonomic planners. Recommended on for all robot types
         # that can rotate in place. Note: both use_rotate_to_heading and allow_reversing cannot be set to true at the same time as it would
         # result in ambiguous situations.
       allow_reversing: false
-      rotate_to_heading_min_angle:
-        0.785398 # The difference in the path orientation and the starting robot orientation (radians) to trigger a rotate in place, if
+      rotate_to_heading_min_angle: 0.785398 
+        # The difference in the path orientation and the starting robot orientation (radians) to trigger a rotate in place, if
         # use_rotate_to_heading is true. 45 degrees in radians.
       max_angular_accel: 3.2
       max_robot_pose_search_dist: 10.0
@@ -115,7 +115,7 @@ local_costmap:
       publish_frequency: 3.0
       global_frame: odom
       robot_base_frame: base_link
-      use_sim_time: False
+      #use_sim_time: False
       rolling_window: True
       width: 10
       height: 10
@@ -129,12 +129,9 @@ local_costmap:
       # sqrt((wheel_base / 2 + wheel_radius)^2 + (steering_track / 2 + wheel_radius)^2)
       robot_radius: 0.85
       track_unknown_space: False
-      plugins: ["rtabmap_layer", "denoise_layer", "inflation_layer"] # haven't added static map yet'
-      rtabmap_layer:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: True
-        map_topic: /map
-      static_map_layer: # To be chucked in once we have a static map
+      always_send_full_costmap: True
+      plugins: ["static_layer", "obstacle_layer", "denoise_layer", "inflation_layer"]
+      static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
         map_topic: /static_map
@@ -147,40 +144,37 @@ local_costmap:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 0.1
         inflation_radius: 0.7
-      always_send_full_costmap: True
-
-      voxel_layer:
-        plugin: "nav2_costmap_2d::VoxelLayer"
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        origin_z: 0.0
-        z_resolution: 0.05
-        z_voxels: 16
+        footprint_clearing_enabled: true
         max_obstacle_height: 2.0
-        mark_threshold: 0
-        observation_sources: ground obstacles
-        ground:
-          topic: /oak/ground
-          max_obstacle_height: 0.4
+        observation_sources: oak bootie
+        combination_method: 1
+        oak:
+          sensor_frame: camera_link_optical
+          topic: /oak/points
+          max_obstacle_height: 3.0
+          min_obstacle_height: -1.0
+          raytrace_max_range: 3.0 
+          raytrace_min_range: 0.0 # The minimum distance from the sensor origin where raytracing starts clearing. (e.g ignores data)
+          obstacle_max_range: 12.0 
+          obstacle_min_range: 0.15 # Minimum distance from the sensor at which a point is considered a valid obstacle.
           clearing: True
-          marking: False
+          marking: True
           data_type: "PointCloud2"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
-          obstacle_min_range: 0.0
-        obstacles:
-          topic: /oak/obstacles
-          max_obstacle_height: 0.4
+        bootie:
+          topic: /bootie/points
+          max_obstacle_height: 3.0
+          min_obstacle_height: -1.0
           clearing: True
           marking: True
           data_type: "PointCloud2"
           raytrace_max_range: 3.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
-          obstacle_min_range: 0.0
-      static_layer:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: True
+          obstacle_max_range: 12.0
+          obstacle_min_range: 1.0
+
 
 global_costmap:
   global_costmap:
@@ -195,16 +189,12 @@ global_costmap:
       footprint: "[[0.76, 0.68], [0.76, -0.68], [-0.76, -0.68], [-0.76, 0.68]]"
       resolution: 0.05
       track_unknown_space: false
-      plugins: ["static_layer"] #, "rtabmap_layer", "denoise_layer", "inflation_layer"]
+      plugins: ["static_layer", "denoise_layer", "inflation_layer"] 
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"
         enabled: True
         minimal_group_size: 3
         group_connectivity_type: 8
-      rtabmap_layer:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: True
-        map_topic: /map
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
@@ -298,7 +288,7 @@ planner_server:
       cache_obstacle_heuristic: True # For Hybrid nodes: Cache the obstacle map dynamic programming distance expansion heuristic between subsequent replannings of the same goal location. Dramatically speeds up replanning performance (40x) if costmap is largely static.
       allow_reverse_expansion: False # For Lattice nodes: Whether to expand state lattice graph in forward primitives or reverse as well, will double the branching factor at each step.
       smooth_path: True # For Lattice/Hybrid nodes: Whether or not to smooth the path, always true for 2D nodes.
-      debug_visualizations: True # For Hybrid/Lattice nodes: Whether to publish expansions on the /expansions topic as an array of poses (the orientation has no meaning) and the path's footprints on the /planned_footprints topic. WARNING: heavy to compute and to display, for debug only as it degrades the performance.
+      debug_visualizations: False # For Hybrid/Lattice nodes: Whether to publish expansions on the /expansions topic as an array of poses (the orientation has no meaning) and the path's footprints on the /planned_footprints topic. WARNING: heavy to compute and to display, for debug only as it degrades the performance.
       smoother:
         max_iterations: 1000
         w_smooth: 0.3
