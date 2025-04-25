@@ -1,7 +1,11 @@
 { callPackage }:
 
 {
+  audio-msgs = callPackage ./audio-msgs { };
   depthai = callPackage ./depthai { };
+  gst-bridge = callPackage ./gst-bridge { };
+  gst-msgs = callPackage ./gst-msgs { };
+  gst-pipeline = callPackage ./gst-pipeline { };
   librealsense2-gui = callPackage ./librealsense2-gui { };
   nova-workspace = callPackage ./nova-workspace { };
   rclnodejs = callPackage ./rclnodejs { };

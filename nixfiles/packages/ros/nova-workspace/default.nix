@@ -9,6 +9,7 @@
 , gdb
 , gps-umd
 , reolink
+, gst-bridge
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -107,7 +108,8 @@ in
       ros-gz
       gz-ros2-control
       gps-umd
-      rqt rqt-common-plugins;
+      rqt rqt-common-plugins
+      gst-bridge;
   }) // extraPackages;
   prebuiltShellPackages = {
     inherit
