@@ -33,6 +33,13 @@
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
+# Oak pointcloud
+- ros_topic_name: "/oak/points"
+  gz_topic_name: "/oak/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
+  direction: GZ_TO_ROS
+
 # Bootie depth image
 - ros_topic_name: "/bootie/stereo/image_raw"
   gz_topic_name: "/bootie/depth_image"
@@ -59,6 +66,13 @@
   gz_topic_name: "/bootie/camera_info"
   ros_type_name: "sensor_msgs/msg/CameraInfo"
   gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
+
+# Bootie pointcloud
+- ros_topic_name: "/bootie/points"
+  gz_topic_name: "/bootie/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
   direction: GZ_TO_ROS
 
 # Imu
