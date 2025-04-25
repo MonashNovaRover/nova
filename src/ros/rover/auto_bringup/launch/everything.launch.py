@@ -58,8 +58,7 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(localization),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'localization.launch.py'])),
             launch_arguments={
-                'load_map': localization,
-                'use_sim_time': gazebo,
+                'gazebo': gazebo,
             }.items()
         ),
         IncludeLaunchDescription(
@@ -134,7 +133,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='nav2_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc.yaml']),
             description='Full path to the ROS2 parameters file to use for all launched nodes',
         ),
         DeclareLaunchArgument(
