@@ -126,14 +126,9 @@ class WaypointNavigator(Node):
 
 
     def send_goal_async(self):
-        """Sends the waypoints to the NavigateThroughPoses action server."""
+        """Sends the waypoints asynchronously to the NavigateThroughPoses action server."""
         goal_msg = NavigateThroughPoses.Goal()
         goal_msg.poses = self._waypoints  # List of PoseStamped
-
-        # ✅ Send goal and wait for acceptance
-        # for pose_stamped in goal_msg.poses:
-        #     self.get_logger().warn(f"{pose_stamped.pose.position.z}")
-            
         self.get_logger().info("🚀 Sending waypoints to /navigate_through_poses...")
         send_future = self._action_client.send_goal_async(goal_msg)
         send_future.add_done_callback(self.goal_response_callback)
@@ -166,8 +161,11 @@ class WaypointNavigator(Node):
 
 
     def check_nav_status(self):
-        status = self._goal_handle.status
-        if status == GoalStatus.STATUS_ABORTED:
+        if not self._goal_handle:
+            self.get_logger().warn("⚠️ No active goal handle. Skipping navigation status check.")
+            return
+
+        if self._goal_handle.status == GoalStatus.STATUS_ABORTED:
             self.get_logger().info("❌ Navigation aborted detected by timer callback!")
             self.get_logger().info("🚀 Sending waypoints to restart navigation")
             self._waypoints = self.load_waypoints()
