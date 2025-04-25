@@ -12,11 +12,12 @@ ACTIONS: None
 PACKAGE:    python_control
 AUTHOR(S):	Felicity Matthews
 CREATION:	21/04/2025
-EDITED:		21/04/2025
+EDITED:		25/04/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
 import abc
+from rcl_interfaces.msg import ParameterDescriptor
 from python_control.JoystickControllerNode import JoystickControllerNode
 
 # import the joystick ROS message we are listening to
@@ -30,20 +31,28 @@ class ActivatedJoystickControllerNode(JoystickControllerNode, metaclass=abc.ABCM
     def __init__(self, name: str, can_bus: str, log_level: str = "INFO", command_period: float = 0.1):
         super().__init__(name=name, can_bus=can_bus, log_level=log_level, command_period=command_period)
 
-        self.active: bool = self.declare_parameter("active", True).value
-        self.active_button: str = self.declare_parameter("active_button", "").value
-        self.inactive_button_pool: list[str] = self.declare_parameter("inactive_button_pool", [""]).get_parameter_value().string_array_value
-        self.using_left_joystick: bool = self.declare_parameter("using_left_joystick", True).value
+        self.active: bool = self.declare_parameter("active", True, ParameterDescriptor(description='On start node status')).value
+        self.active_button: str = self.declare_parameter("active_button", "", ParameterDescriptor(description='InputJoystick button name that activates the node')).value
+        self.inactive_button_pool: list[str] = self.declare_parameter("inactive_button_pool", [""], ParameterDescriptor(description='list of InputJoystick button name that deactivates the node')).get_parameter_value().string_array_value
+        self.using_left_joystick: bool = self.declare_parameter("using_left_joystick", True, ParameterDescriptor(description='Whether or not the buttons are on the left joystick')).value
 
-        self.get_logger().info(f"{name} is active: {self.active}")
+        self.get_logger().info(f"{self.get_name()} is active: {self.active}")
 
     def check_active_status(self):
+        """
+        Checks the current status of the node and returns the status
+        :return: bool
+        """
         if not self.active:
             self.stop_state()
             return False
         return True
 
     def update_active_status(self, msg: InputJoystick):
+        """
+        Updates the active status from the Joystick input
+        :return: None
+        """
         if not self.active_button:
             return
 

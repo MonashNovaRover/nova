@@ -59,8 +59,8 @@ install(PROGRAMS
   science/nir_probe_publisher.py
   science/scimbal_cam.py
   science/urc_raman_spec_server.py
-  science/urc_analysis_arm.py
-  science/urc_auger.py
+  science/analysis_arm.py
+  science/auger.py
   science/urc_sample_tray.py
   science/urc_pumps.py
   science/urc_carousel.py

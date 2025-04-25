@@ -54,7 +54,7 @@ class URCAuger(ActivatedJoystickControllerNode):
     AUGER_DRILL_COUNTERCLOCKWISE = Direction.NEGATIVE
 
     def __init__(self):
-        super(URCAuger, self).__init__(name="URCAuger", can_bus=self.CAN_BUS)
+        super(URCAuger, self).__init__(name="Auger", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
         # Setting ROS parameters

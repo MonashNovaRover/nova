@@ -36,7 +36,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             name='AnalysisArm',
             package='science',
-            executable='urc_analysis_arm.py',
+            executable='analysis_arm.py',
             output='screen',
             emulate_tty=True,
             parameters=[{
@@ -50,7 +50,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             name='CBeam',
             package='science',
-            executable='urc_analysis_arm.py',
+            executable='analysis_arm.py',
             output='screen',
             emulate_tty=True,
             parameters=[{
@@ -64,7 +64,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             name='Auger1',
             package='science',
-            executable='urc_auger.py',
+            executable='auger.py',
             output='screen',
             emulate_tty=True,
             parameters=[{
@@ -79,7 +79,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             name='Auger2',
             package='science',
-            executable='urc_auger.py',
+            executable='auger.py',
             output='screen',
             emulate_tty=True,
             parameters=[{
