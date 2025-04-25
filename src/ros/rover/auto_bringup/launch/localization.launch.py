@@ -23,7 +23,8 @@ NODES:
 PACKAGE: 	auto_bringup
 CREATION:	UNKNOWN
 EDITED:     24/04/2025
-EDITED BY:  Anthony Lew
+EDITED BY: Taaj Street, Kabilan Velmurugan 
+           Sujatha, Anthony Lew, Victor Bartlinski
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
@@ -34,43 +35,17 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    gps = LaunchConfiguration('gps').perform(context)
-    ekf_params = LaunchConfiguration('ekf_params').perform(context)
-    rl_params = LaunchConfiguration('rl_params').perform(context)
-    ukf_params = LaunchConfiguration('ukf_params').perform(context)
     gazebo = (LaunchConfiguration('gazebo').perform(context).lower() == 'true')
+    gps = LaunchConfiguration('gps').perform(context)
+    rl_params = LaunchConfiguration('rl_params').perform(context)
     use_ukf = (LaunchConfiguration('use_ukf').perform(context).lower() == 'true')
-
-    # genuine question, why do we call it gps_params, if GPS is not used in these params since this node was used for ARCh (cause it only runs when gps is false)
-    # if use_ukf:
-    #     filter_type = 'ukf'
-    #     gps_params = ukf_params
-    # elif not use_ukf:
-    #     filter_type = 'ekf'
-    #     gps_params = ekf_params
-    # else:
-    #     raise ValueError('use_ukf must be either True or False')
-    # DELETE THIS WHEN APPROVED
 
     if use_ukf:
         filter_type = 'ukf'
-        arch_params = ukf_params
     elif not use_ukf:
         filter_type = 'ekf'
-        arch_params = ekf_params
     else:
         raise ValueError('use_ukf must be either True or False')
-
-    # This will replace pivot_drive_controller odom if gazebo is true
-    sim_odom_params = {
-        'odom0': '/odom/gazebo',
-        'odom0_relative': True,
-        'odom0_config': [True, True, True,
-                         True, True, True,
-                         False, False, False,
-                         False, False, False,
-                         False, False, False],
-    }
 
     return [
         Node(
@@ -79,12 +54,11 @@ def launch_setup(context, *args, **kwargs):
             executable=f'{filter_type}_node',
             name=f'{filter_type}_filter_node',
             output='screen',
-            parameters=[arch_params, {'use_sim_time': gazebo}, sim_odom_params if gazebo else {}],
-            remappings=[('odometry/filtered', 'odometry/local')], # just to keep it consistent with gps mode
+            parameters=[rl_params, {'use_sim_time': gazebo}],
         ),
         GroupAction(
-        # Why is there more nodes for GPS?
-        # https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html
+            # Why is there more nodes for GPS?
+            # https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html
             condition=IfCondition(gps),
             actions=[
                 Node(
@@ -111,7 +85,7 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[rl_params, {'use_sim_time': gazebo}],
                     remappings=[
                         ('odometry/filtered', 'odometry/global'),
-                        #('gps/fix', 'fix'),
+                        ('gps/fix', 'fix'),
                         ('imu', 'oak/imu/transformed')],
                 ),
             ],
@@ -123,9 +97,9 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='ekf_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'ekf.yaml']),
-            description='Params file for ekf filter node',
+            name='gazebo',
+            default_value='False',
+            description='Flag if using gazebo',
         ),
         DeclareLaunchArgument(
             name='gps',
@@ -134,18 +108,8 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='rl_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir,'params','rl.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir,'params','rl_urc.yaml']),
             description='',
-        ),
-        DeclareLaunchArgument(
-            name='ukf_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'ukf.yaml']),
-            description='Params file for ukf filter node',
-        ),
-        DeclareLaunchArgument(
-            name='gazebo',
-            default_value='True',
-            description='Flag if using gazebo',
         ),
         DeclareLaunchArgument(
             name='use_ukf',
