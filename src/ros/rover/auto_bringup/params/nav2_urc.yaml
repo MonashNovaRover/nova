@@ -64,7 +64,7 @@ controller_server:
     controller_plugins: ["FollowPath"]
     use_realtime_priority: False
     enable_stamped_cmd_vel: True
-    odom_topic: /odometry/global
+    odom_topic: /odometry/local
     progress_checker:
       plugin: "nav2_controller::PoseProgressChecker"
       required_movement_radius: 0.25
@@ -77,9 +77,9 @@ controller_server:
       stateful: false # Whether to check for XY position tolerance after rotating to goal orientation in case of minor localization changes.
     FollowPath:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
-      desired_linear_vel: 0.4 # The desired maximum linear velocity (m/s) to use.
+      desired_linear_vel: 0.5 # The desired maximum linear velocity (m/s) to use.
       min_approach_linear_velocity: 0.1
-      rotate_to_heading_angular_vel: 0.05 # If use_rotate_to_heading is true, this is the angular velocity to use.
+      rotate_to_heading_angular_vel: 0.1 # If use_rotate_to_heading is true, this is the angular velocity to use.
       lookahead_dist: 0.6
       min_lookahead_dist: 0.3
       max_lookahead_dist: 0.9
@@ -201,17 +201,17 @@ global_costmap:
           filter: "passthrough"        # default passthrough, apply "voxel", "passthrough", or no filter to sensor data, recommend on 
           voxel_min_points: 0          # default 0, minimum points per voxel for voxel filter
           clear_after_reading: true    # default false, clear the buffer after the layer gets readings from it
-        oak_clear:
-          data_type: PointCloud2
-          topic: /oak/points
-          marking: false
-          clearing: true
-          max_z: 7.0                  # default 0, meters
-          min_z: 0.1                  # default 10, meters
-          vertical_fov_angle: 0.8745  # default 0.7, radians
-          horizontal_fov_angle: 1.048 # default 1.04, radians
-          decay_acceleration: 1.0     # default 0, 1/s^2. If laser scanner MUST be 0
-          model_type: 0               # default 0, model type for frustum. 0=depth camera, 1=3d lidar like VLP16 or similar
+        # oak_clear:
+        #   data_type: PointCloud2
+        #   topic: /oak/points
+        #   marking: false
+        #   clearing: true
+        #   max_z: 7.0                  # default 0, meters
+        #   min_z: 0.1                  # default 10, meters
+        #   vertical_fov_angle: 0.8745  # default 0.7, radians
+        #   horizontal_fov_angle: 1.048 # default 1.04, radians
+        #   decay_acceleration: 1.0     # default 0, 1/s^2. If laser scanner MUST be 0
+        #   model_type: 0               # default 0, model type for frustum. 0=depth camera, 1=3d lidar like VLP16 or similar
         bootie_mark:
           data_type: PointCloud2
           topic: /bootie/points
@@ -226,17 +226,17 @@ global_costmap:
           filter: "passthrough"        # default passthrough, apply "voxel", "passthrough", or no filter to sensor data, recommend on 
           voxel_min_points: 0          # default 0, minimum points per voxel for voxel filter
           clear_after_reading: true    # default false, clear the buffer after the layer gets readings from it
-        bootie_clear:
-          data_type: PointCloud2
-          topic: /bootie/points
-          marking: false
-          clearing: true
-          max_z: 7.0                  # default 0, meters
-          min_z: 0.1                  # default 10, meters
-          vertical_fov_angle: 0.8745  # default 0.7, radians
-          horizontal_fov_angle: 1.048 # default 1.04, radians
-          decay_acceleration: 1.0     # default 0, 1/s^2. If laser scanner MUST be 0
-          model_type: 0               # default 0, model type for frustum. 0=depth camera, 1=3d lidar like VLP16 or similar
+        # bootie_clear:
+        #   data_type: PointCloud2
+        #   topic: /bootie/points
+        #   marking: false
+        #   clearing: true
+        #   max_z: 7.0                  # default 0, meters
+        #   min_z: 0.5                  # 0.5 to remove bootie of rover
+        #   vertical_fov_angle: 0.8745  # default 0.7, radians
+        #   horizontal_fov_angle: 1.048 # default 1.04, radians
+        #   decay_acceleration: 1.0     # default 0, 1/s^2. If laser scanner MUST be 0
+        #   model_type: 0               # default 0, model type for frustum. 0=depth camera, 1=3d lidar like VLP16 or similar
       always_send_full_costmap: True
 
 planner_server:
@@ -395,11 +395,11 @@ velocity_smoother:
     smoothing_frequency: 3.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [0.12, 0.0, 0.12]
+    max_velocity: [0.5, 0.0, 0.5]
     min_velocity: [-0.12, 0.0, -0.12]
     max_accel: [0.05, 0.0, 0.03]
     max_decel: [-0.05, 0.0, -0.03]
-    odom_topic: /odometry/global
+    odom_topic: /odometry/local
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
