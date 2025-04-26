@@ -10,7 +10,7 @@
 , eigen
 , orocos-kdl
 , systemd
-, pythonPackages
+, python3Packages
 , libcanmd
 , nova-arm-interfaces
 , nova-input-interfaces
@@ -49,5 +49,9 @@ buildRosPackage {
     nova-interfaces
     SDL2
     SDL2.dev
+  ];
+
+  propagatedBuildInputs = [
+    python3Packages.scipy
   ];
 }
