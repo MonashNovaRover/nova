@@ -21,8 +21,8 @@
   sensor-msgs, 
   audio-msgs, 
   builtin-interfaces, 
-  breakpointHook, 
   gst_all_1, 
+  breakpointHook, 
 }:
 
 buildRosPackage {
