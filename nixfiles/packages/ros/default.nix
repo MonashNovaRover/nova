@@ -6,6 +6,8 @@
   gst-bridge = callPackage ./gst-bridge { };
   gst-msgs = callPackage ./gst-msgs { };
   gst-pipeline = callPackage ./gst-pipeline { };
+  gst-pipeline-plugins = callPackage ./gst-pipeline-plugins { };
+  gst-pipeline-plugins-webrtc = callPackage ./gst-pipeline-plugins-webrtc { };
   librealsense2-gui = callPackage ./librealsense2-gui { };
   nova-workspace = callPackage ./nova-workspace { };
   rclnodejs = callPackage ./rclnodejs { };

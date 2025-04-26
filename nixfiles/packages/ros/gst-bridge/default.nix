@@ -40,8 +40,8 @@ buildRosPackage {
   sourceRoot = "ros-gst-bridge/gst_bridge";
 
   buildType = "ament_cmake";
-  buildInputs = [ ament-cmake pkg-config breakpointHook gst_all_1.gst-plugins-base.dev ];
-  checkInputs = [ ament-cmake-copyright ament-cmake-cppcheck ament-cmake-uncrustify ament-lint-auto ament-lint-common gst_all_1.gst-plugins-base.dev ];
-  propagatedBuildInputs = [ rclcpp rclcpp-components gst_all_1.gstreamer gst_all_1.gst-plugins-base gst_all_1.gst-plugins-base.dev std-msgs audio-msgs sensor-msgs builtin-interfaces pcre2 libunwind util-linux elfutils libselinux zstd libsepol orc ];
-  nativeBuildInputs = [ ament-cmake gst_all_1.gst-plugins-base.dev ];
+  buildInputs = [ ament-cmake pkg-config breakpointHook ];
+  checkInputs = [ ament-cmake-copyright ament-cmake-cppcheck ament-cmake-uncrustify ament-lint-auto ament-lint-common ];
+  propagatedBuildInputs = [ rclcpp rclcpp-components gst_all_1.gstreamer gst_all_1.gst-plugins-base std-msgs audio-msgs sensor-msgs builtin-interfaces pcre2 libunwind util-linux elfutils libselinux zstd libsepol orc ];
+  nativeBuildInputs = [ ament-cmake ];
 }
