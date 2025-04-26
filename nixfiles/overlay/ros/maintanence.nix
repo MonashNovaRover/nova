@@ -283,32 +283,6 @@ self: super:
                 '';
             }
           );
-
-          controller-manager = rosSuper.controller-manager.overrideAttrs (
-            {
-              prePatch ? "",
-              patches ? [ ],
-              ...
-            }:
-            {
-              patches = patches ++ [
-                (self.fetchpatch {
-                  url = "https://github.com/ros-controls/ros2_control/commit/23bd1c3c06c30d706f010628d85133a7198e226d.patch";
-                  hash = "sha256-bM3I5Q4J1DQNJuP2l3mxF7Kh/4DgjjKyRa5FBZS9t9s=";
-                  stripLen = 2;
-                  extraPrefix = "";
-                  excludes = [ "release_notes.rst" ];
-                })
-              ];
-
-              prePatch =
-                prePatch
-                + ''
-                  pwd
-                '';
-            }
-          );
-
         }
         // (
           let
@@ -651,24 +625,6 @@ self: super:
                   url = "https://github.com/gazebosim/gz-sensors";
                   rev = "gz-sensors8_8.2.1";
                   fetchgitArgs.hash = "sha256-wEUJoHbvvImuFbaKk84maw5AoKhoEhdU0uOYVBtHhI0=";
-                }
-              );
-
-              rosapi = rosSuper.rosapi.overrideAttrs (
-                {
-                  patches ? [ ],
-                  ...
-                }:
-                {
-                  patches = patches ++ [
-                    # Fix invalid import of get_parameter_value in rosapi for ROS2 Jazzy.
-                    # https://github.com/RobotWebTools/rosbridge_suite/pull/932
-                    (self.fetchpatch {
-                      url = "https://github.com/RobotWebTools/rosbridge_suite/commit/d22f102b59e7d9fdeea0ec5e74aa8b98358585d7.patch";
-                      stripLen = 1;
-                      hash = "sha256-zmRHt7EgZk8kF2Dv1+QvTmox47RR7TBZOOdKfnIySog=";
-                    })
-                  ];
                 }
               );
 

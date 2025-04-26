@@ -33,18 +33,6 @@ let
       repo = "nix-ros-overlay";
       inherit (revisions.nix-ros-overlay) rev hash;
     };
-    patches = [
-      # fix: gz vendor
-      # https://github.com/lopsided98/nix-ros-overlay/pull/472
-      ./overlay/ros/patches/nix-ros-workspace.patch
-
-      # Some more Gazebo improvements
-      # https://github.com/muellerbernd/nix-ros-overlay/pull/2
-      (pkgs.fetchpatch {
-        url = "https://github.com/lopsided98/nix-ros-overlay/compare/6d04148eac0727be34e5333f6e12cfc7e86673c3...eca9687ce15335bbb2d4b7b14fbf74ce0e957f43.patch";
-        hash = "sha256-c6DD2U6Lo2dcs0APxEHg9l0bz1Ioa5aX5FoATajXYAc=";
-      })
-    ];
   });
 
   nix-ros-workspace = pkgs.lib.maybeEnv "NRWS_PATH" (pkgs.fetchFromGitHub {
