@@ -126,7 +126,7 @@ local_costmap:
       # sqrt((wheel_base / 2 + wheel_radius)^2 + (steering_track / 2 + wheel_radius)^2)
       robot_radius: 0.85
       track_unknown_space: False
-      plugins: ["static_map_layer", "stvl_layer", "denoise_layer", "inflation_layer"]
+      plugins: ["static_map_layer", "denoise_layer", "inflation_layer"] # "stvl_layer",
       static_map_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
@@ -140,77 +140,8 @@ local_costmap:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 0.1
         inflation_radius: 0.7
-      stvl_layer:
-        plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
-        enabled: true
-        voxel_decay: 15.
-        decay_model: 0
-        voxel_size: 0.05
-        track_unknown_space: true
-        unknown_threshold: 15
-        mark_threshold: 0
-        update_footprint_enabled: true
-        combination_method: 1
-        origin_z: 0.0
-        publish_voxel_map: true
-        transform_tolerance: 0.2
-        mapping_mode: false
-        map_save_duration: 60.0
-        observation_sources: pointcloud
-        pointcloud:
-          data_type: PointCloud2
-          topic: /intel_realsense_r200_depth/points
-          marking: true
-          clearing: true
-          obstacle_range: 3.0
-          min_obstacle_height: 0.0
-          max_obstacle_height: 2.0
-          expected_update_rate: 0.0
-          observation_persistence: 0.0
-          inf_is_valid: false
-          filter: "voxel"
-          voxel_min_points: 0
-          clear_after_reading: true
-          max_z: 7.0
-          min_z: 0.1
-          vertical_fov_angle: 0.8745
-          horizontal_fov_angle: 1.048
-          decay_acceleration: 15.0
-          model_type: 0
+      stvl_layer: None # to be filled in
       always_send_full_costmap: True
-
-      # voxel_layer:
-      #   plugin: "nav2_costmap_2d::VoxelLayer"
-      #   enabled: True
-      #   origin_z: 0.0
-      #   z_resolution: 0.05
-      #   z_voxels: 16
-      #   max_obstacle_height: 2.0
-      #   mark_threshold: 0
-      #   observation_sources: ground obstacles
-      #   ground:
-      #     topic: /oak/ground
-      #     max_obstacle_height: 0.4
-      #     clearing: True
-      #     marking: False
-      #     data_type: "PointCloud2"
-      #     raytrace_max_range: 3.0
-      #     raytrace_min_range: 0.0
-      #     obstacle_max_range: 2.5
-      #     obstacle_min_range: 0.0
-      #   obstacles:
-      #     topic: /oak/obstacles
-      #     max_obstacle_height: 0.4
-      #     clearing: True
-      #     marking: True
-      #     data_type: "PointCloud2"
-      #     raytrace_max_range: 3.0
-      #     raytrace_min_range: 0.0
-      #     obstacle_max_range: 2.5
-      #     obstacle_min_range: 0.0
-      # static_layer:
-      #   plugin: "nav2_costmap_2d::StaticLayer"
-      #   map_subscribe_transient_local: True
 
 global_costmap:
   global_costmap:
@@ -240,62 +171,72 @@ global_costmap:
         cost_scaling_factor: 0.1
         inflation_radius: 0.7
       stvl_layer:
+        # ripped straight from https://github.com/SteveMacenski/spatio_temporal_voxel_layer/blob/ros2/spatio_temporal_voxel_layer/example/outdoor_environment_config.yaml
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
-        enabled: true
-        voxel_decay: 15.0
-        decay_model: 0
-        voxel_size: 0.05
-        track_unknown_space: true
-        unknown_threshold: 15
-        mark_threshold: 0
+        enabled:                  true
+        voxel_decay:              15.0  # seconds if linear, e^n if exponential
+        decay_model:              0     # 0=linear, 1=exponential, -1=persistent
+        voxel_size:               0.05  # meters
+        track_unknown_space:      true  # default space is known
+        mark_threshold:           0     # voxel height
         update_footprint_enabled: true
-        combination_method: 1
-        origin_z: 0.0
-        publish_voxel_map: true
-        transform_tolerance: 0.2
-        mapping_mode: false
-        map_save_duration: 60.0
-        observation_sources: oak bootie
-        oak:
+        combination_method:       1     # 1=max, 0=override
+        origin_z:                 0.0   # meters
+        publish_voxel_map:        false # default off
+        transform_tolerance:      0.2   # seconds
+        mapping_mode:             false # default off, saves map not for navigation
+        map_save_duration:        60.0  # default 60s, how often to autosave
+        observation_sources: oak_mark oak_clear bootie_mark bootie_clear
+        oak_mark:
           data_type: PointCloud2
           topic: /oak/points
           marking: true
+          clearing: false
+          obstacle_range: 3.0          # meters
+          min_obstacle_height: 0.3     # default 0, meters
+          max_obstacle_height: 2.0     # default 3, meters
+          expected_update_rate: 0.0    # default 0, if not updating at this rate at least, remove from buffer
+          observation_persistence: 0.0 # default 0, use all measurements taken during now-value, 0=latest
+          inf_is_valid: false          # default false, for laser scans
+          filter: "passthrough"        # default passthrough, apply "voxel", "passthrough", or no filter to sensor data, recommend on 
+          voxel_min_points: 0          # default 0, minimum points per voxel for voxel filter
+          clear_after_reading: true    # default false, clear the buffer after the layer gets readings from it
+        oak_clear:
+          data_type: PointCloud2
+          topic: /oak/points
+          marking: false
           clearing: true
-          obstacle_range: 3.0
-          min_obstacle_height: 0.0
-          max_obstacle_height: 2.0
-          expected_update_rate: 0.0
-          observation_persistence: 0.0
-          inf_is_valid: false
-          filter: "voxel"
-          voxel_min_points: 0
-          clear_after_reading: true
-          max_z: 7.0
-          min_z: 0.1
-          vertical_fov_angle: 0.8745
-          horizontal_fov_angle: 1.048
-          decay_acceleration: 15.0
-          model_type: 0
-        bootie:
+          max_z: 7.0                  # default 0, meters
+          min_z: 0.1                  # default 10, meters
+          vertical_fov_angle: 0.8745  # default 0.7, radians
+          horizontal_fov_angle: 1.048 # default 1.04, radians
+          decay_acceleration: 1.0     # default 0, 1/s^2. If laser scanner MUST be 0
+          model_type: 0               # default 0, model type for frustum. 0=depth camera, 1=3d lidar like VLP16 or similar
+        bootie_mark:
           data_type: PointCloud2
           topic: /bootie/points
           marking: true
+          clearing: false
+          obstacle_range: 3.0          # meters
+          min_obstacle_height: 0.3     # default 0, meters
+          max_obstacle_height: 2.0     # default 3, meters
+          expected_update_rate: 0.0    # default 0, if not updating at this rate at least, remove from buffer
+          observation_persistence: 0.0 # default 0, use all measurements taken during now-value, 0=latest
+          inf_is_valid: false          # default false, for laser scans
+          filter: "passthrough"        # default passthrough, apply "voxel", "passthrough", or no filter to sensor data, recommend on 
+          voxel_min_points: 0          # default 0, minimum points per voxel for voxel filter
+          clear_after_reading: true    # default false, clear the buffer after the layer gets readings from it
+        bootie_clear:
+          data_type: PointCloud2
+          topic: /bootie/points
+          marking: false
           clearing: true
-          obstacle_range: 3.0
-          min_obstacle_height: 0.0
-          max_obstacle_height: 2.0
-          expected_update_rate: 0.0
-          observation_persistence: 0.0
-          inf_is_valid: false
-          filter: "voxel"
-          voxel_min_points: 0
-          clear_after_reading: true
-          max_z: 7.0
-          min_z: 0.1
-          vertical_fov_angle: 0.8745
-          horizontal_fov_angle: 1.048
-          decay_acceleration: 15.0
-          model_type: 0
+          max_z: 7.0                  # default 0, meters
+          min_z: 0.1                  # default 10, meters
+          vertical_fov_angle: 0.8745  # default 0.7, radians
+          horizontal_fov_angle: 1.048 # default 1.04, radians
+          decay_acceleration: 1.0     # default 0, 1/s^2. If laser scanner MUST be 0
+          model_type: 0               # default 0, model type for frustum. 0=depth camera, 1=3d lidar like VLP16 or similar
       always_send_full_costmap: True
 
 planner_server:
@@ -463,3 +404,37 @@ velocity_smoother:
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
     enable_stamped_cmd_vel: True
+
+# cut out of local costmap
+# voxel_layer:
+#   plugin: "nav2_costmap_2d::VoxelLayer"
+#   enabled: True
+#   origin_z: 0.0
+#   z_resolution: 0.05
+#   z_voxels: 16
+#   max_obstacle_height: 2.0
+#   mark_threshold: 0
+#   observation_sources: ground obstacles
+#   ground:
+#     topic: /oak/ground
+#     max_obstacle_height: 0.4
+#     clearing: True
+#     marking: False
+#     data_type: "PointCloud2"
+#     raytrace_max_range: 3.0
+#     raytrace_min_range: 0.0
+#     obstacle_max_range: 2.5
+#     obstacle_min_range: 0.0
+#   obstacles:
+#     topic: /oak/obstacles
+#     max_obstacle_height: 0.4
+#     clearing: True
+#     marking: True
+#     data_type: "PointCloud2"
+#     raytrace_max_range: 3.0
+#     raytrace_min_range: 0.0
+#     obstacle_max_range: 2.5
+#     obstacle_min_range: 0.0
+# static_layer:
+#   plugin: "nav2_costmap_2d::StaticLayer"
+#   map_subscribe_transient_local: True

@@ -25,7 +25,7 @@
 
 # clear map (no obstacles)
 image: ../maps/clear_map.png     
-resolution: 1
+resolution: 0.01
 origin: [-50, -50, 0]
 negate: 0
 occupied_thresh: 0.65

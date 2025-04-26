@@ -60,25 +60,25 @@ def launch_setup(context, *args, **kwargs):
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
             launch_arguments={'gazebo': 'True'}.items(),
         ),
-        # IncludeLaunchDescription(
-        #     launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-        #     launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'angle': angle}.items(),
-        # ),
+        IncludeLaunchDescription(
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
+            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'angle': angle}.items(),
+        ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
             launch_arguments={'gz_args': ['-r -v4 ', world], 'on_exit_shutdown': 'True'}.items(),
         ),
-        # Node(
-        #     package='ros_gz_sim',
-        #     executable='create',
-        #     output='screen',
-        #     arguments=[
-        #         '-topic', 'robot_description',
-        #         '-name', robot_name,
-        #         '-robot_namespace', namespace,
-        #         '-x', pose['x'], '-y', pose['y'], '-z', pose['z'],
-        #         '-R', pose['R'], '-P', pose['P'], '-Y', pose['Y']],
-        # ),
+        Node(
+            package='ros_gz_sim',
+            executable='create',
+            output='screen',
+            arguments=[
+                '-topic', 'robot_description',
+                '-name', robot_name,
+                '-robot_namespace', namespace,
+                '-x', pose['x'], '-y', pose['y'], '-z', pose['z'],
+                '-R', pose['R'], '-P', pose['P'], '-Y', pose['Y']],
+        ),
         Node(
             package='ros_gz_bridge',
             executable='bridge_node',
