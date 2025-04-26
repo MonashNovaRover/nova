@@ -216,14 +216,26 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
     <child link="bootie_link_optical"/>
   </joint>
 
+  <!-- Used in conjuction with gz_header_republisher to fix pointcloud frame transform-->
+  <link name="camera_link_gz_pointcloud"/>
+  <link name="bootie_link_gz_pointcloud"/>
+  <joint name="camera_pointcloud_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} 0"/>
+    <parent link="camera_link_optical"/>
+    <child link="camera_link_gz_pointcloud"/>
+  </joint>
+  <joint name="bootie_pointcloud_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} 0"/>
+    <parent link="bootie_link_optical"/>
+    <child link="bootie_link_gz_pointcloud"/>
+  </joint>
+
   <!-- Oak Depth Camera for Gazebo-->
-  <gazebo reference="camera_link">
+  <gazebo reference="camera_link_optical">
     <sensor name="oak" type="rgbd_camera">
-      <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
-        <frame_name>camera_link_optical</frame_name>
-      </plugin>
+      <pose> 0 0 0 0 ${-pi/2} 0 </pose> <!-- Get camera facing correct way in optical frame -->
+      <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system"></plugin>
       <gz_frame_id>camera_link_optical</gz_frame_id>
-      <optical_frame_id>camera_link</optical_frame_id>
       <topic>oak</topic>
       <visualize>true</visualize>
       <update_rate>30</update_rate>
@@ -243,13 +255,13 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
   </gazebo> 
 
   <!-- Bootie Depth Camera for Gazebo-->
-  <gazebo reference="bootie_link">
+  <gazebo reference="bootie_link_optical">
     <sensor name="bootie" type="rgbd_camera">
+      <pose> 0 0 0 0 ${-pi/2} 0 </pose> <!-- Get camera facing correct way in optical frame -->
       <!-- <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
         <frame_name>bootie_link_optical</frame_name>
       </plugin> -->
       <gz_frame_id>bootie_link_optical</gz_frame_id>
-      <optical_frame_id>bootie_link</optical_frame_id>
       <topic>bootie</topic>
       <visualize>true</visualize>
       <update_rate>30</update_rate>

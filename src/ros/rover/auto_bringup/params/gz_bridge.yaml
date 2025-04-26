@@ -34,7 +34,7 @@
   direction: GZ_TO_ROS
 
 # Oak pointcloud
-- ros_topic_name: "/oak/points"
+- ros_topic_name: "/oak/gz_points"
   gz_topic_name: "/oak/points"
   ros_type_name: "sensor_msgs/msg/PointCloud2"
   gz_type_name: "gz.msgs.PointCloudPacked"
@@ -69,7 +69,7 @@
   direction: GZ_TO_ROS
 
 # Bootie pointcloud
-- ros_topic_name: "/bootie/points"
+- ros_topic_name: "/bootie/gz_points"
   gz_topic_name: "/bootie/points"
   ros_type_name: "sensor_msgs/msg/PointCloud2"
   gz_type_name: "gz.msgs.PointCloudPacked"

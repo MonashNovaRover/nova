@@ -90,6 +90,18 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{'config_file': gz_params}],
             arguments=['--ros-args', '--log-level', 'info'],
         ),
+        Node(
+            package='nova_utils',
+            executable='gz_header_republisher.py',
+            name='frame_fixer_oak',
+            parameters=[{'sub': '/oak/gz_points', 'pub': 'oak/points', 'msg_type': 'sensor_msgs/msg/PointCloud2', 'target_frame':'camera_link_gz_pointcloud'}],
+        ),
+        Node(
+            package='nova_utils',
+            executable='gz_header_republisher.py',
+            name='frame_fixer_bootie',
+            parameters=[{'sub': '/bootie/gz_points', 'pub': 'bootie/points', 'msg_type': 'sensor_msgs/msg/PointCloud2', 'target_frame':'bootie_link_gz_pointcloud'}],
+        )
     ]
 
 

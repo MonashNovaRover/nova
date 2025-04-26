@@ -30,6 +30,7 @@ find_package(yolo_msgs REQUIRED)
 
 
 install(PROGRAMS
+  nova_utils/gz_header_republisher.py
   nova_utils/detection_overlay.py
   nova_utils/goal_marker.py
   nova_utils/load_waypoint.py
