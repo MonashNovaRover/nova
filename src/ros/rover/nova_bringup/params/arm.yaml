@@ -1,15 +1,27 @@
-/resolver_publisher:
+resolver_publisher:
   ros__parameters:
     use_arm_data: true
 
-/keyboard_localiser:
-  ros_parameters:
-    # key position params
+keyboard_localiser:
+  ros__parameters:
+    # using auto or manual transform mode
+    using_auto: true
+    # key position initalisation params
     keyboard_frame: keyboard_frame
     base_frame: base_link
 
-    # keyboard alignment params
-    aligned_keyboard_position: [0.0, 0.0, 0.0]
-    aligned_keyboard_quaternion: [0.0, 0.0, 0.0, 1.0]
+    # (manual) keyboard alignment params
+    aligned_keyboard_position: [0.0,0.0,0.0]
+    aligned_keyboard_quaternion: [0.0, 0.0, 0.0,1.0]
     
+    # calibrated camera intrinsics
+    hfov: 61.3727248
+    image_width: 1280
+    image_height: 720
+    distortion_matrix: [0.0,0.0,0.0,0.0,0.0]
+
+    # (auto) keyboard pose analysis initalisation
+    camera_frame: arm_end_periscope_optical
+
+    # tf2 initalisation
     tf_publish_rate: 1.0 # per second

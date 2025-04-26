@@ -6,15 +6,15 @@ import {RosService} from "../../ros/services/rosService.ts";
 import { Square, Power } from "react-feather";
 import {AlignTransformValues} from "./AutoTypingConstants.tsx";
 
-interface IAutoTypingWidgetProps extends CardProps {
+interface IAutoTypingTransformWidgetProps extends CardProps {
 }
 
 /**
- * Widget containing buttons to call the ros2 service "/science/take_nir_probe_reading"
+ * Widget controlling auto typing transforms on service "/arm/keyboard/transform_toggle"
  * @param cardProps
  * @constructor
  */
-const AutoTypingWidget: React.FC<IAutoTypingWidgetProps> = () => {
+const AutoTypingTransformWidget: React.FC<IAutoTypingTransformWidgetProps> = () => {
   const keyboardTransform = useSelector(
       (state: RootState) => state.keyboardData
     );
@@ -38,6 +38,6 @@ const AutoTypingWidget: React.FC<IAutoTypingWidgetProps> = () => {
   );
 }
 
-export default AutoTypingWidget;
+export default AutoTypingTransformWidget;
 
     
