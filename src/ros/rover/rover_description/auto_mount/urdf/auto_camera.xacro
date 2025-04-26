@@ -220,12 +220,12 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
   <link name="camera_link_gz_pointcloud"/>
   <link name="bootie_link_gz_pointcloud"/>
   <joint name="camera_pointcloud_joint" type="fixed">
-    <origin xyz="0 0 0" rpy="0 ${-pi/2} 0"/>
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
     <parent link="camera_link_optical"/>
     <child link="camera_link_gz_pointcloud"/>
   </joint>
   <joint name="bootie_pointcloud_joint" type="fixed">
-    <origin xyz="0 0 0" rpy="0 ${-pi/2} 0"/>
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
     <parent link="bootie_link_optical"/>
     <child link="bootie_link_gz_pointcloud"/>
   </joint>
@@ -233,7 +233,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
   <!-- Oak Depth Camera for Gazebo-->
   <gazebo reference="camera_link_optical">
     <sensor name="oak" type="rgbd_camera">
-      <pose> 0 0 0 0 ${-pi/2} 0 </pose> <!-- Get camera facing correct way in optical frame -->
+      <pose> 0 0 0 0 ${-pi/2} ${pi/2} </pose> <!-- Get camera facing correct way in optical frame -->
       <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system"></plugin>
       <gz_frame_id>camera_link_optical</gz_frame_id>
       <topic>oak</topic>
@@ -257,7 +257,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
   <!-- Bootie Depth Camera for Gazebo-->
   <gazebo reference="bootie_link_optical">
     <sensor name="bootie" type="rgbd_camera">
-      <pose> 0 0 0 0 ${-pi/2} 0 </pose> <!-- Get camera facing correct way in optical frame -->
+      <pose> 0 0 0 0 ${-pi/2} ${pi/2} </pose> <!-- Get camera facing correct way in optical frame -->
       <!-- <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
         <frame_name>bootie_link_optical</frame_name>
       </plugin> -->

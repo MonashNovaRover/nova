@@ -278,7 +278,7 @@ global_costmap:
           model_type: 0
         bootie:
           data_type: PointCloud2
-          topic: /oak/points
+          topic: /bootie/points
           marking: true
           clearing: true
           obstacle_range: 3.0
