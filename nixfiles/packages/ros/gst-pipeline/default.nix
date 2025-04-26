@@ -31,13 +31,14 @@ buildRosPackage {
 
   src = fetchgit {
     url = "https://github.com/BrettRD/ros-gst-bridge";
+    rev = "ac10e220d748bd764b7f67faca941792a8db507a";
     sparseCheckout = [
       "gst_pipeline"
     ];
     hash = "sha256-986roQ+5uy6Kdu8CPtn/HuWkf4VYLL8uaawKh+XIz5c=";
   };
 
-  sourceRoot = "ros-gst-bridge/gst_pipeline";
+  sourceRoot = "ros-gst-bridge-ac10e22/gst_pipeline";
   cmakeFlags = [ "-DCMAKE_CXX_FLAGS=-I${gst_all_1.gst-plugins-base.dev}/include/gstreamer-1.0"];
 
   buildType = "ament_cmake";

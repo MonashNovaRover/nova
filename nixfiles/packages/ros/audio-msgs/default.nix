@@ -21,13 +21,14 @@ buildRosPackage {
 
   src = fetchgit {
     url = "https://github.com/BrettRD/ros-gst-bridge";
+    rev = "bce12ef8374e8900d2b56eb0067f23ff6a11a8db";
     sparseCheckout = [
       "audio_msgs"
     ];
-    hash = "sha256-5Yvgsqx+1U6jQw60tk4PpAK6Cn/Pz/cNEd90GTRqkZs=";
+    hash = "sha256-3QU3NSWtXiuHbqK+mPcxq7z/t8oxn/J9F7erpAFhbq8=";
   };
 
-  sourceRoot = "ros-gst-bridge/audio_msgs";
+  sourceRoot = "ros-gst-bridge-bce12ef/audio_msgs";
 
   buildType = "ament_cmake";
   buildInputs = [ ament-cmake pkg-config breakpointHook ];
