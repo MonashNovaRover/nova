@@ -3,12 +3,10 @@
  fetchFromGitHub, 
  ament-cmake, 
  pkg-config, 
- ament-cmake-vendor-package, 
  ament-lint-auto, 
  boost, 
  builtin-interfaces, 
  c-blosc, 
- git, 
  geometry-msgs, 
  laser-geometry, 
  message-filters,
@@ -24,7 +22,6 @@
  sensor-msgs, 
  std-msgs, 
  std-srvs, 
- tbb,
  tbb_2021_11, 
  tf2-geometry-msgs, 
  tf2-ros, 
@@ -32,6 +29,7 @@
  visualization-msgs, 
  zlib 
 }:
+
 let
 githubrepo = fetchFromGitHub {
   owner = "SteveMacenski";
@@ -76,7 +74,7 @@ buildRosPackage rec {
   buildType = "ament_cmake";
   buildInputs = [ ament-cmake rosidl-default-generators ];
   checkInputs = [ ament-lint-auto ];
-  propagatedBuildInputs = [  boost builtin-interfaces c-blosc geometry-msgs laser-geometry message-filters nav2-costmap-2d openexr openvdb pcl pcl-conversions pluginlib rclcpp rosidl-default-runtime sensor-msgs std-msgs std-srvs tbb tf2-geometry-msgs tf2-ros tf2-sensor-msgs visualization-msgs ];
+  propagatedBuildInputs = [ tbb_2021_11 zlib boost builtin-interfaces c-blosc geometry-msgs laser-geometry message-filters nav2-costmap-2d openexr openvdb pcl pcl-conversions pluginlib rclcpp rosidl-default-runtime sensor-msgs std-msgs std-srvs tf2-geometry-msgs tf2-ros tf2-sensor-msgs visualization-msgs ];
   nativeBuildInputs = [ ament-cmake pkg-config ];
 
   meta = {
@@ -93,9 +91,7 @@ buildRosPackage rec {
       --replace "openvdb_vendor" ""
     sed -i '/set(CMAKE_MODULE_PATH/alist(APPEND CMAKE_MODULE_PATH "${openvdb.dev}/lib/cmake/OpenVDB/")' CMakeLists.txt
     sed -i '/find_package(OPENVDB REQUIRED)/afind_package(TBB REQUIRED)' CMakeLists.txt
-    sed -i '/{OpenVDB_LIBRARIES}/atbbprefix{TBB_LIBRARIES}' CMakeLists.txt
-    substituteInPlace CMakeLists.txt\
-      --replace "tbbprefix" "$"
+    sed -i '/{OpenVDB_LIBRARIES}/aTBB::tbb' CMakeLists.txt
     cat CMakeLists.txt
   '';
 }
