@@ -37,31 +37,6 @@ githubrepo = fetchFromGitHub {
   rev = "2.5.5";
   hash = "sha256-Qk2k6aa+WDgXwz98l0MwB1LLb8yBULaue1u0mh6vVHc=";
 };
-# openvdb-vendor = buildRosPackage rec {
-#   pname = "ros-jazzy-openvdb-vendor";
-#   version = "2.5.5";
-
-#   src = githubrepo;
-
-#   sourceRoot = "${src.name}/openvdb_vendor";
-
-#   buildType = "ament_cmake";
-#   buildInputs = [ ament-cmake ament-cmake-vendor-package git ];
-#   propagatedBuildInputs = [ boost c-blosc openvdb tbb_2021_11 zlib ];
-#   nativeBuildInputs = [ ament-cmake ament-cmake-vendor-package git ];
-
-#   meta = {
-#     description = "Wrapper around OpenVDB, if not found on the system, will compile from source";
-#     license = with lib.licenses; [ "LGPL-2.1-only" "MPL-2.0-license" ];
-#     position = "./default.nix";
-#   };
-
-#   postPatch = ''
-#     substituteInPlace CMakeLists.txt\
-#       --replace "https://github.com/AcademySoftwareFoundation/openvdb.git" "file://${vendor}"\
-#       --replace "VCS_TYPE git" "VCS_TYPE tar"
-#   '';
-# };
 in
 buildRosPackage rec {
   pname = "ros-jazzy-spatio-temporal-voxel-layer";

@@ -77,9 +77,9 @@ controller_server:
       stateful: false # Whether to check for XY position tolerance after rotating to goal orientation in case of minor localization changes.
     FollowPath:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
-      desired_linear_vel: 0.5 # The desired maximum linear velocity (m/s) to use.
+      desired_linear_vel: 0.4 # The desired maximum linear velocity (m/s) to use.
       min_approach_linear_velocity: 0.1
-      rotate_to_heading_angular_vel: 0.1 # If use_rotate_to_heading is true, this is the angular velocity to use.
+      rotate_to_heading_angular_vel: 0.05 # If use_rotate_to_heading is true, this is the angular velocity to use.
       lookahead_dist: 0.6
       min_lookahead_dist: 0.3
       max_lookahead_dist: 0.9
@@ -395,7 +395,7 @@ velocity_smoother:
     smoothing_frequency: 3.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [0.5, 0.0, 0.5]
+    max_velocity: [0.12, 0.0, 0.12]
     min_velocity: [-0.12, 0.0, -0.12]
     max_accel: [0.05, 0.0, 0.03]
     max_decel: [-0.05, 0.0, -0.03]
