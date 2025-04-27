@@ -54,36 +54,27 @@ from sensor_msgs.msg import Image
 
 class CameraStreamerService(Node):
     class CameraConfiguration():
-        def __init__(serial: str, width: int, height: int, framerate: int, format: str, mime: str, topic: str):
+        def __init__(self, serial: str, topic: str):
             self.serial = serial
-            self.topic = topic
-            self.subscription = None
             self.camera_bin = None
-            self.metadata = {"serial": serial, "width": width, "framerate": framerate, "format": format, "mime": mime}
-
-    # best for real-time streaming according to chatgpt
-    DefaultQoS = qos.QoSProfile(
-        history=qos.HistoryPolicy.KEEP_LAST,
-        depth=5,
-        reliability=qos.ReliabilityPolicy.BEST_EFFORT,
-        durability=qos.DurabilityPolicy.VOLATILE,
-    )
+            self.topic = topic
 
     def __init__(self):
-        super().__init__("gazebo_streamer")
+        super().__init__("ros_streamer")
 
         # Load the camera configuration parameters.
         self.cameras = {}
-        cameras = self.declare_parameter('cameras', '').get_parameter_value().string_value.split(' ')
-        for camera in cameras:
+        cameras = self.declare_parameter('cameras', '').get_parameter_value().string_value
+        self.get_logger().error(cameras)
+
+        if cameras == '':
+            self.get_logger().fatal("No cameras specified.")
+            self._kill()
+
+        for camera in cameras.split(' '):
             serial = self.declare_parameter(f"{camera}.serial", camera).get_parameter_value().string_value
-            self.cameras[serial] = CameraConfiguration(
+            self.cameras[serial] = self.CameraConfiguration(
                 serial,
-                self.declare_parameter(f"{camera}.width", 640).get_parameter_value().integer_value,
-                self.declare_parameter(f"{camera}.height", 480).get_parameter_value().integer_value,
-                self.declare_parameter(f"{camera}.framerate", 30).get_parameter_value().integer_value,
-                self.declare_parameter(f"{camera}.format", "brg8").get_parameter_value().string_value,
-                self.declare_parameter(f"{camera}.mime", "video/x-raw").get_parameter_value().string_value,
                 self.declare_parameter(f"{camera}.topic", f"/{camera}/image_raw").get_parameter_value().string_value,
             )
             
@@ -95,6 +86,13 @@ class CameraStreamerService(Node):
         self._gst_pipeline.set_state(Gst.State.PLAYING)
         self._gst_pipeline.get_bus().set_sync_handler(self._handle_gst_message, None)
 
+        # print plugins to check for gst-bridge
+        # for plugin in Gst.Registry.get().get_plugin_list():
+        #     print(plugin.get_name())
+        registry = Gst.Registry.get()
+        for feature in registry.get_feature_list(Gst.ElementFactory):
+            print(feature.get_name())
+
         # Create services and clients.
         self.get_logger().info("Creating stream control services...")
         self._create_stream_service("start", self._stream_start)
@@ -104,11 +102,9 @@ class CameraStreamerService(Node):
 
         # Create subscriptions
         for serial in self.cameras.keys():
-            self.cameras[serial].subscription = self.create_subscription(Image, self.cameras[serial].topic, self._push_frame(serial), DefaultQoS)
             self._stream_start([serial])
 
         self.get_logger().info("Ready!")
-
 
     def _handle_gst_message(self, bus: Gst.Bus, message: Gst.Message, *user_data) -> Gst.BusSyncReply:
         error: GLib.Error
@@ -133,30 +129,6 @@ class CameraStreamerService(Node):
             logger.log(debug_info, severity)
         return Gst.BusSyncReply.DROP
 
-
-
-        param_defaults = read_camera_configuration(
-            CameraStreamerService.CameraConfiguration(
-                autostart=True,
-                mime="video/x-raw",
-                width=0,
-                height=0,
-                framerate=0,
-                do_fec=True,
-                do_retransmission=True,
-                show_clock=True,
-                meta={},
-                profile_name=None,
-                profiles={},
-            ),
-            expand_dictionary(self.get_parameters_by_prefix("defaults")),
-        )
-
-        return param_defaults, {
-            serial: read_camera_configuration(param_defaults, cast(dict[str, object], camera_parameters))
-            for serial, camera_parameters in expand_dictionary(self.get_parameters_by_prefix("cameras")).items()
-        }
-
     def _create_stream_service(self, srv_name: str, callback: Callable[[set[str]], bool]) -> Service:
         def srv_callback(request: CameraOperation.Request, response: CameraOperation.Response) -> CameraOperation.Response:
             response.success = callback(
@@ -168,7 +140,7 @@ class CameraStreamerService(Node):
         return self.create_service(CameraOperation, f"/camera_streamer/stream/{srv_name}", srv_callback)
 
     def _create_camera_bin(self, serial: str) -> RosCameraBin:
-        return RosCameraBin(**self.cameras[serial].metadata)
+        return RosCameraBin(serial, self.cameras[serial].topic)
 
     def _stream_start(self, serials: set[str]) -> bool:
         for serial in serials:
@@ -219,19 +191,21 @@ class CameraStreamerService(Node):
         response.result_json = json.dumps(result, indent=None if request.indent == 0 else request.indent)
         return response
 
+    def _kill(self):
+        self.destroy_node()
+        rclpy.shutdown()
 
-# TODO
+
 class RosCameraBin:
     bin: Gst.Bin
 
     _source: Gst.Element
-    _caps_filter: Gst.Element
+    _queue: Gst.Element
     _decoder: Gst.Element
     _video_converter: Gst.Element
-    _clock_overlay: Gst.Element | None
     _sink: Gst.Element
 
-    def __init__(self, serial: str, width: int, height: int, framerate: int, format: str, mime: str):
+    def __init__(self, serial: str, topic: str):
         self.bin = Gst.Bin.new(f"camera-{serial}-bin")
 
         # Create and configure the elements.
@@ -239,32 +213,20 @@ class RosCameraBin:
         self._sink = Gst.ElementFactory.make("webrtcsink", "sink")
         # ## WebRTC settings
         self._sink.props.congestion_control = "gcc"
-        self._sink.props.do_fec = do_fec
-        self._sink.props.do_retransmission = do_retransmission
+        self._sink.props.do_fec = True
+        self._sink.props.do_retransmission = True
         self._sink.props.stun_server = None
         # ## Metadata
         self._sink.props.meta = dict_to_gst_structure(
             "meta",
-            {"serial": serial, **(extra_meta if extra_meta is not None else {})},
+            {"serial": serial},
         )
         self.bin.add(self._sink)
-
-        # # Clock overlay
-        if show_clock:
-            self._clock_overlay = Gst.ElementFactory.make(
-                "clockoverlay", "clockoverlay"
-            )
-            self.bin.add(self._clock_overlay)
-            self._clock_overlay.link(self._sink)
-        else:
-            self._clock_overlay = None
 
         # # Converter
         self._video_converter = Gst.ElementFactory.make("videoconvert", "converter")
         self.bin.add(self._video_converter)
-        self._video_converter.link(
-            self._clock_overlay if self._clock_overlay is not None else self._sink
-        )
+        self._video_converter.link(self._sink)
 
         # # Decoder
         self._decoder = Gst.ElementFactory.make("decodebin", "decoder")
@@ -274,27 +236,15 @@ class RosCameraBin:
         )
         self.bin.add(self._decoder)
 
-        # # Capability filter
-        caps = Gst.Caps.new_empty()
-        caps_structure = Gst.Structure.new_empty(mime)
-        if width is not None:
-            caps_structure.set_value("width", width)
-        if height is not None:
-            caps_structure.set_value("height", height)
-        if framerate is not None:
-            caps_structure.set_value("framerate", Gst.Fraction(framerate, 1))
-        caps.append_structure(caps_structure)
-
-        self._caps_filter = Gst.ElementFactory.make("capsfilter", "capsfilter")
-        self._caps_filter.props.caps = caps
-        self.bin.add(self._caps_filter)
-        self._caps_filter.link(self._decoder)
+        self._queue = Gst.ElementFactory.make("queue", "queue")
+        self.bin.add(self._queue)
+        self._queue.link(self._decoder)
 
         # # Source
-        self._source = Gst.ElementFactory.make("v4l2src", "source")
-        self._source.props.device = device_node
+        self._source = Gst.ElementFactory.make("rosimagesrc", "source")
+        self._source.set_property("ros-topic", topic)
         self.bin.add(self._source)
-        self._source.link(self._caps_filter)
+        self._source.link(self._queue)
 
     @property
     def webrtc_stats(self) -> dict[str, object]:

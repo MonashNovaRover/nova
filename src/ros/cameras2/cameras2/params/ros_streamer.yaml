@@ -1,37 +1,16 @@
 ros_streamer:
   ros__parameters:
-    enable: true
     cameras: oak_rgb oak_depth bootie_rgb bootie_depth
     oak_rgb:
-      width: 1920
-      height: 1080
-      framerate: 30
-      format: brg8
-      mime: video/x-raw
       topic: /oak/rgb/image_raw
       serial: oak-rgb
     oak_depth:
-      width: 1920
-      height: 1080
-      framerate: 30
-      format: brg8
-      mime: video/x-raw
       topic: /oak/stereo/image_raw
       serial: oak-depth
     bootie_rgb:
-      width: 1920
-      height: 1080
-      framerate: 30
-      format: brg8
-      mime: video/x-raw
       topic: /bootie/rgb/image_raw
       serial: bootie-rgb
     bootie_depth:
-      width: 1920
-      height: 1080
-      framerate: 30
-      format: brg8
-      mime: video/x-raw
       topic: /bootie/stereo/image_raw
       serial: bootie-depth
     
