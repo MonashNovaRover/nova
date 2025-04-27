@@ -11,6 +11,7 @@
 , std-srvs
 , nova-camera-msgs
 , pythonPackages
+, gst-bridge
 }:
 
 buildRosPackage {
@@ -59,6 +60,8 @@ buildRosPackage {
     pythonPackages.gst-python
     pythonPackages.psutil
     pythonPackages.linuxpy
+    
+    gst-bridge # ros
   ];
 
   nativeCheckInputs = [
