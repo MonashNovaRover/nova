@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
+An amalgmation of Josh's beautiful code.
 This service manages a GStreamer pipeline to
 stream video footage from ros Image topics over WebRTC.
 Consult the repository README for complete setup
@@ -45,7 +46,7 @@ from rcl_interfaces.msg import ParameterDescriptor, ParameterType
 gi.require_version("Gst", "1.0")  # noqa
 from gi.repository import Gst, GLib
 
-from camera_msgs.msg import Cameras
+from camera_msgs.msg import Cameras, Camera
 from camera_msgs.srv import CameraOperation, GetCameraStreamStats, GetIPList
 from cameras2.utils import dict_to_gst_structure, gst_structure_to_dict
 
@@ -73,10 +74,12 @@ class CameraStreamerService(Node):
 
         for camera in cameras.split(' '):
             serial = self.declare_parameter(f"{camera}.serial", camera).get_parameter_value().string_value
+            topic = self.declare_parameter(f"{camera}.topic", f"/{camera}/image_raw").get_parameter_value().string_value
             self.cameras[serial] = self.CameraConfiguration(
                 serial,
-                self.declare_parameter(f"{camera}.topic", f"/{camera}/image_raw").get_parameter_value().string_value,
+                topic
             )
+            self.get_logger().info(f"[{camera}]:{serial} found with topic of '{topic}'")
             
         # Initialize GStreamer.
         self.get_logger().info("Initializing GStreamer...")
@@ -89,9 +92,9 @@ class CameraStreamerService(Node):
         # print plugins to check for gst-bridge
         # for plugin in Gst.Registry.get().get_plugin_list():
         #     print(plugin.get_name())
-        registry = Gst.Registry.get()
-        for feature in registry.get_feature_list(Gst.ElementFactory):
-            print(feature.get_name())
+        # registry = Gst.Registry.get()
+        # for feature in registry.get_feature_list(Gst.ElementFactory):
+        #     print(feature.get_name())
 
         # Create services and clients.
         self.get_logger().info("Creating stream control services...")
@@ -100,9 +103,19 @@ class CameraStreamerService(Node):
         self._create_stream_service("stop", self._stream_stop)
         self.create_service(GetCameraStreamStats, "/camera_streamer/stream/get_stats", self._stats_callback)
 
-        # Create subscriptions
-        for serial in self.cameras.keys():
-            self._stream_start([serial])
+        # Create subscriptions and publishers
+        cameras_publisher = self.create_publisher(
+            Cameras,
+            "/camera_directory/cameras",
+            qos.QoSProfile(
+                history=qos.HistoryPolicy.KEEP_LAST,
+                depth=1,
+                reliability=qos.ReliabilityPolicy.RELIABLE,
+                durability=qos.DurabilityPolicy.TRANSIENT_LOCAL,
+            ),
+        )
+        #self._stream_start([serial for serial in self.cameras.keys()])
+        cameras_publisher.publish(Cameras(cameras=[Camera(serial=serial, node=self.cameras[serial].topic) for serial in self.cameras.keys()]))
 
         self.get_logger().info("Ready!")
 
@@ -134,8 +147,9 @@ class CameraStreamerService(Node):
             response.success = callback(
                 set(request.serials).intersection(self.cameras.keys())
                 if request.serials
-                else set(self._device_nodes.keys())
+                else set(self.cameras.keys())
             )
+            self.get_logger().info(f"Recieved request for {srv_name}:{request.serials}")
             return response
         return self.create_service(CameraOperation, f"/camera_streamer/stream/{srv_name}", srv_callback)
 
@@ -146,7 +160,7 @@ class CameraStreamerService(Node):
         for serial in serials:
             camera_bin = self.cameras[serial].camera_bin
             if camera_bin is None:
-                self.get_logger().info(f"Starting stream for camera {serial}.")
+                self.get_logger().info(f"Starting stream for camera {serial}, topic: {self.cameras[serial].topic}.")
                 camera_bin = self._create_camera_bin(serial)
                 self._gst_pipeline.add(camera_bin.bin)
                 self.cameras[serial].camera_bin = camera_bin
@@ -228,17 +242,10 @@ class RosCameraBin:
         self.bin.add(self._video_converter)
         self._video_converter.link(self._sink)
 
-        # # Decoder
-        self._decoder = Gst.ElementFactory.make("decodebin", "decoder")
-        self._decoder.connect(
-            "pad-added",
-            lambda element, pad: pad.link(self._video_converter.get_static_pad("sink")),
-        )
-        self.bin.add(self._decoder)
 
-        self._queue = Gst.ElementFactory.make("queue", "queue")
+        self._queue = Gst.ElementFactory.make("queue", "queuer")
         self.bin.add(self._queue)
-        self._queue.link(self._decoder)
+        self._queue.link(self._video_converter)
 
         # # Source
         self._source = Gst.ElementFactory.make("rosimagesrc", "source")

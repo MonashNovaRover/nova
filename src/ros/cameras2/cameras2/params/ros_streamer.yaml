@@ -1,16 +1,16 @@
 ros_streamer:
   ros__parameters:
-    cameras: oak_rgb oak_depth bootie_rgb bootie_depth
-    oak_rgb:
+    cameras: oak-rgb # oak_depth bootie_rgb bootie_depth
+    oak-rgb:
       topic: /oak/rgb/image_raw
       serial: oak-rgb
-    oak_depth:
-      topic: /oak/stereo/image_raw
-      serial: oak-depth
-    bootie_rgb:
-      topic: /bootie/rgb/image_raw
-      serial: bootie-rgb
-    bootie_depth:
-      topic: /bootie/stereo/image_raw
-      serial: bootie-depth
+    # oak-depth:
+    #   topic: /oak/stereo/image_raw
+    #   serial: oak-depth
+    # bootie-rgb:
+    #   topic: /bootie/rgb/image_raw
+    #   serial: bootie-rgb
+    # bootie-depth:
+    #   topic: /bootie/stereo/image_raw
+    #   serial: bootie-depth
     
