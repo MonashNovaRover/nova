@@ -17,7 +17,7 @@ import {
   IRosNovaInterfacesHydraprobeData,
   IRosSensorMsgsCompressedImage,
   IRosNovaInterfacesBmeSensor,
-  IRosSensorMsgsBatteryState,
+  IRosSensorMsgsBatteryState, IRosNovaInterfacesActiveNodeStatus,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -66,4 +66,5 @@ export interface RosTopicInterfaces {
   [RosTopic.BASE_LOCATION]: IRosSensorMsgsNavSatFix;
 
   [RosTopic.BATTERY_STATE]: IRosSensorMsgsBatteryState;
+  [RosTopic.ACTIVATED_NODES]: IRosNovaInterfacesActiveNodeStatus;
 }
