@@ -5,12 +5,12 @@ from python_control.controls.Direction import Direction
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 from python_control.controllers.CMDVelocityController import CMDVelocityController
 from python_control.sensors.CommandSensor import CommandSensor
-from python_control.JoystickControllerNode import JoystickControllerNode
+from python_control.ActivatedJoystickControllerNode import ActivatedJoystickControllerNode
 import rclpy
 from input_interfaces.msg import InputJoystick
 
 
-class URCAuger(JoystickControllerNode):
+class URCAuger(ActivatedJoystickControllerNode):
 
     # CAN BUS NAME
     # The name of the CAN bus to use
@@ -54,7 +54,7 @@ class URCAuger(JoystickControllerNode):
     AUGER_DRILL_COUNTERCLOCKWISE = Direction.NEGATIVE
 
     def __init__(self):
-        super(URCAuger, self).__init__(name="URCAuger", can_bus=self.CAN_BUS)
+        super(URCAuger, self).__init__(name="Auger", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
         # Setting ROS parameters
