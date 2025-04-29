@@ -8,8 +8,8 @@ Execute this code on the rover to start all
 NODES:
   - science/nir_probe_publisher.py      [nir_probe_publisher]
   - science/kiln_server.py              [kiln_server]
-  - science/urc_auger.py                [auger]
-  - science/urc_analysis_arm.py         [analysis_arm]
+  - science/auger.py                [auger]
+  - science/analysis_arm.py         [analysis_arm]
   - science/arc_sweeper_servo.py        [sweeper]
   - science/arc_spinny_part.py          [spinny part] (analysis arm)
   - science/scimbal_cam.py              [scimbal_cam]
@@ -46,7 +46,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         Node(
             package='science',
-            executable='urc_auger.py',
+            executable='auger.py',
             output='screen',
             emulate_tty=True,
             parameters=[{
@@ -56,7 +56,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         Node(
             package='science',
-            executable='urc_analysis_arm.py',
+            executable='analysis_arm.py',
             output='screen',
             emulate_tty=True,
             parameters=[{

@@ -14,7 +14,7 @@ import {
   SelectItem
 } from "@nextui-org/react";
 import CopyableOutput from "../../CopyableOutput/CopyableOutput.tsx";
-import React, {useCallback, useEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
@@ -24,13 +24,14 @@ import {
   ISpaceResourcesEntries,
   ISpaceResourcesEntry,
   NIRProbeReadingType,
-  NIRPRobeReadingTypeInfo,
+  NIRProbeReadingTypeInfo,
 } from "../SpaceResourcesSiteType.tsx";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
 
 export interface NIRProbeOutputSaveWidgetProps extends CardProps {
   showAdvanced : boolean,
   setShowAdvanced : (newShowAdvanced: boolean) => void,
+  readingInfo: NIRProbeReadingTypeInfo[], // list of NIRProbeReadingTypeInfo: [off, PD1, PD2]
 }
 
 /**
@@ -38,10 +39,11 @@ export interface NIRProbeOutputSaveWidgetProps extends CardProps {
  * @param showAdvanced
  * @param setShowAdvanced
  * @param cardProps
+ * @param readingInfo display information about each photodiode, should be of the form [off, PD1, PD2]
  * @constructor
  */
 const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
-  showAdvanced, setShowAdvanced, ...cardProps
+  showAdvanced, setShowAdvanced, readingInfo, ...cardProps
 }) => {
   const bifrost = useBifrost({ topic: RosTopic.NIR_DATA });
   const nirData = useSelector((state: RootState) => state.nirStore);
@@ -50,10 +52,19 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   const [readings, setReadings] = useNIRSiteData();
 
   const [data, setData] = useState<number | undefined>();
-  const [type, setType] = useState<NIRProbeReadingType.WATER | NIRProbeReadingType.ICE>(NIRProbeReadingType.WATER);
+  const [type, setType] = useState<NIRProbeReadingType.PD1 | NIRProbeReadingType.PD2>(NIRProbeReadingType.PD1);
   const [advancedSampleLabel, setAdvancedSampleLabel] = useState<string>("");
 
-  const [autosave, setAutosave] = useState<boolean>(true);
+  const [autosave, setAutosave] = useState<boolean>(true)
+
+  const OffIcon = useMemo(() => readingInfo[0].icon, [readingInfo])
+  const PD1Icon = useMemo(() => readingInfo[1].icon, [readingInfo])
+  const PD2Icon = useMemo(() => readingInfo[2].icon, [readingInfo])
+  const icons = useMemo(() => [
+    <OffIcon size={18}/>,
+    <PD1Icon size={18}/>,
+    <PD2Icon size={18}/>,
+  ], [OffIcon, PD1Icon, PD2Icon])
 
   // Used for autosaving
   const previousDataRef = useRef<number | undefined>(undefined);
@@ -114,7 +125,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
 
   const onTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (+e.target.value !== 0)
-      setType(+e.target.value as NIRProbeReadingType.WATER | NIRProbeReadingType.ICE)
+      setType(+e.target.value as NIRProbeReadingType.PD1 | NIRProbeReadingType.PD2)
   }
 
   return (
@@ -146,13 +157,13 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
       <CardBody className="flex flex-col gap-3">
         <div className="flex flex-row gap-3 items-center">
           <Chip size="lg"
-                startContent={NIRPRobeReadingTypeInfo[nirData.led].icon}
-                color={NIRPRobeReadingTypeInfo[nirData.led].colour as "default" | "secondary" | "primary"}
+                startContent={icons[nirData.led]}
+                color={readingInfo[nirData.led].colour as "default" | "secondary" | "primary"}
                 classNames={{
                   base: "min-w-24",
                 }}
           >
-            {NIRPRobeReadingTypeInfo[nirData.led].name}
+            {readingInfo[nirData.led].name}
           </Chip>
           <CopyableOutput className="tracking-wide grow" classNames={{pre: "text-lg pt-1"}}>
             {nirData.data}
@@ -180,22 +191,14 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
           <Select
             selectedKeys={[`${type}`]}
             size="sm"
-            {...NIRPRobeReadingTypeInfo
-              .slice(1)
-              .map(({type, name, icon}) => (
-              <SelectItem key={`${type}`} value={type} startContent={icon}>
-                {name}
-              </SelectItem>
-            ))}
-
             labelPlacement="outside"
             label="Reading Type"
             onChange={onTypeChange}
             aria-label="NIR Probe Type"
-            startContent={NIRPRobeReadingTypeInfo[type].icon}
+            startContent={icons[type]}
           >
-            {NIRPRobeReadingTypeInfo.slice(1).map(({type, name, icon}) => (
-              <SelectItem key={`${type}`} value={type} startContent={icon}>
+            {readingInfo.slice(1).map(({type, name}) => (
+              <SelectItem key={`${type}`} value={type} startContent={icons[type]}>
                 {name}
               </SelectItem>
             ))}

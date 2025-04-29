@@ -3,11 +3,9 @@ import HydroprobeWidget from "../../components/HydroprobeWidget/HydroprobeWidget
 import CarouselWidget from "../../components/CarouselWidget/CarouselWidget";
 import PumpsWidget from "../../components/PumpsWidget/PumpsWidget";
 import BMESensor from "../../components/BMESensor/BMESensor";
-import WheelTelemetryWidget from "../../components/WheelTelemetryWidget/WheelTelemetryWidget";
-import DriveModeWidget from "../../components/DriveModeWidget/DriveModeWidget";
-import DriveSpeedWidget from "../../components/DriveSpeedWidget/DriveSpeedWidget";
 import GenericSetBoolWidget from "../../components/GenericSetBoolWidget/GenericSetBoolWidget.tsx";
 import {RosService} from "../../ros/services/rosService.ts";
+import URCNIRProbeWidget from "../../components/NIRProbe/URCNIRProbeWidget.tsx";
 import DepthSensor from "../../components/DepthSensor/DepthSensor.tsx";
 
 
@@ -33,9 +31,7 @@ const URCScienceView: React.FC = () => {
       </div>
 
       <div className="flex flex-col gap-3 col-span-2">
-        <DriveModeWidget/>
-        <WheelTelemetryWidget/>
-        <DriveSpeedWidget/>
+        <URCNIRProbeWidget/>
       </div>
     </div>
   );

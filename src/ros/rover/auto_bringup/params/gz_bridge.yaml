@@ -68,18 +68,11 @@
   gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
 
-# Gps
-- ros_topic_name: "/fix" # guessing this one could also be /gps_plugin/vel ?
+# GPS
+- ros_topic_name: "/fix"
   gz_topic_name: "/gps"
-  ros_type_name: "sensor_msgs/msg/NavSatFix" # or "gps_msgs/msg/GPSFix" ?
+  ros_type_name: "sensor_msgs/msg/NavSatFix"
   gz_type_name: "gz.msgs.NavSat"
-  direction: GZ_TO_ROS
-
-# Pose
-- ros_topic_name: "/odom/gazebo"
-  gz_topic_name: "/model/Banksia/pose"
-  ros_type_name: "geometry_msgs/msg/Pose"
-  gz_type_name: "gz.msgs.Pose"
   direction: GZ_TO_ROS
 
 # Odom
