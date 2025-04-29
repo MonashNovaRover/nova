@@ -5,7 +5,7 @@ Purpose: Takes RTCM error correction data from
 base (ublox) GPS and writes data to the rover 
 (skytraq) GPS over USB.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: SubToBaseNode
+NODE: GPSRover
 TOPICS:
   - subscriber: /gps_base/rtcm  [UInt8MultiArray]
   - publisher: /gps_rover/fix   [RoverPoseGPS]
@@ -35,9 +35,9 @@ from rclpy.qos import qos_profile_sensor_data as qos
 from nova_interfaces.msg import RoverPoseGPS
 import logging
 
-class SubToBaseNode(Node):
+class GPSRover(Node):
     def __init__(self, com_no, baud):
-        super().__init__('getBaseCorrection_pub')
+        super().__init__('gps_rover')
 
         self.ser = serial.Serial()
 
@@ -80,12 +80,10 @@ class SubToBaseNode(Node):
 
 def main (args = None):
     rclpy.init(args = args)
-    subscriber = SubToBaseNode('', 115200)
-    rclpy.spin(subscriber)
-
-    subscriber.destroy_node()
+    node = GPSRover('', 115200)
+    rclpy.spin(node)
+    node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
-

@@ -5,7 +5,7 @@ Purpose: Reads RTCM3 error correction data from
 base (ublox) GPS and publishes to rover (skytraq) 
 GPS.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: SkytraqNode
+NODE: GPSBase
 TOPICS:
   - publisher: /gps_base/fix    [RoverPoseGPS]
   - publisher: /gps_base/rtcm   [UInt8MultiArray]
@@ -23,16 +23,6 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 
-'''
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-GPS MODULE TYPE
-supported types: ublox, skytraq
-'''
-GPS_MODULE = 'ublox'
-'''
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-'''
-
 from serial import Serial
 from pynmeagps import NMEAReader, NMEAMessage
 from pyrtcm import RTCMReader, RTCMMessage
@@ -44,13 +34,15 @@ from std_msgs.msg import UInt8MultiArray
 from nova_interfaces.msg import RoverPoseGPS
 import logging
 
-class SkytraqNode (Node):
+GPS_MODULE = 'ublox'
+
+class GPSBase(Node):
     def __init__ (self, com_no, baud):
-        super().__init__('gps_data')
+        super().__init__('gps_base')
         self.param_max_calibration_error = self.declare_parameter('max_calibration_error_degrees', 5e-5).value
 
         self.pose : RoverPoseGPS = RoverPoseGPS()
-        self.pose.header.frame_id = 'gps_link'
+        self.pose.header.frame_id = 'gps_base'
 
         self.fix_type : str = None
 
@@ -123,31 +115,31 @@ class SkytraqNode (Node):
             self.rtcm_publisher.publish(raw_rtcm_str)
             
 
-        elif GPS_MODULE == 'skytraq':
-            try:
-                if parsed_nmea_msg.talker == 'P' and parsed_nmea_msg.msgID == 'STI' and parsed_nmea_msg.msgId == '036':
-                    # We are dealing with a PSTI036 message, which contains orientation information
-                    if parsed_nmea_msg.mode == 'R':
-                        # RTK (Real-Time Kinematic) mode. We have valid heading
-                        self.pose.heading_valid = True
-                        self.pose.pitch, self.pose.roll, self.pose.yaw = parsed_nmea_msg.pitch, parsed_nmea_msg.roll, parsed_nmea_msg.heading
-                    else:
-                        # Not RTK mode. We don't have valid heading
-                        self.pose.heading_valid = False
+        # elif GPS_MODULE == 'skytraq':
+        #     try:
+        #         if parsed_nmea_msg.talker == 'P' and parsed_nmea_msg.msgID == 'STI' and parsed_nmea_msg.msgId == '036':
+        #             # We are dealing with a PSTI036 message, which contains orientation information
+        #             if parsed_nmea_msg.mode == 'R':
+        #                 # RTK (Real-Time Kinematic) mode. We have valid heading
+        #                 self.pose.heading_valid = True
+        #                 self.pose.pitch, self.pose.roll, self.pose.yaw = parsed_nmea_msg.pitch, parsed_nmea_msg.roll, parsed_nmea_msg.heading
+        #             else:
+        #                 # Not RTK mode. We don't have valid heading
+        #                 self.pose.heading_valid = False
 
-                elif parsed_nmea_msg.talker == 'GN' and parsed_nmea_msg.msgID == 'RMC':
-                    if parsed_nmea_msg.status == 'A':
-                        # Valid
-                        self.pose.valid = True
-                        self.pose.latitude, self.pose.longitude = parsed_nmea_msg.lat, parsed_nmea_msg.lon
-                        self.nmea_publisher.publish(self.pose)
-                    else:
-                        self.pose.valid = False
+        #         elif parsed_nmea_msg.talker == 'GN' and parsed_nmea_msg.msgID == 'RMC':
+        #             if parsed_nmea_msg.status == 'A':
+        #                 # Valid
+        #                 self.pose.valid = True
+        #                 self.pose.latitude, self.pose.longitude = parsed_nmea_msg.lat, parsed_nmea_msg.lon
+        #                 self.nmea_publisher.publish(self.pose)
+        #             else:
+        #                 self.pose.valid = False
 
-                elif parsed_nmea_msg.talker == 'GP' and parsed_nmea_msg.msgID == 'GGA':
-                    self.fix_type = parsed_nmea_msg.quality   # 1 = No fix, 2 = 2D fix, 3 = 3D fix
-            except Exception as e:
-                self.get_logger().warn(f'Bad message {parsed_nmea_msg}')
+        #         elif parsed_nmea_msg.talker == 'GP' and parsed_nmea_msg.msgID == 'GGA':
+        #             self.fix_type = parsed_nmea_msg.quality   # 1 = No fix, 2 = 2D fix, 3 = 3D fix
+        #     except Exception as e:
+        #         self.get_logger().warn(f'Bad message {parsed_nmea_msg}')
 
     def config_port(self, port_name, baud):
         self.ser.baudrate = baud
@@ -178,12 +170,10 @@ class SkytraqNode (Node):
 
         
 def main (args = None):
-    baud = 115200
     rclpy.init(args = args)
-    gps = SkytraqNode('', baud)
-    rclpy.spin(gps)
-    
-    gps.destroy_node()
+    node = GPSBase('', 115200)
+    rclpy.spin(node)
+    node.destroy_node()
     rclpy.shutdown()
     
 if __name__ == '__main__':
