@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-"""
+'''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Purpose: Takes RTCM correction data from base gps (ublox)
-and writes data to the rover gps (skytraq) over USB
+Purpose: Takes RTCM error correction data from 
+base (ublox) GPS and writes data to the rover 
+(skytraq) GPS over USB.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: SubToBaseNode
 TOPICS:
-  - subscriber: /gps_base/rtcm3 [UInt8MultiArray]
+  - subscriber: /gps_base/rtcm  [UInt8MultiArray]
+  - publisher: /gps_rover/fix   [RoverPoseGPS]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
-AUTHOR(S):	shelby n
+AUTHOR(S):	Shelby N, Victor Bartlinski
 CREATION:	25/02/2023
 EDITED:		25/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -19,7 +21,7 @@ TODO:
  - check if buffer clearing is necessary
  - convert log to debug
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-"""
+'''
 import serial
 
 import rclpy
@@ -29,6 +31,9 @@ from std_msgs.msg import UInt8MultiArray
 from rclpy.logging import LoggingSeverity
 
 from rclpy.qos import qos_profile_sensor_data as qos
+
+from nova_interfaces.msg import RoverPoseGPS
+import logging
 
 class SubToBaseNode(Node):
     def __init__(self, com_no, baud):
@@ -49,7 +54,7 @@ class SubToBaseNode(Node):
             self.callback_func,
             qos)
 
-        self.get_logger().info("base_gps_sub started.")
+        self.get_logger().info('base_gps_sub started.')
 
 
     def callback_func(self, msg):
@@ -61,21 +66,21 @@ class SubToBaseNode(Node):
         
         raw_rtcm_msg = bytes(msg.data)
         self.ser.write(raw_rtcm_msg)
-        self.get_logger().debug(f"raw bytes: {raw_rtcm_msg}",throttle_duration_sec=2)
+        self.get_logger().debug(f'raw bytes: {raw_rtcm_msg}',throttle_duration_sec=2)
 
     def config_port(self):
         port_name = self.get_parameter('dev').value
         baud_rate = self.get_parameter('baud_rate').value
 
         self.ser.baudrate = baud_rate
-        #if port_name == "":
-        #    port_name = "/dev/ttyUSB1"
+        #if port_name == '':
+        #    port_name = '/dev/ttyUSB1'
         self.ser.port = port_name
         self.ser.open()
 
 def main (args = None):
     rclpy.init(args = args)
-    subscriber = SubToBaseNode("", 115200)
+    subscriber = SubToBaseNode('', 115200)
     rclpy.spin(subscriber)
 
     subscriber.destroy_node()
