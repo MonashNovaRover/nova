@@ -7,5 +7,7 @@
   super-gradients = callPackage ./super-gradients { };
   lap = callPackage ./lap { };
   linuxpy = callPackage ./linuxpy { };
+  pynmeagps = callPackage ./pynmeagps { };
   pyrtcm = callPackage ./pyrtcm { };
+  pyubx2 = callPackage ./pyubx2 { };
 }
