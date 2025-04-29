@@ -5,7 +5,7 @@ Purpose: Reads RTCM3 error correction data from
 base (ublox) GPS and publishes to rover (skytraq) 
 GPS.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: GPSBase
+NODE: gps_base
 TOPICS:
   - publisher: /gps_base/fix    [RoverPoseGPS]
   - publisher: /gps_base/rtcm   [UInt8MultiArray]
@@ -15,17 +15,17 @@ ACTIONS: None
 PACKAGE: 	electronics
 AUTHOR(S):	Shelby N, Will Middlewick, Victor 
             Bartlinski
-CREATION:	25/02/2023
-EDITED:		16/04/2025
+CREATED:	25/02/2023
+EDITED:		30/04/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - convert log to debug
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
-
 from serial import Serial
 from pynmeagps import NMEAReader, NMEAMessage
 from pyrtcm import RTCMReader, RTCMMessage
+from pyubx2 import UBXReader, UBXMessage, val2sphp
 import re
 import rclpy
 from rclpy.node import Node
@@ -34,33 +34,170 @@ from std_msgs.msg import UInt8MultiArray
 from nova_interfaces.msg import RoverPoseGPS
 import logging
 
-GPS_MODULE = 'ublox'
 
 class GPSBase(Node):
-    def __init__ (self, com_no, baud):
+    def __init__ (self):
         super().__init__('gps_base')
-        self.param_max_calibration_error = self.declare_parameter('max_calibration_error_degrees', 5e-5).value
+        self.acc_limit = self.declare_parameter('acc_limit', 1000).value                            # accuracy in mm
+        self.baudrate = self.declare_parameter('baudrate', 115200).value
+        self.gps_module = self.declare_parameter('gps_module', 'ublox').value
+        self.height = self.declare_parameter('height', 0.).value
+        self.lat = self.declare_parameter('lat', 0.).value
+        self.lon = self.declare_parameter('lon', 0.).value
+        self.max_calibration_error = self.declare_parameter('max_calibration_error', 5e-5).value    # degrees
+        self.min_dur = self.declare_parameter('min_dur', 60).value                                  # seconds
+        self.port_name = self.declare_parameter('port_name', '/dev/ttyACM0').value
+        self.port_type = self.declare_parameter('port_type', 'USB').value                           # choose from "USB", "UART1", "UART2"
+        self.svin = self.declare_parameter('svin', 'True').value                                    # True = Survey-In, False = Fixed
 
-        self.pose : RoverPoseGPS = RoverPoseGPS()
+        self.pose = RoverPoseGPS()
         self.pose.header.frame_id = 'gps_base'
 
-        self.fix_type : str = None
+        self.fix_type = None
 
-        self.ser : Serial = Serial()
-        self.config_port(com_no, baud)
-        self.nmea_reader = NMEAReader(
-            self.ser,
+        ### Serial ###
+        self.ser = Serial()
+        self.config_port(self.port_name, self.baudrate)
+        self.read_nmea = NMEAReader(
+            self.ser, 
             validate=0x03,  # validate both checksum and message id
-            nmeaonly=True   # Raise an error on receiving a badly formatted message
+            nmeaonly=True,  # Raise an error on receiving a badly formatted message
         )
-        self.rtcm_reader = RTCMReader(
-            self.ser,
+        self.read_rtcm = RTCMReader(
+            self.ser, 
+            validate=0x01,  # validate checksum
+        )
+        self.read_ubx = UBXReader(
+            self.ser, 
             validate=0x01,  # validate checksum
         )
 
-        self.nmea_publisher = self.create_publisher(RoverPoseGPS, '/gps_base/fix', 10)
-        self.rtcm_publisher = self.create_publisher(UInt8MultiArray, '/gps_base/rtcm', 10)
-        self.timer = self.create_timer(0, self.publisher_callback)
+        ### ROS2 ###
+        self.pub_nmea = self.create_publisher(
+            RoverPoseGPS, 
+            '/gps_base/fix', 
+            10, 
+        )
+        self.pub_rtcm = self.create_publisher(
+            UInt8MultiArray, 
+            '/gps_base/rtcm', 
+            10, 
+        )
+        self.timer = self.create_timer(0, self.loop)
+
+        ### INITIALISE ###
+        self.config_rtcm(
+            port_type=PORT_TYPE, 
+        )
+        if (self.svin.lower() == 'true'):
+            self.config_svin(
+                port_type=PORT_TYPE, 
+                acc_limit=ACC_LIMIT, 
+                min_dur=SVIN_MIN_DUR, 
+            )
+        else:
+            self.config_fixed(
+                acc_limit=ACC_LIMIT, 
+                lat=0, 
+                lon=0, 
+                height=0, 
+            )
+
+        self.get_logger().info('gps_base started.')
+
+    def config_rtcm(port_type : str) -> None:
+        '''
+        Configure which RTCM3 messages to output and write to serial.
+        '''
+
+        print('\nFormatting RTCM MSGOUT CFG-VALSET message...')
+        layers = 1  # 1 = RAM, 2 = BBR, 4 = Flash (can be OR'd)
+        transaction = 0
+        cfg_data = []
+        for rtcm_type in (
+            '1005',
+            '1077',
+            '1087',
+            '1097',
+            '1127',
+            '1230',
+        ):
+            cfg = f'CFG_MSGOUT_RTCM_3X_TYPE{rtcm_type}_{port_type}'
+            cfg_data.append([cfg, 1])
+
+        msg_ubx = UBXMessage.config_set(layers, transaction, cfg_data)
+
+        if SHOW_PRESET:
+            print(
+                'Set ZED-F9P RTCM3 MSGOUT Basestation, '
+                f'CFG, CFG_VALSET, {msg_ubx.payload.hex()}, 1\n'
+            )
+
+        self.ser.write(msg_ubx.serialize())
+
+    def config_fixed(acc_limit : int, lat : float, lon : float, height : float) -> None:
+        '''
+        Configure Fixed mode with specified coordinates.
+        '''
+
+        print('\nFormatting FIXED TMODE CFG-VALSET message...')
+        tmode = TMODE_FIXED
+        pos_type = 1  # LLH (as opposed to ECEF)
+        layers = 1
+        transaction = 0
+        acc_limit = int(round(acc_limit / 0.1, 0))
+        lats, lath = val2sphp(lat)
+        lons, lonh = val2sphp(lon)
+
+        height = int(height)
+        cfg_data = [
+            ('CFG_TMODE_MODE', tmode),
+            ('CFG_TMODE_POS_TYPE', pos_type),
+            ('CFG_TMODE_FIXED_POS_ACC', acc_limit),
+            ('CFG_TMODE_HEIGHT_HP', 0),
+            ('CFG_TMODE_HEIGHT', height),
+            ('CFG_TMODE_LAT', lats),
+            ('CFG_TMODE_LAT_HP', lath),
+            ('CFG_TMODE_LON', lons),
+            ('CFG_TMODE_LON_HP', lonh),
+        ]
+
+        msg_ubx = UBXMessage.config_set(layers, transaction, cfg_data)
+
+        if SHOW_PRESET:
+            print(
+                'Set ZED-F9P to Fixed Timing Mode Basestation, '
+                f'CFG, CFG_VALSET, {msg_ubx.payload.hex()}, 1\n'
+            )
+
+        self.ser.write(msg_ubx.serialize())
+
+    def config_svin(port_type : str, acc_limit : int, min_dur : int) -> UBXMessage:
+        '''
+        Configure Survey-In mode with specied accuracy limit.
+        '''
+
+        print('\nFormatting SVIN TMODE CFG-VALSET message...')
+        tmode = TMODE_SVIN
+        layers = 1
+        transaction = 0
+        acc_limit = int(round(acc_limit / 0.1, 0))
+        cfg_data = [
+            ('CFG_TMODE_MODE', tmode),
+            ('CFG_TMODE_SVIN_ACC_LIMIT', acc_limit),
+            ('CFG_TMODE_SVIN_MIN_DUR', min_dur),
+            (f'CFG_MSGOUT_UBX_NAV_SVIN_{port_type}', 1),
+        ]
+
+        msg_ubx = UBXMessage.config_set(layers, transaction, cfg_data)
+
+        if SHOW_PRESET:
+            print(
+                'Set ZED-F9P to Survey-In Timing Mode Basestation, '
+                f'CFG, CFG_VALSET, {msg_ubx.payload.hex()}, 1\n'
+            )
+
+        self.ser.write(msg_ubx.serialize())
 
     def parse_msg(self):
         
@@ -141,8 +278,8 @@ class GPSBase(Node):
         #     except Exception as e:
         #         self.get_logger().warn(f'Bad message {parsed_nmea_msg}')
 
-    def config_port(self, port_name, baud):
-        self.ser.baudrate = baud
+    def config_port(self, port_name : str, baudrate : int) -> None:
+        self.ser.baudrate = baudrate
         if port_name == '':
             port_name = '/dev/ttyACM0'
         self.ser.port = port_name
@@ -164,14 +301,14 @@ class GPSBase(Node):
         else:
             self.get_logger().warn(f'{roverMsgStr}',throttle_duration_sec=2)
 
-    def publisher_callback(self):
+    def loop(self):
         self.parse_msg()
         self.print_msg()
 
         
 def main (args = None):
     rclpy.init(args = args)
-    node = GPSBase('', 115200)
+    node = GPSBase()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()

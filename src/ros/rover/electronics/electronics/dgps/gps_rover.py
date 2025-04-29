@@ -5,7 +5,7 @@ Purpose: Takes RTCM error correction data from
 base (ublox) GPS and writes data to the rover 
 (skytraq) GPS over USB.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: GPSRover
+NODE: gps_rover
 TOPICS:
   - subscriber: /gps_base/rtcm  [UInt8MultiArray]
   - publisher: /gps_rover/fix   [RoverPoseGPS]
@@ -14,15 +14,15 @@ ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Shelby N, Victor Bartlinski
-CREATION:	25/02/2023
-EDITED:		25/04/2023
+CREATED:	25/02/2023
+EDITED:		30/04/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - check if buffer clearing is necessary
  - convert log to debug
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
-import serial
+from serial import Serial
 
 import rclpy
 from rclpy.node import Node
@@ -36,51 +36,45 @@ from nova_interfaces.msg import RoverPoseGPS
 import logging
 
 class GPSRover(Node):
-    def __init__(self, com_no, baud):
+    def __init__(self):
         super().__init__('gps_rover')
+        self.baudrate = self.declare_parameter('baudrate', '115200').value
+        self.port_name = self.declare_parameter('port_name', '/dev/ttyUSB0').value
 
-        self.ser = serial.Serial()
+        ### Serial ###
+        self.ser = Serial()
+        self.config_port(self.port_name, self.baudrate)
+        self.nmea_reader = NMEAReader(
+            self.ser, 
+            validate=0x03,  # validate both checksum and message id
+            nmeaonly=True,  # Raise an error on receiving a badly formatted message
+        )
 
-        self.declare_parameter('dev', '/dev/ttyUSB0')
-        self.declare_parameter('baud_rate', '115200')
+        ### ROS2 ###
+        self.sub_rtcm = self.create_subscription(
+            UInt8MultiArray, 
+            'gps_base/rtcm', 
+            self.sub_rtcm_callback, 
+            qos, 
+        )
 
-        self.config_port()
+        self.get_logger().info('gps_rover started.')
 
-        self.count = 0
+    def sub_rtcm_callback(self, msg : UInt8MultiArray):
+        msg_rtcm = bytes(msg.data)
+        self.ser.write(msg_rtcm)
+        self.get_logger().debug(f'RTCM3: {msg_rtcm}', throttle_duration_sec=2)
 
-        self.subscription = self.create_subscription(
-            UInt8MultiArray,
-            'gps_base/rtcm3', 
-            self.callback_func,
-            qos)
-
-        self.get_logger().info('base_gps_sub started.')
-
-
-    def callback_func(self, msg):
-        
-        # if self.count > 50:                 # need to test w/out, error may have been fixed by different section
-        #     self.count = 0
-        #     self.ser.reset_output_buffer()
-        # self.count += 1
-        
-        raw_rtcm_msg = bytes(msg.data)
-        self.ser.write(raw_rtcm_msg)
-        self.get_logger().debug(f'raw bytes: {raw_rtcm_msg}',throttle_duration_sec=2)
-
-    def config_port(self):
-        port_name = self.get_parameter('dev').value
-        baud_rate = self.get_parameter('baud_rate').value
-
-        self.ser.baudrate = baud_rate
-        #if port_name == '':
-        #    port_name = '/dev/ttyUSB1'
+    def config_port(self, port_name : str, baudrate : int):
+        self.ser.baudrate = baudrate
+        if port_name == '':
+           port_name = '/dev/ttyUSB0'
         self.ser.port = port_name
         self.ser.open()
 
 def main (args = None):
     rclpy.init(args = args)
-    node = GPSRover('', 115200)
+    node = GPSRover()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
