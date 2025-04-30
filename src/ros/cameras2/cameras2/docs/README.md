@@ -72,6 +72,8 @@ The node also creates stream start, pause and stop services which the GUI sends 
 3. Run the launch file\
     a. Launch the gst-signalling-server\
     b. Run the camera_ros_streamer.py 
+4. On GUI, in the Cameras2 control panel, click start streaming or the play button
+5. On GUI, in the main viewing area, click the play button on the camera box.
 
 ### **Important** notes:
 - This node currently does not work with depth images
