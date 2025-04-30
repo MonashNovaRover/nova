@@ -66,7 +66,6 @@ class CameraStreamerService(Node):
         # Load the camera configuration parameters.
         self.cameras = {}
         cameras = self.declare_parameter('cameras', '').get_parameter_value().string_value
-        self.get_logger().error(cameras)
 
         if cameras == '':
             self.get_logger().fatal("No cameras specified.")

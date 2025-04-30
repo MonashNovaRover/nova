@@ -1,16 +1,11 @@
 ros_streamer:
   ros__parameters:
-    cameras: oak-rgb # oak_depth bootie_rgb bootie_depth
+    # Note the node doesn't currently work with depth cameras (needs some conversion in gstreamer pipeline)
+    cameras: oak-rgb bootie-rgb
     oak-rgb:
       topic: /oak/rgb/image_raw
       serial: oak-rgb
-    # oak-depth:
-    #   topic: /oak/stereo/image_raw
-    #   serial: oak-depth
-    # bootie-rgb:
-    #   topic: /bootie/rgb/image_raw
-    #   serial: bootie-rgb
-    # bootie-depth:
-    #   topic: /bootie/stereo/image_raw
-    #   serial: bootie-depth
+    bootie-rgb:
+      topic: /bootie/rgb/image_raw
+      serial: bootie-rgb
     
