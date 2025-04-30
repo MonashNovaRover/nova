@@ -92,16 +92,15 @@ def launch_setup(context, *args, **kwargs):
         ),
         Node(
             package='nova_utils',
-            executable='gz_header_republisher.py',
-            name='frame_fixer_oak',
-            parameters=[{'sub': '/oak/gz_points', 'pub': 'oak/points', 'msg_type': 'sensor_msgs/msg/PointCloud2', 'target_frame':'camera_link_gz_pointcloud'}],
+            executable='gz_frame_fixer.py',
+            name='gz_frame_fixer',
+            parameters=[
+                {'sub': ['/oak/gz_points', '/bootie/gz_points'], 
+                 'pub': ['/oak/points', '/bootie/points'], 
+                 'msg_type': ['sensor_msgs/msg/PointCloud2', 'sensor_msgs/msg/PointCloud2'], 
+                 'target_frame': ['camera_link_gz_pointcloud', 'bootie_link_gz_pointcloud']}
+            ],
         ),
-        Node(
-            package='nova_utils',
-            executable='gz_header_republisher.py',
-            name='frame_fixer_bootie',
-            parameters=[{'sub': '/bootie/gz_points', 'pub': 'bootie/points', 'msg_type': 'sensor_msgs/msg/PointCloud2', 'target_frame':'bootie_link_gz_pointcloud'}],
-        )
     ]
 
 
