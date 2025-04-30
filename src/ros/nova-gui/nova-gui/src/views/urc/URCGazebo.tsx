@@ -16,8 +16,8 @@ const URCGazeboView: React.FC = () => {
         <Button size="md" color="primary" variant="ghost" className="w-36" onPress={() => setControlPanelOpen(true)}> Control Panel </Button>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <SerialMappedCameraComponent cameraSerial={"oak-rgb"}/>
-        <SerialMappedCameraComponent cameraSerial={"bootie-rgb"} />
+        <SerialMappedCameraComponent cameraSerial={"oak-rgb"} autostart={true}/>
+        <SerialMappedCameraComponent cameraSerial={"bootie-rgb"} autostart={true}/>
       </div>
     </div>
   );

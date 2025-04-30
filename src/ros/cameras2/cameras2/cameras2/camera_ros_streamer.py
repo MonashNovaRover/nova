@@ -88,13 +88,6 @@ class CameraStreamerService(Node):
         self._gst_pipeline.set_state(Gst.State.PLAYING)
         self._gst_pipeline.get_bus().set_sync_handler(self._handle_gst_message, None)
 
-        # print plugins to check for gst-bridge
-        # for plugin in Gst.Registry.get().get_plugin_list():
-        #     print(plugin.get_name())
-        # registry = Gst.Registry.get()
-        # for feature in registry.get_feature_list(Gst.ElementFactory):
-        #     print(feature.get_name())
-
         # Create services and clients.
         self.get_logger().info("Creating stream control services...")
         self._create_stream_service("start", self._stream_start)
@@ -113,7 +106,7 @@ class CameraStreamerService(Node):
                 durability=qos.DurabilityPolicy.TRANSIENT_LOCAL,
             ),
         )
-        #self._stream_start([serial for serial in self.cameras.keys()])
+        self._stream_start([serial for serial in self.cameras.keys()])
         cameras_publisher.publish(Cameras(cameras=[Camera(serial=serial, node=self.cameras[serial].topic) for serial in self.cameras.keys()]))
 
         self.get_logger().info("Ready!")
@@ -153,7 +146,10 @@ class CameraStreamerService(Node):
         return self.create_service(CameraOperation, f"/camera_streamer/stream/{srv_name}", srv_callback)
 
     def _create_camera_bin(self, serial: str) -> RosCameraBin:
-        return RosCameraBin(serial, self.cameras[serial].topic)
+        camera_bin = RosCameraBin(serial, self.cameras[serial].topic)
+        self.cameras[serial].camera_bin = camera_bin
+        self._gst_pipeline.add(camera_bin.bin)
+        return camera_bin
 
     def _stream_start(self, serials: set[str]) -> bool:
         for serial in serials:
@@ -161,8 +157,6 @@ class CameraStreamerService(Node):
             if camera_bin is None:
                 self.get_logger().info(f"Starting stream for camera {serial}, topic: {self.cameras[serial].topic}.")
                 camera_bin = self._create_camera_bin(serial)
-                self._gst_pipeline.add(camera_bin.bin)
-                self.cameras[serial].camera_bin = camera_bin
             else:
                 self.get_logger().info(f"Resuming stream for camera {serial}.")
 
