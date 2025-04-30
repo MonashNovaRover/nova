@@ -9,8 +9,6 @@ NODE: gps_base
 TOPICS:
   - publisher: /gps_base/fix    [RoverPoseGPS]
   - publisher: /gps_base/rtcm   [UInt8MultiArray]
-SERVICES: None
-ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Shelby N, Will Middlewick, Victor 
@@ -38,42 +36,34 @@ import logging
 class GPSBase(Node):
     def __init__ (self):
         super().__init__('gps_base')
-        self.acc_limit = self.declare_parameter('acc_limit', 1000).value                            # accuracy in mm
+        self.acc_limit = self.declare_parameter('acc_limit', 100).value                             # accuracy in mm
         self.baudrate = self.declare_parameter('baudrate', 115200).value
         self.gps_module = self.declare_parameter('gps_module', 'ublox').value
-        self.height = self.declare_parameter('height', 0.).value
-        self.lat = self.declare_parameter('lat', 0.).value
-        self.lon = self.declare_parameter('lon', 0.).value
+        self.height = self.declare_parameter('height', 9936.48).value                                    # cm
+        self.lat = self.declare_parameter('lat', -37.9098296).value
+        self.lon = self.declare_parameter('lon', 145.1340534).value
         self.max_calibration_error = self.declare_parameter('max_calibration_error', 5e-5).value    # degrees
-        self.min_dur = self.declare_parameter('min_dur', 60).value                                  # seconds
+        self.min_dur = self.declare_parameter('min_dur', 90).value                                  # seconds
         self.port_name = self.declare_parameter('port_name', '/dev/ttyACM0').value
         self.port_type = self.declare_parameter('port_type', 'USB').value                           # choose from "USB", "UART1", "UART2"
-        self.svin = self.declare_parameter('svin', 'True').value                                    # True = Survey-In, False = Fixed
-
-        self.pose = RoverPoseGPS()
-        self.pose.header.frame_id = 'gps_base'
-
+        self.svin = self.declare_parameter('svin', 'False').value                                   # True = Survey-In, False = Fixed
         self.fix_type = None
 
         ### Serial ###
         self.ser = Serial()
         self.config_port(self.port_name, self.baudrate)
-        self.read_nmea = NMEAReader(
+        self.reader_nmea = NMEAReader(
             self.ser, 
             validate=0x03,  # validate both checksum and message id
             nmeaonly=True,  # Raise an error on receiving a badly formatted message
         )
-        self.read_rtcm = RTCMReader(
-            self.ser, 
-            validate=0x01,  # validate checksum
-        )
-        self.read_ubx = UBXReader(
+        self.reader_rtcm = RTCMReader(
             self.ser, 
             validate=0x01,  # validate checksum
         )
 
         ### ROS2 ###
-        self.pub_nmea = self.create_publisher(
+        self.pub_pose = self.create_publisher(
             RoverPoseGPS, 
             '/gps_base/fix', 
             10, 
@@ -84,28 +74,33 @@ class GPSBase(Node):
             10, 
         )
         self.timer = self.create_timer(0, self.loop)
+        self.pose = RoverPoseGPS()
+        self.pose.header.frame_id = 'gps_base'
 
         ### INITIALISE ###
+        self.get_logger().info(f'AAAAAAAAAAAAA{self.port_type, type(self.port_type)}')
         self.config_rtcm(
-            port_type=PORT_TYPE, 
+            port_type=self.port_type, 
         )
         if (self.svin.lower() == 'true'):
-            self.config_svin(
-                port_type=PORT_TYPE, 
-                acc_limit=ACC_LIMIT, 
-                min_dur=SVIN_MIN_DUR, 
+            self.get_logger().info(f'Using Survey-in RTK, .')
+            self.config_svin_rtk(
+                port_type=self.port_type,
+                acc_limit=self.acc_limit,
+                min_dur=self.min_dur, 
             )
         else:
-            self.config_fixed(
-                acc_limit=ACC_LIMIT, 
-                lat=0, 
-                lon=0, 
-                height=0, 
+            self.get_logger().info(f'Using Fixed RTK, lat={self.lat}, lon={self.lon}, height={self.height}.')
+            self.config_fixed_rtk(
+                acc_limit=self.acc_limit, 
+                lat=self.lat,
+                lon=self.lon,
+                height=self.height, 
             )
 
         self.get_logger().info('gps_base started.')
 
-    def config_rtcm(port_type : str) -> None:
+    def config_rtcm(self, port_type : str) -> None:
         '''
         Configure which RTCM3 messages to output and write to serial.
         '''
@@ -127,21 +122,21 @@ class GPSBase(Node):
 
         msg_ubx = UBXMessage.config_set(layers, transaction, cfg_data)
 
-        if SHOW_PRESET:
-            print(
-                'Set ZED-F9P RTCM3 MSGOUT Basestation, '
-                f'CFG, CFG_VALSET, {msg_ubx.payload.hex()}, 1\n'
-            )
+        ### LOG ###
+        print(
+            'Set ZED-F9P RTCM3 MSGOUT Basestation, '
+            f'CFG, CFG_VALSET, {msg_ubx.payload.hex()}, 1\n'
+        )
 
         self.ser.write(msg_ubx.serialize())
 
-    def config_fixed(acc_limit : int, lat : float, lon : float, height : float) -> None:
+    def config_fixed_rtk(self, acc_limit : int, lat : float, lon : float, height : float) -> None:
         '''
         Configure Fixed mode with specified coordinates.
         '''
 
         print('\nFormatting FIXED TMODE CFG-VALSET message...')
-        tmode = TMODE_FIXED
+        tmode = 2
         pos_type = 1  # LLH (as opposed to ECEF)
         layers = 1
         transaction = 0
@@ -164,21 +159,21 @@ class GPSBase(Node):
 
         msg_ubx = UBXMessage.config_set(layers, transaction, cfg_data)
 
-        if SHOW_PRESET:
-            print(
-                'Set ZED-F9P to Fixed Timing Mode Basestation, '
-                f'CFG, CFG_VALSET, {msg_ubx.payload.hex()}, 1\n'
-            )
+        ### LOG ###
+        print(
+            'Set ZED-F9P to Fixed Timing Mode Basestation, '
+            f'CFG, CFG_VALSET, {msg_ubx.payload.hex()}, 1\n'
+        )
 
         self.ser.write(msg_ubx.serialize())
 
-    def config_svin(port_type : str, acc_limit : int, min_dur : int) -> UBXMessage:
+    def config_svin_rtk(self, port_type : str, acc_limit : int, min_dur : int) -> None:
         '''
         Configure Survey-In mode with specied accuracy limit.
         '''
 
         print('\nFormatting SVIN TMODE CFG-VALSET message...')
-        tmode = TMODE_SVIN
+        tmode = 1
         layers = 1
         transaction = 0
         acc_limit = int(round(acc_limit / 0.1, 0))
@@ -191,92 +186,13 @@ class GPSBase(Node):
 
         msg_ubx = UBXMessage.config_set(layers, transaction, cfg_data)
 
-        if SHOW_PRESET:
-            print(
-                'Set ZED-F9P to Survey-In Timing Mode Basestation, '
-                f'CFG, CFG_VALSET, {msg_ubx.payload.hex()}, 1\n'
-            )
+        ### LOG ###
+        print(
+            'Set ZED-F9P to Survey-In Timing Mode Basestation, '
+            f'CFG, CFG_VALSET, {msg_ubx.payload.hex()}, 1\n'
+        )
 
         self.ser.write(msg_ubx.serialize())
-
-    def parse_msg(self):
-        
-        self.pose.header.stamp = self.get_clock().now().to_msg()
-        raw_nmea_msg : NMEAMessage
-        raw_rtcm_msg : RTCMMessage
-        try:
-            raw_nmea_msg, parsed_nmea_msg = self.nmea_reader.read()
-            raw_rtcm_msg, parsed_rtcm_msg = self.rtcm_reader.read()
-        except Exception as e:
-            self.get_logger().warn(f'Failed to read NMEA sentence: {e}')
-            return
-
-        self.get_logger().debug(f'raw NMEA message: {raw_nmea_msg}')
-        self.get_logger().debug(f'parsed NMEA message: {parsed_nmea_msg}')
-        self.get_logger().debug(f'raw RTCM message: {raw_rtcm_msg}')
-        self.get_logger().debug(f'parsed RTCM message: {parsed_rtcm_msg}, type: {type(parsed_rtcm_msg)}')
-
-        if parsed_nmea_msg is None:
-            return
-
-        if GPS_MODULE == 'ublox':
-            # wills code for the ublox module (16/04/25)
-            parsed_nmea_str = str(parsed_nmea_msg)
-            if 'lat=' in parsed_nmea_str:
-                print('\nUblox GPS Module Data:')
-                print('\traw=', parsed_nmea_str)
-                match_lat = re.search(r'lat=([-\d.]+)', parsed_nmea_str)
-                match_lon = re.search(r'lon=([-\d.]+)', parsed_nmea_str)
-                latitude = 0
-                longtitude = 0
-
-                if match_lat:
-                    latitude = float(match_lat.group(1))
-                    print('\tlatitude=', latitude)
-                
-                if match_lon:
-                    longtitude = float(match_lon.group(1))
-                    print('\tlongitude=', longtitude)  
-
-                if match_lat or match_lon:
-                    self.pose.valid = True
-                    self.pose.latitude, self.pose.longitude = latitude, longtitude
-                    self.pose.heading_valid = False # Not RTK mode. We don't have valid heading
-                    self.nmea_publisher.publish(self.pose)
-                else: 
-                    print('\tGPS data not available...')
-                    self.pose.valid = False
-
-            raw_rtcm_str = UInt8MultiArray()
-            raw_rtcm_str.data = list(raw_rtcm_msg)
-            self.rtcm_publisher.publish(raw_rtcm_str)
-            
-
-        # elif GPS_MODULE == 'skytraq':
-        #     try:
-        #         if parsed_nmea_msg.talker == 'P' and parsed_nmea_msg.msgID == 'STI' and parsed_nmea_msg.msgId == '036':
-        #             # We are dealing with a PSTI036 message, which contains orientation information
-        #             if parsed_nmea_msg.mode == 'R':
-        #                 # RTK (Real-Time Kinematic) mode. We have valid heading
-        #                 self.pose.heading_valid = True
-        #                 self.pose.pitch, self.pose.roll, self.pose.yaw = parsed_nmea_msg.pitch, parsed_nmea_msg.roll, parsed_nmea_msg.heading
-        #             else:
-        #                 # Not RTK mode. We don't have valid heading
-        #                 self.pose.heading_valid = False
-
-        #         elif parsed_nmea_msg.talker == 'GN' and parsed_nmea_msg.msgID == 'RMC':
-        #             if parsed_nmea_msg.status == 'A':
-        #                 # Valid
-        #                 self.pose.valid = True
-        #                 self.pose.latitude, self.pose.longitude = parsed_nmea_msg.lat, parsed_nmea_msg.lon
-        #                 self.nmea_publisher.publish(self.pose)
-        #             else:
-        #                 self.pose.valid = False
-
-        #         elif parsed_nmea_msg.talker == 'GP' and parsed_nmea_msg.msgID == 'GGA':
-        #             self.fix_type = parsed_nmea_msg.quality   # 1 = No fix, 2 = 2D fix, 3 = 3D fix
-        #     except Exception as e:
-        #         self.get_logger().warn(f'Bad message {parsed_nmea_msg}')
 
     def config_port(self, port_name : str, baudrate : int) -> None:
         self.ser.baudrate = baudrate
@@ -285,8 +201,82 @@ class GPSBase(Node):
         self.ser.port = port_name
         self.ser.open()
 
-    def print_msg(self):
-        roverMsgStr = f'''
+    def parse_nmea(self) -> None:
+        self.pose.header.stamp = self.get_clock().now().to_msg()
+        msg_raw : NMEAMessage
+        try:
+            msg_raw, msg_parsed = self.reader_nmea.read()
+        except Exception as e:
+            self.get_logger().warn(f'Failed to read NMEA message: {e}')
+            return
+
+        self.get_logger().debug(f'   raw NMEA message: {msg_raw}')
+        self.get_logger().debug(f'parsed NMEA message: {msg_parsed}')
+
+        if msg_parsed is None:
+            self.get_logger().warn(f'Failed to read NMEA message: msg_parsed is None')
+            return
+
+        if self.gps_module == 'ublox':
+            msg_str = str(msg_parsed)
+            if 'lat=' in msg_str:
+                match_lat = re.search(r'lat=([-\d.]+)', msg_str)
+                match_lon = re.search(r'lon=([-\d.]+)', msg_str)
+                latitude = 0
+                longtitude = 0
+
+                if match_lat:
+                    latitude = float(match_lat.group(1))
+                
+                if match_lon:
+                    longtitude = float(match_lon.group(1))
+
+                if match_lat or match_lon:
+                    self.pose.valid = True
+                    self.pose.heading_valid = False # Not RTK mode. We don't have valid heading
+                    self.pose.latitude, self.pose.longitude = latitude, longtitude
+                else: 
+                    self.pose.valid = False
+
+                ### ROS2 ###
+                self.pub_pose.publish(self.pose)
+                
+                ### LOG ###
+                print('\nUblox GPS Module NMEA Data:')
+                print(f'\traw={msg_str}')
+                if match_lat: print(f'\tlatitude={latitude}')
+                if match_lon: print(f'\tlongitude={longtitude}')
+                if not (match_lat or match_lon): print('\tGPS data not available...')
+
+    def parse_rtcm(self) -> None:
+        self.pose.header.stamp = self.get_clock().now().to_msg()
+        msg_raw : RTCMMessage
+        try:
+            msg_raw, msg_parsed = self.reader_rtcm.read()
+        except Exception as e:
+            self.get_logger().warn(f'Failed to read RTCM message: {e}')
+            return
+
+        self.get_logger().debug(f'   raw RTCM message: {msg_raw}')
+        self.get_logger().debug(f'parsed RTCM message: {msg_parsed}')
+
+        if msg_parsed is None:
+            return
+
+        if self.gps_module == 'ublox':
+            msg_str = str(msg_parsed)
+
+            ### ROS2 ###
+            msg_binary = UInt8MultiArray()
+            msg_binary.data = list(msg_raw)
+            self.pub_rtcm.publish(msg_binary)
+
+            ### LOG ###
+            print('\nUblox GPS Module RTCM3 Data:')
+            print(f'\traw={msg_str}')
+
+    def log_msg(self) -> None:
+        msg = f'''
         valid: {self.pose.valid}
         fix type: {'None' if self.fix_type == 1 else '2D' if self.fix_type == 2 else '3D' if self.fix_type == 3 else self.fix_type}
         lat: {self.pose.latitude:8.3f}
@@ -297,13 +287,14 @@ class GPSBase(Node):
         '''
 
         if self.pose.valid:
-            self.get_logger().debug(roverMsgStr,throttle_duration_sec=2)
+            self.get_logger().debug(msg,throttle_duration_sec=2)
         else:
-            self.get_logger().warn(f'{roverMsgStr}',throttle_duration_sec=2)
+            self.get_logger().warn(msg,throttle_duration_sec=2)
 
-    def loop(self):
-        self.parse_msg()
-        self.print_msg()
+    def loop(self) -> None:
+        self.parse_nmea()
+        self.parse_rtcm()
+        self.log_msg()
 
         
 def main (args = None):
