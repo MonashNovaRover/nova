@@ -119,6 +119,12 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
         ),
         Node(
+            package='arm', 
+            executable='end_effector_action_server.py', 
+            output='screen', 
+            emulate_tty=True,
+        ),
+        Node(
             package='arm',
             executable='lazers.py',
             output='screen',

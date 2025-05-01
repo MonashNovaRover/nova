@@ -150,6 +150,7 @@ install(PROGRAMS
         arm/zero_resolver_client_terminal.py
         arm/zero_resolver_sector_client_terminal.py
         arm/hex_key.py
+        arm/end_effector_action_server.py
         arm/lazers.py
         DESTINATION lib/${PROJECT_NAME}
         )
