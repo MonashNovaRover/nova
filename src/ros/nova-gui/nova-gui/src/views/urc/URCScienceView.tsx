@@ -19,7 +19,7 @@ const URCScienceView: React.FC = () => {
 
       <div className="flex flex-col gap-3 col-span-2">
         <div className="flex flex-row gap-3">
-          <DepthSensor className="grow"/>
+          <DepthSensor className="w-88 flex flex-col py-3"/>
           <BMESensor className="grow"/>
         </div>
         <CarouselWidget/>

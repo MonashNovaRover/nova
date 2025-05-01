@@ -30,14 +30,13 @@ const DepthSensor: React.FC<IDepthSensorProps> = (
 
     // Colours differ from colours that any buttons use
     const DepthSensorCardBody = (
-        <CardBody className="grid grid-cols-4 grid-rows-2 gap-4">
-            <text className="row-start-1 w-full col-span-4 row-span-1 text-center">Drill depth {">"}10cm?</text>
+        <CardBody className="ml-5 grid grid-cols-4 grid-rows-1">
             <text className="row-start-2 w-max col-span-1 row-span-1">Auger 1:</text>
-            <Chip className={augerdepths[0] >= 100 ? "row-start-2 w-min col-span-1 row-span-1 bg-green-600" : "row-start-2 w-min col-span-1 row-span-1 bg-rose-500"}>
+            <Chip className={augerdepths[0] >= 100 ? "row-start-2 w-min col-span-1 row-span-1 bg-green-600" : "row-start-2 w-min col-span-1 row-span-1 bg-rose-600"}>
                 {augerdepths[0] >= 100 ? "Yes" : "No"}
             </Chip>
             <text className="row-start-2 w-max col-span-1 row-span-1">Auger 2:</text>
-            <Chip className={augerdepths[1] >= 100 ? "row-start-2 w-min col-span-1 row-span-1 bg-green-600" : "row-start-2 w-min col-span-1 row-span-1 bg-rose-500"}>
+            <Chip className={augerdepths[1] >= 100 ? "row-start-2 w-min col-span-1 row-span-1 bg-green-600" : "row-start-2 w-min col-span-1 row-span-1 bg-rose-600"}>
                 {augerdepths[1] >= 100 ? "Yes" : "No"}
             </Chip>
         </CardBody>
@@ -45,7 +44,7 @@ const DepthSensor: React.FC<IDepthSensorProps> = (
 
     return (
         <Card {...props}>
-            <CardHeader className="text-h1 pb-0">Auger Depth Sensors</CardHeader>
+            <CardHeader className="text-h1 pb-0">Auger Depth Sensors: Drilled more than 10cm?</CardHeader>
             {DepthSensorCardBody}
         </Card>
     );
