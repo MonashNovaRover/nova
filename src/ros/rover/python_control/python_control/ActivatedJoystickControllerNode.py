@@ -39,7 +39,7 @@ class ActivatedJoystickControllerNode(JoystickControllerNode, metaclass=abc.ABCM
 
         # publish status once a second
         self.publisher = self.create_publisher(ActiveNodeStatus, '/activated_nodes', 10)
-        self.publish_timer = self.create_timer(1, self.publish_active_status)
+        self.publish_timer = self.create_timer(0.6, self.publish_active_status)
 
         self.get_logger().info(f"{self.get_name()} is active: {self.active}")
 
