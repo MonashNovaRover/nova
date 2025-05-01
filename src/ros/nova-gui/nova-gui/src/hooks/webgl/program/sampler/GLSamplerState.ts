@@ -127,10 +127,17 @@ export default class GLSamplerState implements RenderQueueItem<[WebGL2RenderingC
     if (!this._sampler || !(this._sampler instanceof HTMLImageElement))
       return;
 
+    const callback = () => {
+      this.programEffectQueue.push((gl, program) => {
+        this.updateTextureContents(gl, program);
+        console.log("Updates made to the texture content!");
+      });
+    };
+
     if (this._sampler.complete)
-      this.programEffectQueue.push((gl, program) => this.updateTextureContents(gl, program));
+      callback();
     else
-      this._sampler.onload = () => this.programEffectQueue.push((gl, program) => this.updateTextureContents(gl, program));
+      this._sampler.onload = callback;
   }
 
   /**

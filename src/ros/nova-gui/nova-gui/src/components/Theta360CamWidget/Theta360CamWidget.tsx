@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useEffect, useLayoutEffect, useState} from "react";
 import {Button, Card, CardBody, CardHeader, Tooltip} from "@nextui-org/react";
 import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../ros/topics/rosTopic.ts";
@@ -39,7 +39,16 @@ const Theta360CamWidget: React.FC = () => {
   //const imageRef = useRef<HTMLVideoElement>(null);
   //useWebcam(imageRef);
   // const imageRef = useImageTexture(monkey);
-  const image = useImageTexture(monkey);
+  //const image = useImageTexture(monkey);
+
+  // const imageRef = useRef<HTMLImageElement>(null);\
+  const [image, setImage] = useState<HTMLImageElement>(() => new Image())
+
+  const url = monkey;
+
+  useLayoutEffect(() => {
+    image.src = url;
+  }, []);
 
   // Used to select between perspective and panoramic canvases
   const [canvasIndex, setCanvasIndex] = useState<number>(0);
@@ -51,11 +60,13 @@ const Theta360CamWidget: React.FC = () => {
   // Update the image to contain the data from imageData whenever it changes
   // TODO: Test this, and performance test to ensure no unnecessary re-renders
   useEffect(() => {
-    if (!image || imageMessage.data.length == 0)
+    if (imageMessage.data.length == 0)
       return;
 
-    image.src = `data:image/${imageMessage.format};base64,` + imageMessage.data;
-  }, [image, imageMessage]);
+    const newImage = new Image();
+    newImage.src = `data:image/${imageMessage.format};base64,` + imageMessage.data;
+    setImage(newImage);
+  }, [imageMessage]);
 
   // When called, will capture a new image
   const capture = useCallback(() => {
