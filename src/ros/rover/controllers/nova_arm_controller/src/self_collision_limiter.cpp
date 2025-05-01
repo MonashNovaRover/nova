@@ -27,7 +27,6 @@ std::string SelfCollisionLimiter::construct_srdf_fallback_string(const urdf::Mod
 <disable_collisions link1=\"bl_ankle\" link2=\"left_leg\" reason=\"Default\" />\n\
 <disable_collisions link1=\"br_ankle\" link2=\"br_wheel\" reason=\"Default\" />\n\
 <disable_collisions link1=\"br_ankle\" link2=\"right_leg\" reason=\"Default\" />\n\
-<disable_collisions link1=\"clam\" link2=\"mount\" reason=\"Default\" />\n\
 <disable_collisions link1=\"eebase\" link2=\"leftfinger\" reason=\"Default\" />\n\
 <disable_collisions link1=\"eebase\" link2=\"rightfinger\" reason=\"Default\" />\n\
 <disable_collisions link1=\"fl_ankle\" link2=\"fl_wheel\" reason=\"Default\" />\n\
@@ -71,16 +70,17 @@ bool SelfCollisionLimiter::init(
   node_param_itf_ = param_itf;
   node_logging_itf_ = logging_itf;
 
-  this->urdf_str = robot_description;
+  this->urdf_str_ = robot_description;
   return this->on_init();
 }
+
 bool SelfCollisionLimiter::on_configure(const joint_limits::JointLimitsStateDataType &) {
-  if (this->urdf_str.empty()) {
+  if (this->urdf_str_.empty()) {
     RCLCPP_ERROR(this->node_logging_itf_->get_logger(), "urdf string is empty");
     return false;
   }
 
-  auto urdf_model = urdf::parseURDF(this->urdf_str);
+  auto urdf_model = urdf::parseURDF(this->urdf_str_);
   if (!urdf_model) {
     RCLCPP_ERROR(this->node_logging_itf_->get_logger(), "Failed to parse URDF");
     return false;
@@ -92,20 +92,24 @@ bool SelfCollisionLimiter::on_configure(const joint_limits::JointLimitsStateData
   srdf_model->initString(*urdf_model, srdf_string);
 
   // Finally create the robot model
-  this->robot_model = std::make_shared<moveit::core::RobotModel>(urdf_model, srdf_model);
+  this->robot_model_ = std::make_shared<moveit::core::RobotModel>(urdf_model, srdf_model);
 
-  this->planning_scene = new planning_scene::PlanningScene(this->robot_model);
+  // I think configure can be called more than once, don't leak memory.
+  if (this->planning_scene_ != NULL) {
+    delete this->planning_scene_;
+  }
+  this->planning_scene_ = new planning_scene::PlanningScene(this->robot_model_);
 
   // removing these lines may improve performance, but would mean we don't get
   // a warning saying what collided
-  this->collision_request.contacts = true; // calculate contacting pairs
-  this->collision_request.max_contacts = 100; // calculate more than one
+  this->collision_request_.contacts = true; // calculate contacting pairs
+  this->collision_request_.max_contacts = 100; // calculate more than one
 
   return true;
 }
 
 SelfCollisionLimiter::~SelfCollisionLimiter() {
-  delete this->planning_scene;
+  delete this->planning_scene_;
 }
 
 bool SelfCollisionLimiter::on_enforce(
@@ -130,7 +134,7 @@ bool SelfCollisionLimiter::on_enforce(
   }
 
   //TODO: this state doesn't know about wheel/pivot/diffbar movement
-  moveit::core::RobotState robot_state = this->planning_scene->getCurrentStateNonConst();
+  moveit::core::RobotState robot_state = this->planning_scene_->getCurrentStateNonConst();
   for (unsigned int i = 0; i < this->number_of_joints_; i++)
   {
     double target_pos;
@@ -138,18 +142,19 @@ bool SelfCollisionLimiter::on_enforce(
       target_pos = desired_joint_states.positions.at(i);
     } else { // velocity
       // TODO: consider current velocity and expected accel
+      // XXX: If real physical arm gets stuck in a collider, add a *1.1 or smth to the end of this so it overestimates velocity
       target_pos = current_joint_states.positions.at(i) + desired_joint_states.velocities.at(i)*dt_seconds;
     }
     robot_state.setVariablePosition(this->joint_names_.at(i), target_pos);
   }
 
-  this->planning_scene->setCurrentState(robot_state);
-  collision_result.clear();
+  this->planning_scene_->setCurrentState(robot_state);
+  this->collision_result_.clear();
 
-  this->planning_scene->checkSelfCollision(collision_request, collision_result);
+  this->planning_scene_->checkSelfCollision(this->collision_request_, this->collision_result_);
 
-  if (collision_result.collision) {
-      collision_result.print();
+  if (this->collision_result_.collision) {
+      this->collision_result_.print();
       if (has_desired_position) {
         for (unsigned int i = 0; i < this->number_of_joints_; i++) {
           desired_joint_states.positions[i] = current_joint_states.positions[i];
@@ -160,6 +165,6 @@ bool SelfCollisionLimiter::on_enforce(
       }
   }
 
-  return collision_result.collision;
+  return this->collision_result_.collision;
 }
 } //namespace nova_arm_controller

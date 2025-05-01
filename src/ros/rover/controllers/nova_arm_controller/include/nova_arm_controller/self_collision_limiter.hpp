@@ -41,12 +41,12 @@ public:
 private:
   std::string construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model, std::string joint_group_name);
 
-  std::string urdf_str;
+  std::string urdf_str_;
 
-  moveit::core::RobotModelPtr robot_model;
-  planning_scene::PlanningScene *planning_scene;
-  collision_detection::CollisionRequest collision_request;
-  collision_detection::CollisionResult collision_result;
+  moveit::core::RobotModelPtr robot_model_;
+  planning_scene::PlanningScene *planning_scene_ = NULL;
+  collision_detection::CollisionRequest collision_request_;
+  collision_detection::CollisionResult collision_result_;
 
 };
 } // namespace nova_arm_controller
