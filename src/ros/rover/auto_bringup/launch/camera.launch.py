@@ -63,11 +63,11 @@ def launch_setup(context, *args, **kwargs):
                     plugin='rtabmap_util::PointCloudXYZ',
                     name='point_cloud_xyz',
                     parameters=[{'decimation': 2,
-                                'max_depth': 10.0,
-                                'voxel_size': 0.1}],
+                                 'max_depth': 10.0,
+                                 'voxel_size': 0.1}],
                     remappings=[('depth/image', f'{front_name}/stereo/image_raw'),
                                 ('depth/camera_info', f'{front_name}/stereo/camera_info'),
-                                ('cloud', f'{front_name}/depth/points')],
+                                ('cloud', f'{front_name}/points')],
                 ),
                 ComposableNode(
                     condition=IfCondition(imu),
@@ -75,17 +75,8 @@ def launch_setup(context, *args, **kwargs):
                     plugin='imu_transformer::ImuTransformer',
                     name=f'{front_name}_imu_transformer_node',
                     remappings=[('/imu_in', f'/{front_name}/imu/data'),
-                        ('/imu_out', f'/{front_name}/imu/transformed')],
+                                ('/imu_out', f'/{front_name}/imu/transformed')],
                     parameters=[{'target_frame': f'{front_name}_imu_frame'}]
-                ),
-                ComposableNode(
-                    condition=IfCondition(imu),
-                    package='imu_transformer',
-                    plugin='imu_transformer::ImuTransformer',
-                    name=f'{back_name}_imu_transformer_node',
-                    remappings=[('/imu_in', f'/{back_name}/imu/data'),
-                        ('/imu_out', f'/{back_name}/imu/transformed')],
-                    parameters=[{'target_frame': f'{back_name}_imu_frame'}]
                 ),
             ],
         ),
@@ -107,10 +98,30 @@ def launch_setup(context, *args, **kwargs):
                     package='image_proc',
                     plugin='image_proc::RectifyNode',
                     name=f'{back_name}_rectify_color_node',
-                    remappings=[
-                        ('image', f'{back_name}/rgb/image_raw'),
-                        ('camera_info', f'{back_name}/rgb/camera_info'),
-                        ('image_rect', f'{back_name}/rgb/image_rect')],
+                    remappings=[('image', f'{back_name}/rgb/image_raw'),
+                                ('camera_info', f'{back_name}/rgb/camera_info'),
+                                ('image_rect', f'{back_name}/rgb/image_rect')],
+                ),
+                ComposableNode(
+                    condition=IfCondition(pointclouds),
+                    package='rtabmap_util',
+                    plugin='rtabmap_util::PointCloudXYZ',
+                    name='point_cloud_xyz',
+                    parameters=[{'decimation': 2,
+                                 'max_depth': 10.0,
+                                 'voxel_size': 0.1}],
+                    remappings=[('depth/image', f'{back_name}/stereo/image_raw'),
+                                ('depth/camera_info', f'{back_name}/stereo/camera_info'),
+                                ('cloud', f'{back_name}/points')],
+                ),
+                ComposableNode(
+                    condition=IfCondition(imu),
+                    package='imu_transformer',
+                    plugin='imu_transformer::ImuTransformer',
+                    name=f'{back_name}_imu_transformer_node',
+                    remappings=[('/imu_in', f'/{back_name}/imu/data'),
+                                ('/imu_out', f'/{back_name}/imu/transformed')],
+                    parameters=[{'target_frame': f'{back_name}_imu_frame'}]
                 ),
             ]
         ),
@@ -129,7 +140,7 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             name='ar',
-            default_value='False',
+            default_value='True',
             description='',
         ),
         DeclareLaunchArgument(
@@ -174,7 +185,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='pointclouds',
-            default_value='False',
+            default_value='True',
             description='',
         ),
         DeclareLaunchArgument(
