@@ -160,7 +160,11 @@ local_costmap:
           topic: /oak/points
           # Marking params
           marking: true                # enable marking using this source
+<<<<<<< HEAD
           obstacle_range: 5.0          # meters
+=======
+          obstacle_range: 3.0          # meters
+>>>>>>> 40374c0b (fix: Update stvl params to better consider global and local costmaps)
           min_obstacle_height: 0.2     # meters
           max_obstacle_height: 2.0     # meters
           # expected_update_rate: 0.0    # default 0, if not updating at this rate at least, remove from buffer
@@ -182,7 +186,11 @@ local_costmap:
           topic: /bootie/points
           # Marking params
           marking: true                # enable marking using this source
+<<<<<<< HEAD
           obstacle_range: 5.0          # meters
+=======
+          obstacle_range: 3.0          # meters
+>>>>>>> 40374c0b (fix: Update stvl params to better consider global and local costmaps)
           min_obstacle_height: 0.2     # meters
           max_obstacle_height: 2.0     # meters
           clearing: true
@@ -221,6 +229,17 @@ global_costmap:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
         map_topic: /static_map
+<<<<<<< HEAD
+=======
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 10.0
+        inflation_radius: 0.0
+      static_map_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
+        map_topic: /static_map
+>>>>>>> 40374c0b (fix: Update stvl params to better consider global and local costmaps)
       stvl_layer: # From https://github.com/SteveMacenski/spatio_temporal_voxel_layer/blob/ros2/spatio_temporal_voxel_layer/example/outdoor_environment_config.yaml
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
         enabled:                  true
@@ -235,13 +254,18 @@ global_costmap:
         publish_voxel_map:        false # default off
         transform_tolerance:      0.3   # seconds
         mapping_mode:             false # default off, saves map not for navigation
+<<<<<<< HEAD
         map_save_duration:        60.0  # default 60s, how often to autosave, un-needed since not mapping
+=======
+        map_save_duration:        60.0   # default 60s, how often to autosave
+>>>>>>> 40374c0b (fix: Update stvl params to better consider global and local costmaps)
         observation_sources: oak bootie
         oak:
           data_type: PointCloud2
           topic: /oak/points
           # Marking params
           marking: true                # enable marking using this source
+<<<<<<< HEAD
           obstacle_range: 5.0          # meters
           min_obstacle_height: 0.2     # meters
           max_obstacle_height: 2.0     # meters
@@ -259,11 +283,17 @@ global_costmap:
           horizontal_fov_angle: 1.43117 # fov of camera, radians
           decay_acceleration: 1.0       # default 0, 1/s^2. If laser scanner MUST be 0
           model_type: 0                 # default 0, model type for frustum. 0=depth camera, 1=3d lidar like VLP16 or similar
+=======
+          obstacle_range: 10.0         # meters
+          min_obstacle_height: 0.2     # meters
+          max_obstacle_height: 2.5     # meters
+>>>>>>> 40374c0b (fix: Update stvl params to better consider global and local costmaps)
         bootie:
           data_type: PointCloud2
           topic: /bootie/points
           # Marking params
           marking: true                # enable marking using this source
+<<<<<<< HEAD
           obstacle_range: 5.0          # meters
           min_obstacle_height: 0.2     # meters
           max_obstacle_height: 2.0     # meters
@@ -275,6 +305,11 @@ global_costmap:
           horizontal_fov_angle: 1.43117
           decay_acceleration: 1.0
           model_type: 0
+=======
+          obstacle_range: 10.0         # meters
+          min_obstacle_height: 0.2     # meters
+          max_obstacle_height: 2.5     # meters
+>>>>>>> 40374c0b (fix: Update stvl params to better consider global and local costmaps)
 
 
 planner_server:

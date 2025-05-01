@@ -110,10 +110,14 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[{'decimation': 2,
                                  'max_depth': 10.0,
 <<<<<<< HEAD
+<<<<<<< HEAD
                                  'min_depth': 1.1,
 =======
                                  'min_depth': 1.0,
 >>>>>>> 23b9e3ef (fix: Add min depth to bootie pointcloud so that bootie is not seen in depth)
+=======
+                                 'min_depth': 1.1,
+>>>>>>> 40374c0b (fix: Update stvl params to better consider global and local costmaps)
                                  'voxel_size': 0.1}],
                     remappings=[('depth/image', f'{back_name}/stereo/image_raw'),
                                 ('depth/camera_info', f'{back_name}/stereo/camera_info'),

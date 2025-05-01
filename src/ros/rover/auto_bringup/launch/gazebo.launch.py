@@ -171,12 +171,21 @@ def generate_launch_description():
             default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf']),
             description='Full path to world model file to load',
         ),
+<<<<<<< HEAD
         DeclareLaunchArgument(name='x', default_value='-3.0', description='x_pose'),
         DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
         DeclareLaunchArgument(name='z', default_value='0.5', description='z_pose'),
         DeclareLaunchArgument(name='R', default_value='0.0', description='roll'),
         DeclareLaunchArgument(name='P', default_value='0.0', description='pitch'),
         DeclareLaunchArgument(name='Y', default_value='0.0', description='yaw'),
+=======
+        DeclareLaunchArgument(name='x', default_value='13.22', description='x_pose'),
+        DeclareLaunchArgument(name='y', default_value='-7.35', description='y_pose'),
+        DeclareLaunchArgument(name='z', default_value='0.5', description='z_pose'),
+        DeclareLaunchArgument(name='R', default_value='0.0', description='roll'),
+        DeclareLaunchArgument(name='P', default_value='0.0', description='pitch'),
+        DeclareLaunchArgument(name='Y', default_value='2.50', description='yaw'),
+>>>>>>> 40374c0b (fix: Update stvl params to better consider global and local costmaps)
     ]
 
     return LaunchDescription(
