@@ -109,6 +109,7 @@ def launch_setup(context, *args, **kwargs):
                     name='point_cloud_xyz',
                     parameters=[{'decimation': 2,
                                  'max_depth': 10.0,
+                                 'min_depth': 1.0,
                                  'voxel_size': 0.1}],
                     remappings=[('depth/image', f'{back_name}/stereo/image_raw'),
                                 ('depth/camera_info', f'{back_name}/stereo/camera_info'),
