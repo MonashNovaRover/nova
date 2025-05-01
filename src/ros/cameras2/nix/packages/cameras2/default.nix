@@ -12,6 +12,7 @@
 , nova-camera-msgs
 , pythonPackages
 , gst-bridge
+, glib-networking
 }:
 
 buildRosPackage {
@@ -51,6 +52,7 @@ buildRosPackage {
     gst_all_1.gst-plugins-rs # WebRTC
     libnice # WebRTC
     gst-bridge # ros-gst-bridge/rosimagesrc
+    glib-networking
   ];
 
   propagatedBuildInputs = [
