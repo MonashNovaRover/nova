@@ -15,7 +15,7 @@ export interface URCActivatedNodeWidgetProps extends CardProps {
 /**
  * A component that displays whether activated nodes are active or inactive
  */
-const URCActivatedNodeWidget: React.FC<URCActivatedNodeWidgetProps> = (
+const ActivatedNodeWidget: React.FC<URCActivatedNodeWidgetProps> = (
   props: URCActivatedNodeWidgetProps
 ) => {
   const bifrost = useBifrost({ topic: RosTopic.ACTIVATED_NODES });
@@ -65,4 +65,4 @@ const URCActivatedNodeWidget: React.FC<URCActivatedNodeWidgetProps> = (
   );
 };
 
-export default URCActivatedNodeWidget;
+export default ActivatedNodeWidget;
