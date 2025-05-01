@@ -98,6 +98,7 @@ def launch_setup(context, *args, **kwargs):
                 {'sub': ['/oak/gz_points', '/bootie/gz_points'], 
                  'pub': ['/oak/points', '/bootie/points'], 
                  'msg_type': ['sensor_msgs/msg/PointCloud2', 'sensor_msgs/msg/PointCloud2'], 
+                 'source_frames': ['camera_link_optical', 'bootie_link_optical'], 
                  'target_frame': ['camera_link_gz_pointcloud', 'bootie_link_gz_pointcloud']}
             ],
         ),
