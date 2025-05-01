@@ -9,8 +9,6 @@ NODE: gps_rover
 TOPICS:
   - subscriber: /gps_base/rtcm  [UInt8MultiArray]
   - publisher: /gps_rover/fix   [RoverPoseGPS]
-SERVICES: None
-ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Shelby N, Victor Bartlinski
@@ -20,11 +18,6 @@ EDITED:		30/04/2025
 TODO:
  - check if buffer clearing is necessary
  - convert log to debug
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Debugging:
-- Unknown msgID PSTI, msgmode GET.
-Happens when `self.reader_nmea.read()` is called.
-
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from serial import Serial
@@ -45,9 +38,18 @@ import logging
 class GPSRover(Node):
     def __init__(self):
         super().__init__('gps_rover')
-        self.baudrate = self.declare_parameter('baudrate', '115200').value
-        self.port_name = self.declare_parameter('port_name', '/dev/ttyUSB0').value
-        self.gps_module = self.declare_parameter('gps_module', 'skytraq').value
+        self.baudrate = self.declare_parameter(
+            name='baudrate', 
+            value=115200, 
+        ).value
+        self.port_name = self.declare_parameter(
+            name='port_name', 
+            value='/dev/ttyUSB0', 
+        ).value
+        self.gps_module = self.declare_parameter(
+            name='gps_module', 
+            value='skytraq', 
+        ).value
         self.fix_type = None
 
         ### Serial ###
@@ -71,12 +73,9 @@ class GPSRover(Node):
             '/gps_rover/fix', 
             10, 
         )
-        self.timer = self.create_timer(0, self.loop)
         self.pose = RoverPoseGPS()
         self.pose.header.frame_id = 'gps_rover'
-
-        self.get_logger().info('gps_rover started.')
-
+        self.timer = self.create_timer(0, self.loop)
 
     def config_port(self, port_name : str, baudrate : int):
         self.ser.baudrate = baudrate
@@ -90,8 +89,14 @@ class GPSRover(Node):
         self.ser.write(msg_binary)
         
         ### LOG ###
-        print('\nUblox GPS Module RTCM3 Data:')
-        print(f'\traw={msg_binary}')
+        msg_log = f'''
+            🛰️ RTCM3 Data:
+            \traw: {msg_str}
+        '''
+        if self.fix_type == 3:
+            self.get_logger().debug(msg_log, throttle_duration_sec=2)
+        else:
+            self.get_logger().warn(msg_log, throttle_duration_sec=2)
 
 
     def parse_nmea(self) -> None:
@@ -100,18 +105,20 @@ class GPSRover(Node):
         try:
             msg_raw, msg_parsed = self.reader_nmea.read()
         except Exception as e:
-            self.get_logger().warn(f'Failed to read NMEA message: {e}')
+            self.get_logger().warn(f'❌ Failed to read NMEA message: {e}')
             return
 
-        self.get_logger().debug(f'   raw NMEA message: {msg_raw}')
-        self.get_logger().debug(f'parsed NMEA message: {msg_parsed}')
+        self.get_logger().debug(f'✅ NMEA message received!', throttle_duration_sec=2)
+        self.get_logger().debug(f'\t   raw NMEA message: {msg_raw}', throttle_duration_sec=2)
+        self.get_logger().debug(f'\tparsed NMEA message: {msg_parsed}', throttle_duration_sec=2)
 
         if msg_parsed is None:
-            self.get_logger().warn(f'Failed to read NMEA message: msg_parsed is None')
+            self.get_logger().warn(f'❌ Failed to read NMEA message: \'msg_parsed\' cannot be None!', throttle_duration_sec=2)
             return
 
         if self.gps_module == 'skytraq':
             try:
+                msg_str = str(msg_parsed)
                 if msg_parsed.talker == 'P' and msg_parsed.msgID == 'STI' and msg_parsed.msgId == '036':
                     # We are dealing with a PSTI036 message, which contains orientation information
                     if msg_parsed.mode == 'R':
@@ -133,28 +140,29 @@ class GPSRover(Node):
 
                 ### ROS2 ###
                 self.pub_pose.publish(self.pose)
+
+                ### LOG ###
+                msg_log = f'''
+                    🛰️ NMEA Data:
+                    \traw: {msg_str}
+                    \tvalid: {self.pose.valid}
+                    \tfix type: {'None' if self.fix_type == 1 else '2D' if self.fix_type == 2 else '3D' if self.fix_type == 3 else self.fix_type}
+                    \tlat: {self.pose.latitude:8.3f}
+                    \tlon: {self.pose.longitude:8.3f}
+                    \tpitch: {self.pose.pitch:8.2f}
+                    \troll: {self.pose.roll:8.2f}
+                    \tyaw: {self.pose.yaw:8.2f}
+                '''
+                if self.pose.valid:
+                    self.get_logger().debug(msg_log, throttle_duration_sec=2)
+                else:
+                    self.get_logger().warn(msg_log, throttle_duration_sec=2)
+
             except Exception as e:
-                self.get_logger().warn(f'Error: {e}, Message: {msg_parsed}')
-
-
-    def log_msg(self) -> None:
-        msg = f'''
-        valid: {self.pose.valid}
-        fix type: {'None' if self.fix_type == 1 else '2D' if self.fix_type == 2 else '3D' if self.fix_type == 3 else self.fix_type}
-        lat: {self.pose.latitude:8.3f}
-        lon: {self.pose.longitude:8.3f}
-        pitch: {self.pose.pitch:8.2f}
-        roll: {self.pose.roll:8.2f}
-        yaw: {self.pose.yaw:8.2f}
-        '''
-        if self.pose.valid:
-            self.get_logger().debug(msg,throttle_duration_sec=2)
-        else:
-            self.get_logger().warn(msg,throttle_duration_sec=2)
+                self.get_logger().warn(f'❌ Error: {e}, Bad message: {msg_parsed}')
 
     def loop(self) -> None:
         self.parse_nmea()
-        self.log_msg()
 
 def main (args = None):
     rclpy.init(args = args)
