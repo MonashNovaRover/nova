@@ -16,7 +16,7 @@ export const ActivatedNodeButton: React.FC<ActivatedNodeButtonProps> = (props: A
     return (
       <Overlay
         overlay={props.isLocked ? <div className="flex flex-col justify-center">
-          <Lock className=""/>
+          <Lock/>
         </div>: undefined}
       >
         <Overlay
