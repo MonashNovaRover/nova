@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { Card, CardHeader, CardBody, CardProps, Chip } from "@nextui-org/react";
-import { OverlayedProgress } from "../OverlayedProgress/OverlayedProgress.tsx";
 import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction.ts";
 import { RootState } from "../../redux/RootState.ts";
 import { useSelector } from "react-redux";
@@ -17,7 +16,7 @@ const DepthSensor: React.FC<IDepthSensorProps> = (
     /*
     const bifrost = useBifrost({ topic: RosTopic.DEPTH_SENSOR });
     const augerdepths = useSelector((state: RootState) => state.depthSensorStore.augerdepths);
-    // Assume these heights are sent as measurements in millimetres like TOF sensor
+    // Currently assuming these heights are sent as boolean values by hall effect sensor (true if drill depth > 10cm)? To Be Implemented
     
 
     useEffect(() => {
@@ -26,18 +25,18 @@ const DepthSensor: React.FC<IDepthSensorProps> = (
     */
     
     // For visualisation without connection to ROS
-    const augerdepths = [110, 90];
+    const augerdepths = [true, false];
 
     // Colours differ from colours that any buttons use
     const DepthSensorCardBody = (
         <CardBody className="ml-5 grid grid-cols-4 grid-rows-1">
             <text className="row-start-2 w-max col-span-1 row-span-1">Auger 1:</text>
-            <Chip className={augerdepths[0] >= 100 ? "row-start-2 w-min col-span-1 row-span-1 bg-green-600" : "row-start-2 w-min col-span-1 row-span-1 bg-rose-600"}>
-                {augerdepths[0] >= 100 ? "Yes" : "No"}
+            <Chip className={augerdepths[0] ? "row-start-2 w-min col-span-1 row-span-1 bg-green-600" : "row-start-2 w-min col-span-1 row-span-1 bg-rose-600"}>
+                {augerdepths[0] ? "Yes" : "No"}
             </Chip>
             <text className="row-start-2 w-max col-span-1 row-span-1">Auger 2:</text>
-            <Chip className={augerdepths[1] >= 100 ? "row-start-2 w-min col-span-1 row-span-1 bg-green-600" : "row-start-2 w-min col-span-1 row-span-1 bg-rose-600"}>
-                {augerdepths[1] >= 100 ? "Yes" : "No"}
+            <Chip className={augerdepths[1] ? "row-start-2 w-min col-span-1 row-span-1 bg-green-600" : "row-start-2 w-min col-span-1 row-span-1 bg-rose-600"}>
+                {augerdepths[1] ? "Yes" : "No"}
             </Chip>
         </CardBody>
     );
