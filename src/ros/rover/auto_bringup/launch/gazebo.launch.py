@@ -91,6 +91,7 @@ def launch_setup(context, *args, **kwargs):
             arguments=['--ros-args', '--log-level', 'info'],
         ),
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         Node(
             package='nova_utils',
@@ -119,6 +120,8 @@ def launch_setup(context, *args, **kwargs):
                          'pub_topic': '/bootie/imu/transformed'}],
         ),
 >>>>>>> 02858847 (fixed IMU? WIP)
+=======
+>>>>>>> 2746ce5f (fix: Remove gazebo pointclouds and gz_frame_fixer)
     ]
 
 
