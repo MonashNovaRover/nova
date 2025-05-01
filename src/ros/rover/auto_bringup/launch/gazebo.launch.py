@@ -140,11 +140,11 @@ def generate_launch_description():
             description='Full path to world model file to load',
         ),
         DeclareLaunchArgument(name='x', default_value='13.22', description='x_pose'),
-        DeclareLaunchArgument(name='y', default_value='-7.50', description='y_pose'),
+        DeclareLaunchArgument(name='y', default_value='-7.35', description='y_pose'),
         DeclareLaunchArgument(name='z', default_value='0.5', description='z_pose'),
         DeclareLaunchArgument(name='R', default_value='0.0', description='roll'),
         DeclareLaunchArgument(name='P', default_value='0.0', description='pitch'),
-        DeclareLaunchArgument(name='Y', default_value='-3.12', description='yaw'),
+        DeclareLaunchArgument(name='Y', default_value='2.50', description='yaw'),
     ]
 
     return LaunchDescription(
