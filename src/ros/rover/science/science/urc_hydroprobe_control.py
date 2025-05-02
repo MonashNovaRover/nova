@@ -11,10 +11,12 @@ SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:    science
-AUTHOR(S):	Brandon Chung
-CREATION:	05/03/2025
-EDITED:		06/03/2025
+AUTHOR(S):	Felicity Matthews
+CREATION:	01/05/2025
+EDITED:		02/05/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+to run with parameter file:
+$ ros2 run science urc_hydroprobe_control --ros-args --params-file ~/nova/src/ros/rover/nova_bringup/params/hydroprobe_control.yaml
 """
 
 import rclpy
@@ -57,7 +59,7 @@ class HydroprobeControlNode(JoystickControllerNode):
     DURATION_RETRACT_UP = "duration_retract_up"
 
     def __init__(self):
-        super().__init__(name="SweepyServoNode", can_bus=self.CAN_BUS, command_period=self.COMMAND_PERIOD)
+        super().__init__(name="HydroprobeControl", can_bus=self.CAN_BUS, command_period=self.COMMAND_PERIOD)
         logger = self.get_logger()
 
         self.velocity = 0.5
@@ -70,7 +72,7 @@ class HydroprobeControlNode(JoystickControllerNode):
                 (self.SPEED_RETRACT, 175),
                 (self.DURATION_RESET, 4),
                 (self.DURATION_DEPLOY, 1.8),
-                (self.DURATION_RETRACT_UP, 0.5),
+                (self.DURATION_RETRACT_DOWN, 0.5),
                 (self.DURATION_RETRACT_UP, 2.1),
             ],
         )
@@ -99,6 +101,8 @@ class HydroprobeControlNode(JoystickControllerNode):
 
         ## Start the CAN bus
         self.start_can()
+
+        logger.info(f"{list(map(lambda x: x.value, self.get_parameters([self.SPEED_DEPLOY, self.SPEED_RESET, self.SPEED_RETRACT, self.DURATION_RESET, self.DURATION_DEPLOY, self.DURATION_RETRACT_DOWN, self.DURATION_RETRACT_UP])))}")
 
     def reset(self):
         self.get_logger().info("Hydroprobe RESETTING")

@@ -57,6 +57,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GpsOffset.srv"
   "srv/KilnCommand.srv"
   "srv/LoadCellPoller.srv"
+  "srv/MoveHydroprobe.srv"
   "srv/MoveMicroscopeServo.srv"
   "srv/MoveScimbalCam.srv"
   "srv/RFIDCommand.srv"
