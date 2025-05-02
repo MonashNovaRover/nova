@@ -66,7 +66,7 @@ nix-shell -p 'with import /home/nova/nova/nixfiles { }; pkgs.ros.nova-workspace.
 		nova-arm-interfaces;
 	};
 }'
-ros2 run arm keyboard_localiser.py
+ros2 run arm keyboard_localiser.py --ros-args --params-file /home/nova/nova/src/ros/rover/nova_bringup/params/arm.yaml
 
 ros2 service call /get_key_position arm_interfaces/srv/KeyPosition '{key: "a"}'
 
@@ -78,6 +78,7 @@ In separate terminal:
 KEY_SERVICE_NAME = '/arm/keyboard/get_key_position'
 KEYBOARD_TF_SERVICE_NAME = '/arm/keyboard/transform_toggle'
 IMAGE_TOPIC = '/arm/periscope'
+DEBUG_TOPIC = '/keyboard_debug'
 
 
 class KeyboardLocaliser(Node):
@@ -86,6 +87,9 @@ class KeyboardLocaliser(Node):
 
         # Choose whether to use auto transform or manual align transform
         self.node_is_auto = self.declare_parameter('using_auto', True).get_parameter_value().bool_value
+        # Do we publish the debug image?
+        self.do_debug = self.declare_parameter('debug_image', True).get_parameter_value().bool_value
+        self.debug_pub = self.create_publisher(Image, DEBUG_TOPIC, 10)
 
         # key position initalisation
         self.keyboard_frame = self.declare_parameter('keyboard_frame', 'keyboard_frame').get_parameter_value().string_value
@@ -263,7 +267,19 @@ class KeyboardLocaliser(Node):
             return sorted_pts
 
         image_points = sort_corners(corners)
+        self.pub_debug_image(image, image_points)
         return image_points
+    
+    def pub_debug_image(self, img, points) -> None:
+        # Draw each point
+        for point in points:
+            cv2.circle(img, (int(point[0]), int(point[1])), radius=5, color=(0, 255, 0), thickness=-1)
+
+        # Convert OpenCV image -> ROS Image
+        output_msg = CvBridge().cv2_to_imgmsg(img, encoding="bgr8")
+
+        # Publish the image
+        self.debug_pub.publish(output_msg)
         
     def estimate_pose(self) -> None | TransformStamped:
         """Estimate pose of keyboard and return its transform"""
