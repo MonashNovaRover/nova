@@ -38,10 +38,10 @@ from launch_ros.substitutions import FindPackageShare
 def launch_setup(context, *args, **kwargs):
     nova_bringup_dir = FindPackageShare('nova_bringup')
 
-    gazebo = (LaunchConfiguration('gazebo').perform(context).lower() == 'true')
-    gps = LaunchConfiguration('gps').perform(context)
+    gazebo = LaunchConfiguration('gazebo')
+    gps = LaunchConfiguration('gps')
     gps_params = LaunchConfiguration('gps_params')
-    rl_params = LaunchConfiguration('rl_params').perform(context)
+    rl_params = LaunchConfiguration('rl_params')
     use_ukf = (LaunchConfiguration('use_ukf').perform(context).lower() == 'true')
 
     if use_ukf:
@@ -93,6 +93,7 @@ def launch_setup(context, *args, **kwargs):
                         ('imu', 'oak/imu/transformed')],
                 ),
                 IncludeLaunchDescription(
+                    condition=UnlessCondition(gazebo),
                     launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'gps_rover.launch.py'])),
                     launch_arguments={'gps_params': gps_params}.items(),
                 ),
