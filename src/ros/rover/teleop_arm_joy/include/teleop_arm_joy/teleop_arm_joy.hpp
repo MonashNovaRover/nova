@@ -1,7 +1,7 @@
 /**
  * @file teleop_arm_joy.hpp
  * @brief Header file for the TeleopArmJoy class, which handles joystick input for teleoperation of the robotic arm.
- * Last Edited by Bailey
+ * Last Edited by Abby
  */
 #ifndef TELEOP_ARM_JOY_HPP
 #define TELEOP_ARM_JOY_HPP
@@ -26,7 +26,8 @@ namespace teleop_arm_joy
   enum class ControlMode
   {
     FK,
-    IK
+    IK,
+	AutoTyping
   };
 
   inline std::string prettyPrintMode(const ControlMode mode)
@@ -37,6 +38,9 @@ namespace teleop_arm_joy
       return "FK";
     case ControlMode::IK:
       return "IK";
+	case ControlMode::AutoTyping:
+	  return "Autonomous Typing";
+	  break;
     default:
       return "Unknown Mode";
     }
@@ -90,6 +94,11 @@ class TeleopArmJoy : public rclcpp::Node {
     void sendTwistCommand();
 
     /**
+     * @brief Sends a task space typing command for the arm based on ???.
+     */
+    void sendAutoTypingCommand();
+    
+	/**
      * @brief Sends a halt command to stop the rover.
      * Called when locked.
      */

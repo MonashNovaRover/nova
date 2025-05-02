@@ -13,6 +13,7 @@ namespace
   constexpr auto BUTTON_DEBOUNCE_INTERVAL = std::chrono::milliseconds(50);
   constexpr auto DEFAULT_FK_VELOCITY_TOPIC = "/arm_fk_velocity_target";
   constexpr auto DEFAULT_IK_TWIST_TOPIC = "/arm_ik_twist_stamped";
+  constexpr auto DEFAULT_AUTO_TYPING_TOPIC = "/test";
 }
 
 using std::placeholders::_1;
@@ -32,11 +33,14 @@ TeleopArmJoy::TeleopArmJoy(const rclcpp::NodeOptions &options)
   ik_twist_pub = this->create_publisher<geometry_msgs::msg::TwistStamped>(
     DEFAULT_IK_TWIST_TOPIC, 50);
 
+  // TODO: create publisher for auto typing topic
+
   // Create service clients
   switch_controller_client = this->create_client<controller_manager_msgs::srv::SwitchController>("/controller_manager/switch_controller");
   // TODO: Make good for actual controller implementations
   fk_client = this->create_client<rcl_interfaces::srv::SetParameters>("/nova_arm_controller/set_parameters");
   ik_client = this->create_client<rcl_interfaces::srv::SetParameters>("/strafe_controller/set_parameters");
+  // TODO: create client for auto typing topic
 
   control_mode = ControlMode::FK;
 
@@ -188,6 +192,8 @@ void TeleopArmJoy::updateState() {
   // TODO: put speed into state
   handleSpeedChange();
 
+  // TODO: rework this
+  //
   setControlMode(buttons["twist_mode"]->value() ? ControlMode::IK : ControlMode::FK);
 }
 
@@ -206,6 +212,9 @@ void TeleopArmJoy::setControlMode(const ControlMode new_control_mode) {
   else if (new_control_mode == ControlMode::IK) {
     RCLCPP_INFO(get_logger(), "Switched to IK control.");
   }
+  else if (new_control_mode == ControlMode::AutoTyping) {
+    RCLCPP_INFO(get_logger(), "Switched to autonomous typing.");
+  }
 }
 
 void TeleopArmJoy::sendArmCommand()
@@ -218,6 +227,9 @@ void TeleopArmJoy::sendArmCommand()
   }
   else if (control_mode == ControlMode::IK) {
     sendTwistCommand();
+  }
+  else if (control_mode == ControlMode::AutoTyping) {
+    sendAutoTypingCommand();
   }
 }
 
@@ -283,6 +295,14 @@ void TeleopArmJoy::sendTwistCommand() {
   ik_twist_pub->publish(std::move(msg));
 }
 
+void TeleopArmJoy::sendAutoTypingCommand()
+{
+  // TODO: fill this out
+  auto msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
+
+  msg->header.stamp = this->now();
+}
+
 void TeleopArmJoy::sendHaltCommand()
 {
   // Send all zeroes for joint space
@@ -312,6 +332,8 @@ void TeleopArmJoy::sendHaltCommand()
   ik_msg->twist.angular = angular;
 
   ik_twist_pub->publish(std::move(ik_msg));
+
+  //TODO: halt auto typing command
 }
 
 void TeleopArmJoy::handleSpeedChange() {
@@ -325,6 +347,8 @@ std::vector<std::string> TeleopArmJoy::modeToControllers(const ControlMode mode)
       return params_.joint_space.controllers;
     case ControlMode::IK:
       return params_.twist.controllers;
+	case ControlMode::AutoTyping:
+	  return params_.auto.controllers;
     default:
       RCLCPP_WARN(get_logger(), "Unknown control type given to modeToControllers. Returning no controllers.");
       return {};
