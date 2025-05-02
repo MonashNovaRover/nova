@@ -69,7 +69,7 @@ export const Cartographer = () => {
           mapTile={mapTile}
           overlay={
             <>
-              <div className="flex flex-col justify-end gap-2 absolute top-2 right-2">
+              <div className="flex flex-col justify-end gap-2 absolute top-2 right-2 mr-12">
                 <div className="flex flex-row justify-end gap-1">
                   {mapInteractionMode === MapInteractionMode.SELECT &&
                     mousePosition && (

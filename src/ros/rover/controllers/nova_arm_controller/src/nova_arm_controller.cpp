@@ -341,6 +341,14 @@ controller_interface::CallbackReturn NovaArmController::on_activate(
     reference_interfaces_.begin(), reference_interfaces_.end(),
     std::numeric_limits<double>::quiet_NaN());
 
+
+  if (params_.use_position_control) {
+    // Set all joint command interfaces to be the current state interface values
+    for (auto& joint : registered_joint_handles_) {
+      joint.command.get().set_value(joint.state_pos.get().get_value());
+    }
+  }
+
   // TODO: setup sub and pub
   //RCLCPP_DEBUG(get_node()->get_logger(), "Subscriber and publisher are now active.");
   return controller_interface::CallbackReturn::SUCCESS;

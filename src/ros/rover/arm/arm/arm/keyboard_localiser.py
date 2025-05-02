@@ -18,30 +18,40 @@ EDITED:     6/04/2024
 TODO:
  - Find an IRL alignment
  - Make a rectangle overlay on camera in GUI
- - Make the OPENCV auto aligner (for more complex solution)
+ - Calibrate periscope camera
+ - Test with moveable arm (Arm is joints are currently locked to facilitate testing)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 
 from geometry_msgs.msg import PointStamped, TransformStamped
 from arm_interfaces.srv import KeyPosition, StringTrigger
+from sensor_msgs.msg import Image
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 
 from tf2_ros import Buffer, TransformListener, TransformBroadcaster
 
+import math
 import numpy as np
+from scipy.spatial.transform import Rotation as R
+import cv2
+from cv_bridge import CvBridge
 
-# hard coded coords (relative to center of keyboard in mm) 
-# left = -x, right = +x, up = +y, down = -y 
+# Expected keyboard size:
+KEYBOARD = (123, 354, 37) # (L, W, H) in mm 
+# where L is length (column of keys direction [qaz]), W is width (row of keys direction [qwertyuiop]), H is height (From base to key)
+# Hard coded key coordinates in mm (relative to center of keyboard; looking down at keyboard with cable facing up) 
+# left = -x, right = +x, up = -y, down = +y 
 # "key": (x, y) 
 KEY_MAP = { 
-    "esc": (-164, 50), "f1": (-126, 50), "f2": (-107, 50), "f3": (-88, 50), "f4": (-69, 50), "f5": (-40, 50), "f6": (-21, 50), "f7": (-2, 50), "f8": (17, 50), "f9": (46, 50), "f10": (65, 50), "f11": (84, 50), "f12": (103, 50), "prtsc": (126, 50), "scrlk": (145, 50), "pause": (164, 50),
-    "`": (-164, 28), "1": (-145, 28), "2": (-126, 28), "3": (-107, 28), "4": (-88, 28), "5": (-69, 28), "6": (-50, 28), "7": (-31, 28), "8": (-12, 28), "9": (7, 28), "0": (26, 28), "-": (45, 28), "=": (64, 28), "backspace": (93, 28), "ins": (126, 28), "home": (145, 28), "pgup": (164, 28),
-    "tab": (-159, 9), "q": (-135, 9), "w": (-116, 9), "e": (-97, 9), "r": (-78, 9), "t": (-59, 9), "y": (-40, 9), "u": (-21, 9), "i": (-2, 9), "o": (17, 9), "p": (36, 9), "[": (55, 9), "]": (74, 9), "\\": (97, 9), "del": (126, 9), "end": (145, 9), "pgdn": (164, 9),
+    "esc": (-164, -50), "f1": (-126, -50), "f2": (-107, -50), "f3": (-88, -50), "f4": (-69, -50), "f5": (-40, -50), "f6": (-21, -50), "f7": (-2, -50), "f8": (17, -50), "f9": (46, -50), "f10": (65, -50), "f11": (84, -50), "f12": (103, -50), "prtsc": (126, -50), "scrlk": (145, -50), "pause": (164, -50),
+    "`": (-164, -28), "1": (-145, -28), "2": (-126, -28), "3": (-107, -28), "4": (-88, -28), "5": (-69, -28), "6": (-50, -28), "7": (-31, -28), "8": (-12, -28), "9": (7, -28), "0": (26, -28), "-": (45, -28), "=": (64, -28), "backspace": (93, -28), "ins": (126, -28), "home": (145, -28), "pgup": (164, -28),
+    "tab": (-159, -9), "q": (-135, -9), "w": (-116, -9), "e": (-97, -9), "r": (-78, -9), "t": (-59, -9), "y": (-40, -9), "u": (-21, -9), "i": (-2, -9), "o": (17, -9), "p": (36, -9), "[": (55, -9), "]": (74, -9), "\\": (97, -9), "del": (126, -9), "end": (145, -9), "pgdn": (164, -9),
     "capslock": (-157, -10), "a": (-130, -10), "s": (-111, -10), "d": (-92, -10), "f": (-73, -10), "g": (-54, -10), "h": (-35, -10), "j": (-16, -10), "k": (3, -10), "l": (22, -10), ";": (41, -10), "'": (60, -10), "enter": (91, -10),
-    "lshift": (-152, -29), "z": (-121, -29), "x": (-102, -29), "c": (-83, -29), "v": (-64, -29), "b": (-45, -29), "n": (-26, -29), "m": (-7, -29), ",": (12, -29), ".": (31, -29), "/": (50, -29), "rshift": (86, -29), "uarrow": (145, -29),
-    "lctrl": (-161, -48), "win": (-138, -48), "lalt": (-114, -48), "space": (-44, -48), "ralt": (29, -48), "fn": (53, -48), "menu": (76, -48), "rctrl": (101, -48), "larrow": (126, -48), "darrow": (145, -48), "rarrow": (164, -48) 
+    "lshift": (-152, 29), "z": (-121, 29), "x": (-102, 29), "c": (-83, 29), "v": (-64, 29), "b": (-45, 29), "n": (-26, 29), "m": (-7, 29), ",": (12, 29), ".": (31, 29), "/": (50, 29), "rshift": (86, 29), "uarrow": (145, 29),
+    "lctrl": (-161, 48), "win": (-138, 48), "lalt": (-114, 48), "space": (-44, 48), "ralt": (29, 48), "fn": (53, 48), "menu": (76, 48), "rctrl": (101, 48), "larrow": (126, 48), "darrow": (145, 48), "rarrow": (164, 48) 
 }
 
 DEFAULT_POSITION = [0.0, 0.0, 0.0]
@@ -67,36 +77,66 @@ In separate terminal:
 
 KEY_SERVICE_NAME = '/arm/keyboard/get_key_position'
 KEYBOARD_TF_SERVICE_NAME = '/arm/keyboard/transform_toggle'
+IMAGE_TOPIC = '/arm/periscope'
 
 
 class KeyboardLocaliser(Node):
     def __init__(self):
         super().__init__('keyboard_localiser')
 
+        # Choose whether to use auto transform or manual align transform
+        self.node_is_auto = self.declare_parameter('using_auto', True).get_parameter_value().bool_value
+
         # key position initalisation
         self.keyboard_frame = self.declare_parameter('keyboard_frame', 'keyboard_frame').get_parameter_value().string_value
         self.base_frame = self.declare_parameter('base_frame', 'base_link').get_parameter_value().string_value
         self.key_srv = self.create_service(KeyPosition, KEY_SERVICE_NAME, self.get_key_position_callback)
         self.key_map = KEY_MAP
+        
+        THRESHOLD_CONTOUR_AREA = (30000, 80000) # expected pixel area bounds of rectangle in image
 
-        # keyboard alignment initalisation
+        # manual keyboard alignment initalisation
         self.aligned_keyboard_position = self.declare_parameter('aligned_keyboard_position', DEFAULT_POSITION).get_parameter_value().double_array_value
         self.aligned_keyboard_quaternion = self.declare_parameter('aligned_keyboard_quaternion', DEFAULT_QUATERNION).get_parameter_value().double_array_value
         self.align_srv = self.create_service(StringTrigger, KEYBOARD_TF_SERVICE_NAME, self.get_align_callback)
         self.is_aligned = False
 
+        # calibrated camera intrinsics
+        hfov = self.declare_parameter('hfov', 61.3727248).get_parameter_value().double_value
+        width = self.declare_parameter('image_width', 1280).get_parameter_value().integer_value
+        height = self.declare_parameter('image_height', 720).get_parameter_value().integer_value
+        focal_length = width / 2 / math.tan(math.radians(hfov)/2) # for defaults = 1078.467509; 
+        image_center = (width//2, height//2)
+        self.camera_matrix = np.array([
+            [focal_length, 0, image_center[0]],
+            [0, focal_length, image_center[1]],
+            [0, 0, 1]
+        ], dtype=np.float32)
+        dist_arr = self.declare_parameter('distortion_matrix', [0.0,0.0,0.0,0.0,0.0]).get_parameter_value().double_array_value
+        self.dist_coeffs = np.array(dist_arr)
+
+        # keyboard pose analysis initalisation
+        self.camera_frame = self.declare_parameter('camera_frame', 'arm_end_periscope_optical').get_parameter_value().string_value
+        self.view = None
+        self.view_sub = self.create_subscription(Image, IMAGE_TOPIC, self.view_callback, qos_profile=qos_profile_sensor_data)
+        self.keyboard_points = np.array([   # Corner points of the keyboard relative to the keyboard frame in mm (center of keyboard)
+            [-KEYBOARD[1]/2, -KEYBOARD[0]/2, 0],    # top-left
+            [KEYBOARD[1]/2,  -KEYBOARD[0]/2, 0],    # top-right
+            [KEYBOARD[1]/2,  KEYBOARD[0]/2, 0],     # bottom-right
+            [-KEYBOARD[1]/2, KEYBOARD[0]/2, 0]      # bottom-left
+        ], dtype=np.float32)
+
         # tf2 initalisation
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
         self.transform_broadcaster = TransformBroadcaster(self)
-        
-        # timer to constantly publish tf at period/second
         timer_period = self.declare_parameter('tf_publish_rate', 1.0).get_parameter_value().double_value
-        self.create_timer(timer_period, self.publish_tf)
+        self.create_timer(timer_period, self.publish_aligned_tf)
 
         self.get_logger().info(f"Running this node with services: {KEY_SERVICE_NAME}, {KEYBOARD_TF_SERVICE_NAME}. Using keyboard: {self.keyboard_frame} for transforms and base link: {self.base_frame}")
 
     def get_key_position_callback(self, request, response):
+        """Returns transform of the key requested from the service"""
         if request.key.lower() not in self.key_map:
             self.get_logger().warn(f"Key {request.key} not found in map.")
             return response
@@ -148,9 +188,9 @@ class KeyboardLocaliser(Node):
         except:
             return None
 
-    def publish_tf(self) -> None:
-        '''Publish the transform of the keyboard'''
-        if not self.is_aligned:
+    def publish_aligned_tf(self) -> None:
+        '''Publish the transform of the keyboard through the alignment method'''
+        if not self.is_aligned or self.node_is_auto:
             return
         
         tfs = TransformStamped()
@@ -161,6 +201,99 @@ class KeyboardLocaliser(Node):
         tfs.transform.rotation.x, tfs.transform.rotation.y, tfs.transform.rotation.z, tfs.transform.rotation.w = self.aligned_keyboard_quaternion
 
         self.transform_broadcaster.sendTransform(tfs)
+
+    def publish_analysis_tf(self) -> None:
+        '''Publish the transform of the keyboard through the solvePnP method'''
+        if self.view is None or not self.node_is_auto or not self.is_aligned:
+            return
+        transform = self.estimate_pose()
+        if transform is None:
+            return None
+        self.transform_broadcaster.sendTransform(transform)
+
+    def view_callback(self, view) -> None:
+        """ Callback when Image is recieved (Stores msg for retrieval) """
+        self.view = view
+        self.publish_analysis_tf()
+    
+    def msg_to_mat(self, logger, img, encoding) -> np.ndarray:
+        """Converts Image msg to cv2 frame"""
+        mat = None
+        try:
+            mat = CvBridge().imgmsg_to_cv2(img, encoding)
+        except Exception as e:
+            logger.error(str(e))
+        return mat
+
+    def get_corners(self) -> None | np.ndarray:
+        """ Get the sorted corners of the keyboard from the image msg """
+        image = self.msg_to_mat(self.get_logger(), self.view, 'bgr8')
+
+        # Get contours
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        edges = cv2.Canny(gray, 50, 150)
+        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # look for best rectangle contour
+        rect_contours = []
+        for cnt in contours:
+            # simplify contour polygon using algorithm (0.02 *cv2 arcLength is 2% of perimeter)
+            approx = cv2.approxPolyDP(cnt, 0.02 * cv2.arcLength(cnt, True), True)
+            # rectangle must have 4 sides and area within the threshold
+            areas = []
+            if len(approx) == 4 and cv2.isContourConvex(approx):
+                rect_contours.append(approx)
+
+        if len(rect_contours) < 1:
+            return None
+
+        rect = max(rect_contours, key=cv2.contourArea)
+
+        # Extract and reshape points to 2D array
+        corners = rect.reshape(4, 2)
+        # Sort the points in order: top-left, top-right, bottom-right, bottom-left
+        def sort_corners(pts) -> np.ndarray:
+            sorted_pts = np.zeros((4, 2), dtype="float32")
+            s = pts.sum(axis=1)
+            diff = np.diff(pts, axis=1)
+            sorted_pts[0] = pts[np.argmin(s)]       # top-left
+            sorted_pts[2] = pts[np.argmax(s)]       # bottom-right
+            sorted_pts[1] = pts[np.argmin(diff)]    # top-right
+            sorted_pts[3] = pts[np.argmax(diff)]    # bottom-left
+            return sorted_pts
+
+        image_points = sort_corners(corners)
+        return image_points
+        
+    def estimate_pose(self) -> None | TransformStamped:
+        """Estimate pose of keyboard and return its transform"""
+        ## run solvePnP
+        image_points = self.get_corners()
+        if image_points is None:
+            return None
+
+        success, rvec, tvec = cv2.solvePnP(self.keyboard_points, image_points, self.camera_matrix, self.dist_coeffs)
+        
+        # Convert to rotation matrix then to quaternion 
+        rotation_matrix, _ = cv2.Rodrigues(rvec)
+        rot = R.from_matrix(rotation_matrix)
+        quat = rot.as_quat()  # [x, y, z, w]
+        ## convert quaternion and transform vector to transform message
+        t = TransformStamped()
+        t.header.stamp = self.get_clock().now().to_msg()
+        t.header.frame_id = self.camera_frame
+        t.child_frame_id = self.keyboard_frame
+
+        t.transform.translation.x = tvec[0][0] / 1000.0  # mm → meters
+        t.transform.translation.y = tvec[1][0] / 1000.0
+        t.transform.translation.z = tvec[2][0] / 1000.0
+
+        t.transform.rotation.x = quat[0]
+        t.transform.rotation.y = quat[1]
+        t.transform.rotation.z = quat[2]
+        t.transform.rotation.w = quat[3]
+
+        return t
 
 
 def main():

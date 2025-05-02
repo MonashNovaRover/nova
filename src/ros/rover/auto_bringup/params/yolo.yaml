@@ -19,7 +19,7 @@ yolo_ros_debug_node:
   ros__parameters:
     image_reliability: 1
 
-cube_localiser:
+object_localiser:
   ros__parameters:
     depth_image_units_divisor: 1000.0   # in irl  # 1.0 in gazebo  # define the divisor to get the depth value to be meters
     maximum_detection_threshold: 0.3    # the maximum variance in depth value to calculate a point for a bounding box (2d mode only)
@@ -46,5 +46,5 @@ cube_localiser:
     depth_info_topic:  /oak/stereo/camera_info   # topic for depth info
     depth_image_topic:  /oak/stereo/image_raw    # topic for depth image
     detection_topic:  /oak/nn/detections         # "/oak/nn/spatial_detections" (if using spatial detections topic, make sure to set using_3D to true)
-    marker_topic:  /yolo/cubes                   # topic to publish markers
+    marker_topic:  /yolo/objects                   # topic to publish markers
 
