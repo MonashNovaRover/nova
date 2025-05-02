@@ -32,17 +32,17 @@ teleop_arm_joy_node:
       J3:
         device: "Left"
         id: 1
+        invert: true
       J4:
         device: "Right"
         id: 1
-        invert: true
       J5:
         device: "Right"
         id: 0
-        invert: true
       J6:
         device: "Right"
         id: 2
+        invert: true
 
       speed:
         device: "Right"
@@ -59,7 +59,8 @@ teleop_arm_joy_node:
         id: 0
       twist_z:
         device: "Right"
-        id: 2   # 2
+        id: 2
+        invert: true
 
       twist_roll:
         device: "Left"
