@@ -48,19 +48,32 @@ class HydroprobeControlNode(JoystickControllerNode):
     DIRECTION_DOWN = Direction.NEGATIVE
 
     # TUNABLE PARAMETERS
-    SPEED_DEPLOY = 10
-    SPEED_RESET = 108
-    SPEED_RETRACT = 175
-    DURATION_RESET = 4 # s
-    DURATION_DEPLOY = 1.8 # s
-    DURATION_RETRACT_DOWN = 0.5 # s
-    DURATION_RETRACT_UP = 2.1 # s
+    SPEED_DEPLOY = "speed_deploy"
+    SPEED_RESET = "speed_reset"
+    SPEED_RETRACT = "speed_retract"
+    DURATION_RESET = "duration_reset"
+    DURATION_DEPLOY = "duration_deploy"
+    DURATION_RETRACT_DOWN = "duration_retract_down"
+    DURATION_RETRACT_UP = "duration_retract_up"
 
     def __init__(self):
         super().__init__(name="SweepyServoNode", can_bus=self.CAN_BUS, command_period=self.COMMAND_PERIOD)
         logger = self.get_logger()
 
         self.velocity = 0.5
+
+        self.declare_parameters(
+            namespace="",
+            parameters=[
+                (self.SPEED_DEPLOY, 10),
+                (self.SPEED_RESET, 108),
+                (self.SPEED_RETRACT, 175),
+                (self.DURATION_RESET, 4),
+                (self.DURATION_DEPLOY, 1.8),
+                (self.DURATION_RETRACT_UP, 0.5),
+                (self.DURATION_RETRACT_UP, 2.1),
+            ],
+        )
 
         ## Create CONTROLS
         self.hydroprobe_servo = OneAxisVelocityControl(

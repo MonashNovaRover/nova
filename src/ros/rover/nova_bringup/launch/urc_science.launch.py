@@ -21,10 +21,15 @@ EDITED BY: Tristan Clark, Josh Leivenzon,
 """
 from launch import LaunchDescription
 from launch.actions import OpaqueFunction, DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
+
 
 def launch_setup(context, *args, **kwargs):
+    nova_bringup_dir = FindPackageShare('nova_bringup')
+    hydroprobe_control_params = PathJoinSubstitution([nova_bringup_dir, 'params', 'hydroprobe_control.yaml'])
+
     # parameterised canIDs
     auger1_drill_canid = LaunchConfiguration('auger1_drill_canid')
     auger1_actuation_canid = LaunchConfiguration('auger1_actuation_canid')
@@ -139,6 +144,13 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='science',
             executable='urc_hydraprobe.py',
+            output='screen',
+            emulate_tty=True,
+        ),
+        Node(
+            name="HydroprobeControl",
+            package='science',
+            executable='urc_hydraprobe_control.py',
             output='screen',
             emulate_tty=True,
         ),

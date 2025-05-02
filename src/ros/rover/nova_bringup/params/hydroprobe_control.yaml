@@ -1,0 +1,9 @@
+HydroprobeControl:
+  ros__parameters:
+    speed_deploy: 10
+    speed_reset: 108
+    speed_retract: 175
+    duration_reset: 4
+    duration_deploy: 1.8
+    duration_retract_down: 0.5
+    duration_retract_up: 2.1
