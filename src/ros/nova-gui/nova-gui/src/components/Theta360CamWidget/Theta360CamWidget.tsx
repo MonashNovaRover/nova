@@ -9,7 +9,6 @@ import {RosService} from "../../ros/services/rosService.ts";
 import {Save} from "react-feather";
 import ExtendedDownloadButton from "../shared/ExtendedDownload.tsx";
 import SegmentedPicker from "../SegmentedPicker/SegmentedPicker.tsx";
-import useImageTexture from "../../hooks/webgl/program/sampler/useImageTexture.ts";
 import monkey from "../../assets/equirectangular.png";
 import Panorama360CamCanvas from "./Panorama360CamCanvas.tsx";
 
