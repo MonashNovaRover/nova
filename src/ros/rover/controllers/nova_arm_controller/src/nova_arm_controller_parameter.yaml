@@ -9,20 +9,10 @@ nova_arm_controller:
     default_value: false,
     description: "When true, the arm is driven using position control. Otherwise, it is driven using velocity control."
   }
-  joint_position_feedback: {
-    type: bool,
-    default_value: false, # for the arm I dunno if we will ever not have this, maybe this option should be removed
-    description: "Is there position feedback from joint hardware.",
-  }
   cmd_timeout: {
     type: double,
     default_value: 0.5, # seconds
     description: "Timeout in seconds, after which input command on ``TODO`` topic is considered staled.",
-  }
-  publish_limited_velocity: {
-    type: bool,
-    default_value: false,
-    description: "Publish limited velocity value.",
   }
   publish_rate: {
     type: double,
