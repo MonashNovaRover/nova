@@ -44,7 +44,7 @@ const DepthSensor: React.FC<BaseCameraComponentProps> = (
         <Card className="flex flex-col justify-around gap-3 py-3">
             {DepthSensorCardBody}
             <div className="flex flex-row justify-center">
-                <CardHeader className="w-auto text-h1 p-0">Auger Depth Sensors: Drilled more than 10cm?</CardHeader>
+                <CardHeader className="w-auto text-h1 p-0 text-center">Auger Depth Sensors: Drilled more than 10cm?</CardHeader>
             </div>
         </Card>
     );
