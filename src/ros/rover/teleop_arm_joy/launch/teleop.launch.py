@@ -51,7 +51,7 @@ def launch_setup(context, *args, **kwargs):
             package='teleop_arm_joy',
             executable='teleop_arm_joy_node',
             name='teleop_arm_joy_node',
-            parameters=[PathJoinSubstitution([teleop_arm_joy_dir, 'config', f'{joystick}.config.yaml'])],
+            parameters=[params_file],
             remappings=[
                 ('/cmd_vel', joy_vel),
             ],
