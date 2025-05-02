@@ -336,7 +336,7 @@
 <!--    </collision>-->
   </link>
 
-  <link name="arm_end_side">
+  <link name="arm_end_side_optical">
     <inertial>
       <origin xyz="5.0388580281e-20 -5.0000002375e-04 -2.0596424901e-20" rpy="0 0 0" />
       <mass value="1e-09" />
@@ -363,7 +363,7 @@
   <joint name="camera_ee_side" type="fixed">
     <origin xyz="-0.000216235 0.178108 -0.0547417" rpy="0 0.00174763 3.14159" />
     <parent link="rightfinger" />
-    <child link="arm_end_side" />
+    <child link="arm_end_side_optical" />
     <axis xyz="0 0 1" />
     <limit effort="10" velocity="10" />
   </joint>
@@ -432,7 +432,7 @@
     <limit effort="10" velocity="10" lower="-1.22125e-15" upper="0.055" />
   </joint>
 
-  <link name="arm_end_finger">
+  <link name="arm_end_finger_optical">
     <inertial>
       <origin xyz="5.0388580281e-20 -5.0000002375e-04 -2.0596424901e-20" rpy="0 0 0" />
       <mass value="1e-09" />
@@ -459,7 +459,7 @@
   <joint name="camera_ee_finger" type="fixed">
     <origin xyz="1.96205e-05 -0.0711415 -0.0299814" rpy="-3.14152 ${radians(180) + 1.52166} -1.5708" />
     <parent link="leftfinger" />
-    <child link="arm_end_finger" />
+    <child link="arm_end_finger_optical" />
     <axis xyz="0 0 1" />
     <limit effort="10" velocity="10" />
   </joint>
@@ -472,7 +472,7 @@
     <limit effort="10" velocity="10" lower="0" upper="0.084" />
   </joint>
 
-  <link name="arm_end_top">
+  <link name="arm_end_top_optical">
     <inertial>
       <origin xyz="5.0388580281e-20 -5.0000002375e-04 -2.0596424901e-20" rpy="0 0 0" />
       <mass value="1e-09" />
@@ -499,12 +499,12 @@
   <joint name="camera_ee_top" type="fixed">
     <origin xyz="-6.33269e-14 0.10042 0.231753" rpy="1.5708 ${-1.56853 - radians(90)} 0" />
     <parent link="eebase" />
-    <child link="arm_end_top" />
+    <child link="arm_end_top_optical" />
     <axis xyz="0 0 1" />
     <limit effort="10" velocity="10" />
   </joint>
 
-  <link name="arm_end_periscope">
+  <link name="arm_end_periscope_optical">
     <inertial>
       <origin xyz="5.0388580281e-20 -5.0000002375e-04 -2.0596424901e-20" rpy="0 0 0" />
       <mass value="1e-09" />
@@ -531,17 +531,17 @@
   <joint name="camera_ee_periscope" type="fixed">
      <origin xyz="-0.00015 -0.0378336 0.0594947" rpy="-3.14159 -3.14159 0" />
     <parent link="eebase" />
-    <child link="arm_end_periscope" />
+    <child link="arm_end_periscope_optical" />
     <axis xyz="0 0 1" />
     <limit effort="10" velocity="10" />
   </joint>
 
-  <joint name="J6" type="continuous">
+  <joint name="J6" type="revolute">
     <origin xyz="5.64652e-16 -0.1945 0.05075" rpy="1.5708 -1.48145e-14 2.12503e-17" />
     <parent link="j6" />
     <child link="eebase" />
     <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" />
+    <limit effort="10" velocity="10" lower="0" upper="0"/>
   </joint>
 
   <joint name="J5" type="revolute">
@@ -549,7 +549,7 @@
     <parent link="j5" />
     <child link="j6" />
     <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" lower="-1.5708" upper="1.91986" />
+    <limit effort="10" velocity="10" lower="0" upper="0" />
   </joint>
 
   <joint name="J4" type="revolute">
@@ -557,15 +557,15 @@
     <parent link="l2" />
     <child link="j5" />
     <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" lower="-1.5708" upper="1.5708" />
+    <limit effort="10" velocity="10" lower="0" upper="0" />
   </joint>
 
-  <joint name="l1a_tp" type="continuous">
+  <joint name="l1a_tp" type="revolute">
     <origin xyz="7.73032e-10 -0.5 0.0239" rpy="5.57224e-15 1.15529e-15 1.5708" />
     <parent link="l1" />
     <child link="l2" />
     <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" />
+    <limit effort="10" velocity="10" lower="0" upper="0"/>
     <mimic joint="J3" multiplier="1" offset="0"/>
   </joint>
 
@@ -574,7 +574,7 @@
     <parent link="linkagedrive" />
     <child link="l1" />
     <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793" />
+    <limit effort="10" velocity="10" lower="0" upper="0" />
   </joint>
 
   <link name="l2prime">
@@ -650,20 +650,20 @@
     </collision>
   </link>
 
-  <joint name="l1b_tp" type="continuous">
+  <joint name="l1b_tp" type="revolute">
     <origin xyz="3.05311e-16 -0.5 5.77479e-16" rpy="-1.0988e-15 4.62615e-16 0.648016" />
     <parent link="l1prime" />
     <child link="l2cam" />
     <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" />
+    <limit effort="10" velocity="10" lower="0" upper="0"/>
   </joint>
 
-  <joint name="l1b_bp" type="continuous">
+  <joint name="l1b_bp" type="revolute">
     <origin xyz="0.0797283 -0.0603606 -0.006" rpy="-1.08371e-22 -4.6005e-22 -0.648016" />
     <parent link="l2prime" />
     <child link="l1prime" />
     <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" />
+    <limit effort="10" velocity="10" lower="0" upper="0"/>
   </joint>
 
   <joint name="J3" type="revolute">
@@ -671,15 +671,15 @@
     <parent link="linkagedrive" />
     <child link="l2prime" />
     <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793" />
+    <limit effort="10" velocity="10" lower="0" upper="0" />
   </joint>
 
-  <joint name="J1" type="continuous">
+  <joint name="J1" type="revolute">
     <origin xyz="-2.45166e-16 -1.77636e-15 -0.062" rpy="3.14159 -0 -7.70285e-39" />
     <parent link="gearbox" />
     <child link="linkagedrive" />
     <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" />
+    <limit effort="10" velocity="10" lower="0" upper="0"/>
   </joint>
 
   <joint name="base_to_gearbox" type="fixed">

@@ -131,6 +131,12 @@ in
           gui-rosbridge = "~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
           gui-run = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui dev";
 
+          # Tile server
+          tileserver-build = "nix-build -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/173b74db07f26344f3517716edd4bff6987b512d.tar.gz -E 'with import <nixpkgs> { }; callPackage ~/nova/nixfiles/packages/other/tileserver-gl-shell { }' -o ~/nova/src/ros/nova-gui/nova-gui/tileserver-gl-shell";
+          tileserver-shell = "~/nova/src/ros/nova-gui/nova-gui/tileserver-gl-shell/bin/tileserver-gl-fhs";
+          tileserver-install = "npm install -g --prefix ~/.npm-global tileserver-gl";
+          tileserver-run = "~/.npm-global/bin/tileserver-gl --file";
+
           # LEDs
           leds-red = "cansend can0 095#0100";
           leds-green = "cansend can0 095#0200";
@@ -145,6 +151,7 @@ in
           cop-mode-on = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} on";
           cop-mode-off = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} off";
           shitdown = "shutdown now";
+          diddy = "sudo shitdown";
 
           # Temporary aliases (remove when a better solution has been implemented)
           cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";

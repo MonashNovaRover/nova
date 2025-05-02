@@ -20,6 +20,10 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2_msgs
   nova_interfaces
   joint_limits
+  moveit_core
+  moveit_ros_planning
+  moveit_ros_planning_interface
+  urdf
 )
 
 find_package(ament_cmake REQUIRED)
@@ -34,6 +38,7 @@ generate_parameter_library(nova_arm_controller_parameters
 
 add_library(nova_arm_controller SHARED
   src/nova_arm_controller.cpp
+  src/self_collision_limiter.cpp
 )
 target_compile_features(nova_arm_controller PUBLIC cxx_std_17)
 target_include_directories(nova_arm_controller PUBLIC

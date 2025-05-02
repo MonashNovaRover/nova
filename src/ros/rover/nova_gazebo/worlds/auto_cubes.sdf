@@ -259,6 +259,9 @@
       </link>
     </model>
     -->
+    <include>
+      <uri>model://ar_tag</uri>
+    </include>
 
   </world>
 </sdf>

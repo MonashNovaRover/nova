@@ -20,6 +20,7 @@
   depthai-ros,
   rtabmap-ros,
   nova-behavior-tree,
+  nova-object-localisation,
   nova-costmap-2d,
   nova-pointcloud-filter,
   nova-rover-description,
@@ -32,6 +33,7 @@
   tf2-tools,
   yolo-ros,
   lattice-primitive-generator,
+  spatio-temporal-voxel-layer,
 }:
 
 buildRosPackage rec {
@@ -66,6 +68,7 @@ buildRosPackage rec {
       depthai-ros
       rtabmap-ros
       nova-behavior-tree
+      nova-object-localisation
       nova-costmap-2d
       nova-pointcloud-filter
       nova-rover-description
@@ -76,7 +79,8 @@ buildRosPackage rec {
       nova-pivot-drive-controller
       tf2-tools
       imu-transformer
-      yolo-ros
+      yolo-ros # this is only used in sim, so if space is needed on rover, comment out this package. (Used for nova-object-localisation)
+      spatio-temporal-voxel-layer
       lattice-primitive-generator;
   };
 
@@ -89,14 +93,14 @@ buildRosPackage rec {
   ];
   postInstall = ''
     # Generate absolute nix store filepaths for JSON files
-    jsonFilepath="$out/share/auto_bringup/resources/YOLOv11/best.json"
+    jsonFilepath="$out/share/auto_bringup/resources/YOLO_ARCh_2025/best.json"
     jsonFile=$(cat $jsonFilepath)
 
     updatedJsonFile=$(echo "$jsonFile" | jq --arg out "$out" '. + {
       model: {
-        bin: "\($out)/share/auto_bringup/resources/YOLOv11/best.bin",
-        model_name: "\($out)/share/auto_bringup/resources/YOLOv11/best_openvino_2022.1_6shave.blob",
-        xml: "\($out)/share/auto_bringup/resources/YOLOv11/best.xml",
+        bin: "\($out)/share/auto_bringup/resources/YOLO_ARCh_2025/best.bin",
+        model_name: "\($out)/share/auto_bringup/resources/YOLO_ARCh_2025/best_openvino_2022.1_6shave.blob",
+        xml: "\($out)/share/auto_bringup/resources/YOLO_ARCh_2025/best.xml",
         zoo: "path"
       }
     }')

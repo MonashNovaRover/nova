@@ -54,15 +54,15 @@ namespace nova_twistmapper
       // Create the parameter listener and get the parameters
       param_listener_ = std::make_shared<ParamListener>(get_node());
       params_ = param_listener_->get_params();
+
+      kinematics_solver_loader_ = std::make_unique<pluginlib::ClassLoader<kinematics::KinematicsBase>>(
+        "moveit_core", "kinematics::KinematicsBase");
     }
     catch (const std::exception &e)
     {
       fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
       return controller_interface::CallbackReturn::ERROR;
     }
-
-    kinematics_solver_loader_ = std::make_unique<pluginlib::ClassLoader<kinematics::KinematicsBase>>(
-      "moveit_core", "kinematics::KinematicsBase");
 
     return controller_interface::CallbackReturn::SUCCESS;
   }
@@ -625,7 +625,7 @@ namespace nova_twistmapper
   bool NovaTwistmapper::check_path_for_self_intersection(const std::vector<double> &seed_state,
                                                          const std::vector<double> &target_positions) {
     // Find the largest difference between values in seed_state and target_positions
-    auto largest_displacement = 0;
+    auto largest_displacement = 0.0;
     for (size_t i = 0; i < seed_state.size(); i++) {
       auto displacement = abs(target_positions[i] - seed_state[i]);
 

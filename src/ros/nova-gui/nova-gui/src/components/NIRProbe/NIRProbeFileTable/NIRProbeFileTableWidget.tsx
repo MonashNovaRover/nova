@@ -5,45 +5,53 @@ import {
   CardHeader,
   CardProps,
 } from "@nextui-org/react";
-import React, {useState} from "react";
+import React, {ReactNode, useState} from "react";
 import NIRProbeFileTable from "./NIRProbeFileTable.tsx";
-import NIRProbeCalcTable from "./NIRProbeCalcTable.tsx";
 import {MoreHorizontal} from "react-feather";
-import NIRCalibrationSettingsModal from "./NIRCalibrationSettingsModal.tsx";
+import {NIRSettingsModalProps} from "./NIRCalibrationSettingsModal.tsx";
+import {NIRProbeReadingTypeInfo} from "../SpaceResourcesSiteType.tsx";
 
 export interface NIRProbeFileTableWidgetProps extends CardProps {
+  Modal?: React.FC<NIRSettingsModalProps>
+  headerTable: ReactNode
+  readingInfo: NIRProbeReadingTypeInfo[] // list of NIRProbeReadingTypeInfo: [off, PD1, PD2]
 }
 
 /**
  * Widget containing the saved NIR Probe readings and the averages
+ * @param Modal an optional modal that can be added to the widget
+ * @param headerTable the table to sit at the top of the widget
+ * @param readingInfo display information about each photodiode, should be of the form [off, PD1, PD2]
  * @param cardProps
  * @constructor
  */
 const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
-  ...cardProps
-}) => {
+  Modal, headerTable, readingInfo, ...cardProps
+}: NIRProbeFileTableWidgetProps) => {
   const [calibrationModalIsOpen, setCalibrationModalIsOpen] = useState<boolean>(false)
 
   return (
     <Card {...cardProps}>
       <CardHeader className="pb-0 flex flex-row justify-center">
         <div className="grow">NIR Probe File Table</div>
-        <Button
-          variant={"light"}
-          isIconOnly
-          onPress={() => setCalibrationModalIsOpen(true)}
-        >
-          <MoreHorizontal/>
-        </Button>
+        {Modal &&
+          <Button
+            variant={"light"}
+            isIconOnly
+            onPress={() => setCalibrationModalIsOpen(true)}
+          >
+            <MoreHorizontal/>
+          </Button>
+        }
       </CardHeader>
       <CardBody className="flex flex-col gap-3 p-3">
-        <NIRProbeCalcTable/>
-        <NIRProbeFileTable/>
+        {headerTable}
+        <NIRProbeFileTable readingInfo={readingInfo}/>
       </CardBody>
-      <NIRCalibrationSettingsModal
+      {Modal && <Modal
         isOpen={calibrationModalIsOpen}
         setIsOpen={setCalibrationModalIsOpen}
-      />
+      />}
     </Card>
   );
 }

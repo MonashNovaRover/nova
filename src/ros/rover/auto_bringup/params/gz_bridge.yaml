@@ -33,6 +33,13 @@
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
+# Oak pointcloud
+- ros_topic_name: "/oak/gz_points"
+  gz_topic_name: "/oak/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
+  direction: GZ_TO_ROS
+
 # Bootie depth image
 - ros_topic_name: "/bootie/stereo/image_raw"
   gz_topic_name: "/bootie/depth_image"
@@ -61,6 +68,13 @@
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
+# Bootie pointcloud
+- ros_topic_name: "/bootie/gz_points"
+  gz_topic_name: "/bootie/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
+  direction: GZ_TO_ROS
+
 # Imu
 - ros_topic_name: "/oak/imu/transformed"
   gz_topic_name: "/oak/imu"
@@ -68,18 +82,11 @@
   gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
 
-# Gps
-- ros_topic_name: "/fix" # guessing this one could also be /gps_plugin/vel ?
+# GPS
+- ros_topic_name: "/fix"
   gz_topic_name: "/gps"
-  ros_type_name: "sensor_msgs/msg/NavSatFix" # or "gps_msgs/msg/GPSFix" ?
+  ros_type_name: "sensor_msgs/msg/NavSatFix"
   gz_type_name: "gz.msgs.NavSat"
-  direction: GZ_TO_ROS
-
-# Pose
-- ros_topic_name: "/odom/gazebo"
-  gz_topic_name: "/model/Banksia/pose"
-  ros_type_name: "geometry_msgs/msg/Pose"
-  gz_type_name: "gz.msgs.Pose"
   direction: GZ_TO_ROS
 
 # Odom

@@ -10,9 +10,10 @@
 #include "rclcpp/logging.hpp"
 #include "joint_limits/joint_limits_rosparam.hpp"
 
+
 namespace
 {
-  constexpr auto DEFAULT_INPUT_TOPIC_ARM_JOINT_VELOCITY = "/arm_fk_velocity_target"; // TODO: changeme
+  constexpr auto DEFAULT_INPUT_TOPIC_ARM_JOINT_VELOCITY = "/arm_fk_velocity_target";
 } // namespace
 
 
@@ -43,6 +44,16 @@ controller_interface::CallbackReturn NovaArmController::on_init()
   catch (const std::exception &e)
   {
     fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
+    return controller_interface::CallbackReturn::ERROR;
+  }
+  
+  if (!this->joint_limiter.init(params_.joint_names, get_node())) {
+    RCLCPP_ERROR(get_node()->get_logger(), "Failed to init joint limiter");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+
+  if (!this->collision_limiter.init(params_.joint_names, get_node(), get_robot_description())) {
+    RCLCPP_ERROR(get_node()->get_logger(), "Failed to init collision limiter");
     return controller_interface::CallbackReturn::ERROR;
   }
 
@@ -91,6 +102,7 @@ std::vector<hardware_interface::CommandInterface> NovaArmController::on_export_r
 // Called before update_and_write_commands
 controller_interface::return_type NovaArmController::update_reference_from_subscribers(const rclcpp::Time &time, const rclcpp::Duration &period) {
   // TODO: implement position control, and have it choose between position or velocity functions based on some state or parameter
+  (void)time;(void)period; // slience unused vars
   return update_velocity_reference_from_subscribers();
 }
 
@@ -155,6 +167,7 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     const rclcpp::Time &time, const rclcpp::Duration &period)
 {
   auto logger = get_node()->get_logger();
+  (void)time;(void)period; // slience unused vars
 
   // TODO: change implementation to use values from reference_interfaces_ rather than the subscriber message.
   // (anything related to the subscriber should not exist in this function)
@@ -206,6 +219,8 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
   }
   this->get_joint_states(current);
   this->joint_limiter.enforce(current, desired, period);
+  this->collision_limiter.enforce(current, desired, period);
+
 
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
   {
@@ -253,11 +268,22 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  // TODO: setup publishers?
+
+
+
   joint_limits::JointLimitsStateDataType current;
   this->get_joint_states(current);
-  this->joint_limiter.configure(current);
+  
+  if (!this->joint_limiter.configure(current)) {
+    RCLCPP_ERROR(logger, "Failed to configure joint limiter!");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+  if (!this->collision_limiter.configure(current)) {
+    RCLCPP_ERROR(logger, "Failed to configure collision limiter!");
+    return controller_interface::CallbackReturn::ERROR;
+  }
 
+  // TODO: setup publishers?
   RCLCPP_INFO(get_node()->get_logger(), "Creating subscriber");
 
   input_subscriber_ = get_node()->create_subscription<nova_interfaces::msg::ArmFkVelocityTargets>(
@@ -315,6 +341,14 @@ controller_interface::CallbackReturn NovaArmController::on_activate(
     reference_interfaces_.begin(), reference_interfaces_.end(),
     std::numeric_limits<double>::quiet_NaN());
 
+
+  if (params_.use_position_control) {
+    // Set all joint command interfaces to be the current state interface values
+    for (auto& joint : registered_joint_handles_) {
+      joint.command.get().set_value(joint.state_pos.get().get_value());
+    }
+  }
+
   // TODO: setup sub and pub
   //RCLCPP_DEBUG(get_node()->get_logger(), "Subscriber and publisher are now active.");
   return controller_interface::CallbackReturn::SUCCESS;
@@ -336,6 +370,7 @@ controller_interface::CallbackReturn NovaArmController::on_deactivate(
 
 bool NovaArmController::on_set_chained_mode(bool chained_mode) {
   // This method is called when the chained mode is set.
+  (void)chained_mode; // silence unused vars
   return true;
 }
 
@@ -457,8 +492,6 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
           }
         );
   }
-
-  this->joint_limiter.init(joint_names, get_node());
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
