@@ -1,18 +1,21 @@
 teleop_arm_joy_node:
   ros__parameters:
+    twist:
+      linear_max: 0.25
+      angular_max: 0.785398163395
     joints:
       J1:
-        max_speed: 1.0
+        max_speed: 0.785398163395
       J2:
-        max_speed: 1.0
+        max_speed: 0.785398163395
       J3:
-        max_speed: 1.0
+        max_speed: 0.785398163395
       J4:
-        max_speed: 1.0
+        max_speed: 0.785398163395
       J5:
-        max_speed: 1.0
+        max_speed: 0.785398163395
       J6:
-        max_speed: 1.0
+        max_speed: 0.785398163395
     device_names: ["Left", "Right"]
     devices:
       Left:
@@ -50,24 +53,26 @@ teleop_arm_joy_node:
 
       twist_x:
         device: "Right"
-        id: 0
-        invert: true
+        id: 1
       twist_y:
         device: "Right"
-        id: 1
+        id: 0
       twist_z:
         device: "Right"
-        id: 2
+        id: 2   # 2
 
-      twist_yaw:
-        device: "Left"
-        id: 1
-      twist_pitch:
-        device: "Left"
-        id: 0
       twist_roll:
         device: "Left"
+        id: 0
+      twist_pitch:
+        device: "Left"
+        id: 1
+        invert: true
+      twist_yaw:
+        device: "Left"
         id: 2
+      
+      
 
     buttons:
       twist_mode:
