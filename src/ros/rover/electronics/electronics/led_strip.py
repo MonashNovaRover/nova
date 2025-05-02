@@ -24,32 +24,39 @@ class LedStrip(ControllerNode):
 
     CAN_BUS = "can0"
 
-    RED_CONTROL_ID = 0x092
-    GREEN_CONTROL_ID = 0x093
-    BLUE_CONTROL_ID = 0x094
+#     RED_CONTROL_ID = 0x092
+#     GREEN_CONTROL_ID = 0x093
+#     BLUE_CONTROL_ID = 0x094
+
+    COLOR_ID = 0X096
 
     def __init__(self):
         super(LedStrip, self).__init__(name="led_strip", can_bus=self.CAN_BUS)
         self.led_service = self.create_service(RGBInput, '/set_RGBInput', self.led_service_callback)
 
-        self.green_timer = self.create_timer(0.1, self.set_green, autostart=False)
-        self.blue_timer = self.create_timer(0.2, self.set_blue, autostart=False)
-
-        self.last_green = 0
-        self.last_blue = 0
+#         self.green_timer = self.create_timer(0.1, self.set_green, autostart=False)
+#         self.blue_timer = self.create_timer(0.2, self.set_blue, autostart=False)
+#         self.last_green = 0
+#         self.last_blue = 0
 
         self.start_can()
 
     def led_service_callback(self, request, response):
         self.get_logger().info(f"Received service request: {request}")
-        self.set_duty_cycle(self.RED_CONTROL_ID, request.r)
+#         self.set_duty_cycle(self.COLOR_ID, request.r)
 
-        self.last_green = request.g
-        self.last_blue = request.b
-        self.green_timer.reset()
-        self.blue_timer.reset()
+#         self.last_green = request.g
+#         self.last_blue = request.b
+#         self.green_timer.reset()
+#         self.blue_timer.reset()
 
-        response.success = True
+        red = (request.r // 16) << 4
+        green = request.g // 16
+        blue = request.b // 16 << 4
+
+        data = [red + green, blue]
+
+        response.success = self.send_can_message(self.COLOR_ID, data)
         return response
 
     def send_can_message(self, frame_id, data):
@@ -59,18 +66,20 @@ class LedStrip(ControllerNode):
             self.bus.send(frame)
         except Exception as e:
             self.get_logger().error(f"Failed to send CAN message: {e}")
+            return False
+        return True
 
-    def set_green(self):
-        self.green_timer.cancel()
-        self.set_duty_cycle(self.GREEN_CONTROL_ID, self.last_green)
+#     def set_green(self):
+#         self.green_timer.cancel()
+#         self.set_duty_cycle(self.GREEN_CONTROL_ID, self.last_green)
+#
+#     def set_blue(self):
+#         self.blue_timer.cancel()
+#         self.set_duty_cycle(self.BLUE_CONTROL_ID, self.last_blue)
 
-    def set_blue(self):
-        self.blue_timer.cancel()
-        self.set_duty_cycle(self.BLUE_CONTROL_ID, self.last_blue)
-
-    def set_duty_cycle(self, control_id, level):
-        data = [level, 0x00]
-        self.send_can_message(control_id, data)
+#     def set_duty_cycle(self, control_id, level):
+#         data = [level, 0x00]
+#         self.send_can_message(control_id, data)
 
 def main(args=None):
     rclpy.init(args=args)
