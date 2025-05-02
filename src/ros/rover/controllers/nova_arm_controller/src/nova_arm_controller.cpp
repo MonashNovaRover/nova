@@ -219,8 +219,10 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
   }
   this->get_joint_states(current);
   this->joint_limiter.enforce(current, desired, period);
-  this->collision_limiter.enforce(current, desired, period);
 
+  if (params_.use_collision_limits) {
+    this->collision_limiter.enforce(current, desired, period);
+  }
 
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
   {

@@ -19,6 +19,11 @@ nova_arm_controller:
     default_value: 50.0, # Hz
     description: "Publishing rate (Hz) of feedback messages",
   }
+  use_collision_limits: {
+    type: bool,
+    default_value: true,
+    description: "True if the arm should perform self intersection checks",
+  }
   joint_limits: # yes this is long but this is how get_joint_limits() expects it. units are radians and seconds
     J1:
       has_position_limits: {
