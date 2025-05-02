@@ -471,10 +471,19 @@
     <limit effort="10" velocity="10" lower="0" upper="0" />
   </joint>
 
+  <!-- Enables proper 4 bar linkage kinematics -->
+  <link name="l1a_tp_j2_mimic"/>
+  <joint name="l1a_tp_j2_mimic_joint" type="revolute">
+    <!-- before rotating to match IK function expected 0: 1.5707963 0.0 1.5707963 -->
+    <origin xyz="0 0 0" rpy="0.0 0.0 0.0" />
+    <parent link="l1a_tp_j2_mimic" />
+    <child link="l2" />
+    <mimic joint="J2" multiplier="1" offset="0"/>
+  </joint>
   <joint name="l1a_tp" type="revolute">
     <origin xyz="7.73032e-10 -0.5 0.0239" rpy="5.57224e-15 1.15529e-15 1.5708" />
     <parent link="l1" />
-    <child link="l2" />
+    <child link="l1a_tp_j2_mimic" />
     <axis xyz="0 0 1" />
     <limit effort="10" velocity="10" lower="0" upper="0"/>
     <mimic joint="J3" multiplier="1" offset="0"/>
