@@ -10,12 +10,11 @@ A ros2_control controller for Banksia's robotic
 CONTROLLER: nova_twistmapper/NovaTwistmapper
 SUBSCRIPTIONS:
   - /arm_ik_twist_stamped [geometry_msgs/TwistStamped]
-  - /robot_description    [std_msgs/String]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	nova_twistmapper
+PACKAGE:  nova_twistmapper
 AUTHOR:   Bailey Chessum
-CREATION:	13/04/2025
-EDITED:		20/04/2025
+CREATION: 13/04/2025
+EDITED:	  23/04/2025
 EDITED BY:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
@@ -56,10 +55,13 @@ TODO:
 #include <moveit/robot_state/robot_state.h>
 #include <pluginlib/class_loader.hpp>
 #include <stdexcept>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/collision_detection/collision_common.h>
 
 // To test in development, run from the root nova_twistmapper dir:
 // generate_parameter_library_cpp include/nova_twistmapper/nova_twistmapper_parameters.hpp src/nova_twistmapper_parameter.yaml
 #include "nova_twistmapper_parameters.hpp"
+
 
 namespace nova_twistmapper
 {
@@ -126,18 +128,6 @@ protected:
   void update_twistmapper_pose(const rclcpp::Time &time, const rclcpp::Duration &period);
 
   /**
-   * @brief Tries to get a URDF string the /robot_description topic. Blocking.
-   *
-   * Depends on robot_description_sub_ to be previously created, to populate received_robot_description_ptr_.
-   * Uses std::this_thread::sleep_for(10ms) in a loop checking for any received /robot_description values.
-   *
-   * @param[in]  timeout_sec        The number of seconds to wait for values from /robot_description.
-   * @param[out] urdf_string    The URDF string from robot_description
-   * @returns true if a urdf_string was found before the timeout. Otherwise, false.
-   */
-  bool get_urdf_from_topic(double timeout_sec, std::string &urdf_string);
-
-  /**
    * @brief Creates an rclcpp::Node to give to the kinematics_sovler_ plugin, as we can't give it an
    * rclcpp_lifecycle::LifecycleNode::SharedPtr (superclass of the controller).
    */
@@ -179,7 +169,36 @@ protected:
    * @param[out] joint_group_name   The name given to the joint group
    * @return A string containing an XML format SRDF
    */
-  std::string construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model, std::string joint_group_name);
+  std::string construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model,
+                                             std::string joint_group_name);
+
+  /**
+   * @brief Checks if moving from one pose to another pose would cause a self intersection.
+   *
+   * This helps to prevent unsafe maneuvers from being executed where a self-intersecting state is 'jumped over' by the
+   * kinematics solver, by computing in-between steps between poses of at most self_intersection_max_step_size radians
+   * per joint.
+   *
+   * @param[in]  seed_state         Current positions for each joint in the joint group.
+   * @param[in]  target_positions   Target positions for each joint in the joint group.
+   * @return True if the given joint_positions cause a self intersection, false otherwise.
+   */
+  bool check_path_for_self_intersection(const std::vector<double> &seed_state,
+                                        const std::vector<double> &target_positions);
+
+  /**
+   * @brief Checks if a given pose is self intersecting.
+   *
+   * @param[in]  joint_positions    Positions for each joint in the joint group to check for self intersections.
+   * @return True if the given joint_positions cause a self intersection, false otherwise.
+   */
+  bool check_pose_for_self_intersection(const std::vector<double>& joint_positions);
+
+  /**
+   * @brief Automatically generates an allowed collision matrix in the planning_scene_ that ignores self intersections
+   * between joints that always self intersect by populating it with intersections from the arm's zero pose.
+   */
+  void generate_allowed_collision_matrix();
 
   /// Holds command and state interfaces for each joint
   std::vector<JointHandle> registered_joint_handles_;
@@ -192,10 +211,6 @@ protected:
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_stamped_sub_ = nullptr;
   realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_stamped_ptr_{nullptr};
 
-  // Robot description subscription, serving as a fallback for params_.robot_description
-  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr robot_description_sub_ = nullptr;
-  realtime_tools::RealtimeBox<std::shared_ptr<std_msgs::msg::String>> received_robot_description_ptr_{nullptr};
-
   /// Result of the twistmapper, and input to IK. Desired position and orientation of the end effector relative to the base.
   tf2::Transform twistmapper_pose_ = tf2::Transform();
   tf2::Vector3 twistmapper_pose_rpy_ = tf2::Vector3();
@@ -204,8 +219,8 @@ protected:
   // broadcasting twistmapper
   std::shared_ptr<tf2_ros::TransformBroadcaster> twistmapper_pose_tf_broadcaster_;
   // Previously used to get the initial value of twistmapper_pose_
-  std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
-  std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+  // std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
+  // std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 
   // MoveIt2 Structures
   /// The URDF model for the arm. Needs to exist for the lifecycle of the kinematics_solver_ and robot_model_.
@@ -214,6 +229,15 @@ protected:
   std::shared_ptr<srdf::Model> srdf_model_;
   /// Model of the arm used for kinematics.
   moveit::core::RobotModelPtr robot_model_;
+  /// Name of the joint group used for kinematics, containing all params_.joint_names (but not necessarily in the same
+  /// order!!!)
+  std::string joint_group_name_;
+
+  // Self intersection check structures
+  /// Structure that allows for intersection checks
+  planning_scene::PlanningScenePtr planning_scene_;
+
+  // Kinematics Plugin Structures
   /// Compatability node allowing for dependency injection to the MoveIt2 kinematics plugin, as we can't use a
   /// LifecycleNode for this purpose.
   rclcpp::Node::SharedPtr kinematics_compat_node_;
