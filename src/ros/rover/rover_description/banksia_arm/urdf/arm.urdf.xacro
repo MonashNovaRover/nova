@@ -478,6 +478,7 @@
     <origin xyz="0 0 0" rpy="0.0 0.0 0.0" />
     <parent link="l1a_tp_j2_mimic" />
     <child link="l2" />
+    <limit effort="10" velocity="10" lower="-3.14" upper="3.14"/>
     <mimic joint="J2" multiplier="1" offset="0"/>
   </joint>
   <joint name="l1a_tp" type="revolute">
