@@ -27,12 +27,6 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-<!--    <collision>-->
-<!--      <origin xyz="-0.0671788 0.129712 -0.183721" rpy="-1.88173e-16 -1.99729e-09 -1.5708" />-->
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/armmount.stl" />-->
-<!--      </geometry>-->
-<!--    </collision>-->
 
     <collision>
       <origin xyz="0 0 -0.085" rpy="0 0 0" />
@@ -58,12 +52,6 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-    <collision>
-      <origin xyz="-9.93063e-18 0 5.55112e-17" rpy="3.14159 -0 -7.70285e-39" />
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/gearbox.stl" />-->
-<!--      </geometry>-->
-    </collision>
   </link>
 
   <link name="linkagedrive">
@@ -82,13 +70,6 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-<!--    <collision>-->
-<!--      <origin xyz="-1.58901e-15 -1.36391e-16 -5.55112e-17" rpy="6.68673e-23 -1.0222e-22 2.39693e-07" />-->
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/linkagedrive.stl" />-->
-<!--      </geometry>-->
-<!--    </collision>-->
-
 
     <collision>
       <origin xyz="0 0 0.065" rpy="0 0 0" />
@@ -120,12 +101,6 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-<!--    <collision>-->
-<!--      <origin xyz="3.1979e-15 -6.85563e-15 0.0239" rpy="1.5708 1.5708 0" />-->
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l1.stl" />-->
-<!--      </geometry>-->
-<!--    </collision>-->
 
     <collision>
       <origin xyz="0 -0.255 0.024" rpy="0 0 0" />
@@ -151,12 +126,6 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-<!--    <collision>-->
-<!--      <origin xyz="0.398641 0.301803 6.48063e-16" rpy="2.49358 1.5708 0" />-->
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l2.stl" />-->
-<!--      </geometry>-->
-<!--    </collision>-->
 
     <collision>
       <origin xyz="0 0.11 0" rpy="0 0 0" />
@@ -224,12 +193,6 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-<!--    <collision>-->
-<!--      <origin xyz="1.94289e-15 0.05075 -0.0795" rpy="1.5708 1.5708 0" />-->
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/j5.stl" />-->
-<!--      </geometry>-->
-<!--    </collision>-->
   </link>
 
   <link name="j6">
@@ -248,12 +211,7 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-<!--    <collision>-->
-<!--      <origin xyz="5.80265e-16 -0.1945 0.05075" rpy="-1.5708 -1.48145e-14 -7.47144e-23" />-->
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/j6.stl" />-->
-<!--      </geometry>-->
-<!--    </collision>-->
+
     <collision>
       <origin xyz="0 -0.09 0.1" rpy="0 0 0" />
       <geometry>
@@ -298,12 +256,7 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-<!--    <collision>-->
-<!--      <origin xyz="0.00775 0.013 0.0215" rpy="-6.15694e-07 4.61983e-15 3.14159" />-->
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/eebase.stl" />-->
-<!--      </geometry>-->
-<!--    </collision>-->
+
     <collision>
       <origin xyz="0 0.02 0.0675" rpy="0 0 0" />
       <geometry>
@@ -328,12 +281,6 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-<!--    <collision>-->
-<!--      <origin xyz="-3.64856e-05 0.115305 0.0109" rpy="-3.14159 -6.60532e-30 2.57948e-23" />-->
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/rightfinger.stl" />-->
-<!--      </geometry>-->
-<!--    </collision>-->
   </link>
 
   <link name="arm_end_side_optical">
@@ -352,12 +299,6 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-<!--    <collision>-->
-<!--      <origin xyz="0 0 0" rpy="1.5708 1.86776e-19 -2.0576e-24" />-->
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/arm_end_side.stl" />-->
-<!--      </geometry>-->
-<!--    </collision>-->
   </link>
 
   <joint name="camera_ee_side" type="fixed">
@@ -392,12 +333,6 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-<!--    <collision>-->
-<!--      <origin xyz="-8.71485e-06 -0.115251 0.0109" rpy="-3.14159 4.996e-15 -5.80744e-23" />-->
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/leftfinger.stl" />-->
-<!--      </geometry>-->
-<!--    </collision>-->
   </link>
 
   <link name="actuator">
@@ -416,12 +351,6 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-<!--    <collision>-->
-<!--      <origin xyz="-1.38778e-17 0 -0.058" rpy="3.11287e-20 2.12505e-23 1.99292e-27" />-->
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/actuator.stl" />-->
-<!--      </geometry>-->
-<!--    </collision>-->
   </link>
 
   <joint name="actuator_head" type="prismatic">
@@ -448,12 +377,6 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-<!--    <collision>-->
-<!--      <origin xyz="2.77556e-17 0 -1.11022e-16" rpy="1.5708 -2.87448e-18 1.5822e-23" />-->
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/arm_end_finger.stl" />-->
-<!--      </geometry>-->
-<!--    </collision>-->
   </link>
 
   <joint name="camera_ee_finger" type="fixed">
@@ -488,12 +411,6 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-<!--    <collision>-->
-<!--      <origin xyz="1.11022e-16 0 0" rpy="1.5708 -2.5589e-20 3.89707e-23" />-->
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/arm_end_top.stl" />-->
-<!--      </geometry>-->
-<!--    </collision>-->
   </link>
 
   <joint name="camera_ee_top" type="fixed">
@@ -520,12 +437,6 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-<!--    <collision>-->
-<!--      <origin xyz="0 0 0" rpy="1.5708 -1.12386e-23 -2.15772e-29" />-->
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/arm_end_periscope.stl" />-->
-<!--      </geometry>-->
-<!--    </collision>-->
   </link>
 
   <joint name="camera_ee_periscope" type="fixed">
@@ -593,13 +504,6 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-<!--    <collision>-->
-<!--      <origin xyz="2.77556e-17 0 -0.006" rpy="1.5708 1.5708 0" />-->
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l2prime.stl" />-->
-<!--      </geometry>-->
-<!--    </collision>-->
-
   </link>
 
   <link name="l1prime">
@@ -618,12 +522,6 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-    <collision>
-      <origin xyz="-0.0797283 0.0603606 1.05415e-16" rpy="1.5708 1.5708 0" />
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l1prime.stl" />-->
-<!--      </geometry>-->
-    </collision>
   </link>
 
   <link name="l2cam">
@@ -642,12 +540,6 @@
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
       </material>
     </visual>
-    <collision>
-      <origin xyz="-0.0797283 0.560361 2.48639e-16" rpy="1.5708 1.5708 0" />
-<!--      <geometry>-->
-<!--        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l2cam.stl" />-->
-<!--      </geometry>-->
-    </collision>
   </link>
 
   <joint name="l1b_tp" type="revolute">
