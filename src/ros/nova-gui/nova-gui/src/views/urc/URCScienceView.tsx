@@ -6,7 +6,6 @@ import BMESensor from "../../components/BMESensor/BMESensor";
 import GenericSetBoolWidget from "../../components/GenericSetBoolWidget/GenericSetBoolWidget.tsx";
 import {RosService} from "../../ros/services/rosService.ts";
 import URCNIRProbeWidget from "../../components/NIRProbe/URCNIRProbeWidget.tsx";
-import DepthSensor from "../../components/DepthSensor/DepthSensor.tsx";
 
 
 const URCScienceView: React.FC = () => {
@@ -19,7 +18,6 @@ const URCScienceView: React.FC = () => {
 
       <div className="flex flex-col gap-3 col-span-2">
         <div className="flex flex-row gap-3">
-          <DepthSensor className="w-88 flex flex-col py-3"/>
           <BMESensor className="grow"/>
         </div>
         <CarouselWidget/>

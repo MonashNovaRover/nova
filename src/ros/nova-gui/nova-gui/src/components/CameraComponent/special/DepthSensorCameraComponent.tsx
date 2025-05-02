@@ -1,5 +1,6 @@
 import React from "react";
-import { Card, CardHeader, CardBody, CardProps, Chip } from "@nextui-org/react";
+import { Card, CardHeader, CardBody, Chip } from "@nextui-org/react";
+import { BaseCameraComponentProps } from "../CameraComponent";
 // import { useBifrost } from "../../redux/actions/bifrost/useBifrostAction.ts";
 // import { RootState } from "../../redux/RootState.ts";
 // import { useSelector } from "react-redux";
@@ -8,10 +9,8 @@ import { Card, CardHeader, CardBody, CardProps, Chip } from "@nextui-org/react";
 // This is just a repurposed BMESensor.tsx (Thanks Someone)
 // Which is just a repurposed HydroprobeWidget.tsx (Thanks Kabi)
 
-export interface IDepthSensorProps extends CardProps {}
-
-const DepthSensor: React.FC<IDepthSensorProps> = (
-    props: IDepthSensorProps
+const DepthSensor: React.FC<BaseCameraComponentProps> = (
+    _: BaseCameraComponentProps
 ) => {
     /*
     const bifrost = useBifrost({ topic: RosTopic.DEPTH_SENSOR });
@@ -29,22 +28,24 @@ const DepthSensor: React.FC<IDepthSensorProps> = (
 
     // Colours differ from colours that any buttons use
     const DepthSensorCardBody = (
-        <CardBody className="ml-5 grid grid-cols-4 grid-rows-1">
-            <text className="row-start-2 w-max col-span-1 row-span-1">Auger 1:</text>
-            <Chip className={augerdepths[0] ? "row-start-2 w-min col-span-1 row-span-1 bg-green-600" : "row-start-2 w-min col-span-1 row-span-1 bg-rose-600"}>
+        <CardBody className="flex flex-row justify-around p-0">
+            <text className="w-max">Auger 1:</text>
+            <Chip className={augerdepths[0] ? "w-min bg-green-600" : "w-min bg-rose-600"}>
                 {augerdepths[0] ? "Yes" : "No"}
             </Chip>
-            <text className="row-start-2 w-max col-span-1 row-span-1">Auger 2:</text>
-            <Chip className={augerdepths[1] ? "row-start-2 w-min col-span-1 row-span-1 bg-green-600" : "row-start-2 w-min col-span-1 row-span-1 bg-rose-600"}>
+            <text className="w-max">Auger 2:</text>
+            <Chip className={augerdepths[1] ? "w-min bg-green-600" : "w-min bg-rose-600"}>
                 {augerdepths[1] ? "Yes" : "No"}
             </Chip>
         </CardBody>
     );
 
     return (
-        <Card {...props}>
-            <CardHeader className="text-h1 pb-0">Auger Depth Sensors: Drilled more than 10cm?</CardHeader>
+        <Card className="flex flex-col justify-around gap-3 py-3">
             {DepthSensorCardBody}
+            <div className="flex flex-row justify-center">
+                <CardHeader className="w-auto text-h1 p-0">Auger Depth Sensors: Drilled more than 10cm?</CardHeader>
+            </div>
         </Card>
     );
 };
