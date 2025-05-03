@@ -54,6 +54,8 @@ KEY_MAP = {
     "lctrl": (-161, 48), "win": (-138, 48), "lalt": (-114, 48), "space": (-44, 48), "ralt": (29, 48), "fn": (53, 48), "menu": (76, 48), "rctrl": (101, 48), "larrow": (126, 48), "darrow": (145, 48), "rarrow": (164, 48) 
 }
 
+SINGLE_KEY = (13, 15)
+
 DEFAULT_POSITION = [0.0, 0.0, 0.0]
 DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
 
@@ -233,28 +235,31 @@ class KeyboardLocaliser(Node):
         """ Get the sorted corners of the keyboard from the image msg """
         image = self.msg_to_mat(self.get_logger(), self.view, 'bgr8')
 
-        # Get contours
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        edges = cv2.Canny(gray, 50, 150)
-        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # Get filtered mask
+        # TODO, parameterise threshold 120 and kernal 100
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        h, s, v = cv2.split(hsv)
 
-        # look for best rectangle contour
-        rect_contours = []
-        for cnt in contours:
-            # simplify contour polygon using algorithm (0.02 *cv2 arcLength is 2% of perimeter)
-            approx = cv2.approxPolyDP(cnt, 0.02 * cv2.arcLength(cnt, True), True)
-            # rectangle must have 4 sides and area within the threshold
-            areas = []
-            if len(approx) == 4 and cv2.isContourConvex(approx):
-                rect_contours.append(approx)
+        # filter for dark colours (black keyboard)
+        _, mask = cv2.threshold(v, 120, 255, cv2.THRESH_BINARY_INV)
 
-        if len(rect_contours) < 1:
-            return None
+        # close small gaps in mask
+        kernel_close = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
+        mask_closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel_close, iterations=2)
 
-        rect = max(rect_contours, key=cv2.contourArea)
-
+        # filter out irregular blobs
+        kern_neck = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 100))
+        mask_pruned = cv2.morphologyEx(mask_closed, cv2.MORPH_OPEN, kern_neck, iterations=1)
+        kern_blip = cv2.getStructuringElement(cv2.MORPH_RECT, (100, 3))
+        mask_blip = cv2.morphologyEx(mask_pruned, cv2.MORPH_OPEN, kern_blip, iterations=1)
+        
+        # Get largest contour's hull
+        contours, _ = cv2.findContours(mask_blip, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        hull = cv2.convexHull(max(contours, key=cv2.contourArea))
+        # simplify contour polygon using algorithm (0.02 *cv2 arcLength is 2% of perimeter)
+        approx = cv2.approxPolyDP(hull, 0.02 * cv2.arcLength(hull, True), True)
         # Extract and reshape points to 2D array
-        corners = rect.reshape(4, 2)
+        corners = approx.reshape(4, 2)
         # Sort the points in order: top-left, top-right, bottom-right, bottom-left
         def sort_corners(pts) -> np.ndarray:
             sorted_pts = np.zeros((4, 2), dtype="float32")
@@ -273,7 +278,7 @@ class KeyboardLocaliser(Node):
     def pub_debug_image(self, img, points) -> None:
         # Draw each point
         for point in points:
-            cv2.circle(img, (int(point[0]), int(point[1])), radius=5, color=(0, 255, 0), thickness=-1)
+           cv2.circle(img, (int(point[0]), int(point[1])), radius=5, color=(0, 255, 0), thickness=-1)
 
         # Convert OpenCV image -> ROS Image
         output_msg = CvBridge().cv2_to_imgmsg(img, encoding="bgr8")
