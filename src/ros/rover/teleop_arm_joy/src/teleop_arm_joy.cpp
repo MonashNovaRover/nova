@@ -192,9 +192,23 @@ void TeleopArmJoy::updateState() {
   // TODO: put speed into state
   handleSpeedChange();
 
-  // TODO: rework this
-  //
-  setControlMode(buttons["twist_mode"]->value() ? ControlMode::IK : ControlMode::FK);
+  // rotate control mode
+  if (buttons["twist_mode"]->down())
+  {
+	switch(control_mode)
+	{
+		case ControlMode::FK:
+			setControlMode(ControlMode::IK);
+			break;
+		case ControlMode::IK:
+			setControlMode(ControlMode::AutoTyping);
+			break;
+		case ControlMode::AutoTyping:
+			setControlMode(ControlMode::FK);
+			break;
+	}
+  }
+  //setControlMode(buttons["twist_mode"]->value() ? ControlMode::IK : ControlMode::FK);
 }
 
 void TeleopArmJoy::setControlMode(const ControlMode new_control_mode) {
