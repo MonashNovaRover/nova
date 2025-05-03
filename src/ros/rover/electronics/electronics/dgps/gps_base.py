@@ -7,8 +7,8 @@ GPS.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: gps_base
 TOPICS:
-  - publisher: /gps_base/fix    [RoverPoseGPS]
-  - publisher: /gps_base/rtcm   [UInt8MultiArray]
+ - publisher: /gps_base/fix    [RoverPoseGPS]
+ - publisher: /gps_base/rtcm   [UInt8MultiArray]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Shelby N, Will Middlewick, Victor 
@@ -17,7 +17,12 @@ CREATED:	25/02/2023
 EDITED:		30/04/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - convert log to debug
+ - Better document the message protocols being 
+   sent in config_*_rtk functions. 
+ - Implement fix_type. 
+ - Abstract serial protocol parsing to a function 
+   for each protocol; only UBX messages under the 
+   'ublox' module condition. 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from serial import Serial

@@ -16,8 +16,10 @@ CREATED:	25/02/2023
 EDITED:		30/04/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - check if buffer clearing is necessary
- - convert log to debug
+ - Check if buffer clearing is necessary
+ - Abstract serial protocol parsing to a function 
+   for each protocol; only STI messages under the 
+   'skytraq' module condition. 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from serial import Serial
