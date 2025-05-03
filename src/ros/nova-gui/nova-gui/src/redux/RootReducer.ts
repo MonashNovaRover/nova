@@ -5,13 +5,13 @@ import {RosTopic} from "../ros/topics/rosTopic";
 import {
   IRosCmdInterfacesCmdFeedback,
   IRosCmdInterfacesCmDsFeedback,
+  IRosNovaInterfacesHydraprobeData,
   IRosNovaInterfacesNirProbeDataConst,
   IRosSensorMsgsRange,
-  IRosNovaInterfacesHydraprobeData,
   IRosStdMsgsHeader
 } from "../ros/rosTypes";
-import { cartographerSlice } from "./slices/CartographerSlice";
-import { initialNavSatMessage } from "./models/CartographerState";
+import {cartographerSlice} from "./slices/CartographerSlice";
+import {initialNavSatMessage} from "./models/CartographerState";
 import {uiSlice} from "./slices/UISlice";
 import {cameraStreamerSlice} from "./slices/CameraStreamSlice";
 import {BLCMD_INDEX} from "../constants";
