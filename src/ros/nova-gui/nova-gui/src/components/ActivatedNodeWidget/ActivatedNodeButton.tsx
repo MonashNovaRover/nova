@@ -15,12 +15,12 @@ export interface ActivatedNodeButtonProps extends ButtonProps {
 export const ActivatedNodeButton: React.FC<ActivatedNodeButtonProps> = (props: ActivatedNodeButtonProps) => {
     return (
       <Overlay
-        overlay={props.isLocked ? <div className="flex flex-col justify-center">
+        overlay={props.isLocked && <div className="flex flex-col justify-center">
           <Lock/>
-        </div>: undefined}
+        </div>}
       >
         <Overlay
-          overlay={props.isLocked ? <div className="grow backdrop-blur-[2px]"/> : undefined}
+          overlay={props.isLocked && <div className="grow backdrop-blur-[2px]"/>}
         >
           <Button
             color = {props.isSelected ? "primary" : "default"}

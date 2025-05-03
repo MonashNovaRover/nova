@@ -23,7 +23,8 @@ import {
   IRosNovaInterfacesHydraprobeData,
   IRosStdSrvsSetBoolResponse,
   IRosNovaInterfacesBmeSensor,
-  IRosSensorMsgsBatteryState, IRosNovaInterfacesActiveNodeStatus,
+  IRosSensorMsgsBatteryState,
+  IRosNovaInterfacesActiveNodeStatus,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
