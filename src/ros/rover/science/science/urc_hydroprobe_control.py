@@ -16,7 +16,7 @@ CREATION:	01/05/2025
 EDITED:		02/05/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 to run with parameter file:
-$ ros2 run science urc_hydroprobe_control --ros-args --params-file ~/nova/src/ros/rover/nova_bringup/params/hydroprobe_control.yaml
+$ ros2 run science urc_hydroprobe_control.py --ros-args --params-file ~/nova/src/ros/rover/nova_bringup/params/hydroprobe_control.yaml
 """
 
 import rclpy
@@ -102,16 +102,46 @@ class HydroprobeControlNode(JoystickControllerNode):
         ## Start the CAN bus
         self.start_can()
 
+        ## Create timers
+        self.reset_timer = self.create_timer(self.get_parameter(self.DURATION_RESET).value, self.callback_reset_timer, autostart=False)
+        self.deploy_timer = self.create_timer(self.get_parameter(self.DURATION_DEPLOY).value, self.callback_deploy_timer, autostart=False)
+        self.retract_down_timer = self.create_timer(self.get_parameter(self.DURATION_RETRACT_DOWN).value, self.callback_reset_timer, autostart=False)
+        self.retract_up_timer = self.create_timer(self.get_parameter(self.DURATION_RETRACT_UP).value, self.callback_reset_timer, autostart=False)
+
         logger.info(f"{list(map(lambda x: x.value, self.get_parameters([self.SPEED_DEPLOY, self.SPEED_RESET, self.SPEED_RETRACT, self.DURATION_RESET, self.DURATION_DEPLOY, self.DURATION_RETRACT_DOWN, self.DURATION_RETRACT_UP])))}")
 
+    def set_movement(self, speed):
+        if speed > 0:
+            self.hydroprobe_servo.update_direction(self.DIRECTION_UP)
+        elif speed < 0:
+            self.hydroprobe_servo.update_direction(self.DIRECTION_DOWN)
+
+        self.hydroprobe_servo.update_velocity(abs(speed) // 255)
+
+    def callback_reset_timer(self):
+        self.reset_timer.cancel()
+        self.set_movement(0)
+        self.get_logger().info("Hydroprobe RESET")
+
+    def callback_deploy_timer(self):
+        pass
+
+    def callback_retract_down(self):
+        pass
+
+    def callback_retract_up(self):
+        pass
+
     def reset(self):
-        self.get_logger().info("Hydroprobe RESETTING")
+        self.get_logger().info("Hydroprobe RESETTING ...")
+        self.set_movement(self.SPEED_RESET)
+        self.reset_timer.reset()
 
     def move_down(self):
-        self.get_logger().info("Hydroprobe MOVING DOWN")
+        self.get_logger().info("Hydroprobe MOVING DOWN ...")
 
     def move_up(self):
-        self.get_logger().info("Hydroprobe MOVING UP")
+        self.get_logger().info("Hydroprobe MOVING UP ...")
 
     def command_service_callback(self, request, response):
         match request.command:
