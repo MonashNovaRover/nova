@@ -11,6 +11,8 @@
 , std-srvs
 , nova-camera-msgs
 , pythonPackages
+, gst-bridge
+, glib-networking
 }:
 
 buildRosPackage {
@@ -26,6 +28,10 @@ buildRosPackage {
   patches = [
     (substituteAll {
       src = ./patches/launch-executable-locations.patch;
+      gst_plugins_rs = gst_all_1.gst-plugins-rs;
+    })
+    (substituteAll {
+      src = ./patches/launch-patch-ros-streamer.patch;
       gst_plugins_rs = gst_all_1.gst-plugins-rs;
     })
   ];
@@ -45,6 +51,8 @@ buildRosPackage {
     gst_all_1.gst-plugins-ugly # H264
     gst_all_1.gst-plugins-rs # WebRTC
     libnice # WebRTC
+    gst-bridge # ros-gst-bridge/rosimagesrc
+    glib-networking
   ];
 
   propagatedBuildInputs = [
@@ -68,8 +76,13 @@ buildRosPackage {
 
   dontWrapGapps = true;
 
+  #export GST_PLUGIN_PATH="${gst-bridge}/lib:$GST_PLUGIN_PATH"
   preFixup = ''
     wrapGApp "$out/lib/cameras2/camera_streamer_service"
+
+    export GST_PLUGIN_PATH="${gst-bridge}/lib:$GST_PLUGIN_PATH"
+    wrapGApp "$out/lib/cameras2/camera_ros_streamer"\
+      --prefix GST_PLUGIN_PATH : "${gst-bridge}/lib"
   '';
 
   doCheck = true;
