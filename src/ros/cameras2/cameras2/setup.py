@@ -29,6 +29,7 @@ setup(
         "console_scripts": [
             "camera_directory_service = cameras2.camera_directory_service:main",
             "camera_streamer_service = cameras2.camera_streamer_service:main",
+            "camera_ros_streamer = cameras2.camera_ros_streamer:main",
         ],
     },
 )

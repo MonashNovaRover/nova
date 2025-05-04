@@ -48,10 +48,10 @@ typically requires decoding.
 
 `v4l2src device=/dev/video0 ! video/x-raw, format=YUY2 ! webrtcsink`
 
-![](/home/josh/Documents/Code/NovaRover/nova_ws/src/cameras2/cameras2/docs/research/camera_source_formats/yuy2_pipeline.svg)
+![](yuy2_pipeline.svg)
 
 ### YUY2
 
 `v4l2src device=/dev/video0 ! jpegdec ! webrtcsink`
 
-![](/home/josh/Documents/Code/NovaRover/nova_ws/src/cameras2/cameras2/docs/research/camera_source_formats/jpeg_pipeline.svg)
+![](jpeg_pipeline.svg)

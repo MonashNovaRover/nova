@@ -111,6 +111,13 @@ const urcSidebarData: SidebarInterface = {
       icon: <Camera />,
     }
   ],
+  ["Simulation"]: [
+    {
+      title: "Dashboard",
+      route: "/urc/gazebo",
+      icon: <Home />,
+    },
+  ],
 };
 
 const arcSidebarData: SidebarInterface = {
