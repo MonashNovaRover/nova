@@ -13,9 +13,10 @@ NODES:
   - control/analysis_platform.py        [analysis_platform]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATION:   17/03/2024
-EDITED:     13/02/2025
+EDITED:     04/05/2025
 EDITED BY: Tristan Clark, Josh Leivenzon, 
-    Victor Bartlinski, Felicity Matthews
+    Victor Bartlinski, Felicity Matthews,
+    Brandon Chung
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 from launch import LaunchDescription
@@ -29,6 +30,8 @@ def launch_setup(context, *args, **kwargs):
     auger_actuation_canid = LaunchConfiguration('auger_actuation_canid')
     analysis_arm_cmd_canid = LaunchConfiguration('analysis_arm_cmd_canid')
     tof_canid = LaunchConfiguration('tof_canid')
+    cache1_canid = LaunchConfiguration('cache1_canid')
+    cache2_canid = LaunchConfiguration('cache2_canid')
 
     return [
         Node(
@@ -62,6 +65,18 @@ def launch_setup(context, *args, **kwargs):
             executable='urc_cache.py',
             output='screen',
             emulate_tty=True,
+            parameters=[{
+                "frame_id": cache1_canid,
+            }],
+        ),
+        Node(
+            package='science',
+            executable='urc_cache.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[{
+                "frame_id": cache2_canid,
+            }],
         ),
         Node(
             package='science',
@@ -131,6 +146,8 @@ def generate_launch_description():
         DeclareLaunchArgument("auger_actuation_canid", default_value='0x0C2'),
         DeclareLaunchArgument("analysis_arm_cmd_canid", default_value='0x032'),
         DeclareLaunchArgument("tof_canid", default_value='0x456')
+        DeclareLaunchArgument("cache1_canid", default_value='0x060')
+        DeclareLaunchArgument("cache2_canid", default_value='0x061')
     ]
 
     return LaunchDescription(

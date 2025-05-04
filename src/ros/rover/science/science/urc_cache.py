@@ -6,33 +6,30 @@ Purpose: Control for the servos of the URC  drill
 caches
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: CacheNode
-TOPICS:
-  - subscriber: /inputs/input_joystick_l [InputJoystick]
-  - subscriber: /inputs/input_joystick_r [InputJoystick]
-SERVICES: None
+TOPICS: None
+SERVICES:
+    - server: /science/
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:    science
 AUTHOR(S):	Brandon Chung
 CREATION:	03/05/2025
-EDITED:		03/05/2025
+EDITED:		04/05/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
-from python_control.JoystickControllerNode import JoystickControllerNode
-from input_interfaces.msg import InputJoystick
 from python_control.controls.OneAxisPositionControl import OneAxisPositionControl
 from python_control.controllers.JonoPositionController import JonoPositionController
+from nova_interfaces.srv import CacheCommand
 
-
-class URCCache(ControllerNode):
+class URCCache(Node):
     # CAN BUS NAME
     # The name of the CAN bus to use
     CAN_BUS = "can1"
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    CACHE_SEND_FRAME = 0x060
+    CACHE_SEND_FRAME_PARAM = "frame_id"
 
     # ROS2 SERVICES
     CACHE_SERVICE = "/science/cache"
@@ -45,8 +42,6 @@ class URCCache(ControllerNode):
     SERVO_MAX_ANGLE_PARAM = "max_angle"
     SERVO_MAX_ANGLE_DEFAULT = 179
     MAX_VALUE = 0xFF
-
-    SPIN_CONTROL_NAME = "Drill Cache Doors"
 
     # Positions
     POSITION_NAMES = [
@@ -71,21 +66,23 @@ class URCCache(ControllerNode):
         DEG_180: DEG_180 + "_pos",
     }
 
-    # Offset variables
-    OFFSET_STEP_DEFAULT = 5
-    OFFSET_MAX_STEP_DEFAULT = 30
-    OFFSET_MAX_STEP_PARAM = "step_max"
+    # All possible commands
+    COMMANDS = [
+        COM_DEG_0 := (0).to_bytes(1, "big"),
+        COM_DEG_90 := (1).to_bytes(1, "big"),
+        COM_DEG_180 := (2).to_bytes(1, "big"),
+    ]
 
     def __init__(self):
         super().__init__(name="CacheNode", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
-        self.offset_step = self.OFFSET_STEP_DEFAULT
-        self.declare_parameter(self.OFFSET_MAX_STEP_PARAM, self.OFFSET_MAX_STEP_DEFAULT)
-        logger.info(f"Max offset step: {self.get_parameter(self.OFFSET_MAX_STEP_PARAM).value} | Current offset step: {self.offset_step}")
+        # Setting ROS parameters
+        self.declare_parameter(self.CACHE_SEND_FRAME_PARAM, self.CACHE_SEND_FRAME)
 
         # Create positions map from params
         self.positions: {str: int} = { k: self.declare_parameter(v, self.POSITION_DEFAULTS[k]).value for k, v in self.POSITION_PARAMS.items() }
+        self.get_logger().info(f"POSITIONS: {self.positions}")
 
         ## Create CONTROLS
         self.cache_servo = OneAxisPositionControl(
@@ -95,35 +92,31 @@ class URCCache(ControllerNode):
         )
         self.cache_servo.update_position(self.DEG_0)
 
-        ## Create CONTROLLERS
-        self.cache_servo_controller = JonoPositionController(
-            logger=logger,
-            bus=self.bus,
-            pos_command=self.CACHE_MOVE_SERVO,
-            frame_id=self.SERVO_ID,
-            control=self.cache_servo,
-            max_value=self.MAX_VALUE
-        )
+        # Only accept inputs being delivered to receiving CAN IDs
+        self.bus.set_id_filter(self.CACHE_SEND_FRAME)
 
-        ## Add the CONTROLLERS to the node's controllers
-        self.add_controller(self.SPIN_CONTROL_NAME, self.cache_servo_controller)
-        self.get_logger().info(f"POSITIONS: {self.positions}")
-
+        ## Create SERVICE
+        self.command_service = self.create_service(CacheCommand, '/science/cache_command', self.command_callback)
+        
         ## Start the CAN bus
         self.start_can()
 
-    def cache_callback(
-        self,
-        request: SetBool.Request,
-        response: SetBool.Response,
-    ) -> SetBool.Response:
-        if request.data:
-            self.spinny_part.set_offset(0)
-            self.spinny_part.update_position(self.MICROSCOPE)
-            self.get_logger().info(f"Moved cache to 0 degrees {self.spinny_part.get_goal_position()}")
-        else:
-            self.cache_control.stop()
-        self.cache_controller.control_send_callback()
+    def command_callback(self, request, response):
+        self.cache_servo.set_offset(0)
+        match request.angle:
+            case self.COM_DEG_0:
+                self.cache_servo.update_position(self.DEG_0)
+                self.get_logger().info(f"Moved cache to 0 degrees {self.cache_servo.get_goal_position()}")
+            case self.COM_DEG_90:
+                self.cache_servo.update_position(self.DEG_90)
+                self.get_logger().info(f"Moved cache to 90 degrees {self.cache_servo.get_goal_position()}")
+            case self.COM_DEG_180:
+                self.cache_servo.update_position(self.DEG_180)
+                self.get_logger().info(f"Moved cache to 180 degrees {self.cache_servo.get_goal_position()}")
+            case _:
+                self.get_logger().error(f"Invalid cache command: {request.angle}")
+                response.success = False
+                return response
         response.success = True
         return response
 
