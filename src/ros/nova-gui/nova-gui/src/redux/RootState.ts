@@ -25,7 +25,7 @@ import {
   IRosNovaInterfacesBmeSensor,
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
-
+  IRosNovaInterfacesRoverPoseGps,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -83,8 +83,8 @@ export interface RootState {
   bmeSensorStore: IRosNovaInterfacesBmeSensor;
 
   // Maps Related Stores
-  roverLocationStore: IRosSensorMsgsNavSatFix;
-  baseLocationStore: IRosSensorMsgsNavSatFix;
+  roverLocationStore: IRosNovaInterfacesRoverPoseGps;
+  baseLocationStore: IRosNovaInterfacesRoverPoseGps;
   cartographerState: CartographerState;
 
   // Generic Stores
