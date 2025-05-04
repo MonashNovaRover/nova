@@ -9,6 +9,7 @@
 , gdb
 , gps-umd
 , reolink
+, ublox-dgnss
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -38,6 +39,8 @@
 , nova-python-control ? throw "python-control is needed, but not available!"
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-utils ? throw "nova-utils is needed, but not available!"
+, gpsd-client ? throw "gpsd-client is needed, but not available!"
+# , ublox-dgnss-custom ? throw "ublox-dgnss-custom is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -80,10 +83,13 @@
       nova-excavation-construction
       nova-utils
       reolink;
+      # ublox-dgnss-custom;
   }
 
   ## Extra packages to add to the workspace.
 , extraPackages ? { 
+  inherit
+    gpsd-client;
 }
 }:
 
@@ -107,7 +113,8 @@ in
       ros-gz
       gz-ros2-control
       gps-umd
-      rqt rqt-common-plugins;
+      rqt rqt-common-plugins
+      ublox-dgnss;
   }) // extraPackages;
   prebuiltShellPackages = {
     inherit

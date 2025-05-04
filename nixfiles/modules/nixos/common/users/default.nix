@@ -40,6 +40,7 @@
           extraGroups = with config.users.groups; [
             wheel.name
             video.name
+            dialout.name
           ];
         };
       }
