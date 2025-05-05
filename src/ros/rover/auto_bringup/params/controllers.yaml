@@ -43,7 +43,7 @@ nova_arm_velocity_controller:
       - J5
       - J6
     use_position_control: false
-    use_collision_limits: false
+    use_collision_limits: true
 
 nova_arm_position_controller:
   ros__parameters:
