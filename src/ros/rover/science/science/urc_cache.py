@@ -8,13 +8,13 @@ caches
 NODE: CacheNode
 TOPICS: None
 SERVICES:
-    - server: /science/
+    - server: /science/cache_command_n
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:    science
 AUTHOR(S):	Brandon Chung
 CREATION:	03/05/2025
-EDITED:		04/05/2025
+EDITED:		05/05/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -96,7 +96,7 @@ class URCCache(Node):
         self.bus.set_id_filter(self.CACHE_SEND_FRAME)
 
         ## Create SERVICE
-        self.command_service = self.create_service(CacheCommand, '/science/cache_command', self.command_callback)
+        self.command_service = self.create_service(CacheCommand, f'/science/cache_command_{self.CACHE_SEND_FRAME[-1]}', self.command_callback)
         
         ## Start the CAN bus
         self.start_can()
