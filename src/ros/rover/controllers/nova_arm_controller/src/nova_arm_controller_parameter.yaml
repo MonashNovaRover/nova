@@ -19,6 +19,11 @@ nova_arm_controller:
     default_value: 50.0, # Hz
     description: "Publishing rate (Hz) of feedback messages",
   }
+  use_limits: {
+    type: bool,
+    default_value: true,
+    description: "True if the arm should apply position, velocity and acceleration limits",
+  }
   use_collision_limits: {
     type: bool,
     default_value: true,

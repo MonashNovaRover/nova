@@ -218,7 +218,10 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     }
   }
   this->get_joint_states(current);
-  this->joint_limiter.enforce(current, desired, period);
+
+  if (params_.use_limits) {
+    this->joint_limiter.enforce(current, desired, period);
+  }
 
   if (params_.use_collision_limits) {
     this->collision_limiter.enforce(current, desired, period);
@@ -269,9 +272,6 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
   {
     return controller_interface::CallbackReturn::ERROR;
   }
-
-
-
 
   joint_limits::JointLimitsStateDataType current;
   this->get_joint_states(current);
