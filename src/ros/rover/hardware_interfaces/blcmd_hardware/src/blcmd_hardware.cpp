@@ -302,7 +302,8 @@ hardware_interface::return_type BLCMDHardware::write(
         case blcmd_hardware::ControlMode::Position:
             if (hw_position_.command.has_value()) {
                 RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                   "Sending Position Command " << hw_position_.command.value());
+                                   "Sending Position Command " << hw_position_.command.value()
+                                   << " " << hw_position_.max);
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION),
                                      hw_position_.command.value() * reversed_multiplier_, hw_position_.max);
             } else {
@@ -313,7 +314,8 @@ hardware_interface::return_type BLCMDHardware::write(
         case blcmd_hardware::ControlMode::Velocity:
             if (hw_velocity_.command.has_value()) {
                RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                  "Sending velocity command " << hw_velocity_.command.value() * reversed_multiplier_);
+                                  "Sending velocity command " << hw_velocity_.command.value() * reversed_multiplier_
+                                  << " " << hw_velocity_.max);
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_VELOCITY),
                                      hw_velocity_.command.value() * reversed_multiplier_, hw_velocity_.max);
             } else {
@@ -550,7 +552,7 @@ bool BLCMDHardware::set_control_interface(
 
     template<typename T>
     void BLCMDHardware::send_scaled(uint32_t id, double value, double max) {
-        T data = static_cast<T>( (abs(value) > max ? (value > 0 ? 1 : -1) : value/max)* std::numeric_limits<T>::max());
+        T data = static_cast<T>( (abs(value) > max ? (value > 0 ? 1 : -1) : value/max) * std::numeric_limits<T>::max());
         send_raw(id, data);
     }
 
