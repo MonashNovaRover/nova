@@ -62,6 +62,7 @@ class HydraprobeControlNode(JoystickControllerNode):
 
         self.velocity = 0.5
         self.under_manual_control = False
+        self.moving = False
 
         self.declare_parameters(
             namespace="",
@@ -128,6 +129,9 @@ class HydraprobeControlNode(JoystickControllerNode):
             self.set_movement(speed)
             if len(timers) > index+1:
                 timers[index+1].reset()
+            else:
+                self.get_logger().info("sequence completed")
+                self.moving = False
         return callback
 
     def set_movement(self, speed):
@@ -142,23 +146,30 @@ class HydraprobeControlNode(JoystickControllerNode):
     def reset(self):
         """ starts the reset sequence """
         self.get_logger().info("hydraprobe RESETTING ...")
+        self.moving = True
         self.set_movement(self.get_parameter(self.RESET_SPEED_SEQUENCE).value[0])
         self.reset_timers[0].reset()
 
     def deploy(self):
         """ starts the deploy sequence """
         self.get_logger().info("hydraprobe DEPLOYING ...")
+        self.moving = True
         self.set_movement(self.get_parameter(self.DEPLOY_SPEED_SEQUENCE).value[0])
         self.deploy_timers[0].reset()
 
     def retract(self):
         """ starts the retract sequence """
         self.get_logger().info("hydraprobe RETRACTING ...")
+        self.moving = True
         self.set_movement(self.get_parameter(self.RETRACT_SPEED_SEQUENCE).value[0])
         self.retract_timers[0].reset()
 
     def command_service_callback(self, request, response):
-        """ callback for the Movehydraprobe service"""
+        """ callback for the MoveHydraprobe service"""
+        if self.moving:
+            response.success = False
+            return
+
         response.success = True
 
         match request.command:
@@ -179,6 +190,9 @@ class HydraprobeControlNode(JoystickControllerNode):
         Updates the classes internal msg state
         :return: None
         """
+        if self.moving:
+            return
+
         self.velocity = abs(joystick_r.ax_slider)
         self.get_logger().debug(f"Velocity updated to {self.velocity}")
 
