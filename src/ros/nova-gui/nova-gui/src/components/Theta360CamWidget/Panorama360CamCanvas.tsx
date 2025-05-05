@@ -12,12 +12,17 @@ import HTMLTextureFormat from "../../hooks/webgl/program/sampler/HTMLTextureForm
 import useResolutionUniform from "../../hooks/webgl/program/uniform/useResolutionUniform.ts";
 import useUniform, {vec} from "../../hooks/webgl/program/uniform/useUniform.ts";
 import GLWrapMode from "../../hooks/webgl/program/sampler/GLWrapMode.ts";
-import {Image} from "react-feather";
+import {Image, X} from "react-feather";
 import ExtendedDownloadButton from "../shared/ExtendedDownload.tsx";
 import {Input, Slider, Tooltip} from "@nextui-org/react";
 import useImageTexture from "../../hooks/webgl/program/sampler/useImageTexture.ts";
 import Compass from "../../assets/compass.png";
 import {isArray} from "lodash";
+import {MapInteractionMode} from "../../redux/models/CartographerState.ts";
+import {PropRenderer} from "../shared/PropRenderer.tsx";
+import {getDistance} from "../Maps/utils/geojson.ts";
+import {ToolTipButton} from "../shared/TooltipButton.tsx";
+import {Rulers} from "react-bootstrap-icons";
 
 
 export interface WebGL360CamProps {
@@ -202,6 +207,59 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
             </ExtendedDownloadButton>
           </Tooltip>
         </div>
+
+        {/*// Tool to measure a change in angle between points:*/}
+        {/*<div className="flex flex-row justify-end gap-1">*/}
+        {/*  {interactionMode === InteractionMode.MEASURE &&*/}
+        {/*    mousePosition && (*/}
+        {/*      <PropRenderer*/}
+        {/*        props={{*/}
+        {/*          distance:*/}
+        {/*            measure.from && measure.to*/}
+        {/*              ? getDistance(*/}
+        {/*              measure.from,*/}
+        {/*              measure.to*/}
+        {/*            ).toString() + "m"*/}
+        {/*              : "0m",*/}
+        {/*        }}*/}
+        {/*        ignoreProps={[]}*/}
+        {/*        row*/}
+        {/*        size="sm"*/}
+        {/*      />*/}
+        {/*    )}*/}
+
+        {/*  <ToolTipButton*/}
+        {/*    placement="left"*/}
+        {/*    tooltipContent={*/}
+        {/*      measure.from && measure.to && !measure.measuring*/}
+        {/*        ? "Clear Measurement"*/}
+        {/*        : "Measure"*/}
+        {/*    }*/}
+        {/*    className="bottom-0 right-0"*/}
+        {/*    variant="shadow"*/}
+        {/*    isIconOnly*/}
+        {/*    size="lg"*/}
+        {/*    color={*/}
+        {/*      interactionMode === InteractionMode.MEASURE*/}
+        {/*        ? "success"*/}
+        {/*        : "default"*/}
+        {/*    }*/}
+        {/*    onClick={() => {*/}
+        {/*      if (interactionMode === InteractionMode.MEASURE) {*/}
+        {/*        clearMeasurements();*/}
+        {/*        setInteractionMode(InteractionMode.PAN);*/}
+        {/*      } else {*/}
+        {/*        setInteractionMode(InteractionMode.MEASURE);*/}
+        {/*      }*/}
+        {/*    }}*/}
+        {/*  >*/}
+        {/*    {measure.from && measure.to && !measure.measuring ? (*/}
+        {/*      <X size={20} />*/}
+        {/*    ) : (*/}
+        {/*      <Rulers size={20} />*/}
+        {/*    )}*/}
+        {/*  </ToolTipButton>*/}
+        {/*</div>*/}
 
       </AutosizedGLCanvas>
       <div className="flex flex-row gap-3 items-center">
