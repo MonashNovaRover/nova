@@ -51,21 +51,21 @@ def launch_setup(context, *args, **kwargs):
             executable='spawner',
             arguments=['nova_twistmapper', '--inactive'],
         ),
-        Node(
-            package='controller_manager',
-            executable='spawner',
-            arguments=['pivot_drive_controller', '--switch-timeout', '10', '--ros-args', '--log-level', log_level] #, '--inactive']
-        ),
-        Node(
-            package='controller_manager',
-            executable='spawner',
-            arguments=['strafe_controller', '--inactive']
-        ),
-        Node(
-            package='controller_manager',
-            executable='spawner',
-            arguments=['nova_diff_drive_controller', '--inactive']
-        ),
+#        Node(
+#            package='controller_manager',
+#            executable='spawner',
+#            arguments=['pivot_drive_controller', '--switch-timeout', '10', '--ros-args', '--log-level', log_level] #, '--inactive']
+#        ),
+#        Node(
+#            package='controller_manager',
+#            executable='spawner',
+#            arguments=['strafe_controller', '--inactive']
+#        ),
+#        Node(
+#            package='controller_manager',
+#            executable='spawner',
+#            arguments=['nova_diff_drive_controller', '--inactive']
+#        ),
         GroupAction(
             condition=UnlessCondition(gazebo),
             actions=[
