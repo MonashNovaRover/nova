@@ -13,7 +13,7 @@ NODES:
   - control/analysis_platform.py        [analysis_platform]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATION:   17/03/2024
-EDITED:     04/05/2025
+EDITED:     05/05/2025
 EDITED BY: Tristan Clark, Josh Leivenzon, 
     Victor Bartlinski, Felicity Matthews,
     Brandon Chung
@@ -176,8 +176,8 @@ def generate_launch_description():
         DeclareLaunchArgument("auger2_actuation_canid", default_value='0x0D2'),
         DeclareLaunchArgument("cbeam_actuation_canid", default_value='0x0A1'),
         DeclareLaunchArgument("analysis_arm_cmd_canid", default_value='0x0A2'),
-                DeclareLaunchArgument("cache1_canid", default_value='0x060'),
-                DeclareLaunchArgument("cache2_canid", default_value='0x061'),
+        DeclareLaunchArgument("cache1_canid", default_value='0x060'),
+        DeclareLaunchArgument("cache2_canid", default_value='0x061'),
     ]
 
     return LaunchDescription(
