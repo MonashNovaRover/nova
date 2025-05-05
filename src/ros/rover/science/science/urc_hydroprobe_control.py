@@ -13,7 +13,7 @@ ACTIONS: None
 PACKAGE:    science
 AUTHOR(S):	Felicity Matthews
 CREATION:	01/05/2025
-EDITED:		02/05/2025
+EDITED:		05/05/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 to run with parameter file:
 $ ros2 run science urc_hydroprobe_control.py --ros-args --params-file ~/nova/src/ros/rover/nova_bringup/params/hydroprobe_control.yaml
@@ -26,7 +26,6 @@ from python_control.JoystickControllerNode import JoystickControllerNode
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 from python_control.controllers.JonoVelocityController import JonoVelocityController
 from nova_interfaces.srv import MoveHydroprobe
-
 
 class HydroprobeControlNode(JoystickControllerNode):
     # CAN BUS NAME
@@ -42,45 +41,44 @@ class HydroprobeControlNode(JoystickControllerNode):
 
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
-    SWEEPER_MAX_PERCENT = 1
-    SWEEPER_CONTROL_NAME = "Hydroprobe Control"
+    SERVO_MAX_PERCENT = 1
+    SERVO_CONTROL_NAME = "Hydroprobe Control"
 
     # CONTROL DIRECTIONS
     DIRECTION_UP = Direction.POSITIVE
     DIRECTION_DOWN = Direction.NEGATIVE
 
     # TUNABLE PARAMETERS
-    SPEED_DEPLOY = "speed_deploy"
-    SPEED_RESET = "speed_reset"
-    SPEED_RETRACT = "speed_retract"
-    DURATION_RESET = "duration_reset"
-    DURATION_DEPLOY = "duration_deploy"
-    DURATION_RETRACT_DOWN = "duration_retract_down"
-    DURATION_RETRACT_UP = "duration_retract_up"
+    DEPLOY_SPEED_SEQUENCE = "deploy_speeds"
+    DEPLOY_DURATION_SEQUENCE = "deploy_durations"
+    RESET_SPEED_SEQUENCE = "reset_speeds"
+    RESET_DURATION_SEQUENCE = "reset_durations"
+    RETRACT_SPEED_SEQUENCE = "retract_speeds"
+    RETRACT_DURATION_SEQUENCE = "retract_durations"
 
     def __init__(self):
         super().__init__(name="HydroprobeControl", can_bus=self.CAN_BUS, command_period=self.COMMAND_PERIOD)
         logger = self.get_logger()
 
         self.velocity = 0.5
+        self.under_manual_control = False
 
         self.declare_parameters(
             namespace="",
             parameters=[
-                (self.SPEED_DEPLOY, 10),
-                (self.SPEED_RESET, 108),
-                (self.SPEED_RETRACT, 175),
-                (self.DURATION_RESET, 4),
-                (self.DURATION_DEPLOY, 1.8),
-                (self.DURATION_RETRACT_DOWN, 0.5),
-                (self.DURATION_RETRACT_UP, 2.1),
+                (self.DEPLOY_SPEED_SEQUENCE, [50, 0, -50, 0]),
+                (self.DEPLOY_DURATION_SEQUENCE, [1800, 200, 500]),
+                (self.RESET_SPEED_SEQUENCE, [-50, 0]),
+                (self.RESET_DURATION_SEQUENCE, [4000]),
+                (self.RETRACT_SPEED_SEQUENCE, [50, -80, 0, -50, 0]),
+                (self.RETRACT_DURATION_SEQUENCE, [500, 2100, 200, 800]),
             ],
         )
 
         ## Create CONTROLS
         self.hydroprobe_servo = OneAxisVelocityControl(
             logger=logger,
-            max_percent=self.SWEEPER_MAX_PERCENT,
+            max_percent=self.SERVO_MAX_PERCENT,
         )
 
         ## Create CONTROLLERS
@@ -94,7 +92,7 @@ class HydroprobeControlNode(JoystickControllerNode):
         )
 
         ## Add the CONTROLLERS to the node's controllers
-        self.add_controller(self.SWEEPER_CONTROL_NAME, self.hydroprobe_servo_controller)
+        self.add_controller(self.SERVO_CONTROL_NAME, self.hydroprobe_servo_controller)
 
         # Initialise service for taking commands
         self.command_service = self.create_service(MoveHydroprobe, '/science/move_hydroprobe', self.command_service_callback)
@@ -103,14 +101,37 @@ class HydroprobeControlNode(JoystickControllerNode):
         self.start_can()
 
         ## Create timers
-        self.reset_timer = self.create_timer(self.get_parameter(self.DURATION_RESET).value, self.callback_reset_timer, autostart=False)
-        self.deploy_timer = self.create_timer(self.get_parameter(self.DURATION_DEPLOY).value, self.callback_deploy_timer, autostart=False)
-        self.retract_down_timer = self.create_timer(self.get_parameter(self.DURATION_RETRACT_DOWN).value, self.callback_reset_timer, autostart=False)
-        self.retract_up_timer = self.create_timer(self.get_parameter(self.DURATION_RETRACT_UP).value, self.callback_reset_timer, autostart=False)
+        self.deploy_timers = self.create_timer(self.get_parameter(self.DEPLOY_SPEED_SEQUENCE).value, self.get_parameter(self.DEPLOY_DURATION_SEQUENCE).value)
+        self.reset_timers = self.setup_timers(self.get_parameter(self.RESET_SPEED_SEQUENCE).value, self.get_parameter(self.RESET_DURATION_SEQUENCE).value)
+        self.retract_timers = self.create_timer(self.get_parameter(self.RETRACT_SPEED_SEQUENCE).value, self.get_parameter(self.RETRACT_DURATION_SEQUENCE).value)
 
-        logger.info(f"{list(map(lambda x: x.value, self.get_parameters([self.SPEED_DEPLOY, self.SPEED_RESET, self.SPEED_RETRACT, self.DURATION_RESET, self.DURATION_DEPLOY, self.DURATION_RETRACT_DOWN, self.DURATION_RETRACT_UP])))}")
+    def setup_timers(self, speeds, durations):
+        """ sets up a sequence of timers """
+        timers = []
+        if len(speeds) <= len(durations):
+            self.get_logger().error("Length of speeds is not greater than length of durations")
+            return []
+
+        for i in range(len(durations)):
+            timers.append(self.create_timer(
+                durations[i] / 1000,
+                self.sequence_callback(speeds[i+1], timers, i),
+                autostart=False
+            ))
+
+        return timers
+
+    def sequence_callback(self, speed, timers, index):
+        """ callback function for timers within a sequence """
+        def callback():
+            timers[index].cancel()
+            self.set_movement(speed)
+            if len(timers) > index+1:
+                timers[index+1].reset()
+        return callback
 
     def set_movement(self, speed):
+        """ sets the direction and velocity of the servo """
         if speed > 0:
             self.hydroprobe_servo.update_direction(self.DIRECTION_UP)
         elif speed < 0:
@@ -118,41 +139,40 @@ class HydroprobeControlNode(JoystickControllerNode):
 
         self.hydroprobe_servo.update_velocity(abs(speed) // 255)
 
-    def callback_reset_timer(self):
-        self.reset_timer.cancel()
-        self.set_movement(0)
-        self.get_logger().info("Hydroprobe RESET")
-
-    def callback_deploy_timer(self):
-        pass
-
-    def callback_retract_down(self):
-        pass
-
-    def callback_retract_up(self):
-        pass
-
     def reset(self):
+        """ starts the reset sequence """
         self.get_logger().info("Hydroprobe RESETTING ...")
-        self.set_movement(self.SPEED_RESET)
-        self.reset_timer.reset()
+        self.set_movement(self.get_parameter(self.RESET_SPEED_SEQUENCE).value[0])
+        self.reset_timers[0].reset()
 
-    def move_down(self):
-        self.get_logger().info("Hydroprobe MOVING DOWN ...")
+    def deploy(self):
+        """ starts the deploy sequence """
+        self.get_logger().info("Hydroprobe DEPLOYING ...")
+        self.set_movement(self.get_parameter(self.DEPLOY_SPEED_SEQUENCE).value[0])
+        self.deploy_timers[0].reset()
 
-    def move_up(self):
-        self.get_logger().info("Hydroprobe MOVING UP ...")
+    def retract(self):
+        """ starts the retract sequence """
+        self.get_logger().info("Hydroprobe RETRACTING ...")
+        self.set_movement(self.get_parameter(self.RETRACT_SPEED_SEQUENCE).value[0])
+        self.retract_timers[0].reset()
 
     def command_service_callback(self, request, response):
+        """ callback for the MoveHydroprobe service"""
+        response.success = True
+
         match request.command:
             case MoveHydroprobe.RESET:
                 self.reset()
             case MoveHydroprobe.MOVE_UP:
-                self.move_up()
+                self.retract()
             case MoveHydroprobe.MOVE_DOWN:
-                self.move_down()
+                self.deploy()
             case _:
-                self.get_logger().error(f"invalid hydroprobe command {request.command}")
+                self.get_logger().error(f"Invalid hydroprobe command: {request.command}")
+                response.success = False
+
+        return response
 
     def joystick_r(self, joystick_r: InputJoystick):
         """
@@ -166,11 +186,13 @@ class HydroprobeControlNode(JoystickControllerNode):
             self.get_logger().info("Hydroprobe moving UP")
             self.hydroprobe_servo.update_direction(self.DIRECTION_DOWN)
             self.hydroprobe_servo.update_velocity(self.velocity)
+            self.under_manual_control = True
         elif joystick_r.btn_bottom_r6_state >= 1:
             self.get_logger().info("Hydroprobe moving DOWN")
             self.hydroprobe_servo.update_direction(self.DIRECTION_UP)
             self.hydroprobe_servo.update_velocity(self.velocity)
-        else:# Called when the script executes
+            self.under_manual_control = True
+        elif self.under_manual_control:
             self.hydroprobe_servo.stop()
 
     def joystick_l(self, joystick_l: InputJoystick):
