@@ -1,4 +1,4 @@
-HydroprobeControl:
+HydraprobeControl:
   ros__parameters:
     deploy_speeds: [50, 0, -50, 0]
     deploy_durations: [1800, 200, 500]

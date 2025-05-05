@@ -28,7 +28,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     nova_bringup_dir = FindPackageShare('nova_bringup')
-    hydroprobe_control_params = PathJoinSubstitution([nova_bringup_dir, 'params', 'hydroprobe_control.yaml'])
+    hydraprobe_control_params = PathJoinSubstitution([nova_bringup_dir, 'params', 'hydraprobe_control.yaml'])
 
     # parameterised canIDs
     auger1_drill_canid = LaunchConfiguration('auger1_drill_canid')
@@ -148,7 +148,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
         ),
         Node(
-            name="HydroprobeControl",
+            name="HydraprobeControl",
             package='science',
             executable='urc_hydraprobe_control.py',
             output='screen',

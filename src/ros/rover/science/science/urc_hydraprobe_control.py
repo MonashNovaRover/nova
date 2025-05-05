@@ -2,9 +2,9 @@
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Purpose: Control for the URC Hydroprobe actuation
+Purpose: Control for the URC Hydraprobe actuation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: HydroprobeControlNode
+NODE: HydraprobeControlNode
 TOPICS:
   - subscriber: /inputs/input_joystick_l [InputJoystick]
 SERVICES: None
@@ -16,7 +16,7 @@ CREATION:	01/05/2025
 EDITED:		05/05/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 to run with parameter file:
-$ ros2 run science urc_hydroprobe_control.py --ros-args --params-file ~/nova/src/ros/rover/nova_bringup/params/hydroprobe_control.yaml
+$ ros2 run science urc_hydraprobe_control.py --ros-args --params-file ~/nova/src/ros/rover/nova_bringup/params/hydraprobe_control.yaml
 """
 
 import rclpy
@@ -25,9 +25,9 @@ from input_interfaces.msg import InputJoystick
 from python_control.JoystickControllerNode import JoystickControllerNode
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 from python_control.controllers.JonoVelocityController import JonoVelocityController
-from nova_interfaces.srv import MoveHydroprobe
+from nova_interfaces.srv import Movehydraprobe
 
-class HydroprobeControlNode(JoystickControllerNode):
+class HydraprobeControlNode(JoystickControllerNode):
     # CAN BUS NAME
     CAN_BUS = "can1"
 
@@ -42,7 +42,7 @@ class HydroprobeControlNode(JoystickControllerNode):
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
     SERVO_MAX_PERCENT = 1
-    SERVO_CONTROL_NAME = "Hydroprobe Control"
+    SERVO_CONTROL_NAME = "hydraprobe Control"
 
     # CONTROL DIRECTIONS
     DIRECTION_UP = Direction.POSITIVE
@@ -57,7 +57,7 @@ class HydroprobeControlNode(JoystickControllerNode):
     RETRACT_DURATION_SEQUENCE = "retract_durations"
 
     def __init__(self):
-        super().__init__(name="HydroprobeControl", can_bus=self.CAN_BUS, command_period=self.COMMAND_PERIOD)
+        super().__init__(name="hydraprobeControl", can_bus=self.CAN_BUS, command_period=self.COMMAND_PERIOD)
         logger = self.get_logger()
 
         self.velocity = 0.5
@@ -76,26 +76,26 @@ class HydroprobeControlNode(JoystickControllerNode):
         )
 
         ## Create CONTROLS
-        self.hydroprobe_servo = OneAxisVelocityControl(
+        self.hydraprobe_servo = OneAxisVelocityControl(
             logger=logger,
             max_percent=self.SERVO_MAX_PERCENT,
         )
 
         ## Create CONTROLLERS
-        self.hydroprobe_servo_controller = JonoVelocityController(
+        self.hydraprobe_servo_controller = JonoVelocityController(
             logger=logger,
             bus=self.bus,
             frame_id=self.SERVO_ID,
             pos_command=self.MOVE_UP,
             neg_command=self.MOVE_DOWN,
-            control=self.hydroprobe_servo,
+            control=self.hydraprobe_servo,
         )
 
         ## Add the CONTROLLERS to the node's controllers
-        self.add_controller(self.SERVO_CONTROL_NAME, self.hydroprobe_servo_controller)
+        self.add_controller(self.SERVO_CONTROL_NAME, self.hydraprobe_servo_controller)
 
         # Initialise service for taking commands
-        self.command_service = self.create_service(MoveHydroprobe, '/science/move_hydroprobe', self.command_service_callback)
+        self.command_service = self.create_service(Movehydraprobe, '/science/move_hydraprobe', self.command_service_callback)
 
         ## Start the CAN bus
         self.start_can()
@@ -133,43 +133,43 @@ class HydroprobeControlNode(JoystickControllerNode):
     def set_movement(self, speed):
         """ sets the direction and velocity of the servo """
         if speed > 0:
-            self.hydroprobe_servo.update_direction(self.DIRECTION_UP)
+            self.hydraprobe_servo.update_direction(self.DIRECTION_UP)
         elif speed < 0:
-            self.hydroprobe_servo.update_direction(self.DIRECTION_DOWN)
+            self.hydraprobe_servo.update_direction(self.DIRECTION_DOWN)
 
-        self.hydroprobe_servo.update_velocity(abs(speed) // 255)
+        self.hydraprobe_servo.update_velocity(abs(speed) // 255)
 
     def reset(self):
         """ starts the reset sequence """
-        self.get_logger().info("Hydroprobe RESETTING ...")
+        self.get_logger().info("hydraprobe RESETTING ...")
         self.set_movement(self.get_parameter(self.RESET_SPEED_SEQUENCE).value[0])
         self.reset_timers[0].reset()
 
     def deploy(self):
         """ starts the deploy sequence """
-        self.get_logger().info("Hydroprobe DEPLOYING ...")
+        self.get_logger().info("hydraprobe DEPLOYING ...")
         self.set_movement(self.get_parameter(self.DEPLOY_SPEED_SEQUENCE).value[0])
         self.deploy_timers[0].reset()
 
     def retract(self):
         """ starts the retract sequence """
-        self.get_logger().info("Hydroprobe RETRACTING ...")
+        self.get_logger().info("hydraprobe RETRACTING ...")
         self.set_movement(self.get_parameter(self.RETRACT_SPEED_SEQUENCE).value[0])
         self.retract_timers[0].reset()
 
     def command_service_callback(self, request, response):
-        """ callback for the MoveHydroprobe service"""
+        """ callback for the Movehydraprobe service"""
         response.success = True
 
         match request.command:
-            case MoveHydroprobe.RESET:
+            case Movehydraprobe.RESET:
                 self.reset()
-            case MoveHydroprobe.MOVE_UP:
+            case Movehydraprobe.MOVE_UP:
                 self.retract()
-            case MoveHydroprobe.MOVE_DOWN:
+            case Movehydraprobe.MOVE_DOWN:
                 self.deploy()
             case _:
-                self.get_logger().error(f"Invalid hydroprobe command: {request.command}")
+                self.get_logger().error(f"Invalid hydraprobe command: {request.command}")
                 response.success = False
 
         return response
@@ -183,17 +183,17 @@ class HydroprobeControlNode(JoystickControllerNode):
         self.get_logger().debug(f"Velocity updated to {self.velocity}")
 
         if joystick_r.btn_bottom_r3_state >= 1:
-            self.get_logger().info("Hydroprobe moving UP")
-            self.hydroprobe_servo.update_direction(self.DIRECTION_DOWN)
-            self.hydroprobe_servo.update_velocity(self.velocity)
+            self.get_logger().info("hydraprobe moving UP")
+            self.hydraprobe_servo.update_direction(self.DIRECTION_DOWN)
+            self.hydraprobe_servo.update_velocity(self.velocity)
             self.under_manual_control = True
         elif joystick_r.btn_bottom_r6_state >= 1:
-            self.get_logger().info("Hydroprobe moving DOWN")
-            self.hydroprobe_servo.update_direction(self.DIRECTION_UP)
-            self.hydroprobe_servo.update_velocity(self.velocity)
+            self.get_logger().info("hydraprobe moving DOWN")
+            self.hydraprobe_servo.update_direction(self.DIRECTION_UP)
+            self.hydraprobe_servo.update_velocity(self.velocity)
             self.under_manual_control = True
         elif self.under_manual_control:
-            self.hydroprobe_servo.stop()
+            self.hydraprobe_servo.stop()
 
     def joystick_l(self, joystick_l: InputJoystick):
         """
@@ -203,7 +203,7 @@ class HydroprobeControlNode(JoystickControllerNode):
 
 def main():
     rclpy.init()
-    node = HydroprobeControlNode()
+    node = HydraprobeControlNode()
     rclpy.spin(node)
     rclpy.shutdown()
 

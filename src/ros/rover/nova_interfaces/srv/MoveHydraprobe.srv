@@ -1,4 +1,4 @@
-# Used to move the Hydroprobe to specified position
+# Used to move the hydraprobe to specified position
 
 # enum for the command
 byte RESET = 0
