@@ -301,7 +301,7 @@ hardware_interface::return_type BLCMDHardware::write(
             break;
         case blcmd_hardware::ControlMode::Position:
             if (hw_position_.command.has_value()) {
-                RCLCPP_DEBUG_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                    "Sending Position Command " << hw_position_.command.value());
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION),
                                      hw_position_.command.value() * reversed_multiplier_, hw_position_.max);
@@ -312,7 +312,7 @@ hardware_interface::return_type BLCMDHardware::write(
             break;
         case blcmd_hardware::ControlMode::Velocity:
             if (hw_velocity_.command.has_value()) {
-               RCLCPP_DEBUG_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+               RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                   "Sending velocity command " << hw_velocity_.command.value() * reversed_multiplier_);
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_VELOCITY),
                                      hw_velocity_.command.value() * reversed_multiplier_, hw_velocity_.max);
