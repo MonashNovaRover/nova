@@ -25,7 +25,7 @@ from input_interfaces.msg import InputJoystick
 from python_control.JoystickControllerNode import JoystickControllerNode
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 from python_control.controllers.JonoVelocityController import JonoVelocityController
-from nova_interfaces.srv import Movehydraprobe
+from nova_interfaces.srv import MoveHydraprobe
 
 class HydraprobeControlNode(JoystickControllerNode):
     # CAN BUS NAME
@@ -96,7 +96,7 @@ class HydraprobeControlNode(JoystickControllerNode):
         self.add_controller(self.SERVO_CONTROL_NAME, self.hydraprobe_servo_controller)
 
         # Initialise service for taking commands
-        self.command_service = self.create_service(Movehydraprobe, '/science/move_hydraprobe', self.command_service_callback)
+        self.command_service = self.create_service(MoveHydraprobe, '/science/move_hydraprobe', self.command_service_callback)
 
         ## Start the CAN bus
         self.start_can()
@@ -173,11 +173,11 @@ class HydraprobeControlNode(JoystickControllerNode):
         response.success = True
 
         match request.command:
-            case Movehydraprobe.RESET:
+            case MoveHydraprobe.RESET:
                 self.reset()
-            case Movehydraprobe.MOVE_UP:
+            case MoveHydraprobe.RETRACT:
                 self.retract()
-            case Movehydraprobe.MOVE_DOWN:
+            case MoveHydraprobe.DEPLOY:
                 self.deploy()
             case _:
                 self.get_logger().error(f"Invalid hydraprobe command: {request.command}")

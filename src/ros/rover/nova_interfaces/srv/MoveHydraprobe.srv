@@ -2,8 +2,8 @@
 
 # enum for the command
 byte RESET = 0
-byte MOVE_UP = 1
-byte MOVE_DOWN = 2
+byte RETRACT = 1
+byte DEPLOY = 2
 
 byte command
 

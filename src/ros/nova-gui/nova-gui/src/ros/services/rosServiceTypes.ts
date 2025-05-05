@@ -81,8 +81,8 @@ export interface RosServiceInterface {
     IRosNovaInterfacesMoveScimbalCamResponse
   >;
   [RosService.HYDRAPROBE_COMMAND]: RosServiceMessage<
-    IRosNovaInterfacesMoveHydroprobeRequest,
-    IRosNovaInterfacesMoveHydroprobeResponse
+    IRosNovaInterfacesMoveHydraprobeRequest,
+    IRosNovaInterfacesMoveHydraprobeResponse
   >;
   [RosService.MOVE_MICROSCOPE_SERVO]: RosServiceMessage<
     IRosNovaInterfacesMoveMicroscopeServoRequest,
