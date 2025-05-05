@@ -13,10 +13,9 @@ NODES:
   - control/analysis_platform.py        [analysis_platform]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATION:   17/03/2024
-EDITED:     04/05/2025
+EDITED:     05/05/2025
 EDITED BY: Tristan Clark, Josh Leivenzon, 
-    Victor Bartlinski, Felicity Matthews,
-    Brandon Chung
+    Victor Bartlinski, Felicity Matthews
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 from launch import LaunchDescription
@@ -26,32 +25,72 @@ from launch_ros.actions import Node
 
 def launch_setup(context, *args, **kwargs):
     # parameterised canIDs
-    auger_drill_canid = LaunchConfiguration('auger_drill_canid')
-    auger_actuation_canid = LaunchConfiguration('auger_actuation_canid')
+    auger1_drill_canid = LaunchConfiguration('auger1_drill_canid')
+    auger1_actuation_canid = LaunchConfiguration('auger1_actuation_canid')
+    auger2_drill_canid = LaunchConfiguration('auger2_drill_canid')
+    auger2_actuation_canid = LaunchConfiguration('auger2_actuation_canid')
     analysis_arm_cmd_canid = LaunchConfiguration('analysis_arm_cmd_canid')
-    tof_canid = LaunchConfiguration('tof_canid')
+    cbeam_actuation_canid = LaunchConfiguration('cbeam_actuation_canid')
     cache1_canid = LaunchConfiguration('cache1_canid')
     cache2_canid = LaunchConfiguration('cache2_canid')
 
     return [
         Node(
+            name='AnalysisArm',
             package='science',
-            executable='urc_analysis_arm.py',
+            executable='analysis_arm.py',
             output='screen',
             emulate_tty=True,
             parameters=[{
                 "cmd_id": analysis_arm_cmd_canid,
-                "tof_frame_id": tof_canid
+                "active": True,
+                "active_button": "btn_bottom_r1_state",
+                "inactive_button_pool": ["btn_bottom_r4_state"],
+                "using_left_joystick": True,
             }],
         ),
         Node(
+            name='CBeam',
             package='science',
-            executable='urc_auger.py',
+            executable='analysis_arm.py',
             output='screen',
             emulate_tty=True,
             parameters=[{
-                "auger_drill_canid": auger_drill_canid,
-                "auger_actuation_canid": auger_actuation_canid
+                "cmd_id": cbeam_actuation_canid,
+                "active": False,
+                "active_button": "btn_bottom_r4_state",
+                "inactive_button_pool": ["btn_bottom_r1_state"],
+                "using_left_joystick": True,
+            }],
+        ),
+        Node(
+            name='Auger1',
+            package='science',
+            executable='auger.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[{
+                "auger_drill_canid": auger1_drill_canid,
+                "auger_actuation_canid": auger1_actuation_canid,
+                "active": True,
+                "active_button": "btn_bottom_r1_state",
+                "inactive_button_pool": ["btn_bottom_r4_state"],
+                "using_left_joystick": False,
+            }]
+        ),
+        Node(
+            name='Auger2',
+            package='science',
+            executable='auger.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[{
+                "auger_drill_canid": auger2_drill_canid,
+                "auger_actuation_canid": auger2_actuation_canid,
+                "active": False,
+                "active_button": "btn_bottom_r4_state",
+                "inactive_button_pool": ["btn_bottom_r1_state"],
+                "using_left_joystick": False,
             }]
         ),
         Node(
@@ -110,18 +149,6 @@ def launch_setup(context, *args, **kwargs):
         ),
         Node(
             package='science',
-            executable='urc_raman_spec_server.py',
-            output='screen',
-            emulate_tty=True,
-        ),
-        Node(
-            package='science',
-            executable='urc_sample_tray.py',
-            output='screen',
-            emulate_tty=True,
-        ),
-        Node(
-            package='science',
             executable='urc_theta_360_cam.py',
             output='screen',
             emulate_tty=True,
@@ -142,12 +169,14 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     declared_arguments = [
-        DeclareLaunchArgument("auger_drill_canid", default_value='0x0C1'),
-        DeclareLaunchArgument("auger_actuation_canid", default_value='0x0C2'),
-        DeclareLaunchArgument("analysis_arm_cmd_canid", default_value='0x032'),
-        DeclareLaunchArgument("tof_canid", default_value='0x456')
-        DeclareLaunchArgument("cache1_canid", default_value='0x060')
-        DeclareLaunchArgument("cache2_canid", default_value='0x061')
+        DeclareLaunchArgument("auger1_drill_canid", default_value='0x0C1'),
+        DeclareLaunchArgument("auger1_actuation_canid", default_value='0x0C2'),
+        DeclareLaunchArgument("auger2_drill_canid", default_value='0x0D1'),
+        DeclareLaunchArgument("auger2_actuation_canid", default_value='0x0D2'),
+        DeclareLaunchArgument("cbeam_actuation_canid", default_value='0x0A1'),
+        DeclareLaunchArgument("analysis_arm_cmd_canid", default_value='0x0A2'),
+        DeclareLaunchArgument("cache1_canid", default_value='0x060'),
+        DeclareLaunchArgument("cache2_canid", default_value='0x061'),
     ]
 
     return LaunchDescription(
