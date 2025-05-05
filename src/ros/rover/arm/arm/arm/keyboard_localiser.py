@@ -132,6 +132,10 @@ class KeyboardLocaliser(Node):
             [-KEYBOARD[1]/2, KEYBOARD[0]/2, 0]      # bottom-left
         ], dtype=np.float32)
 
+        # OpenCV filter params
+        self.dark_threshold = self.declare_parameter('dark_threshold', 120).get_parameter_value().integer_value
+        self.kernel_size = self.declare_parameter('kernel_size', 100).get_parameter_value().integer_value
+
         # tf2 initalisation
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -236,21 +240,20 @@ class KeyboardLocaliser(Node):
         image = self.msg_to_mat(self.get_logger(), self.view, 'bgr8')
 
         # Get filtered mask
-        # TODO, parameterise threshold 120 and kernal 100
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         h, s, v = cv2.split(hsv)
 
         # filter for dark colours (black keyboard)
-        _, mask = cv2.threshold(v, 120, 255, cv2.THRESH_BINARY_INV)
+        _, mask = cv2.threshold(v, self.dark_threshold, 255, cv2.THRESH_BINARY_INV)
 
         # close small gaps in mask
         kernel_close = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
         mask_closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel_close, iterations=2)
 
         # filter out irregular blobs
-        kern_neck = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 100))
+        kern_neck = cv2.getStructuringElement(cv2.MORPH_RECT, (3, self.kernel_size))
         mask_pruned = cv2.morphologyEx(mask_closed, cv2.MORPH_OPEN, kern_neck, iterations=1)
-        kern_blip = cv2.getStructuringElement(cv2.MORPH_RECT, (100, 3))
+        kern_blip = cv2.getStructuringElement(cv2.MORPH_RECT, (self.kernel_size, 3))
         mask_blip = cv2.morphologyEx(mask_pruned, cv2.MORPH_OPEN, kern_blip, iterations=1)
         
         # Get largest contour's hull

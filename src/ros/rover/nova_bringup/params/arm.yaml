@@ -21,6 +21,10 @@ keyboard_localiser:
     image_height: 480 #720
     distortion_matrix: [0.59680899,-2.13821558,-0.01071933,0.0900803,4.94332294]
 
+    # OpenCV filter params
+    dark_threshold: 120 # 0-255
+    kernel_size: 100
+
     # (auto) keyboard pose analysis initalisation
     camera_frame: arm_end_periscope_optical
 
