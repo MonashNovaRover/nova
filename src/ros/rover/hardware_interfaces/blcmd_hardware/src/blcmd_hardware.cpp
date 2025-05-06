@@ -35,6 +35,8 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
 
     BLCMDHardwareLoggerName = info_.name;
 
+    params_ = param_listener_->get_params();
+
     if (info_.joints.size() != 1)
     {
       RCLCPP_FATAL_STREAM(
@@ -141,7 +143,18 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
 hardware_interface::CallbackReturn BLCMDHardware::on_configure(
         const rclcpp_lifecycle::State & previous_state)
 {
-  // open the can bus
+    std::vector<rclcpp::Parameter> parameters;
+    parameters.reserve(info_.hardware_parameters.size());
+    for (const auto & [key, value_str] : info_.hardware_parameters) {
+      parameters.emplace_back(key, value_str);
+    }
+
+    if (info_.hardware_parameters.find("candevice") != info_.hardware_parameters.end()) {
+      params_.candevice = info_.hardware_parameters.at("candevice");
+    }
+
+
+    // open the can bus
     try {
         bus_->open(can_device_.c_str());
         RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Opened canbus on device %s",

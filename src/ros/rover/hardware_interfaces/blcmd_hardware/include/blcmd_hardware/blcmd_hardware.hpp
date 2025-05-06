@@ -29,6 +29,8 @@
 
 #include "jcan/jcan.h"
 
+#include "blcmd_hardware_parameters.hpp"
+
 namespace blcmd_hardware
 {
 struct PIConfig {
@@ -132,6 +134,12 @@ public:
     hardware_interface::return_type prepare_command_mode_switch(
         const std::vector<std::string> & start_interfaces,
         const std::vector<std::string> & stop_interfaces) override;
+
+protected:
+
+  // Parameters from ROS for the BLCMD hardware interface
+  std::shared_ptr<ParamListener> param_listener_;
+  Params params_;
 
 private:
     std::string BLCMDHardwareLoggerName;
