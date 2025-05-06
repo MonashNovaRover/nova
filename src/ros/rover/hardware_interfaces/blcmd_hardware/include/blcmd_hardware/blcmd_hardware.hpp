@@ -44,7 +44,6 @@ struct ControlInterface {
 };
 
 struct PositionInterface : ControlInterface {
-    double resolver_reduction {std::numeric_limits<double>::quiet_NaN()};
 };
 
 enum class ControlMode {
@@ -166,6 +165,9 @@ private:
 
         /// The maximum position in radians, to be mapped to the largest position in CAN; 0x7FFF. This is not a limit.
         std::optional<double> max_position = std::nullopt;
+
+        /// A reduction ratio resolver readings are scaled by.
+        double resolver_reduction {std::numeric_limits<double>::quiet_NaN()};
     };
 
     std::string BLCMDHardwareLoggerName;
