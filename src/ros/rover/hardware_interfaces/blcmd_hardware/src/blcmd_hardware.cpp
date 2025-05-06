@@ -442,6 +442,11 @@ hardware_interface::CallbackReturn BLCMDHardware::apply_parameters() {
                                                              "max_position from command interface.");
   }
 
+  auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
+  if (resolver_reduction_search != info_.joints[0].parameters.end()) {
+    params_.resolver_reduction = std::stod(resolver_reduction_search->second);
+  }
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -453,12 +458,11 @@ bool BLCMDHardware::set_control_interface(
         if (command){
             hw_position_.max = params_.max_position.has_value() ? params_.max_position.value()
               : std::stod(interface_info.max);
-            auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
-            if (resolver_reduction_search == info_.joints[0].parameters.end()){
-                RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No resolver reduction provided");
+            if (std::isnan(params_.resolver_reduction)) {
+                RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No resolver reduction provided, "
+                                                                          "but a position command interface is used.");
                 return false;
             }
-            hw_position_.resolver_reduction = std::stod(resolver_reduction_search->second);
             hw_position_.command = 0.0;
         } else {
             hw_position_.state = 0.0;
@@ -544,7 +548,7 @@ bool BLCMDHardware::set_control_interface(
     void BLCMDHardware::packet_3_callback(leigh::jcan::Frame frame) {
         if(hw_position_.state.has_value()) {
             hw_position_.state = convert_scaled<int16_t>(&frame.data[0], hw_position_.max) *
-                                 hw_position_.resolver_reduction * reversed_multiplier_;
+                                 params_.resolver_reduction * reversed_multiplier_;
         }
     }
 
