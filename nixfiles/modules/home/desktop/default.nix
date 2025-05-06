@@ -36,7 +36,7 @@ in
       };
 
       "org/gnome/desktop/session" = {
-        idle-delay = 15 * 60; # 15 minutes before screen off
+        idle-delay = lib.hm.gvariant.mkUint32 (15 * 60); # 15 minutes before screen off
       };
 
       "org/gnome/desktop/interface" = {
