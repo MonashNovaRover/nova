@@ -134,6 +134,37 @@ public:
         const std::vector<std::string> & stop_interfaces) override;
 
 private:
+    struct Params {
+        /// The name of the CAN bus interface the target BLCMD is on. Should be 'can0', 'can1', or 'can2'.
+        std::string candevice = "";
+
+        /// The 2nd hexadecimal digit in the 12-bit CAN id used in messages to/from the BLCMD board.
+        uint32_t canid = 0;
+
+        /// Unknown.
+        uint32_t clock_rate = 100000000;
+
+        /// Unconfirmed. The number of pulses in the resolver for a single revolution.
+        uint16_t revolution_pulses = 8192;
+
+        /// Unconfirmed. The ratio of the connected gearbox.
+        double gear_ratio = 1.0;
+
+        /// Unconfirmed. When true, the hardware interface will use min_interval from parameters. When false,
+        /// min_interval is determined through requesting configuration from the BLCMD board.
+        bool mock = false;
+
+        /// Unknown.
+        uint16_t min_interval = -1;
+
+        /// Unconfirmed. When true, the sign of all inputs and outputs are reversed.
+        bool reversed = false;
+
+        /// Unconfirmed. When true, the hardware interface will ignore resolver data, and determine position through
+        /// integrating velocity feedback.
+        bool integrate_velocity = false;
+    };
+
     std::string BLCMDHardwareLoggerName;
 
     ControlInterface hw_velocity_;
@@ -143,22 +174,8 @@ private:
     ControlMode control_mode_;
 
     std::unique_ptr<leigh::jcan::Bus> bus_;
-    std::basic_string<char> can_device_;
 
-    uint32_t can_id_;
-
-    uint16_t min_interval_;
-
-    uint32_t clock_rate_;
-
-    uint16_t revolution_pulses_;
-
-    double gear_ratio_;
-
-    bool mock_ = false;
-
-    bool integrate_velocity_ = false;
-
+    Params params_;
     int reversed_multiplier_ = 1;
 
     hardware_interface::CallbackReturn apply_parameters();
@@ -207,6 +224,8 @@ private:
 
     template<typename T>
     void send_scaled(uint32_t id, double value, double max);
+
+    static bool is_true(std::string& text);
 };
 
 }  // namespace blcmd_hardware
