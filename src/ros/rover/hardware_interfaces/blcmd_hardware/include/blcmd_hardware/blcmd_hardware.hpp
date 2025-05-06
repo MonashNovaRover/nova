@@ -161,6 +161,7 @@ private:
 
     int reversed_multiplier_ = 1;
 
+    hardware_interface::CallbackReturn apply_parameters();
 
     bool set_control_interface(const hardware_interface::InterfaceInfo & interface_info, bool command);
 
