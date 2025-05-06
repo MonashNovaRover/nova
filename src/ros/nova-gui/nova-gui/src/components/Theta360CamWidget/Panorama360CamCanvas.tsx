@@ -18,11 +18,12 @@ import {Input, Slider, Tooltip} from "@nextui-org/react";
 import useImageTexture from "../../hooks/webgl/program/sampler/useImageTexture.ts";
 import Compass from "../../assets/compass.png";
 import {isArray} from "lodash";
-import {MapInteractionMode} from "../../redux/models/CartographerState.ts";
+import {InteractionMode} from "../../redux/models/Theta360CamState.ts";
 import {PropRenderer} from "../shared/PropRenderer.tsx";
 import {getDistance} from "../Maps/utils/geojson.ts";
 import {ToolTipButton} from "../shared/TooltipButton.tsx";
 import {Rulers} from "react-bootstrap-icons";
+import {useGenericStore} from "../../hooks/useGenericStore.ts";
 
 
 export interface WebGL360CamProps {
@@ -72,7 +73,7 @@ function convertToBlob(base64image: string): [ArrayBuffer] {
 const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   const gl = useGL();
   const [mousePos, setMousePos] = useState([0, 0]);
-  const [compassAngle, setCompassAngleRaw] = useState<number | number[]>(180);
+  const [compassAngle, setCompassAngleRaw] = useGenericStore<number>("theta360CompassHeading");
   const [widthHeight, setWidthHeight] = useState([0, 0]);
 
   const compassImage = useImageTexture(Compass);
