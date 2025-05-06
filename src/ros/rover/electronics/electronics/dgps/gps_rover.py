@@ -102,66 +102,70 @@ class GPSRover(Node):
 
 
     def parse_nmea(self) -> None:
-        self.pose.header.stamp = self.get_clock().now().to_msg()
-        msg_raw : NMEAMessage
-        try:
-            msg_raw, msg_parsed = self.reader_nmea.read()
-        except Exception as e:
-            self.get_logger().warn(f'❌ Failed to read NMEA message: {e}')
-            return
-
-        self.get_logger().debug(f'✅ NMEA message received!', throttle_duration_sec=2)
-        self.get_logger().debug(f'\t   raw NMEA message: {msg_raw}', throttle_duration_sec=2)
-        self.get_logger().debug(f'\tparsed NMEA message: {msg_parsed}', throttle_duration_sec=2)
-
-        if msg_parsed is None:
-            self.get_logger().warn(f'❌ Failed to read NMEA message: \'msg_parsed\' cannot be None!', throttle_duration_sec=2)
-            return
-
-        if self.gps_module == 'skytraq':
+        try: 
+            self.pose.header.stamp = self.get_clock().now().to_msg()
+            msg_raw : NMEAMessage
             try:
-                msg_str = str(msg_parsed)
-                if msg_parsed.talker == 'P' and msg_parsed.msgID == 'STI' and msg_parsed.msgId == '036':
-                    # We are dealing with a PSTI036 message, which contains orientation information
-                    if msg_parsed.mode == 'R':
-                        # RTK (Real-Time Kinematic) mode. We have valid heading
-                        self.pose.heading_valid = True
-                        self.pose.pitch, self.pose.roll, self.pose.yaw = msg_parsed.pitch, msg_parsed.roll, msg_parsed.heading
-                    else:
-                        # Not RTK mode. We don't have valid heading
-                        self.pose.heading_valid = False
-                elif msg_parsed.talker == 'GN' and msg_parsed.msgID == 'RMC':
-                    if msg_parsed.status == 'A':
-                        # Valid
-                        self.pose.valid = True
-                        self.pose.latitude, self.pose.longitude = msg_parsed.lat, msg_parsed.lon
-                    else:
-                        self.pose.valid = False
-                elif msg_parsed.talker == 'GP' and msg_parsed.msgID == 'GGA':
-                    self.fix_type = msg_parsed.quality   # 1 = No fix, 2 = 2D fix, 3 = 3D fix
-
-                ### ROS2 ###
-                self.pub_pose.publish(self.pose)
-
-                ### LOG ###
-                msg_log = f'''
-                    🛰️ NMEA Data:
-                    \traw: {msg_str}
-                    \tvalid: {self.pose.valid}
-                    \tfix type: {'None' if self.fix_type == 1 else '2D' if self.fix_type == 2 else '3D' if self.fix_type == 3 else self.fix_type}
-                    \tlat: {self.pose.latitude:8.3f}
-                    \tlon: {self.pose.longitude:8.3f}
-                    \tpitch: {self.pose.pitch:8.2f}
-                    \troll: {self.pose.roll:8.2f}
-                    \tyaw: {self.pose.yaw:8.2f}
-                '''
-                if self.pose.valid:
-                    self.get_logger().debug(msg_log, throttle_duration_sec=2)
-                else:
-                    self.get_logger().warn(msg_log, throttle_duration_sec=2)
-
+                msg_raw, msg_parsed = self.reader_nmea.read()
             except Exception as e:
-                self.get_logger().warn(f'❌ Error: {e}, Bad message: {msg_parsed}')
+                self.get_logger().warn(f'❌ Failed to read NMEA message: {e}')
+                return
+
+            self.get_logger().debug(f'✅ NMEA message received!', throttle_duration_sec=2)
+            self.get_logger().debug(f'\t   raw NMEA message: {msg_raw}', throttle_duration_sec=2)
+            self.get_logger().debug(f'\tparsed NMEA message: {msg_parsed}', throttle_duration_sec=2)
+
+            if msg_parsed is None:
+                self.get_logger().warn(f'❌ Failed to read NMEA message: \'msg_parsed\' cannot be None!', throttle_duration_sec=2)
+                return
+
+            if self.gps_module == 'skytraq':
+                try:
+                    msg_str = str(msg_parsed)
+                    if msg_parsed.talker == 'P' and msg_parsed.msgID == 'STI' and msg_parsed.msgId == '036':
+                        # We are dealing with a PSTI036 message, which contains orientation information
+                        if msg_parsed.mode == 'R':
+                            # RTK (Real-Time Kinematic) mode. We have valid heading
+                            self.pose.heading_valid = True
+                            self.pose.pitch, self.pose.roll, self.pose.yaw = msg_parsed.pitch, msg_parsed.roll, msg_parsed.heading
+                        else:
+                            # Not RTK mode. We don't have valid heading
+                            self.pose.heading_valid = False
+                    elif msg_parsed.talker == 'GN' and msg_parsed.msgID == 'RMC':
+                        if msg_parsed.status == 'A':
+                            # Valid
+                            self.pose.valid = True
+                            self.pose.latitude, self.pose.longitude = msg_parsed.lat, msg_parsed.lon
+                        else:
+                            self.pose.valid = False
+                    elif msg_parsed.talker == 'GP' and msg_parsed.msgID == 'GGA':
+                        self.fix_type = msg_parsed.quality   # 1 = No fix, 2 = 2D fix, 3 = 3D fix
+
+                    ### ROS2 ###
+                    self.pub_pose.publish(self.pose)
+
+                    ### LOG ###
+                    msg_log = f'''
+                        🛰️ NMEA Data:
+                        \traw: {msg_str}
+                        \tvalid: {self.pose.valid}
+                        \tfix type: {'None' if self.fix_type == 1 else '2D' if self.fix_type == 2 else '3D' if self.fix_type == 3 else self.fix_type}
+                        \tlat: {self.pose.latitude:8.3f}
+                        \tlon: {self.pose.longitude:8.3f}
+                        \tpitch: {self.pose.pitch:8.2f}
+                        \troll: {self.pose.roll:8.2f}
+                        \tyaw: {self.pose.yaw:8.2f}
+                    '''
+                    if self.pose.valid:
+                        self.get_logger().debug(msg_log, throttle_duration_sec=2)
+                    else:
+                        self.get_logger().warn(msg_log, throttle_duration_sec=2)
+
+                except Exception as e:
+                    self.get_logger().warn(f'❌ Error: {e}, Bad message: {msg_parsed}')
+        except Exception as e:
+            self.get_logger().warn(f'❌ {e}')
+            return
 
     def loop(self) -> None:
         self.parse_nmea()
