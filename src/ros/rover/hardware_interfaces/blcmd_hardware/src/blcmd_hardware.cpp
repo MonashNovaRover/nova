@@ -43,8 +43,6 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
       return CallbackReturn::ERROR;
     }
 
-
-
     for (const auto& interface : info_.joints[0].command_interfaces){
         if(!set_control_interface(interface, true)){
             return CallbackReturn::ERROR;
@@ -122,7 +120,6 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
             RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                 "Error with resolver request on BLCMD" << params_.canid);
             return CallbackReturn::ERROR;
-
         }
     }
     
@@ -132,12 +129,12 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
 template<typename T>
 std::optional<T> BLCMDHardware::get_config(BLCMDConfigCommand command) {
 
-    const leigh::jcan::Frame params_.min_intervalrequest = {
+    const leigh::jcan::Frame min_interval_request = {
             make_can_id(BLCMDSendCommand::GET_CONFIG),
             {static_cast<uint8_t>(command)},
     };
     auto start = std::chrono::steady_clock::now();
-    bus_->send(params_.min_intervalrequest);
+    bus_->send(min_interval_request);
 
     while (std::chrono::steady_clock::now() - start < std::chrono::seconds(1)) {
         try {
@@ -427,13 +424,23 @@ hardware_interface::CallbackReturn BLCMDHardware::apply_parameters() {
   }
 
   auto gear_ratio_search = info_.hardware_parameters.find("gear_ratio");
-  if (gear_ratio_search == info_.hardware_parameters.end()){
+  if (gear_ratio_search == info_.hardware_parameters.end()) {
     RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No gear ratio provided");
     return CallbackReturn::ERROR;
   }
   params_.gear_ratio = std::stod(gear_ratio_search->second);
   RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                      "Got gear ratio: " << params_.gear_ratio);
+
+  auto max_position_search = info_.hardware_parameters.find("max_position");
+  if (max_position_search != info_.hardware_parameters.end()) {
+    params_.max_position = std::stod(max_position_search->second);
+    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using max_position of %f", params_.max_position.value());
+  }
+  else {
+    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "max_position parameter was undefined. Will use "
+                                                             "max_position from command interface.");
+  }
 
   return CallbackReturn::SUCCESS;
 }
@@ -444,7 +451,8 @@ bool BLCMDHardware::set_control_interface(
     if (interface_info.name == hardware_interface::HW_IF_POSITION){
         // TODO: deal with case with state interface and no command interface
         if (command){
-            hw_position_.max = std::stod(interface_info.max);
+            hw_position_.max = params_.max_position.has_value() ? params_.max_position.value()
+              : std::stod(interface_info.max);
             auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
             if (resolver_reduction_search == info_.joints[0].parameters.end()){
                 RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No resolver reduction provided");

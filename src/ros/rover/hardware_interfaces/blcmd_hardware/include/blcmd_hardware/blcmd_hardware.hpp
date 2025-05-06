@@ -155,7 +155,7 @@ private:
         bool mock = false;
 
         /// Unknown.
-        uint16_t min_interval = -1;
+        uint16_t min_interval = 122;
 
         /// Unconfirmed. When true, the sign of all inputs and outputs are reversed.
         bool reversed = false;
@@ -163,6 +163,9 @@ private:
         /// Unconfirmed. When true, the hardware interface will ignore resolver data, and determine position through
         /// integrating velocity feedback.
         bool integrate_velocity = false;
+
+        /// The maximum position in radians, to be mapped to the largest position in CAN; 0x7FFF. This is not a limit.
+        std::optional<double> max_position = std::nullopt;
     };
 
     std::string BLCMDHardwareLoggerName;
