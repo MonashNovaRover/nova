@@ -21,10 +21,15 @@ find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
+find_package(generate_parameter_library REQUIRED)
 
 # find jcan
 find_package(PkgConfig)
 pkg_check_modules(JCAN REQUIRED jcan)
+
+generate_parameter_library(blcmd_hardware_parameters
+  src/parameters.yaml
+)
 
 add_library(
   blcmd_hardware

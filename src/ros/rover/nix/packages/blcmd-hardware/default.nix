@@ -8,6 +8,7 @@
 , hardware-interface
 , pluginlib
 , jcan
+, generate-parameter-library
 }:
 
 buildRosPackage {
@@ -27,5 +28,6 @@ buildRosPackage {
     rclcpp-lifecycle
     hardware-interface
     jcan
+    generate-parameter-library
   ];
 }
