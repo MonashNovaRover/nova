@@ -39,9 +39,10 @@ import logging
 
 class GPSRover(Node):
     def __init__(self):
+        super().__init__('gps_rover')
+
         self.get_logger().debug(f'Configuring node...')
 
-        super().__init__('gps_rover')
         self.baudrate = self.declare_parameter(
             name='baudrate', 
             value=115200, 
@@ -112,6 +113,8 @@ class GPSRover(Node):
         else:
             self.get_logger().warn(msg_log)
 
+    def pub_pose_callback(self):
+        self.pub_pose.publish(self.pose)
 
     def parse_nmea(self) -> None:
         self.get_logger().debug(f'Parsing NMEA message...')
@@ -153,9 +156,6 @@ class GPSRover(Node):
                     elif msg_parsed.talker == 'GP' and msg_parsed.msgID == 'GGA':
                         self.fix_type = msg_parsed.quality   # 1 = No fix, 2 = 2D fix, 3 = 3D fix
 
-                    ### ROS2 ###
-                    self.pub_pose.publish(self.pose)
-
                     ### LOG ###
                     msg_log = f'''
                         🛰️ NMEA Data:
@@ -182,6 +182,7 @@ class GPSRover(Node):
 
     def loop(self) -> None:
         self.parse_nmea()
+        self.pub_pose_callback()
 
 def main (args = None):
     rclpy.init(args = args)
