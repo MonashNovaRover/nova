@@ -257,14 +257,20 @@ class KeyboardLocaliser(Node):
         mask_blip = cv2.morphologyEx(mask_pruned, cv2.MORPH_OPEN, kern_blip, iterations=1)
         
         # Get largest contour's hull
+        approx = None
         contours, _ = cv2.findContours(mask_blip, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        hull = cv2.convexHull(max(contours, key=cv2.contourArea))
-        # simplify contour polygon using algorithm (0.02 *cv2 arcLength is 2% of perimeter)
-        approx = cv2.approxPolyDP(hull, 0.02 * cv2.arcLength(hull, True), True)
-        # Extract and reshape points to 2D array
-        corners = approx.reshape(4, 2)
+        if contours:
+            hull = cv2.convexHull(max(contours, key=cv2.contourArea))
+            # simplify contour polygon using algorithm (0.02 *cv2 arcLength is 2% of perimeter)
+            approx = cv2.approxPolyDP(hull, 0.02 * cv2.arcLength(hull, True), True)
+
         # Sort the points in order: top-left, top-right, bottom-right, bottom-left
-        def sort_corners(pts) -> np.ndarray:
+        def sort_corners(approx) -> np.ndarray:
+            if approx is None or len(approx) != 4:
+                return None
+            # Extract and reshape points to 2D array
+            pts = approx.reshape(4, 2)
+
             sorted_pts = np.zeros((4, 2), dtype="float32")
             s = pts.sum(axis=1)
             diff = np.diff(pts, axis=1)
@@ -274,14 +280,15 @@ class KeyboardLocaliser(Node):
             sorted_pts[3] = pts[np.argmax(diff)]    # bottom-left
             return sorted_pts
 
-        image_points = sort_corners(corners)
+        image_points = sort_corners(approx)
         self.pub_debug_image(image, image_points)
         return image_points
     
     def pub_debug_image(self, img, points) -> None:
         # Draw each point
-        for point in points:
-           cv2.circle(img, (int(point[0]), int(point[1])), radius=5, color=(0, 255, 0), thickness=-1)
+        if points is not None:
+            for point in points:
+                cv2.circle(img, (int(point[0]), int(point[1])), radius=5, color=(0, 255, 0), thickness=-1)
 
         # Convert OpenCV image -> ROS Image
         output_msg = CvBridge().cv2_to_imgmsg(img, encoding="bgr8")
