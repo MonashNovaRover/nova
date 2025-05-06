@@ -39,6 +39,8 @@ import logging
 
 class GPSRover(Node):
     def __init__(self):
+        self.get_logger().debug(f'Configuring node...')
+
         super().__init__('gps_rover')
         self.baudrate = self.declare_parameter(
             name='baudrate', 
@@ -51,6 +53,10 @@ class GPSRover(Node):
         self.gps_module = self.declare_parameter(
             name='gps_module', 
             value='skytraq', 
+        ).value
+        self.publisher_rate = self.declare_parameter(
+            name='publisher_rate', 
+            value=30, 
         ).value
         self.fix_type = None
 
@@ -77,14 +83,20 @@ class GPSRover(Node):
         )
         self.pose = RoverPoseGPS()
         self.pose.header.frame_id = 'gps_rover'
-        self.timer = self.create_timer(0, self.loop)
+        self.timer = self.create_timer(1/self.publisher_rate, self.loop)
+
+        self.get_logger().debug(f'Node configured!')
 
     def config_port(self, port_name : str, baudrate : int):
+        self.get_logger().debug(f'Configuring serial port...')
+
         self.ser.baudrate = baudrate
         if port_name == '':
            port_name = '/dev/ttyUSB0'
         self.ser.port = port_name
         self.ser.open()
+
+        self.get_logger().debug(f'Serial port configured!')
 
     def sub_rtcm_callback(self, msg : UInt8MultiArray):
         msg_binary = bytes(msg.data)
@@ -96,28 +108,28 @@ class GPSRover(Node):
             \traw: {msg_str}
         '''
         if self.fix_type == 3:
-            self.get_logger().debug(msg_log, throttle_duration_sec=2)
+            self.get_logger().debug(msg_log)
         else:
-            self.get_logger().warn(msg_log, throttle_duration_sec=2)
+            self.get_logger().warn(msg_log)
 
 
     def parse_nmea(self) -> None:
+        self.get_logger().debug(f'Parsing NMEA message...')
         try: 
             self.pose.header.stamp = self.get_clock().now().to_msg()
-            msg_raw : NMEAMessage
             try:
                 msg_raw, msg_parsed = self.reader_nmea.read()
             except Exception as e:
                 self.get_logger().warn(f'❌ Failed to read NMEA message: {e}')
                 return
 
-            self.get_logger().debug(f'✅ NMEA message received!', throttle_duration_sec=2)
-            self.get_logger().debug(f'\t   raw NMEA message: {msg_raw}', throttle_duration_sec=2)
-            self.get_logger().debug(f'\tparsed NMEA message: {msg_parsed}', throttle_duration_sec=2)
-
             if msg_parsed is None:
-                self.get_logger().warn(f'❌ Failed to read NMEA message: \'msg_parsed\' cannot be None!', throttle_duration_sec=2)
+                self.get_logger().warn(f'❌ Failed to read NMEA message: \'msg_parsed\' cannot be None!')
                 return
+
+            self.get_logger().debug(f'✅ NMEA message received!')
+            self.get_logger().debug(f'\t   raw NMEA message: {msg_raw}')
+            self.get_logger().debug(f'\tparsed NMEA message: {msg_parsed}')
 
             if self.gps_module == 'skytraq':
                 try:
@@ -157,15 +169,16 @@ class GPSRover(Node):
                         \tyaw: {self.pose.yaw:8.2f}
                     '''
                     if self.pose.valid:
-                        self.get_logger().debug(msg_log, throttle_duration_sec=2)
+                        self.get_logger().debug(msg_log)
                     else:
-                        self.get_logger().warn(msg_log, throttle_duration_sec=2)
+                        self.get_logger().warn(msg_log)
 
                 except Exception as e:
                     self.get_logger().warn(f'❌ Error: {e}, Bad message: {msg_parsed}')
         except Exception as e:
-            self.get_logger().warn(f'❌ {e}')
+            self.get_logger().warn(f'❌ Unknown error: {e}')
             return
+        self.get_logger().debug(f'NMEA message parsed!')
 
     def loop(self) -> None:
         self.parse_nmea()

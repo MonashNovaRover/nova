@@ -19,3 +19,4 @@ gps_rover:
     baudrate: 115200
     port_name: /dev/ttyUSB0
     gps_module: skytraq
+    publisher_rate: 30
