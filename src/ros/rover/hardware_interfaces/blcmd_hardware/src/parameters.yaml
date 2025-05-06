@@ -1,0 +1,45 @@
+# This is only the schema for Node Parameters
+# Look here for docs about this YAML : https://github.com/PickNikRobotics/generate_parameter_library
+
+# generate_parameter_library_cpp include/blcmd_hardware/blcmd_hardware_parameters.hpp src/parameters.yaml
+
+blcmd_hardware:
+  candevice:
+    type: string
+    default_value: ""
+    description: "The name of the CAN bus interface the target BLCMD is on. Should be 'can0', 'can1', or 'can2'."
+  canid:
+    type: int
+    default_value: 0
+    description: "The 2nd hexadecimal digit in the 12-bit CAN id used in messages to/from the BLCMD board."
+  clock_rate:
+    type: int
+    default_value: 100000000
+    description: "Unknown."
+  revolution_pulses:
+    type: int   # 16 bit?
+    default_value: 8192
+    description: "Unconfirmed. The number of pulses in the resolver for a single revolution."
+  gear_ratio:
+    type: double
+    default_value: 1.0
+    description: "Unconfirmed. The ratio of the connected gearbox."
+  mock:
+    type: bool
+    default_value: false
+    description: "Unconfirmed. When true, the hardware interface will use min_interval from parameters. When false, 
+    min_interval is determined through requesting configuration from the BLCMD board."
+  min_interval:
+    type: int   # 16 bit?
+    default_value: -1
+    description: "Unknown."
+  reversed:
+    type: bool
+    default: false
+    description: "Unconfirmed. When true, the sign of all inputs and outputs are reversed."
+    # TODO: Set reversed_multiplier from this value
+  integrate_velocity:
+    type: bool
+    default: false
+    description: "Unconfirmed. When true, the hardware interface will ignore resolver data, and determine position 
+    through integrating velocity feedback."
