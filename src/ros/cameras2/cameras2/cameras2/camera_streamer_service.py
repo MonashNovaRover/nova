@@ -23,6 +23,7 @@ from camera_msgs.msg import Cameras
 from camera_msgs.srv import CameraOperation, GetCameraStreamStats, GetIPList
 
 from cameras2.camera_webrtc_bin import CameraWebRTCBin
+from cameras2.camera_ros_streamer import CameraSplitROSWebRTCBin
 
 
 class CameraStreamerService(Node):
@@ -317,7 +318,9 @@ class CameraStreamerService(Node):
 
     def _create_camera_bin(self, serial: str, device_node: str) -> CameraWebRTCBin:
         camera_configuration = self._camera_configurations.get(serial, self._default_camera_configuration)
-        camera_bin = CameraWebRTCBin(
+        self.get_logger().info(f"{camera_configuration.meta}")
+        cam_bin_init = CameraWebRTCBin if camera_configuration.meta['ros_topic'] is None else CameraSplitROSWebRTCBin
+        camera_bin = cam_bin_init(
             serial,
             device_node,
             mime=camera_configuration.mime,
