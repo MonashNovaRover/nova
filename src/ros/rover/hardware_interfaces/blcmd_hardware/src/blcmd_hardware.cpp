@@ -43,79 +43,6 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
       return CallbackReturn::ERROR;
     }
 
-    auto canbus_search = info_.hardware_parameters.find("candevice");
-    if (canbus_search == info_.hardware_parameters.end()){
-        RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No canbus provided");
-        return CallbackReturn::ERROR;
-    }
-
-    can_device_ = canbus_search->second;
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                "Using can device " << can_device_.c_str());
-
-    auto canid_search = info_.hardware_parameters.find("canid");
-    if (canid_search == info_.hardware_parameters.end()){
-        RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No canid provided");
-        return CallbackReturn::ERROR;
-    }
-
-    can_id_ = std::stoul(canid_search->second);
-    
-    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using can id %d", can_id_);
-
-    auto clock_rate_search = info_.hardware_parameters.find("clock_rate");
-    if (clock_rate_search == info_.hardware_parameters.end()){
-        RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No clock rate provided");
-        return CallbackReturn::ERROR;
-    }
-    clock_rate_ = std::stoul(clock_rate_search->second);
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                       "Got clock rate: " << clock_rate_);
-
-    auto revolution_pulses_search = info_.hardware_parameters.find("revolution_pulses");
-
-    if (revolution_pulses_search == info_.hardware_parameters.end()){
-        RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No revolution pulses provided");
-        return CallbackReturn::ERROR;
-    }
-
-    revolution_pulses_ = std::stoul(revolution_pulses_search->second);
-
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                       "Resolver pulses: " << revolution_pulses_);
-
-    auto mock_search = info_.hardware_parameters.find("mock");
-    if (mock_search != info_.hardware_parameters.end() && mock_search->second == "true"){
-        mock_ = true;
-    }
-
-    auto reversed_search = info_.hardware_parameters.find("reversed");
-    if (reversed_search != info_.hardware_parameters.end() && reversed_search->second == "true"){
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                       "Interface is reversed");
-        reversed_multiplier_ = -1;
-    }
-
-    auto integrate_velocity_search = info_.hardware_parameters.find("integrate_velocity");
-    if (integrate_velocity_search != info_.hardware_parameters.end() && integrate_velocity_search->second == "true"){
-        RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                           "Integrating velocity to provide position estimate");
-        integrate_velocity_ = true;
-    }
-
-    auto min_interval_search = info_.hardware_parameters.find("min_interval");
-    if (min_interval_search != info_.hardware_parameters.end() && mock_){
-        min_interval_ = std::stol(min_interval_search->second);
-    }
-
-    auto gear_ratio_search = info_.hardware_parameters.find("gear_ratio");
-    if (gear_ratio_search == info_.hardware_parameters.end()){
-        RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No gear ratio provided");
-        return CallbackReturn::ERROR;
-    }
-    gear_ratio_ = std::stod(gear_ratio_search->second);
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                       "Got gear ratio: " << gear_ratio_);
 
 
     for (const auto& interface : info_.joints[0].command_interfaces){
@@ -141,7 +68,11 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
 hardware_interface::CallbackReturn BLCMDHardware::on_configure(
         const rclcpp_lifecycle::State & previous_state)
 {
-  // open the can bus
+    auto params_result = apply_parameters();
+    if (params_result != CallbackReturn::SUCCESS)
+        return params_result;
+
+    // open the can bus
     try {
         bus_->open(can_device_.c_str());
         RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Opened canbus on device %s",
@@ -153,22 +84,22 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
     }
 
 
-        if (!mock_) {
+    if (!mock_) {
         //get min_interval
-            if (hw_velocity_.state.has_value()) {
-                RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                   "Getting min interval on BLCMD " << can_id_);
-                auto min_interval = get_config<uint16_t>(BLCMDConfigCommand::MIN_INTERVAL);
+        if (hw_velocity_.state.has_value()) {
+            RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                               "Getting min interval on BLCMD " << can_id_);
+            auto min_interval = get_config<uint16_t>(BLCMDConfigCommand::MIN_INTERVAL);
 
-                if (min_interval.has_value()) {
-                    min_interval_ = min_interval.value();
-                    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                       "Min interval on BLCMD " << can_id_ << " is " << min_interval_);
-                } else {
-                    RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                        "Error getting min interval on BLCMD " << can_id_);
-                    return CallbackReturn::ERROR;
-                }
+            if (min_interval.has_value()) {
+                min_interval_ = min_interval.value();
+                RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                   "Min interval on BLCMD " << can_id_ << " is " << min_interval_);
+            } else {
+                RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                    "Error getting min interval on BLCMD " << can_id_);
+                return CallbackReturn::ERROR;
+            }
         }
 
         // check for resolver if there is a position interface
@@ -436,6 +367,84 @@ bool BLCMDHardware::start_interface(const std::string &interface){
     return true;
 }
 
+hardware_interface::CallbackReturn BLCMDHardware::apply_parameters() {
+  auto canbus_search = info_.hardware_parameters.find("candevice");
+  if (canbus_search == info_.hardware_parameters.end()){
+    RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No canbus provided");
+    return CallbackReturn::ERROR;
+  }
+
+  can_device_ = canbus_search->second;
+  RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                     "Using can device " << can_device_.c_str());
+
+  auto canid_search = info_.hardware_parameters.find("canid");
+  if (canid_search == info_.hardware_parameters.end()){
+    RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No canid provided");
+    return CallbackReturn::ERROR;
+  }
+
+  can_id_ = std::stoul(canid_search->second);
+
+  RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using can id %d", can_id_);
+
+  auto clock_rate_search = info_.hardware_parameters.find("clock_rate");
+  if (clock_rate_search == info_.hardware_parameters.end()){
+    RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No clock rate provided");
+    return CallbackReturn::ERROR;
+  }
+  clock_rate_ = std::stoul(clock_rate_search->second);
+  RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                     "Got clock rate: " << clock_rate_);
+
+  auto revolution_pulses_search = info_.hardware_parameters.find("revolution_pulses");
+
+  if (revolution_pulses_search == info_.hardware_parameters.end()){
+    RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No revolution pulses provided");
+    return CallbackReturn::ERROR;
+  }
+
+  revolution_pulses_ = std::stoul(revolution_pulses_search->second);
+
+  RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                     "Resolver pulses: " << revolution_pulses_);
+
+  auto mock_search = info_.hardware_parameters.find("mock");
+  if (mock_search != info_.hardware_parameters.end() && mock_search->second == "true"){
+    mock_ = true;
+  }
+
+  auto reversed_search = info_.hardware_parameters.find("reversed");
+  if (reversed_search != info_.hardware_parameters.end() && reversed_search->second == "true"){
+    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                       "Interface is reversed");
+    reversed_multiplier_ = -1;
+  }
+
+  auto integrate_velocity_search = info_.hardware_parameters.find("integrate_velocity");
+  if (integrate_velocity_search != info_.hardware_parameters.end() && integrate_velocity_search->second == "true"){
+    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                       "Integrating velocity to provide position estimate");
+    integrate_velocity_ = true;
+  }
+
+  auto min_interval_search = info_.hardware_parameters.find("min_interval");
+  if (min_interval_search != info_.hardware_parameters.end() && mock_){
+    min_interval_ = std::stol(min_interval_search->second);
+  }
+
+  auto gear_ratio_search = info_.hardware_parameters.find("gear_ratio");
+  if (gear_ratio_search == info_.hardware_parameters.end()){
+    RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No gear ratio provided");
+    return CallbackReturn::ERROR;
+  }
+  gear_ratio_ = std::stod(gear_ratio_search->second);
+  RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                     "Got gear ratio: " << gear_ratio_);
+
+  return CallbackReturn::SUCCESS;
+}
+
 // TODO: better error handling
 bool BLCMDHardware::set_control_interface(
         const hardware_interface::InterfaceInfo &interface_info, bool command) {
@@ -536,7 +545,8 @@ bool BLCMDHardware::set_control_interface(
         }
     }
 
-    template<typename T>
+
+  template<typename T>
     double BLCMDHardware::convert_scaled(const uint8_t *bytes, double max) {
         return static_cast<double>(from_bytes<T>(bytes))/ std::numeric_limits<T>::max() * max;
     }
