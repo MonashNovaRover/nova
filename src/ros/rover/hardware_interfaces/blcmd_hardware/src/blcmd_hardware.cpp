@@ -237,7 +237,7 @@ hardware_interface::return_type BLCMDHardware::write(
                                    "Sending Position Command " << hw_position_.command.value()
                                    << " " << hw_position_.max);
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION),
-                                     hw_position_.command.value() * reversed_multiplier_, hw_position_.max);
+                                     hw_position_.command.value() * reversed_multiplier_ - params_.position_offset, hw_position_.max);
             } else {
                 RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No position command");
                 return hardware_interface::return_type::ERROR;
@@ -459,8 +459,15 @@ hardware_interface::CallbackReturn BLCMDHardware::apply_parameters() {
   }
 
   auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
-  if (resolver_reduction_search != info_.joints[0].parameters.end()) {
+  if (resolver_reduction_search != info_.hardware_parameters.end()) {
     params_.resolver_reduction = std::stod(resolver_reduction_search->second);
+  }
+  
+  auto position_offset_search = info_.hardware_parameters.find("position_offset");
+  if (position_offset_search != info_.hardware_parameters.end()) {
+    params_.position_offset = std::stod(position_offset_search->second);
+    
+    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using position_offest of: %f", params_.position_offset);
   }
 
   return CallbackReturn::SUCCESS;
@@ -565,7 +572,8 @@ bool BLCMDHardware::set_control_interface(
     void BLCMDHardware::packet_3_callback(leigh::jcan::Frame frame) {
         if(hw_position_.state.has_value()) {
             hw_position_.state = convert_scaled<int16_t>(&frame.data[0], hw_position_.max) *
-                                 params_.resolver_reduction * reversed_multiplier_;
+                                 params_.resolver_reduction * reversed_multiplier_
+                                 + params_.position_offset;
         }
     }
 

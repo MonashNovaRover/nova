@@ -171,6 +171,10 @@ private:
 
         /// A reduction ratio resolver readings are scaled by.
         double resolver_reduction {std::numeric_limits<double>::quiet_NaN()};
+
+        /// An offset to apply to all readings, in radians, such that it is added to resolver messages, and subtracted from commands
+        double position_offset = 0.0;
+        
     };
 
     std::string BLCMDHardwareLoggerName;
