@@ -134,11 +134,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
       x + 2 * Math.PI * event.movementX / maxResolutionComp,
       y + 2 * Math.PI * event.movementY / maxResolutionComp
     ]);
-
-
-
-
-
+    
   }, [gl.canvasRef]);
 
   const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
