@@ -102,9 +102,9 @@ class HydraprobeControlNode(JoystickControllerNode):
         self.start_can()
 
         ## Create timers
-        self.deploy_timers = self.create_timer(self.get_parameter(self.DEPLOY_SPEED_SEQUENCE).value, self.get_parameter(self.DEPLOY_DURATION_SEQUENCE).value)
+        self.deploy_timers = self.setup_timers(self.get_parameter(self.DEPLOY_SPEED_SEQUENCE).value, self.get_parameter(self.DEPLOY_DURATION_SEQUENCE).value)
         self.reset_timers = self.setup_timers(self.get_parameter(self.RESET_SPEED_SEQUENCE).value, self.get_parameter(self.RESET_DURATION_SEQUENCE).value)
-        self.retract_timers = self.create_timer(self.get_parameter(self.RETRACT_SPEED_SEQUENCE).value, self.get_parameter(self.RETRACT_DURATION_SEQUENCE).value)
+        self.retract_timers = self.setup_timers(self.get_parameter(self.RETRACT_SPEED_SEQUENCE).value, self.get_parameter(self.RETRACT_DURATION_SEQUENCE).value)
 
     def setup_timers(self, speeds, durations):
         """ sets up a sequence of timers """
