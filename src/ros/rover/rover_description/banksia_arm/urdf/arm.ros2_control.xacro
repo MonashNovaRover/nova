@@ -234,7 +234,7 @@
 					<param name="reversed">true</param>
 					<param name="integrate_velocity">false</param>
 					<param name="max_position">12.5663706144</param>
-					<param name="max_velocity">73.1111977842</param>
+					<param name="max_velocity">146.222395568</param>
 				</hardware>
 			</xacro:unless>
 			<xacro:if value="${use_mock_hardware}">
