@@ -65,7 +65,7 @@ InterfaceConfiguration NovaArmController::command_interface_configuration() cons
   std::vector<std::string> conf_names;
   for (const auto &joint_name : params_.joint_names)
   {
-    conf_names.push_back(joint_name + "/" + joint_command_type());
+    conf_names.push_back(joint_name + "/" + (params_.position_control_broken ? HW_IF_VELOCITY : joint_command_type()));
   }
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
@@ -193,7 +193,7 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
 
   joint_limits::JointLimitsStateDataType desired, current;
 
-  if (this->joint_command_type() == HW_IF_POSITION) {
+  if (this->joint_command_type() == HW_IF_POSITION && !params_.position_control_broken) {
     desired.positions.resize(params_.joint_names.size());
   } else { // velocity
     desired.velocities.resize(params_.joint_names.size());
@@ -210,8 +210,22 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     }
 
     if (this->joint_command_type() == HW_IF_POSITION) {
-      desired.positions[i] = std::isnan(reference_interfaces_[i]) ? joint_handle.state_pos.get().get_value()
-        : reference_interfaces_[i];
+      if (params_.position_control_broken) {
+        double desired_pos = reference_interfaces_[i];
+        double current_pos = joint_handle.state_pos.get().get_value();
+        //double current_vel = joint_handle.state_vel.get().get_value();
+        double pos_error = desired_pos - current_pos;
+        double required_vel = pos_error / period.seconds(); //TODO: This oscillates even in sim, do we need PID?
+        //double predicted_acc = required_vel - current_vel;
+        if (std::isnan(desired_pos)) {
+            desired.velocities[i] = 0.0;
+        } else {
+            desired.velocities[i] = required_vel;
+        }
+      } else {
+        desired.positions[i] = std::isnan(reference_interfaces_[i]) ? joint_handle.state_pos.get().get_value()
+          : reference_interfaces_[i];
+      }
     } else { // velocity
       desired.velocities[i] = std::isnan(reference_interfaces_[i]) ? 0.0
         : reference_interfaces_[i];
@@ -228,14 +242,15 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
   {
     const auto& joint_handle = registered_joint_handles_[i];
     double reference_value;
-    if (this->joint_command_type() == HW_IF_POSITION) {
+    if (this->joint_command_type() == HW_IF_POSITION && !params_.position_control_broken) {
       reference_value = desired.positions.at(i);
     } else { // velocity
       reference_value = desired.velocities.at(i);
     }
     if (std::isnan(reference_value)) {
       // When dealing with invalid or missing inputs, don't move
-      const auto halt_value = params_.use_position_control ? joint_handle.state_pos.get().get_value() : 0.0;
+      const auto halt_value = (params_.use_position_control && !params_.position_control_broken)
+        ? joint_handle.state_pos.get().get_value() : 0.0;
       RCLCPP_WARN(get_node()->get_logger(), "Missing or NaN input received. Trying to do nothing with value %f for "
                                             "joint \"%s\".", halt_value, joint_handle.name.c_str());
       joint_handle.command.get().set_value(halt_value);
@@ -439,7 +454,7 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
   registered_handles.reserve(joint_names.size());
   for (const auto &joint_name : joint_names)
   {
-    const auto command_interface_name = joint_command_type();
+    const auto command_interface_name = params_.position_control_broken ? HW_IF_VELOCITY : joint_command_type();
 
     //TODO: DRY (same code twice for pos and vel)
     const auto pos_state_handle = std::find_if(

@@ -1,4 +1,9 @@
 nova_arm_controller:
+  position_control_broken: {
+    type: bool,
+    default_value: true,
+    description: "Don't use position command interface, try to emulate it with velocity control.",
+  }
   joint_names: {
     type: string_array,
     default_value: [],
