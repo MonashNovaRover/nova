@@ -30,9 +30,10 @@ class URCCache(Node):
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
     CACHE_SEND_FRAME_PARAM = "frame_id"
-
-    # ROS2 SERVICES
-    CACHE_SERVICE = "/science/cache"
+    DEFAULT_SEND_FRAME = 0x0A0
+    CACHE_MOVE_SERVO_PARAM = "servo_command"
+    DEFAULT_MOVE_SERVO_ID = 0x0A0
+    CACHE_ID_PARAM = "cache_id"
 
     # SENDING COMMAND IDS
     CACHE_MOVE_SERVO = 0x04
@@ -78,7 +79,9 @@ class URCCache(Node):
         logger = self.get_logger()
 
         # Setting ROS parameters
-        self.declare_parameter(self.CACHE_SEND_FRAME_PARAM, self.CACHE_SEND_FRAME)
+        self.declare_parameter(self.CACHE_SEND_FRAME_PARAM, self.DEFAULT_SEND_FRAME)
+        self.declare_parameter(self.CACHE_MOVE_SERVO_PARAM, self.DEFAULT_MOVE_SERVO_ID)
+        self.declare_parameter(self.CACHE_ID_PARAM, "")
 
         # Create positions map from params
         self.positions: {str: int} = { k: self.declare_parameter(v, self.POSITION_DEFAULTS[k]).value for k, v in self.POSITION_PARAMS.items() }
@@ -90,13 +93,23 @@ class URCCache(Node):
             max_angle=self.declare_parameter(self.SERVO_MAX_ANGLE_PARAM, self.SERVO_MAX_ANGLE_DEFAULT).value,
             positions = self.positions
         )
-        self.cache_servo.update_position(self.DEG_0)
+        self.cache_servo.update_position(self.DEG_90)
 
-        # Only accept inputs being delivered to receiving CAN IDs
-        self.bus.set_id_filter(self.CACHE_SEND_FRAME)
+        ## Create CONTROLLERS
+        self.cache_servo_controller = JonoPositionController(
+            logger=logger,
+            bus=self.bus,
+            pos_command=self.get_parameter(self.CACHE_MOVE_SERVO_PARAM).value,
+            frame_id=self.get_parameter(self.CACHE_SEND_FRAME_PARAM).value,
+            control=self.cache_servo,
+            max_value=self.MAX_VALUE
+        )
+
+        ## Add the CONTROLLERS to the node's controllers
+        self.add_controller(self.SPIN_CONTROL_NAME, self.spinny_part_controller)
 
         ## Create SERVICE
-        self.command_service = self.create_service(CacheCommand, f'/science/cache_command_{self.CACHE_SEND_FRAME[-1]}', self.command_callback)
+        self.command_service = self.create_service(CacheCommand, f'/science/cache_command/{self.get_parameter(self.CACHE_ID_PARAM).value}', self.command_callback)
         
         ## Start the CAN bus
         self.start_can()

@@ -107,6 +107,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[{
                 "frame_id": cache1_canid,
+                "cache_id": "1"
             }],
         ),
         Node(
@@ -116,6 +117,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[{
                 "frame_id": cache2_canid,
+                "cache_id": "2"
             }],
         ),
         Node(
