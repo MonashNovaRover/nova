@@ -12,7 +12,7 @@ import HTMLTextureFormat from "../../hooks/webgl/program/sampler/HTMLTextureForm
 import useResolutionUniform from "../../hooks/webgl/program/uniform/useResolutionUniform.ts";
 import useUniform, {vec} from "../../hooks/webgl/program/uniform/useUniform.ts";
 import GLWrapMode from "../../hooks/webgl/program/sampler/GLWrapMode.ts";
-import {Image, X} from "react-feather";
+import {Image} from "react-feather";
 import ExtendedDownloadButton from "../shared/ExtendedDownload.tsx";
 import {Input, Slider, Tooltip} from "@nextui-org/react";
 import useImageTexture from "../../hooks/webgl/program/sampler/useImageTexture.ts";
@@ -97,7 +97,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
     // Apply changes
     setCompassAngleRaw(number);
     setTextIsValid(true);
-  }, []);
+  }, [setTextCompassAngleRaw]);
 
   // Used when changing via slider
   const setCompassAngle = useCallback((rawValue: number | number[]) => {
@@ -106,7 +106,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
     setCompassAngleRaw(value);
     setTextCompassAngleRaw(value.toFixed(2));
     setTextIsValid(true);
-  }, [])
+  }, [setTextCompassAngleRaw])
 
   // Allow for panning with the mouse
   const onMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -134,7 +134,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
       x + 2 * Math.PI * event.movementX / maxResolutionComp,
       y + 2 * Math.PI * event.movementY / maxResolutionComp
     ]);
-    
+
   }, [gl.canvasRef]);
 
   const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
