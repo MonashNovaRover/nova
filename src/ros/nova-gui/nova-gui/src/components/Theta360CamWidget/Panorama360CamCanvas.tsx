@@ -142,7 +142,8 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   }, [gl.canvasRef]);
 
   const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
-  const yToTheta = useCallback((v: number) => 360* widthHeight[1]/widthHeight[0] * v , [widthHeight]); // Function that converts cartesian values from 0 to 1 into an angle
+  // Function that converts y values from 0 to 1 into an angle relative to the midpoint of the image
+  const yToTheta = useCallback((v: number) => -360* widthHeight[1]/widthHeight[0] * v + 180* widthHeight[1]/widthHeight[0] , [widthHeight]);
 
   // Create program to project and render image
   const program = useProgram(gl, Vert, Frag);
