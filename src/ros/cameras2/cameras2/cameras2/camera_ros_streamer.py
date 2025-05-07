@@ -7,6 +7,10 @@ This service manages a GStreamer pipeline to
 stream video footage from ros Image topics over WebRTC.
 Consult the repository README for complete setup
 instructions.
+This node can only be run when the camera stack is not being run
+    e.g for gazebo sim only
+
+There is also gstreamer pipeline classes at the end.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: camera_streamer
 TOPICS: None
@@ -54,6 +58,9 @@ from sensor_msgs.msg import Image
 
 
 class CameraStreamerService(Node):
+    """
+    This node is 
+    """
     class CameraConfiguration():
         def __init__(self, serial: str, topic: str):
             self.serial = serial
@@ -204,13 +211,12 @@ class CameraStreamerService(Node):
 
 
 class RosCameraBin:
+    """
+    This gstreamer pipeline takes in a ros image topic and outputs a webrtc stream
+    **Cannot** be used with camera_streamer_service.py
+    """
     bin: Gst.Bin
-
-    _source: Gst.Element
-    _queue: Gst.Element
-    _decoder: Gst.Element
-    _video_converter: Gst.Element
-    _sink: Gst.Element
+    # rosimagesrc ! capsfilter ! decoder ! videoconvert ! webrtcsink
 
     def __init__(self, serial: str, topic: str):
         self.bin = Gst.Bin.new(f"camera-{serial}-bin")
@@ -251,6 +257,10 @@ class RosCameraBin:
         return gst_structure_to_dict(self._sink.props.stats)
 
 class CameraSplitROSWebRTCBin:
+    """
+    This gstreamer pipeline takes in a camera device in v4l2 and outputs both a webrtc stream and ros image topic
+    Used with camera_streamer_service.py
+    """
     bin: Gst.Bin
     # v4l2src ! capsfilter ! decoder ! videoconvert ! tee \
     # \ tee ! webrtcsink

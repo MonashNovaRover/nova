@@ -47,8 +47,9 @@ class CameraStreamerService(Node):
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     PACKAGE: 	cameras2
     AUTHOR(S):	Joshua Leivenzon
+    EDITED BY:  Anthony Lew
     CREATION:	25/02/2023
-    EDITED:		25/02/2023
+    EDITED:		7/05/2025
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     """
 
@@ -318,7 +319,9 @@ class CameraStreamerService(Node):
 
     def _create_camera_bin(self, serial: str, device_node: str) -> CameraWebRTCBin:
         camera_configuration = self._camera_configurations.get(serial, self._default_camera_configuration)
-        self.get_logger().info(f"{camera_configuration.meta}")
+        # Choose the gstreamer bin to use
+        # If a ros topic is present, use the split ros topic and webrtc pipeline
+        # TODO: Make this more robust and able to support any sort of pipeline in a plugin style system able to be specified in param file
         cam_bin_init = CameraWebRTCBin if camera_configuration.meta['ros_topic'] is None else CameraSplitROSWebRTCBin
         camera_bin = cam_bin_init(
             serial,
