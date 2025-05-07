@@ -232,12 +232,19 @@ hardware_interface::return_type BLCMDHardware::write(
         case blcmd_hardware::ControlMode::Undefined:
             break;
         case blcmd_hardware::ControlMode::Position:
+
+
+          
+
             if (hw_position_.command.has_value()) {
+
+                auto offset_value = hw_position_.command.value() * reversed_multiplier_ - params_.position_offset;
+
                 RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                    "Sending Position Command " << hw_position_.command.value()
                                    << " " << hw_position_.max);
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION),
-                                     hw_position_.command.value() * reversed_multiplier_ - params_.position_offset, hw_position_.max);
+                                     offset_value, hw_position_.max);
             } else {
                 RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No position command");
                 return hardware_interface::return_type::ERROR;
@@ -593,7 +600,13 @@ bool BLCMDHardware::set_control_interface(
 
     template<typename T>
     void BLCMDHardware::send_scaled(uint32_t id, double value, double max) {
-        T data = static_cast<T>( (abs(value) > max ? (value > 0 ? 1 : -1) : value/max) * std::numeric_limits<T>::max());
+        // note: anything less than 2 domains left will not be correct
+        auto one_clamped_scalar = std::fmod((value/max) + 3, 2) - 1;
+
+
+        // (abs(value) > max ? (value > 0 ? 1 : -1) : value/max
+
+        T data = static_cast<T>(one_clamped_scalar * std::numeric_limits<T>::max());
         send_raw(id, data);
     }
 

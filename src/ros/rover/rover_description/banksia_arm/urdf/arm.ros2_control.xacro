@@ -231,10 +231,10 @@
           <param name="min_interval">1792</param>
 					<param name="gear_ratio">1.0</param>
 					<param name="mock">true</param>
-					<param name="reversed">true</param>
+					<param name="reversed">false</param>
 					<param name="integrate_velocity">false</param>
 					<param name="max_position">12.5663706144</param>
-          <param name="position_offset">6.28318530718</param>
+          <param name="position_offset">0.0</param>
 					<param name="max_velocity">146.222395568</param>
 				</hardware>
 			</xacro:unless>
