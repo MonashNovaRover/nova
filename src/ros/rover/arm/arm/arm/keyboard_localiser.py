@@ -25,6 +25,7 @@ TODO:
 
 from geometry_msgs.msg import PointStamped, TransformStamped
 from arm_interfaces.srv import KeyPosition, StringTrigger
+from arm_interfaces.msg import KeyboardPoints
 from sensor_msgs.msg import Image
 
 import rclpy
@@ -80,7 +81,8 @@ In separate terminal:
 KEY_SERVICE_NAME = '/arm/keyboard/get_key_position'
 KEYBOARD_TF_SERVICE_NAME = '/arm/keyboard/transform_toggle'
 IMAGE_TOPIC = '/arm/periscope'
-DEBUG_TOPIC = '/keyboard_debug'
+DEBUG_TOPIC = '/arm/keyboard/image'
+POINT_TOPIC = '/arm/keyboard/points'
 
 
 class KeyboardLocaliser(Node):
@@ -89,9 +91,9 @@ class KeyboardLocaliser(Node):
 
         # Choose whether to use auto transform or manual align transform
         self.node_is_auto = self.declare_parameter('using_auto', True).get_parameter_value().bool_value
-        # Do we publish the debug image?
+        # Do we publish the debug image or keyboard points to GUI
         self.do_debug = self.declare_parameter('debug_image', True).get_parameter_value().bool_value
-        self.debug_pub = self.create_publisher(Image, DEBUG_TOPIC, 10) if self.do_debug else None
+        self.debug_pub = self.create_publisher(Image, DEBUG_TOPIC, 10) if self.do_debug else self.create_publisher(KeyboardPoints, POINT_TOPIC, 10)
 
         # key position initalisation
         self.keyboard_frame = self.declare_parameter('keyboard_frame', 'keyboard_frame').get_parameter_value().string_value
@@ -118,6 +120,7 @@ class KeyboardLocaliser(Node):
         ], dtype=np.float32)
         dist_arr = self.declare_parameter('distortion_matrix', [0.0,0.0,0.0,0.0,0.0]).get_parameter_value().double_array_value
         self.dist_coeffs = np.array(dist_arr)
+        self.camera_resolution = width, height
 
         # keyboard pose analysis initalisation
         self.camera_frame = self.declare_parameter('camera_frame', 'arm_end_periscope_optical').get_parameter_value().string_value
@@ -284,6 +287,11 @@ class KeyboardLocaliser(Node):
     
     def pub_debug_image(self, img, points) -> None:
         if not self.do_debug:
+            # Publish points instead
+            kb_msg = KeyboardPoints()
+            kb_msg.points = [i for point in points for i in point]
+            kb_msg.width, kb_msg.height = self.camera_resolution
+            self.debug_pub.publish(kb_msg)
             return
         # Draw each point
         if points is not None:

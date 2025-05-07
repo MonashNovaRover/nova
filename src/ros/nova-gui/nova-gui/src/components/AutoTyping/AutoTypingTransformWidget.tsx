@@ -16,7 +16,7 @@ interface IAutoTypingTransformWidgetProps extends CardProps {
  */
 const AutoTypingTransformWidget: React.FC<IAutoTypingTransformWidgetProps> = () => {
   const keyboardTransform = useSelector(
-      (state: RootState) => state.keyboardData
+      (state: RootState) => state.keyboardTFTrigger
     );
 
   const bifrost = useBifrost({ service: RosService.KEYBOARD_TF_TOGGLE });
