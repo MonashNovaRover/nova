@@ -81,7 +81,6 @@ export interface RootState {
   hydraprobeData: IRosNovaInterfacesHydraprobeData;
   theta360CamStore: IRosSensorMsgsCompressedImage;
   bmeSensorStore: IRosNovaInterfacesBmeSensor;
-  theta360CamState: Theta360CamState;
 
   // Maps Related Stores
   roverLocationStore: IRosSensorMsgsNavSatFix;
