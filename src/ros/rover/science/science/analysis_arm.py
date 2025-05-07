@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import rclpy, time
-from python_control.JoystickControllerNode import JoystickControllerNode
+from python_control.ActivatedJoystickControllerNode import ActivatedJoystickControllerNode
 from python_control.controllers.CMDVelocityController import CMDVelocityController
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 from python_control.controls.Direction import Direction
@@ -28,7 +28,7 @@ Right thumb button => Move platform down (small increment) + ignore TOF sensor
 """
 
 
-class AnalysisArm(JoystickControllerNode):
+class AnalysisArm(ActivatedJoystickControllerNode):
 
     # CAN BUS NAME
     # The name of the CAN bus to use

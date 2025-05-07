@@ -2,51 +2,54 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-Execute this code on the rover to publish the urdf
-    static transforms and associated joint states
+This launch file is responsible for localisation.
+When gps is False, a single robot_localization node 
+    is launched which fuses all sources of information 
+    for odom to base transform
+When GPS is True, not only does is the odom to base transform
+    but the odom to map transform is published too.
+    The GPS is fused with IMU and wheel odom in a 
+    second robot_localization node.
+To ensure accuracy of GPS it is transformed using 
+    navsat_transform_node which fuses with IMU
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODES:
-  - robot_state_publisher
-  - rover_state_publisher
+  - robot_localization
+    OR
+  - robot_localization (local)
+  - robot_localization (global)
+  - navsat_transform_node
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	core
-CREATION:	27/04/2023
+PACKAGE: 	auto_bringup
+CREATION:	UNKNOWN
+EDITED:     24/04/2025
+EDITED BY: Taaj Street, Kabilan Velmurugan 
+           Sujatha, Anthony Lew, Victor Bartlinski
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import IfCondition, UnlessCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    ekf_params = LaunchConfiguration('ekf_params').perform(context)
+    nova_bringup_dir = FindPackageShare('nova_bringup')
+
+    gazebo = LaunchConfiguration('gazebo')
     gps = LaunchConfiguration('gps')
-    rl_params = LaunchConfiguration('rl_params').perform(context)
-    ukf_params = LaunchConfiguration('ukf_params').perform(context)
-    use_real_odometry = (LaunchConfiguration('use_real_odometry').perform(context).lower() == 'true')
-    use_sim_time = (LaunchConfiguration('use_sim_time').perform(context).lower() == 'true')
+    gps_params = LaunchConfiguration('gps_params')
+    rl_params = LaunchConfiguration('rl_params')
     use_ukf = (LaunchConfiguration('use_ukf').perform(context).lower() == 'true')
 
     if use_ukf:
         filter_type = 'ukf'
-        gps_params = ukf_params
     elif not use_ukf:
         filter_type = 'ekf'
-        gps_params = ekf_params
     else:
         raise ValueError('use_ukf must be either True or False')
-
-    real_odom_params = {
-        'odom0': '/odom/gazebo',
-        'odom0_relative': True,
-        'odom0_config': [True, True, True,
-                         True, True, True,
-                         False, False, False,
-                         False, False, False,
-                         False, False, False],
-    }
 
     return [
         Node(
@@ -55,9 +58,11 @@ def launch_setup(context, *args, **kwargs):
             executable=f'{filter_type}_node',
             name=f'{filter_type}_filter_node',
             output='screen',
-            parameters=[gps_params, {'use_sim_time': use_sim_time}, real_odom_params if use_real_odometry else {}],
+            parameters=[rl_params, {'use_sim_time': gazebo}],
         ),
         GroupAction(
+            # Why is there more nodes for GPS?
+            # https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html
             condition=IfCondition(gps),
             actions=[
                 Node(
@@ -65,7 +70,7 @@ def launch_setup(context, *args, **kwargs):
                     executable='ekf_node',
                     name='ekf_filter_node_odom',
                     output='screen',
-                    parameters=[rl_params, {'use_sim_time': use_sim_time}],
+                    parameters=[rl_params, {'use_sim_time': gazebo}],
                     remappings=[('odometry/filtered', 'odometry/local')],
                 ),
                 Node(
@@ -73,7 +78,7 @@ def launch_setup(context, *args, **kwargs):
                     executable='ekf_node',
                     name='ekf_filter_node_map',
                     output='screen',
-                    parameters=[rl_params, {'use_sim_time': use_sim_time}],
+                    parameters=[rl_params, {'use_sim_time': gazebo}],
                     remappings=[('odometry/filtered', 'odometry/global')],
                 ),
                 Node(
@@ -81,11 +86,16 @@ def launch_setup(context, *args, **kwargs):
                     executable='navsat_transform_node',
                     name='navsat_transform',
                     output='screen',
-                    parameters=[rl_params, {'use_sim_time': use_sim_time}],
+                    parameters=[rl_params, {'use_sim_time': gazebo}],
                     remappings=[
                         ('odometry/filtered', 'odometry/global'),
-                        ('gps/fix', 'fix'),
+                        ('gps/fix', 'gps_rover/fix'),
                         ('imu', 'oak/imu/transformed')],
+                ),
+                IncludeLaunchDescription(
+                    condition=UnlessCondition(gazebo),
+                    launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'gps_rover.launch.py'])),
+                    launch_arguments={'gps_params': gps_params}.items(),
                 ),
             ],
         ),
@@ -93,37 +103,28 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
+    nova_bringup_dir = FindPackageShare('nova_bringup')
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='ekf_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'ekf.yaml']),
-            description='Params file for ekf filter node',
+            name='gazebo',
+            default_value='False',
+            description='Flag if using gazebo',
         ),
         DeclareLaunchArgument(
             name='gps',
-            default_value='False',
+            default_value='True',
             description='Fuse GPS?',
         ),
         DeclareLaunchArgument(
+            name='gps_params', 
+            default_value=PathJoinSubstitution([nova_bringup_dir, 'params', 'gps.yaml']), 
+            description='Absolute filepath to GPS parameters',
+        ),     
+        DeclareLaunchArgument(
             name='rl_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir,'params','rl.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir,'params','rl_urc.yaml']),
             description='',
-        ),
-        DeclareLaunchArgument(
-            name='ukf_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'ukf.yaml']),
-            description='Params file for ukf filter node',
-        ),
-        DeclareLaunchArgument(
-            name='use_real_odometry',
-            default_value='False',
-            description='Use the ground truth odometry from gazebo',
-        ),
-        DeclareLaunchArgument(
-            name='use_sim_time',
-            default_value='False',
-            description='Use simulation clock if True',
         ),
         DeclareLaunchArgument(
             name='use_ukf',

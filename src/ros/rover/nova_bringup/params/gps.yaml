@@ -1,0 +1,21 @@
+gps_base:
+  ros__parameters:
+    acc_limit: 100
+    baudrate: 115200
+    gps_module: ublox
+    height: 9936.48
+    lat: -37.9098296
+    lon: 145.1340534
+    max_calibration_error: 5.0e-05
+    min_dur: 90
+    port_name: /dev/ttyACM0
+    port_type: USB
+    start_type_description_service: true
+    svin: false
+    use_sim_time: false
+
+gps_rover:
+  ros__parameters:
+    baudrate: 115200
+    port_name: /dev/ttyUSB0
+    gps_module: skytraq

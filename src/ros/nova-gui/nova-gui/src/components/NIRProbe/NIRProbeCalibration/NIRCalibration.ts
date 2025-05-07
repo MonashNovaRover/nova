@@ -34,7 +34,7 @@ export const defaultYOffset = 0;
  * @param data nir probe reading
  */
 export const absorbance = (waterOffset: number, iceOffset: number) => (type: NIRProbeReadingType, data: number) => {
-  const offset = type === NIRProbeReadingType.WATER ? waterOffset : iceOffset;
+  const offset = type === NIRProbeReadingType.PD1 ? waterOffset : iceOffset;
   return data + offset
   // return Math.log10(absorbCoef / (data + offset));
 }
@@ -92,14 +92,14 @@ export const useAverageReading = (): [number, number, number] => {
 
   // average water reading
   const averageX = useMemo(() => {
-    const xList = readings[NIRProbeReadingType.WATER]
+    const xList = readings[NIRProbeReadingType.PD1]
       .map(entry => entry.data)
     return xList.reduce((a, b) => a + b, 0) / Math.max(xList.length, 1)
   }, [readings])
 
   // average ice reading
   const averageY = useMemo(() => {
-    const yList = readings[NIRProbeReadingType.ICE]
+    const yList = readings[NIRProbeReadingType.PD2]
       .map(entry => entry.data)
     return yList.reduce((a,b) => a+b, 0) / Math.max(yList.length,1)
   }, [readings])

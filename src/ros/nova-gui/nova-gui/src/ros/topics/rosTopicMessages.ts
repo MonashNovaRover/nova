@@ -41,4 +41,5 @@ export const rosTopicMessages = {
   [RosTopic.BME_SENSOR]: "nova_interfaces/msg/BMESensor",
 
   [RosTopic.BATTERY_STATE]: "sensor_msgs/msg/BatteryState",
+  [RosTopic.ACTIVATED_NODES]: "nova_interfaces/msg/ActiveNodeStatus",
 };

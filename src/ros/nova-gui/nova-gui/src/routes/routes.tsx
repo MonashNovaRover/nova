@@ -28,7 +28,8 @@ import URCRamanView from "../views/urc/URCRamanView.tsx";
 import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
 import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
 import TestOverlayView from "../views/test/TestOverlayView/TestOverlayView.tsx";
-import NIRProbeWidget from "../components/NIRProbe/NIRProbeWidget.tsx";
+import ARCNIRProbeWidget from "../components/NIRProbe/ARCNIRProbeWidget.tsx";
+import URCGazeboView from "../views/urc/URCGazebo.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -111,6 +112,10 @@ export const urcRoutes: RouteObject[] = [
     path: "/urc/raman",
     element: <URCRamanView/>
   },
+  {
+    path: "/urc/gazebo",
+    element: <URCGazeboView/>
+  },
   ...Object.values(URCCompModes).map<RouteObject>((comp) => ({
     path: `/urc/cameras/${comp}`,
     element: <CameraPage views={urcCameraSetup[comp]} />,
@@ -141,7 +146,7 @@ export const testRoutes: RouteObject[] = [
     path: "/test/nirprobe",
     element:
       <div className="p-3">
-        <NIRProbeWidget/>
+        <ARCNIRProbeWidget/>
       </div>,
   },
   {

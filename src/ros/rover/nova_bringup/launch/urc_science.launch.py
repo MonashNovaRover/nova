@@ -95,12 +95,6 @@ def launch_setup(context, *args, **kwargs):
         ),
         Node(
             package='science',
-            executable='urc_bme_sensor.py',
-            output='screen',
-            emulate_tty=True,
-        ),
-        Node(
-            package='science',
             executable='urc_cache.py',
             output='screen',
             emulate_tty=True,
@@ -116,6 +110,12 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{
                 "frame_id": cache2_canid,
             }],
+        ),
+        Node(
+            package='science',
+            executable='urc_bme_sensor.py',
+            output='screen',
+            emulate_tty=True,
         ),
         Node(
             package='science',

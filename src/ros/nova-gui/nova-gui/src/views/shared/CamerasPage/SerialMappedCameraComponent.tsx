@@ -9,6 +9,8 @@ import DriveCameraComponent from "../../../components/CameraComponent/special/Dr
 import WheelTelemetryCameraComponent
   from "../../../components/CameraComponent/special/WheelTelemetryCameraComponent.tsx";
 import SiteSelectCameraComponent from "../../../components/CameraComponent/special/SiteSelectCameraComponent.tsx";
+import ActivatedNodesCameraComponent
+  from "../../../components/CameraComponent/special/ActivatedNodesCameraComponent.tsx";
 
 /// Defines special components to use for certain cameras
 export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentProps> } = {
@@ -17,6 +19,7 @@ export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentPr
   [CameraSerials.WHEEL_TELEMETRY]: WheelTelemetryCameraComponent,
   [CameraSerials.DRIVE_TELEMETRY]: DriveCameraComponent,
   [CameraSerials.SITE_SELECT]: SiteSelectCameraComponent,
+  [CameraSerials.URC_ACTIVATED_NODES]: ActivatedNodesCameraComponent,
 }
 
 /// Function that used the above map to get the component for a specified camera serial

@@ -7,7 +7,7 @@ Panels:
         - /TF1/Frames1
         - /TF1/Tree1
       Splitter Ratio: 0.5833333134651184
-    Tree Height: 822
+    Tree Height: 854
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -113,7 +113,7 @@ Visualization Manager:
       Name: RobotModel
       TF Prefix: ""
       Update Interval: 0
-      Value: false
+      Value: true
       Visual Enabled: false
     - Class: rviz_default_plugins/TF
       Enabled: true
@@ -122,195 +122,13 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        base_link:
-          Value: true
-        bl_ankle:
-          Value: true
-        bl_ball:
-          Value: true
-        bl_ball_dummy:
-          Value: true
-        bl_wheel:
-          Value: true
-        bootie-base-frame:
-          Value: true
-        bootie_imu_frame:
-          Value: true
-        bootie_left_camera_frame:
-          Value: true
-        bootie_left_camera_optical_frame:
-          Value: true
-        bootie_link:
-          Value: true
-        bootie_link_optical:
-          Value: true
-        bootie_model_origin:
-          Value: true
-        bootie_rgb_camera_frame:
-          Value: true
-        bootie_rgb_camera_optical_frame:
-          Value: true
-        bootie_right_camera_frame:
-          Value: true
-        bootie_right_camera_optical_frame:
-          Value: true
-        br_ankle:
-          Value: true
-        br_ball:
-          Value: true
-        br_ball_dummy:
-          Value: true
-        br_wheel:
-          Value: true
-        camera_holder_back:
-          Value: true
-        camera_holder_front:
-          Value: true
-        camera_link:
-          Value: false
-        camera_link_optical:
-          Value: true
-        chassis:
-          Value: false
-        clam:
-          Value: true
-        diffbar:
-          Value: true
-        fl_ankle:
-          Value: true
-        fl_wheel:
-          Value: true
-        fr_ankle:
-          Value: true
-        fr_wheel:
-          Value: true
-        gps:
-          Value: false
-        left_diffend_dummy:
-          Value: true
-        left_difflink:
-          Value: true
-        left_leg:
-          Value: false
-        map:
-          Value: true
-        mount:
-          Value: true
-        oak-base-frame:
-          Value: true
-        oak_imu_frame:
-          Value: false
-        oak_left_camera_frame:
-          Value: false
-        oak_left_camera_optical_frame:
-          Value: false
-        oak_model_origin:
-          Value: false
-        oak_rgb_camera_frame:
-          Value: false
-        oak_rgb_camera_optical_frame:
-          Value: false
-        oak_right_camera_frame:
-          Value: false
-        oak_right_camera_optical_frame:
-          Value: false
-        odom:
-          Value: true
-        right_diffend_dummy:
-          Value: true
-        right_difflink:
-          Value: true
-        right_leg:
-          Value: false
-        tl_ball:
-          Value: true
-        tl_ball_dummy:
-          Value: true
-        tr_ball:
-          Value: true
-        tr_ball_dummy:
-          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: false
       Tree:
-        map:
-          odom:
-            base_link:
-              chassis:
-                clam:
-                  mount:
-                    camera_holder_back:
-                      bootie_link:
-                        bootie-base-frame:
-                          bootie_left_camera_frame:
-                            bootie_imu_frame:
-                              {}
-                            bootie_left_camera_optical_frame:
-                              {}
-                          bootie_model_origin:
-                            {}
-                          bootie_rgb_camera_frame:
-                            bootie_rgb_camera_optical_frame:
-                              {}
-                          bootie_right_camera_frame:
-                            bootie_right_camera_optical_frame:
-                              {}
-                        bootie_link_optical:
-                          {}
-                    camera_holder_front:
-                      camera_link:
-                        camera_link_optical:
-                          {}
-                        oak-base-frame:
-                          oak_left_camera_frame:
-                            oak_imu_frame:
-                              {}
-                            oak_left_camera_optical_frame:
-                              {}
-                          oak_model_origin:
-                            {}
-                          oak_rgb_camera_frame:
-                            oak_rgb_camera_optical_frame:
-                              {}
-                          oak_right_camera_frame:
-                            oak_right_camera_optical_frame:
-                              {}
-                diffbar:
-                  tl_ball:
-                    tl_ball_dummy:
-                      left_difflink:
-                        bl_ball:
-                          bl_ball_dummy:
-                            left_diffend_dummy:
-                              {}
-                  tr_ball:
-                    tr_ball_dummy:
-                      right_difflink:
-                        br_ball:
-                          br_ball_dummy:
-                            right_diffend_dummy:
-                              {}
-                left_leg:
-                  bl_ankle:
-                    bl_wheel:
-                      {}
-                  fl_ankle:
-                    fl_wheel:
-                      {}
-                right_leg:
-                  br_ankle:
-                    br_wheel:
-                      {}
-                  fr_ankle:
-                    fr_wheel:
-                      {}
-              gps:
-                {}
-          white_cube:
-            {}
+        {}
       Update Interval: 0
       Value: true
     - Class: rviz_common/Group
@@ -522,7 +340,7 @@ Visualization Manager:
       Enabled: true
       Name: MarkerArray
       Namespaces:
-        detected_cubes: true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -530,34 +348,6 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /yolo/objects
       Value: true
-    - Class: rviz_default_plugins/Image
-      Enabled: false
-      Max Value: 1
-      Median window: 5
-      Min Value: 0
-      Name: Image
-      Normalize Range: true
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /oak/rgb/image_raw
-      Value: false
-    - Class: rviz_default_plugins/Image
-      Enabled: false
-      Max Value: 100
-      Median window: 5
-      Min Value: 0
-      Name: Depth
-      Normalize Range: false
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /oak/stereo/image_raw
-      Value: false
     - Alpha: 1
       Class: rviz_default_plugins/Polygon
       Color: 224; 27; 36
@@ -583,39 +373,6 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /polygon_slowdown
-      Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz_default_plugins/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: RGB8
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Max Intensity: 4096
-      Min Color: 0; 0; 0
-      Min Intensity: 0
-      Name: PointCloud2
-      Position Transformer: XYZ
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.009999999776482582
-      Style: Flat Squares
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /oak/depth/points
-      Use Fixed Frame: true
-      Use rainbow: true
       Value: false
     - Alpha: 1
       Buffer Length: 1
@@ -645,6 +402,132 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /plan_smoothed
       Value: false
+    - Class: rviz_common/Group
+      Displays:
+        - Class: rviz_default_plugins/Image
+          Enabled: false
+          Max Value: 1
+          Median window: 5
+          Min Value: 0
+          Name: OakImage
+          Normalize Range: true
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /oak/rgb/image_raw
+          Value: false
+        - Class: rviz_default_plugins/Image
+          Enabled: false
+          Max Value: 100
+          Median window: 5
+          Min Value: 0
+          Name: OakDepth
+          Normalize Range: false
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /oak/stereo/image_raw
+          Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz_default_plugins/PointCloud2
+          Color: 255; 255; 255
+          Color Transformer: FlatColor
+          Decay Time: 0
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 4096
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: OakPointCloud2
+          Position Transformer: XYZ
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 0.009999999776482582
+          Style: Flat Squares
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /oak/points
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: false
+        - Class: rviz_default_plugins/Image
+          Enabled: false
+          Max Value: 1
+          Median window: 5
+          Min Value: 0
+          Name: BootieImage
+          Normalize Range: true
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /bootie/rgb/image_raw
+          Value: false
+        - Class: rviz_default_plugins/Image
+          Enabled: false
+          Max Value: 100
+          Median window: 5
+          Min Value: 0
+          Name: BootieDepth
+          Normalize Range: false
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /bootie/stereo/image_raw
+          Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz_default_plugins/PointCloud2
+          Color: 255; 255; 255
+          Color Transformer: FlatColor
+          Decay Time: 0
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 4096
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: BootiePointCloud2
+          Position Transformer: XYZ
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 0.009999999776482582
+          Style: Flat Squares
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /bootie/points
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: false
+      Enabled: false
+      Name: RawSensorData
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -724,18 +607,22 @@ Visualization Manager:
         Value: ThirdPersonFollower (rviz_default_plugins)
         Yaw: 4.015406608581543
 Window Geometry:
-  Depth:
+  BootieDepth:
+    collapsed: false
+  BootieImage:
     collapsed: false
   Displays:
     collapsed: false
-  Height: 1011
+  Height: 1043
   Hide Left Dock: false
   Hide Right Dock: false
-  Image:
-    collapsed: false
   Navigation 2:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd00000004000000000000024100000395fc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005d00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003f00000395000002170100001efa000000010100000002fb00000018004e0061007600690067006100740069006f006e002000320100000000ffffffff0000013a00fffffffb000000100044006900730070006c0061007900730100000000000001560000015600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000000000000000fb0000000a0049006d006100670065000000025c000001780000001700fffffffb0000000a00440065007000740068000000040d0000007d0000001700ffffff000000010000010000000395fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003f00000395000000a900fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004420000003efc0100000002fb0000000800540069006d00650100000000000004420000000000000000fb0000000800540069006d00650100000000000004500000000000000000000003e30000039500000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  OakDepth:
+    collapsed: false
+  OakImage:
+    collapsed: false
+  QMainWindow State: 000000ff00000000fd000000040000000000000241000003b5fc0200000009fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005d00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003f000003b5000002170100001efa000000010100000002fb00000018004e0061007600690067006100740069006f006e002000320100000000ffffffff0000013a00fffffffb000000100044006900730070006c0061007900730100000000000001560000015600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c100000000000000000000000100000100000003b5fc0200000007fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb00000010004f0061006b0049006d006100670065000000003f000001c00000001700fffffffb00000010004f0061006b004400650070007400680000000170000001330000001700fffffffb000000160042006f006f0074006900650049006d00610067006500000001b6000000bb0000001700fffffffb000000160042006f006f007400690065004400650070007400680000000215000000df0000001700fffffffb0000000a00560069006500770073010000003f000003b5000000a900fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004420000003efc0100000002fb0000000800540069006d00650100000000000004420000000000000000fb0000000800540069006d00650100000000000004500000000000000000000003e3000003b500000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Tool Properties:
@@ -743,5 +630,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1840
-  X: 80
-  Y: 32
+  X: 2640
+  Y: 360
