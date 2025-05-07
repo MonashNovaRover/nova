@@ -19,6 +19,8 @@ import {
   IRosNovaInterfacesMoveScimbalCamResponse,
   IRosNovaInterfacesTakeNirProbeReadingRequest,
   IRosNovaInterfacesTakeNirProbeReadingResponse,
+  IRosNovaInterfacesCacheCommandRequest,
+  IRosNovaInterfacesCacheCommandResponse,
 
 } from "../rosTypes";
 import { RosService } from "./rosService";
@@ -100,9 +102,9 @@ export interface RosServiceInterface {
     IRosStdSrvsSetBoolRequest,
     IRosStdSrvsSetBoolResponse
   >;
-  [RosService.CACHE]: RosServiceMessage<
-    IRosStdSrvsSetBoolRequest,
-    IRosStdSrvsSetBoolResponse
+  [RosService.CACHE_1]: RosServiceMessage<
+    IRosNovaInterfacesCacheCommandRequest,
+    IRosNovaInterfacesCacheCommandResponse
   >;
   [RosService.HEATER]: RosServiceMessage<
       IRosStdSrvsSetBoolRequest,

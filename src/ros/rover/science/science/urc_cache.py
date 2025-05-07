@@ -109,7 +109,7 @@ class URCCache(Node):
         self.add_controller(self.SPIN_CONTROL_NAME, self.spinny_part_controller)
 
         ## Create SERVICE
-        self.command_service = self.create_service(CacheCommand, f'/science/cache_command/{self.get_parameter(self.CACHE_ID_PARAM).value}', self.command_callback)
+        self.command_service = self.create_service(CacheCommand, f'/science/cache_command_{self.get_parameter(self.CACHE_ID_PARAM).value}', self.command_callback)
         
         ## Start the CAN bus
         self.start_can()
