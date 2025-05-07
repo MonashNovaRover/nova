@@ -91,15 +91,13 @@ class KeyboardLocaliser(Node):
         self.node_is_auto = self.declare_parameter('using_auto', True).get_parameter_value().bool_value
         # Do we publish the debug image?
         self.do_debug = self.declare_parameter('debug_image', True).get_parameter_value().bool_value
-        self.debug_pub = self.create_publisher(Image, DEBUG_TOPIC, 10)
+        self.debug_pub = self.create_publisher(Image, DEBUG_TOPIC, 10) if self.do_debug else None
 
         # key position initalisation
         self.keyboard_frame = self.declare_parameter('keyboard_frame', 'keyboard_frame').get_parameter_value().string_value
         self.base_frame = self.declare_parameter('base_frame', 'base_link').get_parameter_value().string_value
         self.key_srv = self.create_service(KeyPosition, KEY_SERVICE_NAME, self.get_key_position_callback)
         self.key_map = KEY_MAP
-        
-        THRESHOLD_CONTOUR_AREA = (30000, 80000) # expected pixel area bounds of rectangle in image
 
         # manual keyboard alignment initalisation
         self.aligned_keyboard_position = self.declare_parameter('aligned_keyboard_position', DEFAULT_POSITION).get_parameter_value().double_array_value
@@ -285,6 +283,8 @@ class KeyboardLocaliser(Node):
         return image_points
     
     def pub_debug_image(self, img, points) -> None:
+        if not self.do_debug:
+            return
         # Draw each point
         if points is not None:
             for point in points:
