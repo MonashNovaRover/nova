@@ -34,6 +34,10 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
     }
 
     BLCMDHardwareLoggerName = info_.name;
+    
+    auto params_result = apply_parameters();
+    if (params_result != CallbackReturn::SUCCESS)
+        return params_result;
 
     if (info_.joints.size() != 1)
     {
@@ -444,6 +448,16 @@ hardware_interface::CallbackReturn BLCMDHardware::apply_parameters() {
                                                              "max_position from command interface.");
   }
 
+  auto max_velocity_search = info_.hardware_parameters.find("max_velocity");
+  if (max_velocity_search != info_.hardware_parameters.end()) {
+    params_.max_velocity = std::stod(max_velocity_search->second);
+    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using max_velocity of %f", params_.max_velocity.value());
+  }
+  else {
+    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "max_velocity parameter was undefined. Will use "
+                                                             "complex formula to make this value.");
+  }
+
   auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
   if (resolver_reduction_search != info_.joints[0].parameters.end()) {
     params_.resolver_reduction = std::stod(resolver_reduction_search->second);
@@ -472,7 +486,8 @@ bool BLCMDHardware::set_control_interface(
     }
     else if (interface_info.name == hardware_interface::HW_IF_VELOCITY){
         if (command) {
-            hw_velocity_.max = (params_.clock_rate) / (params_.min_interval * params_.revolution_pulses * params_.gear_ratio) * 2 * M_PI;
+            hw_velocity_.max = params_.max_velocity.has_value() ? params_.max_velocity.value()              
+              : (params_.clock_rate) / (params_.min_interval * params_.revolution_pulses * params_.gear_ratio) * 2 * M_PI;
             RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
             "Configured velocity interface with max velocity: " << hw_velocity_.max);
             hw_velocity_.command = 0.0;

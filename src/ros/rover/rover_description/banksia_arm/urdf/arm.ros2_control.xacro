@@ -225,14 +225,16 @@
 					<plugin>blcmd_hardware/BLCMDHardware</plugin>
 					<param name="candevice">can1</param>
 					<param name="canid">6</param>
-					<param name="resolver_reduction">1</param>
-					<param name="clock_rate">1674615430</param>
+					<param name="resolver_reduction">1.0</param>
+					<param name="clock_rate">100000000</param>
 					<param name="revolution_pulses">8192</param>
-					<param name="min_interval">122</param>
+          <param name="min_interval">1792</param>
 					<param name="gear_ratio">1.0</param>
 					<param name="mock">false</param>
 					<param name="reversed">true</param>
 					<param name="integrate_velocity">false</param>
+					<param name="max_position">12.5663706144</param>
+					<param name="max_velocity">292.444791137</param>
 				</hardware>
 			</xacro:unless>
 			<xacro:if value="${use_mock_hardware}">

@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 60
+    update_rate: 20
     use_sim_time: false
 
     nova_arm_velocity_controller:
