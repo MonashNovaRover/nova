@@ -17,6 +17,6 @@ gps_base:
 gps_rover:
   ros__parameters:
     baudrate: 115200
-    port_name: /dev/ttyUSB1
+    port_name: /dev/ttyUSB0
     gps_module: skytraq
     publisher_rate: 30

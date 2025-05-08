@@ -62,6 +62,8 @@ install(PROGRAMS
   electronics/wheel_publisher.py
   electronics/LED_transmitter.py
   electronics/dgps/gps_base.py
+  electronics/dgps/gps_data_collector.py
+  electronics/dgps/gps_data_plotter.py
   electronics/dgps/gps_rover.py
   DESTINATION lib/${PROJECT_NAME}
 )
