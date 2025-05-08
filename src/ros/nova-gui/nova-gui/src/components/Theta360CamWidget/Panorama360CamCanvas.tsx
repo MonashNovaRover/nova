@@ -97,7 +97,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
     // Apply changes
     setCompassAngleRaw(number);
     setTextIsValid(true);
-  }, [setTextCompassAngleRaw]);
+  }, [setCompassAngleRaw, setTextCompassAngleRaw]);
 
   // Used when changing via slider
   const setCompassAngle = useCallback((rawValue: number | number[]) => {
@@ -106,7 +106,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
     setCompassAngleRaw(value);
     setTextCompassAngleRaw(value.toFixed(2));
     setTextIsValid(true);
-  }, [setTextCompassAngleRaw])
+  }, [setCompassAngleRaw, setTextCompassAngleRaw])
 
   // Allow for panning with the mouse
   const onMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -127,7 +127,6 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
     if (event.buttons !== 1)
       return;
 
-    //const bounds = gl.canvasRef.current?.getBoundingClientRect() ?? {width: 1, height: 1};
     const maxResolutionComp = Math.max(bounds.width, bounds.height);
 
     setMousePos(([x, y]) => [
@@ -139,7 +138,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
 
   const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
   // Function that converts y values from 0 to 1 into an angle relative to the midpoint of the image
-  const yToTheta = useCallback((v: number) => -360* widthHeight[1]/widthHeight[0] * v + 180* widthHeight[1]/widthHeight[0] , [widthHeight]);
+  const yToTheta = useCallback((v: number) => 360* widthHeight[1]/widthHeight[0] * (-v + 0.5) , [widthHeight]);
 
   // Create program to project and render image
   const program = useProgram(gl, Vert, Frag);
