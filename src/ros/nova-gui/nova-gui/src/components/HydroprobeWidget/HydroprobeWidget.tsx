@@ -18,6 +18,7 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
     console.log("moving hydraprobe")
     bifrost.callService({command: command})
   };
+  const serviceBifrost = useBifrost({ service: RosService.REQUEST_HYDRAPROBE_READING });
   const temperature = useSelector((state: RootState) => state.hydraprobeData.temperature);
   const moisture = useSelector((state: RootState) => state.hydraprobeData.moisture);
   const conductivity = useSelector((state: RootState) => state.hydraprobeData.conductivity);
@@ -26,6 +27,10 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
   useEffect(() => {
     bifrost.syncWithTopic();
   }, [bifrost]);
+
+  const requestReading = () => {
+    serviceBifrost.callService({});
+  };
 
   const HydroprobeCardBody = (
     <CardBody className="gap-4">
@@ -55,6 +60,11 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
         <Button size="sm" onClick={() => moveHydraprobe(IRosNovaInterfacesMoveHydraprobeRequestConst.RESET)}>Reset</Button>
         <Button size="sm" onClick={() => moveHydraprobe(IRosNovaInterfacesMoveHydraprobeRequestConst.DEPLOY)}>Deploy</Button>
         <Button size="sm" onClick={() => moveHydraprobe(IRosNovaInterfacesMoveHydraprobeRequestConst.RETRACT)}>Retract</Button>
+      </div>
+      <div className="flex justify-center py-2">
+        <Button onClick={requestReading} color="primary">
+          Request New Reading
+        </Button>
       </div>
     </CardBody>
   );
