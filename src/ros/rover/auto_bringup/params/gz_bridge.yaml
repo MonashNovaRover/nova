@@ -76,7 +76,7 @@
   direction: GZ_TO_ROS
 
 # GPS
-- ros_topic_name: "/gps_rover/fix"
+- ros_topic_name: "/fix"
   gz_topic_name: "/gps"
   ros_type_name: "sensor_msgs/msg/NavSatFix"
   gz_type_name: "gz.msgs.NavSat"
