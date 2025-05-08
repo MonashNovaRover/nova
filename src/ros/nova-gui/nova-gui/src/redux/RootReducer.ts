@@ -115,7 +115,7 @@ export const reduxStores = {
     }
   ),
 
-  // Science Reduceers
+  // Science Reducers
   kilnData: createBifrostStore(
     { topic: RosTopic.KILN_DATA },
     {
