@@ -34,7 +34,7 @@ from std_srvs.srv import Trigger
 from nova_interfaces.msg import HydraprobeData
 
 # Hardware abstraction
-from science.hydraprobe_publisher import NewHydraprobeTransceiver  # Adjust if needed
+from urc_hydraprobe import NewHydraprobeTransceiver
 
 class HydraprobeTriggerNode(Node):
 
