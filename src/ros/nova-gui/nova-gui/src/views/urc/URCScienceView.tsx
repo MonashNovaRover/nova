@@ -7,6 +7,7 @@ import BMESensor from "../../components/BMESensor/BMESensor";
 import GenericSetBoolWidget from "../../components/GenericSetBoolWidget/GenericSetBoolWidget.tsx";
 import {RosService} from "../../ros/services/rosService.ts";
 import URCNIRProbeWidget from "../../components/NIRProbe/URCNIRProbeWidget.tsx";
+import CacheControlWidget from "../../components/science/CacheControlWidget/CacheControlWidget.tsx";
 
 const URCScienceView: React.FC = () => {
   return (
@@ -23,9 +24,10 @@ const URCScienceView: React.FC = () => {
         </div>
         <CarouselWidget/>
         <div className="flex flex-row gap-3">
-          <GenericSetBoolWidget className="w-full" label="Cache" service={RosService.CACHE}/>
-          <GenericSetBoolWidget className="w-full" label="Heater" service={RosService.HEATER}/>
-          <GenericSetBoolWidget className="w-full" label="Mixers" service={RosService.MIXERS}/>
+          <CacheControlWidget className="w-full" label="Cache 1" service={RosService.CACHE_1}/>
+          <CacheControlWidget className="w-full" label="Cache 2" service={RosService.CACHE_2}/>
+          <GenericSetBoolWidget className="w-3/4" label="Heater" service={RosService.HEATER}/>
+          <GenericSetBoolWidget className="w-3/4" label="Mixers" service={RosService.MIXERS}/>
         </div>
       </div>
 
