@@ -1,0 +1,98 @@
+# For parameter descriptions, please refer to the template parameter files for each node.
+
+ekf_filter_node_odom:
+  ros__parameters:
+    frequency: 30.0
+    two_d_mode: false
+    publish_acceleration: false
+    publish_tf: true
+    map_frame: map # Defaults to "map" if unspecified
+    odom_frame: odom # Defaults to "odom" if unspecified
+    base_link_frame: base_link # Defaults to "base_link" if unspecified
+    world_frame: odom # Defaults to the value of odom_frame if unspecified
+
+    # GPS Odom
+    odom0: /odometry/gps
+    odom0_config: [true, true, false, #https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html#configuring-robot-localization
+                  false, false, false,
+                  false, false,  false,
+                  false, false, false,
+                  false, false, false]
+    odom0_queue_size: 10
+    odom0_differential: false
+    # odom0_relative: false
+
+    process_noise_covariance: [1e-3, 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    1e-3,  0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    1e-3,  0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.3,   0.0,    0.0,     0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.3,   0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.01,  0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.5,    0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.5,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.1,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.3,   0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.3,   0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.3,   0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.3,   0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.3,   0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.3]
+
+    use_control: false # Might look into enabling this / setting to true?
+    # control_config: [true, false, false, false, false, true] # Might look into enabling this / setting to true?
+
+
+ekf_filter_node_map:
+  ros__parameters:
+    frequency: 30.0
+    two_d_mode: false
+    publish_acceleration: false
+    publish_tf: true
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_link
+    world_frame: map
+    
+    # GPS Odom
+    odom0: /odometry/gps
+    odom0_config: [true, true, false, #https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html#configuring-robot-localization
+                  false, false, false,
+                  false,  false,  false,
+                  false, false, false,
+                  false, false, false]
+    odom0_queue_size: 10
+    odom0_differential: false
+    # odom0_relative: false
+
+    process_noise_covariance: [1e-3, 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    1e-3,  0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    1e-3,  0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.3,   0.0,    0.0,     0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.3,   0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.01,  0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.5,    0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.5,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.1,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.3,   0.0,    0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.3,   0.0,    0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.3,   0.0,    0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.3,   0.0,    0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.3,   0.0,
+                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.3]
+
+    use_control: false # Might look into enabling this / setting to true?
+    # control_config: [true, false, false, false, false, true] # Might look into enabling this / setting to true?
+
+
+navsat_transform:
+  ros__parameters:
+    frequency: 30.0
+    delay: 0.0
+    magnetic_declination_radians: 0.2108939512815432
+    yaw_offset: 0.0
+    zero_altitude: true
+    broadcast_utm_transform: true
+    broadcast_utm_transform_as_parent_frame: false
+    publish_filtered_gps: true
+    use_odometry_yaw: false
+    wait_for_datum: false
