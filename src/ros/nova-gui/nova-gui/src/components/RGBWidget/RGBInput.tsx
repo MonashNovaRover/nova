@@ -35,7 +35,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
         setTempR(rgbValues.r);
         setTempG(rgbValues.g);
         setTempB(rgbValues.b);
-    }, [r,g,b]); //should this be updated every time the store rgb values change or every time the modal is opened? not sure if it makes a difference in case of any 
+    }, [r,g,b]);
 
     const sendRGBValues = useCallback(() => {
         try{
