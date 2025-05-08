@@ -91,6 +91,7 @@ export interface RootState {
   siteData: GenericStoreState<SiteDataState>;
   nirProbeCalibrationData: GenericStoreState<NIRProbeCalibrationData>
   counter: GenericStoreState<number>;
+  rgbLedStore: GenericStoreState<{ r: string; g: string; b: string }>;
   scimbalStepSize : GenericStoreState<string>;
   targetTemp : GenericStoreState<number>;
   theta360CompassHeading : GenericStoreState<number>;
