@@ -1,5 +1,5 @@
-import React, {useCallback, useState} from "react";
-import {Button, Card, CardProps, Input} from "@nextui-org/react";
+import React, {useCallback, useEffect, useState} from "react";
+import {Button, Card, CardProps, Input, Tooltip} from "@nextui-org/react";
 import {SubCardLabel} from "../shared/Labels";
 import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../ros/services/rosService.ts";
@@ -23,9 +23,19 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
         b: string;
     }>("rgbLedStore");
 
+    const [tempR, setTempR] = useState(rgbValues.r);
+    const [tempG, setTempG] = useState(rgbValues.g);
+    const [tempB, setTempB] = useState(rgbValues.b);
+
     const {r,g,b} = rgbValues;
 
     const serviceBifrost = useBifrost({service: RosService.RGBInput});
+
+    useEffect(() => {
+        setTempR(rgbValues.r);
+        setTempG(rgbValues.g);
+        setTempB(rgbValues.b);
+    }, [r,g,b]); //should this be updated every time the store rgb values change or every time the modal is opened? not sure if it makes a difference in case of any 
 
     const sendRGBValues = useCallback(() => {
         try{
@@ -42,6 +52,9 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                 {r:rValue, g:gValue, b:bValue},
                 {noErrorToast: false, responseToast:true},
             );
+
+            setRgbValues({ r: tempR, g: tempG, b: tempB });
+
         }catch (e) {
             console.error("Could not send RGB Values:",e)
         }
@@ -49,26 +62,20 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
 
     const handleRChange = useCallback((value: string) => {
         const numValue = Number(value);
-        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) {
-            setRgbValues({...rgbValues, r:value}) ;
-        }
+        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setTempR(value)
     }, [rgbValues, setRgbValues]);
 
     const handleGChange = useCallback((value: string) => {
         const numValue = Number(value);
-        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255){
-            setRgbValues({...rgbValues, g:value}) ;
-        }
+        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setTempG(value)
     }, [rgbValues, setRgbValues]);
 
     const handleBChange = useCallback((value: string) => {
         const numValue = Number(value);
-        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255){
-            setRgbValues({...rgbValues, b:value}) ;
-        }
+        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setTempB(value)
     }, [rgbValues, setRgbValues]);
 
-    const colorPreview = `rgb(${r || 0}, ${g || 0}, ${b || 0})`;
+    const colorPreview = `rgb(${tempR || 0}, ${tempG || 0}, ${tempB || 0})`;
 
     return (
         <Card {...props} className="space-y-3 p-3">
@@ -79,7 +86,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                         <Input
                             id="r"
                             type="number"
-                            value={r}
+                            value={tempR}
                             onValueChange={handleRChange}
                             placeholder="0-255"
                             minLength={1}
@@ -92,7 +99,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                         <Input
                             id="g"
                             type="number"
-                            value={g}
+                            value={tempG}
                             onValueChange={handleGChange}
                             placeholder="0-255"
                             minLength={1}
@@ -105,7 +112,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                         <Input
                             id="b"
                             type="number"
-                            value={b}
+                            value={tempB}
                             onValueChange={handleBChange}
                             placeholder="0-255"
                             minLength={1}
@@ -120,6 +127,66 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                     <span className="text-lg font-bold p-2 text-white">
                         {colorPreview}
                     </span>
+                </div>
+            </Card>
+            <Card className="p-3 bg-content2" shadow="sm">
+                <SubCardLabel>PRESETS</SubCardLabel>
+                <div className="flex flex-row flex-wrap gap-2 items-center justify-between">
+                    <Tooltip content="Red" placement="top">
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          className="w-6 h-6 bg-danger"
+                          aria-label="Red"
+                          onClick={() => {setTempR("255"); setTempG("0"); setTempB("0"); }}
+                        />
+                    </Tooltip>
+                    <Tooltip content="Green" placement="top">
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      className="w-6 h-6 bg-success"
+                      aria-label="Green"
+                      onClick={() => {setTempR("0"); setTempG("255"); setTempB("0"); }}
+                    />
+                    </Tooltip>
+                    <Tooltip content="Blue" placement="top">
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      className="w-6 h-6 bg-primary"
+                      aria-label="Blue"
+                      onClick={() => {setTempR("0"); setTempG("0"); setTempB("255"); }}
+                    />
+                    </Tooltip>
+                    <Tooltip content="Yellow" placement="top">
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      className="w-6 h-6 bg-warning"
+                      aria-label="Yellow"
+                      onClick={() => {setTempR("255"); setTempG("255"); setTempB("0"); }}
+                    />
+                    </Tooltip>
+                    <Tooltip content="Pink" placement="top">
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      className="bg-[#ff69b4] w-6 h-6"
+                      aria-label="Pink"
+                      onClick={() =>
+                      {setTempR("255"); setTempG("105"); setTempB("180"); }
+                      }
+                    />
+                    </Tooltip>
+                    <Button
+                      size="sm"
+                      className="text-xs px-2"
+                      variant="flat"
+                      onClick={() => console.log("TODO: Flashing logic")}
+                    >
+                        Flash LEDs
+                    </Button>
                 </div>
             </Card>
             <Button onClick={sendRGBValues} color="primary">
