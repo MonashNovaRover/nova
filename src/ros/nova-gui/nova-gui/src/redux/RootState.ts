@@ -25,6 +25,7 @@ import {
   IRosNovaInterfacesBmeSensor,
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
+
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -93,6 +94,7 @@ export interface RootState {
   counter: GenericStoreState<number>;
   scimbalStepSize : GenericStoreState<string>;
   targetTemp : GenericStoreState<number>;
+  theta360CompassHeading : GenericStoreState<number>;
 
   batteryStore: IRosSensorMsgsBatteryState;
   activeStatusStore: IRosNovaInterfacesActiveNodeStatus;
