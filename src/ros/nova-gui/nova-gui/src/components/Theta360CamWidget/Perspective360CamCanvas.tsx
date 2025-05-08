@@ -63,20 +63,41 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   const gl = useGL();
   const [mousePos, setMousePos] = useState([0, 0]);
   const [fov, setFov] = useState(90);
+  const [widthHeight, setWidthHeight] = useState([0, 0]);
 
   // Allow for panning with the mouse
   const onMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (event.buttons !== 1)
+    if (!gl.canvasRef.current)
       return;
 
-    const bounds = gl.canvasRef.current?.getBoundingClientRect() ?? {width: 1, height: 1};
+    const bounds = gl.canvasRef.current.getBoundingClientRect();
+
+    const pixelsX = event.clientX - bounds.left;
+    const pixelsY = event.clientY - bounds.top;
+
+    const x = pixelsX / bounds.width;
+    const y = pixelsY / bounds.height;
+
+    setMousePoint([x, y]);
+    setWidthHeight([bounds.width, bounds.height]);
+
+    if (event.buttons !== 1)
+      return;
+    
     const maxResolutionComp = Math.max(bounds.width, bounds.height);
 
     setMousePos(([x, y]) => [
       x + fov * DEG_TO_RAD * event.movementX / maxResolutionComp,
-      y + fov * DEG_TO_RAD * event.movementY / maxResolutionComp
+      y + fov * DEG_TO_RAD * event.movementY / maxResolutionComp,
+      x + 2 * Math.PI * event.movementX / maxResolutionComp,
+      y + 2 * Math.PI * event.movementY / maxResolutionComp
     ]);
   }, [fov, gl.canvasRef]);
+
+  const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
+  // Function that converts y values from 0 to 1 into an angle relative to the midpoint of the image
+  const yToTheta = useCallback((v: number) => 360* widthHeight[1]/widthHeight[0] * (-v + 0.5) , [widthHeight]);
+
 
   // Listen to scrolling to change FOV
   const onWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {
@@ -109,6 +130,8 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   }, [gl])
 
   return (
+    <div className="flex flex-col gap-2.5 flex-grow">
+      ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {yToTheta(mousePoint[1]).toFixed(2)} deg
     <AutosizedGLCanvas
       gl={gl}
       className="rounded p-3 flex-grow"
@@ -132,6 +155,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
       </div>
 
     </AutosizedGLCanvas>
+    </div>
   )
 }
 

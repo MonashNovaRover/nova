@@ -18,6 +18,7 @@ import {Input, Slider, Tooltip} from "@nextui-org/react";
 import useImageTexture from "../../hooks/webgl/program/sampler/useImageTexture.ts";
 import Compass from "../../assets/compass.png";
 import {isArray} from "lodash";
+import {useGenericStore} from "../../hooks/useGenericStore.ts";
 
 
 export interface WebGL360CamProps {
@@ -67,11 +68,12 @@ function convertToBlob(base64image: string): [ArrayBuffer] {
 const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   const gl = useGL();
   const [mousePos, setMousePos] = useState([0, 0]);
-  const [compassAngle, setCompassAngleRaw] = useState<number | number[]>(180);
+  const [compassAngle, setCompassAngleRaw] = useGenericStore<number>("theta360CompassHeading");
+  const [widthHeight, setWidthHeight] = useState([0, 0]);
 
   const compassImage = useImageTexture(Compass);
   const [textIsValid, setTextIsValid] = useState<boolean>(true);
-  const [textCompassAngle, setTextCompassAngleRaw] = useState<string>("180")
+  const [textCompassAngle, setTextCompassAngleRaw] = useState<string>(compassAngle.toString());
 
   // Used when changing via input text box
   const setTextCompassAngle = useCallback((text: string) => {
@@ -95,7 +97,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
     // Apply changes
     setCompassAngleRaw(number);
     setTextIsValid(true);
-  }, []);
+  }, [setCompassAngleRaw, setTextCompassAngleRaw]);
 
   // Used when changing via slider
   const setCompassAngle = useCallback((rawValue: number | number[]) => {
@@ -104,21 +106,39 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
     setCompassAngleRaw(value);
     setTextCompassAngleRaw(value.toFixed(2));
     setTextIsValid(true);
-  }, [])
+  }, [setCompassAngleRaw, setTextCompassAngleRaw])
 
   // Allow for panning with the mouse
   const onMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!gl.canvasRef.current)
+      return;
+
+    const bounds = gl.canvasRef.current.getBoundingClientRect();
+
+    const pixelsX = event.clientX - bounds.left;
+    const pixelsY = event.clientY - bounds.top;
+
+    const x = pixelsX / bounds.width;
+    const y = pixelsY / bounds.height;
+
+    setMousePoint([x, y]);
+    setWidthHeight([bounds.width, bounds.height]);
+
     if (event.buttons !== 1)
       return;
 
-    const bounds = gl.canvasRef.current?.getBoundingClientRect() ?? {width: 1, height: 1};
     const maxResolutionComp = Math.max(bounds.width, bounds.height);
 
     setMousePos(([x, y]) => [
       x + 2 * Math.PI * event.movementX / maxResolutionComp,
       y + 2 * Math.PI * event.movementY / maxResolutionComp
     ]);
+
   }, [gl.canvasRef]);
+
+  const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
+  // Function that converts y values from 0 to 1 into an angle relative to the midpoint of the image
+  const yToTheta = useCallback((v: number) => 360* widthHeight[1]/widthHeight[0] * (-v + 0.5) , [widthHeight]);
 
   // Create program to project and render image
   const program = useProgram(gl, Vert, Frag);
@@ -157,6 +177,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
 
   return (
     <div className="flex flex-col gap-2.5 flex-grow">
+      ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {yToTheta(mousePoint[1]).toFixed(2)} deg
       <AutosizedGLCanvas
         gl={gl}
         className="rounded p-3 flex-grow"
@@ -166,6 +187,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
       >
         <div className="flex flex-row gap-3">
           {props.children}
+
           <Tooltip content="Take WebGL Screenshot">
             <ExtendedDownloadButton
               fileContent={getCanvasScreenshot}

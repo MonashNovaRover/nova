@@ -115,7 +115,7 @@ export const reduxStores = {
     }
   ),
 
-  // Science Reduceers
+  // Science Reducers
   kilnData: createBifrostStore(
     { topic: RosTopic.KILN_DATA },
     {
@@ -274,6 +274,7 @@ export const reduxStores = {
   counter: createGenericStore("counter", 0),
   scimbalStepSize: createGenericStore("scimbalStepSize", "1"),
   targetTemp: createGenericStore("targetTemp", 150),
+  theta360CompassHeading: createGenericStore("theta360CompassHeading",180),
 };
 
 // all store reducers
