@@ -13,9 +13,10 @@ NODES:
   - control/analysis_platform.py        [analysis_platform]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATION:   17/03/2024
-EDITED:     13/02/2025
+EDITED:     05/05/2025
 EDITED BY: Tristan Clark, Josh Leivenzon, 
-    Victor Bartlinski, Felicity Matthews
+    Victor Bartlinski, Felicity Matthews,
+    Brandon Chung
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 from launch import LaunchDescription
@@ -31,6 +32,8 @@ def launch_setup(context, *args, **kwargs):
     auger2_actuation_canid = LaunchConfiguration('auger2_actuation_canid')
     analysis_arm_cmd_canid = LaunchConfiguration('analysis_arm_cmd_canid')
     cbeam_actuation_canid = LaunchConfiguration('cbeam_actuation_canid')
+    cache1_canid = LaunchConfiguration('cache1_canid')
+    cache2_canid = LaunchConfiguration('cache2_canid')
 
     return [
         Node(
@@ -98,10 +101,26 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
         ),
         Node(
+            name="Cache1",
             package='science',
             executable='urc_cache.py',
             output='screen',
             emulate_tty=True,
+            parameters=[{
+                "frame_id": cache1_canid,
+                "cache_id": "1"
+            }],
+        ),
+        Node(
+            name="Cache2",
+            package='science',
+            executable='urc_cache.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[{
+                "frame_id": cache2_canid,
+                "cache_id": "2"
+            }],
         ),
         Node(
             package='science',
@@ -161,6 +180,8 @@ def generate_launch_description():
         DeclareLaunchArgument("auger2_actuation_canid", default_value='0x0D2'),
         DeclareLaunchArgument("cbeam_actuation_canid", default_value='0x0A1'),
         DeclareLaunchArgument("analysis_arm_cmd_canid", default_value='0x0A2'),
+        DeclareLaunchArgument("cache1_canid", default_value='0x0A0'),
+        DeclareLaunchArgument("cache2_canid", default_value='0x0B0'),
     ]
 
     return LaunchDescription(

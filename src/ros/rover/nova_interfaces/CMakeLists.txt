@@ -53,6 +53,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/BMESensor.msg"
 
   # Service definitions
+  "srv/CacheCommand.srv"
   "srv/GpsOffset.srv"
   "srv/KilnCommand.srv"
   "srv/LoadCellPoller.srv"
