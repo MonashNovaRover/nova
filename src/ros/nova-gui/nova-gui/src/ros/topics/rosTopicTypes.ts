@@ -18,12 +18,13 @@ import {
   IRosSensorMsgsCompressedImage,
   IRosNovaInterfacesBmeSensor,
   IRosSensorMsgsBatteryState,
+  IRosArmInterfacesKeyboardPoints,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
 /**
  * This Interface exists to link Individual topics to The Messages.
- * These Messages are defined as Interfaces on `rosTypes.ts`. This is not to be confused with
+ * These Messages are defined as InterKeybofaces on `rosTypes.ts`. This is not to be confused with
  * `rosMessages.ts`
  *
  * An Example is Given below to link the Topic RosTopics.DEMO_TOPIC to IRosDemoMessage
@@ -39,6 +40,7 @@ export interface RosTopicInterfaces {
   // Arm Related
   [RosTopic.ARM_TELEMETRY]: IRosCmdInterfacesCmDsFeedback;
   [RosTopic.RFID_DATA]: IRosStdMsgsString;
+  [RosTopic.KEYBOARD_DATA]: IRosArmInterfacesKeyboardPoints;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;

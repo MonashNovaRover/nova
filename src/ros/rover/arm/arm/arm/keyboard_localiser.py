@@ -93,7 +93,8 @@ class KeyboardLocaliser(Node):
         self.node_is_auto = self.declare_parameter('using_auto', True).get_parameter_value().bool_value
         # Do we publish the debug image or keyboard points to GUI
         self.do_debug = self.declare_parameter('debug_image', True).get_parameter_value().bool_value
-        self.debug_pub = self.create_publisher(Image, DEBUG_TOPIC, 10) if self.do_debug else self.create_publisher(KeyboardPoints, POINT_TOPIC, 10)
+        self.point_pub = self.create_publisher(KeyboardPoints, POINT_TOPIC, 10)
+        self.debug_pub = self.create_publisher(Image, DEBUG_TOPIC, 10) if self.do_debug else None
 
         # key position initalisation
         self.keyboard_frame = self.declare_parameter('keyboard_frame', 'keyboard_frame').get_parameter_value().string_value
@@ -215,10 +216,10 @@ class KeyboardLocaliser(Node):
 
     def publish_analysis_tf(self) -> None:
         '''Publish the transform of the keyboard through the solvePnP method'''
-        if self.view is None or not self.node_is_auto or not self.is_aligned:
+        if self.view is None or not self.node_is_auto:
             return
         transform = self.estimate_pose()
-        if transform is None:
+        if transform is None or self.is_aligned:
             return None
         self.transform_broadcaster.sendTransform(transform)
 
@@ -286,17 +287,17 @@ class KeyboardLocaliser(Node):
         return image_points
     
     def pub_debug_image(self, img, points) -> None:
-        if not self.do_debug:
-            # Publish points instead
-            kb_msg = KeyboardPoints()
-            kb_msg.points = [i for point in points for i in point]
-            kb_msg.width, kb_msg.height = self.camera_resolution
-            self.debug_pub.publish(kb_msg)
-            return
-        # Draw each point
+        # Publish points and draw each point
         if points is not None:
+            kb_msg = KeyboardPoints()
+            kb_msg.points = [int(i) for point in points for i in point]
+            kb_msg.width, kb_msg.height = self.camera_resolution
+            self.point_pub.publish(kb_msg)
             for point in points:
                 cv2.circle(img, (int(point[0]), int(point[1])), radius=5, color=(0, 255, 0), thickness=-1)
+
+        if not self.do_debug:
+            return
 
         # Convert OpenCV image -> ROS Image
         output_msg = CvBridge().cv2_to_imgmsg(img, encoding="bgr8")

@@ -322,7 +322,7 @@ class CameraStreamerService(Node):
         # Choose the gstreamer bin to use
         # If a ros topic is present, use the split ros topic and webrtc pipeline
         # TODO: Make this more robust and able to support any sort of pipeline in a plugin style system able to be specified in param file
-        cam_bin_init = CameraWebRTCBin if camera_configuration.meta['ros_topic'] is None else CameraSplitROSWebRTCBin
+        cam_bin_init = CameraSplitROSWebRTCBin  if 'ros_topic' in camera_configuration.meta else CameraWebRTCBin
         camera_bin = cam_bin_init(
             serial,
             device_node,
