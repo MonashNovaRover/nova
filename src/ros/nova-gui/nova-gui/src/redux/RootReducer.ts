@@ -115,13 +115,6 @@ export const reduxStores = {
     }
   ),
 
-  RGBInputStore: createBifrostStore(
-    { service: RosService.RGBInput },
-    {
-        success: true,
-    }
-  ),
-
   // Science Reduceers
   kilnData: createBifrostStore(
     { topic: RosTopic.KILN_DATA },
@@ -284,6 +277,7 @@ export const reduxStores = {
   scimbalStepSize: createGenericStore("scimbalStepSize", "1"),
   targetTemp: createGenericStore("targetTemp", 150),
   theta360CompassHeading: createGenericStore("theta360CompassHeading",180),
+  rgbLedStore: createGenericStore("rgbLedStore", { r: "0", g: "0", b: "0" }),
 };
 
 // all store reducers
