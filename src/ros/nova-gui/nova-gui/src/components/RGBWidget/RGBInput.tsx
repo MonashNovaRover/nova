@@ -3,6 +3,7 @@ import {Button, Card, CardProps, Input} from "@nextui-org/react";
 import {SubCardLabel} from "../shared/Labels";
 import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../ros/services/rosService.ts";
+import {useGenericStore} from "../../hooks/useGenericStore.ts";
 
 interface RGBInputWidgetProps extends CardProps {}
 /**
@@ -13,9 +14,16 @@ interface RGBInputWidgetProps extends CardProps {}
  * @constructor
  */
 const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
-    const [r, setR] = useState("0");
-    const [g, setG] = useState("0");
-    const [b, setB] = useState("0");
+    // const [r, setR] = useState("0");
+    // const [g, setG] = useState("0");
+    // const [b, setB] = useState("0");
+    const [rgbValues, setRgbValues] = useGenericStore<{
+        r: string;
+        g: string;
+        b: string;
+    }>("rgbLedStore");
+
+    const {r,g,b} = rgbValues;
 
     const serviceBifrost = useBifrost({service: RosService.RGBInput});
 
@@ -41,18 +49,24 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
 
     const handleRChange = useCallback((value: string) => {
         const numValue = Number(value);
-        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setR(value);
-    }, []);
+        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) {
+            setRgbValues({...rgbValues, r:value}) ;
+        }
+    }, [rgbValues, setRgbValues]);
 
     const handleGChange = useCallback((value: string) => {
         const numValue = Number(value);
-        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setG(value);
-    }, []);
+        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255){
+            setRgbValues({...rgbValues, g:value}) ;
+        }
+    }, [rgbValues, setRgbValues]);
 
     const handleBChange = useCallback((value: string) => {
         const numValue = Number(value);
-        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setB(value);
-    }, []);
+        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255){
+            setRgbValues({...rgbValues, b:value}) ;
+        }
+    }, [rgbValues, setRgbValues]);
 
     const colorPreview = `rgb(${r || 0}, ${g || 0}, ${b || 0})`;
 

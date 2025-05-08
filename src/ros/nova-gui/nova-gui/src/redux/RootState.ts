@@ -95,6 +95,7 @@ export interface RootState {
   scimbalStepSize : GenericStoreState<string>;
   targetTemp : GenericStoreState<number>;
   theta360CompassHeading : GenericStoreState<number>;
+  rgbLedStore: GenericStoreState<{ r: string; g: string; b: string }>;
 
   batteryStore: IRosSensorMsgsBatteryState;
   activeStatusStore: IRosNovaInterfacesActiveNodeStatus;
