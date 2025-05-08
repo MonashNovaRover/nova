@@ -18,11 +18,12 @@ EDITED:		05/05/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
+from python_control.ControllerNode import ControllerNode
 from python_control.controls.OneAxisPositionControl import OneAxisPositionControl
 from python_control.controllers.JonoPositionController import JonoPositionController
 from nova_interfaces.srv import CacheCommand
 
-class URCCache(Node):
+class URCCache(ControllerNode):
     # CAN BUS NAME
     # The name of the CAN bus to use
     CAN_BUS = "can1"
@@ -32,11 +33,8 @@ class URCCache(Node):
     CACHE_SEND_FRAME_PARAM = "frame_id"
     DEFAULT_SEND_FRAME = 0x0A0
     CACHE_MOVE_SERVO_PARAM = "servo_command"
-    DEFAULT_MOVE_SERVO_ID = 0x0A0
+    DEFAULT_MOVE_SERVO_ID = 0x04
     CACHE_ID_PARAM = "cache_id"
-
-    # SENDING COMMAND IDS
-    CACHE_MOVE_SERVO = 0x04
 
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
@@ -106,7 +104,7 @@ class URCCache(Node):
         )
 
         ## Add the CONTROLLERS to the node's controllers
-        self.add_controller(self.SPIN_CONTROL_NAME, self.spinny_part_controller)
+        self.add_controller("cache_servo", self.cache_servo_controller)
 
         ## Create SERVICE
         self.command_service = self.create_service(CacheCommand, f'/science/cache_command_{self.get_parameter(self.CACHE_ID_PARAM).value}', self.command_callback)

@@ -101,6 +101,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
         ),
         Node(
+            name="Cache1",
             package='science',
             executable='urc_cache.py',
             output='screen',
@@ -111,6 +112,7 @@ def launch_setup(context, *args, **kwargs):
             }],
         ),
         Node(
+            name="Cache2",
             package='science',
             executable='urc_cache.py',
             output='screen',
@@ -178,8 +180,8 @@ def generate_launch_description():
         DeclareLaunchArgument("auger2_actuation_canid", default_value='0x0D2'),
         DeclareLaunchArgument("cbeam_actuation_canid", default_value='0x0A1'),
         DeclareLaunchArgument("analysis_arm_cmd_canid", default_value='0x0A2'),
-        DeclareLaunchArgument("cache1_canid", default_value='0x060'),
-        DeclareLaunchArgument("cache2_canid", default_value='0x061'),
+        DeclareLaunchArgument("cache1_canid", default_value='0x0A0'),
+        DeclareLaunchArgument("cache2_canid", default_value='0x0B0'),
     ]
 
     return LaunchDescription(

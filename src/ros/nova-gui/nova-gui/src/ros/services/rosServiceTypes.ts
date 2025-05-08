@@ -106,6 +106,10 @@ export interface RosServiceInterface {
     IRosNovaInterfacesCacheCommandRequest,
     IRosNovaInterfacesCacheCommandResponse
   >;
+  [RosService.CACHE_2]: RosServiceMessage<
+    IRosNovaInterfacesCacheCommandRequest,
+    IRosNovaInterfacesCacheCommandResponse
+  >;
   [RosService.HEATER]: RosServiceMessage<
       IRosStdSrvsSetBoolRequest,
       IRosStdSrvsSetBoolResponse
