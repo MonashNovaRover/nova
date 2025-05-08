@@ -12,9 +12,9 @@ SERVICES:
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:    science
-AUTHOR(S):	Brandon Chung
+AUTHOR(S):	Brandon Chung, Felicity Matthews
 CREATION:	03/05/2025
-EDITED:		05/05/2025
+EDITED:		08/05/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
