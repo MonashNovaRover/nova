@@ -56,6 +56,13 @@ class HydraprobeControlNode(JoystickControllerNode):
     RETRACT_SPEED_SEQUENCE = "retract_speeds"
     RETRACT_DURATION_SEQUENCE = "retract_durations"
 
+    # REQUEST COMMANDS
+    COMMANDS = [
+        RESET_COMMAND := (0).to_bytes(1, "big"), # Turns off both photodiodes
+        RETRACT_COMMAND := (1).to_bytes(1, "big"), # Exclusively turns on photodiode 1 and LED 1
+        DEPLOY_COMMAND := (2).to_bytes(1, "big"), # Exclusively turns on photodiode 2 and LED 2
+    ]
+
     def __init__(self):
         super().__init__(name="hydraprobeControl", can_bus=self.CAN_BUS, command_period=self.COMMAND_PERIOD)
         logger = self.get_logger()
@@ -125,6 +132,7 @@ class HydraprobeControlNode(JoystickControllerNode):
     def sequence_callback(self, speed, timers, index):
         """ callback function for timers within a sequence """
         def callback():
+            self.get_logger().info(f"timer {index} callback activated")
             timers[index].cancel()
             self.set_movement(speed)
             if len(timers) > index+1:
@@ -141,7 +149,8 @@ class HydraprobeControlNode(JoystickControllerNode):
         elif speed < 0:
             self.hydraprobe_servo.update_direction(self.DIRECTION_DOWN)
 
-        self.hydraprobe_servo.update_velocity(abs(speed) // 255)
+        self.get_logger().info(f"Speed: {speed} | Velocity: {abs(speed) / 255}")
+        self.hydraprobe_servo.update_velocity(abs(speed) / 255)
 
     def reset(self):
         """ starts the reset sequence """
@@ -166,18 +175,20 @@ class HydraprobeControlNode(JoystickControllerNode):
 
     def command_service_callback(self, request, response):
         """ callback for the MoveHydraprobe service"""
+        self.get_logger().info("responding to hydraprobe service call...")
+
         if self.moving:
+            self.get_logger().info("hydraprobe is already moving")
             response.success = False
-            return
+            return response
 
         response.success = True
-
         match request.command:
-            case MoveHydraprobe.RESET:
+            case self.RESET_COMMAND:
                 self.reset()
-            case MoveHydraprobe.RETRACT:
+            case self.RETRACT_COMMAND:
                 self.retract()
-            case MoveHydraprobe.DEPLOY:
+            case self.DEPLOY_COMMAND:
                 self.deploy()
             case _:
                 self.get_logger().error(f"Invalid hydraprobe command: {request.command}")
