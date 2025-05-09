@@ -5,13 +5,13 @@ import {RosTopic} from "../ros/topics/rosTopic";
 import {
   IRosCmdInterfacesCmdFeedback,
   IRosCmdInterfacesCmDsFeedback,
+  IRosNovaInterfacesHydraprobeData,
   IRosNovaInterfacesNirProbeDataConst,
   IRosSensorMsgsRange,
-  IRosNovaInterfacesHydraprobeData,
   IRosStdMsgsHeader
 } from "../ros/rosTypes";
-import { cartographerSlice } from "./slices/CartographerSlice";
-import { initialNavSatMessage } from "./models/CartographerState";
+import {cartographerSlice} from "./slices/CartographerSlice";
+import {initialNavSatMessage} from "./models/CartographerState";
 import {uiSlice} from "./slices/UISlice";
 import {cameraStreamerSlice} from "./slices/CameraStreamSlice";
 import {BLCMD_INDEX} from "../constants";
@@ -115,7 +115,7 @@ export const reduxStores = {
     }
   ),
 
-  // Science Reduceers
+  // Science Reducers
   kilnData: createBifrostStore(
     { topic: RosTopic.KILN_DATA },
     {
@@ -258,6 +258,15 @@ export const reduxStores = {
     }
   ),
 
+  activeStatusStore: createBifrostStore(
+    { topic: RosTopic.ACTIVATED_NODES },
+    {
+      name: "",
+      active: false,
+      locked: true,
+    }
+  ),
+
   // Generic stores
   currentSite: createGenericStore("currentSite", Site.SITE_1),
   siteData: createGenericStore("siteData", initialSiteDataState),
@@ -265,6 +274,7 @@ export const reduxStores = {
   counter: createGenericStore("counter", 0),
   scimbalStepSize: createGenericStore("scimbalStepSize", "1"),
   targetTemp: createGenericStore("targetTemp", 150),
+  theta360CompassHeading: createGenericStore("theta360CompassHeading",180),
 };
 
 // all store reducers

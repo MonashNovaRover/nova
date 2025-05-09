@@ -10,7 +10,7 @@
 , nova-input-interfaces
 , nova-cmd-interfaces
 , nova-interfaces
-, nova-cameras2
+, nova-camera-msgs
 }:
 
 let
@@ -23,7 +23,7 @@ let
     nova-input-interfaces
     nova-cmd-interfaces
     nova-interfaces
-    nova-cameras2
+    nova-camera-msgs
   ];
 in
 mkYarnPackage {

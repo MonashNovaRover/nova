@@ -1,3 +1,4 @@
+
 self: super:
 
 {
@@ -479,64 +480,6 @@ self: super:
             dwb-plugins = fixNav2Package rosSuper.dwb-plugins;
           }
         )
-        // (
-          let
-            replaceUbloxSrc =
-              pkg:
-              pkg.overrideAttrs (
-                { src, version, ... }:
-                {
-                  src = self.fetchFromGitHub {
-                    owner = "MonashNovaRover";
-                    repo = "ublox_dgnss_leigh";
-                    rev = "8be8326dcb2e5157b35e54364d2247c4cc253911";
-                    hash = "sha256-JfqHRoOdTdd9z7Qweg2+MNZH9IoX0DtpHtIr79ECg1M=";
-                  };
-
-                  version = "0.2.3-unstable-2024-05-28";
-                }
-              );
-          in
-          {
-            ublox-dgnss = (replaceUbloxSrc rosSuper.ublox-dgnss).overrideAttrs (
-              { ... }:
-              {
-                sourceRoot = "source/ublox_dgnss";
-              }
-            );
-
-            ublox-dgnss-node = (replaceUbloxSrc rosSuper.ublox-dgnss-node).overrideAttrs (
-              {
-                propagatedBuildInputs ? [ ],
-                ...
-              }:
-              {
-                sourceRoot = "source/ublox_dgnss_node";
-
-                propagatedBuildInputs =
-                  propagatedBuildInputs
-                  ++ (with rosSuper; [
-                    sensor-msgs
-                    geometry-msgs
-                  ]);
-              }
-            );
-
-            ublox-ubx-interfaces = (replaceUbloxSrc rosSuper.ublox-ubx-interfaces).overrideAttrs (
-              { ... }:
-              {
-                sourceRoot = "source/ublox_ubx_interfaces";
-              }
-            );
-
-            ublox-ubx-msgs = (replaceUbloxSrc rosSuper.ublox-ubx-msgs).overrideAttrs (
-              { ... }:
-              {
-                sourceRoot = "source/ublox_ubx_msgs";
-              }
-            );
-          }
-        )
       )
 
       # Overlays for individual ROS distros.
@@ -690,6 +633,60 @@ self: super:
                   ];
                 }
               );
+
+              ntrip-client-node = rosSuper.ntrip-client-node.overrideAttrs rec {
+                version = "0.5.5-r3";
+                src = self.fetchurl {
+                  url = "https://github.com/ros2-gbp/ublox_dgnss-release/archive/release/jazzy/ntrip_client_node/0.5.5-3.tar.gz";
+                  name = "0.5.5-3.tar.gz";
+                  sha256 = "sha256-dV2nf44RBrq0S3a74hr7j1Fe0zSnRD8jYf41QhgeuuM=";
+                };
+              };
+
+              ublox-dgnss-node = rosSuper.ublox-dgnss-node.overrideAttrs rec {
+                  version = "0.5.5-r3";
+                  src = self.fetchurl {
+                    url = "https://github.com/ros2-gbp/ublox_dgnss-release/archive/release/jazzy/ublox_dgnss_node/0.5.5-3.tar.gz";
+                    name = "0.5.5-3.tar.gz";
+                    sha256 = "sha256-V7XuNOmFnwo3yxYnEy6w+a7Q/iLUxaZ7xa0vPV09XdY=";
+                  };
+              };
+
+              ublox-dgnss = rosSuper.ublox-dgnss.overrideAttrs rec {
+                version = "0.5.5-r3";
+                src = self.fetchurl {
+                  url = "https://github.com/ros2-gbp/ublox_dgnss-release/archive/release/jazzy/ublox_dgnss/0.5.5-3.tar.gz";
+                  name = "0.5.5-3.tar.gz";
+                  sha256 = "sha256-mzmcFu6UvnE/q096viexA0YgQNHD5A9ZgCVEFdEQMOg=";
+                };
+              };
+
+              ublox-nav-sat-fix-hp-node = rosSuper.ublox-nav-sat-fix-hp-node.overrideAttrs rec {
+                version = "0.5.5-r3";
+                src = self.fetchurl {
+                  url = "https://github.com/ros2-gbp/ublox_dgnss-release/archive/release/jazzy/ublox_nav_sat_fix_hp_node/0.5.5-3.tar.gz";
+                  name = "0.5.5-3.tar.gz";
+                  sha256 = "sha256-IxRmU6bggmpo322oHN9F7g+GnKKfH3Yk66u2HxCk6es=";
+                };
+              };
+
+              ublox-ubx-interfaces = rosSuper.ublox-ubx-interfaces.overrideAttrs rec {
+                version = "0.5.5-r3";
+                src = self.fetchurl {
+                  url = "https://github.com/ros2-gbp/ublox_dgnss-release/archive/release/jazzy/ublox_ubx_interfaces/0.5.5-3.tar.gz";
+                  name = "0.5.5-3.tar.gz";
+                  sha256 = "sha256-uGJKsL/vscgyl3MqjaXFOx0EEB3AMtadU8wYbsmwB0M=";
+                };
+              };
+
+              ublox-ubx-msgs = rosSuper.ublox-ubx-msgs.overrideAttrs rec {
+                version = "0.5.5-r3";
+                src = self.fetchurl {
+                  url = "https://github.com/ros2-gbp/ublox_dgnss-release/archive/release/jazzy/ublox_ubx_msgs/0.5.5-3.tar.gz";
+                  name = "0.5.5-3.tar.gz";
+                  sha256 = "sha256-agwbwcFQv0MlgSdL8gSez1+8GHIF8d99yOoy1RAVCsE=";
+                };
+              };
             }
           );
         }

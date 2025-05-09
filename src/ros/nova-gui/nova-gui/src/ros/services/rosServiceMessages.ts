@@ -25,6 +25,7 @@ export const rosServiceMessages = {
   [RosService.CALL_RAMAN_MECH]: "nova_interfaces/srv/RamanMech",
   [RosService.UV_VIS_LED_1]: "std_srvs/srv/SetBool",
   [RosService.UV_VIS_LED_2]: "std_srvs/srv/SetBool",
-  [RosService.CACHE]: "std_srvs/srv/SetBool",
+  [RosService.CACHE_1]: "nova_interfaces/srv/CacheCommand",
+  [RosService.CACHE_2]: "nova_interfaces/srv/CacheCommand",
   [RosService.HEATER]: "std_srvs/srv/SetBool",
 };
