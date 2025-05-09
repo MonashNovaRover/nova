@@ -10,13 +10,14 @@ SERVICES:
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        electronics
-AUTHOR(S):      Matthew Hee
+AUTHOR(S):      Matthew Hee, Kuhu Tosniwal
 CREATION:       18/03/2025
 EDITED:         18/03/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
 import rclpy, jcan
+import time
 from python_control.ControllerNode import ControllerNode
 from nova_interfaces.srv import RGBInput
 
@@ -33,30 +34,38 @@ class LedStrip(ControllerNode):
     def __init__(self):
         super(LedStrip, self).__init__(name="led_strip", can_bus=self.CAN_BUS)
         self.led_service = self.create_service(RGBInput, '/set_RGBInput', self.led_service_callback)
-
-#         self.green_timer = self.create_timer(0.1, self.set_green, autostart=False)
-#         self.blue_timer = self.create_timer(0.2, self.set_blue, autostart=False)
-#         self.last_green = 0
-#         self.last_blue = 0
-
+        self.flash_timer = None
+        self.flash_on = False
+        self.flash_rgb = (0, 0, 0)
         self.start_can()
 
     def led_service_callback(self, request, response):
         self.get_logger().info(f"Received service request: {request}")
-#         self.set_duty_cycle(self.COLOR_ID, request.r)
 
-#         self.last_green = request.g
-#         self.last_blue = request.b
-#         self.green_timer.reset()
-#         self.blue_timer.reset()
+        if request.flash:
+            # Store the chosen flash RGB values
+            self.flash_rgb = (request.r, request.g, request.b)
+            self.flash_on = False  # Start with LEDs off
 
-        red = (request.r // 16) << 4
-        green = request.g // 16
-        blue = request.b // 16 << 4
+            # Cancel existing flash timer if active
+            if self.flash_timer:
+                self.flash_timer.cancel()
 
-        data = [red + green, blue]
+            # Create new timer that toggles every 0.5 seconds
+            self.flash_timer = self.create_timer(0.5, self.flash_led_callback)
+            self.get_logger().info("Started LED flashing.")
+            response.success = True
 
-        response.success = self.send_can_message(self.COLOR_ID, data)
+        else:
+            # Cancel flashing if it's active
+            if self.flash_timer:
+                self.flash_timer.cancel()
+                self.flash_timer = None
+                self.get_logger().info("Stopped LED flashing.")
+
+            # Set the LEDs to the requested static color
+            response.success = self.set_rgb(request.r, request.g, request.b)
+
         return response
 
     def send_can_message(self, frame_id, data):
@@ -69,17 +78,22 @@ class LedStrip(ControllerNode):
             return False
         return True
 
-#     def set_green(self):
-#         self.green_timer.cancel()
-#         self.set_duty_cycle(self.GREEN_CONTROL_ID, self.last_green)
-#
-#     def set_blue(self):
-#         self.blue_timer.cancel()
-#         self.set_duty_cycle(self.BLUE_CONTROL_ID, self.last_blue)
+    def set_rgb(self, r, g, b):
+        red = (r // 16) << 4
+        green = g // 16
+        blue = (b // 16) << 4
+        data = [red + green, blue]
+        return self.send_can_message(self.COLOR_ID, data)
 
-#     def set_duty_cycle(self, control_id, level):
-#         data = [level, 0x00]
-#         self.send_can_message(control_id, data)
+    def flash_led_callback(self):
+        if self.flash_on:
+            self.set_rgb(0, 0, 0)
+            self.flash_on = False
+        else:
+            r, g, b = self.flash_rgb
+            self.set_rgb(r, g, b)
+            self.flash_on = True
+
 
 def main(args=None):
     rclpy.init(args=args)

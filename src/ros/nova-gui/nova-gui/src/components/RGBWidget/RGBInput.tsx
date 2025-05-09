@@ -14,9 +14,6 @@ interface RGBInputWidgetProps extends CardProps {}
  * @constructor
  */
 const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
-    // const [r, setR] = useState("0");
-    // const [g, setG] = useState("0");
-    // const [b, setB] = useState("0");
     const [rgbValues, setRgbValues] = useGenericStore<{
         r: string;
         g: string;
@@ -37,11 +34,15 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
         setTempB(rgbValues.b);
     }, [r,g,b]);
 
-    const sendRGBValues = useCallback(() => {
+    const sendRGBValues = useCallback((flash = false) => {
         try{
-            const rValue = Number(r);
-            const gValue = Number(g);
-            const bValue = Number(b);
+            // const rValue = Number(r);
+            // const gValue = Number(g);
+            // const bValue = Number(b);
+
+            const rValue = Number(tempR);
+            const gValue = Number(tempG);
+            const bValue = Number(tempB);
 
             if (isNaN(rValue) || isNaN(gValue) || isNaN(bValue) || rValue < 0 || gValue < 0 || bValue < 0 || rValue > 255 || gValue > 255 || bValue > 255) {
                 console.error("Invalid input for RGB values");
@@ -49,11 +50,13 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
             }
 
             serviceBifrost.callService(
-                {r:rValue, g:gValue, b:bValue},
+                {r:rValue, g:gValue, b:bValue, flash},
                 {noErrorToast: false, responseToast:true},
             );
 
-            setRgbValues({ r: tempR, g: tempG, b: tempB });
+            if (!flash) { //only updates generic store values when flash is false
+                setRgbValues({r: tempR, g: tempG, b: tempB});
+            }
 
         }catch (e) {
             console.error("Could not send RGB Values:",e)
@@ -138,58 +141,58 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                           size="sm"
                           className="w-6 h-6 bg-danger"
                           aria-label="Red"
-                          onClick={() => {setTempR("255"); setTempG("0"); setTempB("0"); }}
+                          onPress={() => {setTempR("255"); setTempG("0"); setTempB("0"); }}
                         />
                     </Tooltip>
                     <Tooltip content="Green" placement="top">
-                    <Button
-                      isIconOnly
-                      size="sm"
-                      className="w-6 h-6 bg-success"
-                      aria-label="Green"
-                      onClick={() => {setTempR("0"); setTempG("255"); setTempB("0"); }}
-                    />
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          className="w-6 h-6 bg-success"
+                          aria-label="Green"
+                          onPress={() => {setTempR("0"); setTempG("255"); setTempB("0"); }}
+                        />
                     </Tooltip>
                     <Tooltip content="Blue" placement="top">
-                    <Button
-                      isIconOnly
-                      size="sm"
-                      className="w-6 h-6 bg-primary"
-                      aria-label="Blue"
-                      onClick={() => {setTempR("0"); setTempG("0"); setTempB("255"); }}
-                    />
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          className="w-6 h-6 bg-primary"
+                          aria-label="Blue"
+                          onPress={() => {setTempR("0"); setTempG("0"); setTempB("255"); }}
+                        />
                     </Tooltip>
                     <Tooltip content="Yellow" placement="top">
-                    <Button
-                      isIconOnly
-                      size="sm"
-                      className="w-6 h-6 bg-warning"
-                      aria-label="Yellow"
-                      onClick={() => {setTempR("255"); setTempG("255"); setTempB("0"); }}
-                    />
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          className="w-6 h-6 bg-warning"
+                          aria-label="Yellow"
+                          onPress={() => {setTempR("255"); setTempG("255"); setTempB("0"); }}
+                        />
                     </Tooltip>
                     <Tooltip content="Pink" placement="top">
-                    <Button
-                      isIconOnly
-                      size="sm"
-                      className="bg-[#ff69b4] w-6 h-6"
-                      aria-label="Pink"
-                      onClick={() =>
-                      {setTempR("255"); setTempG("105"); setTempB("180"); }
-                      }
-                    />
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          className="bg-[#ff69b4] w-6 h-6"
+                          aria-label="Pink"
+                          onPress={() =>
+                          {setTempR("255"); setTempG("105"); setTempB("180"); }
+                          }
+                        />
                     </Tooltip>
-                    <Button
-                      size="sm"
-                      className="text-xs px-2"
-                      variant="flat"
-                      onClick={() => console.log("TODO: Flashing logic")}
-                    >
+                        <Button
+                          size="sm"
+                          className="text-xs px-2"
+                          variant="flat"
+                          onPress={() => sendRGBValues(true)}
+                        >
                         Flash LEDs
                     </Button>
                 </div>
             </Card>
-            <Button onClick={sendRGBValues} color="primary">
+            <Button onPress={() => sendRGBValues(false)} color="primary">
                 Set LEDs
             </Button>
         </Card>
