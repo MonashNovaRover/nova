@@ -15,7 +15,7 @@ teleop_arm_joy_node:
       J5:
         max_speed: 0.785398163395
       J6:
-        max_speed: 0.785398163395
+        max_speed: 12.5663706144
     device_names: ["Left", "Right"]
     devices:
       Left:
