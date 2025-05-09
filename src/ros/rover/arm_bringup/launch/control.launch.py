@@ -24,7 +24,7 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 
 def launch_setup(context, *args, **kwargs):
-    auto_bringup_dir = FindPackageShare('auto_bringup')
+    arm_bringup_dir = FindPackageShare('arm_bringup')
 
     angle = LaunchConfiguration('angle')
     controllers = LaunchConfiguration('controllers')
@@ -81,7 +81,7 @@ def launch_setup(context, *args, **kwargs):
                     remappings=[('/controller_manager/robot_description', '/robot_description')],
                 ),
                 IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
+                    PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
                     launch_arguments={'model': model, 'gazebo': gazebo, 'angle': angle, 'use_local_mesh': use_local_mesh, 'use_mock_hardware': use_mock_hardware, 'arm': arm}.items(),
                 )],
         ),
@@ -89,7 +89,7 @@ def launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-    auto_bringup_dir = FindPackageShare('auto_bringup')
+    arm_bringup_dir = FindPackageShare('arm_bringup')
     rover_description_dir = FindPackageShare('rover_description')
 
     declared_arguments = [   
@@ -100,7 +100,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='controllers',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'controllers.yaml']),
             description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(

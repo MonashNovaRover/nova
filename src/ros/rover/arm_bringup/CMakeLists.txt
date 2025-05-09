@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(auto_bringup)
+project(arm_bringup)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -25,9 +25,7 @@ find_package(ament_cmake REQUIRED)
 install(DIRECTORY
   launch
   params
-  resources
   rviz
-  maps
   DESTINATION share/${PROJECT_NAME}
 )
 

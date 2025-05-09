@@ -9,7 +9,7 @@ NODES:
   - robot_state_publisher
   - rover_state_publisher
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	auto_bringup
+PACKAGE: 	arm_bringup
 CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''

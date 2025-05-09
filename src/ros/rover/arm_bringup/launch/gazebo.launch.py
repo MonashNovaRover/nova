@@ -22,7 +22,7 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    auto_bringup_dir = FindPackageShare('auto_bringup')
+    arm_bringup_dir = FindPackageShare('arm_bringup')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
@@ -53,16 +53,16 @@ def launch_setup(context, *args, **kwargs):
             value=PathJoinSubstitution([nova_gazebo_dir, 'worlds'])
         ),
         IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'control.launch.py'])),
             launch_arguments={'controllers': controllers, 'gazebo': 'True'}.items(),
         ),
         IncludeLaunchDescription(
             condition=IfCondition(camera),
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'camera.launch.py'])),
             launch_arguments={'gazebo': 'True'}.items(),
         ),
         IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
             launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'angle': angle, 'arm': arm}.items(),
         ),
         IncludeLaunchDescription(
@@ -107,7 +107,7 @@ def launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-    auto_bringup_dir = FindPackageShare('auto_bringup')
+    arm_bringup_dir = FindPackageShare('arm_bringup')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
     rover_description_dir = FindPackageShare('rover_description')
 
@@ -124,12 +124,12 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='gz_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'gz_bridge.yaml']),
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'gz_bridge.yaml']),
             description='Absolute path to ros_gz_bridge params file',
         ),
         DeclareLaunchArgument(
             name='controllers',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'controllers.yaml']),
             description='Absolute path to controllers params file',
         ),
         DeclareLaunchArgument(
