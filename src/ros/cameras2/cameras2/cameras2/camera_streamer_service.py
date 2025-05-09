@@ -46,8 +46,7 @@ class CameraStreamerService(Node):
     ACTIONS: None
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     PACKAGE: 	cameras2
-    AUTHOR(S):	Joshua Leivenzon
-    EDITED BY:  Anthony Lew
+    AUTHOR(S):	Joshua Leivenzon, Anthony Lew
     CREATION:	25/02/2023
     EDITED:		7/05/2025
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
