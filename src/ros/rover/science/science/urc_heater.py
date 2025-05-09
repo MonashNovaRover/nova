@@ -26,8 +26,8 @@ class URCHeater(ControllerNode):
 
     # SENDING COMMAND IDS
     # Add any CONTROL command ids here
-    HEATER_CONTROL_ID = 0x01
-    HEATER_SEND_ON = 0x01
+    HEATER_CONTROL_ID = 0x05
+    HEATER_SEND_ON = 0xFF
     HEATER_SEND_OFF = 0x00
 
     def __init__(self):
