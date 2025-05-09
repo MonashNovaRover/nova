@@ -23,12 +23,6 @@ from nova_interfaces.action import EndEffector
 from input_interfaces.msg import InputJoystick
 
 
-class EndEffectorLinearActuationMode(Enum):
-    STOP = 0
-    BACKWARDS = 1
-    FORWARDS = 2
-
-
 class EndEffectorActionServer(Node):
     
     END_EFFECTOR_DRIVE_CAN_ID = 0x0C1
@@ -140,7 +134,7 @@ class EndEffectorActionServer(Node):
 
     def drive_end_effector(self, value: float):
         """
-        value: float between -1 and 1
+        value: float between -1 and 1 (open or close end effector)
         """
         scaled_value = int(32767.0 * value * EndEffectorActionServer.SCALING_FACTOR)
         frame = jcan.Frame(self.get_parameter("end_effector_drive_CAN_ID").value, [scaled_value >> 8, scaled_value & 0xFF])
@@ -148,9 +142,16 @@ class EndEffectorActionServer(Node):
 
     def set_linear_actuator(self, mode: EndEffectorLinearActuationMode):
         """
-        mode: determines direction of the linear actuation
+        mode: determines direction of the linear actuation (poke out (forwards) or poke in (backwards))
         """
-        frame = jcan.Frame(self.get_parameter("end_effector_linear_actuation_CAN_ID").value, [mode.value])
+        if mode == EndEffectorLinearActuationMode.STOP:
+            value = 0
+        elif mode == EndEffectorLinearActuationMode.FORWARDS:
+            value = 1
+        else:
+            value = -1
+        scaled_value = int(32767.0 * value * EndEffectorActionServer.SCALING_FACTOR)
+        frame = jcan.Frame(self.get_parameter("end_effector_linear_actuation_CAN_ID").value, [scaled_value >> 8, scaled_value & 0xFF])
         self.bus.send(frame)
 
 
