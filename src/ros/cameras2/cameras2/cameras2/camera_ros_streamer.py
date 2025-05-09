@@ -58,9 +58,6 @@ from sensor_msgs.msg import Image
 
 
 class CameraStreamerService(Node):
-    """
-    This node is 
-    """
     class CameraConfiguration():
         def __init__(self, serial: str, topic: str):
             self.serial = serial
