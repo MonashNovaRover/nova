@@ -20,9 +20,9 @@ class URCPumps(ControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    CLEAN_SHEATH_PUMP_RUN_SEND_FRAME_ID = 0x011
-    MIXER_TO_SHOT_PUMP_RUN_SEND_FRAME_ID = 0x0F1
-    SHOT_TO_CAROUSEL_PUMP_RUN_SEND_FRAME_ID = 0x0F2
+    # CLEAN_SHEATH_PUMP_RUN_SEND_FRAME_ID = 0x031
+    MIXER_TO_SHOT_PUMP_RUN_SEND_FRAME_ID = 0x031
+    SHOT_TO_CAROUSEL_PUMP_RUN_SEND_FRAME_ID = 0x032
 
     # CONTROL NAMES
     # Add any CONTROL names here
@@ -56,14 +56,14 @@ class URCPumps(ControllerNode):
         logger = self.get_logger()
 
         self.ACTIONS = {
-            self.CLEAN_SHEATH: self.clean_sheath_action,
+            # self.CLEAN_SHEATH: self.clean_sheath_action,
             self.FILL_SHOTS: self.fill_shots_action,
             self.FILL_CUVETTES_PRIME: self.fill_cuvettes_prime_action,
             self.FILL_CUVETTES: self.fill_cuvettes_action,
         }
 
         self.TIMED_PRESETS = {
-            self.CLEAN_SHEATH: 10,
+            # self.CLEAN_SHEATH: 10,
             self.FILL_SHOTS: 10,
             self.FILL_CUVETTES_PRIME: 10,
             self.FILL_CUVETTES: 10,
@@ -72,11 +72,11 @@ class URCPumps(ControllerNode):
         self.CUVETTE_POSITIONS = ["1","2","3","4","5","6","7"]
 
         ## Create controls
-        self.clean_sheath_pump = TimedOneAxisVelocityControl(
-            logger=logger,
-            max_percent=self.PUMP_MAX_PERCENT,
-            direction=self.PUMP_FORWARDS,
-        )
+        # self.clean_sheath_pump = TimedOneAxisVelocityControl(
+        #     logger=logger,
+        #     max_percent=self.PUMP_MAX_PERCENT,
+        #     direction=self.PUMP_FORWARDS,
+        # )
 
         self.mixer_to_shot_pump = TimedOneAxisVelocityControl(
             logger=logger,
@@ -92,12 +92,12 @@ class URCPumps(ControllerNode):
 
 
         ## Create controllers
-        self.clean_sheath_pump_controller = TimedCMDVelocityController(
-            logger=logger,
-            bus=self.bus,
-            frame_id=self.CLEAN_SHEATH_PUMP_RUN_SEND_FRAME_ID,
-            control=self.clean_sheath_pump,
-        )
+        # self.clean_sheath_pump_controller = TimedCMDVelocityController(
+        #     logger=logger,
+        #     bus=self.bus,
+        #     frame_id=self.CLEAN_SHEATH_PUMP_RUN_SEND_FRAME_ID,
+        #     control=self.clean_sheath_pump,
+        # )
 
         self.mixer_to_shot_pump_controller = TimedCMDVelocityController(
             logger=logger,
@@ -118,10 +118,11 @@ class URCPumps(ControllerNode):
         ## Start the CAN bus
         self.start_can()
 
-        frame_ids = [0x33, 0x34, 0x43, 0x44]
 
-        for frame_id in frame_ids:
-            self.bus.send(jcan.Frame(frame_id, [0x7F]))
+        # frame_ids = [0x33, 0x34, 0x43, 0x44]
+        #
+        # for frame_id in frame_ids:
+        #     self.bus.send(jcan.Frame(frame_id, [0x7F]))
         
 
 
@@ -176,11 +177,11 @@ class URCPumps(ControllerNode):
 
 
 
-    def clean_sheath_action(self, goal_handle):
-        self.get_logger().info('Running Clean Sheath Pump')
-        controller = self.clean_sheath_pump_controller
-
-        return self.run_pump(goal_handle, controller)
+    # def clean_sheath_action(self, goal_handle):
+    #     self.get_logger().info('Running Clean Sheath Pump')
+    #     controller = self.clean_sheath_pump_controller
+    #
+    #     return self.run_pump(goal_handle, controller)
 
         
 
@@ -232,7 +233,7 @@ class URCPumps(ControllerNode):
         return result
     
     def stop(self):
-        self.clean_sheath_pump_controller.stop()
+        # self.clean_sheath_pump_controller.stop()
         self.mixer_to_shot_pump_controller.stop()
         self.shot_to_carousel_pump_controller.stop()
 
