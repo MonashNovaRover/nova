@@ -74,6 +74,10 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   const compassImage = useImageTexture(Compass);
   const [textIsValid, setTextIsValid] = useState<boolean>(true);
   const [textCompassAngle, setTextCompassAngleRaw] = useState<string>(compassAngle.toString());
+  const [inputDistance, setInputDistance] = useState<string>("");
+  const [inputThetaHigh, setInputThetaHigh] = useState<string>("");
+  const [inputThetaLow, setInputThetaLow] = useState<string>("");
+  const [landmarkHeight, setLandmarkHeight] = useState<number>(0);
 
   // Used when changing via input text box
   const setTextCompassAngle = useCallback((text: string) => {
@@ -135,6 +139,10 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
     ]);
 
   }, [gl.canvasRef]);
+
+  const getHeight = useCallback( () => {
+    (setLandmarkHeight( Number(inputDistance)*( Math.tan(Number(inputThetaHigh)) - Math.tan(Number(inputThetaLow)) ) ) );
+  }, []);
 
   const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
   // Function that converts y values from 0 to 1 into an angle relative to the midpoint of the image
@@ -206,6 +214,29 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
         <Slider value={compassAngle} onChange={setCompassAngle} size="lg" maxValue={360} minValue={0}
                 step={0.01} className="flex-grow"></Slider>
       </div>
+      <Tooltip
+        className="text-tiny text-default-500 rounded-md"
+        content="Press Enter to confirm"
+        placement="left"
+      >
+        <input
+          aria-label="Distance to Landmark"
+          className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
+          type="text"
+          value={inputDistance}
+          onChange={(e) => {
+            const v = e.target.value;
+
+            setInputDistance(v);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !isNaN(Number(inputDistance))) {
+              getHeight(); // update landmarkHeight
+            }
+          }}
+        />
+      </Tooltip>
+      {landmarkHeight}
     </div>
   );
 }
