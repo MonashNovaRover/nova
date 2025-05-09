@@ -30,6 +30,7 @@
 , nova-interfaces ? throw "nova-interfaces is needed, but not available!"
 , nova-bringup ? throw "nova-bringup is needed, but not available!"
 , nova-auto-bringup ? throw "auto-bringup is needed, but not available!"
+, nova-arm-bringup ? throw "arm-bringup is needed, but not available!"
 , nova-rover-description ? throw "rover-description is needed, but not available!"
 , nova-blcmd-hardware ? throw "nova-blcmd-hardware is needed, but not available!"
 , nova-pivot-drive-controller ? throw "nova-pivot-drive-controller is needed, but not available!"
@@ -82,6 +83,7 @@
       nova-interfaces
       nova-bringup
       nova-auto-bringup
+      nova-arm-bringup
       nova-rover-description
       nova-gazebo
       nova-python-control
