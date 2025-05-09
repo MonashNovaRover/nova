@@ -66,6 +66,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   # Action definitions
   "action/Stepper.action"
   "action/Pumps.action"
+  "action/EndEffector.action"
   DEPENDENCIES std_msgs geometry_msgs nav_msgs action_msgs
 )
 
