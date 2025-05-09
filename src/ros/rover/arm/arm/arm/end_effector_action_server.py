@@ -68,8 +68,8 @@ class EndEffectorActionServer(Node):
         # for CAN commands
         self.bus = jcan.Bus()
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
-        self.timer_spin_can = self.create_timer(0.05, self.bus.spin)
-        self.send
+        self.timer_spin_can = self.create_timer(0.01, self.bus.spin)
+        self.timer_send_can_commands = self.create_timer(0.01, self.send_can_commands)
         # add can callback for updating position so that self.position can be assumed as always accurate
 
     def left_joystick_callback(self, msg):
@@ -94,6 +94,9 @@ class EndEffectorActionServer(Node):
         else:
             self.end_effector_drive = 0
 
+    def send_can_commands(self):
+        self.set_linear_actuator(self.linear_actuation_mode)
+        self.drive_end_effector(self.end_effector_drive)
 
     def execute_callback(self, goal_handle):
         end_poke = goal_handle.request.poke
