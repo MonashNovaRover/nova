@@ -55,7 +55,7 @@ KEY_MAP = {
     "lctrl": (-161, 48), "win": (-138, 48), "lalt": (-114, 48), "space": (-44, 48), "ralt": (29, 48), "fn": (53, 48), "menu": (76, 48), "rctrl": (101, 48), "larrow": (126, 48), "darrow": (145, 48), "rarrow": (164, 48) 
 }
 
-SINGLE_KEY = (13, 15)
+SINGLE_KEY = (13, 15) # unused but is the the size of an individual key
 
 DEFAULT_POSITION = [0.0, 0.0, 0.0]
 DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
@@ -71,14 +71,14 @@ nix-shell -p 'with import /home/nova/nova/nixfiles { }; pkgs.ros.nova-workspace.
 }'
 ros2 run arm keyboard_localiser.py --ros-args --params-file /home/nova/nova/src/ros/rover/nova_bringup/params/arm.yaml
 
-ros2 service call /get_key_position arm_interfaces/srv/KeyPosition '{key: "a"}'
+ros2 service call /pub_key_position arm_interfaces/srv/KeyPosition '{key: "a"}'
 
 In separate terminal:
 - Run GUI
 - Navigate to urc/auto-typing
 """
 
-KEY_SERVICE_NAME = '/arm/keyboard/get_key_position'
+KEY_SERVICE_NAME = '/arm/keyboard/pub_key_position'
 KEYBOARD_TF_SERVICE_NAME = '/arm/keyboard/transform_toggle'
 IMAGE_TOPIC = '/arm/periscope'
 DEBUG_TOPIC = '/arm/keyboard/image'
@@ -99,7 +99,7 @@ class KeyboardLocaliser(Node):
         # key position initalisation
         self.keyboard_frame = self.declare_parameter('keyboard_frame', 'keyboard_frame').get_parameter_value().string_value
         self.base_frame = self.declare_parameter('base_frame', 'base_link').get_parameter_value().string_value
-        self.key_srv = self.create_service(KeyPosition, KEY_SERVICE_NAME, self.get_key_position_callback)
+        self.key_srv = self.create_service(KeyPosition, KEY_SERVICE_NAME, self.publish_key_position_callback)
         self.key_map = KEY_MAP
 
         # manual keyboard alignment initalisation
@@ -147,28 +147,27 @@ class KeyboardLocaliser(Node):
 
         self.get_logger().info(f"Running this node with services: {KEY_SERVICE_NAME}, {KEYBOARD_TF_SERVICE_NAME}. Using keyboard: {self.keyboard_frame} for transforms and base link: {self.base_frame}")
 
-    def get_key_position_callback(self, request, response):
-        """Returns transform of the key requested from the service"""
-        if request.key.lower() not in self.key_map:
+    def publish_key_position_callback(self, request, response):
+        """ Publishes transform of the key requested from the service 
+            under the frame name {key}_{keyboard_frame} and returns service with success bool
+        """
+        key_symbol = request.key.lower()
+        if key_symbol not in self.key_map:
             self.get_logger().warn(f"Key {request.key} not found in map.")
             return response
 
-        x, y = self.key_map[request.key.lower()]
-        pos = PointStamped()
-        pos.header.frame_id = self.keyboard_frame # can add support for multiple keyboards by changing response depending on request header frame
-        pos.header.stamp = request.header.stamp
-        pos.point.x = x * 0.001 # convert mm to meters
-        pos.point.y = y * 0.001
-        pos.point.z = 0
-        
-        # attempt to transform position to base_link
-        transformed = self.get_transform_to_base_link(pos)
-        if transformed is None:
-            self.get_logger().warn(f"Keyboard {self.keyboard_frame} transform could not be found.")
-            return response
+        x, y = self.key_map[key_symbol]
+        tfs = TransformStamped()
+        tfs.header.frame_id = self.keyboard_frame
+        tfs.child_frame_id = key_symbol + '_' + self.keyboard_frame
+        fts.header.stamp = request.stamp
+        tfs.transform.translation.x = x * 0.001 # convert mm to meters
+        tfs.transform.translation.y = y * 0.001
+        tfs.transform.translation.z = 0
+        tfs.transform.rotation.x, tfs.transform.rotation.y, tfs.transform.rotation.z, tfs.transform.rotation.w = DEFAULT_QUATERNION
 
-        response.position = transformed 
-        self.get_logger().info(f"Returning request for {request.key}")
+        self.get_logger().info(f"Publishing transform for {request.key}")
+        self.transform_broadcaster.sendTransform(tfs)
         return response
 
     def get_align_callback(self, request, response):
