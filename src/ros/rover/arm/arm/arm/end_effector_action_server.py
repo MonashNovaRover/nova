@@ -7,6 +7,9 @@ Sources for Old CAN Commands:
 - /home/nova/nova/src/ros/rover/arm/arm/src/arm_driver/arm_driver.cpp
 
 IDs for both motors will be two of the following (on QCMD now): 0C1, 0C2, 0D1, 0D2 but data sent will be the same
+
+TODO:
+- Get position feedback for end effector
 """
 
 import rclpy
@@ -70,6 +73,7 @@ class EndEffectorActionServer(Node):
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
         self.timer_spin_can = self.create_timer(0.01, self.bus.spin)
         self.timer_send_can_commands = self.create_timer(0.01, self.send_can_commands)
+        
         # add can callback for updating position so that self.position can be assumed as always accurate
 
     def left_joystick_callback(self, msg):
