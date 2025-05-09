@@ -126,6 +126,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                       <TableColumn>Name</TableColumn>
                       <TableColumn>Latitude</TableColumn>
                       <TableColumn>Longitude</TableColumn>
+                      <TableColumn>Goal Type</TableColumn>
                       <TableColumn align="end">
                         <div className="flex flex-row justify-end">Actions</div>
                       </TableColumn>
@@ -136,6 +137,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                           <TableCell>{point.name}</TableCell>
                           <TableCell>{point.lat}</TableCell>
                           <TableCell>{point.long}</TableCell>
+                          <TableCell>{point.goalType}</TableCell>
                           <TableCell className="flex flex-row justify-end">
                             <ToolTipButton
                               isIconOnly
