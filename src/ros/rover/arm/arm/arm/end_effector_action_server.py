@@ -23,6 +23,12 @@ from nova_interfaces.action import EndEffector
 from input_interfaces.msg import InputJoystick
 
 
+class EndEffectorLinearActuationMode(Enum):
+    STOP = 0
+    BACKWARDS = 1
+    FORWARDS = 2
+
+
 class EndEffectorActionServer(Node):
     
     END_EFFECTOR_DRIVE_CAN_ID = 0x0C1
@@ -35,6 +41,7 @@ class EndEffectorActionServer(Node):
         self.get_logger().info("Arm End Effector Action Server starting")
 
         self.declare_parameter("can_bus", "can1")
+        self.declare_parameter("end_effector_SCALING_FACTOR", EndEffectorActionServer.SCALING_FACTOR)
         self.declare_parameter("end_effector_drive_CAN_ID", EndEffectorActionServer.END_EFFECTOR_DRIVE_CAN_ID)
         self.declare_parameter("end_effector_linear_actuation_CAN_ID", EndEffectorActionServer.END_EFFECTOR_LINEAR_ACTUATION_CAN_ID)
 
@@ -136,7 +143,7 @@ class EndEffectorActionServer(Node):
         """
         value: float between -1 and 1 (open or close end effector)
         """
-        scaled_value = int(32767.0 * value * EndEffectorActionServer.SCALING_FACTOR)
+        scaled_value = int(32767.0 * value * self.get_parameter("end_effector_SCALING_FACTOR").value)
         frame = jcan.Frame(self.get_parameter("end_effector_drive_CAN_ID").value, [scaled_value >> 8, scaled_value & 0xFF])
         self.bus.send(frame)
 
@@ -150,7 +157,7 @@ class EndEffectorActionServer(Node):
             value = 1
         else:
             value = -1
-        scaled_value = int(32767.0 * value * EndEffectorActionServer.SCALING_FACTOR)
+        scaled_value = int(32767.0 * value * self.get_parameter("end_effector_SCALING_FACTOR").value)
         frame = jcan.Frame(self.get_parameter("end_effector_linear_actuation_CAN_ID").value, [scaled_value >> 8, scaled_value & 0xFF])
         self.bus.send(frame)
 
