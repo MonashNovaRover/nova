@@ -31,7 +31,7 @@ class URCCache(ControllerNode):
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
     CACHE_SEND_FRAME_PARAM = "frame_id"
-    DEFAULT_SEND_FRAME = 0x0A0
+    DEFAULT_SEND_FRAME = 0x0B0
     CACHE_MOVE_SERVO_PARAM = "servo_command"
     DEFAULT_MOVE_SERVO_ID = 0x04
     CACHE_ID_PARAM = "cache_id"
