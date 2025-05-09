@@ -17,7 +17,6 @@ EDITED:     6/04/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Find an IRL alignment
- - Make a rectangle overlay on camera in GUI
  - Calibrate periscope camera
  - Test with moveable arm (Arm is joints are currently locked to facilitate testing)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -33,6 +32,7 @@ from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 
 from tf2_ros import Buffer, TransformListener, TransformBroadcaster
+import tf2_geometry_msgs
 
 import math
 import numpy as np
@@ -101,6 +101,7 @@ class KeyboardLocaliser(Node):
         self.base_frame = self.declare_parameter('base_frame', 'base_link').get_parameter_value().string_value
         self.key_srv = self.create_service(KeyPosition, KEY_SERVICE_NAME, self.publish_key_position_callback)
         self.key_map = KEY_MAP
+        self.key_offset = self.declare_parameter('key_offset', 10.0).get_parameter_value().double_value # key offset in cm
 
         # manual keyboard alignment initalisation
         self.aligned_keyboard_position = self.declare_parameter('aligned_keyboard_position', DEFAULT_POSITION).get_parameter_value().double_array_value
@@ -150,6 +151,7 @@ class KeyboardLocaliser(Node):
     def publish_key_position_callback(self, request, response):
         """ Publishes transform of the key requested from the service 
             under the frame name {key}_{keyboard_frame} and returns service with success bool
+            Adds offset to key transform so that EE doesn't crash into keys (Assumes -Z is away)
         """
         key_symbol = request.key.lower()
         if key_symbol not in self.key_map:
@@ -160,10 +162,10 @@ class KeyboardLocaliser(Node):
         tfs = TransformStamped()
         tfs.header.frame_id = self.keyboard_frame
         tfs.child_frame_id = key_symbol + '_' + self.keyboard_frame
-        fts.header.stamp = request.stamp
+        tfs.header.stamp = request.stamp
         tfs.transform.translation.x = x * 0.001 # convert mm to meters
         tfs.transform.translation.y = y * 0.001
-        tfs.transform.translation.z = 0
+        tfs.transform.translation.z = -1 * self.key_offset / 100
         tfs.transform.rotation.x, tfs.transform.rotation.y, tfs.transform.rotation.z, tfs.transform.rotation.w = DEFAULT_QUATERNION
 
         self.get_logger().info(f"Publishing transform for {request.key}")
