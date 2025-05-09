@@ -12,6 +12,7 @@ TODO:
 - Get position feedback for end effector
 """
 
+import logging
 import rclpy
 from rclpy.action import ActionServer
 from rclpy.node import Node
@@ -19,7 +20,7 @@ import jcan
 from enum import Enum
 
 from nova_interfaces.action import EndEffector
-from inputs.input_interfaces.msg import InputJoystick
+from input_interfaces.msg import InputJoystick
 
 
 class EndEffectorLinearActuationMode(Enum):
@@ -65,12 +66,13 @@ class EndEffectorActionServer(Node):
         self.position = 0   # 0 is fully retracted, 1 is fully extended
         self.is_extending = False
         self.end_effector_drive = 0
-        self.linear_actuation_mode = 0
+        self.linear_actuation_mode = EndEffectorLinearActuationMode.STOP
         self.is_locked = True
 
         # for CAN commands
         self.bus = jcan.Bus()
-        self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
+        can_bus = self.get_parameter("can_bus").value
+        self.bus.open(can_bus)
         self.timer_spin_can = self.create_timer(0.01, self.bus.spin)
         self.timer_send_can_commands = self.create_timer(0.01, self.send_can_commands)
         
@@ -140,7 +142,7 @@ class EndEffectorActionServer(Node):
         """
         value: float between -1 and 1
         """
-        scaled_value = 32767.0 * value * EndEffectorActionServer.SCALING_FACTOR
+        scaled_value = int(32767.0 * value * EndEffectorActionServer.SCALING_FACTOR)
         frame = jcan.Frame(self.get_parameter("end_effector_drive_CAN_ID").value, [scaled_value >> 8, scaled_value & 0xFF])
         self.bus.send(frame)
 
@@ -148,7 +150,7 @@ class EndEffectorActionServer(Node):
         """
         mode: determines direction of the linear actuation
         """
-        frame = jcan.Frame(self.get_parameter("end_effector_linear_actuation_CAN_ID").value, [mode])
+        frame = jcan.Frame(self.get_parameter("end_effector_linear_actuation_CAN_ID").value, [mode.value])
         self.bus.send(frame)
 
 
