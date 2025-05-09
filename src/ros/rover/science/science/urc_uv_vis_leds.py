@@ -48,10 +48,10 @@ class URCUVVisLeds(ControllerNode):
     
     # CONTROL COMMANDS
     # Add any CONTROL command ids here
-    LED_1_COMMAND_ON = 0x04FF
-    LED_1_COMMAND_OFF = 0x0400
-    LED_2_COMMAND_ON = 0x05FF
-    LED_2_COMMAND_OFF = 0x0500
+    LED_1_COMMAND = 0x04
+    LED_2_COMMAND = 0x05
+    LED_ON_COMMAND = 0xFF
+    LED_OFF_COMMAND = 0x00
 
     TIMEOUT = 2.0
 
@@ -59,7 +59,7 @@ class URCUVVisLeds(ControllerNode):
         super(URCUVVisLeds, self).__init__(name="URCUVVisLeds", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
-        self.bus.set_id_filter([self.LED_RECV_FRAME_ID])
+        # self.bus.set_id_filter([self.LED_RECV_FRAME_ID])
 
 
         # Create publishers
@@ -105,16 +105,18 @@ class URCUVVisLeds(ControllerNode):
             bus=self.bus,
             frame_id=self.LED_1_SEND_FRAME_ID,
             control=self.led_1,
-            toggle_command_on=self.LED_1_COMMAND_ON,
-            toggle_command_off=self.LED_1_COMMAND_OFF,
+            toggle_command_on=self.LED_ON_COMMAND,
+            toggle_command_off=self.LED_OFF_COMMAND,
+            control_id=self.LED_1_COMMAND,
         )
         self.led_2_controller = ToggleController(
             logger=logger,
             bus=self.bus,
             frame_id=self.LED_2_SEND_FRAME_ID,
             control=self.led_2,
-            toggle_command_on=self.LED_2_COMMAND_ON,
-            toggle_command_off=self.LED_2_COMMAND_OFF,
+            toggle_command_on=self.LED_ON_COMMAND,
+            toggle_command_off=self.LED_OFF_COMMAND,
+            control_id=self.LED_2_COMMAND,
         )
 
         ## Start the CAN busget_name
