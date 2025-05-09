@@ -19,6 +19,7 @@ EDITED:		25/04/2025
 import abc
 from rcl_interfaces.msg import ParameterDescriptor
 from python_control.JoystickControllerNode import JoystickControllerNode
+from nova_interfaces.msg import ActiveNodeStatus
 
 # import the joystick ROS message we are listening to
 from input_interfaces.msg import InputJoystick
@@ -36,7 +37,22 @@ class ActivatedJoystickControllerNode(JoystickControllerNode, metaclass=abc.ABCM
         self.inactive_button_pool: list[str] = self.declare_parameter("inactive_button_pool", [""], ParameterDescriptor(description='list of InputJoystick button name that deactivates the node')).get_parameter_value().string_array_value
         self.using_left_joystick: bool = self.declare_parameter("using_left_joystick", True, ParameterDescriptor(description='Whether or not the buttons are on the left joystick')).value
 
+        # publish status once a second
+        self.publisher = self.create_publisher(ActiveNodeStatus, '/activated_nodes', 10)
+        self.publish_timer = self.create_timer(0.6, self.publish_active_status)
+
         self.get_logger().info(f"{self.get_name()} is active: {self.active}")
+
+    def publish_active_status(self):
+        """
+        Publish current status to GUI
+        """
+        msg = ActiveNodeStatus()
+        msg.name = self.get_name()
+        msg.active = self.check_active_status()
+        msg.locked = self.check_joystick_lock()
+        self.get_logger().debug(f"Publishing {msg}")
+        self.publisher.publish(msg)
 
     def check_active_status(self):
         """
@@ -60,6 +76,7 @@ class ActivatedJoystickControllerNode(JoystickControllerNode, metaclass=abc.ABCM
         if not self.active and getattr(msg, self.active_button) > 0:
             self.active = True
             self.get_logger().info(f"{self.get_name()} ACTIVATED")
+            self.publish_active_status()
 
         if not self.active:
             return
@@ -69,6 +86,7 @@ class ActivatedJoystickControllerNode(JoystickControllerNode, metaclass=abc.ABCM
             if getattr(msg, button) > 0:
                 self.active = False
                 self.get_logger().info(f"{self.get_name()} DEACTIVATED")
+                self.publish_active_status()
                 break
 
     def joystick_l_callback(self, msg: InputJoystick):

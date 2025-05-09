@@ -45,4 +45,5 @@ export enum RosTopic {
   BASE_LOCATION = "/gps_base/fix",
 
   BATTERY_STATE = "/battery_state",
+  ACTIVATED_NODES = "/activated_nodes",
 }

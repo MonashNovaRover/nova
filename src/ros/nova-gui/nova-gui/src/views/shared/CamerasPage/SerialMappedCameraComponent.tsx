@@ -9,6 +9,8 @@ import DriveCameraComponent from "../../../components/CameraComponent/special/Dr
 import WheelTelemetryCameraComponent
   from "../../../components/CameraComponent/special/WheelTelemetryCameraComponent.tsx";
 import SiteSelectCameraComponent from "../../../components/CameraComponent/special/SiteSelectCameraComponent.tsx";
+import ActivatedNodesCameraComponent
+  from "../../../components/CameraComponent/special/ActivatedNodesCameraComponent.tsx";
 import DepthSensor
   from "../../../components/CameraComponent/special/DepthSensorCameraComponent.tsx";
 
@@ -19,6 +21,7 @@ export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentPr
   [CameraSerials.WHEEL_TELEMETRY]: WheelTelemetryCameraComponent,
   [CameraSerials.DRIVE_TELEMETRY]: DriveCameraComponent,
   [CameraSerials.SITE_SELECT]: SiteSelectCameraComponent,
+  [CameraSerials.URC_ACTIVATED_NODES]: ActivatedNodesCameraComponent,
   [CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS]: DepthSensor,
 }
 

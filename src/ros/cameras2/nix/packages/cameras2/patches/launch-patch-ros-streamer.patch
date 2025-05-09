@@ -1,0 +1,12 @@
+diff --git a/launch/ros_topic_streamer.launch.py b/launch/ros_topic_streamer.launch.py
+index a891b64..19df154 100644
+--- a/launch/ros_topic_streamer.launch.py
++++ b/launch/ros_topic_streamer.launch.py
+@@ -10,5 +10,5 @@ def generate_launch_description():
+             ExecuteProcess(
+-                cmd=["gst-webrtc-signalling-server"],
++                cmd=["@gst_plugins_rs@/bin/gst-webrtc-signalling-server"],
+                 additional_env={
+                      @bas-h@
+                     "WEBRTCSINK_SIGNALLING_SERVER_LOG": "warn",
+                 },

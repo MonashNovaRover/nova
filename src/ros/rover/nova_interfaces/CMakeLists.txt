@@ -31,6 +31,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
 
   # Message definitions
+  "msg/ActiveNodeStatus.msg"
   "msg/ActuatorLimit.msg"
   "msg/DistanceData.msg"
   "msg/DriveInfo.msg"
@@ -52,6 +53,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/BMESensor.msg"
 
   # Service definitions
+  "srv/CacheCommand.srv"
   "srv/GpsOffset.srv"
   "srv/KilnCommand.srv"
   "srv/LoadCellPoller.srv"

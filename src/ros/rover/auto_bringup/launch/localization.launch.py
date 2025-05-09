@@ -28,16 +28,20 @@ EDITED BY: Taaj Street, Kabilan Velmurugan
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import IfCondition, UnlessCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    gazebo = (LaunchConfiguration('gazebo').perform(context).lower() == 'true')
-    gps = LaunchConfiguration('gps').perform(context)
-    rl_params = LaunchConfiguration('rl_params').perform(context)
+    nova_bringup_dir = FindPackageShare('nova_bringup')
+
+    gazebo = LaunchConfiguration('gazebo')
+    gps = LaunchConfiguration('gps')
+    gps_params = LaunchConfiguration('gps_params')
+    rl_params = LaunchConfiguration('rl_params')
     use_ukf = (LaunchConfiguration('use_ukf').perform(context).lower() == 'true')
 
     if use_ukf:
@@ -85,8 +89,13 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[rl_params, {'use_sim_time': gazebo}],
                     remappings=[
                         ('odometry/filtered', 'odometry/global'),
-                        ('gps/fix', 'fix'),
+                        ('gps/fix', 'gps_rover/fix'),
                         ('imu', 'oak/imu/transformed')],
+                ),
+                IncludeLaunchDescription(
+                    condition=UnlessCondition(gazebo),
+                    launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'gps_rover.launch.py'])),
+                    launch_arguments={'gps_params': gps_params}.items(),
                 ),
             ],
         ),
@@ -94,6 +103,7 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
+    nova_bringup_dir = FindPackageShare('nova_bringup')
 
     declared_arguments = [
         DeclareLaunchArgument(
@@ -106,6 +116,11 @@ def generate_launch_description():
             default_value='True',
             description='Fuse GPS?',
         ),
+        DeclareLaunchArgument(
+            name='gps_params', 
+            default_value=PathJoinSubstitution([nova_bringup_dir, 'params', 'gps.yaml']), 
+            description='Absolute filepath to GPS parameters',
+        ),     
         DeclareLaunchArgument(
             name='rl_params',
             default_value=PathJoinSubstitution([auto_bringup_dir,'params','rl_urc.yaml']),

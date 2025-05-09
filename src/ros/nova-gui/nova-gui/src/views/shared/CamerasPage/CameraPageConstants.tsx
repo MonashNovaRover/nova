@@ -48,6 +48,7 @@ export enum CameraSerials {
   URC_SCIENCE_CUVETTE = "science_cuvettes",
   URC_SCIENCE_PAYLOAD_FRONT = "science_payload_front",
   URC_SCIENCE_PAYLOAD_DOWN = "science_payload_down",
+  URC_ACTIVATED_NODES = "activated_nodes",
   URC_SCIENCE_AUGER_DEPTH_SENSORS = "science_auger_depth_sensors",
 }
 
@@ -195,8 +196,7 @@ export const urc_autonomous_views: CameraView[] = [
 
 export const urc_science_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams, ...urcScienceCams, ...driveCams, 
-      CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS
+    cameraSerials: [...mastCams, ...urcScienceCams, ...driveCams, CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS
     ],
     viewTitle: "All Cams",
   },
