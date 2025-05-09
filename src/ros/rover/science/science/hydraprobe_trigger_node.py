@@ -39,7 +39,7 @@ from urc_hydraprobe import NewHydraprobeTransceiver
 class HydraprobeTriggerNode(Node):
 
     # Serial port and soil type parameters
-    DEFAULT_PORT = "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AQ018NTV-if00-port0"
+    DEFAULT_PORT = "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AU0K3IZ3-if00-port0"
     DEFAULT_SOIL = "sand"
 
     def __init__(self):
