@@ -26,6 +26,7 @@ import {
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
   IRosArmInterfacesStringTriggerResponse,
+  IRosArmInterfacesKeyboardPoints,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -51,7 +52,8 @@ export interface RootState {
   // Arm Stores
   armTelemetryStore: IRosCmdInterfacesCmDsFeedback;
   rfidDataStore: IRosStdMsgsString;
-  keyboardData: IRosArmInterfacesStringTriggerResponse;
+  keyboardTFTrigger: IRosArmInterfacesStringTriggerResponse;
+  keyboardDataStore: IRosArmInterfacesKeyboardPoints;
 
   // Camera Stores
   camerasStore: IRosCameraMsgsCameras;

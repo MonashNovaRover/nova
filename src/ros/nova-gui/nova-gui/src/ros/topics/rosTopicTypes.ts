@@ -17,7 +17,9 @@ import {
   IRosNovaInterfacesHydraprobeData,
   IRosSensorMsgsCompressedImage,
   IRosNovaInterfacesBmeSensor,
-  IRosSensorMsgsBatteryState, IRosNovaInterfacesActiveNodeStatus,
+  IRosArmInterfacesKeyboardPoints,
+  IRosSensorMsgsBatteryState,
+  IRosNovaInterfacesActiveNodeStatus,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -39,6 +41,7 @@ export interface RosTopicInterfaces {
   // Arm Related
   [RosTopic.ARM_TELEMETRY]: IRosCmdInterfacesCmDsFeedback;
   [RosTopic.RFID_DATA]: IRosStdMsgsString;
+  [RosTopic.KEYBOARD_DATA]: IRosArmInterfacesKeyboardPoints;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
