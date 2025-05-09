@@ -175,12 +175,12 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument("auger1_drill_canid", default_value='0x0C1'),
-        DeclareLaunchArgument("auger1_actuation_canid", default_value='0x0C2'),
-        DeclareLaunchArgument("auger2_drill_canid", default_value='0x0D1'),
+        DeclareLaunchArgument("auger1_actuation_canid", default_value='0x0D2'),
+        DeclareLaunchArgument("auger2_drill_canid", default_value='0x0C2'),
         DeclareLaunchArgument("auger2_actuation_canid", default_value='0x0D2'),
-        DeclareLaunchArgument("cbeam_actuation_canid", default_value='0x0A1'),
-        DeclareLaunchArgument("analysis_arm_cmd_canid", default_value='0x0A2'),
-        DeclareLaunchArgument("cache1_canid", default_value='0x0A0'),
+        DeclareLaunchArgument("cbeam_actuation_canid", default_value='0x041'),
+        DeclareLaunchArgument("analysis_arm_cmd_canid", default_value='0x042'),
+        DeclareLaunchArgument("cache1_canid", default_value='0x0B0'),
         DeclareLaunchArgument("cache2_canid", default_value='0x0B0'),
     ]
 
