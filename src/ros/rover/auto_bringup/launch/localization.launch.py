@@ -36,12 +36,9 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    nova_bringup_dir = FindPackageShare('nova_bringup')
-
-    gazebo = LaunchConfiguration('gazebo')
-    gps = LaunchConfiguration('gps')
-    gps_params = LaunchConfiguration('gps_params')
-    rl_params = LaunchConfiguration('rl_params')
+    gazebo = (LaunchConfiguration('gazebo').perform(context).lower() == 'true')
+    gps = LaunchConfiguration('gps').perform(context)
+    rl_params = LaunchConfiguration('rl_params').perform(context)
     use_ukf = (LaunchConfiguration('use_ukf').perform(context).lower() == 'true')
 
     if use_ukf:

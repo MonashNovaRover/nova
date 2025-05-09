@@ -1,0 +1,50 @@
+diff --git a/src/joint_saturation_limiter.cpp b/joint_limits/src/joint_saturation_limiter.cpp
+index f2a3adae..7ae30b45 100644
+--- a/src/joint_saturation_limiter.cpp
++++ b/src/joint_saturation_limiter.cpp
+@@ -121,7 +121,7 @@ bool JointSaturationLimiter<JointLimits>::on_enforce(
+     if (joint_limits_[index].has_velocity_limits)
+     {
+       // if desired velocity is not defined calculate it from positions
+-      if (std::fabs(desired_vel[index]) <= VALUE_CONSIDERED_ZERO || std::isnan(desired_vel[index]))
++      if ((std::fabs(desired_vel[index]) <= VALUE_CONSIDERED_ZERO && !has_desired_velocity) || std::isnan(desired_vel[index]))
+       {
+         desired_vel[index] =
+           (desired_pos[index] - current_joint_states.positions[index]) / dt_seconds;
+@@ -209,9 +209,15 @@ bool JointSaturationLimiter<JointLimits>::on_enforce(
+           if (has_desired_position)
+           {
+             // pos_cmd from from double integration of desired_acc
+-            desired_pos[index] = current_joint_states.positions[index] +
+-                                 current_joint_states.velocities[index] * dt_seconds +
++            const double position_difference = desired_pos[index] - current_joint_states.positions[index];
++            const double position_difference_limited = current_joint_states.velocities[index] * dt_seconds +
+                                  0.5 * desired_acc[index] * dt_seconds * dt_seconds;
++
++            // sometimes the limited position make the joint move more than the original desired position.
++            // This should be impossible but something may be subtly wrong with the above kinematics code?
++            if (std::fabs(position_difference_limited) < std::fabs(position_difference)) {
++              desired_pos[index] = current_joint_states.positions[index] + position_difference_limited;
++            }
+           }
+         }
+       }
+@@ -337,9 +343,15 @@ bool JointSaturationLimiter<JointLimits>::on_enforce(
+       }
+       if (has_desired_position)
+       {
+-        desired_pos[index] = current_joint_states.positions[index] +
+-                             current_joint_states.velocities[index] * dt_seconds +
+-                             0.5 * desired_acc[index] * dt_seconds * dt_seconds;
++         const double position_difference = desired_pos[index] - current_joint_states.positions[index];
++         const double position_difference_limited = current_joint_states.velocities[index] * dt_seconds +
++                              0.5 * desired_acc[index] * dt_seconds * dt_seconds;
++
++         // sometimes the limited position make the joint move more than the original desired position.
++         // This should be impossible but something may be subtly wrong with the above kinematics code?
++         if (std::fabs(position_difference_limited) < std::fabs(position_difference)) {
++           desired_pos[index] = current_joint_states.positions[index] + position_difference_limited;
++         }
+       }
+     }
+     std::ostringstream ostr;

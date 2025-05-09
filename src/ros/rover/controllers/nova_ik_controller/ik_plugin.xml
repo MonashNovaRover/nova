@@ -1,0 +1,8 @@
+<library path="nova_ik_controller">
+  <class name="nova_ik_controller/NovaIKController" type="nova_ik_controller::NovaIKController"
+         base_class_type="controller_interface::ChainableControllerInterface">
+  <description>
+    The ik controller TODO XXX
+  </description>
+  </class>
+</library>

@@ -152,6 +152,7 @@ install(PROGRAMS
         arm/hex_key.py
         arm/end_effector_action_server.py
         arm/lazers.py
+        arm/keyboard_localiser.py
         DESTINATION lib/${PROJECT_NAME}
         )
 

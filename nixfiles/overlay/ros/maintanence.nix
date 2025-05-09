@@ -589,6 +589,18 @@ self: super:
                 }
               );
 
+              joint-limits = rosSuper.joint-limits.overrideAttrs (
+                {
+                  patches ? [ ],
+                  ...
+                }:
+                {
+                  patches = patches ++ [
+                    ./patches/joint-limits-saturation-velocity.patch
+                  ];
+                }
+              );
+
               gz-sensors-vendor = (
                 rosSelf.lib.patchAmentVendorGit rosSuper.gz-sensors-vendor {
                   url = "https://github.com/gazebosim/gz-sensors";
