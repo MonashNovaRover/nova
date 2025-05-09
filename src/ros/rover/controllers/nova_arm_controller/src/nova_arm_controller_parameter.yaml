@@ -33,7 +33,7 @@ nova_arm_controller:
     J1:
       has_position_limits: {
         type: bool,
-        default_value: true,
+        default_value: false,
       }
       max_position: {
         type: double,
@@ -49,11 +49,11 @@ nova_arm_controller:
       }
       max_velocity: {
         type: double,
-        default_value: 1.57079632679,
+        default_value: 0.364467013889,
       }
       has_acceleration_limits: {
         type: bool,
-        default_value: true,
+        default_value: false,
       }
       max_acceleration: {
         type: double,
@@ -62,7 +62,7 @@ nova_arm_controller:
     J2:
       has_position_limits: {
         type: bool,
-        default_value: true,
+        default_value: false,
       }
       max_position: {
         type: double,
@@ -78,11 +78,11 @@ nova_arm_controller:
       }
       max_velocity: {
         type: double,
-        default_value: 1.57079632679,
+        default_value: 0.364467013889,
       }
       has_acceleration_limits: {
         type: bool,
-        default_value: true,
+        default_value: false,
       }
       max_acceleration: {
         type: double,
@@ -91,7 +91,7 @@ nova_arm_controller:
     J3:
       has_position_limits: {
         type: bool,
-        default_value: true,
+        default_value: false,
       }
       max_position: {
         type: double,
@@ -107,11 +107,11 @@ nova_arm_controller:
       }
       max_velocity: {
         type: double,
-        default_value: 1.57079632679,
+        default_value: 0.364467013889,
       }
       has_acceleration_limits: {
         type: bool,
-        default_value: true,
+        default_value: false,
       }
       max_acceleration: {
         type: double,
@@ -120,7 +120,7 @@ nova_arm_controller:
     J4:
       has_position_limits: {
         type: bool,
-        default_value: true,
+        default_value: false,
       }
       max_position: {
         type: double,
@@ -136,11 +136,11 @@ nova_arm_controller:
       }
       max_velocity: {
         type: double,
-        default_value: 1.57079632679,
+        default_value: 0.364467013889,
       }
       has_acceleration_limits: {
         type: bool,
-        default_value: true,
+        default_value: false,
       }
       max_acceleration: {
         type: double,
@@ -149,7 +149,7 @@ nova_arm_controller:
     J5:
       has_position_limits: {
         type: bool,
-        default_value: true,
+        default_value: false,
       }
       max_position: {
         type: double,
@@ -169,7 +169,7 @@ nova_arm_controller:
       }
       has_acceleration_limits: {
         type: bool,
-        default_value: true,
+        default_value: false,
       }
       max_acceleration: {
         type: double,
@@ -178,7 +178,7 @@ nova_arm_controller:
     J6:
       has_position_limits: {
         type: bool,
-        default_value: true,
+        default_value: false,
       }
       max_position: {
         type: double,
@@ -198,7 +198,7 @@ nova_arm_controller:
       }
       has_acceleration_limits: {
         type: bool,
-        default_value: true,
+        default_value: false,
       }
       max_acceleration: {
         type: double,
