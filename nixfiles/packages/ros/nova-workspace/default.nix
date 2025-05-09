@@ -123,8 +123,7 @@ in
       ros-gz
       gz-ros2-control
       gps-umd
-      rqt rqt-common-plugins
-      ublox-dgnss;
+      rqt rqt-common-plugins;
   }) // extraPackages;
   prebuiltShellPackages = {
     inherit
