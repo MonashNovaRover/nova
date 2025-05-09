@@ -1,5 +1,5 @@
-# defines a custom service for getting the position for a given key on the keyboard (relative to keyboard frame)
-std_msgs/Header header
+# Service to get keyboard localiser to publish a key's transform on the TF tree (relative to keyboard frame)
+builtin_interfaces/Time stamp
 string key
 ---
-geometry_msgs/PointStamped position
+bool success
