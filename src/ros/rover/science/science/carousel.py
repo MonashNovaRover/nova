@@ -50,6 +50,7 @@ class KilnServer(Node):
         self.can_spin_timer = self.create_timer(0.05, self.bus.spin)
 
         self.is_active = False
+        self.is_clockwise = False
 
         self.bus.open(self.get_parameter(self.CAN_BUS_PARAM).value)
 
@@ -62,13 +63,20 @@ class KilnServer(Node):
         try:
             self.get_logger().info(f"Carousel service request received: {request}")
             if request.state and not self.is_active:
-                frame = jcan.Frame(id=self.KILN_CARD_SEND_IDS, data=[0x01])
+                frame = jcan.Frame(id=self.KILN_CARD_SEND_IDS, data=[0x01, 0])
                 self.is_active = True
                 self.get_logger().info(f"Carousel turned on")
             elif not request.state and self.is_active:
-                frame = jcan.Frame(id=self.KILN_CARD_SEND_IDS, data=[0x02])
+                frame = jcan.Frame(id=self.KILN_CARD_SEND_IDS, data=[0x02, 0])
                 self.is_active = False
                 self.get_logger().info(f"Carousel turned off")
+            elif request.target < 0:
+                self.is_clockwise = not self.is_clockwise
+                if self.is_clockwise:
+                    frame = jcan.Frame(id=self.KILN_CARD_SEND_IDS, data=[0x00, 0x01])
+                else:
+                    frame = jcan.Frame(id=self.KILN_CARD_SEND_IDS, data=[0x00, 0x00])
+                self.get_logger().info(f"Carousel changing directions, now: {"CLOCKWISE" if self.is_clockwise else "ANTICLOCKWISE}"}")
             else:
                 frame = jcan.Frame(id=self.KILN_CARD_SEND_IDS, data=[0x03, request.target])
                 self.get_logger().info(f"Carousel moving {request.target} steps")

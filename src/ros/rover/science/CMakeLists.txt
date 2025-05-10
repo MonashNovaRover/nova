@@ -64,6 +64,7 @@ install(PROGRAMS
   science/urc_sample_tray.py
   science/urc_pumps.py
   science/urc_carousel.py
+  science/carousel.py
   science/urc_uv_vis_spec.py
   science/urc_raman_mech_server.py
   science/urc_cache.py
