@@ -89,8 +89,6 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
     setMousePos(([x, y]) => [
       x + fov * DEG_TO_RAD * event.movementX / maxResolutionComp,
       y + fov * DEG_TO_RAD * event.movementY / maxResolutionComp,
-      x + 2 * Math.PI * event.movementX / maxResolutionComp,
-      y + 2 * Math.PI * event.movementY / maxResolutionComp
     ]);
   }, [fov, gl.canvasRef]);
 
