@@ -95,7 +95,6 @@ class HydraprobeTriggerNode(Node):
 
         try:
             values = self.transceiver.read_all()
-            time.sleep(0.1)
 
             if values is None:
                 raise RuntimeError("Sensor returned no data")

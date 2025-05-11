@@ -210,8 +210,8 @@ class NewHydraprobeTransceiver():
     #                     {"base_reg": 0x0005, "num_regs": 1}]}   # get temp, moisture, EC
 
     def __init__(self, port, logger, baudrate=9600, bytesize=8, parity='N', stopbits=1, retries=1, broadcast_enable=True):
-        self.client = ModbusSerialClient(port, baudrate=baudrate, bytesize=bytesize, parity=parity, stopbits=stopbits, retries=retries, broadcast_enable=broadcast_enable)
         self.logger = logger
+        self.client = ModbusSerialClient(port, baudrate=baudrate, bytesize=bytesize, parity=parity, stopbits=stopbits, retries=retries, broadcast_enable=broadcast_enable)
         if not self.client.connect():
             raise RuntimeError("Failed to run self.client.connect()")
 
@@ -237,7 +237,9 @@ class NewHydraprobeTransceiver():
 
     def read_ec(self, slave=1):
         client = self.client
+        self.logger.info("Reading EC value")
         regs = client.read_holding_registers(0x0002, count=1, slave=1)
+        self.logger.info(f"Read EC value: {regs}")
         try:
             val = regs.registers[0]
         except AttributeError:
@@ -256,13 +258,21 @@ class NewHydraprobeTransceiver():
         return val
 
     def read_all(self, slave=1):
+        self.logger.info("Request recieved: Starting to read values")
         client = self.client
+        self.logger.info("Client Registered")
         ec = self.read_ec(slave)
+        self.logger.info(f"EC value: {ec}")
         time.sleep(0.1)
+        self.logger.info("WO1")
         moisture = self.read_moisture(slave)
+        self.logger.info(f"Moisture value: {moisture}")
         time.sleep(0.1)
+        self.logger.info("WO2")
         temp = self.read_temp(slave)
+        self.logger.info(f"Temp value: {temp}")
         time.sleep(0.1)
+        self.logger.info("WO3")
         eps = self.read_epsilon(slave)
 
         return [temp, moisture, ec, eps]
