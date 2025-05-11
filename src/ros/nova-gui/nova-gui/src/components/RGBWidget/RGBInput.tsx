@@ -78,7 +78,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
         if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setTempB(value)
     }, [rgbValues, setRgbValues]);
 
-    const colorPreview = `rgb(${r || 0}, ${g || 0}, ${b || 0})`;
+    const colorPreview = `rgb(${tempR || 0}, ${tempG || 0}, ${tempB || 0})`;
 
     return (
         <Card {...props} className="space-y-3 p-3">

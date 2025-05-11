@@ -23,8 +23,6 @@ import {
   IRosNovaInterfacesRgbInputResponse,
   IRosNovaInterfacesCacheCommandRequest,
   IRosNovaInterfacesCacheCommandResponse,
-  IRosNovaInterfacesRgbInputRequest,
-  IRosNovaInterfacesRgbInputResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
