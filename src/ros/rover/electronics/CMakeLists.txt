@@ -61,8 +61,6 @@ install(PROGRAMS
   electronics/tests/test_wheels.py
   electronics/wheel_publisher.py
   electronics/LED_transmitter.py
-  electronics/dgps/base_gps_sub.py
-  electronics/dgps/gps_publisher.py
   electronics/led_strip.py
   electronics/dgps/gps_base.py
   electronics/dgps/gps_data_collector.py

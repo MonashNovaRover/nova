@@ -99,6 +99,5 @@ export interface RootState {
 
   batteryStore: IRosSensorMsgsBatteryState;
 
-  RGBInputStore: IRosNovaInterfacesRgbInputResponse;
   activeStatusStore: IRosNovaInterfacesActiveNodeStatus;
 }
