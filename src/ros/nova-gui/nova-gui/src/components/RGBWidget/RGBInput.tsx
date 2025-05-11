@@ -1,5 +1,5 @@
-import React, {useCallback, useState} from "react";
-import {Button, Card, CardProps, Input} from "@nextui-org/react";
+import React, {useCallback, useEffect, useState} from "react";
+import {Button, Card, CardProps, Input, Tooltip} from "@nextui-org/react";
 import {SubCardLabel} from "../shared/Labels";
 import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../ros/services/rosService.ts";
@@ -58,28 +58,6 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                 setRgbValues({r: tempR, g: tempG, b: tempB});
             }
 
-        }catch (e) {
-            console.error("Could not send RGB Values:",e)
-        }
-    },[r,g,b,serviceBifrost])
-
-    const serviceBifrost = useBifrost({service: RosService.RGBInput});
-
-    const sendRGBValues = useCallback(() => {
-        try{
-            const rValue = Number(r);
-            const gValue = Number(g);
-            const bValue = Number(b);
-
-            if (isNaN(rValue) || isNaN(gValue) || isNaN(bValue) || rValue < 0 || gValue < 0 || bValue < 0 || rValue > 255 || gValue > 255 || bValue > 255) {
-                console.error("Invalid input for RGB values");
-                return;
-            }
-
-            serviceBifrost.callService(
-                {r:rValue, g:gValue, b:bValue},
-                {noErrorToast: false, responseToast:true},
-            );
         }catch (e) {
             console.error("Could not send RGB Values:",e)
         }
