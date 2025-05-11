@@ -17,12 +17,15 @@ TODO:
 from typing import Union, List
 from coms_utils.uart_interface import UARTTransceiver
 from pymodbus.client import ModbusSerialClient
+from pymodbus.exceptions import ModbusException
 import rclpy
 import time
 from rclpy.node import Node
 from nova_interfaces.msg import HydraprobeData 
 import logging
 import logging.handlers as Handlers
+# import minimalmodbus
+# import serial
 
 pymodbuslog = logging.getLogger('pymodbus')
 pymodbuslog.setLevel(logging.ERROR)
@@ -122,6 +125,82 @@ class HydraprobeTransceiver(UARTTransceiver):
         # decode returned values
         return self.handle(ret)
 
+
+
+# class NewHydraprobeTransceiver:
+#     def __init__(self, port, logger, baudrate=9600, bytesize=8, parity='N', stopbits=1, timeout=1):
+#         self.logger = logger
+#         self.client = ModbusSerialClient(
+#             method="rtu",
+#             port=port,
+#             baudrate=baudrate,
+#             bytesize=bytesize,
+#             parity=parity,
+#             stopbits=stopbits,
+#             timeout=timeout
+#         )
+#
+#         if not self.client.connect():
+#             raise RuntimeError("Failed to connect to hydraprobe via pymodbus")
+#
+#     def _read_register(self, address, slave=1, scaling=1.0):
+#         try:
+#             response = self.client.read_holding_registers(address, count=1, slave=slave)
+#             if response.isError():
+#                 raise ModbusException(f"Error reading register {hex(address)}: {response}")
+#             return response.registers[0] / scaling
+#         except Exception as e:
+#             self.logger.error(f"Modbus read failed at {hex(address)}: {e}")
+#             return None
+#
+#     def read_temp(self):
+#         return self._read_register(0x0000, scaling=100)
+#
+#     def read_moisture(self):
+#         return self._read_register(0x0001, scaling=100)
+#
+#     def read_ec(self):
+#         return self._read_register(0x0002)
+#
+#     def read_epsilon(self):
+#         return self._read_register(0x0005, scaling=100)
+#
+#     def read_all(self):
+#         temp = self.read_temp()
+#         time.sleep(0.1)
+#         moisture = self.read_moisture()
+#         time.sleep(0.1)
+#         ec = self.read_ec()
+#         time.sleep(0.1)
+#         eps = self.read_epsilon()
+#
+#         if None in [temp, moisture, ec, eps]:
+#             self.logger.warn("One or more sensor values failed to read.")
+#             return None
+#
+#         return [temp, moisture, ec, eps]
+#
+#     def set_soil_type(self, soil, slave=1):
+#         soil_map = {
+#             'mineral': 0,
+#             'sand': 1,
+#             'clay': 2,
+#             'organic': 3
+#         }
+#
+#         if soil.lower() not in soil_map:
+#             raise ValueError(f"Invalid soil type: {soil}. Must be one of {list(soil_map.keys())}")
+#
+#         try:
+#             result = self.client.write_register(0x0020, soil_map[soil.lower()], slave=slave)
+#             if result.isError():
+#                 raise ModbusException(f"Failed to write soil type: {result}")
+#         except Exception as e:
+#             self.logger.error(f"Failed to set soil type: {e}")
+#
+#     def close(self):
+#         self.client.close()
+
 class NewHydraprobeTransceiver():
     # reading_sets = {0: [{"base_reg": 0x0200, "num_regs": 6}], # get comms details
     #                 1: [{"base_reg": 0x0005, "num_regs": 1},    # get EC and dielectric constant
@@ -143,7 +222,7 @@ class NewHydraprobeTransceiver():
             val = regs.registers[0]/100
         except AttributeError:
             val = self.read_moisture(slave)
-        
+
         return val
 
     def read_temp(self, slave=1):
@@ -153,7 +232,7 @@ class NewHydraprobeTransceiver():
             val = regs.registers[0]/100
         except AttributeError:
             val = self.read_temp(slave)
-        
+
         return val
 
     def read_ec(self, slave=1):
@@ -163,7 +242,7 @@ class NewHydraprobeTransceiver():
             val = regs.registers[0]
         except AttributeError:
             val = self.read_ec(slave)
-        
+
         return val
 
     def read_epsilon(self, slave=1):
@@ -173,7 +252,7 @@ class NewHydraprobeTransceiver():
             val = regs.registers[0]/100
         except AttributeError:
             val = self.read_temp(slave)
-        
+
         return val
 
     def read_all(self, slave=1):
@@ -203,7 +282,7 @@ class NewHydraprobeTransceiver():
                 raise ValueError(f"Soil type {soil} is invalid: please select one of {['sand', 'mineral', 'clay', 'organic']}")
 
         client.write_register(0x0020, soil, count=1, slave=slave)
-    
+
     def close(self):
         self.client.close()
 

@@ -39,7 +39,10 @@ from urc_hydraprobe import NewHydraprobeTransceiver
 class HydraprobeTriggerNode(Node):
 
     # Serial port and soil type parameters
-    DEFAULT_PORT = "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AU0K3IZ3-if00-port0"
+#     DEFAULT_PORT = "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AU0K3IZ3-if00-port0"
+
+    # MY PORT
+    DEFAULT_PORT = "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AQ018NTV-if00-port0"
     DEFAULT_SOIL = "sand"
 
     def __init__(self):
@@ -67,16 +70,16 @@ class HydraprobeTriggerNode(Node):
         )
 
         # Initialise transceiver
-#         try:
-#             self.transceiver = NewHydraprobeTransceiver(
-#                 port=self.get_parameter("port").value,
-#                 logger=self.get_logger()
-#             )
-#             self.transceiver.set_soil_type(self.get_parameter("soil").value)
-#             self.get_logger().info("Hydraprobe Trigger Node ready")
-#         except Exception as e:
-#             self.get_logger().error(f"Failed to initialise hydraprobe: {e}")
-#             raise e
+        try:
+            self.transceiver = NewHydraprobeTransceiver(
+                port=self.get_parameter("port").value,
+                logger=self.get_logger()
+            )
+            self.transceiver.set_soil_type(self.get_parameter("soil").value)
+            self.get_logger().info("Hydraprobe Trigger Node ready")
+        except Exception as e:
+            self.get_logger().error(f"Failed to initialise hydraprobe: {e}")
+            raise e
 
     """
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -91,24 +94,24 @@ class HydraprobeTriggerNode(Node):
         self.get_logger().info(" Trigger received: Taking hydraprobe reading...")
 
         try:
-#             values = self.transceiver.read_all()
-#             time.sleep(0.1)
-#
-#             if values is None:
-#                 raise RuntimeError("Sensor returned no data")
+            values = self.transceiver.read_all()
+            time.sleep(0.1)
+
+            if values is None:
+                raise RuntimeError("Sensor returned no data")
 
             self.get_logger().info("Received service call — Simulated reading.")
 
             msg = HydraprobeData()
-#             msg.temperature = float(values[0])
-#             msg.moisture = float(values[1])
-#             msg.conductivity = float(values[2])
-#             msg.dielectric = float(values[3])
+            msg.temperature = float(values[0])
+            msg.moisture = float(values[1])
+            msg.conductivity = float(values[2])
+            msg.dielectric = float(values[3])
 
-            msg.temperature = 25.0
-            msg.moisture = 25.0
-            msg.conductivity = 25.0
-            msg.dielectric = 25.0
+#             msg.temperature = 25.0
+#             msg.moisture = 25.0
+#             msg.conductivity = 25.0
+#             msg.dielectric = 25.0
 
             self.last_reading = msg  # save for repeated publishing
             self.publisher.publish(msg)
