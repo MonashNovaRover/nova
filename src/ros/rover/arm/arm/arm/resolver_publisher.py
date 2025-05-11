@@ -15,7 +15,7 @@ ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:     electronics
 AUTHOR(S):   Jory Braun, Tom Newton, Josh Cherubino
-EDITED BY:   Rohit Pilakkat, Jonathan Chin
+EDITED BY:   Rohit Pilakkat, Jonathan Chin, Bailey Chessum
 CREATION:    14/02/2022
 EDITED:      08/03/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -417,7 +417,7 @@ class ResolverPublisher(Node):
         # Create a 1 Hz timer to keep re-sending 0x0A2
         self.enable_auto_timer = self.create_timer(1.0, self.enable_auto_timer_callback)
 
-
+        self.get_logger().info("start_node: getting arm config")
         # Handle if the node is being run without the arm model
         use_arm_data = self.get_parameter("use_arm_data").value
         if not use_arm_data:
@@ -472,11 +472,11 @@ class ResolverPublisher(Node):
         self.resolver_transceiver.enable_auto_mode()
 
     def process_can_messages(self):
-        while True:
-            can_msg = self.resolver_transceiver.receive()
-            if can_msg is None:
-                break
-            self.resolver_transceiver.process_incoming_message(can_msg)
+        can_msg = self.resolver_transceiver.receive()
+        if can_msg is None:
+            return
+
+        self.resolver_transceiver.process_incoming_message(can_msg)
 
     def zero_callback(self, request: StringTrigger.Request, response: StringTrigger.Response):
         """
