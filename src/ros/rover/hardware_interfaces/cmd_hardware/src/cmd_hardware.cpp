@@ -35,88 +35,17 @@ hardware_interface::CallbackReturn CMDHardware::on_init(
 
     CMDHardwareLoggerName = info_.name;
 
+    auto params_result = apply_parameters();
+    if (params_result != CallbackReturn::SUCCESS)
+      return params_result;
+
     if (info_.joints.size() != 1)
     {
-      RCLCPP_FATAL_STREAM(
-        rclcpp::get_logger(CMDHardwareLoggerName),
-        "Hardware interface '" << info_.name << "got " << info_.joints.size() << " joints but expected 1");
-      return CallbackReturn::ERROR;
-    }
-
-    auto canbus_search = info_.hardware_parameters.find("candevice");
-    if (canbus_search == info_.hardware_parameters.end()){
-        RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No canbus provided");
+        RCLCPP_FATAL_STREAM(
+          rclcpp::get_logger(CMDHardwareLoggerName),
+          "Hardware interface '" << info_.name << "got " << info_.joints.size() << " joints but expected 1");
         return CallbackReturn::ERROR;
     }
-
-    can_device_ = canbus_search->second;
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                "Using can device " << can_device_.c_str());
-
-    auto canid_search = info_.hardware_parameters.find("canid");
-    if (canid_search == info_.hardware_parameters.end()){
-        RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No canid provided");
-        return CallbackReturn::ERROR;
-    }
-
-    can_id_ = std::stoul(canid_search->second);
-    
-    RCLCPP_INFO(rclcpp::get_logger(CMDHardwareLoggerName), "Using can id %d", can_id_);
-
-    auto clock_rate_search = info_.hardware_parameters.find("clock_rate");
-    if (clock_rate_search == info_.hardware_parameters.end()){
-        RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No clock rate provided");
-        return CallbackReturn::ERROR;
-    }
-    clock_rate_ = std::stoul(clock_rate_search->second);
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                       "Got clock rate: " << clock_rate_);
-
-    auto revolution_pulses_search = info_.hardware_parameters.find("revolution_pulses");
-
-    if (revolution_pulses_search == info_.hardware_parameters.end()){
-        RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No revolution pulses provided");
-        return CallbackReturn::ERROR;
-    }
-
-    revolution_pulses_ = std::stoul(revolution_pulses_search->second);
-
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                       "Resolver pulses: " << revolution_pulses_);
-
-    auto mock_search = info_.hardware_parameters.find("mock");
-    if (mock_search != info_.hardware_parameters.end() && mock_search->second == "true"){
-        mock_ = true;
-    }
-
-    auto reversed_search = info_.hardware_parameters.find("reversed");
-    if (reversed_search != info_.hardware_parameters.end() && reversed_search->second == "true"){
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                       "Interface is reversed");
-        reversed_multiplier_ = -1;
-    }
-
-    auto integrate_velocity_search = info_.hardware_parameters.find("integrate_velocity");
-    if (integrate_velocity_search != info_.hardware_parameters.end() && integrate_velocity_search->second == "true"){
-        RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                           "Integrating velocity to provide position estimate");
-        integrate_velocity_ = true;
-    }
-
-    auto min_interval_search = info_.hardware_parameters.find("min_interval");
-    if (min_interval_search != info_.hardware_parameters.end() && mock_){
-        min_interval_ = std::stol(min_interval_search->second);
-    }
-
-    auto gear_ratio_search = info_.hardware_parameters.find("gear_ratio");
-    if (gear_ratio_search == info_.hardware_parameters.end()){
-        RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No gear ratio provided");
-        return CallbackReturn::ERROR;
-    }
-    gear_ratio_ = std::stod(gear_ratio_search->second);
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                       "Got gear ratio: " << gear_ratio_);
-
 
     for (const auto& interface : info_.joints[0].command_interfaces){
         if(!set_control_interface(interface, true)){
@@ -141,84 +70,63 @@ hardware_interface::CallbackReturn CMDHardware::on_init(
 hardware_interface::CallbackReturn CMDHardware::on_configure(
         const rclcpp_lifecycle::State & previous_state)
 {
-  // open the can bus
+    // open the can bus
     try {
-        bus_->open(can_device_.c_str());
+        bus_->open(params_.candevice.c_str());
         RCLCPP_INFO(rclcpp::get_logger(CMDHardwareLoggerName), "Opened canbus on device %s",
-                    can_device_.c_str());
+                    params_.candevice.c_str());
     } catch (std::exception &e) {
         RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "Failed to start canbus with error: %s",
                      e.what());
         return CallbackReturn::ERROR;
     }
 
+    // check for resolver if there is a position interface
+    if (hw_position_.state.has_value() || hw_position_.command.has_value()) {
+//        RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
+//                           "Checking for resolver on CMD " << can_id_);
 
-        if (!mock_) {
-        //get min_interval
-            if (hw_velocity_.state.has_value()) {
-                RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                                   "Getting min interval on CMD " << can_id_);
-                auto min_interval = get_config<uint16_t>(CMDConfigCommand::MIN_INTERVAL);
-
-                if (min_interval.has_value()) {
-                    min_interval_ = min_interval.value();
-                    RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                                       "Min interval on CMD " << can_id_ << " is " << min_interval_);
-                } else {
-                    RCLCPP_FATAL_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                                        "Error getting min interval on CMD " << can_id_);
-                    return CallbackReturn::ERROR;
-                }
-        }
-
-        // check for resolver if there is a position interface
-        if (hw_position_.state.has_value() || hw_position_.command.has_value()) {
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                               "Checking for resolver on CMD " << can_id_);
-
-            auto resolver_check = get_config<uint16_t>(CMDConfigCommand::HAS_RESOLVER);
-            if (resolver_check.has_value()) {
-                if (resolver_check.value()) {
-                    RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                                       "Resolver detected on CMD " << can_id_);
-                    return CallbackReturn::SUCCESS;
-                } else {
-                    RCLCPP_FATAL_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                                        "No resolver detected on CMD " << can_id_);
-                    return CallbackReturn::ERROR;
-                }
-            }
-            RCLCPP_FATAL_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                                "Error with resolver request on CMD" << can_id_);
-            return CallbackReturn::ERROR;
-
-        }
+//        auto resolver_check = get_config<uint16_t>(CMDConfigCommand::HAS_RESOLVER);
+//        if (resolver_check.has_value()) {
+//            if (resolver_check.value()) {
+//                RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
+//                                   "Resolver detected on CMD " << can_id_);
+//                return CallbackReturn::SUCCESS;
+//            } else {
+//                RCLCPP_FATAL_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
+//                                    "No resolver detected on CMD " << can_id_);
+//                return CallbackReturn::ERROR;
+//            }
+//        }
+//        RCLCPP_FATAL_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
+//                            "Error with resolver request on CMD" << can_id_);
+//        return CallbackReturn::ERROR;
     }
-    
-  return CallbackReturn::SUCCESS;
+
+    return CallbackReturn::SUCCESS;
 }
 
 template<typename T>
 std::optional<T> CMDHardware::get_config(CMDConfigCommand command) {
 
-    const leigh::jcan::Frame min_interval_request = {
-            make_can_id(CMDSendCommand::GET_CONFIG),
-            {static_cast<uint8_t>(command)},
-    };
-    auto start = std::chrono::steady_clock::now();
-    bus_->send(min_interval_request);
-
-    while (std::chrono::steady_clock::now() - start < std::chrono::seconds(1)) {
-        try {
-            auto frame = bus_->receive_with_timeout(1000);
-            if (frame.id == make_can_id(CMDReceiveCommand::CONFIG_DATA)) {
-                auto config_value = from_bytes<T>(&frame.data[0]);
-                return std::optional(config_value);
-            }
-        } catch (std::exception &e) {
-            return std::nullopt;
-        }
-    }
+//    const leigh::jcan::Frame min_interval_request = {
+//            make_can_id(CMDSendCommand::GET_CONFIG),
+//            {static_cast<uint8_t>(command)},
+//    };
+//    auto start = std::chrono::steady_clock::now();
+//    bus_->send(min_interval_request);
+//
+//    while (std::chrono::steady_clock::now() - start < std::chrono::seconds(1)) {
+//        try {
+//            auto frame = bus_->receive_with_timeout(1000);
+//            if (frame.id == make_can_id(CMDReceiveCommand::CONFIG_DATA)) {
+//                auto config_value = from_bytes<T>(&frame.data[0]);
+//                return std::optional(config_value);
+//            }
+//        } catch (std::exception &e) {
+//            return std::nullopt;
+//        }
+//    }
     return std::nullopt;
 }
 
@@ -243,7 +151,7 @@ std::vector<hardware_interface::StateInterface> CMDHardware::export_state_interf
 
 std::vector<hardware_interface::CommandInterface> CMDHardware::export_command_interfaces()
 {
-  std::vector<hardware_interface::CommandInterface> command_interfaces;
+    std::vector<hardware_interface::CommandInterface> command_interfaces;
     if (hw_position_.command.has_value()) {
         command_interfaces.emplace_back(
                 info_.joints[0].name, hardware_interface::HW_IF_POSITION, &hw_position_.command.value());
@@ -257,7 +165,7 @@ std::vector<hardware_interface::CommandInterface> CMDHardware::export_command_in
                 info_.joints[0].name, hardware_interface::HW_IF_EFFORT, &hw_effort_.command.value());
     }
 
-  return command_interfaces;
+    return command_interfaces;
 }
 
 hardware_interface::CallbackReturn CMDHardware::on_activate(
@@ -278,13 +186,7 @@ hardware_interface::return_type CMDHardware::read(
         const rclcpp::Time & time, const rclcpp::Duration & period)
 {
     bus_->spin();
-    if(integrate_velocity_ && hw_position_.state.has_value() && hw_velocity_.state.has_value()){
-        //RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName), "Velocity state: " << hw_velocity_.state.value()
-        //<< ", Position state: " << hw_position_.state.value() << ", Period: " << period.seconds());
-        hw_position_.state = hw_position_.state.value() + hw_velocity_.state.value()*period.seconds();
-        //RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName), "New position state: " << hw_position_.state.value());
 
-    }
     return hardware_interface::return_type::OK;
 }
 
@@ -298,8 +200,8 @@ hardware_interface::return_type CMDHardware::write(
             if (hw_position_.command.has_value()) {
                 RCLCPP_DEBUG_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
                                    "Sending Position Command " << hw_position_.command.value());
-                send_scaled<int16_t>(make_can_id(CMDSendCommand::DRIVE_POSITION),
-                                     hw_position_.command.value() * reversed_multiplier_, hw_position_.max);
+                send_scaled<int16_t>(make_can_id(CMDSendCommand::PID_DRIVE),
+                                     hw_position_.command.value() * reversed_multiplier_, params_.max_position);
             } else {
                 RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No position command");
                 return hardware_interface::return_type::ERROR;
@@ -307,10 +209,10 @@ hardware_interface::return_type CMDHardware::write(
             break;
         case cmd_hardware::ControlMode::Velocity:
             if (hw_velocity_.command.has_value()) {
-               RCLCPP_DEBUG_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                                  "Sending velocity command " << hw_velocity_.command.value() * reversed_multiplier_);
-                send_scaled<int16_t>(make_can_id(CMDSendCommand::DRIVE_VELOCITY),
-                                     hw_velocity_.command.value() * reversed_multiplier_, hw_velocity_.max);
+                RCLCPP_DEBUG_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
+                                    "Sending velocity command " << hw_velocity_.command.value() * reversed_multiplier_);
+                send_scaled<int16_t>(make_can_id(CMDSendCommand::PID_DRIVE),
+                                     hw_velocity_.command.value() * reversed_multiplier_, params_.max_velocity);
             } else {
                 RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No velocity command");
                 return hardware_interface::return_type::ERROR;
@@ -318,8 +220,8 @@ hardware_interface::return_type CMDHardware::write(
             break;
         case cmd_hardware::ControlMode::Effort:
             if (hw_effort_.command.has_value()) {
-                send_scaled<int16_t>(make_can_id(CMDSendCommand::DRIVE_CURRENT),
-                                     hw_effort_.command.value() * reversed_multiplier_, hw_effort_.max);
+                send_scaled<int16_t>(make_can_id(CMDSendCommand::PWM_DRIVE),
+                                     hw_effort_.command.value() * reversed_multiplier_, params_.max_effort);
             } else {
                 RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No effort command");
                 return hardware_interface::return_type::ERROR;
@@ -432,38 +334,28 @@ bool CMDHardware::start_interface(const std::string &interface){
 hardware_interface::CallbackReturn CMDHardware::apply_parameters() {
     auto canbus_search = info_.hardware_parameters.find("candevice");
     if (canbus_search == info_.hardware_parameters.end()){
-      RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No canbus provided");
+      RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No canbus provided");
       return CallbackReturn::ERROR;
     }
     params_.candevice = canbus_search->second;
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+    RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
                        "Using can device " << params_.candevice.c_str());
 
     auto canid_search = info_.hardware_parameters.find("canid");
     if (canid_search == info_.hardware_parameters.end()){
-      RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No canid provided");
+      RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No canid provided");
       return CallbackReturn::ERROR;
     }
     params_.canid = std::stoul(canid_search->second);
-    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using can id %d", params_.canid);
+    RCLCPP_INFO(rclcpp::get_logger(CMDHardwareLoggerName), "Using can id %d", params_.canid);
 
-    auto clock_rate_search = info_.hardware_parameters.find("clock_rate");
-    if (clock_rate_search == info_.hardware_parameters.end()){
-      RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No clock rate provided");
+    auto resolver_id_search = info_.hardware_parameters.find("resolver_id");
+    if (resolver_id_search == info_.hardware_parameters.end()){
+      RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No resolver_id provided");
       return CallbackReturn::ERROR;
     }
-    params_.clock_rate = std::stoul(clock_rate_search->second);
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                       "Got clock rate: " << params_.clock_rate);
-
-    auto revolution_pulses_search = info_.hardware_parameters.find("revolution_pulses");
-    if (revolution_pulses_search == info_.hardware_parameters.end()){
-      RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No revolution pulses provided");
-      return CallbackReturn::ERROR;
-    }
-    params_.revolution_pulses = std::stoul(revolution_pulses_search->second);
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                       "Resolver pulses: " << params_.revolution_pulses);
+    params_.resolver_id = static_cast<uint8_t>(std::stoul(resolver_id_search->second));
+    RCLCPP_INFO(rclcpp::get_logger(CMDHardwareLoggerName), "Using resolver id %d", params_.resolver_id);
 
     auto mock_search = info_.hardware_parameters.find("mock");
     if (mock_search != info_.hardware_parameters.end()) {
@@ -472,51 +364,38 @@ hardware_interface::CallbackReturn CMDHardware::apply_parameters() {
 
     auto reversed_search = info_.hardware_parameters.find("reversed");
     if (reversed_search != info_.hardware_parameters.end() && is_true(reversed_search->second)) {
-      RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+      RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
                          "Interface is reversed");
       params_.reversed = true;
       reversed_multiplier_ = -1;
     }
 
-    auto integrate_velocity_search = info_.hardware_parameters.find("integrate_velocity");
-    if (integrate_velocity_search != info_.hardware_parameters.end() && is_true(integrate_velocity_search->second)) {
-      RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                         "Integrating velocity to provide position estimate");
-      params_.integrate_velocity = true;
-    }
-
-    auto min_interval_search = info_.hardware_parameters.find("min_interval");
-    if (min_interval_search != info_.hardware_parameters.end() && params_.mock){
-      params_.min_interval = std::stol(min_interval_search->second);
-    }
-
-    auto gear_ratio_search = info_.hardware_parameters.find("gear_ratio");
-    if (gear_ratio_search == info_.hardware_parameters.end()) {
-      RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No gear ratio provided");
-      return CallbackReturn::ERROR;
-    }
-    params_.gear_ratio = std::stod(gear_ratio_search->second);
-    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                       "Got gear ratio: " << params_.gear_ratio);
-
     auto max_position_search = info_.hardware_parameters.find("max_position");
     if (max_position_search != info_.hardware_parameters.end()) {
       params_.max_position = std::stod(max_position_search->second);
-      RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using max_position of %f", params_.max_position.value());
+      RCLCPP_INFO(rclcpp::get_logger(CMDHardwareLoggerName), "Using max_position of %f", params_.max_position);
     }
     else {
-      RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "max_position parameter was undefined. Will use "
+      RCLCPP_INFO(rclcpp::get_logger(CMDHardwareLoggerName), "max_position parameter was undefined. Will use "
                                                                "max_position from command interface.");
     }
 
     auto max_velocity_search = info_.hardware_parameters.find("max_velocity");
     if (max_velocity_search != info_.hardware_parameters.end()) {
       params_.max_velocity = std::stod(max_velocity_search->second);
-      RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using max_velocity of %f", params_.max_velocity.value());
+      RCLCPP_INFO(rclcpp::get_logger(CMDHardwareLoggerName), "Using max_velocity of %f", params_.max_velocity);
     }
     else {
-      RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "max_velocity parameter was undefined. Will use "
-                                                               "complex formula to make this value.");
+      RCLCPP_INFO(rclcpp::get_logger(CMDHardwareLoggerName), "max_velocity parameter was undefined.");
+    }
+
+    auto max_effort_search = info_.hardware_parameters.find("max_effort");
+    if (max_effort_search != info_.hardware_parameters.end()) {
+      params_.max_effort = std::stod(max_effort_search->second);
+      RCLCPP_INFO(rclcpp::get_logger(CMDHardwareLoggerName), "Using max_effort of %f", params_.max_effort);
+    }
+    else {
+      RCLCPP_INFO(rclcpp::get_logger(CMDHardwareLoggerName), "max_effort parameter was undefined.");
     }
 
     auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
@@ -528,7 +407,7 @@ hardware_interface::CallbackReturn CMDHardware::apply_parameters() {
     if (position_offset_search != info_.hardware_parameters.end()) {
       params_.position_offset = std::stod(position_offset_search->second);
 
-      RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using position_offest of: %f", params_.position_offset);
+      RCLCPP_INFO(rclcpp::get_logger(CMDHardwareLoggerName), "Using position_offest of: %f", params_.position_offset);
     }
 
     return CallbackReturn::SUCCESS;
@@ -540,7 +419,7 @@ bool CMDHardware::set_control_interface(
     if(interface_info.name == hardware_interface::HW_IF_POSITION){
         //TODO: deal with case with state interface and no command interface
         if (command){
-            hw_position_.max = std::stod(interface_info.max);
+//            hw_position_.max = std::stod(interface_info.max);
             auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
             if (resolver_reduction_search == info_.joints[0].parameters.end()){
                 RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No resolver reduction provided");
@@ -553,16 +432,15 @@ bool CMDHardware::set_control_interface(
         }
     } else if(interface_info.name == hardware_interface::HW_IF_VELOCITY){
         if(command) {
-            hw_velocity_.max = (clock_rate_)/(min_interval_*revolution_pulses_*gear_ratio_) * 2 * M_PI;
             RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-            "Configured velocity interface with max velocity: " << hw_velocity_.max);
+            "Configured velocity interface with max velocity: " << params_.max_velocity);
             hw_velocity_.command = 0.0;
         } else {
             hw_velocity_.state = 0.0;
         }
     } else if(interface_info.name == hardware_interface::HW_IF_EFFORT){
         if(command){
-            hw_effort_.max = std::stod(interface_info.max);;
+//            hw_effort_.max = std::stod(interface_info.max);;
             hw_effort_.command = 0.0;
         } else {
             hw_effort_.state = 0.0;
@@ -576,62 +454,94 @@ bool CMDHardware::set_control_interface(
 }
 
     void CMDHardware::can_setup() {
-        std::vector<uint32_t> ids = {make_can_id(CMDReceiveCommand::CONFIG_DATA)};
-                if (hw_velocity_.state.has_value() || hw_effort_.state.has_value()) {
-            ids.push_back(make_can_id(TelemetryPacket::PACKET_1));
-        }
-        if (hw_position_.state.has_value() && !integrate_velocity_) {
-            ids.push_back(make_can_id(TelemetryPacket::PACKET_3));
-        }
-	bus_->set_id_filter(ids);
+        std::vector<uint32_t> ids = {};
+
         if (hw_velocity_.state.has_value() || hw_effort_.state.has_value()) {
-            RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                               "Adding packet 1 callback to ID:" << make_can_id(TelemetryPacket::PACKET_1));
-            bus_->add_callback_to(make_can_id(TelemetryPacket::PACKET_1), this, &CMDHardware::packet_1_callback);
+//            ids.push_back(make_can_id(TelemetryPacket::PACKET_1));
         }
-        if (hw_position_.state.has_value() && !integrate_velocity_) {
+        if (hw_position_.state.has_value()) {
+            ids.push_back(static_cast<uint32_t>(TelemetryPacket::RESOLVER_ARBITRATION_ID));
+        }
+
+        bus_->set_id_filter(ids);
+
+        if (hw_velocity_.state.has_value()) {
+//            RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
+//                               "Adding packet 1 callback to ID:" << make_can_id(TelemetryPacket::PACKET_1));
+//            bus_->add_callback_to(make_can_id(TelemetryPacket::PACKET_1), this, &CMDHardware::packet_1_callback);
+        }
+        if (hw_position_.state.has_value()) {
             RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                               "Adding packet 3 callback to ID:" << make_can_id(TelemetryPacket::PACKET_3));
-            bus_->add_callback_to(make_can_id(TelemetryPacket::PACKET_3), this, &CMDHardware::packet_3_callback);
+                               "Adding resolver callback to the RESOLVER_ARBITRATION_ID");
+            bus_->add_callback_to(static_cast<uint32_t>(TelemetryPacket::RESOLVER_ARBITRATION_ID), this, &CMDHardware::resolver_callback);
         }
         bus_->set_callbacks_enabled(false);
    }
 
     uint32_t CMDHardware::make_can_id(CMDSendCommand command) const
     {
-        return static_cast<uint32_t>(CanIdPrefix::SEND) << 8 | can_id_ << 4 |
+        return static_cast<uint32_t>(CanIdPrefix::SEND) << 8 | params_.canid << 4 |
                static_cast<uint32_t>(command);
     }
 
     uint32_t CMDHardware::make_can_id(CMDReceiveCommand command) const
     {
-        return static_cast<uint32_t>(CanIdPrefix::RECEIVE) << 8 | can_id_ << 4 |
+        return static_cast<uint32_t>(CanIdPrefix::RECEIVE) << 8 | params_.canid << 4 |
                static_cast<uint32_t>(command);
     }
 
     uint32_t CMDHardware::make_can_id(TelemetryPacket packet) const
     {
-        return static_cast<uint32_t>(CanIdPrefix::RECEIVE) << 8 | can_id_ << 4|
+        return static_cast<uint32_t>(CanIdPrefix::RECEIVE) << 8 | params_.canid << 4 |
                static_cast<uint32_t>(packet);
     }
 
-    void CMDHardware::packet_1_callback(leigh::jcan::Frame frame) {
-        if(hw_velocity_.state.has_value()) {
+//    void cmdhardware::packet_1_callback(leigh::jcan::frame frame) {
+//        if (hw_velocity_.state.has_value()) {
+//
+//            hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max) *
+//            reversed_multiplier_*-1*0.5; // dear bro, ask chassis why this is -1
+//
+//        }
+//        if (hw_effort_.state.has_value()) {
+//            hw_effort_.state = convert_scaled<int16_t>(&frame.data[2], hw_effort_.max);
+//        }
+//    }
+//
+//    void cmdhardware::packet_3_callback(leigh::jcan::frame frame) {
+//        if(hw_position_.state.has_value()) {
+//            hw_position_.state = convert_scaled<int16_t>(&frame.data[0], hw_position_.max) *
+//                                 hw_position_.resolver_reduction * reversed_multiplier_;
+//        }
+//    }
 
-            hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max) * 
-            reversed_multiplier_*-1*0.5; // Dear Bro, ask chassis why this is -1
+    void CMDHardware::resolver_callback(leigh::jcan::Frame frame) {
+        if (!hw_position_.state.has_value())
+            return;
 
-        }
-        if(hw_effort_.state.has_value()) {
-            hw_effort_.state = convert_scaled<int16_t>(&frame.data[2], hw_effort_.max);
-        }
-    }
+        // Filter out messages from resolvers for other joints
+        uint8_t resolver_id = frame.data[0];
+        if (resolver_id != params_.resolver_id)
+            return;
 
-    void CMDHardware::packet_3_callback(leigh::jcan::Frame frame) {
-        if(hw_position_.state.has_value()) {
-            hw_position_.state = convert_scaled<int16_t>(&frame.data[0], hw_position_.max) *
-                                 hw_position_.resolver_reduction * reversed_multiplier_;
+        // Check flags byte to make sure the message is valid
+        uint8_t flags = frame.data[1];
+        if (flags) {
+            if (flags & static_cast<uint8_t>(ResolverFlags::RS485_READ_TIMEOUT)) {
+                RCLCPP_WARN(rclcpp::get_logger(CMDHardwareLoggerName), "CMD Resolver RS485 read timout for %d",
+                            params_.resolver_id);
+            }
+            if (flags & static_cast<uint8_t>(ResolverFlags::RS485_READ_TIMEOUT)) {
+                RCLCPP_WARN(rclcpp::get_logger(CMDHardwareLoggerName), "CMD Resolver sent an invalid checksum for %d",
+                            params_.resolver_id);
+            }
+            return;
         }
+
+        // Unpack the resolver value
+        uint16_t value = (static_cast<uint16_t>(frame.data[2]) << 8) | static_cast<uint16_t>(frame.data[3]);
+
+        hw_position_.state = raw_resolver_to_rad(value) * params_.resolver_reduction * reversed_multiplier_;
     }
 
     template<typename T>
@@ -662,6 +572,14 @@ bool CMDHardware::set_control_interface(
             frame.data.push_back(data >> 8*(sizeof(T) - (i + 1)) & 0xFF);
         }
         bus_->send(frame);
+    }
+
+    bool CMDHardware::is_true(std::string& text) {
+        return text == "true" || text == "True";
+    }
+
+    double CMDHardware::raw_resolver_to_rad(int16_t raw_resolver_data) {
+        return M_2_PI * static_cast<double>(raw_resolver_data) / 0x3FFF;
     }
 
 }  // namespace cmd_hardware

@@ -41,7 +41,7 @@ struct PIConfig {
 struct ControlInterface {
     std::optional<double> command;
     std::optional<double> state;
-    double max {std::numeric_limits<double>::quiet_NaN()};
+//    double max {std::numeric_limits<double>::quiet_NaN()};
 };
 
 struct PositionInterface : ControlInterface {
@@ -73,7 +73,8 @@ enum class CMDSendCommand {
     PID_TUNE            = 0x5,    // Complicated. Sets the pid constants. Only used for tuning.
 };
 
-enum class TelemetryPacket{
+enum class TelemetryPacket {
+    RESOLVER_ARBITRATION_ID = 0x0A0
 };
 
 enum class CanIdPrefix{
@@ -81,7 +82,9 @@ enum class CanIdPrefix{
     RECEIVE = 4
 };
 
-enum class CMDReceiveCommand{
+enum class CMDReceiveCommand {
+    PID_DRIVE           = 0x4,
+
 };
 
 enum class CMDConfigCommand{
@@ -100,6 +103,11 @@ enum class CMDConfigCommand{
     PACKET_2_SPEED  = 0xC,
     PACKET_3_SPEED  = 0xD,
     PACKET_4_SPEED  = 0xE,
+};
+
+enum class ResolverFlags : uint8_t {
+    RS485_READ_TIMEOUT  = 0x1,
+    INVALID_CHECKSUM    = 0x2,
 };
 
 class CMDHardware : public hardware_interface::SystemInterface
@@ -139,6 +147,9 @@ protected:
         /// The 2nd hexadecimal digit in the 12-bit CAN id used in messages to/from the BLCMD board.
         uint32_t canid = 0;
 
+        /// The ID of the resolver on the CAN bus. For the arm, this is usually 4 times the joint number
+        uint8_t resolver_id = 0;
+
         /// Unconfirmed. When true, the hardware interface will use min_interval from parameters. When false,
         /// min_interval is determined through requesting configuration from the BLCMD board.
         bool mock = false;
@@ -150,7 +161,10 @@ protected:
         double max_position = M_PI;
 
         /// The maximum velocity in radians per second, to be mapped to the largest velocity in CAN; 0x7FFF. This is not a limit.
-        std::optional<double> max_velocity = std::nullopt;
+        double max_velocity {std::numeric_limits<double>::quiet_NaN()};
+
+        /// The maximum velocity in radians per second, to be mapped to the largest velocity in CAN; 0x7FFF. This is not a limit.
+        double max_effort {std::numeric_limits<double>::quiet_NaN()};
 
         /// A reduction ratio resolver readings are scaled by.
         double resolver_reduction {std::numeric_limits<double>::quiet_NaN()};
@@ -204,9 +218,11 @@ private:
     /// @returns    The can ID
     uint32_t make_can_id(TelemetryPacket packet) const;
 
-    void packet_1_callback(leigh::jcan::Frame);
+//    void packet_1_callback(leigh::jcan::Frame);
+//
+//    void packet_3_callback(leigh::jcan::Frame);
 
-    void packet_3_callback(leigh::jcan::Frame);
+    void resolver_callback(leigh::jcan::Frame);
 
     template<typename T>
     double convert_scaled(const uint8_t *bytes, double max);
@@ -219,6 +235,10 @@ private:
 
     template<typename T>
     void send_scaled(uint32_t id, double value, double max);
+
+    static bool is_true(std::string& text);
+
+    static double raw_resolver_to_rad(int16_t raw_resolver_data);
 };
 
 }  // namespace cmd_hardware
