@@ -3,6 +3,7 @@
     nova-electronics = callPackage ./nix/packages/electronics { };
     nova-science = callPackage ./nix/packages/science { };
     nova-blcmd-hardware = callPackage ./nix/packages/blcmd-hardware { };
+    nova-cmd-hardware = callPackage ./nix/packages/cmd-hardware { };
     nova-costmap-2d = callPackage ./nix/packages/nova-costmap-2d { };
     nova-behavior-tree = callPackage ./nix/packages/nova-behavior-tree { };
     nova-object-localisation = callPackage ./nix/packages/nova-object-localisation { };

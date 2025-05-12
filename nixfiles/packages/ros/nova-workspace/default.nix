@@ -34,6 +34,7 @@
 , nova-arm-bringup ? throw "arm-bringup is needed, but not available!"
 , nova-rover-description ? throw "rover-description is needed, but not available!"
 , nova-blcmd-hardware ? throw "nova-blcmd-hardware is needed, but not available!"
+, nova-cmd-hardware ? throw "nova-cmd-hardware is needed, but not available!"
 , nova-pivot-drive-controller ? throw "nova-pivot-drive-controller is needed, but not available!"
 , nova-strafe-controller ? throw "nova-strafe-controller is needed, but not available!"
 , nova-diff-drive-controller ? throw "nova-diff-drive-controller is needed, but not available!"
@@ -66,6 +67,7 @@
       nova-science
       nova-cameras2
       nova-blcmd-hardware
+      nova-cmd-hardware
       nova-pivot-drive-controller
       nova-strafe-controller
       nova-diff-drive-controller
