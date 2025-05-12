@@ -59,7 +59,7 @@ class HydraprobeTriggerNode(Node):
 
         self.last_reading = None  # to store the last HydraprobeData message
 
-        # Timer to keep publishing last reading (e.g., every 0.5s)
+        # Timer to keep publishing last reading (every 0.5s)
         self.republish_timer = self.create_timer(0.5, self.publish_last_reading)
 
         # Create service

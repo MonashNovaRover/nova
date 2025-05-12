@@ -126,6 +126,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
           this._updateTopicState(message);
         });
 
+        console.log(`Subscribing to \"${topic}\"`)
         dispatch(this._updateSubscribedTopics(topic));
       };
     },

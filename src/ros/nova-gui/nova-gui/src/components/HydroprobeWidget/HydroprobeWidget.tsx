@@ -1,10 +1,11 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import {Button, Card, CardBody, CardHeader, CardProps} from "@nextui-org/react";
 import {OverlayedProgress} from "../OverlayedProgress/OverlayedProgress.tsx";
 import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction";
 import {RootState} from "../../redux/RootState";
 import {useSelector} from "react-redux";
 import {RosTopic} from "../../ros/topics/rosTopic";
+
 import {RosService} from "../../ros/services/rosService.ts";
 import {IRosNovaInterfacesMoveHydraprobeRequestConst} from "../../ros/rosTypes.ts";
 
@@ -24,12 +25,27 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
   const conductivity = useSelector((state: RootState) => state.hydraprobeData.conductivity);
   const dielectric = useSelector((state: RootState) => state.hydraprobeData.dielectric);
 
+  // Cursed hack to make the ros context not undefined for this topic. TODO: Figure out why the ros context isn't real
+  const [fixRosState, setFixRosState] = useState<boolean>(false);
+
   useEffect(() => {
-    bifrost.syncWithTopic();
-  }, [bifrost]);
+    const thing = setTimeout(() => {
+      bifrost.syncWithTopic();
+      if (!fixRosState)
+        setFixRosState(() => true);
+    }, 1000);
+
+    return () => {
+      clearTimeout(thing);
+    }
+  }, [fixRosState, setFixRosState]);
 
   const requestReading = () => {
-    serviceBifrost.callService({});
+
+    serviceBifrost.callService({}, {
+      sendToRedux: false,
+      responseToast: true
+    });
   };
 
   const HydroprobeCardBody = (
@@ -62,7 +78,7 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
         <Button size="sm" onClick={() => moveHydraprobe(IRosNovaInterfacesMoveHydraprobeRequestConst.RETRACT)}>Retract</Button>
       </div>
       <div className="flex justify-center py-2">
-        <Button onClick={requestReading} color="primary">
+        <Button onPress={requestReading} color="primary">
           Request New Reading
         </Button>
       </div>
