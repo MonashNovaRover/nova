@@ -1,28 +1,40 @@
-import React, {useState} from "react";
-import {Image, Slider} from "@nextui-org/react";
+import React from "react";
+import {Image} from "@nextui-org/react";
 import CarouselDialImage from "../../../assets/carousel-dial.png"
-import {isArray} from "lodash";
+import {ChevronUp, Search} from "react-feather";
 
 export interface CarouselDialProps {
-  rotation: number
+  step: number
 }
 
+// the image has the line to the left of 1 pointing straight down
+// there is an 18 degree difference for each cuvette
 const offset = 9
+const stepSize = 18
 
+/**
+ * A representation of the Carousel that spins so that the current step is at the bottom
+ * @param props
+ * @param step the current cuvette to display at the bottom
+ * @constructor
+ */
 const CarouselDial: React.FC<CarouselDialProps> = (props) => {
-  const [rotation, setRotation] = useState(0)
-
   const rotateStyle: React.CSSProperties = {
-    transform: `rotate(${rotation + offset}deg)`,
+    transform: `rotate(${props.step * stepSize - offset}deg)`,
     transition: 'transform 0.3s ease-in-out',
   };
 
   return <div>
-    <span>{rotation}</span>
-    <Slider className="mb-3" maxValue={360} value={rotation}
-            onChange={(v) => isArray(v) ? setRotation(v[0]) : setRotation(v)}/>
-    <div className="p-5">
-      <Image className="" style={rotateStyle} src={CarouselDialImage}/>
+    <div className="flex flex-col items-center overflow-hidden">
+      <ChevronUp className="w-16 h-8 opacity-0"/>
+      <div className="flex flex-row items-center">
+        <Search className="w-16 h-8 opacity-0"/>
+        <div>
+          <Image style={rotateStyle} src={CarouselDialImage}/>
+        </div>
+        <Search className="w-16 h-8"/>
+      </div>
+      <ChevronUp className="w-16 h-8"/>
     </div>
   </div>
 }

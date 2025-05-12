@@ -18,16 +18,18 @@ const URCScienceView: React.FC = () => {
       </div>
 
       <div className="flex flex-col gap-3 col-span-2">
-        <BMESensor/>
-        <CarouselWidget/>
+        <CarouselWidgetV2/>
+        <div className="flex flex-row gap-3">
+          <TOFHeight className="grow"/>
+          <BMESensor className="grow"/>
+        </div>
+        <CarouselWidgetV2/>
         <div className="flex flex-row gap-3">
           <CacheControlWidget className="w-full" label="Cache 1" service={RosService.CACHE_1}/>
           <CacheControlWidget className="w-full" label="Cache 2" service={RosService.CACHE_2}/>
           <GenericSetBoolWidget className="w-3/4" label="Heater" service={RosService.HEATER}/>
           <GenericSetBoolWidget className="w-3/4" label="Mixers" service={RosService.MIXERS}/>
         </div>
-
-        <CarouselWidgetV2/>
       </div>
 
       <div className="flex flex-col gap-3 col-span-2">
