@@ -449,4 +449,7 @@
       effort="0"
       velocity="0" />
   </joint>
+
+  <xacro:include filename="$(find rover_description)/banksia_arm/urdf/arm.ros2_control.xacro" />
+  <xacro:arm_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
 </robot>

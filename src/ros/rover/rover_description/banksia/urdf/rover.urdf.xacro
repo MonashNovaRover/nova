@@ -10,6 +10,7 @@
     <xacro:arg name="gazebo" default="false"/>
     <xacro:arg name="use_mock_hardware" default="false"/>
     <xacro:arg name="arm" default="false"/>
+    <xacro:arg name="old_arm" default="false"/>
     <xacro:arg name="auto_camera" default="true"/>
     <xacro:arg name="robot_name" default="Banksia"/>
     <xacro:arg name="angle" default="0"/>
@@ -750,6 +751,15 @@
      <xacro:unless value="$(arg arm)">
         <xacro:include filename="$(find rover_description)/banksia/urdf/joint_states.xacro"/>
     </xacro:unless>
+
+    <xacro:if value="$(arg old_arm)">
+        <xacro:include filename="$(find rover_description)/waratah_arm/urdf/arm.urdf.xacro" />
+        <joint name="chassis_to_arm_base" type="fixed">
+            <origin xyz="0.2 0 -0.06" rpy="0 0 0"/>
+            <parent link="chassis" />
+            <child link="arm_link" />
+        </joint>
+    </xacro:if>
 
     <xacro:unless value="$(arg gazebo)">
         <xacro:include filename="$(find rover_description)/banksia/urdf/ros2_control.xacro" />
