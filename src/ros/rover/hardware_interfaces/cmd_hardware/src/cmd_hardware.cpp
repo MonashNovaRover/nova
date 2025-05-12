@@ -429,6 +429,111 @@ bool CMDHardware::start_interface(const std::string &interface){
     return true;
 }
 
+hardware_interface::CallbackReturn CMDHardware::apply_parameters() {
+    auto canbus_search = info_.hardware_parameters.find("candevice");
+    if (canbus_search == info_.hardware_parameters.end()){
+      RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No canbus provided");
+      return CallbackReturn::ERROR;
+    }
+    params_.candevice = canbus_search->second;
+    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                       "Using can device " << params_.candevice.c_str());
+
+    auto canid_search = info_.hardware_parameters.find("canid");
+    if (canid_search == info_.hardware_parameters.end()){
+      RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No canid provided");
+      return CallbackReturn::ERROR;
+    }
+    params_.canid = std::stoul(canid_search->second);
+    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using can id %d", params_.canid);
+
+    auto clock_rate_search = info_.hardware_parameters.find("clock_rate");
+    if (clock_rate_search == info_.hardware_parameters.end()){
+      RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No clock rate provided");
+      return CallbackReturn::ERROR;
+    }
+    params_.clock_rate = std::stoul(clock_rate_search->second);
+    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                       "Got clock rate: " << params_.clock_rate);
+
+    auto revolution_pulses_search = info_.hardware_parameters.find("revolution_pulses");
+    if (revolution_pulses_search == info_.hardware_parameters.end()){
+      RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No revolution pulses provided");
+      return CallbackReturn::ERROR;
+    }
+    params_.revolution_pulses = std::stoul(revolution_pulses_search->second);
+    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                       "Resolver pulses: " << params_.revolution_pulses);
+
+    auto mock_search = info_.hardware_parameters.find("mock");
+    if (mock_search != info_.hardware_parameters.end()) {
+      params_.mock = is_true(mock_search->second);
+    }
+
+    auto reversed_search = info_.hardware_parameters.find("reversed");
+    if (reversed_search != info_.hardware_parameters.end() && is_true(reversed_search->second)) {
+      RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                         "Interface is reversed");
+      params_.reversed = true;
+      reversed_multiplier_ = -1;
+    }
+
+    auto integrate_velocity_search = info_.hardware_parameters.find("integrate_velocity");
+    if (integrate_velocity_search != info_.hardware_parameters.end() && is_true(integrate_velocity_search->second)) {
+      RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                         "Integrating velocity to provide position estimate");
+      params_.integrate_velocity = true;
+    }
+
+    auto min_interval_search = info_.hardware_parameters.find("min_interval");
+    if (min_interval_search != info_.hardware_parameters.end() && params_.mock){
+      params_.min_interval = std::stol(min_interval_search->second);
+    }
+
+    auto gear_ratio_search = info_.hardware_parameters.find("gear_ratio");
+    if (gear_ratio_search == info_.hardware_parameters.end()) {
+      RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No gear ratio provided");
+      return CallbackReturn::ERROR;
+    }
+    params_.gear_ratio = std::stod(gear_ratio_search->second);
+    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                       "Got gear ratio: " << params_.gear_ratio);
+
+    auto max_position_search = info_.hardware_parameters.find("max_position");
+    if (max_position_search != info_.hardware_parameters.end()) {
+      params_.max_position = std::stod(max_position_search->second);
+      RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using max_position of %f", params_.max_position.value());
+    }
+    else {
+      RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "max_position parameter was undefined. Will use "
+                                                               "max_position from command interface.");
+    }
+
+    auto max_velocity_search = info_.hardware_parameters.find("max_velocity");
+    if (max_velocity_search != info_.hardware_parameters.end()) {
+      params_.max_velocity = std::stod(max_velocity_search->second);
+      RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using max_velocity of %f", params_.max_velocity.value());
+    }
+    else {
+      RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "max_velocity parameter was undefined. Will use "
+                                                               "complex formula to make this value.");
+    }
+
+    auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
+    if (resolver_reduction_search != info_.hardware_parameters.end()) {
+      params_.resolver_reduction = std::stod(resolver_reduction_search->second);
+    }
+
+    auto position_offset_search = info_.hardware_parameters.find("position_offset");
+    if (position_offset_search != info_.hardware_parameters.end()) {
+      params_.position_offset = std::stod(position_offset_search->second);
+
+      RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using position_offest of: %f", params_.position_offset);
+    }
+
+    return CallbackReturn::SUCCESS;
+}
+
 // TODO: better error handling
 bool CMDHardware::set_control_interface(
         const hardware_interface::InterfaceInfo &interface_info, bool command) {

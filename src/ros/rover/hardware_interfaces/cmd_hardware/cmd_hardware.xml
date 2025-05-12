@@ -1,6 +1,6 @@
-<library path="CMD_hardware">
-  <class name="CMD_hardware/CMDHardware"
-         type="CMD_hardware::CMDHardware"
+<library path="cmd_hardware">
+  <class name="cmd_hardware/CMDHardware"
+         type="cmd_hardware::CMDHardware"
          base_class_type="hardware_interface::SystemInterface">
     <description>
       ros2_control cmd hardware interface.
