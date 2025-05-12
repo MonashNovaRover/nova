@@ -200,8 +200,11 @@ hardware_interface::return_type CMDHardware::write(
             if (hw_position_.command.has_value()) {
                 RCLCPP_DEBUG_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
                                    "Sending Position Command " << hw_position_.command.value());
-                send_scaled<int16_t>(make_can_id(CMDSendCommand::PID_DRIVE),
-                                     hw_position_.command.value() * reversed_multiplier_, params_.max_position);
+                RCLCPP_WARN(rclcpp::get_logger(CMDHardwareLoggerName), "Position command interfaces are not yet implemented for CMDs!");
+                // TODO: Implement command interfaces, by seeking velocity
+
+//                send_scaled<int16_t>(make_can_id(CMDSendCommand::PID_DRIVE),
+//                                     hw_position_.command.value() * reversed_multiplier_, params_.max_position);
             } else {
                 RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No position command");
                 return hardware_interface::return_type::ERROR;
