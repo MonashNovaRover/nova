@@ -204,3 +204,177 @@ nova_arm_controller:
         type: double,
         default_value: 15.7079632679,
       }
+    arm_j1:
+      has_position_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_position: {
+        type: double,
+        default_value: 1.57079632679,
+      }
+      min_position: {
+        type: double,
+        default_value: -1.57079632679,
+      }
+      has_velocity_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_velocity: {
+        type: double,
+        default_value: 0.364467013889,
+      }
+      has_acceleration_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_acceleration: {
+        type: double,
+        default_value: 15.7079632679,
+      }
+    arm_j2:
+      has_position_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_position: {
+        type: double,
+        default_value: 1.57079632679,
+      }
+      min_position: {
+        type: double,
+        default_value: -1.57079632679,
+      }
+      has_velocity_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_velocity: {
+        type: double,
+        default_value: 0.364467013889,
+      }
+      has_acceleration_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_acceleration: {
+        type: double,
+        default_value: 15.7079632679,
+      }
+    arm_j3:
+      has_position_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_position: {
+        type: double,
+        default_value: 1.57079632679,
+      }
+      min_position: {
+        type: double,
+        default_value: -1.57079632679,
+      }
+      has_velocity_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_velocity: {
+        type: double,
+        default_value: 0.364467013889,
+      }
+      has_acceleration_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_acceleration: {
+        type: double,
+        default_value: 15.7079632679,
+      }
+    arm_j4:
+      has_position_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_position: {
+        type: double,
+        default_value: 1.57079632679,
+      }
+      min_position: {
+        type: double,
+        default_value: -1.57079632679,
+      }
+      has_velocity_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_velocity: {
+        type: double,
+        default_value: 0.364467013889,
+      }
+      has_acceleration_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_acceleration: {
+        type: double,
+        default_value: 15.7079632679,
+      }
+    arm_j5:
+      has_position_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_position: {
+        type: double,
+        default_value: 1.57079632679,
+      }
+      min_position: {
+        type: double,
+        default_value: -1.57079632679,
+      }
+      has_velocity_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_velocity: {
+        type: double,
+        default_value: 1.57079632679,
+      }
+      has_acceleration_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_acceleration: {
+        type: double,
+        default_value: 15.7079632679,
+      }
+    arm_j6:
+      has_position_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_position: {
+        type: double,
+        default_value: 1.57079632679,
+      }
+      min_position: {
+        type: double,
+        default_value: -1.57079632679,
+      }
+      has_velocity_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_velocity: {
+        type: double,
+        default_value: 1.57079632679,
+      }
+      has_acceleration_limits: {
+        type: bool,
+        default_value: false,
+      }
+      max_acceleration: {
+        type: double,
+        default_value: 15.7079632679,
+      }

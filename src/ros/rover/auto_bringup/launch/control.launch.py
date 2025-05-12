@@ -36,6 +36,8 @@ def launch_setup(context, *args, **kwargs):
     use_local_mesh = LaunchConfiguration('use_local_mesh')
     use_mock_hardware = LaunchConfiguration('use_mock_hardware')
 
+    print(f"old_arm = {old_arm}")
+
     return [
         Node( # TODO: only when arm is enabled
             package='controller_manager',

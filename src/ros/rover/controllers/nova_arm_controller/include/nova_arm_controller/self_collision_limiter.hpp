@@ -48,6 +48,12 @@ private:
   collision_detection::CollisionRequest collision_request_;
   collision_detection::CollisionResult collision_result_;
 
+  /**
+   * @brief Automatically generates an allowed collision matrix in the planning_scene_ that ignores self intersections
+   * between joints that always self intersect by populating it with intersections from the arm's zero pose.
+   */
+  void generate_allowed_collision_matrix();
+
 };
 } // namespace nova_arm_controller
 #endif // NOVA_ARM_CONTROLLER__SELF_COLLISION_LIMITER_HPP_
