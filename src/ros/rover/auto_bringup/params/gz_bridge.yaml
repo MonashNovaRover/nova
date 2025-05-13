@@ -34,11 +34,13 @@
   direction: GZ_TO_ROS
 
 # # Oak pointcloud unneeded due to rtabmap utils in camera launch
-# - ros_topic_name: "/oak/gz_points"
-#   gz_topic_name: "/oak/points"
-#   ros_type_name: "sensor_msgs/msg/PointCloud2"
-#   gz_type_name: "gz.msgs.PointCloudPacked"
-#   direction: GZ_TO_ROS
+
+# Oak Imu
+- ros_topic_name: "/oak/imu/transformed"
+  gz_topic_name: "/oak/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
 
 # Bootie depth image
 - ros_topic_name: "/bootie/stereo/image_raw"
@@ -69,15 +71,10 @@
   direction: GZ_TO_ROS
 
 # # Bootie pointcloud unneeded due to rtabmap utils in camera launch
-# - ros_topic_name: "/bootie/gz_points"
-#   gz_topic_name: "/bootie/points"
-#   ros_type_name: "sensor_msgs/msg/PointCloud2"
-#   gz_type_name: "gz.msgs.PointCloudPacked"
-#   direction: GZ_TO_ROS
 
-# Imu
-- ros_topic_name: "/oak/imu/transformed"
-  gz_topic_name: "/oak/imu"
+# Bootie Imu
+- ros_topic_name: "/bootie/imu/transformed"
+  gz_topic_name: "/bootie/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
