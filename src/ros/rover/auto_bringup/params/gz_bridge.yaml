@@ -49,12 +49,22 @@
   direction: GZ_TO_ROS
 =======
 # # Oak pointcloud unneeded due to rtabmap utils in camera launch
+<<<<<<< HEAD
 # - ros_topic_name: "/oak/gz_points"
 #   gz_topic_name: "/oak/points"
 #   ros_type_name: "sensor_msgs/msg/PointCloud2"
 #   gz_type_name: "gz.msgs.PointCloudPacked"
 #   direction: GZ_TO_ROS
 >>>>>>> 2746ce5f (fix: Remove gazebo pointclouds and gz_frame_fixer)
+=======
+
+# Oak Imu
+- ros_topic_name: "/oak/imu/transformed"
+  gz_topic_name: "/oak/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
 
 # Bootie depth image
 - ros_topic_name: "/bootie/stereo/image_raw"
@@ -95,6 +105,7 @@
   direction: GZ_TO_ROS
 =======
 # # Bootie pointcloud unneeded due to rtabmap utils in camera launch
+<<<<<<< HEAD
 # - ros_topic_name: "/bootie/gz_points"
 #   gz_topic_name: "/bootie/points"
 #   ros_type_name: "sensor_msgs/msg/PointCloud2"
@@ -105,6 +116,11 @@
 >>>>>>> 1cedadf3 (getting gps integrated with auto, WIP, rover currently flies away when using GPS)
 # Bootie imu
 - ros_topic_name: "/gz/bootie/imu/transformed"
+=======
+
+# Bootie Imu
+- ros_topic_name: "/bootie/imu/transformed"
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
   gz_topic_name: "/bootie/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"

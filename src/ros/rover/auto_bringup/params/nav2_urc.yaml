@@ -75,7 +75,7 @@ controller_server:
       xy_goal_tolerance: 0.5
       yaw_goal_tolerance: 0.523599 # 30 degrees in radians.
       stateful: false # Whether to check for XY position tolerance after rotating to goal orientation in case of minor localization changes.
-    MPPI:
+    FollowPath:
       plugin: "nav2_mppi_controller::MPPIController"
       time_steps: 56
       model_dt: 0.05
@@ -84,9 +84,9 @@ controller_server:
       vy_std: 0.2
       wz_std: 0.4
       vx_max: 0.5
-      vx_min: 0.0
+      vx_min: -0.35
       vy_max: 0.5
-      wz_max: 0.5
+      wz_max: 1.9
       ax_max: 3.0
       ax_min: -3.0
       ay_min: -3.0
@@ -209,7 +209,7 @@ controller_server:
         enabled: false
         twirling_cost_power: 1
         twirling_cost_weight: 10.0
-    FollowPath:
+    RPP:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       desired_linear_vel: 0.4 # The desired maximum linear velocity (m/s) to use.
       min_approach_linear_velocity: 0.1
@@ -355,7 +355,7 @@ global_costmap:
       # [x, y], where x is length and y is width
       # local_costmap footprint * 1.2
       footprint: "[[0.76, 0.68], [0.76, -0.68], [-0.76, -0.68], [-0.76, 0.68]]"
-      resolution: 0.1
+      resolution: 0.05
       track_unknown_space: false
       always_send_full_costmap: True
       plugins: ["static_layer", "stvl_layer", "denoise_layer", "inflation_layer"]

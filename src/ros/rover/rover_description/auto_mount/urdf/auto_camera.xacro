@@ -280,6 +280,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
     </sensor>
   </gazebo>
 
+<<<<<<< HEAD
   <gazebo reference="base_link">
     <sensor name="oak_imu_sensor" type="imu">
       <topic>oak/imu</topic>
@@ -291,6 +292,17 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
       <update_rate>100</update_rate>
       <visualize>true</visualize>
 =======
+=======
+  <!-- IMUs -->
+  <gazebo reference="oak_imu_frame">
+    <sensor name="oak_imu_sensor" type="imu">
+      <topic>oak/imu</topic>
+      <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu">
+        <frame_name>oak_imu_frame</frame_name>
+        <initial_orientation_as_reference>false</initial_orientation_as_reference>
+      </plugin>
+      <always_on>true</always_on>
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
       <update_rate>200</update_rate>
       <visualize>true</visualize>
       <imu>
@@ -298,25 +310,43 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
           <x>
             <noise type="gaussian">
               <mean>0.0</mean>
+<<<<<<< HEAD
               <stddev>0.0</stddev>
               <bias_mean>0.0</bias_mean>
               <bias_stddev>0.0</bias_stddev>
+=======
+              <stddev>2e-4</stddev>
+              <bias_mean>0.0000075</bias_mean>
+              <bias_stddev>0.0000008</bias_stddev>
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
             </noise>
           </x>
           <y>
             <noise type="gaussian">
               <mean>0.0</mean>
+<<<<<<< HEAD
               <stddev>0.0</stddev>
               <bias_mean>0.0</bias_mean>
               <bias_stddev>0.0</bias_stddev>
+=======
+              <stddev>2e-4</stddev>
+              <bias_mean>0.0000075</bias_mean>
+              <bias_stddev>0.0000008</bias_stddev>
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
             </noise>
           </y>
           <z>
             <noise type="gaussian">
               <mean>0.0</mean>
+<<<<<<< HEAD
               <stddev>0.0</stddev>
               <bias_mean>0.0</bias_mean>
               <bias_stddev>0.0</bias_stddev>
+=======
+              <stddev>2e-4</stddev>
+              <bias_mean>0.0000075</bias_mean>
+              <bias_stddev>0.0000008</bias_stddev>
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
             </noise>
           </z>
         </angular_velocity>
@@ -324,29 +354,48 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
           <x>
             <noise type="gaussian">
               <mean>0.0</mean>
+<<<<<<< HEAD
               <stddev>0.0</stddev>
               <bias_mean>0.0</bias_mean>
               <bias_stddev>0.0</bias_stddev>
+=======
+              <stddev>1.7e-2</stddev>
+              <bias_mean>0.1</bias_mean>
+              <bias_stddev>0.001</bias_stddev>
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
             </noise>
           </x>
           <y>
             <noise type="gaussian">
               <mean>0.0</mean>
+<<<<<<< HEAD
               <stddev>0.0</stddev>
               <bias_mean>0.0</bias_mean>
               <bias_stddev>0.0</bias_stddev>
+=======
+              <stddev>1.7e-2</stddev>
+              <bias_mean>0.1</bias_mean>
+              <bias_stddev>0.001</bias_stddev>
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
             </noise>
           </y>
           <z>
             <noise type="gaussian">
               <mean>0.0</mean>
+<<<<<<< HEAD
               <stddev>0.0</stddev>
               <bias_mean>0.0</bias_mean>
               <bias_stddev>0.0</bias_stddev>
+=======
+              <stddev>1.7e-2</stddev>
+              <bias_mean>0.1</bias_mean>
+              <bias_stddev>0.001</bias_stddev>
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
             </noise>
           </z>
         </linear_acceleration>
       </imu>
+<<<<<<< HEAD
 >>>>>>> 1cedadf3 (getting gps integrated with auto, WIP, rover currently flies away when using GPS)
 =======
       <update_rate>100</update_rate>
@@ -365,6 +414,18 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
       <update_rate>100</update_rate>
       <visualize>true</visualize>
 =======
+=======
+    </sensor>
+  </gazebo>
+  <gazebo reference="bootie_imu_frame">
+    <sensor name="bootie_imu_sensor" type="imu">
+      <topic>bootie/imu</topic>
+      <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu">
+        <frame_name>bootie_imu_frame</frame_name>
+        <initial_orientation_as_reference>false</initial_orientation_as_reference>
+      </plugin>
+      <always_on>true</always_on>
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
       <update_rate>200</update_rate>
       <visualize>true</visualize>
       <imu>
@@ -372,25 +433,43 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
           <x>
             <noise type="gaussian">
               <mean>0.0</mean>
+<<<<<<< HEAD
               <stddev>0.0</stddev>
               <bias_mean>0.0</bias_mean>
               <bias_stddev>0.0</bias_stddev>
+=======
+              <stddev>2e-4</stddev>
+              <bias_mean>0.0000075</bias_mean>
+              <bias_stddev>0.0000008</bias_stddev>
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
             </noise>
           </x>
           <y>
             <noise type="gaussian">
               <mean>0.0</mean>
+<<<<<<< HEAD
               <stddev>0.0</stddev>
               <bias_mean>0.0</bias_mean>
               <bias_stddev>0.0</bias_stddev>
+=======
+              <stddev>2e-4</stddev>
+              <bias_mean>0.0000075</bias_mean>
+              <bias_stddev>0.0000008</bias_stddev>
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
             </noise>
           </y>
           <z>
             <noise type="gaussian">
               <mean>0.0</mean>
+<<<<<<< HEAD
               <stddev>0.0</stddev>
               <bias_mean>0.0</bias_mean>
               <bias_stddev>0.0</bias_stddev>
+=======
+              <stddev>2e-4</stddev>
+              <bias_mean>0.0000075</bias_mean>
+              <bias_stddev>0.0000008</bias_stddev>
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
             </noise>
           </z>
         </angular_velocity>
@@ -398,34 +477,55 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
           <x>
             <noise type="gaussian">
               <mean>0.0</mean>
+<<<<<<< HEAD
               <stddev>0.0</stddev>
               <bias_mean>0.0</bias_mean>
               <bias_stddev>0.0</bias_stddev>
+=======
+              <stddev>1.7e-2</stddev>
+              <bias_mean>0.1</bias_mean>
+              <bias_stddev>0.001</bias_stddev>
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
             </noise>
           </x>
           <y>
             <noise type="gaussian">
               <mean>0.0</mean>
+<<<<<<< HEAD
               <stddev>0.0</stddev>
               <bias_mean>0.0</bias_mean>
               <bias_stddev>0.0</bias_stddev>
+=======
+              <stddev>1.7e-2</stddev>
+              <bias_mean>0.1</bias_mean>
+              <bias_stddev>0.001</bias_stddev>
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
             </noise>
           </y>
           <z>
             <noise type="gaussian">
               <mean>0.0</mean>
+<<<<<<< HEAD
               <stddev>0.0</stddev>
               <bias_mean>0.0</bias_mean>
               <bias_stddev>0.0</bias_stddev>
+=======
+              <stddev>1.7e-2</stddev>
+              <bias_mean>0.1</bias_mean>
+              <bias_stddev>0.001</bias_stddev>
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
             </noise>
           </z>
         </linear_acceleration>
       </imu>
+<<<<<<< HEAD
 >>>>>>> 1cedadf3 (getting gps integrated with auto, WIP, rover currently flies away when using GPS)
 =======
       <update_rate>100</update_rate>
       <visualize>true</visualize>
 >>>>>>> 02858847 (fixed IMU? WIP)
+=======
+>>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
     </sensor>
   </gazebo>
 </robot>
