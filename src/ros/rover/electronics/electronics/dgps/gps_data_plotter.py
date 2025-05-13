@@ -3,8 +3,8 @@ import pandas as pd
 import folium
 
 # Load the CSV (replace with your filename)
-df = pd.read_csv('data.csv')  # Columns: 'lat', 'lon'
-df = pd.read_csv('data.csv', header=None)
+df = pd.read_csv('data-3.csv')  # Columns: 'lat', 'lon'
+df = pd.read_csv('data-3.csv', header=None)
 df = df.iloc[:, -2:]  # Keep only the last two columns
 df.columns = ['lat', 'lon']  # Rename for clarity
 
@@ -22,4 +22,4 @@ for _, row in df.iterrows():
     ).add_to(m)
 
 # Save map
-m.save('map.html')
+m.save('map-3.html')
