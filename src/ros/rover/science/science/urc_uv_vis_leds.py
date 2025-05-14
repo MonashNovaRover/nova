@@ -1,14 +1,26 @@
 #!/usr/bin/env python3
-
-import time
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Purpose: Control for the URC LEDs in the Vis Spec
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: URCUVVisLeds
+TOPICS: None
+SERVICES:
+    - "/science/uv_vis_led_1"
+    - "/science/uv_vis_led_2"
+ACTIONS: None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:    science
+AUTHOR(S):	???, Felicity Matthews
+CREATION:	???
+EDITED:		14/05/2025
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 from python_control.controls.ToggleControl import ToggleControl
 from python_control.controllers.ToggleController import ToggleController
-from python_control.sensors.ToggleCommandSensor import ToggleCommandSensor
-from rclpy.executors import MultiThreadedExecutor
 import rclpy
 from python_control.ControllerNode import ControllerNode
 from std_srvs.srv import SetBool
-
 
 class URCUVVisLeds(ControllerNode):
 
@@ -20,17 +32,6 @@ class URCUVVisLeds(ControllerNode):
     # Add any CONTROL FRAME / CARD IDS here
     LED_1_SEND_FRAME_ID = 0x0A0
     LED_2_SEND_FRAME_ID = 0x0A0
-
-    # RECIEVING CARD IDS
-    # Add any CONTROL FRAME / CARD IDS here
-    # LED_RECV_FRAME_ID = 0x451
-
-    # RECV COMMAND IDS
-    # Add any SENSOR command ids here
-    # LED_1_COMMAND = 0x01
-    # LED_2_COMMAND = 0x02
-    # LED_ON_ID = 0x01
-    # LED_OFF_ID = 0x00
 
     # ROS2 SERVICES
     LED_1_SERVICE = "/science/uv_vis_led_1"
@@ -59,36 +60,9 @@ class URCUVVisLeds(ControllerNode):
         super(URCUVVisLeds, self).__init__(name="URCUVVisLeds", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
-        # self.bus.set_id_filter([self.LED_RECV_FRAME_ID])
-
-
         # Create publishers
         self.create_service(SetBool, self.LED_1_SERVICE, self.led_1_callback)
         self.create_service(SetBool, self.LED_2_SERVICE, self.led_2_callback)
- 
-
-        # Create Sensors
-        # self.led_1_sensor = ToggleCommandSensor(
-        #     logger=logger,
-        #     bus=self.bus,
-        #     frame_id=self.LED_RECV_FRAME_ID,
-        #     state_id_on=self.LED_ON_ID,
-        #     state_id_off=self.LED_OFF_ID,
-        #     control_id=self.LED_1_COMMAND,
-        # )
-        #
-        # self.led_2_sensor = ToggleCommandSensor(
-        #     logger=logger,
-        #     bus=self.bus,
-        #     frame_id=self.LED_RECV_FRAME_ID,
-        #     state_id_on=self.LED_ON_ID,
-        #     state_id_off=self.LED_OFF_ID,
-        #     control_id=self.LED_2_COMMAND,
-        # )
-
-        # Add sensors to the node
-        # self.add_sensor(self.LED_1_NAME, self.led_1_sensor)
-        # self.add_sensor(self.LED_2_NAME, self.led_2_sensor)
 
         ## Create controls
         self.led_1 = ToggleControl(
@@ -97,7 +71,6 @@ class URCUVVisLeds(ControllerNode):
         self.led_2 = ToggleControl(
             logger=logger,
         )
-
 
         ## Create controllers
         self.led_1_controller = ToggleController(
@@ -119,7 +92,7 @@ class URCUVVisLeds(ControllerNode):
             control_id=self.LED_2_COMMAND,
         )
 
-        ## Start the CAN busget_name
+        ## Start the CAN bus
         self.start_can()
 
     def led_callback(self, request, response, controller: ToggleController, control_name: str):
