@@ -26,15 +26,14 @@ const CarouselDial: React.FC<CarouselDialProps> = (props) => {
 
   return <div>
     <div className="flex flex-col items-center overflow-hidden">
-      <ChevronUp className="w-16 h-8 opacity-0"/>
       <div className="flex flex-row items-center">
         <Search className="w-16 h-8 opacity-0"/>
         <div>
           <Image style={rotateStyle} src={CarouselDialImage}/>
         </div>
-        <Search className="w-16 h-8"/>
+        <Search color="#17c964" className="w-16 h-8"/>
       </div>
-      <ChevronUp className="w-16 h-8"/>
+      <ChevronUp color="#17c964" className="w-16 h-8"/>
     </div>
   </div>
 }
