@@ -8,7 +8,6 @@ import GenericSetBoolWidget from "../../components/GenericSetBoolWidget/GenericS
 import {RosService} from "../../ros/services/rosService.ts";
 import URCNIRProbeWidget from "../../components/NIRProbe/URCNIRProbeWidget.tsx";
 import CacheControlWidget from "../../components/science/CacheControlWidget/CacheControlWidget.tsx";
-import CarouselWidget2 from "../../components/CarouselWidget/CarouselWidget2.tsx";
 
 const URCScienceView: React.FC = () => {
   return (
@@ -30,9 +29,6 @@ const URCScienceView: React.FC = () => {
           <GenericSetBoolWidget className="w-3/4" label="Heater" service={RosService.HEATER}/>
           <GenericSetBoolWidget className="w-3/4" label="Mixers" service={RosService.MIXERS}/>
         </div>
-
-        <CarouselWidget2/>
-
       </div>
 
       <div className="flex flex-col gap-3 col-span-2">
