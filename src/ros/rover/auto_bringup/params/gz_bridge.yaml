@@ -40,6 +40,13 @@
   gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
 
+# Oak imu
+- ros_topic_name: "/oak/imu/transformed"
+  gz_topic_name: "/oak/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
+
 # Bootie depth image
 - ros_topic_name: "/bootie/stereo/image_raw"
   gz_topic_name: "/bootie/depth_image"
@@ -68,6 +75,16 @@
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
+<<<<<<< HEAD
+=======
+# Bootie pointcloud
+- ros_topic_name: "/bootie/gz_points"
+  gz_topic_name: "/bootie/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
+  direction: GZ_TO_ROS
+
+>>>>>>> 1cedadf3 (getting gps integrated with auto, WIP, rover currently flies away when using GPS)
 # Bootie imu
 - ros_topic_name: "/bootie/imu/transformed"
   gz_topic_name: "/bootie/imu"
@@ -76,7 +93,7 @@
   direction: GZ_TO_ROS
 
 # GPS
-- ros_topic_name: "/fix"
+- ros_topic_name: "/gps_rover/fix"
   gz_topic_name: "/gps"
   ros_type_name: "sensor_msgs/msg/NavSatFix"
   gz_type_name: "gz.msgs.NavSat"

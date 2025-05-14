@@ -59,6 +59,25 @@ def launch_setup(context, *args, **kwargs):
             output='screen',
             parameters=[rl_params, {'use_sim_time': gazebo}],
             remappings=[('odometry/filtered', 'odometry/local')],
+<<<<<<< HEAD
+=======
+        ),
+        Node(
+            package='robot_localization',
+            executable='ekf_node',
+            name='ekf_filter_node_map',
+            output='screen',
+            parameters=[rl_params, {'use_sim_time': gazebo}],
+            remappings=[('odometry/filtered', 'odometry/global')],
+        ),
+        Node(
+            condition=UnlessCondition(gps),
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_transform_publisher',
+            output='screen',
+            arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
+>>>>>>> 1cedadf3 (getting gps integrated with auto, WIP, rover currently flies away when using GPS)
         ),
         Node(
             package='robot_localization',
@@ -89,7 +108,7 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[rl_params, {'use_sim_time': gazebo}],
                     remappings=[
                         ('odometry/filtered', 'odometry/global'),
-                        ('gps/fix', '/fix'),
+                        ('gps/fix', 'gps_rover/fix'),
                         ('imu', 'oak/imu/transformed')],
                 ),
                 IncludeLaunchDescription(
