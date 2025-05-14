@@ -1,7 +1,16 @@
 controller_manager:
   ros__parameters:
-    update_rate: 20 
+    update_rate: 60
     use_sim_time: false
+
+    nova_arm_velocity_controller:
+      type: nova_arm_controller/NovaArmController
+
+    nova_arm_position_controller:
+      type: nova_arm_controller/NovaArmController
+
+    nova_twistmapper:
+      type: nova_twistmapper/NovaTwistmapper
 
     wheel_velocity_controller:
       type: velocity_controllers/JointGroupVelocityController
@@ -24,6 +33,42 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
+nova_arm_velocity_controller:
+  ros__parameters:
+    joint_names:
+      - J1
+      - J2
+      - J3
+      - J4
+      - J5
+      - J6
+    use_position_control: false
+    use_collision_limits: false
+
+nova_arm_position_controller:
+  ros__parameters:
+    joint_names:
+      - J1
+      - J2
+      - J3
+      - J4
+      - J5
+      - J6
+    use_position_control: true
+    use_collision_limits: false
+
+nova_twistmapper:
+  ros__parameters:
+    chained_controller_name: "nova_arm_position_controller"
+    joint_names:
+      - J1
+      - J2
+      - J3
+      - J4
+      - J5
+      - J6
+    kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
+
 wheel_velocity_controller:
   ros__parameters:
     joints:
@@ -43,19 +88,29 @@ pivot_position_controller:
 joint_state_broadcaster:
   ros__parameters:
     interfaces:
-       ["position",
-      "velocity"]
+       ["position", "velocity"]
 
     joints:
-      ["blp",
-      "brp",
-      "flp",
-      "frp",
-      "blw",
-      "brw",
-      "flw",
-      "frw"]
+      ["blp", "brp", "flp", "frp",
+      "blw", "brw", "flw", "frw", 
+      "J1", "J2", "J3", "J4", "J5", "J6"]
 
+    extra_joints:
+      ["chassis_to_left_leg",
+       "chassis_to_right_leg",
+        "chassis_to_diffbar",
+        "tl_ball_roll",
+        "tl_ball_pitch",
+        "tl_ball_yaw",
+        "tr_ball_roll",
+        "tr_ball_pitch",
+        "tr_ball_yaw",
+        "bl_ball_roll",
+        "bl_ball_pitch",
+        "bl_ball_yaw",
+        "br_ball_roll",
+        "br_ball_pitch",
+        "br_ball_yaw"]
     use_local_topics: false
     
 pivot_drive_controller:
@@ -73,9 +128,6 @@ pivot_drive_controller:
     max_acceleration: 0.1
     min_acceleration: -0.1
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-    steering_track: 0.76
-    wheel_base: 0.875
-    wheel_radius: 0.15
 
 strafe_controller:
   ros__parameters:
@@ -86,9 +138,6 @@ strafe_controller:
     right_pivot_names: ["frp", "brp"]
     open_loop: true
     max_acceleration: 5.0
-    wheel_radius: 0.16
-    wheel_base: 0.875
-    steering_track: 0.76
 
 nova_diff_drive_controller:
   ros__parameters:
@@ -98,9 +147,6 @@ nova_diff_drive_controller:
     left_pivot_names: ["flp", "blp"]
     right_pivot_names: ["frp", "brp"]
     wheels_per_side: 2
-    steering_track: 0.7
-    wheel_base: 0.84
-    wheel_radius: 0.1488
     linear:
       x:
         max_acceleration: 5.0

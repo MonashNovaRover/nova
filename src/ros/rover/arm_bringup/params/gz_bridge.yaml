@@ -33,11 +33,11 @@
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
-# Oak Imu
-- ros_topic_name: "/oak/imu/transformed"
-  gz_topic_name: "/oak/imu"
-  ros_type_name: "sensor_msgs/msg/Imu"
-  gz_type_name: "gz.msgs.IMU"
+# Oak pointcloud
+- ros_topic_name: "/oak/gz_points"
+  gz_topic_name: "/oak/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
   direction: GZ_TO_ROS
 
 # Bootie depth image
@@ -68,18 +68,32 @@
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
-# Bootie imu
-- ros_topic_name: "/bootie/imu/transformed"
-  gz_topic_name: "/bootie/imu"
+# Bootie pointcloud
+- ros_topic_name: "/bootie/gz_points"
+  gz_topic_name: "/bootie/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
+  direction: GZ_TO_ROS
+
+# Imu
+- ros_topic_name: "/oak/imu/transformed"
+  gz_topic_name: "/oak/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
 
 # GPS
-- ros_topic_name: "/gps_rover/fix"
+- ros_topic_name: "/fix"
   gz_topic_name: "/gps"
   ros_type_name: "sensor_msgs/msg/NavSatFix"
   gz_type_name: "gz.msgs.NavSat"
+  direction: GZ_TO_ROS
+
+# Odom
+- ros_topic_name: "/odom"
+  gz_topic_name: "/odom"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "gz.msgs.Odometry"
   direction: GZ_TO_ROS
 
 # Joint states
@@ -87,4 +101,41 @@
   gz_topic_name: "/joint_states"
   ros_type_name: "sensor_msgs/msg/JointState"
   gz_type_name: "gz.msgs.Model"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/joint_states"
+  gz_topic_name: "/arm/joints_states"
+  ros_type_name: "sensor_msgs/msg/JointState"
+  gz_type_name: "gz.msgs.Model"
+  direction: GZ_TO_ROS
+
+# Arm cameras
+- ros_topic_name: "/arm/top"
+  gz_topic_name: "/arm/top"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/arm/finger"
+  gz_topic_name: "/arm/finger"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/arm/side"
+  gz_topic_name: "/arm/side"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/arm/periscope"
+  gz_topic_name: "/arm/periscope"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/arm/camera_info"
+  gz_topic_name: "/arm/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS

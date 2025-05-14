@@ -18,7 +18,7 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    auto_bringup_dir = FindPackageShare('auto_bringup')
+    arm_bringup_dir = FindPackageShare('arm_bringup')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
@@ -45,25 +45,25 @@ def launch_setup(context, *args, **kwargs):
             value=PathJoinSubstitution([nova_gazebo_dir, 'worlds'])
         ),
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
+            PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'control.launch.py'])),
             launch_arguments={'controllers': controllers, 'model': model, 'gazebo': 'False', 'robot_name': robot_name, 'arm': arm, 'use_mock_hardware': 'True'}.items(),
         ),
         # I think this is already handled by control.launch.py
         # IncludeLaunchDescription(
-        #     PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
+        #     PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
         #     launch_arguments={'model': model, 'gazebo': 'false', 'robot_name': robot_name, 'arm': arm, 'use_mock_hardware': 'True'}.items(),
         # ),
     ]
 
 def generate_launch_description():
-    auto_bringup_dir = FindPackageShare('auto_bringup')
+    arm_bringup_dir = FindPackageShare('arm_bringup')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
     rover_description_dir = FindPackageShare('rover_description')
 
     declared_arguments = [
         DeclareLaunchArgument(
             name='controllers',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'controllers.yaml']),
             description='Absolute path to controllers params file',
         ),
         DeclareLaunchArgument(
