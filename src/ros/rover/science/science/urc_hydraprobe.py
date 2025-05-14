@@ -133,7 +133,8 @@ class NewHydraprobeTransceiver():
     def __init__(self, port, logger, baudrate=9600, bytesize=8, parity='N', stopbits=1, retries=1, broadcast_enable=True):
         self.client = ModbusSerialClient(port, baudrate=baudrate, bytesize=bytesize, parity=parity, stopbits=stopbits, retries=retries, broadcast_enable=broadcast_enable)
         self.logger = logger
-        self.client.connect()
+        if not self.client.connect():
+            raise RuntimeError("Failed to run self.client.connect()")
 
     def read_moisture(self, slave=1):
         client = self.client
