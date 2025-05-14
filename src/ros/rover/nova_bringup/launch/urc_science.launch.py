@@ -144,12 +144,6 @@ def launch_setup(context, *args, **kwargs):
         ),
         Node(
             package='science',
-            executable='urc_mixers.py',
-            output='screen',
-            emulate_tty=True,
-        ),
-        Node(
-            package='science',
             executable='urc_pumps.py',
             output='screen',
             emulate_tty=True,

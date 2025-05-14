@@ -1,5 +1,20 @@
 #!/usr/bin/env python3
-
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Purpose: Control for the URC Pumps
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: URCPumps
+TOPICS: None
+SERVICES: None
+ACTIONS:
+    - "/science/pumps_action"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:    science
+AUTHOR(S):	???, Felicity Matthews
+CREATION:	???
+EDITED:		14/05/2025
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 
 import time
 from python_control.controls.Direction import Direction
@@ -7,7 +22,6 @@ from python_control.controllers.TimedCMDVelocityController import TimedCMDVeloci
 from python_control.controls.TimedOneAxisVelocityControl import TimedOneAxisVelocityControl
 import rclpy
 from rclpy.action import ActionServer
-import jcan
 from python_control.ControllerNode import ControllerNode
 from nova_interfaces.action import Pumps
 
