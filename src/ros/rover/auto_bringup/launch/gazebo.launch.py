@@ -102,6 +102,20 @@ def launch_setup(context, *args, **kwargs):
                  'target_frame': ['camera_link_gz_pointcloud', 'bootie_link_gz_pointcloud']}
             ],
         ),
+        Node(
+            package='nova_utils',
+            executable='gz_imu_fixer.py',
+            name='gz_imu_fixer',
+            parameters=[{'sub_topic': '/gz/oak/imu/transformed', 
+                         'pub_topic': '/oak/imu/transformed'}],
+        ),
+        Node(
+            package='nova_utils',
+            executable='gz_imu_fixer.py',
+            name='gz_imu_fixer',
+            parameters=[{'sub_topic': '/gz/bootie/imu/transformed', 
+                         'pub_topic': '/bootie/imu/transformed'}],
+        ),
     ]
 
 

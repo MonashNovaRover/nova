@@ -13,25 +13,21 @@ ekf_filter_node_odom:
 
     # Wheel Odom
     odom0: /pivot_drive_controller/odom
-    odom0_config:
-      [ false, false, false,
-        false, false, false,
-        true,false,false,
-        false,false,true,
-        false,false,false,
-      ]
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   true,  false, false,
+                   false, false, true,
+                   false, false, false]
     odom0_differential: false
     odom0_relative: false
 
     # Front IMU
     imu0: /oak/imu/transformed
-    imu0_config:
-      [ false,false,false,
-        true,true,true,
-        false,false,false,
-        false,false,false,
-        false,false,false,
-      ]
+    imu0_config: [false, false, false,
+                  true,  true,  false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false]
     imu0_differential: false
     imu0_relative: false
     imu0_remove_gravitational_acceleration: true
@@ -82,13 +78,11 @@ ekf_filter_node_map:
 
     # Wheel Odom
     odom0: /pivot_drive_controller/odom
-    odom0_config:
-      [ false, false, false,
-        false, false, false,
-        true,false,false,
-        false,false,true,
-        false,false,false,
-      ]
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   true,  false, false,
+                   false, false, true,
+                   false, false, false]
     odom0_differential: false
     odom0_relative: false
     
@@ -105,13 +99,11 @@ ekf_filter_node_map:
 
     # Front IMU
     imu0: /oak/imu/transformed
-    imu0_config:
-      [ false,false,false,
-        true,true,true,
-        false,false,false,
-        false,false,false,
-        false,false,false,
-      ]
+    imu0_config: [false, false, false,
+                  true,  true,  false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false]
     imu0_differential: false
     imu0_relative: false
     imu0_remove_gravitational_acceleration: true
@@ -155,7 +147,7 @@ navsat_transform:
     delay: 3.0
     magnetic_declination_radians: 0.0
     yaw_offset: 0.0
-    zero_altitude: false
+    zero_altitude: true
     broadcast_utm_transform: false
     publish_filtered_gps: true
     use_odometry_yaw: false
