@@ -51,7 +51,7 @@ class URCUVVisLeds(ControllerNode):
     # Add any CONTROL command ids here
     LED_1_COMMAND = 0x04
     LED_2_COMMAND = 0x05
-    LED_ON_COMMAND = 0xFF
+    LED_ON_COMMAND = 0x01
     LED_OFF_COMMAND = 0x00
 
     TIMEOUT = 2.0
