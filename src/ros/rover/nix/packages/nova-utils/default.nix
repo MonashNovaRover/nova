@@ -9,6 +9,8 @@
   vision-msgs, 
   visualization-msgs, 
   yolo-msgs, 
+  tf2-ros, 
+  tf-transformations, 
 }:
 
 buildRosPackage rec {
@@ -30,5 +32,7 @@ buildRosPackage rec {
     robot-localization 
     std-msgs 
     yolo-msgs 
+    tf2-ros 
+    tf-transformations 
   ];
 }

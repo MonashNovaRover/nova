@@ -25,22 +25,30 @@ from rclpy.node import Node
 from rclpy.action import ActionClient
 from rclpy.client import Client
 from rclpy.qos import QoSProfile, QoSDurabilityPolicy
+from rclpy.executors import MultiThreadedExecutor
 from geometry_msgs.msg import PoseStamped, Point
 from geographic_msgs.msg import GeoPoint
 from nav2_msgs.action import NavigateThroughPoses
 from action_msgs.msg import GoalStatus
 from visualization_msgs.msg import Marker, MarkerArray
 from robot_localization.srv import FromLL
+from tf2_ros import Buffer, TransformListener
+from tf_transformations import quaternion_from_euler
 import json
 import os
 import sys
 import time
+import math
 
 class WaypointNavigator(Node):
-    def __init__(self, file_path):
+    def __init__(self):
         super().__init__('waypoint_navigator')
 
         # 📝 Populate parameters
+        self._file_path = self.declare_parameter(
+            name='file_path', 
+            value=os.path.expanduser('~/nova/src/ros/rover/auto_bringup/params/waypoints.json'), 
+        ).value
         self._gps = self.declare_parameter(
             name='gps', 
             value=True, 
@@ -55,12 +63,15 @@ class WaypointNavigator(Node):
         ).value
         self._goal_handle = None    # Prevents race condition with /fromLL service
         self._waypoints = None      # Prevents race condition with /fromLL service
+        
+        # 📝 Create TF listener to get rover position in create_waypoint()
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
 
         # 📝 Create action client for Nav2 NavigateThroughPoses
         self._action_client = ActionClient(self, NavigateThroughPoses, '/navigate_through_poses')
 
         # 📝 Load waypoints from JSON
-        self._file_path = file_path if file_path else os.path.expanduser('~/nova/src/ros/rover/auto_bringup/params/waypoints.json')
         self._waypoints = self.load_waypoints()
 
         if not self._waypoints:
@@ -90,7 +101,7 @@ class WaypointNavigator(Node):
         self.get_logger().info('✅ Action server available!')
 
         # 📝 Send waypoints asynchronously as an action goal
-        if self._waypoints: # Prevents race condition with /fromLL service by calling after result_fromll_callback
+        if self._waypoints: # Prevents race condition with /fromLL service by calling after result_fromll_callback()
             self.send_goal_async()
 
         # 📝 Create a timer to check navigation status every second
@@ -136,10 +147,26 @@ class WaypointNavigator(Node):
         pose.pose.position.x = point.x
         pose.pose.position.y = point.y
         pose.pose.position.z = 0.0
-        pose.pose.orientation.x = 0.0
-        pose.pose.orientation.y = 0.0
-        pose.pose.orientation.z = 0.0
-        pose.pose.orientation.w = 1.0
+
+        # 📝 Get the rover's position in the map frame
+        try:
+            transform = self.tf_buffer.lookup_transform('map', 'base_link', rclpy.time.Time(), rclpy.time.Duration(seconds=10.0))
+        except Exception as e:
+            self.get_logger().error(f' ❌ Transform was not available! {e}')
+            raise Exception
+        rover = Point()
+        rover.x = transform.transform.translation.x
+        rover.y = transform.transform.translation.y
+
+        # 📝 Calculate orientation for goal based on position relative to rover
+        dx = point.x - rover.x
+        dy = point.y - rover.y
+        yaw = math.atan2(dy, dx)
+        q = quaternion_from_euler(0, 0, yaw)
+        pose.pose.orientation.x = q[0]
+        pose.pose.orientation.y = q[1]
+        pose.pose.orientation.z = q[2]
+        pose.pose.orientation.w = q[3]
         return [pose]
 
     def publish_waypoint_markers(self):
@@ -233,7 +260,11 @@ class WaypointNavigator(Node):
         result = future.result()
 
         # 📝 Create waypoint
-        self._waypoints = self.create_waypoint(result.map_point)
+        try:
+            self._waypoints = self.create_waypoint(result.map_point)
+        except Exception:
+            self.get_logger().error('❌ Failed to convert GNSS goal to Nav2 goal. Exiting.')
+            return
         self.get_logger().info(f'📍 Loaded Waypoint 1: ({self._waypoints[0].pose.position.x}, {self._waypoints[0].pose.position.y})')
         self.send_goal_async()
 
@@ -252,12 +283,11 @@ class WaypointNavigator(Node):
 def main(args=None):
     '''Main function to start the ROS2 node.'''
     rclpy.init(args=args)
-
-    # ✅ Allow optional file path argument
-    file_path = sys.argv[1] if len(sys.argv) > 1 else None
-    node = WaypointNavigator(file_path)
+    node = WaypointNavigator()
+    executor = MultiThreadedExecutor()
+    executor.add_node(node)
     try:
-        rclpy.spin(node)
+        executor.spin()
     except KeyboardInterrupt:
         pass
     finally:
