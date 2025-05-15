@@ -59,7 +59,7 @@ BT::NodeStatus BlackboardPublisherNode::tick()
   {
     last_publish_ = now;
     publish_blackboard();
-    RCLCPP_INFO(node_->get_logger(), "Blackboard published!");
+    RCLCPP_DEBUG(node_->get_logger(), "Blackboard published!");
   }
 
   // Return SUCCESS every time for this demo

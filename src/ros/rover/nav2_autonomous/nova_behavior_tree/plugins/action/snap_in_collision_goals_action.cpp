@@ -69,7 +69,7 @@ namespace nova_behavior_tree
             [this](const OccupancyGrid::SharedPtr msg) -> void
             {
                 local_occu_grid_ = msg;
-                RCLCPP_INFO(node_->get_logger(), "Received local costmap");
+                RCLCPP_DEBUG(node_->get_logger(), "Received local costmap");
             }
         );
         global_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
@@ -77,7 +77,7 @@ namespace nova_behavior_tree
             [this](const OccupancyGrid::SharedPtr msg) -> void
             {
                 global_occu_grid_ = msg;
-                RCLCPP_INFO(node_->get_logger(), "Received global costmap");
+                RCLCPP_DEBUG(node_->get_logger(), "Received global costmap");
             }
         );
 

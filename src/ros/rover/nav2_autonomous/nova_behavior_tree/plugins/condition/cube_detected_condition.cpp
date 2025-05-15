@@ -109,7 +109,7 @@ namespace nova_behavior_tree
                 continue;
             }
 
-            std::string child_frame = COLORS[i] + "_cube";
+            std::string child_frame = COLORS[i] + "_obj";
             geometry_msgs::msg::Pose cube_pose;
 
             try
