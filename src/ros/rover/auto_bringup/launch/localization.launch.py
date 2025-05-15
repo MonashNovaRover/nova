@@ -70,6 +70,7 @@ def launch_setup(context, *args, **kwargs):
             parameters=[rl_params, {'use_sim_time': gazebo}],
             remappings=[('odometry/filtered', 'odometry/global')],
         ),
+<<<<<<< HEAD
         Node(
             condition=UnlessCondition(gps),
             package='tf2_ros',
@@ -87,6 +88,8 @@ def launch_setup(context, *args, **kwargs):
             parameters=[rl_params, {'use_sim_time': gazebo}],
             remappings=[('odometry/filtered', 'odometry/global')],
         ),
+=======
+>>>>>>> 84362f87 (PR cleanups)
         # Node(
         #     condition=UnlessCondition(gps),
         #     package='tf2_ros',

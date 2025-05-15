@@ -25,10 +25,14 @@ ekf_filter_node_odom:
     imu0: /oak/imu/transformed
     imu0_config: [false, false, false,
 <<<<<<< HEAD
+<<<<<<< HEAD
                   true,  true,  true,
 =======
                   true,  true,  false,
 >>>>>>> 02858847 (fixed IMU? WIP)
+=======
+                  true,  true,  true,
+>>>>>>> 84362f87 (PR cleanups)
                   false, false, false,
                   false, false, false,
                   false, false, false]
@@ -111,10 +115,14 @@ ekf_filter_node_map:
     imu0: /oak/imu/transformed
     imu0_config: [false, false, false,
 <<<<<<< HEAD
+<<<<<<< HEAD
                   true,  true,  true,
 =======
                   true,  true,  false,
 >>>>>>> 02858847 (fixed IMU? WIP)
+=======
+                  true,  true,  true,
+>>>>>>> 84362f87 (PR cleanups)
                   false, false, false,
                   false, false, false,
                   false, false, false]
@@ -159,6 +167,9 @@ navsat_transform:
     delay: 3.0
     magnetic_declination_radians: 0.0
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 84362f87 (PR cleanups)
     yaw_offset: 0.0 # Set to yaw used for ros_gz_sim create executable to work in sim. Set to 0.0 for real life.
     zero_altitude: true
 =======

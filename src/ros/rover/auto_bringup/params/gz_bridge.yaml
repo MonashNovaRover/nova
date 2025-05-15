@@ -34,6 +34,9 @@
   direction: GZ_TO_ROS
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 84362f87 (PR cleanups)
 # Oak Imu
 - ros_topic_name: "/oak/imu/transformed"
   gz_topic_name: "/oak/imu"
@@ -42,7 +45,7 @@
   direction: GZ_TO_ROS
 
 # Oak imu
-- ros_topic_name: "/gz/oak/imu/transformed"
+- ros_topic_name: "/oak/imu/transformed"
   gz_topic_name: "/oak/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
@@ -118,19 +121,23 @@
 =======
 >>>>>>> a304f089 (fixed sim gps)
 # Bootie imu
+<<<<<<< HEAD
 - ros_topic_name: "/gz/bootie/imu/transformed"
 =======
 
 # Bootie Imu
 - ros_topic_name: "/bootie/imu/transformed"
 >>>>>>> 59c0bf7a (fix imus in sim, reenable mppi)
+=======
+- ros_topic_name: "/bootie/imu/transformed"
+>>>>>>> 84362f87 (PR cleanups)
   gz_topic_name: "/bootie/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
 
 # GPS
-- ros_topic_name: "/gz/gps_rover/fix"
+- ros_topic_name: "/gps_rover/fix"
   gz_topic_name: "/gps"
   ros_type_name: "sensor_msgs/msg/NavSatFix"
   gz_type_name: "gz.msgs.NavSat"
