@@ -6,7 +6,7 @@ Purpose: Control for the URC Hydraprobe actuation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: HydraprobeControlNode
 TOPICS:
-  - subscriber: /inputs/input_joystick_l [InputJoystick]
+  - subscriber: /inputs/input_joystick_r [InputJoystick]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,8 +36,8 @@ class HydraprobeControlNode(JoystickControllerNode):
     COMMAND_PERIOD = 0.3
 
     # SENDING COMMAND IDS
-    MOVE_UP = 0x01
-    MOVE_DOWN = 0x02
+    MOVE_UP = 0x06
+    MOVE_DOWN = 0x07
 
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
@@ -58,9 +58,9 @@ class HydraprobeControlNode(JoystickControllerNode):
 
     # REQUEST COMMANDS
     COMMANDS = [
-        RESET_COMMAND := (0).to_bytes(1, "big"), # Turns off both photodiodes
-        RETRACT_COMMAND := (1).to_bytes(1, "big"), # Exclusively turns on photodiode 1 and LED 1
-        DEPLOY_COMMAND := (2).to_bytes(1, "big"), # Exclusively turns on photodiode 2 and LED 2
+        RESET_COMMAND := (0).to_bytes(1, "big"), # Reset the hydraprobe to resting location
+        RETRACT_COMMAND := (1).to_bytes(1, "big"), # Retract the hydraprobe from deployed to resting location
+        DEPLOY_COMMAND := (2).to_bytes(1, "big"), # Deploy the hydraprobe from resting location
     ]
 
     def __init__(self):
