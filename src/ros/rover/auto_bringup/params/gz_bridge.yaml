@@ -96,6 +96,7 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 # Bootie pointcloud
 - ros_topic_name: "/bootie/gz_points"
@@ -114,6 +115,8 @@
 >>>>>>> 2746ce5f (fix: Remove gazebo pointclouds and gz_frame_fixer)
 
 >>>>>>> 1cedadf3 (getting gps integrated with auto, WIP, rover currently flies away when using GPS)
+=======
+>>>>>>> a304f089 (fixed sim gps)
 # Bootie imu
 - ros_topic_name: "/gz/bootie/imu/transformed"
 =======

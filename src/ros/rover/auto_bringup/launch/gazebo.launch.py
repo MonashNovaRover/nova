@@ -107,6 +107,11 @@ def launch_setup(context, *args, **kwargs):
         ),
         Node(
             package='nova_utils',
+            executable='gz_gps_fixer.py',
+            name='gz_gps_fixer',
+        ),
+        Node(
+            package='nova_utils',
             executable='gz_imu_fixer.py',
             name='gz_imu_fixer',
             parameters=[{'sub_topic': '/gz/oak/imu/transformed', 
@@ -172,6 +177,7 @@ def generate_launch_description():
             description='Full path to world model file to load',
         ),
 <<<<<<< HEAD
+<<<<<<< HEAD
         DeclareLaunchArgument(name='x', default_value='-3.0', description='x_pose'),
         DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
         DeclareLaunchArgument(name='z', default_value='0.5', description='z_pose'),
@@ -186,6 +192,14 @@ def generate_launch_description():
         DeclareLaunchArgument(name='P', default_value='0.0', description='pitch'),
         DeclareLaunchArgument(name='Y', default_value='2.50', description='yaw'),
 >>>>>>> 40374c0b (fix: Update stvl params to better consider global and local costmaps)
+=======
+        DeclareLaunchArgument(name='x', default_value='-3.0', description='x_pose'),
+        DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
+        DeclareLaunchArgument(name='z', default_value='0.5', description='z_pose'),
+        DeclareLaunchArgument(name='R', default_value='0.0', description='roll'),
+        DeclareLaunchArgument(name='P', default_value='0.0', description='pitch'),
+        DeclareLaunchArgument(name='Y', default_value='0.0', description='yaw'),
+>>>>>>> a304f089 (fixed sim gps)
     ]
 
     return LaunchDescription(
