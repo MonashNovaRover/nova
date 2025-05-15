@@ -23,11 +23,14 @@ TODO:
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
+from rclpy.client import Client
 from rclpy.qos import QoSProfile, QoSDurabilityPolicy
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Point
+from geographic_msgs.msg import GeoPoint
 from nav2_msgs.action import NavigateThroughPoses
 from action_msgs.msg import GoalStatus
 from visualization_msgs.msg import Marker, MarkerArray
+from robot_localization.srv import FromLL
 import json
 import os
 import sys
@@ -37,28 +40,60 @@ class WaypointNavigator(Node):
     def __init__(self, file_path):
         super().__init__('waypoint_navigator')
 
-        # ✅ Action client for Nav2 NavigateThroughPoses
+        # 📝 Populate parameters
+        self._gps = self.declare_parameter(
+            name='gps', 
+            value=True, 
+        ).value
+        self._lat = self.declare_parameter(
+            name='lat', 
+            value=38.41527178118493, 
+        ).value
+        self._lon = self.declare_parameter(
+            name='lon', 
+            value=-110.78853604626094, 
+        ).value
+        self._goal_handle = None    # Prevents race condition with /fromLL service
+        self._waypoints = None      # Prevents race condition with /fromLL service
+
+        # 📝 Create action client for Nav2 NavigateThroughPoses
         self._action_client = ActionClient(self, NavigateThroughPoses, '/navigate_through_poses')
 
-        # ✅ Load waypoints from JSON
+        # 📝 Load waypoints from JSON
         self._file_path = file_path if file_path else os.path.expanduser('~/nova/src/ros/rover/auto_bringup/params/waypoints.json')
         self._waypoints = self.load_waypoints()
 
         if not self._waypoints:
-            self.get_logger().error('❌ No waypoints found or failed to load JSON. Exiting.')
-            return
+            self.get_logger().error('❌ No waypoints found or failed to load JSON.')
+            if not self._gps:
+                return
 
-        # ✅ Wait for the Nav2 action server
+            # 📝 Create service client for robot_localization FromLL
+            self.get_logger().info('🗺️ Using GNSS coordinates instead.')
+            self._fromll_client = self.create_client(FromLL, '/fromLL')
+
+            # 📝 Wait for the robot_localization fromLL service
+            self.get_logger().info('⏳ Waiting for /fromLL server...')
+            if not self._fromll_client.wait_for_service(timeout_sec=10.0):
+                self.get_logger().error('❌ FromLL server not available. Exiting.')
+                return
+            self.get_logger().info('✅ FromLL server available!')
+
+            # 📝 Convert GNSS goal to Nav2 goal
+            self.call_fromll_async()
+
+        # 📝 Wait for the Nav2 action server
         self.get_logger().info('⏳ Waiting for /navigate_through_poses action server...')
         if not self._action_client.wait_for_server(timeout_sec=10.0):
             self.get_logger().error('❌ Action server not available. Exiting.')
             return
         self.get_logger().info('✅ Action server available!')
 
-        # ✅ Send waypoints asynchronously as an action goal
-        self.send_goal_async()
+        # 📝 Send waypoints asynchronously as an action goal
+        if self._waypoints: # Prevents race condition with /fromLL service by calling after result_fromll_callback
+            self.send_goal_async()
 
-        # Create a timer to check navigation status every second
+        # 📝 Create a timer to check navigation status every second
         self._nav_check_timer = self.create_timer(1.0, self.check_nav_status)
 
 
@@ -93,6 +128,19 @@ class WaypointNavigator(Node):
 
         return waypoints
 
+    def create_waypoint(self, point):
+        '''Creates a waypoint from a geometry_msgs/msg/Point.'''
+        pose = PoseStamped()
+        pose.header.frame_id = 'map'
+        pose.header.stamp = self.get_clock().now().to_msg()
+        pose.pose.position.x = point.x
+        pose.pose.position.y = point.y
+        pose.pose.position.z = 0.0
+        pose.pose.orientation.x = 0.0
+        pose.pose.orientation.y = 0.0
+        pose.pose.orientation.z = 0.0
+        pose.pose.orientation.w = 1.0
+        return [pose]
 
     def publish_waypoint_markers(self):
         '''Publishes waypoints as markers to RViz for visualization. Currently not used.'''
@@ -129,7 +177,7 @@ class WaypointNavigator(Node):
             text_marker.color.g = 1.0
             text_marker.color.b = 1.0
             text_marker.color.a = 1.0
-            text_marker.text = f'wp_{idx+1}'  # Label as 'wp_1', 'wp_2', etc.
+            text_marker.text = f'wp_{idx+1}' # Label as 'wp_1', 'wp_2', etc.
 
             marker_array.markers.append(marker)
             marker_array.markers.append(text_marker)
@@ -144,10 +192,10 @@ class WaypointNavigator(Node):
         goal_msg.poses = self._waypoints  # List of PoseStamped
         self.get_logger().info('🚀 Sending waypoints to /navigate_through_poses...')
         send_future = self._action_client.send_goal_async(goal_msg)
-        send_future.add_done_callback(self.goal_response_callback)
+        send_future.add_done_callback(self.response_goal_callback)
 
 
-    def goal_response_callback(self, future):
+    def response_goal_callback(self, future):
         goal_handle = future.result()
         if not goal_handle.accepted:
             self.get_logger().error('❌ Goal was rejected by the action server.')
@@ -158,10 +206,10 @@ class WaypointNavigator(Node):
 
         # Set up asynchronous result callback
         result_future = goal_handle.get_result_async()
-        result_future.add_done_callback(self.result_callback)
+        result_future.add_done_callback(self.result_goal_callback)
 
     
-    def result_callback(self, future):
+    def result_goal_callback(self, future):
         result = future.result()
         if result.status == GoalStatus.STATUS_SUCCEEDED:
             self.get_logger().info('✅ Navigation through all waypoints succeeded!')
@@ -172,6 +220,22 @@ class WaypointNavigator(Node):
         else:
             self.get_logger().error(f'❓ Navigation ended with unknown status: {result.status}')
 
+    def call_fromll_async(self):
+        '''Converts GNSS goal to a geometry_msgs/msg/Point using the robot_localization FromLL service.'''
+        fromll_msg = FromLL.Request()
+        fromll_msg.ll_point.latitude = self._lat
+        fromll_msg.ll_point.longitude = self._lon
+        self.get_logger().info('🚀 Sending GNSS goal to /fromLL...')
+        send_future = self._fromll_client.call_async(fromll_msg)
+        send_future.add_done_callback(self.result_fromll_callback)
+
+    def result_fromll_callback(self, future):
+        result = future.result()
+
+        # 📝 Create waypoint
+        self._waypoints = self.create_waypoint(result.map_point)
+        self.get_logger().info(f'📍 Loaded Waypoint 1: ({self._waypoints[0].pose.position.x}, {self._waypoints[0].pose.position.y})')
+        self.send_goal_async()
 
     def check_nav_status(self):
         if not self._goal_handle:

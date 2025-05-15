@@ -1,12 +1,14 @@
-{ lib
-, buildRosPackage
-, ament-cmake
-, std-msgs
-, geometry-msgs
-, nav-msgs
-, vision-msgs
-, visualization-msgs 
-, yolo-msgs
+{ lib, 
+  buildRosPackage, 
+  ament-cmake, 
+  std-msgs, 
+  geometry-msgs, 
+  geographic-msgs,
+  robot-localization, 
+  nav-msgs, 
+  vision-msgs, 
+  visualization-msgs, 
+  yolo-msgs, 
 }:
 
 buildRosPackage rec {
@@ -24,6 +26,8 @@ buildRosPackage rec {
     vision-msgs 
     visualization-msgs 
     geometry-msgs 
+    geographic-msgs 
+    robot-localization 
     std-msgs 
     yolo-msgs 
   ];
