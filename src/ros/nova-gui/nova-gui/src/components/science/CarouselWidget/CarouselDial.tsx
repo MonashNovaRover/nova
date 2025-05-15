@@ -4,7 +4,7 @@ import CarouselDialImage from "../../../assets/carousel-dial.png"
 import {ChevronUp, Search} from "react-feather";
 
 export interface CarouselDialProps {
-  step: number
+  cuvette: number
 }
 
 // the image has the line to the left of 1 pointing straight down
@@ -15,12 +15,12 @@ const stepSize = 18
 /**
  * A representation of the Carousel that spins so that the current step is at the bottom
  * @param props
- * @param step the current cuvette to display at the bottom
+ * @param cuvette the current cuvette to display at the bottom (0-indexed)
  * @constructor
  */
 const CarouselDial: React.FC<CarouselDialProps> = (props) => {
   const rotateStyle: React.CSSProperties = {
-    transform: `rotate(${props.step * stepSize - offset}deg)`,
+    transform: `rotate(${props.cuvette * stepSize + offset}deg)`,
     transition: 'transform 0.3s ease-in-out',
   };
 
