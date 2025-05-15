@@ -90,18 +90,6 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{'config_file': gz_params}],
             arguments=['--ros-args', '--log-level', 'info'],
         ),
-        Node(
-            package='nova_utils',
-            executable='gz_frame_fixer.py',
-            name='gz_frame_fixer',
-            parameters=[
-                {'sub': ['/oak/gz_points', '/bootie/gz_points'], 
-                 'pub': ['/oak/points', '/bootie/points'], 
-                 'msg_type': ['sensor_msgs/msg/PointCloud2', 'sensor_msgs/msg/PointCloud2'], 
-                 'source_frames': ['camera_link_optical', 'bootie_link_optical'], 
-                 'target_frame': ['camera_link_gz_pointcloud', 'bootie_link_gz_pointcloud']}
-            ],
-        ),
     ]
 
 
@@ -151,12 +139,12 @@ def generate_launch_description():
             default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf']),
             description='Full path to world model file to load',
         ),
-        DeclareLaunchArgument(name='x', default_value='13.22', description='x_pose'),
-        DeclareLaunchArgument(name='y', default_value='-7.50', description='y_pose'),
+        DeclareLaunchArgument(name='x', default_value='-3.0', description='x_pose'),
+        DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
         DeclareLaunchArgument(name='z', default_value='0.5', description='z_pose'),
         DeclareLaunchArgument(name='R', default_value='0.0', description='roll'),
         DeclareLaunchArgument(name='P', default_value='0.0', description='pitch'),
-        DeclareLaunchArgument(name='Y', default_value='-3.12', description='yaw'),
+        DeclareLaunchArgument(name='Y', default_value='0.0', description='yaw'),
     ]
 
     return LaunchDescription(
