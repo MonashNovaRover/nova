@@ -287,74 +287,6 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
       <gz_frame_id>base_link</gz_frame_id>
       <always_on>true</always_on>
 <<<<<<< HEAD
-      <update_rate>100</update_rate>
-      <visualize>true</visualize>
-=======
-      <update_rate>200</update_rate>
-      <visualize>true</visualize>
-      <imu>
-        <angular_velocity>
-          <x>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>0.0</stddev>
-              <bias_mean>0.0</bias_mean>
-              <bias_stddev>0.0</bias_stddev>
-            </noise>
-          </x>
-          <y>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>0.0</stddev>
-              <bias_mean>0.0</bias_mean>
-              <bias_stddev>0.0</bias_stddev>
-            </noise>
-          </y>
-          <z>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>0.0</stddev>
-              <bias_mean>0.0</bias_mean>
-              <bias_stddev>0.0</bias_stddev>
-            </noise>
-          </z>
-        </angular_velocity>
-        <linear_acceleration>
-          <x>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>0.0</stddev>
-              <bias_mean>0.0</bias_mean>
-              <bias_stddev>0.0</bias_stddev>
-            </noise>
-          </x>
-          <y>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>0.0</stddev>
-              <bias_mean>0.0</bias_mean>
-              <bias_stddev>0.0</bias_stddev>
-            </noise>
-          </y>
-          <z>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>0.0</stddev>
-              <bias_mean>0.0</bias_mean>
-              <bias_stddev>0.0</bias_stddev>
-            </noise>
-          </z>
-        </linear_acceleration>
-      </imu>
->>>>>>> 1cedadf3 (getting gps integrated with auto, WIP, rover currently flies away when using GPS)
-    </sensor>
-  </gazebo>
-
-  <gazebo reference="base_link">
-    <sensor name="bootie_imu_sensor" type="imu">
-      <topic>bootie/imu</topic>
-      <gz_frame_id>base_link</gz_frame_id>
-      <always_on>true</always_on>
 <<<<<<< HEAD
       <update_rate>100</update_rate>
       <visualize>true</visualize>
@@ -416,6 +348,84 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         </linear_acceleration>
       </imu>
 >>>>>>> 1cedadf3 (getting gps integrated with auto, WIP, rover currently flies away when using GPS)
+=======
+      <update_rate>100</update_rate>
+      <visualize>true</visualize>
+>>>>>>> 02858847 (fixed IMU? WIP)
+    </sensor>
+  </gazebo>
+
+  <gazebo reference="base_link">
+    <sensor name="bootie_imu_sensor" type="imu">
+      <topic>bootie/imu</topic>
+      <gz_frame_id>base_link</gz_frame_id>
+      <always_on>true</always_on>
+<<<<<<< HEAD
+<<<<<<< HEAD
+      <update_rate>100</update_rate>
+      <visualize>true</visualize>
+=======
+      <update_rate>200</update_rate>
+      <visualize>true</visualize>
+      <imu>
+        <angular_velocity>
+          <x>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>0.0</stddev>
+              <bias_mean>0.0</bias_mean>
+              <bias_stddev>0.0</bias_stddev>
+            </noise>
+          </x>
+          <y>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>0.0</stddev>
+              <bias_mean>0.0</bias_mean>
+              <bias_stddev>0.0</bias_stddev>
+            </noise>
+          </y>
+          <z>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>0.0</stddev>
+              <bias_mean>0.0</bias_mean>
+              <bias_stddev>0.0</bias_stddev>
+            </noise>
+          </z>
+        </angular_velocity>
+        <linear_acceleration>
+          <x>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>0.0</stddev>
+              <bias_mean>0.0</bias_mean>
+              <bias_stddev>0.0</bias_stddev>
+            </noise>
+          </x>
+          <y>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>0.0</stddev>
+              <bias_mean>0.0</bias_mean>
+              <bias_stddev>0.0</bias_stddev>
+            </noise>
+          </y>
+          <z>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>0.0</stddev>
+              <bias_mean>0.0</bias_mean>
+              <bias_stddev>0.0</bias_stddev>
+            </noise>
+          </z>
+        </linear_acceleration>
+      </imu>
+>>>>>>> 1cedadf3 (getting gps integrated with auto, WIP, rover currently flies away when using GPS)
+=======
+      <update_rate>100</update_rate>
+      <visualize>true</visualize>
+>>>>>>> 02858847 (fixed IMU? WIP)
     </sensor>
   </gazebo>
 </robot>

@@ -90,6 +90,35 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{'config_file': gz_params}],
             arguments=['--ros-args', '--log-level', 'info'],
         ),
+<<<<<<< HEAD
+=======
+        Node(
+            package='nova_utils',
+            executable='gz_frame_fixer.py',
+            name='gz_frame_fixer',
+            parameters=[
+                {'sub': ['/oak/gz_points', '/bootie/gz_points'], 
+                 'pub': ['/oak/points', '/bootie/points'], 
+                 'msg_type': ['sensor_msgs/msg/PointCloud2', 'sensor_msgs/msg/PointCloud2'], 
+                 'source_frames': ['camera_link_optical', 'bootie_link_optical'], 
+                 'target_frame': ['camera_link_gz_pointcloud', 'bootie_link_gz_pointcloud']}
+            ],
+        ),
+        Node(
+            package='nova_utils',
+            executable='gz_imu_fixer.py',
+            name='gz_imu_fixer',
+            parameters=[{'sub_topic': '/gz/oak/imu/transformed', 
+                         'pub_topic': '/oak/imu/transformed'}],
+        ),
+        Node(
+            package='nova_utils',
+            executable='gz_imu_fixer.py',
+            name='gz_imu_fixer',
+            parameters=[{'sub_topic': '/gz/bootie/imu/transformed', 
+                         'pub_topic': '/bootie/imu/transformed'}],
+        ),
+>>>>>>> 02858847 (fixed IMU? WIP)
     ]
 
 

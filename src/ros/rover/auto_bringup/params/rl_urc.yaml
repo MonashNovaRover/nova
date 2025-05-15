@@ -24,7 +24,11 @@ ekf_filter_node_odom:
     # Front IMU
     imu0: /oak/imu/transformed
     imu0_config: [false, false, false,
+<<<<<<< HEAD
                   true,  true,  true,
+=======
+                  true,  true,  false,
+>>>>>>> 02858847 (fixed IMU? WIP)
                   false, false, false,
                   false, false, false,
                   false, false, false]
@@ -102,7 +106,11 @@ ekf_filter_node_map:
     # Front IMU
     imu0: /oak/imu/transformed
     imu0_config: [false, false, false,
+<<<<<<< HEAD
                   true,  true,  true,
+=======
+                  true,  true,  false,
+>>>>>>> 02858847 (fixed IMU? WIP)
                   false, false, false,
                   false, false, false,
                   false, false, false]
@@ -151,8 +159,12 @@ navsat_transform:
     zero_altitude: true
 =======
     yaw_offset: 0.0
+<<<<<<< HEAD
     zero_altitude: false
 >>>>>>> 1cedadf3 (getting gps integrated with auto, WIP, rover currently flies away when using GPS)
+=======
+    zero_altitude: true
+>>>>>>> 02858847 (fixed IMU? WIP)
     broadcast_utm_transform: false
     publish_filtered_gps: true
     use_odometry_yaw: false
