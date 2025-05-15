@@ -40,13 +40,6 @@
   gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
 
-# Oak imu
-- ros_topic_name: "/oak/imu/transformed"
-  gz_topic_name: "/oak/imu"
-  ros_type_name: "sensor_msgs/msg/Imu"
-  gz_type_name: "gz.msgs.IMU"
-  direction: GZ_TO_ROS
-
 # Bootie depth image
 - ros_topic_name: "/bootie/stereo/image_raw"
   gz_topic_name: "/bootie/depth_image"
