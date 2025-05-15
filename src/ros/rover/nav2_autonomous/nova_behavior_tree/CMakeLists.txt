@@ -56,6 +56,9 @@ include_directories(
 add_library(nova_blackboard_publisher_bt_node SHARED plugins/action/blackboard_publisher_node.cpp)
 list(APPEND plugin_libs nova_blackboard_publisher_bt_node)
 
+add_library(nova_place_search_goals_action_bt_node SHARED plugins/action/place_search_goals_action.cpp)
+list(APPEND plugin_libs nova_place_search_goals_action_bt_node)
+
 add_library(nova_run_scripts_action_bt_node SHARED plugins/action/run_scripts_action.cpp)
 list(APPEND plugin_libs nova_run_scripts_action_bt_node)
 

@@ -22,6 +22,7 @@ bt_navigator:
       default_urc_2025_navigator_bt_xml: /home/nova/nova/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/arch/2025_arch_through_poses.xml
     plugin_lib_names:
       - nova_ar_tag_detected_condition_bt_node
+      - nova_place_search_goals_action_bt_node
       - nova_blackboard_publisher_bt_node
       - nova_run_scripts_action_bt_node
       - nova_cube_detected_condition_bt_node

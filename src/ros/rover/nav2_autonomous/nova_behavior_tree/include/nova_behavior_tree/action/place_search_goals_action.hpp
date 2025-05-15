@@ -60,6 +60,9 @@
      return {
        BT::InputPort<int>("goal_type", "Goal type (nothing, AR tag, or object?)"),
        BT::InputPort<Goal>("current_pose", "The current pose of the rover"),
+       BT::InputPort<int>("ar_tag_search_radius", 20, "Search radius for AR tags in m"),
+       BT::InputPort<int>("object_search_radius", 10, "Search radius for objects in m"),
+       BT::InputPort<double>("edge_offset", 2.5, "Offset to place goals from the edge of the search radius"),
        BT::InputPort<Goals>("input_goals", "Goals vector to add search goals into"),
        BT::OutputPort<Goals>("output_goals", "Goals with new search goals added"),
      };
@@ -72,15 +75,15 @@
  
    rclcpp::Node::SharedPtr node_;
    
-   int goal_type;
+   int goal_type_;
+   int ar_tag_search_radius_;
+   int object_search_radius_;
+   double edge_offset_;
+
    Goal current_pose_;
    Goals input_goals_;
    
    bool initialized_ = false;
-
-   // search radii of goals as per the URC rulebook
-   static constexpr int AR_TAG_SEARCH_RADIUS = 20;
-   static constexpr int OBJECT_SEARCH_RADIUS = 10;
  };
  
  }  // namespace nova_behavior_tree

@@ -9,6 +9,16 @@
       <input_port name="publish_frequency">Publish rate in hz</input_port>
     </Action>
 
+    <Action ID="PlaceSearchGoals">
+      <input_port name="goal_type">Goal type (nothing, AR tag, or object?)</input_port>
+      <input_port name="current_pose">The current pose of the rover</input_port>
+      <input_port name="ar_tag_search_radius">Search radius for AR tags in m</input_port>
+      <input_port name="object_search_radius">Search radius for objects in m</input_port>
+      <input_port name="edge_offset">Offset to place goals from the edge of the search radius</input_port>
+      <input_port name="input_goals">Goals vector to add search goals into</input_port>
+      <input_port name="output_goals">Goals with new search goals added</input_port>
+    </Action>
+
     <Action ID="RunScripts">
       <input_port name="scripts">Scripts to run (excluding build path)</input_port>
       <input_port name="build_path">Build path to run the script from</input_port>
