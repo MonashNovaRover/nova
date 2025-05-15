@@ -1,10 +1,16 @@
 <class_libraries>
 	<library path="nova_bt_navigators">
 	  <class
-	  	name="nova_bt_navigators::URCNavigator"
-	  	type="nova_bt_navigators::URCNavigator"
+	  	name="nova_bt_navigators::URC2024Navigator"
+	  	type="nova_bt_navigators::URC2024Navigator"
 	  	base_class_type="nav2_core::NavigatorBase">
-	    <description>University Rover Challenge Navigator</description>
+	    <description>University Rover Challenge 2024 Navigator</description>
+	  </class>
+	  <class
+	  	name="nova_bt_navigators::URC2025Navigator"
+	  	type="nova_bt_navigators::URC2025Navigator"
+	  	base_class_type="nav2_core::NavigatorBase">
+	    <description>University Rover Challenge 2025 Navigator</description>
 	  </class>
 	</library>
 </class_libraries>

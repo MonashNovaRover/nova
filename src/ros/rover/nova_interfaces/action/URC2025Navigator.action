@@ -1,0 +1,31 @@
+## GOAL
+
+uint8 GNSS = 0
+uint8 AR = 1
+uint8 OBJECT = 2
+
+uint8 type
+geometry_msgs/PoseStamped[] poses
+string behavior_tree
+
+---
+
+## RESULT
+# Error codes
+# Note: The expected priority order of the errors should match the message order
+
+uint16 NONE=0
+
+uint16 error_code
+string error_msg
+
+---
+
+## FEEDBACK
+
+geometry_msgs/PoseStamped current_pose
+builtin_interfaces/Duration navigation_time
+builtin_interfaces/Duration estimated_time_remaining
+int16 number_of_recoveries
+float32 distance_remaining
+int16 number_of_poses_remaining

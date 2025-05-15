@@ -11,15 +11,14 @@ bt_navigator:
     error_code_names:
       - compute_path_error_code
       - follow_path_error_code
-    navigators: ["navigate_to_pose", "navigate_through_poses"] #, "urc_navigator"]
+    navigators: ["navigate_to_pose", "navigate_through_poses"] #, "urc_2024_navigator"]
     navigate_to_pose:
       plugin: "nav2_bt_navigator::NavigateToPoseNavigator"
     navigate_through_poses:
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
-    default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/arch/2025_arch_through_poses.xml
-    # $(find-pkg-share my_package)/behavior_tree/my_nav_through_poses_bt.xml
-    urc_navigator:
-      plugin: "nova_bt_navigators::URCNavigator"
+      default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/arch/2025_arch_through_poses.xml
+    urc_2024_navigator:
+      plugin: "nova_bt_navigators::URC2024Navigator"
     plugin_lib_names:
       - nova_ar_tag_detected_condition_bt_node
       - nova_blackboard_publisher_bt_node

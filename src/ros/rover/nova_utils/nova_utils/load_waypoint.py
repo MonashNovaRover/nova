@@ -29,6 +29,7 @@ from rclpy.executors import MultiThreadedExecutor
 from geometry_msgs.msg import PoseStamped, Point
 from geographic_msgs.msg import GeoPoint
 from nav2_msgs.action import NavigateThroughPoses
+from nova_interfaces.action import URC2025Navigator
 from action_msgs.msg import GoalStatus
 from visualization_msgs.msg import Marker, MarkerArray
 from robot_localization.srv import FromLL
@@ -39,6 +40,11 @@ import os
 import sys
 import time
 import math
+
+# Goal types
+GNSS = 0
+AR = 1
+OBJECT = 2
 
 class WaypointNavigator(Node):
     def __init__(self):
@@ -61,6 +67,10 @@ class WaypointNavigator(Node):
             name='lon', 
             value=-110.78853604626094, 
         ).value
+        self._type = self.declare_parameter(
+            name='type', 
+            value=GNSS, 
+        ).value
         self._goal_handle = None    # Prevents race condition with /fromLL service
         self._waypoints = None      # Prevents race condition with /fromLL service
         
@@ -68,8 +78,8 @@ class WaypointNavigator(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        # 📝 Create action client for Nav2 NavigateThroughPoses
-        self._action_client = ActionClient(self, NavigateThroughPoses, '/navigate_through_poses')
+        # 📝 Create action client for Nova URC2025Navigator
+        self._action_client = ActionClient(self, URC2025Navigator, '/urc_2025_navigator')
 
         # 📝 Load waypoints from JSON
         self._waypoints = self.load_waypoints()
@@ -214,9 +224,10 @@ class WaypointNavigator(Node):
 
 
     def send_goal_async(self):
-        '''Sends the waypoints asynchronously to the NavigateThroughPoses action server.'''
-        goal_msg = NavigateThroughPoses.Goal()
+        '''Sends the waypoints asynchronously to the URC2025Navigator action server.'''
+        goal_msg = URC2025Navigator.Goal()
         goal_msg.poses = self._waypoints  # List of PoseStamped
+        goal_msg.type = self._type  # Type of goal (GNSS=0, AR=1, OBJECT=2)
         self.get_logger().info('🚀 Sending waypoints to /navigate_through_poses...')
         send_future = self._action_client.send_goal_async(goal_msg)
         send_future.add_done_callback(self.response_goal_callback)
