@@ -37,7 +37,7 @@ const BMESensor: React.FC<IBMESensorProps> = (
         </div>
         <div className="text-center">
           <OverlayedProgress size="lg" label="Pressure" value={pressure}>
-            {pressure}
+            {pressure} hPa
           </OverlayedProgress>
         </div>
         <div className="text-center">
