@@ -1,7 +1,6 @@
 import React from "react";
 import HydroprobeWidget from "../../components/HydroprobeWidget/HydroprobeWidget";
 import CarouselWidget from "../../components/CarouselWidget/CarouselWidget";
-import TOFHeight from "../../components/AnalysisPlatformHeight/AnalysisPlatformHeight";
 import PumpsWidget from "../../components/PumpsWidget/PumpsWidget";
 import BMESensor from "../../components/BMESensor/BMESensor";
 import GenericSetBoolWidget from "../../components/GenericSetBoolWidget/GenericSetBoolWidget.tsx";
@@ -18,10 +17,7 @@ const URCScienceView: React.FC = () => {
       </div>
 
       <div className="flex flex-col gap-3 col-span-2">
-        <div className="flex flex-row gap-3">
-          <TOFHeight className="grow"/>
-          <BMESensor className="grow"/>
-        </div>
+        <BMESensor/>
         <CarouselWidget/>
         <div className="flex flex-row gap-3">
           <CacheControlWidget className="w-full" label="Cache 1" service={RosService.CACHE_1}/>
