@@ -140,6 +140,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
 
   }, [gl.canvasRef]);
 
+  // Calculate height of landmark
   const getHeight = useCallback( () => {
     (setLandmarkHeight( Number(inputDistance)*( Math.tan(Number(inputThetaHigh)) - Math.tan(Number(inputThetaLow)) ) ) );
   }, [setLandmarkHeight, inputDistance, inputThetaHigh, inputThetaLow]);
@@ -183,6 +184,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
     return convertToBlob(dataURL);
   }, [gl]);
 
+  // input fields for height calculation
   const distField = (
     <div className="flex flex-row p-1 justify-center">
       <Input
@@ -198,7 +200,6 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
       />
     </div>
   )
-
   const lowThetaField = (
     <div className="flex flex-row p-1 justify-center">
       <Input
@@ -214,7 +215,6 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
       />
     </div>
   )
-
   const highThetaField = (
     <div className="flex flex-row p-1 justify-center">
       <Input
@@ -267,7 +267,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
       {distField}
       {lowThetaField}
       {highThetaField}
-      Distance to landmark: {landmarkHeight.toPrecision(2)}m
+      Height of landmark: {landmarkHeight.toPrecision(2)}m
       </div>
     </div>
   );
