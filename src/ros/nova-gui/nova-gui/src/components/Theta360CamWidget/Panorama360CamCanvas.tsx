@@ -74,9 +74,9 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   const compassImage = useImageTexture(Compass);
   const [textIsValid, setTextIsValid] = useState<boolean>(true);
   const [textCompassAngle, setTextCompassAngleRaw] = useState<string>(compassAngle.toString());
-  const [inputDistance, setInputDistance] = useState<string>("");
-  const [inputThetaHigh, setInputThetaHigh] = useState<string>("");
-  const [inputThetaLow, setInputThetaLow] = useState<string>("");
+  const [inputDistance, setInputDistance] = useGenericStore<string>("theta360InputDistance");
+  const [inputThetaHigh, setInputThetaHigh] = useGenericStore<string>("theta360InputThetaHigh");
+  const [inputThetaLow, setInputThetaLow] = useGenericStore<string>("theta360InputThetaLow");
   const [landmarkHeight, setLandmarkHeight] = useState<number>(0);
 
   // Used when changing via input text box

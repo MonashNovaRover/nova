@@ -13,6 +13,7 @@ import GLWrapMode from "../../hooks/webgl/program/sampler/GLWrapMode.ts";
 import {Image} from "react-feather";
 import ExtendedDownloadButton from "../shared/ExtendedDownload.tsx";
 import {Input, Tooltip} from "@nextui-org/react";
+import {useGenericStore} from "../../hooks/useGenericStore.ts";
 
 const DEG_TO_RAD = 0.0174532925199;
 export interface WebGL360CamProps {
@@ -64,9 +65,10 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   const [mousePos, setMousePos] = useState([0, 0]);
   const [fov, setFov] = useState(90);
   const [widthHeight, setWidthHeight] = useState([0, 0]);
-  const [inputDistance, setInputDistance] = useState<string>("");
-  const [inputThetaHigh, setInputThetaHigh] = useState<string>("");
-  const [inputThetaLow, setInputThetaLow] = useState<string>("");
+
+  const [inputDistance, setInputDistance] = useGenericStore<string>("theta360InputDistance");
+  const [inputThetaHigh, setInputThetaHigh] = useGenericStore<string>("theta360InputThetaHigh");
+  const [inputThetaLow, setInputThetaLow] = useGenericStore<string>("theta360InputThetaLow");
   const [landmarkHeight, setLandmarkHeight] = useState<number>(0);
 
   // Allow for panning with the mouse
