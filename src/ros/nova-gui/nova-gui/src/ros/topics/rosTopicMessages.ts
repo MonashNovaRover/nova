@@ -39,6 +39,8 @@ export const rosTopicMessages = {
   [RosTopic.RAMAN_SPEC_MSG]: "nova_interfaces/msg/RamanSpectrum",
   [RosTopic.RAMAN_MECH_MSG]: "nova_interfaces/msg/RamanState",
   [RosTopic.BME_SENSOR]: "nova_interfaces/msg/BMESensor",
+  [RosTopic.AUGER1_DEPTH_SENSOR]: "std_msgs/msg/Bool",
+  [RosTopic.AUGER2_DEPTH_SENSOR]: "std_msgs/msg/Bool",
 
   [RosTopic.BATTERY_STATE]: "sensor_msgs/msg/BatteryState",
   [RosTopic.ACTIVATED_NODES]: "nova_interfaces/msg/ActiveNodeStatus",

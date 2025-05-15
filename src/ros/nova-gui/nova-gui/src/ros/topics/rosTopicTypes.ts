@@ -11,6 +11,7 @@ import {
   IRosNovaInterfacesMicroscopeServoInfo,
   IRosNovaInterfacesRamanSpectrum,
   IRosStdMsgsString,
+  IRosStdMsgsBool,
   IRosSensorMsgsNavSatFix,
   IRosNovaInterfacesUvVisSpecData,
   IRosNovaInterfacesRamanState,
@@ -57,6 +58,8 @@ export interface RosTopicInterfaces {
   [RosTopic.HYDRAPROBE_DATA]: IRosNovaInterfacesHydraprobeData;
   [RosTopic.THETA_360_CAM_IMAGE]: IRosSensorMsgsCompressedImage;
   [RosTopic.BME_SENSOR]: IRosNovaInterfacesBmeSensor;
+  [RosTopic.AUGER1_DEPTH_SENSOR]: IRosStdMsgsBool;
+  [RosTopic.AUGER2_DEPTH_SENSOR]: IRosStdMsgsBool;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;

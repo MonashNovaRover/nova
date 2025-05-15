@@ -37,6 +37,8 @@ export enum RosTopic {
   RAMAN_SPEC_MSG = "/science/raman_spec_msg",
   RAMAN_MECH_MSG = "/science/raman_mech_msg",
   BME_SENSOR = "/science/bme_sensor",
+  AUGER1_DEPTH_SENSOR = "/science/auger_depth/Auger1",
+  AUGER2_DEPTH_SENSOR = "/science/auger_depth/Auger2",
 
   // Mapping Related Topics
 

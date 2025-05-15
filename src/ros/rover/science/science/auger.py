@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from python_control.sensors.ToggleCommandSensor import ToggleCommandSensor
 from python_control.limits.LimitSwitchLimit import LimitSwitchLimit
 from python_control.controls.Direction import Direction
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
@@ -8,6 +9,7 @@ from python_control.sensors.CommandSensor import CommandSensor
 from python_control.ActivatedJoystickControllerNode import ActivatedJoystickControllerNode
 import rclpy
 from input_interfaces.msg import InputJoystick
+from std_msgs.msg import Bool
 
 
 class URCAuger(ActivatedJoystickControllerNode):
@@ -27,6 +29,15 @@ class URCAuger(ActivatedJoystickControllerNode):
     # Add any SENSOR FRAME / CARD IDS here
     AUGER_LIMIT_RECV_ID = 0x452
 
+
+    # DEPTH HALL SENSORS CAN INFO
+    AUGER_HALL_SENSOR_CANID_PARAM = "auger_hall_sensor_canid"
+    DEPTH_HIT_DATA = 0x01
+    DEPTH_NOT_HIT_DATA = 0x00
+
+    # PUBLISHING DEPTH INFORMATION
+    AUGER_DEPTH_TOPIC_PREFIX = "/science/auger_depth/"
+
     # CONTROL NAMES
     # Add any CONTROL names here
     AUGER_ACTUATION_NAME = "auger_actuation"
@@ -45,6 +56,7 @@ class URCAuger(ActivatedJoystickControllerNode):
     # RECEIVING COMMAND IDS
     # Add any SENSOR command ids here
     AUGER_RECV_LIMIT_BOTTOM_COMMAND_ID = 0x01
+    AUGER_RECV_DEPTH_LIMIT_HIT_COMMAND_ID = 0x01
     
     # CONTROL DIRECTIONS
     # Add any CONTROL DIRECTIONS here
@@ -63,8 +75,15 @@ class URCAuger(ActivatedJoystickControllerNode):
         self.declare_parameter(self.AUGER_DRILL_MAX_PERCENT_PARAM, self.AUGER_DRILL_MAX_PERCENT)
         self.get_logger().info(f"CAN IDs: Actuation = {self.get_parameter(self.AUGER_ACTUATION_CANID_PARAM).value} Drill = {self.get_parameter(self.AUGER_DRILL_CANID_PARAM).value}")
 
+        ## Add publishers
+        self.depth_publisher = self.create_publisher(
+            Bool,
+            self.AUGER_DEPTH_TOPIC_PREFIX + self.get_name(),
+            10
+        )
+
         ## Add CAN ID Filters
-        self.bus.set_id_filter([self.AUGER_LIMIT_RECV_ID])
+        self.bus.set_id_filter([self.AUGER_LIMIT_RECV_ID, self.get_parameter(self.AUGER_HALL_SENSOR_CANID_PARAM)])
 
         ## Create sensors
         self.bottom_limit_hall_effect = CommandSensor(
@@ -73,6 +92,14 @@ class URCAuger(ActivatedJoystickControllerNode):
             frame_id=self.AUGER_LIMIT_RECV_ID,
             command_id=self.AUGER_RECV_LIMIT_BOTTOM_COMMAND_ID,
             run_can=False
+        )
+
+        self.depth_hall_effect_sensor = ToggleCommandSensor(
+            logger=logger,
+            bus=self.bus,
+            frame_id=self.AUGER_HALL_SENSOR_CANID_PARAM,
+            state_id_on=self.DEPTH_HIT_DATA,
+            state_id_off=self.DEPTH_NOT_HIT_DATA
         )
 
         # Create limits
@@ -148,6 +175,11 @@ class URCAuger(ActivatedJoystickControllerNode):
     def joystick_r(self, joystick_r: InputJoystick):
         self.update_auger_actuation(joystick_r)
         self.update_auger_drill(joystick_r)
+
+    def publish_depth_hit(self):
+        msg = Bool()
+        msg.data = self.depth_hall_effect_sensor.get_sensor_value()
+        self.depth_publisher.publish(msg)
 
 def main():
     rclpy.init()
