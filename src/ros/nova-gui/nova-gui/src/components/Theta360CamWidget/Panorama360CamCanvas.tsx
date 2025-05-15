@@ -142,7 +142,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
 
   const getHeight = useCallback( () => {
     (setLandmarkHeight( Number(inputDistance)*( Math.tan(Number(inputThetaHigh)) - Math.tan(Number(inputThetaLow)) ) ) );
-  }, []);
+  }, [setLandmarkHeight, inputDistance, inputThetaHigh, inputThetaLow]);
 
   const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
   // Function that converts y values from 0 to 1 into an angle relative to the midpoint of the image
@@ -183,6 +183,54 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
     return convertToBlob(dataURL);
   }, [gl]);
 
+  const distField = (
+    <div className="flex flex-row p-1 justify-center">
+      <Input
+        className="w-3/4"
+        label="Distance"
+        placeholder="0.0m"
+        value={inputDistance}
+        onChange={(e) => {
+          const v = e.target.value;
+          setInputDistance(v);
+          getHeight();
+        }}
+      />
+    </div>
+  )
+
+  const lowThetaField = (
+    <div className="flex flex-row p-1 justify-center">
+      <Input
+        className="w-3/4"
+        label="Lower Angle"
+        placeholder="0.0deg"
+        value={inputThetaLow}
+        onChange={(e) => {
+          const v = e.target.value;
+          setInputThetaLow(v);
+          getHeight();
+        }}
+      />
+    </div>
+  )
+
+  const highThetaField = (
+    <div className="flex flex-row p-1 justify-center">
+      <Input
+        className="w-3/4"
+        label="Upper Angle"
+        placeholder="0.0deg"
+        value={inputThetaHigh}
+        onChange={(e) => {
+          const v = e.target.value;
+          setInputThetaHigh(v);
+          getHeight();
+        }}
+      />
+    </div>
+  )
+
   return (
     <div className="flex flex-col gap-2.5 flex-grow">
       ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {yToTheta(mousePoint[1]).toFixed(2)} deg
@@ -214,29 +262,13 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
         <Slider value={compassAngle} onChange={setCompassAngle} size="lg" maxValue={360} minValue={0}
                 step={0.01} className="flex-grow"></Slider>
       </div>
-      <Tooltip
-        className="text-tiny text-default-500 rounded-md"
-        content="Press Enter to confirm"
-        placement="left"
-      >
-        <input
-          aria-label="Distance to Landmark"
-          className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
-          type="text"
-          value={inputDistance}
-          onChange={(e) => {
-            const v = e.target.value;
 
-            setInputDistance(v);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !isNaN(Number(inputDistance))) {
-              getHeight(); // update landmarkHeight
-            }
-          }}
-        />
-      </Tooltip>
-      {landmarkHeight}
+      <div className="flex flex-row gap-9 items-center">
+      {distField}
+      {lowThetaField}
+      {highThetaField}
+      Distance to landmark: {landmarkHeight.toPrecision(2)}m
+      </div>
     </div>
   );
 }
