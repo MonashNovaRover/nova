@@ -33,8 +33,6 @@
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
-# # Oak pointcloud unneeded due to rtabmap utils in camera launch
-
 # Oak Imu
 - ros_topic_name: "/oak/imu/transformed"
   gz_topic_name: "/oak/imu"
@@ -43,7 +41,7 @@
   direction: GZ_TO_ROS
 
 # Oak imu
-- ros_topic_name: "/gz/oak/imu/transformed"
+- ros_topic_name: "/oak/imu/transformed"
   gz_topic_name: "/oak/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
@@ -78,14 +76,14 @@
   direction: GZ_TO_ROS
 
 # Bootie imu
-- ros_topic_name: "/gz/bootie/imu/transformed"
+- ros_topic_name: "/bootie/imu/transformed"
   gz_topic_name: "/bootie/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
 
 # GPS
-- ros_topic_name: "/gz/gps_rover/fix"
+- ros_topic_name: "/gps_rover/fix"
   gz_topic_name: "/gps"
   ros_type_name: "sensor_msgs/msg/NavSatFix"
   gz_type_name: "gz.msgs.NavSat"

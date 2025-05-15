@@ -90,25 +90,6 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{'config_file': gz_params}],
             arguments=['--ros-args', '--log-level', 'info'],
         ),
-        Node(
-            package='nova_utils',
-            executable='gz_gps_fixer.py',
-            name='gz_gps_fixer',
-        ),
-        Node(
-            package='nova_utils',
-            executable='gz_imu_fixer.py',
-            name='gz_imu_fixer',
-            parameters=[{'sub_topic': '/gz/oak/imu/transformed', 
-                         'pub_topic': '/oak/imu/transformed'}],
-        ),
-        Node(
-            package='nova_utils',
-            executable='gz_imu_fixer.py',
-            name='gz_imu_fixer',
-            parameters=[{'sub_topic': '/gz/bootie/imu/transformed', 
-                         'pub_topic': '/bootie/imu/transformed'}],
-        ),
     ]
 
 

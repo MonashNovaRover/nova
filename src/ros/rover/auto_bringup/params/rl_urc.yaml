@@ -24,7 +24,7 @@ ekf_filter_node_odom:
     # Front IMU
     imu0: /oak/imu/transformed
     imu0_config: [false, false, false,
-                  true,  true,  false,
+                  true,  true,  true,
                   false, false, false,
                   false, false, false,
                   false, false, false]
@@ -34,13 +34,11 @@ ekf_filter_node_odom:
     
     # Back IMU
     imu1: /bootie/imu/transformed
-    imu1_config:
-      [ false,false,false,
-        true,true,true,
-        false,false,false,
-        false,false,false,
-        false,false,false,
-      ]
+    imu1_config: [false, false, false,
+                  true,  true,  true,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false]
     imu1_differential: false
     imu1_relative: false
     imu1_remove_gravitational_acceleration: true
@@ -100,7 +98,7 @@ ekf_filter_node_map:
     # Front IMU
     imu0: /oak/imu/transformed
     imu0_config: [false, false, false,
-                  true,  true,  false,
+                  true,  true,  true,
                   false, false, false,
                   false, false, false,
                   false, false, false]
@@ -110,13 +108,11 @@ ekf_filter_node_map:
     
     # Back IMU
     imu1: /bootie/imu/transformed
-    imu1_config:
-      [ false,false,false,
-        true,true,true,
-        false,false,false,
-        false,false,false,
-        false,false,false,
-      ]
+    imu1_config: [false, false, false,
+                  true,  true,  true,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false]
     imu1_differential: false
     imu1_relative: false
     imu1_remove_gravitational_acceleration: true
@@ -146,7 +142,7 @@ navsat_transform:
     frequency: 30.0
     delay: 3.0
     magnetic_declination_radians: 0.0
-    yaw_offset: 0.0
+    yaw_offset: 0.0 # Set to yaw used for ros_gz_sim create executable to work in sim. Set to 0.0 for real life.
     zero_altitude: true
     broadcast_utm_transform: false
     publish_filtered_gps: true
