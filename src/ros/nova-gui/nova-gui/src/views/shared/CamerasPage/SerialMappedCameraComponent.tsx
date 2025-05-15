@@ -2,6 +2,7 @@ import {FC, memo, useMemo} from "react";
 import {BaseCameraComponentProps, CameraComponent} from "../../../components/CameraComponent/CameraComponent.tsx";
 import {CameraSerials} from "./CameraPageConstants.tsx";
 import BarOverlayedCameraComponent from "../../../components/CameraComponent/special/BarOverlayedCameraComponent.tsx";
+//import KeyboardOverlayedCameraComponent from "../../../components/CameraComponent/special/KeyboardOverlayedCameraComponent.tsx";
 import {
   GimbalOverlayedCameraComponent
 } from "../../../components/CameraComponent/special/GimbalOverlayedCameraComponent.tsx";

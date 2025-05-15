@@ -14,12 +14,16 @@ keyboard_localiser:
     # (manual) keyboard alignment params
     aligned_keyboard_position: [0.0,0.0,0.0]
     aligned_keyboard_quaternion: [0.0, 0.0, 0.0,1.0]
-    
+
     # calibrated camera intrinsics
     hfov: 61.3727248
     image_width: 640 #1280
     image_height: 480 #720
     distortion_matrix: [0.59680899,-2.13821558,-0.01071933,0.0900803,4.94332294]
+
+    # OpenCV filter params
+    dark_threshold: 120 # 0-255
+    kernel_size: 100
 
     # (auto) keyboard pose analysis initalisation
     camera_frame: arm_end_periscope_optical

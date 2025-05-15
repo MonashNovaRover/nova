@@ -247,7 +247,7 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
 
     joint_handle.command.get().set_value(reference_value);
 
-    RCLCPP_INFO(logger, "%s reference value: %f", joint_handle.name.c_str(), reference_value);
+    // RCLCPP_INFO(logger, "%s reference value: %f", joint_handle.name.c_str(), reference_value);
   }
 
   return controller_interface::return_type::OK;

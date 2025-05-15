@@ -78,9 +78,10 @@ buildRosPackage {
 
   #export GST_PLUGIN_PATH="${gst-bridge}/lib:$GST_PLUGIN_PATH"
   preFixup = ''
-    wrapGApp "$out/lib/cameras2/camera_streamer_service"
-
     export GST_PLUGIN_PATH="${gst-bridge}/lib:$GST_PLUGIN_PATH"
+
+    wrapGApp "$out/lib/cameras2/camera_streamer_service"\
+      --prefix GST_PLUGIN_PATH : "${gst-bridge}/lib"
     wrapGApp "$out/lib/cameras2/camera_ros_streamer"\
       --prefix GST_PLUGIN_PATH : "${gst-bridge}/lib"
   '';

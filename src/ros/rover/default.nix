@@ -22,6 +22,7 @@
     nova-gimbal-cam = callPackage ./nix/packages/gimbal-cam { };
     nova-bringup = callPackage ./nix/packages/nova-bringup { };
     nova-auto-bringup = callPackage ./nix/packages/auto-bringup { };
+    nova-arm-bringup = callPackage ./nix/packages/arm-bringup { };
     nova-interfaces = callPackage ./nix/packages/nova-interfaces { };
     nova-rover-description = callPackage ./nix/packages/rover-description { };
     nova-gazebo = callPackage ./nix/packages/nova-gazebo { };

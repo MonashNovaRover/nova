@@ -1,10 +1,10 @@
 import {Button, Input, CardProps} from "@nextui-org/react";
-//import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
-//import {useSelector} from "react-redux";
-//import {RootState} from "../../redux/RootState.ts";
-//import {RosService} from "../../ros/services/rosService.ts";
+import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction.ts";
+import {useSelector} from "react-redux";
+import {RootState} from "../../redux/RootState.ts";
+import {RosService} from "../../ros/services/rosService.ts";
 import { Square, Power } from "react-feather";
-//import {AlignTransformValues} from "./AutoTypingConstants.tsx";
+import {AlignTransformValues} from "./AutoTypingConstants.tsx";
 
 interface IAutoTypingKeyEntryWidgetProps extends CardProps {
 }
@@ -15,17 +15,17 @@ interface IAutoTypingKeyEntryWidgetProps extends CardProps {
  * @constructor
  */
 const AutoTypingKeyEntryWidget: React.FC<IAutoTypingKeyEntryWidgetProps> = () => {
-  //const keyboardTransform = useSelector(
-  //    (state: RootState) => state.keyboardData
-  //);
+  const keyboardTransform = useSelector(
+      (state: RootState) => state.keyboardTFTrigger
+  );
 
-  //const bifrost = useBifrost({ service: RosService.KEYBOARD_TF_TOGGLE });
-  //const toggleKeyboardState = () => bifrost.callServiceToRedux({value:keyboardTransform.success ? AlignTransformValues.STOP : AlignTransformValues.START});
+  const bifrost = useBifrost({ service: RosService.KEYBOARD_TF_TOGGLE });
+  const toggleKeyboardState = () => bifrost.callServiceToRedux({value:keyboardTransform.success ? AlignTransformValues.STOP : AlignTransformValues.START});
 
   return (
     <div className="flex flex-row justify-between gap-5">
       <Button className="w-1/3 text-h1 h-12" color="primary" 
-        onPress={()=>{}}> {/** Change on press to start/stop auto typing via ros */}
+        onPress={toggleKeyboardState}> {/** Change on press to start/stop auto typing via ros */}
         {false ? "STOP TYPING" : "START TYPING"}
         {false ? <Square size="15" fill="white"/> : <Power size="15"/>}
       </Button>
