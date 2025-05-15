@@ -28,6 +28,7 @@
   nova-auto-interfaces,
   nova-bt-navigators,
   rviz-imu-plugin,
+  rviz-satellite, 
   imu-transformer,
   nova-pivot-drive-controller,
   tf2-tools,
@@ -77,6 +78,7 @@ buildRosPackage rec {
       nova-auto-interfaces
       nova-bt-navigators
       rviz-imu-plugin
+      rviz-satellite
       nova-pivot-drive-controller
       tf2-tools
       imu-transformer
