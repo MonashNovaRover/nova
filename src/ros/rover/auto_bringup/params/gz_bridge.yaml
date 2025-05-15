@@ -77,8 +77,6 @@
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
-# # Bootie pointcloud unneeded due to rtabmap utils in camera launch
-
 # Bootie imu
 - ros_topic_name: "/gz/bootie/imu/transformed"
   gz_topic_name: "/bootie/imu"
