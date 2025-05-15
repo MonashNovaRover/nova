@@ -26,7 +26,7 @@
 #include <string>
 #include <cstdlib>
 
-#include "nova_behavior_tree/run_scripts_action.hpp"
+#include "nova_behavior_tree/action/run_scripts_action.hpp"
 
 namespace nova_behavior_tree
 {

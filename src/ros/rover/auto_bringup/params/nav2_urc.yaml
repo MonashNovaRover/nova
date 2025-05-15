@@ -24,22 +24,13 @@ bt_navigator:
       - nova_ar_tag_detected_condition_bt_node
       - nova_blackboard_publisher_bt_node
       - nova_run_scripts_action_bt_node
-      - nova_check_detected_condition_bt_node
-      - nova_compute_search_goals_condition_bt_node
       - nova_cube_detected_condition_bt_node
-      - nova_first_goal_reached_condition_bt_node
-      - nova_get_final_goal_condition_bt_node
-      - nova_get_first_goal_condition_bt_node
-      - nova_goals_empty_condition_bt_node
       - nova_led_service_bt_node
-      - nova_query_position_condition_bt_node
       - nova_remove_passed_goals_and_cubes_action_bt_node
       - nova_update_goal_action_bt_node
       - nova_update_goals_action_bt_node
       - nova_remove_passed_goals_and_ar_tags_action_bt_node
       - nova_snap_in_collision_goals_action_bt_node
-      - nova_save_cube_poses_action_bt_node
-      - nova_save_image_service_bt_node
 
 bt_navigator_navigate_through_poses_rclcpp_node:
   ros__parameters:

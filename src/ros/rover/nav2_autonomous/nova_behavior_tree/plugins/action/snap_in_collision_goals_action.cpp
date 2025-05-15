@@ -38,7 +38,7 @@
 #include "geometry_msgs/msg/point.hpp"
 #include "tf2/utils.h"
 
-#include "nova_behavior_tree/snap_in_collision_goals_action.hpp"
+#include "nova_behavior_tree/action/snap_in_collision_goals_action.hpp"
 #include "nova_behavior_tree/nav2_utils.hpp"
 
 namespace nova_behavior_tree

@@ -35,7 +35,7 @@
 #include "rclcpp/logging.hpp"
 #include "nav2_behavior_tree/bt_utils.hpp"
 
-#include "nova_behavior_tree/cube_detected_condition.hpp"
+#include "nova_behavior_tree/condition/cube_detected_condition.hpp"
 #include "nova_behavior_tree/nav2_utils.hpp"
 
 namespace nova_behavior_tree

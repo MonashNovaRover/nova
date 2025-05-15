@@ -21,7 +21,7 @@
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "rclcpp/logging.hpp"
 
-#include "nova_behavior_tree/update_goal_action.hpp"
+#include "nova_behavior_tree/action/update_goal_action.hpp"
 
 namespace nova_behavior_tree
 {

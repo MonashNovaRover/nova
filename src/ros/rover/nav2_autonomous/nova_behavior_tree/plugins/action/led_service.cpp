@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <string>
-#include "nova_behavior_tree/led_service.hpp"
+#include "nova_behavior_tree/action/led_service.hpp"
 
 namespace nova_behavior_tree
 {

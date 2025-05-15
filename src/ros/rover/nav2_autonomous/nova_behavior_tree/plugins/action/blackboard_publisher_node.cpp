@@ -4,7 +4,7 @@
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <nav_msgs/msg/path.hpp>
 
-#include "nova_behavior_tree/blackboard_publisher_node.hpp"
+#include "nova_behavior_tree/action/blackboard_publisher_node.hpp"
 
 namespace nova_behavior_tree
 {

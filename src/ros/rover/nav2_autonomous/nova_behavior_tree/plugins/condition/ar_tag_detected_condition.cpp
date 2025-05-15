@@ -24,7 +24,7 @@
 #include "rclcpp/logging.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#include "nova_behavior_tree/ar_tag_detected_condition.hpp"
+#include "nova_behavior_tree/condition/ar_tag_detected_condition.hpp"
 
 namespace nova_behavior_tree
 {

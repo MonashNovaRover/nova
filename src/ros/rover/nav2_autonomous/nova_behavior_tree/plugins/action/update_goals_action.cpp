@@ -35,7 +35,7 @@
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "tf2/utils.h"
 
-#include "nova_behavior_tree/update_goals_action.hpp"
+#include "nova_behavior_tree/action/update_goals_action.hpp"
 #include "nova_behavior_tree/nav2_utils.hpp"
 
 namespace nova_behavior_tree
