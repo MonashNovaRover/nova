@@ -25,46 +25,69 @@ class LedStrip(ControllerNode):
 
     CAN_BUS = "can0"
 
-#     RED_CONTROL_ID = 0x092
-#     GREEN_CONTROL_ID = 0x093
-#     BLUE_CONTROL_ID = 0x094
-
-    COLOR_ID = 0X096
+    RED_CONTROL_ID = 0x092
+    GREEN_CONTROL_ID = 0x093
+    BLUE_CONTROL_ID = 0x094
 
     def __init__(self):
         super(LedStrip, self).__init__(name="led_strip", can_bus=self.CAN_BUS)
         self.led_service = self.create_service(RGBInput, '/set_RGBInput', self.led_service_callback)
+
+        #Timers
+        self.green_timer = self.create_timer(0.1, self.set_green, autostart=False)
+        self.blue_timer = self.create_timer(0.2, self.set_blue, autostart=False)
         self.flash_timer = None
+
+        self.last_green = 0
+        self.last_blue = 0
+
+        self.flash_b = 0
         self.flash_on = False
-        self.flash_rgb = (0, 0, 0)
+
         self.start_can()
 
     def led_service_callback(self, request, response):
-        self.get_logger().info(f"Received service request: {request}")
+        self.get_logger().info(f"Received request: {request}")
 
         if request.flash:
-            # Store the chosen flash RGB values
-            self.flash_rgb = (request.r, request.g, request.b)
-            self.flash_on = False  # Start with LEDs off
+            # Stop any ongoing color timers
+            self.green_timer.cancel()
+            self.blue_timer.cancel()
 
-            # Cancel existing flash timer if active
-            if self.flash_timer:
-                self.flash_timer.cancel()
-
-            # Create new timer that toggles every 0.5 seconds
-            self.flash_timer = self.create_timer(0.5, self.flash_led_callback)
-            self.get_logger().info("Started LED flashing.")
-            response.success = True
-
-        else:
-            # Cancel flashing if it's active
+            # Stop previous flashing if active
             if self.flash_timer:
                 self.flash_timer.cancel()
                 self.flash_timer = None
-                self.get_logger().info("Stopped LED flashing.")
 
-            # Set the LEDs to the requested static color
-            response.success = self.set_rgb(request.r, request.g, request.b)
+            # Save values and start flashing (only for green for now)
+            self.flash_g = request.g
+
+            self.flash_timer = self.create_timer(0.5, self.toggle_flash)
+            self.get_logger().info("Started flashing green.")
+            response.success = True
+
+        else:
+            # Stop flashing
+            if self.flash_timer:
+                self.flash_timer.cancel()
+                self.flash_timer = None
+                self.get_logger().info("Stopped flashing.")
+
+            # Turn off all LEDs before applying new values, can try if it still blinks into another color first when
+            # sending anything except just R,G or B
+
+            # self.set_duty_cycle(self.RED_CONTROL_ID, 0)
+            # self.set_duty_cycle(self.GREEN_CONTROL_ID, 0)
+            # self.set_duty_cycle(self.BLUE_CONTROL_ID, 0)
+
+
+            self.set_duty_cycle(self.RED_CONTROL_ID, request.r)
+            self.last_green = request.g
+            self.last_blue = request.b
+            self.green_timer.reset()
+            self.blue_timer.reset()
+
+            response.success = True
 
         return response
 
@@ -78,21 +101,26 @@ class LedStrip(ControllerNode):
             return False
         return True
 
-    def set_rgb(self, r, g, b):
-        red = (r // 16) << 4
-        green = g // 16
-        blue = (b // 16) << 4
-        data = [red + green, blue]
-        return self.send_can_message(self.COLOR_ID, data)
+    def set_duty_cycle(self, control_id, level):
+        data = [level, 0x00]
+        self.send_can_message(control_id, data)
 
-    def flash_led_callback(self):
+    def set_green(self):
+        self.green_timer.cancel()
+        self.set_duty_cycle(self.GREEN_CONTROL_ID, self.last_green)
+
+    def set_blue(self):
+        self.blue_timer.cancel()
+        self.set_duty_cycle(self.BLUE_CONTROL_ID, self.last_blue)
+
+    def toggle_flash(self):
         if self.flash_on:
-            self.set_rgb(0, 0, 0)
-            self.flash_on = False
+            # Turn off LEDs (only green for now)
+            self.set_duty_cycle(self.GREEN_CONTROL_ID, 0)
         else:
-            r, g, b = self.flash_rgb
-            self.set_rgb(r, g, b)
-            self.flash_on = True
+            # Turn on to flash color
+            self.set_duty_cycle(self.GREEN_CONTROL_ID, self.flash_g)
+        self.flash_on = not self.flash_on
 
 
 def main(args=None):

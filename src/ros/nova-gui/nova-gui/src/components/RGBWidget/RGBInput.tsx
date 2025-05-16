@@ -36,9 +36,6 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
 
     const sendRGBValues = useCallback((flash = false) => {
         try{
-            // const rValue = Number(r);
-            // const gValue = Number(g);
-            // const bValue = Number(b);
 
             const rValue = Number(tempR);
             const gValue = Number(tempG);
@@ -77,6 +74,13 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
         const numValue = Number(value);
         if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setTempB(value)
     }, [rgbValues, setRgbValues]);
+
+    const flashGreen = () => {
+        serviceBifrost.callService(
+          { r: 0, g: 255, b: 0, flash: true },
+          { noErrorToast: false, responseToast: true }
+        );
+    };
 
     const colorPreview = `rgb(${tempR || 0}, ${tempG || 0}, ${tempB || 0})`;
 
@@ -186,9 +190,9 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                           size="sm"
                           className="text-xs px-2"
                           variant="flat"
-                          onPress={() => sendRGBValues(true)}
+                          onPress={flashGreen}
                         >
-                        Flash LEDs
+                        Flash Green
                     </Button>
                 </div>
             </Card>
