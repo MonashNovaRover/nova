@@ -1,4 +1,8 @@
 #include <chrono>
+#include <iostream>
+#include <sstream>
+#include <vector>
+#include <string>
 
 #include "behaviortree_cpp/bt_factory.h"
 #include <geometry_msgs/msg/pose_stamped.hpp>
@@ -30,7 +34,8 @@ void BlackboardPublisherNode::initialize()
   // publish_delay_ is in ms
   publish_delay_ = 1000.0 / publish_frequency;
 
-  getInput("keys", keys_);
+  getInput("keys", keys_string_);
+  split_key_string();
 
   // Create the publisher
   publisher_ = node_->create_publisher<std_msgs::msg::String>(
@@ -64,6 +69,17 @@ BT::NodeStatus BlackboardPublisherNode::tick()
 
   // Return SUCCESS every time for this demo
   return BT::NodeStatus::SUCCESS;
+}
+
+void BlackboardPublisherNode::split_key_string()
+{
+  std::stringstream ss(keys_string_);
+  std::string key;
+
+  while (std::getline(ss, key, ','))
+  {
+    keys_.push_back(key);
+  }
 }
 
 void BlackboardPublisherNode::publish_blackboard()

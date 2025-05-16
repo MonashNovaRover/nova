@@ -35,12 +35,14 @@ private:
   // Called once at the start of a tick, to ensure everything is ready
   void initialize();
   void publish_blackboard();
+  void split_key_string();
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
   std::string topic_name_;
   double publish_delay_;
   std::shared_ptr<BT::Blackboard> bb_;
+  std::string keys_string_;
   std::vector<std::string> keys_;
   std::chrono::steady_clock::time_point last_publish_;
 
