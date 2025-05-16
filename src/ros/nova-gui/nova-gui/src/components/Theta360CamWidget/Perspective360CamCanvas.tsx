@@ -104,7 +104,9 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
 
   // Calculate height of landmark
   const getHeight = useCallback( () => {
-    (setLandmarkHeight( Number(inputDistance)*( Math.tan(Number(inputThetaHigh)) - Math.tan(Number(inputThetaLow)) ) ) );
+    const radThetaHigh = Number(inputThetaHigh)*Math.PI/180;
+    const radThetaLow = Number(inputThetaLow)*Math.PI/180;
+    (setLandmarkHeight( Number(inputDistance)*( Math.tan(radThetaHigh) - Math.tan(radThetaLow) ) ) );
   }, [setLandmarkHeight, inputDistance, inputThetaHigh, inputThetaLow]);
 
   // Listen to scrolling to change FOV
