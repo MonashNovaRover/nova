@@ -276,8 +276,6 @@ export const reduxStores = {
   targetTemp: createGenericStore("targetTemp", 150),
   theta360CompassHeading: createGenericStore("theta360CompassHeading",180),
   theta360InputDistance: createGenericStore("theta360InputDistance",""),
-  theta360InputThetaHigh: createGenericStore("theta360InputThetaHigh",""),
-  theta360InputThetaLow: createGenericStore("theta360InputThetaLow",""),
 };
 
 // all store reducers

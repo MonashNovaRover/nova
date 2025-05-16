@@ -12,8 +12,7 @@ import useUniform, {vec} from "../../hooks/webgl/program/uniform/useUniform.ts";
 import GLWrapMode from "../../hooks/webgl/program/sampler/GLWrapMode.ts";
 import {Image} from "react-feather";
 import ExtendedDownloadButton from "../shared/ExtendedDownload.tsx";
-import {Input, Tooltip} from "@nextui-org/react";
-import {useGenericStore} from "../../hooks/useGenericStore.ts";
+import {Tooltip} from "@nextui-org/react";
 
 const DEG_TO_RAD = 0.0174532925199;
 export interface WebGL360CamProps {
@@ -66,11 +65,6 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   const [fov, setFov] = useState(90);
   const [widthHeight, setWidthHeight] = useState([0, 0]);
 
-  const [inputDistance, setInputDistance] = useGenericStore<string>("theta360InputDistance");
-  const [inputThetaHigh, setInputThetaHigh] = useGenericStore<string>("theta360InputThetaHigh");
-  const [inputThetaLow, setInputThetaLow] = useGenericStore<string>("theta360InputThetaLow");
-  const [landmarkHeight, setLandmarkHeight] = useState<number>(0);
-
   // Allow for panning with the mouse
   const onMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!gl.canvasRef.current)
@@ -102,13 +96,6 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   // Function that converts y values from 0 to 1 into an angle relative to the midpoint of the image
   const yToTheta = useCallback((v: number) => 360* widthHeight[1]/widthHeight[0] * (-v + 0.5) , [widthHeight]);
 
-  // Calculate height of landmark
-  const getHeight = useCallback( () => {
-    const radThetaHigh = Number(inputThetaHigh)*Math.PI/180;
-    const radThetaLow = Number(inputThetaLow)*Math.PI/180;
-    (setLandmarkHeight( Number(inputDistance)*( Math.tan(radThetaHigh) - Math.tan(radThetaLow) ) ) );
-  }, [setLandmarkHeight, inputDistance, inputThetaHigh, inputThetaLow]);
-
   // Listen to scrolling to change FOV
   const onWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {
     setFov((fov) => Math.max(Math.min((fov + e.deltaY / 50), 179), 0.01));
@@ -139,53 +126,6 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
     return convertToBlob(dataURL);
   }, [gl])
 
-  // input fields for height calculation
-  const distField = (
-    <div className="flex flex-row p-1 justify-center">
-      <Input
-        className="w-3/4"
-        label="Distance"
-        placeholder="0.0m"
-        value={inputDistance}
-        onChange={(e) => {
-          const v = e.target.value;
-          setInputDistance(v);
-          getHeight();
-        }}
-      />
-    </div>
-  )
-  const lowThetaField = (
-    <div className="flex flex-row p-1 justify-center">
-      <Input
-        className="w-3/4"
-        label="Lower Angle"
-        placeholder="0.0deg"
-        value={inputThetaLow}
-        onChange={(e) => {
-          const v = e.target.value;
-          setInputThetaLow(v);
-          getHeight();
-        }}
-      />
-    </div>
-  )
-  const highThetaField = (
-    <div className="flex flex-row p-1 justify-center">
-      <Input
-        className="w-3/4"
-        label="Upper Angle"
-        placeholder="0.0deg"
-        value={inputThetaHigh}
-        onChange={(e) => {
-          const v = e.target.value;
-          setInputThetaHigh(v);
-          getHeight();
-        }}
-      />
-    </div>
-  )
-
   return (
     <div className="flex flex-col gap-2.5 flex-grow">
       ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {yToTheta(mousePoint[1]).toFixed(2)} deg
@@ -211,12 +151,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
         </Tooltip>
       </div>
     </AutosizedGLCanvas>
-      <div className="flex flex-row gap-9 items-center">
-        {distField}
-        {lowThetaField}
-        {highThetaField}
-        Height of landmark: {landmarkHeight.toPrecision(2)}m
-      </div>
+
     </div>
   )
 }

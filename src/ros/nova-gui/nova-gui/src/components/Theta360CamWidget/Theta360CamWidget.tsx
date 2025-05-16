@@ -11,6 +11,7 @@ import ExtendedDownloadButton from "../shared/ExtendedDownload.tsx";
 import SegmentedPicker from "../SegmentedPicker/SegmentedPicker.tsx";
 import monkey from "../../assets/equirectangular.png";
 import Panorama360CamCanvas from "./Panorama360CamCanvas.tsx";
+import HeightCalculator from "./HeightCalculator.tsx";
 
 function numsToBlobContent(data: number[]) {
   const byteString = atob("" + data);
@@ -114,6 +115,7 @@ const Theta360CamWidget: React.FC = () => {
       </CardHeader>
       <CardBody className="flex flex-col">
         { canvasIndex === 0 ? perspective : panorama }
+        <HeightCalculator/>
       </CardBody>
     </Card>
   )

@@ -74,10 +74,6 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   const compassImage = useImageTexture(Compass);
   const [textIsValid, setTextIsValid] = useState<boolean>(true);
   const [textCompassAngle, setTextCompassAngleRaw] = useState<string>(compassAngle.toString());
-  const [inputDistance, setInputDistance] = useGenericStore<string>("theta360InputDistance");
-  const [inputThetaHigh, setInputThetaHigh] = useGenericStore<string>("theta360InputThetaHigh");
-  const [inputThetaLow, setInputThetaLow] = useGenericStore<string>("theta360InputThetaLow");
-  const [landmarkHeight, setLandmarkHeight] = useState<number>(0);
 
   // Used when changing via input text box
   const setTextCompassAngle = useCallback((text: string) => {
@@ -140,13 +136,6 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
 
   }, [gl.canvasRef]);
 
-  // Calculate height of landmark
-  const getHeight = useCallback( () => {
-    const radThetaHigh = Number(inputThetaHigh)*Math.PI/180;
-    const radThetaLow = Number(inputThetaLow)*Math.PI/180;
-    (setLandmarkHeight( Number(inputDistance)*( Math.tan(radThetaHigh) - Math.tan(radThetaLow) ) ) );
-  }, [setLandmarkHeight, inputDistance, inputThetaHigh, inputThetaLow]);
-
   const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
   // Function that converts y values from 0 to 1 into an angle relative to the midpoint of the image
   const yToTheta = useCallback((v: number) => 360* widthHeight[1]/widthHeight[0] * (-v + 0.5) , [widthHeight]);
@@ -186,53 +175,6 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
     return convertToBlob(dataURL);
   }, [gl]);
 
-  // input fields for height calculation
-  const distField = (
-    <div className="flex flex-row p-1 justify-center">
-      <Input
-        className="w-3/4"
-        label="Distance"
-        placeholder="0.0m"
-        value={inputDistance}
-        onChange={(e) => {
-          const v = e.target.value;
-          setInputDistance(v);
-          getHeight();
-        }}
-      />
-    </div>
-  )
-  const lowThetaField = (
-    <div className="flex flex-row p-1 justify-center">
-      <Input
-        className="w-3/4"
-        label="Lower Angle"
-        placeholder="0.0deg"
-        value={inputThetaLow}
-        onChange={(e) => {
-          const v = e.target.value;
-          setInputThetaLow(v);
-          getHeight();
-        }}
-      />
-    </div>
-  )
-  const highThetaField = (
-    <div className="flex flex-row p-1 justify-center">
-      <Input
-        className="w-3/4"
-        label="Upper Angle"
-        placeholder="0.0deg"
-        value={inputThetaHigh}
-        onChange={(e) => {
-          const v = e.target.value;
-          setInputThetaHigh(v);
-          getHeight();
-        }}
-      />
-    </div>
-  )
-
   return (
     <div className="flex flex-col gap-2.5 flex-grow">
       ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {yToTheta(mousePoint[1]).toFixed(2)} deg
@@ -263,13 +205,6 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
         <Input placeholder="Heading" className="w-48" onValueChange={setTextCompassAngle} isInvalid={!textIsValid} value={textCompassAngle}></Input>
         <Slider value={compassAngle} onChange={setCompassAngle} size="lg" maxValue={360} minValue={0}
                 step={0.01} className="flex-grow"></Slider>
-      </div>
-
-      <div className="flex flex-row gap-9 items-center">
-      {distField}
-      {lowThetaField}
-      {highThetaField}
-      Height of landmark: {landmarkHeight.toPrecision(2)}m
       </div>
     </div>
   );
