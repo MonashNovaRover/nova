@@ -62,6 +62,9 @@ list(APPEND plugin_libs nova_place_search_goals_action_bt_node)
 add_library(nova_run_scripts_action_bt_node SHARED plugins/action/run_scripts_action.cpp)
 list(APPEND plugin_libs nova_run_scripts_action_bt_node)
 
+add_library(nova_get_current_pose_action_bt_node SHARED plugins/action/get_current_pose_action.cpp)
+list(APPEND plugin_libs nova_get_current_pose_action_bt_node)
+
 add_library(nova_led_service_bt_node SHARED plugins/action/led_service.cpp)
 list(APPEND plugin_libs nova_led_service_bt_node)
 

@@ -91,6 +91,22 @@ void BlackboardPublisherNode::publish_blackboard()
     std::string value_str;
     bool found = false;
 
+    // current_pose publisher
+    if (!found && key == "current_pose") {
+      try {
+        auto p = bb_->get<geometry_msgs::msg::PoseStamped>(key);
+        std::ostringstream ss;
+        ss << "("
+          << p.pose.position.x << ","
+          << p.pose.position.y << ","
+          << p.pose.position.z << ")";
+        value_str = ss.str();
+        found = true;
+      } catch(...) {
+        value_str = "Failed to retrieve PoseStamped";
+      }
+    }
+
     // Hard Coded "goals" key
     if (!found && key == "goals") {
       try {
