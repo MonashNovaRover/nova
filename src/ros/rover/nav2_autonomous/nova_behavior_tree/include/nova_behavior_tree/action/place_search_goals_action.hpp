@@ -13,17 +13,8 @@
 // limitations under the License.
 
 /**
- * @brief Places search goals for AR Tags and Objects related to the URC mission.
- * Once the rover enters the search radius, four search goals will be placed, drawing out
- * the shape of an equilateral triangle.
- * 
- * If you imagine the search origin where 0 degrees represents the direction the rover is facing
- * (so the rover's entry point is 180 degrees from the search origin), the search goals are inserted
- * on the edge of the search radius as follows:
- * 1. 0 degrees
- * 2. 120 degrees (right)
- * 3. -120 degrees (left)
- * 4. 0 degrees
+ * @brief Places search goals for AR Tags and Objects related to the URC mission
+ * once the rover is within the search radius.
  * 
  * @authors Terry Tian
  */

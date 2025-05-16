@@ -13,17 +13,8 @@
 // limitations under the License.
 
 /**
- * @brief Places search goals for AR Tags and Objects related to the URC mission.
- * Once the rover enters the search radius, four search goals will be placed, drawing out
- * the shape of an equilateral triangle.
- * 
- * If you imagine the search origin where 0 degrees represents the direction the rover is facing
- * (so the rover's entry point is 180 degrees from the search origin), the search goals are inserted
- * on the edge of the search radius as follows:
- * 1. 0 degrees
- * 2. 120 degrees (right)
- * 3. -120 degrees (left)
- * 4. 0 degrees
+ * @brief Places search goals for AR Tags and Objects related to the URC mission
+ * once the rover is within the search radius.
  * 
  * @authors Terry Tian
  */
@@ -36,6 +27,7 @@
 #include "rclcpp/logging.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "tf2/LinearMath/Vector3.h"
+#include "tf2/LinearMath/Quaternion.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "tf2/utils.h"
 #include "nav2_behavior_tree/bt_utils.hpp"
@@ -71,7 +63,7 @@ namespace nova_behavior_tree
             initialize();
         }
         
-        getInput("current_pose", current_pose_);
+        // getInput("current_pose", current_pose_);
         getInput("input_goals", input_goals_);
         
         // temporary until GetCurrentPose is made
@@ -101,12 +93,6 @@ namespace nova_behavior_tree
         tf2::fromMsg(current_pose_.pose.position, rover);
         tf2::fromMsg(input_goals_[0].pose.position, goal);
 
-        RCLCPP_INFO(
-            node_->get_logger(),
-            "Placing search goals for %s at (%.2f, %.2f, %.2f)",
-            goal_type_ == 1 ? "AR tag" : "object",
-            goal.x(), goal.y(), goal.z());
-
         tf2::Vector3 dir = (goal - rover).normalized();
         for (int i = 0; i < 4; ++i)
         {
@@ -114,15 +100,21 @@ namespace nova_behavior_tree
             double angle = utils::nav2::radians(120.0 * i);
             tf2::Vector3 rotated_dir = dir.rotate(tf2::Vector3(0, 0, 1), angle);
 
-            // calculate the new goal position
+            // calculate the new goal's position
             tf2::Vector3 new_goal_pos = goal + (rotated_dir * (search_radius - edge_offset_));
             geometry_msgs::msg::PoseStamped new_goal;
             new_goal.header.frame_id = current_pose_.header.frame_id;
             new_goal.header.stamp = node_->get_clock()->now();
             tf2::toMsg(new_goal_pos, new_goal.pose.position);
+            // set the new goal's orientation
+            tf2::Quaternion q;
+            q.setRPY(0, 0, angle);
+            new_goal.pose.orientation = tf2::toMsg(q);
 
             input_goals_.push_back(new_goal);
         }
+
+        setOutput("output_goals", input_goals_);
 
         // // update prev_cube_goals_ in case goals have been removed
         // for (size_t i = 0; i < prev_cube_goals_.size();)
