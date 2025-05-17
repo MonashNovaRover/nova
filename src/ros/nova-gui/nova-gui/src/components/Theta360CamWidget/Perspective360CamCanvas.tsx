@@ -17,7 +17,9 @@ import {Tooltip} from "@nextui-org/react";
 const DEG_TO_RAD = 0.0174532925199;
 export interface WebGL360CamProps {
   image?: HTMLImageElement,
-  children?: React.ReactNode
+  children?: React.ReactNode,
+  angles: number[],
+  setAngles: React.Dispatch<React.SetStateAction<number[]>>
 }
 
 const enableScroll = () => {
@@ -64,7 +66,6 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   const [mousePos, setMousePos] = useState([0, 0]);
   const [fov, setFov] = useState(90);
   const [widthHeight, setWidthHeight] = useState([0, 0]);
-  const [angles, setAngles] = useState([0, 0]);
 
   // Allow for panning with the mouse
   const onMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -99,17 +100,11 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
       return
     }
       // high angle
-      setAngles(([high, low]) => [
-        0*high + yToTheta(mousePoint[1]),
-        low,
-      ]);
+      props.setAngles([yToTheta(mousePoint[1]), props.angles[1]]);
 
     //window.addEventListener('keyup', (e) => {  });
       // low angle
-        setAngles(([high, low]) => [
-          high,
-          0*low + yToTheta(mousePoint[1]),
-        ]);
+      props.setAngles([props.angles[0],yToTheta(mousePoint[1])]);
 
   }, [fov, gl.canvasRef]);
 
@@ -149,7 +144,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
 
   return (
     <div className="flex flex-col gap-2.5 flex-grow">
-      ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {yToTheta(mousePoint[1]).toFixed(2)} deg  ({angles[0]}, {angles[1]})
+      ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {yToTheta(mousePoint[1]).toFixed(2)} deg  {props.angles[0]}, {props.angles[1]}
     <AutosizedGLCanvas
       gl={gl}
       className="rounded p-3 flex-grow"

@@ -2,7 +2,12 @@ import React, {useEffect, useState} from "react";
 import {useGenericStore} from "../../hooks/useGenericStore.ts";
 import {Input} from "@nextui-org/react";
 
-const HeightCalculator: React.FC = ()=> {
+export interface heightCalc360CamProps {
+  angles: number[],
+  setAngles:  React.Dispatch<React.SetStateAction<number[]>>
+}
+
+  const HeightCalculator: React.FC<heightCalc360CamProps> = (props) => {
 
   const [inputDistance, setInputDistance] = useGenericStore<string>("theta360InputDistance");
   const [inputThetaHigh, setInputThetaHigh] = useState<string>("");
@@ -11,10 +16,17 @@ const HeightCalculator: React.FC = ()=> {
 
 // Calculate height of landmark
   useEffect(() => {
-    const radThetaHigh = Number(inputThetaHigh) * Math.PI / 180;
-    const radThetaLow = Number(inputThetaLow) * Math.PI / 180;
+    const radThetaHigh = props.angles[0] * Math.PI / 180;
+    const radThetaLow = props.angles[1] * Math.PI / 180;
     (setLandmarkHeight(Number(inputDistance) * (Math.tan(radThetaHigh) - Math.tan(radThetaLow))));
   }, [setLandmarkHeight, inputDistance, inputThetaHigh, inputThetaLow]);
+
+  // set angles when text inputs change
+  useEffect(() => {
+    //props.setAngles([Number(inputThetaHigh), Number(inputThetaLow)])
+    setInputThetaHigh(String(props.angles[0]));
+    setInputThetaLow(String(props.angles[1]));
+  }, [props.angles, inputThetaHigh, inputThetaLow])
 
 // input fields for height calculation
   const distField = (

@@ -43,6 +43,7 @@ const Theta360CamWidget: React.FC = () => {
 
   // const imageRef = useRef<HTMLImageElement>(null);\
   const [image, setImage] = useState<HTMLImageElement>(() => new Image())
+  const [angles, setAngles] = useState([0, 0]);
 
   const url = monkey;
 
@@ -93,7 +94,7 @@ const Theta360CamWidget: React.FC = () => {
 
   // The webgl canvas for perspective projection. Used for stratigraphic profiles
   const perspective = (
-    <Perspective360CamCanvas image={image}>
+    <Perspective360CamCanvas image={image} angles={angles} setAngles={setAngles}>
       {canvasChildren}
     </Perspective360CamCanvas>
   );
@@ -115,7 +116,7 @@ const Theta360CamWidget: React.FC = () => {
       </CardHeader>
       <CardBody className="flex flex-col">
         { canvasIndex === 0 ? perspective : panorama }
-        <HeightCalculator/>
+        <HeightCalculator angles={angles} setAngles={setAngles}/>
       </CardBody>
     </Card>
   )
