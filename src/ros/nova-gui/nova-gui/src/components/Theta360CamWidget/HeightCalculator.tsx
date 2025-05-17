@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useGenericStore} from "../../hooks/useGenericStore.ts";
 import {Input} from "@nextui-org/react";
 
@@ -10,7 +10,7 @@ const HeightCalculator: React.FC = ()=> {
   const [landmarkHeight, setLandmarkHeight] = useState<number>(0);
 
 // Calculate height of landmark
-  const getHeight = useCallback(() => {
+  useEffect(() => {
     const radThetaHigh = Number(inputThetaHigh) * Math.PI / 180;
     const radThetaLow = Number(inputThetaLow) * Math.PI / 180;
     (setLandmarkHeight(Number(inputDistance) * (Math.tan(radThetaHigh) - Math.tan(radThetaLow))));
@@ -24,11 +24,7 @@ const HeightCalculator: React.FC = ()=> {
         label="Distance"
         placeholder="0.0m"
         value={inputDistance}
-        onChange={(e) => {
-          const v = e.target.value;
-          setInputDistance(v);
-          getHeight();
-        }}
+        onValueChange={setInputDistance}
       />
     </div>
   )
@@ -39,11 +35,7 @@ const HeightCalculator: React.FC = ()=> {
         label="Lower Angle"
         placeholder="0.0deg"
         value={inputThetaLow}
-        onChange={(e) => {
-          const v = e.target.value;
-          setInputThetaLow(v);
-          getHeight();
-        }}
+        onValueChange={setInputThetaLow}
       />
     </div>
   )
@@ -54,11 +46,7 @@ const HeightCalculator: React.FC = ()=> {
         label="Upper Angle"
         placeholder="0.0deg"
         value={inputThetaHigh}
-        onChange={(e) => {
-          const v = e.target.value;
-          setInputThetaHigh(v);
-          getHeight();
-        }}
+        onValueChange={setInputThetaHigh}
       />
     </div>
   )
