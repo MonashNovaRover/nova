@@ -154,8 +154,7 @@ class WaypointNavigator(Node):
         ''' Saves the extracted waypoints to a JSON file. '''
         with open(self._file_path, 'w') as f:
             json.dump({'waypoints': waypoints}, f, indent=2)
-        print(f'📁 Waypoints saved to: {self._file_path}')
-        self.get_logger().info(f'Waypoints saved to: {self._file_path}')
+        self.get_logger().info(f'📁 Waypoints saved to: {self._file_path}')
 
 
     def load_waypoints(self):
