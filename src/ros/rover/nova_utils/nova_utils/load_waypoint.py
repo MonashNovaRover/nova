@@ -2,7 +2,7 @@
 '''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Purpose: Node that loads waypoints from a file and 
-sends it to the /navigate_through_poses action
+sends it to the /urc_2025_navigator action
 server. It continuously checks the status of the 
 action server to monitor if it has been
 aborted. If the action server has aborted, it will 
@@ -10,12 +10,13 @@ reload the waypoints to restart navigation.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: WaypointNavigator
 ACTIONS: 
-  - client: /navigate_through_poses [NavigateThroughPoses]
+  - client: /urc_2025_navigator [URC2025Navigator]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	nova_utils
-AUTHOR(S):	Tarik Thomas, Terry Tian
+AUTHOR(S):	Tarik Thomas, Terry Tian, 
+            Victor Bartlinski
 CREATION:	15/03/2025
-EDITED:		01/05/2025
+EDITED:		16/05/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -26,6 +27,7 @@ from rclpy.action import ActionClient
 from rclpy.client import Client
 from rclpy.qos import QoSProfile, QoSDurabilityPolicy
 from rclpy.executors import MultiThreadedExecutor
+from std_msgs.msg import String
 from geometry_msgs.msg import PoseStamped, Point
 from geographic_msgs.msg import GeoPoint
 from nav2_msgs.action import NavigateThroughPoses
@@ -42,9 +44,9 @@ import time
 import math
 
 # Goal types
-GNSS = 0
-AR = 1
-OBJECT = 2
+# GNSS = 0
+# AR = 1
+# OBJECT = 2
 
 class WaypointNavigator(Node):
     def __init__(self):
@@ -69,7 +71,7 @@ class WaypointNavigator(Node):
         ).value
         self._type = self.declare_parameter(
             name='type', 
-            value=GNSS, 
+            value=0, 
         ).value
         self._goal_handle = None    # Prevents race condition with /fromLL service
         self._waypoints = None      # Prevents race condition with /fromLL service
@@ -86,6 +88,7 @@ class WaypointNavigator(Node):
 
         if not self._waypoints:
             self.get_logger().error('❌ No waypoints found or failed to load JSON.')
+
             if not self._gps:
                 return
 
@@ -104,7 +107,7 @@ class WaypointNavigator(Node):
             self.call_fromll_async()
 
         # 📝 Wait for the Nav2 action server
-        self.get_logger().info('⏳ Waiting for /navigate_through_poses action server...')
+        self.get_logger().info('⏳ Waiting for /urc_2025_navigator action server...')
         if not self._action_client.wait_for_server(timeout_sec=10.0):
             self.get_logger().error('❌ Action server not available. Exiting.')
             return
@@ -114,8 +117,45 @@ class WaypointNavigator(Node):
         if self._waypoints: # Prevents race condition with /fromLL service by calling after result_fromll_callback()
             self.send_goal_async()
 
+        # 📝 Save waypoints
+        self.subscription = self.create_subscription(String, '/blackboard', self.blackboard_callback, 1)
+        self.get_logger().info('🚀 WaypointRecorder started! Listening to /blackboard...')
+
         # 📝 Create a timer to check navigation status every second
         self._nav_check_timer = self.create_timer(1.0, self.check_nav_status)
+
+    def blackboard_callback(self, msg):
+        ''' Extracts waypoints from the 'goals' section of the blackboard topic and saves them.'''
+        waypoints = []
+        try:
+            string_goals = msg.data.split('goals: ')[1].split('\n')[0].split('(')[1:]
+            for string_goal in string_goals:
+                coords = string_goal.split(')')[0].split(', ')
+                pos_x = float(coords[0])
+                pos_y = float(coords[1])
+                pos_z = float(coords[2])
+                ori_x = float(coords[3])
+                ori_y = float(coords[4])
+                ori_z = float(coords[5])
+                ori_w = float(coords[6])
+                waypoints.append({
+                    'position': {'x': pos_x, 'y': pos_y, 'z': pos_z},
+                    'orientation': {'x': ori_x, 'y': ori_y, 'z': ori_z, 'w': ori_w}
+                })
+            
+        except Exception as e:
+            self.get_logger().warn(f'Error in extracting waypoints: {e}')
+            return None
+
+        if waypoints:
+            self.save_waypoints(waypoints)
+
+    def save_waypoints(self, waypoints):
+        ''' Saves the extracted waypoints to a JSON file. '''
+        with open(self._file_path, 'w') as f:
+            json.dump({'waypoints': waypoints}, f, indent=2)
+        print(f'📁 Waypoints saved to: {self._file_path}')
+        self.get_logger().info(f'Waypoints saved to: {self._file_path}')
 
 
     def load_waypoints(self):
@@ -177,6 +217,23 @@ class WaypointNavigator(Node):
         pose.pose.orientation.y = q[1]
         pose.pose.orientation.z = q[2]
         pose.pose.orientation.w = q[3]
+
+        # 📝 Save the waypoint to avoid race condition where the BT fails before waypoints are published to /blackboard
+        waypoints = [{
+            'position': {
+                'x': pose.pose.position.x, 
+                'y': pose.pose.position.y, 
+                'z': pose.pose.position.z, 
+            },
+            'orientation': {
+                'x': pose.pose.orientation.x, 
+                'y': pose.pose.orientation.y, 
+                'z': pose.pose.orientation.z, 
+                'w': pose.pose.orientation.w, 
+            }, 
+        }]
+        self.save_waypoints(waypoints)
+
         return [pose]
 
     def publish_waypoint_markers(self):
@@ -228,7 +285,7 @@ class WaypointNavigator(Node):
         goal_msg = URC2025Navigator.Goal()
         goal_msg.poses = self._waypoints  # List of PoseStamped
         goal_msg.type = self._type  # Type of goal (GNSS=0, AR=1, OBJECT=2)
-        self.get_logger().info('🚀 Sending waypoints to /navigate_through_poses...')
+        self.get_logger().info('🚀 Sending waypoints to /urc_2025_navigator...')
         send_future = self._action_client.send_goal_async(goal_msg)
         send_future.add_done_callback(self.response_goal_callback)
 

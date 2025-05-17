@@ -15,24 +15,24 @@
 #include <functional>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/pose.hpp>
-#include <aruco_opencv_msgs/msg/aruco_detection.hpp>
-#include <aruco_opencv_msgs/msg/marker_pose.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
+#include <visualization_msgs/msg/marker.hpp>
 #include <rclcpp/callback_group.hpp>
 #include <rclcpp/qos.hpp>
 #include <rclcpp/subscription_options.hpp>
 #include "rclcpp/logging.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "nova_behavior_tree/condition/ar_tag_detected_condition.hpp"
+#include "nova_behavior_tree/condition/object_detected_condition.hpp"
 
 namespace nova_behavior_tree
 {
-  ARTagDetectedCondition::ARTagDetectedCondition(
+  ObjectDetectedCondition::ObjectDetectedCondition(
       const std::string &condition_name,
       const BT::NodeConfiguration &conf) : BT::ConditionNode(condition_name, conf)
   { 
   }
 
-  void ARTagDetectedCondition::initialize()
+  void ObjectDetectedCondition::initialize()
   {
     node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
     callback_group_ = node_->create_callback_group(
@@ -44,23 +44,23 @@ namespace nova_behavior_tree
     rclcpp::SubscriptionOptions sub_option;
     sub_option.callback_group = callback_group_;
 
-    sub_ar_tag_ = node_->create_subscription<aruco_opencv_msgs::msg::ArucoDetection>(
-      "/aruco_detections", 
+    sub_object_ = node_->create_subscription<visualization_msgs::msg::MarkerArray>(
+      "/yolo/objects", 
       rclcpp::SystemDefaultsQoS(), 
-      std::bind(&ARTagDetectedCondition::callback_ar_tag, this, std::placeholders::_1), 
+      std::bind(&ObjectDetectedCondition::callback_object, this, std::placeholders::_1), 
       sub_option
     );
 
     initialized_ = true;
   }
 
-  void ARTagDetectedCondition::callback_ar_tag(const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg)
+  void ObjectDetectedCondition::callback_object(const visualization_msgs::msg::MarkerArray::SharedPtr msg)
   {
     goal_found_ = 0;
 
-    for (aruco_opencv_msgs::msg::MarkerPose marker : msg->markers) {
-      goal_id_ = marker.marker_id;
-      goal_header_ = msg->header;
+    for (visualization_msgs::msg::Marker marker : msg->markers) {
+      goal_id_ = marker.id;
+      goal_header_ = marker.header;
       goal_pose_.position.x = marker.pose.position.x;
       goal_pose_.position.y = marker.pose.position.y;
       goal_found_ = 1;
@@ -68,7 +68,7 @@ namespace nova_behavior_tree
     }
   }
 
-  BT::NodeStatus ARTagDetectedCondition::tick()
+  BT::NodeStatus ObjectDetectedCondition::tick()
   {
     if (!initialized_)
     {
@@ -84,18 +84,30 @@ namespace nova_behavior_tree
     return BT::NodeStatus::FAILURE;
   }
 
-  bool ARTagDetectedCondition::detected()
+  bool ObjectDetectedCondition::detected()
   {
+    IDs seen_ids;
+    getInput("seen_ids", seen_ids);
+
     if (goal_found_)
-    {      
+    {
+      for (int id : seen_ids)
+      {
+        if (id == goal_id_)
+        {
+          return false;
+        }
+      }
+      
       setOutput("id", goal_id_);
+      setOutput("found", goal_found_);
 
       geometry_msgs::msg::PoseStamped goal;
       goal.header = goal_header_;
       goal.pose = goal_pose_;
       setOutput("goal", goal);
 
-      RCLCPP_INFO(node_->get_logger(), "📍 AR tag %i found, setting goal.", goal_id_);
+      RCLCPP_INFO(node_->get_logger(), "📍 Object %i found, setting goal.", goal_id_);
     }
     return goal_found_;
   }
@@ -105,5 +117,5 @@ namespace nova_behavior_tree
 #include "behaviortree_cpp/bt_factory.h"
 BT_REGISTER_NODES(factory)
 {
-  factory.registerNodeType<nova_behavior_tree::ARTagDetectedCondition>("ARTagDetected");
+  factory.registerNodeType<nova_behavior_tree::ObjectDetectedCondition>("ObjectDetected");
 }

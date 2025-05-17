@@ -31,6 +31,7 @@ find_package(nav2_util REQUIRED)
 find_package(nav2_behavior_tree REQUIRED)
 find_package(behaviortree_cpp REQUIRED)
 find_package(ament_index_cpp REQUIRED)
+find_package(visualization_msgs REQUIRED)
 
 set(dep_pkgs
   rclcpp
@@ -43,6 +44,7 @@ set(dep_pkgs
   nav2_behavior_tree
   behaviortree_cpp
   ament_index_cpp
+  visualization_msgs
 )
 
 # === Build ===
@@ -59,26 +61,20 @@ list(APPEND plugin_libs nova_blackboard_publisher_bt_node)
 add_library(nova_place_search_goals_action_bt_node SHARED plugins/action/place_search_goals_action.cpp)
 list(APPEND plugin_libs nova_place_search_goals_action_bt_node)
 
-add_library(nova_run_scripts_action_bt_node SHARED plugins/action/run_scripts_action.cpp)
-list(APPEND plugin_libs nova_run_scripts_action_bt_node)
-
 add_library(nova_get_current_pose_action_bt_node SHARED plugins/action/get_current_pose_action.cpp)
 list(APPEND plugin_libs nova_get_current_pose_action_bt_node)
 
 add_library(nova_led_service_bt_node SHARED plugins/action/led_service.cpp)
 list(APPEND plugin_libs nova_led_service_bt_node)
 
-add_library(nova_remove_passed_goals_and_cubes_action_bt_node SHARED plugins/action/remove_passed_goals_and_cubes_action.cpp)
-list(APPEND plugin_libs nova_remove_passed_goals_and_cubes_action_bt_node)
+add_library(nova_remove_passed_urc_goals_action_bt_node SHARED plugins/action/remove_passed_urc_goals_action.cpp)
+list(APPEND plugin_libs nova_remove_passed_urc_goals_action_bt_node)
 
-add_library(nova_update_goal_action_bt_node SHARED plugins/action/update_goal_action.cpp)
-list(APPEND plugin_libs nova_update_goal_action_bt_node)
+add_library(nova_update_urc_goals_action_bt_node SHARED plugins/action/update_urc_goals_action.cpp)
+list(APPEND plugin_libs nova_update_urc_goals_action_bt_node)
 
-add_library(nova_update_goals_action_bt_node SHARED plugins/action/update_goals_action.cpp)
-list(APPEND plugin_libs nova_update_goals_action_bt_node)
-
-add_library(nova_remove_passed_goals_and_ar_tags_action_bt_node SHARED plugins/action/remove_passed_goals_and_ar_tags_action.cpp)
-list(APPEND plugin_libs nova_remove_passed_goals_and_ar_tags_action_bt_node)
+add_library(nova_urc_goals_found_action_bt_node SHARED plugins/action/urc_goals_found_action.cpp)
+list(APPEND plugin_libs nova_urc_goals_found_action_bt_node)
 
 add_library(nova_snap_in_collision_goals_action_bt_node SHARED plugins/action/snap_in_collision_goals_action.cpp)
 list(APPEND plugin_libs nova_snap_in_collision_goals_action_bt_node)
@@ -88,8 +84,8 @@ list(APPEND plugin_libs nova_snap_in_collision_goals_action_bt_node)
 add_library(nova_ar_tag_detected_condition_bt_node SHARED plugins/condition/ar_tag_detected_condition.cpp)
 list(APPEND plugin_libs nova_ar_tag_detected_condition_bt_node)
 
-add_library(nova_cube_detected_condition_bt_node SHARED plugins/condition/cube_detected_condition.cpp)
-list(APPEND plugin_libs nova_cube_detected_condition_bt_node)
+add_library(nova_object_detected_condition_bt_node SHARED plugins/condition/object_detected_condition.cpp)
+list(APPEND plugin_libs nova_object_detected_condition_bt_node)
 
 
 

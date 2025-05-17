@@ -254,6 +254,10 @@ URC2025Navigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr goal)
   // Update the goal type on the blackboard
   blackboard->set<uint8_t>("type", type);
 
+  // Initialise the found variable to allow for BT scripting
+  blackboard->set<int>("found", 0);
+
+
   return true;
 }
 
