@@ -64,6 +64,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   const [mousePos, setMousePos] = useState([0, 0]);
   const [fov, setFov] = useState(90);
   const [widthHeight, setWidthHeight] = useState([0, 0]);
+  const [angles, setAngles] = useState([0, 0]);
 
   // Allow for panning with the mouse
   const onMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -83,13 +84,33 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
 
     if (event.buttons !== 1)
       return;
-    
+
     const maxResolutionComp = Math.max(bounds.width, bounds.height);
 
-    setMousePos(([x, y]) => [
+        setMousePos(([x, y]) => [
       x + fov * DEG_TO_RAD * event.movementX / maxResolutionComp,
       y + fov * DEG_TO_RAD * event.movementY / maxResolutionComp,
     ]);
+  }, [fov, gl.canvasRef]);
+
+  // Allow for grabbing angles
+  const onShiftClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!event.shiftKey) {
+      return
+    }
+      // high angle
+      setAngles(([high, low]) => [
+        0*high + yToTheta(mousePoint[1]),
+        low,
+      ]);
+
+    //window.addEventListener('keyup', (e) => {  });
+      // low angle
+        setAngles(([high, low]) => [
+          high,
+          0*low + yToTheta(mousePoint[1]),
+        ]);
+
   }, [fov, gl.canvasRef]);
 
   const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
@@ -128,11 +149,12 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
 
   return (
     <div className="flex flex-col gap-2.5 flex-grow">
-      ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {yToTheta(mousePoint[1]).toFixed(2)} deg
+      ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {yToTheta(mousePoint[1]).toFixed(2)} deg  ({angles[0]}, {angles[1]})
     <AutosizedGLCanvas
       gl={gl}
       className="rounded p-3 flex-grow"
       onMouseMove={onMouseMove}
+      onMouseDown={onShiftClick}
       onWheel={onWheel}
       onMouseEnter={disableScroll}
       onMouseLeave={enableScroll}
