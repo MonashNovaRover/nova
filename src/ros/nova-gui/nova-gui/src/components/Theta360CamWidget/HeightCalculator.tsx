@@ -15,18 +15,22 @@ export interface heightCalc360CamProps {
   const [landmarkHeight, setLandmarkHeight] = useState<number>(0);
 
 // Calculate height of landmark
-  useEffect(() => {
+    useEffect(() => {
     const radThetaHigh = props.angles[0] * Math.PI / 180;
     const radThetaLow = props.angles[1] * Math.PI / 180;
     (setLandmarkHeight(Number(inputDistance) * (Math.tan(radThetaHigh) - Math.tan(radThetaLow))));
   }, [setLandmarkHeight, inputDistance, inputThetaHigh, inputThetaLow]);
 
   // set angles when text inputs change
-  useEffect(() => {
-    //props.setAngles([Number(inputThetaHigh), Number(inputThetaLow)])
-    setInputThetaHigh(String(props.angles[0]));
-    setInputThetaLow(String(props.angles[1]));
-  }, [props.angles, inputThetaHigh, inputThetaLow])
+    useEffect(() => {
+    props.setAngles([Number(inputThetaHigh), Number(inputThetaLow)])
+    }, [inputThetaHigh, inputThetaLow])
+
+  // set input text boxes when angles are updated from canvas
+    useEffect(() => {
+      //setInputThetaHigh(String(props.angles[0]));
+      //setInputThetaLow(String(props.angles[1]));
+    }, [props.angles])
 
 // input fields for height calculation
   const distField = (
