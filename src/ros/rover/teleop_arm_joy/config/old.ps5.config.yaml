@@ -14,7 +14,7 @@ teleop_arm_joy_node:
       "arm_j3",
       "arm_j4",
       "arm_j5",
-      "arm_j6"
+      "arm_j6",
       "speed",
       "offset",
       "twist_x",
