@@ -14,7 +14,7 @@ keyboard_localiser:
     # (manual) keyboard alignment params
     aligned_keyboard_position: [0.0,0.0,0.0]
     aligned_keyboard_quaternion: [0.0, 0.0, 0.0,1.0]
-    
+
     # calibrated camera intrinsics
     hfov: 61.3727248
     image_width: 640 #1280

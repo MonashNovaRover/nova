@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Test trying to make a ros2_control URDF for the new arm -->
+  <!-- Initial definition based on https://github.com/xArm-Developer/xarm_ros2/blob/master/xarm_description/urdf/xarm6/xarm6.ros2_control.xacro -->
+
+  <xacro:macro name="arm_ros2_control" params="use_mock_hardware">
+
+    <ros2_control name="arm_J1" type="system">
+      <xacro:unless value="${use_mock_hardware}">
+        <hardware>
+          <plugin>cmd_hardware/CMDHardware</plugin>
+          <param name="candevice">can1</param>
+          <param name="canid">1</param>
+          <param name="resolver_reduction">1.0</param>
+          <param name="reversed">false</param>
+          <param name="max_velocity">0.318895720132</param>
+        </hardware>
+      </xacro:unless>
+      <xacro:if value="${use_mock_hardware}">
+        <hardware>
+          <plugin>mock_components/GenericSystem</plugin>
+          <param name="calculate_dynamics">true</param>
+        </hardware>
+      </xacro:if>
+
+      <!--
+    <hardware>
+        TODO: Figure out and add the Hardware interface
+    <plugin>${ros2_control_plugin}</plugin>
+    </hardware>
+    -->
+
+      <joint name="arm_j1">
+        <command_interface name="velocity">
+          <param name="max">292.444791137</param>
+          <param name="max">1.0</param>
+        </command_interface>
+        <command_interface name="position">
+          <param name="max">12.5663706144</param>
+        </command_interface>
+        <state_interface name="velocity">
+          <param name="max">292.444791137</param>
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="position">
+          <param name="max">12.5663706144</param>
+          <param name="initial_value">0.0</param>
+        </state_interface>
+      </joint>
+    </ros2_control>
+
+    <ros2_control name="arm_J2" type="system">
+      <xacro:unless value="${use_mock_hardware}">
+        <hardware>
+          <plugin>cmd_hardware/CMDHardware</plugin>
+          <param name="candevice">can1</param>
+          <param name="canid">2</param>
+          <param name="resolver_reduction">1.0</param>
+          <param name="reversed">false</param>
+          <param name="max_velocity">0.321388591065</param>
+        </hardware>
+      </xacro:unless>
+      <xacro:if value="${use_mock_hardware}">
+        <hardware>
+          <plugin>mock_components/GenericSystem</plugin>
+          <param name="calculate_dynamics">true</param>
+        </hardware>
+      </xacro:if>
+
+      <joint name="arm_j2">
+        <command_interface name="velocity">
+          <param name="max">292.444791137</param>
+        </command_interface>
+        <command_interface name="position">
+          <param name="max">12.5663706144</param>
+        </command_interface>
+        <state_interface name="velocity">
+          <param name="max">292.444791137</param>
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="position">
+          <param name="max">12.5663706144</param>
+          <param name="initial_value">0.0</param>
+        </state_interface>
+      </joint>
+    </ros2_control>
+
+    <ros2_control name="arm_J3" type="system">
+      <xacro:unless value="${use_mock_hardware}">
+        <hardware>
+          <plugin>cmd_hardware/CMDHardware</plugin>
+          <param name="candevice">can1</param>
+          <param name="canid">3</param>
+          <param name="resolver_reduction">1.0</param>
+          <param name="reversed">false</param>
+          <param name="max_velocity">0.310841829425</param>
+        </hardware>
+      </xacro:unless>
+      <xacro:if value="${use_mock_hardware}">
+        <hardware>
+          <plugin>mock_components/GenericSystem</plugin>
+          <param name="calculate_dynamics">true</param>
+        </hardware>
+      </xacro:if>
+
+      <joint name="arm_j3">
+        <command_interface name="velocity">
+          <param name="max">292.444791137</param>
+        </command_interface>
+        <command_interface name="position">
+          <param name="max">12.5663706144</param>
+        </command_interface>
+        <state_interface name="velocity">
+          <param name="max">292.444791137</param>
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="position">
+          <param name="max">12.5663706144</param>
+          <param name="initial_value">0.0</param>
+        </state_interface>
+      </joint>
+    </ros2_control>
+
+    <ros2_control name="arm_J4" type="system">
+      <xacro:unless value="${use_mock_hardware}">
+        <hardware>
+          <plugin>cmd_hardware/CMDHardware</plugin>
+          <param name="candevice">can1</param>
+          <param name="canid">4</param>
+          <param name="resolver_reduction">1.0</param>
+          <param name="reversed">false</param>
+          <param name="max_velocity">0.335578779453</param>
+        </hardware>
+      </xacro:unless>
+      <xacro:if value="${use_mock_hardware}">
+        <hardware>
+          <plugin>mock_components/GenericSystem</plugin>
+          <param name="calculate_dynamics">true</param>
+        </hardware>
+      </xacro:if>
+
+      <joint name="arm_j4">
+        <command_interface name="velocity">
+          <param name="max">292.444791137</param>
+        </command_interface>
+        <command_interface name="position">
+          <param name="max">12.5663706144</param>
+        </command_interface>
+        <state_interface name="velocity">
+          <param name="max">292.444791137</param>
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="position">
+          <param name="max">12.5663706144</param>
+          <param name="initial_value">0.0</param>
+        </state_interface>
+      </joint>
+    </ros2_control>
+
+    <ros2_control name="arm_J5" type="system">
+      <xacro:unless value="${use_mock_hardware}">
+        <hardware>
+          <plugin>cmd_hardware/CMDHardware</plugin>
+          <param name="candevice">can1</param>
+          <param name="canid">5</param>
+          <param name="resolver_reduction">1.0</param>
+          <param name="reversed">false</param>
+          <param name="max_velocity">0.365109712045</param>
+        </hardware>
+      </xacro:unless>
+      <xacro:if value="${use_mock_hardware}">
+        <hardware>
+          <plugin>mock_components/GenericSystem</plugin>
+          <param name="calculate_dynamics">true</param>
+        </hardware>
+      </xacro:if>
+
+      <joint name="arm_j5">
+        <command_interface name="velocity">
+          <param name="max">292.444791137</param>
+        </command_interface>
+        <command_interface name="position">
+          <param name="max">12.5663706144</param>
+        </command_interface>
+        <state_interface name="velocity">
+          <param name="max">292.444791137</param>
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="position">
+          <param name="max">12.5663706144</param>
+          <param name="initial_value">0.0</param>
+        </state_interface>
+      </joint>
+    </ros2_control>
+
+    <ros2_control name="arm_J6" type="system">
+      <xacro:unless value="${use_mock_hardware}">
+        <hardware>
+          <plugin>cmd_hardware/CMDHardware</plugin>
+          <param name="candevice">can1</param>
+          <param name="canid">6</param>
+          <param name="reversed">false</param>
+          <param name="max_velocity">0.350344245749</param>
+        </hardware>
+      </xacro:unless>
+      <xacro:if value="${use_mock_hardware}">
+        <hardware>
+          <plugin>mock_components/GenericSystem</plugin>
+          <param name="calculate_dynamics">true</param>
+        </hardware>
+      </xacro:if>
+
+      <joint name="arm_j6">
+        <command_interface name="velocity">
+          <param name="max">292.444791137</param>
+        </command_interface>
+        <command_interface name="position">
+          <param name="max">12.5663706144</param>
+        </command_interface>
+        <state_interface name="velocity">
+          <param name="max">292.444791137</param>
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+          <param name="max">12.5663706144</param>
+        </state_interface>
+      </joint>
+    </ros2_control>
+
+
+  </xacro:macro>
+</robot>

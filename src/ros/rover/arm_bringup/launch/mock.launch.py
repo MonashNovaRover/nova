@@ -34,6 +34,7 @@ def launch_setup(context, *args, **kwargs):
     world = LaunchConfiguration('world')
     controllers = LaunchConfiguration('controllers')
     arm = LaunchConfiguration('arm')
+    old_arm = LaunchConfiguration('old_arm')
 
     return [
         AppendEnvironmentVariable(
@@ -46,7 +47,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'control.launch.py'])),
-            launch_arguments={'controllers': controllers, 'model': model, 'gazebo': 'False', 'robot_name': robot_name, 'arm': arm, 'use_mock_hardware': 'True'}.items(),
+            launch_arguments={'controllers': controllers, 'model': model, 'gazebo': 'False', 'robot_name': robot_name, 'arm': arm, 'old_arm': old_arm, 'use_mock_hardware': 'True'}.items(),
         ),
         # I think this is already handled by control.launch.py
         # IncludeLaunchDescription(
@@ -95,6 +96,11 @@ def generate_launch_description():
             name='arm',
             default_value='false',
             description='whether to launch arm',
+        ),
+        DeclareLaunchArgument(
+            name='old_arm',
+            default_value='True',
+            description='whether to launch the old arm (on new armware)',
         ),
         DeclareLaunchArgument(name='x', default_value='11.2123871', description='x_pose'),
         DeclareLaunchArgument(name='y', default_value='-10.1349831', description='y_pose'),

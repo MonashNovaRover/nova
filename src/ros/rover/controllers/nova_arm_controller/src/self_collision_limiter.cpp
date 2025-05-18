@@ -15,44 +15,6 @@ std::string SelfCollisionLimiter::construct_srdf_fallback_string(const urdf::Mod
   for (const auto& joint : this->joint_names_)
     srdf_stream << "    <joint name=\"" << joint << "\"/>\n";
   srdf_stream << "  </group>\n";
-  //TODO: don't hard code these
-  srdf_stream << " \
-<disable_collisions link1=\"actuator\" link2=\"leftfinger\" reason=\"Default\" />\n\
-<disable_collisions link1=\"arm_end_finger\" link2=\"leftfinger\" reason=\"Default\" />\n\
-<disable_collisions link1=\"arm_end_periscope\" link2=\"eebase\" reason=\"Default\" />\n\
-<disable_collisions link1=\"arm_end_side\" link2=\"rightfinger\" reason=\"Default\" />\n\
-<disable_collisions link1=\"arm_end_top\" link2=\"eebase\" reason=\"Default\" />\n\
-<disable_collisions link1=\"armmount\" link2=\"gearbox\" reason=\"Default\" />\n\
-<disable_collisions link1=\"bl_ankle\" link2=\"bl_wheel\" reason=\"Default\" />\n\
-<disable_collisions link1=\"bl_ankle\" link2=\"left_leg\" reason=\"Default\" />\n\
-<disable_collisions link1=\"br_ankle\" link2=\"br_wheel\" reason=\"Default\" />\n\
-<disable_collisions link1=\"br_ankle\" link2=\"right_leg\" reason=\"Default\" />\n\
-<disable_collisions link1=\"eebase\" link2=\"leftfinger\" reason=\"Default\" />\n\
-<disable_collisions link1=\"eebase\" link2=\"rightfinger\" reason=\"Default\" />\n\
-<disable_collisions link1=\"fl_ankle\" link2=\"fl_wheel\" reason=\"Default\" />\n\
-<disable_collisions link1=\"fl_ankle\" link2=\"left_leg\" reason=\"Default\" />\n\
-<disable_collisions link1=\"fr_ankle\" link2=\"fr_wheel\" reason=\"Default\" />\n\
-<disable_collisions link1=\"fr_ankle\" link2=\"right_leg\" reason=\"Default\" />\n\
-<disable_collisions link1=\"gearbox\" link2=\"linkagedrive\" reason=\"Default\" />\n\
-<disable_collisions link1=\"j5\" link2=\"j6\" reason=\"Default\" />\n\
-<disable_collisions link1=\"j5\" link2=\"l2\" reason=\"Default\" />\n\
-<disable_collisions link1=\"l1\" link2=\"l2\" reason=\"Default\" />\n\
-<disable_collisions link1=\"l1\" link2=\"linkagedrive\" reason=\"Default\" />\n\
-<disable_collisions link1=\"l1prime\" link2=\"l2cam\" reason=\"Default\" />\n\
-<disable_collisions link1=\"l1prime\" link2=\"l2prime\" reason=\"Default\" />\n\
-<disable_collisions link1=\"l2\" link2=\"l2cam\" reason=\"Default\" />\n\
-<disable_collisions link1=\"l2prime\" link2=\"linkagedrive\" reason=\"Default\" />\n\
-<!-- These collide in simulation when I move to valid positions -->\n\
-<!-- I think some are because the back half of the closed loop isn't represented right -->\n\
-<disable_collisions link1=\"l1\" link2=\"l2cam\" reason=\"Default\" />\n\
-<disable_collisions link1=\"l1prime\" link2=\"l2\" reason=\"Default\" />\n\
-<disable_collisions link1=\"l1\" link2=\"l1prime\" reason=\"Default\" />\n\
-<disable_collisions link1=\"l1\" link2=\"l2prime\" reason=\"Default\" />\n\
-<disable_collisions link1=\"j5\" link2=\"l2cam\" reason=\"Default\" />\n\
-<disable_collisions link1=\"j6\" link2=\"l2cam\" reason=\"Default\" />\n\
-<disable_collisions link1=\"j5\" link2=\"l1prime\" reason=\"Default\" />\n\
-<disable_collisions link1=\"j6\" link2=\"l1prime\" reason=\"Default\" />\n\
-    \n";
   srdf_stream << "</robot>\n";
   auto srdf_string = srdf_stream.str();
   return srdf_string;
@@ -99,6 +61,7 @@ bool SelfCollisionLimiter::on_configure(const joint_limits::JointLimitsStateData
     delete this->planning_scene_;
   }
   this->planning_scene_ = new planning_scene::PlanningScene(this->robot_model_);
+  generate_allowed_collision_matrix();
 
   // removing these lines may improve performance, but would mean we don't get
   // a warning saying what collided
@@ -166,5 +129,33 @@ bool SelfCollisionLimiter::on_enforce(
   }
 
   return this->collision_result_.collision;
+}
+
+void SelfCollisionLimiter::generate_allowed_collision_matrix() {
+  auto acm = planning_scene_->getAllowedCollisionMatrix();
+
+  // Get the current state
+  moveit::core::RobotState& state = planning_scene_->getCurrentStateNonConst();
+  state.setToDefaultValues();
+  state.update();
+
+  // Set up request/result
+  collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res;
+  req.contacts = true;      // We get contact info to generate the allowed collision matrix from
+  req.max_contacts = 1024;  // This was chosen arbitrarily as some large number
+
+  // Perform self-collision check
+  planning_scene_->checkSelfCollision(req, res, state);
+
+  // Add all colliding pairs to the ACM
+  for (const auto &contact_pair : res.contacts)
+  {
+    const auto &link1 = contact_pair.first.first;
+    const auto &link2 = contact_pair.first.second;
+    acm.setEntry(link1, link2, true);  // Mark this pair as allowed to collide
+  }
+
+  planning_scene_->setAllowedCollisionMatrix(acm);
 }
 } //namespace nova_arm_controller

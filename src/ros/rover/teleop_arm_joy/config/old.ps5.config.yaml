@@ -1,0 +1,135 @@
+teleop_arm_joy_node:
+  ros__parameters:
+    joint_definitions: [
+      "arm_j1",
+      "arm_j2",
+      "arm_j3",
+      "arm_j4",
+      "arm_j5",
+      "arm_j6"
+    ]
+    axis_definitions: [
+      "arm_j1",
+      "arm_j2",
+      "arm_j3",
+      "arm_j4",
+      "arm_j5",
+      "arm_j6"
+      "speed",
+      "offset",
+      "twist_x",
+      "twist_y",
+      "twist_z",
+      "twist_yaw",
+      "twist_pitch",
+      "twist_roll"
+    ]
+
+    twist:
+      linear_max: 0.25
+      angular_max: 0.785398163395
+    joints:
+      arm_j1:
+        max_speed: 0.364467013889
+      arm_j2:
+        max_speed: 0.364467013889
+      arm_j3:
+        max_speed: 0.364467013889
+      arm_j4:
+        max_speed: 0.364467013889
+      arm_j5:
+        max_speed: 0.364467013889
+      arm_j6:
+        max_speed: 0.364467013889
+    device_names: ["Gamepad"]
+    devices:
+      Gamepad:
+        topic: "/joy"
+    axes:
+      arm_j1:
+        device: "Gamepad"
+        button_id_negative: 13
+        button_id_positive: 14
+      arm_j2:
+        device: "Gamepad"
+        button_id_negative: 11
+        button_id_positive: 12
+      arm_j3:
+        device: "Gamepad"
+        button_id_negative: 0
+        button_id_positive: 3
+        invert: true
+
+      arm_j4:
+        device: "Gamepad"
+        id: 3
+        invert: true
+      arm_j5:
+        device: "Gamepad"
+        id: 2
+        invert: true
+      arm_j6:
+        device: "Gamepad"
+        button_id_negative: 1
+        button_id_positive: 2
+
+      speed:
+        device: "Gamepad"
+        id: 5
+#      offset:
+#        device: "Gamepad"
+#        id: 4
+
+
+      twist_x:
+        device: "Gamepad"
+        button_id_negative: 12
+        button_id_positive: 11
+        id: 1
+      twist_y:
+        device: "Gamepad"
+        button_id_negative: 14
+        button_id_positive: 13
+        id: 0
+      twist_z:
+        device: "Gamepad"
+        button_id_negative: 0
+        button_id_positive: 3
+
+      twist_yaw:
+        device: "Gamepad"
+        id: 2
+      twist_pitch:
+        device: "Gamepad"
+        id: 3
+        invert: true
+      twist_roll:
+        device: "Gamepad"
+        button_id_negative: 2
+        button_id_positive: 1
+
+    buttons:
+      twist_mode:
+        device: "Gamepad"
+        id: 9
+#      limit_on:
+#        device: "Gamepad"
+#        id: 4
+#      limit_off:
+#        device: "Gamepad"
+#        id: 9
+      lock:
+        device: "Gamepad"
+        id: 4
+      unlock:
+        device: "Gamepad"
+        id: 6
+
+# trigger:
+#   id: 0
+# top down:
+#   id: 1
+# top left:
+#   id: 2
+# top right:
+#   id: 0
