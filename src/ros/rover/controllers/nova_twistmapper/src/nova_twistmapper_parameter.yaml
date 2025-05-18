@@ -30,12 +30,33 @@ nova_twistmapper:
     default_value: 0.1,
     description: "The discretization of the search when the solver steps through the redundancy."
   }
+  kinematics_solver_timeout: {
+    type: double,
+    default_value: 0.01,
+    description: "The amount of time the kinematics solver is allowed to look for a solution to IK before failing."
+  }
   # Also used to determine the order of the joint handles
   kinematics_solver_group_name: {
     type: string,
     default_value: "",
     description: "The name of the joint group specified in the given SRDF. Must contain only and all the joints in 
     joint_names. Determines the order of joint handles."
+  }
+
+  kinematics_base_frame: {
+    type: string,
+    default_value: "arm_kinematics_origin",
+    description: "The name of the frame/link to use as the origin/base frame for kinematics."
+  }
+  kinematics_endeffector_frame: {
+    type: string,
+    default_value: "endeffector_kinematics",
+    description: "The name of the frame/link to use as the endeffector/tip frame for kinematics."
+  }
+  kinematics_output_target_frame: {
+    type: string,
+    default_value: "arm_twistmapper_target",
+    description: "The name of the tf2 frame to broadcast the target pose for IK under."
   }
 
   # Robot descriptions
