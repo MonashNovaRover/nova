@@ -215,7 +215,7 @@ hardware_interface::return_type CMDHardware::write(
             if (hw_position_.command.has_value()) {
                 RCLCPP_DEBUG_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
                                    "Sending Position Command " << hw_position_.command.value());
-                RCLCPP_WARN(rclcpp::get_logger(CMDHardwareLoggerName), "Position command interfaces are not yet implemented for CMDs!");
+
                 const auto position_cmd = hw_position_.command.value();
                 const auto position_state = hw_position_.state.value();
 
@@ -232,9 +232,6 @@ hardware_interface::return_type CMDHardware::write(
 
         case cmd_hardware::ControlMode::Velocity:
             if (hw_velocity_.command.has_value()) {
-                RCLCPP_DEBUG_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                                    "Sending velocity command " << hw_velocity_.command.value() * reversed_multiplier_);
-
                 hw_velocity_.reference_command = hw_velocity_.command.value();
             }
             else {
@@ -246,7 +243,7 @@ hardware_interface::return_type CMDHardware::write(
         case cmd_hardware::ControlMode::Effort:
             if (hw_effort_.command.has_value()) {
                 send_scaled<int16_t>(make_can_id(CMDSendCommand::PWM_DRIVE),
-                                     hw_effort_.command.value() * reversed_multiplier_, params_.max_effort);
+                                     hw_effort_.command.value() * reverse_velocity_multiplier_, params_.max_effort);
             }
             else {
                 RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No effort command");
@@ -257,8 +254,10 @@ hardware_interface::return_type CMDHardware::write(
 
     // Actually send velocity commands
     if (control_mode_ == ControlMode::Position || control_mode_ == ControlMode::Velocity) {
+        RCLCPP_DEBUG_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
+                          "Sending velocity command " << hw_velocity_.reference_command * reverse_velocity_multiplier_);
         send_scaled<int16_t>(make_can_id(CMDSendCommand::PID_DRIVE),
-                             hw_velocity_.command.value() * reversed_multiplier_, params_.max_velocity);
+                             hw_velocity_.reference_command * reverse_velocity_multiplier_, params_.max_velocity);
     }
 
     return hardware_interface::return_type::OK;
@@ -395,12 +394,28 @@ hardware_interface::CallbackReturn CMDHardware::apply_parameters() {
       params_.mock = is_true(mock_search->second);
     }
 
-    auto reversed_search = info_.hardware_parameters.find("reversed");
-    if (reversed_search != info_.hardware_parameters.end() && is_true(reversed_search->second)) {
+    auto reverse_velocity_search = info_.hardware_parameters.find("reverse_velocity");
+    if (reverse_velocity_search != info_.hardware_parameters.end() && is_true(reverse_velocity_search->second)) {
       RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                         "Interface is reversed");
-      params_.reversed = true;
-      reversed_multiplier_ = -1;
+                         "Interface is reverse_velocity");
+      params_.reverse_velocity = true;
+      reverse_velocity_multiplier_ = -1;
+    }
+
+    auto reverse_velocity_feedback_search = info_.hardware_parameters.find("reverse_velocity_feedback");
+    if (reverse_velocity_feedback_search != info_.hardware_parameters.end() && is_true(reverse_velocity_feedback_search->second)) {
+      RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
+                         "Interface is reverse_velocity_feedback");
+      params_.reverse_velocity_feedback = true;
+      reverse_velocity_feedback_multiplier_ = -reverse_velocity_multiplier_;
+    }
+
+    auto reverse_position_search = info_.hardware_parameters.find("reverse_position");
+    if (reverse_position_search != info_.hardware_parameters.end() && is_true(reverse_position_search->second)) {
+      RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
+                         "Interface is reverse_position");
+      params_.reverse_position = true;
+      reverse_position_multiplier_ = -1;
     }
 
     auto max_position_search = info_.hardware_parameters.find("max_position");
@@ -580,7 +595,8 @@ bool CMDHardware::set_control_interface(
         }
 
         // Unpack the resolver value
-        const auto value = static_cast<int16_t>((static_cast<uint16_t>(frame.data[2]) << 8) | static_cast<uint16_t>(frame.data[3]));
+        const auto value = static_cast<int16_t>((static_cast<uint16_t>(frame.data[2]) << 8) | static_cast<uint16_t>(frame.data[3]))
+          * reverse_position_multiplier_;
 
         if (!hw_position_.raw_reference_state_valid) {
           // Prevent phantom turn count increments on interface initialisation
