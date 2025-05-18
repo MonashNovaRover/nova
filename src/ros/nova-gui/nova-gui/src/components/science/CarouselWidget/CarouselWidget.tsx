@@ -1,10 +1,18 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Card, CardBody, CardHeader, CardProps, Divider, Switch} from "@nextui-org/react";
 import CarouselDial from "./CarouselDial.tsx";
 import LEDRow from "./LEDRow.tsx";
 import {toInteger} from "lodash";
 import CarouselInputs from "./CarouselInputs.tsx";
 import CarouselControls from "./CarouselControls.tsx";
+import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
+import {
+  IRosNovaInterfacesKilnCommandRequest,
+  IRosNovaInterfacesKilnCommandResponse,
+} from "../../../ros/rosTypes.ts";
+import {RosService} from "../../../ros/services/rosService.ts";
+import toast from "react-hot-toast";
+
 
 export interface CarouselWidgetProps extends CardProps{
 }
@@ -24,21 +32,45 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
   const currentCuvette = clampStep(currentCuvetteRotation) // 0-indexed between 0-19 inclusive
   const [showCalibration, setShowCalibration] = useState(true)
   const [stepperActive, setStepperActive] = useState(false)
+  const bifrost = useBifrost({service: RosService.CAROUSEL});
 
-  const moveXSteps = (x: number) => {
-    if (x !== 0)
-      console.log(`moving the stepper ${x} steps`)
+  useEffect(() => {
+    bifrost.syncWithTopic();
+  }, [bifrost]);
+
+  const toggleActiveStatus = (value: boolean) => {
+    bifrost.callService({state: value}, {
+      handleResponse: (response) => {
+        const boolResponse = response as IRosNovaInterfacesKilnCommandResponse;
+        if (boolResponse?.success) {
+          setStepperActive(value);
+        }
+      }
+    });
   }
 
-  const moveXCuvettes = (x: number)=> {
-    setCurrentCuvetteRotation(currentCuvetteRotation + x)
-    moveXSteps(x * CuvvetteStepSize)
+  const moveXSteps = (steps: number, cuvettes: number = 0) => {
+    if (steps === 0)
+      return
+
+    if (!stepperActive) {
+      toast.dismiss()
+      toast.error("Stepper is not active")
+      setCurrentCuvetteRotation(currentCuvetteRotation + cuvettes)
+      return
+    }
+
+    bifrost.callService({target: steps} as IRosNovaInterfacesKilnCommandRequest, {
+      handleResponse: (response) => {
+        const boolResponse = response as IRosNovaInterfacesKilnCommandResponse;
+        if (boolResponse?.success) {
+          setCurrentCuvetteRotation(currentCuvetteRotation + cuvettes);
+        }
+      }
+    });
   }
 
-  const toggleStepper = (toggle: boolean) => {
-    setStepperActive(toggle)
-    console.log(`setting stepper to ${toggle}`)
-  }
+  const moveXCuvettes = (x: number) => moveXSteps(x * CuvvetteStepSize, x)
 
   return <Card {...props}>
     <CardHeader>Carousel</CardHeader>
@@ -46,7 +78,7 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
       <div className="flex flex-col col-span-2 gap-3">
         <div className="flex flex-row items-center justify-between gap-5 ">
           <span>Enable Stepper</span>
-          <Switch size="lg" isSelected={stepperActive} onValueChange={toggleStepper}/>
+          <Switch size="lg" isSelected={stepperActive} onValueChange={toggleActiveStatus}/>
         </div>
 
         <div className="flex flex-row items-center justify-between gap-5 ">
@@ -68,8 +100,7 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
         <LEDRow/>
       </div>
 
-      <CarouselControls currentCuvetteRotation={currentCuvetteRotation} setCurrentCuvetteRotation={setCurrentCuvetteRotation}
-                        moveXSteps={moveXSteps} showCalibration={showCalibration}/>
+      <CarouselControls moveXCuvettes={moveXCuvettes} moveXSteps={moveXSteps} showCalibration={showCalibration}/>
     </CardBody>
   </Card>
 }

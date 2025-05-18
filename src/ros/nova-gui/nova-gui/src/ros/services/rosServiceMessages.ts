@@ -29,6 +29,7 @@ export const rosServiceMessages = {
   [RosService.CACHE_1]: "nova_interfaces/srv/CacheCommand",
   [RosService.CACHE_2]: "nova_interfaces/srv/CacheCommand",
   [RosService.HEATER]: "std_srvs/srv/SetBool",
+  [RosService.CAROUSEL]: "nova_interfaces/srv/KilnCommand",
 
   [RosService.RGBInput]: "nova_interfaces/srv/RGBInput",
 };

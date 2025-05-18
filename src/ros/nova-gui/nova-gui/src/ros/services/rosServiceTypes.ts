@@ -121,6 +121,10 @@ export interface RosServiceInterface {
       IRosStdSrvsSetBoolRequest,
       IRosStdSrvsSetBoolResponse
   >;
+  [RosService.CAROUSEL]: RosServiceMessage<
+    IRosNovaInterfacesKilnCommandRequest,
+    IRosNovaInterfacesKilnCommandResponse
+  >;
 
   [RosService.RGBInput]: RosServiceMessage<
       IRosNovaInterfacesRgbInputRequest,
