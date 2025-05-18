@@ -32,6 +32,7 @@ class URCAuger(ActivatedJoystickControllerNode):
 
     # DEPTH HALL SENSORS CAN INFO
     AUGER_HALL_SENSOR_CANID_PARAM = "auger_hall_sensor_canid"
+    DEFAULT_AUGER_HALL_SENSOR_CANID_PARAM = 0x4A2
     DEPTH_HIT_DATA = 0x01
     DEPTH_NOT_HIT_DATA = 0x00
 
@@ -73,6 +74,7 @@ class URCAuger(ActivatedJoystickControllerNode):
         self.declare_parameter(self.AUGER_ACTUATION_CANID_PARAM, self.AUGER_ACTUATION_SEND_FRAME_ID)
         self.declare_parameter(self.AUGER_DRILL_CANID_PARAM, self.AUGER_DRILL_SEND_FRAME_ID)
         self.declare_parameter(self.AUGER_DRILL_MAX_PERCENT_PARAM, self.AUGER_DRILL_MAX_PERCENT)
+        self.declare_parameter(self.AUGER_HALL_SENSOR_CANID_PARAM, self.DEFAULT_AUGER_HALL_SENSOR_CANID_PARAM)
         self.get_logger().info(f"CAN IDs: Actuation = {self.get_parameter(self.AUGER_ACTUATION_CANID_PARAM).value} Drill = {self.get_parameter(self.AUGER_DRILL_CANID_PARAM).value}")
 
         ## Add publishers
@@ -83,7 +85,7 @@ class URCAuger(ActivatedJoystickControllerNode):
         )
 
         ## Add CAN ID Filters
-        self.bus.set_id_filter([self.AUGER_LIMIT_RECV_ID, self.get_parameter(self.AUGER_HALL_SENSOR_CANID_PARAM)])
+        self.bus.set_id_filter([self.AUGER_LIMIT_RECV_ID, self.get_parameter(self.AUGER_HALL_SENSOR_CANID_PARAM).value])
 
         ## Create sensors
         self.bottom_limit_hall_effect = CommandSensor(
@@ -97,9 +99,10 @@ class URCAuger(ActivatedJoystickControllerNode):
         self.depth_hall_effect_sensor = ToggleCommandSensor(
             logger=logger,
             bus=self.bus,
-            frame_id=self.AUGER_HALL_SENSOR_CANID_PARAM,
+            frame_id=self.get_parameter(self.AUGER_HALL_SENSOR_CANID_PARAM).value,
             state_id_on=self.DEPTH_HIT_DATA,
-            state_id_off=self.DEPTH_NOT_HIT_DATA
+            state_id_off=self.DEPTH_NOT_HIT_DATA,
+            publisher = self.depth_publisher,
         )
 
         # Create limits
@@ -176,10 +179,6 @@ class URCAuger(ActivatedJoystickControllerNode):
         self.update_auger_actuation(joystick_r)
         self.update_auger_drill(joystick_r)
 
-    def publish_depth_hit(self):
-        msg = Bool()
-        msg.data = self.depth_hall_effect_sensor.get_sensor_value()
-        self.depth_publisher.publish(msg)
 
 def main():
     rclpy.init()

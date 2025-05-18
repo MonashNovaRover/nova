@@ -15,7 +15,7 @@ const DepthSensor: React.FC<BaseCameraComponentProps> = (
 ) => {
     // Accessing the Store using useSelector hook
     const auger1_depth_hit = useSelector(
-        (state: RootState) => state.auger1DepthSensorStore
+        (state: RootState) => state.auger1DepthSensorStore.data
     );
     
     // Invoking Bifrost and pointing it towards TEMP_SENSOR
@@ -29,7 +29,7 @@ const DepthSensor: React.FC<BaseCameraComponentProps> = (
 
     // Accessing the Store using useSelector hook
     const auger2_depth_hit = useSelector(
-        (state: RootState) => state.auger2DepthSensorStore
+        (state: RootState) => state.auger2DepthSensorStore.data
     );
     
     // Invoking Bifrost and pointing it towards TEMP_SENSOR
