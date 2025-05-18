@@ -187,7 +187,16 @@ hardware_interface::return_type CMDHardware::read(
 {
     bus_->spin();
 
-    hw_position_.state = hw_position_.reference_state
+    // Transfer reference states to the actual state interfaces
+
+    // Apply interpolation between CAN feedback and previous command to velocity
+    hw_velocity_.state = lerp(hw_velocity_.reference_state, hw_velocity_.reference_command,
+                              params_.velocity_integration_command_amount);
+
+    // Apply velocity integration to position
+    hw_velocity_.state = hw_position_.reference_state
+        + hw_velocity_.state.value() * params_.velocity_integration_seconds;
+
 
     return hardware_interface::return_type::OK;
 }
@@ -470,10 +479,14 @@ bool CMDHardware::set_control_interface(
             // }
             // hw_position_.resolver_reduction = std::stod(resolver_reduction_search->second);
             hw_position_.command = 0.0;
+            hw_velocity_.command = 0.0;
+            hw_velocity_.state = 0.0;
             hw_velocity_.reference_command = 0.0;
         }
         else {
             hw_position_.state = 0.0;
+            hw_velocity_.command = 0.0;
+            hw_velocity_.state = 0.0;
         }
     } else if (interface_info.name == hardware_interface::HW_IF_VELOCITY){
         if (command) {
@@ -507,7 +520,7 @@ bool CMDHardware::set_control_interface(
         if (hw_velocity_.state.has_value() || hw_effort_.state.has_value()) {
 //            ids.push_back(make_can_id(TelemetryPacket::PACKET_1));
         }
-        if (hw_position_.state.has_value()) {
+        if (hw_position_.state.has_value() || hw_position_.command.has_value()) {
             ids.push_back(static_cast<uint32_t>(TelemetryPacket::RESOLVER_ARBITRATION_ID));
         }
 
@@ -543,25 +556,6 @@ bool CMDHardware::set_control_interface(
         return static_cast<uint32_t>(CanIdPrefix::RECEIVE) << 8 | params_.canid << 4 |
                static_cast<uint32_t>(packet);
     }
-
-//    void cmdhardware::packet_1_callback(leigh::jcan::frame frame) {
-//        if (hw_velocity_.state.has_value()) {
-//
-//            hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max) *
-//            reversed_multiplier_*-1*0.5; // dear bro, ask chassis why this is -1
-//
-//        }
-//        if (hw_effort_.state.has_value()) {
-//            hw_effort_.state = convert_scaled<int16_t>(&frame.data[2], hw_effort_.max);
-//        }
-//    }
-//
-//    void cmdhardware::packet_3_callback(leigh::jcan::frame frame) {
-//        if(hw_position_.state.has_value()) {
-//            hw_position_.state = convert_scaled<int16_t>(&frame.data[0], hw_position_.max) *
-//                                 hw_position_.resolver_reduction * reversed_multiplier_;
-//        }
-//    }
 
     void CMDHardware::resolver_callback(leigh::jcan::Frame frame) {
         if (!hw_position_.state.has_value())
