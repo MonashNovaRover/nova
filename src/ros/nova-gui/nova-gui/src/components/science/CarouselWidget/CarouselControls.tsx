@@ -12,7 +12,9 @@ const nightyDegrees = 5
 
 /**
  * Controls that tell the carousel to move some amount of steps or cuvettes
- * @param props
+ * @param moveXCuvettes move the carousel x cuvettes
+ * @param moveXSteps move the carousel x steps
+ * @param showCalibration whether or not to be in calibration mode
  * @constructor
  */
 const CarouselControls: React.FC<CarouselDialProps> = ({moveXCuvettes, moveXSteps, showCalibration}) => {

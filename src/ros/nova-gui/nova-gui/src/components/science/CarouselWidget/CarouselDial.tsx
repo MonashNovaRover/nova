@@ -13,7 +13,7 @@ const offset = 9
 const stepSize = 18
 
 /**
- * A representation of the Carousel that spins so that the current step is at the bottom
+ * A representation of the Carousel that spins so that the current step is at the bottom where the camera faces
  * @param props
  * @param cuvette the current cuvette to display at the bottom (0-indexed)
  * @constructor

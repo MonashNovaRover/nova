@@ -27,6 +27,11 @@ const clampStep = (step: number) => {
 
 const CuvvetteStepSize = 40
 
+/**
+ * Widget to control the carousel.
+ * @param props
+ * @constructor
+ */
 const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
   const [currentCuvetteRotation, setCurrentCuvetteRotation] = useState(0) // 0-indexed no range
   const currentCuvette = clampStep(currentCuvetteRotation) // 0-indexed between 0-19 inclusive
@@ -72,7 +77,10 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
     });
   }
 
-  const moveXCuvettes = (x: number) => moveXSteps(x * CuvvetteStepSize, x)
+  const moveXCuvettes = (x: number) => {
+    const cuvettes = x < 10 ? (x > -10 ? x : x + 20) : x - 20
+    moveXSteps(cuvettes * CuvvetteStepSize, cuvettes)
+  }
 
   return <Card {...props}>
     <CardHeader>Carousel</CardHeader>

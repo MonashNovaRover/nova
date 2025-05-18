@@ -8,6 +8,10 @@ import {RosService} from "../../../ros/services/rosService.ts";
 interface LEDRowProps {
 }
 
+/**
+ * Controls for turning on and off Vis Spec LEDs
+ * @constructor
+ */
 const LEDRow: React.FC<LEDRowProps> = () => {
   const [ LED1, setLED1 ] = useState<boolean>(false);
   const [ LED2, setLED2 ] = useState<boolean>(false);
@@ -47,16 +51,16 @@ const LEDRow: React.FC<LEDRowProps> = () => {
 
   return (
     <div className="flex flex-row gap-5">
-      <div>
-        <div className="font-bold">LED 1 (T)</div>
+      <div  className="flex flex-col items-center">
+        <div className="font-bold">LED 1 (Top)</div>
         <Switch
           className="mt-1.5 mx-1.5"
           isSelected={LED1}
           onChange={() => changeLED1(!LED1)}
         />
       </div>
-      <div>
-        <div className="font-bold">LED 2 (B)</div>
+      <div className="flex flex-col items-center">
+        <div className="font-bold">LED 2 (Bottom)</div>
         <Switch
           className="mt-1.5 mx-1.5"
           isSelected={LED2}
