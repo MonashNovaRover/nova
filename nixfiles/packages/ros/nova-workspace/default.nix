@@ -94,10 +94,8 @@
       nova-python-control
       nova-excavation-construction
       nova-utils
-      reolink
       nova-arm-controller
       nova-ik-controller
-      nova-twistmapper
       nova-twistmapper
       nova-banksia-kinematics-plugin
       reolink;
