@@ -21,8 +21,8 @@ import {
   IRosNovaInterfacesTakeNirProbeReadingResponse,
   IRosNovaInterfacesCacheCommandRequest,
   IRosNovaInterfacesCacheCommandResponse,
-  IRosNovaInterfacesMoveHydroprobeRequest,
-  IRosNovaInterfacesMoveHydroprobeResponse,
+  IRosNovaInterfacesMoveHydraprobeRequest,
+  IRosNovaInterfacesMoveHydraprobeResponse,
 
 } from "../rosTypes";
 import { RosService } from "./rosService";
