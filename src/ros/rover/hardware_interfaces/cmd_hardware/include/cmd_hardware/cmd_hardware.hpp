@@ -55,6 +55,7 @@ struct PositionInterface : ControlInterface {
     double reference_state = 0.0;
     /// This reference state does not include multi-turn emulation
     double raw_reference_state = 0.0;
+    int raw_reference_state_turns = 0;
 };
 
 enum class ControlMode {
