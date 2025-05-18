@@ -206,6 +206,9 @@ protected:
    */
   void generate_allowed_collision_matrix();
 
+
+  rclcpp_action::GoalResponse handle_action_goal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const ArmPlanPath::Goal> goal);
+
   void handle_action_accepted(const std::shared_ptr<GoalHandleArmPlanPath>& goal_handle);
 
   rclcpp_action::CancelResponse handle_action_cancelled(const std::shared_ptr<GoalHandleArmPlanPath>& goal_handle);
@@ -222,6 +225,7 @@ protected:
   // Path input
   rclcpp_action::Server<nova_interfaces::action::ArmPlanPath>::SharedPtr action_server_;
   realtime_tools::RealtimeBox<std::shared_ptr<std::queue<std::vector<tf2::Transform>>>> path_{nullptr};
+  bool is_path_being_executed_ = false;
 
   /// Result of the path_planner, and input to IK. Desired position and orientation of the end effector relative to the base.
   tf2::Transform path_planner_pose_ = tf2::Transform();

@@ -12,6 +12,11 @@ nova_path_planner:
   }
 
   # PathPlanner
+  action_name: {
+    type: string,
+    default_value: "/arm/plan_path",
+    description: "The name of the action to accept path planning requests from."
+  }
   twist_stamped_topic: {
     type: string,
     default_value: "/arm_ik_twist_stamped",
