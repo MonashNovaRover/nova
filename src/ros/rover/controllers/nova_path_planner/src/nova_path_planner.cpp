@@ -88,7 +88,6 @@ namespace nova_path_planner
 
   void NovaPathPlanner::update_path_planner_pose(const rclcpp::Time &time, const rclcpp::Duration &period) {
     std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
-    received_twist_stamped_ptr_.get(twist_stamped);
 
     if (twist_stamped == nullptr) {
       RCLCPP_WARN(get_node()->get_logger(), "Haven't yet received a TwistStamped message to use for the path_planner.");
@@ -100,10 +99,8 @@ namespace nova_path_planner
     tf2::Vector3 tf2_twist_angular;
     tf2::fromMsg(twist.angular, tf2_twist_angular);
 
-    path_planner_pose_rpy_ = path_planner_pose_rpy_ + tf2_twist_angular * period.seconds();
     // Create rotation matrix from twist.angular as XYZ euler
     auto rotation_matrix = tf2::Matrix3x3();
-    rotation_matrix.setRPY(path_planner_pose_rpy_.x(), path_planner_pose_rpy_.y(), path_planner_pose_rpy_.z());
 
     const auto linear = tf2::Vector3(
       twist.linear.x * period.seconds(),
@@ -132,7 +129,6 @@ namespace nova_path_planner
     }
 
     auto old_pose = path_planner_pose_;
-    auto old_rpy = path_planner_pose_rpy_;
 
     // Get a new pose
     update_path_planner_pose(time, period);
@@ -148,7 +144,6 @@ namespace nova_path_planner
     auto result = kinematics_solver_->searchPositionIK(pose, joint_state_values, params_.kinematics_solver_timeout, solution, error_codes);
     if (!result) {
       path_planner_pose_ = old_pose;
-      path_planner_pose_rpy_ = old_rpy;
       RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 500,
                            "Failed to find solution to inverse kinematics: error code %d (\"%s\"). %s", error_codes.val,
                            moveit::core::errorCodeToString(error_codes).c_str(), error_codes.message.c_str());
@@ -158,7 +153,6 @@ namespace nova_path_planner
 
     if (check_path_for_self_intersection(joint_state_values, solution)) {
       path_planner_pose_ = old_pose;
-      path_planner_pose_rpy_ = old_rpy;
       RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 500, "Inverse Kinematics solution self intersects!");
       return controller_interface::return_type::OK;
     }
@@ -192,30 +186,6 @@ namespace nova_path_planner
     // tf_buffer_ = std::make_unique<tf2_ros::Buffer>(get_node()->get_clock());
     // tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
-    twist_stamped_sub_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
-      DEFAULT_INPUT_TOPIC_END_EFFECTOR_TWIST,
-      rclcpp::SystemDefaultsQoS(),
-      [this, logger](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
-      {
-        RCLCPP_INFO_ONCE(logger, "Twist message received.");
-
-        if (!subscriber_is_active_)
-        {
-          RCLCPP_WARN_ONCE(
-            logger, "Can't accept new commands. subscriber is inactive");
-          return;
-        }
-        if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
-        {
-          RCLCPP_WARN_ONCE(
-            logger,
-            "Received message with zero timestamp, setting it to current "
-            "time, this message will only be shown once");
-          msg->header.stamp = get_node()->get_clock()->now();
-        }
-
-        received_twist_stamped_ptr_.set(std::move(msg));
-      });
     subscriber_is_active_ = true;
 
     RCLCPP_INFO(logger, "Created twist stamped subscription");
@@ -387,9 +357,6 @@ namespace nova_path_planner
     // Set path_planner_pose_rpy_ to match
     double roll, pitch, yaw;
     path_planner_pose_.getBasis().getRPY(roll, pitch, yaw);
-    path_planner_pose_rpy_.setX(roll);
-    path_planner_pose_rpy_.setY(pitch);
-    path_planner_pose_rpy_.setZ(yaw);
 
     // Set initial command interface values from state interface
     for (auto& joint : registered_joint_handles_) {
@@ -456,7 +423,6 @@ namespace nova_path_planner
     // tf_listener_.reset();
 
     // Reset subscriptions
-    twist_stamped_sub_.reset();
     subscriber_is_active_ = false;
 
     return true;
@@ -471,7 +437,6 @@ namespace nova_path_planner
   {
     // Set path_planner velocities to 0
     std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
-    received_twist_stamped_ptr_.get(twist_stamped);
 
     twist_stamped->twist.linear.x = 0;
     twist_stamped->twist.linear.y = 0;
