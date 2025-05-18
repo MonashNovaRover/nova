@@ -31,9 +31,9 @@ const CarouselDial: React.FC<CarouselDialProps> = (props) => {
         <div>
           <Image style={rotateStyle} src={CarouselDialImage}/>
         </div>
-        <Search color="#17c964" className="w-16 h-8"/>
+        <Search color="#006FEE" className="w-16 h-8"/>
       </div>
-      <ChevronUp color="#17c964" className="w-16 h-8"/>
+      <ChevronUp color="#006FEE" className="w-16 h-8"/>
     </div>
   </div>
 }

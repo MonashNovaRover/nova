@@ -35,6 +35,8 @@ const CarouselInputs: React.FC<CarouselInputsProps> = ({currentCuvette, showCali
           />
           <Button onClick={() => setCurrentCuvette(currentCuvetteInput - 1)}>Sync</Button>
         </div>
+        <span className="mt-3 mb-1">40 steps = 1 full cuvette</span>
+        <span>Move small steps to center the camera view, then sync the current cuvette.</span>
       </div>}
 
       {!showCalibration && <div className="flex flex-col gap-2">

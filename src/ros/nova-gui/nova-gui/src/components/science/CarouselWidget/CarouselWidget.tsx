@@ -43,6 +43,7 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
       handleResponse: (response) => {
         const boolResponse = response as IRosNovaInterfacesKilnCommandResponse;
         if (boolResponse?.success) {
+          toast.success("Request Successful")
           setStepperActive(value);
         }
       }
@@ -60,10 +61,11 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
       return
     }
 
-    bifrost.callService({target: steps} as IRosNovaInterfacesKilnCommandRequest, {
+    bifrost.callService({state: true, target: steps} as IRosNovaInterfacesKilnCommandRequest, {
       handleResponse: (response) => {
         const boolResponse = response as IRosNovaInterfacesKilnCommandResponse;
         if (boolResponse?.success) {
+          toast.success("Request Successful")
           setCurrentCuvetteRotation(currentCuvetteRotation + cuvettes);
         }
       }
