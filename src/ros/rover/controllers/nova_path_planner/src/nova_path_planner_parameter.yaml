@@ -24,6 +24,14 @@ nova_path_planner:
     header.frame_id frame."
   }
 
+  # Path Planning
+  planner: {
+    type: string,
+    default_value: "/arm_ik_twist_stamped",
+    description: "The name of the topic to get teleop twist stamped messages from. Applies relative to the 
+    header.frame_id frame."
+  }
+
   # Kinematics Solving
   kinematics_solver: {
     type: string,

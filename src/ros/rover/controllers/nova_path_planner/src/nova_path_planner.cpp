@@ -54,6 +54,8 @@ namespace nova_path_planner
 
       kinematics_solver_loader_ = std::make_unique<pluginlib::ClassLoader<kinematics::KinematicsBase>>(
         "moveit_core", "kinematics::KinematicsBase");
+//      planner_loader_ = std::make_unique<pluginlib::ClassLoader<planning_interface::PlannerManager>>(
+//        "moveit_core", "planning_interface::PlannerManager");
     }
     catch (const std::exception &e)
     {
@@ -264,6 +266,30 @@ namespace nova_path_planner
     kinematics_solver_->initialize(kinematics_compat_node_, *robot_model_.get(), joint_group_name_, base_frame, tip_frames,
                                    search_discretization);
 
+    // Load planner
+    /*
+    try
+    {
+      RCLCPP_INFO(logger, "Attempting to find plugin for path planning as one of the following plugins:");
+      auto plugins = planner_loader_->getDeclaredClasses();
+      for (const auto& plugin : plugins) {
+        RCLCPP_INFO(logger, "  - %s", plugin.c_str());
+      }
+
+      planner_ = planner_loader_->createSharedInstance(params_.planner);
+    }
+    catch (const pluginlib::PluginlibException& ex)
+    {
+      RCLCPP_ERROR(logger, "Failed to load IK solver plugin \'%s\': %s", params_.planner.c_str(), ex.what());
+      return controller_interface::CallbackReturn::ERROR;
+    }
+    RCLCPP_INFO(logger, "Loaded planner plugin \'%s\'", params_.kinematics_solver.c_str());
+
+    kinematics_compat_node_->declare_parameter
+
+    planner_->initialize(robot_model_, kinematics_compat_node_, "");
+     */
+
     previous_update_timestamp_ = get_node()->get_clock()->now();
     return controller_interface::CallbackReturn::SUCCESS;
   }
@@ -338,6 +364,13 @@ namespace nova_path_planner
       return CallbackReturn::ERROR;
     }
 
+    /*
+    if (!planner_) {
+      RCLCPP_ERROR(get_node()->get_logger(), "planner_ is uninitialized or invalid!");
+      return CallbackReturn::ERROR;
+    }
+    */
+
     auto joint_values = get_state_pos_values();
     std::vector<geometry_msgs::msg::Pose> poses;
 
@@ -371,7 +404,6 @@ namespace nova_path_planner
       std::bind(&nova_path_planner::NovaPathPlanner::handle_action_goal, this, _1, _2),
       std::bind(&nova_path_planner::NovaPathPlanner::handle_action_cancelled, this, _1),
       std::bind(&nova_path_planner::NovaPathPlanner::handle_action_accepted, this, _1));
-
 
     RCLCPP_INFO(get_node()->get_logger(), "Initial path_planner pose set from forward kinematics.");
     return controller_interface::CallbackReturn::SUCCESS;
@@ -423,6 +455,7 @@ namespace nova_path_planner
 
     // Reset pointers
     kinematics_solver_.reset();
+    // planner_.reset();
     robot_model_.reset();
     urdf_model_.reset();
     srdf_model_.reset();
@@ -738,9 +771,37 @@ namespace nova_path_planner
     auto result = std::make_shared<ArmPlanPath::Result>();
 
     // Set up for path planning
+    Eigen::Isometry3d start; // Get current pose
 
+
+    Eigen::Isometry3d end;
+    Eigen::fromMsg(goal->pose, end);
+
+    // Handles for a cubic bezier spline
+    Eigen::Isometry3d handle0 = start;
+    Eigen::Isometry3d handle1 = end;
+
+    double execution_time = 1.0;
+    double frequency = 20.0;
+
+    // Calculate number of points
+    int pose_count_minus_one = static_cast<int>(std::floor(execution_time / frequency));
 
     // Plan the path
+    // This should be a loop that frequently releases to the scheduler
+    std::vector<Eigen::Isometry3d> poses;
+    poses.reserve(pose_count_minus_one + 1);
+
+    for (int i = 0; i < pose_count_minus_one; i++) {
+      auto t = static_cast<double>(i) / pose_count_minus_one;
+
+      // Calculate as cubic bezier curve
+      Eigen::Isometry3d pose = lerp3(start, handle0, handle1, end);
+      poses.emplace_back(pose);
+    }
+    poses.emplace_back(end);
+
+    // Validate the path
     // This should be a loop that frequently releases to the scheduler
 
     // Give to the realtime thread to be executed physically by the control loop
@@ -763,6 +824,44 @@ namespace nova_path_planner
     is_path_being_executed_ = false;
     goal_handle->succeed(result);
     RCLCPP_INFO(logger, "Goal succeeded");
+  }
+
+  inline Eigen::Vector3d NovaPathPlanner::lerp(Vector3d a, Vector3d b, double t) {
+    return (1-t)*a + t*b;
+  }
+
+  inline Eigen::Vector3d NovaPathPlanner::lerp2(Vector3d a, Vector3d b, Vector3d c, double t) {
+    return lerp(lerp(a,b, t), lerp(b,c, t), t);
+  }
+
+  inline Eigen::Vector3d NovaPathPlanner::lerp3(Vector3d a, Vector3d b, Vector3d c, Vector3d d, double t) {
+    return lerp(lerp2(a,b,c, t), lerp2(b,c,d, t), t);
+  }
+
+  inline Eigen::Quaterniond NovaPathPlanner::slerp(Eigen::Quaterniond a, Eigen::Quaterniond b, double t) {
+    return a.slerp(t, b);
+  }
+
+  inline Eigen::Quaterniond NovaPathPlanner::slerp2(Eigen::Quaterniond a, Eigen::Quaterniond b, Eigen::Quaterniond c, double t) {
+    return slerp(slerp(a,b, t), slerp(b,c, t), t);
+  }
+
+  Eigen::Quaterniond
+  NovaPathPlanner::slerp3(Eigen::Quaterniond a, Eigen::Quaterniond b, Eigen::Quaterniond c, Eigen::Quaterniond d,
+                          double t) {
+    return slerp(slerp2(a,b,c, t), slerp2(b,c,d, t), t);
+  }
+
+  Eigen::Isometry3d
+  NovaPathPlanner::lerp3(Eigen::Isometry3d a, Eigen::Isometry3d b, Eigen::Isometry3d c, Eigen::Isometry3d d, double t) {
+    const Vector3d translation = lerp3(a.translation(), b.translation(), c.translation(), d.translation(), t);
+    const Eigen::Quaterniond linear = slerp3(a.rotation(), b.rotation(), c.rotation(), d.rotation(), t);
+
+    Eigen::Isometry3d result = Eigen::Isometry3d::Identity();
+    result.linear() = interp_rotation.toRotationMatrix();
+    result.translation() = interp_translation;
+
+    return result;
   }
 
 } // namespace nova_path_planner
