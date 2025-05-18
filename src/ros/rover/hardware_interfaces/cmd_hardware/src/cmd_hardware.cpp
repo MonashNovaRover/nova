@@ -212,21 +212,13 @@ hardware_interface::return_type CMDHardware::write(
                 RCLCPP_DEBUG_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
                                    "Sending Position Command " << hw_position_.command.value());
                 RCLCPP_WARN(rclcpp::get_logger(CMDHardwareLoggerName), "Position command interfaces are not yet implemented for CMDs!");
-                // TODO: Implement command interfaces, by seeking velocity
-
                 const auto position_cmd = hw_position_.command.value();
-                auto position_state = hw_position_.state.value();
-
-                // Apply velocity integration
-                const auto integration_velocity = lerp(hw_velocity_.state.value(), hw_velocity_.reference_command,
-                                                 params_.velocity_integration_command_amount);
-                const auto integration_offset = integration_velocity * params_.velocity_integration_seconds;
-                position_state += integration_offset;
+                const auto position_state = hw_position_.state.value();
 
                 // Error term to do velocity seeking on
                 const auto position_error = position_cmd - position_state;
 
-                hw_velocity_.reference_command = position_error / period.seconds();
+                hw_velocity_.reference_command = params_.position_seeking_velocity_multiplier * position_error / period.seconds();
             }
             else {
                 RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No position command");
