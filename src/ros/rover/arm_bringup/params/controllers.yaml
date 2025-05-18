@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 60
+    update_rate: 20
     use_sim_time: false
 
     nova_arm_velocity_controller:
@@ -36,37 +36,39 @@ controller_manager:
 nova_arm_velocity_controller:
   ros__parameters:
     joint_names:
-      - J1
-      - J2
-      - J3
-      - J4
-      - J5
-      - J6
+      - arm_j1
+      - arm_j2
+      - arm_j3
+      - arm_j4
+      - arm_j5
+      - arm_j6
     use_position_control: false
     use_collision_limits: false
+    use_limits: false
 
 nova_arm_position_controller:
   ros__parameters:
     joint_names:
-      - J1
-      - J2
-      - J3
-      - J4
-      - J5
-      - J6
+      - arm_j1
+      - arm_j2
+      - arm_j3
+      - arm_j4
+      - arm_j5
+      - arm_j6
     use_position_control: true
     use_collision_limits: false
+    use_limits: false
 
 nova_twistmapper:
   ros__parameters:
     chained_controller_name: "nova_arm_position_controller"
     joint_names:
-      - J1
-      - J2
-      - J3
-      - J4
-      - J5
-      - J6
+      - arm_j1
+      - arm_j2
+      - arm_j3
+      - arm_j4
+      - arm_j5
+      - arm_j6
     kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
 
 wheel_velocity_controller:
@@ -92,8 +94,8 @@ joint_state_broadcaster:
 
     joints:
       ["blp", "brp", "flp", "frp",
-      "blw", "brw", "flw", "frw", 
-      "J1", "J2", "J3", "J4", "J5", "J6"]
+      "blw", "brw", "flw", "frw",
+       "arm_j1", "arm_j2", "arm_j3", "arm_j4", "arm_j5", "arm_j6"]
 
     extra_joints:
       ["chassis_to_left_leg",

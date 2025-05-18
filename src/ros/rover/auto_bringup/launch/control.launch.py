@@ -16,11 +16,10 @@ CREATION:	15/12/2021
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import UnlessCondition
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction, ExecuteProcess, LogInfo
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from launch_ros.parameter_descriptions import ParameterValue
 
 
 def launch_setup(context, *args, **kwargs):
@@ -31,44 +30,24 @@ def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo')
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
-    arm = LaunchConfiguration('arm').perform(context)
-    old_arm = LaunchConfiguration('old_arm').perform(context)
     use_local_mesh = LaunchConfiguration('use_local_mesh')
-    use_mock_hardware = LaunchConfiguration('use_mock_hardware')
-
-    print(f"old_arm = {old_arm}")
 
     return [
-        Node( # TODO: only when arm is enabled
+        Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['nova_arm_velocity_controller', '--switch-timeout', '10'] #, '--inactive']
+            arguments=['pivot_drive_controller', '--switch-timeout', '10', '--ros-args', '--log-level', log_level] #, '--inactive']
         ),
-        Node( # TODO: only when arm is enabled
+        Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['nova_arm_position_controller', '--inactive']
+            arguments=['strafe_controller', '--inactive']
         ),
-        Node( # TODO: only when arm is enabled
+        Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['nova_twistmapper', '--inactive'],
+            arguments=['nova_diff_drive_controller', '--inactive']
         ),
-#        Node(
-#            package='controller_manager',
-#            executable='spawner',
-#            arguments=['pivot_drive_controller', '--switch-timeout', '10', '--ros-args', '--log-level', log_level] #, '--inactive']
-#        ),
-#        Node(
-#            package='controller_manager',
-#            executable='spawner',
-#            arguments=['strafe_controller', '--inactive']
-#        ),
-#        Node(
-#            package='controller_manager',
-#            executable='spawner',
-#            arguments=['nova_diff_drive_controller', '--inactive']
-#        ),
         GroupAction(
             condition=UnlessCondition(gazebo),
             actions=[
@@ -85,7 +64,7 @@ def launch_setup(context, *args, **kwargs):
                 ),
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-                    launch_arguments={'model': model, 'gazebo': gazebo, 'angle': angle, 'use_local_mesh': use_local_mesh, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm}.items(),
+                    launch_arguments={'model': model, 'gazebo': gazebo, 'angle': angle, 'use_local_mesh': use_local_mesh}.items(),
                 )],
         ),
     ]
@@ -120,11 +99,6 @@ def generate_launch_description():
             name='model', 
             default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
-        ),
-        DeclareLaunchArgument(
-            name='use_mock_hardware',
-            default_value='false',
-            description='whether to use mock hardware for hardware interfaces',
         ),
         DeclareLaunchArgument(
             name='use_local_mesh',

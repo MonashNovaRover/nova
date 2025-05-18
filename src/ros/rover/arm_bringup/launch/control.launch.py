@@ -32,6 +32,7 @@ def launch_setup(context, *args, **kwargs):
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
     arm = LaunchConfiguration('arm').perform(context)
+    old_arm = LaunchConfiguration('old_arm').perform(context)
     use_local_mesh = LaunchConfiguration('use_local_mesh')
     use_mock_hardware = LaunchConfiguration('use_mock_hardware')
 
@@ -82,7 +83,7 @@ def launch_setup(context, *args, **kwargs):
                 ),
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
-                    launch_arguments={'model': model, 'gazebo': gazebo, 'angle': angle, 'use_local_mesh': use_local_mesh, 'use_mock_hardware': use_mock_hardware, 'arm': arm}.items(),
+                    launch_arguments={'model': model, 'gazebo': gazebo, 'angle': angle, 'use_local_mesh': use_local_mesh, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm}.items(),
                 )],
         ),
     ]
