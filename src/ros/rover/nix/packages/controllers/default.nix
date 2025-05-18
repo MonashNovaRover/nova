@@ -9,5 +9,6 @@ with pkgs;
   nova-arm-controller = callPackage ./nova-arm-controller { };
   nova-ik-controller = callPackage ./nova-ik-controller { };
   nova-twistmapper = callPackage ./nova-twistmapper { };
+  nova-path-planner = callPackage ./nova-path-planner { };
   nova-banksia-kinematics-plugin = callPackage ./nova-banksia-kinematics-plugin { };
 }
