@@ -53,6 +53,8 @@ struct VelocityInterface : ControlInterface {
 struct PositionInterface : ControlInterface {
     // double resolver_reduction {std::numeric_limits<double>::quiet_NaN()};
     double reference_state = 0.0;
+    /// This reference state does not include multi-turn emulation
+    double raw_reference_state = 0.0;
 };
 
 enum class ControlMode {
