@@ -15,7 +15,6 @@ import {
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
   IRosCmdInterfacesCmDsFeedback,
-  IRosSensorMsgsNavSatFix,
   IRosNovaInterfacesRamanState,
   IRosNovaInterfacesRamanMechResponse,
   IRosNovaInterfacesUvVisSpecData,
