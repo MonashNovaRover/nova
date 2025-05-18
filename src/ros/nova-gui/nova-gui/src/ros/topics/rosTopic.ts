@@ -41,11 +41,10 @@ export enum RosTopic {
   AUGER2_DEPTH_SENSOR = "/science/auger_depth/Auger2",
 
   // Mapping Related Topics
-
-  // These Topics are for ED and Science
-  ROVER_LOCATION = "/fix",
+  ROVER_LOCATION = "/gps_rover/fix",
   BASE_LOCATION = "/gps_base/fix",
 
+  // Other Topics
   BATTERY_STATE = "/battery_state",
   ACTIVATED_NODES = "/activated_nodes",
 }

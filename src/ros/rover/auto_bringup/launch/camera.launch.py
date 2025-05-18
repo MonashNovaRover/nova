@@ -16,7 +16,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, AndSubstitution, NotSubstitution
 from launch_ros.actions import  Node, ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
@@ -61,7 +61,7 @@ def launch_setup(context, *args, **kwargs):
                     condition=IfCondition(pointclouds),
                     package='rtabmap_util',
                     plugin='rtabmap_util::PointCloudXYZ',
-                    name='point_cloud_xyz',
+                    name=f'{front_name}_point_cloud_xyz',
                     parameters=[{'decimation': 2,
                                  'max_depth': 10.0,
                                  'voxel_size': 0.1}],
@@ -70,7 +70,7 @@ def launch_setup(context, *args, **kwargs):
                                 ('cloud', f'{front_name}/points')],
                 ),
                 ComposableNode(
-                    condition=IfCondition(imu),
+                    condition=IfCondition(AndSubstitution(imu, NotSubstitution(gazebo))),
                     package='imu_transformer',
                     plugin='imu_transformer::ImuTransformer',
                     name=f'{front_name}_imu_transformer_node',
@@ -106,16 +106,17 @@ def launch_setup(context, *args, **kwargs):
                     condition=IfCondition(pointclouds),
                     package='rtabmap_util',
                     plugin='rtabmap_util::PointCloudXYZ',
-                    name='point_cloud_xyz',
+                    name=f'{back_name}_point_cloud_xyz',
                     parameters=[{'decimation': 2,
                                  'max_depth': 10.0,
+                                 'min_depth': 1.1,
                                  'voxel_size': 0.1}],
                     remappings=[('depth/image', f'{back_name}/stereo/image_raw'),
                                 ('depth/camera_info', f'{back_name}/stereo/camera_info'),
                                 ('cloud', f'{back_name}/points')],
                 ),
                 ComposableNode(
-                    condition=IfCondition(imu),
+                    condition=IfCondition(AndSubstitution(imu, NotSubstitution(gazebo))),
                     package='imu_transformer',
                     plugin='imu_transformer::ImuTransformer',
                     name=f'{back_name}_imu_transformer_node',

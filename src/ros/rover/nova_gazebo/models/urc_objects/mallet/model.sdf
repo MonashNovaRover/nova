@@ -1,0 +1,56 @@
+<?xml version="1.0" ?>
+<!-- https://www.amazon.com.au/dp/B000REO0TQ?ref_=mr_referred_us_au_au&th=1 -->
+<sdf version="1.7">
+  <model name="mallet">
+    <static>false</static>
+    <link name="link">
+      <inertial>
+        <mass>1.36</mass>
+        <inertia>
+          <ixx>0.017670542003119606</ixx>
+          <ixy>-1.6880057143163227e-08</ixy>
+          <ixz>5.23434120494016e-21</ixz>
+          <iyy>0.01691343657012847</iyy>
+          <iyz>3.295826741253291e-19</iyz>
+          <izz>0.0011246971086764758</izz>
+        </inertia>
+      </inertial>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://urc_objects/mallet/mallet.stl</uri>
+          </mesh>
+        </geometry>
+        <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://urc_objects/mallet/mallet.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>1.0 0.5 0.0 1.0</ambient> <!-- Orange ambient color -->
+          <diffuse>1.0 0.5 0.0 1.0</diffuse> <!-- Orange diffuse color -->
+          <specular>0.1 0.1 0.1 1.0</specular> <!-- Slight specular reflection -->
+          <emissive>0.0 0.0 0.0 1.0</emissive> <!-- No glow -->
+        </material>
+      </visual>
+      <self_collide>0</self_collide>
+    </link>
+  </model>
+</sdf>

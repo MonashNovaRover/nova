@@ -18,9 +18,7 @@ const URCScienceView: React.FC = () => {
       </div>
 
       <div className="flex flex-col gap-3 col-span-2">
-        <div className="flex flex-row gap-3">
-          <BMESensor className="grow"/>
-        </div>
+        <BMESensor/>
         <CarouselWidget/>
         <div className="flex flex-row gap-3">
           <CacheControlWidget className="w-full" label="Cache 1" service={RosService.CACHE_1}/>

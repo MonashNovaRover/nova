@@ -33,11 +33,11 @@
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
-# Oak pointcloud
-- ros_topic_name: "/oak/gz_points"
-  gz_topic_name: "/oak/points"
-  ros_type_name: "sensor_msgs/msg/PointCloud2"
-  gz_type_name: "gz.msgs.PointCloudPacked"
+# Oak Imu
+- ros_topic_name: "/oak/imu/transformed"
+  gz_topic_name: "/oak/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
 
 # Bootie depth image
@@ -68,16 +68,9 @@
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
-# Bootie pointcloud
-- ros_topic_name: "/bootie/gz_points"
-  gz_topic_name: "/bootie/points"
-  ros_type_name: "sensor_msgs/msg/PointCloud2"
-  gz_type_name: "gz.msgs.PointCloudPacked"
-  direction: GZ_TO_ROS
-
-# Imu
-- ros_topic_name: "/oak/imu/transformed"
-  gz_topic_name: "/oak/imu"
+# Bootie imu
+- ros_topic_name: "/bootie/imu/transformed"
+  gz_topic_name: "/bootie/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
@@ -85,15 +78,8 @@
 # GPS
 - ros_topic_name: "/gps_rover/fix"
   gz_topic_name: "/gps"
-  ros_type_name: "nova_interfaces/msg/RoverPoseGPS"
+  ros_type_name: "sensor_msgs/msg/NavSatFix"
   gz_type_name: "gz.msgs.NavSat"
-  direction: GZ_TO_ROS
-
-# Odom
-- ros_topic_name: "/odom"
-  gz_topic_name: "/odom"
-  ros_type_name: "nav_msgs/msg/Odometry"
-  gz_type_name: "gz.msgs.Odometry"
   direction: GZ_TO_ROS
 
 # Joint states

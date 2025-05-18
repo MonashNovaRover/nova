@@ -1,5 +1,20 @@
 #!/usr/bin/env python3
-
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Purpose: Control for the URC Pumps
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: URCPumps
+TOPICS: None
+SERVICES: None
+ACTIONS:
+    - "/science/pumps_action"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:    science
+AUTHOR(S):	???, Felicity Matthews
+CREATION:	???
+EDITED:		14/05/2025
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 
 import time
 from python_control.controls.Direction import Direction
@@ -7,7 +22,6 @@ from python_control.controllers.TimedCMDVelocityController import TimedCMDVeloci
 from python_control.controls.TimedOneAxisVelocityControl import TimedOneAxisVelocityControl
 import rclpy
 from rclpy.action import ActionServer
-import jcan
 from python_control.ControllerNode import ControllerNode
 from nova_interfaces.action import Pumps
 
@@ -20,14 +34,12 @@ class URCPumps(ControllerNode):
 
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    CLEAN_SHEATH_PUMP_RUN_SEND_FRAME_ID = 0x011
-    MIXER_TO_SHOT_PUMP_RUN_SEND_FRAME_ID = 0x0F1
-    SHOT_TO_CAROUSEL_PUMP_RUN_SEND_FRAME_ID = 0x0F2
+    CACHE_TO_SHOT_PUMP_RUN_SEND_FRAME_ID = 0x031
+    SHOT_TO_CAROUSEL_PUMP_RUN_SEND_FRAME_ID = 0x032
 
     # CONTROL NAMES
     # Add any CONTROL names here
-    CLEAN_SHEATH_PUMP_NAME = "clean_sheath_pump"
-    MIXER_TOSHOT_PUMP_NAME = "mixer_to_shot_pump"
+    CACHE_TO_SHOT_PUMP_NAME = "cache_to_shot_pump"
     SHOT_TO_CAROUSEL_PUMP_NAME = "shot_to_carousel_pump"
 
     # CONTROL PARAMETERS
@@ -42,9 +54,7 @@ class URCPumps(ControllerNode):
     # Pump ACTION
     PUMPS_ACTION = "/science/pumps_action"
 
-
     # Goals
-    CLEAN_SHEATH = "clean_sheath"
     FILL_SHOTS = "fill_shots"
     FILL_CUVETTES_PRIME = "fill_cuvettes_prime"
     FILL_CUVETTES = "fill_cuvettes"
@@ -56,29 +66,19 @@ class URCPumps(ControllerNode):
         logger = self.get_logger()
 
         self.ACTIONS = {
-            self.CLEAN_SHEATH: self.clean_sheath_action,
             self.FILL_SHOTS: self.fill_shots_action,
             self.FILL_CUVETTES_PRIME: self.fill_cuvettes_prime_action,
             self.FILL_CUVETTES: self.fill_cuvettes_action,
         }
 
         self.TIMED_PRESETS = {
-            self.CLEAN_SHEATH: 10,
             self.FILL_SHOTS: 10,
             self.FILL_CUVETTES_PRIME: 10,
             self.FILL_CUVETTES: 10,
         }
 
-        self.CUVETTE_POSITIONS = ["1","2","3","4","5","6","7"]
-
         ## Create controls
-        self.clean_sheath_pump = TimedOneAxisVelocityControl(
-            logger=logger,
-            max_percent=self.PUMP_MAX_PERCENT,
-            direction=self.PUMP_FORWARDS,
-        )
-
-        self.mixer_to_shot_pump = TimedOneAxisVelocityControl(
+        self.cache_to_shot_pump = TimedOneAxisVelocityControl(
             logger=logger,
             max_percent=self.PUMP_MAX_PERCENT,
             direction=self.PUMP_FORWARDS,
@@ -90,39 +90,25 @@ class URCPumps(ControllerNode):
             direction=self.PUMP_FORWARDS,
         )
 
-
         ## Create controllers
-        self.clean_sheath_pump_controller = TimedCMDVelocityController(
+        self.cache_to_shot_pump_controller = TimedCMDVelocityController(
             logger=logger,
             bus=self.bus,
-            frame_id=self.CLEAN_SHEATH_PUMP_RUN_SEND_FRAME_ID,
-            control=self.clean_sheath_pump,
-        )
-
-        self.mixer_to_shot_pump_controller = TimedCMDVelocityController(
-            logger=logger,
-            bus=self.bus,
-            frame_id=self.MIXER_TO_SHOT_PUMP_RUN_SEND_FRAME_ID,
-            control=self.mixer_to_shot_pump,
+            frame_id=self.CACHE_TO_SHOT_PUMP_RUN_SEND_FRAME_ID,
+            control=self.cache_to_shot_pump,
         )
 
         self.shot_to_carousel_pump_controller = TimedCMDVelocityController(
             logger=logger,
             bus=self.bus,
             frame_id=self.SHOT_TO_CAROUSEL_PUMP_RUN_SEND_FRAME_ID,
-            control=self.mixer_to_shot_pump,
+            control=self.cache_to_shot_pump,
         )
 
         self.pumps_action = ActionServer(self, Pumps, self.PUMPS_ACTION, self.pumps_goal_callback)
 
         ## Start the CAN bus
         self.start_can()
-
-        frame_ids = [0x33, 0x34, 0x43, 0x44]
-
-        for frame_id in frame_ids:
-            self.bus.send(jcan.Frame(frame_id, [0x7F]))
-        
 
 
     def valid_action(self, action: str):
@@ -175,18 +161,9 @@ class URCPumps(ControllerNode):
         return success
 
 
-
-    def clean_sheath_action(self, goal_handle):
-        self.get_logger().info('Running Clean Sheath Pump')
-        controller = self.clean_sheath_pump_controller
-
-        return self.run_pump(goal_handle, controller)
-
-        
-
     def fill_shots_action(self, goal_handle):
         self.get_logger().info('Running Clean Fill Shots Pump')
-        controller = self.mixer_to_shot_pump_controller
+        controller = self.cache_to_shot_pump_controller
 
         return self.run_pump(goal_handle, controller)
         
@@ -196,7 +173,6 @@ class URCPumps(ControllerNode):
         controller = self.shot_to_carousel_pump_controller
 
         return self.run_pump(goal_handle, controller)
-        
 
     
     def fill_cuvettes_action(self, goal_handle):
@@ -232,10 +208,8 @@ class URCPumps(ControllerNode):
         return result
     
     def stop(self):
-        self.clean_sheath_pump_controller.stop()
-        self.mixer_to_shot_pump_controller.stop()
+        self.cache_to_shot_pump_controller.stop()
         self.shot_to_carousel_pump_controller.stop()
-
 
 
 def main():

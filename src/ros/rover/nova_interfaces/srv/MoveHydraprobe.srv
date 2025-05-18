@@ -1,0 +1,13 @@
+# Used to move the hydraprobe to specified position
+
+# enum for the command
+byte RESET = 0
+byte RETRACT = 1
+byte DEPLOY = 2
+
+byte command
+
+---
+
+# Each action could fail. This flag shows the output success of the action
+bool success

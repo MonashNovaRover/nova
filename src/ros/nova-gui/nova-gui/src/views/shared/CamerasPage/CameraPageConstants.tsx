@@ -65,7 +65,6 @@ const armCams = [
   CameraSerials.ARM_END_TOP,
   CameraSerials.ARM_END_FINGER,
   CameraSerials.ARM_END_PERISCOPE,
-  CameraSerials.ARM_GIMBAL,
   CameraSerials.ARM_END_SIDE,
 ];
 
@@ -129,7 +128,7 @@ export const urc_equipment_servicing_views: CameraView[] = [
 
 export const urc_delivery_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams, ...armCams, ...driveCams],
+    cameraSerials: [...armCams.slice(0,2), ...mastCams.slice(0,2), ...armCams.slice(2,4), ...mastCams.slice(2,4), ...driveCams],
     viewTitle: "All Cams",
   },
   {

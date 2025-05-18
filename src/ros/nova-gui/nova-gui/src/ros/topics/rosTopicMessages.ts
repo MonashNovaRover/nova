@@ -30,8 +30,6 @@ export const rosTopicMessages = {
   [RosTopic.TOF]: "sensor_msgs/msg/Range",
   [RosTopic.KILN_DATA]: "nova_interfaces/msg/KilnData",
   [RosTopic.NIR_DATA]: "nova_interfaces/msg/NIRProbeData",
-  [RosTopic.ROVER_LOCATION]: "sensor_msgs/msg/NavSatFix",
-  [RosTopic.BASE_LOCATION]: "sensor_msgs/msg/NavSatFix",
   [RosTopic.MICROSCOPE_SERVO]: "nova_interfaces/msg/MicroscopeServoInfo",
   [RosTopic.UV_VIS_SPEC]: "nova_interfaces/msg/UVVisSpecData",
   [RosTopic.THETA_360_CAM_IMAGE]: "sensor_msgs/msg/CompressedImage",
@@ -42,6 +40,11 @@ export const rosTopicMessages = {
   [RosTopic.AUGER1_DEPTH_SENSOR]: "std_msgs/msg/Bool",
   [RosTopic.AUGER2_DEPTH_SENSOR]: "std_msgs/msg/Bool",
 
+  // Maps Related
+  [RosTopic.ROVER_LOCATION]: "nova_interfaces/msg/RoverPoseGPS",
+  [RosTopic.BASE_LOCATION]: "nova_interfaces/msg/RoverPoseGPS",
+
+  // Other
   [RosTopic.BATTERY_STATE]: "sensor_msgs/msg/BatteryState",
   [RosTopic.ACTIVATED_NODES]: "nova_interfaces/msg/ActiveNodeStatus",
 };

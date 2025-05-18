@@ -53,34 +53,34 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         Node(
-            condition=UnlessCondition(gps),
             package='robot_localization',
-            executable=f'{filter_type}_node',
-            name=f'{filter_type}_filter_node',
+            executable='ekf_node',
+            name='ekf_filter_node_odom',
             output='screen',
             parameters=[rl_params, {'use_sim_time': gazebo}],
+            remappings=[('odometry/filtered', 'odometry/local')],
         ),
+        Node(
+            package='robot_localization',
+            executable='ekf_node',
+            name='ekf_filter_node_map',
+            output='screen',
+            parameters=[rl_params, {'use_sim_time': gazebo}],
+            remappings=[('odometry/filtered', 'odometry/global')],
+        ),
+        # Node(
+        #     condition=UnlessCondition(gps),
+        #     package='tf2_ros',
+        #     executable='static_transform_publisher',
+        #     name='static_transform_publisher',
+        #     output='screen',
+        #     arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
+        # ),
         GroupAction(
             # Why is there more nodes for GPS?
             # https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html
             condition=IfCondition(gps),
             actions=[
-                Node(
-                    package='robot_localization',
-                    executable='ekf_node',
-                    name='ekf_filter_node_odom',
-                    output='screen',
-                    parameters=[rl_params, {'use_sim_time': gazebo}],
-                    remappings=[('odometry/filtered', 'odometry/local')],
-                ),
-                Node(
-                    package='robot_localization',
-                    executable='ekf_node',
-                    name='ekf_filter_node_map',
-                    output='screen',
-                    parameters=[rl_params, {'use_sim_time': gazebo}],
-                    remappings=[('odometry/filtered', 'odometry/global')],
-                ),
                 Node(
                     package='robot_localization',
                     executable='navsat_transform_node',
@@ -120,7 +120,7 @@ def generate_launch_description():
             name='gps_params', 
             default_value=PathJoinSubstitution([nova_bringup_dir, 'params', 'gps.yaml']), 
             description='Absolute filepath to GPS parameters',
-        ),     
+        ),
         DeclareLaunchArgument(
             name='rl_params',
             default_value=PathJoinSubstitution([auto_bringup_dir,'params','rl_urc.yaml']),

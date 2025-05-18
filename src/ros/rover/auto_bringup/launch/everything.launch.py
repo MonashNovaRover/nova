@@ -26,6 +26,7 @@ def launch_setup(context, *args, **kwargs):
     autostart = LaunchConfiguration('autostart')
     controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
+    gps = LaunchConfiguration('gps')
     localization = LaunchConfiguration('localization')
     log_level = LaunchConfiguration('log_level')
     map_params = LaunchConfiguration('map_params')
@@ -33,6 +34,7 @@ def launch_setup(context, *args, **kwargs):
     namespace = LaunchConfiguration('namespace')
     nav2_params = LaunchConfiguration('nav2_params')
     navigation = LaunchConfiguration('navigation')
+    rl_params = LaunchConfiguration('rl_params')
     rviz = LaunchConfiguration('rviz')
     rviz_params = LaunchConfiguration('rviz_params')
     use_respawn = LaunchConfiguration('use_respawn')
@@ -59,6 +61,8 @@ def launch_setup(context, *args, **kwargs):
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'localization.launch.py'])),
             launch_arguments={
                 'gazebo': gazebo,
+                'gps': gps,
+                'rl_params': rl_params,
             }.items()
         ),
         IncludeLaunchDescription(
@@ -107,6 +111,11 @@ def generate_launch_description():
             description='Flag to launch gazebo',
         ),
         DeclareLaunchArgument(
+            name='gps',
+            default_value='True',
+            description='Fuse GPS?',
+        ),
+        DeclareLaunchArgument(
             name='localization',
             default_value='True',
             description='Flag to robot localization nodes',
@@ -140,6 +149,11 @@ def generate_launch_description():
             name='navigation',
             default_value='True',
             description='Flag to launch navigation stack',
+        ),
+        DeclareLaunchArgument(
+            name='rl_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir,'params','rl_urc.yaml']),
+            description='',
         ),
         DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
             name='rviz',

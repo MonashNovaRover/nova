@@ -52,21 +52,21 @@ let
   };
 
   urdfModifier = pyPkgs.buildPythonApplication rec {
-    pname = "urdf-modifier";
-    version = "1.0";
+    pname = "urdf-inertia-script";
+    version = "1.1";
 
     src = pkgs.fetchFromGitHub {
       owner = "V01DBREAKER";
       repo = pname;
-      rev = "eac72564eadf6778ea63e4d89b3cd588ecb3c316";
-      hash = "sha256-OtwYxlHKxruVxJmosMbvT//FM5gPV+75MCG1zKyEuuE=";
+      rev = "ed09f00c6257cec36d8c3ed30fb50905cbcbb872";
+      hash = "sha256-dNhATy4ZtYQoj44O6VwtbB8k0hM3bSAp8W+nOFx9ik8=";
     };
 
     propagatedBuildInputs = [ pyPkgs.pymeshlab ];
 
     meta = with pkgs.lib; {
       description = "Modify generated URDFs and recalculate inertias.";
-      homepage = "https://github.com/V01DBREAKER/urdf-modifier";
+      homepage = "https://github.com/V01DBREAKER/urdf-inertia-script";
       license = licenses.mit;
     };
   };
@@ -103,6 +103,10 @@ pkgs.mkShell {
       export ONSHAPE_SECRET_KEY="$SECRET_KEY"
     fi
 
-    echo "✔ OpenSCAD and Onshape-to-Robot are ready with Python ${python.version} 🐍"
+    echo "✔ OpenSCAD, Onshape-to-Robot and Urdf-Inertia-Script are ready with Python ${python.version} 🐍"
+    echo " ! Note: relative paths will not work for these scripts! Start any file path at /"
+    echo "OpenSCAD usage: onshape-to-robot-edit-shape <stl-file-path>"
+    echo "Oneshape-to-Robot usage: onshape-to-robot <config.json-folder-path>"
+    echo "Urdf-Inertia-Script usage: urdf-modifier <urdf-file-path> OR inertia-calc <stl-file-path>"
   '';
 }
