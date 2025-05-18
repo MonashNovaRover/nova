@@ -193,8 +193,12 @@ hardware_interface::return_type CMDHardware::read(
     hw_velocity_.state = lerp(hw_velocity_.reference_state, hw_velocity_.reference_command,
                               params_.velocity_integration_command_amount);
 
+    // Calculate position from resolver values
+    const auto reference_resolver_state = hw_position_.raw_reference_state + M_2_PI * hw_position_.raw_reference_state_turns;
+    // Apply resolver reduction
+    const auto reference_position_state = reference_resolver_state / params_.resolver_reduction;
     // Apply velocity integration to position
-    hw_velocity_.state = hw_position_.reference_state
+    hw_position_.state = reference_position_state
         + hw_velocity_.state.value() * params_.velocity_integration_seconds;
 
 
@@ -474,6 +478,9 @@ bool CMDHardware::set_control_interface(
             hw_velocity_.command = 0.0;
             hw_velocity_.state = 0.0;
             hw_velocity_.reference_command = 0.0;
+            hw_position_.raw_reference_state = 0.0;
+            // Don't reset raw_reference_state_turns, so it persists between uses of the hw interface
+            // hw_position_.raw_reference_state_valid = false;
         }
         else {
             hw_position_.state = 0.0;
@@ -573,31 +580,38 @@ bool CMDHardware::set_control_interface(
         }
 
         // Unpack the resolver value
-        // TODO: Check if this should be signed or unsigned
-        const int16_t value = (static_cast<int16_t>(frame.data[2]) << 8) | static_cast<uint16_t>(frame.data[3]);
+        const auto value = static_cast<int16_t>((static_cast<uint16_t>(frame.data[2]) << 8) | static_cast<uint16_t>(frame.data[3]));
+
+        if (!hw_position_.raw_reference_state_valid) {
+          // Prevent phantom turn count increments on interface initialisation
+          hw_position_.raw_reference_state = raw_resolver_to_rad(value);
+          hw_position_.raw_reference_state_valid = true;
+          return;
+        }
 
         const auto last_raw_ref = hw_position_.raw_reference_state;
-        hw_position_.raw_reference_state = raw_resolver_to_rad(value) * params_.resolver_reduction * reversed_multiplier_;
+        hw_position_.raw_reference_state = raw_resolver_to_rad(value);
 
         const auto raw_delta = hw_position_.raw_reference_state - last_raw_ref;
-        double delta = 0.0;
 
+        // Modifying raw_reference_state_turns effectively adds or subtracts M_2_PI, emulating multi-turn
         if (raw_delta < -M_PI) {
-            delta = raw_delta + M_2_PI;
             hw_position_.raw_reference_state_turns++;
         }
         else if (raw_delta > M_PI) {
-            delta = raw_delta - M_2_PI;
             hw_position_.raw_reference_state_turns--;
         }
-        else {
-            delta = raw_delta;
-        }
+        else if (abs(raw_delta) == M_PI) {
+            // In this case, it is ambiguous which direction has been turned! So, guess from the velocity
+            const auto velocity = hw_velocity_.state.has_value() ? hw_velocity_.state.value() : hw_velocity_.reference_command;
 
-        // TODO: Think about and counter accumulated floating point error
-        // hw_position_.reference_state += delta;
-        hw_position_.reference_state = hw_position_.raw_reference_state + M_2_PI * hw_position_.raw_reference_state_turns;
-        // TODO: Reset and clean up reference variables to ensure we dont have errors on multiple uses of the hw interface
+            if (velocity >= 0) {
+              hw_position_.raw_reference_state_turns++;
+            }
+            else {
+              hw_position_.raw_reference_state_turns--;
+            }
+        }
     }
 
     template<typename T>
