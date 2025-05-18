@@ -584,16 +584,19 @@ bool CMDHardware::set_control_interface(
 
         if (raw_delta < -M_PI) {
             delta = raw_delta + M_2_PI;
+            hw_position_.raw_reference_state_turns++;
         }
         else if (raw_delta > M_PI) {
             delta = raw_delta - M_2_PI;
+            hw_position_.raw_reference_state_turns--;
         }
         else {
             delta = raw_delta;
         }
 
         // TODO: Think about and counter accumulated floating point error
-        hw_position_.reference_state += delta;
+        // hw_position_.reference_state += delta;
+        hw_position_.reference_state = hw_position_.raw_reference_state + M_2_PI * hw_position_.raw_reference_state_turns;
         // TODO: Reset and clean up reference variables to ensure we dont have errors on multiple uses of the hw interface
     }
 
