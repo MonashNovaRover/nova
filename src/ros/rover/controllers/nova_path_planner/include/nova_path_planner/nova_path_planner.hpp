@@ -73,6 +73,7 @@ class NovaPathPlanner : public controller_interface::ControllerInterface
 public:
   using ArmPlanPath = nova_interfaces::action::ArmPlanPath;
   using GoalHandleArmPlanPath = rclcpp_action::ServerGoalHandle<ArmPlanPath>;
+  using Vector3d = Eigen::Vector3d;
 
   NovaPathPlanner();
 
@@ -215,6 +216,16 @@ protected:
 
   void execute_action(const std::shared_ptr<GoalHandleArmPlanPath> goal_handle);
 
+  static Vector3d lerp(Vector3d a, Vector3d b, double t);
+  static Vector3d lerp2(Vector3d a, Vector3d b, Vector3d c, double t);
+  static Vector3d lerp3(Vector3d a, Vector3d b, Vector3d c, Vector3d d, double t);
+
+  static Eigen::Quaterniond slerp(Eigen::Quaterniond a, Eigen::Quaterniond b, double t);
+  static Eigen::Quaterniond slerp2(Eigen::Quaterniond a, Eigen::Quaterniond b, Eigen::Quaterniond c, double t);
+  static Eigen::Quaterniond slerp3(Eigen::Quaterniond a, Eigen::Quaterniond b, Eigen::Quaterniond c, Eigen::Quaterniond d, double t);
+
+  static Eigen::Isometry3d lerp3(Eigen::Isometry3d a, Eigen::Isometry3d b, Eigen::Isometry3d c, Eigen::Isometry3d d, double t);
+
   /// Holds command and state interfaces for each joint
   std::vector<JointHandle> registered_joint_handles_;
 
@@ -258,8 +269,10 @@ protected:
   /// MoveIt2 plugin for solving forward and inverse kinematics.
   std::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;
 
+  /*
   std::unique_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager>> planner_loader_;
   std::shared_ptr<planning_interface::PlannerManager> planner_;
+  */
 
   // Timeout to consider cmd_vel commands old
   bool subscriber_is_active_ = false; // not sure what this is for yet
