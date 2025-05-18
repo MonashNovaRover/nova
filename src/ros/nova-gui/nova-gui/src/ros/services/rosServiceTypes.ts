@@ -21,6 +21,8 @@ import {
   IRosNovaInterfacesTakeNirProbeReadingResponse,
   IRosNovaInterfacesCacheCommandRequest,
   IRosNovaInterfacesCacheCommandResponse,
+  IRosNovaInterfacesMoveHydraprobeRequest,
+  IRosNovaInterfacesMoveHydraprobeResponse,
 
 } from "../rosTypes";
 import { RosService } from "./rosService";
@@ -77,6 +79,10 @@ export interface RosServiceInterface {
   [RosService.SCIMBAL_COMMAND]: RosServiceMessage<
     IRosNovaInterfacesMoveScimbalCamRequest,
     IRosNovaInterfacesMoveScimbalCamResponse
+  >;
+  [RosService.HYDRAPROBE_COMMAND]: RosServiceMessage<
+    IRosNovaInterfacesMoveHydraprobeRequest,
+    IRosNovaInterfacesMoveHydraprobeResponse
   >;
   [RosService.MOVE_MICROSCOPE_SERVO]: RosServiceMessage<
     IRosNovaInterfacesMoveMicroscopeServoRequest,
