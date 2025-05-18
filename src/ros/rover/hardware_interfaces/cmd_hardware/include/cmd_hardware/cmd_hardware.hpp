@@ -44,8 +44,15 @@ struct ControlInterface {
 //    double max {std::numeric_limits<double>::quiet_NaN()};
 };
 
+struct VelocityInterface : ControlInterface {
+    /// Used to actually send CAN commands, and is independed on the currently active command interfaces (as position control also sends velocity commands)
+    double reference_command = 0.0;
+    double reference_state = 0.0;
+};
+
 struct PositionInterface : ControlInterface {
-    double resolver_reduction {std::numeric_limits<double>::quiet_NaN()};
+    // double resolver_reduction {std::numeric_limits<double>::quiet_NaN()};
+    double reference_state = 0.0;
 };
 
 enum class ControlMode {
@@ -171,12 +178,24 @@ protected:
 
         /// An offset to apply to all readings, in radians, such that it is added to resolver messages, and subtracted from commands
         double position_offset = 0.0;
+
+        /// The number of seconds to integrate velocity by, to be added to position feedback.
+        double velocity_integration_seconds = 0.0;
+
+        double position_seeking_velocity_multiplier = 0.9;
+
+        /// The amount to use the previously send command value when calculating velocity integration. Use 0 to use the
+        /// value received from CAN only, and 1 to only use the previously send command value.
+        ///
+        /// This parameter is included because we believe we can't trust the timeliness of the velocity feedback we get
+        /// from CAN, as the firmware seems to average out the 10 most recent values.
+        double velocity_integration_command_amount = 0.5;
     };
 
 private:
     std::string CMDHardwareLoggerName;
 
-    ControlInterface hw_velocity_;
+    VelocityInterface hw_velocity_;
     PositionInterface hw_position_;
     ControlInterface hw_effort_;
 
@@ -239,6 +258,8 @@ private:
     static bool is_true(std::string& text);
 
     static double raw_resolver_to_rad(int16_t raw_resolver_data);
+
+    static double lerp(double a, double b, double t);
 };
 
 }  // namespace cmd_hardware
