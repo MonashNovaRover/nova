@@ -32,6 +32,7 @@ namespace
 } // namespace
 
 using std::placeholders::_1;
+using std::placeholders::_2;
 
 namespace nova_path_planner
 {
@@ -363,6 +364,15 @@ namespace nova_path_planner
       joint.command.get().set_value(joint.state_pos.get().get_value());
     }
 
+    // Create the action server
+    action_server_ = rclcpp_action::create_server<ArmPlanPath>(
+      kinematics_compat_node_,
+      params_.action_name,
+      std::bind(&nova_path_planner::NovaPathPlanner::handle_action_goal, this, _1, _2),
+      std::bind(&nova_path_planner::NovaPathPlanner::handle_action_cancelled, this, _1),
+      std::bind(&nova_path_planner::NovaPathPlanner::handle_action_accepted, this, _1));
+
+
     RCLCPP_INFO(get_node()->get_logger(), "Initial path_planner pose set from forward kinematics.");
     return controller_interface::CallbackReturn::SUCCESS;
   }
@@ -424,6 +434,11 @@ namespace nova_path_planner
 
     // Reset subscriptions
     subscriber_is_active_ = false;
+
+    // Reset action server
+    // TODO: Clean up any running action server thread
+    action_server_.reset();
+    is_path_being_executed_ = false;
 
     return true;
   }
@@ -689,6 +704,20 @@ namespace nova_path_planner
     planning_scene_->setAllowedCollisionMatrix(acm);
   }
 
+  rclcpp_action::GoalResponse NovaPathPlanner::handle_action_goal(const rclcpp_action::GoalUUID &uuid,
+                                                                  std::shared_ptr<const ArmPlanPath::Goal> goal) {
+    auto logger = get_node()->get_logger();
+    if (is_path_being_executed_) {
+      RCLCPP_ERROR(logger, "Goal rejected because a path is already being executed.");
+      return rclcpp_action::GoalResponse::ACCEPT_AND_DEFER;
+    }
+
+    RCLCPP_INFO(logger, "Received and accepted goal request.");
+    (void)uuid;
+
+    return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+  }
+
   void NovaPathPlanner::handle_action_accepted(const std::shared_ptr<GoalHandleArmPlanPath>& goal_handle) {
     // this needs to return quickly to avoid blocking the executor, so spin up a new thread
     std::thread{std::bind(&nova_path_planner::NovaPathPlanner::execute_action, this, _1), goal_handle}.detach();
@@ -710,6 +739,7 @@ namespace nova_path_planner
 
     // Set up for path planning
 
+
     // Plan the path
     // This should be a loop that frequently releases to the scheduler
 
@@ -718,18 +748,23 @@ namespace nova_path_planner
     // Wait for the path to be executed
 
     if (goal_handle->is_canceling()) {
+      is_path_being_executed_ = false;
       goal_handle->canceled(result);
       RCLCPP_INFO(logger, "Goal canceled");
       return;
     }
 
     // TODO: check this is actually what we want to do in this case. Functionally equivalent to example action server.
-    if (!rclcpp::ok())
+    if (!rclcpp::ok()) {
+      is_path_being_executed_ = false;
       return;
+    }
 
+    is_path_being_executed_ = false;
     goal_handle->succeed(result);
     RCLCPP_INFO(logger, "Goal succeeded");
   }
+
 } // namespace nova_path_planner
 
 #include "class_loader/register_macro.hpp"
