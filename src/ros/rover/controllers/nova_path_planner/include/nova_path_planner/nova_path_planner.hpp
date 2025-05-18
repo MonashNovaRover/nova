@@ -57,6 +57,9 @@ TODO:
 #include <stdexcept>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/collision_detection/collision_common.h>
+#include <moveit/planning_interface/planning_interface.h>
+#include "rclcpp_action/rclcpp_action.hpp"
+#include "nova_interfaces/action/arm_plan_path.hpp"
 
 // To test in development, run from the root nova_path_planner dir:
 // generate_parameter_library_cpp include/nova_path_planner/nova_path_planner_parameters.hpp src/nova_path_planner_parameter.yaml
@@ -68,6 +71,9 @@ namespace nova_path_planner
 class NovaPathPlanner : public controller_interface::ControllerInterface
 {
 public:
+  using ArmPlanPath = nova_interfaces::action::ArmPlanPath;
+  using GoalHandleArmPlanPath = rclcpp_action::ServerGoalHandle<ArmPlanPath>;
+
   NovaPathPlanner();
 
   controller_interface::InterfaceConfiguration command_interface_configuration() const override;
@@ -200,6 +206,12 @@ protected:
    */
   void generate_allowed_collision_matrix();
 
+  void handle_action_accepted(const std::shared_ptr<GoalHandleArmPlanPath>& goal_handle);
+
+  rclcpp_action::CancelResponse handle_action_cancelled(const std::shared_ptr<GoalHandleArmPlanPath>& goal_handle);
+
+  void execute_action(const std::shared_ptr<GoalHandleArmPlanPath> goal_handle);
+
   /// Holds command and state interfaces for each joint
   std::vector<JointHandle> registered_joint_handles_;
 
@@ -207,13 +219,12 @@ protected:
   std::shared_ptr<ParamListener> param_listener_;
   Params params_;
 
-  // Twist input
-  rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_stamped_sub_ = nullptr;
-  realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_stamped_ptr_{nullptr};
+  // Path input
+  rclcpp_action::Server<nova_interfaces::action::ArmPlanPath>::SharedPtr action_server_;
+  realtime_tools::RealtimeBox<std::shared_ptr<std::queue<std::vector<tf2::Transform>>>> path_{nullptr};
 
   /// Result of the path_planner, and input to IK. Desired position and orientation of the end effector relative to the base.
   tf2::Transform path_planner_pose_ = tf2::Transform();
-  tf2::Vector3 path_planner_pose_rpy_ = tf2::Vector3();
   rclcpp::Time path_planner_pose_update_time_ = rclcpp::Time();
 
   // broadcasting path_planner
@@ -242,6 +253,9 @@ protected:
   std::unique_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase>> kinematics_solver_loader_;
   /// MoveIt2 plugin for solving forward and inverse kinematics.
   std::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;
+
+  std::unique_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager>> planner_loader_;
+  std::shared_ptr<planning_interface::PlannerManager> planner_;
 
   // Timeout to consider cmd_vel commands old
   bool subscriber_is_active_ = false; // not sure what this is for yet
