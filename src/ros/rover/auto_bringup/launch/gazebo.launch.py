@@ -112,12 +112,12 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='angle', 
+            name='angle',
             default_value='15',
             description='Angle (in degrees) at which the camera is mounted',
         ),
         DeclareLaunchArgument(
-            name='camera', 
+            name='camera',
             default_value='True',
             description='',
         ),

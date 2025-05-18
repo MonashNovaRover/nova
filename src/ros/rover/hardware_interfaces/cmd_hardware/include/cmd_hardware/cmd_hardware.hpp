@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef BLCMD_HARDWARE__BLCMD_HARDWARE_HPP_
-#define BLCMD_HARDWARE__BLCMD_HARDWARE_HPP_
+#ifndef CMD_HARDWARE__CMD_HARDWARE_HPP_
+#define CMD_HARDWARE__CMD_HARDWARE_HPP_
 
 #include <string>
 #include <vector>
@@ -29,8 +29,9 @@
 
 #include "jcan/jcan.h"
 
-namespace blcmd_hardware
+namespace cmd_hardware
 {
+// TODO: Find how the PID_TUNE command works, and make this correct. This is just from BLCMD hardware.
 struct PIConfig {
     int16_t kp;
     int16_t ki_ts;
@@ -40,10 +41,11 @@ struct PIConfig {
 struct ControlInterface {
     std::optional<double> command;
     std::optional<double> state;
-    double max {std::numeric_limits<double>::quiet_NaN()};
+//    double max {std::numeric_limits<double>::quiet_NaN()};
 };
 
 struct PositionInterface : ControlInterface {
+    double resolver_reduction {std::numeric_limits<double>::quiet_NaN()};
 };
 
 enum class ControlMode {
@@ -53,25 +55,26 @@ enum class ControlMode {
     Effort,
 };
 
-enum class BLCMDSendCommand {
-    STOP                = 0x0,    // Disables all current through the motor, free spinning.
-    FORWARD             = 0x1,    // Drive with FOC velocity control forward for 0.5s
-    REVERSE             = 0x2,    // Drive with FOC velocity control forward for 0.5s
-    DRIVE_VELOCITY      = 0x3,    // Drive with FOC velocity control at given signed integer speed
-    DRIVE_POSITION      = 0x4,    // Drive with FOC position control to given angle. (-32,768 to +32,767) → (-π,π)
-    DRIVE_CURRENT       = 0x5,    // Drive with FOC at selected current (torque)
-    DRIVE_OPEN_LOOP     = 0x6,    // Drive open loop interpolating some set speed.
-    HOME_ROTOR          = 0x7,    // Send request to home rotor
-    ZERO_RESOLVER       = 0x8,    // Send request to zero resolver
-    GET_CONFIG          = 0x9,    // Send request to get configuration
-    SET_CONFIG          = 0xA     // Send request to set configuration
+enum class CMDSendCommand {
+    STOP                = 0x0,    // Turns off the all the motor outputs.
+    TWITCH_FORWARD      = 0x1,    // Powers the motor forward at roughly 90% power. Used for easy debugging
+    TWITCH_BACKWARDS    = 0x2,    // Powers the motor in reverse at roughly 90% power. Used for easy debugging
+    // Drives the motor in open loop PWM mode. Takes in single signed integer. Sign dictates direction, magnitude
+    // dictates duty cycle with the maximum value of 32767 being full power forward and the minimum of -32768 being full
+    // power reverse.
+    // Send with int16 data.
+    PWM_DRIVE           = 0x3,
+    // Drives the motor in closed loop velocity control mode. Takes in single signed integer. Sign dictates direction,
+    // magnitude dictates velocity target with the maximum value of 32767 being full speed forward and the minimum of
+    // -32768 being full speed reverse. For specific motors there is a max velocity target recommended is between 70%
+    // and 90% to allow it to be achieved by the cmds without clipping.
+    // Send with int16 data.
+    PID_DRIVE           = 0x4,
+    PID_TUNE            = 0x5,    // Complicated. Sets the pid constants. Only used for tuning.
 };
 
-enum class TelemetryPacket{
-    PACKET_1 = 0x1,
-    PACKET_2,
-    PACKET_3,
-    PACKET_4
+enum class TelemetryPacket {
+    RESOLVER_ARBITRATION_ID = 0x0A0
 };
 
 enum class CanIdPrefix{
@@ -79,13 +82,12 @@ enum class CanIdPrefix{
     RECEIVE = 4
 };
 
-enum class BLCMDReceiveCommand{
-    ERR_WARN_INF = 0x0,
-    CONFIG_DATA = 0x9,
-    WRITE_CONFIRMATION = 0xA
+enum class CMDReceiveCommand {
+    PID_DRIVE           = 0x4,
+
 };
 
-enum class BLCMDConfigCommand{
+enum class CMDConfigCommand{
     HAS_RESOLVER    = 0x0,
     KP_CURRENT      = 0x1,
     KI_CURRENT      = 0x2,
@@ -103,7 +105,12 @@ enum class BLCMDConfigCommand{
     PACKET_4_SPEED  = 0xE,
 };
 
-class BLCMDHardware : public hardware_interface::SystemInterface
+enum class ResolverFlags : uint8_t {
+    RS485_READ_TIMEOUT  = 0x1,
+    INVALID_CHECKSUM    = 0x2,
+};
+
+class CMDHardware : public hardware_interface::SystemInterface
 {
 public:
     hardware_interface::CallbackReturn on_init(
@@ -132,52 +139,42 @@ public:
         const std::vector<std::string> & start_interfaces,
         const std::vector<std::string> & stop_interfaces) override;
 
-private:
+protected:
     struct Params {
         /// The name of the CAN bus interface the target BLCMD is on. Should be 'can0', 'can1', or 'can2'.
-        std::string candevice = "";
+        std::basic_string<char> candevice = "";
 
         /// The 2nd hexadecimal digit in the 12-bit CAN id used in messages to/from the BLCMD board.
         uint32_t canid = 0;
 
-        /// Unknown.
-        uint32_t clock_rate = 100000000;
-
-        /// Unconfirmed. The number of pulses in the resolver for a single revolution.
-        uint16_t revolution_pulses = 8192;
-
-        /// Unconfirmed. The ratio of the connected gearbox.
-        double gear_ratio = 1.0;
+        /// The ID of the resolver on the CAN bus. For the arm, this is usually 4 times the joint number
+        uint8_t resolver_id = 0;
 
         /// Unconfirmed. When true, the hardware interface will use min_interval from parameters. When false,
         /// min_interval is determined through requesting configuration from the BLCMD board.
         bool mock = false;
 
-        /// Unknown.
-        uint16_t min_interval = 122;
-
         /// Unconfirmed. When true, the sign of all inputs and outputs are reversed.
         bool reversed = false;
 
-        /// Unconfirmed. When true, the hardware interface will ignore resolver data, and determine position through
-        /// integrating velocity feedback.
-        bool integrate_velocity = false;
-
         /// The maximum position in radians, to be mapped to the largest position in CAN; 0x7FFF. This is not a limit.
-        std::optional<double> max_position = std::nullopt;
-        
+        double max_position = M_PI;
+
         /// The maximum velocity in radians per second, to be mapped to the largest velocity in CAN; 0x7FFF. This is not a limit.
-        std::optional<double> max_velocity = std::nullopt;
+        double max_velocity {std::numeric_limits<double>::quiet_NaN()};
+
+        /// The maximum velocity in radians per second, to be mapped to the largest velocity in CAN; 0x7FFF. This is not a limit.
+        double max_effort {std::numeric_limits<double>::quiet_NaN()};
 
         /// A reduction ratio resolver readings are scaled by.
         double resolver_reduction {std::numeric_limits<double>::quiet_NaN()};
 
         /// An offset to apply to all readings, in radians, such that it is added to resolver messages, and subtracted from commands
         double position_offset = 0.0;
-        
     };
 
-    std::string BLCMDHardwareLoggerName;
+private:
+    std::string CMDHardwareLoggerName;
 
     ControlInterface hw_velocity_;
     PositionInterface hw_position_;
@@ -200,30 +197,32 @@ private:
 
     void can_setup();
 
-    /// @brief      Get a configuration value from the BLCMD
+    /// @brief      Get a configuration value from the CMD
     /// @param      command - The config value to get
     /// @returns    The optional with config value if received, empty optional otherwise
     template<typename T>
-    std::optional<T> get_config(BLCMDConfigCommand command);
+    std::optional<T> get_config(CMDConfigCommand command);
 
-    /// @brief      Create the can ID for a given BLCMDSendCommand
+    /// @brief      Create the can ID for a given CMDSendCommand
     /// @param      command - The command to send
     /// @returns    The can ID
-    uint32_t make_can_id(BLCMDSendCommand command) const;
+    uint32_t make_can_id(CMDSendCommand command) const;
 
-    /// @brief      Create the can ID for a given BLCMDReceiveCommand
+    /// @brief      Create the can ID for a given CMDReceiveCommand
     /// @param      command - The command to send
     /// @returns    The can ID
-    uint32_t make_can_id(BLCMDReceiveCommand command) const;
+    uint32_t make_can_id(CMDReceiveCommand command) const;
 
     /// @brief      Create the can ID for a given TelemetryPacket
     /// @param      command - The command to send
     /// @returns    The can ID
     uint32_t make_can_id(TelemetryPacket packet) const;
 
-    void packet_1_callback(leigh::jcan::Frame);
+//    void packet_1_callback(leigh::jcan::Frame);
+//
+//    void packet_3_callback(leigh::jcan::Frame);
 
-    void packet_3_callback(leigh::jcan::Frame);
+    void resolver_callback(leigh::jcan::Frame);
 
     template<typename T>
     double convert_scaled(const uint8_t *bytes, double max);
@@ -238,8 +237,10 @@ private:
     void send_scaled(uint32_t id, double value, double max);
 
     static bool is_true(std::string& text);
+
+    static double raw_resolver_to_rad(int16_t raw_resolver_data);
 };
 
-}  // namespace blcmd_hardware
+}  // namespace cmd_hardware
 
-#endif  // BLCMD_HARDWARE__BLCMD_HARDWARE_HPP_
+#endif  // CMD_HARDWARE__CMD_HARDWARE_HPP_

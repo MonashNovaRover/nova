@@ -27,18 +27,22 @@ def launch_setup(context, *args, **kwargs):
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
     arm = LaunchConfiguration('arm').perform(context)
+    old_arm = LaunchConfiguration('old_arm').perform(context)
     use_mock_hardware = LaunchConfiguration('use_mock_hardware').perform(context)
     use_local_mesh = LaunchConfiguration('use_local_mesh').perform(context)
 
     if arm.lower() in ['true', '1', 'yes']:
         arm += ' auto_camera:=false'
 
+    if old_arm.lower() in ['true', '1', 'yes']:
+        old_arm += ' auto_camera:=false'
+
     return [
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[{'robot_description': 
-                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle, ' ', 'arm:=', arm, ' ', 'use_mock_hardware:=', use_mock_hardware, ' ', 'use_local_mesh:=', use_local_mesh]), value_type=str)
+                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle, ' ', 'arm:=', arm, ' ', 'old_arm:=', old_arm, ' ', 'use_mock_hardware:=', use_mock_hardware, ' ', 'use_local_mesh:=', use_local_mesh]), value_type=str)
             }]
         ),
         # Launch joint states for arm
@@ -83,6 +87,11 @@ def generate_launch_description():
             name='arm',
             default_value='false',
             description='whether to launch arm',
+        ),
+        DeclareLaunchArgument(
+            name='old_arm',
+            default_value='True',
+            description='whether to launch the old arm (for new arm software)',
         ),
         DeclareLaunchArgument(
             name='use_mock_hardware',
