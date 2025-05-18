@@ -216,13 +216,13 @@ protected:
 
   void execute_action(const std::shared_ptr<GoalHandleArmPlanPath> goal_handle);
 
-  static Vector3d lerp(Vector3d a, Vector3d b, double t);
-  static Vector3d lerp2(Vector3d a, Vector3d b, Vector3d c, double t);
-  static Vector3d lerp3(Vector3d a, Vector3d b, Vector3d c, Vector3d d, double t);
+  static Vector3d lerp(const Vector3d& a, const Vector3d& b, const double &t);
+  static Vector3d lerp2(const Vector3d& a, const Vector3d& b, const Vector3d& c, const double &t);
+  static Vector3d lerp3(const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d, const double &t);
 
-  static Eigen::Quaterniond slerp(Eigen::Quaterniond a, Eigen::Quaterniond b, double t);
-  static Eigen::Quaterniond slerp2(Eigen::Quaterniond a, Eigen::Quaterniond b, Eigen::Quaterniond c, double t);
-  static Eigen::Quaterniond slerp3(Eigen::Quaterniond a, Eigen::Quaterniond b, Eigen::Quaterniond c, Eigen::Quaterniond d, double t);
+  static Eigen::Quaterniond slerp(const Eigen::Quaterniond& a, const Eigen::Quaterniond& b, const double &t);
+  static Eigen::Quaterniond slerp2(const Eigen::Quaterniond& a, const Eigen::Quaterniond& b, const Eigen::Quaterniond& c, const double &t);
+  static Eigen::Quaterniond slerp3(const Eigen::Quaterniond &a, const Eigen::Quaterniond &b, const Eigen::Quaterniond &c, const Eigen::Quaterniond &d, const double &t);
 
   static Eigen::Isometry3d lerp3(Eigen::Isometry3d a, Eigen::Isometry3d b, Eigen::Isometry3d c, Eigen::Isometry3d d, double t);
 
