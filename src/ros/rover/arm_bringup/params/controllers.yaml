@@ -69,7 +69,8 @@ nova_twistmapper:
       - arm_j4
       - arm_j5
       - arm_j6
-    kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
+    kinematics_solver: "kdl_kinematics_plugin/KDLKinematicsPlugin"
+#    kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
 
 wheel_velocity_controller:
   ros__parameters:
