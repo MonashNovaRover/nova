@@ -573,9 +573,28 @@ bool CMDHardware::set_control_interface(
         }
 
         // Unpack the resolver value
-        uint16_t value = (static_cast<uint16_t>(frame.data[2]) << 8) | static_cast<uint16_t>(frame.data[3]);
+        // TODO: Check if this should be signed or unsigned
+        const int16_t value = (static_cast<int16_t>(frame.data[2]) << 8) | static_cast<uint16_t>(frame.data[3]);
 
-        hw_position_.reference_state = raw_resolver_to_rad(value) * params_.resolver_reduction * reversed_multiplier_;
+        const auto last_raw_ref = hw_position_.raw_reference_state;
+        hw_position_.raw_reference_state = raw_resolver_to_rad(value) * params_.resolver_reduction * reversed_multiplier_;
+
+        const auto raw_delta = hw_position_.raw_reference_state - last_raw_ref;
+        double delta = 0.0;
+
+        if (raw_delta < -M_PI) {
+            delta = raw_delta + M_2_PI;
+        }
+        else if (raw_delta > M_PI) {
+            delta = raw_delta - M_2_PI;
+        }
+        else {
+            delta = raw_delta;
+        }
+
+        // TODO: Think about and counter accumulated floating point error
+        hw_position_.reference_state += delta;
+        // TODO: Reset and clean up reference variables to ensure we dont have errors on multiple uses of the hw interface
     }
 
     template<typename T>
