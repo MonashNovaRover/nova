@@ -164,8 +164,14 @@ protected:
         /// min_interval is determined through requesting configuration from the BLCMD board.
         bool mock = false;
 
-        /// Unconfirmed. When true, the sign of all inputs and outputs are reversed.
-        bool reversed = false;
+        /// When true, the sign of all velocity inputs and outputs on CAN are reversed.
+        bool reverse_velocity = false;
+
+        /// When true, the sign velocity feedback on CAN is reversed. This is applied on top of reverse_velocity.
+        bool reverse_velocity_feedback = false;
+
+        /// When true, the sign of all position inputs on CAN are reversed. (There are no position outputs on CAN)
+        bool reverse_position = false;
 
         /// The maximum position in radians, to be mapped to the largest position in CAN; 0x7FFF. This is not a limit.
         double max_position = M_PI;
@@ -207,7 +213,9 @@ private:
     std::unique_ptr<leigh::jcan::Bus> bus_;
 
     Params params_;
-    int reversed_multiplier_ = 1;
+    int16_t reverse_position_multiplier_ = 1;
+    int reverse_velocity_multiplier_ = 1;
+    int reverse_velocity_feedback_multiplier_ = 1;
 
     hardware_interface::CallbackReturn apply_parameters();
 
