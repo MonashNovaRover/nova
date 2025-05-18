@@ -210,6 +210,8 @@ export const reduxStores = {
     {
       temperature: 0,
       humidity: 0,
+      pressure: 0,
+      altitude: 0,
     }
   ),
 

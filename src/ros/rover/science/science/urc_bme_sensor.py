@@ -13,13 +13,17 @@ class URCBMESensor(ControllerNode):
 
     # RECEIVING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
-    BME_TEMP_RECV_FRAME_ID = 0x457
-    BME_HUMIDITY_RECV_FRAME_ID = 0x458
+    BME_TEMP_RECV_FRAME_ID = 0x4F3
+    BME_HUMIDITY_RECV_FRAME_ID = 0x4F2
+    BME_PRESSURE_RECV_FRAME_ID = 0x4F4
+    BME_ALTITUDE_RECV_FRAME_ID = 0x4F5
 
     # CONTROL NAMES
     # Add any CONTROL names here
     BME_TEMP_NAME = "bme_temperature"
     BME_HUMIDITY_NAME = "bme_humidity"
+    BME_PRESSURE_NAME = "bme_pressure"
+    BME_ALTITUDE_NAME = "bme_altitude"
 
     # SENSOR CONSTANTS
     BME_TEMP_FACTOR = 100
@@ -46,10 +50,24 @@ class URCBMESensor(ControllerNode):
             frame_id=self.BME_HUMIDITY_RECV_FRAME_ID,
             run_can=True,        
         )
+        self.pressure = IntegerSensor(
+            bus=self.bus,
+            logger=logger,
+            frame_id=self.BME_PRESSURE_RECV_FRAME_ID,
+            run_can=True,
+        )
+        self.altitude = IntegerSensor(
+            bus=self.bus,
+            logger=logger,
+            frame_id=self.BME_ALTITUDE_RECV_FRAME_ID,
+            run_can=True,
+        )
 
         ## Add the controllers to the node's of controllers
         self.add_sensor(sensor_name=self.BME_TEMP_NAME, sensor=self.temperature)
         self.add_sensor(sensor_name=self.BME_HUMIDITY_NAME, sensor=self.humidity)
+        self.add_sensor(sensor_name=self.BME_PRESSURE_NAME, sensor=self.pressure)
+        self.add_sensor(sensor_name=self.BME_ALTITUDE_NAME, sensor=self.altitude)
 
         self.create_timer(1.0, self.publish_data)
 
@@ -60,6 +78,8 @@ class URCBMESensor(ControllerNode):
         msg = BMESensor()
         msg.temperature = float(self.temperature.get_sensor_value() / self.BME_TEMP_FACTOR)
         msg.humidity = float(self.humidity.get_sensor_value() / self.BME_HUMIDITY_FACTOR)
+        msg.pressure = int(self.pressure.get_sensor_value())
+        msg.altitude = int(self.altitude.get_sensor_value())
         self.bme_publisher.publish(msg)
 
 def main():
