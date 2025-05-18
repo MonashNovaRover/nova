@@ -101,8 +101,8 @@
     <axis
       xyz="0 1 0" />
     <limit
-      lower="0"
-      upper="0"
+      lower="-2"
+      upper="2"
       effort="0"
       velocity="0" />
   </joint>
@@ -444,10 +444,27 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="0"
-      upper="0"
+      lower="-1.57079632679"
+      upper="1.57079632679"
       effort="0"
       velocity="0" />
+  </joint>
+
+
+  <!-- Kinematics -->
+  <link name="arm_kinematics_origin"/>
+  <joint name="arm_kinematics_origin_joint" type="fixed">
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    <parent link="$(arg prefix)_link" />
+    <child link="arm_kinematics_origin" />
+  </joint>
+
+  <link name="endeffector_kinematics"/>
+  <joint name="endeffector_kinematics_joint" type="fixed">
+    <!-- before rotating to match IK function expected 0: 1.5707963 0.0 1.5707963 -->
+    <origin xyz="0.0067503 -0.0012 0.2225" rpy="-1.57079632679 -1.57079632679 0.0" />
+    <parent link="$(arg prefix)_j6_to_ee" />
+    <child link="endeffector_kinematics" />
   </joint>
 
   <xacro:include filename="$(find rover_description)/waratah_arm/urdf/arm.ros2_control.xacro" />

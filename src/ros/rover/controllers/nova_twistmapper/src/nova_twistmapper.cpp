@@ -23,14 +23,12 @@ EDITED BY:
 #include <srdfdom/model.h>
 #include <pluginlib/class_loader.hpp>
 #include <moveit/kinematics_base/kinematics_base.h>
+#include <moveit/utils/moveit_error_code.h>
 
 
 namespace
 {
   constexpr auto DEFAULT_INPUT_TOPIC_END_EFFECTOR_TWIST = "/arm_ik_twist_stamped"; // TODO: changeme
-  constexpr auto ENDEFFECTOR_KINEMATICS_FRAME = "endeffector_kinematics";
-  constexpr auto KINEMATICS_ORIGIN_FRAME = "arm_kinematics_origin";
-  constexpr auto TWISTMAPPER_TARGET_FRAME = "arm_twistmapper_target";
 } // namespace
 
 using std::placeholders::_1;
@@ -146,11 +144,15 @@ namespace nova_twistmapper
     geometry_msgs::msg::Pose pose = tf2::toMsg(tf2::transformToEigen(tf2::toMsg(twistmapper_pose_)));
     moveit_msgs::msg::MoveItErrorCodes error_codes;
 
-    auto result = kinematics_solver_->getPositionIK(pose, joint_state_values, solution, error_codes);
+    //auto result = kinematics_solver_->getPositionIK(pose, joint_state_values, solution, error_codes);
+    auto result = kinematics_solver_->searchPositionIK(pose, joint_state_values, params_.kinematics_solver_timeout, solution, error_codes);
     if (!result) {
       twistmapper_pose_ = old_pose;
       twistmapper_pose_rpy_ = old_rpy;
-      RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 500, "Failed to find solution to inverse kinematics.");
+      RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 500,
+                           "Failed to find solution to inverse kinematics: error code %d (\"%s\"). %s", error_codes.val,
+                           moveit::core::errorCodeToString(error_codes).c_str(), error_codes.message.c_str());
+
       return controller_interface::return_type::OK;
     }
 
@@ -281,9 +283,9 @@ namespace nova_twistmapper
     RCLCPP_INFO(logger, "Loaded kinematics plugin \'%s\'", params_.kinematics_solver.c_str());
 
     // Instantiate kinematics using the robot model
-    const std::basic_string<char> base_frame = KINEMATICS_ORIGIN_FRAME;
+    const std::basic_string<char> base_frame = params_.kinematics_base_frame;
     const std::vector<std::basic_string<char>> tip_frames {
-      ENDEFFECTOR_KINEMATICS_FRAME
+      params_.kinematics_endeffector_frame
     };
     // We currently don't use this. Reasonable values are in [0.01, 0.1] rads, and KDL uses 0.1 rads by default.
     double search_discretization = params_.kinematics_solver_search_discretization;
@@ -302,6 +304,7 @@ namespace nova_twistmapper
     srdf_stream << "  <group name=\"" << joint_group_name << "\">\n";
     for (const auto& joint : params_.joint_names)
       srdf_stream << "    <joint name=\"" << joint << "\"/>\n";
+    srdf_stream << "    <chain base_link=\"" << params_.kinematics_base_frame << "\" tip_link=\"" << params_.kinematics_endeffector_frame << "\" />\n";
     srdf_stream << "  </group>\n";
     srdf_stream << "</robot>\n";
     auto srdf_string = srdf_stream.str();
@@ -346,6 +349,11 @@ namespace nova_twistmapper
       RCLCPP_INFO(logger, "  - %s", handle.name.c_str());
     }
 
+    RCLCPP_INFO(logger, "SRDF Joint group joints:");
+    for (auto& joint : joint_group_names) {
+      RCLCPP_INFO(logger, "  - %s", joint.c_str());
+    }
+
     is_halted = false;
     subscriber_is_active_ = true;
 
@@ -362,7 +370,7 @@ namespace nova_twistmapper
     auto joint_values = get_state_pos_values();
     std::vector<geometry_msgs::msg::Pose> poses;
 
-    auto result = kinematics_solver_->getPositionFK({ENDEFFECTOR_KINEMATICS_FRAME}, joint_values, poses);
+    auto result = kinematics_solver_->getPositionFK({params_.kinematics_endeffector_frame}, joint_values, poses);
 
     if (!result) {
       RCLCPP_ERROR(get_node()->get_logger(), "Failed to do forward kinematics to find the end effector's initial pose");
@@ -481,8 +489,8 @@ namespace nova_twistmapper
     transform_stamped.header.stamp = time;
 
     // TODO: Parameterize
-    transform_stamped.child_frame_id = TWISTMAPPER_TARGET_FRAME;
-    transform_stamped.header.frame_id = KINEMATICS_ORIGIN_FRAME;
+    transform_stamped.child_frame_id = params_.kinematics_output_target_frame;
+    transform_stamped.header.frame_id = params_.kinematics_base_frame;
 
     RCLCPP_INFO_ONCE(get_node()->get_logger(), "Broadcasting twistmapper pose as '%s', child of '%s'.",
                      transform_stamped.child_frame_id.c_str(),
@@ -634,7 +642,7 @@ namespace nova_twistmapper
 
     for (auto& joint_position : joint_positions) {
       if (std::isnan(joint_position) || std::isinf(joint_position)) {
-        RCLCPP_ERROR(logger, "Received NaN or Inf position for joint in self intersection check.", joint_position);
+        RCLCPP_ERROR(logger, "Received NaN or Inf position for joint in self intersection check.");
         return true;
       }
     }
