@@ -778,33 +778,60 @@ namespace nova_path_planner
     Eigen::fromMsg(goal->pose, end);
 
     // Handles for a cubic bezier spline
-    Eigen::Isometry3d handle0 = start;
-    Eigen::Isometry3d handle1 = end;
+    const Eigen::Isometry3d& handle0 = start;
+    const Eigen::Isometry3d handle1 = end;
 
     double execution_time = 1.0;
     double frequency = 20.0;
 
     // Calculate number of points
     int pose_count_minus_one = static_cast<int>(std::floor(execution_time / frequency));
+    int pose_count = pose_count_minus_one + 1;
+
+    std::queue<std::vector<double>> path;
 
     // Plan the path
     // This should be a loop that frequently releases to the scheduler
-    std::vector<Eigen::Isometry3d> poses;
-    poses.reserve(pose_count_minus_one + 1);
+    auto last_joint_pose = get_state_pos_values();
 
-    for (int i = 0; i < pose_count_minus_one; i++) {
-      auto t = static_cast<double>(i) / pose_count_minus_one;
+    for (int i = 0; i < pose_count; i++) {
+      const auto t = static_cast<double>(i) / pose_count_minus_one;
 
       // Calculate as cubic bezier curve
-      Eigen::Isometry3d pose = lerp3(start, handle0, handle1, end);
-      poses.emplace_back(pose);
-    }
-    poses.emplace_back(end);
+      Eigen::Isometry3d pose = lerp3(start, handle0, handle1, end, t);
 
-    // Validate the path
-    // This should be a loop that frequently releases to the scheduler
+      std::vector<double> solution;
+      geometry_msgs::msg::Pose pose_msg = tf2::toMsg(pose);
+      moveit_msgs::msg::MoveItErrorCodes error_codes;
+
+      auto ik_result = kinematics_solver_->searchPositionIK(pose_msg, last_joint_pose, params_.kinematics_solver_timeout, solution, error_codes);
+
+      if (!ik_result) {
+        RCLCPP_FATAL(logger, "Failed to find solution to inverse kinematics at t=%f: error code %d (\"%s\"). %s",
+                             t, error_codes.val, moveit::core::errorCodeToString(error_codes).c_str(),
+                             error_codes.message.c_str());
+        is_path_being_executed_ = false;
+        result->success = false;
+        goal_handle->succeed(result);
+        return;
+      }
+
+      if (check_path_for_self_intersection(last_joint_pose, solution)) {
+        RCLCPP_FATAL(logger, "Inverse Kinematics solution self intersects for t=%f!", t);
+        is_path_being_executed_ = false;
+        result->success = false;
+        goal_handle->succeed(result);
+        return;
+      }
+
+      last_joint_pose = solution;
+      path.push(solution);
+
+      loop_rate.sleep();
+    }
 
     // Give to the realtime thread to be executed physically by the control loop
+
 
     // Wait for the path to be executed
 
@@ -826,40 +853,45 @@ namespace nova_path_planner
     RCLCPP_INFO(logger, "Goal succeeded");
   }
 
-  inline Eigen::Vector3d NovaPathPlanner::lerp(Vector3d a, Vector3d b, double t) {
+  inline Eigen::Vector3d NovaPathPlanner::lerp(const Vector3d& a, const Vector3d& b, const double &t) {
     return (1-t)*a + t*b;
   }
 
-  inline Eigen::Vector3d NovaPathPlanner::lerp2(Vector3d a, Vector3d b, Vector3d c, double t) {
+  inline Eigen::Vector3d NovaPathPlanner::lerp2(const Vector3d& a, const Vector3d& b, const Vector3d& c, const double &t) {
     return lerp(lerp(a,b, t), lerp(b,c, t), t);
   }
 
-  inline Eigen::Vector3d NovaPathPlanner::lerp3(Vector3d a, Vector3d b, Vector3d c, Vector3d d, double t) {
+  inline Eigen::Vector3d NovaPathPlanner::lerp3(const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d, const double &t) {
     return lerp(lerp2(a,b,c, t), lerp2(b,c,d, t), t);
   }
 
-  inline Eigen::Quaterniond NovaPathPlanner::slerp(Eigen::Quaterniond a, Eigen::Quaterniond b, double t) {
+  inline Eigen::Quaterniond NovaPathPlanner::slerp(const Eigen::Quaterniond& a, const Eigen::Quaterniond& b, const double &t) {
     return a.slerp(t, b);
   }
 
-  inline Eigen::Quaterniond NovaPathPlanner::slerp2(Eigen::Quaterniond a, Eigen::Quaterniond b, Eigen::Quaterniond c, double t) {
+  inline Eigen::Quaterniond NovaPathPlanner::slerp2(const Eigen::Quaterniond& a, const Eigen::Quaterniond& b, const Eigen::Quaterniond& c, const double &t) {
     return slerp(slerp(a,b, t), slerp(b,c, t), t);
   }
 
-  Eigen::Quaterniond
-  NovaPathPlanner::slerp3(Eigen::Quaterniond a, Eigen::Quaterniond b, Eigen::Quaterniond c, Eigen::Quaterniond d,
-                          double t) {
+  inline Eigen::Quaterniond
+  NovaPathPlanner::slerp3(const Eigen::Quaterniond &a, const Eigen::Quaterniond &b, const Eigen::Quaterniond &c, const Eigen::Quaterniond &d,
+                          const double &t) {
     return slerp(slerp2(a,b,c, t), slerp2(b,c,d, t), t);
   }
 
-  Eigen::Isometry3d
+  inline Eigen::Isometry3d
   NovaPathPlanner::lerp3(Eigen::Isometry3d a, Eigen::Isometry3d b, Eigen::Isometry3d c, Eigen::Isometry3d d, double t) {
     const Vector3d translation = lerp3(a.translation(), b.translation(), c.translation(), d.translation(), t);
-    const Eigen::Quaterniond linear = slerp3(a.rotation(), b.rotation(), c.rotation(), d.rotation(), t);
+    const Eigen::Quaterniond rotation = slerp3(
+      Eigen::Quaterniond(a.rotation()),
+      Eigen::Quaterniond(b.rotation()),
+      Eigen::Quaterniond(c.rotation()),
+      Eigen::Quaterniond(d.rotation()),
+      t);
 
     Eigen::Isometry3d result = Eigen::Isometry3d::Identity();
-    result.linear() = interp_rotation.toRotationMatrix();
-    result.translation() = interp_translation;
+    result.linear() = rotation.toRotationMatrix();
+    result.translation() = translation;
 
     return result;
   }
