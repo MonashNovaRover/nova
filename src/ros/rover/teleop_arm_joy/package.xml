@@ -20,6 +20,7 @@
   <depend>sensor_msgs</depend>
   <depend>core</depend>
   <depend>nova_interfaces</depend>
+  <depend>std_srvs</depend>
 
   <exec_depend>joy</exec_depend>
 

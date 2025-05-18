@@ -1,7 +1,7 @@
 /**
  * @file teleop_arm_joy.hpp
  * @brief Header file for the TeleopArmJoy class, which handles joystick input for teleoperation of the robotic arm.
- * Last Edited by Bailey
+ * Last Edited by Abby
  */
 #ifndef TELEOP_ARM_JOY_HPP
 #define TELEOP_ARM_JOY_HPP
@@ -11,6 +11,7 @@
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <nova_interfaces/msg/arm_fk_velocity_targets.hpp>
 #include <controller_manager_msgs/srv/switch_controller.hpp>
+#include "std_srvs/srv/trigger.hpp"
 
 #include "teleop_arm_joy_parameters.hpp"
 #include "JoyDevice.hpp"
@@ -26,7 +27,7 @@ namespace teleop_arm_joy
   enum class ControlMode
   {
     FK,
-    IK
+    IK,
   };
 
   inline std::string prettyPrintMode(const ControlMode mode)
@@ -64,6 +65,11 @@ class TeleopArmJoy : public rclcpp::Node {
 
     void initializeParams();
 
+    /**
+     * @brief Toggles autonomous typing state.
+     */
+	void toggleTyping(const std::shared_ptr<std_srvs::srv::Trigger::Request> request, std::shared_ptr<std_srvs::srv::Trigger::Response> response);
+
   private:
     void onDeviceUpdated(string& device_name);
 
@@ -89,7 +95,7 @@ class TeleopArmJoy : public rclcpp::Node {
      */
     void sendTwistCommand();
 
-    /**
+	/**
      * @brief Sends a halt command to stop the rover.
      * Called when locked.
      */
@@ -108,12 +114,16 @@ class TeleopArmJoy : public rclcpp::Node {
      */
     void switchController(ControlMode requested_control_mode);
 
+	bool setTypingState();
+
     // Member variables
     // rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub;
     rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr switch_controller_client;
     rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr fk_client;
     rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr ik_client;
-    std::shared_ptr<ParamListener> param_listener_;
+  	rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr service;
+
+	std::shared_ptr<ParamListener> param_listener_;
 
     rclcpp::Publisher<nova_interfaces::msg::ArmFkVelocityTargets>::SharedPtr fk_velocity_pub;
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr ik_twist_pub;
@@ -127,7 +137,8 @@ class TeleopArmJoy : public rclcpp::Node {
     State previous_state;
 
     ControlMode control_mode = ControlMode::FK;
-    double speed; // Linear Speed Multiplier that can be incremented
+    bool typing_active;
+	double speed; // Linear Speed Multiplier that can be incremented
   };
 
 } // namespace teleop_arm_joy

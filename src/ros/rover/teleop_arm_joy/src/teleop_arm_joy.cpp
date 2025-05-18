@@ -1,7 +1,7 @@
 /**
  * @file teleop_arm_joy.cpp
  * @brief Teleop Arm Joy node to translate Joy messages from /joy to commands for the arm.
- * Edited by Bailey
+ * Edited by Abby
  */
 
 #include "teleop_arm_joy/teleop_arm_joy.hpp"
@@ -13,9 +13,11 @@ namespace
   constexpr auto BUTTON_DEBOUNCE_INTERVAL = std::chrono::milliseconds(50);
   constexpr auto DEFAULT_FK_VELOCITY_TOPIC = "/arm_fk_velocity_target";
   constexpr auto DEFAULT_IK_TWIST_TOPIC = "/arm_ik_twist_stamped";
+  constexpr auto DEFAULT_AUTO_TYPING_TOPIC = "/test";
 }
 
 using std::placeholders::_1;
+using std::placeholders::_2;
 
 namespace teleop_arm_joy
 {
@@ -37,8 +39,12 @@ TeleopArmJoy::TeleopArmJoy(const rclcpp::NodeOptions &options)
   // TODO: Make good for actual controller implementations
   fk_client = this->create_client<rcl_interfaces::srv::SetParameters>("/nova_arm_controller/set_parameters");
   ik_client = this->create_client<rcl_interfaces::srv::SetParameters>("/strafe_controller/set_parameters");
-
+  
+  service = this->create_service<std_srvs::srv::Trigger>("/teleop_arm_joy/toggle_typing", 
+		  std::bind(&teleop_arm_joy::TeleopArmJoy::toggleTyping, this, _1, _2));
+  
   control_mode = ControlMode::FK;
+  typing_active = false;
 
   devices = std::vector<shared_ptr<JoyDevice>>();
   speed = 0;
@@ -188,7 +194,10 @@ void TeleopArmJoy::updateState() {
   // TODO: put speed into state
   handleSpeedChange();
 
-  setControlMode(buttons["twist_mode"]->value() ? ControlMode::IK : ControlMode::FK);
+  if (!typing_active)
+  {
+  	setControlMode(buttons["twist_mode"]->value() ? ControlMode::IK : ControlMode::FK);
+  }
 }
 
 void TeleopArmJoy::setControlMode(const ControlMode new_control_mode) {
@@ -312,6 +321,8 @@ void TeleopArmJoy::sendHaltCommand()
   ik_msg->twist.angular = angular;
 
   ik_twist_pub->publish(std::move(ik_msg));
+
+  //TODO: halt auto typing command
 }
 
 void TeleopArmJoy::handleSpeedChange() {
@@ -363,6 +374,36 @@ void TeleopArmJoy::switchController(const ControlMode requested_control_mode)
 
   auto future = switch_controller_client->async_send_request(request);
   control_mode = requested_control_mode;
+}
+
+bool TeleopArmJoy::setTypingState()
+{
+  if (!typing_active)
+  {
+  	// TODO: error checking!! right now this assumes that the control mode switch always goes through
+  	setControlMode(ControlMode::IK);
+  }
+
+  typing_active = !typing_active;
+  
+  return true;
+}
+
+void TeleopArmJoy::toggleTyping(const std::shared_ptr<std_srvs::srv::Trigger::Request> request, std::shared_ptr<std_srvs::srv::Trigger::Response> response)
+{
+  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Received request to toggle typing state.");
+
+  bool res = setTypingState();
+  if (!res) {
+	response->success = false;
+    response->message = "Could not switch to typing mode.";
+  }
+  else {
+  	response->success = true;
+	response->message = typing_active ? "Switched to typing mode." : "Switched to FK/IK mode.";
+  }
+
+  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Sending back response...");
 }
 
 }
