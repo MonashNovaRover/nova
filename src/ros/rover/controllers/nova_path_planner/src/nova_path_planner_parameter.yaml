@@ -1,0 +1,84 @@
+nova_path_planner:
+  joint_names: {
+    type: string_array,
+    default_value: [],
+    description: "Names of the joints in the ik. Other arrays in this config must be in the same order.",
+  }
+  chained_controller_name: {
+    type: string,
+    default_value: "nova_ik_controller",
+    description: "The name of the chainable controller to capture reference interfaces from. Leave empty to use hardware 
+    interfaces."
+  }
+
+  # PathPlanner
+  twist_stamped_topic: {
+    type: string,
+    default_value: "/arm_ik_twist_stamped",
+    description: "The name of the topic to get teleop twist stamped messages from. Applies relative to the 
+    header.frame_id frame."
+  }
+
+  # Kinematics Solving
+  kinematics_solver: {
+    type: string,
+    default_value: "kdl_kinematics_plugin/KDLKinematicsPlugin",
+    description: "The name of the kinematics solver plugin to use for forward and inverse kinematics."
+  }
+  kinematics_solver_search_discretization: {
+    type: double,
+    default_value: 0.1,
+    description: "The discretization of the search when the solver steps through the redundancy."
+  }
+  kinematics_solver_timeout: {
+    type: double,
+    default_value: 0.01,
+    description: "The amount of time the kinematics solver is allowed to look for a solution to IK before failing."
+  }
+  # Also used to determine the order of the joint handles
+  kinematics_solver_group_name: {
+    type: string,
+    default_value: "",
+    description: "The name of the joint group specified in the given SRDF. Must contain only and all the joints in 
+    joint_names. Determines the order of joint handles."
+  }
+
+  kinematics_base_frame: {
+    type: string,
+    default_value: "arm_kinematics_origin",
+    description: "The name of the frame/link to use as the origin/base frame for kinematics."
+  }
+  kinematics_endeffector_frame: {
+    type: string,
+    default_value: "endeffector_kinematics",
+    description: "The name of the frame/link to use as the endeffector/tip frame for kinematics."
+  }
+  kinematics_output_target_frame: {
+    type: string,
+    default_value: "arm_path_planner_target",
+    description: "The name of the tf2 frame to broadcast the target pose for IK under."
+  }
+
+  # Robot descriptions
+  robot_description: {
+    type: string,
+    default_value: "",
+    description: "The robot_description URDF used to do kinematics and self intersection checks. Uses the URDF from 
+    ControllerInterfaceBase if left unspecified."
+  }
+  robot_description_semantic: {
+    type: string,
+    default_value: "",
+    description: "The SRDF file used for kinematics and collision detection. Automatically generated from joint_names if 
+    not provided."
+  }
+
+  # Self intersection checks
+  self_intersection_max_step_size: {
+    type: double,
+    default_value: 0.05,
+    description: "The max step size, in radians, for any joint in self intersection checks for large movements. This 
+    helps to prevent unsafe maneuvers from being executed where a self-intersecting state is 'jumped over' by the 
+    kinematics solver, by computing in-between steps between poses of at most self_intersection_max_step_size radians 
+    per joint.",
+  }
