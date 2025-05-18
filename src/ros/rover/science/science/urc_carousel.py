@@ -73,9 +73,11 @@ class URCCarousel(ControllerNode):
 
         if status:
             self.get_logger().info("Turning stepper on")
+            self.is_active = True
             self.bus.send(Frame(self.STEPPER_STM_SEND, [self.STEPPER_ENABLE_COMMAND_ID]))
         else:
             self.get_logger().info("Turning stepper off")
+            self.is_active = False
             self.bus.send(Frame(self.STEPPER_STM_SEND, [self.STEPPER_DISABLE_COMMAND_ID]))
 
         return True
@@ -86,8 +88,10 @@ class URCCarousel(ControllerNode):
             return False
 
         if clockwise:
+            self.is_clockwise = True
             self.bus.send(Frame(self.STEPPER_STM_SEND, [self.STEPPER_SET_DIRECTION_COMMAND_ID, self.DIRECTION_CLOCKWISE]))
         else:
+            self.is_clockwise = False
             self.bus.send(Frame(self.STEPPER_STM_SEND, [self.STEPPER_SET_DIRECTION_COMMAND_ID, self.DIRECTION_ANTICLOCKWISE]))
 
         return True
