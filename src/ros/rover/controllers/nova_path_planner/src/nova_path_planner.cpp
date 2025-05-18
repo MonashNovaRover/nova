@@ -723,6 +723,48 @@ namespace nova_path_planner
 
     planning_scene_->setAllowedCollisionMatrix(acm);
   }
+
+  void NovaPathPlanner::handle_action_accepted(const std::shared_ptr<GoalHandleArmPlanPath>& goal_handle) {
+    // this needs to return quickly to avoid blocking the executor, so spin up a new thread
+    std::thread{std::bind(&nova_path_planner::NovaPathPlanner::execute_action, this, _1), goal_handle}.detach();
+  }
+
+  rclcpp_action::CancelResponse NovaPathPlanner::handle_action_cancelled(const std::shared_ptr<GoalHandleArmPlanPath>& goal_handle) {
+    auto logger = get_node()->get_logger();
+    RCLCPP_INFO(logger, "Received request to cancel goal");
+    (void)goal_handle;
+    return rclcpp_action::CancelResponse::ACCEPT;
+  }
+
+  void NovaPathPlanner::execute_action(const std::shared_ptr<GoalHandleArmPlanPath> goal_handle) {
+    auto logger = get_node()->get_logger();
+    RCLCPP_INFO(logger, "Executing goal");
+    rclcpp::Rate loop_rate(1);
+    const auto goal = goal_handle->get_goal();
+    auto result = std::make_shared<ArmPlanPath::Result>();
+
+    // Set up for path planning
+
+    // Plan the path
+    // This should be a loop that frequently releases to the scheduler
+
+    // Give to the realtime thread to be executed physically by the control loop
+
+    // Wait for the path to be executed
+
+    if (goal_handle->is_canceling()) {
+      goal_handle->canceled(result);
+      RCLCPP_INFO(logger, "Goal canceled");
+      return;
+    }
+
+    // TODO: check this is actually what we want to do in this case. Functionally equivalent to example action server.
+    if (!rclcpp::ok())
+      return;
+
+    goal_handle->succeed(result);
+    RCLCPP_INFO(logger, "Goal succeeded");
+  }
 } // namespace nova_path_planner
 
 #include "class_loader/register_macro.hpp"

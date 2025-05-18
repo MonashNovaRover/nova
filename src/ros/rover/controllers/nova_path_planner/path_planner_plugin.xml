@@ -1,7 +1,7 @@
-<library path="nova_twistmapper">
-  <class name="nova_twistmapper/NovaTwistmapper" type="nova_twistmapper::NovaTwistmapper" base_class_type="controller_interface::ControllerInterface">
+<library path="nova_path_planner">
+  <class name="nova_path_planner/NovaPathPlanner" type="nova_path_planner::NovaPathPlanner" base_class_type="controller_interface::ControllerInterface">
   <description>
-    Controller to convert twist messages to a virtual target end effector pose for the arm
+    Controller to generate paths for the arm to follow to navigate between two points virtual target end effector poses
   </description>
   </class>
 </library>

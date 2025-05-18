@@ -17,6 +17,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   realtime_tools
   tf2
   tf2_msgs
+  nova_interfaces
   tf2_geometry_msgs
   moveit_core
   moveit_ros_planning
