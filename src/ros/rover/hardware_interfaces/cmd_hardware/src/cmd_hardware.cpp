@@ -187,13 +187,15 @@ hardware_interface::return_type CMDHardware::read(
 {
     bus_->spin();
 
+    hw_position_.state = hw_position_.reference_state
+
     return hardware_interface::return_type::OK;
 }
 
 hardware_interface::return_type CMDHardware::write(
-        const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
+        const rclcpp::Time & /*time*/, const rclcpp::Duration & period)
 {
-    switch(control_mode_){
+    switch (control_mode_) {
         case cmd_hardware::ControlMode::Undefined:
             break;
         case cmd_hardware::ControlMode::Position:
@@ -203,34 +205,57 @@ hardware_interface::return_type CMDHardware::write(
                 RCLCPP_WARN(rclcpp::get_logger(CMDHardwareLoggerName), "Position command interfaces are not yet implemented for CMDs!");
                 // TODO: Implement command interfaces, by seeking velocity
 
-//                send_scaled<int16_t>(make_can_id(CMDSendCommand::PID_DRIVE),
-//                                     hw_position_.command.value() * reversed_multiplier_, params_.max_position);
-            } else {
+                const auto position_cmd = hw_position_.command.value();
+                auto position_state = hw_position_.state.value();
+
+                // Apply velocity integration
+                const auto integration_velocity = lerp(hw_velocity_.state.value(), hw_velocity_.reference_command,
+                                                 params_.velocity_integration_command_amount);
+                const auto integration_offset = integration_velocity * params_.velocity_integration_seconds;
+                position_state += integration_offset;
+
+                // Error term to do velocity seeking on
+                const auto position_error = position_cmd - position_state;
+
+                hw_velocity_.reference_command = position_error / period.seconds();
+            }
+            else {
                 RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No position command");
                 return hardware_interface::return_type::ERROR;
             }
             break;
+
         case cmd_hardware::ControlMode::Velocity:
             if (hw_velocity_.command.has_value()) {
                 RCLCPP_DEBUG_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
                                     "Sending velocity command " << hw_velocity_.command.value() * reversed_multiplier_);
-                send_scaled<int16_t>(make_can_id(CMDSendCommand::PID_DRIVE),
-                                     hw_velocity_.command.value() * reversed_multiplier_, params_.max_velocity);
-            } else {
+
+                hw_velocity_.reference_command = hw_velocity_.command.value();
+            }
+            else {
                 RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No velocity command");
                 return hardware_interface::return_type::ERROR;
             }
             break;
+
         case cmd_hardware::ControlMode::Effort:
             if (hw_effort_.command.has_value()) {
                 send_scaled<int16_t>(make_can_id(CMDSendCommand::PWM_DRIVE),
                                      hw_effort_.command.value() * reversed_multiplier_, params_.max_effort);
-            } else {
+            }
+            else {
                 RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No effort command");
                 return hardware_interface::return_type::ERROR;
             }
             break;
     }
+
+    // Actually send velocity commands
+    if (control_mode_ == ControlMode::Position || control_mode_ == ControlMode::Velocity) {
+        send_scaled<int16_t>(make_can_id(CMDSendCommand::PID_DRIVE),
+                             hw_velocity_.command.value() * reversed_multiplier_, params_.max_velocity);
+    }
+
     return hardware_interface::return_type::OK;
 }
 
@@ -313,7 +338,7 @@ bool CMDHardware::start_interface(const std::string &interface){
         return true;
     }
 
-    if(control_mode_ != cmd_hardware::ControlMode::Undefined){
+    if (control_mode_ != cmd_hardware::ControlMode::Undefined) {
         RCLCPP_FATAL_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
                             "Requested start interface " << interface.c_str() << " when control mode was not undefined");
         return false;
@@ -406,6 +431,21 @@ hardware_interface::CallbackReturn CMDHardware::apply_parameters() {
       params_.resolver_reduction = std::stod(resolver_reduction_search->second);
     }
 
+    auto velocity_integration_seconds_search = info_.hardware_parameters.find("velocity_integration_seconds");
+    if (velocity_integration_seconds_search != info_.hardware_parameters.end()) {
+      params_.velocity_integration_seconds = std::stod(velocity_integration_seconds_search->second);
+    }
+
+    auto velocity_integration_command_amount_search = info_.hardware_parameters.find("velocity_integration_command_amount");
+    if (velocity_integration_command_amount_search != info_.hardware_parameters.end()) {
+      params_.velocity_integration_command_amount = std::stod(velocity_integration_command_amount_search->second);
+    }
+
+    auto position_seeking_velocity_multiplier_search = info_.hardware_parameters.find("position_seeking_velocity_multiplier");
+    if (position_seeking_velocity_multiplier_search != info_.hardware_parameters.end()) {
+      params_.position_seeking_velocity_multiplier = std::stod(position_seeking_velocity_multiplier_search->second);
+    }
+
     auto position_offset_search = info_.hardware_parameters.find("position_offset");
     if (position_offset_search != info_.hardware_parameters.end()) {
       params_.position_offset = std::stod(position_offset_search->second);
@@ -419,33 +459,38 @@ hardware_interface::CallbackReturn CMDHardware::apply_parameters() {
 // TODO: better error handling
 bool CMDHardware::set_control_interface(
         const hardware_interface::InterfaceInfo &interface_info, bool command) {
-    if(interface_info.name == hardware_interface::HW_IF_POSITION){
+    if (interface_info.name == hardware_interface::HW_IF_POSITION){
         //TODO: deal with case with state interface and no command interface
         if (command){
 //            hw_position_.max = std::stod(interface_info.max);
-            auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
-            if (resolver_reduction_search == info_.joints[0].parameters.end()){
-                RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No resolver reduction provided");
-                return false;
-            }
-            hw_position_.resolver_reduction = std::stod(resolver_reduction_search->second);
+            // auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
+            // if (resolver_reduction_search == info_.joints[0].parameters.end()){
+            //     RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No resolver reduction provided");
+            //     return false;
+            // }
+            // hw_position_.resolver_reduction = std::stod(resolver_reduction_search->second);
             hw_position_.command = 0.0;
-        } else {
+            hw_velocity_.reference_command = 0.0;
+        }
+        else {
             hw_position_.state = 0.0;
         }
-    } else if(interface_info.name == hardware_interface::HW_IF_VELOCITY){
-        if(command) {
+    } else if (interface_info.name == hardware_interface::HW_IF_VELOCITY){
+        if (command) {
             RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
             "Configured velocity interface with max velocity: " << params_.max_velocity);
             hw_velocity_.command = 0.0;
-        } else {
+            hw_velocity_.reference_command = 0.0;
+        }
+        else {
             hw_velocity_.state = 0.0;
         }
-    } else if(interface_info.name == hardware_interface::HW_IF_EFFORT){
-        if(command){
+    } else if (interface_info.name == hardware_interface::HW_IF_EFFORT){
+        if (command){
 //            hw_effort_.max = std::stod(interface_info.max);;
             hw_effort_.command = 0.0;
-        } else {
+        }
+        else {
             hw_effort_.state = 0.0;
         }
     } else {
@@ -544,7 +589,7 @@ bool CMDHardware::set_control_interface(
         // Unpack the resolver value
         uint16_t value = (static_cast<uint16_t>(frame.data[2]) << 8) | static_cast<uint16_t>(frame.data[3]);
 
-        hw_position_.state = raw_resolver_to_rad(value) * params_.resolver_reduction * reversed_multiplier_;
+        hw_position_.reference_state = raw_resolver_to_rad(value) * params_.resolver_reduction * reversed_multiplier_;
     }
 
     template<typename T>
@@ -583,6 +628,10 @@ bool CMDHardware::set_control_interface(
 
     double CMDHardware::raw_resolver_to_rad(int16_t raw_resolver_data) {
         return M_2_PI * static_cast<double>(raw_resolver_data) / 0x3FFF;
+    }
+
+    inline double CMDHardware::lerp(const double a, const double b, const double t) {
+        return (1-t)*a + t*b;
     }
 
 }  // namespace cmd_hardware
