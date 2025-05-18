@@ -11,6 +11,7 @@
 , tf2-tools
 , reolink
 , moveit-core
+, moveit-kinematics
 , ublox-dgnss
 
 , nova-electronics ? throw "electronics is needed, but not available!"
@@ -107,6 +108,7 @@
     inherit
       tf2-tools
       moveit-core   # needed to dynamically load the kinematics_solver plugin for nova_twistmapper
+      moveit-kinematics
       gpsd-client
       ;
 }
