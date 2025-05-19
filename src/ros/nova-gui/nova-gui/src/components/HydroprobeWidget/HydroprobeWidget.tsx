@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect} from "react";
 import {Button, Card, CardBody, CardHeader, CardProps} from "@nextui-org/react";
 import {OverlayedProgress} from "../OverlayedProgress/OverlayedProgress.tsx";
 import {useBifrost} from "../../redux/actions/bifrost/useBifrostAction";
@@ -24,28 +24,32 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
   const conductivity = useSelector((state: RootState) => state.hydraprobeData.conductivity);
   const dielectric = useSelector((state: RootState) => state.hydraprobeData.dielectric);
 
-  // Cursed hack to make the ros context not undefined for this topic. TODO: Figure out why the ros context isn't real
-  const [fixRosState, setFixRosState] = useState<boolean>(false);
-
   useEffect(() => {
-    const thing = setTimeout(() => {
-      bifrost.syncWithTopic();
-      if (!fixRosState)
-        setFixRosState(() => true);
-    }, 1000);
-
-    return () => {
-      clearTimeout(thing);
-    }
-  }, [fixRosState, setFixRosState]);
+    bifrost.syncWithTopic();
+    serviceBifrost.syncWithTopic()
+  }, [bifrost]);
 
   const requestReading = () => {
-
     serviceBifrost.callService({}, {
-      sendToRedux: false,
-      responseToast: true
+      // sendToRedux: false,
+      // responseToast: true
     });
   };
+
+  // IN CASE THE ROS CONTEXT ISSUE HAPPENS AGAIN WITH THE ACTUAL HYDRAPROBE (been fine with dummy data, couldn't try again with the hydraprobe)
+  // Cursed hack to make the ros context not undefined for this topic.
+  // const [fixRosState, setFixRosState] = useState<boolean>(false);
+  // useEffect(() => {
+  //   const thing = setTimeout(() => {
+  //     bifrost.syncWithTopic();
+  //     if (!fixRosState)
+  //       setFixRosState(() => true);
+  //   }, 1000);
+  //
+  //   return () => {
+  //     clearTimeout(thing);
+  //   }
+  // }, [fixRosState, setFixRosState]);
 
   const HydroprobeCardBody = (
     <CardBody className="gap-4">
