@@ -64,7 +64,6 @@ install(PROGRAMS
   electronics/led_strip.py
   electronics/dgps/gps_base.py
   electronics/dgps/gps_rover.py
-  electronics/led_strip.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
