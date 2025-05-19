@@ -16,7 +16,6 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
     return val
   }, [step]);
 
-
   const serviceBifrost = useBifrost({service: RosService.SCIMBAL_COMMAND});
   const incrementTilt = useCallback((step: number) => serviceBifrost.callServiceToRedux({
     angles: [step, 0]

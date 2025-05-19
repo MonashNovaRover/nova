@@ -22,6 +22,7 @@ import { BLCMDStatusButton } from "../BLCMDStatusModal/BLCMDStatusButton";
 import "./TopBar.css";
 import { List } from "react-bootstrap-icons";
 import { BatteryWidget } from "../BatteryWidget/BatteryWidget";
+import {RGBInputModal} from "../RGBWidget/RGBModal.tsx";
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
@@ -144,6 +145,11 @@ export const NovaTopBar: React.FC = () => {
           >
             <BatteryWidget />
           </Button>
+        </NavbarItem>
+        <NavbarItem className="">
+          <>
+            <RGBInputModal />
+          </>
         </NavbarItem>
         <NavbarItem>
           {/*Controller Help Modal*/}
