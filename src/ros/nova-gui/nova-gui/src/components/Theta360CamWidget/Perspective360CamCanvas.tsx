@@ -83,7 +83,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
 
     if (event.buttons !== 1)
       return;
-    
+
     const maxResolutionComp = Math.max(bounds.width, bounds.height);
 
     setMousePos(([x, y]) => [

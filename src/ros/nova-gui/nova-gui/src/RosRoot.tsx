@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import { NovaTopBar } from "./components/TopBar/TopBar";
 import { NeoSidebar } from "./components/NeoSidebar/NeoSidebar";
 import { BLCMDStatusModal } from "./components/BLCMDStatusModal/BLCMDStatusModal";
+import { RGBInputModal } from "./components/RGBWidget/RGBModal.tsx";
 
 export const RosRoot: React.FC = () => {
   return (
@@ -20,6 +21,7 @@ export const RosRoot: React.FC = () => {
         <ControllerHelpModal />
         <BLCMDStatusModal />
         <Toaster />
+        <RGBInputModal />
       </div>
     </RosProvider>
   );
