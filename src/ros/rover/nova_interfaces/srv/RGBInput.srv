@@ -1,0 +1,7 @@
+# Set the RGB values
+int16 r
+int16 g
+int16 b
+bool flash
+---
+bool success
