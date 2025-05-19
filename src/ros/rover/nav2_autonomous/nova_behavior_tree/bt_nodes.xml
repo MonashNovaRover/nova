@@ -9,6 +9,15 @@
       <input_port name="publish_frequency">Publish rate in hz</input_port>
     </Action>
 
+    <Sequence>
+      <ArePosesNear
+        ref_pose="{ref_pose}"
+        target_pose="{target_pose}"
+        global_frame="map"
+        tolerance="0.5"/>
+      <SetBlackboard output_key="test_result" value="true"/>
+    </Sequence>
+
     <Action ID="PlaceSearchGoals">
       <input_port name="goal_type">Goal type (nothing, AR tag, or object?)</input_port>
       <input_port name="current_pose">The current pose of the rover</input_port>
@@ -149,6 +158,13 @@
 
     <Condition ID="GoalsEmpty">
       <input_port name="goals">Waypoints</input_port>
+    </Condition>
+
+    <Condition ID="ArePosesNear">
+      <input_port name="ref_pose">Destination pose</input_port>
+      <input_port name="target_pose">Target pose to compare</input_port>
+      <input_port name="global_frame">Global reference frame</input_port>
+      <input_port name="tolerance">Distance tolerance (m)</input_port>
     </Condition>
 
     <!-- ############################### CONTROL NODES ################################ -->

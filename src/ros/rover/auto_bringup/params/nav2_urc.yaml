@@ -33,6 +33,7 @@ bt_navigator:
       # CONDITION NODES
       - nova_ar_tag_detected_condition_bt_node
       - nova_object_detected_condition_bt_node
+      - nova_are_poses_near_condition_bt_node
 
 bt_navigator_navigate_through_poses_rclcpp_node:
   ros__parameters:

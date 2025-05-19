@@ -87,6 +87,8 @@ list(APPEND plugin_libs nova_ar_tag_detected_condition_bt_node)
 add_library(nova_object_detected_condition_bt_node SHARED plugins/condition/object_detected_condition.cpp)
 list(APPEND plugin_libs nova_object_detected_condition_bt_node)
 
+add_library(nova_are_poses_near_condition_bt_node SHARED plugins/condition/are_poses_near_condition.cpp)
+list(APPEND plugin_libs nova_are_poses_near_condition_bt_node)
 
 
 foreach(bt_plugin ${plugin_libs})
