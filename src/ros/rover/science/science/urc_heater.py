@@ -16,12 +16,12 @@ class URCHeater(ControllerNode):
     # SENDING CARD IDS
     # Add any CONTROL FRAME / CARD IDS here
     HEATER_CONTROL_SEND_FRAME = 0x0B0
-    HEATER_IR_SENSOR_READ_SEND_FRAME = 0x4B1
-    DIRT_IR_SENSOR_READ_FRAME = 0x4A1
+    HEATER_NTC_SENSOR_READ_SEND_FRAME = 0x4B1
+    DIRT_NTC_SENSOR_READ_FRAME = 0x4A1
 
     # ROS2 SERVICES
     HEATER_SERVICE = "/science/heater"
-    IR_TOPIC = "/science/IRSensors"
+    NTC_TOPIC = "/science/kiln_data"
 
     # CONTROL NAMES
     # Add any CONTROL names here
@@ -56,22 +56,22 @@ class URCHeater(ControllerNode):
         self.heater_sensor = IntegerSensor(
             bus=self.bus,
             logger=logger,
-            frame_id=self.HEATER_IR_SENSOR_READ_SEND_FRAME,
+            frame_id=self.HEATER_NTC_SENSOR_READ_SEND_FRAME,
             run_can=True,
         )
         self.dirt_sensor = IntegerSensor(
             bus=self.bus,
             logger=logger,
-            frame_id=self.DIRT_IR_SENSOR_READ_FRAME,
+            frame_id=self.DIRT_NTC_SENSOR_READ_FRAME,
             run_can=True,
         )
-        self.add_sensor("heater_IR_sensor", self.heater_sensor)
-        self.add_sensor("dirt_IR_sensor", self.dirt_sensor)
+        self.add_sensor("heater_NTC_sensor", self.heater_sensor)
+        self.add_sensor("dirt_NTC_sensor", self.dirt_sensor)
 
         # Create Services and Publishers
         self.create_service(KilnCommand, self.HEATER_SERVICE, self.toggle_callback)
 
-        self.IR_publisher = self.create_publisher(KilnData, self.IR_TOPIC, 10)
+        self.NTC_publisher = self.create_publisher(KilnData, self.NTC_TOPIC, 10)
         self.create_timer(0.5, self.publish_data)
 
         self.start_can()
@@ -86,14 +86,10 @@ class URCHeater(ControllerNode):
         else:
             self.heater_control.stop()
 
-    def convert_to_temp(self, ir_reading: int):
-        """ Convert the IR sensor readings from ADC to degrees celsius """
-        return int(ir_reading / 175)
-
     def publish_data(self):
         """ Publish the current readings from the sensors """
-        heater_data = self.convert_to_temp(self.heater_sensor.get_sensor_value())
-        dirt_data = self.convert_to_temp(self.dirt_sensor.get_sensor_value())
+        heater_data = self.heater_sensor.get_sensor_value()
+        dirt_data = self.dirt_sensor.get_sensor_value()
 
         msg = KilnData()
         msg.state = self.heater_control.is_on()
