@@ -15,32 +15,44 @@ teleop_arm_joy:
 #    description: "List Of Controllers that can be used with teleop"
 #    read_only: true
 
-  twist:
-    linear_max:
-      type: double
-      default_value: 0.2
-      description: "The maximum allowed value for the linear component of speed."
-    angular_max:
-      type: double
-      default_value: 0.2
-      description: "The maximum allowed value for the angular component of speed."
-    controllers:
-      type: string_array
-      default_value:
-        [
-          "nova_arm_position_controller",
-          "nova_twistmapper",
-        ]
-      description: "Controllers to activate/deactivate for twist ik control. Given in order of activation, where controllers dependent on other controllers should succeed them in the order of this list."
+  control_modes:
+    joint_space:
+      controllers:
+        type: string_array
+        default_value:
+          [
+            "nova_arm_velocity_controller",
+          ]
+        description: "Controllers to activate/deactivate for joint space control. Given in order of activation, where controllers dependent on other controllers should succeed them in the order of this list."
 
-  joint_space:
-    controllers:
-      type: string_array
-      default_value:
-        [
-          "nova_arm_velocity_controller",
-        ]
-      description: "Controllers to activate/deactivate for joint space control. Given in order of activation, where controllers dependent on other controllers should succeed them in the order of this list."
+    twist:
+      linear_max:
+        type: double
+        default_value: 0.2
+        description: "The maximum allowed value for the linear component of speed."
+      angular_max:
+        type: double
+        default_value: 0.2
+        description: "The maximum allowed value for the angular component of speed."
+      controllers:
+        type: string_array
+        default_value:
+          [
+            "nova_arm_position_controller",
+            "nova_twistmapper",
+          ]
+        description: "Controllers to activate/deactivate for twist ik control. Given in order of activation, where controllers dependent on other controllers should succeed them in the order of this list."
+
+    path_planner_ik:
+      controllers:
+        type: string_array
+        default_value:
+          [
+            "nova_arm_position_controller",
+            "nova_path_planner",
+          ]
+        description: "Controllers to activate/deactivate for path planning. Given in order of activation, where controllers dependent on other controllers should succeed them in the order of this list."
+
 
   device_names:
     type: string_array
