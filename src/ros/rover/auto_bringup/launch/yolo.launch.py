@@ -55,6 +55,7 @@ def launch_setup(context, *args, **kwargs):
         # yolo_ros nodes only run if using_oak is false
         # 3d mode is not supported for yolo_ros as the 3d yolo_ros code is copied into object_localiser anyway
         Node(
+            condition=UnlessCondition(using_oak), 
             package='yolo_ros',
             executable='yolo_node',
             name='yolo_ros_node',
@@ -62,9 +63,9 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{'model': yolo_model}, yolo_params],
             remappings=[('image_raw', rgb_image),
                         ('detections', detections)],
-            condition=UnlessCondition(using_oak)
         ),
         Node(
+            condition=IfCondition(use_debug), 
             package='yolo_ros',
             executable='debug_node',
             name='yolo_ros_debug_node',
@@ -73,7 +74,6 @@ def launch_setup(context, *args, **kwargs):
             remappings=[('image_raw', rgb_image), 
                         ('dbg_image', debug_image),
                         ('detections', detections)],
-            condition=IfCondition(AndSubstitution(use_debug, NotSubstitution(using_oak))),
         ),
         Node(
             package='nova_object_localisation',
