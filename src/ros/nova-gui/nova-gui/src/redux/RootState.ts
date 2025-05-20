@@ -25,6 +25,7 @@ import {
   IRosNovaInterfacesBmeSensor,
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
+  IRosNovaInterfacesCartographerCommandResponse,
 
 } from "../ros/rosTypes";
 
@@ -86,6 +87,7 @@ export interface RootState {
   roverLocationStore: IRosSensorMsgsNavSatFix;
   baseLocationStore: IRosSensorMsgsNavSatFix;
   cartographerState: CartographerState;
+  cartographerCommand: IRosNovaInterfacesCartographerCommandResponse;
 
   // Generic Stores
   currentSite: GenericStoreState<Site>;

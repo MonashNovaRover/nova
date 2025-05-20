@@ -41,6 +41,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
   const base = useSelector((state: RootState) => state.baseLocationStore)
 
   const serviceBifrost = useBifrost({service: RosService.CARTOGRAPHER_COMMAND});
+  const sendCartographerPoints = () => serviceBifrost.callServiceToRedux({poses: [], types: []});
 
   const { toggleRoverCentering, toggleRoverTracking } =
     useCartographerActions();

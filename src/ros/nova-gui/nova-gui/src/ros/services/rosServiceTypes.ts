@@ -21,6 +21,8 @@ import {
   IRosNovaInterfacesTakeNirProbeReadingResponse,
   IRosNovaInterfacesCacheCommandRequest,
   IRosNovaInterfacesCacheCommandResponse,
+  IRosNovaInterfacesCartographerCommandRequest,
+  IRosNovaInterfacesCartographerCommandResponse,
 
 } from "../rosTypes";
 import { RosService } from "./rosService";
@@ -117,7 +119,7 @@ export interface RosServiceInterface {
 
   // Autonomous Related
   [RosService.CARTOGRAPHER_COMMAND]: RosServiceMessage<
-      IRosStdSrvsSetBoolRequest,
-      IRosStdSrvsSetBoolResponse
+    IRosNovaInterfacesCartographerCommandRequest,
+    IRosNovaInterfacesCartographerCommandResponse
   >;
 }
