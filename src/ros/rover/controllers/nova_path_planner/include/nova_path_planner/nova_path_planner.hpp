@@ -128,13 +128,6 @@ protected:
   std::vector<double> get_state_pos_values();
 
   /**
-   * @brief Integrates to update path_planner_pose_ based on the current received_twist_stamped_ptr_ value
-   *
-   * This will NOT order the joints correctly for MoveIt2.
-   */
-  void update_path_planner_pose(const rclcpp::Time &time, const rclcpp::Duration &period);
-
-  /**
    * @brief Creates an rclcpp::Node to give to the kinematics_sovler_ plugin, as we can't give it an
    * rclcpp_lifecycle::LifecycleNode::SharedPtr (superclass of the controller).
    */
