@@ -149,7 +149,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
 
   return (
     <div className="flex flex-col gap-2.5 flex-grow">
-      ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {yToTheta(mousePoint[1]).toFixed(2)} deg  {props.angles[0]}, {props.angles[1]}
+      ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {yToTheta(mousePoint[1]).toFixed(2)} deg
     <AutosizedGLCanvas
       gl={gl}
       className="rounded p-3 flex-grow"
