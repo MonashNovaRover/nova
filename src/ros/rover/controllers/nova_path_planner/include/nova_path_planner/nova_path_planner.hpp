@@ -216,6 +216,12 @@ protected:
 
   void execute_action(const std::shared_ptr<GoalHandleArmPlanPath> goal_handle);
 
+  /**
+   * @brief gets a lock on the path_mutex_, then sets the path_ptr_ to nullptr. Also resets is_path_being_executed_.
+   * Used when exiting the action early.
+   */
+  void clear_path_ptr();
+
   static Vector3d lerp(const Vector3d& a, const Vector3d& b, const double &t);
   static Vector3d lerp2(const Vector3d& a, const Vector3d& b, const Vector3d& c, const double &t);
   static Vector3d lerp3(const Vector3d& a, const Vector3d& b, const Vector3d& c, const Vector3d& d, const double &t);
@@ -235,8 +241,9 @@ protected:
 
   // Path input
   rclcpp_action::Server<nova_interfaces::action::ArmPlanPath>::SharedPtr action_server_;
-  realtime_tools::RealtimeBox<std::shared_ptr<std::queue<std::vector<tf2::Transform>>>> path_{nullptr};
-  bool is_path_being_executed_ = false;
+  realtime_tools::RealtimeBox<std::shared_ptr<std::queue<std::vector<double>>>> path_ptr_{nullptr};
+  std::mutex path_mutex_;
+  std::atomic<bool> is_path_being_executed_{false};
 
   /// Result of the path_planner, and input to IK. Desired position and orientation of the end effector relative to the base.
   tf2::Transform path_planner_pose_ = tf2::Transform();
@@ -280,6 +287,7 @@ protected:
 
   // publish rate limiter
   bool is_halted = false;
+
 };
 } // namespace nova_path_planner
 #endif // NOVA_PATH_PLANNER__NOVA_PATH_PLANNER_HPP_
