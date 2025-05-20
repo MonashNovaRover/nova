@@ -89,34 +89,6 @@ namespace nova_path_planner
     return {interface_configuration_type::INDIVIDUAL, conf_names};
   }
 
-  void NovaPathPlanner::update_path_planner_pose(const rclcpp::Time &time, const rclcpp::Duration &period) {
-    std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
-
-    if (twist_stamped == nullptr) {
-      RCLCPP_WARN(get_node()->get_logger(), "Haven't yet received a TwistStamped message to use for the path_planner.");
-      return;
-    }
-
-    const auto& twist = twist_stamped->twist;
-
-    tf2::Vector3 tf2_twist_angular;
-    tf2::fromMsg(twist.angular, tf2_twist_angular);
-
-    // Create rotation matrix from twist.angular as XYZ euler
-    auto rotation_matrix = tf2::Matrix3x3();
-
-    const auto linear = tf2::Vector3(
-      twist.linear.x * period.seconds(),
-      twist.linear.y * period.seconds(),
-      twist.linear.z * period.seconds());
-
-    // TODO: Test this actually works as expected.
-    // TODO: Add a tf buffer and make use of the header.frame_id from the twist_stamped to allow IK to be done relative to anything. Then Teleop would just need to use the end effector frame by default
-    // TODO: If using tf like this, also have the path_planner broadcast the target frame, so it can reference itself.
-    path_planner_pose_.setOrigin(linear + path_planner_pose_.getOrigin());
-    path_planner_pose_.setBasis(rotation_matrix);
-  }
-
   controller_interface::return_type NovaPathPlanner::update(const rclcpp::Time &time, const rclcpp::Duration &period)
   {
     auto logger = get_node()->get_logger();
@@ -131,39 +103,22 @@ namespace nova_path_planner
       return controller_interface::return_type::OK;
     }
 
-    auto old_pose = path_planner_pose_;
 
-    // Get a new pose
-    update_path_planner_pose(time, period);
-    publish_to_tf2(time);
+    std::shared_ptr<std::queue<std::vector<double>>> path;
+    path_ptr_.get(path);
 
-    // Do IK to find the joint values for that pose
-    std::vector<double> joint_state_values = get_state_pos_values();
-    std::vector<double> solution;
-    geometry_msgs::msg::Pose pose = tf2::toMsg(tf2::transformToEigen(tf2::toMsg(path_planner_pose_)));
-    moveit_msgs::msg::MoveItErrorCodes error_codes;
-
-    //auto result = kinematics_solver_->getPositionIK(pose, joint_state_values, solution, error_codes);
-    auto result = kinematics_solver_->searchPositionIK(pose, joint_state_values, params_.kinematics_solver_timeout, solution, error_codes);
-    if (!result) {
-      path_planner_pose_ = old_pose;
-      RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 500,
-                           "Failed to find solution to inverse kinematics: error code %d (\"%s\"). %s", error_codes.val,
-                           moveit::core::errorCodeToString(error_codes).c_str(), error_codes.message.c_str());
-
+    if (!path || path->empty()) {
       return controller_interface::return_type::OK;
     }
 
-    if (check_path_for_self_intersection(joint_state_values, solution)) {
-      path_planner_pose_ = old_pose;
-      RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 500, "Inverse Kinematics solution self intersects!");
-      return controller_interface::return_type::OK;
-    }
+
+    const auto& command = path->front();
 
     // Apply solution to command interfaces
-    for (size_t i = 0; i < solution.size(); i++) {
-      registered_joint_handles_[i].command.get().set_value(solution[i]);
+    for (size_t i = 0; i < command.size(); i++) {
+      registered_joint_handles_[i].command.get().set_value(command[i]);
     }
+    path->pop();
 
     return controller_interface::return_type::OK;
   }
