@@ -97,14 +97,17 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   // Allow for grabbing angles
   const onShiftClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!event.shiftKey) {
+      if (!event.ctrlKey) {
+        return
+      }
+      // low angle on ctrl click
+      props.setAngles([props.angles[0], yToTheta(mousePoint[1])]);
       return
     }
-      // high angle
-      props.setAngles([yToTheta(mousePoint[1]), props.angles[1]]);
+      // high angle on shift click
+      props.setAngles([yToTheta(mousePoint[1]), props.angles[0]]);
 
     //window.addEventListener('keyup', (e) => {  });
-      // low angle
-      props.setAngles([props.angles[0],yToTheta(mousePoint[1])]);
 
   }, [fov, gl.canvasRef]);
 

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {useGenericStore} from "../../hooks/useGenericStore.ts";
 import {Input} from "@nextui-org/react";
 
@@ -27,7 +27,7 @@ export interface heightCalc360CamProps {
     }, [inputThetaHigh, inputThetaLow])
 
   // set input text boxes when angles are updated from canvas
-    useEffect(() => {
+    useCallback(() => {
       //setInputThetaHigh(String(props.angles[0]));
       //setInputThetaLow(String(props.angles[1]));
     }, [props.angles])
