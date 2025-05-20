@@ -46,7 +46,6 @@
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-utils ? throw "nova-utils is needed, but not available!"
 , nova-arm-controller ? throw "nova-arm-controller is needed, but not available!"
-, nova-ik-controller ? throw "nova-ik-controller is needed, but not available!"
 , nova-twistmapper ? throw "nova-twistmapper is needed, but not available!"
 , nova-path-planner ? throw "nova-path-planner is needed, but not available!"
 , nova-banksia-kinematics-plugin ? throw "nova-banksia-kinematics-plugin is needed, but not available!"
@@ -97,7 +96,6 @@
       nova-excavation-construction
       nova-utils
       nova-arm-controller
-      nova-ik-controller
       nova-twistmapper
       nova-path-planner
       nova-banksia-kinematics-plugin
