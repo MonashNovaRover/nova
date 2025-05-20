@@ -216,6 +216,16 @@ protected:
 
   void execute_action(const std::shared_ptr<GoalHandleArmPlanPath> goal_handle);
 
+  bool try_get_pose_from_forward_kinematics(const std::vector<double> &joint_positions,
+                                            Eigen::Isometry3d &result);
+
+  /**
+   * @brief To be used only in the action server thread. Generates points for the path, and stores the result in
+   * path_ptr_.
+   */
+  bool generate_path(Eigen::Isometry3d &start, Eigen::Isometry3d &end,
+                     std::vector<double> &last_joint_pose, double execution_time);
+
   /**
    * @brief gets a lock on the path_mutex_, then sets the path_ptr_ to nullptr. Also resets is_path_being_executed_.
    * Used when exiting the action early.
