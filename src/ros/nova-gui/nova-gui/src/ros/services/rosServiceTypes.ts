@@ -114,4 +114,10 @@ export interface RosServiceInterface {
       IRosStdSrvsSetBoolRequest,
       IRosStdSrvsSetBoolResponse
   >;
+
+  // Autonomous Related
+  [RosService.CARTOGRAPHER_COMMAND]: RosServiceMessage<
+      IRosStdSrvsSetBoolRequest,
+      IRosStdSrvsSetBoolResponse
+  >;
 }

@@ -28,4 +28,7 @@ export const rosServiceMessages = {
   [RosService.CACHE_1]: "nova_interfaces/srv/CacheCommand",
   [RosService.CACHE_2]: "nova_interfaces/srv/CacheCommand",
   [RosService.HEATER]: "std_srvs/srv/SetBool",
+
+  // Autonomous Related
+  [RosService.CARTOGRAPHER_COMMAND]: "nova_interfaces/srv/CartographerCommand",
 };

@@ -31,4 +31,7 @@ export enum RosService {
   CACHE_1 = "/science/cache_command_1",
   CACHE_2 = "/science/cache_command_2",
   HEATER = "/science/heater",
+
+  // Autononomous Related
+  CARTOGRAPHER_COMMAND = "/autonomous/cartographer_command",
 }

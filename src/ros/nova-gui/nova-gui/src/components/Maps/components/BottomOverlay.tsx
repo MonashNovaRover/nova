@@ -23,6 +23,8 @@ import { ToolTipButton } from "../../shared/TooltipButton";
 import { useCartographerActions } from "../../../redux/actions/useCartographerActions";
 import { MapTile } from "../config.tsx";
 import { MapPoint } from "../../../redux/models/CartographerState.ts";
+import { RosService } from "../../../ros/services/rosService.ts";
+import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 
 interface BottomOverlayProps {
   mapTile: MapTile;
@@ -37,6 +39,8 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
   );
   const rover = useSelector((state: RootState) => state.roverLocationStore)
   const base = useSelector((state: RootState) => state.baseLocationStore)
+
+  const serviceBifrost = useBifrost({service: RosService.CARTOGRAPHER_COMMAND});
 
   const { toggleRoverCentering, toggleRoverTracking } =
     useCartographerActions();
@@ -164,7 +168,15 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                      }}
                      placeholder={"##.#### %"}>
                   </CopyableInput>
-
+                <Button
+                  variant="shadow"
+                  className="mt-2"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      `./bt-navigator/bin/ros2 action send_goal /urc_navigator nova_auto_interfaces/action/NavigateURC "{gps_poses: [{${points.map(point => `position: {latitude: ${point.lat.toString()}, longitude: ${point.long.toString()}}`)}}], behavior_tree: '$HOME/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/urc/urc_through_poses_search.xml'}"`
+                    );
+                  }}
+                  >Call Service</Button>
                 </motion.div>
               </motion.div>
             </CardBody>

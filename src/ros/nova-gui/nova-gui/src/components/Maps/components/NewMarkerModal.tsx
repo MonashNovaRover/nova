@@ -32,9 +32,10 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
   const [goalType, setGoalType] = useState<number>(0);
 
   const goalTypes = [
-    { key: 0, label: "Nothing" },
+    { key: 0, label: "GNSS" },
     { key: 1, label: "AR Tag" },
     { key: 2, label: "Object" },
+    { key: 3, label: "Via Point" },
   ]
 
   const points = useSelector(
