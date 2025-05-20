@@ -215,6 +215,9 @@ void TeleopArmJoy::setControlMode(const ControlMode new_control_mode) {
   else if (new_control_mode == ControlMode::IK) {
     RCLCPP_INFO(get_logger(), "Switched to IK control.");
   }
+  else if (new_control_mode == ControlMode::PathPlanner) {
+    RCLCPP_INFO(get_logger(), "Switched to Path Planner control.");
+  }
 }
 
 void TeleopArmJoy::sendArmCommand()
@@ -226,6 +229,9 @@ void TeleopArmJoy::sendArmCommand()
     sendJointSpaceCommand();
   }
   else if (control_mode == ControlMode::IK) {
+    sendTwistCommand();
+  }
+  else if (control_mode == ControlMode::PathPlanner) {
     sendTwistCommand();
   }
 }
@@ -274,13 +280,13 @@ void TeleopArmJoy::sendTwistCommand() {
 
   msg->header.stamp = this->now();
 
-  const auto linear_speed = speed * params_.twist.linear_max;
+  const auto linear_speed = speed * params_.control_modes.twist.linear_max;
   auto linear = geometry_msgs::msg::Vector3();
   linear.x = axes["twist_x"]->value() * linear_speed;
   linear.y = axes["twist_y"]->value() * linear_speed;
   linear.z = axes["twist_z"]->value() * linear_speed;
 
-  const auto angular_speed = speed * params_.twist.angular_max;
+  const auto angular_speed = speed * params_.control_modes.twist.angular_max;
   auto angular = geometry_msgs::msg::Vector3();
   angular.x = axes["twist_roll" ]->value() * angular_speed;
   angular.y = axes["twist_pitch"]->value() * angular_speed;
@@ -333,9 +339,11 @@ std::vector<std::string> TeleopArmJoy::modeToControllers(const ControlMode mode)
   switch (mode)
   {
     case ControlMode::FK:
-      return params_.joint_space.controllers;
+      return params_.control_modes.joint_space.controllers;
     case ControlMode::IK:
-      return params_.twist.controllers;
+      return params_.control_modes.twist.controllers;
+    case ControlMode::PathPlanner:
+      return params_.control_modes.path_planner_ik.controllers;
     default:
       RCLCPP_WARN(get_logger(), "Unknown control type given to modeToControllers. Returning no controllers.");
       return {};
@@ -381,7 +389,7 @@ bool TeleopArmJoy::setTypingState()
   if (!typing_active)
   {
   	// TODO: error checking!! right now this assumes that the control mode switch always goes through
-  	setControlMode(ControlMode::IK);
+  	setControlMode(ControlMode::PathPlanner);
   }
 
   typing_active = !typing_active;

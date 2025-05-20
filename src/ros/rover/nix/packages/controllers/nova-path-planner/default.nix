@@ -19,6 +19,7 @@
 , moveit-core
 , moveit-ros-planning
 , moveit-ros-planning-interface
+, nova-interfaces
 }:
 
 buildRosPackage {
@@ -51,6 +52,7 @@ buildRosPackage {
     moveit-core
     moveit-ros-planning
     moveit-ros-planning-interface
+    nova-interfaces
   ];
 }
 
