@@ -36,6 +36,7 @@ from coms_utils.can_interface import CANTransceiver
 from math import pi
 from struct import calcsize
 import time
+import can
 
 
 class Joint:
@@ -120,6 +121,8 @@ class ResolverTransceiver(CANTransceiver):
         self.zero_transceiver.set_log_level("critical")
         self.zero_transceiver.logger = logger
 
+        self.notifier = can.Notifier(self.bus, [self.process_incoming_message])
+
     def enable_auto_mode(self):
         """ Sends a CAN message to enable automatic resolver updates. """
         self.logger.info("Enabling automatic resolver mode (sending 0x0A2)...")
@@ -128,10 +131,8 @@ class ResolverTransceiver(CANTransceiver):
             self.logger.error("Failed to send auto mode enable command!")
 
     def check_for_messages(self):
-        """ Checks for new CAN messages and processes them. """
-        can_msg = self.receive()
-        if can_msg:
-            self.process_incoming_message(can_msg)
+        """ Unused, we don't poll because that's slow. """
+        return
 
     def process_incoming_message(self, can_msg):
         """ Processes incoming CAN messages and stores resolver readings. """
