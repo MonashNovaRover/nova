@@ -23,8 +23,7 @@ import { ToolTipButton } from "../../shared/TooltipButton";
 import { useCartographerActions } from "../../../redux/actions/useCartographerActions";
 import { MapTile } from "../config.tsx";
 import { MapPoint } from "../../../redux/models/CartographerState.ts";
-import { RosService } from "../../../ros/services/rosService.ts";
-import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
+import { CartographerGoalModal } from "./CartographerGoalModal.tsx";
 
 interface BottomOverlayProps {
   mapTile: MapTile;
@@ -34,14 +33,12 @@ interface BottomOverlayProps {
 
 export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint}) => {
   const [overlayOpen, setOverlayOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const { points, centerOnRover, trackRover } = useSelector(
     (state: RootState) => state.cartographerState
   );
   const rover = useSelector((state: RootState) => state.roverLocationStore)
   const base = useSelector((state: RootState) => state.baseLocationStore)
-
-  const serviceBifrost = useBifrost({service: RosService.CARTOGRAPHER_COMMAND});
-  const sendCartographerPoints = () => serviceBifrost.callServiceToRedux({poses: [], types: []});
 
   const { toggleRoverCentering, toggleRoverTracking } =
     useCartographerActions();
@@ -90,6 +87,13 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
               </SelectItem>
             ))}
             </Select>
+            <Button
+              variant="shadow"
+              fullWidth
+              onClick={() => setModalOpen(true)}
+            >
+              Publish Goals
+            </Button>
             <Button
               variant="shadow"
               color={trackRover ? "primary" : "default"}
@@ -169,21 +173,17 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                      }}
                      placeholder={"##.#### %"}>
                   </CopyableInput>
-                <Button
-                  variant="shadow"
-                  className="mt-2"
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      `./bt-navigator/bin/ros2 action send_goal /urc_navigator nova_auto_interfaces/action/NavigateURC "{gps_poses: [{${points.map(point => `position: {latitude: ${point.lat.toString()}, longitude: ${point.long.toString()}}`)}}], behavior_tree: '$HOME/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/urc/urc_through_poses_search.xml'}"`
-                    );
-                  }}
-                  >Call Service</Button>
                 </motion.div>
               </motion.div>
             </CardBody>
           )}
         </AnimatePresence>
       </Card>
+      <CartographerGoalModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        points={points}
+      />
     </motion.div>
   );
 };
