@@ -16,8 +16,8 @@ export interface heightCalc360CamProps {
 
 // Calculate height of landmark
     useEffect(() => {
-    const radThetaHigh = props.angles[0] * Math.PI / 180;
-    const radThetaLow = props.angles[1] * Math.PI / 180;
+    const radThetaHigh = Number(inputThetaHigh) * Math.PI / 180;
+    const radThetaLow = Number(inputThetaLow) * Math.PI / 180;
     (setLandmarkHeight(Number(inputDistance) * (Math.tan(radThetaHigh) - Math.tan(radThetaLow))));
   }, [setLandmarkHeight, inputDistance, inputThetaHigh, inputThetaLow]);
 
