@@ -103,7 +103,6 @@ namespace nova_path_planner
       return controller_interface::return_type::OK;
     }
 
-
     std::shared_ptr<std::queue<std::vector<double>>> path;
     path_ptr_.get(path);
 
@@ -111,14 +110,13 @@ namespace nova_path_planner
       return controller_interface::return_type::OK;
     }
 
-
     const auto& command = path->front();
+    path->pop();
 
     // Apply solution to command interfaces
     for (size_t i = 0; i < command.size(); i++) {
       registered_joint_handles_[i].command.get().set_value(command[i]);
     }
-    path->pop();
 
     return controller_interface::return_type::OK;
   }
@@ -723,6 +721,7 @@ namespace nova_path_planner
     RCLCPP_INFO(logger, "Executing goal");
     const auto goal = goal_handle->get_goal();
     auto result = std::make_shared<ArmPlanPath::Result>();
+    auto feedback = std::make_shared<ArmPlanPath::Feedback>();
 
     // Set up for path planning
     auto last_joint_pose = get_state_pos_values();
@@ -739,7 +738,13 @@ namespace nova_path_planner
     Eigen::Isometry3d end;
     Eigen::fromMsg(goal->pose, end);
 
-    double execution_time = 1.0;
+    // Provide feedback
+    feedback->traversing_path = false;
+    feedback->path_generation_progress = 0.0;
+    goal_handle->publish_feedback(feedback);
+
+    // Plan the path
+    double execution_time = goal->duration;
     auto path_generation_result = generate_path(start, end, last_joint_pose, execution_time);
 
     // Handle path generation failure
@@ -749,6 +754,11 @@ namespace nova_path_planner
       goal_handle->succeed(result);
       return;
     }
+
+    // Provide feedback
+    feedback->traversing_path = true;
+    feedback->path_generation_progress = 1.0;
+    goal_handle->publish_feedback(feedback);
 
     // Wait for the path to be executed
     bool executing_path = true;  // Becomes false when the queue in path_ptr_ becomes empty

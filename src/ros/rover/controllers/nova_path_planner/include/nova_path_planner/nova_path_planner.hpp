@@ -8,20 +8,18 @@ A ros2_control controller for Banksia's robotic
   target end effector poses
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CONTROLLER: nova_path_planner/NovaPathPlanner
-SUBSCRIPTIONS:
-  -
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:  nova_path_planner
 AUTHOR:   Bailey Chessum
 CREATION: 18/05/2025
-EDITED:	  18/05/2025
+EDITED:	  20/05/2025
 EDITED BY:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
- - Remove RPY rotation
- - Apply twist relative to the header.frame_id
-   reference frame, with the endeffector as
-   default
+ - Add proper feedback to the action
+ - Potentially support moveit2 PlannerManagers
+ - Potentially suport paths with multiple points
+ - Test
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
