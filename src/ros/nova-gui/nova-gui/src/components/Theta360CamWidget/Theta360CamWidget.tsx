@@ -100,7 +100,7 @@ const Theta360CamWidget: React.FC = () => {
   );
 
   const panorama = (
-    <Panorama360CamCanvas image={image}>
+    <Panorama360CamCanvas image={image} angles={angles} setAngles={setAngles}>
       {canvasChildren}
     </Panorama360CamCanvas>
   );

@@ -24,6 +24,8 @@ import {useGenericStore} from "../../hooks/useGenericStore.ts";
 export interface WebGL360CamProps {
   image?: HTMLImageElement,
   children?: React.ReactNode
+  angles: number[],
+  setAngles: React.Dispatch<React.SetStateAction<number[]>>
 }
 
 const enableScroll = () => {
@@ -136,6 +138,21 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
 
   }, [gl.canvasRef]);
 
+  // Allow for grabbing angles
+  const onClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!event.shiftKey) {
+      if (!event.ctrlKey) {
+        return
+      }
+      // low angle on ctrl click
+      props.setAngles([props.angles[0], yToTheta(mousePoint[1])]);
+      return
+    }
+    // high angle on shift click
+    props.setAngles([yToTheta(mousePoint[1]), props.angles[1]]);
+
+  }, [props]);
+
   const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
   // Function that converts y values from 0 to 1 into an angle relative to the midpoint of the image
   const yToTheta = useCallback((v: number) => 360* widthHeight[1]/widthHeight[0] * (-v + 0.5) , [widthHeight]);
@@ -182,6 +199,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
         gl={gl}
         className="rounded p-3 flex-grow"
         onMouseMove={onMouseMove}
+        onMouseDown={onClick}
         onMouseEnter={disableScroll}
         onMouseLeave={enableScroll}
       >
