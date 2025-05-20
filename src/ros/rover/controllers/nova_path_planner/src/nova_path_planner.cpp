@@ -766,13 +766,11 @@ namespace nova_path_planner
   void NovaPathPlanner::execute_action(const std::shared_ptr<GoalHandleArmPlanPath> goal_handle) {
     auto logger = get_node()->get_logger();
     RCLCPP_INFO(logger, "Executing goal");
-    rclcpp::Rate loop_rate(1);
     const auto goal = goal_handle->get_goal();
     auto result = std::make_shared<ArmPlanPath::Result>();
 
     // Set up for path planning
     Eigen::Isometry3d start; // Get current pose
-
 
     Eigen::Isometry3d end;
     Eigen::fromMsg(goal->pose, end);
@@ -782,13 +780,13 @@ namespace nova_path_planner
     const Eigen::Isometry3d handle1 = end;
 
     double execution_time = 1.0;
-    double frequency = 20.0;
+    double frequency = get_update_rate();
 
     // Calculate number of points
     int pose_count_minus_one = static_cast<int>(std::floor(execution_time / frequency));
     int pose_count = pose_count_minus_one + 1;
 
-    std::queue<std::vector<double>> path;
+    auto path = std::make_shared<std::queue<std::vector<double>>>();
 
     // Plan the path
     // This should be a loop that frequently releases to the scheduler
@@ -825,32 +823,60 @@ namespace nova_path_planner
       }
 
       last_joint_pose = solution;
-      path.push(solution);
+      path->push(solution);
 
-      loop_rate.sleep();
+      // TODO: Verify this actually permits other threads
+      std::this_thread::yield();
     }
 
     // Give to the realtime thread to be executed physically by the control loop
-
+    { // mutex owning block
+      std::unique_lock<std::mutex> lock(path_mutex_);
+      path_ptr_.set(path);
+    } // Release mutex
 
     // Wait for the path to be executed
+    rclcpp::Rate wait_loop_rate(10);
+    bool executing_path = true;  // Becomes false when the queue in path_ptr_ becomes empty
 
-    if (goal_handle->is_canceling()) {
-      is_path_being_executed_ = false;
-      goal_handle->canceled(result);
-      RCLCPP_INFO(logger, "Goal canceled");
-      return;
+    while (executing_path) {
+      if (goal_handle->is_canceling()) {
+        clear_path_ptr();
+        goal_handle->canceled(result);
+        RCLCPP_INFO(logger, "Goal canceled");
+        return;
+      }
+
+      // TODO: check this is actually what we want to do in this case. Functionally equivalent to example action server.
+      if (!rclcpp::ok()) {
+        clear_path_ptr();
+        return;
+      }
+
+      { // mutex owning block
+        std::unique_lock<std::mutex> lock(path_mutex_);
+
+        std::shared_ptr<std::queue<std::vector<double>>> current_path;
+        path_ptr_.get(current_path);
+
+        executing_path = current_path && !current_path->empty();
+      } // Release mutex
+
+      // TODO: Verify this actually permits other threads
+      std::this_thread::yield();
     }
 
-    // TODO: check this is actually what we want to do in this case. Functionally equivalent to example action server.
-    if (!rclcpp::ok()) {
-      is_path_being_executed_ = false;
-      return;
-    }
-
-    is_path_being_executed_ = false;
+    clear_path_ptr();
     goal_handle->succeed(result);
     RCLCPP_INFO(logger, "Goal succeeded");
+  }
+
+  void NovaPathPlanner::clear_path_ptr() {
+    {
+      std::unique_lock<std::mutex> lock(path_mutex_);
+      path_ptr_.set(nullptr);
+    }
+    is_path_being_executed_ = false;
   }
 
   inline Eigen::Vector3d NovaPathPlanner::lerp(const Vector3d& a, const Vector3d& b, const double &t) {
