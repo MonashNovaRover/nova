@@ -110,7 +110,7 @@ namespace nova_path_planner
       return controller_interface::return_type::OK;
     }
 
-    const auto& command = path->front();
+    const auto command = path->front();
     path->pop();
 
     // Apply solution to command interfaces
