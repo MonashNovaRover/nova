@@ -14,7 +14,7 @@ CREATION:	15/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch.conditions import IfCondition, UnlessCondition
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction, ExecuteProcess, LogInfo
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -36,7 +36,7 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         GroupAction(
-            condition=IfCondition(arm),
+            condition=IfCondition(PythonExpression([arm, " or ", old_arm])),
             actions=[
                 Node(
                     package='controller_manager',
@@ -46,29 +46,9 @@ def launch_setup(context, *args, **kwargs):
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['nova_arm_position_controller', '--inactive']
-                ),
-                Node(
-                    package='controller_manager',
-                    executable='spawner',
-                    arguments=['nova_twistmapper', '--inactive'],
+                    arguments=['nova_arm_position_controller', 'nova_twistmapper', '--inactive'],
                 ),
             ]
-        ),
-        Node(
-            package='controller_manager',
-            executable='spawner',
-            arguments=['pivot_drive_controller', '--switch-timeout', '10', '--ros-args', '--log-level', log_level] #, '--inactive']
-        ),
-        Node(
-            package='controller_manager',
-            executable='spawner',
-            arguments=['strafe_controller', '--inactive']
-        ),
-        Node(
-            package='controller_manager',
-            executable='spawner',
-            arguments=['nova_diff_drive_controller', '--inactive']
         ),
         GroupAction(
             condition=UnlessCondition(gazebo),
@@ -119,7 +99,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='arm',
-            default_value='false',
+            default_value='False',
             description='whether to launch arm',
         ),
         DeclareLaunchArgument(
@@ -129,18 +109,13 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='use_mock_hardware',
-            default_value='false',
+            default_value='False',
             description='whether to use mock hardware for hardware interfaces',
         ),
         DeclareLaunchArgument(
             name='arm',
-            default_value='true',
+            default_value='True',
             description='whether to launch arm',
-        ),
-        DeclareLaunchArgument(
-            name='old_arm',
-            default_value='false',
-            description='whether to launch old arm',
         ),
     ]
 
