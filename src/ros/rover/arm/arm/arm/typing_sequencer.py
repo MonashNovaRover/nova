@@ -19,6 +19,7 @@ CREATION:	9/05/2024
 EDITED:     9/05/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
+ - Add stop functionality to sequencer
  - Integrate Path Planner and Controller Switcher properly
  - Add error handling
  - Test!
@@ -29,6 +30,7 @@ TODO:
 import time
 
 import rclpy
+from rclpy.action import ActionClient
 from rclpy.node import Node
 from tf2_ros import Buffer, TransformListener
 from std_srvs.srv import Trigger
@@ -36,13 +38,13 @@ from geometry_msgs.msg import Transform
 
 import tf2_geometry_msgs
 
-from arm_interfaces.action import TypeSequence, PathTo
-from arm_interfaces.srv import KeyPosition
+# from arm_interfaces.action import PathTo
+from arm_interfaces.srv import KeyPosition, TypeSequence
 
 TYPING_SEQUENCER_START = "/type_sequence/start"
 TYPING_SEQUENCER_STOP = "/type_sequence/stop"
-CONTROLLER_SWITCH_SERVICE = "/teleop_arm_joy/toggle_typing"
-KEY_POSITION_SERVICE = "/pub_key_position"
+CONTROLLER_SWITCH_SERVICE = "/controller_manager/switch_controller"
+KEY_POSITION_SERVICE = "/arm/keyboard/pub_key_position"
 PATH_PLANNER_ACTION = "/move_to_pos"
 POKEY_THING_ACTION = "/poke"
 
@@ -50,7 +52,10 @@ class TypingSequencer(Node):
 
     def __init__(self):
         super().__init__('typing_sequencer')
-        self.sequencer_server = self.create_service(TypeSequence, TYPING_SEQUENCER_ACTION, self.execute_sequencer)
+        self.sequencer_start_server = self.create_service(TypeSequence, TYPING_SEQUENCER_START, self.execute_sequencer)
+        self.sequencer_stop_server = self.create_service(Trigger, TYPING_SEQUENCER_STOP, self.stop_sequencer)
+
+        self.is_stopped = False
 
         # Parameters
         self.keyboard_frame = self.declare_parameter('keyboard_frame', 'keyboard_frame').get_parameter_value().string_value
@@ -65,29 +70,33 @@ class TypingSequencer(Node):
         self.tf_poll_rate = self.declare_parameter('poll_rate', 10.0).get_parameter_value().double_value  # check frequency in Hz
 
         # Controller switcher service client
-        self.cswitcher_client = self.create_client(Trigger, CONTROLLER_SWITCH_SERVICE)
-        while not self.cswitcher_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info(f'{CONTROLLER_SWITCH_SERVICE} service not available, waiting again...')
+        # TODO: Uncomment once integrated
+        # self.cswitcher_client = self.create_client(Trigger, CONTROLLER_SWITCH_SERVICE)
+        # while not self.cswitcher_client.wait_for_service(timeout_sec=1.0):
+        #     self.get_logger().info(f'{CONTROLLER_SWITCH_SERVICE} service not available, waiting again...')
 
         # Key localiser service client
         self.kblocaliser_client = self.create_client(KeyPosition, KEY_POSITION_SERVICE)
-        while not self.kb_localiser_client.wait_for_service(timeout_sec=1.0):
+        while not self.kblocaliser_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info(f'{KEY_POSITION_SERVICE} service not available, waiting again...')
 
         # Path planner action client
-        self.pplanner_client = ActionClient(self, PathTo, PATH_PLANNER_ACTION)
+        # TODO: Uncomment once integrated
+        # self.pplanner_client = ActionClient(self, PathTo, PATH_PLANNER_ACTION)
         
         # Pokey Thing action client
-        self.pokey_client = ActionClient(self, Trigger, POKEY_THING_ACTION)
+        # TODO: Uncomment once integrated
+        # self.pokey_client = ActionClient(self, Trigger, POKEY_THING_ACTION)
+        self.get_logger().info(f'Sequencer initalised!')
 
     def send_switch_request(self):
-        request = Trigger.request()
+        request = Trigger.Request()
         future = self.cswitcher_client.call_async(request)
         rclpy.spin_until_future_complete(self, future)
         return future.result()
 
     def send_key_request(self, key, stamp):
-        request = KeyPosition.request()
+        request = KeyPosition.Request()
         request.key = key
         request.stamp = stamp
         future = self.kblocaliser_client.call_async(request)
@@ -136,25 +145,43 @@ class TypingSequencer(Node):
         feedback = feedback_msg.feedback
         self.get_logger().info('Recieved feedback: {0}'.format(feedback.status))
 
+    def get_transform_now_from_base_frame(self, target_frame, stamp=None) -> Transform | None:
+        self.get_logger().info(f'Getting transform of frame: {target_frame}')
+        if stamp is None:
+            stamp = self.get_clock().now() 
+        start_time = self.get_clock().now()
+        while self.get_clock().now() - start_time < rclpy.duration.Duration(seconds=self.timeout):
+            if self.tf_buffer.can_transform(target_frame, self.base_frame, stamp):
+                transform = self.tf_buffer.lookup_transform(target_frame, self.base_frame, stamp)
+                return transform
+            time.sleep(1.0/self.poll_rate)
+        else:
+            self.get_logger().warn(f'Transform of {target_frame} not available after waiting {self.timeout} seconds')
+        return None
 
     def execute_sequencer(self, request, response):
-        self.get_logger().info('Beginning sequencer...')
+        self.is_stopped = False
         key_sequence = request.sequence
+        self.get_logger().info(f'Beginning sequencer with the following sequence: {key_sequence}')
 
-        feedback_msg = TypeSequence.Feedback()
-        feedback_msg.partial_sequence = []
+        partial_sequence = []
 
         # Get position of EE in base link frame (Assumes operators have aligned keyboard with camera)
-        ee_transform = self.tf_buffer.lookup_transform(self.ee_frame, self.base_frame, stamp)
+        # ee_transform = self.get_transform_now_from_base_frame(self.ee_frame)
+        # if ee_transform is None:
+        #     response.success = False
+        #     return response
 
         # Call controller switcher and switch to "Auto typing mode" (IK only mode)
-        switch_result = self.send_switch_request()
-        if not switch_result.success:
-            self.get_logger().error(f'Switching Error: {switch_result.message}')
-            return
+        # TODO: Integrate the switcher
+        # switch_result = self.send_switch_request()
+        # if not switch_result.success:
+        #     self.get_logger().error(f'Switching Error: {switch_result.message}')
+        #     return
         
         # Loop through the keys in the sequence
         for key in key_sequence:
+            self.get_logger().info(f'Performing sequence for key: {key}')
             # Get Key transform to be published on /tf by calling keyboard localiser
             stamp = self.get_clock().now().to_msg()
             key_result = self.send_key_request(key, stamp)
@@ -163,46 +190,46 @@ class TypingSequencer(Node):
                 response.success = False
                 return response
             
-            # Wait for transform
+            # Get key transform
             key_frame = key + "_" + self.keyboard_frame
-            start_time = self.get_clock().now()
-            key_transform : Transform
-            while self.get_clock().now() - start_time < rclpy.duration.Duration(seconds=self.timeout):
-                if self.tf_buffer.can_transform(key_frame, self.base_frame, stamp):
-                    key_transform = self.tf_buffer.lookup_transform(key_frame, self.base_frame, stamp)
-                    break
-                time.sleep(1.0/self.poll_rate)
-            else:
-                self.get_logger().warn('Transform not available after waiting {:.1f} seconds'.format(self.timeout))
+            self.get_logger().info(f'Get key: {key}')
+            key_transform = self.get_transform_now_from_base_frame(key_frame, stamp)
+            if key_transform is None:
                 response.success = False
                 return response
             
+            # TODO: Integrate and test this section
+
             # Start action to move to key via path planner
             # TODO: Add error handling
-            self.path_to_tf(key_transform)
+            # self.path_to_tf(key_transform)
 
             # Activate pokey thing
             # TODO: Add error handling
-            self.do_poke()
+            # self.do_poke()
+
+            # TODO: Publish feedback to topic for GUI
+            # partial_sequence.append(key)
+            self.get_logger().info(f'Completed: {partial_sequence}')
 
             # Move back to starting position
-            self.path_to_tf(ee_transform)
-
-            # Publish feedback
-            feedback_msg.partial_sequence.append(key)
-            self.get_logger().info('Feedback: {0}'.format(feedback_msg.partial_sequence))
+            # TODO: Integrate + Error handling
+            # self.path_to_tf(ee_transform)
 
         # Call controller switcher and switch back to manual mode
-        switch_result = self.send_switch_request()
-        if not switch_result.success:
-            self.get_logger().error(f'Switching Error: {switch_result.message}')
-            response.success = False
-            return response
-        
+        # TODO: Integrate the switcher
+        # switch_result = self.send_switch_request()
+        # if not switch_result.success:
+        #     self.get_logger().error(f'Switching Error: {switch_result.message}')
+        #     response.success = False
+        #     return response
+        self.get_logger().info(f'Sequencer Complete! {partial_sequence}')
 
         response.success = True
         return response
 
+    def stop_sequencer(self):
+        self.is_stopped = True
 
 def main(args=None):
     rclpy.init(args=args)
