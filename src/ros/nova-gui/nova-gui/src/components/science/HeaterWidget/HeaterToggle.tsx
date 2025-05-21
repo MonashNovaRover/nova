@@ -60,7 +60,7 @@ const HeaterToggle: React.FC<HeaterToggleWidgetProps> = ({currentHeaterStatus, s
           >
             <input
               aria-label="Temperature value"
-              className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
+              className="px-1 py-0.5 w-14 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
               type="number"
               value={targetInput}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
