@@ -24,10 +24,11 @@ import {
   ModalBody,
   ModalContent,
   Chip,
+  Checkbox,
+  Card,
+  Divider,
 } from "@nextui-org/react";
 import { SortablePoints } from "./SortablePoints";
-import { ToolTipButton } from "../../shared/TooltipButton";
-import { Trash } from "react-feather";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";
 import { RosService } from "../../../ros/services/rosService";
 import { GoalType, MapPoint } from "../../../redux/models/CartographerState";
@@ -37,24 +38,28 @@ export const CartographerGoalModal: React.FC<{
   onClose: () => void;
   points: MapPoint[];
 }> = ({ isOpen, onClose, points }) => {
-  const [items, setItems] = useState(points);
+
+  const [items, setItems] = useState(
+    points.map((point) => ({ ...point, selected: false }))
+  );
 
   const serviceBifrost = useBifrost({
     service: RosService.CARTOGRAPHER_COMMAND,
   });
 
   const sendCartographerPoints = () => {
-    const poses = items.map((item) => ({
+    const selected = items.filter((item) => item.selected);
+    const poses = selected.map((item) => ({
       lat: item.lat,
       long: item.long,
     }));
-    const types = items.map((item) => item.goalType);
+    const types = selected.map((item) => item.goalType);
+    console.log(poses)
     serviceBifrost.callServiceToRedux({ poses, types });
   };
 
   const sensors = useSensors(useSensor(PointerSensor));
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
     if (active.id !== over.id) {
@@ -64,9 +69,20 @@ export const CartographerGoalModal: React.FC<{
     }
   };
 
+  const toggleSelection = (name: string) => {
+    setItems((prevItems) =>
+      prevItems.map((item) =>
+        item.name === name ? { ...item, selected: !item.selected } : item
+      )
+    );
+  };
+
   useEffect(() => {
-    setItems(points);
+    setItems(points.map((point) => ({ ...point, selected: false })));
   }, [isOpen, points]);
+
+  const selectedItems = items.filter((item) => item.selected);
+  const unselectedItems = items.filter((item) => !item.selected);
 
   return (
     <Modal
@@ -80,65 +96,96 @@ export const CartographerGoalModal: React.FC<{
         <ModalHeader>Publish Goals</ModalHeader>
         <ModalBody>
           <div>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              modifiers={[
-                restrictToVerticalAxis,
-                restrictToWindowEdges,
-                restrictToFirstScrollableAncestor,
-              ]}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={items.map((item) => item.name)}
-                strategy={verticalListSortingStrategy}
+            <div>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                modifiers={[
+                  restrictToVerticalAxis,
+                  restrictToWindowEdges,
+                  restrictToFirstScrollableAncestor,
+                ]}
+                onDragEnd={handleDragEnd}
               >
-                {items.map((point) => {
-                  return (
+                {/* Sortable context for selected items */}
+                <SortableContext
+                  items={selectedItems.map((item) => item.name)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <h3 className="my-4 font-bold">Selected Points</h3>
+                  {selectedItems.map((point) => (
                     <SortablePoints key={point.name} id={point.name}>
                       <div className="flex justify-between items-center">
-                        <span className="flex-shrink-0 font-bold">
-                          {point.name}
-                        </span>
-                        <span className="flex-shrink-0 ">{point.lat}</span>
-                        <span className="flex-shrink-0 ">
-                          {point.long}
-                        </span>
+                        <Checkbox
+                          isSelected={point.selected}
+                          onChange={() => toggleSelection(point.name)}
+                        >
+                          <span className="flex-shrink-0 font-bold">
+                            {point.name}
+                          </span>
+                        </Checkbox>
+                        <span className="flex-shrink-0">{point.lat}</span>
+                        <span className="flex-shrink-0">{point.long}</span>
                         <Chip
                           className={`ml-2 ${
                             point.goalType === GoalType.GNSS
                               ? "bg-blue-200 text-blue-800 dark:bg-blue-700 dark:text-blue-200"
                               : point.goalType === GoalType.AR_TAG
-                              ? "bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200"
-                              : point.goalType === GoalType.OBJECT
-                              ? "bg-yellow-200 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200"
-                              : point.goalType === GoalType.VIA_POINT
-                              ? "bg-red-200 text-red-800 dark:bg-red-700 dark:text-red-200"
-                              : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                                ? "bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200"
+                                : point.goalType === GoalType.OBJECT
+                                  ? "bg-yellow-200 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200"
+                                  : point.goalType === GoalType.VIA_POINT
+                                    ? "bg-red-200 text-red-800 dark:bg-red-700 dark:text-red-200"
+                                    : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
                           }`}
                           size="sm"
                         >
                           {GoalType[point.goalType]}
                         </Chip>
-                        <ToolTipButton
-                          isIconOnly
-                          size="sm"
-                          tooltipContent="Remove"
-                          onClick={() =>
-                            setItems(
-                              items.filter((item) => item.name !== point.name)
-                            )
-                          }
-                        >
-                          <Trash className="w-4" />
-                        </ToolTipButton>
                       </div>
                     </SortablePoints>
-                  );
-                })}
-              </SortableContext>
-            </DndContext>
+                  ))}
+                </SortableContext>
+              </DndContext>
+            </div>
+            <Divider className="my-4" />
+            {/* Unsortable context for unselected items */}
+            <h3 className="font-bold my-4">Unselected Points</h3>
+            {unselectedItems.map((point) => (
+              <Card
+                key={point.name}
+                className="p-4 mb-4 rounded-lg bg-gray-100 bg-neutral-800"
+              >
+                <div className="flex justify-between items-center">
+                  <Checkbox
+                    isSelected={point.selected}
+                    onChange={() => toggleSelection(point.name)}
+                  >
+                    <span className="flex-shrink-0 font-bold">
+                      {point.name}
+                    </span>
+                  </Checkbox>
+                  <span className="flex-shrink-0">{point.lat}</span>
+                  <span className="flex-shrink-0">{point.long}</span>
+                  <Chip
+                    className={`ml-2 ${
+                      point.goalType === GoalType.GNSS
+                        ? "bg-blue-200 text-blue-800 dark:bg-blue-700 dark:text-blue-200"
+                        : point.goalType === GoalType.AR_TAG
+                          ? "bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200"
+                          : point.goalType === GoalType.OBJECT
+                            ? "bg-yellow-200 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200"
+                            : point.goalType === GoalType.VIA_POINT
+                              ? "bg-red-200 text-red-800 dark:bg-red-700 dark:text-red-200"
+                              : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                    }`}
+                    size="sm"
+                  >
+                    {GoalType[point.goalType]}
+                  </Chip>
+                </div>
+              </Card>
+            ))}
           </div>
         </ModalBody>
         <ModalFooter>
