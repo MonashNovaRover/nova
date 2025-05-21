@@ -45,7 +45,7 @@ def launch_setup(context, *args, **kwargs):
             output='screen',
             emulate_tty=True,
             parameters=[{
-                'source_list': ['/arm/joint_states', '/joint_states']
+                'source_list': ['/arm/joint_states']
             }]
         )
     ]
