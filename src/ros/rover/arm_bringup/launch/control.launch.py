@@ -79,7 +79,7 @@ def launch_setup(context, *args, **kwargs):
                     package='controller_manager',
                     executable='ros2_control_node',
                     parameters=[controllers],
-                    remappings=[('/controller_manager/robot_description', '/robot_description')],
+                    remappings=[('/controller_manager/robot_description', '/robot_description'), ('/joint_states', '/arm/joint_states')],
                 ),
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
@@ -118,6 +118,16 @@ def generate_launch_description():
             name='model', 
             default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
+        ),
+        DeclareLaunchArgument(
+            name='arm',
+            default_value='false',
+            description='whether to launch arm',
+        ),
+        DeclareLaunchArgument(
+            name='old_arm',
+            default_value='True',
+            description='whether to launch the old arm (on new armware)',
         ),
         DeclareLaunchArgument(
             name='use_mock_hardware',
