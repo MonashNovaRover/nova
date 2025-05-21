@@ -1,0 +1,8 @@
+HydraprobeControl:
+  ros__parameters:
+    deploy_speeds: [50, 0, -50, 0]
+    deploy_durations: [1800, 200, 500]
+    reset_speeds: [-50, 0]
+    reset_durations: [4000]
+    retract_speeds: [50, -80, 0, -50, 0]
+    retract_durations: [500, 2100, 200, 800]

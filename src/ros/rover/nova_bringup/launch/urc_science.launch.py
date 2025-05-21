@@ -21,10 +21,15 @@ EDITED BY: Tristan Clark, Josh Leivenzon,
 """
 from launch import LaunchDescription
 from launch.actions import OpaqueFunction, DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
+
 
 def launch_setup(context, *args, **kwargs):
+    nova_bringup_dir = FindPackageShare('nova_bringup')
+    hydraprobe_control_params = PathJoinSubstitution([nova_bringup_dir, 'params', 'hydraprobe_control.yaml'])
+
     # parameterised canIDs
     auger1_drill_canid = LaunchConfiguration('auger1_drill_canid')
     auger1_actuation_canid = LaunchConfiguration('auger1_actuation_canid')
@@ -108,7 +113,8 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[{
                 "frame_id": cache1_canid,
-                "cache_id": "1"
+                "cache_id": "1",
+                "servo_command": 0x01
             }],
         ),
         Node(
@@ -119,7 +125,8 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[{
                 "frame_id": cache2_canid,
-                "cache_id": "2"
+                "cache_id": "2",
+                "servo_command": 0x02
             }],
         ),
         Node(
@@ -141,8 +148,9 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
         ),
         Node(
+            name="HydraprobeControl",
             package='science',
-            executable='urc_mixers.py',
+            executable='urc_hydraprobe_control.py',
             output='screen',
             emulate_tty=True,
         ),

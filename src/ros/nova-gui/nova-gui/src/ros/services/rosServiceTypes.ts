@@ -19,11 +19,14 @@ import {
   IRosNovaInterfacesMoveScimbalCamResponse,
   IRosNovaInterfacesTakeNirProbeReadingRequest,
   IRosNovaInterfacesTakeNirProbeReadingResponse,
+  IRosNovaInterfacesRgbInputRequest,
+  IRosNovaInterfacesRgbInputResponse,
   IRosNovaInterfacesCacheCommandRequest,
   IRosNovaInterfacesCacheCommandResponse,
   IRosNovaInterfacesCartographerCommandRequest,
   IRosNovaInterfacesCartographerCommandResponse,
-
+  IRosNovaInterfacesMoveHydraprobeRequest,
+  IRosNovaInterfacesMoveHydraprobeResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -80,6 +83,10 @@ export interface RosServiceInterface {
     IRosNovaInterfacesMoveScimbalCamRequest,
     IRosNovaInterfacesMoveScimbalCamResponse
   >;
+  [RosService.HYDRAPROBE_COMMAND]: RosServiceMessage<
+    IRosNovaInterfacesMoveHydraprobeRequest,
+    IRosNovaInterfacesMoveHydraprobeResponse
+  >;
   [RosService.MOVE_MICROSCOPE_SERVO]: RosServiceMessage<
     IRosNovaInterfacesMoveMicroscopeServoRequest,
     IRosNovaInterfacesMoveMicroscopeServoResponse
@@ -115,6 +122,11 @@ export interface RosServiceInterface {
   [RosService.HEATER]: RosServiceMessage<
       IRosStdSrvsSetBoolRequest,
       IRosStdSrvsSetBoolResponse
+  >;
+
+  [RosService.RGBInput]: RosServiceMessage<
+      IRosNovaInterfacesRgbInputRequest,
+      IRosNovaInterfacesRgbInputResponse
   >;
 
   // Autonomous Related

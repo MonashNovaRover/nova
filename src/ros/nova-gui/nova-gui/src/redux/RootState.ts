@@ -15,7 +15,6 @@ import {
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
   IRosCmdInterfacesCmDsFeedback,
-  IRosSensorMsgsNavSatFix,
   IRosNovaInterfacesRamanState,
   IRosNovaInterfacesRamanMechResponse,
   IRosNovaInterfacesUvVisSpecData,
@@ -25,7 +24,7 @@ import {
   IRosNovaInterfacesBmeSensor,
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
-  IRosNovaInterfacesCartographerCommandResponse,
+  IRosNovaInterfacesRoverPoseGps,  IRosNovaInterfacesCartographerCommandResponse,
 
 } from "../ros/rosTypes";
 
@@ -84,8 +83,8 @@ export interface RootState {
   bmeSensorStore: IRosNovaInterfacesBmeSensor;
 
   // Maps Related Stores
-  roverLocationStore: IRosSensorMsgsNavSatFix;
-  baseLocationStore: IRosSensorMsgsNavSatFix;
+  roverLocationStore: IRosNovaInterfacesRoverPoseGps;
+  baseLocationStore: IRosNovaInterfacesRoverPoseGps;
   cartographerState: CartographerState;
   cartographerCommand: IRosNovaInterfacesCartographerCommandResponse;
 
@@ -94,10 +93,12 @@ export interface RootState {
   siteData: GenericStoreState<SiteDataState>;
   nirProbeCalibrationData: GenericStoreState<NIRProbeCalibrationData>
   counter: GenericStoreState<number>;
+  rgbLedStore: GenericStoreState<{ r: string; g: string; b: string }>;
   scimbalStepSize : GenericStoreState<string>;
   targetTemp : GenericStoreState<number>;
   theta360CompassHeading : GenericStoreState<number>;
 
   batteryStore: IRosSensorMsgsBatteryState;
+
   activeStatusStore: IRosNovaInterfacesActiveNodeStatus;
 }

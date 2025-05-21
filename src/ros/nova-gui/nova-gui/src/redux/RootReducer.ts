@@ -210,6 +210,8 @@ export const reduxStores = {
     {
       temperature: 0,
       humidity: 0,
+      pressure: 0,
+      altitude: 0,
     }
   ),
 
@@ -281,6 +283,7 @@ export const reduxStores = {
   scimbalStepSize: createGenericStore("scimbalStepSize", "1"),
   targetTemp: createGenericStore("targetTemp", 150),
   theta360CompassHeading: createGenericStore("theta360CompassHeading",180),
+  rgbLedStore: createGenericStore("rgbLedStore", { r: "0", g: "0", b: "0" }),
 };
 
 // all store reducers
