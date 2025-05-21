@@ -22,8 +22,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ArmConfigInfo.srv"
   "srv/StringTrigger.srv"
   "srv/KeyPosition.srv"
-
-  "action/TypeSequence.action"
+  "srv/TypeSequence.srv"
   
   DEPENDENCIES std_msgs geometry_msgs
 )

@@ -1,5 +1,0 @@
-string[] sequence
----
-bool done
----
-string[] partial_sequence

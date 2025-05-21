@@ -5,8 +5,8 @@ import {
   IRosBlcmdInterfacesBlcmdResetResponse,
   IRosNovaInterfacesMoveMicroscopeServoRequest,
   IRosNovaInterfacesMoveMicroscopeServoResponse,
-  IRosArmInterfacesStringTriggerRequest,
-  IRosArmInterfacesStringTriggerResponse,
+  IRosArmInterfacesTypeSequenceRequest,
+  IRosArmInterfacesTypeSequenceResponse,
   IRosStdSrvsTriggerResponse,
   IRosNovaInterfacesKilnCommandRequest,
   IRosNovaInterfacesKilnCommandResponse,
@@ -45,9 +45,13 @@ export interface RosServiceInterface {
     EmptyMessage,
     IRosStdSrvsTriggerResponse
   >;
-  [RosService.KEYBOARD_TF_TOGGLE]: RosServiceMessage<
-    IRosArmInterfacesStringTriggerRequest,
-    IRosArmInterfacesStringTriggerResponse
+  [RosService.START_AUTO_TYPING]: RosServiceMessage<
+    IRosArmInterfacesTypeSequenceRequest,
+    IRosArmInterfacesTypeSequenceResponse
+  >;
+  [RosService.STOP_AUTO_TYPING]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
   >;
 
   // Camera Related
