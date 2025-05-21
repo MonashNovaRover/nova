@@ -30,7 +30,7 @@ import { ToolTipButton } from "../../shared/TooltipButton";
 import { Trash } from "react-feather";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";
 import { RosService } from "../../../ros/services/rosService";
-import { MapPoint } from "../../../redux/models/CartographerState";
+import { GoalType, MapPoint } from "../../../redux/models/CartographerState";
 
 export const CartographerGoalModal: React.FC<{
   isOpen: boolean;
@@ -72,7 +72,7 @@ export const CartographerGoalModal: React.FC<{
     <Modal
       isOpen={isOpen}
       className="dark text-foreground"
-      size="4xl"
+      size="5xl"
       scrollBehavior="inside"
       onClose={onClose}
     >
@@ -98,18 +98,28 @@ export const CartographerGoalModal: React.FC<{
                   return (
                     <SortablePoints key={point.name} id={point.name}>
                       <div className="flex justify-between items-center">
-                        <span className="flex-shrink-0 w-1/4 font-bold">
+                        <span className="flex-shrink-0 font-bold">
                           {point.name}
                         </span>
-                        <span className="flex-shrink-0 w-1/4">{point.lat}</span>
-                        <span className="flex-shrink-0 w-1/4">
+                        <span className="flex-shrink-0 ">{point.lat}</span>
+                        <span className="flex-shrink-0 ">
                           {point.long}
                         </span>
                         <Chip
-                          className="ml-2 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                          className={`ml-2 ${
+                            point.goalType === GoalType.GNSS
+                              ? "bg-blue-200 text-blue-800 dark:bg-blue-700 dark:text-blue-200"
+                              : point.goalType === GoalType.AR_TAG
+                              ? "bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200"
+                              : point.goalType === GoalType.OBJECT
+                              ? "bg-yellow-200 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200"
+                              : point.goalType === GoalType.VIA_POINT
+                              ? "bg-red-200 text-red-800 dark:bg-red-700 dark:text-red-200"
+                              : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                          }`}
                           size="sm"
                         >
-                          {point.goalType}
+                          {GoalType[point.goalType]}
                         </Chip>
                         <ToolTipButton
                           isIconOnly
