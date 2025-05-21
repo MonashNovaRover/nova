@@ -18,6 +18,7 @@ export const rosServiceMessages = {
   [RosService.MIXERS]: "std_srvs/srv/SetBool",
   [RosService.KILN_COMMAND]: "nova_interfaces/srv/KilnCommand",
   [RosService.SCIMBAL_COMMAND]: 'nova_interfaces/srv/MoveScimbalCam',
+  [RosService.HYDRAPROBE_COMMAND]: 'nova_interfaces/srv/MoveHydraprobe',
   [RosService.TAKE_NIR_PROBE_READING]: "nova_interfaces/srv/TakeNIRProbeReading",
   [RosService.MOVE_MICROSCOPE_SERVO]: "nova_interfaces/srv/MoveMicroscopeServo",
   [RosService.THETA_360_CAM_CAPTURE]: "std_srvs/srv/Trigger",
@@ -28,4 +29,6 @@ export const rosServiceMessages = {
   [RosService.CACHE_1]: "nova_interfaces/srv/CacheCommand",
   [RosService.CACHE_2]: "nova_interfaces/srv/CacheCommand",
   [RosService.HEATER]: "std_srvs/srv/SetBool",
+
+  [RosService.RGBInput]: "nova_interfaces/srv/RGBInput",
 };

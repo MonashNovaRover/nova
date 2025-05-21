@@ -1,7 +1,7 @@
 /**
  * A Single Enum which Represents all ROS Services that Bifrost can call
  *
- * To Call to New Services from Bifrost, Add thhe Service as an enum below
+ * To Call to New Services from Bifrost, Add the Service as an enum below
  *
  */
 
@@ -21,6 +21,7 @@ export enum RosService {
   MIXERS = "/science/mixers",
   KILN_COMMAND = "/science/kiln_command",
   SCIMBAL_COMMAND = "/science/scimbal_cam_service",
+  HYDRAPROBE_COMMAND = "/science/move_hydraprobe",
   TAKE_NIR_PROBE_READING = "/science/take_nir_probe_reading",
   MOVE_MICROSCOPE_SERVO = "/science/microscope_servo_service",
   THETA_360_CAM_CAPTURE = "/science/theta360cam/capture",
@@ -31,4 +32,6 @@ export enum RosService {
   CACHE_1 = "/science/cache_command_1",
   CACHE_2 = "/science/cache_command_2",
   HEATER = "/science/heater",
+
+  RGBInput = "/set_RGBInput",
 }

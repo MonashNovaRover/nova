@@ -57,6 +57,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GpsOffset.srv"
   "srv/KilnCommand.srv"
   "srv/LoadCellPoller.srv"
+  "srv/MoveHydraprobe.srv"
   "srv/MoveMicroscopeServo.srv"
   "srv/MoveScimbalCam.srv"
   "srv/RFIDCommand.srv"
@@ -64,6 +65,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/TakeNIRProbeReading.srv"
   "srv/RamanSpec.srv"
   "srv/RamanMech.srv"
+  "srv/RGBInput.srv"
 
   # Action definitions
   "action/Stepper.action"
