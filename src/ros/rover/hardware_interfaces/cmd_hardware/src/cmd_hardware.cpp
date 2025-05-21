@@ -194,7 +194,7 @@ hardware_interface::return_type CMDHardware::read(
                               params_.velocity_integration_command_amount);
 
     // Calculate position from resolver values
-    const auto reference_resolver_state = hw_position_.raw_reference_state + M_2_PI * hw_position_.raw_reference_state_turns;
+    const auto reference_resolver_state = hw_position_.raw_reference_state + 2*M_PI * hw_position_.raw_reference_state_turns;
     // Apply resolver reduction
     const auto reference_position_state = reference_resolver_state / params_.resolver_reduction;
     // Apply velocity integration to position
@@ -587,7 +587,7 @@ bool CMDHardware::set_control_interface(
                 RCLCPP_WARN(rclcpp::get_logger(CMDHardwareLoggerName), "CMD Resolver RS485 read timout for %d",
                             params_.resolver_id);
             }
-            if (flags & static_cast<uint8_t>(ResolverFlags::RS485_READ_TIMEOUT)) {
+            if (flags & static_cast<uint8_t>(ResolverFlags::INVALID_CHECKSUM)) {
                 RCLCPP_WARN(rclcpp::get_logger(CMDHardwareLoggerName), "CMD Resolver sent an invalid checksum for %d",
                             params_.resolver_id);
             }
@@ -610,7 +610,7 @@ bool CMDHardware::set_control_interface(
 
         const auto raw_delta = hw_position_.raw_reference_state - last_raw_ref;
 
-        // Modifying raw_reference_state_turns effectively adds or subtracts M_2_PI, emulating multi-turn
+        // Modifying raw_reference_state_turns effectively adds or subtracts 2*M_PI, emulating multi-turn
         if (raw_delta < -M_PI) {
             hw_position_.raw_reference_state_turns++;
         }
@@ -665,7 +665,7 @@ bool CMDHardware::set_control_interface(
     }
 
     double CMDHardware::raw_resolver_to_rad(int16_t raw_resolver_data) {
-        return M_2_PI * static_cast<double>(raw_resolver_data) / 0x3FFF;
+        return 2 * M_PI * static_cast<double>(raw_resolver_data) / 0x3FFF;
     }
 
     inline double CMDHardware::lerp(const double a, const double b, const double t) {
