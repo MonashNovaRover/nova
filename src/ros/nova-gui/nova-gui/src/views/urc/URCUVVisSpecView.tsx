@@ -41,11 +41,11 @@ const URCUVVisSpecView: React.FC = () => {
     setSelectedCharts((existing: Set<string>) => new Set([...existing.values(), name]))
   }, [output, setOutputRaw])
 
-  return <div className="m-3 grid grid-cols-2 gap-3">
+  return <div className="grid grid-rows-2 gap-3">
     <div className="flex flex-col">
       <UVVisSpec onSave={setOutput}/>
     </div>
-    <div className="flex flex-col">
+    <div className="flex flex-col overflow-hidden">
       <GenericGraphComparisonWidget
         graphs={output}
         setGraphs={setOutputRaw}
