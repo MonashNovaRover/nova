@@ -24,7 +24,8 @@ import {
   IRosNovaInterfacesBmeSensor,
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
-  IRosNovaInterfacesRoverPoseGps,  IRosNovaInterfacesCartographerCommandResponse,
+  IRosNovaInterfacesRoverPoseGps,  
+  IRosNovaInterfacesCartographerCommandResponse,
 
 } from "../ros/rosTypes";
 
