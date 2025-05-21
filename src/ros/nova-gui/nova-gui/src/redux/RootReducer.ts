@@ -97,12 +97,6 @@ export const reduxStores = {
       data: "",
     }
   ),
-  keyboardTFTrigger: createBifrostStore(
-    { service: RosService.KEYBOARD_TF_TOGGLE },
-    {
-      success: false,
-    }
-  ),
   keyboardDataStore: createBifrostStore(
     { topic: RosTopic.KEYBOARD_DATA },
     {

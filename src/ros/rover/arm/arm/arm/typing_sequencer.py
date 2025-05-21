@@ -29,7 +29,6 @@ TODO:
 import time
 
 import rclpy
-from rclpy.action import ActionServer, ActionClient
 from rclpy.node import Node
 from tf2_ros import Buffer, TransformListener
 from std_srvs.srv import Trigger
@@ -40,7 +39,8 @@ import tf2_geometry_msgs
 from arm_interfaces.action import TypeSequence, PathTo
 from arm_interfaces.srv import KeyPosition
 
-TYPING_SEQUENCER_ACTION = "/type_sequence"
+TYPING_SEQUENCER_START = "/type_sequence/start"
+TYPING_SEQUENCER_STOP = "/type_sequence/stop"
 CONTROLLER_SWITCH_SERVICE = "/teleop_arm_joy/toggle_typing"
 KEY_POSITION_SERVICE = "/pub_key_position"
 PATH_PLANNER_ACTION = "/move_to_pos"
@@ -50,7 +50,7 @@ class TypingSequencer(Node):
 
     def __init__(self):
         super().__init__('typing_sequencer')
-        self.action_server = ActionServer(self, TypeSequence, TYPING_SEQUENCER_ACTION, self.execute_sequencer)
+        self.sequencer_server = self.create_service(TypeSequence, TYPING_SEQUENCER_ACTION, self.execute_sequencer)
 
         # Parameters
         self.keyboard_frame = self.declare_parameter('keyboard_frame', 'keyboard_frame').get_parameter_value().string_value
@@ -137,9 +137,9 @@ class TypingSequencer(Node):
         self.get_logger().info('Recieved feedback: {0}'.format(feedback.status))
 
 
-    def execute_sequencer(self, action_handle):
+    def execute_sequencer(self, request, response):
         self.get_logger().info('Beginning sequencer...')
-        key_sequence = action_handle.request.sequence
+        key_sequence = request.sequence
 
         feedback_msg = TypeSequence.Feedback()
         feedback_msg.partial_sequence = []
@@ -160,10 +160,8 @@ class TypingSequencer(Node):
             key_result = self.send_key_request(key, stamp)
             if not key_result.success:
                 self.get_logger().error(f'Key Transform Error: {key_result.message}')
-                action_handle.abort()
-                result = TypeSequence.Result()
-                result.done = False
-                return result
+                response.success = False
+                return response
             
             # Wait for transform
             key_frame = key + "_" + self.keyboard_frame
@@ -176,10 +174,8 @@ class TypingSequencer(Node):
                 time.sleep(1.0/self.poll_rate)
             else:
                 self.get_logger().warn('Transform not available after waiting {:.1f} seconds'.format(self.timeout))
-                action_handle.abort()
-                result = TypeSequence.Result()
-                result.done = False
-                return result
+                response.success = False
+                return response
             
             # Start action to move to key via path planner
             # TODO: Add error handling
@@ -195,22 +191,17 @@ class TypingSequencer(Node):
             # Publish feedback
             feedback_msg.partial_sequence.append(key)
             self.get_logger().info('Feedback: {0}'.format(feedback_msg.partial_sequence))
-            action_handle.publish_feedback(feedback_msg)
 
         # Call controller switcher and switch back to manual mode
         switch_result = self.send_switch_request()
         if not switch_result.success:
             self.get_logger().error(f'Switching Error: {switch_result.message}')
-            action_handle.abort()
-            result = TypeSequence.Result()
-            result.done = False
-            return result
+            response.success = False
+            return response
         
-        action_handle.succeed()
 
-        result = TypeSequence.Result()
-        result.done = True
-        return result
+        response.success = True
+        return response
 
 
 def main(args=None):
