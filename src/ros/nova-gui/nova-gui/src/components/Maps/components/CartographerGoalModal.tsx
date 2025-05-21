@@ -54,12 +54,12 @@ export const CartographerGoalModal: React.FC<{
       long: item.long,
     }));
     const types = selected.map((item) => item.goalType);
-    console.log(poses)
     serviceBifrost.callServiceToRedux({ poses, types });
   };
 
   const sensors = useSensors(useSensor(PointerSensor));
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
     if (active.id !== over.id) {
