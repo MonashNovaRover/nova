@@ -36,6 +36,7 @@ install(PROGRAMS
   nova_utils/load_waypoint.py
   nova_utils/quaternion_to_euler.py
   nova_utils/save_waypoint.py
+  nova_utils/service_listener.py
 
   DESTINATION lib/${PROJECT_NAME}
 )
