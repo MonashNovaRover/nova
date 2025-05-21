@@ -5,7 +5,7 @@ resolver_publisher:
 keyboard_localiser:
   ros__parameters:
     # using auto or manual transform mode
-    using_auto: true
+    using_auto: false
     debug_image: true
     # key position initalisation params
     keyboard_frame: keyboard_frame
@@ -30,3 +30,15 @@ keyboard_localiser:
 
     # tf2 initalisation
     tf_publish_rate: 1.0 # per second
+
+typing_sequencer:
+  ros__parameters:
+    # key position initalisation params
+    keyboard_frame: keyboard_frame
+    base_frame: keyboard_frame
+    ee_frame: eebase
+    
+    arm_hover_dist: 10.0
+
+    timeout: 2.0
+    pollrate: 10.0

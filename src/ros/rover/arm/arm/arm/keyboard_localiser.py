@@ -6,6 +6,10 @@ Monash Nova Rover Team
 ROS service which when queried with a key, 
     returns its position on the keyboard.
 Used for auto typing task at URC
+In Auto Mode it looks for the keyboard before 
+    publishing its transform.
+In Manual Mode it constantly publishes the defined
+    manual keyboard transform.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: keyboard_mapper
 SERVICES: get_key_position
@@ -79,7 +83,6 @@ In separate terminal:
 """
 
 KEY_SERVICE_NAME = '/arm/keyboard/pub_key_position'
-KEYBOARD_TF_SERVICE_NAME = '/arm/keyboard/transform_toggle'
 IMAGE_TOPIC = '/arm/periscope'
 DEBUG_TOPIC = '/arm/keyboard/image'
 POINT_TOPIC = '/arm/keyboard/points'
@@ -106,8 +109,6 @@ class KeyboardLocaliser(Node):
         # manual keyboard alignment initalisation
         self.aligned_keyboard_position = self.declare_parameter('aligned_keyboard_position', DEFAULT_POSITION).get_parameter_value().double_array_value
         self.aligned_keyboard_quaternion = self.declare_parameter('aligned_keyboard_quaternion', DEFAULT_QUATERNION).get_parameter_value().double_array_value
-        self.align_srv = self.create_service(StringTrigger, KEYBOARD_TF_SERVICE_NAME, self.get_align_callback)
-        self.is_aligned = False
 
         # calibrated camera intrinsics
         hfov = self.declare_parameter('hfov', 61.3727248).get_parameter_value().double_value
@@ -146,7 +147,7 @@ class KeyboardLocaliser(Node):
         timer_period = self.declare_parameter('tf_publish_rate', 1.0).get_parameter_value().double_value
         self.create_timer(timer_period, self.publish_aligned_tf)
 
-        self.get_logger().info(f"Running this node with services: {KEY_SERVICE_NAME}, {KEYBOARD_TF_SERVICE_NAME}. Using keyboard: {self.keyboard_frame} for transforms and base link: {self.base_frame}")
+        self.get_logger().info(f"Running this node in {"auto" if self.node_is_auto else "manual"} mode with service: {KEY_SERVICE_NAME}. Using keyboard: {self.keyboard_frame} for transforms and base link: {self.base_frame}")
 
     def publish_key_position_callback(self, request, response):
         """ Publishes transform of the key requested from the service 
@@ -156,6 +157,7 @@ class KeyboardLocaliser(Node):
         key_symbol = request.key.lower()
         if key_symbol not in self.key_map:
             self.get_logger().warn(f"Key {request.key} not found in map.")
+            response.success = False
             return response
 
         x, y = self.key_map[key_symbol]
@@ -170,24 +172,9 @@ class KeyboardLocaliser(Node):
 
         self.get_logger().info(f"Publishing transform for {request.key}")
         self.transform_broadcaster.sendTransform(tfs)
+        response.success = True
         return response
 
-    def get_align_callback(self, request, response):
-        """Once aligned, begin publishing TF"""
-        self.get_logger().info(f"Toggling alignment for {request.value}")
-        if request.value == "start":
-            self.is_aligned = True
-            response.message = f"Aligned. TF has begun publishing under {self.keyboard_frame} relative to {self.base_frame}"
-        elif request.value == "stop":
-            self.is_aligned = False
-            response.message = f"TF publishing has been stopped"
-        else:
-            response.success = self.is_aligned
-            response.message = f"\"{request.value}\" not recognised as a valid value."
-            return response
-
-        response.success = self.is_aligned
-        return response
 
     def get_transform_to_base_link(self, key_pos):
         """ 
@@ -203,7 +190,7 @@ class KeyboardLocaliser(Node):
 
     def publish_aligned_tf(self) -> None:
         '''Publish the transform of the keyboard through the alignment method'''
-        if not self.is_aligned or self.node_is_auto:
+        if self.node_is_auto:
             return
         
         tfs = TransformStamped()
@@ -220,7 +207,7 @@ class KeyboardLocaliser(Node):
         if self.view is None or not self.node_is_auto:
             return
         transform = self.estimate_pose()
-        if transform is None or self.is_aligned:
+        if transform is None:
             return None
         self.transform_broadcaster.sendTransform(transform)
 
