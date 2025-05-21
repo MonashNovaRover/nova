@@ -22,27 +22,19 @@ from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    angle = LaunchConfiguration('angle').perform(context)
     gazebo = LaunchConfiguration('gazebo').perform(context)
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
     arm = LaunchConfiguration('arm').perform(context)
     old_arm = LaunchConfiguration('old_arm').perform(context)
     use_mock_hardware = LaunchConfiguration('use_mock_hardware').perform(context)
-    use_local_mesh = LaunchConfiguration('use_local_mesh').perform(context)
-
-    if arm.lower() in ['true', '1', 'yes']:
-        arm += ' auto_camera:=false'
-
-    if old_arm.lower() in ['true', '1', 'yes']:
-        old_arm += ' auto_camera:=false'
 
     return [
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[{'robot_description': 
-                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle, ' ', 'arm:=', arm, ' ', 'old_arm:=', old_arm, ' ', 'use_mock_hardware:=', use_mock_hardware, ' ', 'use_local_mesh:=', use_local_mesh]), value_type=str)
+                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'arm:=', arm, ' ', 'old_arm:=', old_arm, ' ', 'use_mock_hardware:=', use_mock_hardware, ' ', 'auto_camera:=false']), value_type=str)
             }]
         ),
         # Launch joint states for arm
@@ -63,11 +55,6 @@ def generate_launch_description():
     rover_description_dir = FindPackageShare('rover_description')
 
     declared_arguments = [
-        DeclareLaunchArgument(
-            name='angle',
-            default_value='15',
-            description='Angle (in degrees) at which the camera is mounted',
-        ),
         DeclareLaunchArgument(
             name='gazebo', 
             default_value='True',
@@ -97,11 +84,6 @@ def generate_launch_description():
             name='use_mock_hardware',
             default_value='false',
             description='whether to use mock hardware for hardware interfaces',
-        ),
-        DeclareLaunchArgument(
-            name='use_local_mesh',
-            default_value='False',
-            description='Use local mesh paths instead of nix store paths',
         ),
     ]
 
