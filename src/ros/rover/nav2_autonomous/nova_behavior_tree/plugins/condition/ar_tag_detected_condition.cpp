@@ -56,14 +56,14 @@ namespace nova_behavior_tree
 
   void ARTagDetectedCondition::callback_ar_tag(const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg)
   {
-    goal_found_ = 0;
+    goal_found_ = false;
 
     for (aruco_opencv_msgs::msg::MarkerPose marker : msg->markers) {
       goal_id_ = marker.marker_id;
       goal_header_ = msg->header;
       goal_pose_.position.x = marker.pose.position.x;
       goal_pose_.position.y = marker.pose.position.y;
-      goal_found_ = 1;
+      goal_found_ = true;
       return;
     }
   }
@@ -88,8 +88,6 @@ namespace nova_behavior_tree
   {
     if (goal_found_)
     {      
-      setOutput("id", goal_id_);
-
       geometry_msgs::msg::PoseStamped goal;
       goal.header = goal_header_;
       goal.pose = goal_pose_;

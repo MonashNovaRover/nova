@@ -58,7 +58,6 @@ namespace nova_behavior_tree
     {
       return 
       {
-        BT::OutputPort<int>("id", "ID of detected goal"),
         BT::OutputPort<geometry_msgs::msg::PoseStamped>("goal", "Pose of detected goal"),
       };
     }
@@ -82,7 +81,7 @@ namespace nova_behavior_tree
     int goal_id_;
     std_msgs::msg::Header goal_header_;
     geometry_msgs::msg::Pose goal_pose_;
-    int goal_found_ = 0;
+    bool goal_found_ = false;
 
     rclcpp::CallbackGroup::SharedPtr callback_group_;
     rclcpp::executors::MultiThreadedExecutor callback_group_executor_;

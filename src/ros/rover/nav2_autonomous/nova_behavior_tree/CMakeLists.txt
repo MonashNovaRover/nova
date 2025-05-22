@@ -61,6 +61,9 @@ list(APPEND plugin_libs nova_blackboard_publisher_bt_node)
 add_library(nova_place_search_goals_action_bt_node SHARED plugins/action/place_search_goals_action.cpp)
 list(APPEND plugin_libs nova_place_search_goals_action_bt_node)
 
+add_library(nova_get_goal_action_bt_node SHARED plugins/action/get_goal_action.cpp)
+list(APPEND plugin_libs nova_get_goal_action_bt_node)
+
 add_library(nova_get_current_pose_action_bt_node SHARED plugins/action/get_current_pose_action.cpp)
 list(APPEND plugin_libs nova_get_current_pose_action_bt_node)
 

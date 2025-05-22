@@ -17,6 +17,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav2_util/geometry_utils.hpp"
 #include "behaviortree_cpp/action_node.h"
@@ -28,7 +29,8 @@ namespace nova_behavior_tree
 class UpdateURCGoalsAction : public BT::ActionNodeBase
 {
 public:
-  typedef std::vector<geometry_msgs::msg::PoseStamped> Goals;
+  typedef geometry_msgs::msg::PoseStamped Goal;
+  typedef std::vector<Goal> Goals;
 
   UpdateURCGoalsAction(
     const std::string & xml_tag_name,
@@ -43,20 +45,29 @@ public:
   static BT::PortsList providedPorts()
   {
     return {
-      BT::InputPort<geometry_msgs::msg::PoseStamped>("new_goal", "New pose to update goal with"),
-      BT::InputPort<Goals>("input_goals", "Goals"),
+      BT::InputPort<Goal>("detected_goal", "Detected goal (AR tag / object)"),
+      BT::InputPort<Goal>("current_pose", "The current pose of the rover"),
       BT::InputPort<double>("max_update_radius", 0.5, "Max distance of new pose to current goal to be a valid update"),
-      BT::OutputPort<Goals>("output_goals", "Goals"),
+      BT::InputPort<double>("offset_radius", 1.0, "Radius away from actual pose to set goal"),
+      BT::InputPort<Goals>("input_goals", "Input goals to be updated"),
+      BT::OutputPort<Goals>("output_goals", "Updated goals"),
     };
   }
 
 private:
   void halt() override {}
   BT::NodeStatus tick() override;
+  void update_urc_goals();
 
   rclcpp::Node::SharedPtr node_;
 
-  double max_update_radius_ = 0.5;
+  Goal detected_goal_;
+  Goal prev_detected_goal_;
+  Goal current_pose_;
+  double max_update_radius_;
+  double offset_radius_;
+  Goals goals_;
+
   bool initialized_ = false;
 };
 

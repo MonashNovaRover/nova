@@ -17,6 +17,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav2_util/geometry_utils.hpp"
 #include "nav2_util/robot_utils.hpp"
@@ -46,12 +47,12 @@ namespace nova_behavior_tree
     {
       return 
       {
-        BT::InputPort<int>("id", "ID of detected AR tag"),
-        BT::InputPort<Goals>("input_goals", "Goals"),
+        BT::InputPort<Goals>("input_goals", "Original goals to remove viapoints from"),
         BT::InputPort<double>("position_tolerance", 1.0, "Max distance to goal for it to be removed"),
         BT::InputPort<double>("orientation_tolerance", 0.25, "Max angle to goal for it to be removed"), // (0.25 = ~14 degrees)
-        BT::OutputPort<Goals>("output_goals", "Goals"),
+        BT::OutputPort<Goals>("output_goals", "Goals with passed viapoints removed"),
         BT::OutputPort<double>("dist_to_goal", "Distance remaining to the next goal"),
+        BT::OutputPort<int>("removed_goals_count", "Number of goals removed"),
       };
     }
 
@@ -60,12 +61,13 @@ namespace nova_behavior_tree
     BT::NodeStatus tick() override;
 
     rclcpp::Node::SharedPtr node_;
-
-    double position_tolerance_ = 1.0;
-    double orientation_tolerance_ = 0.25;
-    double transform_tolerance_;
     std::shared_ptr<tf2_ros::Buffer> tf_;
     std::string robot_base_frame_;
+
+    Goals input_goals_;
+    double position_tolerance_;
+    double orientation_tolerance_;
+    double transform_tolerance_;
     bool initialized_ = false;
   };
 

@@ -15,7 +15,7 @@
 #ifndef NOVA_BEHAVIOR_TREE__NAV2_UTILS_HPP
 #define NOVA_BEHAVIOR_TREE__NAV2_UTILS_HPP
 
-#define PI 3.14159265358979323846
+#define M_PI 3.14159265358979323846
 
 #include <string>
 #include <sstream>
@@ -73,14 +73,14 @@ namespace nova_behavior_tree::utils::nav2
   inline double shortestAngularDistance(const double &from, const double &to)
   {
     // Normalizes the difference into (-π, +π]
-    double angle = std::fmod(to - from, 2.0 * PI);
-    if (angle > PI)
+    double angle = std::fmod(to - from, 2.0 * M_PI);
+    if (angle > M_PI)
     {
-      angle -= 2.0 * PI;
+      angle -= 2.0 * M_PI;
     }
-    else if (angle <= -PI)
+    else if (angle <= -M_PI)
     {
-      angle += 2.0 * PI;
+      angle += 2.0 * M_PI;
     }
     return angle;
   }
@@ -96,14 +96,34 @@ namespace nova_behavior_tree::utils::nav2
     pose.orientation = orientationAroundZAxis(yaw);
   }
 
+  /**
+   * @brief Returns an offset goal between the rover and the goal, facing towards the goal
+   */
+  inline PoseStamped offsetGoal(const PoseStamped &input_goal, const PoseStamped &rover_goal, const double &offset)
+  {
+    tf2::Vector3 rover;
+    tf2::Vector3 goal;
+    tf2::fromMsg(input_goal.pose.position, rover);
+    tf2::fromMsg(rover_goal.pose.position, goal);
+    
+    tf2::Vector3 rover_to_goal_normal = (goal - rover).normalized();
+    tf2::Vector3 offset_position = goal - rover_to_goal_normal * offset;
+
+    geometry_msgs::msg::PoseStamped offset_goal;
+    offset_goal.header = input_goal.header;
+    tf2::toMsg(offset_position, offset_goal.pose.position);
+    orientTowards(offset_goal.pose, input_goal.pose.position);
+    return offset_goal;
+  }
+
   inline double radians(const double &degrees)
   {
-    return degrees * PI / 180.0;
+    return degrees * M_PI / 180.0;
   }
 
   inline double degrees(const double &radians)
   {
-    return radians * 180.0 / PI;
+    return radians * 180.0 / M_PI;
   }
 
   inline bool arePointsEqual(const Point &p1, const Point &p2)

@@ -60,7 +60,7 @@ namespace nova_behavior_tree
         getInput("goal_type", goal_type_);
 
         double footprint_radius;
-        if (!node_->get_parameter_or("local_costmap.local_costmap.ros__parameters.robot_radius", footprint_radius, 0.85))
+        if (!node_->get_parameter_or("local_costmap.local_costmap.robot_radius", footprint_radius, 0.85))
         {
             RCLCPP_ERROR(node_->get_logger(), "Failed to get local footprint, using default value of 0.85m");
         }

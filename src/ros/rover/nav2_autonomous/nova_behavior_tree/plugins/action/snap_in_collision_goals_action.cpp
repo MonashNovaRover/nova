@@ -27,7 +27,6 @@
 #include <vector>
 #include <array>
 #include <cmath>
-#include <algorithm>
 #include <queue>
 #include <chrono>
 #include <thread>
@@ -59,9 +58,8 @@ namespace nova_behavior_tree
     {
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
 
-        getInput("initial_goals_offset", initial_goals_offset_);
+        getInput("goals_offset", goals_offset_);
         getInput("max_snap_radius", max_snap_radius_);
-        getInput("update_radius", update_radius_);
 
         // subscribe to local and global costmaps' occupancy grids
         local_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
@@ -84,11 +82,12 @@ namespace nova_behavior_tree
         wait_for_occu_grids();
 
         // get footprint radius
-        if (!node_->get_parameter_or("local_costmap.local_costmap.ros__parameters.robot_radius", footprint_radius_, 0.85))
+        if (!node_->get_parameter_or("robot_radius", footprint_radius_, 0.85))
         {
             RCLCPP_ERROR(node_->get_logger(), "Failed to get local footprint, using default value of 0.85m");
         }
         max_snap_radius_ += footprint_radius_;
+        goals_offset_ += footprint_radius_;
 
         RCLCPP_INFO(node_->get_logger(), "SnapInCollisionGoalsAction successfully initialized!");
         
@@ -110,7 +109,7 @@ namespace nova_behavior_tree
             Point p = goal.pose.position;
             
             tf2::Vector3 v(p.x, p.y, p.z);
-            v += v.normalized() * initial_goals_offset_;
+            v += v.normalized() * goals_offset_;
 
             Point toward_point;
             tf2::toMsg(v, toward_point);
@@ -148,7 +147,7 @@ namespace nova_behavior_tree
             wait_for_occu_grids();
         }
         
-        getInput("cube_goal_entries", cube_goal_entries_);
+        getInput("removed_goals_count", removed_goals_count_);
         getInput("input_goals", input_goals_);
 
         update_toward_points();
@@ -181,51 +180,24 @@ namespace nova_behavior_tree
     }
 
     /**
-     * @brief Update toward points with the most recent cube poses and according to
-     * whether any goals have been removed
+     * @brief Remove toward points for removed goals and insert toward points for new goals.
      */
     void SnapInCollisionGoalsAction::update_toward_points()
     {
-        // update with cube goals
-        std::sort(cube_goal_entries_.begin(), cube_goal_entries_.end(),
-            [](const GoalEntry &a, const GoalEntry &b) -> bool
-            {
-                return a.index < b.index;
-            }
-        );
-
-        for (const auto &entry : cube_goal_entries_)
+        // remove toward points for removed goals
+        toward_points_.erase(toward_points_.begin(), toward_points_.begin() + removed_goals_count_);
+        // insert toward points for new goals
+        for (size_t i = toward_points_.size(); i < input_goals_.size(); ++i)
         {
-            if (entry.index > static_cast<int>(toward_points_.size()))
-            {
-                RCLCPP_ERROR(
-                    node_->get_logger(), "Cube goal index (%d) exceeds toward_points_ size (%lu)",
-                    entry.index, toward_points_.size()
-                );
-                continue;
-            }
+            Point p = input_goals_[i].pose.position;
+            
+            tf2::Vector3 v(p.x, p.y, p.z);
+            v += v.normalized() * goals_offset_;
 
-            if (entry.index == static_cast<int>(toward_points_.size()))
-            {
-                toward_points_.push_back(entry.pose.position);
-                continue;
-            }
+            Point toward_point;
+            tf2::toMsg(v, toward_point);
 
-            // existing or new cube goal?
-            if (euclidean_distance(entry.pose.position, toward_points_[entry.index]) < update_radius_)
-            {
-                toward_points_[entry.index] = entry.pose.position;
-            }
-            else
-            {
-                toward_points_.insert(toward_points_.begin() + entry.index, entry.pose.position);
-            }
-        }
-
-        // update if goals have been removed
-        while (toward_points_.size() > input_goals_.size())
-        {
-            toward_points_.erase(toward_points_.begin());
+            toward_points_.push_back(toward_point);
         }
     }
 
