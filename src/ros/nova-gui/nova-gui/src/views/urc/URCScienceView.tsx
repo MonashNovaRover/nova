@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import HydroprobeWidget from "../../components/HydroprobeWidget/HydroprobeWidget";
-import PumpsWidget from "../../components/PumpsWidget/PumpsWidget";
+import PumpsWidget from "../../components/science/PumpsWidget/PumpsWidget";
 import BMESensor from "../../components/BMESensor/BMESensor";
 import GenericSetBoolWidget from "../../components/GenericSetBoolWidget/GenericSetBoolWidget.tsx";
 import {RosService} from "../../ros/services/rosService.ts";
