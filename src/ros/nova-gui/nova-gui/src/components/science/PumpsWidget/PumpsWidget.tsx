@@ -32,11 +32,11 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
   const [timeToRun, setTimeToRun] = useState<string>("");
   const { sendGoal, cancelGoal, feedback, goalResponse } = useRosAction(RosAction.PUMPS);
 
-  const pumpsFeedback = {time_to_run: 10.0, time_running: 4.7} as IRosNovaInterfacesPumpsActionFeedback;
+  const pumpsFeedback = feedback as IRosNovaInterfacesPumpsActionFeedback;
   const pumpsGoalResponse = goalResponse as IRosNovaInterfacesPumpsActionResult;
 
   const picker = (
-      <SegmentedPicker isVertical onIndexChange={setSelectedPumpIndex} selectedIndex={selectedPumpIndex} isDisabled={actionSent}>
+      <SegmentedPicker onIndexChange={setSelectedPumpIndex} selectedIndex={selectedPumpIndex} isDisabled={actionSent}>
         {PUMPS.map((pump, index) => (
           <div key={index}>{pump.display}</div>
         ))}
@@ -114,13 +114,15 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
     <div className="flex flex-row items-center justify-center">
       <Square className="w-20"/>
       <Progress
-        value={selectedPumpIndex === 0 && pumpsFeedback ? pumpsFeedback.time_running : 0}
-        maxValue={pumpsFeedback ? pumpsFeedback.time_to_run : 1}
+        color="secondary"
+        value={actionSent && selectedPumpIndex === 0 && pumpsFeedback ? pumpsFeedback.time_running : 0}
+        maxValue={actionSent && pumpsFeedback ? pumpsFeedback.time_to_run : 1}
       />
-      <ChevronDown className="w-20 rotate-90"/>
+      <ChevronDown className="w-20"/>
       <Progress
-        value={selectedPumpIndex !== 0 && pumpsFeedback ? pumpsFeedback.time_running : 0}
-        maxValue={pumpsFeedback ? pumpsFeedback.time_to_run : 1}
+        color="secondary"
+        value={actionSent && selectedPumpIndex !== 0 && pumpsFeedback ? pumpsFeedback.time_running : 0}
+        maxValue={actionSent && pumpsFeedback ? pumpsFeedback.time_to_run : 1}
       />
       <Search className="w-20"/>
     </div>
@@ -132,59 +134,32 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
       <CardHeader className="pb-0">
         Pumps
       </CardHeader>
-      <CardBody className="grid grid-cols-5">
-        <div className="col-span-3 flex flex-col gap-3">
-          {pickerRow}
-          {timeField}
-          <div className="flex flex-row gap-3 justify-center">
-            <Button color="primary" isDisabled={actionSent} onPress={() => sendAction()}>
-              Run
-            </Button>
-            <Button color="danger" onPress={() => cancel()}>Cancel Action</Button>
-          </div>
-        </div>
-        <div className="col-span-2 flex flex-row items-center">
-          <div className="flex flex-col content-end">
-            <div className="flex flex-col items-end mb-16">
-              <span>{selectedPumpIndex === 0 && pumpsFeedback ? pumpsFeedback.time_running.toFixed(2) : "-"} /</span>
-              <span>{selectedPumpIndex === 0 && pumpsFeedback ? pumpsFeedback.time_to_run.toFixed(2) : "-"}</span>
-            </div>
+      <CardBody className="flex flex-col gap-3">
 
-            <div className="flex flex-col items-end">
-              <span>{selectedPumpIndex !== 0 && pumpsFeedback ? pumpsFeedback.time_running.toFixed(2) : "-"} /</span>
-              <span>{selectedPumpIndex !== 0 && pumpsFeedback ? pumpsFeedback.time_to_run.toFixed(2) : "-"}</span>
-            </div>
+        {progressBar}
 
+        <div className="flex flex-row justify-around">
+          <div className="w-40 h-10 text-center">
+            <span>{actionSent && selectedPumpIndex === 0 && pumpsFeedback ? pumpsFeedback.time_running.toFixed(2) + " / " : "0 / 0s"}</span>
+            <span>{actionSent && selectedPumpIndex === 0 && pumpsFeedback ? pumpsFeedback.time_to_run.toFixed(2) + "s" : ""}</span>
           </div>
-          <div className="rotate-90">
-            {progressBar}
+
+          <div className="w-40 text-center">
+            <span>{actionSent && selectedPumpIndex !== 0 && pumpsFeedback ? pumpsFeedback.time_running.toFixed(2) + " / " : " 0 / 0s"}</span>
+            <span>{actionSent && selectedPumpIndex !== 0 && pumpsFeedback ? pumpsFeedback.time_to_run.toFixed(2) + "s" : ""}</span>
           </div>
+
         </div>
 
-        {/*<div className="flex flex-row">*/}
-        {/*  <span>span</span>*/}
-        {/*  <Progress/>*/}
-        {/*</div>*/}
-        {/*  <div>*/}
-        {/*    <div className="grid grid-cols-2">*/}
-        {/*      <div className="font-bold">Pump Name:</div>*/}
-        {/*      <div className="">{actionSent ? PUMPS[selectedPumpIndex].display : `Pumps Off`}</div>*/}
-        {/*      <div className="font-bold">Time To Run:</div>*/}
-        {/*      <div className="">{feedback ? `${pumpsFeedback.time_to_run.toFixed(2)} s`: "-"}</div>*/}
-        {/*      <div className="font-bold">Time Running:</div>*/}
-        {/*      <div className="">{feedback ? `${pumpsFeedback.time_running.toFixed(2)} s` : "-"}</div>*/}
-        {/*    </div>*/}
-        {/*    <div className="flex flex-col gap-2">*/}
-        {/*      {pickerRow}*/}
-        {/*      {timeField}*/}
-        {/*      <div className="flex flex-row gap-3 justify-center">*/}
-        {/*        <Button color="primary" isDisabled={actionSent} onPress={() => sendAction()}>*/}
-        {/*          Run*/}
-        {/*        </Button> */}
-        {/*        <Button color="danger" onPress={() => cancel()}>Cancel Action</Button> */}
-        {/*      </div>*/}
-        {/*    </div>*/}
-        {/*</div>*/}
+        {pickerRow}
+        {timeField}
+
+        <div className="flex flex-row gap-3 justify-center">
+          <Button color="primary" isDisabled={actionSent} onPress={() => sendAction()}>
+            Run
+          </Button>
+          <Button color="danger" onPress={() => cancel()}>Cancel Action</Button>
+        </div>
 
       </CardBody>
     </Card>
