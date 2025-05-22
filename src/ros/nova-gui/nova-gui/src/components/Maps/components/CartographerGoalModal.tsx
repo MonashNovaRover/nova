@@ -54,7 +54,7 @@ export const CartographerGoalModal: React.FC<{
       long: item.long,
     }));
     const types = selected.map((item) => item.goalType);
-    serviceBifrost.callServiceToRedux({ poses, types });
+    serviceBifrost.callService({ poses, types });
   };
 
   const sensors = useSensors(useSensor(PointerSensor));
