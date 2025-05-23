@@ -29,7 +29,7 @@ export const rosServiceMessages = {
   [RosService.CACHE_1]: "nova_interfaces/srv/CacheCommand",
   [RosService.CACHE_2]: "nova_interfaces/srv/CacheCommand",
   [RosService.HEATER]: "std_srvs/srv/SetBool",
+  [RosService.REQUEST_HYDRAPROBE_READING]: "std_srvs/srv/Trigger",
   [RosService.CAROUSEL]: "nova_interfaces/srv/KilnCommand",
-
   [RosService.RGBInput]: "nova_interfaces/srv/RGBInput",
 };

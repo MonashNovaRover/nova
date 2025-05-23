@@ -122,6 +122,7 @@ class HydraprobeTransceiver(UARTTransceiver):
         # decode returned values
         return self.handle(ret)
 
+
 class NewHydraprobeTransceiver():
     # reading_sets = {0: [{"base_reg": 0x0200, "num_regs": 6}], # get comms details
     #                 1: [{"base_reg": 0x0005, "num_regs": 1},    # get EC and dielectric constant
@@ -131,8 +132,8 @@ class NewHydraprobeTransceiver():
     #                     {"base_reg": 0x0005, "num_regs": 1}]}   # get temp, moisture, EC
 
     def __init__(self, port, logger, baudrate=9600, bytesize=8, parity='N', stopbits=1, retries=1, broadcast_enable=True):
-        self.client = ModbusSerialClient(port, baudrate=baudrate, bytesize=bytesize, parity=parity, stopbits=stopbits, retries=retries, broadcast_enable=broadcast_enable)
         self.logger = logger
+        self.client = ModbusSerialClient(port, baudrate=baudrate, bytesize=bytesize, parity=parity, stopbits=stopbits, retries=retries, broadcast_enable=broadcast_enable)
         if not self.client.connect():
             raise RuntimeError("Failed to run self.client.connect()")
 
@@ -143,7 +144,7 @@ class NewHydraprobeTransceiver():
             val = regs.registers[0]/100
         except AttributeError:
             val = self.read_moisture(slave)
-        
+
         return val
 
     def read_temp(self, slave=1):
@@ -153,7 +154,7 @@ class NewHydraprobeTransceiver():
             val = regs.registers[0]/100
         except AttributeError:
             val = self.read_temp(slave)
-        
+
         return val
 
     def read_ec(self, slave=1):
@@ -163,7 +164,7 @@ class NewHydraprobeTransceiver():
             val = regs.registers[0]
         except AttributeError:
             val = self.read_ec(slave)
-        
+
         return val
 
     def read_epsilon(self, slave=1):
@@ -173,18 +174,23 @@ class NewHydraprobeTransceiver():
             val = regs.registers[0]/100
         except AttributeError:
             val = self.read_temp(slave)
-        
+
         return val
 
     def read_all(self, slave=1):
+        self.logger.info("Request recieved: Starting to read values")
         client = self.client
         ec = self.read_ec(slave)
+        self.logger.info(f"EC value: {ec}")
         time.sleep(0.1)
         moisture = self.read_moisture(slave)
+        self.logger.info(f"Moisture value: {moisture}")
         time.sleep(0.1)
         temp = self.read_temp(slave)
+        self.logger.info(f"Temp value: {temp}")
         time.sleep(0.1)
         eps = self.read_epsilon(slave)
+        self.logger.info(f"Dielectric value: {eps}")
 
         return [temp, moisture, ec, eps]
 
@@ -203,7 +209,7 @@ class NewHydraprobeTransceiver():
                 raise ValueError(f"Soil type {soil} is invalid: please select one of {['sand', 'mineral', 'clay', 'organic']}")
 
         client.write_register(0x0020, soil, count=1, slave=slave)
-    
+
     def close(self):
         self.client.close()
 
