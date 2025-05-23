@@ -166,22 +166,32 @@ class TypingSequencer(Node):
             self.get_logger().warn(f'Transform of {target_frame} not available after waiting {self.timeout} seconds')
         return None
 
-    def pose_calc(self, key_transform, ee_frame, actuator_frame, stamp):
+    def pose_calc(self, key_to_base, ee_frame, actuator_frame, stamp):
         """ Given the following frames, calculates the pose to feed into the 
             path planner to move actuator of end effector offset from the key """
         # convert key transform to pose
         # TODO: fix calculation
-        key_pose = Pose()
-        key_pose.position = key_transform.transform.translation
-        key_pose.orientation = key_transform.transform.rotation
+        # key_pose = Pose()
+        # key_pose.position = key_transform.transform.translation
+        # key_pose.orientation = key_transform.transform.rotation
         # TODO: Add logic from get_transform_now_from_base_frame
-        act_to_ee = self.tf_buffer.lookup_transform(ee_frame, actuator_frame, stamp)
-        ee_to_key = tf2_geometry_msgs.do_transform_pose(key_pose, act_to_ee)
+        act_to_ee:TransformStamped = self.tf_buffer.lookup_transform(actuator_frame, ee_frame, stamp)
+        ate_pose = Pose()
+        
+        ate_pose.position = act_to_ee.transform.translation
+        ate_pose.orientation = act_to_ee.transform.rotation
+
+        act_to_ee.child_frame_id = 'john'
+        
+        self.transform_broadcaster.sendTransform(act_to_ee)
+        
+        ee_to_key = tf2_geometry_msgs.do_transform_pose(ate_pose, key_to_base)
 
         tfs = TransformStamped()
         tfs.header.frame_id = self.base_frame
         tfs.child_frame_id = 'target_' + self.keyboard_frame
         tfs.header.stamp = stamp
+        #tfs.transform = ee_to_key
         tfs.transform.translation = ee_to_key.position
         tfs.transform.rotation = ee_to_key.orientation
         self.transform_broadcaster.sendTransform(tfs)
@@ -246,7 +256,7 @@ class TypingSequencer(Node):
             # Get key transform
             key_frame = key + "_" + self.keyboard_frame
             self.get_logger().info(f'Get key: {key}')
-            key_transform = self.get_transform_from_frame(key_frame, self.ee_frame, stamp)
+            key_transform = self.get_transform_from_frame(self.base_frame, key_frame, stamp)
             if key_transform is None:
                 self.get_logger().info(f"Failed getting transform for {key}")
                 response.success = False
@@ -254,7 +264,7 @@ class TypingSequencer(Node):
 
             # Start action to move to key via path planner
             # TODO: Add error handling and fix node crashing
-            pose = self.pose_calc(key_transform, self.base_frame, self.actuator_frame, stamp)
+            pose = self.pose_calc(key_transform, self.ee_frame, self.actuator_frame, stamp)
             self.call_path_planner(pose)
             while self.path_done == False:
                 time.sleep(0.1)
