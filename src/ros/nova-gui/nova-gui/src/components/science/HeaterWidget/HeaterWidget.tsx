@@ -17,7 +17,7 @@ const HeaterWidget: React.FC<HeaterWidgetWidgetProps> = (props) => {
   const tempReadings = useSelector((state: RootState) => state.kilnData);
   const [targetTemp, setTargetTemp] = useGenericStore<number>("targetTemp");
 
-  const sendCommand = (state: boolean) => bifrost.callService({state: state, target: targetTemp});
+  const sendCommand = (state: boolean, temp: number) => bifrost.callService({state: state, target: temp});
 
   useEffect(() => {
     bifrost.syncWithTopic();
@@ -25,8 +25,10 @@ const HeaterWidget: React.FC<HeaterWidgetWidgetProps> = (props) => {
 
   const updateTargetTemp = (temp: number) => {
     setTargetTemp(temp)
-    sendCommand(tempReadings.state)
+    sendCommand(tempReadings.state, temp)
   }
+
+  const setHeaterStatus = (state: boolean) => sendCommand(state, targetTemp)
 
   return <Card {...props}>
     <CardHeader>NTC Temperature Sensors</CardHeader>
@@ -40,7 +42,7 @@ const HeaterWidget: React.FC<HeaterWidgetWidgetProps> = (props) => {
     <CardBody>
       <HeaterToggle
         currentHeaterStatus={tempReadings.state}
-        setHeaterStatus={sendCommand}
+        setHeaterStatus={setHeaterStatus}
         targetTemp={targetTemp}
         setTargetTemp={updateTargetTemp}
       />

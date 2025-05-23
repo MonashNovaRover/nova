@@ -41,7 +41,7 @@ const HeaterToggle: React.FC<HeaterToggleWidgetProps> = ({currentHeaterStatus, s
     <Slider
       value={targetInput}
       onChange={v => isArray(v) ? setTargetInput(v[0]) : setTargetInput(v)}
-      onChangeEnd={(v) => console.log(v)}
+      onChangeEnd={(v) => isArray(v) ? setTargetTemp(v[0]) : setTargetTemp(v)}
       size="lg"
       classNames={{
         label: "text-medium",
