@@ -34,34 +34,37 @@ from rclpy.action import ActionClient
 from rclpy.node import Node
 from tf2_ros import Buffer, TransformListener
 from std_srvs.srv import Trigger
-from geometry_msgs.msg import Transform
+from geometry_msgs.msg import Transform, Pose
 
+import threading
 import tf2_geometry_msgs
 
 # from arm_interfaces.action import PathTo
 from arm_interfaces.srv import KeyPosition, TypeSequence
+from nova_interfaces.action import ArmPlanPath
 
 TYPING_SEQUENCER_START = "/type_sequence/start"
 TYPING_SEQUENCER_STOP = "/type_sequence/stop"
 CONTROLLER_SWITCH_SERVICE = "/controller_manager/switch_controller"
 KEY_POSITION_SERVICE = "/arm/keyboard/pub_key_position"
-PATH_PLANNER_ACTION = "/move_to_pos"
+PATH_PLANNER_ACTION = '/arm/plan_path'
 POKEY_THING_ACTION = "/poke"
 
 class TypingSequencer(Node):
 
     def __init__(self):
         super().__init__('typing_sequencer')
-        self.sequencer_start_server = self.create_service(TypeSequence, TYPING_SEQUENCER_START, self.execute_sequencer)
+        self.sequencer_start_server = self.create_service(TypeSequence, TYPING_SEQUENCER_START, self.start_sequencer)
         self.sequencer_stop_server = self.create_service(Trigger, TYPING_SEQUENCER_STOP, self.stop_sequencer)
 
-        self.is_stopped = False
+        self.thread = None
+        self.stop_event = threading.Event()
 
         # Parameters
         self.keyboard_frame = self.declare_parameter('keyboard_frame', 'keyboard_frame').get_parameter_value().string_value
-        self.base_frame = self.declare_parameter('base_frame', 'base_link').get_parameter_value().string_value
-        self.ee_frame = self.declare_parameter('ee_frame', 'eebase').get_parameter_value().string_value
-        self.ee_dist = self.declare_parameter('arm_hover_dist', 10.0).get_parameter_value().double_value # cm to hover away from keyboard
+        self.base_frame = self.declare_parameter('base_frame', 'arm_link').get_parameter_value().string_value
+        self.ee_frame = self.declare_parameter('ee_frame', 'endeffector_kinematics').get_parameter_value().string_value
+        self.actuator_frame = self.declare_parameter('actuator_frame', 'actuator').get_parameter_value().string_value
 
         # Listen to /tf
         self.tf_buffer = Buffer()
@@ -81,8 +84,7 @@ class TypingSequencer(Node):
             self.get_logger().info(f'{KEY_POSITION_SERVICE} service not available, waiting again...')
 
         # Path planner action client
-        # TODO: Uncomment once integrated
-        # self.pplanner_client = ActionClient(self, PathTo, PATH_PLANNER_ACTION)
+        self.pplanner_client = ActionClient(self, ArmPlanPath, PATH_PLANNER_ACTION)
         
         # Pokey Thing action client
         # TODO: Uncomment once integrated
@@ -99,14 +101,14 @@ class TypingSequencer(Node):
         request = KeyPosition.Request()
         request.key = key
         request.stamp = stamp
-        future = self.kblocaliser_client.call_async(request)
-        rclpy.spin_until_future_complete(self, future)
-        return future.result()
+        response = self.kblocaliser_client.call(request)
+        return response
 
 
-    def path_to_tf(self, transform):
-        goal_msg = PathTo.Goal()
-        goal_msg.transform = transform
+    def call_path_planner(self, pose) -> bool:
+        goal_msg = ArmPlanPath.Goal()
+        goal_msg.pose = pose
+        goal_msg.duration = 5.0
 
         self.pplanner_client.wait_for_server()
         future_response = self.pplanner_client.send_goal_async(goal_msg, feedback_callback=self.handle_pp_feedback)
@@ -119,11 +121,12 @@ class TypingSequencer(Node):
         future_result = response.get_result_async()
         rclpy.spin_until_future_complete(self, future_result)
         result = future_result.result().result
-        return result
+        return result.success
 
-    def handle_pp_feedback(self, feedback_msg):
-        feedback = feedback_msg.feedback
-        self.get_logger().info('Recieved feedback: {0}'.format(feedback.status))
+    def handle_pp_feedback(self, res):
+        traversing_path = res.feedback.traversing_path
+        path_generation_progress = res.feedback.path_generation_progress
+        self.get_logger().info(f"Going? {traversing_path}, Progress: {path_generation_progress}")
     
     def do_poke(self):
         goal_msg = Trigger.Goal()
@@ -150,20 +153,56 @@ class TypingSequencer(Node):
         if stamp is None:
             stamp = self.get_clock().now() 
         start_time = self.get_clock().now()
-        while self.get_clock().now() - start_time < rclpy.duration.Duration(seconds=self.timeout):
+        while self.get_clock().now() - start_time < rclpy.duration.Duration(seconds=self.tf_timeout):
             if self.tf_buffer.can_transform(target_frame, self.base_frame, stamp):
                 transform = self.tf_buffer.lookup_transform(target_frame, self.base_frame, stamp)
                 return transform
-            time.sleep(1.0/self.poll_rate)
+            time.sleep(1.0/self.tf_poll_rate)
         else:
             self.get_logger().warn(f'Transform of {target_frame} not available after waiting {self.timeout} seconds')
         return None
 
-    def execute_sequencer(self, request, response):
-        self.is_stopped = False
-        key_sequence = request.sequence
-        self.get_logger().info(f'Beginning sequencer with the following sequence: {key_sequence}')
+    def pose_calc(self, key_transform, ee_frame, actuator_frame, stamp):
+        """ Given the following frames, calculates the pose to feed into the 
+            path planner to move actuator of end effector offset from the key """
+        # convert key transform to pose
+        key_pose = Pose()
+        key_pose.position = key_transform.transform.translation
+        key_pose.orientation = key_transform.transform.rotation
+        # TODO: Add logic from get_transform_now_from_base_frame
+        act_to_ee = self.tf_buffer.lookup_transform(ee_frame, actuator_frame, stamp)
+        ee_to_key = tf2_geometry_msgs.do_transform_pose(key_pose, act_to_ee)
+        return ee_to_key
 
+
+    def start_sequencer(self, request, response):
+        if self.thread and self.thread.is_alive():
+            response.success = False
+            response.message = "Sequencer already running."
+            self.get_logger().info("Sequencer already running")
+        else:
+            response.success = True
+            response.message = f"Sequencer successfully started with {request.sequence}"
+            self.stop_event.clear()
+            self.thread = threading.Thread(target=self.execute_sequencer, args=[request.sequence])
+            self.thread.start()
+        return response
+
+    def stop_sequencer(self, request, response):
+        if self.thread:
+            self.stop_event.set()
+            self.thread.join(timeout=1.0)
+            self.thread = None
+            self.get_logger().info("Sequencer stopped successfully.")
+            response.success = True
+            response.message = "Sequencer stopped successfully."
+        else:
+            self.get_logger().info("No sequencer running.")
+            response.success = False
+            response.message = "No sequencer running."
+        return response
+
+    def execute_sequencer(self, key_sequence):
         partial_sequence = []
 
         # Get position of EE in base link frame (Assumes operators have aligned keyboard with camera)
@@ -181,28 +220,30 @@ class TypingSequencer(Node):
         
         # Loop through the keys in the sequence
         for key in key_sequence:
+            if self.stop_event.is_set():
+                self.get_logger().info(f"Sequencer stopped at {key}")
+                return
+
             self.get_logger().info(f'Performing sequence for key: {key}')
             # Get Key transform to be published on /tf by calling keyboard localiser
             stamp = self.get_clock().now().to_msg()
             key_result = self.send_key_request(key, stamp)
-            if not key_result.success:
-                self.get_logger().error(f'Key Transform Error: {key_result.message}')
-                response.success = False
-                return response
             
             # Get key transform
             key_frame = key + "_" + self.keyboard_frame
             self.get_logger().info(f'Get key: {key}')
             key_transform = self.get_transform_now_from_base_frame(key_frame, stamp)
             if key_transform is None:
+                self.get_logger().info(f"Failed getting transform for {key}")
                 response.success = False
                 return response
-            
-            # TODO: Integrate and test this section
 
             # Start action to move to key via path planner
             # TODO: Add error handling
-            # self.path_to_tf(key_transform)
+            pose = self.pose_calc(key_transform, self.ee_frame, self.actuator_frame, stamp)
+            pp_result = self.call_path_planner(pose)
+
+            # TODO: Integrate and test this section
 
             # Activate pokey thing
             # TODO: Add error handling
@@ -228,13 +269,12 @@ class TypingSequencer(Node):
         response.success = True
         return response
 
-    def stop_sequencer(self):
-        self.is_stopped = True
 
 def main(args=None):
     rclpy.init(args=args)
     node = TypingSequencer()
     rclpy.spin(node)
+    rclpy.shutdown()
 
 
 if __name__ == '__main__':
