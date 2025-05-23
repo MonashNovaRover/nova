@@ -32,7 +32,7 @@ import time
 import rclpy
 from rclpy.action import ActionClient
 from rclpy.node import Node
-from tf2_ros import Buffer, TransformListener
+from tf2_ros import Buffer, TransformListener, TransformBroadcaster, TransformStamped
 from std_srvs.srv import Trigger
 from geometry_msgs.msg import Transform, Pose
 
@@ -72,6 +72,9 @@ class TypingSequencer(Node):
         self.tf_timeout = self.declare_parameter('timeout', 2.0).get_parameter_value().double_value       # seconds to wait between each check
         self.tf_poll_rate = self.declare_parameter('poll_rate', 10.0).get_parameter_value().double_value  # check frequency in Hz
 
+        # publish debug tf
+        self.transform_broadcaster = TransformBroadcaster(self)
+
         # Controller switcher service client
         # TODO: Uncomment once integrated
         # self.cswitcher_client = self.create_client(Trigger, CONTROLLER_SWITCH_SERVICE)
@@ -105,7 +108,7 @@ class TypingSequencer(Node):
         return response
 
 
-    def call_path_planner(self, pose) -> bool:
+    def call_path_planner(self, pose):
         goal_msg = ArmPlanPath.Goal()
         goal_msg.pose = pose
         goal_msg.duration = 5.0
@@ -119,9 +122,10 @@ class TypingSequencer(Node):
             return False
         
         future_result = response.get_result_async()
-        rclpy.spin_until_future_complete(self, future_result)
-        result = future_result.result().result
-        return result.success
+        def path_done(self):
+            self.path_done = True
+            
+        future_result.add_done_callback(path_done(self))
 
     def handle_pp_feedback(self, res):
         traversing_path = res.feedback.traversing_path
@@ -148,14 +152,14 @@ class TypingSequencer(Node):
         feedback = feedback_msg.feedback
         self.get_logger().info('Recieved feedback: {0}'.format(feedback.status))
 
-    def get_transform_now_from_base_frame(self, target_frame, stamp=None) -> Transform | None:
+    def get_transform_from_frame(self, target_frame, source_frame, stamp=None) -> Transform | None:
         self.get_logger().info(f'Getting transform of frame: {target_frame}')
         if stamp is None:
             stamp = self.get_clock().now() 
         start_time = self.get_clock().now()
         while self.get_clock().now() - start_time < rclpy.duration.Duration(seconds=self.tf_timeout):
-            if self.tf_buffer.can_transform(target_frame, self.base_frame, stamp):
-                transform = self.tf_buffer.lookup_transform(target_frame, self.base_frame, stamp)
+            if self.tf_buffer.can_transform(target_frame, source_frame, stamp):
+                transform = self.tf_buffer.lookup_transform(target_frame, source_frame, stamp)
                 return transform
             time.sleep(1.0/self.tf_poll_rate)
         else:
@@ -166,12 +170,22 @@ class TypingSequencer(Node):
         """ Given the following frames, calculates the pose to feed into the 
             path planner to move actuator of end effector offset from the key """
         # convert key transform to pose
+        # TODO: fix calculation
         key_pose = Pose()
         key_pose.position = key_transform.transform.translation
         key_pose.orientation = key_transform.transform.rotation
         # TODO: Add logic from get_transform_now_from_base_frame
         act_to_ee = self.tf_buffer.lookup_transform(ee_frame, actuator_frame, stamp)
         ee_to_key = tf2_geometry_msgs.do_transform_pose(key_pose, act_to_ee)
+
+        tfs = TransformStamped()
+        tfs.header.frame_id = self.base_frame
+        tfs.child_frame_id = 'target_' + self.keyboard_frame
+        tfs.header.stamp = stamp
+        tfs.transform.translation = ee_to_key.position
+        tfs.transform.rotation = ee_to_key.orientation
+        self.transform_broadcaster.sendTransform(tfs)
+
         return ee_to_key
 
 
@@ -206,7 +220,7 @@ class TypingSequencer(Node):
         partial_sequence = []
 
         # Get position of EE in base link frame (Assumes operators have aligned keyboard with camera)
-        # ee_transform = self.get_transform_now_from_base_frame(self.ee_frame)
+        # ee_transform = self.get_transform_from_frame(self.ee_frame, self.base_frame)
         # if ee_transform is None:
         #     response.success = False
         #     return response
@@ -232,16 +246,19 @@ class TypingSequencer(Node):
             # Get key transform
             key_frame = key + "_" + self.keyboard_frame
             self.get_logger().info(f'Get key: {key}')
-            key_transform = self.get_transform_now_from_base_frame(key_frame, stamp)
+            key_transform = self.get_transform_from_frame(key_frame, self.ee_frame, stamp)
             if key_transform is None:
                 self.get_logger().info(f"Failed getting transform for {key}")
                 response.success = False
                 return response
 
             # Start action to move to key via path planner
-            # TODO: Add error handling
-            pose = self.pose_calc(key_transform, self.ee_frame, self.actuator_frame, stamp)
-            pp_result = self.call_path_planner(pose)
+            # TODO: Add error handling and fix node crashing
+            pose = self.pose_calc(key_transform, self.base_frame, self.actuator_frame, stamp)
+            self.call_path_planner(pose)
+            while self.path_done == False:
+                time.sleep(0.1)
+            self.path_done = False
 
             # TODO: Integrate and test this section
 
@@ -265,9 +282,7 @@ class TypingSequencer(Node):
         #     response.success = False
         #     return response
         self.get_logger().info(f'Sequencer Complete! {partial_sequence}')
-
-        response.success = True
-        return response
+        return
 
 
 def main(args=None):
