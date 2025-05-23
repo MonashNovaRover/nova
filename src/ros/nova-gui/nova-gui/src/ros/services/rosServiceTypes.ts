@@ -121,11 +121,14 @@ export interface RosServiceInterface {
       IRosStdSrvsSetBoolRequest,
       IRosStdSrvsSetBoolResponse
   >;
+  [RosService.REQUEST_HYDRAPROBE_READING]: RosServiceMessage<
+      EmptyMessage,
+      IRosStdSrvsTriggerResponse
+  >;
   [RosService.CAROUSEL]: RosServiceMessage<
     IRosNovaInterfacesKilnCommandRequest,
     IRosNovaInterfacesKilnCommandResponse
   >;
-
   [RosService.RGBInput]: RosServiceMessage<
       IRosNovaInterfacesRgbInputRequest,
       IRosNovaInterfacesRgbInputResponse
