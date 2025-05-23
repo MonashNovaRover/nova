@@ -126,6 +126,12 @@ protected:
   std::vector<double> get_state_pos_values();
 
   /**
+   * Gets the state of each joint, but for the action execution thread
+   * @return
+   */
+  std::vector<double> get_state_pos_values_non_rt();
+
+  /**
    * @brief Creates an rclcpp::Node to give to the kinematics_sovler_ plugin, as we can't give it an
    * rclcpp_lifecycle::LifecycleNode::SharedPtr (superclass of the controller).
    */
@@ -209,7 +215,7 @@ protected:
 
   void execute_action(std::shared_ptr<GoalHandleArmPlanPath> goal_handle);
 
-  bool try_get_pose_from_forward_kinematics(const std::vector<double> &joint_positions,
+  bool try_get_pose_from_forward_kinematics(std::vector<double> joint_positions,
                                             Eigen::Isometry3d &result);
 
   /**
@@ -217,7 +223,7 @@ protected:
    * path_ptr_.
    */
   bool generate_path(Eigen::Isometry3d &start, Eigen::Isometry3d &end,
-                     std::vector<double> &last_joint_pose, double execution_time);
+                     std::vector<double> &last_pushed_pose, double execution_time);
 
   /**
    * @brief gets a lock on the path_mutex_, then sets the path_ptr_ to nullptr. Also resets is_path_being_executed_.
@@ -235,7 +241,7 @@ protected:
 
   static Eigen::Isometry3d lerp3(Eigen::Isometry3d a, Eigen::Isometry3d b, Eigen::Isometry3d c, Eigen::Isometry3d d, double t);
 
-  static std::vector<double> lerp(const std::vector<double>& a, const std::vector<double>& b, double& t);
+  static std::vector<double> lerp(const std::vector<double>& a, const std::vector<double>& b, const double& t);
 
   /// Holds command and state interfaces for each joint
   std::vector<JointHandle> registered_joint_handles_;
@@ -247,6 +253,7 @@ protected:
   // Path input
   rclcpp_action::Server<nova_interfaces::action::ArmPlanPath>::SharedPtr action_server_;
   realtime_tools::RealtimeBox<std::shared_ptr<std::queue<std::vector<double>>>> path_ptr_{nullptr};
+  realtime_tools::RealtimeBox<std::shared_ptr<std::vector<double>>> current_jps_ptr_{nullptr};
   std::mutex path_mutex_;
   std::atomic<bool> is_path_being_executed_{false};
 

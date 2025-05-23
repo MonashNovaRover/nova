@@ -41,11 +41,11 @@ def launch_setup(context, *args, **kwargs):
     use_mock_hardware = LaunchConfiguration('use_mock_hardware')
 
     return [
-        Node( # TODO: only when arm is enabled
-            package='controller_manager',
-            executable='spawner',
-            arguments=['nova_arm_position_controller']
-        ),
+        # Node( # TODO: only when arm is enabled
+        #     package='controller_manager',
+        #     executable='spawner',
+        #     arguments=['nova_arm_position_controller']
+        # ),
         Node( # TODO: only when arm is enabled
             package='controller_manager',
             executable='spawner',

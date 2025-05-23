@@ -377,14 +377,14 @@
     name="$(arg prefix)_j5"
     type="revolute">
     <origin
-      xyz="0.00022562 0.10236 0.020578"
-      rpy="0 1.5708 0" />
+      xyz="0.00022562 -0.020578 0.10236"
+      rpy="1.5708 0 1.5708" />
     <parent
-      link="$(arg prefix)_j4_to_j5" />
+      link="j5_fixer" />
     <child
       link="$(arg prefix)_j5_to_j6" />
     <axis
-      xyz="0 1 0" />
+      xyz="0 0 1" />
     <limit
       lower="-1.88"
       upper="2.45"
@@ -452,6 +452,16 @@
 
 
   <!-- Kinematics -->
+  <link name="j5_fixer"/>
+  <joint name="j5_fixer_joint" type="fixed">
+    <origin xyz="0.0 0.0 0.0" rpy="-1.5708 0.0 0.0" />
+    <parent link="$(arg prefix)_j4_to_j5" />
+    <child link="j5_fixer" />
+  </joint>
+
+
+
+
   <link name="arm_kinematics_origin"/>
   <joint name="arm_kinematics_origin_joint" type="fixed">
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />

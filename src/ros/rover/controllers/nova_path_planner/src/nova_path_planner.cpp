@@ -107,14 +107,40 @@ namespace nova_path_planner
     path_ptr_.get(path);
 
     if (!path || path->empty()) {
+      RCLCPP_INFO_THROTTLE(logger, *get_node()->get_clock(), 2000, "Executor has no points to send.");
+
+      const auto current_jps = std::make_shared<std::vector<double>>();
+
+      current_jps->reserve(registered_joint_handles_.size());
+      for (auto& joint_handle : registered_joint_handles_)
+        current_jps->emplace_back(joint_handle.state_pos.get().get_value());
+
+      current_jps_ptr_.set(current_jps);
+
       return controller_interface::return_type::OK;
     }
+
+    const auto path_size = path->size();
 
     const auto command = path->front();
     path->pop();
 
+    RCLCPP_INFO(get_node()->get_logger(), "command: [%f,%f,%f,%f,%f,%f]",
+      command[0],
+      command[1],
+      command[2],
+      command[3],
+      command[4],
+      command[5]);
+
+    RCLCPP_INFO_THROTTLE(logger, *get_node()->get_clock(), 10, "Popped path point from queue, to be sent to the "
+                                                                "command interfaces. (size of %lu points)", path_size);
+
     // Apply solution to command interfaces
     for (size_t i = 0; i < command.size(); i++) {
+
+
+
       registered_joint_handles_[i].command.get().set_value(command[i]);
     }
 
@@ -254,7 +280,7 @@ namespace nova_path_planner
     srdf_stream << "  <group name=\"" << joint_group_name << "\">\n";
     for (const auto& joint : params_.joint_names)
       srdf_stream << "    <joint name=\"" << joint << "\"/>\n";
-    srdf_stream << "    <chain base_link=\"" << params_.kinematics_base_frame << "\" tip_link=\"" << params_.kinematics_endeffector_frame << "\" />\n";
+    // srdf_stream << "    <chain base_link=\"" << params_.kinematics_base_frame << "\" tip_link=\"" << params_.kinematics_endeffector_frame << "\" />\n";
     srdf_stream << "  </group>\n";
     srdf_stream << "</robot>\n";
     auto srdf_string = srdf_stream.str();
@@ -342,16 +368,18 @@ namespace nova_path_planner
     for (auto& joint : registered_joint_handles_) {
       joint.command.get().set_value(joint.state_pos.get().get_value());
     }
+    RCLCPP_INFO(get_node()->get_logger(), "Initial path_planner pose set from forward kinematics.");
 
     // Create the action server
     action_server_ = rclcpp_action::create_server<ArmPlanPath>(
-      kinematics_compat_node_,
+      get_node(),
       params_.action_name,
       std::bind(&NovaPathPlanner::handle_action_goal, this, _1, _2),
       std::bind(&NovaPathPlanner::handle_action_cancelled, this, _1),
       std::bind(&NovaPathPlanner::handle_action_accepted, this, _1));
 
-    RCLCPP_INFO(get_node()->get_logger(), "Initial path_planner pose set from forward kinematics.");
+    RCLCPP_INFO(get_node()->get_logger(), "Path planner action server created");
+
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -529,6 +557,17 @@ namespace nova_path_planner
     return joint_values;
   }
 
+  std::vector<double> NovaPathPlanner::get_state_pos_values_non_rt() {
+    std::shared_ptr<std::vector<double>> current_jps;
+    current_jps_ptr_.get(current_jps);
+
+    if (!current_jps) {
+      return get_state_pos_values();
+    }
+
+    return *current_jps.get();
+  }
+
   rclcpp::Node::SharedPtr NovaPathPlanner::create_compat_node_from_lifecycle(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr &lifecycle_node) {
     RCLCPP_INFO(get_node()->get_logger(), "Creating compatability node");
@@ -678,6 +717,8 @@ namespace nova_path_planner
   rclcpp_action::GoalResponse NovaPathPlanner::handle_action_goal(const rclcpp_action::GoalUUID &uuid,
                                                                   std::shared_ptr<const ArmPlanPath::Goal> goal) {
     auto logger = get_node()->get_logger();
+    RCLCPP_INFO(logger, "Processing new hand_action_goal..");
+
     if (is_path_being_executed_) {
       RCLCPP_ERROR(logger, "Goal rejected because a path is already being executed.");
       return rclcpp_action::GoalResponse::REJECT;
@@ -691,6 +732,8 @@ namespace nova_path_planner
 
   void NovaPathPlanner::handle_action_accepted(const std::shared_ptr<GoalHandleArmPlanPath>& goal_handle) {
     // this needs to return quickly to avoid blocking the executor, so spin up a new thread
+    auto logger = get_node()->get_logger();
+    RCLCPP_INFO(logger, "Spinning up new thread to handle the action!");
     std::thread{std::bind(&nova_path_planner::NovaPathPlanner::execute_action, this, _1), goal_handle}.detach();
   }
 
@@ -703,13 +746,13 @@ namespace nova_path_planner
 
   void NovaPathPlanner::execute_action(const std::shared_ptr<GoalHandleArmPlanPath> goal_handle) {
     auto logger = get_node()->get_logger();
-    RCLCPP_INFO(logger, "Executing goal");
+    RCLCPP_INFO(logger, "Planning thread started! Planning to the given goal...");
     const auto goal = goal_handle->get_goal();
     auto result = std::make_shared<ArmPlanPath::Result>();
     auto feedback = std::make_shared<ArmPlanPath::Feedback>();
 
     // Set up for path planning
-    auto last_joint_pose = get_state_pos_values();
+    auto last_joint_pose = get_state_pos_values_non_rt();
 
     // Get start position as the current position of the arm using forward kinematics
     Eigen::Isometry3d start;
@@ -740,6 +783,8 @@ namespace nova_path_planner
       return;
     }
 
+    RCLCPP_INFO(logger, "Finished planning! Now attempting to execute the path...");
+
     // Provide feedback
     feedback->traversing_path = true;
     feedback->path_generation_progress = 1.0;
@@ -747,6 +792,7 @@ namespace nova_path_planner
 
     // Wait for the path to be executed
     bool executing_path = true;  // Becomes false when the queue in path_ptr_ becomes empty
+
 
     while (executing_path) {
       if (goal_handle->is_canceling()) {
@@ -763,12 +809,16 @@ namespace nova_path_planner
       }
 
       { // mutex owning block
-        std::unique_lock<std::mutex> lock(path_mutex_);
+        // std::unique_lock<std::mutex> lock(path_mutex_);
 
         std::shared_ptr<std::queue<std::vector<double>>> current_path;
         path_ptr_.get(current_path);
 
         executing_path = current_path && !current_path->empty();
+
+        if (!current_path) {
+          RCLCPP_WARN(logger, "The current_path shared pointer became unset!");
+        }
       } // Release mutex
 
       // TODO: Verify this actually permits other threads
@@ -777,10 +827,10 @@ namespace nova_path_planner
 
     clear_path_ptr();
     goal_handle->succeed(result);
-    RCLCPP_INFO(logger, "Goal succeeded");
+    RCLCPP_INFO(logger, "Goal succeeded!");
   }
 
-  bool NovaPathPlanner::try_get_pose_from_forward_kinematics(const std::vector<double> &joint_positions,
+  bool NovaPathPlanner::try_get_pose_from_forward_kinematics(const std::vector<double> joint_positions,
                                                              Eigen::Isometry3d &result) {
     std::vector<geometry_msgs::msg::Pose> fk_poses;
     auto success = kinematics_solver_->getPositionFK({params_.kinematics_endeffector_frame},
@@ -801,56 +851,127 @@ namespace nova_path_planner
   }
 
   bool NovaPathPlanner::generate_path(Eigen::Isometry3d &start, Eigen::Isometry3d &end,
-                                      std::vector<double> &last_joint_pose, double execution_time) {
+                                      std::vector<double> &last_pushed_pose, double execution_time) {
     auto logger = get_node()->get_logger();
 
     // Calculate number of points
     double frequency = get_update_rate();
-    int pose_count_minus_one = static_cast<int>(floor(execution_time / frequency));
+    int pose_count_minus_one = static_cast<int>(floor(execution_time * frequency));
     int pose_count = pose_count_minus_one + 1;
+
+    int joint_pose_count_per_ik = 0;
 
     // Handles for a cubic bezier spline
     const Eigen::Isometry3d& handle0 = start;
     const Eigen::Isometry3d handle1 = end;
 
+    auto last_pose_msg = tf2::toMsg(start);
+
+    RCLCPP_INFO(logger, "Generating %d points", pose_count);
+
+    RCLCPP_INFO(logger, "start translation: [%f,%f,%f] ",
+      start.translation().x(),
+      start.translation().y(),
+      start.translation().z()
+      );
+
+
     // Plan the path
     auto path = std::make_shared<std::queue<std::vector<double>>>();
-    for (int i = 0; i < pose_count; i++) {
-      const auto t = static_cast<double>(i) / pose_count_minus_one;
+    path_ptr_.set(path);
+    for (int i = 0; i < pose_count; i += joint_pose_count_per_ik + 1) {
+      RCLCPP_INFO(logger, "------------------------------");
 
-      // Calculate as cubic bezier curve
-      Eigen::Isometry3d pose = lerp3(start, handle0, handle1, end, t);
+      const auto total_remaining_points = pose_count - i;
+      const int joint_interpolated_jps_count = std::max(std::min(joint_pose_count_per_ik, total_remaining_points - 1), 0);
+
+      // const auto ik_t = static_cast<double>(i + joint_interpolated_jps_count + 1) / pose_count;
+      const auto ik_t = static_cast<double>(i) / static_cast<double>(pose_count_minus_one);
+
+      // Calculate as cubic bezier curve to get the ik pose to interpolate to
+      Eigen::Isometry3d pose = lerp3(start, handle0, handle1, end, ik_t);
 
       std::vector<double> solution;
       geometry_msgs::msg::Pose pose_msg = tf2::toMsg(pose);
       moveit_msgs::msg::MoveItErrorCodes error_codes;
 
-      auto ik_result = kinematics_solver_->searchPositionIK(pose_msg, last_joint_pose, params_.kinematics_solver_timeout, solution, error_codes);
+      RCLCPP_INFO(logger, " [%f,%f,%f, %f,%f,%f,%f] ->  \n [%f,%f,%f, %f,%f,%f,%f]",
+        last_pose_msg.position.x,
+        last_pose_msg.position.y,
+        last_pose_msg.position.z,
+        last_pose_msg.orientation.x,
+        last_pose_msg.orientation.y,
+        last_pose_msg.orientation.z,
+        last_pose_msg.orientation.w,
+        pose_msg.position.x,
+        pose_msg.position.y,
+        pose_msg.position.z,
+        pose_msg.orientation.x,
+        pose_msg.orientation.y,
+        pose_msg.orientation.z,
+        pose_msg.orientation.w);
+
+      auto ik_result = kinematics_solver_->searchPositionIK(pose_msg, last_pushed_pose, params_.kinematics_solver_timeout, solution, error_codes);
 
       if (!ik_result) {
         RCLCPP_FATAL(logger, "Failed to find solution to inverse kinematics at t=%f: error code %d (\"%s\"). %s",
-                             t, error_codes.val, moveit::core::errorCodeToString(error_codes).c_str(),
+                             ik_t, error_codes.val, moveit::core::errorCodeToString(error_codes).c_str(),
                              error_codes.message.c_str());
         return false;
       }
 
-      if (check_path_for_self_intersection(last_joint_pose, solution)) {
-        RCLCPP_FATAL(logger, "Inverse Kinematics solution self intersects for t=%f!", t);
+      RCLCPP_INFO(logger, "[%f,%f,%f,%f,%f,%f],  ->  [%f,%f,%f, %f,%f,%f,%f] ",
+        last_pushed_pose[0],
+        last_pushed_pose[1],
+        last_pushed_pose[2],
+        last_pushed_pose[3],
+        last_pushed_pose[4],
+        last_pushed_pose[5],
+        solution[0],
+        solution[1],
+        solution[2],
+        solution[3],
+        solution[4],
+        solution[5]
+        );
+
+      // Generate joint space interpolated points
+      // for (int j = 0; j < joint_interpolated_jps_count; j++) {
+      //   // Never reaches 1, leaving room for the actual IK point
+      //   const auto joint_t = static_cast<double>(j) / joint_interpolated_jps_count;
+      //   const auto joint_solution = lerp(last_pushed_pose, solution, joint_t);
+      //
+      //   // TODO: Replace with checks between all generated points in this iteration instead
+      //   if (check_path_for_self_intersection(last_pushed_pose, joint_solution)) {
+      //     RCLCPP_FATAL(logger, "Inverse Kinematics solution self intersects for t=%f, t_joint=%f!", ik_t, joint_t);
+      //     return false;
+      //   }
+      //
+      //   last_pushed_pose = joint_solution;
+      //   path->push(joint_solution);
+      // }
+
+      // Check for intersections between the last joint pose and the ik pose
+      if (check_path_for_self_intersection(last_pushed_pose, solution)) {
+        RCLCPP_FATAL(logger, "Inverse Kinematics solution self intersects for t=%f!", ik_t);
         return false;
       }
 
-      last_joint_pose = solution;
+      last_pushed_pose = solution;
+      last_pose_msg = pose_msg;
       path->push(solution);
 
       // TODO: Verify this actually permits other threads
       std::this_thread::yield();
     }
 
+    RCLCPP_INFO(logger, "Generated %lu points", path->size());
+
     // Give to the realtime thread to be executed physically by the control loop
-    { // mutex owning block
-      std::unique_lock<std::mutex> lock(path_mutex_);
-      path_ptr_.set(path);
-    } // Release mutex
+    // { // mutex owning block
+      // std::unique_lock<std::mutex> lock(path_mutex_);
+    // } // Release mutex
+    RCLCPP_INFO(logger, "Set shared path pointer to proposed path");
 
     return true;
   }
@@ -906,7 +1027,7 @@ namespace nova_path_planner
     return result;
   }
 
-  inline std::vector<double> NovaPathPlanner::lerp(const std::vector<double>& a, const std::vector<double>& b, double& t) {
+  inline std::vector<double> NovaPathPlanner::lerp(const std::vector<double>& a, const std::vector<double>& b, const double& t) {
     const auto length = std::min(a.size(), b.size());
     const auto one_minus_t = 1 - t;
 
