@@ -81,7 +81,7 @@
         </state_interface>
         <state_interface name="position">
           <param name="max">12.5663706144</param>
-          <param name="initial_value">0.0</param>
+          <param name="initial_value">0.523</param>
         </state_interface>
       </joint>
     </ros2_control>
@@ -117,7 +117,7 @@
         </state_interface>
         <state_interface name="position">
           <param name="max">12.5663706144</param>
-          <param name="initial_value">0.0</param>
+          <param name="initial_value">-1.57</param>
         </state_interface>
       </joint>
     </ros2_control>
@@ -153,7 +153,7 @@
         </state_interface>
         <state_interface name="position">
           <param name="max">12.5663706144</param>
-          <param name="initial_value">0.0</param>
+          <param name="initial_value">-0.785</param>
         </state_interface>
       </joint>
     </ros2_control>
