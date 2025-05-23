@@ -54,9 +54,9 @@ class URCCache(ControllerNode):
     #   - 0x80 (90 degrees)
     #   - 0xFF (179 degrees)
     POSITION_DEFAULTS = {
-        DEG_0: 0,
+        DEG_0: 179,
         DEG_90: 90,
-        DEG_180: 179,
+        DEG_180: 0,
     }
 
     POSITION_PARAMS = {
