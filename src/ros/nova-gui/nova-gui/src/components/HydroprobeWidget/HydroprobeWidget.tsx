@@ -53,22 +53,22 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
     <CardBody className="gap-4">
       <div className="grid grid-cols-2 grid-rows-2 gap-4">
         <div className="text-center">
-          <OverlayedProgress size="lg" label="Temperature" value={temperature}>
+          <OverlayedProgress size="lg" label="Temperature" aria-label="Temperature" value={temperature}>
             {temperature.toFixed(2)} °C
           </OverlayedProgress>
         </div>
         <div className="text-center">
-          <OverlayedProgress size="lg" label="Moisture" value={moisture}>
+          <OverlayedProgress size="lg" label="Moisture" aria-label="Moisture" value={moisture}>
             {moisture.toFixed(2)} %
           </OverlayedProgress>
         </div>
         <div className="text-center">
-          <OverlayedProgress size="lg" label="Conductivity" value={conductivity}>
+          <OverlayedProgress size="lg" label="Conductivity" aria-label="Conductivity" value={conductivity}>
             {conductivity.toFixed(2)} mS/cm
           </OverlayedProgress>
         </div>
         <div className="text-center">
-          <OverlayedProgress size="lg" label="Dielectric" value={dielectric}>
+          <OverlayedProgress size="lg" label="Dielectric" aria-label="Dielectric" value={dielectric}>
             {dielectric.toFixed(2)}
           </OverlayedProgress>
         </div>

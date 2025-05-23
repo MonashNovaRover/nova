@@ -26,22 +26,22 @@ const BMESensor: React.FC<IBMESensorProps> = (
     const BMESensorCardBody = (
       <CardBody className="grid grid-cols-2 grid-rows-2 gap-4">
         <div className="text-center">
-          <OverlayedProgress size="lg" label="Temperature" value={temperature}>
+          <OverlayedProgress size="lg" label="Temperature" aria-label="Temperature" value={temperature}>
             {temperature.toFixed(2)} °C
           </OverlayedProgress>
         </div>
         <div className="text-center">
-          <OverlayedProgress size="lg" label="Humidity" value={humidity}>
+          <OverlayedProgress size="lg" label="Humidity" aria-label="Humidity" value={humidity}>
             {humidity.toFixed(2)} %
           </OverlayedProgress>
         </div>
         <div className="text-center">
-          <OverlayedProgress size="lg" label="Pressure" value={pressure}>
+          <OverlayedProgress size="lg" label="Pressure" aria-label="Pressure" value={pressure}>
             {pressure} hPa
           </OverlayedProgress>
         </div>
         <div className="text-center">
-          <OverlayedProgress size="lg" label="Altitude" value={altitude}>
+          <OverlayedProgress size="lg" label="Altitude" aria-label="Altitude" value={altitude}>
             {altitude}
           </OverlayedProgress>
         </div>
