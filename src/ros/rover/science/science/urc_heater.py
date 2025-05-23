@@ -37,6 +37,7 @@ class URCHeater(ControllerNode):
         super().__init__(name="urc_heater", can_bus=self.CAN_BUS)
         logger = self.get_logger()
 
+        self.is_active = False
         self.target_temp = 50
 
         # Add Controls and Controllers
@@ -72,18 +73,18 @@ class URCHeater(ControllerNode):
         self.create_service(KilnCommand, self.HEATER_SERVICE, self.toggle_callback)
 
         self.NTC_publisher = self.create_publisher(KilnData, self.NTC_TOPIC, 10)
-        self.create_timer(0.5, self.publish_data)
+        self.publish_timer = self.create_timer(0.5, self.publish_data)
 
         self.start_can()
 
     def check_temp(self, temp: int):
         """ Turn off the kiln if the temperature has been reached """
-        if not self.heater_control.is_on():
-            return
-
-        if self.target_temp < temp:
+        self.get_logger().info(f"target: {self.target_temp} | current temp: {temp}")
+        if self.target_temp > temp:
+            self.get_logger().info("Sending heat ON")
             self.heater_control.start()
         else:
+            self.get_logger().info("Sending heat OFF")
             self.heater_control.stop()
 
     def publish_data(self):
@@ -91,20 +92,22 @@ class URCHeater(ControllerNode):
         heater_data = self.heater_sensor.get_sensor_value()
         dirt_data = self.dirt_sensor.get_sensor_value()
 
-        msg = KilnData()
-        msg.state = self.heater_control.is_on()
-        msg.temp = [heater_data, dirt_data]
+        if self.is_active:
+            self.check_temp(heater_data)
 
-        self.check_temp(heater_data)
+        msg = KilnData()
+        msg.state = self.is_active
+        msg.temp = [heater_data, dirt_data]
+        self.NTC_publisher.publish(msg)
 
     def toggle_callback(self, request: KilnCommand_Request, response: KilnCommand_Response) -> KilnCommand_Response:
         """ Turn the kiln on/off and set the target temperature """
-        if request.state and not self.heater_control.is_on():
+        if request.state and not self.is_active:
             self.get_logger().info("Turning Heater ON")
-            self.heater_control.start()
-        elif not request.state and self.heater_control.is_on():
+            self.is_active = True
+        elif not request.state and self.is_active:
             self.get_logger().info("Turning Heater OFF")
-            self.heater_control.stop()
+            self.is_active = False
 
         self.target_temp = request.target
         self.get_logger().info(f'Target temp: {self.target_temp}')
