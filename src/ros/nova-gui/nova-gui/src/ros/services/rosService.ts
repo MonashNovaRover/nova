@@ -33,6 +33,6 @@ export enum RosService {
   CACHE_2 = "/science/cache_command_2",
   HEATER = "/science/heater",
   CAROUSEL = "/science/carousel_service",
-
   RGBInput = "/set_RGBInput",
+  REQUEST_HYDRAPROBE_READING = "/science/request_hydraprobe_reading",
 }

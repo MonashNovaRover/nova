@@ -74,6 +74,7 @@ install(PROGRAMS
   science/urc_bme_sensor.py
   science/urc_mixers.py
   science/urc_uv_vis_leds.py
+  science/hydraprobe_trigger_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
