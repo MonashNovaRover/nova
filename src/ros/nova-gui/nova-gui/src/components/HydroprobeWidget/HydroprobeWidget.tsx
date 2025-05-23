@@ -31,8 +31,6 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
 
   const requestReading = () => {
     serviceBifrost.callService({}, {
-      // sendToRedux: false,
-      // responseToast: true
     });
   };
 
