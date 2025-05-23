@@ -76,9 +76,6 @@ list(APPEND plugin_libs nova_remove_passed_urc_goals_action_bt_node)
 add_library(nova_update_urc_goals_action_bt_node SHARED plugins/action/update_urc_goals_action.cpp)
 list(APPEND plugin_libs nova_update_urc_goals_action_bt_node)
 
-add_library(nova_urc_goals_found_action_bt_node SHARED plugins/action/urc_goals_found_action.cpp)
-list(APPEND plugin_libs nova_urc_goals_found_action_bt_node)
-
 add_library(nova_snap_in_collision_goals_action_bt_node SHARED plugins/action/snap_in_collision_goals_action.cpp)
 list(APPEND plugin_libs nova_snap_in_collision_goals_action_bt_node)
 
