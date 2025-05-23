@@ -41,8 +41,6 @@ class HydraprobeTriggerNode(Node):
     # Serial port and soil type parameters
     # Should be the orin port
     DEFAULT_PORT = "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AU0K3IZ3-if00-port0"
-    # MY PORT
-    # DEFAULT_PORT = "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AQ018NTV-if00-port0"
     DEFAULT_SOIL = "sand"
 
     def __init__(self):
@@ -106,11 +104,6 @@ class HydraprobeTriggerNode(Node):
             msg.moisture = float(values[1])
             msg.conductivity = float(values[2])
             msg.dielectric = float(values[3])
-
-#             msg.temperature = 25.0
-#             msg.moisture = 25.0
-#             msg.conductivity = 25.0
-#             msg.dielectric = 25.0
 
             self.last_reading = msg  # save for repeated publishing
             self.publisher.publish(msg)
