@@ -1,18 +1,21 @@
 #ifndef NOVA_BEHAVIOR_TREE__PLUGINS__CONDITION__AR_TAG_DETECTED_CONDITION_HPP_
 #define NOVA_BEHAVIOR_TREE__PLUGINS__CONDITION__AR_TAG_DETECTED_CONDITION_HPP_
 
+#include <string>
+#include <vector>
+#include <cstdlib>
+#include <functional>
+#include <queue>
+
 #include <aruco_opencv_msgs/msg/aruco_detection.hpp>
 #include <behaviortree_cpp/basic_types.h>
-#include <functional>
-#include <rclcpp/callback_group.hpp>
-#include <rclcpp/executors/multi_threaded_executor.hpp>
-#include <rclcpp/subscription.hpp>
-#include <string>
-#include <cstdlib>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/pose.hpp>
 #include <rclcpp/rclcpp.hpp>
-#include <vector>
+#include <rclcpp/callback_group.hpp>
+#include <rclcpp/executors/multi_threaded_executor.hpp>
+#include <rclcpp/subscription.hpp>
+
 #include "behaviortree_cpp/condition_node.h"
 
 
@@ -25,8 +28,7 @@ namespace nova_behavior_tree
   class ARTagDetectedCondition : public BT::ConditionNode
   {
   public:
-    typedef std::vector<int> IDs;
-    typedef std::vector<geometry_msgs::msg::PoseStamped> Goals;
+    typedef geometry_msgs::msg::PoseStamped Goal;
 
     /**
      * @brief A constructor for nova_behavior_tree::ARTagDetectedCondition
@@ -58,7 +60,9 @@ namespace nova_behavior_tree
     {
       return 
       {
-        BT::OutputPort<geometry_msgs::msg::PoseStamped>("goal", "Pose of detected goal"),
+        BT::InputPort<int>("min_detections", 2, "Minimum number of detections within buffer time to be considered valid"),
+        BT::InputPort<double>("buffer_time", 5.0, "Keep track of detections in the last n seconds"),
+        BT::OutputPort<Goal>("goal", "Detected AR tag pose"),
       };
     }
 
@@ -75,17 +79,18 @@ namespace nova_behavior_tree
     bool detected();
 
     rclcpp::Node::SharedPtr node_;
-
-    bool initialized_ = false;
-
-    int goal_id_;
-    std_msgs::msg::Header goal_header_;
-    geometry_msgs::msg::Pose goal_pose_;
-    bool goal_found_ = false;
-
     rclcpp::CallbackGroup::SharedPtr callback_group_;
     rclcpp::executors::MultiThreadedExecutor callback_group_executor_;
     rclcpp::Subscription<aruco_opencv_msgs::msg::ArucoDetection>::SharedPtr sub_ar_tag_;
+
+    int goal_id_;
+    Goal goal_;
+    bool goal_found_ = false;
+    int min_detections_;
+    double buffer_time_;
+    std::queue<Goal> detections_buffer_;
+    
+    bool initialized_ = false;
   };
 
 } // namespace nova_behavior_tree

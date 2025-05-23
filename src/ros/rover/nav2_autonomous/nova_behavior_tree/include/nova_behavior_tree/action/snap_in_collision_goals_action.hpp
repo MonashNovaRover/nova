@@ -50,6 +50,11 @@ struct SearchResult {
   int search_radius;
 };
 
+struct TowardPoint {
+  Point point; // The point to which the original goal was pointed towards
+  PoseStamped goal; // The original goal
+};
+
 class SnapInCollisionGoalsAction : public BT::ActionNodeBase
 {
 public:
@@ -87,9 +92,8 @@ public:
   static BT::PortsList providedPorts()
   {
     return {
-      BT::InputPort<double>("goals_offset", 1.0, "Approximate distance goals are offset"),
+      BT::InputPort<double>("goals_offset" "Approximate distance goals are offset"),
       BT::InputPort<double>("max_snap_radius", 5.0, "Maximum radius (m) to snap goals to"),
-      BT::InputPort<int>("removed_goals_count", "The number of goals removed since this node was last ticked"),
       BT::InputPort<Goals>("input_goals", "Original goals to snap if in collision"),
       BT::OutputPort<Goals>("output_goals", "Goals with all in collision goals snapped"),
     };
@@ -113,10 +117,9 @@ private:
   OccupancyGrid::SharedPtr global_occu_grid_;
   
   double goals_offset_;
-  std::vector<Point> toward_points_;
+  std::vector<TowardPoint> toward_points_;
   double max_snap_radius_;
   double footprint_radius_;
-  int removed_goals_count_;
   Goals input_goals_;
   
   bool initialized_ = false;

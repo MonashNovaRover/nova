@@ -41,11 +41,12 @@
                     </RunOnce>
                     <Sequence>
                       <ARTagDetected _skipIf="type != 1"
+                                      min_detections="2"
+                                      buffer_time="5.0"
                                       goal="{detected_goal}"/>
                       <UpdateURCGoals detected_goal="{detected_goal}"
                                       current_pose="{current_pose}"
-                                      max_update_radius="0.5"
-                                      offset_radius="0.3"
+                                      max_update_radius="1.0"
                                       input_goals="{goals}"
                                       output_goals="{goals}"/>
                     </Sequence>
@@ -55,13 +56,10 @@
               <ReactiveSequence>
                 <RemovePassedURCGoals input_goals="{goals}"
                                       position_tolerance="1.0"
-                                      orientation_tolerance="0.25"
+                                      orientation_tolerance="0.35"
                                       output_goals="{goals}"
-                                      dist_to_goal="{dist_to_goal}"
-                                      removed_goals_count="{removed_goals_count}"/>
-                <SnapInCollisionGoals goals_offset="1.0"
-                                      removed_goals_count="{removed_goals_count}"
-                                      input_goals="{goals}"
+                                      dist_to_goal="{dist_to_goal}"/>
+                <SnapInCollisionGoals input_goals="{goals}"
                                       output_goals="{goals}"/>
                 <ComputePathThroughPoses goals="{goals}"
                                           planner_id="{selected_planner}"

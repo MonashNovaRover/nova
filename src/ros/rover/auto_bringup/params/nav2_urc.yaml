@@ -8,6 +8,7 @@ bt_navigator:
     wait_for_service_timeout: 1000
     action_service_result_timeout: 900.0
     goal_reached_tol: 1.0
+    goal_offset_radius: 0.5
     # sqrt((wheel_base / 2 + wheel_radius)^2 + (steering_track / 2 + wheel_radius)^2)
     robot_radius: 0.85
     error_code_names:

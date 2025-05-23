@@ -52,7 +52,6 @@ namespace nova_behavior_tree
         BT::InputPort<double>("orientation_tolerance", 0.25, "Max angle to goal for it to be removed"), // (0.25 = ~14 degrees)
         BT::OutputPort<Goals>("output_goals", "Goals with passed viapoints removed"),
         BT::OutputPort<double>("dist_to_goal", "Distance remaining to the next goal"),
-        BT::OutputPort<int>("removed_goals_count", "Number of goals removed"),
       };
     }
 

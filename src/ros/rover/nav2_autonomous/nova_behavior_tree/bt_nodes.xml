@@ -38,7 +38,6 @@
     <Action ID="SnapInCollisionGoals">
       <input_port name="goals_offset">Approximate distance goals are offset</input_port>
       <input_port name="max_snap_radius">Maximum radius (m) to snap goals to</input_port>
-      <input_port name="removed_goals_count">The number of goals removed since this node was last ticked</input_port>
       <input_port name="input_goals">Original goals to snap if in collision</input_port>
       <output_port name="output_goals">Goals with all in collision goals snapped</output_port>
     </Action>
@@ -54,7 +53,6 @@
       <input_port name="orientation_tolerance">Orientation tolerance in radians</input_port>
       <output_port name="output_goals">Goals with passed viapoints removed</output_port>
       <input_port name="dist_to_goal">Distance remaining to the next goal</input_port>
-      <output_port name="removed_goals_count">Number of goals removed</output_port>
     </Action>
 
     <Action ID="RemovePassedGoalsAndCubes">
@@ -130,6 +128,8 @@
     </Condition>
     
     <Condition ID="ARTagDetected">
+      <input_port name="min_detections">Minimum number of detections within buffer time to be considered valid</input_port>
+      <input_port name="buffer_time">Keep track of detections in the last n seconds</input_port>
       <output_port name="goal">Detected AR tag pose</output_port>
     </Condition>
 

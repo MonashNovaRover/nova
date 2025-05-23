@@ -13,16 +13,19 @@
 // limitations under the License.
 
 #include <functional>
-#include <geometry_msgs/msg/pose_stamped.hpp>
-#include <geometry_msgs/msg/pose.hpp>
+
 #include <aruco_opencv_msgs/msg/aruco_detection.hpp>
 #include <aruco_opencv_msgs/msg/marker_pose.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/pose.hpp>
 #include <rclcpp/callback_group.hpp>
 #include <rclcpp/qos.hpp>
 #include <rclcpp/subscription_options.hpp>
 #include "rclcpp/logging.hpp"
 #include "rclcpp/rclcpp.hpp"
+
 #include "nova_behavior_tree/condition/ar_tag_detected_condition.hpp"
+#include "nova_behavior_tree/nav2_utils.hpp"
 
 namespace nova_behavior_tree
 {
@@ -51,20 +54,23 @@ namespace nova_behavior_tree
       sub_option
     );
 
+    getInput("min_detections", min_detections_);
+    getInput("buffer_time", buffer_time_);
+
     initialized_ = true;
   }
 
   void ARTagDetectedCondition::callback_ar_tag(const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg)
   {
-    goal_found_ = false;
-
-    for (aruco_opencv_msgs::msg::MarkerPose marker : msg->markers) {
+    if (!msg->markers.empty())
+    {
+      aruco_opencv_msgs::msg::MarkerPose marker = msg->markers[0];
       goal_id_ = marker.marker_id;
-      goal_header_ = msg->header;
-      goal_pose_.position.x = marker.pose.position.x;
-      goal_pose_.position.y = marker.pose.position.y;
+      goal_.header= msg->header;
+      goal_.pose.position.x = marker.pose.position.x;
+      goal_.pose.position.y = marker.pose.position.y;
       goal_found_ = true;
-      return;
+      // RCLCPP_INFO(node_->get_logger(), "Detected markers: %d\n%s", msg->markers.size(), utils::nav2::poseStampedToString(goal_).c_str());
     }
   }
 
@@ -87,15 +93,24 @@ namespace nova_behavior_tree
   bool ARTagDetectedCondition::detected()
   {
     if (goal_found_)
-    {      
-      geometry_msgs::msg::PoseStamped goal;
-      goal.header = goal_header_;
-      goal.pose = goal_pose_;
-      setOutput("goal", goal);
+    {
+      // detection filtering
+      while (!detections_buffer_.empty() && (node_->now() - detections_buffer_.front().header.stamp).seconds() > buffer_time_)
+      {
+          detections_buffer_.pop();
+      }
+      detections_buffer_.push(goal_);
 
-      RCLCPP_INFO(node_->get_logger(), "📍 AR tag %i found, setting goal.", goal_id_);
+      if (detections_buffer_.size() >= min_detections_)
+      {
+        // detection is valid
+        setOutput("goal", goal_);
+        goal_found_ = false;
+        RCLCPP_INFO(node_->get_logger(), "📍 AR tag %i found, setting goal.", goal_id_);
+        return true;
+      }
     }
-    return goal_found_;
+    return false;
   }
 
 } // namespace nova_behavior_tree

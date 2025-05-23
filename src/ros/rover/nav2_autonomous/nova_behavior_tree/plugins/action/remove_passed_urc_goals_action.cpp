@@ -76,7 +76,6 @@ namespace nova_behavior_tree
 
     // 📝 Remove passed goals
     // ❗ Note we leave one goal for the controller server to remove in FollowPath (i.e. the successful exit condition for the BT).
-    int removed_goals_count = 0;
     while (input_goals_.size() > 1) 
     {
       // 📝 Exit if the distance remaining to the next goal is greater than position_tolerance_.
@@ -97,14 +96,12 @@ namespace nova_behavior_tree
 
       // 📝 Remove the next goal
       input_goals_.erase(input_goals_.begin());
-      removed_goals_count++;
       RCLCPP_INFO(
         node_->get_logger(), "Goal reached! Removing goal."
       );
     }
 
     setOutput("output_goals", input_goals_);
-    setOutput("removed_goals_count", removed_goals_count);
 
     return BT::NodeStatus::SUCCESS;
   }
