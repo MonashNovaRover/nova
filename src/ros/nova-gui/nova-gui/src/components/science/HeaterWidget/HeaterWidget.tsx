@@ -6,12 +6,17 @@ import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
 import NTCData from "./NTCData.tsx";
-import HeaterToggle from "./HeaterToggle.tsx";
+import HeaterControl from "./HeaterControl.tsx";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 
 export interface HeaterWidgetWidgetProps extends CardProps {
 }
 
+/**
+ * Heater controls and temperature sensor data widget.
+ * @param props
+ * @constructor
+ */
 const HeaterWidget: React.FC<HeaterWidgetWidgetProps> = (props) => {
   const bifrost = useBifrost({topic:RosTopic.KILN_DATA, service: RosService.HEATER});
   const tempReadings = useSelector((state: RootState) => state.kilnData);
@@ -40,7 +45,7 @@ const HeaterWidget: React.FC<HeaterWidgetWidgetProps> = (props) => {
     </div>
     <CardHeader>Heater</CardHeader>
     <CardBody>
-      <HeaterToggle
+      <HeaterControl
         currentHeaterStatus={tempReadings.state}
         setHeaterStatus={setHeaterStatus}
         targetTemp={targetTemp}

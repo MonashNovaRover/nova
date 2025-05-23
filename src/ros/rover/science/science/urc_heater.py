@@ -1,4 +1,21 @@
 #!/usr/bin/env python3
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Purpose: URC Heater Control
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: URCHeater
+TOPICS:
+    - publisher: /science/kiln_data
+SERVICES:
+    - server: "/science/heater"
+ACTIONS: None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:    science
+AUTHOR(S):	Felicity Matthews
+CREATION:	20/05/2025
+EDITED:		24/05/2025
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 import rclpy
 from nova_interfaces.msg import KilnData
 from nova_interfaces.srv import KilnCommand, KilnCommand_Request, KilnCommand_Response

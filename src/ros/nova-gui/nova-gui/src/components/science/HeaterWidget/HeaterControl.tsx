@@ -3,14 +3,22 @@ import {Button, Card, CardBody, Slider, Tooltip} from "@nextui-org/react";
 import {Power, Square} from "react-feather";
 import {isArray} from "lodash";
 
-export interface HeaterToggleWidgetProps {
+export interface HeaterControlProps {
   currentHeaterStatus: boolean
   setHeaterStatus: (x : boolean) => void
   targetTemp: number
   setTargetTemp: (x: number) => void
 }
 
-const HeaterToggle: React.FC<HeaterToggleWidgetProps> = ({currentHeaterStatus, setHeaterStatus, targetTemp, setTargetTemp}) => {
+/**
+ * Controls for turning the heater on/off and adjusting the target temperature
+ * @param currentHeaterStatus the current state of the heater (on/off)
+ * @param setHeaterStatus request the heater to change state
+ * @param targetTemp the current target temperature
+ * @param setTargetTemp request a change in target temperature
+ * @constructor
+ */
+const HeaterControl: React.FC<HeaterControlProps> = ({currentHeaterStatus, setHeaterStatus, targetTemp, setTargetTemp}) => {
   const [targetInput, setTargetInput] = useState<number>(targetTemp)
   const [maxTemp, setMaxTemp] = useState<number>(100)
 
@@ -87,4 +95,4 @@ const HeaterToggle: React.FC<HeaterToggleWidgetProps> = ({currentHeaterStatus, s
   );
 }
 
-export default HeaterToggle;
+export default HeaterControl;
