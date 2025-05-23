@@ -79,12 +79,9 @@ class URCHeater(ControllerNode):
 
     def check_temp(self, temp: int):
         """ Turn off the kiln if the temperature has been reached """
-        self.get_logger().info(f"target: {self.target_temp} | current temp: {temp}")
         if self.target_temp > temp:
-            self.get_logger().info("Sending heat ON")
             self.heater_control.start()
         else:
-            self.get_logger().info("Sending heat OFF")
             self.heater_control.stop()
 
     def publish_data(self):
@@ -108,6 +105,7 @@ class URCHeater(ControllerNode):
         elif not request.state and self.is_active:
             self.get_logger().info("Turning Heater OFF")
             self.is_active = False
+            self.heater_control.stop()
 
         self.target_temp = request.target
         self.get_logger().info(f'Target temp: {self.target_temp}')
