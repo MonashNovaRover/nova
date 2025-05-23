@@ -1,3 +1,4 @@
 string[] sequence
 ---
 bool success
+string message
