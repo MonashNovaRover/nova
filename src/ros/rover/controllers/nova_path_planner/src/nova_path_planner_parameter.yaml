@@ -17,11 +17,10 @@ nova_path_planner:
     default_value: "/arm/plan_path",
     description: "The name of the action to accept path planning requests from."
   }
-  twist_stamped_topic: {
-    type: string,
-    default_value: "/arm_ik_twist_stamped",
-    description: "The name of the topic to get teleop twist stamped messages from. Applies relative to the 
-    header.frame_id frame."
+  add_allowed_collisions_to_srdf: {
+    type: bool,
+    default_value: true,
+    description: "When true, the allowed collision matrix entries will also be included in any auto generated SRDF. Might be useful for other IK solvers that don't use our planning scene."
   }
 
   # Path Planning

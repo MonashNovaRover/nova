@@ -223,7 +223,7 @@ protected:
    * path_ptr_.
    */
   bool generate_path(Eigen::Isometry3d &start, Eigen::Isometry3d &end,
-                     std::vector<double> &last_pushed_pose, double execution_time);
+                     std::vector<double> &last_pushed_pose, double speed);
 
   /**
    * @brief gets a lock on the path_mutex_, then sets the path_ptr_ to nullptr. Also resets is_path_being_executed_.
