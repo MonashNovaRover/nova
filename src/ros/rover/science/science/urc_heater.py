@@ -112,7 +112,7 @@ class URCHeater(ControllerNode):
             # where Vref is the reference voltage (3.3V), R0 is the known resistor value, and Vout is the measured voltage
             Vref = 3.3
             Vout = input / 4095 * Vref  # get percentage from 12 bit CAN information
-            R = (Vref * R0) / (Vref - Vout)
+            R = (Vout * R0) / (Vref - Vout)
 
             # 2. use the resistance value to calculate the temperature using the Steinhart-Hart equation
             T0 = 298.15
