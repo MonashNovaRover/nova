@@ -1,5 +1,5 @@
 # The current status of the rover autonomous stack
-byte status
+int8 status
 
 # enum for the current status
 byte IDLE = 0
