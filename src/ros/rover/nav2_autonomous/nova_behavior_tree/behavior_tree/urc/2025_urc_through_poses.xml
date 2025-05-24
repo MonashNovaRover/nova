@@ -46,7 +46,6 @@
                                       goal="{detected_goal}"/>
                       <UpdateURCGoals detected_goal="{detected_goal}"
                                       current_pose="{current_pose}"
-                                      max_update_radius="1.0"
                                       input_goals="{goals}"
                                       output_goals="{goals}"/>
                     </Sequence>
@@ -61,7 +60,8 @@
                                       dist_to_goal="{dist_to_goal}"/>
                 <SnapInCollisionGoals input_goals="{goals}"
                                       output_goals="{goals}"/>
-                <ComputePathThroughPoses goals="{goals}"
+                <ComputePathThroughPoses _skipIf="dist_to_goal < 2.0"
+                                          goals="{goals}"
                                           planner_id="{selected_planner}"
                                           path="{path}"
                                           error_code_id="{compute_path_error_code}"/>

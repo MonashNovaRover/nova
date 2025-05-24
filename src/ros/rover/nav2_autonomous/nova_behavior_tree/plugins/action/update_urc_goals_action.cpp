@@ -42,8 +42,8 @@ namespace nova_behavior_tree
   {
     node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
     
-    getInput("max_update_radius", max_update_radius_);
     offset_radius_ = BT::deconflictPortAndParamFrame<double>(node_, "goal_offset_radius", this);
+    RCLCPP_INFO(node_->get_logger(), "Offset radius: %f", offset_radius_);
     
     double footprint_radius;
     if (!node_->get_parameter_or("robot_radius", footprint_radius, 0.85))
@@ -82,34 +82,22 @@ namespace nova_behavior_tree
       RCLCPP_INFO(node_->get_logger(), "First detection, removing all other goals");
     }
 
-    // 📝 Calculate distance between the new goal and the current goal
-    using namespace nav2_util::geometry_utils;  // NOLINT
-
-    double dist_between_goals = 0.0;
-    if (!goals_.empty()) 
+    // update the detected goal
+    RCLCPP_INFO(node_->get_logger(), "Detected goal:\n%s", utils::nav2::poseStampedToString(detected_goal_).c_str());
+    Goal offset_goal = utils::nav2::offsetGoal(detected_goal_, current_pose_, offset_radius_);
+    RCLCPP_INFO(node_->get_logger(), "Offset goal:\n%s", utils::nav2::poseStampedToString(offset_goal).c_str());
+    if (goals_.empty())
     {
-      dist_between_goals = euclidean_distance(detected_goal_.pose, prev_detected_goal_.pose);
+      RCLCPP_INFO(node_->get_logger(), "Adding detected goal to goals");
+      goals_.push_back(offset_goal);
     }
-
-    // 📝 If the distance between the new goal and the current goal is within max_update_radius_, update the current goal with the new goal's pose.
-    if (dist_between_goals < max_update_radius_)
+    else
     {
-      RCLCPP_INFO(node_->get_logger(), "Detected goal:\n%s", utils::nav2::poseStampedToString(detected_goal_).c_str());
-      Goal offset_goal = utils::nav2::offsetGoal(detected_goal_, current_pose_, offset_radius_);
-      RCLCPP_INFO(node_->get_logger(), "Offset goal:\n%s", utils::nav2::poseStampedToString(offset_goal).c_str());
-      if (goals_.empty())
-      {
-        RCLCPP_INFO(node_->get_logger(), "Adding detected goal to goals");
-        goals_.push_back(offset_goal);
-      }
-      else
-      {
-        RCLCPP_INFO(node_->get_logger(), "Updating detected goal pose");
-        goals_[0] = offset_goal;
-      }
-      setOutput("output_goals", goals_);
-      prev_detected_goal_ = detected_goal_;
+      RCLCPP_INFO(node_->get_logger(), "Updating detected goal pose");
+      goals_[0] = offset_goal;
     }
+    setOutput("output_goals", goals_);
+    prev_detected_goal_ = detected_goal_;
   }
 
 }  // namespace nova_behavior_tree

@@ -103,7 +103,6 @@
     <Action ID="UpdateURCGoals">
       <input_port name="detected_goal">Detected goal (AR tag / object)</input_port>
       <input_port name="current_pose">The current pose of the rover</input_port>
-      <input_port name="max_update_radius">Max distance of new pose to current goal to be a valid update</input_port>
       <input_port name="offset_radius">Radius away from actual pose to set goal</input_port>
       <input_port name="input_goals">Input goals to be updated</input_port>
       <output_port name="output_goals">Updated goals</output_port>
