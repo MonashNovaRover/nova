@@ -6,6 +6,9 @@ Sources for Old CAN Commands:
 - /home/nova/nova/src/other/libcanmd/src/cmd.cpp
 - /home/nova/nova/src/ros/rover/arm/arm/src/arm_driver/arm_driver.cpp
 
+How the old end effector was initialised:
+end_effector = new CMD(1, 7, PWM=3, 1)
+
 IDs for both motors will be two of the following (on QCMD now): 0C1, 0C2, 0D1, 0D2 but data sent will be the same
 
 TODO:
@@ -72,8 +75,7 @@ class EndEffectorActionServer(Node):
 
         # for CAN commands
         self.bus = jcan.Bus()
-        can_bus = self.get_parameter("can_bus").value
-        self.bus.open(can_bus)
+        self.bus.open(self.get_parameter("can_bus").value)
         self.timer_spin_can = self.create_timer(0.01, self.bus.spin)
         self.timer_send_can_commands = self.create_timer(0.01, self.send_can_commands)
         
@@ -124,7 +126,7 @@ class EndEffectorActionServer(Node):
         self.stop_poke()
 
         goal_handle.succeed()
-        result = EndEffect.Result()
+        result = EndEffector.Result()
         result.end_poke = self.poke_position
         return result
 
@@ -145,6 +147,12 @@ class EndEffectorActionServer(Node):
         """
         scaled_value = int(32767.0 * value * self.get_parameter("end_effector_SCALING_FACTOR").value)
         frame = jcan.Frame(self.get_parameter("end_effector_drive_CAN_ID").value, [scaled_value >> 8, scaled_value & 0xFF])
+
+        """
+        OLD ARM CAN COMMMANDS
+        frame = jcan.Frame((7 << 4) | 3, [scaled_value >> 8, scaled_value & 0xFF])
+        """
+
         self.bus.send(frame)
 
     def set_linear_actuator(self, mode: EndEffectorLinearActuationMode):
@@ -159,6 +167,13 @@ class EndEffectorActionServer(Node):
             value = -1
         scaled_value = int(32767.0 * value * self.get_parameter("end_effector_SCALING_FACTOR").value)
         frame = jcan.Frame(self.get_parameter("end_effector_linear_actuation_CAN_ID").value, [scaled_value >> 8, scaled_value & 0xFF])
+
+        """
+        OLD ARM CAN COMMMANDS
+        transmits as data: 0 for stop, 1 for backwards, 2 for forwards
+        frame = jcan.Frame((7 << 4) | 7, [mode])
+        """
+
         self.bus.send(frame)
 
 
