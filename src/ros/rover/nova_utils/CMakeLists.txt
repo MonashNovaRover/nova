@@ -28,7 +28,6 @@ find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(yolo_msgs REQUIRED)
 
-
 install(PROGRAMS
   nova_utils/detection_overlay.py
   nova_utils/goal_marker.py
