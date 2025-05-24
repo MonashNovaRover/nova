@@ -99,7 +99,8 @@ nova_path_planner:
     kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
     kinematics_solver_timeout: 1.0
     kinematics_base_frame: "arm_kinematics_origin"
-
+    add_allowed_collisions_to_srdf: true
+    add_chain_to_srdf: false
     kinematics_endeffector_frame: "endeffector_kinematics"
 
 wheel_velocity_controller:

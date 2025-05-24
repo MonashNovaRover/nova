@@ -202,6 +202,7 @@ namespace nova_path_planner
     auto srdf_string = params_.robot_description_semantic;
     if (srdf_string.empty()) {
       RCLCPP_DEBUG(get_node()->get_logger(), "No robot_description_semantic SRDF was specified. Making one up.");
+      // This initially won't generate self intersections even if params_.add_allowed_collisions_to_srdf is true
       srdf_string = construct_srdf_fallback_string(urdf_model_, joint_group_name_);
     }
     srdf_model_->initString(*urdf_model_, srdf_string);
@@ -211,7 +212,21 @@ namespace nova_path_planner
 
     // Create the planning scene
     planning_scene_ = std::make_shared<planning_scene::PlanningScene>(robot_model_);
-    generate_allowed_collision_matrix();
+
+    if (params_.add_allowed_collisions_to_srdf && params_.robot_description_semantic.empty()) {
+      srdf_model_ = std::make_shared<srdf::Model>();
+      srdf_string = construct_srdf_fallback_string(urdf_model_, joint_group_name_);
+      srdf_model_->initString(*urdf_model_, srdf_string);
+
+      // Recreate everything but with the newly found intersections in the srdf
+      robot_model_ = std::make_shared<moveit::core::RobotModel>(urdf_model_, srdf_model_);
+
+      // Create the planning scene
+      planning_scene_ = std::make_shared<planning_scene::PlanningScene>(robot_model_);
+    }
+    else {
+      generate_allowed_collision_matrix();
+    }
 
     // Create an extra non-lifecycle node to allow us to initialize the kinematics solver
     kinematics_compat_node_ = create_compat_node_from_lifecycle(get_node());
@@ -275,13 +290,48 @@ namespace nova_path_planner
 
   std::string NovaPathPlanner::construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model,
                                                               std::string joint_group_name) {
+    auto logger = get_node()->get_logger();
+
     std::ostringstream srdf_stream;
     srdf_stream << "<robot name=\"" << urdf_model->getName() << "\">\n";
     srdf_stream << "  <group name=\"" << joint_group_name << "\">\n";
     for (const auto& joint : params_.joint_names)
       srdf_stream << "    <joint name=\"" << joint << "\"/>\n";
-    // srdf_stream << "    <chain base_link=\"" << params_.kinematics_base_frame << "\" tip_link=\"" << params_.kinematics_endeffector_frame << "\" />\n";
+
+    if (params_.add_chain_to_srdf)
+      srdf_stream << "    <chain base_link=\"" << params_.kinematics_base_frame << "\" tip_link=\"" << params_.kinematics_endeffector_frame << "\" />\n";
+
     srdf_stream << "  </group>\n";
+
+    if (params_.add_allowed_collisions_to_srdf && planning_scene_) {
+      RCLCPP_INFO(logger, "Generating and adding allowed collisions in the fallback SRDF!");
+
+      // Get the current state
+      moveit::core::RobotState& state = planning_scene_->getCurrentStateNonConst();
+      state.setToDefaultValues();
+      state.update();
+
+      // Set up request/result
+      collision_detection::CollisionRequest req;
+      collision_detection::CollisionResult res;
+      req.contacts = true;      // We get contact info to generate the allowed collision matrix from
+      req.max_contacts = 1024;  // This was chosen arbitrarily as some large number
+
+      // Perform self-collision check
+      planning_scene_->checkSelfCollision(req, res, state);
+
+      // Add all colliding pairs to the ACM
+      for (const auto &contact_pair : res.contacts)
+      {
+        RCLCPP_INFO(logger, "  - \"%s\" and \"%s\"",
+                    contact_pair.first.first.c_str(), contact_pair.first.second.c_str());
+        const auto &link1 = contact_pair.first.first;
+        const auto &link2 = contact_pair.first.second;
+
+        srdf_stream << "  <disable_collisions link1=\"" << link1 << "\" link2=\"" << link2 << "\" reason=\"Never\"/>\n";
+      }
+    }
+
     srdf_stream << "</robot>\n";
     auto srdf_string = srdf_stream.str();
     return srdf_string;
@@ -792,7 +842,6 @@ namespace nova_path_planner
 
     // Wait for the path to be executed
     bool executing_path = true;  // Becomes false when the queue in path_ptr_ becomes empty
-
 
     while (executing_path) {
       if (goal_handle->is_canceling()) {
