@@ -1,6 +1,7 @@
 # Request
 geometry_msgs/Pose pose
-float64 duration
+# The AVERAGE speed the arm will move at to get from the current pose to the given pose (it will exceed this speed by a constant multiplicative factor)
+float64 speed
 ---
 # Result
 bool success

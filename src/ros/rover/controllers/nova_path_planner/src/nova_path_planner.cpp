@@ -772,8 +772,8 @@ namespace nova_path_planner
     goal_handle->publish_feedback(feedback);
 
     // Plan the path
-    double execution_time = goal->duration;
-    auto path_generation_result = generate_path(start, end, last_joint_pose, execution_time);
+    double speed = goal->speed;
+    auto path_generation_result = generate_path(start, end, last_joint_pose, speed);
 
     // Handle path generation failure
     if (!path_generation_result) {
@@ -851,19 +851,22 @@ namespace nova_path_planner
   }
 
   bool NovaPathPlanner::generate_path(Eigen::Isometry3d &start, Eigen::Isometry3d &end,
-                                      std::vector<double> &last_pushed_pose, double execution_time) {
+                                      std::vector<double> &last_pushed_pose, double speed) {
     auto logger = get_node()->get_logger();
-
-    // Calculate number of points
-    double frequency = get_update_rate();
-    int pose_count_minus_one = static_cast<int>(floor(execution_time * frequency));
-    int pose_count = pose_count_minus_one + 1;
-
-    int joint_pose_count_per_ik = 0;
 
     // Handles for a cubic bezier spline
     const Eigen::Isometry3d& handle0 = start;
     const Eigen::Isometry3d handle1 = end;
+
+    // Calculate number of points
+    double distance = (end.translation() - start.translation()).norm();
+    double execution_time = distance / speed;
+
+    RCLCPP_INFO(logger, "Using execution_time %f seconds for distance of %fm", execution_time, distance);
+    double frequency = get_update_rate();
+    int pose_count_minus_one = static_cast<int>(floor(execution_time * frequency));
+    int pose_count = pose_count_minus_one + 1;
+    int joint_pose_count_per_ik = 0;
 
     auto last_pose_msg = tf2::toMsg(start);
 
@@ -873,6 +876,12 @@ namespace nova_path_planner
       start.translation().x(),
       start.translation().y(),
       start.translation().z()
+      );
+
+    RCLCPP_INFO(logger, "end translation: [%f,%f,%f] ",
+      end.translation().x(),
+      end.translation().y(),
+      end.translation().z()
       );
 
 
@@ -895,14 +904,7 @@ namespace nova_path_planner
       geometry_msgs::msg::Pose pose_msg = tf2::toMsg(pose);
       moveit_msgs::msg::MoveItErrorCodes error_codes;
 
-      RCLCPP_INFO(logger, " [%f,%f,%f, %f,%f,%f,%f] ->  \n [%f,%f,%f, %f,%f,%f,%f]",
-        last_pose_msg.position.x,
-        last_pose_msg.position.y,
-        last_pose_msg.position.z,
-        last_pose_msg.orientation.x,
-        last_pose_msg.orientation.y,
-        last_pose_msg.orientation.z,
-        last_pose_msg.orientation.w,
+      RCLCPP_INFO(logger, "-> [%f,%f,%f](%f,%f,%f,%f)",
         pose_msg.position.x,
         pose_msg.position.y,
         pose_msg.position.z,
@@ -920,7 +922,7 @@ namespace nova_path_planner
         return false;
       }
 
-      RCLCPP_INFO(logger, "[%f,%f,%f,%f,%f,%f],  ->  [%f,%f,%f, %f,%f,%f,%f] ",
+      RCLCPP_INFO(logger, "[%f,%f,%f,%f,%f,%f]->[%f,%f,%f, %f,%f,%f,%f] ",
         last_pushed_pose[0],
         last_pushed_pose[1],
         last_pushed_pose[2],
