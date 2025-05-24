@@ -30,11 +30,13 @@ TODO:
 import time
 
 import rclpy
+from rclpy.executors import MultiThreadedExecutor
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from tf2_ros import Buffer, TransformListener, TransformBroadcaster, TransformStamped
 from std_srvs.srv import Trigger
 from geometry_msgs.msg import Transform, Pose
+#from nova_interfaces.action import EndEffector
 
 import threading
 import tf2_geometry_msgs
@@ -48,7 +50,7 @@ TYPING_SEQUENCER_STOP = "/type_sequence/stop"
 CONTROLLER_SWITCH_SERVICE = "/controller_manager/switch_controller"
 KEY_POSITION_SERVICE = "/arm/keyboard/pub_key_position"
 PATH_PLANNER_ACTION = '/arm/plan_path'
-POKEY_THING_ACTION = "/poke"
+POKEY_THING_ACTION = "/arm/end_effector/action"
 
 class TypingSequencer(Node):
 
@@ -60,13 +62,15 @@ class TypingSequencer(Node):
         self.thread = None
         self.stop_event = threading.Event()
 
-        self.debug_target_tf = self.declare_parameter('debug_target', False).get_parameter_value().bool_value
-
         # Parameters
         self.keyboard_frame = self.declare_parameter('keyboard_frame', 'keyboard_frame').get_parameter_value().string_value
         self.base_frame = self.declare_parameter('base_frame', 'arm_link').get_parameter_value().string_value
         self.ee_frame = self.declare_parameter('ee_frame', 'endeffector_kinematics').get_parameter_value().string_value
         self.actuator_frame = self.declare_parameter('actuator_frame', 'actuator').get_parameter_value().string_value
+
+        # path planner arguments
+        self.debug_target_tf = self.declare_parameter('debug_target', False).get_parameter_value().bool_value
+        self.pp_speed = self.declare_parameter('speed', 0.5).get_parameter_value().double_value
 
         # Listen to /tf
         self.tf_buffer = Buffer()
@@ -90,10 +94,11 @@ class TypingSequencer(Node):
 
         # Path planner action client
         self.pplanner_client = ActionClient(self, ArmPlanPath, PATH_PLANNER_ACTION)
-        
+        self.action_executor = MultiThreadedExecutor()
+        self.action_executor.add_node(self)
+
         # Pokey Thing action client
-        # TODO: Uncomment once integrated
-        # self.pokey_client = ActionClient(self, Trigger, POKEY_THING_ACTION)
+        # self.pokey_client = ActionClient(self, EndEffector, POKEY_THING_ACTION)
         self.get_logger().info(f'Sequencer initalised!')
 
     def send_switch_request(self):
@@ -109,10 +114,12 @@ class TypingSequencer(Node):
         response = self.kblocaliser_client.call(request)
         return response
 
-    def pose_calc(self, key_to_base, ee_frame, actuator_frame, stamp):
+    def pose_calc(self, key_to_base, ee_frame, actuator_frame, stamp) -> Pose | None:
         """ Given the following frames, calculates the pose to feed into the 
             path planner to move actuator of end effector offset from the key """
-        act_to_ee:TransformStamped = self.tf_buffer.lookup_transform(actuator_frame, ee_frame, stamp)
+        act_to_ee = self.get_transform_from_frame(actuator_frame, ee_frame, stamp)
+        if act_to_ee is None:
+            return None
         ate_pose = Pose() 
         ate_pose.position = act_to_ee.transform.translation
         ate_pose.orientation = act_to_ee.transform.rotation
@@ -129,24 +136,21 @@ class TypingSequencer(Node):
 
         return ee_to_key
 
-    def call_path_planner(self, pose):
+    def call_path_planner(self, pose, speed):
         goal_msg = ArmPlanPath.Goal()
-        #self.get_logger().info(f"{pose}")
         goal_msg.pose = pose
-        goal_msg.speed = 0.5
+        goal_msg.speed = speed
 
         self.pplanner_client.wait_for_server()
         future_response = self.pplanner_client.send_goal_async(goal_msg, feedback_callback=self.handle_pp_feedback)
-        rclpy.spin_until_future_complete(self, future_response)
+        self.action_executor.spin_until_future_complete(future_response)
         response = future_response.result()
         if not response.accepted:
             self.get_logger().info('Path planner goal rejected')
             return False
             
         future_result = response.get_result_async()
-        while not future_response.done():
-            rclpy.spin_once()
-        self.get_logger().info(f"{type(future_result)}")
+        self.action_executor.spin_until_future_complete(future_result)
         return future_result.result
 
     def handle_pp_feedback(self, res):
@@ -154,27 +158,31 @@ class TypingSequencer(Node):
         path_generation_progress = res.feedback.path_generation_progress
         self.get_logger().info(f"Going? {traversing_path}, Progress: {path_generation_progress}")
     
-    def do_poke(self):
-        goal_msg = Trigger.Goal()
-
-        self.pokey_client.wait_for_server()
-        future_response = self.pokey_client.send_goal_async(goal_msg, feedback_callback=self.handle_pt_feedback)
-        rclpy.spin_until_future_complete(self, future_response)
-        response = future_response.result()
-        if not response.accepted:
-            self.get_logger().info('Pokey Thing goal rejected')
-            return False
+    # def do_poke(self, poke):
+    #     goal_msg = EndEffector.Goal()
+    #     goal_msg.poke = poke
+    #     self.pokey_client.wait_for_server()
+    #     future_response = self.pokey_client.send_goal_async(goal_msg, feedback_callback=self.handle_pk_feedback)
+    #     self.action_executor.spin_until_future_complete(future_response)
+    #     response = future_response.result()
+    #     if not response.accepted:
+    #         self.get_logger().info('Pokey Thing goal rejected')
+    #         return False
         
-        future_result = response.get_result_async()
-        rclpy.spin_until_future_complete(self, future_result)
-        result = future_result.result().result
-        return result
+    #     future_result = response.get_result_async()
+    #     self.action_executor.spin_until_future_complete(future_result)
+    #     result = future_result.result().result.end_poke
+    #     if result == poke:
+    #         return True
+    #     else:
+    #         self.get_logger().info(f'Pokey Thing did not poke all the way: {result}')
+    #         return False
     
-    def handle_pt_feedback(self, feedback_msg):
+    def handle_pk_feedback(self, feedback_msg):
         feedback = feedback_msg.feedback
-        self.get_logger().info('Recieved feedback: {0}'.format(feedback.status))
+        self.get_logger().info(f'{feedback.current_poke}')
 
-    def get_transform_from_frame(self, target_frame, source_frame, stamp=None) -> Transform | None:
+    def get_transform_from_frame(self, target_frame, source_frame, stamp=None) -> TransformStamped:
         self.get_logger().info(f'Getting transform of frame: {target_frame}')
         if stamp is None:
             stamp = self.get_clock().now() 
@@ -253,16 +261,28 @@ class TypingSequencer(Node):
                 return response
 
             # Start action to move to key via path planner
-            # TODO: Add error handling and fix node crashing
             pose = self.pose_calc(key_transform, self.ee_frame, self.actuator_frame, stamp)
-            pp_result = self.call_path_planner(pose)
-            self.get_logger().info(f"{pp_result}")
+            if pose is None:
+                self.get_logger().info(f"Failed getting pose for {key}")
+                response.success = False
+                return response
+            pp_result = self.call_path_planner(pose, self.pp_speed) # TODO: Add proper error handling
+            self.get_logger().info(f"Path planner finished!")
 
             # TODO: Integrate and test this section
 
             # Activate pokey thing
             # TODO: Add error handling
-            # self.do_poke()
+            # poke_out = self.do_poke(1.0)
+            # if not poke_out:
+            #     self.get_logger().info(f"Failed poking for {key}")
+            #     response.success = False
+            #     return response
+            # poke_in = self.do_poke(0.0)
+            # if not poke_in:
+            #     self.get_logger().info(f"Failed poking for {key}")
+            #     response.success = False
+            #     return response
 
             # TODO: Publish feedback to topic for GUI
             # partial_sequence.append(key)
@@ -281,7 +301,6 @@ class TypingSequencer(Node):
         #     return response
         self.get_logger().info(f'Sequencer Complete! {partial_sequence}')
         self.stop_event.set()
-        self.thread.join(timeout=1.0)
         self.thread = None
 
 
