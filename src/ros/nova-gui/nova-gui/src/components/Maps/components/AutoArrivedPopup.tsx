@@ -14,12 +14,12 @@ export const AutoArrivedPopup : React.FC<AutoArrivedPopupProps> = () => {
   const bifrost = useBifrost({topic: RosTopic.AUTO_STATUS})
   const autoStatus = useSelector((state: RootState) => state.autoStatus.status)
   const roverLocation = useSelector((state: RootState) => state.roverLocationStore)
-  const [isOpen, setIsOpen] = useState(true)
+  const [isOpen, setIsOpen] = useState(false)
   const [lastStatus, setLastStatus] = useState<IRosNovaInterfacesStatusConst>(IRosNovaInterfacesStatusConst.IDLE)
 
   useEffect(() => {
     bifrost.syncWithTopic()
-  }, []);
+  }, [bifrost]);
 
   useEffect(() => {
     if (autoStatus === IRosNovaInterfacesStatusConst.ARRIVED_SUCCESSFULLY && lastStatus != autoStatus)
