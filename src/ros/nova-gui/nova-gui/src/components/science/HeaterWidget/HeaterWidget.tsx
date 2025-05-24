@@ -5,7 +5,7 @@ import {RosService} from "../../../ros/services/rosService.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
-import NTCData from "./NTCData.tsx";
+import SensorDataDisplay from "../SensorDataDisplay.tsx";
 import HeaterControl from "./HeaterControl.tsx";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 
@@ -38,12 +38,11 @@ const HeaterWidget: React.FC<HeaterWidgetWidgetProps> = (props) => {
   return <Card {...props}>
     <CardHeader>NTC Temperature Sensors</CardHeader>
     <CardBody>
-      <NTCData tempReadings={tempReadings.temp} labels={["Heater", "Dirt"]} suffixes={["°C", "°C"]}/>
+      <SensorDataDisplay values={tempReadings.temp} labels={["Heater", "Dirt"]} suffixes={["°C", "°C"]}/>
     </CardBody>
     <div className="m-3">
       <Divider/>
     </div>
-    <CardHeader>Heater</CardHeader>
     <CardBody>
       <HeaterControl
         currentHeaterStatus={tempReadings.state}

@@ -48,6 +48,7 @@ const URCScienceView: React.FC = () => {
       <div className="flex flex-col gap-3 col-span-2">
         <PumpsWidget/>
         <CarouselWidgetV2/>
+        <HeaterWidget/>
       </div>
 
       <div className="flex flex-col gap-3 col-span-2">

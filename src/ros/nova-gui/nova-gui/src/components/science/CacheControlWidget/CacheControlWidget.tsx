@@ -29,12 +29,12 @@ const CacheControlWidget: React.FC<CacheControlWidgetProps> = (props) => {
   }
 
   return <Card {...props}>
-    <CardHeader className="justify-center">{props.label ?? props.service}</CardHeader>
-    <CardBody className="items-center ml-1">
-      <Tabs key="tabs" color="primary" radius="full" selectedKey={selected.toString()} onSelectionChange={onSelectionChange}>
-        <Tab key="0" title="0" />
-        <Tab key="1" title="90" />
-        <Tab key="2" title="180" />
+    <CardHeader>{props.label ?? props.service}</CardHeader>
+    <CardBody>
+      <Tabs key="tabs" color="primary" radius="full" fullWidth selectedKey={selected.toString()} onSelectionChange={onSelectionChange}>
+        <Tab key="0" title="0°" />
+        <Tab key="1" title="90°" />
+        <Tab key="2" title="180°" />
       </Tabs>
     </CardBody>
   </Card>

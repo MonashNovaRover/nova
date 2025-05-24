@@ -1,5 +1,5 @@
 import React, {useMemo} from "react";
-import {OverlayedProgress} from "../../OverlayedProgress/OverlayedProgress.tsx";
+import {OverlayedProgress} from "../OverlayedProgress/OverlayedProgress.tsx";
 import {zip} from "lodash";
 
 export interface NTCDataWidgetProps {
@@ -7,8 +7,6 @@ export interface NTCDataWidgetProps {
   labels: string[]
   suffixes: string[]
 }
-
-const toTemp = (x: number) => 6 * x
 
 /**
  * Component to display data in the form of overlayed progress bars.
@@ -23,11 +21,11 @@ const SensorDataDisplay: React.FC<NTCDataWidgetProps> = ({values, labels, suffix
   return (
     <div className="grid grid-cols-2 gap-4">
       {displayList.map(([value, label, suffix]) => {
-        if (value !== undefined && label && suffix) {
+        if (value !== undefined && label != undefined && suffix != undefined) {
           return (
             <div key={label} className="text-center">
-              <OverlayedProgress key={`progress-${label}`} aria-label={label} size="lg" label={label} value={toTemp(value)}>
-                {toTemp(value)} {suffix}
+              <OverlayedProgress key={`progress-${label}`} aria-label={label} size="lg" label={label} value={value}>
+                {value} {suffix}
               </OverlayedProgress>
             </div>
           );
