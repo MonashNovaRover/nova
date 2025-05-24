@@ -12,8 +12,11 @@
           <plugin>cmd_hardware/CMDHardware</plugin>
           <param name="candevice">can1</param>
           <param name="canid">1</param>
+          <param name="resolver_id">4</param>
           <param name="resolver_reduction">1.0</param>
           <param name="reversed">false</param>
+          <param name="reverse_velocity">true</param>
+          <param name="reverse_position">true</param>
           <param name="max_velocity">0.318895720132</param>
         </hardware>
       </xacro:unless>
@@ -56,8 +59,11 @@
           <plugin>cmd_hardware/CMDHardware</plugin>
           <param name="candevice">can1</param>
           <param name="canid">2</param>
+          <param name="resolver_id">8</param>
           <param name="resolver_reduction">1.0</param>
           <param name="reversed">false</param>
+          <param name="reverse_velocity">true</param>
+          <param name="reverse_position">true</param>
           <param name="max_velocity">0.321388591065</param>
         </hardware>
       </xacro:unless>
@@ -92,6 +98,7 @@
           <plugin>cmd_hardware/CMDHardware</plugin>
           <param name="candevice">can1</param>
           <param name="canid">3</param>
+          <param name="resolver_id">12</param>
           <param name="resolver_reduction">1.0</param>
           <param name="reversed">false</param>
           <param name="max_velocity">0.310841829425</param>
@@ -128,8 +135,10 @@
           <plugin>cmd_hardware/CMDHardware</plugin>
           <param name="candevice">can1</param>
           <param name="canid">4</param>
+          <param name="resolver_id">16</param>
           <param name="resolver_reduction">1.0</param>
           <param name="reversed">false</param>
+          <param name="reverse_velocity">true</param>
           <param name="max_velocity">0.335578779453</param>
         </hardware>
       </xacro:unless>
@@ -164,8 +173,10 @@
           <plugin>cmd_hardware/CMDHardware</plugin>
           <param name="candevice">can1</param>
           <param name="canid">5</param>
+          <param name="resolver_id">20</param>
           <param name="resolver_reduction">1.0</param>
           <param name="reversed">false</param>
+          <param name="reverse_velocity">true</param>
           <param name="max_velocity">0.365109712045</param>
         </hardware>
       </xacro:unless>
@@ -200,7 +211,10 @@
           <plugin>cmd_hardware/CMDHardware</plugin>
           <param name="candevice">can1</param>
           <param name="canid">6</param>
+          <param name="resolver_id">24</param>
+          <param name="resolver_reduction">4.0</param>
           <param name="reversed">false</param>
+          <param name="reverse_velocity">true</param>
           <param name="max_velocity">0.350344245749</param>
         </hardware>
       </xacro:unless>

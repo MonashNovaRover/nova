@@ -26,8 +26,6 @@ def launch_setup(context, *args, **kwargs):
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
-    angle = LaunchConfiguration('angle')
-    camera = LaunchConfiguration('camera')
     gz_params = LaunchConfiguration('gz_params')
     controllers = LaunchConfiguration('controllers')
     model = LaunchConfiguration('model')
@@ -57,13 +55,8 @@ def launch_setup(context, *args, **kwargs):
             launch_arguments={'controllers': controllers, 'gazebo': 'True'}.items(),
         ),
         IncludeLaunchDescription(
-            condition=IfCondition(camera),
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'camera.launch.py'])),
-            launch_arguments={'gazebo': 'True'}.items(),
-        ),
-        IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'angle': angle, 'arm': arm}.items(),
+            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'arm': arm}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
@@ -113,16 +106,6 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='angle',
-            default_value='15',
-            description='Angle (in degrees) at which the camera is mounted',
-        ),
-        DeclareLaunchArgument(
-            name='camera',
-            default_value='True',
-            description='',
-        ),
-        DeclareLaunchArgument(
             name='gz_params',
             default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'gz_bridge.yaml']),
             description='Absolute path to ros_gz_bridge params file',
@@ -154,7 +137,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='arm',
-            default_value='false',
+            default_value='true',
             description='whether to launch arm',
         ),
         DeclareLaunchArgument(name='x', default_value='13.22', description='x_pose'),

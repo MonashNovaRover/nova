@@ -14,7 +14,7 @@ teleop_arm_joy_node:
       "arm_j3",
       "arm_j4",
       "arm_j5",
-      "arm_j6"
+      "arm_j6",
       "speed",
       "offset",
       "twist_x",
@@ -61,13 +61,13 @@ teleop_arm_joy_node:
       arm_j4:
         device: "Right"
         id: 1
+        invert: true
       arm_j5:
         device: "Right"
         id: 0
       arm_j6:
         device: "Right"
         id: 2
-        invert: true
 
       speed:
         device: "Right"

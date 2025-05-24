@@ -187,50 +187,79 @@ hardware_interface::return_type CMDHardware::read(
 {
     bus_->spin();
 
+    // Transfer reference states to the actual state interfaces
+
+    // Apply interpolation between CAN feedback and previous command to velocity
+    hw_velocity_.state = lerp(hw_velocity_.reference_state, hw_velocity_.reference_command,
+                              params_.velocity_integration_command_amount);
+
+    // Calculate position from resolver values
+    const auto reference_resolver_state = hw_position_.raw_reference_state + 2*M_PI * hw_position_.raw_reference_state_turns;
+    // Apply resolver reduction
+    const auto reference_position_state = reference_resolver_state / params_.resolver_reduction;
+    // Apply velocity integration to position
+    hw_position_.state = reference_position_state
+        + hw_velocity_.state.value() * params_.velocity_integration_seconds;
+
+
     return hardware_interface::return_type::OK;
 }
 
 hardware_interface::return_type CMDHardware::write(
-        const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
+        const rclcpp::Time & /*time*/, const rclcpp::Duration & period)
 {
-    switch(control_mode_){
+    switch (control_mode_) {
         case cmd_hardware::ControlMode::Undefined:
             break;
         case cmd_hardware::ControlMode::Position:
             if (hw_position_.command.has_value()) {
                 RCLCPP_DEBUG_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
                                    "Sending Position Command " << hw_position_.command.value());
-                RCLCPP_WARN(rclcpp::get_logger(CMDHardwareLoggerName), "Position command interfaces are not yet implemented for CMDs!");
-                // TODO: Implement command interfaces, by seeking velocity
 
-//                send_scaled<int16_t>(make_can_id(CMDSendCommand::PID_DRIVE),
-//                                     hw_position_.command.value() * reversed_multiplier_, params_.max_position);
-            } else {
+                const auto position_cmd = hw_position_.command.value();
+                const auto position_state = hw_position_.state.value();
+
+                // Error term to do velocity seeking on
+                const auto position_error = position_cmd - position_state;
+
+                hw_velocity_.reference_command = params_.position_seeking_velocity_multiplier * position_error / period.seconds();
+            }
+            else {
                 RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No position command");
                 return hardware_interface::return_type::ERROR;
             }
             break;
+
         case cmd_hardware::ControlMode::Velocity:
             if (hw_velocity_.command.has_value()) {
-                RCLCPP_DEBUG_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                                    "Sending velocity command " << hw_velocity_.command.value() * reversed_multiplier_);
-                send_scaled<int16_t>(make_can_id(CMDSendCommand::PID_DRIVE),
-                                     hw_velocity_.command.value() * reversed_multiplier_, params_.max_velocity);
-            } else {
+                hw_velocity_.reference_command = hw_velocity_.command.value();
+            }
+            else {
                 RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No velocity command");
                 return hardware_interface::return_type::ERROR;
             }
             break;
+
         case cmd_hardware::ControlMode::Effort:
             if (hw_effort_.command.has_value()) {
                 send_scaled<int16_t>(make_can_id(CMDSendCommand::PWM_DRIVE),
-                                     hw_effort_.command.value() * reversed_multiplier_, params_.max_effort);
-            } else {
+                                     hw_effort_.command.value() * reverse_velocity_multiplier_, params_.max_effort);
+            }
+            else {
                 RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No effort command");
                 return hardware_interface::return_type::ERROR;
             }
             break;
     }
+
+    // Actually send velocity commands
+    if (control_mode_ == ControlMode::Position || control_mode_ == ControlMode::Velocity) {
+        RCLCPP_DEBUG_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
+                          "Sending velocity command " << hw_velocity_.reference_command * reverse_velocity_multiplier_);
+        send_scaled<int16_t>(make_can_id(CMDSendCommand::PID_DRIVE),
+                             hw_velocity_.reference_command * reverse_velocity_multiplier_, params_.max_velocity);
+    }
+
     return hardware_interface::return_type::OK;
 }
 
@@ -313,7 +342,7 @@ bool CMDHardware::start_interface(const std::string &interface){
         return true;
     }
 
-    if(control_mode_ != cmd_hardware::ControlMode::Undefined){
+    if (control_mode_ != cmd_hardware::ControlMode::Undefined) {
         RCLCPP_FATAL_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
                             "Requested start interface " << interface.c_str() << " when control mode was not undefined");
         return false;
@@ -365,12 +394,28 @@ hardware_interface::CallbackReturn CMDHardware::apply_parameters() {
       params_.mock = is_true(mock_search->second);
     }
 
-    auto reversed_search = info_.hardware_parameters.find("reversed");
-    if (reversed_search != info_.hardware_parameters.end() && is_true(reversed_search->second)) {
+    auto reverse_velocity_search = info_.hardware_parameters.find("reverse_velocity");
+    if (reverse_velocity_search != info_.hardware_parameters.end() && is_true(reverse_velocity_search->second)) {
       RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
-                         "Interface is reversed");
-      params_.reversed = true;
-      reversed_multiplier_ = -1;
+                         "Interface is reverse_velocity");
+      params_.reverse_velocity = true;
+      reverse_velocity_multiplier_ = -1;
+    }
+
+    auto reverse_velocity_feedback_search = info_.hardware_parameters.find("reverse_velocity_feedback");
+    if (reverse_velocity_feedback_search != info_.hardware_parameters.end() && is_true(reverse_velocity_feedback_search->second)) {
+      RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
+                         "Interface is reverse_velocity_feedback");
+      params_.reverse_velocity_feedback = true;
+      reverse_velocity_feedback_multiplier_ = -reverse_velocity_multiplier_;
+    }
+
+    auto reverse_position_search = info_.hardware_parameters.find("reverse_position");
+    if (reverse_position_search != info_.hardware_parameters.end() && is_true(reverse_position_search->second)) {
+      RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
+                         "Interface is reverse_position");
+      params_.reverse_position = true;
+      reverse_position_multiplier_ = -1;
     }
 
     auto max_position_search = info_.hardware_parameters.find("max_position");
@@ -406,6 +451,21 @@ hardware_interface::CallbackReturn CMDHardware::apply_parameters() {
       params_.resolver_reduction = std::stod(resolver_reduction_search->second);
     }
 
+    auto velocity_integration_seconds_search = info_.hardware_parameters.find("velocity_integration_seconds");
+    if (velocity_integration_seconds_search != info_.hardware_parameters.end()) {
+      params_.velocity_integration_seconds = std::stod(velocity_integration_seconds_search->second);
+    }
+
+    auto velocity_integration_command_amount_search = info_.hardware_parameters.find("velocity_integration_command_amount");
+    if (velocity_integration_command_amount_search != info_.hardware_parameters.end()) {
+      params_.velocity_integration_command_amount = std::stod(velocity_integration_command_amount_search->second);
+    }
+
+    auto position_seeking_velocity_multiplier_search = info_.hardware_parameters.find("position_seeking_velocity_multiplier");
+    if (position_seeking_velocity_multiplier_search != info_.hardware_parameters.end()) {
+      params_.position_seeking_velocity_multiplier = std::stod(position_seeking_velocity_multiplier_search->second);
+    }
+
     auto position_offset_search = info_.hardware_parameters.find("position_offset");
     if (position_offset_search != info_.hardware_parameters.end()) {
       params_.position_offset = std::stod(position_offset_search->second);
@@ -419,33 +479,45 @@ hardware_interface::CallbackReturn CMDHardware::apply_parameters() {
 // TODO: better error handling
 bool CMDHardware::set_control_interface(
         const hardware_interface::InterfaceInfo &interface_info, bool command) {
-    if(interface_info.name == hardware_interface::HW_IF_POSITION){
+    if (interface_info.name == hardware_interface::HW_IF_POSITION){
         //TODO: deal with case with state interface and no command interface
         if (command){
 //            hw_position_.max = std::stod(interface_info.max);
-            auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
-            if (resolver_reduction_search == info_.joints[0].parameters.end()){
-                RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No resolver reduction provided");
-                return false;
-            }
-            hw_position_.resolver_reduction = std::stod(resolver_reduction_search->second);
+            // auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
+            // if (resolver_reduction_search == info_.joints[0].parameters.end()){
+            //     RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No resolver reduction provided");
+            //     return false;
+            // }
+            // hw_position_.resolver_reduction = std::stod(resolver_reduction_search->second);
             hw_position_.command = 0.0;
-        } else {
-            hw_position_.state = 0.0;
+            hw_velocity_.command = 0.0;
+            hw_velocity_.state = 0.0;
+            hw_velocity_.reference_command = 0.0;
+            hw_position_.raw_reference_state = 0.0;
+            // Don't reset raw_reference_state_turns, so it persists between uses of the hw interface
+            // hw_position_.raw_reference_state_valid = false;
         }
-    } else if(interface_info.name == hardware_interface::HW_IF_VELOCITY){
-        if(command) {
+        else {
+            hw_position_.state = 0.0;
+            hw_velocity_.command = 0.0;
+            hw_velocity_.state = 0.0;
+        }
+    } else if (interface_info.name == hardware_interface::HW_IF_VELOCITY){
+        if (command) {
             RCLCPP_INFO_STREAM(rclcpp::get_logger(CMDHardwareLoggerName),
             "Configured velocity interface with max velocity: " << params_.max_velocity);
             hw_velocity_.command = 0.0;
-        } else {
+            hw_velocity_.reference_command = 0.0;
+        }
+        else {
             hw_velocity_.state = 0.0;
         }
-    } else if(interface_info.name == hardware_interface::HW_IF_EFFORT){
-        if(command){
+    } else if (interface_info.name == hardware_interface::HW_IF_EFFORT){
+        if (command){
 //            hw_effort_.max = std::stod(interface_info.max);;
             hw_effort_.command = 0.0;
-        } else {
+        }
+        else {
             hw_effort_.state = 0.0;
         }
     } else {
@@ -462,7 +534,7 @@ bool CMDHardware::set_control_interface(
         if (hw_velocity_.state.has_value() || hw_effort_.state.has_value()) {
 //            ids.push_back(make_can_id(TelemetryPacket::PACKET_1));
         }
-        if (hw_position_.state.has_value()) {
+        if (hw_position_.state.has_value() || hw_position_.command.has_value()) {
             ids.push_back(static_cast<uint32_t>(TelemetryPacket::RESOLVER_ARBITRATION_ID));
         }
 
@@ -499,25 +571,6 @@ bool CMDHardware::set_control_interface(
                static_cast<uint32_t>(packet);
     }
 
-//    void cmdhardware::packet_1_callback(leigh::jcan::frame frame) {
-//        if (hw_velocity_.state.has_value()) {
-//
-//            hw_velocity_.state = convert_scaled<int16_t>(&frame.data[0], hw_velocity_.max) *
-//            reversed_multiplier_*-1*0.5; // dear bro, ask chassis why this is -1
-//
-//        }
-//        if (hw_effort_.state.has_value()) {
-//            hw_effort_.state = convert_scaled<int16_t>(&frame.data[2], hw_effort_.max);
-//        }
-//    }
-//
-//    void cmdhardware::packet_3_callback(leigh::jcan::frame frame) {
-//        if(hw_position_.state.has_value()) {
-//            hw_position_.state = convert_scaled<int16_t>(&frame.data[0], hw_position_.max) *
-//                                 hw_position_.resolver_reduction * reversed_multiplier_;
-//        }
-//    }
-
     void CMDHardware::resolver_callback(leigh::jcan::Frame frame) {
         if (!hw_position_.state.has_value())
             return;
@@ -534,7 +587,7 @@ bool CMDHardware::set_control_interface(
                 RCLCPP_WARN(rclcpp::get_logger(CMDHardwareLoggerName), "CMD Resolver RS485 read timout for %d",
                             params_.resolver_id);
             }
-            if (flags & static_cast<uint8_t>(ResolverFlags::RS485_READ_TIMEOUT)) {
+            if (flags & static_cast<uint8_t>(ResolverFlags::INVALID_CHECKSUM)) {
                 RCLCPP_WARN(rclcpp::get_logger(CMDHardwareLoggerName), "CMD Resolver sent an invalid checksum for %d",
                             params_.resolver_id);
             }
@@ -542,9 +595,39 @@ bool CMDHardware::set_control_interface(
         }
 
         // Unpack the resolver value
-        uint16_t value = (static_cast<uint16_t>(frame.data[2]) << 8) | static_cast<uint16_t>(frame.data[3]);
+        const auto value = static_cast<int16_t>((static_cast<uint16_t>(frame.data[2]) << 8) | static_cast<uint16_t>(frame.data[3]))
+          * reverse_position_multiplier_;
 
-        hw_position_.state = raw_resolver_to_rad(value) * params_.resolver_reduction * reversed_multiplier_;
+        if (!hw_position_.raw_reference_state_valid) {
+          // Prevent phantom turn count increments on interface initialisation
+          hw_position_.raw_reference_state = raw_resolver_to_rad(value);
+          hw_position_.raw_reference_state_valid = true;
+          return;
+        }
+
+        const auto last_raw_ref = hw_position_.raw_reference_state;
+        hw_position_.raw_reference_state = raw_resolver_to_rad(value);
+
+        const auto raw_delta = hw_position_.raw_reference_state - last_raw_ref;
+
+        // Modifying raw_reference_state_turns effectively adds or subtracts 2*M_PI, emulating multi-turn
+        if (raw_delta < -M_PI) {
+            hw_position_.raw_reference_state_turns++;
+        }
+        else if (raw_delta > M_PI) {
+            hw_position_.raw_reference_state_turns--;
+        }
+        else if (abs(raw_delta) == M_PI) {
+            // In this case, it is ambiguous which direction has been turned! So, guess from the velocity
+            const auto velocity = hw_velocity_.state.has_value() ? hw_velocity_.state.value() : hw_velocity_.reference_command;
+
+            if (velocity >= 0) {
+              hw_position_.raw_reference_state_turns++;
+            }
+            else {
+              hw_position_.raw_reference_state_turns--;
+            }
+        }
     }
 
     template<typename T>
@@ -582,7 +665,11 @@ bool CMDHardware::set_control_interface(
     }
 
     double CMDHardware::raw_resolver_to_rad(int16_t raw_resolver_data) {
-        return M_2_PI * static_cast<double>(raw_resolver_data) / 0x3FFF;
+        return 2 * M_PI * static_cast<double>(raw_resolver_data) / 0x3FFF;
+    }
+
+    inline double CMDHardware::lerp(const double a, const double b, const double t) {
+        return (1-t)*a + t*b;
     }
 
 }  // namespace cmd_hardware
