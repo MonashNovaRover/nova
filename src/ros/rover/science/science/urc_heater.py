@@ -17,13 +17,13 @@ EDITED:		24/05/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
+import numpy as np
 from nova_interfaces.msg import KilnData
 from nova_interfaces.srv import KilnCommand, KilnCommand_Request, KilnCommand_Response
 from python_control.ControllerNode import ControllerNode
 from python_control.controllers.ToggleController import ToggleController
 from python_control.controls.ToggleControl import ToggleControl
 from python_control.sensors.IntegerSensor import IntegerSensor
-
 
 class URCHeater(ControllerNode):
     # CAN BUS NAME
@@ -94,8 +94,44 @@ class URCHeater(ControllerNode):
 
         self.start_can()
 
+    def predict_temp(self, input):
+        """
+        Predict temperature based on resistance using the Steinhart-Hart equation.
+
+        Parameters:
+        input : float : ADC value between 0 (0V) and 4096 (3.3V)
+
+        Returns:
+        float : Temperature in Celsius
+        """
+        try:
+            R0 = 10000
+
+            # 1. convert the voltage to resistance using the voltage divider formula
+            # Rt = (Vref * R0) / (Vref - Vout)
+            # where Vref is the reference voltage (3.3V), R0 is the known resistor value, and Vout is the measured voltage
+            Vref = 3.3
+            Vout = input / 4095 * Vref  # get percentage from 12 bit CAN information
+            R = (Vref * R0) / (Vref - Vout)
+
+            # 2. use the resistance value to calculate the temperature using the Steinhart-Hart equation
+            T0 = 298.15
+            B = 3977
+            kelvin_temp = 1 / (1 / T0 + (1 / B) * np.log(R / R0))
+
+            # 3. convert to celsius
+            c_temp = kelvin_temp - 273.15
+            self.get_logger().info(f"input: {input} => output: {c_temp} degrees")
+            return c_temp
+        except ZeroDivisionError:
+            self.get_logger().info(f"Zero Division Error Occurred with input = {input}")
+
+        return 0
+
     def check_temp(self, temp: int):
         """ Turn off the kiln if the temperature has been reached """
+        self.get_logger().info(f"target temp: {self.target_temp} | current dirt temp: {temp}")
+
         if self.target_temp > temp:
             self.heater_control.start()
         else:
@@ -103,8 +139,8 @@ class URCHeater(ControllerNode):
 
     def publish_data(self):
         """ Publish the current readings from the sensors """
-        heater_data = self.heater_sensor.get_sensor_value()
-        dirt_data = self.dirt_sensor.get_sensor_value()
+        heater_data = self.predict_temp(self.heater_sensor.get_sensor_value())
+        dirt_data = self.predict_temp(self.dirt_sensor.get_sensor_value())
 
         if self.is_active:
             self.check_temp(heater_data)
