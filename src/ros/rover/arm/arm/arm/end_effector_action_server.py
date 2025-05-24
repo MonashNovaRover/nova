@@ -79,7 +79,19 @@ class EndEffectorActionServer(Node):
         self.timer_spin_can = self.create_timer(0.01, self.bus.spin)
         self.timer_send_can_commands = self.create_timer(0.01, self.send_can_commands)
         
-        # add can callback for updating position so that self.position can be assumed as always accurate
+        """
+        add can callback for updating position so that self.position can be assumed as always accurate
+        
+        Apparently feedback for the CMDs is through the same IDs that commands are sent to them on:
+        What was on MNR CANBUS Standards:
+
+        CAN ID          Board       Notes
+        0[a][b]	        CMDs	    Feedback and status from CMDs
+        eg 012                      [a] range from 1-7
+                                    [b] range from 0-0x?
+
+        End Effector [a] = id = 7
+        """
 
     def left_joystick_callback(self, msg):
         if msg.btn_bottom_l2_state == 1:
