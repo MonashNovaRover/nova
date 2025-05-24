@@ -118,8 +118,8 @@ export interface RosServiceInterface {
     IRosNovaInterfacesCacheCommandResponse
   >;
   [RosService.HEATER]: RosServiceMessage<
-      IRosStdSrvsSetBoolRequest,
-      IRosStdSrvsSetBoolResponse
+    IRosNovaInterfacesKilnCommandRequest,
+    IRosNovaInterfacesKilnCommandResponse
   >;
   [RosService.REQUEST_HYDRAPROBE_READING]: RosServiceMessage<
       EmptyMessage,

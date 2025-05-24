@@ -2,7 +2,6 @@ import React, {useState} from "react";
 import HydroprobeWidget from "../../components/HydroprobeWidget/HydroprobeWidget";
 import PumpsWidget from "../../components/PumpsWidget/PumpsWidget";
 import BMESensor from "../../components/BMESensor/BMESensor";
-import GenericSetBoolWidget from "../../components/GenericSetBoolWidget/GenericSetBoolWidget.tsx";
 import {RosService} from "../../ros/services/rosService.ts";
 import URCNIRProbeWidget from "../../components/NIRProbe/URCNIRProbeWidget.tsx";
 import CacheControlWidget from "../../components/science/CacheControlWidget/CacheControlWidget.tsx";
@@ -11,6 +10,7 @@ import SegmentedPicker from "../../components/SegmentedPicker/SegmentedPicker.ts
 import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCameraComponent.tsx";
 import {CameraSerials} from "../shared/CamerasPage/CameraPageConstants.tsx";
 import URCUVVisSpecView from "./URCUVVisSpecView.tsx";
+import HeaterWidget from "../../components/science/HeaterWidget/HeaterWidget.tsx";
 
 
 const URCScienceView: React.FC = () => {
@@ -28,8 +28,8 @@ const URCScienceView: React.FC = () => {
         <div className="flex flex-row gap-3">
           <CacheControlWidget className="w-full" label="Cache 1" service={RosService.CACHE_1}/>
           <CacheControlWidget className="w-full" label="Cache 2" service={RosService.CACHE_2}/>
-          <GenericSetBoolWidget className="w-3/4" label="Heater" service={RosService.HEATER}/>
         </div>
+        <HeaterWidget/>
       </div>
 
       <div className="flex flex-col gap-3 col-span-2">
@@ -48,6 +48,7 @@ const URCScienceView: React.FC = () => {
       <div className="flex flex-col gap-3 col-span-2">
         <PumpsWidget/>
         <CarouselWidgetV2/>
+        <HeaterWidget/>
       </div>
 
       <div className="flex flex-col gap-3 col-span-2">
