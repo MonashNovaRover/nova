@@ -43,7 +43,7 @@ export const rosTopicMessages = {
   // Maps Related
   [RosTopic.ROVER_LOCATION]: "nova_interfaces/msg/RoverPoseGPS",
   [RosTopic.BASE_LOCATION]: "nova_interfaces/msg/RoverPoseGPS",
-  [RosTopic.AUTO_STATUS]: "nova_interfaces/msg/Status.msg",
+  [RosTopic.AUTO_STATUS]: "nova_interfaces/msg/Status",
 
   // Other
   [RosTopic.BATTERY_STATE]: "sensor_msgs/msg/BatteryState",
