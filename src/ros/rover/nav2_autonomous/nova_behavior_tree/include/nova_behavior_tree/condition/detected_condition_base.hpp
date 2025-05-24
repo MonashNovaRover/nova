@@ -18,6 +18,7 @@
  * only publishing clusters that have at least x detections in the last y seconds.
  * 
  * Works specifically for subscribing to a topic on which detections are published.
+ * This is a template class, to which you supply the message type on the topic you want to subscribe to.
  * 
  * When inheriting from this class, you should:
  * - Implement the callback method to process the incoming messages
@@ -90,6 +91,7 @@ namespace nova_behavior_tree
         initialize();
       }
 
+      // needed to receive incoming messages
       callback_group_executor_.spin_some();
 
       if (process_detections())
@@ -117,7 +119,7 @@ namespace nova_behavior_tree
   
   protected:
     /**
-     * @brief Method to read parameters and initialize class variables
+     * @brief Initializes the node, subscribes to the detection topic, and sets up the callback group
      */
     void initialize()
     {
@@ -181,7 +183,7 @@ namespace nova_behavior_tree
 
   private:
     /**
-     * @brief Filters and publsihes confident detections
+     * @brief Filters raw detections and publsihes confident detections
      * @return true if at least one detection is valid, false otherwise
      */
     bool process_detections()
@@ -221,10 +223,16 @@ namespace nova_behavior_tree
       // remove outdated detections
       for (size_t i = 0; i < detection_clusters_.size();)
       {
+        tf2::Vector3 point_sum(0, 0, 0);
+        int removed_count = 0;
         while (!detection_clusters_[i].goals.empty() && 
                (node_->now() - detection_clusters_[i].goals.front().header.stamp).seconds() > buffer_time_)
         {
+          tf2::Vector3 goal_point;
+          tf2::fromMsg(detection_clusters_[i].goals.front().pose.position, goal_point);
           detection_clusters_[i].goals.pop();
+          point_sum += goal_point;
+          ++removed_count;
         }
 
         if (detection_clusters_[i].goals.empty())
@@ -233,6 +241,12 @@ namespace nova_behavior_tree
         }
         else
         {
+          // update the centroid of the cluster after removing outdated goals
+          if (removed_count > 0)
+          {
+            auto &cluster = detection_clusters_[i];
+            cluster.centroid = (cluster.centroid * (cluster.goals.size() + removed_count) - point_sum) / cluster.goals.size();
+          }
           ++i; // only increment if we didn't erase
         }
       }
@@ -241,9 +255,8 @@ namespace nova_behavior_tree
       Goals filtered_detections_;
       for (const auto &cluster : detection_clusters_) {
         if (cluster.goals.size() >= min_detections_) {
-          Goal detection_goal = cluster.goals.back();
-          tf2::toMsg(cluster.centroid, detection_goal.pose.position);
-          filtered_detections_.push_back(detection_goal);
+          // note that we're not using the centroid here, but rather the most recent detection
+          filtered_detections_.push_back(cluster.goals.back());
         }
       }
       
@@ -252,7 +265,7 @@ namespace nova_behavior_tree
       log_detections();
       clear_processed_detections();
       
-      return true;
+      return !filtered_detections_.empty();
     }
 
     std::vector<Cluster> detection_clusters_;
