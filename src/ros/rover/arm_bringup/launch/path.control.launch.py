@@ -49,7 +49,7 @@ def launch_setup(context, *args, **kwargs):
         Node( # TODO: only when arm is enabled
             package='controller_manager',
             executable='spawner',
-            arguments=['nova_path_planner'],
+            arguments=['nova_path_planner', '--inactive'],
         ),
         GroupAction(
             condition=UnlessCondition(gazebo),
@@ -85,7 +85,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='controllers',
-            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'controllers.yaml']),
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'old.controllers.yaml']),
             description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
