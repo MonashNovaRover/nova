@@ -46,3 +46,4 @@ typing_sequencer:
     # path planner movement
     speed: 0.01 # m/s
     debug_target: True
+    move_to_start: True # move arm back to starting position between each key
