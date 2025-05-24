@@ -12,6 +12,7 @@ import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCamer
 import {CameraSerials} from "../shared/CamerasPage/CameraPageConstants.tsx";
 import URCUVVisSpecView from "./URCUVVisSpecView.tsx";
 
+
 const URCScienceView: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState(0)
 

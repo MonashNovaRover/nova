@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
 from python_control.sensors.Sensor import Sensor
+from rclpy.publisher import Publisher
+from std_msgs.msg import Bool
 from logging import Logger
 import jcan
 
 class ToggleCommandSensor(Sensor[bool]):
-    """Class to represent a limit switch sensor"""
+    """Class to represent a limit switch or hall effect sensor"""
     def __init__(
             self, 
             bus: jcan.Bus, 
@@ -16,13 +18,15 @@ class ToggleCommandSensor(Sensor[bool]):
             control_id: hex = None,
             initial_value: bool = False,
             run_can: bool = True,
+            publisher: Publisher = None,
         ):
         super().__init__(
             bus=bus, 
             logger=logger, 
             frame_id=frame_id, 
             initial_value=initial_value,
-            run_can=run_can
+            run_can=run_can,
+            publisher=publisher,
         )
         # Command ID = 1 Byte, (0x00 - 0xFF)
         self.control_id = control_id # type: hex
@@ -49,4 +53,6 @@ class ToggleCommandSensor(Sensor[bool]):
 
     
     def publish_sensor(self):
-        pass
+        msg = Bool()
+        msg.data = self.get_sensor_value()
+        self.publisher.publish(msg)

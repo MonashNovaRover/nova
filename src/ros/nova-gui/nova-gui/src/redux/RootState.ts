@@ -12,6 +12,7 @@ import {
   IRosNovaInterfacesRamanSpectrum,
   IRosBlcmdInterfacesTelemetry,
   IRosStdMsgsString,
+  IRosStdMsgsBool,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
   IRosCmdInterfacesCmDsFeedback,
@@ -80,6 +81,8 @@ export interface RootState {
   hydraprobeData: IRosNovaInterfacesHydraprobeData;
   theta360CamStore: IRosSensorMsgsCompressedImage;
   bmeSensorStore: IRosNovaInterfacesBmeSensor;
+  auger1DepthSensorStore: IRosStdMsgsBool;
+  auger2DepthSensorStore: IRosStdMsgsBool;
 
   // Maps Related Stores
   roverLocationStore: IRosNovaInterfacesRoverPoseGps;
