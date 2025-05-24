@@ -257,8 +257,11 @@ namespace nova_path_planner
     // We currently don't use this. Reasonable values are in [0.01, 0.1] rads, and KDL uses 0.1 rads by default.
     double search_discretization = params_.kinematics_solver_search_discretization;
 
-    kinematics_solver_->initialize(kinematics_compat_node_, *robot_model_.get(), joint_group_name_, base_frame, tip_frames,
-                                   search_discretization);
+    if (!kinematics_solver_->initialize(kinematics_compat_node_, *robot_model_.get(), joint_group_name_, base_frame, tip_frames,
+                                   search_discretization)) {
+      RCLCPP_ERROR(logger, "Failed to initialize kinematics solver");
+      return controller_interface::CallbackReturn::ERROR;
+    }
 
     // Load planner
     /*
