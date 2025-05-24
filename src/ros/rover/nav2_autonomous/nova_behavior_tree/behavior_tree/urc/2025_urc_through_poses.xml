@@ -41,9 +41,14 @@
                     </RunOnce>
                     <Sequence>
                       <ARTagDetected _skipIf="type != 1"
+                                      detections_topic="/aruco_detections"
                                       min_detections="2"
                                       buffer_time="5.0"
-                                      goal="{detected_goal}"/>
+                                      cluster_radius="1.5"
+                                      detections="{detected_goals}"/>
+                      <GetGoal index="0"
+                              input_goals="{detected_goals}"
+                              output_goal="{detected_goal}"/>
                       <UpdateURCGoals detected_goal="{detected_goal}"
                                       current_pose="{current_pose}"
                                       input_goals="{goals}"

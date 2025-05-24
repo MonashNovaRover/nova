@@ -127,9 +127,11 @@
     </Condition>
     
     <Condition ID="ARTagDetected">
+      <input_port name="detections_topic">Topic to subscribe to for detections</input_port>
       <input_port name="min_detections">Minimum number of detections within buffer time to be considered valid</input_port>
       <input_port name="buffer_time">Keep track of detections in the last n seconds</input_port>
-      <output_port name="goal">Detected AR tag pose</output_port>
+      <input_port name="cluster_radius">Radius for a detection to be considered part of a cluster</input_port>
+      <output_port name="detections">Detected poses</output_port>
     </Condition>
 
     <Condition ID="GetFirstGoal">
