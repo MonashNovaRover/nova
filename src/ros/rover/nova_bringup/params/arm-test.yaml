@@ -40,5 +40,6 @@ typing_sequencer:
     pollrate: 10.0
 
     # path planner movement
-    speed: 0.01 # m/s
+    speed: 0.5 # m/s
     debug_target: True
+    move_to_start: True

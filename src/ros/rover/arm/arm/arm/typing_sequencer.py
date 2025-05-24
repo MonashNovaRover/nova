@@ -71,6 +71,7 @@ class TypingSequencer(Node):
         # path planner arguments
         self.debug_target_tf = self.declare_parameter('debug_target', False).get_parameter_value().bool_value
         self.pp_speed = self.declare_parameter('speed', 0.5).get_parameter_value().double_value
+        self.move_to_start = self.declare_parameter('move_to_start', True).get_parameter_value().bool_value
 
         # Listen to /tf
         self.tf_buffer = Buffer()
@@ -228,10 +229,14 @@ class TypingSequencer(Node):
         partial_sequence = []
 
         # Get position of EE in base link frame (Assumes operators have aligned keyboard with camera)
-        # ee_transform = self.get_transform_from_frame(self.ee_frame, self.base_frame)
-        # if ee_transform is None:
-        #     response.success = False
-        #     return response
+        ee_transform = self.get_transform_from_frame(self.ee_frame, self.base_frame)
+        if ee_transform is None:
+            self.get_logger().info(f"Sequencer failed getting {self.ee_frame} transform")
+            response.success = False
+            return response
+        start_pose = Pose() 
+        start_pose.position = ee_transform.transform.translation
+        start_pose.orientation = ee_transform.transform.rotation
 
         # Call controller switcher and switch to "Auto typing mode" (IK only mode)
         # TODO: Integrate the switcher
@@ -284,13 +289,13 @@ class TypingSequencer(Node):
             #     response.success = False
             #     return response
 
+            # Move back to starting position
+            if self.move_to_start:
+                self.call_path_planner(start_pose, self.pp_speed)
+
             # TODO: Publish feedback to topic for GUI
             # partial_sequence.append(key)
             self.get_logger().info(f'Completed: {partial_sequence}')
-
-            # Move back to starting position
-            # TODO: Integrate + Error handling
-            # self.path_to_tf(ee_transform)
 
         # Call controller switcher and switch back to manual mode
         # TODO: Integrate the switcher
