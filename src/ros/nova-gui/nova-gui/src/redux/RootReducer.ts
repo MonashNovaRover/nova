@@ -214,6 +214,18 @@ export const reduxStores = {
       altitude: 0,
     }
   ),
+  auger1DepthSensorStore: createBifrostStore(
+    { topic: RosTopic.AUGER1_DEPTH_SENSOR },
+    {
+      data: false
+    }
+  ),
+  auger2DepthSensorStore: createBifrostStore(
+    { topic: RosTopic.AUGER2_DEPTH_SENSOR },
+    {
+      data: false
+    }
+  ),
 
   // Regular Stores
   uiState: uiSlice.reducer,
