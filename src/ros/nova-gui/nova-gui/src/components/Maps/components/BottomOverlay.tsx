@@ -23,6 +23,7 @@ import { ToolTipButton } from "../../shared/TooltipButton";
 import { useCartographerActions } from "../../../redux/actions/useCartographerActions";
 import { MapTile } from "../config.tsx";
 import { MapPoint } from "../../../redux/models/CartographerState.ts";
+import AutoStatus from "./AutoStatus.tsx";
 
 interface BottomOverlayProps {
   mapTile: MapTile;
@@ -50,40 +51,41 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
     >
       <Card fullWidth className="h-full">
         <CardHeader className="w-full flex flex-row justify-between">
+          <AutoStatus/>
           <div className=""></div>
           <div className="flex flex-row align-middle gap-3">
-          <CopyableInput 
-            readOnly
-            value={String(base.latitude)}
-            placeholder={`Base Latitude`}
-            label="Base Latitude"/>
-          <CopyableInput 
-            readOnly
-            value={String(base.longitude)}
-            placeholder={`Base Longitude`}
-            label="Base Longitude"/>
-          <CopyableInput 
-            readOnly
-            value={String(rover.latitude)}
-            placeholder={`Rover Latitude`}
-            label="Rover Latitude"/>
-          <CopyableInput 
-            readOnly
-            value={String(rover.longitude)}
-            placeholder={`Rover Longitude`}
-            label="Rover Longitude"/>
-          <Select 
-            selectedKeys={[mapTile]}
-            label="Map Tiles"
-            placeholder="Select Tiles"
-            onChange={(e) => setMapTile(e.target.value as MapTile)}
-            >
-            {Object.values(MapTile).map((tile) => (
-              <SelectItem 
-                key={tile} >
-                {tile}
-              </SelectItem>
-            ))}
+            <CopyableInput
+              readOnly
+              value={String(base.latitude)}
+              placeholder={`Base Latitude`}
+              label="Base Latitude"/>
+            <CopyableInput
+              readOnly
+              value={String(base.longitude)}
+              placeholder={`Base Longitude`}
+              label="Base Longitude"/>
+            <CopyableInput
+              readOnly
+              value={String(rover.latitude)}
+              placeholder={`Rover Latitude`}
+              label="Rover Latitude"/>
+            <CopyableInput
+              readOnly
+              value={String(rover.longitude)}
+              placeholder={`Rover Longitude`}
+              label="Rover Longitude"/>
+            <Select
+              selectedKeys={[mapTile]}
+              label="Map Tiles"
+              placeholder="Select Tiles"
+              onChange={(e) => setMapTile(e.target.value as MapTile)}
+              >
+              {Object.values(MapTile).map((tile) => (
+                <SelectItem
+                  key={tile} >
+                  {tile}
+                </SelectItem>
+              ))}
             </Select>
             <Button
               variant="shadow"
