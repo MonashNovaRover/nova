@@ -594,8 +594,8 @@ bool CMDHardware::set_control_interface(
             return;
         }
 
-        // Unpack the resolver value
-        const auto value = static_cast<int16_t>((static_cast<uint16_t>(frame.data[2]) << 8) | static_cast<uint16_t>(frame.data[3]))
+        // Unpack the resolver value, convert 14 bit value to signed 16.
+        const auto value = static_cast<int16_t>((static_cast<uint16_t>(frame.data[2]) << 10) | static_cast<uint16_t>(frame.data[3] << 2))
           * reverse_position_multiplier_;
 
         if (!hw_position_.raw_reference_state_valid) {
@@ -665,7 +665,7 @@ bool CMDHardware::set_control_interface(
     }
 
     double CMDHardware::raw_resolver_to_rad(int16_t raw_resolver_data) {
-        return 2 * M_PI * static_cast<double>(raw_resolver_data) / 0x3FFF;
+        return 2 * M_PI * static_cast<double>(raw_resolver_data) / 0xFFFF;
     }
 
     inline double CMDHardware::lerp(const double a, const double b, const double t) {
