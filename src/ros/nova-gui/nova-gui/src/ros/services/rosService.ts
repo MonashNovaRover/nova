@@ -1,7 +1,7 @@
 /**
  * A Single Enum which Represents all ROS Services that Bifrost can call
  *
- * To Call to New Services from Bifrost, Add thhe Service as an enum below
+ * To Call to New Services from Bifrost, Add the Service as an enum below
  *
  */
 
@@ -32,4 +32,7 @@ export enum RosService {
   CACHE_1 = "/science/cache_command_1",
   CACHE_2 = "/science/cache_command_2",
   HEATER = "/science/heater",
+  CAROUSEL = "/science/carousel_service",
+  RGBInput = "/set_RGBInput",
+  REQUEST_HYDRAPROBE_READING = "/science/request_hydraprobe_reading",
 }

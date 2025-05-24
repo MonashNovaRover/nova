@@ -147,7 +147,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         Node(
             package='science',
-            executable='urc_hydraprobe.py',
+            executable='hydraprobe_trigger_node.py',
             output='screen',
             emulate_tty=True,
         ),
