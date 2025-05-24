@@ -73,25 +73,34 @@ nova_twistmapper:
       - arm_j5
       - arm_j6
     kinematics_solver: "kdl_kinematics_plugin/KDLKinematicsPlugin"
+    # kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
     kinematics_solver_timeout: 0.02
     kinematics_base_frame: "arm_link"
     kinematics_endeffector_frame: "endeffector_kinematics"
 
 nova_path_planner:
   ros__parameters:
+#    chained_controller_name: "nova_arm_position_controller"
     chained_controller_name: ""
     joint_names:
-      - arm_j1
-      - arm_j2
-      - arm_j3
-      - arm_j4
-      - arm_j5
-      - arm_j6
-    kinematics_solver: "kdl_kinematics_plugin/KDLKinematicsPlugin"
+      - J1
+      - J2
+      - J3
+      - J4
+      - J5
+      - J6
+    #      - arm_j1
+    #      - arm_j2
+    #      - arm_j3
+    #      - arm_j4
+    #      - arm_j5
+    #      - arm_j6
+#    kinematics_solver: "kdl_kinematics_plugin/KDLKinematicsPlugin"
+    kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
     kinematics_solver_timeout: 1.0
-    kinematics_base_frame: "arm_link"
+    kinematics_base_frame: "arm_kinematics_origin"
     add_allowed_collisions_to_srdf: true
-    add_chain_to_srdf: true
+    add_chain_to_srdf: false
     kinematics_endeffector_frame: "endeffector_kinematics"
 
 wheel_velocity_controller:
@@ -118,8 +127,8 @@ joint_state_broadcaster:
     joints:
       ["blp", "brp", "flp", "frp",
       "blw", "brw", "flw", "frw",
-#      "J1", "J2", "J3", "J4", "J5", "J6"]
-      "arm_j1", "arm_j2", "arm_j3", "arm_j4", "arm_j5", "arm_j6"]
+      "J1", "J2", "J3", "J4", "J5", "J6"]
+    #       "arm_j1", "asm_j2", "arm_j3", "arm_j4", "arm_j5", "arm_j6"]
 
     extra_joints:
       ["chassis_to_left_leg",
