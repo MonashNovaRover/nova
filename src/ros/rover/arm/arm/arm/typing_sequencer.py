@@ -194,7 +194,7 @@ class TypingSequencer(Node):
                 return transform
             time.sleep(1.0/self.tf_poll_rate)
         else:
-            self.get_logger().warn(f'Transform of {target_frame} not available after waiting {self.timeout} seconds')
+            self.get_logger().warn(f'Transform of {target_frame} not available after waiting {self.tf_timeout} seconds')
         return None
 
 
