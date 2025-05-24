@@ -51,6 +51,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RamanSpectrum.msg"
   "msg/RamanState.msg"
   "msg/BMESensor.msg"
+  "msg/Status.msg"
 
   # Service definitions
   "srv/CacheCommand.srv"
