@@ -60,6 +60,8 @@ class TypingSequencer(Node):
         self.thread = None
         self.stop_event = threading.Event()
 
+        self.debug_target_tf = self.declare_parameter('debug_target', False).get_parameter_value().bool_value
+
         # Parameters
         self.keyboard_frame = self.declare_parameter('keyboard_frame', 'keyboard_frame').get_parameter_value().string_value
         self.base_frame = self.declare_parameter('base_frame', 'arm_link').get_parameter_value().string_value
@@ -107,11 +109,31 @@ class TypingSequencer(Node):
         response = self.kblocaliser_client.call(request)
         return response
 
+    def pose_calc(self, key_to_base, ee_frame, actuator_frame, stamp):
+        """ Given the following frames, calculates the pose to feed into the 
+            path planner to move actuator of end effector offset from the key """
+        act_to_ee:TransformStamped = self.tf_buffer.lookup_transform(actuator_frame, ee_frame, stamp)
+        ate_pose = Pose() 
+        ate_pose.position = act_to_ee.transform.translation
+        ate_pose.orientation = act_to_ee.transform.rotation
+        ee_to_key = tf2_geometry_msgs.do_transform_pose(ate_pose, key_to_base)
+
+        if self.debug_target_tf:
+            tfs = TransformStamped()
+            tfs.header.frame_id = self.base_frame
+            tfs.child_frame_id = 'target_' + self.keyboard_frame
+            tfs.header.stamp = stamp
+            tfs.transform.translation = ee_to_key.position
+            tfs.transform.rotation = ee_to_key.orientation
+            self.transform_broadcaster.sendTransform(tfs)
+
+        return ee_to_key
 
     def call_path_planner(self, pose):
         goal_msg = ArmPlanPath.Goal()
+        #self.get_logger().info(f"{pose}")
         goal_msg.pose = pose
-        goal_msg.duration = 5.0
+        goal_msg.speed = 0.5
 
         self.pplanner_client.wait_for_server()
         future_response = self.pplanner_client.send_goal_async(goal_msg, feedback_callback=self.handle_pp_feedback)
@@ -120,12 +142,12 @@ class TypingSequencer(Node):
         if not response.accepted:
             self.get_logger().info('Path planner goal rejected')
             return False
-        
-        future_result = response.get_result_async()
-        def path_done(self):
-            self.path_done = True
             
-        future_result.add_done_callback(path_done(self))
+        future_result = response.get_result_async()
+        while not future_response.done():
+            rclpy.spin_once()
+        self.get_logger().info(f"{type(future_result)}")
+        return future_result.result
 
     def handle_pp_feedback(self, res):
         traversing_path = res.feedback.traversing_path
@@ -165,38 +187,6 @@ class TypingSequencer(Node):
         else:
             self.get_logger().warn(f'Transform of {target_frame} not available after waiting {self.timeout} seconds')
         return None
-
-    def pose_calc(self, key_to_base, ee_frame, actuator_frame, stamp):
-        """ Given the following frames, calculates the pose to feed into the 
-            path planner to move actuator of end effector offset from the key """
-        # convert key transform to pose
-        # TODO: fix calculation
-        # key_pose = Pose()
-        # key_pose.position = key_transform.transform.translation
-        # key_pose.orientation = key_transform.transform.rotation
-        # TODO: Add logic from get_transform_now_from_base_frame
-        act_to_ee:TransformStamped = self.tf_buffer.lookup_transform(actuator_frame, ee_frame, stamp)
-        ate_pose = Pose()
-        
-        ate_pose.position = act_to_ee.transform.translation
-        ate_pose.orientation = act_to_ee.transform.rotation
-
-        act_to_ee.child_frame_id = 'john'
-        
-        self.transform_broadcaster.sendTransform(act_to_ee)
-        
-        ee_to_key = tf2_geometry_msgs.do_transform_pose(ate_pose, key_to_base)
-
-        tfs = TransformStamped()
-        tfs.header.frame_id = self.base_frame
-        tfs.child_frame_id = 'target_' + self.keyboard_frame
-        tfs.header.stamp = stamp
-        #tfs.transform = ee_to_key
-        tfs.transform.translation = ee_to_key.position
-        tfs.transform.rotation = ee_to_key.orientation
-        self.transform_broadcaster.sendTransform(tfs)
-
-        return ee_to_key
 
 
     def start_sequencer(self, request, response):
@@ -265,10 +255,8 @@ class TypingSequencer(Node):
             # Start action to move to key via path planner
             # TODO: Add error handling and fix node crashing
             pose = self.pose_calc(key_transform, self.ee_frame, self.actuator_frame, stamp)
-            self.call_path_planner(pose)
-            while self.path_done == False:
-                time.sleep(0.1)
-            self.path_done = False
+            pp_result = self.call_path_planner(pose)
+            self.get_logger().info(f"{pp_result}")
 
             # TODO: Integrate and test this section
 
@@ -292,7 +280,10 @@ class TypingSequencer(Node):
         #     response.success = False
         #     return response
         self.get_logger().info(f'Sequencer Complete! {partial_sequence}')
-        return
+        self.stop_event.set()
+        self.thread.join(timeout=1.0)
+        self.thread = None
+
 
 
 def main(args=None):
