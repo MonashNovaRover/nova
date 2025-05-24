@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Samsung Research America
+// Copyright (c) 2025 Monash Nova Rover
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,17 +40,20 @@ namespace nova_behavior_tree
 using namespace geometry_msgs::msg;
 using namespace nav_msgs::msg;
 
-struct GridCell {
+struct GridCell
+{
   int x, y;
 };
 
-struct SearchResult {
+struct SearchResult
+{
   GridCell cell;
   bool found;
   int search_radius;
 };
 
-struct TowardPoint {
+struct TowardPoint
+{
   Point point; // The point to which the original goal was pointed towards
   PoseStamped goal; // The original goal
 };

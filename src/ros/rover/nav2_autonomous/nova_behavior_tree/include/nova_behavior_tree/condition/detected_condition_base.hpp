@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /**
- * @brief Base class for conditions that check whether an object has been detected.
+ * @brief Base class for conditions that check whether object(s) have been detected.
  * Performs filtering on raw detections by clustering them based on proximity and
  * only publishing clusters that have at least x detections in the last y seconds.
  * 
