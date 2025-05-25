@@ -253,6 +253,12 @@ export const reduxStores = {
   ),
 
   cartographerState: cartographerSlice.reducer,
+  cartographerCommand: createBifrostStore(
+    { service: RosService.CARTOGRAPHER_COMMAND },
+    {
+      success: true,
+    }
+  ),
 
   batteryStore: createBifrostStore(
     { topic: RosTopic.BATTERY_STATE },

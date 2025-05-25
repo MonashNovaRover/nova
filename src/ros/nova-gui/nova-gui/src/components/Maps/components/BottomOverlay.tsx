@@ -22,6 +22,8 @@ import { Navigation, Trash } from "react-feather";
 import { ToolTipButton } from "../../shared/TooltipButton";
 import { useCartographerActions } from "../../../redux/actions/useCartographerActions";
 import { MapTile } from "../config.tsx";
+import { GoalType, MapPoint } from "../../../redux/models/CartographerState.ts";
+import { CartographerGoalModal } from "./CartographerGoalModal.tsx";
 import { MapPoint } from "../../../redux/models/CartographerState.ts";
 import AutoStatus from "./AutoStatus.tsx";
 
@@ -33,6 +35,7 @@ interface BottomOverlayProps {
 
 export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint}) => {
   const [overlayOpen, setOverlayOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const { points, centerOnRover, trackRover } = useSelector(
     (state: RootState) => state.cartographerState
   );
@@ -89,6 +92,13 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
             </Select>
             <Button
               variant="shadow"
+              fullWidth
+              onClick={() => setModalOpen(true)}
+            >
+              Publish Goals
+            </Button>
+            <Button
+              variant="shadow"
               color={trackRover ? "primary" : "default"}
               onClick={toggleRoverTracking}
             >
@@ -128,6 +138,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                       <TableColumn>Name</TableColumn>
                       <TableColumn>Latitude</TableColumn>
                       <TableColumn>Longitude</TableColumn>
+                      <TableColumn>Goal Type</TableColumn>
                       <TableColumn align="end">
                         <div className="flex flex-row justify-end">Actions</div>
                       </TableColumn>
@@ -138,6 +149,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                           <TableCell>{point.name}</TableCell>
                           <TableCell>{point.lat}</TableCell>
                           <TableCell>{point.long}</TableCell>
+                          <TableCell>{GoalType[point.goalType]}</TableCell>
                           <TableCell className="flex flex-row justify-end">
                             <ToolTipButton
                               isIconOnly
@@ -164,13 +176,17 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                      }}
                      placeholder={"##.#### %"}>
                   </CopyableInput>
-
                 </motion.div>
               </motion.div>
             </CardBody>
           )}
         </AnimatePresence>
       </Card>
+      <CartographerGoalModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        points={points}
+      />
     </motion.div>
   );
 };

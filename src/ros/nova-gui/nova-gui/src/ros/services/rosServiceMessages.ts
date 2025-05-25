@@ -32,4 +32,7 @@ export const rosServiceMessages = {
   [RosService.REQUEST_HYDRAPROBE_READING]: "std_srvs/srv/Trigger",
   [RosService.CAROUSEL]: "nova_interfaces/srv/KilnCommand",
   [RosService.RGBInput]: "nova_interfaces/srv/RGBInput",
+
+  // Autonomous Related
+  [RosService.CARTOGRAPHER_COMMAND]: "nova_interfaces/srv/CartographerCommand",
 };

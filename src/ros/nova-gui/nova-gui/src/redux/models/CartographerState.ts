@@ -7,12 +7,20 @@ export interface MapCoordinate {
 
 export interface MapPoint extends MapCoordinate {
   name: string;
+  goalType: GoalType;
 }
 
 export enum MapInteractionMode {
   PAN = "PAN",
   SELECT = "SELECT",
   MEASURE = "MEASURE",
+}
+
+export enum GoalType {
+  GNSS = 0,
+  AR_TAG = 1,
+  OBJECT = 2,
+  VIA_POINT = 3,
 }
 
 export interface CartographerState {
