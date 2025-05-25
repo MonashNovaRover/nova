@@ -66,7 +66,6 @@ buildRosPackage {
     pythonPackages.pygobject3
     pythonPackages.gst-python
     pythonPackages.psutil
-    pythonPackages.linuxpy
   ];
 
   nativeCheckInputs = [
