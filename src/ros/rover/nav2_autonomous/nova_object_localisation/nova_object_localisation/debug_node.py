@@ -82,6 +82,8 @@ class DebugNode(LifecycleNode):
         self.declare_parameter("image_reliability", QoSReliabilityPolicy.BEST_EFFORT)
         self.target_frame = self.declare_parameter("map_frame", "map").get_parameter_value().string_value
         self.base_frame = self.declare_parameter("base_frame", "base_link").get_parameter_value().string_value
+        self.scale_factor = [ self.declare_parameter("x_scalar", 1.0).get_parameter_value().double_value,
+                              self.declare_parameter("y_scalar", 1.0).get_parameter_value().double_value ]
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -277,23 +279,26 @@ class DebugNode(LifecycleNode):
         except Exception as e:
             self.get_logger().error(f' ❌ Transform was not available! {e}')
 
+        def resize_point(point:float, axis:int):
+            """resize the point from rgb to depth resolution to account for differences"""
+            return point * self.scale_factor[axis]
+
         detection_2d: Detection2D
         for detection_2d in detection_msg.detections:
-
             detection = Detection()
             detection.class_id = int(detection_2d.results[0].hypothesis.class_id)
-            detection.class_name = IDS_LABEL[int(IDS_LABEL[int(detection_2d.results[0].hypothesis.class_id)])]
+            detection.class_name = IDS_LABEL[int(detection_2d.results[0].hypothesis.class_id)]
             detection.score = detection_2d.results[0].hypothesis.score
             detection.id = int(detection_2d.results[0].hypothesis.class_id)
-            detection.bbox.center.position.x = detection_2d.bbox.center.position.x
-            detection.bbox.center.position.y = detection_2d.bbox.center.position.y
+            detection.bbox.center.position.x = resize_point(detection_2d.bbox.center.position.x, 0)
+            detection.bbox.center.position.y = resize_point(detection_2d.bbox.center.position.y, 1)
             detection.bbox.center.theta = detection_2d.bbox.center.theta
-            detection.bbox.size.x = detection_2d.bbox.size_x
-            detection.bbox.size.y = detection_2d.bbox.size_y
+            detection.bbox.size.x = resize_point(detection_2d.bbox.size_x, 0)
+            detection.bbox.size.y = resize_point(detection_2d.bbox.size_y, 1)
             keypoint = KeyPoint2D()
             keypoint.id = int(detection_2d.results[0].hypothesis.class_id)
-            keypoint.point.x = detection_2d.bbox.center.position.x
-            keypoint.point.y = detection_2d.bbox.center.position.y
+            keypoint.point.x = resize_point(detection_2d.bbox.center.position.x, 0)
+            keypoint.point.y = resize_point(detection_2d.bbox.center.position.y, 1)
             keypoint.score  = detection_2d.results[0].hypothesis.score
             detection.keypoints.data = [keypoint]
 

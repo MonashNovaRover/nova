@@ -81,7 +81,7 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(AndSubstitution(use_debug, using_oak)),
             package='nova_object_localisation',
             executable='debug_node',
-            name='yolo_ros_debug_node',
+            name='debug_node',
             namespace=namespace,
             parameters=[yolo_params],
             remappings=[('image_raw', rgb_image), 
