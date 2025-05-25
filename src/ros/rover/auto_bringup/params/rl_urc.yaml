@@ -24,15 +24,7 @@ ekf_filter_node_odom:
     # Front IMU
     imu0: /oak/imu/transformed
     imu0_config: [false, false, false,
-<<<<<<< HEAD
-<<<<<<< HEAD
                   true,  true,  true,
-=======
-                  true,  true,  false,
->>>>>>> 02858847 (fixed IMU? WIP)
-=======
-                  true,  true,  true,
->>>>>>> 84362f87 (PR cleanups)
                   false, false, false,
                   false, false, false,
                   false, false, false]
@@ -94,15 +86,7 @@ ekf_filter_node_map:
     
     # GPS Odom
     odom1: /odometry/gps
-<<<<<<< HEAD
-<<<<<<< HEAD
     odom1_config: [true,  true,  true, #https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html#configuring-robot-localization
-=======
-    odom1_config: [true,  true,  false, #https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html#configuring-robot-localization
->>>>>>> 1cedadf3 (getting gps integrated with auto, WIP, rover currently flies away when using GPS)
-=======
-    odom1_config: [true,  true,  true, #https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html#configuring-robot-localization
->>>>>>> a304f089 (fixed sim gps)
                    false, false, false,
                    false, false, false,
                    false, false, false,
@@ -114,15 +98,7 @@ ekf_filter_node_map:
     # Front IMU
     imu0: /oak/imu/transformed
     imu0_config: [false, false, false,
-<<<<<<< HEAD
-<<<<<<< HEAD
                   true,  true,  true,
-=======
-                  true,  true,  false,
->>>>>>> 02858847 (fixed IMU? WIP)
-=======
-                  true,  true,  true,
->>>>>>> 84362f87 (PR cleanups)
                   false, false, false,
                   false, false, false,
                   false, false, false]
@@ -166,20 +142,8 @@ navsat_transform:
     frequency: 30.0
     delay: 3.0
     magnetic_declination_radians: 0.0
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 84362f87 (PR cleanups)
     yaw_offset: 0.0 # Set to yaw used for ros_gz_sim create executable to work in sim. Set to 0.0 for real life.
     zero_altitude: true
-=======
-    yaw_offset: 0.0
-<<<<<<< HEAD
-    zero_altitude: false
->>>>>>> 1cedadf3 (getting gps integrated with auto, WIP, rover currently flies away when using GPS)
-=======
-    zero_altitude: true
->>>>>>> 02858847 (fixed IMU? WIP)
     broadcast_utm_transform: false
     publish_filtered_gps: true
     use_odometry_yaw: false
