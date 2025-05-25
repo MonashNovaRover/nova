@@ -121,7 +121,6 @@ class URCHeater(ControllerNode):
 
             # 3. convert to celsius
             c_temp = kelvin_temp - 273.15
-            self.get_logger().info(f"input: {input} => output: {c_temp} degrees")
             return c_temp
         except ZeroDivisionError:
             self.get_logger().info(f"Zero Division Error Occurred with input = {input}")
