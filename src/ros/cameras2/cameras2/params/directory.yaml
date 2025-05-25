@@ -20,11 +20,11 @@ camera_directory:
           '4.3:1.0': science_shotglass
           '4.4:1.0': science_rock_flipper
           '3:1.0': science_gantry
-        science_urc:
-          '1:1.0': science_spectroscope
-          '2:1.0': science_payload_down
+        science-urc:
+          '1:1.0': science_gimbal_cam
+          '2:1.0': science_microscope
+          '3:1.0': science_spectroscope
           '4.1:1.0': science_cuvettes
-          '4.3:1.0': science_microscope
         science_urc_mast:
           '1:1.0': mast_arm_stow
           '2:1.0': mast_down
