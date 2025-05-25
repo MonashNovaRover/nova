@@ -6,8 +6,8 @@ rover and base station and saves the data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: gps_rover
 TOPICS:
-  - subscriber: /gps_base/fix   [RoverPoseGPS]
-  - subscriber: /gps_rover/fix  [RoverPoseGPS]
+  - subscriber: /gps_base/fix   [NavSatFix]
+  - subscriber: /gps_rover/fix  [NavSatFix]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Will Middlewick
@@ -27,7 +27,7 @@ from rclpy.logging import LoggingSeverity
 
 from rclpy.qos import qos_profile_sensor_data as qos
 
-from nova_interfaces.msg import RoverPoseGPS
+from sensor_msgs.msg import NavSatFix
 import logging
 
 import csv
@@ -39,13 +39,13 @@ class GPSDataCollector(Node):
 
         ### ROS2 ###
         self.sub_rtcm = self.create_subscription(
-            RoverPoseGPS, 
+            NavSatFix, 
             'gps_base/fix', 
             self.sub_base_callback, 
             qos, 
         )
         self.sub_rtcm = self.create_subscription(
-            RoverPoseGPS, 
+            NavSatFix, 
             'gps_rover/fix', 
             self.sub_rover_callback, 
             qos, 
@@ -59,11 +59,11 @@ class GPSDataCollector(Node):
         self.timer = self.create_timer(0.5, self.loop) # start mainloop for the node
         self.get_logger().set_level(rclpy.logging.LoggingSeverity.INFO)
 
-    def sub_base_callback(self, msg : RoverPoseGPS):
+    def sub_base_callback(self, msg : NavSatFix):
         self.base_lat = msg.latitude
         self.base_lon = msg.longitude
 
-    def sub_rover_callback(self, msg : RoverPoseGPS):
+    def sub_rover_callback(self, msg : NavSatFix):
         self.rover_lat = msg.latitude
         self.rover_lon = msg.longitude
 
