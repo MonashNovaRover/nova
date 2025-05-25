@@ -1,0 +1,5 @@
+camera_directory:
+  ros__parameters:
+    serial_overrides:
+      roots:
+        science-urc: platform-3610000.usb-usb-0:2
