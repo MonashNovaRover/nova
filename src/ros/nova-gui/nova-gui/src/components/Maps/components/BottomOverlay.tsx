@@ -24,7 +24,6 @@ import { useCartographerActions } from "../../../redux/actions/useCartographerAc
 import { MapTile } from "../config.tsx";
 import { GoalType, MapPoint } from "../../../redux/models/CartographerState.ts";
 import { CartographerGoalModal } from "./CartographerGoalModal.tsx";
-import { MapPoint } from "../../../redux/models/CartographerState.ts";
 import AutoStatus from "./AutoStatus.tsx";
 
 interface BottomOverlayProps {
