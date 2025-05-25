@@ -80,6 +80,8 @@ class DebugNode(LifecycleNode):
 
         # params
         self.declare_parameter("image_reliability", QoSReliabilityPolicy.BEST_EFFORT)
+        self.target_frame = self.declare_parameter("map_frame", "map").get_parameter_value().string_value
+        self.base_frame = self.declare_parameter("base_frame", "base_link").get_parameter_value().string_value
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -271,7 +273,7 @@ class DebugNode(LifecycleNode):
         cv_image = self.cv_bridge.imgmsg_to_cv2(img_msg, desired_encoding="bgr8")
 
         try:
-            transform = self.tf_buffer.lookup_transform('map', 'base_link', rclpy.time.Time(), rclpy.time.Duration(seconds=10.0))
+            transform = self.tf_buffer.lookup_transform(self.target_frame, self.base_frame, rclpy.time.Time(), rclpy.time.Duration(seconds=10.0))
         except Exception as e:
             self.get_logger().error(f' ❌ Transform was not available! {e}')
 

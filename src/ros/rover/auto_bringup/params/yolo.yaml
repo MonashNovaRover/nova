@@ -48,3 +48,7 @@ object_localiser:
     detection_topic:  /oak/nn/detections         # "/oak/nn/spatial_detections" (if using spatial detections topic, make sure to set using_3D to true)
     marker_topic:  /yolo/objects                   # topic to publish markers
 
+debug_node:
+  ros__parameters:
+    map_frame: map
+    base_frame: base_link
