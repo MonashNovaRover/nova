@@ -48,12 +48,11 @@ teleop_arm_joy_node:
     axes:
       arm_j1:
         device: "Gamepad"
-        button_id_negative: 13
-        button_id_positive: 14
+        id: 6
       arm_j2:
         device: "Gamepad"
-        button_id_negative: 11
-        button_id_positive: 12
+        id: 7
+        invert: true
       arm_j3:
         device: "Gamepad"
         button_id_negative: 0
@@ -62,12 +61,12 @@ teleop_arm_joy_node:
 
       arm_j4:
         device: "Gamepad"
-        id: 3
-        invert: true
+        id: 4
       arm_j5:
         device: "Gamepad"
-        id: 2
-        invert: true
+        id: 3
+#        button_id_negative: 2
+#        button_id_positive: 1
       arm_j6:
         device: "Gamepad"
         button_id_negative: 1
@@ -76,6 +75,7 @@ teleop_arm_joy_node:
       speed:
         device: "Gamepad"
         id: 5
+        invert: true
 #      offset:
 #        device: "Gamepad"
 #        id: 4
@@ -83,14 +83,10 @@ teleop_arm_joy_node:
 
       twist_x:
         device: "Gamepad"
-        button_id_negative: 12
-        button_id_positive: 11
-        id: 1
+        id: 6
       twist_y:
         device: "Gamepad"
-        button_id_negative: 14
-        button_id_positive: 13
-        id: 0
+        id: 7
       twist_z:
         device: "Gamepad"
         button_id_negative: 0
@@ -98,10 +94,10 @@ teleop_arm_joy_node:
 
       twist_yaw:
         device: "Gamepad"
-        id: 2
+        id: 3
       twist_pitch:
         device: "Gamepad"
-        id: 3
+        id: 4
         invert: true
       twist_roll:
         device: "Gamepad"
@@ -111,7 +107,7 @@ teleop_arm_joy_node:
     buttons:
       twist_mode:
         device: "Gamepad"
-        id: 9
+        id: 4
 #      limit_on:
 #        device: "Gamepad"
 #        id: 4
@@ -120,7 +116,7 @@ teleop_arm_joy_node:
 #        id: 9
       lock:
         device: "Gamepad"
-        id: 4
+        id: 7
       unlock:
         device: "Gamepad"
         id: 6

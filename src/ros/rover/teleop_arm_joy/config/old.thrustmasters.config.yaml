@@ -101,9 +101,9 @@ teleop_arm_joy_node:
       
 
     buttons:
-#      twist_mode:
-#        device: "Right"
-#        id: 0
+      twist_mode:
+        device: "Right"
+        id: 0
       limit_on:
         device: "Left"
         id: 4

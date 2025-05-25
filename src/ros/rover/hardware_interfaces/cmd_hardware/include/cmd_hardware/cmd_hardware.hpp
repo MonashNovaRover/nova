@@ -191,14 +191,14 @@ protected:
         /// The number of seconds to integrate velocity by, to be added to position feedback.
         double velocity_integration_seconds = 0.0;
 
-        double position_seeking_velocity_multiplier = 0.9;
+        double position_seeking_velocity_multiplier = 0.5;
 
         /// The amount to use the previously send command value when calculating velocity integration. Use 0 to use the
         /// value received from CAN only, and 1 to only use the previously send command value.
         ///
         /// This parameter is included because we believe we can't trust the timeliness of the velocity feedback we get
         /// from CAN, as the firmware seems to average out the 10 most recent values.
-        double velocity_integration_command_amount = 0.5;
+        double velocity_integration_command_amount = 0.0;
     };
 
 private:
