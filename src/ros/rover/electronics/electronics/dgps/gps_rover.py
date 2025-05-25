@@ -183,10 +183,6 @@ class GPSRover(Node):
                         \tlat: {self.pose.latitude:8.3f}
                         \tlon: {self.pose.longitude:8.3f}
                     '''
-                    if self.pose.valid:
-                        self.get_logger().debug(msg_log)
-                    else:
-                        self.get_logger().warn(msg_log)
 
                 except Exception as e:
                     self.get_logger().warn(f'❌ Error: {e}, Bad message: {msg_parsed}')
