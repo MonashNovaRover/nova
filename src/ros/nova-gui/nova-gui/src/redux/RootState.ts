@@ -26,7 +26,8 @@ import {
   IRosNovaInterfacesActiveNodeStatus,
   IRosNovaInterfacesRoverPoseGps,  
   IRosNovaInterfacesCartographerCommandResponse,
-
+  IRosNovaInterfacesRoverPoseGps, 
+  IRosNovaInterfacesStatus,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -88,6 +89,7 @@ export interface RootState {
   baseLocationStore: IRosNovaInterfacesRoverPoseGps;
   cartographerState: CartographerState;
   cartographerCommand: IRosNovaInterfacesCartographerCommandResponse;
+  autoStatus: IRosNovaInterfacesStatus;
 
   // Generic Stores
   currentSite: GenericStoreState<Site>;

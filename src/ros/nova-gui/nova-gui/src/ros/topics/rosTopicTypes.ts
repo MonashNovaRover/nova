@@ -18,7 +18,7 @@ import {
   IRosNovaInterfacesBmeSensor,
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
-  IRosNovaInterfacesRoverPoseGps,
+  IRosNovaInterfacesRoverPoseGps, IRosNovaInterfacesStatus,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -65,6 +65,7 @@ export interface RosTopicInterfaces {
   // Maps Related
   [RosTopic.ROVER_LOCATION]: IRosNovaInterfacesRoverPoseGps;
   [RosTopic.BASE_LOCATION]: IRosNovaInterfacesRoverPoseGps;
+  [RosTopic.AUTO_STATUS]: IRosNovaInterfacesStatus;
 
   // Other
   [RosTopic.BATTERY_STATE]: IRosSensorMsgsBatteryState;
