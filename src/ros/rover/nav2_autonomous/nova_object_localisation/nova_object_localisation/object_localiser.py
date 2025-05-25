@@ -61,14 +61,14 @@ type BBox = Tuple[float, float, float, float]   # bounding_box = (pos_x, pos_y, 
 type ObjectPoint = Tuple[str, Point]            # object_point = (label, Point)
 
 
-LABELS = {'red':[1.0,0.0,0.0], 'green':[0.0,1.0,0.0], 'blue':[0.0,0.0,1.0], 'white':[1.0,1.0,1.0]} # ARCh 2025
-#LABELS = {'hammer':[1.0,0.0,0.0], 'bottle':[0.0,1.0,0.0]} # URC 2025, hammer will be red, bottle with be green
+# LABELS = {'red':[1.0,0.0,0.0], 'green':[0.0,1.0,0.0], 'blue':[0.0,0.0,1.0], 'white':[1.0,1.0,1.0]} # ARCh 2025
+LABELS = {'bottle':[0.0,0.0,1.0], 'mallet':[1.0,0.0,0.0]} # URC 2025
 DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
 
 # Object ids:
 # Note: This has the same order as mappings in the generated .json file
-IDS_LABEL = { 0: 'blue', 1: 'green', 2: 'red', 3: 'white'} # ARCh 2025
-#IDS_LABEL = { 0: 'hammer', 1: 'bottle'} # URC 2025 (order to be decided from model training)
+# IDS_LABEL = { 0: 'blue', 1: 'green', 2: 'red', 3: 'white'} # ARCh 2025
+IDS_LABEL = { 0: 'bottle', 1: 'mallet'} # URC 2025
 
 
 class ObjectLocaliser(Node):
@@ -168,8 +168,8 @@ class ObjectLocaliser(Node):
             self.get_logger().info(f"[{self.get_name()}] Publishing markers to: {self.marker_topic}")
 
         self.detected_objects : Dict[str, List[Point]] \
-            = {'red':[], 'green':[], 'blue':[], 'white':[]}
-        
+            = {label:[] for label in LABELS}
+
         # run the callback function every timer_period
         self.create_timer(self.tf_publisher_timer_period, self.publish_objects)
 
@@ -218,8 +218,7 @@ class ObjectLocaliser(Node):
 
                     if np.all(std_dev < self.max_std_dev):      # Check that the standard deviation is small enough to be considered a confirmed block
                         self.get_logger().debug(f'Confirmed target {label} consistent pos at {avg_pos}')
-                        # don't publish tf for bt notes (TEMP until terry fixes bt pathing to objects)
-                        # self.publish_tf(label, avg_pos, self.get_clock().now().to_msg())
+                        self.publish_tf(label, avg_pos, self.get_clock().now().to_msg())
                         self.get_logger().info(f"[{self.get_name()} Object {label} at ({avg_pos})")
                     else:
                         self.get_logger().debug(f'Target {label} is not consistent enough.')
@@ -282,7 +281,7 @@ class ObjectLocaliser(Node):
         new_detections = []
 
         def get_pose_point(pose: Pose) -> Point:
-            return float(pose.position.x), float(pose.position.y), 0.0#float(pose.position.z)
+            return float(pose.position.x), float(pose.position.y), float(pose.position.z)
 
         if self.using_oak:
             # detections_msg will be of Detection3DArray type. (vision_msgs)
@@ -398,6 +397,11 @@ class ObjectLocaliser(Node):
         '''Returns a marker derived from the detection'''
         marker = Marker()
         marker.pose.position.x, marker.pose.position.y, marker.pose.position.z = point
+
+        # Fix projecting objects below the ground
+        if marker.pose.position.z < 0:
+            marker.pose.position.z = 0
+
         marker.pose.orientation.x, marker.pose.orientation.y, marker.pose.orientation.z, marker.pose.orientation.w = DEFAULT_QUATERNION
 
         marker.type = Marker.CUBE
@@ -434,7 +438,12 @@ class ObjectLocaliser(Node):
         tfs.header.stamp = stamp
         tfs.header.frame_id = self.map_frame
         tfs.child_frame_id = label + '_obj'
-        tfs.transform.translation.x,  tfs.transform.translation.y, tfs.transform.translation.z, = position
+        tfs.transform.translation.x,  tfs.transform.translation.y, tfs.transform.translation.z = position
+
+        # Fix projecting objects below the ground
+        if tfs.transform.translation.z < 0:
+            tfs.transform.translation.z = 0
+
         tfs.transform.rotation.x, tfs.transform.rotation.y, tfs.transform.rotation.z, tfs.transform.rotation.w = DEFAULT_QUATERNION
 
         self.transform_broadcaster.sendTransform(tfs)

@@ -40,21 +40,24 @@ def launch_setup(context, *args, **kwargs):
     using_3d = LaunchConfiguration('using_3d')
     namespace = LaunchConfiguration('namespace')
     yolo_params = LaunchConfiguration('yolo_params')
+    rgb_image = LaunchConfiguration('rgb_image')
+    use_debug = LaunchConfiguration('use_debug')
+    debug_image = LaunchConfiguration('debug_image')
+    depth_image = LaunchConfiguration('depth_image')
+    depth_camera_info = LaunchConfiguration('depth_camera_info')
+    gazebo = (LaunchConfiguration('gazebo').perform(context).lower() == 'true')
+    yolo_model = LaunchConfiguration('yolo_model') # for yolo_ros only
+    detections = LaunchConfiguration('detections')
+    detections_3d = LaunchConfiguration('detections_3d')
 
-    rgb_image = LaunchConfiguration('yolo_ros_rgb_image')
-    use_debug = LaunchConfiguration('yolo_ros_use_debug')
-    debug_image = LaunchConfiguration('yolo_ros_debug_image')
-    depth_image = LaunchConfiguration('yolo_ros_depth_image')
-    depth_image_info = LaunchConfiguration('yolo_ros_depth_image_info')
-    yolo_model = LaunchConfiguration('yolo_ros_model') # for yolo_ros only
-    detections = LaunchConfiguration('yolo_ros_detections')
-    detections_3d = LaunchConfiguration('yolo_ros_detections_3d')
-
+    if gazebo:
+        yolo_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'yolo_sim.yaml'])
 
     return [
         # yolo_ros nodes only run if using_oak is false
         # 3d mode is not supported for yolo_ros as the 3d yolo_ros code is copied into object_localiser anyway
         Node(
+            condition=UnlessCondition(using_oak), 
             package='yolo_ros',
             executable='yolo_node',
             name='yolo_ros_node',
@@ -62,9 +65,9 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{'model': yolo_model}, yolo_params],
             remappings=[('image_raw', rgb_image),
                         ('detections', detections)],
-            condition=UnlessCondition(using_oak)
         ),
         Node(
+            condition=IfCondition(AndSubstitution(use_debug, NotSubstitution(using_oak))),
             package='yolo_ros',
             executable='debug_node',
             name='yolo_ros_debug_node',
@@ -73,7 +76,17 @@ def launch_setup(context, *args, **kwargs):
             remappings=[('image_raw', rgb_image), 
                         ('dbg_image', debug_image),
                         ('detections', detections)],
-            condition=IfCondition(AndSubstitution(use_debug, NotSubstitution(using_oak))),
+        ),
+        Node(
+            condition=IfCondition(AndSubstitution(use_debug, using_oak)),
+            package='nova_object_localisation',
+            executable='debug_node',
+            name='debug_node',
+            namespace=namespace,
+            parameters=[yolo_params],
+            remappings=[('image_raw', rgb_image), 
+                        ('dbg_image', debug_image),
+                        ('detections', detections)],
         ),
         Node(
             package='nova_object_localisation',
@@ -109,42 +122,47 @@ def generate_launch_description():
             description='Full path to the ROS2 parameters file to use for all launched nodes',
         ),
         DeclareLaunchArgument(
-            name='yolo_ros_rgb_image',
+            name='rgb_image',
             default_value='/oak/rgb/image_raw',
             description='RGB image topic used for yolo_ros',
         ),
         DeclareLaunchArgument(
-            name='yolo_ros_use_debug',
+            name='use_debug',
             default_value='True',
             description='Enable yolo_ros debug node',
         ),
         DeclareLaunchArgument(
-            name='yolo_ros_debug_image',
+            name='debug_image',
             default_value='/yolo/debug_image',
             description='Output debug image topic used for yolo_ros',
         ),
         DeclareLaunchArgument(
-            name='yolo_ros_model',
+            name='gazebo',
+            default_value='False',
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='yolo_model',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'resources', 'YOLO_ARCh_2025', 'best.pt']),
             description='Absolute path to yolo weights file for yolo_ros',
         ),
         DeclareLaunchArgument(
-            name='yolo_ros_depth_image',
+            name='depth_image',
             default_value='/oak/stereo/image_raw',
             description='Depth image topic used for yolo_ros',
         ),
         DeclareLaunchArgument(
-            name='yolo_ros_depth_image_info',
+            name='depth_camera_info',
             default_value='/oak/stereo/camera_info',
             description='Depth image info topic used for yolo_ros',
         ),
         DeclareLaunchArgument(
-            name='yolo_ros_detections',
+            name='detections',
             default_value='/oak/nn/detections',
             description='Output detection topic used for yolo_ros',
         ),
         DeclareLaunchArgument(
-            name='yolo_ros_detections_3d',
+            name='detections_3d',
             default_value='/oak/nn/spatial_detections',
             description='Output 3d detection topic used for yolo_ros',
         ),

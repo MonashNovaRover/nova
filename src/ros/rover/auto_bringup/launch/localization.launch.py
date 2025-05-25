@@ -68,14 +68,14 @@ def launch_setup(context, *args, **kwargs):
             parameters=[rl_params, {'use_sim_time': gazebo}],
             remappings=[('odometry/filtered', 'odometry/global')],
         ),
-        # Node(
-        #     condition=UnlessCondition(gps),
-        #     package='tf2_ros',
-        #     executable='static_transform_publisher',
-        #     name='static_transform_publisher',
-        #     output='screen',
-        #     arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
-        # ),
+        Node(
+            condition=UnlessCondition(gps),
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_transform_publisher',
+            output='screen',
+            arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
+        ),
         GroupAction(
             # Why is there more nodes for GPS?
             # https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html

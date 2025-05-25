@@ -48,3 +48,11 @@ object_localiser:
     detection_topic:  /oak/nn/detections         # "/oak/nn/spatial_detections" (if using spatial detections topic, make sure to set using_3D to true)
     marker_topic:  /yolo/objects                   # topic to publish markers
 
+debug_node:
+  ros__parameters:
+    map_frame: map
+    base_frame: base_link
+
+    # NOTE: scale to RGB since debug image is in RGB image size
+    x_scalar: 2.0           # amount to multiply detection to account for image sizes
+    y_scalar: 1.25         # (e.g to transform the y axis 640px detection frame to the 800px image frame)
