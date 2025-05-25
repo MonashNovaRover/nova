@@ -162,10 +162,9 @@ class GPSRover(Node):
 
                         if match_lat:
                             latitude = abs(float(match_lat.group(1)))
-                            latitude *= -1
                         
                         if match_lon:
-                            longtitude = float(match_lon.group(1))
+                            longtitude = -1 * abs(float(match_lon.group(1)))
 
                         if match_lat or match_lon:
                             self.pose.valid = True
