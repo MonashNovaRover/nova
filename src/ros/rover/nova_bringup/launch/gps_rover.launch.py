@@ -8,7 +8,7 @@ NODES:
   - /gps_rover
 TOPICS:
   - subscriber: /gps_base/rtcm  [UInt8MultiArray]
-  - publisher: /gps_rover/fix   [RoverPoseGPS]
+  - publisher: /gps_rover/fix   [NavSatFix]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:    nova_bringup
 AUTHOR(S):  Victor Bartlinski
