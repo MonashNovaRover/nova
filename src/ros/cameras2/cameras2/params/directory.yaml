@@ -20,7 +20,7 @@ camera_directory:
           '4.3:1.0': science_shotglass
           '4.4:1.0': science_rock_flipper
           '3:1.0': science_gantry
-        science_urc:
+        science-urc:
           '1:1.0': science_spectroscope
           '2:1.0': science_payload_down
           '4.1:1.0': science_cuvettes
