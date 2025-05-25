@@ -214,6 +214,18 @@ export const reduxStores = {
       altitude: 0,
     }
   ),
+  auger1DepthSensorStore: createBifrostStore(
+    { topic: RosTopic.AUGER1_DEPTH_SENSOR },
+    {
+      data: false
+    }
+  ),
+  auger2DepthSensorStore: createBifrostStore(
+    { topic: RosTopic.AUGER2_DEPTH_SENSOR },
+    {
+      data: false
+    }
+  ),
 
   // Regular Stores
   uiState: uiSlice.reducer,
@@ -289,6 +301,7 @@ export const reduxStores = {
   scimbalStepSize: createGenericStore("scimbalStepSize", "1"),
   targetTemp: createGenericStore("targetTemp", 150),
   theta360CompassHeading: createGenericStore("theta360CompassHeading",180),
+  theta360InputDistance: createGenericStore("theta360InputDistance",""),
   rgbLedStore: createGenericStore("rgbLedStore", { r: "0", g: "0", b: "0" }),
 };
 

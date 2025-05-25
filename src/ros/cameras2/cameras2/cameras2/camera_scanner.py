@@ -1,7 +1,6 @@
 from typing import Callable, Optional, NamedTuple
 
 import pyudev
-from linuxpy.video.device import Device as VideoDevice, PixelFormat as VideoPixelFormat
 
 
 class CameraScanner:
@@ -52,18 +51,6 @@ class CameraScanner:
             capabilities = []
         if "capture" not in capabilities:
             return None
-
-        # Filter out any devices that do not support YUYV formats.
-        # Some devices, such as the SN9C292A, expose multiple UVC devices that
-        # can be opened simultaneously - one for YUYV and MJPEG, and another for
-        # H.264.
-        #
-        # The most correct solution here would be to redesign the directory
-        # service API to allow for multiple device nodes per camera, but we'll
-        # implement that when we need it.
-        with VideoDevice.from_id(int(device.sys_number)) as video_device:
-            if not any(fmt.pixel_format == VideoPixelFormat.YUYV for fmt in video_device.info.formats):
-                return None
 
         serial = device["ID_SERIAL"]
         path = device["ID_PATH"]
