@@ -41,8 +41,8 @@ export const rosTopicMessages = {
   [RosTopic.AUGER2_DEPTH_SENSOR]: "std_msgs/msg/Bool",
 
   // Maps Related
-  [RosTopic.ROVER_LOCATION]: "nova_interfaces/msg/RoverPoseGPS",
-  [RosTopic.BASE_LOCATION]: "nova_interfaces/msg/RoverPoseGPS",
+  [RosTopic.ROVER_LOCATION]: "sensor_msgs/msg/NavSatFix",
+  [RosTopic.BASE_LOCATION]: "sensor_msgs/msg/NavSatFix",
   [RosTopic.AUTO_STATUS]: "nova_interfaces/msg/Status",
 
   // Other
