@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'object_localiser = nova_object_localisation.object_localiser:main',
+            'object_localiser = nova_object_localisation.object_localiser:main', 
+            'debug_node = nova_object_localisation.debug_node:main', 
         ],
     },
 )
