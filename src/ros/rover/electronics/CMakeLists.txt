@@ -25,9 +25,8 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
-
-# Include the nova_interfaces package
 find_package(nova_interfaces REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 # Include the include directory
 include_directories(
@@ -56,7 +55,6 @@ install(PROGRAMS
   electronics/gimbal_service.py
   electronics/radio_monitor.py
   electronics/tests/test_EMC.py
-  electronics/tests/test_GPS.py
   electronics/tests/test_radio.py
   electronics/tests/test_wheels.py
   electronics/wheel_publisher.py
