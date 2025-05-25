@@ -24,18 +24,21 @@ from launch_ros.substitutions import FindPackageShare
 def launch_setup(context, *args, **kwargs):
     ar = LaunchConfiguration('ar')
     ar_params = LaunchConfiguration('ar_params')
+    back = LaunchConfiguration('back')
     back_name = LaunchConfiguration('back_name').perform(context)
+    front = LaunchConfiguration('front')
     front_name = LaunchConfiguration('front_name').perform(context)
     gazebo = LaunchConfiguration('gazebo')
     imu = LaunchConfiguration('imu')
     oak_params = LaunchConfiguration('oak_params')
     bootie_params = LaunchConfiguration('bootie_params')
-    pointclouds = LaunchConfiguration('pointclouds')
+    pointcloud = LaunchConfiguration('pointcloud')
     rectify_image = LaunchConfiguration('rectify_image')
 
     return [
         ComposableNodeContainer(
-            name=f'{front_name}_image_proc_container',
+            condition=IfCondition(front),
+            name=f'{front_name}_container',
             package='rclcpp_components',
             namespace='',
             executable='component_container',
@@ -58,7 +61,7 @@ def launch_setup(context, *args, **kwargs):
                         ('image_rect', f'{front_name}/rgb/image_rect')],
                 ),
                 ComposableNode(
-                    condition=IfCondition(pointclouds),
+                    condition=IfCondition(pointcloud),
                     package='rtabmap_util',
                     plugin='rtabmap_util::PointCloudXYZ',
                     name=f'{front_name}_point_cloud_xyz',
@@ -81,7 +84,8 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         ComposableNodeContainer(
-            name=f'{back_name}_image_proc_container',
+            condition=IfCondition(back),
+            name=f'{back_name}_container',
             package='rclcpp_components',
             namespace='',
             executable='component_container',
@@ -103,7 +107,7 @@ def launch_setup(context, *args, **kwargs):
                                 ('image_rect', f'{back_name}/rgb/image_rect')],
                 ),
                 ComposableNode(
-                    condition=IfCondition(pointclouds),
+                    condition=IfCondition(pointcloud),
                     package='rtabmap_util',
                     plugin='rtabmap_util::PointCloudXYZ',
                     name=f'{back_name}_point_cloud_xyz',
@@ -150,8 +154,18 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
+            name='back',
+            default_value='True',
+            description='',
+        ),
+        DeclareLaunchArgument(
             name='back_name',
             default_value='bootie',
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='front',
+            default_value='True',
             description='',
         ),
         DeclareLaunchArgument(
@@ -185,7 +199,7 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='pointclouds',
+            name='pointcloud',
             default_value='True',
             description='',
         ),
