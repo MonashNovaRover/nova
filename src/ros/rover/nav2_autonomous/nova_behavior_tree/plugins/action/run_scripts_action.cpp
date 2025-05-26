@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Samsung Research America
+// Copyright (c) 2025 Monash Nova Rover
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 #include <string>
 #include <cstdlib>
 
-#include "nova_behavior_tree/run_scripts_action.hpp"
+#include "nova_behavior_tree/action/run_scripts_action.hpp"
 
 namespace nova_behavior_tree
 {

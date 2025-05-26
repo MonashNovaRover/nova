@@ -137,7 +137,7 @@ class GoalMarker(Node):
             marker.color.g = 1.0
             marker.color.b = 1.0
             marker.color.a = 1.0
-            marker.text = f"{id}"
+            marker.text = f"{id+1}"
 
         return marker
 

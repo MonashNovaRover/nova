@@ -1,25 +1,25 @@
-{ lib
-, buildRosPackage
-, ament-cmake
-, rclcpp
-, rclcpp-action
-, rclcpp-lifecycle
-, rclcpp-components
-, std-msgs
-, geometry-msgs
-, nav2-behavior-tree
-, nav-msgs
-, nav2-msgs
-, behaviortree-cpp
-, std-srvs
-, nav2-util
-, nav2-core
-, nav2-common
-, tf2-ros
-, pluginlib
-, nova-auto-interfaces
-, robot-localization
-, geographic-msgs
+{ lib, 
+  buildRosPackage, 
+  ament-cmake, 
+  rclcpp, 
+  rclcpp-action, 
+  rclcpp-lifecycle, 
+  std-msgs, 
+  geometry-msgs, 
+  nav2-behavior-tree, 
+  nav-msgs, 
+  nav2-msgs, 
+  behaviortree-cpp, 
+  std-srvs, 
+  nav2-util, 
+  nav2-core, 
+  nav2-common, 
+  tf2-ros, 
+  pluginlib, 
+  nova-auto-interfaces, 
+  nova-interfaces, 
+  robot-localization, 
+  geographic-msgs, 
 }:
 
 buildRosPackage {
@@ -49,6 +49,7 @@ buildRosPackage {
     tf2-ros
     pluginlib
     nova-auto-interfaces
+    nova-interfaces
     robot-localization
     geographic-msgs
   ];

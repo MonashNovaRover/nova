@@ -8,38 +8,35 @@ bt_navigator:
     wait_for_service_timeout: 1000
     action_service_result_timeout: 900.0
     goal_reached_tol: 1.0
+    goal_offset_radius: 1.3
+    # sqrt((wheel_base / 2 + wheel_radius)^2 + (steering_track / 2 + wheel_radius)^2)
+    robot_radius: 0.85
     error_code_names:
       - compute_path_error_code
       - follow_path_error_code
-    navigators: ["navigate_to_pose", "navigate_through_poses"] #, "urc_navigator"]
+    navigators: ["navigate_to_pose", "navigate_through_poses", "urc_2025_navigator"]
     navigate_to_pose:
       plugin: "nav2_bt_navigator::NavigateToPoseNavigator"
     navigate_through_poses:
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
-    default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/arch/2025_arch_through_poses.xml
-    # $(find-pkg-share my_package)/behavior_tree/my_nav_through_poses_bt.xml
-    urc_navigator:
-      plugin: "nova_bt_navigators::URCNavigator"
+    # default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/arch/2025_arch_through_poses.xml
+    urc_2025_navigator:
+      plugin: "nova_bt_navigators::URC2025Navigator"
+    default_urc_2025_navigator_bt_xml: /home/nova/nova/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/urc/2025_urc_through_poses.xml
     plugin_lib_names:
-      - nova_ar_tag_detected_condition_bt_node
+      # ACTION NODES
+      - nova_place_search_goals_action_bt_node
+      - nova_get_goal_action_bt_node
       - nova_blackboard_publisher_bt_node
-      - nova_run_scripts_action_bt_node
-      - nova_check_detected_condition_bt_node
-      - nova_compute_search_goals_condition_bt_node
-      - nova_cube_detected_condition_bt_node
-      - nova_first_goal_reached_condition_bt_node
-      - nova_get_final_goal_condition_bt_node
-      - nova_get_first_goal_condition_bt_node
-      - nova_goals_empty_condition_bt_node
       - nova_led_service_bt_node
-      - nova_query_position_condition_bt_node
-      - nova_remove_passed_goals_and_cubes_action_bt_node
-      - nova_update_goal_action_bt_node
-      - nova_update_goals_action_bt_node
-      - nova_remove_passed_goals_and_ar_tags_action_bt_node
+      - nova_remove_passed_urc_goals_action_bt_node
+      - nova_update_urc_goals_action_bt_node
       - nova_snap_in_collision_goals_action_bt_node
-      - nova_save_cube_poses_action_bt_node
-      - nova_save_image_service_bt_node
+      - nova_get_current_pose_action_bt_node
+      # CONDITION NODES
+      - nova_ar_tag_detected_condition_bt_node
+      - nova_object_detected_condition_bt_node
+      - nova_are_poses_near_condition_bt_node
 
 bt_navigator_navigate_through_poses_rclcpp_node:
   ros__parameters:
@@ -77,34 +74,74 @@ controller_server:
       stateful: false # Whether to check for XY position tolerance after rotating to goal orientation in case of minor localization changes.
     FollowPath:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
-      desired_linear_vel: 0.4 # The desired maximum linear velocity (m/s) to use.
-      min_approach_linear_velocity: 0.1
-      rotate_to_heading_angular_vel: 0.05 # If use_rotate_to_heading is true, this is the angular velocity to use.
-      lookahead_dist: 0.6
-      min_lookahead_dist: 0.3
-      max_lookahead_dist: 0.9
-      lookahead_time: 1.5
-      transform_tolerance: 0.1
-      use_velocity_scaled_lookahead_dist: false
-      approach_velocity_scaling_dist: 0.6
-      use_collision_detection: false # Whether to enable collision detection.
-      max_allowed_time_to_collision_up_to_carrot: 10.0 # The time (s) to project a velocity command forward to check for collisions when use_collision_detection is true.
-      use_regulated_linear_velocity_scaling: true
-      use_fixed_curvature_lookahead: false
-      curvature_lookahead_dist: 0.25
-      use_cost_regulated_linear_velocity_scaling: false
-      regulated_linear_scaling_min_radius: 0.9
-      regulated_linear_scaling_min_speed: 0.25
-      use_rotate_to_heading:
-        true # Whether to enable rotating to rough heading and goal orientation when using holonomic planners. Recommended on for all robot types
-        # that can rotate in place. Note: both use_rotate_to_heading and allow_reversing cannot be set to true at the same time as it would
-        # result in ambiguous situations.
-      allow_reversing: false
-      rotate_to_heading_min_angle:
-        0.785398 # The difference in the path orientation and the starting robot orientation (radians) to trigger a rotate in place, if
-        # use_rotate_to_heading is true. 45 degrees in radians.
-      max_angular_accel: 3.2
-      max_robot_pose_search_dist: 10.0
+      desired_linear_vel: 
+        0.5
+      lookahead_dist: # if use_velocity_scaled_lookahead_dist = false
+        3.0
+      min_lookahead_dist: # if use_velocity_scaled_lookahead_dist = true
+        0.3
+      max_lookahead_dist: # if use_velocity_scaled_lookahead_dist = true
+        2.0
+      lookahead_time: # if use_velocity_scaled_lookahead_dist = true
+        1.5
+      rotate_to_heading_angular_vel: # if use_rotate_to_heading = true
+        0.5
+      transform_tolerance: 
+        0.1
+      use_velocity_scaled_lookahead_dist: 
+        false
+      min_approach_linear_velocity: 
+        0.1
+      approach_velocity_scaling_dist: 
+        1.0
+      use_collision_detection: 
+        false
+      max_allowed_time_to_collision_up_to_carrot: # if use_collision_detection = true
+        10.0
+      use_regulated_linear_velocity_scaling: 
+        true
+      use_cost_regulated_linear_velocity_scaling: 
+        false
+      regulated_linear_scaling_min_radius: # if use_regulated_linear_velocity_scaling = true
+        0.5
+      regulated_linear_scaling_min_speed: 
+        0.1
+      use_fixed_curvature_lookahead: 
+        false
+      curvature_lookahead_dist: 
+        2.0
+      use_rotate_to_heading: 
+        true 
+      allow_reversing: 
+        false
+      rotate_to_heading_min_angle: # if use_rotate_to_heading = true
+        0.785398
+      max_angular_accel: # if use_rotate_to_heading = true
+        0.5
+      use_cancel_deceleration: 
+        false
+      cancel_deceleration: # if use_cancel_deceleration = true
+        0.9
+      # max_robot_pose_search_dist: 
+      #   10.0 # Leave as default
+      interpolate_curvature_after_goal: # if use_fixed_curvature_lookahead = true
+        false
+
+velocity_smoother:
+  ros__parameters:
+    use_sim_time: False
+    smoothing_frequency: 30.0
+    scale_velocities: False
+    feedback: "OPEN_LOOP"
+    max_velocity: [0.5, 0.0, 0.5]
+    min_velocity: [-0.5, 0.0, -0.5]
+    max_accel: [0.05, 0.0, 0.5]
+    max_decel: [-0.05, 0.0, -0.5]
+    odom_topic: /odometry/local
+    odom_duration: 0.1
+    deadband_velocity: [0.0, 0.0, 0.0]
+    velocity_timeout: 1.0
+    enable_stamped_cmd_vel: True
 
 local_costmap:
   local_costmap:
@@ -124,9 +161,6 @@ local_costmap:
       # [x, y], where x is length and y is width
       # ([wheel_base, steering_track] / 2) + wheel_radius
       footprint: "[[0.64, 0.57], [0.64, -0.57], [-0.64, -0.57], [-0.64, 0.57]]"
-      # retrieved by update_goals_action_bt_node (not actually used by planner)
-      # sqrt((wheel_base / 2 + wheel_radius)^2 + (steering_track / 2 + wheel_radius)^2)
-      robot_radius: 0.85
       track_unknown_space: False
       always_send_full_costmap: True
       plugins: ["stvl_layer", "denoise_layer", "inflation_layer"]
@@ -282,7 +316,6 @@ planner_server:
     expected_planner_frequency: 5.0
     use_sim_time: False
     planner_plugins: ["GridBased"]
-
     GridBased:
       allow_reverse_expansion: false  # If true, allows the robot to use the primitives to expand in the mirrored opposite direction of the current robot's orientation (to
                                       # reverse).
@@ -304,12 +337,12 @@ planner_server:
       max_iterations: 1000000 # Maximum total iterations to search for before failing (in case unreachable), set to -1 to disable
       max_on_approach_iterations: 1000 # Maximum number of iterations after within tolerances to continue to try to find exact solution
       max_planning_time: 5.0 # Max time in s for planner to plan, smooth
-      non_straight_penalty: 1.2 # Penalty to apply if motion is non-straight, must be => 1
+      non_straight_penalty: 1.0 # Penalty to apply if motion is non-straight, must be => 1
       plugin: "nav2_smac_planner::SmacPlannerLattice"
       retrospective_penalty: 0.005  # For Hybrid/Lattice nodes: penalty to prefer later maneuvers before earlier along the path. Saves search time since earlier nodes are not
                                     # expanded until it is necessary. Must be >= 0.0 and <= 1.0
       reverse_penalty: 10.0 # Penalty to apply if motion is reversing, must be => 1
-      rotation_penalty: 5.0 # Penalty to apply to in-place rotations, if minimum control set contains them
+      rotation_penalty: 1.0 # Penalty to apply to in-place rotations, if minimum control set contains them
       smooth_path: True # If true, does a simple and quick smoothing post-processing to the path
       smoother:
         do_refinement: true # Whether to recursively run the smoother 3 times on the results from prior runs to refine the results further
@@ -319,7 +352,7 @@ planner_server:
         w_data: 0.2
         w_smooth: 0.3
       terminal_checking_interval: 5000 # Number of iterations between checking if the goal has been cancelled or planner timed out
-      tolerance: 0.25 # dist-to-goal heuristic cost (distance) for valid tolerance endpoints if exact goal cannot be found.
+      tolerance: 0.5 # dist-to-goal heuristic cost (distance) for valid tolerance endpoints if exact goal cannot be found.
 
     NavFn:
       plugin: "nav2_navfn_planner::NavfnPlanner"
@@ -383,19 +416,3 @@ waypoint_follower:
       plugin: "nav2_waypoint_follower::WaitAtWaypoint"
       enabled: True
       waypoint_pause_duration: 200
-
-velocity_smoother:
-  ros__parameters:
-    use_sim_time: False
-    smoothing_frequency: 3.0
-    scale_velocities: False
-    feedback: "OPEN_LOOP"
-    max_velocity: [0.12, 0.0, 0.12]
-    min_velocity: [-0.12, 0.0, -0.12]
-    max_accel: [0.05, 0.0, 0.03]
-    max_decel: [-0.05, 0.0, -0.03]
-    odom_topic: /odometry/local
-    odom_duration: 0.1
-    deadband_velocity: [0.0, 0.0, 0.0]
-    velocity_timeout: 1.0
-    enable_stamped_cmd_vel: True
