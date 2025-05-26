@@ -73,6 +73,10 @@ class WaypointNavigator(Node):
             name='type', 
             value=0, 
         ).value
+        self._search_radius = self.declare_parameter(
+            name='search_radius', 
+            value=10, 
+        ).value
         self._goal_handle = None    # Prevents race condition with /fromLL service
         self._waypoints = None      # Prevents race condition with /fromLL service
         
@@ -284,6 +288,7 @@ class WaypointNavigator(Node):
         goal_msg = URC2025Navigator.Goal()
         goal_msg.poses = self._waypoints  # List of PoseStamped
         goal_msg.type = self._type  # Type of goal (GNSS=0, AR=1, OBJECT=2)
+        goal_msg.search_radius = self._search_radius  # Search radius for goal (GNSS is 0m, AR is 20m, OBJECT is 10m)
         self.get_logger().info('🚀 Sending waypoints to /urc_2025_navigator...')
         send_future = self._action_client.send_goal_async(goal_msg)
         send_future.add_done_callback(self.response_goal_callback)

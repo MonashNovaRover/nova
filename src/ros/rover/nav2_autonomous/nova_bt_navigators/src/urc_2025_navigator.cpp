@@ -223,6 +223,7 @@ URC2025Navigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr goal)
 {
   Goals goal_poses = goal->poses;
   uint8_t type = goal->type;
+  uint8_t search_radius = goal->search_radius;
   for (auto & goal_pose : goal_poses) {
     if (!nav2_util::transformPoseInTargetFrame(
         goal_pose, goal_pose, *feedback_utils_.tf, feedback_utils_.global_frame,
@@ -253,6 +254,13 @@ URC2025Navigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr goal)
 
   // Update the goal type on the blackboard
   blackboard->set<uint8_t>("type", type);
+
+  // Update the goal search radius on the blackboard
+  blackboard->set<uint8_t>("search_radius", search_radius);
+
+  // Set the goals_placed value on the blackboard
+  bool goals_placed = false;
+  blackboard->set<uint8_t>("goals_placed", goals_placed);
 
   // Initialise the found variable to allow for BT scripting
   blackboard->set<int>("found", 0);
