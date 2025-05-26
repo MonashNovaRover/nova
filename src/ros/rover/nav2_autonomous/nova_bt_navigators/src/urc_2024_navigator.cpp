@@ -17,13 +17,13 @@
 #include <set>
 #include <memory>
 #include <limits>
-#include "nova_bt_navigators/urc_navigator.hpp"
+#include "nova_bt_navigators/urc_2024_navigator.hpp"
 
 namespace nova_bt_navigators
 {
 
 bool
-URCNavigator::configure(
+URC2024Navigator::configure(
   rclcpp_lifecycle::LifecycleNode::WeakPtr parent_node,
   std::shared_ptr<nav2_util::OdomSmoother> odom_smoother)
 {
@@ -62,35 +62,35 @@ URCNavigator::configure(
 }
 
 bool
-URCNavigator::cleanup()
+URC2024Navigator::cleanup()
 {
   from_ll_to_map_client_.reset();
   return true;
 }
 
 std::string
-URCNavigator::getDefaultBTFilepath(
+URC2024Navigator::getDefaultBTFilepath(
   rclcpp_lifecycle::LifecycleNode::WeakPtr parent_node)
 {
   std::string default_bt_xml_filename;
   auto node = parent_node.lock();
 
-  if (!node->has_parameter("default_urc_navigator_bt_xml")) {
+  if (!node->has_parameter("default_urc_2024_navigator_bt_xml")) {
     std::string pkg_share_dir =
       ament_index_cpp::get_package_share_directory("nova_behavior_tree");
     node->declare_parameter<std::string>(
-      "default_urc_navigator_bt_xml",
+      "default_urc_2024_navigator_bt_xml",
       pkg_share_dir +
       "/behavior_tree/urc/urc_through_poses_search.xml");
   }
 
-  node->get_parameter("default_urc_navigator_bt_xml", default_bt_xml_filename);
+  node->get_parameter("default_urc_2024_navigator_bt_xml", default_bt_xml_filename);
 
   return default_bt_xml_filename;
 }
 
 bool
-URCNavigator::goalReceived(ActionT::Goal::ConstSharedPtr goal)
+URC2024Navigator::goalReceived(ActionT::Goal::ConstSharedPtr goal)
 {
   auto bt_xml_filename = goal->behavior_tree;
 
@@ -120,14 +120,14 @@ URCNavigator::goalReceived(ActionT::Goal::ConstSharedPtr goal)
 }
 
 void
-URCNavigator::goalCompleted(
+URC2024Navigator::goalCompleted(
   typename ActionT::Result::SharedPtr /*result*/,
   const nav2_behavior_tree::BtStatus /*final_bt_status*/)
 {
 }
 
 void
-URCNavigator::onLoop()
+URC2024Navigator::onLoop()
 {
   using namespace nav2_util::geometry_utils;  // NOLINT
 
@@ -158,7 +158,7 @@ URCNavigator::onLoop()
 }
 
 void
-URCNavigator::onPreempt(ActionT::Goal::ConstSharedPtr goal)
+URC2024Navigator::onPreempt(ActionT::Goal::ConstSharedPtr goal)
 {
     // #TODO: look into preemption to see if we can/should support it.
     RCLCPP_WARN(
@@ -168,7 +168,7 @@ URCNavigator::onPreempt(ActionT::Goal::ConstSharedPtr goal)
 }
 
 void
-URCNavigator::initializeGoalPose(ActionT::Goal::ConstSharedPtr goal,
+URC2024Navigator::initializeGoalPose(ActionT::Goal::ConstSharedPtr goal,
                                  const std::vector<geometry_msgs::msg::PoseStamped> & map_poses)
 {
   if (goal->gps_poses.size() > 0) {
@@ -191,7 +191,7 @@ URCNavigator::initializeGoalPose(ActionT::Goal::ConstSharedPtr goal,
 }
 
 std::optional<std::vector<geometry_msgs::msg::PoseStamped>>
-URCNavigator::convertGPSPosesToMapPoses(
+URC2024Navigator::convertGPSPosesToMapPoses(
   const std::vector<geographic_msgs::msg::GeoPose> & gps_poses)
 {
   RCLCPP_INFO(
@@ -244,5 +244,5 @@ URCNavigator::convertGPSPosesToMapPoses(
 
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(
-  nova_bt_navigators::URCNavigator,
+  nova_bt_navigators::URC2024Navigator,
   nav2_core::NavigatorBase)

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NOVA_BT_NAVIGATORS__URC_NAVIGATOR_HPP_
-#define NOVA_BT_NAVIGATORS__URC_NAVIGATOR_HPP_
+#ifndef NOVA_BT_NAVIGATORS__URC_2024_NAVIGATOR_HPP_
+#define NOVA_BT_NAVIGATORS__URC_2024_NAVIGATOR_HPP_
 
 #include <string>
 #include <vector>
@@ -29,28 +29,28 @@
 #include "nav2_util/odometry_utils.hpp"
 #include "nav2_util/service_client.hpp"
 #include "robot_localization/srv/from_ll.hpp"
-#include "nova_auto_interfaces/action/navigate_urc.hpp"
+#include "nova_auto_interfaces/action/urc2024_navigator.hpp"
 #include "geographic_msgs/msg/geo_pose.h"
 
 namespace nova_bt_navigators
 {
 
 /**
- * @class URCNavigator
+ * @class URC2024Navigator
  * @brief A navigator for navigating to a specified pose
  */
-class URCNavigator
-  : public nav2_core::BehaviorTreeNavigator<nova_auto_interfaces::action::NavigateURC>
+class URC2024Navigator
+  : public nav2_core::BehaviorTreeNavigator<nova_auto_interfaces::action::URC2024Navigator>
 {
 public:
-  using ActionT = nova_auto_interfaces::action::NavigateURC;
+  using ActionT = nova_auto_interfaces::action::URC2024Navigator;
   typedef std::vector<geometry_msgs::msg::PoseStamped> Goals;
   typedef std::vector<geometry_msgs::msg::PoseStamped> SearchGoals;
 
   /**
-   * @brief A constructor for URCNavigator
+   * @brief A constructor for URC2024Navigator
    */
-  URCNavigator()
+  URC2024Navigator()
   : BehaviorTreeNavigator() {}
 
   /**
@@ -71,7 +71,7 @@ public:
    * @brief Get action name for this navigator
    * @return string Name of action server
    */
-  std::string getName() override {return std::string("urc_navigator");}
+  std::string getName() override {return std::string("urc_2024_navigator");}
 
   /**
    * @brief Get navigator's default BT
@@ -146,4 +146,4 @@ protected:
 
 }  // namespace nova_bt_navigators
 
-#endif  // NOVA_BT_NAVIGATORS__URC_NAVIGATOR_HPP_
+#endif  // NOVA_BT_NAVIGATORS__URC_2024_NAVIGATOR_HPP_

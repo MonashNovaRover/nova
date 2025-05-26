@@ -1,10 +1,28 @@
+// Copyright (c) 2025 Monash Nova Rover
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <chrono>
+#include <iostream>
+#include <sstream>
+#include <vector>
+#include <string>
 
 #include "behaviortree_cpp/bt_factory.h"
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <nav_msgs/msg/path.hpp>
 
-#include "nova_behavior_tree/blackboard_publisher_node.hpp"
+#include "nova_behavior_tree/action/blackboard_publisher_node.hpp"
 
 namespace nova_behavior_tree
 {
@@ -30,7 +48,8 @@ void BlackboardPublisherNode::initialize()
   // publish_delay_ is in ms
   publish_delay_ = 1000.0 / publish_frequency;
 
-  getInput("keys", keys_);
+  getInput("keys", keys_string_);
+  split_key_string();
 
   // Create the publisher
   publisher_ = node_->create_publisher<std_msgs::msg::String>(
@@ -59,11 +78,22 @@ BT::NodeStatus BlackboardPublisherNode::tick()
   {
     last_publish_ = now;
     publish_blackboard();
-    RCLCPP_INFO(node_->get_logger(), "Blackboard published!");
+    RCLCPP_DEBUG(node_->get_logger(), "Blackboard published!");
   }
 
   // Return SUCCESS every time for this demo
   return BT::NodeStatus::SUCCESS;
+}
+
+void BlackboardPublisherNode::split_key_string()
+{
+  std::stringstream ss(keys_string_);
+  std::string key;
+
+  while (std::getline(ss, key, ','))
+  {
+    keys_.push_back(key);
+  }
 }
 
 void BlackboardPublisherNode::publish_blackboard()
@@ -74,6 +104,22 @@ void BlackboardPublisherNode::publish_blackboard()
   {
     std::string value_str;
     bool found = false;
+
+    // current_pose publisher
+    if (!found && key == "current_pose") {
+      try {
+        auto p = bb_->get<geometry_msgs::msg::PoseStamped>(key);
+        std::ostringstream ss;
+        ss << "("
+          << p.pose.position.x << ","
+          << p.pose.position.y << ","
+          << p.pose.position.z << ")";
+        value_str = ss.str();
+        found = true;
+      } catch(...) {
+        value_str = "Failed to retrieve PoseStamped";
+      }
+    }
 
     // Hard Coded "goals" key
     if (!found && key == "goals") {

@@ -21,7 +21,7 @@
 #include "rclcpp/logging.hpp"
 #include "tf2/utils.h"      
 
-#include "nova_behavior_tree/remove_passed_goals_and_ar_tags_action.hpp"
+#include "nova_behavior_tree/action/remove_passed_goals_and_ar_tags_action.hpp"
 #include "nova_behavior_tree/nav2_utils.hpp"
 #include "nova_behavior_tree/utils.hpp"
 

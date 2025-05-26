@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4"
+      main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode name="NavigateRecovery"
+                  number_of_retries="6">
+      <PipelineSequence name="NavigateWithReplanning">
+        <ControllerSelector topic_name="controller_selector"
+                            default_controller="FollowPath"
+                            selected_controller="{selected_controller}"/>
+        <PlannerSelector topic_name="planner_selector"
+                          default_planner="GridBased"
+                          selected_planner="{selected_planner}"/>
+        <BlackboardPublisher topic_name="blackboard"
+                            keys="goals,type"
+                            publish_frequency="1"/>
+        <RateController hz="1.0">
+          <RecoveryNode name="ComputePathThroughPoses"
+                        number_of_retries="1">
+            <ReactiveSequence>
+              <ForceSuccess _skipIf="type == 0">
+                <Sequence>
+                  <GetCurrentPose current_pose="{current_pose}"/>
+                  <Sequence _skipIf="goals_placed">
+                    <GetGoal index="0"
+                            input_goals="{goals}"
+                            output_goal="{goal}"/>
+                    <ArePosesNear ref_pose="{current_pose}"
+                                  target_pose="{goal}"
+                                  tolerance="{search_radius}"/>
+                  </Sequence>
+                  <Sequence>
+                    <RunOnce>
+                      <PlaceSearchGoals _post="goals_placed := true"
+                                        goal_type="{type}"
+                                        current_pose="{current_pose}"
+                                        search_radius="{search_radius}"
+                                        input_goals="{goals}"
+                                        output_goals="{goals}"/>
+                    </RunOnce>
+                    <Sequence>
+                      <ARTagDetected _skipIf="type != 1"
+                                      detections_topic="/aruco_detections"
+                                      min_detections="2"
+                                      buffer_time="5.0"
+                                      cluster_radius="1.5"
+                                      detections="{detected_goals}"/>
+                      <ObjectDetected _skipIf="type != 2"
+                                      detections_topic="/yolo/objects"
+                                      min_detections="2"
+                                      buffer_time="5.0"
+                                      cluster_radius="1.5"
+                                      detections="{detected_goals}"/>
+                      <GetGoal index="0"
+                              input_goals="{detected_goals}"
+                              output_goal="{detected_goal}"/>
+                      <UpdateURCGoals detected_goal="{detected_goal}"
+                                      current_pose="{current_pose}"
+                                      input_goals="{goals}"
+                                      output_goals="{goals}"/>
+                    </Sequence>
+                  </Sequence>
+                </Sequence>
+              </ForceSuccess>
+              <ReactiveSequence>
+                <RemovePassedURCGoals input_goals="{goals}"
+                                      position_tolerance="1.0"
+                                      orientation_tolerance="0.35"
+                                      output_goals="{goals}"
+                                      dist_to_goal="{dist_to_goal}"/>
+                <SnapInCollisionGoals input_goals="{goals}"
+                                      output_goals="{goals}"/>
+                <ComputePathThroughPoses _skipIf="dist_to_goal < 2.0"
+                                          goals="{goals}"
+                                          planner_id="{selected_planner}"
+                                          path="{path}"
+                                          error_code_id="{compute_path_error_code}"/>
+              </ReactiveSequence>
+            </ReactiveSequence>
+            <Sequence>
+              <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
+              <ClearEntireCostmap name="ClearGlobalCostmap-Context"
+                                  service_name="global_costmap/clear_entirely_global_costmap"/>
+            </Sequence>
+          </RecoveryNode>
+        </RateController>
+        <RecoveryNode name="FollowPath"
+                      number_of_retries="1">
+          <FollowPath controller_id="{selected_controller}"
+                      path="{path}"
+                      error_code_id="{follow_path_error_code}"/>
+          <Sequence>
+            <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
+            <ClearEntireCostmap name="ClearLocalCostmap-Context"
+                                service_name="local_costmap/clear_entirely_local_costmap"/>
+          </Sequence>
+        </RecoveryNode>
+      </PipelineSequence>
+      <Sequence>
+        <Fallback>
+          <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
+          <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
+        </Fallback>
+        <ReactiveFallback name="RecoveryFallback">
+          <GoalUpdated/>
+          <RoundRobin name="RecoveryActions">
+            <Sequence name="ClearingActions">
+              <ClearEntireCostmap name="ClearLocalCostmap-Subtree"
+                                  service_name="local_costmap/clear_entirely_local_costmap"/>
+              <ClearEntireCostmap name="ClearGlobalCostmap-Subtree"
+                                  service_name="global_costmap/clear_entirely_global_costmap"/>
+            </Sequence>
+            <Spin spin_dist="1.57"
+                  error_code_id="{spin_error_code}"/>
+            <Wait wait_duration="5.0"/>
+            <BackUp backup_dist="0.30"
+                    backup_speed="0.15"
+                    error_code_id="{backup_error_code}"/>
+          </RoundRobin>
+        </ReactiveFallback>
+      </Sequence>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>

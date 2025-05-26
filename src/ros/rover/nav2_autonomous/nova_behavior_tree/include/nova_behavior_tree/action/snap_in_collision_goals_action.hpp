@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Samsung Research America
+// Copyright (c) 2025 Monash Nova Rover
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@
 #include <string>
 
 #include "geometry_msgs/msg/pose_stamped.hpp"
-#include "geometry_msgs/msg/pose.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
 #include "behaviortree_cpp/action_node.h"
@@ -41,19 +40,22 @@ namespace nova_behavior_tree
 using namespace geometry_msgs::msg;
 using namespace nav_msgs::msg;
 
-struct GridCell {
+struct GridCell
+{
   int x, y;
 };
 
-struct SearchResult {
+struct SearchResult
+{
   GridCell cell;
   bool found;
   int search_radius;
 };
 
-struct GoalEntry {
-  geometry_msgs::msg::Pose pose{};
-  int index = 0;
+struct TowardPoint
+{
+  Point point; // The point to which the original goal was pointed towards
+  PoseStamped goal; // The original goal
 };
 
 class SnapInCollisionGoalsAction : public BT::ActionNodeBase
@@ -93,11 +95,8 @@ public:
   static BT::PortsList providedPorts()
   {
     return {
-      BT::InputPort<double>("initial_goals_offset", 0.0, "Approximate distance the initial goals are offset"),
+      BT::InputPort<double>("goals_offset" "Approximate distance goals are offset"),
       BT::InputPort<double>("max_snap_radius", 5.0, "Maximum radius (m) to snap goals to"),
-      BT::InputPort<double>("update_radius", 0.5,
-        "Radius for cube goals to be considered an update, should be set to the same value as in UpdateGoalsAction"),
-      BT::InputPort<std::vector<GoalEntry>>("cube_goal_entries", "Cube goals with their index in the input_goals vector"),
       BT::InputPort<Goals>("input_goals", "Original goals to snap if in collision"),
       BT::OutputPort<Goals>("output_goals", "Goals with all in collision goals snapped"),
     };
@@ -120,12 +119,10 @@ private:
   OccupancyGrid::SharedPtr local_occu_grid_;
   OccupancyGrid::SharedPtr global_occu_grid_;
   
-  double initial_goals_offset_;
-  std::vector<Point> toward_points_;
+  double goals_offset_;
+  std::vector<TowardPoint> toward_points_;
   double max_snap_radius_;
-  double update_radius_;
   double footprint_radius_;
-  std::vector<GoalEntry> cube_goal_entries_;
   Goals input_goals_;
   
   bool initialized_ = false;

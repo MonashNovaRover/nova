@@ -6,12 +6,12 @@ as a transform for object localisation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: object_localiser
 TOPICS:
-  - subscriber: /yolo/detections           [yolo_msgs/msg/DetectionArray]
-  - subscriber: /oak/nn/detections [vision_msgs/msg/Detection2DArray]
-  - subscriber: /oak/depth                 [sensor_msgs/msg/Image]
-  - subscriber: /oak/camera_info           [sensor_msgs/msg/CameraInfo]
-  - publisher: /yolo/objects                 [visualization_msgs/msg/MarkerArray]
-  - publisher: /tf                         [geometry_msgs/msg/TransformStamped]
+  - subscriber: /yolo/detections    [yolo_msgs/msg/DetectionArray]
+  - subscriber: /oak/nn/detections  [vision_msgs/msg/Detection2DArray]
+  - subscriber: /oak/depth          [sensor_msgs/msg/Image]
+  - subscriber: /oak/camera_info    [sensor_msgs/msg/CameraInfo]
+  - publisher: /yolo/objects        [visualization_msgs/msg/MarkerArray]
+  - publisher: /tf                  [geometry_msgs/msg/TransformStamped]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

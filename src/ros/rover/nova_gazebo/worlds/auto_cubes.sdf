@@ -262,6 +262,7 @@
     -->
     <include>
       <uri>model://ar_tag</uri>
+      <pose>10 0 0 0 0 0</pose>
     </include>
 
   </world>
