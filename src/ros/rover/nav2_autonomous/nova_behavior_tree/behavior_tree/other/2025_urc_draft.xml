@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4"
+      main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Sequence>
+      <BlackboardPublisher topic_name="blackboard"
+                           keys="goals,type,"
+                           publish_frequency="1"/>
+      <RecoveryNode name="NavigateRecovery"
+                    number_of_retries="6">
+        <PipelineSequence name="NavigateWithReplanning">
+          <ControllerSelector topic_name="controller_selector"
+                              default_controller="FollowPath"
+                              selected_controller="{selected_controller}"/>
+          <PlannerSelector topic_name="planner_selector"
+                           default_planner="GridBased"
+                           selected_planner="{selected_planner}"/>
+          <RateController hz="1.0">
+            <RecoveryNode name="ComputePathThroughPoses"
+                          number_of_retries="1">
+              <ReactiveSequence>
+                <Sequence _skipIf="(goal_type == 0) || found">
+                  <GoalNear/>
+                  <SequenceWithMemory>
+                    <PlaceSearchGoals goal_type=""
+                                      current_pose=""
+                                      ar_tag_search_radius=""
+                                      object_search_radius=""
+                                      edge_offset=""
+                                      input_goals=""
+                                      output_goals=""/>
+                    <Sequence>
+                      <ARTagDetected seen_ids="{seen_ids}"
+                                     id="{id}"
+                                     goal="{goal}"
+                                     found="{found}"
+                                     _skipIf="goal_type != 1"/>
+                      <ObjectDetected _skipIf="goal_type != 2"/>
+                      <UpdateGoals goal_type=""
+                                   current_pose=""
+                                   goals=""
+                                   input_goals=""
+                                   update_radius=""
+                                   goal_radius=""
+                                   output_goals=""
+                                   cube_goal_entries=""/>
+                    </Sequence>
+                  </SequenceWithMemory>
+                </Sequence>
+                <ReactiveSequence _skipIf="!found">
+                  <ForceSuccess _skipIf="goal_type != 1">
+                    <ReactiveSequence>
+                      <ARTagDetected seen_ids=""
+                                     id=""
+                                     goal=""/>
+                    </ReactiveSequence>
+                  </ForceSuccess>
+                  <ForceSuccess _skipIf="goal_type != 2">
+                    <ReactiveSequence>
+                      <ObjectDetected/>
+                    </ReactiveSequence>
+                  </ForceSuccess>
+                  <UpdateGoals goal_type=""
+                               current_pose=""
+                               goals=""
+                               input_goals=""
+                               update_radius=""
+                               goal_radius=""
+                               output_goals=""
+                               cube_goal_entries=""/>
+                </ReactiveSequence>
+                <ReactiveSequence>
+                  <RemovePassedGoalsURC/>
+                  <WaitUntil _skipIf="!arrived"/>
+                  <SnapInCollisionGoals initial_goals_offset="1.5"
+                                        max_snap_radius=""
+                                        update_radius=""
+                                        cube_goal_entries="{cube_goal_entries}"
+                                        input_goals="{goals}"
+                                        output_goals="{goals}"/>
+                  <ComputePathThroughPoses goals="{goals}"
+                                           start=""
+                                           server_name=""
+                                           server_timeout=""
+                                           planner_id="{selected_planner}"
+                                           path="{path}"
+                                           error_code_id="{compute_path_error_code}"
+                                           _skipIf="dist_to_goal &lt; 2.0"/>
+                </ReactiveSequence>
+              </ReactiveSequence>
+              <Sequence>
+                <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
+                <ClearEntireCostmap name="ClearGlobalCostmap-Context"
+                                    service_name="global_costmap/clear_entirely_global_costmap"
+                                    server_timeout=""/>
+              </Sequence>
+            </RecoveryNode>
+          </RateController>
+          <RecoveryNode name="FollowPath"
+                        number_of_retries="1">
+            <FollowPath controller_id="{selected_controller}"
+                        path="{path}"
+                        goal_checker_id=""
+                        progress_checker_id=""
+                        service_name=""
+                        server_timeout=""
+                        error_code_id="{follow_path_error_code}"/>
+            <Sequence>
+              <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
+              <ClearEntireCostmap name="ClearLocalCostmap-Context"
+                                  service_name="local_costmap/clear_entirely_local_costmap"
+                                  server_timeout=""/>
+            </Sequence>
+          </RecoveryNode>
+        </PipelineSequence>
+        <Sequence>
+          <Fallback>
+            <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
+            <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
+          </Fallback>
+          <ReactiveFallback name="RecoveryFallback">
+            <GoalUpdated goal=""
+                         goals=""/>
+            <RoundRobin name="RecoveryActions">
+              <Sequence name="ClearingActions">
+                <ClearEntireCostmap name="ClearLocalCostmap-Subtree"
+                                    service_name="local_costmap/clear_entirely_local_costmap"
+                                    server_timeout=""/>
+                <ClearEntireCostmap name="ClearGlobalCostmap-Subtree"
+                                    service_name="global_costmap/clear_entirely_global_costmap"
+                                    server_timeout=""/>
+              </Sequence>
+              <Spin spin_dist="1.57"
+                    time_allowance=""
+                    server_name=""
+                    server_timeout=""
+                    error_code_id="{spin_error_code}"/>
+              <Wait wait_duration="5.0"
+                    server_name=""
+                    server_timeout=""/>
+              <BackUp backup_dist="0.30"
+                      backup_speed="0.15"
+                      time_allowance=""
+                      server_name=""
+                      server_timeout=""
+                      error_code_id="{backup_error_code}"/>
+            </RoundRobin>
+          </ReactiveFallback>
+        </Sequence>
+      </RecoveryNode>
+    </Sequence>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Condition ID="ARTagDetected">
+      <input_port name="seen_ids">Visited AR tags IDs</input_port>
+      <output_port name="id">Detected AR tag ID</output_port>
+      <output_port name="goal">Detected AR tag pose</output_port>
+    </Condition>
+    <Action ID="BackUp">
+      <input_port name="backup_dist">Distance to backup</input_port>
+      <input_port name="backup_speed">Speed at which to backup</input_port>
+      <input_port name="time_allowance">Allowed time for reversing</input_port>
+      <input_port name="server_name">Server name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <output_port name="error_code_id">"Back up error code"</output_port>
+    </Action>
+    <Action ID="BlackboardPublisher">
+      <input_port name="topic_name">ROS topic for publishing</input_port>
+      <input_port name="keys">Blackboard keys to publish</input_port>
+      <input_port name="publish_frequency">Publish rate in hz</input_port>
+    </Action>
+    <Action ID="ClearEntireCostmap">
+      <input_port name="service_name">Service name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+    </Action>
+    <Action ID="ComputePathThroughPoses">
+      <input_port name="goals">Destinations to plan through</input_port>
+      <input_port name="start">Start pose of the path if overriding current robot pose</input_port>
+      <input_port name="server_name">Server name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <input_port name="planner_id">Mapped name to the planner plugin type to use</input_port>
+      <output_port name="path">Path created by ComputePathToPose node</output_port>
+      <output_port name="error_code_id">"Compute path through poses error code"</output_port>
+    </Action>
+    <Action ID="ControllerSelector">
+      <input_port name="topic_name">Name of the topic to receive controller selection commands</input_port>
+      <input_port name="default_controller">Default controller of the controller selector</input_port>
+      <output_port name="selected_controller">Name of the selected controller received from the topic subcription</output_port>
+    </Action>
+    <Action ID="FollowPath">
+      <input_port name="controller_id"
+                  default="FollowPath"/>
+      <input_port name="path">Path to follow</input_port>
+      <input_port name="goal_checker_id">Goal checker</input_port>
+      <input_port name="progress_checker_id">Progress checker</input_port>
+      <input_port name="service_name">Service name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <output_port name="error_code_id">Follow Path error code</output_port>
+    </Action>
+    <Condition ID="GoalNear"
+               editable="true"/>
+    <Condition ID="GoalUpdated">
+      <input_port name="goal">Vector of navigation goals</input_port>
+      <input_port name="goals">Navigation goal</input_port>
+    </Condition>
+    <Condition ID="ObjectDetected"
+               editable="true"/>
+    <Control ID="PipelineSequence"/>
+    <Action ID="PlaceSearchGoals">
+      <input_port name="goal_type">Goal type (nothing, AR tag, or object?)</input_port>
+      <input_port name="current_pose">The current pose of the rover</input_port>
+      <input_port name="ar_tag_search_radius">Search radius for AR tags in m</input_port>
+      <input_port name="object_search_radius">Search radius for objects in m</input_port>
+      <input_port name="edge_offset">Offset to place goals from the edge of the search radius</input_port>
+      <input_port name="input_goals">Goals vector to add search goals into</input_port>
+      <input_port name="output_goals">Goals with new search goals added</input_port>
+    </Action>
+    <Action ID="PlannerSelector">
+      <input_port name="topic_name">Name of the topic to receive planner selection commands</input_port>
+      <input_port name="default_planner">Default planner of the planner selector</input_port>
+      <output_port name="selected_planner">Name of the selected planner received from the topic subcription</output_port>
+    </Action>
+    <Decorator ID="RateController">
+      <input_port name="hz">Rate</input_port>
+    </Decorator>
+    <Control ID="RecoveryNode">
+      <input_port name="number_of_retries">Number of retries</input_port>
+    </Control>
+    <Action ID="RemovePassedGoalsURC"
+            editable="true"/>
+    <Control ID="RoundRobin"/>
+    <Action ID="SnapInCollisionGoals">
+      <input_port name="initial_goals_offset">Approximate distance the initial goals are offset</input_port>
+      <input_port name="max_snap_radius">Maximum radius (m) to snap goals to</input_port>
+      <input_port name="update_radius">Radius for cube goals to be considered an update, should be set to the same value as in UpdateGoalsAction</input_port>
+      <input_port name="cube_goal_entries">Cube goals with their index in the input_goals vector</input_port>
+      <input_port name="input_goals">Original goals to snap if in collision</input_port>
+      <output_port name="output_goals">Goals with all in collision goals snapped</output_port>
+    </Action>
+    <Action ID="Spin">
+      <input_port name="spin_dist">Spin distance</input_port>
+      <input_port name="time_allowance">Allowed time for spinning</input_port>
+      <input_port name="server_name">Server name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <output_port name="error_code_id">Spin error code</output_port>
+    </Action>
+    <Action ID="UpdateGoals">
+      <input_port name="goal_type">Type of goal being updated (for logging)</input_port>
+      <input_port name="current_pose">The current pose of the rover</input_port>
+      <input_port name="goals">Goals to add as viapoints</input_port>
+      <input_port name="input_goals">Original goals to add viapoints into</input_port>
+      <input_port name="update_radius">Radius to next goal for it to be considered an update</input_port>
+      <input_port name="goal_radius">Radius away from actual pose to set goal</input_port>
+      <output_port name="output_goals">Goals with new viapoints added/updated</output_port>
+      <output_port name="cube_goal_entries">Cube goals with their index in the input_goals vector</output_port>
+    </Action>
+    <Action ID="Wait">
+      <input_port name="wait_duration">Wait time</input_port>
+      <input_port name="server_name">Server name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+    </Action>
+    <Action ID="WaitUntil"
+            editable="true"/>
+    <Condition ID="WouldAControllerRecoveryHelp">
+      <input_port name="error_code">Error code</input_port>
+    </Condition>
+    <Condition ID="WouldAPlannerRecoveryHelp">
+      <input_port name="error_code">Error code</input_port>
+    </Condition>
+  </TreeNodesModel>
+
+</root>
