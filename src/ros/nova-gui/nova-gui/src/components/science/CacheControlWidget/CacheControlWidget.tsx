@@ -10,7 +10,7 @@ export interface CacheControlWidgetProps extends CardProps {
 }
 
 const CacheControlWidget: React.FC<CacheControlWidgetProps> = (props) => {
-  const [selected, setSelected] = useState<number>(1);
+  const [selected, setSelected] = useState<number>(2);
   const bifrost = useBifrost({service: props.service});
 
   useEffect(() => {
