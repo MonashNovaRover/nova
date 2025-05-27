@@ -5,7 +5,6 @@ uint8 AR = 1
 uint8 OBJECT = 2
 
 uint8 type
-uint8 search_radius
 geometry_msgs/PoseStamped[] poses
 string behavior_tree
 

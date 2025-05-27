@@ -23,6 +23,8 @@ import {
   IRosNovaInterfacesRgbInputResponse,
   IRosNovaInterfacesCacheCommandRequest,
   IRosNovaInterfacesCacheCommandResponse,
+  IRosNovaInterfacesCartographerCommandRequest,
+  IRosNovaInterfacesCartographerCommandResponse,
   IRosNovaInterfacesMoveHydraprobeRequest,
   IRosNovaInterfacesMoveHydraprobeResponse,
 } from "../rosTypes";
@@ -132,5 +134,11 @@ export interface RosServiceInterface {
   [RosService.RGBInput]: RosServiceMessage<
       IRosNovaInterfacesRgbInputRequest,
       IRosNovaInterfacesRgbInputResponse
+  >;
+
+  // Autonomous Related
+  [RosService.CARTOGRAPHER_COMMAND]: RosServiceMessage<
+    IRosNovaInterfacesCartographerCommandRequest,
+    IRosNovaInterfacesCartographerCommandResponse
   >;
 }
