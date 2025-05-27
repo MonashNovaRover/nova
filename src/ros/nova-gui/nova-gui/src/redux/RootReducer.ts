@@ -6,7 +6,7 @@ import {
   IRosCmdInterfacesCmdFeedback,
   IRosCmdInterfacesCmDsFeedback,
   IRosNovaInterfacesHydraprobeData,
-  IRosNovaInterfacesNirProbeDataConst,
+  IRosNovaInterfacesNirProbeDataConst, IRosNovaInterfacesStatusConst,
   IRosSensorMsgsRange,
   IRosStdMsgsHeader
 } from "../ros/rosTypes";
@@ -245,8 +245,20 @@ export const reduxStores = {
     }, 
     initialNavSatMessage
   ),
+  autoStatus: createBifrostStore(
+    {
+      topic: RosTopic.AUTO_STATUS
+    },
+    { status: IRosNovaInterfacesStatusConst.IDLE },
+  ),
 
   cartographerState: cartographerSlice.reducer,
+  cartographerCommand: createBifrostStore(
+    { service: RosService.CARTOGRAPHER_COMMAND },
+    {
+      success: true,
+    }
+  ),
 
   batteryStore: createBifrostStore(
     { topic: RosTopic.BATTERY_STATE },
