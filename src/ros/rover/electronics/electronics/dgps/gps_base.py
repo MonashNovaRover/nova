@@ -260,7 +260,6 @@ class GPSBase(Node):
                     self.pose.position_covariance_type = 0
                     self.pose.latitude, self.pose.longitude = latitude, longtitude
                 else: 
-                    self.pose.valid = False
                     self.get_logger().warn(f'❌ GPS data is not available!', throttle_duration_sec=2)
 
                 ### ROS2 ###
@@ -273,10 +272,6 @@ class GPSBase(Node):
                     \tlat: {self.pose.latitude:8.3f}
                     \tlon: {self.pose.longitude:8.3f}
                 '''
-                if self.pose.valid:
-                    self.get_logger().debug(msg_log, throttle_duration_sec=2)
-                else:
-                    self.get_logger().warn(msg_log, throttle_duration_sec=2)
 
     def parse_rtcm(self) -> None:
         self.pose.header.stamp = self.get_clock().now().to_msg()
