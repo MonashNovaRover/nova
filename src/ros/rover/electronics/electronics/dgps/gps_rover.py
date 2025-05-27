@@ -49,7 +49,7 @@ class GPSRover(Node):
         ).value
         self.port_name = self.declare_parameter(
             name='port_name', 
-            value='/dev/ttyUSB0', 
+            value='/dev/ttyUSB1', 
         ).value
         self.gps_module = self.declare_parameter(
             name='gps_module', 

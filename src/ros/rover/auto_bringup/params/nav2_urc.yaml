@@ -82,9 +82,9 @@ controller_server:
       forward_sampling_distance: 
         0.5
       rotate_to_heading_angular_vel:
-        0.5
+        15.0
       max_angular_accel:
-        0.5
+        3.0
       simulate_ahead_time:
         1.0
       rotate_to_goal_heading:
@@ -157,10 +157,10 @@ velocity_smoother:
     smoothing_frequency: 30.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [0.5, 0.0, 0.5]
-    min_velocity: [-0.5, 0.0, -0.5]
-    max_accel: [0.05, 0.0, 0.5]
-    max_decel: [-0.05, 0.0, -0.5]
+    max_velocity: [0.5, 0.0, 15.0]
+    min_velocity: [-0.5, 0.0, -15.0]
+    max_accel: [0.05, 0.0, 3.0]
+    max_decel: [-0.05, 0.0, -3.0]
     odom_topic: /odometry/local
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
@@ -425,7 +425,7 @@ behavior_server:
     robot_base_frame: base_link
     transform_tolerance: 0.1
     simulate_ahead_time: 2.0
-    max_rotational_vel: 0.4
+    max_rotational_vel: 0.8
     min_rotational_vel: 0.1
     rotational_acc_lim: 0.1
 
