@@ -168,6 +168,8 @@ in
           launch-teleop = "~/Builds/auto/bin/ros2 launch telop_drive_joy teleop.launch.py";
           launch-rviz = "~/Builds/auto/bin/ros2 launch auto_bringup rviz.launch.py";
 
+          # GPS Alias
+          launch-gps = "~/Builds/master/bin/ros2 launch nova_bringup gps_rover.launch.py";
         }
       ];
 
