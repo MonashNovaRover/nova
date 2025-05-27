@@ -54,7 +54,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='old_arm',
-            default_value='False',
+            default_value='True',
             description='Switch to old arm mode if true',
         ),
     ]

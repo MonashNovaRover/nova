@@ -4,8 +4,8 @@
 keyboard_localiser:
   ros__parameters:
     # using auto or manual transform mode
-    using_auto: false
-    debug_image: true
+    using_auto: true
+    debug_image: false
     # key position initalisation params
     keyboard_frame: keyboard_frame
     # base_frame: arm_link
