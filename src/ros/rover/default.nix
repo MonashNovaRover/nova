@@ -16,6 +16,7 @@
     nova-blcmd-utils = callPackage ./nix/packages/blcmd-utils { };
     nova-arm-interfaces = callPackage ./nix/packages/arm-interfaces { };
     nova-arm = callPackage ./nix/packages/arm { };
+    nova-auto-typing = callPackage ./nix/packages/auto-typing { };
     nova-input-interfaces = callPackage ./nix/packages/input-interfaces { };
     nova-inputs = callPackage ./nix/packages/inputs { };
     nova-cmd-interfaces = callPackage ./nix/packages/cmd-interfaces { };

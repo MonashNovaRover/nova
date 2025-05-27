@@ -12,6 +12,7 @@
 , ros2-controllers
 , nova-rover-description
 , nova-gazebo
+, nova-auto-typing
 }:
 
 buildRosPackage {
@@ -41,6 +42,7 @@ buildRosPackage {
       ros2-controllers
       nova-rover-description
       nova-gazebo
+      nova-auto-typing
       tf2-tools;
   };
 }

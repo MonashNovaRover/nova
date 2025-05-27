@@ -31,12 +31,12 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         Node(
-            package='arm',
+            package='auto_typing',
             executable='keyboard_localiser.py',
             parameters=[params, {"base_frame": base_frame}]
         ),
         Node(
-            package='arm',
+            package='auto_typing',
             executable='typing_sequencer.py',
             parameters=[params, {"base_frame": base_frame}]
         )

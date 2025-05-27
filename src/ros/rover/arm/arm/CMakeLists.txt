@@ -151,8 +151,6 @@ install(PROGRAMS
         arm/zero_resolver_sector_client_terminal.py
         arm/hex_key.py
         arm/lazers.py
-        arm/keyboard_localiser.py
-        arm/typing_sequencer.py
         DESTINATION lib/${PROJECT_NAME}
         )
 
