@@ -73,7 +73,31 @@ controller_server:
       yaw_goal_tolerance: 0.523599 # 30 degrees in radians.
       stateful: false # Whether to check for XY position tolerance after rotating to goal orientation in case of minor localization changes.
     FollowPath:
-      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
+      plugin: # https://docs.nav2.org/configuration/packages/configuring-rotation-shim-controller.html
+        "nav2_rotation_shim_controller::RotationShimController"
+      angular_dist_threshold: # Angle from goal heading to use RotationShimController
+        0.785398 # 45 degrees in radians
+      angular_disengage_threshold: # Angle from goal heading to use RegulatedPurePursuitController
+        0.523599 # 30 degrees in radians
+      forward_sampling_distance: 
+        0.5
+      rotate_to_heading_angular_vel:
+        0.5
+      max_angular_accel:
+        0.5
+      simulate_ahead_time:
+        1.0
+      rotate_to_goal_heading:
+        false
+      rotate_to_heading_once:
+        true
+      closed_loop:
+        true # TODO: I have a feeling this should be false
+      use_path_orientations:
+        true
+
+      primary_controller: # https://docs.nav2.org/configuration/packages/configuring-regulated-pp.html
+        "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       desired_linear_vel: 
         0.5
       lookahead_dist: # if use_velocity_scaled_lookahead_dist = false
@@ -84,8 +108,8 @@ controller_server:
         2.0
       lookahead_time: # if use_velocity_scaled_lookahead_dist = true
         1.5
-      rotate_to_heading_angular_vel: # if use_rotate_to_heading = true
-        0.5
+      # rotate_to_heading_angular_vel: # if use_rotate_to_heading = true
+      #   0.5
       transform_tolerance: 
         0.1
       use_velocity_scaled_lookahead_dist: 
@@ -116,8 +140,8 @@ controller_server:
         false
       rotate_to_heading_min_angle: # if use_rotate_to_heading = true
         0.785398
-      max_angular_accel: # if use_rotate_to_heading = true
-        0.5
+      # max_angular_accel: # if use_rotate_to_heading = true
+      #   0.5
       use_cancel_deceleration: 
         false
       cancel_deceleration: # if use_cancel_deceleration = true
@@ -322,7 +346,7 @@ planner_server:
       allow_unknown: true # Allow traveling in unknown space
       analytic_expansion_max_cost: 200.0 # The maximum single cost for any part of an analytic expansion to contain and be valid, except when necessary on approach to goal
       analytic_expansion_max_cost_override: true # Whether or not to override the maximum cost setting if within critical distance to goal.
-      analytic_expansion_max_length: 3.0 # For Hybrid/Lattice nodes The maximum length of the analytic expansion to be considered valid to prevent unsafe shortcutting
+      analytic_expansion_max_length: 1.0 # For Hybrid/Lattice nodes The maximum length of the analytic expansion to be considered valid to prevent unsafe shortcutting
       analytic_expansion_ratio: 3.5 # The ratio to attempt analytic expansions during search for final approach.
       cache_obstacle_heuristic: true  # Cache the obstacle map dynamic programming distance expansion heuristic between subsequent replannings of the same goal location.
                                       # Dramatically speeds up replanning performance (40x) if costmap is largely static.
