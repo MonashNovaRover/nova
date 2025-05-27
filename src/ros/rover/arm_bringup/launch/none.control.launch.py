@@ -85,7 +85,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='controllers',
-            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'controllers.yaml']),
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'old.controllers.yaml']),
             description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
@@ -112,11 +112,6 @@ def generate_launch_description():
             name='use_local_mesh',
             default_value='False',
             description='Use local mesh paths instead of nix store paths',
-        ),
-        DeclareLaunchArgument(
-            name='robot_name',
-            default_value='Banksia',
-            description='name of the robot',
         ),
     ]
 

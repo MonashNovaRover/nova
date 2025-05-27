@@ -45,17 +45,20 @@ struct ControlInterface {
 };
 
 struct VelocityInterface : ControlInterface {
-    /// Used to actually send CAN commands, and is independed on the currently active command interfaces (as position control also sends velocity commands)
-    double reference_command = 0.0;
     double reference_state = 0.0;
 };
 
 struct PositionInterface : ControlInterface {
     /// This reference state does not include multi-turn emulation
-    double raw_reference_state = 0.0;
+    double raw_resolver_state = 0.0;
     int raw_reference_state_turns = 0;
 
     bool raw_reference_state_valid = false;
+};
+
+struct EffortInterface : ControlInterface {
+    /// This reference state does not include multi-turn emulation
+    double reference_command = 0.0;
 };
 
 enum class ControlMode {
@@ -206,7 +209,7 @@ private:
 
     VelocityInterface hw_velocity_;
     PositionInterface hw_position_;
-    ControlInterface hw_effort_;
+    EffortInterface hw_effort_;
 
     ControlMode control_mode_;
 
@@ -226,12 +229,6 @@ private:
     bool start_interface(const std::string &interface);
 
     void can_setup();
-
-    /// @brief      Get a configuration value from the CMD
-    /// @param      command - The config value to get
-    /// @returns    The optional with config value if received, empty optional otherwise
-    template<typename T>
-    std::optional<T> get_config(CMDConfigCommand command);
 
     /// @brief      Create the can ID for a given CMDSendCommand
     /// @param      command - The command to send

@@ -26,7 +26,7 @@ teleop_arm_joy_node:
     ]
 
     twist:
-      linear_max: 0.25
+      linear_max: 0.1
       angular_max: 0.364467013889
     joints:
       arm_j1:
