@@ -13,6 +13,7 @@
 , pythonPackages
 , gst-bridge
 , glib-networking
+, sensor-msgs
 }:
 
 buildRosPackage {
@@ -60,6 +61,7 @@ buildRosPackage {
     launch-ros
     rclpy
     std-srvs
+    sensor-msgs
     nova-camera-msgs
 
     pythonPackages.pyudev
