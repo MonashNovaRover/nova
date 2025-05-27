@@ -4,7 +4,7 @@
 keyboard_localiser:
   ros__parameters:
     # using auto or manual transform mode
-    using_auto: true
+    #using_auto: true
     debug_image: false
     # key position initalisation params
     keyboard_frame: keyboard_frame

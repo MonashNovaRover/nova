@@ -225,15 +225,16 @@ class TypingSequencer(Node):
             response.message = "No sequencer running."
         return response
 
-    def execute_sequencer(self, key_sequence):
+    def execute_sequencer(self, key_sequence) -> None:
+        sequencer_result = None
         partial_sequence = []
 
         # Get position of EE in base link frame (Assumes operators have aligned keyboard with camera)
         ee_transform = self.get_transform_from_frame(self.ee_frame, self.base_frame)
         if ee_transform is None:
             self.get_logger().info(f"Sequencer failed getting {self.ee_frame} transform")
-            response.success = False
-            return response
+            sequencer_result = False
+            return
         start_pose = Pose() 
         start_pose.position = ee_transform.transform.translation
         start_pose.orientation = ee_transform.transform.rotation
@@ -248,7 +249,7 @@ class TypingSequencer(Node):
         # Loop through the keys in the sequence
         for key in key_sequence:
             if self.stop_event.is_set():
-                self.get_logger().info(f"Sequencer stopped at {key}")
+                self.get_logger().warn(f"Sequencer stopped at {key}")
                 return
 
             self.get_logger().info(f'Performing sequence for key: {key}')
@@ -261,16 +262,16 @@ class TypingSequencer(Node):
             self.get_logger().info(f'Get key: {key}')
             key_transform = self.get_transform_from_frame(self.base_frame, key_frame, stamp)
             if key_transform is None:
-                self.get_logger().info(f"Failed getting transform for {key}")
-                response.success = False
-                return response
+                self.get_logger().warn(f"Failed getting transform for {key}")
+                sequencer_result = False
+                return
 
             # Start action to move to key via path planner
             pose = self.pose_calc(key_transform, self.ee_frame, self.actuator_frame, stamp)
             if pose is None:
-                self.get_logger().info(f"Failed getting pose for {key}")
-                response.success = False
-                return response
+                self.get_logger().warn(f"Failed getting pose for {key}")
+                sequencer_result = False
+                return
             pp_result = self.call_path_planner(pose, self.pp_speed) # TODO: Add proper error handling
             self.get_logger().info(f"Path planner finished!")
 
@@ -281,13 +282,13 @@ class TypingSequencer(Node):
             # poke_out = self.do_poke(1.0)
             # if not poke_out:
             #     self.get_logger().info(f"Failed poking for {key}")
-            #     response.success = False
-            #     return response
+            #     sequencer_result = False
+            #     return
             # poke_in = self.do_poke(0.0)
             # if not poke_in:
             #     self.get_logger().info(f"Failed poking for {key}")
-            #     response.success = False
-            #     return response
+            #     sequencer_result = False
+            #     return
 
             # Move back to starting position
             if self.move_to_start:
@@ -302,8 +303,8 @@ class TypingSequencer(Node):
         # switch_result = self.send_switch_request()
         # if not switch_result.success:
         #     self.get_logger().error(f'Switching Error: {switch_result.message}')
-        #     response.success = False
-        #     return response
+        #     sequencer_result = False
+        #     return
         self.get_logger().info(f'Sequencer Complete! {partial_sequence}')
         self.stop_event.set()
         self.thread = None

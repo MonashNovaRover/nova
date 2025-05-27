@@ -23,6 +23,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     old_arm = LaunchConfiguration('old_arm').perform(context)
+    auto_mode = LaunchConfiguration('auto_mode')
     params = LaunchConfiguration('typing_params')
 
     base_frame = "arm_kinematics_origin"
@@ -33,7 +34,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='auto_typing',
             executable='keyboard_localiser.py',
-            parameters=[params, {"base_frame": base_frame}]
+            parameters=[params, {"base_frame": base_frame}, {"using_auto": auto_mode}]
         ),
         Node(
             package='auto_typing',
@@ -56,6 +57,11 @@ def generate_launch_description():
             name='old_arm',
             default_value='True',
             description='Switch to old arm mode if true',
+        ),
+        DeclareLaunchArgument(
+            name='auto_mode',
+            default_value='True',
+            description='Publish fixed keyboard transform (as specified in yaml) if false, known as manual mode',
         ),
     ]
 
