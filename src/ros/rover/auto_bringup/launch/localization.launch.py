@@ -92,11 +92,11 @@ def launch_setup(context, *args, **kwargs):
                         ('gps/fix', 'gps_rover/fix'),
                         ('imu', 'oak/imu/transformed')],
                 ),
-                IncludeLaunchDescription(
-                    condition=UnlessCondition(gazebo),
-                    launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'gps_rover.launch.py'])),
-                    launch_arguments={'gps_params': gps_params}.items(),
-                ),
+                #IncludeLaunchDescription(
+                #    condition=UnlessCondition(gazebo),
+                #    launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'gps_rover.launch.py'])),
+                #    launch_arguments={'gps_params': gps_params}.items(),
+                #),
             ],
         ),
     ]

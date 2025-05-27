@@ -22,7 +22,9 @@ import { Navigation, Trash } from "react-feather";
 import { ToolTipButton } from "../../shared/TooltipButton";
 import { useCartographerActions } from "../../../redux/actions/useCartographerActions";
 import { MapTile } from "../config.tsx";
-import { MapPoint } from "../../../redux/models/CartographerState.ts";
+import { GoalType, MapPoint } from "../../../redux/models/CartographerState.ts";
+import { CartographerGoalModal } from "./CartographerGoalModal.tsx";
+import AutoStatus from "./AutoStatus.tsx";
 
 interface BottomOverlayProps {
   mapTile: MapTile;
@@ -32,6 +34,7 @@ interface BottomOverlayProps {
 
 export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint}) => {
   const [overlayOpen, setOverlayOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const { points, centerOnRover, trackRover } = useSelector(
     (state: RootState) => state.cartographerState
   );
@@ -50,41 +53,49 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
     >
       <Card fullWidth className="h-full">
         <CardHeader className="w-full flex flex-row justify-between">
+          <AutoStatus/>
           <div className=""></div>
           <div className="flex flex-row align-middle gap-3">
-          <CopyableInput 
-            readOnly
-            value={String(base.latitude)}
-            placeholder={`Base Latitude`}
-            label="Base Latitude"/>
-          <CopyableInput 
-            readOnly
-            value={String(base.longitude)}
-            placeholder={`Base Longitude`}
-            label="Base Longitude"/>
-          <CopyableInput 
-            readOnly
-            value={String(rover.latitude)}
-            placeholder={`Rover Latitude`}
-            label="Rover Latitude"/>
-          <CopyableInput 
-            readOnly
-            value={String(rover.longitude)}
-            placeholder={`Rover Longitude`}
-            label="Rover Longitude"/>
-          <Select 
-            selectedKeys={[mapTile]}
-            label="Map Tiles"
-            placeholder="Select Tiles"
-            onChange={(e) => setMapTile(e.target.value as MapTile)}
-            >
-            {Object.values(MapTile).map((tile) => (
-              <SelectItem 
-                key={tile} >
-                {tile}
-              </SelectItem>
-            ))}
+            <CopyableInput
+              readOnly
+              value={String(base.latitude)}
+              placeholder={`Base Latitude`}
+              label="Base Latitude"/>
+            <CopyableInput
+              readOnly
+              value={String(base.longitude)}
+              placeholder={`Base Longitude`}
+              label="Base Longitude"/>
+            <CopyableInput
+              readOnly
+              value={String(rover.latitude)}
+              placeholder={`Rover Latitude`}
+              label="Rover Latitude"/>
+            <CopyableInput
+              readOnly
+              value={String(rover.longitude)}
+              placeholder={`Rover Longitude`}
+              label="Rover Longitude"/>
+            <Select
+              selectedKeys={[mapTile]}
+              label="Map Tiles"
+              placeholder="Select Tiles"
+              onChange={(e) => setMapTile(e.target.value as MapTile)}
+              >
+              {Object.values(MapTile).map((tile) => (
+                <SelectItem
+                  key={tile} >
+                  {tile}
+                </SelectItem>
+              ))}
             </Select>
+            <Button
+              variant="shadow"
+              fullWidth
+              onClick={() => setModalOpen(true)}
+            >
+              Publish Goals
+            </Button>
             <Button
               variant="shadow"
               color={trackRover ? "primary" : "default"}
@@ -126,6 +137,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                       <TableColumn>Name</TableColumn>
                       <TableColumn>Latitude</TableColumn>
                       <TableColumn>Longitude</TableColumn>
+                      <TableColumn>Goal Type</TableColumn>
                       <TableColumn align="end">
                         <div className="flex flex-row justify-end">Actions</div>
                       </TableColumn>
@@ -136,6 +148,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                           <TableCell>{point.name}</TableCell>
                           <TableCell>{point.lat}</TableCell>
                           <TableCell>{point.long}</TableCell>
+                          <TableCell>{GoalType[point.goalType]}</TableCell>
                           <TableCell className="flex flex-row justify-end">
                             <ToolTipButton
                               isIconOnly
@@ -162,13 +175,17 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                      }}
                      placeholder={"##.#### %"}>
                   </CopyableInput>
-
                 </motion.div>
               </motion.div>
             </CardBody>
           )}
         </AnimatePresence>
       </Card>
+      <CartographerGoalModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        points={points}
+      />
     </motion.div>
   );
 };

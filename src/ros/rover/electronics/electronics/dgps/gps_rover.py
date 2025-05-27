@@ -49,7 +49,7 @@ class GPSRover(Node):
         ).value
         self.port_name = self.declare_parameter(
             name='port_name', 
-            value='/dev/ttyUSB0', 
+            value='/dev/ttyUSB1', 
         ).value
         self.gps_module = self.declare_parameter(
             name='gps_module', 
@@ -183,10 +183,6 @@ class GPSRover(Node):
                         \tlat: {self.pose.latitude:8.3f}
                         \tlon: {self.pose.longitude:8.3f}
                     '''
-                    if self.pose.valid:
-                        self.get_logger().debug(msg_log)
-                    else:
-                        self.get_logger().warn(msg_log)
 
                 except Exception as e:
                     self.get_logger().warn(f'❌ Error: {e}, Bad message: {msg_parsed}')
