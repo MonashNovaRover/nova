@@ -47,7 +47,7 @@ class URCAuger(ActivatedJoystickControllerNode):
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
     AUGER_ACTUATION_MAX_PERCENT = 0.75
-    AUGER_DRILL_MAX_PERCENT = 1.0
+    AUGER_DRILL_MAX_PERCENT = 0.6
     AUGER_DRILL_MAX_PERCENT_PARAM = "max_percent"
 
     # SENDING COMMAND IDS
