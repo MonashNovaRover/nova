@@ -6,7 +6,7 @@ import { RootState } from "../../../redux/RootState";
 import roverIcon from "../../../assets/rover-top-down-dark.png";
 import novaLogo from "../../../assets/nova-logo.png";
 import { useEffect, useState } from "react";
-import { MapInteractionMode } from "../../../redux/models/CartographerState";
+import { GoalType, MapInteractionMode } from "../../../redux/models/CartographerState";
 
 export const useCartographerMarkers = (map?: Map) => {
   const [roverMarker, setRoverMarker] = useState<Marker>();
@@ -123,7 +123,7 @@ export const useCartographerMarkers = (map?: Map) => {
           new Popup({
             closeOnClick: false,
             className: "text-black dark",
-          }).setText(point.name)
+          }).setText(`${point.name} ( ${GoalType[point.goalType]} )`)
         )
         .addTo(map)
         .togglePopup();

@@ -31,6 +31,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RamanSpectrum.msg"
   "msg/RamanState.msg"
   "msg/BMESensor.msg"
+  "msg/Status.msg"
 
   # Service definitions
   "srv/CacheCommand.srv"
@@ -46,6 +47,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/RamanSpec.srv"
   "srv/RamanMech.srv"
   "srv/RGBInput.srv"
+  "srv/CartographerCommand.srv"
 
   # Action definitions
   "action/Pumps.action"
