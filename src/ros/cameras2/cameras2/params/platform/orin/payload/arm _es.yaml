@@ -2,7 +2,8 @@ camera_directory:
   ros__parameters:
     serial_overrides:
       roots:
-        arm: platform-3530000.xhci-usb-0:3
+        arm: platform-3610000.usb-usb-0:2
+
 camera_streamer:
   ros__parameters:
     cameras:
