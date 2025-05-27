@@ -182,6 +182,12 @@ def launch_setup(context, *args, **kwargs):
             output='screen',
             emulate_tty=True,
         ),
+        Node(
+            package='science',
+            executable='nir_probe_publisher.py',
+            output='screen',
+            emulate_tty=True,
+        ),
     ]
 
 def generate_launch_description():
