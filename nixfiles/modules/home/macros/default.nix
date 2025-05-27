@@ -160,16 +160,16 @@ in
           nix-start = "sudo systemctl start nix-daemon.service";
 
           # Auto Aliases
-          launch-control = "~/Builds/auto/bin/ros2 launch auto_bringup control.launch.py";
-          launch-oaks = "~/Builds/auto/bin/ros2 launch auto_bringup camera.launch.py";
-          launch-localization = "~/Builds/auto/bin/ros2 launch auto_bringup localization.launch.py";
-          launch-rtabmap = "~/Builds/auto/bin/ros2 launch auto_bringup rtabmap.launch.py";
-          launch-nav = "~/Builds/auto/bin/ros2 launch auto_bringup navigation.launch.py";
-          launch-teleop = "~/Builds/auto/bin/ros2 launch telop_drive_joy teleop.launch.py";
-          launch-rviz = "~/Builds/auto/bin/ros2 launch auto_bringup rviz.launch.py";
+          launch-control = "~/Builds/master/bin/ros2 launch auto_bringup control.launch.py";
+          launch-oaks = "~/Builds/master/bin/ros2 launch auto_bringup camera.launch.py";
+          launch-localization = "~/Builds/master/bin/ros2 launch auto_bringup localization.launch.py";
+          launch-rtabmap = "~/Builds/master/bin/ros2 launch auto_bringup rtabmap.launch.py";
+          launch-nav = "~/Builds/master/bin/ros2 launch auto_bringup navigation.launch.py";
+          launch-teleop = "~/Builds/master/bin/ros2 launch telop_drive_joy teleop.launch.py";
+          launch-rviz = "~/Builds/master/bin/ros2 launch auto_bringup rviz.launch.py";
 
           # GPS Alias
-          launch-gps = "~/Builds/master/bin/ros2 launch nova_bringup gps_rover.launch.py";
+          launch-gps = "~/Builds/master/bin/ros2 launch nova_bringup gps_rover.launch.py gps_params:=${cfg.sourceDir}/ros/rover/nova_bringup/params/gps.yaml";
         }
       ];
 
