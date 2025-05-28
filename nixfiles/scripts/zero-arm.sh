@@ -37,9 +37,9 @@ zero_joint() {
   local joint_id=${joints[$joint_number]}
 
   # Zero the joint
-  cansend can1 "0AC#${joint_id}"
+  cansend can1 "0A3#${joint_id}"
   sleep 0.5
-  cansend can1 "0AC#${joint_id}"
+  cansend can1 "0A3#${joint_id}"
   sleep 1
 
   echo "J${joint_number} successfully aligned."
