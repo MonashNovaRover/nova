@@ -35,7 +35,8 @@
   yolo-ros,
   lattice-primitive-generator,
   spatio-temporal-voxel-layer,
-  nova-interfaces,
+  nova-interfaces, 
+  imu-filter-madgwick, 
 }:
 
 buildRosPackage rec {
@@ -85,7 +86,8 @@ buildRosPackage rec {
       yolo-ros # this is only used in sim, so if space is needed on rover, comment out this package. (Used for nova-object-localisation)
       spatio-temporal-voxel-layer
       lattice-primitive-generator
-      nova-interfaces;
+      nova-interfaces
+      imu-filter-madgwick;
   };
 
   # After installing params and resources folders in nix store's auto_bringup,
