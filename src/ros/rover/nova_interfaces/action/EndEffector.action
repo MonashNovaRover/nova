@@ -1,0 +1,9 @@
+# Request
+float32 poke            # how far to move poke to (a value that is 0-1, 1 is max poke, 0 is no poke)
+---
+# Result
+float32 end_poke        # final position of poker (a value that is 0-1, 1 is poker at max poke, 0 is poker at no poke)
+---
+# Feedback
+float32 current_poke    # current position of poker (a value that is 0-1, 1 is poker at max poke, 0 is poker at no poke)
+bool is_forward         # current direction of poking (True if forward)
