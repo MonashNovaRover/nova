@@ -126,10 +126,12 @@ class WaypointNavigator(Node):
                 self._search_radius = 20
             elif self._type == 2:
                 self._search_radius = 10
+            self._poses = request.poses
             
             # 📝 Load waypoints from the Auto GUI
             self._waypoints = []
-            self.load_gui_waypoints(request.poses)
+            self._i = 0
+            self.load_gui_waypoints()
 
             while len(self._waypoints) < len(request.poses):
                 self.get_logger().info(f'⌛ {len(self._waypoints)}/{len(request.poses)} waypoints created...')
@@ -151,12 +153,12 @@ class WaypointNavigator(Node):
 
     def load_gui_waypoints(self, poses):
         '''Loads waypoints from GUI and converts them into PoseStamped messages.'''
-        for pose in poses:
 
-            # 📝 Convert GNSS goal to Nav2 goal
-            self.call_fromll_async(pose.latitude, pose.longitude)
-
-        return waypoints
+        # 📝 Convert GNSS goal to Nav2 goal
+        pose = self._poses[self._i]
+        self.call_fromll_async(pose.latitude, pose.longitude)
+        if self._i < (len(self._poses) - 1):
+            self._i += 1
 
     def save_waypoints(self, waypoints):
         ''' Saves the extracted waypoints to a JSON file. '''
@@ -338,6 +340,7 @@ class WaypointNavigator(Node):
         # 📝 Create waypoint
         try:
             self._waypoints.append(self.create_waypoint(result.map_point))
+            self.load_gui_waypoints()
         except Exception:
             self.get_logger().error('❌ Failed to convert GNSS goal to Nav2 goal. Exiting.')
 
