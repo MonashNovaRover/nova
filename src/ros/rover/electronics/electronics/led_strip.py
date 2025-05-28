@@ -63,6 +63,7 @@ class LedStrip(ControllerNode):
             self.set_duty_cycle(self.RED_CONTROL_ID, 0)
             time.sleep(0.05)
             self.set_duty_cycle(self.BLUE_CONTROL_ID, 0)
+            time.sleep(0.05)
 
             # Save values and start flashing (only for green for now)
             self.flash_g = request.g
