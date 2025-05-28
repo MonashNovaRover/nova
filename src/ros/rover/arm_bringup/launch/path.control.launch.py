@@ -18,7 +18,7 @@ CREATION:	15/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, Command
 from launch.conditions import UnlessCondition
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction, ExecuteProcess, LogInfo
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -39,6 +39,7 @@ def launch_setup(context, *args, **kwargs):
     old_arm = LaunchConfiguration('old_arm').perform(context)
     use_local_mesh = LaunchConfiguration('use_local_mesh')
     use_mock_hardware = LaunchConfiguration('use_mock_hardware')
+    robot_name = LaunchConfiguration('robot_name')
 
     return [
         # Node( # TODO: only when arm is enabled
@@ -50,6 +51,13 @@ def launch_setup(context, *args, **kwargs):
             package='controller_manager',
             executable='spawner',
             arguments=['nova_path_planner', '--inactive'],
+        ),
+        Node(
+            package='robot_state_publisher',
+            executable='robot_state_publisher',
+            parameters=[{'robot_description':
+                             ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'arm:=', arm, ' ', 'old_arm:=', old_arm, ' ', 'use_mock_hardware:=', use_mock_hardware, ' ', 'auto_camera:=false']), value_type=str)
+                         }]
         ),
         GroupAction(
             condition=UnlessCondition(gazebo),
@@ -64,11 +72,12 @@ def launch_setup(context, *args, **kwargs):
                     executable='ros2_control_node',
                     parameters=[controllers],
                     remappings=[('/controller_manager/robot_description', '/robot_description')],
-                ),
-                IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
-                    launch_arguments={'model': model, 'gazebo': gazebo, 'angle': angle, 'use_local_mesh': use_local_mesh, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm}.items(),
-                )],
+                )
+                # IncludeLaunchDescription(
+                #     PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
+                #     launch_arguments={'model': model, 'gazebo': gazebo, 'angle': angle, 'use_local_mesh': use_local_mesh, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm}.items(),
+                # )
+            ],
         ),
     ]
 
@@ -102,6 +111,11 @@ def generate_launch_description():
             name='model', 
             default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
+        ),
+        DeclareLaunchArgument(
+            name='robot_name',
+            default_value='Banksia',
+            description='name of the robot',
         ),
         DeclareLaunchArgument(
             name='use_mock_hardware',
