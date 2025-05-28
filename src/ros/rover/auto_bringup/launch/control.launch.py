@@ -26,7 +26,7 @@ def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
 
     angle = LaunchConfiguration('angle')
-    controllers = LaunchConfiguration('controllers')
+    controller_params = LaunchConfiguration('controller_params')
     gazebo = LaunchConfiguration('gazebo')
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
@@ -59,7 +59,7 @@ def launch_setup(context, *args, **kwargs):
                 Node(
                     package='controller_manager',
                     executable='ros2_control_node',
-                    parameters=[controllers],
+                    parameters=[controller_params],
                     remappings=[('/controller_manager/robot_description', '/robot_description')],
                 ),
                 IncludeLaunchDescription(
@@ -81,7 +81,7 @@ def generate_launch_description():
             description='Angle (in degrees) at which the camera is mounted',
         ),
         DeclareLaunchArgument(
-            name='controllers',
+            name='controller_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
             description='Absolute path to controller params file',
         ),
