@@ -85,8 +85,6 @@ const arcScienceCams = [
 const urcScienceCams = [
   CameraSerials.URC_SCIENCE_CUVETTE,
   CameraSerials.SCIENCE_MICROSCOPE,
-  CameraSerials.URC_SCIENCE_PAYLOAD_DOWN,
-  CameraSerials.URC_SCIENCE_PAYLOAD_FRONT,
   CameraSerials.URC_SCIENCE_UV_VIS,
   CameraSerials.SCIENCE_GIMBAL,
 ]
