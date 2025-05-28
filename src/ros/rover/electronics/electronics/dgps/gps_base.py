@@ -33,8 +33,8 @@ import re
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import UInt8MultiArray
-
 from sensor_msgs.msg import NavSatFix
+from rclpy.qos import QoSPresetProfiles
 import logging
 
 
@@ -100,12 +100,12 @@ class GPSBase(Node):
         self.pub_pose = self.create_publisher(
             NavSatFix, 
             '/gps_base/fix', 
-            10, 
+            QoSPresetProfiles.SENSOR_DATA.value, 
         )
         self.pub_rtcm = self.create_publisher(
             UInt8MultiArray, 
             '/gps_base/rtcm', 
-            10, 
+            QoSPresetProfiles.SENSOR_DATA.value, 
         )
         self.pose = NavSatFix()
         self.pose.header.frame_id = 'gps_base'
