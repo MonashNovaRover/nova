@@ -1,0 +1,11 @@
+# Request
+geometry_msgs/Pose pose
+# The AVERAGE speed the arm will move at to get from the current pose to the given pose (it will exceed this speed by a constant multiplicative factor)
+float64 speed
+---
+# Result
+bool success
+---
+# Feedback
+bool traversing_path
+float64 path_generation_progress

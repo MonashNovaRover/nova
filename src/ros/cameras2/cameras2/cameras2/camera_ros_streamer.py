@@ -7,6 +7,10 @@ This service manages a GStreamer pipeline to
 stream video footage from ros Image topics over WebRTC.
 Consult the repository README for complete setup
 instructions.
+This node can only be run when the camera stack is not being run
+    e.g for gazebo sim only
+
+There is also gstreamer pipeline classes at the end.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: camera_streamer
 TOPICS: None
@@ -204,13 +208,12 @@ class CameraStreamerService(Node):
 
 
 class RosCameraBin:
+    """
+    This gstreamer pipeline takes in a ros image topic and outputs a webrtc stream
+    **Cannot** be used with camera_streamer_service.py
+    """
     bin: Gst.Bin
-
-    _source: Gst.Element
-    _queue: Gst.Element
-    _decoder: Gst.Element
-    _video_converter: Gst.Element
-    _sink: Gst.Element
+    # rosimagesrc ! capsfilter ! decoder ! videoconvert ! webrtcsink
 
     def __init__(self, serial: str, topic: str):
         self.bin = Gst.Bin.new(f"camera-{serial}-bin")
@@ -249,6 +252,118 @@ class RosCameraBin:
     @property
     def webrtc_stats(self) -> dict[str, object]:
         return gst_structure_to_dict(self._sink.props.stats)
+
+class CameraSplitROSWebRTCBin:
+    """
+    This gstreamer pipeline takes in a camera device in v4l2 and outputs both a webrtc stream and ros image topic
+    Used with camera_streamer_service.py
+    """
+    bin: Gst.Bin
+    # v4l2src ! capsfilter ! decoder ! videoconvert ! tee \
+    # \ tee ! webrtcsink
+    # \ tee ! rosimagesink
+    def __init__(
+        self,
+        serial: str,
+        device_node: str,
+        mime: str = "video/x-raw",
+        width: Optional[int] = None,
+        height: Optional[int] = None,
+        framerate: Optional[int] = None,
+        do_fec: bool = True,
+        do_retransmission: bool = True,
+        show_clock: bool = True,
+        extra_meta: Optional[dict[str, object]] = None,
+    ):
+        ros_topic = extra_meta['ros_topic']
+        self.bin = Gst.Bin.new(f"camera-{serial}-bin")
+
+        # Create and configure the elements.
+
+        # # Web sink branch
+        self._websink = Gst.ElementFactory.make("webrtcsink", "websink")
+        # ## WebRTC settings
+        self._websink.props.congestion_control = "gcc"
+        self._websink.props.do_fec = do_fec
+        self._websink.props.do_retransmission = do_retransmission
+        self._websink.props.stun_server = None
+        # ## Metadata
+        self._websink.props.meta = dict_to_gst_structure(
+            "meta",
+            {"serial": serial, **(extra_meta if extra_meta is not None else {})},
+        )
+        self.bin.add(self._websink)
+
+        # # Clock overlay
+        if show_clock:
+            self._clock_overlay = Gst.ElementFactory.make(
+                "clockoverlay", "clockoverlay"
+            )
+            self.bin.add(self._clock_overlay)
+            self._clock_overlay.link(self._websink)
+        else:
+            self._clock_overlay = None
+
+        self._queue2 = Gst.ElementFactory.make("queue", "q2")
+        self.bin.add(self._queue2)
+        self._queue2.link(
+            self._clock_overlay if self._clock_overlay is not None else self._websink
+        )
+
+        # # Ros Sink branch
+        self._rossink = Gst.ElementFactory.make("rosimagesink", "rossink")
+        self._rossink.set_property("ros-topic", ros_topic)
+        self.bin.add(self._rossink)
+
+        self._queue1 = Gst.ElementFactory.make("queue", "q1")
+        self.bin.add(self._queue1)
+        self._queue1.link(self._rossink)
+
+        # # Tee split
+        self._tee = Gst.ElementFactory.make("tee", "tee")
+        self.bin.add(self._tee)
+        self._tee.link(self._queue2)
+        self._tee.link(self._queue1)
+
+        # # Converter
+        self._video_converter = Gst.ElementFactory.make("videoconvert", "converter")
+        self.bin.add(self._video_converter)
+        self._video_converter.link(self._tee)
+
+        # # Decoder
+        self._decoder = Gst.ElementFactory.make("decodebin", "decoder")
+        self._decoder.connect(
+            "pad-added",
+            lambda element, pad: pad.link(self._video_converter.get_static_pad("sink")),
+        )
+        self.bin.add(self._decoder)
+
+        # # Capability filter
+        caps = Gst.Caps.new_empty()
+        caps_structure = Gst.Structure.new_empty(mime)
+        if width is not None:
+            caps_structure.set_value("width", width)
+        if height is not None:
+            caps_structure.set_value("height", height)
+        if framerate is not None:
+            caps_structure.set_value("framerate", Gst.Fraction(framerate, 1))
+        caps.append_structure(caps_structure)
+
+        self._caps_filter = Gst.ElementFactory.make("capsfilter", "capsfilter")
+        self._caps_filter.props.caps = caps
+        self.bin.add(self._caps_filter)
+        self._caps_filter.link(self._decoder)
+
+        # # Source
+        self._source = Gst.ElementFactory.make("v4l2src", "source")
+        self._source.props.device = device_node
+        self.bin.add(self._source)
+        self._source.link(self._caps_filter)
+
+    @property
+    def webrtc_stats(self) -> dict[str, object]:
+        return gst_structure_to_dict(self._sink.props.stats)
+
 
 
 def main(args=None):

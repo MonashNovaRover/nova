@@ -3,10 +3,12 @@
     nova-electronics = callPackage ./nix/packages/electronics { };
     nova-science = callPackage ./nix/packages/science { };
     nova-blcmd-hardware = callPackage ./nix/packages/blcmd-hardware { };
+    nova-cmd-hardware = callPackage ./nix/packages/cmd-hardware { };
     nova-costmap-2d = callPackage ./nix/packages/nova-costmap-2d { };
     nova-behavior-tree = callPackage ./nix/packages/nova-behavior-tree { };
     nova-object-localisation = callPackage ./nix/packages/nova-object-localisation { };
     nova-teleop-drive-joy = callPackage ./nix/packages/teleop-drive-joy { };
+    nova-teleop-arm-joy = callPackage ./nix/packages/teleop-arm-joy { };
     nova-pointcloud-filter = callPackage ./nix/packages/nova-pointcloud-filter { };
     nova-drive = callPackage ./nix/packages/drive { };
     nova-drive-interfaces = callPackage ./nix/packages/drive-interfaces { };
@@ -14,6 +16,7 @@
     nova-blcmd-utils = callPackage ./nix/packages/blcmd-utils { };
     nova-arm-interfaces = callPackage ./nix/packages/arm-interfaces { };
     nova-arm = callPackage ./nix/packages/arm { };
+    nova-auto-typing = callPackage ./nix/packages/auto-typing { };
     nova-input-interfaces = callPackage ./nix/packages/input-interfaces { };
     nova-inputs = callPackage ./nix/packages/inputs { };
     nova-cmd-interfaces = callPackage ./nix/packages/cmd-interfaces { };
@@ -21,6 +24,7 @@
     nova-gimbal-cam = callPackage ./nix/packages/gimbal-cam { };
     nova-bringup = callPackage ./nix/packages/nova-bringup { };
     nova-auto-bringup = callPackage ./nix/packages/auto-bringup { };
+    nova-arm-bringup = callPackage ./nix/packages/arm-bringup { };
     nova-interfaces = callPackage ./nix/packages/nova-interfaces { };
     nova-rover-description = callPackage ./nix/packages/rover-description { };
     nova-gazebo = callPackage ./nix/packages/nova-gazebo { };

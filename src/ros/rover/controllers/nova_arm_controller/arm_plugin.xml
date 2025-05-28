@@ -1,0 +1,16 @@
+<library path="nova_arm_controller">
+  <class name="nova_arm_controller/NovaArmController"
+         type="nova_arm_controller::NovaArmController"
+         base_class_type="controller_interface::ChainableControllerInterface">
+  <description>
+    The arm controller TODO XXX
+  </description>
+  </class>
+  <class name="nova_arm_controller/SelfCollisionLimiter"
+         type="nova_arm_controller::SelfCollisionLimiter"
+         base_class_type="joint_limits::JointLimiterInterface&lt;joint_limits::JointLimits&gt;">
+  </class>
+  <description>
+    Self Collision Limiter using code from moveit2
+  </description>
+</library>

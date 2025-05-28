@@ -100,12 +100,12 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='angle', 
+            name='angle',
             default_value='15',
             description='Angle (in degrees) at which the camera is mounted',
         ),
         DeclareLaunchArgument(
-            name='camera', 
+            name='camera',
             default_value='True',
             description='',
         ),
@@ -139,8 +139,8 @@ def generate_launch_description():
             default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf']),
             description='Full path to world model file to load',
         ),
-        DeclareLaunchArgument(name='x', default_value='-3.0', description='x_pose'),
-        DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
+        DeclareLaunchArgument(name='x', default_value='13.22', description='x_pose'),
+        DeclareLaunchArgument(name='y', default_value='-7.50', description='y_pose'),
         DeclareLaunchArgument(name='z', default_value='0.5', description='z_pose'),
         DeclareLaunchArgument(name='R', default_value='0.0', description='roll'),
         DeclareLaunchArgument(name='P', default_value='0.0', description='pitch'),

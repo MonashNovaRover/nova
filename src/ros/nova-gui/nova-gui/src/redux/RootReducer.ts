@@ -97,6 +97,14 @@ export const reduxStores = {
       data: "",
     }
   ),
+  keyboardDataStore: createBifrostStore(
+    { topic: RosTopic.KEYBOARD_DATA },
+    {
+      points: [0, 0, 0, 0, 0, 0, 0, 0],
+      width: 640,
+      height: 480,
+    }
+  ),
 
   // Cameras2 Reducers
   camerasStore: createBifrostStore({ topic: RosTopic.CAMERAS }, { cameras: [] }),
