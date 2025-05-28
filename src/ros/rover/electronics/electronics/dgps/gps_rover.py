@@ -27,12 +27,10 @@ from serial import Serial
 from pynmeagps import NMEAReader, NMEAMessage
 from pyrtcm import RTCMMessage
 import re
-
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data as qos
+from rclpy.qos import QoSPresetProfiles
 from rclpy.logging import LoggingSeverity
-
 from std_msgs.msg import UInt8MultiArray
 from sensor_msgs.msg import NavSatFix
 import logging
@@ -75,12 +73,12 @@ class GPSRover(Node):
             UInt8MultiArray, 
             'gps_base/rtcm', 
             self.sub_rtcm_callback, 
-            qos, 
+            QoSPresetProfiles.SENSOR_DATA.value, 
         )
         self.pub_pose = self.create_publisher(
             NavSatFix, 
             '/gps_rover/fix', 
-            10, 
+            QoSPresetProfiles.SENSOR_DATA.value, 
         )
         self.pose = NavSatFix()
         self.pose.header.frame_id = 'gps'
