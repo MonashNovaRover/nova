@@ -161,16 +161,42 @@ in
           nix-start = "sudo systemctl start nix-daemon.service";
 
           # Auto Aliases
-          launch-control = "~/Builds/auto/bin/ros2 launch auto_bringup control.launch.py";
-          launch-oaks = "~/Builds/auto/bin/ros2 launch auto_bringup camera.launch.py";
-          launch-localization = "~/Builds/auto/bin/ros2 launch auto_bringup localization.launch.py";
-          launch-rtabmap = "~/Builds/auto/bin/ros2 launch auto_bringup rtabmap.launch.py";
-          launch-nav = "~/Builds/auto/bin/ros2 launch auto_bringup navigation.launch.py";
-          launch-teleop = "~/Builds/auto/bin/ros2 launch telop_drive_joy teleop.launch.py";
-          launch-rviz = "~/Builds/auto/bin/ros2 launch auto_bringup rviz.launch.py";
+          launch-control = "~/Builds/master/bin/ros2 launch auto_bringup control.launch.py";
+          launch-oaks = "~/Builds/master/bin/ros2 launch auto_bringup camera.launch.py";
+          launch-localization = "~/Builds/master/bin/ros2 launch auto_bringup localization.launch.py";
+          launch-rtabmap = "~/Builds/master/bin/ros2 launch auto_bringup rtabmap.launch.py";
+          launch-nav = "~/Builds/master/bin/ros2 launch auto_bringup navigation.launch.py";
+          launch-teleop = "~/Builds/master/bin/ros2 launch telop_drive_joy teleop.launch.py";
+          launch-rviz = "~/Builds/master/bin/ros2 launch auto_bringup rviz.launch.py";
 
           # GPS Alias
-          launch-gps = "~/Builds/master/bin/ros2 launch nova_bringup gps_rover.launch.py";
+          launch-gps = "~/Builds/master/bin/ros2 launch nova_bringup gps_rover.launch.py gps_params:=${cfg.sourceDir}/ros/rover/nova_bringup/params/gps.yaml";
+          mast = "ssh nova@10.0.0.150";
+
+          # Master build binary shorthand alias
+          mros2 = "~/Builds/master/bin/ros2";
+          mrviz2 = "~/Builds/master/bin/rviz2";
+          mrviz = "~/Builds/master/bin/rviz2";
+          mxacro = "~/Builds/master/bin/xacro ${cfg.sourceDir}/ros/rover/rover_description/banksia/urdf/rover.urdf.xacro";
+          mrqt = "~/Builds/master/bin/rqt";
+
+          # Arm Aliases
+          launch-typing = "~/Builds/master/bin/ros2 launch arm_bringup typing.launch.py";
+          launch-arm-control = "~/Builds/master/bin/ros2 launch arm_bringup control.launch.py arm:=False old_arm:=True";
+          launch-arm-urdf = "~/Builds/master/bin/ros2 launch arm_bringup urdf.launch.py arm:=False old_arm:=True auto_camera:=False";
+          launch-arm-teleop = "~/Builds/master/bin/ros2 launch teleop_arm_joy teleop.launch.py";
+          run-arm-teleop = "~/Builds/master/bin/ros2 run teleop_arm_joy teleop.launch.py";
+          run-joy = "~/Builds/master/bin/ros2 run joy joy_node";
+
+          # ros2_control Aliases
+          controllers-list = "~/Builds/master/bin/ros2 control list_controllers";
+          controllers-set = "~/Builds/master/bin/ros2 control set_controller_state";
+          
+          # Ducket Aliases
+          ducket-pos = "cansend can0 0C1#7000";
+          ducket-neg = "cansend can0 0C1#9000";
+          ducket = "cansend can0 0C1#7000";
+          ducketn = "cansend can0 0C1#9000";
         }
       ];
 
