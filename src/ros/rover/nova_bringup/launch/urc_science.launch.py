@@ -13,10 +13,10 @@ NODES:
   - control/analysis_platform.py        [analysis_platform]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATION:   17/03/2024
-EDITED:     11/05/2025
+EDITED:     27/05/2025
 EDITED BY: Tristan Clark, Josh Leivenzon, 
     Victor Bartlinski, Felicity Matthews,
-    Brandon Chung, Connor Macdougall
+    Brandon Chung, Connor Macdougall, Tash Lee
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 from launch import LaunchDescription
@@ -185,6 +185,12 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='science',
             executable='nir_probe_publisher.py',
+            output='screen',
+            emulate_tty=True,
+        ),
+        Node(
+            package='science',
+            executable='scimbal_cam.py',
             output='screen',
             emulate_tty=True,
         ),
