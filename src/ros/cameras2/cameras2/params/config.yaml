@@ -91,3 +91,7 @@ camera_streamer:
         meta:
           uiProps:
             name: Arm - Side
+      arm_end_periscope:
+        meta:
+          # used for auto typing 2025
+          ros_topic: "/arm/periscope"

@@ -32,6 +32,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RamanState.msg"
   "msg/BMESensor.msg"
   "msg/Status.msg"
+  "msg/ArmFkVelocityTargets.msg"
 
   # Service definitions
   "srv/CacheCommand.srv"
@@ -53,6 +54,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "action/Pumps.action"
   "action/Stepper.action"
   "action/URC2025Navigator.action"
+  "action/ArmPlanPath.action"
 
   DEPENDENCIES std_msgs geometry_msgs nav_msgs action_msgs
 )

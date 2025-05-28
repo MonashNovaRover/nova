@@ -8,7 +8,10 @@
 , rqt-common-plugins
 , gdb
 , gps-umd
+, tf2-tools
 , reolink
+, moveit-core
+, moveit-kinematics
 , ublox-dgnss
 
 , nova-electronics ? throw "electronics is needed, but not available!"
@@ -29,16 +32,24 @@
 , nova-interfaces ? throw "nova-interfaces is needed, but not available!"
 , nova-bringup ? throw "nova-bringup is needed, but not available!"
 , nova-auto-bringup ? throw "auto-bringup is needed, but not available!"
+, nova-arm-bringup ? throw "arm-bringup is needed, but not available!"
 , nova-rover-description ? throw "rover-description is needed, but not available!"
 , nova-blcmd-hardware ? throw "nova-blcmd-hardware is needed, but not available!"
+, nova-cmd-hardware ? throw "nova-cmd-hardware is needed, but not available!"
 , nova-pivot-drive-controller ? throw "nova-pivot-drive-controller is needed, but not available!"
 , nova-strafe-controller ? throw "nova-strafe-controller is needed, but not available!"
 , nova-diff-drive-controller ? throw "nova-diff-drive-controller is needed, but not available!"
 , nova-teleop-drive-joy ? throw "nova-teleop-drive-joy is needed, but not available!"
+, nova-teleop-arm-joy ? throw "nova-teleop-arm-joy is needed, but not available!"
 , nova-gazebo ? throw "nova-gazebo is needed, but not available!"
 , nova-python-control ? throw "python-control is needed, but not available!"
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-utils ? throw "nova-utils is needed, but not available!"
+, nova-arm-controller ? throw "nova-arm-controller is needed, but not available!"
+, nova-twistmapper ? throw "nova-twistmapper is needed, but not available!"
+, nova-path-planner ? throw "nova-path-planner is needed, but not available!"
+, nova-banksia-kinematics-plugin ? throw "nova-banksia-kinematics-plugin is needed, but not available!"
+, nova-waratah-kinematics-plugin ? throw "nova-waratah-kinematics-plugin is needed, but not available!"
 , gpsd-client ? throw "gpsd-client is needed, but not available!"
 # , ublox-dgnss-custom ? throw "ublox-dgnss-custom is needed, but not available!"
 
@@ -58,10 +69,12 @@
       nova-science
       nova-cameras2
       nova-blcmd-hardware
+      nova-cmd-hardware
       nova-pivot-drive-controller
       nova-strafe-controller
       nova-diff-drive-controller
       nova-teleop-drive-joy
+      nova-teleop-arm-joy
       nova-gui
       nova-drive
       nova-drive-interfaces
@@ -77,19 +90,29 @@
       nova-interfaces
       nova-bringup
       nova-auto-bringup
+      nova-arm-bringup
       nova-rover-description
       nova-gazebo
       nova-python-control
       nova-excavation-construction
       nova-utils
+      nova-arm-controller
+      nova-twistmapper
+      nova-path-planner
+      nova-banksia-kinematics-plugin
+      nova-waratah-kinematics-plugin
       reolink;
       # ublox-dgnss-custom;
   }
 
   ## Extra packages to add to the workspace.
 , extraPackages ? { 
-  inherit
-    gpsd-client;
+    inherit
+      tf2-tools
+      moveit-core   # needed to dynamically load the kinematics_solver plugin for nova_twistmapper
+      moveit-kinematics
+      gpsd-client
+      ;
 }
 }:
 

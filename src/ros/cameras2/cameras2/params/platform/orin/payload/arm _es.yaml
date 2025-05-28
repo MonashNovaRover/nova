@@ -1,0 +1,12 @@
+camera_directory:
+  ros__parameters:
+    serial_overrides:
+      roots:
+        arm: platform-3610000.usb-usb-0:2
+
+camera_streamer:
+  ros__parameters:
+    cameras:
+      arm_end_periscope:
+        meta:
+          ros_topic: "/arm/periscope"
