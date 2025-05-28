@@ -3,7 +3,7 @@
 Monash Nova Rover Team
 
 PACKAGE: 	  waratah_kinematics_plugin
-AUTHORS:    Arbab Ahmed, Bailey Chessum
+AUTHORS:    Arbab Ahmed, Bailey Chessum, Orlando Chamberlain
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -52,14 +52,15 @@ namespace waratah_kinematics_plugin
     }
 
     // TODO: Calculate from the given RobotModel
-    link_lengths_ = {0.5, 0.41799975417, 0.417};
+    // l1r l2r a1r a2r a3r
+    link_lengths_ = {0.485, 0.5036, 0.119, 0.102, 0.31526};
 
     return true;
   }
 
   // See Keenan's IK notes
   // TODO: remember to add something for the effector pose
-  std::array<double, 6> WaratahKinematicsPlugin::calculate_ik(tf2::Transform pose, std::array<double, 3> lengths) const {
+  std::array<double, 6> WaratahKinematicsPlugin::calculate_ik(tf2::Transform pose, std::array<double, LINK_LENGTH_COUNT> lengths) const {
     auto origin = pose.getOrigin();
     auto x = origin.getX();
     auto y = origin.getY();
@@ -69,7 +70,9 @@ namespace waratah_kinematics_plugin
 
     double l1r = lengths[0];
     double l2r = lengths[1];
-    double l3 = lengths[2];
+    double a1r = lengths[2];
+    double a2r = lengths[3];
+    double a3r = lengths[4];
 
     Eigen::Matrix3d rxyz {
       {rotated_basis[0][0], rotated_basis[0][1], rotated_basis[0][2]},
@@ -77,24 +80,33 @@ namespace waratah_kinematics_plugin
       {rotated_basis[2][0], rotated_basis[2][1], rotated_basis[2][2]}
     };  // rxyz orientation matrix
 
-    Eigen::Matrix4d t07r = Eigen::Matrix4d::Zero();
-    t07r.topLeftCorner<3,3>() = rxyz;
+    // set the input requested transform from 0 to 7
+    Eigen::Matrix4d t07i = Eigen::Matrix4d::Zero();
+    t07i.topLeftCorner<3,3>() = rxyz;
 
-    t07r(3, 3) = 1;
-    t07r(0, 3) = x;
-    t07r(1, 3) = y;
-    t07r(2, 3) = z;
+    t07i(3, 3) = 1;
+    t07i(0, 3) = x;
+    t07i(1, 3) = y;
+    t07i(2, 3) = z;
 
-    Eigen::Matrix4d t67 { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, l3}, {0, 0, 0, 1} };
-    Eigen::Matrix4d t0_wrist = t07r * t67.inverse();
+#define T01(j1) sub_dh(0,       0,   0,   j1        )
+#define T12(j2) sub_dh(M_PI/2,  0,   0,   j2        )
+#define T23(j3) sub_dh(0,       l1r, 0,   j3        )
+#define T34(j4) sub_dh(0,       l2r, a1r, j4        )
+#define T45(j5) sub_dh(-M_PI/2, 0,   a2r, j5+M_PI/2 )
+#define T56(j6) sub_dh(M_PI/2,  0,   0,   j6        )
+#define T67()   sub_dh(0,       0,   a3r, 0         )
+
+    //Eigen::Matrix4d t67 { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, l3}, {0, 0, 0, 1} };
+    //Eigen::Matrix4d t67 = sub_dh(0, 0, a3, 0);
+    Eigen::Matrix4d t0_wrist = t07i * T67().inverse();
 
     double wrist_x = t0_wrist(0, 3);
     double wrist_y = t0_wrist(1, 3);
     double wrist_z = t0_wrist(2, 3);
 
-    double j1 = atan2(wrist_y, wrist_x);
-    double l = sqrt(pow(wrist_x, 2) + pow(wrist_y, 2));
-    double j3a = acos((pow(l, 2) + pow(wrist_z, 2) - pow(l1r, 2) - pow(l2r, 2)) / (2 * l1r * l2r));
+
+    /*double j3a = acos((pow(l, 2) + pow(wrist_z, 2) - pow(l1r, 2) - pow(l2r, 2)) / (2 * l1r * l2r));
     double j3b = -j3a; // expands to -acos((l^2+wrist_z^2-L1r^2-L2r^2)/(2*L1r*L2r)) as per keenan's notes
     double j3ao = j3a + M_PI / 2;
     double j3bo = j3b + M_PI / 2;
@@ -107,24 +119,66 @@ namespace waratah_kinematics_plugin
     double j2a = atan2(wrist_z, l) - atan2(k2a, k1a);
     double j2b = atan2(wrist_z, l) - atan2(k2b, k1b);
     double j2ao = j2a - M_PI / 2;
-    double j2bo = j2b - M_PI / 2;
+    double j2bo = j2b - M_PI / 2;*/
 
-    Eigen::Matrix4d t01 = sub_dh(0, 0, 0, j1);
-    Eigen::Matrix4d t12 = sub_dh(M_PI / 2, 0, 0, j2bo + M_PI / 2);
-    Eigen::Matrix4d t23 = sub_dh(0, l1r, 0, j3bo - M_PI / 2);
-    Eigen::Matrix4d t02 = t01 * t12;
-    Eigen::Matrix4d t03_wrist = t02 * t23;
-    Eigen::Matrix3d r03_wrist = t03_wrist.topLeftCorner<3, 3>(); // R03_wrist = T03_wrist(1:3,1:3); in matlab
-    Eigen::Matrix3d r07r = t07r.topLeftCorner<3, 3>(); // see above
-    Eigen::Matrix3d r37r = r03_wrist.inverse() * r07r;
 
-    double j4 = atan2(r37r(1, 2), r37r(0, 2));
-    double j5 = atan2(-r37r(2, 2), r37r(0, 2) / cos(j4));
-    double j6 = atan2(-r37r(2, 1) / cos(j5), r37r(2, 0) / cos(j5));
+    /*Eigen::Matrix4d t12 = sub_dh(M_PI / 2, 0, 0, j2bo);
+    Eigen::Matrix4d t23 = sub_dh(0, l1r, 0, j3bo);
+    Eigen::Matrix4d t34 = sub_dh(0, l2r, a1, j4bo);
+    Eigen::Matrix4d t45 = sub_dh(-pi/2, 0, a2, j5+pi/2);
+    Eigen::Matrix4d t56 = sub_dh(pi/2, 0, a2, j6);*/
+    //Eigen::Matrix4d t02 = t01 * t12;
+    //Eigen::Matrix4d t03_wrist = t02 * t23;
+    //Eigen::Matrix3d r03_wrist = t03_wrist.topLeftCorner<3, 3>(); // R03_wrist = T03_wrist(1:3,1:3); in matlab
+    //Eigen::Matrix3d r07r = t07r.topLeftCorner<3, 3>(); // see above
+    //Eigen::Matrix3d r37r = r03_wrist.inverse() * r07r;
 
-    // Needs to be in the same order as when they get put in a joint group
-    std::array<double, 6> new_joints = { j1, j2bo, -j4, j5, j6, j3bo + j2bo };
-    return new_joints;
+
+    // J1 Solution
+    double beta = atan2(wrist_y, wrist_x);
+    double lp = sqrt(pow(wrist_x, 2) + pow(wrist_y, 2) - pow(a1r,2));
+    double alpha = atan2(a1r, lp);
+    double j1 = alpha+beta;
+
+    // Remove J1 now that it is solved
+    Eigen::Matrix4d t01c = T01(j1);
+    Eigen::Matrix4d t17c = t01c.inverse() * t07i;
+    //Eigen::Matrix4d t17 = t12*t23*t34*t45*t56*t67;
+
+    // J56 Solution
+    double j5 = atan2((t17c(2,4)+a1r)/a3r,sqrt(pow(t17c(2,1),2)+pow(t17c(2,2),2)));
+    double j6 = atan2(-t17c(2,2),t17c(2,1));
+
+    // Remove J56 now that they are solved
+    Eigen::Matrix4d t47c = T45(j5)*T56(j6)*T67();
+    Eigen::Matrix4d t14c = t01c.inverse() * t07i * t47c.inverse();
+    //Eigen::Matrix4d t14 = t12*t23*t34;;
+
+
+    // J3 Solution
+    double b3 = pow(t14c(1,4),2)+pow(t14c(3,4),2) - pow(l2r,2) / (2*l1r*l2r); 
+    double j3a = -atan2(sqrt(1-pow(b3,2)), b3);
+    double j3b =  atan2(sqrt(1-pow(b3,2)), b3);
+
+    // J2 Solution
+    double j2a = atan2(t14c(3,4),t14c(1,4))-atan2(l2r*sin(j3a),l1r+l2r*cos(j3a));
+    double j2b = atan2(t14c(3,4),t14c(1,4))-atan2(l2r*sin(j3b),l1r+l2r*cos(j3b));
+
+    // J4 solution
+    Eigen::Matrix4d t03ca = T01(j1)*T12(j2a)*T23(j3a);
+    Eigen::Matrix4d t34ca = t03ca.inverse() * t07i * t47c.inverse();
+    double j4a = atan2(t34ca(2,1), t34ca(1,1));
+    
+    Eigen::Matrix4d t03cb = T01(j1)*T12(j2b)*T23(j3b);
+    Eigen::Matrix4d t34cb = t03cb.inverse() * t07i * t47c.inverse();
+    double j4b = atan2(t34cb(2,1), t34cb(1,1));
+
+    // TODO: Needs to be in the same order as when they get put in a joint group
+    std::array<double, 6> new_joints_a = { j1, j2a, j3a, j4a, j5, j6 };
+    std::array<double, 6> new_joints_b = { j1, j2b, j3b, j4b, j5, j6 };
+    // TODO: pick which solution to use smartly
+    // TODO: may need to add offsets  to some joints
+    return new_joints_a;
   }
 
   bool WaratahKinematicsPlugin::getPositionIK(const geometry_msgs::msg::Pose &ik_pose,

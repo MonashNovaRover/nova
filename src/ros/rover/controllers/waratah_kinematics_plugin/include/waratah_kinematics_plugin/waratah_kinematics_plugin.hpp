@@ -45,6 +45,8 @@ TODO:
 #include <tf2/LinearMath/Transform.h>
 #include <moveit/kinematics_base/kinematics_base.h>
 
+#define LINK_LENGTH_COUNT 5
+
 namespace waratah_kinematics_plugin
 {
 class WaratahKinematicsPlugin : public kinematics::KinematicsBase
@@ -128,7 +130,7 @@ private:
   /// @param pose is a struct combining a position (x,y,z) and a quaternion (x,y,z,w).
   /// @param Lengths are [fill this].
   /// @returns an array of joint angles in joint space for each of J1 through J6, through joints.
-  std::array<double, 6> calculate_ik(tf2::Transform pose, std::array<double, 3> lengths) const;
+  std::array<double, 6> calculate_ik(tf2::Transform pose, std::array<double, LINK_LENGTH_COUNT> lengths) const;
 
   // substitutes values into our DH table.
   // see: https://www.notion.so/Inverse-Kinematics-ddfe35179c1f4959850bd28b2195be8a
@@ -145,7 +147,7 @@ private:
 
   std::vector<std::string> joint_names_;
   std::vector<std::string> link_names_;
-  std::array<double, 3> link_lengths_;  // L1, L2, L3
+  std::array<double, LINK_LENGTH_COUNT> link_lengths_;  // L1r L2r a1r a2r a3r
 
   rclcpp::Node::WeakPtr node_;
 };
