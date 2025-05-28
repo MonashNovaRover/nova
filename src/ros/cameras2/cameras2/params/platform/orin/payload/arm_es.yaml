@@ -3,6 +3,9 @@ camera_directory:
     serial_overrides:
       roots:
         arm: platform-3610000.usb-usb-0:2
+        
+    serial_remaps:
+      Microsoft_Microsoft®_LifeCam_HD-3000: arm_end_periscope
 
 camera_streamer:
   ros__parameters:
