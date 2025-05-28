@@ -52,6 +52,7 @@ class AnalysisArm(ActivatedJoystickControllerNode):
     # CONTROL PARAMETERS
     # Max Speed as a Percentage (0.0 to 1.0)
     PLATFORM_MAX_PERCENT = 0.5
+    MAX_PERCENT_PARAM = "max_percent"
 
     # CONTROL DIRECTIONS
     # Add any CONTROL DIRECTIONS here
@@ -75,6 +76,7 @@ class AnalysisArm(ActivatedJoystickControllerNode):
         # This is done so that the parameters can be changed during runtime if desired
         self.declare_parameter(self.CMD_ID_PARAM, self.CMD_ID)
         self.declare_parameter(self.TOF_FRAME_ID_PARAM, self.TOF_FRAME_ID)
+        self.declare_parameter(self.MAX_PERCENT_PARAM, self.PLATFORM_MAX_PERCENT)
         self.get_logger().info(f"CAN IDs: CMD = {self.get_parameter(self.CMD_ID_PARAM).value} TOF = {self.get_parameter(self.TOF_FRAME_ID_PARAM).value}")
 
         ## Add Flags as required
@@ -111,7 +113,7 @@ class AnalysisArm(ActivatedJoystickControllerNode):
         ## Create controls
         self.platform = OneAxisVelocityControl(
             logger=logger,
-            max_percent=self.PLATFORM_MAX_PERCENT,
+            max_percent=self.get_parameter(self.MAX_PERCENT_PARAM).value,
             pos_limit=platform_bottom_limit,
         )
 

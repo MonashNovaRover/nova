@@ -55,6 +55,7 @@ def launch_setup(context, *args, **kwargs):
                 "active_button": "btn_bottom_r1_state",
                 "inactive_button_pool": ["btn_bottom_r4_state"],
                 "using_left_joystick": True,
+                "max_percent": 0.8,
             }],
         ),
         Node(
