@@ -109,6 +109,7 @@ class KeyboardLocaliser(Node):
         # manual keyboard alignment initalisation
         self.aligned_keyboard_position = self.declare_parameter('aligned_keyboard_position', DEFAULT_POSITION).get_parameter_value().double_array_value
         self.aligned_keyboard_quaternion = self.declare_parameter('aligned_keyboard_quaternion', DEFAULT_QUATERNION).get_parameter_value().double_array_value
+        self.key_quaternion = self.declare_parameter('key_quaternion', DEFAULT_QUATERNION).get_parameter_value().double_array_value
 
         # calibrated camera intrinsics
         hfov = self.declare_parameter('hfov', 61.3727248).get_parameter_value().double_value
@@ -168,7 +169,7 @@ class KeyboardLocaliser(Node):
         tfs.transform.translation.x = x * 0.001 # convert mm to meters
         tfs.transform.translation.y = y * 0.001
         tfs.transform.translation.z = -1 * self.key_offset / 100
-        tfs.transform.rotation.x, tfs.transform.rotation.y, tfs.transform.rotation.z, tfs.transform.rotation.w = DEFAULT_QUATERNION
+        tfs.transform.rotation.x, tfs.transform.rotation.y, tfs.transform.rotation.z, tfs.transform.rotation.w = self.key_quaternion
 
         self.get_logger().info(f"Publishing transform for {request.key}")
         self.transform_broadcaster.sendTransform(tfs)
