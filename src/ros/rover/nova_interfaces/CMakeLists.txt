@@ -55,6 +55,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "action/Stepper.action"
   "action/URC2025Navigator.action"
   "action/ArmPlanPath.action"
+  "action/EndEffector.action"
 
   DEPENDENCIES std_msgs geometry_msgs nav_msgs action_msgs
 )

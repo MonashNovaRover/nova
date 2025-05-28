@@ -11,6 +11,7 @@
 , tf2-ros
 , tf2-geometry-msgs
 , opencv4
+, jcan
 }:
 
 buildRosPackage {
@@ -37,6 +38,7 @@ buildRosPackage {
     nova-arm-interfaces
     nova-interfaces
     opencv4
+    jcan
   ];
 
   propagatedBuildInputs = [
