@@ -21,6 +21,7 @@ from rclpy.action import ActionServer
 from rclpy.node import Node
 import jcan
 from enum import Enum
+import time
 
 from nova_interfaces.action import EndEffector
 from input_interfaces.msg import InputJoystick
@@ -127,13 +128,15 @@ class EndEffectorActionServer(Node):
         # Extending to poke position
         self.poke_to(end_poke)
 
-        while self.position < end_poke:
+        #while self.position < end_poke:
+        for i in len(range(5)):
             self.bus.spin()
-            if self.poke_position != feedback_msg.current_poke:
-                feedback_msg.current_poke = self.poke_position
-                feedback_msg.is_extending = self.is_extending
-                goal_handle.publish_feedback(feedback_msg)
+            #if self.poke_position != feedback_msg.current_poke:
+                #feedback_msg.current_poke = self.poke_position
+                #feedback_msg.is_extending = self.is_extending
+                #goal_handle.publish_feedback(feedback_msg)
             self.poke_to(end_poke)
+            time.sleep(1)
 
         self.stop_poke()
 
