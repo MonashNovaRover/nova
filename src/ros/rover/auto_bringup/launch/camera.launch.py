@@ -121,10 +121,27 @@ def launch_setup(context, *args, **kwargs):
                 ),
                 ComposableNode(
                     condition=IfCondition(AndSubstitution(imu, NotSubstitution(gazebo))),
+                    package='imu_filter_madgwick',
+                    plugin='ImuFilterMadgwickRos',
+                    name=f'{back_name}_imu_filter_node',
+                    remappings=[('imu/data_raw', f'/{back_name}/imu/data'),
+                                ('imu/mag', f'/{back_name}/imu/mag'),
+                                ('imu/data', f'/{back_name}/imu/fused')],
+                    parameters=[{'use_mag': True,
+                                 'world_frame': 'enu',
+                                 'fixed_frame': 'bootie_link',
+                                 'publish_tf': True,
+                                 'reverse_accel': False,
+                                 'mag_bias_x': 0.0,
+                                 'mag_bias_y': 0.0,
+                                 'mag_bias_z': 0.0}]
+                ),
+                ComposableNode(
+                    condition=IfCondition(AndSubstitution(imu, NotSubstitution(gazebo))),
                     package='imu_transformer',
                     plugin='imu_transformer::ImuTransformer',
                     name=f'{back_name}_imu_transformer_node',
-                    remappings=[('/imu_in', f'/{back_name}/imu/data'),
+                    remappings=[('/imu_in', f'/{back_name}/imu/fused'),
                                 ('/imu_out', f'/{back_name}/imu/transformed')],
                     parameters=[{'target_frame': f'{back_name}_imu_frame'}]
                 ),
