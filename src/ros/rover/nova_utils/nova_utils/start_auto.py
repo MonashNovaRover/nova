@@ -32,6 +32,7 @@ from geometry_msgs.msg import PoseStamped, Point
 from geographic_msgs.msg import GeoPoint
 from nav2_msgs.action import NavigateThroughPoses
 from nova_interfaces.action import URC2025Navigator
+from nova_interfaces.srv import CartographerCommand
 from action_msgs.msg import GoalStatus
 from visualization_msgs.msg import Marker, MarkerArray
 from robot_localization.srv import FromLL
@@ -49,6 +50,7 @@ import math
 # OBJECT = 2
 GOAL_TYPES = {0: 'GNSS', 1: 'AR', 2: 'OBJECT'}
 
+
 class WaypointNavigator(Node):
     def __init__(self):
         super().__init__('waypoint_navigator')
@@ -58,36 +60,10 @@ class WaypointNavigator(Node):
             name='file_path', 
             value=os.path.expanduser('~/nova/src/ros/rover/auto_bringup/params/waypoints.json'), 
         ).value
-        self._gps = self.declare_parameter(
-            name='gps', 
-            value=True, 
+        self._gui = self.declare_parameter(
+            name='gui', 
+            value=False, 
         ).value
-        self._lat = self.declare_parameter(
-            name='lat', 
-            value=38.41527178118493, 
-        ).value
-        self._lon = self.declare_parameter(
-            name='lon', 
-            value=-110.78853604626094, 
-        ).value
-        self._type = self.declare_parameter(
-            name='type', 
-            value=0, 
-        ).value
-        self._search_radius = self.declare_parameter(
-            name='search_radius', 
-            value=-1, 
-        ).value
-        self._goal_handle = None    # Prevents race condition with /fromLL service
-        self._waypoints = None      # Prevents race condition with /fromLL service
-        # 📝 Set default search radius based on goal type
-        if self._search_radius == -1:
-            if self._type == 1:
-                self._search_radius = 20
-            elif self._type == 2:
-                self._search_radius = 10
-            else:
-                self._search_radius = 0
         
         # 📝 Create TF listener to get rover position in create_waypoint()
         self.tf_buffer = Buffer()
@@ -95,47 +71,25 @@ class WaypointNavigator(Node):
 
         # 📝 Create action client for Nova URC2025Navigator
         self._action_client = ActionClient(self, URC2025Navigator, '/urc_2025_navigator')
-
-        # 📝 Load waypoints from JSON
-        self._waypoints = self.load_waypoints()
-
-        if not self._waypoints:
-            self.get_logger().error('❌ No waypoints found or failed to load JSON.')
-
-            if not self._gps:
-                return
-
-            # 📝 Create service client for robot_localization FromLL
-            self.get_logger().info('🗺️ Using GNSS coordinates instead.')
-            self._fromll_client = self.create_client(FromLL, '/fromLL')
-
-            # 📝 Wait for the robot_localization fromLL service
-            self.get_logger().info('⏳ Waiting for /fromLL server...')
-            if not self._fromll_client.wait_for_service(timeout_sec=10.0):
-                self.get_logger().error('❌ FromLL server not available. Exiting.')
-                return
-            self.get_logger().info('✅ FromLL server available!')
-
-            # 📝 Convert GNSS goal to Nav2 goal
-            self.call_fromll_async()
-
-        # 📝 Wait for the Nav2 action server
         self.get_logger().info('⏳ Waiting for /urc_2025_navigator action server...')
         if not self._action_client.wait_for_server(timeout_sec=10.0):
             self.get_logger().error('❌ Action server not available. Exiting.')
             return
         self.get_logger().info('✅ Action server available!')
 
-        # 📝 Send waypoints asynchronously as an action goal
-        if self._waypoints: # Prevents race condition with /fromLL service by calling after result_fromll_callback()
-            self.send_goal_async()
+        # 📝 Create service client for robot_localization FromLL
+        self._fromll_client = self.create_client(FromLL, '/fromLL')
+        self.get_logger().info('⏳ Waiting for /fromLL server...')
+        if not self._fromll_client.wait_for_service(timeout_sec=10.0):
+            self.get_logger().error('❌ FromLL server not available. Exiting.')
+            return
+        self.get_logger().info('✅ FromLL server available!')
+
+        # 📝 Create service for Auto GUI 
+        self._cartographer_service = self.create_service(CartographerCommand, '/autonomous/cartographer_command', self.cartographer_callback)
 
         # 📝 Save waypoints
         self.subscription = self.create_subscription(String, '/blackboard', self.blackboard_callback, 1)
-        self.get_logger().info('🚀 WaypointRecorder started! Listening to /blackboard...')
-
-        # 📝 Create a timer to check navigation status every second
-        self._nav_check_timer = self.create_timer(1.0, self.check_nav_status)
 
     def blackboard_callback(self, msg):
         ''' Extracts waypoints from the 'goals' section of the blackboard topic and saves them.'''
@@ -163,14 +117,54 @@ class WaypointNavigator(Node):
         if waypoints:
             self.save_waypoints(waypoints)
 
+    def cartographer_callback(self, request, response):
+        try:
+            self._type = request.type
+            if self._type == 0:
+                self._search_radius = 0
+            elif self._type == 1:
+                self._search_radius = 20
+            elif self._type == 2:
+                self._search_radius = 10
+            
+            # 📝 Load waypoints from the Auto GUI
+            self._waypoints = []
+            self.load_gui_waypoints(request.poses)
+
+            while len(self._waypoints) < len(request.poses):
+                self.get_logger().info(f'⌛ {len(self._waypoints)}/{len(request.poses)} waypoints created...')
+                time.sleep(1)
+
+            # 📝 Send waypoints asynchronously as an action goal
+            self.send_goal_async()
+
+            # 📝 Create a timer to check navigation status every second
+            self._nav_check_timer = self.create_timer(1.0, self.check_nav_status)
+
+            response.success = True
+
+        except Exception as e:
+
+            response.success = False
+
+        return response
+
+    def load_gui_waypoints(self, poses):
+        '''Loads waypoints from GUI and converts them into PoseStamped messages.'''
+        for pose in poses:
+
+            # 📝 Convert GNSS goal to Nav2 goal
+            self.call_fromll_async(pose.latitude, pose.longitude)
+
+        return waypoints
+
     def save_waypoints(self, waypoints):
         ''' Saves the extracted waypoints to a JSON file. '''
         with open(self._file_path, 'w') as f:
             json.dump({'waypoints': waypoints}, f, indent=2)
         self.get_logger().info(f'📁 Waypoints saved to: {self._file_path}')
 
-
-    def load_waypoints(self):
+    def load_json_waypoints(self):
         '''Loads waypoints from JSON file and converts them into PoseStamped messages.'''
         if not os.path.exists(self._file_path):
             self.get_logger().error(f'❌ Waypoints file not found: {self._file_path}')
@@ -244,9 +238,10 @@ class WaypointNavigator(Node):
                 'w': pose.pose.orientation.w, 
             }, 
         }]
-        self.save_waypoints(waypoints)
 
-        return [pose]
+        self.get_logger().info(f'📍 Loaded {GOAL_TYPES[self._type]} Waypoint {len(self._waypoints)+1}: ({pose.pose.position.x}, {pose.pose.position.y})')
+
+        return pose
 
     def publish_waypoint_markers(self):
         '''Publishes waypoints as markers to RViz for visualization. Currently not used.'''
@@ -328,12 +323,12 @@ class WaypointNavigator(Node):
         else:
             self.get_logger().error(f'❓ Navigation ended with unknown status: {result.status}')
 
-    def call_fromll_async(self):
+    def call_fromll_async(self, lat, lon):
         '''Converts GNSS goal to a geometry_msgs/msg/Point using the robot_localization FromLL service.'''
         fromll_msg = FromLL.Request()
-        fromll_msg.ll_point.latitude = self._lat
-        fromll_msg.ll_point.longitude = self._lon
-        self.get_logger().info('🚀 Sending GNSS goal to /fromLL...')
+        fromll_msg.ll_point.latitude = lat
+        fromll_msg.ll_point.longitude = lon
+        self.get_logger().info(f'🚀 Sending GNSS goal {lat}, {lon} to /fromLL...')
         send_future = self._fromll_client.call_async(fromll_msg)
         send_future.add_done_callback(self.result_fromll_callback)
 
@@ -342,12 +337,9 @@ class WaypointNavigator(Node):
 
         # 📝 Create waypoint
         try:
-            self._waypoints = self.create_waypoint(result.map_point)
+            self._waypoints.append(self.create_waypoint(result.map_point))
         except Exception:
             self.get_logger().error('❌ Failed to convert GNSS goal to Nav2 goal. Exiting.')
-            return
-        self.get_logger().info(f'📍 Loaded {GOAL_TYPES[self._type]} Waypoint 1: ({self._waypoints[0].pose.position.x}, {self._waypoints[0].pose.position.y})')
-        self.send_goal_async()
 
     def check_nav_status(self):
         if not self._goal_handle:
@@ -357,7 +349,7 @@ class WaypointNavigator(Node):
         if self._goal_handle.status == GoalStatus.STATUS_ABORTED:
             self.get_logger().info('❌ Navigation aborted detected by timer callback!')
             self.get_logger().info('🚀 Sending waypoints to restart navigation')
-            self._waypoints = self.load_waypoints()
+            self._waypoints = self.load_json_waypoints()
             self.send_goal_async()
 
 
