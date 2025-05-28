@@ -11,6 +11,7 @@ import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCamer
 import {CameraSerials} from "../shared/CamerasPage/CameraPageConstants.tsx";
 import URCUVVisSpecView from "./URCUVVisSpecView.tsx";
 import HeaterWidget from "../../components/science/HeaterWidget/HeaterWidget.tsx";
+import {CameraControlModalButton} from "../../components/CameraComponent/components/CameraControlModelButton.tsx";
 
 
 const URCScienceView: React.FC = () => {
@@ -35,6 +36,7 @@ const URCScienceView: React.FC = () => {
       <div className="flex flex-col gap-3 col-span-2">
         <SerialMappedCameraComponent cameraSerial={CameraSerials.SCIENCE_GIMBAL}/>
         <SerialMappedCameraComponent cameraSerial={CameraSerials.SCIENCE_MICROSCOPE}/>
+        <CameraControlModalButton/>
       </div>
     </div>
   )
@@ -54,6 +56,7 @@ const URCScienceView: React.FC = () => {
       <div className="flex flex-col gap-3 col-span-2">
         <SerialMappedCameraComponent cameraSerial={CameraSerials.URC_SCIENCE_CUVETTE}/>
         <SerialMappedCameraComponent cameraSerial={CameraSerials.URC_SCIENCE_UV_VIS}/>
+        <CameraControlModalButton/>
       </div>
     </div>
   )
