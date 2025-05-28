@@ -91,7 +91,7 @@ class URCCache(ControllerNode):
             max_angle=self.declare_parameter(self.SERVO_MAX_ANGLE_PARAM, self.SERVO_MAX_ANGLE_DEFAULT).value,
             positions = self.positions
         )
-        self.cache_servo.update_position(self.DEG_90)
+        self.cache_servo.update_position(self.DEG_0)
 
         ## Create CONTROLLERS
         self.cache_servo_controller = JonoPositionController(
