@@ -90,7 +90,7 @@ class ObjectLocaliser(Node):
 
         # variables to determine frame of map and camera
         self.map_frame = self.declare_parameter('map_frame', 'map').get_parameter_value().string_value
-        self.camera_frame = self.declare_parameter('camera_frame', 'camera_link').get_parameter_value().string_value
+        self.camera_frame = self.declare_parameter('camera_frame', 'oak_link').get_parameter_value().string_value
 
         # timer period to publish object transforms in seconds
         self.tf_publisher_timer_period = self.declare_parameter('tf_publisher_timer_period', 0.1).get_parameter_value().double_value
