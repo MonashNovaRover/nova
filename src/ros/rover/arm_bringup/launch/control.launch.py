@@ -41,7 +41,7 @@ def launch_setup(context, *args, **kwargs):
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['nova_arm_velocity_controller', '--inactive'] #, '--inactive']
+                    arguments=['nova_arm_velocity_controller'] #, '--inactive']
                 ),
                 Node(
                     package='controller_manager',
