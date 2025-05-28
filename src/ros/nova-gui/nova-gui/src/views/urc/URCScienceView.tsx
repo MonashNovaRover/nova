@@ -26,8 +26,8 @@ const URCScienceView: React.FC = () => {
         <HydroprobeWidget/>
         <BMESensor/>
         <div className="flex flex-row gap-3">
-          <CacheControlWidget className="w-full" label="Cache 1" service={RosService.CACHE_1}/>
-          <CacheControlWidget className="w-full" label="Cache 2" service={RosService.CACHE_2}/>
+          <CacheControlWidget className="w-full" label="Left Cache" service={RosService.CACHE_2}/>
+          <CacheControlWidget className="w-full" label="Right Cache" service={RosService.CACHE_1}/>
         </div>
         <HeaterWidget/>
       </div>
