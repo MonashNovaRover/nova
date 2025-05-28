@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Samsung Research America
+// Copyright (c) 2025 Monash Nova Rover
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@
 #include <vector>
 #include <array>
 #include <cmath>
-#include <algorithm>
 #include <queue>
 #include <chrono>
 #include <thread>
@@ -37,8 +36,9 @@
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "tf2/utils.h"
+#include "nav2_behavior_tree/bt_utils.hpp"
 
-#include "nova_behavior_tree/snap_in_collision_goals_action.hpp"
+#include "nova_behavior_tree/action/snap_in_collision_goals_action.hpp"
 #include "nova_behavior_tree/nav2_utils.hpp"
 
 namespace nova_behavior_tree
@@ -59,9 +59,8 @@ namespace nova_behavior_tree
     {
         node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
 
-        getInput("initial_goals_offset", initial_goals_offset_);
         getInput("max_snap_radius", max_snap_radius_);
-        getInput("update_radius", update_radius_);
+        goals_offset_ = BT::deconflictPortAndParamFrame<double>(node_, "goal_offset_radius", this);
 
         // subscribe to local and global costmaps' occupancy grids
         local_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
@@ -69,7 +68,7 @@ namespace nova_behavior_tree
             [this](const OccupancyGrid::SharedPtr msg) -> void
             {
                 local_occu_grid_ = msg;
-                RCLCPP_INFO(node_->get_logger(), "Received local costmap");
+                RCLCPP_DEBUG(node_->get_logger(), "Received local costmap");
             }
         );
         global_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
@@ -77,20 +76,21 @@ namespace nova_behavior_tree
             [this](const OccupancyGrid::SharedPtr msg) -> void
             {
                 global_occu_grid_ = msg;
-                RCLCPP_INFO(node_->get_logger(), "Received global costmap");
+                RCLCPP_DEBUG(node_->get_logger(), "Received global costmap");
             }
         );
 
         wait_for_occu_grids();
 
         // get footprint radius
-        if (!node_->get_parameter_or("local_costmap.local_costmap.ros__parameters.robot_radius", footprint_radius_, 0.85))
+        if (!node_->get_parameter_or("robot_radius", footprint_radius_, 0.85))
         {
-            RCLCPP_ERROR(node_->get_logger(), "Failed to get local footprint, using default value of 0.85m");
+            RCLCPP_ERROR(node_->get_logger(), "SnapInCollisionGoals Failed to get local footprint, using default value of 0.85m");
         }
         max_snap_radius_ += footprint_radius_;
+        goals_offset_ += footprint_radius_;
 
-        RCLCPP_INFO(node_->get_logger(), "SnapInCollisionGoalsAction successfully initialized!");
+        RCLCPP_INFO(node_->get_logger(), "SnapInCollisionGoals successfully initialized!");
         
         initialized_ = true;
     }
@@ -104,26 +104,12 @@ namespace nova_behavior_tree
 
         getInput("input_goals", input_goals_);
 
-        // calculate toward points for intial goals
-        for (const auto &goal : input_goals_)
-        {
-            Point p = goal.pose.position;
-            
-            tf2::Vector3 v(p.x, p.y, p.z);
-            v += v.normalized() * initial_goals_offset_;
-
-            Point toward_point;
-            tf2::toMsg(v, toward_point);
-
-            toward_points_.push_back(toward_point);
-        }
-
         if (!local_occu_grid_ || !global_occu_grid_)
         {
             wait_for_occu_grids();
         }
 
-        RCLCPP_INFO(node_->get_logger(), "SnapInCollisionGoalsAction successfully set up!");
+        RCLCPP_INFO(node_->get_logger(), "SnapInCollisionGoals successfully set up!");
         
         set_up_ = true;
     }
@@ -148,7 +134,6 @@ namespace nova_behavior_tree
             wait_for_occu_grids();
         }
         
-        getInput("cube_goal_entries", cube_goal_entries_);
         getInput("input_goals", input_goals_);
 
         update_toward_points();
@@ -175,57 +160,36 @@ namespace nova_behavior_tree
         }
         auto end = std::chrono::high_resolution_clock::now();
         RCLCPP_INFO(
-            node_->get_logger(), "SnapInCollisionGoalsAction waited %.2fms for occupancy grids",
+            node_->get_logger(), "SnapInCollisionGoals waited %.2fms for occupancy grids",
             std::chrono::duration<double, std::milli>(end - start).count()
         );
     }
 
     /**
-     * @brief Update toward points with the most recent cube poses and according to
-     * whether any goals have been removed
+     * @brief Remove toward points for removed goals and insert toward points for new goals.
      */
     void SnapInCollisionGoalsAction::update_toward_points()
     {
-        // update with cube goals
-        std::sort(cube_goal_entries_.begin(), cube_goal_entries_.end(),
-            [](const GoalEntry &a, const GoalEntry &b) -> bool
-            {
-                return a.index < b.index;
-            }
-        );
-
-        for (const auto &entry : cube_goal_entries_)
+        // remove toward points for removed goals
+        while (!toward_points_.empty() && !utils::nav2::areGoalsEqual(toward_points_[0].goal, input_goals_[0]))
         {
-            if (entry.index > static_cast<int>(toward_points_.size()))
-            {
-                RCLCPP_ERROR(
-                    node_->get_logger(), "Cube goal index (%d) exceeds toward_points_ size (%lu)",
-                    entry.index, toward_points_.size()
-                );
-                continue;
-            }
-
-            if (entry.index == static_cast<int>(toward_points_.size()))
-            {
-                toward_points_.push_back(entry.pose.position);
-                continue;
-            }
-
-            // existing or new cube goal?
-            if (euclidean_distance(entry.pose.position, toward_points_[entry.index]) < update_radius_)
-            {
-                toward_points_[entry.index] = entry.pose.position;
-            }
-            else
-            {
-                toward_points_.insert(toward_points_.begin() + entry.index, entry.pose.position);
-            }
-        }
-
-        // update if goals have been removed
-        while (toward_points_.size() > input_goals_.size())
-        {
+            RCLCPP_INFO(
+                node_->get_logger(), "Removing toward point (%.2f, %.2f, %.2f) for goal (%.2f, %.2f, %.2f)",
+                toward_points_[0].point.x, toward_points_[0].point.y, toward_points_[0].point.z,
+                toward_points_[0].goal.pose.position.x, toward_points_[0].goal.pose.position.y, toward_points_[0].goal.pose.position.z
+            );
             toward_points_.erase(toward_points_.begin());
+        }
+        // insert toward points for new goals
+        for (size_t i = toward_points_.size(); i < input_goals_.size(); ++i)
+        {
+            TowardPoint toward_point{utils::nav2::offsetPose(input_goals_[i].pose, goals_offset_).position, input_goals_[i]};
+            toward_points_.push_back(toward_point);
+            RCLCPP_INFO(
+                node_->get_logger(), "Adding toward point (%.2f, %.2f, %.2f) for goal (%.2f, %.2f, %.2f)",
+                toward_point.point.x, toward_point.point.y, toward_point.point.z,
+                input_goals_[i].pose.position.x, input_goals_[i].pose.position.y, input_goals_[i].pose.position.z
+            );
         }
     }
 
@@ -257,7 +221,7 @@ namespace nova_behavior_tree
                 Point original_pos = goal.pose.position;
                 goal.pose.position = grid_cell_to_world(result.cell, global_occu_grid_);
                 // reorient to corresponding toward point
-                utils::nav2::orientTowards(goal.pose, toward_points_[i]);
+                utils::nav2::orientTowards(goal.pose, toward_points_[i].point);
     
                 RCLCPP_INFO(
                     node_->get_logger(), "Snapped goal (%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f)",
@@ -272,6 +236,7 @@ namespace nova_behavior_tree
             }
             
             output_goals_.push_back(goal);
+            toward_points_[i].goal = goal;
         }
 
         setOutput("output_goals", output_goals_);

@@ -37,4 +37,7 @@ export enum RosService {
   CAROUSEL = "/science/carousel_service",
   RGBInput = "/set_RGBInput",
   REQUEST_HYDRAPROBE_READING = "/science/request_hydraprobe_reading",
+
+  // Autononomous Related
+  CARTOGRAPHER_COMMAND = "/autonomous/cartographer_command",
 }

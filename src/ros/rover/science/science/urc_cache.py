@@ -40,7 +40,7 @@ class URCCache(ControllerNode):
     # Max Speed as a Percentage (0.0 to 1.0)
     SERVO_MAX_ANGLE_PARAM = "max_angle"
     SERVO_MAX_ANGLE_DEFAULT = 179
-    MAX_VALUE = 0xFF
+    MAX_VALUE = 0xF0 # max angle of servos
 
     # Positions
     POSITION_NAMES = [

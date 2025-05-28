@@ -19,7 +19,7 @@ buildRosPackage {
   };
 
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
-  buildInputs = [
+  propagatedBuildInputs = [
     std-msgs
     nav-msgs
     geometry-msgs

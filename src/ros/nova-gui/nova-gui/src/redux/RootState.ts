@@ -25,9 +25,12 @@ import {
   IRosNovaInterfacesBmeSensor,
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
-  IRosNovaInterfacesRoverPoseGps,
   IRosArmInterfacesStringTriggerResponse,
   IRosArmInterfacesKeyboardPoints,
+  IRosNovaInterfacesCartographerCommandResponse,
+  IRosNovaInterfacesStatus,
+  IRosSensorMsgsNavSatFix,
+
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -89,9 +92,11 @@ export interface RootState {
   auger2DepthSensorStore: IRosStdMsgsBool;
 
   // Maps Related Stores
-  roverLocationStore: IRosNovaInterfacesRoverPoseGps;
-  baseLocationStore: IRosNovaInterfacesRoverPoseGps;
+  roverLocationStore: IRosSensorMsgsNavSatFix;
+  baseLocationStore: IRosSensorMsgsNavSatFix;
   cartographerState: CartographerState;
+  cartographerCommand: IRosNovaInterfacesCartographerCommandResponse;
+  autoStatus: IRosNovaInterfacesStatus;
 
   // Generic Stores
   currentSite: GenericStoreState<Site>;
