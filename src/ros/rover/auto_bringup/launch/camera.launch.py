@@ -26,12 +26,13 @@ def launch_setup(context, *args, **kwargs):
     ar_params = LaunchConfiguration('ar_params')
     back = LaunchConfiguration('back')
     back_name = LaunchConfiguration('back_name').perform(context)
+    back_params = LaunchConfiguration('back_params')
     front = LaunchConfiguration('front')
     front_name = LaunchConfiguration('front_name').perform(context)
+    front_params = LaunchConfiguration('front_params')
     gazebo = LaunchConfiguration('gazebo')
     imu = LaunchConfiguration('imu')
-    oak_params = LaunchConfiguration('oak_params')
-    bootie_params = LaunchConfiguration('bootie_params')
+    mag = LaunchConfiguration('mag')
     pointcloud = LaunchConfiguration('pointcloud')
     rectify_image = LaunchConfiguration('rectify_image')
 
@@ -48,7 +49,7 @@ def launch_setup(context, *args, **kwargs):
                     package='depthai_ros_driver',
                     plugin='depthai_ros_driver::Camera',
                     name=front_name,
-                    parameters=[oak_params],
+                    parameters=[front_params],
                 ),
                 ComposableNode(
                     condition=IfCondition(rectify_image),
@@ -73,11 +74,28 @@ def launch_setup(context, *args, **kwargs):
                                 ('cloud', f'{front_name}/points')],
                 ),
                 ComposableNode(
+                    condition=IfCondition(AndSubstitution(mag, NotSubstitution(gazebo))),
+                    package='imu_filter_madgwick',
+                    plugin='ImuFilterMadgwickRos',
+                    name=f'{front_name}_imu_filter_node',
+                    remappings=[('imu/data_raw', f'/{front_name}/imu/data'),
+                                ('imu/mag', f'/{front_name}/imu/mag'),
+                                ('imu/data', f'/{front_name}/imu/fused')],
+                    parameters=[{'use_mag': True,
+                                 'world_frame': 'enu',
+                                 'fixed_frame': 'odom',
+                                 'publish_tf': False,
+                                 'reverse_accel': False,
+                                 'mag_bias_x': 0.0,
+                                 'mag_bias_y': 0.0,
+                                 'mag_bias_z': 0.0}]
+                ),
+                ComposableNode(
                     condition=IfCondition(AndSubstitution(imu, NotSubstitution(gazebo))),
                     package='imu_transformer',
                     plugin='imu_transformer::ImuTransformer',
                     name=f'{front_name}_imu_transformer_node',
-                    remappings=[('/imu_in', f'/{front_name}/imu/data'),
+                    remappings=[('/imu_in', f'/{front_name}/imu/fused'),
                                 ('/imu_out', f'/{front_name}/imu/transformed')],
                     parameters=[{'target_frame': f'{front_name}_imu_frame'}]
                 ),
@@ -95,7 +113,7 @@ def launch_setup(context, *args, **kwargs):
                     package='depthai_ros_driver',
                     plugin='depthai_ros_driver::Camera',
                     name=back_name,
-                    parameters=[bootie_params],
+                    parameters=[back_params],
                 ),
                 ComposableNode(
                     condition=IfCondition(rectify_image),
@@ -120,7 +138,7 @@ def launch_setup(context, *args, **kwargs):
                                 ('cloud', f'{back_name}/points')],
                 ),
                 ComposableNode(
-                    condition=IfCondition(AndSubstitution(imu, NotSubstitution(gazebo))),
+                    condition=IfCondition(AndSubstitution(mag, NotSubstitution(gazebo))),
                     package='imu_filter_madgwick',
                     plugin='ImuFilterMadgwickRos',
                     name=f'{back_name}_imu_filter_node',
@@ -129,8 +147,8 @@ def launch_setup(context, *args, **kwargs):
                                 ('imu/data', f'/{back_name}/imu/fused')],
                     parameters=[{'use_mag': True,
                                  'world_frame': 'enu',
-                                 'fixed_frame': 'bootie_link',
-                                 'publish_tf': True,
+                                 'fixed_frame': 'odom',
+                                 'publish_tf': False,
                                  'reverse_accel': False,
                                  'mag_bias_x': 0.0,
                                  'mag_bias_y': 0.0,
@@ -181,6 +199,16 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
+            name='back_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'bootie.yaml']),
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='camera_model',
+            default_value='OAK-D-LR',
+            description='',
+        ),
+        DeclareLaunchArgument(
             name='front',
             default_value='True',
             description='',
@@ -191,8 +219,8 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='camera_model',
-            default_value='OAK-D-LR',
+            name='front_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'oak.yaml']),
             description='',
         ),
         DeclareLaunchArgument(
@@ -206,13 +234,8 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='oak_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'oak.yaml']),
-            description='',
-        ),
-        DeclareLaunchArgument(
-            name='bootie_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'bootie.yaml']),
+            name='mag',
+            default_value='True',
             description='',
         ),
         DeclareLaunchArgument(

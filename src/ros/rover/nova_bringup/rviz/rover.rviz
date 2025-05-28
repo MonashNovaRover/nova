@@ -110,7 +110,7 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        camera_link:
+        oak_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -202,9 +202,9 @@ Visualization Manager:
           Value: true
         base_link:
           Value: true
-        camera_link:
+        oak_link:
           Value: true
-        camera_link_frame:
+        oak_link_frame:
           Value: true
         chassis:
           Value: true
@@ -253,8 +253,8 @@ Visualization Manager:
         map:
           odom:
             base_link:
-              camera_link:
-                camera_link_frame:
+              oak_link:
+                oak_link_frame:
                   {}
                 oak:
                   oak_imu_frame:
