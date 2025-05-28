@@ -187,7 +187,7 @@ in
           launch-arm-urdf = "~/Builds/master/bin/ros2 launch arm_bringup urdf.launch.py arm:=False old_arm:=True auto_camera:=False";
           launch-arm-teleop = "~/Builds/master/bin/ros2 launch teleop_arm_joy teleop.launch.py";
           run-arm-teleop = "~/Builds/master/bin/ros2 run teleop_arm_joy teleop_arm_joy_node";
-          run-arm-teleop-xbox = "~/Builds/master/bin/ros2 run teleop_arm_joy teleop_arm_joy_node ${cfg.sourceDir}/ros/rover/teleop_arm_joy/config/old.xbox.config.yaml";
+          run-arm-teleop-xbox = "~/Builds/master/bin/ros2 run teleop_arm_joy teleop_arm_joy_node --ros-args --params-file ${cfg.sourceDir}/ros/rover/teleop_arm_joy/config/old.xbox.config.yaml";
           run-joy = "~/Builds/master/bin/ros2 run joy joy_node";
 
           # ros2_control Aliases
