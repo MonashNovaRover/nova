@@ -14,7 +14,7 @@ CREATION:	15/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression, Command
 from launch.conditions import IfCondition, UnlessCondition
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction, ExecuteProcess, LogInfo
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -33,6 +33,7 @@ def launch_setup(context, *args, **kwargs):
     arm = LaunchConfiguration('arm').perform(context)
     old_arm = LaunchConfiguration('old_arm').perform(context)
     use_mock_hardware = LaunchConfiguration('use_mock_hardware')
+    robot_name = LaunchConfiguration('robot_name')
 
     return [
         GroupAction(
@@ -50,6 +51,13 @@ def launch_setup(context, *args, **kwargs):
                 ),
             ]
         ),
+        Node(
+            package='robot_state_publisher',
+            executable='robot_state_publisher',
+            parameters=[{'robot_description':
+                             ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'arm:=', arm, ' ', 'old_arm:=', old_arm, ' ', 'use_mock_hardware:=', use_mock_hardware, ' ', 'auto_camera:=false']), value_type=str)
+                         }]
+        ),
         GroupAction(
             condition=UnlessCondition(gazebo),
             actions=[
@@ -64,10 +72,11 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[controllers],
                     remappings=[('/controller_manager/robot_description', '/robot_description'), ('/joint_states', '/arm/joint_states')],
                 ),
-                IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
-                    launch_arguments={'model': model, 'gazebo': gazebo, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm}.items(),
-                )],
+                # IncludeLaunchDescription(
+                #     PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
+                #     launch_arguments={'model': model, 'gazebo': gazebo, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm}.items(),
+                # )
+            ],
         ),
     ]
 
@@ -111,6 +120,11 @@ def generate_launch_description():
             name='use_mock_hardware',
             default_value='False',
             description='whether to use mock hardware for hardware interfaces',
+        ),
+        DeclareLaunchArgument(
+            name='robot_name',
+            default_value='Banksia',
+            description='name of the robot',
         ),
         DeclareLaunchArgument(
             name='arm',
