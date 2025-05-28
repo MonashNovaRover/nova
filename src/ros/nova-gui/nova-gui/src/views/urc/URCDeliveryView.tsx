@@ -1,11 +1,18 @@
 import React from "react";
+import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCameraComponent.tsx";
+import {CameraSerials} from "../shared/CamerasPage/CameraPageConstants.tsx";
+import {CameraControlModalButton} from "../../components/CameraComponent/components/CameraControlModelButton.tsx";
 
-const URCDeliveryView: React.FC = () => {
+export const URCDeliveryView: React.FC = () => {
   return (
-    <div>
-      <h1>Hello!</h1>
+    <div className="grid grid-cols-5 gap-3 m-3">
+      <div className="col-span-3">
+        <SerialMappedCameraComponent cameraSerial={CameraSerials.ARM_END_PERISCOPE}/>
+      </div>
+      <div  className="col-span-2">
+        <SerialMappedCameraComponent cameraSerial={CameraSerials.ARM_END_TOP}/>
+      </div>
+      <CameraControlModalButton/>
     </div>
   );
 };
-
-export default URCDeliveryView;
