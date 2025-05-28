@@ -161,6 +161,8 @@ in
           nix-start = "sudo systemctl start nix-daemon.service";
 
           # Auto Aliases
+          launch-auto = "~/Builds/master/bin/ros2 launch auto_bringup urc.launch.py";
+          launch-sim = "~/Builds/master/bin/ros2 launch auto_bringup everything.launch.py";
           launch-control = "~/Builds/master/bin/ros2 launch auto_bringup control.launch.py";
           launch-oaks = "~/Builds/master/bin/ros2 launch auto_bringup camera.launch.py";
           launch-localization = "~/Builds/master/bin/ros2 launch auto_bringup localization.launch.py";
