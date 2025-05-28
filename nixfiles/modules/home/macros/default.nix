@@ -163,6 +163,8 @@ in
           # Auto Aliases
           launch-auto = "~/Builds/master/bin/ros2 launch auto_bringup urc.launch.py";
           launch-sim = "~/Builds/master/bin/ros2 launch auto_bringup everything.launch.py";
+          launch-auto-hardware = "~/Builds/master/bin/ros2 launch auto_bringup hardware.launch.py";
+          launch-auto-software = "~/Builds/master/bin/ros2 launch auto_bringup software.launch.py";
           launch-control = "~/Builds/master/bin/ros2 launch auto_bringup control.launch.py";
           launch-oaks = "~/Builds/master/bin/ros2 launch auto_bringup camera.launch.py";
           launch-localization = "~/Builds/master/bin/ros2 launch auto_bringup localization.launch.py";
