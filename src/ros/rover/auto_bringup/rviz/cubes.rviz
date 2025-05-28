@@ -149,11 +149,11 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        camera_link:
+        oak_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        camera_link_optical:
+        oak_link_optical:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -305,9 +305,9 @@ Visualization Manager:
           Value: true
         br_wheel:
           Value: true
-        camera_link:
+        oak_link:
           Value: true
-        camera_link_optical:
+        oak_link_optical:
           Value: true
         chassis:
           Value: true
@@ -375,8 +375,8 @@ Visualization Manager:
           odom:
             base_link:
               chassis:
-                camera_link:
-                  camera_link_optical:
+                oak_link:
+                  oak_link_optical:
                     {}
                   oak-d_frame:
                     oak_left_camera_frame:

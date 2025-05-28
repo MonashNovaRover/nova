@@ -3,7 +3,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Purpose: Republish a topic and change the 
 frame_id. Currently used to set the header on 
-/oak/points and /bootie/points to camera_link and 
+/oak/points and /bootie/points to oak_link and 
 bootie_link respectively in auto_bringup 
 gazebo.launch.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
