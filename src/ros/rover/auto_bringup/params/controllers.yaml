@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 20 
+    update_rate: 20
     use_sim_time: false
 
     wheel_velocity_controller:
@@ -45,7 +45,7 @@ joint_state_broadcaster:
     interfaces:
        ["position",
       "velocity"]
-      
+
     joints:
       ["blp", "brp", "flp", "frp",
       "blw", "brw", "flw", "frw"]

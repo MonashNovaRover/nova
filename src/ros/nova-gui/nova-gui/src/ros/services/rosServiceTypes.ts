@@ -5,6 +5,8 @@ import {
   IRosBlcmdInterfacesBlcmdResetResponse,
   IRosNovaInterfacesMoveMicroscopeServoRequest,
   IRosNovaInterfacesMoveMicroscopeServoResponse,
+  IRosArmInterfacesTypeSequenceRequest,
+  IRosArmInterfacesTypeSequenceResponse,
   IRosStdSrvsTriggerResponse,
   IRosNovaInterfacesKilnCommandRequest,
   IRosNovaInterfacesKilnCommandResponse,
@@ -40,8 +42,16 @@ interface EmptyMessage {}
 export interface RosServiceInterface {
   [RosService.NULL_SERVICE]: RosServiceMessage<EmptyMessage, EmptyMessage>;
   
-  
+  // Arm related
   [RosService.READ_RFID]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
+  [RosService.START_AUTO_TYPING]: RosServiceMessage<
+    IRosArmInterfacesTypeSequenceRequest,
+    IRosArmInterfacesTypeSequenceResponse
+  >;
+  [RosService.STOP_AUTO_TYPING]: RosServiceMessage<
     EmptyMessage,
     IRosStdSrvsTriggerResponse
   >;

@@ -24,7 +24,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
-    
+
     angle = LaunchConfiguration('angle')
     controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
@@ -91,10 +91,10 @@ def generate_launch_description():
             description='Use simulation (Gazebo) clock if True',
         ),
         DeclareLaunchArgument(
-            name='log_level', 
+            name='log_level',
             default_value='warn',
             description='',
-        ),  
+        ),
         DeclareLaunchArgument(
             name='model', 
             default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),

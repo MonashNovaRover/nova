@@ -10,6 +10,8 @@ export enum RosService {
 
   // Arm Related
   READ_RFID = "/electronics/rfid/read",
+  START_AUTO_TYPING = '/type_sequence/start',
+  STOP_AUTO_TYPING = '/type_sequence/stop',
 
   // Cameras Related
   START_CAMS = "/camera_streamer/stream/start",
