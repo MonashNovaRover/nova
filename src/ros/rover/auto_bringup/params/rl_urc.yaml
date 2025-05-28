@@ -11,15 +11,15 @@ ekf_filter_node_odom:
     base_link_frame: base_link # Defaults to "base_link" if unspecified
     world_frame: odom # Defaults to the value of odom_frame if unspecified
 
-    # # Wheel Odom
-    # odom0: /pivot_drive_controller/odom
-    # odom0_config: [false, false, false,
-    #                false, false, false,
-    #                true,  false, false,
-    #                false, false, true,
-    #                false, false, false]
-    # odom0_differential: false
-    # odom0_relative: false
+    # Wheel Odom
+    odom0: /pivot_drive_controller/odom
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   true,  false, false,
+                   false, false, true,
+                   false, false, false]
+    odom0_differential: false
+    odom0_relative: false
 
     # Front IMU
     imu0: /oak/imu/transformed
@@ -74,15 +74,15 @@ ekf_filter_node_map:
     base_link_frame: base_link
     world_frame: map
 
-    # # Wheel Odom
-    # odom0: /pivot_drive_controller/odom
-    # odom0_config: [false, false, false,
-    #                false, false, false,
-    #                true,  false, false,
-    #                false, false, true,
-    #                false, false, false]
-    # odom0_differential: false
-    # odom0_relative: false
+    # Wheel Odom
+    odom0: /pivot_drive_controller/odom
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   true,  false, false,
+                   false, false, true,
+                   false, false, false]
+    odom0_differential: false
+    odom0_relative: false
     
     # GPS Odom
     odom1: /odometry/gps
