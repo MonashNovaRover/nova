@@ -1,0 +1,6 @@
+ros_gz_bridge:
+  ros__parameters:
+    qos_overrides:
+      /gps_rover/fix:
+        publisher:
+          reliability: best_effort
