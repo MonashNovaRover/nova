@@ -40,7 +40,6 @@ def launch_setup(context, *args, **kwargs):
 
     gazebo = LaunchConfiguration('gazebo')
     gps = LaunchConfiguration('gps')
-    gps_params = LaunchConfiguration('gps_params')
     rl_params = LaunchConfiguration('rl_params')
     use_ukf = (LaunchConfiguration('use_ukf').perform(context).lower() == 'true')
 
@@ -76,28 +75,18 @@ def launch_setup(context, *args, **kwargs):
             output='screen',
             arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
         ),
-        GroupAction(
-            # Why is there more nodes for GPS?
-            # https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html
+        # Why is there more nodes for GPS?
+        # https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html
+        Node(
             condition=IfCondition(gps),
-            actions=[
-                Node(
-                    package='robot_localization',
-                    executable='navsat_transform_node',
-                    name='navsat_transform',
-                    output='screen',
-                    parameters=[rl_params, {'use_sim_time': gazebo}],
-                    remappings=[
-                        ('odometry/filtered', 'odometry/global'),
+            package='robot_localization',
+            executable='navsat_transform_node',
+            name='navsat_transform',
+            output='screen',
+            parameters=[rl_params, {'use_sim_time': gazebo}],
+            remappings=[('odometry/filtered', 'odometry/global'),
                         ('gps/fix', 'gps_rover/fix'),
                         ('imu', 'oak/imu/transformed')],
-                ),
-                #IncludeLaunchDescription(
-                #    condition=UnlessCondition(gazebo),
-                #    launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'gps_rover.launch.py'])),
-                #    launch_arguments={'gps_params': gps_params}.items(),
-                #),
-            ],
         ),
     ]
 
@@ -115,11 +104,6 @@ def generate_launch_description():
             name='gps',
             default_value='True',
             description='Fuse GPS?',
-        ),
-        DeclareLaunchArgument(
-            name='gps_params', 
-            default_value=PathJoinSubstitution([nova_bringup_dir, 'params', 'gps.yaml']), 
-            description='Absolute filepath to GPS parameters',
         ),
         DeclareLaunchArgument(
             name='rl_params',
