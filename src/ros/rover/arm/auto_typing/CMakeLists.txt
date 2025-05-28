@@ -34,7 +34,7 @@ find_package(OpenCV REQUIRED)
 install(PROGRAMS
   auto_typing/keyboard_localiser.py
   auto_typing/typing_sequencer.py
-  auto_typing/end_effector_action_server.py
+  auto_typing/pokey.py
 
   DESTINATION lib/${PROJECT_NAME}
 )
