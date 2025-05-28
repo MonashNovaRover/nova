@@ -450,6 +450,7 @@
       velocity="0" />
   </joint>
 
+  <!-- Replace all this with a end effector xacro file that is shared across waratah_arm and banksia_arm-->
   <!-- EEbase to Actuator transform for auto typing -->
   <link name="actuator_frame"> <!-- Actuator head position when unextended but fingers are fully open-->
     <inertial>
@@ -480,6 +481,23 @@
     <child link="rightfinger" />
     <axis xyz="0 0 1" />
     <limit effort="10" velocity="10"/>
+  </joint>
+
+  <!-- EEbase to arm_end_periscope for auto typing-->
+  <link name="arm_end_periscope_optical">
+    <inertial>
+      <origin xyz="5.0388580281e-20 -5.0000002375e-04 -2.0596424901e-20" rpy="0 0 0" />
+      <mass value="1e-09" />
+      <inertia ixx="6.3254056983e-15" ixy="-1.2661721154e-31" ixz="-1.4456719139e-31" iyy="1.2484144714e-14" iyz="7.0639301518e-32" izz="6.3254056983e-15" />
+    </inertial>
+  </link>
+
+  <joint name="camera_ee_periscope" type="fixed">
+     <origin xyz="-0.00015 0.0378336 0.0594947" rpy="0 0 0" />
+    <parent link="$(arg prefix)_j6_to_ee" />
+    <child link="arm_end_periscope_optical" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" />
   </joint>
 
   <!-- Kinematics -->
