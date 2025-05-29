@@ -30,6 +30,7 @@ import {
   IRosNovaInterfacesCartographerCommandResponse,
   IRosNovaInterfacesStatus,
   IRosSensorMsgsNavSatFix,
+  IRosArmInterfacesSequencerFeedback,
 
 } from "../ros/rosTypes";
 
@@ -58,6 +59,7 @@ export interface RootState {
   rfidDataStore: IRosStdMsgsString;
   keyboardTFTrigger: IRosArmInterfacesStringTriggerResponse;
   keyboardDataStore: IRosArmInterfacesKeyboardPoints;
+  sequencerDataStore: IRosArmInterfacesSequencerFeedback;
 
   // Camera Stores
   camerasStore: IRosCameraMsgsCameras;

@@ -3,6 +3,7 @@
 
 """
 Slop code to run finger linear actuator.
+TODO: Add params for number of can sends in a row and delay between them.
 """
 
 import logging
@@ -23,13 +24,13 @@ class EndEffectorActionServer(Node):
     # camsemd cam1 077#01
     POKE_BACKWARD = 0x01
     def __init__(self):
-        super().__init__('arm_end_effector_action_server')
-        self.get_logger().info("Arm End Effector Action Server starting")
+        super().__init__('pokey_server')
+        self.get_logger().info("Ready to poke!")
 
         self._action_server = ActionServer(
             self,
             EndEffector,
-            'arm/end_effector/action',
+            '/arm/poke',
             self.execute_callback)
 
         # for CAN commands
