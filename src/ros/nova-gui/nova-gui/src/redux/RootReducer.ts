@@ -105,6 +105,14 @@ export const reduxStores = {
       height: 480,
     }
   ),
+  sequencerDataStore: createBifrostStore(
+    { topic: RosTopic.TYPE_SEQUENCE },
+    {
+      sequence: [],
+      partial_sequence: [],
+      current_key: "",
+    }
+  ),
 
   // Cameras2 Reducers
   camerasStore: createBifrostStore({ topic: RosTopic.CAMERAS }, { cameras: [] }),

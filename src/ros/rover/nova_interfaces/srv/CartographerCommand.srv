@@ -4,9 +4,8 @@
 uint8 GNSS = 0
 uint8 AR = 1
 uint8 OBJECT = 2
-uint8 VIAPOINT = 3
 
-geometry_msgs/PoseStamped[] poses
+sensor_msgs/NavSatFix[] goals
 uint8[] types
 
 ---

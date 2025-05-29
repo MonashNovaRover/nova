@@ -22,6 +22,7 @@ import {
   IRosNovaInterfacesActiveNodeStatus,
   IRosNovaInterfacesStatus,
   IRosSensorMsgsNavSatFix,
+  IRosArmInterfacesSequencerFeedback,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -44,6 +45,7 @@ export interface RosTopicInterfaces {
   [RosTopic.ARM_TELEMETRY]: IRosCmdInterfacesCmDsFeedback;
   [RosTopic.RFID_DATA]: IRosStdMsgsString;
   [RosTopic.KEYBOARD_DATA]: IRosArmInterfacesKeyboardPoints;
+  [RosTopic.TYPE_SEQUENCE]: IRosArmInterfacesSequencerFeedback;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;

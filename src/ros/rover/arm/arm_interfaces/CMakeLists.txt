@@ -18,6 +18,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/KeyboardPoints.msg"
   "msg/ArmControlScheme.msg"
   "msg/EndEffectorInput.msg"
+  "msg/SequencerFeedback.msg"
 
   "srv/ArmConfigInfo.srv"
   "srv/StringTrigger.srv"

@@ -38,6 +38,8 @@ install(PROGRAMS
   nova_utils/quaternion_to_euler.py
   nova_utils/save_waypoint.py
   nova_utils/service_listener.py
+  nova_utils/start_auto.py
+  nova_utils/test_start_auto.py
 
   DESTINATION lib/${PROJECT_NAME}
 )

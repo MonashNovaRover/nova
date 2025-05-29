@@ -12,7 +12,7 @@
                           default_planner="GridBased"
                           selected_planner="{selected_planner}"/>
         <BlackboardPublisher topic_name="blackboard"
-                            keys="goals,type"
+                            keys="goals,type,status"
                             publish_frequency="1"/>
         <RateController hz="1.0">
           <RecoveryNode name="ComputePathThroughPoses"
@@ -21,44 +21,33 @@
               <ForceSuccess _skipIf="type == 0">
                 <Sequence>
                   <GetCurrentPose current_pose="{current_pose}"/>
-                  <Sequence _skipIf="goals_placed">
-                    <GetGoal index="0"
-                            input_goals="{goals}"
-                            output_goal="{goal}"/>
-                    <ArePosesNear ref_pose="{current_pose}"
-                                  target_pose="{goal}"
-                                  tolerance="{search_radius}"/>
-                  </Sequence>
-                  <Sequence>
-                    <RunOnce>
-                      <PlaceSearchGoals _post="goals_placed := true"
-                                        goal_type="{type}"
-                                        current_pose="{current_pose}"
-                                        search_radius="{search_radius}"
-                                        input_goals="{goals}"
-                                        output_goals="{goals}"/>
-                    </RunOnce>
-                    <Sequence>
-                      <ARTagDetected _skipIf="type != 1"
-                                      detections_topic="/aruco_detections"
-                                      min_detections="2"
-                                      buffer_time="5.0"
-                                      cluster_radius="1.5"
-                                      detections="{detected_goals}"/>
-                      <ObjectDetected _skipIf="type != 2"
-                                      detections_topic="/yolo/objects"
-                                      min_detections="2"
-                                      buffer_time="5.0"
-                                      cluster_radius="1.5"
-                                      detections="{detected_goals}"/>
-                      <GetGoal index="0"
-                              input_goals="{detected_goals}"
-                              output_goal="{detected_goal}"/>
-                      <UpdateURCGoals detected_goal="{detected_goal}"
+                  <RunOnce>
+                    <PlaceSearchGoals search_radius="{search_radius}"
                                       current_pose="{current_pose}"
                                       input_goals="{goals}"
                                       output_goals="{goals}"/>
-                    </Sequence>
+                  </RunOnce>
+                  <Sequence>
+                    <ARTagDetected _skipIf="type != 1"
+                                    detections_topic="/aruco_detections"
+                                    min_detections="2"
+                                    buffer_time="5.0"
+                                    cluster_radius="1.5"
+                                    detections="{detected_goals}"/>
+                    <ObjectDetected _skipIf="type != 2"
+                                    detections_topic="/yolo/objects"
+                                    min_detections="2"
+                                    buffer_time="5.0"
+                                    cluster_radius="1.5"
+                                    detections="{detected_goals}"/>
+                    <GetGoal index="0"
+                            input_goals="{detected_goals}"
+                            output_goal="{detected_goal}"/>
+                    <UpdateURCGoals _post="status := 2"
+                                    detected_goal="{detected_goal}"
+                                    current_pose="{current_pose}"
+                                    input_goals="{goals}"
+                                    output_goals="{goals}"/>
                   </Sequence>
                 </Sequence>
               </ForceSuccess>

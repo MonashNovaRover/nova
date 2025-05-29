@@ -19,62 +19,58 @@
  * @authors Terry Tian
  */
 
- #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__PLACE_SEARCH_GOALS_ACTION_HPP_
- #define NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__PLACE_SEARCH_GOALS_ACTION_HPP_
+#ifndef NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__PLACE_SEARCH_GOALS_ACTION_HPP_
+#define NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__PLACE_SEARCH_GOALS_ACTION_HPP_
+
+#include <vector>
+
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "behaviortree_cpp/action_node.h"
+
+namespace nova_behavior_tree
+{
+
+class PlaceSearchGoalsAction : public BT::ActionNodeBase
+{
+  public:
+    typedef geometry_msgs::msg::PoseStamped Goal;
+    typedef std::vector<Goal> Goals;
+  
+    PlaceSearchGoalsAction(
+      const std::string & xml_tag_name,
+      const BT::NodeConfiguration & conf);
+  
+    /**
+      * @brief Function to initialize variables,
+      * called only once in the lifecycle of the BT
+      */
+    void initialize();
+  
+    static BT::PortsList providedPorts()
+    {
+      return {
+        BT::InputPort<double>("search_radius", 10.0, "Search radius in m"),
+        BT::InputPort<double>("edge_offset", 2.5, "Offset to place goals from the edge of the search radius"),
+        BT::InputPort<Goal>("current_pose", "Current pose of the rover"),
+        BT::InputPort<Goals>("input_goals", "Goals vector to add search goals into"),
+        BT::OutputPort<Goals>("output_goals", "Goals with new search goals added"),
+      };
+    }
  
- #include <vector>
- 
- #include "geometry_msgs/msg/pose_stamped.hpp"
- #include "behaviortree_cpp/action_node.h"
- 
- namespace nova_behavior_tree
- {
- 
- class PlaceSearchGoalsAction : public BT::ActionNodeBase
- {
- public:
-   typedef geometry_msgs::msg::PoseStamped Goal;
-   typedef std::vector<Goal> Goals;
- 
-   PlaceSearchGoalsAction(
-     const std::string & xml_tag_name,
-     const BT::NodeConfiguration & conf);
- 
-   /**
-    * @brief Function to initialize variables,
-    * called only once in the lifecycle of the BT
-    */
-   void initialize();
- 
-   static BT::PortsList providedPorts()
-   {
-     return {
-       BT::InputPort<int>("goal_type", "Goal type (nothing, AR tag, or object?)"),
-       BT::InputPort<Goal>("current_pose", "The current pose of the rover"),
-       BT::InputPort<double>("search_radius", 10.0, "Search radius in m"),
-       BT::InputPort<double>("edge_offset", 2.5, "Offset to place goals from the edge of the search radius"),
-       BT::InputPort<Goals>("input_goals", "Goals vector to add search goals into"),
-       BT::OutputPort<Goals>("output_goals", "Goals with new search goals added"),
-     };
-   }
- 
- private:
-   void halt() override {}
-   BT::NodeStatus tick() override;
-   void place_search_goals();
- 
-   rclcpp::Node::SharedPtr node_;
-   
-   // inputs
-   int goal_type_;
-   double search_radius_;
-   double edge_offset_;
-   Goal current_pose_;
-   Goals input_goals_;
-   
-   bool initialized_ = false;
- };
- 
- }  // namespace nova_behavior_tree
- 
- #endif  // NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__PLACE_SEARCH_GOALS_ACTION_HPP_
+  private:
+    void halt() override {}
+    BT::NodeStatus tick() override;
+    void place_search_goals();
+    void get_target_pose();
+  
+    rclcpp::Node::SharedPtr node_;
+    Goal target_pose_;
+    double search_radius_;
+    double edge_offset_;
+    Goals input_goals_;
+    bool initialized_ = false;
+};
+
+}  // namespace nova_behavior_tree
+
+#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__PLACE_SEARCH_GOALS_ACTION_HPP_

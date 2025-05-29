@@ -6,7 +6,9 @@ find_package(ament_cmake REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 # Include all interfaces
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -57,7 +59,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "action/ArmPlanPath.action"
   "action/EndEffector.action"
 
-  DEPENDENCIES std_msgs geometry_msgs nav_msgs action_msgs
+  DEPENDENCIES std_msgs geometry_msgs nav_msgs action_msgs sensor_msgs
 )
 
 ament_package()
