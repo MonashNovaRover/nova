@@ -47,6 +47,7 @@ import math
 # GNSS = 0
 # AR = 1
 # OBJECT = 2
+GOAL_TYPES = {0: 'GNSS', 1: 'AR', 2: 'OBJECT'}
 
 class WaypointNavigator(Node):
     def __init__(self):
@@ -75,10 +76,18 @@ class WaypointNavigator(Node):
         ).value
         self._search_radius = self.declare_parameter(
             name='search_radius', 
-            value=10, 
+            value=-1, 
         ).value
         self._goal_handle = None    # Prevents race condition with /fromLL service
         self._waypoints = None      # Prevents race condition with /fromLL service
+        # 📝 Set default search radius based on goal type
+        if self._search_radius == -1:
+            if self._type == 1:
+                self._search_radius = 20
+            elif self._type == 2:
+                self._search_radius = 10
+            else:
+                self._search_radius = 0
         
         # 📝 Create TF listener to get rover position in create_waypoint()
         self.tf_buffer = Buffer()
@@ -188,7 +197,7 @@ class WaypointNavigator(Node):
             pose.pose.orientation.z = wp['orientation']['z']
             pose.pose.orientation.w = wp['orientation']['w']
             waypoints.append(pose)
-            self.get_logger().info(f'📍 Loaded Waypoint {idx+1}: ({pose.pose.position.x}, {pose.pose.position.y})')
+            self.get_logger().info(f'📍 Loaded {GOAL_TYPES[self._type]} Waypoint {idx+1}: ({pose.pose.position.x}, {pose.pose.position.y})')
 
         return waypoints
 
@@ -337,7 +346,7 @@ class WaypointNavigator(Node):
         except Exception:
             self.get_logger().error('❌ Failed to convert GNSS goal to Nav2 goal. Exiting.')
             return
-        self.get_logger().info(f'📍 Loaded Waypoint 1: ({self._waypoints[0].pose.position.x}, {self._waypoints[0].pose.position.y})')
+        self.get_logger().info(f'📍 Loaded {GOAL_TYPES[self._type]} Waypoint 1: ({self._waypoints[0].pose.position.x}, {self._waypoints[0].pose.position.y})')
         self.send_goal_async()
 
     def check_nav_status(self):

@@ -32,6 +32,7 @@ import { SortablePoints } from "./SortablePoints";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";
 import { RosService } from "../../../ros/services/rosService";
 import { GoalType, MapPoint } from "../../../redux/models/CartographerState";
+import { IRosNovaInterfacesCartographerCommandRequest } from "../../../ros/rosTypes.ts";
 
 export const CartographerGoalModal: React.FC<{
   isOpen: boolean;
@@ -49,12 +50,13 @@ export const CartographerGoalModal: React.FC<{
 
   const sendCartographerPoints = () => {
     const selected = items.filter((item) => item.selected);
-    const poses = selected.map((item) => ({
-      lat: item.lat,
-      long: item.long,
+    const goals = selected.map((item) => ({
+      latitude: item.lat,
+      longitude: item.long,
     }));
     const types = selected.map((item) => item.goalType);
-    serviceBifrost.callService({ poses, types });
+    console.log("calling service with:", { goals: goals, types: types })
+    serviceBifrost.callService({ goals: goals, types: types } as IRosNovaInterfacesCartographerCommandRequest);
   };
 
   const sensors = useSensors(useSensor(PointerSensor));
@@ -134,8 +136,6 @@ export const CartographerGoalModal: React.FC<{
                                 ? "bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200"
                                 : point.goalType === GoalType.OBJECT
                                   ? "bg-yellow-200 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200"
-                                  : point.goalType === GoalType.VIA_POINT
-                                    ? "bg-red-200 text-red-800 dark:bg-red-700 dark:text-red-200"
                                     : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
                           }`}
                           size="sm"
@@ -175,9 +175,7 @@ export const CartographerGoalModal: React.FC<{
                           ? "bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200"
                           : point.goalType === GoalType.OBJECT
                             ? "bg-yellow-200 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200"
-                            : point.goalType === GoalType.VIA_POINT
-                              ? "bg-red-200 text-red-800 dark:bg-red-700 dark:text-red-200"
-                              : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                            : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
                     }`}
                     size="sm"
                   >

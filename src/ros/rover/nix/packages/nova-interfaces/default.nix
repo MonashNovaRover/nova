@@ -1,11 +1,12 @@
-{ lib
-, buildRosPackage
-, ament-cmake
-, rosidl-default-generators
-, std-msgs
-, geometry-msgs
-, nav-msgs
-, action-msgs
+{ lib, 
+  buildRosPackage, 
+  ament-cmake, 
+  rosidl-default-generators, 
+  std-msgs, 
+  geometry-msgs, 
+  nav-msgs, 
+  action-msgs, 
+  sensor-msgs, 
 }:
 
 buildRosPackage {
@@ -23,6 +24,7 @@ buildRosPackage {
     std-msgs 
     nav-msgs 
     geometry-msgs 
-    action-msgs 
+    action-msgs
+    sensor-msgs
   ];
 }
