@@ -189,7 +189,6 @@ class WaypointNavigator(Node):
             
             # 📝 Load waypoints from the Auto GUI
             self._waypoints = []
-            self._i = 0
             self.load_gui_waypoints()
 
             response.success = True
@@ -200,80 +199,90 @@ class WaypointNavigator(Node):
 
         return response
 
+    def start_navigation(self):
+        '''Starts the navigation by sending the waypoints to the action server.'''
+        # 📝 Save waypoints to avoid race condition where the BT fails before waypoints are published to /blackboard
+        waypoints = []
+        for goal in self._waypoints:
+            waypoints.append({
+                'position': {
+                    'x': goal.pose.position.x,
+                    'y': goal.pose.position.y,
+                    'z': goal.pose.position.z
+                },
+                'orientation': {
+                    'x': goal.pose.orientation.x,
+                    'y': goal.pose.orientation.y,
+                    'z': goal.pose.orientation.z,
+                    'w': goal.pose.orientation.w
+                }
+            })
+        self.save_waypoints(waypoints)
+
+        # 📝 Send waypoints asynchronously as an action goal
+        self.send_goal_async()
+
+        # 📝 Create a timer to check navigation status every second
+        self._nav_check_timer = self.create_timer(1.0, self.check_nav_status)
+
     def load_gui_waypoints(self):
         '''Loads waypoints from GUI and converts them into PoseStamped messages.'''
-        if self._i >= len(self._goals):
-            # 📝 Send waypoints asynchronously as an action goal
-            self.send_goal_async()
-            # 📝 Create a timer to check navigation status every second
-            self._nav_check_timer = self.create_timer(1.0, self.check_nav_status)
+        if len(self._waypoints) >= len(self._goals):
             self.get_logger().info('✅ All waypoints loaded from GUI.')
+            self.start_navigation()
             return
-        # 📝 Convert GNSS goal to Nav2 goal
-        goal = self._goals[self._i]
-        self.get_logger().info(f'⌛ {len(self._waypoints)}/{len(self._goals)} waypoints created...')
-        self.call_fromll_async(goal.latitude, goal.longitude)
+
+        try:
+            # 📝 Convert GNSS goal to Nav2 goal
+            goal = self._goals[len(self._waypoints)]
+            self.call_fromll_async(goal.latitude, goal.longitude)
+        except Exception as e:
+            self.get_logger().error(f'❌ Failed to load GUI waypoints: {e}')
 
     def call_fromll_async(self, lat, lon):
         '''Converts GNSS goal to a geometry_msgs/msg/Point using the robot_localization FromLL service.'''
-        fromll_msg = FromLL.Request()
-        fromll_msg.ll_point.latitude = lat
-        fromll_msg.ll_point.longitude = lon
+        fromll_req = FromLL.Request()
+        fromll_req.ll_point.latitude = lat
+        fromll_req.ll_point.longitude = lon
         self.get_logger().info(f'🚀 Sending GNSS goal {lat}, {lon} to /fromLL...')
-        send_future = self._fromll_client.call_async(fromll_msg)
-        send_future.add_done_callback(self.result_fromll_callback)
-
+        future = self._fromll_client.call_async(fromll_req)
+        future.add_done_callback(self.result_fromll_callback)
+    
     def result_fromll_callback(self, future):
         result = future.result()
-
         # 📝 Create waypoint
         try:
-            self._waypoints.append(self.create_waypoint(result.map_point))
-            self._i += 1
-            self.load_gui_waypoints()
+            wp = self.create_waypoint(result.map_point)
+            self._waypoints.append(wp)
+            i = len(self._waypoints) - 1  # Current waypoint index
+            self.get_logger().info(f'📍 Loaded {GOAL_TYPES[self._types[i]]} Waypoint {i+1}: ({wp.pose.position.x}, {wp.pose.position.y})')
+            self.load_gui_waypoints()  # Load next waypoint
         except Exception as e:
             self.get_logger().error(f'❌ Failed to convert GNSS goal to Nav2 goal: {e}')
 
     def create_waypoint(self, point):
         '''Creates a waypoint from a geometry_msgs/msg/Point.'''
-        pose = PoseStamped()
-        pose.header.frame_id = 'map'
-        pose.header.stamp = self.get_clock().now().to_msg()
-        pose.pose.position.x = point.x
-        pose.pose.position.y = point.y
-        pose.pose.position.z = 0.0
+        goal = PoseStamped()
+        goal.header.frame_id = 'map'
+        goal.header.stamp = self.get_clock().now().to_msg()
+        goal.pose.position.x = point.x
+        goal.pose.position.y = point.y
+        goal.pose.position.z = 0.0
 
         # 📝 Calculate orientation for goal based on position relative to previous goal
         dx = point.x - self._prev_goal.x
         dy = point.y - self._prev_goal.y
         yaw = math.atan2(dy, dx)
         q = quaternion_from_euler(0, 0, yaw)
-        pose.pose.orientation.x = q[0]
-        pose.pose.orientation.y = q[1]
-        pose.pose.orientation.z = q[2]
-        pose.pose.orientation.w = q[3]
+        goal.pose.orientation.x = q[0]
+        goal.pose.orientation.y = q[1]
+        goal.pose.orientation.z = q[2]
+        goal.pose.orientation.w = q[3]
 
         # 📝 Update previous goal
-        self._prev_goal = pose.pose.position
+        self._prev_goal = goal.pose.position
 
-        # 📝 Save the waypoint to avoid race condition where the BT fails before waypoints are published to /blackboard
-        waypoints = [{
-            'position': {
-                'x': pose.pose.position.x, 
-                'y': pose.pose.position.y, 
-                'z': pose.pose.position.z, 
-            },
-            'orientation': {
-                'x': pose.pose.orientation.x, 
-                'y': pose.pose.orientation.y, 
-                'z': pose.pose.orientation.z, 
-                'w': pose.pose.orientation.w, 
-            }, 
-        }]
-
-        self.get_logger().info(f'📍 Loaded {GOAL_TYPES[self._types[self._i]]} Waypoint {len(self._waypoints)+1}: ({pose.pose.position.x}, {pose.pose.position.y})')
-
-        return pose
+        return goal
 
 
     def call_led_async(self, rgb: Tuple[int, int, int], flash: bool = False) -> None:
@@ -338,7 +347,6 @@ class WaypointNavigator(Node):
         else:
             self.get_logger().error(f'❓ Navigation ended with unknown status: {result.status}')
 
-
     def save_waypoints(self, waypoints):
         ''' Saves the extracted waypoints to a JSON file. '''
         with open(self._file_path, 'w') as f:
@@ -361,18 +369,18 @@ class WaypointNavigator(Node):
 
         waypoints = []
         for idx, wp in enumerate(waypoints_data):
-            pose = PoseStamped()
-            pose.header.frame_id = 'map'
-            pose.header.stamp = self.get_clock().now().to_msg()
-            pose.pose.position.x = wp['position']['x']
-            pose.pose.position.y = wp['position']['y']
-            pose.pose.position.z = wp['position']['z']
-            pose.pose.orientation.x = wp['orientation']['x']
-            pose.pose.orientation.y = wp['orientation']['y']
-            pose.pose.orientation.z = wp['orientation']['z']
-            pose.pose.orientation.w = wp['orientation']['w']
-            waypoints.append(pose)
-            self.get_logger().info(f'📍 Loaded {GOAL_TYPES[self._types[idx]]} Waypoint {idx+1}: ({pose.pose.position.x}, {pose.pose.position.y})')
+            goal = PoseStamped()
+            goal.header.frame_id = 'map'
+            goal.header.stamp = self.get_clock().now().to_msg()
+            goal.pose.position.x = wp['position']['x']
+            goal.pose.position.y = wp['position']['y']
+            goal.pose.position.z = wp['position']['z']
+            goal.pose.orientation.x = wp['orientation']['x']
+            goal.pose.orientation.y = wp['orientation']['y']
+            goal.pose.orientation.z = wp['orientation']['z']
+            goal.pose.orientation.w = wp['orientation']['w']
+            waypoints.append(goal)
+            self.get_logger().info(f'📍 Loaded {GOAL_TYPES[self._types[idx]]} Waypoint {idx+1}: ({goal.pose.position.x}, {goal.pose.position.y})')
 
         return waypoints
 
@@ -380,7 +388,7 @@ class WaypointNavigator(Node):
         '''Publishes waypoints as markers to RViz for visualization. Currently not used.'''
         marker_array = MarkerArray()
 
-        for idx, pose in enumerate(self._waypoints):
+        for idx, goal in enumerate(self._waypoints):
             marker = Marker()
             marker.header.frame_id = 'map'
             marker.header.stamp = self.get_clock().now().to_msg()
@@ -388,7 +396,7 @@ class WaypointNavigator(Node):
             marker.id = idx
             marker.type = Marker.ARROW  # arrow to indicate waypoints
             marker.action = Marker.ADD
-            marker.pose = pose.pose  # Use the same pose as the waypoint
+            marker.pose = goal.pose  # Use the same pose as the waypoint
             marker.scale.x = 0.15  # Size of marker
             marker.scale.y = 0.15
             marker.scale.z = 0.15
@@ -404,7 +412,7 @@ class WaypointNavigator(Node):
             text_marker.id = idx + 1000  # Offset to avoid ID conflict
             text_marker.type = Marker.TEXT_VIEW_FACING
             text_marker.action = Marker.ADD
-            text_marker.pose = pose.pose
+            text_marker.pose = goal.pose
             text_marker.pose.position.z += 0.3  # Raise text above the marker
             text_marker.scale.z = 0.2  # Text size
             text_marker.color.r = 1.0  # White text
