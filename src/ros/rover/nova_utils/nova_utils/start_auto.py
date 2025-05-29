@@ -227,6 +227,7 @@ class WaypointNavigator(Node):
 
     def load_gui_waypoints(self):
         '''Loads waypoints from GUI and converts them into PoseStamped messages.'''
+        self.get_logger().info(f'⌛ {len(self._waypoints)}/{len(self._goals)} waypoints created...')
         if len(self._waypoints) >= len(self._goals):
             self.get_logger().info('✅ All waypoints loaded from GUI.')
             self.start_navigation()
