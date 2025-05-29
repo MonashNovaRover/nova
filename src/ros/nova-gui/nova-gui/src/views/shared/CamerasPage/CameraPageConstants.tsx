@@ -50,6 +50,9 @@ export enum CameraSerials {
   URC_SCIENCE_PAYLOAD_DOWN = "science_payload_down",
   URC_ACTIVATED_NODES = "activated_nodes",
   URC_SCIENCE_AUGER_DEPTH_SENSORS = "science_auger_depth_sensors",
+
+  AUTO_OAK = "oak-rgb",
+  AUTO_BOOTIE = "bootie-rgb",
 }
 
 export const allCams = [];
@@ -182,7 +185,7 @@ export const autonomous_views: CameraView[] = [
 
 export const urc_autonomous_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams, ...driveCams],
+    cameraSerials: [...mastCams, ...driveCams, CameraSerials.AUTO_OAK, CameraSerials.AUTO_BOOTIE],
     viewTitle: "All Cams",
   },
   {
