@@ -20,17 +20,12 @@
  */
 
 #include <string>
-#include <memory>
 
-#include "nav2_util/geometry_utils.hpp"
-#include "nav2_util/robot_utils.hpp"
 #include "rclcpp/logging.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "tf2/LinearMath/Vector3.h"
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
-#include "tf2/utils.h"
-#include "nav2_behavior_tree/bt_utils.hpp"
 
 #include "nova_behavior_tree/action/place_search_goals_action.hpp"
 #include "nova_behavior_tree/nav2_utils.hpp"
@@ -48,12 +43,6 @@ namespace nova_behavior_tree
   void PlaceSearchGoalsAction::initialize()
   {
       node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
-      tf_ = config().blackboard->get<std::shared_ptr<tf2_ros::Buffer>>("tf_buffer");
-      node_->get_parameter("transform_tolerance", transform_tolerance_);
-      global_frame_ = BT::deconflictPortAndParamFrame<std::string>(
-        node_, "global_frame", this);
-      robot_base_frame_ = BT::deconflictPortAndParamFrame<std::string>(
-        node_, "robot_base_frame", this);
       getInput("search_radius", search_radius_);
       getInput("edge_offset", edge_offset_);
       
@@ -67,6 +56,7 @@ namespace nova_behavior_tree
       initialize();
     }
       
+    getInput("current_pose", target_pose_);
     getInput("input_goals", input_goals_);
 
     get_target_pose();        
@@ -79,13 +69,7 @@ namespace nova_behavior_tree
   {
     if (input_goals_.size() == 1)
     {
-      if (!nav2_util::getCurrentPose(
-        target_pose_, *tf_, global_frame_, robot_base_frame_, transform_tolerance_))
-      {
-          RCLCPP_WARN(
-            config().blackboard->get<rclcpp::Node::SharedPtr>("node")->get_logger(),
-            "Current robot pose is not available.");
-      }
+      getInput("current_pose", target_pose_);
     }
     else
     {

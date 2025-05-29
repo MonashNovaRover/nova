@@ -52,8 +52,6 @@ class PlaceSearchGoalsAction : public BT::ActionNodeBase
         BT::InputPort<double>("search_radius", 10.0, "Search radius in m"),
         BT::InputPort<double>("edge_offset", 2.5, "Offset to place goals from the edge of the search radius"),
         BT::InputPort<Goals>("input_goals", "Goals vector to add search goals into"),
-        BT::InputPort<std::string>("global_frame", "Global reference frame"),
-        BT::InputPort<std::string>("robot_base_frame", "robot base frame"),
         BT::OutputPort<Goals>("output_goals", "Goals with new search goals added"),
       };
     }
@@ -69,9 +67,6 @@ class PlaceSearchGoalsAction : public BT::ActionNodeBase
     double search_radius_;
     double edge_offset_;
     Goals input_goals_;
-    std::string global_frame_, robot_base_frame_;
-    std::shared_ptr<tf2_ros::Buffer> tf_;
-    double transform_tolerance_;
     bool initialized_ = false;
 };
 

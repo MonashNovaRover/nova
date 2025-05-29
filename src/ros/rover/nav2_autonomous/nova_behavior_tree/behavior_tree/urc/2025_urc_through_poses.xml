@@ -20,8 +20,9 @@
             <ReactiveSequence>
               <ForceSuccess _skipIf="type == 0">
                 <Sequence>
+                  <GetCurrentPose current_pose="{current_pose}"/>
                   <RunOnce>
-                    <PlaceSearchGoals _post="status := 2"
+                    <PlaceSearchGoals current_pose="{current_pose}"
                                       search_radius="{search_radius}"
                                       input_goals="{goals}"
                                       output_goals="{goals}"/>
@@ -42,7 +43,7 @@
                     <GetGoal index="0"
                             input_goals="{detected_goals}"
                             output_goal="{detected_goal}"/>
-                    <UpdateURCGoals _post="status := 1"
+                    <UpdateURCGoals _post="status := 2"
                                     detected_goal="{detected_goal}"
                                     current_pose="{current_pose}"
                                     input_goals="{goals}"
