@@ -31,6 +31,7 @@ namespace nova_behavior_tree
   {
   public:
     typedef std::vector<geometry_msgs::msg::PoseStamped> Goals;
+    typedef geometry_msgs::msg::PoseStamped Goal;
 
     RemovePassedURCGoalsAction(
       const std::string & xml_tag_name,
@@ -49,8 +50,9 @@ namespace nova_behavior_tree
         BT::InputPort<Goals>("input_goals", "Original goals to remove viapoints from"),
         BT::InputPort<double>("position_tolerance", 1.0, "Max distance to goal for it to be removed"),
         BT::InputPort<double>("orientation_tolerance", 0.25, "Max angle to goal for it to be removed"), // (0.25 = ~14 degrees)
+        BT::InputPort<geometry_msgs::msg::PoseStamped>("current_pose", "Current pose output"),
         BT::OutputPort<Goals>("output_goals", "Goals with passed viapoints removed"),
-        BT::OutputPort<double>("dist_to_goal", "Distance remaining to the next goal"),
+        BT::OutputPort<double>("dist_to_goal", "Distance remaining to the next goal")
       };
     }
 
@@ -63,6 +65,7 @@ namespace nova_behavior_tree
     std::string robot_base_frame_;
 
     Goals input_goals_;
+    Goal current_pose_;
     double position_tolerance_;
     double orientation_tolerance_;
     double transform_tolerance_;

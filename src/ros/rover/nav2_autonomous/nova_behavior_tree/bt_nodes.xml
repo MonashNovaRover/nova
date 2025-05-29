@@ -122,7 +122,7 @@
     <Condition ID="EnableDetection">
       <input_port name="current_pose"></input_port>
       <input_port name="target_pose"></input_port>
-      <input_port name="search_radius"></input_port>
+      <input_port name="tolerance"></input_port>
       <output_port name="detection"></output_port>
     </Condition>
 
