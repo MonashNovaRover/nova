@@ -58,26 +58,17 @@ namespace nova_behavior_tree
 
     // 📝 Get new dynamic inputs.
     getInput("input_goals", input_goals_);
-
-    // 📝 Calculate the distance remaining to the next goal.
-    using namespace nav2_util::geometry_utils;  // NOLINT
-
-    geometry_msgs::msg::PoseStamped rover_pose;
-    if (!nav2_util::getCurrentPose(
-      rover_pose, *tf_, input_goals_[0].header.frame_id, robot_base_frame_,
-      transform_tolerance_))
-    {
-      RCLCPP_ERROR(node_->get_logger(), "RemovePassedURCGoals failed to get current pose of the rover.");
-      return BT::NodeStatus::FAILURE;
-    }
-
-    double dist_to_goal = euclidean_distance(input_goals_[0].pose, rover_pose.pose);
-    setOutput("dist_to_goal", dist_to_goal);
+    getInput("current_pose", current_pose_);
 
     // 📝 Remove passed goals
     // ❗ Note we leave one goal for the controller server to remove in FollowPath (i.e. the successful exit condition for the BT).
+    using namespace nav2_util::geometry_utils;  // NOLINT
     while (input_goals_.size() > 1) 
     {
+      // 📝 Calculate the distance remaining to the next goal.
+      double dist_to_goal = euclidean_distance(input_goals_[0].pose, current_pose_.pose);
+      setOutput("dist_to_goal", dist_to_goal);
+
       // 📝 Exit if the distance remaining to the next goal is greater than position_tolerance_.
       if (dist_to_goal > position_tolerance_) 
       {
@@ -86,7 +77,7 @@ namespace nova_behavior_tree
 
       // 📝 Exit if the angle remaining to the next goal is greater than orientation_tolerance_.
       // ❗ Use our custom function instead of angles::shortest_angular_distance
-      double rover_yaw = tf2::getYaw(rover_pose.pose.orientation);
+      double rover_yaw = tf2::getYaw(current_pose_.pose.orientation);
       double goal_yaw = tf2::getYaw(input_goals_[0].pose.orientation);
       double angle_to_goal = utils::nav2::shortestAngularDistance(rover_yaw, goal_yaw);
       if (std::fabs(angle_to_goal) > orientation_tolerance_) 

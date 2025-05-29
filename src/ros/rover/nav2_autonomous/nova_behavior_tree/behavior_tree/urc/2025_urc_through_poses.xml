@@ -12,7 +12,7 @@
                           default_planner="GridBased"
                           selected_planner="{selected_planner}"/>
         <BlackboardPublisher topic_name="blackboard"
-                            keys="goals,type,status,detection"
+                            keys="type,status,detection,dist_to_goal"
                             publish_frequency="1"/>
         <RateController hz="1.0">
           <RecoveryNode name="ComputePathThroughPoses"
@@ -63,6 +63,7 @@
                                       position_tolerance="1.0"
                                       orientation_tolerance="3.14159"
                                       output_goals="{goals}"
+                                      current_pose="{current_pose}"
                                       dist_to_goal="{dist_to_goal}"/>
                 <SnapInCollisionGoals input_goals="{goals}"
                                       output_goals="{goals}"/>
