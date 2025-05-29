@@ -15,6 +15,7 @@ export const AutoArrivedPopup : React.FC<AutoArrivedPopupProps> = () => {
   const autoStatus = useSelector((state: RootState) => state.autoStatus.status)
   const roverLocation = useSelector((state: RootState) => state.roverLocationStore)
   const [isOpen, setIsOpen] = useState(false)
+  const [arrivedLocation, setArrivedLocation] = useState(roverLocation)
   const [lastStatus, setLastStatus] = useState<IRosNovaInterfacesStatusConst>(IRosNovaInterfacesStatusConst.IDLE)
 
   useEffect(() => {
@@ -23,6 +24,7 @@ export const AutoArrivedPopup : React.FC<AutoArrivedPopupProps> = () => {
 
   useEffect(() => {
     if (autoStatus === IRosNovaInterfacesStatusConst.ARRIVED_SUCCESSFULLY && lastStatus != autoStatus)
+      setArrivedLocation(roverLocation)
       setIsOpen(true)
     setLastStatus(autoStatus)
   }, [autoStatus]);
@@ -42,7 +44,7 @@ export const AutoArrivedPopup : React.FC<AutoArrivedPopupProps> = () => {
             at:
           </p>
           <p className="text-4xl">
-            {`(${roverLocation.latitude}, ${roverLocation.longitude})`}
+            {`(${arrivedLocation.latitude}, ${arrivedLocation.longitude})`}
           </p>
           <Image src={BanksiaAuto} removeWrapper className="w-1/2 mt-10 items-center"/>
         </ModalBody>
