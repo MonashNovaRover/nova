@@ -100,12 +100,12 @@ class GPSBase(Node):
         self.pub_pose = self.create_publisher(
             NavSatFix, 
             '/gps_base/fix', 
-            QoSPresetProfiles.SENSOR_DATA.value, 
+            10, 
         )
         self.pub_rtcm = self.create_publisher(
             UInt8MultiArray, 
             '/gps_base/rtcm', 
-            QoSPresetProfiles.SENSOR_DATA.value, 
+            10, 
         )
         self.pose = NavSatFix()
         self.pose.header.frame_id = 'gps_base'

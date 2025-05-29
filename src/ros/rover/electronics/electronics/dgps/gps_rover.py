@@ -30,6 +30,7 @@ import re
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
+from rclpy.qos import qos_profile_sensor_data as qos
 from rclpy.logging import LoggingSeverity
 from std_msgs.msg import UInt8MultiArray
 from sensor_msgs.msg import NavSatFix
@@ -73,12 +74,12 @@ class GPSRover(Node):
             UInt8MultiArray, 
             'gps_base/rtcm', 
             self.sub_rtcm_callback, 
-            QoSPresetProfiles.SENSOR_DATA.value, 
+            qos, 
         )
         self.pub_pose = self.create_publisher(
             NavSatFix, 
             '/gps_rover/fix', 
-            QoSPresetProfiles.SENSOR_DATA.value, 
+            10, 
         )
         self.pose = NavSatFix()
         self.pose.header.frame_id = 'gps'
