@@ -10,6 +10,11 @@ class TestWaypointNavigator(Node):
     def __init__(self):
         super().__init__('waypoint_navigator')
 
+        self._type = self.declare_parameter(
+            name='type', 
+            value=1, 
+        ).value
+
         # 📝 Create service client for cartographer command server
         self._cartographer_client = self.create_client(CartographerCommand, '/autonomous/cartographer_command')
         self.get_logger().info('⏳ Waiting for /autonomous/cartographer_command server...')
@@ -25,7 +30,7 @@ class TestWaypointNavigator(Node):
     def call_cartographer_async(self):
         cartographer_msg = CartographerCommand.Request()
         cartographer_msg.goals = self.create_goals()
-        cartographer_msg.types = [0, 0, 2]
+        cartographer_msg.types = [0, 0, self._type]
         self.get_logger().info(f'🚀 Sending cartographer command to /autonomous/cartographer_command...')
         send_future = self._cartographer_client.call_async(cartographer_msg)
         send_future.add_done_callback(self.result_cartographer_callback)
