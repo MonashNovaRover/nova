@@ -84,12 +84,11 @@ list(APPEND plugin_libs nova_snap_in_collision_goals_action_bt_node)
 add_library(nova_ar_tag_detected_condition_bt_node SHARED plugins/condition/ar_tag_detected_condition.cpp)
 list(APPEND plugin_libs nova_ar_tag_detected_condition_bt_node)
 
+add_library(nova_enable_detection_condition_bt_node SHARED plugins/condition/enable_detection_condition.cpp)
+list(APPEND plugin_libs nova_enable_detection_condition_bt_node)
+
 add_library(nova_object_detected_condition_bt_node SHARED plugins/condition/object_detected_condition.cpp)
 list(APPEND plugin_libs nova_object_detected_condition_bt_node)
-
-add_library(nova_are_poses_near_condition_bt_node SHARED plugins/condition/are_poses_near_condition.cpp)
-list(APPEND plugin_libs nova_are_poses_near_condition_bt_node)
-
 
 foreach(bt_plugin ${plugin_libs})
   ament_target_dependencies(${bt_plugin} ${dep_pkgs})
