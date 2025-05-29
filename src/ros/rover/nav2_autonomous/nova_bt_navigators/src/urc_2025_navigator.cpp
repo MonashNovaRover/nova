@@ -111,7 +111,7 @@ URC2025Navigator::onLoop()
     return;
   }
 
-  geometry_msgs::msg::PoseStamped current_pose;
+  Goal current_pose;
   if (!nav2_util::getCurrentPose(
       current_pose, *feedback_utils_.tf,
       feedback_utils_.global_frame, feedback_utils_.robot_frame,
@@ -258,8 +258,11 @@ URC2025Navigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr goal)
   // Update the goal search radius on the blackboard
   blackboard->set<uint8_t>("search_radius", search_radius);
 
-  // Set the goals_placed value on the blackboard
-  blackboard->set<bool>("goals_placed", false);
+  // Set the target pose value on the blackboard
+  blackboard->set<Goal>("target_pose", goal_poses.back());
+
+  // Set the detection value on the blackboard
+  blackboard->set<bool>("detection", false);
 
   // Initialize status 1 = TRAVERSING
   blackboard->set<uint8_t>("status", 1);

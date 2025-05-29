@@ -161,7 +161,8 @@ in
           nix-start = "sudo systemctl start nix-daemon.service";
 
           # Auto Aliases
-          launch-auto = "~/Builds/master/bin/ros2 launch auto_bringup urc.launch.py";
+          launch-auto-rover = "~/Builds/master/bin/ros2 launch auto_bringup urc.launch.py";
+          launch-auto-base = "~/Builds/master/bin/ros2 run nova_utils start_auto.py";
           launch-sim = "~/Builds/master/bin/ros2 launch auto_bringup everything.launch.py";
           launch-auto-hardware = "~/Builds/master/bin/ros2 launch auto_bringup hardware.launch.py";
           launch-auto-software = "~/Builds/master/bin/ros2 launch auto_bringup software.launch.py";
@@ -172,6 +173,7 @@ in
           launch-nav = "~/Builds/master/bin/ros2 launch auto_bringup navigation.launch.py";
           launch-teleop = "~/Builds/master/bin/ros2 launch telop_drive_joy teleop.launch.py";
           launch-rviz = "~/Builds/master/bin/ros2 launch auto_bringup rviz.launch.py";
+          gui-oak = "~/Builds/master/bin/ros2 launch auto_bringup oak-gui.launch.py";
 
           # GPS Alias
           launch-gps = "~/Builds/master/bin/ros2 launch nova_bringup gps_rover.launch.py gps_params:=/home/nova/nova/src/ros/rover/nova_bringup/params/gps.yaml";

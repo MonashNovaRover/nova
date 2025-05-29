@@ -44,6 +44,7 @@ namespace nova_behavior_tree
   {
       node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
       getInput("search_radius", search_radius_);
+      getInput("search_corners", search_corners_);
       getInput("edge_offset", edge_offset_);
       
       initialized_ = true;
@@ -85,10 +86,18 @@ namespace nova_behavior_tree
     tf2::fromMsg(input_goals_.back().pose.position, centre);
 
     tf2::Vector3 dir = (centre - reference).normalized();
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < search_corners_ + 1; ++i)
     {
-      // rotate the direction vector by 120 degrees
-      double angle = utils::nav2::radians(120.0 * i);
+      // rotate the direction vector by (360 / search_corners) degrees
+      double angle;
+      if (i == search_corners_)
+      {
+        angle = utils::nav2::radians(((360 / search_corners_) * i) - 10);
+      }
+      else
+      {
+        angle = utils::nav2::radians((360 / search_corners_) * i);
+      }
       tf2::Vector3 rotated_dir = dir.rotate(tf2::Vector3(0, 0, 1), angle);
 
       // calculate the new goal's position
