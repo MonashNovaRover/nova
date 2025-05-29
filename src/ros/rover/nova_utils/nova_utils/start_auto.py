@@ -105,12 +105,12 @@ class WaypointNavigator(Node):
             return
         self.get_logger().info('✅ Service /fromLL available!')
 
-        # # 📝 Create service client for LED control TODO: UNCOMMENT TO ENABLE LED
-        # self._led_client = self.create_client(RGBInput, '/set_RGBInput')
-        # if not self._led_client.wait_for_service(timeout_sec=10.0):
-        #     self.get_logger().error('❌ Service /set_RGBInput not available. Cannot change LED color.')
-        #     return
-        # self.get_logger().info('✅ Service /set_RGBInput available!')
+        # 📝 Create service client for LED control
+        self._led_client = self.create_client(RGBInput, '/set_RGBInput')
+        if not self._led_client.wait_for_service(timeout_sec=10.0):
+            self.get_logger().error('❌ Service /set_RGBInput not available. Cannot change LED color.')
+            return
+        self.get_logger().info('✅ Service /set_RGBInput available!')
 
         # 📝 Create service for Auto GUI 
         self._cartographer_service = self.create_service(CartographerCommand, '/autonomous/cartographer_command', self.cartographer_callback)
@@ -220,7 +220,7 @@ class WaypointNavigator(Node):
         self.save_waypoints(waypoints)
 
         # 📝 Set LED to red to signify navigation start
-        # self.call_led_async((255, 0, 0)) TODO: UNCOMMENT TO ENABLE LED
+        self.call_led_async((255, 0, 0))
 
         # 📝 Send waypoints asynchronously as an action goal
         self.send_goal_async()
@@ -295,7 +295,7 @@ class WaypointNavigator(Node):
         request.g = rgb[1]
         request.b = rgb[2]
         request.flash = flash
-        self.get_logger().info(f'🔵 Calling /set_RGBInput service to set LED color to ({r}, {g}, {b}), flash = {flash}')
+        self.get_logger().info(f'💡 Calling /set_RGBInput service to set LED color to ({rgb[0]}, {rgb[1]}, {rgb[2]}), flash = {flash}')
         future = self._led_client.call_async(request)
         future.add_done_callback(self.result_led_callback)
 
@@ -339,7 +339,7 @@ class WaypointNavigator(Node):
         if result.status == GoalStatus.STATUS_SUCCEEDED:
             # Publish ARRIVED status and change LED color to flashing green when navigation is successful
             self.status_callback(3)
-            # self.call_led_async((0, 255, 0), flash=True) TODO: UNCOMMENT TO ENABLE LED
+            self.call_led_async((0, 255, 0), flash=True)
             self.get_logger().info('✅ Navigation through all waypoints succeeded!')
         elif result.status == GoalStatus.STATUS_CANCELED:
             self.get_logger().warn('⚠️ Navigation was canceled before completion.')

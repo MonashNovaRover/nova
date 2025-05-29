@@ -48,6 +48,10 @@ def launch_setup(context, *args, **kwargs):
         #     executable='spawner',
         #     arguments=['nova_diff_drive_controller', '--inactive']
         # ),
+        Node(
+            package='electronics', 
+            executable='led_strip.py', 
+        ),
         GroupAction(
             condition=UnlessCondition(gazebo),
             actions=[
