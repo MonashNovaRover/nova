@@ -161,7 +161,8 @@ in
           nix-start = "sudo systemctl start nix-daemon.service";
 
           # Auto Aliases
-          launch-auto = "~/Builds/master/bin/ros2 launch auto_bringup urc.launch.py";
+          launch-auto-rover = "~/Builds/master/bin/ros2 launch auto_bringup urc.launch.py";
+          launch-auto-base = "~/Builds/master/bin/ros2 run nova_utils start_auto.py";
           launch-sim = "~/Builds/master/bin/ros2 launch auto_bringup everything.launch.py";
           launch-auto-hardware = "~/Builds/master/bin/ros2 launch auto_bringup hardware.launch.py";
           launch-auto-software = "~/Builds/master/bin/ros2 launch auto_bringup software.launch.py";
