@@ -16,7 +16,7 @@ SERVICES: /type_sequence
 PACKAGE: 	arm
 AUTHOR(S):  Anthony Lew
 CREATION:	9/05/2024
-EDITED:     9/05/2024
+EDITED:     29/05/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Add stop functionality to sequencer
@@ -24,6 +24,20 @@ TODO:
  - Add error handling
  - Test!
  - Integrate with GUI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Running auto typing:
+ - GUI - urc/auto-typing 
+ - Rosbridge
+ - Cameras2 (legacy if on orin)
+    - Cameras will not show up in firefox, use chromium!
+ - arm_bringup/typing.launch.py
+    - Make sure to run can start vcan1
+    - auto_mode:=False if no camera
+ - path.mock.launch.py for fake arm
+    - Make to activate path planner
+        - ros2 control list_controllers
+        - ros2 control set_controller_state nova_path_planner active
+ - rviz2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 
@@ -42,15 +56,23 @@ import threading
 import tf2_geometry_msgs
 
 # from arm_interfaces.action import PathTo
+from arm_interfaces.msg import SequencerFeedback
 from arm_interfaces.srv import KeyPosition, TypeSequence
-from nova_interfaces.action import ArmPlanPath
+from nova_interfaces.action import ArmPlanPath, EndEffector
 
 TYPING_SEQUENCER_START = "/type_sequence/start"
 TYPING_SEQUENCER_STOP = "/type_sequence/stop"
 CONTROLLER_SWITCH_SERVICE = "/controller_manager/switch_controller"
 KEY_POSITION_SERVICE = "/arm/keyboard/pub_key_position"
 PATH_PLANNER_ACTION = '/arm/plan_path'
-POKEY_THING_ACTION = "/arm/end_effector/action"
+POKEY_THING_ACTION = "/arm/poke"
+SEQUENCER_TOPIC = "/arm/sequence"
+
+POKE_FORWARD = 1.0
+POKE_BACKWARD = 0.0
+
+DEFAULT_POSITION = [0.0, 0.0, 0.0]
+DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
 
 class TypingSequencer(Node):
 
@@ -72,6 +94,7 @@ class TypingSequencer(Node):
         self.debug_target_tf = self.declare_parameter('debug_target', False).get_parameter_value().bool_value
         self.pp_speed = self.declare_parameter('speed', 0.5).get_parameter_value().double_value
         self.move_to_start = self.declare_parameter('move_to_start', True).get_parameter_value().bool_value
+        self.target_quaternion = self.declare_parameter('target_quaternion', DEFAULT_QUATERNION).get_parameter_value().double_array_value
 
         # Listen to /tf
         self.tf_buffer = Buffer()
@@ -81,6 +104,8 @@ class TypingSequencer(Node):
 
         # publish debug tf
         self.transform_broadcaster = TransformBroadcaster(self)
+
+        self.sequence_pub = self.create_publisher(SequencerFeedback, SEQUENCER_TOPIC, 10)
 
         # Controller switcher service client
         # TODO: Uncomment once integrated
@@ -99,7 +124,7 @@ class TypingSequencer(Node):
         self.action_executor.add_node(self)
 
         # Pokey Thing action client
-        # self.pokey_client = ActionClient(self, EndEffector, POKEY_THING_ACTION)
+        self.pokey_client = ActionClient(self, EndEffector, POKEY_THING_ACTION)
         self.get_logger().info(f'Sequencer initalised!')
 
     def send_switch_request(self):
@@ -132,7 +157,8 @@ class TypingSequencer(Node):
             tfs.child_frame_id = 'target_' + self.keyboard_frame
             tfs.header.stamp = stamp
             tfs.transform.translation = ee_to_key.position
-            tfs.transform.rotation = ee_to_key.orientation
+            #tfs.transform.rotation = ee_to_key.orientation
+            tfs.transform.rotation.x, tfs.transform.rotation.y, tfs.transform.rotation.z, tfs.transform.rotation.w = self.target_quaternion
             self.transform_broadcaster.sendTransform(tfs)
 
         return ee_to_key
@@ -159,29 +185,26 @@ class TypingSequencer(Node):
         path_generation_progress = res.feedback.path_generation_progress
         self.get_logger().info(f"Going? {traversing_path}, Progress: {path_generation_progress}")
     
-    # def do_poke(self, poke):
-    #     goal_msg = EndEffector.Goal()
-    #     goal_msg.poke = poke
-    #     self.pokey_client.wait_for_server()
-    #     future_response = self.pokey_client.send_goal_async(goal_msg, feedback_callback=self.handle_pk_feedback)
-    #     self.action_executor.spin_until_future_complete(future_response)
-    #     response = future_response.result()
-    #     if not response.accepted:
-    #         self.get_logger().info('Pokey Thing goal rejected')
-    #         return False
+    def do_poke(self, poke):
+        goal_msg = EndEffector.Goal()
+        goal_msg.poke = poke
+        self.pokey_client.wait_for_server()
+        future_response = self.pokey_client.send_goal_async(goal_msg, feedback_callback=self.handle_pk_feedback)
+        self.action_executor.spin_until_future_complete(future_response)
+        response = future_response.result()
+        if not response.accepted:
+            self.get_logger().info('Pokey Thing goal rejected')
+            return False
         
-    #     future_result = response.get_result_async()
-    #     self.action_executor.spin_until_future_complete(future_result)
-    #     result = future_result.result().result.end_poke
-    #     if result == poke:
-    #         return True
-    #     else:
-    #         self.get_logger().info(f'Pokey Thing did not poke all the way: {result}')
-    #         return False
+        future_result = response.get_result_async()
+        self.action_executor.spin_until_future_complete(future_result)
+        result = future_result.result().result.end_poke
+        return True
+
     
     def handle_pk_feedback(self, feedback_msg):
         feedback = feedback_msg.feedback
-        self.get_logger().info(f'{feedback.current_poke}')
+        self.get_logger().info(f'{feedback.current_poke} {feedback.is_forward}')
 
     def get_transform_from_frame(self, target_frame, source_frame, stamp=None) -> TransformStamped:
         self.get_logger().info(f'Getting transform of frame: {target_frame}')
@@ -245,7 +268,12 @@ class TypingSequencer(Node):
         # if not switch_result.success:
         #     self.get_logger().error(f'Switching Error: {switch_result.message}')
         #     return
-        
+    
+        seq_msg = SequencerFeedback()
+        seq_msg.sequence = key_sequence
+        seq_msg.partial_sequence = []
+        seq_msg.current_key = ""
+
         # Loop through the keys in the sequence
         for key in key_sequence:
             if self.stop_event.is_set():
@@ -253,6 +281,8 @@ class TypingSequencer(Node):
                 return
 
             self.get_logger().info(f'Performing sequence for key: {key}')
+            seq_msg.current_key = key
+            self.sequence_pub.publish(seq_msg)
             # Get Key transform to be published on /tf by calling keyboard localiser
             stamp = self.get_clock().now().to_msg()
             key_result = self.send_key_request(key, stamp)
@@ -279,23 +309,23 @@ class TypingSequencer(Node):
 
             # Activate pokey thing
             # TODO: Add error handling
-            # poke_out = self.do_poke(1.0)
-            # if not poke_out:
-            #     self.get_logger().info(f"Failed poking for {key}")
-            #     sequencer_result = False
-            #     return
-            # poke_in = self.do_poke(0.0)
-            # if not poke_in:
-            #     self.get_logger().info(f"Failed poking for {key}")
-            #     sequencer_result = False
-            #     return
+            poke_out = self.do_poke(POKE_FORWARD)
+            if not poke_out:
+                self.get_logger().info(f"Failed poking for {key}")
+                sequencer_result = False
+                return
+            poke_in = self.do_poke(POKE_BACKWARD)
+            if not poke_in:
+                self.get_logger().info(f"Failed poking for {key}")
+                sequencer_result = False
+                return
 
             # Move back to starting position
             if self.move_to_start:
                 self.call_path_planner(start_pose, self.pp_speed)
 
-            # TODO: Publish feedback to topic for GUI
-            # partial_sequence.append(key)
+            # Publish feedback to topic for GUI
+            seq_msg.partial_sequence.append(key)
             self.get_logger().info(f'Completed: {partial_sequence}')
 
         # Call controller switcher and switch back to manual mode
@@ -305,6 +335,8 @@ class TypingSequencer(Node):
         #     self.get_logger().error(f'Switching Error: {switch_result.message}')
         #     sequencer_result = False
         #     return
+        seq_msg.current_key = ""
+        self.sequence_pub.publish(seq_msg)
         self.get_logger().info(f'Sequencer Complete! {partial_sequence}')
         self.stop_event.set()
         self.thread = None

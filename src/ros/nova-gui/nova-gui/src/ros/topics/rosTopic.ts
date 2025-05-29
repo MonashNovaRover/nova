@@ -20,6 +20,7 @@ export enum RosTopic {
   ARM_TELEMETRY = "/cmds/cmd_feedback",
   RFID_DATA = "/electronics/rfid/data",
   KEYBOARD_DATA = "/arm/keyboard/points",
+  TYPE_SEQUENCE = "/arm/sequence",
 
   // Camera Related topics
   CAMERAS = "/camera_directory/cameras",
