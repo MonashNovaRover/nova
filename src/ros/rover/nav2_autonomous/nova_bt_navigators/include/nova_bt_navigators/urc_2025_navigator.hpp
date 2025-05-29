@@ -41,6 +41,7 @@ class URC2025Navigator
 public:
   using ActionT = nova_interfaces::action::URC2025Navigator;
   typedef std::vector<geometry_msgs::msg::PoseStamped> Goals;
+  typedef geometry_msgs::msg::PoseStamped Goal;
 
   /**
    * @brief A constructor for URC2025Navigator

@@ -19,12 +19,12 @@
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav2_util/node_utils.hpp"
 
-#include "nova_behavior_tree/condition/are_poses_near_condition.hpp"
+#include "nova_behavior_tree/condition/enable_detection_condition.hpp"
 
 namespace nova_behavior_tree
 {
 
-ArePosesNearCondition::ArePosesNearCondition(
+EnableDetectionCondition::EnableDetectionCondition(
   const std::string & condition_name,
   const BT::NodeConfiguration & conf)
 : BT::ConditionNode(condition_name, conf)
@@ -34,30 +34,31 @@ ArePosesNearCondition::ArePosesNearCondition(
     node, "global_frame", this);
 }
 
-void ArePosesNearCondition::initialize()
+void EnableDetectionCondition::initialize()
 {
   node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
   tf_ = config().blackboard->get<std::shared_ptr<tf2_ros::Buffer>>("tf_buffer");
   node_->get_parameter("transform_tolerance", transform_tolerance_);
 }
 
-BT::NodeStatus ArePosesNearCondition::tick()
+BT::NodeStatus EnableDetectionCondition::tick()
 {
   if (!BT::isStatusActive(status())) {
     initialize();
   }
 
   if (arePosesNearby()) {
+    setOutput("detection", true);
     return BT::NodeStatus::SUCCESS;
   }
   return BT::NodeStatus::FAILURE;
 }
 
-bool ArePosesNearCondition::arePosesNearby()
+bool EnableDetectionCondition::arePosesNearby()
 {
   geometry_msgs::msg::PoseStamped pose1, pose2;
   double tol;
-  getInput("ref_pose", pose1);
+  getInput("current_pose", pose1);
   getInput("target_pose", pose2);
   getInput("tolerance", tol);
 
@@ -82,5 +83,5 @@ bool ArePosesNearCondition::arePosesNearby()
 #include "behaviortree_cpp/bt_factory.h"
 BT_REGISTER_NODES(factory)
 {
-  factory.registerNodeType<nova_behavior_tree::ArePosesNearCondition>("ArePosesNear");
+  factory.registerNodeType<nova_behavior_tree::EnableDetectionCondition>("EnableDetection");
 }

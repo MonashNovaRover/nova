@@ -11,6 +11,7 @@
 
     <Action ID="PlaceSearchGoals">
       <input_port name="search_radius">Search radius in m</input_port>
+      <input_port name="search_corners">Search corners (e.g. 3 for triangle, 4 for square)</input_port>
       <input_port name="edge_offset">Offset to place goals from the edge of the search radius</input_port>
       <input_port name="current_pose">Current pose of the rover</input_port>
       <input_port name="input_goals">Goals vector to add search goals into</input_port>
@@ -118,6 +119,13 @@
     </Action>
 
     <!-- ############################### CONDITION NODES ############################## -->
+    <Condition ID="EnableDetection">
+      <input_port name="current_pose"></input_port>
+      <input_port name="target_pose"></input_port>
+      <input_port name="search_radius"></input_port>
+      <output_port name="detection"></output_port>
+    </Condition>
+
     <Condition ID="CubeDetected">
       <input_port name="visited_ids">visited_ids[i] = true if visited, false otherwise</input_port>
       <output_port name="current_pose">The current pose of the rover</output_port>
