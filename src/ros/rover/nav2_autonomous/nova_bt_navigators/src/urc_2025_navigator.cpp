@@ -259,12 +259,10 @@ URC2025Navigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr goal)
   blackboard->set<uint8_t>("search_radius", search_radius);
 
   // Set the goals_placed value on the blackboard
-  bool goals_placed = false;
-  blackboard->set<uint8_t>("goals_placed", goals_placed);
+  blackboard->set<bool>("goals_placed", false);
 
-  // Initialise the found variable to allow for BT scripting
-  blackboard->set<int>("found", 0);
-
+  // Initialize status 1 = TRAVERSING
+  blackboard->set<uint8_t>("status", 1);
 
   return true;
 }
