@@ -23,6 +23,7 @@
                   <GetCurrentPose current_pose="{current_pose}"/>
                   <RunOnce>
                     <PlaceSearchGoals search_radius="{search_radius}"
+                                      search_corners="3"
                                       current_pose="{current_pose}"
                                       input_goals="{goals}"
                                       output_goals="{goals}"/>
@@ -54,7 +55,7 @@
               <ReactiveSequence>
                 <RemovePassedURCGoals input_goals="{goals}"
                                       position_tolerance="1.0"
-                                      orientation_tolerance="0.35"
+                                      orientation_tolerance="3.14159"
                                       output_goals="{goals}"
                                       dist_to_goal="{dist_to_goal}"/>
                 <SnapInCollisionGoals input_goals="{goals}"
