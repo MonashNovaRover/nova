@@ -31,7 +31,6 @@ namespace nova_behavior_tree
   {
   public:
     typedef std::vector<geometry_msgs::msg::PoseStamped> Goals;
-    typedef std::vector<int> IDs;
 
     RemovePassedURCGoalsAction(
       const std::string & xml_tag_name,
