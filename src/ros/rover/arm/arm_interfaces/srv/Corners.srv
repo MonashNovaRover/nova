@@ -1,0 +1,5 @@
+# Service to override the corners in keyboard localiser using the GUI
+# should be [top_left, top_right, bottom_right, bottom_left]
+int32[] corners
+---
+bool success

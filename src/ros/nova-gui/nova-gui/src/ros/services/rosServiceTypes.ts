@@ -29,6 +29,8 @@ import {
   IRosNovaInterfacesCartographerCommandResponse,
   IRosNovaInterfacesMoveHydraprobeRequest,
   IRosNovaInterfacesMoveHydraprobeResponse,
+  IRosArmInterfacesCornersRequest,
+  IRosArmInterfacesCornersResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -54,6 +56,10 @@ export interface RosServiceInterface {
   [RosService.STOP_AUTO_TYPING]: RosServiceMessage<
     EmptyMessage,
     IRosStdSrvsTriggerResponse
+  >;
+  [RosService.OVERRIDE_CORNERS]: RosServiceMessage<
+    IRosArmInterfacesCornersRequest,
+    IRosArmInterfacesCornersResponse
   >;
 
   // Camera Related

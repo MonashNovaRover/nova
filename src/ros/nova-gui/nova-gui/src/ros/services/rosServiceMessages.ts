@@ -7,6 +7,7 @@ export const rosServiceMessages = {
   [RosService.READ_RFID]: "std_srvs/srv/Trigger",
   [RosService.START_AUTO_TYPING]: "arm_interfaces/srv/TypeSequence",
   [RosService.STOP_AUTO_TYPING]: "std_srvs/srv/Trigger",
+  [RosService.OVERRIDE_CORNERS]: "arm_interfaces/srv/Corners",
 
   // Camera Related
   [RosService.START_CAMS]: "camera_msgs/srv/CameraOperation",

@@ -24,6 +24,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/StringTrigger.srv"
   "srv/KeyPosition.srv"
   "srv/TypeSequence.srv"
+  "srv/Corners.srv"
   
   DEPENDENCIES std_msgs geometry_msgs
 )

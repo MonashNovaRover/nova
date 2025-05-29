@@ -21,9 +21,11 @@ const AutoTypingKeyEntryWidget: React.FC<IAutoTypingKeyEntryWidgetProps> = (prop
   const startTypingBifrost = useBifrost({ service: RosService.START_AUTO_TYPING });
   const stopTypingBifrost = useBifrost({ service: RosService.STOP_AUTO_TYPING });
   const sequenceBifrost = useBifrost({ topic: RosTopic.TYPE_SEQUENCE})
+  const overrideCornersBifrost = useBifrost({ service: RosService.OVERRIDE_CORNERS });
 
   const startTyping = (sequence: Array<string>) => startTypingBifrost.callServiceToRedux({ sequence: sequence });
   const stopTyping = () => stopTypingBifrost.callServiceToRedux({});
+  const overrideCorners = (corners: Array<number[]>) => overrideCornersBifrost.callServiceToRedux({ corners: corners });
 
   const fullSequence = useSelector((state: RootState) => state.sequencerDataStore.sequence);
   const partialSequence = useSelector((state: RootState) => state.sequencerDataStore.partial_sequence);
@@ -33,16 +35,42 @@ const AutoTypingKeyEntryWidget: React.FC<IAutoTypingKeyEntryWidgetProps> = (prop
     sequenceBifrost.syncWithTopic();
   }, [sequenceBifrost]);
 
+  const [sequence, setSequence] = useState([""]);
   const onInput = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSequence(event.target.value.replace(/\s+/g, ' ').trim().split(" ")) // split string by spaces
   }, [])
-  const [sequence, setSequence] = useState([""]);
+
+  const bifrost = useBifrost({ topic: RosTopic.KEYBOARD_DATA });
+  useEffect(() => {
+    bifrost.syncWithTopic();
+  }, [bifrost]);
+
+  const keyboardPoints = useSelector((state: RootState) => state.keyboardDataStore.points);
+
+  const keyboardPointsFormatted: [number, number][] = keyboardPoints.reduce((acc: [number, number][], val, idx) => {
+    if (idx % 2 === 0) {
+      acc.push([val, 0]); // placeholder for y
+    } else {
+      acc[acc.length - 1][1] = val; // set y
+    }
+    return acc;
+  }, []);
+
+  const [corners, setCorners] = useState([[0, 0],[0, 0],[0, 0],[0, 0]]);
+  const onCornerInput = useCallback((index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    const val = event.target.value.trim().split(" ").map(parseInt)
+    setCorners(prev => {
+      const updated = [...prev]
+      updated[index] = val
+      return updated
+    })
+  }, [])
 
 
   return (
-    <Card className="row-3 gap-2 p-2">
-      <div className="flex ">Separate keys with&nbsp;<b>spaces.</b>&nbsp;Type as seen on keyboard in&nbsp;<b>lowercase.</b>&nbsp;Click the&nbsp;<b>?</b>&nbsp;button for key info.</div>
-      <div className="flex flex-row justify-between points: [0, 0, 0, 0, 0, 0, 0, 0],gap-2">
+    <Card className="row-4 gap-2 p-2">
+      <div className="flex ">Separate keys with&nbsp;<b>spaces.</b>&nbsp;Type as seen on keyboard in&nbsp;<b>lowercase.</b>&nbsp;Click the&nbsp;<b>?</b>&nbsp;button for key info. Separate x,y with&nbsp;<b>space</b>.</div>
+      <div className="flex flex-row justify-between gap-2">
         <Input size="lg" className="flex-grow w-6/12"
           placeholder="What do you want to type?"
           onChange={onInput}>
@@ -78,6 +106,32 @@ const AutoTypingKeyEntryWidget: React.FC<IAutoTypingKeyEntryWidgetProps> = (prop
         <Button className="w-1/12 text-h1 h-12" color="primary"
           onClick={props.showHelp}>
           <HelpCircle />
+        </Button>
+      </div>
+      <div className="flex flex-row gap-2">
+        Top left:
+        <Input size="lg" className="flex-grow w-1/7"
+          placeholder={keyboardPointsFormatted[0].toString().replace(",", " ")}
+          onChange={onCornerInput(0)}>
+        </Input>
+        Top right:
+        <Input size="lg" className="flex-grow w-1/7"
+          placeholder={keyboardPointsFormatted[1].toString().replace(",", " ")}
+          onChange={onCornerInput(1)}>
+        </Input>
+        Bottom right:
+        <Input size="lg" className="flex-grow w-1/7"
+          placeholder={keyboardPointsFormatted[2].toString().replace(",", " ")}
+          onChange={onCornerInput(2)}>
+        </Input>
+        Bottom left:
+        <Input size="lg" className="flex-grow w-1/7"
+          placeholder={keyboardPointsFormatted[3].toString().replace(",", " ")}
+          onChange={onCornerInput(3)}>
+        </Input>
+        <Button className=" flex-grow w-1/4 text-h1 h-12" color="warning"
+          onClick={() => overrideCorners(corners)}>
+          Override Localiser
         </Button>
       </div>
     </Card>
