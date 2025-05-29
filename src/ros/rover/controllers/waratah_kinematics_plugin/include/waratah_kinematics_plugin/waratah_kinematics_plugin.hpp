@@ -132,6 +132,10 @@ private:
   /// @returns an array of joint angles in joint space for each of J1 through J6, through joints.
   std::array<double, 6> calculate_ik(tf2::Transform pose, std::array<double, LINK_LENGTH_COUNT> lengths) const;
 
+  Eigen::Matrix4d fk_to_tf_(std::array<double, 6> joints) const;
+  std::array<double, 6> calculate_ik_(Eigen::Matrix4d target, std::array<double, LINK_LENGTH_COUNT> lengths) const;
+
+
   // substitutes values into our DH table.
   // see: https://www.notion.so/Inverse-Kinematics-ddfe35179c1f4959850bd28b2195be8a
   // equivalent line: DHs = [cos(the) -sin(the) 0 a; sin(the)*cos(alp) cos(the)*cos(alp) -sin(alp) -sin(alp)*d; sin(the)*sin(alp) cos(the)*sin(alp) cos(alp) cos(alp)*d; 0 0 0 1];

@@ -60,21 +60,22 @@ namespace waratah_kinematics_plugin
 
   // See Keenan's IK notes
   // TODO: remember to add something for the effector pose
-  std::array<double, 6> WaratahKinematicsPlugin::calculate_ik(tf2::Transform pose, std::array<double, LINK_LENGTH_COUNT> lengths) const {
+  Eigen::Matrix4d WaratahKinematicsPlugin::fk_to_tf_(std::array<double, 6> joints) const {
+    std::vector<double> angles;
+    for (double angle : joints) {
+      angles.push_back(angle);
+    }
+    std::vector<geometry_msgs::msg::Pose> poses;
+    this->getPositionFK(this->getLinkNames(), angles, poses);
+    tf2::Transform pose;
+    tf2::fromMsg(poses.back(), pose);
+
     auto origin = pose.getOrigin();
     auto x = origin.getX();
     auto y = origin.getY();
     auto z = origin.getZ();
 
-    auto logger = node_.lock()->get_logger();
-
     tf2::Matrix3x3 rotated_basis = pose.getBasis() * ENDEFFECTOR_BASIS_INVERSE;
-
-    double l1r = lengths[0];
-    double l2r = lengths[1];
-    double a1r = lengths[2];
-    double a2r = lengths[3];
-    double a3r = lengths[4];
 
     Eigen::Matrix3d rxyz {
       {rotated_basis[0][0], rotated_basis[0][1], rotated_basis[0][2]},
@@ -83,21 +84,93 @@ namespace waratah_kinematics_plugin
     };  // rxyz orientation matrix
 
     // set the input requested transform from 0 to 7
-    Eigen::Matrix4d t07i = Eigen::Matrix4d::Zero();
-    t07i.topLeftCorner<3,3>() = rxyz;
+    Eigen::Matrix4d real = Eigen::Matrix4d::Zero();
+    real.topLeftCorner<3,3>() = rxyz;
 
-    t07i(3, 3) = 1;
-    t07i(0, 3) = x;
-    t07i(1, 3) = y;
-    t07i(2, 3) = z;
+    real(3, 3) = 1;
+    real(0, 3) = x;
+    real(1, 3) = y;
+    real(2, 3) = z;
 
-    RCLCPP_INFO(logger, "target:");
-    RCLCPP_INFO(logger, "[%+5.3f, %+5.3f, %+5.3f, %+5.3f; ...", t07i(0,0), t07i(0,1), t07i(0,2), t07i(0,3));
-    RCLCPP_INFO(logger, " %+5.3f, %+5.3f, %+5.3f, %+5.3f; ...", t07i(1,0), t07i(1,1), t07i(1,2), t07i(1,3));
-    RCLCPP_INFO(logger, " %+5.3f, %+5.3f, %+5.3f, %+5.3f; ...", t07i(2,0), t07i(2,1), t07i(2,2), t07i(2,3));
-    RCLCPP_INFO(logger, " %+5.3f, %+5.3f, %+5.3f, %+5.3f]",     t07i(3,0), t07i(3,1), t07i(3,2), t07i(3,3));
+    return real;
+  }
 
-#define T01(j1) sub_dh(0,       0,   0,   j1        )
+  std::array<double, 6> WaratahKinematicsPlugin::calculate_ik(tf2::Transform pose, std::array<double, LINK_LENGTH_COUNT> lengths) const {
+    // calc ik
+
+
+    auto origin = pose.getOrigin();
+    auto x = origin.getX() ;
+    auto y = origin.getY();
+    auto z = origin.getZ();
+
+    auto logger = node_.lock()->get_logger();
+    RCLCPP_DEBUG(logger, "starting stupid ik fix");
+
+#define pr_matrix(mat) RCLCPP_INFO(logger, "mat:"); \
+RCLCPP_INFO(logger, "[%+7.5f, %+7.5f, %+7.5f, %+7.5f; ...", mat(0,0), mat(0,1), mat(0,2), mat(0,3));\
+RCLCPP_INFO(logger, " %+7.5f, %+7.5f, %+7.5f, %+7.5f; ...", mat(1,0), mat(1,1), mat(1,2), mat(1,3));\
+RCLCPP_INFO(logger, " %+7.5f, %+7.5f, %+7.5f, %+7.5f; ...", mat(2,0), mat(2,1), mat(2,2), mat(2,3));\
+RCLCPP_INFO(logger, " %+7.5f, %+7.5f, %+7.5f, %+7.5f]",     mat(3,0), mat(3,1), mat(3,2), mat(3,3))
+
+#define pr_err(mat) RCLCPP_DEBUG(logger, "err: x %+7.5f, y %7.5f, z %7.5f", mat(0,3), mat(1,3), mat(2,3))
+
+    tf2::Matrix3x3 rotated_basis = pose.getBasis() * ENDEFFECTOR_BASIS_INVERSE;
+
+    Eigen::Matrix3d rxyz {
+      {rotated_basis[0][0], rotated_basis[0][1], rotated_basis[0][2]},
+      {rotated_basis[1][0], rotated_basis[1][1], rotated_basis[1][2]},
+      {rotated_basis[2][0], rotated_basis[2][1], rotated_basis[2][2]}
+    };  // rxyz orientation matrix
+
+    // set the input requested transform from 0 to 7
+    Eigen::Matrix4d target = Eigen::Matrix4d::Zero();
+    target.topLeftCorner<3,3>() = rxyz;
+
+    target(3, 3) = 1;
+    target(0, 3) = x;
+    target(1, 3) = y;
+    target(2, 3) = z;
+
+    // do ik, find the error, offset target by this, do ik again, repeat once more
+    // its stupid, but I don't understand the geometry well enough to try to fix this
+    
+    std::array<double, 6> attempt1 = calculate_ik_(target, lengths);
+    // calc fk, get offset
+    Eigen::Matrix4d pos1 = fk_to_tf_(attempt1);
+    Eigen::Matrix4d error1 = target - pos1;
+
+    pr_err(error1);
+
+
+    // redo ik with offset
+    std::array<double, 6> attempt2 = calculate_ik_(target+error1, lengths);
+    Eigen::Matrix4d pos2 = fk_to_tf_(attempt2);
+    Eigen::Matrix4d error2 = target - pos2;
+    pr_err(error2);
+
+    // once more
+    std::array<double, 6> attempt3 = calculate_ik_(target+error1+error2, lengths);
+    Eigen::Matrix4d pos3 = fk_to_tf_(attempt3);
+    Eigen::Matrix4d error3 = target - pos3;
+    pr_err(error3);
+
+    return attempt3;
+  }
+  std::array<double, 6> WaratahKinematicsPlugin::calculate_ik_(Eigen::Matrix4d target, std::array<double, LINK_LENGTH_COUNT> lengths) const {
+    auto logger = node_.lock()->get_logger();
+
+    double l1r = lengths[0];
+    double l2r = lengths[1];
+    double a1r = lengths[2];
+    double a2r = lengths[3];
+    double a3r = lengths[4];
+
+    Eigen::Matrix4d t07i = target;
+
+    t07i(2, 3) -= 0.3; // FIXME 
+
+#define T01(j1) sub_dh(0,       0,   0,   j1        ) // but the z is + 0.1795
 #define T12(j2) sub_dh(M_PI/2,  0,   0,   j2        )
 #define T23(j3) sub_dh(0,       l1r, 0,   j3        )
 #define T34(j4) sub_dh(0,       l2r, a1r, j4        )
@@ -152,7 +225,7 @@ namespace waratah_kinematics_plugin
     // TODO: pick which solution to use smartly
     
 #define DEG(x) x*360/(2*M_PI)
-    RCLCPP_INFO(logger, "solution: [%+07.2f %+07.2f %+07.2f  %+07.2f %+07.2f %+07.2f]", DEG(j1), DEG(j2a), DEG(j3a), DEG(j4a), DEG(j5), DEG(j6));
+    RCLCPP_DEBUG(logger, "solution: [%+07.2f %+07.2f %+07.2f  %+07.2f %+07.2f %+07.2f]", DEG(j1), DEG(j2a), DEG(j3a), DEG(j4a), DEG(j5), DEG(j6));
 
     return new_joints_a;
   }
@@ -201,12 +274,12 @@ namespace waratah_kinematics_plugin
 
     RCLCPP_DEBUG(logger, "joint_angles:");
     for (auto& joint_angle : joint_angles) {
-      RCLCPP_INFO(logger, "  - %f", joint_angle);
+      RCLCPP_DEBUG(logger, "  - %f", joint_angle);
     }
 
     RCLCPP_DEBUG(logger, "active joint model names in joint group:");
     for (auto& joint_angle : robot_model_->getJointModelGroup(group_name_)->getActiveJointModelNames()) {
-      RCLCPP_INFO(logger, "  - %s", joint_angle.c_str());
+      RCLCPP_DEBUG(logger, "  - %s", joint_angle.c_str());
     }
 
     // TODO: Actually solve FK
