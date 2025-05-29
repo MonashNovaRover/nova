@@ -20,7 +20,6 @@ export enum GoalType {
   GNSS = 0,
   AR_TAG = 1,
   OBJECT = 2,
-  VIA_POINT = 3,
 }
 
 export interface CartographerState {
