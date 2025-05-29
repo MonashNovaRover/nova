@@ -40,6 +40,11 @@ def launch_setup(context, *args, **kwargs):
             package='auto_typing',
             executable='typing_sequencer.py',
             parameters=[params, {"base_frame": base_frame}]
+        ),
+        Node(
+            package='auto_typing',
+            executable='pokey.py',
+            parameters=[params]
         )
     ]
 

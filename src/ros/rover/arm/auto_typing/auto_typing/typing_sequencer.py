@@ -262,6 +262,8 @@ class TypingSequencer(Node):
                 return
 
             self.get_logger().info(f'Performing sequence for key: {key}')
+            seq_msg.current_key = key
+            self.sequence_pub.publish(seq_msg)
             # Get Key transform to be published on /tf by calling keyboard localiser
             stamp = self.get_clock().now().to_msg()
             key_result = self.send_key_request(key, stamp)
@@ -305,8 +307,6 @@ class TypingSequencer(Node):
 
             # Publish feedback to topic for GUI
             seq_msg.partial_sequence.append(key)
-            seq_msg.current_key = key
-            self.sequence_pub.publish(seq_msg)
             self.get_logger().info(f'Completed: {partial_sequence}')
 
         # Call controller switcher and switch back to manual mode

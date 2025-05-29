@@ -20,6 +20,7 @@ export const rosTopicMessages = {
   [RosTopic.ARM_TELEMETRY]: "cmd_interfaces/msg/CMDsFeedback",
   [RosTopic.RFID_DATA]: "std_msgs/msg/String",
   [RosTopic.KEYBOARD_DATA]: "arm_interfaces/msg/KeyboardPoints",
+  [RosTopic.TYPE_SEQUENCE]: "arm_interfaces/msg/SequencerFeedback",
 
   // Cameras Related
   [RosTopic.CAMERAS]: "camera_msgs/msg/Cameras",
