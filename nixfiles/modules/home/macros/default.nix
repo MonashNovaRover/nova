@@ -167,12 +167,13 @@ in
           launch-auto-hardware = "~/Builds/master/bin/ros2 launch auto_bringup hardware.launch.py";
           launch-auto-software = "~/Builds/master/bin/ros2 launch auto_bringup software.launch.py";
           launch-control = "~/Builds/master/bin/ros2 launch auto_bringup control.launch.py";
-          launch-oaks = "~/Builds/master/bin/ros2 launch auto_bringup camera.launch.py";
+          launch-oak = "~/Builds/master/bin/ros2 launch auto_bringup camera.launch.py";
           launch-localization = "~/Builds/master/bin/ros2 launch auto_bringup localization.launch.py";
           launch-rtabmap = "~/Builds/master/bin/ros2 launch auto_bringup rtabmap.launch.py";
           launch-nav = "~/Builds/master/bin/ros2 launch auto_bringup navigation.launch.py";
           launch-teleop = "~/Builds/master/bin/ros2 launch telop_drive_joy teleop.launch.py";
           launch-rviz = "~/Builds/master/bin/ros2 launch auto_bringup rviz.launch.py";
+          launch-yolo = "~/Builds/master/bin/ros2 launch auto_bringup yolo.launch.py";
           gui-oak = "~/Builds/master/bin/ros2 launch auto_bringup oak-gui.launch.py";
 
           # GPS Alias
