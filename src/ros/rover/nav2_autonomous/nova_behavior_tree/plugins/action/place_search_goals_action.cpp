@@ -83,7 +83,7 @@ namespace nova_behavior_tree
     tf2::Vector3 target;
     tf2::Vector3 goal;
     tf2::fromMsg(target_pose_.pose.position, target);
-    tf2::fromMsg(input_goals_[0].pose.position, goal);
+    tf2::fromMsg(input_goals_.back().pose.position, goal);
 
     tf2::Vector3 dir = (goal - target).normalized();
     for (int i = 0; i < 4; ++i)
