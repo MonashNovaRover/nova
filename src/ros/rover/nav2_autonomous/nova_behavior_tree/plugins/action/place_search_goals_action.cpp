@@ -56,36 +56,35 @@ namespace nova_behavior_tree
       initialize();
     }
       
-    getInput("current_pose", target_pose_);
     getInput("input_goals", input_goals_);
 
-    get_target_pose();        
+    get_reference_pose();        
     place_search_goals();
 
     return BT::NodeStatus::SUCCESS;
   }
 
-  void PlaceSearchGoalsAction::get_target_pose()
+  void PlaceSearchGoalsAction::get_reference_pose()
   {
     if (input_goals_.size() == 1)
     {
-      getInput("current_pose", target_pose_);
+      getInput("current_pose", reference_pose_);
     }
     else
     {
-      target_pose_ = input_goals_[input_goals_.size() - 2];
+      reference_pose_ = input_goals_[input_goals_.size() - 2];
     }
   }
 
   void PlaceSearchGoalsAction::place_search_goals()
   {
-    // initial direction is the normal from the target to the goal
-    tf2::Vector3 target;
-    tf2::Vector3 goal;
-    tf2::fromMsg(target_pose_.pose.position, target);
-    tf2::fromMsg(input_goals_[0].pose.position, goal);
+    // initial direction is the normal from the reference to the goal
+    tf2::Vector3 reference;
+    tf2::Vector3 centre;
+    tf2::fromMsg(reference_pose_.pose.position, reference);
+    tf2::fromMsg(input_goals_.back().pose.position, centre);
 
-    tf2::Vector3 dir = (goal - target).normalized();
+    tf2::Vector3 dir = (centre - reference).normalized();
     for (int i = 0; i < 4; ++i)
     {
       // rotate the direction vector by 120 degrees
@@ -93,9 +92,9 @@ namespace nova_behavior_tree
       tf2::Vector3 rotated_dir = dir.rotate(tf2::Vector3(0, 0, 1), angle);
 
       // calculate the new goal's position
-      tf2::Vector3 new_goal_pos = goal + (rotated_dir * (search_radius_ - edge_offset_));
+      tf2::Vector3 new_goal_pos = centre + (rotated_dir * (search_radius_ - edge_offset_));
       geometry_msgs::msg::PoseStamped new_goal;
-      new_goal.header.frame_id = target_pose_.header.frame_id;
+      new_goal.header.frame_id = reference_pose_.header.frame_id;
       new_goal.header.stamp = node_->get_clock()->now();
       tf2::toMsg(new_goal_pos, new_goal.pose.position);
       // set the new goal's orientation

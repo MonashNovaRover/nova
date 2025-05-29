@@ -61,10 +61,10 @@ class PlaceSearchGoalsAction : public BT::ActionNodeBase
     void halt() override {}
     BT::NodeStatus tick() override;
     void place_search_goals();
-    void get_target_pose();
+    void get_reference_pose();
   
     rclcpp::Node::SharedPtr node_;
-    Goal target_pose_;
+    Goal reference_pose_;
     double search_radius_;
     double edge_offset_;
     Goals input_goals_;
