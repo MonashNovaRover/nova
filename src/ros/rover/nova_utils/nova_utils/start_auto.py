@@ -75,11 +75,11 @@ class WaypointNavigator(Node):
         ).value
         self._ar_tag_search_radius = self.declare_parameter(
             name='ar_tag_search_radius',
-            value=20.0,  # Default search radius for AR tags
+            value=20,  # Default search radius for AR tags
         ).value
         self._object_search_radius = self.declare_parameter(
             name='object_search_radius',
-            value=10.0,  # Default search radius for objects
+            value=10,  # Default search radius for objects
         ).value
         
         self._search_radii = [0, self._ar_tag_search_radius, self._object_search_radius]
@@ -219,6 +219,9 @@ class WaypointNavigator(Node):
             })
         self.save_waypoints(waypoints)
 
+        # 📝 Set LED to red to signify navigation start
+        # self.call_led_async((255, 0, 0)) TODO: UNCOMMENT TO ENABLE LED
+
         # 📝 Send waypoints asynchronously as an action goal
         self.send_goal_async()
 
@@ -285,7 +288,6 @@ class WaypointNavigator(Node):
 
         return goal
 
-
     def call_led_async(self, rgb: Tuple[int, int, int], flash: bool = False) -> None:
         '''Calls the set_RGBInput service to change the LED color.'''
         request = RGBInput.Request()
@@ -311,8 +313,6 @@ class WaypointNavigator(Node):
 
     def send_goal_async(self):
         '''Sends the waypoints asynchronously to the URC2025Navigator action server.'''
-        # self.call_led_async((255, 0, 0)) TODO: UNCOMMENT TO ENABLE LED
-        
         goal_msg = URC2025Navigator.Goal()
         goal_msg.poses = self._waypoints  # List of PoseStamped
         goal_msg.type = self._types[-1]  # Type of goal (GNSS=0, AR=1, OBJECT=2)
