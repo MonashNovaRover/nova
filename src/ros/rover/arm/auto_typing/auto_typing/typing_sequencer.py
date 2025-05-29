@@ -16,7 +16,7 @@ SERVICES: /type_sequence
 PACKAGE: 	arm
 AUTHOR(S):  Anthony Lew
 CREATION:	9/05/2024
-EDITED:     9/05/2024
+EDITED:     29/05/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Add stop functionality to sequencer
@@ -24,6 +24,20 @@ TODO:
  - Add error handling
  - Test!
  - Integrate with GUI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Running auto typing:
+ - GUI - urc/auto-typing 
+ - Rosbridge
+ - Cameras2 (legacy if on orin)
+    - Cameras will not show up in firefox, use chromium!
+ - arm_bringup/typing.launch.py
+    - Make sure to run can start vcan1
+    - auto_mode:=False if no camera
+ - path.mock.launch.py for fake arm
+    - Make to activate path planner
+        - ros2 control list_controllers
+        - ros2 control set_controller_state nova_path_planner active
+ - rviz2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 
@@ -57,6 +71,9 @@ SEQUENCER_TOPIC = "/arm/sequence"
 POKE_FORWARD = 1.0
 POKE_BACKWARD = 0.0
 
+DEFAULT_POSITION = [0.0, 0.0, 0.0]
+DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
+
 class TypingSequencer(Node):
 
     def __init__(self):
@@ -77,6 +94,7 @@ class TypingSequencer(Node):
         self.debug_target_tf = self.declare_parameter('debug_target', False).get_parameter_value().bool_value
         self.pp_speed = self.declare_parameter('speed', 0.5).get_parameter_value().double_value
         self.move_to_start = self.declare_parameter('move_to_start', True).get_parameter_value().bool_value
+        self.target_quaternion = self.declare_parameter('target_quaternion', DEFAULT_QUATERNION).get_parameter_value().double_array_value
 
         # Listen to /tf
         self.tf_buffer = Buffer()
@@ -139,7 +157,8 @@ class TypingSequencer(Node):
             tfs.child_frame_id = 'target_' + self.keyboard_frame
             tfs.header.stamp = stamp
             tfs.transform.translation = ee_to_key.position
-            tfs.transform.rotation = ee_to_key.orientation
+            #tfs.transform.rotation = ee_to_key.orientation
+            tfs.transform.rotation.x, tfs.transform.rotation.y, tfs.transform.rotation.z, tfs.transform.rotation.w = self.target_quaternion
             self.transform_broadcaster.sendTransform(tfs)
 
         return ee_to_key
@@ -316,6 +335,8 @@ class TypingSequencer(Node):
         #     self.get_logger().error(f'Switching Error: {switch_result.message}')
         #     sequencer_result = False
         #     return
+        seq_msg.current_key = ""
+        self.sequence_pub.publish(seq_msg)
         self.get_logger().info(f'Sequencer Complete! {partial_sequence}')
         self.stop_event.set()
         self.thread = None

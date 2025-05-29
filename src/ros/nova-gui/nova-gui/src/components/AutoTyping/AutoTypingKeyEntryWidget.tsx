@@ -56,7 +56,7 @@ const AutoTypingKeyEntryWidget: React.FC<IAutoTypingKeyEntryWidgetProps> = (prop
         </Button>
         <div className="w-5/12 content-center">
         <OverlayedProgress size="lg" radius="lg"
-          value={partialSequence.length / fullSequence.length}
+          value={partialSequence.length}
           maxValue={fullSequence.length}
           aria-label="Key Sequence"
           autoColor={false}

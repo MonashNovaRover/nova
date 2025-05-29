@@ -463,7 +463,7 @@
   <joint name="actuator_j" type="fixed">
     <origin xyz="-0.006287977 0.159 -0.0075" rpy="0 1.5708 1.57072" />
     <parent link="rightfinger" />
-    <child link="actuator_frame" />
+    <child link="actuator" />
     <axis xyz="0 0 1" />
   </joint>
 
