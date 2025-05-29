@@ -51,6 +51,7 @@ class PlaceSearchGoalsAction : public BT::ActionNodeBase
       return {
         BT::InputPort<double>("search_radius", 10.0, "Search radius in m"),
         BT::InputPort<double>("edge_offset", 2.5, "Offset to place goals from the edge of the search radius"),
+        BT::InputPort<Goal>("current_pose", "Current pose of the rover"),
         BT::InputPort<Goals>("input_goals", "Goals vector to add search goals into"),
         BT::OutputPort<Goals>("output_goals", "Goals with new search goals added"),
       };
