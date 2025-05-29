@@ -47,13 +47,20 @@ class TestWaypointNavigator(Node):
         goal.longitude = -110.7150385
         goals.append(goal)
 
+        goal = NavSatFix()
         goal.latitude = 38.3669546
         goal.longitude = -110.7151176
         goals.append(goal)
 
+
+        goal = NavSatFix()
         goal.latitude = 38.3668352
         goal.longitude = -110.7146483
         goals.append(goal)
+
+        self.get_logger().info('✅ Created goals:')
+        for goal in goals:
+            self.get_logger().info(f'📍 Goal: {goal.latitude}, {goal.longitude}')
 
         return goals
 

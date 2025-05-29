@@ -11,7 +11,7 @@ reload the waypoints to restart navigation.
 NODE: WaypointNavigator
 TOPICS:
     - subscriber: /blackboard                   [std_msgs/msg/String]
-    - publisher: /navigation_status             [nova_interfaces/msg/Status]
+    - publisher: /auto/status             [nova_interfaces/msg/Status]
 SERVICES:
     - client: /fromLL                           [robot_localization/srv/FromLL]
     - client: /set_RGBInput                     [nova_interfaces/srv/RGBInput]
@@ -73,6 +73,16 @@ class WaypointNavigator(Node):
             name='status_topic',
             value='/auto/status', 
         ).value
+        self._ar_tag_search_radius = self.declare_parameter(
+            name='ar_tag_search_radius',
+            value=20.0,  # Default search radius for AR tags
+        ).value
+        self._object_search_radius = self.declare_parameter(
+            name='object_search_radius',
+            value=10.0,  # Default search radius for objects
+        ).value
+        
+        self._search_radii = [0, self._ar_tag_search_radius, self._object_search_radius]
         self._blackboard = dict() # Dictionary to store blackboard data
 
         # 📝 Create TF listener to get rover position in create_waypoint()
@@ -95,7 +105,7 @@ class WaypointNavigator(Node):
             return
         self.get_logger().info('✅ Service /fromLL available!')
 
-        # # 📝 Create service client for LED control
+        # # 📝 Create service client for LED control TODO: UNCOMMENT TO ENABLE LED
         # self._led_client = self.create_client(RGBInput, '/set_RGBInput')
         # if not self._led_client.wait_for_service(timeout_sec=10.0):
         #     self.get_logger().error('❌ Service /set_RGBInput not available. Cannot change LED color.')
@@ -111,14 +121,14 @@ class WaypointNavigator(Node):
         self.get_logger().info('✅ Subscriber /blackboard created!')
 
         # Create publisher for navigation status
-        self._pub_status = self.create_publisher(Status, self._status_topic, QoSPresetProfiles.SENSOR_DATA.value)
+        self._status_pub = self.create_publisher(Status, self._status_topic, QoSPresetProfiles.SENSOR_DATA.value)
         self.get_logger().info(f'✅ Publisher {self._status_topic} created!')
 
 
     def blackboard_callback(self, msg):
         '''
         Saves the blackboard data to a dictionary and extracts waypoints, saving them.
-        Also publishes the status seen in the blackboard to the /navigation_status topic.
+        Also publishes the status seen in the blackboard to the status topic.
         '''
         for entry in msg.data.strip().split('\n'):
             key, value = entry.split(': ', 1)
@@ -148,29 +158,24 @@ class WaypointNavigator(Node):
         if waypoints:
             self.save_waypoints(waypoints)
 
-        # Publish the status to the /navigation_status topic
+        # Publish the status to the status topic
         status = int(self._blackboard.get('status', 0))  # Default to 0 if not found
         self.status_callback(status)
 
 
     def status_callback(self, status: int) -> None:
-        '''Publishes the current navigation status to the /navigation_status topic.'''
+        '''Publishes the current navigation status to the status topic.'''
         status_msg = Status()
         status_msg.status = status
-        self.status_pub.publish(status_msg)
+        self._status_pub.publish(status_msg)
 
 
     def cartographer_callback(self, request, response):
         try:
             # 📝 Process client request
             self._types = request.types
-            if self._types[-1] == 0:
-                self._search_radius = 0
-            elif self._types[-1] == 1:
-                self._search_radius = 20
-            elif self._types[-1] == 2:
-                self._search_radius = 10
             self._goals = request.goals
+            self._search_radius = self._search_radii[self._types[-1]]
 
             # 📝 Set the previous goal as the rover's current position in the map frame
             try:
@@ -187,33 +192,27 @@ class WaypointNavigator(Node):
             self._i = 0
             self.load_gui_waypoints()
 
-            while len(self._waypoints) < len(request.goals):
-                self.get_logger().info(f'⌛ {len(self._waypoints)}/{len(request.poses)} waypoints created...')
-                time.sleep(1)
-
-            # 📝 Send waypoints asynchronously as an action goal
-            self.send_goal_async()
-
-            # 📝 Create a timer to check navigation status every second
-            self._nav_check_timer = self.create_timer(1.0, self.check_nav_status)
-
             response.success = True
 
         except Exception as e:
-
+            self.get_logger().error(f'❌ Failed to process cartographer command: {e}')
             response.success = False
 
         return response
 
-    def load_gui_waypoints(self, poses):
+    def load_gui_waypoints(self):
         '''Loads waypoints from GUI and converts them into PoseStamped messages.'''
-
+        if self._i >= len(self._goals):
+            # 📝 Send waypoints asynchronously as an action goal
+            self.send_goal_async()
+            # 📝 Create a timer to check navigation status every second
+            self._nav_check_timer = self.create_timer(1.0, self.check_nav_status)
+            self.get_logger().info('✅ All waypoints loaded from GUI.')
+            return
         # 📝 Convert GNSS goal to Nav2 goal
         goal = self._goals[self._i]
+        self.get_logger().info(f'⌛ {len(self._waypoints)}/{len(self._goals)} waypoints created...')
         self.call_fromll_async(goal.latitude, goal.longitude)
-        if self._i < (len(self._goals) - 1):
-            self._i += 1
-
 
     def call_fromll_async(self, lat, lon):
         '''Converts GNSS goal to a geometry_msgs/msg/Point using the robot_localization FromLL service.'''
@@ -230,9 +229,10 @@ class WaypointNavigator(Node):
         # 📝 Create waypoint
         try:
             self._waypoints.append(self.create_waypoint(result.map_point))
+            self._i += 1
             self.load_gui_waypoints()
-        except Exception:
-            self.get_logger().error('❌ Failed to convert GNSS goal to Nav2 goal. Exiting.')
+        except Exception as e:
+            self.get_logger().error(f'❌ Failed to convert GNSS goal to Nav2 goal: {e}')
 
     def create_waypoint(self, point):
         '''Creates a waypoint from a geometry_msgs/msg/Point.'''
@@ -301,7 +301,7 @@ class WaypointNavigator(Node):
 
     def send_goal_async(self):
         '''Sends the waypoints asynchronously to the URC2025Navigator action server.'''
-        self.call_led_async((255, 0, 0))
+        # self.call_led_async((255, 0, 0)) TODO: UNCOMMENT TO ENABLE LED
         
         goal_msg = URC2025Navigator.Goal()
         goal_msg.poses = self._waypoints  # List of PoseStamped
@@ -329,7 +329,7 @@ class WaypointNavigator(Node):
         if result.status == GoalStatus.STATUS_SUCCEEDED:
             # Publish ARRIVED status and change LED color to flashing green when navigation is successful
             self.status_callback(3)
-            self.call_led_async((0, 255, 0), flash=True)
+            # self.call_led_async((0, 255, 0), flash=True) TODO: UNCOMMENT TO ENABLE LED
             self.get_logger().info('✅ Navigation through all waypoints succeeded!')
         elif result.status == GoalStatus.STATUS_CANCELED:
             self.get_logger().warn('⚠️ Navigation was canceled before completion.')
@@ -372,7 +372,7 @@ class WaypointNavigator(Node):
             pose.pose.orientation.z = wp['orientation']['z']
             pose.pose.orientation.w = wp['orientation']['w']
             waypoints.append(pose)
-            self.get_logger().info(f'📍 Loaded {GOAL_TYPES[self._types[self._i]]} Waypoint {idx+1}: ({pose.pose.position.x}, {pose.pose.position.y})')
+            self.get_logger().info(f'📍 Loaded {GOAL_TYPES[self._types[idx]]} Waypoint {idx+1}: ({pose.pose.position.x}, {pose.pose.position.y})')
 
         return waypoints
 

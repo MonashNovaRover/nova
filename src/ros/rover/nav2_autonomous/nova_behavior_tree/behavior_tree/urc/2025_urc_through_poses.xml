@@ -22,8 +22,8 @@
                 <Sequence>
                   <GetCurrentPose current_pose="{current_pose}"/>
                   <RunOnce>
-                    <PlaceSearchGoals current_pose="{current_pose}"
-                                      search_radius="{search_radius}"
+                    <PlaceSearchGoals search_radius="{search_radius}"
+                                      current_pose="{current_pose}"
                                       input_goals="{goals}"
                                       output_goals="{goals}"/>
                   </RunOnce>
