@@ -452,7 +452,7 @@
 
   <!-- Replace all this with a end effector xacro file that is shared across waratah_arm and banksia_arm-->
   <!-- EEbase to Actuator transform for auto typing -->
-  <link name="actuator_frame"> <!-- Actuator head position when unextended but fingers are fully open-->
+  <link name="actuator"> <!-- Actuator head position when unextended but fingers are fully open-->
     <inertial>
       <origin xyz="-2.0984526232e-09 -1.7951021237e-09 3.6197018104e-02" rpy="0 0 0" />
       <mass value="0.00499493" />
@@ -460,10 +460,10 @@
     </inertial>
   </link>
 
-  <joint name="actuator" type="fixed">
+  <joint name="actuator_j" type="fixed">
     <origin xyz="-0.006287977 0.159 -0.0075" rpy="0 1.5708 1.57072" />
     <parent link="rightfinger" />
-    <child link="actuator_frame" />
+    <child link="actuator" />
     <axis xyz="0 0 1" />
   </joint>
 

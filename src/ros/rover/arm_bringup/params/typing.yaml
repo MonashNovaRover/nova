@@ -11,10 +11,10 @@ keyboard_localiser:
     # base_frame: arm_link
 
     # (manual) keyboard alignment params
-    aligned_keyboard_position: [0.0,-1.0,0.5]
-    aligned_keyboard_quaternion: [6.1327e-06, 0.70713, -0.70708, 3.5358e-06] #[0.0,0.0,-0.7071081,0.7071055]
-    key_quaternion: [6.1327e-06, 0.70713, -0.70708, 3.5358e-06]
-    # relative to base_frame
+    aligned_keyboard_position: [1.0,0.0,0.6]
+    aligned_keyboard_quaternion: [ -0.5, 0.5, -0.5, 0.5 ]
+    key_quaternion: [0.0, 0.0, 0.0, 1.0]
+    key_offset: 10.0
 
     # calibrated camera intrinsics
     hfov: 61.3727248
@@ -39,6 +39,8 @@ typing_sequencer:
     # base_frame: arm_link
     ee_frame: endeffector_kinematics
     actuator_frame: actuator
+
+    target_quaternion: [ 1.0, 0.0, 0.0, 0.0000463 ]
 
     timeout: 2.0
     pollrate: 10.0
