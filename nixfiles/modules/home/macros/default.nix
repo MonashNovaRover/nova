@@ -111,7 +111,7 @@ in
           launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
           launch-science-arc = "~/Builds/master/bin/ros2 launch nova_bringup arc_science.launch.py";
           launch-science-urc = "~/Builds/master/bin/ros2 launch nova_bringup urc_science.launch.py";
-          launch-theta-orin = "sudo LANG=C ~/Builds/master/bin/ros2 run science urc_theta_360_cam.py"
+          launch-theta-orin = "sudo LANG=C ~/Builds/master/bin/ros2 run science urc_theta_360_cam.py";
 
           # Cameras
           launch-cameras = "~/Builds/master/bin/ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params'";
