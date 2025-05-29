@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NOVA_BEHAVIOR_TREE__PLUGINS__CONDITION__ARE_POSES_NEAR_CONDITION_HPP_
-#define NOVA_BEHAVIOR_TREE__PLUGINS__CONDITION__ARE_POSES_NEAR_CONDITION_HPP_
+#ifndef NOVA_BEHAVIOR_TREE__PLUGINS__CONDITION__ENABLE_DETECTION_CONDITION_HPP_
+#define NOVA_BEHAVIOR_TREE__PLUGINS__CONDITION__ENABLE_DETECTION_CONDITION_HPP_
 
 #include <string>
 #include <memory>
@@ -30,22 +30,24 @@ namespace nova_behavior_tree
  * @brief A BT::ConditionNode that returns SUCCESS when a specified goal
  * is reached and FAILURE otherwise
  */
-class ArePosesNearCondition : public BT::ConditionNode
+class EnableDetectionCondition : public BT::ConditionNode
 {
 public:
+  typedef geometry_msgs::msg::PoseStamped Goal;
+
   /**
-   * @brief A constructor for nav2_behavior_tree::ArePosesNearCondition
+   * @brief A constructor for nav2_behavior_tree::EnableDetectionCondition
    * @param condition_name Name for the XML tag for this node
    * @param conf BT node configuration
    */
-  ArePosesNearCondition(
+  EnableDetectionCondition(
     const std::string & condition_name,
     const BT::NodeConfiguration & conf);
 
   /**
-   * @brief A destructor for nav2_behavior_tree::ArePosesNearCondition
+   * @brief A destructor for nav2_behavior_tree::EnableDetectionCondition
    */
-  ~ArePosesNearCondition() override = default;
+  ~EnableDetectionCondition() override = default;
 
   /**
    * @brief The main override required by a BT action
@@ -71,20 +73,22 @@ public:
   static BT::PortsList providedPorts()
   {
     return {
-      BT::InputPort<geometry_msgs::msg::PoseStamped>("ref_pose", "Destination"),
-      BT::InputPort<geometry_msgs::msg::PoseStamped>("target_pose", "Destination"),
       BT::InputPort<std::string>("global_frame", "Global frame"),
-      BT::InputPort<double>("tolerance", 0.5, "Tolerance")
+      BT::InputPort<Goal>("current_pose", "Rover pose"),
+      BT::InputPort<Goal>("target_pose", "Final goal pose"),
+      BT::InputPort<double>("tolerance", 10.0, "Search radius"), 
+      BT::OutputPort<bool>("detection", "Do I try detect goals?")
     };
   }
 
 private:
   rclcpp::Node::SharedPtr node_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
-  double transform_tolerance_;
   std::string global_frame_;
+  double transform_tolerance_;
+  bool detection_;
 };
 
 }  // namespace nova_behavior_tree
 
-#endif  // NOVA_BEHAVIOR_TREE__PLUGINS__CONDITION__ARE_POSES_NEAR_CONDITION_HPP_
+#endif  // NOVA_BEHAVIOR_TREE__PLUGINS__CONDITION__ENABLE_DETECTION_CONDITION_HPP_

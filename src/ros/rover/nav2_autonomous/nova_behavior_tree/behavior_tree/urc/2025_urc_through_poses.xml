@@ -12,7 +12,7 @@
                           default_planner="GridBased"
                           selected_planner="{selected_planner}"/>
         <BlackboardPublisher topic_name="blackboard"
-                            keys="goals,type,status"
+                            keys="goals,type,status,detection"
                             publish_frequency="1"/>
         <RateController hz="1.0">
           <RecoveryNode name="ComputePathThroughPoses"
@@ -21,6 +21,12 @@
               <ForceSuccess _skipIf="type == 0">
                 <Sequence>
                   <GetCurrentPose current_pose="{current_pose}"/>
+                  <ForceSuccess>
+                    <EnableDetection current_pose="{current_pose}"
+                                    target_pose="{target_pose}"
+                                    tolerance="{search_radius}"
+                                    detection="{detection}"/>
+                  </ForceSuccess>
                   <RunOnce>
                     <PlaceSearchGoals search_radius="{search_radius}"
                                       search_corners="3"
@@ -28,7 +34,7 @@
                                       input_goals="{goals}"
                                       output_goals="{goals}"/>
                   </RunOnce>
-                  <Sequence>
+                  <Sequence _skipIf="!detection">
                     <ARTagDetected _skipIf="type != 1"
                                     detections_topic="/aruco_detections"
                                     min_detections="2"

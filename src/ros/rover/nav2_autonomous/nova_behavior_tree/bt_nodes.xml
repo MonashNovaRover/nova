@@ -119,6 +119,13 @@
     </Action>
 
     <!-- ############################### CONDITION NODES ############################## -->
+    <Condition ID="EnableDetection">
+      <input_port name="current_pose"></input_port>
+      <input_port name="target_pose"></input_port>
+      <input_port name="search_radius"></input_port>
+      <output_port name="detection"></output_port>
+    </Condition>
+
     <Condition ID="CubeDetected">
       <input_port name="visited_ids">visited_ids[i] = true if visited, false otherwise</input_port>
       <output_port name="current_pose">The current pose of the rover</output_port>
