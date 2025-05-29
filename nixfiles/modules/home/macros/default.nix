@@ -172,6 +172,7 @@ in
           launch-nav = "~/Builds/master/bin/ros2 launch auto_bringup navigation.launch.py";
           launch-teleop = "~/Builds/master/bin/ros2 launch telop_drive_joy teleop.launch.py";
           launch-rviz = "~/Builds/master/bin/ros2 launch auto_bringup rviz.launch.py";
+          gui-oak = "~/Builds/master/bin/ros2 launch auto_bringup oak-gui.launch.py";
 
           # GPS Alias
           launch-gps = "~/Builds/master/bin/ros2 launch nova_bringup gps_rover.launch.py gps_params:=/home/nova/nova/src/ros/rover/nova_bringup/params/gps.yaml";
