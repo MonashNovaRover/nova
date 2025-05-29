@@ -42,7 +42,7 @@ def launch_setup(context, *args, **kwargs):
                 ('/out','/oak/rgb/gui')], # ros camera topic for gui
         ),
         Node(
-            condition=IfCondition(front),
+            condition=IfCondition(back),
             package='image_transport',
             executable='republish',
             parameters=[{
