@@ -16,6 +16,7 @@
   pluginlib,
   robot-localization,
   image-view,
+  image-transport,
   navigation2,
   depthai-ros,
   rtabmap-ros,
@@ -27,6 +28,7 @@
   nova-gazebo,
   nova-auto-interfaces,
   nova-bt-navigators,
+  nova-cameras2,
   rviz-imu-plugin,
   rviz-satellite, 
   imu-transformer,
@@ -67,6 +69,7 @@ buildRosPackage rec {
       pluginlib
       robot-localization
       image-view
+      image-transport
       navigation2
       depthai-ros
       rtabmap-ros
@@ -78,6 +81,7 @@ buildRosPackage rec {
       nova-gazebo
       nova-auto-interfaces
       nova-bt-navigators
+      nova-cameras2
       rviz-imu-plugin
       rviz-satellite
       nova-pivot-drive-controller
