@@ -5,7 +5,7 @@ import { RosAction } from "../../../ros/actions/RosAction.ts";
 import { IRosNovaInterfacesPumpsActionFeedback, IRosNovaInterfacesPumpsActionGoal, IRosNovaInterfacesPumpsActionResult } from "../../../ros/rosTypes.ts";
 import { useRosAction } from "../../../hooks/ros/useRosAction.ts";
 import toast from "react-hot-toast";
-import {ChevronDown, Search, Square} from "react-feather";
+import {Database, Search, Square} from "react-feather";
 
 export interface PumpsWidgetProps extends CardProps {}
 
@@ -118,7 +118,7 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
         value={actionSent && selectedPumpIndex === 0 && pumpsFeedback ? pumpsFeedback.time_running : 0}
         maxValue={actionSent && pumpsFeedback ? pumpsFeedback.time_to_run : 1}
       />
-      <ChevronDown className="w-20"/>
+      <Database className="w-20"/>
       <Progress
         color="secondary"
         value={actionSent && selectedPumpIndex !== 0 && pumpsFeedback ? pumpsFeedback.time_running : 0}
@@ -139,7 +139,7 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
         {progressBar}
 
         <div className="flex flex-row justify-around">
-          <div className="w-40 h-10 text-center">
+          <div className="w-40 text-center">
             <span>{actionSent && selectedPumpIndex === 0 && pumpsFeedback ? pumpsFeedback.time_running.toFixed(2) + " / " : "0 / 0s"}</span>
             <span>{actionSent && selectedPumpIndex === 0 && pumpsFeedback ? pumpsFeedback.time_to_run.toFixed(2) + "s" : ""}</span>
           </div>

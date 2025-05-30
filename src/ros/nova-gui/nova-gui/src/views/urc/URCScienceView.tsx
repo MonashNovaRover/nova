@@ -33,7 +33,6 @@ const URCScienceView: React.FC = () => {
       </div>
 
       <div className="flex flex-col gap-3 col-span-2">
-        <SerialMappedCameraComponent cameraSerial={CameraSerials.SCIENCE_GIMBAL}/>
         <SerialMappedCameraComponent cameraSerial={CameraSerials.SCIENCE_MICROSCOPE}/>
         <CameraControlModalButton/>
       </div>
