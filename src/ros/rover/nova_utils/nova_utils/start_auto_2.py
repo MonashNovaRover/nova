@@ -11,9 +11,9 @@ reload the waypoints to restart navigation.
 NODE: WaypointNavigator
 TOPICS:
     - subscriber: /blackboard                   [std_msgs/msg/String]
-    - publisher: /auto/status             [nova_interfaces/msg/Status]
+    - subscriber: /gps_rover/fix                [sensor_msgs/msg/NavSatFix]
+    - publisher: /auto/status                   [nova_interfaces/msg/Status]
 SERVICES:
-    - client: /fromLL                           [robot_localization/srv/FromLL]
     - client: /set_RGBInput                     [nova_interfaces/srv/RGBInput]
     - service: /autonomous/cartographer_command [nova_interfaces/srv/CartographerCommand]
 ACTIONS: 
@@ -42,8 +42,8 @@ from nova_interfaces.msg import Status
 from nova_interfaces.action import URC2025Navigator
 from nova_interfaces.srv import CartographerCommand, RGBInput
 from action_msgs.msg import GoalStatus
+from sensor_msgs.msg import NavSatFix
 from visualization_msgs.msg import Marker, MarkerArray
-from robot_localization.srv import FromLL
 from tf2_ros import Buffer, TransformListener
 from tf_transformations import quaternion_from_euler
 import json
@@ -52,6 +52,7 @@ import sys
 import time
 import math
 from typing import Tuple
+from geographiclib.geodesic import Geodesic
 
 # Goal types
 # GNSS = 0
@@ -85,6 +86,8 @@ class WaypointNavigator(Node):
         self._search_radii = [0, self._ar_tag_search_radius, self._object_search_radius]
         self._blackboard = dict() # Dictionary to store blackboard data
         self._goal_handle = None
+        self._ref_lat = None
+        self._ref_lon = None
 
         # 📝 Create TF listener to get rover position in create_waypoint()
         self.tf_buffer = Buffer()
@@ -97,14 +100,6 @@ class WaypointNavigator(Node):
             self.get_logger().error('❌ Action service /urc_2025_navigator not available. Exiting.')
             return
         self.get_logger().info('✅ Action service /urc_2025_navigator available!')
-
-        # 📝 Create service client for robot_localization FromLL
-        self._fromll_client = self.create_client(FromLL, '/fromLL')
-        self.get_logger().info('⏳ Waiting for /fromLL server...')
-        if not self._fromll_client.wait_for_service(timeout_sec=10.0):
-            self.get_logger().error('❌ Service /fromLL not available. Exiting.')
-            return
-        self.get_logger().info('✅ Service /fromLL available!')
 
         # 📝 Create service client for LED control
         self._led_client = self.create_client(RGBInput, '/set_RGBInput')
@@ -120,8 +115,12 @@ class WaypointNavigator(Node):
         # 📝 Save waypoints
         self._sub_blackboard = self.create_subscription(String, '/blackboard', self.blackboard_callback, QoSPresetProfiles.SENSOR_DATA.value)
         self.get_logger().info('✅ Subscriber /blackboard created!')
+        
+        # 📝 Get rover GPS
+        self._sub_gps = self.create_subscription(NavSatFix, '/gps_rover/fix', self.gps_callback, QoSPresetProfiles.SENSOR_DATA.value)
+        self.get_logger().info('✅ Subscriber /gps_rover/fix created!')
 
-        # Create publisher for navigation status
+        # 📝 Create publisher for navigation status
         self._status_pub = self.create_publisher(Status, self._status_topic, QoSPresetProfiles.SENSOR_DATA.value)
         self.get_logger().info(f'✅ Publisher {self._status_topic} created!')
 
@@ -163,8 +162,13 @@ class WaypointNavigator(Node):
         status = int(self._blackboard.get('status', 0))  # Default to 0 if not found
         self.status_callback(status)
 
+    def gps_callback(self, msg):
+        if self._ref_lat is None or self._ref_lon is None:
+            self._ref_lat = msg.latitude
+            self._ref_lon = msg.longitude
+            self.get_logger().info(f'📍 Reference GPS set to: ({self._ref_lat}, {self._ref_lon})')
 
-    def status_callback(self, status: int) -> None:
+    def status_callback(self, status):
         '''Publishes the current navigation status to the status topic.'''
         status_msg = Status()
         status_msg.status = status
@@ -231,39 +235,32 @@ class WaypointNavigator(Node):
 
     def load_gui_waypoints(self):
         '''Loads waypoints from GUI and converts them into PoseStamped messages.'''
-        self.get_logger().info(f'⌛ {len(self._waypoints)}/{len(self._goals)} waypoints created...')
-        if len(self._waypoints) >= len(self._goals):
-            self.get_logger().info('✅ All waypoints loaded from GUI.')
-            self.start_navigation()
-            return
-
         try:
-            # 📝 Convert GNSS goal to Nav2 goal
-            goal = self._goals[len(self._waypoints)]
-            self.call_fromll_async(goal.latitude, goal.longitude)
+            # 📝 Convert GNSS goals to Nav2 goals
+            for goal in self._goals:
+                self.fromll(goal.latitude, goal.longitude)
         except Exception as e:
             self.get_logger().error(f'❌ Failed to load GUI waypoints: {e}')
 
-    def call_fromll_async(self, lat, lon):
-        '''Converts GNSS goal to a geometry_msgs/msg/Point using the robot_localization FromLL service.'''
-        fromll_req = FromLL.Request()
-        fromll_req.ll_point.latitude = lat
-        fromll_req.ll_point.longitude = lon
-        self.get_logger().info(f'🚀 Sending GNSS goal {lat}, {lon} to /fromLL...')
-        future = self._fromll_client.call_async(fromll_req)
-        future.add_done_callback(self.result_fromll_callback)
-    
-    def result_fromll_callback(self, future):
-        result = future.result()
-        # 📝 Create waypoint
-        try:
-            wp = self.create_waypoint(result.map_point)
-            self._waypoints.append(wp)
-            i = len(self._waypoints) - 1  # Current waypoint index
-            self.get_logger().info(f'📍 Loaded {GOAL_TYPES[self._types[i]]} Waypoint {i+1}: ({wp.pose.position.x}, {wp.pose.position.y})')
-            self.load_gui_waypoints()  # Load next waypoint
-        except Exception as e:
-            self.get_logger().error(f'❌ Failed to convert GNSS goal to Nav2 goal: {e}')
+        self.get_logger().info('✅ All waypoints loaded from GUI.')
+        self.start_navigation()
+
+    def fromll(self, lat, lon):
+        # 📝 Convert LL to local Cartesian using Geodesic (ENU approximation)
+        g = Geodesic.WGS84.Inverse(self._ref_lat, self._ref_lon,
+                              lat, lon)
+        azimuth = g['azi1']
+        distance = g['s12']
+
+        point = Point()
+        point.x = distance * math.sin(math.radians(azimuth))
+        point.y = distance * math.cos(math.radians(azimuth))
+        point.z = 0.0
+
+        wp = self.create_waypoint(point)
+        self._waypoints.append(wp)
+        i = len(self._waypoints) - 1 
+        self.get_logger().info(f'📍 Loaded {GOAL_TYPES[self._types[i]]} Waypoint {i+1}: ({wp.pose.position.x}, {wp.pose.position.y})')
 
     def create_waypoint(self, point):
         '''Creates a waypoint from a geometry_msgs/msg/Point.'''

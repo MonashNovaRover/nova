@@ -72,7 +72,8 @@ nova_twistmapper:
       - arm_j4
       - arm_j5
       - arm_j6
-    kinematics_solver: "kdl_kinematics_plugin/KDLKinematicsPlugin"
+    # kinematics_solver: "kdl_kinematics_plugin/KDLKinematicsPlugin"
+    # kinematics_solver: "waratah_kinematics_plugin/WaratahKinematicsPlugin"
     kinematics_solver_timeout: 0.02
     kinematics_base_frame: "arm_link"
     kinematics_endeffector_frame: "endeffector_kinematics"
@@ -88,6 +89,7 @@ nova_path_planner:
       - arm_j5
       - arm_j6
     kinematics_solver: "kdl_kinematics_plugin/KDLKinematicsPlugin"
+    # kinematics_solver: "waratah_kinematics_plugin/WaratahKinematicsPlugin"
     kinematics_solver_timeout: 1.0
     kinematics_base_frame: "arm_link"
     add_allowed_collisions_to_srdf: true
