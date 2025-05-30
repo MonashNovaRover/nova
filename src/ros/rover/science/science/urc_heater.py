@@ -126,8 +126,6 @@ class URCHeater(ControllerNode):
 
     def check_temp(self, temp: int):
         """ Turn off the kiln if the temperature has been reached """
-        self.get_logger().info(f"target temp: {self.target_temp} | current dirt temp: {temp}")
-
         if self.target_temp > temp:
             self.heater1.update_velocity(self.ON)
             self.heater2.update_velocity(self.ON)
