@@ -95,7 +95,7 @@ def launch_setup(context, *args, **kwargs):
                     package='imu_transformer',
                     plugin='imu_transformer::ImuTransformer',
                     name=f'{front_name}_imu_transformer_node',
-                    remappings=[('/imu_in', f'/{front_name}/imu/fused'),
+                    remappings=[('/imu_in', f'/{front_name}/imu/data'),
                                 ('/imu_out', f'/{front_name}/imu/transformed')],
                     parameters=[{'target_frame': f'{front_name}_imu_frame'}]
                 ),
@@ -159,7 +159,7 @@ def launch_setup(context, *args, **kwargs):
                     package='imu_transformer',
                     plugin='imu_transformer::ImuTransformer',
                     name=f'{back_name}_imu_transformer_node',
-                    remappings=[('/imu_in', f'/{back_name}/imu/fused'),
+                    remappings=[('/imu_in', f'/{back_name}/imu/data'),
                                 ('/imu_out', f'/{back_name}/imu/transformed')],
                     parameters=[{'target_frame': f'{back_name}_imu_frame'}]
                 ),
@@ -235,7 +235,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='mag',
-            default_value='True',
+            default_value='False',
             description='',
         ),
         DeclareLaunchArgument(

@@ -119,7 +119,7 @@ local_costmap:
       # sqrt((wheel_base / 2 + wheel_radius)^2 + (steering_track / 2 + wheel_radius)^2)
       robot_radius: 0.85
       track_unknown_space: False
-      plugins: ["rtabmap_layer", "denoise_layer", "inflation_layer"] # haven't added static map yet'
+      plugins: ["denoise_layer", "inflation_layer"] # haven't added static map yet'
       rtabmap_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
@@ -185,7 +185,7 @@ global_costmap:
       footprint: "[[0.76, 0.68], [0.76, -0.68], [-0.76, -0.68], [-0.76, 0.68]]"
       resolution: 0.05
       track_unknown_space: false
-      plugins: ["static_layer", "rtabmap_layer", "denoise_layer", "inflation_layer"]
+      plugins: ["static_layer", "denoise_layer", "inflation_layer"]
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"
         enabled: True
@@ -211,7 +211,7 @@ planner_server:
     use_sim_time: False
     planner_plugins: ["GridBased"]
 
-    GridBased:
+    SMAC:
       allow_reverse_expansion:
         false # If true, allows the robot to use the primitives to expand in the mirrored opposite direction of the current robot's orientation (to
         # reverse).
@@ -254,9 +254,9 @@ planner_server:
       terminal_checking_interval: 5000 # Number of iterations between checking if the goal has been cancelled or planner timed out
       tolerance: 0.25 # dist-to-goal heuristic cost (distance) for valid tolerance endpoints if exact goal cannot be found.
 
-    NavFn:
+    GridBased:
       plugin: "nav2_navfn_planner::NavfnPlanner"
-      tolerance: 0.5
+      tolerance: 1.0
       use_astar: true
       allow_unknown: true
 

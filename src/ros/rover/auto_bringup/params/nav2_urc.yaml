@@ -76,7 +76,7 @@ controller_server:
       plugin: # https://docs.nav2.org/configuration/packages/configuring-regulated-pp.html
         "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       desired_linear_vel: 
-        5.0
+        2.0
       lookahead_dist: # if use_velocity_scaled_lookahead_dist = false
         5.0
       min_lookahead_dist: # if use_velocity_scaled_lookahead_dist = true
@@ -86,7 +86,7 @@ controller_server:
       lookahead_time: # if use_velocity_scaled_lookahead_dist = true
         1.5
       rotate_to_heading_angular_vel: # if use_rotate_to_heading = true
-        3.0
+        1.0
       transform_tolerance: 
         0.1
       use_velocity_scaled_lookahead_dist: 
@@ -118,7 +118,7 @@ controller_server:
       rotate_to_heading_min_angle: # if use_rotate_to_heading = true
         0.785398
       max_angular_accel: # if use_rotate_to_heading = true
-        3.0
+        0.5
       use_cancel_deceleration: 
         true
       cancel_deceleration: # if use_cancel_deceleration = true
@@ -134,10 +134,10 @@ velocity_smoother:
     smoothing_frequency: 30.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [5.0, 0.0, 3.0]
-    min_velocity: [-5.0, 0.0, -3.0]
-    max_accel: [0.5, 0.0, 3.0]
-    max_decel: [-0.5, 0.0, -3.0]
+    max_velocity: [2.0, 0.0, 1.0]
+    min_velocity: [-2.0, 0.0, -1.0]
+    max_accel: [0.5, 0.0, 0.5]
+    max_decel: [-0.5, 0.0, -0.5]
     odom_topic: /odometry/local
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
