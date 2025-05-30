@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import AutoTypingKeyEntryWidget from "../../components/AutoTyping/AutoTypingKeyEntryWidget.tsx";
 import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCameraComponent.tsx";
-import KeyboardOverlayedCameraComponent from "../../components/CameraComponent/special/KeyboardOverlayedCameraComponent.tsx";
 import ArmTypingWidget from "../../components/ArmWidget/ArmTypingWidget.tsx";
 import {CameraSerials} from "../shared/CamerasPage/CameraPageConstants.tsx";
 import { useCameraStreamer } from "../../components/CameraComponent/hooks/useCameraStreamer";
@@ -19,8 +18,10 @@ const URCAutoTypingView: React.FC = () => {
     <div className="flex flex-col lg:flex-row gap-3">
       {/* Left Column (Col 1) */}
       <div className="flex flex-col gap-3 w-full lg:w-1/2">
-        <KeyboardOverlayedCameraComponent cameraSerial={CameraSerials.ARM_END_PERISCOPE}/>
-        <AutoTypingKeyEntryWidget showHelp={() => setInfoPanelOpen(true)}/>
+        <AutoTypingKeyEntryWidget 
+          cameraSerial={CameraSerials.ARM_END_PERISCOPE}
+          showHelp={() => setInfoPanelOpen(true)}
+          />
       </div>
 
       {/* Right Columns (Cols 2 + 3) */}

@@ -3,12 +3,17 @@ import {FC, useState, useEffect} from "react";
 import OverlayedCameraComponent from "./OverlayedCameraComponent.tsx";
 import {StreamingState} from "../hooks/useCameraStream.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
-import { RootState } from "../../../redux/RootState";
-import { useSelector } from "react-redux";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 
+interface IKeyboardOverlayedCameraComponentProps extends BaseCameraComponentProps {
+  cameraSerial: string;
+  keyboardPoints: number[];
+  overridePoints: number[];
+  camera_width: number;
+  camera_height: number;
+}
 
-export const KeyboardOverlayedCameraComponent: FC<BaseCameraComponentProps> = (props) => {
+export const KeyboardOverlayedCameraComponent: FC<IKeyboardOverlayedCameraComponentProps> = (props) => {
   const [showOverlay, setShowOverlay] = useState<boolean>(false)
 
   const bifrost = useBifrost({ topic: RosTopic.KEYBOARD_DATA });
@@ -16,10 +21,7 @@ export const KeyboardOverlayedCameraComponent: FC<BaseCameraComponentProps> = (p
     bifrost.syncWithTopic();
   }, [bifrost]);
 
-  const keyboardPoints = useSelector((state: RootState) => state.keyboardDataStore.points);
-  const camera_width = useSelector((state: RootState) => state.keyboardDataStore.width);
-  const camera_height = useSelector((state: RootState) => state.keyboardDataStore.height);
-  const polygonPoints = keyboardPoints.reduce<string[]>((acc:string[], val:number, idx:number, arr:number[]) => {
+  const polygonPoints = (points: number[]) => points.reduce<string[]>((acc:string[], val:number, idx:number, arr:number[]) => {
     if (idx % 2 === 0) acc.push(`${val},${arr[idx + 1]}`);
     return acc;
   }, []).join(" ");
@@ -28,13 +30,19 @@ export const KeyboardOverlayedCameraComponent: FC<BaseCameraComponentProps> = (p
     <div>
       <svg 
         className="absolute top-0 left-0 w-full h-full pointer-events-none"
-        viewBox={`0 0 ${camera_width} ${camera_height}`}
+        viewBox={`0 0 ${props.camera_width} ${props.camera_height}`}
         preserveAspectRatio="none"
       >
         <polygon
-          points={polygonPoints}
+          points={polygonPoints(props.keyboardPoints)}
           fill="none"
           stroke="red"
+          strokeWidth="2"
+        />
+        <polygon
+          points={polygonPoints(props.overridePoints)}
+          fill="none"
+          stroke="green"
           strokeWidth="2"
         />
       </svg>
