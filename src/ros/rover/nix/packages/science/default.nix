@@ -2,6 +2,7 @@
 , buildRosPackage
 , pythonPackages
 , ament-cmake
+, python3Packages
 , rclcpp
 , rclpy
 , geometry-msgs
@@ -33,6 +34,8 @@ buildRosPackage {
     pymodbus
     gphoto2
     opencv4
+    pyserial
+    python3Packages.minimalmodbus
   ] ++
   [
     nova-python-control
@@ -40,3 +43,12 @@ buildRosPackage {
     nova-camera-msgs
   ];
 }
+
+/*
+nix-shell -p 'with import /home/nova/nova/nixfiles { }; pkgs.ros.nova-workspace.override {
+	novaPackages = {
+		inherit (pkgs.ros)
+		nova-science
+	};
+}'
+*/

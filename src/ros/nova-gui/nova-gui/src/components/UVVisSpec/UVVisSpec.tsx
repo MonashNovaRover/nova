@@ -37,6 +37,7 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
   const bifrost = useBifrost({ topic: RosTopic.UV_VIS_SPEC });
   const luminance = useSelector((state: RootState) => state.uvVisSpecStore.luminance);
 
+
   const [blankLuminance, setBlankLuminance] = useGenericStore<number[]>("uvVisBlankStore");
   const saveBlankLuminance = () => {setBlankLuminance(luminance)};
 
@@ -45,11 +46,11 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
     : zip(luminance, blankLuminance)
         .map(([final, initial]) => -Math.log10(final! / initial!));
 
-  const [startWavelength, startWavelengthString, setStartWavelength] = useNumberField("UVVisSpec-startWavelength", 546.5);
-  const [startColumn, startColumnString, setStartColumn] = useNumberField("UVVisSpec-startCol", 0.213);
+  const [startWavelength, startWavelengthString, setStartWavelength] = useNumberField("UVVisSpec-startWavelength", 436);
+  const [startColumn, startColumnString, setStartColumn] = useNumberField("UVVisSpec-startCol", 0.486);
 
-  const [endWavelength, endWavelengthString, setEndWavelength] = useNumberField("UVVisSpec-endWavelength", 611.6);
-  const [endColumn, endColumnString, setEndColumn] = useNumberField("UVVisSpec-endColumn", 0.343);
+  const [endWavelength, endWavelengthString, setEndWavelength] = useNumberField("UVVisSpec-endWavelength", 604);
+  const [endColumn, endColumnString, setEndColumn] = useNumberField("UVVisSpec-endColumn", 0.643);
 
   const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
 
