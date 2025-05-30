@@ -80,7 +80,7 @@ class UVVisSpecPublisher(Node):
             return  # TODO: Allow reconnecting the camera
 
         camera_node = next((typing.cast(Camera, camera).node for camera in cameras.cameras if
-                            typing.cast(Camera, camera).serial == "science_spectroscope"), None)
+                            typing.cast(Camera, camera).serial == "mast_forward"), None)
         if camera_node:
             self.get_logger().info(f"uv_vis camera found at {camera_node}.")
         else:
