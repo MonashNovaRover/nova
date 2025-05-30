@@ -141,6 +141,7 @@ export interface RosServiceInterface {
     IRosNovaInterfacesKilnCommandRequest,
     IRosNovaInterfacesKilnCommandResponse
   >;
+
   [RosService.RGBInput]: RosServiceMessage<
       IRosNovaInterfacesRgbInputRequest,
       IRosNovaInterfacesRgbInputResponse
