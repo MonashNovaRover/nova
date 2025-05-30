@@ -1,4 +1,4 @@
-{ lib, 
+{ 
   buildRosPackage, 
   ament-cmake, 
   std-msgs, 
@@ -11,6 +11,7 @@
   yolo-msgs, 
   tf2-ros, 
   tf-transformations, 
+  pythonPackages, 
 }:
 
 buildRosPackage rec {
@@ -24,7 +25,7 @@ buildRosPackage rec {
   
   nativeBuildInputs = [ ament-cmake ];
   buildInputs = [ std-msgs nav-msgs ];
-  propagatedBuildInputs = [ 
+  propagatedBuildInputs = with pythonPackages; [ 
     vision-msgs 
     visualization-msgs 
     geometry-msgs 
@@ -34,5 +35,6 @@ buildRosPackage rec {
     yolo-msgs 
     tf2-ros 
     tf-transformations 
+    pythonPackages.geographiclib
   ];
 }
