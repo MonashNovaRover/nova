@@ -10,4 +10,5 @@
   pynmeagps = callPackage ./pynmeagps { };
   pyrtcm = callPackage ./pyrtcm { };
   pyubx2 = callPackage ./pyubx2 { };
+  minimalmodbus = callPackage ./minimalmodbus { };
 }

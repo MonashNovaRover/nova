@@ -11,9 +11,9 @@ SERVICES:
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:    science
-AUTHOR(S):	Felicity Matthews
+AUTHOR(S):	Felicity Matthews, Tash Lee
 CREATION:	20/05/2025
-EDITED:		24/05/2025
+EDITED:		30/05/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -105,22 +105,7 @@ class URCHeater(ControllerNode):
         float : Temperature in Celsius
         """
         try:
-            R0 = 10000
-
-            # 1. convert the voltage to resistance using the voltage divider formula
-            # Rt = (Vref * R0) / (Vref - Vout)
-            # where Vref is the reference voltage (3.3V), R0 is the known resistor value, and Vout is the measured voltage
-            Vref = 3.3
-            Vout = input / 4095 * Vref  # get percentage from 12 bit CAN information
-            R = (Vout * R0) / (Vref - Vout)
-
-            # 2. use the resistance value to calculate the temperature using the Steinhart-Hart equation
-            T0 = 298.15
-            B = 3977
-            kelvin_temp = 1 / (1 / T0 + (1 / B) * np.log(R / R0))
-
-            # 3. convert to celsius
-            c_temp = kelvin_temp - 273.15
+            c_temp = -0.0169*input + 80.797 # from James P's Calibration data & fit
             return c_temp
         except ZeroDivisionError:
             self.get_logger().info(f"Zero Division Error Occurred with input = {input}")
