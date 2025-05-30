@@ -267,6 +267,8 @@ URC2025Navigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr goal)
   // Initialize status 1 = TRAVERSING
   blackboard->set<uint8_t>("status", 1);
 
+  blackboard->set<double>("dist_to_goal", 100.0);
+
   return true;
 }
 
