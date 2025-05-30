@@ -84,6 +84,7 @@ class WaypointNavigator(Node):
         
         self._search_radii = [0, self._ar_tag_search_radius, self._object_search_radius]
         self._blackboard = dict() # Dictionary to store blackboard data
+        self._goal_handle = None
 
         # 📝 Create TF listener to get rover position in create_waypoint()
         self.tf_buffer = Buffer()
