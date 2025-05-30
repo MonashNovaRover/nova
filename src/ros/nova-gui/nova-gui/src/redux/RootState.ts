@@ -109,6 +109,7 @@ export interface RootState {
   scimbalStepSize : GenericStoreState<string>;
   targetTemp : GenericStoreState<number>;
   theta360CompassHeading : GenericStoreState<number>;
+  uvVisBlankStore : GenericStoreState<number[]>;
 
   batteryStore: IRosSensorMsgsBatteryState;
 
