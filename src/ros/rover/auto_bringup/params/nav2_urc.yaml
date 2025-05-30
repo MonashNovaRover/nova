@@ -73,51 +73,28 @@ controller_server:
       yaw_goal_tolerance: 6.28 # 360 degrees in radians.
       stateful: false # Whether to check for XY position tolerance after rotating to goal orientation in case of minor localization changes.
     FollowPath:
-      plugin: # https://docs.nav2.org/configuration/packages/configuring-rotation-shim-controller.html
-        "nav2_rotation_shim_controller::RotationShimController"
-      angular_dist_threshold: # Angle from goal heading to use RotationShimController
-        0.785398 # 45 degrees in radians
-      angular_disengage_threshold: # Angle from goal heading to use RegulatedPurePursuitController
-        0.523599 # 30 degrees in radians
-      forward_sampling_distance: 
-        0.5
-      rotate_to_heading_angular_vel:
-        0.5
-      max_angular_accel:
-        0.5
-      simulate_ahead_time:
-        1.0
-      rotate_to_goal_heading:
-        false
-      rotate_to_heading_once:
-        true
-      closed_loop:
-        true # TODO: I have a feeling this should be false
-      use_path_orientations:
-        true
-
-      primary_controller: # https://docs.nav2.org/configuration/packages/configuring-regulated-pp.html
+      plugin: # https://docs.nav2.org/configuration/packages/configuring-regulated-pp.html
         "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       desired_linear_vel: 
-        0.5
+        5.0
       lookahead_dist: # if use_velocity_scaled_lookahead_dist = false
-        3.0
+        5.0
       min_lookahead_dist: # if use_velocity_scaled_lookahead_dist = true
         0.3
       max_lookahead_dist: # if use_velocity_scaled_lookahead_dist = true
-        2.0
+        5.0
       lookahead_time: # if use_velocity_scaled_lookahead_dist = true
         1.5
-      # rotate_to_heading_angular_vel: # if use_rotate_to_heading = true
-      #   0.5
+      rotate_to_heading_angular_vel: # if use_rotate_to_heading = true
+        3.0
       transform_tolerance: 
         0.1
       use_velocity_scaled_lookahead_dist: 
         false
       min_approach_linear_velocity: 
-        0.1
+        0.5
       approach_velocity_scaling_dist: 
-        1.0
+        10.0
       use_collision_detection: 
         false
       max_allowed_time_to_collision_up_to_carrot: # if use_collision_detection = true
@@ -129,28 +106,28 @@ controller_server:
       regulated_linear_scaling_min_radius: # if use_regulated_linear_velocity_scaling = true
         0.5
       regulated_linear_scaling_min_speed: 
-        0.1
+        0.5
       use_fixed_curvature_lookahead: 
-        false
+        true
       curvature_lookahead_dist: 
-        2.0
+        1.0
       use_rotate_to_heading: 
-        true 
+        false 
       allow_reversing: 
         false
       rotate_to_heading_min_angle: # if use_rotate_to_heading = true
         0.785398
-      # max_angular_accel: # if use_rotate_to_heading = true
-      #   0.5
+      max_angular_accel: # if use_rotate_to_heading = true
+        3.0
       use_cancel_deceleration: 
-        false
+        true
       cancel_deceleration: # if use_cancel_deceleration = true
-        0.9
-      # max_robot_pose_search_dist: 
-      #   10.0 # Leave as default
+        0.5
+      max_robot_pose_search_dist: 
+        10.0 # Leave as default
       interpolate_curvature_after_goal: # if use_fixed_curvature_lookahead = true
-        false
-
+        true
+        
 velocity_smoother:
   ros__parameters:
     use_sim_time: False
