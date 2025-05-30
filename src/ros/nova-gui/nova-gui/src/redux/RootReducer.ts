@@ -319,6 +319,7 @@ export const reduxStores = {
   theta360CompassHeading: createGenericStore("theta360CompassHeading",180),
   theta360InputDistance: createGenericStore("theta360InputDistance",""),
   rgbLedStore: createGenericStore("rgbLedStore", { r: "0", g: "0", b: "0" }),
+  uvVisBlankStore: createGenericStore("uvVisBlankStore", []),
 };
 
 // all store reducers

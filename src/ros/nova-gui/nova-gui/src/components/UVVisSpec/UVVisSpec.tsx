@@ -27,6 +27,7 @@ import useGL from "../../hooks/webgl/gl/useGL.ts";
 import {max, zip} from "lodash";
 import useDownload from "../../hooks/useDownload.ts";
 import RamanLocalStorageSaveButton from "../RamanSpec/RamanLocalStorageSaveButton.tsx";
+import {useGenericStore} from "../../hooks/useGenericStore.ts";
 
 export interface UVVisSpecProps {
   onSave?: (points: number[][], name: string) => void,
@@ -36,7 +37,7 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
   const bifrost = useBifrost({ topic: RosTopic.UV_VIS_SPEC });
   const luminance = useSelector((state: RootState) => state.uvVisSpecStore.luminance);
 
-  const [blankLuminance, setBlankLuminance] = useState<number[]>([]);
+  const [blankLuminance, setBlankLuminance] = useGenericStore<number[]>("uvVisBlankStore");
   const saveBlankLuminance = () => {setBlankLuminance(luminance)};
 
   const blankLuminanceIsValid = luminance.length === blankLuminance.length;
