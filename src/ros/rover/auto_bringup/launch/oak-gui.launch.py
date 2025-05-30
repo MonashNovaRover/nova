@@ -35,10 +35,10 @@ def launch_setup(context, *args, **kwargs):
             package='image_transport',
             executable='republish',
             parameters=[{
-                'in_transport':'compressed', 
+                'in_transport':'theora', 
                 'out_transport':'raw'}],
             remappings=[
-                ('/in/compressed','/oak/rgb/image_raw/compressed'),
+                ('/in/theora','/oak/rgb/image_raw/theora'),
                 ('/out','/oak/rgb/gui')], # ros camera topic for gui
         ),
         Node(
@@ -46,16 +46,16 @@ def launch_setup(context, *args, **kwargs):
             package='image_transport',
             executable='republish',
             parameters=[{
-                'in_transport':'compressed', 
+                'in_transport':'theora', 
                 'out_transport':   'raw'}],
             remappings=[
-                 ('/in/compressed','/bootie/rgb/image_raw/compressed'),
+                 ('/in/theora','/bootie/rgb/image_raw/theora'),
                  ('/out','/bootie/rgb/gui')], # ros camera topic for gui
         ),
-        IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([cameras2_dir, 'ros_topic_streamer.launch.py'])),
-            launch_arguments={'signalling': signalling}.items(),
-        ),
+        # IncludeLaunchDescription(
+        #     launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([cameras2_dir, 'ros_topic_streamer.launch.py'])),
+        #     launch_arguments={'signalling': signalling}.items(),
+        # ),
     ]
 
 
