@@ -198,7 +198,7 @@ export const reduxStores = {
 
   uvVisSpecStore: createBifrostStore(
     { topic: RosTopic.UV_VIS_SPEC },
-    { luminance: [0,0,0] }
+    { luminance: [0,1,2,3,4,5,6,7,8,9,8,7,6,5,4] }
   ),
   uvVisLED1Store: createBifrostStore(
     { service: RosService.UV_VIS_LED_1 },
@@ -319,6 +319,7 @@ export const reduxStores = {
   theta360CompassHeading: createGenericStore("theta360CompassHeading",180),
   theta360InputDistance: createGenericStore("theta360InputDistance",""),
   rgbLedStore: createGenericStore("rgbLedStore", { r: "0", g: "0", b: "0" }),
+  uvVisBlankStore: createGenericStore("uvVisBlankStore", []),
 };
 
 // all store reducers
