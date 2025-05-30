@@ -84,9 +84,14 @@ const UVVisSpecGraph: React.FC<UVVisSpecGraphProps> = (props) => {
     <div className="grid grid-cols-[auto_1fr] grid-rows-[1fr_auto]">
       {yLabelsElement}
       <UVVisSpecGLGraph luminance={luminance}
-      wavelengthLineCount={props.wavelengthLabelCount}
-      percentageLineCount={props.percentageLabelCount}
-      onMouseMove={props.onMouseMove} gl={props.gl}></UVVisSpecGLGraph>
+        wavelengthLineCount={props.wavelengthLabelCount}
+        percentageLineCount={props.percentageLabelCount}
+        onMouseMove={props.onMouseMove}
+        startWavelength={props.startWavelength}
+        endWavelength={props.endWavelength}
+        gl={props.gl}
+      >
+      </UVVisSpecGLGraph>
       <div></div>
       {xLabelsElement}
       <div></div>
