@@ -24,7 +24,7 @@ import UVVisSpecGraph from "./UVVisSpecGraph.tsx";
 import {Settings} from "react-feather";
 import useNumberField from "./useNumberField.ts";
 import useGL from "../../hooks/webgl/gl/useGL.ts";
-import {max} from "lodash";
+import {max, zip} from "lodash";
 import useDownload from "../../hooks/useDownload.ts";
 import RamanLocalStorageSaveButton from "../RamanSpec/RamanLocalStorageSaveButton.tsx";
 
@@ -32,10 +32,17 @@ export interface UVVisSpecProps {
   onSave?: (points: number[][], name: string) => void,
 }
 
-
 const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
   const bifrost = useBifrost({ topic: RosTopic.UV_VIS_SPEC });
   const luminance = useSelector((state: RootState) => state.uvVisSpecStore.luminance);
+
+  const [blankLuminance, setBlankLuminance] = useState<number[]>([]);
+  const saveBlankLuminance = () => {setBlankLuminance(luminance)};
+
+  const blankLuminanceIsValid = luminance.length === blankLuminance.length;
+  const beerLambertZip = !blankLuminanceIsValid ? luminance
+    : zip(luminance, blankLuminance)
+        .map(([final, initial]) => -Math.log10(final! / initial!));
 
   const [startWavelength, startWavelengthString, setStartWavelength] = useNumberField("UVVisSpec-startWavelength", 546.5);
   const [startColumn, startColumnString, setStartColumn] = useNumberField("UVVisSpec-startCol", 0.213);
@@ -57,22 +64,25 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
     if (!props.onSave)
       return;
 
-    const maxLuminance = Math.max(max(luminance) ?? 441.67295593, 10);
+    const savedLuminance = beerLambertZip;
+
+    const maxLuminance = Math.max(max(savedLuminance) ?? 441.67295593, 10);
 
     // [x, y] points to return
-    const points = luminance.map((lum, i) => (
-      [colToWavelength((i) / (luminance.length-1)), lum / maxLuminance]
+    const points = savedLuminance.map((lum, i) => (
+      [colToWavelength((i) / (savedLuminance.length-1)), lum / maxLuminance]
     ))
 
     props.onSave(points, graphName);
-  }, [colToWavelength, luminance, props])
+  }, [colToWavelength, beerLambertZip, props])
 
   const download = useDownload("uv-vis-spec.csv", () => {
-    const maxLuminance = Math.max(max(luminance) ?? 441.67295593, 10);
+    const savedLuminance = beerLambertZip;
+    const maxLuminance = Math.max(max(savedLuminance) ?? 441.67295593, 10);
 
     // [x, y] points to return
-    const points = luminance.map((lum, i) => (
-      [colToWavelength((i) / (luminance.length-1)), lum / maxLuminance]
+    const points = savedLuminance.map((lum, i) => (
+      [colToWavelength((i) / (savedLuminance.length-1)), lum / maxLuminance]
     ));
 
     const lines = ["wavelength,intensity"];
@@ -80,7 +90,7 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
       lines.push(`${points[i][0]},${points[i][1]}`);
 
     return lines.join('\n');
-  }, [luminance, colToWavelength], { type: "text/csv;charset=utf-8" })
+  }, [beerLambertZip, colToWavelength], { type: "text/csv;charset=utf-8" })
 
   useEffect(() => {
     bifrost.syncWithTopic();
@@ -145,9 +155,21 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
     </Button>
   )
 
+  const blankButtons = (
+    <div className="flex flex-row gap-3 items-end">
+
+      <Button color={"primary"} size="sm" onPress={saveBlankLuminance}>
+        Set Blank
+      </Button>
+      <Button color={"default"} size="sm" onPress={() => {setBlankLuminance([])}}>
+        Clear Blank
+      </Button>
+    </div>
+  );
+
   const chart = (
     <UVVisSpecGraph
-      luminance={luminance}
+      luminance={beerLambertZip}
       colEndPercent={0.95}
       colStartPercent={0.05}
       wavelengthLabelCount={11}
@@ -173,7 +195,10 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
       </CardHeader>
       <CardBody>
         {chart}
-        <RamanLocalStorageSaveButton onSave={onSave} onCSVSave={download}></RamanLocalStorageSaveButton>
+        <div className="flex flex-row gap-3">
+          {blankButtons}
+          <RamanLocalStorageSaveButton onSave={onSave} onCSVSave={download}></RamanLocalStorageSaveButton>
+        </div>
       </CardBody>
       {modal}
     </Card>
