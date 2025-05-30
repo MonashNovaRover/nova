@@ -12,6 +12,7 @@ import {
   IRosNovaInterfacesRamanSpectrum,
   IRosBlcmdInterfacesTelemetry,
   IRosStdMsgsString,
+  IRosStdMsgsBool,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
   IRosCmdInterfacesCmDsFeedback,
@@ -24,7 +25,13 @@ import {
   IRosNovaInterfacesBmeSensor,
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
-  IRosNovaInterfacesRoverPoseGps,
+  IRosArmInterfacesStringTriggerResponse,
+  IRosArmInterfacesKeyboardPoints,
+  IRosNovaInterfacesCartographerCommandResponse,
+  IRosNovaInterfacesStatus,
+  IRosSensorMsgsNavSatFix,
+  IRosArmInterfacesSequencerFeedback,
+
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -50,6 +57,9 @@ export interface RootState {
   // Arm Stores
   armTelemetryStore: IRosCmdInterfacesCmDsFeedback;
   rfidDataStore: IRosStdMsgsString;
+  keyboardTFTrigger: IRosArmInterfacesStringTriggerResponse;
+  keyboardDataStore: IRosArmInterfacesKeyboardPoints;
+  sequencerDataStore: IRosArmInterfacesSequencerFeedback;
 
   // Camera Stores
   camerasStore: IRosCameraMsgsCameras;
@@ -80,11 +90,15 @@ export interface RootState {
   hydraprobeData: IRosNovaInterfacesHydraprobeData;
   theta360CamStore: IRosSensorMsgsCompressedImage;
   bmeSensorStore: IRosNovaInterfacesBmeSensor;
+  auger1DepthSensorStore: IRosStdMsgsBool;
+  auger2DepthSensorStore: IRosStdMsgsBool;
 
   // Maps Related Stores
-  roverLocationStore: IRosNovaInterfacesRoverPoseGps;
-  baseLocationStore: IRosNovaInterfacesRoverPoseGps;
+  roverLocationStore: IRosSensorMsgsNavSatFix;
+  baseLocationStore: IRosSensorMsgsNavSatFix;
   cartographerState: CartographerState;
+  cartographerCommand: IRosNovaInterfacesCartographerCommandResponse;
+  autoStatus: IRosNovaInterfacesStatus;
 
   // Generic Stores
   currentSite: GenericStoreState<Site>;

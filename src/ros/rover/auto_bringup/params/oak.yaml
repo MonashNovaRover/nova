@@ -2,6 +2,7 @@
   ros__parameters:
     camera:
       i_nn_type: rgb
+      i_enable_sync: true
       i_enable_imu: true
       i_mx_id: 18443010315748F500 # Look for the O-Camera Sticker
       i_tf_parent_frame: base_link

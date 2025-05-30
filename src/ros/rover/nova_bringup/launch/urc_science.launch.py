@@ -13,10 +13,10 @@ NODES:
   - control/analysis_platform.py        [analysis_platform]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATION:   17/03/2024
-EDITED:     05/05/2025
+EDITED:     27/05/2025
 EDITED BY: Tristan Clark, Josh Leivenzon, 
     Victor Bartlinski, Felicity Matthews,
-    Brandon Chung
+    Brandon Chung, Connor Macdougall, Tash Lee
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 from launch import LaunchDescription
@@ -33,8 +33,10 @@ def launch_setup(context, *args, **kwargs):
     # parameterised canIDs
     auger1_drill_canid = LaunchConfiguration('auger1_drill_canid')
     auger1_actuation_canid = LaunchConfiguration('auger1_actuation_canid')
+    auger1_hall_sensor_canid = LaunchConfiguration('auger1_hall_sensor_canid')
     auger2_drill_canid = LaunchConfiguration('auger2_drill_canid')
     auger2_actuation_canid = LaunchConfiguration('auger2_actuation_canid')
+    auger2_hall_sensor_canid = LaunchConfiguration('auger2_hall_sensor_canid')
     analysis_arm_cmd_canid = LaunchConfiguration('analysis_arm_cmd_canid')
     cbeam_actuation_canid = LaunchConfiguration('cbeam_actuation_canid')
     cache1_canid = LaunchConfiguration('cache1_canid')
@@ -78,6 +80,7 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{
                 "auger_drill_canid": auger1_drill_canid,
                 "auger_actuation_canid": auger1_actuation_canid,
+                "auger_hall_sensor_canid": auger1_hall_sensor_canid,
                 "active": True,
                 "active_button": "btn_bottom_r1_state",
                 "inactive_button_pool": ["btn_bottom_r4_state"],
@@ -93,6 +96,7 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{
                 "auger_drill_canid": auger2_drill_canid,
                 "auger_actuation_canid": auger2_actuation_canid,
+                "auger_hall_sensor_canid": auger2_hall_sensor_canid,
                 "active": False,
                 "active_button": "btn_bottom_r4_state",
                 "inactive_button_pool": ["btn_bottom_r1_state"],
@@ -143,7 +147,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         Node(
             package='science',
-            executable='urc_hydraprobe.py',
+            executable='hydraprobe_trigger_node.py',
             output='screen',
             emulate_tty=True,
         ),
@@ -178,14 +182,28 @@ def launch_setup(context, *args, **kwargs):
             output='screen',
             emulate_tty=True,
         ),
+        Node(
+            package='science',
+            executable='nir_probe_publisher.py',
+            output='screen',
+            emulate_tty=True,
+        ),
+        Node(
+            package='science',
+            executable='scimbal_cam.py',
+            output='screen',
+            emulate_tty=True,
+        ),
     ]
 
 def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument("auger1_drill_canid", default_value='0x0C1'),
-        DeclareLaunchArgument("auger1_actuation_canid", default_value='0x0D2'),
+        DeclareLaunchArgument("auger1_actuation_canid", default_value='0x0D1'),
+        DeclareLaunchArgument("auger1_hall_sensor_canid", default_value='0x4A2'),
         DeclareLaunchArgument("auger2_drill_canid", default_value='0x0C2'),
         DeclareLaunchArgument("auger2_actuation_canid", default_value='0x0D2'),
+        DeclareLaunchArgument("auger2_hall_sensor_canid", default_value='0x4A3'),
         DeclareLaunchArgument("cbeam_actuation_canid", default_value='0x041'),
         DeclareLaunchArgument("analysis_arm_cmd_canid", default_value='0x042'),
         DeclareLaunchArgument("cache1_canid", default_value='0x0B0'),

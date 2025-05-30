@@ -40,11 +40,20 @@
       </ode>
     </physics>
 
-    <include>
-      <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Ground Plane
-      </uri>
-    </include>
+    <model name='ground'>
+      <static>true</static>
+      <link name="ground_link">
+        <collision name="ground_collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>500 500</size>
+            </plane>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
 
     <include>
       <uri>
@@ -59,10 +68,11 @@
       therefore we rotate the default frame 180 so that it would go back to ENU
       see: https://github.com/osrf/gazebo/issues/2022 -->
       <surface_model>EARTH_WGS84</surface_model>
-      <latitude_deg>38.406863</latitude_deg>
-      <longitude_deg>-110.791055</longitude_deg>
-      <elevation>1370.0</elevation>
-      <heading_deg>180</heading_deg>
+      <world_frame_orientation>ENU</world_frame_orientation>
+      <latitude_deg>38.367167</latitude_deg>
+      <longitude_deg>-110.714849</longitude_deg>
+      <elevation>1370.0192172613349</elevation>
+      <heading_deg>0</heading_deg>
     </spherical_coordinates>
 
     <!-- Random features for visual odometry and obstacle avoidance -->
@@ -231,9 +241,14 @@
       </link>
     </model>
 
-    <include>
+    <!-- <include>
       <uri>model://urc_objects/mallet</uri>
       <pose>0 0 1 0 0 0</pose>
+    </include> -->
+
+    <include>
+      <uri>model://ar_tag</uri>
+      <pose>10 0 0 0 0 0</pose>
     </include>
 
     <scene>

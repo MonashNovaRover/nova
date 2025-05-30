@@ -5,6 +5,8 @@ import {
   IRosBlcmdInterfacesBlcmdResetResponse,
   IRosNovaInterfacesMoveMicroscopeServoRequest,
   IRosNovaInterfacesMoveMicroscopeServoResponse,
+  IRosArmInterfacesTypeSequenceRequest,
+  IRosArmInterfacesTypeSequenceResponse,
   IRosStdSrvsTriggerResponse,
   IRosNovaInterfacesKilnCommandRequest,
   IRosNovaInterfacesKilnCommandResponse,
@@ -23,6 +25,8 @@ import {
   IRosNovaInterfacesRgbInputResponse,
   IRosNovaInterfacesCacheCommandRequest,
   IRosNovaInterfacesCacheCommandResponse,
+  IRosNovaInterfacesCartographerCommandRequest,
+  IRosNovaInterfacesCartographerCommandResponse,
   IRosNovaInterfacesMoveHydraprobeRequest,
   IRosNovaInterfacesMoveHydraprobeResponse,
 } from "../rosTypes";
@@ -38,8 +42,16 @@ interface EmptyMessage {}
 export interface RosServiceInterface {
   [RosService.NULL_SERVICE]: RosServiceMessage<EmptyMessage, EmptyMessage>;
   
-  
+  // Arm related
   [RosService.READ_RFID]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
+  [RosService.START_AUTO_TYPING]: RosServiceMessage<
+    IRosArmInterfacesTypeSequenceRequest,
+    IRosArmInterfacesTypeSequenceResponse
+  >;
+  [RosService.STOP_AUTO_TYPING]: RosServiceMessage<
     EmptyMessage,
     IRosStdSrvsTriggerResponse
   >;
@@ -118,8 +130,12 @@ export interface RosServiceInterface {
     IRosNovaInterfacesCacheCommandResponse
   >;
   [RosService.HEATER]: RosServiceMessage<
-      IRosStdSrvsSetBoolRequest,
-      IRosStdSrvsSetBoolResponse
+    IRosNovaInterfacesKilnCommandRequest,
+    IRosNovaInterfacesKilnCommandResponse
+  >;
+  [RosService.REQUEST_HYDRAPROBE_READING]: RosServiceMessage<
+      EmptyMessage,
+      IRosStdSrvsTriggerResponse
   >;
   [RosService.CAROUSEL]: RosServiceMessage<
     IRosNovaInterfacesKilnCommandRequest,
@@ -129,5 +145,11 @@ export interface RosServiceInterface {
   [RosService.RGBInput]: RosServiceMessage<
       IRosNovaInterfacesRgbInputRequest,
       IRosNovaInterfacesRgbInputResponse
+  >;
+
+  // Autonomous Related
+  [RosService.CARTOGRAPHER_COMMAND]: RosServiceMessage<
+    IRosNovaInterfacesCartographerCommandRequest,
+    IRosNovaInterfacesCartographerCommandResponse
   >;
 }

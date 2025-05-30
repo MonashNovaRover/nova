@@ -49,6 +49,10 @@ export enum CameraSerials {
   URC_SCIENCE_PAYLOAD_FRONT = "science_payload_front",
   URC_SCIENCE_PAYLOAD_DOWN = "science_payload_down",
   URC_ACTIVATED_NODES = "activated_nodes",
+  URC_SCIENCE_AUGER_DEPTH_SENSORS = "science_auger_depth_sensors",
+
+  AUTO_OAK = "oak-rgb",
+  AUTO_BOOTIE = "bootie-rgb",
 }
 
 export const allCams = [];
@@ -84,8 +88,6 @@ const arcScienceCams = [
 const urcScienceCams = [
   CameraSerials.URC_SCIENCE_CUVETTE,
   CameraSerials.SCIENCE_MICROSCOPE,
-  CameraSerials.URC_SCIENCE_PAYLOAD_DOWN,
-  CameraSerials.URC_SCIENCE_PAYLOAD_FRONT,
   CameraSerials.URC_SCIENCE_UV_VIS,
   CameraSerials.SCIENCE_GIMBAL,
 ]
@@ -183,7 +185,7 @@ export const autonomous_views: CameraView[] = [
 
 export const urc_autonomous_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams, ...driveCams],
+    cameraSerials: [...mastCams, ...driveCams, CameraSerials.AUTO_OAK, CameraSerials.AUTO_BOOTIE],
     viewTitle: "All Cams",
   },
   {
@@ -194,7 +196,8 @@ export const urc_autonomous_views: CameraView[] = [
 
 export const urc_science_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams, ...urcScienceCams, ...driveCams, CameraSerials.URC_ACTIVATED_NODES],
+    cameraSerials: [...mastCams, ...urcScienceCams, ...driveCams, CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS
+    ],
     viewTitle: "All Cams",
   },
   {

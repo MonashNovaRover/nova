@@ -20,11 +20,11 @@ camera_directory:
           '4.3:1.0': science_shotglass
           '4.4:1.0': science_rock_flipper
           '3:1.0': science_gantry
-        science_urc:
-          '1:1.0': science_spectroscope
-          '2:1.0': science_payload_down
+        science-urc:
+          '1:1.0': science_gimbal_cam
+          '2:1.0': science_microscope
+          '3:1.0': science_spectroscope
           '4.1:1.0': science_cuvettes
-          '4.3:1.0': science_microscope
         science_urc_mast:
           '1:1.0': mast_arm_stow
           '2:1.0': mast_down
@@ -35,6 +35,11 @@ camera_directory:
           '2:1.0': science_kiln           # science hub port 2
           '1:1.0': science_kiln_bottom    # science hub port 3
           '4:1.0': science_microscope     # science hub port 4  
+        arm_es:
+          '1:1.0': arm_end_finger
+          '2:1.0': arm_end_side
+          '3:1.0': arm_end_periscope
+          '4:1.0': arm_end_top
         arm:
           '1:1.0': arm_end_finger
           '2:1.0': arm_end_side

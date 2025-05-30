@@ -19,6 +19,8 @@ export const rosTopicMessages = {
   // Arm Related
   [RosTopic.ARM_TELEMETRY]: "cmd_interfaces/msg/CMDsFeedback",
   [RosTopic.RFID_DATA]: "std_msgs/msg/String",
+  [RosTopic.KEYBOARD_DATA]: "arm_interfaces/msg/KeyboardPoints",
+  [RosTopic.TYPE_SEQUENCE]: "arm_interfaces/msg/SequencerFeedback",
 
   // Cameras Related
   [RosTopic.CAMERAS]: "camera_msgs/msg/Cameras",
@@ -37,10 +39,13 @@ export const rosTopicMessages = {
   [RosTopic.RAMAN_SPEC_MSG]: "nova_interfaces/msg/RamanSpectrum",
   [RosTopic.RAMAN_MECH_MSG]: "nova_interfaces/msg/RamanState",
   [RosTopic.BME_SENSOR]: "nova_interfaces/msg/BMESensor",
+  [RosTopic.AUGER1_DEPTH_SENSOR]: "std_msgs/msg/Bool",
+  [RosTopic.AUGER2_DEPTH_SENSOR]: "std_msgs/msg/Bool",
 
   // Maps Related
-  [RosTopic.ROVER_LOCATION]: "nova_interfaces/msg/RoverPoseGPS",
-  [RosTopic.BASE_LOCATION]: "nova_interfaces/msg/RoverPoseGPS",
+  [RosTopic.ROVER_LOCATION]: "sensor_msgs/msg/NavSatFix",
+  [RosTopic.BASE_LOCATION]: "sensor_msgs/msg/NavSatFix",
+  [RosTopic.AUTO_STATUS]: "nova_interfaces/msg/Status",
 
   // Other
   [RosTopic.BATTERY_STATE]: "sensor_msgs/msg/BatteryState",

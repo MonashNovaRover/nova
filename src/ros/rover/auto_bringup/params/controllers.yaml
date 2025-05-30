@@ -106,4 +106,3 @@ nova_diff_drive_controller:
       x:
         max_acceleration: 5.0
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-

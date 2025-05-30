@@ -3,7 +3,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <gazebo>
         <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
-            <topic>dynamic_joints</topic>
+            <topic>joint_states</topic>
 
             <joint_name>blp</joint_name>
             <joint_name>brp</joint_name>

@@ -1,18 +1,22 @@
-{ lib
-, buildRosPackage
-, pythonPackages
-, std-srvs
-, sensor-msgs
-, rclpy
-, tf2-ros
-, visualization-msgs
-, vision-msgs
-, geometry-msgs
-, std-msgs
-, vision-opencv
-, image-geometry
-, launch
-, launch-ros
+{ lib, 
+  buildRosPackage, 
+  std-srvs, 
+  sensor-msgs, 
+  rclpy, 
+  tf2-ros, 
+  visualization-msgs, 
+  vision-msgs, 
+  geometry-msgs, 
+  std-msgs, 
+  vision-opencv, 
+  image-geometry, 
+  launch, 
+  launch-ros, 
+  python3Packages, 
+  opencv4, 
+  cv-bridge, 
+  message-filters, 
+  yolo-msgs, 
 }:
 
 buildRosPackage
@@ -27,17 +31,27 @@ buildRosPackage
   };
 
   propagatedBuildInputs = [
-    std-srvs
-    sensor-msgs
-    rclpy
-    tf2-ros
-    visualization-msgs
-    vision-msgs
-    geometry-msgs
-    std-msgs
-    vision-opencv
-    image-geometry
-    launch
-    launch-ros
+    std-srvs 
+    sensor-msgs 
+    rclpy 
+    tf2-ros 
+    visualization-msgs 
+    vision-msgs 
+    geometry-msgs 
+    std-msgs 
+    vision-opencv 
+    image-geometry 
+    launch 
+    launch-ros 
+    python3Packages.typing-extensions
+    python3Packages.pytorch
+    python3Packages.numpy
+    python3Packages.ultralytics
+    python3Packages.super-gradients
+    python3Packages.lap
+    opencv4 
+    cv-bridge 
+    message-filters 
+    yolo-msgs 
   ];
 }

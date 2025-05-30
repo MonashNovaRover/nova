@@ -10,6 +10,8 @@ export enum RosService {
 
   // Arm Related
   READ_RFID = "/electronics/rfid/read",
+  START_AUTO_TYPING = '/type_sequence/start',
+  STOP_AUTO_TYPING = '/type_sequence/stop',
 
   // Cameras Related
   START_CAMS = "/camera_streamer/stream/start",
@@ -33,6 +35,9 @@ export enum RosService {
   CACHE_2 = "/science/cache_command_2",
   HEATER = "/science/heater",
   CAROUSEL = "/science/carousel_service",
-
   RGBInput = "/set_RGBInput",
+  REQUEST_HYDRAPROBE_READING = "/science/request_hydraprobe_reading",
+
+  // Autononomous Related
+  CARTOGRAPHER_COMMAND = "/autonomous/cartographer_command",
 }

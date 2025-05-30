@@ -1,0 +1,51 @@
+# base_frame: old arm = arm_link, new arm = arm_kinematics_origin
+# handled in launch file
+
+keyboard_localiser:
+  ros__parameters:
+    # using auto or manual transform mode
+    #using_auto: true
+    debug_image: false
+    # key position initalisation params
+    keyboard_frame: keyboard_frame
+    # base_frame: arm_link
+
+    # (manual) keyboard alignment params
+    aligned_keyboard_position: [1.0,0.0,0.6]
+    aligned_keyboard_quaternion: [ -0.5, 0.5, -0.5, 0.5 ]
+    key_quaternion: [0.0, 0.0, 0.0, 1.0]
+    key_offset: 10.0
+
+    # calibrated camera intrinsics
+    hfov: 61.3727248
+    image_width: 640 #1280
+    image_height: 480 #720
+    distortion_matrix: [0.59680899,-2.13821558,-0.01071933,0.0900803,4.94332294]
+
+    # OpenCV filter params
+    dark_threshold: 120 # 0-255
+    kernel_size: 100
+
+    # (auto) keyboard pose analysis initalisation
+    camera_frame: arm_end_periscope_optical
+
+    # tf2 initalisation
+    tf_publish_rate: 1.0 # per second
+
+typing_sequencer:
+  ros__parameters:
+    # key position initalisation params
+    keyboard_frame: keyboard_frame
+    # base_frame: arm_link
+    ee_frame: endeffector_kinematics
+    actuator_frame: actuator
+
+    target_quaternion: [ 1.0, 0.0, 0.0, 0.0000463 ]
+
+    timeout: 2.0
+    pollrate: 10.0
+
+    # path planner movement
+    speed: 0.01 # m/s
+    debug_target: True
+    move_to_start: True # move arm back to starting position between each key

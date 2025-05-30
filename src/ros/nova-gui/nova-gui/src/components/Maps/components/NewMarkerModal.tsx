@@ -7,6 +7,8 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
+  Select,
+  SelectItem
 } from "@nextui-org/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState";
@@ -27,9 +29,13 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
   const [name, setName] = useState<string>();
   const [longitude, setLongitude] = useState("");
   const [latitude, setLatitude] = useState("");
+  const [goalType, setGoalType] = useState<number>(0);
 
-
-
+  const goalTypes = [
+    { key: 0, label: "GNSS" },
+    { key: 1, label: "AR Tag" },
+    { key: 2, label: "Object" },
+  ]
 
   const points = useSelector(
     (state: RootState) => state.cartographerState.points
@@ -50,6 +56,7 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
       const newPoint = {
         lat: Number(latitude),
         long: Number(longitude),
+        goalType: Number(goalType),
         name: !name || name === "" ? `Point ${points.length + 1}` : name,
       } as MapPoint
       props.addPoint(newPoint);
@@ -64,6 +71,7 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
   useEffect(() => {
       setLongitude(props.longitude?.toString() ?? "");
       setLatitude(props.latitude?.toString() ?? "");
+      setGoalType(0);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [props.isOpen]
@@ -112,6 +120,17 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
               }
             }}
           />
+          <Select
+            label="Goal Type"
+            defaultSelectedKeys={["0"]}
+            onChange={(e) => setGoalType(Number(e.target.value))}
+          >
+            {goalTypes.map((goalType) => (
+              <SelectItem key={goalType.key}>
+                {goalType.label}
+              </SelectItem>
+            ))}
+          </Select>
         </ModalBody>
         <ModalFooter>
           <Button fullWidth onClick={handleDropPin}>

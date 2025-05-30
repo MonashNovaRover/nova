@@ -13,6 +13,7 @@
 , pythonPackages
 , gst-bridge
 , glib-networking
+, sensor-msgs
 }:
 
 buildRosPackage {
@@ -60,13 +61,13 @@ buildRosPackage {
     launch-ros
     rclpy
     std-srvs
+    sensor-msgs
     nova-camera-msgs
 
     pythonPackages.pyudev
     pythonPackages.pygobject3
     pythonPackages.gst-python
     pythonPackages.psutil
-    pythonPackages.linuxpy
   ];
 
   nativeCheckInputs = [
@@ -78,9 +79,10 @@ buildRosPackage {
 
   #export GST_PLUGIN_PATH="${gst-bridge}/lib:$GST_PLUGIN_PATH"
   preFixup = ''
-    wrapGApp "$out/lib/cameras2/camera_streamer_service"
-
     export GST_PLUGIN_PATH="${gst-bridge}/lib:$GST_PLUGIN_PATH"
+
+    wrapGApp "$out/lib/cameras2/camera_streamer_service"\
+      --prefix GST_PLUGIN_PATH : "${gst-bridge}/lib"
     wrapGApp "$out/lib/cameras2/camera_ros_streamer"\
       --prefix GST_PLUGIN_PATH : "${gst-bridge}/lib"
   '';

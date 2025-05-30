@@ -7,7 +7,7 @@ GPS.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: gps_base
 TOPICS:
- - publisher: /gps_base/fix    [RoverPoseGPS]
+ - publisher: /gps_base/fix    [NavSatFix]
  - publisher: /gps_base/rtcm   [UInt8MultiArray]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
@@ -33,8 +33,8 @@ import re
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import UInt8MultiArray
-
-from nova_interfaces.msg import RoverPoseGPS
+from sensor_msgs.msg import NavSatFix
+from rclpy.qos import QoSPresetProfiles
 import logging
 
 
@@ -98,16 +98,16 @@ class GPSBase(Node):
 
         ### ROS2 ###
         self.pub_pose = self.create_publisher(
-            RoverPoseGPS, 
+            NavSatFix, 
             '/gps_base/fix', 
-            10, 
+            QoSPresetProfiles.SENSOR_DATA.value, 
         )
         self.pub_rtcm = self.create_publisher(
             UInt8MultiArray, 
             '/gps_base/rtcm', 
-            10, 
+            QoSPresetProfiles.SENSOR_DATA.value, 
         )
-        self.pose = RoverPoseGPS()
+        self.pose = NavSatFix()
         self.pose.header.frame_id = 'gps_base'
         self.timer = self.create_timer(0, self.loop)
 
@@ -250,11 +250,16 @@ class GPSBase(Node):
                     longtitude = float(match_lon.group(1))
 
                 if match_lat or match_lon:
-                    self.pose.valid = True
-                    self.pose.heading_valid = False # Not RTK mode. We don't have valid heading
+                    self.pose.status.status = 0
+                    self.pose.status.service = 0
+                    self.pose.position_covariance = [
+                        0.0, 0.0, 0.0,
+                        0.0, 0.0, 0.0,
+                        0.0, 0.0, 0.0
+                    ]
+                    self.pose.position_covariance_type = 0
                     self.pose.latitude, self.pose.longitude = latitude, longtitude
                 else: 
-                    self.pose.valid = False
                     self.get_logger().warn(f'❌ GPS data is not available!', throttle_duration_sec=2)
 
                 ### ROS2 ###
@@ -264,18 +269,9 @@ class GPSBase(Node):
                 msg_log = f'''
                     🛰️ NMEA Data:
                     \traw: {msg_str}
-                    \tvalid: {self.pose.valid}
-                    \tfix type: {'None' if self.fix_type == 1 else '2D' if self.fix_type == 2 else '3D' if self.fix_type == 3 else self.fix_type}
                     \tlat: {self.pose.latitude:8.3f}
                     \tlon: {self.pose.longitude:8.3f}
-                    \tpitch: {self.pose.pitch:8.2f}
-                    \troll: {self.pose.roll:8.2f}
-                    \tyaw: {self.pose.yaw:8.2f}
                 '''
-                if self.pose.valid:
-                    self.get_logger().debug(msg_log, throttle_duration_sec=2)
-                else:
-                    self.get_logger().warn(msg_log, throttle_duration_sec=2)
 
     def parse_rtcm(self) -> None:
         self.pose.header.stamp = self.get_clock().now().to_msg()

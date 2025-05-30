@@ -10,7 +10,7 @@ import { RootState } from "../../redux/RootState";
 import { useSelector } from "react-redux";
 import { useUIActions } from "../../redux/actions/useUIActions";
 import novaLogo from "../../assets/nova-logo.png";
-import {Aperture, BarChart, BarChart2, Camera, Globe, Home, Image, Map} from "react-feather";
+import {Aperture, Camera, Globe, Home, Image, Map} from "react-feather";
 import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {URCCompModes} from "../../views/shared/CamerasPage/CameraPageConstants";
@@ -50,16 +50,6 @@ const urcSidebarData: SidebarInterface = {
       icon: <Home />,
     },
     {
-      title: "Raman Spec",
-      route: "/urc/raman",
-      icon: <BarChart />,
-    },
-    {
-      title: "UV Vis Spec",
-      route: "/urc/uv-vis-spec",
-      icon: <BarChart2 />,
-    },
-    {
       title: "360 Cam",
       route: "/urc/360cam",
       icon: <Globe />,
@@ -87,6 +77,11 @@ const urcSidebarData: SidebarInterface = {
       title: "Dashboard",
       route: "/urc/equipment-servicing",
       icon: <Home />,
+    },
+    {
+      title: "Auto Typing",
+      route: `/urc/auto-typing`,
+      icon: <Camera />,
     },
     {
       title: "Cameras",

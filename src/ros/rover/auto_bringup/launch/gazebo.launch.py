@@ -30,6 +30,7 @@ def launch_setup(context, *args, **kwargs):
     angle = LaunchConfiguration('angle')
     camera = LaunchConfiguration('camera')
     gz_params = LaunchConfiguration('gz_params')
+    gz_qos_params = LaunchConfiguration('gz_qos_params')
     controllers = LaunchConfiguration('controllers')
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
@@ -87,7 +88,7 @@ def launch_setup(context, *args, **kwargs):
             output='screen',
             respawn=False,
             respawn_delay=2.0,
-            parameters=[{'config_file': gz_params}],
+            parameters=[{'config_file': gz_params}, gz_qos_params],
             arguments=['--ros-args', '--log-level', 'info'],
         ),
     ]
@@ -100,18 +101,23 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='angle', 
+            name='angle',
             default_value='15',
             description='Angle (in degrees) at which the camera is mounted',
         ),
         DeclareLaunchArgument(
-            name='camera', 
+            name='camera',
             default_value='True',
             description='',
         ),
         DeclareLaunchArgument(
             name='gz_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'gz_bridge.yaml']),
+            description='Absolute path to ros_gz_bridge params file',
+        ),
+        DeclareLaunchArgument(
+            name='gz_qos_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'gz_bridge_qos.yaml']),
             description='Absolute path to ros_gz_bridge params file',
         ),
         DeclareLaunchArgument(

@@ -8,7 +8,7 @@ base (ublox) GPS and writes data to the rover
 NODE: gps_rover
 TOPICS:
   - subscriber: /gps_base/rtcm  [UInt8MultiArray]
-  - publisher: /gps_rover/fix   [RoverPoseGPS]
+  - publisher: /gps_rover/fix   [NavSatFix]
   - publisher: /fix             [NavSatFix]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
@@ -27,15 +27,12 @@ from serial import Serial
 from pynmeagps import NMEAReader, NMEAMessage
 from pyrtcm import RTCMMessage
 import re
-
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data as qos
+from rclpy.qos import QoSPresetProfiles
 from rclpy.logging import LoggingSeverity
-
 from std_msgs.msg import UInt8MultiArray
-from nova_interfaces.msg import RoverPoseGPS
-from sensor_msgs.msg import NavSatFix, NavSatStatus
+from sensor_msgs.msg import NavSatFix
 import logging
 
 class GPSRover(Node):
@@ -50,7 +47,7 @@ class GPSRover(Node):
         ).value
         self.port_name = self.declare_parameter(
             name='port_name', 
-            value='/dev/ttyUSB0', 
+            value='/dev/ttyUSB1', 
         ).value
         self.gps_module = self.declare_parameter(
             name='gps_module', 
@@ -76,20 +73,15 @@ class GPSRover(Node):
             UInt8MultiArray, 
             'gps_base/rtcm', 
             self.sub_rtcm_callback, 
-            qos, 
+            QoSPresetProfiles.SENSOR_DATA.value, 
         )
         self.pub_pose = self.create_publisher(
-            RoverPoseGPS, 
-            '/gps_rover/fix', 
-            10, 
-        )
-        self.pub_navsatfix = self.create_publisher(
             NavSatFix, 
-            '/fix', 
-            10, 
+            '/gps_rover/fix', 
+            QoSPresetProfiles.SENSOR_DATA.value, 
         )
-        self.pose = RoverPoseGPS()
-        self.pose.header.frame_id = 'gps_rover'
+        self.pose = NavSatFix()
+        self.pose.header.frame_id = 'gps'
         self.timer = self.create_timer(1/self.publisher_rate, self.loop)
 
         self.get_logger().debug(f'Node configured!')
@@ -111,27 +103,6 @@ class GPSRover(Node):
 
     def pub_pose_callback(self):
         self.pub_pose.publish(self.pose)
-
-    def pub_navsatfix_callback(self):
-        '''
-        https://docs.ros.org/en/api/sensor_msgs/html/msg/NavSatFix.html
-        https://docs.ros.org/en/api/sensor_msgs/html/msg/NavSatStatus.html
-        '''
-        msg = NavSatFix()
-        msg.header = self.pose.header
-        msg.status = NavSatStatus()
-        msg.status.status = NavSatStatus.STATUS_FIX # valid fix
-        msg.status.service = NavSatStatus.SERVICE_GPS # using GPS
-        msg.latitude = self.pose.latitude
-        msg.longitude = self.pose.longitude
-        msg.altitude = 0.
-        # msg.position_covariance = [
-        #     0.0, 0.0, 0.0,
-        #     0.0, 0.0, 0.0,
-        #     0.0, 0.0, 0.0,
-        # ]
-        msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_UNKNOWN
-        self.pub_navsatfix.publish(msg)
 
     def parse_nmea(self) -> None:
         self.get_logger().debug(f'Parsing NMEA message...')
@@ -162,55 +133,54 @@ class GPSRover(Node):
 
                         if match_lat:
                             latitude = abs(float(match_lat.group(1)))
-                            latitude *= -1
                         
                         if match_lon:
-                            longtitude = float(match_lon.group(1))
+                            longtitude = -1 * abs(float(match_lon.group(1)))
 
                         if match_lat or match_lon:
-                            self.pose.valid = True
-                            self.pose.heading_valid = False # Not RTK mode. We don't have valid heading
+                            self.pose.status.status = 0
+                            self.pose.status.service = 0
+                            self.pose.position_covariance = [
+                                0.0, 0.0, 0.0,
+                                0.0, 0.0, 0.0,
+                                0.0, 0.0, 0.0
+                            ]
+                            self.pose.position_covariance_type = 0
                             self.pose.latitude, self.pose.longitude = latitude, longtitude
-                        else: 
-                            self.pose.valid = False
+                        else:
                             self.get_logger().warn(f'❌ GPS data is not available!', throttle_duration_sec=2)
-
-                            self.pose.latitude
                     if msg_parsed.talker == 'P' and msg_parsed.msgID == 'STI' and msg_parsed.msgId == '036':
                         # We are dealing with a PSTI036 message, which contains orientation information
                         if msg_parsed.mode == 'R':
                             # RTK (Real-Time Kinematic) mode. We have valid heading
-                            self.pose.heading_valid = True
-                            self.pose.pitch, self.pose.roll, self.pose.yaw = msg_parsed.pitch, msg_parsed.roll, msg_parsed.heading
-                        else:
-                            # Not RTK mode. We don't have valid heading
-                            self.pose.heading_valid = False
+                            self.pose.status.status = 0
+                            self.pose.status.service = 0
+                            self.pose.position_covariance = [
+                                0.0, 0.0, 0.0,
+                                0.0, 0.0, 0.0,
+                                0.0, 0.0, 0.0
+                            ]
+                            self.pose.position_covariance_type = 0
                     elif msg_parsed.talker == 'GN' and msg_parsed.msgID == 'RMC':
                         if msg_parsed.status == 'A':
                             # Valid
-                            self.pose.valid = True
+                            self.pose.status.status = 0
+                            self.pose.status.service = 0
+                            self.pose.position_covariance = [
+                                0.0, 0.0, 0.0,
+                                0.0, 0.0, 0.0,
+                                0.0, 0.0, 0.0
+                            ]
+                            self.pose.position_covariance_type = 0
                             self.pose.latitude, self.pose.longitude = msg_parsed.lat, msg_parsed.lon
-                        else:
-                            self.pose.valid = False
-                    elif msg_parsed.talker == 'GP' and msg_parsed.msgID == 'GGA':
-                        self.fix_type = msg_parsed.quality   # 1 = No fix, 2 = 2D fix, 3 = 3D fix
 
                     ### LOG ###
                     msg_log = f'''
                         🛰️ NMEA Data:
                         \traw: {msg_str}
-                        \tvalid: {self.pose.valid}
-                        \tfix type: {'None' if self.fix_type == 1 else '2D' if self.fix_type == 2 else '3D' if self.fix_type == 3 else self.fix_type}
                         \tlat: {self.pose.latitude:8.3f}
                         \tlon: {self.pose.longitude:8.3f}
-                        \tpitch: {self.pose.pitch:8.2f}
-                        \troll: {self.pose.roll:8.2f}
-                        \tyaw: {self.pose.yaw:8.2f}
                     '''
-                    if self.pose.valid:
-                        self.get_logger().debug(msg_log)
-                    else:
-                        self.get_logger().warn(msg_log)
 
                 except Exception as e:
                     self.get_logger().warn(f'❌ Error: {e}, Bad message: {msg_parsed}')
@@ -222,7 +192,6 @@ class GPSRover(Node):
     def loop(self) -> None:
         self.parse_nmea()
         self.pub_pose_callback()
-        self.pub_navsatfix_callback()
 
 def main (args = None):
     rclpy.init(args = args)

@@ -40,7 +40,7 @@ class URCCache(ControllerNode):
     # Max Speed as a Percentage (0.0 to 1.0)
     SERVO_MAX_ANGLE_PARAM = "max_angle"
     SERVO_MAX_ANGLE_DEFAULT = 179
-    MAX_VALUE = 0xFF
+    MAX_VALUE = 0xF0 # max angle of servos
 
     # Positions
     POSITION_NAMES = [
@@ -54,9 +54,9 @@ class URCCache(ControllerNode):
     #   - 0x80 (90 degrees)
     #   - 0xFF (179 degrees)
     POSITION_DEFAULTS = {
-        DEG_0: 0,
+        DEG_0: 179,
         DEG_90: 90,
-        DEG_180: 179,
+        DEG_180: 0,
     }
 
     POSITION_PARAMS = {
@@ -91,7 +91,7 @@ class URCCache(ControllerNode):
             max_angle=self.declare_parameter(self.SERVO_MAX_ANGLE_PARAM, self.SERVO_MAX_ANGLE_DEFAULT).value,
             positions = self.positions
         )
-        self.cache_servo.update_position(self.DEG_90)
+        self.cache_servo.update_position(self.DEG_0)
 
         ## Create CONTROLLERS
         self.cache_servo_controller = JonoPositionController(

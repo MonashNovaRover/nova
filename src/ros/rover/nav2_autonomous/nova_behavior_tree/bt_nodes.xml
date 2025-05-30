@@ -9,16 +9,35 @@
       <input_port name="publish_frequency">Publish rate in hz</input_port>
     </Action>
 
+    <Action ID="PlaceSearchGoals">
+      <input_port name="search_radius">Search radius in m</input_port>
+      <input_port name="search_corners">Search corners (e.g. 3 for triangle, 4 for square)</input_port>
+      <input_port name="edge_offset">Offset to place goals from the edge of the search radius</input_port>
+      <input_port name="current_pose">Current pose of the rover</input_port>
+      <input_port name="input_goals">Goals vector to add search goals into</input_port>
+      <output_port name="output_goals">Goals with new search goals added</output_port>
+    </Action>
+
+    <Action ID="GetGoal">
+      <input_port name="index">Index of the goal to extract (negative indexing is supported)</input_port>
+      <input_port name="input_goals">Goals vector to extract goal from</input_port>
+      <output_port name="output_goal">Extracted goal</output_port>
+    </Action>
+
+    <Action ID="GetCurrentPose">
+      <input_port  name="global_frame">Global frame</input_port>
+      <input_port  name="robot_base_frame">Robot base frame</input_port>
+      <output_port name="current_pose">The current pose of the rover</output_port>
+    </Action>
+
     <Action ID="RunScripts">
       <input_port name="scripts">Scripts to run (excluding build path)</input_port>
       <input_port name="build_path">Build path to run the script from</input_port>
     </Action>
     
     <Action ID="SnapInCollisionGoals">
-      <input_port name="initial_goals_offset">Approximate distance the initial goals are offset</input_port>
+      <input_port name="goals_offset">Approximate distance goals are offset</input_port>
       <input_port name="max_snap_radius">Maximum radius (m) to snap goals to</input_port>
-      <input_port name="update_radius">Radius for cube goals to be considered an update, should be set to the same value as in UpdateGoalsAction</input_port>
-      <input_port name="cube_goal_entries">Cube goals with their index in the input_goals vector</input_port>
       <input_port name="input_goals">Original goals to snap if in collision</input_port>
       <output_port name="output_goals">Goals with all in collision goals snapped</output_port>
     </Action>
@@ -26,6 +45,14 @@
     <Action ID="SaveCubePoses">
       <input_port name="cube_poses">List of cube poses</input_port>
       <input_port name="file_path">File to save cube poses to</input_port>
+    </Action>
+
+    <Action ID="RemovePassedURCGoals">
+      <input_port name="input_goals">Original goals to remove viapoints from</input_port>
+      <input_port name="position_tolerance">Max distance to goal for it to be removed</input_port>
+      <input_port name="orientation_tolerance">Orientation tolerance in radians</input_port>
+      <output_port name="output_goals">Goals with passed viapoints removed</output_port>
+      <input_port name="dist_to_goal">Distance remaining to the next goal</input_port>
     </Action>
 
     <Action ID="RemovePassedGoalsAndCubes">
@@ -73,6 +100,14 @@
       <output_port name="cube_goal_entries">Cube goals with their index in the input_goals vector</output_port>
     </Action>
 
+    <Action ID="UpdateURCGoals">
+      <input_port name="detected_goal">Detected goal (AR tag / object)</input_port>
+      <input_port name="current_pose">The current pose of the rover</input_port>
+      <input_port name="offset_radius">Radius away from actual pose to set goal</input_port>
+      <input_port name="input_goals">Input goals to be updated</input_port>
+      <output_port name="output_goals">Updated goals</output_port>
+    </Action>
+
     <Action ID="SaveImage">
       <input_port name="service_name">Service name</input_port>
       <input_port name="server_timeout">Server timeout</input_port>
@@ -84,6 +119,13 @@
     </Action>
 
     <!-- ############################### CONDITION NODES ############################## -->
+    <Condition ID="EnableDetection">
+      <input_port name="current_pose"></input_port>
+      <input_port name="target_pose"></input_port>
+      <input_port name="tolerance"></input_port>
+      <output_port name="detection"></output_port>
+    </Condition>
+
     <Condition ID="CubeDetected">
       <input_port name="visited_ids">visited_ids[i] = true if visited, false otherwise</input_port>
       <output_port name="current_pose">The current pose of the rover</output_port>
@@ -92,9 +134,19 @@
     </Condition>
     
     <Condition ID="ARTagDetected">
-      <input_port name="seen_ids">Visited AR tags IDs</input_port>
-      <output_port name="id">Detected AR tag ID</output_port>
-      <output_port name="goal">Detected AR tag pose</output_port>
+      <input_port name="detections_topic">Topic to subscribe to for detections</input_port>
+      <input_port name="min_detections">Minimum number of detections within buffer time to be considered valid</input_port>
+      <input_port name="buffer_time">Keep track of detections in the last n seconds</input_port>
+      <input_port name="cluster_radius">Radius for a detection to be considered part of a cluster</input_port>
+      <output_port name="detections">Detected poses</output_port>
+    </Condition>
+
+    <Condition ID="ObjectDetected">
+      <input_port name="detections_topic">Topic to subscribe to for detections</input_port>
+      <input_port name="min_detections">Minimum number of detections within buffer time to be considered valid</input_port>
+      <input_port name="buffer_time">Keep track of detections in the last n seconds</input_port>
+      <input_port name="cluster_radius">Radius for a detection to be considered part of a cluster</input_port>
+      <output_port name="detections">Detected poses</output_port>
     </Condition>
 
     <Condition ID="GetFirstGoal">
@@ -133,6 +185,13 @@
 
     <Condition ID="GoalsEmpty">
       <input_port name="goals">Waypoints</input_port>
+    </Condition>
+
+    <Condition ID="ArePosesNear">
+      <input_port name="ref_pose">Destination pose</input_port>
+      <input_port name="target_pose">Target pose to compare</input_port>
+      <input_port name="global_frame">Global reference frame</input_port>
+      <input_port name="tolerance">Distance tolerance (m)</input_port>
     </Condition>
 
     <!-- ############################### CONTROL NODES ################################ -->

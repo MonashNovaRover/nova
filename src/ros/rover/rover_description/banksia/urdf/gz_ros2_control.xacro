@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <ros2_control name="GazeboSimSystem" type="system">
-  
+
     <hardware>
       <plugin>gz_ros2_control/GazeboSimSystem</plugin>
     </hardware>
@@ -32,7 +32,7 @@
       </state_interface>
       <state_interface name="position">
         <param name="initial_value">0.0</param>
-      </state_interface>           
+      </state_interface>
     </joint>
 
     <joint name='frw'>

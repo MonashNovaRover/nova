@@ -3,23 +3,23 @@
 which is how it gets added to the gazebo sim. Author/s: Victor Bartlinski-->
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
-  <link name='camera_link'></link>
+  <link name='oak_link'></link>
 
   <joint name="camera_joint" type="fixed">
     <origin xyz="0.49 0 0.48" rpy="0 0 0" />
     <parent link="base_link" />
-    <child link="camera_link" />
+    <child link="oak_link" />
   </joint>
 
   <xacro:include filename="$(find depthai_descriptions)/urdf/include/depthai_macro.urdf.xacro"/>
-  <xacro:depthai_camera camera_name = "oak" parent = "camera_link" camera_model = "OAK-D-LR"
+  <xacro:depthai_camera camera_name = "oak" parent = "oak_link" camera_model = "OAK-D-LR"
    base_frame = "oak-d_frame" cam_pos_x = "0.0" cam_pos_y = "0.0" cam_pos_z = "0.0" 
    cam_roll = "0.0" cam_pitch = "0.0" cam_yaw = "0.0"/>
 
   <gazebo reference="oak_rgb_camera_frame">
     <sensor name="oak/stereo" type="depth_camera">
       <topic>oak/depth</topic>
-      <gz_frame_id>camera_link</gz_frame_id> <!-- Sets the frame_id so that rviz2 correctly transforms it -->
+      <gz_frame_id>oak_link</gz_frame_id> <!-- Sets the frame_id so that rviz2 correctly transforms it -->
       <visualize>true</visualize>
       <update_rate>30</update_rate>
       <always_on>1</always_on>

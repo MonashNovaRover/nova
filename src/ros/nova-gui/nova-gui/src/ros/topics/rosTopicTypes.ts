@@ -11,14 +11,18 @@ import {
   IRosNovaInterfacesMicroscopeServoInfo,
   IRosNovaInterfacesRamanSpectrum,
   IRosStdMsgsString,
+  IRosStdMsgsBool,
   IRosNovaInterfacesUvVisSpecData,
   IRosNovaInterfacesRamanState,
   IRosNovaInterfacesHydraprobeData,
   IRosSensorMsgsCompressedImage,
   IRosNovaInterfacesBmeSensor,
+  IRosArmInterfacesKeyboardPoints,
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
-  IRosNovaInterfacesRoverPoseGps,
+  IRosNovaInterfacesStatus,
+  IRosSensorMsgsNavSatFix,
+  IRosArmInterfacesSequencerFeedback,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -40,6 +44,8 @@ export interface RosTopicInterfaces {
   // Arm Related
   [RosTopic.ARM_TELEMETRY]: IRosCmdInterfacesCmDsFeedback;
   [RosTopic.RFID_DATA]: IRosStdMsgsString;
+  [RosTopic.KEYBOARD_DATA]: IRosArmInterfacesKeyboardPoints;
+  [RosTopic.TYPE_SEQUENCE]: IRosArmInterfacesSequencerFeedback;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
@@ -58,13 +64,16 @@ export interface RosTopicInterfaces {
   [RosTopic.HYDRAPROBE_DATA]: IRosNovaInterfacesHydraprobeData;
   [RosTopic.THETA_360_CAM_IMAGE]: IRosSensorMsgsCompressedImage;
   [RosTopic.BME_SENSOR]: IRosNovaInterfacesBmeSensor;
+  [RosTopic.AUGER1_DEPTH_SENSOR]: IRosStdMsgsBool;
+  [RosTopic.AUGER2_DEPTH_SENSOR]: IRosStdMsgsBool;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
 
   // Maps Related
-  [RosTopic.ROVER_LOCATION]: IRosNovaInterfacesRoverPoseGps;
-  [RosTopic.BASE_LOCATION]: IRosNovaInterfacesRoverPoseGps;
+  [RosTopic.ROVER_LOCATION]: IRosSensorMsgsNavSatFix;
+  [RosTopic.BASE_LOCATION]: IRosSensorMsgsNavSatFix;
+  [RosTopic.AUTO_STATUS]: IRosNovaInterfacesStatus;
 
   // Other
   [RosTopic.BATTERY_STATE]: IRosSensorMsgsBatteryState;

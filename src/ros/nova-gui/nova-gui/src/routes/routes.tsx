@@ -6,7 +6,7 @@ import ARCSpaceResourcesView from "../views/arc/ARCSpaceResourcesView";
 import ARCBaseView from "../views/arc/ARCBaseView";
 import URCBaseView from "../views/urc/URCBaseView";
 import URCAutonomousNavigationView from "../views/urc/URCAutonomousNavigationView";
-import URCDeliveryView from "../views/urc/URCDeliveryView";
+import {URCDeliveryView} from "../views/urc/URCDeliveryView.tsx";
 import URCEquipmentServicingView from "../views/urc/URCEquipmentServicingView";
 import URCScienceView from "../views/urc/URCScienceView";
 import { Root } from "../root";
@@ -25,6 +25,7 @@ import TestWebGLView from "../views/test/TestWebGLView/TestWebGLView.tsx";
 import URCUVVisSpecView from "../views/urc/URCUVVisSpecView.tsx";
 import URC360CamView from "../views/urc/URC360CamView.tsx";
 import URCRamanView from "../views/urc/URCRamanView.tsx";
+import URCAutoTypingView from "../views/urc/URCAutoTypingView.tsx";
 import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
 import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
 import TestOverlayView from "../views/test/TestOverlayView/TestOverlayView.tsx";
@@ -87,6 +88,10 @@ export const urcRoutes: RouteObject[] = [
   {
     path: "/urc/equipment-servicing",
     element: <URCEquipmentServicingView />,
+  },
+  {
+    path: "/urc/auto-typing",
+    element: <URCAutoTypingView />,
   },
   {
     path: "/urc/autonomous-navigation",

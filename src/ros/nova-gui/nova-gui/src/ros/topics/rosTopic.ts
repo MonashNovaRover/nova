@@ -19,6 +19,8 @@ export enum RosTopic {
   // Arm related topics
   ARM_TELEMETRY = "/cmds/cmd_feedback",
   RFID_DATA = "/electronics/rfid/data",
+  KEYBOARD_DATA = "/arm/keyboard/points",
+  TYPE_SEQUENCE = "/arm/sequence",
 
   // Camera Related topics
   CAMERAS = "/camera_directory/cameras",
@@ -37,10 +39,13 @@ export enum RosTopic {
   RAMAN_SPEC_MSG = "/science/raman_spec_msg",
   RAMAN_MECH_MSG = "/science/raman_mech_msg",
   BME_SENSOR = "/science/bme_sensor",
+  AUGER1_DEPTH_SENSOR = "/science/auger_depth/Auger1",
+  AUGER2_DEPTH_SENSOR = "/science/auger_depth/Auger2",
 
   // Mapping Related Topics
   ROVER_LOCATION = "/gps_rover/fix",
   BASE_LOCATION = "/gps_base/fix",
+  AUTO_STATUS = "/auto/status",
 
   // Other Topics
   BATTERY_STATE = "/battery_state",

@@ -7,7 +7,7 @@ GPS and publish to rover (skytraq) GPS.
 NODES:
   - /gps_base
 TOPICS:
-  - publisher: /gps_base/fix    [RoverPoseGPS]
+  - publisher: /gps_base/fix    [NavSatFix]
   - publisher: /gps_base/rtcm   [UInt8MultiArray]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:    nova_bringup

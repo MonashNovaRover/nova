@@ -15,6 +15,7 @@ import { Rulers } from "react-bootstrap-icons";
 import { getDistance } from "./utils/geojson";
 import { useLocalStorage } from "../../hooks/useLocalStorage.ts";
 import { MapTile } from "./config";
+import AutoArrivedPopup from "./components/AutoArrivedPopup.tsx";
 
 export const Cartographer = () => {
   const [mapTile, setMapTile] = useLocalStorage("mapTile", MapTile.Hanksville);
@@ -57,6 +58,7 @@ export const Cartographer = () => {
 
   return (
     <div className="w-full ">
+      <AutoArrivedPopup/>
       <NewMarkerModal
         isOpen={newMarkerModal.open}
         addPoint={addPoint}

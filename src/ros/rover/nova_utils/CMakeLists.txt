@@ -28,7 +28,6 @@ find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(yolo_msgs REQUIRED)
 
-
 install(PROGRAMS
   nova_utils/detection_overlay.py
   nova_utils/goal_marker.py
@@ -38,6 +37,10 @@ install(PROGRAMS
   nova_utils/load_waypoint.py
   nova_utils/quaternion_to_euler.py
   nova_utils/save_waypoint.py
+  nova_utils/service_listener.py
+  nova_utils/start_auto_2.py
+  nova_utils/start_auto.py
+  nova_utils/test_start_auto.py
 
   DESTINATION lib/${PROJECT_NAME}
 )

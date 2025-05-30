@@ -24,6 +24,8 @@ import {useGenericStore} from "../../hooks/useGenericStore.ts";
 export interface WebGL360CamProps {
   image?: HTMLImageElement,
   children?: React.ReactNode
+  angles: number[],
+  setAngles: React.Dispatch<React.SetStateAction<number[]>>
 }
 
 const enableScroll = () => {
@@ -140,6 +142,26 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   // Function that converts y values from 0 to 1 into an angle relative to the midpoint of the image
   const yToTheta = useCallback((v: number) => 360* widthHeight[1]/widthHeight[0] * (-v + 0.5) , [widthHeight]);
 
+
+  // Allow for grabbing angles
+  const onClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!gl.canvasRef.current)
+      return;
+
+    const theta = yToTheta(mousePoint[1]);
+    if (!event.shiftKey) {
+      if (!event.ctrlKey) {
+        return
+      }
+      // low angle on ctrl click
+      props.setAngles([props.angles[0], theta]);
+      return
+    }
+    // high angle on shift click
+    props.setAngles([theta, props.angles[1]]);
+
+  }, [props, mousePoint]);
+
   // Create program to project and render image
   const program = useProgram(gl, Vert, Frag);
   useScreenQuadAttribute(program);
@@ -182,6 +204,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
         gl={gl}
         className="rounded p-3 flex-grow"
         onMouseMove={onMouseMove}
+        onMouseDown={onClick}
         onMouseEnter={disableScroll}
         onMouseLeave={enableScroll}
       >

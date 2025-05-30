@@ -6,7 +6,7 @@ import {
   IRosCmdInterfacesCmdFeedback,
   IRosCmdInterfacesCmDsFeedback,
   IRosNovaInterfacesHydraprobeData,
-  IRosNovaInterfacesNirProbeDataConst,
+  IRosNovaInterfacesNirProbeDataConst, IRosNovaInterfacesStatusConst,
   IRosSensorMsgsRange,
   IRosStdMsgsHeader
 } from "../ros/rosTypes";
@@ -95,6 +95,22 @@ export const reduxStores = {
     { topic: RosTopic.RFID_DATA },
     {
       data: "",
+    }
+  ),
+  keyboardDataStore: createBifrostStore(
+    { topic: RosTopic.KEYBOARD_DATA },
+    {
+      points: [0, 0, 0, 0, 0, 0, 0, 0],
+      width: 640,
+      height: 480,
+    }
+  ),
+  sequencerDataStore: createBifrostStore(
+    { topic: RosTopic.TYPE_SEQUENCE },
+    {
+      sequence: [],
+      partial_sequence: [],
+      current_key: "",
     }
   ),
 
@@ -214,6 +230,18 @@ export const reduxStores = {
       altitude: 0,
     }
   ),
+  auger1DepthSensorStore: createBifrostStore(
+    { topic: RosTopic.AUGER1_DEPTH_SENSOR },
+    {
+      data: false
+    }
+  ),
+  auger2DepthSensorStore: createBifrostStore(
+    { topic: RosTopic.AUGER2_DEPTH_SENSOR },
+    {
+      data: false
+    }
+  ),
 
   // Regular Stores
   uiState: uiSlice.reducer,
@@ -233,8 +261,20 @@ export const reduxStores = {
     }, 
     initialNavSatMessage
   ),
+  autoStatus: createBifrostStore(
+    {
+      topic: RosTopic.AUTO_STATUS
+    },
+    { status: IRosNovaInterfacesStatusConst.IDLE },
+  ),
 
   cartographerState: cartographerSlice.reducer,
+  cartographerCommand: createBifrostStore(
+    { service: RosService.CARTOGRAPHER_COMMAND },
+    {
+      success: true,
+    }
+  ),
 
   batteryStore: createBifrostStore(
     { topic: RosTopic.BATTERY_STATE },
@@ -277,6 +317,7 @@ export const reduxStores = {
   scimbalStepSize: createGenericStore("scimbalStepSize", "1"),
   targetTemp: createGenericStore("targetTemp", 150),
   theta360CompassHeading: createGenericStore("theta360CompassHeading",180),
+  theta360InputDistance: createGenericStore("theta360InputDistance",""),
   rgbLedStore: createGenericStore("rgbLedStore", { r: "0", g: "0", b: "0" }),
 };
 
