@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import HydroprobeWidget from "../../components/HydroprobeWidget/HydroprobeWidget";
-import PumpsWidget from "../../components/PumpsWidget/PumpsWidget";
+import PumpsWidget from "../../components/science/PumpsWidget/PumpsWidget";
 import BMESensor from "../../components/BMESensor/BMESensor";
 import {RosService} from "../../ros/services/rosService.ts";
 import URCNIRProbeWidget from "../../components/NIRProbe/URCNIRProbeWidget.tsx";
@@ -8,11 +8,10 @@ import CacheControlWidget from "../../components/science/CacheControlWidget/Cach
 import CarouselWidgetV2 from "../../components/science/CarouselWidget/CarouselWidget.tsx";
 import SegmentedPicker from "../../components/SegmentedPicker/SegmentedPicker.tsx";
 import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCameraComponent.tsx";
-import {CameraSerials} from "../shared/CamerasPage/CameraPageConstants.tsx";
 import URCUVVisSpecView from "./URCUVVisSpecView.tsx";
 import HeaterWidget from "../../components/science/HeaterWidget/HeaterWidget.tsx";
 import {CameraControlModalButton} from "../../components/CameraComponent/components/CameraControlModelButton.tsx";
-
+import {CameraSerials} from "../shared/CamerasPage/CameraPageConstants.tsx";
 
 const URCScienceView: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState(0)
@@ -34,7 +33,6 @@ const URCScienceView: React.FC = () => {
       </div>
 
       <div className="flex flex-col gap-3 col-span-2">
-        <SerialMappedCameraComponent cameraSerial={CameraSerials.SCIENCE_GIMBAL}/>
         <SerialMappedCameraComponent cameraSerial={CameraSerials.SCIENCE_MICROSCOPE}/>
         <CameraControlModalButton/>
       </div>
@@ -80,8 +78,7 @@ const URCScienceView: React.FC = () => {
       {selectedTab === 1 && VisSpecView}
 
     </div>
-
-  );
+  )
 };
 
 export default URCScienceView;
