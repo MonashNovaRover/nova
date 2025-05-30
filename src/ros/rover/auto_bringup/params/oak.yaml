@@ -17,7 +17,7 @@
       i_nn_config_path: auto_bringup/resources/YOLOv11/best.json
     imu:
       i_enable_rotation: true
-      i_message_type: IMU_WITH_MAG_SPLIT
+      i_message_type: IMU
         #i_rotation_vector_type: ROTATION_VECTOR
     rgb:
       i_enable_nn: false

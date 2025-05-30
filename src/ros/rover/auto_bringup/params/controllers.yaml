@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 20
+    update_rate: 20 
     use_sim_time: false
 
     wheel_velocity_controller:
@@ -45,7 +45,7 @@ joint_state_broadcaster:
     interfaces:
        ["position",
       "velocity"]
-
+      
     joints:
       ["blp", "brp", "flp", "frp",
       "blw", "brw", "flw", "frw"]
@@ -78,10 +78,10 @@ pivot_drive_controller:
     open_loop: false
     has_velocity_limits: true
     has_acceleration_limits: true
-    max_velocity: 5.0
-    min_velocity: -5.0
-    max_acceleration: 0.5
-    min_acceleration: -0.5
+    max_velocity: 2.794144
+    min_velocity: -2.794144 
+    max_acceleration: 0.1
+    min_acceleration: -0.1
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 
 strafe_controller:
@@ -106,4 +106,3 @@ nova_diff_drive_controller:
       x:
         max_acceleration: 5.0
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-
