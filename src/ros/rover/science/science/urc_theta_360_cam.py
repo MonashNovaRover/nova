@@ -12,6 +12,7 @@ EDITED:      20/05/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import cv2
+import gphoto2._camera
 from cv_bridge import CvBridge
 import locale
 import logging
@@ -21,6 +22,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage
 from std_srvs.srv import Trigger
+from typing import Optional
 
 
 class URCTheta360CamPublisher(Node):
@@ -41,14 +43,16 @@ class URCTheta360CamPublisher(Node):
             format='%(levelname)s: %(name)s: %(message)s', level=logging.WARNING)
         callback_obj = gp.check_result(gp.use_python_logging())
 
-        self.__camera = None
+        self.__camera: Optional[gphoto2.Camera] = None
         self.init_camera()
+
 
         # Create service and publisher for images
         self.create_service(Trigger, "/science/theta360cam/capture", self.capture)
         self.__image_publisher = self.create_publisher(CompressedImage, '/science/theta360cam/image', 10)
 
         self.__bridge = CvBridge()
+        self.create_timer(30, self.wake_camera)
 
         self.get_logger().info("theta360cam >>> 360 cam node has been set up")
 
@@ -63,6 +67,9 @@ class URCTheta360CamPublisher(Node):
         self.__camera = gp.Camera()
         self.__camera.init()
 
+        text = self.__camera.get_summary()
+        self.get_logger().info(f"Camera summary:\n{str(text)}")
+
     def capture(self, request: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
         """ Called with the /science/theta360cam/capture service. Expects everything to be synchronous, where the camera
         as a resource isn't under contention. """
@@ -73,7 +80,7 @@ class URCTheta360CamPublisher(Node):
 
         try:
             # Take the image
-            file_path = self.__camera.capture(gp.GP_CAPTURE_IMAGE)
+            file_path = self.__camera.capture(gp.GP_CAPTURE_IMAGE, )
 
             self.get_logger().info(f"Captured \"{file_path.name}\"")
             # Get a path to store the image at
@@ -116,6 +123,17 @@ class URCTheta360CamPublisher(Node):
 
         # We can now share the target
         return response
+
+    def wake_camera(self):
+        if self.__camera is None:
+            return
+
+        battery = self.__camera.get_single_config("batterylevel")
+        self.get_logger().info(f"Battery level: {battery.get_value()}")
+
+    def on_shutdown(self):
+        if self.__camera is not None:
+            self.__camera.exit()
 
 
 # The main code that executes when starting
