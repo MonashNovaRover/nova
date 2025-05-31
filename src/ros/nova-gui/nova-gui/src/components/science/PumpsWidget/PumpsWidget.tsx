@@ -1,11 +1,11 @@
-import {Button, Card, CardBody, CardHeader, CardProps, Input} from "@nextui-org/react";
-import { useEffect, useState } from "react";
-import SegmentedPicker from "../SegmentedPicker/SegmentedPicker.tsx";
-import { RosAction } from "../../ros/actions/RosAction.ts";
-import { IRosNovaInterfacesPumpsActionFeedback, IRosNovaInterfacesPumpsActionGoal, IRosNovaInterfacesPumpsActionResult } from "../../ros/rosTypes.ts";
-import { useRosAction } from "../../hooks/ros/useRosAction.ts";
+import {Button, Card, CardBody, CardHeader, CardProps, Input, Progress} from "@nextui-org/react";
+import React, { useEffect, useState } from "react";
+import SegmentedPicker from "../../SegmentedPicker/SegmentedPicker.tsx";
+import { RosAction } from "../../../ros/actions/RosAction.ts";
+import { IRosNovaInterfacesPumpsActionFeedback, IRosNovaInterfacesPumpsActionGoal, IRosNovaInterfacesPumpsActionResult } from "../../../ros/rosTypes.ts";
+import { useRosAction } from "../../../hooks/ros/useRosAction.ts";
 import toast from "react-hot-toast";
-
+import {Database, Search, Square} from "react-feather";
 
 export interface PumpsWidgetProps extends CardProps {}
 
@@ -22,15 +22,11 @@ const PUMPS = [
     display: "Fill Cuvettes",
     value: "fill_cuvettes",
   },
-  {
-    display: "Clean Sheath",
-    value: "clean_sheath",
-  },
 ];
 
 
 const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
-  const [selectedPumpIndex, setSelectedPumpIndex] = useState<number>(0.0);
+  const [selectedPumpIndex, setSelectedPumpIndex] = useState<number>(0);
  
   const [actionSent, setActionSent] = useState<boolean>(false);
   const [timeToRun, setTimeToRun] = useState<string>("");
@@ -114,35 +110,57 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
 
   }, [actionSent, goalResponse, pumpsGoalResponse, feedback, selectedPumpIndex, pumpsFeedback]);
 
+  const progressBar = (
+    <div className="flex flex-row items-center justify-center">
+      <Square className="w-20"/>
+      <Progress
+        color="secondary"
+        value={actionSent && selectedPumpIndex === 0 && pumpsFeedback ? pumpsFeedback.time_running : 0}
+        maxValue={actionSent && pumpsFeedback ? pumpsFeedback.time_to_run : 1}
+      />
+      <Database className="w-20"/>
+      <Progress
+        color="secondary"
+        value={actionSent && selectedPumpIndex !== 0 && pumpsFeedback ? pumpsFeedback.time_running : 0}
+        maxValue={actionSent && pumpsFeedback ? pumpsFeedback.time_to_run : 1}
+      />
+      <Search className="w-20"/>
+    </div>
+  )
 
 
   return (
     <Card {...props}>
       <CardHeader className="pb-0">
-      Pumps
+        Pumps
       </CardHeader>
-      <CardBody>
-          <div>
-            <div className="grid grid-cols-2">
-              <div className="font-bold">Pump Name:</div>
-              <div className="">{actionSent ? PUMPS[selectedPumpIndex].display : `Pumps Off`}</div>
-              <div className="font-bold">Time To Run:</div>
-              <div className="">{feedback ? `${pumpsFeedback.time_to_run.toFixed(2)} s`: "-"}</div>
-              <div className="font-bold">Time Running:</div>
-              <div className="">{feedback ? `${pumpsFeedback.time_running.toFixed(2)} s` : "-"}</div>
-            </div>
-            <div className="flex flex-col gap-2">
-              {pickerRow}
-              {timeField}
-              <div className="flex flex-row gap-3 justify-center">
-                <Button color="primary" isDisabled={actionSent} onPress={() => sendAction()}>
-                  Run
-                </Button> 
-                <Button color="danger" onPress={() => cancel()}>Cancel Action</Button> 
-              </div>
-            </div>
+      <CardBody className="flex flex-col gap-3">
+
+        {progressBar}
+
+        <div className="flex flex-row justify-around">
+          <div className="w-40 text-center">
+            <span>{actionSent && selectedPumpIndex === 0 && pumpsFeedback ? pumpsFeedback.time_running.toFixed(2) + " / " : "0 / 0s"}</span>
+            <span>{actionSent && selectedPumpIndex === 0 && pumpsFeedback ? pumpsFeedback.time_to_run.toFixed(2) + "s" : ""}</span>
+          </div>
+
+          <div className="w-40 text-center">
+            <span>{actionSent && selectedPumpIndex !== 0 && pumpsFeedback ? pumpsFeedback.time_running.toFixed(2) + " / " : " 0 / 0s"}</span>
+            <span>{actionSent && selectedPumpIndex !== 0 && pumpsFeedback ? pumpsFeedback.time_to_run.toFixed(2) + "s" : ""}</span>
+          </div>
+
         </div>
-     
+
+        {pickerRow}
+        {timeField}
+
+        <div className="flex flex-row gap-3 justify-center">
+          <Button color="primary" isDisabled={actionSent} onPress={() => sendAction()}>
+            Run
+          </Button>
+          <Button color="danger" onPress={() => cancel()}>Cancel Action</Button>
+        </div>
+
       </CardBody>
     </Card>
   )

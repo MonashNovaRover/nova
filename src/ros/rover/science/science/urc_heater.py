@@ -11,18 +11,17 @@ SERVICES:
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:    science
-AUTHOR(S):	Felicity Matthews
+AUTHOR(S):	Felicity Matthews, Tash Lee
 CREATION:	20/05/2025
-EDITED:		24/05/2025
+EDITED:		30/05/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
-import numpy as np
 from nova_interfaces.msg import KilnData
 from nova_interfaces.srv import KilnCommand, KilnCommand_Request, KilnCommand_Response
 from python_control.ControllerNode import ControllerNode
-from python_control.controllers.ToggleController import ToggleController
-from python_control.controls.ToggleControl import ToggleControl
+from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
+from python_control.controllers.CMDVelocityController import CMDVelocityController
 from python_control.sensors.IntegerSensor import IntegerSensor
 
 class URCHeater(ControllerNode):
@@ -49,6 +48,8 @@ class URCHeater(ControllerNode):
     HEATER_CONTROL_ID = 0x05
     HEATER_SEND_ON = 0xFF
     HEATER_SEND_OFF = 0x00
+    ON = 0.1
+    OFF = 0
 
     def __init__(self):
         super().__init__(name="urc_heater", can_bus=self.CAN_BUS)
@@ -57,18 +58,29 @@ class URCHeater(ControllerNode):
         self.is_active = False
         self.target_temp = 50
 
-        # Add Controls and Controllers
-        self.heater_control = ToggleControl(logger=logger, on=False)
-        self.heater_controller = ToggleController(
+        ## Create controls
+        self.heater1 = OneAxisVelocityControl(
+            logger=logger,
+        )
+        self.heater2 = OneAxisVelocityControl(
+            logger=logger,
+        )
+
+        ## Create controllers
+        self.heater1_controller = CMDVelocityController(
             logger=logger,
             bus=self.bus,
-            frame_id=self.HEATER_CONTROL_SEND_FRAME,
-            control_id=self.HEATER_CONTROL_ID,
-            toggle_command_on=self.HEATER_SEND_ON,
-            toggle_command_off=self.HEATER_SEND_OFF,
-            control=self.heater_control,
+            frame_id=0x051,
+            control=self.heater1
         )
-        self.add_controller(self.HEATER_CONTROL, self.heater_controller)
+        self.heater2_controller = CMDVelocityController(
+            logger=logger,
+            bus=self.bus,
+            frame_id=0x052,
+            control=self.heater2
+        )
+        self.add_controller(self.HEATER_CONTROL + "_1", self.heater1_controller)
+        self.add_controller(self.HEATER_CONTROL + "_2", self.heater2_controller)
 
         # Add Sensors
         self.heater_sensor = IntegerSensor(
@@ -105,22 +117,7 @@ class URCHeater(ControllerNode):
         float : Temperature in Celsius
         """
         try:
-            R0 = 10000
-
-            # 1. convert the voltage to resistance using the voltage divider formula
-            # Rt = (Vref * R0) / (Vref - Vout)
-            # where Vref is the reference voltage (3.3V), R0 is the known resistor value, and Vout is the measured voltage
-            Vref = 3.3
-            Vout = input / 4095 * Vref  # get percentage from 12 bit CAN information
-            R = (Vout * R0) / (Vref - Vout)
-
-            # 2. use the resistance value to calculate the temperature using the Steinhart-Hart equation
-            T0 = 298.15
-            B = 3977
-            kelvin_temp = 1 / (1 / T0 + (1 / B) * np.log(R / R0))
-
-            # 3. convert to celsius
-            c_temp = kelvin_temp - 273.15
+            c_temp = -0.0169*input + 80.797 # from James P's Calibration data & fit
             return c_temp
         except ZeroDivisionError:
             self.get_logger().info(f"Zero Division Error Occurred with input = {input}")
@@ -129,12 +126,12 @@ class URCHeater(ControllerNode):
 
     def check_temp(self, temp: int):
         """ Turn off the kiln if the temperature has been reached """
-        self.get_logger().info(f"target temp: {self.target_temp} | current dirt temp: {temp}")
-
         if self.target_temp > temp:
-            self.heater_control.start()
+            self.heater1.update_velocity(self.ON)
+            self.heater2.update_velocity(self.ON)
         else:
-            self.heater_control.stop()
+            self.heater1.update_velocity(self.OFF)
+            self.heater2.update_velocity(self.OFF)
 
     def publish_data(self):
         """ Publish the current readings from the sensors """
@@ -157,7 +154,8 @@ class URCHeater(ControllerNode):
         elif not request.state and self.is_active:
             self.get_logger().info("Turning Heater OFF")
             self.is_active = False
-            self.heater_control.stop()
+            self.heater1.update_velocity(self.OFF)
+            self.heater2.update_velocity(self.OFF)
 
         self.target_temp = request.target
         self.get_logger().info(f'Target temp: {self.target_temp}')
