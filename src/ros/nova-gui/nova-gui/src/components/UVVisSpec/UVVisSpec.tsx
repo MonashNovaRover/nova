@@ -43,17 +43,6 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
   const blankLuminanceIsValid = luminance.length === blankLuminance.length;
   const beerLambertZip = !blankLuminanceIsValid ? luminance
     : zip(luminance, blankLuminance)
-        .map(([final, initial]) => Math.log10(initial! / final!));
-
-  const [startWavelength, startWavelengthString, setStartWavelength] = useNumberField("UVVisSpec-startWavelength", 546.5);
-  const [startColumn, startColumnString, setStartColumn] = useNumberField("UVVisSpec-startCol", 0.213);
-
-  const [blankLuminance, setBlankLuminance] = useGenericStore<number[]>("uvVisBlankStore");
-  const saveBlankLuminance = () => {setBlankLuminance(luminance)};
-
-  const blankLuminanceIsValid = luminance.length === blankLuminance.length;
-  const beerLambertZip = !blankLuminanceIsValid ? luminance
-    : zip(luminance, blankLuminance)
         .map(([final, initial]) => -Math.log10(final! / initial!));
 
   const [startWavelength, startWavelengthString, setStartWavelength] = useNumberField("UVVisSpec-startWavelength", 436);
