@@ -6,6 +6,7 @@ import { RootState } from "../../../redux/RootState.ts";
 import { useSelector } from "react-redux";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { useEffect } from "react";
+import SiteSelectWidget from "../../SiteSelectWidget/SiteSelectWidget.tsx";
 
 // This is just a repurposed BMESensor.tsx (Thanks Someone)
 // Which is just a repurposed HydroprobeWidget.tsx (Thanks Kabi)
@@ -56,12 +57,15 @@ const DepthSensor: React.FC<BaseCameraComponentProps> = (
     );
 
     return (
-        <Card className="flex flex-col justify-around gap-3 py-3">
-            {DepthSensorCardBody}
-            <div className="flex flex-row justify-center">
-                <CardHeader className="w-auto text-h1 p-0 text-center">Auger Depth Sensors: Drilled more than 10cm?</CardHeader>
-            </div>
+      <div>
+        <SiteSelectWidget/>
+        <Card className="flex flex-col justify-around gap-3 py-3 my-3">
+          {DepthSensorCardBody}
+          <div className="flex flex-row justify-center">
+            <CardHeader className="w-auto text-h1 p-0 text-center">Auger Depth Sensors: Drilled more than 10cm?</CardHeader>
+          </div>
         </Card>
+      </div>
     );
 };
 
