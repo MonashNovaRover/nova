@@ -27,7 +27,7 @@ TODO:
 '''
 
 from geometry_msgs.msg import PointStamped, TransformStamped
-from arm_interfaces.srv import KeyPosition, StringTrigger
+from arm_interfaces.srv import KeyPosition, StringTrigger, Corners
 from arm_interfaces.msg import KeyboardPoints
 from sensor_msgs.msg import Image
 
@@ -63,6 +63,7 @@ SINGLE_KEY = (13, 15) # unused but is the the size of an individual key
 
 DEFAULT_POSITION = [0.0, 0.0, 0.0]
 DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
+DEFAULT_CORNERS = np.zeros((4, 2), np.int32) # top left, top right, bottom right, bottom left; x, y
 
 """
 HOW TO TEST:
@@ -83,6 +84,7 @@ In separate terminal:
 """
 
 KEY_SERVICE_NAME = '/arm/keyboard/pub_key_position'
+CORNER_SERVICE_NAME = '/arm/keyboard/override_corners'
 IMAGE_TOPIC = '/arm/periscope'
 DEBUG_TOPIC = '/arm/keyboard/image'
 POINT_TOPIC = '/arm/keyboard/points'
@@ -110,6 +112,10 @@ class KeyboardLocaliser(Node):
         self.aligned_keyboard_position = self.declare_parameter('aligned_keyboard_position', DEFAULT_POSITION).get_parameter_value().double_array_value
         self.aligned_keyboard_quaternion = self.declare_parameter('aligned_keyboard_quaternion', DEFAULT_QUATERNION).get_parameter_value().double_array_value
         self.key_quaternion = self.declare_parameter('key_quaternion', DEFAULT_QUATERNION).get_parameter_value().double_array_value
+
+        # GUI manual alignment
+        self.manual_corners = DEFAULT_CORNERS
+        self.corner_gui_server = self.create_service(Corners, CORNER_SERVICE_NAME, self.corner_override_cb)
 
         # calibrated camera intrinsics
         hfov = self.declare_parameter('hfov', 61.3727248).get_parameter_value().double_value
@@ -225,6 +231,15 @@ class KeyboardLocaliser(Node):
         except Exception as e:
             logger.error(str(e))
         return mat
+    
+    def corner_override_cb(self, request, response):
+        """ Sets the override corner variable on service call
+            TODO: add error checking
+        """
+        self.manual_corners = np.array(request.corners).reshape(4, 2)
+        response.success = True
+        return response
+
 
     def get_corners(self) -> None | np.ndarray:
         """ Get the sorted corners of the keyboard from the image msg """
@@ -296,12 +311,18 @@ class KeyboardLocaliser(Node):
         
     def estimate_pose(self) -> None | TransformStamped:
         """Estimate pose of keyboard and return its transform"""
-        ## run solvePnP
-        image_points = self.get_corners()
-        if image_points is None:
+        ## get corners from image automatically
+        image_corners = self.get_corners()
+        # top left, top right, bottom right, bottom left. (clockwise)[1-4]
+        corners = image_corners
+        # allow override by GUI
+        if self.manual_corners != DEFAULT_CORNERS and len(manual_corners) == 4:
+            corners = self.manual_corners
+        if corners is None:
             return None
 
-        success, rvec, tvec = cv2.solvePnP(self.keyboard_points, image_points, self.camera_matrix, self.dist_coeffs)
+        ## run solvePnP
+        success, rvec, tvec = cv2.solvePnP(self.keyboard_points, corners, self.camera_matrix, self.dist_coeffs)
         
         # Convert to rotation matrix then to quaternion 
         rotation_matrix, _ = cv2.Rodrigues(rvec)
