@@ -1,8 +1,21 @@
 teleop_arm_joy_node:
   ros__parameters:
+
+    control_modes: [
+      "joint_space_control",
+      "twist_ik_control"
+    ]
+
+    joint_space_control:
+      type: "teleop_arm_joy/JointSpaceControlMode"
+
+    twist_ik_control:
+      type: "TwistIKControlMode"
+
     twist:
       linear_max: 0.25
       angular_max: 0.785398163395
+      type: "bruh"
     joints:
       J1:
         max_speed: 0.785398163395
@@ -99,6 +112,12 @@ teleop_arm_joy_node:
       unlock:
         device: "Gamepad"
         id: 6
+
+
+joint_control_mode:
+  ros__parameters:
+    bruh:
+      "bruh"
 
 # trigger:
 #   id: 0

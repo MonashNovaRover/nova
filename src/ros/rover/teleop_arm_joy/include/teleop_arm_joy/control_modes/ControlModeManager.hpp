@@ -8,13 +8,10 @@
 #include <map>
 #include <string>
 #include <rclcpp/node.hpp>
-#include <rclcpp/node_interfaces/node_base_interface.hpp>
+#include <controller_manager_msgs/srv/switch_controller.hpp>
+#include <pluginlib/class_loader.hpp>
 
 #include "ControlMode.hpp"
-
-namespace controller_manager_msgs::srv {
-struct SwitchController;
-}
 
 namespace teleop_arm_joy {
 
@@ -52,12 +49,18 @@ private:
    */
   [[nodiscard]] bool switch_controllers(const ControlMode& previous, const ControlMode& next) const;
 
-  /**
-   * The owning teleop_arm_joy ROS2 node
-   */
+  bool get_type_for_control_mode(const std::string& name, std::string& control_mode_type) const;
+
+  /// The owning teleop_arm_joy ROS2 node.
   std::shared_ptr<rclcpp::Node> node_;
 
-  std::map<std::string, std::shared_ptr<ControlMode>> control_modes_ = {};
+  // Control modes
+  /// Loads the control modes, and needs to stay alive during the whole lifecycle of the control modes.
+  std::unique_ptr<pluginlib::ClassLoader<ControlMode>> control_mode_loader_;
+
+  /// Currently loaded control modes.
+  std::map<std::string, std::shared_ptr<ControlMode>> control_modes_{};
+  /// The currently active control mode.
   std::shared_ptr<ControlMode> current_control_mode_ = nullptr;
 
   // Service calls

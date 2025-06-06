@@ -1,0 +1,5 @@
+<library path="teleop_arm_joy">
+   <class name="teleop_arm_joy/JointSpaceControlMode" type="teleop_arm_joy::JointSpaceControlMode" base_class_type="teleop_arm_joy::ControlMode">
+       <description>A control mode that directly controls joints of the arm.</description>
+   </class>
+</library>

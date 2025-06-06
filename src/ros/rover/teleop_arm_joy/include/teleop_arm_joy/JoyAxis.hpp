@@ -17,7 +17,7 @@ namespace teleop_arm_joy
 /**
 * @brief Class that represents some axis from the joy_node
 */
-class JoyAxis : public JoyMessageListener, Input<float> {
+class JoyAxis : public JoyMessageListener {
 public:
 
   /**

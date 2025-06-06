@@ -18,27 +18,28 @@
 #include "JoyDevice.hpp"
 #include "JoyButton.hpp"
 #include "JoyAxis.hpp"
+#include "control_modes/ControlModeManager.hpp"
 
 namespace teleop_arm_joy
 {
   /**
-   * @enum ControlMode
+   * @enum ControlModeEnum
    * @brief Enum class for different control modes.
    */
-  enum class ControlMode
+  enum class ControlModeEnum
   {
     FK,
     IK,
     PathPlanner
   };
 
-  inline std::string prettyPrintMode(const ControlMode mode)
+  inline std::string prettyPrintMode(const ControlModeEnum mode)
   {
     switch (mode)
     {
-    case ControlMode::FK:
+    case ControlModeEnum::FK:
       return "FK";
-    case ControlMode::IK:
+    case ControlModeEnum::IK:
       return "IK";
     default:
       return "Unknown Mode";
@@ -64,6 +65,7 @@ namespace teleop_arm_joy
      * @param options Node options for the ROS2 node.
      */
     explicit TeleopArmJoy(const rclcpp::NodeOptions &options = rclcpp::NodeOptions());
+    ~TeleopArmJoy() override;
 
     void initializeParams();
 
@@ -71,6 +73,8 @@ namespace teleop_arm_joy
      * @brief Toggles autonomous typing state.
      */
     void toggleTyping(const std::shared_ptr<std_srvs::srv::Trigger::Request> request, std::shared_ptr<std_srvs::srv::Trigger::Response> response);
+
+    void initialize_control_modes();
 
   private:
     void onDeviceUpdated(string& device_name);
@@ -80,7 +84,7 @@ namespace teleop_arm_joy
      */
     void updateState();
 
-    void setControlMode(ControlMode new_control_mode);
+    void setControlMode(ControlModeEnum new_control_mode);
 
     /**
      * @brief Sends Commands for the arm based on joystick input, and current control mode
@@ -108,13 +112,13 @@ namespace teleop_arm_joy
      */
     void handleSpeedChange();
 
-    std::vector<std::string> modeToControllers(ControlMode mode);
+    std::vector<std::string> modeToControllers(ControlModeEnum mode);
 
     /**
      * @brief Switches the controller by calling the switch_controller service.
      * @param requested_control_mode The desired control mode to switch to.
      */
-    void switchController(ControlMode requested_control_mode);
+    void switchController(ControlModeEnum requested_control_mode);
 
     bool setTypingState();
 
@@ -138,9 +142,11 @@ namespace teleop_arm_joy
     State current_state;
     State previous_state;
 
-    ControlMode control_mode = ControlMode::FK;
+    ControlModeEnum control_mode = ControlModeEnum::FK;
     bool typing_active;
     double speed; // Linear Speed Multiplier that can be incremented
+
+    std::shared_ptr<ControlModeManager> control_mode_manager_ = nullptr;
   };
 
 } // namespace teleop_arm_joy

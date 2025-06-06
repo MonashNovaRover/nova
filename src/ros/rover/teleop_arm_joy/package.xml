@@ -3,12 +3,12 @@
   <name>teleop_arm_joy</name>
   <version>2.4.5</version>
   <description>Generic joystick teleop for twist robots.</description>
-  <maintainer email="clalancette@openrobotics.org">Chris Lalancette</maintainer>
+  <maintainer email="bailey.chessum1@gmail.com">Bailey Chessum</maintainer>
 
   <license>BSD</license>
 
-  <url type="website">http://wiki.ros.org/teleop_arm_joy</url>
-  <author email="mpurvis@clearpathrobotics.com">Mike Purvis</author>
+  <url type="website">https://novarover.space</url>
+  <author email="bailey.chessum1@gmail.com">Bailey Chessum</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>generate_parameter_library</buildtool_depend>

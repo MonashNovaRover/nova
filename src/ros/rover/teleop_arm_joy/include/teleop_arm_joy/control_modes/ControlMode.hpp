@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <rclcpp/node.hpp>
 #include <rclcpp/node_interfaces/node_base_interface.hpp>
 
 namespace teleop_arm_joy {
@@ -26,15 +27,15 @@ public:
    * Params common to all ControlModes
    */
   struct Params {
-    std::vector<std::string> controllers;
+    std::vector<std::string> controllers{};
   };
 
-  explicit ControlMode(const std::shared_ptr<rclcpp::node_interfaces::NodeBaseInterface>& node): node_(node) {
+  ControlMode() {}
 
-  }
+  /// This function effectively replaces the initializer
+  void initialize(const std::shared_ptr<rclcpp::Node>& node, const std::string& name);
 
   // Lifecycle methods
-
   void configure();
   void activate();
   void deactivate();
@@ -42,14 +43,18 @@ public:
   virtual void update() {};
 
   // Accessors
-
   /// Name of the control mode, which the control mode is indexed by
   [[nodiscard]] const std::string& get_name() const {
     return name_;
   }
+  /// Params, from the base ControlMode type, populated by the ControlMode base class.
+  [[nodiscard]] const Params& get_base_params() const {
+    return base_params_;
+  }
 
 protected:
-  ~ControlMode() = default;
+
+  virtual void on_initialize() {};
 
   // Lifecycle methods
   virtual void on_configure(/* TODO: Give node, params, and any necessary context to set itself up */) {};
@@ -57,20 +62,14 @@ protected:
   virtual void on_deactivate() {};
 
   /// The ROS2 node created by teleop_arm_joy, which we get params from (for base and child classes)
-  std::shared_ptr<rclcpp::node_interfaces::NodeBaseInterface> node_;
+  std::shared_ptr<rclcpp::Node> node_ = nullptr;
 
   /// Params, from the base ControlMode type, populated by the ControlMode base class.
   Params base_params_;
 
-public:
-  [[nodiscard]] const Params& get_base_params() const {
-    return base_params_;
-  }
-
 private:
   /// Name of the control mode, which the control mode is indexed by
   std::string name_;
-
 };
 
 } // teleop_arm_joy

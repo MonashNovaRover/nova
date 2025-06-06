@@ -45,11 +45,23 @@ add_executable(${PROJECT_NAME}_node
   src/control_modes/ControlModeManager.cpp
 )
 
+add_library(${PROJECT_NAME} SHARED
+  src/control_modes/ControlMode.cpp
+  src/control_modes/joint_space/JointSpaceControlMode.cpp
+)
+
 target_link_libraries(${PROJECT_NAME}_node
   teleop_arm_joy_parameters
 )
 
 ament_target_dependencies(${PROJECT_NAME}_node ${THIS_PACKAGE_INCLUDE_DEPENDS})
+ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
+
+# Stuff for plugins
+pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)
+install(FILES plugins.xml
+        DESTINATION share/${PROJECT_NAME}
+)
 
 #############
 ## Install ##
@@ -59,6 +71,7 @@ ament_target_dependencies(${PROJECT_NAME}_node ${THIS_PACKAGE_INCLUDE_DEPENDS})
 install(
   TARGETS
     ${PROJECT_NAME}_node
+    ${PROJECT_NAME}
     teleop_arm_joy_parameters
   DESTINATION lib/${PROJECT_NAME}
 )
@@ -79,6 +92,21 @@ install(
 install(
   DIRECTORY config/
   DESTINATION share/${PROJECT_NAME}/config
+)
+
+install(TARGETS ${PROJECT_NAME}
+        EXPORT export_${PROJECT_NAME}
+        RUNTIME DESTINATION bin
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+)
+
+ament_export_libraries(
+  ${PROJECT_NAME}
+)
+ament_export_targets(
+  export_${PROJECT_NAME}
+  HAS_LIBRARY_TARGET
 )
 
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})

@@ -6,6 +6,8 @@
 
 #include "teleop_arm_joy/teleop_arm_joy.hpp"
 
+#include "teleop_arm_joy/control_modes/ControlModeManager.hpp"
+
 using namespace std::chrono_literals;
 
 namespace
@@ -43,7 +45,7 @@ TeleopArmJoy::TeleopArmJoy(const rclcpp::NodeOptions &options)
   service = this->create_service<std_srvs::srv::Trigger>("/teleop_arm_joy/toggle_typing", 
 		  std::bind(&teleop_arm_joy::TeleopArmJoy::toggleTyping, this, _1, _2));
   
-  control_mode = ControlMode::FK;
+  control_mode = ControlModeEnum::FK;
   typing_active = false;
 
   devices = std::vector<shared_ptr<JoyDevice>>();
@@ -53,7 +55,6 @@ TeleopArmJoy::TeleopArmJoy(const rclcpp::NodeOptions &options)
 void TeleopArmJoy::initializeParams()
 {
   param_listener_ = std::make_shared<ParamListener>(this->shared_from_this());
-  this->param
 
   params_ = param_listener_->get_params();
 
@@ -134,13 +135,13 @@ void TeleopArmJoy::initializeParams()
   }
 
   // Give axes and buttons to a joy device to be managed
-  for (auto& [name, config] : device_configs) {
-    shared_ptr<JoyDevice> device(new JoyDevice(this, name, config, *listeners[name], bind(&TeleopArmJoy::onDeviceUpdated, this, _1)));
-    devices.emplace_back(device);
-
-    // Clean up
-    delete listeners[name];
-  }
+  // for (auto& [name, config] : device_configs) {
+  //   shared_ptr<JoyDevice> device(new JoyDevice(this, name, config, *listeners[name], std::bind(&TeleopArmJoy::onDeviceUpdated, this, _1)));
+  //   devices.emplace_back(device);
+  //
+  //   // Clean up
+  //   delete listeners[name];
+  // }
   listeners.clear();
 
   RCLCPP_INFO(this->get_logger(), "Finished initializing params");
@@ -198,11 +199,11 @@ void TeleopArmJoy::updateState() {
 
   if (!typing_active)
   {
-  	setControlMode(buttons["twist_mode"]->value() ? ControlMode::IK : ControlMode::FK);
+  	setControlMode(buttons["twist_mode"]->value() ? ControlModeEnum::IK : ControlModeEnum::FK);
   }
 }
 
-void TeleopArmJoy::setControlMode(const ControlMode new_control_mode) {
+void TeleopArmJoy::setControlMode(const ControlModeEnum new_control_mode) {
   if (control_mode == new_control_mode)
     return;
 
@@ -211,13 +212,13 @@ void TeleopArmJoy::setControlMode(const ControlMode new_control_mode) {
 
   control_mode = new_control_mode;
 
-  if (new_control_mode == ControlMode::FK) {
+  if (new_control_mode == ControlModeEnum::FK) {
     RCLCPP_INFO(get_logger(), "Switched to FK control.");
   }
-  else if (new_control_mode == ControlMode::IK) {
+  else if (new_control_mode == ControlModeEnum::IK) {
     RCLCPP_INFO(get_logger(), "Switched to IK control.");
   }
-  else if (new_control_mode == ControlMode::PathPlanner) {
+  else if (new_control_mode == ControlModeEnum::PathPlanner) {
     RCLCPP_INFO(get_logger(), "Switched to Path Planner control.");
   }
 }
@@ -227,13 +228,13 @@ void TeleopArmJoy::sendArmCommand()
   if (current_state.locked)
     return;
 
-  if (control_mode == ControlMode::FK) {
+  if (control_mode == ControlModeEnum::FK) {
     sendJointSpaceCommand();
   }
-  else if (control_mode == ControlMode::IK) {
+  else if (control_mode == ControlModeEnum::IK) {
     sendTwistCommand();
   }
-  else if (control_mode == ControlMode::PathPlanner) {
+  else if (control_mode == ControlModeEnum::PathPlanner) {
     sendTwistCommand();
   }
 }
@@ -337,14 +338,14 @@ void TeleopArmJoy::handleSpeedChange() {
   speed = 0.5f * (axes["speed"]->value() + 1.f);
 }
 
-std::vector<std::string> TeleopArmJoy::modeToControllers(const ControlMode mode) {
+std::vector<std::string> TeleopArmJoy::modeToControllers(const ControlModeEnum mode) {
   switch (mode)
   {
-    case ControlMode::FK:
+    case ControlModeEnum::FK:
       return params_.control_modes.joint_space.controllers;
-    case ControlMode::IK:
+    case ControlModeEnum::IK:
       return params_.control_modes.twist.controllers;
-    case ControlMode::PathPlanner:
+    case ControlModeEnum::PathPlanner:
       return params_.control_modes.path_planner_ik.controllers;
     default:
       RCLCPP_WARN(get_logger(), "Unknown control type given to modeToControllers. Returning no controllers.");
@@ -352,7 +353,7 @@ std::vector<std::string> TeleopArmJoy::modeToControllers(const ControlMode mode)
   }
 }
 
-void TeleopArmJoy::switchController(const ControlMode requested_control_mode)
+void TeleopArmJoy::switchController(const ControlModeEnum requested_control_mode)
 {
   if (requested_control_mode == control_mode)
     return;
@@ -391,7 +392,7 @@ bool TeleopArmJoy::setTypingState()
   if (!typing_active)
   {
   	// TODO: error checking!! right now this assumes that the control mode switch always goes through
-  	setControlMode(ControlMode::PathPlanner);
+  	setControlMode(ControlModeEnum::PathPlanner);
   }
 
   typing_active = !typing_active;
@@ -405,15 +406,24 @@ void TeleopArmJoy::toggleTyping(const std::shared_ptr<std_srvs::srv::Trigger::Re
 
   bool res = setTypingState();
   if (!res) {
-	response->success = false;
+    response->success = false;
     response->message = "Could not switch to typing mode.";
   }
   else {
   	response->success = true;
-	response->message = typing_active ? "Switched to typing mode." : "Switched to FK/IK mode.";
+    response->message = typing_active ? "Switched to typing mode." : "Switched to FK/IK mode.";
   }
 
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Sending back response...");
+}
+
+void TeleopArmJoy::initialize_control_modes() {
+  control_mode_manager_ = std::make_shared<ControlModeManager>(shared_from_this());
+  control_mode_manager_->configure();
+}
+
+TeleopArmJoy::~TeleopArmJoy() {
+  control_mode_manager_.reset();
 }
 
 }
@@ -421,8 +431,10 @@ void TeleopArmJoy::toggleTyping(const std::shared_ptr<std_srvs::srv::Trigger::Re
 int main(int argc, char *argv[])
 {
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<teleop_arm_joy::TeleopArmJoy>();
+  const auto node = std::make_shared<teleop_arm_joy::TeleopArmJoy>();
   node->initializeParams();
+  node->initialize_control_modes();
+
   rclcpp::spin(node);
   rclcpp::shutdown();
   return 0;
