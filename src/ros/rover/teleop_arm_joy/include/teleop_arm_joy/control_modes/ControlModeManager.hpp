@@ -22,6 +22,7 @@ class ControlModeManager {
 public:
   explicit ControlModeManager(const std::shared_ptr<rclcpp::Node>& node) : node_(node) {
   }
+  ~ControlModeManager();
 
   /**
    * Populates the control_modes_ from the params in node_.
@@ -45,10 +46,24 @@ private:
    * Switches ros2_control controllers in the controller_manager for the given change in control modes.
    * @param previous the control mode being deactivated.
    * @param next the control mode being activated.
-   * @return
+   * @return True if the request was made successfully. False otherwise.
    */
   [[nodiscard]] bool switch_controllers(const ControlMode& previous, const ControlMode& next) const;
 
+  /**
+   * Switches ros2_control controllers in the controller_manager for the given change in control modes.
+   * @param next the control mode being activated.
+   * @return True if the request was made successfully. False otherwise.
+   */
+  [[nodiscard]] bool switch_controllers(const ControlMode& next) const;
+
+  /**
+   * Gets the control mode plugin class type name for a given control mode name, to be given to pluginlib to load.
+   * Declares the necessary parameter to get the type name as a side effect.
+   * @param[in]  name The name of the control mode to get the plugin type name for.
+   * @param[out] control_mode_type The output control mode plugin type name to be given to pluginlib.
+   * @return True if the type name was found. False otherwise.
+   */
   bool get_type_for_control_mode(const std::string& name, std::string& control_mode_type) const;
 
   /// The owning teleop_arm_joy ROS2 node.

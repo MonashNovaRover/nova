@@ -14,6 +14,8 @@ template<typename T>
 class Input {
 
 public:
+  virtual ~Input() = default;
+
   virtual T value() = 0;
 
   virtual void debounce(const rclcpp::Time& now) = 0;

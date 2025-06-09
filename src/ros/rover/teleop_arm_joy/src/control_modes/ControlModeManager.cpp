@@ -5,6 +5,14 @@
 
 namespace teleop_arm_joy {
 
+ControlModeManager::~ControlModeManager() {
+  switch_controller_client_.reset();
+  node_.reset();
+  current_control_mode_.reset();
+  control_modes_.clear();
+  control_mode_loader_.reset();
+}
+
 void ControlModeManager::configure() {
   const auto logger = node_->get_logger();
 
@@ -39,7 +47,7 @@ void ControlModeManager::configure() {
   // Create each control mode according to the given params
   const auto control_mode_names = control_modes_param.as_string_array();
   for (auto& control_mode_name : control_mode_names) {
-    std::string control_mode_type = "";
+    std::string control_mode_type;
 
     // Get the control mode's plugin type name
     if (!get_type_for_control_mode(control_mode_name, control_mode_type)) {
@@ -92,7 +100,10 @@ bool ControlModeManager::set_control_mode(const std::string& name) {
   if (new_control_mode_it == control_modes_.end() || !new_control_mode_it->second)
     return false;
 
-  // Deactivate the previous control mode
+  // Whether we successfully switch controllers in ros2_control
+  bool switch_result = false;;
+
+  // Deactivate the previous control mode, then switch
   if (current_control_mode_) {
     current_control_mode_->deactivate();
 
@@ -100,15 +111,15 @@ bool ControlModeManager::set_control_mode(const std::string& name) {
     current_control_mode_ = nullptr;
 
     // Disable and enable controllers by calling controller manager
-    auto switch_result = switch_controllers(*previous_control_mode_, *new_control_mode_it->second);
-
-    if (!switch_result) {
-      // TODO: Error recovery here
-      return false;
-    }
+    switch_result = switch_controllers(*previous_control_mode_, *new_control_mode_it->second);
   }
   else {
-    // TODO: Just activate controllers for the new control mode
+    switch_result = switch_controllers(*new_control_mode_it->second);
+  }
+
+  if (!switch_result) {
+    // TODO: Error recovery here
+    return false;
   }
 
   // Activate the new control mode
@@ -147,6 +158,25 @@ bool ControlModeManager::switch_controllers(const ControlMode& previous, const C
 
   const auto request = std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
   request->deactivate_controllers = deactivate_controllers;
+  request->activate_controllers = activate_controllers;
+  request->strictness = 2;
+  request->activate_asap = true;
+
+  auto future = switch_controller_client_->async_send_request(request);
+
+  // TODO: Error recovery when the controller isn't able to switch the controllers.
+  return true;
+}
+
+bool ControlModeManager::switch_controllers(const ControlMode& next) const {
+  const std::vector<std::string> activate_controllers = next.get_base_params().controllers;
+
+  if (!switch_controller_client_->service_is_ready()) {
+    RCLCPP_ERROR(node_->get_logger(), "Controller manager service not available.");
+    return false;
+  }
+
+  const auto request = std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
   request->activate_controllers = activate_controllers;
   request->strictness = 2;
   request->activate_asap = true;

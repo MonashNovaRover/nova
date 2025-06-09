@@ -2,4 +2,7 @@
    <class name="teleop_arm_joy/JointSpaceControlMode" type="teleop_arm_joy::JointSpaceControlMode" base_class_type="teleop_arm_joy::ControlMode">
        <description>A control mode that directly controls joints of the arm.</description>
    </class>
+    <class name="teleop_arm_joy/TwistIKControlMode" type="teleop_arm_joy::TwistIKControlMode" base_class_type="teleop_arm_joy::ControlMode">
+        <description>A control mode that moves some frame of the arm by a Twist, using IK.</description>
+    </class>
 </library>

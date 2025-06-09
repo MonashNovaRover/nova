@@ -34,7 +34,6 @@ generate_parameter_library(
   teleop_arm_joy_parameters
   src/parameters.yaml
 )
-
 # Build the node executable
 add_executable(${PROJECT_NAME}_node
   src/teleop_arm_joy.cpp
@@ -43,11 +42,14 @@ add_executable(${PROJECT_NAME}_node
   src/JoyAxis.cpp
   src/control_modes/ControlMode.cpp
   src/control_modes/ControlModeManager.cpp
+  src/inputs/CollatedInput.cpp
+  src/inputs/InputManager.cpp
 )
 
+# Add plugin implementations here!
 add_library(${PROJECT_NAME} SHARED
-  src/control_modes/ControlMode.cpp
   src/control_modes/joint_space/JointSpaceControlMode.cpp
+  src/control_modes/joint_space/TwistIKControlMode.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_node

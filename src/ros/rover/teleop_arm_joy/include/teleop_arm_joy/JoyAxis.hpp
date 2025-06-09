@@ -9,7 +9,7 @@
 
 #include "JoyMessageListener.hpp"
 #include "teleop_arm_joy_parameters.hpp"
-#include "Input.hpp"
+#include "inputs/Input.hpp"
 
 namespace teleop_arm_joy
 {

@@ -10,7 +10,7 @@ teleop_arm_joy_node:
       type: "teleop_arm_joy/JointSpaceControlMode"
 
     twist_ik_control:
-      type: "TwistIKControlMode"
+      type: "teleop_arm_joy/TwistIKControlMode"
 
     twist:
       linear_max: 0.25
