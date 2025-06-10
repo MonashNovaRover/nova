@@ -4,6 +4,9 @@
  * Edited by Kabi, Rohit, Victor
  */
 
+#include <utility>
+#include <tuple>
+
 #include "teleop_drive_joy/teleop_drive_joy.hpp"
 
 using namespace std::chrono_literals;
@@ -25,7 +28,7 @@ namespace teleop_drive_joy
     mapButtonCallbacks();
     RCLCPP_INFO(
       this->get_logger(), "Initialized with control mode: %s, speed: %s",
-      prettyPrintMode(control_mode_).c_str(), std::to_string(speed_).c_str()
+      prettyPrintMode(drive_mode_).c_str(), std::to_string(speed_).c_str()
     );
   }
   
@@ -38,7 +41,7 @@ namespace teleop_drive_joy
     {
       params_ = param_listener_->get_params();
     }
-    speed_ = params_.controllers_map.at(modeToController(control_mode_)).scale_linear_x;
+    speed_ = params_.initial_speed;
   }
 
   void TeleopDriveJoy::initializeInterfaces()
@@ -59,23 +62,23 @@ namespace teleop_drive_joy
   void TeleopDriveJoy::mapButtonCallbacks()
   {
     button_callbacks_[params_.button_unlock] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg) {
-      if (current_state_.locked)
+      if (locked_)
       {
-        current_state_.locked = false;
+        locked_ = false;
         RCLCPP_INFO(this->get_logger(), "BUTTON: unlock");
       }
     };
     button_callbacks_[params_.button_lock] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg) {
-      if (!current_state_.locked)
+      if (!locked_)
       {
-        current_state_.locked = true;
+        locked_ = true;
         RCLCPP_INFO(this->get_logger(), "BUTTON: lock");
       }
     };
     button_callbacks_[params_.button_autonomous_control] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg) {
-      if (!current_state_.autonomous_mode)
+      if (!autonomous_mode_)
       {
-        current_state_.autonomous_mode = true;
+        autonomous_mode_ = true;
         setEnableTwistCmdForController(pivot_drive_client_, true);
         setEnableTwistCmdForController(strafe_client_, true);
         setEnableTwistCmdForController(nova_diff_drive_client_, true);
@@ -83,9 +86,9 @@ namespace teleop_drive_joy
       }
     };
     button_callbacks_[params_.button_manual_control] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg) {
-      if (current_state_.autonomous_mode)
+      if (autonomous_mode_)
       {
-        current_state_.autonomous_mode = false;
+        autonomous_mode_ = false;
         setEnableTwistCmdForController(pivot_drive_client_, false);
         setEnableTwistCmdForController(strafe_client_, false);
         setEnableTwistCmdForController(nova_diff_drive_client_, false);
@@ -93,21 +96,28 @@ namespace teleop_drive_joy
       }
     };
     button_callbacks_[params_.button_pivot_drive_controller] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg) {
-      if (control_mode_ != nova_interfaces::msg::DriveInfo::PIVOT)
+      if (drive_mode_ != nova_interfaces::msg::DriveInfo::PIVOT)
       {
         switchController(nova_interfaces::msg::DriveInfo::PIVOT);
         RCLCPP_INFO(this->get_logger(), "BUTTON: pivot_drive");
       }
     };
+    button_callbacks_[params_.button_holonomic_drive_controller] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg) {
+      if (drive_mode_ != nova_interfaces::msg::DriveInfo::HOLONOMIC)
+      {
+        switchController(nova_interfaces::msg::DriveInfo::HOLONOMIC);
+        RCLCPP_INFO(this->get_logger(), "BUTTON: holonomic_drive");
+      }
+    };
     button_callbacks_[params_.button_strafe_controller] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg) {
-      if (control_mode_ != nova_interfaces::msg::DriveInfo::STRAFE)
+      if (drive_mode_ != nova_interfaces::msg::DriveInfo::STRAFE)
       {
         switchController(nova_interfaces::msg::DriveInfo::STRAFE);
         RCLCPP_INFO(this->get_logger(), "BUTTON: strafe_drive");
       }
     };
     button_callbacks_[params_.button_nova_diff_drive_controller] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg) {
-      if (control_mode_ != nova_interfaces::msg::DriveInfo::DIFF)
+      if (drive_mode_ != nova_interfaces::msg::DriveInfo::DIFF)
       {
         switchController(nova_interfaces::msg::DriveInfo::DIFF);
         RCLCPP_INFO(this->get_logger(), "BUTTON: nova_diff_drive");
@@ -115,7 +125,7 @@ namespace teleop_drive_joy
     };
     // mark axis buttons as negative
     button_callbacks_[-(params_.axis_speed_change_fine)] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg) {
-      if (!current_state_.locked)
+      if (!locked_)
       {
         speed_ = std::clamp(
           speed_ + joy_msg->axes[params_.axis_speed_change_fine] * params_.speed_change_fine_val,
@@ -125,7 +135,7 @@ namespace teleop_drive_joy
       }
     };
     button_callbacks_[-(params_.axis_speed_change_coarse)] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg) {
-      if (!current_state_.locked)
+      if (!locked_)
       {
         speed_ = std::clamp(
           speed_ + joy_msg->axes[params_.axis_speed_change_coarse] * params_.speed_change_coarse_val,
@@ -140,7 +150,7 @@ namespace teleop_drive_joy
   {
     handleButtonCallbacks(joy_msg);
 
-    if (!current_state_.locked)
+    if (!locked_)
     {
       sendDriveCommand(joy_msg);
     }
@@ -173,16 +183,28 @@ namespace teleop_drive_joy
 
   void TeleopDriveJoy::sendDriveCommand(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
-    auto controller_params = params_.controllers_map.at(modeToController(control_mode_));
+    auto controller_params = params_.controllers_map.at(modeToController(drive_mode_));
 
-    double angular = joy_msg->axes[controller_params.axis_angular_y] * controller_params.scale_angular_y;
-    double linear = joy_msg->axes[controller_params.axis_linear_x] * speed_;
+    std::pair<double, double> linear = {
+      joy_msg->axes[controller_params.axis_linear_x] * speed_,
+      joy_msg->axes[controller_params.axis_linear_y] * speed_
+    };
+    double angular = joy_msg->axes[controller_params.axis_angular_y] * controller_params.scale_angular;
 
-    if (current_state_.autonomous_mode)
+    if (drive_mode_ == nova_interfaces::msg::DriveInfo::HOLONOMIC)
     {
       auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
+      std::tie(cmd_vel_msg->twist.linear.x, cmd_vel_msg->twist.linear.y) = linear;
       cmd_vel_msg->twist.angular.z = angular;
-      cmd_vel_msg->twist.linear.x = linear;
+      cmd_vel_msg->header.stamp = this->now();
+      
+      cmd_vel_pub_->publish(std::move(cmd_vel_msg));
+    }
+    else if (autonomous_mode_)
+    {
+      auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
+      cmd_vel_msg->twist.linear.x = linear.first;
+      cmd_vel_msg->twist.angular.z = angular;
       cmd_vel_msg->header.stamp = this->now();
 
       cmd_vel_pub_->publish(std::move(cmd_vel_msg));
@@ -194,71 +216,54 @@ namespace teleop_drive_joy
       drive_input_msg->drive_input.radius = angular == 0 ? INFINITY : (1.0 / std::pow(std::abs(angular), 2)) - 1;
       drive_input_msg->drive_input.direction = angular > 0 ? -1 : angular < 0 ? 1
                                                                               : 0;
-      drive_input_msg->drive_input.speed = linear;
+      drive_input_msg->drive_input.speed = linear.first;
       drive_input_msg->header.stamp = this->now();
 
       drive_input_pub_->publish(std::move(drive_input_msg));
     }
 
     sent_lock_msg_ = false;
-    previous_state_ = current_state_;
-    current_state_.drive_mode = control_mode_;
-
     auto drive_info_msg = std::make_unique<nova_interfaces::msg::DriveInfo>();
-    drive_info_msg->locked = current_state_.locked;
-    drive_info_msg->autonomous_mode = current_state_.autonomous_mode;
-    drive_info_msg->drive_mode = current_state_.drive_mode;
+    drive_info_msg->locked = locked_;
+    drive_info_msg->autonomous_mode = autonomous_mode_;
+    drive_info_msg->drive_mode = drive_mode_;
 
     drive_info_pub_->publish(std::move(drive_info_msg));
   }
 
   void TeleopDriveJoy::sendHaltCommand()
   {
-    if (!current_state_.autonomous_mode)
+    if (sent_lock_msg_) return;
+
+    if (!autonomous_mode_)
     {
-      if (!sent_lock_msg_)
-      {
-        auto drive_input_msg = std::make_unique<nova_interfaces::msg::DriveInputStamped>();
-        drive_input_msg->drive_input.radius = INFINITY;
-        drive_input_pub_->publish(std::move(drive_input_msg));
-
-        auto drive_info_msg = std::make_unique<nova_interfaces::msg::DriveInfo>();
-        drive_info_msg->locked = current_state_.locked;
-        drive_info_msg->autonomous_mode = current_state_.autonomous_mode;
-        drive_info_msg->drive_mode = current_state_.drive_mode;
-
-        drive_info_pub_->publish(std::move(drive_info_msg));
-        sent_lock_msg_ = true;
-      }
+      auto drive_input_msg = std::make_unique<nova_interfaces::msg::DriveInputStamped>();
+      drive_input_msg->drive_input.radius = INFINITY;
+      drive_input_pub_->publish(std::move(drive_input_msg));
     }
     else
     {
-      if (!sent_lock_msg_)
-      {
       auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
       cmd_vel_pub_->publish(std::move(cmd_vel_msg));
-
-      auto drive_info_msg = std::make_unique<nova_interfaces::msg::DriveInfo>();
-      drive_info_msg->locked = current_state_.locked;
-      drive_info_msg->autonomous_mode = current_state_.autonomous_mode;
-      drive_info_msg->drive_mode = current_state_.drive_mode;
-
-      drive_info_pub_->publish(std::move(drive_info_msg));
-      sent_lock_msg_ = true;
-      }
     }
+    
+    auto drive_info_msg = std::make_unique<nova_interfaces::msg::DriveInfo>();
+    drive_info_msg->locked = locked_;
+    drive_info_msg->autonomous_mode = autonomous_mode_;
+    drive_info_msg->drive_mode = drive_mode_;
+
+    drive_info_pub_->publish(std::move(drive_info_msg));
+    sent_lock_msg_ = true;
   }
 
   void TeleopDriveJoy::switchController(const uint requested_control_mode)
   {
-    if (requested_control_mode == control_mode_)
-      return;
+    RCLCPP_INFO(
+      this->get_logger(), "Changing from %s to %s",
+      prettyPrintMode(drive_mode_).c_str(), prettyPrintMode(requested_control_mode).c_str()
+    );
 
-    RCLCPP_INFO(this->get_logger(), "Changing from %s to %s",
-                prettyPrintMode(control_mode_).c_str(),
-                prettyPrintMode(requested_control_mode).c_str());
-
-    std::string deactivate_controller = modeToController(control_mode_);
+    std::string deactivate_controller = modeToController(drive_mode_);
     std::string activate_controller = modeToController(requested_control_mode);
 
     if (!switch_controller_client_->service_is_ready()) {
@@ -274,7 +279,7 @@ namespace teleop_drive_joy
 
     auto future = switch_controller_client_->async_send_request(request);
 
-    control_mode_ = requested_control_mode;
+    drive_mode_ = requested_control_mode;
   }
 
   void TeleopDriveJoy::setEnableTwistCmdForController(const std::shared_ptr<rclcpp::Client<rcl_interfaces::srv::SetParameters>> &client, bool enable)
