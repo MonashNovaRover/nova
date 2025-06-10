@@ -13,6 +13,11 @@ teleop_drive_joy:
     default_value: 200
     description: "Debounce Time for Joy Messages in Milliseconds"
 
+  initial_speed:
+    type: double
+    default_value: 0.1
+    description: "Initial Speed of the Rover when Teleop is started"
+
   controllers:
     type: string_array
     default_value:
@@ -31,11 +36,11 @@ teleop_drive_joy:
         default_value: 1,
         description: "The Axis controlling linear velocity. Usually refers to the Left Stick Verical Axis",
       }
-    scale_linear_x:
+    axis_linear_y:
       {
-        type: double,
-        default_value: 0.1,
-        description: "A scale parameter applied on linear velocity",
+        type: int,
+        default_value: 0,
+        description: "The Axis controlling lateral velocity. Usually refers to the Left Stick Horizontal Axis",
       }
     axis_angular_y:
       {
@@ -43,7 +48,7 @@ teleop_drive_joy:
         default_value: 3,
         description: "The Axis controlling angular velocity. Usually refers to the Right Stick Horizontal Axis",
       }
-    scale_angular_y:
+    scale_angular:
       {
         type: double,
         default_value: 1,
@@ -57,7 +62,7 @@ teleop_drive_joy:
   button_strafe_controller:
     { type: int, default_value: 6, description: "Switch to Strafe Mode" }
 
-  button_nova_holonomic_drive_controller:
+  button_holonomic_drive_controller:
     { type: int, default_value: 5, description: "Switch to Holonomic Mode" }
 
   button_pivot_drive_controller:
