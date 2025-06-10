@@ -67,7 +67,7 @@ enum class BLCMDSendCommand {
     SET_CONFIG          = 0xA     // Send request to set configuration
 };
 
-enum class TelemetryPacket{
+enum class TelemetryPacket {
     PACKET_1 = 0x1,
     PACKET_2,
     PACKET_3,

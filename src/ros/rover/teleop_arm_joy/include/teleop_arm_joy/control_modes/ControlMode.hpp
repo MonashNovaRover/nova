@@ -11,6 +11,8 @@
 #include <rclcpp/node.hpp>
 #include <rclcpp/node_interfaces/node_base_interface.hpp>
 
+#include "teleop_arm_joy/inputs/Input.hpp"
+
 namespace teleop_arm_joy {
 /**
  * Base class for a control mode used in teleoperation
@@ -41,6 +43,9 @@ public:
   void deactivate();
 
   virtual void update() {};
+
+
+  // Inputs
 
   // Accessors
   /// Name of the control mode, which the control mode is indexed by

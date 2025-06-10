@@ -42,8 +42,8 @@ add_executable(${PROJECT_NAME}_node
   src/JoyAxis.cpp
   src/control_modes/ControlMode.cpp
   src/control_modes/ControlModeManager.cpp
-  src/inputs/CollatedInput.cpp
   src/inputs/InputManager.cpp
+        src/input_sources/InputSourceManager.cpp
 )
 
 # Add plugin implementations here!

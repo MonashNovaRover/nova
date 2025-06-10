@@ -17,7 +17,7 @@ public:
   T value() override;
   void debounce(const rclcpp::Time& now) override {
     for (auto& input : inputs_)
-      input.debounce(now);
+      input->debounce(now);
   }
 
   /**
@@ -25,7 +25,7 @@ public:
    */
   [[nodiscard]] bool changed() const override {
     for (auto& input : inputs_)
-      if (input.changed())
+      if (input->changed())
         return true;
     return false;
   }
@@ -51,7 +51,7 @@ private:
 };
 
 // value() definitions:
-
+template<>
 inline bool CollatedInput<bool>::value() {
   bool sum = false;
   for (const auto& input : inputs_)
