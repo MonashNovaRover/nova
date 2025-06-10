@@ -28,6 +28,8 @@ namespace teleop_drive_joy
     {
     case nova_interfaces::msg::DriveInfo::PIVOT:
       return "Pivot Mode";
+    case nova_interfaces::msg::DriveInfo::HOLONOMIC:
+      return "Holonomic Mode";
     case nova_interfaces::msg::DriveInfo::STRAFE:
       return "Strafe Mode";
     case nova_interfaces::msg::DriveInfo::DIFF:
@@ -43,6 +45,8 @@ namespace teleop_drive_joy
     {
     case nova_interfaces::msg::DriveInfo::PIVOT:
       return "pivot_drive_controller";
+    case nova_interfaces::msg::DriveInfo::HOLONOMIC:
+      return "holonomic_drive_controller";
     case nova_interfaces::msg::DriveInfo::STRAFE:
       return "strafe_controller";
     case nova_interfaces::msg::DriveInfo::DIFF:
@@ -51,16 +55,6 @@ namespace teleop_drive_joy
       return "unknown_controller";
     }
   }
-
-  /**
-   * @brief Struct representing the current state.
-   */
-  struct State
-  {
-    bool locked = true;
-    bool autonomous_mode = false;
-    uint drive_mode = nova_interfaces::msg::DriveInfo::PIVOT;
-  };
 
   /**
    * @class TeleopDriveJoy
@@ -141,9 +135,9 @@ namespace teleop_drive_joy
 
     Params params_;
     bool sent_lock_msg_ = false;
-    State current_state_;
-    State previous_state_;
-    uint control_mode_ = nova_interfaces::msg::DriveInfo::PIVOT;
+    bool locked_ = true;
+    bool autonomous_mode_ = false;
+    uint drive_mode_ = nova_interfaces::msg::DriveInfo::PIVOT;
     double speed_; // Linear Speed Multiplier that can be incremented
     std::map<int, rclcpp::Time> last_button_press_time_;
     std::map<int, std::function<void(const sensor_msgs::msg::Joy::SharedPtr)>> button_callbacks_;
