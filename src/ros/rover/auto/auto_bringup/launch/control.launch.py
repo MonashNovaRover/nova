@@ -26,7 +26,7 @@ def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
 
     angle = LaunchConfiguration('angle')
-    controller_params = LaunchConfiguration('controller_params')
+    controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
@@ -38,19 +38,15 @@ def launch_setup(context, *args, **kwargs):
             executable='spawner',
             arguments=['pivot_drive_controller', '--switch-timeout', '10', '--ros-args', '--log-level', log_level] #, '--inactive']
         ),
-        # Node(
-        #     package='controller_manager',
-        #     executable='spawner',
-        #     arguments=['strafe_controller', '--inactive']
-        # ),
-        # Node(
-        #     package='controller_manager',
-        #     executable='spawner',
-        #     arguments=['nova_diff_drive_controller', '--inactive']
-        # ),
         Node(
-            package='electronics', 
-            executable='led_strip.py', 
+            package='controller_manager',
+            executable='spawner',
+            arguments=['strafe_controller', '--inactive']
+        ),
+        Node(
+            package='controller_manager',
+            executable='spawner',
+            arguments=['nova_diff_drive_controller', '--inactive']
         ),
         GroupAction(
             condition=UnlessCondition(gazebo),
@@ -63,7 +59,7 @@ def launch_setup(context, *args, **kwargs):
                 Node(
                     package='controller_manager',
                     executable='ros2_control_node',
-                    parameters=[controller_params],
+                    parameters=[controllers],
                     remappings=[('/controller_manager/robot_description', '/robot_description')],
                 ),
                 IncludeLaunchDescription(
@@ -85,7 +81,7 @@ def generate_launch_description():
             description='Angle (in degrees) at which the camera is mounted',
         ),
         DeclareLaunchArgument(
-            name='controller_params',
+            name='controllers',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
             description='Absolute path to controller params file',
         ),
