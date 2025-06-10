@@ -8,28 +8,36 @@ teleop_drive_joy_node:
         "nova_diff_drive_controller",
       ]
     pivot_drive_controller:
-      axis_angular_z: 2
       axis_linear_x: 1
-      scale_angular_z: 0.85
+      axis_angular_y: 2
       scale_linear_x: 0.1
+      scale_angular_y: 0.85
+    holonomic_drive_controller:
+      axis_linear_x: 1
+      axis_linear_y: 0
+      axis_angular_x: 3
+      axis_angular_y: 2
+      scale_linear: 0.1
+      scale_angular: 1.0
     strafe_controller:
-      axis_angular_z: 2
       axis_linear_x: 0 # This might be incorrect
-      scale_angular_z: 1.0
+      axis_angular_y: 2
       scale_linear_x: 0.1
+      scale_angular_y: 1.0
     nova_diff_drive_controller:
-      axis_angular_z: 2
       axis_linear_x: 1
-      scale_angular_z: 1.0
+      axis_angular_y: 2
       scale_linear_x: 0.1
-    axis_speed_change_coarse: 5
+      scale_angular_y: 1.0
+    button_pivot_drive_controller: 0
+    button_nova_holonomic_drive_controller: 1
+    button_nova_diff_drive_controller: 2
+    button_strafe_controller: 3
     axis_speed_change_fine: 4
-    button_autonomous_control: 0
+    axis_speed_change_coarse: 5
+    button_autonomous_control: 7
+    button_manual_control: 8
     button_lock: 9
-    button_manual_control: 1
-    button_nova_diff_drive_controller: 4
-    button_pivot_drive_controller: 7
-    button_strafe_controller: 6
     button_unlock: 10
     speed_change_coarse_val: 0.1
     speed_change_fine_val: -0.02 # DPad is Flipp'd on Japanese Version

@@ -9,13 +9,11 @@ def launch_setup(context, *args, **kwargs):
     teleop_drive_joy_dir = FindPackageShare('teleop_drive_joy')
 
     # Launch configurations
-    joystick = LaunchConfiguration('joystick').perform(context)
-    joy_device = LaunchConfiguration('joy_dev')
+    device_id = LaunchConfiguration('device_id')
+    device_name = LaunchConfiguration('device_name')
     joy_vel = LaunchConfiguration('joy_vel')
-    params_file = LaunchConfiguration(
-        'params_file',
-        default=PathJoinSubstitution([teleop_drive_joy_dir, 'config', f'{joystick}.config.yaml']),
-    )
+    config = LaunchConfiguration('config').perform(context)
+    params_file = PathJoinSubstitution([teleop_drive_joy_dir, 'config', f'{config}.config.yaml'])
 
     return [
         # Add Nodes
@@ -24,41 +22,41 @@ def launch_setup(context, *args, **kwargs):
             executable='joy_node',
             name='joy_node',
             parameters=[
-                {'dev': joy_device,
+                {'device_id': device_id,
                  'deadzone': 0.1,
-                 'autorepeat_rate': 20.0}
+                 'autorepeat_rate': 20.0} | {'device_name': device_name} if device_name else {}
             ],
         ),
         Node(
             package='teleop_drive_joy',
             executable='teleop_drive_joy_node',
             name='teleop_drive_joy_node',
-            parameters=[PathJoinSubstitution([teleop_drive_joy_dir, 'config', f'{joystick}.config.yaml'])],
+            parameters=[params_file],
             remappings=[
                 ('/cmd_vel', joy_vel),
             ],
         ),
         # Log Information
-        LogInfo(msg=['Joystick Loaded: ', joystick]),
+        LogInfo(msg=['Joystick Loaded: ', config]),
     ]
 
 def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
-            name='joystick', 
-            default_value='xbox',
+            name='device_id',
+            default_value='1',
         ),
         DeclareLaunchArgument(
-            name='joy_dev', 
-            default_value='/dev/input/js0',
+            name='device_name',
+            default_value='',
         ),
         DeclareLaunchArgument(
             name='joy_vel', 
             default_value='cmd_vel'
         ),
         DeclareLaunchArgument(
-            name='params_file',
-            default_value='', #Defined in launch_setup due to requiring another launch argument
+            name='config',
+            default_value='nintendo', #Defined in launch_setup due to requiring another launch argument
         ),
     ]
 
