@@ -11,7 +11,7 @@ void teleop_arm_joy::ControlMode::initialize(const std::shared_ptr<rclcpp::Node>
   on_initialize();
 }
 
-void teleop_arm_joy::ControlMode::configure() {
+void teleop_arm_joy::ControlMode::configure(InputManager& inputs) {
   if (!node_) {
     return;
   }
@@ -19,7 +19,7 @@ void teleop_arm_joy::ControlMode::configure() {
   // Do common configuration
 
   // Perform child class configuration
-  on_configure();
+  on_configure(inputs);
 }
 
 void teleop_arm_joy::ControlMode::activate() {

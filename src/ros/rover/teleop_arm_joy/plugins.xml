@@ -5,4 +5,8 @@
     <class name="teleop_arm_joy/TwistIKControlMode" type="teleop_arm_joy::TwistIKControlMode" base_class_type="teleop_arm_joy::ControlMode">
         <description>A control mode that moves some frame of the arm by a Twist, using IK.</description>
     </class>
+
+    <class name="teleop_arm_joy/JoyInputSource" type="teleop_arm_joy::JoyInputSource" base_class_type="teleop_arm_joy::InputSource">
+        <description>An input source for joysticks, such as xbox controllers and thrustmasters.</description>
+    </class>
 </library>

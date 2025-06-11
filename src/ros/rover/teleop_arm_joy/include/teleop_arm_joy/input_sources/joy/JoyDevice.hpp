@@ -11,8 +11,8 @@
 #include <rclcpp/subscription.hpp>
 #include <sensor_msgs/msg/joy.hpp>
 
-#include "JoyMessageListener.hpp"
-#include "teleop_arm_joy_parameters.hpp"
+#include "../../JoyMessageListener.hpp"
+#include "../../teleop_arm_joy_parameters.hpp"
 using namespace std;
 
 

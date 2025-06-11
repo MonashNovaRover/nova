@@ -34,6 +34,12 @@ generate_parameter_library(
   teleop_arm_joy_parameters
   src/parameters.yaml
 )
+# Generate parameter library for the joy input source
+generate_parameter_library(
+  joy_input_source_parameters
+  src/input_sources/joy/joy_input_source_parameters.yaml
+)
+
 # Build the node executable
 add_executable(${PROJECT_NAME}_node
   src/teleop_arm_joy.cpp
@@ -43,13 +49,15 @@ add_executable(${PROJECT_NAME}_node
   src/control_modes/ControlMode.cpp
   src/control_modes/ControlModeManager.cpp
   src/inputs/InputManager.cpp
-        src/input_sources/InputSourceManager.cpp
+  src/input_sources/InputSourceManager.cpp
+  src/inputs/InputSource.cpp
 )
 
 # Add plugin implementations here!
 add_library(${PROJECT_NAME} SHARED
   src/control_modes/joint_space/JointSpaceControlMode.cpp
   src/control_modes/joint_space/TwistIKControlMode.cpp
+  src/input_sources/joy/JoyInputSource.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_node

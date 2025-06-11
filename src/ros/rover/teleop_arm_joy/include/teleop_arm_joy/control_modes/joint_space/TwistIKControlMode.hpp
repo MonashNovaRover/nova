@@ -18,7 +18,7 @@ public:
 
   void on_initialize() override;
 
-  void on_configure() override;
+  void on_configure(InputManager& inputs) override;
   void on_activate() override;
   void on_deactivate() override;
 

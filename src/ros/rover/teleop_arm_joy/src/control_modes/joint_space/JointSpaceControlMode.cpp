@@ -10,7 +10,7 @@ void JointSpaceControlMode::on_initialize() {
 
 }
 
-void JointSpaceControlMode::on_configure() {
+void JointSpaceControlMode::on_configure(InputManager& inputs) {
 
 }
 

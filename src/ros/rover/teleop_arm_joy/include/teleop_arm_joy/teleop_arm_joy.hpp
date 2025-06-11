@@ -15,10 +15,11 @@
 
 // generate_parameter_library_cpp include/teleop_arm_joy/teleop_arm_joy_parameters.hpp src/parameters.yaml
 #include "teleop_arm_joy_parameters.hpp"
-#include "JoyDevice.hpp"
+#include "input_sources/joy/JoyDevice.hpp"
 #include "JoyButton.hpp"
 #include "JoyAxis.hpp"
 #include "control_modes/ControlModeManager.hpp"
+#include "input_sources/InputSourceManager.hpp"
 
 namespace teleop_arm_joy
 {
@@ -74,7 +75,7 @@ namespace teleop_arm_joy
      */
     void toggleTyping(const std::shared_ptr<std_srvs::srv::Trigger::Request> request, std::shared_ptr<std_srvs::srv::Trigger::Response> response);
 
-    void initialize_control_modes();
+    void initialize();
 
   private:
     void onDeviceUpdated(string& device_name);
@@ -147,6 +148,8 @@ namespace teleop_arm_joy
     double speed; // Linear Speed Multiplier that can be incremented
 
     std::shared_ptr<ControlModeManager> control_mode_manager_ = nullptr;
+    InputManager inputs_;
+    std::shared_ptr<InputSourceManager> input_source_manager_ = nullptr;
   };
 
 } // namespace teleop_arm_joy

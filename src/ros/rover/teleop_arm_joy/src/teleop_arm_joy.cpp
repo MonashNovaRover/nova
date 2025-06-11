@@ -417,9 +417,14 @@ void TeleopArmJoy::toggleTyping(const std::shared_ptr<std_srvs::srv::Trigger::Re
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Sending back response...");
 }
 
-void TeleopArmJoy::initialize_control_modes() {
+void TeleopArmJoy::initialize() {
+  inputs_ = InputManager();
+
+  input_source_manager_ = std::make_shared<InputSourceManager>(shared_from_this());
+  input_source_manager_->configure(inputs_);
+
   control_mode_manager_ = std::make_shared<ControlModeManager>(shared_from_this());
-  control_mode_manager_->configure();
+  control_mode_manager_->configure(inputs_);
 }
 
 TeleopArmJoy::~TeleopArmJoy() {
@@ -433,7 +438,7 @@ int main(int argc, char *argv[])
   rclcpp::init(argc, argv);
   const auto node = std::make_shared<teleop_arm_joy::TeleopArmJoy>();
   node->initializeParams();
-  node->initialize_control_modes();
+  node->initialize();
 
   rclcpp::spin(node);
   rclcpp::shutdown();

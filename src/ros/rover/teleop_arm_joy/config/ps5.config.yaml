@@ -6,11 +6,21 @@ teleop_arm_joy_node:
       "twist_ik_control"
     ]
 
+    input_sources: [
+      "joy_input_source"
+    ]
+
     joint_space_control:
       type: "teleop_arm_joy/JointSpaceControlMode"
 
     twist_ik_control:
       type: "teleop_arm_joy/TwistIKControlMode"
+
+    fake_type_mode:
+      type: "teleop_arm_joy/Fake"
+
+    joy_input_source:
+      type: "teleop_arm_joy/JoyInputSource"
 
     twist:
       linear_max: 0.25

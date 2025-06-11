@@ -4,29 +4,32 @@
 
 #include "teleop_arm_joy/input_sources/InputSourceManager.hpp"
 
+#include "colors.h"
+
 namespace teleop_arm_joy {
 
-void InputSourceManager::configure() {
+void InputSourceManager::configure(InputManager& inputs) {
   const auto logger = node_->get_logger();
 
   // Declare and get parameter for control modes to spawn by default
   node_->declare_parameter("input_sources", rclcpp::ParameterType::PARAMETER_STRING_ARRAY);
   rclcpp::Parameter input_sources_param;
   node_->get_parameter("input_sources", input_sources_param);
-  RCLCPP_INFO(logger, "input_sources param is of type %s", input_sources_param.get_type_name().c_str());
 
   // Pluginlib for loading control modes dynamically
   source_loader_ = std::make_unique<pluginlib::ClassLoader<InputSource>>(
     "teleop_arm_joy", "teleop_arm_joy::InputSource");
 
-  // List available control mode plugins
+  // List available input source plugins
   try
   {
-    RCLCPP_INFO(logger, "Available input source plugins:");
+    std::stringstream available_plugins_log{};
     const auto plugins = source_loader_->getDeclaredClasses();
     for (const auto& plugin : plugins) {
-      RCLCPP_INFO(logger, "  - %s", plugin.c_str());
+      available_plugins_log << "\n\t- " << plugin;
     }
+
+    RCLCPP_DEBUG(logger, "Registered InputSource plugins:%s", available_plugins_log.str().c_str());
   }
   catch (const pluginlib::PluginlibException& ex)
   {
@@ -35,7 +38,10 @@ void InputSourceManager::configure() {
   }
 
   // Create each control mode according to the given params
-  const auto input_source_names = input_sources_param.as_string_array();
+  const auto input_source_names = input_sources_param.get_type() == rclcpp::PARAMETER_STRING_ARRAY ?
+     input_sources_param.as_string_array() : std::vector<std::string>();
+
+  std::stringstream registered_sources_log{};
   for (auto& input_source_name : input_source_names) {
     std::string input_source_type;
 
@@ -43,6 +49,7 @@ void InputSourceManager::configure() {
     if (!get_type_for_input_source(input_source_name, input_source_type)) {
       RCLCPP_ERROR(logger, "Failed to find type for input source \"%s\" in params. Have you defined %s.type in your "
                            "parameter file?", input_source_name.c_str(), input_source_name.c_str());
+      registered_sources_log << C_FAIL_QUIET << "\n\t- " << input_source_name << C_FAIL_QUIET << "\t(failed - " << input_source_name << ".type param missing) " << C_RESET;
       continue;
     }
 
@@ -56,21 +63,31 @@ void InputSourceManager::configure() {
     {
       RCLCPP_ERROR(logger, "Failed to find input source plugin \"%s\" for mode \"%s\"!\nwhat(): %s",
                    input_source_type.c_str(), input_source_name.c_str(), ex.what());
+      registered_sources_log << C_FAIL_QUIET << "\n\t- " << input_source_name << C_FAIL_QUIET << "\t(failed - can't find plugin " << input_source_type << ") " << C_RESET;
       continue;
     }
 
     // Create a node for the control mode
     const auto options = rclcpp::NodeOptions(node_->get_node_options())
       .context(node_->get_node_base_interface()->get_context());
-    const auto node_name = input_source_name;
+    const auto& node_name = input_source_name;
     const auto input_source_node = std::make_shared<rclcpp::Node>(node_name, node_->get_namespace(), options);
 
     // Initialize the control mode
     input_source_class->initialize(input_source_node, input_source_name);
 
-    RCLCPP_INFO(node_->get_logger(), "Registering input source \"%s\" as type \"%s\"...", input_source_name.c_str(),
-      input_source_type.c_str());
+    registered_sources_log << "\n\t- " << input_source_name << C_QUIET << "\t: " << input_source_type << C_RESET;
     sources_.emplace_back(input_source_class);
+  }
+
+  RCLCPP_INFO(logger, C_TITLE "Input Sources:" C_RESET "%s", registered_sources_log.str().c_str());
+
+  // Do configuration for each input source
+  for (const auto& source : sources_) {
+    if (!source)
+      continue;
+
+    source->configure(inputs);
   }
 }
 

@@ -4,9 +4,6 @@
 
 #ifndef INPUTMANAGER_HPP
 #define INPUTMANAGER_HPP
-s
-#include <map>
-#include <string>
 
 #include "CollatedCollection.hpp"
 #include "CollatedEvent.hpp"
@@ -21,13 +18,13 @@ class InputManager {
 
 public:
   // Accessors
-  [[nodiscard]] Collection<Input<double>, CollatedInput<double>>& get_axes() {
+  [[nodiscard]] Collection<Input<double>>& get_axes() {
     return axes_;
   }
-  [[nodiscard]] Collection<Input<bool>, CollatedInput<bool>>& get_booleans() {
+  [[nodiscard]] Collection<Input<bool>>& get_booleans() {
     return booleans_;
   }
-  [[nodiscard]] CollatedCollection<Event, CollatedEvent>& get_events() {
+  [[nodiscard]] Collection<Event>& get_events() {
     return events_;
   }
 

@@ -16,12 +16,13 @@ namespace teleop_arm_joy
 class InputSourceManager {
 
 public:
-  explicit InputSourceManager(const std::shared_ptr<rclcpp::Node>& node) : node_(node) {}
+  explicit InputSourceManager(const std::shared_ptr<rclcpp::Node>& node) : node_(node) {
+  }
 
   /**
    * Populates the sources_ from the params in node_.
    */
-  void configure();
+  void configure(InputManager& inputs);
 
   /**
    * Gets the control mode plugin class type name for a given input source name, to be given to pluginlib to load.
@@ -39,7 +40,6 @@ private:
   /// Loads the control modes, and needs to stay alive during the whole lifecycle of the control modes.
   std::unique_ptr<pluginlib::ClassLoader<InputSource>> source_loader_;
   std::vector<std::shared_ptr<InputSource>> sources_{};
-
 };
 
 }

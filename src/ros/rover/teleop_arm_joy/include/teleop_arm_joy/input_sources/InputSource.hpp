@@ -4,9 +4,12 @@
 
 #ifndef INPUTSOURCE_HPP
 #define INPUTSOURCE_HPP
+
+#include <rclcpp/node.hpp>
 #include "teleop_arm_joy/inputs/Collection.hpp"
 #include "teleop_arm_joy/inputs/Event.hpp"
 #include "teleop_arm_joy/inputs/Input.hpp"
+#include "teleop_arm_joy/inputs/InputManager.hpp"
 
 namespace teleop_arm_joy
 {
@@ -18,14 +21,18 @@ class InputSource {
 public:
   virtual ~InputSource() = default;
 
-  virtual void initialize(const std::shared_ptr<rclcpp::Node>& node, const std::string& name) = 0;
+  void initialize(const std::shared_ptr<rclcpp::Node>& node, const std::string& name);
+  void configure(InputManager& inputs);
 
-  /**
-   * Implementers should create, keep reference to, and return any axes provided by the input source here.
-   * @return The set of axes the input source exposes.
-   */
-  virtual std::vector<Input<double>> export_axes() = 0;
-  virtual void import_events(Collection<Event>& events) = 0;
+protected:
+  virtual void on_initialize() {};
+  virtual void on_configure(InputManager& inputs) {};
+
+  /// The ROS2 node created by teleop_arm_joy, which we get params from (for base and child classes)
+  std::shared_ptr<rclcpp::Node> node_ = nullptr;
+
+private:
+  std::string name_;
 };
 
 }

@@ -12,6 +12,7 @@
 #include <pluginlib/class_loader.hpp>
 
 #include "ControlMode.hpp"
+#include "teleop_arm_joy/inputs/InputManager.hpp"
 
 namespace teleop_arm_joy {
 
@@ -27,7 +28,7 @@ public:
   /**
    * Populates the control_modes_ from the params in node_.
    */
-  void configure();
+  void configure(InputManager& inputs);
 
   /**
    * @brief Attempts to activate a control mode.

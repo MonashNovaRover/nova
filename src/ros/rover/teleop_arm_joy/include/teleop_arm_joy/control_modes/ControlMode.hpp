@@ -12,6 +12,7 @@
 #include <rclcpp/node_interfaces/node_base_interface.hpp>
 
 #include "teleop_arm_joy/inputs/Input.hpp"
+#include "teleop_arm_joy/inputs/InputManager.hpp"
 
 namespace teleop_arm_joy {
 /**
@@ -38,14 +39,11 @@ public:
   void initialize(const std::shared_ptr<rclcpp::Node>& node, const std::string& name);
 
   // Lifecycle methods
-  void configure();
+  void configure(InputManager& inputs);
   void activate();
   void deactivate();
 
   virtual void update() {};
-
-
-  // Inputs
 
   // Accessors
   /// Name of the control mode, which the control mode is indexed by
@@ -62,7 +60,7 @@ protected:
   virtual void on_initialize() {};
 
   // Lifecycle methods
-  virtual void on_configure(/* TODO: Give node, params, and any necessary context to set itself up */) {};
+  virtual void on_configure(InputManager& inputs/* TODO: Give node, params, and any necessary context to set itself up */) {};
   virtual void on_activate() {};
   virtual void on_deactivate() {};
 

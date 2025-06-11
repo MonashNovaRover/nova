@@ -10,7 +10,7 @@ void TwistIKControlMode::on_initialize() {
 
 }
 
-void TwistIKControlMode::on_configure() {
+void TwistIKControlMode::on_configure(InputManager& inputs) {
 
 }
 
