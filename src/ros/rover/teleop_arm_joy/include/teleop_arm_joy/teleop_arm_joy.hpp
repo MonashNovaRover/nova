@@ -24,40 +24,8 @@
 namespace teleop_arm_joy
 {
   /**
-   * @enum ControlModeEnum
-   * @brief Enum class for different control modes.
-   */
-  enum class ControlModeEnum
-  {
-    FK,
-    IK,
-    PathPlanner
-  };
-
-  inline std::string prettyPrintMode(const ControlModeEnum mode)
-  {
-    switch (mode)
-    {
-    case ControlModeEnum::FK:
-      return "FK";
-    case ControlModeEnum::IK:
-      return "IK";
-    default:
-      return "Unknown Mode";
-    }
-  }
-
-  /**
-   * @brief Struct representing the current state.
-   */
-  struct State
-  {
-    bool locked = true;
-  };
-
-  /**
    * @class TeleopArmJoy
-   * @brief Class for handling joystick input and publishing arm commands.
+   * @brief Class for handling joystick and other inputs and publishing arm commands.
    */
   class TeleopArmJoy : public rclcpp::Node {
   public:
@@ -68,85 +36,14 @@ namespace teleop_arm_joy
     explicit TeleopArmJoy(const rclcpp::NodeOptions &options = rclcpp::NodeOptions());
     ~TeleopArmJoy() override;
 
-    void initializeParams();
+    void initialize(const std::weak_ptr<rclcpp::Executor>& executor);
 
     /**
-     * @brief Toggles autonomous typing state.
+     * Infinite loop that repeatedly services updates from input sources. The heart of the program.
      */
-    void toggleTyping(const std::shared_ptr<std_srvs::srv::Trigger::Request> request, std::shared_ptr<std_srvs::srv::Trigger::Response> response);
-
-    void initialize();
+    [[noreturn]] void service_input_updates();
 
   private:
-    void onDeviceUpdated(string& device_name);
-
-    /**
-     * @brief Update controller independent input state (control mode, locked, speed, etc)
-     */
-    void updateState();
-
-    void setControlMode(ControlModeEnum new_control_mode);
-
-    /**
-     * @brief Sends Commands for the arm based on joystick input, and current control mode
-     */
-    void sendArmCommand();
-
-    /**
-     * @brief Sends a joint space velocity commands for the arm based on joystick input.
-     */
-    void sendJointSpaceCommand();
-
-    /**
-     * @brief Sends a task space twist command for the arm based on joystick input.
-     */
-    void sendTwistCommand();
-
-    /**
-     * @brief Sends a halt command to stop the rover.
-     * Called when locked.
-     */
-    void sendHaltCommand();
-
-    /**
-     * @brief Handles changes in speed based on joystick input.
-     */
-    void handleSpeedChange();
-
-    std::vector<std::string> modeToControllers(ControlModeEnum mode);
-
-    /**
-     * @brief Switches the controller by calling the switch_controller service.
-     * @param requested_control_mode The desired control mode to switch to.
-     */
-    void switchController(ControlModeEnum requested_control_mode);
-
-    bool setTypingState();
-
-    // Member variables
-    // rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub;
-    rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr switch_controller_client;
-    rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr fk_client;
-    rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr ik_client;
-  	rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr service;
-
-    std::shared_ptr<ParamListener> param_listener_;
-
-    rclcpp::Publisher<nova_interfaces::msg::ArmFkVelocityTargets>::SharedPtr fk_velocity_pub;
-    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr ik_twist_pub;
-
-    std::vector<shared_ptr<JoyDevice>> devices;
-    std::map<std::string, shared_ptr<JoyButton>> buttons;
-    std::map<std::string, shared_ptr<JoyAxis>> axes;
-
-    Params params_;
-    State current_state;
-    State previous_state;
-
-    ControlModeEnum control_mode = ControlModeEnum::FK;
-    bool typing_active;
-    double speed; // Linear Speed Multiplier that can be incremented
-
     std::shared_ptr<ControlModeManager> control_mode_manager_ = nullptr;
     InputManager inputs_;
     std::shared_ptr<InputSourceManager> input_source_manager_ = nullptr;

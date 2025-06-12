@@ -89,12 +89,18 @@ void ControlModeManager::configure(InputManager& inputs) {
 
   RCLCPP_INFO(logger, C_TITLE "Control Modes:" C_RESET "%s", registered_modes_log.str().c_str());
 
+  auto executor = executor_.lock();
+
   // Configure each control mode
   for (const auto& [name, control_mode] : control_modes_) {
     if (!control_mode)
       continue;
     control_mode->configure(inputs);
+
+    executor->add_node(control_mode->get_node());
   }
+
+  executor.reset();
 
   // Activate the first control mode in the list
   if (!control_mode_names.empty())

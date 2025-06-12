@@ -30,7 +30,7 @@ public:
   void joyCallback(sensor_msgs::msg::Joy::SharedPtr joy_msg) override;
   void debounce(const rclcpp::Time& now) override;
 
-  [[nodiscard]] bool value() const;
+  [[nodiscard]] bool value();
 
   /**
    * @brief Gets if this button was just pressed down.

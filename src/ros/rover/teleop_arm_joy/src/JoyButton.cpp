@@ -41,7 +41,7 @@ void teleop_arm_joy::JoyButton::debounce(const rclcpp::Time &now) {
   debounce_down_ = true;
 }
 
-bool teleop_arm_joy::JoyButton::value() const {
+bool teleop_arm_joy::JoyButton::value() {
   return current_value_;
 }
 

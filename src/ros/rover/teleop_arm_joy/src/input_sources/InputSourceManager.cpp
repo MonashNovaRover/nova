@@ -74,7 +74,7 @@ void InputSourceManager::configure(InputManager& inputs) {
     const auto input_source_node = std::make_shared<rclcpp::Node>(node_name, node_->get_namespace(), options);
 
     // Initialize the control mode
-    input_source_class->initialize(input_source_node, input_source_name);
+    input_source_class->initialize(input_source_node, input_source_name, shared_from_this());
 
     registered_sources_log << "\n\t- " << input_source_name << C_QUIET << "\t: " << input_source_type << C_RESET;
     sources_.emplace_back(input_source_class);
@@ -82,13 +82,18 @@ void InputSourceManager::configure(InputManager& inputs) {
 
   RCLCPP_INFO(logger, C_TITLE "Input Sources:" C_RESET "%s", registered_sources_log.str().c_str());
 
+  auto executor = executor_.lock();
+
   // Do configuration for each input source
   for (const auto& source : sources_) {
     if (!source)
       continue;
 
     source->configure(inputs);
+    executor->add_node(source->get_node());
   }
+
+  executor.reset();
 }
 
 bool InputSourceManager::get_type_for_input_source(const std::string& name, std::string& source_type) const {
@@ -102,6 +107,23 @@ bool InputSourceManager::get_type_for_input_source(const std::string& name, std:
   if (result)
     source_type = param.as_string();
   return result;
+}
+
+// Runs on input source threads
+void InputSourceManager::on_input_source_requested_update(const rclcpp::Time& now) {
+  {
+    std::lock_guard lock(mutex_);
+    should_update_ = true;
+  }
+
+  update_condition_.notify_one();
+}
+
+void InputSourceManager::wait_for_update() {
+  std::unique_lock lock(mutex_);
+  // TODO: Apply a min update rate here with wait_for
+  update_condition_.wait(lock, [&](){ return should_update_.load(); });
+  should_update_ = false;
 }
 
 } // namespace teleop_arm_joy

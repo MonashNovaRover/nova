@@ -63,6 +63,10 @@ add_library(${PROJECT_NAME} SHARED
 target_link_libraries(${PROJECT_NAME}_node
   teleop_arm_joy_parameters
 )
+target_link_libraries(${PROJECT_NAME}
+  joy_input_source_parameters
+)
+
 
 ament_target_dependencies(${PROJECT_NAME}_node ${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
@@ -83,6 +87,7 @@ install(
     ${PROJECT_NAME}_node
     ${PROJECT_NAME}
     teleop_arm_joy_parameters
+    joy_input_source_parameters
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -105,6 +110,7 @@ install(
 )
 
 install(TARGETS ${PROJECT_NAME}
+        joy_input_source_parameters
         EXPORT export_${PROJECT_NAME}
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION lib

@@ -17,7 +17,7 @@ namespace teleop_arm_joy
 /**
 * @brief Class that represents some axis from the joy_node
 */
-class JoyAxis : public JoyMessageListener {
+class JoyAxis : public JoyMessageListener, public Input<double> {
 public:
 
   /**
@@ -28,12 +28,12 @@ public:
   void joyCallback(sensor_msgs::msg::Joy::SharedPtr joy_msg) override;
   void debounce(const rclcpp::Time& now) override;
 
-  [[nodiscard]] float value() const;
+  [[nodiscard]] double value() override;
 
   /**
    * @returns true if the value changed since last debounce
    */
-  [[nodiscard]] bool changed() const;
+  [[nodiscard]] bool changed() const override;
 
 private:
   long id;

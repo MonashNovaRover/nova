@@ -10,6 +10,7 @@
 #include <rclcpp/node.hpp>
 #include <controller_manager_msgs/srv/switch_controller.hpp>
 #include <pluginlib/class_loader.hpp>
+#include <rclcpp/executor.hpp>
 
 #include "ControlMode.hpp"
 #include "teleop_arm_joy/inputs/InputManager.hpp"
@@ -21,8 +22,8 @@ namespace teleop_arm_joy {
  */
 class ControlModeManager {
 public:
-  explicit ControlModeManager(const std::shared_ptr<rclcpp::Node>& node) : node_(node) {
-  }
+  explicit ControlModeManager(const std::shared_ptr<rclcpp::Node>& node, const std::weak_ptr<rclcpp::Executor>& executor)
+    : node_(node), executor_(executor) {}
   ~ControlModeManager();
 
   /**
@@ -69,6 +70,8 @@ private:
 
   /// The owning teleop_arm_joy ROS2 node.
   std::shared_ptr<rclcpp::Node> node_;
+  /// Add spawned nodes to this to get them to spin
+  std::weak_ptr<rclcpp::Executor> executor_;
 
   // Control modes
   /// Loads the control modes, and needs to stay alive during the whole lifecycle of the control modes.

@@ -55,7 +55,7 @@ void teleop_arm_joy::JoyAxis::debounce(const rclcpp::Time& now) {
   }
 }
 
-float teleop_arm_joy::JoyAxis::value() const {
+double teleop_arm_joy::JoyAxis::value() {
   return current_value_;
 }
 

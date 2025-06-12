@@ -54,6 +54,9 @@ public:
   [[nodiscard]] const Params& get_base_params() const {
     return base_params_;
   }
+  const std::shared_ptr<rclcpp::Node>& get_node() const {
+    return node_;
+  }
 
 protected:
 
