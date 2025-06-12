@@ -7,17 +7,9 @@
 #define TELEOP_ARM_JOY_HPP
 
 #include <rclcpp/rclcpp.hpp>
-#include <sensor_msgs/msg/joy.hpp>
-#include <geometry_msgs/msg/twist_stamped.hpp>
-#include <nova_interfaces/msg/arm_fk_velocity_targets.hpp>
-#include <controller_manager_msgs/srv/switch_controller.hpp>
-#include "std_srvs/srv/trigger.hpp"
 
 // generate_parameter_library_cpp include/teleop_arm_joy/teleop_arm_joy_parameters.hpp src/parameters.yaml
 #include "teleop_arm_joy_parameters.hpp"
-#include "input_sources/joy/JoyDevice.hpp"
-#include "JoyButton.hpp"
-#include "JoyAxis.hpp"
 #include "control_modes/ControlModeManager.hpp"
 #include "input_sources/InputSourceManager.hpp"
 
@@ -44,6 +36,9 @@ namespace teleop_arm_joy
     [[noreturn]] void service_input_updates();
 
   private:
+    std::shared_ptr<ParamListener> param_listener_;
+    Params params_;
+
     std::shared_ptr<ControlModeManager> control_mode_manager_ = nullptr;
     InputManager inputs_;
     std::shared_ptr<InputSourceManager> input_source_manager_ = nullptr;

@@ -10,7 +10,7 @@
 #include <sensor_msgs/msg/joy.hpp>
 
 #include "JoyMessageListener.hpp"
-#include "teleop_arm_joy_parameters.hpp"
+#include "input_sources/joy/joy_input_source_parameters.hpp"
 
 
 namespace teleop_arm_joy
@@ -25,7 +25,7 @@ public:
   /**
    * @brief Constructor for the joy Button.
    */
-  explicit JoyButton(const Params::Buttons::MapButtonDefinitions &config);
+  explicit JoyButton(const joy_input_source::Params::Buttons::MapButtonDefinitions &config);
 
   void joyCallback(sensor_msgs::msg::Joy::SharedPtr joy_msg) override;
   void debounce(const rclcpp::Time& now) override;

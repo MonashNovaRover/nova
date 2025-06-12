@@ -12,7 +12,7 @@ namespace
   constexpr auto BUTTON_DEBOUNCE_INTERVAL = std::chrono::milliseconds(20);
 }
 
-teleop_arm_joy::JoyButton::JoyButton(const Params::Buttons::MapButtonDefinitions &config) {
+teleop_arm_joy::JoyButton::JoyButton(const joy_input_source::Params::Buttons::MapButtonDefinitions &config) {
   id_ = config.id;
 }
 

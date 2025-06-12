@@ -22,6 +22,12 @@ void JointSpaceControlMode::on_deactivate() {
 
 }
 
+void JointSpaceControlMode::update() {
+  auto logger = get_node()->get_logger();
+
+  RCLCPP_INFO(logger, "Update from %s!", get_node()->get_name());
+}
+
 }
 
 #include "class_loader/register_macro.hpp"

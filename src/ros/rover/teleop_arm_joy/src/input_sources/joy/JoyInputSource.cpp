@@ -12,7 +12,7 @@ namespace teleop_arm_joy {
 void JoyInputSource::on_initialize() {
   InputSource::on_initialize();
 
-  param_listener_ = std::make_shared<ParamListener>(node_);
+  param_listener_ = std::make_shared<joy_input_source::ParamListener>(node_);
   params_ = param_listener_->get_params();
 
 }

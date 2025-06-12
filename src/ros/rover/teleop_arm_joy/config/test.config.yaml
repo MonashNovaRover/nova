@@ -1,11 +1,13 @@
 teleop_arm_joy_node:
   ros__parameters:
+#    update_rate: 40.0
+#    min_update_rate: 0.0
 
+    # Declare modes and sources to spawn
     control_modes: [
       "joint_space_control",
       "twist_ik_control"
     ]
-
     input_sources: [
       "joy_input_source"
     ]
@@ -22,10 +24,6 @@ teleop_arm_joy_node:
     joy_input_source:
       type: "teleop_arm_joy/JoyInputSource"
 
-    twist:
-      linear_max: 0.25
-      angular_max: 0.785398163395
-      type: "bruh"
     joints:
       J1:
         max_speed: 0.785398163395
@@ -39,90 +37,6 @@ teleop_arm_joy_node:
         max_speed: 0.785398163395
       J6:
         max_speed: 0.785398163395
-    device_names: ["Gamepad"]
-    devices:
-      Gamepad:
-        topic: "/joy"
-    axes:
-      J1:
-        device: "Gamepad"
-        button_id_negative: 13
-        button_id_positive: 14
-      J2:
-        device: "Gamepad"
-        button_id_negative: 11
-        button_id_positive: 12
-      J3:
-        device: "Gamepad"
-        button_id_negative: 0
-        button_id_positive: 3
-        invert: true
-
-      J4:
-        device: "Gamepad"
-        id: 3
-        invert: true
-      J5:
-        device: "Gamepad"
-        id: 2
-        invert: true
-      J6:
-        device: "Gamepad"
-        button_id_negative: 1
-        button_id_positive: 2
-
-      speed:
-        device: "Gamepad"
-        id: 5
-      #      offset:
-      #        device: "Gamepad"
-      #        id: 4
-
-
-      twist_x:
-        device: "Gamepad"
-        button_id_negative: 12
-        button_id_positive: 11
-        id: 1
-      twist_y:
-        device: "Gamepad"
-        button_id_negative: 14
-        button_id_positive: 13
-        id: 0
-      twist_z:
-        device: "Gamepad"
-        button_id_negative: 0
-        button_id_positive: 3
-
-      twist_yaw:
-        device: "Gamepad"
-        id: 2
-      twist_pitch:
-        device: "Gamepad"
-        id: 3
-        invert: true
-      twist_roll:
-        device: "Gamepad"
-        button_id_negative: 2
-        button_id_positive: 1
-
-    buttons:
-      twist_mode:
-        device: "Gamepad"
-        id: 9
-      #      limit_on:
-      #        device: "Gamepad"
-      #        id: 4
-      #      limit_off:
-      #        device: "Gamepad"
-      #        id: 9
-      lock:
-        device: "Gamepad"
-        id: 4
-      unlock:
-        device: "Gamepad"
-        id: 6
-
 
 joint_control_mode:
   ros__parameters:
@@ -166,10 +80,6 @@ joy_input_source:
       speed:
         device: "Gamepad"
         id: 5
-      #      offset:
-      #        device: "Gamepad"
-      #        id: 4
-
 
       twist_x:
         device: "Gamepad"
@@ -202,12 +112,6 @@ joy_input_source:
       twist_mode:
         device: "Gamepad"
         id: 9
-      #      limit_on:
-      #        device: "Gamepad"
-      #        id: 4
-      #      limit_off:
-      #        device: "Gamepad"
-      #        id: 9
       lock:
         device: "Gamepad"
         id: 4

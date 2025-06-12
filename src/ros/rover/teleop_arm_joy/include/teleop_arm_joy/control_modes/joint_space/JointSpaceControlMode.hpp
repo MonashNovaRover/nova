@@ -22,6 +22,8 @@ public:
   void on_activate() override;
   void on_deactivate() override;
 
+  void update() override;
+
 protected:
   ~JointSpaceControlMode() = default;
 

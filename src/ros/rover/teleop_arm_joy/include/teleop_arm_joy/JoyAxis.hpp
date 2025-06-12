@@ -8,8 +8,8 @@
 #include <sensor_msgs/msg/joy.hpp>
 
 #include "JoyMessageListener.hpp"
-#include "teleop_arm_joy_parameters.hpp"
 #include "inputs/Input.hpp"
+#include "input_sources/joy/joy_input_source_parameters.hpp"
 
 namespace teleop_arm_joy
 {
@@ -23,7 +23,7 @@ public:
   /**
    * @brief Constructor for the joy axis.
    */
-  explicit JoyAxis(const Params::Axes::MapAxisDefinitions &config);
+  explicit JoyAxis(const joy_input_source::Params::Axes::MapAxisDefinitions &config);
 
   void joyCallback(sensor_msgs::msg::Joy::SharedPtr joy_msg) override;
   void debounce(const rclcpp::Time& now) override;

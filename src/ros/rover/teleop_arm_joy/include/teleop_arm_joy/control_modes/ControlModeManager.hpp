@@ -38,6 +38,11 @@ public:
    */
   bool set_control_mode(const std::string& name);
 
+  /**
+   * Update the active node
+   */
+  void update() const;
+
 private:
   /**
    * Resets everything for the controller manager

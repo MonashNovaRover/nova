@@ -11,8 +11,8 @@
 #include <rclcpp/subscription.hpp>
 #include <sensor_msgs/msg/joy.hpp>
 
+#include "joy_input_source_parameters.hpp"
 #include "../../JoyMessageListener.hpp"
-#include "../../teleop_arm_joy_parameters.hpp"
 using namespace std;
 
 
@@ -33,7 +33,7 @@ public:
    * this device.
    * @param callback Callback function for after receiving a joy message and updating listeners
    */
-  JoyDevice(rclcpp::Node* parent, const string& name, const Params::Devices::MapDeviceNames& config, const vector<shared_ptr<JoyMessageListener>>& listeners, const function<void(string&)>& callback);
+  JoyDevice(rclcpp::Node* parent, const string& name, const joy_input_source::Params::Devices::MapDeviceNames& config, const vector<shared_ptr<JoyMessageListener>>& listeners, const function<void(string&)>& callback);
 
   // Accessors
   [[nodiscard]] const string& name() const {

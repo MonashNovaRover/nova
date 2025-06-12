@@ -18,8 +18,8 @@ protected:
   void on_configure(InputManager& inputs) override;
 
 private:
-  std::shared_ptr<ParamListener> param_listener_;
-  Params params_;
+  std::shared_ptr<joy_input_source::ParamListener> param_listener_;
+  joy_input_source::Params params_;
 
   std::vector<std::shared_ptr<JoyDevice>> devices;
   std::map<std::string, shared_ptr<Input<bool>>> buttons;

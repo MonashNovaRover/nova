@@ -12,6 +12,7 @@
 
 #include "InputSource.hpp"
 #include "InputSourceUpdateDelegate.hpp"
+#include "teleop_arm_joy/teleop_arm_joy_parameters.hpp"
 
 namespace teleop_arm_joy
 {
@@ -25,7 +26,7 @@ public:
   /**
    * Populates the sources_ from the params in node_.
    */
-  void configure(InputManager& inputs);
+  void configure(const std::shared_ptr<ParamListener>& param_listener, InputManager& inputs);
 
   /**
    * Gets the control mode plugin class type name for a given input source name, to be given to pluginlib to load.
@@ -44,11 +45,16 @@ public:
   void wait_for_update();
 
 private:
+  void setup_input_sources(InputManager& inputs);
+
   /// The owning teleop_arm_joy ROS2 node.
   std::shared_ptr<rclcpp::Node> node_;
   /// Add spawned nodes to this to get them to spin
   std::weak_ptr<rclcpp::Executor> executor_;
- 
+
+  std::weak_ptr<ParamListener> param_listener_;
+  Params params_;
+
   /// Loads the control modes, and needs to stay alive during the whole lifecycle of the control modes.
   std::unique_ptr<pluginlib::ClassLoader<InputSource>> source_loader_;
   std::vector<std::shared_ptr<InputSource>> sources_{};

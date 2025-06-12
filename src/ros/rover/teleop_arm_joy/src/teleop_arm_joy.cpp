@@ -12,10 +12,10 @@ using namespace std::chrono_literals;
 
 namespace
 {
-  constexpr auto BUTTON_DEBOUNCE_INTERVAL = std::chrono::milliseconds(50);
-  constexpr auto DEFAULT_FK_VELOCITY_TOPIC = "/arm_fk_velocity_target";
-  constexpr auto DEFAULT_IK_TWIST_TOPIC = "/arm_ik_twist_stamped";
-  constexpr auto DEFAULT_AUTO_TYPING_TOPIC = "/test";
+  // constexpr auto BUTTON_DEBOUNCE_INTERVAL = std::chrono::milliseconds(50);
+  // constexpr auto DEFAULT_FK_VELOCITY_TOPIC = "/arm_fk_velocity_target";
+  // constexpr auto DEFAULT_IK_TWIST_TOPIC = "/arm_ik_twist_stamped";
+  // constexpr auto DEFAULT_AUTO_TYPING_TOPIC = "/test";
 }
 
 using std::placeholders::_1;
@@ -27,8 +27,6 @@ namespace teleop_arm_joy
 TeleopArmJoy::TeleopArmJoy(const rclcpp::NodeOptions &options)
     : Node("teleop_arm_joy_node", options)
 {
-  // Create publishers
-
 }
 
 //
@@ -128,10 +126,14 @@ TeleopArmJoy::TeleopArmJoy(const rclcpp::NodeOptions &options)
 // }
 
 void TeleopArmJoy::initialize(const std::weak_ptr<rclcpp::Executor>& executor) {
+  // Create publishers
+  param_listener_ = std::make_shared<ParamListener>(shared_from_this());
+  params_ = param_listener_->get_params();
+
   inputs_ = InputManager();
 
   input_source_manager_ = std::make_shared<InputSourceManager>(shared_from_this(), executor);
-  input_source_manager_->configure(inputs_);
+  input_source_manager_->configure(param_listener_, inputs_);
 
   control_mode_manager_ = std::make_shared<ControlModeManager>(shared_from_this(), executor);
   control_mode_manager_->configure(inputs_);
@@ -142,7 +144,9 @@ void TeleopArmJoy::initialize(const std::weak_ptr<rclcpp::Executor>& executor) {
   while (true) {
     input_source_manager_->wait_for_update();
 
-    // TODO: Update here
+    // TODO: Update inputs here
+
+    control_mode_manager_->update();
 
     // TODO: enforce max update rate here
   }
@@ -157,7 +161,6 @@ TeleopArmJoy::~TeleopArmJoy() {
 int main(int argc, char *argv[]) {
   rclcpp::init(argc, argv);
   const auto node = std::make_shared<teleop_arm_joy::TeleopArmJoy>();
-  // node->initializeParams();
 
   const auto executor = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
   executor->add_node(node);

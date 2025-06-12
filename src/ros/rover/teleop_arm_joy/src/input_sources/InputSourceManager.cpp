@@ -8,7 +8,53 @@
 
 namespace teleop_arm_joy {
 
-void InputSourceManager::configure(InputManager& inputs) {
+void InputSourceManager::configure(const std::shared_ptr<ParamListener>& param_listener, InputManager& inputs) {
+  const auto logger = node_->get_logger();
+
+  param_listener_ = param_listener;
+  params_ = param_listener->get_params();
+
+  setup_input_sources(inputs);
+}
+
+bool InputSourceManager::get_type_for_input_source(const std::string& name, std::string& source_type) const {
+  // TODO: Check that the parameter hasn't already been defined
+  node_->declare_parameter(name + ".type", rclcpp::ParameterType::PARAMETER_STRING);
+  // TODO: Remember that this parameter has already been defined
+
+  rclcpp::Parameter param;
+  const auto result = node_->get_parameter(name + ".type", param);
+
+  if (result)
+    source_type = param.as_string();
+  return result;
+}
+
+// Runs on input source threads
+void InputSourceManager::on_input_source_requested_update(const rclcpp::Time& now) {
+  {
+    std::lock_guard lock(mutex_);
+    should_update_ = true;
+  }
+
+  update_condition_.notify_one();
+}
+
+void InputSourceManager::wait_for_update() {
+  if (params_.min_update_rate > 0) {
+    const std::chrono::duration<double> min_wait_period{1.0 / params_.min_update_rate};
+    std::unique_lock lock(mutex_);
+    update_condition_.wait_for(lock, min_wait_period, [&]{ return should_update_.load(); });
+  }
+  else {
+    std::unique_lock lock(mutex_);
+    update_condition_.wait(lock, [&]{ return should_update_.load(); });
+  }
+
+  should_update_ = false;
+}
+
+void InputSourceManager::setup_input_sources(InputManager& inputs) {
   const auto logger = node_->get_logger();
 
   // Declare and get parameter for control modes to spawn by default
@@ -94,36 +140,6 @@ void InputSourceManager::configure(InputManager& inputs) {
   }
 
   executor.reset();
-}
-
-bool InputSourceManager::get_type_for_input_source(const std::string& name, std::string& source_type) const {
-  // TODO: Check that the parameter hasn't already been defined
-  node_->declare_parameter(name + ".type", rclcpp::ParameterType::PARAMETER_STRING);
-  // TODO: Remember that this parameter has already been defined
-
-  rclcpp::Parameter param;
-  const auto result = node_->get_parameter(name + ".type", param);
-
-  if (result)
-    source_type = param.as_string();
-  return result;
-}
-
-// Runs on input source threads
-void InputSourceManager::on_input_source_requested_update(const rclcpp::Time& now) {
-  {
-    std::lock_guard lock(mutex_);
-    should_update_ = true;
-  }
-
-  update_condition_.notify_one();
-}
-
-void InputSourceManager::wait_for_update() {
-  std::unique_lock lock(mutex_);
-  // TODO: Apply a min update rate here with wait_for
-  update_condition_.wait(lock, [&](){ return should_update_.load(); });
-  should_update_ = false;
 }
 
 } // namespace teleop_arm_joy

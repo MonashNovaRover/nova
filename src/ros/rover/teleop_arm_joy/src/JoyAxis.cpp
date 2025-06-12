@@ -14,7 +14,7 @@ namespace
   constexpr auto AXIS_CHANGED_DIFFERECE = 0.05f;
 }
 
-teleop_arm_joy::JoyAxis::JoyAxis(const Params::Axes::MapAxisDefinitions &config) {
+teleop_arm_joy::JoyAxis::JoyAxis(const joy_input_source::Params::Axes::MapAxisDefinitions &config) {
   id = config.id;
   invert = config.invert;
 

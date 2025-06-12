@@ -7,7 +7,7 @@
 
 #include "../include/teleop_arm_joy/input_sources/joy/JoyDevice.hpp"
 
-teleop_arm_joy::JoyDevice::JoyDevice(rclcpp::Node* parent, const string& name, const Params::Devices::MapDeviceNames& config, const vector<shared_ptr<JoyMessageListener>>& listeners, const function<void(string&)>& callback) {
+teleop_arm_joy::JoyDevice::JoyDevice(rclcpp::Node* parent, const string& name, const joy_input_source::Params::Devices::MapDeviceNames& config, const vector<shared_ptr<JoyMessageListener>>& listeners, const function<void(string&)>& callback) {
   this->name_ = name;
   this->listeners = listeners;
   this->callback = callback;

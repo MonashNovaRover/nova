@@ -148,6 +148,15 @@ bool ControlModeManager::set_control_mode(const std::string& name) {
   return true;
 }
 
+void ControlModeManager::update() const {
+  if (!current_control_mode_) {
+    RCLCPP_WARN(node_->get_logger(), "ControlModeManager::update(): No node is active!");
+    return;
+  }
+
+  current_control_mode_->update();
+}
+
 void ControlModeManager::reset() {
   switch_controller_client_ = nullptr;
 }
