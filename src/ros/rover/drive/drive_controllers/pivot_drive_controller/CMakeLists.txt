@@ -25,6 +25,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
     tf2
     tf2_msgs
     nova_interfaces
+    nova_controller_common
 )
 
 find_package(ament_cmake REQUIRED)
