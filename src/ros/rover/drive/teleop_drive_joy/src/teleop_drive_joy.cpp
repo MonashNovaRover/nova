@@ -1,7 +1,26 @@
 /**
- * @file teleop_drive_joy.cpp
- * @brief Teleop Drive Joy node to translate Joy messages from /joy to Drive commands
- * Edited by Kabi, Rohit, Victor
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * DESCRIPTION: Convert joystick input into drive or twist messages
+ * to be received by controllers (pivot, strafe, etc).
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * NODE: teleop_drive_joy
+ * TOPICS:
+ *  - subscriber: /joy               [sensor_msgs/msg/Joy]
+ *  - publisher:  /drive_input       [nova_interfaces/msg/DriveInputStamped]
+ *  - publisher:  /cmd_vel           [geometry_msgs/msg/TwistStamped]
+ *  - publisher:  /drive_info        [nova_interfaces/msg/DriveInfo]
+ * SERVICES:
+ *  - client:     /controller_manager/switch_controller        [controller_manager_msgs/srv/SwitchController]
+ *  - client:     /pivot_drive_controller/set_parameters       [rcl_interfaces/srv/SetParameters]
+ *  - client:     /strafe_controller/set_parameters            [rcl_interfaces/srv/SetParameters]
+ *  - client:     /nova_diff_drive_controller/set_parameters   [rcl_interfaces/srv/SetParameters]
+ * ACTIONS: None
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * PACKAGE:    teleop_drive_joy
+ * AUTHORS:	   Kabi, Terry Tian
+ * CREATION:	 ?
+ * EDITED:		 15/06/2025
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
 #include <utility>
@@ -17,7 +36,11 @@ namespace teleop_drive_joy
 {
 
   TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions &options)
-  : Node("teleop_drive_joy_node", options)
+  : Node("teleop_drive_joy_node", options),
+    sent_lock_msg_(false),
+    locked_(true),
+    autonomous_mode_(false),
+    drive_mode_(nova_interfaces::msg::DriveInfo::PIVOT)
   {
   }
   

@@ -1,9 +1,29 @@
 /**
- * @file teleop_drive_joy.hpp
- * @brief Header file for the TeleopDriveJoy class, which handles joystick input for teleoperation.
- * Last Edited by Kabi
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * DESCRIPTION: Convert joystick input into drive or twist messages
+ * to be received by controllers (pivot, strafe, etc).
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * NODE: teleop_drive_joy
+ * TOPICS:
+ *  - subscriber: /joy               [sensor_msgs/msg/Joy]
+ *  - publisher:  /drive_input       [nova_interfaces/msg/DriveInputStamped]
+ *  - publisher:  /cmd_vel           [geometry_msgs/msg/TwistStamped]
+ *  - publisher:  /drive_info        [nova_interfaces/msg/DriveInfo]
+ * SERVICES:
+ *  - client:     /controller_manager/switch_controller        [controller_manager_msgs/srv/SwitchController]
+ *  - client:     /pivot_drive_controller/set_parameters       [rcl_interfaces/srv/SetParameters]
+ *  - client:     /strafe_controller/set_parameters            [rcl_interfaces/srv/SetParameters]
+ *  - client:     /nova_diff_drive_controller/set_parameters   [rcl_interfaces/srv/SetParameters]
+ * ACTIONS: None
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * PACKAGE:    teleop_drive_joy
+ * AUTHORS:	   Kabi, Terry Tian
+ * CREATION:	 ?
+ * EDITED:		 15/06/2025
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-#ifndef TELEOP_DRIVE_JOY_HPP
+
+ #ifndef TELEOP_DRIVE_JOY_HPP
 #define TELEOP_DRIVE_JOY_HPP
 
 #include <cstddef>
@@ -134,10 +154,10 @@ namespace teleop_drive_joy
     std::shared_ptr<ParamListener> param_listener_;
 
     Params params_;
-    bool sent_lock_msg_ = false;
-    bool locked_ = true;
-    bool autonomous_mode_ = false;
-    uint drive_mode_ = nova_interfaces::msg::DriveInfo::PIVOT;
+    bool sent_lock_msg_;
+    bool locked_;
+    bool autonomous_mode_;
+    uint drive_mode_;
     double speed_; // Linear Speed Multiplier that can be incremented
     std::map<int, rclcpp::Time> last_button_press_time_;
     std::map<int, std::function<void(const sensor_msgs::msg::Joy::SharedPtr)>> button_callbacks_;
