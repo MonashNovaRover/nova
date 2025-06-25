@@ -173,6 +173,85 @@ def launch_setup(context, *args, **kwargs):
                     remappings=remappings,
                 )],
         ),
+        GroupAction(
+            condition=IfCondition(use_composition),
+            actions=[
+                LoadComposableNodes(
+                    target_container=(namespace, '/', container_name),
+                    composable_node_descriptions=[
+                        ComposableNode(
+                            package='nav2_controller',
+                            plugin='nav2_controller::ControllerServer',
+                            name='controller_server',
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
+                            remappings=remappings + [('cmd_vel', 'cmd_vel_nav')],
+                        ),
+                        ComposableNode(
+                            package='nav2_smoother',
+                            plugin='nav2_smoother::SmootherServer',
+                            name='smoother_server',
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
+                            remappings=remappings,
+                        ),
+                        ComposableNode(
+                            package='nav2_planner',
+                            plugin='nav2_planner::PlannerServer',
+                            name='planner_server',
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
+                            remappings=remappings,
+                        ),
+                        ComposableNode(
+                            package='nav2_behaviors',
+                            plugin='behavior_server::BehaviorServer',
+                            name='behavior_server',
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
+                            remappings=remappings,
+                        ),
+                        ComposableNode(
+                            package='nav2_waypoint_follower',
+                            plugin='nav2_waypoint_follower::WaypointFollower',
+                            name='waypoint_follower',
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
+                            remappings=remappings,
+                        ),
+                        ComposableNode(
+                            package='nav2_velocity_smoother',
+                            plugin='nav2_velocity_smoother::VelocitySmoother',
+                            name='velocity_smoother',
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
+                            remappings=remappings + [('cmd_vel', 'cmd_vel_nav'), ('cmd_vel_smoothed', 'cmd_vel')],
+                        ),
+                        # ComposableNode(
+                        #     package='nav2_collision_monitor',
+                        #     plugin='nav2_collision_monitor::CollisionMonitor',
+                        #     name='collision_monitor',
+                        #     parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
+                        #     remappings=remappings +
+                        #     [('cmd_vel', 'cmd_vel_nav')]
+                        # ),
+                        ComposableNode(
+                            package='nav2_map_server',
+                            plugin='nav2_map_server::MapServer',
+                            name='map_server',
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}, {'yaml_filename': map_params}],
+                            remappings=remappings + [('map', 'static_map')],
+                        ),
+                        ComposableNode(
+                            package='nav2_bt_navigator',
+                            plugin='nav2_bt_navigator::BtNavigator',
+                            name='bt_navigator',
+                            parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
+                            remappings=remappings,
+                        ),
+                        ComposableNode(
+                            package='nav2_lifecycle_manager',
+                            plugin='nav2_lifecycle_manager::LifecycleManager',
+                            name='lifecycle_manager_navigation',
+                            parameters=[{'use_sim_time': use_sim_time,
+                                         'autostart': autostart,
+                                         'node_names': lifecycle_nodes}],
+                        )])],
+        ),
         SetEnvironmentVariable('RCUTILS_LOGGING_BUFFERED_STREAM', '1'),
         Node(
             condition=IfCondition(publish_goals),
@@ -221,6 +300,11 @@ def generate_launch_description():
             name='publish_goals',
             default_value='True',
             description='Publish Nav2 goals as a MarkerArray?',
+        ),
+        DeclareLaunchArgument(
+            name='use_composition',
+            default_value='False',
+            description='Use composed bringup if True',
         ),
         DeclareLaunchArgument(
             name='use_respawn',
