@@ -24,18 +24,18 @@ from launch_ros.actions import Node
 from launch_ros.descriptions import ComposableNode, ParameterFile
 from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import RewrittenYaml
+from os import listdir
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
 
     autostart = LaunchConfiguration('autostart')
-    container_name = LaunchConfiguration('container_name')
     log_level = LaunchConfiguration('log_level')
     map_params = LaunchConfiguration('map_params')
     namespace = LaunchConfiguration('namespace')
-    nav2_params = LaunchConfiguration('nav2_params')
+    params_dir = LaunchConfiguration('nav2_params').perform(context).lower()
+    sim_params = LaunchConfiguration('sim_params')
     publish_goals = LaunchConfiguration('publish_goals')
-    use_composition = LaunchConfiguration('use_composition')
     use_respawn = LaunchConfiguration('use_respawn')
     use_sim_time = LaunchConfiguration('use_sim_time')
 
@@ -50,26 +50,23 @@ def launch_setup(context, *args, **kwargs):
 
     # Map fully qualified names to relative ones so the node's namespace can be prepended.
     # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
-    # https://github.com/ros/geometry2/issues/32
-    # https://github.com/ros/robot_state_publisher/pull/30
-    # TODO(orduno) Substitute with `PushNodeRemapping`
-    #              https://github.com/ros2/launch_ros/issues/56
     remappings = [('/tf', 'tf'),
                   ('/tf_static', 'tf_static')]
 
-    # Create our own temporary YAML files that include substitutions
+    # substitute params for each node with launch params
     substitution_params = {
         'use_sim_time': use_sim_time,
         'autostart': autostart,
     }
-
-    sim_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_sim.yaml'])
     
-    in_sim = (use_sim_time.perform(context).lower() == 'true')
+    # collate all yaml files in the params dir to pass to the nodes
+    nav2_params = [PathJoinSubstitution([params_dir, file]) for file in listdir(params_dir) if file[-5:] == '.yaml']
+    nav2_params.append(sim_params) if use_sim_time.perform(context).lower() == 'true' else None
+
+    print(nav2_params)
 
     return [
         GroupAction(
-            condition=UnlessCondition(use_composition),
             actions=[
                 Node(
                     package='nav2_controller',
@@ -77,7 +74,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     respawn=use_respawn,
                     respawn_delay=2.0,
-                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
+                    parameters=nav2_params + [substitution_params],
                     arguments=['--ros-args', '--log-level', log_level],
                     remappings=remappings + [('cmd_vel', 'cmd_vel_nav')],
                 ),
@@ -88,7 +85,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     respawn=use_respawn,
                     respawn_delay=2.0,
-                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
+                    parameters=nav2_params + [substitution_params],
                     arguments=['--ros-args', '--log-level', log_level],
                     remappings=remappings,
                 ),
@@ -99,7 +96,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     respawn=use_respawn,
                     respawn_delay=2.0,
-                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
+                    parameters=nav2_params + [substitution_params],
                     arguments=['--ros-args', '--log-level', log_level],
                     remappings=remappings,
                 ),
@@ -110,7 +107,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     respawn=use_respawn,
                     respawn_delay=2.0,
-                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
+                    parameters=nav2_params + [substitution_params],
                     arguments=['--ros-args', '--log-level', log_level],
                     remappings=remappings,
                 ),
@@ -121,7 +118,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     respawn=use_respawn,
                     respawn_delay=2.0,
-                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
+                    parameters=nav2_params + [substitution_params],
                     arguments=['--ros-args', '--log-level', log_level],
                     remappings=remappings,
                 ),
@@ -132,7 +129,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     respawn=use_respawn,
                     respawn_delay=2.0,
-                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
+                    parameters=nav2_params + [substitution_params],
                     arguments=['--ros-args', '--log-level', log_level],
                     remappings=remappings + [('cmd_vel', 'cmd_vel_nav'), ('cmd_vel_smoothed', 'cmd_vel')],
                 ),
@@ -142,13 +139,13 @@ def launch_setup(context, *args, **kwargs):
                 #     name='collision_monitor',
                 #     output='screen',
                 #     emulate_tty=True,  # https://github.com/ros2/launch/issues/188
-                #     parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
+                #     parameters=nav2_params + [substitution_params],
                 # ),
                 Node(
                     package='nav2_map_server',
                     executable='map_server',
                     name='map_server',
-                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}, {'yaml_filename': map_params}],
+                    parameters=nav2_params + [substitution_params, {'yaml_filename': map_params}],
                     remappings=remappings + [('map', 'static_map')],
                 ),
                 Node(
@@ -168,7 +165,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     respawn=use_respawn,
                     respawn_delay=2.0,
-                    parameters=[nav2_params, substitution_params, sim_params if in_sim else {}],
+                    parameters=nav2_params + [substitution_params],
                     arguments=['--ros-abt_navigatorrgs', '--log-level', log_level],
                     remappings=remappings,
                 )],
@@ -193,11 +190,6 @@ def generate_launch_description():
             description='Automatically startup the nav2 stack',
         ),
         DeclareLaunchArgument(
-            name='container_name',
-            default_value='nav2_container',
-            description='the name of container that nodes will load in if use composition',
-        ),
-        DeclareLaunchArgument(
             name='log_level',
             default_value='info',
             description='log level',
@@ -214,8 +206,8 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='nav2_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc.yaml']),
-            description='Full path to the ROS2 parameters file to use for all launched Nav2 nodes',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc']),
+            description='Full path to the folder with ROS2 parameters files to use with all nodes',
         ),
         DeclareLaunchArgument(
             name='publish_goals',
@@ -232,6 +224,11 @@ def generate_launch_description():
             default_value='False',
             description='Use simulation (Gazebo) clock if True',
         ),
+        DeclareLaunchArgument(
+            name='sim_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_sim.yaml']),
+            description='Sim parameters to use if using sim time'
+        )
     ]
 
     return LaunchDescription(
