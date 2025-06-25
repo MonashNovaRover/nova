@@ -19,7 +19,7 @@ planner_server:
       debug_visualizations: false # For Hybrid/Lattice nodes: Whether to publish expansions on the /expansions topic as an array of poses (the orientation has no meaning)
                                   # and the path's footprints on the /planned_footprints topic. WARNING: heavy to compute and to display, for debug only as it degrades the
                                   # performance.
-      lattice_filepath: "/home/nova/nova/src/ros/rover/auto_bringup/params/state_lattice.json" # The filepath to the state lattice graph
+      lattice_filepath: "/home/nova/nova/src/ros/rover/auto_bringup/params/nav2_urc/state_lattice.json" # The filepath to the state lattice graph
       lookup_table_size: 20.0 # Size of the dubin/reeds-sheep distance window to cache, in meters.
       max_iterations: 1000000 # Maximum total iterations to search for before failing (in case unreachable), set to -1 to disable
       max_on_approach_iterations: 1000 # Maximum number of iterations after within tolerances to continue to try to find exact solution
