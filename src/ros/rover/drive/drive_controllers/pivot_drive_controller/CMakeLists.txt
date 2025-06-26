@@ -43,7 +43,6 @@ generate_parameter_library(pivot_drive_controller_parameters
 add_library(${PROJECT_NAME} SHARED
   src/pivot_drive_controller.cpp
   src/odometry.cpp
-  src/speed_limiter.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>

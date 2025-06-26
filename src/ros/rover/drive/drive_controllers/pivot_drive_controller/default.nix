@@ -18,6 +18,7 @@
 , geometry-msgs
 , nova-input-interfaces
 , nova-interfaces
+, nova-controller-common
 }:
 
 buildRosPackage {
@@ -49,5 +50,6 @@ buildRosPackage {
     geometry-msgs
     nova-input-interfaces
     nova-interfaces
+    nova-controller-common
   ];
 }

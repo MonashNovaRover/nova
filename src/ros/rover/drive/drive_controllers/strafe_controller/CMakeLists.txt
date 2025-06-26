@@ -25,6 +25,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
     tf2
     tf2_msgs
     nova_interfaces
+    nova_controller_common
 )
 
 find_package(ament_cmake REQUIRED)
@@ -42,7 +43,6 @@ generate_parameter_library(strafe_controller_parameters
 add_library(${PROJECT_NAME} SHARED
   src/strafe_controller.cpp
   src/odometry.cpp
-  src/speed_limiter.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>

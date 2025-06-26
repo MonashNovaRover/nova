@@ -19,9 +19,9 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include "controller_common/speed_limiter.hpp"
+#include "nova_controller_common/speed_limiter.hpp"
 
-namespace controller_common
+namespace nova_controller_common
 {
 SpeedLimiter::SpeedLimiter(
   bool has_velocity_limits, bool has_acceleration_limits, bool has_jerk_limits, double min_velocity,
@@ -117,23 +117,29 @@ double SpeedLimiter::limit_acceleration(double & v, double v0, double dt)
 double SpeedLimiter::limit_jerk(double & v, double v0, double v1, double dt)
 {
   const double tmp = v;
-
+  
   if (has_jerk_limits_)
   {
     const double dv = v - v0;
     const double dv0 = v0 - v1;
-
-    const double dt2 = 2. * dt * dt;
-
-    const double da_min = min_jerk_ * dt2;
-    const double da_max = max_jerk_ * dt2;
-
-    const double da = std::clamp(dv - dv0, da_min, da_max);
-
-    v = v0 + dv0 + da;
+    const double da = dv - dv0;
+    
+    // Only limit jerk when accelerating or reverse_accelerating
+    // Note: this prevents oscillating closed-loop behavior, see discussion
+    // details in https://github.com/ros-controls/control_toolbox/issues/240.
+    if (da * dv > 0)
+    {
+      const double dt2 = dt * dt;
+      const double da_min = min_jerk_ * dt2;
+      const double da_max = max_jerk_ * dt2;
+  
+      const double da_lim = std::clamp(da, da_min, da_max);
+  
+      v = v0 + dv0 + da_lim;
+    }
   }
 
   return tmp != 0.0 ? v / tmp : 1.0;
 }
 
-}  // namespace controller_common
+}  // namespace nova_controller_common

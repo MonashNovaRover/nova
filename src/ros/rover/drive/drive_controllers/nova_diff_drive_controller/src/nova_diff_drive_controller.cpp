@@ -432,13 +432,13 @@ namespace nova_diff_drive_controller
     publish_limited_twist_ = params_.publish_limited_velocity;
     // use_stamped_vel_ = params_.use_stamped_vel;
 
-    limiter_linear_ = SpeedLimiter(
+    limiter_linear_ = nova_controller_common::SpeedLimiter(
         params_.linear.x.has_velocity_limits, params_.linear.x.has_acceleration_limits,
         params_.linear.x.has_jerk_limits, params_.linear.x.min_velocity, params_.linear.x.max_velocity,
         params_.linear.x.min_acceleration, params_.linear.x.max_acceleration, params_.linear.x.min_jerk,
         params_.linear.x.max_jerk);
 
-    limiter_angular_ = SpeedLimiter(
+    limiter_angular_ = nova_controller_common::SpeedLimiter(
         params_.angular.z.has_velocity_limits, params_.angular.z.has_acceleration_limits,
         params_.angular.z.has_jerk_limits, params_.angular.z.min_velocity,
         params_.angular.z.max_velocity, params_.angular.z.min_acceleration,

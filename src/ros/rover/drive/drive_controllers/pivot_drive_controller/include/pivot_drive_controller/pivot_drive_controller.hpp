@@ -24,8 +24,8 @@
 #include "realtime_tools/realtime_publisher.h"
 
 #include "nova_interfaces/msg/drive_input_stamped.hpp"
-#include "pivot_drive_controller/odometry.hpp"
 #include "nova_controller_common/speed_limiter.hpp"
+#include "pivot_drive_controller/odometry.hpp"
 #include "pivot_drive_controller/visibility_control.h"
 #include "pivot_drive_controller_parameters.hpp"
 
@@ -132,7 +132,8 @@ namespace pivot_drive_controller
         std::queue<geometry_msgs::msg::TwistStamped> previous_twist_commands_;  // last two commands
 
         // speed limiters
-        SpeedLimiter limiter_linear_;
+        nova_controller_common::SpeedLimiter limiter_linear_;
+        nova_controller_common::SpeedLimiter limiter_angular_;
 
         double angle_offset_ = params_.steering_track / params_.wheel_base;
 
