@@ -19,6 +19,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2
   tf2_msgs
   nova_interfaces
+  nova_controller_common
 )
 
 find_package(ament_cmake REQUIRED)
@@ -34,7 +35,6 @@ generate_parameter_library(nova_diff_drive_controller_parameters
 add_library(nova_diff_drive_controller SHARED
   src/nova_diff_drive_controller.cpp
   src/odometry.cpp
-  src/speed_limiter.cpp
 )
 target_compile_features(nova_diff_drive_controller PUBLIC cxx_std_17)
 target_include_directories(nova_diff_drive_controller PUBLIC

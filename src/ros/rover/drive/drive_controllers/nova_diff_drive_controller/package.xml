@@ -24,6 +24,7 @@
   <depend>tf2</depend>
   <depend>tf2_msgs</depend>
   <depend>nova_interfaces</depend>
+  <depend>nova_controller_common</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

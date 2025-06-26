@@ -16,12 +16,12 @@
  * Author: Enrique Fernández
  */
 
-#ifndef CONTROLLER_COMMON__SPEED_LIMITER_HPP_
-#define CONTROLLER_COMMON__SPEED_LIMITER_HPP_
+#ifndef NOVA_CONTROLLER_COMMON__SPEED_LIMITER_HPP_
+#define NOVA_CONTROLLER_COMMON__SPEED_LIMITER_HPP_
 
 #include <cmath>
 
-namespace controller_common
+namespace nova_controller_common
 {
   class SpeedLimiter
   {
@@ -100,6 +100,6 @@ namespace controller_common
     double max_jerk_;
   };
 
-} // namespace controller_common
+} // namespace nova_controller_common
 
-#endif // CONTROLLER_COMMON__SPEED_LIMITER_HPP_
+#endif // NOVA_CONTROLLER_COMMON__SPEED_LIMITER_HPP_
