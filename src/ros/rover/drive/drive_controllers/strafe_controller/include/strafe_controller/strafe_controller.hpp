@@ -9,24 +9,23 @@
 #include <vector>
 #include <tuple>
 
+#include "hardware_interface/handle.hpp"
 #include "controller_interface/controller_interface.hpp"
-#include "strafe_controller/odometry.hpp"
-#include "strafe_controller/speed_limiter.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
-#include "hardware_interface/handle.hpp"
 #include "nav_msgs/msg/odometry.hpp"
-#include "odometry.hpp"
+#include "tf2_msgs/msg/tf_message.hpp"
+#include "std_srvs/srv/empty.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 #include "realtime_tools/realtime_box.h"
 #include "realtime_tools/realtime_buffer.h"
 #include "realtime_tools/realtime_publisher.h"
-#include "std_srvs/srv/empty.hpp"
-#include "tf2_msgs/msg/tf_message.hpp"
-#include "nova_interfaces/msg/drive_input_stamped.hpp"
-#include "strafe_controller/visibility_control.h"
 
+#include "nova_interfaces/msg/drive_input_stamped.hpp"
+#include "nova_controller_common/speed_limiter.hpp"
+#include "strafe_controller/odometry.hpp"
+#include "strafe_controller/visibility_control.h"
 #include "strafe_controller_parameters.hpp"
 
 namespace strafe_controller
@@ -122,7 +121,7 @@ namespace strafe_controller
         std::queue<geometry_msgs::msg::TwistStamped> previous_twist_commands_;  // last two commands
 
         // speed limiters
-        SpeedLimiter limiter_linear_;
+        nova_controller_common::SpeedLimiter limiter_linear_;
 
         float angle_offset = params_.steering_track / params_.wheel_base;
         float best_effort_velocity = 0.0;

@@ -7,11 +7,12 @@
 #include <vector>
 #include <tuple>
 
-#include "pivot_drive_controller/pivot_drive_controller.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 #include "rclcpp/logging.hpp"
 #include "tf2/LinearMath/Quaternion.h"
+
+#include "pivot_drive_controller/pivot_drive_controller.hpp"
 
 namespace
 {
@@ -33,12 +34,12 @@ namespace pivot_drive_controller
 
     PivotDriveController::PivotDriveController() : controller_interface::ControllerInterface() {}
 
-    const char * PivotDriveController::drive_feedback_type() const
+    const char *PivotDriveController::drive_feedback_type() const
     {
       return params_.drive_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
     }
 
-    const char * PivotDriveController::pivot_feedback_type() const
+    const char *PivotDriveController::pivot_feedback_type() const
     {
       return params_.pivot_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
     }
@@ -51,7 +52,7 @@ namespace pivot_drive_controller
             param_listener_ = std::make_shared<ParamListener>(get_node());
             params_ = param_listener_->get_params();
         }
-        catch (const std::exception & e)
+        catch (const std::exception &e)
         {
             fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
             return controller_interface::CallbackReturn::ERROR;
@@ -629,7 +630,12 @@ namespace pivot_drive_controller
 
         cmd_vel_timeout_ = std::chrono::milliseconds{static_cast<int>(params_.cmd_vel_timeout * 1000.0)};
         
-        limiter_linear_ = SpeedLimiter(
+        limiter_linear_ = nova_controller_common::SpeedLimiter(
+            params_.has_velocity_limits, params_.has_acceleration_limits,
+            params_.has_jerk_limits, params_.min_velocity, params_.max_velocity,
+            params_.min_acceleration, params_.max_acceleration, params_.min_jerk,
+            params_.max_jerk);
+        limiter_angular_ = nova_controller_common::SpeedLimiter(
             params_.has_velocity_limits, params_.has_acceleration_limits,
             params_.has_jerk_limits, params_.min_velocity, params_.max_velocity,
             params_.min_acceleration, params_.max_acceleration, params_.min_jerk,

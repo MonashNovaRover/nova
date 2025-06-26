@@ -9,22 +9,21 @@
 #include <vector>
 
 #include "controller_interface/controller_interface.hpp"
-#include "nova_diff_drive_controller/odometry.hpp"
-#include "nova_diff_drive_controller/speed_limiter.hpp"
-#include "nova_diff_drive_controller/visibility_control.h"
+#include "hardware_interface/handle.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
-#include "hardware_interface/handle.hpp"
 #include "nav_msgs/msg/odometry.hpp"
-#include "odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 #include "realtime_tools/realtime_box.h"
 #include "realtime_tools/realtime_buffer.h"
 #include "realtime_tools/realtime_publisher.h"
 #include "tf2_msgs/msg/tf_message.hpp"
-#include "nova_interfaces/msg/drive_input_stamped.hpp"
 
+#include "nova_interfaces/msg/drive_input_stamped.hpp"
+#include "nova_controller_common/speed_limiter.hpp"
+#include "nova_diff_drive_controller/odometry.hpp"
+#include "nova_diff_drive_controller/visibility_control.h"
 #include "nova_diff_drive_controller_parameters.hpp"
 
 namespace nova_diff_drive_controller
@@ -124,8 +123,8 @@ namespace nova_diff_drive_controller
 
     double angle_offset;
     // speed limiters
-    SpeedLimiter limiter_linear_;
-    SpeedLimiter limiter_angular_;
+    nova_controller_common::SpeedLimiter limiter_linear_;
+    nova_controller_common::SpeedLimiter limiter_angular_;
 
     bool publish_limited_twist_ = false;
     std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::TwistStamped>> limited_twist_publisher_ = nullptr;

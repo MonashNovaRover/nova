@@ -381,7 +381,7 @@ namespace strafe_controller
 
         cmd_vel_timeout_ = std::chrono::milliseconds{static_cast<int>(params_.cmd_vel_timeout * 1000.0)};
 
-        limiter_linear_ = SpeedLimiter(
+        limiter_linear_ = nova_controller_common::SpeedLimiter(
             params_.has_velocity_limits, params_.has_acceleration_limits,
             params_.has_jerk_limits, params_.min_velocity, params_.max_velocity,
             params_.min_acceleration, params_.max_acceleration, params_.min_jerk,
