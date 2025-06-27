@@ -1,4 +1,4 @@
-// Copyright 2020 PAL Robotics S.L.
+// Copyright (c) 2025 Monash Nova Rover
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/*
- * Author: Enrique Fernández
+/**
+ * @brief Positional counterpart to SpeedLimiter.
+ * @authors Terry Tian
  */
 
 #include <algorithm>
 #include <stdexcept>
 
-#include "nova_controller_common/speed_limiter.hpp"
+#include "nova_controller_common/position_limiter.hpp"
 
 namespace nova_controller_common
 {
-SpeedLimiter::SpeedLimiter(
+PositionLimiter::PositionLimiter(
   bool has_velocity_limits, bool has_acceleration_limits, bool has_jerk_limits, double min_velocity,
   double max_velocity, double min_acceleration, double max_acceleration, double min_jerk,
   double max_jerk)
@@ -74,72 +75,84 @@ SpeedLimiter::SpeedLimiter(
   }
 }
 
-double SpeedLimiter::limit(double & v, double v0, double v1, double dt)
+double PositionLimiter::limit(double &p, const double &p0, const double &p1, const double &p2, const double &dt)
 {
-  const double tmp = v;
-
-  limit_jerk(v, v0, v1, dt);
-  limit_acceleration(v, v0, dt);
-  limit_velocity(v);
-
-  return tmp != 0.0 ? v / tmp : 1.0;
+  const double dp = p - p0;
+  
+  limit_jerk(p, p0, p1, p2, dt);
+  limit_acceleration(p, p0, p1, dt);
+  limit_velocity(p, p0, dt);
+  
+  return dp != 0.0 ? (p - p0) / dp : 1.0;
 }
 
-double SpeedLimiter::limit_velocity(double & v)
+double PositionLimiter::limit_velocity(double &p, const double &p0, const double &dt)
 {
-  const double tmp = v;
+  const double dp = p - p0;
 
   if (has_velocity_limits_)
   {
-    v = std::clamp(v, min_velocity_, max_velocity_);
+    const double dp_min = min_velocity_ * dt;
+    const double dp_max = max_velocity_ * dt;
+
+    const double dp_lim = std::clamp(dp, dp_min, dp_max);
+
+    p = p0 + dp_lim;
   }
 
-  return tmp != 0.0 ? v / tmp : 1.0;
+  return dp != 0.0 ? (p - p0) / dp : 1.0;
 }
 
-double SpeedLimiter::limit_acceleration(double & v, double v0, double dt)
+double PositionLimiter::limit_acceleration(double &p, const double &p0, const double &p1, const double &dt)
 {
-  const double tmp = v;
+  const double dp = p - p0;
 
   if (has_acceleration_limits_)
   {
-    const double dv_min = min_acceleration_ * dt;
-    const double dv_max = max_acceleration_ * dt;
+    const double dp0 = p0 - p1;
+    
+    const double dt2 = dt * dt;
+    const double dp_min = dp0 + min_acceleration_ * dt2;
+    const double dp_max = dp0 + max_acceleration_ * dt2;
 
-    const double dv = std::clamp(v - v0, dv_min, dv_max);
+    const double dp_lim = std::clamp(dp, dp_min, dp_max);
 
-    v = v0 + dv;
+    p = p0 + dp_lim;
   }
 
-  return tmp != 0.0 ? v / tmp : 1.0;
+  return dp != 0.0 ? (p - p0) / dp : 1.0;
 }
 
-double SpeedLimiter::limit_jerk(double & v, double v0, double v1, double dt)
+double PositionLimiter::limit_jerk(double &p, const double &p0, const double &p1, const double &p2, const double &dt)
 {
-  const double tmp = v;
-  
+  const double dp = p - p0;
+
   if (has_jerk_limits_)
   {
-    const double dv = v - v0;
-    const double dv0 = v0 - v1;
-    const double d2v = dv - dv0;
-    
+    const double dp0 = p0 - p1;
+    const double dp1 = p1 - p2;
+
+    const double d2p = dp - dp0;
+    const double d2p0 = dp0 - dp1;
+
+    const double d3p = d2p - d2p0;
+
     // Only limit jerk when accelerating or reverse_accelerating
     // Note: this prevents oscillating closed-loop behavior, see discussion
     // details in https://github.com/ros-controls/control_toolbox/issues/240.
-    if (d2v * dv > 0)
+    if (d3p * d2p > 0)
     {
-      const double dt2 = dt * dt;
-      const double d2v_min = min_jerk_ * dt2;
-      const double d2v_max = max_jerk_ * dt2;
+      const double dt3 = dt * dt * dt;
+      const double dp_min = 2*dp0 + dp1 + min_jerk_ * dt3;
+      const double dp_max = 2*dp0 + dp1 + max_jerk_ * dt3;
   
-      const double d2v_lim = std::clamp(d2v, d2v_min, d2v_max);
+      const double dp_lim = std::clamp(dp, dp_min, dp_max);
   
-      v = v0 + dv0 + d2v_lim;
+      p = p0 + dp_lim;
     }
   }
 
-  return tmp != 0.0 ? v / tmp : 1.0;
+  return dp != 0.0 ? (p - p0) / dp : 1.0;
 }
 
 }  // namespace nova_controller_common
