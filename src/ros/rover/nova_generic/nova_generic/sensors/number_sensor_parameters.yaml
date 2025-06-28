@@ -1,0 +1,15 @@
+number_sensor_parameters:
+  initial_value:
+    type: double
+    default_value: "0"
+    description: "Initial value of the sensor."
+
+  scale:
+    type: double
+    default_value: 1
+    description: "Constant coefficient to be applied to the received CAN message data when calculating the output."
+
+  offset:
+    type: double
+    default_value: 0
+    description: "Constant offset to be applied to the received CAN message data when calculating the output."

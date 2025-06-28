@@ -7,24 +7,37 @@
   </a>
 </p>
 
+# Rover
 
 [`rover`](https://github.com/MonashNovaRover/rover) is the set of packages that operate on-rover for the [Monash Nova Rover](https://www.novarover.space/) student team. It is a collection of mostly ROS2 packages that we use and develop for the [ARCh](https://set.adelaide.edu.au/atcsr/australian-rover-challenge/) and [URC](https://urc.marssociety.org/) competitions. It is installed using the [Nix](https://nixos.org/) package manager, which is managed through the [nixfiles](https://github.com/MonashNovaRover/nixfiles) repository.
 
-# Getting Started 
+## Getting Started 
 
 * [nixfiles](https://github.com/MonashNovaRover/nixfiles) - make sure you follow the relevant steps to install Nix and `nixfiles` in your distro of choice.
 
-# Contributing
+## Contributing
 
 1. Create a branch following standard naming conventions such as `feat/`, `fix/`, etc.
 2. Commit regularly
 3. When you are ready to make a PR, rebase off of `master` first. Then make the PR.
 4. Post the PR details in #software-pull-requests on Slack.
 
-# Other Project Repositories
+## Other Project Repositories
 
 Here are the other relevant repositories that we use with `rover`:
 
 * [nixfiles](https://github.com/MonashNovaRover/nixfiles)
 * [nova-gui](https://github.com/MonashNovaRover/nova-gui)
 * [cameras2](https://github.com/MonashNovaRover/cameras2)
+
+## Creating a new package
+
+To create a new ROS2 package follow the [ROS2 - Creating a Package tutorial](https://docs.ros.org/en/foxy/Tutorials/Beginner-Client-Libraries/Creating-Your-First-ROS2-Package.html).
+
+You will then need to add it to the nix workspace:
+
+1. Create a folder in `/nix/packages` with the package name (in kebab case).
+2. Add a `default.nix` file (can copy and paste one from another package).
+3. Fill in the relevant details and any dependencies the package requires.
+4. Add a call to the above `default.nix` in the repo level `default.nix`
+5. Add the package to `nixfiles/packages/ros/nova-workspace/default.nix` in the two big long nova package lists.

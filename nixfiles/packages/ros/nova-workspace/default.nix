@@ -42,6 +42,7 @@
 , nova-teleop-drive-joy ? throw "nova-teleop-drive-joy is needed, but not available!"
 , nova-teleop-arm-joy ? throw "nova-teleop-arm-joy is needed, but not available!"
 , nova-gazebo ? throw "nova-gazebo is needed, but not available!"
+, nova-generic ? throw "nova-generic is needed, but not available!"
 , nova-python-control ? throw "python-control is needed, but not available!"
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-utils ? throw "nova-utils is needed, but not available!"
@@ -93,6 +94,7 @@
       nova-arm-bringup
       nova-rover-description
       nova-gazebo
+      nova-generic
       nova-python-control
       nova-excavation-construction
       nova-utils

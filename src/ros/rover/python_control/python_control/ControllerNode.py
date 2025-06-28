@@ -41,7 +41,7 @@ class ControllerNode(Node, metaclass=abc.ABCMeta):
         self.declare_parameter(self.LOGGING_LEVEL_PARAM, log_level)
         self.declare_parameter(self.COMMAND_PERIOD_PARAM, command_period)
 
-        self.set_logging_level(self.get_parameter(self.LOGGING_LEVEL_PARAM).value)
+        self.get_logger().setLevel(logging.getLevelNamesMapping()[self.get_parameter(self.LOGGING_LEVEL_PARAM).value])
         self.get_logger().info(f"{self.get_name()} starting")
 
         self.bus = jcan.Bus()
@@ -54,21 +54,6 @@ class ControllerNode(Node, metaclass=abc.ABCMeta):
         self.timer_jcan_spin = self.create_timer(0.01, self.bus.spin)
 
         self.get_logger().info(f"{self.get_name()} started")
-
-    def set_logging_level(self, level: str):
-        if level == "DEBUG":
-            self.get_logger().set_level(logging.DEBUG)
-        elif level == "INFO":
-            self.get_logger().set_level(logging.INFO)
-        elif level == "WARNING" or level == "WARN":
-            self.get_logger().set_level(logging.WARNING)
-        elif level == "ERROR":
-            self.get_logger().set_level(logging.ERROR)
-        elif level == "CRITICAL":
-            self.get_logger().set_level(logging.CRITICAL)
-        else:
-            self.get_logger().set_level(logging.INFO)
-            self.get_logger().warning(f"Invalid log level {level}, setting to INFO")
 
     def start_can(self):
         """Setup the CAN bus"""

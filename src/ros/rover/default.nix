@@ -28,6 +28,7 @@
     nova-interfaces = callPackage ./nix/packages/nova-interfaces { };
     nova-rover-description = callPackage ./nix/packages/rover-description { };
     nova-gazebo = callPackage ./nix/packages/nova-gazebo { };
+    nova-generic = callPackage ./nix/packages/nova-generic { };
     nova-python-control = callPackage ./nix/packages/python-control { };
     nova-python-control-old = callPackage ./nix/packages/python-control-old { };
     nova-excavation-construction = callPackage ./nix/packages/excavation-construction { };
