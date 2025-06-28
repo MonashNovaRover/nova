@@ -34,7 +34,6 @@ public:
 
   // Type conversion
   operator T() {
-    // logic to convert *this to TargetType
     return value();
   }
 

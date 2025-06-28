@@ -16,11 +16,22 @@ public:
   explicit CollatedEvent(const std::string& name) {};
 
   void invoke() override {
-    for (auto event : events_) {
+    Event::invoke();
+
+    for (const auto& event : events_) {
       if (event)
         event->invoke();
     }
   };
+
+  bool is_invoked() override {
+    if (Event::is_invoked())
+      return true;
+
+    return std::any_of(events_.begin(), events_.end(), [](const SharedPtr& event) {
+      return event && event->is_invoked();
+    });
+  }
 
   void add(const std::shared_ptr<Event>& event) {
     events_.emplace_back(event);

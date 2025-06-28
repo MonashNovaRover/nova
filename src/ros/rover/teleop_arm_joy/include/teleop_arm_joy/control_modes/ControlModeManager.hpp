@@ -20,11 +20,11 @@ namespace teleop_arm_joy {
 /**
  * Class responsible for managing the registered control modes, the current control mode, and switching between them.
  */
-class ControlModeManager {
+class ControlModeManager final : public Collection<ControlMode> {
 public:
   explicit ControlModeManager(const std::shared_ptr<rclcpp::Node>& node, const std::weak_ptr<rclcpp::Executor>& executor)
     : node_(node), executor_(executor) {}
-  ~ControlModeManager();
+  ~ControlModeManager() override;
 
   /**
    * Populates the control_modes_ from the params in node_.
@@ -42,6 +42,16 @@ public:
    * Update the active node
    */
   auto update(const rclcpp::Time& now, const rclcpp::Duration& period) const -> void;
+
+  // Collection<ControlMode> implementation
+  std::shared_ptr<ControlMode> operator[](const std::string& index) override;
+
+  iterator begin() override { return control_modes_.begin(); };
+  [[nodiscard]] const_iterator begin() const override { return control_modes_.begin(); };
+  iterator end() override { return control_modes_.end(); };
+  [[nodiscard]] const_iterator end() const override { return control_modes_.end(); };
+
+  void add(const std::string& key, const std::shared_ptr<ControlMode>& value) override;
 
 private:
   /**

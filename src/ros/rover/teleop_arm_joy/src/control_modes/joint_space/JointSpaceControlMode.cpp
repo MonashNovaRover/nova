@@ -88,28 +88,6 @@ void JointSpaceControlMode::publish_halt_message(const rclcpp::Time& now) const 
 void JointSpaceControlMode::update(const rclcpp::Time& now, const rclcpp::Duration& period) {
   auto logger = get_node()->get_logger();
 
-  for (const auto& axis_ptr : axes_) {
-    const auto axis = axis_ptr.lock();
-
-    if (!axis)
-      continue;
-
-    if (axis->changed()) {
-      RCLCPP_INFO(logger, C_INPUT "  %s\t%f", axis->get_name().c_str(), axis->value());
-    }
-  }
-
-  for (const auto& boolean_ptr : buttons_) {
-    const auto button = boolean_ptr.lock();
-
-    if (!button)
-      continue;
-
-    if (button->changed()) {
-      RCLCPP_INFO(logger, C_INPUT "  %s\t%d", button->get_name().c_str(), button->value());
-    }
-  }
-
   // Don't move when locked
   if (*locked_) {
     publish_halt_message(now);

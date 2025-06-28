@@ -17,7 +17,7 @@ namespace teleop_arm_joy {
  * Base class given to InputSources to allow them to get event objects to invoke.
  */
 template <typename T, typename TCollated>
-class CollatedCollection final : public Collection<T> {
+class CollatedCollection : public Collection<T> {
 public:
   ~CollatedCollection() override = default;
 

@@ -11,13 +11,35 @@ namespace teleop_arm_joy
 {
 
 class Event {
-
 public:
+  using SharedPtr = std::shared_ptr<Event>;
+
   virtual ~Event() = default;
 
-  virtual void invoke() = 0;
+  virtual void invoke() {
+    invoked_ = true;
+  };
+
+  /**
+   * Called to mark the end of the frame, and update the value of is_invoked()
+   */
+  void update() {
+    previous_invoked_ = invoked_;
+    invoked_ = false;
+  }
+
+  virtual bool is_invoked() {
+    return previous_invoked_;
+  }
+
+  // Type conversion
+  explicit operator bool() {
+    return is_invoked();
+  }
+
 private:
-  bool invoked = false;
+  bool previous_invoked_ = false;
+  bool invoked_ = false;
 };
 
 }

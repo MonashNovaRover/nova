@@ -138,6 +138,8 @@ void TeleopArmJoy::initialize(const std::weak_ptr<rclcpp::Executor>& executor) {
 
   control_mode_manager_ = std::make_shared<ControlModeManager>(shared_from_this(), executor);
   control_mode_manager_->configure(inputs_);
+
+  commands_ = std::make_shared<CommandManager>();
 }
 
 [[noreturn]] void TeleopArmJoy::service_input_updates() {
@@ -153,11 +155,28 @@ void TeleopArmJoy::initialize(const std::weak_ptr<rclcpp::Executor>& executor) {
     inputs_.update(now);
     update_state();
 
+    for (auto& [name, command] : *commands_) {
+      command->update(*this);
+    }
+
+
     control_mode_manager_->update(now, period);
 
     // TODO: enforce max update rate here
     previous = now;
   }
+}
+
+std::shared_ptr<const rclcpp::Node> TeleopArmJoy::get_node() const {
+  return shared_from_this();
+}
+
+const InputManager& TeleopArmJoy::get_inputs() const {
+  return inputs_;
+}
+
+const std::shared_ptr<ControlModeManager> TeleopArmJoy::get_control_modes() const {
+  return control_mode_manager_;
 }
 
 void TeleopArmJoy::update_state() {

@@ -55,6 +55,9 @@ add_executable(${PROJECT_NAME}_node
   src/inputs/InputManager.cpp
   src/input_sources/InputSourceManager.cpp
   src/inputs/InputSource.cpp
+  src/commands/Command.cpp
+  src/commands/CollatedCommand.cpp
+  src/commands/CommandManager.cpp
 )
 
 # Add plugin implementations here!

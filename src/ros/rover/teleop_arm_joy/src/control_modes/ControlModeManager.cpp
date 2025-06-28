@@ -159,6 +159,15 @@ void ControlModeManager::update(const rclcpp::Time& now, const rclcpp::Duration&
   current_control_mode_->update(now, period);
 }
 
+std::shared_ptr<ControlMode> ControlModeManager::operator[](const std::string& index) {
+  return control_modes_[index];
+}
+
+void ControlModeManager::add(const std::string& key, const std::shared_ptr<ControlMode>& value) {
+  // TODO: Implement
+  throw std::logic_error("ControlModeManager::add() is not yet implemented. Sorry. Extract it from configure().");
+}
+
 void ControlModeManager::reset() {
   switch_controller_client_ = nullptr;
 }

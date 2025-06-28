@@ -10,6 +10,7 @@
 
 // generate_parameter_library_cpp include/teleop_arm_joy/teleop_arm_joy_parameters.hpp src/parameters.yaml
 #include "teleop_arm_joy_parameters.hpp"
+#include "commands/CommandManager.hpp"
 #include "control_modes/ControlModeManager.hpp"
 #include "inputs/state/State.hpp"
 #include "input_sources/InputSourceManager.hpp"
@@ -20,7 +21,7 @@ namespace teleop_arm_joy
    * @class TeleopArmJoy
    * @brief Class for handling joystick and other inputs and publishing arm commands.
    */
-  class TeleopArmJoy : public rclcpp::Node {
+  class TeleopArmJoy : public rclcpp::Node, public CommandDelegate {
   public:
     /**
      * @brief Constructor for TeleopArmJoy.
@@ -36,6 +37,10 @@ namespace teleop_arm_joy
      */
     [[noreturn]] void service_input_updates();
 
+    [[nodiscard]] std::shared_ptr<const Node> get_node() const override;
+    [[nodiscard]] const InputManager& get_inputs() const override;
+    [[nodiscard]] const std::shared_ptr<ControlModeManager> get_control_modes() const override;
+
   private:
     void update_state();
 
@@ -45,6 +50,7 @@ namespace teleop_arm_joy
     std::shared_ptr<ControlModeManager> control_mode_manager_ = nullptr;
     InputManager inputs_;
     std::shared_ptr<InputSourceManager> input_source_manager_ = nullptr;
+    std::shared_ptr<CommandManager> commands_ = nullptr;
 
     std::shared_ptr<State<bool>> locked_ = std::make_shared<State<bool>>("locked", true);
   };

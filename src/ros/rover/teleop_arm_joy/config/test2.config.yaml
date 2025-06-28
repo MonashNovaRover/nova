@@ -34,6 +34,8 @@ teleop_arm_joy_node:
         type: "switch_controller"
         to: "twist_ik_control"
 
+
+
 joint_space_control:
   ros__parameters:
     joint_definitions: [
@@ -64,6 +66,32 @@ joint_space_control:
       arm_j6:
         input_name: "J6"
         max_speed: 0.364467013889
+
+
+arc_science_control_mode:
+  ros__parameters:
+    buttons: [
+      "lock",
+      "unlock",
+    ]
+    axes: [
+      "auger"
+      "analysis arm"
+      ""
+    ]
+    topic: "/science_input"
+
+urc_science_control_mode:
+  ros__parameters:
+    buttons: [
+      "lock",
+      "unlock",
+    ]
+    axes: [
+      "auger"
+      "analysis arm"
+    ]
+    topic: "/science_input"
 
 joy_input_source:
   ros__parameters:

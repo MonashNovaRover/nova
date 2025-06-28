@@ -36,7 +36,7 @@ protected:
     Input<double>::SharedPtr input;
   };
 
-  ~JointSpaceControlMode() = default;
+  ~JointSpaceControlMode() override = default;
 
   /// Tracks parameters
   std::shared_ptr<joint_space_control_mode::ParamListener> param_listener_;

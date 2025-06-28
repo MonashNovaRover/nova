@@ -15,25 +15,25 @@ teleop_arm_joy:
     Leaving this unset will allow for indefinite lapses between updates."
     default_value: -1.0
 
-  joint_definitions:
-    type: string_array
-    default_value: [
-      "J1",
-      "J2",
-      "J3",
-      "J4",
-      "J5",
-      "J6"
-    ]
-    description: "The set of joints to send commands for. Must be a subset of axis_definitions (for each joint added 
-    here, include an axis of the same name)."
-
-  joints:
-    __map_joint_definitions:
-      max_speed:
-        type: double
-        description: "The max value sent to the ros2_control controllers when the speed is set to max, and a max input 
-        is given. Should be in rad/s."
+#  joint_definitions:
+#    type: string_array
+#    default_value: [
+#      "J1",
+#      "J2",
+#      "J3",
+#      "J4",
+#      "J5",
+#      "J6"
+#    ]
+#    description: "The set of joints to send commands for. Must be a subset of axis_definitions (for each joint added
+#    here, include an axis of the same name)."
+#
+#  joints:
+#    __map_joint_definitions:
+#      max_speed:
+#        type: double
+#        description: "The max value sent to the ros2_control controllers when the speed is set to max, and a max input
+#        is given. Should be in rad/s."
 #  controllers:
 #    type: string_array
 #    default_value:
