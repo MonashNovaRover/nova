@@ -12,6 +12,8 @@ namespace teleop_arm_joy {
 
 class CollatedCommand final : public Command {
 public:
+  explicit CollatedCommand(const std::string& name) {};
+
   void invoke(CommandDelegate& context) override {
     for (auto command : commands_) {
       if (command)
