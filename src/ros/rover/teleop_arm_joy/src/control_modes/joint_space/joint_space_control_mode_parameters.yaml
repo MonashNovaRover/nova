@@ -32,5 +32,45 @@ joint_space_control_mode:
       "lock",
       "unlock"
     ]
-    description: "The list of mappable axes."
+    description: "The list of mappable buttons."
     read_only: true
+
+  topic:
+    type: string
+    default_value: "/arm_fk_velocity_target"
+    description: "The topic to publish nova_interfaces::msg::ArmFkVelocityTargets messages to."
+
+  joint_definitions:
+    type: string_array
+    default_value: [
+      "J1",
+      "J2",
+      "J3",
+      "J4",
+      "J5",
+      "J6"
+    ]
+    description: "The set of joints to send commands for. Must be a subset of axis_definitions (for each joint added 
+    here, include an axis of the same name)."
+
+  joints:
+    __map_joint_definitions:
+      input_name:
+        type: string
+        default_value: ""
+        description: "The name of the input axis to use for this joint. Leave blank to use the name of the joint."
+      max_speed:
+        type: double
+        default_value: 0.0
+        description: "The max value sent to the ros2_control controllers when the speed is set to max, and a max input 
+        is given. Should be in rad/s."
+
+  # Input name configuration
+  locked_input_name:
+    type: string
+    default_value: "locked"
+    description: "The name of the boolean input that makes the controller send halt messages when true."
+  speed_input_name:
+    type: string
+    default_value: "speed"
+    description: "The name of the axis input that scales the output speed from 0 to 1."

@@ -41,7 +41,7 @@ public:
   /**
    * Update the active node
    */
-  void update() const;
+  auto update(const rclcpp::Time& now, const rclcpp::Duration& period) const -> void;
 
 private:
   /**

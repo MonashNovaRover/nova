@@ -141,18 +141,22 @@ void TeleopArmJoy::initialize(const std::weak_ptr<rclcpp::Executor>& executor) {
 }
 
 [[noreturn]] void TeleopArmJoy::service_input_updates() {
+  rclcpp::Time previous = this->now();
+
   // TODO: killing the thread
   while (true) {
     const auto now = input_source_manager_->wait_for_update();
+    const auto period = now - previous;
 
     // TODO: Update inputs here
     input_source_manager_->update(now);
     inputs_.update(now);
     update_state();
 
-    control_mode_manager_->update();
+    control_mode_manager_->update(now, period);
 
     // TODO: enforce max update rate here
+    previous = now;
   }
 }
 

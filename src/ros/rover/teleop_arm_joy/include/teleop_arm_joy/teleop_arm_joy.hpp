@@ -46,7 +46,7 @@ namespace teleop_arm_joy
     InputManager inputs_;
     std::shared_ptr<InputSourceManager> input_source_manager_ = nullptr;
 
-    std::shared_ptr<State<bool>> locked_ = std::make_shared<State<bool>>(State("locked", true));
+    std::shared_ptr<State<bool>> locked_ = std::make_shared<State<bool>>("locked", true);
   };
 
 } // namespace teleop_arm_joy

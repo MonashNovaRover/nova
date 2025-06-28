@@ -20,6 +20,8 @@ namespace teleop_arm_joy {
  */
 class ControlMode {
 public:
+  virtual ~ControlMode() = default;
+
   enum State {
     INACTIVE = 0,
     CONFIGURING = 1,
@@ -33,7 +35,7 @@ public:
     std::vector<std::string> controllers{};
   };
 
-  ControlMode() {}
+  ControlMode() = default;
 
   /// This function effectively replaces the initializer
   void initialize(const std::shared_ptr<rclcpp::Node>& node, const std::string& name);
@@ -43,7 +45,7 @@ public:
   void activate();
   void deactivate();
 
-  virtual void update() {};
+  virtual void update(const rclcpp::Time& now, const rclcpp::Duration& period) {};
 
   // Accessors
   /// Name of the control mode, which the control mode is indexed by

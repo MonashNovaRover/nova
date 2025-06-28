@@ -150,13 +150,13 @@ bool ControlModeManager::set_control_mode(const std::string& name) {
   return true;
 }
 
-void ControlModeManager::update() const {
+void ControlModeManager::update(const rclcpp::Time& now, const rclcpp::Duration& period) const {
   if (!current_control_mode_) {
-    RCLCPP_WARN(node_->get_logger(), "ControlModeManager::update(): No node is active!");
+    RCLCPP_WARN(node_->get_logger(), "ControlModeManager::update(): No mode is active!");
     return;
   }
 
-  current_control_mode_->update();
+  current_control_mode_->update(now, period);
 }
 
 void ControlModeManager::reset() {
