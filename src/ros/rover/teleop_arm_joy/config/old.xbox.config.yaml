@@ -41,84 +41,84 @@ teleop_arm_joy_node:
         max_speed: 0.364467013889
       arm_j6:
         max_speed: 0.364467013889
-    device_names: ["Gamepad"]
+    device_names: ["gamepad"]
     devices:
-      Gamepad:
+      gamepad:
         topic: "/joy"
     axes:
       arm_j1:
-        device: "Gamepad"
+        device: "gamepad"
         id: 6
       arm_j2:
-        device: "Gamepad"
+        device: "gamepad"
         id: 7
         invert: true
       arm_j3:
-        device: "Gamepad"
+        device: "gamepad"
         button_id_negative: 0
         button_id_positive: 3
         invert: true
 
       arm_j4:
-        device: "Gamepad"
+        device: "gamepad"
         id: 4
       arm_j5:
-        device: "Gamepad"
+        device: "gamepad"
         id: 3
 #        button_id_negative: 2
 #        button_id_positive: 1
       arm_j6:
-        device: "Gamepad"
+        device: "gamepad"
         button_id_negative: 1
         button_id_positive: 2
 
       speed:
-        device: "Gamepad"
+        device: "gamepad"
         id: 5
         invert: true
 #      offset:
-#        device: "Gamepad"
+#        device: "gamepad"
 #        id: 4
 
 
       twist_x:
-        device: "Gamepad"
+        device: "gamepad"
         id: 6
       twist_y:
-        device: "Gamepad"
+        device: "gamepad"
         id: 7
       twist_z:
-        device: "Gamepad"
+        device: "gamepad"
         button_id_negative: 0
         button_id_positive: 3
 
       twist_yaw:
-        device: "Gamepad"
+        device: "gamepad"
         id: 3
       twist_pitch:
-        device: "Gamepad"
+        device: "gamepad"
         id: 4
         invert: true
       twist_roll:
-        device: "Gamepad"
+        device: "gamepad"
         button_id_negative: 2
         button_id_positive: 1
 
     buttons:
       twist_mode:
-        device: "Gamepad"
+        device: "gamepad"
         id: 4
 #      limit_on:
-#        device: "Gamepad"
+#        device: "gamepad"
 #        id: 4
 #      limit_off:
-#        device: "Gamepad"
+#        device: "gamepad"
 #        id: 9
       lock:
-        device: "Gamepad"
+        device: "gamepad"
         id: 7
       unlock:
-        device: "Gamepad"
+        device: "gamepad"
         id: 6
 
 # trigger:

@@ -5,10 +5,12 @@
 #ifndef INPUTMANAGER_HPP
 #define INPUTMANAGER_HPP
 
-#include "CollatedCollection.hpp"
-#include "CollatedEvent.hpp"
-#include "CollatedInput.hpp"
+#include <rclcpp/node_interfaces/node_logging_interface.hpp>
+
+#include "collated/CollatedCollection.hpp"
+#include "collated/CollatedInput.hpp"
 #include "Input.hpp"
+#include "collated/CollatedEvent.hpp"
 
 namespace teleop_arm_joy {
 /**
@@ -27,6 +29,8 @@ public:
   [[nodiscard]] Collection<Event>& get_events() {
     return events_;
   }
+
+  void update(const rclcpp::Time& now);
 
 protected:
   CollatedCollection<Input<double>, CollatedInput<double>> axes_{};

@@ -5,6 +5,7 @@
 #ifndef INPUTSOURCEMANAGER_HPP
 #define INPUTSOURCEMANAGER_HPP
 
+#include <queue>
 #include <vector>
 #include <pluginlib/class_loader.hpp>
 #include <rclcpp/executor.hpp>
@@ -42,7 +43,9 @@ public:
   /**
    * Blocks the current thread until an update is requested by an input source.
    */
-  void wait_for_update();
+  rclcpp::Time wait_for_update();
+
+  void update(const rclcpp::Time& now) const;
 
 private:
   void setup_input_sources(InputManager& inputs);
@@ -62,6 +65,8 @@ private:
   std::mutex mutex_;
   std::condition_variable update_condition_;
   std::atomic<bool> should_update_ = false;
+  std::queue<std::weak_ptr<InputSource>> sources_to_update_;
+  rclcpp::Time update_time_ = rclcpp::Time();
 };
 
 }

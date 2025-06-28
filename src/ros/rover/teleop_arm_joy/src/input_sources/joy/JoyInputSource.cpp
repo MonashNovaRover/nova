@@ -4,8 +4,8 @@
 
 #include "../../../include/teleop_arm_joy/input_sources/joy/JoyInputSource.hpp"
 
-#include "teleop_arm_joy/JoyAxis.hpp"
-#include "teleop_arm_joy/JoyButton.hpp"
+#include "colors.h"
+#include "../../../include/teleop_arm_joy/input_sources/joy/JoyAxis.hpp"
 
 namespace teleop_arm_joy {
 
@@ -46,7 +46,7 @@ void JoyInputSource::on_configure(InputManager& inputs) {
   // }
 
   // Create device instances
-  auto device_configs = params_.devices.device_names_map;
+  const auto device_configs = params_.devices.device_names_map;
   devices.reserve(device_configs.size());
 
   // Create listener collections for each device, that we can add buttons and axes to later create JoyDevices from.
@@ -57,30 +57,33 @@ void JoyInputSource::on_configure(InputManager& inputs) {
   listeners[""] = listeners[params_.device_names[0]];
 
   // Create button and axis objects
-  RCLCPP_INFO(get_node()->get_logger(), "Registered Buttons:");
+  RCLCPP_DEBUG(get_node()->get_logger(), "Registered Buttons:");
   for (auto& [button_name, button_config] : params_.buttons.button_definitions_map) {
     // Buttons without a definition will have their value be -1 by default, so we can filter them out.
     if (button_config.id < 0)
       continue;
 
-    RCLCPP_INFO(node_->get_logger(), "  %s", button_name.c_str());
+    RCLCPP_DEBUG(node_->get_logger(), "  %s", button_name.c_str());
 
-    shared_ptr<JoyButton> button(new JoyButton(button_config));
+    auto button = std::make_shared<JoyButton>(button_name, button_config);
     // buttons[button_name] = button;
+    auto& booleans = inputs.get_booleans();
+    booleans.add(button_name, static_pointer_cast<Input<bool>>(button));
     listeners[button_config.device]->emplace_back(button);
   }
 
-  RCLCPP_INFO(node_->get_logger(), "Registered Axes:");
+  RCLCPP_DEBUG(node_->get_logger(), "Registered Axes:");
   for (auto& [axis_name, axis_config] : params_.axes.axis_definitions_map) {
     // Axes without a definition will have their value be -1 by default, so we can filter them out.
     if (axis_config.id < 0 && axis_config.button_id_negative < 0 && axis_config.button_id_positive < 0)
       continue;
 
-    RCLCPP_INFO(node_->get_logger(), "  %s", axis_name.c_str());
+    RCLCPP_DEBUG(node_->get_logger(), "  %s", axis_name.c_str());
 
-    // shared_ptr<JoyAxis> axis(new JoyAxis(axis_config));
-    // axes[axis_name] = axis;
-    // listeners[axis_config.device]->emplace_back(axis);
+    auto axis = std::make_shared<JoyAxis>(axis_name, axis_config);
+    auto& axes = inputs.get_axes();
+    axes.add(axis_name, axis);
+    listeners[axis_config.device]->emplace_back(axis);
   }
 
   // Populate unspecified buttons and axes with duds
@@ -95,16 +98,26 @@ void JoyInputSource::on_configure(InputManager& inputs) {
   // }
 
   // Give axes and buttons to a joy device to be managed
-  // for (auto& [name, config] : device_configs) {
-  //   shared_ptr<JoyDevice> device(new JoyDevice(this, name, config, *listeners[name], std::bind(&TeleopArmJoy::onDeviceUpdated, this, _1)));
-  //   devices.emplace_back(device);
-  //
-  //   // Clean up
-  //   delete listeners[name];
-  // }
+  for (auto& [name, config] : device_configs) {
+    shared_ptr<JoyDevice> device(new JoyDevice(node_.get(), name, config, *listeners[name], [&](std::string&) {
+      RCLCPP_INFO_ONCE(node_->get_logger(), C_INPUT "Input message received" C_RESET);
+      request_update(node_->now());
+    }));
+
+    devices.emplace_back(device);
+
+    // Clean up
+    delete listeners[name];
+  }
   listeners.clear();
 }
 
+void JoyInputSource::on_update(const rclcpp::Time& now) {
+  InputSource::on_update(now);
+
+  // for (const auto& device : devices)
+  //   device->debounce();
+}
 } // teleop_arm_joy
 
 #include "class_loader/register_macro.hpp"

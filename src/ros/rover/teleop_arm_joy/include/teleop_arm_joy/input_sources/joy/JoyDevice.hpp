@@ -12,7 +12,7 @@
 #include <sensor_msgs/msg/joy.hpp>
 
 #include "joy_input_source_parameters.hpp"
-#include "../../JoyMessageListener.hpp"
+#include "JoyMessageListener.hpp"
 using namespace std;
 
 

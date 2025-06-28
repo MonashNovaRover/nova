@@ -11,12 +11,17 @@ void InputSource::initialize(const std::shared_ptr<rclcpp::Node>& node, const st
 {
   node_ = node;
   name_ = name;
+  delegate_ = delegate;
 
   on_initialize();
 }
 
 void InputSource::configure(InputManager& inputs) {
   on_configure(inputs);
+}
+
+void InputSource::update(const rclcpp::Time& now) {
+  on_update(now);
 }
 
 void InputSource::request_update(const rclcpp::Time& now) const {

@@ -5,7 +5,7 @@
 #ifndef COLLATEDEVENT_HPP
 #define COLLATEDEVENT_HPP
 
-#include "Event.hpp"
+#include "../Event.hpp"
 
 namespace teleop_arm_joy {
 /**
@@ -13,6 +13,8 @@ namespace teleop_arm_joy {
  */
 class CollatedEvent final : public Event {
 public:
+  explicit CollatedEvent(const std::string& name) {};
+
   void invoke() override {
     for (auto event : events_) {
       if (event)
@@ -37,7 +39,7 @@ public:
   }
 
 private:
-  std::vector<std::shared_ptr<Event>> events_ = {};
+  std::vector<std::shared_ptr<Event>> events_{};
 };
 
 } // teleop_arm_joy

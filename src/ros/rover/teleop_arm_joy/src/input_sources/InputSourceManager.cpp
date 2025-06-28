@@ -5,6 +5,7 @@
 #include "teleop_arm_joy/input_sources/InputSourceManager.hpp"
 
 #include "colors.h"
+#include "utils.hpp"
 
 namespace teleop_arm_joy {
 
@@ -32,15 +33,17 @@ bool InputSourceManager::get_type_for_input_source(const std::string& name, std:
 
 // Runs on input source threads
 void InputSourceManager::on_input_source_requested_update(const rclcpp::Time& now) {
+  // TOOD: Consider out of order timestamps
   {
     std::lock_guard lock(mutex_);
     should_update_ = true;
+    update_time_ = now;
   }
 
   update_condition_.notify_one();
 }
 
-void InputSourceManager::wait_for_update() {
+rclcpp::Time InputSourceManager::wait_for_update() {
   if (params_.min_update_rate > 0) {
     const std::chrono::duration<double> min_wait_period{1.0 / params_.min_update_rate};
     std::unique_lock lock(mutex_);
@@ -52,6 +55,13 @@ void InputSourceManager::wait_for_update() {
   }
 
   should_update_ = false;
+  return update_time_;
+}
+
+void InputSourceManager::update(const rclcpp::Time& now) const {
+  for (const auto source : sources_) {
+    source->update(now);
+  }
 }
 
 void InputSourceManager::setup_input_sources(InputManager& inputs) {
@@ -90,12 +100,13 @@ void InputSourceManager::setup_input_sources(InputManager& inputs) {
   std::stringstream registered_sources_log{};
   for (auto& input_source_name : input_source_names) {
     std::string input_source_type;
+    const std::string pretty_name = snake_to_title(input_source_name);
 
     // Get the control mode's plugin type name
     if (!get_type_for_input_source(input_source_name, input_source_type)) {
       RCLCPP_ERROR(logger, "Failed to find type for input source \"%s\" in params. Have you defined %s.type in your "
                            "parameter file?", input_source_name.c_str(), input_source_name.c_str());
-      registered_sources_log << C_FAIL_QUIET << "\n\t- " << input_source_name << C_FAIL_QUIET << "\t(failed - " << input_source_name << ".type param missing) " << C_RESET;
+      registered_sources_log << C_FAIL_QUIET << "\n\t- " << pretty_name << C_FAIL_QUIET << "\t(failed - " << input_source_name << ".type param missing) " << C_RESET;
       continue;
     }
 
@@ -109,7 +120,7 @@ void InputSourceManager::setup_input_sources(InputManager& inputs) {
     {
       RCLCPP_ERROR(logger, "Failed to find input source plugin \"%s\" for mode \"%s\"!\nwhat(): %s",
                    input_source_type.c_str(), input_source_name.c_str(), ex.what());
-      registered_sources_log << C_FAIL_QUIET << "\n\t- " << input_source_name << C_FAIL_QUIET << "\t(failed - can't find plugin " << input_source_type << ") " << C_RESET;
+      registered_sources_log << C_FAIL_QUIET << "\n\t- " << pretty_name << C_FAIL_QUIET << "\t(failed - can't find plugin " << input_source_type << ") " << C_RESET;
       continue;
     }
 
@@ -122,11 +133,11 @@ void InputSourceManager::setup_input_sources(InputManager& inputs) {
     // Initialize the control mode
     input_source_class->initialize(input_source_node, input_source_name, shared_from_this());
 
-    registered_sources_log << "\n\t- " << input_source_name << C_QUIET << "\t: " << input_source_type << C_RESET;
+    registered_sources_log << "\n\t- " << pretty_name << C_QUIET << "\t: " << input_source_type << C_RESET;
     sources_.emplace_back(input_source_class);
   }
 
-  RCLCPP_INFO(logger, C_TITLE "Input Sources:" C_RESET "%s", registered_sources_log.str().c_str());
+  RCLCPP_INFO(logger, C_TITLE "Input Sources:" C_RESET "%s\n", registered_sources_log.str().c_str());
 
   auto executor = executor_.lock();
 

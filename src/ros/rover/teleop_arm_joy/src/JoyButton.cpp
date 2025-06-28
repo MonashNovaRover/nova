@@ -5,14 +5,14 @@
  * Author: Bailey Chessum
  */
 
-#include "teleop_arm_joy/JoyButton.hpp"
+#include "../include/teleop_arm_joy/input_sources/joy/JoyButton.hpp"
 
 namespace
 {
   constexpr auto BUTTON_DEBOUNCE_INTERVAL = std::chrono::milliseconds(20);
 }
 
-teleop_arm_joy::JoyButton::JoyButton(const joy_input_source::Params::Buttons::MapButtonDefinitions &config) {
+teleop_arm_joy::JoyButton::JoyButton(const std::string& name, const joy_input_source::Params::Buttons::MapButtonDefinitions &config) : Input(name) {
   id_ = config.id;
 }
 
@@ -25,6 +25,8 @@ void teleop_arm_joy::JoyButton::joyCallback(const sensor_msgs::msg::Joy::SharedP
 
 void teleop_arm_joy::JoyButton::debounce(const rclcpp::Time &now) {
   debounce_down_ = false;
+
+  changed_ = current_value_ != debounce_previous_value_;
 
   // Ignore if not press down
   if (!current_value_ || debounce_previous_value_) {
@@ -47,4 +49,9 @@ bool teleop_arm_joy::JoyButton::value() {
 
 bool teleop_arm_joy::JoyButton::down() const {
   return debounce_down_;
+}
+
+bool teleop_arm_joy::JoyButton::changed() const {
+  // TODO: Change on up
+  return changed_;
 }

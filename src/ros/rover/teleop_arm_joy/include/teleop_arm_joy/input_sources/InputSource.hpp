@@ -25,6 +25,7 @@ public:
 
   void initialize(const std::shared_ptr<rclcpp::Node>& node, const std::string& name, const std::weak_ptr<InputSourceUpdateDelegate>& delegate);
   void configure(InputManager& inputs);
+  void update(const rclcpp::Time& now);
 
   // Accessors
   [[nodiscard]] const std::string& get_name() const {
@@ -38,6 +39,7 @@ public:
 protected:
   virtual void on_initialize() {};
   virtual void on_configure(InputManager& inputs) {};
+  virtual void on_update(const rclcpp::Time& now) {};
 
   /**
    * Call this whenever you receive a new input and you want the InputManager to invoke a new debounce update.

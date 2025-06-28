@@ -14,6 +14,7 @@ template<typename T>
 class Input {
 
 public:
+  explicit Input(const std::string& name) : name_(name) {}
   virtual ~Input() = default;
 
   virtual T value() = 0;
@@ -24,6 +25,14 @@ public:
    * @returns true if the value changed since last debounce
    */
   virtual bool changed() const = 0;
+
+  // Accessors
+  [[nodiscard]] const std::string& get_name() const {
+    return name_;
+  }
+
+private:
+  const std::string name_;
 };
 
 }

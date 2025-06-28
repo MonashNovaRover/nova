@@ -5,7 +5,7 @@
 #ifndef COLLATEDINPUT_HPP
 #define COLLATEDINPUT_HPP
 
-#include "Input.hpp"
+#include "../Input.hpp"
 
 namespace teleop_arm_joy {
 /**
@@ -14,6 +14,8 @@ namespace teleop_arm_joy {
 template<typename T>
 class CollatedInput final : public Input<T> {
 public:
+  explicit CollatedInput(const std::string& name) : Input<T>(name) {}
+
   T value() override;
   void debounce(const rclcpp::Time& now) override {
     for (auto& input : inputs_)
@@ -47,7 +49,7 @@ public:
   }
 
 private:
-  std::vector<std::shared_ptr<Input<T>>> inputs_;
+  std::vector<std::shared_ptr<Input<T>>> inputs_{};
 };
 
 // value() definitions:

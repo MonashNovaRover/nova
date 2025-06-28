@@ -11,6 +11,7 @@
 // generate_parameter_library_cpp include/teleop_arm_joy/teleop_arm_joy_parameters.hpp src/parameters.yaml
 #include "teleop_arm_joy_parameters.hpp"
 #include "control_modes/ControlModeManager.hpp"
+#include "inputs/state/State.hpp"
 #include "input_sources/InputSourceManager.hpp"
 
 namespace teleop_arm_joy
@@ -36,12 +37,16 @@ namespace teleop_arm_joy
     [[noreturn]] void service_input_updates();
 
   private:
+    void update_state();
+
     std::shared_ptr<ParamListener> param_listener_;
     Params params_;
 
     std::shared_ptr<ControlModeManager> control_mode_manager_ = nullptr;
     InputManager inputs_;
     std::shared_ptr<InputSourceManager> input_source_manager_ = nullptr;
+
+    std::shared_ptr<State<bool>> locked_ = std::make_shared<State<bool>>(State("locked", true));
   };
 
 } // namespace teleop_arm_joy

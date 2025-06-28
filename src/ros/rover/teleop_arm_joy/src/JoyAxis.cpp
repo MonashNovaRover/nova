@@ -7,14 +7,14 @@
 
 #include <cmath>
 
-#include "teleop_arm_joy/JoyAxis.hpp"
+#include "../include/teleop_arm_joy/input_sources/joy/JoyAxis.hpp"
 
 namespace
 {
   constexpr auto AXIS_CHANGED_DIFFERECE = 0.05f;
 }
 
-teleop_arm_joy::JoyAxis::JoyAxis(const joy_input_source::Params::Axes::MapAxisDefinitions &config) {
+teleop_arm_joy::JoyAxis::JoyAxis(const std::string& name, const joy_input_source::Params::Axes::MapAxisDefinitions &config) : Input(name) {
   id = config.id;
   invert = config.invert;
 

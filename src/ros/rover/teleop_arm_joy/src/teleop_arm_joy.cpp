@@ -131,6 +131,7 @@ void TeleopArmJoy::initialize(const std::weak_ptr<rclcpp::Executor>& executor) {
   params_ = param_listener_->get_params();
 
   inputs_ = InputManager();
+  inputs_.get_booleans().add("locked", std::static_pointer_cast<Input<bool>>(locked_));
 
   input_source_manager_ = std::make_shared<InputSourceManager>(shared_from_this(), executor);
   input_source_manager_->configure(param_listener_, inputs_);
@@ -142,13 +143,33 @@ void TeleopArmJoy::initialize(const std::weak_ptr<rclcpp::Executor>& executor) {
 [[noreturn]] void TeleopArmJoy::service_input_updates() {
   // TODO: killing the thread
   while (true) {
-    input_source_manager_->wait_for_update();
+    const auto now = input_source_manager_->wait_for_update();
 
     // TODO: Update inputs here
+    input_source_manager_->update(now);
+    inputs_.update(now);
+    update_state();
 
     control_mode_manager_->update();
 
     // TODO: enforce max update rate here
+  }
+}
+
+void TeleopArmJoy::update_state() {
+  auto logger = get_logger();
+
+  if (!locked_->value()) {
+    if (inputs_.get_booleans()["lock"]->value()) {
+      locked_->set(true);
+      RCLCPP_INFO(logger, "Locked");
+    }
+  }
+  else {
+    if (inputs_.get_booleans()["unlock"]->value()) {
+      locked_->set(false);
+      RCLCPP_INFO(logger, "Unlocked");
+    }
   }
 }
 
@@ -161,9 +182,10 @@ TeleopArmJoy::~TeleopArmJoy() {
 int main(int argc, char *argv[]) {
   rclcpp::init(argc, argv);
   const auto node = std::make_shared<teleop_arm_joy::TeleopArmJoy>();
-
   const auto executor = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
   executor->add_node(node);
+
+  std::cout << "\n";
 
   node->initialize(executor);
 

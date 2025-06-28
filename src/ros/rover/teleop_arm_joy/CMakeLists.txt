@@ -39,6 +39,10 @@ generate_parameter_library(
   joy_input_source_parameters
   src/input_sources/joy/joy_input_source_parameters.yaml
 )
+generate_parameter_library(
+  joint_space_control_mode_parameters
+  src/control_modes/joint_space/joint_space_control_mode_parameters.yaml
+)
 
 # Build the node executable
 add_executable(${PROJECT_NAME}_node
@@ -63,8 +67,13 @@ add_library(${PROJECT_NAME} SHARED
 target_link_libraries(${PROJECT_NAME}_node
   teleop_arm_joy_parameters
 )
+
+# Link parameter libraries for plugins here!
 target_link_libraries(${PROJECT_NAME}
   joy_input_source_parameters
+)
+target_link_libraries(${PROJECT_NAME}
+  joint_space_control_mode_parameters
 )
 
 
@@ -111,6 +120,7 @@ install(
 
 install(TARGETS ${PROJECT_NAME}
         joy_input_source_parameters
+        joint_space_control_mode_parameters
         EXPORT export_${PROJECT_NAME}
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION lib

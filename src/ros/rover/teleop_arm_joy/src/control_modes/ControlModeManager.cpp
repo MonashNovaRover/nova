@@ -3,6 +3,7 @@
 
 #include <controller_manager_msgs/srv/detail/switch_controller__struct.hpp>
 #include "colors.h"
+#include "utils.hpp"
 
 namespace teleop_arm_joy {
 
@@ -51,12 +52,13 @@ void ControlModeManager::configure(InputManager& inputs) {
   const auto control_mode_names = control_modes_param.as_string_array();
   for (auto& control_mode_name : control_mode_names) {
     std::string control_mode_type;
+    const std::string pretty_name = snake_to_title(control_mode_name);
 
     // Get the control mode's plugin type name
     if (!get_type_for_control_mode(control_mode_name, control_mode_type)) {
       RCLCPP_ERROR(logger, "Failed to find type for control mode \"%s\" in params. Have you defined %s.type in your "
                            "parameter file?", control_mode_name.c_str(), control_mode_name.c_str());
-      registered_modes_log << C_FAIL_QUIET << "\n\t- " << control_mode_name << C_FAIL_QUIET << "\t(failed - " << control_mode_name << ".type param missing) " << C_RESET;
+      registered_modes_log << C_FAIL_QUIET << "\n\t- " << pretty_name << C_FAIL_QUIET << "\t(failed - " << control_mode_name << ".type param missing) " << C_RESET;
       continue;
     }
 
@@ -70,7 +72,7 @@ void ControlModeManager::configure(InputManager& inputs) {
     {
       RCLCPP_ERROR(logger, "Failed to find control mode plugin \"%s\" for mode \"%s\"!\nwhat(): %s",
                    control_mode_type.c_str(), control_mode_name.c_str(), ex.what());
-      registered_modes_log << C_FAIL_QUIET << "\n\t- " << control_mode_name << C_FAIL_QUIET << "\t(failed - can't find plugin " << control_mode_type << ") " << C_RESET;
+      registered_modes_log << C_FAIL_QUIET << "\n\t- " << pretty_name << C_FAIL_QUIET << "\t(failed - can't find plugin " << control_mode_type << ") " << C_RESET;
       continue;
     }
 
@@ -83,11 +85,11 @@ void ControlModeManager::configure(InputManager& inputs) {
     // Initialize the control mode
     control_mode_class->initialize(control_mode_node, control_mode_name);
 
-    registered_modes_log << "\n\t- " << control_mode_name << C_QUIET << "\t: " << control_mode_type << C_RESET;
+    registered_modes_log << "\n\t- " << pretty_name << C_QUIET << "\t: " << control_mode_type << C_RESET;
     control_modes_[control_mode_name] = control_mode_class;
   }
 
-  RCLCPP_INFO(logger, C_TITLE "Control Modes:" C_RESET "%s", registered_modes_log.str().c_str());
+  RCLCPP_INFO(logger, C_TITLE "Control Modes:" C_RESET "%s\n", registered_modes_log.str().c_str());
 
   auto executor = executor_.lock();
 
@@ -109,7 +111,7 @@ void ControlModeManager::configure(InputManager& inputs) {
 
 bool ControlModeManager::set_control_mode(const std::string& name) {
   const auto logger = node_->get_logger();
-  RCLCPP_INFO(logger, "Switching to control mode \"%s\"", name.c_str());
+  RCLCPP_INFO(logger, C_MODE "%s activated" C_RESET, snake_to_title(name).c_str());
 
   // Find the control mode from the name
   const auto new_control_mode_it = std::find_if(control_modes_.begin(), control_modes_.end(),
@@ -217,6 +219,7 @@ bool ControlModeManager::switch_controllers(const ControlMode& next) const {
 
 bool ControlModeManager::get_type_for_control_mode(const std::string& name, std::string& control_mode_type) const {
   // TODO: Check that the parameter hasn't already been defined
+  // TODO: Display names
   node_->declare_parameter(name + ".type", rclcpp::ParameterType::PARAMETER_STRING);
   // TODO: Remember that this parameter has already been defined
 
