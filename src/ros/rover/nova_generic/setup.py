@@ -1,17 +1,6 @@
 from setuptools import setup
-from generate_parameter_library_py.setup_helper import generate_parameter_module
 
 package_name = 'nova_generic'
-
-generate_parameter_module(
-  "sensor_parameters", # python module name for parameter library
-  "nova_generic/sensors/sensor_parameters.yaml", # path to input yaml file
-)
-
-generate_parameter_module(
-  "number_sensor_parameters", # python module name for parameter library
-  "nova_generic/sensors/number_sensor_parameters.yaml", # path to input yaml file
-)
 
 setup(
     name=package_name,

@@ -1,8 +1,13 @@
-number_sensor_parameters:
+can_number_listener_parameters:
   initial_value:
     type: double
-    default_value: "0"
+    default_value: 0
     description: "Initial value of the sensor."
+
+  length:
+    type: int
+    default_value: 2
+    description: "Length of expected data in message in bytes (two hex digits). Does not include command IDs."
 
   scale:
     type: double

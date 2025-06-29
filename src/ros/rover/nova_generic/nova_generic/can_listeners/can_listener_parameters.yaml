@@ -1,0 +1,35 @@
+can_listener_parameters:
+  logging_level:
+    type: string
+    default_value: "INFO"
+    description: "Logging level."
+
+  can_bus:
+    type: string
+    default_value: "can1"
+    description: "CAN Bus to listen to."
+
+  frame_id:
+    type: int
+    default_value: 0x000
+    description: "CAN / Frame ID of sensor msg to listen to on the CAN bus."
+
+  command_id:
+    type: int
+    default_value: -1
+    description: "CAN message prefix (first byte / first two hex digits) that should be listened for. Empty string if none present."
+
+  publish_period:
+    type: double
+    default_value: 1.0
+    description: "How often to publish sensor data, in seconds."
+
+  topic:
+    type: string
+    default_value: ""
+    description: "Topic to publish sensor data to."
+
+  update_rate:
+    type: double
+    default_value: 100
+    description: "How often to spin jcan per second."

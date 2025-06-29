@@ -1,0 +1,5 @@
+integer_sensor:
+  ros__parameters:
+    frame_id: 0x0A0
+    topic: '/sensor/example'
+    scale: 2.0

@@ -24,7 +24,6 @@ find_package(rclpy REQUIRED)
 find_package(generate_parameter_library REQUIRED)
 
 find_package(nova_interfaces REQUIRED)
-find_package(input_interfaces REQUIRED)
 
 # Include the include directory
 include_directories(
@@ -43,13 +42,24 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}
 )
 
+# Generate parameter library from YAML in the source folder
+generate_parameter_module(
+  can_listener_parameters
+  nova_generic/can_listeners/can_listener_parameters.yaml
+)
+
+generate_parameter_module(
+  can_number_listener_parameters
+  nova_generic/can_listeners/can_number_listener_parameters.yaml
+)
+
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})
 
 # Add all Python executables to this list
 install(PROGRAMS
-  nova_generic/sensors/Sensor.py
-  nova_generic/sensors/NumberSensor.py
+  nova_generic/can_listeners/CANListener.py
+  nova_generic/can_listeners/CANNumberListener.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

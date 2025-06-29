@@ -1,13 +1,18 @@
 { lib
 , writeShellApplication
 , buildRosPackage
+, rclcpp
 , rclpy
+, ament-cmake
+, nova-interfaces
 , pythonPackages
+, generate-parameter-library
+, generate-parameter-library-py
 }:
 
 buildRosPackage {
   name = "nova-generic";
-  buildType = "ament_python";
+  buildType = "ament_cmake";
 
   src = builtins.path rec {
     name = "nova-generic-source";
@@ -15,9 +20,15 @@ buildRosPackage {
     filter = lib.novaSourceFilter [ ] path;
   };
 
-  propagatedBuildInputs = [
+  nativeBuildInputs = [ ament-cmake ];
+
+  buildInputs = [ rclcpp rclpy nova-interfaces ];
+
+  propagatedBuildInputs = with pythonPackages; [
     rclpy
-    pythonPackages.jcan
+    jcan
+    generate-parameter-library
+    generate-parameter-library-py
   ];
 
 }
