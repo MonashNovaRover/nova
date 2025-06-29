@@ -3,6 +3,9 @@ teleop_arm_joy_node:
 #    update_rate: 40.0
 #    min_update_rate: 0.5
 
+    # Set this true to display all the inputs. Very useful when trying to make a config!
+    log_inputs: true
+
     # Declare modes and sources to spawn
     control_modes: [
       "joint_space_control",
@@ -24,15 +27,37 @@ teleop_arm_joy_node:
     joy_input_source:
       type: "teleop_arm_joy/JoyInputSource"
 
-    command_definitions: [
-      "joe"
-    ]
-
     commands:
-      joe:
+      # Declare the names of your commands here
+      names: [
+        "enter_twist_ik_control",
+        "enter_joint_space_control",
+        "joe",
+        "locked_log",
+        "unlocked_log",
+      ]
+
+      # Configure your commands here.
+      enter_twist_ik_control:
         on: "twist_mode"
-        type: "switch_controller"
+        type: "switch_control_mode"
         to: "twist_ik_control"
+      enter_joint_space_control:
+        on: "twist_mode/up"
+        type: "switch_control_mode"
+        to: "joint_space_control"
+      joe:
+        on: "lock"
+        type: "log"
+        message: "Joe."
+      locked_log:
+        on: "locked"
+        type: "log"
+        message: "Locked (from log command)"
+      unlocked_log:
+        on: "locked"
+        type: "log"
+        message: "Unlocked (from log command)"
 
 joint_space_control:
   ros__parameters:

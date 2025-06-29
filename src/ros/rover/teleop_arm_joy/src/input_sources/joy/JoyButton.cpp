@@ -5,7 +5,7 @@
  * Author: Bailey Chessum
  */
 
-#include "../include/teleop_arm_joy/input_sources/joy/JoyButton.hpp"
+#include "../../../include/teleop_arm_joy/input_sources/joy/JoyButton.hpp"
 
 namespace
 {

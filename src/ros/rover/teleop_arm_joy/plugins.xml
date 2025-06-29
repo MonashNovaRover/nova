@@ -1,4 +1,5 @@
 <library path="teleop_arm_joy">
+    <!-- Control Modes -->
    <class name="teleop_arm_joy/JointSpaceControlMode" type="teleop_arm_joy::JointSpaceControlMode" base_class_type="teleop_arm_joy::ControlMode">
        <description>A control mode that directly controls joints of the arm.</description>
    </class>
@@ -6,7 +7,16 @@
         <description>A control mode that moves some frame of the arm by a Twist, using IK.</description>
     </class>
 
+    <!-- Input Sources -->
     <class name="teleop_arm_joy/JoyInputSource" type="teleop_arm_joy::JoyInputSource" base_class_type="teleop_arm_joy::InputSource">
         <description>An input source for joysticks, such as xbox controllers and thrustmasters.</description>
+    </class>
+
+    <!-- Commands -->
+    <class name="log" type="teleop_arm_joy::LogCommand" base_class_type="teleop_arm_joy::Command">
+        <description>A command to log a message.</description>
+    </class>
+    <class name="switch_control_mode" type="teleop_arm_joy::SwitchControlModeCommand" base_class_type="teleop_arm_joy::Command">
+        <description>A command to deactivate the current control mode, and active another specified control mode.</description>
     </class>
 </library>

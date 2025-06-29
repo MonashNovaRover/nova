@@ -13,7 +13,7 @@ namespace teleop_arm_joy {
  */
 class CollatedEvent final : public Event {
 public:
-  explicit CollatedEvent(const std::string& name) {};
+  explicit CollatedEvent(const std::string& name) : Event(name) {};
 
   void invoke() override {
     Event::invoke();

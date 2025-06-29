@@ -7,6 +7,7 @@
 
 #include <rclcpp/node_interfaces/node_logging_interface.hpp>
 
+#include "EventListenerQueue.hpp"
 #include "collated/CollatedCollection.hpp"
 #include "collated/CollatedInput.hpp"
 #include "Input.hpp"
@@ -18,6 +19,7 @@ namespace teleop_arm_joy {
  */
 class InputManager {
 
+  InputManager();
 public:
   // Accessors
   [[nodiscard]] Collection<Input<double>>& get_axes() {
@@ -37,6 +39,7 @@ protected:
   CollatedCollection<Input<bool>, CollatedInput<bool>> booleans_{};
 
   CollatedCollection<Event, CollatedEvent> events_{};
+  std::shared_ptr<EventListenerQueue> event_listener_queue_ = nullptr;
 };
 
 } // teleop_arm_joy

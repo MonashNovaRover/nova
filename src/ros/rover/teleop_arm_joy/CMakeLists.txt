@@ -47,9 +47,9 @@ generate_parameter_library(
 # Build the node executable
 add_executable(${PROJECT_NAME}_node
   src/teleop_arm_joy.cpp
-  src/JoyDevice.cpp
-  src/JoyButton.cpp
-  src/JoyAxis.cpp
+  src/input_sources/joy/JoyDevice.cpp
+  src/input_sources/joy/JoyButton.cpp
+  src/input_sources/joy/JoyAxis.cpp
   src/control_modes/ControlMode.cpp
   src/control_modes/ControlModeManager.cpp
   src/inputs/InputManager.cpp
@@ -65,6 +65,8 @@ add_library(${PROJECT_NAME} SHARED
   src/control_modes/joint_space/JointSpaceControlMode.cpp
   src/control_modes/joint_space/TwistIKControlMode.cpp
   src/input_sources/joy/JoyInputSource.cpp
+  src/commands/SwitchControlModeCommand.cpp
+  src/commands/LogCommand.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_node
@@ -122,12 +124,12 @@ install(
 )
 
 install(TARGETS ${PROJECT_NAME}
-        joy_input_source_parameters
-        joint_space_control_mode_parameters
-        EXPORT export_${PROJECT_NAME}
-        RUNTIME DESTINATION bin
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib
+  joy_input_source_parameters
+  joint_space_control_mode_parameters
+  EXPORT export_${PROJECT_NAME}
+  RUNTIME DESTINATION bin
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
 )
 
 ament_export_libraries(

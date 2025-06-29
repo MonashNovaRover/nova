@@ -30,7 +30,9 @@ namespace teleop_arm_joy
     explicit TeleopArmJoy(const rclcpp::NodeOptions &options = rclcpp::NodeOptions());
     ~TeleopArmJoy() override;
 
-    void initialize(const std::weak_ptr<rclcpp::Executor>& executor);
+    void initialize(const std::weak_ptr<rclcpp::Executor>& executor, const std::shared_ptr<TeleopArmJoy>& self);
+
+    void log_all_inputs();
 
     /**
      * Infinite loop that repeatedly services updates from input sources. The heart of the program.

@@ -190,6 +190,9 @@ bool ControlModeManager::switch_controllers(const ControlMode& previous, const C
   // Given order of activated controllers is already correct
   const std::vector<std::string> activate_controllers = next.get_base_params().controllers;
 
+  if (activate_controllers.empty() && deactivate_controllers.empty())
+    return true;
+
   if (!switch_controller_client_->service_is_ready()) {
     RCLCPP_ERROR(node_->get_logger(), "Controller manager service not available.");
     return false;
@@ -209,6 +212,9 @@ bool ControlModeManager::switch_controllers(const ControlMode& previous, const C
 
 bool ControlModeManager::switch_controllers(const ControlMode& next) const {
   const std::vector<std::string> activate_controllers = next.get_base_params().controllers;
+
+  if (activate_controllers.empty())
+    return true;
 
   if (!switch_controller_client_->service_is_ready()) {
     RCLCPP_ERROR(node_->get_logger(), "Controller manager service not available.");

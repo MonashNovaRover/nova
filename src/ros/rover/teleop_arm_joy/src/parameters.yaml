@@ -14,6 +14,10 @@ teleop_arm_joy:
     description: "The minimum rate at which updates occur. 
     Leaving this unset will allow for indefinite lapses between updates."
     default_value: -1.0
+  log_inputs:
+    type: bool
+    default_value: false
+    description: "When true, all inputs will be logged to help with configuration."
 
 #  joint_definitions:
 #    type: string_array

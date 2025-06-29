@@ -6,6 +6,7 @@
 
 #include "teleop_arm_joy/teleop_arm_joy.hpp"
 
+#include "colors.h"
 #include "teleop_arm_joy/control_modes/ControlModeManager.hpp"
 
 using namespace std::chrono_literals;
@@ -125,7 +126,7 @@ TeleopArmJoy::TeleopArmJoy(const rclcpp::NodeOptions &options)
 //   //TODO: halt auto typing command
 // }
 
-void TeleopArmJoy::initialize(const std::weak_ptr<rclcpp::Executor>& executor) {
+void TeleopArmJoy::initialize(const std::weak_ptr<rclcpp::Executor>& executor, const std::shared_ptr<TeleopArmJoy>& self) {
   // Create publishers
   param_listener_ = std::make_shared<ParamListener>(shared_from_this());
   params_ = param_listener_->get_params();
@@ -139,7 +140,35 @@ void TeleopArmJoy::initialize(const std::weak_ptr<rclcpp::Executor>& executor) {
   control_mode_manager_ = std::make_shared<ControlModeManager>(shared_from_this(), executor);
   control_mode_manager_->configure(inputs_);
 
-  commands_ = std::make_shared<CommandManager>();
+  commands_ = std::make_shared<CommandManager>(shared_from_this(), self);
+  commands_->configure(inputs_);
+}
+
+void TeleopArmJoy::log_all_inputs() {
+  for (const auto& [name, axis] : inputs_.get_axes()) {
+    if (!axis)
+      continue;
+
+    if (axis->changed()) {
+      RCLCPP_INFO(get_logger(), C_INPUT "  %s\t%f", axis->get_name().c_str(), axis->value());
+    }
+  }
+  for (const auto& [name, button] : inputs_.get_booleans()) {
+    if (!button)
+      continue;
+
+    if (button->changed()) {
+      RCLCPP_INFO(get_logger(), C_INPUT "  %s\t%d", button->get_name().c_str(), button->value());
+    }
+  }
+  for (const auto& [name, event] : inputs_.get_events()) {
+    if (!event)
+      continue;
+
+    if (event->is_invoked()) {
+      RCLCPP_INFO(get_logger(), C_QUIET "  %s invoked!", name.c_str());
+    }
+  }
 }
 
 [[noreturn]] void TeleopArmJoy::service_input_updates() {
@@ -155,10 +184,11 @@ void TeleopArmJoy::initialize(const std::weak_ptr<rclcpp::Executor>& executor) {
     inputs_.update(now);
     update_state();
 
-    for (auto& [name, command] : *commands_) {
-      command->update(*this);
-    }
 
+    // Log inputs
+    if (params_.log_inputs) {
+      log_all_inputs();
+    }
 
     control_mode_manager_->update(now, period);
 
@@ -210,7 +240,7 @@ int main(int argc, char *argv[]) {
 
   std::cout << "\n";
 
-  node->initialize(executor);
+  node->initialize(executor, node);
 
   {
     std::thread main_update_thread(&teleop_arm_joy::TeleopArmJoy::service_input_updates, node);

@@ -17,6 +17,9 @@ namespace teleop_arm_joy {
  */
 class CommandDelegate {
 public:
+  using WeakPtr = std::weak_ptr<CommandDelegate>;
+  using SharedPtr = std::shared_ptr<CommandDelegate>;
+
   virtual ~CommandDelegate() = default;
 
   [[nodiscard]] virtual std::shared_ptr<const rclcpp::Node> get_node() const = 0;
