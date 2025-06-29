@@ -21,7 +21,7 @@ void LogCommand::on_initialize(const std::string& prefix, const ParameterInterfa
 }
 
 void LogCommand::execute(CommandDelegate& context, const rclcpp::Time& now) {
-  RCLCPP_INFO(get_logger(), C_INPUT "%s" C_RESET, params_.message.c_str());
+  RCLCPP_INFO(get_logger(), "%s" C_RESET, params_.message.c_str());
 }
 
 } // teleop_arm_joy

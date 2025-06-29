@@ -10,6 +10,7 @@
 
 // generate_parameter_library_cpp include/teleop_arm_joy/teleop_arm_joy_parameters.hpp src/parameters.yaml
 #include "teleop_arm_joy_parameters.hpp"
+//#include <teleop_arm_joy/teleop_arm_joy_parameters.hpp>
 #include "commands/CommandManager.hpp"
 #include "control_modes/ControlModeManager.hpp"
 #include "inputs/state/State.hpp"

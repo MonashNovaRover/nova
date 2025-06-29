@@ -4,15 +4,17 @@
 
 #ifndef COMMANDMANAGER_HPP
 #define COMMANDMANAGER_HPP
-#include "CollatedCommand.hpp"
+
+#include <utility>
+
 #include "Command.hpp"
 
 namespace teleop_arm_joy {
 
 class CommandManager final : public Collection<Command> {
 public:
-  explicit CommandManager(const std::shared_ptr<rclcpp::Node>& node, const CommandDelegate::WeakPtr& context)
-    : node_(node), context_(context) {}
+  explicit CommandManager(const std::shared_ptr<rclcpp::Node>& node, CommandDelegate::WeakPtr context)
+    : node_(node), context_(std::move(context)) {}
 
   /**
    * Tries to create and add a command of a given name, using parameters in node_
@@ -48,11 +50,11 @@ public:
     return items_.end();
   }
 
-  const_iterator begin() const override {
+  [[nodiscard]] const_iterator begin() const override {
     return items_.begin();
   }
 
-  const_iterator end() const override {
+  [[nodiscard]] const_iterator end() const override {
     return items_.end();
   }
 

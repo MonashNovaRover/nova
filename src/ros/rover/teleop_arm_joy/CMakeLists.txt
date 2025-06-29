@@ -34,6 +34,7 @@ generate_parameter_library(
   teleop_arm_joy_parameters
   src/parameters.yaml
 )
+
 # Generate parameter library for the joy input source
 generate_parameter_library(
   joy_input_source_parameters
@@ -47,17 +48,15 @@ generate_parameter_library(
 # Build the node executable
 add_executable(${PROJECT_NAME}_node
   src/teleop_arm_joy.cpp
-  src/input_sources/joy/JoyDevice.cpp
-  src/input_sources/joy/JoyButton.cpp
-  src/input_sources/joy/JoyAxis.cpp
   src/control_modes/ControlMode.cpp
   src/control_modes/ControlModeManager.cpp
   src/inputs/InputManager.cpp
   src/input_sources/InputSourceManager.cpp
-  src/inputs/InputSource.cpp
+  src/input_sources/InputSource.cpp
   src/commands/Command.cpp
-  src/commands/CollatedCommand.cpp
   src/commands/CommandManager.cpp
+  src/inputs/EventListenerQueue.cpp
+  src/inputs/EventCollection.cpp
 )
 
 # Add plugin implementations here!
@@ -65,6 +64,9 @@ add_library(${PROJECT_NAME} SHARED
   src/control_modes/joint_space/JointSpaceControlMode.cpp
   src/control_modes/joint_space/TwistIKControlMode.cpp
   src/input_sources/joy/JoyInputSource.cpp
+  src/input_sources/joy/JoyDevice.cpp
+  src/input_sources/joy/JoyButton.cpp
+  src/input_sources/joy/JoyAxis.cpp
   src/commands/SwitchControlModeCommand.cpp
   src/commands/LogCommand.cpp
 )
@@ -74,6 +76,9 @@ target_link_libraries(${PROJECT_NAME}_node
 )
 
 # Link parameter libraries for plugins here!
+target_link_libraries(${PROJECT_NAME}
+  teleop_arm_joy_parameters
+)
 target_link_libraries(${PROJECT_NAME}
   joy_input_source_parameters
 )
@@ -102,8 +107,18 @@ install(
     ${PROJECT_NAME}
     teleop_arm_joy_parameters
     joy_input_source_parameters
+    joint_space_control_mode_parameters
   DESTINATION lib/${PROJECT_NAME}
 )
+
+#install(TARGETS
+#  ${PROJECT_NAME}_node
+#  ${PROJECT_NAME}
+#  teleop_arm_joy_parameters
+#  joy_input_source_parameters
+#  joint_space_control_mode_parameters
+#  EXPORT ${PROJECT_NAME}Targets)
+
 
 # Install header files
 install(
@@ -124,6 +139,7 @@ install(
 )
 
 install(TARGETS ${PROJECT_NAME}
+  teleop_arm_joy_parameters
   joy_input_source_parameters
   joint_space_control_mode_parameters
   EXPORT export_${PROJECT_NAME}
@@ -132,10 +148,24 @@ install(TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib
 )
 
+#target_include_directories(${PROJECT_NAME}_node PRIVATE
+#  ${teleop_arm_joy_parameters_INCLUDE_DIRS}
+#  ${joy_input_source_parameters_INCLUDE_DIRS}
+#  ${joint_space_control_mode_parameters_INCLUDE_DIRS}
+#)
+#
+#target_include_directories(${PROJECT_NAME} PRIVATE
+#  ${teleop_arm_joy_parameters_INCLUDE_DIRS}
+#  ${joy_input_source_parameters_INCLUDE_DIRS}
+#  ${joint_space_control_mode_parameters_INCLUDE_DIRS}
+#)
+
+
 ament_export_libraries(
   ${PROJECT_NAME}
 )
 ament_export_targets(
+#  ${PROJECT_NAME}Targets
   export_${PROJECT_NAME}
   HAS_LIBRARY_TARGET
 )

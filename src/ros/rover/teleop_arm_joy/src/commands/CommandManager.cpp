@@ -37,6 +37,13 @@ void CommandManager::create_command(const std::string& name, InputManager& input
 
   command_class->initialize(context_, name, events, node_->get_node_logging_interface(), node_->get_node_parameters_interface());
   add(name, command_class);
+
+  if (auto context = context_.lock()) {
+    for (const auto& event : events) {
+      RCLCPP_DEBUG(logger, "Subscribing %s to %s", command_class->get_name().c_str(), event->get_name().c_str());
+      event->subscribe(command_class);
+    }
+  }
 }
 
 void CommandManager::configure(InputManager& inputs) {

@@ -10,7 +10,8 @@
 // generate_parameter_library_cpp include/teleop_arm_joy/input_sources/joy/joy_input_source_parameters.hpp src/input_sources/joy/joy_input_source_parameters.yaml
 #include "JoyAxis.hpp"
 #include "JoyButton.hpp"
-#include "teleop_arm_joy/input_sources/joy/joy_input_source_parameters.hpp"
+//#include "teleop_arm_joy/input_sources/joy/joy_input_source_parameters.hpp"
+#include "joy_input_source_parameters.hpp"
 
 namespace teleop_arm_joy {
 

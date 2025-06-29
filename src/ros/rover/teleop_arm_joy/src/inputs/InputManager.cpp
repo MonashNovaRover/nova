@@ -7,10 +7,10 @@
 namespace teleop_arm_joy {
 InputManager::InputManager() {
   event_listener_queue_ = std::make_shared<EventListenerQueue>();
+  events_ = EventCollection(event_listener_queue_);
 }
 
 void InputManager::update(const rclcpp::Time& now) {
-  // RCLCPP_INFO(rclcpp::get_logger("InputManager"), "update(%f)", now.seconds());
   for (auto& [name, boolean] : booleans_) {
     boolean->debounce(now);
   }

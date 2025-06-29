@@ -6,24 +6,31 @@
 #define EVENT_HPP
 
 #include <rclcpp/time.hpp>
+#include <rclcpp/logging.hpp>
+#include <utility>
 
 #include "EventListener.hpp"
+#include "EventListenerQueue.hpp"
 
 namespace teleop_arm_joy
 {
 
-class Event {
+class Event final {
 public:
   using SharedPtr = std::shared_ptr<Event>;
 
-  explicit Event(const std::string& name) : name_(name) {}
+  explicit Event(std::string name, std::weak_ptr<EventListenerQueue> listener_queue) : name_(std::move(name)), listener_queue_(std::move(listener_queue)) {}
   virtual ~Event() = default;
 
   virtual void invoke() {
-    if (const auto listener_queue = listener_queue_.lock(); !invoked_ && listener_queue) {
-      for (auto listener : listeners_) {
+
+    if (const auto listener_queue = listener_queue_.lock(); listener_queue) {
+      for (const auto& listener : listeners_) {
         listener_queue->enqueue(listener);
       }
+    }
+    else {
+      RCLCPP_ERROR(rclcpp::get_logger(name_), "Failed to get the listener queue.");
     }
 
     invoked_ = true;
@@ -51,6 +58,13 @@ public:
     return name_;
   }
 
+  /**
+   * Makes the given listener be notified whenever the event is invoked.
+   */
+  void subscribe(const EventListener::WeakPtr& listener) {
+    listeners_.emplace_back(listener);
+  }
+
   using iterator = std::vector<std::weak_ptr<EventListener>>::iterator;
   using const_iterator = std::vector<std::weak_ptr<EventListener>>::const_iterator;
 
@@ -58,7 +72,7 @@ public:
     return listeners_.begin();
   }
 
-  const_iterator begin() const {
+  [[nodiscard]] const_iterator begin() const {
     return listeners_.begin();
   }
 
@@ -66,7 +80,7 @@ public:
     return listeners_.end();
   }
 
-  const_iterator end() const {
+  [[nodiscard]] const_iterator end() const {
     return listeners_.end();
   }
 

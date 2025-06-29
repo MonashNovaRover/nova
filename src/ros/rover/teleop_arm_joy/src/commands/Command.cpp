@@ -18,8 +18,6 @@ void Command::initialize(
   on_ = on;
   logger_ = logging->get_logger();
 
-  RCLCPP_INFO(get_logger(), "%s being initialized with %lu events", name_.c_str(), on_.size());
-
   // Do command implementation specific parameterization
   on_initialize("commands." + name + ".", parameters);
 }

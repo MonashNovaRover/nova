@@ -215,13 +215,13 @@ void TeleopArmJoy::update_state() {
   if (!locked_->value()) {
     if (inputs_.get_booleans()["lock"]->value()) {
       locked_->set(true);
-      RCLCPP_INFO(logger, "Locked");
+      // RCLCPP_INFO(logger, "Locked");
     }
   }
   else {
     if (inputs_.get_booleans()["unlock"]->value()) {
       locked_->set(false);
-      RCLCPP_INFO(logger, "Unlocked");
+      // RCLCPP_INFO(logger, "Unlocked");
     }
   }
 }

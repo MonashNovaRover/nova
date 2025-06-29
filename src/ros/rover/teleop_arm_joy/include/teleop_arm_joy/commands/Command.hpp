@@ -39,14 +39,6 @@ public:
     const ParameterInterface::SharedPtr& parameters);
 
   /**
-   * Do not override >:(
-   * @param context An interface providing access to the internals of Teleop, for the command to mess with, to be used
-   * in the case the command is executed.
-   * @param now     The time from the input that caused this update.
-   */
-  // virtual void update(CommandDelegate& context, const rclcpp::Time& now);
-
-  /**
    * Allows command implementations to perform implementation specific configuration through the given parameters interface.
    * @param prefix[in]      The prefix string to prepend to all parameter definitions. E.g. "commands.name."
    * @param parameters[in]  Interface to allow the command to get parameters
@@ -66,6 +58,11 @@ public:
    */
   void on_event_invoked(const rclcpp::Time& now) override;
 
+  /// accessor for the name of the command
+  [[nodiscard]] const std::string& get_name() const {
+    return name_;
+  }
+
 protected:
   /// Accessor for the commands held copied logger object. prevents implementations from modifying the logger
   [[nodiscard]] const rclcpp::Logger& get_logger() {
@@ -73,10 +70,6 @@ protected:
       return logger_.value();
     logger_ = rclcpp::get_logger(name_);
     return logger_.value();
-  }
-  /// accessor for the name of the command
-  [[nodiscard]] const std::string& get_name() const {
-    return name_;
   }
 
 private:

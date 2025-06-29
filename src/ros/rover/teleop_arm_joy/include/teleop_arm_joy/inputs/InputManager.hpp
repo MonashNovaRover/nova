@@ -11,16 +11,16 @@
 #include "collated/CollatedCollection.hpp"
 #include "collated/CollatedInput.hpp"
 #include "Input.hpp"
-#include "collated/CollatedEvent.hpp"
+#include "EventCollection.hpp"
 
 namespace teleop_arm_joy {
+
 /**
  * Class responsible for owning the various maps between input name and input object.
  */
 class InputManager {
-
-  InputManager();
 public:
+  InputManager();
   // Accessors
   [[nodiscard]] Collection<Input<double>>& get_axes() {
     return axes_;
@@ -28,7 +28,7 @@ public:
   [[nodiscard]] Collection<Input<bool>>& get_booleans() {
     return booleans_;
   }
-  [[nodiscard]] Collection<Event>& get_events() {
+  [[nodiscard]] EventCollection& get_events() {
     return events_;
   }
 
@@ -38,7 +38,7 @@ protected:
   CollatedCollection<Input<double>, CollatedInput<double>> axes_{};
   CollatedCollection<Input<bool>, CollatedInput<bool>> booleans_{};
 
-  CollatedCollection<Event, CollatedEvent> events_{};
+  EventCollection events_;
   std::shared_ptr<EventListenerQueue> event_listener_queue_ = nullptr;
 };
 

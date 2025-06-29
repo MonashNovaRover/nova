@@ -13,7 +13,8 @@
 
 #include "InputSource.hpp"
 #include "InputSourceUpdateDelegate.hpp"
-#include "teleop_arm_joy/teleop_arm_joy_parameters.hpp"
+//#include "../teleop_arm_joy_parameters.hpp"
+#include "teleop_arm_joy_parameters.hpp"
 
 namespace teleop_arm_joy
 {
@@ -21,6 +22,7 @@ namespace teleop_arm_joy
 class InputSourceManager final : public InputSourceUpdateDelegate, public std::enable_shared_from_this<InputSourceUpdateDelegate> {
 
 public:
+  InputSourceManager() = default;
   explicit InputSourceManager(const std::shared_ptr<rclcpp::Node>& node, const std::weak_ptr<rclcpp::Executor>& executor)
     : node_(node), executor_(executor) {}
 
