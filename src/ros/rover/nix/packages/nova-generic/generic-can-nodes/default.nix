@@ -16,7 +16,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "generic-can-nodes-source";
-    path = ../../../nova_generic/generic_can_nodes;
+    path = ../../../../nova_generic/generic_can_nodes;
     filter = lib.novaSourceFilter [ ] path;
   };
 

@@ -2,12 +2,12 @@
 
 """
 to run node as an integer sensor with example config:
-ros2 run nova_generic CANNumberListener.py --ros-args -r __node:=integer_sensor --params-file /home/nova/nova/src/ros/rover/nova_generic/nova_generic/can_listeners/example.yaml
+ros2 run generic_can_nodes CANNumberListener.py --ros-args -r __node:=integer_sensor --params-file /home/nova/nova/src/ros/rover/nova_generic/generic_can_nodes/generic_can_nodes/can_listeners/config/example.yaml
 """
 
 import rclpy
 import jcan
-from generic_can_nodes.can_listeners.can_listeners.CANListener import CANListener
+from generic_can_nodes.can_listeners.CANListener import CANListener
 from generic_can_nodes.can_number_listener_parameters import can_number_listener_parameters
 from nova_interfaces.msg import NumberReading
 

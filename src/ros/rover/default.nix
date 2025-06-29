@@ -28,7 +28,6 @@
     nova-interfaces = callPackage ./nix/packages/nova-interfaces { };
     nova-rover-description = callPackage ./nix/packages/rover-description { };
     nova-gazebo = callPackage ./nix/packages/nova-gazebo { };
-    nova-generic = callPackage ./nix/packages/nova-generic { };
     nova-python-control = callPackage ./nix/packages/python-control { };
     nova-python-control-old = callPackage ./nix/packages/python-control-old { };
     nova-excavation-construction = callPackage ./nix/packages/excavation-construction { };
@@ -40,12 +39,11 @@
     ublox-dgnss-custom = callPackage ./nix/packages/ublox-dgnss { };
 
     # diff drive, pivot drive, strafe, 
-  } // (import ./nix/packages/controllers {
+  } // import ./nix/packages/controllers {
     inherit pkgs;
-    # generic nodes and interfaces
-  }) // (import ./nix/packages/nova-generic {
+  } // import ./nix/packages/nova-generic {
     inherit pkgs;
-  });
+  };
 
   #pythonPackages = pythonPackages: with pythonPackages; {
     
