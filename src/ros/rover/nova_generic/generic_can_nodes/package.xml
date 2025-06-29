@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>nova_generic</name>
+  <name>can_listeners</name>
   <version>1.0.0</version>
-  <description>All generic scripts and controls.</description>
+  <description>Generic ROS2 nodes that listen to the CAN bus.</description>
   <maintainer email="novaroverteam@monash.edu">Monash Nova Rover</maintainer>
   <license>Only for Monash Nova Rover Team to use and distribute.</license>
 

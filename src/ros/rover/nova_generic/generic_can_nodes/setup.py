@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'nova_generic'
+package_name = 'generic_can_nodes'
 
 setup(
     name=package_name,

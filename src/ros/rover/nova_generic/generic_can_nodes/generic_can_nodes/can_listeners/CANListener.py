@@ -2,7 +2,7 @@
 
 import abc
 import jcan, logging
-from nova_generic.can_listener_parameters import can_listener_parameters
+from generic_can_nodes.can_listener_parameters import can_listener_parameters
 from rclpy.node import Node
 
 class CANListener(Node, abc.ABC):

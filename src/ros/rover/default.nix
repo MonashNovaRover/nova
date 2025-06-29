@@ -40,7 +40,12 @@
     ublox-dgnss-custom = callPackage ./nix/packages/ublox-dgnss { };
 
     # diff drive, pivot drive, strafe, 
-  } // import ./nix/packages/controllers { inherit pkgs; };
+  } // (import ./nix/packages/controllers {
+    inherit pkgs;
+    # generic nodes and interfaces
+  }) // (import ./nix/packages/nova-generic {
+    inherit pkgs;
+  });
 
   #pythonPackages = pythonPackages: with pythonPackages; {
     

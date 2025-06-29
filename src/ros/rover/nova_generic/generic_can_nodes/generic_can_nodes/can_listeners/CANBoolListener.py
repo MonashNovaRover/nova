@@ -7,15 +7,15 @@ ros2 run nova_generic CANNumberListener.py --ros-args -r __node:=integer_sensor 
 
 import rclpy
 import jcan
-from nova_generic.can_listeners.CANListener import CANListener
+from nova_generic.can_listeners.can_listeners.CANListener import CANListener
 from nova_generic.can_number_listener_parameters import can_number_listener_parameters
 from nova_interfaces.msg import NumberReading
 
-class CANNumberListener(CANListener):
-    """Class to represent a CAN Listener that processes numbers"""
+class CANBoolListener(CANListener):
+    """Class to represent a CAN Listener that processes booleans"""
 
     def __init__(self):
-        super().__init__(name="CANNumberListener", message_type=NumberReading)
+        super().__init__(name="CANBoolListener", message_type=NumberReading)
 
         # declare parameters
         self.param_listener = can_number_listener_parameters.ParamListener(self)

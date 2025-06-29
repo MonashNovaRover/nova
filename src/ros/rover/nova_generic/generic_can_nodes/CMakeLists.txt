@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(nova_generic)
+project(generic_can_nodes)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -45,12 +45,12 @@ install(DIRECTORY
 # Generate parameter library from YAML in the source folder
 generate_parameter_module(
   can_listener_parameters
-  nova_generic/can_listeners/can_listener_parameters.yaml
+  generic_can_nodes/can_listeners/config/can_listener_parameters.yaml
 )
 
 generate_parameter_module(
   can_number_listener_parameters
-  nova_generic/can_listeners/can_number_listener_parameters.yaml
+  generic_can_nodes/can_listeners/config/can_number_listener_parameters.yaml
 )
 
 # Install Python modules
@@ -58,8 +58,8 @@ ament_python_install_package(${PROJECT_NAME})
 
 # Add all Python executables to this list
 install(PROGRAMS
-  nova_generic/can_listeners/CANListener.py
-  nova_generic/can_listeners/CANNumberListener.py
+  generic_can_nodes/can_listeners/CANListener.py
+  generic_can_nodes/can_listeners/CANNumberListener.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
