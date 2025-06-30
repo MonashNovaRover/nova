@@ -10,7 +10,6 @@ namespace teleop_arm_joy {
 void JointSpaceControlMode::on_initialize() {
   param_listener_ = std::make_shared<joint_space_control_mode::ParamListener>(node_);
   params_ = param_listener_->get_params();
-
 }
 
 void JointSpaceControlMode::on_configure(InputManager& inputs) {
@@ -18,16 +17,6 @@ void JointSpaceControlMode::on_configure(InputManager& inputs) {
 
   if (param_listener_->is_old(params_))
     params_ = param_listener_->get_params();
-
-  auto& input_axes = inputs.get_axes();
-  for (auto axis_name : params_.axis_definitions) {
-    axes_.push_back(input_axes[axis_name]);
-  }
-
-  auto& input_booleans = inputs.get_booleans();
-  for (auto boolean_name : params_.button_definitions) {
-    buttons_.push_back(input_booleans[boolean_name]);
-  }
 
   // Create publisher
   const rclcpp::QoS qos_profile = rclcpp::QoS(

@@ -42,10 +42,6 @@ protected:
   std::shared_ptr<joint_space_control_mode::ParamListener> param_listener_;
   joint_space_control_mode::Params params_;
 
-  // Used to just debug output various inputs
-  std::vector<std::weak_ptr<Input<double>>> axes_{};
-  std::vector<std::weak_ptr<Input<bool>>> buttons_{};
-
   /// Input from 0 to 1 that directly scales the output speed.
   Input<double>::SharedPtr speed_coefficient_;
   Input<bool>::SharedPtr locked_;

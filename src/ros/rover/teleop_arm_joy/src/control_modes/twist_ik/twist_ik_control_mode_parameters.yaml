@@ -1,0 +1,50 @@
+# This is only the schema for Node Parameters
+# This YAML will be converted to teleop_drive_joy_parameters.hpp upon build
+# Look at individual controller config for changing axes / buttons
+# Look here for docs about this YAML : https://github.com/PickNikRobotics/generate_parameter_library
+twist_ik_control_mode:
+  topic:
+    type: string
+    default_value: "/arm_ik_twist_stamped"
+    description: "The topic to publish TwistStamped messages to."
+  frame_id:
+    type: string
+    default_value: "base_link"
+    description: "The name of the reference frame twist messages are relative to. Included as the header.frame_id of all sent TwistStamped messages."
+
+  # Input name configuration
+  input_names:
+    locked:
+      type: string
+      default_value: "locked"
+      description: "The name of the boolean input that makes the controller send halt messages when true."
+    speed:
+      type: string
+      default_value: "speed"
+      description: "The name of the axis input that scales the output speed from 0 to 1."
+    twist_x:
+      type: string
+      default_value: "twist_x"
+      description: "The input axis providing the x component of the twist linear velocity."
+    twist_y:
+      type: string
+      default_value: "twist_y"
+      description: "The input axis providing the y component of the twist linear velocity."
+    twist_z:
+      type: string
+      default_value: "twist_z"
+      description: "The input axis providing the z component of the twist linear velocity."
+    twist_roll:
+      type: string
+      default_value: "twist_roll"
+      description: "The input axis providing the x component of the twist angular velocity."
+    twist_pitch:
+      type: string
+      default_value: "twist_pitch"
+      description: "The input axis providing the y component of the twist angular velocity."
+    twist_yaw:
+      type: string
+      default_value: "twist_yaw"
+      description: "The input axis providing the z component of the twist angular velocity."
+
+
