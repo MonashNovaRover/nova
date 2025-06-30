@@ -7,7 +7,8 @@
 
 namespace teleop_arm_joy {
 
-void LogCommand::on_initialize(const std::string& prefix, const ParameterInterface::SharedPtr& parameters) {
+void LogCommand::on_initialize(const std::string &prefix, const ParameterInterface::SharedPtr &parameters,
+                               CommandDelegate &context) {
   Params params{};
 
   auto message_descriptor = rcl_interfaces::msg::ParameterDescriptor{};

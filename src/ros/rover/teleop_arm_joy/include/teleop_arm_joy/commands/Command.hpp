@@ -43,7 +43,8 @@ public:
    * @param prefix[in]      The prefix string to prepend to all parameter definitions. E.g. "commands.name."
    * @param parameters[in]  Interface to allow the command to get parameters
    */
-  virtual void on_initialize(const std::string& prefix, const ParameterInterface::SharedPtr& parameters) = 0;
+  virtual void on_initialize(const std::string &prefix, const ParameterInterface::SharedPtr &parameters,
+                             CommandDelegate &context) = 0;
 
   /**
    * Method to execute the functionality for the command implementation, called when any of the command's "on" events

@@ -6,7 +6,8 @@
 
 namespace teleop_arm_joy {
 
-void SwitchControlModeCommand::on_initialize(const std::string& prefix, const ParameterInterface::SharedPtr& parameters)
+void SwitchControlModeCommand::on_initialize(const std::string &prefix, const ParameterInterface::SharedPtr &parameters,
+                                             CommandDelegate &context)
 {
   Params params{};
 
@@ -14,8 +15,13 @@ void SwitchControlModeCommand::on_initialize(const std::string& prefix, const Pa
   to_descriptor.name = prefix + "to";
   to_descriptor.description = "The name of the control mode to activate.";
   parameters->declare_parameter(to_descriptor.name, rclcpp::ParameterValue(""), to_descriptor);
-  if (rclcpp::Parameter to_param; parameters->get_parameter(to_descriptor.name, to_param))
+  if (rclcpp::Parameter to_param; parameters->get_parameter(to_descriptor.name, to_param)) {
     params.to = to_param.as_string();
+
+    // TODO: Make creating the control mode optional
+    const auto control_modes = context.get_control_modes();
+    control_modes->register_control_mode(const_cast<InputManager&>(context.get_inputs()), params.to);
+  }
 
   params_ = params;
 }

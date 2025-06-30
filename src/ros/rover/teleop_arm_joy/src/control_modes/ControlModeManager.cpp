@@ -11,7 +11,7 @@ ControlModeManager::~ControlModeManager() {
   switch_controller_client_.reset();
   node_.reset();
   current_control_mode_.reset();
-  control_modes_.clear();
+  items_.clear();
   control_mode_loader_.reset();
 }
 
@@ -23,8 +23,8 @@ void ControlModeManager::configure(InputManager& inputs) {
 
   // Declare and get parameter for control modes to spawn by default
   node_->declare_parameter("control_modes", rclcpp::ParameterType::PARAMETER_STRING_ARRAY);
-  rclcpp::Parameter control_modes_param;
-  node_->get_parameter("control_modes", control_modes_param);
+  rclcpp::Parameter items_param;
+  node_->get_parameter("control_modes", items_param);
 
   // Pluginlib for loading control modes dynamically
   control_mode_loader_ = std::make_unique<pluginlib::ClassLoader<ControlMode>>(
@@ -49,44 +49,9 @@ void ControlModeManager::configure(InputManager& inputs) {
 
   // Create each control mode according to the given params
   std::stringstream registered_modes_log{};
-  const auto control_mode_names = control_modes_param.as_string_array();
+  const auto control_mode_names = items_param.as_string_array();
   for (auto& control_mode_name : control_mode_names) {
-    std::string control_mode_type;
-    const std::string pretty_name = snake_to_title(control_mode_name);
-
-    // Get the control mode's plugin type name
-    if (!get_type_for_control_mode(control_mode_name, control_mode_type)) {
-      RCLCPP_ERROR(logger, "Failed to find type for control mode \"%s\" in params. Have you defined %s.type in your "
-                           "parameter file?", control_mode_name.c_str(), control_mode_name.c_str());
-      registered_modes_log << C_FAIL_QUIET << "\n\t- " << pretty_name << C_FAIL_QUIET << "\t(failed - " << control_mode_name << ".type param missing) " << C_RESET;
-      continue;
-    }
-
-    // Get the control mode class from pluginlib
-    std::shared_ptr<ControlMode> control_mode_class = nullptr;
-    try
-    {
-      control_mode_class = control_mode_loader_->createSharedInstance(control_mode_type);
-    }
-    catch (const pluginlib::PluginlibException& ex)
-    {
-      RCLCPP_ERROR(logger, "Failed to find control mode plugin \"%s\" for mode \"%s\"!\nwhat(): %s",
-                   control_mode_type.c_str(), control_mode_name.c_str(), ex.what());
-      registered_modes_log << C_FAIL_QUIET << "\n\t- " << pretty_name << C_FAIL_QUIET << "\t(failed - can't find plugin " << control_mode_type << ") " << C_RESET;
-      continue;
-    }
-
-    // Create a node for the control mode
-    const auto options = rclcpp::NodeOptions(node_->get_node_options())
-      .context(node_->get_node_base_interface()->get_context());
-    const auto node_name = control_mode_name;
-    const auto control_mode_node = std::make_shared<rclcpp::Node>(node_name, node_->get_namespace(), options);
-
-    // Initialize the control mode
-    control_mode_class->initialize(control_mode_node, control_mode_name);
-
-    registered_modes_log << "\n\t- " << pretty_name << C_QUIET << "\t: " << control_mode_type << C_RESET;
-    control_modes_[control_mode_name] = control_mode_class;
+    register_control_mode(inputs, control_mode_name);
   }
 
   RCLCPP_INFO(logger, C_TITLE "Control Modes:" C_RESET "%s\n", registered_modes_log.str().c_str());
@@ -94,7 +59,7 @@ void ControlModeManager::configure(InputManager& inputs) {
   auto executor = executor_.lock();
 
   // Configure each control mode
-  for (const auto& [name, control_mode] : control_modes_) {
+  for (const auto& [name, control_mode] : items_) {
     if (!control_mode)
       continue;
     control_mode->configure(inputs);
@@ -114,11 +79,11 @@ bool ControlModeManager::set_control_mode(const std::string& name) {
   RCLCPP_INFO(logger, C_MODE "%s activated" C_RESET, snake_to_title(name).c_str());
 
   // Find the control mode from the name
-  const auto new_control_mode_it = std::find_if(control_modes_.begin(), control_modes_.end(),
+  const auto new_control_mode_it = std::find_if(items_.begin(), items_.end(),
     [name](const std::pair<std::string, std::shared_ptr<ControlMode>>& pair){ return pair.first == name; });
 
   // Ensure the given control mode exists
-  if (new_control_mode_it == control_modes_.end() || !new_control_mode_it->second)
+  if (new_control_mode_it == items_.end() || !new_control_mode_it->second)
     return false;
 
   // Whether we successfully switch controllers in ros2_control
@@ -157,15 +122,6 @@ void ControlModeManager::update(const rclcpp::Time& now, const rclcpp::Duration&
   }
 
   current_control_mode_->update(now, period);
-}
-
-std::shared_ptr<ControlMode> ControlModeManager::operator[](const std::string& index) {
-  return control_modes_[index];
-}
-
-void ControlModeManager::add(const std::string& key, const std::shared_ptr<ControlMode>& value) {
-  // TODO: Implement
-  throw std::logic_error("ControlModeManager::add() is not yet implemented. Sorry. Extract it from configure().");
 }
 
 void ControlModeManager::reset() {
@@ -244,6 +200,55 @@ bool ControlModeManager::get_type_for_control_mode(const std::string& name, std:
   if (result)
     control_mode_type = param.as_string();
   return result;
+}
+
+bool ControlModeManager::register_control_mode(InputManager &inputs, const std::string &key) {
+  const auto logger = node_->get_logger();
+
+  // First check the control mode doesn't already exist somehow.
+  if (items_.find(key) != items_.end()) {
+    return true;
+  }
+
+  const std::string pretty_name = snake_to_title(key);
+  std::string control_mode_type;
+
+  // Get the control mode's plugin type name
+  if (!get_type_for_control_mode(key, control_mode_type)) {
+    RCLCPP_ERROR(logger, "Failed to find type for control mode \"%s\" in params. Have you defined %s.type in your "
+                         "parameter file?", key.c_str(), key.c_str());
+
+//    registered_modes_log << C_FAIL_QUIET << "\n\t- " << pretty_name << C_FAIL_QUIET << "\t(failed - " << key << ".type param missing) " << C_RESET;
+    return false;
+  }
+
+  // Get the control mode class from pluginlib
+  std::shared_ptr<ControlMode> control_mode_class = nullptr;
+  try
+  {
+    control_mode_class = control_mode_loader_->createSharedInstance(control_mode_type);
+  }
+  catch (const pluginlib::PluginlibException& ex)
+  {
+    RCLCPP_ERROR(logger, "Failed to find control mode plugin \"%s\" for mode \"%s\"!\nwhat(): %s",
+                 control_mode_type.c_str(), key.c_str(), ex.what());
+//    registered_modes_log << C_FAIL_QUIET << "\n\t- " << pretty_name << C_FAIL_QUIET << "\t(failed - can't find plugin " << control_mode_type << ") " << C_RESET;
+    return false;
+  }
+
+  // Create a node for the control mode
+  const auto options = rclcpp::NodeOptions(node_->get_node_options())
+    .context(node_->get_node_base_interface()->get_context());
+  const auto node_name = key;
+  const auto control_mode_node = std::make_shared<rclcpp::Node>(node_name, node_->get_namespace(), options);
+
+  // Initialize the control mode
+  control_mode_class->initialize(control_mode_node, key);
+
+//  registered_modes_log << "\n\t- " << pretty_name << C_QUIET << "\t: " << control_mode_type << C_RESET;
+  items_[key] = control_mode_class;
+
+  return true;
 }
 
 } // namespace teleop_arm_joy

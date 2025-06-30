@@ -14,13 +14,14 @@
 
 #include "ControlMode.hpp"
 #include "teleop_arm_joy/inputs/InputManager.hpp"
+#include "../SpawnableManagerBase.hpp"
 
 namespace teleop_arm_joy {
 
 /**
  * Class responsible for managing the registered control modes, the current control mode, and switching between them.
  */
-class ControlModeManager final : public Collection<ControlMode> {
+class ControlModeManager final : public SpawnableManagerBase<ControlMode> {
 public:
   explicit ControlModeManager(const std::shared_ptr<rclcpp::Node>& node, const std::weak_ptr<rclcpp::Executor>& executor)
     : node_(node), executor_(executor) {}
@@ -32,6 +33,11 @@ public:
   void configure(InputManager& inputs);
 
   /**
+   * Attempts to create a control mode with a given name from the params in node_. Does nothing if it already exists.
+   */
+  bool register_control_mode(InputManager& inputs, const std::string& key);
+
+  /**
    * @brief Attempts to activate a control mode.
    * @param name The name of the control mode to load.
    * @return True if successfully switched to the control mode.
@@ -39,21 +45,12 @@ public:
   bool set_control_mode(const std::string& name);
 
   /**
-   * Update the active node
+   * Update the active control mode.
    */
   auto update(const rclcpp::Time& now, const rclcpp::Duration& period) const -> void;
 
-  // Collection<ControlMode> implementation
-  std::shared_ptr<ControlMode> operator[](const std::string& index) override;
-
-  iterator begin() override { return control_modes_.begin(); };
-  [[nodiscard]] const_iterator begin() const override { return control_modes_.begin(); };
-  iterator end() override { return control_modes_.end(); };
-  [[nodiscard]] const_iterator end() const override { return control_modes_.end(); };
-
-  void add(const std::string& key, const std::shared_ptr<ControlMode>& value) override;
-
 private:
+
   /**
    * Resets everything for the controller manager
    */
@@ -83,19 +80,14 @@ private:
    */
   bool get_type_for_control_mode(const std::string& name, std::string& control_mode_type) const;
 
-  /// The owning teleop_arm_joy ROS2 node.
-  std::shared_ptr<rclcpp::Node> node_;
-  /// Add spawned nodes to this to get them to spin
-  std::weak_ptr<rclcpp::Executor> executor_;
 
   // Control modes
-  /// Loads the control modes, and needs to stay alive during the whole lifecycle of the control modes.
-  std::unique_ptr<pluginlib::ClassLoader<ControlMode>> control_mode_loader_;
 
-  /// Currently loaded control modes.
-  std::map<std::string, std::shared_ptr<ControlMode>> control_modes_{};
   /// The currently active control mode.
   std::shared_ptr<ControlMode> current_control_mode_ = nullptr;
+
+  /// These structs give information as to the success or failure of attempts to spawn different control modes.
+  std::map<std::string, SpawnLog> spawn_logs_{};
 
   // Service calls
   /// Client to call the service on the controller manager to change the currently active controllers.
