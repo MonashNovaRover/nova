@@ -20,15 +20,16 @@ void InputSource::update(const rclcpp::Time& now) {
   on_update(now);
 }
 
-void InputSource::request_update(const rclcpp::Time& now) const {
+bool InputSource::request_update(const rclcpp::Time& now) const {
   const auto delegate = delegate_.lock();
 
   if (!delegate) {
     RCLCPP_FATAL(node_->get_logger(), "InputSource %s's delegate weak_ptr is invalid!", name_.c_str());
-    return;
+    return false;
   }
 
   const auto time_to_send = now.nanoseconds() == 0 ? node_->get_clock()->now() : now;
   delegate->on_input_source_requested_update(time_to_send);
+  return true;
 }
 } // namespace teleop_arm_joy

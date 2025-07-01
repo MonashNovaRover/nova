@@ -89,7 +89,7 @@ protected:
   /**
    * Call this whenever you receive a new input and you want the InputManager to invoke a new update.
    */
-  void request_update(const rclcpp::Time& now = rclcpp::Time()) const;
+  bool request_update(const rclcpp::Time& now = rclcpp::Time()) const;
 
   /**
    * Called when new input should be processed, after requesting an update through request_update().

@@ -53,11 +53,11 @@ joy_input_source:
         type: int
         default_value: -1
         description: "The button id that maps to +1 for this axis."
-      min_value:
+      min:
         type: double
         default_value: -1.0
         description: "the value -1 from joy should map to."
-      max_value:
+      max:
         type: double
         default_value: 1.0
         description: "the value +1 from joy should map to."
@@ -67,3 +67,8 @@ joy_input_source:
       id:
         type: int
         default_value: -1
+
+  topic:
+    type: string
+    default_value: "/joy"
+    description: "The topic name to get Joy input messages from."
