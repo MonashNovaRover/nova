@@ -5,7 +5,7 @@
 #ifndef TWISTIKCONTROLMODE_HPP
 #define TWISTIKCONTROLMODE_HPP
 
-#include "twist_ik_control_mode_parameters.hpp"
+#include "twist_control_mode_parameters.hpp"
 #include "teleop_arm_joy/control_modes/ControlMode.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 
@@ -13,10 +13,10 @@ namespace teleop_arm_joy {
 /**
  * Control mode for moving joint velocities directly
  */
-class TwistIKControlMode final : public ControlMode {
+class TwistControlMode final : public ControlMode {
 
 public:
-  explicit TwistIKControlMode() = default;
+  explicit TwistControlMode() = default;
 
   void on_initialize() override;
 
@@ -29,11 +29,14 @@ public:
   void update(const rclcpp::Time& now, const rclcpp::Duration& period) override;
 
 protected:
-  ~TwistIKControlMode() override = default;
+  ~TwistControlMode() override = default;
+
+  /// Helper function to get the euclidean length of a vector, used for normalized limits.
+  double norm(double x, double y, double z);
 
   /// Tracks parameters
-  std::shared_ptr<twist_ik_control_mode::ParamListener> param_listener_{};
-  twist_ik_control_mode::Params params_{};
+  std::shared_ptr<twist_control_mode::ParamListener> param_listener_{};
+  twist_control_mode::Params params_{};
 
   /// Input from 0 to 1 that directly scales the output speed.
   Input<double>::SharedPtr speed_coefficient_;

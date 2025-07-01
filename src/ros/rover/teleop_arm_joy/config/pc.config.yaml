@@ -4,7 +4,7 @@ teleop_arm_joy_node:
 #    min_update_rate: 0.5
 
     # Set this true to display all the inputs. Very useful when trying to make a config!
-    log_inputs: false
+    log_inputs: true
 
     # Declare modes and sources to spawn
     control_modes: [
@@ -205,15 +205,16 @@ joy_input_source:
         button_id_positive: 1
 
     buttons:
+      twist_mode: 
       twist_mode:
         device: "gamepad"
-        id: 4
-      limit_on:
-        device: "gamepad"
-        id: 4
-      limit_off:
-        device: "gamepad"
-        id: 4
+        id: 9
+#      limit_on:
+#        device: "gamepad"
+#        id: 4
+#      limit_off:
+#        device: "gamepad"
+#        id: 4
       lock:
         device: "gamepad"
         id: 8

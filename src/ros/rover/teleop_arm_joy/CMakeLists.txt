@@ -45,8 +45,8 @@ generate_parameter_library(
   src/control_modes/joint_space/joint_space_control_mode_parameters.yaml
 )
 generate_parameter_library(
-  twist_ik_control_mode_parameters
-  src/control_modes/twist_ik/twist_ik_control_mode_parameters.yaml
+  twist_control_mode_parameters
+  src/control_modes/twist/twist_control_mode_parameters.yaml
 )
 
 # Build the node executable
@@ -66,7 +66,7 @@ add_executable(${PROJECT_NAME}_node
 # Add plugin implementations here!
 add_library(${PROJECT_NAME} SHARED
   src/control_modes/joint_space/JointSpaceControlMode.cpp
-  src/control_modes/twist_ik/TwistIKControlMode.cpp
+  src/control_modes/twist/TwistControlMode.cpp
   src/input_sources/joy/JoyInputSource.cpp
   src/input_sources/joy/JoyDevice.cpp
   src/input_sources/joy/JoyButton.cpp
@@ -86,11 +86,11 @@ target_link_libraries(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   joy_input_source_parameters
 )
-target_link_libraries(${project_name}
+target_link_libraries(${PROJECT_NAME}
   joint_space_control_mode_parameters
 )
-target_link_libraries(${project_name}
-  twist_ik_control_mode_parameters
+target_link_libraries(${PROJECT_NAME}
+  twist_control_mode_parameters
 )
 
 
@@ -115,7 +115,7 @@ install(
     teleop_arm_joy_parameters
     joy_input_source_parameters
     joint_space_control_mode_parameters
-    twist_ik_control_mode_parameters
+    twist_control_mode_parameters
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -150,7 +150,7 @@ install(TARGETS ${PROJECT_NAME}
   teleop_arm_joy_parameters
   joy_input_source_parameters
   joint_space_control_mode_parameters
-  twist_ik_control_mode_parameters
+  twist_control_mode_parameters
   EXPORT export_${PROJECT_NAME}
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
