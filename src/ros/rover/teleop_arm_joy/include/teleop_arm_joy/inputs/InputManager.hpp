@@ -20,7 +20,33 @@ namespace teleop_arm_joy {
  */
 class InputManager {
 public:
-  InputManager();
+  InputManager()
+  : event_listener_queue_(std::make_shared<EventListenerQueue>()),
+    events_(event_listener_queue_), buttons_(events_), axes_(events_)
+  {}
+
+  // Add move constructor
+  InputManager(InputManager&& other) noexcept
+    : event_listener_queue_(std::move(other.event_listener_queue_))
+    , events_(std::move(other.events_))
+    , buttons_(std::move(other.buttons_))
+    , axes_(std::move(other.axes_)) {}
+
+  // Add move assignment
+  InputManager& operator=(InputManager&& other) noexcept {
+    if (this != &other) {
+      event_listener_queue_ = std::move(other.event_listener_queue_);
+      events_ = std::move(other.events_);
+      buttons_ = std::move(other.buttons_);
+      axes_ = std::move(other.axes_);
+    }
+    return *this;
+  }
+
+  // Delete copy constructor and assignment
+  InputManager(const InputManager&) = delete;
+  InputManager& operator=(const InputManager&) = delete;
+
   // Accessors
   [[nodiscard]] InputCollection<Button>& get_buttons() {
     return buttons_;
@@ -35,11 +61,13 @@ public:
   void update(const rclcpp::Time& now);
 
 protected:
-  InputCollection<Button> buttons_{};
-  InputCollection<Axis> axes_{};
-
-  EventCollection events_;
-  std::shared_ptr<EventListenerQueue> event_listener_queue_ = nullptr;
+  // Note: Order of members is important for proper destruction:
+  // 1. event_listener_queue_ must outlive events_
+  // 2. events_ must outlive buttons_ and axes_
+  std::shared_ptr<EventListenerQueue> event_listener_queue_;
+  EventCollection events_{event_listener_queue_};
+  InputCollection<Button> buttons_{events_};
+  InputCollection<Axis> axes_{events_};
 };
 
 } // teleop_arm_joy

@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "InputDeclaration.hpp"
+#include "teleop_arm_joy/inputs/events/EventCollection.hpp"
 
 namespace teleop_arm_joy
 {
@@ -19,6 +20,8 @@ public:
   virtual ~InputCommon() = default;
 
   T value();
+  virtual void export_events(EventCollection& events) {};
+  virtual void update_events(const rclcpp::Time& now) {};
 
   void debounce(const rclcpp::Time& now) {
     previous_debounce_value_ = current_debounce_value_;

@@ -65,12 +65,12 @@ void TeleopArmJoy::log_all_inputs() {
       RCLCPP_INFO(get_logger(), C_INPUT "  %s\t%d", button->get_name().c_str(), button->value());
     }
   }
-  for (auto& [name, event] : inputs_.get_events()) {
+  for (auto& event : inputs_.get_events()) {
     if (!event)
       continue;
 
     if (event->is_invoked()) {
-      RCLCPP_INFO(get_logger(), C_QUIET "  %s invoked!", name.c_str());
+      RCLCPP_INFO(get_logger(), C_QUIET "  %s invoked!", event->get_name().c_str());
     }
   }
 }

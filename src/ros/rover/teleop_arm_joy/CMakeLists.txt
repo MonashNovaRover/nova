@@ -62,6 +62,10 @@ add_executable(${PROJECT_NAME}_node
   src/inputs/EventListenerQueue.cpp
   src/inputs/EventCollection.cpp
   src/inputs/InputCommonSpecializations.cpp
+  src/inputs/InputManager.cpp
+  src/inputs/Button.cpp
+  src/inputs/Axis.cpp
+  src/inputs/InputCollection.cpp
 )
 
 # Add plugin implementations here!
@@ -79,6 +83,10 @@ add_library(${PROJECT_NAME} SHARED
   src/commands/Command.cpp
   src/control_modes/ControlModeManager.cpp
   src/control_modes/ControlMode.cpp
+  src/inputs/InputManager.cpp
+  src/inputs/EventCollection.cpp
+  src/inputs/EventListenerQueue.cpp
+  src/inputs/InputCollection.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_node
