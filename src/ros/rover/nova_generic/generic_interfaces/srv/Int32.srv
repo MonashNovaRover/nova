@@ -1,0 +1,14 @@
+# A generic service definition that transmits a single signed integer value in the request,
+# and returns a boolean indicating success or failure.
+#
+# This service is intended for use in systems where a discrete value—such as an ID, count,
+# or command index—is transmitted with metadata and acknowledged after processing.
+#
+# The header allows this service request to be synchronized with other data sources in time and space,
+# while the `data` field carries the core value being acted on, and the `success` response confirms
+# whether the request was successfully handled.
+
+std_msgs/Header header
+int32 data
+---
+bool success

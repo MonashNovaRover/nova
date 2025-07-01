@@ -22,7 +22,7 @@ class CANNumberListener(CANListener):
         self.params = self.param_listener.get_params()
 
     def create_msg(self, frame: jcan.Frame) -> NumberReading:
-        """ Converts frame to integer and then applies scale and offset"""
+        """ Converts frame to an integer and then applies scale and offset"""
         msg = NumberReading()
         msg.header.stamp = self.get_clock().now().to_msg()
 
@@ -30,6 +30,7 @@ class CANNumberListener(CANListener):
             msg.data = self.params.initial_value
             return msg
 
+        # gets the last length number of frames - excludes the command id if there is one.
         data = [frame.data[i] for i in range(-self.params.length, 0)]
 
         signed_int = int.from_bytes(data, byteorder='big', signed=True)

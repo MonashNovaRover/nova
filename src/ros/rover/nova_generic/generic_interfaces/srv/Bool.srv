@@ -1,0 +1,14 @@
+# A generic service definition that transmits a single boolean flag in the request,
+# and returns a boolean indicating success or failure.
+#
+# This service is intended for use in systems where a binary action—such as enabling,
+# toggling, or activating a function—is initiated and acknowledged with a success response.
+#
+# The header allows this service request to be synchronized with other data sources in time and space,
+# while the `data` field carries the core value being acted on, and the `success` response confirms
+# whether the request was successfully handled.
+
+std_msgs/Header header
+bool data
+---
+bool success
