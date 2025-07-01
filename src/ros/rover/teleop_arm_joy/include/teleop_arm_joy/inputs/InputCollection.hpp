@@ -20,21 +20,6 @@ public:
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
 
-  std::shared_ptr<Input<T>> operator[](const std::string& key) {
-    // Find the element
-    const auto& it = items_.find(key);
-
-    // Create a new event if it isn't in the collection
-    if (it == items_.end()) {
-      const auto new_item = std::make_shared<Input<T>>(key);
-
-      items_[key] = new_item;
-      return new_item;
-    }
-
-    return it->second;
-  }
-
   template<bool is_const>
   class Iterator {
   public:
@@ -50,25 +35,42 @@ public:
       const value_type*,
       value_type*>;
     using base_iterator = typename std::conditional_t<is_const,
-      typename std::map<std::string, std::shared_ptr<Input<T>>>::const_iterator,
-      typename std::map<std::string, std::shared_ptr<Input<T>>>::iterator>;
+      typename std::map<std::string, std::weak_ptr<Input<T>>>::const_iterator,
+      typename std::map<std::string, std::weak_ptr<Input<T>>>::iterator>;
 
-    explicit Iterator(base_iterator it) : it_(it) {}
+    using map_type = std::map<std::string, std::weak_ptr<Input<T>>>;
+    using map_pointer = typename std::conditional_t<is_const,
+      const map_type*,
+      map_type*>;
+
+    explicit Iterator(base_iterator it, map_pointer map)
+      : it_(it), map_(map), current_value_()
+    {
+      if (it_ != map_->end()) {
+        skip_expired();
+      }
+    }
+
 
     // Convert non-const iterator to const iterator
     template<bool was_const, typename = std::enable_if_t<is_const && !was_const>>
-    explicit Iterator(const Iterator<was_const>& other) : it_(other.base()) {}
+    explicit Iterator(const Iterator<was_const>& other)
+      : it_(other.it_), map_(other.map_), current_value_(other.current_value_) {}
 
-    reference operator*() const {
-      return it_->second;
+    reference operator*() {
+      ensure_current_value();
+      return current_value_;
     }
+
     pointer operator->() {
-      return &(it_->second);
+      ensure_current_value();
+      return &current_value_;
     }
 
     // Prefix increment
     Iterator& operator++() {
       ++it_;
+      skip_expired();
       return *this;
     }
 
@@ -87,27 +89,113 @@ public:
       return !(a == b);
     }
 
-    // Allow access to base iterator for conversion
+    /// Allows access to the base iterator for conversion
     base_iterator base() const { return it_; }
 
   private:
     base_iterator it_;
+    map_pointer map_;
+    value_type current_value_;
+
+    /// Skips over any weak pointers that have expired
+    void skip_expired() {
+      while (it_ != map_->end()) {
+        if (auto ptr = it_->second.lock()) {
+          current_value_ = ptr;
+          return;
+        }
+
+        // Remove any expired entry before continuing to the next item
+        if constexpr (!is_const) {
+          it_ = map_->erase(it_);
+        } else {
+          ++it_;
+        }
+      }
+
+      current_value_.reset();
+    }
+
+    void ensure_current_value() {
+      if (current_value_)
+        return;
+
+      if (auto ptr = it_->second.lock()) {
+        current_value_ = ptr;
+        return;
+      }
+
+      // If current value expired, skip to next valid one
+      if constexpr (!is_const) {
+        it_ = map_->erase(it_);
+      } else {
+        ++it_;
+      }
+      skip_expired();
+    }
+
     // Grant access to other iterator specializations
-    template<bool> friend class IteratorImpl;
+    template<bool> friend class Iterator;
   };
 
   using iterator = Iterator<false>;
   using const_iterator = Iterator<true>;
 
-  iterator begin() { return iterator(items_.begin()); }
-  iterator end() { return iterator(items_.end()); }
-  const_iterator begin() const { return const_iterator(items_.begin()); }
-  const_iterator end() const { return const_iterator(items_.end()); }
-  const_iterator cbegin() const { return const_iterator(items_.begin()); }
-  const_iterator cend() const { return const_iterator(items_.end()); }
+  std::shared_ptr<Input<T>> operator[](const std::string& key) {
+    // Find the element
+    auto it = items_.find(key);
+
+    if (it != items_.end()) {
+      if (auto ptr = it->second.lock()) {
+        return ptr;
+      }
+
+      // If weak_ptr expired, remove it and create new
+      items_.erase(it);
+    }
+
+    // Create a new input if it isn't already in the collection
+    const auto new_item = std::make_shared<Input<T>>(key);
+
+    items_[key] = new_item;
+    return new_item;
+  }
+
+  iterator begin() { return iterator(items_.begin(), &items_); }
+  iterator end() { return iterator(items_.end(), &items_); }
+  const_iterator begin() const { return const_iterator(items_.begin(), &items_); }
+  const_iterator end() const { return const_iterator(items_.end(), &items_); }
+  const_iterator cbegin() const { return const_iterator(items_.begin(), &items_); }
+  const_iterator cend() const { return const_iterator(items_.end(), &items_); }
+
+  /**
+   * Utility method to delete expired weak pointers from the internal map
+   */
+  void clean_up() {
+    for (auto it = items_.begin(); it != items_.end();) {
+      if (it->second.expired()) {
+        it = items_.erase(it);
+      } else {
+        ++it;
+      }
+    }
+  }
+
+  /**
+   * Gets the number of non-expired inputs
+   */
+  [[nodiscard]] size_t size() const {
+    size_t count = 0;
+    for (const auto& item : items_) {
+      if (!item.second.expired()) {
+        ++count;
+      }
+    }
+    return count;
+  }
 
 private:
-  std::map<std::string, typename std::shared_ptr<Input<T>>> items_{};
+  std::map<std::string, std::weak_ptr<Input<T>>> items_{};
 };
 
 } // teleop_arm_joy
