@@ -1,5 +1,12 @@
 integer_sensor:
   ros__parameters:
     frame_id: 0x0A0
-    topic: '/sensor/example'
+    topic: '/sensor/example_number'
     scale: 2.0
+
+bool_sensor:
+  ros__parameters:
+    frame_id: 0x0B0
+    topic: 'sensor/example_bool'
+    true_msg: 0x01
+#    false_msg: 0x00

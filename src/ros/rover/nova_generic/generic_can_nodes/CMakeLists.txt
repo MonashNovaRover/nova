@@ -53,6 +53,11 @@ generate_parameter_module(
   generic_can_nodes/can_listeners/config/can_number_listener_parameters.yaml
 )
 
+generate_parameter_module(
+  can_bool_listener_parameters
+  generic_can_nodes/can_listeners/config/can_bool_listener_parameters.yaml
+)
+
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})
 
@@ -60,6 +65,7 @@ ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
   generic_can_nodes/can_listeners/CANListener.py
   generic_can_nodes/can_listeners/CANNumberListener.py
+  generic_can_nodes/can_listeners/CANBoolListener.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

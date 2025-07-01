@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Purpose: ROS Node for listening to CAN bus messages,
+and publishing them to a topic
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:        generic_can_nodes
+AUTHOR:         Felicity Matthews
+CREATION:	    01/07/2025
+EDITED:		    01/07/2025
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 import abc
 import jcan, logging
 from generic_can_nodes.can_listener_parameters import can_listener_parameters

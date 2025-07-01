@@ -32,8 +32,8 @@ Feel free to reach out on the `#software` channel if you need help assessing or 
 
 ## Current Packages
 
-- **generic_can_nodes:**  
+- [**generic_can_nodes:**](./generic_can_nodes)  
   Generic nodes for interfacing with the CAN bus in straightforward scenarios such as listening and publishing.
 
-- **generic_interfaces:**  
+- [**generic_interfaces:**](./generic_interfaces)  
   Generic message and service definitions for simple message types, providing building blocks for various use cases.

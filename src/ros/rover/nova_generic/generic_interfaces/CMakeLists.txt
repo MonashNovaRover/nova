@@ -4,6 +4,7 @@ project(generic_interfaces)
 # Find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(std_msgs REQUIRED)
 
 # Include all interfaces
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -23,7 +24,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
   # Action definitions
 
-  DEPENDENCIES
+  DEPENDENCIES std_msgs
 )
 
 ament_package()
