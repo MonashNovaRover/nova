@@ -27,7 +27,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/KilnTempData.msg"
   "msg/MicroscopeServoInfo.msg"
   "msg/NIRProbeData.msg"
-  "msg/NumberReading.msg"
   "msg/RoverPoseGPS.msg"
   "msg/SpectrometerData.msg"
   "msg/UVVisSpecData.msg"
