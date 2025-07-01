@@ -41,7 +41,7 @@ class ControllerNode(Node, metaclass=abc.ABCMeta):
         self.declare_parameter(self.LOGGING_LEVEL_PARAM, log_level)
         self.declare_parameter(self.COMMAND_PERIOD_PARAM, command_period)
 
-        self.get_logger().setLevel(logging.getLevelNamesMapping()[self.get_parameter(self.LOGGING_LEVEL_PARAM).value])
+        self.get_logger().set_level(logging.getLevelNamesMapping()[self.get_parameter(self.LOGGING_LEVEL_PARAM).value])
         self.get_logger().info(f"{self.get_name()} starting")
 
         self.bus = jcan.Bus()

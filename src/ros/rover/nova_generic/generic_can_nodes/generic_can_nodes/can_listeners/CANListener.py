@@ -44,7 +44,7 @@ class CANListener(Node, abc.ABC):
         self.bus.open(self.listener_params.can_bus)
 
         # signal successful start
-        self.get_logger().info(f"{self.get_name()} listening to {self.listener_params.frame_id}")
+        self.get_logger().info(f"{self.get_name()} listening to {format(self.listener_params.frame_id, '#05x')}")
 
     def frame_callback(self, frame: jcan.Frame):
         """Records the frame received from the CAN bus"""
