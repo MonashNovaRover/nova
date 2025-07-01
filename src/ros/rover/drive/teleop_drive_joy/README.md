@@ -8,6 +8,9 @@ The purpose of this package is to provide a flexible facility for tele-operating
 
 This package relies on the [joy](https://index.ros.org/p/joy/github-ros-drivers-joystick_drivers/#foxy) driver for reading joystick inputs. It does not implement rate limiting or autorepeat functionality, as these are available through the `joy` driver.
 
+## Controller Layout
+![image](https://github.com/user-attachments/assets/e11ba273-9978-4f00-82f8-a08b0a74214a)
+
 ## Executables
 
 The package includes the `teleop_drive_joy_node`, which translates `sensor_msgs/msg/Joy` messages into:
