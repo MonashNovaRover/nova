@@ -71,7 +71,14 @@ add_library(${PROJECT_NAME} SHARED
   src/input_sources/joy/JoyInputSource.cpp
   src/commands/SwitchControlModeCommand.cpp
   src/commands/LogCommand.cpp
+
+  # These are also need to do unit tests
   src/inputs/InputCommonSpecializations.cpp
+  src/inputs/Button.cpp
+  src/inputs/Axis.cpp
+  src/commands/Command.cpp
+  src/control_modes/ControlModeManager.cpp
+  src/control_modes/ControlMode.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_node
@@ -101,6 +108,30 @@ pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)
 install(FILES plugins.xml
         DESTINATION share/${PROJECT_NAME}
 )
+
+# Test cases
+#if(TR)
+  find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_lint_auto REQUIRED)
+
+  # Add tests
+  ament_add_gtest(test_inputs
+    test/test_inputs.cpp
+  )
+  target_link_libraries(test_inputs
+    ${PROJECT_NAME}
+  )
+  target_include_directories(test_inputs PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  )
+  set_tests_properties(test_inputs
+    PROPERTIES
+    ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{LD_LIBRARY_PATH}"
+  )
+
+  # Enable linting
+  ament_lint_auto_find_test_dependencies()
+#endif()
 
 #############
 ## Install ##

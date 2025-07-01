@@ -8,11 +8,10 @@
 #include <rclcpp/node_interfaces/node_logging_interface.hpp>
 
 #include "teleop_arm_joy/inputs/events/EventListenerQueue.hpp"
-#include "InputCommon.hpp"
 #include "teleop_arm_joy/inputs/events/EventCollection.hpp"
-#include "InputCollection.hpp"
 #include "teleop_arm_joy/inputs/Button.hpp"
 #include "teleop_arm_joy/inputs/Axis.hpp"
+#include "InputCollection.hpp"
 
 namespace teleop_arm_joy {
 

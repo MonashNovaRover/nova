@@ -2,6 +2,9 @@
 , pkg-config
 , buildRosPackage
 , ament-cmake
+, ament-cmake-gtest
+, ament-lint-auto
+, gtest
 , rclcpp
 , joy
 , nova-input-interfaces
@@ -29,7 +32,13 @@ buildRosPackage {
     filter = lib.novaSourceFilter [ ] path;
   };
 
-  nativeBuildInputs = [ ament-cmake pkg-config ];
+  nativeBuildInputs = [
+    ament-cmake
+    pkg-config
+    ament-cmake-gtest
+    ament-lint-auto
+    gtest
+  ];
 
   buildInputs = [
     control-msgs
@@ -51,4 +60,7 @@ buildRosPackage {
   ];
 
   propagatedBuildInputs = [ joy ];
+
+  # Enable running tests during build
+  doCheck = true;
 }
