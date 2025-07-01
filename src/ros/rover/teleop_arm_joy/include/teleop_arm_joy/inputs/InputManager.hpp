@@ -58,15 +58,40 @@ public:
     return events_;
   }
 
+  /**
+   * @brief polls the current input state and propagates changes:
+   *   - Debounces buttons and axes
+   *   - Triggers event updates based on input state
+   *   - Services all registered event listeners
+   */
   void update(const rclcpp::Time& now);
 
 protected:
   // Note: Order of members is important for proper destruction:
   // 1. event_listener_queue_ must outlive events_
   // 2. events_ must outlive buttons_ and axes_
+
+  /**
+   * A list of methods that we need to call, populated by invoked events
+   */
   std::shared_ptr<EventListenerQueue> event_listener_queue_;
+
+  /**
+   * All events referenced by an input source or control mode. This collection only holds weak references, and allows
+   * Events to be dropped.
+   */
   EventCollection events_{event_listener_queue_};
+
+  /**
+   * All boolean inputs referenced by an input source or control mode. This collection only holds weak references, and
+   * allows Events to be dropped.
+   */
   InputCollection<Button> buttons_{events_};
+
+  /**
+   * All double inputs referenced by an input source or control mode. This collection only holds weak references, and
+   * allows Events to be dropped.
+   */
   InputCollection<Axis> axes_{events_};
 };
 
