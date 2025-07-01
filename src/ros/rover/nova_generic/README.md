@@ -11,8 +11,8 @@ When adding a new package, node, or component to this collection, please ensure 
 
 - **Generic Purpose:**  
   The package should serve a generic purpose that can be reused in a variety of contexts.  
-  ✅ Examples: `generic_interfaces`, `generic_CAN_nodes`  
-  ❌ Not suitable: domain-specific messages such as `ARC_science_messages`
+  ✅ Examples: `generic_interfaces`  
+  ❌ Not suitable: `ARC_science_messages`
 
 - **Generic Naming:**  
   The name should reflect its broad applicability.  

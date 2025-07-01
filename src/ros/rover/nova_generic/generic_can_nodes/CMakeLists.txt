@@ -23,7 +23,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(generate_parameter_library REQUIRED)
 
-find_package(nova_interfaces REQUIRED)
+find_package(generic_interfaces REQUIRED)
 
 # Include the include directory
 include_directories(

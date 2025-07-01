@@ -2,7 +2,7 @@ can_number_listener_parameters:
   initial_value:
     type: double
     default_value: 0
-    description: "Initial value of the sensor."
+    description: "Initial value of the listener."
 
   length:
     type: int

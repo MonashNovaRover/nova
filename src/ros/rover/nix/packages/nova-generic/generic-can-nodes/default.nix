@@ -4,7 +4,7 @@
 , rclcpp
 , rclpy
 , ament-cmake
-, nova-interfaces
+, generic-interfaces
 , pythonPackages
 , generate-parameter-library
 , generate-parameter-library-py
@@ -22,7 +22,7 @@ buildRosPackage {
 
   nativeBuildInputs = [ ament-cmake ];
 
-  buildInputs = [ rclcpp rclpy nova-interfaces ];
+  buildInputs = [ rclcpp rclpy generic-interfaces ];
 
   propagatedBuildInputs = with pythonPackages; [
     rclpy

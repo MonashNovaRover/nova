@@ -9,8 +9,17 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   # Message definitions
   msg/Bool.msg
+  msg/Byte.msg
+  msg/Float64.msg
+  msg/Int32.msg
+  msg/String.msg
 
   # Service definitions
+  srv/Bool.srv
+  srv/Byte.srv
+  srv/Float64.srv
+  srv/Int32.srv
+  srv/String.srv
 
   # Action definitions
 

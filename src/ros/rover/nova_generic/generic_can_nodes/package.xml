@@ -14,7 +14,7 @@
   <test_depend>ament_lint_common</test_depend>
 
   <depend>rclcpp</depend>  
-  <depend>nova_interfaces</depend>
+  <depend>generic_interfaces</depend>
   <depend>generate_parameter_library</depend>
 
   <export>

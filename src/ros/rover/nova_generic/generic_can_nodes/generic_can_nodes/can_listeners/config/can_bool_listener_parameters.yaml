@@ -1,0 +1,21 @@
+can_bool_listener_parameters:
+  initial_value:
+    type: bool
+    default_value: false
+    description: "Initial value of the listener."
+
+  data_pos:
+    type: int
+    default_value: 0
+    description: "Position of the jcan data frame to read data from."
+
+  true_msg:
+    type: int
+    default_value: -1
+    description: "Value of data to be considered True. Put -1 if any value that isn't False can be considered True."
+
+  false_msg:
+    type: int
+    default_value: -1
+    description: "Value of data to be considered False. Put -1 if any value that isn't True can be considered False."
+

@@ -12,22 +12,22 @@ can_listener_parameters:
   frame_id:
     type: int
     default_value: 0x000
-    description: "CAN / Frame ID of sensor msg to listen to on the CAN bus."
+    description: "CAN / Frame ID of msg to listen to on the CAN bus."
 
   command_id:
     type: int
     default_value: -1
-    description: "CAN message prefix (first byte / first two hex digits) that should be listened for. Empty string if none present."
+    description: "CAN message prefix (first byte / first two hex digits) that should be listened for. -1 if none present."
 
   publish_period:
     type: double
     default_value: 1.0
-    description: "How often to publish sensor data, in seconds."
+    description: "How often to publish msg data, in seconds."
 
   topic:
     type: string
     default_value: ""
-    description: "Topic to publish sensor data to."
+    description: "Topic to publish msg data to."
 
   update_rate:
     type: double
