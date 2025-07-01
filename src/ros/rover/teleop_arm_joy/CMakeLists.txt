@@ -61,6 +61,7 @@ add_executable(${PROJECT_NAME}_node
   src/commands/CommandManager.cpp
   src/inputs/EventListenerQueue.cpp
   src/inputs/EventCollection.cpp
+  src/inputs/InputCommonSpecializations.cpp
 )
 
 # Add plugin implementations here!
@@ -68,11 +69,9 @@ add_library(${PROJECT_NAME} SHARED
   src/control_modes/joint_space/JointSpaceControlMode.cpp
   src/control_modes/twist/TwistControlMode.cpp
   src/input_sources/joy/JoyInputSource.cpp
-  src/input_sources/joy/JoyDevice.cpp
-  src/input_sources/joy/JoyButton.cpp
-  src/input_sources/joy/JoyAxis.cpp
   src/commands/SwitchControlModeCommand.cpp
   src/commands/LogCommand.cpp
+  src/inputs/InputCommonSpecializations.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_node

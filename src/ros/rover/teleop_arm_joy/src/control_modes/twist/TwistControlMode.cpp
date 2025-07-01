@@ -26,7 +26,7 @@ void TwistControlMode::on_configure(InputManager& inputs) {
 
   // Get interested inputs
   auto& axes = inputs.get_axes();
-  auto& buttons = inputs.get_booleans();
+  auto& buttons = inputs.get_buttons();
 
   speed_coefficient_ = axes[params_.input_names.speed];
   locked_ = buttons[params_.input_names.locked];

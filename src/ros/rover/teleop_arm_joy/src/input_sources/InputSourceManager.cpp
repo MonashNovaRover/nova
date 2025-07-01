@@ -146,7 +146,8 @@ void InputSourceManager::setup_input_sources(InputManager& inputs) {
     if (!source)
       continue;
 
-    source->configure(inputs);
+//    source->configure(inputs);
+    // TODO: configure inputs!
     executor->add_node(source->get_node());
   }
 

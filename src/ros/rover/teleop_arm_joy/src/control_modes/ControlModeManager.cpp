@@ -7,13 +7,13 @@
 
 namespace teleop_arm_joy {
 
-ControlModeManager::~ControlModeManager() {
-  switch_controller_client_.reset();
-  node_.reset();
-  current_control_mode_.reset();
-  control_modes_.clear();
-  control_mode_loader_.reset();
-}
+//ControlModeManager::~ControlModeManager() {
+//  switch_controller_client_.reset();
+//  node_.reset();
+//  current_control_mode_.reset();
+//  control_modes_.clear();
+//  control_mode_loader_.reset();
+//}
 
 void ControlModeManager::configure(InputManager& inputs) {
   const auto logger = node_->get_logger();

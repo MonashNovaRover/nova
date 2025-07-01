@@ -8,10 +8,16 @@
 #include <utility>
 
 #include "Command.hpp"
+#include <map>
+#include <string>
+#include <memory>
+#include <vector>
+#include <pluginlib/class_loader.hpp>
+#include <rclcpp/node.hpp>
 
 namespace teleop_arm_joy {
 
-class CommandManager final : public Collection<Command> {
+class CommandManager final {
 public:
   explicit CommandManager(const std::shared_ptr<rclcpp::Node>& node, CommandDelegate::WeakPtr context)
     : node_(node), context_(std::move(context)) {}
@@ -38,23 +44,26 @@ public:
    */
   bool get_type_for_command(const std::string& name, std::string& source_type, std::vector<std::string>& invocation_event_names) const;
 
-  std::shared_ptr<Command> operator[](const std::string& index) override;
+  std::shared_ptr<Command> operator[](const std::string& index);
 
-  void add(const std::string& key, const std::shared_ptr<Command>& value) override;
+  void add(const std::string& key, const std::shared_ptr<Command>& value);
 
-  iterator begin() override {
+  using iterator = typename std::map<std::string, std::shared_ptr<Command>>::iterator;
+  using const_iterator = typename std::map<std::string, std::shared_ptr<Command>>::const_iterator;
+
+  iterator begin() {
     return items_.begin();
   }
 
-  iterator end() override {
+  iterator end() {
     return items_.end();
   }
 
-  [[nodiscard]] const_iterator begin() const override {
+  [[nodiscard]] const_iterator begin() const {
     return items_.begin();
   }
 
-  [[nodiscard]] const_iterator end() const override {
+  [[nodiscard]] const_iterator end() const {
     return items_.end();
   }
 

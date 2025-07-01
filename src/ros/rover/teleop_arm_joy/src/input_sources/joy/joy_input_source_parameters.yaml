@@ -3,19 +3,6 @@
 # Look at individual controller config for changing axes / buttons
 # Look here for docs about this YAML : https://github.com/PickNikRobotics/generate_parameter_library
 joy_input_source:
-  device_names:
-    type: string_array
-    default_value: [
-      "Left",
-      "Right"
-    ]
-
-  devices:
-    __map_device_names:
-      topic:
-        type: string
-        description: "The topic to get sensor_msgs/msg/Joy messages from for this device"
-
   axis_definitions:
     type: string_array
     default_value: [
@@ -53,9 +40,6 @@ joy_input_source:
       id:
         type: int
         default_value: -1
-      device:
-        type: string
-        default_value: ""
         description: "The device that this axis is mapped to. Must be an element of device_names, and maps to the first device in device_names by default."
       invert:
         type: bool
@@ -69,13 +53,17 @@ joy_input_source:
         type: int
         default_value: -1
         description: "The button id that maps to +1 for this axis."
+      min_value:
+        type: double
+        default_value: -1.0
+        description: "the value -1 from joy should map to."
+      max_value:
+        type: double
+        default_value: 1.0
+        description: "the value +1 from joy should map to."
 
   buttons:
     __map_button_definitions:
       id:
         type: int
         default_value: -1
-      device:
-        type: string
-        default_value: ""
-        description: "The device that this axis is mapped to. Must be an element of device_names, and maps to the first device in device_names by default."

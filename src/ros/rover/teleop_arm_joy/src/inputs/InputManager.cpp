@@ -11,24 +11,24 @@ InputManager::InputManager() {
 }
 
 void InputManager::update(const rclcpp::Time& now) {
-  for (auto& [name, boolean] : booleans_) {
-    boolean->debounce(now);
+  for (auto& button : buttons_) {
+    button->debounce(now);
   }
 
-  for (auto& [name, axis] : axes_) {
+  for (auto& axis : axes_) {
     axis->debounce(now);
   }
 
   // Invoke events of the same name whenever a button is pressed
-  for (auto& [name, button] : booleans_) {
+  for (auto& button : buttons_) {
     if (!button->changed())
       continue;
 
     if (button->value()) {
-      events_[name]->invoke();
+      events_[button->get_name()]->invoke();
     }
     else {
-      events_[name + "/up"]->invoke();
+      events_[button->get_name() + "/up"]->invoke();
     }
   }
 

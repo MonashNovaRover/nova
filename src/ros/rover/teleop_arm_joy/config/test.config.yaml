@@ -1,31 +1,36 @@
 teleop_arm_joy_node:
   ros__parameters:
     update_rate: 100.0
-#    min_update_rate: 0.5
+    min_update_rate: 0.5
 
     # Set this true to display all the inputs. Very useful when trying to make a config!
     log_inputs: false
 
-    # Declare modes and sources to spawn
-    control_modes: [
-      "joint_space_control",
-      "task_space_control"
-    ]
-    input_sources: [
-      "joy_input_source"
-    ]
+    control_modes:
+      # Declare the names of your control modes here
+      names: [
+        "joint_space_control",
+        "task_space_control"
+      ]
+      joint_space_control:
+        type: "teleop_arm_joy/JointSpaceControlMode"
+        controllers: [
+          "nova_arm_velocity_controller"
+        ]
+      task_space_control:
+        type: "teleop_arm_joy/TwistControlMode"
+        controllers: [
+          "nova_arm_position_controller"
+          "nova_twistmapper"
+        ]
 
-    joint_space_control:
-      type: "teleop_arm_joy/JointSpaceControlMode"
-
-    task_space_control:
-      type: "teleop_arm_joy/TwistControlMode"
-
-    fake_type_mode:
-      type: "teleop_arm_joy/Fake"
-
-    joy_input_source:
-      type: "teleop_arm_joy/JoyInputSource"
+    input_sources:
+      # Declare the names of your input sources here
+      names: [
+        "joy_input_source"
+      ]
+      joy_input_source:
+        type: "teleop_arm_joy/JoyInputSource"
 
     commands:
       # Declare the names of your commands here
@@ -38,21 +43,17 @@ teleop_arm_joy_node:
 
       # Configure your commands here.
       enter_twist_ik_control:
-        on: "twist_mode"
+        on: "twist_mode/down"
         type: "switch_control_mode"
         to: "twist_ik_control"
       enter_joint_space_control:
         on: "twist_mode/up"
         type: "switch_control_mode"
         to: "joint_space_control"
-      joe:
-        on: "lock"
-        type: "log"
-        message: "Joe."
 
       # Locking and unlocking
       log_locked:
-        on: "locked"
+        on: "locked/down"
         type: "log"
         message: "Locked"
       log_unlocked:

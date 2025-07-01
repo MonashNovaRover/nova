@@ -30,109 +30,13 @@ TeleopArmJoy::TeleopArmJoy(const rclcpp::NodeOptions &options)
 {
 }
 
-//
-// void TeleopArmJoy::sendJointSpaceCommand()
-// {
-//   auto msg = std::make_unique<nova_interfaces::msg::ArmFkVelocityTargets>();
-//
-//   msg->header.stamp = this->now();
-//
-//   for (const auto& [joint_name, joint_config] : params_.joints.joint_definitions_map) {
-//     msg->name.emplace_back(joint_name);
-//
-//     if (!axes.count(joint_name)) {
-//       RCLCPP_WARN(this->get_logger(), "Axis for joint with name '%s' does not exist!", joint_name.c_str());
-//       msg->velocity.emplace_back(0);
-//       continue;
-//     }
-//
-//     const float input = axes[joint_name]->value();
-//     double velocity = static_cast<double>(input) * speed * joint_config.max_speed;
-//
-//     msg->velocity.emplace_back(velocity);
-//   }
-//
-//   fk_velocity_pub->publish(std::move(msg));
-//
-//   auto ik_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
-//
-//   ik_msg->header.stamp = this->now();
-//
-//   auto linear = geometry_msgs::msg::Vector3();
-//   linear.x = linear.y = linear.z = 0;
-//
-//   auto angular = geometry_msgs::msg::Vector3();
-//   angular.x = angular.y = angular.z = 0;
-//
-//   ik_msg->twist.linear = linear;
-//   ik_msg->twist.angular = angular;
-//
-//   ik_twist_pub->publish(std::move(ik_msg));
-// }
-//
-// void TeleopArmJoy::sendTwistCommand() {
-//   auto msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
-//
-//   msg->header.stamp = this->now();
-//
-//   const auto linear_speed = speed * params_.control_modes.twist.linear_max;
-//   auto linear = geometry_msgs::msg::Vector3();
-//   linear.x = axes["twist_x"]->value() * linear_speed;
-//   linear.y = axes["twist_y"]->value() * linear_speed;
-//   linear.z = axes["twist_z"]->value() * linear_speed;
-//
-//   const auto angular_speed = speed * params_.control_modes.twist.angular_max;
-//   auto angular = geometry_msgs::msg::Vector3();
-//   angular.x = axes["twist_roll" ]->value() * angular_speed;
-//   angular.y = axes["twist_pitch"]->value() * angular_speed;
-//   angular.z = axes["twist_yaw"  ]->value() * angular_speed;
-//
-//   msg->twist.linear = linear;
-//   msg->twist.angular = angular;
-//
-//   ik_twist_pub->publish(std::move(msg));
-// }
-
-// void TeleopArmJoy::sendHaltCommand()
-// {
-//   // Send all zeroes for joint space
-//   auto msg = std::make_unique<nova_interfaces::msg::ArmFkVelocityTargets>();
-//
-//   msg->header.stamp = this->now();
-//
-//   for (const auto& [joint_name, joint_config] : params_.joints.joint_definitions_map) {
-//     msg->name.emplace_back(joint_name);
-//     msg->velocity.emplace_back(0.0);
-//   }
-//
-//   fk_velocity_pub->publish(std::move(msg));
-//
-//   // Send halt command for IK
-//   auto ik_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
-//
-//   ik_msg->header.stamp = this->now();
-//
-//   auto linear = geometry_msgs::msg::Vector3();
-//   linear.x = linear.y = linear.z = 0;
-//
-//   auto angular = geometry_msgs::msg::Vector3();
-//   angular.x = angular.y = angular.z = 0;
-//
-//   ik_msg->twist.linear = linear;
-//   ik_msg->twist.angular = angular;
-//
-//   ik_twist_pub->publish(std::move(ik_msg));
-//
-//   //TODO: halt auto typing command
-// }
-
 void TeleopArmJoy::initialize(const std::weak_ptr<rclcpp::Executor>& executor, const std::shared_ptr<TeleopArmJoy>& self) {
   // Create publishers
   param_listener_ = std::make_shared<ParamListener>(shared_from_this());
   params_ = param_listener_->get_params();
 
   inputs_ = InputManager();
-  inputs_.get_booleans().add("locked", std::static_pointer_cast<Input<bool>>(locked_));
+//  inputs_.get_buttons().add("locked", std::static_pointer_cast<Input<bool>>(locked_));
 
   input_source_manager_ = std::make_shared<InputSourceManager>(shared_from_this(), executor);
   input_source_manager_->configure(param_listener_, inputs_);
@@ -145,7 +49,7 @@ void TeleopArmJoy::initialize(const std::weak_ptr<rclcpp::Executor>& executor, c
 }
 
 void TeleopArmJoy::log_all_inputs() {
-  for (const auto& [name, axis] : inputs_.get_axes()) {
+  for (const auto& axis : inputs_.get_axes()) {
     if (!axis)
       continue;
 
@@ -153,7 +57,7 @@ void TeleopArmJoy::log_all_inputs() {
       RCLCPP_INFO(get_logger(), C_INPUT "  %s\t%f", axis->get_name().c_str(), axis->value());
     }
   }
-  for (const auto& [name, button] : inputs_.get_booleans()) {
+  for (const auto& button : inputs_.get_buttons()) {
     if (!button)
       continue;
 
@@ -161,7 +65,7 @@ void TeleopArmJoy::log_all_inputs() {
       RCLCPP_INFO(get_logger(), C_INPUT "  %s\t%d", button->get_name().c_str(), button->value());
     }
   }
-  for (const auto& [name, event] : inputs_.get_events()) {
+  for (auto& [name, event] : inputs_.get_events()) {
     if (!event)
       continue;
 
@@ -212,18 +116,18 @@ const std::shared_ptr<ControlModeManager> TeleopArmJoy::get_control_modes() cons
 void TeleopArmJoy::update_state() {
   auto logger = get_logger();
 
-  if (!locked_->value()) {
-    if (inputs_.get_booleans()["lock"]->value()) {
-      locked_->set(true);
-      // RCLCPP_INFO(logger, "Locked");
-    }
-  }
-  else {
-    if (inputs_.get_booleans()["unlock"]->value()) {
-      locked_->set(false);
-      // RCLCPP_INFO(logger, "Unlocked");
-    }
-  }
+//  if (!locked_->value()) {
+//    if (inputs_.get_buttons()["lock"]->value()) {
+//      locked_->set(true);
+//      // RCLCPP_INFO(logger, "Locked");
+//    }
+//  }
+//  else {
+//    if (inputs_.get_buttons()["unlock"]->value()) {
+//      locked_->set(false);
+//      // RCLCPP_INFO(logger, "Unlocked");
+//    }
+//  }
 }
 
 TeleopArmJoy::~TeleopArmJoy() {

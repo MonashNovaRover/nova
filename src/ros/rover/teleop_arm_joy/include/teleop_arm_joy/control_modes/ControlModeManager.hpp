@@ -20,11 +20,10 @@ namespace teleop_arm_joy {
 /**
  * Class responsible for managing the registered control modes, the current control mode, and switching between them.
  */
-class ControlModeManager final : public Collection<ControlMode> {
+class ControlModeManager final {
 public:
   explicit ControlModeManager(const std::shared_ptr<rclcpp::Node>& node, const std::weak_ptr<rclcpp::Executor>& executor)
     : node_(node), executor_(executor) {}
-  ~ControlModeManager() override;
 
   /**
    * Populates the control_modes_ from the params in node_.
@@ -44,14 +43,17 @@ public:
   auto update(const rclcpp::Time& now, const rclcpp::Duration& period) const -> void;
 
   // Collection<ControlMode> implementation
-  std::shared_ptr<ControlMode> operator[](const std::string& index) override;
+  std::shared_ptr<ControlMode> operator[](const std::string& index);
 
-  iterator begin() override { return control_modes_.begin(); };
-  [[nodiscard]] const_iterator begin() const override { return control_modes_.begin(); };
-  iterator end() override { return control_modes_.end(); };
-  [[nodiscard]] const_iterator end() const override { return control_modes_.end(); };
+  using iterator = typename std::map<std::string, std::shared_ptr<ControlMode>>::iterator;
+  using const_iterator = typename std::map<std::string, std::shared_ptr<ControlMode>>::const_iterator;
 
-  void add(const std::string& key, const std::shared_ptr<ControlMode>& value) override;
+  iterator begin() { return control_modes_.begin(); };
+  [[nodiscard]] const_iterator begin() const { return control_modes_.begin(); };
+  iterator end() { return control_modes_.end(); };
+  [[nodiscard]] const_iterator end() const { return control_modes_.end(); };
+
+  void add(const std::string& key, const std::shared_ptr<ControlMode>& value);
 
 private:
   /**

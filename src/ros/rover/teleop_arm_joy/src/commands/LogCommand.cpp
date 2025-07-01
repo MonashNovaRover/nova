@@ -26,4 +26,6 @@ void LogCommand::execute(CommandDelegate& context, const rclcpp::Time& now) {
 
 } // teleop_arm_joy
 
+#include <pluginlib/class_list_macros.hpp>
+
 CLASS_LOADER_REGISTER_CLASS(teleop_arm_joy::LogCommand, teleop_arm_joy::Command);

@@ -3,7 +3,7 @@
 //
 
 #include <rclcpp/logging.hpp>
-#include "../../include/teleop_arm_joy/inputs/EventListenerQueue.hpp"
+#include "teleop_arm_joy/inputs/events/EventListenerQueue.hpp"
 
 namespace teleop_arm_joy {
 void EventListenerQueue::service(const rclcpp::Time& now) {

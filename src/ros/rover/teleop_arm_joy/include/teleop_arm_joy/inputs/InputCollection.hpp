@@ -5,16 +5,16 @@
 #ifndef TELEOP_ARM_JOY_INPUTCOLLECTION_HPP
 #define TELEOP_ARM_JOY_INPUTCOLLECTION_HPP
 
-#include "Input.hpp"
+#include "InputCommon.hpp"
 
 namespace teleop_arm_joy {
 
-template<typename T>
+template<typename InputT>
 class InputCollection {
 public:
 
   // Container type aliases
-  using value_type = std::shared_ptr<Input<T>>;
+  using value_type = std::shared_ptr<InputT>;
   using reference = value_type&;
   using const_reference = const value_type&;
   using size_type = std::size_t;
@@ -24,7 +24,7 @@ public:
   class Iterator {
   public:
     using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = std::shared_ptr<Input<T>>;
+    using value_type = std::shared_ptr<InputT>;
     using difference_type = std::ptrdiff_t;
 
     // Conditional types based on const-ness
@@ -35,10 +35,10 @@ public:
       const value_type*,
       value_type*>;
     using base_iterator = typename std::conditional_t<is_const,
-      typename std::map<std::string, std::weak_ptr<Input<T>>>::const_iterator,
-      typename std::map<std::string, std::weak_ptr<Input<T>>>::iterator>;
+      typename std::map<std::string, std::weak_ptr<InputT>>::const_iterator,
+      typename std::map<std::string, std::weak_ptr<InputT>>::iterator>;
 
-    using map_type = std::map<std::string, std::weak_ptr<Input<T>>>;
+    using map_type = std::map<std::string, std::weak_ptr<InputT>>;
     using map_pointer = typename std::conditional_t<is_const,
       const map_type*,
       map_type*>;
@@ -141,7 +141,7 @@ public:
   using iterator = Iterator<false>;
   using const_iterator = Iterator<true>;
 
-  std::shared_ptr<Input<T>> operator[](const std::string& key) {
+  std::shared_ptr<InputT> operator[](const std::string& key) {
     // Find the element
     auto it = items_.find(key);
 
@@ -155,7 +155,7 @@ public:
     }
 
     // Create a new input if it isn't already in the collection
-    const auto new_item = std::make_shared<Input<T>>(key);
+    const auto new_item = std::make_shared<InputT>(key);
 
     items_[key] = new_item;
     return new_item;
@@ -195,7 +195,7 @@ public:
   }
 
 private:
-  std::map<std::string, std::weak_ptr<Input<T>>> items_{};
+  std::map<std::string, std::weak_ptr<InputT>> items_{};
 };
 
 } // teleop_arm_joy

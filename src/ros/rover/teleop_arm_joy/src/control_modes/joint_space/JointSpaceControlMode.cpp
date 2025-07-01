@@ -26,7 +26,7 @@ void JointSpaceControlMode::on_configure(InputManager& inputs) {
     params_.topic, qos_profile);
 
   // Get interested inputs
-  locked_ = inputs.get_booleans()[params_.locked_input_name];
+  locked_ = inputs.get_buttons()[params_.locked_input_name];
   speed_coefficient_ = inputs.get_axes()[params_.speed_input_name];
 
   const auto joint_count = params_.joints.joint_definitions_map.size();

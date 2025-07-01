@@ -11,7 +11,7 @@
 #include <rclcpp/node.hpp>
 #include <rclcpp/node_interfaces/node_base_interface.hpp>
 
-#include "teleop_arm_joy/inputs/Input.hpp"
+#include "teleop_arm_joy/inputs/InputCommon.hpp"
 #include "teleop_arm_joy/inputs/InputManager.hpp"
 
 namespace teleop_arm_joy {

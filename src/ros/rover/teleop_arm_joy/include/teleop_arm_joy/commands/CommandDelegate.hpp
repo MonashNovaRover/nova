@@ -7,10 +7,11 @@
 #include <memory>
 #include <rclcpp/node.hpp>
 
-#include "teleop_arm_joy/control_modes/ControlModeManager.hpp"
 #include "teleop_arm_joy/inputs/InputManager.hpp"
 
 namespace teleop_arm_joy {
+
+class ControlModeManager;  // Forward declaration
 
 /**
  * Delegate interface allowing Actions to access the internals of the teleop_arm_joy node in a controlled manner.

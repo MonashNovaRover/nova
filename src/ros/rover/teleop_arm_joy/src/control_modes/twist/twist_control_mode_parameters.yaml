@@ -3,11 +3,11 @@
 twist_control_mode:
   topic:
     type: string
-    default_value: "/arm_ik_twist_stamped"
+    default_value: ""
     description: "The topic to publish TwistStamped messages to."
   frame_id:
     type: string
-    default_value: "base_link"
+    default_value: ""
     description: "The name of the reference frame twist messages are relative to. Included as the header.frame_id of all sent TwistStamped messages."
 
   max_speed:

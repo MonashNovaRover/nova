@@ -11,10 +11,9 @@
 // generate_parameter_library_cpp include/teleop_arm_joy/teleop_arm_joy_parameters.hpp src/parameters.yaml
 #include "teleop_arm_joy_parameters.hpp"
 //#include <teleop_arm_joy/teleop_arm_joy_parameters.hpp>
-#include "commands/CommandManager.hpp"
 #include "control_modes/ControlModeManager.hpp"
-#include "inputs/state/State.hpp"
 #include "input_sources/InputSourceManager.hpp"
+#include "commands/CommandManager.hpp"
 
 namespace teleop_arm_joy
 {
@@ -55,7 +54,7 @@ namespace teleop_arm_joy
     std::shared_ptr<InputSourceManager> input_source_manager_ = nullptr;
     std::shared_ptr<CommandManager> commands_ = nullptr;
 
-    std::shared_ptr<State<bool>> locked_ = std::make_shared<State<bool>>("locked", true);
+    bool locked_ = true;
   };
 
 } // namespace teleop_arm_joy

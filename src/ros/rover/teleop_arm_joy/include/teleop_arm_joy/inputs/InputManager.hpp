@@ -7,11 +7,12 @@
 
 #include <rclcpp/node_interfaces/node_logging_interface.hpp>
 
-#include "EventListenerQueue.hpp"
-#include "collated/CollatedCollection.hpp"
-#include "collated/CollatedInput.hpp"
-#include "Input.hpp"
-#include "EventCollection.hpp"
+#include "teleop_arm_joy/inputs/events/EventListenerQueue.hpp"
+#include "InputCommon.hpp"
+#include "teleop_arm_joy/inputs/events/EventCollection.hpp"
+#include "InputCollection.hpp"
+#include "teleop_arm_joy/inputs/Button.hpp"
+#include "teleop_arm_joy/inputs/Axis.hpp"
 
 namespace teleop_arm_joy {
 
@@ -22,11 +23,11 @@ class InputManager {
 public:
   InputManager();
   // Accessors
-  [[nodiscard]] Collection<Input<double>>& get_axes() {
-    return axes_;
+  [[nodiscard]] InputCollection<Button>& get_buttons() {
+    return buttons_;
   }
-  [[nodiscard]] Collection<Input<bool>>& get_booleans() {
-    return booleans_;
+  [[nodiscard]] InputCollection<Axis>& get_axes() {
+    return axes_;
   }
   [[nodiscard]] EventCollection& get_events() {
     return events_;
@@ -35,8 +36,8 @@ public:
   void update(const rclcpp::Time& now);
 
 protected:
-  CollatedCollection<Input<double>, CollatedInput<double>> axes_{};
-  CollatedCollection<Input<bool>, CollatedInput<bool>> booleans_{};
+  InputCollection<Button> buttons_{};
+  InputCollection<Axis> axes_{};
 
   EventCollection events_;
   std::shared_ptr<EventListenerQueue> event_listener_queue_ = nullptr;

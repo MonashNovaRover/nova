@@ -8,6 +8,8 @@
 #include "joint_space_control_mode_parameters.hpp"
 #include "teleop_arm_joy/control_modes/ControlMode.hpp"
 #include "nova_interfaces/msg/arm_fk_velocity_targets.hpp"
+#include "teleop_arm_joy/inputs/Button.hpp"
+#include "teleop_arm_joy/inputs/Axis.hpp"
 // generate_parameter_library_cpp include/teleop_arm_joy/control_modes/joint_space/joint_space_control_mode_parameters.hpp src/control_modes/joint_space/joint_space_control_mode_parameters.yaml
 
 namespace teleop_arm_joy {
@@ -33,7 +35,7 @@ protected:
   struct JointHandle {
     std::string name;
     joint_space_control_mode::Params::Joints::MapJointDefinitions config;
-    Input<double>::SharedPtr input;
+    Axis::SharedPtr input;
   };
 
   ~JointSpaceControlMode() override = default;
@@ -43,8 +45,8 @@ protected:
   joint_space_control_mode::Params params_;
 
   /// Input from 0 to 1 that directly scales the output speed.
-  Input<double>::SharedPtr speed_coefficient_;
-  Input<bool>::SharedPtr locked_;
+  Axis::SharedPtr speed_coefficient_;
+  Button::SharedPtr locked_;
 
   /// Inputs for each joint in params_.joint_definitions, in the same order as params_.joint_definitions
   std::vector<JointHandle> joints_;

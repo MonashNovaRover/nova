@@ -3,6 +3,7 @@
 //
 
 #include "../../include/teleop_arm_joy/commands/SwitchControlModeCommand.hpp"
+#include "teleop_arm_joy/control_modes/ControlModeManager.hpp"
 
 namespace teleop_arm_joy {
 
@@ -25,5 +26,7 @@ void SwitchControlModeCommand::execute(CommandDelegate& context, const rclcpp::T
 }
 
 } // teleop_arm_joy
+
+#include <pluginlib/class_list_macros.hpp>
 
 CLASS_LOADER_REGISTER_CLASS(teleop_arm_joy::SwitchControlModeCommand, teleop_arm_joy::Command);

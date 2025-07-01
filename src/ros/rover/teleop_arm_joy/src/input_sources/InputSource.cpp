@@ -16,10 +16,6 @@ void InputSource::initialize(const std::shared_ptr<rclcpp::Node>& node, const st
   on_initialize();
 }
 
-void InputSource::configure(InputManager& inputs) {
-  on_configure(inputs);
-}
-
 void InputSource::update(const rclcpp::Time& now) {
   on_update(now);
 }
