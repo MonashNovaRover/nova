@@ -61,6 +61,55 @@ teleop_arm_joy_node:
         type: "log"
         message: "Unlocked"
 
+joy_input_source:
+  ros__parameters:
+    axis_definitions: [
+      "left_stick_x"
+      "left_stick_y"
+      "right_stick_x"
+      "right_stick_y"
+    ]
+    button_definitions: [
+      "twist_mode",
+      "limit_on",
+      "limit_off",
+      "lock",
+      "unlock"
+    ]
+
+    # Convert input source names to meaningful mapped names
+    # This logic is to be provided by the InputSourceManager when adding InputDeclarations as definitions for input
+    # objects. The motivation is to share complex configuration functionality I created for joy inputs across any
+    # inputs. This makes it easier to implement other input sources in the future and reuse code in a way that allows
+    # all input sources to benefit from potential optimizations made to remapping.
+    #
+    # TODO: Should modification be made to the inputs directly?
+    input_definitions:
+      J1:
+        from: "left_stick_x"
+      J2:
+        from: "left_stick_y"
+        invert: true
+        # Remap the range of the input from [-1, 1] to [0, 1]
+        range:
+          in: [-1, 1]
+          out: [0, 1]
+          # Optionally, clamp the value
+          limit: true
+      J3:
+        from: "left_stick_x"
+        # Remap the range of the input from [-1, 1] to [0, 1]
+        range:
+          in: [-1, 1]
+          # You can also clamp the value without remapping the output range
+          limit: true
+      J4:
+        from: "right_stick_x"
+        in: -1.0
+        out_min: 0.0
+      J5:
+        from: "left_stick_x"
+
 joint_space_control:
   ros__parameters:
     joint_definitions: [
@@ -92,135 +141,6 @@ joint_space_control:
         input_name: "J6"
         max_speed: 0.364467013889
 
-joy_input_source:
-  ros__parameters:
-    joint_definitions: [
-      "J1",
-      "J2",
-      "J3",
-      "J4",
-      "J5",
-      "J6"
-    ]
-    axis_definitions: [
-      "J1",
-      "J2",
-      "J3",
-      "J4",
-      "J5",
-      "J6",
-      "speed",
-      "offset",
-      "twist_x",
-      "twist_y",
-      "twist_z",
-      "twist_yaw",
-      "twist_pitch",
-      "twist_roll"
-    ]
-    button_definitions: [
-      "twist_mode",
-      "limit_on",
-      "limit_off",
-      "lock",
-      "unlock"
-    ]
-
-    twist:
-      linear_max: 0.25
-      angular_max: 0.785398163395
-    joints:
-      J1:
-        max_speed: 0.364467013889
-      J2:
-        max_speed: 0.364467013889
-      J3:
-        max_speed: 0.364467013889
-      J4:
-        max_speed: 0.364467013889
-      J5:
-        max_speed: 0.364467013889
-      J6:
-        max_speed: 0.364467013889
-    device_names: ["gamepad"]
-    devices:
-      gamepad:
-        topic: "/joy"
-    axes:
-      J1:
-        device: "gamepad"
-        id: 6
-      J2:
-        device: "gamepad"
-        id: 7
-        invert: true
-      J3:
-        device: "gamepad"
-        button_id_negative: 0
-        button_id_positive: 3
-        invert: true
-
-      J4:
-        device: "gamepad"
-        id: 4
-      J5:
-        device: "gamepad"
-        id: 3
-#        button_id_negative: 2
-#        button_id_positive: 1
-      J6:
-        device: "gamepad"
-        button_id_negative: 1
-        button_id_positive: 2
-
-      speed:
-        device: "gamepad"
-        id: 5
-        invert: true
-#      offset:
-#        device: "gamepad"
-#        id: 4
-
-
-      twist_x:
-        device: "gamepad"
-        id: 6
-      twist_y:
-        device: "gamepad"
-        id: 7
-      twist_z:
-        device: "gamepad"
-        button_id_negative: 0
-        button_id_positive: 3
-
-      twist_yaw:
-        device: "gamepad"
-        id: 3
-      twist_pitch:
-        device: "gamepad"
-        id: 4
-        invert: true
-      twist_roll:
-        device: "gamepad"
-        button_id_negative: 2
-        button_id_positive: 1
-
-    buttons:
-      twist_mode:
-        device: "gamepad"
-        id: 4
-      limit_on:
-        device: "gamepad"
-        id: 4
-      limit_off:
-        device: "gamepad"
-        id: 4
-      lock:
-        device: "gamepad"
-        id: 8
-      unlock:
-        device: "gamepad"
-        id: 9
 
 
 # trigger:
