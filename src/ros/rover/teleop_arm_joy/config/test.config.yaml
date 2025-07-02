@@ -84,7 +84,7 @@ joy_input_source:
     # all input sources to benefit from potential optimizations made to remapping.
     #
     # TODO: Should modification be made to the inputs directly?
-    input_definitions:
+    remap:
       J1:
         from: "left_stick_x"
       J2:
