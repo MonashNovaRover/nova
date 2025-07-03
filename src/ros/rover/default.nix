@@ -36,15 +36,7 @@
     nova-auto-interfaces = callPackage ./nav2_autonomous/nova_auto_interfaces { };
     nova-utils = callPackage ./nova_utils { };
     lattice-primitive-generator = callPackage ./lattice_primitive_generator { };
-    nova-pivot-drive-controller = callPackage ./controllers/pivot_drive_controller { };
-    nova-strafe-controller = callPackage ./controllers/strafe_controller { };
-    nova-diff-drive-controller = callPackage ./controllers/nova_diff_drive_controller { };
-    nova-arm-controller = callPackage ./controllers/nova_arm_controller { };
-    nova-twistmapper = callPackage ./controllers/nova_twistmapper { };
-    nova-path-planner = callPackage ./controllers/nova_path_planner { };
-    nova-banksia-kinematics-plugin = callPackage ./controllers/banksia_kinematics_plugin { };
-    nova-waratah-kinematics-plugin = callPackage ./controllers/waratah_kinematics_plugin { };
-  };
+  } // import ./controllers { inherit pkgs; };
 
   #pythonPackages = pythonPackages: with pythonPackages; {
     
