@@ -46,7 +46,7 @@ in
     };
 
     peripherals.webcams.enable = true;
-    peripherals.realsense.enable = true;
+    peripherals.realsense.enable = false;
     peripherals.oak-d.enable = true;
     peripherals.hydraprobe.enable = true;
   };
