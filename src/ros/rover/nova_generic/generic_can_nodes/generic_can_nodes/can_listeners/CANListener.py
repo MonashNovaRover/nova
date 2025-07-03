@@ -38,13 +38,17 @@ class CANListener(Node, abc.ABC):
         self.publisher = self.create_publisher(message_type, self.listener_params.topic, 10)
 
         # start up can bus
+        self.setup_can()
+
+        # signal successful start
+        self.get_logger().info(f"{self.get_name()} listening to {format(self.listener_params.frame_id, '#05x')}")
+
+    def setup_can(self):
+        """Setup can interfaces"""
         self.bus = jcan.Bus()
         self.timer_jcan_spin = self.create_timer(1 / self.listener_params.update_rate, self.bus.spin)
         self.bus.add_callback(self.listener_params.frame_id, self.frame_callback)
         self.bus.open(self.listener_params.can_bus)
-
-        # signal successful start
-        self.get_logger().info(f"{self.get_name()} listening to {format(self.listener_params.frame_id, '#05x')}")
 
     def frame_callback(self, frame: jcan.Frame):
         """Records the frame received from the CAN bus"""
