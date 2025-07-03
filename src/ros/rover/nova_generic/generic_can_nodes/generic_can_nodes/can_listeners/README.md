@@ -44,45 +44,39 @@ To see all config options, please look at the corresponding [parameter definitio
 
 ## Development
 
-If you have an idea for a new generic can listener feel free to add, however if you have a specific circumstance with a specific mapping you can extend one of the current listeners.
+If you have an idea for a new generic can listener feel free to add, however if you have a specific circumstance with a specific mapping you can extend or develop one of the current listeners.
 
-eg:
+### Example 1: Float -> custom logic -> Float
+
+For example you want to apply a custom calibration function to convert raw CAN data to a useful value.
+
+<details markdown="1">
+<summary>
+Example Code
+</summary> 
 
 ```python
 #!/usr/bin/env python3
 
 import rclpy
-import jcan
 from generic_can_nodes.can_listeners.CANNumberListener import CANNumberListener
-from nova_interfaces.msg import CustomMsg
 
-class CustomerCANListener(CANNumberListener):
+class CustomCANListener(CANNumberListener):
     """Class to represent a CAN Listener that processes numbers"""
 
     def __init__(self):
-        super().__init__("CustomCanListener", CustomMsg)
+        super().__init__(name="CustomCanListener")
 
-    def create_msg(self, frame: jcan.Frame) -> CustomMsg:
+    def mapper(self, num: float) -> float:
         """ Does some custom logic """
-        floatMsg = super().create_msg(frame)
-        msg = CustomMsg()
-        msg.header = floatMsg.header
-
-        if frame is None:
-            msg.data = self.params.initial_value
-            return msg
-
-        data = floatMsg.data
         
         # do some custom logic
-
-        msg.data = data
         
-        return msg
+        return result
 
 def main():
     rclpy.init()
-    custom_can_listener = CustomerCANListener()
+    custom_can_listener = CustomCANListener()
     rclpy.spin(custom_can_listener)
     rclpy.shutdown()
 
@@ -90,3 +84,13 @@ if __name__ == "__main__":
     main()
 
 ```
+
+</details>
+
+### Example 2: jcan.Frame -> custom logic -> Custom Msg
+
+For implementing a custom child class of `CANListener`. 
+See `CANBoolListener` and `CANNumberListener` for examples on how to do this.
+
+ custom logic within the CANListener - see `DynamicCANListener` for an example on how to do this.
+ 

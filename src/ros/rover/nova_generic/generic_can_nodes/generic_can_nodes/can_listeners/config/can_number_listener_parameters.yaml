@@ -6,8 +6,8 @@ can_number_listener_parameters:
 
   length:
     type: int
-    default_value: 2
-    description: "Length of expected data in message in bytes (two hex digits). Does not include command IDs."
+    default_value: -1
+    description: "Length of expected data in message in bytes (two hex digits). Does not include command IDs. -1 if all available data should be used."
 
   scale:
     type: double

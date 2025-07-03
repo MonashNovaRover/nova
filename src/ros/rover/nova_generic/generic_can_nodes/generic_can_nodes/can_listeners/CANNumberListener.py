@@ -29,8 +29,12 @@ class CANNumberListener(CANListener):
         self.param_listener = can_number_listener_parameters.ParamListener(self)
         self.params = self.param_listener.get_params()
 
+    def mapper(self, num: float) -> float:
+        """ Applies a scale and offset to the number """
+        return num * self.params.scale + self.params.offset
+
     def create_msg(self, frame: jcan.Frame) -> Float64:
-        """ Converts frame to an integer and then applies scale and offset"""
+        """ Converts frame to an integer and then mapper function to the data """
         msg = Float64()
         msg.header.stamp = self.get_clock().now().to_msg()
 
@@ -39,10 +43,12 @@ class CANNumberListener(CANListener):
             return msg
 
         # gets the last length number of frames - excludes the command id if there is one.
-        data = [frame.data[i] for i in range(-self.params.length, 0)]
+        start_pos = 0 if self.listener_params.command_id < 0 else 1
+        end_pos = len(frame.data) if self.params.length < 0 else start_pos + self.params.length
+        data = [frame.data[i] for i in range(start_pos, end_pos)]
 
         signed_int = int.from_bytes(data, byteorder='big', signed=True)
-        msg.data = signed_int * self.params.scale + self.params.offset
+        msg.data = self.mapper(signed_int)
 
         return msg
 
