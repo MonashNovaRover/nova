@@ -20,7 +20,7 @@ teleop_arm_joy_node:
       task_space_control:
         type: "teleop_arm_joy/TwistControlMode"
         controllers: [
-          "nova_arm_position_controller"
+          "nova_arm_position_controller",
           "nova_twistmapper"
         ]
 
@@ -38,7 +38,7 @@ teleop_arm_joy_node:
         "enter_twist_ik_control",
         "enter_joint_space_control",
         "log_locked",
-        "log_unlocked",
+        "log_unlocked"
       ]
 
       # Configure your commands here.
@@ -64,9 +64,9 @@ teleop_arm_joy_node:
 joy_input_source:
   ros__parameters:
     axis_definitions: [
-      "left_stick_x"
-      "left_stick_y"
-      "right_stick_x"
+      "left_stick_x",
+      "left_stick_y",
+      "right_stick_x",
       "right_stick_y"
     ]
     button_definitions: [
@@ -100,7 +100,7 @@ joy_input_source:
         from: "left_stick_x"
         # Remap the range of the input from [-1, 1] to [0, 1]
         range:
-          in: [-1, 1]
+          in: [-1.0, 1.0]
           # You can also clamp the value without remapping the output range
           limit: true
       J4:
@@ -112,6 +112,9 @@ joy_input_source:
 
 joint_space_control:
   ros__parameters:
+    # TODO: get the actual name from arm code
+    topic: "/todo_joint_space"
+
     joint_definitions: [
       "arm_j1",
       "arm_j2",
@@ -141,6 +144,10 @@ joint_space_control:
         input_name: "J6"
         max_speed: 0.364467013889
 
+task_space_control:
+  ros__parameters:
+    # TODO: get the actual name from arm code
+    topic: "/todo_task_space"
 
 
 # trigger:

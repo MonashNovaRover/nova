@@ -21,7 +21,7 @@ protected:
   void export_axes(std::vector<InputDeclaration<double>>& definitions) override;
 
 private:
-  void joy_callback(const sensor_msgs::msg::Joy::SharedPtr& msg);
+  void joy_callback(sensor_msgs::msg::Joy::SharedPtr msg);
 
   std::shared_ptr<joy_input_source::ParamListener> param_listener_;
   joy_input_source::Params params_;
@@ -50,7 +50,7 @@ private:
   std::vector<JoyButton> buttons_;
 
   rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr subscription_;
-  sensor_msgs::msg::Joy::SharedPtr joy_msg_ = std::make_shared<sensor_msgs::msg::Joy>();
+  sensor_msgs::msg::Joy::SharedPtr joy_msg_ = nullptr;
   std::mutex joy_msg_mutex_{};
 };
 

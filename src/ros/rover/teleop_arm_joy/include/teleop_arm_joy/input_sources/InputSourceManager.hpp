@@ -23,8 +23,8 @@ class InputSourceManager final : public InputSourceUpdateDelegate, public std::e
 
 public:
   InputSourceManager() = default;
-  explicit InputSourceManager(const std::shared_ptr<rclcpp::Node>& node, const std::weak_ptr<rclcpp::Executor>& executor)
-    : node_(node), executor_(executor) {}
+  explicit InputSourceManager(const std::shared_ptr<rclcpp::Node>& node, const std::weak_ptr<rclcpp::Executor>& executor, InputManager& inputs)
+    : node_(node), executor_(executor), inputs_(std::ref(inputs)) {}
 
   /**
    * Populates the sources_ from the params in node_.
@@ -49,22 +49,52 @@ public:
 
   void update(const rclcpp::Time& now) const;
 
+
+  bool create_input_source(const std::string& input_source_name);
+
 private:
-  void setup_input_sources(InputManager& inputs);
+  /// Used to associate any additional information with handles (such as for remapping)
+  template<typename T>
+  struct InputDeclarationHandle {
+    InputDeclaration<T> declaration;
+  };
+
+  /// For each InputSource we store, we associate some extra metadata.
+  struct InputSourceHandle {
+    std::shared_ptr<InputSource> source;
+
+    std::vector<InputDeclarationHandle<bool>> button_handles{};
+    std::vector<InputDeclarationHandle<double>> axis_handles{};
+
+    explicit InputSourceHandle(const std::shared_ptr<InputSource>& source) : source(source) {}
+  };
+
+  InputSourceHandle create_input_source_handle(const std::shared_ptr<InputSource>& input_source_class) const;
+  void add_input_source_input_definitions(InputSourceHandle& handle) const;
+  /// Takes away the inputs added by add_input_source_input_definitions from inputs_.
+  void remove_input_source_input_definitions(InputSourceHandle& handle) const;
+  void setup_input_sources();
 
   /// The owning teleop_arm_joy ROS2 node.
   std::shared_ptr<rclcpp::Node> node_;
   /// Add spawned nodes to this to get them to spin
   std::weak_ptr<rclcpp::Executor> executor_;
+  /// A reference to the input manager used for linking
+  std::reference_wrapper<InputManager> inputs_;
 
   std::weak_ptr<ParamListener> param_listener_;
   Params params_;
 
   /// Loads the control modes, and needs to stay alive during the whole lifecycle of the control modes.
   std::unique_ptr<pluginlib::ClassLoader<InputSource>> source_loader_;
-  std::vector<std::shared_ptr<InputSource>> sources_{};
 
+  /// The structure that holds all the tests
+  std::vector<InputSourceHandle> sources_{};
+
+  /// Mutex for handling input update requests made by nodes for each input source running on different threads to the
+  /// main update thread.
   std::mutex mutex_;
+  /// Lock that waits until should_update_ is true.
   std::condition_variable update_condition_;
   std::atomic<bool> should_update_ = false;
   std::queue<std::weak_ptr<InputSource>> sources_to_update_;

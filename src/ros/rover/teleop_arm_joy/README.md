@@ -15,14 +15,31 @@ Input sources provide input values. This could be a joystick, a keyboard, etc. A
 
 TODO: Write
 
+### How input sources work
+
+Each input source has its own node, with the same name as the input source name defined in your `teleop` node's 
+parameter file, that can be used to:
+  - Declare and get parameters to configure the input source
+  - Create topic subscriptions, services, etc.
+The node is spun on its own separate thread to input updates. You can store any data you receive in a member variable 
+during topic subscription callbacks, then call `InputSource::request_update(rclcpp::Time now)` to have the main input 
+thread call your `InputSource` implementation's `update(rclcpp::Time now)` method.
+
+If you don't use a ROS2 topic to get the input values for your `InputSource`, you can also start up your own thread in
+`TODO: Determine the appropriate place to allow this`, and clean up the thread in `TODO: make a end of lifecycle virtual
+method`.
+
 ### Input remapping
 
 `teleop` makes it easy to write new input sources, that are feature-rich with minimal implementation. `teleop` was 
 written with the idea that to share complex input remapping functionality across many input sources, it should be 
 implemented once as part of big `teleop`'s input management scheme.
 
-To get comprehensive input remapping for a custom input source, all your input source needs to do is export a set of `{std::string, double&}` pairs for axes and `{std::string, bool&}`
-for buttons. A new input source is feature-rich and configurable by default.
+To get comprehensive input remapping for a custom input source, all your input source needs to do is export a set of 
+`{std::string, double&}` pairs for axes and `{std::string, bool&}` for buttons. This is done in the 
+`export_buttons(std::vector<InputDeclaration<bool>>& declarations)` and 
+`export_axes(std::vector<InputDeclaration<double>>& declarations)` methods in your `InputSource` implementation. 
+A new input source is feature-rich and configurable by default.
 
 ```yaml
 joy_input_source:

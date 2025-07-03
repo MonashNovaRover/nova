@@ -31,14 +31,16 @@ TeleopArmJoy::TeleopArmJoy(const rclcpp::NodeOptions &options)
 }
 
 void TeleopArmJoy::initialize(const std::weak_ptr<rclcpp::Executor>& executor, const std::shared_ptr<TeleopArmJoy>& self) {
+  // TODO: Passing a pointer to itself is a bodge. We should refactor to a composition style, rather than inheritance.
+
   // Create publishers
   param_listener_ = std::make_shared<ParamListener>(shared_from_this());
   params_ = param_listener_->get_params();
 
   inputs_ = InputManager();
-//  inputs_.get_buttons().add("locked", std::static_pointer_cast<Input<bool>>(locked_));
+  // inputs_.get_buttons().add("locked", std::static_pointer_cast<Input<bool>>(locked_));
 
-  input_source_manager_ = std::make_shared<InputSourceManager>(shared_from_this(), executor);
+  input_source_manager_ = std::make_shared<InputSourceManager>(shared_from_this(), executor, inputs_);
   input_source_manager_->configure(param_listener_, inputs_);
 
   control_mode_manager_ = std::make_shared<ControlModeManager>(shared_from_this(), executor);
@@ -81,6 +83,7 @@ void TeleopArmJoy::log_all_inputs() {
   // TODO: killing the thread
   while (true) {
     const auto now = input_source_manager_->wait_for_update();
+
     const auto period = now - previous;
 
     // TODO: Update inputs here

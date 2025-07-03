@@ -22,9 +22,9 @@ void ControlModeManager::configure(InputManager& inputs) {
   switch_controller_client_ = node_->create_client<controller_manager_msgs::srv::SwitchController>("/controller_manager/switch_controller");
 
   // Declare and get parameter for control modes to spawn by default
-  node_->declare_parameter("control_modes", rclcpp::ParameterType::PARAMETER_STRING_ARRAY);
+  node_->declare_parameter("control_modes.names", rclcpp::ParameterType::PARAMETER_STRING_ARRAY);
   rclcpp::Parameter control_modes_param;
-  node_->get_parameter("control_modes", control_modes_param);
+  node_->get_parameter("control_modes.names", control_modes_param);
 
   // Pluginlib for loading control modes dynamically
   control_mode_loader_ = std::make_unique<pluginlib::ClassLoader<ControlMode>>(
@@ -235,11 +235,11 @@ bool ControlModeManager::switch_controllers(const ControlMode& next) const {
 bool ControlModeManager::get_type_for_control_mode(const std::string& name, std::string& control_mode_type) const {
   // TODO: Check that the parameter hasn't already been defined
   // TODO: Display names
-  node_->declare_parameter(name + ".type", rclcpp::ParameterType::PARAMETER_STRING);
+  node_->declare_parameter("control_modes." + name + ".type", rclcpp::ParameterType::PARAMETER_STRING);
   // TODO: Remember that this parameter has already been defined
 
   rclcpp::Parameter param;
-  const auto result = node_->get_parameter(name + ".type", param);
+  const auto result = node_->get_parameter("control_modes." + name + ".type", param);
 
   if (result)
     control_mode_type = param.as_string();

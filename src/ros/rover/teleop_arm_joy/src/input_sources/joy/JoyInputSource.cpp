@@ -2,7 +2,6 @@
 // Created by nova on 6/11/25.
 //
 
-#include <xtl/xspan_impl.hpp>
 #include "../../../include/teleop_arm_joy/input_sources/joy/JoyInputSource.hpp"
 
 #include "colors.h"
@@ -51,7 +50,7 @@ void JoyInputSource::export_axes(std::vector<InputDeclaration<double>>& declarat
   }
 }
 
-void JoyInputSource::joy_callback(const sensor_msgs::msg::Joy::SharedPtr& msg) {
+void JoyInputSource::joy_callback(sensor_msgs::msg::Joy::SharedPtr msg) {
   std::unique_lock lock{joy_msg_mutex_};
   if (request_update(msg->header.stamp)) {
     joy_msg_ = msg;
@@ -66,13 +65,16 @@ void JoyInputSource::on_update(const rclcpp::Time& now) {
     joy_msg = joy_msg_;
   }
 
+  if (!joy_msg)
+    return;
+
   // Apply button values
   for (auto& button : buttons_) {
     // Assume any buttons with ids < 0 have been filtered out already
-    if (joy_msg_->buttons.size() <= button.params.id)
+    if (joy_msg->buttons.size() <= button.params.id)
       continue;
 
-    button.value = joy_msg_->buttons[button.params.id];
+    button.value = joy_msg->buttons[button.params.id];
   }
 
   // Apply axis values
@@ -80,17 +82,17 @@ void JoyInputSource::on_update(const rclcpp::Time& now) {
     axis.value = 0.0;
 
     // Apply direct axis input
-    if (axis.params.id >= 0 && joy_msg_->axes.size() > axis.params.id) {
-      axis.value = joy_msg_->axes[axis.params.id];
+    if (axis.params.id >= 0 && joy_msg->axes.size() > axis.params.id) {
+      axis.value = joy_msg->axes[axis.params.id];
     }
 
     // Apply axis from buttons
-    if (axis.params.button_id_positive >= 0 && joy_msg_->buttons.size() > axis.params.id) {
-      if (joy_msg_->buttons[axis.params.button_id_positive])
+    if (axis.params.button_id_positive >= 0 && joy_msg->buttons.size() > axis.params.id) {
+      if (joy_msg->buttons[axis.params.button_id_positive])
         axis.value += 1.0;
     }
-    if (axis.params.button_id_negative >= 0 && joy_msg_->buttons.size() > axis.params.id) {
-      if (joy_msg_->buttons[axis.params.button_id_negative])
+    if (axis.params.button_id_negative >= 0 && joy_msg->buttons.size() > axis.params.id) {
+      if (joy_msg->buttons[axis.params.button_id_negative])
         axis.value -= 1.0;
     }
 

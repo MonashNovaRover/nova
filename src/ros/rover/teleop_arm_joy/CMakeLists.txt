@@ -54,7 +54,6 @@ add_executable(${PROJECT_NAME}_node
   src/teleop_arm_joy.cpp
   src/control_modes/ControlMode.cpp
   src/control_modes/ControlModeManager.cpp
-  src/inputs/InputManager.cpp
   src/input_sources/InputSourceManager.cpp
   src/input_sources/InputSource.cpp
   src/commands/Command.cpp
@@ -87,6 +86,8 @@ add_library(${PROJECT_NAME} SHARED
   src/inputs/EventCollection.cpp
   src/inputs/EventListenerQueue.cpp
   src/inputs/InputCollection.cpp
+
+  src/input_sources/InputSource.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_node

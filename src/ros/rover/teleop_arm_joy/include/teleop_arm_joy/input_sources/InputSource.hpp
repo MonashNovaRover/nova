@@ -38,6 +38,17 @@ public:
     return node_;
   }
 
+  // TODO: Better access control!
+
+  /// Should only be called by InputSourceManager!
+  void _export_buttons(std::vector<InputDeclaration<bool>>& declarations) {
+    export_buttons(declarations);
+  }
+  /// Should only be called by InputSourceManager!
+  void _export_axes(std::vector<InputDeclaration<double>>& declarations) {
+    export_axes(declarations);
+  }
+
 protected:
   /**
    * Called when starting up the input source, allowing the implementation to get configuration from it's node.
