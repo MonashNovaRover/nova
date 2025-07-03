@@ -4,9 +4,7 @@
 # Look here for docs about this YAML : https://github.com/PickNikRobotics/generate_parameter_library
 teleop_drive_joy:
   input_topic: { type: string, default_value: "/joy", description: "Input Topic for Joy Messages" }
-  output_topic: { type: string, default_value: "/drive_input", description: "Output Topic for DriveInput Messages" }
-  output_topic_twist: { type: string, default_value: "/cmd_vel", description: "Output Topic for Twist Commands" }
-  output_topic_info: { type: string, default_value: "/drive_info", description: "Output Topic for DriveInfo Messages" }
+  output_topic: { type: string, default_value: "/cmd_vel", description: "Output Topic for Twist Commands" }
   
   button_debounce_time:
     type: int
@@ -29,6 +27,7 @@ teleop_drive_joy:
       ]
     description: "List Of Controllers that can be used with teleop"
     read_only: true
+  
   __map_controllers:
     axis_linear_x:
       {
@@ -71,32 +70,18 @@ teleop_drive_joy:
   button_nova_diff_drive_controller:
     { type: int, default_value: 4, description: "Switch to Tank Mode" }
 
-  button_autonomous_control:
-    {
-      type: int,
-      default_value: 0,
-      description: "Enable autonomous operation - set enable_twist_cmd true for pivot_drive_controller",
-    }
-
-  button_manual_control:
-    {
-      type: int,
-      default_value: 1,
-      description: "Enable manual operation - set enable_twist_cmd false for pivot_drive_controller",
-    }
-
   axis_speed_change_fine:
     {
       type: int,
       default_value: 6,
-      description: "Axis to increment current speed on a Coarse Scale. This is usually mapped to DPad Horizontal",
+      description: "Axis to increment current speed on a coarse scale. This is usually mapped to DPad Horizontal",
     }
 
   axis_speed_change_coarse:
     {
       type: int,
       default_value: 7,
-      description: "Axis to increment current speed on a Coarse Scale. This is usually mapped to DPad Vertical",
+      description: "Axis to increment current speed on a coarse scale. This is usually mapped to DPad Vertical",
     }
 
   speed_change_coarse_val:
@@ -113,16 +98,18 @@ teleop_drive_joy:
       description: "Value to change speed when the speed_change_fine is invoked",
     }
 
+  # 1.0 = 100% max linear velocity, 0.5 = 50% max linear velocity, etc.
+  # Max linear velocity is defined by the controller e.g. pivot_drive_controller
   speed_limit_max:
     {
       type: double,
-      default_value: 1.2,
-      description: "Max speed that gets the Rover Arrested or the Max Clipping Value of Linear Velocity",
+      default_value: 1.0,
+      description: "Factor to limit the maximum speed of the Rover",
     }
 
   speed_limit_min:
     {
       type: double,
       default_value: 0.05,
-      description: "Min speed that gets the Rover get Honked At or the Min Clipping Value of Linear Velocity",
+      description: "Factor to limit the minimum speed of the Rover",
     }

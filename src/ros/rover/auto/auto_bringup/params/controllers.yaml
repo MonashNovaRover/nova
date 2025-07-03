@@ -75,14 +75,19 @@ pivot_drive_controller:
     right_drive_names: ["frw", "brw"]
     left_pivot_names: ["flp", "blp"]
     right_pivot_names: ["frp", "brp"]
-    open_loop: false
-    has_velocity_limits: true
-    has_acceleration_limits: true
-    max_velocity: 2.794144
-    min_velocity: -2.794144 
-    max_acceleration: 0.1
-    min_acceleration: -0.1
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+    open_loop: false
+    linear: # metres
+      has_velocity_limits: true
+      has_acceleration_limits: true
+      max_velocity: 2.794144
+      min_velocity: -2.794144
+      max_acceleration: 0.1
+      min_acceleration: -0.1
+    angular: # radians
+      has_velocity_limits: true
+      max_velocity: 3.5342 #2*pi*0.5625
+      min_velocity: -3.5342
 
 strafe_controller:
   ros__parameters:

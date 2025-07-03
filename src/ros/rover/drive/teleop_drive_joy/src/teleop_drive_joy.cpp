@@ -39,7 +39,6 @@ namespace teleop_drive_joy
   : Node("teleop_drive_joy_node", options),
     sent_lock_msg_(false),
     locked_(true),
-    autonomous_mode_(false),
     drive_mode_(nova_interfaces::msg::DriveInfo::PIVOT)
   {
   }
@@ -69,12 +68,9 @@ namespace teleop_drive_joy
 
   void TeleopDriveJoy::initializeInterfaces()
   {
-    drive_input_pub_ = this->create_publisher<nova_interfaces::msg::DriveInputStamped>(params_.output_topic, 50);
-    cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(params_.output_topic_twist, 50);
-    drive_info_pub_ = this->create_publisher<nova_interfaces::msg::DriveInfo>(params_.output_topic_info, 50);
-
     joy_sub_ = this->create_subscription<sensor_msgs::msg::Joy>(
         params_.input_topic, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joyCallback, this, _1));
+    cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(params_.output_topic, 50);
 
     switch_controller_client_ = this->create_client<controller_manager_msgs::srv::SwitchController>("/controller_manager/switch_controller");
     pivot_drive_client_ = this->create_client<rcl_interfaces::srv::SetParameters>("/pivot_drive_controller/set_parameters");
@@ -96,26 +92,6 @@ namespace teleop_drive_joy
       {
         locked_ = true;
         RCLCPP_INFO(this->get_logger(), "BUTTON: lock");
-      }
-    };
-    button_callbacks_[params_.button_autonomous_control] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg) {
-      if (!autonomous_mode_)
-      {
-        autonomous_mode_ = true;
-        setEnableTwistCmdForController(pivot_drive_client_, true);
-        setEnableTwistCmdForController(strafe_client_, true);
-        setEnableTwistCmdForController(nova_diff_drive_client_, true);
-        RCLCPP_INFO(this->get_logger(), "BUTTON: autonomous_control");
-      }
-    };
-    button_callbacks_[params_.button_manual_control] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg) {
-      if (autonomous_mode_)
-      {
-        autonomous_mode_ = false;
-        setEnableTwistCmdForController(pivot_drive_client_, false);
-        setEnableTwistCmdForController(strafe_client_, false);
-        setEnableTwistCmdForController(nova_diff_drive_client_, false);
-        RCLCPP_INFO(this->get_logger(), "BUTTON: manual_control");
       }
     };
     button_callbacks_[params_.button_pivot_drive_controller] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg) {
@@ -214,68 +190,25 @@ namespace teleop_drive_joy
     };
     double angular = joy_msg->axes[controller_params.axis_angular_y] * controller_params.scale_angular;
 
+    auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
+    cmd_vel_msg->twist.linear.x = linear.first;
     if (drive_mode_ == nova_interfaces::msg::DriveInfo::HOLONOMIC)
     {
-      auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
-      std::tie(cmd_vel_msg->twist.linear.x, cmd_vel_msg->twist.linear.y) = linear;
-      cmd_vel_msg->twist.angular.z = angular;
-      cmd_vel_msg->header.stamp = this->now();
-      
-      cmd_vel_pub_->publish(std::move(cmd_vel_msg));
+      cmd_vel_msg->twist.linear.y = linear.second;
     }
-    else if (autonomous_mode_)
-    {
-      auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
-      cmd_vel_msg->twist.linear.x = linear.first;
-      cmd_vel_msg->twist.angular.z = angular;
-      cmd_vel_msg->header.stamp = this->now();
-
-      cmd_vel_pub_->publish(std::move(cmd_vel_msg));
-    }
-    else
-    {
-      auto drive_input_msg = std::make_unique<nova_interfaces::msg::DriveInputStamped>();
-
-      drive_input_msg->drive_input.radius = angular == 0 ? INFINITY : (1.0 / std::pow(std::abs(angular), 2)) - 1;
-      drive_input_msg->drive_input.direction = angular > 0 ? -1 : angular < 0 ? 1
-                                                                              : 0;
-      drive_input_msg->drive_input.speed = linear.first;
-      drive_input_msg->header.stamp = this->now();
-
-      drive_input_pub_->publish(std::move(drive_input_msg));
-    }
+    cmd_vel_msg->header.stamp = this->now();
+    cmd_vel_pub_->publish(std::move(cmd_vel_msg));
 
     sent_lock_msg_ = false;
-    auto drive_info_msg = std::make_unique<nova_interfaces::msg::DriveInfo>();
-    drive_info_msg->locked = locked_;
-    drive_info_msg->autonomous_mode = autonomous_mode_;
-    drive_info_msg->drive_mode = drive_mode_;
-
-    drive_info_pub_->publish(std::move(drive_info_msg));
   }
 
   void TeleopDriveJoy::sendHaltCommand()
   {
     if (sent_lock_msg_) return;
 
-    if (!autonomous_mode_)
-    {
-      auto drive_input_msg = std::make_unique<nova_interfaces::msg::DriveInputStamped>();
-      drive_input_msg->drive_input.radius = INFINITY;
-      drive_input_pub_->publish(std::move(drive_input_msg));
-    }
-    else
-    {
-      auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
-      cmd_vel_pub_->publish(std::move(cmd_vel_msg));
-    }
+    auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
+    cmd_vel_pub_->publish(std::move(cmd_vel_msg));
     
-    auto drive_info_msg = std::make_unique<nova_interfaces::msg::DriveInfo>();
-    drive_info_msg->locked = locked_;
-    drive_info_msg->autonomous_mode = autonomous_mode_;
-    drive_info_msg->drive_mode = drive_mode_;
-
-    drive_info_pub_->publish(std::move(drive_info_msg));
     sent_lock_msg_ = true;
   }
 
@@ -304,30 +237,6 @@ namespace teleop_drive_joy
 
     drive_mode_ = requested_control_mode;
   }
-
-  void TeleopDriveJoy::setEnableTwistCmdForController(const std::shared_ptr<rclcpp::Client<rcl_interfaces::srv::SetParameters>> &client, bool enable)
-  {
-    if (!client->service_is_ready())
-    {
-      RCLCPP_ERROR(this->get_logger(), "Service is not ready for client.");
-      return;
-    }
-
-    // Create the parameter request
-    auto request = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();
-
-    // Construct the parameter manually
-    rcl_interfaces::msg::Parameter param;
-    param.name = "enable_twist_cmd";
-    param.value.type = rcl_interfaces::msg::ParameterType::PARAMETER_BOOL;
-    param.value.bool_value = enable; // Use rclcpp::ParameterValue to set the bool value
-    // Add the parameter to the request
-    request->parameters.push_back(param);
-
-    // TODO: Add confirmation of parameter change
-    auto future = client->async_send_request(request);
-  }
-
 }
 
 int main(int argc, char *argv[])

@@ -44,65 +44,6 @@ pivot_drive_controller:
     default_value: 0.15692321, # 0.15 for Waratah
     description: "Radius of wheels"
   }
-  velocity_rolling_window_size: {
-    type: int,
-    default_value: 10,
-    description: "Size of the rolling window for calculation of mean velocity use in odometry.",
-  }
-  cmd_vel_timeout: {
-    type: double,
-    default_value: 0.5, # Seconds
-    description: "Timeout on cmd_vel command.",
-  }  
-  has_velocity_limits: {
-    type: bool,
-    default_value: false,
-    description: "Enable to limit velocities to a max velocity"
-  }
-  has_acceleration_limits: {
-    type: bool,
-    default_value: false,
-    description: "Enable to limit acceleration to a max velocity"
-  }
-  has_jerk_limits: {
-    type: bool,
-    default_value: false,
-    description: "Enable to limit acceleration to a max velocity"
-  }
-  min_velocity: {
-    type: double,
-    default_value: 2.794144,
-  }
-  max_velocity: {
-    type: double,
-    default_value: 2.794144,
-  }
-  min_acceleration: {
-    type: double,
-    default_value: 1.0,
-  }
-  max_acceleration: {
-    type: double,
-    default_value: 1.0,
-  }
-  min_jerk: {
-    type: double,
-    default_value: 0.0,
-  }
-  max_jerk: {
-    type: double,
-    default_value: 0.0,
-  }
-  drive_position_feedback: {
-    type: bool,
-    default_value: false,
-    description: "Whether the drives have position or velocity feedback",
-  }
-  pivot_position_feedback: {
-    type: bool,
-    default_value: true,
-    description: "Whether the pivots have position or velocity feedback",
-  }
   tf_frame_prefix_enable: {
     type: bool,
     default_value: true,
@@ -138,28 +79,112 @@ pivot_drive_controller:
     default_value: false,
     description: "If set to true the odometry of the robot will be calculated from the commanded values and not from feedback.",
   }
+  drive_position_feedback: {
+    type: bool,
+    default_value: false,
+    description: "Whether the drives have position or velocity feedback",
+  }
+  pivot_position_feedback: {
+    type: bool,
+    default_value: true,
+    description: "Whether the pivots have position or velocity feedback",
+  }
   enable_odom_tf: {
     type: bool,
     default_value: true,
     description: "Publish transformation between ``odom_frame_id`` and ``base_frame_id``.",
+  }
+  cmd_vel_timeout: {
+    type: double,
+    default_value: 0.5, # Seconds
+    description: "Timeout on cmd_vel command.",
   }
   publish_limited_velocity: {
     type: bool,
     default_value: false,
     description: "Publish limited velocity value.",
   }
+  velocity_rolling_window_size: {
+    type: int,
+    default_value: 10,
+    description: "Size of the rolling window for calculation of mean velocity use in odometry.",
+  }
   publish_rate: {
     type: double,
     default_value: 50.0, # Hz
     description: "Publishing rate (Hz) of the odometry and TF messages.",
   }
-  max_theta: {
-    type: double,
-    default_value: 3.5342, #2*pi*0.5625
-    description: "Max. theta displacement in one iteration",
-  }
-  enable_twist_cmd: {
-    type: bool,
-    default_value: false,
-    description: "Enable the controller to subscribe to twist messages. By default, subscribe to DriveInputStamped.msg",
-  }
+  linear: # metres
+    has_velocity_limits: {
+      type: bool,
+      default_value: false,
+    }
+    has_acceleration_limits: {
+      type: bool,
+      default_value: false,
+    }
+    has_jerk_limits: {
+      type: bool,
+      default_value: false,
+    }
+    max_velocity: {
+      type: double,
+      default_value: .NAN,
+    }
+    min_velocity: {
+      type: double,
+      default_value: .NAN,
+    }
+    max_acceleration: {
+      type: double,
+      default_value: .NAN,
+    }
+    min_acceleration: {
+      type: double,
+      default_value: .NAN,
+    }
+    max_jerk: {
+      type: double,
+      default_value: .NAN,
+    }
+    min_jerk: {
+      type: double,
+      default_value: .NAN,
+    }
+  angular: # radians
+    has_velocity_limits: {
+      type: bool,
+      default_value: false,
+    }
+    has_acceleration_limits: {
+      type: bool,
+      default_value: false,
+    }
+    has_jerk_limits: {
+      type: bool,
+      default_value: false,
+    }
+    max_velocity: {
+      type: double,
+      default_value: .NAN,
+    }
+    min_velocity: {
+      type: double,
+      default_value: .NAN,
+    }
+    max_acceleration: {
+      type: double,
+      default_value: .NAN,
+    }
+    min_acceleration: {
+      type: double,
+      default_value: .NAN,
+    }
+    max_jerk: {
+      type: double,
+      default_value: .NAN,
+    }
+    min_jerk: {
+      type: double,
+      default_value: .NAN,
+    }
