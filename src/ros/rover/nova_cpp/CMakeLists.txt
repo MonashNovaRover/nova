@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(nova_controller_common LANGUAGES CXX)
+project(nova_cpp LANGUAGES CXX)
 
 # Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
@@ -11,9 +11,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
 endif()
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
-  hardware_interface
-  controller_interface
-  rclcpp
+  # List of package dependencies
 )
 
 find_package(ament_cmake REQUIRED)

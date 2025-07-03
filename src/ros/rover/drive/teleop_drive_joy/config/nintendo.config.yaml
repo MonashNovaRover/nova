@@ -1,4 +1,5 @@
 # Nintendo Pro Controller (Japanese Version)
+# x = vertical axis, y = horizontal axis
 teleop_drive_joy_node:
   ros__parameters:
     pivot_drive_controller:
@@ -11,21 +12,19 @@ teleop_drive_joy_node:
       axis_angular_y: 2
     
     strafe_controller:
-      axis_linear_x: 0 # This might be incorrect
+      axis_linear_x: 0
       axis_angular_y: 2
     
     nova_diff_drive_controller:
       axis_linear_x: 1
       axis_angular_y: 2
     
-    button_pivot_drive_controller: 0
-    button_holonomic_drive_controller: 1
-    button_nova_diff_drive_controller: 2
-    button_strafe_controller: 3
-    axis_speed_change_fine: 4
-    axis_speed_change_coarse: 5
-    button_autonomous_control: 7
-    button_manual_control: 8
-    button_lock: 9
-    button_unlock: 10
-    speed_change_fine_val: -0.02 # DPad is Flipp'd on Japanese Version
+    button_pivot_drive_controller: 0       # Button B
+    button_holonomic_drive_controller: 1   # Button A
+    button_nova_diff_drive_controller: 2   # Button X
+    button_strafe_controller: 3            # Button Y
+    axis_speed_change_fine: 4              # DPad Left/Right
+    axis_speed_change_coarse: 5            # DPad Up/Down
+    button_lock: 9                         # Left Menu Button
+    button_unlock: 10                      # Right Menu Button
+    speed_change_fine_val: -0.02           # DPad is flipped on Japanese Version

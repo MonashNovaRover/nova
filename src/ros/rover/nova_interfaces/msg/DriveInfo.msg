@@ -19,6 +19,5 @@ byte HOLONOMIC = 1
 byte STRAFE = 2
 byte DIFF = 3
 
-
 #current drive mode of the rover
 byte drive_mode 
