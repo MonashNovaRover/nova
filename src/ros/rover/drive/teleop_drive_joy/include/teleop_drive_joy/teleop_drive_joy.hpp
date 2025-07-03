@@ -33,8 +33,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joy.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
-#include <nova_interfaces/msg/drive_input_stamped.hpp>
-#include <nova_interfaces/msg/drive_info.hpp>
 #include <controller_manager_msgs/srv/switch_controller.hpp>
 
 #include "teleop_drive_joy_parameters.hpp"
@@ -140,12 +138,8 @@ namespace teleop_drive_joy
      */
     void switchController(const uint requested_control_mode);
 
-    void setEnableTwistCmdForController(const std::shared_ptr<rclcpp::Client<rcl_interfaces::srv::SetParameters>> &client, bool enable);
-
     // Member variables
-    rclcpp::Publisher<nova_interfaces::msg::DriveInputStamped>::SharedPtr drive_input_pub_;
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_pub_;
-    rclcpp::Publisher<nova_interfaces::msg::DriveInfo>::SharedPtr drive_info_pub_;
     rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub_;
     rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr switch_controller_client_;
     rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr pivot_drive_client_;
@@ -156,7 +150,6 @@ namespace teleop_drive_joy
     Params params_;
     bool sent_lock_msg_;
     bool locked_;
-    bool autonomous_mode_;
     uint drive_mode_;
     double speed_; // Linear Speed Multiplier that can be incremented
     std::map<int, rclcpp::Time> last_button_press_time_;

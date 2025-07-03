@@ -35,8 +35,8 @@ public:
 
   double getAngular() const { return angular_; }
 
-  void setWheelParams( double steering_track, double wheel_radius,
-                       double wheel_base, double wheel_steering_y_offset);
+  void setWheelParams(double steering_track, double wheel_radius,
+                      double wheel_base, double wheel_steering_y_offset);
   void setVelocityRollingWindowSize(size_t velocity_rolling_window_size);
 
 private:

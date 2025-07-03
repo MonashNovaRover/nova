@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>nova_controller_common</name>
-  <version>0.1.0</version>
-  <description>Common controller utils.</description>
+  <name>nova_cpp</name>
+  <version>0.0.0</version>
+  <description>A collection of C++ helpers and utils maintained by Nova.</description>
   <maintainer email="novaroverteam@monash.edu">Monash Nova Rover</maintainer>
 
   <license>Apache License 2.0</license>
