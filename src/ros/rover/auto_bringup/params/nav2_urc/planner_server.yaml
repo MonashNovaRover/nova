@@ -3,7 +3,8 @@ planner_server:
     expected_planner_frequency: 5.0
     use_sim_time: False
     planner_plugins: ["GridBased"]
-    GridBased:
+
+    SMAC:
       allow_reverse_expansion: false  # If true, allows the robot to use the primitives to expand in the mirrored opposite direction of the current robot's orientation (to
                                       # reverse).
       allow_unknown: true # Allow traveling in unknown space
@@ -41,7 +42,7 @@ planner_server:
       terminal_checking_interval: 5000 # Number of iterations between checking if the goal has been cancelled or planner timed out
       tolerance: 0.5 # dist-to-goal heuristic cost (distance) for valid tolerance endpoints if exact goal cannot be found.
 
-    NAVFN:
+    GridBased:
       plugin: "nav2_navfn_planner::NavfnPlanner"
       tolerance: 1.0
       use_astar: true
