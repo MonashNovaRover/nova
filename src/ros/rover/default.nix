@@ -2,25 +2,14 @@
   rosPackages = pkgs: with pkgs; {
     nova-electronics = callPackage ./electronics { };
     nova-science = callPackage ./science { };
-    nova-blcmd-hardware = callPackage ./hardware_interfaces/blcmd_hardware { };
-    nova-cmd-hardware = callPackage ./hardware_interfaces/cmd_hardware { };
     nova-teleop-drive-joy = callPackage ./teleop_drive_joy { };
     nova-teleop-arm-joy = callPackage ./teleop_arm_joy { };
     nova-drive = callPackage ./drive/drive { };
     nova-drive-interfaces = callPackage ./drive/drive_interfaces { };
-    nova-blcmd-interfaces = callPackage ./blcmds/blcmd_interfaces { };
-    nova-blcmd-utils = callPackage ./blcmds/blcmd_utils { };
-    nova-arm-interfaces = callPackage ./arm/arm_interfaces { };
-    nova-arm = callPackage ./arm/arm { };
-    nova-auto-typing = callPackage ./arm/auto_typing { };
     nova-input-interfaces = callPackage ./inputs/input_interfaces { };
     nova-inputs = callPackage ./inputs/inputs { };
-    nova-cmd-interfaces = callPackage ./cmds/cmd_interfaces { };
-    nova-cmd-utils = callPackage ./cmds/cmd_utils { };
     nova-gimbal-cam = callPackage ./gimbal_cam { };
     nova-bringup = callPackage ./nova_bringup { };
-    nova-auto-bringup = callPackage ./auto_bringup { };
-    nova-arm-bringup = callPackage ./arm_bringup { };
     nova-interfaces = callPackage ./nova_interfaces { };
     nova-rover-description = callPackage ./rover_description { };
     nova-gazebo = callPackage ./nova_gazebo { };
@@ -29,8 +18,11 @@
     nova-excavation-construction = callPackage ./excavation_construction { };
     nova-utils = callPackage ./nova_utils { };
     lattice-primitive-generator = callPackage ./lattice_primitive_generator { };
-  } // import ./controllers { inherit pkgs; }
-    // import ./auto { inherit pkgs; };
+  } // import ./arm { inherit pkgs; }
+    // import ./auto { inherit pkgs; }
+    // import ./blcmds { inherit pkgs; }
+    // import ./cmds { inherit pkgs; }
+    // import ./controllers { inherit pkgs; };
 
   #pythonPackages = pythonPackages: with pythonPackages; {
     

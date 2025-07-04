@@ -1,6 +1,7 @@
 { pkgs }:
 
 with pkgs; {
+    nova-auto-bringup = callPackage ./auto_bringup { };
     nova-auto-interfaces = callPackage ./nova_auto_interfaces { };
     nova-behavior-tree = callPackage ./nova_behavior_tree { };
     nova-bt-navigators = callPackage ./nova_bt_navigators { };
