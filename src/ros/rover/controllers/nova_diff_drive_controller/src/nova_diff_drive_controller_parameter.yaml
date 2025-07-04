@@ -21,17 +21,17 @@ nova_diff_drive_controller:
   }
   steering_track: {
     type: double,
-    default_value: 0.81564001,
+    default_value: 0.81564001, # 0.7 for Waratah
     description: "Steering track: distance between center of left and right wheels",
   }
   wheel_base: {
     type: double,
-    default_value: 0.95752883,
+    default_value: 0.95752883, # 0.84 for Waratah
     description: "Wheelbase: distance between center of front and rear wheels",
   }
   wheel_radius: {
     type: double,
-    default_value: 0.15692321,
+    default_value: 0.15692321, # 0.1488 for Waratah
     description: "Radius of wheels"
   }
   wheels_per_side: {

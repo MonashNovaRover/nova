@@ -1,0 +1,87 @@
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      enable: True
+      update_frequency: 3.0
+      publish_frequency: 3.0
+      global_frame: odom
+      robot_base_frame: base_link
+      use_sim_time: False
+      rolling_window: True
+      width: 10
+      height: 10
+      origin_x: -5.0
+      origin_y: -5.0
+      resolution: 0.1
+      # [x, y], where x is length and y is width
+      # ([wheel_base, steering_track] / 2) + wheel_radius
+      footprint: "[[0.64, 0.57], [0.64, -0.57], [-0.64, -0.57], [-0.64, 0.57]]"
+      track_unknown_space: False
+      always_send_full_costmap: True
+      plugins: ["static_layer", "stvl_layer", "denoise_layer", "inflation_layer"]
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: true
+        map_topic: /static_map
+      denoise_layer:
+        plugin: "nav2_costmap_2d::DenoiseLayer"
+        enabled: True
+        minimal_group_size: 3
+        group_connectivity_type: 8
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 0.1
+        inflation_radius: 0.7
+      stvl_layer: # From https://github.com/SteveMacenski/spatio_temporal_voxel_layer/blob/ros2/spatio_temporal_voxel_layer/example/outdoor_environment_config.yaml
+        plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
+        enabled:                  true
+        voxel_decay:              10.0  # seconds if linear, e^n if exponential
+        decay_model:              0     # 0=linear, 1=exponential, -1=persistent
+        voxel_size:               0.1   # meters, must match generated voxel size in pointcloud
+        track_unknown_space:      true  # default space is known
+        mark_threshold:           0     # voxel height
+        update_footprint_enabled: true
+        combination_method:       1     # 1=max, 0=override
+        origin_z:                 0.0   # meters
+        publish_voxel_map:        false # default off
+        transform_tolerance:      0.2   # seconds
+        mapping_mode:             false # default off, saves map not for navigation
+        map_save_duration:        0.0   # default 60s, how often to autosave, uneeded since not mapping
+        observation_sources: oak bootie
+        oak:
+          data_type: PointCloud2
+          topic: /oak/points
+          # Marking params
+          marking: true                # enable marking using this source
+          obstacle_range: 5.0          # meters
+          min_obstacle_height: 0.2     # meters
+          max_obstacle_height: 2.0     # meters
+          # expected_update_rate: 0.0    # default 0, if not updating at this rate at least, remove from buffer
+          # observation_persistence: 0.0 # default 0, use all measurements taken during now-value, 0=latest
+          # inf_is_valid: false          # default false, for laser scans
+          # filter: "passthrough"        # default passthrough, use voxel if cpu usage is too high
+          # voxel_min_points: 0          # default 0, minimum points per voxel for voxel filter
+          # clear_after_reading: false   # default false, clear the buffer after the layer gets readings from it
+          # Clearing params
+          clearing: true                # enable clearing using this source
+          min_z: 0.2                    # meters
+          max_z: 2.0                    # meters
+          vertical_fov_angle: 0.977384  # fov of camera, radians
+          horizontal_fov_angle: 1.43117 # fov of camera, radians
+          decay_acceleration: 1.0       # default 0, 1/s^2. If laser scanner MUST be 0
+          model_type: 0                 # default 0, model type for frustum. 0=depth camera, 1=3d lidar like VLP16 or similar
+        bootie:
+          data_type: PointCloud2
+          topic: /bootie/points
+          # Marking params
+          marking: true                # enable marking using this source
+          obstacle_range: 5.0          # meters
+          min_obstacle_height: 0.2     # meters
+          max_obstacle_height: 2.0     # meters
+          clearing: true
+          min_z: 0.2
+          max_z: 2.0
+          vertical_fov_angle: 0.977384
+          horizontal_fov_angle: 1.43117
+          decay_acceleration: 1.0
+          model_type: 0
