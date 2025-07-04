@@ -224,8 +224,8 @@ def generate_launch_description():
         DeclareLaunchArgument(
             name='sim_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_sim.yaml']),
-            description='Sim parameters to use if using sim time'
-        )
+            description='Sim parameters to use if using sim time', 
+        ),
     ]
 
     return LaunchDescription(
