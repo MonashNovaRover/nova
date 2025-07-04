@@ -1,0 +1,32 @@
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      update_frequency: 1.0
+      publish_frequency: 3.0
+      global_frame: map
+      robot_base_frame: base_link
+      use_sim_time: True
+      # [x, y], where x is length and y is width
+      # local_costmap footprint * 1.2
+      footprint: "[[0.76, 0.68], [0.76, -0.68], [-0.76, -0.68], [-0.76, 0.68]]"
+      resolution: 0.05
+      track_unknown_space: false
+      plugins: ["static_layer", "denoise_layer", "inflation_layer"]
+      denoise_layer:
+        plugin: "nav2_costmap_2d::DenoiseLayer"
+        enabled: True
+        minimal_group_size: 3
+        group_connectivity_type: 8
+      rtabmap_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
+        map_topic: /map
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
+        map_topic: /static_map
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 0.1
+        inflation_radius: 0.7
+      always_send_full_costmap: True
