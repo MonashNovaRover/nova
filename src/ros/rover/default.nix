@@ -4,12 +4,8 @@
     nova-science = callPackage ./science { };
     nova-blcmd-hardware = callPackage ./hardware_interfaces/blcmd_hardware { };
     nova-cmd-hardware = callPackage ./hardware_interfaces/cmd_hardware { };
-    nova-costmap-2d = callPackage ./nav2_autonomous/nova_costmap_2d { };
-    nova-behavior-tree = callPackage ./nav2_autonomous/nova_behavior_tree { };
-    nova-object-localisation = callPackage ./nav2_autonomous/nova_object_localisation { };
     nova-teleop-drive-joy = callPackage ./teleop_drive_joy { };
     nova-teleop-arm-joy = callPackage ./teleop_arm_joy { };
-    nova-pointcloud-filter = callPackage ./nav2_autonomous/nova_pointcloud_filter { };
     nova-drive = callPackage ./drive/drive { };
     nova-drive-interfaces = callPackage ./drive/drive_interfaces { };
     nova-blcmd-interfaces = callPackage ./blcmds/blcmd_interfaces { };
@@ -31,12 +27,10 @@
     nova-python-control = callPackage ./python_control { };
     nova-python-control-old = callPackage ./python_control_old { };
     nova-excavation-construction = callPackage ./excavation_construction { };
-    nova-detection-overlay = callPackage ./nav2_autonomous/nova_detection_overlay { };
-    nova-bt-navigators = callPackage ./nav2_autonomous/nova_bt_navigators { };
-    nova-auto-interfaces = callPackage ./nav2_autonomous/nova_auto_interfaces { };
     nova-utils = callPackage ./nova_utils { };
     lattice-primitive-generator = callPackage ./lattice_primitive_generator { };
-  } // import ./controllers { inherit pkgs; };
+  } // import ./controllers { inherit pkgs; }
+    // import ./auto { inherit pkgs; };
 
   #pythonPackages = pythonPackages: with pythonPackages; {
     

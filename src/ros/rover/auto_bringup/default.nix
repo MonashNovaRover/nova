@@ -23,7 +23,6 @@
   nova-behavior-tree,
   nova-object-localisation,
   nova-costmap-2d,
-  nova-pointcloud-filter,
   nova-rover-description,
   nova-gazebo,
   nova-auto-interfaces,
@@ -76,7 +75,6 @@ buildRosPackage rec {
       nova-behavior-tree
       nova-object-localisation
       nova-costmap-2d
-      nova-pointcloud-filter
       nova-rover-description
       nova-gazebo
       nova-auto-interfaces
