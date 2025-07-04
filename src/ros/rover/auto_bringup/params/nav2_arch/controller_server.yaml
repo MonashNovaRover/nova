@@ -1,0 +1,57 @@
+controller_server:
+  ros__parameters:
+    use_sim_time: False
+    controller_frequency: 20.0
+    min_x_velocity_threshold: 0.01
+    min_y_velocity_threshold: 0.0
+    min_theta_velocity_threshold: 0.001
+    failure_tolerance:
+      -1.0 # The maximum duration in seconds the called controller plugin can fail (i.e. the computeVelocityCommands function of the plugin
+      # throwing an exception) before the nav2_msgs::action::FollowPath action fails. Setting it to the special value of -1.0 makes it
+      # infinite, 0 to disable, and any positive value for the appropriate timeout.
+    progress_checker_plugins: ["progress_checker"]
+    goal_checker_plugins: ["goal_checker"]
+    controller_plugins: ["FollowPath"]
+    use_realtime_priority: False
+    enable_stamped_cmd_vel: True
+    odom_topic: /odometry/filtered
+    progress_checker:
+      plugin: "nav2_controller::PoseProgressChecker"
+      required_movement_radius: 0.25
+      required_movement_angle: 0.0
+      movement_time_allowance: 30.0 # Maximum amount of time (sec) a robot has to move the minimum radius or the minimum angle.
+    goal_checker:
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.5
+      yaw_goal_tolerance: 0.523599 # 30 degrees in radians.
+      stateful: false # Whether to check for XY position tolerance after rotating to goal orientation in case of minor localization changes.
+    FollowPath:
+      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
+      desired_linear_vel: 0.4 # The desired maximum linear velocity (m/s) to use.
+      min_approach_linear_velocity: 0.1
+      rotate_to_heading_angular_vel: 0.05 # If use_rotate_to_heading is true, this is the angular velocity to use.
+      lookahead_dist: 0.6
+      min_lookahead_dist: 0.3
+      max_lookahead_dist: 0.9
+      lookahead_time: 1.5
+      transform_tolerance: 0.1
+      use_velocity_scaled_lookahead_dist: false
+      approach_velocity_scaling_dist: 0.6
+      use_collision_detection: false # Whether to enable collision detection.
+      max_allowed_time_to_collision_up_to_carrot: 10.0 # The time (s) to project a velocity command forward to check for collisions when use_collision_detection is true.
+      use_regulated_linear_velocity_scaling: true
+      use_fixed_curvature_lookahead: false
+      curvature_lookahead_dist: 0.25
+      use_cost_regulated_linear_velocity_scaling: false
+      regulated_linear_scaling_min_radius: 0.9
+      regulated_linear_scaling_min_speed: 0.25
+      use_rotate_to_heading:
+        true # Whether to enable rotating to rough heading and goal orientation when using holonomic planners. Recommended on for all robot types
+        # that can rotate in place. Note: both use_rotate_to_heading and allow_reversing cannot be set to true at the same time as it would
+        # result in ambiguous situations.
+      allow_reversing: false
+      rotate_to_heading_min_angle:
+        0.785398 # The difference in the path orientation and the starting robot orientation (radians) to trigger a rotate in place, if
+        # use_rotate_to_heading is true. 45 degrees in radians.
+      max_angular_accel: 3.2
+      max_robot_pose_search_dist: 10.0

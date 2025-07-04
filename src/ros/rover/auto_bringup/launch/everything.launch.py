@@ -32,11 +32,12 @@ def launch_setup(context, *args, **kwargs):
     map_params = LaunchConfiguration('map_params')
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
-    nav2_params = LaunchConfiguration('nav2_params')
+    nav2_params_dir = LaunchConfiguration('nav2_params_dir')
     navigation = LaunchConfiguration('navigation')
     rl_params = LaunchConfiguration('rl_params')
     rviz = LaunchConfiguration('rviz')
     rviz_params = LaunchConfiguration('rviz_params')
+    sim_params = LaunchConfiguration('sim_params')
     use_respawn = LaunchConfiguration('use_respawn')
     world = LaunchConfiguration('world')
 
@@ -81,7 +82,8 @@ def launch_setup(context, *args, **kwargs):
                 'container_name': 'nav2_container',
                 'log_level': log_level,
                 'namespace': namespace,
-                'params_file': nav2_params,
+                'nav2_params_dir': nav2_params_dir,
+                'sim_params': sim_params,
                 'use_respawn': use_respawn,
                 'use_sim_time': gazebo,
                 'map_params': map_params,
@@ -141,9 +143,9 @@ def generate_launch_description():
             description='Top-level namespace',
         ),
         DeclareLaunchArgument(
-            name='nav2_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc.yaml']),
-            description='Full path to the ROS2 parameters file to use for all launched nodes',
+            name='nav2_params_dir',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc']),
+            description='Full path to the folder with ROS2 parameters files to use with all nodes',
         ),
         DeclareLaunchArgument(
             name='navigation',
@@ -164,6 +166,11 @@ def generate_launch_description():
             name='rviz_params',
             default_value='navigation.rviz',
             description='RViz configuration file',
+        ),
+        DeclareLaunchArgument(
+            name='sim_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_sim.yaml']),
+            description='Sim parameters to use if using sim time', 
         ),
         DeclareLaunchArgument(
             name='use_respawn',
