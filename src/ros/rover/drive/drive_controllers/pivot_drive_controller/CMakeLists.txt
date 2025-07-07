@@ -37,7 +37,7 @@ endforeach()
 find_package(generate_parameter_library REQUIRED)
 
 generate_parameter_library(pivot_drive_controller_parameters
-  src/pivot_drive_controller_parameter.yaml
+  src/pivot_drive_controller.yaml
 )
 
 add_library(${PROJECT_NAME} SHARED
