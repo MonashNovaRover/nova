@@ -45,15 +45,15 @@ namespace nova_controller_common
       bool has_jerk_limits = false, double min_velocity = NAN, double max_velocity = NAN,
       double min_acceleration = NAN, double max_acceleration = NAN, double min_jerk = NAN,
       double max_jerk = NAN)
-    : has_velocity_limits_(has_velocity_limits),
-      has_acceleration_limits_(has_acceleration_limits),
-      has_jerk_limits_(has_jerk_limits),
-      min_velocity_(min_velocity),
-      max_velocity_(max_velocity),
-      min_acceleration_(min_acceleration),
-      max_acceleration_(max_acceleration),
-      min_jerk_(min_jerk),
-      max_jerk_(max_jerk)
+      : has_velocity_limits_(has_velocity_limits),
+        has_acceleration_limits_(has_acceleration_limits),
+        has_jerk_limits_(has_jerk_limits),
+        min_velocity_(min_velocity),
+        max_velocity_(max_velocity),
+        min_acceleration_(min_acceleration),
+        max_acceleration_(max_acceleration),
+        min_jerk_(min_jerk),
+        max_jerk_(max_jerk)
     {
       // Check if limits are valid, max must be specified, min defaults to -max if unspecified
       if (has_velocity_limits_)
