@@ -1,49 +1,201 @@
+// Copyright (c) 2025 Monash Nova Rover
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef NOVA_CONTROLLER_COMMON__BLCMD_WRAPPER_HPP_
 #define NOVA_CONTROLLER_COMMON__BLCMD_WRAPPER_HPP_
 
+#include <cstdint>
 #include <functional>
+#include <optional>
+#include <string>
 #include <vector>
+#include <algorithm>
 
-#include "hardware_interface/loaned_state_interface.hpp"
-#include "hardware_interface/loaned_command_interface.hpp"
 #include "controller_interface/controller_interface.hpp"
+#include "hardware_interface/loaned_command_interface.hpp"
+#include "hardware_interface/loaned_state_interface.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 namespace nova_controller_common
 {
-  struct WheelHandle
-  {
-    std::reference_wrapper<const hardware_interface::LoanedStateInterface> state;
-    std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
-  };
+enum class JointPosition : uint8_t
+{
+  FRONT_LEFT,
+  FRONT_RIGHT,
+  BACK_LEFT,
+  BACK_RIGHT
+};
 
-  class BLCMDWrapper
-  {
-  public:
-    BLCMDWrapper() = default;
+enum class JointType : uint8_t
+{
+  DRIVE,
+  PIVOT
+};
 
-    controller_interface::CallbackReturn configure_drive_and_pivots(
-        const std::vector<std::string> &left_drive_names, const std::vector<std::string> &right_drive_names,
-        const std::vector<std::string> &left_pivot_names, const std::vector<std::string> &right_pivot_names,
-        const char *drive_feedback_type, const char *pivot_feedback_type)
+struct Joint
+{
+  JointPosition position;
+  JointType type;
+};
+
+struct JointConfig
+{
+  std::string name;
+  char* feedback_type;
+  char* command_type;
+  Joint joint;
+}
+
+struct WheelHandle
+{
+  std::optional<std::reference_wrapper<const hardware_interface::LoanedStateInterface>> state;
+  std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
+};
+
+class BLCMDWrapper
+{
+public:
+  BLCMDWrapper(
+      rclcpp::Node::SharedPtr node, bool open_loop,
+      const std::vector<hardware_interface::LoanedStateInterface>& state_interfaces)
+      const std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces,
+      : node_(node)
+      , open_loop_(open_loop)
+      , state_interfaces_(state_interfaces)
+      , command_interfaces_(command_interfaces)
+      , registered_handles_(8, std::nullopt)
+  {
+  }
+
+  template<typename T>
+  bool set_value(const T& value, const Joint&& joint)
+  {
+    const size_t index = get_index(joint);
+    if (!registered_handles_[index])
     {
-      // Configure the handles based on the new names and feedback types
+      RCLCPP_ERROR(node_->get_logger(), "Joint handle not registered for joint at index %zu", index);
+      return false;
+    }
+
+    // Invert pivot position value for BLCMDs
+    if (joint.type == JointType::PIVOT)
+    {
+      return registered_handles_[index]->command.get().set_value(value * reverse_multiplier_);
+    }
+    return registered_handles_[index]->command.get().set_value(value);
+  }
+
+  template<typename T>
+  std::optional<T> get_optional(const JointPosition&& joint)
+  {
+    const size_t index = get_index(joint);
+    if (!registered_handles_[index])
+    {
+      RCLCPP_ERROR(node_->get_logger(), "Joint handle not registered for joint at index %zu", index);
+      return std::nullopt;
     }
     
-  private:
-    controller_interface::CallbackReturn configure_drive_and_pivot(
-        const std::vector<std::string> &wheel_names, std::vector<WheelHandle> &registered_handles,
-        const char *feedback_type)
+    const auto& state_handle = registered_handles_[index]->state;
+    if (!state_handle.has_value())
     {
-      // Register the wheel handles based on the provided names and feedback type
+      RCLCPP_ERROR(node_->get_logger(), "State handle not available for joint at index %zu", index);
+      return std::nullopt;
     }
 
-    std::vector<WheelHandle> registered_left_drive_handles_;
-    std::vector<WheelHandle> registered_right_drive_handles_;
-    std::vector<WheelHandle> registered_left_pivot_handles_;
-    std::vector<WheelHandle> registered_right_pivot_handles_;
-  };
+    const auto& res = state_handle.get().get_optional();
 
-} // namespace nova_controller_common
+    // Invert pivot position value for BLCMDs
+    if (joint.type == JointType::PIVOT)
+    {
+      return res.has_value() ? std::make_optional(res.value() * reverse_multiplier_) : std::nullopt;
+    }
+    return res.has_value() ? std::make_optional(res.value()) : std::nullopt;
+  }
 
-#endif // NOVA_CONTROLLER_COMMON__BLCMD_WRAPPER_HPP_
+  controller_interface::CallbackReturn configure_joint_handles(std::vector<JointConfig>&& joint_configs)
+  {
+    for (const auto& [joint_name, feedback_type, command_type, joint] : joint_configs)
+    {
+      const std::optional<std::reference_wrapper<const hardware_interface::LoanedStateInterface>> state_handle;
+      const std::reference_wrapper<hardware_interface::LoanedCommandInterface> command_handle;
+
+      if (open_loop_)
+      {
+        state_handle = std::nullopt;
+      }
+      else
+      {
+        const auto state_iter = std::find_if(
+            state_interfaces_.cbegin(), state_interfaces_.cend(),
+            [&jc](const auto& interface)
+            {
+              return interface.get_prefix_name() == joint_name && interface.get_interface_name() == feedback_type;
+            });
+
+        if (state_iter == state_interfaces_.cend())
+        {
+          RCLCPP_ERROR(node_->get_logger(), "Unable to obtain joint state handle for %s", joint_name.c_str());
+          return controller_interface::CallbackReturn::ERROR;
+        }
+        state_handle = std::ref(*state_iter);
+      }
+
+      const auto cmd_iter = std::find_if(
+          command_interfaces_.begin(), command_interfaces_.end(),
+          [&jc](const auto& interface)
+          {
+            return interface.get_prefix_name() == joint_name && interface.get_interface_name() == command_type;
+          });
+
+      if (cmd_iter == command_interfaces_.end())
+      {
+        RCLCPP_ERROR(node_->get_logger(), "Unable to obtain joint command handle for %s", joint_name.c_str());
+        return controller_interface::CallbackReturn::ERROR;
+      }
+      command_handle = std::ref(*cmd_iter);
+
+      registered_handles_[get_index(joint)] = WheelHandle{state_handle, command_handle};
+    }
+
+    return controller_interface::CallbackReturn::SUCCESS;
+  }
+
+  void reset_handles()
+  {
+    for (auto& handle : registered_handles_)
+    {
+      handle.reset();
+    }
+  }
+
+private:
+  size_t get_index(const Joint& joint) const
+  {
+    // Position = 2 bits, type = 1 bit
+    return (static_cast<size_t>(joint.position) << 1) | static_cast<size_t>(joint.type);
+  }
+
+  rclcpp::Node::SharedPtr node_;
+  std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces_;
+  std::vector<hardware_interface::LoanedStateInterface>& state_interfaces_;
+  const bool open_loop_;
+  
+  const int reverse_multiplier_ = -1;
+
+  std::vector<std::optional<WheelHandle>> registered_handles_;
+};
+
+}  // namespace nova_controller_common
+
+#endif  // NOVA_CONTROLLER_COMMON__BLCMD_WRAPPER_HPP_
