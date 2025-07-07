@@ -71,10 +71,16 @@ joint_state_broadcaster:
 pivot_drive_controller:
   ros__parameters:
     enable_twist_cmd: true
-    left_drive_names: ["flw", "blw"]
-    right_drive_names: ["frw", "brw"]
-    left_pivot_names: ["flp", "blp"]
-    right_pivot_names: ["frp", "brp"]
+    drive_names:
+      front_left: "flw"
+      front_right: "frw"
+      back_left: "blw"
+      back_right: "brw"
+    pivot_names:
+      front_left: "flp"
+      front_right: "frp"
+      back_left: "blp"
+      back_right: "brp"
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
     open_loop: false
     linear: # metres
