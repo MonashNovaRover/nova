@@ -6,11 +6,10 @@
  * inverted right before being sent to the BLCMDs.
  */
 
-#include "pivot_drive_controller/pivot_drive_controller.hpp"
-
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <limits>
 #include <memory>
 #include <queue>
 #include <ranges>
@@ -21,9 +20,11 @@
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
-#include "nova_controller_common/blcmd_wrapper.hpp"
 #include "rclcpp/logging.hpp"
 #include "tf2/LinearMath/Quaternion.h"
+
+#include "nova_controller_common/blcmd_wrapper.hpp"
+#include "pivot_drive_controller/pivot_drive_controller.hpp"
 
 namespace
 {
@@ -47,8 +48,8 @@ PivotDriveController::DRIVE_COMMAND_TYPE = HW_IF_VELOCITY;
 PivotDriveController::PIVOT_COMMAND_TYPE = HW_IF_POSITION;
 
 PivotDriveController::PivotDriveController()
-    : controller_interface::ControllerInterface()
-    , blcmd_wrapper_(get_node(), state_interfaces_, command_interfaces_)
+  : controller_interface::ControllerInterface()
+  , blcmd_wrapper_(get_node(), state_interfaces_, command_interfaces_)
 {
 }
 
@@ -138,17 +139,6 @@ InterfaceConfiguration PivotDriveController::state_interface_configuration() con
 controller_interface::return_type PivotDriveController::update(const rclcpp::Time& time, const rclcpp::Duration& period)
 {
   auto logger = get_node()->get_logger();
-
-  if (get_lifecycle_state().id() == State::PRIMARY_STATE_INACTIVE)
-  {
-    if (!is_halted_)
-    {
-      halt();
-      is_halted_ = true;
-    }
-
-    return controller_interface::return_type::OK;
-  }
 
   std::shared_ptr<geometry_msgs::msg::TwistStamped> last_twist_command_msg;
   std::shared_ptr<nova_interfaces::msg::DriveInputStamped> last_command_msg;
@@ -280,34 +270,34 @@ controller_interface::return_type PivotDriveController::update(const rclcpp::Tim
   {
     // #TODO Make odometry fault tolerant (or at least recognise faults)
     const double front_right_wheel_value =
-        registered_right_drive_handles_.at(0).state.get().get_value() * params_.wheel_radius;
+      registered_right_drive_handles_.at(0).state.get().get_value() * params_.wheel_radius;
     const double rear_right_wheel_value =
-        registered_right_drive_handles_.at(1).state.get().get_value() * params_.wheel_radius;
+      registered_right_drive_handles_.at(1).state.get().get_value() * params_.wheel_radius;
     const double front_left_wheel_value =
-        registered_left_drive_handles_.at(0).state.get().get_value() * params_.wheel_radius;
+      registered_left_drive_handles_.at(0).state.get().get_value() * params_.wheel_radius;
     const double rear_left_wheel_value =
-        registered_left_drive_handles_.at(1).state.get().get_value() * params_.wheel_radius;
+      registered_left_drive_handles_.at(1).state.get().get_value() * params_.wheel_radius;
 
     const double front_right_steer_position = registered_right_pivot_handles_.at(0).state.get().get_value();
     const double rear_right_steer_position = registered_right_pivot_handles_.at(1).state.get().get_value();
     const double front_left_steer_position = registered_left_pivot_handles_.at(0).state.get().get_value();
     const double rear_left_steer_position = registered_left_pivot_handles_.at(1).state.get().get_value();
 
-    if (!std::isnan(front_right_wheel_value) && !std::isnan(front_left_wheel_value) &&
-        !std::isnan(rear_right_wheel_value) && !std::isnan(rear_left_wheel_value) &&
-        !std::isnan(front_right_steer_position) && !std::isnan(front_left_steer_position) &&
-        !std::isnan(rear_right_steer_position) && !std::isnan(rear_left_steer_position))
+    if (
+      !std::isnan(front_right_wheel_value) && !std::isnan(front_left_wheel_value) &&
+      !std::isnan(rear_right_wheel_value) && !std::isnan(rear_left_wheel_value) &&
+      !std::isnan(front_right_steer_position) && !std::isnan(front_left_steer_position) &&
+      !std::isnan(rear_right_steer_position) && !std::isnan(rear_left_steer_position))
     {
       if (params_.pivot_position_feedback)
       {
         RCLCPP_DEBUG_STREAM(
-            get_node()->get_logger(), "frw: " << front_right_wheel_value << " flw: " << front_left_wheel_value
-                                              << " rrw: " << rear_right_wheel_value
-                                              << " rlw: " << rear_left_wheel_value);
+          get_node()->get_logger(), "frw: " << front_right_wheel_value << " flw: " << front_left_wheel_value
+                                            << " rrw: " << rear_right_wheel_value << " rlw: " << rear_left_wheel_value);
         RCLCPP_DEBUG_STREAM(
-            get_node()->get_logger(), "frp: " << front_right_steer_position << " flp: " << front_left_steer_position
-                                              << " rrp: " << rear_right_steer_position
-                                              << " rlp: " << rear_left_steer_position);
+          get_node()->get_logger(), "frp: " << front_right_steer_position << " flp: " << front_left_steer_position
+                                            << " rrp: " << rear_right_steer_position
+                                            << " rlp: " << rear_left_steer_position);
 
         // #TODO: move to the update function in odometry class
         bool flp_left = front_left_steer_position < offset_angle_;
@@ -325,10 +315,11 @@ controller_interface::return_type PivotDriveController::update(const rclcpp::Tim
         RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "rlp_radius: " << rlp_radius);
         double mean_radius = (frp_radius + flp_radius + rrp_radius + rlp_radius) / 4;
 
-        if ((std::fabs(front_left_steer_position - offset_angle_) < 0.001) |
-            (std::fabs(front_right_steer_position + offset_angle_) < 0.001) |
-            (std::fabs(rear_left_steer_position + offset_angle_) < 0.001) |
-            (std::fabs(rear_right_steer_position - offset_angle_) < 0.001))
+        if (
+          (std::fabs(front_left_steer_position - offset_angle_) < 0.001) |
+          (std::fabs(front_right_steer_position + offset_angle_) < 0.001) |
+          (std::fabs(rear_left_steer_position + offset_angle_) < 0.001) |
+          (std::fabs(rear_right_steer_position - offset_angle_) < 0.001))
         {
           mean_radius = INFINITY;
         }
@@ -344,13 +335,12 @@ controller_interface::return_type PivotDriveController::update(const rclcpp::Tim
         if (mean_radius != 0 && mean_radius != INFINITY)
         {
           left_ratio =
-              std::sqrt(
-                  std::pow(params_.wheel_base / 2, 2) + std::pow(mean_radius + (params_.steering_track / 2), 2.0)) /
-              std::abs(mean_radius);
+            std::sqrt(std::pow(params_.wheel_base / 2, 2) + std::pow(mean_radius + (params_.steering_track / 2), 2.0)) /
+            std::abs(mean_radius);
           right_ratio =
-              std::sqrt(
-                  std::pow(params_.wheel_base / 2, 2.0) + std::pow(mean_radius - (params_.steering_track / 2), 2.0)) /
-              std::abs(mean_radius);
+            std::sqrt(
+              std::pow(params_.wheel_base / 2, 2.0) + std::pow(mean_radius - (params_.steering_track / 2), 2.0)) /
+            std::abs(mean_radius);
         }
 
         // #TODO: More robust system for invalid radius detection
@@ -455,9 +445,9 @@ controller_interface::return_type PivotDriveController::update(const rclcpp::Tim
   if (radius != 0 && radius != INFINITY)
   {
     left_ratio =
-        sqrt(pow(params_.wheel_base / 2, 2.0) + pow(radius * direction + (params_.steering_track / 2), 2.0)) / radius;
+      sqrt(pow(params_.wheel_base / 2, 2.0) + pow(radius * direction + (params_.steering_track / 2), 2.0)) / radius;
     right_ratio =
-        sqrt(pow(params_.wheel_base / 2, 2.0) + pow(radius * direction - (params_.wheel_base / 2), 2.0)) / radius;
+      sqrt(pow(params_.wheel_base / 2, 2.0) + pow(radius * direction - (params_.wheel_base / 2), 2.0)) / radius;
   }
 
   double left_velocity = target_speed * left_ratio;
@@ -467,14 +457,15 @@ controller_interface::return_type PivotDriveController::update(const rclcpp::Tim
   RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "Left Velocity: " << left_velocity);
   RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "Right Velocity: " << right_velocity);
 
-  if (params_.has_velocity_limits &&
-      (abs(left_velocity) > params_.max_velocity || abs(right_velocity) > params_.max_velocity))
+  if (
+    params_.has_velocity_limits &&
+    (abs(left_velocity) > params_.max_velocity || abs(right_velocity) > params_.max_velocity))
   {
     left_velocity = left_velocity / max_velocity * params_.max_velocity;
     right_velocity = right_velocity / max_velocity * params_.max_velocity;
     RCLCPP_WARN_STREAM(
-        get_node()->get_logger(), "Velocity limit exceeded, scaling velocity down to "
-                                      << left_velocity / left_ratio << " and " << right_velocity / right_ratio);
+      get_node()->get_logger(), "Velocity limit exceeded, scaling velocity down to "
+                                  << left_velocity / left_ratio << " and " << right_velocity / right_ratio);
   }
 
   for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
@@ -497,7 +488,7 @@ controller_interface::CallbackReturn PivotDriveController::on_configure(const rc
 {
   auto logger = get_node()->get_logger();
 
-  // update parameters if they have changed
+  // Update parameters if they have changed
   if (param_listener_->is_old(params_))
   {
     params_ = param_listener_->get_params();
@@ -507,52 +498,59 @@ controller_interface::CallbackReturn PivotDriveController::on_configure(const rc
   cmd_vel_timeout_ = std::chrono::milliseconds{static_cast<int>(params_.cmd_vel_timeout * 1000.0)};
 
   limiter_linear_ = SpeedLimiter(
-      params_.linear.has_velocity_limits, params_.linear.has_acceleration_limits, params_.linear.has_jerk_limits,
-      params_.linear.min_velocity, params_.linear.max_velocity, params_.linear.min_acceleration,
-      params_.linear.max_acceleration, params_.linear.min_jerk, params_.linear.max_jerk);
+    params_.linear.has_velocity_limits, params_.linear.has_acceleration_limits, params_.linear.has_jerk_limits,
+    params_.linear.min_velocity, params_.linear.max_velocity, params_.linear.min_acceleration,
+    params_.linear.max_acceleration, params_.linear.min_jerk, params_.linear.max_jerk);
   limiter_angular_ = PositionLimiter(
-      params_.angular.has_velocity_limits, params_.angular.has_acceleration_limits, params_.angular.has_jerk_limits,
-      params_.angular.min_velocity, params_.angular.max_velocity, params_.angular.min_acceleration,
-      params_.angular.max_acceleration, params_.angular.min_jerk, params_.angular.max_jerk);
+    params_.angular.has_velocity_limits, params_.angular.has_acceleration_limits, params_.angular.has_jerk_limits,
+    params_.angular.min_velocity, params_.angular.max_velocity, params_.angular.min_acceleration,
+    params_.angular.max_acceleration, params_.angular.min_jerk, params_.angular.max_jerk);
 
   if (!reset())
   {
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  // Initialize received message pointer
-  received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>());
-
-  // Populate velocity and position queues
-  for (double x : {0.0, 0.0}) previous_linear_velocities_.push(x);
-  for (double x : {0.0, 0.0, 0.0}) previous_angular_positions_.push(x);
-
-  // Initialize twist subscribers
+  // Initialize twist subscriber
   twist_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
-      DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
-      [this](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
+    DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
+    [this](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
+    {
+      if (!is_active_)
       {
-        if (!subscriber_is_active_)
-        {
-          RCLCPP_WARN_ONCE(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
-          return;
-        }
-        if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
-        {
-          RCLCPP_WARN_ONCE(
-              get_node()->get_logger(),
-              "Received TwistStamped with zero timestamp, setting it to current "
-              "time, this message will only be shown once");
-          msg->header.stamp = get_node()->get_clock()->now();
-        }
-        received_twist_msg_ptr_.set(std::move(msg));
-      });
+        RCLCPP_WARN_ONCE(get_node()->get_logger(), "Can't accept new commands, subscriber is inactive");
+        return;
+      }
+      if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
+      {
+        RCLCPP_WARN_ONCE(
+          get_node()->get_logger(),
+          "Received TwistStamped with zero timestamp, setting it to current "
+          "time, this message will only be shown once");
+        msg->header.stamp = get_node()->get_clock()->now();
+      }
 
-  // Initialize odometry publisher and messasge
+      const auto current_time_diff = get_node()->now() - msg->header.stamp;
+
+      if (cmd_vel_timeout_ == rclcpp::Duration::from_seconds(0.0) || current_time_diff < cmd_vel_timeout_)
+      {
+        received_twist_msg_ptr_.writeFromNonRT(msg);
+      }
+      else
+      {
+        RCLCPP_WARN(
+          get_node()->get_logger(),
+          "Ignoring the received message (timestamp %.10f) because it is older than "
+          "the current time by %.10f seconds, which exceeds the allowed timeout (%.4f)",
+          rclcpp::Time(msg->header.stamp).seconds(), current_time_diff.seconds(), cmd_vel_timeout_.seconds());
+      }
+    });
+
+  // Initialize odometry publisher and message
   odometry_publisher_ =
-      get_node()->create_publisher<nav_msgs::msg::Odometry>(DEFAULT_ODOMETRY_TOPIC, rclcpp::SystemDefaultsQoS());
+    get_node()->create_publisher<nav_msgs::msg::Odometry>(DEFAULT_ODOMETRY_TOPIC, rclcpp::SystemDefaultsQoS());
   realtime_odometry_publisher_ =
-      std::make_shared<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>(odometry_publisher_);
+    std::make_shared<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>(odometry_publisher_);
 
   // Append the tf prefix if there is one
   std::string tf_prefix = "";
@@ -577,15 +575,15 @@ controller_interface::CallbackReturn PivotDriveController::on_configure(const rc
     }
   }
 
-  // limit the publication on the topics /odom and /tf
-  publish_period_ = rclcpp::Duration::from_seconds(1.0 / params_.publish_rate);
-
   const auto odom_frame_id = tf_prefix + params_.odom_frame_id;
   const auto base_frame_id = tf_prefix + params_.base_frame_id;
 
   auto& odometry_message = realtime_odometry_publisher_->msg_;
   odometry_message.header.frame_id = odom_frame_id;
   odometry_message.child_frame_id = base_frame_id;
+
+  // Limit the publication on the topics /odom and /tf
+  publish_period_ = rclcpp::Duration::from_seconds(1.0 / params_.publish_rate);
 
   constexpr size_t NUM_DIMENSIONS = 6;
   for (size_t index = 0; index < 6; ++index)
@@ -596,13 +594,13 @@ controller_interface::CallbackReturn PivotDriveController::on_configure(const rc
     odometry_message.twist.covariance[diagonal_index] = params_.twist_covariance_diagonal[index];
   }
 
-  // initialize transform publisher and message
+  // Initialize transform publisher and message
   odometry_transform_publisher_ =
-      get_node()->create_publisher<tf2_msgs::msg::TFMessage>(DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
+    get_node()->create_publisher<tf2_msgs::msg::TFMessage>(DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
   realtime_odometry_transform_publisher_ =
-      std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(odometry_transform_publisher_);
+    std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(odometry_transform_publisher_);
 
-  // keeping track of odom and base_link transforms only
+  // Keeping track of odom and base_link transforms only
   auto& odometry_transform_message = realtime_odometry_transform_publisher_->msg_;
   odometry_transform_message.transforms.resize(1);
   odometry_transform_message.transforms.front().header.frame_id = odom_frame_id;
@@ -613,45 +611,29 @@ controller_interface::CallbackReturn PivotDriveController::on_configure(const rc
 
 controller_interface::CallbackReturn PivotDriveController::on_activate(const rclcpp_lifecycle::State&)
 {
+  // Configure joints using BLCMDWrapper
   std::vector<JointConfig> joint_configs;
-  for (const auto& [feedback_type, command_type, joint_type] : std::vector{
+  for (const auto& joint_pos :
+       {JointPosition::FRONT_LEFT, JointPosition::FRONT_RIGHT, JointPosition::BACK_LEFT, JointPosition::BACK_RIGHT})
+  {
+    for (const auto& [feedback_type, command_type, joint_type] : std::vector{
            std::make_tuple(drive_feedback_type(), DRIVE_COMMAND_TYPE, JointType::DRIVE),
            std::make_tuple(pivot_feedback_type(), PIVOT_COMMAND_TYPE, JointType::PIVOT)})
-  {
-    for (const auto& joint_pos :
-         {JointPosition::FRONT_LEFT, JointPosition::FRONT_RIGHT, JointPosition::BACK_LEFT, JointPosition::BACK_RIGHT})
     {
       joint_configs.emplace_back(
-          params_.drive_names.joints_map.at(to_string(joint_pos)).value, feedback_type, command_type,
-          {joint_pos, joint_type});
+        params_.drive_names.joints_map.at(to_string(joint_pos)).value, feedback_type, command_type, joint_pos,
+        joint_type);
     }
   }
 
-  blcmd_wrapper->configure_joint_handles(joint_configs, params_.open_loop);
-
-  if (left_drives_result == controller_interface::CallbackReturn::ERROR ||
-      right_drives_result == controller_interface::CallbackReturn::ERROR ||
-      left_pivots_result == controller_interface::CallbackReturn::ERROR ||
-      right_pivots_result == controller_interface::CallbackReturn::ERROR)
+  if (!blcmd_wrapper->configure_joint_handles(joint_configs, params_.open_loop))
   {
     RCLCPP_ERROR(get_node()->get_logger(), "Error configuring drives and pivots");
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  if (registered_left_drive_handles_.empty() || registered_right_drive_handles_.empty())
-  {
-    RCLCPP_ERROR(get_node()->get_logger(), "Either left drive interfaces, right drive interfaces are non existent");
-    return controller_interface::CallbackReturn::ERROR;
-  }
-
-  if (registered_left_pivot_handles_.empty() || registered_right_pivot_handles_.empty())
-  {
-    RCLCPP_ERROR(get_node()->get_logger(), "Either left pivot interfaces, right pivot interfaces are non existent");
-    return controller_interface::CallbackReturn::ERROR;
-  }
-
   is_halted_ = false;
-  subscriber_is_active_ = true;
+  is_active_ = true;
 
   RCLCPP_INFO(get_node()->get_logger(), "Subscriber and publisher are now active.");
   return controller_interface::CallbackReturn::SUCCESS;
@@ -659,18 +641,10 @@ controller_interface::CallbackReturn PivotDriveController::on_activate(const rcl
 
 controller_interface::CallbackReturn PivotDriveController::on_deactivate(const rclcpp_lifecycle::State&)
 {
-  subscriber_is_active_ = false;
+  is_active_ = false;
+  halt();
+  reset_buffers();
 
-  if (!is_halted_)
-  {
-    halt();
-    is_halted_ = true;
-  }
-
-  registered_left_drive_handles_.clear();
-  registered_right_drive_handles_.clear();
-  registered_left_pivot_handles_.clear();
-  registered_right_pivot_handles_.clear();
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -680,8 +654,6 @@ controller_interface::CallbackReturn PivotDriveController::on_cleanup(const rclc
   {
     return controller_interface::CallbackReturn::ERROR;
   }
-
-  received_twist_msg_ptr_.set(std::make_shared<geometry_msgs::msg::TwistStamped>());
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -699,27 +671,32 @@ controller_interface::CallbackReturn PivotDriveController::on_error(const rclcpp
 bool PivotDriveController::reset()
 {
   odometry_.resetOdometry();
+  reset_buffers();
+  twist_subscriber_.reset();
+  is_active_ = false;
 
-  // release the old queue
-  previous_linear_velocities_ = {};
-  previous_angular_positions = {};
+  return true;
+}
 
+void PivotDriveController::reset_buffers()
+{
   blcmd_wrapper_->reset_handles();
 
-  registered_left_drive_handles_.clear();
-  registered_right_drive_handles_.clear();
-  registered_left_pivot_handles_.clear();
-  registered_right_pivot_handles_.clear();
+  previous_linear_velocities_ = {0.0, 0.0};
+  previous_angular_positions_ = {0.0, 0.0, 0.0};
 
-  subscriber_is_active_ = false;
-  twist_subscriber_.reset();
-
-  RCLCPP_DEBUG(get_node()->get_logger(), "reset");
-
-  received_twist_msg_ptr_.set(nullptr);
-
-  is_halted_ = false;
-  return true;
+  // Fill RealtimeBuffer with NaNs so it will contain a known value
+  // but still indicate that no command has yet been sent.
+  received_twist_msg_ptr_.reset();
+  std::shared_ptr<TwistStamped> empty_twist_ptr = std::make_shared<TwistStamped>();
+  empty_twist_ptr->header.stamp = get_node()->now();
+  empty_twist_ptr->twist.linear.x = std::numeric_limits<double>::quiet_NaN();
+  empty_twist_ptr->twist.linear.y = std::numeric_limits<double>::quiet_NaN();
+  empty_twist_ptr->twist.linear.z = std::numeric_limits<double>::quiet_NaN();
+  empty_twist_ptr->twist.angular.x = std::numeric_limits<double>::quiet_NaN();
+  empty_twist_ptr->twist.angular.y = std::numeric_limits<double>::quiet_NaN();
+  empty_twist_ptr->twist.angular.z = std::numeric_limits<double>::quiet_NaN();
+  received_twist_msg_ptr_.writeFromNonRT(empty_twist_ptr);
 }
 
 controller_interface::CallbackReturn PivotDriveController::on_shutdown(const rclcpp_lifecycle::State&)
@@ -729,18 +706,14 @@ controller_interface::CallbackReturn PivotDriveController::on_shutdown(const rcl
 
 void PivotDriveController::halt()
 {
-  const auto halt_wheels = [](auto& wheel_handles)
+  for (const auto& joint_pos :
+       {JointPosition::FRONT_LEFT, JointPosition::FRONT_RIGHT, JointPosition::BACK_LEFT, JointPosition::BACK_RIGHT})
   {
-    for (const auto& wheel_handle : wheel_handles)
+    for (const auto& joint_type : {JointType::DRIVE, JointType::PIVOT})
     {
-      wheel_handle.command.get().set_value(0.0);
+      blcmd_wrapper_->set_value(0.0, joint_pos, joint_type)
     }
-  };
-
-  halt_wheels(registered_left_drive_handles_);
-  halt_wheels(registered_right_drive_handles_);
-  halt_wheels(registered_left_pivot_handles_);
-  halt_wheels(registered_right_pivot_handles_);
+  }
 }
 
 }  // namespace pivot_drive_controller
