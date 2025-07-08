@@ -15,12 +15,12 @@
 #ifndef NOVA_CONTROLLER_COMMON__BLCMD_WRAPPER_HPP_
 #define NOVA_CONTROLLER_COMMON__BLCMD_WRAPPER_HPP_
 
+#include <algorithm>
 #include <cstdint>
 #include <functional>
 #include <optional>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 #include "controller_interface/controller_interface.hpp"
 #include "hardware_interface/loaned_command_interface.hpp"
@@ -29,6 +29,7 @@
 
 namespace nova_controller_common
 {
+
 enum class JointPosition : uint8_t
 {
   FRONT_LEFT,
@@ -36,6 +37,23 @@ enum class JointPosition : uint8_t
   BACK_LEFT,
   BACK_RIGHT
 };
+
+std::string to_string(const JointPosition& position)
+{
+  switch (position)
+  {
+    case JointPosition::FRONT_LEFT:
+      return "front_left";
+    case JointPosition::FRONT_RIGHT:
+      return "front_right";
+    case JointPosition::BACK_LEFT:
+      return "back_left";
+    case JointPosition::BACK_RIGHT:
+      return "back_right";
+    default:
+      return "unknown";
+  }
+}
 
 enum class JointType : uint8_t
 {
@@ -67,18 +85,16 @@ class BLCMDWrapper
 {
 public:
   BLCMDWrapper(
-      rclcpp::Node::SharedPtr node, bool open_loop,
-      const std::vector<hardware_interface::LoanedStateInterface>& state_interfaces)
+      rclcpp::Node::SharedPtr node, const std::vector<hardware_interface::LoanedStateInterface>& state_interfaces)
       const std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces,
-      : node_(node)
-      , open_loop_(open_loop)
-      , state_interfaces_(state_interfaces)
-      , command_interfaces_(command_interfaces)
-      , registered_handles_(8, std::nullopt)
+      : node_(node),
+        state_interfaces_(state_interfaces),
+        command_interfaces_(command_interfaces),
+        registered_handles_(8, std::nullopt)
   {
   }
 
-  template<typename T>
+  template <typename T>
   bool set_value(const T& value, const Joint&& joint)
   {
     const size_t index = get_index(joint);
@@ -96,7 +112,7 @@ public:
     return registered_handles_[index]->command.get().set_value(value);
   }
 
-  template<typename T>
+  template <typename T>
   std::optional<T> get_optional(const JointPosition&& joint)
   {
     const size_t index = get_index(joint);
@@ -105,7 +121,7 @@ public:
       RCLCPP_ERROR(node_->get_logger(), "Joint handle not registered for joint at index %zu", index);
       return std::nullopt;
     }
-    
+
     const auto& state_handle = registered_handles_[index]->state;
     if (!state_handle.has_value())
     {
@@ -123,14 +139,14 @@ public:
     return res.has_value() ? std::make_optional(res.value()) : std::nullopt;
   }
 
-  controller_interface::CallbackReturn configure_joint_handles(std::vector<JointConfig>&& joint_configs)
+  controller_interface::CallbackReturn configure_joint_handles(std::vector<JointConfig>& joint_configs, bool open_loop)
   {
     for (const auto& [joint_name, feedback_type, command_type, joint] : joint_configs)
     {
       const std::optional<std::reference_wrapper<const hardware_interface::LoanedStateInterface>> state_handle;
       const std::reference_wrapper<hardware_interface::LoanedCommandInterface> command_handle;
 
-      if (open_loop_)
+      if (open_loop)
       {
         state_handle = std::nullopt;
       }
@@ -189,8 +205,7 @@ private:
   rclcpp::Node::SharedPtr node_;
   std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces_;
   std::vector<hardware_interface::LoanedStateInterface>& state_interfaces_;
-  const bool open_loop_;
-  
+
   const int reverse_multiplier_ = -1;
 
   std::vector<std::optional<WheelHandle>> registered_handles_;
