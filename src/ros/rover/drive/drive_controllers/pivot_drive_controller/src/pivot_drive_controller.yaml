@@ -4,33 +4,22 @@ pivot_drive_controller:
     default_value: false,
     description: "Changes how the controller reacts to Twist commands.",
 
+  joints:
+    type: string_array,
+    default_value: ["front_left", "front_right", "back_left", "back_right"],
+    description: "Positions of wheels/pivots."
+
   drive_names:
-    front_left:
-      type: string,
-      description: "Name of the front left drive joint",
-    front_right:
-      type: string,
-      description: "Name of the front right drive joint",
-    back_left:
-      type: string,
-      description: "Name of the back left drive joint",
-    back_right:
-      type: string,
-      description: "Name of the back right drive joint",
+    __map_joints:
+      value:
+        type: string,
+        description: "Name of the drive joint",
 
   pivot_names:
-    front_left:
-      type: string,
-      description: "Name of the front left pivot joint",
-    front_right:
-      type: string,
-      description: "Name of the front right pivot joint",
-    back_left:
-      type: string,
-      description: "Name of the back left pivot joint",
-    back_right:
-      type: string,
-      description: "Name of the back right pivot joint",
+    __map_joints:
+      value:
+        type: string,
+        description: "Name of the pivot joint",
 
   steering_track:
     type: double,
