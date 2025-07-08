@@ -6,22 +6,24 @@
  * inverted right before being sent to the BLCMDs.
  */
 
-#include <cstdio>
+#include "pivot_drive_controller/pivot_drive_controller.hpp"
+
+#include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <memory>
 #include <queue>
+#include <ranges>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
-#include <tuple>
-#include <algorithm>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
+#include "nova_controller_common/blcmd_wrapper.hpp"
 #include "rclcpp/logging.hpp"
 #include "tf2/LinearMath/Quaternion.h"
-
-#include "pivot_drive_controller/pivot_drive_controller.hpp"
 
 namespace
 {
@@ -34,6 +36,7 @@ namespace pivot_drive_controller
 {
 
 using namespace std::chrono_literals;
+using namespace nova_controller_common;
 using controller_interface::interface_configuration_type;
 using controller_interface::InterfaceConfiguration;
 using hardware_interface::HW_IF_POSITION;
@@ -78,8 +81,7 @@ controller_interface::CallbackReturn PivotDriveController::on_init()
   offset_angle_ = atan(params_.steering_track / params_.wheel_base);
   RCLCPP_INFO_STREAM(get_node()->get_logger(), "offset_angle_: " << offset_angle_);
 
-  blcmd_wrapper_ = std::make_unique<nova_controller_common::BLCMDWrapper>(
-      get_node(), params_.open_loop, state_interfaces_, command_interfaces_);
+  blcmd_wrapper_ = std::make_unique<BLCMDWrapper>(get_node(), state_interfaces_, command_interfaces_);
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -484,18 +486,6 @@ controller_interface::return_type PivotDriveController::update(const rclcpp::Tim
   return controller_interface::return_type::OK;
 }
 
-/**
- * @brief Wrapper function to invert the angle before setting the pivot position for a wheel.
- * This is because our BLCMDs expect left = negative and right = positive, contrary to ROS conventions.
- *
- * @param pivot_handle The handle to the pivot wheel.
- * @param angle The angle to set the pivot wheel to, in radians.
- */
-void PivotDriveController::set_pivot_position(WheelHandle& pivot_handle, double angle)
-{
-  pivot_handle.command.get().set_value(angle * -1);
-}
-
 std::pair<double, double> PivotDriveController::get_pivot_angles_from_radius(float radius, int dir)
 {
   return radius == INFINITY ? {0.0, 0.0}
@@ -514,27 +504,13 @@ controller_interface::CallbackReturn PivotDriveController::on_configure(const rc
     RCLCPP_INFO(logger, "Parameters were updated");
   }
 
-  if (params_.left_drive_names.size() != params_.right_drive_names.size())
-  {
-    RCLCPP_ERROR(
-        logger, "The number of left wheels [%zu] and the number of right wheels [%zu] are different",
-        params_.left_drive_names.size(), params_.right_drive_names.size());
-    return controller_interface::CallbackReturn::ERROR;
-  }
-
-  if (params_.left_drive_names.empty())
-  {
-    RCLCPP_ERROR(logger, "Wheel names parameters are empty!");
-    return controller_interface::CallbackReturn::ERROR;
-  }
-
   cmd_vel_timeout_ = std::chrono::milliseconds{static_cast<int>(params_.cmd_vel_timeout * 1000.0)};
 
-  limiter_linear_ = nova_controller_common::SpeedLimiter(
+  limiter_linear_ = SpeedLimiter(
       params_.linear.has_velocity_limits, params_.linear.has_acceleration_limits, params_.linear.has_jerk_limits,
       params_.linear.min_velocity, params_.linear.max_velocity, params_.linear.min_acceleration,
       params_.linear.max_acceleration, params_.linear.min_jerk, params_.linear.max_jerk);
-  limiter_angular_ = nova_controller_common::PositionLimiter(
+  limiter_angular_ = PositionLimiter(
       params_.angular.has_velocity_limits, params_.angular.has_acceleration_limits, params_.angular.has_jerk_limits,
       params_.angular.min_velocity, params_.angular.max_velocity, params_.angular.min_acceleration,
       params_.angular.max_acceleration, params_.angular.min_jerk, params_.angular.max_jerk);
@@ -551,7 +527,7 @@ controller_interface::CallbackReturn PivotDriveController::on_configure(const rc
   for (double x : {0.0, 0.0}) previous_linear_velocities_.push(x);
   for (double x : {0.0, 0.0, 0.0}) previous_angular_positions_.push(x);
 
-  // Initialize twist / drive input subscribers
+  // Initialize twist subscribers
   twist_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
       DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
       [this](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
@@ -637,14 +613,21 @@ controller_interface::CallbackReturn PivotDriveController::on_configure(const rc
 
 controller_interface::CallbackReturn PivotDriveController::on_activate(const rclcpp_lifecycle::State&)
 {
-  const auto left_drives_result =
-      configure_drive_pivots(params_.left_drive_names, registered_left_drive_handles_, drive_feedback_type());
-  const auto right_drives_result =
-      configure_drive_pivots(params_.right_drive_names, registered_right_drive_handles_, drive_feedback_type());
-  const auto left_pivots_result =
-      configure_drive_pivots(params_.left_pivot_names, registered_left_pivot_handles_, pivot_feedback_type());
-  const auto right_pivots_result =
-      configure_drive_pivots(params_.right_pivot_names, registered_right_pivot_handles_, pivot_feedback_type());
+  std::vector<JointConfig> joint_configs;
+  for (const auto& [feedback_type, command_type, joint_type] : std::vector{
+           std::make_tuple(drive_feedback_type(), DRIVE_COMMAND_TYPE, JointType::DRIVE),
+           std::make_tuple(pivot_feedback_type(), PIVOT_COMMAND_TYPE, JointType::PIVOT)})
+  {
+    for (const auto& joint_pos :
+         {JointPosition::FRONT_LEFT, JointPosition::FRONT_RIGHT, JointPosition::BACK_LEFT, JointPosition::BACK_RIGHT})
+    {
+      joint_configs.emplace_back(
+          params_.drive_names.joints_map.at(to_string(joint_pos)).value, feedback_type, command_type,
+          {joint_pos, joint_type});
+    }
+  }
+
+  blcmd_wrapper->configure_joint_handles(joint_configs, params_.open_loop);
 
   if (left_drives_result == controller_interface::CallbackReturn::ERROR ||
       right_drives_result == controller_interface::CallbackReturn::ERROR ||
