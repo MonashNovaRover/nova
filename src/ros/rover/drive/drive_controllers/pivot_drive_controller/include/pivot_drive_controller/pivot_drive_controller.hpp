@@ -19,7 +19,6 @@
 #include "std_srvs/srv/trigger.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
-#include "realtime_tools/realtime_box.h"
 #include "realtime_tools/realtime_buffer.h"
 #include "realtime_tools/realtime_publisher.h"
 
@@ -62,6 +61,7 @@ private:
   std::pair<double, double> get_pivot_angles_from_radius(float radius, int dir);
 
   bool reset();
+  void reset_buffers();
   void halt();
 
   bool is_halted_ = false;
@@ -73,17 +73,17 @@ private:
   double zero_radius_;   // radius of the circle the rover makes with its wheels when turning on the spot
   double offset_angle_;  // angle at which the wheels are initially offset
 
+  std::unique_ptr<nova_controller_common::BLCMDWrapper> blcmd_wrapper_;
+  
   std::queue<double> previous_linear_velocities;   // last two linear velocity commands
   std::queue<double> previous_angular_positions_;  // last three angular position commands
-
+  
   // Limiters
   nova_controller_common::SpeedLimiter limiter_linear_;
   nova_controller_common::PositionLimiter limiter_angular_;
 
-  std::unique_ptr<nova_controller_common::BLCMDWrapper> blcmd_wrapper_;
-
   // Timeout to consider cmd_vel commands old
-  std::chrono::milliseconds cmd_vel_timeout_{500};
+  std::chrono::milliseconds cmd_vel_timeout_;
 
   Odometry odometry_;
   std::shared_ptr<rclcpp::Publisher<nav_msgs::msg::Odometry>> odometry_publisher_;
@@ -92,9 +92,9 @@ private:
   std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> odometry_transform_publisher_;
   std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>> realtime_odometry_transform_publisher_;
 
-  bool subscriber_is_active_ = false;
+  bool is_active_ = false;
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_subscriber_;
-  realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_msg_ptr_;
+  realtime_tools::RealtimeBuffer<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_msg_ptr_;
 
   // Publish rate limiter
   rclcpp::Duration publish_period_ = rclcpp::Duration::from_nanoseconds(0);
