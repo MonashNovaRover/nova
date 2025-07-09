@@ -70,7 +70,7 @@ joint_state_broadcaster:
     
 pivot_drive_controller:
   ros__parameters:
-    enable_twist_cmd: true
+    autonomous_mode: true
     drive_names:
       front_left:  "flw"
       front_right: "frw"

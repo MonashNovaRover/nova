@@ -12,7 +12,7 @@ endif()
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   hardware_interface
-  controller_interface
+  rclcpp_lifecycle
   rclcpp
 )
 
@@ -21,9 +21,11 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-add_library(${PROJECT_NAME} INTERFACE)
+add_library(${PROJECT_NAME} SHARED
+  src/blcmd_wrapper.cpp
+)
 
-target_include_directories(${PROJECT_NAME} INTERFACE
+target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
@@ -37,6 +39,9 @@ install(
 install(
   TARGETS ${PROJECT_NAME}
   EXPORT export_${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)

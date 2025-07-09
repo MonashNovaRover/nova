@@ -4,13 +4,13 @@
 #include <chrono>
 #include <cmath>
 #include <memory>
-#include <queue>
+#include <deque>
 #include <string>
 #include <vector>
 #include <utility>
 
-#include "hardware_interface/handle.hpp"
 #include "controller_interface/controller_interface.hpp"
+#include "hardware_interface/handle.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "nav_msgs/msg/odometry.hpp"
@@ -38,27 +38,36 @@ public:
   controller_interface::InterfaceConfiguration command_interface_configuration() const override;
   controller_interface::InterfaceConfiguration state_interface_configuration() const override;
 
-  controller_interface::return_type update(const rclcpp::Time& time, const rclcpp::Duration& period) override;
+  controller_interface::return_type update(
+    const rclcpp::Time& time, const rclcpp::Duration& period) override;
 
   controller_interface::CallbackReturn on_init() override;
 
-  controller_interface::CallbackReturn on_configure(const rclcpp_lifecycle::State& previous_state) override;
+  controller_interface::CallbackReturn on_configure(
+    const rclcpp_lifecycle::State& previous_state) override;
 
-  controller_interface::CallbackReturn on_activate(const rclcpp_lifecycle::State& previous_state) override;
+  controller_interface::CallbackReturn on_activate(
+    const rclcpp_lifecycle::State& previous_state) override;
 
-  controller_interface::CallbackReturn on_deactivate(const rclcpp_lifecycle::State& previous_state) override;
+  controller_interface::CallbackReturn on_deactivate(
+    const rclcpp_lifecycle::State& previous_state) override;
 
-  controller_interface::CallbackReturn on_cleanup(const rclcpp_lifecycle::State& previous_state) override;
+  controller_interface::CallbackReturn on_cleanup(
+    const rclcpp_lifecycle::State& previous_state) override;
 
-  controller_interface::CallbackReturn on_error(const rclcpp_lifecycle::State& previous_state) override;
+  controller_interface::CallbackReturn on_error(
+    const rclcpp_lifecycle::State& previous_state) override;
 
-  controller_interface::CallbackReturn on_shutdown(const rclcpp_lifecycle::State& previous_state) override;
+  controller_interface::CallbackReturn on_shutdown(
+    const rclcpp_lifecycle::State& previous_state) override;
 
 private:
   const char* drive_feedback_type() const;
   const char* pivot_feedback_type() const;
 
-  std::pair<double, double> get_pivot_angles_from_radius(float radius, int dir);
+  std::pair<double, double> get_pivot_angles_from_radius(double radius);
+  std::pair<double, double> get_best_effort_pivot_angles(
+    double left_angle, double right_angle, double target_radius);
 
   bool reset();
   void reset_buffers();
@@ -70,38 +79,41 @@ private:
   std::shared_ptr<ParamListener> param_listener_;
   Params params_;
 
-  double zero_radius_;   // radius of the circle the rover makes with its wheels when turning on the spot
-  double offset_angle_;  // angle at which the wheels are initially offset
+  // Radius of the circle the rover makes with its wheels when turning on the spot
+  double zero_radius_;
 
   std::unique_ptr<nova_controller_common::BLCMDWrapper> blcmd_wrapper_;
-  
-  std::queue<double> previous_linear_velocities;   // last two linear velocity commands
-  std::queue<double> previous_angular_positions_;  // last three angular position commands
-  
+
+  std::deque<double> previous_linear_velocities_;   // last two linear velocity commands
+  std::deque<double> previous_angular_positions_;  // last three angular position commands
+
   // Limiters
   nova_controller_common::SpeedLimiter limiter_linear_;
   nova_controller_common::PositionLimiter limiter_angular_;
 
   // Timeout to consider cmd_vel commands old
-  std::chrono::milliseconds cmd_vel_timeout_;
+  rclcpp::Duration cmd_vel_timeout_ = rclcpp::Duration::from_seconds(0.5);
 
   Odometry odometry_;
   std::shared_ptr<rclcpp::Publisher<nav_msgs::msg::Odometry>> odometry_publisher_;
-  std::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>> realtime_odometry_publisher_;
+  std::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>
+    realtime_odometry_publisher_;
 
   std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> odometry_transform_publisher_;
-  std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>> realtime_odometry_transform_publisher_;
+  std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>
+    realtime_odometry_transform_publisher_;
 
   bool is_active_ = false;
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_subscriber_;
-  realtime_tools::RealtimeBuffer<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_msg_ptr_;
+  realtime_tools::RealtimeBuffer<std::shared_ptr<geometry_msgs::msg::TwistStamped>>
+    received_twist_msg_ptr_;
 
   // Publish rate limiter
   rclcpp::Duration publish_period_ = rclcpp::Duration::from_nanoseconds(0);
   rclcpp::Time previous_publish_timestamp_{0, 0, RCL_CLOCK_UNINITIALIZED};
 
-  static constexpr const char* DRIVE_COMMAND_TYPE;
-  static constexpr const char* PIVOT_COMMAND_TYPE;
+  const char* DRIVE_COMMAND_TYPE;
+  const char* PIVOT_COMMAND_TYPE;
 };
 
 }  // namespace pivot_drive_controller
