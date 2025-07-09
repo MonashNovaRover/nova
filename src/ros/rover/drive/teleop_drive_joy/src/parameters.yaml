@@ -3,9 +3,22 @@
 # Look at individual controller config for changing axes / buttons
 # Look here for docs about this YAML : https://github.com/PickNikRobotics/generate_parameter_library
 teleop_drive_joy:
-  input_topic: { type: string, default_value: "/joy", description: "Input Topic for Joy Messages" }
-  output_topic: { type: string, default_value: "/cmd_vel", description: "Output Topic for Twist Commands" }
+  input_topic:
+    type: string
+    default_value: "/joy"
+    description: "Input Topic for Joy Messages"
+  output_topic:
+    type: string
+    default_value: "/cmd_vel"
+    description: "Output Topic for Twist Commands"
   
+  # Deadzone already exists as an input parameter to the joy node (teleop.launch.py)
+
+  max_input_threshold:
+    type: double
+    default_value: 0.97
+    description: "Values above this threshold will be considered as maximum input (1.0)."
+
   button_debounce_time:
     type: int
     default_value: 200
@@ -29,87 +42,91 @@ teleop_drive_joy:
     read_only: true
   
   __map_controllers:
-    axis_linear_x:
-      {
-        type: int,
-        default_value: 1,
-        description: "The Axis controlling linear velocity. Usually refers to the Left Stick Verical Axis",
-      }
-    axis_linear_y:
-      {
-        type: int,
-        default_value: 0,
-        description: "The Axis controlling lateral velocity. Usually refers to the Left Stick Horizontal Axis",
-      }
-    axis_angular_y:
-      {
-        type: int,
-        default_value: 3,
-        description: "The Axis controlling angular velocity. Usually refers to the Right Stick Horizontal Axis",
-      }
+    scale_linear:
+      type: double
+      default_value: 1.0
+      description: "A scale parameter applied on linear velocity"
     scale_angular:
-      {
-        type: double,
-        default_value: 1,
-        description: "A scale parameter applied on angular velocity",
-      }
+      type: double
+      default_value: 1.0
+      description: "A scale parameter applied on angular velocity"
+  
+  axis_linear_x:
+    type: int
+    default_value: 1
+    description: > 
+      The joy axis corresponding to the Twist axis controlling linear velocity.
+      Usually mapped to the left stick vertical axis.
+  axis_linear_y:
+    type: int
+    default_value: 0
+    description: >
+      The joy axis corresponding to the Twist axis controlling lateral velocity.
+      Usually mapped to the left stick horizontal axis.
+  axis_linear_z:
+    type: int
+    default_value: 2
+    description: >
+      The joy axis corresponding to the Twist axis controlling vertical velocity.
+      Usually mapped to the right stick vertical axis.
+      This is currently not used in any controllers, however it is used to retrieve
+      the right stick vertical axis value.
+  axis_angular_z:
+    type: int
+    default_value: 3
+    description: >
+      The joy axis corresponding to the Twist axis controlling angular velocity.
+      Usually mapped to the left stick horizontal axis.
 
-  button_unlock: { type: int, default_value: 9, description: "Unlock Gamepad" }
-
-  button_lock: { type: int, default_value: 10, description: "Lock Gamepad" }
-
+  button_unlock:
+    type: int
+    default_value: 9
+    description: "Unlock Gamepad"
+  button_lock:
+    type: int
+    default_value: 10
+    description: "Lock Gamepad"
   button_strafe_controller:
-    { type: int, default_value: 6, description: "Switch to Strafe Mode" }
-
+    type: int
+    default_value: 6
+    description: "Switch to Strafe Mode"
   button_holonomic_drive_controller:
-    { type: int, default_value: 5, description: "Switch to Holonomic Mode" }
-
+    type: int
+    default_value: 5
+    description: "Switch to Holonomic Mode"
   button_pivot_drive_controller:
-    { type: int, default_value: 7, description: "Switch to Pivot Mode" }
-
+    type: int
+    default_value: 7
+    description: "Switch to Pivot Mode"
   button_nova_diff_drive_controller:
-    { type: int, default_value: 4, description: "Switch to Tank Mode" }
+    type: int
+    default_value: 4
+    description: "Switch to Tank Mode"
 
   axis_speed_change_fine:
-    {
-      type: int,
-      default_value: 6,
-      description: "Axis to increment current speed on a coarse scale. This is usually mapped to DPad Horizontal",
-    }
-
+    type: int
+    default_value: 6
+    description: "Axis to increment current speed on a coarse scale. This is usually mapped to DPad Horizontal"
   axis_speed_change_coarse:
-    {
-      type: int,
-      default_value: 7,
-      description: "Axis to increment current speed on a coarse scale. This is usually mapped to DPad Vertical",
-    }
-
+    type: int
+    default_value: 7
+    description: "Axis to increment current speed on a coarse scale. This is usually mapped to DPad Vertical"
   speed_change_coarse_val:
-    {
-      type: double,
-      default_value: 0.1,
-      description: "Value to change speed when the speed_change_coarse is invoked",
-    }
-
+    type: double
+    default_value: 0.1
+    description: "Value to change speed when the speed_change_coarse is invoked"
   speed_change_fine_val:
-    {
-      type: double,
-      default_value: 0.02,
-      description: "Value to change speed when the speed_change_fine is invoked",
-    }
+    type: double
+    default_value: 0.02
+    description: "Value to change speed when the speed_change_fine is invoked"
 
   # 1.0 = 100% max linear velocity, 0.5 = 50% max linear velocity, etc.
-  # Max linear velocity is defined by the controller e.g. pivot_drive_controller
+  # Max linear velocity is defined by the controller e.g. in pivot_drive_controller.yaml
   speed_limit_max:
-    {
-      type: double,
-      default_value: 1.0,
-      description: "Factor to limit the maximum speed of the Rover",
-    }
-
+    type: double
+    default_value: 1.0
+    description: "Factor to limit the maximum speed of the Rover"
   speed_limit_min:
-    {
-      type: double,
-      default_value: 0.05,
-      description: "Factor to limit the minimum speed of the Rover",
-    }
+    type: double
+    default_value: 0.05
+    description: "Factor to limit the minimum speed of the Rover"
