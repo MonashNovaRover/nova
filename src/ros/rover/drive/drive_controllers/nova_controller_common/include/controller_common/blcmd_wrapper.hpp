@@ -15,16 +15,16 @@
 #ifndef NOVA_CONTROLLER_COMMON__BLCMD_WRAPPER_HPP_
 #define NOVA_CONTROLLER_COMMON__BLCMD_WRAPPER_HPP_
 
-#include <algorithm>
 #include <cstdint>
 #include <functional>
 #include <optional>
 #include <string>
 #include <vector>
+#include <cstddef>
 
-#include "controller_interface/controller_interface.hpp"
 #include "hardware_interface/loaned_command_interface.hpp"
 #include "hardware_interface/loaned_state_interface.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 namespace nova_controller_common
@@ -38,21 +38,25 @@ enum class JointPosition : uint8_t
   BACK_RIGHT
 };
 
-std::string to_string(const JointPosition& position)
+JointPosition to_joint_position(const std::string& joint_name)
 {
-  switch (position)
+  if (joint_name == "front_left")
   {
-    case JointPosition::FRONT_LEFT:
-      return "front_left";
-    case JointPosition::FRONT_RIGHT:
-      return "front_right";
-    case JointPosition::BACK_LEFT:
-      return "back_left";
-    case JointPosition::BACK_RIGHT:
-      return "back_right";
-    default:
-      return "unknown";
+    return JointPosition::FRONT_LEFT;
   }
+  if (joint_name == "front_right")
+  {
+    return JointPosition::FRONT_RIGHT;
+  }
+  if (joint_name == "back_left")
+  {
+    return JointPosition::BACK_LEFT;
+  }
+  if (joint_name == "back_right")
+  {
+    return JointPosition::BACK_RIGHT;
+  }
+  throw std::invalid_argument("Invalid joint name: " + joint_name);
 }
 
 enum class JointType : uint8_t
@@ -63,12 +67,23 @@ enum class JointType : uint8_t
 
 struct Joint
 {
-  std::string name;
-  char* feedback_type;
-  char* command_type;
-  JointPosition position;
-  JointType type;
-}
+  const std::string name;
+  const char* feedback_type;
+  const char* command_type;
+  const JointPosition position;
+  const JointType type;
+
+  Joint(
+    const std::string& joint_name, const char* feedback, const char* command,
+    const JointPosition joint_pos, JointType joint_type)
+    : name(joint_name)
+    , feedback_type(feedback)
+    , command_type(command)
+    , position(joint_pos)
+    , type(joint_type)
+  {
+  }
+};
 
 struct WheelHandle
 {
@@ -80,128 +95,28 @@ class BLCMDWrapper
 {
 public:
   BLCMDWrapper(
-    rclcpp::Node::SharedPtr node, const std::vector<hardware_interface::LoanedStateInterface>& state_interfaces)
-    const std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces,
-    : node_(node),
-      state_interfaces_(state_interfaces),
-      command_interfaces_(command_interfaces),
-      registered_handles_(8, std::nullopt)
-  {
-  }
+    const rclcpp_lifecycle::LifecycleNode::SharedPtr node, const double offset_angle,
+    std::vector<hardware_interface::LoanedStateInterface>& state_interfaces,
+    std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces);
 
-  template <typename T>
-  bool set_value(const T& value, const JointPosition& joint_pos, const JointType& joint_type)
-  {
-    const size_t index = get_index(joint_pos, joint_type);
-    if (!registered_handles_[index])
-    {
-      RCLCPP_ERROR(node_->get_logger(), "Joint handle not registered for joint at index %zu", index);
-      return false;
-    }
+  bool set_value(double value, const JointPosition joint_pos, const JointType joint_type) const;
 
-    // Invert pivot position value for BLCMDs
-    if (joint_type == JointType::PIVOT)
-    {
-      return registered_handles_[index]->command.get().set_value(value * reverse_multiplier_);
-    }
-    return registered_handles_[index]->command.get().set_value(value);
-  }
+  std::optional<double> get_optional(
+    const JointPosition joint_pos, const JointType joint_type, bool cmd_if = false) const;
 
-  template <typename T>
-  std::optional<T> get_optional(const JointPosition& joint_pos, const JointType& joint_type) const
-  {
-    const size_t index = get_index(joint_pos, joint_type);
-    if (!registered_handles_[index])
-    {
-      RCLCPP_ERROR(node_->get_logger(), "Joint handle not registered for joint at index %zu", index);
-      return std::nullopt;
-    }
+  bool configure_joint_handles(std::vector<Joint>& joints, bool open_loop);
 
-    const auto& state_handle = registered_handles_[index]->state;
-    if (!state_handle.has_value())
-    {
-      RCLCPP_ERROR(node_->get_logger(), "State handle not available for joint at index %zu", index);
-      return std::nullopt;
-    }
-
-    const auto& res = state_handle.get().get_optional();
-
-    // Invert pivot position value for BLCMDs
-    if (joint_type == JointType::PIVOT)
-    {
-      return res.has_value() ? std::make_optional(res.value() * reverse_multiplier_) : std::nullopt;
-    }
-    return res.has_value() ? std::make_optional(res.value()) : std::nullopt;
-  }
-
-  bool configure_joint_handles(std::vector<JointConfig>& joint_configs, bool open_loop)
-  {
-    for (const auto& [joint_name, feedback_type, command_type, joint] : joint_configs)
-    {
-      const std::optional<std::reference_wrapper<const hardware_interface::LoanedStateInterface>> state_handle;
-      const std::reference_wrapper<hardware_interface::LoanedCommandInterface> command_handle;
-
-      if (open_loop)
-      {
-        state_handle = std::nullopt;
-      }
-      else
-      {
-        const auto state_iter = std::find_if(
-          state_interfaces_.cbegin(), state_interfaces_.cend(),
-          [&jc](const auto& interface)
-          {
-            return interface.get_prefix_name() == joint_name && interface.get_interface_name() == feedback_type;
-          });
-
-        if (state_iter == state_interfaces_.cend())
-        {
-          RCLCPP_ERROR(node_->get_logger(), "Unable to obtain joint state handle for %s", joint_name.c_str());
-          return false;
-        }
-        state_handle = std::ref(*state_iter);
-      }
-
-      const auto cmd_iter = std::find_if(
-        command_interfaces_.begin(), command_interfaces_.end(),
-        [&jc](const auto& interface)
-        {
-          return interface.get_prefix_name() == joint_name && interface.get_interface_name() == command_type;
-        });
-
-      if (cmd_iter == command_interfaces_.end())
-      {
-        RCLCPP_ERROR(node_->get_logger(), "Unable to obtain joint command handle for %s", joint_name.c_str());
-        return false;
-      }
-      command_handle = std::ref(*cmd_iter);
-
-      registered_handles_[get_index(joint)] = WheelHandle{state_handle, command_handle};
-    }
-
-    return true;
-  }
-
-  void reset_handles()
-  {
-    for (auto& handle : registered_handles_)
-    {
-      handle.reset();
-    }
-  }
+  void reset_handles();
 
 private:
-  size_t get_index(const JointPosition& pos, JointType& type) const
-  {
-    // Position = 2 bits, type = 1 bit
-    return (static_cast<size_t>(pos) << 1) | static_cast<size_t>(type);
-  }
+  std::size_t get_index(const JointPosition& pos, const JointType& type) const;
 
-  rclcpp::Node::SharedPtr node_;
+  rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
   std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces_;
   std::vector<hardware_interface::LoanedStateInterface>& state_interfaces_;
+  double offset_angle_;
 
-  const int reverse_multiplier_ = -1;
+  const int REVERSE_MULTIPLIER_ = -1;
 
   std::vector<std::optional<WheelHandle>> registered_handles_;
 };
