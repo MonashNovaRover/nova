@@ -2,22 +2,10 @@
 # x = vertical axis, y = horizontal axis
 teleop_drive_joy_node:
   ros__parameters:
-    pivot_drive_controller:
-      axis_linear_x: 1
-      axis_angular_y: 2
-    
-    holonomic_drive_controller:
-      axis_linear_x: 1
-      axis_linear_y: 0
-      axis_angular_y: 2
-    
-    strafe_controller:
-      axis_linear_x: 0
-      axis_angular_y: 2
-    
-    nova_diff_drive_controller:
-      axis_linear_x: 1
-      axis_angular_y: 2
+    axis_linear_x: 1
+    axis_linear_y: 0
+    axis_linear_z: 3
+    axis_angular_z: 2
     
     button_pivot_drive_controller: 0       # Button B
     button_holonomic_drive_controller: 1   # Button A

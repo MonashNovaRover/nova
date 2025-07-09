@@ -6,11 +6,10 @@
  * NODE: teleop_drive_joy
  * TOPICS:
  *  - subscriber: /joy               [sensor_msgs/msg/Joy]
- *  - publisher:  /drive_input       [nova_interfaces/msg/DriveInputStamped]
  *  - publisher:  /cmd_vel           [geometry_msgs/msg/TwistStamped]
- *  - publisher:  /drive_info        [nova_interfaces/msg/DriveInfo]
  * SERVICES:
- *  - client:     /controller_manager/switch_controller        [controller_manager_msgs/srv/SwitchController]
+ *  - client:     /controller_manager/switch_controller
+ * [controller_manager_msgs/srv/SwitchController]
  *  - client:     /pivot_drive_controller/set_parameters       [rcl_interfaces/srv/SetParameters]
  *  - client:     /strafe_controller/set_parameters            [rcl_interfaces/srv/SetParameters]
  *  - client:     /nova_diff_drive_controller/set_parameters   [rcl_interfaces/srv/SetParameters]
@@ -23,10 +22,11 @@
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
- #ifndef TELEOP_DRIVE_JOY_HPP
+#ifndef TELEOP_DRIVE_JOY_HPP
 #define TELEOP_DRIVE_JOY_HPP
 
 #include <cstddef>
+#include <cstdint>
 #include <map>
 #include <functional>
 
@@ -40,122 +40,140 @@
 namespace teleop_drive_joy
 {
 
-  inline std::string prettyPrintMode(const uint mode)
+enum class DriveMode : uint8_t
+{
+  PIVOT,
+  HOLONOMIC,
+  STRAFE,
+  DIFF
+};
+
+inline std::string prettyPrintMode(const DriveMode mode)
+{
+  switch (mode)
   {
-    switch (mode)
-    {
-    case nova_interfaces::msg::DriveInfo::PIVOT:
+    case DriveMode::PIVOT:
       return "Pivot Mode";
-    case nova_interfaces::msg::DriveInfo::HOLONOMIC:
+    case DriveMode::HOLONOMIC:
       return "Holonomic Mode";
-    case nova_interfaces::msg::DriveInfo::STRAFE:
+    case DriveMode::STRAFE:
       return "Strafe Mode";
-    case nova_interfaces::msg::DriveInfo::DIFF:
+    case DriveMode::DIFF:
       return "Tank Mode";
     default:
       return "Unknown Mode";
-    }
   }
+}
 
-  inline std::string modeToController(const uint mode)
+inline std::string modeToController(const DriveMode mode)
+{
+  switch (mode)
   {
-    switch (mode)
-    {
-    case nova_interfaces::msg::DriveInfo::PIVOT:
+    case DriveMode::PIVOT:
       return "pivot_drive_controller";
-    case nova_interfaces::msg::DriveInfo::HOLONOMIC:
+    case DriveMode::HOLONOMIC:
       return "holonomic_drive_controller";
-    case nova_interfaces::msg::DriveInfo::STRAFE:
+    case DriveMode::STRAFE:
       return "strafe_controller";
-    case nova_interfaces::msg::DriveInfo::DIFF:
+    case DriveMode::DIFF:
       return "nova_diff_drive_controller";
     default:
       return "unknown_controller";
-    }
   }
+}
+
+/**
+ * @class TeleopDriveJoy
+ * @brief Class for handling joystick input and publishing drive commands.
+ */
+class TeleopDriveJoy : public rclcpp::Node
+{
+public:
+  /**
+   * @brief Constructor for TeleopDriveJoy.
+   * @param options Node options for the ROS2 node.
+   */
+  explicit TeleopDriveJoy(const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
 
   /**
-   * @class TeleopDriveJoy
-   * @brief Class for handling joystick input and publishing drive commands.
+   * @brief Initializes the TeleopDriveJoy node.
+   * This is needed because ParamListener can only be initialized after the node is created
+   * (constructor has finished).
    */
-  class TeleopDriveJoy : public rclcpp::Node
-  {
-  public:
-    /**
-     * @brief Constructor for TeleopDriveJoy.
-     * @param options Node options for the ROS2 node.
-     */
-    explicit TeleopDriveJoy(const rclcpp::NodeOptions &options = rclcpp::NodeOptions());
-    
-    /**
-     * @brief Initializes the TeleopDriveJoy node.
-     * This is needed because ParamListener can only be initialized after the node is created (constructor has finished).
-     */
-    void initialize();
+  void initialize();
 
-  private:
-    /**
-     * @brief Initializes parameters for the TeleopDriveJoy node.
-     */
-    void initializeParams();
+private:
+  /**
+   * @brief Snaps joystick axes using the max input threshold.
+   * @param joy_msg Shared pointer to the joystick message.
+   * @return A pair containing the snapped linear and angular axes.
+   */
+  std::pair<std::pair<double, double>, double> snapped_joy_axes(
+    const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 
-    /**
-     * @brief Initializes the ros2 interfaces for the TeleopDriveJoy node.
-     */
-    void initializeInterfaces();
+  /**
+   * @brief Initializes parameters for the TeleopDriveJoy node.
+   */
+  void initializeParams();
 
-    /**
-     * @brief Map buttons to their respective callback functions.
-     */
-    void mapButtonCallbacks();
-    
-    /**
-     * @brief Callback function for joystick messages.
-     * @param joy_msg Shared pointer to the joystick message.
-     */
-    void joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
+  /**
+   * @brief Initializes the ros2 interfaces for the TeleopDriveJoy node.
+   */
+  void initializeInterfaces();
 
-    /**
-     * @brief Handles button callbacks.
-     * @param joy_msg Shared pointer to the joystick message.
-     */
-    void handleButtonCallbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
+  /**
+   * @brief Map buttons to their respective callback functions.
+   */
+  void mapButtonCallbacks();
 
-    /**
-     * @brief Sends a Drive Command based on joystick input.
-     * @param joy_msg Shared pointer to the joystick message.
-     */
-    void sendDriveCommand(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
+  /**
+   * @brief Callback function for joystick messages.
+   * @param joy_msg Shared pointer to the joystick message.
+   */
+  void joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 
-    /**
-     * @brief Sends a halt command to stop the rover.
-     */
-    void sendHaltCommand();
+  /**
+   * @brief Handles button callbacks.
+   * @param joy_msg Shared pointer to the joystick message.
+   */
+  void handleButtonCallbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 
-    /**
-     * @brief Switches the controller by calling the switch_controller service.
-     * @param requested_control_mode The desired control mode to switch to.
-     */
-    void switchController(const uint requested_control_mode);
+  /**
+   * @brief Sends a Drive Command based on joystick input.
+   * @param joy_msg Shared pointer to the joystick message.
+   */
+  void sendDriveCommand(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 
-    // Member variables
-    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_pub_;
-    rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub_;
-    rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr switch_controller_client_;
-    rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr pivot_drive_client_;
-    rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr strafe_client_;
-    rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr nova_diff_drive_client_;
-    std::shared_ptr<ParamListener> param_listener_;
+  /**
+   * @brief Sends a halt command to stop the rover.
+   */
+  void sendHaltCommand();
 
-    Params params_;
-    bool sent_lock_msg_;
-    bool locked_;
-    uint drive_mode_;
-    double speed_; // Linear Speed Multiplier that can be incremented
-    std::map<int, rclcpp::Time> last_button_press_time_;
-    std::map<int, std::function<void(const sensor_msgs::msg::Joy::SharedPtr)>> button_callbacks_;
-  };
+  /**
+   * @brief Switches the controller by calling the switch_controller service.
+   * @param requested_control_mode The desired control mode to switch to.
+   */
+  void switchController(const DriveMode requested_control_mode);
 
-} // namespace teleop_drive_joy
+  // Member variables
+  rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_pub_;
+  rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub_;
+  rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
+    switch_controller_client_;
+  rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr pivot_drive_client_;
+  rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr strafe_client_;
+  rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr nova_diff_drive_client_;
+  std::shared_ptr<ParamListener> param_listener_;
 
-#endif // TELEOP_DRIVE_JOY_HPP
+  Params params_;
+  bool sent_lock_msg_;
+  bool locked_;
+  DriveMode drive_mode_;
+  double speed_;  // Linear Speed Multiplier that can be incremented
+  std::map<int, rclcpp::Time> last_button_press_time_;
+  std::map<int, std::function<void(const sensor_msgs::msg::Joy::SharedPtr)>> button_callbacks_;
+};
+
+}  // namespace teleop_drive_joy
+
+#endif  // TELEOP_DRIVE_JOY_HPP
