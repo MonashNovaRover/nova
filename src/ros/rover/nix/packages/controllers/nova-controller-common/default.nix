@@ -1,6 +1,9 @@
 { lib
 , buildRosPackage
 , ament-cmake
+, hardware-interface
+, rclcpp-lifecycle
+, rclcpp
 }:
 
 buildRosPackage {
@@ -14,4 +17,10 @@ buildRosPackage {
   };
 
   nativeBuildInputs = [ ament-cmake ];
+
+  buildInputs = [
+    hardware-interface
+    rclcpp-lifecycle
+    rclcpp
+  ];
 }
