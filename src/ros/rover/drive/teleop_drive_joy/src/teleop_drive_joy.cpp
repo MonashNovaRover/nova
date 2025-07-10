@@ -235,10 +235,7 @@ void TeleopDriveJoy::sendDriveCommand(const sensor_msgs::msg::Joy::SharedPtr joy
 
   auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
   cmd_vel_msg->twist.linear.x = linear.first;
-  if (drive_mode_ == DriveMode::HOLONOMIC)
-  {
-    cmd_vel_msg->twist.linear.y = linear.second;
-  }
+  cmd_vel_msg->twist.linear.y = linear.second;
   cmd_vel_msg->twist.angular.z = angular;
   cmd_vel_msg->header.stamp = this->now();
 
