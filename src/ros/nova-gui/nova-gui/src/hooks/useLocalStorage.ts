@@ -37,31 +37,42 @@ export function useLocalStorage<T>(key: string, initialValue: NoConflict<T>, dep
 
   // parse local storage and set value to whatever is stored there
   useEffect(() => {
+    const storedText = localStorage.getItem(key);
+
+    // Use the initial value if nothing is set in localStorage
+    if (storedText === null) {
+      // setValue({key: key, value: initialValue});
+      return;
+    }
+
+    const storedValue = JSON.parse(storedText);
+
     // Ensure basic types are the same
-    if (typeof value !== typeof initialValue)
-      onTypeMismatch(value, `Basic type mismatch. ${typeof value} !== ${typeof initialValue}`);
+    if (typeof storedValue !== typeof initialValue)
+      onTypeMismatch(storedValue, `Basic type mismatch. ${typeof storedValue} !== ${typeof initialValue}`);
 
     // Arrays show up as objects so we need another check
-    else if (isArray(value) !== isArray(initialValue))
-      onTypeMismatch(value, `One value is an array while the other is not...`);
+    else if (isArray(storedValue) !== isArray(initialValue))
+      onTypeMismatch(storedValue, `One value is an array while the other is not...`);
 
     // Ensure objects have the same keys
-    else if (isObject(value) && isObject(initialValue)) {
-      const storedValueKeys = Object.keys(value);
+    else if (isObject(storedValue) && isObject(initialValue)) {
+      const storedValueKeys = Object.keys(storedValue);
       const objectsMatch = Object.keys(initialValue).every(v => storedValueKeys.includes(v));
 
       if (!objectsMatch)
-        onTypeMismatch(value, `Object keys do not match.`);
+        onTypeMismatch(storedValue, `Object keys do not match.`);
     }
 
     // The value is a valid value and matches the type of what is in storage.
-    setValue({key: key, value: value});
+    setValue({key: key, value: storedValue});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, dependencies)
 
   const lsSetValue = useCallback((newValue: NoConflict<T> | ((previousValue: NoConflict<T>) => NoConflict<T>)) => {
-    const evaluatedNewValue = newValue instanceof Function ? newValue(value) : newValue
+    const evaluatedNewValue = newValue instanceof Function ? newValue(value) : newValue;
 
+    localStorage.setItem(key, JSON.stringify(evaluatedNewValue));
     setValue({key: key, value: evaluatedNewValue});
   }, [key, value, setValue]);
 
