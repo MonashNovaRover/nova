@@ -93,7 +93,7 @@ export interface RootState {
   auger1DepthSensorStore: IRosStdMsgsBool;
   auger2DepthSensorStore: IRosStdMsgsBool;
 
-  // maps Related Stores
+  // Maps Related Stores
   roverLocationStore: IRosSensorMsgsNavSatFix;
   baseLocationStore: IRosSensorMsgsNavSatFix;
   cartographerState: CartographerState;
