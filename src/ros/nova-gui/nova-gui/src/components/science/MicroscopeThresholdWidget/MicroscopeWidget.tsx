@@ -1,0 +1,36 @@
+import React from "react";
+import {CameraComponentProps} from "../../cameras/CameraComponent/CameraComponent.tsx";
+import {Card, CardBody, Tab, Tabs} from "@nextui-org/react";
+import MicroscopeThresholdWidget from "./MicroscopeThresholdWidget.tsx";
+import {CameraSerials} from "../../../views/shared/CamerasPage/CameraPageConstants.tsx";
+import MicroscopeCamerasWidget from "./MicroscopeCamerasWidget.tsx";
+
+const MicroscopeWidget: React.FC<CameraComponentProps> = () => {
+
+  return (
+    <Card>
+      <CardBody>
+        <Tabs
+          aria-label="NIR-Probe-Options"
+          classNames={{
+            tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
+            cursor: "w-full bg-[#22d3ee]",
+            tab: "max-w-fit px-0 h-12",
+            tabContent: "group-data-[selected=true]:text-[#06b6d4]",
+          }}
+          color="primary"
+          variant="underlined"
+        >
+          <Tab title="Camera Feed">
+            <MicroscopeCamerasWidget/>
+          </Tab>
+          <Tab title="Thresholding">
+            <MicroscopeThresholdWidget cameraSerial={CameraSerials.SCIENCE_MICROSCOPE}/>
+          </Tab>
+        </Tabs>
+      </CardBody>
+    </Card>
+  )
+}
+
+export default MicroscopeWidget

@@ -1,0 +1,9 @@
+@font-face {
+    font-family: 'gruppo';
+    src: url("../../../assets/fonts/Gruppo-Regular.ttf") format('truetype');
+}
+
+.title{
+    font-family: 'gruppo';
+    font-weight: bold;
+}

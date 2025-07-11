@@ -248,7 +248,7 @@ export const reduxStores = {
   cameraStreamerState: cameraStreamerSlice.reducer,
   localStorageState: localStorageSlice.reducer,
 
-  // Maps Stores
+  // maps Stores
   roverLocationStore: createBifrostStore(
     {
       topic: RosTopic.ROVER_LOCATION,

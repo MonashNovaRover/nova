@@ -1,9 +1,9 @@
 import GenericGraphComparisonWidget
-  , {getUniqueName} from "../../components/GenericGraphComparisonWidget/GenericGraphComparisonWidget.tsx";
+  , {getUniqueName} from "../../components/shared/widgets/GenericGraphComparisonWidget/GenericGraphComparisonWidget.tsx";
 import React, {useCallback, useState} from "react";
 import {useLocalStorage} from "../../hooks/useLocalStorage.ts";
-import {ApexDataset} from "../../components/SpectraDisplay/DataChart.tsx";
-import RamanSpec from "../../components/RamanSpec/RamanSpec.tsx";
+import {ApexDataset} from "../../components/science/SpectraDisplay/DataChart.tsx";
+import RamanSpec from "../../components/science/RamanSpec/RamanSpec.tsx";
 
 
 const URCRamanView: React.FC = () => {
