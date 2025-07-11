@@ -94,7 +94,7 @@ export const urcRoutes: RouteObject[] = [
     element: <URCAutoTypingView />,
   },
   {
-    path: "/urc/autonomous-navbar",
+    path: "/urc/autonomous-navigation",
     element: <URCAutonomousNavigationView />,
   },
   {

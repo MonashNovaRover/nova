@@ -70,7 +70,7 @@ export interface RosTopicInterfaces {
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
 
-  // maps Related
+  // Maps Related
   [RosTopic.ROVER_LOCATION]: IRosSensorMsgsNavSatFix;
   [RosTopic.BASE_LOCATION]: IRosSensorMsgsNavSatFix;
   [RosTopic.AUTO_STATUS]: IRosNovaInterfacesStatus;
