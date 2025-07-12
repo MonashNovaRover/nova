@@ -13,6 +13,9 @@
 , moveit-core
 , moveit-kinematics
 , ublox-dgnss
+, teleop-modular ? throw "teleop-modular is needed, but not available!"
+, teleop-modular-twist ? throw "teleop-modular-twist is needed, but not available!"
+, teleop-modular-joy ? throw "teleop-modular-joy is needed, but not available!"
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -40,7 +43,6 @@
 , nova-strafe-controller ? throw "nova-strafe-controller is needed, but not available!"
 , nova-diff-drive-controller ? throw "nova-diff-drive-controller is needed, but not available!"
 , nova-teleop-drive-joy ? throw "nova-teleop-drive-joy is needed, but not available!"
-, nova-teleop-arm-joy ? throw "nova-teleop-arm-joy is needed, but not available!"
 , nova-gazebo ? throw "nova-gazebo is needed, but not available!"
 , nova-python-control ? throw "python-control is needed, but not available!"
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
@@ -74,7 +76,6 @@
       nova-strafe-controller
       nova-diff-drive-controller
       nova-teleop-drive-joy
-      nova-teleop-arm-joy
       nova-gui
       nova-drive
       nova-drive-interfaces
@@ -112,6 +113,9 @@
       moveit-core   # needed to dynamically load the kinematics_solver plugin for nova_twistmapper
       moveit-kinematics
       gpsd-client
+      teleop-modular
+      teleop-modular-twist
+      teleop-modular-joy
       ;
 }
 }:
