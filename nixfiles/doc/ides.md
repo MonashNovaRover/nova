@@ -40,6 +40,10 @@ To work around this, create a shell script to launch Python, and set it as the P
 exec python "$@"
 ```
 
+Make sure that you are able to execute this script before trying to get your IDE to run it with `./python-launcher.sh` 
+(assuming you named it python-launcher.sh). To fix any permissions issues, you can run `chmod u+x ./python-launcher.sh` 
+to make it executable.
+
 ### Visual Studio Code
 
 Use the Python launch script in the `python.defaultInterpreterPath` setting.
