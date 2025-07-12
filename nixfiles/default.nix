@@ -62,7 +62,7 @@ let
   # Extend Nixpkgs with custom packages.
   novaPkgs = import nixpkgs {
     localSystem = pkgs.buildPlatform.system;
-    crossSystem = pkgs.hostPlatform.system;
+    crossSystem = pkgs.stdenv.hostPlatform.system;
     config = pkgs.config // {
       permittedInsecurePackages = pkgs.config.permittedInsecurePackages or [ ] ++ [
         "freeimage-unstable-2021-11-01"

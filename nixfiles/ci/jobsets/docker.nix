@@ -25,7 +25,7 @@ let
             (nixfiles + "/nixos/installer/docker")
           ];
 
-          nixpkgs.hostPlatform = system;
+          nixpkgs.stdenv.hostPlatform = system;
 
           # The configuration is too complicated to express in static module
           # files.

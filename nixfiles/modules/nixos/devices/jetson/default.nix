@@ -20,7 +20,7 @@ in
   };
 
   config = lib.mkIf cfg.enable ({
-    nixpkgs.hostPlatform = "aarch64-linux";
+    nixpkgs.stdenv.hostPlatform = "aarch64-linux";
     hardware.nvidia-jetpack.enable = true;
 
     assertions = [{

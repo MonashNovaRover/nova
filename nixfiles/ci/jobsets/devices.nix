@@ -22,7 +22,7 @@ let
       ({ config, ... }: {
         # Cross-compilation here is not useful, as these jobs are designed to
         # populate a cache to make rebuilds on the devices themselves faster.
-        nixpkgs.buildPlatform = config.nixpkgs.hostPlatform;
+        nixpkgs.buildPlatform = config.nixpkgs.stdenv.hostPlatform;
 
         nova = {
           profile = "shared";

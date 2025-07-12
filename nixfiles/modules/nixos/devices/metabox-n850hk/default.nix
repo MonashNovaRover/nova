@@ -14,6 +14,6 @@ in
   options.devices.metabox-n850hk.enable = lib.mkEnableOption "configuration for the Metabox N850HK";
 
   config = lib.mkIf cfg.enable {
-    nixpkgs.hostPlatform = "x86_64-linux";
+    nixpkgs.stdenv.hostPlatform = "x86_64-linux";
   };
 }
