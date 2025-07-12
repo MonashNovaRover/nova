@@ -10,7 +10,7 @@ in
         jnoortheen.nix-ide
       ];
 
-      userSettings = {
+      profiles.default.userSettings = {
         "nix.enableLanguageServer" = true;
         "nix.serverPath" = "${pkgs.nixd}/bin/nixd";
         "nix.serverSettings".nixd = {

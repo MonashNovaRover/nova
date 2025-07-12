@@ -10,7 +10,7 @@ in
         github.copilot
       ];
 
-      userSettings = {
+      profiles.default.userSettings = {
         "workbench.startupEditor" = "none";
         "git.openRepositoryInParentFolders" = "never";
       };

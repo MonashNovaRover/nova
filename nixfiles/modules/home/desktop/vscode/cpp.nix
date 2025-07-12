@@ -16,7 +16,7 @@ in
         ms-vscode.cmake-tools
       ];
 
-      userSettings = {
+      profiles.default.userSettings = {
         "cmake.configureOnOpen" = true;
       };
     };

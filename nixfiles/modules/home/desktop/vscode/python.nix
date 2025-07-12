@@ -17,7 +17,7 @@ in
         ms-python.vscode-pylance
       ];
 
-      userSettings = {
+      profiles.default.userSettings = {
         # Use Python from the environment. By default, the Python extension will
         # search the filesystem for Python binaries, which does not work well
         # with the Nix store.
