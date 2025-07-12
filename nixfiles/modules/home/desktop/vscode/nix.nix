@@ -5,12 +5,12 @@ let
 in
 {
   config = lib.mkIf cfg.enable {
-    programs.vscode = {
+    programs.vscode.profiles.default = {
       extensions = with pkgs.vscode-extensions; [
         jnoortheen.nix-ide
       ];
 
-      profiles.default.userSettings = {
+      userSettings = {
         "nix.enableLanguageServer" = true;
         "nix.serverPath" = "${pkgs.nixd}/bin/nixd";
         "nix.serverSettings".nixd = {

@@ -5,12 +5,12 @@ let
 in
 {
   config = lib.mkIf cfg.enable {
-    programs.vscode = {
+    programs.vscode.profiles.default = {
       extensions = with pkgs.vscode-extensions; [
         github.copilot
       ];
 
-      profiles.default.userSettings = {
+      userSettings = {
         "workbench.startupEditor" = "none";
         "git.openRepositoryInParentFolders" = "never";
       };

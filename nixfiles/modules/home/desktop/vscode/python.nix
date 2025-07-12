@@ -5,7 +5,7 @@ let
 in
 {
   config = lib.mkIf cfg.enable {
-    programs.vscode = {
+    programs.vscode.profiles.default = {
       extensions = with pkgs.vscode-extensions; [
         (ms-python.python.overrideAttrs ({ meta, ... }: {
           meta = meta // {
@@ -17,7 +17,7 @@ in
         ms-python.vscode-pylance
       ];
 
-      profiles.default.userSettings = {
+      userSettings = {
         # Use Python from the environment. By default, the Python extension will
         # search the filesystem for Python binaries, which does not work well
         # with the Nix store.
