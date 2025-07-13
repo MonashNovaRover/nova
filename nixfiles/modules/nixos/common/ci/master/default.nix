@@ -2,6 +2,18 @@
 
 let
   cfg = config.nova.ci.master;
+  hydraSrc = pkgs.fetchgit {
+    url = "https://git.lix.systems/lix-project/hydra.git";
+    rev = "005e45821cd45c9a8e45efb44a3394433ee7485b";
+    hash = "sha256-sDL09xUkV2BjW6aUBupD9FgVin35QrhP5vAXbx5gpFo=";
+  };
+  # Automatically detect system architecture
+  hydraSystem = builtins.currentSystem or
+    (if builtins ? currentSystem then builtins.currentSystem else pkgs.system);
+
+  hydraFlake = import hydraSrc;
+
+  hydraPackage = hydraFlake.outputs.packages.${hydraSystem}.hydra; # throw (pkgs.lib.fold (a: b: a + ", " + b) "" (builtins.attrNames hydraFlake.outputs.packages.${hydraSystem}.hydra));
 in
 {
   options.nova.ci.master = {
@@ -46,27 +58,11 @@ in
   config = lib.mkIf cfg.enable {
     nova.ci.common.enable = true;
 
-    services.hydra = {
+    services.hydra = { 
       enable = true;
-      package = (options.services.hydra.package.default.override { nix = pkgs.nixVersions.nix_2_20; }).overrideAttrs ({ patches ? [ ], ... }: {
-        # https://github.com/NixOS/hydra/pull/1359 completely broke the .narinfo
-        # server.
-        version = "2024-03-08";
-        src = pkgs.fetchFromGitHub {
-          owner = "NixOS";
-          repo = "hydra";
-          rev = "8f56209bd6f3b9ec53d50a23812a800dee7a1969";
-          hash = "sha256-mhEj02VruXPmxz3jsKHMov2ERNXk9DwaTAunWEO1iIQ=";
-        };
-        patches = patches ++ [
-          # https://github.com/NixOS/hydra/security/advisories/GHSA-2p75-6g9f-pqgx
-          (pkgs.fetchpatch {
-            name = "CVE-2024-32657.patch";
-            url = "https://github.com/NixOS/hydra/commit/b72528be5074f3e62e9ae2c2ae8ef9c07a0b4dd3.patch";
-            hash = "sha256-KqX7fJGxJXpj5OdVp7Cc/XWMlrkTjTztoSHJhJanpgI=";
-          })
-        ];
-      });
+      
+      # package = hydraPackage;
+
       listenHost = "localhost";
       hydraURL = if (lib.hasPrefix "localhost" cfg.domain)
         then "http://${cfg.domain}"
