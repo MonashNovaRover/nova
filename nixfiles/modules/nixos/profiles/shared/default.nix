@@ -11,7 +11,14 @@ in
       "kernel.dmesg_restrict" = false;
     };
 
-    environment.variables.EDITOR = "vim";
+    environment.variables = {
+      BROWSER = "chromium";
+      EDITOR = "nvim";
+      VISUAL = "codium";
+      PAGER = "nvim +Man!";
+      GDK_BACKEND = "wayland,x11,*";
+      QT_QPA_PLATFORM = "wayland;xcb";
+    };
 
     security.polkit.extraConfig = ''
       polkit.addRule(function(action, subject) {
