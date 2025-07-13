@@ -5,7 +5,7 @@ let
 in
 {
   imports = [
-    ./nixvim
+    ./nixvim.nix
   ];
 
   options.nova.user.enable =
