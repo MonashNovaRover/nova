@@ -7,7 +7,6 @@ in
   imports = [
     ./nixvim.nix
   ];
-
   options.nova.user.enable =
     lib.mkEnableOption "standard Nova Rover user settings" // {
       default = config.home.username == "nova";

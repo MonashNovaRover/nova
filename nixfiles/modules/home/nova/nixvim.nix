@@ -4,17 +4,17 @@ let
   nixvim = import (builtins.fetchGit {
     url = "https://github.com/nix-community/nixvim";
   });
-  cfg = config.nova.user;
+  cfg = config.nova.desktop;
 in
 {
   imports = [
-    nixvim.nixosModules.nixvim
+    nixvim.homeModules.nixvim
   ];
   config = lib.mkIf cfg.enable {
     programs.nixvim = {
       enable = true;
-      viAlias = lib.mkVMOverride true;
-      vimAlias = lib.mkVMOverride true;
+      viAlias = true;
+      vimAlias = true;
       luaLoader.enable = true;
       performance = {
         byteCompileLua.enable = true;
