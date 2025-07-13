@@ -21,7 +21,7 @@ in
             tab_size = 8;
             image_delay = 16;
             image_filter = "catmull-rom";
-            image_quality = 50;
+            image_quality = 80;
             sixel_fraction = 20;
           };
           opener.open = [
