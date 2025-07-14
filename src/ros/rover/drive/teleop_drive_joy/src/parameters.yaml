@@ -86,6 +86,14 @@ teleop_drive_joy:
     type: int
     default_value: 10
     description: "Lock Gamepad"
+  button_autonomous_mode:
+    type: int
+    default_value: 7
+    description: "Switch to Autonomous Mode"
+  button_manual_mode:
+    type: int
+    default_value: 8
+    description: "Switch to Manual Mode"
   button_strafe_controller:
     type: int
     default_value: 6

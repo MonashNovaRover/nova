@@ -65,9 +65,18 @@ private:
   const char* drive_feedback_type() const;
   const char* pivot_feedback_type() const;
 
-  std::pair<double, double> get_pivot_angles_from_radius(double radius);
-  std::pair<double, double> get_best_effort_pivot_angles(
-    double left_angle, double right_angle, double target_radius);
+  double get_angular_velocity_from_radius(double radius, double speed, bool turning_left) const;
+  double get_radius_from_velocities(double linear_velocity, double angular_velocity) const;
+  double get_pivot_angle_from_radius(double radius, bool wheel_left, bool turning_left) const;
+  double get_left_to_right_ratio(double radius) const;
+
+  void update_odometry(
+    const rclcpp::Time& time, const rclcpp::Duration& period,
+    const std::shared_ptr<geometry_msgs::msg::TwistStamped>& command_msg_ptr);
+
+  void publish_odometry(
+    const rclcpp::Time& time, const rclcpp::Duration& period,
+    const std::shared_ptr<geometry_msgs::msg::TwistStamped>& command_msg_ptr);
 
   bool reset();
   void reset_buffers();
@@ -81,15 +90,17 @@ private:
 
   // Radius of the circle the rover makes with its wheels when turning on the spot
   double zero_radius_;
+  // Offset angle for the pivot joints, used to calculate the pivot angles
+  double offset_angle_;
 
   std::unique_ptr<nova_controller_common::BLCMDWrapper> blcmd_wrapper_;
 
   std::deque<double> previous_linear_velocities_;   // last two linear velocity commands
-  std::deque<double> previous_angular_positions_;  // last three angular position commands
+  std::deque<double> previous_angular_velocities_;  // last two angular velocity commands
 
   // Limiters
   nova_controller_common::SpeedLimiter limiter_linear_;
-  nova_controller_common::PositionLimiter limiter_angular_;
+  nova_controller_common::SpeedLimiter limiter_angular_;
 
   // Timeout to consider cmd_vel commands old
   rclcpp::Duration cmd_vel_timeout_ = rclcpp::Duration::from_seconds(0.5);

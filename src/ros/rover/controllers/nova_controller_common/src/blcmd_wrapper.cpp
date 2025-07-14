@@ -31,6 +31,7 @@ BLCMDWrapper::BLCMDWrapper(
   , state_interfaces_(state_interfaces)
   , command_interfaces_(command_interfaces)
   , registered_handles_(8, std::nullopt)
+  , REVERSE_MULTIPLIER_(-1)
 {
 }
 
@@ -47,6 +48,14 @@ bool BLCMDWrapper::set_value(
   // Invert pivot position value for BLCMDs
   if (joint_type == JointType::PIVOT)
   {
+    if (joint_pos == JointPosition::FRONT_LEFT || joint_pos == JointPosition::BACK_RIGHT)
+    {
+      value -= offset_angle_;
+    }
+    else
+    {
+      value += offset_angle_;
+    }
     value *= REVERSE_MULTIPLIER_;
   }
   registered_handles_[index]->command.get().set_value(value);
@@ -84,6 +93,15 @@ std::optional<double> BLCMDWrapper::get_optional(
   // Invert pivot position value for BLCMDs
   if (joint_type == JointType::PIVOT)
   {
+    double offset_angle = offset_angle_;
+    if (joint_pos == JointPosition::FRONT_LEFT || joint_pos == JointPosition::BACK_RIGHT)
+    {
+      res -= offset_angle_;
+    }
+    else
+    {
+      res += offset_angle_;
+    }
     res *= REVERSE_MULTIPLIER_;
   }
 
