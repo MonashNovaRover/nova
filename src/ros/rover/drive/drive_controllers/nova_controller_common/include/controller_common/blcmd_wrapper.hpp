@@ -116,7 +116,7 @@ private:
   std::vector<hardware_interface::LoanedStateInterface>& state_interfaces_;
   double offset_angle_;
 
-  const int REVERSE_MULTIPLIER_ = -1;
+  const int REVERSE_MULTIPLIER_;
 
   std::vector<std::optional<WheelHandle>> registered_handles_;
 };
