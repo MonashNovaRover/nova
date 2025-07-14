@@ -49,7 +49,7 @@ std::pair<std::pair<double, double>, double> TeleopDriveJoy::snapped_joy_axes(
   double linear_y = joy_msg->axes[params_.axis_linear_y];
   double angular_z = joy_msg->axes[params_.axis_angular_z];
 
-  // Apply max input threshold
+  // Apply max input thresholds
   double linear_magnitude =
     std::hypot(joy_msg->axes[params_.axis_linear_x], joy_msg->axes[params_.axis_linear_y]);
   if (linear_magnitude > params_.max_input_threshold)
@@ -68,6 +68,31 @@ std::pair<std::pair<double, double>, double> TeleopDriveJoy::snapped_joy_axes(
 
   return {{linear_x, linear_y}, angular_z};
 }
+
+void TeleopDriveJoy::set_autonomous_mode_for_controllers(bool enable)
+{
+  // Create the parameter request
+  auto request = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();
+  // Construct the parameter manually
+  rcl_interfaces::msg::Parameter param;
+  param.name = "autonomous_mode";
+  param.value.type = rcl_interfaces::msg::ParameterType::PARAMETER_BOOL;
+  param.value.bool_value = enable;
+  // Add the parameter to the request
+  request->parameters.push_back(param);
+
+  for (const auto& client : {pivot_drive_client_, strafe_client_, nova_diff_drive_client_})
+  {
+    if (!client->service_is_ready())
+    {
+      RCLCPP_ERROR(this->get_logger(), "Service is not ready for client.");
+      continue;
+    }
+
+    static_cast<void>(client->async_send_request(request));
+  }
+
+}  // namespace teleop_drive_joy
 
 void TeleopDriveJoy::initialize()
 {
@@ -124,6 +149,18 @@ void TeleopDriveJoy::mapButtonCallbacks()
       locked_ = true;
       RCLCPP_INFO(this->get_logger(), "BUTTON: lock");
     }
+  };
+  button_callbacks_[params_.button_autonomous_mode] =
+    [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+    set_autonomous_mode_for_controllers(true);
+    RCLCPP_INFO(this->get_logger(), "BUTTON: autonomous_mode");
+  };
+  button_callbacks_[params_.button_manual_mode] =
+    [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+    set_autonomous_mode_for_controllers(false);
+    RCLCPP_INFO(this->get_logger(), "BUTTON: manual_mode");
   };
   button_callbacks_[params_.button_pivot_drive_controller] =
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
@@ -279,6 +316,7 @@ void TeleopDriveJoy::switchController(const DriveMode requested_control_mode)
 
   drive_mode_ = requested_control_mode;
 }
+
 }  // namespace teleop_drive_joy
 
 int main(int argc, char* argv[])

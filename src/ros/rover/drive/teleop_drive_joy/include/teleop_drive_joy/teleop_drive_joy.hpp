@@ -33,6 +33,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joy.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
+#include <rcl_interfaces/srv/set_parameters.hpp>
 #include <controller_manager_msgs/srv/switch_controller.hpp>
 
 #include "teleop_drive_joy_parameters.hpp"
@@ -110,6 +111,12 @@ private:
    */
   std::pair<std::pair<double, double>, double> snapped_joy_axes(
     const sensor_msgs::msg::Joy::SharedPtr joy_msg);
+  
+  /**
+   * @brief Sets the autonomous mode for all controllers.
+   * @param autonomous_mode Boolean indicating whether to set autonomous mode.
+   */
+  void set_autonomous_mode_for_controllers(bool autonomous_mode);
 
   /**
    * @brief Initializes parameters for the TeleopDriveJoy node.
