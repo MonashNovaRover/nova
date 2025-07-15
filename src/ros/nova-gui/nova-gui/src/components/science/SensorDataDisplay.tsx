@@ -1,5 +1,5 @@
 import React, {useMemo} from "react";
-import {OverlayedProgress} from "../OverlayedProgress/OverlayedProgress.tsx";
+import {OverlayedProgress} from "../shared/components/OverlayedProgress/OverlayedProgress.tsx";
 import {zip} from "lodash";
 
 export interface NTCDataWidgetProps {

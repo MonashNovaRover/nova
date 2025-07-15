@@ -1,4 +1,4 @@
-import {CameraFilters} from "../../../components/CameraComponent/CameraComponent.tsx";
+import {CameraFilters} from "../../../components/cameras/CameraComponent/CameraComponent.tsx";
 
 export const initialisedFilters: CameraFilters = {
   flipCamera: false,

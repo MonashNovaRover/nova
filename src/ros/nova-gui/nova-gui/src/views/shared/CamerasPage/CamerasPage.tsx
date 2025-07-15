@@ -1,11 +1,11 @@
 import { Button } from "@nextui-org/react";
 import { Play, Square } from "react-feather";
-import { useCameraStreamer } from "../../../components/CameraComponent/hooks/useCameraStreamer";
+import { useCameraStreamer } from "../../../components/cameras/CameraComponent/hooks/useCameraStreamer";
 import { CameraView } from "./CameraPageConstants";
 import { useState } from "react";
-import { CameraControlPanelModal } from "../../../components/CameraComponent/components/CamerasControlPanelModal";
+import { CameraControlPanelModal } from "../../../components/cameras/CameraComponent/components/CamerasControlPanelModal";
 import SerialMappedCameraComponent from "./SerialMappedCameraComponent.tsx";
-import SegmentedPicker from "../../../components/SegmentedPicker/SegmentedPicker.tsx";
+import SegmentedPicker from "../../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
 
 export interface CameraPageProps {
   views: CameraView[];

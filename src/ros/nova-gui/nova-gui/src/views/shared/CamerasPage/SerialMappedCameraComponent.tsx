@@ -1,19 +1,19 @@
 import {FC, memo, useMemo} from "react";
-import {BaseCameraComponentProps, CameraComponent} from "../../../components/CameraComponent/CameraComponent.tsx";
+import {BaseCameraComponentProps, CameraComponent} from "../../../components/cameras/CameraComponent/CameraComponent.tsx";
 import {CameraSerials} from "./CameraPageConstants.tsx";
-import BarOverlayedCameraComponent from "../../../components/CameraComponent/special/BarOverlayedCameraComponent.tsx";
+import BarOverlayedCameraComponent from "../../../components/cameras/CameraComponent/special/BarOverlayedCameraComponent.tsx";
 //import KeyboardOverlayedCameraComponent from "../../../components/CameraComponent/special/KeyboardOverlayedCameraComponent.tsx";
 import {
   GimbalOverlayedCameraComponent
-} from "../../../components/CameraComponent/special/GimbalOverlayedCameraComponent.tsx";
-import DriveCameraComponent from "../../../components/CameraComponent/special/DriveCameraComponent.tsx";
+} from "../../../components/cameras/CameraComponent/special/GimbalOverlayedCameraComponent.tsx";
+import DriveCameraComponent from "../../../components/cameras/CameraComponent/special/DriveCameraComponent.tsx";
 import WheelTelemetryCameraComponent
-  from "../../../components/CameraComponent/special/WheelTelemetryCameraComponent.tsx";
-import SiteSelectCameraComponent from "../../../components/CameraComponent/special/SiteSelectCameraComponent.tsx";
+  from "../../../components/cameras/CameraComponent/special/WheelTelemetryCameraComponent.tsx";
+import SiteSelectCameraComponent from "../../../components/cameras/CameraComponent/special/SiteSelectCameraComponent.tsx";
 import ActivatedNodesCameraComponent
-  from "../../../components/CameraComponent/special/ActivatedNodesCameraComponent.tsx";
+  from "../../../components/cameras/CameraComponent/special/ActivatedNodesCameraComponent.tsx";
 import DepthSensor
-  from "../../../components/CameraComponent/special/DepthSensorCameraComponent.tsx";
+  from "../../../components/cameras/CameraComponent/special/DepthSensorCameraComponent.tsx";
 
 /// Defines special components to use for certain cameras
 export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentProps> } = {
