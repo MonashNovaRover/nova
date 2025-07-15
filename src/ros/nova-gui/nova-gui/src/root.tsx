@@ -7,7 +7,7 @@ export const Root = () => {
 
   return (
     <NextUIProvider navigate={navigate}>
-          <RosRoot/>
+      <RosRoot/>
     </NextUIProvider>
   );
 };
