@@ -1,16 +1,16 @@
 import React, {useState} from "react";
-import HydroprobeWidget from "../../components/HydroprobeWidget/HydroprobeWidget";
+import HydroprobeWidget from "../../components/science/HydroprobeWidget/HydroprobeWidget";
 import PumpsWidget from "../../components/science/PumpsWidget/PumpsWidget";
-import BMESensor from "../../components/BMESensor/BMESensor";
+import BMESensor from "../../components/science/BMESensor/BMESensor";
 import {RosService} from "../../ros/services/rosService.ts";
-import URCNIRProbeWidget from "../../components/NIRProbe/URCNIRProbeWidget.tsx";
+import URCNIRProbeWidget from "../../components/science/NIRProbe/URCNIRProbeWidget.tsx";
 import CacheControlWidget from "../../components/science/CacheControlWidget/CacheControlWidget.tsx";
 import CarouselWidgetV2 from "../../components/science/CarouselWidget/CarouselWidget.tsx";
-import SegmentedPicker from "../../components/SegmentedPicker/SegmentedPicker.tsx";
+import SegmentedPicker from "../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
 import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCameraComponent.tsx";
 import URCUVVisSpecView from "./URCUVVisSpecView.tsx";
 import HeaterWidget from "../../components/science/HeaterWidget/HeaterWidget.tsx";
-import {CameraControlModalButton} from "../../components/CameraComponent/components/CameraControlModelButton.tsx";
+import {CameraControlModalButton} from "../../components/cameras/CameraComponent/components/CameraControlModelButton.tsx";
 import {CameraSerials} from "../shared/CamerasPage/CameraPageConstants.tsx";
 
 const URCScienceView: React.FC = () => {

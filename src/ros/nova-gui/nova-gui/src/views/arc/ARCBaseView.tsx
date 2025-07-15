@@ -1,6 +1,6 @@
 import React from "react";
-import MicroscopeComponent from "../../components/CameraComponent/MicroscopeComponent";
-import TOFHeight from "../../components/AnalysisPlatformHeight/AnalysisPlatformHeight";
+import MicroscopeComponent from "../../components/cameras/CameraComponent/MicroscopeComponent";
+import TOFHeight from "../../components/science/AnalysisPlatformHeight/AnalysisPlatformHeight";
 
 const ARCBaseView: React.FC = () => {
   return (

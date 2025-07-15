@@ -1,7 +1,7 @@
 import React from "react";
 import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCameraComponent.tsx";
 import {CameraSerials} from "../shared/CamerasPage/CameraPageConstants.tsx";
-import {CameraControlModalButton} from "../../components/CameraComponent/components/CameraControlModelButton.tsx";
+import {CameraControlModalButton} from "../../components/cameras/CameraComponent/components/CameraControlModelButton.tsx";
 
 export const URCDeliveryView: React.FC = () => {
   return (

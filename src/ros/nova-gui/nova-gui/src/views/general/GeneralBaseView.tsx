@@ -1,7 +1,7 @@
-import DriveModeWidget from "../../components/DriveModeWidget/DriveModeWidget";
-import DriveSpeedWidget from "../../components/DriveSpeedWidget/DriveSpeedWidget";
-import WheelTelemetryWidget from "../../components/WheelTelemetryWidget/WheelTelemetryWidget";
-import ArmWidget from "../../components/ArmWidget/ArmWidget";
+import DriveModeWidget from "../../components/drive/DriveModeWidget/DriveModeWidget";
+import DriveSpeedWidget from "../../components/drive/DriveSpeedWidget/DriveSpeedWidget";
+import WheelTelemetryWidget from "../../components/drive/WheelTelemetryWidget/WheelTelemetryWidget";
+import ArmWidget from "../../components/arm/ArmWidget/ArmWidget";
 
 const GeneralBaseView: React.FC = () => {
   return (

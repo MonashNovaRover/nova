@@ -2,8 +2,8 @@ import React from "react";
 import { useState } from "react";
 import { Button } from "@nextui-org/react";
 import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCameraComponent.tsx";
-import { CameraControlPanelModal } from "../../components/CameraComponent/components/CamerasControlPanelModal";
-import { useCameraStreamer } from "../../components/CameraComponent/hooks/useCameraStreamer";
+import { CameraControlPanelModal } from "../../components/cameras/CameraComponent/components/CamerasControlPanelModal";
+import { useCameraStreamer } from "../../components/cameras/CameraComponent/hooks/useCameraStreamer";
 
 const URCGazeboView: React.FC = () => {
   const [controlPanelOpen, setControlPanelOpen] = useState(false);
