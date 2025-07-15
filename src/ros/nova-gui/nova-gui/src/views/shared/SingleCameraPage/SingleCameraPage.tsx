@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useCameraStreamer } from "../../../components/CameraComponent/hooks/useCameraStreamer";
+import { useCameraStreamer } from "../../../components/cameras/CameraComponent/hooks/useCameraStreamer";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState";
 import { Spinner } from "@nextui-org/react";

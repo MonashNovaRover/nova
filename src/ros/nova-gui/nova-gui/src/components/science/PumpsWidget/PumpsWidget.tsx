@@ -1,6 +1,6 @@
 import {Button, Card, CardBody, CardHeader, CardProps, Input, Progress} from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
-import SegmentedPicker from "../../SegmentedPicker/SegmentedPicker.tsx";
+import SegmentedPicker from "../../shared/components/SegmentedPicker/SegmentedPicker.tsx";
 import { RosAction } from "../../../ros/actions/RosAction.ts";
 import { IRosNovaInterfacesPumpsActionFeedback, IRosNovaInterfacesPumpsActionGoal, IRosNovaInterfacesPumpsActionResult } from "../../../ros/rosTypes.ts";
 import { useRosAction } from "../../../hooks/ros/useRosAction.ts";

@@ -1,4 +1,4 @@
-import {defaultCoefficients, defaultXRange, defaultYRange, defaultXOffset, defaultYOffset} from "../../../components/NIRProbe/NIRProbeCalibration/NIRCalibration.ts";
+import {defaultCoefficients, defaultXRange, defaultYRange, defaultXOffset, defaultYOffset} from "../../../components/science/NIRProbe/NIRProbeCalibration/NIRCalibration.ts";
 
 export interface NIRProbeCalibrationData {
   coefficients: number[]

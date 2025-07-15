@@ -1,12 +1,12 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import { SettingsModal } from "./components/settings/SettingsModal";
+import { SettingsModal } from "./components/navbar/settings/SettingsModal";
 import { RosProvider } from "./redux/context/ros/RosProvider";
-import ControllerHelpModal from "./components/ControllerHelpModal/ControllerHelpModal";
+import ControllerHelpModal from "./components/navbar/ControllerHelpModal/ControllerHelpModal";
 import { Toaster } from "react-hot-toast";
-import { NovaTopBar } from "./components/TopBar/TopBar";
-import { NeoSidebar } from "./components/NeoSidebar/NeoSidebar";
-import { BLCMDStatusModal } from "./components/BLCMDStatusModal/BLCMDStatusModal";
+import { NovaTopBar } from "./components/navbar/TopBar/TopBar";
+import { NeoSidebar } from "./components/navbar/NeoSidebar/NeoSidebar";
+import { BLCMDStatusModal } from "./components/navbar/BLCMDStatusModal/BLCMDStatusModal";
 
 export const RosRoot: React.FC = () => {
   return (

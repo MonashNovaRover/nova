@@ -1,9 +1,9 @@
-import DriveModeWidget from "../../components/DriveModeWidget/DriveModeWidget.tsx";
-import WheelTelemetryWidget from "../../components/WheelTelemetryWidget/WheelTelemetryWidget.tsx";
-import DriveSpeedWidget from "../../components/DriveSpeedWidget/DriveSpeedWidget.tsx";
-import TOFHeight from "../../components/AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
-import KilnWidget from "../../components/KilnWidget/KilnWidget.tsx";
-import MicroscopeWidget from "../../components/MicroscopeThresholdWidget/MicroscopeWidget.tsx";
+import DriveModeWidget from "../../components/drive/DriveModeWidget/DriveModeWidget.tsx";
+import WheelTelemetryWidget from "../../components/drive/WheelTelemetryWidget/WheelTelemetryWidget.tsx";
+import DriveSpeedWidget from "../../components/drive/DriveSpeedWidget/DriveSpeedWidget.tsx";
+import TOFHeight from "../../components/science/AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
+import KilnWidget from "../../components/science/KilnWidget/KilnWidget.tsx";
+import MicroscopeWidget from "../../components/science/MicroscopeThresholdWidget/MicroscopeWidget.tsx";
 
 export const ARCMicroscopeView = () => {
   return (

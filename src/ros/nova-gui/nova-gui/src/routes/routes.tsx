@@ -29,7 +29,7 @@ import URCAutoTypingView from "../views/urc/URCAutoTypingView.tsx";
 import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
 import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
 import TestOverlayView from "../views/test/TestOverlayView/TestOverlayView.tsx";
-import ARCNIRProbeWidget from "../components/NIRProbe/ARCNIRProbeWidget.tsx";
+import ARCNIRProbeWidget from "../components/science/NIRProbe/ARCNIRProbeWidget.tsx";
 import URCGazeboView from "../views/urc/URCGazebo.tsx";
 
 export const arcRoutes: RouteObject[] = [

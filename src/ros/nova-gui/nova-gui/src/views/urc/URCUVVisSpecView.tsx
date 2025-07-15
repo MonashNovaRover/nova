@@ -1,8 +1,8 @@
 import React, {useCallback, useState} from "react";
-import UVVisSpec from "../../components/UVVisSpec/UVVisSpec.tsx";
-import {ApexDataset} from "../../components/SpectraDisplay/DataChart.tsx";
+import UVVisSpec from "../../components/science/UVVisSpec/UVVisSpec.tsx";
+import {ApexDataset} from "../../components/science/SpectraDisplay/DataChart.tsx";
 import {useLocalStorage} from "../../hooks/useLocalStorage.ts";
-import GenericGraphComparisonWidget, {getUniqueName} from "../../components/GenericGraphComparisonWidget/GenericGraphComparisonWidget.tsx";
+import GenericGraphComparisonWidget, {getUniqueName} from "../../components/shared/widgets/GenericGraphComparisonWidget/GenericGraphComparisonWidget.tsx";
 
 
 const URCUVVisSpecView: React.FC = () => {

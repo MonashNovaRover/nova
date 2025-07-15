@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import AutoTypingKeyEntryWidget from "../../components/AutoTyping/AutoTypingKeyEntryWidget.tsx";
+import AutoTypingKeyEntryWidget from "../../components/arm/AutoTyping/AutoTypingKeyEntryWidget.tsx";
 import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCameraComponent.tsx";
-import KeyboardOverlayedCameraComponent from "../../components/CameraComponent/special/KeyboardOverlayedCameraComponent.tsx";
-import ArmTypingWidget from "../../components/ArmWidget/ArmTypingWidget.tsx";
+import KeyboardOverlayedCameraComponent from "../../components/cameras/CameraComponent/special/KeyboardOverlayedCameraComponent.tsx";
+import ArmTypingWidget from "../../components/arm/ArmWidget/ArmTypingWidget.tsx";
 import {CameraSerials} from "../shared/CamerasPage/CameraPageConstants.tsx";
-import { useCameraStreamer } from "../../components/CameraComponent/hooks/useCameraStreamer";
-import AutoTypingModal from "../../components/AutoTyping/AutoTypingModal.tsx";
+import { useCameraStreamer } from "../../components/cameras/CameraComponent/hooks/useCameraStreamer";
+import AutoTypingModal from "../../components/arm/AutoTyping/AutoTypingModal.tsx";
 
 
 const URCAutoTypingView: React.FC = () => {

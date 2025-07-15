@@ -1,4 +1,4 @@
-import RamanSpec from "../../components/RamanSpec/RamanSpec";
+import RamanSpec from "../../components/science/RamanSpec/RamanSpec";
 
 const URCBaseView: React.FC = () => {
   return <>
