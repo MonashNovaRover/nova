@@ -24,8 +24,8 @@ export function RGBInputModal() {
 
     return (
         <>
-        <Button onPress={openModal}>
-            Color
+        <Button size="sm" onPress={openModal}>
+            Colour
         </Button>
         <Modal className="dark text-foreground" isOpen={isOpen} onClose={onClose}>
             <ModalContent>
