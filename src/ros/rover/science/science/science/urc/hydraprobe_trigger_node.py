@@ -24,7 +24,6 @@ a one-time moisture reading and publishes it.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-import time
 import logging
 import rclpy
 from rclpy.node import Node
@@ -34,7 +33,7 @@ from std_srvs.srv import Trigger
 from nova_interfaces.msg import HydraprobeData
 
 # Hardware abstraction
-from urc_hydraprobe import NewHydraprobeTransceiver
+from science.science.science.urc.urc_hydraprobe import NewHydraprobeTransceiver
 
 class HydraprobeTriggerNode(Node):
 

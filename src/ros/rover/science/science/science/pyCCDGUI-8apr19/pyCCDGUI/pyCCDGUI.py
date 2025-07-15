@@ -28,12 +28,9 @@
 
 #python imports
 import tkinter as tk
-import threading
 import queue
-import matplotlib as plt
 
 #application imports
-import config
 import CCDpanelsetup
 import CCDmenusetup
 import CCDplots

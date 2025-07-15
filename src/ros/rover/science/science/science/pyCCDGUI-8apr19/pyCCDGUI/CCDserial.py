@@ -27,8 +27,7 @@
 
 #python imports
 from tkinter import messagebox
-import serial          
-import numpy as np
+import serial
 
 #application imports
 
@@ -105,7 +104,7 @@ def rxtxoncethread(panel, SerQueue, progress_var):
         if (config.stopsignal == 0):
             #combine received bytes into 16-bit data
             for rxi in range(3694):
-                config.rxData16[rxi] = (config.rxData8[2*rxi+1] << 8) + config.rxData8[2*rxi]
+                config.rxData16[rxi] = (config.rxData8[2 * rxi + 1] << 8) + config.rxData8[2 * rxi]
 
             #plot the new data
             panel.bupdate.invoke()
@@ -165,7 +164,7 @@ def rxtxcontthread(panel, progress_var):
             if (config.stopsignal == 0):
                 #combine received bytes into 16-bit data
                 for rxi in range(3694):
-                    config.rxData16[rxi] = (config.rxData8[2*rxi+1] << 8) + config.rxData8[2*rxi]
+                    config.rxData16[rxi] = (config.rxData8[2 * rxi + 1] << 8) + config.rxData8[2 * rxi]
 
                 #plot the new data
                 panel.bupdate.invoke()
@@ -194,7 +193,7 @@ def progressthread(progress_var):
     for i in range (1,11):
         progress_var.set(i)
         #wait 1/10th of the time the acquisition requires before adding to progress bar
-        time.sleep(config.ICGperiod*config.AVGn[1]/config.MCLK/10)
+        time.sleep(config.ICGperiod * config.AVGn[1] / config.MCLK / 10)
 
 def rxtxcancel(SerQueue):
     config.stopsignal = 1

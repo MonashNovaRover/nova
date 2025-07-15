@@ -26,10 +26,8 @@
 
 
 #python imports
-import numpy as np
 from tkinter import filedialog
 from tkinter import messagebox
-import tkinter as tk
 import csv
 
 #application imports
@@ -48,7 +46,7 @@ def openfile(self, CCDplot):
                     config.SHsent = int(row[1])
                     config.ICGsent = int(row[6])
                 if (line_count > 3):
-                    config.rxData16[line_count-4] = int(row[1])
+                    config.rxData16[line_count - 4] = int(row[1])
                 line_count += 1
         CCDpanelsetup.buildpanel.updateplot(self, CCDplot)
 
@@ -65,9 +63,10 @@ def savefile(self):
             writeCSV.writerow(["#Data","from","the","TCD1304","linear","CCD"])
             writeCSV.writerow(["#column","1","=","pixelnumber",",","column","2","=","pixelvalue"])
             writeCSV.writerow(["#Pixel","1-32","and","3679-3694","and","are","dummy","pixels"])
-            writeCSV.writerow(["#SH-period:",str(config.SHsent),"","","","ICG-period:",str(config.ICGsent),"","","","Integration","time:",str(config.SHsent/2),"µs"])
+            writeCSV.writerow(["#SH-period:", str(config.SHsent), "", "", "", "ICG-period:", str(config.ICGsent), "", "", "", "Integration", "time:", str(
+                config.SHsent / 2), "µs"])
             for i in range (3694):
-                writeCSV.writerow([str(i+1),str(config.rxData16[i])])
+                writeCSV.writerow([str(i+1), str(config.rxData16[i])])
 
 
     except IOError:
