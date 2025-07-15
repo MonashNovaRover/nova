@@ -20,12 +20,12 @@ export default function TestStateView () {
       <div className="grid grid-cols-2 gap-4">
         <Card className="grid grid-cols-1">
           <CardBody className="flex flex-row gap-4 m-8">
-            <Button color="default">Default</Button>
-            <Button color="primary">Primary</Button>
-            <Button color="secondary">Secondary</Button>
-            <Button color="success">Success</Button>
-            <Button color="warning">Warning</Button>
-            <Button color="danger">Danger</Button>
+            <Button size="lg" color="default">Default</Button>
+            <Button size="lg" color="primary">Primary</Button>
+            <Button size="lg" color="secondary">Secondary</Button>
+            <Button size="lg" color="success">Success</Button>
+            <Button size="lg" color="warning">Warning</Button>
+            <Button size="lg" color="danger">Danger</Button>
           </CardBody>
         </Card>
       </div>
