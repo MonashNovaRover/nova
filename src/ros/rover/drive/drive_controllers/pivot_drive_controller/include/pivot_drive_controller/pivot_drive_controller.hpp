@@ -65,10 +65,10 @@ private:
   const char* drive_feedback_type() const;
   const char* pivot_feedback_type() const;
 
-  double get_angular_velocity_from_radius(double radius, double speed, bool turning_left) const;
+  double get_angular_from_radius_and_speed(double radius, double speed, bool turning_left) const;
   double get_radius_from_velocities(double linear_velocity, double angular_velocity) const;
-  double get_pivot_angle_from_radius(double radius, bool wheel_left, bool turning_left) const;
-  double get_left_to_right_ratio(double radius) const;
+  double get_pivot_angle_from_radius(double radius, bool left_wheel, bool turning_left) const;
+  double get_speed_ratio(double radius, bool left_wheel) const;
 
   void update_odometry(
     const rclcpp::Time& time, const rclcpp::Duration& period,
@@ -92,6 +92,8 @@ private:
   double zero_radius_;
   // Offset angle for the pivot joints, used to calculate the pivot angles
   double offset_angle_;
+  double half_wheel_base_;
+  double half_steering_track_;
 
   std::unique_ptr<nova_controller_common::BLCMDWrapper> blcmd_wrapper_;
 
