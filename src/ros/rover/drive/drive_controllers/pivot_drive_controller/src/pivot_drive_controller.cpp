@@ -62,7 +62,7 @@ const char* PivotDriveController::pivot_feedback_type() const
   return params_.pivot_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
 }
 
-double PivotDriveController::get_angular_velocity_from_radius(
+double PivotDriveController::get_angular_from_radius_and_speed(
   double radius, double speed, bool turning_left) const
 {
   int dir = turning_left ? 1 : -1;
@@ -92,34 +92,25 @@ double PivotDriveController::get_radius_from_velocities(
 }
 
 double PivotDriveController::get_pivot_angle_from_radius(
-  double radius, bool wheel_left, bool turning_left) const
+  double radius, bool left_wheel, bool turning_left) const
 {
-  double half_wheel_base = params_.wheel_base / 2;
-  double half_steering_track = params_.steering_track / 2;
-
   if (radius == INFINITY)
   {
     return 0.0;  // straight line, no pivot angle
   }
-  radius -= (wheel_left ? 1 : -1) * half_steering_track;
-  return (turning_left > 0 ? 1 : -1) * M_PI_2 - atan(radius / half_wheel_base);
+  radius -= (left_wheel ? 1 : -1) * half_steering_track_;
+  return (turning_left > 0 ? 1 : -1) * M_PI_2 - atan(radius / half_wheel_base_);
 }
 
-double PivotDriveController::get_left_to_right_ratio(double radius) const
+double PivotDriveController::get_speed_ratio(double radius, bool left_wheel) const
 {
-  double half_wheel_base = params_.wheel_base / 2;
-  double half_steering_track = params_.steering_track / 2;
-
   if (radius == INFINITY || radius == 0)
   {
     // straight line or turning on the spot, left and right wheels should be the same speed
     return 1.0;
   }
-
-  double left_radius = std::hypot(radius + half_steering_track, half_wheel_base);
-  double right_radius = std::hypot(radius - half_steering_track, half_wheel_base);
-
-  return left_radius / right_radius;
+  double wheel_turn_radius = radius - (left_wheel ? 1 : -1) * half_steering_track_;
+  return std::abs(std::hypot(wheel_turn_radius, half_wheel_base_) / radius);
 }
 
 controller_interface::CallbackReturn PivotDriveController::on_init()
@@ -136,7 +127,10 @@ controller_interface::CallbackReturn PivotDriveController::on_init()
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  zero_radius_ = std::hypot(params_.wheel_base / 2, params_.steering_track / 2);
+  half_wheel_base_ = params_.wheel_base / 2;
+  half_steering_track_ = params_.steering_track / 2;
+
+  zero_radius_ = std::hypot(half_wheel_base_, half_steering_track_);
   RCLCPP_INFO_STREAM(get_node()->get_logger(), "zero_radius_: " << zero_radius_);
 
   // angle at which the wheels are initially offset
@@ -214,7 +208,7 @@ controller_interface::return_type PivotDriveController::update(
   double angular_input = command_msg_ptr->twist.angular.z;
   double linear_velocity, angular_velocity;
   bool turning_left = angular_input > 0;
-  double speed, turning_radius, left_angle, right_angle;
+  double speed, turning_radius;
   // Brake if cmd_vel has timed out, override the stored command
   const auto age_of_last_command = time - command_msg_ptr->header.stamp;
   if (age_of_last_command > cmd_vel_timeout_)
@@ -225,8 +219,16 @@ controller_interface::return_type PivotDriveController::update(
   }
   else if (params_.autonomous_mode)
   {
-    linear_velocity = linear_input * params_.linear.max_velocity;
-    angular_velocity = angular_input * params_.angular.max_velocity;
+    linear_velocity = linear_input;
+    angular_velocity = angular_input;
+
+    limiter_linear_.limit(
+      linear_velocity, previous_linear_velocities_[0], previous_linear_velocities_[1],
+      period.seconds());
+    limiter_angular_.limit(
+      angular_velocity, previous_angular_velocities_[0], previous_angular_velocities_[1],
+      period.seconds());
+
     turning_radius = get_radius_from_velocities(linear_velocity, angular_velocity);
     speed = linear_velocity == 0 ? std::abs(zero_radius_ * angular_velocity) : linear_velocity;
   }
@@ -234,57 +236,66 @@ controller_interface::return_type PivotDriveController::update(
   {
     // Manual operation: left stick controls speed and right stick controls the pivot angle
     // Convert angular input to target radius through a curve
+    // Prioritise keeping turning radius over speed
     turning_radius =
-      angular_input == 0 ? INFINITY : 3 * ((1.0 / angular_input) - std::copysign(1, angular_input));
+      angular_input == 0
+        ? INFINITY
+        : params_.curve_factor * ((1.0 / angular_input) - std::copysign(1, angular_input));
     speed = linear_input * params_.linear.max_velocity;
-    linear_velocity = turning_radius == 0 ? 0.0 : speed;
-  }
+    linear_velocity = turning_radius == 0 ? 0 : speed;
 
-  RCLCPP_INFO_THROTTLE(
-    get_node()->get_logger(), *get_node()->get_clock(), 500,
-    "Received command: speed = %.2f, turning_radius = %.2f", speed, turning_radius);
+    RCLCPP_INFO_THROTTLE(
+      get_node()->get_logger(), *get_node()->get_clock(), 500,
+      "Received: Speed = %.2f, Linear velocity = %.2f, Turning radius = %f", speed, linear_velocity,
+      turning_radius);
 
-  // Limit linear and angular velocities
-  // Prioritise keeping speed over angular velocity
-  if (
+    double temp = linear_velocity;
     limiter_linear_.limit(
       linear_velocity, previous_linear_velocities_[0], previous_linear_velocities_[1],
-      period.seconds()) != 1.0)
-  {
-    speed = linear_velocity;
-  }
-  // Calculate the angular velocity based on the limited speed
-  angular_velocity = get_angular_velocity_from_radius(turning_radius, speed, turning_left);
-  limiter_angular_.limit(
-    angular_velocity, previous_angular_velocities_[0], previous_angular_velocities_[1],
-    period.seconds());
-  turning_radius = get_radius_from_velocities(linear_velocity, angular_velocity);
-  left_angle = get_pivot_angle_from_radius(turning_radius, true, turning_left);
-  right_angle = get_pivot_angle_from_radius(turning_radius, false, turning_left);
+      period.seconds());
+    if (linear_velocity != temp)
+    {
+      speed = linear_velocity;
+      RCLCPP_INFO_THROTTLE(
+        get_node()->get_logger(), *get_node()->get_clock(), 500, "Speed limited to %.2f", speed);
+    }
+    // Calculate the angular velocity based on the limited speed
+    angular_velocity = get_angular_from_radius_and_speed(turning_radius, speed, turning_left);
+    RCLCPP_INFO_THROTTLE(
+      get_node()->get_logger(), *get_node()->get_clock(), 500, "Calculated angular velocity = %.2f",
+      angular_velocity);
 
-  // Calculate the speed ratio between the left and right wheels
-  double left_to_right_ratio = get_left_to_right_ratio(turning_radius);
-  double left_speed, right_speed;
-  bool left = turning_radius > 0;  // the direction we're turning to
+    temp = angular_velocity;
+    limiter_angular_.limit(
+      angular_velocity, previous_angular_velocities_[0], previous_angular_velocities_[1],
+      period.seconds());
+    if (angular_velocity != temp)
+    {
+      // If the angular velocity was limited, recalculate the speed to match
+      speed = std::copysign(
+        (turning_radius == 0 ? zero_radius_ : turning_radius) * angular_velocity, linear_input);
+      linear_velocity = turning_radius == 0 ? 0 : speed;
+      RCLCPP_INFO_THROTTLE(
+        get_node()->get_logger(), *get_node()->get_clock(), 500,
+        "Angular velocity limited to %.2f, recalculating speed to %.2f", angular_velocity, speed);
+    }
+  }
 
-  // Set the outer wheel to the calculated speed and calculate the inner wheel speed accordingly
-  if (left)
-  {
-    left_speed = speed * left_to_right_ratio;
-    right_speed = speed;
-  }
-  else
-  {
-    left_speed = speed;
-    right_speed = speed / left_to_right_ratio;
-  }
+  double left_angle = get_pivot_angle_from_radius(turning_radius, true, turning_left);
+  double right_angle = get_pivot_angle_from_radius(turning_radius, false, turning_left);
+  double left_ratio = get_speed_ratio(turning_radius, true);
+  double right_ratio = get_speed_ratio(turning_radius, false);
+  double left_speed = speed * left_ratio;
+  double right_speed = speed * right_ratio;
+  double left_velocity = left_speed / params_.wheel_radius;
+  double right_velocity = right_speed / params_.wheel_radius;
 
   // Set command values for drive
   if (
-    !blcmd_wrapper_->set_value(left_speed, JointPosition::FRONT_LEFT, JointType::DRIVE) ||
-    !blcmd_wrapper_->set_value(left_speed, JointPosition::BACK_LEFT, JointType::DRIVE) ||
-    !blcmd_wrapper_->set_value(right_speed, JointPosition::FRONT_RIGHT, JointType::DRIVE) ||
-    !blcmd_wrapper_->set_value(right_speed, JointPosition::BACK_RIGHT, JointType::DRIVE))
+    !blcmd_wrapper_->set_value(left_velocity, JointPosition::FRONT_LEFT, JointType::DRIVE) ||
+    !blcmd_wrapper_->set_value(left_velocity, JointPosition::BACK_LEFT, JointType::DRIVE) ||
+    !blcmd_wrapper_->set_value(right_velocity, JointPosition::FRONT_RIGHT, JointType::DRIVE) ||
+    !blcmd_wrapper_->set_value(right_velocity, JointPosition::BACK_RIGHT, JointType::DRIVE))
   {
     RCLCPP_ERROR(get_node()->get_logger(), "Failed to set drive command values.");
     return controller_interface::return_type::ERROR;
