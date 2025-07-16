@@ -86,14 +86,14 @@ pivot_drive_controller:
     linear: # metres
       has_velocity_limits: true
       has_acceleration_limits: true
-      max_velocity: 6.5
-      min_velocity: -6.5
-      max_acceleration: 20.0
-      min_acceleration: -50.0
+      max_velocity: 5.0
+      min_velocity: -5.0
+      max_acceleration: 4.0
+      min_acceleration: -10.0
     angular: # radians
       has_velocity_limits: true
-      max_velocity: 3.1416 # 180 degrees per second
-      min_velocity: -3.1416
+      max_velocity: 1.57079632 # 180 degrees per second
+      min_velocity: -1.57079632
 
 strafe_controller:
   ros__parameters:
