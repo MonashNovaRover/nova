@@ -20,7 +20,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "science-source";
-    path = ../../../science;
+    path = ../../../science/science;
     filter = lib.novaSourceFilter [ ] path;
   };
 
