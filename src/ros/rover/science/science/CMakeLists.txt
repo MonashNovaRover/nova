@@ -47,35 +47,28 @@ ament_python_install_package(${PROJECT_NAME})
 
 # Add all Python executables to this list
 install(PROGRAMS
-  science/transmitter.py
-  science/distance_publisher.py
-  science/EMC_publisher.py
-  science/kiln_server.py
-  science/spectrometer_publisher.py
-  science/actuator_limit_publisher.py
-  science/arc_spinny_part.py
-  science/arc_sweeper_servo.py
-  science/microscope_servo.py
-  science/nir_probe_publisher.py
-  science/scimbal_cam.py
-  science/urc_raman_spec_server.py
-  science/analysis_arm.py
-  science/auger.py
-  science/urc_sample_tray.py
-  science/urc_pumps.py
-  science/urc_carousel.py
-  science/urc_uv_vis_spec.py
-  science/urc_raman_mech_server.py
-  science/urc_cache.py
-  science/urc_heater.py
-  science/urc_hydraprobe.py
-  science/urc_hydraprobe_control.py
-  science/urc_theta_360_cam.py
-  science/urc_bme_sensor.py
-  science/urc_mixers.py
-  science/urc_uv_vis_leds.py
-  science/hydraprobe_trigger_node.py
-  DESTINATION lib/${PROJECT_NAME}
+        science/arc/arc_spinny_part.py
+        science/arc/arc_sweeper_servo.py
+        science/arc/kiln_server.py
+        science/urc/hydraprobe_trigger_node.py
+        science/urc/urc_bme_sensor.py
+        science/urc/urc_cache.py
+        science/urc/urc_carousel.py
+        science/urc/urc_heater.py
+        science/urc/urc_hydraprobe.py
+        science/urc/urc_hydraprobe_control.py
+        science/urc/urc_mixers.py
+        science/urc/urc_pumps.py
+        science/urc/urc_raman_mech_server.py
+        science/urc/urc_raman_spec_server.py
+        science/urc/urc_theta_360_cam.py
+        science/urc/urc_uv_vis_leds.py
+        science/urc/urc_uv_vis_spec.py
+        science/analysis_arm.py
+        science/auger.py
+        science/nir_probe_publisher.py
+        science/scimbal_cam.py
+        DESTINATION lib/${PROJECT_NAME}
 )
 
 
