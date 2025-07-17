@@ -24,7 +24,6 @@ a one-time moisture reading and publishes it.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-import time
 import logging
 import rclpy
 from rclpy.node import Node

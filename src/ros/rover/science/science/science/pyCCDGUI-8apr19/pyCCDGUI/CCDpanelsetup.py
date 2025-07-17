@@ -25,7 +25,6 @@
  # SUCH DAMAGE.
 
 #python imports
-import tkinter as tk
 from tkinter import ttk
 import numpy as np
 import serial
@@ -200,7 +199,7 @@ class buildpanel(tk.Frame):
     self.fileframe = tk.Frame(self)
     self.fileframe.grid(row=save_row, columnspan=2)
     self.bopen = tk.Button(self.fileframe, text="Open", width=11, command=lambda self=self, CCDplot=CCDplot: CCDfiles.openfile(self, CCDplot))
-    self.bsave = tk.Button(self.fileframe, text="Save", width=11, state=tk.DISABLED,command=lambda self=self: CCDfiles.savefile(self))
+    self.bsave = tk.Button(self.fileframe, text="Save", width=11, state=tk.DISABLED, command=lambda self=self: CCDfiles.savefile(self))
     self.bopen.pack(side=tk.LEFT)
     self.bsave.pack(side=tk.LEFT)
 	#help button
@@ -247,11 +246,11 @@ class buildpanel(tk.Frame):
         status.set("Correct CCD pulse timing.")
         colr.configure(fg="green")
         if (config.SHperiod < 20000000):
-            self.print_tint.set(str(config.SHperiod/2000) + " ms")
+            self.print_tint.set(str(config.SHperiod / 2000) + " ms")
         elif (config.SHperiod <= 1200000000):
-            self.print_tint.set(str(config.SHperiod/2000000) + " s")
-        elif (config.SHperiod >  1200000000):
-            self.print_tint.set(str(round(config.SHperiod/120000000,2)) + " min")
+            self.print_tint.set(str(config.SHperiod / 2000000) + " s")
+        elif (config.SHperiod > 1200000000):
+            self.print_tint.set(str(round(config.SHperiod / 120000000, 2)) + " min")
 
 
     #tint.set("Integration time is " + + " ms")
@@ -291,12 +290,14 @@ class buildpanel(tk.Frame):
   def updateplot(self, CCDplot):
     #This subtracts the ADC-pixel from ADC-dark
     if (config.datainvert==1): 
-        config.pltData16 = (config.rxData16[10]+config.rxData16[11])/2 - config.rxData16
+        config.pltData16 = (config.rxData16[10] + config.rxData16[11]) / 2 - config.rxData16
         #This subtracts the average difference between even and odd pixels from the even pixels
         if (config.balanced==1):
-            config.offset = (config.pltData16[18]+config.pltData16[20]+config.pltData16[22]+config.pltData16[24]-config.pltData16[19]-config.pltData16[21]-config.pltData16[23]-config.pltData16[24])/4
+            config.offset = (
+                                        config.pltData16[18] + config.pltData16[20] + config.pltData16[22] + config.pltData16[24] -
+                                        config.pltData16[19] - config.pltData16[21] - config.pltData16[23] - config.pltData16[24]) / 4
             for i in range (1847):
-                config.pltData16[2*i] = config.pltData16[2*i] - config.offset 
+                config.pltData16[2 * i] = config.pltData16[2 * i] - config.offset
     CCDplot.a.clear()
     #plot intensities
     if (config.datainvert == 1):
