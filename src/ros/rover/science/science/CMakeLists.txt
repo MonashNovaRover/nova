@@ -50,13 +50,6 @@ install(PROGRAMS
         science/arc/arc_spinny_part.py
         science/arc/arc_sweeper_servo.py
         science/arc/kiln_server.py
-        science/archive/actuator_limit_publisher.py
-        science/archive/distance_publisher.py
-        science/archive/EMC_publisher.py
-        science/archive/microscope_servo.py
-        science/archive/spectrometer_publisher.py
-        science/archive/transmitter.py
-        science/archive/urc_sample_tray.py
         science/urc/hydraprobe_trigger_node.py
         science/urc/urc_bme_sensor.py
         science/urc/urc_cache.py
