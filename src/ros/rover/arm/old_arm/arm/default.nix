@@ -25,7 +25,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "arm-source";
-    path = ../../../arm/arm;
+    path = ./.;
     filter = lib.novaSourceFilter [
     ]
       path;

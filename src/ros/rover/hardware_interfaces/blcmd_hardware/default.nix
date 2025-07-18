@@ -16,7 +16,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "blcmd-hardware-source";
-    path = ../../../hardware_interfaces/blcmd_hardware;
+    path = ./.;
     filter = lib.novaSourceFilter [ ] path;
   };
 

@@ -20,7 +20,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "arm-source";
-    path = ../../../arm/auto_typing;
+    path = ./.;
     filter = lib.novaSourceFilter [
     ]
       path;

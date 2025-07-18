@@ -1,0 +1,9 @@
+/home/nova/nova/src/ros/rover/nova_bringup/cmake-build-debug/CMakeFiles/uninstall.dir
+/home/nova/nova/src/ros/rover/nova_bringup/cmake-build-debug/CMakeFiles/nova_bringup_uninstall.dir
+/home/nova/nova/src/ros/rover/nova_bringup/cmake-build-debug/CMakeFiles/test.dir
+/home/nova/nova/src/ros/rover/nova_bringup/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/nova/nova/src/ros/rover/nova_bringup/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/nova/nova/src/ros/rover/nova_bringup/cmake-build-debug/CMakeFiles/list_install_components.dir
+/home/nova/nova/src/ros/rover/nova_bringup/cmake-build-debug/CMakeFiles/install.dir
+/home/nova/nova/src/ros/rover/nova_bringup/cmake-build-debug/CMakeFiles/install/local.dir
+/home/nova/nova/src/ros/rover/nova_bringup/cmake-build-debug/CMakeFiles/install/strip.dir

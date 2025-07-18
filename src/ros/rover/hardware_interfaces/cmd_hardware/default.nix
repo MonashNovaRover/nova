@@ -16,7 +16,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "cmd-hardware-source";
-    path = ../../../hardware_interfaces/cmd_hardware;
+    path = ./.;
     filter = lib.novaSourceFilter [ ] path;
   };
 

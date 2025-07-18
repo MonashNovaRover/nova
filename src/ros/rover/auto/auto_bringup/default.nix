@@ -47,7 +47,7 @@ buildRosPackage rec {
 
   src = builtins.path rec {
     name = "auto-bringup-source";
-    path = ../../../auto_bringup;
+    path = ./.;
   };
 
   nativeBuildInputs = [ ament-cmake ];

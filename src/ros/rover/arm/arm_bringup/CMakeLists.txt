@@ -23,9 +23,9 @@ find_package(ament_cmake REQUIRED)
 
 # Add all the installation directories
 install(DIRECTORY
-        launch
-        params
-        rviz
+  launch
+  params
+  rviz
   DESTINATION share/${PROJECT_NAME}
 )
 

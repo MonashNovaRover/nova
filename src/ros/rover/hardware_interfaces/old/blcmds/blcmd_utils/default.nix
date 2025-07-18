@@ -12,7 +12,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "blcmd-utils-source";
-    path = ../../../blcmds/blcmd_utils;
+    path = ./.;
     filter = lib.novaSourceFilter [ ] path;
   };
 

@@ -1,0 +1,4 @@
+source;share/nova_bringup/local_setup.bash
+source;share/nova_bringup/local_setup.dsv
+source;share/nova_bringup/local_setup.sh
+source;share/nova_bringup/local_setup.zsh
