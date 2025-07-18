@@ -1,45 +1,44 @@
 {
   rosPackages = pkgs: with pkgs; {
-    nova-electronics = callPackage ./nix/packages/electronics { };
-    nova-science = callPackage ./nix/packages/science { };
-    nova-blcmd-hardware = callPackage ./nix/packages/blcmd-hardware { };
-    nova-cmd-hardware = callPackage ./nix/packages/cmd-hardware { };
-    nova-costmap-2d = callPackage ./nix/packages/nova-costmap-2d { };
-    nova-behavior-tree = callPackage ./nix/packages/nova-behavior-tree { };
-    nova-object-localisation = callPackage ./nix/packages/nova-object-localisation { };
-    nova-teleop-drive-joy = callPackage ./nix/packages/teleop-drive-joy { };
-    nova-teleop-arm-joy = callPackage ./nix/packages/teleop-arm-joy { };
-    nova-pointcloud-filter = callPackage ./nix/packages/nova-pointcloud-filter { };
-    nova-drive = callPackage ./nix/packages/drive { };
-    nova-drive-interfaces = callPackage ./nix/packages/drive-interfaces { };
-    nova-blcmd-interfaces = callPackage ./nix/packages/blcmd-interfaces { };
-    nova-blcmd-utils = callPackage ./nix/packages/blcmd-utils { };
-    nova-arm-interfaces = callPackage ./nix/packages/arm-interfaces { };
-    nova-arm = callPackage ./nix/packages/arm { };
-    nova-auto-typing = callPackage ./nix/packages/auto-typing { };
-    nova-input-interfaces = callPackage ./nix/packages/input-interfaces { };
-    nova-inputs = callPackage ./nix/packages/inputs { };
-    nova-cmd-interfaces = callPackage ./nix/packages/cmd-interfaces { };
-    nova-cmd-utils = callPackage ./nix/packages/cmd-utils { };
-    nova-gimbal-cam = callPackage ./nix/packages/gimbal-cam { };
-    nova-bringup = callPackage ./nix/packages/nova-bringup { };
-    nova-auto-bringup = callPackage ./nix/packages/auto-bringup { };
-    nova-arm-bringup = callPackage ./nix/packages/arm-bringup { };
-    nova-interfaces = callPackage ./nix/packages/nova-interfaces { };
-    nova-rover-description = callPackage ./nix/packages/rover-description { };
-    nova-gazebo = callPackage ./nix/packages/nova-gazebo { };
-    nova-python-control = callPackage ./nix/packages/python-control { };
-    nova-python-control-old = callPackage ./nix/packages/python-control-old { };
-    nova-excavation-construction = callPackage ./nix/packages/excavation-construction { };
-    nova-detection-overlay = callPackage ./nix/packages/nova-detection-overlay { };
-    nova-bt-navigators = callPackage ./nix/packages/nova-bt-navigators { };
-    nova-auto-interfaces = callPackage ./nix/packages/nova-auto-interfaces { };
-    nova-utils = callPackage ./nix/packages/nova-utils { };
-    lattice-primitive-generator = callPackage ./nix/packages/lattice-primitive-generator { };
-    ublox-dgnss-custom = callPackage ./nix/packages/ublox-dgnss { };
+    nova-electronics = callPackage ./electronics { };
+    nova-science = callPackage ./science/science { };
+    nova-blcmd-hardware = callPackage ./hardware_interfaces/blcmd_hardware { };
+    nova-cmd-hardware = callPackage ./hardware_interfaces/cmd_hardware { };
+    nova-costmap-2d = callPackage ./nav2_autonomous/nova_costmap_2d { };
+    nova-behavior-tree = callPackage ./nav2_autonomous/nova_behavior_tree { };
+    nova-object-localisation = callPackage ./nav2_autonomous/nova_object_localisation { };
+    nova-teleop-drive-joy = callPackage ./teleop_drive_joy { };
+    nova-teleop-arm-joy = callPackage ./teleop_arm_joy { };
+    nova-pointcloud-filter = callPackage ./nav2_autonomous/nova_pointcloud_filter { };
+    nova-drive = callPackage ./drive/drive { };
+    nova-drive-interfaces = callPackage ./drive/drive_interfaces { };
+    nova-blcmd-interfaces = callPackage ./blcmds/blcmd_interfaces { };
+    nova-blcmd-utils = callPackage ./blcmds/blcmd_utils { };
+    nova-arm-interfaces = callPackage ./arm/arm_interfaces { };
+    nova-arm = callPackage ./arm/arm { };
+    nova-auto-typing = callPackage ./arm/auto_typing { };
+    nova-input-interfaces = callPackage ./inputs/input_interfaces { };
+    nova-inputs = callPackage ./inputs/inputs { };
+    nova-cmd-interfaces = callPackage ./cmds/cmd_interfaces { };
+    nova-cmd-utils = callPackage ./cmds/cmd_utils { };
+    nova-gimbal-cam = callPackage ./gimbal_cam { };
+    nova-bringup = callPackage ./nova_bringup { };
+    nova-auto-bringup = callPackage ./auto_bringup { };
+    nova-arm-bringup = callPackage ./arm/arm_bringup { };
+    nova-interfaces = callPackage ./nova_interfaces { };
+    nova-rover-description = callPackage ./rover_description { };
+    nova-gazebo = callPackage ./nova_gazebo { };
+    nova-python-control = callPackage ./python_control { };
+    nova-python-control-old = callPackage ./python_control_old { };
+    nova-excavation-construction = callPackage ./excavation_construction { };
+    nova-detection-overlay = callPackage ./nav2_autonomous/nova_detection_overlay { };
+    nova-bt-navigators = callPackage ./nav2_autonomous/nova_bt_navigators { };
+    nova-auto-interfaces = callPackage ./nav2_autonomous/nova_auto_interfaces { };
+    nova-utils = callPackage ./nova_utils { };
+    lattice-primitive-generator = callPackage ./lattice_primitive_generator { };
 
     # diff drive, pivot drive, strafe, 
-  } // import ./nix/packages/controllers { inherit pkgs; };
+  } // import ./controllers { inherit pkgs; };
 
   #pythonPackages = pythonPackages: with pythonPackages; {
     
