@@ -192,5 +192,24 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
     ) {
       this.callService(request, { ...options, sendToRedux: true });
     },
-  };
+    /**
+     * Publishes the message to the ros topic.
+     * @param message The message to publish on the ros topic
+     * @returns None
+     */
+    publishToTopic(message: RosTopicInterfaces[typeof topic]) {
+      return () => {
+        if (!ros || topic === RosTopic.NULL_TOPIC || message === undefined)
+          return;
+
+        const rosTopic = new Topic({
+          ros: ros,
+          name: topic.toString(),
+          messageType: rosTopicMessages[topic],
+        });
+
+        rosTopic.publish(message);
+      };
+    },
+};
 }
