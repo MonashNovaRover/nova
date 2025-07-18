@@ -10,5 +10,6 @@
     ./users
     ./virtualisation
     ./workspace
+    ./nvidia
   ];
 }
