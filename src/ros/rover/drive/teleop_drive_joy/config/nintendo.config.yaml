@@ -2,17 +2,17 @@
 # x = vertical axis, y = horizontal axis
 teleop_drive_joy_node:
   ros__parameters:
-    axis_linear_x: 1
-    axis_linear_y: 0
-    axis_linear_z: 3
-    axis_angular_z: 2
+    axis_linear_x: 1                       # Left Stick Vertical
+    axis_linear_y: 0                       # Left Stick Horizontal
+    axis_linear_z: 3                       # Right Stick Vertical
+    axis_angular_z: 2                      # Right Stick Horizontal
+    axis_speed_change_fine: 4              # DPad Left/Right
+    axis_speed_change_coarse: 5            # DPad Up/Down
     
     button_pivot_drive_controller: 0       # Button B
     button_holonomic_drive_controller: 1   # Button A
     button_nova_diff_drive_controller: 2   # Button X
     button_strafe_controller: 3            # Button Y
-    axis_speed_change_fine: 4              # DPad Left/Right
-    axis_speed_change_coarse: 5            # DPad Up/Down
     button_lock: 9                         # Left Menu Button
     button_unlock: 10                      # Right Menu Button
     speed_change_fine_val: -0.02           # DPad is flipped on Japanese Version
