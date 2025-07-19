@@ -237,6 +237,11 @@ controller_interface::return_type PivotDriveController::update(
     // Manual operation: left stick controls speed and right stick controls the pivot angle
     // Process raw angular input through a curve to calculate the turning radius
     // Prioritise keeping turning radius over speed
+
+    // TODO: Take into account the actual angular velocity of the pivots to minimise skidding;
+    // currently we assume that the pivots instantaneously reach the desired angle based on the
+    // turning radius. This has minimal effect on manual operation, but will improve the accuracy of
+    // odometry and therefore autonomous operation.
     turning_radius =
       angular_input == 0
         ? INFINITY
@@ -272,21 +277,47 @@ controller_interface::return_type PivotDriveController::update(
       period.seconds());
     if (angular_velocity != temp)
     {
-      const bool keep_speed = true;  // temporary toggle for testing
+      const bool keep_speed = false;  // temporary toggle for testing
       if (keep_speed)
       {
         // Keep speed and recalculate turning radius to match angular velocity
         turning_radius = angular_velocity == 0 ? INFINITY : speed / angular_velocity;
+        RCLCPP_INFO_THROTTLE(
+          get_node()->get_logger(), *get_node()->get_clock(), 500,
+          "Angular velocity limited to %.2f, recalculating turning radius to %.2f",
+          angular_velocity, turning_radius);
       }
       else
       {
-        // If the angular velocity was limited, recalculate the speed to match
-        speed = std::copysign(
-          (turning_radius == 0 ? zero_radius_ : turning_radius) * angular_velocity, linear_input);
-        linear_velocity = turning_radius == 0 ? 0 : speed;
-        RCLCPP_INFO_THROTTLE(
-          get_node()->get_logger(), *get_node()->get_clock(), 500,
-          "Angular velocity limited to %.2f, recalculating speed to %.2f", angular_velocity, speed);
+        // Recalculate (decrease) the speed to match the limited angular velocity
+        std::tie(speed, linear_velocity) =
+          turning_radius == 0
+            ? std::make_tuple(std::copysign(zero_radius_ * angular_velocity, linear_input), 0.0)
+            : std::make_tuple(
+                std::copysign(turning_radius * angular_velocity, linear_velocity), speed);
+        temp = linear_velocity;
+        limiter_linear_.limit(
+          linear_velocity, previous_linear_velocities_[0], previous_linear_velocities_[1],
+          period.seconds());
+        if (linear_velocity != temp)
+        {
+          // If the new speed was limited, we need to recalculate the turning radius as well
+          // because we can't decrease the speed further
+          speed = linear_velocity;
+          turning_radius = angular_velocity == 0 ? INFINITY : speed / angular_velocity;
+          RCLCPP_INFO_THROTTLE(
+            get_node()->get_logger(), *get_node()->get_clock(), 500,
+            "Angular velocity limited to %.2f, recalculating speed to %.2f and turning radius to "
+            "%.2f",
+            angular_velocity, speed, turning_radius);
+        }
+        else
+        {
+          RCLCPP_INFO_THROTTLE(
+            get_node()->get_logger(), *get_node()->get_clock(), 500,
+            "Angular velocity limited to %.2f, recalculating speed to %.2f", angular_velocity,
+            speed);
+        }
       }
     }
   }
