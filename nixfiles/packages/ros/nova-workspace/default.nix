@@ -13,6 +13,7 @@
 , moveit-core
 , moveit-kinematics
 , ublox-dgnss
+, teleop-modular
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -112,6 +113,7 @@
       moveit-core   # needed to dynamically load the kinematics_solver plugin for nova_twistmapper
       moveit-kinematics
       gpsd-client
+      teleop-modular
       ;
 }
 }:
