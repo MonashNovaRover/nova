@@ -125,7 +125,7 @@ teleop_drive_joy:
     description: "Value to change speed when the speed_change_coarse is invoked"
   speed_change_fine_val:
     type: double
-    default_value: 0.02
+    default_value: 0.025
     description: "Value to change speed when the speed_change_fine is invoked"
 
   # 1.0 = 100% max linear velocity, 0.5 = 50% max linear velocity, etc.
