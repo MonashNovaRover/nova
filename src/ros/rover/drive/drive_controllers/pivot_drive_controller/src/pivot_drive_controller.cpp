@@ -235,12 +235,13 @@ controller_interface::return_type PivotDriveController::update(
   else
   {
     // Manual operation: left stick controls speed and right stick controls the pivot angle
-    // Convert angular input to target radius through a curve
+    // Process raw angular input through a curve to calculate the turning radius
     // Prioritise keeping turning radius over speed
     turning_radius =
       angular_input == 0
         ? INFINITY
         : params_.curve_factor * ((1.0 / angular_input) - std::copysign(1, angular_input));
+
     speed = linear_input * params_.linear.max_velocity;
     linear_velocity = turning_radius == 0 ? 0 : speed;
 
@@ -271,13 +272,22 @@ controller_interface::return_type PivotDriveController::update(
       period.seconds());
     if (angular_velocity != temp)
     {
-      // If the angular velocity was limited, recalculate the speed to match
-      speed = std::copysign(
-        (turning_radius == 0 ? zero_radius_ : turning_radius) * angular_velocity, linear_input);
-      linear_velocity = turning_radius == 0 ? 0 : speed;
-      RCLCPP_INFO_THROTTLE(
-        get_node()->get_logger(), *get_node()->get_clock(), 500,
-        "Angular velocity limited to %.2f, recalculating speed to %.2f", angular_velocity, speed);
+      const bool keep_speed = true;  // temporary toggle for testing
+      if (keep_speed)
+      {
+        // Keep speed and recalculate turning radius to match angular velocity
+        turning_radius = angular_velocity == 0 ? INFINITY : speed / angular_velocity;
+      }
+      else
+      {
+        // If the angular velocity was limited, recalculate the speed to match
+        speed = std::copysign(
+          (turning_radius == 0 ? zero_radius_ : turning_radius) * angular_velocity, linear_input);
+        linear_velocity = turning_radius == 0 ? 0 : speed;
+        RCLCPP_INFO_THROTTLE(
+          get_node()->get_logger(), *get_node()->get_clock(), 500,
+          "Angular velocity limited to %.2f, recalculating speed to %.2f", angular_velocity, speed);
+      }
     }
   }
 
