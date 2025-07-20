@@ -3,5 +3,5 @@
 with pkgs;
 
 {
-  nova-electronics = callPackage ./nix/packages/electronics { };
+  nova-electronics = callPackage ./electronics { };
 }

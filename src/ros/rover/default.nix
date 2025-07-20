@@ -1,21 +1,21 @@
 {
   rosPackages = pkgs: with pkgs; {
-    nova-bringup = callPackage ./nix/packages/nova-bringup { };
-    nova-interfaces = callPackage ./nix/packages/nova-interfaces { };
-    nova-rover-description = callPackage ./nix/packages/rover-description { };
-    nova-excavation-construction = callPackage ./nix/packages/excavation-construction { };
+    nova-bringup = callPackage ./nova_bringup { };
+    nova-interfaces = callPackage ./nova_interfaces { };
+    nova-rover-description = callPackage ./rover_description { };
+    nova-excavation-construction = callPackage ./excavation_construction { };
 
     ublox-dgnss-custom = callPackage ./nix/packages/ublox-dgnss { };
 
     # diff drive, pivot drive, strafe, 
-  } // import ./arm { inherit pkgs; };
-    // import ./auto { inherit pkgs; };
-    // import ./chassis { inherit pkgs; };
-    // import ./drive { inherit pkgs; };
-    // import ./hardware_interfaces { inherit pkgs; };
-    // import ./nova_generic { inherit pkgs; };
-    // import ./old_inputs { inherit pkgs; };
-    // import ./science { inherit pkgs; };
+  } // import ./arm { inherit pkgs; }
+    // import ./auto { inherit pkgs; }
+    // import ./chassis { inherit pkgs; }
+    // import ./drive { inherit pkgs; }
+    // import ./hardware_interfaces { inherit pkgs; }
+    // import ./nova_generic { inherit pkgs; }
+    // import ./old_inputs { inherit pkgs; }
+    // import ./science { inherit pkgs; }
     // import ./simulations { inherit pkgs; };
 
   #pythonPackages = pythonPackages: with pythonPackages; {

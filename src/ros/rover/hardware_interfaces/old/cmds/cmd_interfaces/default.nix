@@ -11,7 +11,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "cmd-interfaces-source";
-    path = ./.
+    path = ./.;
     filter = lib.novaSourceFilter [ ] path;
   };
 
