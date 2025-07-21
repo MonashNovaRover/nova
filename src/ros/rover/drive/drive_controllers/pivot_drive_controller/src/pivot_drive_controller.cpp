@@ -1,9 +1,6 @@
 /**
  * ROS conventions dictate that left = positive and right = negative.
  * The received twist messages from teleop follow this convention.
- * However, our BLCMDs expect the opposite, i.e. left = negative and right = positive.
- * As such, all angles are calculated as per ROS conventions and are only
- * inverted right before being sent to the BLCMDs.
  */
 
 #include <algorithm>
@@ -23,7 +20,7 @@
 #include "rclcpp/logging.hpp"
 #include "tf2/LinearMath/Quaternion.h"
 
-#include "nova_controller_common/blcmd_wrapper.hpp"
+#include "nova_controller_common/hardware_interface_wrapper.hpp"
 #include "pivot_drive_controller/pivot_drive_controller.hpp"
 
 namespace
@@ -137,7 +134,7 @@ controller_interface::CallbackReturn PivotDriveController::on_init()
   offset_angle_ = atan(params_.steering_track / params_.wheel_base);
   RCLCPP_INFO_STREAM(get_node()->get_logger(), "offset_angle: " << offset_angle_);
 
-  blcmd_wrapper_ = std::make_unique<BLCMDWrapper>(
+  hwif_wrapper_ = std::make_unique<HardwareInterfaceWrapper>(
     get_node(), offset_angle_, state_interfaces_, command_interfaces_);
 
   return controller_interface::CallbackReturn::SUCCESS;
@@ -322,31 +319,31 @@ controller_interface::return_type PivotDriveController::update(
     }
   }
 
-  double left_angle = get_pivot_angle_from_radius(turning_radius, true, turning_left);
-  double right_angle = get_pivot_angle_from_radius(turning_radius, false, turning_left);
-  double left_ratio = get_speed_ratio(turning_radius, true);
-  double right_ratio = get_speed_ratio(turning_radius, false);
-  double left_speed = speed * left_ratio;
-  double right_speed = speed * right_ratio;
-  double left_velocity = left_speed / params_.wheel_radius;
-  double right_velocity = right_speed / params_.wheel_radius;
+  const double left_angle = get_pivot_angle_from_radius(turning_radius, true, turning_left);
+  const double right_angle = get_pivot_angle_from_radius(turning_radius, false, turning_left);
+  const double left_ratio = get_speed_ratio(turning_radius, true);
+  const double right_ratio = get_speed_ratio(turning_radius, false);
+  const double left_speed = speed * left_ratio;
+  const double right_speed = speed * right_ratio;
+  const double left_velocity = left_speed / params_.wheel_radius;
+  const double right_velocity = right_speed / params_.wheel_radius;
 
   // Set command values for drive
   if (
-    !blcmd_wrapper_->set_value(left_velocity, JointPosition::FRONT_LEFT, JointType::DRIVE) ||
-    !blcmd_wrapper_->set_value(left_velocity, JointPosition::BACK_LEFT, JointType::DRIVE) ||
-    !blcmd_wrapper_->set_value(right_velocity, JointPosition::FRONT_RIGHT, JointType::DRIVE) ||
-    !blcmd_wrapper_->set_value(right_velocity, JointPosition::BACK_RIGHT, JointType::DRIVE))
+    !hwif_wrapper_->set_value(left_velocity, JointPosition::FRONT_LEFT, JointType::DRIVE) ||
+    !hwif_wrapper_->set_value(left_velocity, JointPosition::BACK_LEFT, JointType::DRIVE) ||
+    !hwif_wrapper_->set_value(right_velocity, JointPosition::FRONT_RIGHT, JointType::DRIVE) ||
+    !hwif_wrapper_->set_value(right_velocity, JointPosition::BACK_RIGHT, JointType::DRIVE))
   {
     RCLCPP_ERROR(get_node()->get_logger(), "Failed to set drive command values.");
     return controller_interface::return_type::ERROR;
   }
   // Set command values for pivots
   if (
-    !blcmd_wrapper_->set_value(left_angle, JointPosition::FRONT_LEFT, JointType::PIVOT) ||
-    !blcmd_wrapper_->set_value(-left_angle, JointPosition::BACK_LEFT, JointType::PIVOT) ||
-    !blcmd_wrapper_->set_value(right_angle, JointPosition::FRONT_RIGHT, JointType::PIVOT) ||
-    !blcmd_wrapper_->set_value(-right_angle, JointPosition::BACK_RIGHT, JointType::PIVOT))
+    !hwif_wrapper_->set_value(left_angle, JointPosition::FRONT_LEFT, JointType::PIVOT) ||
+    !hwif_wrapper_->set_value(-left_angle, JointPosition::BACK_LEFT, JointType::PIVOT) ||
+    !hwif_wrapper_->set_value(right_angle, JointPosition::FRONT_RIGHT, JointType::PIVOT) ||
+    !hwif_wrapper_->set_value(-right_angle, JointPosition::BACK_RIGHT, JointType::PIVOT))
   {
     RCLCPP_ERROR(get_node()->get_logger(), "Failed to set pivot command values.");
     return controller_interface::return_type::ERROR;
@@ -368,21 +365,16 @@ controller_interface::return_type PivotDriveController::update(
   return controller_interface::return_type::OK;
 }
 
-void update_odometry(
-  const rclcpp::Time& time, const rclcpp::Duration& period,
-  const std::shared_ptr<geometry_msgs::msg::TwistStamped>& command_msg_ptr)
+void PivotDriveController::update_odometry(
+  double linear_velocity, double angular_velocity, const rclcpp::Time& time,
+  const rclcpp::Duration& period)
 {
-  // // Update Odometry
-  // if (params_.open_loop)
-  // {
-  //   // #TODO: Fix open loop odom
-  //   float angular_command = (target_speed / radius) * direction * -1;
-  //   // RCLCPP_INFO(logger, "time: %f", time);
-  //   odometry_.updateOpenLoop(target_speed, angular_command, time);
-  // }
-  // else
-  // {
-  //   // #TODO Make odometry fault tolerant (or at least recognise faults)
+  if (params_.open_loop)
+  {
+    odometry_.updateOpenLoop(linear_velocity, angular_velocity, time);
+  }
+  else
+  {
   //   const double front_right_wheel_value =
   //     registered_right_drive_handles_.at(0).state.get().get_value() * params_.wheel_radius;
   //   const double rear_right_wheel_value =
@@ -512,10 +504,10 @@ void update_odometry(
   //       }
   //     }
   //   }
-  // }
+  }
 }
 
-void publish_odometry(
+void PivotDriveController::publish_odometry(
   const rclcpp::Time& time, const rclcpp::Duration& period,
   const std::shared_ptr<geometry_msgs::msg::TwistStamped>& command_msg_ptr)
 {
@@ -709,7 +701,7 @@ controller_interface::CallbackReturn PivotDriveController::on_configure(
 controller_interface::CallbackReturn PivotDriveController::on_activate(
   const rclcpp_lifecycle::State&)
 {
-  // Configure joints using BLCMDWrapper
+  // Configure joints
   std::vector<Joint> joints;
   for (const std::string& joint_pos_str : params_.joints)
   {
@@ -724,7 +716,7 @@ controller_interface::CallbackReturn PivotDriveController::on_activate(
       PIVOT_COMMAND_TYPE, joint_pos, JointType::PIVOT);
   }
 
-  if (!blcmd_wrapper_->configure_joint_handles(joints, params_.open_loop))
+  if (!hwif_wrapper_->configure_joint_handles(joints, params_.open_loop))
   {
     RCLCPP_ERROR(get_node()->get_logger(), "Error configuring drives and pivots");
     return controller_interface::CallbackReturn::ERROR;
@@ -780,7 +772,7 @@ bool PivotDriveController::reset()
 
 void PivotDriveController::reset_buffers()
 {
-  blcmd_wrapper_->reset_handles();
+  hwif_wrapper_->reset_handles();
 
   previous_linear_velocities_ = {0.0, 0.0};
   previous_angular_velocities_ = {0.0, 0.0};
@@ -813,7 +805,7 @@ void PivotDriveController::halt()
   {
     for (const auto& joint_type : {JointType::DRIVE, JointType::PIVOT})
     {
-      blcmd_wrapper_->set_value(0.0, joint_pos, joint_type);
+      hwif_wrapper_->set_value(0.0, joint_pos, joint_type);
     }
   }
 }
