@@ -26,14 +26,14 @@ def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo').perform(context)
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
-    use_local_mesh = LaunchConfiguration('use_local_mesh').perform(context)
+    camera = LaunchConfiguration('camera').perform(context)
 
     return [
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[{'robot_description': 
-                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle, ' ', 'use_local_mesh:=', use_local_mesh]), value_type=str)
+                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle, ' ', 'auto_camera:=', camera]), value_type=str)
             }]
         )
     ]
@@ -64,9 +64,9 @@ def generate_launch_description():
             description='name of the robot',
         ),
         DeclareLaunchArgument(
-            name='use_local_mesh',
-            default_value='False',
-            description='Use local mesh paths instead of nix store paths',
+            name='camera',
+            default_value='True',
+            description='Whether to spawn auto mount on the rover.',
         ),
     ]
 
