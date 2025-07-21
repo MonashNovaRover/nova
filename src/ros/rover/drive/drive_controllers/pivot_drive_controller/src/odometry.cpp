@@ -11,7 +11,10 @@ Odometry::Odometry(size_t velocity_rolling_window_size)
   angular_(0.0),
   wheel_base_(0.0),
   wheel_radius_(0.0),
-  wheel_old_pos_(0.0),
+  left_wheel_old_pos_(0.0),
+  right_wheel_old_pos_(0.0),
+  left_pivot_old_pos_(0.0),
+  right_pivot_old_pos_(0.0),
   velocity_rolling_window_size_(velocity_rolling_window_size),
   linear_accumulator_(velocity_rolling_window_size),
   angular_accumulator_(velocity_rolling_window_size)
@@ -111,17 +114,17 @@ bool Odometry::updateFromVelocity(double left_vel, double right_vel, const rclcp
   return true;
 }
 
-void Odometry::updateOpenLoop(double linear, double angular, const rclcpp::Time & time)
+void Odometry::updateOpenLoop(double linear_vel, double angular_vel, const rclcpp::Time & time)
 {
   /// Save last linear and angular velocity:
-  linear_ = linear;
-  angular_ = angular;
+  linear_ = linear_vel;
+  angular_ = angular_vel;
 
   /// Integrate odometry:
   const double dt = time.seconds() - timestamp_.seconds();
   
   timestamp_ = time;
-  integrateExact(linear * dt, angular * dt);
+  integrateExact(linear_vel * dt, angular_vel * dt);
 }
 
 void Odometry::resetOdometry()

@@ -22,7 +22,7 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
 endforeach()
 
 add_library(${PROJECT_NAME} SHARED
-  src/blcmd_wrapper.cpp
+  src/hardware_interface_wrapper.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

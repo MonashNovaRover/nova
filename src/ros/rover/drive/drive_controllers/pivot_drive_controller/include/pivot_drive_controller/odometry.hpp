@@ -22,7 +22,7 @@ public:
               const double &rl_speed, const double &rr_speed,
               double front_steering, double rear_steering, const double &time);
   bool updateFromVelocity(double left_vel, double right_vel, const rclcpp::Time & time);
-  void updateOpenLoop(double linear, double angular, const rclcpp::Time & time);
+  void updateOpenLoop(double linear_vel, double angular_vel, const rclcpp::Time & time);
   void resetOdometry();
   bool update_odometry(const double linear_velocity, const double angular, const double dt);
 
@@ -64,8 +64,11 @@ private:
   double wheel_radius_;
   double wheel_steering_y_offset_;
   double steering_track_;
-  // Previous wheel position/state [rad]:
-  double wheel_old_pos_;
+  // Previous wheel and pivot positions [rad]:
+  double left_wheel_old_pos_;
+  double right_wheel_old_pos_;
+  double left_pivot_old_pos_;
+  double right_pivot_old_pos_;
 
   // Rolling mean accumulators for the linear and angular velocities:
   size_t velocity_rolling_window_size_;

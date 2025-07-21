@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NOVA_CONTROLLER_COMMON__BLCMD_WRAPPER_HPP_
-#define NOVA_CONTROLLER_COMMON__BLCMD_WRAPPER_HPP_
+#ifndef NOVA_CONTROLLER_COMMON__HARDWARE_INTERFACE_WRAPPER_HPP_
+#define NOVA_CONTROLLER_COMMON__HARDWARE_INTERFACE_WRAPPER_HPP_
 
 #include <cstdint>
 #include <functional>
@@ -91,10 +91,10 @@ struct WheelHandle
   std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
 };
 
-class BLCMDWrapper
+class HardwareInterfaceWrapper
 {
 public:
-  BLCMDWrapper(
+  HardwareInterfaceWrapper(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr node, const double offset_angle,
     std::vector<hardware_interface::LoanedStateInterface>& state_interfaces,
     std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces);
@@ -116,11 +116,11 @@ private:
   std::vector<hardware_interface::LoanedStateInterface>& state_interfaces_;
   double offset_angle_;
 
-  const int REVERSE_MULTIPLIER_;
+  const int REVERSE_MULTIPLIER_; // our BLCMD pivot positions are inverted
 
   std::vector<std::optional<WheelHandle>> registered_handles_;
 };
 
 }  // namespace nova_controller_common
 
-#endif  // NOVA_CONTROLLER_COMMON__BLCMD_WRAPPER_HPP_
+#endif  // NOVA_CONTROLLER_COMMON__HARDWARE_INTERFACE_WRAPPER_HPP_
