@@ -17,12 +17,12 @@
 #include <optional>
 #include <cstddef>
 
-#include "nova_controller_common/blcmd_wrapper.hpp"
+#include "nova_controller_common/hardware_interface_wrapper.hpp"
 
 namespace nova_controller_common
 {
 
-BLCMDWrapper::BLCMDWrapper(
+HardwareInterfaceWrapper::HardwareInterfaceWrapper(
   const rclcpp_lifecycle::LifecycleNode::SharedPtr node, const double offset_angle,
   std::vector<hardware_interface::LoanedStateInterface>& state_interfaces,
   std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces)
@@ -35,7 +35,7 @@ BLCMDWrapper::BLCMDWrapper(
 {
 }
 
-bool BLCMDWrapper::set_value(
+bool HardwareInterfaceWrapper::set_value(
   double value, const JointPosition joint_pos, const JointType joint_type) const
 {
   const size_t index = get_index(joint_pos, joint_type);
@@ -63,7 +63,7 @@ bool BLCMDWrapper::set_value(
   return true;
 }
 
-std::optional<double> BLCMDWrapper::get_optional(
+std::optional<double> HardwareInterfaceWrapper::get_optional(
   const JointPosition joint_pos, const JointType joint_type, bool cmd_if) const
 {
   const size_t index = get_index(joint_pos, joint_type);
@@ -108,7 +108,7 @@ std::optional<double> BLCMDWrapper::get_optional(
   return std::make_optional(res);
 }
 
-bool BLCMDWrapper::configure_joint_handles(std::vector<Joint>& joints, bool open_loop)
+bool HardwareInterfaceWrapper::configure_joint_handles(std::vector<Joint>& joints, bool open_loop)
 {
   for (const auto& [joint_name, feedback_type, command_type, joint_pos, joint_type] : joints)
   {
@@ -157,7 +157,7 @@ bool BLCMDWrapper::configure_joint_handles(std::vector<Joint>& joints, bool open
   return true;
 }
 
-void BLCMDWrapper::reset_handles()
+void HardwareInterfaceWrapper::reset_handles()
 {
   for (auto& handle : registered_handles_)
   {
@@ -165,7 +165,7 @@ void BLCMDWrapper::reset_handles()
   }
 }
 
-std::size_t BLCMDWrapper::get_index(const JointPosition& pos, const JointType& type) const
+std::size_t HardwareInterfaceWrapper::get_index(const JointPosition& pos, const JointType& type) const
 {
   // Position = 2 bits, type = 1 bit
   return (static_cast<size_t>(pos) << 1) | static_cast<size_t>(type);

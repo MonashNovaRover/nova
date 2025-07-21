@@ -24,7 +24,7 @@
 
 #include "nova_controller_common/speed_limiter.hpp"
 #include "nova_controller_common/position_limiter.hpp"
-#include "nova_controller_common/blcmd_wrapper.hpp"
+#include "nova_controller_common/hardware_interface_wrapper.hpp"
 #include "pivot_drive_controller/odometry.hpp"
 #include "pivot_drive_controller_parameters.hpp"
 
@@ -71,8 +71,8 @@ private:
   double get_speed_ratio(double radius, bool left_wheel) const;
 
   void update_odometry(
-    const rclcpp::Time& time, const rclcpp::Duration& period,
-    const std::shared_ptr<geometry_msgs::msg::TwistStamped>& command_msg_ptr);
+    double linear_velocity, double angular_velocity, const rclcpp::Time& time,
+    const rclcpp::Duration& period);
 
   void publish_odometry(
     const rclcpp::Time& time, const rclcpp::Duration& period,
@@ -95,7 +95,7 @@ private:
   double half_wheel_base_;
   double half_steering_track_;
 
-  std::unique_ptr<nova_controller_common::BLCMDWrapper> blcmd_wrapper_;
+  std::unique_ptr<nova_controller_common::HardwareInterfaceWrapper> hwif_wrapper_;
 
   std::deque<double> previous_linear_velocities_;   // last two linear velocity commands
   std::deque<double> previous_angular_velocities_;  // last two angular velocity commands
