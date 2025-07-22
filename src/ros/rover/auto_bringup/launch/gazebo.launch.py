@@ -63,7 +63,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'angle': angle}.items(),
+            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'angle': angle, 'camera': camera}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
@@ -108,7 +108,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             name='camera',
             default_value='True',
-            description='',
+            description='Whether to spawn auto mount on the rover.',
         ),
         DeclareLaunchArgument(
             name='gz_params',

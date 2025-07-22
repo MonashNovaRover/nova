@@ -1,7 +1,7 @@
 import React from "react";
-import DriveModeWidget from "../../components/DriveModeWidget/DriveModeWidget";
-import WheelTelemetryWidget from "../../components/WheelTelemetryWidget/WheelTelemetryWidget";
-import DriveSpeedWidget from "../../components/DriveSpeedWidget/DriveSpeedWidget";
+import DriveModeWidget from "../../components/drive/DriveModeWidget/DriveModeWidget";
+import WheelTelemetryWidget from "../../components/drive/WheelTelemetryWidget/WheelTelemetryWidget";
+import DriveSpeedWidget from "../../components/drive/DriveSpeedWidget/DriveSpeedWidget";
 
 const ARCSpaceResourcesView: React.FC = () => {
   return (

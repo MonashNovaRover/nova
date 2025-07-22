@@ -1,9 +1,9 @@
 import React from "react";
-import DriveModeWidget from "../../components/DriveModeWidget/DriveModeWidget";
-import WheelTelemetryWidget from "../../components/WheelTelemetryWidget/WheelTelemetryWidget";
-import DriveSpeedWidget from "../../components/DriveSpeedWidget/DriveSpeedWidget";
-import RFIDWidget from "../../components/RFIDWidget/RFIDWidget";
-import ArmWidget from "../../components/ArmWidget/ArmWidget";
+import DriveModeWidget from "../../components/drive/DriveModeWidget/DriveModeWidget";
+import WheelTelemetryWidget from "../../components/drive/WheelTelemetryWidget/WheelTelemetryWidget";
+import DriveSpeedWidget from "../../components/drive/DriveSpeedWidget/DriveSpeedWidget";
+import RFIDWidget from "../../components/arm/RFIDWidget/RFIDWidget";
+import ArmWidget from "../../components/arm/ArmWidget/ArmWidget";
 
 const ARCPostLandingView: React.FC = () => {
   return (

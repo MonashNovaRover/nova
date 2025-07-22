@@ -1,6 +1,6 @@
 import {Button, Card, CardBody, CardHeader} from "@nextui-org/react";
 import {useCallback, useState} from "react";
-import SpinnerButton from "../../../components/shared/buttons/SpinnerButton.tsx";
+import SpinnerButton from "../../../components/shared/components/buttons/SpinnerButton.tsx";
 
 export default function TestOverlayView () {
   const [isLoading, setIsLoading] = useState<boolean>(false);

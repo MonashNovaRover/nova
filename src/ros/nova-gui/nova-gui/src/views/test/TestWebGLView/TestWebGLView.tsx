@@ -16,7 +16,7 @@ import useSampler from "../../../hooks/webgl/program/sampler/useSampler.ts";
 import useAttribute from "../../../hooks/webgl/program/attribute/useAttribute.ts";
 import useWebcam from "../../../hooks/webgl/program/sampler/useWebcam.ts";
 import useResolutionUniform from "../../../hooks/webgl/program/uniform/useResolutionUniform.ts";
-import AutosizedGLCanvas from "../../../components/AutosizedGLCanvas/AutosizedGLCanvas.tsx";
+import AutosizedGLCanvas from "../../../components/shared/components/AutosizedGLCanvas/AutosizedGLCanvas.tsx";
 import GLProgramDrawMode from "../../../hooks/webgl/program/GLProgramDrawMode.ts";
 import useImageTexture from "../../../hooks/webgl/program/sampler/useImageTexture.ts";
 import ImageSRC from "../../../assets/arm-image.png";

@@ -68,7 +68,7 @@ def launch_setup(context, *args, **kwargs):
                 ),
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-                    launch_arguments={'model': model, 'gazebo': gazebo, 'angle': angle, 'use_local_mesh': use_local_mesh}.items(),
+                    launch_arguments={'model': model, 'gazebo': gazebo, 'angle': angle}.items(),
                 )],
         ),
     ]
@@ -103,11 +103,6 @@ def generate_launch_description():
             name='model', 
             default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
-        ),
-        DeclareLaunchArgument(
-            name='use_local_mesh',
-            default_value='False',
-            description='Use local mesh paths instead of nix store paths',
         ),
     ]
 

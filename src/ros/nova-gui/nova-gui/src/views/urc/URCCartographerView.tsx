@@ -1,4 +1,4 @@
-import { Cartographer } from "../../components/Maps/Cartographer";
+import { Cartographer } from "../../components/maps/Cartographer/Cartographer.tsx";
 
 export const URCCartographerView = () => {
   return (
