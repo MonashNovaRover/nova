@@ -12,6 +12,7 @@ in
     ./keybindings.nix
     ./shortcuts.nix
     ./terminal.nix
+    ./less
     ./vscode
     ./yazi
   ];
