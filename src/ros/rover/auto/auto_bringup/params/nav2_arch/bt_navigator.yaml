@@ -1,0 +1,40 @@
+bt_navigator:
+  ros__parameters:
+    global_frame: map
+    robot_base_frame: base_link
+    odom_topic: /odometry/filtered # published by robot_localization when not fusing GPS (localization.launch.py)
+    bt_loop_duration: 30
+    default_server_timeout: 60000
+    wait_for_service_timeout: 1000
+    action_service_result_timeout: 900.0
+    goal_reached_tol: 1.0
+    error_code_names:
+      - compute_path_error_code
+      - follow_path_error_code
+    navigators: ["navigate_to_pose", "navigate_through_poses"] #, "urc_2024_navigator"]
+    navigate_to_pose:
+      plugin: "nav2_bt_navigator::NavigateToPoseNavigator"
+    navigate_through_poses:
+      plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
+      default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/arch/2025_arch_through_poses.xml
+    urc_2024_navigator:
+      plugin: "nova_bt_navigators::URC2024Navigator"
+    plugin_lib_names:
+      - nova_ar_tag_detected_condition_bt_node
+      - nova_blackboard_publisher_bt_node
+      - nova_run_scripts_action_bt_node
+      - nova_cube_detected_condition_bt_node
+      - nova_led_service_bt_node
+      - nova_remove_passed_goals_and_cubes_action_bt_node
+      - nova_update_goal_action_bt_node
+      - nova_update_goals_action_bt_node
+      - nova_remove_passed_goals_and_ar_tags_action_bt_node
+      - nova_snap_in_collision_goals_action_bt_node
+
+bt_navigator_navigate_through_poses_rclcpp_node:
+  ros__parameters:
+    use_sim_time: False
+
+bt_navigator_navigate_to_pose_rclcpp_node:
+  ros__parameters:
+    use_sim_time: False
