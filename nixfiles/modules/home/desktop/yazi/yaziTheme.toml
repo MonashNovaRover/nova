@@ -1,4 +1,4 @@
-[manager]
+[mgr]
 cwd = { fg = "#94e2d5" }
 
 hovered         = { fg = "#1e1e2e", bg = "#f5e0dc" }
@@ -12,8 +12,8 @@ marker_cut      = { fg = "#f38ba8", bg = "#f38ba8" }
 marker_marked   = { fg = "#94e2d5", bg = "#94e2d5" }
 marker_selected = { fg = "#f5e0dc", bg = "#f5e0dc" }
 
-tab_active   = { fg = "#1e1e2e", bg = "#cdd6f4" }
-tab_inactive = { fg = "#cdd6f4", bg = "#45475a" }
+tab_active   = { fg = "#1e1e2e", bg = "#f5e0dc" }
+tab_inactive = { fg = "#f5e0dc", bg = "#45475a" }
 tab_width    = 1
 
 count_copied   = { fg = "#1e1e2e", bg = "#a6e3a1" }
@@ -26,8 +26,8 @@ border_style  = { fg = "#7f849c" }
 syntect_theme = "~/.config/yazi/Catppuccin-mocha.tmTheme"
 
 [mode]
-normal_main = { fg = "#1e1e2e", bg = "#f5e0dc", bold = true }
-normal_alt  = { fg = "#f5e0dc", bg = "#313244"}
+normal_main = { fg = "#1e1e2e", bg = "#89b4fa", bold = true }
+normal_alt  = { fg = "#89b4fa", bg = "#313244"}
 
 select_main = { fg = "#1e1e2e", bg = "#a6e3a1", bold = true }
 select_alt  = { fg = "#a6e3a1", bg = "#313244"}
