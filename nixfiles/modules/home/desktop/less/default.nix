@@ -13,7 +13,7 @@ in
       package = pkgs.less;
     };
     home.sessionVariables = {
-      LESSOPEN = "${pkgs.sourceHighlight}/bin/src-hilite-lesspipe.sh %s"; # Syntax highlighting in less
+      LESSOPEN = "| ${pkgs.sourceHighlight}/bin/src-hilite-lesspipe.sh %s"; # Syntax highlighting in less
     };
   };
 }
