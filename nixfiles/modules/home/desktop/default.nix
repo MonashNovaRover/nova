@@ -14,6 +14,7 @@ in
     ./terminal.nix
     ./less
     ./vscode
+    ./xdg
     ./yazi
   ];
 
