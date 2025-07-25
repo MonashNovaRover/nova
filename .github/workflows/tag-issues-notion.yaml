@@ -1,0 +1,48 @@
+name: Append Label Hashtags to Issue Body
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  append-tags-to-body:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Append hashtags to issue body
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue_number = context.issue.number;
+            const { owner, repo } = context.repo;
+
+            // Get all current labels
+            const labels = context.payload.issue.labels.map(label => label.name);
+            const hashtags = labels.map(l => `tag:${l.replace(/\s+/g, '_')}`).join(' ');
+
+            // Fetch the current body
+            const { data: issue } = await github.rest.issues.get({
+              owner,
+              repo,
+              issue_number
+            });
+
+            const originalBody = issue.body || '';
+
+            // Remove previous hashtag block if it exists
+            const cleanedBody = originalBody.replace(/<!-- TAGS START -->[\s\S]*<!-- TAGS END -->/gm, '').trim();
+
+            // Append hashtags inside a clearly defined block
+            const newBody = `${cleanedBody}
+
+<!-- TAGS START -->
+${hashtags}
+<!-- TAGS END -->
+`;
+
+            // Update the issue body
+            await github.rest.issues.update({
+              owner,
+              repo,
+              issue_number,
+              body: newBody
+            });
