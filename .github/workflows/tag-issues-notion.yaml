@@ -34,10 +34,10 @@ jobs:
             // Append hashtags inside a clearly defined block
             const newBody = `${cleanedBody}
 
-<!-- TAGS START -->
-${hashtags}
-<!-- TAGS END -->
-`;
+            <!-- TAGS START -->
+            ${hashtags}
+            <!-- TAGS END -->
+            `;
 
             // Update the issue body
             await github.rest.issues.update({
