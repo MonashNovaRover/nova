@@ -17,7 +17,7 @@ jobs:
 
             // Get all current labels
             const labels = context.payload.issue.labels.map(label => label.name);
-            const hashtags = labels.map(l => `#${l.replace(/\s+/g, '_')}`).join(' ');
+            const hashtags = labels.map(l => `tag:${l.replace(/\s+/g, '_')}`).join(' ');
 
             // Fetch the current body
             const { data: issue } = await github.rest.issues.get({
