@@ -66,6 +66,7 @@ let
     config = pkgs.config // {
       permittedInsecurePackages = pkgs.config.permittedInsecurePackages or [ ] ++ [
         "freeimage-unstable-2021-11-01"
+        "freeimage-3.18.0-unstable-2024-04-18"
       ];
     };
 
