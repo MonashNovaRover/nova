@@ -42,8 +42,8 @@
 		  amdgpuBusId = "PCI:04:00:0";
 		  nvidiaBusId = "PCI:01:00:0";
 
-      sync.enable = true;
-      offload.enable = false;
+      sync.enable = false;
+      offload.enable = true;
 	};
 
   };
