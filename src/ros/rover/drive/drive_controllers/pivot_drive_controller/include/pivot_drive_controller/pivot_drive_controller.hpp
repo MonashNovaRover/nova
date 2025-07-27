@@ -1,3 +1,22 @@
+// Copyright (c) 2025 Monash Nova Rover
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @brief Controller for a four wheel steering rover.
+ * @authors Terry Tian
+ */
+
 #ifndef PIVOT_DRIVE_CONTROLLER__PIVOT_DRIVE_CONTROLLER_HPP_
 #define PIVOT_DRIVE_CONTROLLER__PIVOT_DRIVE_CONTROLLER_HPP_
 
@@ -30,6 +49,7 @@
 
 namespace pivot_drive_controller
 {
+
 class PivotDriveController : public controller_interface::ControllerInterface
 {
 public:
@@ -65,19 +85,6 @@ private:
   const char* drive_feedback_type() const;
   const char* pivot_feedback_type() const;
 
-  double get_angular_from_radius_and_speed(double radius, double speed, bool turning_left) const;
-  double get_radius_from_velocities(double linear_velocity, double angular_velocity) const;
-  double get_pivot_angle_from_radius(double radius, bool left_wheel, bool turning_left) const;
-  double get_speed_ratio(double radius, bool left_wheel) const;
-
-  void update_odometry(
-    double linear_velocity, double angular_velocity, const rclcpp::Time& time,
-    const rclcpp::Duration& period);
-
-  void publish_odometry(
-    const rclcpp::Time& time, const rclcpp::Duration& period,
-    const std::shared_ptr<geometry_msgs::msg::TwistStamped>& command_msg_ptr);
-
   bool reset();
   void reset_buffers();
   void halt();
@@ -86,7 +93,7 @@ private:
 
   // Parameters from ROS for pivot_drive_controller
   std::shared_ptr<ParamListener> param_listener_;
-  Params params_;
+  std::shared_ptr<Params> params_;
 
   // Radius of the circle the rover makes with its wheels when turning on the spot
   double zero_radius_;
@@ -96,34 +103,26 @@ private:
   double half_steering_track_;
 
   std::unique_ptr<nova_controller_common::HardwareInterfaceWrapper> hwif_wrapper_;
+  std::unique_ptr<Odometry> odometry_;
 
-  std::deque<double> previous_linear_velocities_;   // last two linear velocity commands
-  std::deque<double> previous_angular_velocities_;  // last two angular velocity commands
+  std::deque<double> previous_linear_velocities_;      // last two linear velocity commands
+  std::deque<double> previous_angular_velocities_;     // last two angular velocity commands
+  std::deque<double> previous_left_pivot_positions_;   // last three left pivot position commands
+  std::deque<double> previous_right_pivot_positions_;  // last three right pivot position commands
 
   // Limiters
   nova_controller_common::SpeedLimiter limiter_linear_;
   nova_controller_common::SpeedLimiter limiter_angular_;
+  nova_controller_common::PositionLimiter limiter_pivot_;
 
   // Timeout to consider cmd_vel commands old
   rclcpp::Duration cmd_vel_timeout_ = rclcpp::Duration::from_seconds(0.5);
 
-  Odometry odometry_;
-  std::shared_ptr<rclcpp::Publisher<nav_msgs::msg::Odometry>> odometry_publisher_;
-  std::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>
-    realtime_odometry_publisher_;
-
-  std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> odometry_transform_publisher_;
-  std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>
-    realtime_odometry_transform_publisher_;
-
+  // Realtime buffer for received TwistStamped messages
   bool is_active_ = false;
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_subscriber_;
   realtime_tools::RealtimeBuffer<std::shared_ptr<geometry_msgs::msg::TwistStamped>>
     received_twist_msg_ptr_;
-
-  // Publish rate limiter
-  rclcpp::Duration publish_period_ = rclcpp::Duration::from_nanoseconds(0);
-  rclcpp::Time previous_publish_timestamp_{0, 0, RCL_CLOCK_UNINITIALIZED};
 
   const char* DRIVE_COMMAND_TYPE;
   const char* PIVOT_COMMAND_TYPE;

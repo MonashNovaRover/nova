@@ -95,7 +95,7 @@ class HardwareInterfaceWrapper
 {
 public:
   HardwareInterfaceWrapper(
-    const rclcpp_lifecycle::LifecycleNode::SharedPtr node, const double offset_angle,
+    rclcpp_lifecycle::LifecycleNode::SharedPtr node, const double offset_angle,
     std::vector<hardware_interface::LoanedStateInterface>& state_interfaces,
     std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces);
 
@@ -116,7 +116,7 @@ private:
   std::vector<hardware_interface::LoanedStateInterface>& state_interfaces_;
   double offset_angle_;
 
-  const int REVERSE_MULTIPLIER_; // our BLCMD pivot positions are inverted
+  const int REVERSE_MULTIPLIER_ = -1;  // our BLCMD pivot positions are inverted
 
   std::vector<std::optional<WheelHandle>> registered_handles_;
 };
