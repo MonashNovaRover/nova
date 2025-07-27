@@ -1,8 +1,22 @@
 { buildPythonPackage
 , fetchFromGitHub
 , callPackage
-, python3Packages
+, matplotlib
+, numpy
 , opencv4
+, pandas
+, pillow
+, pip
+, psutil
+, py-cpuinfo
+, pyyaml
+, requests
+, seaborn
+, setuptools
+, scipy
+, torch
+, torchvision
+, tqdm
 }:
 
 let
@@ -20,25 +34,25 @@ in
       hash = "sha256-KczxqflfyDl1i8I/Zn7PxkzAqITbflydZAhzP5p4DpI=";
     };
 
-    propagatedBuildInputs = with python3Packages; [
+    propagatedBuildInputs = [
       matplotlib
       numpy
       opencv4
+      pandas
       pillow
+      psutil
+      py-cpuinfo
       pyyaml
       requests
+      seaborn
       scipy
       torch
       torchvision
       tqdm
-      pandas
-      seaborn
-      psutil
-      py-cpuinfo
       ultralytics-thop
     ];
 
-    nativeBuildInputs = with python3Packages; [
+    nativeBuildInputs = [
       pip
       setuptools
     ];
