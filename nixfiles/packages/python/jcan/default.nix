@@ -26,7 +26,7 @@ buildPythonPackage rec {
     inherit src;
     name = "${pname}-${version}";
     lockFile = "${src}/Cargo.lock";
-    hash = "sha256-7rVyb4FMdW/nNsbWmRYTC7Hge4g4m8zTqHEQd0rrAMg=";
+    hash = "sha256-fkEt/znKWmq7SzOIbePy/3hISwD6hfBGmjS1UPg8Nb4=";
   };
 
   nativeBuildInputs = [
