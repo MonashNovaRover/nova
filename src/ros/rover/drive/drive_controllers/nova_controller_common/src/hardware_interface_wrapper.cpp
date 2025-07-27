@@ -16,6 +16,7 @@
 #include <functional>
 #include <optional>
 #include <cstddef>
+#include <utility>
 
 #include "nova_controller_common/hardware_interface_wrapper.hpp"
 
@@ -23,15 +24,14 @@ namespace nova_controller_common
 {
 
 HardwareInterfaceWrapper::HardwareInterfaceWrapper(
-  const rclcpp_lifecycle::LifecycleNode::SharedPtr node, const double offset_angle,
+  rclcpp_lifecycle::LifecycleNode::SharedPtr node, const double offset_angle,
   std::vector<hardware_interface::LoanedStateInterface>& state_interfaces,
   std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces)
-  : node_(node)
+  : node_(std::move(node))
   , offset_angle_(offset_angle)
   , state_interfaces_(state_interfaces)
   , command_interfaces_(command_interfaces)
   , registered_handles_(8, std::nullopt)
-  , REVERSE_MULTIPLIER_(-1)
 {
 }
 
@@ -165,7 +165,8 @@ void HardwareInterfaceWrapper::reset_handles()
   }
 }
 
-std::size_t HardwareInterfaceWrapper::get_index(const JointPosition& pos, const JointType& type) const
+std::size_t HardwareInterfaceWrapper::get_index(
+  const JointPosition& pos, const JointType& type) const
 {
   // Position = 2 bits, type = 1 bit
   return (static_cast<size_t>(pos) << 1) | static_cast<size_t>(type);
