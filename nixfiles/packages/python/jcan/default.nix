@@ -22,9 +22,10 @@ buildPythonPackage rec {
   };
   sourceRoot = "source/jcan_python";
 
-  cargoDeps = rustPlatform.fetchCargoTarball {
+  cargoDeps = rustPlatform.fetchCargoVendor {
     inherit src;
     name = "${pname}-${version}";
+    lockFile = "${src}/Cargo.lock";
     hash = "sha256-7rVyb4FMdW/nNsbWmRYTC7Hge4g4m8zTqHEQd0rrAMg=";
   };
 
