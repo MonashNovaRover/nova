@@ -94,6 +94,10 @@ pivot_drive_controller:
       has_velocity_limits: true
       max_velocity: 1.57079632 # 180 degrees per second
       min_velocity: -1.57079632
+    pivot:
+      has_velocity_limits: true
+      max_velocity: 3.53429174 # 2*PI * 0.5625
+      min_velocity: -3.53429174
 
 strafe_controller:
   ros__parameters:
