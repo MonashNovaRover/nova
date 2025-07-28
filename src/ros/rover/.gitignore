@@ -31,6 +31,7 @@ ENV/
 env.bak/
 venv.bak/
 __pycache__/
+cmake-build-debug/
 
 
 ## Pycache
