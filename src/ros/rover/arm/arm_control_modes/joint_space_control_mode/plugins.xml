@@ -1,4 +1,4 @@
-<library path="teleop_modular_twist">
+<library path="joint_space_control_mode">
     <!-- Control Modes -->
     <class name="joint_space_control_mode/JointSpaceControlMode" type="joint_space_control_mode::JointSpaceControlMode" base_class_type="control_mode::ControlMode">
         <description>A control mode that moves each joint by some velocity.</description>
