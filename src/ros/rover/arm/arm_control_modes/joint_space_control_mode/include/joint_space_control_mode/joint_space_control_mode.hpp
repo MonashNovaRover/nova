@@ -13,10 +13,8 @@
 #include <rclcpp/time.hpp>
 #include "joint_space_control_mode/visibility_control.h"
 #include "control_mode/control_mode.hpp"
-#include "geometry_msgs/msg/vector3.hpp"
-#include "geometry_msgs/msg/twist.hpp"
-#include "geometry_msgs/msg/twist_stamped.hpp"
 #include "joint_space_control_mode_parameters.hpp"
+#include <nova_interfaces/msg/arm_fk_velocity_targets.hpp>
 
 namespace joint_space_control_mode
 {
@@ -44,64 +42,26 @@ protected:
   ~JointSpaceControlMode() override;
 
 private:
-  /// We use infinity as the default limit, as it will effectively not impose a limit while avoiding branching
-  static constexpr double infinity = std::numeric_limits<double>::infinity();
-  /// Helper type to hold 3 Axis::SharedPtrs to make a up a vector
-  using AxisVector3 = std::array<Axis::SharedPtr, 3>;
-  /// Helper type to hold 3 Axis::SharedPtrs to make a up a vector. You could also use Eigen for more complex use cases.
-  using NumberVector3 = std::array<double, 3>;
 
-  /// Helper struct to avoid duplicating code for the nearly identical logic for linear and angular components of twist.
-  struct VectorHandle
+  /// Helper struct to avoid duplicating code for the nearly identical logic for each joint
+  struct JointHandle
   {
-    /// Our actual inputs for the vector3
-    AxisVector3 axes;
-    /// A scale to multiply axis values by when populating vector3 messages
-    NumberVector3 scale = {1.0, 1.0, 1.0};
-    /// limits to apply to the vector3 message
-    std::optional<NumberVector3> limits = std::nullopt;
-
-    /// Switches limiting logic from simple component-wise limiting to more complex normalization based limits.
-    bool normalized_limits = true;
-    /// When true, limits will be applied to the axis inputs relative to the 'speed' input.
-    bool scale_limits_with_speed = true;
-
-    /**
-     * \brief Given the parameter values, converts them to usable limits for apply_to().
-     *
-     * Any negative parameter values will translate to an infinity -- which is effectively no limit.
-     * If all limits end up being infinity, limits will become std::nullopt.
-     *
-     * \param values[in]    The x,y,z limit parameters all put into an array<double, 3>
-     * \param all[in]       The 'all' default limit parameter to use for any unspecified x,y,z in values
-     */
-    void set_limits(NumberVector3 values, double all);
-
-    /**
-     * \brief Calculates the value for a Vector3 message based on the input axis values, and given speed_coefficient.
-     *
-     * This method applies limits when limit.has_value().
-     *
-     * \param msg[out]  The message to put calculated values in
-     * \param speed_coefficient[in]     The value to multiply all speeds by
-     */
-    void apply_to(geometry_msgs::msg::Vector3 & msg, double speed_coefficient);
+    std::string name;
+    Axis::SharedPtr axis;
+    double scale;
   };
-
-  /// Helper function to get the euclidean length of a vector, used for normalized limits.
-  static double norm(double x, double y, double z);
 
   /// Tracks parameters
   std::shared_ptr<joint_space_control_mode::ParamListener> param_listener_{};
   joint_space_control_mode::Params params_;
 
-  rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr stamped_publisher_;
-  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_;
+  rclcpp::Publisher<nova_interfaces::msg::ArmFkVelocityTargets>::SharedPtr publisher_;
 
-  /// Inputs for all the linear twist components
-  VectorHandle linear_;
-  /// Inputs for all the angular twist components
-  VectorHandle angular_;
+  /// Inputs for each joint in the message
+  std::vector<JointHandle> joints_{};
+
+  /// Names for each input
+  std::vector<std::string> input_names_{};
 
   /// Input from 0 to 1 that directly scales the output speed.
   Axis::SharedPtr speed_;

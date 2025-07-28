@@ -5,152 +5,19 @@ joint_space_control_mode:
     type: string
     default_value: ""
     description: "The topic to publish Twist messages to."
-  stamped_topic:
-    type: string
-    default_value: ""
-    description: "The topic to publish TwistStamped messages to."
   qos:
     type: int
     default_value: 10
     description: "The QoS value to use when creating publishers."
-  frame:
-    type: string
-    default_value: ""
-    description: "The name of the reference frame twist messages are relative to. Included as the header.frame_id of all 
-    sent TwistStamped messages."
 
   use_speed_input:
     type: bool
     default_value: false
     description: "When true, all speeds will be multiplied by the axis named 'speed'. Otherwise, they will not."
 
-  scale:
-    linear:
-      x:
-        type: double
-        default_value: 1.0
-        description: "The speed to multiply the linear x axis input by (in metres per second)."
-      y:
-        type: double
-        default_value: 1.0
-        description: "The speed to multiply the linear y axis input by (in metres per second)."
-      z:
-        type: double
-        default_value: 1.0
-        description: "The speed to multiply the linear z axis input by (in metres per second)."
-      all:
-        type: double
-        default_value: 1.0
-        description: "The speed to multiply ALL linear axis inputs by (in metres per second). This is applied ontop of 
-        scale.linear.* for individual axes."
-    angular:
-      x:
-        type: double
-        default_value: 1.0
-        description: "The speed to multiply the linear x axis input by (in radians per second)."
-      y:
-        type: double
-        default_value: 1.0
-        description: "The speed to multiply the linear y axis input by (in radians per second)."
-      z:
-        type: double
-        default_value: 1.0
-        description: "The speed to multiply the linear z axis input by (in radians per second)."
-      all:
-        type: double
-        default_value: 1.0
-        description: "The speed to multiply ALL angular axis inputs by (in radians per second). This is applied ontop of 
-        scale.linear.* for individual axes."
-
-  limits:
-    linear:
-      x:
-        type: double
-        default_value: -1.0
-        description: "The max linear x velocity magnitude (in metres per second). Must be non-negative."
-      y:
-        type: double
-        default_value: -1.0
-        description: "The max linear y velocity magnitude (in metres per second). Must be non-negative."
-      z:
-        type: double
-        default_value: -1.0
-        description: "The max linear z velocity magnitude (in metres per second). Must be non-negative."
-      all:
-        type: double
-        default_value: -1.0
-        description: "The speed to limit ALL linear axis inputs below (in metres per second). Must be non-negative."
-      normalized:
-        type: bool
-        default_value: false
-        description: "When true, the magnitude of the linear velocity will be limited, rather than individual axes. 
-        If different axes have different limits, the limits will be elliptical."
-      scale_with_speed:
-        type: bool
-        default_value: false
-        description: "When true, limits will scale with the 'speed' input. Useful for keeping normalized behaviour at 
-        different values of speed."
-    angular:
-      x:
-        type: double
-        default_value: -1.0
-        description: "The max angular x velocity magnitude (in metres per second). Must be non-negative."
-      y:
-        type: double
-        default_value: -1.0
-        description: "The max angular y velocity magnitude (in metres per second). Must be non-negative."
-      z:
-        type: double
-        default_value: -1.0
-        description: "The max angular z velocity magnitude (in metres per second). Must be non-negative."
-      all:
-        type: double
-        default_value: -1.0
-        description: "The speed to limit ALL angular axis inputs below (in metres per second). Must be non-negative."
-      normalized:
-        type: bool
-        default_value: false
-        description: "When true, the magnitude of the angular velocity will be limited, rather than individual axes. 
-        If different axes have different limits, the limits will be elliptical."
-      scale_with_speed:
-        type: bool
-        default_value: false
-        description: "When true, limits will scale with the 'speed' input. Useful for keeping normalized behaviour at 
-        different values of speed."
-
   # Input name configuration
   input_names:
-    locked:
-      type: string
-      default_value: "locked"
-      description: "The name of the boolean input that makes the controller send halt messages when true."
     speed:
       type: string
       default_value: "speed"
       description: "The name of the axis input that scales the output speed from 0 to 1."
-    linear:
-      x:
-        type: string
-        default_value: "linear.x"
-        description: "The input axis providing the x component of the twist linear velocity."
-      y:
-        type: string
-        default_value: "linear.y"
-        description: "The input axis providing the y component of the twist linear velocity."
-      z:
-        type: string
-        default_value: "linear.z"
-        description: "The input axis providing the z component of the twist linear velocity."
-    angular:
-      x:
-        type: string
-        default_value: "angular.x"
-        description: "The input axis providing the x component of the twist angular velocity."
-      y:
-        type: string
-        default_value: "angular.y"
-        description: "The input axis providing the y component of the twist angular velocity."
-      z:
-        type: string
-        default_value: "angular.z"
-        description: "The input axis providing the z component of the twist angular velocity."

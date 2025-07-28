@@ -12,6 +12,7 @@
 , std-msgs
 , teleop-modular-control-mode
 , std-srvs
+, nova-interfaces
 }:
 
 buildRosPackage {
@@ -39,6 +40,7 @@ buildRosPackage {
     geometry-msgs
     pluginlib
     teleop-modular-control-mode
+    nova-interfaces
   ];
 
   propagatedBuildInputs = [ geometry-msgs ];
