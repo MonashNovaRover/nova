@@ -15,7 +15,7 @@ ros2 run generic_can_nodes CANNumberListener.py --ros-args -r __node:=integer_se
 
 import rclpy
 import jcan
-from generic_can_nodes.can_listeners.CANListener import CANListener
+from generic_can_nodes.can_listeners.can_listener import CANListener
 from generic_can_nodes.can_number_listener_parameters import can_number_listener_parameters
 from generic_interfaces.msg import Float64
 

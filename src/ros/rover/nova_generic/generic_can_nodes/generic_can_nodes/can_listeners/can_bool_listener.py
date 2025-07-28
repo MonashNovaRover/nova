@@ -15,7 +15,7 @@ ros2 run generic_can_nodes CANBoolListener.py --ros-args -r __node:=bool_sensor 
 
 import rclpy
 import jcan
-from generic_can_nodes.can_listeners.CANListener import CANListener
+from generic_can_nodes.can_listeners.can_listener import CANListener
 from generic_can_nodes.can_bool_listener_parameters import can_bool_listener_parameters
 from generic_interfaces.msg import Bool
 
