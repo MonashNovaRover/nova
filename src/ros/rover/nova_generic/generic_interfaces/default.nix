@@ -15,7 +15,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "generic-interfaces-source";
-    path = ../../../../nova_generic/generic_interfaces;
+    path = ./.;
     filter = lib.novaSourceFilter [ ] path;
   };
 

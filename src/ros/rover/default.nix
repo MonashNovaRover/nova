@@ -41,7 +41,7 @@
     # diff drive, pivot drive, strafe, 
   } // import ./nix/packages/controllers {
     inherit pkgs;
-  } // import ./nix/packages/nova-generic {
+  } // import ./nova_generic {
     inherit pkgs;
   };
 

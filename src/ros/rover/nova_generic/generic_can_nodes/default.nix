@@ -16,7 +16,7 @@ buildRosPackage {
 
   src = builtins.path rec {
     name = "generic-can-nodes-source";
-    path = ../../../../nova_generic/generic_can_nodes;
+    path = ./.;
     filter = lib.novaSourceFilter [ ] path;
   };
 
@@ -30,5 +30,7 @@ buildRosPackage {
     generate-parameter-library
     generate-parameter-library-py
   ];
+
+  doCheck = true;
 
 }

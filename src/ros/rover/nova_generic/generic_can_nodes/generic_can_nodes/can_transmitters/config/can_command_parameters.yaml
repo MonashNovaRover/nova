@@ -1,4 +1,7 @@
-can_listener_parameters:
+# This is the schema for CAN Command Parameters
+# This YAML will be converted to a python module
+# Look here for docs about this YAML : https://github.com/PickNikRobotics/generate_parameter_library
+can_command_parameters:
   logging_level:
     type: string
     default_value: "INFO"
@@ -9,27 +12,22 @@ can_listener_parameters:
     default_value: "can1"
     description: "CAN Bus to listen to."
 
-  frame_id:
-    type: int
-    default_value: 0x000
-    description: "CAN / Frame ID of msg to listen to on the CAN bus."
-
-  command_id:
-    type: int
-    default_value: -1
-    description: "CAN message prefix (first byte / first two hex digits) that should be listened for. -1 if none present."
-
-  publish_period:
-    type: double
-    default_value: 1.0
-    description: "How often to publish msg data, in seconds."
-
-  topic:
+  service:
     type: string
-    default_value: ""
-    description: "Topic to publish msg data to."
+    default_value: "beans"
+    description: "Service called to command this node to send a CAN message."
 
-  update_rate:
-    type: double
-    default_value: 100
-    description: "How often to spin jcan per second."
+  commands:
+    type: int_array
+    default_value: [0] # empty array causes ros to think it's of type byte_array
+    description: "List of commands that will cause this node to send a CAN command."
+
+  command_names:
+    type: string_array
+    default_value: [""] # empty array causes ros to think it's of type byte_array
+    description: "List human readable names of the command at the corresponding position."
+
+  can_messages:
+    type: string_array
+    default_value: [""] # empty array causes ros to think it's of type byte_array
+    description: "List of CAN commands to send when the node receives the command at the corresponding position."

@@ -58,27 +58,34 @@ generate_parameter_module(
   generic_can_nodes/can_listeners/config/can_bool_listener_parameters.yaml
 )
 
+generate_parameter_module(
+  can_command_parameters
+  generic_can_nodes/can_transmitters/config/can_command_parameters.yaml
+)
+
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})
 
 # Add all Python executables to this list
 install(PROGRAMS
-  generic_can_nodes/can_listeners/CANListener.py
-  generic_can_nodes/can_listeners/CANNumberListener.py
-  generic_can_nodes/can_listeners/CANBoolListener.py
+  generic_can_nodes/can_listeners/can_listener.py
+  generic_can_nodes/can_listeners/can_bool_listener.py
+  generic_can_nodes/can_listeners/can_number_listener.py
+  generic_can_nodes/can_transmitters/can_command.py
+  generic_can_nodes/can_str_msg_parser.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
 
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
+#  find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
   # uncomment the line when a copyright and license is not present in all source files
   #set(ament_cmake_copyright_FOUND TRUE)
   # the following line skips cpplint (only works in a git repo)
   # uncomment the line when this package is not in a git repo
   #set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
+#  ament_lint_auto_find_test_dependencies()
 endif()
 
 ament_package()

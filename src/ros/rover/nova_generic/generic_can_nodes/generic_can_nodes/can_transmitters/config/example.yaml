@@ -1,0 +1,21 @@
+can_command:
+  ros__parameters:
+    service: "science/cache"
+    commands: [
+      10,
+      11,
+      20,
+      21
+    ]
+    command_names: [
+      "Close Cache 1",
+      "Open Cache 1",
+      "Close Cache 2",
+      "Open Cache 1"
+    ]
+    can_messages: [
+      "0A0#0100",
+      "0A0#01FF",
+      "0A0#0200",
+      "0A0#02FF"
+    ]
