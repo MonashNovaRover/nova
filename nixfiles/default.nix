@@ -87,6 +87,14 @@ let
       #  - Creates a "ros" alias pointing to "rosPackages.${version}"
       (import ./overlay)
 
+      # Add teleop_modular
+      (import (pkgs.fetchFromGitHub {
+        owner = "BaileyChessum";
+        repo = "teleop_modular";
+        rev = "b025664e09a919feebf07032567c8b373d614009";
+        hash = "sha256-20aEXa++3K39Tn/rcnGUqKU8/iPyM2G4r/jTXVQNWmo=";
+      } + "/overlay.nix"))
+
       # Add internally defined packages.
       (self: super: import ./packages/other { inherit (self) callPackage; })
       (self: super: {
