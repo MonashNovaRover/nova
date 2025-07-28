@@ -91,8 +91,8 @@ let
       (import (pkgs.fetchFromGitHub {
         owner = "BaileyChessum";
         repo = "teleop_modular";
-        rev = "4d7c9e5cad051d48334eefacc6818db1ba7757b3";
-        hash = "sha256-Iuy2b65dYUIoVAXxmhEcgZOpATBooWK6XZg27zD2G2E=";
+        rev = "b025664e09a919feebf07032567c8b373d614009";
+        hash = "sha256-20aEXa++3K39Tn/rcnGUqKU8/iPyM2G4r/jTXVQNWmo=";
       } + "/overlay.nix"))
 
       # Add internally defined packages.
