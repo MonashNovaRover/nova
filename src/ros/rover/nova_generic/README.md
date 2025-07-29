@@ -22,7 +22,7 @@ When adding a new package, node, or component to this collection, please ensure 
 If your package does not align with these principles, consider whether it can be refactored to be more generic. 
 If it is inherently domain-specific or highly specialized, it is more appropriate to add it to other packages such as `nova-interfaces`, `science`, `electrical`, or `ec`.
 
-Feel free to reach out on the `#software` channel if you need help assessing or refactoring your code.
+Feel free to reach out on the `#software` channel if you need help assessing or refactoring your code to make it generic!
 
 ## Development Guidelines
 
@@ -33,7 +33,7 @@ Feel free to reach out on the `#software` channel if you need help assessing or 
 ## Current Packages
 
 - [**generic_can_nodes:**](./generic_can_nodes)  
-  Generic nodes for interfacing with the CAN bus in straightforward scenarios such as listening and publishing.
+  Generic nodes for interfacing with the CAN bus in straightforward scenarios such as listening and trasmitting messages.
 
 - [**generic_interfaces:**](./generic_interfaces)  
   Generic message and service definitions for simple message types, providing building blocks for various use cases.
