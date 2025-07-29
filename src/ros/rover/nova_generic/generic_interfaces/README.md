@@ -16,13 +16,14 @@ These are useful for minimal, timestamped data transport and can be easily used 
 
 ### Messages
 
-| Message File | Type      | Purpose                                                              |
-|------------|-----------|----------------------------------------------------------------------|
-| `Float64.msg` | `float64` | Generic numeric data (e.g., measurements, thresholds, sensor values) |
-| `Int32.msg` | `int32`   | Discrete values such as IDs, states, counters                        |
-| `Bool.msg` | `bool`    | Binary flags like enable/disable, detected/not detected              |
-| `String.msg` | `string`  | Textual labels, identifiers, status messages                         |
-| `Byte.msg` | `byte`    | Compact status codes, enumerated values, or mode flags               |
+| Message File              | Type        | Purpose                                                              |
+|---------------------------|-------------|----------------------------------------------------------------------|
+| `Bool.msg`                | `bool`      | Binary flags like enable/disable, detected/not detected              |
+| `Byte.msg`                | `byte`      | Compact status codes, enumerated values, or mode flags               |
+| `Float64.msg`             | `float64`   | Generic numeric data (e.g., measurements, thresholds, sensor values) |
+| `Int32.msg`               | `int32`     | Discrete values such as IDs, states, counters                        |
+| `LabeledFloat64Array.msg` | `float64[]` | List of values accompanied by labels.                                 |
+| `String.msg`              | `string`    | Textual labels, identifiers, status messages                         |
 
 Each message includes a header to enable time and frame synchronization with other components in the system.
 

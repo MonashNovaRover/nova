@@ -3,10 +3,6 @@
   ament-cmake,
   rosidl-default-generators,
   std-msgs,
-  geometry-msgs,
-  nav-msgs,
-  action-msgs,
-  sensor-msgs,
 }:
 
 buildRosPackage {
