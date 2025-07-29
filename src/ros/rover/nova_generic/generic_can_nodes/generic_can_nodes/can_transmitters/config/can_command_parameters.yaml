@@ -14,7 +14,7 @@ can_command_parameters:
 
   service:
     type: string
-    default_value: "beans"
+    default_value: ""
     description: "Service called to command this node to send a CAN message."
 
   commands:

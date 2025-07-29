@@ -60,6 +60,11 @@ class CANCommand(Node):
 
     def service_callback(self, request: Int32.Request, response: Int32.Response):
         """ service callback that sends the corresponding CAN message to the request """
+        if request.data not in self.map:
+            self.get_logger().warn(f"Received unknown command: {request.data}")
+            response.success = False
+            return response
+
         name, frame = self.map[request.data]
         self.get_logger().info(f"Received command {name} [{request.data}] -> sending {str(frame)}")
 
