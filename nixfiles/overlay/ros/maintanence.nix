@@ -516,7 +516,17 @@ self: super:
           );
 
           jazzy = super.rosPackages.jazzy.overrideScope (
-            rosSelf: rosSuper: {
+            rosSelf: rosSuper: 
+            let
+              gz-msgs-source = self.fetchgit {
+                url = "https://github.com/vic-bart/gz-msgs.git";
+                rev = "gz-msgs10_10.3.0";
+                name = "gz-msgs10_10.3.0";
+                sha256 = "sha256-JMHMBbCFWBHnMyFS3qjHSXEXAqcifTYQvXs7sYtXf2A=";
+              };
+              gz-msgs-tarball = rosSelf.lib.tarSource {} gz-msgs-source;
+            in
+            {
               # Gazebo Classic is EOL, and the ROS packages have been removed from the
               # distro. The Iron releases still work, though, so add them back.
               gazebo-dev = rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-dev") { };
@@ -609,6 +619,21 @@ self: super:
                 }
               );
 
+              gz-msgs-vendor = (
+                rosSuper.gz-msgs-vendor.overrideAttrs (
+                {
+                  # nativeBuildInputs ? [ ],
+                  postPatch ? "",
+                  ...
+                }:
+                {
+                  # nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
+                  postPatch = postPatch + ''
+                    sed -i 's|file:///nix/store/[^"]*gz-msgs10_10\.3\.0\.tar|file://${gz-msgs-tarball}|' CMakeLists.txt
+                  ''; 
+                })
+              );
+              
               rosapi = rosSuper.rosapi.overrideAttrs (
                 {
                   patches ? [ ],
