@@ -520,7 +520,7 @@ self: super:
             let
               gz-msgs-source = self.fetchgit {
                 url = "https://github.com/vic-bart/gz-msgs.git";
-                rev = "gz-msgs10_10.3.0";
+                rev = "addccae99c539453414e384a5aeec8c019dec1e8";
                 name = "gz-msgs10_10.3.0";
                 sha256 = "sha256-JMHMBbCFWBHnMyFS3qjHSXEXAqcifTYQvXs7sYtXf2A=";
               };
