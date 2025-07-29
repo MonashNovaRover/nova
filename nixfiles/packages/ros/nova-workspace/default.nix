@@ -57,6 +57,7 @@
 , nova-banksia-kinematics-plugin ? throw "nova-banksia-kinematics-plugin is needed, but not available!"
 , nova-waratah-kinematics-plugin ? throw "nova-waratah-kinematics-plugin is needed, but not available!"
 , gpsd-client ? throw "gpsd-client is needed, but not available!"
+, nova-generic-interfaces ? throw "nova-generic-interfaces is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -106,6 +107,7 @@
       nova-path-planner
       nova-banksia-kinematics-plugin
       nova-waratah-kinematics-plugin
+      nova-generic-interfaces
       reolink;
   }
 
