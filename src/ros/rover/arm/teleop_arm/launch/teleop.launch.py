@@ -20,6 +20,8 @@ def launch_setup(context, *args, **kwargs):
             executable='teleop_node',
             output='screen',
 
+            arguments=['--node-name', 'teleop_arm'],
+
             # You can add multiple parameter files here:
             parameters=[
                 teleop_params,
@@ -32,6 +34,13 @@ def launch_setup(context, *args, **kwargs):
                 # (Optional!) omit time from the logs
                 'RCUTILS_CONSOLE_OUTPUT_FORMAT': '[{severity}] [{name}] {message}',
             }
+        ),
+
+        # Automatically run joy alongside teleop
+        Node(
+            package='joy',
+            executable='game_controller_node',  # or joy_node
+            output="screen"
         ),
     ]
 

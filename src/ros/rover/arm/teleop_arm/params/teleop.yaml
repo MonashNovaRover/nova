@@ -1,5 +1,5 @@
 # teleop.yaml
-teleop_node:
+teleop_arm:
   ros__parameters:
     # The maximum rate at which updates should occur, and hence the max rate at which commands are sent.
     # Leaving this unset makes the max update rate unlimited.
@@ -9,18 +9,6 @@ teleop_node:
     # Leaving this unset will allow for indefinite lapses between updates.
     min_update_rate: 2.0
 
-    control_modes:
-      names: [
-        "joint_space_mode"
-        "ik_mode"
-      ]
-
-      # Then declare its type!
-      joint_space_mode:
-        type: "joint_space_control_mode/JointSpaceControlMode"
-      ik_mode:
-        type: "teleop_modular_twist/TwistControlMode"
-
     input_sources:
       names: [
         "joy_input_source"
@@ -29,6 +17,33 @@ teleop_node:
       # Then declare its type!
       joy_input_source:
         type: "teleop_modular_joy/JoyInputSource"
+
+    control_modes:
+      names: [
+        "joint_space_mode",
+        "task_space_mode"
+      ]
+
+      # Then declare its type!
+      joint_space_mode:
+        type: "joint_space_control_mode/JointSpaceControlMode"
+      task_space_mode:
+        type: "teleop_modular_twist/TwistControlMode"
+
+    commands:
+      names: [
+        "enter_task_space",
+        "enter_joint_space"
+      ]
+
+      enter_task_space_mode:
+        on: "task_space/down"
+        type: "activate_control_mode"
+        name: "task_space_mode"
+      enter_joint_space_mode:
+        on: "task_space/up"
+        type: "activate_control_mode"
+        name: "joint_space_mode"
 
 
 joint_space_mode:
@@ -61,7 +76,30 @@ joint_space_mode:
         scale: 0.36
 
 
-# TODO: ik_mode
+task_space_mode:
+  ros__parameters:
+    # Topic to send TwistStamped messages to.
+    stamped_topic: "/arm_ik_twist_stamped"
+    # Use the input named "speed" to scale everything.
+    use_speed_input: true
+
+    # Values to multiply inputs with.
+    scale:
+      linear:
+        all: 0.25
+      angular:
+        all: 0.785398163395
+
+    # Prevent velocities larger than the specified values from being emitted
+    limits:
+      linear:
+        all: 0.25
+        normalized: true
+        scale_with_speed: true
+      angular:
+        all: 0.785398163395
+        normalized: true
+        scale_with_speed: true
 
 
 joy_input_source:
