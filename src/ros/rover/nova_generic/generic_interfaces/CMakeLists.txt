@@ -13,6 +13,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   msg/Byte.msg
   msg/Float64.msg
   msg/Int32.msg
+  msg/LabeledFloat64Array.msg
   msg/String.msg
 
   # Service definitions
