@@ -525,6 +525,14 @@ self: super:
                 sha256 = "sha256-JMHMBbCFWBHnMyFS3qjHSXEXAqcifTYQvXs7sYtXf2A=";
               };
               gz-msgs-tarball = rosSelf.lib.tarSource {} gz-msgs-source;
+
+              gz-transport-source = self.fetchgit {
+                url = "https://github.com/vic-bart/gz-transport.git";
+                rev = "f528ff56f1b7d425bdf358a344f8143fe4812934";
+                name = "gz-transport13_13.4.0";
+                sha256 = "sha256-wP8oOlIFfJfVjK4cgt0SQpUUwXxR+Vr/Fo64UY0vgP8=";
+              };
+              gz-transport-tarball = rosSelf.lib.tarSource {} gz-transport-source;
             in
             {
               # Gazebo Classic is EOL, and the ROS packages have been removed from the
@@ -622,6 +630,19 @@ self: super:
               gz-msgs-vendor = (
                 rosSuper.gz-msgs-vendor.overrideAttrs (
                 {
+                  postPatch ? "",
+                  ...
+                }:
+                {
+                  postPatch = postPatch + ''
+                    sed -i 's|file:///nix/store/[^"]*gz-msgs10_10\.3\.0\.tar|file://${gz-msgs-tarball}|' CMakeLists.txt
+                  ''; 
+                })
+              );
+
+              gz-transport-vendor = (
+                rosSuper.gz-transport-vendor.overrideAttrs (
+                {
                   # nativeBuildInputs ? [ ],
                   postPatch ? "",
                   ...
@@ -629,7 +650,7 @@ self: super:
                 {
                   # nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
                   postPatch = postPatch + ''
-                    sed -i 's|file:///nix/store/[^"]*gz-msgs10_10\.3\.0\.tar|file://${gz-msgs-tarball}|' CMakeLists.txt
+                    sed -i 's|file:///nix/store/[^"]*gz-transport13_13\.4\.0\.tar|file://${gz-transport-tarball}|' CMakeLists.txt
                   ''; 
                 })
               );
