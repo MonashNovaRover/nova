@@ -42,8 +42,7 @@
                                               output_goals="{goals}"
                                               visited_ids="{visited_ids}"
                                               distance_to_goal="{dist_to_goal}"/>
-                  <SnapInCollisionGoals initial_goals_offset="1.5"
-                                        cube_goal_entries="{cube_goal_entries}"
+                  <SnapInCollisionGoals goals_offset="1.5"
                                         input_goals="{goals}"
                                         output_goals="{goals}"/>
                   <ComputePathThroughPoses _skipIf="dist_to_goal < 2.0"
