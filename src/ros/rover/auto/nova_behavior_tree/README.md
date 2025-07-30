@@ -1,9 +1,28 @@
 # Behaviour Trees
 For an introduction on behaviour trees, please visit the [Notion page](https://www.notion.so/Decision-Making-231b7139617180be90ffda7d311d8ff2).
 
-For convenience, instructions detailing how to create custom nodes and behaviour trees will be reiterated here.
+For convenience, instructions detailing how to create behaviour trees and custom BT nodes will be reiterated here.
 
-## How to Create a Custom Node
+## Creating a Behaviour Tree
+
+To create a behaviour tree, we generally use Nav2’s [Navigate To Pose](https://docs.nav2.org/behavior_trees/trees/nav_to_pose_recovery.html)
+or [Navigate Through Poses](https://docs.nav2.org/behavior_trees/trees/nav_through_poses_recovery.html) as a base. From there, you can
+directly edit the XML or you can use [Groot2](https://www.behaviortree.dev/groot/), an IDE for behaviour trees developed by BehaviourTree.CPP.
+
+I tend to prefer directly editing the XML file and then viewing the result using Groot2, as editing via Groot2 results in a lot of unwanted
+node metadata being added to your XML file, making it more difficult for you to parse when looking directly at the XML file.
+
+### Installing Groot2
+
+1. Change directory to our nixfiles directory with our `nixfiles` alias
+2. Run `nix-build -A pkgs.groot2 -o ~/Builds/groot2 |& nom` to install it under `~/Builds/groot2`.
+
+### Using Groot2
+
+- To run Groot2, simply do `~/Builds/groot2/bin/groot2`.
+- Make sure to import our bt_nodes.xml before loading a behaviour tree that uses nodes defined in bt_nodes.xml.
+
+## Creating a Custom BT Node
 To create your own custom node, there are 4 things you must do:
 
 ### 1. Create your `.hpp` and `.cpp` implementation under `include/nova_behaviour_tree` and `plugins` respectively
@@ -51,22 +70,3 @@ plugin_lib_names:
   - nova_snap_in_collision_goals_action_bt_node
   - ...
 ```
-
-## Creating a Behaviour Tree
-
-To create a behaviour tree, we generally use Nav2’s [Navigate To Pose](https://docs.nav2.org/behavior_trees/trees/nav_to_pose_recovery.html)
-or [Navigate Through Poses](https://docs.nav2.org/behavior_trees/trees/nav_through_poses_recovery.html) as a base. From there, you can
-directly edit the XML or you can use [Groot2](https://www.behaviortree.dev/groot/), an IDE for behaviour trees developed by BehaviourTree.CPP.
-
-I tend to prefer directly editing the XML file and then viewing the result using Groot2, as editing via Groot2 results in a lot of unwanted
-node metadata being added to your XML file, making it more difficult for you to parse when looking directly at the XML file.
-
-### Installing Groot2
-
-1. Change directory to our nixfiles directory with our `nixfiles` alias
-2. Run `nix-build -A pkgs.groot2 -o ~/Builds/groot2 |& nom` to install it under `~/Builds/groot2`.
-
-### Using Groot2
-
-- To run Groot2, simply do `~/Builds/groot2/bin/groot2`.
-- Make sure to import our bt_nodes.xml before loading a behaviour tree that uses nodes defined in bt_nodes.xml.
