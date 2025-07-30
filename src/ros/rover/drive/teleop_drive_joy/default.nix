@@ -5,7 +5,6 @@
 , nova-drive-interfaces
 , nova-input-interfaces
 , nova-interfaces
-, nova-cpp
 , rclcpp
 , joy
 , geometry-msgs
@@ -37,7 +36,6 @@ buildRosPackage {
     nova-drive-interfaces
     nova-input-interfaces
     nova-interfaces
-    nova-cpp
     control-msgs
     rclcpp
     std-srvs
