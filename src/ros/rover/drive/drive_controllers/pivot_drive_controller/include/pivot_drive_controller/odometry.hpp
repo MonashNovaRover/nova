@@ -72,6 +72,7 @@ private:
   double half_steering_track_;  // [m]
   double half_wheel_base_;      // [m]
   double zero_radius_;          // [m]
+  double inner_radius_;         // [m]
 
   // Previous wheel and pivot positions [rad]:
   double left_drive_old_pos_ = 0.0;

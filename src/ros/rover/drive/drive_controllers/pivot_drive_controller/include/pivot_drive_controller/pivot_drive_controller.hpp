@@ -97,6 +97,10 @@ private:
 
   // Radius of the circle the rover makes with its wheels when turning on the spot
   double zero_radius_;
+  // Turning radius at which the circle that the wheel to the side of the turn makes has the
+  // same radius. Any turning radius less than this will cause the circle that the wheel
+  // to the side of the turn makes to have a larger radius than the turning radius
+  double inner_radius_;
   // Offset angle for the pivot joints, used to calculate the pivot angles
   double offset_angle_;
   double half_wheel_base_;
@@ -105,13 +109,13 @@ private:
   std::unique_ptr<nova_controller_common::HardwareInterfaceWrapper> hwif_wrapper_;
   std::unique_ptr<Odometry> odometry_;
 
-  std::deque<double> previous_linear_velocities_;      // last two linear velocity commands
+  std::deque<double> previous_speeds_;                 // last two speed commands
   std::deque<double> previous_angular_velocities_;     // last two angular velocity commands
   std::deque<double> previous_left_pivot_positions_;   // last three left pivot position commands
   std::deque<double> previous_right_pivot_positions_;  // last three right pivot position commands
 
   // Limiters
-  nova_controller_common::SpeedLimiter limiter_linear_;
+  nova_controller_common::SpeedLimiter limiter_speed_;
   nova_controller_common::SpeedLimiter limiter_angular_;
   nova_controller_common::PositionLimiter limiter_pivot_;
 
