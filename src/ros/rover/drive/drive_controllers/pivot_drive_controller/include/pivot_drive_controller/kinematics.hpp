@@ -27,14 +27,14 @@ namespace pivot_drive_controller
 {
 
 constexpr double get_angular_from_radius_and_speed(
-  double radius, double speed, bool turning_left, double zero_radius)
+  double radius, double speed, bool turning_left, double zero_radius, double inner_radius)
 {
   int dir = turning_left ? 1 : -1;
   if (radius == INFINITY)
   {
     return 0.0;  // straight line, no angular velocity
   }
-  if (radius == 0)
+  if (std::abs(radius) < inner_radius)
   {
     return (speed / zero_radius) * dir;  // turning on the spot
   }
@@ -80,15 +80,17 @@ constexpr double get_radius_from_pivot_angle(
 }
 
 constexpr double get_speed_ratio(
-  double radius, bool left_pivot, double half_steering_track, double half_wheel_base)
+  double radius, bool left_pivot, double half_steering_track, double half_wheel_base,
+  double zero_radius, double inner_radius)
 {
   if (radius == INFINITY || radius == 0)
   {
     // straight line or turning on the spot, left and right wheels should be the same speed
     return 1.0;
   }
-  double wheel_turn_radius = radius - ((left_pivot ? 1 : -1) * half_steering_track);
-  return std::abs(std::hypot(wheel_turn_radius, half_wheel_base) / radius);
+  double wheel_turn_radius =
+    std::hypot(radius - ((left_pivot ? 1 : -1) * half_steering_track), half_wheel_base);
+  return std::abs(wheel_turn_radius / (std::abs(radius) < inner_radius ? zero_radius : radius));
 }
 
 inline void limit_radius_by_pivot(
