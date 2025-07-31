@@ -58,6 +58,9 @@ Odometry::Odometry(rclcpp_lifecycle::LifecycleNode::SharedPtr node, std::shared_
   half_steering_track_ = params_->steering_track / 2;
   half_wheel_base_ = params_->wheel_base / 2;
   zero_radius_ = std::hypot(half_wheel_base_, half_steering_track_);
+  // Solve for r = sqrt((r - half_steering_track_)^2 + half_wheel_base_^2)
+  inner_radius_ = (std::pow(half_steering_track_, 2) + std::pow(half_wheel_base_, 2)) /
+                  (2 * half_steering_track_);
 
   // Initialize publishers
   realtime_odometry_publisher_ =
@@ -154,8 +157,8 @@ bool Odometry::update(
   if (std::abs(turning_radius) < EPSILON) turning_radius = 0.0;
   double speed = (left_speed + right_speed) * 0.5;
   linear_velocity = turning_radius == 0 ? 0 : speed;
-  angular_velocity =
-    get_angular_from_radius_and_speed(turning_radius, speed, left_angle > 0, zero_radius_);
+  angular_velocity = get_angular_from_radius_and_speed(
+    turning_radius, speed, left_angle > 0, zero_radius_, inner_radius_);
 
   // Integrate odometry:
   integrate_exact(linear_velocity * dt, angular_velocity * dt);

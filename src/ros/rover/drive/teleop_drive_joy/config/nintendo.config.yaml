@@ -15,4 +15,4 @@ teleop_drive_joy_node:
     button_strafe_controller: 3            # Button Y
     button_lock: 9                         # Left Menu Button
     button_unlock: 10                      # Right Menu Button
-    speed_change_fine_val: -0.02           # DPad is flipped on Japanese Version
+    speed_change_fine_val: -0.025          # DPad is flipped on Japanese Version
