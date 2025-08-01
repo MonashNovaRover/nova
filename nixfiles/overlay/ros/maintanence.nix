@@ -556,6 +556,21 @@ self: super:
                 sha256 = "sha256-wP8oOlIFfJfVjK4cgt0SQpUUwXxR+Vr/Fo64UY0vgP8=";
               };
               gz-transport-tarball = rosSelf.lib.tarSource {} gz-transport-source;
+              
+              gz-gui-source = self.fetchgit {
+                url = "https://github.com/gazebosim/gz-gui.git";
+                rev = "gz-gui8_8.3.0";
+                name = "gz-gui8_8.3.0";
+                sha256 = "sha256-WArmuesPXDP2YrAYBvbu0IBJPPJYRl6BzCFvY9JxQ88=";
+                postFetch = ''
+                  cd $out
+                  patch -p1 < ${self.fetchpatch {
+                    url = "https://patch-diff.githubusercontent.com/raw/gazebosim/gz-gui/pull/677.patch";
+                    hash = "sha256-EcSXo82JuIhIn1+NZrOwUv7qhlJdiHTYlQzcHEGwqw8=";
+                  }}
+                '';
+              };
+              gz-gui-tarball = rosSelf.lib.tarSource {} gz-gui-source;
             in
             {
               # Gazebo Classic is EOL, and the ROS packages have been removed from the
@@ -672,6 +687,18 @@ self: super:
                   # nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
                   postPatch = postPatch + ''
                     sed -i 's|file:///nix/store/[^"]*gz-transport13_13\.4\.0\.tar|file://${gz-transport-tarball}|' CMakeLists.txt
+                  ''; 
+                }
+              );
+
+              gz-gui-vendor = rosSuper.gz-gui-vendor.overrideAttrs (
+                {
+                  postPatch ? "",
+                  ...
+                }:
+                {
+                  postPatch = postPatch + ''
+                    sed -i 's|file:///nix/store/[^"]*gz-gui8_8\.3\.0\.tar|file://${gz-gui-tarball}|' CMakeLists.txt
                   ''; 
                 }
               );
