@@ -154,7 +154,6 @@ bool Odometry::update(
 
   double turning_radius = get_radius_from_pivot_angle(
     left_angle, true, left_angle > 0, half_steering_track_, half_wheel_base_, EPSILON);
-  if (std::abs(turning_radius) < EPSILON) turning_radius = 0.0;
   double speed = (left_speed + right_speed) * 0.5;
   linear_velocity = turning_radius == 0 ? 0 : speed;
   angular_velocity = get_angular_from_radius_and_speed(
