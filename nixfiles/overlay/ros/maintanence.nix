@@ -336,9 +336,29 @@ self: super:
               );
           in
           {
-            rtabmap = self.rtabmap.overrideAttrs {
-              inherit (rosSuper.rtabmap) pname version src;
-            };
+            rtabmap = self.rtabmap.overrideAttrs (
+              {
+                patches ? [], 
+                propagatedBuildInputs ? [], 
+                ...
+            }: 
+            {
+              inherit (rosSuper.rtabmap) pname;
+              version = "0.21.10-r1";
+              src = self.fetchurl {
+                url = "https://github.com/ros2-gbp/rtabmap-release/archive/release/jazzy/rtabmap/0.21.10-1.tar.gz";
+                name = "0.21.10-1.tar.gz";
+                sha256 = "sha256-qT2xYc1I/J0sWffxH1yOtYJV9h6sc1SybI2t2YoGb+I=";
+              };
+              propagatedBuildInputs = propagatedBuildInputs ++ [ self.qt5.wrapQtAppsHook self.librealsense self.octomap ];
+              patches = patches ++ [
+                # Fix compilation with boost >= 1.87
+                (self.fetchpatch {
+                  url = "https://github.com/introlab/rtabmap/commit/08f031e11c45589fc2b68440383a3e40982dc06f.patch";
+                  hash = "sha256-avU8I19qHFcKBBdIsE4rPJZIHwSy4Wssmwt10cPmk6k=";
+                })
+              ];
+            });
 
             rtabmap-ros = rosSuper.rtabmap-ros.overrideAttrs (
               {
@@ -627,8 +647,7 @@ self: super:
                 }
               );
 
-              gz-msgs-vendor = (
-                rosSuper.gz-msgs-vendor.overrideAttrs (
+              gz-msgs-vendor = rosSuper.gz-msgs-vendor.overrideAttrs (
                 {
                   postPatch ? "",
                   ...
@@ -637,11 +656,10 @@ self: super:
                   postPatch = postPatch + ''
                     sed -i 's|file:///nix/store/[^"]*gz-msgs10_10\.3\.0\.tar|file://${gz-msgs-tarball}|' CMakeLists.txt
                   ''; 
-                })
+                }
               );
 
-              gz-transport-vendor = (
-                rosSuper.gz-transport-vendor.overrideAttrs (
+              gz-transport-vendor = rosSuper.gz-transport-vendor.overrideAttrs (
                 {
                   # nativeBuildInputs ? [ ],
                   postPatch ? "",
@@ -652,7 +670,7 @@ self: super:
                   postPatch = postPatch + ''
                     sed -i 's|file:///nix/store/[^"]*gz-transport13_13\.4\.0\.tar|file://${gz-transport-tarball}|' CMakeLists.txt
                   ''; 
-                })
+                }
               );
               
               rosapi = rosSuper.rosapi.overrideAttrs (
