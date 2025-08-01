@@ -486,13 +486,16 @@ self: super:
                 }:
                 {
                   # https://answers.ros.org/question/379173
-                  CXXFLAGS = "${CXXFLAGS} -Wno-error=maybe-uninitialized";
+                  CXXFLAGS = "${CXXFLAGS} -Wno-error=maybe-uninitialized -Wno-error=array-bounds";
+                  
                 }
+                
               );
           in
           {
             nav2-behaviors = fixNav2Package rosSuper.nav2-behaviors;
             nav2-constrained-smoother = fixNav2Package rosSuper.nav2-constrained-smoother;
+            nav2-costmap-2d = fixNav2Package rosSuper.nav2-costmap-2d;
             nav2-planner = fixNav2Package rosSuper.nav2-planner;
             nav2-smoother = fixNav2Package rosSuper.nav2-smoother;
             nav2-waypoint-follower = fixNav2Package rosSuper.nav2-waypoint-follower;
