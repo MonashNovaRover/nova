@@ -44,7 +44,7 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             name='device_id',
-            default_value='1',
+            default_value='0',
         ),
         DeclareLaunchArgument(
             name='device_name',
@@ -56,7 +56,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='config',
-            default_value='nintendo', #Defined in launch_setup due to requiring another launch argument
+            default_value='xbox', #Defined in launch_setup due to requiring another launch argument
         ),
     ]
 

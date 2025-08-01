@@ -195,8 +195,8 @@ controller_interface::return_type PivotDriveController::update(
   }
   else if (params_->autonomous_mode)
   {
-    speed = linear_input == 0 ? std::abs(zero_radius_ * angular_velocity) : linear_input;
     angular_velocity = angular_input;
+    speed = linear_input == 0 ? std::abs(zero_radius_ * angular_velocity) : linear_input;
 
     limiter_speed_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
     limiter_angular_.limit(
@@ -206,11 +206,9 @@ controller_interface::return_type PivotDriveController::update(
     linear_velocity = linear_input == 0 ? 0.0 : speed;
     turning_radius = get_radius_from_velocities(linear_velocity, angular_velocity);
 
-    const auto prev_positions =
-      turning_left ? previous_left_pivot_positions_ : previous_right_pivot_positions_;
     limit_radius_by_pivot(
       turning_radius, turning_left, half_steering_track_, half_wheel_base_, limiter_pivot_,
-      prev_positions[0], prev_positions[1], prev_positions[2], period.seconds());
+      previous_left_pivot_positions_, previous_right_pivot_positions_, period.seconds());
   }
   else
   {
@@ -221,6 +219,10 @@ controller_interface::return_type PivotDriveController::update(
       angular_input == 0
         ? INFINITY
         : params_->curve_factor * ((1.0 / angular_input) - std::copysign(1, angular_input));
+    
+    limit_radius_by_pivot(
+      turning_radius, turning_left, half_steering_track_, half_wheel_base_, limiter_pivot_,
+      previous_left_pivot_positions_, previous_right_pivot_positions_, period.seconds());
 
     speed = linear_input * params_->speed.max_velocity;
     double temp = speed;
@@ -274,12 +276,6 @@ controller_interface::return_type PivotDriveController::update(
       }
     }
     linear_velocity = turning_radius == 0 ? 0 : speed;
-
-    // const auto prev_positions =
-    //   turning_left ? previous_left_pivot_positions_ : previous_right_pivot_positions_;
-    // limit_radius_by_pivot(
-    //   turning_radius, turning_left, half_steering_track_, half_wheel_base_, limiter_pivot_,
-    //   prev_positions[0], prev_positions[1], prev_positions[2], period.seconds());
   }
 
   // ################### Update and publish odometry #####################

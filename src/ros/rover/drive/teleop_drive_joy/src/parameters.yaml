@@ -78,6 +78,7 @@ teleop_drive_joy:
       The joy axis corresponding to the Twist axis controlling angular velocity.
       Usually mapped to the left stick horizontal axis.
 
+  # TODO: Set to wireless xbox controller defaults
   button_unlock:
     type: int
     default_value: 9
