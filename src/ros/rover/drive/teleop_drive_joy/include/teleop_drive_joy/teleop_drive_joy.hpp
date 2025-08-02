@@ -12,7 +12,7 @@
  * [controller_manager_msgs/srv/SwitchController]
  *  - client:     /pivot_drive_controller/set_parameters       [rcl_interfaces/srv/SetParameters]
  *  - client:     /strafe_controller/set_parameters            [rcl_interfaces/srv/SetParameters]
- *  - client:     /nova_diff_drive_controller/set_parameters   [rcl_interfaces/srv/SetParameters]
+ *  - client:     /diff_drive_controller/set_parameters   [rcl_interfaces/srv/SetParameters]
  * ACTIONS: None
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * PACKAGE:    teleop_drive_joy
@@ -77,7 +77,7 @@ inline std::string modeToController(const DriveMode mode)
     case DriveMode::STRAFE:
       return "strafe_controller";
     case DriveMode::DIFF:
-      return "nova_diff_drive_controller";
+      return "diff_drive_controller";
     default:
       return "unknown_controller";
   }
@@ -169,7 +169,7 @@ private:
     switch_controller_client_;
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr pivot_drive_client_;
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr strafe_client_;
-  rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr nova_diff_drive_client_;
+  rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr diff_drive_client_;
   std::shared_ptr<ParamListener> param_listener_;
 
   Params params_;

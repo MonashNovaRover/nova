@@ -10,7 +10,7 @@ teleop_drive_joy_node:
     
     button_pivot_drive_controller: 0       # Button A
     button_holonomic_drive_controller: 1   # Button B
-    button_nova_diff_drive_controller: 2   # Button X
+    button_diff_drive_controller: 2   # Button X
     button_strafe_controller: 3            # Button Y
     button_autonomous_mode: 4
     button_manual_mode: 5

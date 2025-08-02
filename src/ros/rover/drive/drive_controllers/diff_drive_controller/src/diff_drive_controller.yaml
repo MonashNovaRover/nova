@@ -1,4 +1,4 @@
-nova_diff_drive_controller:
+diff_drive_controller:
   left_drive_names: {
     type: string_array,
     default_value: [],

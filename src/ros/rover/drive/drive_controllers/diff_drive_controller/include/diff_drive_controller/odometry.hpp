@@ -1,12 +1,12 @@
-#ifndef NOVA_DIFF_DRIVE_CONTROLLER__ODOMETRY_HPP_
-#define NOVA_DIFF_DRIVE_CONTROLLER__ODOMETRY_HPP_
+#ifndef DIFF_DRIVE_CONTROLLER__ODOMETRY_HPP_
+#define DIFF_DRIVE_CONTROLLER__ODOMETRY_HPP_
 
 #include <cmath>
 
 #include "rclcpp/time.hpp"
 #include "rcpputils/rolling_mean_accumulator.hpp"
 
-namespace nova_diff_drive_controller
+namespace diff_drive_controller
 {
   class Odometry
   {
@@ -62,6 +62,6 @@ namespace nova_diff_drive_controller
     RollingMeanAccumulator angular_accumulator_;
   };
 
-} // namespace nova_diff_drive_controller
+} // namespace diff_drive_controller
 
-#endif // NOVA_DIFF_DRIVE_CONTROLLER__ODOMETRY_HPP_
+#endif // DIFF_DRIVE_CONTROLLER__ODOMETRY_HPP_
