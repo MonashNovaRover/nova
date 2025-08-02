@@ -20,32 +20,33 @@
 
 namespace diff_drive_controller
 {
+
 Odometry::Odometry(size_t velocity_rolling_window_size)
-: timestamp_(0.0),
-  x_(0.0),
-  y_(0.0),
-  heading_(0.0),
-  linear_(0.0),
-  angular_(0.0),
-  wheel_separation_(0.0),
-  left_wheel_radius_(0.0),
-  right_wheel_radius_(0.0),
-  left_wheel_old_pos_(0.0),
-  right_wheel_old_pos_(0.0),
-  velocity_rolling_window_size_(velocity_rolling_window_size),
-  linear_accumulator_(velocity_rolling_window_size),
-  angular_accumulator_(velocity_rolling_window_size)
+  : timestamp_(0.0)
+  , x_(0.0)
+  , y_(0.0)
+  , heading_(0.0)
+  , linear_(0.0)
+  , angular_(0.0)
+  , wheel_separation_(0.0)
+  , left_wheel_radius_(0.0)
+  , right_wheel_radius_(0.0)
+  , left_wheel_old_pos_(0.0)
+  , right_wheel_old_pos_(0.0)
+  , velocity_rolling_window_size_(velocity_rolling_window_size)
+  , linear_accumulator_(velocity_rolling_window_size)
+  , angular_accumulator_(velocity_rolling_window_size)
 {
 }
 
-void Odometry::init(const rclcpp::Time & time)
+void Odometry::init(const rclcpp::Time& time)
 {
   // Reset accumulators and timestamp:
   resetAccumulators();
   timestamp_ = time;
 }
 
-bool Odometry::update(double left_pos, double right_pos, const rclcpp::Time & time)
+bool Odometry::update(double left_pos, double right_pos, const rclcpp::Time& time)
 {
   // We cannot estimate the speed with very small time intervals:
   const double dt = time.seconds() - timestamp_.seconds();
@@ -71,7 +72,7 @@ bool Odometry::update(double left_pos, double right_pos, const rclcpp::Time & ti
   return true;
 }
 
-bool Odometry::updateFromVelocity(double left_vel, double right_vel, const rclcpp::Time & time)
+bool Odometry::updateFromVelocity(double left_vel, double right_vel, const rclcpp::Time& time)
 {
   const double dt = time.seconds() - timestamp_.seconds();
 
@@ -95,7 +96,7 @@ bool Odometry::updateFromVelocity(double left_vel, double right_vel, const rclcp
   return true;
 }
 
-void Odometry::updateOpenLoop(double linear, double angular, const rclcpp::Time & time)
+void Odometry::updateOpenLoop(double linear, double angular, const rclcpp::Time& time)
 {
   /// Save last linear and angular velocity:
   linear_ = linear;
