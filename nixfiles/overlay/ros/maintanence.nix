@@ -542,18 +542,33 @@ self: super:
             rosSelf: rosSuper: 
             let
               gz-msgs-source = self.fetchgit {
-                url = "https://github.com/vic-bart/gz-msgs.git";
-                rev = "addccae99c539453414e384a5aeec8c019dec1e8";
+                url = "https://github.com/gazebosim/gz-msgs.git";
+                rev = "gz-msgs10_10.3.0";
                 name = "gz-msgs10_10.3.0";
-                sha256 = "sha256-JMHMBbCFWBHnMyFS3qjHSXEXAqcifTYQvXs7sYtXf2A=";
+                sha256 = "sha256-dQ6tnpopn21EoFFyoDZPiZC0CEObd1g+nZBjALnmuOw=";
+                postFetch = ''
+                  cd $out
+                  patch -p1 < ${self.fetchpatch {
+                    url = "https://github.com/gazebosim/gz-msgs/commit/22c57006798470db63e8ecaff7b49dce34d5e76f.patch";
+                    hash = "sha256-Qkf3JgN8twh6fRLblZj9NmsOxT6jTBgCV1SDJHUk3+w=";
+                  }}
+                '';
               };
               gz-msgs-tarball = rosSelf.lib.tarSource {} gz-msgs-source;
 
               gz-transport-source = self.fetchgit {
-                url = "https://github.com/vic-bart/gz-transport.git";
-                rev = "f528ff56f1b7d425bdf358a344f8143fe4812934";
+                url = "https://github.com/gazebosim/gz-transport.git";
+                rev = "gz-transport13_13.4.0";
                 name = "gz-transport13_13.4.0";
-                sha256 = "sha256-wP8oOlIFfJfVjK4cgt0SQpUUwXxR+Vr/Fo64UY0vgP8=";
+                sha256 = "sha256-ZMOdnq1TJJZD9icyU6AP7+zohTW2U4OkSm9mUH+K82E=";
+                postFetch = ''
+                  cd $out
+                  patch -p1 < ${self.fetchpatch {
+                    url = "https://github.com/gazebosim/gz-transport/commit/6256a567a7b1053e3522950f7d6708d22d42d38c.patch";
+                    hash = "sha256-8Hg8PkRlwI1XdgDOvxmRjw50EjhcDAoAFfCxFHoUbHE=";
+                  }}
+                  patch -p1 <  ${./patches/gz-transport.patch}
+                '';
               };
               gz-transport-tarball = rosSelf.lib.tarSource {} gz-transport-source;
               
