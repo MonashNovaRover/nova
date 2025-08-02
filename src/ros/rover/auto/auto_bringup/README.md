@@ -12,7 +12,7 @@
   * `wheel_velocity_controller`
   * `pivot_joint_trajectory_controller`
   * `strafe_controller`
-  * `nova_diff_drive_controller`
+  * `diff_drive_controller`
   * `pivot_drive_controller`
   * `joint_broad`
 * `everything`

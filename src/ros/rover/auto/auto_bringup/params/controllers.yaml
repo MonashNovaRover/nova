@@ -18,8 +18,8 @@ controller_manager:
     strafe_controller:
       type: strafe_controller/StrafeController
 
-    nova_diff_drive_controller:
-      type: nova_diff_drive_controller/NovaDiffDriveController
+    diff_drive_controller:
+      type: diff_drive_controller/DiffDriveController
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -109,7 +109,7 @@ strafe_controller:
     open_loop: true
     max_acceleration: 5.0
 
-nova_diff_drive_controller:
+diff_drive_controller:
   ros__parameters:
     enable_twist_cmd: true
     left_drive_names: ["flw", "blw"]

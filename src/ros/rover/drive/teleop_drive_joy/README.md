@@ -113,7 +113,7 @@ teleop_drive_joy_node:
       [
         "pivot_drive_controller",
         "strafe_controller",
-        "nova_diff_drive_controller",
+        "diff_drive_controller",
       ]
     pivot_drive_controller:
       axis_angular_z: 3
@@ -125,7 +125,7 @@ teleop_drive_joy_node:
       axis_linear_x: 0
       scale_angular_z: 1.0
       scale_linear_x: 0.1
-    nova_diff_drive_controller:
+    diff_drive_controller:
       axis_angular_z: 3
       axis_linear_x: 1
       scale_angular_z: 1.0
@@ -135,7 +135,7 @@ teleop_drive_joy_node:
     button_autonomous_control: 0
     button_lock: 6
     button_manual_control: 1
-    button_nova_diff_drive_controller: 3
+    button_diff_drive_controller: 3
     button_pivot_drive_controller: 5
     button_strafe_controller: 4
     button_unlock: 7

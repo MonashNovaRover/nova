@@ -4,7 +4,7 @@
 #include <utility>
 #include <vector>
 
-#include "nova_diff_drive_controller/nova_diff_drive_controller.hpp"
+#include "diff_drive_controller/diff_drive_controller.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 #include "rclcpp/logging.hpp"
@@ -19,7 +19,7 @@ namespace
   constexpr auto DEFAULT_TRANSFORM_TOPIC = "/tf";
 } // namespace
 
-namespace nova_diff_drive_controller
+namespace diff_drive_controller
 {
   using namespace std::chrono_literals;
   using controller_interface::interface_configuration_type;
@@ -28,19 +28,19 @@ namespace nova_diff_drive_controller
   using hardware_interface::HW_IF_VELOCITY;
   using lifecycle_msgs::msg::State;
 
-  NovaDiffDriveController::NovaDiffDriveController() : controller_interface::ControllerInterface() {}
+  DiffDriveController::DiffDriveController() : controller_interface::ControllerInterface() {}
 
-  const char *NovaDiffDriveController::drive_feedback_type() const
+  const char *DiffDriveController::drive_feedback_type() const
   {
     return params_.drive_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
   }
 
-  const char *NovaDiffDriveController::pivot_feedback_type() const
+  const char *DiffDriveController::pivot_feedback_type() const
   {
     return params_.pivot_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
   }
 
-  controller_interface::CallbackReturn NovaDiffDriveController::on_init()
+  controller_interface::CallbackReturn DiffDriveController::on_init()
   {
     try
     {
@@ -57,7 +57,7 @@ namespace nova_diff_drive_controller
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
-  InterfaceConfiguration NovaDiffDriveController::command_interface_configuration() const
+  InterfaceConfiguration DiffDriveController::command_interface_configuration() const
   {
     std::vector<std::string> conf_names;
     for (const auto &joint_name : params_.left_drive_names)
@@ -79,7 +79,7 @@ namespace nova_diff_drive_controller
     return {interface_configuration_type::INDIVIDUAL, conf_names};
   }
 
-  InterfaceConfiguration NovaDiffDriveController::state_interface_configuration() const
+  InterfaceConfiguration DiffDriveController::state_interface_configuration() const
   {
     std::vector<std::string> conf_names;
     for (const auto &joint_name : params_.left_drive_names)
@@ -101,7 +101,7 @@ namespace nova_diff_drive_controller
     return {interface_configuration_type::INDIVIDUAL, conf_names};
   }
 
-  controller_interface::return_type NovaDiffDriveController::update(
+  controller_interface::return_type DiffDriveController::update(
       const rclcpp::Time &time, const rclcpp::Duration &period)
   {
     auto logger = get_node()->get_logger();
@@ -395,7 +395,7 @@ namespace nova_diff_drive_controller
     return controller_interface::return_type::OK;
   }
 
-  controller_interface::CallbackReturn NovaDiffDriveController::on_configure(
+  controller_interface::CallbackReturn DiffDriveController::on_configure(
       const rclcpp_lifecycle::State &)
   {
     auto logger = get_node()->get_logger();
@@ -588,7 +588,7 @@ namespace nova_diff_drive_controller
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
-  controller_interface::CallbackReturn NovaDiffDriveController::on_activate(
+  controller_interface::CallbackReturn DiffDriveController::on_activate(
       const rclcpp_lifecycle::State &)
   {
     const auto left_drives_result =
@@ -632,7 +632,7 @@ namespace nova_diff_drive_controller
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
-  controller_interface::CallbackReturn NovaDiffDriveController::on_deactivate(
+  controller_interface::CallbackReturn DiffDriveController::on_deactivate(
       const rclcpp_lifecycle::State &)
   {
     subscriber_is_active_ = false;
@@ -648,7 +648,7 @@ namespace nova_diff_drive_controller
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
-  controller_interface::CallbackReturn NovaDiffDriveController::on_cleanup(
+  controller_interface::CallbackReturn DiffDriveController::on_cleanup(
       const rclcpp_lifecycle::State &)
   {
     if (!reset())
@@ -662,7 +662,7 @@ namespace nova_diff_drive_controller
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
-  controller_interface::CallbackReturn NovaDiffDriveController::on_error(const rclcpp_lifecycle::State &)
+  controller_interface::CallbackReturn DiffDriveController::on_error(const rclcpp_lifecycle::State &)
   {
     if (!reset())
     {
@@ -671,7 +671,7 @@ namespace nova_diff_drive_controller
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
-  bool NovaDiffDriveController::reset()
+  bool DiffDriveController::reset()
   {
     odometry_.resetOdometry();
 
@@ -698,13 +698,13 @@ namespace nova_diff_drive_controller
     return true;
   }
 
-  controller_interface::CallbackReturn NovaDiffDriveController::on_shutdown(
+  controller_interface::CallbackReturn DiffDriveController::on_shutdown(
       const rclcpp_lifecycle::State &)
   {
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
-  void NovaDiffDriveController::halt()
+  void DiffDriveController::halt()
   {
     const auto halt_wheels = [](auto &wheel_handles)
     {
@@ -720,7 +720,7 @@ namespace nova_diff_drive_controller
     halt_wheels(registered_right_pivot_handles_);
   }
 
-  controller_interface::CallbackReturn NovaDiffDriveController::configure_drive_pivots(
+  controller_interface::CallbackReturn DiffDriveController::configure_drive_pivots(
       const std::vector<std::string> &wheel_names,
       std::vector<WheelHandle> &registered_handles, const char *feedback_type)
   {
@@ -771,9 +771,9 @@ namespace nova_diff_drive_controller
 
     return controller_interface::CallbackReturn::SUCCESS;
   }
-} // namespace nova_diff_drive_controller
+} // namespace diff_drive_controller
 
 #include "class_loader/register_macro.hpp"
 
 CLASS_LOADER_REGISTER_CLASS(
-    nova_diff_drive_controller::NovaDiffDriveController, controller_interface::ControllerInterface)
+    diff_drive_controller::DiffDriveController, controller_interface::ControllerInterface)

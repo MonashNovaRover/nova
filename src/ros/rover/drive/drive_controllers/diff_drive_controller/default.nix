@@ -20,11 +20,11 @@
 }:
 
 buildRosPackage {
-  name = "nova-diff-drive-controller";
+  name = "diff-drive-controller";
   buildType = "ament_cmake";
 
   src = builtins.path rec {
-    name = "nova_diff_drive_controller-source";
+    name = "diff_drive_controller-source";
     path = ./.;
     filter = lib.novaSourceFilter [ ] path;
   };

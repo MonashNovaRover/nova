@@ -1,10 +1,14 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>nova_diff_drive_controller</name>
+  <name>diff_drive_controller</name>
   <version>2.31.0</version>
   <description>Controller for a differential drive mobile base.</description>
+  
   <maintainer email="bence.magyar.robotics@gmail.com">Bence Magyar</maintainer>
   <maintainer email="jordan.palacios@pal-robotics.com">Jordan Palacios</maintainer>
+
+  <maintainer email="novaroverteam@monash.edu">Monash Nova Rover</maintainer>
+  <maintainer email="tytia.work@gmail.com">Terry Tian</maintainer>
 
   <license>Apache License 2.0</license>
 
