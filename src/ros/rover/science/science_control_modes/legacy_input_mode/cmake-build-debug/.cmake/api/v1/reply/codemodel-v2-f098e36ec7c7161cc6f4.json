@@ -1,0 +1,79 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-3dea13bbb9627d8ba389.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "legacy_input_mode",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "legacy_input_mode::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-legacy_input_mode-Debug-e447ad3514b1b78f5efc.json",
+					"name" : "legacy_input_mode",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "legacy_input_mode_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-legacy_input_mode_uninstall-Debug-7c1c8d5041d495731a3d.json",
+					"name" : "legacy_input_mode_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-Debug-67c63d3aa3ca3cf2945c.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/nova/nova/src/ros/rover/science/science_control_modes/legacy_input_mode/cmake-build-debug",
+		"source" : "/home/nova/nova/src/ros/rover/science/science_control_modes/legacy_input_mode"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 7
+	}
+}

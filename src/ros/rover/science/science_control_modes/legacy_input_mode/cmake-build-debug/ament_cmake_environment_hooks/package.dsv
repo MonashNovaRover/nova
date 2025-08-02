@@ -1,0 +1,4 @@
+source;share/legacy_input_mode/local_setup.bash
+source;share/legacy_input_mode/local_setup.dsv
+source;share/legacy_input_mode/local_setup.sh
+source;share/legacy_input_mode/local_setup.zsh

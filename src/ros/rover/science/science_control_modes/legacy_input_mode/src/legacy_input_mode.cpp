@@ -7,6 +7,35 @@ LegacyInputMode::LegacyInputMode() = default;
 
 LegacyInputMode::~LegacyInputMode() = default;
 
+int8_t LegacyInputMode::update_button(const uint8_t last_button, Button::SharedPtr current_input)
+{
+  // button currently not pressed
+  if (current_input->value() == 0)
+  {
+    // nothing happening
+    if (last_button == 0)
+    {
+      return static_cast<uint8_t>(ButtonState::NOTHING);
+    }
+    // button unpressed
+    return static_cast<uint8_t>(ButtonState::UP);
+  }
+
+  // button currently being pressed
+  switch (last_button)
+  {
+    case static_cast<uint8_t>(ButtonState::NOTHING):
+      return static_cast<uint8_t>(ButtonState::DOWN);
+    case static_cast<uint8_t>(ButtonState::DOWN):
+    case static_cast<uint8_t>(ButtonState::HELD):
+      return static_cast<uint8_t>(ButtonState::HELD);
+    case static_cast<uint8_t>(ButtonState::UP):
+      return static_cast<uint8_t>(ButtonState::DOWN);
+    default:
+      assert(false);
+  }
+}
+
 return_type LegacyInputMode::on_init()
 {
   auto node = get_node();
@@ -38,8 +67,7 @@ CallbackReturn LegacyInputMode::on_configure(const State &)
     return CallbackReturn::ERROR;
   }
 
-  // TODO: Set an appropriate message type for the publisher, then uncomment its declaration/usages
-  // publisher_ = get_node()->create_publisher<TODO>(params_.topic, params_.qos);
+  publisher_ = get_node()->create_publisher<input_interfaces::msg::InputJoystick>(params_.topic, params_.qos);
 
   return CallbackReturn::SUCCESS;
 }
@@ -49,10 +77,47 @@ void LegacyInputMode::on_capture_inputs(Inputs inputs)
   // This method is always run after on_configure(),
   // so you can assume that you already have any necessary parameters
 
-  // Capture inputs like this:
-  speed_ = inputs.axes["speed"];
+  // Axis names
+  constexpr std::vector<std::string> axes_names = {
+    "ax_stick_x",
+    "ax_stick_y",
+    "ax_stick_twist",
+    "ax_thumb_x",
+    "ax_thumb_y",
+    "ax_slider",
+  };
 
-  // TODO: Add Axis::SharedPtr and/or Button::SharedPtr member variables, then assign them here.
+  // Button names
+  constexpr std::vector<std::string> button_names = {
+    "btn_thumb_l_state",    // Left
+    "btn_thumb_r_state",    // Right
+    "btn_thumb_u_state",    // Up (behind the thumbstick)
+    "btn_thumb_d_state",    // Down
+    "btn_bottom_l1_state",
+    "btn_bottom_l2_state",
+    "btn_bottom_l3_state",
+    "btn_bottom_l4_state",
+    "btn_bottom_l5_state",
+    "btn_bottom_l6_state",
+    "btn_bottom_r1_state",
+    "btn_bottom_r2_state",
+    "btn_bottom_r3_state",
+    "btn_bottom_r4_state",
+    "btn_bottom_r5_state",
+    "btn_bottom_r6_state",
+  };
+
+  // store shared pointers for axes
+  for (auto& axis : axes_names)
+  {
+    axes_[axis] = inputs.axes[axis];
+  }
+
+  // store shared pointers for buttons
+  for (auto& button : button_names)
+  {
+    axes_[button] = inputs.axes[button];
+  }
 }
 
 CallbackReturn LegacyInputMode::on_activate(const State &)
@@ -68,9 +133,8 @@ CallbackReturn LegacyInputMode::on_deactivate(const State &)
 
 void LegacyInputMode::publish_halt_message(const rclcpp::Time & now) const
 {
-  // TODO: Implement for your message type, or remove the method if it is not appropriate for the use case.
-  // auto msg = std::make_unique<TODO>();
-  // publisher_->publish(std::move(msg));
+  auto msg = std::make_unique<input_interfaces::msg::InputJoystick>();
+  publisher_->publish(std::move(msg));
 }
 
 return_type LegacyInputMode::on_update(const rclcpp::Time & now, const rclcpp::Duration & period)
@@ -83,16 +147,42 @@ return_type LegacyInputMode::on_update(const rclcpp::Time & now, const rclcpp::D
     return return_type::OK;
   }
 
-  // Get input values either with input_->value() or by referencing and implicitly casting *input_
-  const float speed = std::max(speed_->value(), 0.0f);
+  /// Update Joystick Msg
+  // Buttons located near the thumb stick
+  last_message_.btn_thumb_l_state = update_button(last_message_.btn_thumb_l_state, buttons_["btn_thumb_l_state"]);
+  last_message_.btn_thumb_r_state = update_button(last_message_.btn_thumb_r_state, buttons_["btn_thumb_r_state"]);
+  last_message_.btn_thumb_u_state = update_button(last_message_.btn_thumb_u_state, buttons_["btn_thumb_u_state"]);
+  last_message_.btn_thumb_d_state = update_button(last_message_.btn_thumb_d_state, buttons_["btn_thumb_d_state"]);
 
-  // TODO: Construct and send a message using values from inputs
-  // auto msg = std::make_unique<TODO>();
+  // Buttons located at the bottom left
+  last_message_.btn_bottom_l1_state = update_button(last_message_.btn_bottom_l1_state, buttons_["btn_bottom_l1_state"]);
+  last_message_.btn_bottom_l2_state = update_button(last_message_.btn_bottom_l2_state, buttons_["btn_bottom_l2_state"]);
+  last_message_.btn_bottom_l3_state = update_button(last_message_.btn_bottom_l3_state, buttons_["btn_bottom_l3_state"]);
+  last_message_.btn_bottom_l4_state = update_button(last_message_.btn_bottom_l4_state, buttons_["btn_bottom_l4_state"]);
+  last_message_.btn_bottom_l5_state = update_button(last_message_.btn_bottom_l5_state, buttons_["btn_bottom_l5_state"]);
+  last_message_.btn_bottom_l6_state = update_button(last_message_.btn_bottom_l6_state, buttons_["btn_bottom_l6_state"]);
 
-  // msg->some_value = *some_axis_ * speed;
-  // msg->header.stamp = now;
+  // Buttons located at the bottom right
+  last_message_.btn_bottom_r1_state = update_button(last_message_.btn_bottom_r1_state, buttons_["btn_bottom_r1_state"]);
+  last_message_.btn_bottom_r2_state = update_button(last_message_.btn_bottom_r2_state, buttons_["btn_bottom_r2_state"]);
+  last_message_.btn_bottom_r3_state = update_button(last_message_.btn_bottom_r3_state, buttons_["btn_bottom_r3_state"]);
+  last_message_.btn_bottom_r4_state = update_button(last_message_.btn_bottom_r4_state, buttons_["btn_bottom_r4_state"]);
+  last_message_.btn_bottom_r5_state = update_button(last_message_.btn_bottom_r5_state, buttons_["btn_bottom_r5_state"]);
+  last_message_.btn_bottom_r6_state = update_button(last_message_.btn_bottom_r6_state, buttons_["btn_bottom_r6_state"]);
 
-  // publisher_->publish(std::move(msg));
+  // Main Joystick Axis Data
+  last_message_.ax_stick_x = axes_["ax_stick_x"]->value();
+  last_message_.ax_stick_y = axes_["ax_stick_y"]->value();
+  last_message_.ax_stick_twist = axes_["ax_stick_twist"]->value();
+
+  // Thumb Axis Data
+  last_message_.ax_thumb_x = axes_["ax_thumb_x"]->value();
+  last_message_.ax_thumb_y = axes_["ax_thumb_y"]->value();
+
+  // Slider Data
+  last_message_.ax_slider = axes_["ax_slider"]->value();
+
+  publisher_->publish(last_message_);
 
   return return_type::OK;
 }

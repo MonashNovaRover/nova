@@ -6,6 +6,8 @@
 #include "control_mode/control_mode.hpp"
 #include "legacy_input_mode/visibility_control.h"
 
+#include "input_interfaces/msg/input_joystick.hpp"
+
 namespace legacy_input_mode
 {
 
@@ -17,6 +19,14 @@ using namespace control_mode;
 class LEGACY_INPUT_MODE_PUBLIC LegacyInputMode : public ControlMode
 {
 public:
+  enum class ButtonState:uint8_t
+  {
+    NOTHING = 0,
+    DOWN = 1,
+    HELD = 2,
+    UP = 3,
+  };
+
   LegacyInputMode();
 
   return_type on_init() override;
@@ -51,25 +61,21 @@ private:
     int qos = 10;
   };
 
+  /// Update Buttons
+  static int8_t update_button(uint8_t last_button, Button::SharedPtr current_input);
+
   /// Stores current parameter values
   Params params_;
 
-  // TODO: Set an appropriate message type for the publisher, then uncomment its declaration/usages
-  // rclcpp::Publisher<TODO>::SharedPtr publisher_;
+  // Create publisher
+  rclcpp::Publisher<input_interfaces::msg::InputJoystick>::SharedPtr publisher_;
 
-  // TODO: Add shared pointers for any buttons/axes you need here, then set them in on_capture_inputs().
+  // Store shared pointer in a map
+  std::map<std::string, Button::SharedPtr> buttons_;
+  std::map<std::string, Axis::SharedPtr> axes_;
 
-  // You can hold references to inputs like this, and set their values in on_capture_inputs:
-  /// Input from 0 to 1 that directly scales the output speed.
-  Axis::SharedPtr speed_;
-
-  /// If you need to store some unknown number N inputs and associated params, you can make a helper struct like this,
-  /// then store an array of them. If you had one input per joint, this could be 'JointHandle' for example, with an
-  /// `std::vector<JointHandle> joints_;` to hold them all.
-  // struct InputHandle {
-  //   Axis::SharedPtr axis_;  //< Set this in on_capture_inputs
-  //   float some_param_;      //< Set this in on_configure
-  // };
+  // Last message
+  input_interfaces::msg::InputJoystick last_message_;
 };
 
 }  // namespace legacy_input_mode

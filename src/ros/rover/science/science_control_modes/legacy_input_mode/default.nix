@@ -12,6 +12,7 @@
 , pluginlib
 , teleop-modular-control-mode
 , rclcpp-lifecycle
+, nova-input-interfaces
 }:
 
 buildRosPackage {
@@ -40,6 +41,7 @@ buildRosPackage {
 
   propagatedBuildInputs = [
     # Add message packages here
+    nova-input-interfaces
   ];
 
   # Enable running tests during build?
