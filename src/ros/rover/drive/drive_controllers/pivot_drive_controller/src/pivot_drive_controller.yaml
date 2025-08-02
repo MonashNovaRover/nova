@@ -4,22 +4,25 @@ pivot_drive_controller:
     default_value: false
     description: "Changes how the controller reacts to Twist commands."
 
-  joints:
+  left_drive_names:
     type: string_array
-    default_value: ["front_left", "front_right", "back_left", "back_right"]
-    description: "Positions of wheels/pivots."
-
-  drive_names:
-    __map_joints:
-      value:
-        type: string
-        description: "Name of the drive joint"
-
-  pivot_names:
-    __map_joints:
-      value:
-        type: string
-        description: "Name of the pivot joint"
+    default_value: []
+    description: "Link names of the left side wheels"
+    
+  right_drive_names:
+    type: string_array
+    default_value: []
+    description: "Link names of the right side wheels"
+    
+  left_pivot_names:
+    type: string_array
+    default_value: []
+    description: "Link names of the left side pivots"
+    
+  right_pivot_names:
+    type: string_array
+    default_value: []
+    description: "Link names of the right side pivots"
 
   steering_track:
     type: double
@@ -106,10 +109,13 @@ pivot_drive_controller:
     default_value: 50.0 # Hz
     description: "Publishing rate (Hz) of the odometry and TF messages."
 
-  curve_factor:
+  input_curve_factor:
     type: double
     default_value: 1.0
-    description: "Turning radius / pivot angle control curve factor for manual control."
+    description: >
+      Turning radius / pivot angle control curve factor for manual control. Higher value = steeper curve,
+      steeper curve = finer control over higher turning radii.
+
 
   speed: # metres
     has_velocity_limits:
