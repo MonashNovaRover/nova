@@ -2,23 +2,24 @@
 
 namespace strafe_controller
 {
+
 Odometry::Odometry(size_t velocity_rolling_window_size)
-: timestamp_(0.0),
-  x_(0.0),
-  y_(0.0),
-  heading_(0.0),
-  linear_(0.0),
-  angular_(0.0),
-  wheel_base_(0.0),
-  wheel_radius_(0.0),
-  wheel_old_pos_(0.0),
-  velocity_rolling_window_size_(velocity_rolling_window_size),
-  linear_accumulator_(velocity_rolling_window_size),
-  angular_accumulator_(velocity_rolling_window_size)
+  : timestamp_(0.0)
+  , x_(0.0)
+  , y_(0.0)
+  , heading_(0.0)
+  , linear_(0.0)
+  , angular_(0.0)
+  , wheel_base_(0.0)
+  , wheel_radius_(0.0)
+  , wheel_old_pos_(0.0)
+  , velocity_rolling_window_size_(velocity_rolling_window_size)
+  , linear_accumulator_(velocity_rolling_window_size)
+  , angular_accumulator_(velocity_rolling_window_size)
 {
 }
 
-void Odometry::init(const rclcpp::Time & time)
+void Odometry::init(const rclcpp::Time& time)
 {
   // Reset accumulators and timestamp:
   resetAccumulators();
@@ -55,8 +56,7 @@ bool Odometry::update(double left_pos, double right_pos, const rclcpp::Time & ti
 }
 */
 
-bool Odometry::update_odometry(
-  const double linear_velocity, const double angular, const double dt)
+bool Odometry::update_odometry(const double linear_velocity, const double angular, const double dt)
 {
   /// Integrate odometry:
   Odometry::integrateExact(linear_velocity * dt, angular);
@@ -77,42 +77,58 @@ bool Odometry::update_odometry(
   return true;
 }
 
-bool Odometry::update(const double &fl_speed, const double &fr_speed, const double &rl_speed, const double &rr_speed,
-  const double front_steering, const double rear_steering, const double &dt)
+bool Odometry::update(
+  const double& fl_speed, const double& fr_speed, const double& rl_speed, const double& rr_speed,
+  const double front_steering, const double rear_steering, const double& dt)
 {
-    const double front_tmp = cos(front_steering) * (tan(front_steering) - tan(rear_steering)) / wheel_base_;
+  const double front_tmp =
+    cos(front_steering) * (tan(front_steering) - tan(rear_steering)) / wheel_base_;
 
-  const double front_left_tmp = front_tmp / sqrt(1 - steering_track_ * front_tmp * cos(front_steering)
-                                              +pow(steering_track_*front_tmp / 2, 2));
-  const double front_right_tmp = front_tmp / sqrt(1 + steering_track_ * front_tmp * cos(front_steering)
-                                              +pow(steering_track_*front_tmp / 2, 2));
+  const double front_left_tmp =
+    front_tmp / sqrt(
+                  1 - steering_track_ * front_tmp * cos(front_steering) +
+                  pow(steering_track_ * front_tmp / 2, 2));
+  const double front_right_tmp =
+    front_tmp / sqrt(
+                  1 + steering_track_ * front_tmp * cos(front_steering) +
+                  pow(steering_track_ * front_tmp / 2, 2));
 
   const double fl_speed_tmp = fl_speed * (1 / (1 - wheel_steering_y_offset_ * front_left_tmp));
   const double fr_speed_tmp = fr_speed * (1 / (1 - wheel_steering_y_offset_ * front_right_tmp));
 
-  const double front_linear_speed = wheel_radius_ * copysign(1.0, fl_speed_tmp + fr_speed_tmp) *
-      sqrt((pow(fl_speed, 2) + pow(fr_speed, 2)) / (2 + pow(steering_track_ * front_tmp, 2) / 2.0));
+  const double front_linear_speed =
+    wheel_radius_ * copysign(1.0, fl_speed_tmp + fr_speed_tmp) *
+    sqrt((pow(fl_speed, 2) + pow(fr_speed, 2)) / (2 + pow(steering_track_ * front_tmp, 2) / 2.0));
 
-  const double rear_tmp = cos(rear_steering) * (tan(front_steering) - tan(rear_steering)) / wheel_base_;
+  const double rear_tmp =
+    cos(rear_steering) * (tan(front_steering) - tan(rear_steering)) / wheel_base_;
 
-  const double rear_left_tmp = rear_tmp / sqrt(1 - steering_track_ * rear_tmp * cos(rear_steering)
-                                              + pow(steering_track_ * rear_tmp/ 2, 2));
-  const double rear_right_tmp = rear_tmp / sqrt(1 + steering_track_ * rear_tmp * cos(rear_steering)
-                                              +pow(steering_track_ * rear_tmp/ 2, 2));
+  const double rear_left_tmp = rear_tmp / sqrt(
+                                            1 - steering_track_ * rear_tmp * cos(rear_steering) +
+                                            pow(steering_track_ * rear_tmp / 2, 2));
+  const double rear_right_tmp = rear_tmp / sqrt(
+                                             1 + steering_track_ * rear_tmp * cos(rear_steering) +
+                                             pow(steering_track_ * rear_tmp / 2, 2));
 
   const double rl_speed_tmp = rl_speed * (1 / (1 - wheel_steering_y_offset_ * rear_left_tmp));
   const double rr_speed_tmp = rr_speed * (1 / (1 - wheel_steering_y_offset_ * rear_right_tmp));
 
-  const double rear_linear_speed = wheel_radius_ * copysign(1.0, rl_speed_tmp + rr_speed_tmp)*
-      sqrt((pow(rl_speed_tmp, 2) + pow(rr_speed_tmp, 2)) / (2 + pow(steering_track_ * rear_tmp, 2) / 2.0));
+  const double rear_linear_speed = wheel_radius_ * copysign(1.0, rl_speed_tmp + rr_speed_tmp) *
+                                   sqrt(
+                                     (pow(rl_speed_tmp, 2) + pow(rr_speed_tmp, 2)) /
+                                     (2 + pow(steering_track_ * rear_tmp, 2) / 2.0));
 
   angular_ = (front_linear_speed * front_tmp + rear_linear_speed * rear_tmp) / 2.0;
 
-  const double linear_x_ = (front_linear_speed * cos(front_steering) + rear_linear_speed * cos(rear_steering)) / 2.0;
-  const double linear_y_ = (front_linear_speed * sin(front_steering) - wheel_base_ * angular_ / 2.0
-              + rear_linear_speed * sin(rear_steering) + wheel_base_ * angular_ / 2.0) / 2.0;
+  const double linear_x_ =
+    (front_linear_speed * cos(front_steering) + rear_linear_speed * cos(rear_steering)) / 2.0;
+  const double linear_y_ =
+    (front_linear_speed * sin(front_steering) - wheel_base_ * angular_ / 2.0 +
+     rear_linear_speed * sin(rear_steering) + wheel_base_ * angular_ / 2.0) /
+    2.0;
 
-  const double linear_velocity =  copysign(1.0, rear_linear_speed)*sqrt(pow(linear_x_,2)+pow(linear_y_,2));
+  const double linear_velocity =
+    copysign(1.0, rear_linear_speed) * sqrt(pow(linear_x_, 2) + pow(linear_y_, 2));
 
   /// Integrate odometry:
   // integrateXY(linear_x_*dt, linear_y_*dt, angular_*dt);
@@ -128,7 +144,7 @@ bool Odometry::update(const double &fl_speed, const double &fr_speed, const doub
   return update_odometry(linear_velocity, angular_, dt);
 }
 
-bool Odometry::updateFromVelocity(double left_vel, double right_vel, const rclcpp::Time & time)
+bool Odometry::updateFromVelocity(double left_vel, double right_vel, const rclcpp::Time& time)
 {
   const double dt = time.seconds() - timestamp_.seconds();
 
@@ -152,7 +168,7 @@ bool Odometry::updateFromVelocity(double left_vel, double right_vel, const rclcp
   return true;
 }
 
-void Odometry::updateOpenLoop(double linear, double angular, const rclcpp::Time & time)
+void Odometry::updateOpenLoop(double linear, double angular, const rclcpp::Time& time)
 {
   /// Save last linear and angular velocity:
   linear_ = linear;
@@ -160,7 +176,7 @@ void Odometry::updateOpenLoop(double linear, double angular, const rclcpp::Time 
 
   /// Integrate odometry:
   const double dt = time.seconds() - timestamp_.seconds();
-  
+
   timestamp_ = time;
   integrateExact(linear * dt, angular * dt);
 }
@@ -172,8 +188,8 @@ void Odometry::resetOdometry()
   heading_ = 0.0;
 }
 
-void Odometry::setWheelParams(double steering_track, double wheel_radius,
-                       double wheel_base, double wheel_steering_y_offset)
+void Odometry::setWheelParams(
+  double steering_track, double wheel_radius, double wheel_base, double wheel_steering_y_offset)
 {
   wheel_base_ = wheel_base;
   wheel_radius_ = wheel_radius;
