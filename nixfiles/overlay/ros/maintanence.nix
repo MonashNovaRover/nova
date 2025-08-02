@@ -571,6 +571,18 @@ self: super:
                 '';
               };
               gz-gui-tarball = rosSelf.lib.tarSource {} gz-gui-source;
+
+              gz-sim-source = self.fetchgit {
+                url = "https://github.com/gazebosim/gz-sim.git";
+                rev = "gz-sim8_8.6.0";
+                name = "gz-sim8_8.6.0";
+                sha256 = "sha256-36QNPMgDb0Ri3612XVfB2unKtbzEyc0P8lhr8hvZr7w=";
+                postFetch = ''
+                  cd $out
+                  patch -p1 <  ${./patches/gz-sim.patch}
+                '';
+              };
+              gz-sim-tarball = rosSelf.lib.tarSource {} gz-sim-source;
             in
             {
               # Gazebo Classic is EOL, and the ROS packages have been removed from the
@@ -699,6 +711,18 @@ self: super:
                 {
                   postPatch = postPatch + ''
                     sed -i 's|file:///nix/store/[^"]*gz-gui8_8\.3\.0\.tar|file://${gz-gui-tarball}|' CMakeLists.txt
+                  ''; 
+                }
+              );
+
+              gz-sim-vendor = rosSuper.gz-sim-vendor.overrideAttrs (
+                {
+                  postPatch ? "",
+                  ...
+                }:
+                {
+                  postPatch = postPatch + ''
+                    sed -i 's|file:///nix/store/[^"]*gz-sim8_8\.6\.0\.tar|file://${gz-sim-tarball}|' CMakeLists.txt
                   ''; 
                 }
               );
