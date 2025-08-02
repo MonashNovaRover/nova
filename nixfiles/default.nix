@@ -88,12 +88,12 @@ let
       (import ./overlay)
 
       # Add teleop_modular
-      (import (pkgs.fetchFromGitHub {
+      (import /home/nova/teleop/overlay.nix /*(pkgs.fetchFromGitHub {
         owner = "BaileyChessum";
         repo = "teleop_modular";
         rev = "2564a4f98a61376d973562dd2c9f5c7c36d8c381";
         hash = "sha256-hXKYMv3QbZY6E2ZXlWSONIwib3e7gDZmjk1O1sU0/Og=";
-      } + "/overlay.nix"))
+      } + "/overlay.nix")*/)
 
       # Add internally defined packages.
       (self: super: import ./packages/other { inherit (self) callPackage; })
