@@ -25,7 +25,6 @@
 #include "nova_interfaces/msg/drive_input_stamped.hpp"
 #include "nova_controller_common/speed_limiter.hpp"
 #include "strafe_controller/odometry.hpp"
-#include "strafe_controller/visibility_control.h"
 #include "strafe_controller_parameters.hpp"
 
 namespace strafe_controller
@@ -34,43 +33,31 @@ namespace strafe_controller
     {
 
     public:
-        STRAFE_CONTROLLER_PUBLIC
         StrafeController();
 
-        STRAFE_CONTROLLER_PUBLIC
         controller_interface::InterfaceConfiguration command_interface_configuration() const override;
-
-        STRAFE_CONTROLLER_PUBLIC
         controller_interface::InterfaceConfiguration state_interface_configuration() const override;
 
-        STRAFE_CONTROLLER_PUBLIC
         controller_interface::return_type update(
             const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
-        STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_init() override;
 
-        STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_configure(
             const rclcpp_lifecycle::State &previous_state) override;
 
-        STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_activate(
             const rclcpp_lifecycle::State &previous_state) override;
 
-        STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_deactivate(
             const rclcpp_lifecycle::State &previous_state) override;
 
-        STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_cleanup(
             const rclcpp_lifecycle::State &previous_state) override;
 
-        STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_error(
             const rclcpp_lifecycle::State &previous_state) override;
 
-        STRAFE_CONTROLLER_PUBLIC
         controller_interface::CallbackReturn on_shutdown(
             const rclcpp_lifecycle::State &previous_state) override;
 

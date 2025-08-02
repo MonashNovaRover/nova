@@ -23,7 +23,6 @@
 #include "nova_interfaces/msg/drive_input_stamped.hpp"
 #include "nova_controller_common/speed_limiter.hpp"
 #include "nova_diff_drive_controller/odometry.hpp"
-#include "nova_diff_drive_controller/visibility_control.h"
 #include "nova_diff_drive_controller_parameters.hpp"
 
 namespace nova_diff_drive_controller
@@ -31,43 +30,31 @@ namespace nova_diff_drive_controller
   class NovaDiffDriveController : public controller_interface::ControllerInterface
   {
   public:
-    NOVA_DIFF_DRIVE_CONTROLLER_PUBLIC
     NovaDiffDriveController();
 
-    NOVA_DIFF_DRIVE_CONTROLLER_PUBLIC
     controller_interface::InterfaceConfiguration command_interface_configuration() const override;
-
-    NOVA_DIFF_DRIVE_CONTROLLER_PUBLIC
     controller_interface::InterfaceConfiguration state_interface_configuration() const override;
 
-    NOVA_DIFF_DRIVE_CONTROLLER_PUBLIC
     controller_interface::return_type update(
         const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
-    NOVA_DIFF_DRIVE_CONTROLLER_PUBLIC
     controller_interface::CallbackReturn on_init() override;
 
-    NOVA_DIFF_DRIVE_CONTROLLER_PUBLIC
     controller_interface::CallbackReturn on_configure(
         const rclcpp_lifecycle::State &previous_state) override;
 
-    NOVA_DIFF_DRIVE_CONTROLLER_PUBLIC
     controller_interface::CallbackReturn on_activate(
         const rclcpp_lifecycle::State &previous_state) override;
 
-    NOVA_DIFF_DRIVE_CONTROLLER_PUBLIC
     controller_interface::CallbackReturn on_deactivate(
         const rclcpp_lifecycle::State &previous_state) override;
 
-    NOVA_DIFF_DRIVE_CONTROLLER_PUBLIC
     controller_interface::CallbackReturn on_cleanup(
         const rclcpp_lifecycle::State &previous_state) override;
 
-    NOVA_DIFF_DRIVE_CONTROLLER_PUBLIC
     controller_interface::CallbackReturn on_error(
         const rclcpp_lifecycle::State &previous_state) override;
 
-    NOVA_DIFF_DRIVE_CONTROLLER_PUBLIC
     controller_interface::CallbackReturn on_shutdown(
         const rclcpp_lifecycle::State &previous_state) override;
 
