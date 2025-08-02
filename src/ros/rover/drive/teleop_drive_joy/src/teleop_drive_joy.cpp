@@ -12,7 +12,7 @@
  * [controller_manager_msgs/srv/SwitchController]
  *  - client:     /pivot_drive_controller/set_parameters       [rcl_interfaces/srv/SetParameters]
  *  - client:     /strafe_controller/set_parameters            [rcl_interfaces/srv/SetParameters]
- *  - client:     /nova_diff_drive_controller/set_parameters   [rcl_interfaces/srv/SetParameters]
+ *  - client:     /diff_drive_controller/set_parameters   [rcl_interfaces/srv/SetParameters]
  * ACTIONS: None
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * PACKAGE:    teleop_drive_joy
@@ -81,7 +81,7 @@ void TeleopDriveJoy::set_autonomous_mode_for_controllers(bool enable)
   // Add the parameter to the request
   request->parameters.push_back(param);
 
-  for (const auto& client : {pivot_drive_client_, strafe_client_, nova_diff_drive_client_})
+  for (const auto& client : {pivot_drive_client_, strafe_client_, diff_drive_client_})
   {
     if (!client->service_is_ready())
     {
@@ -128,8 +128,8 @@ void TeleopDriveJoy::initializeInterfaces()
     "/pivot_drive_controller/set_parameters");
   strafe_client_ =
     this->create_client<rcl_interfaces::srv::SetParameters>("/strafe_controller/set_parameters");
-  nova_diff_drive_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
-    "/nova_diff_drive_controller/set_parameters");
+  diff_drive_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
+    "/diff_drive_controller/set_parameters");
 }
 
 void TeleopDriveJoy::mapButtonCallbacks()
@@ -189,13 +189,13 @@ void TeleopDriveJoy::mapButtonCallbacks()
       RCLCPP_INFO(this->get_logger(), "BUTTON: strafe_drive");
     }
   };
-  button_callbacks_[params_.button_nova_diff_drive_controller] =
+  button_callbacks_[params_.button_diff_drive_controller] =
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     if (drive_mode_ != DriveMode::DIFF)
     {
       switchController(DriveMode::DIFF);
-      RCLCPP_INFO(this->get_logger(), "BUTTON: nova_diff_drive");
+      RCLCPP_INFO(this->get_logger(), "BUTTON: diff_drive");
     }
   };
   // mark axis buttons as negative

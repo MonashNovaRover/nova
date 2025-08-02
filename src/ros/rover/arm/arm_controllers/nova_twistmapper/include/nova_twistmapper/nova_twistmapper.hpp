@@ -203,7 +203,7 @@ protected:
   /// Holds command and state interfaces for each joint
   std::vector<JointHandle> registered_joint_handles_;
 
-  // Parameters from ROS for nova_diff_drive_controller
+  // Parameters from ROS for diff_drive_controller
   std::shared_ptr<ParamListener> param_listener_;
   Params params_;
 

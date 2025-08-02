@@ -16,9 +16,9 @@
  * Author: Enrique Fernández
  */
 
-#include "nova_diff_drive_controller/odometry.hpp"
+#include "diff_drive_controller/odometry.hpp"
 
-namespace nova_diff_drive_controller
+namespace diff_drive_controller
 {
 Odometry::Odometry(size_t velocity_rolling_window_size)
 : timestamp_(0.0),
@@ -162,4 +162,4 @@ void Odometry::resetAccumulators()
   angular_accumulator_ = RollingMeanAccumulator(velocity_rolling_window_size_);
 }
 
-}  // namespace nova_diff_drive_controller
+}  // namespace diff_drive_controller

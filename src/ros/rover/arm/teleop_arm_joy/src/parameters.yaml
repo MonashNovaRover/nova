@@ -10,7 +10,7 @@ teleop_arm_joy:
 #      [
 #        "pivot_drive_controller",
 #        "strafe_controller",
-#        "nova_diff_drive_controller",
+#        "diff_drive_controller",
 #      ]
 #    description: "List Of Controllers that can be used with teleop"
 #    read_only: true

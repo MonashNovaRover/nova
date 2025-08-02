@@ -1,5 +1,5 @@
-#ifndef NOVA_DIFF_DRIVE_CONTROLLER__NOVA_DIFF_DRIVE_CONTROLLER_HPP_
-#define NOVA_DIFF_DRIVE_CONTROLLER__NOVA_DIFF_DRIVE_CONTROLLER_HPP_
+#ifndef DIFF_DRIVE_CONTROLLER__DIFF_DRIVE_CONTROLLER_HPP_
+#define DIFF_DRIVE_CONTROLLER__DIFF_DRIVE_CONTROLLER_HPP_
 
 #include <chrono>
 #include <cmath>
@@ -22,15 +22,15 @@
 
 #include "nova_interfaces/msg/drive_input_stamped.hpp"
 #include "nova_controller_common/speed_limiter.hpp"
-#include "nova_diff_drive_controller/odometry.hpp"
-#include "nova_diff_drive_controller_parameters.hpp"
+#include "diff_drive_controller/odometry.hpp"
+#include "diff_drive_controller_parameters.hpp"
 
-namespace nova_diff_drive_controller
+namespace diff_drive_controller
 {
-  class NovaDiffDriveController : public controller_interface::ControllerInterface
+  class DiffDriveController : public controller_interface::ControllerInterface
   {
   public:
-    NovaDiffDriveController();
+    DiffDriveController();
 
     controller_interface::InterfaceConfiguration command_interface_configuration() const override;
     controller_interface::InterfaceConfiguration state_interface_configuration() const override;
@@ -77,7 +77,7 @@ namespace nova_diff_drive_controller
     std::vector<WheelHandle> registered_left_pivot_handles_;
     std::vector<WheelHandle> registered_right_pivot_handles_;
 
-    // Parameters from ROS for nova_diff_drive_controller
+    // Parameters from ROS for diff_drive_controller
     std::shared_ptr<ParamListener> param_listener_;
     Params params_;
 
@@ -135,5 +135,5 @@ namespace nova_diff_drive_controller
     bool reset();
     void halt();
   };
-} // namespace nova_diff_drive_controller
-#endif // NOVA_DIFF_DRIVE_CONTROLLER__NOVA_DIFF_DRIVE_CONTROLLER_HPP_
+} // namespace diff_drive_controller
+#endif // DIFF_DRIVE_CONTROLLER__DIFF_DRIVE_CONTROLLER_HPP_

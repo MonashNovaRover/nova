@@ -1,7 +1,0 @@
-<library path="nova_diff_drive_controller">
-  <class name="nova_diff_drive_controller/NovaDiffDriveController" type="nova_diff_drive_controller::NovaDiffDriveController" base_class_type="controller_interface::ControllerInterface">
-  <description>
-    The differential drive controller transforms linear and angular velocity messages into signals for each wheel(s) for a differential drive robot.
-  </description>
-  </class>
-</library>
