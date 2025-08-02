@@ -9,7 +9,6 @@
 , rclcpp-lifecycle
 , std-srvs
 , generate-parameter-library
-, rcpputils
 , backward-ros
 , nav-msgs
 , realtime-tools
