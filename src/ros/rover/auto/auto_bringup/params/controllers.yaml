@@ -71,18 +71,13 @@ joint_state_broadcaster:
 pivot_drive_controller:
   ros__parameters:
     autonomous_mode: true
-    drive_names:
-      front_left.value:  "flw"
-      front_right.value: "frw"
-      back_left.value:   "blw"
-      back_right.value:  "brw"
-    pivot_names:
-      front_left.value:  "flp"
-      front_right.value: "frp"
-      back_left.value:   "blp"
-      back_right.value:  "brp"
+    left_drive_names: ["flw", "blw"]
+    right_drive_names: ["frw", "brw"]
+    left_pivot_names: ["flp", "blp"]
+    right_pivot_names: ["frp", "brp"]
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
     open_loop: false
+    input_curve_factor: 2.0
     speed: # metres
       has_velocity_limits: true
       has_acceleration_limits: true

@@ -30,57 +30,41 @@
 namespace nova_controller_common
 {
 
-enum class JointPosition : uint8_t
+enum class JointSide
 {
-  FRONT_LEFT,
-  FRONT_RIGHT,
-  BACK_LEFT,
-  BACK_RIGHT
+  LEFT,
+  RIGHT
 };
 
-JointPosition to_joint_position(const std::string& joint_name)
-{
-  if (joint_name == "front_left")
-  {
-    return JointPosition::FRONT_LEFT;
-  }
-  if (joint_name == "front_right")
-  {
-    return JointPosition::FRONT_RIGHT;
-  }
-  if (joint_name == "back_left")
-  {
-    return JointPosition::BACK_LEFT;
-  }
-  if (joint_name == "back_right")
-  {
-    return JointPosition::BACK_RIGHT;
-  }
-  throw std::invalid_argument("Invalid joint name: " + joint_name);
-}
-
-enum class JointType : uint8_t
+enum class JointType
 {
   DRIVE,
   PIVOT
 };
+
+constexpr size_t encoded_pos(const size_t pos, const JointSide side, const JointType type)
+{
+  return pos << 2 | (static_cast<size_t>(side) << 1) | static_cast<size_t>(type);
+}
 
 struct Joint
 {
   const std::string name;
   const char* feedback_type;
   const char* command_type;
-  const JointPosition position;
+  const size_t pos;
+  const JointSide side;
   const JointType type;
 
   Joint(
-    const std::string& joint_name, const char* feedback, const char* command,
-    const JointPosition joint_pos, JointType joint_type)
+    const std::string& joint_name, const char* feedback, const char* command, const size_t pos,
+    const JointSide side, const JointType type)
     : name(joint_name)
     , feedback_type(feedback)
     , command_type(command)
-    , position(joint_pos)
-    , type(joint_type)
+    , pos(pos)
+    , side(side)
+    , type(type)
   {
   }
 };
@@ -99,18 +83,16 @@ public:
     std::vector<hardware_interface::LoanedStateInterface>& state_interfaces,
     std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces);
 
-  bool set_value(double value, const JointPosition joint_pos, const JointType joint_type) const;
+  bool set_value(double value, const size_t pos, const JointSide side, const JointType type) const;
 
   std::optional<double> get_optional(
-    const JointPosition joint_pos, const JointType joint_type, bool cmd_if = false) const;
+    const size_t pos, const JointSide side, const JointType type, bool cmd_if = false) const;
 
   bool configure_joint_handles(std::vector<Joint>& joints, bool open_loop);
 
   void reset_handles();
 
 private:
-  std::size_t get_index(const JointPosition& pos, const JointType& type) const;
-
   rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
   std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces_;
   std::vector<hardware_interface::LoanedStateInterface>& state_interfaces_;

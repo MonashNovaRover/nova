@@ -31,24 +31,29 @@ HardwareInterfaceWrapper::HardwareInterfaceWrapper(
   , offset_angle_(offset_angle)
   , state_interfaces_(state_interfaces)
   , command_interfaces_(command_interfaces)
-  , registered_handles_(8, std::nullopt)
 {
 }
 
 bool HardwareInterfaceWrapper::set_value(
-  double value, const JointPosition joint_pos, const JointType joint_type) const
+  double value, const size_t pos, const JointSide side, const JointType type) const
 {
-  const size_t index = get_index(joint_pos, joint_type);
-  if (!registered_handles_[index])
+  const size_t idx = encoded_pos(pos, side, type);
+  if (idx >= registered_handles_.size())
   {
-    RCLCPP_ERROR(node_->get_logger(), "Joint handle not registered for joint at index %zu", index);
+    RCLCPP_ERROR(node_->get_logger(), "Index %zu out of bounds for registered handles", idx);
+    return false;
+  }
+  if (!registered_handles_[idx])
+  {
+    RCLCPP_ERROR(node_->get_logger(), "Joint handle not registered for joint at index %zu", idx);
     return false;
   }
 
   // Invert pivot position value for BLCMDs
-  if (joint_type == JointType::PIVOT)
+  if (type == JointType::PIVOT)
   {
-    if (joint_pos == JointPosition::FRONT_LEFT || joint_pos == JointPosition::BACK_RIGHT)
+    // Assumes that there are only two pivots (front and back) for each side
+    if ((pos == 0 && side == JointSide::LEFT) || (pos == 1 && side == JointSide::RIGHT))
     {
       value -= offset_angle_;
     }
@@ -58,43 +63,48 @@ bool HardwareInterfaceWrapper::set_value(
     }
     value *= REVERSE_MULTIPLIER_;
   }
-  registered_handles_[index]->command.get().set_value(value);
+  registered_handles_[idx]->command.get().set_value(value);
 
   return true;
 }
 
 std::optional<double> HardwareInterfaceWrapper::get_optional(
-  const JointPosition joint_pos, const JointType joint_type, bool cmd_if) const
+  const size_t pos, const JointSide side, const JointType type, bool cmd_if) const
 {
-  const size_t index = get_index(joint_pos, joint_type);
-  if (!registered_handles_[index])
+  const size_t idx = encoded_pos(pos, side, type);
+  if (idx >= registered_handles_.size())
   {
-    RCLCPP_ERROR(node_->get_logger(), "Joint handle not registered for joint at index %zu", index);
+    RCLCPP_ERROR(node_->get_logger(), "Index %zu out of bounds for registered handles", idx);
+    return std::nullopt;
+  }
+  if (!registered_handles_[idx])
+  {
+    RCLCPP_ERROR(node_->get_logger(), "Joint handle not registered for joint at index %zu", idx);
     return std::nullopt;
   }
 
   double res;
   if (cmd_if)
   {
-    const auto& command_handle = registered_handles_[index]->command;
+    const auto& command_handle = registered_handles_[idx]->command;
     res = command_handle.get().get_value();
   }
   else
   {
-    const auto& state_handle = registered_handles_[index]->state;
+    const auto& state_handle = registered_handles_[idx]->state;
     if (!state_handle.has_value())
     {
-      RCLCPP_ERROR(node_->get_logger(), "State handle not available for joint at index %zu", index);
+      RCLCPP_ERROR(node_->get_logger(), "State handle not available for joint at index %zu", idx);
       return std::nullopt;
     }
     res = state_handle.value().get().get_value();
   }
 
   // Invert pivot position value for BLCMDs
-  if (joint_type == JointType::PIVOT)
+  if (type == JointType::PIVOT)
   {
-    double offset_angle = offset_angle_;
-    if (joint_pos == JointPosition::FRONT_LEFT || joint_pos == JointPosition::BACK_RIGHT)
+    // Assumes that there are only two pivots (front and back) for each side
+    if ((pos == 0 && side == JointSide::LEFT) || (pos == 1 && side == JointSide::RIGHT))
     {
       res -= offset_angle_;
     }
@@ -110,46 +120,53 @@ std::optional<double> HardwareInterfaceWrapper::get_optional(
 
 bool HardwareInterfaceWrapper::configure_joint_handles(std::vector<Joint>& joints, bool open_loop)
 {
-  for (const auto& [joint_name, feedback_type, command_type, joint_pos, joint_type] : joints)
+  size_t max_pos = 0;
+  for (const auto& joint : joints)
+  {
+    max_pos = std::max(max_pos, joint.pos);
+  }
+  registered_handles_.resize((max_pos + 1) << 2); // make space for 2 bits, side and type
+  
+  for (const auto& [name, feedback_type, command_type, pos, side, type] : joints)
   {
     const auto cmd_iter = std::find_if(
       command_interfaces_.begin(), command_interfaces_.end(),
-      [&joint_name, &command_type](const auto& interface)
+      [&name, &command_type](const auto& interface)
       {
-        return interface.get_prefix_name() == joint_name &&
+        return interface.get_prefix_name() == name &&
                interface.get_interface_name() == command_type;
       });
 
     if (cmd_iter == command_interfaces_.end())
     {
       RCLCPP_ERROR(
-        node_->get_logger(), "Unable to obtain joint command handle for %s", joint_name.c_str());
+        node_->get_logger(), "Unable to obtain joint command handle for %s", name.c_str());
       return false;
     }
 
+    const size_t idx = encoded_pos(pos, side, type);
     if (open_loop)
     {
-      registered_handles_[get_index(joint_pos, joint_type)] =
-        WheelHandle{std::nullopt, std::ref(*cmd_iter)};
+      registered_handles_[idx] = WheelHandle{std::nullopt, std::ref(*cmd_iter)};
     }
     else
     {
       const auto state_iter = std::find_if(
         state_interfaces_.cbegin(), state_interfaces_.cend(),
-        [&joint_name, &feedback_type](const auto& interface)
+        [&name, &feedback_type](const auto& interface)
         {
-          return interface.get_prefix_name() == joint_name &&
+          return interface.get_prefix_name() == name &&
                  interface.get_interface_name() == feedback_type;
         });
 
       if (state_iter == state_interfaces_.cend())
       {
         RCLCPP_ERROR(
-          node_->get_logger(), "Unable to obtain joint state handle for %s", joint_name.c_str());
+          node_->get_logger(), "Unable to obtain joint state handle for %s", name.c_str());
         return false;
       }
 
-      registered_handles_[get_index(joint_pos, joint_type)] =
+      registered_handles_[idx] =
         WheelHandle{std::make_optional(std::ref(*state_iter)), std::ref(*cmd_iter)};
     }
   }
@@ -163,13 +180,6 @@ void HardwareInterfaceWrapper::reset_handles()
   {
     handle.reset();
   }
-}
-
-std::size_t HardwareInterfaceWrapper::get_index(
-  const JointPosition& pos, const JointType& type) const
-{
-  // Position = 2 bits, type = 1 bit
-  return (static_cast<size_t>(pos) << 1) | static_cast<size_t>(type);
 }
 
 }  // namespace nova_controller_common

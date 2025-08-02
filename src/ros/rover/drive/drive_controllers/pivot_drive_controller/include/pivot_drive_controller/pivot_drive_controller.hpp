@@ -105,6 +105,8 @@ private:
   double offset_angle_;
   double half_wheel_base_;
   double half_steering_track_;
+  size_t num_wheels_per_side_;
+  const size_t NUM_PIVOTS_PER_SIDE_;
 
   std::unique_ptr<nova_controller_common::HardwareInterfaceWrapper> hwif_wrapper_;
   std::unique_ptr<Odometry> odometry_;
@@ -128,8 +130,8 @@ private:
   realtime_tools::RealtimeBuffer<std::shared_ptr<geometry_msgs::msg::TwistStamped>>
     received_twist_msg_ptr_;
 
-  const char* DRIVE_COMMAND_TYPE;
-  const char* PIVOT_COMMAND_TYPE;
+  const char* DRIVE_COMMAND_TYPE_;
+  const char* PIVOT_COMMAND_TYPE_;
 };
 
 }  // namespace pivot_drive_controller
