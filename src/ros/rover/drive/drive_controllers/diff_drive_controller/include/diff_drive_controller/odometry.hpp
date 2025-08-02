@@ -8,60 +8,76 @@
 
 namespace diff_drive_controller
 {
-  class Odometry
+
+class Odometry
+{
+public:
+  explicit Odometry(size_t velocity_rolling_window_size = 10);
+
+  void init(const rclcpp::Time& time);
+  bool update(double left_pos, double right_pos, const rclcpp::Time& time);
+  bool updateFromVelocity(double left_vel, double right_vel, const rclcpp::Time& time);
+  void updateOpenLoop(double linear, double angular, const rclcpp::Time& time);
+  void resetOdometry();
+
+  double getX() const
   {
-  public:
-    explicit Odometry(size_t velocity_rolling_window_size = 10);
+    return x_;
+  }
+  double getY() const
+  {
+    return y_;
+  }
+  double getHeading() const
+  {
+    return heading_;
+  }
+  double getLinear() const
+  {
+    return linear_;
+  }
+  double getAngular() const
+  {
+    return angular_;
+  }
 
-    void init(const rclcpp::Time &time);
-    bool update(double left_pos, double right_pos, const rclcpp::Time &time);
-    bool updateFromVelocity(double left_vel, double right_vel, const rclcpp::Time &time);
-    void updateOpenLoop(double linear, double angular, const rclcpp::Time &time);
-    void resetOdometry();
+  void setWheelParams(double wheel_separation, double left_wheel_radius, double right_wheel_radius);
+  void setVelocityRollingWindowSize(size_t velocity_rolling_window_size);
 
-    double getX() const { return x_; }
-    double getY() const { return y_; }
-    double getHeading() const { return heading_; }
-    double getLinear() const { return linear_; }
-    double getAngular() const { return angular_; }
+private:
+  using RollingMeanAccumulator = rcpputils::RollingMeanAccumulator<double>;
 
-    void setWheelParams(double wheel_separation, double left_wheel_radius, double right_wheel_radius);
-    void setVelocityRollingWindowSize(size_t velocity_rolling_window_size);
+  void integrateRungeKutta2(double linear, double angular);
+  void integrateExact(double linear, double angular);
+  void resetAccumulators();
 
-  private:
-    using RollingMeanAccumulator = rcpputils::RollingMeanAccumulator<double>;
+  // Current timestamp:
+  rclcpp::Time timestamp_;
 
-    void integrateRungeKutta2(double linear, double angular);
-    void integrateExact(double linear, double angular);
-    void resetAccumulators();
+  // Current pose:
+  double x_;        //   [m]
+  double y_;        //   [m]
+  double heading_;  // [rad]
 
-    // Current timestamp:
-    rclcpp::Time timestamp_;
+  // Current velocity:
+  double linear_;   //   [m/s]
+  double angular_;  // [rad/s]
 
-    // Current pose:
-    double x_;       //   [m]
-    double y_;       //   [m]
-    double heading_; // [rad]
+  // Wheel kinematic parameters [m]:
+  double wheel_separation_;
+  double left_wheel_radius_;
+  double right_wheel_radius_;
 
-    // Current velocity:
-    double linear_;  //   [m/s]
-    double angular_; // [rad/s]
+  // Previous wheel position/state [rad]:
+  double left_wheel_old_pos_;
+  double right_wheel_old_pos_;
 
-    // Wheel kinematic parameters [m]:
-    double wheel_separation_;
-    double left_wheel_radius_;
-    double right_wheel_radius_;
+  // Rolling mean accumulators for the linear and angular velocities:
+  size_t velocity_rolling_window_size_;
+  RollingMeanAccumulator linear_accumulator_;
+  RollingMeanAccumulator angular_accumulator_;
+};
 
-    // Previous wheel position/state [rad]:
-    double left_wheel_old_pos_;
-    double right_wheel_old_pos_;
+}  // namespace diff_drive_controller
 
-    // Rolling mean accumulators for the linear and angular velocities:
-    size_t velocity_rolling_window_size_;
-    RollingMeanAccumulator linear_accumulator_;
-    RollingMeanAccumulator angular_accumulator_;
-  };
-
-} // namespace diff_drive_controller
-
-#endif // DIFF_DRIVE_CONTROLLER__ODOMETRY_HPP_
+#endif  // DIFF_DRIVE_CONTROLLER__ODOMETRY_HPP_

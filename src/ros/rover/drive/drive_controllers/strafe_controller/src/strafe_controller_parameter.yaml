@@ -1,168 +1,175 @@
 strafe_controller:
-  left_drive_names: {
-    type: string_array,
-    default_value: [],
-    description: "Link names of the left drive joints",
-  }
-  right_drive_names: {
-    type: string_array,
-    default_value: [],
-    description: "Link names of the left drive joints",
-  }
-  left_pivot_names: {
-    type: string_array,
-    default_value: [],
-    description: "Link names of the left drive joints",
-  }
-  right_pivot_names: {
-    type: string_array,
-    default_value: [],
-    description: "Link names of the left drive joints",
-  }
-  wheels_per_side: {
-    type: int,
-    default_value: 2,
-    description: "No. wheels per side of the vehicle",
-  }
-  wheel_steering_y_offset: {
-    type: double,
-    default_value: 0.0,
-    description: "Offset from the center of the steering joint and the center of the wheel joint",
-  }
-  steering_track: {
-    type: double,
-    default_value: 0.81564001, # 0.76 for Waratah
-    description: "Steering track: distance between center of left and right wheels",
-  }
-  wheel_base: {
-    type: double,
-    default_value: 0.95752883, # 0.875 for Waratah
-    description: "Wheelbase: distance between center of front and rear wheels",
-  }
-  wheel_radius: {
-    type: double,
-    default_value: 0.15692321, # 0.16 for Waratah
-    description: "Radius of wheels",
-  }
-  velocity_rolling_window_size: {
-    type: int,
-    default_value: 10,
-    description: "Size of the rolling window for calculation of mean velocity use in odometry.",
-  }
-  cmd_vel_timeout: {
-    type: double,
-    default_value: 0.5, # Seconds
-    description: "Timeout on cmd_vel command.",
-  }
-  has_velocity_limits: {
-    type: bool,
-    default_value: false,
-    description: "Enable to limit velocities to a max velocity",
-  }
-  has_acceleration_limits: {
-    type: bool,
-    default_value: false,
-    description: "Enable to limit acceleration to a max velocity",
-  }
-  has_jerk_limits: {
-    type: bool,
-    default_value: false,
-    description: "Enable to limit acceleration to a max velocity",
-  }
+  left_drive_names:
+    type: string_array
+    default_value: []
+    description: "Link names of the left drive joints"
+
+  right_drive_names:
+    type: string_array
+    default_value: []
+    description: "Link names of the left drive joints"
+
+  left_pivot_names:
+    type: string_array
+    default_value: []
+    description: "Link names of the left drive joints"
+
+  right_pivot_names:
+    type: string_array
+    default_value: []
+    description: "Link names of the left drive joints"
+
+  wheels_per_side:
+    type: int
+    default_value: 2
+    description: "No. wheels per side of the vehicle"
+
+  wheel_steering_y_offset:
+    type: double
+    default_value: 0.0
+    description: "Offset from the center of the steering joint and the center of the wheel joint"
+
+  steering_track:
+    type: double
+    default_value: 0.81564001 # 0.76 for Waratah
+    description: "Steering track: distance between center of left and right wheels"
+
+  wheel_base:
+    type: double
+    default_value: 0.95752883 # 0.875 for Waratah
+    description: "Wheelbase: distance between center of front and rear wheels"
+
+  wheel_radius:
+    type: double
+    default_value: 0.15692321 # 0.16 for Waratah
+    description: "Radius of wheels"
+
+  velocity_rolling_window_size:
+    type: int
+    default_value: 10
+    description: "Size of the rolling window for calculation of mean velocity use in odometry."
+
+  cmd_vel_timeout:
+    type: double
+    default_value: 0.5 # Seconds
+    description: "Timeout on cmd_vel command."
+
+  has_velocity_limits:
+    type: bool
+    default_value: false
+    description: "Enable to limit velocities to a max velocity"
+
+  has_acceleration_limits:
+    type: bool
+    default_value: false
+    description: "Enable to limit acceleration to a max velocity"
+
+  has_jerk_limits:
+    type: bool
+    default_value: false
+    description: "Enable to limit acceleration to a max velocity"
+
   # Not sure if we need these params since the command_interfaces have min/max?
   ### START ###
-  min_velocity: { 
-    type: double, 
+  min_velocity: 
+    type: double
     default_value: 0.0 
-  }
-  max_velocity: { 
-    type: double, 
+
+  max_velocity: 
+    type: double
     default_value: 0.0 
-  }
-  min_acceleration: { 
-    type: double, 
+
+  min_acceleration: 
+    type: double
     default_value: 0.0 
-  }
-  max_acceleration: { 
-    type: double, 
+
+  max_acceleration: 
+    type: double
     default_value: 1.0 
-  }
-  min_jerk: { 
-    type: double, 
+
+  min_jerk: 
+    type: double
     default_value: 0.0 
-  }
-  max_jerk: { 
-    type: double, 
+
+  max_jerk: 
+    type: double
     default_value: 0.0 
-  }
+
   ### END ###
-  drive_position_feedback: {
-    type: bool,
-    default_value: false,
-    description: "Whether the drives have position or velocity feedback",
-  }
-  pivot_position_feedback: {
-    type: bool,
-    default_value: true,
-    description: "Whether the pivots have position or velocity feedback",
-  }
-  tf_frame_prefix_enable: {
-    type: bool,
-    default_value: true,
-    description: "Enables or disables appending tf_prefix to tf frame id's.",
-  }
-  tf_frame_prefix: {
-    type: string,
-    default_value: "",
-    description: "(optional) Prefix to be appended to the tf frames, will be added to odom_id and base_frame_id before publishing. If the parameter is empty, controller's namespace will be used.",
-  }
-  odom_frame_id: {
-    type: string,
-    default_value: "odom",
-    description: "Name of the frame for odometry. This frame is parent of ``base_frame_id`` when controller publishes odometry.",
-  }
-  base_frame_id: {
-    type: string,
-    default_value: "base_link",
-    description: "Name of the robot's base frame that is child of the odometry frame.",
-  }
-  pose_covariance_diagonal: {
-    type: double_array,
-    default_value: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    description: "Odometry covariance for the encoder output of the robot for the pose. These values should be tuned to your robot's sample odometry data, but these values are a good place to start: ``[0.001, 0.001, 0.001, 0.001, 0.001, 0.01]``.",
-  }
-  twist_covariance_diagonal: {
-    type: double_array,
-    default_value: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    description: "Odometry covariance for the encoder output of the robot for the speed. These values should be tuned to your robot's sample odometry data, but these values are a good place to start: ``[0.001, 0.001, 0.001, 0.001, 0.001, 0.01]``.",
-  }
-  open_loop: {
-    type: bool,
-    default_value: false,
-    description: "If set to true the odometry of the robot will be calculated from the commanded values and not from feedback.",
-  }
-  enable_odom_tf: {
-    type: bool,
-    default_value: true,
-    description: "Publish transformation between ``odom_frame_id`` and ``base_frame_id``.",
-  }
-  publish_limited_velocity: {
-    type: bool,
-    default_value: false,
-    description: "Publish limited velocity value.",
-  }
-  publish_rate: {
-    type: double,
-    default_value: 50.0, # Hz
-    description: "Publishing rate (Hz) of the odometry and TF messages.",
-  }
-  max_theta: {
-    type: double,
-    default_value: 3.5342, #2*pi
-    description: "Max. theta displacement in one iteration",
-  }
-  enable_twist_cmd: {
-    type: bool,
-    default_value: false,
-    description: "Enable the controller to subscribe to twist messages. By default, subscribe to DriveInputStamped.msg",
-  }
+  drive_position_feedback:
+    type: bool
+    default_value: false
+    description: "Whether the drives have position or velocity feedback"
+
+  pivot_position_feedback:
+    type: bool
+    default_value: true
+    description: "Whether the pivots have position or velocity feedback"
+
+  tf_frame_prefix_enable:
+    type: bool
+    default_value: true
+    description: "Enables or disables appending tf_prefix to tf frame id's."
+
+  tf_frame_prefix:
+    type: string
+    default_value: ""
+    description: >
+      (optional) Prefix to be appended to the tf frames, will be added to odom_id and base_frame_id
+      before publishing. If the parameter is empty, controller's namespace will be used.
+
+  odom_frame_id:
+    type: string
+    default_value: "odom"
+    description: "Name of the frame for odometry. This frame is parent of ``base_frame_id`` when controller publishes odometry."
+
+  base_frame_id:
+    type: string
+    default_value: "base_link"
+    description: "Name of the robot's base frame that is child of the odometry frame."
+
+  pose_covariance_diagonal:
+    type: double_array
+    default_value: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    description: >
+      Odometry covariance for the encoder output of the robot for the pose. These values should
+      be tuned to your robot's sample odometry data, but these values are a good place to start:
+      ``[0.001, 0.001, 0.001, 0.001, 0.001, 0.01]``.
+    
+  twist_covariance_diagonal:
+    type: double_array
+    default_value: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    description: >
+      Odometry covariance for the encoder output of the robot for the speed. These values should
+      be tuned to your robot's sample odometry data, but these values are a good place to start:
+      ``[0.001, 0.001, 0.001, 0.001, 0.001, 0.01]``.
+
+  open_loop:
+    type: bool
+    default_value: false
+    description: "If set to true the odometry of the robot will be calculated from the commanded values and not from feedback."
+
+  enable_odom_tf:
+    type: bool
+    default_value: true
+    description: "Publish transformation between ``odom_frame_id`` and ``base_frame_id``."
+
+  publish_limited_velocity:
+    type: bool
+    default_value: false
+    description: "Publish limited velocity value."
+
+  publish_rate:
+    type: double
+    default_value: 50.0 # Hz
+    description: "Publishing rate (Hz) of the odometry and TF messages."
+
+  max_theta:
+    type: double
+    default_value: 3.5342 #2*pi
+    description: "Max. theta displacement in one iteration"
+
+  enable_twist_cmd:
+    type: bool
+    default_value: false
+    description: "Enable the controller to subscribe to twist messages. By default, subscribe to DriveInputStamped.msg"

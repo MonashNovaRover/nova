@@ -1,38 +1,60 @@
-#ifndef FOUR_STEERING_CONTROLLER__ODOMETRY_HPP_
-#define FOUR_STEERING_CONTROLLER__ODOMETRY_HPP_
+#ifndef STRAFE_CONTROLLER__ODOMETRY_HPP_
+#define STRAFE_CONTROLLER__ODOMETRY_HPP_
 
 #include <cmath>
 
 #include "rclcpp/time.hpp"
 #include "rcpputils/rolling_mean_accumulator.hpp"
 
-namespace strafe_controller 
+namespace strafe_controller
 {
+
 class Odometry
 {
 public:
   explicit Odometry(size_t velocity_rolling_window_size = 10);
 
-  void init(const rclcpp::Time & time);
-  bool update(const double &fl_speed, const double &fr_speed,
-              const double &rl_speed, const double &rr_speed,
-              double front_steering, double rear_steering, const double &time);
-  bool updateFromVelocity(double left_vel, double right_vel, const rclcpp::Time & time);
-  void updateOpenLoop(double linear, double angular, const rclcpp::Time & time);
+  void init(const rclcpp::Time& time);
+  bool update(
+    const double& fl_speed, const double& fr_speed, const double& rl_speed, const double& rr_speed,
+    double front_steering, double rear_steering, const double& time);
+  bool updateFromVelocity(double left_vel, double right_vel, const rclcpp::Time& time);
+  void updateOpenLoop(double linear, double angular, const rclcpp::Time& time);
   void resetOdometry();
   bool update_odometry(const double linear_velocity, const double angular, const double dt);
 
-  double getX() const { return x_; }
-  double getY() const { return y_; }
-  double getHeading() const { return heading_; }
-  double getLinear() const { return linear_; }
-  double getLinearX() const { return linear_x_; }
-  double getLinearY() const { return linear_y_; }
+  double getX() const
+  {
+    return x_;
+  }
+  double getY() const
+  {
+    return y_;
+  }
+  double getHeading() const
+  {
+    return heading_;
+  }
+  double getLinear() const
+  {
+    return linear_;
+  }
+  double getLinearX() const
+  {
+    return linear_x_;
+  }
+  double getLinearY() const
+  {
+    return linear_y_;
+  }
 
-  double getAngular() const { return angular_; }
+  double getAngular() const
+  {
+    return angular_;
+  }
 
-  void setWheelParams( double steering_track, double wheel_radius,
-                       double wheel_base, double wheel_steering_y_offset);
+  void setWheelParams(
+    double steering_track, double wheel_radius, double wheel_base, double wheel_steering_y_offset);
   void setVelocityRollingWindowSize(size_t velocity_rolling_window_size);
 
 private:
@@ -69,6 +91,6 @@ private:
   RollingMeanAccumulator angular_accumulator_;
 };
 
-}  // namespace four_steering_controller
+}  // namespace strafe_controller
 
-#endif  // FOUR_STEERING_CONTROLLER__ODOMETRY_HPP_
+#endif  // STRAFE_CONTROLLER__ODOMETRY_HPP_
