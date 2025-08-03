@@ -4,7 +4,7 @@
 #include <chrono>
 #include <cmath>
 #include <memory>
-#include <queue>
+#include <deque>
 #include <string>
 #include <vector>
 
@@ -15,13 +15,12 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
-#include "realtime_tools/realtime_box.h"
 #include "realtime_tools/realtime_buffer.h"
 #include "realtime_tools/realtime_publisher.h"
 #include "tf2_msgs/msg/tf_message.hpp"
 
-#include "nova_interfaces/msg/drive_input_stamped.hpp"
 #include "nova_controller_common/speed_limiter.hpp"
+#include "nova_controller_common/hardware_interface_wrapper.hpp"
 #include "diff_drive_controller/odometry.hpp"
 #include "diff_drive_controller_parameters.hpp"
 
@@ -60,86 +59,51 @@ public:
     const rclcpp_lifecycle::State& previous_state) override;
 
 protected:
-  struct WheelHandle
-  {
-    std::reference_wrapper<const hardware_interface::LoanedStateInterface> state;
-    std::reference_wrapper<hardware_interface::LoanedCommandInterface> command;
-  };
-
   const char* drive_feedback_type() const;
   const char* pivot_feedback_type() const;
 
-  controller_interface::CallbackReturn configure_drive_pivots(
-    const std::vector<std::string>& wheel_names, std::vector<WheelHandle>& registered_handles,
-    const char* feedback_type);
+  bool reset();
+  void reset_buffers();
+  void halt();
 
-  std::vector<WheelHandle> registered_left_drive_handles_;
-  std::vector<WheelHandle> registered_right_drive_handles_;
-  std::vector<WheelHandle> registered_left_pivot_handles_;
-  std::vector<WheelHandle> registered_right_pivot_handles_;
+  bool is_active_ = false;
+  bool is_halted_ = false;
 
   // Parameters from ROS for diff_drive_controller
   std::shared_ptr<ParamListener> param_listener_;
-  Params params_;
+  std::shared_ptr<Params> params_;
 
-  Odometry odometry_;
+  double wheel_separation_;
+  double left_wheel_radius_;
+  double right_wheel_radius_;
+  size_t wheels_per_side_;
+  const size_t PIVOTS_PER_SIDE_;
 
-  // Timeout to consider cmd_vel commands old
-  std::chrono::milliseconds cmd_vel_timeout_{500};
+  std::unique_ptr<nova_controller_common::HardwareInterfaceWrapper> hwif_wrapper_;
+  std::unique_ptr<Odometry> odometry_;
 
-  std::shared_ptr<rclcpp::Publisher<nav_msgs::msg::Odometry>> odometry_publisher_ = nullptr;
-  std::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>
-    realtime_odometry_publisher_ = nullptr;
+  std::deque<double> previous_linear_velocities_;   // last two linear velocity commands
+  std::deque<double> previous_angular_velocities_;  // last two angular velocity commands
 
-  std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> odometry_transform_publisher_ =
-    nullptr;
-  std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>
-    realtime_odometry_transform_publisher_ = nullptr;
-
-  bool subscriber_is_active_ = false;
-  rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_subscriber_ = nullptr;
-  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr twist_unstamped_subscriber_ = nullptr;
-
-  rclcpp::Subscription<nova_interfaces::msg::DriveInputStamped>::SharedPtr drive_input_subscriber_ =
-    nullptr;
-  rclcpp::Subscription<nova_interfaces::msg::DriveInput>::SharedPtr
-    drive_input_unstamped_subscriber_ = nullptr;
-
-  realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>>
-    received_twist_msg_ptr_{nullptr};
-  realtime_tools::RealtimeBox<std::shared_ptr<nova_interfaces::msg::DriveInputStamped>>
-    received_drive_input_msg_ptr_{nullptr};
-
-  std::queue<geometry_msgs::msg::TwistStamped> previous_twist_commands_;   // last two commands
-  std::queue<nova_interfaces::msg::DriveInputStamped> previous_commands_;  // last two commands
-
-  float angle_offset;
-  // speed limiters
+  // Limiters
   nova_controller_common::SpeedLimiter limiter_linear_;
   nova_controller_common::SpeedLimiter limiter_angular_;
 
-  bool publish_limited_twist_ = false;
-  std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::TwistStamped>> limited_twist_publisher_ =
-    nullptr;
+  // Timeout to consider cmd_vel commands old
+  rclcpp::Duration cmd_vel_timeout_ = rclcpp::Duration::from_seconds(0.5);
+
+  // Subscriber and realtime buffer for received TwistStamped messages
+  rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_subscriber_;
+  realtime_tools::RealtimeBuffer<std::shared_ptr<geometry_msgs::msg::TwistStamped>>
+    received_twist_msg_ptr_;
+
+  // Publisher and realtime buffer for commanded TwistStamped messages
+  std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::TwistStamped>> commanded_twist_publisher_;
   std::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::msg::TwistStamped>>
-    realtime_limited_twist_publisher_ = nullptr;
+    realtime_commanded_twist_publisher_;
 
-  rclcpp::Time previous_update_timestamp_{0};
-
-  float target_direction;
-  float max_d_vel;
-  float best_effort_velocity;
-
-  // publish rate limiter
-  double publish_rate_ = 50.0;
-  rclcpp::Duration publish_period_ = rclcpp::Duration::from_nanoseconds(0);
-  rclcpp::Time previous_publish_timestamp_{0, 0, RCL_CLOCK_UNINITIALIZED};
-
-  bool is_halted = false;
-  bool use_stamped_vel_ = true;
-
-  bool reset();
-  void halt();
+  const char* DRIVE_COMMAND_TYPE_;
+  const char* PIVOT_COMMAND_TYPE_;
 };
 
 }  // namespace diff_drive_controller

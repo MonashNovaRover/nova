@@ -77,7 +77,6 @@ pivot_drive_controller:
     right_pivot_names: ["frp", "brp"]
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
     open_loop: false
-    input_curve_factor: 2.0
     speed: # metres
       has_velocity_limits: true
       has_acceleration_limits: true
@@ -91,7 +90,7 @@ pivot_drive_controller:
       min_velocity: -1.57079632
     pivot:
       has_velocity_limits: true
-      max_velocity: 3.53429174 # 2*PI * 0.5625
+      max_velocity: 3.53429174 # 2*PI * 0.5625 (defined in firmware)
       min_velocity: -3.53429174
 
 strafe_controller:
@@ -106,13 +105,21 @@ strafe_controller:
 
 diff_drive_controller:
   ros__parameters:
-    enable_twist_cmd: true
+    autonomous_mode: true
     left_drive_names: ["flw", "blw"]
     right_drive_names: ["frw", "brw"]
     left_pivot_names: ["flp", "blp"]
     right_pivot_names: ["frp", "brp"]
-    wheels_per_side: 2
-    linear:
-      x:
-        max_acceleration: 5.0
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+    open_loop: false
+    linear: # metres
+      has_velocity_limits: true
+      has_acceleration_limits: true
+      max_velocity: 5.0
+      min_velocity: -1.5
+      max_acceleration: 4.0
+      min_acceleration: -10.0
+    angular: # radians
+      has_velocity_limits: true
+      max_velocity: 1.57079632 # PI/2 rad/s = 90 deg/s
+      min_velocity: -1.57079632
