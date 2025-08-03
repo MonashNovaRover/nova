@@ -4,6 +4,20 @@ pivot_drive_controller:
     default_value: false
     description: "Changes how the controller reacts to Twist commands."
 
+  input_curve_factor:
+    type: double
+    default_value: 2.0
+    description: >
+      Turning radius / pivot angle control curve factor for manual control. Higher values = steeper curves,
+      steeper curves = finer control over higher turning radii (slight turns).
+
+  pivot_rate_tolerance:
+    type: double
+    default_value: 0.1 # seconds
+    description: >
+      Used in autonomous mode to determine how long before the pivots reach their target positions to start
+      moving the wheels. This is to prevent the wheels from moving too soon before the pivots are in position.
+
   left_drive_names:
     type: string_array
     default_value: []
@@ -33,6 +47,11 @@ pivot_drive_controller:
     type: double
     default_value: 0.95752883 # 0.875 for Waratah
     description: "Wheelbase: distance between center of front and rear wheels"
+  
+  offset_angle:
+    type: double
+    default_value: 0.70554839 # atan(steering_track / wheel_base)
+    description: "Angle at which the pivots are initially offset."
 
   wheel_radius:
     type: double
@@ -47,7 +66,9 @@ pivot_drive_controller:
   tf_frame_prefix:
     type: string
     default_value: ""
-    description:  "(optional) Prefix to be appended to the tf frames, will be added to odom_id and base_frame_id before publishing. If the parameter is empty controller's namespace will be used."
+    description: >
+      (optional) Prefix to be appended to the tf frames, will be added to odom_id and base_frame_id
+      before publishing. If the parameter is empty, controller's namespace will be used.
 
   odom_frame_id:
     type: string
@@ -62,12 +83,18 @@ pivot_drive_controller:
   pose_covariance_diagonal:
     type: double_array
     default_value: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    description: "Odometry covariance for the encoder output of the robot for the pose. These values should be tuned to your robot's sample odometry data, but these values are a good place to start: ``[0.001, 0.001, 0.001, 0.001, 0.001, 0.01]``."
+    description: >
+      Odometry covariance for the encoder output of the robot for the pose. These values should
+      be tuned to your robot's sample odometry data, but these values are a good place to start:
+      ``[0.001, 0.001, 0.001, 0.001, 0.001, 0.01]``.
 
   twist_covariance_diagonal:
     type: double_array
-    default_value: [0, 0, 0, 0, 0, 0]
-    description: "Odometry covariance for the encoder output of the robot for the speed. These values should be tuned to your robot's sample odometry data, but these values are a good place to start: ``[0.001, 0.001, 0.001, 0.001, 0.001, 0.01]``."
+    default_value: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    description: >
+      Odometry covariance for the encoder output of the robot for the speed. These values should
+      be tuned to your robot's sample odometry data, but these values are a good place to start:
+      ``[0.001, 0.001, 0.001, 0.001, 0.001, 0.01]``.
 
   open_loop:
     type: bool
@@ -108,14 +135,6 @@ pivot_drive_controller:
     type: double
     default_value: 50.0 # Hz
     description: "Publishing rate (Hz) of the odometry and TF messages."
-
-  input_curve_factor:
-    type: double
-    default_value: 1.0
-    description: >
-      Turning radius / pivot angle control curve factor for manual control. Higher value = steeper curve,
-      steeper curve = finer control over higher turning radii.
-
 
   speed: # metres
     has_velocity_limits:
