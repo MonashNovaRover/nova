@@ -146,7 +146,6 @@
       teleop-modular-control-mode
       teleop-modular-input-source
       teleop-modular-node
-      teleop-modular-python-utils
       livox-ros-driver2
       ;
 }

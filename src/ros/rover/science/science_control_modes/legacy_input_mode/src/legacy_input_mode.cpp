@@ -78,7 +78,7 @@ void LegacyInputMode::on_capture_inputs(Inputs inputs)
   // so you can assume that you already have any necessary parameters
 
   // Axis names
-  constexpr std::vector<std::string> axes_names = {
+  const std::vector<std::string> axes_names = std::vector<std::string>{
     "ax_stick_x",
     "ax_stick_y",
     "ax_stick_twist",
@@ -88,7 +88,7 @@ void LegacyInputMode::on_capture_inputs(Inputs inputs)
   };
 
   // Button names
-  constexpr std::vector<std::string> button_names = {
+  const std::vector<std::string> button_names = std::vector<std::string>{
     "btn_thumb_l_state",    // Left
     "btn_thumb_r_state",    // Right
     "btn_thumb_u_state",    // Up (behind the thumbstick)
@@ -199,8 +199,15 @@ CallbackReturn LegacyInputMode::on_cleanup(const State &)
   // Clear all state and return the control mode to a functionally equivalent state as after on_init() was first called.
 
   // Reset any held shared pointers
-  speed_.reset();
-  // publisher_.reset();
+  for (auto& pair : buttons_)
+  {
+    pair.second.reset();
+  }
+  for (auto& pair : axes_)
+  {
+    pair.second.reset();
+  }
+  publisher_.reset();
 
   params_ = Params();
 
