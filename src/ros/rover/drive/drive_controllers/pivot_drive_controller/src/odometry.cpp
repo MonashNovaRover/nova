@@ -114,7 +114,7 @@ bool Odometry::update(
   const double dt = time.seconds() - timestamp_.seconds();
   if (dt < 0.0001)
   {
-    return false;  // Interval too small to integrate with
+    return false;  // interval too small to integrate with
   }
 
   double left_speed, right_speed;
@@ -174,16 +174,16 @@ bool Odometry::update(
   return true;
 }
 
-void Odometry::update_open_loop(double linear_vel, double angular_vel, const rclcpp::Time& time)
+void Odometry::update_open_loop(double linear, double angular, const rclcpp::Time& time)
 {
   /// Save last linear and angular velocity:
-  linear_ = linear_vel;
-  angular_ = angular_vel;
+  linear_ = linear;
+  angular_ = angular;
 
   /// Integrate odometry:
   const double dt = time.seconds() - timestamp_.seconds();
   timestamp_ = time;
-  integrate_exact(linear_vel * dt, angular_vel * dt);
+  integrate_exact(linear * dt, angular * dt);
 }
 
 void Odometry::publish(const rclcpp::Time& time)
@@ -244,6 +244,9 @@ void Odometry::reset()
   x_ = 0.0;
   y_ = 0.0;
   heading_ = 0.0;
+
+  linear_accumulator_ = RollingMeanAccumulator(params_->velocity_rolling_window_size);
+  angular_accumulator_ = RollingMeanAccumulator(params_->velocity_rolling_window_size);
 }
 
 void Odometry::integrate_runge_kutta_2(double delta_linear, double delta_angular)

@@ -121,10 +121,10 @@ pivot_drive_controller:
     default_value: 0.5 # Seconds
     description: "Timeout on cmd_vel command."
 
-  publish_limited_velocity:
+  publish_commanded_velocities:
     type: bool
     default_value: false
-    description: "Publish limited velocity value."
+    description: "Publish the commanded velocities as a TwistStamped message."
 
   velocity_rolling_window_size:
     type: int

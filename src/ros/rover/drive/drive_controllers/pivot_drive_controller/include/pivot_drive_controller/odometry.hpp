@@ -46,12 +46,13 @@ public:
   bool update(
     double left_drive_feedback, double right_drive_feedback, double left_pivot_feedback,
     double right_pivot_feedback, const rclcpp::Time& time);
-  void update_open_loop(double linear_vel, double angular_vel, const rclcpp::Time& time);
+  void update_open_loop(double linear, double angular, const rclcpp::Time& time);
   void publish(const rclcpp::Time& time);
   void reset();
 
 private:
   using RollingMeanAccumulator = rcpputils::RollingMeanAccumulator<double>;
+  
   void integrate_runge_kutta_2(double delta_linear, double delta_angular);
   void integrate_exact(double delta_linear, double delta_angular);
 
@@ -68,11 +69,11 @@ private:
   double linear_ = 0.0;   //   [m/s]
   double angular_ = 0.0;  // [rad/s]
 
-  // Angle of the front right wheel when turning to the left on the spot
-  double half_steering_track_;  // [m]
-  double half_wheel_base_;      // [m]
-  double zero_radius_;          // [m]
-  double inner_radius_;         // [m]
+  // Kinematic parameters [m]:
+  double half_steering_track_;
+  double half_wheel_base_;
+  double zero_radius_;
+  double inner_radius_;
 
   // Previous wheel and pivot positions [rad]:
   double left_drive_old_pos_ = 0.0;

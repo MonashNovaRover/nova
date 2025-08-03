@@ -1,4 +1,16 @@
 diff_drive_controller:
+  autonomous_mode:
+    type: bool
+    default_value: false
+    description: "Changes how the controller reacts to Twist commands."
+
+  input_curve_factor:
+    type: double
+    default_value: 2.0
+    description: >
+      Turning radius / pivot angle control curve factor for manual control. Higher values = steeper curves,
+      steeper curves = finer control over higher turning radii (slight turns).
+
   left_drive_names:
     type: string_array
     default_value: []
@@ -28,26 +40,21 @@ diff_drive_controller:
     type: double
     default_value: 0.95752883 # 0.84 for Waratah
     description: "Wheelbase: distance between center of front and rear wheels"
+  
+  offset_angle:
+    type: double
+    default_value: 0.70554839 # atan(steering_track / wheel_base)
+    description: "Angle at which the pivots are initially offset."
     
   wheel_radius:
     type: double
     default_value: 0.15692321 # 0.1488 for Waratah
     description: "Radius of wheels"
-    
-  wheels_per_side:
-    type: int
-    default_value: 0
-    description: >
-      Number of wheels on each side of the robot. This is important to take the wheels slip into
-      account when multiple wheels on each side are present. If there are more wheels then control
-      signals for each side, you should enter number for control signals. For example, Husky has
-      twowheels on each side, but they use one control signal, in this case '1' is the correct
-      value of the parameter.
-    
+
   wheel_separation_multiplier:
     type: double
     default_value: 1.0
-    description: "Correction factor for wheel separation (TODO(destogl): Please help me describe this correctly)"
+    description: "Correction factor when wheel separation differs from the nominal value in ``steering_track`` parameter."
     
   left_wheel_radius_multiplier:
     type: double
@@ -122,84 +129,76 @@ diff_drive_controller:
     default_value: 0.5 # seconds
     description: "Timeout in seconds, after which input command on ``cmd_vel`` topic is considered staled."
     
-  publish_limited_velocity:
+  publish_commanded_velocities:
     type: bool
     default_value: false
-    description: "Publish limited velocity value."
+    description: "Publish the commanded velocities as a TwistStamped message."
     
   velocity_rolling_window_size:
     type: int
     default_value: 10
     description: "Size of the rolling window for calculation of mean velocity use in odometry."
     
-  enable_twist_cmd:
-    type: bool
-    default_value: false
-    description: "Subscribe to TwistStamped or DriveInputStamped"
-    
-
   publish_rate:
     type: double
     default_value: 50.0 # Hz
     description: "Publishing rate (Hz) of the odometry and TF messages."
     
-  linear:
-    x:
-      has_velocity_limits:
-        type: bool
-        default_value: false
-      has_acceleration_limits:
-        type: bool
-        default_value: false
-      has_jerk_limits:
-        type: bool
-        default_value: false
-      max_velocity:
-        type: double
-        default_value: .NAN
-      min_velocity:
-        type: double
-        default_value: .NAN
-      max_acceleration:
-        type: double
-        default_value: .NAN
-      min_acceleration:
-        type: double
-        default_value: .NAN
-      max_jerk:
-        type: double
-        default_value: .NAN
-      min_jerk:
-        type: double
-        default_value: .NAN
+  linear: # metres
+    has_velocity_limits:
+      type: bool
+      default_value: false
+    has_acceleration_limits:
+      type: bool
+      default_value: false
+    has_jerk_limits:
+      type: bool
+      default_value: false
+    max_velocity:
+      type: double
+      default_value: .NAN
+    min_velocity:
+      type: double
+      default_value: .NAN
+    max_acceleration:
+      type: double
+      default_value: .NAN
+    min_acceleration:
+      type: double
+      default_value: .NAN
+    max_jerk:
+      type: double
+      default_value: .NAN
+    min_jerk:
+      type: double
+      default_value: .NAN
   
-  angular:
-    z:
-      has_velocity_limits:
-        type: bool
-        default_value: false
-      has_acceleration_limits:
-        type: bool
-        default_value: false
-      has_jerk_limits:
-        type: bool
-        default_value: false
-      max_velocity:
-        type: double
-        default_value: .NAN
-      min_velocity:
-        type: double
-        default_value: .NAN
-      max_acceleration:
-        type: double
-        default_value: .NAN
-      min_acceleration:
-        type: double
-        default_value: .NAN
-      max_jerk:
-        type: double
-        default_value: .NAN
-      min_jerk:
-        type: double
-        default_value: .NAN
+  angular: # radians
+    has_velocity_limits:
+      type: bool
+      default_value: false
+    has_acceleration_limits:
+      type: bool
+      default_value: false
+    has_jerk_limits:
+      type: bool
+      default_value: false
+    max_velocity:
+      type: double
+      default_value: .NAN
+    min_velocity:
+      type: double
+      default_value: .NAN
+    max_acceleration:
+      type: double
+      default_value: .NAN
+    min_acceleration:
+      type: double
+      default_value: .NAN
+    max_jerk:
+      type: double
+      default_value: .NAN
+    min_jerk:
+      type: double
+      default_value: .NAN
   

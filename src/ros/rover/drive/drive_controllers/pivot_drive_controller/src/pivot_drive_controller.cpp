@@ -46,7 +46,8 @@
 namespace
 {
 
-constexpr auto DEFAULT_INPUT_TOPIC = "/cmd_vel";
+constexpr auto DEFAULT_COMMAND_TOPIC = "/cmd_vel";
+constexpr auto DEFAULT_COMMAND_OUT_TOPIC = "~/cmd_vel_out";
 
 }  // namespace
 
@@ -64,9 +65,9 @@ using lifecycle_msgs::msg::State;
 
 PivotDriveController::PivotDriveController()
   : controller_interface::ControllerInterface()
+  , PIVOTS_PER_SIDE_(2)  // two pivots per side: front and back
   , DRIVE_COMMAND_TYPE_(HW_IF_VELOCITY)
   , PIVOT_COMMAND_TYPE_(HW_IF_POSITION)
-  , NUM_PIVOTS_PER_SIDE_(2)  // two pivots per side: front and back
 {
 }
 
@@ -96,7 +97,7 @@ controller_interface::CallbackReturn PivotDriveController::on_init()
 
   half_wheel_base_ = params_->wheel_base / 2;
   half_steering_track_ = params_->steering_track / 2;
-  num_wheels_per_side_ = params_->left_drive_names.size();
+  wheels_per_side_ = params_->left_drive_names.size();
 
   zero_radius_ = std::hypot(half_wheel_base_, half_steering_track_);
   RCLCPP_INFO_STREAM(get_node()->get_logger(), "zero_radius_: " << zero_radius_);
@@ -119,12 +120,12 @@ controller_interface::CallbackReturn PivotDriveController::on_init()
 InterfaceConfiguration PivotDriveController::command_interface_configuration() const
 {
   std::vector<std::string> conf_names;
-  for (size_t i = 0; i < num_wheels_per_side_; ++i)
+  for (size_t i = 0; i < wheels_per_side_; ++i)
   {
     conf_names.push_back(params_->left_drive_names[i] + "/" + DRIVE_COMMAND_TYPE_);
     conf_names.push_back(params_->right_drive_names[i] + "/" + DRIVE_COMMAND_TYPE_);
   }
-  for (size_t i = 0; i < NUM_PIVOTS_PER_SIDE_; ++i)
+  for (size_t i = 0; i < PIVOTS_PER_SIDE_; ++i)
   {
     conf_names.push_back(params_->left_pivot_names[i] + "/" + PIVOT_COMMAND_TYPE_);
     conf_names.push_back(params_->right_pivot_names[i] + "/" + PIVOT_COMMAND_TYPE_);
@@ -141,12 +142,12 @@ InterfaceConfiguration PivotDriveController::state_interface_configuration() con
   }
 
   std::vector<std::string> conf_names;
-  for (size_t i = 0; i < num_wheels_per_side_; ++i)
+  for (size_t i = 0; i < wheels_per_side_; ++i)
   {
     conf_names.push_back(params_->left_drive_names[i] + "/" + drive_feedback_type());
     conf_names.push_back(params_->right_drive_names[i] + "/" + drive_feedback_type());
   }
-  for (size_t i = 0; i < NUM_PIVOTS_PER_SIDE_; ++i)
+  for (size_t i = 0; i < PIVOTS_PER_SIDE_; ++i)
   {
     conf_names.push_back(params_->left_pivot_names[i] + "/" + pivot_feedback_type());
     conf_names.push_back(params_->right_pivot_names[i] + "/" + pivot_feedback_type());
@@ -158,23 +159,25 @@ InterfaceConfiguration PivotDriveController::state_interface_configuration() con
 controller_interface::return_type PivotDriveController::update(
   const rclcpp::Time& time, const rclcpp::Duration& period)
 {
+  auto logger = get_node()->get_logger();
+
   if (param_listener_->is_old(*params_))
   {
     *params_ = param_listener_->get_params();
-    RCLCPP_INFO(get_node()->get_logger(), "Parameters were updated");
+    RCLCPP_INFO(logger, "Parameters were updated");
   }
 
   std::shared_ptr<TwistStamped> command_msg_ptr = *(received_twist_msg_ptr_.readFromRT());
   if (command_msg_ptr == nullptr)
   {
-    RCLCPP_WARN(get_node()->get_logger(), "Received TwistStamped message was a nullptr.");
+    RCLCPP_WARN(logger, "Received TwistStamped message was a nullptr.");
     return controller_interface::return_type::ERROR;
   }
   else if ((std::isnan(command_msg_ptr->twist.linear.x) ||
             std::isnan(command_msg_ptr->twist.angular.z)))
   {
     RCLCPP_WARN_SKIPFIRST_THROTTLE(
-      get_node()->get_logger(), *get_node()->get_clock(), cmd_vel_timeout_.seconds() * 1000,
+      logger, *get_node()->get_clock(), cmd_vel_timeout_.seconds() * 1000,
       "Command message contains NaNs. Not updating reference interfaces.");
     return controller_interface::return_type::OK;
   }
@@ -187,11 +190,13 @@ controller_interface::return_type PivotDriveController::update(
   double linear_velocity, angular_velocity;
   bool turning_left;
   double speed, turning_radius;
+
   // Brake if cmd_vel has timed out, override the stored command
   const auto age_of_last_command = time - command_msg_ptr->header.stamp;
   if (age_of_last_command > cmd_vel_timeout_)
   {
     linear_velocity = 0.0;
+    angular_velocity = 0.0;
     speed = 0.0;
     turning_radius = INFINITY;
   }
@@ -260,16 +265,14 @@ controller_interface::return_type PivotDriveController::update(
     limiter_speed_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
     if (speed != requested_speed)
     {
-      RCLCPP_INFO(get_node()->get_logger(), "Speed limited to %.2f", speed);
+      RCLCPP_INFO(logger, "Speed limited to %.2f", speed);
     }
-    RCLCPP_INFO(
-      get_node()->get_logger(), "Received: Speed = %.2f, Turning radius = %f", speed,
-      turning_radius);
+    RCLCPP_INFO(logger, "Received: Speed = %.2f, Turning radius = %f", speed, turning_radius);
 
     // Calculate the angular velocity based on the limited speed
     angular_velocity = get_angular_from_radius_and_speed(
       turning_radius, speed, turning_left, zero_radius_, inner_radius_);
-    RCLCPP_INFO(get_node()->get_logger(), "Calculated angular velocity = %.2f", angular_velocity);
+    RCLCPP_INFO(logger, "Calculated angular velocity = %.2f", angular_velocity);
 
     const double requested_angular = angular_velocity;
     limiter_angular_.limit(
@@ -297,7 +300,7 @@ controller_interface::return_type PivotDriveController::update(
     double right_pivot_feedback_mean = 0.0;
 
     // Drive feedback (average left and right drive joints)
-    for (size_t pos = 0; pos < num_wheels_per_side_; ++pos)
+    for (size_t pos = 0; pos < wheels_per_side_; ++pos)
     {
       const auto left_feedback_op =
         hwif_wrapper_->get_optional(pos, JointSide::LEFT, JointType::DRIVE);
@@ -306,7 +309,7 @@ controller_interface::return_type PivotDriveController::update(
       if (!left_feedback_op.has_value() || !right_feedback_op.has_value())
       {
         RCLCPP_DEBUG(
-          get_node()->get_logger(),
+          logger,
           "Failed to get feedback from hardware interfaces for left/right drive joints %zu, "
           "odometry cannot be updated. Ending current update loop early.",
           pos);
@@ -318,7 +321,7 @@ controller_interface::return_type PivotDriveController::update(
       if (std::isnan(left_feedback) || std::isnan(right_feedback))
       {
         RCLCPP_ERROR(
-          get_node()->get_logger(),
+          logger,
           "Received NaN feedback for left/right drive joints %zu, odometry cannot be updated. "
           "Ending current update loop early.",
           pos);
@@ -329,7 +332,7 @@ controller_interface::return_type PivotDriveController::update(
       right_drive_feedback_mean += right_feedback;
     }
     // Pivot feedback (average left and right pivot joints in reference to the front)
-    for (size_t pos = 0; pos < NUM_PIVOTS_PER_SIDE_; ++pos)
+    for (size_t pos = 0; pos < PIVOTS_PER_SIDE_; ++pos)
     {
       const auto left_feedback_op =
         hwif_wrapper_->get_optional(pos, JointSide::LEFT, JointType::PIVOT);
@@ -338,7 +341,7 @@ controller_interface::return_type PivotDriveController::update(
       if (!left_feedback_op.has_value() || !right_feedback_op.has_value())
       {
         RCLCPP_DEBUG(
-          get_node()->get_logger(),
+          logger,
           "Failed to get feedback from hardware interfaces for left/right pivot joints %zu, "
           "odometry cannot be updated. Ending current update loop early.",
           pos);
@@ -350,7 +353,7 @@ controller_interface::return_type PivotDriveController::update(
       if (std::isnan(left_feedback) || std::isnan(right_feedback))
       {
         RCLCPP_ERROR(
-          get_node()->get_logger(),
+          logger,
           "Received NaN feedback for left/right pivot joints %zu, odometry cannot be updated. "
           "Ending current update loop early.",
           pos);
@@ -363,8 +366,11 @@ controller_interface::return_type PivotDriveController::update(
       right_pivot_feedback_mean += multiplier * right_feedback;
     }
 
-    left_drive_feedback_mean /= 2;
-    right_drive_feedback_mean /= 2;
+    left_drive_feedback_mean /= wheels_per_side_;
+    right_drive_feedback_mean /= wheels_per_side_;
+    left_pivot_feedback_mean /= PIVOTS_PER_SIDE_;
+    right_pivot_feedback_mean /= PIVOTS_PER_SIDE_;
+
     odometry_->update(
       left_drive_feedback_mean, right_drive_feedback_mean, left_pivot_feedback_mean,
       right_pivot_feedback_mean, time);
@@ -385,39 +391,38 @@ controller_interface::return_type PivotDriveController::update(
   const double left_velocity = left_speed / params_->wheel_radius;
   const double right_velocity = right_speed / params_->wheel_radius;
 
-  RCLCPP_INFO(
-    get_node()->get_logger(), "speed ratios: left = %.2f, right = %.2f", left_ratio, right_ratio);
+  RCLCPP_INFO(logger, "speed ratios: left = %.2f, right = %.2f", left_ratio, right_ratio);
 
   // Set command values for drive
-  if (
-    !hwif_wrapper_->set_value(left_velocity, 0, JointSide::LEFT, JointType::DRIVE) ||
-    !hwif_wrapper_->set_value(left_velocity, 1, JointSide::LEFT, JointType::DRIVE) ||
-    !hwif_wrapper_->set_value(right_velocity, 0, JointSide::RIGHT, JointType::DRIVE) ||
-    !hwif_wrapper_->set_value(right_velocity, 1, JointSide::RIGHT, JointType::DRIVE))
+  for (size_t pos = 0; pos < wheels_per_side_; ++pos)
   {
-    RCLCPP_ERROR(get_node()->get_logger(), "Failed to set drive command values.");
-    return controller_interface::return_type::ERROR;
+    if (
+      !hwif_wrapper_->set_value(left_velocity, pos, JointSide::LEFT, JointType::DRIVE) ||
+      !hwif_wrapper_->set_value(right_velocity, pos, JointSide::RIGHT, JointType::DRIVE))
+    {
+      RCLCPP_ERROR(logger, "Failed to set drive command values for position %zu.", pos);
+      return controller_interface::return_type::ERROR;
+    }
   }
   // Set command values for pivots
-  if (
-    !hwif_wrapper_->set_value(left_angle, 0, JointSide::LEFT, JointType::PIVOT) ||
-    !hwif_wrapper_->set_value(-left_angle, 1, JointSide::LEFT, JointType::PIVOT) ||
-    !hwif_wrapper_->set_value(right_angle, 0, JointSide::RIGHT, JointType::PIVOT) ||
-    !hwif_wrapper_->set_value(-right_angle, 1, JointSide::RIGHT, JointType::PIVOT))
+  for (size_t pos = 0; pos < PIVOTS_PER_SIDE_; ++pos)
   {
-    RCLCPP_ERROR(get_node()->get_logger(), "Failed to set pivot command values.");
-    return controller_interface::return_type::ERROR;
+    const double multiplier = (pos == 0) ? 1 : -1;  // invert angles for back pivots
+    if (
+      !hwif_wrapper_->set_value(multiplier * left_angle, pos, JointSide::LEFT, JointType::PIVOT) ||
+      !hwif_wrapper_->set_value(multiplier * right_angle, pos, JointSide::RIGHT, JointType::PIVOT))
+    {
+      RCLCPP_ERROR(logger, "Failed to set pivot command values for position %zu.", pos);
+      return controller_interface::return_type::ERROR;
+    }
   }
 
   RCLCPP_INFO(
-    get_node()->get_logger(), "Set drive commands: left_speed = %.2f, right_speed = %.2f",
-    left_speed, right_speed);
+    logger, "Set drive commands: left_speed = %.2f, right_speed = %.2f", left_speed, right_speed);
   RCLCPP_INFO(
-    get_node()->get_logger(), "Set pivot commands: left_angle = %.2f, right_angle = %.2f",
-    left_angle, right_angle);
+    logger, "Set pivot commands: left_angle = %.2f, right_angle = %.2f", left_angle, right_angle);
   RCLCPP_INFO(
-    get_node()->get_logger(),
-    "------------------------------------------------------------------------------------");
+    logger, "------------------------------------------------------------------------------------");
 
   // Update the previous command values for limiting
   previous_speeds_.pop_front();
@@ -429,12 +434,56 @@ controller_interface::return_type PivotDriveController::update(
   previous_right_pivot_positions_.pop_front();
   previous_right_pivot_positions_.push_back(right_angle);
 
+  // Publish commanded velocities
+  if (params_->publish_commanded_velocities && realtime_commanded_twist_publisher_->trylock())
+  {
+    auto& commanded_twist_command = realtime_commanded_twist_publisher_->msg_;
+    commanded_twist_command.header.stamp = time;
+    commanded_twist_command.twist.linear.x = linear_velocity;
+    commanded_twist_command.twist.linear.y = 0.0;
+    commanded_twist_command.twist.linear.z = 0.0;
+    commanded_twist_command.twist.angular.x = 0.0;
+    commanded_twist_command.twist.angular.y = 0.0;
+    commanded_twist_command.twist.angular.z = angular_velocity;
+    realtime_commanded_twist_publisher_->unlockAndPublish();
+  }
+
   return controller_interface::return_type::OK;
 }
 
 controller_interface::CallbackReturn PivotDriveController::on_configure(
   const rclcpp_lifecycle::State&)
 {
+  auto logger = get_node()->get_logger();
+  // update parameters if they have changed
+  if (param_listener_->is_old(*params_))
+  {
+    *params_ = param_listener_->get_params();
+    RCLCPP_INFO(logger, "Parameters were updated");
+  }
+
+  if (params_->left_drive_names.size() != params_->right_drive_names.size())
+  {
+    RCLCPP_ERROR(
+      logger, "The number of left wheels [%zu] and the number of right wheels [%zu] are different",
+      params_->left_drive_names.size(), params_->right_drive_names.size());
+    return controller_interface::CallbackReturn::ERROR;
+  }
+
+  if (params_->left_drive_names.empty())
+  {
+    RCLCPP_ERROR(logger, "Wheel names parameters are empty!");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+
+  if (params_->left_pivot_names.size() != 2 || params_->right_pivot_names.size() != 2)
+  {
+    RCLCPP_ERROR(
+      logger, "Expected exactly two pivots per side, instead got %zu left and %zu right pivots",
+      params_->left_pivot_names.size(), params_->right_pivot_names.size());
+    return controller_interface::CallbackReturn::ERROR;
+  }
+
   cmd_vel_timeout_ = rclcpp::Duration::from_seconds(params_->cmd_vel_timeout);
 
   limiter_speed_ = SpeedLimiter(
@@ -458,9 +507,18 @@ controller_interface::CallbackReturn PivotDriveController::on_configure(
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  // Initialize twist subscriber
+  // Initialise twist publisher
+  if (params_->publish_commanded_velocities)
+  {
+    commanded_twist_publisher_ = get_node()->create_publisher<TwistStamped>(
+      DEFAULT_COMMAND_OUT_TOPIC, rclcpp::SystemDefaultsQoS());
+    realtime_commanded_twist_publisher_ =
+      std::make_shared<realtime_tools::RealtimePublisher<TwistStamped>>(commanded_twist_publisher_);
+  }
+
+  // Initialise twist subscriber
   twist_subscriber_ = get_node()->create_subscription<TwistStamped>(
-    DEFAULT_INPUT_TOPIC, rclcpp::SystemDefaultsQoS(),
+    DEFAULT_COMMAND_TOPIC, rclcpp::SystemDefaultsQoS(),
     [this](const std::shared_ptr<TwistStamped> msg) -> void
     {
       if (!is_active_)
@@ -505,7 +563,7 @@ controller_interface::CallbackReturn PivotDriveController::on_activate(
 {
   // Configure joints
   std::vector<Joint> joints;
-  for (size_t pos = 0; pos < num_wheels_per_side_; ++pos)
+  for (size_t pos = 0; pos < wheels_per_side_; ++pos)
   {
     std::string left_drive_name = params_->left_drive_names[pos];
     std::string right_drive_name = params_->right_drive_names[pos];
@@ -516,7 +574,7 @@ controller_interface::CallbackReturn PivotDriveController::on_activate(
       right_drive_name, drive_feedback_type(), DRIVE_COMMAND_TYPE_, pos, JointSide::RIGHT,
       JointType::DRIVE);
   }
-  for (size_t pos = 0; pos < NUM_PIVOTS_PER_SIDE_; ++pos)
+  for (size_t pos = 0; pos < PIVOTS_PER_SIDE_; ++pos)
   {
     std::string left_pivot_name = params_->left_pivot_names[pos];
     std::string right_pivot_name = params_->right_pivot_names[pos];
@@ -614,12 +672,12 @@ controller_interface::CallbackReturn PivotDriveController::on_shutdown(
 void PivotDriveController::halt()
 {
   // Send zero commands to all wheels and pivots
-  for (size_t pos = 0; pos < num_wheels_per_side_; ++pos)
+  for (size_t pos = 0; pos < wheels_per_side_; ++pos)
   {
     hwif_wrapper_->set_value(0.0, pos, JointSide::LEFT, JointType::DRIVE);
     hwif_wrapper_->set_value(0.0, pos, JointSide::RIGHT, JointType::DRIVE);
   }
-  for (size_t pos = 0; pos < NUM_PIVOTS_PER_SIDE_; ++pos)
+  for (size_t pos = 0; pos < PIVOTS_PER_SIDE_; ++pos)
   {
     hwif_wrapper_->set_value(0.0, pos, JointSide::LEFT, JointType::PIVOT);
     hwif_wrapper_->set_value(0.0, pos, JointSide::RIGHT, JointType::PIVOT);
