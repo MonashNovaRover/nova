@@ -106,13 +106,9 @@ controller_interface::CallbackReturn PivotDriveController::on_init()
                   (2 * half_steering_track_);
   RCLCPP_INFO_STREAM(get_node()->get_logger(), "inner_radius_: " << inner_radius_);
 
-  // Angle at which the wheels are initially offset
-  offset_angle_ = atan(params_->steering_track / params_->wheel_base);
-  RCLCPP_INFO_STREAM(get_node()->get_logger(), "offset_angle: " << offset_angle_);
-
   // Initialise hardware interface wrapper
   hwif_wrapper_ = std::make_unique<HardwareInterfaceWrapper>(
-    get_node(), offset_angle_, state_interfaces_, command_interfaces_);
+    get_node(), params_->offset_angle, state_interfaces_, command_interfaces_);
 
   // Initialise odometry
   odometry_ = std::make_unique<Odometry>(get_node(), params_);
@@ -189,7 +185,7 @@ controller_interface::return_type PivotDriveController::update(
   double linear_input = command_msg_ptr->twist.linear.x;
   double angular_input = command_msg_ptr->twist.angular.z;
   double linear_velocity, angular_velocity;
-  bool turning_left = angular_input > 0;
+  bool turning_left;
   double speed, turning_radius;
   // Brake if cmd_vel has timed out, override the stored command
   const auto age_of_last_command = time - command_msg_ptr->header.stamp;
@@ -202,19 +198,47 @@ controller_interface::return_type PivotDriveController::update(
   else if (params_->autonomous_mode)
   {
     angular_velocity = angular_input;
-    speed = linear_input == 0 ? std::abs(zero_radius_ * angular_velocity) : linear_input;
+    linear_velocity = linear_input;
+    speed = linear_velocity == 0 ? std::abs(zero_radius_ * angular_velocity) : linear_input;
 
     limiter_speed_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
     limiter_angular_.limit(
       angular_velocity, previous_angular_velocities_[0], previous_angular_velocities_[1],
       period.seconds());
 
-    linear_velocity = linear_input == 0 ? 0.0 : speed;
     turning_radius = get_radius_from_velocities(linear_velocity, angular_velocity);
+    turning_left = turning_radius == 0 ? angular_input > 0 : turning_radius > 0;
 
-    limit_radius_by_pivot(
+    const auto [max_requested_angle, left] = limit_radius_by_pivots(
       turning_radius, turning_left, half_steering_track_, half_wheel_base_, limiter_pivot_,
       previous_left_pivot_positions_, previous_right_pivot_positions_, period.seconds());
+
+    const double requested_angular = angular_velocity;
+    limiter_angular_.limit(
+      angular_velocity, previous_angular_velocities_[0], previous_angular_velocities_[1],
+      period.seconds());
+    if (angular_velocity != requested_angular)
+    {
+      limit_speed_and_radius_by_angular(
+        speed, turning_radius, angular_velocity, zero_radius_, inner_radius_, limiter_speed_,
+        previous_speeds_, period.seconds());
+    }
+
+    const auto& prev_positions =
+      left ? previous_left_pivot_positions_ : previous_right_pivot_positions_;
+    double limited_angle = max_requested_angle;
+    limiter_pivot_.limit(
+      limited_angle, prev_positions[0], prev_positions[1], prev_positions[2],
+      params_->pivot_rate_tolerance);
+    if (limited_angle != max_requested_angle)
+    {
+      speed = 0.0;  // wait for the pivot to be within tolerance before moving
+      limiter_speed_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
+    }
+
+    linear_velocity = turning_radius == 0 ? 0.0 : speed;
+    angular_velocity = get_angular_from_radius_and_speed(
+      turning_radius, speed, turning_left, zero_radius_, inner_radius_);
   }
   else
   {
@@ -225,15 +249,16 @@ controller_interface::return_type PivotDriveController::update(
       angular_input == 0
         ? INFINITY
         : params_->input_curve_factor * ((1.0 / angular_input) - std::copysign(1, angular_input));
+    turning_left = turning_radius == 0 ? angular_input > 0 : turning_radius > 0;
 
-    limit_radius_by_pivot(
+    limit_radius_by_pivots(
       turning_radius, turning_left, half_steering_track_, half_wheel_base_, limiter_pivot_,
       previous_left_pivot_positions_, previous_right_pivot_positions_, period.seconds());
 
     speed = linear_input * params_->speed.max_velocity;
-    double temp = speed;
+    const double requested_speed = speed;
     limiter_speed_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
-    if (speed != temp)
+    if (speed != requested_speed)
     {
       RCLCPP_INFO(get_node()->get_logger(), "Speed limited to %.2f", speed);
     }
@@ -246,40 +271,15 @@ controller_interface::return_type PivotDriveController::update(
       turning_radius, speed, turning_left, zero_radius_, inner_radius_);
     RCLCPP_INFO(get_node()->get_logger(), "Calculated angular velocity = %.2f", angular_velocity);
 
-    temp = angular_velocity;
+    const double requested_angular = angular_velocity;
     limiter_angular_.limit(
       angular_velocity, previous_angular_velocities_[0], previous_angular_velocities_[1],
       period.seconds());
-    if (angular_velocity != temp)
+    if (angular_velocity != requested_angular)
     {
-      // Recalculate (decrease) the speed to match the limited angular velocity
-      if (std::abs(turning_radius) < inner_radius_)
-      {
-        speed = std::copysign(zero_radius_ * angular_velocity, speed);
-      }
-      else
-      {
-        speed = std::copysign(turning_radius * angular_velocity, speed);
-      }
-      temp = speed;
-      limiter_speed_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
-      if (speed != temp)
-      {
-        // If the new speed was limited, we need to recalculate the turning radius as well
-        // because we can't decrease the speed further
-        turning_radius = angular_velocity == 0 ? INFINITY : speed / angular_velocity;
-        RCLCPP_INFO(
-          get_node()->get_logger(),
-          "Angular velocity limited to %.2f, recalculating speed to %.2f and turning radius to "
-          "%.2f",
-          angular_velocity, speed, turning_radius);
-      }
-      else
-      {
-        RCLCPP_INFO(
-          get_node()->get_logger(), "Angular velocity limited to %.2f, recalculating speed to %.2f",
-          angular_velocity, speed);
-      }
+      limit_speed_and_radius_by_angular(
+        speed, turning_radius, angular_velocity, zero_radius_, inner_radius_, limiter_speed_,
+        previous_speeds_, period.seconds());
     }
     linear_velocity = turning_radius == 0 ? 0 : speed;
   }
