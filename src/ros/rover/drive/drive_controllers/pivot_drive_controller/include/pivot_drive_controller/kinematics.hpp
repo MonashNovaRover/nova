@@ -20,7 +20,11 @@
 #define PIVOT_DRIVE_CONTROLLER__KINEMATICS_HPP_
 
 #include <cmath>
+#include <deque>
+#include <algorithm>
+#include <tuple>
 
+#include "nova_controller_common/speed_limiter.hpp"
 #include "nova_controller_common/position_limiter.hpp"
 
 namespace pivot_drive_controller
@@ -94,37 +98,79 @@ constexpr double get_speed_ratio(
   return std::abs(wheel_turn_radius / (std::abs(radius) < inner_radius ? zero_radius : radius));
 }
 
-inline void limit_radius_by_pivot(
+inline std::tuple<double, bool> limit_radius_by_pivots(
   double& turning_radius, bool& turning_left, double half_steering_track, double half_wheel_base,
   const nova_controller_common::PositionLimiter& limiter_pivot,
   const std::deque<double>& previous_left_positions,
   const std::deque<double>& previous_right_positions, double dt)
 {
+  double max_angle_diff = 0;
+  double max_requested_angle;
+  bool left_turns_more;
+
   // Limit the pivot that needs to turn more
-  double left_angle = get_pivot_angle_from_radius(
+  double requested_left_angle = get_pivot_angle_from_radius(
     turning_radius, true, turning_left, half_steering_track, half_wheel_base);
+  double left_angle = requested_left_angle;
   limiter_pivot.limit(
     left_angle, previous_left_positions[0], previous_left_positions[1], previous_left_positions[2],
     dt);
   turning_left = left_angle > 0;
 
+  max_angle_diff = std::abs(requested_left_angle - previous_left_positions[0]);
+  max_requested_angle = requested_left_angle;
+  left_turns_more = true;
+
   // Recalculate the turning radius based on the limited left pivot angle
   turning_radius = get_radius_from_pivot_angle(
     left_angle, true, turning_left, half_steering_track, half_wheel_base);
 
-  double right_angle = get_pivot_angle_from_radius(
+  double requested_right_angle = get_pivot_angle_from_radius(
     turning_radius, false, turning_left, half_steering_track, half_wheel_base);
-  double temp = right_angle;
+  double right_angle = requested_right_angle;
   limiter_pivot.limit(
     right_angle, previous_right_positions[0], previous_right_positions[1],
     previous_right_positions[2], dt);
   turning_left = right_angle > 0;
-  
-  if (right_angle != temp)
+
+  if (std::abs(requested_right_angle - previous_right_positions[0]) > max_angle_diff)
+  {
+    max_requested_angle = requested_right_angle;
+    left_turns_more = false;
+  }
+
+  if (right_angle != requested_right_angle)
   {
     // If the right pivot angle was limited, we need to recalculate the turning radius as well
     turning_radius = get_radius_from_pivot_angle(
       right_angle, false, turning_left, half_steering_track, half_wheel_base);
+  }
+
+  return std::make_tuple(max_requested_angle, left_turns_more);
+}
+
+inline void limit_speed_and_radius_by_angular(
+  double& speed, double& turning_radius, double angular_velocity, double zero_radius,
+  double inner_radius, const nova_controller_common::SpeedLimiter& limiter_speed,
+  std::deque<double>& previous_speeds, double dt)
+{
+  // Recalculate (decrease) the speed to match the limited angular velocity
+  if (std::abs(turning_radius) < inner_radius)
+  {
+    speed = std::copysign(zero_radius * angular_velocity, speed);
+  }
+  else
+  {
+    speed = std::copysign(turning_radius * angular_velocity, speed);
+  }
+  
+  const double temp = speed;
+  limiter_speed.limit(speed, previous_speeds[0], previous_speeds[1], dt);
+  if (speed != temp)
+  {
+    // If the new speed was limited, we need to recalculate the turning radius as well
+    // because we can't decrease the speed further
+    turning_radius = angular_velocity == 0 ? INFINITY : speed / angular_velocity;
   }
 }
 

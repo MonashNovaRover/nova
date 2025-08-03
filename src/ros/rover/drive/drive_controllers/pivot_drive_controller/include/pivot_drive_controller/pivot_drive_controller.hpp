@@ -81,7 +81,7 @@ public:
   controller_interface::CallbackReturn on_shutdown(
     const rclcpp_lifecycle::State& previous_state) override;
 
-private:
+protected:
   const char* drive_feedback_type() const;
   const char* pivot_feedback_type() const;
 
