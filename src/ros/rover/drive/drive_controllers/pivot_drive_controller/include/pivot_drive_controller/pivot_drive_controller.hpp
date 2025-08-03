@@ -89,6 +89,7 @@ protected:
   void reset_buffers();
   void halt();
 
+  bool is_active_ = false;
   bool is_halted_ = false;
 
   // Parameters from ROS for pivot_drive_controller
@@ -105,8 +106,8 @@ protected:
   double offset_angle_;
   double half_wheel_base_;
   double half_steering_track_;
-  size_t num_wheels_per_side_;
-  const size_t NUM_PIVOTS_PER_SIDE_;
+  size_t wheels_per_side_;
+  const size_t PIVOTS_PER_SIDE_;
 
   std::unique_ptr<nova_controller_common::HardwareInterfaceWrapper> hwif_wrapper_;
   std::unique_ptr<Odometry> odometry_;
@@ -124,11 +125,15 @@ protected:
   // Timeout to consider cmd_vel commands old
   rclcpp::Duration cmd_vel_timeout_ = rclcpp::Duration::from_seconds(0.5);
 
-  // Realtime buffer for received TwistStamped messages
-  bool is_active_ = false;
+  // Subscriber and realtime buffer for received TwistStamped messages
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_subscriber_;
   realtime_tools::RealtimeBuffer<std::shared_ptr<geometry_msgs::msg::TwistStamped>>
     received_twist_msg_ptr_;
+
+  // Publisher and realtime buffer for commanded TwistStamped messages
+  std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::TwistStamped>> commanded_twist_publisher_;
+  std::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::msg::TwistStamped>>
+    realtime_commanded_twist_publisher_;
 
   const char* DRIVE_COMMAND_TYPE_;
   const char* PIVOT_COMMAND_TYPE_;
