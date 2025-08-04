@@ -1,4 +1,4 @@
-teleop_science:
+teleop_node:
   ros__parameters:
     # The maximum rate at which updates should occur, and hence the max rate at which commands are sent.
     # Leaving this unset makes the max update rate unlimited.
@@ -6,7 +6,7 @@ teleop_science:
 
     # The minimum rate at which updates occur.
     # Leaving this unset will allow for indefinite lapses between updates.
-    min_update_rate: 2.0
+    #min_update_rate: 2.0
 
     input_sources:
       names: [
@@ -20,54 +20,12 @@ teleop_science:
     control_modes:
       names: [
         # First in the list gets activated at startup
-        "normal_mode",
-        "turbo_mode"
+        "legacy_input_mode"
       ]
 
       # Declare types for the modes
-      normal_mode:
-        type: "teleop_modular_twist/TwistControlMode"
-      turbo_mode:
-        type: "teleop_modular_twist/TwistControlMode"
-
-    commands:
-      names: [
-        "enter_turbo_mode",
-        "enter_normal_mode",
-        "lock",
-        "unlock",
-        "log_locked",
-        "log_unlocked"
-      ]
-
-      enter_turbo_mode:
-        on: "turbo_mode/down"
-        type: "switch_control_mode"
-        to: "turbo_mode"
-      enter_normal_mode:
-        on: "turbo_mode/up"
-        type: "switch_control_mode"
-        to: "normal_mode"
-      lock:
-        on: "lock/down"
-        # on_any: ["lock/down", "start"]
-        type: "set_button"
-        name: "locked"
-        value: true
-      unlock:
-        on: "unlock/up"
-        type: "set_button"
-        name: "locked"
-        value: false
-      log_locked:
-        on: "locked/down"
-        type: "log"
-        message: "Locked"
-      log_unlocked:
-        on: "locked/down"
-        type: "log"
-        message: "Unlocked"
-
+      legacy_input_mode:
+        type: "legacy_input_mode/LegacyInputMode"
 
 game_controller_source:
   ros__parameters:
@@ -110,52 +68,23 @@ game_controller_source:
 
     remap:
       axes:
-        linear:
-          x:
-            from: "LEFTY"
-        angular:
-          z:
-            from: "RIGHTX"
-        speed:
-          from: "TRIGGERRIGHT"
-          invert: true
+        ax_stick_x:
+          from: "RIGHTY"
+        ax_stick_y:
+          from: "RIGHTX"
 
       buttons:
-        turbo_mode:
-          from: "RIGHTSHOULDER"
-        lock:
-          from: "GUIDE"
-        unlock:
-          from: "START"
+        # lock
+        btn_bottom_l2_state:
+          from: "A"
+        # unlock
+        btn_bottom_l5_state:
+          from: "B"
 
-
-normal_mode:
+legacy_input_mode:
   ros__parameters:
-    topic: "/turtle1/cmd_vel"
+    topic: "/inputs/input_joystick_l"
     # stamped_topic: "/some_stamped_topic"
-    qos: 10
+    qos: 2
 
     use_speed_input: false
-
-    scale:
-      linear:
-        x: 1.0
-      angular:
-        z: 3.14
-
-
-turbo_mode:
-  ros__parameters:
-    topic: "/turtle1/cmd_vel"
-    # stamped_topic: "/some_stamped_topic"
-    qos: 10
-
-    use_speed_input: false
-
-    scale:
-      linear:
-        all: 4.0
-      angular:
-        z: 3.14
-        all: 2.0
-

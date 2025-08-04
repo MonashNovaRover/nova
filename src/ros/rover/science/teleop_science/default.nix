@@ -11,6 +11,7 @@
 , teleop-modular-node
 , teleop-modular-twist
 , teleop-modular-joy
+, nova-legacy-input-mode
 }:
 
 buildRosPackage {
@@ -37,5 +38,6 @@ buildRosPackage {
     teleop-modular-node
     teleop-modular-twist
     teleop-modular-joy
+    nova-legacy-input-mode
   ];
 }

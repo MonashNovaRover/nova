@@ -9,11 +9,16 @@ LegacyInputMode::~LegacyInputMode() = default;
 
 int8_t LegacyInputMode::update_button(const uint8_t last_button, Button::SharedPtr current_input)
 {
+  if (!current_input)
+  {
+    return 0;
+  }
+
   // button currently not pressed
   if (current_input->value() == 0)
   {
     // nothing happening
-    if (last_button == 0)
+    if (last_button == static_cast<uint8_t>(ButtonState::NOTHING) || last_button == static_cast<uint8_t>(ButtonState::UP))
     {
       return static_cast<uint8_t>(ButtonState::NOTHING);
     }
@@ -45,7 +50,6 @@ return_type LegacyInputMode::on_init()
 
   // Declare parameters here! Or consider using something like generate_parameter_library instead.
   node->declare_parameter<std::string>("topic", "");
-  node->declare_parameter<int>("qos", 10);
 
   return return_type::OK;
 }
@@ -58,16 +62,17 @@ CallbackReturn LegacyInputMode::on_configure(const State &)
   // Use this callback method to get any parameters for your control mode!
   params_ = Params();
   node->get_parameter<std::string>("topic", params_.topic);
-  node->get_parameter<int>("qos", params_.qos);
 
   // Create the publishers based on the params we just got
   if (params_.topic.empty()) {
     // You've probably made a mistake if the topic isn't set!
-    RCLCPP_ERROR(logger, "The \"topic\" parameter must be set to a valid topic name!");
+    RCLCPP_ERROR(logger, "The \"topic\" parameter is empty, but must be set to a valid topic name!");
     return CallbackReturn::ERROR;
   }
 
-  publisher_ = get_node()->create_publisher<input_interfaces::msg::InputJoystick>(params_.topic, params_.qos);
+  // This QOS is for legacy inputs don't do it like this.
+  const std::chrono::milliseconds inputs_deadline {200};
+  publisher_ = get_node()->create_publisher<input_interfaces::msg::InputJoystick>(params_.topic, rclcpp::QoS(1).best_effort().deadline(inputs_deadline));
 
   return CallbackReturn::SUCCESS;
 }
@@ -116,7 +121,7 @@ void LegacyInputMode::on_capture_inputs(Inputs inputs)
   // store shared pointers for buttons
   for (auto& button : button_names)
   {
-    axes_[button] = inputs.axes[button];
+    buttons_[button] = inputs.buttons[button];
   }
 }
 
@@ -199,13 +204,13 @@ CallbackReturn LegacyInputMode::on_cleanup(const State &)
   // Clear all state and return the control mode to a functionally equivalent state as after on_init() was first called.
 
   // Reset any held shared pointers
-  for (auto& pair : buttons_)
+  for (auto& [fst, button] : buttons_)
   {
-    pair.second.reset();
+    button.reset();
   }
-  for (auto& pair : axes_)
+  for (auto& [fst, axis] : axes_)
   {
-    pair.second.reset();
+    axis.reset();
   }
   publisher_.reset();
 

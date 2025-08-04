@@ -3,6 +3,7 @@
 
 #include <rclcpp/time.hpp>
 #include <string>
+#include <chrono>
 #include "control_mode/control_mode.hpp"
 #include "legacy_input_mode/visibility_control.h"
 
@@ -57,8 +58,6 @@ private:
   struct Params {
     /// The topic name to send messages to.
     std::string topic = "";
-    /// The ROS2 topic Quality of Service value to use in publisher_.
-    int qos = 10;
   };
 
   /// Update Buttons
@@ -71,11 +70,11 @@ private:
   rclcpp::Publisher<input_interfaces::msg::InputJoystick>::SharedPtr publisher_;
 
   // Store shared pointer in a map
-  std::map<std::string, Button::SharedPtr> buttons_;
-  std::map<std::string, Axis::SharedPtr> axes_;
+  std::map<std::string, Button::SharedPtr> buttons_{};
+  std::map<std::string, Axis::SharedPtr> axes_{};
 
   // Last message
-  input_interfaces::msg::InputJoystick last_message_;
+  input_interfaces::msg::InputJoystick last_message_{};
 };
 
 }  // namespace legacy_input_mode

@@ -14,14 +14,12 @@ def launch_setup(context, *args, **kwargs):
     log_inputs = LaunchConfiguration('log_inputs')
 
     return [
-        # Runs turtlesim
-        # TODO: Remove this, and change the parameters to be useful to your robot
         Node(
-            package='turtlesim',
-            executable='turtlesim_node',
-            output="screen"
+            package='science',
+            executable='analysis_arm.py',
+            output='screen',
+            emulate_tty=True,
         ),
-
         # Automatically run joy alongside teleop
         Node(
             package='joy',
