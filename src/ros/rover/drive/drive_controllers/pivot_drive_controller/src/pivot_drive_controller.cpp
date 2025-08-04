@@ -65,9 +65,9 @@ using lifecycle_msgs::msg::State;
 
 PivotDriveController::PivotDriveController()
   : controller_interface::ControllerInterface()
-  , PIVOTS_PER_SIDE_(2)  // two pivots per side: front and back
   , DRIVE_COMMAND_TYPE_(HW_IF_VELOCITY)
   , PIVOT_COMMAND_TYPE_(HW_IF_POSITION)
+  , PIVOTS_PER_SIDE_(2)  // two pivots per side: front and back
 {
 }
 

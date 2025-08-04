@@ -15,7 +15,6 @@
 , tf2
 , tf2-msgs
 , geometry-msgs
-, nova-interfaces
 , nova-controller-common
 }:
 
@@ -46,7 +45,6 @@ buildRosPackage {
     tf2
     tf2-msgs
     geometry-msgs
-    nova-interfaces
     nova-controller-common
   ];
 }
