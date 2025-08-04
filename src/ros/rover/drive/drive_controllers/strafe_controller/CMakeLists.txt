@@ -24,7 +24,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
     realtime_tools
     tf2
     tf2_msgs
-    nova_interfaces
     nova_controller_common
 )
 
@@ -37,7 +36,7 @@ endforeach()
 find_package(generate_parameter_library REQUIRED)
 
 generate_parameter_library(strafe_controller_parameters
-  src/strafe_controller_parameter.yaml
+  src/strafe_controller.yaml
 )
 
 add_library(${PROJECT_NAME} SHARED
@@ -69,16 +68,5 @@ install(TARGETS strafe_controller strafe_controller_parameters
 )
 
 ament_export_targets(export_strafe_controller HAS_LIBRARY_TARGET)
-
-ament_export_dependencies(
-  ${THIS_PACKAGE_INCLUDE_DEPENDS}
-)
-
-#ament_export_include_directories(
-#  include
-#)
-#ament_export_libraries(
-#  ${PROJECT_NAME}
-#)
+ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_package()
-
