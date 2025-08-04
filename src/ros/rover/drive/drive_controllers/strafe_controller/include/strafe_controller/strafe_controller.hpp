@@ -82,7 +82,7 @@ protected:
   const size_t PIVOTS_PER_SIDE_;
 
   std::unique_ptr<nova_controller_common::HardwareInterfaceWrapper> hwif_wrapper_;
-  Odometry odometry_;
+  std::unique_ptr<Odometry> odometry_;
 
   std::deque<double> previous_linear_velocities_;   // last two linear velocity commands
 
