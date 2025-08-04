@@ -44,12 +44,12 @@ StrafeController::StrafeController()
 
 const char* StrafeController::drive_feedback_type() const
 {
-  return params_.drive_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
+  return params_->drive_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
 }
 
 const char* StrafeController::pivot_feedback_type() const
 {
-  return params_.pivot_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
+  return params_->pivot_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
 }
 
 controller_interface::CallbackReturn StrafeController::on_init()
@@ -160,7 +160,7 @@ controller_interface::return_type StrafeController::update(
   }
   else
   {
-    linear_velocity = linear_input * params_.linear.max_velocity;
+    linear_velocity = linear_input * params_->linear.max_velocity;
   }
 
   // Limit the linear velocity
@@ -218,14 +218,13 @@ controller_interface::return_type StrafeController::update(
   // ######################### Send commands #############################
   // In the case more wheels are added or the pivots' range of motion changes, review this logic
   // Set command values for drive
+  const double speed = linear_velocity / params_->wheel_radius;
   for (size_t pos = 0; pos < wheels_per_side_; ++pos)
   {
-    const int multiplier = (pos != wheels_per_side - 1) ? 1 : -1;
+    const int multiplier = (pos != wheels_per_side_ - 1) ? 1 : -1;
     if (
-      !hwif_wrapper_->set_value(
-        multiplier * linear_velocity, pos, JointSide::LEFT, JointType::DRIVE) ||
-      !hwif_wrapper_->set_value(
-        -multiplier * linear_velocity, pos, JointSide::RIGHT, JointType::DRIVE))
+      !hwif_wrapper_->set_value(multiplier * speed, pos, JointSide::LEFT, JointType::DRIVE) ||
+      !hwif_wrapper_->set_value(-multiplier * speed, pos, JointSide::RIGHT, JointType::DRIVE))
     {
       RCLCPP_ERROR(logger, "Failed to set drive command values for position %zu.", pos);
       return controller_interface::return_type::ERROR;
