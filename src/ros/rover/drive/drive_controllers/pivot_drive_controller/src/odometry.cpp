@@ -253,7 +253,7 @@ void Odometry::integrate_runge_kutta_2(double delta_linear, double delta_angular
 {
   const double direction = heading_ + delta_angular * 0.5;
 
-  /// Runge-Kutta 2nd order integration:
+  // Runge-Kutta 2nd order integration:
   x_ += delta_linear * std::cos(direction);
   y_ += delta_linear * std::sin(direction);
 
@@ -268,7 +268,7 @@ void Odometry::integrate_exact(double delta_linear, double delta_angular)
   }
   else
   {
-    /// Exact integration (should solve problems when delta_angular is zero):
+    // Exact integration:
     const double heading_old = heading_;
     const double r = delta_linear / delta_angular;
     heading_ += delta_angular;

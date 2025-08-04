@@ -33,9 +33,9 @@ using lifecycle_msgs::msg::State;
 
 DiffDriveController::DiffDriveController()
   : controller_interface::ControllerInterface()
-  , PIVOTS_PER_SIDE_(2)  // two pivots per side: front and back
   , DRIVE_COMMAND_TYPE_(HW_IF_VELOCITY)
   , PIVOT_COMMAND_TYPE_(HW_IF_POSITION)
+  , PIVOTS_PER_SIDE_(2)  // two pivots per side: front and back
 {
 }
 
@@ -281,82 +281,6 @@ controller_interface::return_type DiffDriveController::update(
     commanded_twist_command.twist.angular.z = angular_velocity;
     realtime_commanded_twist_publisher_->unlockAndPublish();
   }
-  // float radius = angular_velocity;
-
-  // if (radius == INFINITY || radius == -INFINITY || target_direction == 0)
-  // {
-  //   for (size_t index = 0; index < static_cast<size_t>(params_->wheels_per_side); ++index)
-  //   {
-  //     registered_left_drive_handles_[index].command.get().set_value(
-  //       best_effort_velocity / params_->wheel_radius);
-  //     registered_right_drive_handles_[index].command.get().set_value(
-  //       best_effort_velocity / params_->wheel_radius);
-
-  //     registered_left_pivot_handles_[index].command.get().set_value(
-  //       angle_offset * (index == 0 ? 1 : -1));
-  //     registered_right_pivot_handles_[index].command.get().set_value(
-  //       angle_offset * (index == 0 ? -1 : 1));
-  //   }
-  // }
-  // else
-  // {
-  //   // Calculate distances from the wheel_base centre to each wheel, and the maximum distance
-  //   float left_wheel_distances[params_->wheels_per_side];
-  //   float right_wheel_distances[params_->wheels_per_side];
-  //   float wheel_x = params_->steering_track / 2;
-  //   float wheel_y;
-
-  //   float max_dist = 0;
-  //   for (size_t index = 0; index < static_cast<size_t>(params_->wheels_per_side); ++index)
-  //   {
-  //     // position of wheel
-  //     wheel_y = params_->wheel_base / 2 * (index == 0 ? 1 : -1);
-
-  //     auto wheel_dist = [radius](float x, float y) -> float
-  //     {
-  //       return sqrt(pow(radius - x, 2) + pow(y, 2));
-  //     };
-
-  //     left_wheel_distances[index] = wheel_dist(-wheel_x, wheel_y);
-  //     right_wheel_distances[index] = wheel_dist(wheel_x, wheel_y);
-
-  //     max_dist = std::max({max_dist, left_wheel_distances[index], right_wheel_distances[index]});
-  //   }
-  //   // Handle sharp turning when radius is very small
-  //   for (size_t index = 0; index < static_cast<size_t>(params_->wheels_per_side); ++index)
-  //   {
-  //     // Handle sharp turning when radius is very small
-  //     bool sharp_turn = abs(radius) < (params_->steering_track) / 2;
-  //     float left_speed = best_effort_velocity * left_wheel_distances[index] / max_dist;
-  //     float right_speed = best_effort_velocity * right_wheel_distances[index] / max_dist;
-
-  //     if (sharp_turn)
-  //     {
-  //       if (target_direction < 0)  // Left turn
-  //       {
-  //         left_speed = -left_speed;
-  //       }
-  //       else if (target_direction > 0)  // Right turn
-  //       {
-  //         right_speed = -right_speed;
-  //       }
-  //     }
-
-  //     registered_left_drive_handles_[index].command.get().set_value(
-  //       left_speed / params_->wheel_radius);
-  //     registered_right_drive_handles_[index].command.get().set_value(
-  //       right_speed / params_->wheel_radius);
-
-  //     registered_left_pivot_handles_[index].command.get().set_value(
-  //       angle_offset * (index == 0 ? 1 : -1));
-  //     registered_right_pivot_handles_[index].command.get().set_value(
-  //       angle_offset * (index == 0 ? -1 : 1));
-
-  //     RCLCPP_INFO(
-  //       logger, "Left wheel speed: %f, Right wheel speed: %f", left_speed /
-  //       params_->wheel_radius, right_speed / params_->wheel_radius);
-  //   }
-  // }
 
   return controller_interface::return_type::OK;
 }

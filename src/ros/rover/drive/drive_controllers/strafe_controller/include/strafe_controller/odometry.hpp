@@ -2,9 +2,15 @@
 #define STRAFE_CONTROLLER__ODOMETRY_HPP_
 
 #include <cmath>
+#include <memory>
 
-#include "rclcpp/time.hpp"
+#include "rclcpp/rclcpp.hpp"
 #include "rcpputils/rolling_mean_accumulator.hpp"
+#include "nav_msgs/msg/odometry.hpp"
+#include "tf2_msgs/msg/tf_message.hpp"
+#include "realtime_tools/realtime_publisher.h"
+
+#include "strafe_controller_parameters.hpp"
 
 namespace strafe_controller
 {
@@ -12,83 +18,47 @@ namespace strafe_controller
 class Odometry
 {
 public:
-  explicit Odometry(size_t velocity_rolling_window_size = 10);
+  explicit Odometry(rclcpp_lifecycle::LifecycleNode::SharedPtr node, std::shared_ptr<Params> params);
 
-  void init(const rclcpp::Time& time);
-  bool update(
-    const double& fl_speed, const double& fr_speed, const double& rl_speed, const double& rr_speed,
-    double front_steering, double rear_steering, const double& time);
-  bool updateFromVelocity(double left_vel, double right_vel, const rclcpp::Time& time);
-  void updateOpenLoop(double linear, double angular, const rclcpp::Time& time);
-  void resetOdometry();
-  bool update_odometry(const double linear_velocity, const double angular, const double dt);
-
-  double getX() const
-  {
-    return x_;
-  }
-  double getY() const
-  {
-    return y_;
-  }
-  double getHeading() const
-  {
-    return heading_;
-  }
-  double getLinear() const
-  {
-    return linear_;
-  }
-  double getLinearX() const
-  {
-    return linear_x_;
-  }
-  double getLinearY() const
-  {
-    return linear_y_;
-  }
-
-  double getAngular() const
-  {
-    return angular_;
-  }
-
-  void setWheelParams(
-    double steering_track, double wheel_radius, double wheel_base, double wheel_steering_y_offset);
-  void setVelocityRollingWindowSize(size_t velocity_rolling_window_size);
+  bool update(double drive_feedback, const rclcpp::Time& time);
+  void update_open_loop(double linear, const rclcpp::Time& time);
+  void publish(const rclcpp::Time& time);
+  void reset();
 
 private:
   using RollingMeanAccumulator = rcpputils::RollingMeanAccumulator<double>;
-  void integrateXY(double linear_x, double linear_y, double angular);
-  void integrateRungeKutta2(double linear, double angular);
-  void integrateExact(double linear, double angular);
-  void resetAccumulators();
 
-  // Current timestamp:
-  rclcpp::Time timestamp_;
+  void integrate_exact(double delta_linear);
+
+  rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
+  std::shared_ptr<Params> params_;
+  rclcpp::Time timestamp_;  // current timestamp
 
   // Current pose:
-  double x_;        //   [m]
-  double y_;        //   [m]
-  double heading_;  // [rad]
+  double x_ = 0.0;        //   [m]
+  double y_ = 0.0;        //   [m]
+  double heading_ = 0.0;  // [rad]
 
   // Current velocity:
-  double linear_;   //   [m/s]
-  double angular_;  // [rad/s]
-  double linear_x_;
-  double linear_y_;
-  // Wheel kinematic parameters [m]:
-  double wheel_base_;
-  double wheel_radius_;
-  double wheel_steering_y_offset_;
-  double steering_track_;
-  // Previous wheel position/state [rad]:
-  double wheel_old_pos_;
+  double linear_ = 0.0;   //   [m/s]
 
-  // Rolling mean accumulators for the linear and angular velocities:
-  size_t velocity_rolling_window_size_;
+  // Previous wheel position [rad]:
+  double drive_old_pos_ = 0.0;
+
+  // Rolling mean accumulator for linear velocity:
   RollingMeanAccumulator linear_accumulator_;
-  RollingMeanAccumulator angular_accumulator_;
+
+  // Realtime publishers for odometry and transforms
+  std::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>
+    realtime_odometry_publisher_;
+
+  std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> odometry_transform_publisher_;
+  std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>
+    realtime_odometry_transform_publisher_;
+
+  // Publish rate limiter
+  rclcpp::Duration publish_period_;
+  rclcpp::Time previous_publish_timestamp_{0, 0, RCL_CLOCK_UNINITIALIZED};
 };
 
 }  // namespace strafe_controller

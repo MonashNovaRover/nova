@@ -1,9 +1,11 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>strafe_controller</name>
-  <version>0.0.0</version>
+  <version>0.1.0</version>
   <description>Controller for a 4 steering drive mobile base.</description>
+  <maintainer email="novaroverteam@monash.edu">Monash Nova Rover</maintainer>
   <maintainer email="dylcg10@gmail.com">Dylan Gonzalez</maintainer>
+  <maintainer email="terrytian2004@gmail.com">Terry Tian</maintainer>
 
   <license>Apache License 2.0</license>
 
@@ -22,7 +24,6 @@
   <depend>realtime_tools</depend>
   <depend>tf2</depend>
   <depend>tf2_msgs</depend>
-  <depend>nova_interfaces</depend>
   <depend>nova_controller_common</depend>
   <build_depend>pluginlib</build_depend>
 

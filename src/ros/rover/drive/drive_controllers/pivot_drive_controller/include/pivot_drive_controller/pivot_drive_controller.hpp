@@ -84,6 +84,8 @@ public:
 protected:
   const char* drive_feedback_type() const;
   const char* pivot_feedback_type() const;
+  const char* DRIVE_COMMAND_TYPE_;
+  const char* PIVOT_COMMAND_TYPE_;
 
   bool reset();
   void reset_buffers();
@@ -106,6 +108,7 @@ protected:
   double offset_angle_;
   double half_wheel_base_;
   double half_steering_track_;
+  
   size_t wheels_per_side_;
   const size_t PIVOTS_PER_SIDE_;
 
@@ -134,9 +137,6 @@ protected:
   std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::TwistStamped>> commanded_twist_publisher_;
   std::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::msg::TwistStamped>>
     realtime_commanded_twist_publisher_;
-
-  const char* DRIVE_COMMAND_TYPE_;
-  const char* PIVOT_COMMAND_TYPE_;
 };
 
 }  // namespace pivot_drive_controller
