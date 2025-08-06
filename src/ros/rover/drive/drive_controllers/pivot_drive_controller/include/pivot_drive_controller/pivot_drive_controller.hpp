@@ -50,6 +50,23 @@
 namespace pivot_drive_controller
 {
 
+enum class JointSide
+{
+  LEFT,
+  RIGHT
+};
+
+enum class JointType
+{
+  DRIVE,
+  PIVOT
+};
+
+constexpr size_t encoded_pos(const size_t pos, const JointSide side, const JointType type)
+{
+  return pos << 2 | (static_cast<size_t>(side) << 1) | static_cast<size_t>(type);
+}
+
 class PivotDriveController : public controller_interface::ControllerInterface
 {
 public:
@@ -108,7 +125,7 @@ protected:
   double offset_angle_;
   double half_wheel_base_;
   double half_steering_track_;
-  
+
   size_t wheels_per_side_;
   const size_t PIVOTS_PER_SIDE_;
 

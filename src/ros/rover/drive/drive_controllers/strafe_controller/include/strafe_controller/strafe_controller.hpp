@@ -30,6 +30,23 @@
 namespace strafe_controller
 {
 
+enum class JointSide
+{
+  LEFT,
+  RIGHT
+};
+
+enum class JointType
+{
+  DRIVE,
+  PIVOT
+};
+
+constexpr size_t encoded_pos(const size_t pos, const JointSide side, const JointType type)
+{
+  return pos << 2 | (static_cast<size_t>(side) << 1) | static_cast<size_t>(type);
+}
+
 class StrafeController : public controller_interface::ControllerInterface
 {
 public:
@@ -84,7 +101,7 @@ protected:
   std::unique_ptr<nova_controller_common::HardwareInterfaceWrapper> hwif_wrapper_;
   std::unique_ptr<Odometry> odometry_;
 
-  std::deque<double> previous_linear_velocities_;   // last two linear velocity commands
+  std::deque<double> previous_linear_velocities_;  // last two linear velocity commands
 
   // Limiters
   nova_controller_common::SpeedLimiter limiter_linear_;
