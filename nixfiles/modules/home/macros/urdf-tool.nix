@@ -16,13 +16,13 @@ let
 
   onshapeToRobot = pyPkgs.buildPythonPackage rec {
     pname = "onshape-to-robot";
-    version = "1.5.7";
+    version = "1.7.6";
 
     src = pkgs.fetchFromGitHub {
       owner = "Rhoban";
       repo = pname;
-      rev = "1c6e662fe6233b452dfc0de1632a40086ba1b8f7";
-      hash = "sha256-f/ho5NSNm7nfJVsF6xczobc9puny3/EtS/Idsl6Sjus=";
+      rev = "65250f0e7044f56a2e2d59a09b14e5b2c591cf0b";
+      hash = "sha256-lTkAnM8uvrwWJsBx865ReZ/DmdyrQIjLsylAuCwBk+c=";
     };
 
     propagatedBuildInputs = with pyPkgs; [
