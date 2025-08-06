@@ -123,7 +123,9 @@ export const useCartographerMarkers = (map?: Map) => {
           new Popup({
             closeOnClick: false,
             className: "text-black dark",
-          }).setText(`${point.name} ( ${GoalType[point.goalType]} )`)
+          }).setText( point.label != null
+            ? `${point.name} ( ${GoalType[point.label]} )`
+            : `${point.name}`)
         )
         .addTo(map)
         .togglePopup();
