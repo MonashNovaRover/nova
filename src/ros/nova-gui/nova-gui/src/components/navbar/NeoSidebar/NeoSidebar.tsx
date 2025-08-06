@@ -92,7 +92,7 @@ const urcSidebarData: SidebarInterface = {
   ["Autonomous"]: [
     {
       title: "Dashboard",
-      route: "/urc/autonomous-navbar",
+      route: "/urc/autonomous-navigation",
       icon: <Home />,
     },
     {

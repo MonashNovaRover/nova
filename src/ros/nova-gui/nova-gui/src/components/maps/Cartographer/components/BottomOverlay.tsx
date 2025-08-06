@@ -23,18 +23,16 @@ import { ToolTipButton } from "../../../shared/components/TooltipButton.tsx";
 import { useCartographerActions } from "../../../../redux/actions/useCartographerActions.ts";
 import { MapTile } from "../config.tsx";
 import { GoalType, MapPoint } from "../../../../redux/models/CartographerState.ts";
-import { CartographerGoalModal } from "./CartographerGoalModal.tsx";
-import AutoStatus from "./AutoStatus.tsx";
 
 interface BottomOverlayProps {
   mapTile: MapTile;
   setMapTile: (tile: MapTile) => void;
   deletePoint: (point: MapPoint) => void;
+  bottomOverlayComponents?: React.ReactNode[];
 }
 
-export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint}) => {
+export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint, bottomOverlayComponents = []}) => {
   const [overlayOpen, setOverlayOpen] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
   const { points, centerOnRover, trackRover } = useSelector(
     (state: RootState) => state.cartographerState
   );
@@ -53,9 +51,11 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
     >
       <Card fullWidth className="h-full">
         <CardHeader className="w-full flex flex-row justify-between">
-          <AutoStatus/>
           <div className=""></div>
           <div className="flex flex-row align-middle gap-3">
+          {bottomOverlayComponents.map((component, index) => (
+              <div key={index}>{component}</div>
+            ))}
             <CopyableInput
               readOnly
               value={String(base.latitude)}
@@ -92,12 +92,6 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
             <Button
               variant="shadow"
               fullWidth
-              onClick={() => setModalOpen(true)}
-            >
-              Publish Goals
-            </Button>
-            <Button
-              variant="shadow"
               color={trackRover ? "primary" : "default"}
               onClick={toggleRoverTracking}
             >
@@ -137,7 +131,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                       <TableColumn>Name</TableColumn>
                       <TableColumn>Latitude</TableColumn>
                       <TableColumn>Longitude</TableColumn>
-                      <TableColumn>Goal Type</TableColumn>
+                      <TableColumn>Label</TableColumn>
                       <TableColumn align="end">
                         <div className="flex flex-row justify-end">Actions</div>
                       </TableColumn>
@@ -148,7 +142,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                           <TableCell>{point.name}</TableCell>
                           <TableCell>{point.lat}</TableCell>
                           <TableCell>{point.long}</TableCell>
-                          <TableCell>{GoalType[point.goalType]}</TableCell>
+                          <TableCell>{point.label != null ? GoalType[point.label] : ''}</TableCell>
                           <TableCell className="flex flex-row justify-end">
                             <ToolTipButton
                               isIconOnly
@@ -163,29 +157,12 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                       ))}
                     </TableBody>
                   </Table>
-                  <CopyableInput className="grow basis-1"
-                     size="md" labelPlacement="outside"
-                     label={"ROS2 Action Goal Poses"}
-                     //value={`${points.map(point => `{latitude: ${point.lat.toString()}, longitude: ${point.long.toString()}}`)}`}  
-                     value={`./bt-navigator/bin/ros2 action send_goal /urc_navigator nova_auto_interfaces/action/NavigateURC "{gps_poses: [{${points.map(point => `position: {latitude: ${point.lat.toString()}, longitude: ${point.long.toString()}}`)}}], behavior_tree: '$HOME/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/urc/urc_through_poses_search.xml'}" `}
-                     copyValue={`./bt-navigator/bin/ros2 action send_goal /urc_navigator nova_auto_interfaces/action/NavigateURC "{gps_poses: [{${points.map(point => `position: {latitude: ${point.lat.toString()}, longitude: ${point.long.toString()}}`)}}], behavior_tree: '$HOME/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/urc/urc_through_poses_search.xml'}"`}
-                     classNames={{
-                       input: "font-mono",
-                       inputWrapper: "data-[hover=true]:bg-default-100"
-                     }}
-                     placeholder={"##.#### %"}>
-                  </CopyableInput>
                 </motion.div>
               </motion.div>
             </CardBody>
           )}
         </AnimatePresence>
       </Card>
-      <CartographerGoalModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        points={points}
-      />
     </motion.div>
   );
 };
