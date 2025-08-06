@@ -34,10 +34,8 @@ HardwareInterfaceWrapper::HardwareInterfaceWrapper(
 {
 }
 
-bool HardwareInterfaceWrapper::set_value(
-  double value, const size_t pos, const JointSide side, const JointType type) const
+bool HardwareInterfaceWrapper::set_value(double value, const size_t idx) const
 {
-  const size_t idx = encoded_pos(pos, side, type);
   if (idx >= registered_handles_.size())
   {
     RCLCPP_ERROR(node_->get_logger(), "Index %zu out of bounds for registered handles", idx);
@@ -49,11 +47,15 @@ bool HardwareInterfaceWrapper::set_value(
     return false;
   }
 
-  // Invert pivot position value for BLCMDs
-  if (type == JointType::PIVOT)
+  // TODO: REMOVE ONCE THE OFFSET IS REMOVED FROM THE URDF
+  // Apply offset angle
+  size_t pos = idx >> 2;
+  bool right = idx & 0b10;
+  bool pivot = idx & 0b1;
+  if (pivot)
   {
     // Assumes that there are only two pivots (front and back) for each side
-    if ((pos == 0 && side == JointSide::LEFT) || (pos == 1 && side == JointSide::RIGHT))
+    if ((pos == 0 && !right) || (pos == 1 && right))
     {
       value -= offset_angle_;
     }
@@ -61,17 +63,14 @@ bool HardwareInterfaceWrapper::set_value(
     {
       value += offset_angle_;
     }
-    value *= REVERSE_MULTIPLIER_;
   }
   registered_handles_[idx]->command.get().set_value(value);
 
   return true;
 }
 
-std::optional<double> HardwareInterfaceWrapper::get_optional(
-  const size_t pos, const JointSide side, const JointType type, bool cmd_if) const
+std::optional<double> HardwareInterfaceWrapper::get_optional(const size_t idx, bool cmd_if) const
 {
-  const size_t idx = encoded_pos(pos, side, type);
   if (idx >= registered_handles_.size())
   {
     RCLCPP_ERROR(node_->get_logger(), "Index %zu out of bounds for registered handles", idx);
@@ -100,11 +99,15 @@ std::optional<double> HardwareInterfaceWrapper::get_optional(
     res = state_handle.value().get().get_value();
   }
 
-  // Invert pivot position value for BLCMDs
-  if (type == JointType::PIVOT)
+  // TODO: REMOVE ONCE THE OFFSET IS REMOVED FROM THE URDF
+  // Apply offset angle
+  size_t pos = idx >> 2;
+  bool right = idx & 0b10;
+  bool pivot = idx & 0b1;
+  if (pivot)
   {
     // Assumes that there are only two pivots (front and back) for each side
-    if ((pos == 0 && side == JointSide::LEFT) || (pos == 1 && side == JointSide::RIGHT))
+    if ((pos == 0 && !right) || (pos == 1 && right))
     {
       res -= offset_angle_;
     }
@@ -112,7 +115,6 @@ std::optional<double> HardwareInterfaceWrapper::get_optional(
     {
       res += offset_angle_;
     }
-    res *= REVERSE_MULTIPLIER_;
   }
 
   return std::make_optional(res);
@@ -120,14 +122,9 @@ std::optional<double> HardwareInterfaceWrapper::get_optional(
 
 bool HardwareInterfaceWrapper::configure_joint_handles(std::vector<Joint>& joints, bool open_loop)
 {
-  size_t max_pos = 0;
-  for (const auto& joint : joints)
-  {
-    max_pos = std::max(max_pos, joint.pos);
-  }
-  registered_handles_.resize((max_pos + 1) << 2); // make space for 2 bits, side and type
-  
-  for (const auto& [name, feedback_type, command_type, pos, side, type] : joints)
+  registered_handles_.resize(joints.size());
+
+  for (const auto& [name, feedback_type, command_type, idx] : joints)
   {
     const auto cmd_iter = std::find_if(
       command_interfaces_.begin(), command_interfaces_.end(),
@@ -144,7 +141,6 @@ bool HardwareInterfaceWrapper::configure_joint_handles(std::vector<Joint>& joint
       return false;
     }
 
-    const size_t idx = encoded_pos(pos, side, type);
     if (open_loop)
     {
       registered_handles_[idx] = WheelHandle{std::nullopt, std::ref(*cmd_iter)};
