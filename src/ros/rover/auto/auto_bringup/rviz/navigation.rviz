@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /RobotModel1
         - /TF1/Frames1
         - /TF1/Tree1
       Splitter Ratio: 0.5833333134651184
@@ -91,9 +92,9 @@ Visualization Manager:
       Value: true
     - Alpha: 1
       Class: rviz_default_plugins/RobotModel
-      Collision Enabled: true
-      Description File: ""
-      Description Source: Topic
+      Collision Enabled: false
+      Description File: /home/nova/rviz.urdf
+      Description Source: File
       Description Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -107,6 +108,242 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        bl_ankle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        bl_ball:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        bl_ball_dummy:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        bl_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        bootie-base-frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        bootie_imu_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        bootie_left_camera_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        bootie_left_camera_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        bootie_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        bootie_link_gz_pointcloud:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        bootie_link_optical:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        bootie_model_origin:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        bootie_rgb_camera_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        bootie_rgb_camera_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        bootie_right_camera_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        bootie_right_camera_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        br_ankle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        br_ball:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        br_ball_dummy:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        br_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_holder_back:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_holder_front:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        chassis:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        clam:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        diffbar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        fl_ankle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        fl_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        fr_ankle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        fr_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gps:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_diffend_dummy:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_difflink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_leg:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        oak-base-frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        oak_imu_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        oak_left_camera_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        oak_left_camera_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        oak_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        oak_link_gz_pointcloud:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        oak_link_optical:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        oak_model_origin:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        oak_rgb_camera_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        oak_rgb_camera_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        oak_right_camera_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        oak_right_camera_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_diffend_dummy:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_difflink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_leg:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tl_ball:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        tl_ball_dummy:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        tr_ball:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        tr_ball_dummy:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
       Mass Properties:
         Inertia: false
         Mass: false
@@ -114,7 +351,7 @@ Visualization Manager:
       TF Prefix: ""
       Update Interval: 0
       Value: true
-      Visual Enabled: false
+      Visual Enabled: true
     - Class: rviz_default_plugins/TF
       Enabled: true
       Filter (blacklist): ""
@@ -122,6 +359,68 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        base_link:
+          Value: true
+        bootie-base-frame:
+          Value: true
+        bootie_imu_frame:
+          Value: true
+        bootie_left_camera_frame:
+          Value: true
+        bootie_left_camera_optical_frame:
+          Value: true
+        bootie_link:
+          Value: true
+        bootie_link_gz_pointcloud:
+          Value: true
+        bootie_link_optical:
+          Value: true
+        bootie_model_origin:
+          Value: true
+        bootie_rgb_camera_frame:
+          Value: true
+        bootie_rgb_camera_optical_frame:
+          Value: true
+        bootie_right_camera_frame:
+          Value: true
+        bootie_right_camera_optical_frame:
+          Value: true
+        camera_holder_back:
+          Value: true
+        camera_holder_front:
+          Value: true
+        chassis:
+          Value: true
+        clam:
+          Value: true
+        gps:
+          Value: true
+        mount:
+          Value: true
+        oak-base-frame:
+          Value: true
+        oak_imu_frame:
+          Value: true
+        oak_left_camera_frame:
+          Value: true
+        oak_left_camera_optical_frame:
+          Value: true
+        oak_link:
+          Value: true
+        oak_link_gz_pointcloud:
+          Value: true
+        oak_link_optical:
+          Value: true
+        oak_model_origin:
+          Value: true
+        oak_rgb_camera_frame:
+          Value: true
+        oak_rgb_camera_optical_frame:
+          Value: true
+        oak_right_camera_frame:
+          Value: true
+        oak_right_camera_optical_frame:
+          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
