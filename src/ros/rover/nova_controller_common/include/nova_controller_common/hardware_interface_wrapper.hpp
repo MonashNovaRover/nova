@@ -30,41 +30,19 @@
 namespace nova_controller_common
 {
 
-enum class JointSide
-{
-  LEFT,
-  RIGHT
-};
-
-enum class JointType
-{
-  DRIVE,
-  PIVOT
-};
-
-constexpr size_t encoded_pos(const size_t pos, const JointSide side, const JointType type)
-{
-  return pos << 2 | (static_cast<size_t>(side) << 1) | static_cast<size_t>(type);
-}
-
 struct Joint
 {
   const std::string name;
   const char* feedback_type;
   const char* command_type;
-  const size_t pos;
-  const JointSide side;
-  const JointType type;
+  const size_t idx;
 
   Joint(
-    const std::string& joint_name, const char* feedback, const char* command, const size_t pos,
-    const JointSide side, const JointType type)
+    const std::string& joint_name, const char* feedback, const char* command, const size_t idx)
     : name(joint_name)
     , feedback_type(feedback)
     , command_type(command)
-    , pos(pos)
-    , side(side)
-    , type(type)
+    , idx(idx)
   {
   }
 };
@@ -83,10 +61,9 @@ public:
     std::vector<hardware_interface::LoanedStateInterface>& state_interfaces,
     std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces);
 
-  bool set_value(double value, const size_t pos, const JointSide side, const JointType type) const;
+  bool set_value(double value, const size_t idx) const;
 
-  std::optional<double> get_optional(
-    const size_t pos, const JointSide side, const JointType type, bool cmd_if = false) const;
+  std::optional<double> get_optional(const size_t idx, bool cmd_if = false) const;
 
   bool configure_joint_handles(std::vector<Joint>& joints, bool open_loop);
 
@@ -97,8 +74,6 @@ private:
   std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces_;
   std::vector<hardware_interface::LoanedStateInterface>& state_interfaces_;
   double offset_angle_;
-
-  const int REVERSE_MULTIPLIER_ = -1;  // our BLCMD pivot positions are inverted
 
   std::vector<std::optional<WheelHandle>> registered_handles_;
 };

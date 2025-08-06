@@ -181,9 +181,9 @@ controller_interface::return_type StrafeController::update(
     for (size_t pos = 0; pos < wheels_per_side_; ++pos)
     {
       const auto left_feedback_op =
-        hwif_wrapper_->get_optional(pos, JointSide::LEFT, JointType::DRIVE);
+        hwif_wrapper_->get_optional(encoded_pos(pos, JointSide::LEFT, JointType::DRIVE));
       const auto right_feedback_op =
-        hwif_wrapper_->get_optional(pos, JointSide::RIGHT, JointType::DRIVE);
+        hwif_wrapper_->get_optional(encoded_pos(pos, JointSide::RIGHT, JointType::DRIVE));
       if (!left_feedback_op.has_value() || !right_feedback_op.has_value())
       {
         RCLCPP_DEBUG(
@@ -223,8 +223,10 @@ controller_interface::return_type StrafeController::update(
   {
     const int multiplier = (pos != wheels_per_side_ - 1) ? 1 : -1;
     if (
-      !hwif_wrapper_->set_value(multiplier * speed, pos, JointSide::LEFT, JointType::DRIVE) ||
-      !hwif_wrapper_->set_value(-multiplier * speed, pos, JointSide::RIGHT, JointType::DRIVE))
+      !hwif_wrapper_->set_value(
+        multiplier * speed, encoded_pos(pos, JointSide::LEFT, JointType::DRIVE)) ||
+      !hwif_wrapper_->set_value(
+        -multiplier * speed, encoded_pos(pos, JointSide::RIGHT, JointType::DRIVE)))
     {
       RCLCPP_ERROR(logger, "Failed to set drive command values for position %zu.", pos);
       return controller_interface::return_type::ERROR;
@@ -236,8 +238,10 @@ controller_interface::return_type StrafeController::update(
   {
     const int multiplier = pos == 0 ? 1 : -1;
     if (
-      !hwif_wrapper_->set_value(multiplier * M_PI_2, pos, JointSide::LEFT, JointType::PIVOT) ||
-      !hwif_wrapper_->set_value(-multiplier * M_PI_2, pos, JointSide::RIGHT, JointType::PIVOT))
+      !hwif_wrapper_->set_value(
+        multiplier * M_PI_2, encoded_pos(pos, JointSide::LEFT, JointType::PIVOT)) ||
+      !hwif_wrapper_->set_value(
+        -multiplier * M_PI_2, encoded_pos(pos, JointSide::RIGHT, JointType::PIVOT)))
     {
       RCLCPP_ERROR(logger, "Failed to set pivot command values for position %zu.", pos);
       return controller_interface::return_type::ERROR;
@@ -371,22 +375,22 @@ controller_interface::CallbackReturn StrafeController::on_activate(const rclcpp_
     std::string left_drive_name = params_->left_drive_names[pos];
     std::string right_drive_name = params_->right_drive_names[pos];
     joints.emplace_back(
-      left_drive_name, drive_feedback_type(), DRIVE_COMMAND_TYPE_, pos, JointSide::LEFT,
-      JointType::DRIVE);
+      left_drive_name, drive_feedback_type(), DRIVE_COMMAND_TYPE_,
+      encoded_pos(pos, JointSide::LEFT, JointType::DRIVE));
     joints.emplace_back(
-      right_drive_name, drive_feedback_type(), DRIVE_COMMAND_TYPE_, pos, JointSide::RIGHT,
-      JointType::DRIVE);
+      right_drive_name, drive_feedback_type(), DRIVE_COMMAND_TYPE_,
+      encoded_pos(pos, JointSide::RIGHT, JointType::DRIVE));
   }
   for (size_t pos = 0; pos < PIVOTS_PER_SIDE_; ++pos)
   {
     std::string left_pivot_name = params_->left_pivot_names[pos];
     std::string right_pivot_name = params_->right_pivot_names[pos];
     joints.emplace_back(
-      left_pivot_name, pivot_feedback_type(), PIVOT_COMMAND_TYPE_, pos, JointSide::LEFT,
-      JointType::PIVOT);
+      left_pivot_name, pivot_feedback_type(), PIVOT_COMMAND_TYPE_,
+      encoded_pos(pos, JointSide::LEFT, JointType::PIVOT));
     joints.emplace_back(
-      right_pivot_name, pivot_feedback_type(), PIVOT_COMMAND_TYPE_, pos, JointSide::RIGHT,
-      JointType::PIVOT);
+      right_pivot_name, pivot_feedback_type(), PIVOT_COMMAND_TYPE_,
+      encoded_pos(pos, JointSide::RIGHT, JointType::PIVOT));
   }
 
   if (!hwif_wrapper_->configure_joint_handles(joints, params_->open_loop))
@@ -471,13 +475,13 @@ void StrafeController::halt()
   // Send zero commands to all wheels and pivots
   for (size_t pos = 0; pos < wheels_per_side_; ++pos)
   {
-    hwif_wrapper_->set_value(0.0, pos, JointSide::LEFT, JointType::DRIVE);
-    hwif_wrapper_->set_value(0.0, pos, JointSide::RIGHT, JointType::DRIVE);
+    hwif_wrapper_->set_value(0.0, encoded_pos(pos, JointSide::LEFT, JointType::DRIVE));
+    hwif_wrapper_->set_value(0.0, encoded_pos(pos, JointSide::RIGHT, JointType::DRIVE));
   }
   for (size_t pos = 0; pos < PIVOTS_PER_SIDE_; ++pos)
   {
-    hwif_wrapper_->set_value(0.0, pos, JointSide::LEFT, JointType::PIVOT);
-    hwif_wrapper_->set_value(0.0, pos, JointSide::RIGHT, JointType::PIVOT);
+    hwif_wrapper_->set_value(0.0, encoded_pos(pos, JointSide::LEFT, JointType::PIVOT));
+    hwif_wrapper_->set_value(0.0, encoded_pos(pos, JointSide::RIGHT, JointType::PIVOT));
   }
 }
 

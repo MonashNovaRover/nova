@@ -56,7 +56,8 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "pivot_drive_controller_BUILD
 pluginlib_export_plugin_description_file(controller_interface pivot_drive_controller.xml)
 
 
-install(DIRECTORY include/
+install(
+  DIRECTORY include/
   DESTINATION include/pivot_drive_controller
 )
 

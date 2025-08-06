@@ -27,6 +27,23 @@
 namespace diff_drive_controller
 {
 
+enum class JointSide
+{
+  LEFT,
+  RIGHT
+};
+
+enum class JointType
+{
+  DRIVE,
+  PIVOT
+};
+
+constexpr size_t encoded_pos(const size_t pos, const JointSide side, const JointType type)
+{
+  return pos << 2 | (static_cast<size_t>(side) << 1) | static_cast<size_t>(type);
+}
+
 class DiffDriveController : public controller_interface::ControllerInterface
 {
 public:
@@ -78,7 +95,7 @@ protected:
   double wheel_separation_;
   double left_wheel_radius_;
   double right_wheel_radius_;
-  
+
   size_t wheels_per_side_;
   const size_t PIVOTS_PER_SIDE_;
 
