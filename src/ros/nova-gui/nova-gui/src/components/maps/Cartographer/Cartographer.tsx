@@ -17,7 +17,12 @@ import { useLocalStorage } from "../../../hooks/useLocalStorage.ts";
 import { MapTile } from "./config.tsx";
 import AutoArrivedPopup from "./components/AutoArrivedPopup.tsx";
 
-export const Cartographer = () => {
+interface CartographerProps {
+  pointLabels?: { key: number; text: string }[];
+  bottomOverlayComponents?: React.ReactNode[];
+}
+
+export const Cartographer : React.FC<CartographerProps> = ({ bottomOverlayComponents = [], pointLabels }) => {
   const [mapTile, setMapTile] = useLocalStorage("mapTile", MapTile.Hanksville);
   const [storedPoints, setStoredPoints] = useLocalStorage("storedPoints", [] as MapPoint[])
 
@@ -65,8 +70,9 @@ export const Cartographer = () => {
         closeModal={closeNewModal}
         latitude={newMarkerModal.coordinate?.lat}
         longitude={newMarkerModal.coordinate?.long}
+        labels={pointLabels}
       />
-      <div className="flex h-[95vh]">
+      <div className="flex h-[90vh]">
         <MapTilerMap
           mapTile={mapTile}
           overlay={
@@ -165,7 +171,7 @@ export const Cartographer = () => {
           }
         />
         <div className="fixed bottom-0 w-full">
-          <BottomOverlay mapTile={mapTile} setMapTile={setMapTile as (tile: MapTile) => void} deletePoint={deletePoint}/>
+          <BottomOverlay mapTile={mapTile} setMapTile={setMapTile as (tile: MapTile) => void} deletePoint={deletePoint} bottomOverlayComponents={bottomOverlayComponents}/>
         </div>
       </div>
     </div>
