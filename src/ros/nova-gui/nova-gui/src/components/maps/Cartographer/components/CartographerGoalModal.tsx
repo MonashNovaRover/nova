@@ -31,16 +31,28 @@ import {
 import { SortablePoints } from "./SortablePoints.tsx";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../../ros/services/rosService.ts";
-import { GoalType, MapPoint } from "../../../../redux/models/CartographerState.ts";
+import { GoalType } from "../../../../redux/models/CartographerState.ts";
 import { IRosNovaInterfacesCartographerCommandRequest } from "../../../../ros/rosTypes.ts";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../../redux/RootState.ts";
+
+interface Point {
+  name: string;
+  lat: number;
+  long: number;
+  label: GoalType | null;
+  selected: boolean;
+}
 
 export const CartographerGoalModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
-  points: MapPoint[];
-}> = ({ isOpen, onClose, points }) => {
+}> = ({ isOpen, onClose }) => {
+  const { points } = useSelector(
+    (state: RootState) => state.cartographerState
+  );
 
-  const [items, setItems] = useState(
+  const [items, setItems] = useState<Point[]>(
     points.map((point) => ({ ...point, selected: false }))
   );
 
@@ -54,8 +66,8 @@ export const CartographerGoalModal: React.FC<{
       latitude: item.lat,
       longitude: item.long,
     }));
-    const types = selected.map((item) => item.goalType);
-    console.log("calling service with:", { goals: goals, types: types })
+    const types = selected.map((item) => item.label);
+    console.log("calling service with:", { goals: goals, types: types });
     serviceBifrost.callService({ goals: goals, types: types } as IRosNovaInterfacesCartographerCommandRequest);
   };
 
@@ -83,6 +95,54 @@ export const CartographerGoalModal: React.FC<{
     setItems(points.map((point) => ({ ...point, selected: false })));
   }, [isOpen, points]);
 
+  const renderPoints = (points: Point[], isSortable: boolean) => {
+    return points.map((point) => (
+      isSortable ? (
+        <SortablePoints key={point.name} id={point.name}>
+          {renderPointContent(point)}
+        </SortablePoints>
+      ) : (
+        <Card
+          key={point.name}
+          className="p-4 mb-4 rounded-lg bg-gray-100 bg-neutral-800"
+        >
+          {renderPointContent(point)}
+        </Card>
+      )
+    ));
+  };
+
+  const renderPointContent = (point: Point) => (
+    <div className="flex justify-between items-center">
+      <Checkbox
+        isSelected={point.selected}
+        onChange={() => toggleSelection(point.name)}
+      >
+        <span className="flex-shrink-0 font-bold">{point.name}</span>
+      </Checkbox>
+      <span className="flex-shrink-0">{point.lat}</span>
+      <span className="flex-shrink-0">{point.long}</span>
+      <div className="flex-shrink-0 flex justify-end w-24">
+        {point.label !== null && GoalType[point.label] && (
+          <Chip
+            className={`ml-2 ${
+              point.label == GoalType.GNSS
+                ? "bg-blue-200 text-blue-800 dark:bg-blue-700 dark:text-blue-200"
+                : point.label == GoalType.AR_TAG
+                ? "bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200"
+                : point.label == GoalType.OBJECT
+                ? "bg-yellow-200 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200"
+                : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+            }`}
+            size="sm"
+          >
+            {GoalType[point.label]}
+          </Chip>
+        )}
+      </div>
+    </div>
+  );
+
   const selectedItems = items.filter((item) => item.selected);
   const unselectedItems = items.filter((item) => !item.selected);
 
@@ -109,81 +169,18 @@ export const CartographerGoalModal: React.FC<{
                 ]}
                 onDragEnd={handleDragEnd}
               >
-                {/* Sortable context for selected items */}
                 <SortableContext
                   items={selectedItems.map((item) => item.name)}
                   strategy={verticalListSortingStrategy}
                 >
                   <h3 className="my-4 font-bold">Selected Points</h3>
-                  {selectedItems.map((point) => (
-                    <SortablePoints key={point.name} id={point.name}>
-                      <div className="flex justify-between items-center">
-                        <Checkbox
-                          isSelected={point.selected}
-                          onChange={() => toggleSelection(point.name)}
-                        >
-                          <span className="flex-shrink-0 font-bold">
-                            {point.name}
-                          </span>
-                        </Checkbox>
-                        <span className="flex-shrink-0">{point.lat}</span>
-                        <span className="flex-shrink-0">{point.long}</span>
-                        <Chip
-                          className={`ml-2 ${
-                            point.goalType === GoalType.GNSS
-                              ? "bg-blue-200 text-blue-800 dark:bg-blue-700 dark:text-blue-200"
-                              : point.goalType === GoalType.AR_TAG
-                                ? "bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200"
-                                : point.goalType === GoalType.OBJECT
-                                  ? "bg-yellow-200 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200"
-                                    : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-                          }`}
-                          size="sm"
-                        >
-                          {GoalType[point.goalType]}
-                        </Chip>
-                      </div>
-                    </SortablePoints>
-                  ))}
+                  {renderPoints(selectedItems, true)}
                 </SortableContext>
               </DndContext>
             </div>
             <Divider className="my-4" />
-            {/* Unsortable context for unselected items */}
             <h3 className="font-bold my-4">Unselected Points</h3>
-            {unselectedItems.map((point) => (
-              <Card
-                key={point.name}
-                className="p-4 mb-4 rounded-lg bg-gray-100 bg-neutral-800"
-              >
-                <div className="flex justify-between items-center">
-                  <Checkbox
-                    isSelected={point.selected}
-                    onChange={() => toggleSelection(point.name)}
-                  >
-                    <span className="flex-shrink-0 font-bold">
-                      {point.name}
-                    </span>
-                  </Checkbox>
-                  <span className="flex-shrink-0">{point.lat}</span>
-                  <span className="flex-shrink-0">{point.long}</span>
-                  <Chip
-                    className={`ml-2 ${
-                      point.goalType === GoalType.GNSS
-                        ? "bg-blue-200 text-blue-800 dark:bg-blue-700 dark:text-blue-200"
-                        : point.goalType === GoalType.AR_TAG
-                          ? "bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200"
-                          : point.goalType === GoalType.OBJECT
-                            ? "bg-yellow-200 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200"
-                            : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-                    }`}
-                    size="sm"
-                  >
-                    {GoalType[point.goalType]}
-                  </Chip>
-                </div>
-              </Card>
-            ))}
+            {renderPoints(unselectedItems, false)}
           </div>
         </ModalBody>
         <ModalFooter>
