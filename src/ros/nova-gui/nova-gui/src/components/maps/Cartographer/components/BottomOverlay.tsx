@@ -77,8 +77,8 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
           className="overflow-hidden"
       >
         <Card fullWidth className="h-full rounded-none" style={{ maxHeight: "400px" }}>
-          <CardHeader className="w-full flex flex-row justify-between gap-3 items-start">
-              <div className="flex flex-row gap-3 align-middle">
+          <CardHeader className="w-full flex flex-row justify-between gap-3 items-center">
+              <div className="flex flex-row gap-3">
               <CopyableInput
                 readOnly
                 value={String(base.latitude)}
@@ -113,7 +113,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                 ))}
               </Select>
               </div>
-              <div className="flex flex-row gap-3 align-top">
+              <div className="flex flex-row gap-3 items-center">
               {bottomOverlayComponents.map((component, index) => (
                 <React.Fragment key={index}>
                   {component}
@@ -200,6 +200,5 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
       </motion.div>
       )}
     </div>
-
   );
 };
