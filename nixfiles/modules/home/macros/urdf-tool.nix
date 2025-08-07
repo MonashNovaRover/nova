@@ -14,15 +14,35 @@ let
   };
   pyPkgs = pyEnv.pkgs;
 
+  urdfModifier = pyPkgs.buildPythonApplication rec {
+    pname = "urdf-inertia-script";
+    version = "1.1";
+
+    src = pkgs.fetchFromGitHub {
+      owner = "V01DBREAKER";
+      repo = pname;
+      rev = "ed09f00c6257cec36d8c3ed30fb50905cbcbb872";
+      hash = "sha256-dNhATy4ZtYQoj44O6VwtbB8k0hM3bSAp8W+nOFx9ik8=";
+    };
+
+    propagatedBuildInputs = [ pyPkgs.pymeshlab ];
+
+    meta = with pkgs.lib; {
+      description = "Modify generated URDFs and recalculate inertias.";
+      homepage = "https://github.com/V01DBREAKER/urdf-inertia-script";
+      license = licenses.mit;
+    };
+  };
+
   onshapeToRobot = pyPkgs.buildPythonPackage rec {
     pname = "onshape-to-robot";
-    version = "1.5.7";
+    version = "1.7.6";
 
     src = pkgs.fetchFromGitHub {
       owner = "Rhoban";
       repo = pname;
-      rev = "1c6e662fe6233b452dfc0de1632a40086ba1b8f7";
-      hash = "sha256-f/ho5NSNm7nfJVsF6xczobc9puny3/EtS/Idsl6Sjus=";
+      rev = "65250f0e7044f56a2e2d59a09b14e5b2c591cf0b";
+      hash = "sha256-lTkAnM8uvrwWJsBx865ReZ/DmdyrQIjLsylAuCwBk+c=";
     };
 
     propagatedBuildInputs = with pyPkgs; [
@@ -51,26 +71,6 @@ let
     };
   };
 
-  urdfModifier = pyPkgs.buildPythonApplication rec {
-    pname = "urdf-inertia-script";
-    version = "1.1";
-
-    src = pkgs.fetchFromGitHub {
-      owner = "V01DBREAKER";
-      repo = pname;
-      rev = "ed09f00c6257cec36d8c3ed30fb50905cbcbb872";
-      hash = "sha256-dNhATy4ZtYQoj44O6VwtbB8k0hM3bSAp8W+nOFx9ik8=";
-    };
-
-    propagatedBuildInputs = [ pyPkgs.pymeshlab ];
-
-    meta = with pkgs.lib; {
-      description = "Modify generated URDFs and recalculate inertias.";
-      homepage = "https://github.com/V01DBREAKER/urdf-inertia-script";
-      license = licenses.mit;
-    };
-  };
-
   onshapeKeys = if builtins.pathExists "/etc/nixos/onshape_key/onshape-keys.nix" then
     import /etc/nixos/onshape_key/onshape-keys.nix
   else
@@ -84,7 +84,6 @@ pkgs.mkShell {
   packages = [
     pkgs.openscad
     onshapeToRobot
-    urdfModifier
     pyPkgs.pymeshlab
   ];
 
