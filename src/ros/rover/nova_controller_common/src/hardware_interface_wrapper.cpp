@@ -47,23 +47,6 @@ bool HardwareInterfaceWrapper::set_value(double value, const size_t idx) const
     return false;
   }
 
-  // TODO: REMOVE ONCE THE OFFSET IS REMOVED FROM THE URDF
-  // Apply offset angle
-  size_t pos = idx >> 2;
-  bool right = idx & 0b10;
-  bool pivot = idx & 0b1;
-  if (pivot)
-  {
-    // Assumes that there are only two pivots (front and back) for each side
-    if ((pos == 0 && !right) || (pos == 1 && right))
-    {
-      value -= offset_angle_;
-    }
-    else
-    {
-      value += offset_angle_;
-    }
-  }
   registered_handles_[idx]->command.get().set_value(value);
 
   return true;
@@ -97,24 +80,6 @@ std::optional<double> HardwareInterfaceWrapper::get_optional(const size_t idx, b
       return std::nullopt;
     }
     res = state_handle.value().get().get_value();
-  }
-
-  // TODO: REMOVE ONCE THE OFFSET IS REMOVED FROM THE URDF
-  // Apply offset angle
-  size_t pos = idx >> 2;
-  bool right = idx & 0b10;
-  bool pivot = idx & 0b1;
-  if (pivot)
-  {
-    // Assumes that there are only two pivots (front and back) for each side
-    if ((pos == 0 && !right) || (pos == 1 && right))
-    {
-      res -= offset_angle_;
-    }
-    else
-    {
-      res += offset_angle_;
-    }
   }
 
   return std::make_optional(res);
