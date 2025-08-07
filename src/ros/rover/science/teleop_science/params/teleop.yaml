@@ -76,10 +76,10 @@ game_controller_source:
       buttons:
         # lock
         btn_bottom_l2_state:
-          from: "A"
+          from: "BACK"
         # unlock
         btn_bottom_l5_state:
-          from: "B"
+          from: "START"
 
 legacy_input_mode:
   ros__parameters:
