@@ -22,7 +22,7 @@ import { Navigation, Trash } from "react-feather";
 import { ToolTipButton } from "../../../shared/components/TooltipButton.tsx";
 import { useCartographerActions } from "../../../../redux/actions/useCartographerActions.ts";
 import { MapTile } from "../config.tsx";
-import { GoalType, MapPoint } from "../../../../redux/models/CartographerState.ts";
+import { MapPoint } from "../../../../redux/models/CartographerState.ts";
 import React from "react";
 
 interface BottomOverlayProps {
@@ -176,7 +176,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                             <TableCell>{point.name}</TableCell>
                             <TableCell>{point.lat}</TableCell>
                             <TableCell>{point.long}</TableCell>
-                            <TableCell>{point.label != null ? GoalType[point.label] : ''}</TableCell>
+                            <TableCell>{point.labelName != null ? point.labelName : ''}</TableCell>
                             <TableCell className="flex flex-row justify-end">
                               <ToolTipButton
                                 isIconOnly
