@@ -616,17 +616,15 @@
   
   <link name="tl_ball_link_x">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <mass value="1e-09" />
-      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09" />
+      <mass value="0.00001"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
     </inertial>
   </link>
   
   <link name="tl_ball_link_y">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <mass value="1e-09" />
-      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09" />
+      <mass value="0.00001"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
     </inertial>
   </link>
   
@@ -650,17 +648,15 @@
   
   <link name="bl_ball_link_x">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <mass value="1e-09" />
-      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09" />
+      <mass value="0.00001"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
     </inertial>
   </link>
   
   <link name="bl_ball_link_y">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <mass value="1e-09" />
-      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09" />
+      <mass value="0.00001"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
     </inertial>
   </link>
   
@@ -722,17 +718,15 @@
   
   <link name="tr_ball_link_x">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <mass value="1e-09" />
-      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09" />
+      <mass value="0.00001"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
     </inertial>
   </link>
   
   <link name="tr_ball_link_y">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <mass value="1e-09" />
-      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09" />
+      <mass value="0.00001"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
     </inertial>
   </link>
   
@@ -756,17 +750,15 @@
   
   <link name="br_ball_link_x">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <mass value="1e-09" />
-      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09" />
+      <mass value="0.00001"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
     </inertial>
   </link>
   
   <link name="br_ball_link_y">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <mass value="1e-09" />
-      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09" />
+      <mass value="0.00001"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
     </inertial>
   </link>
   
