@@ -8,13 +8,15 @@ import {RosTopic} from "../../../../ros/topics/rosTopic.ts";
 interface AutoStatusProps {
 }
 
-const variants: [string, "default" | "secondary" | "warning" | "success" | "danger"][] = [
-  ["Idle", "default"],
-  ["Traversing", "secondary"],
-  ["Searching", "warning"],
-  ["Arrived Successfully", "success"],
-  ["Arrived Unsuccessfully", "danger"],
-]
+type ChipColor = "primary" | "secondary" | "warning" | "success" | "danger";
+
+const variants: [string, ChipColor, string][] = [
+  ["Idle", "primary", "border-blue-500"],
+  ["Traversing", "secondary", "border-purple-500"],
+  ["Searching", "warning", "border-yellow-500"],
+  ["Arrived Successfully", "success", "border-green-500"],
+  ["Arrived Unsuccessfully", "danger", "border-red-500"],
+];
 
 export const AutoStatus : React.FC<AutoStatusProps> = () => {
   const bifrost = useBifrost({topic: RosTopic.AUTO_STATUS})
@@ -30,7 +32,7 @@ export const AutoStatus : React.FC<AutoStatusProps> = () => {
   }, [autoStatus]);
 
   return (
-    <Chip radius='sm' color={variants[autoStatus][1]} size="md">
+    <Chip radius='md' size="lg" variant="dot" color={variants[autoStatus][1]} className={`h-10 border-2 ${variants[autoStatus][2]}`}>
       {variants[autoStatus][0]}
     </Chip>
   )
