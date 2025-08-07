@@ -40,7 +40,8 @@ interface Point {
   name: string;
   lat: number;
   long: number;
-  label: GoalType | null;
+  labelNumber: number | null;
+  labelName: string | null;
   selected: boolean;
 }
 
@@ -66,7 +67,7 @@ export const CartographerGoalModal: React.FC<{
       latitude: item.lat,
       longitude: item.long,
     }));
-    const types = selected.map((item) => item.label);
+    const types = selected.map((item) => item.labelNumber);
     console.log("calling service with:", { goals: goals, types: types });
     serviceBifrost.callService({ goals: goals, types: types } as IRosNovaInterfacesCartographerCommandRequest);
   };
@@ -123,20 +124,20 @@ export const CartographerGoalModal: React.FC<{
       <span className="flex-shrink-0">{point.lat}</span>
       <span className="flex-shrink-0">{point.long}</span>
       <div className="flex-shrink-0 flex justify-end w-24">
-        {point.label !== null && GoalType[point.label] && (
+        {point.labelNumber !== null && GoalType[point.labelNumber] && (
           <Chip
             className={`ml-2 ${
-              point.label == GoalType.GNSS
+              point.labelNumber == GoalType.GNSS
                 ? "bg-blue-200 text-blue-800 dark:bg-blue-700 dark:text-blue-200"
-                : point.label == GoalType.AR_TAG
+                : point.labelNumber == GoalType.AR_TAG
                 ? "bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200"
-                : point.label == GoalType.OBJECT
+                : point.labelNumber == GoalType.OBJECT
                 ? "bg-yellow-200 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200"
                 : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
             }`}
             size="sm"
           >
-            {GoalType[point.label]}
+            {point.labelName}
           </Chip>
         )}
       </div>
