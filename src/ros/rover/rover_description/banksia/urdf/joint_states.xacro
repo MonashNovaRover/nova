@@ -15,18 +15,18 @@
             <joint_name>brp</joint_name>
             <joint_name>brw</joint_name>
             <joint_name>chassis_to_diffbar</joint_name>
-            <joint_name>tl_ball_roll</joint_name>
-            <joint_name>tl_ball_pitch</joint_name>
-            <joint_name>tl_ball_yaw</joint_name>
-            <joint_name>tr_ball_roll</joint_name>
-            <joint_name>tr_ball_pitch</joint_name>
-            <joint_name>tr_ball_yaw</joint_name>
-            <joint_name>bl_ball_roll</joint_name>
-            <joint_name>bl_ball_pitch</joint_name>
-            <joint_name>bl_ball_yaw</joint_name>
-            <joint_name>br_ball_roll</joint_name>
-            <joint_name>br_ball_pitch</joint_name>
-            <joint_name>br_ball_yaw</joint_name>
+            <joint_name>tl_ball_x</joint_name>
+            <joint_name>tl_ball_y</joint_name>
+            <joint_name>tl_ball_z</joint_name>
+            <joint_name>tr_ball_x</joint_name>
+            <joint_name>tr_ball_y</joint_name>
+            <joint_name>tr_ball_z</joint_name>
+            <joint_name>bl_ball_x</joint_name>
+            <joint_name>bl_ball_y</joint_name>
+            <joint_name>bl_ball_z</joint_name>
+            <joint_name>br_ball_x</joint_name>
+            <joint_name>br_ball_y</joint_name>
+            <joint_name>br_ball_z</joint_name>
         </plugin>
     </gazebo>
 </robot>
