@@ -30,8 +30,7 @@ export const AutoStatus : React.FC<AutoStatusProps> = () => {
   }, [autoStatus]);
 
   return (
-    <Chip color={variants[autoStatus][1]} size="lg"
-    >
+    <Chip radius='sm' color={variants[autoStatus][1]} size="md">
       {variants[autoStatus][0]}
     </Chip>
   )
