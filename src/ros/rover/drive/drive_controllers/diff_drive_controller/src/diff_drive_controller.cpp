@@ -172,7 +172,21 @@ controller_interface::return_type DiffDriveController::update(
       angular_input == 0
         ? INFINITY
         : params_->input_curve_factor * ((1.0 / angular_input) - std::copysign(1, angular_input));
-    angular_velocity = turning_radius == 0 ? 0.0 : linear_velocity / turning_radius;
+    
+    if (turning_radius == INFINITY)
+    {
+      angular_velocity = 0.0;
+    }
+    else if (turning_radius == 0)
+    {
+      angular_velocity = linear_velocity;
+      linear_velocity = 0.0;
+    }
+    else
+    {
+      // Calculate the angular velocity based on the turning radius and linear velocity
+      angular_velocity = linear_velocity / turning_radius;
+    }
   }
 
   // Limit the linear and angular velocities
@@ -263,6 +277,12 @@ controller_interface::return_type DiffDriveController::update(
       return controller_interface::return_type::ERROR;
     }
   }
+
+  RCLCPP_INFO(
+    logger, "Set drive commands: left_velocity = %.2f, right_velocity = %.2f", left_velocity,
+    right_velocity);
+  RCLCPP_INFO(
+    logger, "------------------------------------------------------------------------------------");
 
   // Update the previous command values for limiting
   previous_linear_velocities_.pop_front();
