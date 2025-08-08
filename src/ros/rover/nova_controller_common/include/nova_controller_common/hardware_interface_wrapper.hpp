@@ -37,8 +37,7 @@ struct Joint
   const char* command_type;
   const size_t idx;
 
-  Joint(
-    const std::string& joint_name, const char* feedback, const char* command, const size_t idx)
+  Joint(const std::string& joint_name, const char* feedback, const char* command, const size_t idx)
     : name(joint_name)
     , feedback_type(feedback)
     , command_type(command)
@@ -57,7 +56,7 @@ class HardwareInterfaceWrapper
 {
 public:
   HardwareInterfaceWrapper(
-    rclcpp_lifecycle::LifecycleNode::SharedPtr node, const double offset_angle,
+    rclcpp_lifecycle::LifecycleNode::SharedPtr node,
     std::vector<hardware_interface::LoanedStateInterface>& state_interfaces,
     std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces);
 
@@ -73,7 +72,6 @@ private:
   rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
   std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces_;
   std::vector<hardware_interface::LoanedStateInterface>& state_interfaces_;
-  double offset_angle_;
 
   std::vector<std::optional<WheelHandle>> registered_handles_;
 };

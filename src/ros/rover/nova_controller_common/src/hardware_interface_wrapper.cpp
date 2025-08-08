@@ -24,11 +24,10 @@ namespace nova_controller_common
 {
 
 HardwareInterfaceWrapper::HardwareInterfaceWrapper(
-  rclcpp_lifecycle::LifecycleNode::SharedPtr node, const double offset_angle,
+  rclcpp_lifecycle::LifecycleNode::SharedPtr node,
   std::vector<hardware_interface::LoanedStateInterface>& state_interfaces,
   std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces)
   : node_(std::move(node))
-  , offset_angle_(offset_angle)
   , state_interfaces_(state_interfaces)
   , command_interfaces_(command_interfaces)
 {
