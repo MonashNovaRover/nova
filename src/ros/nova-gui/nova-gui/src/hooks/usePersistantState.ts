@@ -66,9 +66,6 @@ export function usePersistentState<T>(
           ? (valueOrUpdater as (prev: T) => T)(prev)
           : valueOrUpdater;
 
-      if (debug)
-
-
       localStorage.setItem(key, JSON.stringify(newValue));
       notifySubscribers(key, newValue);
 
