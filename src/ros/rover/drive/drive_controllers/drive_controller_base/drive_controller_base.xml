@@ -1,0 +1,5 @@
+<library path="drive_controller_base">
+  <class name="drive_controller_base/DriveControllerBase" type="drive_controller_base::DriveControllerBase" base_class_type="controller_interface::ControllerInterface">
+  <description>Abstract base class for writing drive controllers.</description>
+  </class>
+</library>
