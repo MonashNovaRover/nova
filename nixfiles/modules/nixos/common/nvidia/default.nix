@@ -2,6 +2,9 @@
 
 {
 
+  # Time settings
+  time.timeZone = "Australia/Melbourne"; # Set your desired timezone here
+  time.hardwareClockInLocalTime = true; # Recommended for most systems (UTC hardware clock)
 
 
 # Enable OpenGL
