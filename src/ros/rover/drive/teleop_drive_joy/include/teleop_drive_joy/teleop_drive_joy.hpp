@@ -11,7 +11,7 @@
  *  - client:     /controller_manager/switch_controller
  * [controller_manager_msgs/srv/SwitchController]
  *  - client:     /pivot_drive_controller/set_parameters       [rcl_interfaces/srv/SetParameters]
- *  - client:     /strafe_controller/set_parameters            [rcl_interfaces/srv/SetParameters]
+ *  - client:     /strafe_drive_controller/set_parameters            [rcl_interfaces/srv/SetParameters]
  *  - client:     /diff_drive_controller/set_parameters   [rcl_interfaces/srv/SetParameters]
  * ACTIONS: None
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -75,7 +75,7 @@ inline std::string modeToController(const DriveMode mode)
     case DriveMode::HOLONOMIC:
       return "holonomic_drive_controller";
     case DriveMode::STRAFE:
-      return "strafe_controller";
+      return "strafe_drive_controller";
     case DriveMode::DIFF:
       return "diff_drive_controller";
     default:

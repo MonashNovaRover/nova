@@ -9,7 +9,7 @@
 #include "realtime_tools/realtime_publisher.h"
 #include "tf2/LinearMath/Quaternion.h"
 
-#include "strafe_controller/odometry.hpp"
+#include "strafe_drive_controller/odometry.hpp"
 
 namespace
 {
@@ -20,7 +20,7 @@ constexpr double EPSILON = 1e-6;
 
 }  // namespace
 
-namespace strafe_controller
+namespace strafe_drive_controller
 {
 
 Odometry::Odometry(rclcpp_lifecycle::LifecycleNode::SharedPtr node, std::shared_ptr<Params> params)
@@ -189,4 +189,4 @@ void Odometry::integrate_exact(double delta_linear)
   y_ += delta_linear;
 }
 
-}  // namespace strafe_controller
+}  // namespace strafe_drive_controller

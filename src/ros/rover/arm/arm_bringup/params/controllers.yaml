@@ -27,8 +27,8 @@ controller_manager:
     pivot_drive_controller:
       type: pivot_drive_controller/PivotDriveController
 
-    strafe_controller:
-      type: strafe_controller/StrafeController
+    strafe_drive_controller:
+      type: strafe_drive_controller/StrafeDriveController
 
     diff_drive_controller:
       type: diff_drive_controller/DiffDriveController
@@ -140,7 +140,7 @@ pivot_drive_controller:
     min_acceleration: -0.1
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 
-strafe_controller:
+strafe_drive_controller:
   ros__parameters:
     enable_twist_cmd: true
     left_drive_names: ["flw", "blw"]

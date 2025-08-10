@@ -1,7 +1,0 @@
-<library path="strafe_controller">
-  <class name="strafe_controller/StrafeController" type="strafe_controller::StrafeController" base_class_type="controller_interface::ControllerInterface">
-  <description>
-    The strafe controller is designed for a 4 steering drive mobile base, allowing the robot to move sideways (strafe) while maintaining its orientation.
-  </description>
-  </class>
-</library>

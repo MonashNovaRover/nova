@@ -1,5 +1,5 @@
-#ifndef STRAFE_CONTROLLER__ODOMETRY_HPP_
-#define STRAFE_CONTROLLER__ODOMETRY_HPP_
+#ifndef STRAFE_DRIVE_CONTROLLER__ODOMETRY_HPP_
+#define STRAFE_DRIVE_CONTROLLER__ODOMETRY_HPP_
 
 #include <cmath>
 #include <memory>
@@ -10,9 +10,9 @@
 #include "tf2_msgs/msg/tf_message.hpp"
 #include "realtime_tools/realtime_publisher.h"
 
-#include "strafe_controller_parameters.hpp"
+#include "strafe_drive_controller_parameters.hpp"
 
-namespace strafe_controller
+namespace strafe_drive_controller
 {
 
 class Odometry
@@ -61,6 +61,6 @@ private:
   rclcpp::Time previous_publish_timestamp_{0, 0, RCL_CLOCK_UNINITIALIZED};
 };
 
-}  // namespace strafe_controller
+}  // namespace strafe_drive_controller
 
-#endif  // STRAFE_CONTROLLER__ODOMETRY_HPP_
+#endif  // STRAFE_DRIVE_CONTROLLER__ODOMETRY_HPP_
