@@ -71,6 +71,7 @@ constexpr size_t encoded_pos(const size_t pos, const JointSide side, const Joint
 
 struct Commands
 {
+  double speed;
   double linear_x_velocity;
   double linear_y_velocity;
   double angular_velocity;
