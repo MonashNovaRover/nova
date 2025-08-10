@@ -1,4 +1,4 @@
-drive_controller_base:
+nova_drive_controller_base:
   autonomous_mode:
     type: bool
     default_value: false

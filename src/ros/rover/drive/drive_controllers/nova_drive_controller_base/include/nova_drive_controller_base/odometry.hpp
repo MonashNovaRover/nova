@@ -21,8 +21,8 @@
  * @authors Terry Tian
  */
 
-#ifndef DRIVE_CONTROLLER_BASE__ODOMETRY_HPP_
-#define DRIVE_CONTROLLER_BASE__ODOMETRY_HPP_
+#ifndef NOVA_DRIVE_CONTROLLER_BASE__ODOMETRY_HPP_
+#define NOVA_DRIVE_CONTROLLER_BASE__ODOMETRY_HPP_
 
 #include <cmath>
 #include <memory>
@@ -36,9 +36,9 @@
 #include "tf2_msgs/msg/tf_message.hpp"
 #include "realtime_tools/realtime_publisher.h"
 
-#include "drive_controller_base_parameters.hpp"
+#include "nova_drive_controller_base_parameters.hpp"
 
-namespace drive_controller_base
+namespace nova_drive_controller_base
 {
 
 struct Feedback
@@ -115,6 +115,6 @@ private:
   rclcpp::Time previous_publish_timestamp_{0, 0, RCL_CLOCK_UNINITIALIZED};
 };
 
-}  // namespace drive_controller_base
+}  // namespace nova_drive_controller_base
 
-#endif  // DRIVE_CONTROLLER_BASE__ODOMETRY_HPP_
+#endif  // NOVA_DRIVE_CONTROLLER_BASE__ODOMETRY_HPP_
