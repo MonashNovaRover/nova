@@ -4,20 +4,6 @@ drive_controller_base:
     default_value: false
     description: "Changes how the controller reacts to Twist commands."
 
-  input_curve_factor:
-    type: double
-    default_value: 2.0
-    description: >
-      Turning radius / pivot angle control curve factor for manual control. Higher values = steeper curves,
-      steeper curves = finer control over higher turning radii (slight turns).
-
-  pivot_rate_tolerance:
-    type: double
-    default_value: 0.1 # seconds
-    description: >
-      Used in autonomous mode to determine how long before the pivots reach their target positions to start
-      moving the wheels. This is to prevent the wheels from moving too soon before the pivots are in position.
-
   left_drive_names:
     type: string_array
     default_value: []
