@@ -44,6 +44,7 @@
 , nova-blcmd-hardware ? throw "nova-blcmd-hardware is needed, but not available!"
 , nova-cmd-hardware ? throw "nova-cmd-hardware is needed, but not available!"
 , nova-controller-common ? throw "nova-controller-common is needed, but not available!"
+, nova-drive-controller-base ? throw "nova-drive-controller-base is needed, but not available!"
 , nova-pivot-drive-controller ? throw "nova-pivot-drive-controller is needed, but not available!"
 , nova-strafe-controller ? throw "nova-strafe-controller is needed, but not available!"
 , nova-diff-drive-controller ? throw "nova-diff-drive-controller is needed, but not available!"
@@ -80,6 +81,7 @@
       nova-blcmd-hardware
       nova-cmd-hardware
       nova-controller-common
+      nova-drive-controller-base
       nova-pivot-drive-controller
       nova-strafe-controller
       nova-diff-drive-controller

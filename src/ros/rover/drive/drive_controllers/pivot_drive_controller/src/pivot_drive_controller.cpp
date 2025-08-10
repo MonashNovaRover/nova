@@ -103,8 +103,8 @@ controller_interface::CallbackReturn PivotDriveController::on_init()
   RCLCPP_INFO_STREAM(get_node()->get_logger(), "inner_radius_: " << inner_radius_);
 
   // Initialise hardware interface wrapper
-  hwif_wrapper_ = std::make_unique<HardwareInterfaceWrapper>(
-    get_node(), params_->offset_angle, state_interfaces_, command_interfaces_);
+  hwif_wrapper_ =
+    std::make_unique<HardwareInterfaceWrapper>(get_node(), state_interfaces_, command_interfaces_);
 
   // Initialise odometry
   odometry_ = std::make_unique<Odometry>(get_node(), params_);
