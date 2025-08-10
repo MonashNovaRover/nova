@@ -26,6 +26,9 @@
 
 #include <cmath>
 #include <memory>
+#include <vector>
+
+#include <Eigen/Dense>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rcpputils/rolling_mean_accumulator.hpp"
@@ -38,26 +41,40 @@
 namespace drive_controller_base
 {
 
-class OdometryBase
+struct Feedback
+{
+  std::vector<double> left_drive;
+  std::vector<double> right_drive;
+  std::vector<double> left_pivot;
+  std::vector<double> right_pivot;
+};
+
+struct Wheel
+{
+  double speed;  // m/s (wheel angular velocity * wheel_radius)
+  double angle;  // radians, 0 = forward (+x)
+  double x;      // m, wheel position in robot frame
+  double y;      // m, wheel position in robot frame
+};
+
+class Odometry
 {
 public:
-  OdometryBase(rclcpp_lifecycle::LifecycleNode::SharedPtr node, std::shared_ptr<Params> params);
+  Odometry(rclcpp_lifecycle::LifecycleNode::SharedPtr node, std::shared_ptr<Params> params);
 
-  bool update(
-    double left_drive_feedback, double right_drive_feedback, double left_pivot_feedback,
-    double right_pivot_feedback, const rclcpp::Time& time);
-  void update_open_loop(double linear, double angular, const rclcpp::Time& time);
+  bool update(const Feedback& feedback, const rclcpp::Time& time);
+  void update_open_loop(double linear_x, double linear_y, double angular, const rclcpp::Time& time);
   void publish(const rclcpp::Time& time);
   void reset();
 
 private:
   using RollingMeanAccumulator = rcpputils::RollingMeanAccumulator<double>;
 
-  void integrate_runge_kutta_2(double delta_linear, double delta_angular);
-  void integrate_exact(double delta_linear, double delta_angular);
+  Eigen::Vector3d compute_velocities(const std::vector<Wheel>& wheels) const;
+  void integrate_rk2(double delta_linear_x, double delta_linear_y, double delta_angular);
 
   rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
-  std::shared_ptr<Params> params_;
+  std::shared_ptr<Params> base_params_;
   rclcpp::Time timestamp_;  // current timestamp
 
   // Current pose:
@@ -66,23 +83,23 @@ private:
   double heading_ = 0.0;  // [rad]
 
   // Current velocity:
-  double linear_ = 0.0;   //   [m/s]
-  double angular_ = 0.0;  // [rad/s]
+  double linear_x_ = 0.0;  //   [m/s]
+  double linear_y_ = 0.0;  //   [m/s]
+  double angular_ = 0.0;   // [rad/s]
 
-  // Kinematic parameters [m]:
-  double half_steering_track_;
-  double half_wheel_base_;
-  double zero_radius_;
-  double inner_radius_;
+  // Kinematic parameters:
+  double half_wheel_base_;      // [m]
+  double half_steering_track_;  // [m]
+
+  size_t wheels_per_side_;
+  const size_t PIVOTS_PER_SIDE_;
 
   // Previous wheel and pivot positions [rad]:
-  double left_drive_old_pos_ = 0.0;
-  double right_drive_old_pos_ = 0.0;
-  double left_pivot_old_pos_ = 0.0;
-  double right_pivot_old_pos_ = 0.0;
+  Feedback prev_feedback_;
 
   // Rolling mean accumulators for the linear and angular velocities:
-  RollingMeanAccumulator linear_accumulator_;
+  RollingMeanAccumulator linear_x_accumulator_;
+  RollingMeanAccumulator linear_y_accumulator_;
   RollingMeanAccumulator angular_accumulator_;
 
   // Realtime publishers for odometry and transforms

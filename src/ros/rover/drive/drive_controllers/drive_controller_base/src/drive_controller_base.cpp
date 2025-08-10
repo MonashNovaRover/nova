@@ -97,7 +97,7 @@ controller_interface::CallbackReturn DriveControllerBase::on_init()
     std::make_unique<HardwareInterfaceWrapper>(get_node(), state_interfaces_, command_interfaces_);
 
   // Initialise odometry
-  odometry_ = std::make_unique<DerivedOdometry>(get_node(), base_params_);
+  odometry_ = std::make_unique<Odometry>(get_node(), base_params_);
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -105,15 +105,15 @@ controller_interface::CallbackReturn DriveControllerBase::on_init()
 InterfaceConfiguration DriveControllerBase::command_interface_configuration() const
 {
   std::vector<std::string> conf_names;
-  for (size_t i = 0; i < wheels_per_side_; ++i)
+  for (size_t pos = 0; pos < wheels_per_side_; ++pos)
   {
-    conf_names.push_back(base_params_->left_drive_names[i] + "/" + DRIVE_COMMAND_TYPE_);
-    conf_names.push_back(base_params_->right_drive_names[i] + "/" + DRIVE_COMMAND_TYPE_);
+    conf_names.push_back(base_params_->left_drive_names[pos] + "/" + DRIVE_COMMAND_TYPE_);
+    conf_names.push_back(base_params_->right_drive_names[pos] + "/" + DRIVE_COMMAND_TYPE_);
   }
-  for (size_t i = 0; i < PIVOTS_PER_SIDE_; ++i)
+  for (size_t pos = 0; pos < PIVOTS_PER_SIDE_; ++pos)
   {
-    conf_names.push_back(base_params_->left_pivot_names[i] + "/" + PIVOT_COMMAND_TYPE_);
-    conf_names.push_back(base_params_->right_pivot_names[i] + "/" + PIVOT_COMMAND_TYPE_);
+    conf_names.push_back(base_params_->left_pivot_names[pos] + "/" + PIVOT_COMMAND_TYPE_);
+    conf_names.push_back(base_params_->right_pivot_names[pos] + "/" + PIVOT_COMMAND_TYPE_);
   }
 
   return {interface_configuration_type::INDIVIDUAL, conf_names};
@@ -127,15 +127,15 @@ InterfaceConfiguration DriveControllerBase::state_interface_configuration() cons
   }
 
   std::vector<std::string> conf_names;
-  for (size_t i = 0; i < wheels_per_side_; ++i)
+  for (size_t pos = 0; pos < wheels_per_side_; ++pos)
   {
-    conf_names.push_back(base_params_->left_drive_names[i] + "/" + drive_feedback_type());
-    conf_names.push_back(base_params_->right_drive_names[i] + "/" + drive_feedback_type());
+    conf_names.push_back(base_params_->left_drive_names[pos] + "/" + drive_feedback_type());
+    conf_names.push_back(base_params_->right_drive_names[pos] + "/" + drive_feedback_type());
   }
-  for (size_t i = 0; i < PIVOTS_PER_SIDE_; ++i)
+  for (size_t pos = 0; pos < PIVOTS_PER_SIDE_; ++pos)
   {
-    conf_names.push_back(base_params_->left_pivot_names[i] + "/" + pivot_feedback_type());
-    conf_names.push_back(base_params_->right_pivot_names[i] + "/" + pivot_feedback_type());
+    conf_names.push_back(base_params_->left_pivot_names[pos] + "/" + pivot_feedback_type());
+    conf_names.push_back(base_params_->right_pivot_names[pos] + "/" + pivot_feedback_type());
   }
 
   return {interface_configuration_type::INDIVIDUAL, conf_names};
@@ -173,121 +173,17 @@ controller_interface::return_type DriveControllerBase::update(
   }
 
   // ####################### Process input ###############################
-  // In manual operation, twist values are scalar values from -1.0 to 1.0,
-  // where 1.0 is the maximum linear or angular velocity
-  double linear_input = command_msg_ptr->twist.linear.x;
-  double angular_input = command_msg_ptr->twist.angular.z;
-  double linear_velocity, angular_velocity;
-  bool turning_left;
-  double speed, turning_radius;
-
-  // Brake if cmd_vel has timed out, override the stored command
-  const auto age_of_last_command = time - command_msg_ptr->header.stamp;
-  if (age_of_last_command > cmd_vel_timeout_)
-  {
-    linear_velocity = 0.0;
-    angular_velocity = 0.0;
-    speed = 0.0;
-    turning_radius = INFINITY;
-  }
-  else if (base_params_->autonomous_mode)
-  {
-    angular_velocity = angular_input;
-    linear_velocity = linear_input;
-    speed = linear_velocity == 0 ? std::abs(zero_radius_ * angular_velocity) : linear_input;
-
-    limiter_speed_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
-    limiter_angular_.limit(
-      angular_velocity, previous_angular_velocities_[0], previous_angular_velocities_[1],
-      period.seconds());
-
-    turning_radius = get_radius_from_velocities(linear_velocity, angular_velocity);
-    turning_left = turning_radius == 0 ? angular_input > 0 : turning_radius > 0;
-
-    const auto [max_requested_angle, left] = limit_radius_by_pivots(
-      turning_radius, turning_left, half_steering_track_, half_wheel_base_, limiter_pivot_,
-      previous_left_pivot_positions_, previous_right_pivot_positions_, period.seconds());
-
-    const double requested_angular = angular_velocity;
-    limiter_angular_.limit(
-      angular_velocity, previous_angular_velocities_[0], previous_angular_velocities_[1],
-      period.seconds());
-    if (angular_velocity != requested_angular)
-    {
-      limit_speed_and_radius_by_angular(
-        speed, turning_radius, angular_velocity, zero_radius_, inner_radius_, limiter_speed_,
-        previous_speeds_, period.seconds());
-    }
-
-    const auto& prev_positions =
-      left ? previous_left_pivot_positions_ : previous_right_pivot_positions_;
-    double limited_angle = max_requested_angle;
-    limiter_pivot_.limit(
-      limited_angle, prev_positions[0], prev_positions[1], prev_positions[2],
-      base_params_->pivot_rate_tolerance);
-    if (limited_angle != max_requested_angle)
-    {
-      speed = 0.0;  // wait for the pivot to be within tolerance before moving
-      limiter_speed_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
-    }
-
-    linear_velocity = turning_radius == 0 ? 0.0 : speed;
-    angular_velocity = get_angular_from_radius_and_speed(
-      turning_radius, speed, turning_left, zero_radius_, inner_radius_);
-  }
-  else
-  {
-    // Manual operation: left stick controls speed and right stick controls the pivot angle
-    // Process raw angular input through a curve to calculate the turning radius
-    // Prioritise keeping turning radius over speed
-    turning_radius = angular_input == 0
-                     ? INFINITY
-                     : base_params_->input_curve_factor *
-                         ((1.0 / angular_input) - std::copysign(1, angular_input));
-    turning_left = turning_radius == 0 ? angular_input > 0 : turning_radius > 0;
-
-    limit_radius_by_pivots(
-      turning_radius, turning_left, half_steering_track_, half_wheel_base_, limiter_pivot_,
-      previous_left_pivot_positions_, previous_right_pivot_positions_, period.seconds());
-
-    speed = linear_input * base_params_->speed.max_velocity;
-    const double requested_speed = speed;
-    limiter_speed_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
-    if (speed != requested_speed)
-    {
-      RCLCPP_INFO(logger, "Speed limited to %.2f", speed);
-    }
-    RCLCPP_INFO(logger, "Received: Speed = %.2f, Turning radius = %f", speed, turning_radius);
-
-    // Calculate the angular velocity based on the limited speed
-    angular_velocity = get_angular_from_radius_and_speed(
-      turning_radius, speed, turning_left, zero_radius_, inner_radius_);
-    RCLCPP_INFO(logger, "Calculated angular velocity = %.2f", angular_velocity);
-
-    const double requested_angular = angular_velocity;
-    limiter_angular_.limit(
-      angular_velocity, previous_angular_velocities_[0], previous_angular_velocities_[1],
-      period.seconds());
-    if (angular_velocity != requested_angular)
-    {
-      limit_speed_and_radius_by_angular(
-        speed, turning_radius, angular_velocity, zero_radius_, inner_radius_, limiter_speed_,
-        previous_speeds_, period.seconds());
-    }
-    linear_velocity = turning_radius == 0 ? 0 : speed;
-  }
+  Commands cmds = twist_to_commands(*command_msg_ptr, base_params_->autonomous_mode);
 
   // ################### Update and publish odometry #####################
   if (base_params_->open_loop)
   {
-    odometry_->update_open_loop(linear_velocity, angular_velocity, time);
+    odometry_->update_open_loop(
+      cmds.linear_x_velocity, cmds.linear_y_velocity, cmds.angular_velocity, time);
   }
   else
   {
-    double left_drive_feedback_mean = 0.0;
-    double right_drive_feedback_mean = 0.0;
-    double left_pivot_feedback_mean = 0.0;
-    double right_pivot_feedback_mean = 0.0;
+    Feedback feedback;
 
     // Drive feedback (average left and right drive joints)
     for (size_t pos = 0; pos < wheels_per_side_; ++pos)
@@ -318,8 +214,8 @@ controller_interface::return_type DriveControllerBase::update(
         return controller_interface::return_type::ERROR;
       }
 
-      left_drive_feedback_mean += left_feedback;
-      right_drive_feedback_mean += right_feedback;
+      feedback.left_drive.push_back(left_feedback);
+      feedback.right_drive.push_back(right_feedback);
     }
     // Pivot feedback (average left and right pivot joints in reference to the front)
     for (size_t pos = 0; pos < PIVOTS_PER_SIDE_; ++pos)
@@ -350,47 +246,25 @@ controller_interface::return_type DriveControllerBase::update(
         return controller_interface::return_type::ERROR;
       }
 
-      const int multiplier =
-        (pos == 0) ? 1 : -1;  // front pivot is positive, back pivot is negative
-      left_pivot_feedback_mean += multiplier * left_feedback;
-      right_pivot_feedback_mean += multiplier * right_feedback;
+      feedback.left_pivot.push_back(left_feedback);
+      feedback.right_pivot.push_back(right_feedback);
     }
 
-    left_drive_feedback_mean /= wheels_per_side_;
-    right_drive_feedback_mean /= wheels_per_side_;
-    left_pivot_feedback_mean /= PIVOTS_PER_SIDE_;
-    right_pivot_feedback_mean /= PIVOTS_PER_SIDE_;
-
-    odometry_->update(
-      left_drive_feedback_mean, right_drive_feedback_mean, left_pivot_feedback_mean,
-      right_pivot_feedback_mean, time);
+    odometry_->update(feedback, time);
   }
   odometry_->publish(time);
 
   // ######################### Send commands #############################
-  const double left_angle = get_pivot_angle_from_radius(
-    turning_radius, true, turning_left, half_steering_track_, half_wheel_base_);
-  const double right_angle = get_pivot_angle_from_radius(
-    turning_radius, false, turning_left, half_steering_track_, half_wheel_base_);
-  double left_ratio = get_speed_ratio(
-    turning_radius, true, half_steering_track_, half_wheel_base_, zero_radius_, inner_radius_);
-  double right_ratio = get_speed_ratio(
-    turning_radius, false, half_steering_track_, half_wheel_base_, zero_radius_, inner_radius_);
-  const double left_speed = speed * left_ratio;
-  const double right_speed = speed * right_ratio;
-  const double left_velocity = left_speed / base_params_->wheel_radius;
-  const double right_velocity = right_speed / base_params_->wheel_radius;
-
-  RCLCPP_INFO(logger, "speed ratios: left = %.2f, right = %.2f", left_ratio, right_ratio);
-
   // Set command values for drive
   for (size_t pos = 0; pos < wheels_per_side_; ++pos)
   {
     if (
       !hwif_wrapper_->set_value(
-        left_velocity, encoded_pos(pos, JointSide::LEFT, JointType::DRIVE)) ||
+        cmds.left_wheel_speeds[pos] / base_params_->wheel_radius,
+        encoded_pos(pos, JointSide::LEFT, JointType::DRIVE)) ||
       !hwif_wrapper_->set_value(
-        right_velocity, encoded_pos(pos, JointSide::RIGHT, JointType::DRIVE)))
+        cmds.right_wheel_speeds[pos] / base_params_->wheel_radius,
+        encoded_pos(pos, JointSide::RIGHT, JointType::DRIVE)))
     {
       RCLCPP_ERROR(logger, "Failed to set drive command values for position %zu.", pos);
       return controller_interface::return_type::ERROR;
@@ -399,12 +273,13 @@ controller_interface::return_type DriveControllerBase::update(
   // Set command values for pivots
   for (size_t pos = 0; pos < PIVOTS_PER_SIDE_; ++pos)
   {
-    const double multiplier = (pos == 0) ? 1 : -1;  // invert angles for back pivots
     if (
       !hwif_wrapper_->set_value(
-        multiplier * left_angle, encoded_pos(pos, JointSide::LEFT, JointType::PIVOT)) ||
+        cmds.left_pivot_positions[pos] / base_params_->wheel_radius,
+        encoded_pos(pos, JointSide::LEFT, JointType::PIVOT)) ||
       !hwif_wrapper_->set_value(
-        multiplier * right_angle, encoded_pos(pos, JointSide::RIGHT, JointType::PIVOT)))
+        cmds.right_pivot_positions[pos] / base_params_->wheel_radius,
+        encoded_pos(pos, JointSide::RIGHT, JointType::PIVOT)))
     {
       RCLCPP_ERROR(logger, "Failed to set pivot command values for position %zu.", pos);
       return controller_interface::return_type::ERROR;
@@ -418,25 +293,11 @@ controller_interface::return_type DriveControllerBase::update(
   RCLCPP_DEBUG(
     logger, "------------------------------------------------------------------------------------");
 
-  // Update the previous command values for limiting
-  previous_speeds_.pop_front();
-  previous_speeds_.push_back(speed);
-  previous_angular_velocities_.pop_front();
-  previous_angular_velocities_.push_back(angular_velocity);
-  previous_left_pivot_positions_.pop_front();
-  previous_left_pivot_positions_.push_back(left_angle);
-  previous_right_pivot_positions_.pop_front();
-  previous_right_pivot_positions_.push_back(right_angle);
   /**
-   * Derived classes should update the previous command values for limiting here, e.g.
+   * Derived classes should override update() and update the previous command values for limiting,
+   * e.g.
    * previous_linear_velocities_.pop_front();
    * previous_linear_velocities_.push_back(linear_velocity);
-   * previous_angular_velocities_.pop_front();
-   * previous_angular_velocities_.push_back(angular_velocity);
-   * previous_left_pivot_positions_.pop_front();
-   * previous_left_pivot_positions_.push_back(left_angle);
-   * previous_right_pivot_positions_.pop_front();
-   * previous_right_pivot_positions_.push_back(right_angle);
    */
 
   // Publish commanded velocities
@@ -660,9 +521,6 @@ void DriveControllerBase::reset_buffers()
   /**
    * Derived classes may override this method to reset their own buffers, e.g.
    * previous_speeds_ = {0.0, 0.0};
-   * previous_angular_velocities_ = {0.0, 0.0};
-   * previous_left_pivot_positions_ = {0.0, 0.0, 0.0};
-   * previous_right_pivot_positions_ = {0.0, 0.0, 0.0};
    */
 
   // Fill RealtimeBuffer with NaNs so it will contain a known value
