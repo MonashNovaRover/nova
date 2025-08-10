@@ -12,7 +12,7 @@ teleop_drive_joy_node:
     button_manual_control: 1
     button_diff_drive_controller: 3
     button_pivot_drive_controller: 5
-    button_strafe_controller: 4
+    button_strafe_drive_controller: 4
     button_unlock: 7
     speed_change_coarse_val: 0.1
     speed_change_fine_val: 0.02

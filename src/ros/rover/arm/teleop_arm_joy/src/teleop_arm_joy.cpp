@@ -38,7 +38,7 @@ TeleopArmJoy::TeleopArmJoy(const rclcpp::NodeOptions &options)
   switch_controller_client = this->create_client<controller_manager_msgs::srv::SwitchController>("/controller_manager/switch_controller");
   // TODO: Make good for actual controller implementations
   fk_client = this->create_client<rcl_interfaces::srv::SetParameters>("/nova_arm_controller/set_parameters");
-  ik_client = this->create_client<rcl_interfaces::srv::SetParameters>("/strafe_controller/set_parameters");
+  ik_client = this->create_client<rcl_interfaces::srv::SetParameters>("/strafe_drive_controller/set_parameters");
   
   service = this->create_service<std_srvs::srv::Trigger>("/teleop_arm_joy/toggle_typing", 
 		  std::bind(&teleop_arm_joy::TeleopArmJoy::toggleTyping, this, _1, _2));

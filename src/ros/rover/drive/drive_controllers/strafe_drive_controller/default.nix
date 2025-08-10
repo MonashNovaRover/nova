@@ -23,7 +23,7 @@ buildRosPackage {
   buildType = "ament_cmake";
 
   src = builtins.path rec {
-    name = "strafe_controller-source";
+    name = "strafe_drive_controller-source";
     path = ./.;
     filter = lib.novaSourceFilter [ ] path;
   };

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(strafe_controller)
+project(strafe_drive_controller)
 
 # Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
@@ -35,12 +35,12 @@ endforeach()
 
 find_package(generate_parameter_library REQUIRED)
 
-generate_parameter_library(strafe_controller_parameters
-  src/strafe_controller.yaml
+generate_parameter_library(strafe_drive_controller_parameters
+  src/strafe_drive_controller.yaml
 )
 
 add_library(${PROJECT_NAME} SHARED
-  src/strafe_controller.cpp
+  src/strafe_drive_controller.cpp
   src/odometry.cpp
 )
 target_include_directories(${PROJECT_NAME}
@@ -48,25 +48,25 @@ target_include_directories(${PROJECT_NAME}
   $<INSTALL_INTERFACE:include>)
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 target_link_libraries(${PROJECT_NAME}
-  strafe_controller_parameters
+  strafe_drive_controller_parameters
 )
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
-target_compile_definitions(${PROJECT_NAME} PRIVATE "strafe_controller_BUILDING_DLL")
-pluginlib_export_plugin_description_file(controller_interface strafe_controller.xml)
+target_compile_definitions(${PROJECT_NAME} PRIVATE "strafe_drive_controller_BUILDING_DLL")
+pluginlib_export_plugin_description_file(controller_interface strafe_drive_controller.xml)
 
 
 install(DIRECTORY include/
-  DESTINATION include/strafe_controller
+  DESTINATION include/strafe_drive_controller
 )
 
-install(TARGETS strafe_controller strafe_controller_parameters
-  EXPORT export_strafe_controller
+install(TARGETS strafe_drive_controller strafe_drive_controller_parameters
+  EXPORT export_strafe_drive_controller
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
 )
 
-ament_export_targets(export_strafe_controller HAS_LIBRARY_TARGET)
+ament_export_targets(export_strafe_drive_controller HAS_LIBRARY_TARGET)
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_package()

@@ -35,7 +35,7 @@ teleop_drive_joy:
       [
         "pivot_drive_controller",
         "holonomic_drive_controller",
-        "strafe_controller",
+        "strafe_drive_controller",
         "diff_drive_controller",
       ]
     description: "List Of Controllers that can be used with teleop"
@@ -95,7 +95,7 @@ teleop_drive_joy:
     type: int
     default_value: 8
     description: "Switch to Manual Mode"
-  button_strafe_controller:
+  button_strafe_drive_controller:
     type: int
     default_value: 6
     description: "Switch to Strafe Mode"
