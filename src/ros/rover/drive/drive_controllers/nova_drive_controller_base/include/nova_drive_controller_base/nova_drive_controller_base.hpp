@@ -114,8 +114,10 @@ public:
 protected:
   virtual void init_params() = 0;
   virtual void update_params() = 0;
+  virtual void update_limiter_buffers(const Commands& cmds) = 0;
+  virtual void reset_limiter_buffers() = 0;
   virtual Commands twist_to_commands(
-    const geometry_msgs::msg::TwistStamped& twist_msg, bool autonomous_mode) const = 0;
+    const geometry_msgs::msg::Twist& twist_msg, bool autonomous_mode) const = 0;
 
   const char* drive_feedback_type() const;
   const char* pivot_feedback_type() const;

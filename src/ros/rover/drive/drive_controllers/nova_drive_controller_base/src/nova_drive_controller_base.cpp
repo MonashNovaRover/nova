@@ -162,7 +162,23 @@ controller_interface::return_type NovaDriveControllerBase::update(
   }
 
   // ####################### Process input ###############################
-  Commands cmds = twist_to_commands(*command_msg_ptr, base_params_->autonomous_mode);
+  Commmands cmds;
+
+  const auto age_of_last_command = time - command_msg_ptr->header.stamp;
+  if (age_of_last_command > cmd_vel_timeout_)
+  {
+    cmds.linear_x_velocity = 0.0;
+    cmds.linear_y_velocity = 0.0;
+    cmds.angular_velocity = 0.0;
+    cmds.left_wheel_speeds.assign(wheels_per_side_, 0.0);
+    cmds.right_wheel_speeds.assign(wheels_per_side_, 0.0);
+    cmds.left_pivot_positions.assign(PIVOTS_PER_SIDE_, 0.0);
+    cmds.right_pivot_positions.assign(PIVOTS_PER_SIDE_, 0.0);
+  }
+  else
+  {
+    cmds = twist_to_commands(command_msg_ptr->twist, base_params_->autonomous_mode);
+  }
 
   // ################### Update and publish odometry #####################
   if (base_params_->open_loop)
@@ -275,12 +291,7 @@ controller_interface::return_type NovaDriveControllerBase::update(
     }
   }
 
-  /**
-   * Derived classes should override update() and update the previous command values for limiting,
-   * e.g.
-   * previous_linear_velocities_.pop_front();
-   * previous_linear_velocities_.push_back(cmds.linear_velocity);
-   */
+  update_limiter_buffers(cmds);
 
   // Publish commanded velocities
   if (base_params_->publish_commanded_velocities && realtime_commanded_twist_publisher_->trylock())
@@ -503,11 +514,7 @@ bool NovaDriveControllerBase::reset()
 void NovaDriveControllerBase::reset_buffers()
 {
   hwif_wrapper_->reset_handles();
-
-  /**
-   * Derived classes may override this method to reset their own buffers, e.g.
-   * previous_speeds_ = {0.0, 0.0};
-   */
+  reset_limiter_buffers();
 
   // Fill RealtimeBuffer with NaNs so it will contain a known value
   // but still indicate that no command has yet been sent.
