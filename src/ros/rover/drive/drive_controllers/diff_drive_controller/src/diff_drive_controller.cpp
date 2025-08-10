@@ -69,8 +69,8 @@ controller_interface::CallbackReturn DiffDriveController::on_init()
   wheels_per_side_ = params_->left_drive_names.size();
 
   // Initialise hardware interface wrapper
-  hwif_wrapper_ = std::make_unique<HardwareInterfaceWrapper>(
-    get_node(), params_->offset_angle, state_interfaces_, command_interfaces_);
+  hwif_wrapper_ =
+    std::make_unique<HardwareInterfaceWrapper>(get_node(), state_interfaces_, command_interfaces_);
 
   // Initialise odometry
   odometry_ = std::make_unique<Odometry>(get_node(), params_);
@@ -172,7 +172,7 @@ controller_interface::return_type DiffDriveController::update(
       angular_input == 0
         ? INFINITY
         : params_->input_curve_factor * ((1.0 / angular_input) - std::copysign(1, angular_input));
-    
+
     if (turning_radius == INFINITY)
     {
       angular_velocity = 0.0;

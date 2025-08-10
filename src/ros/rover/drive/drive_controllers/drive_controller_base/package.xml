@@ -23,6 +23,7 @@
   <depend>realtime_tools</depend>
   <depend>tf2</depend>
   <depend>tf2_msgs</depend>
+  <depend>eigen</depend>
   <depend>nova_controller_common</depend>
   <build_depend>pluginlib</build_depend>
 

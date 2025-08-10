@@ -24,6 +24,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
     realtime_tools
     tf2
     tf2_msgs
+    Eigen3
     nova_controller_common
 )
 
@@ -40,8 +41,7 @@ generate_parameter_library(drive_controller_base_parameters
 )
 
 add_library(${PROJECT_NAME} SHARED
-  src/drive_controller_base.cpp
-  src/odometry_base.cpp
+  src/odometry.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
