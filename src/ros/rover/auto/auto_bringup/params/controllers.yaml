@@ -15,8 +15,8 @@ controller_manager:
     pivot_drive_controller:
       type: pivot_drive_controller/PivotDriveController
 
-    strafe_controller:
-      type: strafe_controller/StrafeController
+    strafe_drive_controller:
+      type: strafe_drive_controller/StrafeDriveController
 
     diff_drive_controller:
       type: diff_drive_controller/DiffDriveController
@@ -93,7 +93,7 @@ pivot_drive_controller:
       max_velocity: 3.53429174 # 2*PI * 0.5625 (defined in firmware)
       min_velocity: -3.53429174
 
-strafe_controller:
+strafe_drive_controller:
   ros__parameters:
     autonomous_mode: true
     left_drive_names: ["flw", "blw"]

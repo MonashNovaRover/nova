@@ -1,4 +1,4 @@
-strafe_controller:
+strafe_drive_controller:
   autonomous_mode:
     type: bool
     default_value: false

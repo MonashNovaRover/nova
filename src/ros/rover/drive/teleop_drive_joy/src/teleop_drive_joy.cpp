@@ -11,7 +11,7 @@
  *  - client:     /controller_manager/switch_controller
  * [controller_manager_msgs/srv/SwitchController]
  *  - client:     /pivot_drive_controller/set_parameters       [rcl_interfaces/srv/SetParameters]
- *  - client:     /strafe_controller/set_parameters            [rcl_interfaces/srv/SetParameters]
+ *  - client:     /strafe_drive_controller/set_parameters            [rcl_interfaces/srv/SetParameters]
  *  - client:     /diff_drive_controller/set_parameters   [rcl_interfaces/srv/SetParameters]
  * ACTIONS: None
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -127,7 +127,7 @@ void TeleopDriveJoy::initializeInterfaces()
   pivot_drive_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
     "/pivot_drive_controller/set_parameters");
   strafe_client_ =
-    this->create_client<rcl_interfaces::srv::SetParameters>("/strafe_controller/set_parameters");
+    this->create_client<rcl_interfaces::srv::SetParameters>("/strafe_drive_controller/set_parameters");
   diff_drive_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
     "/diff_drive_controller/set_parameters");
 }
@@ -180,7 +180,7 @@ void TeleopDriveJoy::mapButtonCallbacks()
       RCLCPP_INFO(this->get_logger(), "BUTTON: holonomic_drive");
     }
   };
-  button_callbacks_[params_.button_strafe_controller] =
+  button_callbacks_[params_.button_strafe_drive_controller] =
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     if (drive_mode_ != DriveMode::STRAFE)

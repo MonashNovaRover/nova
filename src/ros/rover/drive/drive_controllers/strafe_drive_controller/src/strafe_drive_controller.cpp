@@ -12,7 +12,7 @@
 #include "rclcpp/logging.hpp"
 #include "tf2/LinearMath/Quaternion.h"
 
-#include "strafe_controller/strafe_controller.hpp"
+#include "strafe_drive_controller/strafe_drive_controller.hpp"
 
 namespace
 {
@@ -22,7 +22,7 @@ constexpr auto DEFAULT_COMMAND_OUT_TOPIC = "~/cmd_vel_out";
 
 }  // namespace
 
-namespace strafe_controller
+namespace strafe_drive_controller
 {
 
 using namespace std::chrono_literals;
@@ -34,7 +34,7 @@ using hardware_interface::HW_IF_POSITION;
 using hardware_interface::HW_IF_VELOCITY;
 using lifecycle_msgs::msg::State;
 
-StrafeController::StrafeController()
+StrafeDriveController::StrafeDriveController()
   : controller_interface::ControllerInterface()
   , DRIVE_COMMAND_TYPE_(HW_IF_VELOCITY)
   , PIVOT_COMMAND_TYPE_(HW_IF_POSITION)
@@ -42,17 +42,17 @@ StrafeController::StrafeController()
 {
 }
 
-const char* StrafeController::drive_feedback_type() const
+const char* StrafeDriveController::drive_feedback_type() const
 {
   return params_->drive_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
 }
 
-const char* StrafeController::pivot_feedback_type() const
+const char* StrafeDriveController::pivot_feedback_type() const
 {
   return params_->pivot_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
 }
 
-controller_interface::CallbackReturn StrafeController::on_init()
+controller_interface::CallbackReturn StrafeDriveController::on_init()
 {
   try
   {
@@ -78,7 +78,7 @@ controller_interface::CallbackReturn StrafeController::on_init()
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-InterfaceConfiguration StrafeController::command_interface_configuration() const
+InterfaceConfiguration StrafeDriveController::command_interface_configuration() const
 {
   std::vector<std::string> conf_names;
   for (size_t i = 0; i < wheels_per_side_; ++i)
@@ -95,7 +95,7 @@ InterfaceConfiguration StrafeController::command_interface_configuration() const
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
 
-InterfaceConfiguration StrafeController::state_interface_configuration() const
+InterfaceConfiguration StrafeDriveController::state_interface_configuration() const
 {
   if (params_->open_loop)
   {
@@ -117,7 +117,7 @@ InterfaceConfiguration StrafeController::state_interface_configuration() const
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
 
-controller_interface::return_type StrafeController::update(
+controller_interface::return_type StrafeDriveController::update(
   const rclcpp::Time& time, const rclcpp::Duration& period)
 {
   auto logger = get_node()->get_logger();
@@ -269,7 +269,7 @@ controller_interface::return_type StrafeController::update(
   return controller_interface::return_type::OK;
 }
 
-controller_interface::CallbackReturn StrafeController::on_configure(const rclcpp_lifecycle::State&)
+controller_interface::CallbackReturn StrafeDriveController::on_configure(const rclcpp_lifecycle::State&)
 {
   auto logger = get_node()->get_logger();
 
@@ -366,7 +366,7 @@ controller_interface::CallbackReturn StrafeController::on_configure(const rclcpp
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::CallbackReturn StrafeController::on_activate(const rclcpp_lifecycle::State&)
+controller_interface::CallbackReturn StrafeDriveController::on_activate(const rclcpp_lifecycle::State&)
 {
   // Configure joints
   std::vector<Joint> joints;
@@ -406,7 +406,7 @@ controller_interface::CallbackReturn StrafeController::on_activate(const rclcpp_
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::CallbackReturn StrafeController::on_deactivate(const rclcpp_lifecycle::State&)
+controller_interface::CallbackReturn StrafeDriveController::on_deactivate(const rclcpp_lifecycle::State&)
 {
   is_active_ = false;
   halt();
@@ -415,7 +415,7 @@ controller_interface::CallbackReturn StrafeController::on_deactivate(const rclcp
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::CallbackReturn StrafeController::on_cleanup(const rclcpp_lifecycle::State&)
+controller_interface::CallbackReturn StrafeDriveController::on_cleanup(const rclcpp_lifecycle::State&)
 {
   if (!reset())
   {
@@ -425,7 +425,7 @@ controller_interface::CallbackReturn StrafeController::on_cleanup(const rclcpp_l
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::CallbackReturn StrafeController::on_error(const rclcpp_lifecycle::State&)
+controller_interface::CallbackReturn StrafeDriveController::on_error(const rclcpp_lifecycle::State&)
 {
   if (!reset())
   {
@@ -435,7 +435,7 @@ controller_interface::CallbackReturn StrafeController::on_error(const rclcpp_lif
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-bool StrafeController::reset()
+bool StrafeDriveController::reset()
 {
   odometry_->reset();
   reset_buffers();
@@ -445,7 +445,7 @@ bool StrafeController::reset()
   return true;
 }
 
-void StrafeController::reset_buffers()
+void StrafeDriveController::reset_buffers()
 {
   hwif_wrapper_->reset_handles();
 
@@ -465,12 +465,12 @@ void StrafeController::reset_buffers()
   received_twist_msg_ptr_.writeFromNonRT(empty_twist_ptr);
 }
 
-controller_interface::CallbackReturn StrafeController::on_shutdown(const rclcpp_lifecycle::State&)
+controller_interface::CallbackReturn StrafeDriveController::on_shutdown(const rclcpp_lifecycle::State&)
 {
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-void StrafeController::halt()
+void StrafeDriveController::halt()
 {
   // Send zero commands to all wheels and pivots
   for (size_t pos = 0; pos < wheels_per_side_; ++pos)
@@ -485,9 +485,9 @@ void StrafeController::halt()
   }
 }
 
-}  // namespace strafe_controller
+}  // namespace strafe_drive_controller
 
 #include "class_loader/register_macro.hpp"
 
 CLASS_LOADER_REGISTER_CLASS(
-  strafe_controller::StrafeController, controller_interface::ControllerInterface)
+  strafe_drive_controller::StrafeDriveController, controller_interface::ControllerInterface)

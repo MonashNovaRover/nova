@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>strafe_controller</name>
+  <name>strafe_drive_controller</name>
   <version>0.1.0</version>
   <description>Controller for a 4 steering drive mobile base.</description>
   <maintainer email="novaroverteam@monash.edu">Monash Nova Rover</maintainer>

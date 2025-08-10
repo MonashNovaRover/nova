@@ -1,5 +1,5 @@
-#ifndef STRAFE_CONTROLLER__STRAFE_CONTROLLER_HPP_
-#define STRAFE_CONTROLLER__STRAFE_CONTROLLER_HPP_
+#ifndef STRAFE_DRIVE_CONTROLLER__STRAFE_DRIVE_CONTROLLER_HPP_
+#define STRAFE_DRIVE_CONTROLLER__STRAFE_DRIVE_CONTROLLER_HPP_
 
 #include <chrono>
 #include <cmath>
@@ -24,10 +24,10 @@
 
 #include "nova_controller_common/speed_limiter.hpp"
 #include "nova_controller_common/hardware_interface_wrapper.hpp"
-#include "strafe_controller/odometry.hpp"
-#include "strafe_controller_parameters.hpp"
+#include "strafe_drive_controller/odometry.hpp"
+#include "strafe_drive_controller_parameters.hpp"
 
-namespace strafe_controller
+namespace strafe_drive_controller
 {
 
 enum class JointSide
@@ -47,10 +47,10 @@ constexpr size_t encoded_pos(const size_t pos, const JointSide side, const Joint
   return pos << 2 | (static_cast<size_t>(side) << 1) | static_cast<size_t>(type);
 }
 
-class StrafeController : public controller_interface::ControllerInterface
+class StrafeDriveController : public controller_interface::ControllerInterface
 {
 public:
-  StrafeController();
+  StrafeDriveController();
 
   controller_interface::InterfaceConfiguration command_interface_configuration() const override;
   controller_interface::InterfaceConfiguration state_interface_configuration() const override;
@@ -91,7 +91,7 @@ protected:
   bool is_active_ = false;
   bool is_halted_ = false;
 
-  // Parameters from ROS for strafe_controller
+  // Parameters from ROS for strafe_drive_controller
   std::shared_ptr<ParamListener> param_listener_;
   std::shared_ptr<Params> params_;
 
@@ -120,6 +120,6 @@ protected:
     realtime_commanded_twist_publisher_;
 };
 
-}  // namespace strafe_controller
+}  // namespace strafe_drive_controller
 
-#endif  // STRAFE_CONTROLLER__STRAFE_CONTROLLER_HPP_
+#endif  // STRAFE_DRIVE_CONTROLLER__STRAFE_DRIVE_CONTROLLER_HPP_

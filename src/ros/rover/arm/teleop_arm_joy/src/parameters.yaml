@@ -9,7 +9,7 @@ teleop_arm_joy:
 #    default_value:
 #      [
 #        "pivot_drive_controller",
-#        "strafe_controller",
+#        "strafe_drive_controller",
 #        "diff_drive_controller",
 #      ]
 #    description: "List Of Controllers that can be used with teleop"
