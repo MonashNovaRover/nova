@@ -167,6 +167,7 @@ controller_interface::return_type NovaDriveControllerBase::update(
   const auto age_of_last_command = time - command_msg_ptr->header.stamp;
   if (age_of_last_command > cmd_vel_timeout_)
   {
+    cmds.speed = 0.0;
     cmds.linear_x_velocity = 0.0;
     cmds.linear_y_velocity = 0.0;
     cmds.angular_velocity = 0.0;
