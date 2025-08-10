@@ -19,8 +19,8 @@
  * @authors Terry Tian
  */
 
-#ifndef DRIVE_CONTROLLER_BASE__DRIVE_CONTROLLER_BASE_HPP_
-#define DRIVE_CONTROLLER_BASE__DRIVE_CONTROLLER_BASE_HPP_
+#ifndef NOVA_DRIVE_CONTROLLER_BASE__NOVA_DRIVE_CONTROLLER_BASE_HPP_
+#define NOVA_DRIVE_CONTROLLER_BASE__NOVA_DRIVE_CONTROLLER_BASE_HPP_
 
 #include <chrono>
 #include <cmath>
@@ -54,10 +54,10 @@
 #include "nova_controller_common/speed_limiter.hpp"
 #include "nova_controller_common/position_limiter.hpp"
 #include "nova_controller_common/hardware_interface_wrapper.hpp"
-#include "drive_controller_base/odometry.hpp"
-#include "drive_controller_base_parameters.hpp"
+#include "nova_drive_controller_base/odometry.hpp"
+#include "nova_drive_controller_base_parameters.hpp"
 
-namespace drive_controller_base
+namespace nova_drive_controller_base
 {
 
 enum class JointSide
@@ -98,10 +98,10 @@ using hardware_interface::HW_IF_VELOCITY;
 using lifecycle_msgs::msg::State;
 
 template <typename Derived>
-class DriveControllerBase : public controller_interface::ControllerInterface
+class NovaDriveControllerBase : public controller_interface::ControllerInterface
 {
 public:
-  DriveControllerBase()
+  NovaDriveControllerBase()
     : controller_interface::ControllerInterface()
     , DRIVE_COMMAND_TYPE_(HW_IF_VELOCITY)
     , PIVOT_COMMAND_TYPE_(HW_IF_POSITION)
@@ -616,7 +616,7 @@ protected:
   bool is_active_ = false;
   bool is_halted_ = false;
 
-  // Parameters from ROS for drive_controller_base
+  // Parameters from ROS for nova_drive_controller_base
   std::shared_ptr<ParamListener> base_param_listener_;
   std::shared_ptr<Params> base_params_;
 
@@ -656,6 +656,6 @@ private:
   }
 };
 
-}  // namespace drive_controller_base
+}  // namespace nova_drive_controller_base
 
-#endif  // DRIVE_CONTROLLER_BASE__DRIVE_CONTROLLER_BASE_HPP_
+#endif  // NOVA_DRIVE_CONTROLLER_BASE__NOVA_DRIVE_CONTROLLER_BASE_HPP_

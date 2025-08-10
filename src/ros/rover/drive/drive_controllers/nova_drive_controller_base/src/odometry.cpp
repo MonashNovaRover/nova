@@ -33,7 +33,7 @@
 #include "realtime_tools/realtime_publisher.h"
 #include "tf2/LinearMath/Quaternion.h"
 
-#include "drive_controller_base/odometry.hpp"
+#include "nova_drive_controller_base/odometry.hpp"
 
 namespace
 {
@@ -44,7 +44,7 @@ constexpr double EPSILON = 1e-6;
 
 }  // namespace
 
-namespace drive_controller_base
+namespace nova_drive_controller_base
 {
 
 Odometry::Odometry(rclcpp_lifecycle::LifecycleNode::SharedPtr node, std::shared_ptr<Params> params)
@@ -321,4 +321,4 @@ void Odometry::integrate_rk2(double delta_linear_x, double delta_linear_y, doubl
   heading_ += delta_angular;
 }
 
-}  // namespace drive_controller_base
+}  // namespace nova_drive_controller_base
