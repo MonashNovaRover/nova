@@ -19,11 +19,11 @@
 }:
 
 buildRosPackage {
-  name = "drive-controller-base";
+  name = "nova-drive-controller-base";
   buildType = "ament_cmake";
 
   src = builtins.path rec {
-    name = "drive_controller_base-source";
+    name = "nova_drive_controller_base-source";
     path = ./.;
     filter = lib.novaSourceFilter [ ] path;
   };

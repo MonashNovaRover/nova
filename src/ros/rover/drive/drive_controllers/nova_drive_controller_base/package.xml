@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>drive_controller_base</name>
+  <name>nova_drive_controller_base</name>
   <version>0.1.0</version>
   <description>Abstract base class for writing drive controllers.</description>
   <maintainer email="novaroverteam@monash.edu">Monash Nova Rover</maintainer>
