@@ -43,7 +43,6 @@ namespace pivot_drive_controller
 
 using namespace std::chrono_literals;
 using namespace nova_controller_common;
-using nova_drive_controller_base::Commands;
 using controller_interface::interface_configuration_type;
 using controller_interface::InterfaceConfiguration;
 using geometry_msgs::msg::Twist;
@@ -51,8 +50,10 @@ using geometry_msgs::msg::TwistStamped;
 using hardware_interface::HW_IF_POSITION;
 using hardware_interface::HW_IF_VELOCITY;
 using lifecycle_msgs::msg::State;
+using nova_drive_controller_base::Commands;
 
-PivotDriveController::PivotDriveController() : nova_drive_controller_base::NovaDriveControllerBase()
+PivotDriveController::PivotDriveController()
+  : nova_drive_controller_base::NovaDriveControllerBase()
 {
 }
 
@@ -161,14 +162,14 @@ Commands PivotDriveController::twist_to_commands(
     limiter_speed_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
     if (speed != requested_speed)
     {
-      RCLCPP_INFO(logger, "Speed limited to %.2f", speed);
+      RCLCPP_DEBUG(logger, "Speed limited to %.2f", speed);
     }
-    RCLCPP_INFO(logger, "Received: Speed = %.2f, Turning radius = %f", speed, turning_radius);
+    RCLCPP_DEBUG(logger, "Received: Speed = %.2f, Turning radius = %f", speed, turning_radius);
 
     // Calculate the angular velocity based on the limited speed
     angular_velocity = get_angular_from_radius_and_speed(
       turning_radius, speed, turning_left, zero_radius_, inner_radius_);
-    RCLCPP_INFO(logger, "Calculated angular velocity = %.2f", angular_velocity);
+    RCLCPP_DEBUG(logger, "Calculated angular velocity = %.2f", angular_velocity);
 
     const double requested_angular = angular_velocity;
     limiter_angular_.limit(
@@ -239,4 +240,4 @@ void PivotDriveController::reset_limiter_buffers()
 #include "class_loader/register_macro.hpp"
 
 CLASS_LOADER_REGISTER_CLASS(
-  pivot_drive_controller::PivotDriveController, nova_drive_controller_base::NovaDriveControllerBase)
+  pivot_drive_controller::PivotDriveController, controller_interface::ControllerInterface)
