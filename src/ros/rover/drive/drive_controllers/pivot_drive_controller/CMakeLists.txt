@@ -51,7 +51,7 @@ target_link_libraries(${PROJECT_NAME}
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "pivot_drive_controller_BUILDING_DLL")
-pluginlib_export_plugin_description_file(nova_drive_controller_base pivot_drive_controller.xml)
+pluginlib_export_plugin_description_file(controller_interface pivot_drive_controller.xml)
 
 
 install(
