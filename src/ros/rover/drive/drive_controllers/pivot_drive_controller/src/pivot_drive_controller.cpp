@@ -43,7 +43,7 @@ namespace pivot_drive_controller
 
 using namespace std::chrono_literals;
 using namespace nova_controller_common;
-using namespace nova_drive_controller_base;
+using nova_drive_controller_base::Commands;
 using controller_interface::interface_configuration_type;
 using controller_interface::InterfaceConfiguration;
 using geometry_msgs::msg::Twist;
@@ -52,15 +52,12 @@ using hardware_interface::HW_IF_POSITION;
 using hardware_interface::HW_IF_VELOCITY;
 using lifecycle_msgs::msg::State;
 
-PivotDriveController::PivotDriveController()
-  : nova_drive_controller_base::NovaDriveControllerBase()
+PivotDriveController::PivotDriveController() : nova_drive_controller_base::NovaDriveControllerBase()
 {
 }
 
 void PivotDriveController::init_params()
 {
-  nova_drive_controller_base::NovaDriveControllerBase::init_params();
-
   // Initialize parameters specific to the pivot drive controller
   param_listener_ = std::make_shared<ParamListener>(get_node());
   params_ = param_listener_->get_params();
@@ -242,4 +239,4 @@ void PivotDriveController::reset_limiter_buffers()
 #include "class_loader/register_macro.hpp"
 
 CLASS_LOADER_REGISTER_CLASS(
-  pivot_drive_controller::PivotDriveController, controller_interface::ControllerInterface)
+  pivot_drive_controller::PivotDriveController, nova_drive_controller_base::NovaDriveControllerBase)

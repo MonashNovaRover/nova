@@ -275,7 +275,7 @@ void Odometry::reset()
   angular_accumulator_ = RollingMeanAccumulator(base_params_->velocity_rolling_window_size);
 }
 
-Eigen::Vector3d compute_velocities(const std::vector<Wheel>& wheels)
+Eigen::Vector3d Odometry::compute_velocities(const std::vector<Wheel>& wheels) const
 {
   const int N = static_cast<int>(wheels.size());
   if (N == 0) return Eigen::Vector3d::Zero();
