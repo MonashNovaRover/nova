@@ -280,11 +280,9 @@ controller_interface::return_type NovaDriveControllerBase::update(
   {
     if (
       !hwif_wrapper_->set_value(
-        cmds.left_pivot_positions[pos] / base_params_->wheel_radius,
-        encoded_pos(pos, JointSide::LEFT, JointType::PIVOT)) ||
+        cmds.left_pivot_positions[pos], encoded_pos(pos, JointSide::LEFT, JointType::PIVOT)) ||
       !hwif_wrapper_->set_value(
-        cmds.right_pivot_positions[pos] / base_params_->wheel_radius,
-        encoded_pos(pos, JointSide::RIGHT, JointType::PIVOT)))
+        cmds.right_pivot_positions[pos], encoded_pos(pos, JointSide::RIGHT, JointType::PIVOT)))
     {
       RCLCPP_ERROR(logger, "Failed to set pivot command values for position %zu.", pos);
       return controller_interface::return_type::ERROR;

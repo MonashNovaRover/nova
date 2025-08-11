@@ -1,7 +1,7 @@
 <library path="pivot_drive_controller">
   <class name="pivot_drive_controller/PivotDriveController"
          type="pivot_drive_controller::PivotDriveController"
-         base_class_type="nova_drive_controller_base::NovaDriveControllerBase">
+         base_class_type="controller_interface::ControllerInterface">
   <description>
     The pivot drive controller interprets Twist messages into signals for each wheel and pivot on a 4 wheel steering mobile base.
   </description>
