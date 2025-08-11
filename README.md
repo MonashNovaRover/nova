@@ -9,13 +9,53 @@
 
 <br/>
 
-The [`nova`](https://github.com/MonashNovaRover/nova) repository is a mono-repo which encapsulates:
-- [`nixfiles`](./nixfiles)
-- [`rover`](./src/ros/rover)
-- [`nova-gui`](./src/ros/nova-gui)
-- [`cameras2`](./src/ros/cameras2)
+# Monash Nova Rover
 
-# Contributing
+Software for Monash Nova Rover's lunar and martian analog rover.
+
+## Project Structure
+
+The [`nova`](https://github.com/MonashNovaRover/nova) repository which encapsulates:
+- [`nixfiles`](./nixfiles)
+  - Describes how the source code is built through nix.
+- [`src`](./src)
+  - Contains the code for all software for both on rover and base station.
+  - [`rover`](./src/ros/rover)
+    - All the source code for rover control and functionality.
+  - [`nova-gui`](./src/ros/nova-gui)
+    - A web based graphical user interface for the base station.
+  - [`cameras2`](./src/ros/cameras2)
+    - Camera discovery and streaming services between rover and base station.
+
+```
+├─ nixfiles               # Package manager
+├─ src/                   # Source code
+│  ├─ other               # Miscellaneous non-ros software
+│  ├─ ros                 # The main folder containing all of our ROS2 software
+│  │  ├─ cameras2         # Custom camera stack
+│  │  ├─ nova-gui         # Graphical user interface for operators
+│  │  ├─ rover            # Code for our autonomous system, robotic arm, drive and other payload controls.
+```
+
+## Development
+
+Please follow [this notion guide](https://www.notion.so/Team-Software-Setup-Guide-8e94bf58c60c407195093c32814c6e7d) for a detailed guide if you're on the team.
+
+In general:
+
+1. Clone the repository
+    ```shell
+   git clone https://github.com/MonashNovaRover/nova.git
+   ```
+1. Build the nova workspace
+    ```nix
+    nix-build ./nixfiles -A pkgs.ros.nova-workspace
+    ```
+1. To run the different payloads and systems look in the relevant directory, or look at the [launch overview](./nixfiles/doc/rover-help.md).
+
+## Contributing
+
+We loosely follow the [conventional commit standards](https://www.conventionalcommits.org/en/v1.0.0/#summary). In particular:
 
 1. Create a branch following standard naming conventions such as `feat/`, `fix/`, etc.
 2. Commit regularly
