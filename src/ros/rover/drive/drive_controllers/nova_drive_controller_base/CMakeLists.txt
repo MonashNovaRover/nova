@@ -17,7 +17,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   hardware_interface
   nav_msgs
   std_srvs
-  pluginlib
   rclcpp
   rclcpp_lifecycle
   rcpputils
@@ -54,8 +53,6 @@ target_link_libraries(${PROJECT_NAME}
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "nova_drive_controller_base_BUILDING_DLL")
-pluginlib_export_plugin_description_file(controller_interface nova_drive_controller_base.xml)
-
 
 install(
   DIRECTORY include/

@@ -4,7 +4,6 @@
 , control-msgs
 , controller-interface
 , hardware-interface
-, pluginlib
 , rclcpp
 , rclcpp-lifecycle
 , std-srvs
@@ -35,7 +34,6 @@ buildRosPackage {
     control-msgs
     controller-interface
     hardware-interface
-    pluginlib
     rclcpp
     rclcpp-lifecycle
     std-srvs
