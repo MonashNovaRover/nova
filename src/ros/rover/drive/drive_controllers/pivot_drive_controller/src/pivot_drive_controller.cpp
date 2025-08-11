@@ -43,21 +43,23 @@ namespace pivot_drive_controller
 
 using namespace std::chrono_literals;
 using namespace nova_controller_common;
+using namespace nova_drive_controller_base;
 using controller_interface::interface_configuration_type;
 using controller_interface::InterfaceConfiguration;
+using geometry_msgs::msg::Twist;
 using geometry_msgs::msg::TwistStamped;
 using hardware_interface::HW_IF_POSITION;
 using hardware_interface::HW_IF_VELOCITY;
 using lifecycle_msgs::msg::State;
 
 PivotDriveController::PivotDriveController()
-  : nova_drive_controller_base::NovaDriveControllerBase<PivotDriveController>()
+  : nova_drive_controller_base::NovaDriveControllerBase()
 {
 }
 
 void PivotDriveController::init_params()
 {
-  nova_drive_controller_base::NovaDriveControllerBase<PivotDriveController>::init_params();
+  nova_drive_controller_base::NovaDriveControllerBase::init_params();
 
   // Initialize parameters specific to the pivot drive controller
   param_listener_ = std::make_shared<ParamListener>(get_node());
@@ -85,9 +87,11 @@ void PivotDriveController::update_params()
   }
 }
 
-Commands PivotDriveController::twist_to_commands(const Twist& twist_msg, bool autonomous_mode) const
+Commands PivotDriveController::twist_to_commands(
+  const Twist& twist_msg, bool autonomous_mode, const rclcpp::Duration& period)
 {
-  Commands cmds;
+  auto logger = get_node()->get_logger();
+
   double linear_input = twist_msg.linear.x;
   double angular_input = twist_msg.angular.z;
   double linear_velocity, angular_velocity;
@@ -129,7 +133,7 @@ Commands PivotDriveController::twist_to_commands(const Twist& twist_msg, bool au
     double limited_angle = max_requested_angle;
     limiter_pivot_.limit(
       limited_angle, prev_positions[0], prev_positions[1], prev_positions[2],
-      params_->pivot_rate_tolerance);
+      params_.pivot_rate_tolerance);
     if (limited_angle != max_requested_angle)
     {
       speed = 0.0;  // wait for the pivot to be within tolerance before moving
@@ -148,14 +152,14 @@ Commands PivotDriveController::twist_to_commands(const Twist& twist_msg, bool au
     turning_radius =
       angular_input == 0
         ? INFINITY
-        : params_->input_curve_factor * ((1.0 / angular_input) - std::copysign(1, angular_input));
+        : params_.input_curve_factor * ((1.0 / angular_input) - std::copysign(1, angular_input));
     turning_left = turning_radius == 0 ? angular_input > 0 : turning_radius > 0;
 
     limit_radius_by_pivots(
       turning_radius, turning_left, half_steering_track_, half_wheel_base_, limiter_pivot_,
       previous_left_pivot_positions_, previous_right_pivot_positions_, period.seconds());
 
-    speed = linear_input * params_->speed.max_velocity;
+    speed = linear_input * base_params_->speed.max_velocity;
     const double requested_speed = speed;
     limiter_speed_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
     if (speed != requested_speed)
@@ -193,32 +197,35 @@ Commands PivotDriveController::twist_to_commands(const Twist& twist_msg, bool au
     turning_radius, false, half_steering_track_, half_wheel_base_, zero_radius_, inner_radius_);
   const double left_speed = speed * left_ratio;
   const double right_speed = speed * right_ratio;
-  const double left_velocity = left_speed / params_->wheel_radius;
-  const double right_velocity = right_speed / params_->wheel_radius;
 
-  RCLCPP_INFO(logger, "speed ratios: left = %.2f, right = %.2f", left_ratio, right_ratio);
-
-  RCLCPP_DEBUG(
-    logger, "Set drive commands: left_speed = %.2f, right_speed = %.2f", cmds.left_drive_speeds[0],
-    cmds.right_drive_speeds[0]);
-  RCLCPP_DEBUG(
-    logger, "Set pivot commands: left_angle = %.2f, right_angle = %.2f",
-    cmds.left_pivot_positions[0], cmds.right_pivot_positions[0]);
-  RCLCPP_DEBUG(
-    logger, "------------------------------------------------------------------------------------");
-}
-
-void PivotDriveController::update_limiter_buffers(const Commands& cmds)
-{
   // Update the previous command values for limiting
   previous_speeds_.pop_front();
-  previous_speeds_.push_back(cmds.speed);
+  previous_speeds_.push_back(speed);
   previous_angular_velocities_.pop_front();
-  previous_angular_velocities_.push_back(cmds.angular_velocity);
+  previous_angular_velocities_.push_back(angular_velocity);
   previous_left_pivot_positions_.pop_front();
-  previous_left_pivot_positions_.push_back(cmds.left_pivot_positions[0]);
+  previous_left_pivot_positions_.push_back(left_angle);
   previous_right_pivot_positions_.pop_front();
-  previous_right_pivot_positions_.push_back(cmds.right_pivot_positions[0]);
+  previous_right_pivot_positions_.push_back(right_angle);
+
+  RCLCPP_DEBUG(logger, "speed ratios: left = %.2f, right = %.2f", left_ratio, right_ratio);
+
+  RCLCPP_DEBUG(
+    logger, "Set drive commands: left_speed = %.2f, right_speed = %.2f", left_speed, right_speed);
+  RCLCPP_DEBUG(
+    logger, "Set pivot commands: left_angle = %.2f, right_angle = %.2f", left_angle, right_angle);
+  RCLCPP_DEBUG(
+    logger, "------------------------------------------------------------------------------------");
+
+  return {
+    .linear_velocity_x = linear_velocity,
+    .linear_velocity_y = 0.0,
+    .angular_velocity = angular_velocity,
+    .left_drive_speeds = {left_speed, left_speed},
+    .right_drive_speeds = {right_speed, right_speed},
+    .left_pivot_positions = {left_angle, -left_angle},
+    .right_pivot_positions = {right_angle, -right_angle},
+  };
 }
 
 void PivotDriveController::reset_limiter_buffers()

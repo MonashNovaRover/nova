@@ -1,31 +1,29 @@
 cmake_minimum_required(VERSION 3.16)
 project(pivot_drive_controller)
 
-# Default to C++17
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17)
-  set(CMAKE_CXX_STANDARD_REQUIRED ON)
-endif()
+# Use C++20
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra)
 endif()
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
-    controller_interface
-    geometry_msgs
-    hardware_interface
-    nav_msgs
-    std_srvs
-    pluginlib
-    rclcpp
-    rclcpp_lifecycle
-    rcpputils
-    realtime_tools
-    tf2
-    tf2_msgs
-    nova_controller_common
-    nova_drive_controller_base
+  controller_interface
+  geometry_msgs
+  hardware_interface
+  nav_msgs
+  std_srvs
+  pluginlib
+  rclcpp
+  rclcpp_lifecycle
+  rcpputils
+  realtime_tools
+  tf2
+  tf2_msgs
+  nova_controller_common
+  nova_drive_controller_base
 )
 
 find_package(ament_cmake REQUIRED)
