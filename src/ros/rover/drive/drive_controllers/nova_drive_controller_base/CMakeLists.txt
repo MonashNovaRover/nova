@@ -12,20 +12,20 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
-    controller_interface
-    geometry_msgs
-    hardware_interface
-    nav_msgs
-    std_srvs
-    pluginlib
-    rclcpp
-    rclcpp_lifecycle
-    rcpputils
-    realtime_tools
-    tf2
-    tf2_msgs
-    Eigen3
-    nova_controller_common
+  controller_interface
+  geometry_msgs
+  hardware_interface
+  nav_msgs
+  std_srvs
+  pluginlib
+  rclcpp
+  rclcpp_lifecycle
+  rcpputils
+  realtime_tools
+  tf2
+  tf2_msgs
+  Eigen3
+  nova_controller_common
 )
 
 find_package(ament_cmake REQUIRED)
@@ -46,7 +46,7 @@ add_library(${PROJECT_NAME} SHARED
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
-  $<INSTALL_INTERFACE:include>)
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 target_link_libraries(${PROJECT_NAME}
   nova_drive_controller_base_parameters

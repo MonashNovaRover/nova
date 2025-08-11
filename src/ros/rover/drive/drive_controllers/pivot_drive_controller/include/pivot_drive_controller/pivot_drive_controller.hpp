@@ -44,14 +44,14 @@
 #include "nova_controller_common/speed_limiter.hpp"
 #include "nova_controller_common/position_limiter.hpp"
 #include "nova_controller_common/hardware_interface_wrapper.hpp"
+#include "nova_drive_controller_base/nova_drive_controller_base.hpp"
 #include "nova_drive_controller_base/odometry.hpp"
 #include "pivot_drive_controller_parameters.hpp"
 
 namespace pivot_drive_controller
 {
 
-class PivotDriveController
-  : public nova_drive_controller_base::NovaDriveControllerBase<PivotDriveController>
+class PivotDriveController : public nova_drive_controller_base::NovaDriveControllerBase
 {
 public:
   PivotDriveController();
@@ -59,10 +59,10 @@ public:
 protected:
   void init_params() override;
   void update_params() override;
-  void update_limiter_buffers(const Commands& cmds) override;
   void reset_limiter_buffers() override;
-  Commands twist_to_commands(
-    const geometry_msgs::msg::Twist& twist_msg, bool autonomous_mode) const override;
+  nova_drive_controller_base::Commands twist_to_commands(
+    const geometry_msgs::msg::Twist& twist_msg, bool autonomous_mode,
+    const rclcpp::Duration& period) override;
 
   // Parameters from ROS for pivot_drive_controller
   std::shared_ptr<ParamListener> param_listener_;

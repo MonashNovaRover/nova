@@ -135,7 +135,7 @@ InterfaceConfiguration NovaDriveControllerBase::state_interface_configuration() 
 }
 
 controller_interface::return_type NovaDriveControllerBase::update(
-  const rclcpp::Time& time, const rclcpp::Duration&)
+  const rclcpp::Time& time, const rclcpp::Duration& period)
 {
   auto logger = get_node()->get_logger();
 
@@ -162,30 +162,29 @@ controller_interface::return_type NovaDriveControllerBase::update(
   }
 
   // ####################### Process input ###############################
-  Commmands cmds;
+  Commands cmds;
 
   const auto age_of_last_command = time - command_msg_ptr->header.stamp;
   if (age_of_last_command > cmd_vel_timeout_)
   {
-    cmds.speed = 0.0;
-    cmds.linear_x_velocity = 0.0;
-    cmds.linear_y_velocity = 0.0;
+    cmds.linear_velocity_x = 0.0;
+    cmds.linear_velocity_y = 0.0;
     cmds.angular_velocity = 0.0;
-    cmds.left_wheel_speeds.assign(wheels_per_side_, 0.0);
-    cmds.right_wheel_speeds.assign(wheels_per_side_, 0.0);
+    cmds.left_drive_speeds.assign(wheels_per_side_, 0.0);
+    cmds.right_drive_speeds.assign(wheels_per_side_, 0.0);
     cmds.left_pivot_positions.assign(PIVOTS_PER_SIDE_, 0.0);
     cmds.right_pivot_positions.assign(PIVOTS_PER_SIDE_, 0.0);
   }
   else
   {
-    cmds = twist_to_commands(command_msg_ptr->twist, base_params_->autonomous_mode);
+    cmds = twist_to_commands(command_msg_ptr->twist, base_params_->autonomous_mode, period);
   }
 
   // ################### Update and publish odometry #####################
   if (base_params_->open_loop)
   {
     odometry_->update_open_loop(
-      cmds.linear_x_velocity, cmds.linear_y_velocity, cmds.angular_velocity, time);
+      cmds.linear_velocity_x, cmds.linear_velocity_y, cmds.angular_velocity, time);
   }
   else
   {
@@ -266,10 +265,10 @@ controller_interface::return_type NovaDriveControllerBase::update(
   {
     if (
       !hwif_wrapper_->set_value(
-        cmds.left_wheel_speeds[pos] / base_params_->wheel_radius,
+        cmds.left_drive_speeds[pos] / base_params_->wheel_radius,
         encoded_pos(pos, JointSide::LEFT, JointType::DRIVE)) ||
       !hwif_wrapper_->set_value(
-        cmds.right_wheel_speeds[pos] / base_params_->wheel_radius,
+        cmds.right_drive_speeds[pos] / base_params_->wheel_radius,
         encoded_pos(pos, JointSide::RIGHT, JointType::DRIVE)))
     {
       RCLCPP_ERROR(logger, "Failed to set drive command values for position %zu.", pos);
@@ -292,15 +291,13 @@ controller_interface::return_type NovaDriveControllerBase::update(
     }
   }
 
-  update_limiter_buffers(cmds);
-
   // Publish commanded velocities
   if (base_params_->publish_commanded_velocities && realtime_commanded_twist_publisher_->trylock())
   {
     auto& commanded_twist_command = realtime_commanded_twist_publisher_->msg_;
     commanded_twist_command.header.stamp = time;
-    commanded_twist_command.twist.linear.x = cmds.linear_x_velocity;
-    commanded_twist_command.twist.linear.y = cmds.linear_y_velocity;
+    commanded_twist_command.twist.linear.x = cmds.linear_velocity_x;
+    commanded_twist_command.twist.linear.y = cmds.linear_velocity_y;
     commanded_twist_command.twist.linear.z = 0.0;
     commanded_twist_command.twist.angular.x = 0.0;
     commanded_twist_command.twist.angular.y = 0.0;

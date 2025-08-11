@@ -71,12 +71,11 @@ constexpr size_t encoded_pos(const size_t pos, const JointSide side, const Joint
 
 struct Commands
 {
-  double speed;
-  double linear_x_velocity;
-  double linear_y_velocity;
+  double linear_velocity_x;
+  double linear_velocity_y;
   double angular_velocity;
-  std::vector<double> left_wheel_speeds;      // left wheel speeds
-  std::vector<double> right_wheel_speeds;     // right wheel speeds
+  std::vector<double> left_drive_speeds;      // left drive speeds
+  std::vector<double> right_drive_speeds;     // right drive speeds
   std::vector<double> left_pivot_positions;   // left pivot positions
   std::vector<double> right_pivot_positions;  // right pivot positions
 };
@@ -115,10 +114,10 @@ public:
 protected:
   virtual void init_params() = 0;
   virtual void update_params() = 0;
-  virtual void update_limiter_buffers(const Commands& cmds) = 0;
   virtual void reset_limiter_buffers() = 0;
   virtual Commands twist_to_commands(
-    const geometry_msgs::msg::Twist& twist_msg, bool autonomous_mode) const = 0;
+    const geometry_msgs::msg::Twist& twist_msg, bool autonomous_mode,
+    const rclcpp::Duration& period) = 0;
 
   const char* drive_feedback_type() const;
   const char* pivot_feedback_type() const;

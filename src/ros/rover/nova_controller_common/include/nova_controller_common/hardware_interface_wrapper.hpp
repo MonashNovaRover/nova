@@ -70,8 +70,8 @@ public:
 
 private:
   rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
-  std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces_;
   std::vector<hardware_interface::LoanedStateInterface>& state_interfaces_;
+  std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces_;
 
   std::vector<std::optional<WheelHandle>> registered_handles_;
 };
