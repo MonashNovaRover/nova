@@ -8,14 +8,15 @@
 , rclcpp
 , rclcpp-lifecycle
 , std-srvs
-, generate-parameter-library
 , backward-ros
+, generate-parameter-library
 , nav-msgs
 , realtime-tools
 , tf2
 , tf2-msgs
 , geometry-msgs
 , nova-controller-common
+, nova-drive-controller-base
 }:
 
 buildRosPackage {
@@ -38,13 +39,14 @@ buildRosPackage {
     rclcpp
     rclcpp-lifecycle
     std-srvs
-    generate-parameter-library
     backward-ros
+    generate-parameter-library
     nav-msgs
     realtime-tools
     tf2
     tf2-msgs
     geometry-msgs
     nova-controller-common
+    nova-drive-controller-base
   ];
 }

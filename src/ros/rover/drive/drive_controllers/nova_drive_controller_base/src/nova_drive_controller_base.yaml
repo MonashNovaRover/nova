@@ -124,7 +124,7 @@ nova_drive_controller_base:
     default_value: 50.0 # Hz
     description: "Publishing rate (Hz) of the odometry and TF messages."
 
-  speed: # metres
+  drive: # metres
     has_velocity_limits:
       type: bool
       default_value: false

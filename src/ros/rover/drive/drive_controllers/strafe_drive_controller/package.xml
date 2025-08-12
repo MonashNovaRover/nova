@@ -2,7 +2,7 @@
 <package format="3">
   <name>strafe_drive_controller</name>
   <version>0.1.0</version>
-  <description>Controller for a 4 steering drive mobile base.</description>
+  <description>Strafe controller for a 4 steering drive mobile base.</description>
   <maintainer email="novaroverteam@monash.edu">Monash Nova Rover</maintainer>
   <maintainer email="dylcg10@gmail.com">Dylan Gonzalez</maintainer>
   <maintainer email="terrytian2004@gmail.com">Terry Tian</maintainer>
@@ -25,8 +25,8 @@
   <depend>tf2</depend>
   <depend>tf2_msgs</depend>
   <depend>nova_controller_common</depend>
+  <depend>nova_drive_controller_base</depend>
   <build_depend>pluginlib</build_depend>
-
 
   <export>
     <build_type>ament_cmake</build_type>

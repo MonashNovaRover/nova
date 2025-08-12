@@ -350,12 +350,12 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
 
   cmd_vel_timeout_ = rclcpp::Duration::from_seconds(base_params_->cmd_vel_timeout);
 
-  limiter_speed_ = SpeedLimiter(
-    base_params_->speed.has_velocity_limits, base_params_->speed.has_acceleration_limits,
-    base_params_->speed.has_jerk_limits, base_params_->speed.min_velocity,
-    base_params_->speed.max_velocity, base_params_->speed.min_acceleration,
-    base_params_->speed.max_acceleration, base_params_->speed.min_jerk,
-    base_params_->speed.max_jerk);
+  limiter_drive_ = SpeedLimiter(
+    base_params_->drive.has_velocity_limits, base_params_->drive.has_acceleration_limits,
+    base_params_->drive.has_jerk_limits, base_params_->drive.min_velocity,
+    base_params_->drive.max_velocity, base_params_->drive.min_acceleration,
+    base_params_->drive.max_acceleration, base_params_->drive.min_jerk,
+    base_params_->drive.max_jerk);
   limiter_angular_ = SpeedLimiter(
     base_params_->angular.has_velocity_limits, base_params_->angular.has_acceleration_limits,
     base_params_->angular.has_jerk_limits, base_params_->angular.min_velocity,
