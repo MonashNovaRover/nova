@@ -18,6 +18,7 @@
  * SpeedLimiter was originally written by Enrique Fernández from PAL Robotics.
  * 
  * @authors Terry Tian
+ * @date Created 2025
  */
 
 #ifndef NOVA_CONTROLLER_COMMON__POSITION_LIMITER_HPP_
