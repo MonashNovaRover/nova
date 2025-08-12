@@ -104,9 +104,6 @@ Commands PivotDriveController::twist_to_commands(
     speed = linear_velocity == 0 ? std::abs(zero_radius_ * angular_velocity) : linear_input;
 
     limiter_speed_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
-    limiter_angular_.limit(
-      angular_velocity, previous_angular_velocities_[0], previous_angular_velocities_[1],
-      period.seconds());
 
     turning_radius = get_radius_from_velocities(linear_velocity, angular_velocity);
     turning_left = turning_radius == 0 ? angular_input > 0 : turning_radius > 0;
@@ -184,7 +181,7 @@ Commands PivotDriveController::twist_to_commands(
     linear_velocity = turning_radius == 0 ? 0 : speed;
   }
 
-  // ######################### Send commands #############################
+  // Calculate commands
   const double left_angle = get_pivot_angle_from_radius(
     turning_radius, true, turning_left, half_steering_track_, half_wheel_base_);
   const double right_angle = get_pivot_angle_from_radius(
