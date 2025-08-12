@@ -88,7 +88,7 @@ let
       (import ./overlay)
 
       # Add teleop_modular
-      (import /home/nova/teleop/overlay.nix /*(pkgs.fetchFromGitHub {
+      (import (pkgs.fetchFromGitHub {
         owner = "BaileyChessum";
         repo = "teleop_modular";
         inherit (revisions.teleop-modular) rev hash;
