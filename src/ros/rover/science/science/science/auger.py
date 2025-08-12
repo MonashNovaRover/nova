@@ -10,6 +10,7 @@ from python_control.ActivatedJoystickControllerNode import ActivatedJoystickCont
 import rclpy
 from input_interfaces.msg import InputJoystick
 from std_msgs.msg import Bool
+from teleop_python_utils.Inputs import Inputs
 
 
 class URCAuger(ActivatedJoystickControllerNode):
@@ -76,6 +77,21 @@ class URCAuger(ActivatedJoystickControllerNode):
         self.declare_parameter(self.AUGER_DRILL_MAX_PERCENT_PARAM, self.AUGER_DRILL_MAX_PERCENT)
         self.declare_parameter(self.AUGER_HALL_SENSOR_CANID_PARAM, self.DEFAULT_AUGER_HALL_SENSOR_CANID_PARAM)
         self.get_logger().info(f"CAN IDs: Actuation = {self.get_parameter(self.AUGER_ACTUATION_CANID_PARAM).value} Drill = {self.get_parameter(self.AUGER_DRILL_CANID_PARAM).value}")
+
+        self.inputs: Inputs = Inputs(self) \
+            .with_topics("/joe") \
+            .with_events_topic("/events") \
+            .add_callback(self.on_update)
+
+        def on_joe():
+            self.get_logger().info("Joe")
+
+        self.inputs.events["joe"].add_callback(on_joe)
+
+        # Became
+
+
+        # But should we also allow you to do
 
         ## Add publishers
         self.depth_publisher = self.create_publisher(
@@ -146,6 +162,55 @@ class URCAuger(ActivatedJoystickControllerNode):
 
         ## Start the CAN bus
         self.start_can()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        # For changes in button state:
+        self.inputs.buttons["joe"].add_callback(on_joe)
+        self.inputs.buttons["joe"].on_down.add_callback(on_joe)
+        self.inputs.buttons["joe"].on_up.add_callback(on_joe)
+
+        # For 'held' button state
+        self.inputs.on_update.add_callback(self.on_update)
+        # This is the same as:
+        # self.inputs.add_callback(self.on_update)
+
+    def on_update(self):
+        if self.inputs.buttons["joe"]:
+            # You just check the value whenever you receive input
+            pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def update_auger_actuation(self, joystick_r: InputJoystick):
         # Auger height direction is determined by the right joystick's x-axis direction
