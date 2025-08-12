@@ -28,7 +28,7 @@ public:
   void publish_halt_message(const rclcpp::Time & now) const;
 
   return_type on_init() override;
-  void on_capture_inputs(Inputs inputs) override;
+  void on_configure_inputs(Inputs inputs) override;
   return_type on_update(const rclcpp::Time & now, const rclcpp::Duration & period) override;
 
   CallbackReturn on_configure(const State & previous_state) override;
