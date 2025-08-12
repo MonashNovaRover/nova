@@ -1,3 +1,26 @@
+// Copyright (c) 2025 Monash Nova Rover
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Monash Nova Rover Team
+ * 
+ * PACKAGE:   diff_drive_controller
+ * AUTHORS:	  Terry Tian
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
+
 #include <memory>
 #include <queue>
 #include <string>
@@ -26,8 +49,8 @@ using namespace std::chrono_literals;
 using namespace nova_controller_common;
 using controller_interface::interface_configuration_type;
 using controller_interface::InterfaceConfiguration;
-using geometry_msgs::msg::TwistStamped;
 using geometry_msgs::msg::Twist;
+using geometry_msgs::msg::TwistStamped;
 using hardware_interface::HW_IF_POSITION;
 using hardware_interface::HW_IF_VELOCITY;
 using lifecycle_msgs::msg::State;
@@ -40,22 +63,10 @@ DiffDriveController::DiffDriveController()
 
 void DiffDriveController::init_params()
 {
-  // Initialize parameters specific to the diff drive controller
-  param_listener_ = std::make_shared<ParamListener>(get_node());
-  params_ = param_listener_->get_params();
-
-  wheel_separation_ = params_.wheel_separation_multiplier * base_params_->steering_track;
-  left_wheel_radius_ = params_.left_wheel_radius_multiplier * base_params_->wheel_radius;
-  right_wheel_radius_ = params_.right_wheel_radius_multiplier * base_params_->wheel_radius;
 }
 
 void DiffDriveController::update_params()
 {
-  if (param_listener_->is_old(params_))
-  {
-    params_ = param_listener_->get_params();
-    RCLCPP_INFO(get_node()->get_logger(), "Parameters were updated");
-  }
 }
 
 Commands DiffDriveController::twist_to_commands(
@@ -72,8 +83,8 @@ Commands DiffDriveController::twist_to_commands(
   {
     linear_velocity = linear_input;
     angular_velocity = angular_input;
-    speed = linear_velocity == 0 ? std::abs(angular_velocity * wheel_separation_ / 2.0)
-                                   : linear_velocity;
+    speed = linear_velocity == 0 ? std::abs(angular_velocity * base_params_->steering_track / 2.0)
+                                 : linear_velocity;
   }
   else
   {
@@ -91,7 +102,8 @@ Commands DiffDriveController::twist_to_commands(
     else if (turning_radius == 0)
     {
       // calculated wheel speeds will equal 'speed'
-      angular_velocity = std::copysign(2.0 * speed / wheel_separation_, speed * angular_input);
+      angular_velocity =
+        std::copysign(2.0 * speed / base_params_->steering_track, speed * angular_input);
       linear_velocity = 0.0;
     }
     else
@@ -114,8 +126,10 @@ Commands DiffDriveController::twist_to_commands(
     period.seconds());
 
   // Calculate commands
-  const double left_speed = linear_velocity - (angular_velocity * wheel_separation_ / 2.0);
-  const double right_speed = linear_velocity + (angular_velocity * wheel_separation_ / 2.0);
+  const double left_speed =
+    linear_velocity - (angular_velocity * base_params_->steering_track / 2.0);
+  const double right_speed =
+    linear_velocity + (angular_velocity * base_params_->steering_track / 2.0);
 
   RCLCPP_DEBUG(
     logger, "Set drive commands: left_speed = %.2f, right_speed = %.2f", left_speed, right_speed);

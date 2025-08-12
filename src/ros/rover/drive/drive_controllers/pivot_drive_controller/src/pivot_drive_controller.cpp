@@ -13,9 +13,12 @@
 // limitations under the License.
 
 /**
- * @brief Controller for a four wheel steering mobile base.
- *
- * @authors Terry Tian
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Monash Nova Rover Team
+ * 
+ * PACKAGE: pivot_drive_controller
+ * AUTHORS:	Terry Tian
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
 #include <algorithm>
@@ -68,7 +71,10 @@ void PivotDriveController::init_params()
   zero_radius_ = std::hypot(half_wheel_base_, half_steering_track_);
   RCLCPP_INFO_STREAM(get_node()->get_logger(), "zero_radius_: " << zero_radius_);
 
-  // Solve for r = sqrt((r - half_steering_track_)^2 + half_wheel_base_^2)
+  // Let r = the turning radius, x = half_steering_track_, y = half_wheel_base_.
+  // sqrt((r - x)^2 + y^2) is the radius of the circle that the wheel on the side
+  // of the turn makes.
+  // Solve for r = sqrt((r - x)^2 + y^2)
   inner_radius_ = (std::pow(half_steering_track_, 2) + std::pow(half_wheel_base_, 2)) /
                   (2 * half_steering_track_);
   RCLCPP_INFO_STREAM(get_node()->get_logger(), "inner_radius_: " << inner_radius_);
@@ -121,6 +127,8 @@ Commands PivotDriveController::twist_to_commands(
         previous_speeds_, period.seconds());
     }
 
+    // To ensure better intended movement in autonomous mode, we wait for the pivots to reach
+    // the desired angle before moving. Lenience may be adjusted by pivot_rate_tolerance.
     const auto& prev_positions =
       left ? previous_left_pivot_positions_ : previous_right_pivot_positions_;
     double limited_angle = max_requested_angle;
@@ -133,6 +141,7 @@ Commands PivotDriveController::twist_to_commands(
       limiter_drive_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
     }
 
+    // Recalculate linear and angular velocities at the end
     linear_velocity = turning_radius == 0 ? 0.0 : speed;
     angular_velocity = get_angular_from_radius_and_speed(
       turning_radius, speed, turning_left, zero_radius_, inner_radius_);

@@ -32,10 +32,6 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-generate_parameter_library(diff_drive_controller_parameters
-  src/diff_drive_controller.yaml
-)
-
 add_library(diff_drive_controller SHARED
   src/diff_drive_controller.cpp
 )
@@ -44,7 +40,6 @@ target_include_directories(diff_drive_controller PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/diff_drive_controller>
 )
-target_link_libraries(diff_drive_controller PUBLIC diff_drive_controller_parameters)
 ament_target_dependencies(diff_drive_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
@@ -56,7 +51,7 @@ install(
   DIRECTORY include/
   DESTINATION include/diff_drive_controller
 )
-install(TARGETS diff_drive_controller diff_drive_controller_parameters
+install(TARGETS diff_drive_controller
   EXPORT export_diff_drive_controller
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
