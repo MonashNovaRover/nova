@@ -65,8 +65,6 @@ void PivotDriveController::init_params()
 
   half_wheel_base_ = base_params_->wheel_base / 2;
   half_steering_track_ = base_params_->steering_track / 2;
-  wheels_per_side_ = base_params_->left_drive_names.size();
-
   zero_radius_ = std::hypot(half_wheel_base_, half_steering_track_);
   RCLCPP_INFO_STREAM(get_node()->get_logger(), "zero_radius_: " << zero_radius_);
 
@@ -144,10 +142,7 @@ Commands PivotDriveController::twist_to_commands(
     // Manual operation: left stick controls speed and right stick controls the pivot angle
     // Process raw angular input through a curve to calculate the turning radius
     // Prioritise keeping turning radius over speed
-    turning_radius =
-      angular_input == 0
-        ? INFINITY
-        : params_.input_curve_factor * ((1.0 / angular_input) - std::copysign(1, angular_input));
+    turning_radius = turning_radius_from_angular_input(angular_input);
     turning_left = turning_radius == 0 ? angular_input > 0 : turning_radius > 0;
 
     limit_radius_by_pivots(
@@ -216,8 +211,8 @@ Commands PivotDriveController::twist_to_commands(
     .linear_velocity_x = linear_velocity,
     .linear_velocity_y = 0.0,
     .angular_velocity = angular_velocity,
-    .left_drive_speeds = {left_speed, left_speed},
-    .right_drive_speeds = {right_speed, right_speed},
+    .left_drive_speeds = std::vector<double>(wheels_per_side_, left_speed),
+    .right_drive_speeds = std::vector<double>(wheels_per_side_, right_speed),
     .left_pivot_positions = {left_angle, -left_angle},
     .right_pivot_positions = {right_angle, -right_angle},
   };
