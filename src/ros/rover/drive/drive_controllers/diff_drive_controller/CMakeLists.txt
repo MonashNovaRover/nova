@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 project(diff_drive_controller LANGUAGES CXX)
 
+# Use C++20
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
   add_compile_options(-Wall -Wextra)
 endif()

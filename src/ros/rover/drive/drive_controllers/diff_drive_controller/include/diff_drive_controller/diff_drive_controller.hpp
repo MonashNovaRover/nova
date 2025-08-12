@@ -49,7 +49,7 @@ protected:
   double left_wheel_radius_;
   double right_wheel_radius_;
 
-  std::deque<double> previous_speeds_;              // last two linear velocity commands
+  std::deque<double> previous_speeds_;              // last two speed commands
   std::deque<double> previous_angular_velocities_;  // last two angular velocity commands
 };
 

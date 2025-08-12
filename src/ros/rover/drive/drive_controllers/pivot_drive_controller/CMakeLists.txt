@@ -41,8 +41,8 @@ generate_parameter_library(pivot_drive_controller_parameters
 add_library(${PROJECT_NAME} SHARED
   src/pivot_drive_controller.cpp
 )
-target_include_directories(${PROJECT_NAME}
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
+target_include_directories(${PROJECT_NAME} PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
   $<INSTALL_INTERFACE:include>)
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 target_link_libraries(${PROJECT_NAME}
