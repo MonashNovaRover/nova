@@ -58,6 +58,8 @@
 , nova-waratah-kinematics-plugin ? throw "nova-waratah-kinematics-plugin is needed, but not available!"
 , gpsd-client ? throw "gpsd-client is needed, but not available!"
 , nova-joint-space-control-mode ? throw "nova-joint-space-control-mode is need, but not available!"
+, nova-teleop-arm ? throw "nova-teleop-arm is need, but not available!"
+, teleop-turtle
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -109,6 +111,8 @@
       nova-waratah-kinematics-plugin
       reolink
       nova-joint-space-control-mode
+      nova-teleop-arm
+      teleop-turtle
       ;
   }
 

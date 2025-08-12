@@ -24,7 +24,7 @@ buildRosPackage {
   buildType = "ament_cmake";
 
   src = builtins.path rec {
-    name = "teleop-arm-source";
+    name = "teleop-arm-joy-source";
     path = ./.;
     filter = lib.novaSourceFilter [ ] path;
   };
