@@ -153,7 +153,7 @@ protected:
    */
 
   // Limiters
-  nova_controller_common::SpeedLimiter limiter_speed_;
+  nova_controller_common::SpeedLimiter limiter_drive_;
   nova_controller_common::SpeedLimiter limiter_angular_;
   nova_controller_common::PositionLimiter limiter_pivot_;
 

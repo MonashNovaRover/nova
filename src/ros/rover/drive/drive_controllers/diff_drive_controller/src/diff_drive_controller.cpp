@@ -80,7 +80,7 @@ Commands DiffDriveController::twist_to_commands(
     // Manual operation: left stick controls speed and right stick controls the turning radius
     // Process raw angular input through a curve to calculate the turning radius
     // Prioritise keeping turning radius over speed
-    speed = linear_input * base_params_->speed.max_velocity;
+    speed = linear_input * base_params_->drive.max_velocity;
     linear_velocity = speed;
     double turning_radius = turning_radius_from_angular_input(angular_input);
 
@@ -102,7 +102,7 @@ Commands DiffDriveController::twist_to_commands(
   }
 
   // Limit the linear and angular velocities
-  limiter_speed_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
+  limiter_drive_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
 
   if (linear_velocity != 0)
   {

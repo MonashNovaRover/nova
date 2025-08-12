@@ -101,7 +101,7 @@ Commands PivotDriveController::twist_to_commands(
     linear_velocity = linear_input;
     speed = linear_velocity == 0 ? std::abs(zero_radius_ * angular_velocity) : linear_input;
 
-    limiter_speed_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
+    limiter_drive_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
 
     turning_radius = get_radius_from_velocities(linear_velocity, angular_velocity);
     turning_left = turning_radius == 0 ? angular_input > 0 : turning_radius > 0;
@@ -117,7 +117,7 @@ Commands PivotDriveController::twist_to_commands(
     if (angular_velocity != requested_angular)
     {
       limit_speed_and_radius_by_angular(
-        speed, turning_radius, angular_velocity, zero_radius_, inner_radius_, limiter_speed_,
+        speed, turning_radius, angular_velocity, zero_radius_, inner_radius_, limiter_drive_,
         previous_speeds_, period.seconds());
     }
 
@@ -130,7 +130,7 @@ Commands PivotDriveController::twist_to_commands(
     if (limited_angle != max_requested_angle)
     {
       speed = 0.0;  // wait for the pivot to be within tolerance before moving
-      limiter_speed_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
+      limiter_drive_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
     }
 
     linear_velocity = turning_radius == 0 ? 0.0 : speed;
@@ -149,9 +149,9 @@ Commands PivotDriveController::twist_to_commands(
       turning_radius, turning_left, half_steering_track_, half_wheel_base_, limiter_pivot_,
       previous_left_pivot_positions_, previous_right_pivot_positions_, period.seconds());
 
-    speed = linear_input * base_params_->speed.max_velocity;
+    speed = linear_input * base_params_->drive.max_velocity;
     const double requested_speed = speed;
-    limiter_speed_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
+    limiter_drive_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
     if (speed != requested_speed)
     {
       RCLCPP_DEBUG(logger, "Speed limited to %.2f", speed);
@@ -170,7 +170,7 @@ Commands PivotDriveController::twist_to_commands(
     if (angular_velocity != requested_angular)
     {
       limit_speed_and_radius_by_angular(
-        speed, turning_radius, angular_velocity, zero_radius_, inner_radius_, limiter_speed_,
+        speed, turning_radius, angular_velocity, zero_radius_, inner_radius_, limiter_drive_,
         previous_speeds_, period.seconds());
     }
     linear_velocity = turning_radius == 0 ? 0 : speed;
