@@ -1,85 +1,19 @@
 # teleop\_drive\_joy
 
-\================
-
-## Overview
-
-The purpose of this package is to provide a flexible facility for tele-operating the rover using game controllers. It supports Twist-based and DriveInput-based control modes, translating joystick inputs into velocity commands or custom drive inputs.
+The purpose of this package is to provide a flexible facility for tele-operating the rover using game controllers.
 
 This package relies on the [joy](https://index.ros.org/p/joy/github-ros-drivers-joystick_drivers/#foxy) driver for reading joystick inputs. It does not implement rate limiting or autorepeat functionality, as these are available through the `joy` driver.
 
 ## Controller Layout
-![image](https://github.com/user-attachments/assets/e11ba273-9978-4f00-82f8-a08b0a74214a)
+<img width="1177" height="649" alt="image" src="https://github.com/user-attachments/assets/cd1e35ca-618e-428e-a303-358546d8a6f7" />
 
-## Executables
+Controller layout diagram made with [PadCrafter](https://www.padcrafter.com/).
 
-The package includes the `teleop_drive_joy_node`, which translates `sensor_msgs/msg/Joy` messages into:
+## Overview
 
-- `geometry_msgs/msg/Twist` messages for velocity commands (For use in Autonomous).
-- `nova_interfaces/msg/DriveInputStamped` messages for drive inputs.
-
-## Subscribed Topics
-
-- `/joy (sensor_msgs/msg/Joy)`
-  - Joystick messages to be translated into commands.
-
-## Published Topics
-
-- `/cmd_vel (geometry_msgs/msg/TwistStamped)`
-  - Velocity commands derived from joystick input.
-- `/drive_input (nova_interfaces/msg/DriveInputStamped)`
-  - Drive input messages for custom rover control.
-- `/drive_info (nova_interfaces/msg/DriveInfo)`
-  - Drive state information.
-
-## Parameters
-
-### General Parameters
-
-- `joystick (string, default: 'xbox')`
-  - The type of joystick configuration file to load.
-- `joy_dev (string, default: '/dev/input/js0')`
-  - Path to the joystick device.
-
-### Control Parameters
-
-- `require_enable_button (bool, default: true)`
-  - Whether an enable button must be pressed to allow movement.
-- `enable_button (int, default: 0)`
-  - Joystick button to enable movement.
-
-### Axis Mappings
-
-- `axis_linear_<axis>`
-
-  - Specifies which joystick axis controls linear movement.
-  - `axis_linear_x (int)`
-  - `axis_linear_y (int)`
-  - `axis_linear_z (int)`
-
-- `axis_angular_<axis>`
-
-  - Specifies which joystick axis controls angular movement.
-  - `axis_angular_x (int)`
-  - `axis_angular_y (int)`
-  - `axis_angular_z (int)`
-
-### Scaling Parameters
-
-- `scale_linear_<axis>`
-
-  - Scale factor for regular-speed linear movement.
-  - `scale_linear_x (double)`
-  - `scale_linear_y (double)`
-  - `scale_linear_z (double)`
-
-- `scale_angular_<axis>`
-
-  - Scale factor for regular-speed angular movement.
-  - `scale_angular_x (double)`
-  - `scale_angular_y (double)`
-  - `scale_angular_z (double)`
-
+The package includes the `teleop_drive_joy_node`, which translates `sensor_msgs/msg/Joy` messages into `geometry_msgs/msg/Twist` messages comprised of linear and angular velocity.
+Controllers will interpret the Twist message differently depending on whether or not they are in autonomous mode. In autonomous mode, Twist messages are used directly, i.e.
+linear and angular velocity are used directly. In manual mode, the angular velocity is often converted into a turning radius through a curve.
 
 ## Usage
 
@@ -91,69 +25,30 @@ A launch file is provided for convenience. To run the node with default settings
 ros2 launch teleop_drive_joy teleop.launch.py
 ```
 
-### Custom Configuration
+### Controller Configurations/Mappings
 
 To use a specific joystick configuration (e.g., `ps3` or `xbox`):
 
 ```bash
-ros2 launch teleop_drive_joy teleop.launch.py joystick:=xbox
+ros2 launch teleop_drive_joy teleop.launch.py config:=xbox
 ```
 
-The package includes sample configuration files for common controllers (e.g., `ps3`, `xbox`) located in the `config` directory.
+Configurations for controllers may be defined in `config/`. To configure a new controller, run in two terminals:
 
-#### Example Configuration File: Xbox Series X / S Controller
-
-Below is an example configuration for the Xbox Series X / S controller. This file specifies mappings and parameters for controlling the rover:
-
-```yaml
-# Vanilla XBox Series X / S Controller
-teleop_drive_joy_node:
-  ros__parameters:
-    controllers:
-      [
-        "pivot_drive_controller",
-        "strafe_drive_controller",
-        "diff_drive_controller",
-      ]
-    pivot_drive_controller:
-      axis_angular_z: 3
-      axis_linear_x: 1
-      scale_angular_z: 1.0
-      scale_linear_x: 0.1
-    strafe_drive_controller:
-      axis_angular_z: 3
-      axis_linear_x: 0
-      scale_angular_z: 1.0
-      scale_linear_x: 0.1
-    diff_drive_controller:
-      axis_angular_z: 3
-      axis_linear_x: 1
-      scale_angular_z: 1.0
-      scale_linear_x: 0.1
-    axis_speed_change_coarse: 7
-    axis_speed_change_fine: 6
-    button_autonomous_control: 0
-    button_lock: 6
-    button_manual_control: 1
-    button_diff_drive_controller: 3
-    button_pivot_drive_controller: 5
-    button_strafe_drive_controller: 4
-    button_unlock: 7
-    speed_change_coarse_val: 0.1
-    speed_change_fine_val: 0.02
-    speed_limit_max: 1.2
-    speed_limit_min: 0.05
+```bash
+ros2 run joy joy_node
+ros2 topic echo /joy
 ```
+
+Observe the joy inputs on `/joy` and map the inputs according to the controller layout diagram.
 
 ### Launch Arguments
 
-- `joystick (string, default: 'xbox')`
+- `device_id (int, default: 0)`
+  - Specifies the joystick device id.
+- `device_name (string, default: '')`
+  - Specifies the joystick name. This can be useful when multiple different joysticks are attached. If both device_name and device_id are specified, device_name takes precedence.
+- `joy_vel (string, default: 'cmd_vel')`
+  - Specifies the topic to remap /cmd_vel to.
+- `config (string, default: 'xbox')`
   - Specifies the joystick configuration.
-- `joy_dev (string, default: '/dev/input/js0')`
-  - Specifies the joystick device path.
-
-### Notes
-
-- The `joy` node is launched automatically by the provided launch file. Do not launch it separately.
-- Adding a new controller can be done by observing joy inputs using `ros2 topic echo /joy` and mapping controls to desired control parameters.
-
