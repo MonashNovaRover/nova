@@ -157,7 +157,7 @@ protected:
   
   /**
    * Main method that derived classes must implement. Converts a Twist message
-   * to commands and data to be sent to the hardware interfaces and used in odometry
+   * to commands and data to be sent to the hardware interfaces and be used in odometry
    * respectively.
    * 
    * @param twist_msg The Twist message to convert.
