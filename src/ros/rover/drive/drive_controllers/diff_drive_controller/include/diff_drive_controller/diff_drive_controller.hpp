@@ -106,7 +106,7 @@ protected:
   std::deque<double> previous_angular_velocities_;  // last two angular velocity commands
 
   // Limiters
-  nova_controller_common::SpeedLimiter limiter_linear_;
+  nova_controller_common::SpeedLimiter limiter_speed_;
   nova_controller_common::SpeedLimiter limiter_angular_;
 
   // Timeout to consider cmd_vel commands old

@@ -149,6 +149,7 @@ controller_interface::return_type DiffDriveController::update(
   double linear_input = command_msg_ptr->twist.linear.x;
   double angular_input = command_msg_ptr->twist.angular.z;
   double linear_velocity, angular_velocity;
+  double turning_radius, speed;
 
   // Brake if cmd_vel has timed out, override the stored command
   const auto age_of_last_command = time - command_msg_ptr->header.stamp;
@@ -156,19 +157,23 @@ controller_interface::return_type DiffDriveController::update(
   {
     linear_velocity = 0.0;
     angular_velocity = 0.0;
+    speed = 0.0;
   }
   else if (params_->autonomous_mode)
   {
     linear_velocity = linear_input;
     angular_velocity = angular_input;
+    speed = linear_velocity == 0 ? angular_velocity * wheel_separation_ / 2.0 : linear_velocity;
+    turning_radius = angular_velocity == 0 ? INFINITY : speed / angular_velocity;
   }
   else
   {
     // Manual operation: left stick controls speed and right stick controls the pivot angle
     // Process raw angular input through a curve to calculate the turning radius
     // Prioritise keeping turning radius over speed
-    linear_velocity = linear_input * params_->linear.max_velocity;
-    const double turning_radius =
+    speed = linear_input * params_->linear.max_velocity;
+    linear_velocity = speed;
+    turning_radius =
       angular_input == 0
         ? INFINITY
         : params_->input_curve_factor * ((1.0 / angular_input) - std::copysign(1, angular_input));
@@ -179,18 +184,19 @@ controller_interface::return_type DiffDriveController::update(
     }
     else if (turning_radius == 0)
     {
-      angular_velocity = linear_velocity;
+      // calculated wheel speeds will equal 'speed'
+      angular_velocity = std::copysign(2.0 * speed / wheel_separation_, speed * angular_input);
       linear_velocity = 0.0;
     }
     else
     {
-      // Calculate the angular velocity based on the turning radius and linear velocity
-      angular_velocity = linear_velocity / turning_radius;
+      // Calculate the angular velocity based on the turning radius and speed
+      angular_velocity = speed / turning_radius;
     }
   }
 
   // Limit the linear and angular velocities
-  limiter_linear_.limit(
+  limiter_speed_.limit(
     linear_velocity, previous_linear_velocities_[0], previous_linear_velocities_[1],
     period.seconds());
   limiter_angular_.limit(
@@ -343,7 +349,7 @@ controller_interface::CallbackReturn DiffDriveController::on_configure(
 
   cmd_vel_timeout_ = rclcpp::Duration::from_seconds(params_->cmd_vel_timeout);
 
-  limiter_linear_ = SpeedLimiter(
+  limiter_speed_ = SpeedLimiter(
     params_->linear.has_velocity_limits, params_->linear.has_acceleration_limits,
     params_->linear.has_jerk_limits, params_->linear.min_velocity, params_->linear.max_velocity,
     params_->linear.min_acceleration, params_->linear.max_acceleration, params_->linear.min_jerk,
