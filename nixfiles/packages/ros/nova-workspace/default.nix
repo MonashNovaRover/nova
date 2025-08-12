@@ -59,7 +59,6 @@
 , gpsd-client ? throw "gpsd-client is needed, but not available!"
 , nova-joint-space-control-mode ? throw "nova-joint-space-control-mode is need, but not available!"
 , nova-teleop-arm ? throw "nova-teleop-arm is need, but not available!"
-, teleop-turtle
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -112,7 +111,6 @@
       reolink
       nova-joint-space-control-mode
       nova-teleop-arm
-      teleop-turtle
       ;
   }
 
