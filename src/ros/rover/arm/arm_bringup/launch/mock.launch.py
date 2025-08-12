@@ -64,7 +64,7 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             name='controllers',
-            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'controllers.yaml']),
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'new.controllers.yaml']),
             description='Absolute path to controllers params file',
         ),
         DeclareLaunchArgument(
@@ -94,12 +94,12 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='arm',
-            default_value='false',
+            default_value='True',
             description='whether to launch arm',
         ),
         DeclareLaunchArgument(
             name='old_arm',
-            default_value='True',
+            default_value='False',
             description='whether to launch the old arm (on new armware)',
         ),
         DeclareLaunchArgument(name='x', default_value='11.2123871', description='x_pose'),
