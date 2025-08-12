@@ -102,7 +102,7 @@ strafe_drive_controller:
     right_pivot_names: ["frp", "brp"]
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
     open_loop: false
-    linear: # metres
+    speed: # metres
       has_velocity_limits: true
       has_acceleration_limits: true
       max_velocity: 3.0
@@ -117,7 +117,7 @@ diff_drive_controller:
     right_pivot_names: ["frp", "brp"]
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
     open_loop: false
-    linear: # metres
+    speed: # metres
       has_velocity_limits: true
       has_acceleration_limits: true
       max_velocity: 3.0

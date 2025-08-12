@@ -16,6 +16,7 @@
 , tf2-msgs
 , geometry-msgs
 , nova-controller-common
+, nova-drive-controller-base
 }:
 
 buildRosPackage {
@@ -46,5 +47,6 @@ buildRosPackage {
     tf2-msgs
     geometry-msgs
     nova-controller-common
+    nova-drive-controller-base
   ];
 }
