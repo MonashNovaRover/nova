@@ -13,10 +13,29 @@
 // limitations under the License.
 
 /**
- * @brief Abstract base class for drive controllers.
- * Uses CRTP (Curiously Recurring Template Pattern) to allow access to derived class' parameters.
- *
- * @authors Terry Tian
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Monash Nova Rover Team
+ * 
+ * BRIEF: Base class for drive controllers.
+ * 
+ * Encapsulates common functionality for drive controllers, such as:
+ * - subscribing to input
+ * - publishing commanded velocities
+ * - odometry
+ * - managing params
+ * - sending commands to hardware interfaces
+ * - etc.
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * PLUGIN: nova_drive_controller_base
+ * TOPICS:
+ *  - subscriber:  /cmd_vel       [geometry_msgs/msg/TwistStamped]
+ *  - publisher:   ~/cmd_vel_out  [geometry_msgs/msg/TwistStamped]
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * PACKAGE:   nova_drive_controller_base
+ * AUTHORS:	  Terry Tian
+ * CREATION:  2025
+ * EDITED:    2025
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
 #ifndef NOVA_DRIVE_CONTROLLER_BASE__NOVA_DRIVE_CONTROLLER_BASE_HPP_
@@ -64,6 +83,15 @@ enum class JointType
   PIVOT
 };
 
+/**
+ * Encodes the position, side, and type of a joint into a unique index for use
+ * with HardwareInterfaceWrapper.
+ * 
+ * @param pos The position of the joint (0-indexed).
+ * @param side The side of the joint (LEFT or RIGHT).
+ * @param type The type of the joint (DRIVE or PIVOT).
+ * @return A unique index for the joint.
+ */
 constexpr size_t encoded_pos(const size_t pos, const JointSide side, const JointType type)
 {
   return pos << 2 | (static_cast<size_t>(side) << 1) | static_cast<size_t>(type);
@@ -112,15 +140,61 @@ public:
     const rclcpp_lifecycle::State& previous_state) override;
 
 protected:
+  /**
+   * Initialises parameters for the drive controller.
+   */
   virtual void init_params() = 0;
+  
+  /**
+   * Updates parameters for the drive controller.
+   */
   virtual void update_params() = 0;
+  
+  /**
+   * Resets the limiter buffers, e.g. previous_speeds_.
+   */
   virtual void reset_limiter_buffers() = 0;
+  
+  /**
+   * Main method that derived classes must implement. Converts a Twist message
+   * to commands and data to be sent to the hardware interfaces and used in odometry
+   * respectively.
+   * 
+   * @param twist_msg The Twist message to convert.
+   * @param autonomous_mode Whether the controller is in autonomous mode.
+   * @param period The period of the update.
+   * @return A Commands struct containing commands and data.
+   */
   virtual Commands twist_to_commands(
     const geometry_msgs::msg::Twist& twist_msg, bool autonomous_mode,
     const rclcpp::Duration& period) = 0;
 
+  /**
+   * Calculates the turning radius through from the angular input through a curve.
+   * 
+   * @param angular_input The angular input to calculate the turning radius from.
+   * @return The turning radius in meters.
+   */
   double turning_radius_from_angular_input(double angular_input) const;
 
+  // Parameters from ROS for nova_drive_controller_base
+  std::shared_ptr<ParamListener> base_param_listener_;
+  std::shared_ptr<Params> base_params_;
+
+  size_t wheels_per_side_;
+  const size_t PIVOTS_PER_SIDE_;
+
+  /**
+   * Derived clases will declare their own buffers, e.g.
+   * std::deque<double> previous_speeds_;
+   */
+
+  // Limiters
+  nova_controller_common::SpeedLimiter limiter_drive_;
+  nova_controller_common::SpeedLimiter limiter_angular_;
+  nova_controller_common::PositionLimiter limiter_pivot_;
+
+private:
   const char* drive_feedback_type() const;
   const char* pivot_feedback_type() const;
 
@@ -137,25 +211,8 @@ protected:
   bool is_active_ = false;
   bool is_halted_ = false;
 
-  // Parameters from ROS for nova_drive_controller_base
-  std::shared_ptr<ParamListener> base_param_listener_;
-  std::shared_ptr<Params> base_params_;
-
-  size_t wheels_per_side_;
-  const size_t PIVOTS_PER_SIDE_;
-
   std::unique_ptr<nova_controller_common::HardwareInterfaceWrapper> hwif_wrapper_;
   std::unique_ptr<Odometry> odometry_;
-
-  /**
-   * Derived clases will declare their own buffers, e.g.
-   * std::deque<double> previous_speeds_;
-   */
-
-  // Limiters
-  nova_controller_common::SpeedLimiter limiter_drive_;
-  nova_controller_common::SpeedLimiter limiter_angular_;
-  nova_controller_common::PositionLimiter limiter_pivot_;
 
   // Timeout to consider cmd_vel commands old
   rclcpp::Duration cmd_vel_timeout_ = rclcpp::Duration::from_seconds(0.5);

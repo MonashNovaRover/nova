@@ -12,6 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * @brief Wrapper around hardware interfaces to provide cleaner access to joint handles.
+ * 
+ * @authors Terry Tian
+ * @date Created 2025
+ */
+
 #ifndef NOVA_CONTROLLER_COMMON__HARDWARE_INTERFACE_WRAPPER_HPP_
 #define NOVA_CONTROLLER_COMMON__HARDWARE_INTERFACE_WRAPPER_HPP_
 

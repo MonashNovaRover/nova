@@ -5,20 +5,19 @@
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * NODE: teleop_drive_joy
  * TOPICS:
- *  - subscriber: /joy               [sensor_msgs/msg/Joy]
- *  - publisher:  /cmd_vel           [geometry_msgs/msg/TwistStamped]
+ *  - subscriber: /joy      [sensor_msgs/msg/Joy]
+ *  - publisher:  /cmd_vel  [geometry_msgs/msg/TwistStamped]
  * SERVICES:
  *  - client:     /controller_manager/switch_controller
  * [controller_manager_msgs/srv/SwitchController]
- *  - client:     /pivot_drive_controller/set_parameters       [rcl_interfaces/srv/SetParameters]
- *  - client:     /strafe_drive_controller/set_parameters            [rcl_interfaces/srv/SetParameters]
- *  - client:     /diff_drive_controller/set_parameters   [rcl_interfaces/srv/SetParameters]
- * ACTIONS: None
+ *  - client:     /pivot_drive_controller/set_parameters   [rcl_interfaces/srv/SetParameters]
+ *  - client:     /strafe_drive_controller/set_parameters  [rcl_interfaces/srv/SetParameters]
+ *  - client:     /diff_drive_controller/set_parameters    [rcl_interfaces/srv/SetParameters]
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- * PACKAGE:    teleop_drive_joy
- * AUTHORS:	   Kabi, Terry Tian
- * CREATION:	 ?
- * EDITED:		 15/06/2025
+ * PACKAGE:   teleop_drive_joy
+ * AUTHORS:	  Kabi, Terry Tian
+ * CREATION:  2024
+ * EDITED:    2025
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
@@ -111,7 +110,7 @@ private:
    */
   std::pair<std::pair<double, double>, double> snapped_joy_axes(
     const sensor_msgs::msg::Joy::SharedPtr joy_msg);
-  
+
   /**
    * @brief Sets the autonomous mode for all controllers.
    * @param autonomous_mode Boolean indicating whether to set autonomous mode.

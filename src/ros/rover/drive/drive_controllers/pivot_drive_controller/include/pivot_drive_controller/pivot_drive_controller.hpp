@@ -13,8 +13,23 @@
 // limitations under the License.
 
 /**
- * @brief Controller for a four wheel steering rover.
- * @authors Terry Tian
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Monash Nova Rover Team
+ * 
+ * BRIEF: Controller for a four wheel steering mobile base using a pivot drive model.
+ * A pivot drive model is a model where all wheels will be tangent towards a turning point.
+ * This will cause the wheels of the vehicle to trace a circular path around the turning point.
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * PLUGIN: pivot_drive_controller
+ * TOPICS:
+ *  - subscriber:  /cmd_vel       [geometry_msgs/msg/TwistStamped]
+ *  - publisher:   ~/cmd_vel_out  [geometry_msgs/msg/TwistStamped]
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * PACKAGE:   pivot_drive_controller
+ * AUTHORS:	  Terry Tian
+ * CREATION:  2025
+ * EDITED:    2025
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
 #ifndef PIVOT_DRIVE_CONTROLLER__PIVOT_DRIVE_CONTROLLER_HPP_
@@ -70,9 +85,9 @@ protected:
 
   // Radius of the circle the rover makes with its wheels when turning on the spot
   double zero_radius_;
-  // Turning radius at which the circle that the wheel to the side of the turn makes has the
-  // same radius. Any turning radius less than this will cause the circle that the wheel
-  // to the side of the turn makes to have a larger radius than the turning radius
+  // Turning radius at which the radius of the circle that the wheel on the side of the turn
+  // makes is equal. Any turning radius less than this will cause the radius of the circle that
+  // the wheel on the side of the turn makes to be larger than the turning radius.
   double inner_radius_;
   // Offset angle for the pivot joints, used to calculate the pivot angles
   double offset_angle_;
