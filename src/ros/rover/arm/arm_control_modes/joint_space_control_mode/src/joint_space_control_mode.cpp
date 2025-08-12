@@ -82,7 +82,7 @@ CallbackReturn JointSpaceControlMode::on_configure(const State &)
   return CallbackReturn::SUCCESS;
 }
 
-void JointSpaceControlMode::on_capture_inputs(Inputs inputs)
+void JointSpaceControlMode::on_configure_inputs(Inputs inputs)
 {
   // TODO: Implement a remapping functionality to avoid boilerplate parameters for names, like input source remapping
   speed_ = inputs.axes[params_.input_names.speed];
