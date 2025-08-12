@@ -23,7 +23,7 @@
         </plugin>
     </gazebo>
 
-    <!-- Ball joint for top left on diff bar-->
+    <!-- Ball joint for top left on diff bar
     <link name="tl_ball">
         <inertial>
         <mass value="0.00001"/>
@@ -60,7 +60,7 @@
         <limit effort="20" velocity="20" />
     </joint>
 
-    <!-- Ball joint for bottom left on diff bar-->
+    Ball joint for bottom left on diff bar
     <link name="bl_ball">
         <inertial>
         <mass value="0.00001"/>
@@ -97,7 +97,7 @@
         <limit effort="20" velocity="20" />
     </joint>
 
-        <!-- Ball joint for top right on diff bar-->
+        Ball joint for top right on diff bar
     <link name="tr_ball">
         <inertial>
         <mass value="0.00001"/>
@@ -134,7 +134,7 @@
         <limit effort="20" velocity="20" />
     </joint>
 
-    <!-- Ball joint for bottom right on diff bar-->
+    Ball joint for bottom right on diff bar
     <link name="br_ball">
         <inertial>
         <mass value="0.00001"/>
@@ -169,5 +169,5 @@
         <child link="right_diffend_dummy"/>
         <axis xyz="0 0 1"/>
         <limit effort="20" velocity="20" />
-    </joint>
+    </joint> -->
 </robot>

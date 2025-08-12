@@ -1,0 +1,23 @@
+# This is only the schema for Node Parameters
+# Look here for docs about this YAML : https://github.com/PickNikRobotics/generate_parameter_library
+joint_space_control_mode:
+  topic:
+    type: string
+    default_value: ""
+    description: "The topic to publish Twist messages to."
+  qos:
+    type: int
+    default_value: 10
+    description: "The QoS value to use when creating publishers."
+
+  use_speed_input:
+    type: bool
+    default_value: false
+    description: "When true, all speeds will be multiplied by the axis named 'speed'. Otherwise, they will not."
+
+  # Input name configuration
+  input_names:
+    speed:
+      type: string
+      default_value: "speed"
+      description: "The name of the axis input that scales the output speed from 0 to 1."
