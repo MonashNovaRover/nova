@@ -34,6 +34,8 @@ def launch_setup(context, *args, **kwargs):
     old_arm = LaunchConfiguration('old_arm').perform(context)
     use_mock_hardware = LaunchConfiguration('use_mock_hardware')
     robot_name = LaunchConfiguration('robot_name')
+    urdf = LaunchConfiguration('urdf')
+    rviz = LaunchConfiguration('rviz').perform(context)
 
     show_colours_additional_env = {
         # Show colors in the terminal output
@@ -84,10 +86,11 @@ def launch_setup(context, *args, **kwargs):
                     remappings=[('/controller_manager/robot_description', '/robot_description'), ('/joint_states', '/arm/joint_states')],
                     additional_env=show_colours_additional_env,
                 ),
-                # IncludeLaunchDescription(
-                #     PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
-                #     launch_arguments={'model': model, 'gazebo': gazebo, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm}.items(),
-                # )
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
+                    launch_arguments={'model': model, 'gazebo': gazebo, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm, 'rviz': rviz}.items(),
+                    condition=IfCondition(urdf),
+                )
             ],
         ),
     ]
@@ -137,6 +140,16 @@ def generate_launch_description():
             name='robot_name',
             default_value='Banksia',
             description='name of the robot',
+        ),
+        DeclareLaunchArgument(
+            name='urdf',
+            default_value='True',
+            description='whether to run urdf.launch.py to publish values to /tf (needed for rviz to work)',
+        ),
+        DeclareLaunchArgument(
+            name='rviz',
+            default_value='False',
+            description='whether to run rviz2 to visualize the robot (urdf must also be True).',
         ),
     ]
 

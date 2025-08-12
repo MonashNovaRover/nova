@@ -2,7 +2,7 @@
 
 controller_manager:
   ros__parameters:
-    update_rate: 20
+    update_rate: 60
     use_sim_time: false
 
     nova_arm_velocity_controller:
@@ -48,8 +48,8 @@ nova_arm_velocity_controller:
       - J5
       - J6
     use_position_control: false
-    use_collision_limits: false
-    use_limits: false
+    use_collision_limits: true
+    use_limits: true
 
 nova_arm_position_controller:
   ros__parameters:
@@ -61,8 +61,8 @@ nova_arm_position_controller:
       - J5
       - J6
     use_position_control: true
-    use_collision_limits: false
-    use_limits: false
+    use_collision_limits: true
+    use_limits: true
 
 nova_twistmapper:
   ros__parameters:
@@ -125,7 +125,7 @@ joint_state_broadcaster:
 #      "J1", "J2", "J3", "J4", "J5", "J6"]
     #       "arm_j1", "asm_j2", "arm_j3", "arm_j4", "arm_j5", "arm_j6"]
 
-    extra_joints: []
+#    extra_joints: []
 #      ["chassis_to_left_leg",
 #       "chassis_to_right_leg",
 #        "chassis_to_diffbar",
