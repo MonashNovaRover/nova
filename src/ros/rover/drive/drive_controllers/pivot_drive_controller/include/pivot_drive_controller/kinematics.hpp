@@ -13,7 +13,12 @@
 // limitations under the License.
 
 /**
+ * @brief Kinematic functions for a pivot drive model.
+ * A pivot drive model is a model where all wheels will be tangent towards a turning point.
+ * This will cause the wheels of the vehicle to trace a circular path around the turning point.
+ * 
  * @authors Terry Tian
+ * @date Created 2025
  */
 
 #ifndef PIVOT_DRIVE_CONTROLLER__KINEMATICS_HPP_

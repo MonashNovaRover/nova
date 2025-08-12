@@ -13,8 +13,12 @@
 // limitations under the License.
 
 /**
- * @brief Abstract base class for drive controllers.
- * @authors Terry Tian
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Monash Nova Rover Team
+ * 
+ * PACKAGE:   nova_drive_controller_base
+ * AUTHORS:	  Terry Tian
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
 #include <algorithm>
@@ -50,11 +54,11 @@ using lifecycle_msgs::msg::State;
 
 NovaDriveControllerBase::NovaDriveControllerBase()
   : controller_interface::ControllerInterface()
+  , PIVOTS_PER_SIDE_(2)  // two pivots per side: front and back
   , DRIVE_COMMAND_TYPE_(HW_IF_VELOCITY)
   , PIVOT_COMMAND_TYPE_(HW_IF_POSITION)
   , DEFAULT_COMMAND_TOPIC_("/cmd_vel")
   , DEFAULT_COMMAND_OUT_TOPIC_("~/cmd_vel_out")
-  , PIVOTS_PER_SIDE_(2)  // two pivots per side: front and back
 {
 }
 

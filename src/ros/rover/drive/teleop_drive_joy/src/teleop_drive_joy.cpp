@@ -1,24 +1,9 @@
 /**
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- * DESCRIPTION: Convert joystick input into drive or twist messages
- * to be received by controllers (pivot, strafe, etc).
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- * NODE: teleop_drive_joy
- * TOPICS:
- *  - subscriber: /joy               [sensor_msgs/msg/Joy]
- *  - publisher:  /cmd_vel           [geometry_msgs/msg/TwistStamped]
- * SERVICES:
- *  - client:     /controller_manager/switch_controller
- * [controller_manager_msgs/srv/SwitchController]
- *  - client:     /pivot_drive_controller/set_parameters       [rcl_interfaces/srv/SetParameters]
- *  - client:     /strafe_drive_controller/set_parameters            [rcl_interfaces/srv/SetParameters]
- *  - client:     /diff_drive_controller/set_parameters   [rcl_interfaces/srv/SetParameters]
- * ACTIONS: None
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- * PACKAGE:    teleop_drive_joy
- * AUTHORS:	   Kabi, Terry Tian
- * CREATION:	 ?
- * EDITED:		 15/06/2025
+ * Monash Nova Rover Team
+ * 
+ * PACKAGE: teleop_drive_joy
+ * AUTHORS:	Kabi, Terry Tian
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 

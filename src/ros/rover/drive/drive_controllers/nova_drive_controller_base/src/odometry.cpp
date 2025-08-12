@@ -1,5 +1,4 @@
-// Copyright (c) 2020 PAL Robotics S.L.
-//               2025 Monash Nova Rover
+// Copyright (c) 2025 Monash Nova Rover
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,11 +13,12 @@
 // limitations under the License.
 
 /**
- * @brief Odometry class for the pivot drive controller.
- * Based off of Enrique Fernández from PAL Robotics' odometry implementation for
- * diff_drive_controller.
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Monash Nova Rover Team
  *
- * @authors Terry Tian
+ * PACKAGE:   nova_drive_controller_base
+ * AUTHORS:	  Terry Tian
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
 #include <memory>

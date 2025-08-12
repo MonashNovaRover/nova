@@ -3,7 +3,7 @@
          type="pivot_drive_controller::PivotDriveController"
          base_class_type="controller_interface::ControllerInterface">
   <description>
-    The pivot drive controller interprets Twist messages into signals for each wheel and pivot on a 4 wheel steering mobile base.
+    The pivot drive controller interprets Twist messages into signals for each wheel and pivot on a 4 wheel steering mobile base using a pivot drive model.
   </description>
   </class>
 </library>
