@@ -119,6 +119,8 @@ protected:
     const geometry_msgs::msg::Twist& twist_msg, bool autonomous_mode,
     const rclcpp::Duration& period) = 0;
 
+  double turning_radius_from_angular_input(double angular_input) const;
+
   const char* drive_feedback_type() const;
   const char* pivot_feedback_type() const;
 
@@ -147,7 +149,7 @@ protected:
 
   /**
    * Derived clases will declare their own buffers, e.g.
-   * std::deque<double> previous_linear_velocities_;
+   * std::deque<double> previous_speeds_;
    */
 
   // Limiters

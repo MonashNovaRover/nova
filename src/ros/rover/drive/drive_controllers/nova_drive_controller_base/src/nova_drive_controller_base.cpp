@@ -58,6 +58,13 @@ NovaDriveControllerBase::NovaDriveControllerBase()
 {
 }
 
+double NovaDriveControllerBase::turning_radius_from_angular_input(double angular_input) const
+{
+  return angular_input == 0
+         ? INFINITY
+         : base_params_->input_curve_factor * ((1.0 / angular_input) - std::copysign(1, angular_input));
+}
+
 const char* NovaDriveControllerBase::drive_feedback_type() const
 {
   return base_params_->drive_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
