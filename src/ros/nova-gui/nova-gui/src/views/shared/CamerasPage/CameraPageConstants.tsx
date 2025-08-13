@@ -98,8 +98,6 @@ const driveCams = [
 ]
 
 const autoCams = [
-  ...mastCams,
-  ...driveCams,
   CameraSerials.AUTO_OAK,
   CameraSerials.AUTO_BOOTIE,
 ]
@@ -181,7 +179,7 @@ export const space_resources_views: CameraView[] = [
 
 export const autonomous_views: CameraView[] = [
   {
-    cameraSerials: autoCams,
+    cameraSerials: [...mastCams, ...driveCams, ...autoCams],
     viewTitle: "All Cams",
   },
   {
@@ -192,7 +190,7 @@ export const autonomous_views: CameraView[] = [
 
 export const urc_autonomous_views: CameraView[] = [
   {
-    cameraSerials: autoCams,
+    cameraSerials: [...mastCams, ...driveCams, ...autoCams],
     viewTitle: "All Cams",
   },
   {

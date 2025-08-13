@@ -33,7 +33,7 @@ interface BottomOverlayProps {
 }
 
 export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint, bottomOverlayComponents = []}) => {
-  const [overlayVisible, setOverlayVisible] = useState(false);
+  const [overlayVisible, setOverlayVisible] = useState(true);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const { points, centerOnRover, trackRover } = useSelector(
     (state: RootState) => state.cartographerState
@@ -69,10 +69,12 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
           {overlayVisible ? <ChevronCompactDown /> : <ChevronCompactUp />}
         </Button>
       </div>
+      <AnimatePresence>
       {overlayVisible && ( 
         <motion.div
           initial={{ height: 0 }}
           animate={{ height: overlayOpen ? 400 : "auto" }}
+          exit={{ height: 0, opacity: 1 }}
           transition={{ duration: 0.4, ease: "easeInOut" }}
           className="overflow-hidden"
       >
@@ -154,10 +156,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  transition={{
-                    duration: 0.2,
-                    ease: "easeInOut",
-                  }}
+                  transition={{ duration: 0.2, ease: "easeInOut" }}
                 >
                   <div className="flex-1">
                     <Table removeWrapper title="Map Points" aria-label="Map Points">
@@ -199,6 +198,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
         </Card>
       </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 };
