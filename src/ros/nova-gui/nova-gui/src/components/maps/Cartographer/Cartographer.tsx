@@ -72,7 +72,7 @@ export const Cartographer : React.FC<CartographerProps> = ({ bottomOverlayCompon
         longitude={newMarkerModal.coordinate?.long}
         labels={pointLabels}
       />
-      <div className="flex h-[90vh]">
+      <div className="flex h-[92.3vh]" style={{ border: "2px solid red" }}>
         <MapTilerMap
           mapTile={mapTile}
           overlay={
