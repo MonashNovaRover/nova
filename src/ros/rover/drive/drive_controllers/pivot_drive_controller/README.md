@@ -15,4 +15,4 @@ I'm not entirely sure on the theory/math behind this and this was figured out mo
 I've named the turning radius at which the radius of the circle made by the wheel on the side of the turn is equal the *inner radius*. When the turning radius is smaller than the turning radius, the speed is calculated based on the *zero radius*.
 
 ## Notable Paramaters:
-- `pivot_rate_tolerance` - in autonomous mode, we may want to delay movement until pivots have reached the desired angle. This parameter controls **how long in seconds** before the pivots reach their target positions to start moving. Only affects autonomous mode operation.
+- `pivot_rate_tolerance` (`double`, default: `0.1`) - in autonomous mode, we may want to delay movement until pivots have reached the desired angle. This parameter controls **how long in seconds** before the pivots reach their target positions to start moving. Only affects autonomous mode operation.
