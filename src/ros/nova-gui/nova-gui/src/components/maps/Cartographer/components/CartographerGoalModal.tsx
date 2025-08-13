@@ -31,19 +31,10 @@ import {
 import { SortablePoints } from "./SortablePoints.tsx";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../../ros/services/rosService.ts";
-import { GoalType } from "../../../../redux/models/CartographerState.ts";
+import { GoalType, MapPoint } from "../../../../redux/models/CartographerState.ts";
 import { IRosNovaInterfacesCartographerCommandRequest } from "../../../../ros/rosTypes.ts";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
-
-interface Point {
-  name: string;
-  lat: number;
-  long: number;
-  labelNumber: number | null;
-  labelName: string | null;
-  selected: boolean;
-}
 
 export const CartographerGoalModal: React.FC<{
   isOpen: boolean;
@@ -53,7 +44,7 @@ export const CartographerGoalModal: React.FC<{
     (state: RootState) => state.cartographerState
   );
 
-  const [items, setItems] = useState<Point[]>(
+  const [items, setItems] = useState<MapPoint[]>(
     points.map((point) => ({ ...point, selected: false }))
   );
 
@@ -96,7 +87,7 @@ export const CartographerGoalModal: React.FC<{
     setItems(points.map((point) => ({ ...point, selected: false })));
   }, [isOpen, points]);
 
-  const renderPoints = (points: Point[], isSortable: boolean) => {
+  const renderPoints = (points: MapPoint[], isSortable: boolean) => {
     return points.map((point) => (
       isSortable ? (
         <SortablePoints key={point.name} id={point.name}>
@@ -113,7 +104,7 @@ export const CartographerGoalModal: React.FC<{
     ));
   };
 
-  const renderPointContent = (point: Point) => (
+  const renderPointContent = (point: MapPoint) => (
     <div className="flex justify-between items-center">
       <Checkbox
         isSelected={point.selected}
