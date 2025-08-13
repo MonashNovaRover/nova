@@ -8,7 +8,7 @@ nova_drive_controller_base:
     type: double
     default_value: 2.0
     description: >
-      Turning radius / pivot angle control curve factor for manual control. Higher values = steeper curves,
+      Turning radius control curve factor for manual control. Higher values = steeper curves,
       steeper curves = finer control over higher turning radii (slight turns).
 
   left_drive_names:
@@ -49,7 +49,7 @@ nova_drive_controller_base:
   tf_frame_prefix_enable:
     type: bool
     default_value: true
-    description:  "Enables or disables appending tf_prefix to tf frame id's."
+    description:  "Enables or disables appending tf_frame_prefix to tf frame id's."
 
   tf_frame_prefix:
     type: string
