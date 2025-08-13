@@ -1,7 +1,6 @@
 { lib
 , buildRosPackage
 , ament-cmake
-, control-msgs
 , controller-interface
 , hardware-interface
 , pluginlib
@@ -32,7 +31,6 @@ buildRosPackage {
   nativeBuildInputs = [ ament-cmake ];
 
   buildInputs = [
-    control-msgs
     controller-interface
     hardware-interface
     pluginlib
