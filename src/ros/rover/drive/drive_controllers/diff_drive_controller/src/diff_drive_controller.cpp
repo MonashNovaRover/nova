@@ -21,39 +21,18 @@
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-#include <memory>
-#include <queue>
 #include <string>
-#include <utility>
 #include <vector>
 
-#include "hardware_interface/types/hardware_interface_type_values.hpp"
-#include "lifecycle_msgs/msg/state.hpp"
-#include "rclcpp/logging.hpp"
-#include "tf2/LinearMath/Quaternion.h"
+#include "controller_interface/controller_interface.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 #include "diff_drive_controller/diff_drive_controller.hpp"
-
-namespace
-{
-
-constexpr auto DEFAULT_COMMAND_TOPIC = "/cmd_vel";
-constexpr auto DEFAULT_COMMAND_OUT_TOPIC = "~/cmd_vel_out";
-
-}  // namespace
 
 namespace diff_drive_controller
 {
 
-using namespace std::chrono_literals;
-using namespace nova_controller_common;
-using controller_interface::interface_configuration_type;
-using controller_interface::InterfaceConfiguration;
 using geometry_msgs::msg::Twist;
-using geometry_msgs::msg::TwistStamped;
-using hardware_interface::HW_IF_POSITION;
-using hardware_interface::HW_IF_VELOCITY;
-using lifecycle_msgs::msg::State;
 using nova_drive_controller_base::Commands;
 
 DiffDriveController::DiffDriveController()
