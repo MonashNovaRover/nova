@@ -9,6 +9,7 @@ export interface MapPoint extends MapCoordinate {
   name: string;
   labelNumber: number | null;
   labelName: string | null;
+  selected: boolean;
 }
 
 export enum MapInteractionMode {
