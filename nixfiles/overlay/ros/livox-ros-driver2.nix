@@ -1,4 +1,5 @@
 self: super:
+
 {
   livox-sdk2 = super.stdenv.mkDerivation {
     pname = "livox-sdk2";
@@ -13,13 +14,19 @@ self: super:
 
     nativeBuildInputs = [ super.cmake ];
 
+    patches = [
+      (self.fetchpatch {
+        url = "https://patch-diff.githubusercontent.com/raw/Livox-SDK/Livox-SDK2/pull/99.patch";
+        # revert = true;
+        hash = "sha256-/lrLO8jeZaO8+MCVAV0olTIdS9kdrf7hPZz9fHqAOyU=";
+      })
+    ];
   };
 
   rosPackages = (super.rosPackages.appendDistroOverlay(
     rosSelf: rosSuper: {
-
-      # Add packages here:
-      livox-ros-driver2 = rosSuper.buildRosPackage {
+      # Add ros2 packages here:
+      livox-ros-driver2 = rosSelf.buildRosPackage {
         pname = "livox-ros-driver2";
         version = "0.0.0";
 
@@ -55,6 +62,10 @@ self: super:
           rosidl-default-generators
           super.pcl
           self.livox-sdk2
+          self.eigen
+          self.flann
+          rosSelf.livox-interfaces
+          pcl-conversions
         ];
         
         propagatedBuildInputs = with rosSuper; [ 
@@ -62,7 +73,10 @@ self: super:
           std-msgs
           builtin-interfaces
         ];
-      
+
+        cmakeFlags = [
+          "-DHUMBLE_ROS=humble"
+        ];
       };
 
     }
