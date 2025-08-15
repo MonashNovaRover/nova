@@ -63,7 +63,7 @@ self: super:
             --replace '192.168.1.12' '192.168.1.117'
 
           substituteInPlace config/MID360_config.json \
-            --replace '192.168.1.5' '192.168.1.117'
+            --replace '192.168.1.5' '192.168.1.50'
         '';
 
         buildType = "ament_cmake";
