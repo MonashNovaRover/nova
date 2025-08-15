@@ -43,7 +43,27 @@ self: super:
 
           # They do this:
           cp -f package_ROS2.xml package.xml
-          cp -rf launch_ROS2/ launch/
+          cp -rf launch_ROS2 launch
+
+          # Make the launch directory exist in the output
+          substituteInPlace CMakeLists.txt \
+            --replace 'launch_ROS2' 'launch'
+
+          # Try add a better way of installing launch
+          sed -i '/launch_ROS2\
+          )/a\
+          install(DIRECTORY\
+            launch\
+            DESTINATION share/$\{PROJECT_NAME}\
+          )\
+          ' CMakeLists.txt
+
+          # Set the correct IP address
+          substituteInPlace config/MID360_config.json \
+            --replace '192.168.1.12' '192.168.1.117'
+
+          substituteInPlace config/MID360_config.json \
+            --replace '192.168.1.5' '192.168.1.117'
         '';
 
         buildType = "ament_cmake";
