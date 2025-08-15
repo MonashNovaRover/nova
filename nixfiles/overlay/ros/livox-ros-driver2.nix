@@ -64,7 +64,6 @@ self: super:
           self.livox-sdk2
           self.eigen
           self.flann
-          rosSelf.livox-interfaces
           pcl-conversions
         ];
         
