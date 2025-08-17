@@ -62,7 +62,7 @@ export const Cartographer : React.FC<CartographerProps> = ({ bottomOverlayCompon
   },[storedPoints])
 
   return (
-    <div className="w-full ">
+    <div className="w-full h-full">
       <AutoArrivedPopup/>
       <NewMarkerModal
         isOpen={newMarkerModal.open}
@@ -72,7 +72,7 @@ export const Cartographer : React.FC<CartographerProps> = ({ bottomOverlayCompon
         longitude={newMarkerModal.coordinate?.long}
         labels={pointLabels}
       />
-      <div className="flex h-[92.3vh]" style={{ border: "2px solid red" }}>
+      <div className="flex h-full">
         <MapTilerMap
           mapTile={mapTile}
           overlay={
