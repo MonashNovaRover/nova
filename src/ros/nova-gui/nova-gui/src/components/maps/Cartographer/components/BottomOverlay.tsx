@@ -79,7 +79,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
           className="overflow-hidden"
       >
         <Card fullWidth className="h-full rounded-none" style={{ maxHeight: "400px" }}>
-          <CardHeader className="w-full flex flex-row justify-between gap-3 items-center">
+          <CardHeader className="w-full flex flex-row justify-between gap-3 items-center" style={{ height: "80px" }}>
               <div className="flex flex-row gap-3">
               <CopyableInput
                 readOnly
@@ -150,16 +150,16 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
           </CardHeader>
           <AnimatePresence>
             {overlayOpen && (
-              <CardBody className="overflow-y-auto">
-                <motion.div
-                  className="w-full flex flex-row"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2, ease: "easeInOut" }}
-                >
+              <motion.div
+                className="w-full flex flex-row overflow-hidden"
+                initial={{ opacity: 1, height: 0 }}
+                animate={{ opacity: 1, height: "320px" }}
+                exit={{ opacity: 1, height: 0 }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+              >
+                <CardBody className="overflow-y-auto" style={{ height: "320px" }}>
                   <div className="flex-1">
-                    <Table removeWrapper title="Map Points" aria-label="Map Points">
+                    <Table removeWrapper title="Map Points" aria-label="Map Points" >
                       <TableHeader>
                         <TableColumn>Name</TableColumn>
                         <TableColumn>Latitude</TableColumn>
@@ -191,8 +191,8 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                       </TableBody>
                     </Table>
                   </div>
-                </motion.div>
-              </CardBody>
+                </CardBody>
+              </motion.div>
             )}
           </AnimatePresence>
         </Card>

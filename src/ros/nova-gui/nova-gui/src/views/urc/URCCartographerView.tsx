@@ -2,7 +2,7 @@ import { Cartographer } from "../../components/maps/Cartographer/Cartographer.ts
 
 export const URCCartographerView = () => {
   return (
-    <div className="w-full h-95vh">
+    <div className="w-full h-[92.1vh]">
       <Cartographer />
     </div>
   );
