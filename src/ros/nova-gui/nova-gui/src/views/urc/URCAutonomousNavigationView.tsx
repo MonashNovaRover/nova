@@ -1,11 +1,11 @@
 import React from "react";
 import { Cartographer } from "../../components/maps/Cartographer/Cartographer";
-import AutoStatus from "../../components/auto/Cartographer/components/AutoStatus";
 import { GoalPublisher } from "../../components/maps/Cartographer/components/GoalPublisher";
+import AutoStatus from "../../components/auto/Cartographer/components/AutoStatus";
 
 const URCAutonomousNavigationView: React.FC = () => {
   return (
-    <div className="w-full h-[92.1vh]">
+    <div className="w-full overflow-hidden" style={{ height: "calc(100vh - 4.01em)" }}>
       <Cartographer
         pointLabels={[
           { key: 0, text: "GNSS" },
