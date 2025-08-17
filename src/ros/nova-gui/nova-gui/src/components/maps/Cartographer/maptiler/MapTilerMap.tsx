@@ -127,7 +127,7 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile 
   ]);
 
   return (
-    <div className="w-full h-full" ref={mapContainer}>
+    <div className="w-full h-full" ref={mapContainer} style={{ border: "1px solid red" }}>
       <div className="map-wrap"></div>
       <div className="z-10 relative">{props.overlay}</div>
     </div>
