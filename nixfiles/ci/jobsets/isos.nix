@@ -87,7 +87,7 @@ let
 
               nova = {
                 inherit (ciLib) repos;
-                substituters.nova.password = "tFH6J!#HhrYc3&^m";
+                substituters.nova.password = builtins.readFile ../../../secrets/hydra-password.txt;
                 desktop.enable = graphical;
                 workspace = {
                   enable = includeWorkspace;
