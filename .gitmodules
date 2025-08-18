@@ -7,3 +7,6 @@
 [submodule "src/other/libcanmd"]
 	path = src/other/libcanmd
 	url = git@github.com:MonashNovaRover/libcanmd
+[submodule "secrets"]
+	path = secrets
+	url = git@github.com:MonashNovaRover/secrets.git
