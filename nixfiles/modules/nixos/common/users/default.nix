@@ -35,8 +35,7 @@
       {
         nova = lib.mkIf config.nova.users.nova.enable {
           description = "Monash Nova Rover";
-          hashedPassword =
-            "$y$j9T$l1uk9vWbRDWXWFjucvu6s1$C/GP.LwS.HI7ujVx8ZY/uqAMa4EYEZHLdpzlnsBb.tC";
+          hashedPassword = builtins.readFile ../../../../../secrets/nova-user-hashed-password.txt;
           extraGroups = with config.users.groups; [
             wheel.name
             video.name
