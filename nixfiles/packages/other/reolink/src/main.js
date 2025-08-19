@@ -4,10 +4,16 @@
  * https://github.com/agsh/onvif/blob/master/examples/example3.js
  */
 
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
 var HOSTNAME = '10.0.1.100',
 	PORT = 80,
 	USERNAME = 'admin',
-	PASSWORD = 'Lab188b37', // TODO: remove password somehow
+  PASSWORD = fs.readFileSync(
+    path.join(os.homedir(), 'nova', 'secrets', 'reolink-password.txt'), 'utf8'
+  ).trim(),
 	STOP_DELAY_MS = 200
 
 var Cam = require('onvif').Cam;
