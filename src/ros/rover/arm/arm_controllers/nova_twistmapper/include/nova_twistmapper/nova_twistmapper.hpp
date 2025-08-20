@@ -156,7 +156,7 @@ protected:
    * @param[in]  time   The time to stamp the published Transform with.
    * @param[in]  pose   The pose to publish to tf2 as the twistmapper target pose.
    */
-  void publish_to_tf2(const rclcpp::Time &time, const Eigen::Isometry3d &pose);
+  void publish_to_tf2(const rclcpp::Time &time, const Eigen::Isometry3d &pose, const std::string& name = "");
 
   /**
    * @brief Generates an SRDF string for use with MoveIt2 libraries, based on params_.joint_names

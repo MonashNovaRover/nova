@@ -90,12 +90,14 @@ namespace nova_twistmapper
   Eigen::Isometry3d NovaTwistmapper::integrate_twist(const std::vector<double> &seed_state,
                                                      const rclcpp::Duration &period,
                                                      const Eigen::Isometry3d &current_target_pose) {
+    const auto logger = get_node()->get_logger();
+
     // Retrieve the twist
     std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
     received_twist_stamped_ptr_.get(twist_stamped);
 
     if (twist_stamped == nullptr) {
-      RCLCPP_WARN(get_node()->get_logger(), "Haven't yet received a TwistStamped message to use for the twistmapper.");
+      RCLCPP_WARN(logger, "Haven't yet received a TwistStamped message to use for the twistmapper.");
       return current_target_pose;
     }
 
@@ -110,16 +112,20 @@ namespace nova_twistmapper
     auto result = kinematics_solver_->getPositionFK({twist_frame_id}, seed_state, poses);
 
     if (!result) {
-      RCLCPP_ERROR(get_node()->get_logger(), "Failed to do forward kinematics to find the twist frame");
+      RCLCPP_ERROR(logger, "Failed to do forward kinematics to find the twist frame");
       return current_target_pose;
     }
     if (poses.empty()) {
-      RCLCPP_ERROR(get_node()->get_logger(), "No poses returned from forward kinematics!");
+      RCLCPP_ERROR(logger, "No poses returned from forward kinematics!");
       return current_target_pose;
     }
 
     Eigen::Isometry3d twist_frame;
     Eigen::fromMsg(poses[0], twist_frame);
+
+    if (params_.publish_debug_frames) {
+      publish_to_tf2(get_node()->get_clock()->now(), twist_frame, std::string(get_node()->get_name()) + "_twist_frame");
+    }
 
     // Extract data from the twist message into a usable format for math
     Eigen::Matrix<double, 6, 1> twist;
@@ -544,12 +550,12 @@ namespace nova_twistmapper
     twist_stamped->twist.angular.z = 0;
   }
 
-  void NovaTwistmapper::publish_to_tf2(const rclcpp::Time &time, const Eigen::Isometry3d &pose) {
+  void NovaTwistmapper::publish_to_tf2(const rclcpp::Time &time, const Eigen::Isometry3d &pose, const std::string& name) {
     // Publish twistmapper pose to tf2
     auto transform_stamped = tf2::eigenToTransform(pose);
     transform_stamped.header.stamp = time;
 
-    transform_stamped.child_frame_id = params_.kinematics_output_target_frame;
+    transform_stamped.child_frame_id = name.empty() ? params_.kinematics_output_target_frame : name;
     transform_stamped.header.frame_id = params_.kinematics_base_frame;
 
     RCLCPP_INFO_ONCE(get_node()->get_logger(), "Broadcasting twistmapper pose as '%s', child of '%s'.",

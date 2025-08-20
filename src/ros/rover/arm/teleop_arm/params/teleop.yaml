@@ -27,6 +27,7 @@ teleop_arm:
         type: "joint_space_control_mode/JointSpaceControlMode"
         controllers:
           - nova_arm_velocity_controller
+
       task_space_mode:
         type: "teleop_modular_twist/TwistControlMode"
         controllers:
@@ -123,11 +124,11 @@ task_space_mode:
     # Prevent velocities larger than the specified values from being emitted
     limits:
       linear:
-        all: 0.25
+        all: 0.1
         normalized: true
         scale_with_speed: true
       angular:
-        all: 0.785398163395
+        all: 0.2
         normalized: true
         scale_with_speed: true
 
@@ -216,14 +217,14 @@ joy_input_source:
               negative: "A"
         angular:
           x:
-            from: RIGHTX
+            from_buttons:
+              positive: "X"
+              negative: "B"
           y:
             from: RIGHTY
             invert: true
           z:
-            from_buttons:
-              positive: "X"
-              negative: "B"
+            from: RIGHTX
 
       buttons:
         lock:

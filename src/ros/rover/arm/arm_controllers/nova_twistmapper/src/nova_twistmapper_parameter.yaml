@@ -34,6 +34,11 @@ nova_twistmapper:
     default_value: true,
     description: "When true, adds a chain from the base to the end effector to the fallback SRDF. This is needed for KDL to work, but breaks the BanksiaKinematicsPlugin."
   }
+  publish_debug_frames: {
+    type: bool,
+    default_value: false,
+    description: "When true, extra frames will be published on tf2 to help with debugging twistmapper behaviour."
+  }
 
   # Kinematics Solving
   kinematics_solver: {
