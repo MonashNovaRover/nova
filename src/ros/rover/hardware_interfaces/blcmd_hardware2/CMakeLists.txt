@@ -30,6 +30,7 @@ add_library(
   blcmd_hardware2
   SHARED
   src/blcmd_hardware.cpp
+  src/zero_manager.cpp
 )
 target_include_directories(
   blcmd_hardware2
