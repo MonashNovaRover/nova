@@ -112,7 +112,7 @@ task_space_mode:
     # Topic to send TwistStamped messages to.
     stamped_topic: "/arm/task_space_twist_command"
     # Use the input named "speed" to scale everything.
-    use_speed_input: true
+    use_speed_input: false
 
     # Values to multiply inputs with.
     scale:

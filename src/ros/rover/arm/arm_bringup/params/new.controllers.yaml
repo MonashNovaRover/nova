@@ -1,5 +1,4 @@
 # Controllers for the new arm
-
 arm:
   controller_manager:
     ros__parameters:
