@@ -44,6 +44,12 @@ def launch_setup(context, *args, **kwargs):
         'RCUTILS_CONSOLE_OUTPUT_FORMAT': '[{severity}] [{name}] {message}',
     }
 
+    xacro_args = ['gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'arm:=', arm, ' ', 'old_arm:=', old_arm, ' ', 'use_mock_hardware:=', use_mock_hardware, ' ', 'auto_camera:=false']
+    if LaunchConfiguration('local').perform(context):
+        xacro_args.append(' rover_description_dir:="/home/nova/nova/src/ros/rover/rover_description"')
+        model = PathJoinSubstitution(['/home/nova/nova/src/ros/rover/rover_description', 'banksia', 'urdf', 'rover.urdf.xacro'])
+    urdf_value = ParameterValue(Command(['xacro ', model, ' '] + xacro_args), value_type=str)
+
     return [
         GroupAction(
             condition=IfCondition(PythonExpression([arm, " or ", old_arm])),
@@ -65,9 +71,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
-            parameters=[{'robot_description':
-                             ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'arm:=', arm, ' ', 'old_arm:=', old_arm, ' ', 'use_mock_hardware:=', use_mock_hardware, ' ', 'auto_camera:=false']), value_type=str)
-                         }],
+            parameters=[{'robot_description': urdf_value}],
             additional_env=show_colours_additional_env,
         ),
         GroupAction(
@@ -150,6 +154,11 @@ def generate_launch_description():
             name='rviz',
             default_value='False',
             description='whether to run rviz2 to visualize the robot (urdf must also be True).',
+        ),
+        DeclareLaunchArgument(
+            name='local',
+            default_value='False',
+            description='whether to use the local rover_description source directory instead of the nix store.',
         ),
     ]
 
