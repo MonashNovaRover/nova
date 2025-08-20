@@ -6,7 +6,7 @@ nova_twistmapper:
   }
   chained_controller_name: {
     type: string,
-    default_value: "nova_ik_controller",
+    default_value: "",
     description: "The name of the chainable controller to capture reference interfaces from. Leave empty to use hardware 
     interfaces."
   }
@@ -18,6 +18,12 @@ nova_twistmapper:
     description: "The name of the topic to get teleop twist stamped messages from. Applies relative to the 
     header.frame_id frame."
   }
+  fallback_frame_id: {
+    type: string,
+    default_value: "endeffector_kinematics",
+    description: "The default value of header.frame_id for received TwistStamped messages. Used when no frame_id is 
+      provided in a message."
+  }
   add_allowed_collisions_to_srdf: {
     type: bool,
     default_value: true,
@@ -27,6 +33,11 @@ nova_twistmapper:
     type: bool,
     default_value: true,
     description: "When true, adds a chain from the base to the end effector to the fallback SRDF. This is needed for KDL to work, but breaks the BanksiaKinematicsPlugin."
+  }
+  publish_debug_frames: {
+    type: bool,
+    default_value: false,
+    description: "When true, extra frames will be published on tf2 to help with debugging twistmapper behaviour."
   }
 
   # Kinematics Solving

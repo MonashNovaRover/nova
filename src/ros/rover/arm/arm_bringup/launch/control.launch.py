@@ -34,6 +34,15 @@ def launch_setup(context, *args, **kwargs):
     old_arm = LaunchConfiguration('old_arm').perform(context)
     use_mock_hardware = LaunchConfiguration('use_mock_hardware')
     robot_name = LaunchConfiguration('robot_name')
+    urdf = LaunchConfiguration('urdf')
+    rviz = LaunchConfiguration('rviz').perform(context)
+
+    show_colours_additional_env = {
+        # Show colors in the terminal output
+        'RCUTILS_COLORIZED_OUTPUT': '1',
+        # (Optional!) omit time from the logs
+        'RCUTILS_CONSOLE_OUTPUT_FORMAT': '[{severity}] [{name}] {message}',
+    }
 
     return [
         GroupAction(
@@ -42,12 +51,14 @@ def launch_setup(context, *args, **kwargs):
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['nova_arm_velocity_controller', '--inactive'] #, '--inactive']
+                    arguments=['nova_arm_velocity_controller', '--inactive'],
+                    additional_env=show_colours_additional_env,
                 ),
                 Node(
                     package='controller_manager',
                     executable='spawner',
                     arguments=['nova_arm_position_controller', 'nova_twistmapper', '--inactive'],
+                    additional_env=show_colours_additional_env,
                 ),
             ]
         ),
@@ -56,7 +67,8 @@ def launch_setup(context, *args, **kwargs):
             executable='robot_state_publisher',
             parameters=[{'robot_description':
                              ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'arm:=', arm, ' ', 'old_arm:=', old_arm, ' ', 'use_mock_hardware:=', use_mock_hardware, ' ', 'auto_camera:=false']), value_type=str)
-                         }]
+                         }],
+            additional_env=show_colours_additional_env,
         ),
         GroupAction(
             condition=UnlessCondition(gazebo),
@@ -65,17 +77,20 @@ def launch_setup(context, *args, **kwargs):
                     package='controller_manager',
                     executable='spawner',
                     arguments=['joint_state_broadcaster'],
+                    additional_env=show_colours_additional_env,
                 ),
                 Node(
                     package='controller_manager',
                     executable='ros2_control_node',
                     parameters=[controllers],
                     remappings=[('/controller_manager/robot_description', '/robot_description'), ('/joint_states', '/arm/joint_states')],
+                    additional_env=show_colours_additional_env,
                 ),
-                # IncludeLaunchDescription(
-                #     PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
-                #     launch_arguments={'model': model, 'gazebo': gazebo, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm}.items(),
-                # )
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
+                    launch_arguments={'model': model, 'gazebo': gazebo, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm, 'rviz': rviz}.items(),
+                    condition=IfCondition(urdf),
+                )
             ],
         ),
     ]
@@ -88,7 +103,7 @@ def generate_launch_description():
     declared_arguments = [   
         DeclareLaunchArgument(
             name='controllers',
-            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'controllers.yaml']),
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'new.controllers.yaml']),
             description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
@@ -108,12 +123,12 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='arm',
-            default_value='False',
+            default_value='True',
             description='whether to launch arm',
         ),
         DeclareLaunchArgument(
             name='old_arm',
-            default_value='True',
+            default_value='False',
             description='whether to launch the old arm (on new armware)',
         ),
         DeclareLaunchArgument(
@@ -127,9 +142,14 @@ def generate_launch_description():
             description='name of the robot',
         ),
         DeclareLaunchArgument(
-            name='arm',
+            name='urdf',
             default_value='True',
-            description='whether to launch arm',
+            description='whether to run urdf.launch.py to publish values to /tf (needed for rviz to work)',
+        ),
+        DeclareLaunchArgument(
+            name='rviz',
+            default_value='False',
+            description='whether to run rviz2 to visualize the robot (urdf must also be True).',
         ),
     ]
 
