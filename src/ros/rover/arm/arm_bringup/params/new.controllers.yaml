@@ -36,8 +36,8 @@ arm:
       use_limits: true
 
   nova_arm_position_controller:
-    topic: "/arm/joint_position_command"
     ros__parameters:
+      topic: "/arm/joint_position_command"
       joint_names:
         - J1
         - J2
