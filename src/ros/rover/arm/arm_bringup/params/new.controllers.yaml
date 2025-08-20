@@ -23,6 +23,7 @@ arm:
 
   nova_arm_velocity_controller:
     ros__parameters:
+      topic: "/arm/joint_velocity_command"
       joint_names:
         - J1
         - J2
@@ -35,6 +36,7 @@ arm:
       use_limits: true
 
   nova_arm_position_controller:
+    topic: "/arm/joint_position_command"
     ros__parameters:
       joint_names:
         - J1
@@ -50,6 +52,7 @@ arm:
   nova_twistmapper:
     ros__parameters:
       chained_controller_name: "nova_arm_position_controller"
+      twist_stamped_topic: "/arm/task_space_twist_command"
       joint_names:
         - J1
         - J2
