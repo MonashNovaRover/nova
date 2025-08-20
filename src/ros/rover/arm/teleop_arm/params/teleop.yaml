@@ -70,7 +70,7 @@ teleop_arm:
 joint_space_mode:
   ros__parameters:
     topic: "/arm_fk_velocity_target"
-    use_speed_input: false
+    use_speed_input: true
 
     joint_definitions:
       - j1
@@ -112,7 +112,7 @@ task_space_mode:
     # Topic to send TwistStamped messages to.
     stamped_topic: "/arm_ik_twist_stamped"
     # Use the input named "speed" to scale everything.
-    use_speed_input: false
+    use_speed_input: true
 
     # Values to multiply inputs with.
     scale:

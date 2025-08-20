@@ -36,6 +36,7 @@ def launch_setup(context, *args, **kwargs):
     robot_name = LaunchConfiguration('robot_name')
     urdf = LaunchConfiguration('urdf')
     rviz = LaunchConfiguration('rviz').perform(context)
+    fixed_frame = 'base_link'
 
     show_colours_additional_env = {
         # Show colors in the terminal output
@@ -51,17 +52,42 @@ def launch_setup(context, *args, **kwargs):
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['nova_arm_velocity_controller', '--inactive'],
+                    arguments=['nova_arm_velocity_controller', '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['nova_arm_position_controller', 'nova_twistmapper', '--inactive'],
+                    arguments=['nova_arm_position_controller', 'nova_twistmapper', '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
             ]
         ),
+        GroupAction(
+            condition=UnlessCondition(gazebo),
+            actions=[
+                Node(
+                    package='controller_manager',
+                    executable='ros2_control_node',
+                    namespace="/arm",
+                    parameters=[controllers],
+                    remappings=[('/arm/controller_manager/robot_description', '/robot_description'), ('/arm/robot_description', '/robot_description'), ('/joint_states', '/arm/joint_states')],
+                    additional_env=show_colours_additional_env,
+                ),
+                Node(
+                    package='controller_manager',
+                    executable='spawner',
+                    arguments=['joint_state_broadcaster', "-c", "/arm/controller_manager"],
+                    additional_env=show_colours_additional_env,
+                ),
+                # IncludeLaunchDescription(
+                #     PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
+                #     launch_arguments={'model': model, 'gazebo': gazebo, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm, 'rviz': rviz}.items(),
+                #     condition=IfCondition(urdf),
+                # )
+            ],
+        ),
+
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
@@ -70,28 +96,23 @@ def launch_setup(context, *args, **kwargs):
                          }],
             additional_env=show_colours_additional_env,
         ),
-        GroupAction(
-            condition=UnlessCondition(gazebo),
-            actions=[
-                Node(
-                    package='controller_manager',
-                    executable='spawner',
-                    arguments=['joint_state_broadcaster'],
-                    additional_env=show_colours_additional_env,
-                ),
-                Node(
-                    package='controller_manager',
-                    executable='ros2_control_node',
-                    parameters=[controllers],
-                    remappings=[('/controller_manager/robot_description', '/robot_description'), ('/joint_states', '/arm/joint_states')],
-                    additional_env=show_colours_additional_env,
-                ),
-                IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
-                    launch_arguments={'model': model, 'gazebo': gazebo, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm, 'rviz': rviz}.items(),
-                    condition=IfCondition(urdf),
-                )
-            ],
+        Node(
+            package='joint_state_publisher',
+            executable='joint_state_publisher',
+            namespace='',
+            output='screen',
+            emulate_tty=True,
+            parameters=[{
+                'source_list': ['/arm/joint_states', '/joint_states']
+            }]
+        ),
+        Node(
+            package='rviz2',
+            namespace='',
+            executable='rviz2',
+            name='rviz2',
+            arguments=['-d', [PathJoinSubstitution([arm_bringup_dir, 'rviz', 'arm.rviz'])], '-f', fixed_frame],
+            condition=IfCondition(rviz),
         ),
     ]
 
