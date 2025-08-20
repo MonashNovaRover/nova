@@ -29,7 +29,7 @@
 
 #include "jcan/jcan.h"
 
-namespace blcmd_hardware
+namespace blcmd_hardware2
 {
 struct PIConfig {
     int16_t kp;

@@ -23,7 +23,7 @@
 
 #include "jcan/jcan.h"
 
-namespace blcmd_hardware
+namespace blcmd_hardware2
 {
 hardware_interface::CallbackReturn BLCMDHardware::on_init(
         const hardware_interface::HardwareInfo & info)
@@ -59,7 +59,7 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
         }
     }
 
-    control_mode_ = blcmd_hardware::ControlMode::Undefined;
+    control_mode_ = blcmd_hardware2::ControlMode::Undefined;
 	
     bus_ = leigh::jcan::new_bus();
     can_setup();
@@ -229,9 +229,9 @@ hardware_interface::return_type BLCMDHardware::write(
         const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
     switch(control_mode_){
-        case blcmd_hardware::ControlMode::Undefined:
+        case blcmd_hardware2::ControlMode::Undefined:
             break;
-        case blcmd_hardware::ControlMode::Position:
+        case blcmd_hardware2::ControlMode::Position:
 
 
           
@@ -250,7 +250,7 @@ hardware_interface::return_type BLCMDHardware::write(
                 return hardware_interface::return_type::ERROR;
             }
             break;
-        case blcmd_hardware::ControlMode::Velocity:
+        case blcmd_hardware2::ControlMode::Velocity:
             if (hw_velocity_.command.has_value()) {
                RCLCPP_DEBUG_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                   "Sending velocity command " << hw_velocity_.command.value() * reversed_multiplier_
@@ -262,7 +262,7 @@ hardware_interface::return_type BLCMDHardware::write(
                 return hardware_interface::return_type::ERROR;
             }
             break;
-        case blcmd_hardware::ControlMode::Effort:
+        case blcmd_hardware2::ControlMode::Effort:
             if (hw_effort_.command.has_value()) {
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_CURRENT),
                                      hw_effort_.command.value() * reversed_multiplier_, hw_effort_.max);
@@ -305,8 +305,8 @@ bool BLCMDHardware::stop_interface(const std::string &interface){
     }
 
     if (interface_name == hardware_interface::HW_IF_POSITION) {
-        if (control_mode_ == blcmd_hardware::ControlMode::Position) {
-            control_mode_ = blcmd_hardware::ControlMode::Undefined;
+        if (control_mode_ == blcmd_hardware2::ControlMode::Position) {
+            control_mode_ = blcmd_hardware2::ControlMode::Undefined;
             return true;
         } else {
             RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
@@ -315,9 +315,9 @@ bool BLCMDHardware::stop_interface(const std::string &interface){
         }
     }
     if (interface_name == hardware_interface::HW_IF_VELOCITY) {
-        if (control_mode_ == blcmd_hardware::ControlMode::Velocity) {
+        if (control_mode_ == blcmd_hardware2::ControlMode::Velocity) {
             hw_velocity_.command = 0.0;
-            control_mode_ = blcmd_hardware::ControlMode::Undefined;
+            control_mode_ = blcmd_hardware2::ControlMode::Undefined;
             return true;
         } else {
             RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
@@ -326,9 +326,9 @@ bool BLCMDHardware::stop_interface(const std::string &interface){
         }
     }
     if (interface_name == hardware_interface::HW_IF_EFFORT) {
-        if (control_mode_ == blcmd_hardware::ControlMode::Effort) {
+        if (control_mode_ == blcmd_hardware2::ControlMode::Effort) {
             hw_effort_.command = 0.0;
-            control_mode_ = blcmd_hardware::ControlMode::Undefined;
+            control_mode_ = blcmd_hardware2::ControlMode::Undefined;
             return true;
         } else {
             RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
@@ -354,18 +354,18 @@ bool BLCMDHardware::start_interface(const std::string &interface){
         return true;
     }
 
-    if(control_mode_ != blcmd_hardware::ControlMode::Undefined){
+    if(control_mode_ != blcmd_hardware2::ControlMode::Undefined){
         RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                             "Requested start interface " << interface.c_str() << " when control mode was not undefined");
         return false;
     }
 
     if (interface_name == hardware_interface::HW_IF_POSITION){
-        control_mode_ = blcmd_hardware::ControlMode::Position;
+        control_mode_ = blcmd_hardware2::ControlMode::Position;
     } else if (interface_name == hardware_interface::HW_IF_VELOCITY){
-        control_mode_ = blcmd_hardware::ControlMode::Velocity;
+        control_mode_ = blcmd_hardware2::ControlMode::Velocity;
     } else if (interface_name == hardware_interface::HW_IF_EFFORT){
-        control_mode_ = blcmd_hardware::ControlMode::Effort;
+        control_mode_ = blcmd_hardware2::ControlMode::Effort;
     } else {
         RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                             "Unexpected interface " << interface_name.c_str());
@@ -627,5 +627,4 @@ bool BLCMDHardware::set_control_interface(
 
 #include "pluginlib/class_list_macros.hpp"
 
-PLUGINLIB_EXPORT_CLASS(
-  blcmd_hardware::BLCMDHardware, hardware_interface::SystemInterface)
+PLUGINLIB_EXPORT_CLASS(blcmd_hardware2::BLCMDHardware, hardware_interface::SystemInterface)

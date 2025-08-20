@@ -21,6 +21,7 @@ find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 # find jcan
 find_package(PkgConfig)
@@ -30,7 +31,6 @@ add_library(
   blcmd_hardware2
   SHARED
   src/blcmd_hardware.cpp
-  src/zero_manager.cpp
 )
 target_include_directories(
   blcmd_hardware2
@@ -49,6 +49,7 @@ ament_target_dependencies(
   hardware_interface
   rclcpp
   rclcpp_lifecycle
+  yaml-cpp
 )
 # prevent pluginlib from using boost
 target_compile_definitions(blcmd_hardware2 PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")

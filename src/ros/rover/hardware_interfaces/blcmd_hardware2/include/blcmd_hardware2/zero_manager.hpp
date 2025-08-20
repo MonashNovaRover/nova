@@ -8,9 +8,10 @@
 #include <mutex>
 #include <string>
 #include <map>
+#include <yaml-cpp/yaml.h>
 
 
-namespace blcmd_hardware {
+namespace blcmd_hardware2 {
 
 /**
  * Helper class allowing for persistent software-side zeroing of the BLCMDs.
@@ -35,6 +36,8 @@ private:
   std::map<std::string, double> zeroes_{};
   bool initialized_ = false;
   std::string robot_name_ = "undefined";
+
+  YAML::Node zeroes_yaml_;
 };
 
 }  // blcmd_hardware
