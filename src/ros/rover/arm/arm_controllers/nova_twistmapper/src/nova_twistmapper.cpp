@@ -28,8 +28,6 @@ EDITED BY:
 
 namespace
 {
-  constexpr auto DEFAULT_INPUT_TOPIC_END_EFFECTOR_TWIST = "/arm_ik_twist_stamped"; // TODO: changeme
-
   // Used to avoid division by zero. Threshold for where to call small numbers essentially zero in vector normalization.
   constexpr auto EPSILON = 1e-8;
 } // namespace
@@ -218,7 +216,7 @@ namespace nova_twistmapper
     twistmapper_pose_tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(tf2_ros::TransformBroadcaster(*get_node()));
 
     twist_stamped_sub_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
-      DEFAULT_INPUT_TOPIC_END_EFFECTOR_TWIST,
+      params_.twist_stamped_topic,
       rclcpp::SystemDefaultsQoS(),
       [this, logger](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
       {

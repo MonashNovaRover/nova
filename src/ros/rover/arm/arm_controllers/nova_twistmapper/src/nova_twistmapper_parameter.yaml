@@ -6,7 +6,7 @@ nova_twistmapper:
   }
   chained_controller_name: {
     type: string,
-    default_value: "nova_ik_controller",
+    default_value: "",
     description: "The name of the chainable controller to capture reference interfaces from. Leave empty to use hardware 
     interfaces."
   }
@@ -17,6 +17,12 @@ nova_twistmapper:
     default_value: "/arm_ik_twist_stamped",
     description: "The name of the topic to get teleop twist stamped messages from. Applies relative to the 
     header.frame_id frame."
+  }
+  fallback_frame_id: {
+    type: string,
+    default_value: "endeffector_kinematics",
+    description: "The default value of header.frame_id for received TwistStamped messages. Used when no frame_id is 
+      provided in a message."
   }
   add_allowed_collisions_to_srdf: {
     type: bool,
