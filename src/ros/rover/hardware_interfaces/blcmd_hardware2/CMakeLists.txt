@@ -53,7 +53,7 @@ ament_target_dependencies(
 target_compile_definitions(blcmd_hardware PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
 pluginlib_export_plugin_description_file(
-  hardware_interface blcmd_hardware.xml)
+  hardware_interface blcmd_hardware2.xml)
 
 install(
   TARGETS
