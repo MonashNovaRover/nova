@@ -28,7 +28,8 @@ EDITED BY:
 
 namespace
 {
-  constexpr auto DEFAULT_INPUT_TOPIC_END_EFFECTOR_TWIST = "/arm_ik_twist_stamped"; // TODO: changeme
+  // Used to avoid division by zero. Threshold for where to call small numbers essentially zero in vector normalization.
+  constexpr auto EPSILON = 1e-8;
 } // namespace
 
 using std::placeholders::_1;
@@ -86,35 +87,71 @@ namespace nova_twistmapper
     return {interface_configuration_type::INDIVIDUAL, conf_names};
   }
 
-  void NovaTwistmapper::update_twistmapper_pose(const rclcpp::Time &time, const rclcpp::Duration &period) {
+  Eigen::Isometry3d NovaTwistmapper::integrate_twist(const std::vector<double> &seed_state,
+                                                     const rclcpp::Duration &period,
+                                                     const Eigen::Isometry3d &current_target_pose) {
+    const auto logger = get_node()->get_logger();
+
+    // Retrieve the twist
     std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
     received_twist_stamped_ptr_.get(twist_stamped);
 
     if (twist_stamped == nullptr) {
-      RCLCPP_WARN(get_node()->get_logger(), "Haven't yet received a TwistStamped message to use for the twistmapper.");
-      return;
+      RCLCPP_WARN(logger, "Haven't yet received a TwistStamped message to use for the twistmapper.");
+      return current_target_pose;
     }
 
-    const auto& twist = twist_stamped->twist;
+    const auto twist_msg = twist_stamped->twist;
+    const auto twist_frame_id = twist_stamped->header.frame_id.empty() ? params_.fallback_frame_id
+                                                                       : twist_stamped->header.frame_id;
+    // Stop holding the shared pointer
+    twist_stamped.reset();
 
-    tf2::Vector3 tf2_twist_angular;
-    tf2::fromMsg(twist.angular, tf2_twist_angular);
+    // Find the reference frame transform for the given frame_id
+    std::vector<geometry_msgs::msg::Pose> poses;
+    auto result = kinematics_solver_->getPositionFK({twist_frame_id}, seed_state, poses);
 
-    twistmapper_pose_rpy_ = twistmapper_pose_rpy_ + tf2_twist_angular * period.seconds();
-    // Create rotation matrix from twist.angular as XYZ euler
-    auto rotation_matrix = tf2::Matrix3x3();
-    rotation_matrix.setRPY(twistmapper_pose_rpy_.x(), twistmapper_pose_rpy_.y(), twistmapper_pose_rpy_.z());
+    if (!result) {
+      RCLCPP_ERROR(logger, "Failed to do forward kinematics to find the twist frame");
+      return current_target_pose;
+    }
+    if (poses.empty()) {
+      RCLCPP_ERROR(logger, "No poses returned from forward kinematics!");
+      return current_target_pose;
+    }
 
-    const auto linear = tf2::Vector3(
-      twist.linear.x * period.seconds(),
-      twist.linear.y * period.seconds(),
-      twist.linear.z * period.seconds());
+    Eigen::Isometry3d twist_frame;
+    Eigen::fromMsg(poses[0], twist_frame);
 
-    // TODO: Test this actually works as expected.
-    // TODO: Add a tf buffer and make use of the header.frame_id from the twist_stamped to allow IK to be done relative to anything. Then Teleop would just need to use the end effector frame by default
-    // TODO: If using tf like this, also have the twistmapper broadcast the target frame, so it can reference itself.
-    twistmapper_pose_.setOrigin(linear + twistmapper_pose_.getOrigin());
-    twistmapper_pose_.setBasis(rotation_matrix);
+    if (params_.publish_debug_frames) {
+      publish_to_tf2(get_node()->get_clock()->now(), twist_frame, std::string(get_node()->get_name()) + "_twist_frame");
+    }
+
+    // Extract data from the twist message into a usable format for math
+    Eigen::Matrix<double, 6, 1> twist;
+    Eigen::fromMsg(twist_msg, twist);
+    Eigen::Vector3d twist_linear = twist.block<3, 1>(0, 0);
+    Eigen::Vector3d twist_angular = twist.block<3, 1>(3, 0);
+
+    // Construct a 4x4 matrix from the above linear and angular values, but as a displacement rather than velocity.
+    Eigen::Isometry3d new_pose = current_target_pose;
+
+    // Set translational components
+    new_pose.translation() = current_target_pose.translation() + twist_frame.linear() * twist_linear * period.seconds();
+
+    // Set angular components
+    auto twist_angular_norm = twist_angular.norm();
+    // Only apply rotation if it is non-zero enough to avoid precision errors
+    if (twist_angular_norm > EPSILON) {
+      // Create rotation matrix from twist_angular * period.seconds. This isn't an angular velocity, but a displacement.
+      Eigen::AngleAxisd angular_diff(twist_angular_norm * period.seconds(), twist_frame.linear() * twist_angular / twist_angular_norm);
+
+      // This 'linear' does not mean the same thing as the twist's 'linear'!
+      // It is the linear component of the affine transformation matrix.
+      new_pose.linear() = angular_diff.toRotationMatrix() * current_target_pose.linear();
+    }
+
+    return new_pose;
   }
 
   controller_interface::return_type NovaTwistmapper::update(const rclcpp::Time &time, const rclcpp::Duration &period)
@@ -131,35 +168,26 @@ namespace nova_twistmapper
       return controller_interface::return_type::OK;
     }
 
-    auto old_pose = twistmapper_pose_;
-    auto old_rpy = twistmapper_pose_rpy_;
+    std::vector<double> joint_state_values = get_state_pos_values();
 
-    // Get a new pose
-    update_twistmapper_pose(time, period);
-    publish_to_tf2(time);
+    // Integrate twist to get a new pose
+    const auto new_pose = integrate_twist(joint_state_values, period, twistmapper_pose_);
+    publish_to_tf2(time, new_pose);
 
     // Do IK to find the joint values for that pose
-    std::vector<double> joint_state_values = get_state_pos_values();
     std::vector<double> solution;
-    geometry_msgs::msg::Pose pose = tf2::toMsg(tf2::transformToEigen(tf2::toMsg(twistmapper_pose_)));
+    geometry_msgs::msg::Pose pose_msg = tf2::toMsg(new_pose);
     moveit_msgs::msg::MoveItErrorCodes error_codes;
 
-    //auto result = kinematics_solver_->getPositionIK(pose, joint_state_values, solution, error_codes);
-    auto result = kinematics_solver_->searchPositionIK(pose, joint_state_values, params_.kinematics_solver_timeout, solution, error_codes);
+    auto result = kinematics_solver_->getPositionIK(pose_msg, joint_state_values, solution, error_codes);
     if (!result) {
-      twistmapper_pose_ = old_pose;
-      twistmapper_pose_rpy_ = old_rpy;
-      RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 500,
-                           "Failed to find solution to inverse kinematics: error code %d (\"%s\"). %s", error_codes.val,
-                           moveit::core::errorCodeToString(error_codes).c_str(), error_codes.message.c_str());
-
+      RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 200, "Failed to find solution to inverse kinematics.");
       return controller_interface::return_type::OK;
     }
 
+    // Validate the solution
     if (check_path_for_self_intersection(joint_state_values, solution)) {
-      twistmapper_pose_ = old_pose;
-      twistmapper_pose_rpy_ = old_rpy;
-      RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 500, "Inverse Kinematics solution self intersects!");
+      RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 200, "Inverse Kinematics solution self intersects!");
       return controller_interface::return_type::OK;
     }
 
@@ -167,6 +195,9 @@ namespace nova_twistmapper
     for (size_t i = 0; i < solution.size(); i++) {
       registered_joint_handles_[i].command.get().set_value(solution[i]);
     }
+
+    // Keep new pose for next iteration
+    twistmapper_pose_ = new_pose;
 
     return controller_interface::return_type::OK;
   }
@@ -189,11 +220,9 @@ namespace nova_twistmapper
     }
 
     twistmapper_pose_tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(tf2_ros::TransformBroadcaster(*get_node()));
-    // tf_buffer_ = std::make_unique<tf2_ros::Buffer>(get_node()->get_clock());
-    // tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
     twist_stamped_sub_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
-      DEFAULT_INPUT_TOPIC_END_EFFECTOR_TWIST,
+      params_.twist_stamped_topic,
       rclcpp::SystemDefaultsQoS(),
       [this, logger](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
       {
@@ -212,6 +241,19 @@ namespace nova_twistmapper
             "Received message with zero timestamp, setting it to current "
             "time, this message will only be shown once");
           msg->header.stamp = get_node()->get_clock()->now();
+        }
+
+        auto new_frame_id = msg->header.frame_id.empty() ? params_.fallback_frame_id : msg->header.frame_id;
+
+        if (new_frame_id != last_frame_id_) {
+          // Update references to new reference frame for the real-time thread here!
+          // We can do tricks to optimise the real-time thread by precomputing work here. For example, automatically
+          // checking if a frame is relative to the end effector to see if we can do a cheaper version of FK for any
+          // frames relative to the end effector.
+
+          // TODO: Do some optimisations and magic tricks here!
+
+          last_frame_id_ = new_frame_id;
         }
 
         received_twist_stamped_ptr_.set(std::move(msg));
@@ -299,13 +341,48 @@ namespace nova_twistmapper
 
   std::string NovaTwistmapper::construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model,
                                                               std::string joint_group_name) {
+    auto logger = get_node()->get_logger();
+
     std::ostringstream srdf_stream;
     srdf_stream << "<robot name=\"" << urdf_model->getName() << "\">\n";
     srdf_stream << "  <group name=\"" << joint_group_name << "\">\n";
     for (const auto& joint : params_.joint_names)
       srdf_stream << "    <joint name=\"" << joint << "\"/>\n";
-    srdf_stream << "    <chain base_link=\"" << params_.kinematics_base_frame << "\" tip_link=\"" << params_.kinematics_endeffector_frame << "\" />\n";
+
+    if (params_.add_chain_to_srdf)
+      srdf_stream << "    <chain base_link=\"" << params_.kinematics_base_frame << "\" tip_link=\"" << params_.kinematics_endeffector_frame << "\" />\n";
+
     srdf_stream << "  </group>\n";
+
+    if (params_.add_allowed_collisions_to_srdf && planning_scene_) {
+      RCLCPP_INFO(logger, "Generating and adding allowed collisions in the fallback SRDF!");
+
+      // Get the current state
+      moveit::core::RobotState& state = planning_scene_->getCurrentStateNonConst();
+      state.setToDefaultValues();
+      state.update();
+
+      // Set up request/result
+      collision_detection::CollisionRequest req;
+      collision_detection::CollisionResult res;
+      req.contacts = true;      // We get contact info to generate the allowed collision matrix from
+      req.max_contacts = 1024;  // This was chosen arbitrarily as some large number
+
+      // Perform self-collision check
+      planning_scene_->checkSelfCollision(req, res, state);
+
+      // Add all colliding pairs to the ACM
+      for (const auto &contact_pair : res.contacts)
+      {
+        RCLCPP_INFO(logger, "  - \"%s\" and \"%s\"",
+                    contact_pair.first.first.c_str(), contact_pair.first.second.c_str());
+        const auto &link1 = contact_pair.first.first;
+        const auto &link2 = contact_pair.first.second;
+
+        srdf_stream << "  <disable_collisions link1=\"" << link1 << "\" link2=\"" << link2 << "\" reason=\"Never\"/>\n";
+      }
+    }
+
     srdf_stream << "</robot>\n";
     auto srdf_string = srdf_stream.str();
     return srdf_string;
@@ -384,13 +461,6 @@ namespace nova_twistmapper
     // Store result to twistmapper_pose_
     tf2::fromMsg(poses[0], twistmapper_pose_);
 
-    // Set twistmapper_pose_rpy_ to match
-    double roll, pitch, yaw;
-    twistmapper_pose_.getBasis().getRPY(roll, pitch, yaw);
-    twistmapper_pose_rpy_.setX(roll);
-    twistmapper_pose_rpy_.setY(pitch);
-    twistmapper_pose_rpy_.setZ(yaw);
-
     // Set initial command interface values from state interface
     for (auto& joint : registered_joint_handles_) {
       joint.command.get().set_value(joint.state_pos.get().get_value());
@@ -452,8 +522,6 @@ namespace nova_twistmapper
     kinematics_compat_node_.reset();
 
     twistmapper_pose_tf_broadcaster_.reset();
-    // tf_buffer_.reset();
-    // tf_listener_.reset();
 
     // Reset subscriptions
     twist_stamped_sub_.reset();
@@ -482,14 +550,12 @@ namespace nova_twistmapper
     twist_stamped->twist.angular.z = 0;
   }
 
-  void NovaTwistmapper::publish_to_tf2(const rclcpp::Time &time) {
+  void NovaTwistmapper::publish_to_tf2(const rclcpp::Time &time, const Eigen::Isometry3d &pose, const std::string& name) {
     // Publish twistmapper pose to tf2
-    geometry_msgs::msg::TransformStamped transform_stamped;
-    transform_stamped.transform = toMsg(twistmapper_pose_);
+    auto transform_stamped = tf2::eigenToTransform(pose);
     transform_stamped.header.stamp = time;
 
-    // TODO: Parameterize
-    transform_stamped.child_frame_id = params_.kinematics_output_target_frame;
+    transform_stamped.child_frame_id = name.empty() ? params_.kinematics_output_target_frame : name;
     transform_stamped.header.frame_id = params_.kinematics_base_frame;
 
     RCLCPP_INFO_ONCE(get_node()->get_logger(), "Broadcasting twistmapper pose as '%s', child of '%s'.",
