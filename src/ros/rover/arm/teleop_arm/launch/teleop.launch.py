@@ -1,18 +1,25 @@
 # teleop.launch.py
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, LogInfo
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
 
 
 def launch_setup(context, *args, **kwargs):
+    teleop_arm_dir = PythonExpression([
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/teleop_arm']),
+        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+        FindPackageShare('teleop_arm'), '"'
+    ])
+
     teleop_params = LaunchConfiguration('teleop_params')
     log_inputs = LaunchConfiguration('log_inputs')
     log_level = LaunchConfiguration('log_level').perform(context)
 
     return [
+        LogInfo(msg=['Using teleop_arm := ', teleop_arm_dir]),
         # Runs teleop_node with the given parameter files
         Node(
             package='teleop_node',
@@ -46,13 +53,9 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     teleop_arm_dir = PythonExpression([
-        '"',
-        PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/teleop_arm']),
-        '" if ',
-        LaunchConfiguration('local'),
-        ' else "',
-        FindPackageShare('teleop_arm'),
-        '"'
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/teleop_arm']),
+        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+        FindPackageShare('teleop_arm'), '"'
     ])
 
     declared_arguments = [
