@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(blcmd_hardware)
+project(blcmd_hardware2)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -27,37 +27,37 @@ find_package(PkgConfig)
 pkg_check_modules(JCAN REQUIRED jcan)
 
 add_library(
-  blcmd_hardware
+  blcmd_hardware2
   SHARED
   src/blcmd_hardware.cpp
 )
 target_include_directories(
-  blcmd_hardware
+  blcmd_hardware2
   PUBLIC
   include
   ${JCAN_INCLUDE_DIRS}
 )
 
 target_link_libraries(
-  blcmd_hardware
+  blcmd_hardware2
   ${JCAN_LIBRARIES}
 )
 
 ament_target_dependencies(
-  blcmd_hardware
+  blcmd_hardware2
   hardware_interface
   rclcpp
   rclcpp_lifecycle
 )
 # prevent pluginlib from using boost
-target_compile_definitions(blcmd_hardware PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
+target_compile_definitions(blcmd_hardware2 PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
 pluginlib_export_plugin_description_file(
   hardware_interface blcmd_hardware2.xml)
 
 install(
   TARGETS
-  blcmd_hardware
+  blcmd_hardware2
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
@@ -94,7 +94,7 @@ ament_export_include_directories(
   include
 )
 ament_export_libraries(
-  blcmd_hardware
+  blcmd_hardware2
 )
 ament_export_dependencies(
   hardware_interface
