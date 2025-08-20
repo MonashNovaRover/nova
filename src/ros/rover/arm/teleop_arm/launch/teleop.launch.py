@@ -12,6 +12,7 @@ def launch_setup(context, *args, **kwargs):
 
     teleop_params = LaunchConfiguration('teleop_params')
     log_inputs = LaunchConfiguration('log_inputs')
+    log_level = LaunchConfiguration('log_level').perform(context)
 
     return [
         # Runs teleop_node with the given parameter files
@@ -20,7 +21,7 @@ def launch_setup(context, *args, **kwargs):
             executable='teleop_node',
             output='screen',
 
-            arguments=['--node-name', 'teleop_arm'],
+            arguments=['--node-name', 'teleop_arm', '--ros-args', '--log-level', log_level],
 
             # You can add multiple parameter files here:
             parameters=[
@@ -50,6 +51,11 @@ def generate_launch_description():
 
     declared_arguments = [
         # You can declare arguments to your launch file like this!
+        DeclareLaunchArgument(
+            name='log_level',
+            default_value='INFO',
+            description='The log level to use for the teleop_node',
+        ),
         DeclareLaunchArgument(
             name='teleop_params',
             default_value=PathJoinSubstitution([teleop_arm_dir, 'params', 'teleop.yaml']),

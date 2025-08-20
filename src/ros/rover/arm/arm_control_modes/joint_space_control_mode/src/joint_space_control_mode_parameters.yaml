@@ -21,3 +21,20 @@ joint_space_control_mode:
       type: string
       default_value: "speed"
       description: "The name of the axis input that scales the output speed from 0 to 1."
+
+  joint_definitions:
+    type: string_array
+    default_value: ["j1", "j2", "j3", "j4", "j5", "j6"]
+    description: "Declares the names of all joints to use when trying to get joint parameters."
+
+  joints:
+    __map_joint_definitions:
+      name:
+        type: string
+        default_value: ""
+      scale:
+        type: double
+        default_value: 0.0
+      input_name:
+        type: string
+        default_value: ""

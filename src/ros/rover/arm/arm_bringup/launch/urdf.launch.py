@@ -20,14 +20,20 @@ from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitut
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
+from launch.conditions import IfCondition
 
 def launch_setup(context, *args, **kwargs):
+    arm_bringup_dir = FindPackageShare('arm_bringup')
+
     gazebo = LaunchConfiguration('gazebo').perform(context)
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
     arm = LaunchConfiguration('arm').perform(context)
     old_arm = LaunchConfiguration('old_arm').perform(context)
     use_mock_hardware = LaunchConfiguration('use_mock_hardware').perform(context)
+    rviz = LaunchConfiguration('rviz')
+
+    fixed_frame = 'base_link'
 
     return [
         Node(
@@ -47,7 +53,16 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{
                 'source_list': ['/arm/joint_states']
             }]
-        )
+        ),
+
+        Node(
+            package='rviz2',
+            namespace='',
+            executable='rviz2',
+            name='rviz2',
+            arguments=['-d', [PathJoinSubstitution([arm_bringup_dir, 'rviz', 'arm.rviz'])], '-f', fixed_frame],
+            condition=IfCondition(rviz),
+        ),
     ]
 
 
@@ -84,6 +99,11 @@ def generate_launch_description():
             name='use_mock_hardware',
             default_value='false',
             description='whether to use mock hardware for hardware interfaces',
+        ),
+        DeclareLaunchArgument(
+            name='rviz',
+            default_value='false',
+            description='whether to launch rviz',
         ),
     ]
 

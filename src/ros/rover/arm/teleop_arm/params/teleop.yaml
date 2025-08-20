@@ -7,71 +7,102 @@ teleop_arm:
 
     # The minimum rate at which updates occur.
     # Leaving this unset will allow for indefinite lapses between updates.
-    min_update_rate: 2.0
+    min_update_rate: 4.0
 
     input_sources:
-      names: [
-        "joy_input_source"
-      ]
+      names:
+        - joy_input_source
 
       # Then declare its type!
       joy_input_source:
         type: "teleop_modular_joy/JoyInputSource"
 
     control_modes:
-      names: [
-        "joint_space_mode",
-        "task_space_mode"
-      ]
+      names:
+        - joint_space_mode
+        - task_space_mode
 
       # Then declare its type!
       joint_space_mode:
         type: "joint_space_control_mode/JointSpaceControlMode"
+        controllers:
+          - nova_arm_velocity_controller
+
       task_space_mode:
         type: "teleop_modular_twist/TwistControlMode"
+        controllers:
+          - nova_arm_position_controller
+          - nova_twistmapper
 
     commands:
-      names: [
-        "enter_task_space",
-        "enter_joint_space"
-      ]
+      names:
+        - enter_task_space
+        - enter_joint_space
 
-      enter_task_space_mode:
+      enter_task_space:
         on: "task_space/down"
-        type: "activate_control_mode"
-        name: "task_space_mode"
-      enter_joint_space_mode:
+        type: switch_control_mode
+        to: task_space_mode
+      enter_joint_space:
         on: "task_space/up"
-        type: "activate_control_mode"
-        name: "joint_space_mode"
+        type: switch_control_mode
+        to: joint_space_mode
+      lock:
+        on_any: ["lock/down", "start"]
+        type: set_button
+        name: locked
+        value: true
+      unlock:
+        on: "unlock/up"
+        type: set_button
+        name: locked
+        value: false
+      log_locked:
+        on: "locked/down"
+        type: log
+        message: "Locked"
+      log_unlocked:
+        on: "locked/down"
+        type: log
+        message: "Unlocked"
 
 
 joint_space_mode:
   ros__parameters:
     topic: "/arm_fk_velocity_target"
+    use_speed_input: false
+
+    joint_definitions:
+      - j1
+      - j2
+      - j3
+      - j4
+      - j5
+      - j6
+
     joints:
-      1:
-        name: "j1"
+      j1:
+        name: "J1"
         input_name: "j1"
         scale: 0.36
-      2:
-        name: "j2"
+      j2:
+        name: "J2"
         input_name: "j2"
         scale: 0.36
-      3:
-        name: "j3"
+      j3:
+        name: "J3"
         input_name: "j3"
         scale: 0.36
-      4:
-        name: "j4"
+      j4:
+        name: "J4"
         input_name: "j4"
         scale: 0.36
-      5:
-        name: "j5"
+      j5:
+        name: "J5"
         input_name: "j5"
         scale: 0.36
-      6:
-        name: "j6"
+      j6:
+        name: "J6"
         input_name: "j6"
         scale: 0.36
 
@@ -81,23 +112,23 @@ task_space_mode:
     # Topic to send TwistStamped messages to.
     stamped_topic: "/arm_ik_twist_stamped"
     # Use the input named "speed" to scale everything.
-    use_speed_input: true
+    use_speed_input: false
 
     # Values to multiply inputs with.
     scale:
       linear:
-        all: 0.25
+        all: 0.125
       angular:
         all: 0.785398163395
 
     # Prevent velocities larger than the specified values from being emitted
     limits:
       linear:
-        all: 0.25
+        all: 0.1
         normalized: true
         scale_with_speed: true
       angular:
-        all: 0.785398163395
+        all: 0.2
         normalized: true
         scale_with_speed: true
 
@@ -109,36 +140,96 @@ joy_input_source:
     # https://docs.ros.org/en/ros2_packages/rolling/api/joy/index.html
     # If you use joy_node, you'll need to figure out what the mapping is yourself.
     # So, run joy, `ros2 topic echo /joy`, and mess around with your controller to figure out what it is for you.
-    button_definitions: [
-      "A",
-      "B",
-      "X",
-      "Y",
-      "BACK",
-      "GUIDE",
-      "START",
-      "LEFTSTICK",
-      "RIGHTSTICK",
-      "LEFTSHOULDER",
-      "RIGHTSHOULDER",
-      "DPAD_UP",
-      "DPAD_DOWN",
-      "DPAD_LEFT",
-      "DPAD_RIGHT",
-      "MISC1",
-      "PADDLE1",
-      "PADDLE2",
-      "PADDLE3",
-      "PADDLE4",
-      "TOUCHPAD"
-    ]
-    axis_definitions: [
-      "LEFTX",
-      "LEFTY",
-      "RIGHTX",
-      "RIGHTY",
-      "TRIGGERLEFT",
-      "TRIGGERRIGHT"
-    ]
+    button_definitions:
+      - "A"
+      - "B"
+      - "X"
+      - "Y"
+      - BACK
+      - GUIDE
+      - START
+      - LEFTSTICK
+      - RIGHTSTICK
+      - LEFTSHOULDER
+      - RIGHTSHOULDER
+      - DPAD_UP
+      - DPAD_DOWN
+      - DPAD_LEFT
+      - DPAD_RIGHT
+      - MISC1
+      - PADDLE1
+      - PADDLE2
+      - PADDLE3
+      - PADDLE4
+      - TOUCHPAD
+    axis_definitions:
+      - LEFTX
+      - LEFTY
+      - RIGHTX
+      - RIGHTY
+      - TRIGGERLEFT
+      - TRIGGERRIGHT
 
-    # TODO: remapping
+    remap:
+      axes:
+        speed:
+          from: TRIGGERRIGHT
+          invert: true
+
+        # Joint space
+        j1:
+          from_buttons:
+            positive: DPAD_RIGHT
+            negative: DPAD_LEFT
+          invert: true
+        j2:
+          from_buttons:
+            positive: DPAD_UP
+            negative: DPAD_DOWN
+          invert: true
+        j3:
+          from_buttons:
+            positive: "Y"
+            negative: "A"
+        j4:
+          from: RIGHTY
+          invert: true
+        j5:
+          from: RIGHTX
+        j6:
+          from_buttons:
+            positive: "X"
+            negative: "B"
+
+        # Task space
+        linear:
+          x:
+            from_buttons:
+              positive: DPAD_UP
+              negative: DPAD_DOWN
+          y:
+            from_buttons:
+              positive: DPAD_RIGHT
+              negative: DPAD_LEFT
+          z:
+            from_buttons:
+              positive: "Y"
+              negative: "A"
+        angular:
+          x:
+            from_buttons:
+              positive: "X"
+              negative: "B"
+          y:
+            from: RIGHTY
+            invert: true
+          z:
+            from: RIGHTX
+
+      buttons:
+        lock:
+          from: BACK
+        unlock:
+          from: START
+        task_space:
+          from: LEFTSHOULDER
