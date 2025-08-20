@@ -1,6 +1,6 @@
 # teleop.launch.py
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -8,8 +8,6 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 
 def launch_setup(context, *args, **kwargs):
-    teleop_arm_dir = FindPackageShare('teleop_arm')
-
     teleop_params = LaunchConfiguration('teleop_params')
     log_inputs = LaunchConfiguration('log_inputs')
     log_level = LaunchConfiguration('log_level').perform(context)
@@ -47,10 +45,23 @@ def launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-    teleop_arm_dir = FindPackageShare('teleop_arm')
+    teleop_arm_dir = PythonExpression([
+        '"',
+        PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/teleop_arm']),
+        '" if ',
+        LaunchConfiguration('local'),
+        ' else "',
+        FindPackageShare('teleop_arm'),
+        '"'
+    ])
 
     declared_arguments = [
         # You can declare arguments to your launch file like this!
+        DeclareLaunchArgument(
+            name='local',
+            default_value='False',
+            description='Whether to use the local teleop_amr source directory instead of the nix store for param files.',
+        ),
         DeclareLaunchArgument(
             name='log_level',
             default_value='INFO',
