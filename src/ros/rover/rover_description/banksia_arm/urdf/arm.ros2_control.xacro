@@ -20,9 +20,9 @@
 					<param name="mock">true</param>
 					<param name="reversed">false</param>
 					<param name="integrate_velocity">false</param>
-					<param name="max_position">12.5663706144 / 4</param>
+					<param name="max_position">3.141592654</param>
 					<param name="position_offset">0.0</param>
-					<param name="max_velocity">292.444791136 / 100</param>
+					<param name="max_velocity">1.779309114</param>
 				</hardware>
 			</xacro:unless>
 			<xacro:if value="${use_mock_hardware}">
@@ -72,9 +72,9 @@
 					<param name="mock">true</param>
 					<param name="reversed">true</param>
 					<param name="integrate_velocity">false</param>
-					<param name="max_position">12.5663706144 / 5.375</param>
+					<param name="max_position">2.337929417</param>
 					<param name="position_offset">0.0</param>
-					<param name="max_velocity">292.444791136 / 100</param>
+					<param name="max_velocity">1.740138699</param>
 				</hardware>
 			</xacro:unless>
 			<xacro:if value="${use_mock_hardware}">
@@ -116,9 +116,9 @@
 					<param name="mock">true</param>
 					<param name="reversed">false</param>
 					<param name="integrate_velocity">false</param>
-					<param name="max_position">12.5663706144 / 5.375</param>
+					<param name="max_position">2.337929417</param>
 					<param name="position_offset">0.0</param>
-					<param name="max_velocity">292.444791136 / 100</param>
+					<param name="max_velocity">1.740138699</param>
 				</hardware>
 			</xacro:unless>
 			<xacro:if value="${use_mock_hardware}">
