@@ -24,7 +24,16 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 
 def launch_setup(context, *args, **kwargs):
-    arm_bringup_dir = FindPackageShare('arm_bringup')
+    arm_bringup_dir = PythonExpression([
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/arm_bringup']),
+        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+        FindPackageShare('arm_bringup'), '"'
+    ])
+    rover_description_dir = PythonExpression([
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/rover_description']),
+        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+        FindPackageShare('rover_description'), '"'
+    ])
 
     controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
@@ -44,7 +53,25 @@ def launch_setup(context, *args, **kwargs):
         'RCUTILS_CONSOLE_OUTPUT_FORMAT': '[{severity}] [{name}] {message}',
     }
 
+    xacro_args = [
+        'gazebo:=', gazebo, ' ',
+        'robot_name:=', robot_name, ' ',
+        'arm:=', arm, ' ',
+        'old_arm:=', old_arm, ' ',
+        'use_mock_hardware:=', use_mock_hardware, ' ',
+        'auto_camera:=false ',
+        'rover_description_dir:=', rover_description_dir, ' ',
+    ]
+    urdf_value = ParameterValue(Command(['xacro ', model, ' '] + xacro_args), value_type=str)
+
     return [
+        LogInfo(msg=[
+            '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/arm_bringup']),
+            '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+            FindPackageShare('arm_bringup'), '"'
+        ]),
+        LogInfo(msg=['Using arm_bringup := ', arm_bringup_dir]),
+        LogInfo(msg=['Using model := ', model]),
         GroupAction(
             condition=IfCondition(PythonExpression([arm, " or ", old_arm])),
             actions=[
@@ -65,9 +92,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
-            parameters=[{'robot_description':
-                             ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'arm:=', arm, ' ', 'old_arm:=', old_arm, ' ', 'use_mock_hardware:=', use_mock_hardware, ' ', 'auto_camera:=false']), value_type=str)
-                         }],
+            parameters=[{'robot_description': urdf_value}],
             additional_env=show_colours_additional_env,
         ),
         GroupAction(
@@ -97,10 +122,23 @@ def launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-    arm_bringup_dir = FindPackageShare('arm_bringup')
-    rover_description_dir = FindPackageShare('rover_description')
+    arm_bringup_dir = PythonExpression([
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/arm_bringup']),
+        '" if bool("', LaunchConfiguration('local'), '") else "',
+        FindPackageShare('arm_bringup'), '"'
+    ])
+    rover_description_dir = PythonExpression([
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/rover_description']),
+        '" if bool("', LaunchConfiguration('local'), '") else "',
+        FindPackageShare('rover_description'), '"'
+    ])
 
-    declared_arguments = [   
+    declared_arguments = [
+        DeclareLaunchArgument(
+            name='local',
+            default_value='False',
+            description='whether to use the local rover_description source directory instead of the nix store.',
+        ),
         DeclareLaunchArgument(
             name='controllers',
             default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'new.controllers.yaml']),

@@ -7,6 +7,7 @@
   xmlns:xacro="http://www.ros.org/wiki/xacro">
 
 	<xacro:arg name="prefix" default="arm" />
+  <xacro:arg name="rover_description_dir" default="$(find rover_description)" />
 
   <link
     name="$(arg prefix)_link">
@@ -30,7 +31,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah_arm/meshes/arm_base.stl" />
+          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/arm_base.stl" />
       </geometry>
       <material
         name="">
@@ -44,7 +45,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah_arm/meshes/arm_base.stl" />
+          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/arm_base.stl" />
       </geometry>
     </collision>
   </link>
@@ -70,7 +71,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah_arm/meshes/base_to_j1.stl" />
+          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/base_to_j1.stl" />
       </geometry>
       <material
         name="">
@@ -84,7 +85,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah_arm/meshes/base_to_j1.stl" />
+          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/base_to_j1.stl" />
       </geometry>
     </collision>
   </link>
@@ -128,7 +129,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah_arm/meshes/j2_to_link1.stl" />
+          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j2_to_link1.stl" />
       </geometry>
       <material
         name="">
@@ -142,7 +143,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah_arm/meshes/j2_to_link1.stl" />
+          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j2_to_link1.stl" />
       </geometry>
     </collision>
   </link>
@@ -186,7 +187,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah_arm/meshes/j3_to_link2.stl" />
+          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j3_to_link2.stl" />
       </geometry>
       <material
         name="">
@@ -200,7 +201,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah_arm/meshes/j3_to_link2.stl" />
+          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j3_to_link2.stl" />
       </geometry>
     </collision>
   </link>
@@ -244,7 +245,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah_arm/meshes/link2_to_fixed_j4.stl" />
+          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/link2_to_fixed_j4.stl" />
       </geometry>
       <material
         name="">
@@ -258,7 +259,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah_arm/meshes/link2_to_fixed_j4.stl" />
+          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/link2_to_fixed_j4.stl" />
       </geometry>
     </collision>
   </link>
@@ -297,7 +298,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah_arm/meshes/j4_to_j5.stl" />
+          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j4_to_j5.stl" />
       </geometry>
       <material
         name="">
@@ -311,7 +312,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah_arm/meshes/j4_to_j5.stl" />
+          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j4_to_j5.stl" />
       </geometry>
     </collision>
   </link>
@@ -355,7 +356,7 @@
         rpy="0 0 3.14" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah_arm/meshes/j5_to_j6.stl" />
+          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j5_to_j6.stl" />
       </geometry>
       <material
         name="">
@@ -369,7 +370,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah_arm/meshes/j5_to_j6.stl" />
+          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j5_to_j6.stl" />
       </geometry>
     </collision>
   </link>
@@ -413,7 +414,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah_arm/meshes/j6_to_ee.stl" />
+          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j6_to_ee.stl" />
       </geometry>
       <material
         name="">
@@ -427,7 +428,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah_arm/meshes/j6_to_ee.stl" />
+          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j6_to_ee.stl" />
       </geometry>
     </collision>
   </link>
@@ -477,6 +478,6 @@
     <child link="endeffector_kinematics" />
   </joint>
 
-  <xacro:include filename="$(find rover_description)/waratah_arm/urdf/arm.ros2_control.xacro" />
+  <xacro:include filename="$(arg rover_description_dir)/waratah_arm/urdf/arm.ros2_control.xacro" />
   <xacro:arm_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
 </robot>
