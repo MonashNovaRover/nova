@@ -70,7 +70,7 @@ teleop_arm:
 joint_space_mode:
   ros__parameters:
     topic: "/arm_fk_velocity_target"
-    use_speed_input: false
+    use_speed_input: true
 
     joint_definitions:
       - j1
@@ -84,27 +84,27 @@ joint_space_mode:
       j1:
         name: "J1"
         input_name: "j1"
-        scale: 0.36
+        scale: 0.1001
       j2:
         name: "J2"
         input_name: "j2"
-        scale: 0.36
+        scale: 0.1001
       j3:
         name: "J3"
         input_name: "j3"
-        scale: 0.36
+        scale: 0.1001
       j4:
         name: "J4"
         input_name: "j4"
-        scale: 0.36
+        scale: 0.1001
       j5:
         name: "J5"
         input_name: "j5"
-        scale: 0.36
+        scale: 0.1001
       j6:
         name: "J6"
         input_name: "j6"
-        scale: 0.36
+        scale: 0.1001
 
 
 task_space_mode:
@@ -112,23 +112,23 @@ task_space_mode:
     # Topic to send TwistStamped messages to.
     stamped_topic: "/arm_ik_twist_stamped"
     # Use the input named "speed" to scale everything.
-    use_speed_input: false
+    use_speed_input: true
 
     # Values to multiply inputs with.
     scale:
       linear:
-        all: 0.125
+        all: 0.05
       angular:
-        all: 0.785398163395
+        all: 0.05
 
     # Prevent velocities larger than the specified values from being emitted
     limits:
       linear:
-        all: 0.1
+        all: 0.05
         normalized: true
         scale_with_speed: true
       angular:
-        all: 0.2
+        all: 0.05
         normalized: true
         scale_with_speed: true
 
