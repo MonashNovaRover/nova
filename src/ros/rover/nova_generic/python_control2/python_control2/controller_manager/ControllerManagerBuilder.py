@@ -25,6 +25,7 @@ class ControllerManagerBuilder:
         return cmb
 
     def with_hardware(self, name: str, hardware_class) -> ControllerManagerBuilder:
+        self._cm.hardware_interface.append(hardware_class(name, self._cm.contexts))
         return self
 
     def with_controller(self, name: str, controller_class) -> ControllerManagerBuilder:
@@ -35,7 +36,7 @@ class ControllerManagerBuilder:
         return self
 
     def with_jcan(self) -> ControllerManagerBuilder:
-        can_bus = self._cm.contexts[Node].declare_parameter("can_bus", "can1", ParameterDescriptor(name="CAN Bus."))
+        can_bus = self._cm.contexts[Node].declare_parameter("can_bus", "can1", ParameterDescriptor(description="CAN Bus."))
         # jcan_spin_speed = self.node.declare_parameter("jcan_update_rate", 100, ParameterDescriptor(name="How often to spin jcan per second."))
 
         self.with_context(jcan.Bus)

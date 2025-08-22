@@ -11,11 +11,12 @@ class Contexts:
         # Returns none when no instance of the class exists
         return self._instances.get(cls)
 
-    def __setitem__(self, cls: Type[T], instance: T) -> None:
+    def __setitem__(self, cls: Type[T], instance: T) -> T:
         """Store an instance under its class type."""
         if not isinstance(instance, cls):
             raise TypeError(f"Expected instance of {cls.__name__}, got {type(instance).__name__}")
         self._instances[cls] = instance
+        return instance
 
     def construct(self, cls: Type[T], *args, **kwargs) -> T:
         """Construct, store, and return an instance of the given class."""
