@@ -21,4 +21,4 @@ class Interface:
 
     def __setitem__(self, key, value):
         """Sets the Pointer value at the provided key to the given value."""
-        self._values[key].value = value
+        self[key].value = value

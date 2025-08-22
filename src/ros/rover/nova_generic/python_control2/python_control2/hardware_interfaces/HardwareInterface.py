@@ -16,7 +16,9 @@ class HardwareInterface:
         pass
 
     def declare_parameter(self, name: str, initial_value, description: str=""):
+        """Declare and initialize a parameter."""
         return self.node.declare_parameter(f"hardware.{self.name}.{name}", initial_value, ParameterDescriptor(name=description)).value
 
     def get_parameter(self, name: str):
+        """Get a parameter by name."""
         return self.node.get_parameter(f"hardware.{self.name}.{name}").value
