@@ -7,6 +7,7 @@
   </a>
 </p>
 
+# Rover
 
 [`rover`](https://github.com/MonashNovaRover/rover) is the set of packages that operate on-rover for the [Monash Nova Rover](https://www.novarover.space/) student team. It is a collection of mostly ROS2 packages that we use and develop for the [ARCh](https://set.adelaide.edu.au/atcsr/australian-rover-challenge/) and [URC](https://urc.marssociety.org/) competitions. It is installed using the [Nix](https://nixos.org/) package manager, which is managed through the [nixfiles](https://github.com/MonashNovaRover/nixfiles) repository.
 
