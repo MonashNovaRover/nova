@@ -28,6 +28,24 @@ find_package(PkgConfig)
 pkg_check_modules(JCAN REQUIRED jcan)
 
 add_library(
+  blcmd_hardware2_zero_manager
+  SHARED
+  src/zero_manager.cpp
+)
+target_include_directories(
+  blcmd_hardware2_zero_manager
+  PUBLIC
+  include
+)
+ament_target_dependencies(
+  blcmd_hardware2_zero_manager
+  rclcpp
+)
+target_link_libraries(blcmd_hardware2_zero_manager
+  yaml-cpp
+)
+
+add_library(
   blcmd_hardware2
   SHARED
   src/blcmd_hardware.cpp
@@ -43,7 +61,10 @@ target_link_libraries(
   blcmd_hardware2
   ${JCAN_LIBRARIES}
 )
-
+target_link_libraries(
+  blcmd_hardware2
+  blcmd_hardware2_zero_manager
+)
 ament_target_dependencies(
   blcmd_hardware2
   hardware_interface
@@ -51,6 +72,7 @@ ament_target_dependencies(
   rclcpp_lifecycle
   yaml-cpp
 )
+
 # prevent pluginlib from using boost
 target_compile_definitions(blcmd_hardware2 PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
@@ -60,6 +82,7 @@ pluginlib_export_plugin_description_file(
 install(
   TARGETS
   blcmd_hardware2
+  blcmd_hardware2_zero_manager
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
