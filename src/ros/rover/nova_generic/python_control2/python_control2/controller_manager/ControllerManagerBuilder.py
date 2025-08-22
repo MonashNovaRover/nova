@@ -2,6 +2,8 @@ import jcan, logging
 from rclpy.node import Node, ParameterDescriptor
 from typing import Type, TypeVar
 
+from python_control2.controller_manager.ControllerManager import ControllerManager
+
 T = TypeVar("T")
 
 class ControllerManagerBuilder:
@@ -14,7 +16,7 @@ class ControllerManagerBuilder:
         cm = ControllerManager(system_name)
 
         cmb = ControllerManagerBuilder(cm)
-        cmb.with_context(Node, system_name)
+        cmb.with_context(Node, name=system_name)
 
         node = cm.contexts[Node]
         logging_level = node.declare_parameter("logging_level", "INFO", ParameterDescriptor(name="Logging level.")).value
@@ -45,4 +47,5 @@ class ControllerManagerBuilder:
         return self
 
     def spin(self):
+        self._cm.contexts[Node].get_logger().info(f"Starting with State In")
         pass

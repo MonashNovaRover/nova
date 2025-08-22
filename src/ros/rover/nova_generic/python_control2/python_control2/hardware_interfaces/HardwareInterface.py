@@ -2,7 +2,7 @@ from rclpy.node import Node, ParameterDescriptor
 
 from python_control2.controller_manager.Interface import Interface
 
-class Controller:
+class HardwareInterface:
 
     def __init__(self, name, contexts):
         self.name = name
@@ -16,7 +16,7 @@ class Controller:
         pass
 
     def declare_parameter(self, name: str, initial_value, description: str=""):
-        return self.node.declare_parameter(f"controllers.{self.name}.{name}", initial_value, ParameterDescriptor(name=description)).value
+        return self.node.declare_parameter(f"hardware.{self.name}.{name}", initial_value, ParameterDescriptor(name=description)).value
 
     def get_parameter(self, name: str):
-        return self.node.get_parameter(f"controllers.{self.name}.{name}").value
+        return self.node.get_parameter(f"hardware.{self.name}.{name}").value

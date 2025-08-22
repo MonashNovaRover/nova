@@ -1,3 +1,7 @@
+from python_control2.controller_manager.Contexts import Contexts
+from python_control2.controller_manager.Interface import Interface
+from python_control2.controllers.Controller import Controller
+from python_control2.hardware_interfaces.HardwareInterface import HardwareInterface
 
 class ControllerManager:
 
@@ -6,5 +10,5 @@ class ControllerManager:
         self.contexts = Contexts()
         self.controllers: list[Controller] = []
         self.hardware_interfaces: list[HardwareInterface] = []
-        pass
-
+        self.state_interfaces: list[Interface] = []
+        self.command_interfaces: list[Interface] = []
