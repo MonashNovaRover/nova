@@ -1,0 +1,48 @@
+import jcan, logging
+from rclpy.node import Node, ParameterDescriptor
+from typing import Type, TypeVar
+
+T = TypeVar("T")
+
+class ControllerManagerBuilder:
+
+    def __init__(self, controller_manager: ControllerManager):
+        self._cm = controller_manager
+
+    @classmethod
+    def NewControllerManager(cls, system_name: str) -> ControllerManagerBuilder:
+        cm = ControllerManager(system_name)
+
+        cmb = ControllerManagerBuilder(cm)
+        cmb.with_context(Node, system_name)
+
+        node = cm.contexts[Node]
+        logging_level = node.declare_parameter("logging_level", "INFO", ParameterDescriptor(name="Logging level.")).value
+        node.get_logger().set_level(logging.getLevelNamesMapping()[logging_level])
+
+        return cmb
+
+    def with_hardware(self, name: str, hardware_class) -> ControllerManagerBuilder:
+        return self
+
+    def with_controller(self, name: str, controller_class) -> ControllerManagerBuilder:
+        return self
+
+    def with_context(self, cls: Type[T], *args, **kwargs) -> ControllerManagerBuilder:
+        self._cm.contexts.construct(cls, *args, **kwargs)
+        return self
+
+    def with_jcan(self) -> ControllerManagerBuilder:
+        can_bus = self._cm.contexts[Node].declare_parameter("can_bus", "can1", ParameterDescriptor(name="CAN Bus."))
+        # jcan_spin_speed = self.node.declare_parameter("jcan_update_rate", 100, ParameterDescriptor(name="How often to spin jcan per second."))
+
+        self.with_context(jcan.Bus)
+        self._cm.contexts[jcan.Bus].open(can_bus)
+
+        return self
+
+    def with_teleop(self) -> ControllerManagerBuilder:
+        return self
+
+    def spin(self):
+        pass

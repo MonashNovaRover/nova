@@ -9,12 +9,12 @@ class Pointer(Generic[T]):
 class Interface:
 
     def __init__(self):
-        self.values: dict[str, Pointer] = {}
+        self._values: dict[str, Pointer] = {}
 
     def __getitem__(self, item) -> Pointer:
-        if item not in self.values:
-            self.values[item] = Pointer(0)
-        return self.values[item]
+        if item not in self._values:
+            self._values[item] = Pointer(0)
+        return self._values[item]
 
     def __setitem__(self, key, value):
-        self.values[key] = value
+        self._values[key] = value
