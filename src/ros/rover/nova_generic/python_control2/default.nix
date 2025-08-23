@@ -3,6 +3,7 @@
 , buildRosPackage
 , rclpy
 , pythonPackages
+, teleop-modular-python-utils
 }:
 
 buildRosPackage {
@@ -18,6 +19,7 @@ buildRosPackage {
   propagatedBuildInputs = [
     rclpy
     pythonPackages.jcan
+    teleop-modular-python-utils
   ];
 
 }
