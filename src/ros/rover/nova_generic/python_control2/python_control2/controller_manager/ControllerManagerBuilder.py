@@ -32,6 +32,19 @@ class ControllerManagerBuilder:
         return self
 
     def with_context(self, cls: Type[T], *args, **kwargs) -> ControllerManagerBuilder:
+        """ Adds a context to the control managers contexts. You can either provide an instance of the class, or
+        argumnets to construct the class.
+
+        :param cls: The class you want to declare the value for
+        :param args: The instance of the class to use, OR the arguments to construct the class instance with
+        :param kwargs: Names args used to construct the class instance with. Leave empty if you want to use an instance
+        of the class, rather than constructing one.
+        """
+        if len(args) == 1 and len(kwargs) == 0 and isinstance(cls, args[0]):
+            # Special case, allowing you to pass in an instance of the class directly.
+            self._cm.contexts[cls] = args[0]
+            return self
+
         self._cm.contexts.construct(cls, *args, **kwargs)
         return self
 
