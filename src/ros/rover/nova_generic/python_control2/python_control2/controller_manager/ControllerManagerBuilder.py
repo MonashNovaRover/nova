@@ -2,7 +2,7 @@ import jcan, logging
 from rclpy.node import Node, ParameterDescriptor
 from typing import Type, TypeVar
 
-from python_control2.controller_manager.ControllerManager import ControllerManager
+from .ControllerManager import ControllerManager
 
 T = TypeVar("T")
 

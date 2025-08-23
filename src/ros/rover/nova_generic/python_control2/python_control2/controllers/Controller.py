@@ -17,7 +17,7 @@ class Controller(ABC):
         pass
 
     @abstractmethod
-    def on_update(self, now: float, delta: float):
+    def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
         here.
         """

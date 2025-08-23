@@ -1,6 +1,6 @@
 from rclpy.node import Node, ParameterDescriptor
 
-from python_control2.controller_manager.Interface import InterfaceCollection
+from ..controller_manager.Interface import InterfaceCollection
 
 class HardwareInterface:
 
@@ -12,10 +12,10 @@ class HardwareInterface:
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
         pass
 
-    def read(self, delta):
+    def read(self, now: float, period: float):
         pass
 
-    def write(self, delta):
+    def write(self, now: float, period: float):
         pass
 
     def declare_parameter(self, name: str, initial_value, description: str=""):
