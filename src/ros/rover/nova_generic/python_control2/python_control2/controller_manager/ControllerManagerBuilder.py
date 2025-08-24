@@ -65,6 +65,20 @@ class ControllerManagerBuilder:
     def with_teleop(self) -> "ControllerManagerBuilder":
         return self
 
-    def spin(self):
-        self._cm.contexts[Node].get_logger().info(f"Starting with State In")
+    def spin(self, default_update_rate: float=20, auto_run_rclpy: bool=True) -> None:
+        """ Repeatedly updates until the program ends.
+        :param default_update_rate: The rate at which update will be called, in hz.
+        :param auto_run_rclpy: When True (the default), rclpy.spin() and rclpy.shutdown() will be called automatically
+        :return: None
+        """
+        self._cm.contexts[Node].get_logger().info(f"Starting python control")
+
+        # Do deferred initialization
+        for controller in self._cm.controllers:
+            controller.initialize(controller.name, self._cm.node, self._cm.contexts)
+        for hardware_interface in self._cm.hardware_interfaces:
+            hardware_interface.initialize(hardware_interface.name, self._cm.node, self._cm.contexts)
+
+        self._cm.spin(default_update_rate, auto_run_rclpy)
+
         pass

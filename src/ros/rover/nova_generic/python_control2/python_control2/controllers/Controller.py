@@ -26,7 +26,7 @@ class Controller(ABC):
         instance._initialized = False
         return instance
 
-    def _initialize(self, name: str, node: Node, contexts: Contexts):
+    def initialize(self, name: str, node: Node, contexts: Contexts):
         """ Runs __init__ manually.
 
         :param name: The name of the controller
