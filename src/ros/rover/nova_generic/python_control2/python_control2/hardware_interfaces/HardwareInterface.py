@@ -68,20 +68,13 @@ class HardwareInterface(ABC):
         controllers. Get any state interfaces you need from this, then store them in member variables.
         :returns: True if the hardware interface was successfully configured. False otherwise.
         """
-        self.name = name
-        self.node: Node = node
-        self.logger = self.node.get_logger()
-
-        self.on_configure(contexts, command_interfaces, state_interfaces)
+        self.on_configure(command_interfaces, state_interfaces)
 
     @abstractmethod
-    def on_configure(self, contexts: Contexts,
-                     command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
+    def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
         """ Used to set up your HardwareInterface. Run once before any other class method.
-        Use this method to get data from self.node, or any other contexts, and get references to any command or state
-        interface you need.
+        Use this method to get data from self.node, and get references to any command or state interface you need.
 
-        :param contexts: A collection of dependency injection class instances you can index by class type.
         :param command_interfaces: A collection of Interfaces used to send messages to hardware. Get any command
         interfaces you need from this, then store them in member variables.
         :param command_interfaces: A collection of Interfaces containing the current state of the robot. Get any state

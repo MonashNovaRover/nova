@@ -80,8 +80,7 @@ class Controller(ABC):
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[
         bool]:
         """ Used to set up your Controller. Run once before any other class method.
-        Use this method to get data from self.node, or any other contexts, and get references to any command or state
-        interface you need.
+        Use this method to get data from self.node, and get references to any command or state interface you need.
 
         :param command_interfaces: A collection of Interfaces used to send messages to hardware. Get any command
         interfaces you need from this, then store them in member variables.
