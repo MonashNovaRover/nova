@@ -3,6 +3,7 @@ from rclpy.node import Node, ParameterDescriptor
 from typing import Type, TypeVar
 
 from .ControllerManager import ControllerManager
+from ..controllers import Controller
 
 T = TypeVar("T")
 
@@ -28,7 +29,9 @@ class ControllerManagerBuilder:
         self._cm.hardware_interface.append(hardware_class(name, self._cm.contexts))
         return self
 
-    def with_controller(self, name: str, controller_class) -> "ControllerManagerBuilder":
+    def with_controller(self, name: str, controller: Controller) -> "ControllerManagerBuilder":
+        controller.name = name
+        self._cm.controllers.append(controller)
         return self
 
     def with_context(self, cls: Type[T], *args, **kwargs) -> "ControllerManagerBuilder":
@@ -53,7 +56,9 @@ class ControllerManagerBuilder:
         # jcan_spin_speed = self.node.declare_parameter("jcan_update_rate", 100, ParameterDescriptor(name="How often to spin jcan per second."))
 
         self.with_context(jcan.Bus)
-        self._cm.contexts[jcan.Bus].open(can_bus)
+        jcan_bus = self._cm.contexts[jcan.Bus]
+        jcan_bus.open(can_bus.value)
+        self._cm.on_read.add_callback(jcan_bus.spin)
 
         return self
 
