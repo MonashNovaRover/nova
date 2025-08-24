@@ -3,8 +3,8 @@ from rclpy.node import Node, ParameterDescriptor
 from typing import Type, TypeVar
 
 from .ControllerManager import ControllerManager
-from ..controllers import Controller
-from ..hardware_interfaces import HardwareInterface
+from ..controllers.Controller import Controller
+from ..hardware_interfaces.HardwareInterface import HardwareInterface
 
 T = TypeVar("T")
 
