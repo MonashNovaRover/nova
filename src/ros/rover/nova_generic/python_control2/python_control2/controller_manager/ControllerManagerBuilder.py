@@ -4,6 +4,7 @@ from typing import Type, TypeVar
 
 from .ControllerManager import ControllerManager
 from ..controllers import Controller
+from ..hardware_interfaces import HardwareInterface
 
 T = TypeVar("T")
 
@@ -25,11 +26,18 @@ class ControllerManagerBuilder:
 
         return cmb
 
-    def with_hardware(self, name: str, hardware_class) -> "ControllerManagerBuilder":
-        self._cm.hardware_interface.append(hardware_class(name, self._cm.contexts))
+    def with_hardware(self, name: str, hardware_interface: HardwareInterface) -> "ControllerManagerBuilder":
+        if isinstance(hardware_interface, type):
+            hardware_interface = hardware_interface()
+
+        hardware_interface.name = name
+        self._cm.hardware_interfaces.append(hardware_interface)
         return self
 
     def with_controller(self, name: str, controller: Controller) -> "ControllerManagerBuilder":
+        if isinstance(controller, type):
+            controller = controller()
+
         controller.name = name
         self._cm.controllers.append(controller)
         return self
