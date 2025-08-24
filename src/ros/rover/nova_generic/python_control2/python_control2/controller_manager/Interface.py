@@ -7,6 +7,9 @@ class Interface(Generic[T]):
     def __init__(self, value: T):
         self.value = value
 
+    # TODO: We need some way to allow hardware interfaces to know if these are actually being used by any controllers
+
+
 class InterfaceCollection:
     """Wrapper for a dictionary of Interfaces. Represents Command and State Interfaces"""
 
