@@ -14,17 +14,54 @@ class HardwareInterface(ABC):
     node: Node
     logger: RcutilsLogger
 
-    def __init__(self):
-        """ Constructor. Does nothing. Override on_configure instead to do what you would normally do with this. """
+    _initialized: bool
+
+    @final
+    def __new__(cls, *args, **kwargs):
+        """ Overrides construction of Controller instances to defer calling __init__ until contexts are available. """
+        # Allocate instance without calling __init__
+        instance = object.__new__(cls)
+        # Store the args for later
+        instance._deferred_args = args
+        instance._deferred_kwargs = kwargs
+        instance._initialized = False
+        return instance
+
+    def _initialize(self, name: str, node: Node, contexts: Contexts):
+        """ Runs __init__ manually.
+
+        :param name: The name of the hardware interface
+        :param node: The node used by the hardware interface for params
+        :param contexts: A collection of dependency injection class instances you can index by class type.
+        """
+        if self._initialized:
+            return self
+
+        self.name = name
+        self.node: Node = node
+        self.logger = self.node.get_logger()
+
+        # Actually call __init__
+        self.__class__.__init__(self, *self._deferred_args, **self._deferred_kwargs, contexts=contexts)
+
+        self._deferred_args = None
+        self._deferred_kwargs = None
+        self._initialized = True
+        return self
+
+    def __init__(self, contexts: Contexts):
+        """ Constructor, deferred until the control manager has been spun.
+        If you override this method, and want to add your own arguments, just make sure contexts is the last arg
+
+        :param contexts: A collection of dependency injection class instances you can index by class type.
+        """
         pass
 
     @final
-    def __configure(self, name: str, node: Node, contexts: Contexts,
-                    command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
+    def _configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
         """ Internal method. Do not use. Replaces the constructor.
 
         :param name: The name of the hardware interface
-        :param contexts: A collection of dependency injection class instances you can index by class type.
         :param command_interfaces: A collection of Interfaces containing commands to send to hardware. Get any command
         interfaces you need from this, then store them in member variables.
         :param command_interfaces: A collection of Interfaces used to send the current state of the robot to

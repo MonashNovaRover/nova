@@ -1,4 +1,5 @@
 from rclpy.node import Node, ParameterDescriptor
+from rclpy.impl.rcutils_logger import RcutilsLogger
 from typing import TypeVar, final, Optional
 from abc import ABC, abstractmethod
 from ..controller_manager.Interface import InterfaceCollection
@@ -8,28 +9,65 @@ T = TypeVar("T")
 
 class Controller(ABC):
     """ TODO: Description """
-    def __init__(self):
-        """ Constructor. Does nothing. Override on_configure instead to do what you would normally do with this. """
+    name: str
+    node: Node
+    logger: RcutilsLogger
+
+    _initialized: bool
+
+    @final
+    def __new__(cls, *args, **kwargs):
+        """ Overrides construction of Controller instances to defer calling __init__ until contexts are available. """
+        # Allocate instance without calling __init__
+        instance = object.__new__(cls)
+        # Store the args for later
+        instance._deferred_args = args
+        instance._deferred_kwargs = kwargs
+        instance._initialized = False
+        return instance
+
+    def _initialize(self, name: str, node: Node, contexts: Contexts):
+        """ Runs __init__ manually.
+
+        :param name: The name of the controller
+        :param node: The node used by the controller for params
+        :param contexts: A collection of dependency injection class instances you can index by class type.
+        """
+        if self._initialized:
+            return self
+
+        self.name = name
+        self.node: Node = node
+        self.logger = self.node.get_logger()
+
+        # Actually call __init__
+        self.__class__.__init__(self, *self._deferred_args, **self._deferred_kwargs, contexts=contexts)
+
+        self._deferred_args = None
+        self._deferred_kwargs = None
+        self._initialized = True
+        return self
+
+    def __init__(self, contexts: Contexts):
+        """ Constructor, deferred until the control manager has been spun.
+        If you override this method, and want to add your own arguments, just make sure contexts is the last arg
+
+        :param contexts: A collection of dependency injection class instances you can index by class type.
+        """
         pass
 
     @final
-    def __configure(self, name: str, node: Node, contexts: Contexts,
-                    command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> bool:
+    def _configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> bool:
         """ Internal method. Do not use. Replaces the constructor.
 
-        :param name: The name of the controller
-        :param contexts: A collection of dependency injection class instances you can index by class type.
         :param command_interfaces: A collection of Interfaces used to send messages to hardware. Get any command
         interfaces you need from this, then store them in member variables.
         :param command_interfaces: A collection of Interfaces containing the current state of the robot. Get any state
         interfaces you need from this, then store them in member variables.
         :returns: True if the controller was successfully configured. False otherwise.
         """
-        self.name = name
-        self.node: Node = node
-        self.logger = self.node.get_logger()
 
-        result = self.on_configure(contexts, command_interfaces, state_interfaces)
+        result = self.on_configure(command_interfaces, state_interfaces)
         successfully_configured = result is None or result
 
         if not successfully_configured:
@@ -38,15 +76,13 @@ class Controller(ABC):
 
         return True
 
-
     @abstractmethod
-    def on_configure(self, contexts: Contexts,
-                     command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
+    def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[
+        bool]:
         """ Used to set up your Controller. Run once before any other class method.
         Use this method to get data from self.node, or any other contexts, and get references to any command or state
         interface you need.
 
-        :param contexts: A collection of dependency injection class instances you can index by class type.
         :param command_interfaces: A collection of Interfaces used to send messages to hardware. Get any command
         interfaces you need from this, then store them in member variables.
         :param command_interfaces: A collection of Interfaces containing the current state of the robot. Get any state
