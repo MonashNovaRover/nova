@@ -8,7 +8,6 @@ super.lib.composeManyExtensions [
   (import ./prerelease.nix)
   (import ./backports.nix)
   (import ./maintanence.nix)
-  (import ./livox-ros-driver2.nix)
 ]
   self
   super
