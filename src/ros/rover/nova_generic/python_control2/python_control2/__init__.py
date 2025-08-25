@@ -5,10 +5,10 @@ from .controller_manager.ControllerManagerBuilder import ControllerManagerBuilde
 from .controller_manager.ControllerManager import ControllerManager
 from .controller_manager.Contexts import Contexts
 
-def PythonControl(system_name: str) -> ControllerManagerBuilder:
+def PythonControl(system_name: str, **kwargs) -> ControllerManagerBuilder:
     """ Creates a ControllerManagerBuilder for a system with the given name.
 
     :param system_name: A name for your python control system.
     :return: A new ControllerManagerBuilder.
     """
-    return ControllerManagerBuilder.NewControllerManager(system_name)
+    return ControllerManagerBuilder.NewControllerManager(system_name, default_params=kwargs)

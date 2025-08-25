@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any, final, TypeVar
 
 import rclpy
 from rcl_interfaces.msg import ParameterDescriptor
@@ -11,10 +11,15 @@ from ..hardware_interfaces.HardwareInterface import HardwareInterface
 from rclpy.node import Node
 from teleop_python_utils.Event import Event
 
+T = TypeVar("T")
+
 class ControllerManager:
 
-    def __init__(self, system_name: str):
+    def __init__(self, system_name: str, default_params: Optional[dict[str, Any]]=None):
+        if default_params is None:
+            default_params = {}
         self.system_name = system_name
+        self.default_params = default_params
         self.contexts: Contexts = Contexts()
         self.controllers: list[Controller] = []
         self.hardware_interfaces: list[HardwareInterface] = []
@@ -73,9 +78,9 @@ class ControllerManager:
             self.node = self.contexts[Node]
 
         # Get the update rate
-        self._update_rate_param: Parameter = self.node.declare_parameter(
+        self._update_rate_param: Parameter = self.declare_parameter(
             "update_rate", default_update_rate,
-            ParameterDescriptor(description="The rate at which update will be called, in hz."))
+            "The rate at which update will be called, in hz.")
         update_period = 1 / self._update_rate_param.value
 
         # Set initial value of _last_now_nanoseconds so we can calculate period for the first update
@@ -86,5 +91,14 @@ class ControllerManager:
             rclpy.spin(self.node)
             rclpy.shutdown()
 
+    @final
+    def declare_parameter(self, name: str, initial_value: T, description: str=""):
+        """ Declare and initialize a parameter. """
+        if name in self.default_params:
+            initial_value = self.default_params[name]
+        return self.node.declare_parameter(name, initial_value, ParameterDescriptor(description=description))
 
-
+    @final
+    def get_parameter(self, name: str):
+        """ Get a parameter by name. """
+        return self.node.get_parameter(name)

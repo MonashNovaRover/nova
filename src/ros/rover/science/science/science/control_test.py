@@ -31,11 +31,11 @@ class TestHardware(HardwareInterface):
         self.state = state_interfaces["state"]
         self.cmd = command_interfaces["cmd"]
 
-    def read(self, now: float, period: float):
+    def on_read(self, now: float, period: float):
         self.state.value = random.uniform(0.0, 10.0)
         self.logger.info(f"read {self.state.value}")
 
-    def write(self, now: float, period: float):
+    def on_write(self, now: float, period: float):
         self.logger.info(f"write {self.cmd.value}\n")
 
 
@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
     rclpy.init()
 
-    PythonControl("control_test")\
+    PythonControl("control_test", update_rate=1)\
         .with_controller("test_controller", TestController)\
         .with_hardware("test_hw", TestHardware)\
         .spin()

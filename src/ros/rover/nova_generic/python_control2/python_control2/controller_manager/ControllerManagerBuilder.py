@@ -1,7 +1,7 @@
 import jcan, logging
 import rclpy
 from rclpy.node import Node, ParameterDescriptor
-from typing import Type, TypeVar, List
+from typing import Type, TypeVar, List, Any, Optional
 
 from .ControllerManager import ControllerManager
 from ..controllers.Controller import Controller
@@ -19,8 +19,8 @@ class ControllerManagerBuilder:
         self.hardware_constructors: List[DeferredConstructor] = []
 
     @classmethod
-    def NewControllerManager(cls, system_name: str) -> "ControllerManagerBuilder":
-        cm = ControllerManager(system_name)
+    def NewControllerManager(cls, system_name: str, default_params: Optional[dict[str, Any]]=None) -> "ControllerManagerBuilder":
+        cm = ControllerManager(system_name, default_params)
 
         if not rclpy.ok():
             print("You should run rclpy.init() before creating python control!")
