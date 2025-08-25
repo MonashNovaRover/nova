@@ -2,12 +2,15 @@
 
 import rclpy
 from typing import Optional
-from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection
+from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
+import random
 
 class TestController(Controller):
+    cmd: Interface
+    state: Interface
+
     def __init__(self, contexts: Contexts):
-        super().__init__(contexts)
-        self.logger.info(f"I have been __init__ialized")
+        self.logger.info(f"Controller -- I have been __init__ialized")
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -19,7 +22,9 @@ class TestController(Controller):
         interfaces you need from this, then store them in member variables.
         :returns: None or True if configured successfully. False otherwise.
         """
-        self.logger.info("Configuring!")
+        self.cmd = command_interfaces["cmd"]
+        self.state = state_interfaces["state"]
+
         return True
 
     def on_update(self, now: float, period: float):
@@ -28,8 +33,28 @@ class TestController(Controller):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-        self.logger.info("Update!")
+        self.cmd.value = 2 * self.state.value
+        self.logger.info(f"controller update {self.state.value} -> {self.cmd.value}")
         pass
+
+class TestHardware(HardwareInterface):
+    state: Interface
+    cmd: Interface
+
+    def __init__(self, contexts: Contexts):
+        self.logger.info(f"HardwareInterface -- I have been __init__ialized")
+
+    def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
+        self.state = state_interfaces["state"]
+        self.cmd = command_interfaces["cmd"]
+        return True
+
+    def read(self, now: float, period: float):
+        self.state.value = random.uniform(0.0, 10.0)
+        print(f"read {self.state.value}")
+
+    def write(self, now: float, period: float):
+        print(f"write {self.cmd.value}")
 
 
 if __name__ == "__main__":
@@ -38,5 +63,6 @@ if __name__ == "__main__":
     rclpy.init()
 
     PythonControl("control_test")\
-        .with_controller("test_controller", TestController())\
+        .with_controller("test_controller", TestController)\
+        .with_hardware("test_hw", TestHardware)\
         .spin()
