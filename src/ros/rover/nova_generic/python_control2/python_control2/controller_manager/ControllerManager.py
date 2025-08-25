@@ -49,7 +49,7 @@ class ControllerManager:
     def update(self, now: float, period: float):
         self.on_read.invoke()
         for hardware_interface in self.hardware_interfaces:
-            hardware_interface.read(now, period)
+            hardware_interface.on_read(now, period)
 
         self.on_update.invoke()
         for controller in self.controllers:
@@ -57,7 +57,7 @@ class ControllerManager:
 
         self.on_write.invoke()
         for hardware_interface in self.hardware_interfaces:
-            hardware_interface.write(now, period)
+            hardware_interface.on_write(now, period)
 
     def spin(self, default_update_rate: float=20, auto_run_rclpy: bool=True) -> None:
         """ Repeatedly updates until the program ends.

@@ -60,7 +60,7 @@ class HardwareInterface(ABC):
         pass
 
     @abstractmethod
-    def read(self, now: float, period: float):
+    def on_read(self, now: float, period: float):
         """ Called to read values from hardware, and put them into stored state interfaces.
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
@@ -68,7 +68,7 @@ class HardwareInterface(ABC):
         pass
 
     @abstractmethod
-    def write(self, now: float, period: float):
+    def on_write(self, now: float, period: float):
         """ Called to write to hardware using values stored in command interfaces.
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
