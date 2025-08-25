@@ -9,6 +9,7 @@
   gst-pipeline-plugins = callPackage ./gst-pipeline-plugins { };
   gst-pipeline-plugins-webrtc = callPackage ./gst-pipeline-plugins-webrtc { };
   librealsense2-gui = callPackage ./librealsense2-gui { };
+  livox-ros-driver2 = callPackage ./livox-ros-driver2 { };
   nova-workspace = callPackage ./nova-workspace { };
   rclnodejs = callPackage ./rclnodejs { };
   realsense-patches = callPackage ./realsense-patches { };
