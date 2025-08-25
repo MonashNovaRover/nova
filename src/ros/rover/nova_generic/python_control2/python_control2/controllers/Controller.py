@@ -1,10 +1,12 @@
 from rclpy.node import Node, ParameterDescriptor
 from rclpy.impl.rcutils_logger import RcutilsLogger
-from typing import final, Optional
+from typing import final, Optional, TypeVar
 from abc import ABC, abstractmethod
 from .DeferredConstructor import DeferredConstructor
 from ..controller_manager.Interface import InterfaceCollection
 from ..controller_manager.Contexts import Contexts
+
+T = TypeVar("T")
 
 class Controller(ABC):
     """ TODO: Description """

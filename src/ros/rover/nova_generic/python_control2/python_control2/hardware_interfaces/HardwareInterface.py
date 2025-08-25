@@ -1,4 +1,4 @@
-from typing import final
+from typing import final, TypeVar
 
 from rclpy.impl.rcutils_logger import RcutilsLogger
 from rclpy.node import Node, ParameterDescriptor
@@ -6,6 +6,8 @@ from abc import ABC, abstractmethod
 from ..controller_manager.Interface import InterfaceCollection
 from ..controller_manager.Contexts import Contexts
 from ..controllers.DeferredConstructor import DeferredConstructor
+
+T = TypeVar("T")
 
 
 class HardwareInterface(ABC):
