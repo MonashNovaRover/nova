@@ -19,6 +19,7 @@
 , teleop-modular-control-mode
 , teleop-modular-input-source
 , teleop-modular-node
+, livox-ros-driver2
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -127,6 +128,7 @@
       teleop-modular-control-mode
       teleop-modular-input-source
       teleop-modular-node
+      livox-ros-driver2
       ;
 }
 }:
