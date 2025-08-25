@@ -4,7 +4,8 @@ from rclpy.node import Node, ParameterDescriptor
 from typing import Type, TypeVar, List
 
 from .ControllerManager import ControllerManager
-from ..controllers.Controller import Controller, DeferredControllerConstructor
+from ..controllers.Controller import Controller
+from ..controllers.DeferredConstructor import DeferredConstructor
 from ..hardware_interfaces.HardwareInterface import HardwareInterface
 
 T = TypeVar("T")
@@ -14,7 +15,8 @@ class ControllerManagerBuilder:
     def __init__(self, controller_manager: ControllerManager):
         self._cm = controller_manager
 
-        self.controller_constructors: List[DeferredControllerConstructor] = []
+        self.controller_constructors: List[DeferredConstructor] = []
+        self.hardware_constructors: List[DeferredConstructor] = []
 
     @classmethod
     def NewControllerManager(cls, system_name: str) -> "ControllerManagerBuilder":
@@ -33,12 +35,12 @@ class ControllerManagerBuilder:
 
         return cmb
 
-    def with_hardware(self, name: str, hardware_interface: HardwareInterface) -> "ControllerManagerBuilder":
+    def with_hardware(self, name: str, hardware_interface: HardwareInterface, *args, **kwargs) -> "ControllerManagerBuilder":
         if isinstance(hardware_interface, type):
-            hardware_interface = hardware_interface()
+            hardware_interface = hardware_interface(*args, **kwargs)
 
         hardware_interface.name = name
-        self._cm.hardware_interfaces.append(hardware_interface)
+        self.hardware_constructors.append(hardware_interface)
         return self
 
     def with_controller(self, name: str, controller: Controller, *args, **kwargs) -> "ControllerManagerBuilder":
@@ -101,8 +103,10 @@ class ControllerManagerBuilder:
         for controller in self._cm.controllers:
             controller.configure(self._cm.command_interfaces, self._cm.state_interfaces)
 
+        for constructor in self.hardware_constructors:
+            self._cm.hardware_interfaces.append(constructor.construct(constructor.name, self._cm.node, self._cm.contexts))
         for hardware_interface in self._cm.hardware_interfaces:
-            hardware_interface.initialize(hardware_interface.name, self._cm.node, self._cm.contexts)
+            hardware_interface.configure(self._cm.command_interfaces, self._cm.state_interfaces)
 
         self._cm.spin(default_update_rate, auto_run_rclpy)
 

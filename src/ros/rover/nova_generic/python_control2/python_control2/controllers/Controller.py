@@ -1,32 +1,10 @@
-from pycparser.c_ast import Typename
 from rclpy.node import Node, ParameterDescriptor
 from rclpy.impl.rcutils_logger import RcutilsLogger
-from typing import TypeVar, final, Optional, Type, Generic
+from typing import final, Optional
 from abc import ABC, abstractmethod
+from .DeferredConstructor import DeferredConstructor
 from ..controller_manager.Interface import InterfaceCollection
 from ..controller_manager.Contexts import Contexts
-
-T = TypeVar("T")
-
-class DeferredControllerConstructor(Generic[T]):
-    def __init__(self, cls: Type[T], *deferred_args, **deferred_kwargs):
-        self.cls = cls
-        self.deferred_args = deferred_args
-        self.deferred_kwargs = deferred_kwargs
-        self.name: Optional[str] = None
-        print("DeferredControllerConstructor init")
-        pass
-
-    def construct(self, name: str, node: Node, contexts: Contexts) -> T:
-        instance = object.__new__(self.cls)
-        instance.name = name
-        instance.node = node
-        instance.logger = instance.node.get_logger()
-
-        self.cls.__init__(instance, contexts, *self.deferred_args, **self.deferred_kwargs)
-
-        return instance
-
 
 class Controller(ABC):
     """ TODO: Description """
@@ -37,9 +15,7 @@ class Controller(ABC):
     @final
     def __new__(cls, *args, **kwargs):
         """ Overrides construction of Controller instances to defer calling __init__ until contexts are available. """
-        # Allocate instance without calling __init__
-        print("Deferred constructor!!!!")
-        return DeferredControllerConstructor(cls, *args, **kwargs)
+        return DeferredConstructor(cls, *args, **kwargs)
 
     def __init__(self, contexts: Contexts):
         """ Constructor, deferred until the control manager has been spun.

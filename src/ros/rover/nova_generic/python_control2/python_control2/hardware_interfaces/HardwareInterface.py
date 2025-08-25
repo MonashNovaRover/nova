@@ -5,6 +5,8 @@ from rclpy.node import Node, ParameterDescriptor
 from abc import ABC, abstractmethod
 from ..controller_manager.Interface import InterfaceCollection
 from ..controller_manager.Contexts import Contexts
+from ..controllers.DeferredConstructor import DeferredConstructor
+
 
 class HardwareInterface(ABC):
     """ A class that has the responsibility of converting measurable SI unit commands to abstract hardware commands
@@ -19,52 +21,24 @@ class HardwareInterface(ABC):
     @final
     def __new__(cls, *args, **kwargs):
         """ Overrides construction of Controller instances to defer calling __init__ until contexts are available. """
-        # Allocate instance without calling __init__
-        instance = object.__new__(cls)
-        # Store the args for later
-        instance._deferred_args = args
-        instance._deferred_kwargs = kwargs
-        instance._initialized = False
-        return instance
-
-    def initialize(self, name: str, node: Node, contexts: Contexts):
-        """ Runs __init__ manually.
-
-        :param name: The name of the hardware interface
-        :param node: The node used by the hardware interface for params
-        :param contexts: A collection of dependency injection class instances you can index by class type.
-        """
-        if self._initialized:
-            return self
-
-        self.name = name
-        self.node: Node = node
-        self.logger = self.node.get_logger()
-
-        # Actually call __init__
-        self.__class__.__init__(self, *self._deferred_args, **self._deferred_kwargs, contexts=contexts)
-
-        self._deferred_args = None
-        self._deferred_kwargs = None
-        self._initialized = True
-        return self
+        return DeferredConstructor(cls, *args, **kwargs)
 
     def __init__(self, contexts: Contexts):
         """ Constructor, deferred until the control manager has been spun.
-        If you override this method, and want to add your own arguments, just make sure contexts is the last arg
+        If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
         """
         pass
 
     @final
-    def _configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
+    def configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
         """ Internal method. Do not use. Replaces the constructor.
 
         :param name: The name of the hardware interface
         :param command_interfaces: A collection of Interfaces containing commands to send to hardware. Get any command
         interfaces you need from this, then store them in member variables.
-        :param command_interfaces: A collection of Interfaces used to send the current state of the robot to
+        :param state_interfaces: A collection of Interfaces used to send the current state of the robot to
         controllers. Get any state interfaces you need from this, then store them in member variables.
         :returns: True if the hardware interface was successfully configured. False otherwise.
         """
@@ -77,7 +51,7 @@ class HardwareInterface(ABC):
 
         :param command_interfaces: A collection of Interfaces used to send messages to hardware. Get any command
         interfaces you need from this, then store them in member variables.
-        :param command_interfaces: A collection of Interfaces containing the current state of the robot. Get any state
+        :param state_interfaces: A collection of Interfaces containing the current state of the robot. Get any state
         interfaces you need from this, then store them in member variables.
         :returns: None or True if configured successfully. False otherwise.
         """
