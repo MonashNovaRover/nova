@@ -18,8 +18,6 @@ class HardwareInterface(ABC):
     node: Node
     logger: RcutilsLogger
 
-    _initialized: bool
-
     @final
     def __new__(cls, *args, **kwargs):
         """ Overrides construction of Controller instances to defer calling __init__ until contexts are available. """
