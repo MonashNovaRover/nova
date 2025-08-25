@@ -1,9 +1,10 @@
 import jcan, logging
+import rclpy
 from rclpy.node import Node, ParameterDescriptor
-from typing import Type, TypeVar
+from typing import Type, TypeVar, List
 
 from .ControllerManager import ControllerManager
-from ..controllers.Controller import Controller
+from ..controllers.Controller import Controller, DeferredControllerConstructor
 from ..hardware_interfaces.HardwareInterface import HardwareInterface
 
 T = TypeVar("T")
@@ -13,12 +14,18 @@ class ControllerManagerBuilder:
     def __init__(self, controller_manager: ControllerManager):
         self._cm = controller_manager
 
+        self.controller_constructors: List[DeferredControllerConstructor] = []
+
     @classmethod
     def NewControllerManager(cls, system_name: str) -> "ControllerManagerBuilder":
         cm = ControllerManager(system_name)
 
+        if not rclpy.ok():
+            print("You should run rclpy.init() before creating python control!")
+            rclpy.init()
+
         cmb = ControllerManagerBuilder(cm)
-        cmb.with_context(Node, name=system_name)
+        cmb.with_context(Node, system_name)
 
         node = cm.contexts[Node]
         logging_level = node.declare_parameter("logging_level", "INFO", ParameterDescriptor(name="Logging level.")).value
@@ -34,12 +41,12 @@ class ControllerManagerBuilder:
         self._cm.hardware_interfaces.append(hardware_interface)
         return self
 
-    def with_controller(self, name: str, controller: Controller) -> "ControllerManagerBuilder":
+    def with_controller(self, name: str, controller: Controller, *args, **kwargs) -> "ControllerManagerBuilder":
         if isinstance(controller, type):
-            controller = controller()
+            controller = controller(*args, **kwargs)
 
         controller.name = name
-        self._cm.controllers.append(controller)
+        self.controller_constructors.append(controller)
         return self
 
     def with_context(self, cls: Type[T], *args, **kwargs) -> "ControllerManagerBuilder":
@@ -51,7 +58,7 @@ class ControllerManagerBuilder:
         :param kwargs: Names args used to construct the class instance with. Leave empty if you want to use an instance
         of the class, rather than constructing one.
         """
-        if len(args) == 1 and len(kwargs) == 0 and isinstance(cls, args[0]):
+        if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], cls):
             # Special case, allowing you to pass in an instance of the class directly.
             self._cm.contexts[cls] = args[0]
             return self
@@ -79,11 +86,21 @@ class ControllerManagerBuilder:
         :param auto_run_rclpy: When True (the default), rclpy.spin() and rclpy.shutdown() will be called automatically
         :return: None
         """
+        # Make sure node is set
+        if Node not in self._cm.contexts:
+            # TODO: Create node
+            self._cm.node = self._cm.contexts.construct(Node, self._cm.system_name)
+        elif self._cm.node is None:
+            self._cm.node = self._cm.contexts[Node]
+
         self._cm.contexts[Node].get_logger().info(f"Starting python control")
 
         # Do deferred initialization
+        for constructor in self.controller_constructors:
+            self._cm.controllers.append(constructor.construct(constructor.name, self._cm.node, self._cm.contexts))
         for controller in self._cm.controllers:
-            controller.initialize(controller.name, self._cm.node, self._cm.contexts)
+            controller.configure(self._cm.command_interfaces, self._cm.state_interfaces)
+
         for hardware_interface in self._cm.hardware_interfaces:
             hardware_interface.initialize(hardware_interface.name, self._cm.node, self._cm.contexts)
 

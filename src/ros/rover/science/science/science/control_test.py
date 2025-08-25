@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 
+import rclpy
 from typing import Optional
-
-from python_control2.controller_manager.ControllerManagerBuilder import ControllerManagerBuilder
-from python_control2.controller_manager.Interface import InterfaceCollection
-from python_control2.controller_manager.Contexts import Contexts
-from python_control2.controllers.Controller import Controller
-
+from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection
 
 class TestController(Controller):
     def __init__(self, contexts: Contexts):
-        self.logger.info("I have been __init__ialized")
+        super().__init__(contexts)
+        self.logger.info(f"I have been __init__ialized")
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -38,6 +35,8 @@ class TestController(Controller):
 if __name__ == "__main__":
     print("Setting up!")
 
-    ControllerManagerBuilder.NewControllerManager("control_test")\
+    rclpy.init()
+
+    PythonControl("control_test")\
         .with_controller("test_controller", TestController())\
         .spin()

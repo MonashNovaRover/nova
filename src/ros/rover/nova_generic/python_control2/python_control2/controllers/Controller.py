@@ -1,11 +1,32 @@
+from pycparser.c_ast import Typename
 from rclpy.node import Node, ParameterDescriptor
 from rclpy.impl.rcutils_logger import RcutilsLogger
-from typing import TypeVar, final, Optional
+from typing import TypeVar, final, Optional, Type, Generic
 from abc import ABC, abstractmethod
 from ..controller_manager.Interface import InterfaceCollection
 from ..controller_manager.Contexts import Contexts
 
 T = TypeVar("T")
+
+class DeferredControllerConstructor(Generic[T]):
+    def __init__(self, cls: Type[T], *deferred_args, **deferred_kwargs):
+        self.cls = cls
+        self.deferred_args = deferred_args
+        self.deferred_kwargs = deferred_kwargs
+        self.name: Optional[str] = None
+        print("DeferredControllerConstructor init")
+        pass
+
+    def construct(self, name: str, node: Node, contexts: Contexts) -> T:
+        instance = object.__new__(self.cls)
+        instance.name = name
+        instance.node = node
+        instance.logger = instance.node.get_logger()
+
+        self.cls.__init__(instance, contexts, *self.deferred_args, **self.deferred_kwargs)
+
+        return instance
+
 
 class Controller(ABC):
     """ TODO: Description """
@@ -13,51 +34,24 @@ class Controller(ABC):
     node: Node
     logger: RcutilsLogger
 
-    _initialized: bool
-
     @final
     def __new__(cls, *args, **kwargs):
         """ Overrides construction of Controller instances to defer calling __init__ until contexts are available. """
         # Allocate instance without calling __init__
-        instance = object.__new__(cls)
-        # Store the args for later
-        instance._deferred_args = args
-        instance._deferred_kwargs = kwargs
-        instance._initialized = False
-        return instance
-
-    def initialize(self, name: str, node: Node, contexts: Contexts):
-        """ Runs __init__ manually.
-
-        :param name: The name of the controller
-        :param node: The node used by the controller for params
-        :param contexts: A collection of dependency injection class instances you can index by class type.
-        """
-        if self._initialized:
-            return self
-
-        self.name = name
-        self.node: Node = node
-        self.logger = self.node.get_logger()
-
-        # Actually call __init__
-        self.__class__.__init__(self, *self._deferred_args, **self._deferred_kwargs, contexts=contexts)
-
-        self._deferred_args = None
-        self._deferred_kwargs = None
-        self._initialized = True
-        return self
+        print("Deferred constructor!!!!")
+        return DeferredControllerConstructor(cls, *args, **kwargs)
 
     def __init__(self, contexts: Contexts):
         """ Constructor, deferred until the control manager has been spun.
-        If you override this method, and want to add your own arguments, just make sure contexts is the last arg
+        If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
         """
+        print("Controller base init")
         pass
 
     @final
-    def _configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> bool:
+    def configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> bool:
         """ Internal method. Do not use. Replaces the constructor.
 
         :param command_interfaces: A collection of Interfaces used to send messages to hardware. Get any command

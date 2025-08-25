@@ -5,7 +5,7 @@ from rcl_interfaces.msg import ParameterDescriptor
 from rclpy import Parameter
 
 from ..controller_manager.Contexts import Contexts
-from ..controller_manager.Interface import Interface
+from ..controller_manager.Interface import Interface, InterfaceCollection
 from ..controllers.Controller import Controller
 from ..hardware_interfaces.HardwareInterface import HardwareInterface
 from rclpy.node import Node
@@ -18,8 +18,8 @@ class ControllerManager:
         self.contexts: Contexts = Contexts()
         self.controllers: list[Controller] = []
         self.hardware_interfaces: list[HardwareInterface] = []
-        self.state_interfaces: list[Interface] = []
-        self.command_interfaces: list[Interface] = []
+        self.state_interfaces: InterfaceCollection = InterfaceCollection()
+        self.command_interfaces: InterfaceCollection = InterfaceCollection()
 
         # Called before hardware interfaces read from hardware
         self.on_read: Event[[]] = Event()
