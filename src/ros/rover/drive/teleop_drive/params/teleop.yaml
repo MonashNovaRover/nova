@@ -41,10 +41,14 @@ teleop_drive:
 
     commands:
       names:
+        - enter_pivot_mode
+        - enter_strafe_mode
+        - enter_tank_mode
         - lock
         - unlock
         - log_locked
         - log_unlocked
+        - set_initial_speed
         - speed_up_coarse
         - speed_down_coarse
         - speed_up_fine
@@ -77,28 +81,37 @@ teleop_drive:
         type: "log"
         message: "Locked"
       log_unlocked:
-        on: "locked/down"
+        on: "locked/up"
         type: "log"
         message: "Unlocked"
 
+      set_initial_speed:
+        on: "start"
+        type: "set_axis"
+        name: "speed"
+        value: 0.0
       speed_up_coarse:
         on_any: ["speed_up_coarse/down", "start"]
         type: "increment_axis"
+        name: "speed"
         by: 0.1
         until: 1.0
       speed_up_fine:
         on: "speed_up_fine/down"
         type: "increment_axis"
+        name: "speed"
         by: 0.01
         until: 1.0
       speed_down_coarse:
         on: "speed_down_coarse/down"
         type: "increment_axis"
+        name: "speed"
         by: -0.1
         until: 0.0
       speed_down_fine:
         on: "speed_down_fine/down"
         type: "increment_axis"
+        name: "speed"
         by: -0.01
         until: 0.0
 
@@ -162,7 +175,7 @@ game_controller_source:
         tank_mode:
           from: "Y"
         lock:
-          from: "GUIDE"
+          from: "BACK"
         unlock:
           from: "START"
         speed_up_coarse:
@@ -177,7 +190,7 @@ game_controller_source:
 
 pivot_mode:
   ros__parameters:
-    topic: "/cmd_vel"
+    stamped_topic: "/cmd_vel"
     # stamped_topic: "/some_stamped_topic"
     qos: 10
 
@@ -191,7 +204,7 @@ pivot_mode:
 
 strafe_mode:
   ros__parameters:
-    topic: "/cmd_vel"
+    stamped_topic: "/cmd_vel"
     # stamped_topic: "/some_stamped_topic"
     qos: 10
 
@@ -205,7 +218,7 @@ strafe_mode:
 
 tank_mode:
   ros__parameters:
-    topic: "/cmd_vel"
+    stamped_topic: "/cmd_vel"
     # stamped_topic: "/some_stamped_topic"
     qos: 10
 
