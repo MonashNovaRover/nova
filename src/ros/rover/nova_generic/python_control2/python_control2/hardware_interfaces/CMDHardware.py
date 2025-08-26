@@ -118,7 +118,6 @@ class CMDHardware(HardwareInterface):
         if self.effort_cmd and self.velocity_cmd:
             self.logger.error(f"You can only control either {self.joint}/effort or {self.joint}/velocity at any given "
                               f"time for CMDHardware \"{self.name}\", but not both!")
-            return False
         elif not self.effort_cmd and not self.velocity_cmd:
             self.logger.warn(f"CMDHardware \"{self.name}\" has no populated command interfaces.")
 
@@ -132,3 +131,7 @@ class CMDHardware(HardwareInterface):
             self.effort_handle.send_value(self.bus, self.can_id, self.effort_cmd.value)
         elif self.velocity_cmd:
             self.velocity_handle.send_value(self.bus, self.can_id, self.velocity_cmd.value)
+        else:
+            # Send a stop command
+            frame_id : int = (CanIdPrefix.SEND.value << 8) | (self.can_id << 4) | CMDHardwareCommand.STOP.value
+            self.bus.send(jcan.Frame(frame_id, []))
