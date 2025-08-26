@@ -1,8 +1,8 @@
 import jcan, logging
 import rclpy
 from rclpy.node import Node, ParameterDescriptor
-from typing import Type, TypeVar, List, Any, Optional, Union
-
+from typing import Type, TypeVar, List, Any, Optional
+from teleop_python_utils.Inputs import Inputs
 from .ControllerManager import ControllerManager
 from ..controllers.Controller import Controller
 from ..controllers.DeferredConstructor import DeferredConstructor
@@ -145,7 +145,8 @@ class ControllerManagerBuilder:
 
         return self
 
-    def with_teleop(self) -> "ControllerManagerBuilder":
+    def with_teleop(self, inputs: Inputs) -> "ControllerManagerBuilder":
+        self._cm.contexts[Inputs] = inputs
         return self
 
     def spin(self, default_update_rate: float=20, auto_run_rclpy: bool=True) -> None:
