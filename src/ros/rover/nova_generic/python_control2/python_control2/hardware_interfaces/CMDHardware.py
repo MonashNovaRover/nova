@@ -93,14 +93,14 @@ class CMDHardware(HardwareInterface):
 
         # Validate the given can_id
         if self.can_id > 0x3F:
-            self.logger.error(f"Given CMD CAN ID ({self.can_id}) is impossible. You should provide the CMD ID part of "
-                              "the CAN frame ID, rather than the whole frame ID (omit the first and last hex characters"
-                              ")\n\t0x043 -> bad\n\t0x4 -> good!")
+            self.logger.error(f"CMD CAN ID for {self.name} ({self.can_id}) is impossible. You should provide the CMD ID"
+                              " part of the CAN frame ID, rather than the whole frame ID (omit the first and last hex "
+                              "characters)\n\t0x043 -> bad\n\t0x4 -> good!")
             return False
         elif self.can_id > 0xF:
-            self.logger.warn(f"Given CMD CAN ID ({self.can_id}) is unlikely to be correct. Make sure you only provide "
-                             "the CMD ID part of the CAN frame ID, rather than the whole frame ID (omit the first and "
-                             "last hex characters)\n\t0x043 -> bad\n\t0x4 -> good!")
+            self.logger.warn(f"CMD CAN ID for {self.name} ({self.can_id}) is unlikely to be correct. Make sure you only"
+                             " provide the CMD ID part of the CAN frame ID, rather than the whole frame ID (omit the "
+                             "first and last hex characters)\n\t0x043 -> bad\n\t0x4 -> good!")
 
         max_effort = self.get_parameter("max_effort").value
         max_effort_can = self.get_parameter("max_effort_can").value
