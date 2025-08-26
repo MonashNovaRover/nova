@@ -166,12 +166,9 @@ class ControllerManagerBuilder:
         # Do deferred initialization
         for constructor in self.controller_constructors:
             self._cm.controllers.append(constructor.construct(self._cm.contexts, self._cm.node))
-        for controller in self._cm.controllers:
-            controller.configure(self._cm.command_interfaces, self._cm.state_interfaces)
-
         for constructor in self.hardware_constructors:
             self._cm.hardware_interfaces.append(constructor.construct(self._cm.contexts, self._cm.node))
-        for hardware_interface in self._cm.hardware_interfaces:
-            hardware_interface.configure(self._cm.command_interfaces, self._cm.state_interfaces)
 
         self._cm.spin(default_update_rate, auto_run_rclpy)
+
+

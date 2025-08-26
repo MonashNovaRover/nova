@@ -90,6 +90,23 @@ class ControllerManager:
         elif self.node is None:
             self.node = self.contexts[Node]
 
+        def set_populated(interface: Interface):
+            """ Called whenever a controller gets a command interface or a hardware interface gets a state interface.
+            """
+            interface.populated = True
+
+        # Set up controllers
+        self.command_interfaces.on_get_item.add_callback(set_populated)
+        for controller in self.controllers:
+            controller.configure(self.command_interfaces, self.state_interfaces)
+        self.command_interfaces.on_get_item.remove_callback(set_populated)
+
+        # Set up hardware interfaces
+        self.state_interfaces.on_get_item.add_callback(set_populated)
+        for hardware_interface in self.hardware_interfaces:
+            hardware_interface.configure(self.command_interfaces, self.state_interfaces)
+        self.state_interfaces.on_get_item.remove_callback(set_populated)
+
         # Get the update rate
         self._update_rate_param: Parameter = self.declare_parameter(
             "update_rate", default_update_rate,
