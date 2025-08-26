@@ -9,6 +9,7 @@ def PythonControl(system_name: str, **kwargs) -> ControllerManagerBuilder:
     """ Creates a ControllerManagerBuilder for a system with the given name.
 
     :param system_name: A name for your python control system.
+    :param kwargs: Allows you to define default parameters as kwargs (i.e. can_bus="can1").
     :return: A new ControllerManagerBuilder.
     """
     return ControllerManagerBuilder.NewControllerManager(system_name, default_params=kwargs)
