@@ -1,4 +1,4 @@
-from typing import final, TypeVar
+from typing import final, TypeVar, Optional
 
 from rclpy.impl.rcutils_logger import RcutilsLogger
 from rclpy.node import Node, ParameterDescriptor
@@ -42,10 +42,16 @@ class HardwareInterface(ABC):
         controllers. Get any state interfaces you need from this, then store them in member variables.
         :returns: True if the hardware interface was successfully configured. False otherwise.
         """
-        self.on_configure(command_interfaces, state_interfaces)
+        result = self.on_configure(command_interfaces, state_interfaces)
+        successfully_configured = result is None or result
+
+        if not successfully_configured:
+            self.logger.error(f"Failed to configure hardware interface \"{self.name}\".")
+            return False
+        return True
 
     @abstractmethod
-    def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
+    def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection)-> Optional[bool]:
         """ Used to set up your HardwareInterface. Run once before any other class method.
         Use this method to get data from self.node, and get references to any command or state interface you need.
 

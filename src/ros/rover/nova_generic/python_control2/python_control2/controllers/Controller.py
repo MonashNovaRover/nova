@@ -38,14 +38,12 @@ class Controller(ABC):
         interfaces you need from this, then store them in member variables.
         :returns: True if the controller was successfully configured. False otherwise.
         """
-
         result = self.on_configure(command_interfaces, state_interfaces)
         successfully_configured = result is None or result
 
         if not successfully_configured:
             self.logger.error(f"Failed to configure controller \"{self.name}\".")
             return False
-
         return True
 
     @abstractmethod

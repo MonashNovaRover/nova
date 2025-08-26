@@ -93,7 +93,7 @@ class CMDHardware(HardwareInterface):
 
         # Validate the given can_id
         if self.can_id > 0x3F:
-            self.logger.error("Given CMD CAN ID ({self.can_id}) is impossible. You should provide the CMD ID part of "
+            self.logger.error(f"Given CMD CAN ID ({self.can_id}) is impossible. You should provide the CMD ID part of "
                               "the CAN frame ID, rather than the whole frame ID (omit the first and last hex characters"
                               ")\n\t0x043 -> bad\n\t0x4 -> good!")
             return False

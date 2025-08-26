@@ -98,13 +98,17 @@ class ControllerManager:
         # Set up controllers
         self.command_interfaces.on_get_item.add_callback(set_populated)
         for controller in self.controllers:
-            controller.configure(self.command_interfaces, self.state_interfaces)
+            result = controller.configure(self.command_interfaces, self.state_interfaces)
+            if not result:
+                self.controllers.remove(controller)
         self.command_interfaces.on_get_item.remove_callback(set_populated)
 
         # Set up hardware interfaces
         self.state_interfaces.on_get_item.add_callback(set_populated)
         for hardware_interface in self.hardware_interfaces:
-            hardware_interface.configure(self.command_interfaces, self.state_interfaces)
+            result = hardware_interface.configure(self.command_interfaces, self.state_interfaces)
+            if not result:
+                self.hardware_interfaces.remove(hardware_interface)
         self.state_interfaces.on_get_item.remove_callback(set_populated)
 
         # Get the update rate
