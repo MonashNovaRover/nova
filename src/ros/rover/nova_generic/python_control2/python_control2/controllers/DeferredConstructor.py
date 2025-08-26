@@ -57,7 +57,7 @@ class DeferredConstructor(Generic[T]):
         # Set default attrs:
         instance.name = name
         instance.node = node
-        instance.logger = instance.node.get_logger()
+        instance.logger = instance.node.get_logger().get_child(instance.name)
 
         # Finally run __init__
         self.cls.__init__(instance, contexts, *self.deferred_args, **self.deferred_kwargs)
