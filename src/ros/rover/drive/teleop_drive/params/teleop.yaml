@@ -2,55 +2,68 @@ teleop_drive:
   ros__parameters:
     # The maximum rate at which updates should occur, and hence the max rate at which commands are sent.
     # Leaving this unset makes the max update rate unlimited.
-    # update_rate: 50.0
+    update_rate: 100.0
 
     # The minimum rate at which updates occur.
     # Leaving this unset will allow for indefinite lapses between updates.
     min_update_rate: 2.0
 
     input_sources:
-      names: [
-        "game_controller_source"
-      ]
+      names:
+        - game_controller_source
 
       # Declare types for the sources
       game_controller_source:
         type: "teleop_modular_joy/JoyInputSource"
 
     control_modes:
-      names: [
+      names:
         # First in the list gets activated at startup
-        "normal_mode",
-        "turbo_mode"
-      ]
+        - pivot_mode
+        - strafe_mode
+        - tank_mode
 
       # Declare types for the modes
-      normal_mode:
+      pivot_mode:
         type: "teleop_modular_twist/TwistControlMode"
-      turbo_mode:
+        controllers:
+          - pivot_drive_controller
+
+      strafe_mode:
         type: "teleop_modular_twist/TwistControlMode"
+        controllers:
+          - strafe_drive_controller
+
+      tank_mode:
+        type: "teleop_modular_twist/TwistControlMode"
+        controllers:
+          - diff_drive_controller
 
     commands:
-      names: [
-        "enter_turbo_mode",
-        "enter_normal_mode",
-        "lock",
-        "unlock",
-        "log_locked",
-        "log_unlocked"
-      ]
+      names:
+        - lock
+        - unlock
+        - log_locked
+        - log_unlocked
+        - speed_up_coarse
+        - speed_down_coarse
+        - speed_up_fine
+        - speed_down_fine
 
-      enter_turbo_mode:
-        on: "turbo_mode/down"
+      enter_pivot_mode:
+        on: "pivot_mode/down"
         type: "switch_control_mode"
-        to: "turbo_mode"
-      enter_normal_mode:
-        on: "turbo_mode/up"
+        to: "pivot_mode"
+      enter_strafe_mode:
+        on: "strafe_mode/down"
         type: "switch_control_mode"
-        to: "normal_mode"
+        to: "strafe_mode"
+      enter_tank_mode:
+        on: "tank_mode/down"
+        type: "switch_control_mode"
+        to: "tank_mode"
       lock:
-        on: "lock/down"
-        # on_any: ["lock/down", "start"]
+        on_any: ["lock/down", "start"]
         type: "set_button"
         name: "locked"
         value: true
@@ -67,6 +80,27 @@ teleop_drive:
         on: "locked/down"
         type: "log"
         message: "Unlocked"
+
+      speed_up_coarse:
+        on_any: ["speed_up_coarse/down", "start"]
+        type: "increment_axis"
+        by: 0.1
+        until: 1.0
+      speed_up_fine:
+        on: "speed_up_fine/down"
+        type: "increment_axis"
+        by: 0.01
+        until: 1.0
+      speed_down_coarse:
+        on: "speed_down_coarse/down"
+        type: "increment_axis"
+        by: -0.1
+        until: 0.0
+      speed_down_fine:
+        on: "speed_down_fine/down"
+        type: "increment_axis"
+        by: -0.01
+        until: 0.0
 
 
 game_controller_source:
@@ -121,21 +155,33 @@ game_controller_source:
           invert: true
 
       buttons:
-        turbo_mode:
+        pivot_mode:
           from: "RIGHTSHOULDER"
+        strafe_mode:
+          from: "LEFTSHOULDER"
+        tank_mode:
+          from: "Y"
         lock:
           from: "GUIDE"
         unlock:
           from: "START"
+        speed_up_coarse:
+          from: "DPAD_UP"
+        speed_down_coarse:
+          from: "DPAD_DOWN"
+        speed_up_fine:
+          from: "DPAD_RIGHT"
+        speed_down_fine:
+          from: "DPAD_LEFT"
 
 
-normal_mode:
+pivot_mode:
   ros__parameters:
-    topic: "/turtle1/cmd_vel"
+    topic: "/cmd_vel"
     # stamped_topic: "/some_stamped_topic"
     qos: 10
 
-    use_speed_input: false
+    use_speed_input: true
 
     scale:
       linear:
@@ -143,19 +189,30 @@ normal_mode:
       angular:
         z: 3.14
 
-
-turbo_mode:
+strafe_mode:
   ros__parameters:
-    topic: "/turtle1/cmd_vel"
+    topic: "/cmd_vel"
     # stamped_topic: "/some_stamped_topic"
     qos: 10
 
-    use_speed_input: false
+    use_speed_input: true
 
     scale:
       linear:
-        all: 4.0
+        x: 1.0
       angular:
         z: 3.14
-        all: 2.0
 
+tank_mode:
+  ros__parameters:
+    topic: "/cmd_vel"
+    # stamped_topic: "/some_stamped_topic"
+    qos: 10
+
+    use_speed_input: true
+
+    scale:
+      linear:
+        x: 1.0
+      angular:
+        z: 3.14
