@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>teleop_drive</name>
+  <version>0.1.0</version>
+  <description>A teleop package for drive.</description>
+  <maintainer email="bailey.chessum1@gmail.com">Bailey Chessum</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake_ros</buildtool_depend>
+
+  <build_depend>teleop_modular_twist</build_depend>
+  <build_export_depend>teleop_modular_twist</build_export_depend>
+
+  <build_depend>teleop_modular_joy</build_depend>
+  <build_export_depend>teleop_modular_joy</build_export_depend>
+
+  <build_depend>teleop_node</build_depend>
+  <build_export_depend>teleop_node</build_export_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
