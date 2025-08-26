@@ -1,7 +1,7 @@
 import jcan, logging
 import rclpy
 from rclpy.node import Node, ParameterDescriptor
-from typing import Type, TypeVar, List, Any, Optional
+from typing import Type, TypeVar, List, Any, Optional, Union
 
 from .ControllerManager import ControllerManager
 from ..controllers.Controller import Controller
@@ -35,21 +35,85 @@ class ControllerManagerBuilder:
 
         return cmb
 
-    def with_hardware(self, name: str, hardware_interface: HardwareInterface, *args, **kwargs) -> "ControllerManagerBuilder":
+    def with_hardware(self, name: str,
+                      hardware_interface: Type[HardwareInterface] | DeferredConstructor[HardwareInterface] | HardwareInterface,
+                      *args, **kwargs) -> "ControllerManagerBuilder":
+        """ Adds a controller to the controller manager.
+
+        :param name: The name to give to the hardware interface 
+        :param hardware_interface: Either:
+          - the hardware interface class,
+          - a deferred constructor for the hardware interface (i.e. if you call `ExampleHardwareInterface()`),
+          - or a hardware interface instance (e.g. if you call `ExampleHardwareInterface().construct(contexts)`)
+        :param args: Any additional arguments to construct the hardware interface with (excluding contexts)
+        :param kwargs: Any additional keyword arguments to construct the hardware interface with (excluding contexts)
+        :returns: self
+        """
         if isinstance(hardware_interface, type):
+            # Type check
+            if not issubclass(hardware_interface, HardwareInterface):
+                raise ValueError(f"${hardware_interface.__name__} must be a subclass of HardwareInterface.")
+
             hardware_interface = hardware_interface(*args, **kwargs)
 
-        hardware_interface.name = name
-        self.hardware_constructors.append(hardware_interface)
-        return self
+        if isinstance(hardware_interface, DeferredConstructor):
+            constructor = hardware_interface
 
-    def with_controller(self, name: str, controller: Controller, *args, **kwargs) -> "ControllerManagerBuilder":
+            # Type check
+            if not issubclass(constructor.cls, HardwareInterface):
+                raise ValueError(f"${constructor.cls.__name__} must be a subclass of HardwareInterface.")
+
+            constructor.name = name
+            self.hardware_constructors.append(constructor)
+            return self
+
+        if isinstance(hardware_interface, HardwareInterface):
+            self._cm.hardware_interfaces.append(hardware_interface)
+            return self
+
+        type_name = hardware_interface.__name__ if isinstance(hardware_interface, type) \
+            else f"{hardware_interface.__class__.__name__} instance"
+        raise TypeError(f"Unsupported hardware_interface argument type given to .with_hardware ({type_name}).")
+
+    def with_controller(self, name: str,
+                        controller: Type[Controller] | DeferredConstructor[Controller] | Controller,
+                        *args, **kwargs) -> "ControllerManagerBuilder":
+        """ Adds a controller to the controller manager.
+
+        :param name: The name to give to the controller
+        :param controller: Either:
+          - the controller class,
+          - a deferred constructor for the controller (i.e. if you call `ExampleController()`),
+          - or a controller instance (e.g. if you call `ExampleController().construct(contexts)`)
+        :param args: Any additional arguments to construct the controller with (excluding contexts)
+        :param kwargs: Any additional keyword arguments to construct the controller with (excluding contexts)
+        :returns: self
+        """
         if isinstance(controller, type):
+            # Type check
+            if not issubclass(controller, Controller):
+                raise TypeError(f"${controller.__name__} must be a subclass of Controller.")
+
             controller = controller(*args, **kwargs)
 
-        controller.name = name
-        self.controller_constructors.append(controller)
-        return self
+        if isinstance(controller, DeferredConstructor):
+            constructor = controller
+
+            # Type check
+            if not issubclass(constructor.cls, Controller):
+                raise TypeError(f"${constructor.cls.__name__} must be a subclass of Controller.")
+
+            constructor.name = name
+            self.controller_constructors.append(constructor)
+            return self
+
+        if isinstance(controller, Controller):
+            self._cm.controllers.append(controller)
+            return self
+
+        type_name = controller.__name__ if isinstance(controller, type) \
+            else f"{controller.__class__.__name__} instance"
+        raise TypeError(f"Unsupported controller argument type given to .with_controller ({type_name}).")
 
     def with_context(self, cls: Type[T], *args, **kwargs) -> "ControllerManagerBuilder":
         """ Adds a context to the control managers contexts. You can either provide an instance of the class, or
@@ -75,7 +139,9 @@ class ControllerManagerBuilder:
         self.with_context(jcan.Bus)
         jcan_bus = self._cm.contexts[jcan.Bus]
         jcan_bus.open(can_bus.value)
-        self._cm.on_read.add_callback(jcan_bus.spin)
+
+        # Spin the bus before calling on_read for each hardware_interface
+        self._cm.on_read.add_callback(lambda now, period: jcan_bus.spin())
 
         return self
 
@@ -99,15 +165,13 @@ class ControllerManagerBuilder:
 
         # Do deferred initialization
         for constructor in self.controller_constructors:
-            self._cm.controllers.append(constructor.construct(constructor.name, self._cm.node, self._cm.contexts))
+            self._cm.controllers.append(constructor.construct(self._cm.contexts, self._cm.node))
         for controller in self._cm.controllers:
             controller.configure(self._cm.command_interfaces, self._cm.state_interfaces)
 
         for constructor in self.hardware_constructors:
-            self._cm.hardware_interfaces.append(constructor.construct(constructor.name, self._cm.node, self._cm.contexts))
+            self._cm.hardware_interfaces.append(constructor.construct(self._cm.contexts, self._cm.node))
         for hardware_interface in self._cm.hardware_interfaces:
             hardware_interface.configure(self._cm.command_interfaces, self._cm.state_interfaces)
 
         self._cm.spin(default_update_rate, auto_run_rclpy)
-
-        pass

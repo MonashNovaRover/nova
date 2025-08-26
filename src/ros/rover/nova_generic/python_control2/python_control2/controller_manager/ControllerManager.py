@@ -16,22 +16,35 @@ T = TypeVar("T")
 class ControllerManager:
 
     def __init__(self, system_name: str, default_params: Optional[dict[str, Any]]=None):
+        """ Constructor.
+        :param system_name: The name of the control system (e.g. 'auger', 'science_platform', etc.)
+        :param default_params: A map of param names to default param values.
+        """
+        self.system_name = system_name
+
         if default_params is None:
             default_params = {}
-        self.system_name = system_name
         self.default_params = default_params
+
+        # Set up internals
+        # Used to provide dependencies in an extensible way
         self.contexts: Contexts = Contexts()
-        self.controllers: list[Controller] = []
-        self.hardware_interfaces: list[HardwareInterface] = []
+
+        # Interfaces
         self.state_interfaces: InterfaceCollection = InterfaceCollection()
         self.command_interfaces: InterfaceCollection = InterfaceCollection()
 
+        # Control Components
+        self.hardware_interfaces: list[HardwareInterface] = []
+        self.controllers: list[Controller] = []
+
+        # Events
         # Called before hardware interfaces read from hardware
-        self.on_read: Event[[]] = Event()
+        self.on_read: Event[[float, float]] = Event()
         # Called before controllers attempt to update
-        self.on_update: Event[[]] = Event()
+        self.on_update: Event[[float, float]] = Event()
         # Called before hardware interfaces write to hardware
-        self.on_write: Event[[]] = Event()
+        self.on_write: Event[[float, float]] = Event()
 
         # The node used by this controller manager. Only guaranteed to have a value after being spun.
         self.node: Optional[Node] = None
@@ -52,15 +65,15 @@ class ControllerManager:
         self._last_now_nanoseconds = now_nanoseconds
 
     def update(self, now: float, period: float):
-        self.on_read.invoke()
+        self.on_read.invoke(now, period)
         for hardware_interface in self.hardware_interfaces:
             hardware_interface.on_read(now, period)
 
-        self.on_update.invoke()
+        self.on_update.invoke(now, period)
         for controller in self.controllers:
             controller.on_update(now, period)
 
-        self.on_write.invoke()
+        self.on_write.invoke(now, period)
         for hardware_interface in self.hardware_interfaces:
             hardware_interface.on_write(now, period)
 
