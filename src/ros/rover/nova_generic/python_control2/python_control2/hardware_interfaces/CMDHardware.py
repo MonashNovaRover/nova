@@ -2,9 +2,8 @@ from typing import List
 
 import jcan
 
-from ..controller_manager.Interface import Interface
+from ..controller_manager.Interface import Interface, InterfaceCollection
 from .HardwareInterface import HardwareInterface
-from .. import InterfaceCollection
 from ..controller_manager.Contexts import Contexts
 from enum import Enum
 from struct import pack
@@ -64,8 +63,11 @@ class CMDHardware(HardwareInterface):
     effort_handle: CMDHardwareHandle
     velocity_handle: CMDHardwareHandle
     can_id: int
+    # The name of the joint
+    joint: str
 
     def __init__(self, contexts: Contexts,
+                 joint: str="",
                  can_id: int=0,
                  max_effort: float=1.0, max_effort_can: int=0x7FFF,
                  max_velocity: float=0.0, max_velocity_can: int=0x7FFF):
@@ -73,6 +75,11 @@ class CMDHardware(HardwareInterface):
 
         self.bus = contexts[jcan.Bus]
 
+        # Default joint name to the hardware interface name
+        if len(joint) == 0:
+            joint = self.name
+
+        self.declare_parameter("joint", joint)
         self.declare_parameter("can_id", can_id)
         self.declare_parameter("max_effort", max_effort)
         self.declare_parameter("max_effort_can", max_effort_can)
@@ -82,6 +89,18 @@ class CMDHardware(HardwareInterface):
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
         # Update params
         self.can_id = self.get_parameter("can_id").value
+        self.joint = self.get_parameter("joint").value
+
+        # Validate the given can_id
+        if self.can_id > 0x3F:
+            self.logger.error("Given CMD CAN ID ({self.can_id}) is impossible. You should provide the CMD ID part of "
+                              "the CAN frame ID, rather than the whole frame ID (omit the first and last hex characters"
+                              ")\n\t0x043 -> bad\n\t0x4 -> good!")
+            return False
+        elif self.can_id > 0xF:
+            self.logger.warn(f"Given CMD CAN ID ({self.can_id}) is unlikely to be correct. Make sure you only provide "
+                             "the CMD ID part of the CAN frame ID, rather than the whole frame ID (omit the first and "
+                             "last hex characters)\n\t0x043 -> bad\n\t0x4 -> good!")
 
         max_effort = self.get_parameter("max_effort").value
         max_effort_can = self.get_parameter("max_effort_can").value
@@ -92,14 +111,18 @@ class CMDHardware(HardwareInterface):
         self.velocity_handle = CMDHardwareHandle(max_velocity, max_velocity_can, CMDHardwareCommand.PID_DRIVE.value)
 
         # Get command interfaces
-        self.effort_cmd = command_interfaces[self.name + "/effort"]
-        self.velocity_cmd = command_interfaces[self.name + "/velocity"]
+        self.effort_cmd = command_interfaces[self.joint + "/effort"]
+        self.velocity_cmd = command_interfaces[self.joint + "/velocity"]
 
+        # Validate command interface configuration
         if self.effort_cmd and self.velocity_cmd:
-            self.logger.error(f"You can only control either /effort or /velocity at any given time for CMDHardware "
-                              f"\"{self.name}\", but not both!")
+            self.logger.error(f"You can only control either {self.joint}/effort or {self.joint}/velocity at any given "
+                              f"time for CMDHardware \"{self.name}\", but not both!")
+            return False
         elif not self.effort_cmd and not self.velocity_cmd:
             self.logger.warn(f"CMDHardware \"{self.name}\" has no populated command interfaces.")
+
+        return True
 
     def on_read(self, now: float, period: float):
         pass

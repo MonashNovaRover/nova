@@ -5,6 +5,9 @@ from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
 import random
 
+from python_control2.hardware_interfaces import CMDHardware
+
+
 class TestController(Controller):
     cmd: Interface
     state: Interface
@@ -57,5 +60,8 @@ if __name__ == "__main__":
     PythonControl("control_test", update_rate=5, can_bus="can1") \
         .with_controller("test_controller", TestController) \
         .with_hardware("test_hw", TestHardware) \
+        .with_hardware("j1_cmd", CMDHardware, "j1", can_id=0x1) \
+        .with_hardware("j2_cmd", CMDHardware, "j2", can_id=0x1F) \
+        .with_hardware("j3_cmd", CMDHardware, "j3", can_id=0x043) \
         .with_jcan() \
         .spin()
