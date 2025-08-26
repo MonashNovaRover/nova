@@ -29,7 +29,10 @@ class InterfaceCollection:
         """ Gets the Interface value at the provided key. Creates one if it doesn't exist. """
         if item not in self._values:
             self._values[item] = Interface(self.default_value)
-        return self._values[item]
+
+        interface = self._values[item]
+        self.on_get_item.invoke(interface)
+        return interface
 
     def __setitem__(self, key, value):
         """ Sets the Interface value at the provided key to the given value. """

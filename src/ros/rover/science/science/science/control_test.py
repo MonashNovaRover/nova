@@ -11,18 +11,26 @@ from python_control2.hardware_interfaces import CMDHardware
 class TestController(Controller):
     cmd: Interface
     state: Interface
+    joint_cmd: Interface
 
-    def __init__(self, contexts: Contexts):
+    def __init__(self, contexts: Contexts, joint: str="joint"):
         super().__init__(contexts)
         self.logger.info(f"Controller -- I have been __init__ialized")
+
+        self.joint = self.declare_parameter("joint", joint).value
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         self.cmd = command_interfaces["cmd"]
         self.state = state_interfaces["state"]
 
+        self.logger.info(f"Getting \"{self.joint + "/effort"}\"")
+        self.joint_cmd = command_interfaces[self.joint + "/effort"]
+
     def on_update(self, now: float, period: float):
         self.cmd.value = 2 * self.state.value
-        self.logger.info(f"controller update {self.state.value} -> {self.cmd.value}")
+        self.joint_cmd.value = self.state.value * 0.1
+        self.logger.info(f"{self.state.value} -> {self.cmd.value}")
+        self.logger.info(f"{self.state.value} -> {self.joint_cmd.value} ({self.joint})")
 
 class TestHardware(HardwareInterface):
     state: Interface
@@ -58,7 +66,7 @@ if __name__ == "__main__":
     rclpy.init()
 
     PythonControl("control_test", update_rate=5, can_bus="can1") \
-        .with_controller("test_controller", TestController) \
+        .with_controller("test_controller", TestController, joint="j1") \
         .with_hardware("test_hw", TestHardware) \
         .with_hardware("j1_cmd", CMDHardware, "j1", can_id=0x1) \
         .with_hardware("j2_cmd", CMDHardware, "j2", can_id=0x1F) \

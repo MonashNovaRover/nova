@@ -24,15 +24,15 @@ class CMDHardwareCommand(Enum):
     # dictates duty cycle with the maximum value of 32767 being full power forward and the minimum of -32768 being full
     # power reverse.
     # Send with int16 data.
-    PWM_DRIVE           = 0x3,
+    PWM_DRIVE           = 0x3
     # Drives the motor in closed loop velocity control mode. Takes in single signed integer. Sign dictates direction,
     # magnitude dictates velocity target with the maximum value of 32767 being full speed forward and the minimum of
     # -32768 being full speed reverse. For specific motors there is a max velocity target recommended is between 70%
     # and 90% to allow it to be achieved by the cmds without clipping.
     # Send with int16 data.
-    PID_DRIVE           = 0x4,
+    PID_DRIVE           = 0x4
     # Complicated. Sets the pid constants. Only used for tuning.
-    PID_TUNE            = 0x5,
+    PID_TUNE            = 0x5
 
 class CMDHardwareHandle:
     def __init__(self, max_value: float, max_value_can: int, command: int):
@@ -50,7 +50,7 @@ class CMDHardwareHandle:
 
         if value > self.max_value:
             data = self.max_value_can
-        elif value < self.max_value:
+        elif value < -self.max_value:
             data = -self.max_value_can
         else:
             data = int(self.max_value_can * value / self.max_value)
@@ -88,8 +88,8 @@ class CMDHardware(HardwareInterface):
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
         # Update params
-        self.can_id = self.get_parameter("can_id").value
-        self.joint = self.get_parameter("joint").value
+        self.can_id: int = self.get_parameter("can_id").value
+        self.joint: str = self.get_parameter("joint").value
 
         # Validate the given can_id
         if self.can_id > 0x3F:
@@ -119,7 +119,8 @@ class CMDHardware(HardwareInterface):
             self.logger.error(f"You can only control either {self.joint}/effort or {self.joint}/velocity at any given "
                               f"time for CMDHardware \"{self.name}\", but not both!")
         elif not self.effort_cmd and not self.velocity_cmd:
-            self.logger.warn(f"CMDHardware \"{self.name}\" has no populated command interfaces.")
+            self.logger.warn(f"CMDHardware \"{self.name}\" has no populated command interfaces. "
+                             f"(\"{self.joint}/effort\", \"{self.joint}/velocity\")")
 
         return True
 
