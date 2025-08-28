@@ -543,9 +543,9 @@ self: super:
             let
               gz-msgs-source = self.fetchgit {
                 url = "https://github.com/gazebosim/gz-msgs.git";
-                rev = "gz-msgs10_10.3.0";
-                name = "gz-msgs10_10.3.0";
-                sha256 = "sha256-dQ6tnpopn21EoFFyoDZPiZC0CEObd1g+nZBjALnmuOw=";
+                rev = "gz-msgs10_10.3.2";
+                name = "gz-msgs10_10.3.2";
+                sha256 = "sha256-lVQ7azT/HesBi3bnk8E5jFYORZh7jAIk6vDK7BcT0Ds=";
                 postFetch = ''
                   cd $out
                   patch -p1 < ${self.fetchpatch {
@@ -558,15 +558,11 @@ self: super:
 
               gz-transport-source = self.fetchgit {
                 url = "https://github.com/gazebosim/gz-transport.git";
-                rev = "gz-transport13_13.4.0";
-                name = "gz-transport13_13.4.0";
-                sha256 = "sha256-ZMOdnq1TJJZD9icyU6AP7+zohTW2U4OkSm9mUH+K82E=";
+                rev = "gz-transport13_13.4.1";
+                name = "gz-transport13_13.4.1";
+                sha256 = "sha256-flyDskV+FD1tMSnVLFEqf1e/tbgVuZjqPpF/M3jVFyU=";
                 postFetch = ''
                   cd $out
-                  patch -p1 < ${self.fetchpatch {
-                    url = "https://github.com/gazebosim/gz-transport/commit/6256a567a7b1053e3522950f7d6708d22d42d38c.patch";
-                    hash = "sha256-8Hg8PkRlwI1XdgDOvxmRjw50EjhcDAoAFfCxFHoUbHE=";
-                  }}
                   patch -p1 <  ${./patches/gz-transport.patch}
                 '';
               };
@@ -574,14 +570,14 @@ self: super:
               
               gz-gui-source = self.fetchgit {
                 url = "https://github.com/gazebosim/gz-gui.git";
-                rev = "gz-gui8_8.3.0";
-                name = "gz-gui8_8.3.0";
-                sha256 = "sha256-WArmuesPXDP2YrAYBvbu0IBJPPJYRl6BzCFvY9JxQ88=";
+                rev = "gz-gui8_8.4.0";
+                name = "gz-gui8_8.4.0";
+                sha256 = "sha256-JT3eq0HG9OnSQhmPvXMd78w7xnVliosHNZ0I1TMpfjY=";
                 postFetch = ''
                   cd $out
                   patch -p1 < ${self.fetchpatch {
                     url = "https://patch-diff.githubusercontent.com/raw/gazebosim/gz-gui/pull/677.patch";
-                    hash = "sha256-EcSXo82JuIhIn1+NZrOwUv7qhlJdiHTYlQzcHEGwqw8=";
+                    hash = "sha256-9nX3/Yyxp5WSE8VvY+TWcfPFNlS8pdbtex0mujqiilw=";
                   }}
                 '';
               };
@@ -589,9 +585,9 @@ self: super:
 
               gz-sim-source = self.fetchgit {
                 url = "https://github.com/gazebosim/gz-sim.git";
-                rev = "gz-sim8_8.6.0";
-                name = "gz-sim8_8.6.0";
-                sha256 = "sha256-36QNPMgDb0Ri3612XVfB2unKtbzEyc0P8lhr8hvZr7w=";
+                rev = "gz-sim8_8.9.0";
+                name = "gz-sim8_8.9.0";
+                sha256 = "sha256-ZzInawfKfuIZ/YsE4ogkBBKzAg8T7bMj/dbo8Hy+hKU=";
                 postFetch = ''
                   cd $out
                   patch -p1 <  ${./patches/gz-sim.patch}
@@ -684,13 +680,13 @@ self: super:
                 }
               );
 
-              gz-sensors-vendor = (
-                rosSelf.lib.patchAmentVendorGit rosSuper.gz-sensors-vendor {
-                  url = "https://github.com/gazebosim/gz-sensors";
-                  rev = "gz-sensors8_8.2.1";
-                  fetchgitArgs.hash = "sha256-wEUJoHbvvImuFbaKk84maw5AoKhoEhdU0uOYVBtHhI0=";
-                }
-              );
+              # gz-sensors-vendor = (
+              #   rosSelf.lib.patchAmentVendorGit rosSuper.gz-sensors-vendor {
+              #     url = "https://github.com/gazebosim/gz-sensors";
+              #     rev = "gz-sensors8_8.2.1";
+              #     fetchgitArgs.hash = "sha256-wEUJoHbvvImuFbaKk84maw5AoKhoEhdU0uOYVBtHhI0=";
+              #   }
+              # );
 
               gz-msgs-vendor = rosSuper.gz-msgs-vendor.overrideAttrs (
                 {
@@ -699,7 +695,7 @@ self: super:
                 }:
                 {
                   postPatch = postPatch + ''
-                    sed -i 's|file:///nix/store/[^"]*gz-msgs10_10\.3\.0\.tar|file://${gz-msgs-tarball}|' CMakeLists.txt
+                    sed -i 's|file:///nix/store/[^"]*gz-msgs10_10\.3\.2\.tar|file://${gz-msgs-tarball}|' CMakeLists.txt
                   ''; 
                 }
               );
@@ -713,7 +709,7 @@ self: super:
                 {
                   # nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
                   postPatch = postPatch + ''
-                    sed -i 's|file:///nix/store/[^"]*gz-transport13_13\.4\.0\.tar|file://${gz-transport-tarball}|' CMakeLists.txt
+                    sed -i 's|file:///nix/store/[^"]*gz-transport13_13\.4\.1\.tar|file://${gz-transport-tarball}|' CMakeLists.txt
                   ''; 
                 }
               );
@@ -725,7 +721,7 @@ self: super:
                 }:
                 {
                   postPatch = postPatch + ''
-                    sed -i 's|file:///nix/store/[^"]*gz-gui8_8\.3\.0\.tar|file://${gz-gui-tarball}|' CMakeLists.txt
+                    sed -i 's|file:///nix/store/[^"]*gz-gui8_8\.4\.0\.tar|file://${gz-gui-tarball}|' CMakeLists.txt
                   ''; 
                 }
               );
@@ -737,7 +733,7 @@ self: super:
                 }:
                 {
                   postPatch = postPatch + ''
-                    sed -i 's|file:///nix/store/[^"]*gz-sim8_8\.6\.0\.tar|file://${gz-sim-tarball}|' CMakeLists.txt
+                    sed -i 's|file:///nix/store/[^"]*gz-sim8_8\.9\.0\.tar|file://${gz-sim-tarball}|' CMakeLists.txt
                   ''; 
                 }
               );
