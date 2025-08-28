@@ -1,5 +1,5 @@
 diff --git a/include/gz/transport/RepHandler.hh b/include/gz/transport/RepHandler.hh
-index b8406439b..ca1c578de 100644
+index b8406439..ca1c578d 100644
 --- a/include/gz/transport/RepHandler.hh
 +++ b/include/gz/transport/RepHandler.hh
 @@ -237,13 +237,13 @@ namespace gz
@@ -19,7 +19,7 @@ index b8406439b..ca1c578de 100644
  
        /// \brief Create a specific protobuf message given its serialized data.
 diff --git a/include/gz/transport/ReqHandler.hh b/include/gz/transport/ReqHandler.hh
-index cea0664dd..df3404581 100644
+index cea0664d..df340458 100644
 --- a/include/gz/transport/ReqHandler.hh
 +++ b/include/gz/transport/ReqHandler.hh
 @@ -285,13 +285,13 @@ namespace gz
@@ -57,7 +57,7 @@ index cea0664dd..df3404581 100644
          {
            std::cerr << "ReqHandler::RepTypeName() Warning: Using RepTypeName() "
 diff --git a/include/gz/transport/SubscriptionHandler.hh b/include/gz/transport/SubscriptionHandler.hh
-index ed705ad92..a612cc40d 100644
+index ed705ad9..a612cc40 100644
 --- a/include/gz/transport/SubscriptionHandler.hh
 +++ b/include/gz/transport/SubscriptionHandler.hh
 @@ -188,7 +188,7 @@ namespace gz
@@ -70,7 +70,7 @@ index ed705ad92..a612cc40d 100644
  
        /// \brief Set the callback for this handler.
 diff --git a/include/gz/transport/detail/Node.hh b/include/gz/transport/detail/Node.hh
-index d069ebdbe..2815e9dee 100644
+index d069ebdb..2815e9de 100644
 --- a/include/gz/transport/detail/Node.hh
 +++ b/include/gz/transport/detail/Node.hh
 @@ -34,7 +34,8 @@ namespace gz
@@ -135,7 +135,7 @@ index d069ebdbe..2815e9dee 100644
        else
        {
 diff --git a/parameters/src/Client.cc b/parameters/src/Client.cc
-index 02aaeb219..a932ae687 100644
+index 02aaeb21..a932ae68 100644
 --- a/parameters/src/Client.cc
 +++ b/parameters/src/Client.cc
 @@ -216,7 +216,7 @@ ParametersClient::DeclareParameter(
@@ -148,7 +148,7 @@ index 02aaeb219..a932ae687 100644
    return ParameterResult{ParameterResultType::Unexpected, _parameterName};
  }
 diff --git a/parameters/src/Registry.cc b/parameters/src/Registry.cc
-index 0e6d308b3..4a5f57fcf 100644
+index 0e6d308b..4a5f57fc 100644
 --- a/parameters/src/Registry.cc
 +++ b/parameters/src/Registry.cc
 @@ -144,7 +144,7 @@ bool ParametersRegistryPrivate::ListParameters(const msgs::Empty &,
@@ -204,7 +204,7 @@ index 0e6d308b3..4a5f57fcf 100644
    it->second = std::move(_value);
    return ParameterResult{ParameterResultType::Success};
 diff --git a/src/CIface_TEST.cc b/src/CIface_TEST.cc
-index b67f3c979..55b4e0e61 100644
+index b67f3c97..55b4e0e6 100644
 --- a/src/CIface_TEST.cc
 +++ b/src/CIface_TEST.cc
 @@ -96,7 +96,7 @@ TEST(CIfaceTest, PubSub)
@@ -250,7 +250,7 @@ index b67f3c979..55b4e0e61 100644
  
    free(buffer);
 diff --git a/src/HandlerStorage_TEST.cc b/src/HandlerStorage_TEST.cc
-index fa2d107bc..638f5a70d 100644
+index fa2d107b..638f5a70 100644
 --- a/src/HandlerStorage_TEST.cc
 +++ b/src/HandlerStorage_TEST.cc
 @@ -67,8 +67,8 @@ TEST(RepStorageTest, RepStorageAPI)
@@ -275,7 +275,7 @@ index fa2d107bc..638f5a70d 100644
    // Verify the handler.
    EXPECT_EQ(handler->TypeName(), sub1HandlerPtr->TypeName());
 diff --git a/src/Node.cc b/src/Node.cc
-index 7e347921d..0e7b19369 100644
+index 7e347921..0e7b1936 100644
 --- a/src/Node.cc
 +++ b/src/Node.cc
 @@ -420,7 +420,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
@@ -288,7 +288,7 @@ index 7e347921d..0e7b19369 100644
        return false;
      }
 diff --git a/src/Node_TEST.cc b/src/Node_TEST.cc
-index 2df093614..cb3bd1d88 100644
+index 2df09361..cb3bd1d8 100644
 --- a/src/Node_TEST.cc
 +++ b/src/Node_TEST.cc
 @@ -346,8 +346,9 @@ class MyTestClass
@@ -353,7 +353,7 @@ index 2df093614..cb3bd1d88 100644
    // Give some time to the subscribers.
    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 diff --git a/src/cmd/gz.cc b/src/cmd/gz.cc
-index adb948c16..fc98d86f9 100644
+index adb948c1..fc98d86f 100644
 --- a/src/cmd/gz.cc
 +++ b/src/cmd/gz.cc
 @@ -186,7 +186,7 @@ extern "C" void cmdTopicPub(const char *_topic,
@@ -366,7 +366,7 @@ index adb948c16..fc98d86f9 100644
      // Publish the message
      if (pub)
 diff --git a/src/cmd/gz_TEST.cc b/src/cmd/gz_TEST.cc
-index 4050e5840..143d1819e 100644
+index 4050e584..143d1819 100644
 --- a/src/cmd/gz_TEST.cc
 +++ b/src/cmd/gz_TEST.cc
 @@ -142,7 +142,8 @@ TEST(gzTest, TopicListSub)
@@ -380,7 +380,7 @@ index 4050e5840..143d1819e 100644
    node.Unsubscribe("/no");
  
 diff --git a/test/integration/test_executables/twoProcsPubSubSubscriber_aux.cc b/test/integration/test_executables/twoProcsPubSubSubscriber_aux.cc
-index 1130e7798..be1598006 100644
+index 1130e779..be159800 100644
 --- a/test/integration/test_executables/twoProcsPubSubSubscriber_aux.cc
 +++ b/test/integration/test_executables/twoProcsPubSubSubscriber_aux.cc
 @@ -100,7 +100,7 @@ void runSubscriber()
@@ -393,7 +393,7 @@ index 1130e7798..be1598006 100644
    int interval = 100;
  
 diff --git a/test/integration/twoProcsPubSub.cc b/test/integration/twoProcsPubSub.cc
-index 0991574ce..c7ee21c55 100644
+index 0991574c..c7ee21c5 100644
 --- a/test/integration/twoProcsPubSub.cc
 +++ b/test/integration/twoProcsPubSub.cc
 @@ -166,7 +166,8 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
