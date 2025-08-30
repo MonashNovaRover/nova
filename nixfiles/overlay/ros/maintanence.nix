@@ -205,23 +205,23 @@ self: super:
           #       }
           #     );
 
-          geometric-shapes = rosSuper.geometric-shapes.overrideAttrs (
-            {
-              patches ? [ ],
-              ...
-            }:
-            {
-              patches = patches ++ [
-                # https://github.com/moveit/geometric_shapes/pull/241
-                (self.fetchpatch {
-                  url = "https://github.com/moveit/geometric_shapes/commit/78898826b16b7547c69c63ce28b9bddcd167a09e.patch";
-                  includes = [ "CMakeLists.txt" ];
-                  revert = true;
-                  hash = "sha256-elLSrqVnyTyG5P+iPXIx0RccC7TmdPVAZtbhpJcYUO0=";
-                })
-              ];
-            }
-          );
+          # geometric-shapes = rosSuper.geometric-shapes.overrideAttrs (
+          #   {
+          #     patches ? [ ],
+          #     ...
+          #   }:
+          #   {
+          #     patches = patches ++ [
+          #       # https://github.com/moveit/geometric_shapes/pull/241
+          #       (self.fetchpatch {
+          #         url = "https://github.com/moveit/geometric_shapes/commit/78898826b16b7547c69c63ce28b9bddcd167a09e.patch";
+          #         includes = [ "CMakeLists.txt" ];
+          #         revert = true;
+          #         hash = "sha256-elLSrqVnyTyG5P+iPXIx0RccC7TmdPVAZtbhpJcYUO0=";
+          #       })
+          #     ];
+          #   }
+          # );
 
           moveit-core = rosSuper.moveit-core.overrideAttrs (
             {

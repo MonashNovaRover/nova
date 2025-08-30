@@ -42,24 +42,32 @@ self: super:
           ];
         });
 
-        # nav2-behavior-tree = rosSuper.nav2-behavior-tree.overrideAttrs ({ patches ? [ ], ... }: {
-        #   patchFlags = [ "-p2" ];
-        #   patches = patches ++ [
-        #     # Remove temp BT.CPP build warning workaround
-        #     # https://github.com/ros-navigation/navigation2/pull/4500
-        #     (self.fetchpatch {
-        #       url = "https://github.com/ros-navigation/navigation2/commit/1d60b16fa848201ff703f7e8939d3f3a043a5ecd.diff";
-        #       hash = "sha256-L1IA9uo1DRaC6dDM2X72CkZallz7Co9yBzWMjqzPDck=";
-        #     })
+        nav2-behavior-tree = rosSuper.nav2-behavior-tree.overrideAttrs ({ patches ? [ ], nativeBuildInputs ? [ ], ... }: {
+          patchFlags = [ "-p2" ];
+          nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
+          patches = patches ++ [
+            # Remove temp BT.CPP build warning workaround
+            # https://github.com/ros-navigation/navigation2/pull/4500
+            (self.fetchpatch {
+              url = "https://github.com/ros-navigation/navigation2/commit/1d60b16fa848201ff703f7e8939d3f3a043a5ecd.diff";
+              hash = "sha256-L1IA9uo1DRaC6dDM2X72CkZallz7Co9yBzWMjqzPDck=";
+            })
 
-        #     # Revamp nav2_behavior_tree CMakeLists.txt to use modern idioms
-        #     # https://github.com/ros-navigation/navigation2/pull/4485
-        #     (self.fetchpatch {
-        #       url = "https://github.com/ros-navigation/navigation2/commit/ba247b473ca1dea4f4ceac06532f6332250615b0.diff";
-        #       hash = "sha256-0BmBqK5gydWw5mzbXTgo2spcLgRZ/vCrIwrFETbt8EA=";
-        #     })
-        #   ];
-        # });
+            # Revamp nav2_behavior_tree CMakeLists.txt to use modern idioms
+            # https://github.com/ros-navigation/navigation2/pull/4485
+            # (self.fetchpatch {
+            #   url = "https://github.com/ros-navigation/navigation2/commit/ba247b473ca1dea4f4ceac06532f6332250615b0.diff";
+            #   hash = "sha256-0BmBqK5gydWw5mzbXTgo2spcLgRZ/vCrIwrFETbt8EA=";
+            # })
+            # Leaving the above in case we need to refer to it again.
+            # This custom patch file was written because the above patch was missing
+            # some lines from the CMakeLists.txt:
+            # install(DIRECTORY test/utils/
+            #   DESTINATION include/${PROJECT_NAME}/nav2_behavior_tree/test/utils
+            # )
+            ./patches/nav2-behavior-tree.patch
+          ];
+        });
 
         nav2-smoother = rosSuper.nav2-smoother.overrideAttrs ({ patches ? [ ], ... }: {
           patchFlags = [ "-p2" ];
