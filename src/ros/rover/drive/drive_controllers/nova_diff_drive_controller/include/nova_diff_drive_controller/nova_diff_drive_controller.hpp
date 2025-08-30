@@ -122,7 +122,7 @@ namespace nova_diff_drive_controller
     std::queue<geometry_msgs::msg::TwistStamped> previous_twist_commands_;  // last two commands
     std::queue<nova_interfaces::msg::DriveInputStamped> previous_commands_; // last two commands
 
-    float angle_offset;
+    double angle_offset;
     // speed limiters
     SpeedLimiter limiter_linear_;
     SpeedLimiter limiter_angular_;
