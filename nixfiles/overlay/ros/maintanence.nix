@@ -223,43 +223,43 @@ self: super:
           #   }
           # );
 
-          moveit-core = rosSuper.moveit-core.overrideAttrs (
-            {
-              postPatch ? "",
-              ...
-            }:
-            {
-              src = self.fetchzip {
-                name = "moveit-core";
-                url = "https://github.com/ros2-gbp/moveit2-release/archive/release/jazzy/moveit_core/2.10.0-1.tar.gz";
-                sha256 = "sha256-WwWn+S+POgbqVVFiTNS9YCPW4HwH0UtkvCrAYRmEuIE=";
-              };
-              postPatch =
-                postPatch
-                + ''
-                  substituteInPlace CMakeLists.txt --replace 'find_package(octomap 1.9.7...<1.10.0 REQUIRED)' 'find_package(octomap 1.9.7...1.10.0 REQUIRED)'
-                '';
-            }
-          );
+          # moveit-core = rosSuper.moveit-core.overrideAttrs (
+          #   {
+          #     postPatch ? "",
+          #     ...
+          #   }:
+          #   {
+          #     src = self.fetchzip {
+          #       name = "moveit-core";
+          #       url = "https://github.com/ros2-gbp/moveit2-release/archive/release/jazzy/moveit_core/2.10.0-1.tar.gz";
+          #       sha256 = "sha256-WwWn+S+POgbqVVFiTNS9YCPW4HwH0UtkvCrAYRmEuIE=";
+          #     };
+          #     postPatch =
+          #       postPatch
+          #       + ''
+          #         substituteInPlace CMakeLists.txt --replace 'find_package(octomap 1.9.7...<1.10.0 REQUIRED)' 'find_package(octomap 1.9.7...1.10.0 REQUIRED)'
+          #       '';
+          #   }
+          # );
 
-          moveit-ros-occupancy-map-monitor = rosSuper.moveit-ros-occupancy-map-monitor.overrideAttrs (
-            {
-              postPatch ? "",
-              ...
-            }:
-            {
-              src = self.fetchzip {
-                name = "ros-jazzy-moveit-ros-occupancy-map-monitor";
-                url = "https://github.com/ros2-gbp/moveit2-release/archive/release/jazzy/moveit_ros_occupancy_map_monitor/2.10.0-1.tar.gz";
-                hash = "sha256-WHbMOwEkQoPOrHQOeH/0GJyEa7g/ez3LJsJTZw6jUUw=";
-              };
-              postPatch =
-                postPatch
-                + ''
-                  substituteInPlace CMakeLists.txt --replace 'find_package(octomap 1.9.7...<1.10.0 REQUIRED)' 'find_package(octomap 1.9.7...1.10.0 REQUIRED)'
-                '';
-            }
-          );
+          # moveit-ros-occupancy-map-monitor = rosSuper.moveit-ros-occupancy-map-monitor.overrideAttrs (
+          #   {
+          #     postPatch ? "",
+          #     ...
+          #   }:
+          #   {
+          #     src = self.fetchzip {
+          #       name = "ros-jazzy-moveit-ros-occupancy-map-monitor";
+          #       url = "https://github.com/ros2-gbp/moveit2-release/archive/release/jazzy/moveit_ros_occupancy_map_monitor/2.10.0-1.tar.gz";
+          #       hash = "sha256-WHbMOwEkQoPOrHQOeH/0GJyEa7g/ez3LJsJTZw6jUUw=";
+          #     };
+          #     postPatch =
+          #       postPatch
+          #       + ''
+          #         substituteInPlace CMakeLists.txt --replace 'find_package(octomap 1.9.7...<1.10.0 REQUIRED)' 'find_package(octomap 1.9.7...1.10.0 REQUIRED)'
+          #       '';
+          #   }
+          # );
 
           nav2-rviz-plugins = rosSuper.nav2-rviz-plugins.overrideAttrs (
             {
@@ -503,34 +503,34 @@ self: super:
       (
         super.rosPackages
         // {
-          foxy = super.rosPackages.foxy.overrideScope (
-            rosSelf: rosSuper: {
-              # Use ros2doctor from Humble: https://github.com/lopsided98/nix-ros-overlay/issues/75#issuecomment-1567281292
-              ros2doctor = rosSelf.callPackage self.rosPackages.humble.ros2doctor.override { };
-            }
-          );
+          # foxy = super.rosPackages.foxy.overrideScope (
+          #   rosSelf: rosSuper: {
+          #     # Use ros2doctor from Humble: https://github.com/lopsided98/nix-ros-overlay/issues/75#issuecomment-1567281292
+          #     ros2doctor = rosSelf.callPackage self.rosPackages.humble.ros2doctor.override { };
+          #   }
+          # );
 
-          humble = super.rosPackages.humble.overrideScope (
-            rosSelf: rosSuper: {
-              nav2-mppi-controller = rosSuper.nav2-mppi-controller.overrideAttrs (
-                {
-                  patches ? [ ],
-                  ...
-                }:
-                {
-                  patches = patches ++ [
-                    # Ignore warnings in included xtensor library
-                    # https://github.com/ros-navigation/navigation2/pull/4285
-                    (self.fetchpatch {
-                      url = "https://github.com/ros-navigation/navigation2/commit/c6ccd8e6db1edc138c6cf3650e192cc595d44e7f.patch";
-                      stripLen = 1;
-                      hash = "sha256-4g2ESEJz7kuPGT4F0OcAkLbZVJ+84R3NQdpFEZW61Ao=";
-                    })
-                  ];
-                }
-              );
-            }
-          );
+          # humble = super.rosPackages.humble.overrideScope (
+          #   rosSelf: rosSuper: {
+          #     nav2-mppi-controller = rosSuper.nav2-mppi-controller.overrideAttrs (
+          #       {
+          #         patches ? [ ],
+          #         ...
+          #       }:
+          #       {
+          #         patches = patches ++ [
+          #           # Ignore warnings in included xtensor library
+          #           # https://github.com/ros-navigation/navigation2/pull/4285
+          #           (self.fetchpatch {
+          #             url = "https://github.com/ros-navigation/navigation2/commit/c6ccd8e6db1edc138c6cf3650e192cc595d44e7f.patch";
+          #             stripLen = 1;
+          #             hash = "sha256-4g2ESEJz7kuPGT4F0OcAkLbZVJ+84R3NQdpFEZW61Ao=";
+          #           })
+          #         ];
+          #       }
+          #     );
+          #   }
+          # );
 
           jazzy = super.rosPackages.jazzy.overrideScope (
             rosSelf: rosSuper: 
