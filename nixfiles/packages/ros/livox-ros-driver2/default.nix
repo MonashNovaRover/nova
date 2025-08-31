@@ -20,11 +20,9 @@
   eigen, 
   flann, 
   pcl-conversions, 
+  livox-sdk2, 
 }:
 
-let
-  livox-sdk2 = callPackage ./livox-sdk2 {};
-in
 buildRosPackage {
   pname = "livox-ros-driver2";
   version = "0.0.0";
