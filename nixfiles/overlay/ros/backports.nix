@@ -86,18 +86,27 @@ self: super:
           patchFlags = [ "-p2" ];
 
           patches = patches ++ [
+            # Fix goal pose stamp (backport #4854) 
+            # https://github.com/ros-navigation/navigation2/pull/4855 
+            (self.fetchpatch { 
+              url = "https://github.com/ros-navigation/navigation2/commit/65eab414f3ddeccceb988e89af91e645c48d06d6.diff"; 
+              revert = true; 
+              hash = "sha256-r5fag+emiM/6qwVgLSDxkVgKvpwuGzKDe8Oh/XfyueM="; 
+            }) 
+            
+            # Mppi goal to critic (backport #4822) 
+            # https://github.com/ros-navigation/navigation2/pull/4853 
+            (self.fetchpatch { 
+              url = "https://github.com/ros-navigation/navigation2/commit/a6a4c26348efc6d7e265a5080d9165a4af699337.diff"; 
+              revert = true; 
+              hash = "sha256-VJveHIlHiAfOZVkNZ2oWB246xRLpqY7fy7eLLFNQjtQ="; 
+            })
+
             # mppi parameters_handler: Improve verbose handling (#4704)
             # https://github.com/ros-navigation/navigation2/pull/4711
             (self.fetchpatch {
               url = "https://github.com/ros-navigation/navigation2/commit/f45d05b809064f27ecd9d141043a01fd8b41f063.diff";
               hash = "sha256-R9TVmtfajtIuGWIMcFG9oQSnd5++OBqNyFsR75kqJwA=";
-            })
-
-            # Publish optimal trajectory as a Path message
-            # https://github.com/ros-navigation/navigation2/pull/4640
-            (self.fetchpatch {
-              url = "https://github.com/ros-navigation/navigation2/commit/836d37c314ac6f680e91e709e244a99009454926.diff";
-              hash = "sha256-3/ox0+GJhacoeT8JXqCyFt8appgLWkrNg4MSQjnW8iY=";
             })
 
             # Fix typos
@@ -135,21 +144,6 @@ self: super:
             (self.fetchpatch {
               url = "https://github.com/ros-navigation/navigation2/commit/694a222edf7c765c9691fdd10a8025ed6b4aa8ce.diff";
               hash = "sha256-X0ncI0CNi4xRxUL6CFzuVGFh1GHGTJ9+AcZ5SzLJWRk=";
-            })
-
-            # Fixing #4661: MPPI ackermann reversing taking incorrect sign sometimes
-            # https://github.com/ros-navigation/navigation2/pull/4664
-            (self.fetchpatch {
-              url = "https://github.com/ros-navigation/navigation2/commit/7eb47d84012dd9e25988ce5c9c269280e6ee3dd1.diff";
-              hash = "sha256-X4ik8egrRCKrUP1dxG/fcsAszg+gnqNbgyK7Zxan608=";
-            })
-
-            # Fixing and refactoring Sovitsky-Golay Filter in MPPI and Smoother
-            # https://github.com/ros-navigation/navigation2/pull/4669
-            (self.fetchpatch {
-              url = "https://github.com/ros-navigation/navigation2/commit/1a3b637d90484a3d6cac5e2cd75836df8518a32b.diff";
-              includes = [ "nav2_mppi_controller/**" ];
-              hash = "sha256-GUeNin987aQoRD5nda+1TSqRiFtSekygitTtGN5kdaQ=";
             })
 
             # 45-50% performance improvement in MPPI controller using Eigen library for computation
