@@ -69,18 +69,18 @@ self: super:
           ];
         });
 
-        nav2-smoother = rosSuper.nav2-smoother.overrideAttrs ({ patches ? [ ], ... }: {
-          patchFlags = [ "-p2" ];
-          patches = patches ++ [
-            # Fixing and refactoring Sovitsky-Golay Filter in MPPI and Smoother
-            # https://github.com/ros-navigation/navigation2/pull/4669
-            (self.fetchpatch {
-              url = "https://github.com/ros-navigation/navigation2/commit/1a3b637d90484a3d6cac5e2cd75836df8518a32b.diff";
-              includes = [ "nav2_smoother/**" ];
-              hash = "sha256-zeqbMHMqgLPEPKiwaoieFNobhTPGA9buGmvIj2SBHc4=";
-            })
-          ];
-        });
+        # nav2-smoother = rosSuper.nav2-smoother.overrideAttrs ({ patches ? [ ], ... }: {
+        #   patchFlags = [ "-p2" ];
+        #   patches = patches ++ [
+        #     # Fixing and refactoring Sovitsky-Golay Filter in MPPI and Smoother
+        #     # https://github.com/ros-navigation/navigation2/pull/4669
+        #     (self.fetchpatch {
+        #       url = "https://github.com/ros-navigation/navigation2/commit/1a3b637d90484a3d6cac5e2cd75836df8518a32b.diff";
+        #       includes = [ "nav2_smoother/**" ];
+        #       hash = "sha256-zeqbMHMqgLPEPKiwaoieFNobhTPGA9buGmvIj2SBHc4=";
+        #     })
+        #   ];
+        # });
 
         nav2-mppi-controller = rosSuper.nav2-mppi-controller.overrideAttrs ({ patches ? [ ], ... }: {
           patchFlags = [ "-p2" ];
