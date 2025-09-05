@@ -36,7 +36,7 @@ bool SelfCollisionLimiter::init(
   return this->on_init();
 }
 
-bool SelfCollisionLimiter::on_configure(const joint_limits::JointLimitsStateDataType &) {
+bool SelfCollisionLimiter::on_configure(const trajectory_msgs::msg::JointTrajectoryPoint &) {
   if (this->urdf_str_.empty()) {
     RCLCPP_ERROR(this->node_logging_itf_->get_logger(), "urdf string is empty");
     return false;
@@ -76,8 +76,8 @@ SelfCollisionLimiter::~SelfCollisionLimiter() {
 }
 
 bool SelfCollisionLimiter::on_enforce(
-    joint_limits::JointLimitsStateDataType & current_joint_states,
-    joint_limits::JointLimitsStateDataType & desired_joint_states,
+    const trajectory_msgs::msg::JointTrajectoryPoint & current_joint_states,
+    trajectory_msgs::msg::JointTrajectoryPoint & desired_joint_states,
     const rclcpp::Duration & dt) {
 
   const auto dt_seconds = dt.seconds();
