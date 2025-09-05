@@ -11,7 +11,7 @@
 
 # Monash Nova Rover
 
-Software for Monash Nova Rover's lunar and martian analog rover.
+Software for Monash Nova Rover's lunar and martian analogue rover.
 
 ## Project Structure
 
