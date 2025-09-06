@@ -13,6 +13,8 @@
 
 Software for Monash Nova Rover's lunar and martian analogue rover.
 
+`nova` is the set of packages that operate on-rover and in the base station for the [Monash Nova Rover](https://www.novarover.space/) student team. It is a collection of mostly ROS2 packages that we use and develop for the [ARCh](https://set.adelaide.edu.au/atcsr/australian-rover-challenge/) and [URC](https://urc.marssociety.org/) competitions. It is installed using the [Nix](https://nixos.org/) package manager, which is managed through [nixfiles](./nixfiles).
+
 ## Project Structure
 
 The [`nova`](https://github.com/MonashNovaRover/nova) repository which encapsulates:
