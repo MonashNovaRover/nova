@@ -17,7 +17,7 @@ Software for Monash Nova Rover's lunar and martian analogue rover.
 
 ## Project Structure
 
-The [`nova`](https://github.com/MonashNovaRover/nova) repository which encapsulates:
+The [`nova`](https://github.com/MonashNovaRover/nova) repository encapsulates:
 - [`nixfiles`](./nixfiles)
   - Describes how the source code is built through nix.
 - [`src`](./src)
