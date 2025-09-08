@@ -80,7 +80,7 @@ let
           # neccesary in CommonMark, and interferes with mkdocs ToC generation.
           # The <name> placeholder, used to describe submodule attribute sets,
           # also needs escaping.
-          replacements = [
+          substitutions = [
             "--replace" ''\.'' ''.''
             "--replace" ''\<name>'' ''&lt;name&gt;''
           ];
