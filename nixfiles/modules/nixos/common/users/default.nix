@@ -9,11 +9,11 @@
         };
       });
       default = { };
-      description = lib.mdDoc "Users that have access to Monash Nova Rover features.";
+      description = "Users that have access to Monash Nova Rover features.";
     };
 
     home-manager.nova.sharedModules = options.home-manager.sharedModules // {
-      description = lib.mdDoc "Extra modules added to Nova Rover users.";
+      description = "Extra modules added to Nova Rover users.";
     };
   };
 
