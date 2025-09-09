@@ -1,6 +1,3 @@
-[submodule "src/ros/gui"]
-	path = src/ros/gui
-	url = git@github.com:MonashNovaRover/gui
 [submodule "src/other/coms_utils"]
 	path = src/other/coms_utils
 	url = git@github.com:MonashNovaRover/coms_utils
