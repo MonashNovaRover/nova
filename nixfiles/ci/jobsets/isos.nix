@@ -92,7 +92,6 @@ let
                 workspace = {
                   enable = includeWorkspace;
                   package = hydraPatchedWorkspace;
-                  services.gui.frontendPackage = hydraPatchedWorkspace.novaPackages.nova-gui-frontend;
                 };
               };
               home-manager.sharedModules = [
