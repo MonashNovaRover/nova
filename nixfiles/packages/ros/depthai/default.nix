@@ -28,7 +28,7 @@ buildRosPackage rec {
     };
     aarch64-linux = {
       url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-depthai/ros-jazzy-depthai_${version}-1noble.20250424.110307_arm64.deb";
-      hash = "";
+      hash = "sha256-F4iAJaKsWG+ES1R4yz06mvbglDDpT7jPBJmbQ5zAM7I=";
     };
   }.${hostPlatform.system} or (throw "There are no DepthAI Core hashes for ${hostPlatform.system}.");
 
