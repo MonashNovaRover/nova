@@ -15,7 +15,7 @@ CREATION:	27/04/2023
 '''
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, PythonExpression
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -23,7 +23,16 @@ from launch_ros.substitutions import FindPackageShare
 from launch.conditions import IfCondition
 
 def launch_setup(context, *args, **kwargs):
-    arm_bringup_dir = FindPackageShare('arm_bringup')
+    arm_bringup_dir = PythonExpression([
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/arm_bringup']),
+        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+        FindPackageShare('arm_bringup'), '"'
+    ])
+    rover_description_dir = PythonExpression([
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/rover_description']),
+        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+        FindPackageShare('rover_description'), '"'
+    ])
 
     gazebo = LaunchConfiguration('gazebo').perform(context)
     model = LaunchConfiguration('model').perform(context)
@@ -35,13 +44,22 @@ def launch_setup(context, *args, **kwargs):
 
     fixed_frame = 'base_link'
 
+    xacro_args = [
+        'gazebo:=', gazebo, ' ',
+        'robot_name:=', robot_name, ' ',
+        'arm:=', arm, ' ',
+        'old_arm:=', old_arm, ' ',
+        'use_mock_hardware:=', use_mock_hardware, ' ',
+        'auto_camera:=false ',
+        'rover_description_dir:=', rover_description_dir, ' ',
+    ]
+    urdf_value = ParameterValue(Command(['xacro ', model, ' '] + xacro_args), value_type=str)
+
     return [
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
-            parameters=[{'robot_description': 
-                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'arm:=', arm, ' ', 'old_arm:=', old_arm, ' ', 'use_mock_hardware:=', use_mock_hardware, ' ', 'auto_camera:=false']), value_type=str)
-            }]
+            parameters=[{'robot_description': urdf_value}]
         ),
         # Launch joint states for arm
         Node(
@@ -67,9 +85,18 @@ def launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-    rover_description_dir = FindPackageShare('rover_description')
+    rover_description_dir = PythonExpression([
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/rover_description']),
+        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+        FindPackageShare('rover_description'), '"'
+    ])
 
     declared_arguments = [
+        DeclareLaunchArgument(
+            name='local',
+            default_value='False',
+            description='whether to use the local rover_description source directory instead of the nix store.',
+        ),
         DeclareLaunchArgument(
             name='gazebo', 
             default_value='True',

@@ -16,7 +16,7 @@
     <visual>
       <origin xyz="1.23537e-17 1.38778e-17 -1.29927e-16" rpy="-4.03092e-16 -5.97772e-16 1.5708" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia/meshes/chassis.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/chassis.stl" />
       </geometry>
       <material name="chassis_material">
         <color rgba="0.882353 0.176471 0.415686 1" />
@@ -88,7 +88,7 @@
     <visual>
       <origin xyz="-7.94612e-19 -7.28584e-20 -0.021" rpy="3.14159 3.78387e-17 1.52126e-18" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia/meshes/right_leg.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/right_leg.stl" />
       </geometry>
       <material name="right_leg_material">
         <color rgba="0.917647 0.917647 0.917647 1" />
@@ -148,7 +148,7 @@
     <visual>
       <origin xyz="0.124153 -2.22045e-16 -0.125" rpy="-1.5708 0.133516 -5.93793e-20" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia/meshes/fr_ankle.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/fr_ankle.stl" />
       </geometry>
       <material name="fr_ankle_material">
         <color rgba="0.901961 0.901961 0.901961 1" />
@@ -172,7 +172,7 @@
     <visual>
       <origin xyz="0 -5.55112e-17 5.55112e-17" rpy="4.0126e-30 1.05893e-16 -7.57529e-20" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia/meshes/fr_wheel.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/fr_wheel.stl" />
       </geometry>
       <material name="fr_wheel_material">
         <color rgba="0.254902 0.254902 0.254902 1" />
@@ -248,7 +248,7 @@
     <visual>
       <origin xyz="0.124153 -1.66533e-16 -0.125" rpy="-1.5708 0.133516 2.88237e-19" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia/meshes/br_ankle.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/br_ankle.stl" />
       </geometry>
       <material name="br_ankle_material">
         <color rgba="0.901961 0.901961 0.901961 1" />
@@ -272,7 +272,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="1.19289e-30 1.05893e-16 -2.78734e-19" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia/meshes/br_wheel.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/br_wheel.stl" />
       </geometry>
       <material name="br_wheel_material">
         <color rgba="0.254902 0.254902 0.254902 1" />
@@ -368,7 +368,7 @@
     <visual>
       <origin xyz="-1.30788e-20 8.67362e-19 -0.021" rpy="-3.14159 6.228e-19 -4.12329e-18" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia/meshes/left_leg.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/left_leg.stl" />
       </geometry>
       <material name="left_leg_material">
         <color rgba="0.917647 0.917647 0.917647 1" />
@@ -428,7 +428,7 @@
     <visual>
       <origin xyz="-0.124153 2.77556e-16 -0.125" rpy="-1.5708 -0.133516 8.56405e-20" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia/meshes/fl_ankle.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/fl_ankle.stl" />
       </geometry>
       <material name="fl_ankle_material">
         <color rgba="0.901961 0.901961 0.901961 1" />
@@ -452,7 +452,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="4.68442e-31 1.05893e-16 2.39108e-19" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia/meshes/fl_wheel.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/fl_wheel.stl" />
       </geometry>
       <material name="fl_wheel_material">
         <color rgba="0.254902 0.254902 0.254902 1" />
@@ -528,7 +528,7 @@
     <visual>
       <origin xyz="-0.124153 3.33067e-16 -0.125" rpy="-1.5708 -0.133516 7.57836e-20" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia/meshes/bl_ankle.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/bl_ankle.stl" />
       </geometry>
       <material name="bl_ankle_material">
         <color rgba="0.901961 0.901961 0.901961 1" />
@@ -552,7 +552,7 @@
     <visual>
       <origin xyz="0 5.55112e-17 5.55112e-17" rpy="-2.95198e-31 1.05893e-16 1.07418e-18" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia/meshes/bl_wheel.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/bl_wheel.stl" />
       </geometry>
       <material name="bl_wheel_material">
         <color rgba="0.254902 0.254902 0.254902 1" />
@@ -606,7 +606,7 @@
     <visual>
       <origin xyz="4.97706e-14 -0.000154266 -0.01" rpy="1.5708 -3.05129e-34 0" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia/meshes/diffbar.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/diffbar.stl" />
       </geometry>
       <material name="diffbar_material">
         <color rgba="0.262745 0.282353 0.301961 1" />
@@ -638,7 +638,7 @@
     <visual>
       <origin xyz="-2.77556e-15 -0.05775 3.33067e-16" rpy="1.5708 -1.51279 -3.14159" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia/meshes/left_difflink.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/left_difflink.stl" />
       </geometry>
       <material name="left_difflink_material">
         <color rgba="0.917647 0.917647 0.917647 1" />
@@ -740,7 +740,7 @@
     <visual>
       <origin xyz="6.21725e-15 -0.05775 -2.44249e-15" rpy="1.5708 1.51279 3.14159" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia/meshes/right_difflink.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/right_difflink.stl" />
       </geometry>
       <material name="right_difflink_material">
         <color rgba="0.917647 0.917647 0.917647 1" />
