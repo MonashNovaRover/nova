@@ -120,17 +120,17 @@ return_type JointSpaceControlMode::on_update(const rclcpp::Time & now, const rcl
   auto msg = std::make_unique<nova_interfaces::msg::ArmFkVelocityTargets>();
   msg->header.stamp = now;
 
-  RCLCPP_DEBUG(logger, "Calculating speed coefficient");
+//  RCLCPP_DEBUG(logger, "Calculating speed coefficient");
   const float speed_coefficient = params_.use_speed_input ? std::max(speed_.value(), 0.0f) : 1.0f;
 
-  RCLCPP_DEBUG(logger, "Updating joint inputs");
-  for (const auto& [name, axis, scale] : joints_) {
-    RCLCPP_DEBUG(logger, "  [%s]", name.c_str());
-  }
+//  RCLCPP_DEBUG(logger, "Updating joint inputs");
+//  for (const auto& [name, axis, scale] : joints_) {
+//    RCLCPP_DEBUG(logger, "  [%s]", name.c_str());
+//  }
 
-  RCLCPP_DEBUG(logger, "Updating joint inputs");
+//  RCLCPP_DEBUG(logger, "Updating joint inputs");
   for (const auto& [name, axis, scale] : joints_) {
-    RCLCPP_DEBUG(logger, "  [%s]", name.c_str());
+//    RCLCPP_DEBUG(logger, "  [%s]", name.c_str());
 
     if (!axis) {
       RCLCPP_ERROR(logger, "Axis is missing for joint %s", name.c_str());
@@ -141,14 +141,14 @@ return_type JointSpaceControlMode::on_update(const rclcpp::Time & now, const rcl
 
     const float input = axis.value();
 
-    RCLCPP_DEBUG(logger, "  - %s\t%f", name.c_str(), input);
+//    RCLCPP_DEBUG(logger, "  - %s\t%f", name.c_str(), input);
     double velocity = static_cast<double>(input) * speed_coefficient * scale;
 
-    RCLCPP_DEBUG(logger, "  - Putting velocity into message");
+//    RCLCPP_DEBUG(logger, "  - Putting velocity into message");
     msg->velocity.emplace_back(velocity);
   }
 
-  RCLCPP_DEBUG(logger, "Publishing message");
+//  RCLCPP_DEBUG(logger, "Publishing message");
   if (publisher_) {
     publisher_->publish(std::move(msg));
   }
