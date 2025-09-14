@@ -9,7 +9,7 @@ teleop_arm:
     # Leaving this unset will allow for indefinite lapses between updates.
     min_update_rate: 4.0
 
-#    log_controllers: true
+    controller_manager: "/arm/controller_manager"
 
     input_sources:
       names:

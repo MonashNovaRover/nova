@@ -34,11 +34,6 @@ def launch_setup(context, *args, **kwargs):
                 {'log_inputs': ParameterValue(log_inputs, value_type=bool)}
             ],
 
-            remappings=[
-                ('controller_manager/switch_controller', 'arm/controller_manager/switch_controller'),
-                ('controller_manager/list_controllers', 'arm/controller_manager/list_controllers')
-            ],
-
             additional_env={
                 # Show colors in the terminal output
                 'RCUTILS_COLORIZED_OUTPUT': '1',
