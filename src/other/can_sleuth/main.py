@@ -5,7 +5,9 @@ import blcmd_emulator
 import meta
 import manager
 
-def taipan(interface="can1", emulate=True):
+import sys
+
+def taipan(interface="can1", emulate=False):
     devices = [
             blcmd.BLCMD("J1", 1, interface),
             blcmd.BLCMD("J2", 2, interface),
@@ -27,7 +29,8 @@ def taipan(interface="can1", emulate=True):
     return devices
 
 if __name__ == "__main__":
-    devices = taipan()
+    emulate = input("Do you have real blcmds connected? (Y/N): ").lower()[0] == 'n'
+    devices = taipan(emulate=emulate)
     manager = manager.Manager(devices,outputs=None)
     
     while True:
