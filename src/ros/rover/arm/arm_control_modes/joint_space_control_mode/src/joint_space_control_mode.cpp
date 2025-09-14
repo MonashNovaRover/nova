@@ -121,7 +121,7 @@ return_type JointSpaceControlMode::on_update(const rclcpp::Time & now, const rcl
   msg->header.stamp = now;
 
   RCLCPP_DEBUG(logger, "Calculating speed coefficient");
-  const float speed_coefficient = params_.use_speed_input ? std::max(speed_->value(), 0.0f) : 1.0f;
+  const float speed_coefficient = params_.use_speed_input ? std::max(speed_.value(), 0.0f) : 1.0f;
 
   RCLCPP_DEBUG(logger, "Updating joint inputs");
   for (const auto& [name, axis, scale] : joints_) {
@@ -133,13 +133,13 @@ return_type JointSpaceControlMode::on_update(const rclcpp::Time & now, const rcl
     RCLCPP_DEBUG(logger, "  [%s]", name.c_str());
 
     if (!axis) {
-      RCLCPP_ERROR(logger, "Axis::SharedPtr is missing for joint %s", name.c_str());
+      RCLCPP_ERROR(logger, "Axis is missing for joint %s", name.c_str());
       continue;
     }
 
     msg->name.emplace_back(name);
 
-    const float input = axis->value();
+    const float input = axis.value();
 
     RCLCPP_DEBUG(logger, "  - %s\t%f", name.c_str(), input);
     double velocity = static_cast<double>(input) * speed_coefficient * scale;
@@ -168,9 +168,6 @@ CallbackReturn JointSpaceControlMode::on_cleanup(const State &)
 
 CallbackReturn JointSpaceControlMode::on_shutdown(const State &)
 {
-  locked_.reset();
-  speed_.reset();
-
   joints_.clear();
 
   publisher_.reset();

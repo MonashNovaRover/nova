@@ -88,11 +88,11 @@ let
       (import ./overlay)
 
       # Add teleop_modular
-      (import (pkgs.fetchFromGitHub {
+      (import (pkgs.lib.maybeEnv "TELEOP_PATH" (pkgs.fetchFromGitHub {
         owner = "BaileyChessum";
         repo = "teleop_modular";
         inherit (revisions.teleop-modular) rev hash;
-      } + "/overlay.nix"))
+      }) + "/overlay.nix"))
 
       # Add internally defined packages.
       (self: super: import ./packages/other { inherit (self) callPackage; })
