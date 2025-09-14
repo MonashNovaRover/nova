@@ -63,7 +63,7 @@ class TUI(output.Output):
         width = len(device.getName())+2
         for attr in device.attrs:
             height += attr.height
-            width = max(width, attr.width+len(attr.name)+2)
+            width = max(width, attr.width+len(attr.name)+2+ len(attr.units))
         return (width+2, height+2) # include border
 
 
