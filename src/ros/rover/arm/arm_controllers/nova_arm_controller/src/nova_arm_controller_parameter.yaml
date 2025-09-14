@@ -4,6 +4,11 @@ nova_arm_controller:
     default_value: [],
     description: "Names of the joints in the arm. Other arrays in this config must be in the same order",
   }
+  topic: {
+    type: string,
+    default_value: "/arm/forward_command",
+    description: "The name of the topic to get command messages from."
+  }
   use_position_control: {
     type: bool,
     default_value: false,

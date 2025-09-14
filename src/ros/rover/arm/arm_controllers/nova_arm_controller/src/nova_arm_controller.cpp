@@ -291,7 +291,7 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
   RCLCPP_INFO(get_node()->get_logger(), "Creating subscriber");
 
   input_subscriber_ = get_node()->create_subscription<nova_interfaces::msg::ArmFkVelocityTargets>(
-  DEFAULT_INPUT_TOPIC_ARM_JOINT_VELOCITY, rclcpp::SystemDefaultsQoS(),
+  params_.topic, rclcpp::SystemDefaultsQoS(),
   [this](const std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets> msg) -> void
   {
     if (!subscriber_is_active_)
