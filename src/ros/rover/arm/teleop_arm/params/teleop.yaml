@@ -9,6 +9,8 @@ teleop_arm:
     # Leaving this unset will allow for indefinite lapses between updates.
     min_update_rate: 4.0
 
+#    log_controllers: true
+
     input_sources:
       names:
         - joy_input_source
@@ -31,8 +33,8 @@ teleop_arm:
       task_space_mode:
         type: "teleop_modular_twist/TwistControlMode"
         controllers:
-          - nova_arm_position_controller
           - nova_twistmapper
+          - nova_arm_position_controller
 
     commands:
       names:
