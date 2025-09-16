@@ -47,7 +47,8 @@ class BLCMD(candevice.CanDevice):
         if len(frame.data) == len(labels)*2:
             for i, label in enumerate(labels):
                 # TODO: I think this is wrong for negative integers
-                self.telemetry[label] = frame.data[2*i]*0xff + frame.data[2*i+1]
+                #self.telemetry[label] = frame.data[2*i]*0xff + frame.data[2*i+1]
+                self.telemetry[label] = hex(0x10000+frame.data[2*i]*0xff + frame.data[2*i+1])[3:]
 
 
     errorCodes = {
