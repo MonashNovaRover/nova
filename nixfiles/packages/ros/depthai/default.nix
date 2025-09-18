@@ -6,6 +6,7 @@
 , dpkg
 , autoPatchelfHook
 , opencv
+, breakpointHook
 }:
 
 buildRosPackage rec {
@@ -32,10 +33,11 @@ buildRosPackage rec {
     };
   }.${hostPlatform.system} or (throw "There are no DepthAI Core hashes for ${hostPlatform.system}.");
 
-  nativeBuildInputs = [ dpkg autoPatchelfHook ];
+  nativeBuildInputs = [ dpkg autoPatchelfHook breakpointHook ];
   buildInputs = [ stdenv.cc.cc.lib opencv ];
 
   dontBuild = true;
+  autoPatchelfIgnoreMissingDeps = true;
 
   installPhase = ''
     mkdir -p "$out"
