@@ -37,7 +37,7 @@ buildRosPackage rec {
   buildInputs = [ stdenv.cc.cc.lib opencv ];
 
   dontBuild = true;
-  autoPatchelfIgnoreMissingDeps = true;
+  dontAutoPatchelf = true;
 
   installPhase = ''
     mkdir -p "$out"
@@ -57,5 +57,7 @@ buildRosPackage rec {
       substituteInPlace "$out/lib/cmake/depthai/$f.cmake" \
         --replace-fail "\''${_IMPORT_PREFIX}" "$out"
     done
+
+    autoPatchelf $out
   '';
 }
