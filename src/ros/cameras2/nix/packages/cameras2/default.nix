@@ -1,7 +1,7 @@
 { lib
 , buildRosPackage
 , wrapGAppsNoGuiHook
-, substituteAll
+, substitute
 , gobject-introspection
 , gst_all_1
 , libnice
@@ -27,13 +27,17 @@ buildRosPackage {
   };
 
   patches = [
-    (substituteAll {
+    (substitute {
       src = ./patches/launch-executable-locations.patch;
-      gst_plugins_rs = gst_all_1.gst-plugins-rs;
+      substitutions = [
+        "--subst-var-by" "gst_plugins_rs" "${gst_all_1.gst-plugins-rs}"
+      ];
     })
-    (substituteAll {
+    (substitute {
       src = ./patches/launch-patch-ros-streamer.patch;
-      gst_plugins_rs = gst_all_1.gst-plugins-rs;
+      substitutions = [
+        "--subst-var-by" "gst_plugins_rs" "${gst_all_1.gst-plugins-rs}"
+      ];
     })
   ];
 
