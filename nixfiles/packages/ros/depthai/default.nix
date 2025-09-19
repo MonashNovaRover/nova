@@ -6,11 +6,12 @@
 , dpkg
 , autoPatchelfHook
 , opencv
+, breakpointHook
 }:
 
 buildRosPackage rec {
   pname = "depthai";
-  version = "2.28.0";
+  version = "2.30.0";
   buildType = "prebuilt";
 
   src = fetchurl {
@@ -23,19 +24,20 @@ buildRosPackage rec {
     #
     # http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-depthai
     x86_64-linux = {
-      url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-depthai/ros-jazzy-depthai_${version}-1noble.20240822.150456_amd64.deb";
-      hash = "sha256-4fAEmPSQJXQFl4efPTEt6C2C0/eoHy2tE6Z8CXNsYp4=";
+      url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-depthai/ros-jazzy-depthai_${version}-1noble.20250424.110737_amd64.deb";
+      hash = "sha256-RkpECv8yHjuIdH72ilUsuLKEv/OhAlPdTHfReE6QAZg=";
     };
     aarch64-linux = {
-      url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-depthai/ros-jazzy-depthai_${version}-1noble.20240822.150457_arm64.deb";
-      hash = "sha256-qvAXejjxyVtimsg9Xx0fBQaJWsUtIzm7fgEzCDwSdcs=";
+      url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-depthai/ros-jazzy-depthai_${version}-1noble.20250424.110307_arm64.deb";
+      hash = "sha256-F4iAJaKsWG+ES1R4yz06mvbglDDpT7jPBJmbQ5zAM7I=";
     };
   }.${hostPlatform.system} or (throw "There are no DepthAI Core hashes for ${hostPlatform.system}.");
 
-  nativeBuildInputs = [ dpkg autoPatchelfHook ];
+  nativeBuildInputs = [ dpkg autoPatchelfHook breakpointHook ];
   buildInputs = [ stdenv.cc.cc.lib opencv ];
 
   dontBuild = true;
+  dontAutoPatchelf = true;
 
   installPhase = ''
     mkdir -p "$out"
@@ -55,5 +57,7 @@ buildRosPackage rec {
       substituteInPlace "$out/lib/cmake/depthai/$f.cmake" \
         --replace-fail "\''${_IMPORT_PREFIX}" "$out"
     done
+
+    autoPatchelf $out
   '';
 }

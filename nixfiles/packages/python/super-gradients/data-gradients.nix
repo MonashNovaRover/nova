@@ -1,7 +1,25 @@
 { buildPythonPackage
 , fetchFromGitHub
-, python3Packages
+, coverage
+, fonttools
+, hydra-core
+, jinja2
+, matplotlib
+, numpy
+, omegaconf
 , opencv4
+, pillow
+, platformdirs
+, pygments
+, pytorch
+, rapidfuzz
+, scipy
+, seaborn
+, tensorboard
+, tqdm
+, torchvision
+, werkzeug
+, wheel
 }:
 
 buildPythonPackage rec {
@@ -16,29 +34,29 @@ buildPythonPackage rec {
     hash = "sha256-B2IuNMTZnzBi6IxrHBoMDsmIcqGQpznd/2f1XKo1Oa4=";
   };
 
-  propagatedBuildInputs = with python3Packages; [
+  propagatedBuildInputs = [
+    coverage
+    fonttools
     hydra-core
+    # imagededup duplicate error
+    jinja2
+    matplotlib
+    numpy
     omegaconf
-    pygments
-    tqdm
-    platformdirs
     opencv4
     pillow
-    werkzeug
-    tensorboard
+    platformdirs
+    pygments
     pytorch
-    torchvision
-    numpy
-    matplotlib
-    scipy
     rapidfuzz
-    coverage
+    scipy
     seaborn
-    #xhtml2pdf pyhanko error https://github.com/NixOS/nixpkgs/issues/355162
-    jinja2
-    #imagededup duplicate error
-    fonttools
+    tensorboard
+    tqdm
+    torchvision
+    werkzeug
     wheel
+    # xhtml2pdf pyhanko error https://github.com/NixOS/nixpkgs/issues/355162
   ];
 
   postPatch = ''

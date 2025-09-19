@@ -182,90 +182,84 @@ self: super:
             }
           );
 
-          # osqp-vendor CMakeLists patched to not try to pull from osqp during build
-          osqp-vendor =
-            (rosSelf.lib.patchExternalProjectGit rosSuper.osqp-vendor {
-              url = "https://github.com/osqp/osqp.git";
-              originalRev = "";
-              rev = "v0.6.2";
-              fetchgitArgs.hash = "sha256-RYk3zuZrJXPcF27eMhdoZAio4DZ+I+nFaUEg1g/aLNk=";
-            }).overrideAttrs
-              (
-                {
-                  preFixup ? "",
-                  nativeBuildInputs ? "",
-                  ...
-                }:
-                {
+          # # osqp-vendor CMakeLists patched to not try to pull from osqp during build
+          # osqp-vendor =
+          #   (rosSelf.lib.patchExternalProjectGit rosSuper.osqp-vendor {
+          #     url = "https://github.com/osqp/osqp.git";
+          #     originalRev = "";
+          #     rev = "v0.6.2";
+          #     fetchgitArgs.hash = "sha256-RYk3zuZrJXPcF27eMhdoZAio4DZ+I+nFaUEg1g/aLNk=";
+          #   }).overrideAttrs
+          #     (
+          #       {
+          #         preFixup ? "",
+          #         nativeBuildInputs ? "",
+          #         ...
+          #       }:
+          #       {
+          #         nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
+          #         preFixup = preFixup + ''
+          #           mv "$out/lib64/cmake/"* "$out/lib/cmake"
+          #           rmdir "$out/lib64/cmake"
+          #         '';
+          #       }
+          #     );
 
-                  nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
+          # geometric-shapes = rosSuper.geometric-shapes.overrideAttrs (
+          #   {
+          #     patches ? [ ],
+          #     ...
+          #   }:
+          #   {
+          #     patches = patches ++ [
+          #       # https://github.com/moveit/geometric_shapes/pull/241
+          #       (self.fetchpatch {
+          #         url = "https://github.com/moveit/geometric_shapes/commit/78898826b16b7547c69c63ce28b9bddcd167a09e.patch";
+          #         includes = [ "CMakeLists.txt" ];
+          #         revert = true;
+          #         hash = "sha256-elLSrqVnyTyG5P+iPXIx0RccC7TmdPVAZtbhpJcYUO0=";
+          #       })
+          #     ];
+          #   }
+          # );
 
-                  preFixup =
-                    preFixup
-                    + ''
-                      mv "$out/lib64/cmake/"* "$out/lib/cmake"
-                      rmdir "$out/lib64/cmake"
+          # moveit-core = rosSuper.moveit-core.overrideAttrs (
+          #   {
+          #     postPatch ? "",
+          #     ...
+          #   }:
+          #   {
+          #     src = self.fetchzip {
+          #       name = "moveit-core";
+          #       url = "https://github.com/ros2-gbp/moveit2-release/archive/release/jazzy/moveit_core/2.10.0-1.tar.gz";
+          #       sha256 = "sha256-WwWn+S+POgbqVVFiTNS9YCPW4HwH0UtkvCrAYRmEuIE=";
+          #     };
+          #     postPatch =
+          #       postPatch
+          #       + ''
+          #         substituteInPlace CMakeLists.txt --replace 'find_package(octomap 1.9.7...<1.10.0 REQUIRED)' 'find_package(octomap 1.9.7...1.10.0 REQUIRED)'
+          #       '';
+          #   }
+          # );
 
-                    '';
-
-                }
-              );
-
-          geometric-shapes = rosSuper.geometric-shapes.overrideAttrs (
-            {
-              patches ? [ ],
-              ...
-            }:
-            {
-              patches = patches ++ [
-                # https://github.com/moveit/geometric_shapes/pull/241
-                (self.fetchpatch {
-                  url = "https://github.com/moveit/geometric_shapes/commit/78898826b16b7547c69c63ce28b9bddcd167a09e.patch";
-                  includes = [ "CMakeLists.txt" ];
-                  revert = true;
-                  hash = "sha256-elLSrqVnyTyG5P+iPXIx0RccC7TmdPVAZtbhpJcYUO0=";
-                })
-              ];
-            }
-          );
-
-          moveit-core = rosSuper.moveit-core.overrideAttrs (
-            {
-              postPatch ? "",
-              ...
-            }:
-            {
-              src = self.fetchzip {
-                name = "moveit-core";
-                url = "https://github.com/ros2-gbp/moveit2-release/archive/release/jazzy/moveit_core/2.10.0-1.tar.gz";
-                sha256 = "sha256-WwWn+S+POgbqVVFiTNS9YCPW4HwH0UtkvCrAYRmEuIE=";
-              };
-              postPatch =
-                postPatch
-                + ''
-                  substituteInPlace CMakeLists.txt --replace 'find_package(octomap 1.9.7...<1.10.0 REQUIRED)' 'find_package(octomap 1.9.7...1.10.0 REQUIRED)'
-                '';
-            }
-          );
-
-          moveit-ros-occupancy-map-monitor = rosSuper.moveit-ros-occupancy-map-monitor.overrideAttrs (
-            {
-              postPatch ? "",
-              ...
-            }:
-            {
-              src = self.fetchzip {
-                name = "ros-jazzy-moveit-ros-occupancy-map-monitor";
-                url = "https://github.com/ros2-gbp/moveit2-release/archive/release/jazzy/moveit_ros_occupancy_map_monitor/2.10.0-1.tar.gz";
-                hash = "sha256-WHbMOwEkQoPOrHQOeH/0GJyEa7g/ez3LJsJTZw6jUUw=";
-              };
-              postPatch =
-                postPatch
-                + ''
-                  substituteInPlace CMakeLists.txt --replace 'find_package(octomap 1.9.7...<1.10.0 REQUIRED)' 'find_package(octomap 1.9.7...1.10.0 REQUIRED)'
-                '';
-            }
-          );
+          # moveit-ros-occupancy-map-monitor = rosSuper.moveit-ros-occupancy-map-monitor.overrideAttrs (
+          #   {
+          #     postPatch ? "",
+          #     ...
+          #   }:
+          #   {
+          #     src = self.fetchzip {
+          #       name = "ros-jazzy-moveit-ros-occupancy-map-monitor";
+          #       url = "https://github.com/ros2-gbp/moveit2-release/archive/release/jazzy/moveit_ros_occupancy_map_monitor/2.10.0-1.tar.gz";
+          #       hash = "sha256-WHbMOwEkQoPOrHQOeH/0GJyEa7g/ez3LJsJTZw6jUUw=";
+          #     };
+          #     postPatch =
+          #       postPatch
+          #       + ''
+          #         substituteInPlace CMakeLists.txt --replace 'find_package(octomap 1.9.7...<1.10.0 REQUIRED)' 'find_package(octomap 1.9.7...1.10.0 REQUIRED)'
+          #       '';
+          #   }
+          # );
 
           nav2-rviz-plugins = rosSuper.nav2-rviz-plugins.overrideAttrs (
             {
@@ -285,30 +279,30 @@ self: super:
             }
           );
 
-          controller-manager = rosSuper.controller-manager.overrideAttrs (
-            {
-              prePatch ? "",
-              patches ? [ ],
-              ...
-            }:
-            {
-              patches = patches ++ [
-                (self.fetchpatch {
-                  url = "https://github.com/ros-controls/ros2_control/commit/23bd1c3c06c30d706f010628d85133a7198e226d.patch";
-                  hash = "sha256-bM3I5Q4J1DQNJuP2l3mxF7Kh/4DgjjKyRa5FBZS9t9s=";
-                  stripLen = 2;
-                  extraPrefix = "";
-                  excludes = [ "release_notes.rst" ];
-                })
-              ];
+          # controller-manager = rosSuper.controller-manager.overrideAttrs (
+          #   {
+          #     prePatch ? "",
+          #     patches ? [ ],
+          #     ...
+          #   }:
+          #   {
+          #     patches = patches ++ [
+          #       (self.fetchpatch {
+          #         url = "https://github.com/ros-controls/ros2_control/commit/23bd1c3c06c30d706f010628d85133a7198e226d.patch";
+          #         hash = "sha256-bM3I5Q4J1DQNJuP2l3mxF7Kh/4DgjjKyRa5FBZS9t9s=";
+          #         stripLen = 2;
+          #         extraPrefix = "";
+          #         excludes = [ "release_notes.rst" ];
+          #       })
+          #     ];
 
-              prePatch =
-                prePatch
-                + ''
-                  pwd
-                '';
-            }
-          );
+          #     prePatch =
+          #       prePatch
+          #       + ''
+          #         pwd
+          #       '';
+          #   }
+          # );
 
         }
         // (
@@ -336,9 +330,29 @@ self: super:
               );
           in
           {
-            rtabmap = self.rtabmap.overrideAttrs {
-              inherit (rosSuper.rtabmap) pname version src;
-            };
+            rtabmap = self.rtabmap.overrideAttrs (
+              {
+                patches ? [], 
+                propagatedBuildInputs ? [], 
+                ...
+            }: 
+            {
+              inherit (rosSuper.rtabmap) pname;
+              version = "0.21.10-r1";
+              src = self.fetchurl {
+                url = "https://github.com/ros2-gbp/rtabmap-release/archive/release/jazzy/rtabmap/0.21.10-1.tar.gz";
+                name = "0.21.10-1.tar.gz";
+                sha256 = "sha256-qT2xYc1I/J0sWffxH1yOtYJV9h6sc1SybI2t2YoGb+I=";
+              };
+              propagatedBuildInputs = propagatedBuildInputs ++ [ self.qt5.wrapQtAppsHook self.librealsense self.octomap ];
+              patches = patches ++ [
+                # Fix compilation with boost >= 1.87
+                (self.fetchpatch {
+                  url = "https://github.com/introlab/rtabmap/commit/08f031e11c45589fc2b68440383a3e40982dc06f.patch";
+                  hash = "sha256-avU8I19qHFcKBBdIsE4rPJZIHwSy4Wssmwt10cPmk6k=";
+                })
+              ];
+            });
 
             rtabmap-ros = rosSuper.rtabmap-ros.overrideAttrs (
               {
@@ -466,13 +480,16 @@ self: super:
                 }:
                 {
                   # https://answers.ros.org/question/379173
-                  CXXFLAGS = "${CXXFLAGS} -Wno-error=maybe-uninitialized";
+                  CXXFLAGS = "${CXXFLAGS} -Wno-error=maybe-uninitialized -Wno-error=array-bounds";
+                  
                 }
+                
               );
           in
           {
             nav2-behaviors = fixNav2Package rosSuper.nav2-behaviors;
             nav2-constrained-smoother = fixNav2Package rosSuper.nav2-constrained-smoother;
+            nav2-costmap-2d = fixNav2Package rosSuper.nav2-costmap-2d;
             nav2-planner = fixNav2Package rosSuper.nav2-planner;
             nav2-smoother = fixNav2Package rosSuper.nav2-smoother;
             nav2-waypoint-follower = fixNav2Package rosSuper.nav2-waypoint-follower;
@@ -486,37 +503,93 @@ self: super:
       (
         super.rosPackages
         // {
-          foxy = super.rosPackages.foxy.overrideScope (
-            rosSelf: rosSuper: {
-              # Use ros2doctor from Humble: https://github.com/lopsided98/nix-ros-overlay/issues/75#issuecomment-1567281292
-              ros2doctor = rosSelf.callPackage self.rosPackages.humble.ros2doctor.override { };
-            }
-          );
+          # foxy = super.rosPackages.foxy.overrideScope (
+          #   rosSelf: rosSuper: {
+          #     # Use ros2doctor from Humble: https://github.com/lopsided98/nix-ros-overlay/issues/75#issuecomment-1567281292
+          #     ros2doctor = rosSelf.callPackage self.rosPackages.humble.ros2doctor.override { };
+          #   }
+          # );
 
-          humble = super.rosPackages.humble.overrideScope (
-            rosSelf: rosSuper: {
-              nav2-mppi-controller = rosSuper.nav2-mppi-controller.overrideAttrs (
-                {
-                  patches ? [ ],
-                  ...
-                }:
-                {
-                  patches = patches ++ [
-                    # Ignore warnings in included xtensor library
-                    # https://github.com/ros-navigation/navigation2/pull/4285
-                    (self.fetchpatch {
-                      url = "https://github.com/ros-navigation/navigation2/commit/c6ccd8e6db1edc138c6cf3650e192cc595d44e7f.patch";
-                      stripLen = 1;
-                      hash = "sha256-4g2ESEJz7kuPGT4F0OcAkLbZVJ+84R3NQdpFEZW61Ao=";
-                    })
-                  ];
-                }
-              );
-            }
-          );
+          # humble = super.rosPackages.humble.overrideScope (
+          #   rosSelf: rosSuper: {
+          #     nav2-mppi-controller = rosSuper.nav2-mppi-controller.overrideAttrs (
+          #       {
+          #         patches ? [ ],
+          #         ...
+          #       }:
+          #       {
+          #         patches = patches ++ [
+          #           # Ignore warnings in included xtensor library
+          #           # https://github.com/ros-navigation/navigation2/pull/4285
+          #           (self.fetchpatch {
+          #             url = "https://github.com/ros-navigation/navigation2/commit/c6ccd8e6db1edc138c6cf3650e192cc595d44e7f.patch";
+          #             stripLen = 1;
+          #             hash = "sha256-4g2ESEJz7kuPGT4F0OcAkLbZVJ+84R3NQdpFEZW61Ao=";
+          #           })
+          #         ];
+          #       }
+          #     );
+          #   }
+          # );
 
           jazzy = super.rosPackages.jazzy.overrideScope (
-            rosSelf: rosSuper: {
+            rosSelf: rosSuper: 
+            let
+              gz-msgs-source = self.fetchgit {
+                url = "https://github.com/gazebosim/gz-msgs.git";
+                rev = "gz-msgs10_10.3.2";
+                name = "gz-msgs10_10.3.2";
+                sha256 = "sha256-lVQ7azT/HesBi3bnk8E5jFYORZh7jAIk6vDK7BcT0Ds=";
+                postFetch = ''
+                  cd $out
+                  patch -p1 < ${self.fetchpatch {
+                    url = "https://github.com/gazebosim/gz-msgs/commit/22c57006798470db63e8ecaff7b49dce34d5e76f.patch";
+                    hash = "sha256-Qkf3JgN8twh6fRLblZj9NmsOxT6jTBgCV1SDJHUk3+w=";
+                  }}
+                '';
+              };
+              gz-msgs-tarball = rosSelf.lib.tarSource {} gz-msgs-source;
+
+              gz-transport-source = self.fetchgit {
+                url = "https://github.com/gazebosim/gz-transport.git";
+                rev = "gz-transport13_13.4.1";
+                name = "gz-transport13_13.4.1";
+                sha256 = "sha256-flyDskV+FD1tMSnVLFEqf1e/tbgVuZjqPpF/M3jVFyU=";
+                postFetch = ''
+                  cd $out
+                  patch -p1 <  ${./patches/gz-transport.patch}
+                '';
+              };
+              gz-transport-tarball = rosSelf.lib.tarSource {} gz-transport-source;
+              
+              gz-gui-source = self.fetchgit {
+                url = "https://github.com/gazebosim/gz-gui.git";
+                rev = "gz-gui8_8.4.0";
+                name = "gz-gui8_8.4.0";
+                sha256 = "sha256-JT3eq0HG9OnSQhmPvXMd78w7xnVliosHNZ0I1TMpfjY=";
+                postFetch = ''
+                  cd $out
+                  patch -p1 < ${self.fetchpatch {
+                    url = "https://patch-diff.githubusercontent.com/raw/gazebosim/gz-gui/pull/677.patch";
+                    hash = "sha256-9nX3/Yyxp5WSE8VvY+TWcfPFNlS8pdbtex0mujqiilw=";
+                  }}
+                '';
+              };
+              gz-gui-tarball = rosSelf.lib.tarSource {} gz-gui-source;
+
+              gz-sim-source = self.fetchgit {
+                url = "https://github.com/gazebosim/gz-sim.git";
+                rev = "gz-sim8_8.9.0";
+                name = "gz-sim8_8.9.0";
+                sha256 = "sha256-ZzInawfKfuIZ/YsE4ogkBBKzAg8T7bMj/dbo8Hy+hKU=";
+                postFetch = ''
+                  cd $out
+                  patch -p1 <  ${./patches/gz-sim.patch}
+                '';
+              };
+              gz-sim-tarball = rosSelf.lib.tarSource {} gz-sim-source;
+            in
+            {
               # Gazebo Classic is EOL, and the ROS packages have been removed from the
               # distro. The Iron releases still work, though, so add them back.
               gazebo-dev = rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-dev") { };
@@ -577,17 +650,17 @@ self: super:
                   };
               gazebo-ros-pkgs = rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-ros-pkgs") { };
 
-              image-proc = rosSuper.image-proc.overrideAttrs (
-                {
-                  patches ? [ ],
-                  ...
-                }:
-                {
-                  patches = patches ++ [
-                    ./patches/image_proc.patch
-                  ];
-                }
-              );
+              # image-proc = rosSuper.image-proc.overrideAttrs (
+              #   {
+              #     patches ? [ ],
+              #     ...
+              #   }:
+              #   {
+              #     patches = patches ++ [
+              #       ./patches/image_proc.patch
+              #     ];
+              #   }
+              # );
 
               joint-limits = rosSuper.joint-limits.overrideAttrs (
                 {
@@ -601,50 +674,100 @@ self: super:
                 }
               );
 
-              gz-sensors-vendor = (
-                rosSelf.lib.patchAmentVendorGit rosSuper.gz-sensors-vendor {
-                  url = "https://github.com/gazebosim/gz-sensors";
-                  rev = "gz-sensors8_8.2.1";
-                  fetchgitArgs.hash = "sha256-wEUJoHbvvImuFbaKk84maw5AoKhoEhdU0uOYVBtHhI0=";
-                }
-              );
+              # gz-sensors-vendor = (
+              #   rosSelf.lib.patchAmentVendorGit rosSuper.gz-sensors-vendor {
+              #     url = "https://github.com/gazebosim/gz-sensors";
+              #     rev = "gz-sensors8_8.2.1";
+              #     fetchgitArgs.hash = "sha256-wEUJoHbvvImuFbaKk84maw5AoKhoEhdU0uOYVBtHhI0=";
+              #   }
+              # );
 
-              rosapi = rosSuper.rosapi.overrideAttrs (
+              gz-msgs-vendor = rosSuper.gz-msgs-vendor.overrideAttrs (
                 {
-                  patches ? [ ],
+                  postPatch ? "",
                   ...
                 }:
                 {
-                  patches = patches ++ [
-                    # Fix invalid import of get_parameter_value in rosapi for ROS2 Jazzy.
-                    # https://github.com/RobotWebTools/rosbridge_suite/pull/932
-                    (self.fetchpatch {
-                      url = "https://github.com/RobotWebTools/rosbridge_suite/commit/d22f102b59e7d9fdeea0ec5e74aa8b98358585d7.patch";
-                      stripLen = 1;
-                      hash = "sha256-zmRHt7EgZk8kF2Dv1+QvTmox47RR7TBZOOdKfnIySog=";
-                    })
-                  ];
+                  postPatch = postPatch + ''
+                    sed -i 's|file:///nix/store/[^"]*gz-msgs10_10\.3\.2\.tar|file://${gz-msgs-tarball}|' CMakeLists.txt
+                  ''; 
                 }
               );
 
-              robot-localization = rosSuper.robot-localization.overrideAttrs (
+              gz-transport-vendor = rosSuper.gz-transport-vendor.overrideAttrs (
                 {
-                  patches ? [ ],
+                  # nativeBuildInputs ? [ ],
+                  postPatch ? "",
                   ...
                 }:
                 {
-                  patches = patches ++ [
-                    # Add stamped_control as a parameter to support TwistStamped msgs.
-                    # https://github.com/cra-ros-pkg/robot_localization/pull/900
-                    (self.fetchpatch {
-                      url = "https://patch-diff.githubusercontent.com/raw/cra-ros-pkg/robot_localization/pull/900.patch";
-                      stripLen = 1;
-                      extraPrefix = "";
-                      hash = "sha256-Wh3WOLYYHGL25eFRqpGUbvosle2QW6g7OIhXrZ8EG6A=";
-                    })
-                  ];
+                  # nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
+                  postPatch = postPatch + ''
+                    sed -i 's|file:///nix/store/[^"]*gz-transport13_13\.4\.1\.tar|file://${gz-transport-tarball}|' CMakeLists.txt
+                  ''; 
                 }
               );
+
+              gz-gui-vendor = rosSuper.gz-gui-vendor.overrideAttrs (
+                {
+                  postPatch ? "",
+                  ...
+                }:
+                {
+                  postPatch = postPatch + ''
+                    sed -i 's|file:///nix/store/[^"]*gz-gui8_8\.4\.0\.tar|file://${gz-gui-tarball}|' CMakeLists.txt
+                  ''; 
+                }
+              );
+
+              gz-sim-vendor = rosSuper.gz-sim-vendor.overrideAttrs (
+                {
+                  postPatch ? "",
+                  ...
+                }:
+                {
+                  postPatch = postPatch + ''
+                    sed -i 's|file:///nix/store/[^"]*gz-sim8_8\.9\.0\.tar|file://${gz-sim-tarball}|' CMakeLists.txt
+                  ''; 
+                }
+              );
+              
+              # rosapi = rosSuper.rosapi.overrideAttrs (
+              #   {
+              #     patches ? [ ],
+              #     ...
+              #   }:
+              #   {
+              #     patches = patches ++ [
+              #       # Fix invalid import of get_parameter_value in rosapi for ROS2 Jazzy.
+              #       # https://github.com/RobotWebTools/rosbridge_suite/pull/932
+              #       (self.fetchpatch {
+              #         url = "https://github.com/RobotWebTools/rosbridge_suite/commit/d22f102b59e7d9fdeea0ec5e74aa8b98358585d7.patch";
+              #         stripLen = 1;
+              #         hash = "sha256-zmRHt7EgZk8kF2Dv1+QvTmox47RR7TBZOOdKfnIySog=";
+              #       })
+              #     ];
+              #   }
+              # );
+
+              # robot-localization = rosSuper.robot-localization.overrideAttrs (
+              #   {
+              #     patches ? [ ],
+              #     ...
+              #   }:
+              #   {
+              #     patches = patches ++ [
+              #       # Add stamped_control as a parameter to support TwistStamped msgs.
+              #       # https://github.com/cra-ros-pkg/robot_localization/pull/900
+              #       (self.fetchpatch {
+              #         url = "https://patch-diff.githubusercontent.com/raw/cra-ros-pkg/robot_localization/pull/900.patch";
+              #         stripLen = 1;
+              #         extraPrefix = "";
+              #         hash = "sha256-Wh3WOLYYHGL25eFRqpGUbvosle2QW6g7OIhXrZ8EG6A=";
+              #       })
+              #     ];
+              #   }
+              # );
 
               ntrip-client-node = rosSuper.ntrip-client-node.overrideAttrs rec {
                 version = "0.5.5-r3";
