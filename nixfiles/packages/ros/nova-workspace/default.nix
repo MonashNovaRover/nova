@@ -42,6 +42,7 @@
 , nova-arm-bringup ? throw "arm-bringup is needed, but not available!"
 , nova-rover-description ? throw "rover-description is needed, but not available!"
 , nova-blcmd-hardware ? throw "nova-blcmd-hardware is needed, but not available!"
+, nova-blcmd-hardware2 ? throw "nova-blcmd-hardware2 is needed, but not available!"
 , nova-cmd-hardware ? throw "nova-cmd-hardware is needed, but not available!"
 , nova-controller-common ? throw "nova-controller-common is needed, but not available!"
 , nova-drive-controller-base ? throw "nova-drive-controller-base is needed, but not available!"
@@ -79,6 +80,7 @@
       nova-science
       nova-cameras2
       nova-blcmd-hardware
+      nova-blcmd-hardware2
       nova-cmd-hardware
       nova-controller-common
       nova-drive-controller-base
