@@ -1,16 +1,16 @@
 {
   "nixpkgs": {
-    "rev": "8a3354191c0d7144db9756a74755672387b702ba",
-    "hash": "sha256-Grh5PF0+gootJfOJFenTTxDTYPidA3V28dqJ/WV7iis="
-  },
+    "rev": "cb9e5af795f0307a41dfe32748f025a050d9fe30",
+    "hash": "sha256-C0CZcQB9wAsfvk5fQuO1ET1GCCYVzPB8Yj/j2MbBkkg="
+  }, 
   "nix-ros-overlay": {
-    "rev": "e3115496885bcefee3aa9ff073836e7634661e11",
-    "hash": "sha256-4bVp9z6xm0MP3XROK1Hz2OtO3/6EPNly7rzWfYGZ5pU="
-  },
+    "rev": "4072d6ed51d9053d2cc85c0ec4f69884cc99f392",
+    "hash": "sha256-xvre4xiezhPhU794dpjcHusVLBIfA4jPg9Kq439x4yY="
+  }, 
   "nix-ros-workspace": {
-    "rev": "d389c0ad68267b85b9ac3b7350801dd0110ed669",
-    "hash": "sha256-FXwNfiKBBarRjo4apAZuBU/OVgrNWa/lwi+S8HwHbvY="
-  },
+    "rev": "e341a5fd27af73be15bc0396c5745c54398193aa",
+    "hash": "sha256-q2xrIUD+kgyxGXp6oi7QW0QzxL6PsOODRoj/ru9P9ig="
+  }, 
   "teleop-modular": {
     "rev": "7b4dd3178bb514375f09b2b3018d32768a04aa01",
     "hash": "sha256-BLkn1alXiQ0k814rU8CSwtKePUKLRrC0Ury93fF+FE8="

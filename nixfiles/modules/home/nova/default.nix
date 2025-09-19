@@ -111,8 +111,6 @@ in
         pciutils
         usbutils
         gpsd
-        # Cmake utilities
-        ninja
       ] ++ lib.optionals config.nova.desktop.enable [
         # Desktop apps
         gitkraken

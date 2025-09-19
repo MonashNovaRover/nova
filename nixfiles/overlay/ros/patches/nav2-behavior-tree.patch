@@ -1,0 +1,1071 @@
+diff --git a/nav2_behavior_tree/CMakeLists.txt b/nav2_behavior_tree/CMakeLists.txt
+index 3950082ab8a..b33948bf901 100644
+--- a/nav2_behavior_tree/CMakeLists.txt
++++ b/nav2_behavior_tree/CMakeLists.txt
+@@ -2,53 +2,46 @@ cmake_minimum_required(VERSION 3.5)
+ project(nav2_behavior_tree CXX)
+ 
+ find_package(ament_cmake REQUIRED)
++find_package(action_msgs REQUIRED)
++find_package(behaviortree_cpp REQUIRED)
++find_package(geometry_msgs REQUIRED)
+ find_package(nav2_common REQUIRED)
++find_package(nav2_msgs REQUIRED)
++find_package(nav2_util REQUIRED)
++find_package(nav_msgs REQUIRED)
+ find_package(rclcpp REQUIRED)
+ find_package(rclcpp_action REQUIRED)
+ find_package(rclcpp_lifecycle REQUIRED)
+-find_package(builtin_interfaces REQUIRED)
+-find_package(geometry_msgs REQUIRED)
+ find_package(sensor_msgs REQUIRED)
+-find_package(nav2_msgs REQUIRED)
+-find_package(nav_msgs REQUIRED)
+-find_package(behaviortree_cpp REQUIRED)
+-find_package(tf2_ros REQUIRED)
+-find_package(tf2_geometry_msgs REQUIRED)
+ find_package(std_msgs REQUIRED)
+ find_package(std_srvs REQUIRED)
+-find_package(nav2_util REQUIRED)
++find_package(tf2 REQUIRED)
++find_package(tf2_ros REQUIRED)
+ 
+ nav2_package()
+ 
+-include_directories(
+-  include
+-)
+-
+ set(library_name ${PROJECT_NAME})
+ 
+-set(dependencies
+-  rclcpp
+-  rclcpp_action
+-  rclcpp_lifecycle
+-  geometry_msgs
+-  sensor_msgs
+-  nav2_msgs
+-  nav_msgs
+-  behaviortree_cpp
+-  tf2
+-  tf2_ros
+-  tf2_geometry_msgs
+-  std_msgs
+-  std_srvs
+-  nav2_util
+-)
+-
+ add_library(${library_name} SHARED
+   src/behavior_tree_engine.cpp
+ )
+-
+-ament_target_dependencies(${library_name}
+-  ${dependencies}
++target_include_directories(${library_name}
++  PUBLIC
++  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
++  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
++target_link_libraries(${library_name} PUBLIC
++  ${action_msgs_TARGETS}
++  behaviortree_cpp::behaviortree_cpp
++  ${geometry_msgs_TARGETS}
++  ${nav_msgs_TARGETS}
++  ${nav2_msgs_TARGETS}
++  nav2_util::nav2_util_core
++  rclcpp::rclcpp
++  rclcpp_action::rclcpp_action
++  rclcpp_lifecycle::rclcpp_lifecycle
++  ${sensor_msgs_TARGETS}
++  tf2::tf2
++  tf2_ros::tf2_ros
+ )
+ 
+ add_library(nav2_compute_path_to_pose_action_bt_node SHARED plugins/action/compute_path_to_pose_action.cpp)
+@@ -214,12 +207,30 @@ add_library(nav2_goal_updated_controller_bt_node SHARED plugins/decorator/goal_u
+ list(APPEND plugin_libs nav2_goal_updated_controller_bt_node)
+ 
+ foreach(bt_plugin ${plugin_libs})
+-  ament_target_dependencies(${bt_plugin} ${dependencies})
++  target_include_directories(${bt_plugin}
++    PRIVATE
++    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
++    "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
++  target_link_libraries(${bt_plugin} PUBLIC
++    behaviortree_cpp::behaviortree_cpp
++    ${geometry_msgs_TARGETS}
++    ${nav_msgs_TARGETS}
++    ${nav2_msgs_TARGETS}
++    nav2_util::nav2_util_core
++    rclcpp::rclcpp
++    rclcpp_action::rclcpp_action
++    rclcpp_lifecycle::rclcpp_lifecycle
++    ${sensor_msgs_TARGETS}
++    tf2::tf2
++    tf2_ros::tf2_ros
++    ${std_msgs_TARGETS}
++    ${std_srvs_TARGETS}
++  )
+   target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)
+ endforeach()
+ 
+-install(TARGETS ${library_name}
+-                ${plugin_libs}
++install(TARGETS ${library_name} ${plugin_libs}
++  EXPORT ${library_name}
+   ARCHIVE DESTINATION lib
+   LIBRARY DESTINATION lib
+   RUNTIME DESTINATION bin
+@@ -230,43 +241,58 @@ set(GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/gen)
+ configure_file(plugins_list.hpp.in ${GENERATED_DIR}/plugins_list.hpp)
+ 
+ add_executable(generate_nav2_tree_nodes_xml src/generate_nav2_tree_nodes_xml.cpp)
+-ament_target_dependencies(generate_nav2_tree_nodes_xml ${dependencies})
++target_link_libraries(generate_nav2_tree_nodes_xml PRIVATE
++  behaviortree_cpp::behaviortree_cpp
++  nav2_util::nav2_util_core
++)
+ # allow generate_nav2_tree_nodes_xml to find plugins_list.hpp
+ target_include_directories(generate_nav2_tree_nodes_xml PRIVATE ${GENERATED_DIR})
+ install(TARGETS generate_nav2_tree_nodes_xml DESTINATION lib/${PROJECT_NAME})
+ 
+-
+ install(DIRECTORY include/
+-  DESTINATION include/
+-)
+-
+-install(DIRECTORY test/utils/
+-        DESTINATION include/${PROJECT_NAME}/utils/
++  DESTINATION include/${PROJECT_NAME}
+ )
+ 
+ install(DIRECTORY test/utils/
+   DESTINATION include/${PROJECT_NAME}/nav2_behavior_tree/test/utils
+ )
+
+ install(FILES nav2_tree_nodes.xml DESTINATION share/${PROJECT_NAME})
+-install(FILES ${GENERATED_DIR}/plugins_list.hpp DESTINATION include/${PROJECT_NAME})
++install(FILES ${GENERATED_DIR}/plugins_list.hpp DESTINATION include/${PROJECT_NAME}/${PROJECT_NAME})
+ 
+ if(BUILD_TESTING)
+   find_package(ament_lint_auto REQUIRED)
+   ament_lint_auto_find_test_dependencies()
+   find_package(ament_cmake_gtest REQUIRED)
++
++  ament_find_gtest()
++
+   add_subdirectory(test)
+ endif()
+ 
+ ament_export_include_directories(
+-  include
++  include/${PROJECT_NAME}
+ )
+ 
+-ament_export_libraries(
+-  ${library_name}
+-  ${plugin_libs}
+-)
++ament_export_libraries(${library_name})
+ 
+-ament_export_dependencies(${dependencies})
++ament_export_dependencies(
++  action_msgs
++  behaviortree_cpp
++  geometry_msgs
++  nav2_common
++  nav2_msgs
++  nav2_util
++  nav_msgs
++  rclcpp
++  rclcpp_action
++  rclcpp_lifecycle
++  sensor_msgs
++  std_msgs
++  std_srvs
++  tf2
++  tf2_ros
++)
++ament_export_targets(${library_name})
+ 
+ ament_package()
+diff --git a/nav2_behavior_tree/include/nav2_behavior_tree/bt_action_server.hpp b/nav2_behavior_tree/include/nav2_behavior_tree/bt_action_server.hpp
+index 2b323a67985..e98db267210 100644
+--- a/nav2_behavior_tree/include/nav2_behavior_tree/bt_action_server.hpp
++++ b/nav2_behavior_tree/include/nav2_behavior_tree/bt_action_server.hpp
+@@ -15,6 +15,8 @@
+ #ifndef NAV2_BEHAVIOR_TREE__BT_ACTION_SERVER_HPP_
+ #define NAV2_BEHAVIOR_TREE__BT_ACTION_SERVER_HPP_
+ 
++#include <chrono>
++#include <functional>
+ #include <memory>
+ #include <string>
+ #include <vector>
+@@ -24,6 +26,8 @@
+ #include "nav2_behavior_tree/ros_topic_logger.hpp"
+ #include "nav2_util/lifecycle_node.hpp"
+ #include "nav2_util/simple_action_server.hpp"
++#include "rclcpp/rclcpp.hpp"
++#include "rclcpp_lifecycle/lifecycle_node.hpp"
+ 
+ namespace nav2_behavior_tree
+ {
+diff --git a/nav2_behavior_tree/include/nav2_behavior_tree/bt_action_server_impl.hpp b/nav2_behavior_tree/include/nav2_behavior_tree/bt_action_server_impl.hpp
+index d2b120f44cb..0944e7a3db2 100644
+--- a/nav2_behavior_tree/include/nav2_behavior_tree/bt_action_server_impl.hpp
++++ b/nav2_behavior_tree/include/nav2_behavior_tree/bt_action_server_impl.hpp
+@@ -15,18 +15,20 @@
+ #ifndef NAV2_BEHAVIOR_TREE__BT_ACTION_SERVER_IMPL_HPP_
+ #define NAV2_BEHAVIOR_TREE__BT_ACTION_SERVER_IMPL_HPP_
+ 
+-#include <memory>
+-#include <string>
++#include <chrono>
++#include <exception>
+ #include <fstream>
++#include <limits>
++#include <memory>
+ #include <set>
+-#include <exception>
++#include <string>
+ #include <vector>
+-#include <limits>
+ 
+ #include "nav2_msgs/action/navigate_to_pose.hpp"
+ #include "nav2_behavior_tree/bt_action_server.hpp"
+-#include "ament_index_cpp/get_package_share_directory.hpp"
+ #include "nav2_util/node_utils.hpp"
++#include "rcl_action/action_server.h"
++#include "rclcpp_lifecycle/lifecycle_node.hpp"
+ 
+ namespace nav2_behavior_tree
+ {
+diff --git a/nav2_behavior_tree/include/nav2_behavior_tree/ros_topic_logger.hpp b/nav2_behavior_tree/include/nav2_behavior_tree/ros_topic_logger.hpp
+index d1ccef107e2..8a75712b56b 100644
+--- a/nav2_behavior_tree/include/nav2_behavior_tree/ros_topic_logger.hpp
++++ b/nav2_behavior_tree/include/nav2_behavior_tree/ros_topic_logger.hpp
+@@ -23,6 +23,7 @@
+ #include "rclcpp/rclcpp.hpp"
+ #include "nav2_msgs/msg/behavior_tree_log.hpp"
+ #include "nav2_msgs/msg/behavior_tree_status_change.h"
++#include "tf2/time.h"
+ #include "tf2_ros/buffer_interface.h"
+ 
+ namespace nav2_behavior_tree
+diff --git a/nav2_behavior_tree/test/utils/test_action_server.hpp b/nav2_behavior_tree/include/nav2_behavior_tree/utils/test_action_server.hpp
+similarity index 94%
+rename from nav2_behavior_tree/test/utils/test_action_server.hpp
+rename to nav2_behavior_tree/include/nav2_behavior_tree/utils/test_action_server.hpp
+index a97a3e64fbd..5a8226d4e22 100644
+--- a/nav2_behavior_tree/test/utils/test_action_server.hpp
++++ b/nav2_behavior_tree/include/nav2_behavior_tree/utils/test_action_server.hpp
+@@ -12,8 +12,8 @@
+ // See the License for the specific language governing permissions and
+ // limitations under the License.
+ 
+-#ifndef UTILS__TEST_ACTION_SERVER_HPP_
+-#define UTILS__TEST_ACTION_SERVER_HPP_
++#ifndef NAV2_BEHAVIOR_TREE__UTILS__TEST_ACTION_SERVER_HPP_
++#define NAV2_BEHAVIOR_TREE__UTILS__TEST_ACTION_SERVER_HPP_
+ 
+ #include <string>
+ #include <memory>
+@@ -97,4 +97,4 @@ class TestActionServer : public rclcpp::Node
+   bool goal_cancelled_ = false;
+ };
+ 
+-#endif  // UTILS__TEST_ACTION_SERVER_HPP_
++#endif  // NAV2_BEHAVIOR_TREE__UTILS__TEST_ACTION_SERVER_HPP_
+diff --git a/nav2_behavior_tree/package.xml b/nav2_behavior_tree/package.xml
+index 7ce8c8612b6..851efab9c24 100644
+--- a/nav2_behavior_tree/package.xml
++++ b/nav2_behavior_tree/package.xml
+@@ -11,46 +11,26 @@
+ 
+   <buildtool_depend>ament_cmake</buildtool_depend>
+ 
+-  <build_export_depend>tf2_geometry_msgs</build_export_depend>
+-  <build_export_depend>std_srvs</build_export_depend>
+-
+-  <build_depend>rclcpp</build_depend>
+-  <build_depend>rclcpp_action</build_depend>
+-  <build_depend>rclcpp_lifecycle</build_depend>
+-  <build_depend>behaviortree_cpp</build_depend>
+-  <build_depend>builtin_interfaces</build_depend>
+-  <build_depend>geometry_msgs</build_depend>
+-  <build_depend>sensor_msgs</build_depend>
+-  <build_depend>nav2_msgs</build_depend>
+-  <build_depend>nav_msgs</build_depend>
+-  <build_depend>tf2</build_depend>
+-  <build_depend>tf2_ros</build_depend>
+-  <build_depend>tf2_geometry_msgs</build_depend>
+-  <build_depend>std_msgs</build_depend>
+-  <build_depend>std_srvs</build_depend>
+-  <build_depend>nav2_util</build_depend>
+-  <build_depend>lifecycle_msgs</build_depend>
+-  <build_depend>nav2_common</build_depend>
+-
+-  <exec_depend>rclcpp</exec_depend>
+-  <exec_depend>rclcpp_action</exec_depend>
+-  <exec_depend>rclcpp_lifecycle</exec_depend>
+-  <exec_depend>std_msgs</exec_depend>
+-  <exec_depend>behaviortree_cpp</exec_depend>
+-  <exec_depend>builtin_interfaces</exec_depend>
+-  <exec_depend>geometry_msgs</exec_depend>
+-  <exec_depend>sensor_msgs</exec_depend>
+-  <exec_depend>nav2_msgs</exec_depend>
+-  <exec_depend>nav_msgs</exec_depend>
+-  <exec_depend>tf2</exec_depend>
+-  <exec_depend>tf2_ros</exec_depend>
+-  <exec_depend>tf2_geometry_msgs</exec_depend>
+-  <exec_depend>nav2_util</exec_depend>
+-  <exec_depend>lifecycle_msgs</exec_depend>
++  <depend>action_msgs</depend>
++  <depend>behaviortree_cpp</depend>
++  <depend>geometry_msgs</depend>
++  <depend>nav2_common</depend>
++  <depend>nav2_msgs</depend>
++  <depend>nav2_util</depend>
++  <depend>nav_msgs</depend>
++  <depend>rclcpp</depend>
++  <depend>rclcpp_action</depend>
++  <depend>rclcpp_lifecycle</depend>
++  <depend>sensor_msgs</depend>
++  <depend>std_msgs</depend>
++  <depend>std_srvs</depend>
++  <depend>tf2</depend>
++  <depend>tf2_ros</depend>
+ 
+   <test_depend>ament_lint_common</test_depend>
+   <test_depend>ament_lint_auto</test_depend>
+   <test_depend>ament_cmake_gtest</test_depend>
++  <test_depend>lifecycle_msgs</test_depend>
+   <test_depend>test_msgs</test_depend>
+ 
+   <export>
+diff --git a/nav2_behavior_tree/plugins/action/truncate_path_local_action.cpp b/nav2_behavior_tree/plugins/action/truncate_path_local_action.cpp
+index 35dc8635c8c..f002710be6b 100644
+--- a/nav2_behavior_tree/plugins/action/truncate_path_local_action.cpp
++++ b/nav2_behavior_tree/plugins/action/truncate_path_local_action.cpp
+@@ -12,6 +12,7 @@
+ // See the License for the specific language governing permissions and
+ // limitations under the License.
+ 
++#include <cmath>
+ #include <limits>
+ #include <memory>
+ #include <string>
+@@ -22,6 +23,9 @@
+ #include "nav2_util/geometry_utils.hpp"
+ #include "nav2_util/robot_utils.hpp"
+ #include "nav_msgs/msg/path.hpp"
++#include "rclcpp/rclcpp.hpp"
++#include "tf2/LinearMath/Quaternion.h"
++#include "tf2_ros/buffer.h"
+ #include "tf2_ros/create_timer_ros.h"
+ 
+ #include "nav2_behavior_tree/plugins/action/truncate_path_local_action.hpp"
+diff --git a/nav2_behavior_tree/plugins/condition/transform_available_condition.cpp b/nav2_behavior_tree/plugins/condition/transform_available_condition.cpp
+index 0ee491fbfd2..1afe0e14331 100644
+--- a/nav2_behavior_tree/plugins/condition/transform_available_condition.cpp
++++ b/nav2_behavior_tree/plugins/condition/transform_available_condition.cpp
+@@ -12,9 +12,13 @@
+ // See the License for the specific language governing permissions and
+ // limitations under the License.
+ 
+-#include <string>
+ #include <chrono>
+ #include <memory>
++#include <string>
++
++#include "rclcpp/rclcpp.hpp"
++#include "tf2/time.h"
++#include "tf2_ros/buffer.h"
+ 
+ #include "nav2_behavior_tree/plugins/condition/transform_available_condition.hpp"
+ 
+diff --git a/nav2_behavior_tree/test/CMakeLists.txt b/nav2_behavior_tree/test/CMakeLists.txt
+index eff6e78c5db..1d958ae4927 100644
+--- a/nav2_behavior_tree/test/CMakeLists.txt
++++ b/nav2_behavior_tree/test/CMakeLists.txt
+@@ -1,7 +1,22 @@
+ ament_add_gtest(test_bt_utils test_bt_utils.cpp)
+-ament_target_dependencies(test_bt_utils ${dependencies})
++target_link_libraries(test_bt_utils
++  ${library_name}
++  ${geometry_msgs_TARGETS}
++)
+ 
+-include_directories(.)
++function(plugin_add_test target filename plugin)
++  ament_add_gtest(${target} ${filename})
++  target_link_libraries(${target}
++    ${geometry_msgs_TARGETS}
++    nav2_util::nav2_util_core
++    behaviortree_cpp::behaviortree_cpp
++    ${library_name}
++    ${plugin}
++  )
++  target_include_directories(${target}
++    PRIVATE
++    "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/test>")
++endfunction()
+ 
+ add_subdirectory(plugins/condition)
+ add_subdirectory(plugins/decorator)
+diff --git a/nav2_behavior_tree/test/plugins/action/CMakeLists.txt b/nav2_behavior_tree/test/plugins/action/CMakeLists.txt
+index 513a19caec2..1be5a262ba2 100644
+--- a/nav2_behavior_tree/test/plugins/action/CMakeLists.txt
++++ b/nav2_behavior_tree/test/plugins/action/CMakeLists.txt
+@@ -1,117 +1,64 @@
+ find_package(test_msgs REQUIRED)
+ 
+ ament_add_gtest(test_bt_action_node test_bt_action_node.cpp)
+-ament_target_dependencies(test_bt_action_node ${dependencies} test_msgs)
++target_link_libraries(test_bt_action_node rclcpp::rclcpp ${test_msgs_TARGETS} rclcpp_action::rclcpp_action ${library_name})
+ 
+-ament_add_gtest(test_action_spin_action test_spin_action.cpp)
+-target_link_libraries(test_action_spin_action nav2_spin_action_bt_node)
+-ament_target_dependencies(test_action_spin_action ${dependencies})
++plugin_add_test(test_action_spin_action test_spin_action.cpp nav2_spin_action_bt_node)
+ 
+-ament_add_gtest(test_action_back_up_action test_back_up_action.cpp)
+-target_link_libraries(test_action_back_up_action nav2_back_up_action_bt_node)
+-ament_target_dependencies(test_action_back_up_action ${dependencies})
++plugin_add_test(test_action_back_up_action test_back_up_action.cpp nav2_back_up_action_bt_node)
+ 
+-ament_add_gtest(test_action_drive_on_heading test_drive_on_heading_action.cpp)
+-target_link_libraries(test_action_drive_on_heading nav2_drive_on_heading_bt_node)
+-ament_target_dependencies(test_action_drive_on_heading ${dependencies})
++plugin_add_test(test_action_drive_on_heading test_drive_on_heading_action.cpp nav2_drive_on_heading_bt_node)
+ 
+-ament_add_gtest(test_action_wait_action test_wait_action.cpp)
+-target_link_libraries(test_action_wait_action nav2_wait_action_bt_node)
+-ament_target_dependencies(test_action_wait_action ${dependencies})
++plugin_add_test(test_action_wait_action test_wait_action.cpp nav2_wait_action_bt_node)
+ 
+-ament_add_gtest(test_action_assisted_teleop_action test_assisted_teleop_action.cpp)
+-target_link_libraries(test_action_assisted_teleop_action nav2_assisted_teleop_action_bt_node)
+-ament_target_dependencies(test_action_assisted_teleop_action ${dependencies})
++plugin_add_test(test_action_assisted_teleop_action test_assisted_teleop_action.cpp nav2_assisted_teleop_action_bt_node)
+ 
+-ament_add_gtest(test_action_controller_cancel_action test_controller_cancel_node.cpp)
+-target_link_libraries(test_action_controller_cancel_action nav2_controller_cancel_bt_node)
+-ament_target_dependencies(test_action_controller_cancel_action ${dependencies})
++plugin_add_test(test_action_controller_cancel_action test_controller_cancel_node.cpp nav2_controller_cancel_bt_node)
+ 
+-ament_add_gtest(test_action_wait_cancel_action test_wait_cancel_node.cpp)
+-target_link_libraries(test_action_wait_cancel_action nav2_wait_cancel_bt_node)
+-ament_target_dependencies(test_action_wait_cancel_action ${dependencies})
++plugin_add_test(test_action_wait_cancel_action test_wait_cancel_node.cpp nav2_wait_cancel_bt_node)
+ 
+-ament_add_gtest(test_action_spin_cancel_action test_spin_cancel_node.cpp)
+-target_link_libraries(test_action_spin_cancel_action nav2_spin_cancel_bt_node)
+-ament_target_dependencies(test_action_spin_cancel_action ${dependencies})
++plugin_add_test(test_action_spin_cancel_action test_spin_cancel_node.cpp nav2_spin_cancel_bt_node)
+ 
++plugin_add_test(test_action_back_up_cancel_action test_back_up_cancel_node.cpp nav2_back_up_cancel_bt_node)
+ 
+-ament_add_gtest(test_action_back_up_cancel_action test_back_up_cancel_node.cpp)
+-target_link_libraries(test_action_back_up_cancel_action nav2_back_up_cancel_bt_node)
+-ament_target_dependencies(test_action_back_up_cancel_action ${dependencies})
++plugin_add_test(test_action_assisted_teleop_cancel_action test_assisted_teleop_cancel_node.cpp nav2_assisted_teleop_cancel_bt_node)
+ 
+-ament_add_gtest(test_action_assisted_teleop_cancel_action test_assisted_teleop_cancel_node.cpp)
+-target_link_libraries(test_action_assisted_teleop_cancel_action nav2_assisted_teleop_cancel_bt_node)
+-ament_target_dependencies(test_action_assisted_teleop_cancel_action ${dependencies})
++plugin_add_test(test_action_drive_on_heading_cancel_action test_drive_on_heading_cancel_node.cpp nav2_drive_on_heading_cancel_bt_node)
+ 
+-ament_add_gtest(test_action_drive_on_heading_cancel_action test_drive_on_heading_cancel_node.cpp)
+-target_link_libraries(test_action_drive_on_heading_cancel_action nav2_drive_on_heading_cancel_bt_node)
+-ament_target_dependencies(test_action_drive_on_heading_cancel_action ${dependencies})
++plugin_add_test(test_action_clear_costmap_service test_clear_costmap_service.cpp nav2_clear_costmap_service_bt_node)
+ 
+-ament_add_gtest(test_action_clear_costmap_service test_clear_costmap_service.cpp)
+-target_link_libraries(test_action_clear_costmap_service nav2_clear_costmap_service_bt_node)
+-ament_target_dependencies(test_action_clear_costmap_service ${dependencies})
++plugin_add_test(test_action_reinitialize_global_localization_service
++  test_reinitialize_global_localization_service.cpp
++  nav2_reinitialize_global_localization_service_bt_node)
+ 
+-ament_add_gtest(test_action_reinitialize_global_localization_service test_reinitialize_global_localization_service.cpp)
+-target_link_libraries(test_action_reinitialize_global_localization_service nav2_reinitialize_global_localization_service_bt_node)
+-ament_target_dependencies(test_action_reinitialize_global_localization_service ${dependencies})
++plugin_add_test(test_action_compute_path_to_pose_action test_compute_path_to_pose_action.cpp nav2_compute_path_to_pose_action_bt_node)
+ 
+-ament_add_gtest(test_action_compute_path_to_pose_action test_compute_path_to_pose_action.cpp)
+-target_link_libraries(test_action_compute_path_to_pose_action nav2_compute_path_to_pose_action_bt_node)
+-ament_target_dependencies(test_action_compute_path_to_pose_action ${dependencies})
++plugin_add_test(test_action_compute_path_through_poses_action
++  test_compute_path_through_poses_action.cpp
++  nav2_compute_path_through_poses_action_bt_node)
+ 
+-ament_add_gtest(test_action_compute_path_through_poses_action test_compute_path_through_poses_action.cpp)
+-target_link_libraries(test_action_compute_path_through_poses_action nav2_compute_path_through_poses_action_bt_node)
+-ament_target_dependencies(test_action_compute_path_through_poses_action ${dependencies})
++plugin_add_test(test_action_smooth_path_action test_smooth_path_action.cpp nav2_smooth_path_action_bt_node)
+ 
+-ament_add_gtest(test_action_smooth_path_action test_smooth_path_action.cpp)
+-target_link_libraries(test_action_smooth_path_action nav2_smooth_path_action_bt_node)
+-ament_target_dependencies(test_action_smooth_path_action ${dependencies})
++plugin_add_test(test_action_follow_path_action test_follow_path_action.cpp nav2_follow_path_action_bt_node)
+ 
+-ament_add_gtest(test_action_follow_path_action test_follow_path_action.cpp)
+-target_link_libraries(test_action_follow_path_action nav2_follow_path_action_bt_node)
+-ament_target_dependencies(test_action_follow_path_action ${dependencies})
++plugin_add_test(test_action_navigate_to_pose_action test_navigate_to_pose_action.cpp nav2_navigate_to_pose_action_bt_node)
+ 
+-ament_add_gtest(test_action_navigate_to_pose_action test_navigate_to_pose_action.cpp)
+-target_link_libraries(test_action_navigate_to_pose_action nav2_navigate_to_pose_action_bt_node)
+-ament_target_dependencies(test_action_navigate_to_pose_action ${dependencies})
++plugin_add_test(test_action_navigate_through_poses_action test_navigate_through_poses_action.cpp nav2_navigate_through_poses_action_bt_node)
+ 
+-ament_add_gtest(test_action_navigate_through_poses_action test_navigate_through_poses_action.cpp)
+-target_link_libraries(test_action_navigate_through_poses_action nav2_navigate_through_poses_action_bt_node)
+-ament_target_dependencies(test_action_navigate_through_poses_action ${dependencies})
++plugin_add_test(test_truncate_path_action test_truncate_path_action.cpp nav2_truncate_path_action_bt_node)
+ 
+-ament_add_gtest(test_truncate_path_action test_truncate_path_action.cpp)
+-target_link_libraries(test_truncate_path_action nav2_truncate_path_action_bt_node)
+-ament_target_dependencies(test_truncate_path_action ${dependencies})
++plugin_add_test(test_truncate_path_local_action test_truncate_path_local_action.cpp nav2_truncate_path_local_action_bt_node)
+ 
+-ament_add_gtest(test_truncate_path_local_action test_truncate_path_local_action.cpp)
+-target_link_libraries(test_truncate_path_local_action nav2_truncate_path_local_action_bt_node)
+-ament_target_dependencies(test_truncate_path_local_action ${dependencies})
++plugin_add_test(test_remove_passed_goals_action test_remove_passed_goals_action.cpp nav2_remove_passed_goals_action_bt_node)
+ 
+-ament_add_gtest(test_remove_passed_goals_action test_remove_passed_goals_action.cpp)
+-target_link_libraries(test_remove_passed_goals_action nav2_remove_passed_goals_action_bt_node)
+-ament_target_dependencies(test_remove_passed_goals_action ${dependencies})
++plugin_add_test(test_get_pose_from_path_action test_get_pose_from_path_action.cpp nav2_get_pose_from_path_action_bt_node)
+ 
+-ament_add_gtest(test_get_pose_from_path_action test_get_pose_from_path_action.cpp)
+-target_link_libraries(test_get_pose_from_path_action nav2_get_pose_from_path_action_bt_node)
+-ament_target_dependencies(test_get_pose_from_path_action ${dependencies})
++plugin_add_test(test_planner_selector_node test_planner_selector_node.cpp nav2_planner_selector_bt_node)
+ 
+-ament_add_gtest(test_planner_selector_node test_planner_selector_node.cpp)
+-target_link_libraries(test_planner_selector_node nav2_planner_selector_bt_node)
+-ament_target_dependencies(test_planner_selector_node ${dependencies})
++plugin_add_test(test_controller_selector_node test_controller_selector_node.cpp nav2_controller_selector_bt_node)
+ 
+-ament_add_gtest(test_controller_selector_node test_controller_selector_node.cpp)
+-target_link_libraries(test_controller_selector_node nav2_controller_selector_bt_node)
+-ament_target_dependencies(test_controller_selector_node ${dependencies})
++plugin_add_test(test_smoother_selector_node test_smoother_selector_node.cpp nav2_smoother_selector_bt_node)
+ 
+-ament_add_gtest(test_smoother_selector_node test_smoother_selector_node.cpp)
+-target_link_libraries(test_smoother_selector_node nav2_smoother_selector_bt_node)
+-ament_target_dependencies(test_smoother_selector_node ${dependencies})
++plugin_add_test(test_goal_checker_selector_node test_goal_checker_selector_node.cpp nav2_goal_checker_selector_bt_node)
+ 
+-ament_add_gtest(test_goal_checker_selector_node test_goal_checker_selector_node.cpp)
+-target_link_libraries(test_goal_checker_selector_node nav2_goal_checker_selector_bt_node)
+-ament_target_dependencies(test_goal_checker_selector_node ${dependencies})
+-
+-ament_add_gtest(test_progress_checker_selector_node test_progress_checker_selector_node.cpp)
+-target_link_libraries(test_progress_checker_selector_node nav2_progress_checker_selector_bt_node)
+-ament_target_dependencies(test_progress_checker_selector_node ${dependencies})
++plugin_add_test(test_progress_checker_selector_node test_progress_checker_selector_node.cpp nav2_progress_checker_selector_bt_node)
+diff --git a/nav2_behavior_tree/test/plugins/action/test_assisted_teleop_action.cpp b/nav2_behavior_tree/test/plugins/action/test_assisted_teleop_action.cpp
+index c5d40f0f4e6..7968545870f 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_assisted_teleop_action.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_assisted_teleop_action.cpp
+@@ -19,7 +19,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/assisted_teleop_action.hpp"
+ 
+ class AssistedTeleopActionServer : public TestActionServer<nav2_msgs::action::AssistedTeleop>
+diff --git a/nav2_behavior_tree/test/plugins/action/test_assisted_teleop_cancel_node.cpp b/nav2_behavior_tree/test/plugins/action/test_assisted_teleop_cancel_node.cpp
+index a516d868e4f..9f5e748e688 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_assisted_teleop_cancel_node.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_assisted_teleop_cancel_node.cpp
+@@ -19,7 +19,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/assisted_teleop_cancel_node.hpp"
+ #include "lifecycle_msgs/srv/change_state.hpp"
+ 
+diff --git a/nav2_behavior_tree/test/plugins/action/test_back_up_action.cpp b/nav2_behavior_tree/test/plugins/action/test_back_up_action.cpp
+index 846e7e86db9..6974b351d38 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_back_up_action.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_back_up_action.cpp
+@@ -20,7 +20,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/back_up_action.hpp"
+ 
+ class BackUpActionServer : public TestActionServer<nav2_msgs::action::BackUp>
+diff --git a/nav2_behavior_tree/test/plugins/action/test_back_up_cancel_node.cpp b/nav2_behavior_tree/test/plugins/action/test_back_up_cancel_node.cpp
+index a3ea28791c6..99901ab2518 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_back_up_cancel_node.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_back_up_cancel_node.cpp
+@@ -19,7 +19,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/back_up_cancel_node.hpp"
+ #include "lifecycle_msgs/srv/change_state.hpp"
+ 
+diff --git a/nav2_behavior_tree/test/plugins/action/test_compute_path_through_poses_action.cpp b/nav2_behavior_tree/test/plugins/action/test_compute_path_through_poses_action.cpp
+index 24d10b63d63..02e7c865d8d 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_compute_path_through_poses_action.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_compute_path_through_poses_action.cpp
+@@ -24,7 +24,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/compute_path_through_poses_action.hpp"
+ 
+ class ComputePathThroughPosesActionServer
+diff --git a/nav2_behavior_tree/test/plugins/action/test_compute_path_to_pose_action.cpp b/nav2_behavior_tree/test/plugins/action/test_compute_path_to_pose_action.cpp
+index 29ebaef9362..4f03c3b59bd 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_compute_path_to_pose_action.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_compute_path_to_pose_action.cpp
+@@ -23,7 +23,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/compute_path_to_pose_action.hpp"
+ 
+ class ComputePathToPoseActionServer : public TestActionServer<nav2_msgs::action::ComputePathToPose>
+diff --git a/nav2_behavior_tree/test/plugins/action/test_controller_cancel_node.cpp b/nav2_behavior_tree/test/plugins/action/test_controller_cancel_node.cpp
+index 564e72d3d54..b991e685bc5 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_controller_cancel_node.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_controller_cancel_node.cpp
+@@ -19,7 +19,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/controller_cancel_node.hpp"
+ #include "lifecycle_msgs/srv/change_state.hpp"
+ 
+diff --git a/nav2_behavior_tree/test/plugins/action/test_controller_selector_node.cpp b/nav2_behavior_tree/test/plugins/action/test_controller_selector_node.cpp
+index c7f04ae9a95..743378561de 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_controller_selector_node.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_controller_selector_node.cpp
+@@ -19,7 +19,7 @@
+ #include <set>
+ #include <string>
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "behaviortree_cpp/bt_factory.h"
+ #include "nav2_behavior_tree/plugins/action/controller_selector_node.hpp"
+ #include "nav_msgs/msg/path.hpp"
+diff --git a/nav2_behavior_tree/test/plugins/action/test_drive_on_heading_action.cpp b/nav2_behavior_tree/test/plugins/action/test_drive_on_heading_action.cpp
+index baa5ea02a2c..99c3db72434 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_drive_on_heading_action.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_drive_on_heading_action.cpp
+@@ -20,7 +20,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/drive_on_heading_action.hpp"
+ 
+ class DriveOnHeadingActionServer : public TestActionServer<nav2_msgs::action::DriveOnHeading>
+diff --git a/nav2_behavior_tree/test/plugins/action/test_drive_on_heading_cancel_node.cpp b/nav2_behavior_tree/test/plugins/action/test_drive_on_heading_cancel_node.cpp
+index c94ed1d89f8..7f3f79cfb0b 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_drive_on_heading_cancel_node.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_drive_on_heading_cancel_node.cpp
+@@ -19,7 +19,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/drive_on_heading_cancel_node.hpp"
+ #include "lifecycle_msgs/srv/change_state.hpp"
+ 
+diff --git a/nav2_behavior_tree/test/plugins/action/test_follow_path_action.cpp b/nav2_behavior_tree/test/plugins/action/test_follow_path_action.cpp
+index 4f272208198..32c3b1ffbf8 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_follow_path_action.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_follow_path_action.cpp
+@@ -23,7 +23,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/follow_path_action.hpp"
+ 
+ class FollowPathActionServer : public TestActionServer<nav2_msgs::action::FollowPath>
+diff --git a/nav2_behavior_tree/test/plugins/action/test_get_pose_from_path_action.cpp b/nav2_behavior_tree/test/plugins/action/test_get_pose_from_path_action.cpp
+index 39f6df2a3c9..b296d706dc1 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_get_pose_from_path_action.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_get_pose_from_path_action.cpp
+@@ -25,7 +25,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/get_pose_from_path_action.hpp"
+ #include "utils/test_behavior_tree_fixture.hpp"
+ 
+diff --git a/nav2_behavior_tree/test/plugins/action/test_goal_checker_selector_node.cpp b/nav2_behavior_tree/test/plugins/action/test_goal_checker_selector_node.cpp
+index 19089fb6f3e..92900c4a5f1 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_goal_checker_selector_node.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_goal_checker_selector_node.cpp
+@@ -19,7 +19,7 @@
+ #include <set>
+ #include <string>
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "behaviortree_cpp/bt_factory.h"
+ #include "nav2_behavior_tree/plugins/action/goal_checker_selector_node.hpp"
+ #include "nav_msgs/msg/path.hpp"
+diff --git a/nav2_behavior_tree/test/plugins/action/test_navigate_through_poses_action.cpp b/nav2_behavior_tree/test/plugins/action/test_navigate_through_poses_action.cpp
+index a805a721b9f..9ffd637d66c 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_navigate_through_poses_action.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_navigate_through_poses_action.cpp
+@@ -25,7 +25,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/navigate_through_poses_action.hpp"
+ 
+ class NavigateThroughPosesActionServer
+diff --git a/nav2_behavior_tree/test/plugins/action/test_navigate_to_pose_action.cpp b/nav2_behavior_tree/test/plugins/action/test_navigate_to_pose_action.cpp
+index 4ed5120b986..d6a31ab4eb8 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_navigate_to_pose_action.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_navigate_to_pose_action.cpp
+@@ -24,7 +24,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/navigate_to_pose_action.hpp"
+ 
+ class NavigateToPoseActionServer : public TestActionServer<nav2_msgs::action::NavigateToPose>
+diff --git a/nav2_behavior_tree/test/plugins/action/test_planner_selector_node.cpp b/nav2_behavior_tree/test/plugins/action/test_planner_selector_node.cpp
+index ade80c57daf..7ca442d9114 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_planner_selector_node.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_planner_selector_node.cpp
+@@ -19,7 +19,7 @@
+ #include <set>
+ #include <string>
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "behaviortree_cpp/bt_factory.h"
+ #include "nav2_behavior_tree/plugins/action/planner_selector_node.hpp"
+ #include "nav_msgs/msg/path.hpp"
+diff --git a/nav2_behavior_tree/test/plugins/action/test_progress_checker_selector_node.cpp b/nav2_behavior_tree/test/plugins/action/test_progress_checker_selector_node.cpp
+index c97bbc19699..614f75a4c3a 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_progress_checker_selector_node.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_progress_checker_selector_node.cpp
+@@ -18,7 +18,7 @@
+ #include <set>
+ #include <string>
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "behaviortree_cpp/bt_factory.h"
+ #include "nav2_behavior_tree/plugins/action/progress_checker_selector_node.hpp"
+ #include "nav_msgs/msg/path.hpp"
+diff --git a/nav2_behavior_tree/test/plugins/action/test_remove_passed_goals_action.cpp b/nav2_behavior_tree/test/plugins/action/test_remove_passed_goals_action.cpp
+index ce9d0debf8e..1ddc5c45f3c 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_remove_passed_goals_action.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_remove_passed_goals_action.cpp
+@@ -25,7 +25,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/remove_passed_goals_action.hpp"
+ #include "utils/test_behavior_tree_fixture.hpp"
+ 
+diff --git a/nav2_behavior_tree/test/plugins/action/test_smooth_path_action.cpp b/nav2_behavior_tree/test/plugins/action/test_smooth_path_action.cpp
+index d60ed2ffb78..60c68b980d9 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_smooth_path_action.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_smooth_path_action.cpp
+@@ -23,7 +23,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/smooth_path_action.hpp"
+ 
+ class SmoothPathActionServer : public TestActionServer<nav2_msgs::action::SmoothPath>
+diff --git a/nav2_behavior_tree/test/plugins/action/test_smoother_selector_node.cpp b/nav2_behavior_tree/test/plugins/action/test_smoother_selector_node.cpp
+index f93f6df878f..a6cd7b19baf 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_smoother_selector_node.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_smoother_selector_node.cpp
+@@ -19,7 +19,7 @@
+ #include <set>
+ #include <string>
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "behaviortree_cpp/bt_factory.h"
+ #include "nav2_behavior_tree/plugins/action/smoother_selector_node.hpp"
+ #include "nav_msgs/msg/path.hpp"
+diff --git a/nav2_behavior_tree/test/plugins/action/test_spin_action.cpp b/nav2_behavior_tree/test/plugins/action/test_spin_action.cpp
+index e3d2e80c85d..2d88d6e2092 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_spin_action.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_spin_action.cpp
+@@ -20,7 +20,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/spin_action.hpp"
+ 
+ class SpinActionServer : public TestActionServer<nav2_msgs::action::Spin>
+diff --git a/nav2_behavior_tree/test/plugins/action/test_spin_cancel_node.cpp b/nav2_behavior_tree/test/plugins/action/test_spin_cancel_node.cpp
+index 54a0270e786..be5a71785e7 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_spin_cancel_node.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_spin_cancel_node.cpp
+@@ -19,7 +19,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/spin_cancel_node.hpp"
+ #include "lifecycle_msgs/srv/change_state.hpp"
+ 
+diff --git a/nav2_behavior_tree/test/plugins/action/test_truncate_path_action.cpp b/nav2_behavior_tree/test/plugins/action/test_truncate_path_action.cpp
+index 2e7ac3fccd2..de0ae1282d4 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_truncate_path_action.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_truncate_path_action.cpp
+@@ -14,17 +14,21 @@
+ // limitations under the License.
+ 
+ #include <gtest/gtest.h>
++
+ #include <memory>
+ #include <set>
+ #include <string>
+ 
+-#include "nav_msgs/msg/path.hpp"
+ #include "geometry_msgs/msg/pose_stamped.hpp"
++#include "nav_msgs/msg/path.hpp"
+ #include "nav2_util/geometry_utils.hpp"
++#include "rclcpp/rclcpp.hpp"
++#include "tf2/LinearMath/Matrix3x3.h"
++#include "tf2/LinearMath/Quaternion.h"
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/truncate_path_action.hpp"
+ 
+ 
+diff --git a/nav2_behavior_tree/test/plugins/action/test_wait_action.cpp b/nav2_behavior_tree/test/plugins/action/test_wait_action.cpp
+index bc0acfd94d2..f99e48f9287 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_wait_action.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_wait_action.cpp
+@@ -20,7 +20,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/wait_action.hpp"
+ 
+ class WaitActionServer : public TestActionServer<nav2_msgs::action::Wait>
+diff --git a/nav2_behavior_tree/test/plugins/action/test_wait_cancel_node.cpp b/nav2_behavior_tree/test/plugins/action/test_wait_cancel_node.cpp
+index 4b55e3d1335..4e91db8e5be 100644
+--- a/nav2_behavior_tree/test/plugins/action/test_wait_cancel_node.cpp
++++ b/nav2_behavior_tree/test/plugins/action/test_wait_cancel_node.cpp
+@@ -19,7 +19,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/action/wait_cancel_node.hpp"
+ #include "lifecycle_msgs/srv/change_state.hpp"
+ 
+diff --git a/nav2_behavior_tree/test/plugins/condition/CMakeLists.txt b/nav2_behavior_tree/test/plugins/condition/CMakeLists.txt
+index d2ba3c1179d..de380c769af 100644
+--- a/nav2_behavior_tree/test/plugins/condition/CMakeLists.txt
++++ b/nav2_behavior_tree/test/plugins/condition/CMakeLists.txt
+@@ -1,63 +1,37 @@
+-ament_add_gtest(test_condition_distance_traveled test_distance_traveled.cpp)
+-target_link_libraries(test_condition_distance_traveled nav2_distance_traveled_condition_bt_node)
+-ament_target_dependencies(test_condition_distance_traveled ${dependencies})
++plugin_add_test(test_condition_distance_traveled test_distance_traveled.cpp nav2_distance_traveled_condition_bt_node)
+ 
+-ament_add_gtest(test_condition_time_expired test_time_expired.cpp)
+-target_link_libraries(test_condition_time_expired nav2_time_expired_condition_bt_node)
+-ament_target_dependencies(test_condition_time_expired ${dependencies})
++plugin_add_test(test_condition_time_expired test_time_expired.cpp nav2_time_expired_condition_bt_node)
+ 
+-ament_add_gtest(test_condition_path_expiring_timer test_path_expiring_timer.cpp)
+-target_link_libraries(test_condition_path_expiring_timer nav2_path_expiring_timer_condition)
+-ament_target_dependencies(test_condition_time_expired ${dependencies})
++plugin_add_test(test_condition_path_expiring_timer test_path_expiring_timer.cpp nav2_path_expiring_timer_condition)
+ 
+-ament_add_gtest(test_condition_goal_reached test_goal_reached.cpp)
+-target_link_libraries(test_condition_goal_reached nav2_goal_reached_condition_bt_node)
+-ament_target_dependencies(test_condition_goal_reached ${dependencies})
++plugin_add_test(test_condition_goal_reached test_goal_reached.cpp nav2_goal_reached_condition_bt_node)
+ 
+-ament_add_gtest(test_condition_goal_updated test_goal_updated.cpp)
+-target_link_libraries(test_condition_goal_updated nav2_goal_updated_condition_bt_node)
+-ament_target_dependencies(test_condition_goal_updated ${dependencies})
++plugin_add_test(test_condition_goal_updated test_goal_updated.cpp nav2_goal_updated_condition_bt_node)
+ 
+-ament_add_gtest(test_condition_globally_updated_goal test_globally_updated_goal.cpp)
+-target_link_libraries(test_condition_globally_updated_goal nav2_globally_updated_goal_condition_bt_node)
+-ament_target_dependencies(test_condition_globally_updated_goal ${dependencies})
++plugin_add_test(test_condition_globally_updated_goal test_globally_updated_goal.cpp nav2_globally_updated_goal_condition_bt_node)
+ 
+-ament_add_gtest(test_condition_initial_pose_received test_initial_pose_received.cpp)
+-target_link_libraries(test_condition_initial_pose_received nav2_initial_pose_received_condition_bt_node)
+-ament_target_dependencies(test_condition_initial_pose_received ${dependencies})
++plugin_add_test(test_condition_initial_pose_received test_initial_pose_received.cpp nav2_initial_pose_received_condition_bt_node)
+ 
+-ament_add_gtest(test_condition_transform_available test_transform_available.cpp)
+-target_link_libraries(test_condition_transform_available nav2_transform_available_condition_bt_node)
+-ament_target_dependencies(test_condition_transform_available ${dependencies})
++plugin_add_test(test_condition_transform_available test_transform_available.cpp nav2_transform_available_condition_bt_node)
+ 
+-ament_add_gtest(test_condition_is_stuck test_is_stuck.cpp)
+-target_link_libraries(test_condition_is_stuck nav2_is_stuck_condition_bt_node)
+-ament_target_dependencies(test_condition_is_stuck ${dependencies})
++plugin_add_test(test_condition_is_stuck test_is_stuck.cpp nav2_is_stuck_condition_bt_node)
+ 
+-ament_add_gtest(test_condition_is_battery_charging test_is_battery_charging.cpp)
+-target_link_libraries(test_condition_is_battery_charging nav2_is_battery_charging_condition_bt_node)
+-ament_target_dependencies(test_condition_is_battery_charging ${dependencies})
++plugin_add_test(test_condition_is_battery_charging test_is_battery_charging.cpp nav2_is_battery_charging_condition_bt_node)
+ 
+-ament_add_gtest(test_condition_is_battery_low test_is_battery_low.cpp)
+-target_link_libraries(test_condition_is_battery_low nav2_is_battery_low_condition_bt_node)
+-ament_target_dependencies(test_condition_is_battery_low ${dependencies})
++plugin_add_test(test_condition_is_battery_low test_is_battery_low.cpp nav2_is_battery_low_condition_bt_node)
+ 
+-ament_add_gtest(test_condition_is_path_valid test_is_path_valid.cpp)
+-target_link_libraries(test_condition_is_path_valid nav2_is_path_valid_condition_bt_node)
+-ament_target_dependencies(test_condition_is_path_valid ${dependencies})
++plugin_add_test(test_condition_is_path_valid test_is_path_valid.cpp nav2_is_path_valid_condition_bt_node)
+ 
+-ament_add_gtest(test_are_error_codes_present test_are_error_codes_present.cpp)
+-target_link_libraries(test_are_error_codes_present nav2_would_a_controller_recovery_help_condition_bt_node)
+-ament_target_dependencies(test_are_error_codes_present ${dependencies})
++plugin_add_test(test_are_error_codes_present test_are_error_codes_present.cpp nav2_would_a_controller_recovery_help_condition_bt_node)
+ 
+-ament_add_gtest(test_would_a_controller_recovery_help test_would_a_controller_recovery_help.cpp)
+-target_link_libraries(test_would_a_controller_recovery_help nav2_would_a_controller_recovery_help_condition_bt_node)
+-ament_target_dependencies(test_would_a_controller_recovery_help ${dependencies})
++plugin_add_test(test_would_a_controller_recovery_help
++  test_would_a_controller_recovery_help.cpp
++  nav2_would_a_controller_recovery_help_condition_bt_node)
+ 
+-ament_add_gtest(test_would_a_planner_recovery_help test_would_a_planner_recovery_help.cpp)
+-target_link_libraries(test_would_a_planner_recovery_help nav2_would_a_planner_recovery_help_condition_bt_node)
+-ament_target_dependencies(test_would_a_planner_recovery_help ${dependencies})
++plugin_add_test(test_would_a_planner_recovery_help
++  test_would_a_planner_recovery_help.cpp
++  nav2_would_a_planner_recovery_help_condition_bt_node)
+ 
+-ament_add_gtest(test_would_a_smoother_recovery_help test_would_a_smoother_recovery_help.cpp)
+-target_link_libraries(test_would_a_smoother_recovery_help nav2_would_a_smoother_recovery_help_condition_bt_node)
+-ament_target_dependencies(test_would_a_smoother_recovery_help ${dependencies})
++plugin_add_test(test_would_a_smoother_recovery_help
++  test_would_a_smoother_recovery_help.cpp
++  nav2_would_a_smoother_recovery_help_condition_bt_node)
+diff --git a/nav2_behavior_tree/test/plugins/control/CMakeLists.txt b/nav2_behavior_tree/test/plugins/control/CMakeLists.txt
+index 16138305c28..e4bcb592be7 100644
+--- a/nav2_behavior_tree/test/plugins/control/CMakeLists.txt
++++ b/nav2_behavior_tree/test/plugins/control/CMakeLists.txt
+@@ -1,11 +1,5 @@
+-ament_add_gtest(test_control_recovery_node test_recovery_node.cpp)
+-target_link_libraries(test_control_recovery_node nav2_recovery_node_bt_node)
+-ament_target_dependencies(test_control_recovery_node ${dependencies})
++plugin_add_test(test_control_recovery_node test_recovery_node.cpp nav2_recovery_node_bt_node)
+ 
+-ament_add_gtest(test_control_pipeline_sequence test_pipeline_sequence.cpp)
+-target_link_libraries(test_control_pipeline_sequence nav2_pipeline_sequence_bt_node)
+-ament_target_dependencies(test_control_pipeline_sequence ${dependencies})
++plugin_add_test(test_control_pipeline_sequence test_pipeline_sequence.cpp nav2_pipeline_sequence_bt_node)
+ 
+-ament_add_gtest(test_control_round_robin_node test_round_robin_node.cpp)
+-target_link_libraries(test_control_round_robin_node nav2_round_robin_node_bt_node)
+-ament_target_dependencies(test_control_round_robin_node ${dependencies})
++plugin_add_test(test_control_round_robin_node test_round_robin_node.cpp nav2_round_robin_node_bt_node)
+diff --git a/nav2_behavior_tree/test/plugins/decorator/CMakeLists.txt b/nav2_behavior_tree/test/plugins/decorator/CMakeLists.txt
+index ed6504a6824..98e6db595b5 100644
+--- a/nav2_behavior_tree/test/plugins/decorator/CMakeLists.txt
++++ b/nav2_behavior_tree/test/plugins/decorator/CMakeLists.txt
+@@ -1,27 +1,13 @@
+-ament_add_gtest(test_decorator_distance_controller test_distance_controller.cpp)
+-target_link_libraries(test_decorator_distance_controller nav2_distance_controller_bt_node)
+-ament_target_dependencies(test_decorator_distance_controller ${dependencies})
++plugin_add_test(test_decorator_distance_controller test_distance_controller.cpp nav2_distance_controller_bt_node)
+ 
+-ament_add_gtest(test_decorator_speed_controller test_speed_controller.cpp)
+-target_link_libraries(test_decorator_speed_controller nav2_speed_controller_bt_node)
+-ament_target_dependencies(test_decorator_speed_controller ${dependencies})
++plugin_add_test(test_decorator_speed_controller test_speed_controller.cpp nav2_speed_controller_bt_node)
+ 
+-ament_add_gtest(test_decorator_rate_controller test_rate_controller.cpp)
+-target_link_libraries(test_decorator_rate_controller nav2_rate_controller_bt_node)
+-ament_target_dependencies(test_decorator_rate_controller ${dependencies})
++plugin_add_test(test_decorator_rate_controller test_rate_controller.cpp nav2_rate_controller_bt_node)
+ 
+-ament_add_gtest(test_goal_updater_node test_goal_updater_node.cpp)
+-target_link_libraries(test_goal_updater_node nav2_goal_updater_node_bt_node)
+-ament_target_dependencies(test_goal_updater_node ${dependencies})
++plugin_add_test(test_goal_updater_node test_goal_updater_node.cpp nav2_goal_updater_node_bt_node)
+ 
+-ament_add_gtest(test_single_trigger_node test_single_trigger_node.cpp)
+-target_link_libraries(test_single_trigger_node nav2_single_trigger_bt_node)
+-ament_target_dependencies(test_single_trigger_node ${dependencies})
++plugin_add_test(test_single_trigger_node test_single_trigger_node.cpp nav2_single_trigger_bt_node)
+ 
+-ament_add_gtest(test_goal_updated_controller test_goal_updated_controller.cpp)
+-target_link_libraries(test_goal_updated_controller nav2_goal_updated_controller_bt_node)
+-ament_target_dependencies(test_goal_updated_controller ${dependencies})
++plugin_add_test(test_goal_updated_controller test_goal_updated_controller.cpp nav2_goal_updated_controller_bt_node)
+ 
+-ament_add_gtest(test_decorator_path_longer_on_approach test_path_longer_on_approach.cpp)
+-target_link_libraries(test_decorator_path_longer_on_approach nav2_path_longer_on_approach_bt_node)
+-ament_target_dependencies(test_decorator_path_longer_on_approach ${dependencies})
++plugin_add_test(test_decorator_path_longer_on_approach test_path_longer_on_approach.cpp nav2_path_longer_on_approach_bt_node)
+diff --git a/nav2_behavior_tree/test/plugins/decorator/test_goal_updater_node.cpp b/nav2_behavior_tree/test/plugins/decorator/test_goal_updater_node.cpp
+index fa56a2064ab..821b2a64492 100644
+--- a/nav2_behavior_tree/test/plugins/decorator/test_goal_updater_node.cpp
++++ b/nav2_behavior_tree/test/plugins/decorator/test_goal_updater_node.cpp
+@@ -23,7 +23,7 @@
+ 
+ #include "behaviortree_cpp/bt_factory.h"
+ 
+-#include "utils/test_action_server.hpp"
++#include "nav2_behavior_tree/utils/test_action_server.hpp"
+ #include "nav2_behavior_tree/plugins/decorator/goal_updater_node.hpp"
+ 
+ 
