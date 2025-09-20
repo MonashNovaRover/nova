@@ -90,7 +90,7 @@ let
 
       # Add teleop_modular
       # To use local source code for teleop modular, run in your terminal before building:
-      # $ export TELEOP_PATH:=~/path/to/teleop_modular
+      # $ export TELEOP_PATH=~/path/to/teleop_modular
       # (this only applies to the one terminal, and wont apply to any future shell sessions)
       (import ((pkgs.lib.maybeEnv "TELEOP_PATH" (pkgs.fetchFromGitHub {
         owner = "BaileyChessum";
