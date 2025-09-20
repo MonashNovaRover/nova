@@ -1,4 +1,4 @@
-teleop_science:
+teleop_node:
   ros__parameters:
     # The maximum rate at which updates should occur, and hence the max rate at which commands are sent.
     # Leaving this unset makes the max update rate unlimited.
@@ -20,12 +20,12 @@ teleop_science:
     control_modes:
       names: [
         # First in the list gets activated at startup
-        "input_publisher_mode"
+        "legacy_input_mode"
       ]
 
       # Declare types for the modes
-      input_publisher_mode:
-        type: "input_publisher_mode/InputPublisherMode"
+      legacy_input_mode:
+        type: "legacy_input_mode/LegacyInputMode"
 
 game_controller_source:
   ros__parameters:
@@ -68,26 +68,23 @@ game_controller_source:
 
     remap:
       axes:
-        auger_actuation:
+        ax_stick_x:
           from: "RIGHTY"
-        cbeam_actuation:
-          from: "LEFTY"
+        ax_stick_y:
+          from: "RIGHTX"
 
       buttons:
-        sweeper_sweep:
-          from: "A"
-        twitch:
-          from: "B"
+        # lock
+        btn_bottom_l2_state:
+          from: "BACK"
+        # unlock
+        btn_bottom_l5_state:
+          from: "START"
 
-input_publisher_mode:
+legacy_input_mode:
   ros__parameters:
-    input_names_topic: "/science/input"
+    topic: "/inputs/input_joystick_l"
+    # stamped_topic: "/some_stamped_topic"
+    qos: 2
 
-    axis_names:
-      - "auger_actuation"
-      - "cbeam_actuation"
-    button_names:
-      - "sweeper_sweep"
-      - "twitch"
-      - "spinny_pos_1"
-
+    use_speed_input: false

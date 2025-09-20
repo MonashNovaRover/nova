@@ -32,7 +32,7 @@ public:
 
   return_type on_init() override;
   CallbackReturn on_configure(const State & previous_state) override;
-  void on_capture_inputs(Inputs inputs) override;
+  void on_configure_inputs(Inputs inputs) override;
 
   /**
    * \brief Publishes a message to tell the control system to do nothing. Used when the control mode is locked, and

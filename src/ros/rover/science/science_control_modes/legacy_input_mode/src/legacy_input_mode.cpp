@@ -77,7 +77,7 @@ CallbackReturn LegacyInputMode::on_configure(const State &)
   return CallbackReturn::SUCCESS;
 }
 
-void LegacyInputMode::on_capture_inputs(Inputs inputs)
+void LegacyInputMode::on_configure_inputs(Inputs inputs)
 {
   // This method is always run after on_configure(),
   // so you can assume that you already have any necessary parameters
