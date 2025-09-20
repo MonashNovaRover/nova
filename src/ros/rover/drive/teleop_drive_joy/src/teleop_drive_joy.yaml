@@ -50,6 +50,20 @@ teleop_drive_joy:
       type: double
       default_value: 1.0
       description: "A scale parameter applied on angular velocity"
+    limit_linear:
+      type: double
+      default_value: 1.0
+      description: "A limit parameter applied on linear velocity"
+    limit_angular:
+      type: double
+      default_value: 1.0
+      description: "A limit parameter applied on angular velocity"
+
+  pivot_drive_controller:
+    limit_angular:
+      type: double
+      default_value: 0.999
+      description: "A limit parameter applied on angular velocity"
   
   axis_linear_x:
     type: int
