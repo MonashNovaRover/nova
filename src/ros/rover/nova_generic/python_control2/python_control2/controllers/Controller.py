@@ -9,7 +9,20 @@ from ..controller_manager.Contexts import Contexts
 T = TypeVar("T")
 
 class Controller(ABC):
-    """ TODO: Description """
+    """
+    Controllers are what you usually write to implement some system on the rover.
+
+    They determine how the robot should move, calculating a new target state for the robot to try reach at some N hz.
+
+    They usually try to deal in simple units:
+      - [-1, 1] for effort (i.e 100% of motor capacity backwards to 100% forwards)
+      - m/s or radians/s for velocity
+      - m or radians for position
+
+    Controllers runs their main logic inside update(), which is called every control cycle. In update(), the controller
+    reads the latest hardware state from State Interfaces retrieved in configure(), and writes the desired hardware
+    state to the Command Interface retrieved in configure().
+    """
     name: str
     node: Node
     logger: RcutilsLogger
@@ -25,7 +38,6 @@ class Controller(ABC):
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
         """
-        print("Controller base init")
         pass
 
     @final
