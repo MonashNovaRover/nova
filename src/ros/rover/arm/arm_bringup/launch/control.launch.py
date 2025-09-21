@@ -66,11 +66,6 @@ def launch_setup(context, *args, **kwargs):
     urdf_value = ParameterValue(Command(['xacro ', model, ' '] + xacro_args), value_type=str)
 
     return [
-        LogInfo(msg=[
-            '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/arm_bringup']),
-            '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
-            FindPackageShare('arm_bringup'), '"'
-        ]),
         LogInfo(msg=['Using arm_bringup := ', arm_bringup_dir]),
         LogInfo(msg=['Using model := ', model]),
         GroupAction(
