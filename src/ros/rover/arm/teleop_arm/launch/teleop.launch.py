@@ -5,11 +5,12 @@ from launch.actions import DeclareLaunchArgument, OpaqueFunction, LogInfo
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
+import os
 
 
 def launch_setup(context, *args, **kwargs):
     teleop_arm_dir = PythonExpression([
-        '"', PathJoinSubstitution(['~/nova/src/ros/rover/arm/teleop_arm']),
+        '"', PathJoinSubstitution([os.path.expanduser("~") + '/nova/src/ros/rover/arm/teleop_arm']),
         '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
         FindPackageShare('teleop_arm'), '"'
     ])
@@ -57,7 +58,7 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     teleop_arm_dir = PythonExpression([
-        '"', PathJoinSubstitution(['~/nova/src/ros/rover/arm/teleop_arm']),
+        '"', PathJoinSubstitution([os.path.expanduser("~") + '/nova/src/ros/rover/arm/teleop_arm']),
         '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
         FindPackageShare('teleop_arm'), '"'
     ])
