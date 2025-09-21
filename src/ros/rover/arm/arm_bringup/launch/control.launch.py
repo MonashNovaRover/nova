@@ -26,12 +26,12 @@ from launch_ros.parameter_descriptions import ParameterValue
 def launch_setup(context, *args, **kwargs):
     arm_bringup_dir = PythonExpression([
         '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/arm_bringup']),
-        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+        '" if bool("', LaunchConfiguration('local'), '") else "',
         FindPackageShare('arm_bringup'), '"'
     ])
     rover_description_dir = PythonExpression([
         '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/rover_description']),
-        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+        '" if bool("', LaunchConfiguration('local'), '") else "',
         FindPackageShare('rover_description'), '"'
     ])
 
