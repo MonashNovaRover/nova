@@ -1,18 +1,24 @@
 {
     "documentId": "9d7e75957ca5d1dfa9fa5240",
     "outputFormat": "urdf",
-    "onshape_api": "https://cad.onshape.com",
-    "onshape_access_key": "ACCESSKEY",
-    "onshape_secret_key": "SECRETKEY",
+    "onshape_api": "https://monashnova.onshape.com",
+    "onshape_access_key": "ACCESS_KEY",
+    "onshape_secret_key": "SECRET_KEY",
 
     "assemblyName": "ExportedURDF",
     "robotName": "Banksia",
+    "output_filename": "rover",
+    "assets_directory": "meshes",
 
     "addDummyBaseLink": true,
-    "simplifySTLs": "all",
+    "merge_stls": true,
 
     "useScads": true,
     "ball_to_euler": true,
-    "output_filename": "rover",
-    "assets_directory": "meshes"
+    "convex_decomposition": true,
+
+    "ignore": {
+        "left_diffend_dummy": "all",
+        "right_diffend_dummy": "all"
+    }
 }

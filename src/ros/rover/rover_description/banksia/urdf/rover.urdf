@@ -1,829 +1,1931 @@
+<?xml version="1.0" ?>
+<!-- Generated using onshape-to-robot -->
+<!-- Onshape document_id: 9d7e75957ca5d1dfa9fa5240 -->
 <robot name="Banksia">
-  
+  <!-- Link chassis -->
   <link name="chassis">
     <inertial>
-      <origin xyz="-2.0406452975e-04 1.4041380148e-01 1.6607310544e-02" rpy="0 0 0" />
-      <mass value="5.45693" />
-      <inertia ixx="2.0399116109e-01" ixy="-2.7566460518e-04" ixz="-2.0923415248e-04" iyy="1.6687723829e-01" iyz="-7.4614396404e-03" izz="3.2174651883e-01" />
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 0 0"/>
+      <mass value="5.45693"/>
+      <inertia ixx="0.167067" ixy="0.000276712" ixz="0.00744076" iyy="0.204175" iyz="-0.000208712" izz="0.322013"/>
     </inertial>
-    
-    <collision>
-      <origin xyz="-0.1725 9.30182e-18 0.0235" rpy="-4.03092e-16 -5.97772e-16 1.5708" />
-      <geometry>
-        <box size="0.48 0.545 0.175" />
-      </geometry>
-    </collision>
+    <!-- Part chassis_parts -->
     <visual>
-      <origin xyz="1.23537e-17 1.38778e-17 -1.29927e-16" rpy="-4.03092e-16 -5.97772e-16 1.5708" />
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
       <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/chassis.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/chassis_visual.stl"/>
       </geometry>
-      <material name="chassis_material">
-        <color rgba="0.882353 0.176471 0.415686 1" />
+      <material name="chassis_parts_material">
+        <color rgba="0.882353 0.176471 0.415686 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/chassis_parts_00000.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/chassis_parts_00001.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/chassis_parts_00002.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/chassis_parts_00003.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/chassis_parts_00004.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/chassis_parts_00005.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/chassis_parts_00006.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/chassis_parts_00007.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/chassis_parts_00008.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/chassis_parts_00009.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/chassis_parts_00010.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/chassis_parts_00011.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/chassis_parts_00012.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/chassis_parts_00013.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/chassis_parts_00014.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.140796 -0.0002061 0.0166523" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/chassis_parts_00015.stl"/>
+      </geometry>
+    </collision>
   </link>
-  
+  <!-- Link right_leg -->
   <link name="right_leg">
     <inertial>
-      <origin xyz="6.5703607412e-03 -3.9329002498e-03 -5.2558929512e-02" rpy="0 0 0" />
-      <mass value="3.36147" />
-      <inertia ixx="9.7915943942e-03" ixy="1.3181799451e-02" ixz="1.6419389974e-03" iyy="4.9990179089e-01" iyz="1.7961744743e-04" izz="4.9601696975e-01" />
+      <origin xyz="0.00655458 0.0038735 0.0314705" rpy="0 0 0"/>
+      <mass value="3.36147"/>
+      <inertia ixx="0.00979711" ixy="-0.0131859" ixz="-0.00163276" iyy="0.499857" iyz="0.000195061" izz="0.496008"/>
     </inertial>
-    
-    <collision>
-      <origin xyz="-7.94612e-19 -7.28584e-20 -0.021" rpy="3.14159 3.78387e-17 1.52126e-18" />
-      <geometry>
-        <cylinder length="0.058" radius="0.043" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.0854333 -0.00985748 -0.0136532" rpy="3.01942 -1.309 0.235619" />
-      <geometry>
-        <cylinder length="0.09" radius="0.03" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.314372 -0.0380539 0.044033" rpy="3.01942 -1.32645 0.235619" />
-      <geometry>
-        <cylinder length="0.39" radius="0.025" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.453656 0.00133184 0.0816002" rpy="-3.14159 -0.279252 -3.10669" />
-      <geometry>
-        <box size="0.106 0.065 0.077" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.444729 0.01 0.0108859" rpy="-3.14159 -0.261799 -3.14159" />
-      <geometry>
-        <cylinder length="0.052" radius="0.045" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.0858691 -0.00456955 -0.0135428" rpy="-3.07178 -1.309 3.01942" />
-      <geometry>
-        <cylinder length="0.09" radius="0.03" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.316016 -0.0191164 0.0443873" rpy="-3.07178 -1.32645 3.01942" />
-      <geometry>
-        <cylinder length="0.39" radius="0.025" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.463136 0.0246849 0.083738" rpy="3.14159 -0.279252 0.0349065" />
-      <geometry>
-        <box size="0.107 0.065 0.077" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.453729 0.034 0.0138859" rpy="3.14159 -0.261799 2.4509e-18" />
-      <geometry>
-        <cylinder length="0.052" radius="0.045" />
-      </geometry>
-    </collision>
+    <!-- Part right_leg_parts -->
     <visual>
-      <origin xyz="-7.94612e-19 -7.28584e-20 -0.021" rpy="3.14159 3.78387e-17 1.52126e-18" />
+      <origin xyz="0.00655458 0.0038735 0.0314705" rpy="-1.5708 -1.20375e-16 -3.11034"/>
       <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/right_leg.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/right_leg_visual.stl"/>
       </geometry>
-      <material name="right_leg_material">
-        <color rgba="0.917647 0.917647 0.917647 1" />
+      <material name="right_leg_parts_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="0.00655458 0.0038735 0.0314705" rpy="-1.5708 -1.20375e-16 -3.11034"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_leg_parts_00000.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00655458 0.0038735 0.0314705" rpy="-1.5708 -1.20375e-16 -3.11034"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_leg_parts_00001.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00655458 0.0038735 0.0314705" rpy="-1.5708 -1.20375e-16 -3.11034"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_leg_parts_00002.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00655458 0.0038735 0.0314705" rpy="-1.5708 -1.20375e-16 -3.11034"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_leg_parts_00003.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00655458 0.0038735 0.0314705" rpy="-1.5708 -1.20375e-16 -3.11034"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_leg_parts_00004.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00655458 0.0038735 0.0314705" rpy="-1.5708 -1.20375e-16 -3.11034"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_leg_parts_00005.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00655458 0.0038735 0.0314705" rpy="-1.5708 -1.20375e-16 -3.11034"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_leg_parts_00006.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00655458 0.0038735 0.0314705" rpy="-1.5708 -1.20375e-16 -3.11034"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_leg_parts_00007.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00655458 0.0038735 0.0314705" rpy="-1.5708 -1.20375e-16 -3.11034"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_leg_parts_00008.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00655458 0.0038735 0.0314705" rpy="-1.5708 -1.20375e-16 -3.11034"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_leg_parts_00009.stl"/>
+      </geometry>
+    </collision>
   </link>
-  
+  <!-- Link fr_ankle -->
   <link name="fr_ankle">
     <inertial>
-      <origin xyz="-4.2980093701e-02 5.7485751966e-02 5.4733709172e-05" rpy="0 0 0" />
-      <mass value="1.07889" />
-      <inertia ixx="9.0511188730e-03" ixy="-2.1530209707e-03" ixz="-2.0375276777e-06" iyy="2.6439631577e-03" iyz="4.5461830658e-06" izz="1.0631971436e-02" />
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="0 0 0"/>
+      <mass value="1.07889"/>
+      <inertia ixx="0.00951217" ixy="-2.46697e-06" ixz="0.00123376" iyy="0.0106409" iyz="-4.80027e-06" izz="0.00219861"/>
     </inertial>
-    
-    <collision>
-      <origin xyz="0.116019 -2.19728e-16 -0.103049" rpy="-1.5708 0.00611017 -3.14159" />
-      <geometry>
-        <box size="0.032 0.08 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.0918946 -2.26801e-16 -0.163527" rpy="-1.5708 -0.796741 3.14159" />
-      <geometry>
-        <box size="0.02 0.08 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.0638009 -2.31248e-16 -0.19982" rpy="-1.5708 -0.0113434 -3.14159" />
-      <geometry>
-        <box size="0.025 0.031 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.0670818 -2.13933e-16 -0.0442979" rpy="-1.5708 0.808962 -3.14159" />
-      <geometry>
-        <box size="0.012 0.076 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.107778 -2.16161e-16 -0.0698107" rpy="-1.5708 1.55945 -3.14159" />
-      <geometry>
-        <box size="0.012 0.03 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.00045306 -2.11198e-16 -0.0107537" rpy="-1.11172e-16 0.00611017 -3.14159" />
-      <geometry>
-        <cylinder length="0.026" radius="0.038" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.0284953 -2.1154e-16 -0.0175825" rpy="-1.11172e-16 0.00611017 -3.14159" />
-      <geometry>
-        <box size="0.03 0.06 0.012" />
-      </geometry>
-    </collision>
+    <!-- Part fr_ankle_parts -->
     <visual>
-      <origin xyz="0.124153 -2.22045e-16 -0.125" rpy="-1.5708 0.133516 -5.93793e-20" />
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
       <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/fr_ankle.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/fr_ankle_visual.stl"/>
       </geometry>
-      <material name="fr_ankle_material">
-        <color rgba="0.901961 0.901961 0.901961 1" />
+      <material name="fr_ankle_parts_material">
+        <color rgba="0.901961 0.901961 0.901961 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_ankle_parts_00000.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_ankle_parts_00001.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_ankle_parts_00002.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_ankle_parts_00003.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_ankle_parts_00004.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_ankle_parts_00005.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_ankle_parts_00006.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_ankle_parts_00007.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_ankle_parts_00008.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_ankle_parts_00009.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_ankle_parts_00010.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_ankle_parts_00011.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_ankle_parts_00012.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_ankle_parts_00013.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_ankle_parts_00014.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="7.25811e-14 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_ankle_parts_00015.stl"/>
+      </geometry>
+    </collision>
   </link>
-  
+  <!-- Link fr_wheel -->
   <link name="fr_wheel">
     <inertial>
-      <origin xyz="2.7390352826e-06 -2.8935678753e-08 1.0169649739e-05" rpy="0 0 0" />
-      <mass value="1.85014" />
-      <inertia ixx="2.0644713311e-02" ixy="2.9228017483e-05" ixz="-5.7159852546e-08" iyy="2.0806073075e-02" iyz="1.3738803345e-09" izz="3.2504007384e-02" />
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="0 0 0"/>
+      <mass value="1.85014"/>
+      <inertia ixx="0.0207017" ixy="2.91047e-05" ixz="1.08883e-08" iyy="0.0208617" iyz="1.43222e-08" izz="0.032714"/>
     </inertial>
-    
-    <collision>
-      <origin xyz="0 -5.55112e-17 5.55112e-17" rpy="4.0126e-30 1.05893e-16 -7.57529e-20" />
-      <geometry>
-        <cylinder length="0.16" radius="0.157" />
-      </geometry>
-    </collision>
+    <!-- Part fr_wheel_parts -->
     <visual>
-      <origin xyz="0 -5.55112e-17 5.55112e-17" rpy="4.0126e-30 1.05893e-16 -7.57529e-20" />
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
       <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/fr_wheel.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/fr_wheel_visual.stl"/>
       </geometry>
-      <material name="fr_wheel_material">
-        <color rgba="0.254902 0.254902 0.254902 1" />
+      <material name="fr_wheel_parts_material">
+        <color rgba="0.254902 0.254902 0.254902 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_wheel_parts_00000.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_wheel_parts_00001.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_wheel_parts_00002.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_wheel_parts_00003.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_wheel_parts_00004.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_wheel_parts_00005.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_wheel_parts_00006.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_wheel_parts_00007.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_wheel_parts_00008.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_wheel_parts_00009.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_wheel_parts_00010.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_wheel_parts_00011.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_wheel_parts_00012.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_wheel_parts_00013.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_wheel_parts_00014.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.78528e-14 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fr_wheel_parts_00015.stl"/>
+      </geometry>
+    </collision>
   </link>
-  
+  <!-- Joint from fr_ankle to fr_wheel -->
   <joint name="frw" type="continuous">
-    <origin xyz="0.00144406 1.22125e-15 -0.241" rpy="8.10813e-15 1.5708 0" />
-    <parent link="fr_ankle" />
-    <child link="fr_wheel" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" />
+    <origin xyz="0.00144406 1.22125e-15 -0.241" rpy="8.10813e-15 1.5708 0"/>
+    <parent link="fr_ankle"/>
+    <child link="fr_wheel"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10"/>
   </joint>
-  
+  <!-- Joint from right_leg to fr_ankle -->
   <joint name="frp" type="revolute">
-    <origin xyz="-0.470138 0.0265286 0.0836181" rpy="1.54405 1.5708 0" />
-    <parent link="right_leg" />
-    <child link="fr_ankle" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" lower="-3.14159" upper="3.14159" />
+    <origin xyz="-0.470138 0.0265286 0.0836181" rpy="1.54405 1.5708 0"/>
+    <parent link="right_leg"/>
+    <child link="fr_ankle"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.14159" upper="3.14159"/>
   </joint>
-  
+  <!-- Link br_ankle -->
   <link name="br_ankle">
     <inertial>
-      <origin xyz="-4.2980093701e-02 5.7485751966e-02 5.4733709172e-05" rpy="0 0 0" />
-      <mass value="1.07889" />
-      <inertia ixx="9.0511188730e-03" ixy="-2.1530209707e-03" ixz="-2.0375276777e-06" iyy="2.6439631577e-03" iyz="4.5461830658e-06" izz="1.0631971436e-02" />
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="0 0 0"/>
+      <mass value="1.07889"/>
+      <inertia ixx="0.00951217" ixy="-2.46697e-06" ixz="0.00123376" iyy="0.0106409" iyz="-4.80027e-06" izz="0.00219861"/>
     </inertial>
-    
-    <collision>
-      <origin xyz="0.116019 -1.64247e-16 -0.103049" rpy="-1.5708 0.00611017 -3.14159" />
-      <geometry>
-        <box size="0.032 0.08 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.0918946 -1.71247e-16 -0.163527" rpy="-1.5708 -0.796741 3.14159" />
-      <geometry>
-        <box size="0.02 0.08 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.0638009 -1.75652e-16 -0.19982" rpy="-1.5708 -0.0113434 -3.14159" />
-      <geometry>
-        <box size="0.025 0.031 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.0670818 -1.58534e-16 -0.0442979" rpy="-1.5708 0.808962 -3.14159" />
-      <geometry>
-        <box size="0.012 0.076 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.107778 -1.60722e-16 -0.0698107" rpy="-1.5708 1.55945 -3.14159" />
-      <geometry>
-        <box size="0.012 0.03 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.00045306 -1.55854e-16 -0.0107537" rpy="-1.10861e-16 0.00611017 -3.14159" />
-      <geometry>
-        <cylinder length="0.026" radius="0.038" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.0284953 -1.56182e-16 -0.0175825" rpy="-1.10861e-16 0.00611017 -3.14159" />
-      <geometry>
-        <box size="0.03 0.06 0.012" />
-      </geometry>
-    </collision>
+    <!-- Part br_ankle_parts -->
     <visual>
-      <origin xyz="0.124153 -1.66533e-16 -0.125" rpy="-1.5708 0.133516 2.88237e-19" />
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
       <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/br_ankle.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/br_ankle_visual.stl"/>
       </geometry>
-      <material name="br_ankle_material">
-        <color rgba="0.901961 0.901961 0.901961 1" />
+      <material name="br_ankle_parts_material">
+        <color rgba="0.901961 0.901961 0.901961 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_ankle_parts_00000.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_ankle_parts_00001.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_ankle_parts_00002.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_ankle_parts_00003.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_ankle_parts_00004.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_ankle_parts_00005.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_ankle_parts_00006.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_ankle_parts_00007.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_ankle_parts_00008.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_ankle_parts_00009.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_ankle_parts_00010.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_ankle_parts_00011.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_ankle_parts_00012.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_ankle_parts_00013.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_ankle_parts_00014.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.0737643 5.30265e-05 -0.176599" rpy="-1.61983e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_ankle_parts_00015.stl"/>
+      </geometry>
+    </collision>
   </link>
-  
+  <!-- Link br_wheel -->
   <link name="br_wheel">
     <inertial>
-      <origin xyz="2.7390352826e-06 -2.8935678753e-08 1.0169649739e-05" rpy="0 0 0" />
-      <mass value="1.85014" />
-      <inertia ixx="2.0644713311e-02" ixy="2.9228017483e-05" ixz="-5.7159852546e-08" iyy="2.0806073075e-02" iyz="1.3738803345e-09" izz="3.2504007384e-02" />
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="0 0 0"/>
+      <mass value="1.85014"/>
+      <inertia ixx="0.0207017" ixy="2.91047e-05" ixz="1.08883e-08" iyy="0.0208617" iyz="1.43222e-08" izz="0.032714"/>
     </inertial>
-    
-    <collision>
-      <origin xyz="0 0 0" rpy="1.19289e-30 1.05893e-16 -2.78734e-19" />
-      <geometry>
-        <cylinder length="0.16" radius="0.157" />
-      </geometry>
-    </collision>
+    <!-- Part br_wheel_parts -->
     <visual>
-      <origin xyz="0 0 0" rpy="1.19289e-30 1.05893e-16 -2.78734e-19" />
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
       <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/br_wheel.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/br_wheel_visual.stl"/>
       </geometry>
-      <material name="br_wheel_material">
-        <color rgba="0.254902 0.254902 0.254902 1" />
+      <material name="br_wheel_parts_material">
+        <color rgba="0.254902 0.254902 0.254902 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_wheel_parts_00000.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_wheel_parts_00001.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_wheel_parts_00002.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_wheel_parts_00003.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_wheel_parts_00004.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_wheel_parts_00005.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_wheel_parts_00006.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_wheel_parts_00007.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_wheel_parts_00008.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_wheel_parts_00009.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_wheel_parts_00010.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_wheel_parts_00011.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_wheel_parts_00012.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_wheel_parts_00013.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_wheel_parts_00014.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -8.05945e-15 -1.5753"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/br_wheel_parts_00015.stl"/>
+      </geometry>
+    </collision>
   </link>
-  
+  <!-- Joint from br_ankle to br_wheel -->
   <joint name="brw" type="continuous">
-    <origin xyz="0.00144406 9.99201e-16 -0.241" rpy="9.22623e-15 1.5708 0" />
-    <parent link="br_ankle" />
-    <child link="br_wheel" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" />
+    <origin xyz="0.00144406 9.99201e-16 -0.241" rpy="9.22623e-15 1.5708 0"/>
+    <parent link="br_ankle"/>
+    <child link="br_wheel"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10"/>
   </joint>
-  
+  <!-- Joint from right_leg to br_ankle -->
   <joint name="brp" type="revolute">
-    <origin xyz="0.477577 0.0518865 0.0860377" rpy="1.54405 1.5708 0" />
-    <parent link="right_leg" />
-    <child link="br_ankle" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" lower="-3.14159" upper="3.14159" />
+    <origin xyz="0.477577 0.0518865 0.0860377" rpy="1.54405 1.5708 0"/>
+    <parent link="right_leg"/>
+    <child link="br_ankle"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.14159" upper="3.14159"/>
   </joint>
-  
+  <!-- Joint from chassis to right_leg -->
   <joint name="chassis_to_right_leg" type="continuous">
-    <origin xyz="9.19469e-17 -0.32285 -3.99074e-16" rpy="-1.5708 -0.0312498 -3.14159" />
-    <parent link="chassis" />
-    <child link="right_leg" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" />
+    <origin xyz="9.19469e-17 -0.32285 -3.99074e-16" rpy="-1.5708 -0.0312498 -3.14159"/>
+    <parent link="chassis"/>
+    <child link="right_leg"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10"/>
   </joint>
-  
+  <!-- Link left_leg -->
   <link name="left_leg">
     <inertial>
-      <origin xyz="4.1114453806e-03 3.8747404332e-03 -5.3301576892e-02" rpy="0 0 0" />
-      <mass value="3.36155" />
-      <inertia ixx="9.8841231003e-03" ixy="-1.3948584430e-02" ixz="4.5605069213e-04" iyy="5.0793954473e-01" iyz="-1.7422777953e-04" izz="5.0403314865e-01" />
+      <origin xyz="0.00410395 -0.00381395 0.0322093" rpy="0 0 0"/>
+      <mass value="3.36155"/>
+      <inertia ixx="0.00988695" ixy="0.0139475" ixz="-0.000455168" iyy="0.507799" iyz="-0.000189076" izz="0.503932"/>
     </inertial>
-    
-    <collision>
-      <origin xyz="-1.30788e-20 8.67362e-19 -0.021" rpy="-3.14159 6.228e-19 -4.12329e-18" />
-      <geometry>
-        <cylinder length="0.058" radius="0.043" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.085374 0.0103589 -0.0136532" rpy="3.01942 -1.309 -4.12329e-18" />
-      <geometry>
-        <cylinder length="0.09" radius="0.03" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.314569 0.036386 0.044033" rpy="3.01942 -1.32645 -4.12329e-18" />
-      <geometry>
-        <cylinder length="0.39" radius="0.025" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.463387 0.00562858 0.0836002" rpy="-3.14159 -0.279252 3.10669" />
-      <geometry>
-        <box size="0.106 0.065 0.077" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.453729 -0.008 0.0138859" rpy="3.14159 -0.261799 3.14159" />
-      <geometry>
-        <cylinder length="0.052" radius="0.045" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.085786 0.0059293 -0.0135428" rpy="-3.07178 -1.309 3.14159" />
-      <geometry>
-        <cylinder length="0.09" radius="0.03" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.31599 0.0195387 0.0443873" rpy="-3.07178 -1.32645 3.14159" />
-      <geometry>
-        <cylinder length="0.39" radius="0.025" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.463867 -0.0196454 0.083738" rpy="3.14159 -0.279252 -0.0349065" />
-      <geometry>
-        <box size="0.107 0.065 0.077" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.453729 -0.034 0.0138859" rpy="-3.14159 -0.261799 -4.12329e-18" />
-      <geometry>
-        <cylinder length="0.052" radius="0.045" />
-      </geometry>
-    </collision>
+    <!-- Part left_leg_parts -->
     <visual>
-      <origin xyz="-1.30788e-20 8.67362e-19 -0.021" rpy="-3.14159 6.228e-19 -4.12329e-18" />
+      <origin xyz="0.00410395 -0.00381395 0.0322093" rpy="1.5708 2.54494e-15 3.10897"/>
       <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/left_leg.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/left_leg_visual.stl"/>
       </geometry>
-      <material name="left_leg_material">
-        <color rgba="0.917647 0.917647 0.917647 1" />
+      <material name="left_leg_parts_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="0.00410395 -0.00381395 0.0322093" rpy="1.5708 2.54494e-15 3.10897"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_leg_parts_00000.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00410395 -0.00381395 0.0322093" rpy="1.5708 2.54494e-15 3.10897"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_leg_parts_00001.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00410395 -0.00381395 0.0322093" rpy="1.5708 2.54494e-15 3.10897"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_leg_parts_00002.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00410395 -0.00381395 0.0322093" rpy="1.5708 2.54494e-15 3.10897"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_leg_parts_00003.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00410395 -0.00381395 0.0322093" rpy="1.5708 2.54494e-15 3.10897"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_leg_parts_00004.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00410395 -0.00381395 0.0322093" rpy="1.5708 2.54494e-15 3.10897"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_leg_parts_00005.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00410395 -0.00381395 0.0322093" rpy="1.5708 2.54494e-15 3.10897"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_leg_parts_00006.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00410395 -0.00381395 0.0322093" rpy="1.5708 2.54494e-15 3.10897"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_leg_parts_00007.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00410395 -0.00381395 0.0322093" rpy="1.5708 2.54494e-15 3.10897"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_leg_parts_00008.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00410395 -0.00381395 0.0322093" rpy="1.5708 2.54494e-15 3.10897"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_leg_parts_00009.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.00410395 -0.00381395 0.0322093" rpy="1.5708 2.54494e-15 3.10897"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_leg_parts_00010.stl"/>
+      </geometry>
+    </collision>
   </link>
-  
+  <!-- Link fl_ankle -->
   <link name="fl_ankle">
     <inertial>
-      <origin xyz="4.2980093704e-02 5.7485751965e-02 -5.4733673826e-05" rpy="0 0 0" />
-      <mass value="1.07889" />
-      <inertia ixx="9.0511188822e-03" ixy="2.1530209684e-03" ixz="-2.0375257065e-06" iyy="2.6439631603e-03" iyz="-4.5461875144e-06" izz="1.0631971447e-02" />
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="0 0 0"/>
+      <mass value="1.07889"/>
+      <inertia ixx="0.00951217" ixy="-2.46697e-06" ixz="-0.00123376" iyy="0.0106409" iyz="4.80027e-06" izz="0.00219861"/>
     </inertial>
-    
-    <collision>
-      <origin xyz="-0.116019 2.75239e-16 -0.103049" rpy="-1.5708 0.00611017 1.56909e-17" />
-      <geometry>
-        <box size="0.032 0.08 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.0918946 2.82322e-16 -0.163527" rpy="-1.5708 -0.796741 -9.86664e-17" />
-      <geometry>
-        <box size="0.02 0.08 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.0638009 2.86776e-16 -0.19982" rpy="-1.5708 -0.0113434 1.37512e-17" />
-      <geometry>
-        <box size="0.025 0.031 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.0670818 2.69444e-16 -0.0442979" rpy="-1.5708 0.808962 1.31505e-16" />
-      <geometry>
-        <box size="0.012 0.076 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.107778 2.71668e-16 -0.0698107" rpy="-1.5708 1.55945 9.81136e-15" />
-      <geometry>
-        <box size="0.012 0.03 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.00045306 2.66717e-16 -0.0107537" rpy="1.11322e-16 0.00611017 1.56909e-17" />
-      <geometry>
-        <cylinder length="0.026" radius="0.038" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.0284953 2.67055e-16 -0.0175825" rpy="1.11322e-16 0.00611017 1.56909e-17" />
-      <geometry>
-        <box size="0.03 0.06 0.012" />
-      </geometry>
-    </collision>
+    <!-- Part fl_ankle_parts -->
     <visual>
-      <origin xyz="-0.124153 2.77556e-16 -0.125" rpy="-1.5708 -0.133516 8.56405e-20" />
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
       <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/fl_ankle.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/fl_ankle_visual.stl"/>
       </geometry>
-      <material name="fl_ankle_material">
-        <color rgba="0.901961 0.901961 0.901961 1" />
+      <material name="fl_ankle_parts_material">
+        <color rgba="0.901961 0.901961 0.901961 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_ankle_parts_00000.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_ankle_parts_00001.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_ankle_parts_00002.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_ankle_parts_00003.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_ankle_parts_00004.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_ankle_parts_00005.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_ankle_parts_00006.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_ankle_parts_00007.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_ankle_parts_00008.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_ankle_parts_00009.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_ankle_parts_00010.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_ankle_parts_00011.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_ankle_parts_00012.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_ankle_parts_00013.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_ankle_parts_00014.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-2.09817e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_ankle_parts_00015.stl"/>
+      </geometry>
+    </collision>
   </link>
-  
+  <!-- Link fl_wheel -->
   <link name="fl_wheel">
     <inertial>
-      <origin xyz="2.7390349197e-06 -2.8935672880e-08 1.0169649793e-05" rpy="0 0 0" />
-      <mass value="1.85014" />
-      <inertia ixx="2.0644713311e-02" ixy="2.9228017499e-05" ixz="-5.7159823543e-08" iyy="2.0806073075e-02" iyz="1.3738736314e-09" izz="3.2504007384e-02" />
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="0 0 0"/>
+      <mass value="1.85014"/>
+      <inertia ixx="0.0207017" ixy="2.91047e-05" ixz="1.08883e-08" iyy="0.0208617" iyz="1.43222e-08" izz="0.032714"/>
     </inertial>
-    
-    <collision>
-      <origin xyz="0 0 0" rpy="4.68442e-31 1.05893e-16 2.39108e-19" />
-      <geometry>
-        <cylinder length="0.16" radius="0.157" />
-      </geometry>
-    </collision>
+    <!-- Part fl_wheel_parts -->
     <visual>
-      <origin xyz="0 0 0" rpy="4.68442e-31 1.05893e-16 2.39108e-19" />
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
       <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/fl_wheel.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/fl_wheel_visual.stl"/>
       </geometry>
-      <material name="fl_wheel_material">
-        <color rgba="0.254902 0.254902 0.254902 1" />
+      <material name="fl_wheel_parts_material">
+        <color rgba="0.254902 0.254902 0.254902 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_wheel_parts_00000.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_wheel_parts_00001.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_wheel_parts_00002.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_wheel_parts_00003.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_wheel_parts_00004.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_wheel_parts_00005.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_wheel_parts_00006.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_wheel_parts_00007.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_wheel_parts_00008.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_wheel_parts_00009.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_wheel_parts_00010.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_wheel_parts_00011.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_wheel_parts_00012.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_wheel_parts_00013.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_wheel_parts_00014.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 2.29592e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/fl_wheel_parts_00015.stl"/>
+      </geometry>
+    </collision>
   </link>
-  
+  <!-- Joint from fl_ankle to fl_wheel -->
   <joint name="flw" type="continuous">
-    <origin xyz="-0.00144406 -9.4369e-16 -0.241" rpy="3.14159 -1.5708 0" />
-    <parent link="fl_ankle" />
-    <child link="fl_wheel" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" />
+    <origin xyz="-0.00144406 -9.4369e-16 -0.241" rpy="3.14159 -1.5708 0"/>
+    <parent link="fl_ankle"/>
+    <child link="fl_wheel"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10"/>
   </joint>
-  
+  <!-- Joint from left_leg to fl_ankle -->
   <joint name="flp" type="revolute">
-    <origin xyz="-0.479646 -0.0256164 0.0862671" rpy="-1.59892 -1.5708 0" />
-    <parent link="left_leg" />
-    <child link="fl_ankle" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" lower="-3.14159" upper="3.14159" />
+    <origin xyz="-0.479646 -0.0256164 0.0862671" rpy="-1.59892 -1.5708 0"/>
+    <parent link="left_leg"/>
+    <child link="fl_ankle"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.14159" upper="3.14159"/>
   </joint>
-  
+  <!-- Link bl_ankle -->
   <link name="bl_ankle">
     <inertial>
-      <origin xyz="4.2980093704e-02 5.7485751965e-02 -5.4733673826e-05" rpy="0 0 0" />
-      <mass value="1.07889" />
-      <inertia ixx="9.0511188822e-03" ixy="2.1530209684e-03" ixz="-2.0375257065e-06" iyy="2.6439631603e-03" iyz="-4.5461875144e-06" izz="1.0631971447e-02" />
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="0 0 0"/>
+      <mass value="1.07889"/>
+      <inertia ixx="0.00951217" ixy="-2.46697e-06" ixz="-0.00123376" iyy="0.0106409" iyz="4.80027e-06" izz="0.00219861"/>
     </inertial>
-    
-    <collision>
-      <origin xyz="-0.116019 3.30752e-16 -0.103049" rpy="-1.5708 0.00611017 1.56666e-17" />
-      <geometry>
-        <box size="0.032 0.08 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.0918946 3.37828e-16 -0.163527" rpy="-1.5708 -0.796741 -9.85847e-17" />
-      <geometry>
-        <box size="0.02 0.08 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.0638009 3.42278e-16 -0.19982" rpy="-1.5708 -0.0113434 1.37287e-17" />
-      <geometry>
-        <box size="0.025 0.031 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.0670818 3.24962e-16 -0.0442979" rpy="-1.5708 0.808962 1.31373e-16" />
-      <geometry>
-        <box size="0.012 0.076 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.107778 3.27185e-16 -0.0698107" rpy="-1.5708 1.55945 9.80226e-15" />
-      <geometry>
-        <box size="0.012 0.03 0.06" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.00045306 3.22237e-16 -0.0107537" rpy="1.10831e-16 0.00611017 1.56666e-17" />
-      <geometry>
-        <cylinder length="0.026" radius="0.038" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-0.0284953 3.22575e-16 -0.0175825" rpy="1.10831e-16 0.00611017 1.56666e-17" />
-      <geometry>
-        <box size="0.03 0.06 0.012" />
-      </geometry>
-    </collision>
+    <!-- Part bl_ankle_parts -->
     <visual>
-      <origin xyz="-0.124153 3.33067e-16 -0.125" rpy="-1.5708 -0.133516 7.57836e-20" />
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
       <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/bl_ankle.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/bl_ankle_visual.stl"/>
       </geometry>
-      <material name="bl_ankle_material">
-        <color rgba="0.901961 0.901961 0.901961 1" />
+      <material name="bl_ankle_parts_material">
+        <color rgba="0.901961 0.901961 0.901961 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_ankle_parts_00000.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_ankle_parts_00001.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_ankle_parts_00002.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_ankle_parts_00003.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_ankle_parts_00004.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_ankle_parts_00005.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_ankle_parts_00006.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_ankle_parts_00007.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_ankle_parts_00008.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_ankle_parts_00009.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_ankle_parts_00010.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_ankle_parts_00011.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_ankle_parts_00012.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_ankle_parts_00013.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_ankle_parts_00014.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-0.0737643 -5.30265e-05 -0.176599" rpy="-3.25037e-15 -0.00449928 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_ankle_parts_00015.stl"/>
+      </geometry>
+    </collision>
   </link>
-  
+  <!-- Link bl_wheel -->
   <link name="bl_wheel">
     <inertial>
-      <origin xyz="2.7390352826e-06 -2.8935678753e-08 1.0169649739e-05" rpy="0 0 0" />
-      <mass value="1.85014" />
-      <inertia ixx="2.0644713311e-02" ixy="2.9228017483e-05" ixz="-5.7159852546e-08" iyy="2.0806073075e-02" iyz="1.3738803345e-09" izz="3.2504007384e-02" />
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="0 0 0"/>
+      <mass value="1.85014"/>
+      <inertia ixx="0.0207017" ixy="2.91047e-05" ixz="1.08883e-08" iyy="0.0208617" iyz="1.43222e-08" izz="0.032714"/>
     </inertial>
-    
-    <collision>
-      <origin xyz="0 5.55112e-17 5.55112e-17" rpy="-2.95198e-31 1.05893e-16 1.07418e-18" />
-      <geometry>
-        <cylinder length="0.16" radius="0.157" />
-      </geometry>
-    </collision>
+    <!-- Part bl_wheel_parts -->
     <visual>
-      <origin xyz="0 5.55112e-17 5.55112e-17" rpy="-2.95198e-31 1.05893e-16 1.07418e-18" />
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
       <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/bl_wheel.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/bl_wheel_visual.stl"/>
       </geometry>
-      <material name="bl_wheel_material">
-        <color rgba="0.254902 0.254902 0.254902 1" />
+      <material name="bl_wheel_parts_material">
+        <color rgba="0.254902 0.254902 0.254902 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_wheel_parts_00000.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_wheel_parts_00001.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_wheel_parts_00002.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_wheel_parts_00003.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_wheel_parts_00004.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_wheel_parts_00005.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_wheel_parts_00006.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_wheel_parts_00007.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_wheel_parts_00008.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_wheel_parts_00009.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_wheel_parts_00010.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_wheel_parts_00011.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_wheel_parts_00012.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_wheel_parts_00013.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_wheel_parts_00014.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.3295e-07 -1.12077e-07 1.26486e-05" rpy="1.5708 -2.74226e-14 1.5663"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/bl_wheel_parts_00015.stl"/>
+      </geometry>
+    </collision>
   </link>
-  
+  <!-- Joint from bl_ankle to bl_wheel -->
   <joint name="blw" type="continuous">
-    <origin xyz="-0.00144406 -1.11022e-15 -0.241" rpy="3.14159 -1.5708 0" />
-    <parent link="bl_ankle" />
-    <child link="bl_wheel" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" />
+    <origin xyz="-0.00144406 -1.11022e-15 -0.241" rpy="3.14159 -1.5708 0"/>
+    <parent link="bl_ankle"/>
+    <child link="bl_wheel"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10"/>
   </joint>
-  
+  <!-- Joint from left_leg to bl_ankle -->
   <joint name="blp" type="revolute">
-    <origin xyz="0.477504 -0.0525423 0.0860425" rpy="-1.59892 -1.5708 0" />
-    <parent link="left_leg" />
-    <child link="bl_ankle" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" lower="-3.14159" upper="3.14159" />
+    <origin xyz="0.477504 -0.0525423 0.0860425" rpy="-1.59892 -1.5708 0"/>
+    <parent link="left_leg"/>
+    <child link="bl_ankle"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.14159" upper="3.14159"/>
   </joint>
-  
+  <!-- Joint from chassis to left_leg -->
   <joint name="chassis_to_left_leg" type="continuous">
-    <origin xyz="-5.99702e-17 0.32285 1.25976e-17" rpy="1.5708 -0.0326232 -3.14159" />
-    <parent link="chassis" />
-    <child link="left_leg" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" />
+    <origin xyz="-5.99702e-17 0.32285 1.25976e-17" rpy="1.5708 -0.0326232 -3.14159"/>
+    <parent link="chassis"/>
+    <child link="left_leg"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10"/>
   </joint>
-  
+  <!-- Link diffbar -->
   <link name="diffbar">
     <inertial>
-      <origin xyz="-1.6962215337e-06 -3.2989028635e-08 3.0297481670e-02" rpy="0 0 0" />
-      <mass value="0.416044" />
-      <inertia ixx="2.4269745011e-04" ixy="-1.0185393988e-08" ixz="-3.5249219287e-10" iyy="1.9617452691e-02" iyz="-1.0898857879e-07" izz="1.9401009616e-02" />
+      <origin xyz="9.8281e-12 -0.0304608 -0.01" rpy="0 0 0"/>
+      <mass value="0.416044"/>
+      <inertia ixx="0.00024272" ixy="6.57553e-09" ixz="-6.77512e-09" iyy="0.0194084" iyz="1.09185e-07" izz="0.0196249"/>
     </inertial>
-    
-    <collision>
-      <origin xyz="-0.196962 -0.0348839 -0.01" rpy="1.5708 -6.03021e-17 -1.39626" />
-      <geometry>
-        <cylinder length="0.41" radius="0.01" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="0.196962 -0.0348839 -0.01" rpy="1.5708 6.03021e-17 1.39626" />
-      <geometry>
-        <cylinder length="0.41" radius="0.01" />
-      </geometry>
-    </collision>
+    <!-- Part diffbar_parts -->
     <visual>
-      <origin xyz="4.97706e-14 -0.000154266 -0.01" rpy="1.5708 -3.05129e-34 0" />
+      <origin xyz="9.8281e-12 -0.0304608 -0.01" rpy="1.5708 1.5708 0"/>
       <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/diffbar.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/diffbar_visual.stl"/>
       </geometry>
-      <material name="diffbar_material">
-        <color rgba="0.262745 0.282353 0.301961 1" />
+      <material name="diffbar_parts_material">
+        <color rgba="0.262745 0.282353 0.301961 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="9.8281e-12 -0.0304608 -0.01" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/diffbar_parts_00000.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="9.8281e-12 -0.0304608 -0.01" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/diffbar_parts_00001.stl"/>
+      </geometry>
+    </collision>
   </link>
-  
+  <!-- Link tl_ball_link_x -->
   <link name="tl_ball_link_x">
     <inertial>
       <mass value="0.00001"/>
       <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
     </inertial>
+    <!-- Part tl_ball_link_x_parts -->
   </link>
-  
+  <!-- Link tl_ball_link_y -->
   <link name="tl_ball_link_y">
     <inertial>
       <mass value="0.00001"/>
       <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
     </inertial>
+    <!-- Part tl_ball_link_y_parts -->
   </link>
-  
+  <!-- Link left_difflink -->
   <link name="left_difflink">
     <inertial>
-      <origin xyz="9.3204316019e-10 3.5185648120e-09 -2.1832099267e-09" rpy="0 0 0" />
-      <mass value="0.0381782" />
-      <inertia ixx="7.2242478951e-05" ixy="-3.2014670661e-08" ixz="-2.3097623195e-13" iyy="7.1490272116e-05" iyz="-5.2084092695e-13" izz="1.4171096439e-06" />
+      <origin xyz="-1.87109e-15 -0.05775 1.15899e-15" rpy="0 0 0"/>
+      <mass value="0.0381782"/>
+      <inertia ixx="7.14741e-05" ixy="-4.31571e-18" ixz="-7.54296e-08" iyy="1.41853e-06" iyz="-2.51349e-19" izz="7.22147e-05"/>
     </inertial>
-    
+    <!-- Part left_difflink_parts -->
     <visual>
-      <origin xyz="-2.77556e-15 -0.05775 3.33067e-16" rpy="1.5708 -1.51279 -3.14159" />
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
       <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/left_difflink.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/left_difflink_visual.stl"/>
       </geometry>
-      <material name="left_difflink_material">
-        <color rgba="0.917647 0.917647 0.917647 1" />
+      <material name="left_difflink_parts_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_difflink_parts_00000.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_difflink_parts_00001.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_difflink_parts_00002.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_difflink_parts_00003.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_difflink_parts_00004.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_difflink_parts_00005.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_difflink_parts_00006.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_difflink_parts_00007.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_difflink_parts_00008.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_difflink_parts_00009.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_difflink_parts_00010.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_difflink_parts_00011.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_difflink_parts_00012.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_difflink_parts_00013.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_difflink_parts_00014.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.83187e-15 -0.05775 1.16573e-15" rpy="1.61268 0.13492 2.65517"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_difflink_parts_00015.stl"/>
+      </geometry>
+    </collision>
   </link>
-  
+  <!-- Link bl_ball_link_x -->
   <link name="bl_ball_link_x">
     <inertial>
-      <mass value="0.00001"/>
-      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-09"/>
+      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09"/>
     </inertial>
+    <!-- Part bl_ball_link_x_parts -->
   </link>
-  
+  <!-- Link bl_ball_link_y -->
   <link name="bl_ball_link_y">
     <inertial>
-      <mass value="0.00001"/>
-      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-09"/>
+      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09"/>
     </inertial>
+    <!-- Part bl_ball_link_y_parts -->
   </link>
-  
+  <!-- Link left_diffend_dummy -->
   <link name="left_diffend_dummy">
     <inertial>
-      <origin xyz="-2.0303372378e-09 8.4958739541e-10 -2.2633840847e-03" rpy="0 0 0" />
-      <mass value="0.0171895" />
-      <inertia ixx="2.7300741265e-06" ixy="5.5027699622e-14" ixz="-6.3453294805e-13" iyy="2.7300742349e-06" iyz="2.6448302226e-13" izz="4.1090817174e-07" />
+      <origin xyz="2.0478e-16 -2.89747e-16 -0.00825898" rpy="0 0 0"/>
+      <mass value="0.0171895"/>
+      <inertia ixx="2.73004e-06" ixy="-4.13163e-22" ixz="1.72576e-23" iyy="2.73004e-06" iyz="-9.75013e-24" izz="4.11638e-07"/>
     </inertial>
-  </link>
-  
-  <joint name="bl_ball_z" type="revolute">
-    <origin xyz="0 -2.77556e-17 0" rpy="5.5865e-18 -6.74007e-19 -1.01669e-17" />
-    <parent link="bl_ball_link_y" />
-    <child link="left_diffend_dummy" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793" />
-  </joint>
-  
-  <joint name="bl_ball_y" type="revolute">
-    <origin xyz="0 -2.77556e-17 0" rpy="5.5865e-18 -6.74007e-19 -1.01669e-17" />
-    <parent link="bl_ball_link_x" />
-    <child link="bl_ball_link_y" />
-    <axis xyz="0 1 0" />
-    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793" />
-  </joint>
-  
-  <joint name="bl_ball_x" type="revolute">
-    <origin xyz="-2.72005e-15 -0.1155 3.60822e-15" rpy="-3.14159 0.200937 3.14159" />
-    <parent link="left_difflink" />
-    <child link="bl_ball_link_x" />
-    <axis xyz="1 0 0" />
-    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793" />
-  </joint>
-  
-  <joint name="tl_ball_z" type="revolute">
-    <origin xyz="1.11022e-16 -4.16334e-17 0" rpy="-6.32965e-18 -1.95747e-18 -6.20846e-17" />
-    <parent link="tl_ball_link_y" />
-    <child link="left_difflink" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793" />
-  </joint>
-  
-  <joint name="tl_ball_y" type="revolute">
-    <origin xyz="1.11022e-16 -4.16334e-17 0" rpy="-6.32965e-18 -1.95747e-18 -6.20846e-17" />
-    <parent link="tl_ball_link_x" />
-    <child link="tl_ball_link_y" />
-    <axis xyz="0 1 0" />
-    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793" />
-  </joint>
-  
-  <joint name="tl_ball_x" type="revolute">
-    <origin xyz="0.383323 -0.0675902 -0.01" rpy="-1.28818 -1.06746 -1.778" />
-    <parent link="diffbar" />
-    <child link="tl_ball_link_x" />
-    <axis xyz="1 0 0" />
-    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793" />
-  </joint>
-  
-  <link name="tr_ball_link_x">
-    <inertial>
-      <mass value="0.00001"/>
-      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
-    </inertial>
-  </link>
-  
-  <link name="tr_ball_link_y">
-    <inertial>
-      <mass value="0.00001"/>
-      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
-    </inertial>
-  </link>
-  
-  <link name="right_difflink">
-    <inertial>
-      <origin xyz="-3.1057915781e-10 3.0246103088e-09 7.4627215646e-10" rpy="0 0 0" />
-      <mass value="0.0381782" />
-      <inertia ixx="7.2199662045e-05" ixy="1.0783737516e-07" ixz="8.9260435640e-14" iyy="7.1533046794e-05" iyz="-6.8664271472e-13" izz="1.4171093657e-06" />
-    </inertial>
-    
+    <!-- Part left_diffend_dummy_parts -->
     <visual>
-      <origin xyz="6.21725e-15 -0.05775 -2.44249e-15" rpy="1.5708 1.51279 3.14159" />
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
       <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/right_difflink.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/left_diffend_dummy_visual.stl"/>
       </geometry>
-      <material name="right_difflink_material">
-        <color rgba="0.917647 0.917647 0.917647 1" />
+      <material name="left_diffend_dummy_parts_material">
+        <color rgba="0.647059 0.647059 0.647059 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00000.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00001.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00002.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00003.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00004.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00005.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00006.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00007.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00008.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00009.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00010.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00011.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00012.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00013.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00014.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00015.stl"/>
+      </geometry>
+    </collision>
   </link>
-  
+  <!-- Joint from bl_ball_link_y to left_diffend_dummy -->
+  <joint name="bl_ball_z" type="revolute">
+    <origin xyz="0 -2.77556e-17 0" rpy="5.5865e-18 -6.74007e-19 -1.01669e-17"/>
+    <parent link="bl_ball_link_y"/>
+    <child link="left_diffend_dummy"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+  </joint>
+  <!-- Joint from bl_ball_link_x to bl_ball_link_y -->
+  <joint name="bl_ball_y" type="revolute">
+    <origin xyz="0 -2.77556e-17 0" rpy="5.5865e-18 -6.74007e-19 -1.01669e-17"/>
+    <parent link="bl_ball_link_x"/>
+    <child link="bl_ball_link_y"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+  </joint>
+  <!-- Joint from left_difflink to bl_ball_link_x -->
+  <joint name="bl_ball_x" type="revolute">
+    <origin xyz="-2.72005e-15 -0.1155 3.60822e-15" rpy="-3.14159 0.200937 3.14159"/>
+    <parent link="left_difflink"/>
+    <child link="bl_ball_link_x"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+  </joint>
+  <!-- Joint from tl_ball_link_y to left_difflink -->
+  <joint name="tl_ball_z" type="revolute">
+    <origin xyz="1.11022e-16 -4.16334e-17 0" rpy="-6.32965e-18 -1.95747e-18 -6.20846e-17"/>
+    <parent link="tl_ball_link_y"/>
+    <child link="left_difflink"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+  </joint>
+  <!-- Joint from tl_ball_link_x to tl_ball_link_y -->
+  <joint name="tl_ball_y" type="revolute">
+    <origin xyz="1.11022e-16 -4.16334e-17 0" rpy="-6.32965e-18 -1.95747e-18 -6.20846e-17"/>
+    <parent link="tl_ball_link_x"/>
+    <child link="tl_ball_link_y"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+  </joint>
+  <!-- Joint from diffbar to tl_ball_link_x -->
+  <joint name="tl_ball_x" type="revolute">
+    <origin xyz="0.383323 -0.0675902 -0.01" rpy="-1.28818 -1.06746 -1.778"/>
+    <parent link="diffbar"/>
+    <child link="tl_ball_link_x"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+  </joint>
+  <!-- Link tr_ball_link_x -->
+  <link name="tr_ball_link_x">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-09"/>
+      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09"/>
+    </inertial>
+    <!-- Part tr_ball_link_x_parts -->
+  </link>
+  <!-- Link tr_ball_link_y -->
+  <link name="tr_ball_link_y">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-09"/>
+      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09"/>
+    </inertial>
+    <!-- Part tr_ball_link_y_parts -->
+  </link>
+  <!-- Link right_difflink -->
+  <link name="right_difflink">
+    <inertial>
+      <origin xyz="6.57566e-15 -0.05775 -2.74869e-15" rpy="0 0 0"/>
+      <mass value="0.0381782"/>
+      <inertia ixx="7.15254e-05" ixy="4.76975e-18" ixz="1.45875e-07" iyy="1.41853e-06" iyz="-2.69525e-19" izz="7.21634e-05"/>
+    </inertial>
+    <!-- Part right_difflink_parts -->
+    <visual>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/right_difflink_visual.stl"/>
+      </geometry>
+      <material name="right_difflink_parts_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_difflink_parts_00000.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_difflink_parts_00001.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_difflink_parts_00002.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_difflink_parts_00003.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_difflink_parts_00004.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_difflink_parts_00005.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_difflink_parts_00006.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_difflink_parts_00007.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_difflink_parts_00008.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_difflink_parts_00009.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_difflink_parts_00010.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_difflink_parts_00011.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_difflink_parts_00012.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_difflink_parts_00013.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_difflink_parts_00014.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="6.55032e-15 -0.05775 -2.72005e-15" rpy="1.56904 -0.209096 2.6483"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_difflink_parts_00015.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link br_ball_link_x -->
   <link name="br_ball_link_x">
     <inertial>
       <mass value="0.00001"/>
       <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
     </inertial>
+    <!-- Part br_ball_link_x_parts -->
   </link>
-  
+  <!-- Link br_ball_link_y -->
   <link name="br_ball_link_y">
     <inertial>
       <mass value="0.00001"/>
       <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
     </inertial>
+    <!-- Part br_ball_link_y_parts -->
   </link>
-  
+  <!-- Link right_diffend_dummy -->
   <link name="right_diffend_dummy">
     <inertial>
-      <origin xyz="-2.0303372378e-09 8.4958739541e-10 -2.2633840847e-03" rpy="0 0 0" />
-      <mass value="0.0171895" />
-      <inertia ixx="2.7300741265e-06" ixy="5.5027699622e-14" ixz="-6.3453294805e-13" iyy="2.7300742349e-06" iyz="2.6448302226e-13" izz="4.1090817174e-07" />
+      <origin xyz="1.50912e-16 -1.89318e-16 -0.00825898" rpy="0 0 0"/>
+      <mass value="0.0171895"/>
+      <inertia ixx="2.73004e-06" ixy="1.98161e-22" ixz="9.44124e-23" iyy="2.73004e-06" iyz="1.73149e-22" izz="4.11638e-07"/>
     </inertial>
-    
+    <!-- Part right_diffend_dummy_parts -->
+    <visual>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/right_diffend_dummy_visual.stl"/>
+      </geometry>
+      <material name="right_diffend_dummy_parts_material">
+        <color rgba="0.647059 0.647059 0.647059 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00000.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00001.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00002.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00003.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00004.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00005.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00006.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00007.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00008.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00009.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00010.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00011.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00012.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00013.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00014.stl"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00015.stl"/>
+      </geometry>
+    </collision>
   </link>
-  
+  <!-- Joint from br_ball_link_y to right_diffend_dummy -->
   <joint name="br_ball_z" type="revolute">
-    <origin xyz="0 2.77556e-17 5.55112e-17" rpy="3.62606e-17 1.97607e-17 1.39034e-17" />
-    <parent link="br_ball_link_y" />
-    <child link="right_diffend_dummy" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793" />
+    <origin xyz="0 2.77556e-17 5.55112e-17" rpy="3.62606e-17 1.97607e-17 1.39034e-17"/>
+    <parent link="br_ball_link_y"/>
+    <child link="right_diffend_dummy"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
   </joint>
-  
+  <!-- Joint from br_ball_link_x to br_ball_link_y -->
   <joint name="br_ball_y" type="revolute">
-    <origin xyz="0 2.77556e-17 5.55112e-17" rpy="3.62606e-17 1.97607e-17 1.39034e-17" />
-    <parent link="br_ball_link_x" />
-    <child link="br_ball_link_y" />
-    <axis xyz="0 1 0" />
-    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793" />
+    <origin xyz="0 2.77556e-17 5.55112e-17" rpy="3.62606e-17 1.97607e-17 1.39034e-17"/>
+    <parent link="br_ball_link_x"/>
+    <child link="br_ball_link_y"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
   </joint>
-  
+  <!-- Joint from right_difflink to br_ball_link_x -->
   <joint name="br_ball_x" type="revolute">
-    <origin xyz="1.36557e-14 -0.1155 -5.9952e-15" rpy="-3.67723e-15 -0.428928 -3.14159" />
-    <parent link="right_difflink" />
-    <child link="br_ball_link_x" />
-    <axis xyz="1 0 0" />
-    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793" />
+    <origin xyz="1.36557e-14 -0.1155 -5.9952e-15" rpy="-3.67723e-15 -0.428928 -3.14159"/>
+    <parent link="right_difflink"/>
+    <child link="br_ball_link_x"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
   </joint>
-  
+  <!-- Joint from tr_ball_link_y to right_difflink -->
   <joint name="tr_ball_z" type="revolute">
-    <origin xyz="-5.55112e-17 -4.16334e-17 0" rpy="-1.04531e-17 5.26196e-18 -1.46601e-18" />
-    <parent link="tr_ball_link_y" />
-    <child link="right_difflink" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793" />
+    <origin xyz="-5.55112e-17 -4.16334e-17 0" rpy="-1.04531e-17 5.26196e-18 -1.46601e-18"/>
+    <parent link="tr_ball_link_y"/>
+    <child link="right_difflink"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
   </joint>
-  
+  <!-- Joint from tr_ball_link_x to tr_ball_link_y -->
   <joint name="tr_ball_y" type="revolute">
-    <origin xyz="-5.55112e-17 -4.16334e-17 0" rpy="-1.04531e-17 5.26196e-18 -1.46601e-18" />
-    <parent link="tr_ball_link_x" />
-    <child link="tr_ball_link_y" />
-    <axis xyz="0 1 0" />
-    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793" />
+    <origin xyz="-5.55112e-17 -4.16334e-17 0" rpy="-1.04531e-17 5.26196e-18 -1.46601e-18"/>
+    <parent link="tr_ball_link_x"/>
+    <child link="tr_ball_link_y"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
   </joint>
-  
+  <!-- Joint from diffbar to tr_ball_link_x -->
   <joint name="tr_ball_x" type="revolute">
-    <origin xyz="-0.383323 -0.0675902 -0.01" rpy="-1.99208 -1.0384 -1.20409" />
-    <parent link="diffbar" />
-    <child link="tr_ball_link_x" />
-    <axis xyz="1 0 0" />
-    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793" />
+    <origin xyz="-0.383323 -0.0675902 -0.01" rpy="-1.99208 -1.0384 -1.20409"/>
+    <parent link="diffbar"/>
+    <child link="tr_ball_link_x"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
   </joint>
-  
+  <!-- Joint from chassis to diffbar -->
   <joint name="chassis_to_diffbar" type="continuous">
-    <origin xyz="-0.476 -4.81445e-09 0.0465054" rpy="-1.5708 -2.10084e-09 1.5708" />
-    <parent link="chassis" />
-    <child link="diffbar" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" lower="2.10084e-09" upper="2.10084e-09" />
+    <origin xyz="-0.476 -4.81445e-09 0.0465054" rpy="-1.5708 -2.10084e-09 1.5708"/>
+    <parent link="chassis"/>
+    <child link="diffbar"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10"/>
   </joint>
 </robot>

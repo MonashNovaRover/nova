@@ -20,4 +20,12 @@ Each folder contains the following:
     Keeping for reference!
 
 ### Notes:
-* 
+* Use provided config.json
+* Replace package:// with file://$(arg rover_description_dir)
+* Remove "_continuous"
+* Replace inertias of generated ball joints with: 
+  ```
+  <mass value="0.00001"/>
+  <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+  ```
+* Double check in Gazebo
