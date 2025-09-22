@@ -6,9 +6,15 @@
 # a real bus. This must be executed before any
 # of the CAN modules can be used.
 #
+# You can also use mv to rename any can bus. It
+# will retain an alias to its original name +
+# "_orig" eg can0_orig which you can see in
+# the output of `ip link`.
+#
 # Some examples could be:
 #   can start can0
 #   can stop vcan0
+#   can mv can0 can1 (rename can0 to can1)
 #
 # The options are:
 #   can0 -  CAN 0 Line
@@ -40,6 +46,31 @@ then
 elif [[ $1 = "stop" ]] 
 then
     command="stop"
+elif [[ $1 = "mv" ]]
+then
+    command="mv"
+    # move the name of a canbus
+    if [ $# -ne 3 ]; then
+      echo "Usage: $0 mv [src] [dst]"
+      exit 1
+    fi
+
+    src="$2"
+    dst="$3"
+
+    # exit on error
+    set -euo pipefail
+    sudo ip link set "$src" name "$dst"
+
+    # add an alias with the original name if not already done.
+    if ip link show "$dst" | grep "alias.*_orig" > /dev/null; then
+      : # Pass
+    else
+      sudo ip link set "$dst" alias "$src"_orig
+    fi
+
+    exit 0
+
 else
     information "Invalid Command! Please enter 'start' or 'stop'."
     failed="1"
