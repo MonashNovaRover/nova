@@ -9,6 +9,7 @@
 
 #include <utility>
 #include <tuple>
+#include <algorithm>
 
 #include "teleop_drive_joy/teleop_drive_joy.hpp"
 
@@ -252,8 +253,11 @@ void TeleopDriveJoy::sendDriveCommand(const sensor_msgs::msg::Joy::SharedPtr joy
 
   auto [linear, angular] = snapped_joy_axes(joy_msg);
   linear.first *= controller_params.scale_linear * speed_;
+  linear.first = std::clamp(linear.first, -controller_params.limit_linear, controller_params.limit_linear);
   linear.second *= controller_params.scale_linear * speed_;
+  linear.second = std::clamp(linear.second, -controller_params.limit_linear, controller_params.limit_linear);
   angular *= controller_params.scale_angular;
+  angular = std::clamp(angular, -controller_params.limit_angular, controller_params.limit_angular);
 
   auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
   cmd_vel_msg->twist.linear.x = linear.first;

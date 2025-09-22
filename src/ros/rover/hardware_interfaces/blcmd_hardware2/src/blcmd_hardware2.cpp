@@ -17,7 +17,7 @@
 #include <chrono>
 #include <cmath>
 
-#include "blcmd_hardware/blcmd_hardware.hpp"
+#include "blcmd_hardware2/blcmd_hardware2.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 
