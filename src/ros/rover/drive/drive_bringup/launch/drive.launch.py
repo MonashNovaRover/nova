@@ -1,0 +1,191 @@
+'''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+Execute this code on the rover to start all
+   rover control scripts.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODES:
+  - controller_manager/spawner
+  - controller_manager/ros2_control_node
+  - blcmd_utils/status_monitor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CREATION:   15/12/2021
+EDITED:     23/09/2025
+EDITED BY:  Max Tory, Taaj Street, 
+            Victor Bartlinski, Jared Landau,
+            Bailey Chessum, Terry Tian
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+'''
+from launch import LaunchDescription
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, PythonExpression
+from launch.conditions import IfCondition, UnlessCondition
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
+import subprocess
+
+def setup_can(context, *args, **kwargs):
+    gazebo = LaunchConfiguration('gazebo').perform(context)  # get argument value as string
+    if gazebo.lower() == 'false':
+        try:
+            subprocess.run(["can", "start", "can0", "250000"], check=True)
+            print("can0 started successfully")
+        except subprocess.CalledProcessError as e:
+            print("Error: Failed to start can0.")
+            print(e)
+    return []
+
+def launch_setup(context, *args, **kwargs):
+    auto = LaunchConfiguration('auto')
+    nova_params = LaunchConfiguration('nova_params')
+    auto_params = LaunchConfiguration('auto_params')
+    
+    # nova-specific arguments
+    arm = LaunchConfiguration('arm')
+    arm_urdf_path = LaunchConfiguration('arm_urdf_path')
+    rover = LaunchConfiguration('rover')
+    urdf = LaunchConfiguration('urdf')
+    
+    # auto-specific arguments
+    angle = LaunchConfiguration('angle')
+    
+    gazebo = LaunchConfiguration('gazebo')
+    log_level = LaunchConfiguration('log_level')
+    model = LaunchConfiguration('model')
+    
+    nova_bringup_dir = FindPackageShare('nova_bringup')
+    auto_bringup_dir = FindPackageShare('auto_bringup')
+    params = IfElseSubstitution(auto, auto_params, nova_params)
+
+    return [
+        Node(
+            package='controller_manager',
+            executable='spawner',
+            arguments=['pivot_drive_controller', '--switch-timeout', '10',
+                '--ros-args', '--log-level', log_level]
+        ),
+        Node(
+            package='controller_manager',
+            executable='spawner',
+            arguments=['strafe_drive_controller', '--inactive']
+        ),
+        Node(
+            package='controller_manager',
+            executable='spawner',
+            arguments=['diff_drive_controller', '--inactive']
+        ),
+        GroupAction(
+            condition=UnlessCondition(gazebo),
+            actions=[
+                Node(
+                    package='controller_manager',
+                    executable='spawner',
+                    arguments=['joint_state_broadcaster'],
+                ),
+                Node(
+                    package='controller_manager',
+                    executable='ros2_control_node',
+                    parameters=[params],
+                    remappings=[('/controller_manager/robot_description', '/robot_description')],
+                ),
+                IncludeLaunchDescription(
+                    condition=IfCondition(auto),
+                    launch_description_source=PythonLaunchDescriptionSource(
+                        PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
+                    launch_arguments={'model': model, 'angle': angle}.items(),
+                ),
+                IncludeLaunchDescription(
+                    condition=IfCondition(PythonExpression([urdf, ' and not ', auto])),
+                    launch_description_source=PythonLaunchDescriptionSource(
+                        PathJoinSubstitution([nova_bringup_dir, 'launch', 'urdf.launch.py'])),
+                    launch_arguments = {
+                        'arm_urdf_path': arm_urdf_path,
+                        'arm': arm,
+                        'rover': rover,
+                    }.items(),
+                ),
+                Node(
+                    package='blcmd_utils', 
+                    executable='status_monitor', 
+                    output='screen', 
+                    emulate_tty=True,
+                ),
+            ],
+        ),
+    ]
+
+
+def generate_launch_description():
+    drive_bringup_dir = FindPackageShare('drive_bringup')
+    rover_description_dir = FindPackageShare('rover_description')
+
+    declared_arguments = [   
+        DeclareLaunchArgument(
+            name='auto',
+            default_value='False',
+            description='Autonomous mode?',
+        ),
+        DeclareLaunchArgument(
+            name='nova_params',
+            default_value=PathJoinSubstitution([drive_bringup_dir, 'params', 'nova.yaml']),
+            description='Absolute path to the nova params file',
+        ),
+        DeclareLaunchArgument(
+            name='auto_params',
+            default_value=PathJoinSubstitution([drive_bringup_dir, 'params', 'auto.yaml']),
+            description='Absolute path to the auto params file',
+        ),
+
+        # These arguments are passed to the nova_bringup urdf.launch.py file
+        # and are only relevant if auto is false
+        DeclareLaunchArgument(
+            name='arm', 
+            default_value='True',
+            description='Include arm URDF in robot_description?',
+        ),
+        DeclareLaunchArgument(
+            name='arm_urdf_path', 
+            default_value = PathJoinSubstitution([rover_description_dir, 'waratah_arm', 'urdf', 'arm.urdf.xacro']), 
+            description='Absolute path to arm urdf file',
+        ),
+        DeclareLaunchArgument(
+            name='rover', 
+            default_value='True',
+            description='Include rover URDF in robot_description?',
+        ),
+        DeclareLaunchArgument(
+            name='urdf', 
+            default_value='False',
+            description='Publish robot_description?',
+        ),
+
+        # This parameter is passed to the auto_bringup urdf.launch.py file
+        # and is only relevant if auto is true
+        DeclareLaunchArgument(
+            name='angle', 
+            default_value='15',
+            description='Angle (in degrees) at which the camera is mounted',
+        ),
+
+        DeclareLaunchArgument(
+            name='gazebo',
+            default_value='False',
+            description='Use simulation (Gazebo) clock if True',
+        ),
+        DeclareLaunchArgument(
+            name='log_level',
+            default_value='warn',
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='model', 
+            default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
+            description='Absolute path to robot urdf file',
+        ),
+    ]
+
+    return LaunchDescription(
+        declared_arguments + [OpaqueFunction(function=launch_setup), OpaqueFunction(function=setup_can)]
+    )

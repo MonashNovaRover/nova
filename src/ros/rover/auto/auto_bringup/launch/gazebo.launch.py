@@ -25,13 +25,14 @@ from launch_ros.substitutions import FindPackageShare
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
+    drive_bringup_dir = FindPackageShare('drive_bringup')
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
     angle = LaunchConfiguration('angle')
     camera = LaunchConfiguration('camera')
     gz_params = LaunchConfiguration('gz_params')
     gz_qos_params = LaunchConfiguration('gz_qos_params')
-    controllers = LaunchConfiguration('controllers')
+    controller_params = LaunchConfiguration('controller_params')
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
     pose = {'x': LaunchConfiguration('x').perform(context),
@@ -53,8 +54,8 @@ def launch_setup(context, *args, **kwargs):
             value=PathJoinSubstitution([nova_gazebo_dir, 'worlds'])
         ),
         IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
-            launch_arguments={'controllers': controllers, 'gazebo': 'True'}.items(),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([drive_bringup_dir, 'launch', 'drive.launch.py'])),
+            launch_arguments={'auto': 'True', 'auto_params': controller_params, 'gazebo': 'True'}.items(),
         ),
         IncludeLaunchDescription(
             condition=IfCondition(camera),
@@ -97,6 +98,7 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
+    drive_bringup_dir = FindPackageShare('drive_bringup')
     rover_description_dir = FindPackageShare('rover_description')
 
     declared_arguments = [
@@ -121,9 +123,9 @@ def generate_launch_description():
             description='Absolute path to ros_gz_bridge params file',
         ),
         DeclareLaunchArgument(
-            name='controllers',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
-            description='Absolute path to controllers params file',
+            name='controller_params',
+            default_value=PathJoinSubstitution([drive_bringup_dir, 'params', 'auto.yaml']),
+            description='Absolute path to the auto drive controllers\' params file',
         ),
         DeclareLaunchArgument(
             name='model',

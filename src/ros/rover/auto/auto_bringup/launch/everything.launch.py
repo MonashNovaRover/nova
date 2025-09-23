@@ -24,7 +24,7 @@ def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
 
     autostart = LaunchConfiguration('autostart')
-    controllers = LaunchConfiguration('controllers')
+    controller_params = LaunchConfiguration('controller_params')
     gazebo = LaunchConfiguration('gazebo')
     gps = LaunchConfiguration('gps')
     localization = LaunchConfiguration('localization')
@@ -47,7 +47,7 @@ def launch_setup(context, *args, **kwargs):
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
             launch_arguments={
                 'camera':'True',
-                'controllers': controllers,
+                'controller_params': controller_params,
                 'model': model,
                 'namespace': namespace,
                 'world': world,
@@ -95,6 +95,7 @@ def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
     rover_description_dir = FindPackageShare('rover_description')
+    drive_bringup_dir = FindPackageShare('drive_bringup')
 
     declared_arguments = [
         DeclareLaunchArgument(
@@ -103,9 +104,9 @@ def generate_launch_description():
             description='Automatically startup the nav2 stack',
         ),
         DeclareLaunchArgument(
-            name='controllers',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
-            description='Absolute path to controller params file',
+            name='controller_params',
+            default_value=PathJoinSubstitution([drive_bringup_dir, 'params', 'auto.yaml']),
+            description='Absolute path to the auto drive controllers\' params file',
         ),
         DeclareLaunchArgument(
             name='gazebo',
