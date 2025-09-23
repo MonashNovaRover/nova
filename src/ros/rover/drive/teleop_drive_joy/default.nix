@@ -2,11 +2,11 @@
 , pkg-config
 , buildRosPackage
 , ament-cmake
-, rclcpp
-, joy
 , nova-drive-interfaces
 , nova-input-interfaces
 , nova-interfaces
+, rclcpp
+, joy
 , geometry-msgs
 , sensor-msgs
 , generate-parameter-library
@@ -33,15 +33,15 @@ buildRosPackage {
   nativeBuildInputs = [ ament-cmake pkg-config];
 
   buildInputs = [
+    nova-drive-interfaces
+    nova-input-interfaces
+    nova-interfaces
     control-msgs
     rclcpp
     std-srvs
     generate-parameter-library
     realtime-tools
     geometry-msgs
-    nova-drive-interfaces
-    nova-input-interfaces
-    nova-interfaces
     sensor-msgs
     pluginlib
     rclcpp-components

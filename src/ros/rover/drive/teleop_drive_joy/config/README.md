@@ -8,8 +8,8 @@ teleop_drive_joy_node:
     controllers:
     [
       "pivot_drive_controller",
-      "strafe_controller",
-      "nova_diff_drive_controller",
+      "strafe_drive_controller",
+      "diff_drive_controller",
     ]
     <controllers>:
       axis_angular_z: 3
@@ -21,9 +21,9 @@ teleop_drive_joy_node:
     button_autonomous_control: 0
     button_lock: 10
     button_manual_control: 1
-    button_nova_diff_drive_controller: 4
+    button_diff_drive_controller: 4
     button_pivot_drive_controller: 7
-    button_strafe_controller: 6
+    button_strafe_drive_controller: 6
     button_unlock: 9
     speed_change_coarse_val: 0.1
     speed_change_fine_val: 0.02
@@ -38,8 +38,8 @@ List Of Controllers that can be used with teleop
 - Type: `string_array`
 - Default Value: [
   "pivot_drive_controller",
-  "strafe_controller",
-  "nova_diff_drive_controller",
+  "strafe_drive_controller",
+  "diff_drive_controller",
   ]
 - Read only: True
 
@@ -57,7 +57,7 @@ Lock Gamepad
 - Type: `int`
 - Default Value: 10
 
-## button_strafe_controller
+## button_strafe_drive_controller
 
 Switch to Strafe Mode
 
@@ -71,7 +71,7 @@ Switch to Pivot Mode
 - Type: `int`
 - Default Value: 7
 
-## button_nova_diff_drive_controller
+## button_diff_drive_controller
 
 Switch to Tank Mode
 
