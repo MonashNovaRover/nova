@@ -29,3 +29,27 @@
 | [`rover_description`](./rover_description) | URDFs |
 | [`science`](./science) | Code related to the ARC and URC Science payloads and tasks. |
 | [`simulations`](./simulations) | Simulations including Gazebo. |
+
+## Running ROS2 Nodes
+
+ROS 2 packages in this repository provide both individual nodes and launch files for starting multiple nodes together.
+
+### Running Nodes Directly
+
+You can run a single node with:
+
+```sh
+ros2 run <package_name> <node_executable>
+```
+
+This is useful for testing or running components individually.
+
+### Running with Launch Files
+
+Launch files are provided to start groups of nodes with their required configuration. Use:
+
+```sh
+ros2 launch <package_name> <launch_file>.launch.py
+```
+
+All launch files are organized in the \<package>_bringup folders.
