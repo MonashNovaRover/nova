@@ -20,7 +20,7 @@ EDITED BY:  Max Tory, Taaj Street,
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, PythonExpression
 from launch.conditions import IfCondition, UnlessCondition
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
+from launch.actions import LogInfo, DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -40,12 +40,11 @@ def setup_can(context, *args, **kwargs):
         if not can_is_up():
             try:
                 subprocess.run(["can", "start", "can0"], check=True)
-                print("can0 started successfully")
+                return LogInfo(msg="can0 started successfully")
             except subprocess.CalledProcessError as e:
-                print("Error: Failed to start can0.")
-                print(e)
+                return LogInfo(msg=f"Failed to start can0: {e}")
         else:
-            print("can0 is already running")
+            return LogInfo(msg="can0 is already running")
     
     return []
 
