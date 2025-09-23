@@ -158,15 +158,16 @@ then
     # If turning on CAN
     if [[ $command == "start" ]]
     then
-        DRIVER=$(basename $(readlink "/sys/class/net/$can/device/driver"))
+        DRIVER=$(basename "$(readlink "/sys/class/net/$can/device/driver")")
         # canable does not support berr-reporting
-        if [ A$DRIVER = Ags_usb ]; then
+        if [ A"$DRIVER" = Ags_usb ]; then
           EXTRA_OPTIONS=""
         else
           EXTRA_OPTIONS="berr-reporting on"
         fi
 
         # Create the CAN link
+        # shellcheck disable=SC2086
         sudo ip link set "$can" type can bitrate "$bitrate" $EXTRA_OPTIONS
         sudo ip link set up "$can"
 
