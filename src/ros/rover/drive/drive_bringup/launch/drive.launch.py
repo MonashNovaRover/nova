@@ -27,14 +27,26 @@ from launch_ros.substitutions import FindPackageShare
 import subprocess
 
 def setup_can(context, *args, **kwargs):
+    def can_is_up():
+        try:
+            result = subprocess.run(["ip", "link", "show", "can0"],
+                capture_output=True, text=True, check=True)
+            return "UP" in result.stdout
+        except subprocess.CalledProcessError:
+            return False
+
     gazebo = LaunchConfiguration('gazebo').perform(context)  # get argument value as string
     if gazebo.lower() == 'false':
-        try:
-            subprocess.run(["can", "start", "can0", "250000"], check=True)
-            print("can0 started successfully")
-        except subprocess.CalledProcessError as e:
-            print("Error: Failed to start can0.")
-            print(e)
+        if not can_is_up():
+            try:
+                subprocess.run(["can", "start", "can0"], check=True)
+                print("can0 started successfully")
+            except subprocess.CalledProcessError as e:
+                print("Error: Failed to start can0.")
+                print(e)
+        else:
+            print("can0 is already running")
+    
     return []
 
 def launch_setup(context, *args, **kwargs):
