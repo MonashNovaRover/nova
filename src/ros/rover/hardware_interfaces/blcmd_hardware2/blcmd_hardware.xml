@@ -1,9 +1,0 @@
-<library path="blcmd_hardware">
-  <class name="blcmd_hardware/BLCMDHardware"
-         type="blcmd_hardware::BLCMDHardware"
-         base_class_type="hardware_interface::SystemInterface">
-    <description>
-      ros2_control blcmd hardware interface.
-    </description>
-  </class>
-</library>

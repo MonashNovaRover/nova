@@ -1,16 +1,38 @@
 /**
- * @file teleop_drive_joy.hpp
- * @brief Header file for the TeleopDriveJoy class, which handles joystick input for teleoperation.
- * Last Edited by Kabi
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * DESCRIPTION: Convert joystick input into drive or twist messages
+ * to be received by controllers (pivot, strafe, etc).
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * NODE: teleop_drive_joy
+ * TOPICS:
+ *  - subscriber: /joy      [sensor_msgs/msg/Joy]
+ *  - publisher:  /cmd_vel  [geometry_msgs/msg/TwistStamped]
+ * SERVICES:
+ *  - client:     /controller_manager/switch_controller
+ * [controller_manager_msgs/srv/SwitchController]
+ *  - client:     /pivot_drive_controller/set_parameters   [rcl_interfaces/srv/SetParameters]
+ *  - client:     /strafe_drive_controller/set_parameters  [rcl_interfaces/srv/SetParameters]
+ *  - client:     /diff_drive_controller/set_parameters    [rcl_interfaces/srv/SetParameters]
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * PACKAGE:   teleop_drive_joy
+ * AUTHORS:	  Kabi, Terry Tian
+ * CREATION:  2024
+ * EDITED:    2025
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
+
 #ifndef TELEOP_DRIVE_JOY_HPP
 #define TELEOP_DRIVE_JOY_HPP
+
+#include <cstddef>
+#include <cstdint>
+#include <map>
+#include <functional>
 
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joy.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
-#include <nova_interfaces/msg/drive_input_stamped.hpp>
-#include <nova_interfaces/msg/drive_info.hpp>
+#include <rcl_interfaces/srv/set_parameters.hpp>
 #include <controller_manager_msgs/srv/switch_controller.hpp>
 
 #include "teleop_drive_joy_parameters.hpp"
@@ -18,146 +40,146 @@
 namespace teleop_drive_joy
 {
 
-  /**
-   * @enum ControlMode
-   * @brief Enum class for different control modes.
-   */
-  enum class ControlMode
-  {
-    PIVOT_DRIVE,  // Pivot Drive Controller
-    STRAFE_DRIVE, // Strafe Controller
-    DIFF_DRIVE    // Nova Diff Drive Controller
-  };
+enum class DriveMode : uint8_t
+{
+  PIVOT,
+  HOLONOMIC,
+  STRAFE,
+  DIFF
+};
 
-  inline std::string prettyPrintMode(const ControlMode mode)
+inline std::string prettyPrintMode(const DriveMode mode)
+{
+  switch (mode)
   {
-    switch (mode)
-    {
-    case ControlMode::PIVOT_DRIVE:
+    case DriveMode::PIVOT:
       return "Pivot Mode";
-    case ControlMode::STRAFE_DRIVE:
+    case DriveMode::HOLONOMIC:
+      return "Holonomic Mode";
+    case DriveMode::STRAFE:
       return "Strafe Mode";
-    case ControlMode::DIFF_DRIVE:
+    case DriveMode::DIFF:
       return "Tank Mode";
     default:
       return "Unknown Mode";
-    }
   }
+}
 
-  inline std::string modeToController(const ControlMode mode)
+inline std::string modeToController(const DriveMode mode)
+{
+  switch (mode)
   {
-    switch (mode)
-    {
-    case ControlMode::PIVOT_DRIVE:
+    case DriveMode::PIVOT:
       return "pivot_drive_controller";
-    case ControlMode::STRAFE_DRIVE:
-      return "strafe_controller";
-    case ControlMode::DIFF_DRIVE:
-      return "nova_diff_drive_controller";
+    case DriveMode::HOLONOMIC:
+      return "holonomic_drive_controller";
+    case DriveMode::STRAFE:
+      return "strafe_drive_controller";
+    case DriveMode::DIFF:
+      return "diff_drive_controller";
     default:
       return "unknown_controller";
-    }
   }
+}
 
-  inline int controlModeToDriveMode(const ControlMode mode)
-  {
-    switch (mode)
-    {
-    case ControlMode::PIVOT_DRIVE:
-      return nova_interfaces::msg::DriveInfo::PIVOT;
-    case ControlMode::STRAFE_DRIVE:
-      return nova_interfaces::msg::DriveInfo::STRAFE;
-    case ControlMode::DIFF_DRIVE:
-      return nova_interfaces::msg::DriveInfo::TANK;
-    default:
-      return nova_interfaces::msg::DriveInfo::PIVOT; // Default to Pivot
-    }
-  }
+/**
+ * @class TeleopDriveJoy
+ * @brief Class for handling joystick input and publishing drive commands.
+ */
+class TeleopDriveJoy : public rclcpp::Node
+{
+public:
+  /**
+   * @brief Constructor for TeleopDriveJoy.
+   * @param options Node options for the ROS2 node.
+   */
+  explicit TeleopDriveJoy(const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
 
   /**
-   * @brief Struct representing the current state.
+   * @brief Initializes the TeleopDriveJoy node.
+   * This is needed because ParamListener can only be initialized after the node is created
+   * (constructor has finished).
    */
-  struct State
-  {
-    bool locked = true;
-    bool autonomous_mode = false;
-    int32_t drive_mode = nova_interfaces::msg::DriveInfo::PIVOT;
-  };
+  void initialize();
+
+private:
+  /**
+   * @brief Snaps joystick axes using the max input threshold.
+   * @param joy_msg Shared pointer to the joystick message.
+   * @return A pair containing the snapped linear and angular axes.
+   */
+  std::pair<std::pair<double, double>, double> snapped_joy_axes(
+    const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 
   /**
-   * @class TeleopDriveJoy
-   * @brief Class for handling joystick input and publishing drive commands.
+   * @brief Sets the autonomous mode for all controllers.
+   * @param autonomous_mode Boolean indicating whether to set autonomous mode.
    */
-  class TeleopDriveJoy : public rclcpp::Node
-  {
-  public:
-    /**
-     * @brief Constructor for TeleopDriveJoy.
-     * @param options Node options for the ROS2 node.
-     */
-    explicit TeleopDriveJoy(const rclcpp::NodeOptions &options = rclcpp::NodeOptions());
+  void set_autonomous_mode_for_controllers(bool autonomous_mode);
 
-    void initializeParams();
+  /**
+   * @brief Initializes parameters for the TeleopDriveJoy node.
+   */
+  void initializeParams();
 
-  private:
-    /**
-     * @brief Callback function for joystick messages.
-     * @param joy_msg Shared pointer to the joystick message.
-     */
-    void joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
+  /**
+   * @brief Initializes the ros2 interfaces for the TeleopDriveJoy node.
+   */
+  void initializeInterfaces();
 
-    /**
-     * @brief Sends a Drive Command based on joystick input.
-     * @param joy_msg Shared pointer to the joystick message.
-     */
-    void sendDriveCommand(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
+  /**
+   * @brief Map buttons to their respective callback functions.
+   */
+  void mapButtonCallbacks();
 
-    /**
-     * @brief Sends a halt command to stop the rover.
-     */
-    void sendHaltCommand();
+  /**
+   * @brief Callback function for joystick messages.
+   * @param joy_msg Shared pointer to the joystick message.
+   */
+  void joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 
-    /**
-     * @brief Handles button callbacks.
-     * @param joy_msg Shared pointer to the joystick message.
-     */
-    void handleButtonCallbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
+  /**
+   * @brief Handles button callbacks.
+   * @param joy_msg Shared pointer to the joystick message.
+   */
+  void handleButtonCallbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 
-    /**
-     * @brief Handles changes in speed based on joystick input.
-     *
-     * @param joy_msg A shared pointer to the joystick message containing the input data.
-     */
-    void handleSpeedChange(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
+  /**
+   * @brief Sends a Drive Command based on joystick input.
+   * @param joy_msg Shared pointer to the joystick message.
+   */
+  void sendDriveCommand(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 
-    /**
-     * @brief Switches the controller by calling the switch_controller service.
-     * @param requested_control_mode The desired control mode to switch to.
-     */
-    void switchController(const ControlMode requested_control_mode);
+  /**
+   * @brief Sends a halt command to stop the rover.
+   */
+  void sendHaltCommand();
 
-    void setEnableTwistCmdForController(const std::shared_ptr<rclcpp::Client<rcl_interfaces::srv::SetParameters>> &client, bool enable);
+  /**
+   * @brief Switches the controller by calling the switch_controller service.
+   * @param requested_control_mode The desired control mode to switch to.
+   */
+  void switchController(const DriveMode requested_control_mode);
 
-    // Member variables
-    rclcpp::Publisher<nova_interfaces::msg::DriveInputStamped>::SharedPtr drive_input_pub;
-    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_pub;
-    rclcpp::Publisher<nova_interfaces::msg::DriveInfo>::SharedPtr drive_info_pub;
-    rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub;
-    rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr switch_controller_client;
-    rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr pivot_drive_client;
-    rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr strafe_client;
-    rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr nova_diff_drive_client;
-    std::shared_ptr<ParamListener> param_listener_;
+  // Member variables
+  rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_pub_;
+  rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub_;
+  rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
+    switch_controller_client_;
+  rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr pivot_drive_client_;
+  rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr strafe_client_;
+  rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr diff_drive_client_;
+  std::shared_ptr<ParamListener> param_listener_;
 
-    Params params_;
-    bool sent_lock_msg = false;
-    State current_state;
-    State previous_state;
-    ControlMode control_mode = ControlMode::PIVOT_DRIVE;
-    double speed; // Linear Speed Multiplier that can be incremented
-    std::map<int, rclcpp::Time> last_button_press_time_;
-  };
+  Params params_;
+  bool sent_lock_msg_;
+  bool locked_;
+  DriveMode drive_mode_;
+  double speed_;  // Linear Speed Multiplier that can be incremented
+  std::map<int, rclcpp::Time> last_button_press_time_;
+  std::map<int, std::function<void(const sensor_msgs::msg::Joy::SharedPtr)>> button_callbacks_;
+};
 
-} // namespace teleop_drive_joy
+}  // namespace teleop_drive_joy
 
-#endif // TELEOP_DRIVE_JOY_HPP
+#endif  // TELEOP_DRIVE_JOY_HPP
