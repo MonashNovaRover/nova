@@ -11,5 +11,5 @@ float64 speed
 # negative is right.
 float64 radius
 
-# The direction of the turning radius, left -1, right 1
+# The direction of the turning radius, left 1, right -1
 int8 direction

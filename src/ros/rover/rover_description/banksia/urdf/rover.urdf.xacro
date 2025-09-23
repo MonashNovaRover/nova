@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generated using onshape-to-robot and modified to include CKCs and ball joints by Anthony Lew -->
 <!-- Collisions added using openscad (see .scad files)-->
-<!-- Note: Rover pivots' z axis has been inverted to correct for pivot_drive_controller's zero angle.
-           Therefore if exported from onshape, don't forget to add a negative sign to the z of the axis tag on each pivot 
-     Note 2: Exporting from onshape has _continuous at the end of continuous joint names these have been removed post-export -->
+<!-- Note: Exporting from onshape has _continuous at the end of continuous joint names these have been removed post-export -->
 <robot name="Banksia"  xmlns:xacro="http://www.ros.org/wiki/xacro" >
 
     <!-- Loading args -->

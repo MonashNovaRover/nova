@@ -1,37 +1,22 @@
 # Vanilla XBox Series X / S Controller
 teleop_drive_joy_node:
   ros__parameters:
-    controllers:
-      [
-        "pivot_drive_controller",
-        "strafe_controller",
-        "nova_diff_drive_controller",
-      ]
-    pivot_drive_controller:
-      axis_angular_z: 3
-      axis_linear_x: 1
-      scale_angular_z: 1.0
-      scale_linear_x: 0.1
-    strafe_controller:
-      axis_angular_z: 3
-      axis_linear_x: 0
-      scale_angular_z: 1.0
-      scale_linear_x: 0.1
-    nova_diff_drive_controller:
-      axis_angular_z: 3
-      axis_linear_x: 1
-      scale_angular_z: 1.0
-      scale_linear_x: 0.1
-    axis_speed_change_coarse: 7
-    axis_speed_change_fine: 6
-    button_autonomous_control: 0
-    button_lock: 6
-    button_manual_control: 1
-    button_nova_diff_drive_controller: 3
-    button_pivot_drive_controller: 5
-    button_strafe_controller: 4
-    button_unlock: 7
+    axis_linear_x: 1                       # Left Stick Vertical
+    axis_linear_y: 0                       # Left Stick Horizontal
+    axis_angular_z: 3                      # Right Stick Horizontal
+    axis_linear_z: 4                       # Right Stick Vertical
+    axis_speed_change_fine: 6              # DPad Left/Right
+    axis_speed_change_coarse: 7            # DPad Up/Down
+
+    button_pivot_drive_controller: 0       # Button A
+    button_holonomic_drive_controller: 1   # Button B
+    button_diff_drive_controller: 2        # Button X
+    button_strafe_drive_controller: 3      # Button Y
+    button_autonomous_mode: 4              # Left Shoulder
+    button_manual_mode: 5                  # Right Shoulder
+    button_lock: 6                         # Left Menu Button
+    button_unlock: 7                       # Right Menu Button
     speed_change_coarse_val: 0.1
-    speed_change_fine_val: 0.02
-    speed_limit_max: 1.2
+    speed_change_fine_val: -0.025
+    speed_limit_max: 1.0
     speed_limit_min: 0.05

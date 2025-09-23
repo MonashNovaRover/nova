@@ -1,7 +1,6 @@
 { lib
 , buildRosPackage
 , ament-cmake
-, control-msgs
 , controller-interface
 , hardware-interface
 , pluginlib
@@ -9,15 +8,14 @@
 , rclcpp-lifecycle
 , std-srvs
 , generate-parameter-library
-, rcpputils
 , backward-ros
 , nav-msgs
 , realtime-tools
 , tf2
 , tf2-msgs
 , geometry-msgs
-, nova-input-interfaces
-, nova-interfaces
+, nova-controller-common
+, nova-drive-controller-base
 }:
 
 buildRosPackage {
@@ -33,7 +31,6 @@ buildRosPackage {
   nativeBuildInputs = [ ament-cmake ];
 
   buildInputs = [
-    control-msgs
     controller-interface
     hardware-interface
     pluginlib
@@ -47,7 +44,7 @@ buildRosPackage {
     tf2
     tf2-msgs
     geometry-msgs
-    nova-input-interfaces
-    nova-interfaces
+    nova-controller-common
+    nova-drive-controller-base
   ];
 }

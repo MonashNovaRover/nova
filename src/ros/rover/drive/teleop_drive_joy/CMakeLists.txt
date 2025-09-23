@@ -31,9 +31,8 @@ include_directories(
 ###################
 
 # Generate parameter library
-generate_parameter_library(
-  teleop_drive_joy_parameters
-  src/parameters.yaml
+generate_parameter_library(teleop_drive_joy_parameters
+  src/teleop_drive_joy.yaml
 )
 
 # Build the node executable

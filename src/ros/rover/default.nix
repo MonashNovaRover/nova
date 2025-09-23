@@ -4,6 +4,7 @@
     nova-interfaces = callPackage ./nova_interfaces { };
     nova-rover-description = callPackage ./rover_description { };
     nova-excavation-construction = callPackage ./excavation_construction { };
+    nova-controller-common = callPackage ./nova_controller_common { };
 
     ublox-dgnss-custom = callPackage ./nix/packages/ublox-dgnss { };
 
