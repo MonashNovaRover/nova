@@ -14,7 +14,12 @@ EDITED:     04/02/2025
 EDITED BY: Max Tory, Taaj Street, Dylan Gonzalez
     Victor Bartlinski
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+UPDATE AS OF 23/09/2025:
+This launch file is now deprecated as we are moving to use new drive.
+Instead use control.launch.py from teleop_drive_joy.
 '''
+
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
