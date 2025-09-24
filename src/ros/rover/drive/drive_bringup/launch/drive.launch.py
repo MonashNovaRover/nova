@@ -40,11 +40,11 @@ def setup_can(context, *args, **kwargs):
         if not can_is_up():
             try:
                 subprocess.run(["can", "start", "can0"], check=True)
-                return LogInfo(msg="can0 started successfully")
+                return [LogInfo(msg="can0 started successfully")]
             except subprocess.CalledProcessError as e:
-                return LogInfo(msg=f"Failed to start can0: {e}")
+                return [LogInfo(msg=f"Failed to start can0: {e}")]
         else:
-            return LogInfo(msg="can0 is already running")
+            return [LogInfo(msg="can0 is already running")]
     
     return []
 
