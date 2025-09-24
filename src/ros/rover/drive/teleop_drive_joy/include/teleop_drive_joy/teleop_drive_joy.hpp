@@ -48,24 +48,24 @@ enum class DriveMode : uint8_t
   DIFF
 };
 
-inline std::string prettyPrintMode(const DriveMode mode)
+inline std::string pretty_print_mode(const DriveMode mode)
 {
   switch (mode)
   {
     case DriveMode::PIVOT:
-      return "Pivot Mode";
+      return "Pivot mode";
     case DriveMode::HOLONOMIC:
-      return "Holonomic Mode";
+      return "Holonomic mode";
     case DriveMode::STRAFE:
-      return "Strafe Mode";
+      return "Strafe mode";
     case DriveMode::DIFF:
-      return "Tank Mode";
+      return "Tank mode";
     default:
-      return "Unknown Mode";
+      return "Unknown mode";
   }
 }
 
-inline std::string modeToController(const DriveMode mode)
+inline std::string mode_to_controller(const DriveMode mode)
 {
   switch (mode)
   {
@@ -120,46 +120,51 @@ private:
   /**
    * @brief Initializes parameters for the TeleopDriveJoy node.
    */
-  void initializeParams();
+  void initialize_params();
 
   /**
    * @brief Initializes the ros2 interfaces for the TeleopDriveJoy node.
    */
-  void initializeInterfaces();
+  void initialize_interfaces();
 
   /**
    * @brief Map buttons to their respective callback functions.
    */
-  void mapButtonCallbacks();
+  void map_button_callbacks();
 
   /**
    * @brief Callback function for joystick messages.
    * @param joy_msg Shared pointer to the joystick message.
    */
-  void joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
+  void joy_callback(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 
   /**
    * @brief Handles button callbacks.
    * @param joy_msg Shared pointer to the joystick message.
    */
-  void handleButtonCallbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
+  void handle_button_callbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 
   /**
    * @brief Sends a Drive Command based on joystick input.
    * @param joy_msg Shared pointer to the joystick message.
    */
-  void sendDriveCommand(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
+  void send_drive_command(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 
   /**
    * @brief Sends a halt command to stop the rover.
    */
-  void sendHaltCommand();
+  void send_halt_command();
 
   /**
    * @brief Switches the controller by calling the switch_controller service.
    * @param requested_control_mode The desired control mode to switch to.
    */
-  void switchController(const DriveMode requested_control_mode);
+  void switch_controller(const DriveMode requested_control_mode);
+
+  /**
+   * @brief Prints the control mappings to the console.
+   */
+  void print_controls();
 
   // Member variables
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_pub_;

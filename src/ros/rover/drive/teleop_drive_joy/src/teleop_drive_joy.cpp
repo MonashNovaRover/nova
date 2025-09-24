@@ -1,11 +1,20 @@
 /**
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * Monash Nova Rover Team
- * 
+ *
  * PACKAGE: teleop_drive_joy
  * AUTHORS:	Kabi, Terry Tian
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
+
+// Define all colors
+#define C_END "\033[0m"
+#define C_FAIL "\033[1;31m"
+#define C_SUCCESS "\033[1;32m"
+#define C_MODE "\033[;33m"
+#define C_INFO "\033[1;34m"
+#define C_SPEED "\033[;35m"
+#define C_TITLE "\033[1;36m"
 
 #include <utility>
 #include <tuple>
@@ -71,7 +80,8 @@ void TeleopDriveJoy::set_autonomous_mode_for_controllers(bool enable)
   {
     if (!client->service_is_ready())
     {
-      RCLCPP_ERROR(this->get_logger(), "Service is not ready for client.");
+      RCLCPP_ERROR(
+        this->get_logger(), "%s service is not ready for client.", client->get_service_name());
       continue;
     }
 
@@ -82,15 +92,19 @@ void TeleopDriveJoy::set_autonomous_mode_for_controllers(bool enable)
 
 void TeleopDriveJoy::initialize()
 {
-  initializeParams();
-  initializeInterfaces();
-  mapButtonCallbacks();
-  RCLCPP_INFO(
-    this->get_logger(), "Initialized with control mode: %s, speed: %s",
-    prettyPrintMode(drive_mode_).c_str(), std::to_string(speed_).c_str());
+  initialize_params();
+  initialize_interfaces();
+  map_button_callbacks();
+  print_controls();
+  RCLCPP_INFO_STREAM(
+    this->get_logger(), C_INFO << "Initialized with control mode: " << C_MODE
+                               << pretty_print_mode(drive_mode_) << C_END ", " << C_SPEED
+                               << "speed: " << std::to_string(speed_) << C_END);
+  RCLCPP_INFO_STREAM(
+    this->get_logger(), C_FAIL << "Gamepad is locked. Press the unlock button to unlock." << C_END);
 }
 
-void TeleopDriveJoy::initializeParams()
+void TeleopDriveJoy::initialize_params()
 {
   param_listener_ = std::make_shared<ParamListener>(this->shared_from_this());
   params_ = param_listener_->get_params();
@@ -102,30 +116,30 @@ void TeleopDriveJoy::initializeParams()
   speed_ = params_.initial_speed;
 }
 
-void TeleopDriveJoy::initializeInterfaces()
+void TeleopDriveJoy::initialize_interfaces()
 {
   joy_sub_ = this->create_subscription<sensor_msgs::msg::Joy>(
-    params_.input_topic, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joyCallback, this, _1));
+    params_.input_topic, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joy_callback, this, _1));
   cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(params_.output_topic, 50);
 
   switch_controller_client_ = this->create_client<controller_manager_msgs::srv::SwitchController>(
     "/controller_manager/switch_controller");
   pivot_drive_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
     "/pivot_drive_controller/set_parameters");
-  strafe_client_ =
-    this->create_client<rcl_interfaces::srv::SetParameters>("/strafe_drive_controller/set_parameters");
+  strafe_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
+    "/strafe_drive_controller/set_parameters");
   diff_drive_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
     "/diff_drive_controller/set_parameters");
 }
 
-void TeleopDriveJoy::mapButtonCallbacks()
+void TeleopDriveJoy::map_button_callbacks()
 {
   button_callbacks_[params_.button_unlock] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     if (locked_)
     {
       locked_ = false;
-      RCLCPP_INFO(this->get_logger(), "BUTTON: unlock");
+      RCLCPP_INFO_STREAM(this->get_logger(), C_SUCCESS << "Gamepad unlocked" << C_END);
     }
   };
   button_callbacks_[params_.button_lock] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
@@ -133,56 +147,40 @@ void TeleopDriveJoy::mapButtonCallbacks()
     if (!locked_)
     {
       locked_ = true;
-      RCLCPP_INFO(this->get_logger(), "BUTTON: lock");
+      RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Gamepad locked" << C_END);
     }
   };
   button_callbacks_[params_.button_autonomous_mode] =
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     set_autonomous_mode_for_controllers(true);
-    RCLCPP_INFO(this->get_logger(), "BUTTON: autonomous_mode");
+    RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Autonomous mode" << C_END);
   };
   button_callbacks_[params_.button_manual_mode] =
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     set_autonomous_mode_for_controllers(false);
-    RCLCPP_INFO(this->get_logger(), "BUTTON: manual_mode");
+    RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Manual mode" << C_END);
   };
   button_callbacks_[params_.button_pivot_drive_controller] =
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
-    if (drive_mode_ != DriveMode::PIVOT)
-    {
-      switchController(DriveMode::PIVOT);
-      RCLCPP_INFO(this->get_logger(), "BUTTON: pivot_drive");
-    }
+    switch_controller(DriveMode::PIVOT);
   };
   button_callbacks_[params_.button_holonomic_drive_controller] =
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
-    if (drive_mode_ != DriveMode::HOLONOMIC)
-    {
-      switchController(DriveMode::HOLONOMIC);
-      RCLCPP_INFO(this->get_logger(), "BUTTON: holonomic_drive");
-    }
+    switch_controller(DriveMode::HOLONOMIC);
   };
   button_callbacks_[params_.button_strafe_drive_controller] =
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
-    if (drive_mode_ != DriveMode::STRAFE)
-    {
-      switchController(DriveMode::STRAFE);
-      RCLCPP_INFO(this->get_logger(), "BUTTON: strafe_drive");
-    }
+    switch_controller(DriveMode::STRAFE);
   };
   button_callbacks_[params_.button_diff_drive_controller] =
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
-    if (drive_mode_ != DriveMode::DIFF)
-    {
-      switchController(DriveMode::DIFF);
-      RCLCPP_INFO(this->get_logger(), "BUTTON: diff_drive");
-    }
+    switch_controller(DriveMode::DIFF);
   };
   // mark axis buttons as negative
   button_callbacks_[-(params_.axis_speed_change_fine)] =
@@ -193,7 +191,7 @@ void TeleopDriveJoy::mapButtonCallbacks()
       speed_ = std::clamp(
         speed_ + joy_msg->axes[params_.axis_speed_change_fine] * params_.speed_change_fine_val,
         params_.speed_limit_min, params_.speed_limit_max);
-      RCLCPP_INFO(this->get_logger(), "Speed: %f", speed_);
+      RCLCPP_INFO_STREAM(this->get_logger(), C_SPEED << "Speed: " << speed_ << C_END);
     }
   };
   button_callbacks_[-(params_.axis_speed_change_coarse)] =
@@ -204,26 +202,26 @@ void TeleopDriveJoy::mapButtonCallbacks()
       speed_ = std::clamp(
         speed_ + joy_msg->axes[params_.axis_speed_change_coarse] * params_.speed_change_coarse_val,
         params_.speed_limit_min, params_.speed_limit_max);
-      RCLCPP_INFO(this->get_logger(), "Speed: %f", speed_);
+      RCLCPP_INFO_STREAM(this->get_logger(), C_SPEED << "Speed: " << speed_ << C_END);
     }
   };
 }
 
-void TeleopDriveJoy::joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+void TeleopDriveJoy::joy_callback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
 {
-  handleButtonCallbacks(joy_msg);
+  handle_button_callbacks(joy_msg);
 
   if (!locked_)
   {
-    sendDriveCommand(joy_msg);
+    send_drive_command(joy_msg);
   }
   else
   {
-    sendHaltCommand();
+    send_halt_command();
   }
 }
 
-void TeleopDriveJoy::handleButtonCallbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+void TeleopDriveJoy::handle_button_callbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
 {
   auto now = this->now();
 
@@ -247,15 +245,17 @@ void TeleopDriveJoy::handleButtonCallbacks(const sensor_msgs::msg::Joy::SharedPt
   }
 }
 
-void TeleopDriveJoy::sendDriveCommand(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+void TeleopDriveJoy::send_drive_command(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
 {
-  const auto& controller_params = params_.controllers_map.at(modeToController(drive_mode_));
+  const auto& controller_params = params_.controllers_map.at(mode_to_controller(drive_mode_));
 
   auto [linear, angular] = snapped_joy_axes(joy_msg);
   linear.first *= controller_params.scale_linear * speed_;
-  linear.first = std::clamp(linear.first, -controller_params.limit_linear, controller_params.limit_linear);
+  linear.first =
+    std::clamp(linear.first, -controller_params.limit_linear, controller_params.limit_linear);
   linear.second *= controller_params.scale_linear * speed_;
-  linear.second = std::clamp(linear.second, -controller_params.limit_linear, controller_params.limit_linear);
+  linear.second =
+    std::clamp(linear.second, -controller_params.limit_linear, controller_params.limit_linear);
   angular *= controller_params.scale_angular;
   angular = std::clamp(angular, -controller_params.limit_angular, controller_params.limit_angular);
 
@@ -270,7 +270,7 @@ void TeleopDriveJoy::sendDriveCommand(const sensor_msgs::msg::Joy::SharedPtr joy
   sent_lock_msg_ = false;
 }
 
-void TeleopDriveJoy::sendHaltCommand()
+void TeleopDriveJoy::send_halt_command()
 {
   if (sent_lock_msg_) return;
 
@@ -280,18 +280,31 @@ void TeleopDriveJoy::sendHaltCommand()
   sent_lock_msg_ = true;
 }
 
-void TeleopDriveJoy::switchController(const DriveMode requested_control_mode)
+void TeleopDriveJoy::switch_controller(const DriveMode requested_control_mode)
 {
-  RCLCPP_INFO(
-    this->get_logger(), "Changing from %s to %s", prettyPrintMode(drive_mode_).c_str(),
-    prettyPrintMode(requested_control_mode).c_str());
+  if (requested_control_mode == drive_mode_)
+  {
+    RCLCPP_INFO_STREAM(
+      this->get_logger(),
+      C_INFO << "Already in " << C_MODE << pretty_print_mode(drive_mode_) << C_END);
+    return;
+  }
 
-  std::string deactivate_controller = modeToController(drive_mode_);
-  std::string activate_controller = modeToController(requested_control_mode);
+  RCLCPP_INFO_STREAM(
+    this->get_logger(), C_INFO << "Changing from " << C_MODE << pretty_print_mode(drive_mode_)
+                               << C_INFO << " to " << C_MODE
+                               << pretty_print_mode(requested_control_mode) << C_END);
+
+  std::string deactivate_controller = mode_to_controller(drive_mode_);
+  std::string activate_controller = mode_to_controller(requested_control_mode);
 
   if (!switch_controller_client_->service_is_ready())
   {
     RCLCPP_ERROR(this->get_logger(), "Controller manager service not available.");
+    RCLCPP_ERROR_STREAM(
+      this->get_logger(),
+      C_FAIL << "Failed to switch to " << C_MODE << pretty_print_mode(requested_control_mode)
+             << C_FAIL << ", remaining in " << C_MODE << pretty_print_mode(drive_mode_) << C_END);
     return;
   }
 
@@ -304,6 +317,28 @@ void TeleopDriveJoy::switchController(const DriveMode requested_control_mode)
   auto future = switch_controller_client_->async_send_request(request);
 
   drive_mode_ = requested_control_mode;
+  RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << pretty_print_mode(drive_mode_) << C_END);
+}
+
+void TeleopDriveJoy::print_controls()
+{
+  // clang-format off
+  RCLCPP_INFO_STREAM(this->get_logger(), C_TITLE << "Teleop Drive Joy Controls:" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "         Left Stick     |  Linear X/Y" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "        Right Stick     |  Angular Z" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "              Start     |  Unlock" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "               Back     |  Lock" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "       DPad Up/Down     |  Coarse Speed Change" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "    DPad Left/Right     |  Fine Speed Change" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "        Left Bumper     |  Autonomous Mode" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "       Right Bumper     |  Manual Mode" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "       Left Trigger     |  Hold Position (Holonomic Drive) (NOT YET IMPLEMENTED)" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "      Right Trigger     |  Handbrake (decrease speed by 40%) (NOT YET IMPLEMENTED)" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "           Button A     |  Pivot Drive" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "           Button B     |  Holonomic Drive (NOT YET IMPLEMENTED)" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "           Button X     |  Strafe Drive" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "           Button Y     |  Tank Drive" << C_END);
+  // clang-format on
 }
 
 }  // namespace teleop_drive_joy

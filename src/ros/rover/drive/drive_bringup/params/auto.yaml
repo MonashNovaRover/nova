@@ -3,15 +3,6 @@ controller_manager:
     update_rate: 20 
     use_sim_time: false
 
-    wheel_velocity_controller:
-      type: velocity_controllers/JointGroupVelocityController
-
-    pivot_position_controller:
-      type: position_controllers/JointGroupPositionController
-
-    pivot_joint_trajectory_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
-
     pivot_drive_controller:
       type: pivot_drive_controller/PivotDriveController
 

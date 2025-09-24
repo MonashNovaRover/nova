@@ -21,7 +21,7 @@ teleop_drive_joy:
 
   button_debounce_time:
     type: int
-    default_value: 200
+    default_value: 250
     description: "Debounce Time for Joy Messages in Milliseconds"
 
   initial_speed:
