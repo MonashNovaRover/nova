@@ -55,9 +55,7 @@ def launch_setup(context, *args, **kwargs):
     
     # nova-specific arguments
     arm = LaunchConfiguration('arm')
-    arm_urdf_path = LaunchConfiguration('arm_urdf_path')
-    rover = LaunchConfiguration('rover')
-    urdf = LaunchConfiguration('urdf')
+    rviz = LaunchConfiguration('rviz')
     
     # auto-specific arguments
     angle = LaunchConfiguration('angle')
@@ -108,13 +106,13 @@ def launch_setup(context, *args, **kwargs):
                     launch_arguments={'model': model, 'angle': angle}.items(),
                 ),
                 IncludeLaunchDescription(
-                    condition=IfCondition(PythonExpression([urdf, ' and not ', auto])),
+                    condition=UnlessCondition(auto),
                     launch_description_source=PythonLaunchDescriptionSource(
                         PathJoinSubstitution([nova_bringup_dir, 'launch', 'urdf.launch.py'])),
                     launch_arguments = {
-                        'arm_urdf_path': arm_urdf_path,
                         'arm': arm,
-                        'rover': rover,
+                        'rover': 'True',
+                        'rviz': rviz
                     }.items(),
                 ),
                 Node(
@@ -153,23 +151,13 @@ def generate_launch_description():
         # and are only relevant if auto is false
         DeclareLaunchArgument(
             name='arm', 
-            default_value='True',
+            default_value='False',
             description='Include arm URDF in robot_description?',
         ),
         DeclareLaunchArgument(
-            name='arm_urdf_path', 
-            default_value = PathJoinSubstitution([rover_description_dir, 'waratah_arm', 'urdf', 'arm.urdf.xacro']), 
-            description='Absolute path to arm urdf file',
-        ),
-        DeclareLaunchArgument(
-            name='rover', 
-            default_value='True',
-            description='Include rover URDF in robot_description?',
-        ),
-        DeclareLaunchArgument(
-            name='urdf', 
+            name='rviz', 
             default_value='False',
-            description='Publish robot_description?',
+            description='Launch rviz?',
         ),
 
         # This parameter is passed to the auto_bringup urdf.launch.py file
