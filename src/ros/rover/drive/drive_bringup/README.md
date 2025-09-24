@@ -1,4 +1,4 @@
-# New Drive
+# Drive Bringup
 
-This package contains bringup files for the new drive software. 
+This package contains bringup files and parameters for drive software. 
 
