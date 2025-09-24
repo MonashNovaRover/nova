@@ -105,8 +105,10 @@ in
 
           # Launch rover or payloads
           rover-help = "more ${cfg.nixfileDir}/doc/rover-help.md";
+          launch-teleop = "~/Builds/master/bin/ros2 launch teleop_drive_joy teleop.launch.py";
+          launch-drive = "~/Builds/master/bin/ros2 launch drive_bringup drive.launch.py";
           launch-base = "~/Builds/master/bin/ros2 launch nova_bringup base.launch.py";
-          launch-drive = "~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py";
+          launch-old-drive = "~/Builds/master/bin/ros2 launch nova_bringup old_drive.launch.py";
           launch-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
           launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
           launch-science-arc = "~/Builds/master/bin/ros2 launch nova_bringup arc_science.launch.py";
@@ -167,12 +169,11 @@ in
           launch-sim = "~/Builds/master/bin/ros2 launch auto_bringup everything.launch.py";
           launch-auto-hardware = "~/Builds/master/bin/ros2 launch auto_bringup hardware.launch.py";
           launch-auto-software = "~/Builds/master/bin/ros2 launch auto_bringup software.launch.py";
-          launch-control = "~/Builds/master/bin/ros2 launch auto_bringup control.launch.py";
+          launch-auto-drive = "~/Builds/master/bin/ros2 launch drive_bringup drive.launch.py auto:=True";
           launch-oak = "~/Builds/master/bin/ros2 launch auto_bringup camera.launch.py";
           launch-localization = "~/Builds/master/bin/ros2 launch auto_bringup localization.launch.py";
           launch-rtabmap = "~/Builds/master/bin/ros2 launch auto_bringup rtabmap.launch.py";
           launch-nav = "~/Builds/master/bin/ros2 launch auto_bringup navigation.launch.py";
-          launch-teleop = "~/Builds/master/bin/ros2 launch telop_drive_joy teleop.launch.py";
           launch-rviz = "~/Builds/master/bin/ros2 launch auto_bringup rviz.launch.py";
           launch-yolo = "~/Builds/master/bin/ros2 launch auto_bringup yolo.launch.py";
           gui-oak = "~/Builds/master/bin/ros2 launch auto_bringup oak-gui.launch.py";

@@ -23,13 +23,13 @@ from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node
 
 def launch_setup(context, *args, **kwargs):
-    nova_bringup_dir = FindPackageShare('nova_bringup')
+    drive_bringup_dir = FindPackageShare('drive_bringup')
 
     rfid_port = LaunchConfiguration('rfid_port')
 
     return [
         IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'drive.launch.py'])),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([drive_bringup_dir, 'launch', 'drive.launch.py'])),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'arm.launch.py'])),
