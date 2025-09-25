@@ -22,6 +22,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
+    drive_bringup_dir = FindPackageShare('drive_bringup')
 
     autostart = LaunchConfiguration('autostart')
     controller_params = LaunchConfiguration('controller_params')
@@ -55,7 +56,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             condition=UnlessCondition(gazebo),
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([drive_bringup_dir, 'launch', 'drive.launch.py'])),
         ),
         IncludeLaunchDescription(
             condition=IfCondition(localization),
