@@ -177,7 +177,11 @@ in
           launch-nav = "~/Builds/master/bin/ros2 launch auto_bringup navigation.launch.py";
           launch-rviz = "~/Builds/master/bin/ros2 launch auto_bringup rviz.launch.py";
           launch-yolo = "~/Builds/master/bin/ros2 launch auto_bringup yolo.launch.py";
-          gui-oak = "~/Builds/master/bin/ros2 launch auto_bringup oak-gui.launch.py";
+          oak-gui = "~/Builds/master/bin/ros2 launch auto_bringup oak-gui.launch.py";
+          auto_bag = "ros2 bag record /T265/pose /depth_camera/d435_1/cloud /autonomous/occupancy_grid /object_detector/markers /ar_tracker/tags goal_manager/confirmed_targets -s mcap -b 500000000";
+          start_mapping = "ros2 param set /mapper do_mapping False";
+          stop_mapping = "ros2 param set /mapper do_mapping True";
+
 
           # GPS Alias
           launch-gps = "~/Builds/master/bin/ros2 launch nova_bringup gps_rover.launch.py gps_params:=/home/nova/nova/src/ros/rover/nova_bringup/params/gps.yaml";
@@ -199,6 +203,10 @@ in
           run-arm-teleop = "~/Builds/master/bin/ros2 run teleop_arm_joy teleop_arm_joy_node";
           run-arm-teleop-xbox = "~/Builds/master/bin/ros2 run teleop_arm_joy teleop_arm_joy_node --ros-args --params-file ${cfg.sourceDir}/ros/rover/teleop_arm_joy/config/old.xbox.config.yaml";
           run-joy = "~/Builds/master/bin/ros2 run joy joy_node";
+
+          # Arm service aliases
+          arm_config_info = "ros2 service call control/arm_config_info arm_interfaces/srv/ArmConfigInfo";
+          arm_reset_control_pose = "ros2 service call control/arm_reset_control_pose std_srvs/srv/Trigger";
 
           # ros2_control Aliases
           controllers-list = "~/Builds/master/bin/ros2 control list_controllers";
