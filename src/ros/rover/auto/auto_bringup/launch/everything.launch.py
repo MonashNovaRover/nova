@@ -14,7 +14,7 @@ CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction, TimerAction
 from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -41,8 +41,9 @@ def launch_setup(context, *args, **kwargs):
     sim_params = LaunchConfiguration('sim_params')
     use_respawn = LaunchConfiguration('use_respawn')
     world = LaunchConfiguration('world')
+    rtabmap = LaunchConfiguration('rtabmap')
 
-    return [
+    auto_bringup_common_nodes = GroupAction([
         IncludeLaunchDescription(
             condition=IfCondition(gazebo),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
@@ -89,6 +90,20 @@ def launch_setup(context, *args, **kwargs):
                 'use_sim_time': gazebo,
                 'map_params': map_params,
             }.items()
+        ),
+    ])
+    return [
+        IncludeLaunchDescription(
+            condition = IfCondition(rtabmap),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rtabmap.launch.py'])),
+            launch_arguments={
+                'pointclouds':'False',
+                # 'gazebo': gazebo,
+            }.items()
+        ),
+        TimerAction(
+            period = 10.0, #Delay in seconds
+            actions = [auto_bringup_common_nodes],
         ),
     ]
 
@@ -183,6 +198,11 @@ def generate_launch_description():
             name='world',
             default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'urc_obstacles.sdf']),
             description='Full path to world model file to load',
+        ),
+        DeclareLaunchArgument(
+            name='rtabmap',
+            default_value='False',
+            description='Launch rtabmap?',
         ),
     ]
 
