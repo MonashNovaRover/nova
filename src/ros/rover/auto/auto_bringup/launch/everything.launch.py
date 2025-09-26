@@ -14,11 +14,12 @@ CREATION:	27/04/2023
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction, TimerAction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction, TimerAction, ExecuteProcess, RegisterEventHandler
 from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.substitutions import FindPackageShare
+from launch.event_handlers import OnProcessExit
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
@@ -43,6 +44,13 @@ def launch_setup(context, *args, **kwargs):
     world = LaunchConfiguration('world')
     rtabmap = LaunchConfiguration('rtabmap')
 
+    # Check rtabmap and gps values
+    rtabmap_value = rtabmap.perform(context).lower()
+    gps_value = gps.perform(context).lower()
+
+    # Disable GPS if rtabmap is enabled
+    gps_enabled = 'true' if gps_value == 'true' and rtabmap_value != 'true' else 'false'
+
     auto_bringup_common_nodes = GroupAction([
         IncludeLaunchDescription(
             condition=IfCondition(gazebo),
@@ -64,7 +72,7 @@ def launch_setup(context, *args, **kwargs):
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'localization.launch.py'])),
             launch_arguments={
                 'gazebo': gazebo,
-                'gps': gps,
+                'gps': gps_enabled,
                 'rl_params': rl_params,
             }.items()
         ),
@@ -92,20 +100,31 @@ def launch_setup(context, *args, **kwargs):
             }.items()
         ),
     ])
-    return [
-        IncludeLaunchDescription(
-            condition = IfCondition(rtabmap),
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rtabmap.launch.py'])),
-            launch_arguments={
-                'pointclouds':'False',
-                # 'gazebo': gazebo,
-            }.items()
-        ),
-        TimerAction(
-            period = 10.0, #Delay in seconds
-            actions = [auto_bringup_common_nodes],
-        ),
-    ]
+    wait_for_rtabmap = ExecuteProcess(
+        cmd=[
+            'python3',
+            PathJoinSubstitution([auto_bringup_dir, 'topic', 'wait_for_topic.py'])
+        ],
+        name='wait_for_rtabmap_topic',
+        output='screen'
+    )
+    if rtabmap_value == 'true':
+        return [
+            IncludeLaunchDescription(
+                launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rtabmap.launch.py'])),
+                launch_arguments={'pointclouds': 'False'}.items()
+            ),
+            wait_for_rtabmap,
+            RegisterEventHandler(
+                OnProcessExit(
+                    target_action=wait_for_rtabmap,
+                    on_exit=[auto_bringup_common_nodes],
+                )
+            )
+        ]
+    else:
+        return [auto_bringup_common_nodes]
+
 
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')

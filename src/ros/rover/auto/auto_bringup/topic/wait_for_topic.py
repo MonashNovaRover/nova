@@ -1,0 +1,58 @@
+import rclpy
+from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
+from rclpy.parameter import Parameter
+import sys
+import time
+
+
+REQUIRED_TOPICS = [
+    '/oak/rgbd/image_raw',
+    '/bootie/rgbd/image_raw',
+    '/oak/rgb/image_raw',
+    '/oak/stereo/image_raw',
+    '/oak/rgb/camera_info',
+    '/bootie/rgb/image_raw',
+    '/bootie/stereo/image_raw',
+    '/bootie/rgb/camera_info',
+]
+
+CHECK_INTERVAL = 1.0  # seconds
+TIMEOUT = 10  # seconds to give up
+
+
+class TopicWaiter(Node):
+    def __init__(self):
+        super().__init__('topic_waiter')
+        self.start_time = time.time()
+
+    def all_topics_active(self):
+        available_topics = [t.name for t in self.get_topic_names_and_types()]
+        return all(topic in available_topics for topic in REQUIRED_TOPICS)
+
+    def spin_until_ready(self):
+        self.get_logger().info(f"Waiting for required topics: {REQUIRED_TOPICS}")
+        while rclpy.ok():
+            if self.all_topics_active():
+                self.get_logger().info("All required topics are active.")
+                return True
+            if (time.time() - self.start_time) > TIMEOUT:
+                self.get_logger().error("Timed out waiting for topics.")
+                return False
+            time.sleep(CHECK_INTERVAL)
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = TopicWaiter()
+
+    success = node.spin_until_ready()
+    node.destroy_node()
+    rclpy.shutdown()
+
+    if not success:
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
