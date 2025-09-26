@@ -40,11 +40,15 @@
 , nova-bringup ? throw "nova-bringup is needed, but not available!"
 , nova-auto-bringup ? throw "auto-bringup is needed, but not available!"
 , nova-arm-bringup ? throw "arm-bringup is needed, but not available!"
+, nova-drive-bringup ? throw "drive-bringup is needed, but not available!"
 , nova-rover-description ? throw "rover-description is needed, but not available!"
 , nova-blcmd-hardware ? throw "nova-blcmd-hardware is needed, but not available!"
+, nova-blcmd-hardware2 ? throw "nova-blcmd-hardware2 is needed, but not available!"
 , nova-cmd-hardware ? throw "nova-cmd-hardware is needed, but not available!"
+, nova-controller-common ? throw "nova-controller-common is needed, but not available!"
+, nova-drive-controller-base ? throw "nova-drive-controller-base is needed, but not available!"
 , nova-pivot-drive-controller ? throw "nova-pivot-drive-controller is needed, but not available!"
-, nova-strafe-controller ? throw "nova-strafe-controller is needed, but not available!"
+, nova-strafe-drive-controller ? throw "nova-strafe-drive-controller is needed, but not available!"
 , nova-diff-drive-controller ? throw "nova-diff-drive-controller is needed, but not available!"
 , nova-teleop-drive-joy ? throw "nova-teleop-drive-joy is needed, but not available!"
 , nova-teleop-arm-joy ? throw "nova-teleop-arm-joy is needed, but not available!"
@@ -77,9 +81,12 @@
       nova-science
       nova-cameras2
       nova-blcmd-hardware
+      nova-blcmd-hardware2
       nova-cmd-hardware
+      nova-controller-common
+      nova-drive-controller-base
       nova-pivot-drive-controller
-      nova-strafe-controller
+      nova-strafe-drive-controller
       nova-diff-drive-controller
       nova-teleop-drive-joy
       nova-teleop-arm-joy
@@ -99,6 +106,7 @@
       nova-bringup
       nova-auto-bringup
       nova-arm-bringup
+      nova-drive-bringup
       nova-rover-description
       nova-gazebo
       nova-python-control

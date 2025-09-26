@@ -139,7 +139,7 @@
 
   <gazebo>
     <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-      <parameters>$(find auto_bringup)/params/old_controllers.yaml</parameters>
+      <parameters>$(find drive_bringup)/params/auto.yaml</parameters>
     </plugin>
   </gazebo>
 

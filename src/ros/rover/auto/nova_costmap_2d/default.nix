@@ -2,7 +2,7 @@
 , buildRosPackage
 , ament-cmake
 , rclcpp
-, opencv2
+, opencv4
 , nav2-costmap-2d
 , pluginlib
 , rosidl-default-generators
@@ -21,6 +21,6 @@ buildRosPackage {
   };
 
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
-  buildInputs = [ pluginlib opencv2 rclcpp nav2-costmap-2d ];
+  buildInputs = [ pluginlib opencv4 rclcpp nav2-costmap-2d ];
   propagatedBuildInputs = [ launch launch-ros ];
 }

@@ -1,30 +1,29 @@
 cmake_minimum_required(VERSION 3.16)
 project(pivot_drive_controller)
 
-# Default to C++17
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17)
-  set(CMAKE_CXX_STANDARD_REQUIRED ON)
-endif()
+# Use C++20
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra)
 endif()
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
-    controller_interface
-    geometry_msgs
-    hardware_interface
-    nav_msgs
-    std_srvs
-    pluginlib
-    rclcpp
-    rclcpp_lifecycle
-    rcpputils
-    realtime_tools
-    tf2
-    tf2_msgs
-    nova_interfaces
+  controller_interface
+  geometry_msgs
+  hardware_interface
+  nav_msgs
+  std_srvs
+  pluginlib
+  rclcpp
+  rclcpp_lifecycle
+  rcpputils
+  realtime_tools
+  tf2
+  tf2_msgs
+  nova_controller_common
+  nova_drive_controller_base
 )
 
 find_package(ament_cmake REQUIRED)
@@ -36,16 +35,14 @@ endforeach()
 find_package(generate_parameter_library REQUIRED)
 
 generate_parameter_library(pivot_drive_controller_parameters
-  src/pivot_drive_controller_parameter.yaml
+  src/pivot_drive_controller.yaml
 )
 
 add_library(${PROJECT_NAME} SHARED
   src/pivot_drive_controller.cpp
-  src/odometry.cpp
-  src/speed_limiter.cpp
 )
-target_include_directories(${PROJECT_NAME}
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
+target_include_directories(${PROJECT_NAME} PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
   $<INSTALL_INTERFACE:include>)
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 target_link_libraries(${PROJECT_NAME}
@@ -57,7 +54,8 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "pivot_drive_controller_BUILD
 pluginlib_export_plugin_description_file(controller_interface pivot_drive_controller.xml)
 
 
-install(DIRECTORY include/
+install(
+  DIRECTORY include/
   DESTINATION include/pivot_drive_controller
 )
 

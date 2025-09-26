@@ -3,6 +3,7 @@
 with pkgs;
 
 {
+  nova-drive-bringup = callPackage ./drive_bringup { };
   nova-teleop-drive-joy = callPackage ./teleop_drive_joy { };
   nova-drive = callPackage ./old_drive/drive { };
   nova-drive-interfaces = callPackage ./drive_interfaces { };

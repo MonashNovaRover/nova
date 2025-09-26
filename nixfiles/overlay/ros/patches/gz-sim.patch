@@ -1,0 +1,28 @@
+diff --git a/src/systems/log/LogRecord.cc b/src/systems/log/LogRecord.cc
+index 3361c407f4..6e7d20120a 100644
+--- a/src/systems/log/LogRecord.cc
++++ b/src/systems/log/LogRecord.cc
+@@ -298,7 +298,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
+   if (!validSdfTopic.empty())
+   {
+     this->sdfPub = this->node.Advertise(validSdfTopic,
+-        this->sdfMsg.GetTypeName());
++        std::string(this->sdfMsg.GetTypeName()));
+   }
+   else
+   {
+diff --git a/src/systems/triggered_publisher/TriggeredPublisher.cc b/src/systems/triggered_publisher/TriggeredPublisher.cc
+index 58f4a73b87..a720f7d74d 100644
+--- a/src/systems/triggered_publisher/TriggeredPublisher.cc
++++ b/src/systems/triggered_publisher/TriggeredPublisher.cc
+@@ -574,8 +574,8 @@ void TriggeredPublisher::Configure(const Entity &,
+       info.msgData = msgs::Factory::New(info.msgType, msgStr);
+       if (nullptr != info.msgData)
+       {
+-        info.pub =
+-            this->node.Advertise(info.topic, info.msgData->GetTypeName());
++        info.pub = this->node.Advertise(info.topic,
++            std::string(info.msgData->GetTypeName()));
+         if (info.pub.Valid())
+         {
+           this->outputInfo.push_back(std::move(info));

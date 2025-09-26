@@ -19,6 +19,7 @@ from launch_ros.substitutions import FindPackageShare
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
     nova_bringup_dir = FindPackageShare('nova_bringup')
+    drive_bringup_dir = FindPackageShare('drive_bringup')
 
     gps_params = LaunchConfiguration('gps_params')
     controller_params = LaunchConfiguration('controller_params')
@@ -37,7 +38,7 @@ def launch_setup(context, *args, **kwargs):
             }.items(),
         ),
         IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'control.launch.py'])),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([drive_bringup_dir, 'launch', 'drive.launch.py'])),
             launch_arguments={
                 'controller_params': controller_params,
             }.items(),
@@ -73,6 +74,7 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
     nova_bringup_dir = FindPackageShare('nova_bringup')
+    drive_bringup_dir = FindPackageShare('drive_bringup')
 
     declared_arguments = [
         DeclareLaunchArgument(
@@ -82,8 +84,8 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='controller_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'controllers.yaml']),
-            description='Absolute path to controller params file',
+            default_value=PathJoinSubstitution([drive_bringup_dir, 'params', 'auto.yaml']),
+            description='Absolute path to the auto drive controllers\' params file',
         ),
         DeclareLaunchArgument(
             name='front_params',

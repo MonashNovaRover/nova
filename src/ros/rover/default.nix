@@ -4,6 +4,7 @@
     nova-interfaces = callPackage ./nova_interfaces { };
     nova-rover-description = callPackage ./rover_description { };
     nova-excavation-construction = callPackage ./excavation_construction { };
+    nova-controller-common = callPackage ./nova_controller_common { };
 
     ublox-dgnss-custom = callPackage ./nix/packages/ublox-dgnss { };
 
@@ -25,10 +26,10 @@
   shellAliases = {
     # Launching aliases
     base = "ros2 launch nova_bringup base.launch.py";
-    drive = "ros2 launch nova_bringup drive.launch.py";
+    drive = "ros2 launch drive_bringup drive.launch.py";
     arm = "ros2 launch nova_bringup arm.launch.py";
     sci = "ros2 launch nova_bringup urc_science.launch.py";
-    auto_drive = "ros2 launch auto_bringup control.launch.py";
+    auto_drive = "ros2 launch drive_bringup drive.launch.py auto:=True";
     localisation = "ros2 launch auto_bringup localization.launch.py";
     localization = "ros2 launch auto_bringup localization.launch.py";
     urdf = "ros2 launch nova_bringup urdf.launch.py";

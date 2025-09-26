@@ -1,0 +1,155 @@
+# This is only the schema for Node Parameters
+# This YAML will be converted to teleop_drive_joy_parameters.hpp upon build
+# Look at individual controller config for changing axes / buttons
+# Look here for docs about this YAML : https://github.com/PickNikRobotics/generate_parameter_library
+teleop_drive_joy:
+  input_topic:
+    type: string
+    default_value: "/joy"
+    description: "Input Topic for Joy Messages"
+  output_topic:
+    type: string
+    default_value: "/cmd_vel"
+    description: "Output Topic for Twist Commands"
+  
+  # Deadzone already exists as an input parameter to the joy node (teleop.launch.py)
+
+  max_input_threshold:
+    type: double
+    default_value: 0.97
+    description: "Values above this threshold will be considered as maximum input (1.0)."
+
+  button_debounce_time:
+    type: int
+    default_value: 250
+    description: "Debounce Time for Joy Messages in Milliseconds"
+
+  initial_speed:
+    type: double
+    default_value: 0.1
+    description: "Initial Speed of the Rover when Teleop is started"
+
+  controllers:
+    type: string_array
+    default_value:
+      [
+        "pivot_drive_controller",
+        "holonomic_drive_controller",
+        "strafe_drive_controller",
+        "diff_drive_controller",
+      ]
+    description: "List Of Controllers that can be used with teleop"
+    read_only: true
+  
+  __map_controllers:
+    scale_linear:
+      type: double
+      default_value: 1.0
+      description: "A scale parameter applied on linear velocity"
+    scale_angular:
+      type: double
+      default_value: 1.0
+      description: "A scale parameter applied on angular velocity"
+    limit_linear:
+      type: double
+      default_value: 1.0
+      description: "A limit parameter applied on linear velocity"
+    limit_angular:
+      type: double
+      default_value: 1.0
+      description: "A limit parameter applied on angular velocity"
+
+  pivot_drive_controller:
+    limit_angular:
+      type: double
+      default_value: 0.999
+      description: "A limit parameter applied on angular velocity"
+  
+  axis_linear_x:
+    type: int
+    default_value: 1
+    description: > 
+      The joy axis corresponding to the Twist axis controlling linear velocity.
+      Usually mapped to the left stick vertical axis.
+  axis_linear_y:
+    type: int
+    default_value: 0
+    description: >
+      The joy axis corresponding to the Twist axis controlling lateral velocity.
+      Usually mapped to the left stick horizontal axis.
+  axis_linear_z:
+    type: int
+    default_value: 2
+    description: >
+      The joy axis corresponding to the Twist axis controlling vertical velocity.
+      Usually mapped to the right stick vertical axis.
+      This is currently not used in any controllers, however it is used to retrieve
+      the right stick vertical axis value.
+  axis_angular_z:
+    type: int
+    default_value: 3
+    description: >
+      The joy axis corresponding to the Twist axis controlling angular velocity.
+      Usually mapped to the left stick horizontal axis.
+
+  # TODO: Set to wireless xbox controller defaults
+  button_unlock:
+    type: int
+    default_value: 9
+    description: "Unlock Gamepad"
+  button_lock:
+    type: int
+    default_value: 10
+    description: "Lock Gamepad"
+  button_autonomous_mode:
+    type: int
+    default_value: 7
+    description: "Switch to Autonomous Mode"
+  button_manual_mode:
+    type: int
+    default_value: 8
+    description: "Switch to Manual Mode"
+  button_strafe_drive_controller:
+    type: int
+    default_value: 6
+    description: "Switch to Strafe Mode"
+  button_holonomic_drive_controller:
+    type: int
+    default_value: 5
+    description: "Switch to Holonomic Mode"
+  button_pivot_drive_controller:
+    type: int
+    default_value: 7
+    description: "Switch to Pivot Mode"
+  button_diff_drive_controller:
+    type: int
+    default_value: 4
+    description: "Switch to Tank Mode"
+
+  axis_speed_change_fine:
+    type: int
+    default_value: 6
+    description: "Axis to increment current speed on a coarse scale. This is usually mapped to DPad Horizontal"
+  axis_speed_change_coarse:
+    type: int
+    default_value: 7
+    description: "Axis to increment current speed on a coarse scale. This is usually mapped to DPad Vertical"
+  speed_change_coarse_val:
+    type: double
+    default_value: 0.1
+    description: "Value to change speed when the speed_change_coarse is invoked"
+  speed_change_fine_val:
+    type: double
+    default_value: 0.025
+    description: "Value to change speed when the speed_change_fine is invoked"
+
+  # 1.0 = 100% max linear velocity, 0.5 = 50% max linear velocity, etc.
+  # Max linear velocity is defined by the controller e.g. in pivot_drive_controller.yaml
+  speed_limit_max:
+    type: double
+    default_value: 1.0
+    description: "Factor to limit the maximum speed of the Rover"
+  speed_limit_min:
+    type: double
+    default_value: 0.05
+    description: "Factor to limit the minimum speed of the Rover"

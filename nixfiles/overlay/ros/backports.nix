@@ -42,8 +42,9 @@ self: super:
           ];
         });
 
-        nav2-behavior-tree = rosSuper.nav2-behavior-tree.overrideAttrs ({ patches ? [ ], ... }: {
+        nav2-behavior-tree = rosSuper.nav2-behavior-tree.overrideAttrs ({ patches ? [ ], nativeBuildInputs ? [ ], ... }: {
           patchFlags = [ "-p2" ];
+          nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
           patches = patches ++ [
             # Remove temp BT.CPP build warning workaround
             # https://github.com/ros-navigation/navigation2/pull/4500
@@ -54,42 +55,58 @@ self: super:
 
             # Revamp nav2_behavior_tree CMakeLists.txt to use modern idioms
             # https://github.com/ros-navigation/navigation2/pull/4485
-            (self.fetchpatch {
-              url = "https://github.com/ros-navigation/navigation2/commit/ba247b473ca1dea4f4ceac06532f6332250615b0.diff";
-              hash = "sha256-0BmBqK5gydWw5mzbXTgo2spcLgRZ/vCrIwrFETbt8EA=";
-            })
+            # (self.fetchpatch {
+            #   url = "https://github.com/ros-navigation/navigation2/commit/ba247b473ca1dea4f4ceac06532f6332250615b0.diff";
+            #   hash = "sha256-0BmBqK5gydWw5mzbXTgo2spcLgRZ/vCrIwrFETbt8EA=";
+            # })
+            # Leaving the above in case we need to refer to it again.
+            # This custom patch file was written because the above patch was missing
+            # some lines from the CMakeLists.txt:
+            # install(DIRECTORY test/utils/
+            #   DESTINATION include/${PROJECT_NAME}/nav2_behavior_tree/test/utils
+            # )
+            ./patches/nav2-behavior-tree.patch
           ];
         });
 
-        nav2-smoother = rosSuper.nav2-smoother.overrideAttrs ({ patches ? [ ], ... }: {
-          patchFlags = [ "-p2" ];
-          patches = patches ++ [
-            # Fixing and refactoring Sovitsky-Golay Filter in MPPI and Smoother
-            # https://github.com/ros-navigation/navigation2/pull/4669
-            (self.fetchpatch {
-              url = "https://github.com/ros-navigation/navigation2/commit/1a3b637d90484a3d6cac5e2cd75836df8518a32b.diff";
-              includes = [ "nav2_smoother/**" ];
-              hash = "sha256-zeqbMHMqgLPEPKiwaoieFNobhTPGA9buGmvIj2SBHc4=";
-            })
-          ];
-        });
+        # nav2-smoother = rosSuper.nav2-smoother.overrideAttrs ({ patches ? [ ], ... }: {
+        #   patchFlags = [ "-p2" ];
+        #   patches = patches ++ [
+        #     # Fixing and refactoring Sovitsky-Golay Filter in MPPI and Smoother
+        #     # https://github.com/ros-navigation/navigation2/pull/4669
+        #     (self.fetchpatch {
+        #       url = "https://github.com/ros-navigation/navigation2/commit/1a3b637d90484a3d6cac5e2cd75836df8518a32b.diff";
+        #       includes = [ "nav2_smoother/**" ];
+        #       hash = "sha256-zeqbMHMqgLPEPKiwaoieFNobhTPGA9buGmvIj2SBHc4=";
+        #     })
+        #   ];
+        # });
 
         nav2-mppi-controller = rosSuper.nav2-mppi-controller.overrideAttrs ({ patches ? [ ], ... }: {
           patchFlags = [ "-p2" ];
 
           patches = patches ++ [
+            # Fix goal pose stamp (backport #4854) 
+            # https://github.com/ros-navigation/navigation2/pull/4855 
+            (self.fetchpatch { 
+              url = "https://github.com/ros-navigation/navigation2/commit/65eab414f3ddeccceb988e89af91e645c48d06d6.diff"; 
+              revert = true; 
+              hash = "sha256-r5fag+emiM/6qwVgLSDxkVgKvpwuGzKDe8Oh/XfyueM="; 
+            }) 
+            
+            # Mppi goal to critic (backport #4822) 
+            # https://github.com/ros-navigation/navigation2/pull/4853 
+            (self.fetchpatch { 
+              url = "https://github.com/ros-navigation/navigation2/commit/a6a4c26348efc6d7e265a5080d9165a4af699337.diff"; 
+              revert = true; 
+              hash = "sha256-VJveHIlHiAfOZVkNZ2oWB246xRLpqY7fy7eLLFNQjtQ="; 
+            })
+
             # mppi parameters_handler: Improve verbose handling (#4704)
             # https://github.com/ros-navigation/navigation2/pull/4711
             (self.fetchpatch {
               url = "https://github.com/ros-navigation/navigation2/commit/f45d05b809064f27ecd9d141043a01fd8b41f063.diff";
               hash = "sha256-R9TVmtfajtIuGWIMcFG9oQSnd5++OBqNyFsR75kqJwA=";
-            })
-
-            # Publish optimal trajectory as a Path message
-            # https://github.com/ros-navigation/navigation2/pull/4640
-            (self.fetchpatch {
-              url = "https://github.com/ros-navigation/navigation2/commit/836d37c314ac6f680e91e709e244a99009454926.diff";
-              hash = "sha256-3/ox0+GJhacoeT8JXqCyFt8appgLWkrNg4MSQjnW8iY=";
             })
 
             # Fix typos
@@ -127,21 +144,6 @@ self: super:
             (self.fetchpatch {
               url = "https://github.com/ros-navigation/navigation2/commit/694a222edf7c765c9691fdd10a8025ed6b4aa8ce.diff";
               hash = "sha256-X0ncI0CNi4xRxUL6CFzuVGFh1GHGTJ9+AcZ5SzLJWRk=";
-            })
-
-            # Fixing #4661: MPPI ackermann reversing taking incorrect sign sometimes
-            # https://github.com/ros-navigation/navigation2/pull/4664
-            (self.fetchpatch {
-              url = "https://github.com/ros-navigation/navigation2/commit/7eb47d84012dd9e25988ce5c9c269280e6ee3dd1.diff";
-              hash = "sha256-X4ik8egrRCKrUP1dxG/fcsAszg+gnqNbgyK7Zxan608=";
-            })
-
-            # Fixing and refactoring Sovitsky-Golay Filter in MPPI and Smoother
-            # https://github.com/ros-navigation/navigation2/pull/4669
-            (self.fetchpatch {
-              url = "https://github.com/ros-navigation/navigation2/commit/1a3b637d90484a3d6cac5e2cd75836df8518a32b.diff";
-              includes = [ "nav2_mppi_controller/**" ];
-              hash = "sha256-GUeNin987aQoRD5nda+1TSqRiFtSekygitTtGN5kdaQ=";
             })
 
             # 45-50% performance improvement in MPPI controller using Eigen library for computation
