@@ -135,10 +135,8 @@ in
           gui-run = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui dev";
 
           # Tile server
-          tileserver-build = "nix-build -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/173b74db07f26344f3517716edd4bff6987b512d.tar.gz -E 'with import <nixpkgs> { }; callPackage ~/nova/nixfiles/packages/other/tileserver-gl-shell { }' -o ~/nova/src/ros/nova-gui/nova-gui/tileserver-gl-shell";
-          tileserver-shell = "~/nova/src/ros/nova-gui/nova-gui/tileserver-gl-shell/bin/tileserver-gl-fhs";
-          tileserver-install = "npm install -g --prefix ~/.npm-global tileserver-gl";
-          tileserver-run = "~/.npm-global/bin/tileserver-gl --file";
+          gui-tilelink = "ln -s ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-styles ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-light/node_modules/tileserver-gl-styles"; # TODO automatically make this symlink when entering gui-shell after yarn install
+          gui-tilerun = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui tileserver-gl-light";
 
           # LEDs
           leds-red = "cansend can0 095#0100";

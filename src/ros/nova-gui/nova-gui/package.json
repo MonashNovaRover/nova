@@ -47,6 +47,8 @@
     "roslib": "^1.4.1",
     "rvfc-polyfill": "^1.0.7",
     "tailwind-variants": "0.1.13",
+    "tileserver-gl-light": "^5.4.0",
+    "tileserver-gl-styles": "^2.0.0",
     "typescript-eslint": "^8.15.0",
     "uuid": "^9.0.1",
     "vite-plugin-glsl": "^1.2.1",
