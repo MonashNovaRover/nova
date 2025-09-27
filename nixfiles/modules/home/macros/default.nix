@@ -56,7 +56,7 @@ in
           camerasdir = "${nova}/src/ros/cameras2";
           autonomous = "${nova}/src/ros/rover/autonomous";
           auto = autonomous;
-          gui = "${nova}/src/ros/nova-gui";
+          gui = "${nova}/src/ros/nova-gui/nova-gui";
           tutorials = "${nova}/src/ros/tutorials";
           pic = "${nova}/src/other/pics";
           pics = pic;

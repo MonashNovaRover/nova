@@ -79,10 +79,6 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
 1. Enter the shell environment
 
    ```sh
-   # For runtime dependencies
-   nova-shell -A env.nova-gui
-
-   # or (currently working better) for dev dependencies
    gui-shell 
    # alias for:
    nova-shell -A pkgs.ros.nova-gui
@@ -138,11 +134,6 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    On ros2 terminal (seperate)
 
    ```sh
-   # Run with runtime dependencies
-   rosbridge
-   # alias for
-   ros2 launch rosbridge_server rosbridge_websocket_launch.xml
-   # or 
    gui-rosbridge # alias for
    ~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml
    ```
@@ -180,7 +171,13 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
 
    ```sh
    # Launch the server for the gui
-   yarn dev
+   gui-run
+   # alias for
+   yarn --cwd ~/nova/src/ros/nova-gui/nova-gui dev
+
    # Open the gui in the browser
    o
+
+   # If you need to launch GUI accessible by other devices on local network
+   gui-run --host
    ```
