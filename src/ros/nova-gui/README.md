@@ -150,8 +150,8 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    ln -s ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-styles ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-light/node_modules/tileserver-gl-styles
 
    # Run tileserver
-   gui-tilerun 
-   yarn --cwd ~/nova/src/ros/nova-gui/nova-gui tileserver-gl-light --file <path to tiles>/MDRS_Hi_Res.mbtiles
+   gui-tilerun path/to/file.mbtiles
+   yarn --cwd ~/nova/src/ros/nova-gui/nova-gui tileserver-gl-light --file path/to/file.mbtiles
    ```
 
    If you are getting errors first ensure that the gui and rosbridge is running.

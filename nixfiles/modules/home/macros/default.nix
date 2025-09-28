@@ -133,10 +133,11 @@ in
           gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" ~/nova/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts";
           gui-rosbridge = "~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
           gui-run = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui dev";
+          gui-yarn = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui";
 
           # Tile server
           gui-tilelink = "ln -s ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-styles ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-light/node_modules/tileserver-gl-styles"; # TODO automatically make this symlink when entering gui-shell after yarn install
-          gui-tilerun = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui tileserver-gl-light";
+          gui-tilerun = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui tileserver-gl-light --file";
 
           # LEDs
           leds-red = "cansend can0 095#0100";
