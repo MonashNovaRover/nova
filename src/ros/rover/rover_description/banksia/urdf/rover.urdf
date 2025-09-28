@@ -1430,18 +1430,16 @@
   
   <link name="bl_ball_link_x">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <mass value="1e-09" />
-      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09" />
+      <mass value="0.00001" />
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0" />
     </inertial>
     
   </link>
   
   <link name="bl_ball_link_y">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <mass value="1e-09" />
-      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09" />
+      <mass value="0.00001" />
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0" />
     </inertial>
     
   </link>
@@ -1452,112 +1450,6 @@
       <mass value="0.0171895" />
       <inertia ixx="2.7300741265e-06" ixy="5.5027699622e-14" ixz="-6.3453294805e-13" iyy="2.7300742349e-06" iyz="2.6448302226e-13" izz="4.1090817174e-07" />
     </inertial>
-    
-    <visual>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/left_diffend_dummy_visual.stl" />
-      </geometry>
-      <material name="left_diffend_dummy_parts_material">
-        <color rgba="0.647059 0.647059 0.647059 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00000.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00001.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00002.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00003.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00004.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00005.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00006.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00007.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00008.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00009.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00010.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00011.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00012.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00013.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00014.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="2.22045e-16 -2.77556e-16 -0.00825898" rpy="-1.43538 0.0430418 0.482108" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/left_diffend_dummy_parts_00015.stl" />
-      </geometry>
-    </collision>
   </link>
   
   <joint name="bl_ball_z" type="revolute">
@@ -1610,18 +1502,16 @@
   
   <link name="tr_ball_link_x">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <mass value="1e-09" />
-      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09" />
+      <mass value="0.00001" />
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0" />
     </inertial>
     
   </link>
   
   <link name="tr_ball_link_y">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <mass value="1e-09" />
-      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09" />
+      <mass value="0.00001" />
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0" />
     </inertial>
     
   </link>
@@ -1762,112 +1652,6 @@
       <mass value="0.0171895" />
       <inertia ixx="2.7300741265e-06" ixy="5.5027699622e-14" ixz="-6.3453294805e-13" iyy="2.7300742349e-06" iyz="2.6448302226e-13" izz="4.1090817174e-07" />
     </inertial>
-    
-    <visual>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/merged/right_diffend_dummy_visual.stl" />
-      </geometry>
-      <material name="right_diffend_dummy_parts_material">
-        <color rgba="0.647059 0.647059 0.647059 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00000.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00001.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00002.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00003.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00004.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00005.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00006.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00007.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00008.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00009.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00010.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00011.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00012.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00013.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00014.stl" />
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="1.11022e-16 -1.66533e-16 -0.00825898" rpy="1.36785 0.170383 -0.489318" />
-      <geometry>
-        <mesh filename="file://$(arg rover_description_dir)/banksia/meshes/convex_decomposition/right_diffend_dummy_parts_00015.stl" />
-      </geometry>
-    </collision>
   </link>
   
   <joint name="br_ball_z" type="revolute">
