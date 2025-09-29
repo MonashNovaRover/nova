@@ -4,7 +4,40 @@ let
   cfg = config.nova.ci.slave;
 in
 {
-  options.nova.ci.slave.enable = lib.mkEnableOption "CI slave services";
+  options.nova.ci.slave = {
+    enable = lib.mkEnableOption "CI slave services";
+
+    nat_holepunch = {
+      enable = lib.mkEnableOption "Enable wireguard nat holepunch";
+      remoteIp = lib.mkOption {
+        type = with lib.types; str;
+        description = lib.mdDoc "The ip address or hostname of the remote.";
+        default = "hydra.novarover.space";
+      };
+      remoteVpnIp = lib.mkOption {
+        type = with lib.types; str;
+        description = lib.mdDoc "The ip address of the remote within the vpn.";
+        default = "10.0.126.1";
+      };
+      localVpnIp = lib.mkOption {
+        type = with lib.types; str;
+        description = lib.mdDoc "The ip address of the local computer within the vpn.";
+        default = "10.0.126.2";
+      };
+      localVpnIfName = lib.mkOption {
+        type = with lib.types; str;
+        description = lib.mdDoc "The interface name to use for the wireguard network.";
+        default = "wg_holepunch";
+      };
+    };
+
+    remotePubSSHKey = lib.mkOption {
+        type = with lib.types; str;
+        description = lib.mdDoc "SSH pub key of the nixbuild user on the master.";
+        default = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC0Uce72ktg6CcPeMb94XhukecdBmuTnsUVyb2R/+wDe root@ci";
+      };
+
+  };
 
   config = lib.mkIf cfg.enable {
     nova.ci.common.enable = true;
@@ -13,18 +46,15 @@ in
       isNormalUser = true;
       createHome = false;
       group = "remotebuild";
-      openssh.authorizedKeys.keys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC0Uce72ktg6CcPeMb94XhukecdBmuTnsUVyb2R/+wDe root@ci" # TODO: make this a param
-      ];
+      openssh.authorizedKeys.keys = [ cfg.remotePubSSHKey ];
     };
 
     users.groups.remotebuild = {};
     nix.settings.trusted-users = [ "remotebuild" ];
 
     # Stupid nat punching:
-    # TODO: port forward instead?
-    # TODO parameterise? or just port forward and add a sane static wg config?
-    systemd.timers."hydra-wg-holepunch" = {
+    # TODO: port forward instead? - Can't access oracle dashboard to port forward on oracle side, port forwarding from workshop side didn't seem to work properly, pings wouldn't go through.
+    systemd.timers."hydra-wg-holepunch" = lib.mkIf cfg.nat_holepunch.enable {
       wantedBy = [ "timers.target" ];
       timerConfig = {
         OnBootSec = "15m";
@@ -32,7 +62,7 @@ in
         Unit = "hydra-wg-holepunch.service";
       };
     };
-    systemd.services."hydra-wg-holepunch" = {
+    systemd.services."hydra-wg-holepunch" = lib.mkIf cfg.nat_holepunch.enable {
     script = ''
 #!/bin/sh
 # Use ssh as a side channel to create an ad-hoc wireguard tunnel between two hosts
@@ -41,13 +71,13 @@ in
 set -euo pipefail
 
 SSHOPS="-i ~/.ssh/nova-oracle.key"
-TARGET=hydra.novarover.space
+TARGET=${cfg.nat_holepunch.remoteIp}
 USER=root
 
 # Change these for every pair of computers you're connecting
-_VPN_THEIR_IP=10.0.126.1
-_VPN_MY_IP=10.0.126.2
-WG_IF_NAME=wg_holepunch
+_VPN_THEIR_IP=${cfg.nat_holepunch.remoteVpnIp}
+_VPN_MY_IP=${cfg.nat_holepunch.localVpnIp}
+WG_IF_NAME=${cfg.nat_holepunch.localVpnIfName}
 
 WG=${pkgs.wireguard-tools}/bin/wg
 IP=${pkgs.iproute2}/bin/ip
