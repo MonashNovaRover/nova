@@ -79,10 +79,6 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
 1. Enter the shell environment
 
    ```sh
-   # For runtime dependencies
-   nova-shell -A env.nova-gui
-
-   # or (currently working better) for dev dependencies
    gui-shell 
    # alias for:
    nova-shell -A pkgs.ros.nova-gui
@@ -138,11 +134,6 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    On ros2 terminal (seperate)
 
    ```sh
-   # Run with runtime dependencies
-   rosbridge
-   # alias for
-   ros2 launch rosbridge_server rosbridge_websocket_launch.xml
-   # or 
    gui-rosbridge # alias for
    ~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml
    ```
@@ -151,25 +142,16 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    On separate terminal
 
    ```sh
-   # Build tileserver (ONLY NEED TO DO FIRST TIME)
-   tileserver-build
-   # alias for
-   nix-build -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/173b74db07f26344f3517716edd4bff6987b512d.tar.gz -E 'with import <nixpkgs> { }; callPackage ~/nova/nixfiles/packages/other/tileserver-gl-shell { }' -o tileserver-gl-shell
+   # enter the shell environment
+   gui-shell
 
-   # Enter tileserver shell
-   tileserver-shell
-   # alias for
-   ./tileserver-gl-shell/bin/tileserver-gl-fhs
-   
-   # Install tileserver packages (ONLY NEED TO DO FIRST TIME)
-   tileserver-install
-   # alias for
-   npm install -g --prefix ~/.npm-global tileserver-gl
-   
+   gui-tilelink 
+   # alias for 
+   ln -s ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-styles ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-light/node_modules/tileserver-gl-styles
+
    # Run tileserver
-   tileserver-run <path to tiles>/MDRS_Hi_Res.mbtiles
-   # alias for
-   ~/.npm-global/bin/tileserver-gl --file <path to tiles>/MDRS_Hi_Res.mbtiles
+   gui-tilerun path/to/file.mbtiles
+   yarn --cwd ~/nova/src/ros/nova-gui/nova-gui tileserver-gl-light --file path/to/file.mbtiles
    ```
 
    If you are getting errors first ensure that the gui and rosbridge is running.
@@ -180,7 +162,13 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
 
    ```sh
    # Launch the server for the gui
-   yarn dev
+   gui-run
+   # alias for
+   yarn --cwd ~/nova/src/ros/nova-gui/nova-gui dev
+
    # Open the gui in the browser
    o
+
+   # If you need to launch GUI accessible by other devices on local network
+   gui-run --host
    ```
