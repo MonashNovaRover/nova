@@ -1,3 +1,31 @@
+#!/usr/bin/python3
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+This node ensures that a predefined list of required ROS 2 topics
+is active before continuing execution. It is primarily used to
+synchronize startup logic and ensure all sensor streams are
+publishing before other nodes depend on them.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: topic_waiter
+TOPICS:
+  - /oak/rgbd/image_raw [sensor_msgs/msg/Image]
+  - /bootie/rgbd/image_raw [sensor_msgs/msg/Image]
+  - /oak/rgb/image_raw [sensor_msgs/msg/Image]
+  - /oak/stereo/image_raw [sensor_msgs/msg/Image]
+  - /oak/rgb/camera_info [sensor_msgs/msg/CameraInfo]
+  - /bootie/rgb/image_raw [sensor_msgs/msg/Image]
+  - /bootie/stereo/image_raw [sensor_msgs/msg/Image]
+  - /bootie/rgb/camera_info [sensor_msgs/msg/CameraInfo]
+SERVICES: None
+ACTIONS: None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+AUTHOR(S):	Chetan Karthik Edupalli
+CREATION:	26/09/2025
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data

@@ -11,6 +11,7 @@ NODES:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	auto_bringup
 CREATION:	27/04/2023
+EDITED:     26/09/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
