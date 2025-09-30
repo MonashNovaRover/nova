@@ -68,6 +68,7 @@ install(PROGRAMS
         science/auger.py
         science/nir_probe_publisher.py
         science/scimbal_cam.py
+        science/control_test.py
         DESTINATION lib/${PROJECT_NAME}
 )
 
