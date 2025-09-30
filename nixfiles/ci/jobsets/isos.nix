@@ -70,7 +70,8 @@ let
                   # environment derivation, which have not yet been added.
                   # We can find the missing inputs by creating an empty ROS
                   # environment.
-                  (workspace.override { novaPackages = { }; extraPackages = { }; }).rosEnv.inputDerivation
+                  # BROKEN: "error: attribute 'rosEnv' missing"
+                  #(workspace.override { novaPackages = { }; extraPackages = { }; }).rosEnv.inputDerivation
                 ] ++ (builtins.attrValues pkgs.nova.nova.inputs));
               };
 

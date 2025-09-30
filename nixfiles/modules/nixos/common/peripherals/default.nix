@@ -17,11 +17,12 @@
           });
         };
       };
-      linuxPackages = super.linuxPackages.extend (lpself: lpsuper: {
-        xone = super.linuxPackages.xone.overrideAttrs (oldAttrs: {
-          broken = false;
-        });
-      });
+      # Did not work:
+      #linuxPackages = super.linuxPackages.extend (lpself: lpsuper: {
+      #  xone = super.linuxPackages.xone.overrideAttrs (oldAttrs: {
+      #    broken = false;
+      #  });
+      #});
     })
   ];
 
