@@ -18,6 +18,7 @@
   <depend>input_interfaces</depend>
   <depend>std_msgs</depend>
   <depend>python_control</depend>
+  <depend>python_control2</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
