@@ -10,6 +10,7 @@
   <xacro:arg name="use_mock_hardware" default="false"/>
   <xacro:arg name="auto_camera" default="true"/>
   <xacro:arg name="robot_name" default="rover"/>
+  <xacro:arg name="rover_description_dir" default="$(find rover_description)" />
 
 
   <!-- Manually added links-->
@@ -46,7 +47,7 @@
     <visual>
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah/meshes/chassis.STL" />
+          filename="file://$(arg rover_description_dir)/waratah/meshes/chassis.STL" />
       </geometry>
       <material
         name="">
@@ -94,7 +95,7 @@
     <visual>
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah/meshes/left_leg.STL" />
+          filename="file://$(arg rover_description_dir)/waratah/meshes/left_leg.STL" />
       </geometry>
       <material
         name="">
@@ -135,7 +136,7 @@
     <visual>
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah/meshes/front_left_pivot.STL" />
+          filename="file://$(arg rover_description_dir)/waratah/meshes/front_left_pivot.STL" />
       </geometry>
       <material
         name="">
@@ -181,7 +182,7 @@
     <visual>
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah/meshes/front_left_wheel.STL" />
+          filename="file://$(arg rover_description_dir)/waratah/meshes/front_left_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -192,7 +193,7 @@
     <collision>
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah/meshes/wheel_collision.stl" />
+          filename="file://$(arg rover_description_dir)/waratah/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
@@ -228,7 +229,7 @@
     <visual>
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah/meshes/back_left_pivot.STL" />
+          filename="file://$(arg rover_description_dir)/waratah/meshes/back_left_pivot.STL" />
       </geometry>
       <material
         name="">
@@ -269,7 +270,7 @@
     <visual>
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah/meshes/back_left_wheel.STL" />
+          filename="file://$(arg rover_description_dir)/waratah/meshes/back_left_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -280,7 +281,7 @@
     <collision>
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah/meshes/wheel_collision.stl" />
+          filename="file://$(arg rover_description_dir)/waratah/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
@@ -316,7 +317,7 @@
     <visual>
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah/meshes/right_leg.STL" />
+          filename="file://$(arg rover_description_dir)/waratah/meshes/right_leg.STL" />
       </geometry>
       <material
         name="">
@@ -357,7 +358,7 @@
     <visual>
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah/meshes/front_right_pivot.STL" />
+          filename="file://$(arg rover_description_dir)/waratah/meshes/front_right_pivot.STL" />
       </geometry>
       <material
         name="">
@@ -404,7 +405,7 @@
     <visual>
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah/meshes/front_right_wheel.STL" />
+          filename="file://$(arg rover_description_dir)/waratah/meshes/front_right_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -415,7 +416,7 @@
     <collision>
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah/meshes/wheel_collision.stl" />
+          filename="file://$(arg rover_description_dir)/waratah/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
@@ -451,7 +452,7 @@
     <visual>
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah/meshes/back_right_pivot.STL" />
+          filename="file://$(arg rover_description_dir)/waratah/meshes/back_right_pivot.STL" />
       </geometry>
       <material
         name="">
@@ -497,7 +498,7 @@
     <visual>
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah/meshes/back_right_wheel.STL" />
+          filename="file://$(arg rover_description_dir)/waratah/meshes/back_right_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -508,7 +509,7 @@
     <collision>
       <geometry>
         <mesh
-          filename="file://$(find rover_description)/waratah/meshes/wheel_collision.stl" />
+          filename="file://$(arg rover_description_dir)/waratah/meshes/wheel_collision.stl" />
       </geometry>
     </collision>
   </link>
@@ -527,26 +528,26 @@
   </joint>
 
   <xacro:if value="$(arg gazebo)">
-    <xacro:include filename="$(find rover_description)/waratah/urdf/gz_ros2_control.xacro" />
+    <xacro:include filename="$(arg rover_description_dir)/waratah/urdf/gz_ros2_control.xacro" />
   </xacro:if>
 
   <xacro:unless value="$(arg gazebo)">
-    <xacro:include filename="$(find rover_description)/waratah/urdf/ros2_control.xacro" />
+    <xacro:include filename="$(arg rover_description_dir)/waratah/urdf/ros2_control.xacro" />
     <xacro:rover_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
   </xacro:unless>
 
   <xacro:if value="$(arg auto_camera)">
-    <xacro:include filename="$(find rover_description)/waratah/urdf/auto_camera.xacro"/>
+    <xacro:include filename="$(arg rover_description_dir)/waratah/urdf/auto_camera.xacro"/>
   </xacro:if>
 
-  <xacro:include filename="$(find rover_description)/waratah/urdf/p3d.xacro"/>
-  <xacro:include filename="$(find rover_description)/waratah/urdf/odom.xacro"/>
-  <xacro:include filename="$(find rover_description)/waratah/urdf/gps.xacro"/>
-  <xacro:include filename="$(find rover_description)/waratah/urdf/joint_states.xacro"/>
+  <xacro:include filename="$(arg rover_description_dir)/waratah/urdf/p3d.xacro"/>
+  <xacro:include filename="$(arg rover_description_dir)/waratah/urdf/odom.xacro"/>
+  <xacro:include filename="$(arg rover_description_dir)/waratah/urdf/gps.xacro"/>
+  <xacro:include filename="$(arg rover_description_dir)/waratah/urdf/joint_states.xacro"/>
 
   <xacro:if value="$(arg arm)">
         <!-- Attaches waratah's arm -->
-        <xacro:include filename="$(find rover_description)/waratah_arm/urdf/arm.urdf.xacro" />
+        <xacro:include filename="$(arg rover_description_dir)/waratah_arm/urdf/arm.urdf.xacro" />
         <joint name="chassis_to_arm_base" type="fixed">
             <origin xyz="0 0.15 -0.06" rpy="0 0 1.57"/>
             <parent link="chassis" />

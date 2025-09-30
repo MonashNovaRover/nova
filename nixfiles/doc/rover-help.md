@@ -17,7 +17,7 @@ N3: ssh nova@10.0.2.13
 Radios (Jetson): ssh nvidia@10.0.0.10
 Radios (Orin): ssh nova@10.0.0.11
 
-=========================
+---------------------------
 
 # Base
 Launch this on the metabox.
@@ -29,7 +29,7 @@ Launch this on the jetson.
 Try the 'launch-drive' alias, otherwise use the command below.
 ~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py
 
-=========================
+---------------------------
 
 # GUI
 Launch the following on the metabox.
@@ -45,7 +45,7 @@ In another terminal:
 1. Try the 'gui-rosbridge' alias, otherwise: 
     ~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml
 
-=========================
+---------------------------
 
 # Arm
 Launch this on the jetson.
@@ -71,7 +71,7 @@ When running the science payload, you DO need to run drive.
 Try the 'launch-science-urc' alias, otherwise use the command below.
 ~/Builds/master/bin/ros2 launch nova_bringup urc_science.launch.py
 
-=========================
+---------------------------
 
 # Cameras
 Launch this on the jetson
@@ -94,7 +94,7 @@ mpv --rtsp-transport=udp --no-cache --untimed --video-sync=display-resample --de
 Access the camera at the web address below, using the password used for the workshop computers.
 http://10.0.1.100
 
-=========================
+---------------------------
 
 # LEDs
 leds-red: cansend can0 095#0100
@@ -106,7 +106,7 @@ leds-75 = "cansend can0 091#6000";
 leds-50 = "cansend can0 091#4000";
 leds-off: cansend can0 091#0000
 
-=========================
+---------------------------
 
 # Zero Pivots
 Type 'zero-pivots' and follow the prompts. Use 'list-blcmds' if you're looking for the ID of a specific BLCMD.
@@ -114,13 +114,13 @@ Type 'zero-pivots' and follow the prompts. Use 'list-blcmds' if you're looking f
 # Zero Arm
 Type 'zero-arm' and follow the prompts.
 
-=========================
+---------------------------
 
 # NixOS
 nix-enable: sudo systemctl enable nix-daemon.service
 nix-start: sudo systemctl start nix-daemon.service
 
-=========================
+---------------------------
 
 # Tile Server (For GUI Cartography Page)
 
@@ -129,4 +129,4 @@ tileserver-shell
 tileserver-install (first time only)
 tileserver-run <path to map>
 
-=========================
+---------------------------

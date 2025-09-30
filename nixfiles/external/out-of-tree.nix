@@ -36,7 +36,7 @@ in
     shellAliases = lib.mkOption {
       type = with lib.types; attrsOf str;
       default = { };
-      description = lib.mdDoc ''
+      description = ''
         An attribute set that maps aliases (the top level attribute names
         in this option) to command strings or directly to build outputs.
 

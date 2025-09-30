@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>nova_drive_controller_base</name>
+  <version>0.1.0</version>
+  <description>Abstract base class for writing drive controllers.</description>
+  <maintainer email="novaroverteam@monash.edu">Monash Nova Rover</maintainer>
+  <maintainer email="terrytian2004@gmail.com">Terry Tian</maintainer>
+
+  <license>Apache License 2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <build_depend>generate_parameter_library</build_depend>
+
+  <depend>backward_ros</depend>
+  <depend>controller_interface</depend>
+  <depend>geometry_msgs</depend>
+  <depend>hardware_interface</depend>
+  <depend>nav_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>rcpputils</depend>
+  <depend>realtime_tools</depend>
+  <depend>tf2</depend>
+  <depend>tf2_msgs</depend>
+  <depend>eigen</depend>
+  <depend>nova_controller_common</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

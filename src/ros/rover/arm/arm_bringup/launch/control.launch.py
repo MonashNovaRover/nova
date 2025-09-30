@@ -24,7 +24,16 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 
 def launch_setup(context, *args, **kwargs):
-    arm_bringup_dir = FindPackageShare('arm_bringup')
+    arm_bringup_dir = PythonExpression([
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/arm_bringup']),
+        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+        FindPackageShare('arm_bringup'), '"'
+    ])
+    rover_description_dir = PythonExpression([
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/rover_description']),
+        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+        FindPackageShare('rover_description'), '"'
+    ])
 
     controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
@@ -36,6 +45,7 @@ def launch_setup(context, *args, **kwargs):
     robot_name = LaunchConfiguration('robot_name')
     urdf = LaunchConfiguration('urdf')
     rviz = LaunchConfiguration('rviz').perform(context)
+    fixed_frame = 'base_link'
 
     show_colours_additional_env = {
         # Show colors in the terminal output
@@ -44,63 +54,112 @@ def launch_setup(context, *args, **kwargs):
         'RCUTILS_CONSOLE_OUTPUT_FORMAT': '[{severity}] [{name}] {message}',
     }
 
+    xacro_args = [
+        'gazebo:=', gazebo, ' ',
+        'robot_name:=', robot_name, ' ',
+        'arm:=', arm, ' ',
+        'old_arm:=', old_arm, ' ',
+        'use_mock_hardware:=', use_mock_hardware, ' ',
+        'auto_camera:=false ',
+        'rover_description_dir:=', rover_description_dir, ' ',
+    ]
+    urdf_value = ParameterValue(Command(['xacro ', model, ' '] + xacro_args), value_type=str)
+
     return [
+        LogInfo(msg=[
+            '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/arm_bringup']),
+            '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+            FindPackageShare('arm_bringup'), '"'
+        ]),
+        LogInfo(msg=['Using arm_bringup := ', arm_bringup_dir]),
+        LogInfo(msg=['Using model := ', model]),
         GroupAction(
             condition=IfCondition(PythonExpression([arm, " or ", old_arm])),
             actions=[
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['nova_arm_velocity_controller', '--inactive'],
+                    arguments=['nova_arm_velocity_controller', '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['nova_arm_position_controller', 'nova_twistmapper', '--inactive'],
+                    arguments=['nova_arm_position_controller', 'nova_twistmapper', '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
             ]
-        ),
-        Node(
-            package='robot_state_publisher',
-            executable='robot_state_publisher',
-            parameters=[{'robot_description':
-                             ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'arm:=', arm, ' ', 'old_arm:=', old_arm, ' ', 'use_mock_hardware:=', use_mock_hardware, ' ', 'auto_camera:=false']), value_type=str)
-                         }],
-            additional_env=show_colours_additional_env,
         ),
         GroupAction(
             condition=UnlessCondition(gazebo),
             actions=[
                 Node(
                     package='controller_manager',
-                    executable='spawner',
-                    arguments=['joint_state_broadcaster'],
+                    executable='ros2_control_node',
+                    namespace="/arm",
+                    parameters=[controllers],
+                    remappings=[('/arm/controller_manager/robot_description', '/robot_description'), ('/arm/robot_description', '/robot_description'), ('/joint_states', '/arm/joint_states')],
                     additional_env=show_colours_additional_env,
                 ),
                 Node(
                     package='controller_manager',
-                    executable='ros2_control_node',
-                    parameters=[controllers],
-                    remappings=[('/controller_manager/robot_description', '/robot_description'), ('/joint_states', '/arm/joint_states')],
+                    executable='spawner',
+                    arguments=['joint_state_broadcaster', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
-                IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
-                    launch_arguments={'model': model, 'gazebo': gazebo, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm, 'rviz': rviz}.items(),
-                    condition=IfCondition(urdf),
-                )
+                # IncludeLaunchDescription(
+                #     PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
+                #     launch_arguments={'model': model, 'gazebo': gazebo, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm, 'rviz': rviz}.items(),
+                #     condition=IfCondition(urdf),
+                # )
             ],
+        ),
+
+        Node(
+            package='robot_state_publisher',
+            executable='robot_state_publisher',
+            parameters=[{'robot_description': urdf_value}],
+            additional_env=show_colours_additional_env,
+        ),
+        Node(
+            package='joint_state_publisher',
+            executable='joint_state_publisher',
+            namespace='',
+            output='screen',
+            emulate_tty=True,
+            parameters=[{
+                'source_list': ['/arm/joint_states', '/joint_states']
+            }]
+        ),
+        Node(
+            package='rviz2',
+            namespace='',
+            executable='rviz2',
+            name='rviz2',
+            arguments=['-d', [PathJoinSubstitution([arm_bringup_dir, 'rviz', 'arm.rviz'])], '-f', fixed_frame],
+            condition=IfCondition(rviz),
         ),
     ]
 
 
 def generate_launch_description():
-    arm_bringup_dir = FindPackageShare('arm_bringup')
-    rover_description_dir = FindPackageShare('rover_description')
+    arm_bringup_dir = PythonExpression([
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/arm_bringup']),
+        '" if bool("', LaunchConfiguration('local'), '") else "',
+        FindPackageShare('arm_bringup'), '"'
+    ])
+    rover_description_dir = PythonExpression([
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/rover_description']),
+        '" if bool("', LaunchConfiguration('local'), '") else "',
+        FindPackageShare('rover_description'), '"'
+    ])
 
-    declared_arguments = [   
+    declared_arguments = [
+        DeclareLaunchArgument(
+            name='local',
+            default_value='False',
+            description='whether to use the local rover_description source directory instead of the nix store.',
+        ),
         DeclareLaunchArgument(
             name='controllers',
             default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'new.controllers.yaml']),

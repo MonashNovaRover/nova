@@ -1,6 +1,6 @@
-## Nova-GUI
+# Nova-GUI
 
-Nova-GUI is the Primary Means of Communication and Control of the Rover During Operation and this repo contains the end to end implementation of the Graphical User Interface for the Rover. Nova-GUI is designed to be modular in nature, where Layouts are composed using Individul Components which work independent of each other.
+Nova-GUI is the Primary Means of Communication and Control of the Rover During Operation and contains the end to end implementation of the Graphical User Interface for the Rover. Nova-GUI is designed to be modular in nature, where Layouts are composed using Individul Components which work independent of each other.
 
 <details>
 <summary>Common Commands</summary>
@@ -25,7 +25,7 @@ yarn dev
 ```
 </details>
 
-### Tech Stack
+## Tech Stack
 
 Nova-GUI is a React Powered Webapp which uses the following
 
@@ -56,25 +56,29 @@ graph LR;
 
 Rosbridge server and redux have been combined and abstracted away for simplicity and agility. The Implementation of Rosbridge combined with redux forms a solid bridge between React and ROS and is hence promptly named <i>[Bifrost](./docs/bifrost.md)</i>. It's worth giving a read on how to use Bifrost to stream information from ROS Topics and Request / Send Commands usiong ROS Services.
 
-### Component Library
+## Project Structure
 
-Following are the Components that have been developed and can be used for composing Layouts for Different Purposes
+```
+├─ docs                       # Nova-GUI documentation
+├─ nova-gui                   # React project
+│   ├─ config files           # Project config files
+│   ├─ src/                   # Source code
+│   │  ├─ assets              # Images and other assets
+│   │  ├─ components          # Component Library
+│   │  ├─ hooks               # Custom react hooks
+│   │  ├─ ros                 # ROS2 Topic, Action, and Service definitions
+│   │  ├─ routes              # GUI routes
+│   │  ├─ utils               # Miscellaneous utils
+│   │  ├─ views               # Collection of Components that form a page
+```
 
-<!-- This Section should be a mirror of what's happening on the components directory -->
-
-- [x] PoseDataWidget (Example Component)
-
-### Dev Workflow
+## Dev Workflow
 
 For Developing Nova-GUI, the reccomended method of development is using `nova-shell`, which loads in essential dependencies such as `yarn` and `rosbridge_server` and other ROS Stuff that's essential for getting GUI up and running.
 
 1. Enter the shell environment
 
    ```sh
-   # For runtime dependencies
-   nova-shell -A env.nova-gui
-
-   # or (currently working better) for dev dependencies
    gui-shell 
    # alias for:
    nova-shell -A pkgs.ros.nova-gui
@@ -130,11 +134,6 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    On ros2 terminal (seperate)
 
    ```sh
-   # Run with runtime dependencies
-   rosbridge
-   # alias for
-   ros2 launch rosbridge_server rosbridge_websocket_launch.xml
-   # or 
    gui-rosbridge # alias for
    ~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml
    ```
@@ -143,56 +142,33 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    On separate terminal
 
    ```sh
-   # Build tileserver (ONLY NEED TO DO FIRST TIME)
-   tileserver-build
-   # alias for
-   nix-build -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/173b74db07f26344f3517716edd4bff6987b512d.tar.gz -E 'with import <nixpkgs> { }; callPackage ~/nova/nixfiles/packages/other/tileserver-gl-shell { }' -o tileserver-gl-shell
+   # enter the shell environment
+   gui-shell
 
-   # Enter tileserver shell
-   tileserver-shell
-   # alias for
-   ./tileserver-gl-shell/bin/tileserver-gl-fhs
-   
-   # Install tileserver packages (ONLY NEED TO DO FIRST TIME)
-   tileserver-install
-   # alias for
-   npm install -g --prefix ~/.npm-global tileserver-gl
-   
+   gui-tilelink 
+   # alias for 
+   ln -s ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-styles ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-light/node_modules/tileserver-gl-styles
+
    # Run tileserver
-   tileserver-run <path to tiles>/MDRS_Hi_Res.mbtiles
-   # alias for
-   ~/.npm-global/bin/tileserver-gl --file <path to tiles>/MDRS_Hi_Res.mbtiles
+   gui-tilerun path/to/file.mbtiles
+   yarn --cwd ~/nova/src/ros/nova-gui/nova-gui tileserver-gl-light --file path/to/file.mbtiles
    ```
 
    If you are getting errors first ensure that the gui and rosbridge is running.
 
-   You will need the offline tiles for URC which are available [here](https://drive.google.com/drive/folders/1hCndRiMLQjb3QWo5rAhBj52nR5KYZ-ou).
-   Instructions for how to generate these tiles can be found [here](https://www.notion.so/Creating-Map-Tiles-for-Cartographer-GUI-page-1dab71396171808893f8d37f5410992b)
+   Instructions for how to find and generate these tiles can be found [here](https://www.notion.so/Creating-Map-Tiles-for-Cartographer-GUI-page-1dab71396171808893f8d37f5410992b)
 
 8. Launch the gui
 
    ```sh
    # Launch the server for the gui
-   yarn dev
+   gui-run
+   # alias for
+   yarn --cwd ~/nova/src/ros/nova-gui/nova-gui dev
+
    # Open the gui in the browser
    o
+
+   # If you need to launch GUI accessible by other devices on local network
+   gui-run --host
    ```
-
-### Science URC - GPS
-**TX2:**
-```
-sudo systemctl stop gpsd.socket
-sudo gpsd -nNG -D 5 /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0
-sudo {BUILD}/bin/ros2 launch gpsd_client gpsd_client-launch.py
-sudo {BUILD}/bin/ros2 run electronics base_gps_sub.py --ros-args -p dev:=/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0
-```
-You should be getting a valid fix on `/fix`
-
-**Base:**
-```
-xgps --host 10.0.0.10
-```
-You should be getting an RTK fix and heading here.
-
-**Base station Pi:**
-ublox_dgnss should be run on startup, and should be publishing to `/gps_base/fix`

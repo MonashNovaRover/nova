@@ -7,7 +7,7 @@ in
   options.nova.workspace.sources = {
     enable = lib.mkOption {
       type = with lib.types; bool;
-      description = lib.mdDoc ''
+      description = ''
         Pre-install Nova Rover package source code, and copy it to the home
         directory upon activation.
 
@@ -17,13 +17,13 @@ in
     };
     src = lib.mkOption {
       type = with lib.types; path;
-      description = lib.mdDoc ''
+      description = ''
         The root of the source tree.
       '';
     };
     external = lib.mkOption {
       type = with lib.types; attrsOf (attrsOf path);
-      description = lib.mdDoc ''
+      description = ''
         A mapping of package categories to their source directories.
       '';
       default = { };

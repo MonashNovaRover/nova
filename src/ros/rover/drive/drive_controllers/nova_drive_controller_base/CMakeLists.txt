@@ -1,0 +1,75 @@
+cmake_minimum_required(VERSION 3.16)
+project(nova_drive_controller_base)
+
+# Default to C++17
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra)
+endif()
+
+set(THIS_PACKAGE_INCLUDE_DEPENDS
+  controller_interface
+  geometry_msgs
+  hardware_interface
+  nav_msgs
+  rclcpp
+  rclcpp_lifecycle
+  rcpputils
+  realtime_tools
+  tf2
+  tf2_msgs
+  Eigen3
+  nova_controller_common
+)
+
+find_package(ament_cmake REQUIRED)
+find_package(backward_ros REQUIRED)
+foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
+  find_package(${Dependency} REQUIRED)
+endforeach()
+
+find_package(generate_parameter_library REQUIRED)
+
+generate_parameter_library(nova_drive_controller_base_parameters
+  src/nova_drive_controller_base.yaml
+)
+
+add_library(${PROJECT_NAME} SHARED
+  src/nova_drive_controller_base.cpp
+  src/odometry.cpp
+)
+target_include_directories(${PROJECT_NAME} PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
+target_link_libraries(${PROJECT_NAME}
+  nova_drive_controller_base_parameters
+)
+# Causes the visibility macros to use dllexport rather than dllimport,
+# which is appropriate when building the dll but not consuming it.
+target_compile_definitions(${PROJECT_NAME} PRIVATE "nova_drive_controller_base_BUILDING_DLL")
+
+install(
+  DIRECTORY include/
+  DESTINATION include/nova_drive_controller_base
+)
+
+install(TARGETS nova_drive_controller_base nova_drive_controller_base_parameters
+  EXPORT export_nova_drive_controller_base
+  RUNTIME DESTINATION bin
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+)
+
+ament_export_targets(export_nova_drive_controller_base HAS_LIBRARY_TARGET)
+
+ament_export_dependencies(
+  ${THIS_PACKAGE_INCLUDE_DEPENDS}
+)
+
+ament_package()
+

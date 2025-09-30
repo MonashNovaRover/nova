@@ -148,7 +148,7 @@ controller_interface::return_type NovaArmController::update_velocity_reference_f
 }
 
 // this assumes that the number of joints match
-void NovaArmController::get_joint_states(joint_limits::JointLimitsStateDataType &current) {
+void NovaArmController::get_joint_states(trajectory_msgs::msg::JointTrajectoryPoint &current) {
   //TODO: maybe try to calculate accel as well - this is needed for jerk limits
   current.positions.resize(params_.joint_names.size());
   current.velocities.resize(params_.joint_names.size());
@@ -191,7 +191,7 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     return controller_interface::return_type::ERROR;
   }
 
-  joint_limits::JointLimitsStateDataType desired, current;
+  trajectory_msgs::msg::JointTrajectoryPoint desired, current;
 
   if (this->joint_command_type() == HW_IF_POSITION) {
     desired.positions.resize(params_.joint_names.size());
@@ -241,11 +241,16 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
       const auto halt_value = params_.use_position_control ? joint_handle.state_pos.get().get_value() : 0.0;
       RCLCPP_WARN(get_node()->get_logger(), "Missing or NaN input received. Trying to do nothing with value %f for "
                                             "joint \"%s\".", halt_value, joint_handle.name.c_str());
-      joint_handle.command.get().set_value(halt_value);
+      if (!joint_handle.command.get().set_value(halt_value)) {
+        return controller_interface::return_type::ERROR;
+      }
+
       continue;
     }
 
-    joint_handle.command.get().set_value(reference_value);
+    if (!joint_handle.command.get().set_value(reference_value)) {
+      return controller_interface::return_type::ERROR;
+    }
 
     // RCLCPP_INFO(logger, "%s reference value: %f", joint_handle.name.c_str(), reference_value);
   }
@@ -275,7 +280,7 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  joint_limits::JointLimitsStateDataType current;
+  trajectory_msgs::msg::JointTrajectoryPoint current;
   this->get_joint_states(current);
   
   if (!this->joint_limiter.configure(current)) {
@@ -291,7 +296,7 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
   RCLCPP_INFO(get_node()->get_logger(), "Creating subscriber");
 
   input_subscriber_ = get_node()->create_subscription<nova_interfaces::msg::ArmFkVelocityTargets>(
-  DEFAULT_INPUT_TOPIC_ARM_JOINT_VELOCITY, rclcpp::SystemDefaultsQoS(),
+  params_.topic, rclcpp::SystemDefaultsQoS(),
   [this](const std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets> msg) -> void
   {
     if (!subscriber_is_active_)
@@ -349,7 +354,9 @@ controller_interface::CallbackReturn NovaArmController::on_activate(
   if (params_.use_position_control) {
     // Set all joint command interfaces to be the current state interface values
     for (auto& joint : registered_joint_handles_) {
-      joint.command.get().set_value(joint.state_pos.get().get_value());
+      if (!joint.command.get().set_value(joint.state_pos.get().get_value())) {
+        return controller_interface::CallbackReturn::ERROR;
+      }
     }
   }
 
@@ -419,7 +426,7 @@ void NovaArmController::halt()
 {
   for (const auto &joint_handle : registered_joint_handles_)
   {
-    joint_handle.command.get().set_value(0.0);
+    bool _ = joint_handle.command.get().set_value(0.0);
   }
 }
 

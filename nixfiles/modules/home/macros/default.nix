@@ -56,7 +56,7 @@ in
           camerasdir = "${nova}/src/ros/cameras2";
           autonomous = "${nova}/src/ros/rover/autonomous";
           auto = autonomous;
-          gui = "${nova}/src/ros/nova-gui";
+          gui = "${nova}/src/ros/nova-gui/nova-gui";
           tutorials = "${nova}/src/ros/tutorials";
           pic = "${nova}/src/other/pics";
           pics = pic;
@@ -105,8 +105,10 @@ in
 
           # Launch rover or payloads
           rover-help = "more ${cfg.nixfileDir}/doc/rover-help.md";
+          launch-teleop = "~/Builds/master/bin/ros2 launch teleop_drive_joy teleop.launch.py";
+          launch-drive = "~/Builds/master/bin/ros2 launch drive_bringup drive.launch.py";
           launch-base = "~/Builds/master/bin/ros2 launch nova_bringup base.launch.py";
-          launch-drive = "~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py";
+          launch-old-drive = "~/Builds/master/bin/ros2 launch nova_bringup old_drive.launch.py";
           launch-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
           launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
           launch-science-arc = "~/Builds/master/bin/ros2 launch nova_bringup arc_science.launch.py";
@@ -131,12 +133,11 @@ in
           gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" ~/nova/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts";
           gui-rosbridge = "~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
           gui-run = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui dev";
+          gui-yarn = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui";
 
           # Tile server
-          tileserver-build = "nix-build -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/173b74db07f26344f3517716edd4bff6987b512d.tar.gz -E 'with import <nixpkgs> { }; callPackage ~/nova/nixfiles/packages/other/tileserver-gl-shell { }' -o ~/nova/src/ros/nova-gui/nova-gui/tileserver-gl-shell";
-          tileserver-shell = "~/nova/src/ros/nova-gui/nova-gui/tileserver-gl-shell/bin/tileserver-gl-fhs";
-          tileserver-install = "npm install -g --prefix ~/.npm-global tileserver-gl";
-          tileserver-run = "~/.npm-global/bin/tileserver-gl --file";
+          gui-tilelink = "ln -s ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-styles ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-light/node_modules/tileserver-gl-styles"; # TODO automatically make this symlink when entering gui-shell after yarn install
+          gui-tilerun = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui tileserver-gl-light --file";
 
           # LEDs
           leds-red = "cansend can0 095#0100";
@@ -167,12 +168,11 @@ in
           launch-sim = "~/Builds/master/bin/ros2 launch auto_bringup everything.launch.py";
           launch-auto-hardware = "~/Builds/master/bin/ros2 launch auto_bringup hardware.launch.py";
           launch-auto-software = "~/Builds/master/bin/ros2 launch auto_bringup software.launch.py";
-          launch-control = "~/Builds/master/bin/ros2 launch auto_bringup control.launch.py";
+          launch-auto-drive = "~/Builds/master/bin/ros2 launch drive_bringup drive.launch.py auto:=True";
           launch-oak = "~/Builds/master/bin/ros2 launch auto_bringup camera.launch.py";
           launch-localization = "~/Builds/master/bin/ros2 launch auto_bringup localization.launch.py";
           launch-rtabmap = "~/Builds/master/bin/ros2 launch auto_bringup rtabmap.launch.py";
           launch-nav = "~/Builds/master/bin/ros2 launch auto_bringup navigation.launch.py";
-          launch-teleop = "~/Builds/master/bin/ros2 launch telop_drive_joy teleop.launch.py";
           launch-rviz = "~/Builds/master/bin/ros2 launch auto_bringup rviz.launch.py";
           launch-yolo = "~/Builds/master/bin/ros2 launch auto_bringup yolo.launch.py";
           gui-oak = "~/Builds/master/bin/ros2 launch auto_bringup oak-gui.launch.py";

@@ -17,16 +17,16 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
-#include "realtime_tools/realtime_box.h"
-#include "realtime_tools/realtime_buffer.h"
-#include "realtime_tools/realtime_publisher.h"
+#include "realtime_tools/realtime_box.hpp"
+#include "realtime_tools/realtime_buffer.hpp"
+#include "realtime_tools/realtime_publisher.hpp"
 #include "tf2_msgs/msg/tf_message.hpp"
 #include <nova_interfaces/msg/arm_fk_velocity_targets.hpp>
 #include "joint_limits/joint_saturation_limiter.hpp"
 #include "trajectory_msgs/msg/joint_trajectory_point.hpp"
 #include "nova_arm_controller/self_collision_limiter.hpp"
 
-#include "nova_arm_controller_parameters.hpp"
+#include <nova_arm_controller/nova_arm_controller_parameters.hpp>
 
 namespace nova_arm_controller
 {
@@ -79,8 +79,7 @@ protected:
     // store per joint odometry here maybe?
   };
 
-  // if you update ros, the template changes to joint_limits::JointControlInterfacesData btw
-  joint_limits::JointSaturationLimiter<joint_limits::JointLimits> joint_limiter;
+  joint_limits::JointSaturationLimiter<trajectory_msgs::msg::JointTrajectoryPoint> joint_limiter;
   SelfCollisionLimiter collision_limiter;
 
 
@@ -120,7 +119,7 @@ protected:
   bool reset();
   void halt();
 
-  void get_joint_states(joint_limits::JointLimitsStateDataType &);
+  void get_joint_states(trajectory_msgs::msg::JointTrajectoryPoint &);
 
 };
 } // namespace nova_arm_controller
