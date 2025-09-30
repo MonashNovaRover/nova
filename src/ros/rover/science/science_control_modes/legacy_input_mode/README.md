@@ -5,21 +5,15 @@ Publishes old input types for new teleop.
 ### Inputs
 
 #### Axes
-*TODO: List and describe axes here*
-- `speed`: The input axis that scales the output speed from 0 to 1.
+Axes should be one of the axes within the [old joystick messages](../../../old_inputs/input_interfaces/msg/InputJoystick.msg)
 
 #### Buttons
-*TODO: List and describe buttons here*
-- `locked`: When true, the control mode will send all zeroes to make the robot halt. *(optional)*
-
-> **Note**: `locked` is automatically captured by teleop_modular and exposed through the `bool is_locked()` method.
+Buttons should be one of the buttons within the [old joystick messages](../../../old_inputs/input_interfaces/msg/InputJoystick.msg)
 
 ### Parameters
 
-*TODO: Describe your parameters here*
-
 - `topic : string` The topic name to send messages to (Required)
-- `qos : int` The ROS2 topic Quality of Service value to use in the publisher (Optional, defaults to 10) 
+    - Should be one of `"/inputs/input_joystick_l"` or `"/inputs/input_joystick_r"`.
 
 ```yaml
 # Example parameter file
@@ -33,10 +27,5 @@ teleop_node:
 legacy_input_mode:
   ros__parameters:
     # Topic to send messages to (Required)
-    topic: "/turtle1/cmd_vel"
-    
-    # The ROS2 topic Quality of Service value to use in the publisher (Optional, defaults to 10)
-    qos: 10
-    
-    # TODO: Add an example usage of your parameters here
+    topic: "/inputs/input_joystick_l"
 ```
