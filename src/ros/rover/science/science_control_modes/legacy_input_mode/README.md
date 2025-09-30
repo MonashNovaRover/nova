@@ -5,10 +5,10 @@ Publishes old input types for new teleop.
 ### Inputs
 
 #### Axes
-Axes should be one of the axes within the [old joystick messages](../../../old_inputs/input_interfaces/msg/InputJoystick.msg)
+Axes should be named consistent with the axes within the [old joystick messages](../../../old_inputs/input_interfaces/msg/InputJoystick.msg)
 
 #### Buttons
-Buttons should be one of the buttons within the [old joystick messages](../../../old_inputs/input_interfaces/msg/InputJoystick.msg)
+Buttons should be named consistent with the buttons within the [old joystick messages](../../../old_inputs/input_interfaces/msg/InputJoystick.msg)
 
 ### Parameters
 
