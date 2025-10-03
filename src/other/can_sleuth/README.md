@@ -11,6 +11,19 @@ attributes of all the devices (be it to a terminal, a csv file, or whatever).
 Helper functions for creating all the devices in real systems/payloads are in
 `systems.py`.
 
+Usage:
+
+```
+$ ./main.py --help
+usage: ./main.py [[-e | --emulate] [{-i | --interface} INTERFACE ] PAYLOAD]
+
+Available Payloads/Systems: drive taipan drive25_26 taipan_spherical
+
+E.g. to emulate+trace taipan:       `./main.py -e taipan`
+     to trace drive on can2:        `./main.py --interface can2 drive`
+     to emulate+trace drive+taipan: `./main.py -e drive -e taipan`
+```
+
 Output
 - Terminal Curses TUI
 - CSV (just an idea)
