@@ -1,16 +1,28 @@
+'''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+Can Sleuth / Simulator
+
+Ncurses Terminal Interface Output
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+EDITED BY: Orlando Chamberlain
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+'''
 
 import curses
 
-import output
-
+from . import output
 
 class TUI(output.Output):
     """A Terminal User Interface for rendering the state of the system.
     """
     # TODO: sometimes we crash when the terminal is resized. I think it tries to draw stuff at locations that no longer exist.
-    # TODO: need to make sure we don't hide error messages by accident with this.
+    # TODO: need to make sure we don't hide error messages by accident by clearing the screen when we exit
+
     def __init__(self):
-        # stuff from curses.wrapper
+        # stuff from curses.wrapper to initialise the terminal
         self._stdscr = curses.initscr()
         curses.noecho()
         curses.cbreak()
@@ -26,13 +38,16 @@ class TUI(output.Output):
         curses.curs_set(0)
 
     def __del__(self):
-        # stuff from curses.wrapper
+        # stuff from curses.wrapper to put the terminal back to normal
         self._stdscr.keypad(0)
         curses.echo()
         curses.nocbreak()
         curses.endwin()
 
     def update(self, devices):
+        """Update the terminal with the state of the devices
+        :param devices: the devices in the system
+        """
         windows = self._positionWindows(self._stdscr, devices, startHeight=0)
 
         char = None
@@ -44,7 +59,7 @@ class TUI(output.Output):
             height = 1
             for attr in dev.attrs:
                 # TODO: proper support for multiline attrs
-                # we limit the string to the width of the box minus the border
+                # we limit the string to the width of the box minus the border (-2)
                 win.addnstr(height, 1, f"{attr.name}: {attr.value()}{attr.units}"+" "*attr.width, win.getmaxyx()[1]-2)
                 height += attr.height
             win.refresh()
@@ -59,12 +74,14 @@ class TUI(output.Output):
 
 
     def _windowSize(self, device):
+        """find how large of a box we need to display this device and its attributes
+        """
         height = 0
-        width = len(device.getName())+2
+        width = len(device.getName())+2 # +2 for the <> around the name
         for attr in device.attrs:
             height += attr.height
-            width = max(width, attr.width+len(attr.name)+2+ len(attr.units))
-        return (width+2, height+2) # include border
+            width = max(width, attr.width+len(attr.name)+2+ len(attr.units)) # +2 for ": "
+        return (width+2, height+2) # +2 to each to include border
 
 
     def _positionWindows(self, screen, devices, startHeight=0, startWidth=0):
@@ -85,6 +102,4 @@ class TUI(output.Output):
             y += height
             nextX = max(nextX, width+x)
         return windows
-
-
 
