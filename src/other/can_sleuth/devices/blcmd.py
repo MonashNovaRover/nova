@@ -1,4 +1,19 @@
-import candevice
+'''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+Can Sleuth / Simulator
+
+BrushLess Can Motor Driver (BLCMD) Tracer
+
+See also: https://github.com/MonashNovaRover/pics/tree/master/BLCMD.X
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+EDITED BY: Orlando Chamberlain
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+'''
+
+from . import candevice
 
 def _toHex(x):
     if x:
@@ -29,6 +44,8 @@ class BLCMD(candevice.CanDevice):
             }
 
     def _cmdCb(self,frame):
+        """process commands on can
+        """
         commandNumber = frame.id&0xf
         self.lastCommand = BLCMD.commands[commandNumber]["name"] \
                 + str(BLCMD.commands[commandNumber]["fmt"](frame.data))
@@ -42,6 +59,8 @@ class BLCMD(candevice.CanDevice):
             }
 
     def _telemCb(self, frame):
+        """process telemetry on can
+        """
         telemetryNumber = frame.id&0xf
         labels = self.telemetryTypes[telemetryNumber]
         if len(frame.data) == len(labels)*2:
@@ -66,6 +85,8 @@ class BLCMD(candevice.CanDevice):
             11:"OVER_SPEED",
     }
     def _errCb(self, frame):
+        """process errors on can
+        """
         if (len(frame.data) != 2):
             return
 
@@ -83,7 +104,14 @@ class BLCMD(candevice.CanDevice):
         self.error = f"{level}: {message}"
 
     def __init__(self, name, idNumber, interface):
-        # we match both commands to the blcmd and telemetry coming back
+        """Create the BLCMD sniffer
+
+        :param name: Display name of the blcmd
+        :param idNumber: the id of this blcmd
+        :param interface: the name of the canbus this blcmd is on
+        """
+
+        # we match both commands to the blcmd and telemetry/errors coming back
         self.id = idNumber
         super().__init__(name, interface , canIdMask=0xbf0, canIdMatch=self.id<<4);
         self.telemetry = {}
@@ -103,7 +131,7 @@ class BLCMD(candevice.CanDevice):
                 self.registerAttr(label, telemAttrGetter(label), 5)
             self.addCallback(canId, self._telemCb)
 
-        # TODO: get/set configuration
+        # TODO: trace get/set configuration messages on can
 
         # errors from blcmd
         self.error = None

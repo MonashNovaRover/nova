@@ -1,45 +1,52 @@
 # CAN sleuth
 
-A general purpose simulator/sniffer for devices (particularly CAN) that allows
-their state to be presented is a readable/useful manner.
+A general purpose low level simulator/sniffer for devices (particularly CAN)
+that allows their state to be presented is a readable/useful manner.
 
 At the top we have the Manager, which then has a list of outputs and a list of
 devices as children. It will tell the devices to update their state, represented
 by a collection of "attributes", and then the outputs to display the state of
 attributes of all the devices (be it to a terminal, a csv file, or whatever).
 
-An example for the new Tipan arm is currently in main.py.
-
-
+Helper functions for creating all the devices in real systems/payloads are in
+`systems.py`.
 
 Output
-- Terminal
-- CSV
+- Terminal Curses TUI
+- CSV (just an idea)
+- json (just an idea)
 
 Main Runner
 
 Devices
 - BLCMD
-- CMD
-- Arm baseboard
-- QCMD
-- LED Driver
-- Kiln
-- Misc Science stuff
-- Battery
+- CMD (not implemented)
+- Arm baseboard (not implemented)
+- QCMD (not implemented)
+- LED Driver (not implemented)
+- Kiln (not implemented)
+- Misc Science stuff (not implemented)
+- Battery (not implemented)
+
+Systems (payloads):
+- Taipan Arm
+- Old Arm (not implemented)
+- Drive
+- Scraper (not implemented)
+- Tile Placer (not implemented)
+- Science 25/26 (not implmented)
 
 Devices have several attributes that can be logged/displayed
 
 Attributes have:
 - name
-- width/height (as text)
-- units?
+- width/height (for when displayed as text)
+- units
 - data
-- raw data?
-- importance (i.e. important attrs always shown, but if you select one device you view all attrs.
+- raw data (just an idea)
+- importance (just an idea) (i.e. important attrs always shown, but if you select one device you view all attrs.)
 
 ```
-Hello!
 ┌<J1>──────────────────────────┐┌<J3>──────────────────────────┐┌<J5>──────────────────────────┐
 │velocity: 0                   ││velocity: 0                   ││velocity: 0                   │
 │Qcurrent: 0                   ││Qcurrent: 0                   ││Qcurrent: 0                   │

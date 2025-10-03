@@ -1,6 +1,18 @@
+'''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+Can Sleuth / Simulator
+
+Device abstract class
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+EDITED BY: Orlando Chamberlain
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+'''
+
 import abc
 from dataclasses import dataclass
-
 
 class Device(abc.ABC):
     def __init__(self, name):
@@ -30,9 +42,14 @@ class Device(abc.ABC):
         """to be run more frequently"""
         pass
 
-    def registerAttr(self, name, getter, width, height=1, units=""):
+    def registerAttr(self, name:str, getter, width:int, height:int=1, units:str=""):
+        """register an attribute to this device
+
+        :param name: the name of this attribute
+        :param getter: function that returns the value of this attribute as string
+        :param width: maximum width of the attribute's value in characters (not including units)
+        :param height: maximum number of lines this attribute value can take
+        :param units: the units for this attribute as string
+        """
         self.attrs.append(Device.Attribute(name, getter, width,height=height, units=units))
-
-
-
 

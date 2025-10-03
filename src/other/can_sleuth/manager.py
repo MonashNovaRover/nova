@@ -1,6 +1,18 @@
-import tui
+'''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+Can Sleuth / Simulator
+
+Manager class for managing devices and outputs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+EDITED BY: Orlando Chamberlain
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+'''
 import time
-import meta
+
+from outputs import tui
+from devices import meta
 
 class Manager:
     def __init__(self, devices, outputs=None, updatePeriod=0.2, spinPeriod=0.05, includeMeta=True):

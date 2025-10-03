@@ -1,11 +1,35 @@
+'''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
 
-import candevice
+Can Sleuth / Simulator
+
+BrushLess Can Motor Driver (BLCMD) Emulator
+
+See also: https://github.com/MonashNovaRover/pics/tree/master/BLCMD.X
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+EDITED BY: Orlando Chamberlain
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+'''
+
 import jcan
 import time
 import math
 
+from . import candevice
+
 class BLCMDEmulator(candevice.CanDevice):
-    def __init__(self, name, id_, bus):
+    """BLCMD Emulator class
+    """
+    def __init__(self, name, id_, bus, hasResolver=True):
+        """Create a BLCMD emulator
+
+        :param name: Display name for this blcmd
+        :param id_: the id number for this blcmd
+        :param bus: the name of the canbus to use
+        :param hasResolver: is there a resolver for position feedback?
+        """
         super().__init__(name, bus, canIdMask=0xff0,canIdMatch=id_<<4)
         self.id = id_
 
@@ -27,7 +51,7 @@ class BLCMDEmulator(candevice.CanDevice):
         self.vel = 0;
 
         # config
-        self.hasResolver = 1
+        self.hasResolver = int(bool(hasResolver)) # ensure this is 0 or 1
         self.minInterval = 122 # I don't know what this physically means
 
         # in radians, corresponding to 0x8000
@@ -38,6 +62,8 @@ class BLCMDEmulator(candevice.CanDevice):
         self.registerAttr("Vel", lambda:f"{360*self.vel/(2*math.pi) :+06.1f}", 6, units="°/s")
 
     def telem3(self):
+        """Send telemetry message 3
+        """
         data = []
         vel = int(0x8000 * self.vel / self.max_vel)
         data.append((vel >> 8) & 0xff)
@@ -51,6 +77,8 @@ class BLCMDEmulator(candevice.CanDevice):
         self.send_message(1, data, 4)
 
     def telem1(self):
+        """Send telemetry message 1
+        """
         data = []
         pos = int(0x8000 * self.pos / self.max_pos)
         turns = (pos << 2) % 0xffff
@@ -63,23 +91,33 @@ class BLCMDEmulator(candevice.CanDevice):
         self.send_message(3, data, 4)
 
     def update(self):
+        """Process anything that needs to be done before outputs update
+        """
         pass # everything is in spin
 
     def spin(self):
-        super().spin()
+        """Process any new messages and track our state.
+        """
+        super().spin() # process can messages
+
         newTime = time.time();
         delta = newTime - self.lastTimestep;
         prevCommandAge = newTime - self.prev_command_time
+
         if (prevCommandAge > self.command_timeout):
             delta = self.command_timeout
             timeout = True
         else:
             timeout = False
+
         self.prev_pos = self.pos
+
         if (self.pos_control):
             self.pos = self.target_pos
+
         if (self.vel_control):
             self.pos += self.target_vel*delta;
+
         self.vel = (self.pos - self.prev_pos) / delta
 
         self.lastTimestep = newTime;
@@ -93,6 +131,7 @@ class BLCMDEmulator(candevice.CanDevice):
     def stop(self):
         self.pos_control = False
         self.vel_control = False
+
     def reset(self):
         self.stop();
 
@@ -119,6 +158,8 @@ class BLCMDEmulator(candevice.CanDevice):
 
 
     def on_message(self, message):
+        """Process a can message
+        """
         msgType = message.id & 0xf
         
         match msgType:
@@ -160,6 +201,8 @@ class BLCMDEmulator(candevice.CanDevice):
                 pass # zero_position = (data[0]<<8 | data[1])>>2;
 
     def get_cfg(self, var_index):
+        """Reply with configuration data
+        """
         match var_index:
             case 0x0: # HAS_RESOLVER
                 self.send_message(9, [var_index,self.hasResolver], 2);
@@ -167,12 +210,12 @@ class BLCMDEmulator(candevice.CanDevice):
                 self.send_message(9, [var_index, (self.minInterval>>8)&0xff, self.minInterval&0xff], 3);
 
     def send_message(self,command, data, dlc):
+        """Send a telemetry or response message
+        """
         assert len(data) == dlc;
         assert command < 0x10 and command >= 0;
         self.sendFrame(
                 0x400 | self.id << 4 | command,
                 data
                 )
-
-
 
