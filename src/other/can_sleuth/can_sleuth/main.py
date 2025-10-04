@@ -83,10 +83,10 @@ def main():
         print_help()
         exit(1)
     
-    manager = manager.Manager(devices)
+    manager_ = manager.Manager(devices)
     
     while True:
-        manager.spin()
+        manager_.spin()
 
 if __name__ == "__main__":
     main()
