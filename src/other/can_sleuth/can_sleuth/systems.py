@@ -11,8 +11,8 @@ EDITED BY: Orlando Chamberlain
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 
-from devices import blcmd
-from devices import blcmd_emulator
+from can_sleuth.devices import blcmd
+from can_sleuth.devices import blcmd_emulator
 
 # Interface specifies the bus (usually a canbus) that the system/payload is connected to,
 # emulate indicates if in addition to tracing the state of the system/payload, if we should
