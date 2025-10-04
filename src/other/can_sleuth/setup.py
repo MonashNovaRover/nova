@@ -13,7 +13,7 @@ setup(
     long_description="TODO",
     long_description_content_type="text/markdown",
     url="https://github.com/MonashNovaRover/nova",
-    packages=['can_sleuth'],
+    packages=['can_sleuth', 'can_sleuth.outputs', 'can_sleuth.devices'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache 2.0",
@@ -23,5 +23,5 @@ setup(
         'jcan'
         ],
     python_requires='>=3.10',
-    scripts=["can_sleuth"],
+    scripts=["scripts/can_sleuth"],
 )

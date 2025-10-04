@@ -3,15 +3,8 @@
 A general purpose low level simulator/sniffer for devices (particularly CAN)
 that allows their state to be presented is a readable/useful manner.
 
-At the top we have the Manager, which then has a list of outputs and a list of
-devices as children. It will tell the devices to update their state, represented
-by a collection of "attributes", and then the outputs to display the state of
-attributes of all the devices (be it to a terminal, a csv file, or whatever).
-
-Helper functions for creating all the devices in real systems/payloads are in
-`systems.py`.
-
-Usage:
+You can either run `main.py` directly, or from the nova workspace shell, run
+`can_sleuth`.
 
 ```
 $ ./main.py --help
@@ -23,6 +16,15 @@ E.g. to emulate+trace taipan:       `./main.py -e taipan`
      to trace drive on can2:        `./main.py --interface can2 drive`
      to emulate+trace drive+taipan: `./main.py -e drive -e taipan`
 ```
+
+At the top we have the Manager, which then has a list of outputs and a list of
+devices as children. It will tell the devices to update their state, represented
+by a collection of "attributes", and then the outputs to display the state of
+attributes of all the devices (be it to a terminal, a csv file, or whatever).
+
+Helper functions for creating all the devices in real systems/payloads are in
+`systems.py`.
+
 
 Output
 - Terminal Curses TUI
