@@ -13,7 +13,7 @@ EDITED BY: Orlando Chamberlain
 import abc
 from typing import List
 
-from devices import device
+from can_sleuth.devices import device
 
 class Output(abc.ABC):
     """An output that does something with the state of all devices in the system

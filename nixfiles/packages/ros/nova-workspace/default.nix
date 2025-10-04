@@ -7,6 +7,7 @@
 , rqt
 , rqt-common-plugins
 , gdb
+, pythonPackages
 , gps-umd
 , tf2-tools
 , reolink
@@ -121,6 +122,7 @@
       nova-joint-space-control-mode
       nova-teleop-arm
       ;
+      nova-can-sleuth = pythonPackages.nova-can-sleuth;
   }
 
   ## Extra packages to add to the workspace.
