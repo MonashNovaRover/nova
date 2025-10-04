@@ -14,8 +14,13 @@ EDITED BY: Orlando Chamberlain
 
 import sys
 
-import manager
-import systems
+if __name__ == "__main__":
+    # ensure we can run this from the git tree
+    import os
+    sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
+from can_sleuth import manager
+from can_sleuth import systems
 
 def print_help():
     args = sys.argv
@@ -30,7 +35,7 @@ def print_help():
     #TODO: when we have multiple outputs, document that here too!
 
 
-if __name__ == "__main__":
+def main():
     args = sys.argv.copy()
 
     if "-h" in args or "--help" in args:
@@ -83,3 +88,5 @@ if __name__ == "__main__":
     while True:
         manager.spin()
 
+if __name__ == "__main__":
+    main()

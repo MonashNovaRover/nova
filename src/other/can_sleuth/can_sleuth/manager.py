@@ -11,8 +11,8 @@ EDITED BY: Orlando Chamberlain
 '''
 import time
 
-from outputs import tui
-from devices import meta
+from can_sleuth.outputs import tui
+from can_sleuth.devices import meta
 
 class Manager:
     def __init__(self, devices, outputs=None, updatePeriod=0.2, spinPeriod=0.05, includeMeta=True):
