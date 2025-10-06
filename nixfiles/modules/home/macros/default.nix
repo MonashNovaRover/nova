@@ -189,7 +189,6 @@ in
           mrviz = "~/Builds/master/bin/rviz2";
           mxacro = "~/Builds/master/bin/xacro ${cfg.sourceDir}/ros/rover/rover_description/banksia/urdf/rover.urdf.xacro";
           mrqt = "~/Builds/master/bin/rqt";
-          # Build the master branch
 
           # Arm Aliases
           launch-typing = "~/Builds/master/bin/ros2 launch arm_bringup typing.launch.py";
