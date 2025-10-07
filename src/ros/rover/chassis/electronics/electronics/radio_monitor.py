@@ -28,31 +28,32 @@ If you have issues connecting to the radio device
 import rclpy
 from rclpy.node import Node
 from rclpy.timer import Rate
-from nova_interfaces.msg import RadioStatus
-from fabric import Connection
-import re, time, psutil, subprocess, sys
+# from nova_interfaces.msg import RadioStatus
+# from fabric import Connection
+# import re, time, psutil, subprocess, sys
+import os
 
 # Stores the device information for each of the device settings
 DEVICE_INFO = {
 
     # Old Rocket Systems
     "ROCKET": {
-        "ROS": True,                        # Using ROS or not
-        "dest_IP":      "192.168.1.204",    # Destination IP of Jetson
-        "radio_IP":     "192.168.3.155",    # Base Station Radio IP
-        "host":         "nova",             # Host Name of the Radio
-        "password":     "***REMOVED***",         # Password of Radio device
-        "interface":    "enp3s0f1",         # Ethernet Interface 
+        "ROS": True,                                                                            # Using ROS or not
+        "dest_IP":      "192.168.1.204",                                                        # Destination IP of Jetson
+        "radio_IP":     "192.168.3.155",                                                        # Base Station Radio IP
+        "host":         "nova",                                                                 # Host Name of the Radio
+        "password":     open(os.path.expanduser("~/nova/src/other/secrets/rocket-password.txt")).read(),  # Password of Radio device
+        "interface":    "enp3s0f1",                                                             # Ethernet Interface 
     },
 
     # New Bullet Systems
     "BULLET": {
-        "ROS": True,                        # Using ROS or not
-        "dest_IP":      "192.168.1.204",    # Destination IP of Jetson
-        "radio_IP":     "192.168.1.201",    # Base Station Radio IP
-        "host":         "***REMOVED***",   # Host Name of the Radio
-        "password":     "***REMOVED***",   # Password of Radio device
-        "interface":    "enp3s0f1",         # Ethernet Interface 
+        "ROS": True,                                                                            # Using ROS or not
+        "dest_IP":      "192.168.1.204",                                                        # Destination IP of Jetson
+        "radio_IP":     "192.168.1.201",                                                        # Base Station Radio IP
+        "host":         "***REMOVED***",                                                       # Host Name of the Radio
+        "password":     open(os.path.expanduser("~/nova/src/other/secrets/bullet-password.txt")).read(),  # Password of Radio device
+        "interface":    "enp3s0f1",                                                             # Ethernet Interface 
     },
 }
 
