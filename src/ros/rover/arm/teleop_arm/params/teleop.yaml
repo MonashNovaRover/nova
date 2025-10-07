@@ -51,7 +51,9 @@ teleop_arm:
         deactivate:
           - "joint_space_mode"
       enter_joint_space:
-        on: "task_space/up"
+        on_any:
+          - "task_space/up"
+          - "start"
         type: switch_control_mode
         activate:
           - "joint_space_mode"
