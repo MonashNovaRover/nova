@@ -40,6 +40,8 @@ in
           ws-build = "${nova-build} -A pkgs.ros.nova-workspace";
           ws-shell = "${nova-shell} -A pkgs.ros.nova-workspace.env";
 
+          cameras-build = "${nova-build} -A misc.cameras2-legacy.launcher -o ~/Builds/cameras2legacy";
+
           # Directory aliases
           nova = "cd ${cfg.sourceDir}/..";
           nixfiles = "cd ${cfg.nixfileDir}";
@@ -120,6 +122,13 @@ in
           launch-cameras-all = "${launch-cameras} autostart:=true";
           reolink = "${pkgs.bash}/bin/bash ${../../../scripts/reolink.sh}";
 
+          # Temporary aliases (remove when a better solution has been implemented)
+          cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
+          cameras-orin = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
+          cameras-ec = "~/Builds/cameras2legacyarm/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:=/home/nova/nova/src/ros/cameras2/cameras2/params payload:=arm";
+          nix-enable = "sudo systemctl enable nix-daemon.service";
+          nix-start = "sudo systemctl start nix-daemon.service";
+
           # Setup rover
           zero-arm = "${pkgs.bash}/bin/bash ${../../../scripts/zero-arm.sh}";
           zero-pivots = "${pkgs.bash}/bin/bash ${../../../scripts/zero-pivots.sh}";
@@ -155,13 +164,6 @@ in
           shitdown = "shutdown now";
           diddy = "sudo shitdown";
 
-          # Temporary aliases (remove when a better solution has been implemented)
-          cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
-          cameras-orin = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
-          cameras-ec = "~/Builds/cameras2legacyarm/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:=/home/nova/nova/src/ros/cameras2/cameras2/params payload:=arm";
-          nix-enable = "sudo systemctl enable nix-daemon.service";
-          nix-start = "sudo systemctl start nix-daemon.service";
-
           # Auto Aliases
           launch-auto-rover = "~/Builds/master/bin/ros2 launch auto_bringup urc.launch.py";
           launch-auto-base = "~/Builds/master/bin/ros2 run nova_utils start_auto.py";
@@ -193,7 +195,7 @@ in
           launch-arm-control = "~/Builds/master/bin/ros2 launch arm_bringup control.launch.py arm:=False old_arm:=True";
           launch-path-control = "~/Builds/master/bin/ros2 launch arm_bringup path.control.launch.py arm:=False old_arm:=True";
           launch-arm-urdf = "~/Builds/master/bin/ros2 launch arm_bringup urdf.launch.py arm:=False old_arm:=True auto_camera:=False";
-          launch-arm-teleop = "~/Builds/master/bin/ros2 launch teleop_arm_joy teleop.launch.py";
+          launch-arm-teleop = "~/Builds/master/bin/ros2 launch teleop_arm teleop.launch.py";
           run-arm-teleop = "~/Builds/master/bin/ros2 run teleop_arm_joy teleop_arm_joy_node";
           run-arm-teleop-xbox = "~/Builds/master/bin/ros2 run teleop_arm_joy teleop_arm_joy_node --ros-args --params-file ${cfg.sourceDir}/ros/rover/teleop_arm_joy/config/old.xbox.config.yaml";
           run-joy = "~/Builds/master/bin/ros2 run joy joy_node";
