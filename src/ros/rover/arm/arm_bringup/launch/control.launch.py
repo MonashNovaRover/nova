@@ -21,17 +21,18 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
+import os
 
 
 def launch_setup(context, *args, **kwargs):
     arm_bringup_dir = PythonExpression([
-        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/arm_bringup']),
-        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+        '"', PathJoinSubstitution([os.path.expanduser("~") + '/nova/src/ros/rover/arm/arm_bringup']),
+        '" if bool("', LaunchConfiguration('local'), '") else "',
         FindPackageShare('arm_bringup'), '"'
     ])
     rover_description_dir = PythonExpression([
-        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/rover_description']),
-        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+        '"', PathJoinSubstitution([os.path.expanduser("~") + '/nova/src/ros/rover/rover_description']),
+        '" if bool("', LaunchConfiguration('local'), '") else "',
         FindPackageShare('rover_description'), '"'
     ])
 
@@ -66,11 +67,6 @@ def launch_setup(context, *args, **kwargs):
     urdf_value = ParameterValue(Command(['xacro ', model, ' '] + xacro_args), value_type=str)
 
     return [
-        LogInfo(msg=[
-            '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/arm_bringup']),
-            '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
-            FindPackageShare('arm_bringup'), '"'
-        ]),
         LogInfo(msg=['Using arm_bringup := ', arm_bringup_dir]),
         LogInfo(msg=['Using model := ', model]),
         GroupAction(
@@ -144,12 +140,12 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     arm_bringup_dir = PythonExpression([
-        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/arm_bringup']),
+        '"', PathJoinSubstitution([os.path.expanduser("~") + '/nova/src/ros/rover/arm/arm_bringup']),
         '" if bool("', LaunchConfiguration('local'), '") else "',
         FindPackageShare('arm_bringup'), '"'
     ])
     rover_description_dir = PythonExpression([
-        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/rover_description']),
+        '"', PathJoinSubstitution([os.path.expanduser("~") + '/nova/src/ros/rover/rover_description']),
         '" if bool("', LaunchConfiguration('local'), '") else "',
         FindPackageShare('rover_description'), '"'
     ])
