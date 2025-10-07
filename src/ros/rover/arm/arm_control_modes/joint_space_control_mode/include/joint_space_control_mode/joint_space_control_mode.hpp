@@ -47,7 +47,7 @@ private:
   struct JointHandle
   {
     std::string name;
-    Axis::SharedPtr axis;
+    Axis axis;
     double scale;
   };
 
@@ -64,7 +64,7 @@ private:
   std::vector<std::string> input_names_{};
 
   /// Input from 0 to 1 that directly scales the output speed.
-  Axis::SharedPtr speed_;
+  Axis speed_;
 };
 
 }  // namespace joint_space_control_mode

@@ -34,10 +34,6 @@ def launch_setup(context, *args, **kwargs):
                 {'log_inputs': ParameterValue(log_inputs, value_type=bool)}
             ],
 
-            remappings=[
-                ('controller_manager/switch_controller', 'arm/controller_manager/switch_controller')
-            ],
-
             additional_env={
                 # Show colors in the terminal output
                 'RCUTILS_COLORIZED_OUTPUT': '1',
@@ -67,7 +63,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             name='local',
             default_value='False',
-            description='Whether to use the local teleop_amr source directory instead of the nix store for param files.',
+            description='Whether to use the local teleop_arm source directory instead of the nix store for param files.',
         ),
         DeclareLaunchArgument(
             name='log_level',
