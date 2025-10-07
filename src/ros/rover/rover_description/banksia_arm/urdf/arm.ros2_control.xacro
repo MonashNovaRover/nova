@@ -9,7 +9,7 @@
 		<ros2_control name="arm_J1" type="system">
 			<xacro:unless value="${use_mock_hardware}">
 				<hardware>
-					<plugin>blcmd_hardware/BLCMDHardware</plugin>
+					<plugin>blcmd_hardware2/BLCMDHardware</plugin>
 					<param name="candevice">can1</param>
 					<param name="canid">1</param>
 					<param name="resolver_reduction">4</param>
@@ -61,7 +61,7 @@
 		<ros2_control name="arm_J2" type="system">
 			<xacro:unless value="${use_mock_hardware}">
 				<hardware>
-					<plugin>blcmd_hardware/BLCMDHardware</plugin>
+					<plugin>blcmd_hardware2/BLCMDHardware</plugin>
 					<param name="candevice">can1</param>
 					<param name="canid">2</param>
 					<param name="resolver_reduction">5.375</param>
@@ -105,7 +105,7 @@
 		<ros2_control name="arm_J3" type="system">
 			<xacro:unless value="${use_mock_hardware}">
 				<hardware>
-					<plugin>blcmd_hardware/BLCMDHardware</plugin>
+					<plugin>blcmd_hardware2/BLCMDHardware</plugin>
 					<param name="candevice">can1</param>
 					<param name="canid">3</param>
 					<param name="resolver_reduction">5.375</param>
@@ -149,7 +149,7 @@
 		<ros2_control name="arm_J4" type="system">
 			<xacro:unless value="${use_mock_hardware}">
 				<hardware>
-					<plugin>blcmd_hardware/BLCMDHardware</plugin>
+					<plugin>blcmd_hardware2/BLCMDHardware</plugin>
 					<param name="candevice">can1</param>
 					<param name="canid">4</param>
 					<param name="resolver_reduction">15</param>
@@ -162,7 +162,7 @@
 					<param name="integrate_velocity">true</param>
 					<param name="max_position">12.5663706144</param>
 					<param name="position_offset">0.0</param>
-					<param name="max_velocity">292.444791136 / 15</param>
+					<param name="max_velocity">19.4963194091</param>
 				</hardware>
 			</xacro:unless>
 			<xacro:if value="${use_mock_hardware}">
@@ -193,7 +193,7 @@
 		<ros2_control name="arm_J5" type="system">
 			<xacro:unless value="${use_mock_hardware}">
 				<hardware>
-					<plugin>blcmd_hardware/BLCMDHardware</plugin>
+					<plugin>blcmd_hardware2/BLCMDHardware</plugin>
 					<param name="candevice">can1</param>
 					<param name="canid">5</param>
 					<param name="resolver_reduction">1.0</param>
@@ -237,7 +237,7 @@
 		<ros2_control name="arm_J6" type="system">
 			<xacro:unless value="${use_mock_hardware}">
 				<hardware>
-					<plugin>blcmd_hardware/BLCMDHardware</plugin>
+					<plugin>blcmd_hardware2/BLCMDHardware</plugin>
 					<param name="candevice">can1</param>
 					<param name="canid">6</param>
 					<param name="resolver_reduction">1.0</param>
