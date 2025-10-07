@@ -2,7 +2,7 @@
 , fetchFromGitHub
 , numpy
 , setuptools
-, python3Packages
+, cython
 }:
 
   buildPythonPackage rec {
@@ -15,7 +15,7 @@
       rev = "600c210d9bef793ee0fe502cbc350e676a6e083a";
       hash = "sha256-ktLwdeb7UWhdihOhdeYIi6Geyp7aJsVPPec22MtI9Jo=";
     };
-    nativeBuildInputs = [python3Packages.cython];
+    nativeBuildInputs = [cython];
 
     propagatedBuildInputs = [
       numpy

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>joint_space_control_mode</name>
+  <version>0.1.0</version>
+  <description>A control mode that moves each joint by some velocity.</description>
+  <maintainer email="bailey.chessum1@gmail.com">Bailey Chessum</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake_ros</buildtool_depend>
+  <build_depend>generate_parameter_library</build_depend>
+
+  <depend>pluginlib</depend>
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>geometry_msgs</depend>
+
+  <build_depend>control_mode</build_depend>
+  <build_export_depend>control_mode</build_export_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

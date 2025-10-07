@@ -1,12 +1,41 @@
 { buildPythonPackage
 , fetchFromGitHub
-, python3Packages
 , callPackage
+, albumentations
+, boto3
+, deprecated
+, einops
+, fonttools
+, hydra-core
+, imagesize
+, json-tricks
+, jsonschema
+, matplotlib
+, onnx
+, onnxruntime
+, packaging
+, pillow
+, pip-tools
+, psutil
+, pygments
+, pytorch
+, rapidfuzz
+, scipy
+, setuptools
+, stringcase
+, tensorboard
+, termcolor
+, torchmetrics
+, torchvision
+, treelib
+, tqdm
+, werkzeug
+, wheel
 }:
 
 let
   data-gradients = callPackage ./data-gradients.nix { };
-  #onnx-simplifier = callPackage ./onnx-simplifier.nix { };
+  # onnx-simplifier = callPackage ./onnx-simplifier.nix { };
 in
 buildPythonPackage rec {
   pname = "super-gradients";
@@ -20,38 +49,38 @@ buildPythonPackage rec {
     hash = "sha256-51TWJatypEkTnh+0VsQSt9UFHIh0f7Lp/bKhnyjijeE=";
   };
 
-  propagatedBuildInputs = with python3Packages; [
-    pytorch
-    tqdm
+  propagatedBuildInputs = [
+    albumentations
     boto3
-    jsonschema
+    data-gradients
     deprecated
-    scipy
-    matplotlib
-    psutil
-    tensorboard
-    setuptools
-    torchvision
-    torchmetrics
+    einops
+    fonttools
     hydra-core
-    onnxruntime
+    imagesize
+    json-tricks
+    jsonschema
+    matplotlib
     onnx
+    # onnx-simplifier i hate this dependency chain so i deleted it lol
+    onnxruntime
+    packaging
     pillow
     pip-tools
-    einops
-    treelib
-    termcolor
-    packaging
-    wheel
+    psutil
     pygments
-    stringcase
+    pytorch
     rapidfuzz
-    json-tricks
-    #onnx-simplifier i hate this dependency chain so i deleted it lol
-    data-gradients
-    albumentations
-    fonttools
+    scipy
+    setuptools
+    stringcase
+    tensorboard
+    termcolor
+    torchmetrics
+    torchvision
+    treelib
+    tqdm
     werkzeug
-    imagesize
+    wheel
   ];
 }

@@ -1,0 +1,38 @@
+# Dualsense PS5 Controller
+teleop_drive_joy_node:
+  ros__parameters:
+    controllers:
+      [
+        "pivot_drive_controller",
+        "strafe_drive_controller",
+        "diff_drive_controller",
+      ]
+    pivot_drive_controller:
+      axis_angular_z: 3
+      axis_linear_x: 1
+      scale_angular_z: 0.85
+      scale_linear_x: 0.1
+    strafe_drive_controller:
+      axis_angular_z: 3
+      axis_linear_x: 0
+      scale_angular_z: 1.0
+      scale_linear_x: 0.1
+    diff_drive_controller:
+      axis_angular_z: 3
+      axis_linear_x: 1
+      scale_angular_z: 1.0
+      
+      scale_linear_x: 0.1
+    axis_speed_change_coarse: 7
+    axis_speed_change_fine: 6
+    button_autonomous_control: 0
+    button_lock: 8
+    button_manual_control: 1
+    button_diff_drive_controller: 2
+    button_pivot_drive_controller: 5
+    button_strafe_drive_controller: 4
+    button_unlock: 9
+    speed_change_coarse_val: 0.1
+    speed_change_fine_val: 0.02
+    speed_limit_max: 1.2
+    speed_limit_min: 0.05

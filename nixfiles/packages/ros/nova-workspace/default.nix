@@ -13,6 +13,14 @@
 , moveit-core
 , moveit-kinematics
 , ublox-dgnss
+, teleop-modular
+, teleop-modular-core
+, teleop-modular-twist
+, teleop-modular-control-mode
+, teleop-modular-input-source
+, teleop-modular-node
+, teleop-modular-python-utils
+, livox-ros-driver2
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -33,16 +41,21 @@
 , nova-bringup ? throw "nova-bringup is needed, but not available!"
 , nova-auto-bringup ? throw "auto-bringup is needed, but not available!"
 , nova-arm-bringup ? throw "arm-bringup is needed, but not available!"
+, nova-drive-bringup ? throw "drive-bringup is needed, but not available!"
 , nova-rover-description ? throw "rover-description is needed, but not available!"
 , nova-blcmd-hardware ? throw "nova-blcmd-hardware is needed, but not available!"
+, nova-blcmd-hardware2 ? throw "nova-blcmd-hardware2 is needed, but not available!"
 , nova-cmd-hardware ? throw "nova-cmd-hardware is needed, but not available!"
+, nova-controller-common ? throw "nova-controller-common is needed, but not available!"
+, nova-drive-controller-base ? throw "nova-drive-controller-base is needed, but not available!"
 , nova-pivot-drive-controller ? throw "nova-pivot-drive-controller is needed, but not available!"
-, nova-strafe-controller ? throw "nova-strafe-controller is needed, but not available!"
+, nova-strafe-drive-controller ? throw "nova-strafe-drive-controller is needed, but not available!"
 , nova-diff-drive-controller ? throw "nova-diff-drive-controller is needed, but not available!"
 , nova-teleop-drive-joy ? throw "nova-teleop-drive-joy is needed, but not available!"
 , nova-teleop-arm-joy ? throw "nova-teleop-arm-joy is needed, but not available!"
 , nova-gazebo ? throw "nova-gazebo is needed, but not available!"
 , nova-python-control ? throw "python-control is needed, but not available!"
+, nova-python-control2 ? throw "python-control2 is needed, but not available!"
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
 , nova-utils ? throw "nova-utils is needed, but not available!"
 , nova-arm-controller ? throw "nova-arm-controller is needed, but not available!"
@@ -51,7 +64,8 @@
 , nova-banksia-kinematics-plugin ? throw "nova-banksia-kinematics-plugin is needed, but not available!"
 , nova-waratah-kinematics-plugin ? throw "nova-waratah-kinematics-plugin is needed, but not available!"
 , gpsd-client ? throw "gpsd-client is needed, but not available!"
-# , ublox-dgnss-custom ? throw "ublox-dgnss-custom is needed, but not available!"
+, nova-joint-space-control-mode ? throw "nova-joint-space-control-mode is need, but not available!"
+, nova-teleop-arm ? throw "nova-teleop-arm is need, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -69,9 +83,12 @@
       nova-science
       nova-cameras2
       nova-blcmd-hardware
+      nova-blcmd-hardware2
       nova-cmd-hardware
+      nova-controller-common
+      nova-drive-controller-base
       nova-pivot-drive-controller
-      nova-strafe-controller
+      nova-strafe-drive-controller
       nova-diff-drive-controller
       nova-teleop-drive-joy
       nova-teleop-arm-joy
@@ -91,9 +108,11 @@
       nova-bringup
       nova-auto-bringup
       nova-arm-bringup
+      nova-drive-bringup
       nova-rover-description
       nova-gazebo
       nova-python-control
+      nova-python-control2
       nova-excavation-construction
       nova-utils
       nova-arm-controller
@@ -101,8 +120,10 @@
       nova-path-planner
       nova-banksia-kinematics-plugin
       nova-waratah-kinematics-plugin
-      reolink;
-      # ublox-dgnss-custom;
+      reolink
+      nova-joint-space-control-mode
+      nova-teleop-arm
+      ;
   }
 
   ## Extra packages to add to the workspace.
@@ -112,6 +133,14 @@
       moveit-core   # needed to dynamically load the kinematics_solver plugin for nova_twistmapper
       moveit-kinematics
       gpsd-client
+      teleop-modular
+      teleop-modular-core
+      teleop-modular-twist
+      teleop-modular-control-mode
+      teleop-modular-input-source
+      teleop-modular-node
+      teleop-modular-python-utils
+      livox-ros-driver2
       ;
 }
 }:

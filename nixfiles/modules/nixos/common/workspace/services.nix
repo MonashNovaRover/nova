@@ -6,12 +6,6 @@ in
 {
   options.nova.workspace.services = {
     enable = lib.mkEnableOption "workspace services" // { default = config.nova.workspace.enable; };
-    gui = {
-      enable = lib.mkEnableOption "GUI services" // { default = true; };
-      frontendPackage = lib.mkPackageOption pkgs "frontend resource" {
-        default = [ "nova" "nova-gui-frontend" ];
-      };
-    };
   };
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
@@ -50,32 +44,5 @@ in
         '';
       };
     }
-
-    # GUI services
-    (lib.mkIf cfg.gui.enable {
-      systemd.services = {
-        gui-backend = config.lib.nova.mkWorkspaceService {
-          # TODO: Don't call clear in the GUI backend script
-          path = with pkgs; [ (writeShellScriptBin "clear" "") ];
-          script = "ros2 run gui flask";
-        };
-
-        gui-frontend = {
-          wantedBy = [ "multi-user.target" ];
-          requires = [ "gui-backend.service" ];
-          after = [ "gui-backend.service" ];
-          path = with pkgs; [
-            (nova.nova-gui-frontend-server.override {
-              nova-gui-frontend = cfg.gui.frontendPackage;
-            })
-          ];
-          script = "gui-frontend-server -l tcp://0.0.0.0:80";
-          serviceConfig.DynamicUser = true;
-          serviceConfig.AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
-        };
-      };
-
-      networking.firewall.allowedTCPPorts = [ 80 ];
-    })
   ]);
 }

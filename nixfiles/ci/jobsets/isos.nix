@@ -41,7 +41,7 @@ let
               ];
 
               isoImage = {
-                isoBaseName = "nixos${lib.optionalString graphical "-graphical"}${lib.optionalString includeWorkspace "-workspace"}";
+                isoBaseName = lib.mkForce "nixos${lib.optionalString graphical "-graphical"}${lib.optionalString includeWorkspace "-workspace"}";
                 squashfsCompression = lib.mkIf (!enableCompression) "xz -noI -noD -noF -noX";
 
                 # Add workspace development dependencies, so that the live
@@ -92,7 +92,6 @@ let
                 workspace = {
                   enable = includeWorkspace;
                   package = hydraPatchedWorkspace;
-                  services.gui.frontendPackage = hydraPatchedWorkspace.novaPackages.nova-gui-frontend;
                 };
               };
               home-manager.sharedModules = [

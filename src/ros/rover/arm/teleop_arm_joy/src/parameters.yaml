@@ -1,0 +1,161 @@
+# This is only the schema for Node Parameters
+# This YAML will be converted to teleop_drive_joy_parameters.hpp upon build
+# Look at individual controller config for changing axes / buttons
+# Look here for docs about this YAML : https://github.com/PickNikRobotics/generate_parameter_library
+teleop_arm_joy:
+
+#  controllers:
+#    type: string_array
+#    default_value:
+#      [
+#        "pivot_drive_controller",
+#        "strafe_drive_controller",
+#        "diff_drive_controller",
+#      ]
+#    description: "List Of Controllers that can be used with teleop"
+#    read_only: true
+
+  control_modes:
+    joint_space:
+      controllers:
+        type: string_array
+        default_value:
+          [
+            "nova_arm_velocity_controller",
+          ]
+        description: "Controllers to activate/deactivate for joint space control. Given in order of activation, where controllers dependent on other controllers should succeed them in the order of this list."
+
+    twist:
+      linear_max:
+        type: double
+        default_value: 0.2
+        description: "The maximum allowed value for the linear component of speed."
+      angular_max:
+        type: double
+        default_value: 0.2
+        description: "The maximum allowed value for the angular component of speed."
+      controllers:
+        type: string_array
+        default_value:
+          [
+            "nova_arm_position_controller",
+            "nova_twistmapper",
+          ]
+        description: "Controllers to activate/deactivate for twist ik control. Given in order of activation, where controllers dependent on other controllers should succeed them in the order of this list."
+
+    path_planner_ik:
+      controllers:
+        type: string_array
+        default_value:
+          [
+            "nova_arm_position_controller",
+            "nova_path_planner",
+          ]
+        description: "Controllers to activate/deactivate for path planning. Given in order of activation, where controllers dependent on other controllers should succeed them in the order of this list."
+
+
+  device_names:
+    type: string_array
+    default_value: [
+      "Left",
+      "Right"
+    ]
+
+  devices:
+    __map_device_names:
+      topic:
+        type: string
+        description: "The topic to get sensor_msgs/msg/Joy messages from for this device"
+
+  joint_definitions:
+    type: string_array
+    default_value: [
+      "J1",
+      "J2",
+      "J3",
+      "J4",
+      "J5",
+      "J6"
+    ]
+    description: "The set of joints to send commands for. Must be a subset of axis_definitions (for each joint added 
+    here, include an axis of the same name)."
+
+  joints:
+    __map_joint_definitions:
+      max_speed:
+        type: double
+        description: "The max value sent to the ros2_control controllers when the speed is set to max, and a max input 
+        is given. Should be in rad/s."
+
+  axis_definitions:
+    type: string_array
+    default_value: [
+      "J1",
+      "J2",
+      "J3",
+      "J4",
+      "J5",
+      "J6",
+      "speed",
+      "offset",
+      "twist_x",
+      "twist_y",
+      "twist_z",
+      "twist_yaw",
+      "twist_pitch",
+      "twist_roll"
+    ]
+    description: "The list of mappable axes."
+
+  button_definitions:
+    type: string_array
+    default_value: [
+      "twist_mode",
+      "limit_on",
+      "limit_off",
+      "lock",
+      "unlock"
+    ]
+    description: "The list of mappable axes."
+    read_only: true
+
+  axes:
+    __map_axis_definitions:
+      id:
+        type: int
+        default_value: -1
+      device:
+        type: string
+        default_value: ""
+        description: "The device that this axis is mapped to. Must be an element of device_names, and maps to the first device in device_names by default."
+      invert:
+        type: bool
+        default_value: false
+        description: "Inverts the given axis when true."
+      button_id_negative:
+        type: int
+        default_value: -1
+        description: "The button id that maps to -1 for this axis."
+      button_id_positive:
+        type: int
+        default_value: -1
+        description: "The button id that maps to +1 for this axis."
+
+
+
+  buttons:
+    __map_button_definitions:
+      id:
+        type: int
+        default_value: -1
+      device:
+        type: string
+        default_value: ""
+        description: "The device that this axis is mapped to. Must be an element of device_names, and maps to the first device in device_names by default."
+
+#  controllers:
+#    type: string_array
+#    default_value: []
+#    description: "The list of controllers that can be used with arm teleop."
+#    read_only: true
+#  __map_controllers:

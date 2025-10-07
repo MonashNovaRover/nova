@@ -1,0 +1,55 @@
+name: Backfill Label Hashtags
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-label-tags:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add hashtags to all open issues and PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+
+            // Helper to add/update tags in body
+            async function updateBody(item, isPR) {
+              const number = item.number;
+
+              // Get latest labels
+              const labels = item.labels.map(label => typeof label === 'string' ? label : label.name);
+              const hashtags = labels.map(label => `tag:${label.replace(/\s+/g, '_')}`).join(';');
+
+              // Get full body
+              const apiMethod = isPR ? github.rest.pulls.get : github.rest.issues.get;
+              const { data } = await apiMethod({ owner, repo, ...(isPR ? { pull_number: number } : { issue_number: number }) });
+
+              const body = data.body || '';
+              const cleanedBody = body.replace(/<!-- TAGS START -->[\s\S]*?<!-- TAGS END -->/gm, '').trim();
+
+              const newBody = `${cleanedBody}
+
+              <!-- TAGS START -->
+              Tags for Notion Integration:
+              ${hashtags}
+              <!-- TAGS END -->`;
+
+              const updateMethod = isPR ? github.rest.pulls.update : github.rest.issues.update;
+              await updateMethod({ owner, repo, ...(isPR ? { pull_number: number } : { issue_number: number }), body: newBody });
+
+              console.log(`✅ Updated ${isPR ? 'PR' : 'Issue'} #${number}`);
+            }
+
+            // Get all open issues and PRs
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: "open",
+              per_page: 100,
+            });
+
+            for (const item of issues) {
+              const isPR = !!item.pull_request;
+              await updateBody(item, isPR);
+            }

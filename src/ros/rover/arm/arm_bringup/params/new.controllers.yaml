@@ -1,0 +1,94 @@
+# Controllers for the new arm
+arm:
+  controller_manager:
+    ros__parameters:
+      update_rate: 20
+      use_sim_time: false
+
+      nova_arm_velocity_controller:
+        type: nova_arm_controller/NovaArmController
+
+      nova_arm_position_controller:
+        type: nova_arm_controller/NovaArmController
+
+      nova_twistmapper:
+        type: nova_twistmapper/NovaTwistmapper
+
+      nova_path_planner:
+        type: nova_path_planner/NovaPathPlanner
+
+      joint_state_broadcaster:
+        type: joint_state_broadcaster/JointStateBroadcaster
+
+  nova_arm_velocity_controller:
+    ros__parameters:
+      topic: "/arm/joint_velocity_command"
+      joint_names:
+        - J1
+        - J2
+        - J3
+        - J4
+        - J5
+        - J6
+      use_position_control: false
+      use_collision_limits: true
+      use_limits: true
+
+  nova_arm_position_controller:
+    ros__parameters:
+      topic: "/arm/joint_position_command"
+      joint_names:
+        - J1
+        - J2
+        - J3
+        - J4
+        - J5
+        - J6
+      use_position_control: true
+      use_collision_limits: true
+      use_limits: true
+
+  nova_twistmapper:
+    ros__parameters:
+      chained_controller_name: "nova_arm_position_controller"
+      twist_stamped_topic: "/arm/task_space_twist_command"
+      joint_names:
+        - J1
+        - J2
+        - J3
+        - J4
+        - J5
+        - J6
+      kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
+      kinematics_solver_timeout: 0.02
+      kinematics_base_frame: "arm_kinematics_origin"
+      kinematics_endeffector_frame: "endeffector_kinematics"
+      add_chain_to_srdf: false
+      add_allowed_collisions_to_srdf: false
+      publish_debug_frames: false
+
+  nova_path_planner:
+    ros__parameters:
+  #    chained_controller_name: "nova_arm_position_controller"
+      chained_controller_name: ""
+      joint_names:
+        - J1
+        - J2
+        - J3
+        - J4
+        - J5
+        - J6
+      kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
+      kinematics_solver_timeout: 1.0
+      kinematics_base_frame: "arm_kinematics_origin"
+      kinematics_endeffector_frame: "endeffector_kinematics"
+      add_chain_to_srdf: false
+      add_allowed_collisions_to_srdf: false
+
+  joint_state_broadcaster:
+    ros__parameters:
+      interfaces:
+         ["position", "velocity"]
+
+      joints: ["J1", "J2", "J3", "J4", "J5", "J6"]
+      use_local_topics: false

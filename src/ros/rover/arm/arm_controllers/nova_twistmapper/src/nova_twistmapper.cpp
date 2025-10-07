@@ -1,0 +1,797 @@
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monash Nova Rover Team
+
+PACKAGE: 	  nova_twistmapper
+AUTHOR:     Bailey Chessum
+EDITED BY:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "nova_twistmapper/nova_twistmapper.hpp"
+#include "lifecycle_msgs/msg/state.hpp"
+#include "rclcpp/logging.hpp"
+#include "tf2_geometry_msgs/tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+#include "hardware_interface/types/hardware_interface_type_values.hpp"
+#include "tf2_eigen/tf2_eigen.hpp"
+#include <urdf_parser/urdf_parser.h>
+#include <srdfdom/model.h>
+#include <pluginlib/class_loader.hpp>
+#include <moveit/kinematics_base/kinematics_base.h>
+#include <moveit/utils/moveit_error_code.h>
+
+
+namespace
+{
+  // Used to avoid division by zero. Threshold for where to call small numbers essentially zero in vector normalization.
+  constexpr auto EPSILON = 1e-8;
+} // namespace
+
+using std::placeholders::_1;
+
+namespace nova_twistmapper
+{
+  using namespace std::chrono_literals;
+  using controller_interface::interface_configuration_type;
+  using controller_interface::InterfaceConfiguration;
+  using lifecycle_msgs::msg::State;
+
+
+  NovaTwistmapper::NovaTwistmapper() : controller_interface::ControllerInterface() {}
+
+  controller_interface::CallbackReturn NovaTwistmapper::on_init()
+  {
+    try
+    {
+      // Create the parameter listener and get the parameters
+      param_listener_ = std::make_shared<ParamListener>(get_node());
+      params_ = param_listener_->get_params();
+
+      kinematics_solver_loader_ = std::make_unique<pluginlib::ClassLoader<kinematics::KinematicsBase>>(
+        "moveit_core", "kinematics::KinematicsBase");
+    }
+    catch (const std::exception &e)
+    {
+      fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
+    return controller_interface::CallbackReturn::SUCCESS;
+  }
+
+  InterfaceConfiguration NovaTwistmapper::command_interface_configuration() const
+  {
+    std::vector<std::string> conf_names;
+
+    for (const auto &joint : params_.joint_names)
+    {
+      conf_names.push_back(joint_to_command_interface_name(joint));
+    }
+
+    return {interface_configuration_type::INDIVIDUAL, conf_names};
+  }
+
+  InterfaceConfiguration NovaTwistmapper::state_interface_configuration() const
+  {
+    std::vector<std::string> conf_names;
+
+    for (const auto &joint_name: params_.joint_names) {
+      conf_names.push_back(joint_name + "/" + hardware_interface::HW_IF_POSITION);
+    }
+
+    return {interface_configuration_type::INDIVIDUAL, conf_names};
+  }
+
+  Eigen::Isometry3d NovaTwistmapper::integrate_twist(const std::vector<double> &seed_state,
+                                                     const rclcpp::Duration &period,
+                                                     const Eigen::Isometry3d &current_target_pose) {
+    const auto logger = get_node()->get_logger();
+
+    // Retrieve the twist
+    std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
+    received_twist_stamped_ptr_.get(twist_stamped);
+
+    if (twist_stamped == nullptr) {
+      RCLCPP_WARN(logger, "Haven't yet received a TwistStamped message to use for the twistmapper.");
+      return current_target_pose;
+    }
+
+    const auto twist_msg = twist_stamped->twist;
+    const auto twist_frame_id = twist_stamped->header.frame_id.empty() ? params_.fallback_frame_id
+                                                                       : twist_stamped->header.frame_id;
+    // Stop holding the shared pointer
+    twist_stamped.reset();
+
+    // Find the reference frame transform for the given frame_id
+    std::vector<geometry_msgs::msg::Pose> poses;
+    auto result = kinematics_solver_->getPositionFK({twist_frame_id}, seed_state, poses);
+
+    if (!result) {
+      RCLCPP_ERROR(logger, "Failed to do forward kinematics to find the twist frame");
+      return current_target_pose;
+    }
+    if (poses.empty()) {
+      RCLCPP_ERROR(logger, "No poses returned from forward kinematics!");
+      return current_target_pose;
+    }
+
+    Eigen::Isometry3d twist_frame;
+    Eigen::fromMsg(poses[0], twist_frame);
+
+    if (params_.publish_debug_frames) {
+      publish_to_tf2(get_node()->get_clock()->now(), twist_frame, std::string(get_node()->get_name()) + "_twist_frame");
+    }
+
+    // Extract data from the twist message into a usable format for math
+    Eigen::Matrix<double, 6, 1> twist;
+    Eigen::fromMsg(twist_msg, twist);
+    Eigen::Vector3d twist_linear = twist.block<3, 1>(0, 0);
+    Eigen::Vector3d twist_angular = twist.block<3, 1>(3, 0);
+
+    // Construct a 4x4 matrix from the above linear and angular values, but as a displacement rather than velocity.
+    Eigen::Isometry3d new_pose = current_target_pose;
+
+    // Set translational components
+    new_pose.translation() = current_target_pose.translation() + twist_frame.linear() * twist_linear * period.seconds();
+
+    // Set angular components
+    auto twist_angular_norm = twist_angular.norm();
+    // Only apply rotation if it is non-zero enough to avoid precision errors
+    if (twist_angular_norm > EPSILON) {
+      // Create rotation matrix from twist_angular * period.seconds. This isn't an angular velocity, but a displacement.
+      Eigen::AngleAxisd angular_diff(twist_angular_norm * period.seconds(), twist_frame.linear() * twist_angular / twist_angular_norm);
+
+      // This 'linear' does not mean the same thing as the twist's 'linear'!
+      // It is the linear component of the affine transformation matrix.
+      new_pose.linear() = angular_diff.toRotationMatrix() * current_target_pose.linear();
+    }
+
+    return new_pose;
+  }
+
+  controller_interface::return_type NovaTwistmapper::update(const rclcpp::Time &time, const rclcpp::Duration &period)
+  {
+    auto logger = get_node()->get_logger();
+    if (get_lifecycle_state().id() == State::PRIMARY_STATE_INACTIVE)
+    {
+      if (!is_halted)
+      {
+        halt();
+        is_halted = true;
+      }
+
+      return controller_interface::return_type::OK;
+    }
+
+    std::vector<double> joint_state_values = get_state_pos_values();
+
+    // Integrate twist to get a new pose
+    const auto new_pose = integrate_twist(joint_state_values, period, twistmapper_pose_);
+    publish_to_tf2(time, new_pose);
+
+    // Do IK to find the joint values for that pose
+    std::vector<double> solution;
+    geometry_msgs::msg::Pose pose_msg = tf2::toMsg(new_pose);
+    moveit_msgs::msg::MoveItErrorCodes error_codes;
+
+    auto result = kinematics_solver_->getPositionIK(pose_msg, joint_state_values, solution, error_codes);
+    if (!result) {
+      RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 200, "Failed to find solution to inverse kinematics.");
+      return controller_interface::return_type::OK;
+    }
+
+    // Validate the solution
+    if (check_path_for_self_intersection(joint_state_values, solution)) {
+      RCLCPP_WARN_THROTTLE(logger, *get_node()->get_clock(), 200, "Inverse Kinematics solution self intersects!");
+      return controller_interface::return_type::OK;
+    }
+
+    // Apply solution to command interfaces
+    for (size_t i = 0; i < solution.size(); i++) {
+      registered_joint_handles_[i].command.get().set_value(solution[i]);
+    }
+
+    // Keep new pose for next iteration
+    twistmapper_pose_ = new_pose;
+
+    return controller_interface::return_type::OK;
+  }
+
+  controller_interface::CallbackReturn NovaTwistmapper::on_configure(const rclcpp_lifecycle::State&)
+  {
+    auto logger = get_node()->get_logger();
+    RCLCPP_INFO(logger, "On configure");
+
+    // update parameters if they have changed
+    if (param_listener_->is_old(params_))
+    {
+      params_ = param_listener_->get_params();
+    }
+
+    // TODO: maybe limit position so arm doesn't collide?
+    if (!reset())
+    {
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
+    twistmapper_pose_tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(tf2_ros::TransformBroadcaster(*get_node()));
+
+    twist_stamped_sub_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
+      params_.twist_stamped_topic,
+      rclcpp::SystemDefaultsQoS(),
+      [this, logger](const std::shared_ptr<geometry_msgs::msg::TwistStamped> msg) -> void
+      {
+        RCLCPP_INFO_ONCE(logger, "Twist message received.");
+
+        if (!subscriber_is_active_)
+        {
+          RCLCPP_WARN_ONCE(
+            logger, "Can't accept new commands. subscriber is inactive");
+          return;
+        }
+        if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
+        {
+          RCLCPP_WARN_ONCE(
+            logger,
+            "Received message with zero timestamp, setting it to current "
+            "time, this message will only be shown once");
+          msg->header.stamp = get_node()->get_clock()->now();
+        }
+
+        auto new_frame_id = msg->header.frame_id.empty() ? params_.fallback_frame_id : msg->header.frame_id;
+
+        if (new_frame_id != last_frame_id_) {
+          // Update references to new reference frame for the real-time thread here!
+          // We can do tricks to optimise the real-time thread by precomputing work here. For example, automatically
+          // checking if a frame is relative to the end effector to see if we can do a cheaper version of FK for any
+          // frames relative to the end effector.
+
+          // TODO: Do some optimisations and magic tricks here!
+
+          last_frame_id_ = new_frame_id;
+        }
+
+        received_twist_stamped_ptr_.set(std::move(msg));
+      });
+    subscriber_is_active_ = true;
+
+    RCLCPP_INFO(logger, "Created twist stamped subscription");
+
+    // Parse URDF
+    std::string urdf_str = params_.robot_description;
+
+    if (urdf_str.empty()) {
+      RCLCPP_DEBUG(get_node()->get_logger(), "No URDF was provided in robot_description. Loading from "
+                                            "get_robot_description() instead.");
+      urdf_str = get_robot_description();
+    }
+    else {
+      RCLCPP_DEBUG(logger, "Found URDF string from robot_description parameter.");
+    }
+
+    urdf_model_ = urdf::parseURDF(urdf_str);
+    if (!urdf_model_) {
+      RCLCPP_ERROR(get_node()->get_logger(), "Failed to parse the given robot_description URDF string \"%s\"",
+                   urdf_str.c_str());
+      return CallbackReturn::FAILURE;
+    }
+
+    // Create an SRDF with a joint group for params_.joint_names
+    joint_group_name_ = params_.kinematics_solver_group_name;
+    if (joint_group_name_.empty()) {
+      joint_group_name_ = std::basic_string(get_node()->get_name()) + "_joints";
+      RCLCPP_DEBUG(get_node()->get_logger(), "No kinematics_solver_group_name was specified. Using \"%s\".",
+                  joint_group_name_.c_str());
+    }
+    srdf_model_ = std::make_shared<srdf::Model>();
+    auto srdf_string = params_.robot_description_semantic;
+    if (srdf_string.empty()) {
+      RCLCPP_DEBUG(get_node()->get_logger(), "No robot_description_semantic SRDF was specified. Making one up.");
+      srdf_string = construct_srdf_fallback_string(urdf_model_, joint_group_name_);
+    }
+    srdf_model_->initString(*urdf_model_, srdf_string);
+
+    // Create the robot model
+    robot_model_ = std::make_shared<moveit::core::RobotModel>(urdf_model_, srdf_model_);
+
+    // Create the planning scene
+    planning_scene_ = std::make_shared<planning_scene::PlanningScene>(robot_model_);
+    generate_allowed_collision_matrix();
+
+    // Create an extra non-lifecycle node to allow us to initialize the kinematics solver
+    kinematics_compat_node_ = create_compat_node_from_lifecycle(get_node());
+
+    // Load kinematics
+    try
+    {
+      RCLCPP_INFO(logger, "Attempting to find plugin for kinematics as one of the following plugins:");
+      auto plugins = kinematics_solver_loader_->getDeclaredClasses();
+      for (const auto& plugin : plugins) {
+        RCLCPP_INFO(logger, "  - %s", plugin.c_str());
+      }
+
+      kinematics_solver_ = kinematics_solver_loader_->createSharedInstance(params_.kinematics_solver);
+    }
+    catch (const pluginlib::PluginlibException& ex)
+    {
+      RCLCPP_ERROR(logger, "Failed to load IK solver plugin \'%s\': %s", params_.kinematics_solver.c_str(), ex.what());
+      return controller_interface::CallbackReturn::ERROR;
+    }
+    RCLCPP_INFO(logger, "Loaded kinematics plugin \'%s\'", params_.kinematics_solver.c_str());
+
+    // Instantiate kinematics using the robot model
+    const std::basic_string<char> base_frame = params_.kinematics_base_frame;
+    const std::vector<std::basic_string<char>> tip_frames {
+      params_.kinematics_endeffector_frame
+    };
+    // We currently don't use this. Reasonable values are in [0.01, 0.1] rads, and KDL uses 0.1 rads by default.
+    double search_discretization = params_.kinematics_solver_search_discretization;
+
+    kinematics_solver_->initialize(kinematics_compat_node_, *robot_model_.get(), joint_group_name_, base_frame, tip_frames,
+                                   search_discretization);
+
+    previous_update_timestamp_ = get_node()->get_clock()->now();
+    return controller_interface::CallbackReturn::SUCCESS;
+  }
+
+  std::string NovaTwistmapper::construct_srdf_fallback_string(const urdf::ModelInterfaceSharedPtr &urdf_model,
+                                                              std::string joint_group_name) {
+    auto logger = get_node()->get_logger();
+
+    std::ostringstream srdf_stream;
+    srdf_stream << "<robot name=\"" << urdf_model->getName() << "\">\n";
+    srdf_stream << "  <group name=\"" << joint_group_name << "\">\n";
+    for (const auto& joint : params_.joint_names)
+      srdf_stream << "    <joint name=\"" << joint << "\"/>\n";
+
+    if (params_.add_chain_to_srdf)
+      srdf_stream << "    <chain base_link=\"" << params_.kinematics_base_frame << "\" tip_link=\"" << params_.kinematics_endeffector_frame << "\" />\n";
+
+    srdf_stream << "  </group>\n";
+
+    if (params_.add_allowed_collisions_to_srdf && planning_scene_) {
+      RCLCPP_INFO(logger, "Generating and adding allowed collisions in the fallback SRDF!");
+
+      // Get the current state
+      moveit::core::RobotState& state = planning_scene_->getCurrentStateNonConst();
+      state.setToDefaultValues();
+      state.update();
+
+      // Set up request/result
+      collision_detection::CollisionRequest req;
+      collision_detection::CollisionResult res;
+      req.contacts = true;      // We get contact info to generate the allowed collision matrix from
+      req.max_contacts = 1024;  // This was chosen arbitrarily as some large number
+
+      // Perform self-collision check
+      planning_scene_->checkSelfCollision(req, res, state);
+
+      // Add all colliding pairs to the ACM
+      for (const auto &contact_pair : res.contacts)
+      {
+        RCLCPP_INFO(logger, "  - \"%s\" and \"%s\"",
+                    contact_pair.first.first.c_str(), contact_pair.first.second.c_str());
+        const auto &link1 = contact_pair.first.first;
+        const auto &link2 = contact_pair.first.second;
+
+        srdf_stream << "  <disable_collisions link1=\"" << link1 << "\" link2=\"" << link2 << "\" reason=\"Never\"/>\n";
+      }
+    }
+
+    srdf_stream << "</robot>\n";
+    auto srdf_string = srdf_stream.str();
+    return srdf_string;
+  }
+
+  controller_interface::CallbackReturn NovaTwistmapper::on_activate(const rclcpp_lifecycle::State&)
+  {
+    auto logger = get_node()->get_logger();
+    RCLCPP_INFO(logger, "On activate");
+
+    // Set up joint state interfaces
+    const auto joints_result = configure_joints();
+    if (joints_result == controller_interface::CallbackReturn::ERROR)
+    {
+      RCLCPP_ERROR(logger, "Some joint interfaces are non existent");
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
+    // Validate the joint group
+    auto& joint_group_names = robot_model_->getJointModelGroup(joint_group_name_)->getActiveJointModelNames();
+    for (auto& handle : registered_joint_handles_) {
+      if (std::find(joint_group_names.begin(), joint_group_names.end(), handle.name) == joint_group_names.end()) {
+        RCLCPP_ERROR(logger, "SRDF joint group \"%s\" doesn't contain the joint \"%s\".",
+                     joint_group_name_.c_str(), handle.name.c_str());
+
+        return CallbackReturn::FAILURE;
+      }
+    }
+
+    // Reorder the joint handles to match the order of the joint group (FK/IK won't work without this)
+    std::unordered_map<std::string, size_t> joint_name_to_index;
+    for (size_t i = 0; i < joint_group_names.size(); ++i) {
+      joint_name_to_index[joint_group_names[i]] = i;
+    }
+    std::sort(registered_joint_handles_.begin(), registered_joint_handles_.end(), [&](const JointHandle& a, const JointHandle& b) {
+      return joint_name_to_index[a.name] < joint_name_to_index[b.name];
+    });
+
+    RCLCPP_INFO(logger, "New joint handle order:");
+    for (auto& handle : registered_joint_handles_) {
+      RCLCPP_INFO(logger, "  - %s", handle.name.c_str());
+    }
+
+    RCLCPP_INFO(logger, "SRDF Joint group joints:");
+    for (auto& joint : joint_group_names) {
+      RCLCPP_INFO(logger, "  - %s", joint.c_str());
+    }
+
+    is_halted = false;
+    subscriber_is_active_ = true;
+
+    if (!robot_model_ || !robot_model_->getRootJoint()) {
+      RCLCPP_ERROR(get_node()->get_logger(), "robot_model_ is uninitialized or invalid!");
+      return CallbackReturn::ERROR;
+    }
+
+    if (!kinematics_solver_) {
+      RCLCPP_ERROR(get_node()->get_logger(), "kinematics_solver_ is uninitialized or invalid!");
+      return CallbackReturn::ERROR;
+    }
+
+    auto joint_values = get_state_pos_values();
+    std::vector<geometry_msgs::msg::Pose> poses;
+
+    auto result = kinematics_solver_->getPositionFK({params_.kinematics_endeffector_frame}, joint_values, poses);
+
+    if (!result) {
+      RCLCPP_ERROR(get_node()->get_logger(), "Failed to do forward kinematics to find the end effector's initial pose");
+      return CallbackReturn::ERROR;
+    }
+    if (poses.empty()) {
+      RCLCPP_ERROR(get_node()->get_logger(), "No poses returned from forward kinematics!");
+      return CallbackReturn::ERROR;
+    }
+
+    // Store result to twistmapper_pose_
+    tf2::fromMsg(poses[0], twistmapper_pose_);
+
+    // Set initial command interface values from state interface
+    for (auto& joint : registered_joint_handles_) {
+      joint.command.get().set_value(joint.state_pos.get().get_value());
+    }
+
+    RCLCPP_INFO(get_node()->get_logger(), "Initial twistmapper pose set from forward kinematics.");
+    return controller_interface::CallbackReturn::SUCCESS;
+  }
+
+  controller_interface::CallbackReturn NovaTwistmapper::on_deactivate(const rclcpp_lifecycle::State&)
+  {
+    RCLCPP_INFO(get_node()->get_logger(), "On Deactivate");
+    subscriber_is_active_ = false;
+    if (!is_halted)
+    {
+      halt();
+      is_halted = true;
+    }
+
+    // Clean up command/state interfaces
+    registered_joint_handles_.clear();
+
+    return controller_interface::CallbackReturn::SUCCESS;
+  }
+
+  controller_interface::CallbackReturn NovaTwistmapper::on_cleanup(const rclcpp_lifecycle::State&)
+  {
+    RCLCPP_INFO(get_node()->get_logger(), "On Cleanup");
+
+    if (!reset())
+    {
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
+    return controller_interface::CallbackReturn::SUCCESS;
+  }
+
+  controller_interface::CallbackReturn NovaTwistmapper::on_error(const rclcpp_lifecycle::State&)
+  {
+    RCLCPP_INFO(get_node()->get_logger(), "On Error");
+    if (!reset())
+    {
+      return controller_interface::CallbackReturn::ERROR;
+    }
+    return controller_interface::CallbackReturn::SUCCESS;
+  }
+
+  bool NovaTwistmapper::reset()
+  {
+    RCLCPP_INFO(get_node()->get_logger(), "TEMP: Resetting.");
+
+    is_halted = false;
+
+    // Reset pointers
+    kinematics_solver_.reset();
+    robot_model_.reset();
+    urdf_model_.reset();
+    srdf_model_.reset();
+    kinematics_compat_node_.reset();
+
+    twistmapper_pose_tf_broadcaster_.reset();
+
+    // Reset subscriptions
+    twist_stamped_sub_.reset();
+    subscriber_is_active_ = false;
+
+    return true;
+  }
+
+  controller_interface::CallbackReturn NovaTwistmapper::on_shutdown(const rclcpp_lifecycle::State&)
+  {
+    return controller_interface::CallbackReturn::SUCCESS;
+  }
+
+  void NovaTwistmapper::halt()
+  {
+    // Set twistmapper velocities to 0
+    std::shared_ptr<geometry_msgs::msg::TwistStamped> twist_stamped;
+    received_twist_stamped_ptr_.get(twist_stamped);
+
+    twist_stamped->twist.linear.x = 0;
+    twist_stamped->twist.linear.y = 0;
+    twist_stamped->twist.linear.z = 0;
+
+    twist_stamped->twist.angular.x = 0;
+    twist_stamped->twist.angular.y = 0;
+    twist_stamped->twist.angular.z = 0;
+  }
+
+  void NovaTwistmapper::publish_to_tf2(const rclcpp::Time &time, const Eigen::Isometry3d &pose, const std::string& name) {
+    // Publish twistmapper pose to tf2
+    auto transform_stamped = tf2::eigenToTransform(pose);
+    transform_stamped.header.stamp = time;
+
+    transform_stamped.child_frame_id = name.empty() ? params_.kinematics_output_target_frame : name;
+    transform_stamped.header.frame_id = params_.kinematics_base_frame;
+
+    RCLCPP_INFO_ONCE(get_node()->get_logger(), "Broadcasting twistmapper pose as '%s', child of '%s'.",
+                     transform_stamped.child_frame_id.c_str(),
+                     transform_stamped.header.frame_id.c_str());
+
+    twistmapper_pose_tf_broadcaster_->sendTransform(transform_stamped);
+  }
+
+  controller_interface::CallbackReturn NovaTwistmapper::configure_joints() {
+    auto logger = get_node()->get_logger();
+    RCLCPP_INFO(logger, "Configure joints");
+
+    if (params_.joint_names.empty())
+    {
+      RCLCPP_ERROR(logger, "No joint names specified");
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
+    // register handles
+    if (!registered_joint_handles_.empty()) {
+      RCLCPP_ERROR(logger, "registered_joint_handles_ was not empty! Ensure this is propeprly cleaned up.");
+      registered_joint_handles_.clear();
+    }
+
+    registered_joint_handles_.reserve(params_.joint_names.size());
+    for (const auto &joint_name : params_.joint_names)
+    {
+      const auto state_interface_name = joint_name + "/" + hardware_interface::HW_IF_POSITION;
+
+      const auto state_handle = std::find_if(
+        state_interfaces_.begin(), state_interfaces_.end(),
+        [&state_interface_name](const auto &interface)
+        {
+          return interface.get_name() == state_interface_name;
+        });
+
+      if (state_handle == state_interfaces_.end())
+      {
+        RCLCPP_ERROR(logger, "Unable to obtain joint state handle '%s' for %s", hardware_interface::HW_IF_POSITION, joint_name.c_str());
+
+        RCLCPP_ERROR(logger, "state_interfaces_:");
+        for (const auto& state_interface : state_interfaces_) {
+          RCLCPP_ERROR(logger, "  > interface_name: %s", state_interface.get_interface_name().c_str());
+          RCLCPP_ERROR(logger, "    prefix_name: %s", state_interface.get_prefix_name().c_str());
+          RCLCPP_ERROR(logger, "    name: %s", state_interface.get_name().c_str());
+        }
+        return controller_interface::CallbackReturn::ERROR;
+      }
+
+      const auto command_interface_name = joint_to_command_interface_name(joint_name);
+
+      const auto command_handle = std::find_if(
+        command_interfaces_.begin(), command_interfaces_.end(),
+        [&joint_name, &logger, &command_interface_name](const auto &interface)
+        {
+          return interface.get_name() == command_interface_name;
+        });
+
+      if (command_handle == command_interfaces_.end())
+      {
+        RCLCPP_ERROR(logger, "Unable to obtain joint command handle '%s' for %s", command_interface_name.c_str(), joint_name.c_str());
+
+        RCLCPP_ERROR(logger, "command_interfaces_:");
+        for (const auto& command_interface : command_interfaces_) {
+          RCLCPP_ERROR(logger, "  > interface_name: %s", command_interface.get_interface_name().c_str());
+          RCLCPP_ERROR(logger, "    prefix_name: %s", command_interface.get_prefix_name().c_str());
+          RCLCPP_ERROR(logger, "    name: %s", command_interface.get_name().c_str());
+        }
+        return controller_interface::CallbackReturn::ERROR;
+      }
+
+      registered_joint_handles_.emplace_back(
+        JointHandle{joint_name, std::ref(*state_handle), std::ref(*command_handle)});
+    }
+
+    return controller_interface::CallbackReturn::SUCCESS;
+  }
+
+  std::vector<double> NovaTwistmapper::get_state_pos_values() {
+    std::vector<double> joint_values;
+
+    joint_values.reserve(registered_joint_handles_.size());
+    for (auto& joint_handle : registered_joint_handles_)
+      joint_values.emplace_back(joint_handle.state_pos.get().get_value());
+    return joint_values;
+  }
+
+  rclcpp::Node::SharedPtr NovaTwistmapper::create_compat_node_from_lifecycle(
+    const rclcpp_lifecycle::LifecycleNode::SharedPtr &lifecycle_node) {
+    RCLCPP_INFO(get_node()->get_logger(), "Creating compatability node");
+
+    auto options = rclcpp::NodeOptions()
+      .context(lifecycle_node->get_node_base_interface()->get_context());
+
+    std::string compat_node_name = std::string(lifecycle_node->get_name()) + "_kinematics_compat";
+
+    return std::make_shared<rclcpp::Node>(
+      compat_node_name,
+      lifecycle_node->get_namespace(),
+      options);
+  }
+
+  std::string NovaTwistmapper::joint_to_command_interface_name(const std::string& joint_name) const {
+    // If chained_controller_name is non-empty, prepend it plus "/"
+    // Example result: "nova_arm_controller/J1/position"
+    const auto prefix = params_.chained_controller_name.empty() ? "" : params_.chained_controller_name + "/";
+    return prefix + joint_name + "/" + hardware_interface::HW_IF_POSITION;
+  }
+
+  bool NovaTwistmapper::check_path_for_self_intersection(const std::vector<double> &seed_state,
+                                                         const std::vector<double> &target_positions) {
+    // Find the largest difference between values in seed_state and target_positions
+    auto largest_displacement = 0;
+    for (size_t i = 0; i < seed_state.size(); i++) {
+      auto displacement = abs(target_positions[i] - seed_state[i]);
+
+      if (displacement > largest_displacement) {
+        largest_displacement = displacement;
+      }
+    }
+
+    auto iterations = static_cast<int>(ceil(fmod(largest_displacement, params_.self_intersection_max_step_size)));
+
+    // Step N=(iterations-1) times from seed_state to target_positions, checking for self intersections.
+    // Excludes checking seed_state. target_positions is checked after this block.
+    std::vector<double> intermediate_positions(seed_state.size());
+    for (int i = 1; i < iterations; i++) {
+      auto interpolator = static_cast<double>(i) / iterations;
+      auto one_minus_interpolator = 1 - interpolator;
+
+      for (size_t j = 0; j < intermediate_positions.size(); j++) {
+        // Lerp between seed_state and target_positions
+        intermediate_positions[j] = seed_state[j] * one_minus_interpolator + target_positions[j] * interpolator;
+      }
+
+      if (check_pose_for_self_intersection(intermediate_positions)) {
+        return true;
+      }
+    }
+
+    // Always check the target position
+    return check_pose_for_self_intersection(target_positions);
+  }
+
+  bool NovaTwistmapper::check_pose_for_self_intersection(const std::vector<double> &joint_positions) {
+    // TODO: Implement max joint distance moved per check, and do multiple iterations for changes in joint values that
+    //  exceed that min step size.
+    auto logger = get_node()->get_logger();
+
+    for (auto& joint_position : joint_positions) {
+      if (std::isnan(joint_position) || std::isinf(joint_position)) {
+        RCLCPP_ERROR(logger, "Received NaN or Inf position for joint in self intersection check.");
+        return true;
+      }
+    }
+
+    // Create state matching joint_positions
+    moveit::core::RobotState& state = planning_scene_->getCurrentStateNonConst();
+    state.setToDefaultValues();
+    state.setJointGroupPositions(joint_group_name_, joint_positions);
+    state.update();
+
+    // Just in case, also try update mimic joints
+    for (const auto* joint_model : robot_model_->getMimicJointModels()) {
+      if (!joint_model)
+        continue;
+
+      const auto* source_joint = joint_model->getMimic();
+      if (!source_joint)
+        continue;
+
+      const auto* position_ptr = state.getJointPositions(source_joint);
+      if (!position_ptr)
+        continue;
+
+      const auto position = joint_model->getMimicFactor() * (*position_ptr) + joint_model->getMimicOffset();
+      state.setVariablePosition(joint_model->getName(), position);
+    }
+    state.update();
+
+    collision_detection::CollisionRequest req;
+    collision_detection::CollisionResult res;
+
+    // TODO: Only do this when requested
+    req.contacts = true;           // Request contact info
+    req.max_contacts = 10;         // Limit contact count
+
+    planning_scene_->checkSelfCollision(req, res, state);
+
+    if (res.collision) {
+      RCLCPP_WARN(logger, "Self intersection detected for pose. Found collisions between:");
+      for (const auto& contact : res.contacts) {
+        RCLCPP_WARN(logger, "  - \"%s\" and \"%s\"", contact.first.first.c_str(), contact.first.second.c_str());
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  void NovaTwistmapper::generate_allowed_collision_matrix() {
+    auto logger = get_node()->get_logger();
+    RCLCPP_DEBUG(logger, "Generating allowed collision matrix for self intersection checks. "
+                        "Ignoring collisions between:");
+    auto acm = planning_scene_->getAllowedCollisionMatrix();
+
+    // Get the current state
+    moveit::core::RobotState& state = planning_scene_->getCurrentStateNonConst();
+    state.setToDefaultValues();
+    state.update();
+
+    // Set up request/result
+    collision_detection::CollisionRequest req;
+    collision_detection::CollisionResult res;
+    req.contacts = true;      // We get contact info to generate the allowed collision matrix from
+    req.max_contacts = 1024;  // This was chosen arbitrarily as some large number
+
+    // Perform self-collision check
+    planning_scene_->checkSelfCollision(req, res, state);
+
+    // Add all colliding pairs to the ACM
+    for (const auto &contact_pair : res.contacts)
+    {
+      RCLCPP_DEBUG(logger, "  - \"%s\" and \"%s\"",
+                  contact_pair.first.first.c_str(), contact_pair.first.second.c_str());
+      const auto &link1 = contact_pair.first.first;
+      const auto &link2 = contact_pair.first.second;
+      acm.setEntry(link1, link2, true);  // Mark this pair as allowed to collide
+    }
+
+    planning_scene_->setAllowedCollisionMatrix(acm);
+  }
+} // namespace nova_twistmapper
+
+#include "class_loader/register_macro.hpp"
+
+CLASS_LOADER_REGISTER_CLASS(
+    nova_twistmapper::NovaTwistmapper, controller_interface::ControllerInterface)

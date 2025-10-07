@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4"
+      main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <ReactiveSequence>
+      <BlackboardPublisher topic_name="blackboard"
+                            keys="goals"
+                            publish_frequency="1"/>
+      <RecoveryNode name="NavigateRecovery"
+                    number_of_retries="6">
+        <PipelineSequence name="NavigateWithReplanning">
+          <ControllerSelector topic_name="controller_selector"
+                              default_controller="FollowPath"
+                              selected_controller="{selected_controller}"/>
+          <PlannerSelector topic_name="planner_selector"
+                            default_planner="GridBased"
+                            selected_planner="{selected_planner}"/>
+          <RateController hz="1.0">
+            <RecoveryNode name="ComputePathThroughPoses"
+                          number_of_retries="1">
+              <ReactiveSequence>
+                <Sequence>
+                  <ForceSuccess>
+                    <CubeDetected visited_ids="{visited_ids}"
+                                  current_pose="{current_pose}"
+                                  cube_goals="{cube_goals}"
+                                  cube_poses="{cube_poses}"/>
+                  </ForceSuccess>
+                  <UpdateGoals goal_type="cube"
+                                current_pose="{current_pose}"
+                                goals="{cube_goals}"
+                                input_goals="{goals}"
+                                update_radius="1.0"
+                                output_goals="{goals}"
+                                cube_goal_entries="{cube_goal_entries}"/>
+                </Sequence>
+                <ReactiveSequence>
+                  <RemovePassedGoalsAndCubes cube_poses="{cube_poses}"
+                                              cube_tolerance="2"
+                                              input_goals="{goals}"
+                                              radius="2"
+                                              output_goals="{goals}"
+                                              visited_ids="{visited_ids}"
+                                              distance_to_goal="{dist_to_goal}"/>
+                  <SnapInCollisionGoals goals_offset="1.5"
+                                        input_goals="{goals}"
+                                        output_goals="{goals}"/>
+                  <ComputePathThroughPoses _skipIf="dist_to_goal < 2.0"
+                                            goals="{goals}"
+                                            planner_id="{selected_planner}"
+                                            path="{path}"
+                                            error_code_id="{compute_path_error_code}"/>
+                </ReactiveSequence>
+              </ReactiveSequence>
+              <Sequence>
+                <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
+                <ClearEntireCostmap name="ClearGlobalCostmap-Context"
+                                    service_name="global_costmap/clear_entirely_global_costmap"/>
+              </Sequence>
+            </RecoveryNode>
+          </RateController>
+          <RecoveryNode name="FollowPath"
+                        number_of_retries="1">
+            <FollowPath controller_id="{selected_controller}"
+                        path="{path}"
+                        error_code_id="{follow_path_error_code}"/>
+            <Sequence>
+              <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
+              <ClearEntireCostmap name="ClearLocalCostmap-Context"
+                                  service_name="local_costmap/clear_entirely_local_costmap"/>
+            </Sequence>
+          </RecoveryNode>
+        </PipelineSequence>
+        <Sequence>
+          <Fallback>
+            <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
+            <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
+          </Fallback>
+          <ReactiveFallback name="RecoveryFallback">
+            <GoalUpdated/>
+            <RoundRobin name="RecoveryActions">
+              <Sequence name="ClearingActions">
+                <ClearEntireCostmap name="ClearLocalCostmap-Subtree"
+                                    service_name="local_costmap/clear_entirely_local_costmap"/>
+                <ClearEntireCostmap name="ClearGlobalCostmap-Subtree"
+                                    service_name="global_costmap/clear_entirely_global_costmap"/>
+              </Sequence>
+              <Spin spin_dist="1.57"
+                    error_code_id="{spin_error_code}"/>
+              <Wait wait_duration="5.0"/>
+              <BackUp backup_dist="0.30"
+                      backup_speed="0.15"
+                      error_code_id="{backup_error_code}"/>
+            </RoundRobin>
+          </ReactiveFallback>
+        </Sequence>
+      </RecoveryNode>
+    </ReactiveSequence>
+  </BehaviorTree>
+</root>
