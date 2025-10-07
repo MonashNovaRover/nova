@@ -171,12 +171,12 @@ namespace banksia_kinematics_plugin
 
     RCLCPP_DEBUG(logger, "joint_angles:");
     for (auto& joint_angle : joint_angles) {
-      RCLCPP_INFO(logger, "  - %f", joint_angle);
+      RCLCPP_DEBUG(logger, "  - %f", joint_angle);
     }
 
     RCLCPP_DEBUG(logger, "active joint model names in joint group:");
     for (auto& joint_angle : robot_model_->getJointModelGroup(group_name_)->getActiveJointModelNames()) {
-      RCLCPP_INFO(logger, "  - %s", joint_angle.c_str());
+      RCLCPP_DEBUG(logger, "  - %s", joint_angle.c_str());
     }
 
     // TODO: Actually solve FK
