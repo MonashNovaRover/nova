@@ -42,7 +42,7 @@ DEVICE_INFO = {
         "dest_IP":      "192.168.1.204",                                                        # Destination IP of Jetson
         "radio_IP":     "192.168.3.155",                                                        # Base Station Radio IP
         "host":         "nova",                                                                 # Host Name of the Radio
-        "password":     open(os.path.expanduser("~/nova/secrets/rocket-password.txt")).read(),  # Password of Radio device
+        "password":     open(os.path.expanduser("~/nova/src/other/secrets/rocket-password.txt")).read(),  # Password of Radio device
         "interface":    "enp3s0f1",                                                             # Ethernet Interface 
     },
 
@@ -52,7 +52,7 @@ DEVICE_INFO = {
         "dest_IP":      "192.168.1.204",                                                        # Destination IP of Jetson
         "radio_IP":     "192.168.1.201",                                                        # Base Station Radio IP
         "host":         "novarovabullet",                                                       # Host Name of the Radio
-        "password":     open(os.path.expanduser("~/nova/secrets/bullet-password.txt")).read(),  # Password of Radio device
+        "password":     open(os.path.expanduser("~/nova/src/other/secrets/bullet-password.txt")).read(),  # Password of Radio device
         "interface":    "enp3s0f1",                                                             # Ethernet Interface 
     },
 }
