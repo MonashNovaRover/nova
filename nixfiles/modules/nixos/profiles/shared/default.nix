@@ -16,6 +16,8 @@ in
       QT_QPA_PLATFORM = "wayland;xcb";
     };
 
+    environment.variables.EDITOR = "vim";
+
     security.polkit.extraConfig = ''
       polkit.addRule(function(action, subject) {
         // Lookup properties for manage-units are defined here:

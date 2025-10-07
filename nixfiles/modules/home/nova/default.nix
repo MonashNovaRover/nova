@@ -4,9 +4,6 @@ let
   cfg = config.nova.user;
 in
 {
-  imports = [
-    ./nixvim.nix
-  ];
   options.nova.user.enable =
     lib.mkEnableOption "standard Nova Rover user settings" // {
       default = config.home.username == "nova";
@@ -52,6 +49,19 @@ in
           "exit"
           "root"
         ];
+      };
+
+      vim = {
+        enable = true;
+        extraConfig = ''
+          inoremap jk <Esc>
+          set mouse=a
+          set tabstop=2
+          set shiftwidth=2
+          set expandtab
+          set clipboard=unnamedplus
+        '';
+        defaultEditor = true;
       };
 
       tmux = {

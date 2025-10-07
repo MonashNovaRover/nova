@@ -15,7 +15,6 @@ in
     ./less
     ./vscode
     ./xdg
-    ./yazi
   ];
 
   options.nova.desktop = {
