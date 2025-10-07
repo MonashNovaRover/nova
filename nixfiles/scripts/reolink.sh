@@ -14,7 +14,7 @@ fi
 IP="10.0.1.100"
 PORT="554"
 USERNAME="admin"
-PASSWORD="***REMOVED***" # TODO don't have this here
+PASSWORD="$(cat ~/nova/src/other/secrets/reolink-password.txt)"
 NAME="Banksia Cam"
 STREAM_NAME="Preview_01_main"
 

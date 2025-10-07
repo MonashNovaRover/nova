@@ -164,7 +164,7 @@ one after installation.
        /home/nova/nova/nixfiles/nixos/installer/docker
      ];
 
-     nova.substituters.nova.password = "***REMOVED***";
+     nova.substituters.nova.password = builtins.readFile ./path/to/hydra-password.txt;
    }
    ```
 1. Add the Home Manager channel:

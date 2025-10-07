@@ -32,7 +32,8 @@ let
           installer.cloneConfig = false;
 
           nova = {
-            substituters.nova.password = "***REMOVED***";
+            substituters.nova.password = builtins.readFile ../../../src/other/secrets/hydra-password.txt;
+            
             desktop.enable = false;
           };
 
