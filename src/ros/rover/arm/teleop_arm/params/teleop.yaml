@@ -3,7 +3,7 @@ teleop_arm:
   ros__parameters:
     # The maximum rate at which updates should occur, and hence the max rate at which commands are sent.
     # Leaving this unset makes the max update rate unlimited.
-    update_rate: 20.0
+    update_rate: 50.0
 
     # The minimum rate at which updates occur.
     # Leaving this unset will allow for indefinite lapses between updates.
@@ -109,7 +109,7 @@ joint_space_mode:
       j4:
         name: "J4"
         input_name: "j4"
-        scale: 0.1
+        scale: 0.25
       j5:
         name: "J5"
         input_name: "j5"
@@ -117,7 +117,7 @@ joint_space_mode:
       j6:
         name: "J6"
         input_name: "j6"
-        scale: 0.1
+        scale: 0.36
 
 
 task_space_mode:
