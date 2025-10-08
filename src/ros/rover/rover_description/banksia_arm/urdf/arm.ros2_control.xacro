@@ -158,7 +158,7 @@
 					<param name="min_interval">1728</param>
 					<param name="gear_ratio">15.0</param>
 					<param name="mock">true</param>
-					<param name="reversed">false</param>
+					<param name="reversed">true</param>
 					<param name="integrate_velocity">true</param>
 					<param name="max_position">12.5663706144</param>
 					<param name="position_offset">0.0</param>
