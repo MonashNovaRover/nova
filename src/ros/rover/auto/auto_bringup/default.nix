@@ -101,14 +101,14 @@ buildRosPackage rec {
   ];
   postInstall = ''
     # Generate absolute nix store filepaths for JSON files
-    jsonFilepath="$out/share/auto_bringup/resources/YOLO_URC_2025/yolo11s.json"
+    jsonFilepath="$out/share/auto_bringup/resources/YOLO_ARCh_2025/best.json"
     jsonFile=$(cat $jsonFilepath)
 
     updatedJsonFile=$(echo "$jsonFile" | jq --arg out "$out" '. + {
       model: {
-        bin: "\($out)/share/auto_bringup/resources/YOLO_URC_2025/yolo11s.bin",
-        model_name: "\($out)/share/auto_bringup/resources/YOLO_URC_2025/yolo11s_openvino_2022.1_6shave.blob",
-        xml: "\($out)/share/auto_bringup/resources/YOLO_URC_2025/yolo11s.xml",
+        bin: "\($out)/share/auto_bringup/resources/YOLO_ARCh_2025/best.bin",
+        model_name: "\($out)/share/auto_bringup/resources/YOLO_ARCh_2025/best_openvino_2022.1_6shave.blob",
+        xml: "\($out)/share/auto_bringup/resources/YOLO_ARCh_2025/best.xml",
         zoo: "path"
       }
     }')

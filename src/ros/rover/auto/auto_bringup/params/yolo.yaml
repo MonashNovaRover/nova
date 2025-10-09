@@ -34,7 +34,7 @@ object_localiser:
 
     tf_publisher_timer_period: 0.1      # how often to publish tf
 
-    map_frame: "map"                    # the reference frame to transform cubes to (e.g cubes start as a position defined relative to the camera, so this will define cubes relative to the map)
+    map_frame: "base_link"                    # the reference frame to transform cubes to (e.g cubes start as a position defined relative to the camera, so this will define cubes relative to the map)
     camera_frame: "oak_rgb_camera_optical_frame" # the starting reference frame 
 
     min_samples: 5      # number of samples of a cube before publishing its transform
@@ -50,7 +50,7 @@ object_localiser:
 
 debug_node:
   ros__parameters:
-    map_frame: map
+    map_frame: base_link
     base_frame: base_link
 
     # NOTE: scale to RGB since debug image is in RGB image size
