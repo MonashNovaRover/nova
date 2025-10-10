@@ -111,6 +111,10 @@ Commands PivotDriveController::twist_to_commands(
         previous_speeds_, period.seconds());
     }
 
+    // TODO: DELETE THIS
+    // hotfix until electrical increases pivot limits
+    turning_radius = std::clamp(turning_radius, -0.001, 0.001);
+
     // To ensure better intended movement in autonomous mode, we wait for the pivots to reach
     // the desired angle before moving. Lenience may be adjusted by pivot_rate_tolerance.
     const auto& prev_positions =
