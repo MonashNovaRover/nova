@@ -39,6 +39,9 @@
         <xacro:include filename="$(arg rover_description_dir)/auto_mount/urdf/auto_camera.xacro"/>
     </xacro:if>
     
+    <xacro:include filename="$(find rover_description)/auto_mount/urdf/livox.xacro"/>
+    
+    
     <xacro:if value="$(arg arm)">
         <!-- Waratah's arm
         <xacro:include filename="$(arg rover_description_dir)/waratah_arm/urdf/arm.urdf.xacro" />
