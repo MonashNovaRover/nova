@@ -19,6 +19,8 @@ class DataStreamRecorder(Node):
     def __init__(self) -> None:
         super().__init__("data_stream_recorder")
 
+        rr.init("data_stream_recorder",spawn=False)
+
         self.cv_bridge = cv_bridge.CvBridge()
 
         # QoS for sensors
@@ -124,13 +126,9 @@ class DataStreamRecorder(Node):
         rr.log("camera/depth", rr.DepthImage(cv_img))
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="ROS2 to Rerun Data Stream Recorder")
-    rr.script_add_args(parser)
-    args, unknownargs = parser.parse_known_args()
-    rr.script_setup(args, "ros_data_stream_recorder")
+def main(args=None) -> None:
 
-    rclpy.init(args=unknownargs)
+    rclpy.init(args=args)
     node = DataStreamRecorder()
 
     try:
