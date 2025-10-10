@@ -16,7 +16,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
   </link>
 
   <joint name="base_link_to_livox" type="fixed">
-    <origin xyz="0.53 0 0.79" rpy=" 3.14 0 0" />
+    <origin xyz="0.53 0 0.79" rpy=" 3.14 0.0754 0" />
     <parent link="base_link" />
     <child link="livox_frame" />
     <axis xyz="1 0 0" />
