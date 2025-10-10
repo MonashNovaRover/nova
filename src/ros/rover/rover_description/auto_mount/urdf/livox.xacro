@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--This is a file for the depth camera plugin for the rover in gazebo. This file is referenced at the bottom of rover.urdf.xacro,
+which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi Velmurugan Sujatha -->
+<!-- Auto mount is also appended to the top, however it has no simplified collisions -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <link name="livox_link">
+    <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+            <mesh
+                    filename="file://$(find rover_description)/auto_mount/meshes/mid-360-asm.stl"
+                />
+        </geometry>
+    </visual>
+  </link>
+
+  <joint name="base_link_to_livox" type="fixed">
+    <origin xyz="0.53 0 0.79" rpy=" 3.14 0 0" />
+    <parent link="base_link" />
+    <child link="livox_link" />
+    <axis xyz="1 0 0" />
+  </joint>
+
+
+  <gazebo reference="livox_link">
+        <sensor name="gpu_lidar" type="gpu_lidar">
+            <update_rate>10</update_rate>
+            <topic>livox/lidar</topic>
+            <gz_frame_id>livox_link</gz_frame_id>
+            <update_rate>10</update_rate>
+            <ray>
+              <scan>
+                <horizontal>
+                  <samples>720</samples>      <!-- MID-360 0.5° resolution -->
+                  <resolution>1</resolution>
+                  <!-- MID-360 HFOV = 360° -->
+                  <min_angle>-3.14156</min_angle>
+                  <max_angle>3.14156</max_angle>
+                </horizontal>
+                <vertical>
+                  <samples
+                        >40</samples>       <!-- MID-360 point cloud density -->
+                  <resolution>1</resolution>
+                  <!-- MID-360 VFOV = 59° -->
+                  <min_angle>0</min_angle>
+                  <max_angle>0.9774</max_angle>
+                </vertical>
+              </scan>
+              <range>
+                <min
+                    >0.01</min>                 <!-- MID-360 min. detection range -->
+                <max
+                    >40.0</max>                 <!-- MID-360 max. detection range -->
+                <resolution>0.01</resolution>
+              </range>
+            </ray>
+            <always_on>1</always_on>
+            <visualize>true</visualize>
+        </sensor>
+  </gazebo>
+
+</robot>
