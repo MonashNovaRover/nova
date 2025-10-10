@@ -4,7 +4,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
 <!-- Auto mount is also appended to the top, however it has no simplified collisions -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <link name="livox_link">
+  <link name="livox_frame">
     <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
@@ -18,16 +18,16 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
   <joint name="base_link_to_livox" type="fixed">
     <origin xyz="0.53 0 0.79" rpy=" 3.14 0 0" />
     <parent link="base_link" />
-    <child link="livox_link" />
+    <child link="livox_frame" />
     <axis xyz="1 0 0" />
   </joint>
 
 
-  <gazebo reference="livox_link">
+  <gazebo reference="livox_frame">
         <sensor name="gpu_lidar" type="gpu_lidar">
             <update_rate>10</update_rate>
             <topic>livox/lidar</topic>
-            <gz_frame_id>livox_link</gz_frame_id>
+            <gz_frame_id>livox_frame</gz_frame_id>
             <update_rate>10</update_rate>
             <ray>
               <scan>
