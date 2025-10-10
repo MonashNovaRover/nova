@@ -111,6 +111,7 @@ Commands PivotDriveController::twist_to_commands(
         previous_speeds_, period.seconds());
     }
 
+    // TODO: DELETE THIS
     // hotfix until electrical increases pivot limits
     turning_radius = std::clamp(turning_radius, -0.001, 0.001);
 
