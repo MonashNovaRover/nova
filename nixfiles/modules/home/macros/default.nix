@@ -179,7 +179,7 @@ in
           run-joy = "~/Builds/master/bin/ros2 run joy joy_node";
 
           # Science
-          ilmenite-shell = "nix-shell ~/nova/src/other/ilmenite_ml";
+          predict-shell = "nix-shell ~/nova/src/other/ilmenite_ml"; # please come up with a more descriptive and less generic alias
 
           # ros2_control
           controllers-list = "~/Builds/master/bin/ros2 control list_controllers";
