@@ -118,7 +118,7 @@ inline std::tuple<double, bool> limit_radius_by_pivots(
     turning_radius, true, turning_left, half_steering_track, half_wheel_base);
   double left_angle = requested_left_angle;
   limiter_pivot.limit(
-    left_angle, previous_left_positions[0], previous_left_positions[1], previous_left_positions[2],
+    left_angle, previous_left_positions[2], previous_left_positions[1], previous_left_positions[0],
     dt);
   turning_left = left_angle > 0;
 
@@ -134,8 +134,8 @@ inline std::tuple<double, bool> limit_radius_by_pivots(
     turning_radius, false, turning_left, half_steering_track, half_wheel_base);
   double right_angle = requested_right_angle;
   limiter_pivot.limit(
-    right_angle, previous_right_positions[0], previous_right_positions[1],
-    previous_right_positions[2], dt);
+    right_angle, previous_right_positions[2], previous_right_positions[1],
+    previous_right_positions[0], dt);
   turning_left = right_angle > 0;
 
   if (std::abs(requested_right_angle - previous_right_positions[0]) > max_angle_diff)
@@ -170,7 +170,7 @@ inline void limit_speed_and_radius_by_angular(
   }
   
   const double temp = speed;
-  limiter_speed.limit(speed, previous_speeds[0], previous_speeds[1], dt);
+  limiter_speed.limit(speed, previous_speeds[1], previous_speeds[0], dt);
   if (speed != temp)
   {
     // If the new speed was limited, we need to recalculate the turning radius as well
