@@ -93,7 +93,7 @@ Commands DiffDriveController::twist_to_commands(
   }
 
   // Limit the linear and angular velocities
-  limiter_drive_.limit(speed, previous_speeds_[0], previous_speeds_[1], period.seconds());
+  limiter_drive_.limit(speed, previous_speeds_[1], previous_speeds_[0], period.seconds());
 
   if (linear_velocity != 0)
   {
@@ -101,7 +101,7 @@ Commands DiffDriveController::twist_to_commands(
   };
 
   limiter_angular_.limit(
-    angular_velocity, previous_angular_velocities_[0], previous_angular_velocities_[1],
+    angular_velocity, previous_angular_velocities_[1], previous_angular_velocities_[0],
     period.seconds());
 
   // Calculate commands

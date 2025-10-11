@@ -170,7 +170,7 @@ inline void limit_speed_and_radius_by_angular(
   }
   
   const double temp = speed;
-  limiter_speed.limit(speed, previous_speeds[0], previous_speeds[1], dt);
+  limiter_speed.limit(speed, previous_speeds[1], previous_speeds[0], dt);
   if (speed != temp)
   {
     // If the new speed was limited, we need to recalculate the turning radius as well

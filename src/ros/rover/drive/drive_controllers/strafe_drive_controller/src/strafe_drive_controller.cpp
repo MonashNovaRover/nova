@@ -66,7 +66,7 @@ Commands StrafeDriveController::twist_to_commands(
   }
 
   // Limit the linear velocity
-  limiter_drive_.limit(linear_velocity, previous_speeds_[0], previous_speeds_[1], period.seconds());
+  limiter_drive_.limit(linear_velocity, previous_speeds_[1], previous_speeds_[0], period.seconds());
 
   // Calculate comamnds
   std::vector<double> left_drive_speeds(wheels_per_side_);
