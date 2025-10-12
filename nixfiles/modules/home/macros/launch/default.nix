@@ -3,7 +3,7 @@
 { 
     pkgs ? import <nixpkgs> {}, 
     rover ? throw ''You must provide a target for rover ssh commands\nUsage: nix-shell shell.nix --argstr rover <user@ip>\ne.g nix-shell shell.nix --argstr rover nova@10.0.0.11'',
-    mast ? throw ''You must provide a target for mast ssh commands\nUsage: nix-shell shell.nix --argstr mast <user@ip>\ne.g nix-shell shell.nix --argstr mast nova@10.0.0.11'',
+    mast ? null,
     dir ? "/home/nova/Builds/master/bin"
 }:
 

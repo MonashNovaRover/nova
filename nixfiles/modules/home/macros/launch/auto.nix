@@ -11,6 +11,7 @@
 }:
 
 let 
+  mast-check = if mast == null then throw "You must provide a target for mast ssh commands.\nUsage: nix-shell shell.nix --argstr mast <user@ip>\ne.g nix-shell shell.nix --argstr mast nova@10.0.0.11" else "echo Loading...";
   cmds = {
     base.teleop = "launch-teleop";
     base.rviz = "launch-rviz";
@@ -31,6 +32,7 @@ in
 {
   arch = pkgs.mkShell {
     shellHook = ''
+      ${mast-check}
       echo -e "${ansi.light-red}Tip!${ansi.nc} Change your working directory (Default: ${ansi.orange}/home/nova/Builds/master/bin${ansi.nc}) by appending ${ansi.yellow}--argstr dir ${ansi.orange}YOUR/DIR/HERE${ansi.nc}"
       echo -e "Launching ${ansi.light-green}ARCh Auto${ansi.nc}... SSHing into orin at ${ansi.light-purple}${rover}${ansi.nc} and mast at ${ansi.light-purple}${mast}${ansi.nc}... Running in ${ansi.orange}${dir}${ansi.nc}"
       ssh-copy-id ${rover}
@@ -44,8 +46,10 @@ in
       exit 0
     '';
   };
+
   urc = pkgs.mkShell {
     shellHook = ''
+      ${mast-check}
       echo -e "${ansi.light-red}Tip!${ansi.nc} Change your working directory (Default: ${ansi.orange}/home/nova/Builds/master/bin${ansi.nc}) by appending ${ansi.yellow}--argstr dir ${ansi.orange}YOUR/DIR/HERE${ansi.nc}"
       echo -e "Launching ${ansi.light-green}URC Auto${ansi.nc}... SSHing into orin at ${ansi.light-purple}${rover}${ansi.nc} and mast at ${ansi.light-purple}${mast}${ansi.nc}... Running in ${ansi.orange}${dir}${ansi.nc}"
       ssh-copy-id ${rover}
