@@ -141,7 +141,8 @@ in
           cop-mode-off = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} off";
 
           # Auto 
-          launch-everything = "nix-shell ${cfg.nixfileDir}/modules/home/macros/launch -A auto"; # --argstr rover nova@localhost --argstr mast nova@localhost
+          launch-arch = "nix-shell ${cfg.nixfileDir}/modules/home/macros/launch -A auto.arch"; # --argstr rover nova@localhost --argstr mast nova@localhost
+          launch-urc = "nix-shell ${cfg.nixfileDir}/modules/home/macros/launch -A auto.urc"; # --argstr rover nova@localhost --argstr mast nova@localhost
           launch-auto-rover = "~/Builds/master/bin/ros2 launch auto_bringup urc.launch.py";
           launch-auto-base = "~/Builds/master/bin/ros2 run nova_utils start_auto.py";
           launch-sim = "~/Builds/master/bin/ros2 launch auto_bringup everything.launch.py";
