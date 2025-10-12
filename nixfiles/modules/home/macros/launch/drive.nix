@@ -3,7 +3,7 @@
 { 
     pkgs,
     ansi,
-    rover,
+    rover-ip,
     base-terminal,
     rover-terminal,
 }:
@@ -26,8 +26,8 @@ in
   default = pkgs.mkShell {
     shellHook = ''
       echo -e "${ansi.light-red}Tip!${ansi.nc} Change your working directory (Default: ${ansi.orange}/home/nova/Builds/master/bin${ansi.nc}) by appending ${ansi.yellow}--argstr dir ${ansi.orange}YOUR/DIR/HERE${ansi.nc}"
-      echo -e "Launching ${ansi.light-green}Drive${ansi.nc}... SSHing into orin at ${ansi.light-purple}${rover}${ansi.nc}"
-      ssh-copy-id ${rover}
+      echo -e "Launching ${ansi.light-green}Drive${ansi.nc}... SSHing into orin at ${ansi.light-purple}${rover-ip}${ansi.nc}"
+      ssh-copy-id ${rover-ip}
       ${base-terminal "Base:Teleop" cmds.base.teleop} \
       & ${rover-terminal "Rover:Drive" cmds.rover.drive}
       exit 0
@@ -37,8 +37,8 @@ in
   old = pkgs.mkShell {
     shellHook = ''
       echo -e "${ansi.light-red}Tip!${ansi.nc} Change your working directory (Default: ${ansi.orange}/home/nova/Builds/master/bin${ansi.nc}) by appending ${ansi.yellow}--argstr dir ${ansi.orange}YOUR/DIR/HERE${ansi.nc}"
-      echo -e "Launching ${ansi.light-green}Old Drive${ansi.nc}... SSHing into orin at ${ansi.light-purple}${rover}${ansi.nc}"
-      ssh-copy-id ${rover}
+      echo -e "Launching ${ansi.light-green}Old Drive${ansi.nc}... SSHing into orin at ${ansi.light-purple}${rover-ip}${ansi.nc}"
+      ssh-copy-id ${rover-ip}
       ${base-terminal "Base:Base" cmds.base.old-base} \
       & ${rover-terminal "Rover:Old Drive" cmds.rover.old-drive}
       exit 0

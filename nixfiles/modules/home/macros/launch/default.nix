@@ -17,6 +17,10 @@ let
     light-purple = ''\033[1;35m'';
     nc = ''\033[0m''; # no colour
   };
+
+  # aliases for input args
+  rover-ip = rover;
+  mast-ip = mast;
   
   # these run a single command, and record it in history, you will need to make a custom line for multiple commands
   local-terminal = name: cmd: ''ptyxis --tab -d ${dir} --title="${name}" -x "bash -ic '${cmd}; history -s ${cmd}; exec bash'"'';
@@ -27,11 +31,15 @@ let
   rover-terminal = ssh-terminal rover;
   mast-terminal = ssh-terminal mast;
 
+  # convert structure to command string
+  # structure should be in this format: {name, platform, command}[]
+  make-terminals = setup: builtins.foldl' (acc: el: el.platform el.name el.cmd + "\ \\n& " + acc ) "" setup;
+
 in
 {
   # access using -A flag in the nix-shell command e.g -A auto.arch
-  auto = import ./auto.nix { inherit pkgs ansi dir rover mast base-terminal rover-terminal mast-terminal; };
-  drive = import ./drive.nix { inherit pkgs ansi dir rover base-terminal rover-terminal; };
+  auto = import ./auto.nix { inherit pkgs ansi dir rover-ip mast-ip base-terminal rover-terminal mast-terminal make-terminals; };
+  drive = import ./drive.nix { inherit pkgs ansi dir rover-ip base-terminal rover-terminal make-terminals; };
   # import more payloads here
 }
 
