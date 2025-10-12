@@ -99,7 +99,7 @@ in
           echo >&2 '  a) Run the command, and choose the desired package when prompted'
           echo >&2 '  b) Open a temporary shell with the desired package available using nix-shell -p <package>'
           echo >&2 '  c) Permanently install the package by adding it to the NixOS or Home Manager configuration'
-          echo >&2 'Feel free to reach out to a software subteam member for futher explanation.'
+          echo >&2 'Feel free to reach out to a software subteam member for further explanation.'
           exit 1
         ''}";
         microsoft-edge = "xdg-open 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'";

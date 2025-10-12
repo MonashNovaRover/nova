@@ -5,11 +5,12 @@ from launch.actions import DeclareLaunchArgument, OpaqueFunction, LogInfo
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
+import os
 
 
 def launch_setup(context, *args, **kwargs):
     teleop_arm_dir = PythonExpression([
-        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/teleop_arm']),
+        '"', PathJoinSubstitution([os.path.expanduser("~") + '/nova/src/ros/rover/arm/teleop_arm']),
         '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
         FindPackageShare('teleop_arm'), '"'
     ])
@@ -34,10 +35,6 @@ def launch_setup(context, *args, **kwargs):
                 {'log_inputs': ParameterValue(log_inputs, value_type=bool)}
             ],
 
-            remappings=[
-                ('controller_manager/switch_controller', 'arm/controller_manager/switch_controller')
-            ],
-
             additional_env={
                 # Show colors in the terminal output
                 'RCUTILS_COLORIZED_OUTPUT': '1',
@@ -57,7 +54,7 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     teleop_arm_dir = PythonExpression([
-        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/arm/teleop_arm']),
+        '"', PathJoinSubstitution([os.path.expanduser("~") + '/nova/src/ros/rover/arm/teleop_arm']),
         '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
         FindPackageShare('teleop_arm'), '"'
     ])
@@ -67,7 +64,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             name='local',
             default_value='False',
-            description='Whether to use the local teleop_amr source directory instead of the nix store for param files.',
+            description='Whether to use the local teleop_arm source directory instead of the nix store for param files.',
         ),
         DeclareLaunchArgument(
             name='log_level',
