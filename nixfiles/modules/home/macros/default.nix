@@ -139,8 +139,6 @@ in
           # Bonus
           cop-mode-on = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} on";
           cop-mode-off = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} off";
-          shitdown = "shutdown now";
-          diddy = "sudo shitdown";
 
           # Auto 
           launch-auto-rover = "~/Builds/master/bin/ros2 launch auto_bringup urc.launch.py";
