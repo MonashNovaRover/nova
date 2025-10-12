@@ -31,6 +31,7 @@ in
 {
   # access using -A flag in the nix-shell command e.g -A auto.arch
   auto = import ./auto.nix { inherit pkgs ansi dir rover mast base-terminal rover-terminal mast-terminal; };
+  drive = import ./drive.nix { inherit pkgs ansi dir rover base-terminal rover-terminal; };
   # import more payloads here
 }
 
