@@ -1,5 +1,6 @@
 # simple drive with rover and xbox controller with base station
 # This nix-shell is designed to run on the base station to quickly spin up the entire auto stack!
+# by default it will run with current drive, but old drive can be specified with -A drive.old
 { 
     base,
     rover,

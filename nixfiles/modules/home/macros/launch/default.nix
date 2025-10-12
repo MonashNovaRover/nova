@@ -1,5 +1,5 @@
 # This nix-shell is designed to run on the base station to quickly spin up the entire stack for any payload!
-# Usage (Also in macros/default.nix): nix-shell ${cfg.nixfileDir}/modules/home/macros/launch -A auto.arch --argstr rover user@ip --argstr mast user@ip
+# Usage (Also in macros/default.nix): nix-shell ${cfg.nixfileDir}/modules/home/macros/launch -A auto.arch --argstr rover-ip user@ip --argstr mast-ip user@ip
 { 
     pkgs ? import <nixpkgs> {}, 
     rover-ip ? throw ''You must provide a target for rover ssh commands\nUsage: nix-shell shell.nix --argstr rover-ip <user@ip>\ne.g nix-shell shell.nix --argstr rover-ip nova@10.0.0.11'',
