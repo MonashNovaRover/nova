@@ -15,21 +15,23 @@ let
     light-purple = ''\033[1;35m'';
     nc = ''\033[0m''; # no colour
   };
-  # these run a single command, will need to make a custom line for multiple commands
-  base-terminal = name: cmd: ''ptyxis --tab --title="${name}" -x "bash -c '${dir}/${cmd}; echo -e Command: ${ansi.yellow}${dir}/${cmd}${ansi.nc}; exec bash'"'';
-  rover-terminal = name: cmd: ''ptyxis --tab --title="${name}" -x "bash -c 'ssh -t ${rover} \"${dir}/${cmd}; echo -e Command: ${ansi.yellow}${dir}/${cmd}${ansi.nc}; exec bash -l\"; exec bash'"'';
+  # these run a single command, and record it in history, you will need to make a custom line for multiple commands
+  base-terminal = name: cmd: ''ptyxis --tab --title="${name}" -x "bash -ic '${cmd}; history -s ${cmd}; exec bash'"'';
+  rover-terminal = name: cmd: ''ptyxis --tab --title="${name}" -x "bash -c 'ssh -t ${rover} \"bash -ic \\\"${cmd}; history -s ${cmd}; exec bash -l\\\"\"; exec bash'"'';
+  mast-terminal = name: cmd: ''ptyxis --tab --title="${name}" -x "bash -c 'ssh -t ${mast} \"bash -ic \\\"${cmd}; history -s ${cmd}; exec bash -l\\\"\"; exec bash'"'';
+
   cmds = {
-    base.teleop = "ros2 launch teleop_drive_joy teleop.launch.py";
-    base.rviz = "ros2 launch auto_bringup rviz.launch.py";
-    rover.gps = "ros2 launch nova_bringup gps_rover.launch.py";
-    rover.control = "ros2 launch auto_bringup control.launch.py";
-    rover.camera = "ros2 launch auto_bringup camera.launch.py";
-    rover.software = "ros2 launch auto_bringup software.launch.py";
+    base.teleop = "launch-teleop";
+    base.rviz = "launch-rviz";
+    rover.gps = "launch-gps";
+    rover.control = "launch-control";
+    rover.camera = "launch-oaks";
+    rover.software = "launch-auto-software";
     mast.gps = "ros2 launch nova_bringup gps_base.launch.py gps_params:=/home/nova/gps.yaml";
   };
 in
 
-# note i followed the running the auto stack guide which im pretty sure is now out of date due to drive changes LOL
+# note i followed the running the (URC) auto stack guide which im pretty sure is now out of date
 # https://www.notion.so/Running-the-Auto-Stack-234b71396171801eb667cbc884e3b13b
 # assumes ${dir} is consistent across all 3 platforms...
 # this also prints the command that was run once it stops so it can manually be rerun if it errors or needs modification
@@ -45,7 +47,7 @@ pkgs.mkShell {
     & ${rover-terminal "Rover:Control" cmds.rover.control} \
     & ${rover-terminal "Rover:Camera" cmds.rover.camera} \
     & ${rover-terminal "Rover:Software" cmds.rover.software} \
-    & ptyxis --tab --title="Mast:GPS" -x "bash -c 'ssh -t ${mast} \"${dir}/${cmds.mast.gps}; echo -e Command: ${ansi.yellow}${dir}/${cmds.mast.gps}${ansi.nc}; exec bash -l\"; exec bash'"
+    & ${mast-terminal "Mast:GPS" cmds.mast.gps}
     exit 0
   '';
 }
