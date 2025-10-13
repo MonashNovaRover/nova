@@ -309,6 +309,17 @@ export const reduxStores = {
     }
   ),
 
+  radioStatusStore: createBifrostStore(
+    { topic: RosTopic.RADIO_STATUS },
+    {
+      recv: 0,
+      sent: 0,
+      ping: 0,
+      signal: -65,
+    }
+  ),
+
+
   // Generic stores
   currentSite: createGenericStore("currentSite", Site.SITE_1),
   siteData: createGenericStore("siteData", initialSiteDataState),

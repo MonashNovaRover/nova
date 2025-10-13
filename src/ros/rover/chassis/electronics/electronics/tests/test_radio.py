@@ -9,7 +9,7 @@ published over ROS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: radio_tester_pub
 TOPICS:
-  - /electronics/heartbeat  [Heartbeat]   [Published]
+  - /electronics/radio_status  [Heartbeat]   [Published]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios
@@ -58,7 +58,7 @@ class RadioTest (Node):
         print("Initialising ROS Radio Tester")
 
         # Message Type, Topic Name, Quality of Service 
-        self.pub = self.create_publisher(Heartbeat, '/electronics/heartbeat', 10)
+        self.pub = self.create_publisher(Heartbeat, '/electronics/radio_status', 10)
 
         # Set the starting variables
         self.run = True

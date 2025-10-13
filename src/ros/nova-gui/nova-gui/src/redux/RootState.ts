@@ -31,6 +31,7 @@ import {
   IRosNovaInterfacesStatus,
   IRosSensorMsgsNavSatFix,
   IRosArmInterfacesSequencerFeedback,
+  IRosNovaInterfacesHeartbeat,
 
 } from "../ros/rosTypes";
 
@@ -114,4 +115,6 @@ export interface RootState {
   batteryStore: IRosSensorMsgsBatteryState;
 
   activeStatusStore: IRosNovaInterfacesActiveNodeStatus;
+
+  radioStatusStore: IRosNovaInterfacesHeartbeat;
 }

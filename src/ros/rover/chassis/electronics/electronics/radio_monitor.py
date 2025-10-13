@@ -10,7 +10,7 @@ Requires radio and destination IPs and ethernet interface
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: radio_monitor
 TOPICS:
-  - /electronics/heartbeat       [Heartbeat]
+  - /electronics/radio_status       [Heartbeat]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Emily Kuo
@@ -81,7 +81,7 @@ class RadioMonitor(Node):
         
         if self.is_ros:
             super().__init__("radio_monitor")
-            self.publisher = self.create_publisher(Heartbeat, "/electronics/heartbeat", 10)
+            self.publisher = self.create_publisher(Heartbeat, "/electronics/radio_status", 10)
 
 
     def connect_to_radio(self):

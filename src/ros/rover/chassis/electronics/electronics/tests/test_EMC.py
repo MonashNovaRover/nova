@@ -9,7 +9,7 @@ published over ROS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: radio_tester_pub
 TOPICS:
-  - /electronics/heartbeat  [Heartbeat]   [Published]
+  - /electronics/radio_status  [Heartbeat]   [Published]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios
