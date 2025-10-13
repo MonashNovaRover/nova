@@ -11,7 +11,7 @@
 
 let 
   drive-setup = {
-    pre-shell = pre-shell {platform-name="Drive";};
+    pre-shell = pre-shell {payload-name="Drive";};
     terminals = [
       {name = "Base:Teleop"; platform=base; cmd="launch-teleop";}
       {name = "Rover:Drive"; platform=rover; cmd="launch-drive";}
@@ -19,7 +19,7 @@ let
     post-shell = post-shell;
   };
   old-drive-setup = {
-    pre-shell = pre-shell {platform-name="Old Drive";};
+    pre-shell = pre-shell {payload-name="Old Drive";};
     terminals = [
       {name = "Base:Base"; platform=base; cmd="launch-base";}
       {name = "Rover:Old Drive"; platform=rover; cmd="launch-old-drive";}
