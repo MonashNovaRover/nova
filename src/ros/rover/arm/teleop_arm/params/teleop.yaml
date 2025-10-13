@@ -3,11 +3,11 @@ teleop_arm:
   ros__parameters:
     # The maximum rate at which updates should occur, and hence the max rate at which commands are sent.
     # Leaving this unset makes the max update rate unlimited.
-    # update_rate: 50.0
+    update_rate: 50.0
 
     # The minimum rate at which updates occur.
     # Leaving this unset will allow for indefinite lapses between updates.
-    min_update_rate: 4.0
+    min_update_rate: 2.0
 
     controller_manager: "/arm/controller_manager"
 
@@ -15,7 +15,6 @@ teleop_arm:
       names:
         - joy_input_source
 
-      # Then declare its type!
       joy_input_source:
         type: "teleop_modular_joy/JoyInputSource"
 
@@ -24,47 +23,59 @@ teleop_arm:
         - joint_space_mode
         - task_space_mode
 
-      # Then declare its type!
       joint_space_mode:
         type: "joint_space_control_mode/JointSpaceControlMode"
         controllers:
-          - nova_arm_velocity_controller
+          - "nova_arm_velocity_controller"
 
       task_space_mode:
         type: "teleop_modular_twist/TwistControlMode"
         controllers:
-          - nova_twistmapper
-          - nova_arm_position_controller
+          - "nova_twistmapper"
+          - "nova_arm_position_controller"
 
     commands:
       names:
         - enter_task_space
         - enter_joint_space
+        - lock
+        - unlock
+        - log_locked
+        - log_unlocked
 
       enter_task_space:
         on: "task_space/down"
         type: switch_control_mode
-        to: task_space_mode
+        activate:
+          - "task_space_mode"
+        deactivate:
+          - "joint_space_mode"
       enter_joint_space:
-        on: "task_space/up"
+        on_any:
+          - "task_space/up"
+          - "start"
         type: switch_control_mode
-        to: joint_space_mode
+        activate:
+          - "joint_space_mode"
+        deactivate:
+          - "task_space_mode"
+
       lock:
         on_any: ["lock/down", "start"]
         type: set_button
-        name: locked
+        name: "locked"
         value: true
       unlock:
-        on: "unlock/up"
+        on: "unlock/down"
         type: set_button
-        name: locked
+        name: "locked"
         value: false
       log_locked:
         on: "locked/down"
         type: log
         message: "Locked"
       log_unlocked:
-        on: "locked/down"
+        on: "locked/up"
         type: log
         message: "Unlocked"
 
@@ -75,34 +86,34 @@ joint_space_mode:
     use_speed_input: true
 
     joint_definitions:
-      - j1
-      - j2
-      - j3
-      - j4
-      - j5
-      - j6
+      - "j1"
+      - "j2"
+      - "j3"
+      - "j4"
+      - "j5"
+      - "j6"
 
     joints:
       j1:
         name: "J1"
         input_name: "j1"
-        scale: 0.36
+        scale: 0.1
       j2:
         name: "J2"
         input_name: "j2"
-        scale: 0.36
+        scale: 0.1
       j3:
         name: "J3"
         input_name: "j3"
-        scale: 0.36
+        scale: 0.1
       j4:
         name: "J4"
         input_name: "j4"
-        scale: 0.36
+        scale: 0.25
       j5:
         name: "J5"
         input_name: "j5"
-        scale: 0.36
+        scale: 0.1
       j6:
         name: "J6"
         input_name: "j6"
@@ -147,57 +158,57 @@ joy_input_source:
       - "B"
       - "X"
       - "Y"
-      - BACK
-      - GUIDE
-      - START
-      - LEFTSTICK
-      - RIGHTSTICK
-      - LEFTSHOULDER
-      - RIGHTSHOULDER
-      - DPAD_UP
-      - DPAD_DOWN
-      - DPAD_LEFT
-      - DPAD_RIGHT
-      - MISC1
-      - PADDLE1
-      - PADDLE2
-      - PADDLE3
-      - PADDLE4
-      - TOUCHPAD
+      - "BACK"
+      - "GUIDE"
+      - "START"
+      - "LEFTSTICK"
+      - "RIGHTSTICK"
+      - "LEFTSHOULDER"
+      - "RIGHTSHOULDER"
+      - "DPAD_UP"
+      - "DPAD_DOWN"
+      - "DPAD_LEFT"
+      - "DPAD_RIGHT"
+      - "MISC1"
+      - "PADDLE1"
+      - "PADDLE2"
+      - "PADDLE3"
+      - "PADDLE4"
+      - "TOUCHPAD"
     axis_definitions:
-      - LEFTX
-      - LEFTY
-      - RIGHTX
-      - RIGHTY
-      - TRIGGERLEFT
-      - TRIGGERRIGHT
+      - "LEFTX"
+      - "LEFTY"
+      - "RIGHTX"
+      - "RIGHTY"
+      - "TRIGGERLEFT"
+      - "TRIGGERRIGHT"
 
     remap:
       axes:
         speed:
-          from: TRIGGERRIGHT
+          from: "TRIGGERRIGHT"
           invert: true
 
         # Joint space
         j1:
           from_buttons:
-            positive: DPAD_RIGHT
-            negative: DPAD_LEFT
+            positive: "DPAD_RIGHT"
+            negative: "DPAD_LEFT"
           invert: true
         j2:
           from_buttons:
-            positive: DPAD_UP
-            negative: DPAD_DOWN
+            positive: "DPAD_UP"
+            negative: "DPAD_DOWN"
           invert: true
         j3:
           from_buttons:
             positive: "Y"
             negative: "A"
         j4:
-          from: RIGHTY
+          from: "RIGHTY"
           invert: true
         j5:
-          from: RIGHTX
+          from: "RIGHTX"
         j6:
           from_buttons:
             positive: "X"
@@ -207,12 +218,12 @@ joy_input_source:
         linear:
           x:
             from_buttons:
-              positive: DPAD_UP
-              negative: DPAD_DOWN
+              positive: "DPAD_UP"
+              negative: "DPAD_DOWN"
           y:
             from_buttons:
-              positive: DPAD_RIGHT
-              negative: DPAD_LEFT
+              positive: "DPAD_RIGHT"
+              negative: "DPAD_LEFT"
           z:
             from_buttons:
               positive: "Y"
@@ -223,15 +234,15 @@ joy_input_source:
               positive: "X"
               negative: "B"
           y:
-            from: RIGHTY
+            from: "RIGHTY"
             invert: true
           z:
-            from: RIGHTX
+            from: "RIGHTX"
 
       buttons:
         lock:
-          from: BACK
+          from: "BACK"
         unlock:
-          from: START
+          from: "START"
         task_space:
-          from: LEFTSHOULDER
+          from: "LEFTSHOULDER"
