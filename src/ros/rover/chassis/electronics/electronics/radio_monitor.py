@@ -10,7 +10,7 @@ Requires radio and destination IPs and ethernet interface
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: radio_monitor
 TOPICS:
-  - /electronics/radio_status       [RadioStatus]
+  - /electronics/heartbeat       [Heartbeat]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Emily Kuo
@@ -28,9 +28,9 @@ If you have issues connecting to the radio device
 import rclpy
 from rclpy.node import Node
 from rclpy.timer import Rate
-# from nova_interfaces.msg import RadioStatus
-# from fabric import Connection
-# import re, time, psutil, subprocess, sys
+from nova_interfaces.msg import Heartbeat
+from fabric import Connection
+import re, time, psutil, subprocess, sys
 import os
 
 # Stores the device information for each of the device settings
@@ -81,7 +81,7 @@ class RadioMonitor(Node):
         
         if self.is_ros:
             super().__init__("radio_monitor")
-            self.publisher = self.create_publisher(RadioStatus, "/electronics/radio_status", 10)
+            self.publisher = self.create_publisher(Heartbeat, "/electronics/heartbeat", 10)
 
 
     def connect_to_radio(self):
@@ -107,7 +107,7 @@ class RadioMonitor(Node):
 
         # Publish data over ROS
         if self.is_ros:
-            radio_msg = RadioStatus()
+            radio_msg = Heartbeat()
             radio_msg.signal = int(signal)
             radio_msg.sent = int(sent)
             radio_msg.recv = int(recv)
