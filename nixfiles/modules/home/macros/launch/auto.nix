@@ -5,15 +5,12 @@
     mast,
     pre-shell,
     post-shell,
-    make-shell
+    mkBashScript
 }:
 
 let 
-  # note i followed the running the auto stack guide which im pretty sure is now out of date
-  # havent put in the appropriate arguments for arch and urc respectively
-  # https://www.notion.so/Running-the-Auto-Stack-234b71396171801eb667cbc884e3b13b
   arch-setup = {
-    pre-shell = pre-shell {payload-name="Auto ARCh";};
+    pre-shell = pre-shell {payload-name="Auto ARCh"; need-rover=true;};
     terminals = [
       {name = "Base:Rviz"; platform=base; cmd="launch-rviz";}
       {name = "Rover:RTabMap"; platform=rover; cmd="launch-rtabmap";}
@@ -26,20 +23,20 @@ let
   };
 
   urc-setup = {
-    pre-shell = pre-shell {payload-name="Auto URC"; need-mast=true;};
+    pre = pre-shell {payload-name="Auto URC"; need-rover=true; need-mast=true;};
     terminals = [
       {name="Base:Teleop"; platform=base; cmd="launch-teleop";}
       {name="Base:Rviz"; platform=base; cmd="launch-rviz";}
       {name="Rover:GPS"; platform=rover; cmd="launch-gps";}
-      {name="Rover:Control"; platform=rover; cmd="launch-control";}
+      {name="Rover:Auto Drive"; platform=rover; cmd="launch-auto-drive";}
       {name="Rover:Camera"; platform=rover; cmd="launch-oaks";}
-      {name="Rover:Software"; platform=rover; cmd="launch-auto-software";}
+      {name="Rover:Software (Localization, Navigation, Yolo)"; platform=rover; cmd="launch-auto-software";}
       {name="Mast:GPS"; platform=mast; cmd="ros2 launch nova_bringup gps_base.launch.py gps_params:=/home/nova/gps.yaml";}
     ];
-    post-shell = post-shell;
+    post = post-shell;
   };
 in
 {
-  arch = make-shell arch-setup;
-  urc = make-shell urc-setup;
+  arch = mkBashScript arch-setup;
+  urc = mkBashScript urc-setup;
 }

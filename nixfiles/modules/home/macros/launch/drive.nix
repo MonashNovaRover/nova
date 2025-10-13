@@ -5,30 +5,27 @@
     base,
     rover,
     pre-shell,
-    post-shell,
-    make-shell,
+    mkBashScript,
 }:
 
 let 
   drive-setup = {
-    pre-shell = pre-shell {payload-name="Drive";};
+    pre = pre-shell {payload-name="Drive"; need-rover=true;};
     terminals = [
       {name = "Base:Teleop"; platform=base; cmd="launch-teleop";}
       {name = "Rover:Drive"; platform=rover; cmd="launch-drive";}
     ];
-    post-shell = post-shell;
   };
   old-drive-setup = {
-    pre-shell = pre-shell {payload-name="Old Drive";};
+    pre = pre-shell {payload-name="Old Drive"; needrover=true;};
     terminals = [
       {name = "Base:Base"; platform=base; cmd="launch-base";}
       {name = "Rover:Old Drive"; platform=rover; cmd="launch-old-drive";}
     ];
-    post-shell = post-shell;
   };
 in
 {
   # by default, use current drive
-  default = make-shell drive-setup;
-  old = make-shell old-drive-setup;
+  default = mkBashScript drive-setup;
+  old = mkBashScript old-drive-setup;
 }
