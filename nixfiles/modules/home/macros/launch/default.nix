@@ -1,12 +1,14 @@
 # This nix-shell is designed to run on the base station to quickly spin up the entire stack for any payload!
 # Usage (Also in macros/default.nix): nix-shell ${cfg.nixfileDir}/modules/home/macros/launch -A auto.arch --argstr rover-ip user@ip --argstr mast-ip user@ip
-# Or nix-build ${cfg.nixfileDir}/modules/home/macros/launch - A auto.arch, then ~/Builds/build-name/bin/run-auto-arch user@rover-ip user@mast-ip
+# Or nix-build ${cfg.nixfileDir}/modules/home/macros/launch -A auto.arch, then ~/Builds/build-name/bin/run-auto-arch user@rover-ip user@mast-ip
 { 
     pkgs ? import <nixpkgs> {}, 
     rover-ip ? "$1",
     mast-ip ? "$2",
     dir ? "/home/nova/Builds/master/bin",
-    route ? ""
+    route ? "",
+    repo ? "/home/nova/nova",
+    git-struct ? null,
 }:
 
 let 
@@ -22,6 +24,17 @@ let
     light-purple = ''\033[1;35m'';
     nc = ''\033[0m''; # no colour
   };
+
+  # get git status of repo
+  # nix-build /home/nova/nova/nixfiles/modules/home/macros/launch -A drive.default --arg git-struct "{commit=\"$(git rev-parse HEAD)\"; date=\"$(git show -s --format=%ci HEAD)\";branch=\"$(git rev-parse --abbrev-ref HEAD)\";dirty=\"$(if [ -n \\"$(git status --porcelain)\\" ]; then echo \\\"dirty\\\"; else echo \\"clean\\"; fi)\";}"
+  git-commit = if git-struct == null && !inShell then throw "We need git metadata to keep going!" else git-struct.commit; #$(git rev-parse HEAD)
+  git-date = if git-struct == null && !inShell then throw "We need git metadata to keep going!" else git-struct.date; #$(git show -s --format=%ci HEAD)
+  git-branch = if git-struct == null && !inShell then throw "We need git metadata to keep going!" else git-struct.branch; #$(git rev-parse --abbrev-ref HEAD)
+  git-dirty = if git-struct == null && !inShell then throw "We need git metadata to keep going!" else git-struct.dirty; #$(if [ -n "$(git status --porcelain)" ]; then echo "dirty"; else echo "clean"; fi)
+  git-status = ''
+    mkdir -p $out
+    echo -e "commit: ${git-commit}\ndate: ${git-date}\nbranch: ${git-branch}\ndirty: ${git-dirty}" > $out/git-metadata
+  '';
 
   # these run a single command, and record it in history, you will need to make a custom line for multiple commands
   local-terminal = name: cmd: ''ptyxis --tab -d ${dir} --title="${name}" -x "bash -ic '${cmd}; history -s \"${cmd}\"; exec bash'"'';
@@ -89,9 +102,11 @@ let
   shellAndBuild = shellString: shellName: pkgs.mkShell{
     shellHook = shellString;
 
+    src = repo;
     # put it in the bin dir
     # add checkers for $1 and $2 for rover and mast ips
     buildCommand = ''
+      ${git-status}
       mkdir -p $out/bin
       cat > $out/bin/${shellName} <<'EOF'
       #!${pkgs.bash}/bin/bash
@@ -106,7 +121,6 @@ let
   # final single function to pass to child nix files to make defining setups easy
   bashBuilder = struct: shellName: shellAndBuild (mkBashScript struct) shellName;
   
-
 in
 {
   # access using -A flag in the nix-shell command e.g -A auto.arch
