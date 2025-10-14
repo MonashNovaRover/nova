@@ -55,4 +55,6 @@ buildRosPackage {
     tf2-eigen
     orocos-kdl
   ];
+
+  doCheck = true;
 }

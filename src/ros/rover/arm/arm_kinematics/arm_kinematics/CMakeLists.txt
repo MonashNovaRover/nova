@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(teleop_core LANGUAGES CXX)
+project(arm_kinematics LANGUAGES CXX)
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   geometry_msgs
@@ -27,8 +27,7 @@ include_directories(
 
 # Add plugin implementations here!
 add_library(${PROJECT_NAME} SHARED
-
-
+  src/kinematics_plugin_base.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17
@@ -51,25 +50,25 @@ find_package(ament_cmake_gtest REQUIRED)
 
 # Add tests
 
-set(TEST_INPUTS_SOURCE_FILES
-  test/test_inputs.cpp
-  test/test_state.cpp
-  test/test_input_map.cpp
-  test/test_input_pipeline.cpp
-)
-ament_add_gtest(test_inputs
-  ${TEST_INPUTS_SOURCE_FILES}
-)
-target_link_libraries(test_inputs
-  ${PROJECT_NAME}
-)
-target_include_directories(test_inputs PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-)
-set_tests_properties(test_inputs
-  PROPERTIES
-  ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{LD_LIBRARY_PATH}"
-)
+#set(TEST_INPUTS_SOURCE_FILES
+#  test/test_inputs.cpp
+#  test/test_state.cpp
+#  test/test_input_map.cpp
+#  test/test_input_pipeline.cpp
+#)
+#ament_add_gtest(test_inputs
+#  ${TEST_INPUTS_SOURCE_FILES}
+#)
+#target_link_libraries(test_inputs
+#  ${PROJECT_NAME}
+#)
+#target_include_directories(test_inputs PUBLIC
+#  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+#)
+#set_tests_properties(test_inputs
+#  PROPERTIES
+#  ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{LD_LIBRARY_PATH}"
+#)
 
 # Enable linting
 #  ament_lint_auto_find_test_dependencies()
