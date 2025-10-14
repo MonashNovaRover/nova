@@ -55,12 +55,13 @@ class TopicWaiter(Node):
         self.start_time = time.time()
 
     def all_topics_active(self):
-        available_topics = [t.name for t in self.get_topic_names_and_types()]
+        available_topics = [t[0] for t in self.get_topic_names_and_types()]
         return all(topic in available_topics for topic in REQUIRED_TOPICS)
 
     def spin_until_ready(self):
         self.get_logger().info(f"Waiting for required topics: {REQUIRED_TOPICS}")
         while rclpy.ok():
+            rclpy.spin_once(self, timeout_sec=CHECK_INTERVAL)
             if self.all_topics_active():
                 self.get_logger().info("All required topics are active.")
                 return True
