@@ -14,7 +14,9 @@
 #include <rclcpp/node_interfaces/node_logging_interface.hpp>
 #include "rclcpp/node_interfaces/node_interfaces.hpp"
 #include <optional>
-
+#include <urdf/model.h>
+#include <kdl_parser/kdl_parser.hpp>
+#include <kdl/jntarray.hpp>
 
 
 namespace arm_kinematics {
@@ -38,6 +40,8 @@ public:
 
   /**
    * Effectively replaces the constructor for the class, as we can only use a default constructor in plugins.
+   *
+   * Very expensive, and obviously not real-time safe.
    *
    * \returns True if initialization was successful. False otherwise.
    */
@@ -117,15 +121,23 @@ private:
 
   KinematicsParams kinematics_params_;
 
-private:
-
   /// The name of every joint considered in IK and FK calculations.
   std::vector<std::string> joint_names_{};
 
+  /// Allows us to access various things from the owning node if we need, like loggers, parameters, or in the future,
+  /// maybe even topics.
   std::optional<KinematicsNodeInterfaces> node_interfaces_ = std::nullopt;
 
   /// Logger to use for logging
   rclcpp::Logger logger_ = rclcpp::get_logger("arm_kinematics");
+
+  // KDL
+  urdf::Model urdf_model_;
+  KDL::Tree kdl_tree_;
+  /// The default kdl chain to use, from the base link to the ee link
+  KDL::Chain kdl_chain_;
+  /// Pre-allocated KDL::JntArray to use for per-joint values
+  KDL::JntArray preallocated_jnts{};
 };
 
 } // arm_kinematics

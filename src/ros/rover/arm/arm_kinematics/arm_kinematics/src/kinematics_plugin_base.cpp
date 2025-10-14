@@ -20,6 +20,31 @@ bool KinematicsPluginBase::initialize(KinematicsPluginBase::KinematicsNodeInterf
   node_interfaces_ = node_interfaces;
   logger_ = node_interfaces.get_node_logging_interface()->get_logger().get_child("kinematics");
 
+  // Set up URDF and KDL kinematics
+  RCLCPP_INFO(get_logger(), "Parsing URDF and creating KDL Tree...");
+  if (!urdf_model_.initString(robot_description)) {
+    RCLCPP_ERROR(get_logger(), "Failed to init URDF model from robot_description string.");
+    return false;
+  }
+
+  if (!kdl_parser::treeFromUrdfModel(urdf_model_, kdl_tree_)) {
+    RCLCPP_ERROR(get_logger(), "Failed to convert URDF to KDL tree.");
+    return false;
+  }
+
+  if (!kdl_tree_.getChain(get_kinematics_params().base_link_name, get_kinematics_params().ee_link_name,
+                          kdl_chain_)) {
+    RCLCPP_ERROR(get_logger(), "Failed to get KDL chain from \"%s\" to \"%s\".",
+                 get_kinematics_params().base_link_name.c_str(), get_kinematics_params().ee_link_name.c_str());
+    return false;
+  }
+
+
+
+  // Pre-allocate a JntArray to use with KDL in real-time contexts
+  preallocated_jnts = KDL::JntArray()
+
+
   return on_initialize();
 }
 
@@ -27,6 +52,9 @@ bool KinematicsPluginBase::get_position_fk(const std::vector<double> &joint_angl
                                            const std::string &link_name,
                                            Eigen::Isometry3d &solution_pose) const {
   // Default implementation using KDL
+
+
+
   return false;
 }
 
