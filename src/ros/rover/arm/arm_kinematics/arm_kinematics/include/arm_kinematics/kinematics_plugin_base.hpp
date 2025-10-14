@@ -38,6 +38,7 @@ public:
   using KinematicsNodeInterfaces =
     rclcpp::node_interfaces::NodeInterfaces<rclcpp::node_interfaces::NodeBaseInterface, rclcpp::node_interfaces::NodeLoggingInterface>;
 
+
   /**
    * Effectively replaces the constructor for the class, as we can only use a default constructor in plugins.
    *

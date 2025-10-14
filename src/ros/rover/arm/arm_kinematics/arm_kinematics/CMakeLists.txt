@@ -29,6 +29,8 @@ include_directories(
 add_library(${PROJECT_NAME} SHARED
   src/kinematics_plugin_base.cpp
   src/utilities.cpp
+  include/arm_kinematics/mimic_joint_map.cpp
+  include/arm_kinematics/mimic_joint_map.hpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17

@@ -40,6 +40,19 @@ bool KinematicsPluginBase::initialize(KinematicsPluginBase::KinematicsNodeInterf
   }
 
 
+  for (const auto & [name, joint] : urdf_model_.joints_) {
+    if (joint->mimic) {
+      mimic_joints.push_back({
+                               .index = getJointIndex(joint->name),
+                               .source_index = getJointIndex(joint->mimic->joint_name),
+                               .multiplier = joint->mimic->multiplier,
+                               .offset = joint->mimic->offset
+                             });
+    }
+  }
+
+
+
 
   // Pre-allocate a JntArray to use with KDL in real-time contexts
   preallocated_jnts = KDL::JntArray()
