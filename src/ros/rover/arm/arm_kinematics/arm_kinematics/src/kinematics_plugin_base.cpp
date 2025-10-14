@@ -7,6 +7,12 @@
 #include <urdf/model.h>
 #include <stdexcept>
 
+namespace
+{
+// Used to avoid division by zero. Threshold for where to call small numbers essentially zero in vector normalization.
+constexpr auto EPSILON = 1e-8;
+} // namespace
+
 namespace arm_kinematics {
 
 bool KinematicsPluginBase::initialize(KinematicsPluginBase::KinematicsNodeInterfaces node_interfaces,
@@ -38,22 +44,48 @@ bool KinematicsPluginBase::get_position_fk(const std::vector<double> &joint_angl
 bool KinematicsPluginBase::get_velocity_ik(const Eigen::Matrix<double, 6, 1> &ik_twist,
                                            const Eigen::Isometry3d &ik_seed_pose,
                                            const std::vector<double> &ik_seed_state,
-                                           std::vector<double> &solution,
+                                           std::vector<double> &solution_velocities,
                                            double time_step) const
 {
-  return false;
+  // TODO: Make helper function to apply a twist to an Isometry3D
+  // Apply the ik_twist over time_step to get another pose
+  Eigen::Vector3d twist_linear = ik_twist.block<3, 1>(0, 0);
+  Eigen::Vector3d twist_angular = ik_twist.block<3, 1>(3, 0);
+
+  // Construct a 4x4 matrix from the above linear and angular values, but as a displacement rather than velocity.
+  Eigen::Isometry3d new_pose = ik_seed_pose;
+
+  // Set translational components
+  new_pose.translation() = ik_seed_pose.translation() + twist_linear * time_step;
+
+  // Set angular components
+  auto twist_angular_norm = twist_angular.norm();
+  // TODO: See if you can do this better for real time safety
+  // Only apply rotation if it is non-zero enough to avoid precision errors
+  if (twist_angular_norm > EPSILON) {
+    // Create rotation matrix from twist_angular * period.seconds. This isn't an angular velocity, but a displacement.
+    Eigen::AngleAxisd angular_diff(twist_angular_norm * time_step, twist_angular / twist_angular_norm);
+
+    // This 'linear' does not mean the same thing as the twist's 'linear'!
+    // It is the linear component of the affine transformation matrix.
+    new_pose.linear() = angular_diff.toRotationMatrix() * ik_seed_pose.linear();
+  }
+
+  // Get the difference of the resulting joint angles for the time_step to get vel.
+  // solution_velocities will contain twist
+  auto ik_result = get_position_ik(new_pose, ik_seed_state, solution_velocities);
 }
 
 bool KinematicsPluginBase::get_velocity_ik(const Eigen::Matrix<double, 6, 1> &ik_twist,
                                            const std::vector<double> &ik_seed_state,
-                                           std::vector<double> &solution,
+                                           std::vector<double> &solution_velocities,
                                            double time_step) const
 {
   // Just call the above method, getting ik_seed_pose from forward kinematics
   Eigen::Isometry3d ik_seed_pose;
   const auto fk_result = get_position_fk(ik_seed_state, ik_seed_pose);
 
-  return fk_result && get_velocity_ik(ik_twist, ik_seed_pose, ik_seed_state, solution, time_step);
+  return fk_result && get_velocity_ik(ik_twist, ik_seed_pose, ik_seed_state, solution_velocities, time_step);
 }
 
 const std::vector<std::string> &KinematicsPluginBase::get_joint_names() const noexcept {
@@ -76,7 +108,7 @@ const KinematicsParams &KinematicsPluginBase::get_kinematics_params() const noex
   return kinematics_params_;
 }
 
-const KinematicsPluginBase::NodeInterfaces &KinematicsPluginBase::get_node_interfaces() const {
+const KinematicsPluginBase::KinematicsNodeInterfaces & KinematicsPluginBase::get_node_interfaces() const {
   if (!node_interfaces_.has_value())
     throw std::logic_error("Tried to use a KinematicsPlugin before calling initialize() or after initialize() failed.");
 
