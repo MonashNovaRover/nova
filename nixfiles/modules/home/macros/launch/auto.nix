@@ -5,7 +5,7 @@
     mast,
     pre-shell,
     post-shell,
-    mkBashScript
+    bashBuilder
 }:
 
 let 
@@ -37,6 +37,6 @@ let
   };
 in
 {
-  arch = mkBashScript arch-setup;
-  urc = mkBashScript urc-setup;
+  arch = bashBuilder arch-setup "run-auto-arch";
+  urc = bashBuilder urc-setup "run-auto-urc";
 }

@@ -1,14 +1,18 @@
 # This nix-shell is designed to run on the base station to quickly spin up the entire stack for any payload!
 # Usage (Also in macros/default.nix): nix-shell ${cfg.nixfileDir}/modules/home/macros/launch -A auto.arch --argstr rover-ip user@ip --argstr mast-ip user@ip
+# Or nix-build ${cfg.nixfileDir}/modules/home/macros/launch - A auto.arch, then ~/Builds/build-name/bin/run-auto-arch user@rover-ip user@mast-ip
 { 
     pkgs ? import <nixpkgs> {}, 
-    rover-ip ? null,
-    mast-ip ? null,
+    rover-ip ? "$1",
+    mast-ip ? "$2",
     dir ? "/home/nova/Builds/master/bin",
     route ? ""
 }:
 
 let 
+  # are we running nix-shell or nix-build
+  inShell = builtins.getEnv "IN_NIX_SHELL" != "";
+
   # ansi strings for nice colours
   ansi = {
     light-red = ''\033[1;31m'';
@@ -37,30 +41,41 @@ let
   rover-ssh-check = need-rover: if need-rover then ssh-check rover-ip else "";
   mast-ssh-check = need-mast: if need-mast then ssh-check mast-ip else "";
 
-  # check that ip is present and optionally enforce this 
-  rover-check = need-rover: if rover-ip == null && need-rover
-    then throw "You must provide a target for rover ssh commands.\nUsage: nix-shell shell.nix --argstr rover-ip <user@ip>\ne.g nix-shell shell.nix --argstr rover-ip nova@10.0.0.11" 
-    else if rover-ip == null && !need-rover then "" else "SSHing into rover at ${ansi.light-purple}${rover-ip}${ansi.nc}...";
-  mast-check = need-mast: if mast-ip == null && need-mast
-    then throw "You must provide a target for mast ssh commands.\nUsage: nix-shell shell.nix --argstr mast-ip <user@ip>\ne.g nix-shell shell.nix --argstr mast-ip nova@10.0.0.11" 
-    else if mast-ip == null && !need-mast then "" else "SSHing into mast at ${ansi.light-purple}${mast-ip}${ansi.nc}...";
+  # usage strings for nix-shell and nix-build respectively
+  usage-string-shell = platform: "You must provide a target for ${platform} ssh commands.\nUsage: nix-shell shell.nix --argstr ${platform}-ip <user@ip>\ne.g nix-shell shell.nix --argstr ${platform}-ip nova@10.0.0.11";
+  usage-string-build = platform: "You must provide a target for ${platform} ssh commands.\\nUsage: $0 <nova@rover-ip> <nova@mast-ip>\\ne.g $0 nova@10.0.0.2 nova@10.0.0.3";
 
-  # default elements of a bash shell, use pre-shell for warnings and setup, post-shell for stuff after the terminals are made
+  # check that ip is present and optionally enforce this 
+  rover-check = need-rover: if rover-ip == "$1" && need-rover && inShell
+    then throw (usage-string-shell "rover")
+    else if rover-ip == "$1" && !need-rover then "" else "SSHing into rover at ${ansi.light-purple}${rover-ip}${ansi.nc}...";
+  mast-check = need-mast: if mast-ip == "$2" && need-mast && inShell
+    then throw (usage-string-shell "mast")
+    else if mast-ip == "$2" && !need-mast then "" else "SSHing into mast at ${ansi.light-purple}${mast-ip}${ansi.nc}...";
+
+  # default pre-shell for setup before terminals
+  # if statement prevents infinite loop
+  # create tmp dir for nix-shell inception having no access to /tmp
+  # echo tips
+  # check for rover or mast ip if required
+  # copy ssh keys if first time target so ssh is instant
   pre-shell = {payload-name, need-rover ? false, need-mast? false}: ''
     if [ -z "$SHELL_STARTED" ]; then
-    export SHELL_STARTED=1
-    export TMPDIR=/tmp
-    echo -e "${ansi.light-red}Tip!${ansi.nc} Change your working directory (Default: ${ansi.orange}/home/nova/Builds/master/bin${ansi.nc}) by appending ${ansi.yellow}--argstr dir ${ansi.orange}YOUR/DIR/HERE${ansi.nc}
-    Launching ${ansi.light-green}${payload-name}${ansi.nc}...
-    ${rover-check need-rover}
-    ${mast-check need-mast}
-    Running in ${ansi.orange}${dir}${ansi.nc}... S"
-    ${rover-ssh-check need-rover}
-    ${mast-ssh-check need-mast}
+      export SHELL_STARTED=1
+      export TMPDIR=/tmp
+      echo -e "${ansi.light-red}Tip!${ansi.nc} Change your working directory (Default: ${ansi.orange}/home/nova/Builds/master/bin${ansi.nc}) by appending ${ansi.yellow}--argstr dir ${ansi.orange}YOUR/DIR/HERE${ansi.nc} \
+      Launching ${ansi.light-green}${payload-name}${ansi.nc}... \
+      ${rover-check need-rover} \
+      ${mast-check need-mast} \
+      Running in ${ansi.orange}${dir}${ansi.nc}..."
+      ${rover-ssh-check need-rover}
+      ${mast-ssh-check need-mast}
   '';
+  # combine all the terminals together so that they all run simultaneously
   assembleTerminal = setup: "  " + (builtins.foldl' (acc: el: el.platform el.name el.cmd + "\ \\n  & " + acc ) "" setup);
+  # default post-shell for after commands
   post-shell = ''
-    exit 0
+      exit 0
     fi
   '';
 
@@ -68,14 +83,36 @@ let
   #   pre = pre-shell {payload-name="name"; need-mast=true}; # you can string concat any additions to this, need-mast is optional and defaults to false
   #   terminals = {name, platform, command}[]; # An array of sets 
   #   post = post-shell + "\nAdditional command"; # make additions with a new line since it will be added to a shell hook!
-  mkBashScript = {pre ? pre-shell {payload-name="";}, terminals, post ? post-shell}: pkgs.mkShell {shellHook = "${pre}\n${assembleTerminal terminals}\n${post}";};
+  mkBashScript = {pre ? pre-shell {payload-name="";}, terminals, post ? post-shell}: "${pre}\n${assembleTerminal terminals}\n${post}";
+
+  # construct the shell and build environments, shellString is the final shell script created using mkBashScript, shellName is the final bash script name
+  shellAndBuild = shellString: shellName: pkgs.mkShell{
+    shellHook = shellString;
+
+    # put it in the bin dir
+    # add checkers for $1 and $2 for rover and mast ips
+    buildCommand = ''
+      mkdir -p $out/bin
+      cat > $out/bin/${shellName} <<'EOF'
+      #!${pkgs.bash}/bin/bash
+      ${if rover-ip != "$1" then "if [ -z \"$1\" ]; then\n  echo -e \"${usage-string-build "rover"}\"\n  exit 1\nfi" else ""}
+      ${if rover-ip == "$1" then "" else if mast-ip != "$2" then "if [ -z \"$2\" ]; then\n  echo -e \"${usage-string-build "mast"}\"\n  exit 1\nfi" else ""}
+      ${builtins.replaceStrings [rover-ip mast-ip] ["$1" "$2"] shellString}
+      EOF
+      chmod +x $out/bin/${shellName}
+    '';
+  };
+
+  # final single function to pass to child nix files to make defining setups easy
+  bashBuilder = struct: shellName: shellAndBuild (mkBashScript struct) shellName;
+  
 
 in
 {
   # access using -A flag in the nix-shell command e.g -A auto.arch
-  auto = import ./auto.nix   { inherit base rover pre-shell post-shell mkBashScript mast; };
-  drive = import ./drive.nix { inherit base rover pre-shell mkBashScript; };
-  gui = import ./gui.nix     { inherit base pre-shell post-shell mkBashScript base-nix route;};
+  auto = import ./auto.nix   { inherit base rover pre-shell post-shell bashBuilder mast; };
+  drive = import ./drive.nix { inherit base rover pre-shell bashBuilder; };
+  gui = import ./gui.nix     { inherit base pre-shell post-shell bashBuilder base-nix route;};
   # import more payloads here
 }
 

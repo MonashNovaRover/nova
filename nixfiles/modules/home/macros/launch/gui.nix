@@ -3,7 +3,7 @@
     base,
     pre-shell,
     post-shell,
-    mkBashScript,
+    bashBuilder,
     base-nix,
     route
 }:
@@ -19,5 +19,5 @@ let
   };
 in
 {
-  default = mkBashScript gui-setup;
+  default = bashBuilder gui-setup "run-gui";
 }

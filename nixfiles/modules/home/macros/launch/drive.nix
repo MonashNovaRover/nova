@@ -1,11 +1,10 @@
-# simple drive with rover and xbox controller with base station
-# This nix-shell is designed to run on the base station to quickly spin up the entire auto stack!
+# simple drive with rover and controller with base station
 # by default it will run with current drive, but old drive can be specified with -A drive.old
 { 
     base,
     rover,
     pre-shell,
-    mkBashScript,
+    bashBuilder,
 }:
 
 let 
@@ -26,6 +25,6 @@ let
 in
 {
   # by default, use current drive
-  default = mkBashScript drive-setup;
-  old = mkBashScript old-drive-setup;
+  default = bashBuilder drive-setup "run-drive";
+  old = bashBuilder old-drive-setup "run-old-drive";
 }
