@@ -14,15 +14,16 @@ namespace arm_kinematics {
  */
 class CollisionPlugin {
 public:
-  bool initialize(ForwardKinematicsPlugin::SharedPtr fk) {
-    if (!fk)
-      return false;
+  /**
+   * Effectively replaces the constructor for the class, as we can only use a default constructor in plugins.
+   *
+   * \warning Very expensive, and obviously not real-time safe.
+   *
+   * \returns True if initialization was successful. False otherwise.
+   */
+  bool initialize(const ForwardKinematicsPlugin::SharedPtr& fk);
 
-    fk_ = fk;
-
-    return on_initialize();
-  }
-
+  /// Gets the ForwardKinematicsPlugin used to position colliders correctly in a common reference frame
   [[nodiscard]] const ForwardKinematicsPlugin::SharedPtr & get_fk() const noexcept;
 
 protected:

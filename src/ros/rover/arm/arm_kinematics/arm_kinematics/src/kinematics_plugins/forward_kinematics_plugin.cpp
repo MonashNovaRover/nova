@@ -74,12 +74,24 @@ bool ForwardKinematicsPlugin::get_position_fk(const std::vector<double> &joint_a
   return get_position_fk(joint_angles, chain_joint_map_, kdl_chain_, preallocated_jnts_, solution_pose);
 }
 
+const urdf::Model & ForwardKinematicsPlugin::get_urdf_model() const noexcept {
+  return urdf_model_;
+}
+
 const KDL::Tree & ForwardKinematicsPlugin::get_kdl_tree() const noexcept {
   return kdl_tree_;
 }
 
+const KDL::Chain & ForwardKinematicsPlugin::get_kdl_chain() const noexcept {
+  return kdl_chain_;
+}
+
 const JointMapBuilder & ForwardKinematicsPlugin::get_joint_map_builder() const noexcept {
   return joint_map_builder_;
+}
+
+const JointMap & ForwardKinematicsPlugin::get_kdl_chain_joint_map() const noexcept {
+  return chain_joint_map_;
 }
 
 } // arm_kinematics

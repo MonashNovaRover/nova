@@ -33,7 +33,7 @@ public:
   /**
    * Effectively replaces the constructor for the class, as we can only use a default constructor in plugins.
    *
-   * Very expensive, and obviously not real-time safe.
+   * \warning Very expensive, and obviously not real-time safe.
    *
    * \returns True if initialization was successful. False otherwise.
    */
@@ -77,8 +77,11 @@ public:
     const std::vector<double> & joint_angles,
     Eigen::Isometry3d & solution_pose);
 
+  [[nodiscard]] const urdf::Model & get_urdf_model() const noexcept;
   [[nodiscard]] const KDL::Tree & get_kdl_tree() const noexcept;
+  [[nodiscard]] const KDL::Chain & get_kdl_chain() const noexcept;
   [[nodiscard]] const JointMapBuilder & get_joint_map_builder() const noexcept;
+  [[nodiscard]] const JointMap & get_kdl_chain_joint_map() const noexcept;
 
 protected:
   /**

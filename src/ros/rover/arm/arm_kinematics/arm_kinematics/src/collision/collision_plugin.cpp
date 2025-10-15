@@ -6,6 +6,14 @@
 
 namespace arm_kinematics {
 
+bool CollisionPlugin::initialize(const ForwardKinematicsPlugin::SharedPtr & fk) {
+  if (!fk)
+    return false;
+
+  fk_ = fk;
+
+  return on_initialize();
+}
 
 const ForwardKinematicsPlugin::SharedPtr & CollisionPlugin::get_fk() const noexcept {
   return fk_;

@@ -27,7 +27,7 @@ class ARM_KINEMATICS_PUBLIC InverseKinematicsPlugin : public KinematicsBase {
   /**
    * Effectively replaces the constructor for the class, as we can only use a default constructor in plugins.
    *
-   * Very expensive, and obviously not real-time safe.
+   * \warning Very expensive, and obviously not real-time safe.
    *
    * \returns True if initialization was successful. False otherwise.
    */
