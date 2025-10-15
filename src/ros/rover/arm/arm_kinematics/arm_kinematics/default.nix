@@ -15,6 +15,7 @@
 , ament-cmake-gtest
 , ament-lint-auto
 , transmission-interface
+, fcl
 }:
 
 buildRosPackage {
@@ -24,6 +25,9 @@ buildRosPackage {
   src = builtins.path rec {
     name = "nova-arm-kinematics-source";
     path = ./.;
+    filter = lib.novaSourceFilter [
+    ]
+      path;
   };
 
   nativeBuildInputs = [
@@ -45,6 +49,7 @@ buildRosPackage {
     tf2-eigen
     orocos-kdl
     transmission-interface
+    fcl
   ];
 
   propagatedBuildInputs = [ 

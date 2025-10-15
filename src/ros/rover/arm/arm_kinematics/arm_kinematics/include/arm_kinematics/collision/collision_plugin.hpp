@@ -14,6 +14,12 @@ namespace arm_kinematics {
  */
 class CollisionPlugin {
 public:
+  using CollisionNodeInterfaces =
+    rclcpp::node_interfaces::NodeInterfaces<
+      rclcpp::node_interfaces::NodeBaseInterface,
+      rclcpp::node_interfaces::NodeLoggingInterface,
+      rclcpp::node_interfaces::NodeParametersInterface>;
+
   /**
    * Effectively replaces the constructor for the class, as we can only use a default constructor in plugins.
    *
@@ -21,10 +27,17 @@ public:
    *
    * \returns True if initialization was successful. False otherwise.
    */
-  bool initialize(const ForwardKinematicsPlugin::SharedPtr& fk);
+  bool initialize(
+    KinematicsBase::KinematicsNodeInterfaces node_interfaces,
+    const ForwardKinematicsPlugin::SharedPtr & fk);
 
   /// Gets the ForwardKinematicsPlugin used to position colliders correctly in a common reference frame
   [[nodiscard]] const ForwardKinematicsPlugin::SharedPtr & get_fk() const noexcept;
+
+  /// Logger to use for logging
+  [[nodiscard]] const rclcpp::Logger & get_logger() const noexcept;
+  /// Gets interfaces from the owning ROS2 node, allowing plugins to access to parameters, logging, etc.
+  [[nodiscard]] const CollisionNodeInterfaces & get_node_interfaces() const;
 
 protected:
   /**
@@ -36,6 +49,12 @@ protected:
 
 private:
   ForwardKinematicsPlugin::SharedPtr fk_ = nullptr;
+
+  /// Logger to use for logging
+  rclcpp::Logger logger_ = rclcpp::get_logger("arm_kinematics.collision");
+  /// Allows us to access various things from the owning node if we need, like loggers, parameters, or in the future,
+  /// maybe even topics.
+  std::optional<CollisionNodeInterfaces> node_interfaces_ = std::nullopt;
 
 };
 

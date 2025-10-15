@@ -10,6 +10,7 @@
 #include <rclcpp/logger.hpp>
 #include <rclcpp/node_interfaces/node_base_interface.hpp>
 #include <rclcpp/node_interfaces/node_logging_interface.hpp>
+#include <rclcpp/node_interfaces/node_parameters_interface.hpp>
 #include <rclcpp/node_interfaces/node_interfaces.hpp>
 #include "kinematics_params.hpp"
 
@@ -23,7 +24,10 @@ namespace arm_kinematics {
 class ARM_KINEMATICS_PUBLIC KinematicsBase {
 public:
   using KinematicsNodeInterfaces =
-    rclcpp::node_interfaces::NodeInterfaces<rclcpp::node_interfaces::NodeBaseInterface, rclcpp::node_interfaces::NodeLoggingInterface>;
+    rclcpp::node_interfaces::NodeInterfaces<
+      rclcpp::node_interfaces::NodeBaseInterface,
+      rclcpp::node_interfaces::NodeLoggingInterface,
+      rclcpp::node_interfaces::NodeParametersInterface>;
 
   // Accessors
 
