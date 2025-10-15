@@ -15,6 +15,8 @@
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl/jntarray.hpp>
 #include "kinematics_base.hpp"
+#include "joint_map.hpp"
+#include "joint_map_builder.hpp"
 
 
 namespace arm_kinematics {
@@ -55,7 +57,9 @@ public:
    */
   virtual bool get_position_fk(
     const std::vector<double> & joint_angles,
-    const std::string & link_name,
+    const JointMap & joint_map,
+    const KDL::Chain & kdl_chain,
+    KDL::JntArray & kdl_chain_jnts,
     Eigen::Isometry3d & solution_pose) const;
 
   /**
@@ -71,7 +75,10 @@ public:
     */
   virtual bool get_position_fk(
     const std::vector<double> & joint_angles,
-    Eigen::Isometry3d & solution_pose) const;;
+    Eigen::Isometry3d & solution_pose);
+
+  [[nodiscard]] const KDL::Tree & get_kdl_tree() const noexcept;
+  [[nodiscard]] const JointMapBuilder & get_joint_map_builder() const noexcept;
 
 protected:
   /**
@@ -89,7 +96,12 @@ private:
   /// The default kdl chain to use, from the base link to the ee link
   KDL::Chain kdl_chain_;
   /// Pre-allocated KDL::JntArray to use for per-joint values
-  KDL::JntArray preallocated_jnts{};
+  KDL::JntArray preallocated_jnts_{};
+
+  JointMapBuilder joint_map_builder_{};
+
+  /// Maps joint values from joint_names to the joint values needed by the kdl_chain_ when doing forward kinematics
+  JointMap chain_joint_map_{};
 };
 
 } // arm_kinematics

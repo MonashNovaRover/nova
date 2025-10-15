@@ -10,8 +10,9 @@ namespace
 constexpr auto EPSILON = 1e-8;
 } // namespace
 
+namespace arm_kinematics {
 
-void arm_kinematics::apply_twist(const Eigen::Matrix<double, 6, 1> &twist, const double delta_time,
+void apply_twist(const Eigen::Matrix<double, 6, 1> &twist, const double delta_time,
                                  const Eigen::Isometry3d &pose, Eigen::Isometry3d &result) {
   Eigen::Vector3d twist_linear = twist.block<3, 1>(0, 0);
   Eigen::Vector3d twist_angular = twist.block<3, 1>(3, 0);
@@ -37,9 +38,27 @@ void arm_kinematics::apply_twist(const Eigen::Matrix<double, 6, 1> &twist, const
   }
 }
 
-Eigen::Isometry3d arm_kinematics::apply_twist(const Eigen::Matrix<double, 6, 1> &twist, const double delta_time,
+Eigen::Isometry3d apply_twist(const Eigen::Matrix<double, 6, 1> &twist, const double delta_time,
                                               const Eigen::Isometry3d &pose) {
   Eigen::Isometry3d result;
   apply_twist(twist, delta_time, pose, result);
   return result;
 }
+
+void kdl_to_eigen(const KDL::Frame & frame, Eigen::Isometry3d & result) {
+  // Rotation
+  for (int i = 0; i < 3; ++i)
+    for (int j = 0; j < 3; ++j)
+      result.linear()(i, j) = frame.M(i, j);
+
+  // Translation
+  result.translation() << frame.p.x(), frame.p.y(), frame.p.z();
+}
+
+Eigen::Isometry3d kdl_to_eigen(const KDL::Frame & frame) {
+  Eigen::Isometry3d result{};
+  kdl_to_eigen(frame, result);
+  return result;
+}
+
+}  // namespace arm_kinematics

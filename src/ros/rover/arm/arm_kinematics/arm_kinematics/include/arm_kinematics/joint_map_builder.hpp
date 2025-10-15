@@ -39,6 +39,7 @@ constexpr const auto kOffsetAttribute = "offset";
 namespace arm_kinematics {
 
 class ARM_KINEMATICS_PUBLIC JointMapBuilder {
+public:
   JointMapBuilder() = default;
 
   /**

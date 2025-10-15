@@ -41,8 +41,6 @@ public:
   size_t input_count = 0;
   size_t output_count = 0;
 
-  std::vector<std::string> output_names{};
-
 private:
   /**
    * Recursively maps joint names to source value ids (where joint ordering is defined by the given joint names),
