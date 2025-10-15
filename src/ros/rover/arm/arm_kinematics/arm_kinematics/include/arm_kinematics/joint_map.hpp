@@ -5,6 +5,7 @@
 #ifndef ARM_KINEMATICS_JOINT_MAP_HPP
 #define ARM_KINEMATICS_JOINT_MAP_HPP
 
+#include "visibility_control.h"
 #include <cstddef>
 #include <urdf/model.h>
 #include <kdl_parser/kdl_parser.hpp>
@@ -22,7 +23,7 @@ namespace arm_kinematics {
 /**
  * Helper class to map between the parameterized set of joints and the KDL chain/JntArray joints.
  */
-class JointMap {
+class ARM_KINEMATICS_PUBLIC JointMap {
 public:
   JointMap() = default;
   JointMap(const std::vector<std::string>& input_names,
