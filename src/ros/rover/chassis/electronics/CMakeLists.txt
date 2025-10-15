@@ -54,6 +54,7 @@ install(PROGRAMS
   electronics/rfid_service.py
   electronics/gimbal_service.py
   electronics/radio_monitor.py
+  electronics/battery_state.py
   electronics/tests/test_EMC.py
   electronics/tests/test_radio.py
   electronics/tests/test_wheels.py
