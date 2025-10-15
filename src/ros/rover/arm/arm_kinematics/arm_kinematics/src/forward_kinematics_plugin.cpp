@@ -78,7 +78,7 @@ const KDL::Tree & ForwardKinematicsPlugin::get_kdl_tree() const noexcept {
   return kdl_tree_;
 }
 
-const JointMap & ForwardKinematicsPlugin::get_joint_map_builder() const noexcept {
+const JointMapBuilder & ForwardKinematicsPlugin::get_joint_map_builder() const noexcept {
   return joint_map_builder_;
 }
 
