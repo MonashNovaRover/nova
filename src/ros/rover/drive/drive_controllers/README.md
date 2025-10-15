@@ -7,7 +7,6 @@ This is where all our drive controllers reside.
 Please configure parameters in the relevant `controllers.yaml` file. For auto, this is `auto/auto_bringup/params/controllers.yaml`.
 
 ## Parameters (Common)
-<details>
 
 These are parameters every controller has.
 
@@ -90,16 +89,11 @@ These are parameters every controller has.
 - `min_acceleration` (`double`, default: `.NAN`)
 - `max_jerk` (`double`, default: `.NAN`)
 - `min_jerk` (`double`, default: `.NAN`)
-</details>
 
 ## Parameters (Controller-Specific)
-
-<details>
 
 These are parameters specific to certain controllers.
 
 ### pivot_drive_controller
 `pivot_rate_tolerance` (`double`, default: `0.1`)
 - In autonomous mode, we may want to delay movement until pivots have reached the desired angle. This parameter controls **how long in seconds** before the pivots reach their target positions to start moving. Only affects autonomous mode operation
-
-</details>
