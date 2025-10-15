@@ -16,7 +16,7 @@ let
     ];
   };
   old-drive-setup = {
-    pre = pre-shell {payload-name="Old Drive"; needrover=true;};
+    pre = pre-shell {payload-name="Old Drive"; need-rover=true;};
     terminals = [
       {name = "Base:Base"; platform=base; cmd="launch-base";}
       {name = "Rover:Old Drive"; platform=rover; cmd="launch-old-drive";}

@@ -10,7 +10,7 @@
 
 let 
   arch-setup = {
-    pre-shell = pre-shell {payload-name="Auto ARCh"; need-rover=true;};
+    pre = pre-shell {payload-name="Auto ARCh"; need-rover=true;};
     terminals = [
       {name = "Base:Rviz"; platform=base; cmd="launch-rviz";}
       {name = "Rover:RTabMap"; platform=rover; cmd="launch-rtabmap";}
@@ -19,7 +19,7 @@ let
       {name = "Rover:Camera"; platform=rover; cmd="launch-oaks";}
       {name = "Rover:Navigation"; platform=rover; cmd="ros2 launch auto_bringup navigation.launch.py nav2_params_dir:=/home/nova/nova/src/ros/rover/auto/auto_bringup/params/nav2_arc";}
     ];
-    post-shell = post-shell;
+    post = post-shell;
   };
 
   urc-setup = {
