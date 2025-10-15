@@ -19,5 +19,5 @@ let
   };
 in
 {
-  default = bashBuilder gui-setup "run-gui";
+  gui = bashBuilder gui-setup "run-gui";
 }

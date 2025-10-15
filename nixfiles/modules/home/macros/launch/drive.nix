@@ -25,6 +25,6 @@ let
 in
 {
   # by default, use current drive
-  default = bashBuilder drive-setup "run-drive";
-  old = bashBuilder old-drive-setup "run-old-drive";
+  drive = bashBuilder drive-setup "run-drive";
+  old-drive = bashBuilder old-drive-setup "run-old-drive";
 }

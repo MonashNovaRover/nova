@@ -37,6 +37,6 @@ let
   };
 in
 {
-  arch = bashBuilder arch-setup "run-auto-arch";
-  urc = bashBuilder urc-setup "run-auto-urc";
+  auto-arch = bashBuilder arch-setup "run-auto-arch";
+  auto-urc = bashBuilder urc-setup "run-auto-urc";
 }

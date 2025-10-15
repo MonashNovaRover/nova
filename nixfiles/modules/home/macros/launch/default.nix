@@ -27,6 +27,7 @@ let
   nix-filter = import ( builtins.fetchGit { url = "https://github.com/numtide/nix-filter.git"; } );
 
   # get git status of repo
+  # currently this will run for every single script build sorry
   git-status = ''
     mkdir -p $out
     GIT_COMMIT=$(git rev-parse HEAD)
@@ -132,9 +133,9 @@ let
   drive = callPackage ./drive.nix { };
   gui = callPackage ./gui.nix     { };
 
-  flat-payloads = builtins.foldl' pkgs.lib.mergeAttrs { } [auto drive gui];
+  payloads = builtins.foldl' pkgs.lib.mergeAttrs { } [auto drive gui];
 in
 
-flat-payloads
+payloads
 
 
