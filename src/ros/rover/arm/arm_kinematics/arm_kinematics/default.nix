@@ -14,6 +14,7 @@
 , pkg-config
 , ament-cmake-gtest
 , ament-lint-auto
+, transmission-interface
 }:
 
 buildRosPackage {
@@ -43,6 +44,7 @@ buildRosPackage {
     eigen
     tf2-eigen
     orocos-kdl
+    transmission-interface
   ];
 
   propagatedBuildInputs = [ 
@@ -56,6 +58,7 @@ buildRosPackage {
     eigen
     tf2-eigen
     orocos-kdl
+    transmission-interface
   ];
 
   doCheck = true;

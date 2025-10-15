@@ -51,17 +51,13 @@ protected:
 private:
   /// The URDF being used. You can get this from within a ros2_control controller
   std::string * robot_description_ = nullptr;
-
   /// Params common to both FK and IK plugins.
   KinematicsParams kinematics_params_;
-
   /// The name of every joint considered in IK and FK calculations.
   std::vector<std::string> joint_names_{};
-
   /// Allows us to access various things from the owning node if we need, like loggers, parameters, or in the future,
   /// maybe even topics.
   std::optional<KinematicsNodeInterfaces> node_interfaces_ = std::nullopt;
-
   /// Logger to use for logging
   rclcpp::Logger logger_ = rclcpp::get_logger("arm_kinematics");
 };

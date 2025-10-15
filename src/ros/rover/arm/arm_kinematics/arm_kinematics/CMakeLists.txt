@@ -12,6 +12,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   Eigen3
   tf2_eigen
   moveit_core
+  transmission_interface
 )
 
 find_package(ament_cmake REQUIRED)
@@ -28,7 +29,8 @@ include_directories(
 # Add plugin implementations here!
 add_library(${PROJECT_NAME} SHARED
   src/utilities.cpp
-  src/mimic_joint_map.cpp
+  src/joint_map.cpp
+  src/joint_map_builder.cpp
   src/kinematics_params.cpp
   src/kinematics_base.cpp
   src/forward_kinematics_plugin.cpp
