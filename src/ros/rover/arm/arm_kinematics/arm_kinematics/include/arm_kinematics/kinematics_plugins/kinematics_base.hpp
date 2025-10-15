@@ -5,7 +5,7 @@
 #ifndef ARM_KINEMATICS_KINEMATICS_BASE_HPP
 #define ARM_KINEMATICS_KINEMATICS_BASE_HPP
 
-#include "visibility_control.h"
+#include <arm_kinematics/visibility_control.h>
 #include <string>
 #include <rclcpp/logger.hpp>
 #include <rclcpp/node_interfaces/node_base_interface.hpp>
@@ -49,7 +49,7 @@ protected:
                        const std::string & logger_name);
 
 private:
-  /// The URDF being used. You can get this from within a ros2_control controller
+  /// The URDF being used. You can get this from within a ros2_control controller.
   std::string * robot_description_ = nullptr;
   /// Params common to both FK and IK plugins.
   KinematicsParams kinematics_params_;

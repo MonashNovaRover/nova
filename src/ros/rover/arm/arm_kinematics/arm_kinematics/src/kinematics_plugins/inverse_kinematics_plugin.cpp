@@ -2,7 +2,7 @@
 // Created by Bailey Chessum on 15/10/2025.
 //
 
-#include <arm_kinematics/inverse_kinematics_plugin.hpp>
+#include <arm_kinematics/kinematics_plugins/inverse_kinematics_plugin.hpp>
 #include <arm_kinematics/utilities.hpp>
 
 namespace arm_kinematics {

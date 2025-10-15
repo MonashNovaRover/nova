@@ -5,7 +5,7 @@
 #ifndef ARM_KINEMATICS_FORWARD_KINEMATICS_PLUGIN_HPP
 #define ARM_KINEMATICS_FORWARD_KINEMATICS_PLUGIN_HPP
 
-#include "visibility_control.h"
+#include <arm_kinematics/visibility_control.h>
 #include <string>
 #include <vector>
 #include <geometry_msgs/msg/pose.hpp>
@@ -15,8 +15,8 @@
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl/jntarray.hpp>
 #include "kinematics_base.hpp"
-#include "joint_map.hpp"
-#include "joint_map_builder.hpp"
+#include <arm_kinematics/joint_map/joint_map.hpp>
+#include <arm_kinematics/joint_map/joint_map_builder.hpp>
 
 
 namespace arm_kinematics {

@@ -5,7 +5,7 @@
 #ifndef ARM_KINEMATICS_JOINT_MAP_BUILDER_HPP
 #define ARM_KINEMATICS_JOINT_MAP_BUILDER_HPP
 
-#include "visibility_control.h"
+#include <arm_kinematics/visibility_control.h>
 #include <cstddef>
 #include <urdf/model.h>
 #include <kdl_parser/kdl_parser.hpp>
@@ -14,9 +14,9 @@
 #include <variant>
 #include <rclcpp/logging.hpp>
 #include <hardware_interface/component_parser.hpp>
-#include "hardware_interface/lexical_casts.hpp"
+#include <hardware_interface/lexical_casts.hpp>
 #include <tinyxml2.h>
-#include <arm_kinematics/joint_map.hpp>
+#include <arm_kinematics/joint_map/joint_map.hpp>
 
 namespace
 {

@@ -5,7 +5,7 @@
 #ifndef ARM_KINEMATICS_JOINT_MAP_HPP
 #define ARM_KINEMATICS_JOINT_MAP_HPP
 
-#include "visibility_control.h"
+#include <arm_kinematics/visibility_control.h>
 #include <cstddef>
 #include <urdf/model.h>
 #include <kdl_parser/kdl_parser.hpp>
@@ -54,44 +54,6 @@ private:
                             std::map<std::string, std::shared_ptr<urdf::JointMimic>> mimic_joints,
                             const std::string & name, double & multiplier, double & offset);
 };
-
-//  JointMap(const std::vector<std::string>& input_names) {
-//    if (joint_names.size() == 0) {
-//      // Normal behaviour assumes at least one valid value will be given during copy_values_to_jnts
-//    }
-//
-//    // Calculate jnt_joint_names
-//    jnt_joint_names.reserve(chain.getNrOfJoints());
-//    int joint_count = 0;
-//    for (int i = 0; i < chain.getNrOfSegments(); ++i) {
-//      const auto& segment = chain.getSegment(i);
-//      const auto& joint = segment.getJoint();
-//
-//      // Skip fixed joints -- I am assuming the JntArray includes only segments with joints attached
-//      if (joint.getType() != KDL::Joint::None) {
-//        joint_names.push_back(joint.getName());
-//        joint_count++;
-//      }
-//    }
-//
-//    sources.reserve(jnt_joint_names.size());
-//    multipliers.reserve(jnt_joint_names.size());
-//    offsets.reserve(jnt_joint_names.size());
-//
-//    for (auto & name : jnt_joint_names) {
-//      double multiplier = 1.0;
-//      double offset = 0.0;
-//
-//      auto source = find_source(joint_names, mimic_joints, name, multiplier, offset);
-//
-//      sources.emplace_back(source);
-//      multipliers.emplace_back(multiplier);
-//      offsets.emplace_back(offset);
-//    }
-//
-//    urdf_model.getJoint("joe").
-//  }
-
 
 } // arm_kinematics
 

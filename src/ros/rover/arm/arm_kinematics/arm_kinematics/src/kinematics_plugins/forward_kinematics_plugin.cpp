@@ -2,13 +2,13 @@
 // Created by Bailey Chessum on 14/10/2025.
 //
 
-#include <arm_kinematics/forward_kinematics_plugin.hpp>
+#include <arm_kinematics/kinematics_plugins/forward_kinematics_plugin.hpp>
 
 #include <urdf/model.h>
 #include <stdexcept>
 
 #include <arm_kinematics/utilities.hpp>
-#include "arm_kinematics/joint_map_builder.hpp"
+#include "arm_kinematics/joint_map/joint_map_builder.hpp"
 #include <kdl/chainfksolverpos_recursive.hpp>
 
 
