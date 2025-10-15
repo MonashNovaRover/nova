@@ -3,7 +3,6 @@
 , ament-cmake
 , pluginlib
 , rclcpp
-, rcpputils
 , backward-ros
 , tf2
 , tf2-msgs
@@ -12,6 +11,9 @@
 , eigen
 , tf2-eigen
 , orocos-kdl
+, pkg-config
+, ament-cmake-gtest
+, ament-lint-auto
 }:
 
 buildRosPackage {
