@@ -27,9 +27,12 @@ include_directories(
 
 # Add plugin implementations here!
 add_library(${PROJECT_NAME} SHARED
-  src/kinematics_plugin_base.cpp
   src/utilities.cpp
   src/mimic_joint_map.cpp
+  src/kinematics_params.cpp
+  src/kinematics_base.cpp
+  src/forward_kinematics_plugin.cpp
+  src/inverse_kinematics_plugin.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17

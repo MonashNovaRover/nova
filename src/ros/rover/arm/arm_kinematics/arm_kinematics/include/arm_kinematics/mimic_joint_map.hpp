@@ -94,6 +94,8 @@ public:
       offsets.emplace_back(offset);
     }
 
+    urdf_model.getJoint("joe").
+
 
 
 
