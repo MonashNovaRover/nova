@@ -35,6 +35,7 @@ add_library(${PROJECT_NAME} SHARED
   src/kinematics_plugins/kinematics_base.cpp
   src/kinematics_plugins/forward_kinematics_plugin.cpp
   src/kinematics_plugins/inverse_kinematics_plugin.cpp
+  src/collision/collision_plugin.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17
