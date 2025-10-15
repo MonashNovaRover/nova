@@ -12,6 +12,29 @@ JointMap JointMapBuilder::build(const std::vector<std::string> & input_names,
   return{input_names, output_names, mimic_joints};
 }
 
+JointMap JointMapBuilder::build(const std::vector<std::string> & input_names,
+                                const KDL::Chain & chain) const {
+  std::vector<std::string> output_names{};
+  output_names.reserve(chain.getNrOfJoints());
+
+  // Calculate output_names
+  int joint_count = 0;
+  for (int i = 0; i < chain.getNrOfSegments(); ++i) {
+    const auto& segment = chain.getSegment(i);
+    const auto& joint = segment.getJoint();
+
+    // Skip fixed joints -- I am assuming the JntArray includes only segments with joints attached
+    if (joint.getType() != KDL::Joint::None) {
+      output_names.push_back(joint.getName());
+      joint_count++;
+    }
+  }
+
+  assert(joint_count == chain.getNrOfJoints());
+
+  return build(input_names, output_names);
+}
+
 JointMapBuilder & JointMapBuilder::with_urdf(const urdf::Model & urdf_model) {
   // Find all mimic joints
   // TODO: guard against cyclic mimic joints
@@ -211,4 +234,5 @@ JointMapBuilder::parse_transmission_from_xml(const tinyxml2::XMLElement * transm
 
   return transmission;
 }
+
 } // arm_kinematics

@@ -44,9 +44,20 @@ class ARM_KINEMATICS_PUBLIC JointMapBuilder {
   /**
    * Constructs a JointMap using the data from previous with_* calls, that maps inputs with input_names to outputs with
    * output_names.
+   *
+   * \warning Not real-time safe
    */
   [[nodiscard]] JointMap build(const std::vector<std::string> & input_names,
                                const std::vector<std::string> & output_names) const;
+
+  /**
+   * Constructs a JointMap using the data from previous with_* calls, that maps inputs with input_names to each Jnt from
+   * a KDL::Chain's JntArray.
+   *
+   * \warning Not real-time safe
+   */
+  [[nodiscard]] JointMap build(const std::vector<std::string> & input_names,
+                               const KDL::Chain & chain) const;
 
   /**
    * Uses the given URDF model to add mimic joints.
