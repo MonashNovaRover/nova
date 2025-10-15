@@ -124,6 +124,10 @@ let
           super.rosPackages;
       })
 
+      (self: super: {
+        launchPackages = import ./packages/nova-launch {inherit pkgs;} ;
+      })
+
       # Add the return value of this function. Some other attributes are useful
       # when  only pkgs is available.
       (self: super: { nova = result; })

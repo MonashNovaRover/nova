@@ -127,13 +127,14 @@ let
 
   callPackage = pkgs.lib.callPackageWith {inherit base base-nix rover rover-nix mast pre-shell post-shell bashBuilder route;};
   
-in
-{
-  # access using -A flag in the nix-shell command e.g -A auto.arch
+  # import more payloads here
   auto = callPackage ./auto.nix   { };
   drive = callPackage ./drive.nix { };
   gui = callPackage ./gui.nix     { };
-  # import more payloads here
-}
+
+  flat-payloads = builtins.foldl' pkgs.lib.mergeAttrs { } [auto drive gui];
+in
+
+flat-payloads
 
 
