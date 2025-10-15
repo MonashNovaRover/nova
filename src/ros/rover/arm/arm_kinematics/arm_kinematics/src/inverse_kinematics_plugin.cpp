@@ -7,6 +7,16 @@
 
 namespace arm_kinematics {
 
+bool InverseKinematicsPlugin::initialize(KinematicsNodeInterfaces node_interfaces, std::string & robot_description,
+                                         const std::vector<std::string> & joint_names,
+                                         KinematicsParams kinematics_params) {
+  if (!initialize_base(node_interfaces, robot_description, joint_names, std::move(kinematics_params),
+                  "inverse_kinematics"))
+    return false;
+
+  return true;
+}
+
 bool InverseKinematicsPlugin::get_velocity_ik(const Eigen::Matrix<double, 6, 1> &ik_twist,
                                               const Eigen::Isometry3d &ik_seed_pose,
                                               const std::vector<double> &ik_seed_state,
@@ -52,4 +62,5 @@ bool InverseKinematicsPlugin::get_velocity_ik(const Eigen::Matrix<double, 6, 1> 
 
   return fk_result && get_velocity_ik(ik_twist, ik_seed_pose, ik_seed_state, solution_velocities, time_step);
 }
+
 } // arm_kinematics

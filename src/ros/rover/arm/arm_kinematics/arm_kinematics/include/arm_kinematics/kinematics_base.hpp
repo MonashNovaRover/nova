@@ -21,8 +21,11 @@ namespace arm_kinematics {
  *   - InverseKinematicsPluginBase
  */
 class ARM_KINEMATICS_PUBLIC KinematicsBase {
+public:
   using KinematicsNodeInterfaces =
     rclcpp::node_interfaces::NodeInterfaces<rclcpp::node_interfaces::NodeBaseInterface, rclcpp::node_interfaces::NodeLoggingInterface>;
+
+  // Accessors
 
   /// The URDF being used.
   [[nodiscard]] const std::string & get_robot_description() const;
@@ -30,12 +33,22 @@ class ARM_KINEMATICS_PUBLIC KinematicsBase {
   [[nodiscard]] const std::vector<std::string> & get_joint_names() const noexcept;
   /// Logger to use for logging
   [[nodiscard]] const rclcpp::Logger & get_logger() const noexcept;
-
   /// Gets the KinematicsParams common to both FK and IK plugins.
   [[nodiscard]] const KinematicsParams & get_kinematics_params() const noexcept;
-
+  /// Gets interfaces from the owning ROS2 node, allowing plugins to access to parameters, logging, etc.
   [[nodiscard]] const KinematicsNodeInterfaces & get_node_interfaces() const;
 
+protected:
+  /**
+   * Initializer for common KinematicsBase base class.
+   */
+  bool initialize_base(KinematicsNodeInterfaces node_interfaces,
+                       std::string & robot_description,
+                       const std::vector<std::string> & joint_names,
+                       KinematicsParams params,
+                       const std::string & logger_name);
+
+private:
   /// The URDF being used. You can get this from within a ros2_control controller
   std::string * robot_description_ = nullptr;
 
@@ -51,7 +64,6 @@ class ARM_KINEMATICS_PUBLIC KinematicsBase {
 
   /// Logger to use for logging
   rclcpp::Logger logger_ = rclcpp::get_logger("arm_kinematics");
-
 };
 
 } // arm_kinematics

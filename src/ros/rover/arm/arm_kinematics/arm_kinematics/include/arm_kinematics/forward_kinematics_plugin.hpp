@@ -2,8 +2,8 @@
 // Created by Bailey Chessum on 14/10/2025.
 //
 
-#ifndef BANKSIA_KINEMATICS_PLUGIN_KINEMATICS_PLUGIN_BASE_HPP
-#define BANKSIA_KINEMATICS_PLUGIN_KINEMATICS_PLUGIN_BASE_HPP
+#ifndef ARM_KINEMATICS_FORWARD_KINEMATICS_PLUGIN_HPP
+#define ARM_KINEMATICS_FORWARD_KINEMATICS_PLUGIN_HPP
 
 #include "visibility_control.h"
 #include <string>
@@ -38,8 +38,8 @@ public:
   bool initialize(
     KinematicsNodeInterfaces node_interfaces,
     std::string & robot_description,
-    const std::vector<std::string>& joint_names);
-
+    const std::vector<std::string>& joint_names,
+    KinematicsParams kinematics_params);
 
   /**
    * Do Forward Kinematics to find the position of a link with the given name.
@@ -47,6 +47,9 @@ public:
    * \param[in] joint_angles The current angle of every joint in get_joint_names(), in radians.
    * \param[in] link_name The name of the link to find the pose for.
    * \param[out] solution_pose The pose found through forward kinematics.
+   *
+   * \note Make sure to pre-allocate vectors outside of the real-time loop with the correct number of elements (same
+   * number of joints as in joint names).
    *
    * \returns True if a solution could be found. False otherwise.
    */
@@ -61,14 +64,14 @@ public:
     * \param[in] joint_angles The current angle of every joint in get_joint_names(), in radians.
     * \param[out] solution_pose The pose found through forward kinematics.
     *
+    * \note Make sure to pre-allocate vectors outside of the real-time loop with the correct number of elements (same
+    * number of joints as in joint names).
+    *
     * \returns True if a solution could be found. False otherwise.
     */
   virtual bool get_position_fk(
     const std::vector<double> & joint_angles,
     Eigen::Isometry3d & solution_pose) const;;
-
-  // Accessors
-
 
 protected:
   /**
@@ -91,4 +94,4 @@ private:
 
 } // arm_kinematics
 
-#endif //BANKSIA_KINEMATICS_PLUGIN_KINEMATICS_PLUGIN_BASE_HPP
+#endif //ARM_KINEMATICS_FORWARD_KINEMATICS_PLUGIN_HPP

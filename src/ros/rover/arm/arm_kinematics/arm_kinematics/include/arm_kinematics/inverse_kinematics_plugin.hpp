@@ -5,11 +5,13 @@
 #ifndef ARM_KINEMATICS_INVERSE_KINEMATICS_PLUGIN_HPP
 #define ARM_KINEMATICS_INVERSE_KINEMATICS_PLUGIN_HPP
 
+#include "visibility_control.h"
 #include <vector>
 #include <Eigen/Geometry>
 #include <memory>
-
+#include <arm_kinematics/kinematics_base.hpp>
 #include <arm_kinematics/forward_kinematics_plugin.hpp>
+
 
 namespace arm_kinematics {
 
@@ -19,8 +21,21 @@ namespace arm_kinematics {
  * This does not provide a default implementation, as IK implementations are expected to be solved analytically. We have
  * faced reliability issues in the past when trying to use numerical solvers (URC 2025).
  */
-class InverseKinematicsPlugin {
+class ARM_KINEMATICS_PUBLIC InverseKinematicsPlugin : public KinematicsBase {
   using SharedPtr = std::shared_ptr<InverseKinematicsPlugin>;
+
+  /**
+   * Effectively replaces the constructor for the class, as we can only use a default constructor in plugins.
+   *
+   * Very expensive, and obviously not real-time safe.
+   *
+   * \returns True if initialization was successful. False otherwise.
+   */
+  bool initialize(
+    KinematicsNodeInterfaces node_interfaces,
+    std::string & robot_description,
+    const std::vector<std::string>& joint_names,
+    KinematicsParams kinematics_params);
 
   /**
    * Get the positions of all joints given the desired final position of the ee_link.
@@ -29,6 +44,9 @@ class InverseKinematicsPlugin {
    * \param ik_seed_state The current joint positions. The returned solution will be the closest valid solution to this
    * seed state.
    * \param[out] solution_state The set of joint positions that would result in the end effector being moved to ik_pose.
+   *
+   * \note Make sure to pre-allocate vectors outside of the real-time loop with the correct number of elements (same
+   * number of joints as in joint names).
    *
    * \returns True if a solution was found
    */
@@ -51,6 +69,9 @@ class InverseKinematicsPlugin {
    * to ik_twist over a period of time_step.
    * \param[in] time_step The change in time used to extrapolate the ik_seed_pose by ik_twist, and estimate the
    * derivative of joint positions. This must be non-zero!!
+   *
+   * \note Make sure to pre-allocate vectors outside of the real-time loop with the correct number of elements (same
+   * number of joints as in joint names).
    *
    * \returns True if a solution was found.
    */
@@ -76,6 +97,9 @@ class InverseKinematicsPlugin {
    * \param[in] time_step The change in time used to extrapolate the ik_seed_pose by ik_twist, and estimate the
    * derivative of joint positions. This must be non-zero!!
    *
+   * \note Make sure to pre-allocate vectors outside of the real-time loop with the correct number of elements (same
+   * number of joints as in joint names).
+   *
    * \returns True if a solution was found.
    */
   virtual bool get_velocity_ik(
@@ -84,6 +108,14 @@ class InverseKinematicsPlugin {
     const std::vector<double> & ik_seed_state,
     std::vector<double> & solution_velocities,
     double time_step) const;
+
+protected:
+  /**
+   * Called when the kinematics plugin is created. Override this to add any set up logic for the kinematics plugin.
+   *
+   * \returns True if initialization was successful. False otherwise.
+   */
+  virtual bool on_initialize() = 0;
 };
 
 } // arm_kinematics
