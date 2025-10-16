@@ -24,11 +24,14 @@ teleop_arm:
         - task_space_mode
 
       joint_space_mode:
+        display_name: "Joint Space"
         type: "joint_space_control_mode/JointSpaceControlMode"
+        active: true
         controllers:
           - "nova_arm_velocity_controller"
 
       task_space_mode:
+        display_name: "Task Space (IK)"
         type: "teleop_modular_twist/TwistControlMode"
         controllers:
           - "nova_twistmapper"
@@ -53,7 +56,6 @@ teleop_arm:
       enter_joint_space:
         on_any:
           - "task_space/up"
-          - "start"
         type: switch_control_mode
         activate:
           - "joint_space_mode"
@@ -61,7 +63,9 @@ teleop_arm:
           - "task_space_mode"
 
       lock:
-        on_any: ["lock/down", "start"]
+        on_any:
+          - "lock/down"
+          - "start"
         type: set_button
         name: "locked"
         value: true
