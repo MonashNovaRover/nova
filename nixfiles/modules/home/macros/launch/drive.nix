@@ -11,15 +11,15 @@ let
   drive-setup = {
     pre = pre-shell {payload-name="Drive"; need-rover=true;};
     terminals = [
-      {name = "Base:Teleop"; platform=base; cmd="launch-teleop";}
-      {name = "Rover:Drive"; platform=rover; cmd="launch-drive";}
+      {name = "Base:Teleop"; platform=base; cmd="ros2 launch teleop_drive_joy teleop.launch.py";}
+      {name = "Rover:Drive"; platform=rover; cmd="ros2 launch drive_bringup drive.launch.py";}
     ];
   };
   old-drive-setup = {
     pre = pre-shell {payload-name="Old Drive"; need-rover=true;};
     terminals = [
-      {name = "Base:Base"; platform=base; cmd="launch-base";}
-      {name = "Rover:Old Drive"; platform=rover; cmd="launch-old-drive";}
+      {name = "Base:Base"; platform=base; cmd="ros2 launch nova_bringup base.launch.py";}
+      {name = "Rover:Old Drive"; platform=rover; cmd="ros2 launch nova_bringup old_drive.launch.py";}
     ];
   };
 in
