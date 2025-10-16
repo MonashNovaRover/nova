@@ -45,14 +45,7 @@ def launch_setup(context, *args, **kwargs):
     world = LaunchConfiguration('world')
     rtabmap = LaunchConfiguration('rtabmap')
 
-    # Check rtabmap and gps values
-    rtabmap_value = rtabmap.perform(context).lower()
-    gps_value = gps.perform(context).lower()
-
-    # Disable GPS if rtabmap is enabled
-    gps_enabled = 'true' if gps_value == 'true' and rtabmap_value != 'true' else 'false'
-
-    auto_bringup_common_nodes = GroupAction([
+    nodes = GroupAction([
         IncludeLaunchDescription(
             condition=IfCondition(gazebo),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
@@ -73,7 +66,7 @@ def launch_setup(context, *args, **kwargs):
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'localization.launch.py'])),
             launch_arguments={
                 'gazebo': gazebo,
-                'gps': gps_enabled,
+                'gps': gps,
                 'rl_params': rl_params,
             }.items()
         ),
@@ -101,31 +94,40 @@ def launch_setup(context, *args, **kwargs):
             }.items()
         ),
     ])
-    wait_for_rtabmap = ExecuteProcess(
+
+    wait_for_cameras = ExecuteProcess(
         cmd=[
             'python3',
-            PathJoinSubstitution([auto_bringup_dir, 'topic', 'wait_for_topic.py'])
+            PathJoinSubstitution([auto_bringup_dir, 'topic', 'wait_for_topic.py']),
         ],
-        name='wait_for_rtabmap_topic',
-        output='screen'
+        name='wait_for_cameras_topic',
+        output='screen',
     )
-    if rtabmap_value == 'true':
-        return [
-            IncludeLaunchDescription(
-                launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rtabmap.launch.py'])),
-                launch_arguments={'pointclouds': 'False'}.items()
-            ),
-            wait_for_rtabmap,
-            RegisterEventHandler(
-                OnProcessExit(
-                    target_action=wait_for_rtabmap,
-                    on_exit=[auto_bringup_common_nodes],
-                )
-            )
-        ]
-    else:
-        return [auto_bringup_common_nodes]
 
+    return [
+        GroupAction(
+            condition=IfCondition(rtabmap),
+            actions=[
+                IncludeLaunchDescription(
+                    launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rtabmap.launch.py'])),
+                    launch_arguments={'pointclouds': 'False'}.items(),
+                ),
+                wait_for_cameras,
+                RegisterEventHandler(
+                    OnProcessExit(
+                        target_action=wait_for_cameras,
+                        on_exit=[nodes],
+                    ),
+                ),
+            ],
+        ),
+        GroupAction(
+            condition=UnlessCondition(rtabmap),
+            actions=[
+                nodes,
+            ],
+        ),
+    ]
 
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
