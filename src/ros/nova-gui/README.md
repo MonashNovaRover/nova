@@ -2,6 +2,8 @@
 
 Nova-GUI is the Primary Means of Communication and Control of the Rover During Operation and contains the end to end implementation of the Graphical User Interface for the Rover. Nova-GUI is designed to be modular in nature, where Layouts are composed using Individul Components which work independent of each other.
 
+To run the GUI please see the [instructions below](#dev-workflow). For development intructions and information please see the [project README](./nova-gui). `nova-gui` documentation can be found [here](./docs).
+
 ## Tech Stack
 
 Nova-GUI is a React Powered Webapp which uses the following
