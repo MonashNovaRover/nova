@@ -9,23 +9,23 @@ teleop_science:
     #min_update_rate: 2.0
 
     input_sources:
-      names: [
-        "game_controller_source"
-      ]
+      names:
+        - "game_controller_source"
 
       # Declare types for the sources
       game_controller_source:
         type: "teleop_modular_joy/JoyInputSource"
 
     control_modes:
-      names: [
+      names:
         # First in the list gets activated at startup
-        "legacy_input_mode"
-      ]
+        - "legacy_input_mode"
 
       # Declare types for the modes
       legacy_input_mode:
+        display_name: "Legacy Input Publisher"
         type: "legacy_input_mode/LegacyInputMode"
+        active: true
 
 game_controller_source:
   ros__parameters:

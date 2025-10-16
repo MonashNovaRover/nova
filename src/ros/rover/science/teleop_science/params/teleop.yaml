@@ -25,7 +25,9 @@ teleop_science:
 
       # Declare types for the modes
       input_publisher_mode:
+        display_name: "Input Publisher Control Mode"
         type: "input_publisher_mode/InputPublisherMode"
+        active: true
 
 game_controller_source:
   ros__parameters:
@@ -78,6 +80,8 @@ game_controller_source:
           from: "A"
         twitch:
           from: "B"
+        spinny_pos_1:
+          from: "X"
 
 input_publisher_mode:
   ros__parameters:

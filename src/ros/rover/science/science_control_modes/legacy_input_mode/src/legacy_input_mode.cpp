@@ -7,7 +7,7 @@ LegacyInputMode::LegacyInputMode() = default;
 
 LegacyInputMode::~LegacyInputMode() = default;
 
-int8_t LegacyInputMode::update_button(const uint8_t last_button, Button::SharedPtr current_input)
+int8_t LegacyInputMode::update_button(const uint8_t last_button, Button current_input)
 {
   if (!current_input)
   {
@@ -15,7 +15,7 @@ int8_t LegacyInputMode::update_button(const uint8_t last_button, Button::SharedP
   }
 
   // button currently not pressed
-  if (current_input->value() == 0)
+  if (current_input.value() == 0)
   {
     // nothing happening
     if (last_button == static_cast<uint8_t>(ButtonState::NOTHING) || last_button == static_cast<uint8_t>(ButtonState::UP))
@@ -176,16 +176,16 @@ return_type LegacyInputMode::on_update(const rclcpp::Time & now, const rclcpp::D
   last_message_.btn_bottom_r6_state = update_button(last_message_.btn_bottom_r6_state, buttons_["btn_bottom_r6_state"]);
 
   // Main Joystick Axis Data
-  last_message_.ax_stick_x = axes_["ax_stick_x"]->value();
-  last_message_.ax_stick_y = axes_["ax_stick_y"]->value();
-  last_message_.ax_stick_twist = axes_["ax_stick_twist"]->value();
+  last_message_.ax_stick_x = axes_["ax_stick_x"].value();
+  last_message_.ax_stick_y = axes_["ax_stick_y"].value();
+  last_message_.ax_stick_twist = axes_["ax_stick_twist"].value();
 
   // Thumb Axis Data
-  last_message_.ax_thumb_x = axes_["ax_thumb_x"]->value();
-  last_message_.ax_thumb_y = axes_["ax_thumb_y"]->value();
+  last_message_.ax_thumb_x = axes_["ax_thumb_x"].value();
+  last_message_.ax_thumb_y = axes_["ax_thumb_y"].value();
 
   // Slider Data
-  last_message_.ax_slider = axes_["ax_slider"]->value();
+  last_message_.ax_slider = axes_["ax_slider"].value();
 
   publisher_->publish(last_message_);
 

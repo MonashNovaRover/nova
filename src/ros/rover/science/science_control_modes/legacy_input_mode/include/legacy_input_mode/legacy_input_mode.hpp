@@ -61,7 +61,7 @@ private:
   };
 
   /// Update Buttons
-  static int8_t update_button(uint8_t last_button, Button::SharedPtr current_input);
+  static int8_t update_button(uint8_t last_button, Button current_input);
 
   /// Stores current parameter values
   Params params_;
@@ -70,8 +70,8 @@ private:
   rclcpp::Publisher<input_interfaces::msg::InputJoystick>::SharedPtr publisher_;
 
   // Store shared pointer in a map
-  std::map<std::string, Button::SharedPtr> buttons_{};
-  std::map<std::string, Axis::SharedPtr> axes_{};
+  std::map<std::string, Button> buttons_{};
+  std::map<std::string, Axis> axes_{};
 
   // Last message
   input_interfaces::msg::InputJoystick last_message_{};
