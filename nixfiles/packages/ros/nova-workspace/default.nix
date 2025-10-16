@@ -126,11 +126,7 @@
       nova-joint-space-control-mode
       nova-teleop-arm
       ;
-    nova-launch-auto-arch = launchPackages.auto-arch;
-    nova-launch-auto-urc = launchPackages.auto-urc;
-    nova-launch-gui = launchPackages.gui;
-    nova-launch-drive = launchPackages.drive;
-    nova-launch-old-drive = launchPackages.old-drive;
+    nova-launch = launchPackages.all;
   } 
 
   ## Extra packages to add to the workspace.

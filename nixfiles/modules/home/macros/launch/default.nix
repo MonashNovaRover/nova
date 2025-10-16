@@ -23,18 +23,23 @@ let
     nc = ''\033[0m''; # no colour
   };
 
-  # used for filtering out the entire repo and just getting the .git
-  nix-filter = import ( builtins.fetchGit { url = "https://github.com/numtide/nix-filter.git"; } );
-
   # get git status of repo
-  # currently this will run for every single script build sorry
   git-status = ''
     mkdir -p $out
+    echo -e "Checking git status at $(basename `git rev-parse --show-toplevel`)"
     GIT_COMMIT=$(git rev-parse HEAD)
     GIT_DATE=$(git show -s --format=%ci HEAD)
     GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    GIT_DIRTY=$(if [ -n "$(git status --porcelain)" ]; then echo "dirty"; else echo "clean"; fi)
-    echo -e "commit: $GIT_COMMIT\ndate: $GIT_DATE\nbranch: $GIT_BRANCH\ndirty: $GIT_DIRTY" > $out/git-metadata
+    GIT_DIRTY=$(git status --porcelain)
+    echo -e "commit: $GIT_COMMIT\ndate: $GIT_DATE\nbranch: $GIT_BRANCH" > $out/nova-git-metadata
+    echo "$GIT_DIRTY"
+    if [ -n "$GIT_DIRTY" ]; then
+      echo -e "Uncommited changes:\n" >> $out/nova-git-metadata
+      git diff >> $out/nova-git-metadata
+      git diff --cached >> $out/nova-git-metadata
+    else
+      echo "Git repository is clean. No diff to write." >> $out/nova-git-metadata
+    fi
   '';
 
   # these run a single command, and record it in history, you will need to make a custom line for multiple commands
@@ -104,13 +109,9 @@ let
     pname = "nova-" + shellName;
     version = "1.0";
     shellHook = shellString;
-    src = nix-filter { root = ../../../../../.; include = [".git"];};
-
-    buildInputs = [ pkgs.git ];
     # put it in the bin dir
     # add checkers for $1 and $2 for rover and mast ips
     buildPhase = ''
-      ${git-status}
       mkdir -p $out/bin
       cat > $out/bin/${shellName} <<'EOF'
       #!${pkgs.bash}/bin/bash
@@ -127,15 +128,44 @@ let
   bashBuilder = struct: shellName: shellAndBuild (mkBashScript struct) shellName;
 
   callPackage = pkgs.lib.callPackageWith {inherit base base-nix rover rover-nix mast pre-shell post-shell bashBuilder route;};
-  
+in
+
+rec { 
   # import more payloads here
   auto = callPackage ./auto.nix   { };
   drive = callPackage ./drive.nix { };
   gui = callPackage ./gui.nix     { };
 
-  payloads = builtins.foldl' pkgs.lib.mergeAttrs { } [auto drive gui];
-in
+  all = pkgs.stdenv.mkDerivation {
+    pname = "nova-launch-scripts";
+    version = "1.0";
 
-payloads
+    /* print out the buildPhase for testing
+    shellHook = ''
+      cat << ENDOFFILE
+      ${
+        builtins.concatStringsSep "\n" (
+          builtins.attrValues (
+            builtins.mapAttrs (_: drv: drv.buildPhase) (
+              builtins.removeAttrs (builtins.foldl' pkgs.lib.mergeAttrs { } [auto drive gui]) ["override" "overrideDerivation"]
+            )
+          )
+        )
+      }'
+      ENDOFFILE
+    ''; */
 
+    # this is relative to where this file is but it points at the root dir of the repo for git e.g /home/nova/nova
+    # it slows the build down significantly but we need to check the diff of every file
+    src = ../../../../../.;
+    buildInputs = [pkgs.git];
 
+    buildPhase = git-status + "\n" + builtins.concatStringsSep "\n" (
+      builtins.attrValues (
+        builtins.mapAttrs (_: drv: drv.buildPhase) (
+          builtins.removeAttrs (builtins.foldl' pkgs.lib.mergeAttrs { } [auto drive gui]) ["override" "overrideDerivation"]
+        )
+      )
+    );
+  };
+}
