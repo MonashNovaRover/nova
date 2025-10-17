@@ -52,14 +52,16 @@ Follow this basic structure and then you can run it through any of the following
 ### Example Setups
 Last updated 17/10/2025
 GUI runner which has a nix shell and web browser open
+With optional arguments and additional build inputs
 ```
+# run gui and rosbridge
 { 
+    pkgs,
     base,
     pre-shell,
     post-shell,
     bashBuilder,
-    base-nix,
-    route
+    base-nix
 }:
 
 let 
@@ -69,11 +71,24 @@ let
       {name = "Base:Gui"; platform=base-nix "gui-shell"; cmd="gui-link; gui-run";}
       {name = "Base:Rosbridge"; platform=base; cmd="gui-rosbridge";}
     ];
-    post = "xdg-open http://localhost:5173/${route}\n" + post-shell;
+    post = "${pkgs.xdg-utils}/bin/xdg-open http://localhost:5173/$GUI_ROUTE\n" + post-shell; 
+    buildInputs = [ pkgs.xdg-utils ];
+    optional-args = [ {letter="r"; variable="GUI_ROUTE"; default="";} ];
+  };
+  local-gui-setup = { # no aliases, with options to change paths etc
+    pre = pre-shell {payload-name="Nova Gui";};
+    terminals = [
+      {name = "Base:Gui"; platform=base-nix "nix-shell $NOVA_REPO_PATH/nixfiles -A pkgs.ros.nova-gui"; cmd="ln -sf \"$ROS_TS_DEFINITIONS\" $NOVA_REPO_PATH/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts; cd $NOVA_REPO_PATH/src/ros/nova-gui/nova-gui; yarn dev";}
+      {name = "Base:Rosbridge"; platform=base; cmd="gui-rosbridge";}
+    ];
+    post = "${pkgs.xdg-utils}/bin/xdg-open http://localhost:5173/$GUI_ROUTE\n" + post-shell; 
+    buildInputs = [ pkgs.xdg-utils ];
+    optional-args = [ {letter="r"; variable="GUI_ROUTE"; default="";} {letter="n"; variable="NOVA_REPO_PATH"; default="/home/nova/nova";} ];
   };
 in
 {
   gui = bashBuilder gui-setup "run-gui";
+  gui-local = bashBuilder local-gui-setup "run-gui-local";
 }
 ```
 See drive example for SSH (above)
