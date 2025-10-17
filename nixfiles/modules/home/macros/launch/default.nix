@@ -5,7 +5,7 @@
     pkgs ? import <nixpkgs> {}, 
     rover-ip ? "$1",
     mast-ip ? "$2",
-    dir ? "/home/nova/Builds/master/bin",
+    dir ? "$( dirname \"$\{BASH_SOURCE[0]}\" )", # default to dir the shell script is in
     route ? "",
 }:
 
@@ -23,30 +23,11 @@ let
     nc = ''\033[0m''; # no colour
   };
 
-  # get git status of repo
-  git-status = ''
-    mkdir -p $out
-    echo -e "Checking git status at $(basename `git rev-parse --show-toplevel`)"
-    GIT_COMMIT=$(git rev-parse HEAD)
-    GIT_DATE=$(git show -s --format=%ci HEAD)
-    GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    GIT_DIRTY=$(git status --porcelain)
-    echo -e "commit: $GIT_COMMIT\ndate: $GIT_DATE\nbranch: $GIT_BRANCH" > $out/nova-git-metadata
-    echo "$GIT_DIRTY"
-    if [ -n "$GIT_DIRTY" ]; then
-      echo -e "Uncommited changes:\n" >> $out/nova-git-metadata
-      git diff >> $out/nova-git-metadata
-      git diff --cached >> $out/nova-git-metadata
-    else
-      echo "Git repository is clean. No diff to write." >> $out/nova-git-metadata
-    fi
-  '';
-
   # these run a single command, and record it in history, you will need to make a custom line for multiple commands
-  local-terminal = name: cmd: ''ptyxis --tab -d ${dir} --title="${name}" -x "bash -ic '${cmd}; history -s \"${cmd}\"; exec bash'"'';
-  local-nix-terminal = shell: name: cmd: ''ptyxis --tab -d ${dir} --title="${name}" -x "bash -ic '${shell} --command \"${cmd}; history -s \\\"${cmd}\\\"; exec bash -l\"; history -s \"${shell}\"; exec bash -l'; exec bash -l"'';
-  ssh-terminal = target: name: cmd: ''ptyxis --tab -d ${dir} --title="${name}" -x "bash -ic 'ssh -t ${target} \"bash -ic \\\"${cmd}; history -s ${cmd}; exec bash -l\\\"\"; history -s \"ssh -t ${target}\"; exec bash -l'"'';
-  ssh-nix-terminal = target: shell: name: cmd: ''ptyxis --tab --title="${name}" -x "bash -ic 'ssh -t ${target} \"bash -ic \\\"${shell} --command \\\\\\\"${cmd}; history -s \\\\\\\\\\\\\\\"${cmd}\\\\\\\\\\\\\\\"; exec bash -l\\\\\\\"; history -s \\\\\\\"${shell}\\\\\\\"; exec bash -l\\\"\"; history -s \"ssh -t ${target}\"; exec bash -l'"'';
+  local-terminal = name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab -d ${dir} --title="${name}" -x "bash -ic '${cmd}; history -s \"${cmd}\"; exec bash'"'';
+  local-nix-terminal = shell: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab -d ${dir} --title="${name}" -x "bash -ic '${shell} --command \"${cmd}; history -s \\\"${cmd}\\\"; exec bash -l\"; history -s \"${shell}\"; exec bash -l'; exec bash -l"'';
+  ssh-terminal = target: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab --title="${name}" -x "bash -ic 'ssh -t ${target} \"bash -ic \\\"cd ${dir}; ${cmd}; history -s ${cmd}; exec bash -l\\\"\"; history -s \"ssh -t ${target}\"; exec bash -l'"'';
+  ssh-nix-terminal = target: shell: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab --title="${name}" -x "bash -ic 'ssh -t ${target} \"bash -ic \\\"${shell} --command \\\\\\\"cd ${dir}; ${cmd}; history -s \\\\\\\\\\\\\\\"${cmd}\\\\\\\\\\\\\\\"; exec bash -l\\\\\\\"; history -s \\\\\\\"${shell}\\\\\\\"; exec bash -l\\\"\"; history -s \"ssh -t ${target}\"; exec bash -l'"'';
   
   # aliases for each simple command
   base = local-terminal;
@@ -61,16 +42,16 @@ let
   mast-ssh-check = need-mast: if need-mast then ssh-check mast-ip else "";
 
   # usage strings for nix-shell and nix-build respectively
-  usage-string-shell = platform: "You must provide a target for ${platform} ssh commands.\nUsage: nix-shell shell.nix --argstr ${platform}-ip <user@ip>\ne.g nix-shell shell.nix --argstr ${platform}-ip nova@10.0.0.11";
-  usage-string-build = platform: "You must provide a target for ${platform} ssh commands.\\nUsage: $0 <nova@rover-ip> <nova@mast-ip>\\ne.g $0 nova@10.0.0.2 nova@10.0.0.3";
+  usage-string-shell = platform: "You must provide a target for ${platform} ssh commands.\n  Usage: nix-shell shell.nix --argstr ${platform}-ip <user@ip>\n  e.g nix-shell shell.nix --argstr ${platform}-ip nova@10.0.0.11";
+  usage-string-build = platform: "${ansi.light-red}ERROR:${ansi.nc} ${platform}-ip is required for ssh commands. \\n  Usage: $0 \[nova@rover-ip\] \[nova@mast-ip\] \\n  e.g $0 nova@10.0.0.2 nova@10.0.0.3";
 
   # check that ip is present and optionally enforce this 
   rover-check = need-rover: if rover-ip == "$1" && need-rover && inShell
     then throw (usage-string-shell "rover")
-    else if rover-ip == "$1" && !need-rover then "" else "SSHing into rover at ${ansi.light-purple}${rover-ip}${ansi.nc}...";
+    else if rover-ip == "$1" && !need-rover then "" else "  echo \"SSHing into rover at ${ansi.light-purple}${rover-ip}${ansi.nc}...\"";
   mast-check = need-mast: if mast-ip == "$2" && need-mast && inShell
     then throw (usage-string-shell "mast")
-    else if mast-ip == "$2" && !need-mast then "" else "SSHing into mast at ${ansi.light-purple}${mast-ip}${ansi.nc}...";
+    else if mast-ip == "$2" && !need-mast then "" else "  echo \"SSHing into mast at ${ansi.light-purple}${mast-ip}${ansi.nc}...\"";
 
   # default pre-shell for setup before terminals
   # if statement prevents infinite loop
@@ -82,11 +63,9 @@ let
     if [ -z "$SHELL_STARTED" ]; then
       export SHELL_STARTED=1
       export TMPDIR=/tmp
-      echo -e "${ansi.light-red}Tip!${ansi.nc} Change your working directory (Default: ${ansi.orange}/home/nova/Builds/master/bin${ansi.nc}) by appending ${ansi.yellow}--argstr dir ${ansi.orange}YOUR/DIR/HERE${ansi.nc} \
-      Launching ${ansi.light-green}${payload-name}${ansi.nc}... \
-      ${rover-check need-rover} \
-      ${mast-check need-mast} \
-      Running in ${ansi.orange}${dir}${ansi.nc}..."
+      echo -e "Launching ${ansi.light-green}${payload-name}${ansi.nc}... \nRunning in ${ansi.orange}${dir}${ansi.nc}..."
+      ${rover-check need-rover}
+      ${mast-check need-mast}
       ${rover-ssh-check need-rover}
       ${mast-ssh-check need-mast}
   '';
@@ -102,23 +81,27 @@ let
   #   pre = pre-shell {payload-name="name"; need-mast=true}; # you can string concat any additions to this, need-mast is optional and defaults to false
   #   terminals = {name, platform, command}[]; # An array of sets 
   #   post = post-shell + "\nAdditional command"; # make additions with a new line since it will be added to a shell hook!
-  mkBashScript = {pre ? pre-shell {payload-name="";}, terminals, post ? post-shell}: "${pre}\n${assembleTerminal terminals}\n${post}";
+  mkBashScript = {pre ? pre-shell {payload-name="";}, terminals, post ? post-shell, buildInputs ? []}: {shellString = "${pre}\n${assembleTerminal terminals}\n${post}"; buildInputs = buildInputs;};
 
   # construct the shell and build environments, shellString is the final shell script created using mkBashScript, shellName is the final bash script name
-  shellAndBuild = shellString: shellName: pkgs.stdenv.mkDerivation {
+  shellAndBuild = {shellString, buildInputs}: shellName: pkgs.stdenv.mkDerivation {
     pname = "nova-" + shellName;
     version = "1.0";
     shellHook = shellString;
     # put it in the bin dir
     # add checkers for $1 and $2 for rover and mast ips
+    buildInputs = buildInputs;
     buildPhase = ''
       mkdir -p $out/bin
       cat > $out/bin/${shellName} <<'EOF'
       #!${pkgs.bash}/bin/bash
       # THIS FILE IS AUTO GENERATED BY NIX
-      ${if rover-ip != "$1" then "if [ -z \"$1\" ]; then\n  echo -e \"${usage-string-build "rover"}\"\n  exit 1\nfi" else ""}
-      ${if rover-ip == "$1" then "" else if mast-ip != "$2" then "if [ -z \"$2\" ]; then\n  echo -e \"${usage-string-build "mast"}\"\n  exit 1\nfi" else ""}
-      ${builtins.replaceStrings [rover-ip mast-ip] ["$1" "$2"] shellString}
+      ${
+        builtins.replaceStrings [(rover-check true) (mast-check true)] 
+        ["if [ -z \"$1\" ]; then\n    echo -e \"${usage-string-build "rover"}\"\n    exit 1\n  fi" 
+        "if [ -z \"$2\" ]; then\n    echo -e \"${usage-string-build "mast"}\"\n    exit 1\n  fi"] 
+        shellString # replace the nix-shell arg check with bash arg check
+      }
       EOF
       chmod +x $out/bin/${shellName}
     '';
@@ -127,9 +110,8 @@ let
   # final single function to pass to child nix files to make defining setups easy
   bashBuilder = struct: shellName: shellAndBuild (mkBashScript struct) shellName;
 
-  callPackage = pkgs.lib.callPackageWith {inherit base base-nix rover rover-nix mast pre-shell post-shell bashBuilder route;};
+  callPackage = pkgs.lib.callPackageWith {inherit pkgs base base-nix rover rover-nix mast pre-shell post-shell bashBuilder route;};
 in
-
 rec { 
   # import more payloads here
   auto = callPackage ./auto.nix   { };
@@ -154,18 +136,48 @@ rec {
       }'
       ENDOFFILE
     ''; */
+    shellHook = ''
+      ls ${pkgs.ptyxis}
+    '';
+    src = ./.;
+    buildInputs = [pkgs.ptyxis] ++ builtins.concatLists (
+      builtins.attrValues (builtins.mapAttrs (_: drv: drv.buildInputs) (
+          builtins.removeAttrs (builtins.foldl' pkgs.lib.mergeAttrs { } [auto drive gui]) ["override" "overrideDerivation"]
+      ))
+    );
 
-    # this is relative to where this file is but it points at the root dir of the repo for git e.g /home/nova/nova
-    # it slows the build down significantly but we need to check the diff of every file
-    src = ../../../../../.;
-    buildInputs = [pkgs.git];
-
-    buildPhase = git-status + "\n" + builtins.concatStringsSep "\n" (
+    buildPhase = builtins.concatStringsSep "\n" (
       builtins.attrValues (
         builtins.mapAttrs (_: drv: drv.buildPhase) (
           builtins.removeAttrs (builtins.foldl' pkgs.lib.mergeAttrs { } [auto drive gui]) ["override" "overrideDerivation"]
         )
       )
     );
+  };
+
+  git-metadata = pkgs.stdenv.mkDerivation {
+    pname = "nova-git-metadata";
+    version = "1.0";
+    # this is relative to where this file is but it points at the root dir of the repo for git e.g /home/nova/nova
+    # it slows the build down significantly but we need to check the diff of every file
+    src = ../../../../../.;
+    buildInputs = [pkgs.git];
+    buildPhase = ''
+      mkdir -p $out
+      echo -e "Checking git status at $(basename `git rev-parse --show-toplevel`)"
+      GIT_COMMIT=$(git rev-parse HEAD)
+      GIT_DATE=$(git show -s --format=%ci HEAD)
+      GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+      GIT_DIRTY=$(git status --porcelain)
+      echo -e "commit: $GIT_COMMIT\ndate: $GIT_DATE\nbranch: $GIT_BRANCH" > $out/nova-git-metadata
+      echo "$GIT_DIRTY"
+      if [ -n "$GIT_DIRTY" ]; then
+        echo -e "Uncommited changes:\n" >> $out/nova-git-metadata
+        git diff >> $out/nova-git-metadata
+        git diff --cached >> $out/nova-git-metadata
+      else
+        echo "Git repository is clean. No diff to write." >> $out/nova-git-metadata
+      fi
+    '';
   };
 }

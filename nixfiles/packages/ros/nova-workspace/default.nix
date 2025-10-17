@@ -126,7 +126,9 @@
       nova-joint-space-control-mode
       nova-teleop-arm
       ;
+    nova-can-sleuth = pythonPackages.nova-can-sleuth;
     nova-launch = launchPackages.all;
+    nova-git-metadata = launchPackages.git-metadata;
   } 
 
   ## Extra packages to add to the workspace.

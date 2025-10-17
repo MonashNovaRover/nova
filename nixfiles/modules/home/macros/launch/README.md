@@ -24,6 +24,9 @@ in
 - For examples see below
 - When creating setups AVOID using hardcoded file paths as since the bash scripts are created in the bin directory, it essentially links the binaries to the launch allowing versioned launch scripts! Because of this you should also avoid using aliases that also hard code paths. 
   - By the way there is a dir argument if you so need to change the DIR of a build etc (might need fixing)
+- When running a terminal it will open a terminal in the same folder as the script (bin folder)
+- When SSHing keep in mind that aliases are defined on a per user basis (nova aliases won't work in non-nova users)
+
 
 ### Build and/or Run
 Follow this basic structure and then you can run it through any of the following means:\
