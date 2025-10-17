@@ -27,7 +27,7 @@ in
 - When running a terminal it will open a terminal in the same folder as the script (bin folder)
 - When SSHing keep in mind that aliases are defined on a per user basis (nova aliases won't work in non-nova users)
 - `need-rover` and `need-mast` adds the checks to ssh into the rover and mast respectively, if you don't add them SSHs may fail!
-- 
+- payload-name just prints it out in console, purely *a e s t h e t i c*
 
 
 ### Build and/or Run
