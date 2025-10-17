@@ -32,5 +32,5 @@ let
 in
 {
   gui = bashBuilder gui-setup "run-gui";
-  gui-local = bashBuilder local-gui-setup "run-gui-local";
+  local-gui = bashBuilder local-gui-setup "run-gui-local";
 }

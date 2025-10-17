@@ -26,6 +26,8 @@ in
   - By the way there is a dir argument if you so need to change the DIR of a build etc (might need fixing)
 - When running a terminal it will open a terminal in the same folder as the script (bin folder)
 - When SSHing keep in mind that aliases are defined on a per user basis (nova aliases won't work in non-nova users)
+- `need-rover` and `need-mast` adds the checks to ssh into the rover and mast respectively, if you don't add them SSHs may fail!
+- 
 
 
 ### Build and/or Run
@@ -36,8 +38,8 @@ Follow this basic structure and then you can run it through any of the following
 - MODULE-NAME refers to variable name given to the imported in default.nix
 - ATTR-NAME refers to the variable name given to the particular payload inside the payload.nix 
 - So in this case `-A drive.drive`
-` If you want a single .nix file you can all with just `-A mynixfilename` then have a single output of the file instead of a set
-` There are also currently two arguments to dynamically set the rover and mast's ip for SSHing
+- If you want a single .nix file you can all with just `-A mynixfilename` then have a single output of the file instead of a set
+- There are also currently two arguments to dynamically set the rover and mast's ip for SSHing
 
 `nix-build -o ~/Builds/drive  ~/nova/nixfiles/modules/home/macros/launch -A drive.drive`
 - This will create executable bash files in your specified output destination's bin file
@@ -53,7 +55,7 @@ Follow this basic structure and then you can run it through any of the following
 Last updated 17/10/2025
 GUI runner which has a nix shell and web browser open
 With optional arguments and additional build inputs
-```
+```nix
 # run gui and rosbridge
 { 
     pkgs,
