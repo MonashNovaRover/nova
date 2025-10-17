@@ -37,8 +37,6 @@ class BatteryStateController(Controller):
 
         self.publisher_battery_state = self.node.create_publisher(BatteryState, '/battery_state', 10)
 
-        # time_interval= 5.0
-        # self.update_timer = self.create_timer(time_interval, self.get_battery_state)
         self.parsed_voltage = float('nan')
         self.parsed_current = float ('nan')
         self.logger.info("BatteryStateController started.")
@@ -59,7 +57,6 @@ class BatteryStateController(Controller):
         msg.current = self.parsed_current
 
         self.publisher_battery_state.publish(msg)
-        self.logger.info(f"battery is present: {msg.present}, published voltage: {msg.voltage}, current: {msg.current}")
 
 class BatteryStateHardware(HardwareInterface):
 
