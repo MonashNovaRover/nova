@@ -30,6 +30,9 @@ testing ws (del later):
 $ ~/Builds/testing/bin/ros2 run electronics battery_state.py --ros-args --params-file ~/nova/src/ro
 s/rover/nova_bringup/params/battery_state.yaml
 """
+# but basically for you you’ll need to write a hardware interface that listens for can m
+# essages and puts them onto a state interface, and then have a controller that reads from 
+# this state interface and publishes the data to the gui, 
 
 class BatteryStateController(Controller):
     def __init__(self, contexts: Contexts):
@@ -37,24 +40,28 @@ class BatteryStateController(Controller):
 
         self.publisher_battery_state = self.node.create_publisher(BatteryState, '/battery_state', 10)
 
-        self.parsed_voltage = float('nan')
-        self.parsed_current = float ('nan')
+        self.voltage_state = None
+        self.current_state = None
         self.logger.info("BatteryStateController started.")
 
     def on_configure(self, command_interfaces, state_interfaces):
+        self.voltage_state = state_interfaces["voltage"]
+        self.current_state = state_interfaces["current"]
+        self.logger.info("getting voltage and current state")
         return True
 
+#need to fix this grrrrr
     def on_update(self, now, period):
         msg = BatteryState()
 
-        if math.isnan(self.parsed_voltage):
+        if math.isnan(self.voltage_state.value):
             msg.present = False 
             msg.voltage = float('nan')
             msg.current = float('nan')
 
-        msg.voltage = self.parsed_voltage
+        msg.voltage = self.voltage_state.value
         msg.present = True
-        msg.current = self.parsed_current
+        msg.current = self.current_state.value
 
         self.publisher_battery_state.publish(msg)
 
@@ -71,8 +78,9 @@ class BatteryStateHardware(HardwareInterface):
         self.current = float('nan')
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
-        # self.state = state_interfaces["state"]
         self.logger.info(f"Checking {self.VOLTAGE_CURRENT_CANID}")
+        self.voltage_state = state_interfaces["voltage"]
+        self.current_state = state_interfaces["current"]
         self.bus.add_callback(self.VOLTAGE_CURRENT_CANID, self.get_battery_frame)
 
     def on_read(self, now, period):
@@ -85,7 +93,9 @@ class BatteryStateHardware(HardwareInterface):
 
         self.parsed_current = current/100.0
         self.parsed_voltage = voltage/1000.0
-        self.logger.info(f"parsed voltage: {self.parsed_voltage}. current: {self.parsed_current}")
+        self.voltage_state.value = self.parsed_voltage
+        self.current_state.value = self.parsed_current
+        self.logger.info(f"voltage (mV): {self.parsed_voltage}. current (centiamps): {self.parsed_current}")
 
     def on_write(self, now, period):
         pass
