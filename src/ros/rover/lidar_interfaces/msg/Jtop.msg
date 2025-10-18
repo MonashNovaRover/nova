@@ -21,10 +21,11 @@ float32 cpu_total_user  # total % spent for user-space
 float32 cpu_total_nice
 float32 cpu_total_system
 float32 cpu_total_idle  # total % unused
+float32 cpu_total       # total % usage
 
 # CPU Cores
 int32[] cpu_core_freq   # current cpu core frequencies
-float32[] cpu_core_idle # current % of time spent idle for all cpu cores
+float32[] cpu_core_total # current % of time spent working for all cpu cores
 
 # GPU
 int32 gpu_freq    # current gpu frequency
@@ -37,9 +38,9 @@ int32 power    # power in milliwatts
 int32 power_avg   # power average in milliwatts???
 
 # Disk I/O (KB/s)
-int32 disk_read
-int32 disk_write
+float32 disk_read
+float32 disk_write
 
 # Network I/O (KB/s)
-int32 net_tx
-int32 net_rx
+float32 net_tx
+float32 net_rx
