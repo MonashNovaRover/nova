@@ -10,4 +10,5 @@
   pyrtcm = callPackage ./pyrtcm { };
   pyubx2 = callPackage ./pyubx2 { };
   minimalmodbus = callPackage ./minimalmodbus { };
+  jetson-stats = callPackage ./jetson-stats { };
 }

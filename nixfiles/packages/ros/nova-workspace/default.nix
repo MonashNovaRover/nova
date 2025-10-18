@@ -129,6 +129,7 @@
       lidar-interfaces
       ;
       nova-can-sleuth = pythonPackages.nova-can-sleuth;
+      jetson-stats = pythonPackages.jetson-stats;
   }
 
   ## Extra packages to add to the workspace.
