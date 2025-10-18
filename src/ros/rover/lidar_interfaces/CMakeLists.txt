@@ -9,9 +9,9 @@ find_package(rosidl_default_generators REQUIRED)
 # Include all interfaces
 rosidl_generate_interfaces(${PROJECT_NAME}
   # Message definitions
-  "msg/jtop.msg"
+  "msg/Jtop.msg"
 
-  DEPENDENCIES std_msgs geometry_msgs nav_msgs action_msgs sensor_msgs
+  DEPENDENCIES std_msgs
 )
 
 ament_package()

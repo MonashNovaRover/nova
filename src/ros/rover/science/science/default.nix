@@ -37,6 +37,8 @@ buildRosPackage {
     opencv4
     pyserial
     python3Packages.minimalmodbus
+
+    jetson-stats  #< TODO: This is evil, please remove
   ] ++
   [
     nova-python-control
