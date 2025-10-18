@@ -4,10 +4,10 @@ rtabmap_slam:
     qos: 1
     frame_id: base_link
     publish_tf: True
-    subscribe_rgb: False
+    subscribe_rgb: True
     subscribe_depth: False
-    subscribe_rgbd: True
-    rgbd_cameras: 2
+    subscribe_rgbd: False
+    subscribe_scan_cloud: True
     subscribe_odom_info: False
     approx_sync: True
     odom_frame_id: odom

@@ -56,49 +56,51 @@ def launch_setup(context, *args, **kwargs):
             package='rclcpp_components',
             executable='component_container',
             composable_node_descriptions=[
-                ComposableNode(
-                    package='rtabmap_sync',
-                    plugin='rtabmap_sync::RGBDSync',
-                    name=f'{front_name}_rgbd_sync',
-                    parameters=[rtabmap_params],
-                    remappings=[
-                        ('rgb/image', front_name+'/rgb/image_raw'),
-                        ('rgb/camera_info', front_name+'/rgb/camera_info'),
-                        ('depth/image', front_name+'/stereo/image_raw'),
-                        ('rgbd_image',front_name+'/rgbd/image_raw')
-                    ],
-                ),
-                ComposableNode(
-                    package='rtabmap_sync',
-                    plugin='rtabmap_sync::RGBDSync',
-                    name=f'{back_name}_rgbd_sync',
-                    parameters=[rtabmap_params],
-                    remappings=[
-                        ('rgb/image', back_name+'/rgb/image_raw'),
-                        ('rgb/camera_info', back_name+'/rgb/camera_info'),
-                        ('depth/image', back_name+'/stereo/image_raw'),
-                        ('rgbd_image',back_name+'/rgbd/image_raw'),
-                    ],
-                ),
-                ComposableNode(
-                    package='rtabmap_odom',
-                    plugin='rtabmap_odom::RGBDOdometry',
-                    name='rtabmap_odom',
-                    parameters=[rtabmap_params, {'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}', 'use_sim_time': gazebo}],
-                    remappings=[
-                        ('odom', 'odom/visual'),
-                        ('rgbd_image0',front_name+'/rgbd/image_raw'),
-                        ('rgbd_image1',back_name+'/rgbd/image_raw'),
-                    ],
-                ),
+                # ComposableNode(
+                #     package='rtabmap_sync',
+                #     plugin='rtabmap_sync::RGBDSync',
+                #     name=f'{front_name}_rgbd_sync',
+                #     parameters=[rtabmap_params],
+                #     remappings=[
+                #         ('rgb/image', front_name+'/rgb/image_raw'),
+                #         ('rgb/camera_info', front_name+'/rgb/camera_info'),
+                #         ('depth/image', front_name+'/stereo/image_raw'),
+                #         ('rgbd_image',front_name+'/rgbd/image_raw')
+                #     ],
+                # ),
+                # ComposableNode(
+                #     package='rtabmap_sync',
+                #     plugin='rtabmap_sync::RGBDSync',
+                #     name=f'{back_name}_rgbd_sync',
+                #     parameters=[rtabmap_params],
+                #     remappings=[
+                #         ('rgb/image', back_name+'/rgb/image_raw'),
+                #         ('rgb/camera_info', back_name+'/rgb/camera_info'),
+                #         ('depth/image', back_name+'/stereo/image_raw'),
+                #         ('rgbd_image',back_name+'/rgbd/image_raw'),
+                #     ],
+                # ),
+                # ComposableNode(
+                #     package='rtabmap_odom',
+                #     plugin='rtabmap_odom::RGBDOdometry',
+                #     name='rtabmap_odom',
+                #     parameters=[rtabmap_params, {'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}', 'use_sim_time': gazebo}],
+                #     remappings=[
+                #         ('odom', 'odom/visual'),
+                #         ('rgbd_image0',front_name+'/rgbd/image_raw'),
+                #         ('rgbd_image1',back_name+'/rgbd/image_raw'),
+                #     ],
+                # ),
                 ComposableNode(
                     package='rtabmap_slam',
                     plugin='rtabmap_slam::CoreWrapper',
                     name='rtabmap_slam',
                     parameters=[rtabmap_params, {'use_sim_time': gazebo, 'rtabmap_args': '--delete_db_on_start'}],
                     remappings=[
-                        ('rgbd_image0',front_name+'/rgbd/image_raw'),
-                        ('rgbd_image1',back_name+'/rgbd/image_raw'),
+                        ('scan_cloud','/livox/lidar'),
+                        ('rgb/image','/oak/rgb/image_raw'),
+                        ('rgb/camera_info','/oak/rgb/camera_info')
+                        # ('gps/fix','/gps_rover/fix')
                     ],
                 ),
             ],
@@ -113,15 +115,15 @@ def launch_setup(context, *args, **kwargs):
         #     ],
         # ),
         Node(
-            condition=IfCondition(rtabmap_viz),
+            # condition=IfCondition(rtabmap_viz),
             package='rtabmap_viz',
             executable='rtabmap_viz',
             output='screen',
-            parameters=[rtabmap_params, {'use_sim_time': gazebo}],
+            parameters=[rtabmap_params, {'use_sim_time': True}],
             remappings=[
-                ('rgbd_image0',front_name+'/rgbd/image_raw'),
-                ('rgbd_image1',back_name+'/rgbd/image_raw'),
-                ('odom', 'odom/visual'),
+                ('scan_cloud','/livox/lidar'),
+                ('rgb/image','/oak/rgb/image_raw'),
+                ('rgb/camera_info','/oak/rgb/camera_info')
             ]
         ),
     ]
