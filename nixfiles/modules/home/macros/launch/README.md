@@ -22,9 +22,8 @@ in
 - Note that each setup has a pre and post which are just bash commands which run before and after the terminals, you can add on / modify the defaults through string manipulation
 - Terminals is an array of sets expecting {name, platform, cmd}
 - For examples see below
-- When creating setups AVOID using hardcoded file paths as since the bash scripts are created in the bin directory, it essentially links the binaries to the launch allowing versioned launch scripts! Because of this you should also avoid using aliases that also hard code paths. 
   - By the way there is a dir argument if you so need to change the DIR of a build etc (might need fixing)
-- When running a terminal it will open a terminal in the same folder as the script (bin folder)
+- Typically, terminals will open in the user directory that you login to
 - When SSHing keep in mind that aliases are defined on a per user basis (nova aliases won't work in non-nova users)
 - `need-rover` and `need-mast` adds the checks to ssh into the rover and mast respectively, if you don't add them SSHs may fail!
 - payload-name just prints it out in console, purely *a e s t h e t i c*
@@ -44,7 +43,7 @@ Follow this basic structure and then you can run it through any of the following
 `nix-build -o ~/Builds/drive  ~/nova/nixfiles/modules/home/macros/launch -A drive.drive`
 - This will create executable bash files in your specified output destination's bin file
 - the rover-ip and mast-ip arguments are then handled by the shell files and must be passed through as argument 1 and 2 respectively
-- e.g `/work/drive/bin/run-drive nova@orin-ip`
+- e.g `~/Builds/drive/bin/run-drive nova@orin-ip`
 - This will also create a git metadata file with any dirty changes (non committed changes) as a patch at the end.
 - Find this file in the root directory of the resultant build as `nova-git-metadata`
 

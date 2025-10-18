@@ -23,7 +23,7 @@ let
     pre = pre-shell {payload-name="Nova Gui";};
     terminals = [
       {name = "Base:Gui"; platform=base-nix "nix-shell $NOVA_REPO_PATH/nixfiles -A pkgs.ros.nova-gui"; cmd="ln -sf \"$ROS_TS_DEFINITIONS\" $NOVA_REPO_PATH/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts; cd $NOVA_REPO_PATH/src/ros/nova-gui/nova-gui; yarn dev";}
-      {name = "Base:Rosbridge"; platform=base; cmd="gui-rosbridge";}
+      {name = "Base:Rosbridge"; platform=base; cmd="ros2 launch rosbridge_server rosbridge_websocket_launch.xml";}
     ];
     post = "${pkgs.xdg-utils}/bin/xdg-open http://localhost:5173/$GUI_ROUTE\n" + post-shell; 
     buildInputs = [ pkgs.xdg-utils ];
