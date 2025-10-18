@@ -1,13 +1,4 @@
 #!/usr/bin/env python3
-import rclpy
-from rclpy.node import Node, ParameterDescriptor
-# from python_control.ControllerNode import ControllerNode
-from sensor_msgs.msg import BatteryState
-from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
-from python_control2.hardware_interfaces import CMDHardware
-import math
-import jcan
-
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Purpose: Track voltage and current status for ARCh power usage task
@@ -21,18 +12,32 @@ ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        electronics
 AUTHOR(S):      Danielle Rosenthal
-CREATION:       October 17 2025
-EDITED:         
+CREATION:       
+EDITED:         October 18 2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 to run with parameter file:
 $ ros2 run electronics battery_state.py --ros-args --params-file ~/nova/src/ros/rover/nova_bringup/params/battery_state.yaml
 in testing ws (del later):
-$ ~/Builds/testing/bin/ros2 run electronics battery_state.py --ros-args --params-file ~/nova/src/ro
-s/rover/nova_bringup/params/battery_state.yaml
+$ ~/Builds/testing/bin/ros2 run electronics battery_state.py --ros-args --params-file ~/nova/src/ros/rover/nova_bringup/params/battery_state.yaml
+
+TODO 
+testing instructions:
+for writing ros2 node be like run this command this is the expected output and can command and epeted behaviour and publish 
+
+parametarise the voltage of canID self.declare parameter in init and set the id as the default id
+prefix state with battery/voltage and battery/current
+also ask electrical if theyd rather voltage and amps or keep as mv and centiamps
+meow meow meow meow
 """
-# but basically for you you’ll need to write a hardware interface that listens for can m
-# essages and puts them onto a state interface, and then have a controller that reads from 
-# this state interface and publishes the data to the gui, 
+
+import rclpy
+from rclpy.node import Node, ParameterDescriptor
+# from python_control.ControllerNode import ControllerNode
+from sensor_msgs.msg import BatteryState
+from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
+from python_control2.hardware_interfaces import CMDHardware
+import math
+import jcan
 
 class BatteryStateController(Controller):
     def __init__(self, contexts: Contexts):
@@ -51,6 +56,12 @@ class BatteryStateController(Controller):
         return True
 
     def on_update(self, now, period):
+        """ 
+        Purpose: Publishes most recent battery voltage and current to /battery_state of type sensor_msg.msg/BatteryState
+        msg type can be found here!
+        https://docs.ros.org/en/jade/api/sensor_msgs/html/msg/BatteryState.html
+        """
+        #BatteryState here is the ROS2 publisher node
         msg = BatteryState()
 
         if math.isnan(self.voltage_state.value):
@@ -86,6 +97,18 @@ class BatteryStateHardware(HardwareInterface):
         pass
 
     def get_battery_frame(self, frame):
+        """
+        Important:
+        Data format and CANID can be found in https://www.notion.so/MNR-CANBUS-Standards-9dc47508ed3e4dfda2aa9ae97fe1ad54, 
+        section: CAN 0 (BLCMDs, LED-Strip, Gimbal CAM, Battery Unit)
+
+        Purpose: Used for bus.add_callback in on_configure, filters out pack's voltage and current from CanID 0x4B2
+
+        How it works: 
+        first 2 bytes of data is a 16 bit signed integer in centi-amps where negative current represents current flowing from the pack to the rover
+        last 2 bytes of data is a 16 bit unsigned integer representing the pack voltage in mV
+        converts current(centiamps) & voltage(mV) received from CAN into voltage and amps and to be used for the BatteryState publisher.
+        """
         self.logger.info(f"Received data: {frame.data} from: {frame.id:X}")
         current = int.from_bytes(frame.data[0:2], 'big', signed=True) 
         voltage = int.from_bytes(frame.data[2:4], 'big', signed=False) 
@@ -94,7 +117,7 @@ class BatteryStateHardware(HardwareInterface):
         self.parsed_voltage = voltage/1000.0
         self.voltage_state.value = self.parsed_voltage
         self.current_state.value = self.parsed_current
-        self.logger.info(f"voltage (mV): {self.parsed_voltage}. current (centiamps): {self.parsed_current}")
+        self.logger.info(f"voltage (V): {self.parsed_voltage}. current (A): {self.parsed_current}")
 
     def on_write(self, now, period):
         pass
