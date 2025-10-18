@@ -10,23 +10,23 @@ import jcan
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-<insert purpose here>
+Purpose: Track voltage and current status for ARCh power usage task
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: Auto
+NODE: battery_state
 TOPICS:
-  - publisher: <topic> [<msg type>]
+  - publisher: /battery_state [sensor_msgs/msg/BatteryState]
 SERVICES:
-	- service: <service> [<srv type>]
+	- service: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE:        <package>
-AUTHOR(S):      <insert your name>
-CREATION:       <current date>
-EDITED:         <current date>
+PACKAGE:        electronics
+AUTHOR(S):      Danielle Rosenthal
+CREATION:       October 17 2025
+EDITED:         
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 to run with parameter file:
 $ ros2 run electronics battery_state.py --ros-args --params-file ~/nova/src/ros/rover/nova_bringup/params/battery_state.yaml
-testing ws (del later):
+in testing ws (del later):
 $ ~/Builds/testing/bin/ros2 run electronics battery_state.py --ros-args --params-file ~/nova/src/ro
 s/rover/nova_bringup/params/battery_state.yaml
 """
@@ -47,10 +47,9 @@ class BatteryStateController(Controller):
     def on_configure(self, command_interfaces, state_interfaces):
         self.voltage_state = state_interfaces["voltage"]
         self.current_state = state_interfaces["current"]
-        self.logger.info("getting voltage and current state")
+        self.logger.info("Getting state of current and voltage")
         return True
 
-#need to fix this grrrrr
     def on_update(self, now, period):
         msg = BatteryState()
 
@@ -78,7 +77,7 @@ class BatteryStateHardware(HardwareInterface):
         self.current = float('nan')
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
-        self.logger.info(f"Checking {self.VOLTAGE_CURRENT_CANID}")
+        self.logger.info(f"Checking {self.VOLTAGE_CURRENT_CANID:X}")
         self.voltage_state = state_interfaces["voltage"]
         self.current_state = state_interfaces["current"]
         self.bus.add_callback(self.VOLTAGE_CURRENT_CANID, self.get_battery_frame)
@@ -87,7 +86,7 @@ class BatteryStateHardware(HardwareInterface):
         pass
 
     def get_battery_frame(self, frame):
-        self.logger.info(f"Received data: {frame.data} from: {frame.id}")
+        self.logger.info(f"Received data: {frame.data} from: {frame.id:X}")
         current = int.from_bytes(frame.data[0:2], 'big', signed=True) 
         voltage = int.from_bytes(frame.data[2:4], 'big', signed=False) 
 
