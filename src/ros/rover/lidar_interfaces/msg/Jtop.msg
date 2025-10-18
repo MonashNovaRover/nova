@@ -36,3 +36,10 @@ int32 current  # current in milliamperes
 int32 power    # power in milliwatts
 int32 power_avg   # power average in milliwatts???
 
+# Disk I/O (KB/s)
+int32 disk_read
+int32 disk_write
+
+# Network I/O (KB/s)
+int32 net_tx
+int32 net_rx
