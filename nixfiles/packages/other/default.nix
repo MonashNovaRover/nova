@@ -1,4 +1,4 @@
-{ callPackage }:
+{ pkgs, callPackage }:
 
 {
   github-gitignore = callPackage ./github-gitignore { };
@@ -15,5 +15,4 @@
   tileserver-gl-shell = callPackage ./tileserver-gl-shell { };
   foxglove = callPackage ./foxglove { };
   reolink = callPackage ./reolink { };
-  nova-launch = callPackage ./nova-launch { };
-}
+} // import ./nova-launch { inherit pkgs; }

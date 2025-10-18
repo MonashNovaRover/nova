@@ -99,7 +99,7 @@ let
       })) + "/overlay.nix"))
 
       # Add internally defined packages.
-      (self: super: import ./packages/other { inherit (self) callPackage; })
+      (self: super: import ./packages/other { inherit (self) pkgs callPackage; })
       (self: super: {
         pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
           (pyself: pysuper: import ./packages/python { inherit (pyself) callPackage; })
@@ -122,10 +122,6 @@ let
         rosPackages = super.rosPackages.appendDistroOverlay
           (rosSelf: rosSuper: config.rosPackages rosSelf)
           super.rosPackages;
-      })
-
-      (self: super: {
-        launchPackages = import ./packages/nova-launch {inherit pkgs;} ;
       })
 
       # Add the return value of this function. Some other attributes are useful

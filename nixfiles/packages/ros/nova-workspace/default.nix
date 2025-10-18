@@ -67,7 +67,9 @@
 , gpsd-client ? throw "gpsd-client is needed, but not available!"
 , nova-joint-space-control-mode ? throw "nova-joint-space-control-mode is need, but not available!"
 , nova-teleop-arm ? throw "nova-teleop-arm is need, but not available!"
-, launchPackages
+, nova-launch-scripts
+, nova-git-metadata
+
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -125,10 +127,10 @@
       reolink
       nova-joint-space-control-mode
       nova-teleop-arm
+      nova-launch-scripts
+      nova-git-metadata
       ;
     nova-can-sleuth = pythonPackages.nova-can-sleuth;
-    nova-launch = launchPackages.all;
-    nova-git-metadata = launchPackages.git-metadata;
   } 
 
   ## Extra packages to add to the workspace.
