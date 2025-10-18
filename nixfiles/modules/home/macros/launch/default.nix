@@ -5,7 +5,7 @@
     pkgs ? import <nixpkgs> {}, 
     rover-ip ? "$1",
     mast-ip ? "$2",
-    workspaceDir ? "$HOME", # default to dir the shell script is in
+    dir ? "$( dirname \"$\{BASH_SOURCE[0]\}\")/../bin", # default to bin dir assuming shell script is in result/launch (and bin dir is result/bin)
     route ? "",
 }:
 
@@ -24,10 +24,10 @@ let
   };
 
   # these run a single command, and record it in history, you will need to make a custom line for multiple commands
-  local-terminal = name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab -d ${workspaceDir} --title="${name}" -x "bash -ic '${cmd}; history -s \"${cmd}\"; exec bash'"'';
-  local-nix-terminal = shell: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab -d ${workspaceDir} --title="${name}" -x "bash -ic '${shell} --command \"${cmd}; history -s \\\"${cmd}\\\"; exec bash -l\"; history -s \"${shell}\"; exec bash -l'; exec bash -l"'';
-  ssh-terminal = target: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab --title="${name}" -x "bash -ic 'ssh -t ${target} \"bash -ic \\\"${cmd}; history -s ${cmd}; exec bash -l\\\"\"; history -s \"ssh -t ${target}\"; exec bash -l'"'';
-  ssh-nix-terminal = target: shell: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab --title="${name}" -x "bash -ic 'ssh -t ${target} \"bash -ic \\\"${shell} --command \\\\\\\"${cmd}; history -s \\\\\\\\\\\\\\\"${cmd}\\\\\\\\\\\\\\\"; exec bash -l\\\\\\\"; history -s \\\\\\\"${shell}\\\\\\\"; exec bash -l\\\"\"; history -s \"ssh -t ${target}\"; exec bash -l'"'';
+  local-terminal = name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab -d "${dir}" --title="${name} " -x "bash -ic '${cmd}; history -s \"${cmd}\"; exec bash'"'';
+  local-nix-terminal = shell: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab -d "${dir}" --title="${name} " -x "bash -ic '${shell} --command \"${cmd}; history -s \\\"${cmd}\\\"; exec bash -l\"; history -s \"${shell}\"; exec bash -l'; exec bash -l"'';
+  ssh-terminal = target: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab --title="${name} " -x "bash -ic 'ssh -t ${target} \"bash -ic \\\"${cmd}; history -s ${cmd}; exec bash -l\\\"\"; history -s \"ssh -t ${target}\"; exec bash -l'"'';
+  ssh-nix-terminal = target: shell: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab --title="${name} " -x "bash -ic 'ssh -t ${target} \"bash -ic \\\"${shell} --command \\\\\\\"${cmd}; history -s \\\\\\\\\\\\\\\"${cmd}\\\\\\\\\\\\\\\"; exec bash -l\\\\\\\"; history -s \\\\\\\"${shell}\\\\\\\"; exec bash -l\\\"\"; history -s \"ssh -t ${target}\"; exec bash -l'"'';
   
   # aliases for each simple command
   base = local-terminal;
@@ -63,7 +63,7 @@ let
     if [ -z "$SHELL_STARTED" ]; then
       export SHELL_STARTED=1
       export TMPDIR=/tmp
-      echo -e "Launching ${ansi.light-green}${payload-name}${ansi.nc}... \nRunning in ${ansi.orange}${workspaceDir}${ansi.nc}..."
+      echo -e "Launching ${ansi.light-green}${payload-name}${ansi.nc}... \nRunning in ${ansi.orange}${dir}${ansi.nc}..."
       ${rover-check need-rover}
       ${mast-check need-mast}
       ${rover-ssh-check need-rover}
@@ -82,37 +82,40 @@ let
   #   terminals = {name, platform, command}[]; # An array of sets 
   #   post = post-shell + "\nAdditional command"; # make additions with a new line since it will be added to a shell hook!
   #   buildInputs = pkgs[]
-  #   optional-args = {letter, variable, default}[] # letter must be single character, variable will be the bash variable that gets set to it, default is the default value of that variable
-  mkBashScript = {pre ? pre-shell {payload-name="";}, terminals, post ? post-shell, buildInputs ? [], optional-args ? []}: {
+  #   flag-args = {letter, variable, default, description}[] # letter must be single character, variable will be the bash variable that gets set to it, default is the default value of that variable
+  mkBashScript = {pre ? pre-shell {payload-name="";}, terminals, post ? post-shell, buildInputs ? [], flag-args ? []}: {
     shellString = "${pre}\n${assembleTerminal terminals}\n${post}"; 
-    inherit buildInputs optional-args;
+    inherit buildInputs flag-args;
   };
 
   # construct the shell and build environments, shellString is the final shell script created using mkBashScript, shellName is the final bash script name
-  shellAndBuild = {shellString, buildInputs, optional-args}: shellName: pkgs.stdenv.mkDerivation {
+  shellAndBuild = {shellString, buildInputs, flag-args}: shellName: pkgs.stdenv.mkDerivation {
     pname = "nova-" + shellName;
     version = "1.0";
-    shellHook = (builtins.concatStringsSep "\n" (map (opt: opt.variable + "=\"" + opt.default + "\"") optional-args)) + "\n" + shellString;
+    shellHook = (builtins.concatStringsSep "\n" (map (opt: opt.variable + "=\"" + opt.default + "\"") flag-args)) + "\n" + shellString;
     inherit buildInputs;
+    src = ./.;
 
     # put it in the bin dir
     # implement optional arguments with flags
     # add checkers for $1 and $2 for rover and mast ips
     buildPhase = ''
-      mkdir -p $out/bin
-      echo "$PATH"
-      cat > $out/bin/${shellName} <<'EOF'
+      mkdir -p $out/launch
+      cat > $out/launch/${shellName} <<'EOF'
       #!${pkgs.bash}/bin/bash
       # THIS FILE IS AUTO GENERATED BY NIX
-      
-      ${builtins.concatStringsSep "\n" (map (opt: opt.variable + "=\"" + opt.default + "\"") optional-args)}
-      while getopts "${builtins.concatStringsSep ":" (map (opt: opt.letter) optional-args)}:" opt; do
+      BUILD_DIR="${dir}"
+      ${builtins.concatStringsSep "\n" (map (opt: opt.variable + "=\"" + opt.default + "\"") (builtins.filter (x: !(x ? required && x.required == true)) flag-args))}
+      while getopts "${builtins.concatStringsSep ":" (map (opt: opt.letter) flag-args)}:" opt; do
         case "$opt" in
-          ${builtins.concatStringsSep "\n    " (map (opt: opt.letter + ") " + opt.variable + "=\"$OPTARG\" ;;") optional-args)}
-          *) echo "Usage: $0 \[-flag \<value\>\] \<nova@rover-ip\> \[nova@mast-ip\]"; exit 1 ;;
+          ${builtins.concatStringsSep "\n    " (map (opt: opt.letter + ") " + opt.variable + "=\"$OPTARG\" ;;") flag-args)}
+          *) echo -e "Usage: $0 \[-flag \<value\>\] \<nova@rover-ip\> \[nova@mast-ip\]\nFlags:\n  ${builtins.concatStringsSep "\n  " (map (opt: "-"+opt.letter + (if opt ? required && opt.required == true then "" else " default=\\\"" + opt.default) + "\\\" " + opt.description) flag-args)}"; exit 1 ;;
         esac
       done
       shift $((OPTIND - 1))
+
+      ${builtins.concatStringsSep "\n" (map (opt: "if [ -z \"$" + opt.variable + "\" ]; then\n  echo -e \"${ansi.light-red}ERROR:${ansi.nc} Flag -" + opt.letter + " is required! " + opt.description + "\"\n  exit 1\nfi\n") (builtins.filter (x: x ? required && x.required == true) flag-args))}
+
       ${
         builtins.replaceStrings [(rover-check true) (mast-check true)] 
         ["if [ -z \"$1\" ]; then\n    echo -e \"${usage-string-build "rover"}\"\n    exit 1\n  fi" 
@@ -120,9 +123,8 @@ let
         shellString # replace the nix-shell arg check with bash arg check
       }
       EOF
-      chmod +x $out/bin/${shellName}
+      chmod +x $out/launch/${shellName}
     '';
-
   };
 
   # final single function to pass to child nix files to make defining setups easy

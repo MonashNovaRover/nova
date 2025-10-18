@@ -21,12 +21,22 @@ in
 ```
 - Note that each setup has a pre and post which are just bash commands which run before and after the terminals, you can add on / modify the defaults through string manipulation
 - Terminals is an array of sets expecting {name, platform, cmd}
-- For examples see below
-  - By the way there is a dir argument if you so need to change the DIR of a build etc (might need fixing)
-- Typically, terminals will open in the user directory that you login to
-- When SSHing keep in mind that aliases are defined on a per user basis (nova aliases won't work in non-nova users)
 - `need-rover` and `need-mast` adds the checks to ssh into the rover and mast respectively, if you don't add them SSHs may fail!
 - payload-name just prints it out in console, purely *a e s t h e t i c*
+- By default, terminals will open in the result directory's bin folder that this package was built to however this behaviour is not shared with SSHing as SSH may not have the same build directory. Thus you must implement this behaviour manually.
+  - In the scripts you can use `$BUILD_DIR` to access the bin directory that the local terminals will point to if needed.
+  - To use the binaries in the bin folder, append `./` to your commands so that it uses the binaries in that folder instead of the binaries in path
+- When SSHing keep in mind that aliases are defined on a per user basis (nova aliases won't work in non-nova users)
+- Optional flags are also supported where you can define the letter of the flag, the variable that gets assigned, a default value and a description. You can then call the variable of these flags to use them in the commands.
+  - e.g `optional-args = [ {letter="n"; variable="NOVA_REPO_PATH"; default="/home/nova/nova"; description="Path to the nova repo";} ];` can be called with `$NOVA_REPO_PATH`
+- You can make delayed terminal commands by using:
+  ```bash
+  command1
+  (sleep 10; command2) &
+  command3
+  ```
+  - This will make command 2 run 10 seconds after command 1 while command 3 will still run immediately after command 1
+  (Good for race conditions)
 
 
 ### Build and/or Run
@@ -41,55 +51,19 @@ Follow this basic structure and then you can run it through any of the following
 - There are also currently two arguments to dynamically set the rover and mast's ip for SSHing
 
 `nix-build -o ~/Builds/drive  ~/nova/nixfiles/modules/home/macros/launch -A drive.drive`
-- This will create executable bash files in your specified output destination's bin file
+- Allows you to test specific payloads!
+- This will create executable bash files in your specified output destination's launch folder
 - the rover-ip and mast-ip arguments are then handled by the shell files and must be passed through as argument 1 and 2 respectively
-- e.g `~/Builds/drive/bin/run-drive nova@orin-ip`
+- e.g `~/Builds/drive/launch/run-drive nova@orin-ip`
 - This will also create a git metadata file with any dirty changes (non committed changes) as a patch at the end.
 - Find this file in the root directory of the resultant build as `nova-git-metadata`
 
+`nix-build -o ~/Builds/nova-launch-scripts -A nova-launch-scripts` 
+- Same as above but with all payload scripts built at once
+
+`nix-build -o ~/Builds/nova-git-metadata -A nova-git-metadata`
+- Test the git metadata feature 
+
 `ws-build`
-- This will work like nix-build
-
-### Example Setups
-Last updated 17/10/2025
-GUI runner which has a nix shell and web browser open
-With optional arguments and additional build inputs
-```nix
-# run gui and rosbridge
-{ 
-    pkgs,
-    base,
-    pre-shell,
-    post-shell,
-    bashBuilder,
-    base-nix
-}:
-
-let 
-  gui-setup = {
-    pre = pre-shell {payload-name="Nova Gui";};
-    terminals = [
-      {name = "Base:Gui"; platform=base-nix "gui-shell"; cmd="gui-link; gui-run";}
-      {name = "Base:Rosbridge"; platform=base; cmd="gui-rosbridge";}
-    ];
-    post = "${pkgs.xdg-utils}/bin/xdg-open http://localhost:5173/$GUI_ROUTE\n" + post-shell; 
-    buildInputs = [ pkgs.xdg-utils ];
-    optional-args = [ {letter="r"; variable="GUI_ROUTE"; default="";} ];
-  };
-  local-gui-setup = { # no aliases, with options to change paths etc
-    pre = pre-shell {payload-name="Nova Gui";};
-    terminals = [
-      {name = "Base:Gui"; platform=base-nix "nix-shell $NOVA_REPO_PATH/nixfiles -A pkgs.ros.nova-gui"; cmd="ln -sf \"$ROS_TS_DEFINITIONS\" $NOVA_REPO_PATH/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts; cd $NOVA_REPO_PATH/src/ros/nova-gui/nova-gui; yarn dev";}
-      {name = "Base:Rosbridge"; platform=base; cmd="gui-rosbridge";}
-    ];
-    post = "${pkgs.xdg-utils}/bin/xdg-open http://localhost:5173/$GUI_ROUTE\n" + post-shell; 
-    buildInputs = [ pkgs.xdg-utils ];
-    optional-args = [ {letter="r"; variable="GUI_ROUTE"; default="";} {letter="n"; variable="NOVA_REPO_PATH"; default="/home/nova/nova";} ];
-  };
-in
-{
-  gui = bashBuilder gui-setup "run-gui";
-  gui-local = bashBuilder local-gui-setup "run-gui-local";
-}
-```
-See drive example for SSH (above)
+- This will work like nix-build but build all of the payloads at once with the rest of our workspace
+- You can also do 
