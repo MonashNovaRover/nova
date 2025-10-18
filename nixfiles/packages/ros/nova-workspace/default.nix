@@ -23,6 +23,7 @@
 , teleop-modular-python-utils
 , livox-ros-driver2
 , colcon
+, lidar-interfaces ? throw "lidar-interfaces is needed, but not available!"
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -125,6 +126,7 @@
       reolink
       nova-joint-space-control-mode
       nova-teleop-arm
+      lidar-interfaces
       ;
       nova-can-sleuth = pythonPackages.nova-can-sleuth;
   }

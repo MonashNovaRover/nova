@@ -8,6 +8,7 @@
 
     ublox-dgnss-custom = callPackage ./nix/packages/ublox-dgnss { };
 
+    lidar-interfaces = callPackage ./lidar_interfaces { };
     # diff drive, pivot drive, strafe, 
   } // import ./arm { inherit pkgs; }
     // import ./auto { inherit pkgs; }
