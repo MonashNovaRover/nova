@@ -17,7 +17,7 @@ let
         hash = "sha256-qLjzSBTZLnVOtBtinSc2KGZYh5R2Im4VF0xc6EiANvQ=";
       };
 
-      cargoHash = "sha256-F0xYQoI05+YzkBIq/7do1Hw3Svw9xlM6InHkI97VhzA=";
+      cargoHash = "sha256-fkEt/znKWmq7SzOIbePy/3hISwD6hfBGmjS1UPg8Nb4=";
 
       buildAndTestSubdir = "jcan";
 

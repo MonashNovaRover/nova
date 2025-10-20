@@ -7,24 +7,49 @@
   </a>
 </p>
 
+# Rover
 
-[`rover`](https://github.com/MonashNovaRover/rover) is the set of packages that operate on-rover for the [Monash Nova Rover](https://www.novarover.space/) student team. It is a collection of mostly ROS2 packages that we use and develop for the [ARCh](https://set.adelaide.edu.au/atcsr/australian-rover-challenge/) and [URC](https://urc.marssociety.org/) competitions. It is installed using the [Nix](https://nixos.org/) package manager, which is managed through the [nixfiles](https://github.com/MonashNovaRover/nixfiles) repository.
+`rover` is the set of mostly ROS2 packages that operate on-rover for the [Monash Nova Rover](https://www.novarover.space/) student team. 
 
-# Getting Started 
+## Project Structure
 
-* [nixfiles](https://github.com/MonashNovaRover/nixfiles) - make sure you follow the relevant steps to install Nix and `nixfiles` in your distro of choice.
+| Folder | Description |
+|--------|-------------|
+| [`arm`](./arm) | Robotic arm control code. |
+| [`auto`](./auto) | Autonomous stack. |
+| [`chassis`](./chassis) | Code for systems in the chassis, including LEDs, GPS etc. |
+| [`docs`](./docs) |  |
+| [`drive`](./drive) | Drive control code. |
+| [`excavation_construction`](./excavation_construction) | Code related to the ARC Excavation and Construction payload. |
+| [`hardware_interfaces`](./hardware_interfaces) | Hardware interfaces, including for ROS2 Control. |
+| [`nova_bringup`](./nova_bringup) | Launch files. |
+| [`nova_generic`](./nova_generic) | Generic packages that can be widely used. |
+| [`nova_interfaces`](./nova_interfaces) | [DEPRECATED] Central location for interfaces used across the repo. |
+| [`old_inputs`](./old_inputs) | Old input system - we are now moving to [`teleop_modular`](https://github.com/BaileyChessum/teleop_modular) |
+| [`rover_description`](./rover_description) | URDFs |
+| [`science`](./science) | Code related to the ARC and URC Science payloads and tasks. |
+| [`simulations`](./simulations) | Simulations including Gazebo. |
 
-# Contributing
+## Running ROS2 Nodes
 
-1. Create a branch following standard naming conventions such as `feat/`, `fix/`, etc.
-2. Commit regularly
-3. When you are ready to make a PR, rebase off of `master` first. Then make the PR.
-4. Post the PR details in #software-pull-requests on Slack.
+ROS 2 packages in this repository provide both individual nodes and launch files for starting multiple nodes together.
 
-# Other Project Repositories
+### Running Nodes Directly
 
-Here are the other relevant repositories that we use with `rover`:
+You can run a single node with:
 
-* [nixfiles](https://github.com/MonashNovaRover/nixfiles)
-* [nova-gui](https://github.com/MonashNovaRover/nova-gui)
-* [cameras2](https://github.com/MonashNovaRover/cameras2)
+```sh
+ros2 run <package_name> <node_executable>
+```
+
+This is useful for testing or running components individually.
+
+### Running with Launch Files
+
+Launch files are provided to start groups of nodes with their required configuration. Use:
+
+```sh
+ros2 launch <package_name> <launch_file>.launch.py
+```
+
+All launch files are organized in the \<package>_bringup folders.

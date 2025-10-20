@@ -8,28 +8,28 @@ in
     enable = lib.mkEnableOption "fake cameras";
     count = lib.mkOption {
       type = with lib.types; ints.positive;
-      description = lib.mdDoc "The number of fake cameras to create.";
+      description = "The number of fake cameras to create.";
       default = 1;
     };
     firstNumber = lib.mkOption {
       type = with lib.types; ints.unsigned;
-      description = lib.mdDoc "The number of the first fake camera. Additional cameras will be numbered sequentially.";
+      description = "The number of the first fake camera. Additional cameras will be numbered sequentially.";
       default = 10;
     };
     specs = {
       width = lib.mkOption {
         type = with lib.types; ints.positive;
-        description = lib.mdDoc "The width of the fake camera's video stream.";
+        description = "The width of the fake camera's video stream.";
         default = 1280;
       };
       height = lib.mkOption {
         type = with lib.types; ints.positive;
-        description = lib.mdDoc "The height of the fake camera's video stream.";
+        description = "The height of the fake camera's video stream.";
         default = 720;
       };
       framerate = lib.mkOption {
         type = with lib.types; ints.positive;
-        description = lib.mdDoc "The framerate of the fake camera's video stream.";
+        description = "The framerate of the fake camera's video stream.";
         default = 30;
       };
     };

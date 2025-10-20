@@ -3,6 +3,8 @@
 <robot name="arm"
   xmlns:xacro="http://www.ros.org/wiki/xacro">
 
+  <xacro:arg name="rover_description_dir" default="$(find rover_description)" />
+
   <link name="arm_link">
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -21,7 +23,7 @@
     <visual>
       <origin xyz="-0.0671788 0.129712 -0.183721" rpy="-1.88173e-16 -1.99729e-09 -1.5708" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/armmount.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/armmount.stl" />
       </geometry>
       <material name="armmount_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -46,7 +48,7 @@
     <visual>
       <origin xyz="-9.93063e-18 0 5.55112e-17" rpy="3.14159 -0 -7.70285e-39" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/gearbox.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/gearbox.stl" />
       </geometry>
       <material name="gearbox_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -64,7 +66,7 @@
     <visual>
       <origin xyz="-1.58901e-15 -1.36391e-16 -5.55112e-17" rpy="6.68673e-23 -1.0222e-22 2.39693e-07" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/linkagedrive.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/linkagedrive.stl" />
       </geometry>
       <material name="linkagedrive_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -95,7 +97,7 @@
     <visual>
       <origin xyz="3.1979e-15 -6.85563e-15 0.0239" rpy="1.5708 1.5708 0" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l1.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/l1.stl" />
       </geometry>
       <material name="l1_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -120,7 +122,7 @@
     <visual>
       <origin xyz="0.398641 0.301803 6.48063e-16" rpy="2.49358 1.5708 0" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l2.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/l2.stl" />
       </geometry>
       <material name="l2_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -186,7 +188,7 @@
     <visual>
       <origin xyz="1.94289e-15 0.05075 -0.0795" rpy="1.5708 1.5708 0" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/j5.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/j5.stl" />
       </geometry>
       <material name="j5_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -204,7 +206,7 @@
     <visual>
       <origin xyz="5.80265e-16 -0.1945 0.05075" rpy="-1.5708 -1.48145e-14 -7.47144e-23" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/j6.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/j6.stl" />
       </geometry>
       <material name="j6_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -248,7 +250,7 @@
     <visual>
       <origin xyz="0.00775 0.013 0.0215" rpy="-6.15694e-07 4.61983e-15 3.14159" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/eebase.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/eebase.stl" />
       </geometry>
       <material name="eebase_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -272,7 +274,7 @@
     <visual>
       <origin xyz="-3.64856e-05 0.115305 0.0109" rpy="-3.14159 -6.60532e-30 2.57948e-23" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/rightfinger.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/rightfinger.stl" />
       </geometry>
       <material name="rightfinger_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -290,7 +292,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="1.5708 1.86776e-19 -2.0576e-24" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/arm_end_side.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/arm_end_side.stl" />
       </geometry>
       <material name="arm_end_side_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -324,7 +326,7 @@
     <visual>
       <origin xyz="-8.71485e-06 -0.115251 0.0109" rpy="-3.14159 4.996e-15 -5.80744e-23" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/leftfinger.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/leftfinger.stl" />
       </geometry>
       <material name="leftfinger_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -342,7 +344,7 @@
     <visual>
       <origin xyz="-1.38778e-17 0 -0.058" rpy="3.11287e-20 2.12505e-23 1.99292e-27" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/actuator.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/actuator.stl" />
       </geometry>
       <material name="actuator_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -368,7 +370,7 @@
     <visual>
       <origin xyz="2.77556e-17 0 -1.11022e-16" rpy="1.5708 -2.87448e-18 1.5822e-23" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/arm_end_finger.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/arm_end_finger.stl" />
       </geometry>
       <material name="arm_end_finger_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -402,7 +404,7 @@
     <visual>
       <origin xyz="1.11022e-16 0 0" rpy="1.5708 -2.5589e-20 3.89707e-23" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/arm_end_top.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/arm_end_top.stl" />
       </geometry>
       <material name="arm_end_top_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -428,7 +430,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="1.5708 -1.12386e-23 -2.15772e-29" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/arm_end_periscope.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/arm_end_periscope.stl" />
       </geometry>
       <material name="arm_end_periscope_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -505,7 +507,7 @@
     <visual>
       <origin xyz="2.77556e-17 0 -0.006" rpy="1.5708 1.5708 0" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l2prime.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/l2prime.stl" />
       </geometry>
       <material name="l2prime_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -523,7 +525,7 @@
     <visual>
       <origin xyz="-0.0797283 0.0603606 1.05415e-16" rpy="1.5708 1.5708 0" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l1prime.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/l1prime.stl" />
       </geometry>
       <material name="l1prime_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -541,7 +543,7 @@
     <visual>
       <origin xyz="-0.0797283 0.560361 2.48639e-16" rpy="1.5708 1.5708 0" />
       <geometry>
-        <mesh filename="file://$(find rover_description)/banksia_arm/meshes/l2cam.stl" />
+        <mesh filename="file://$(arg rover_description_dir)/banksia_arm/meshes/l2cam.stl" />
       </geometry>
       <material name="l2cam_material">
         <color rgba="0.866667 0.0745098 0.32549 1.0" />
@@ -640,14 +642,14 @@
   <!--    forward 0.012512-->
 
   <!-- Gazebo / IRL Control -->
-  <xacro:include filename="$(find rover_description)/banksia_arm/urdf/arm_ckc.xacro"/>
+  <xacro:include filename="$(arg rover_description_dir)/banksia_arm/urdf/arm_ckc.xacro"/>
 
   <xacro:if value="$(arg gazebo)">
-    <xacro:include filename="$(find rover_description)/banksia_arm/urdf/arm.gz_ros2_control.xacro" />
-    <xacro:include filename="$(find rover_description)/banksia_arm/urdf/arm_sensors.xacro"/>
+    <xacro:include filename="$(arg rover_description_dir)/banksia_arm/urdf/arm.gz_ros2_control.xacro" />
+    <xacro:include filename="$(arg rover_description_dir)/banksia_arm/urdf/arm_sensors.xacro"/>
   </xacro:if>
   <xacro:unless value="$(arg gazebo)">
-    <xacro:include filename="$(find rover_description)/banksia_arm/urdf/arm.ros2_control.xacro" />
+    <xacro:include filename="$(arg rover_description_dir)/banksia_arm/urdf/arm.ros2_control.xacro" />
     <xacro:arm_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
   </xacro:unless>
 

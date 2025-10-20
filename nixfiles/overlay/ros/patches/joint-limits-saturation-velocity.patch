@@ -1,8 +1,7 @@
 diff --git a/src/joint_saturation_limiter.cpp b/joint_limits/src/joint_saturation_limiter.cpp
-index f2a3adae..7ae30b45 100644
 --- a/src/joint_saturation_limiter.cpp
 +++ b/src/joint_saturation_limiter.cpp
-@@ -121,7 +121,7 @@ bool JointSaturationLimiter<JointLimits>::on_enforce(
+@@ -120,7 +120,7 @@ bool JointSaturationLimiter<trajectory_msgs::msg::JointTrajectoryPoint>::on_enforce(
      if (joint_limits_[index].has_velocity_limits)
      {
        // if desired velocity is not defined calculate it from positions
@@ -11,14 +10,14 @@ index f2a3adae..7ae30b45 100644
        {
          desired_vel[index] =
            (desired_pos[index] - current_joint_states.positions[index]) / dt_seconds;
-@@ -209,9 +209,15 @@ bool JointSaturationLimiter<JointLimits>::on_enforce(
+@@ -205,9 +205,15 @@ bool JointSaturationLimiter<trajectory_msgs::msg::JointTrajectoryPoint>::on_enforce(
            if (has_desired_position)
            {
              // pos_cmd from from double integration of desired_acc
 -            desired_pos[index] = current_joint_states.positions[index] +
--                                 current_joint_states.velocities[index] * dt_seconds +
+-                                 current_joint_velocities[index] * dt_seconds +
 +            const double position_difference = desired_pos[index] - current_joint_states.positions[index];
-+            const double position_difference_limited = current_joint_states.velocities[index] * dt_seconds +
++            const double position_difference_limited = current_joint_velocities[index] * dt_seconds +
                                   0.5 * desired_acc[index] * dt_seconds * dt_seconds;
 +
 +            // sometimes the limited position make the joint move more than the original desired position.
@@ -29,15 +28,15 @@ index f2a3adae..7ae30b45 100644
            }
          }
        }
-@@ -337,9 +343,15 @@ bool JointSaturationLimiter<JointLimits>::on_enforce(
+@@ -332,10 +332,16 @@ bool JointSaturationLimiter<trajectory_msgs::msg::JointTrajectoryPoint>::on_enforce(
        }
        if (has_desired_position)
        {
 -        desired_pos[index] = current_joint_states.positions[index] +
--                             current_joint_states.velocities[index] * dt_seconds +
+-                             current_joint_velocities[index] * dt_seconds +
 -                             0.5 * desired_acc[index] * dt_seconds * dt_seconds;
 +         const double position_difference = desired_pos[index] - current_joint_states.positions[index];
-+         const double position_difference_limited = current_joint_states.velocities[index] * dt_seconds +
++         const double position_difference_limited = current_joint_velocities[index] * dt_seconds +
 +                              0.5 * desired_acc[index] * dt_seconds * dt_seconds;
 +
 +         // sometimes the limited position make the joint move more than the original desired position.
@@ -48,3 +47,4 @@ index f2a3adae..7ae30b45 100644
        }
      }
      std::ostringstream ostr;
+     for (auto jnt : limited_jnts_pos)

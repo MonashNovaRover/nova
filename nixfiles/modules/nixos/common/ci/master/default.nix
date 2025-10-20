@@ -8,38 +8,38 @@ in
     enable = lib.mkEnableOption "CI master services";
     domain = lib.mkOption {
       type = with lib.types; str;
-      description = lib.mdDoc "The primary domain name of the server.";
+      description = "The primary domain name of the server.";
       default = "localhost";
     };
     hydra = {
       localMaxJobs = lib.mkOption {
         type = with lib.types; ints.unsigned;
-        description = lib.mdDoc "The maximum number of local build jobs to run concurrently.";
+        description = "The maximum number of local build jobs to run concurrently.";
         default = 0;
       };
       localSpeedFactor = lib.mkOption {
         type = with lib.types; int;
-        description = lib.mdDoc "The relative speed of this builder. Higher is faster.";
+        description = "The relative speed of this builder. Higher is faster.";
         default = 1;
       };
       subdomain = lib.mkOption {
         type = with lib.types; str;
-        description = lib.mdDoc "The subdomain that Hydra is served on.";
+        description = "The subdomain that Hydra is served on.";
         default = "hydra";
       };
       githubToken = lib.mkOption {
         type = with lib.types; nullOr str;
-        description = lib.mdDoc "The GitHub token used to authenticate with the GitHub API. ";
+        description = "The GitHub token used to authenticate with the GitHub API. ";
         default = null;
       };
     };
     gitSSHKey = lib.mkOption {
       type = with lib.types; path;
-      description = lib.mdDoc "The SSH key uses to clone Git repositories.";
+      description = "The SSH key uses to clone Git repositories.";
     };
     cacheSecretKey = lib.mkOption {
       type = with lib.types; path;
-      description = lib.mdDoc "The secret key used to sign binary cache artifacts.";
+      description = "The secret key used to sign binary cache artifacts.";
     };
   };
 
@@ -68,7 +68,8 @@ in
         ];
       });
       listenHost = "localhost";
-      hydraURL = if (lib.hasPrefix "localhost" cfg.domain)
+      hydraURL =
+        if (lib.hasPrefix "localhost" cfg.domain)
         then "http://${cfg.domain}"
         else "https://${cfg.hydra.subdomain}.${cfg.domain}";
       notificationSender = "nova@monash.edu";
@@ -129,7 +130,7 @@ in
         hydra-create-user nova \
           --full-name 'Monash Nova Rover' \
           --email-address 'novaroverteam@monash.edu' \
-          --password-hash '$argon2id$v=19$m=262144,t=3,p=1$aGNmTld2SnFjYWduQUtaTQ$CAuk99WA+wQxeGCIX4hoLQ' \
+          --password-hash '${builtins.readFile ../../../../../external/src/other/secrets/hydra-hashed-password.txt}' \
           --role admin
 
         # Configure SSH

@@ -66,7 +66,7 @@ You should set state versions and a _Nova device profile_.
   # These things can all be enabled manually even on "personal" configurations,
   # e.g. with nova.desktop.enable = true.
 
-  nova.substituters.nova.password = "tFH6J!#HhrYc3&^m";
+  nova.substituters.nova.password = builtins.readFile ./path/to/hydra-password.txt;
 }
 ```
 

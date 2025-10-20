@@ -9,11 +9,11 @@
         };
       });
       default = { };
-      description = lib.mdDoc "Users that have access to Monash Nova Rover features.";
+      description = "Users that have access to Monash Nova Rover features.";
     };
 
     home-manager.nova.sharedModules = options.home-manager.sharedModules // {
-      description = lib.mdDoc "Extra modules added to Nova Rover users.";
+      description = "Extra modules added to Nova Rover users.";
     };
   };
 
@@ -35,8 +35,7 @@
       {
         nova = lib.mkIf config.nova.users.nova.enable {
           description = "Monash Nova Rover";
-          hashedPassword =
-            "$y$j9T$l1uk9vWbRDWXWFjucvu6s1$C/GP.LwS.HI7ujVx8ZY/uqAMa4EYEZHLdpzlnsBb.tC";
+          hashedPassword = builtins.readFile ../../../../external/src/other/secrets/nova-user-hashed-password.txt;
           extraGroups = with config.users.groups; [
             wheel.name
             video.name

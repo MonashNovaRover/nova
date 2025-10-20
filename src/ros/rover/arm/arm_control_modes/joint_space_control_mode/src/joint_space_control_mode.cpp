@@ -49,49 +49,40 @@ CallbackReturn JointSpaceControlMode::on_configure(const State &)
     return CallbackReturn::ERROR;
   }
 
+
   // Get params for every joint
-  bool has_params = true;
-  int i = 0;
-  do {
-    const std::string i_str = std::to_string(i);
-    std::string prefix = "joints." + i_str + ".";
-    std::string name;
-
-    if (const bool has_name = get_node()->get_parameter<std::string>(prefix + "name", name); !has_name) {
-      has_params = i == 0;
-      i++;
-      continue;
-    }
-
-    double scale = 0.0;
-    std::string input_name;
-
-    get_node()->get_parameter_or<double>(prefix + "scale", scale, 0.0);
-    get_node()->get_parameter_or<std::string>(prefix + "input_name", input_name, "j" + i_str);
-
-    joints_.emplace_back(JointHandle{
-      name,
-      nullptr,
-      scale
-    });
-    input_names_.push_back(input_name);
-
-    i++;
-  } while (has_params);
 
   return CallbackReturn::SUCCESS;
 }
 
-void JointSpaceControlMode::on_capture_inputs(Inputs inputs)
+void JointSpaceControlMode::on_configure_inputs(Inputs inputs)
 {
+  const auto logger = get_node()->get_logger();
+
   // TODO: Implement a remapping functionality to avoid boilerplate parameters for names, like input source remapping
   speed_ = inputs.axes[params_.input_names.speed];
 
-  for (size_t i = 0; i < input_names_.size(); ++i) {
-    const auto & input_name = input_names_[i];
-    auto & joint = joints_[i];
+  joints_.clear();
+  input_names_.clear();
 
-    joint.axis = inputs.axes[input_name];
+  RCLCPP_DEBUG(logger, "Getting joint inputs");
+  for (auto & [name, joint_params] : params_.joints.joint_definitions_map) {
+    auto & [joint_name, scale, input_name] = joint_params;
+
+    if (joint_name.empty())
+      joint_name = name;
+
+    if (input_name.empty())
+      input_name = name;
+
+    RCLCPP_DEBUG(logger, "  - %s -> %s", input_name.c_str(), joint_name.c_str());;
+
+    if (scale == 0.0) {
+      RCLCPP_WARN(logger, "joints.%s.scale isn't set! Values of 0 will always be sent for this joint.",
+                  joint_name.c_str());
+    }
+
+    joints_.emplace_back(JointHandle{joint_name, inputs.axes[input_name], scale});
   }
 }
 
@@ -126,21 +117,38 @@ return_type JointSpaceControlMode::on_update(const rclcpp::Time & now, const rcl
     return return_type::OK;
   }
 
-
   auto msg = std::make_unique<nova_interfaces::msg::ArmFkVelocityTargets>();
   msg->header.stamp = now;
 
-  const float speed_coefficient = params_.use_speed_input ? std::max(speed_->value(), 0.0f) : 1.0f;
+//  RCLCPP_DEBUG(logger, "Calculating speed coefficient");
+  const float speed_coefficient = params_.use_speed_input ? std::max(speed_.value(), 0.0f) : 1.0f;
 
+//  RCLCPP_DEBUG(logger, "Updating joint inputs");
+//  for (const auto& [name, axis, scale] : joints_) {
+//    RCLCPP_DEBUG(logger, "  [%s]", name.c_str());
+//  }
+
+//  RCLCPP_DEBUG(logger, "Updating joint inputs");
   for (const auto& [name, axis, scale] : joints_) {
+//    RCLCPP_DEBUG(logger, "  [%s]", name.c_str());
+
+    if (!axis) {
+      RCLCPP_ERROR(logger, "Axis is missing for joint %s", name.c_str());
+      continue;
+    }
+
     msg->name.emplace_back(name);
 
-    const float input = axis->value();
+    const float input = axis.value();
+
+//    RCLCPP_DEBUG(logger, "  - %s\t%f", name.c_str(), input);
     double velocity = static_cast<double>(input) * speed_coefficient * scale;
 
+//    RCLCPP_DEBUG(logger, "  - Putting velocity into message");
     msg->velocity.emplace_back(velocity);
   }
 
+//  RCLCPP_DEBUG(logger, "Publishing message");
   if (publisher_) {
     publisher_->publish(std::move(msg));
   }
@@ -160,9 +168,6 @@ CallbackReturn JointSpaceControlMode::on_cleanup(const State &)
 
 CallbackReturn JointSpaceControlMode::on_shutdown(const State &)
 {
-  locked_.reset();
-  speed_.reset();
-
   joints_.clear();
 
   publisher_.reset();

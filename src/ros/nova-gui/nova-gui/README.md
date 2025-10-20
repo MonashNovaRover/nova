@@ -1,8 +1,8 @@
-## Nova-GUI Frontend
+# Nova-GUI Frontend
 
-This directory is the root directory of the drontend that constitutes Nova-GUI. Basic terminology and Best practices are outlined below.
+This directory is the root directory of the frontend that constitutes Nova-GUI. Basic terminology and Best practices are outlined below.
 
-### Folder Structure
+## Folder Structure
 
 <!-- Taken from PR #1 -->
 
@@ -15,7 +15,7 @@ The Folder Structure's been Organised into the following
 - **views**: Views in this case refers to the different "Profiles". Each view will contain It's Own Layouts and other components which are specific to the purpose.
 - **components**: This is our effective component library containing all components used.
 
-### Component Development Lifecycle
+## Component Development Lifecycle
 
 Designing and Drafting a Component can include a myriad of Confusion and Ambiguity. This section aims at making this a bit more easy for people to onboard and design their components.
 
@@ -28,7 +28,7 @@ A component can do one or more of the following functions
 - Send a command to the Rover to perform a Task
 - Please the Rover Operator by looking Cute and Cheerfull
 
-### Linting
+## Linting
 
 `eslint` has been set up for this repository, to utilise this locally, you can run in the development shell:
 

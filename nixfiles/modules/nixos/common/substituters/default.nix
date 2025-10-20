@@ -20,7 +20,7 @@ in
       publicKey = lib.mkOption {
         type = with lib.types; str;
         description = "The public key of the Nova Rover binary cache";
-        default = "nova-1:lRJ8YVtMKF5G7fk1OUx4vFyupTCwA4RrMNTX4JH7Hig=";
+        default = builtins.readFile ../../../../external/src/other/secrets/hydra-public-key.txt;
       };
     };
   };

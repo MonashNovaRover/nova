@@ -21,7 +21,7 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    nova_bringup_dir = FindPackageShare('nova_bringup')
+    drive_bringup_dir = FindPackageShare('drive_bringup')
     
     scraper_card_type = LaunchConfiguration('scraper_card_type')
 
@@ -40,12 +40,12 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
         ),
         IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'drive.launch.py'])),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([drive_bringup_dir, 'launch', 'drive.launch.py'])),
         ),
     ]
 
 def generate_launch_description():
-    nova_bringup_dir = FindPackageShare('nova_bringup')
+    drive_bringup_dir = FindPackageShare('drive_bringup')
     
     declared_arguments = [ 
         DeclareLaunchArgument(

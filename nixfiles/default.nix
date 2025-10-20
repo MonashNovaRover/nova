@@ -34,16 +34,16 @@ let
       inherit (revisions.nix-ros-overlay) rev hash;
     };
     patches = [
-      # fix: gz vendor
-      # https://github.com/lopsided98/nix-ros-overlay/pull/472
-      ./overlay/ros/patches/nix-ros-workspace.patch
+      # # fix: gz vendor
+      # # https://github.com/lopsided98/nix-ros-overlay/pull/472
+      # ./overlay/ros/patches/nix-ros-workspace.patch
 
-      # Some more Gazebo improvements
-      # https://github.com/muellerbernd/nix-ros-overlay/pull/2
-      (pkgs.fetchpatch {
-        url = "https://github.com/lopsided98/nix-ros-overlay/compare/6d04148eac0727be34e5333f6e12cfc7e86673c3...eca9687ce15335bbb2d4b7b14fbf74ce0e957f43.patch";
-        hash = "sha256-c6DD2U6Lo2dcs0APxEHg9l0bz1Ioa5aX5FoATajXYAc=";
-      })
+      # # Some more Gazebo improvements
+      # # https://github.com/muellerbernd/nix-ros-overlay/pull/2
+      # (pkgs.fetchpatch {
+      #   url = "https://github.com/lopsided98/nix-ros-overlay/compare/6d04148eac0727be34e5333f6e12cfc7e86673c3...eca9687ce15335bbb2d4b7b14fbf74ce0e957f43.patch";
+      #   hash = "sha256-c6DD2U6Lo2dcs0APxEHg9l0bz1Ioa5aX5FoATajXYAc=";
+      # })
     ];
   });
 
@@ -66,6 +66,7 @@ let
     config = pkgs.config // {
       permittedInsecurePackages = pkgs.config.permittedInsecurePackages or [ ] ++ [
         "freeimage-unstable-2021-11-01"
+        "freeimage-3.18.0-unstable-2024-04-18"
       ];
     };
 
@@ -88,12 +89,14 @@ let
       (import ./overlay)
 
       # Add teleop_modular
-      (import (pkgs.fetchFromGitHub {
+      # To use local source code for teleop modular, run in your terminal before building:
+      # $ export TELEOP_PATH=~/path/to/teleop_modular
+      # (this only applies to the one terminal, and wont apply to any future shell sessions)
+      (import ((pkgs.lib.maybeEnv "TELEOP_PATH" (pkgs.fetchFromGitHub {
         owner = "BaileyChessum";
         repo = "teleop_modular";
-        rev = "b025664e09a919feebf07032567c8b373d614009";
-        hash = "sha256-20aEXa++3K39Tn/rcnGUqKU8/iPyM2G4r/jTXVQNWmo=";
-      } + "/overlay.nix"))
+        inherit (revisions.teleop-modular) rev hash;
+      })) + "/overlay.nix"))
 
       # Add internally defined packages.
       (self: super: import ./packages/other { inherit (self) callPackage; })

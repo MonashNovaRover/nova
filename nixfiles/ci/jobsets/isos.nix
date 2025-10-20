@@ -41,7 +41,7 @@ let
               ];
 
               isoImage = {
-                isoBaseName = "nixos${lib.optionalString graphical "-graphical"}${lib.optionalString includeWorkspace "-workspace"}";
+                isoBaseName = lib.mkForce "nixos${lib.optionalString graphical "-graphical"}${lib.optionalString includeWorkspace "-workspace"}";
                 squashfsCompression = lib.mkIf (!enableCompression) "xz -noI -noD -noF -noX";
 
                 # Add workspace development dependencies, so that the live
@@ -87,12 +87,11 @@ let
 
               nova = {
                 inherit (ciLib) repos;
-                substituters.nova.password = "tFH6J!#HhrYc3&^m";
+                substituters.nova.password = builtins.readFile ../../external/src/other/secrets/hydra-password.txt;
                 desktop.enable = graphical;
                 workspace = {
                   enable = includeWorkspace;
                   package = hydraPatchedWorkspace;
-                  services.gui.frontendPackage = hydraPatchedWorkspace.novaPackages.nova-gui-frontend;
                 };
               };
               home-manager.sharedModules = [

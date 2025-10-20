@@ -24,7 +24,7 @@ class URCAuger(ActivatedJoystickControllerNode):
     AUGER_ACTUATION_SEND_FRAME_ID = 0x0C2
     AUGER_DRILL_CANID_PARAM = "auger_drill_canid"
     AUGER_DRILL_SEND_FRAME_ID = 0x0C1
-    
+
     # RECEIVING CARD IDS
     # Add any SENSOR FRAME / CARD IDS here
     AUGER_LIMIT_RECV_ID = 0x452
@@ -58,7 +58,7 @@ class URCAuger(ActivatedJoystickControllerNode):
     # Add any SENSOR command ids here
     AUGER_RECV_LIMIT_BOTTOM_COMMAND_ID = 0x01
     AUGER_RECV_DEPTH_LIMIT_HIT_COMMAND_ID = 0x01
-    
+
     # CONTROL DIRECTIONS
     # Add any CONTROL DIRECTIONS here
     AUGER_ACTUATION_UP = Direction.NEGATIVE
@@ -156,7 +156,7 @@ class URCAuger(ActivatedJoystickControllerNode):
             self.bottom_limit_hall_effect.set_sensor_value(False)
             self.auger_bottom_limit.update_limit_hit(False)
         self.auger_actuation.update_velocity(velocity=abs(joystick_r.ax_stick_x))
-    
+
 
     def update_auger_drill(self, joystick_r: InputJoystick):
         # Drill spin direction is determined by the right joystick thumb buttons
@@ -165,7 +165,7 @@ class URCAuger(ActivatedJoystickControllerNode):
             self.auger_drill.update_direction(self.AUGER_DRILL_CLOCKWISE)
         elif joystick_r.btn_thumb_l_state >= 1:
             self.auger_drill.update_direction(self.AUGER_DRILL_COUNTERCLOCKWISE)
-        
+
         # Drill spin velocity is determined by the right joystick trigger
         if joystick_r.btn_thumb_u_state >= 1:
             self.auger_drill.update_velocity(1.0)
