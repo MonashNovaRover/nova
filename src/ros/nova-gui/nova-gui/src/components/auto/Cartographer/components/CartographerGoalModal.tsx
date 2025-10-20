@@ -28,13 +28,13 @@ import {
   Card,
   Divider,
 } from "@nextui-org/react";
-import { SortablePoints } from "./SortablePoints.tsx";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../../ros/services/rosService.ts";
 import { GoalType, MapPoint } from "../../../../redux/models/CartographerState.ts";
 import { IRosNovaInterfacesCartographerCommandRequest } from "../../../../ros/rosTypes.ts";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
+import { SortablePoints } from "../../../maps/Cartographer/components/SortablePoints.tsx";
 
 export const CartographerGoalModal: React.FC<{
   isOpen: boolean;
