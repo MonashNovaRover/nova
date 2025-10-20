@@ -1,7 +1,7 @@
 import React from "react";
 import { Cartographer } from "../../components/maps/Cartographer/Cartographer";
-import { GoalPublisher } from "../../components/maps/Cartographer/components/GoalPublisher";
 import AutoStatus from "../../components/auto/Cartographer/components/AutoStatus";
+import { GoalPublisher } from "../../components/auto/Cartographer/components/GoalPublisher";
 
 const URCAutonomousNavigationView: React.FC = () => {
   return (
