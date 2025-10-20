@@ -1,4 +1,4 @@
-import { arcNavigationData, compNavigationData, generalNavigationData, testNavigationData, urcNavigationData } from "./NavigationRoutes";
+import { arcNavigationData, compNavigationData, generalNavigationData, testNavigationData, urcNavigationData } from "../../../utils/NavigationRoutes";
 import { useLocation } from "react-router-dom";
 
 export const HomePage = () => {

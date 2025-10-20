@@ -11,7 +11,7 @@ import { useSelector } from "react-redux";
 import { useUIActions } from "../../../redux/actions/useUIActions.ts";
 import novaLogo from "../../../assets/nova-logo.png";
 import { useLocation, useNavigate } from "react-router-dom";
-import { arcNavigationData, generalNavigationData, urcNavigationData } from "../../shared/components/NavigationRoutes.tsx";
+import { arcNavigationData, generalNavigationData, urcNavigationData } from "../../../utils/NavigationRoutes.tsx";
 
 export const NeoSidebar = () => {
   const uiActions = useUIActions();
