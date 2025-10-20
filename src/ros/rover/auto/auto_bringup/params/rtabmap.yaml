@@ -12,6 +12,7 @@ rtabmap_slam:
     approx_sync: True
     odom_frame_id: odom
     Rtabmap/DetectionRate: "3.5"
+    Rtabmap/LoopGPS: "true"
     # Grid Parameters are responsible for the Occupancy Grid Generated
     # Crucial for Costmap Generation
     Grid/MaxGroundAngle: "72"

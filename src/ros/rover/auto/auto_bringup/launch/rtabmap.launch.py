@@ -99,8 +99,8 @@ def launch_setup(context, *args, **kwargs):
                     remappings=[
                         ('scan_cloud','/livox/lidar'),
                         ('rgb/image','/oak/rgb/image_raw'),
-                        ('rgb/camera_info','/oak/rgb/camera_info')
-                        # ('gps/fix','/gps_rover/fix')
+                        ('rgb/camera_info','/oak/rgb/camera_info'),
+                        ('gps/fix','/gps_rover/fix')
                     ],
                 ),
             ],
@@ -115,7 +115,7 @@ def launch_setup(context, *args, **kwargs):
         #     ],
         # ),
         Node(
-            # condition=IfCondition(rtabmap_viz),
+            condition=IfCondition(rtabmap_viz),
             package='rtabmap_viz',
             executable='rtabmap_viz',
             output='screen',
