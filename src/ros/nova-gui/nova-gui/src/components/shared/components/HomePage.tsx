@@ -1,4 +1,4 @@
-import { arcNavigationData, generalNavigationData, urcNavigationData } from "./NavigationRoutes";
+import { arcNavigationData, compNavigationData, generalNavigationData, testNavigationData, urcNavigationData } from "./NavigationRoutes";
 import { useLocation } from "react-router-dom";
 
 export const HomePage = () => {
@@ -7,12 +7,11 @@ export const HomePage = () => {
   const currentPath = location.pathname;
   
   const navigationData =
-    // TODO: Make compNavigationData and testNavigationData   
-    // currentPath === "/" ? arcNavigationData :
+    currentPath === "/" ? compNavigationData :
     currentPath === "/arc" ? arcNavigationData :
     currentPath=== "/urc" ? urcNavigationData :
     currentPath === "/general" ? generalNavigationData :
-    // currentPath === "/test" ? generalNavigationData :
+    currentPath === "/test" ? testNavigationData :
     {};
 
 

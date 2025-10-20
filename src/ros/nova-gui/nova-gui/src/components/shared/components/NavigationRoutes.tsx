@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Aperture, Camera, Globe, Home, Image, Map } from "react-feather";
+import { Aperture, Camera, Circle, Globe, Home, Image, List, Map, Terminal, Tv } from "react-feather";
 import { URCCompModes } from "../../../views/shared/CamerasPage/CameraPageConstants";
 
 interface NavigationEntry {
@@ -10,6 +10,33 @@ interface NavigationEntry {
 
 interface NavigationInterface {
   [task: string]: NavigationEntry[];
+}
+
+export const compNavigationData: NavigationInterface = {
+  ["Competitions"]: [
+    {
+      title: "ARC",
+      route: "/arc",
+      icon: <Home />
+    },
+    {
+      title: "URC",
+      route: "/urc",
+      icon: <Globe />
+    }
+  ],
+  ["General"]: [
+    {
+      title: "General",
+      route: "/general",
+      icon: <List />
+    },
+    {
+      title: "Test",
+      route: "/test",
+      icon: <Terminal />
+    }
+  ]
 }
 
 export const urcNavigationData: NavigationInterface = {
@@ -171,5 +198,30 @@ export const generalNavigationData: NavigationInterface = {
       route: "/general/cameras",
       icon: <Camera/>,
     },
+  ]
+}
+
+export const testNavigationData: NavigationInterface = {
+  ["Test"]: [
+    {
+      title: "WebGL",
+      route: "/test/webgl",
+      icon: <Tv />
+    },
+    {
+      title: "State",
+      route: "/test/state",
+      icon: <Circle />
+    },
+    {
+      title: "NIR Probe",
+      route: "/test/nirprobe",
+      icon: <Circle />
+    },
+    {
+      title: "Overlay",
+      route: "/test/overlay",
+      icon: <Circle />
+    }
   ]
 }
