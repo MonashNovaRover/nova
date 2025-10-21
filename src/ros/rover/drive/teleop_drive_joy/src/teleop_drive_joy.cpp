@@ -182,28 +182,46 @@ void TeleopDriveJoy::map_button_callbacks()
   {
     switch_controller(DriveMode::DIFF);
   };
-  // mark axis buttons as negative
-  button_callbacks_[-(params_.axis_speed_change_fine)] =
-    [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+
+  auto changeSpeed = [this](int speed_change)
   {
     if (!locked_)
     {
       speed_ = std::clamp(
-        speed_ + joy_msg->axes[params_.axis_speed_change_fine] * params_.speed_change_fine_val,
+        speed_ + speed_change,
         params_.speed_limit_min, params_.speed_limit_max);
       RCLCPP_INFO_STREAM(this->get_logger(), C_SPEED << "Speed: " << speed_ << C_END);
     }
   };
-  button_callbacks_[-(params_.axis_speed_change_coarse)] =
+  button_callbacks_[params_.button_speed_decrease_fine] =
+    [this, changeSpeed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+    changeSpeed(-params_.speed_change_fine_val);
+  };
+  button_callbacks_[params_.button_speed_increase_fine] =
+    [this, changeSpeed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+    changeSpeed(params_.speed_change_fine_val);
+  };
+  button_callbacks_[params_.button_speed_decrease_coarse] =
+    [this, changeSpeed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+    changeSpeed(-params_.speed_change_coarse_val);
+  };
+  button_callbacks_[params_.button_speed_increase_coarse] =
+    [this, changeSpeed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+    changeSpeed(params_.speed_change_coarse_val);
+  };
+  button_callbacks_[-(params_.axis_hold_position)] =
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
-    if (!locked_)
-    {
-      speed_ = std::clamp(
-        speed_ + joy_msg->axes[params_.axis_speed_change_coarse] * params_.speed_change_coarse_val,
-        params_.speed_limit_min, params_.speed_limit_max);
-      RCLCPP_INFO_STREAM(this->get_logger(), C_SPEED << "Speed: " << speed_ << C_END);
-    }
+    RCLCPP_ERROR_STREAM(this->get_logger(), C_FAIL << "Failed to hold position: not implemented" << C_END);
+  };
+  button_callbacks_[-(params_.axis_handbrake)] =
+    [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+    RCLCPP_ERROR_STREAM(this->get_logger(), C_FAIL << "Failed to activate handbrake: not implemented" << C_END);
   };
 }
 
@@ -228,7 +246,7 @@ void TeleopDriveJoy::handle_button_callbacks(const sensor_msgs::msg::Joy::Shared
   auto isPressedAndDebounced = [this, &now, joy_msg](int button_index)
   {
     bool pressed = (button_index >= 0 && joy_msg->buttons[button_index]) ||
-                   (button_index < 0 && joy_msg->axes[std::abs(button_index)]);
+                   (button_index < 0 && joy_msg->axes[std::abs(button_index)] <= -params_.trigger_pressed_threshold);
     bool debounced = last_button_press_time_.find(button_index) == last_button_press_time_.end() ||
                      now - last_button_press_time_[button_index] >
                        rclcpp::Duration(std::chrono::milliseconds(params_.button_debounce_time));
