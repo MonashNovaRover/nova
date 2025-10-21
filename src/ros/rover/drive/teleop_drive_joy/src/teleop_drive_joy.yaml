@@ -1,6 +1,5 @@
 # This is only the schema for Node Parameters
 # This YAML will be converted to teleop_drive_joy_parameters.hpp upon build
-# Look at individual controller config for changing axes / buttons
 # Look here for docs about this YAML : https://github.com/PickNikRobotics/generate_parameter_library
 teleop_drive_joy:
   input_topic:
@@ -92,7 +91,6 @@ teleop_drive_joy:
       The joy axis corresponding to the Twist axis controlling angular velocity.
       Usually mapped to the left stick horizontal axis.
 
-  # TODO: Set to wireless xbox controller defaults
   button_unlock:
     type: int
     default_value: 6
