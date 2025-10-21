@@ -2,7 +2,11 @@ import {
     Modal,
     ModalBody,
     ModalContent,
+    // ModalFooter,
     ModalHeader,
+    Tab,
+    Tabs,
+    // Tooltip
 } from "@nextui-org/react";
 
 import { useEffect, useState } from "react";
@@ -32,29 +36,67 @@ export const RadioStatusModal = () => {
     const onClose = () => uiActions.setRadioStatusModalOpen(false);
 
 
+    
+    let maxPoints = 30;
+
+    const [allData, setData] = useState({
+        signal: [] as number[],
+        recv: [] as number[],
+        sent: [] as number[],
+        ping: [] as number[],
+    });
 
 
-    const maxPoints = 360;
-    const [signalData, setSignalData] = useState<number[]>([]);
+    const addPoint = (currentData: number[], newValue: number) => {
+        const newData = [...currentData, newValue];
 
-    useEffect(() => {
-        const updatedSignalData = signalData.concat(radioStatus.signal);
-        if (updatedSignalData.length > maxPoints) {
-            updatedSignalData.shift();
+        // Remove first element in the array if we exceed the maximum number of points
+        if (newData.length > maxPoints) {
+            newData.shift();
         }
-        setSignalData(updatedSignalData);
-    }, [radioStatus.recv,
-        radioStatus.sent,
-        radioStatus.signal,
-        radioStatus.ping
-    ]);
+
+        return newData;
+    };
+
+    // Update existing data
+    useEffect(() => {
+        setData(allData => ({
+            signal: addPoint(allData.signal, radioStatus.signal),
+            recv: addPoint(allData.recv, radioStatus.recv),
+            sent: addPoint(allData.sent, radioStatus.sent),
+            ping: addPoint(allData.ping, radioStatus.ping),
+        }));
+    }, [radioStatus]);
+
 
     const radioData = {
-        signal: { name: 'Signal (dBm)', data: signalData.map((value, index) => [index, value]) },
-        // recv: { name: 'Recv (kbps)', data: recvData.map((value, index) => [index, value]) },
-        // sent: { name: 'Sent (kbps)', data: sentData.map((value, index) => [index, value]) },
-        // ping: { name: 'Ping (ms)', data: pingData.map((value, index) => [index, value]) },
+        signal: { name: 'Signal strength', data: allData.signal.map((v, i) => [i, v]) },
+        recv: { name: 'Received bandwidth', data: allData.recv.map((v, i) => [i, v]) },
+        sent: { name: 'Sent bandwidth', data: allData.sent.map((v, i) => [i, v]) },
+        ping: { name: 'Ping', data: allData.ping.map((v, i) => [i, v]) },
     };
+
+    // const [maxPoints, setMaxPoints] = useState(300);
+
+    // const timeLimit = (
+    //     <Tooltip
+    //         className="text-tiny text-default-500 rounded-md"
+    //         content="Press Enter to confirm"
+    //         placement="left"
+    //     >
+    //         <input
+    //             aria-label="Seconds value"
+    //             className="px-1 py-0.5 w-14 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
+    //             type="number"
+    //             value={maxPoints}
+    //             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+    //                 const v = Number(e.target.value);
+    //                 if (!isNaN(v)) setMaxPoints(v);
+    //             }}
+    //         />
+    //     </Tooltip>
+    // )
+
 
     return (
         <Modal
@@ -65,9 +107,31 @@ export const RadioStatusModal = () => {
         >
             <ModalContent>
                 <ModalHeader className="flex flex-col gap-1">Radio data</ModalHeader>
+                {/* <ModalFooter>Show last {timeLimit} seconds</ModalFooter> */}
+
                 <ModalBody>
-                    <DataChart dataset={[radioData.signal]} chartOptions={ChartOptions(ChartStyle.Default)} />
-                    {/* <DataChart dataset={[radioData.ping]} chartOptions={ChartOptions(ChartStyle.Default)} /> */}
+                    <Tabs
+                        variant="underlined"
+                        classNames={{
+                            tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
+                        }}
+                    >
+                        <Tab title="Signal">
+                            <DataChart dataset={[radioData.signal]} chartOptions={ChartOptions(ChartStyle.Signal, maxPoints)} />
+                        </Tab>
+
+                        <Tab title="Received">
+                            <DataChart dataset={[radioData.recv]} chartOptions={ChartOptions(ChartStyle.Received, maxPoints)} />
+                        </Tab>
+
+                        <Tab title="Sent">
+                            <DataChart dataset={[radioData.sent]} chartOptions={ChartOptions(ChartStyle.Sent, maxPoints)} />
+                        </Tab>
+
+                        <Tab title="Ping">
+                            <DataChart dataset={[radioData.ping]} chartOptions={ChartOptions(ChartStyle.Ping, maxPoints)} />
+                        </Tab>
+                    </Tabs>
                 </ModalBody>
             </ModalContent>
         </Modal>
