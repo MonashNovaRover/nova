@@ -148,9 +148,13 @@ teleop_drive_joy:
     type: int
     default_value: 5
     description: "NOT IMPLEMENTED: Decrease linear velocity by 40%"
+  handbrake_speed_multiplier:
+    type: double
+    default_value: 0.6
+    description: "Multiplier that applies to linear velocity when handbrake is pressed"
   trigger_pressed_threshold:
     type: double
-    default_value: 0.2
+    default_value: 0.1
     description: "Proportion right/left trigger needs to move before being interpreted as pressed"
 
   speed_change_coarse_val:

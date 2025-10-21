@@ -218,11 +218,6 @@ void TeleopDriveJoy::map_button_callbacks()
   {
     RCLCPP_ERROR_STREAM(this->get_logger(), C_FAIL << "Failed to hold position: not implemented" << C_END);
   };
-  button_callbacks_[-(params_.axis_handbrake)] =
-    [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
-  {
-    RCLCPP_ERROR_STREAM(this->get_logger(), C_FAIL << "Failed to activate handbrake: not implemented" << C_END);
-  };
 }
 
 void TeleopDriveJoy::joy_callback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
@@ -276,6 +271,12 @@ void TeleopDriveJoy::send_drive_command(const sensor_msgs::msg::Joy::SharedPtr j
     std::clamp(linear.second, -controller_params.limit_linear, controller_params.limit_linear);
   angular *= controller_params.scale_angular;
   angular = std::clamp(angular, -controller_params.limit_angular, controller_params.limit_angular);
+
+  if (joy_msg->axes[params_.axis_handbrake] <= -params_.trigger_pressed_threshold)
+  {
+    linear.first *= params_.handbrake_speed_multiplier;
+	linear.second *= params_.handbrake_speed_multiplier;
+  }
 
   auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
   cmd_vel_msg->twist.linear.x = linear.first;
