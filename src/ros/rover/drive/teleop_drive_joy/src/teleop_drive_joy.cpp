@@ -183,7 +183,7 @@ void TeleopDriveJoy::map_button_callbacks()
     switch_controller(DriveMode::DIFF);
   };
 
-  auto changeSpeed = [this](int speed_change)
+  auto changeSpeed = [this](double speed_change)
   {
     if (!locked_)
     {
