@@ -43,7 +43,7 @@ export const urcNavigationData: NavigationInterface = {
   ["Base"]: [
     {
       title: "Dashboard",
-      route: "/urc",
+      route: "/urc/base",
       icon: <Home />,
     },
     {
