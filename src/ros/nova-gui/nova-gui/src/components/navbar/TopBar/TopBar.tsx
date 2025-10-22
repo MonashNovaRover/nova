@@ -16,7 +16,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
 import { useUIActions } from "../../../redux/actions/useUIActions.ts";
 import { BifrostConnectionStatus } from "../../../redux/models/bifrost/BifrostTypes.ts";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import humanizeString from "humanize-string";
 import { BLCMDStatusButton } from "../BLCMDStatusModal/BLCMDStatusButton.tsx";
 import "./TopBar.css";
@@ -73,7 +73,9 @@ export const NovaTopBar: React.FC = () => {
       </Button>
       <NavbarContent justify="start" className="ml-7">
         <NavbarBrand>
-          <img src={novaLogo} className="w-16" alt="Nova Logo" />
+          <Link to="/">
+            <img src={novaLogo} className="w-16" alt="Nova Logo" />
+          </Link>
           {!!title && (
             <>
               <Divider orientation="vertical" className="h-10 w-[2px] mx-2" />

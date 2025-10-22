@@ -11,7 +11,7 @@ import { useSelector } from "react-redux";
 import { useUIActions } from "../../../redux/actions/useUIActions.ts";
 import novaLogo from "../../../assets/nova-logo.png";
 import { useLocation, useNavigate } from "react-router-dom";
-import { arcNavigationData, generalNavigationData, urcNavigationData } from "../../../utils/NavigationRoutes.tsx";
+import { arcNavigationData, compNavigationData, generalNavigationData, testNavigationData, urcNavigationData } from "../../../utils/NavigationRoutes.tsx";
 
 export const NeoSidebar = () => {
   const uiActions = useUIActions();
@@ -23,9 +23,11 @@ export const NeoSidebar = () => {
   const currentPath = location.pathname;
 
   const sidebarData =
+      location.pathname === "/" ? compNavigationData :
       location.pathname.startsWith("/arc") ? arcNavigationData :
       location.pathname.startsWith("/urc") ? urcNavigationData :
       location.pathname.startsWith("/general") ? generalNavigationData :
+      location.pathname.startsWith("/test") ? testNavigationData :
       {};
 
   return (
