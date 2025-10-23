@@ -99,7 +99,7 @@ let
       })) + "/overlay.nix"))
 
       # Add internally defined packages.
-      (self: super: import ./packages/other { inherit (self) callPackage; })
+      (self: super: import ./packages/other { inherit (self) pkgs callPackage; })
       (self: super: {
         pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
           (pyself: pysuper: import ./packages/python { inherit (pyself) callPackage; })
