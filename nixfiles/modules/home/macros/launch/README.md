@@ -1,7 +1,7 @@
 # Nova-Launch
 This set of nixfiles contains nix derivations and shells which will launch a series of terminals which will run our entire stack.
 Essentially a terminal launcher.
-It has capabilities for SSHing, nix shells built in to the framework (read default.nix to find them).
+It has capabilities for SSHing and nix shells built in to the framework (read default.nix to find them).
 
 To define your own "payload" you can add an existing attribute to a .nix file e.g
 ```nix
@@ -41,29 +41,17 @@ in
 
 ### Build and/or Run
 Follow this basic structure and then you can run it through any of the following means:\
+`nix-build nova/nixfiles -A env.nova-launch-scripts`
+ - This will create executable bash files in your specified output destination's launch folder
+ - The rover-ip and mast-ip arguments are then handled by the shell files and must be passed through as argument 1 and 2 respectively. There may also be argument flags you can specify.
+`nix-shell nova/nixfiles-A env.nova-launch-scripts` 
+ - Same as the nix-build except the runnable shell scripts will be on path to test
 
-`nix-shell ~/nova/nixfiles/modules/home/macros/launch -A MODULE-NAME.ATTR-NAME --argstr rover-ip nova@localhost --argstr mast-ip nova@localhost`
-- This will immediately start the terminals of the selected setup
-- MODULE-NAME refers to variable name given to the imported in default.nix
-- ATTR-NAME refers to the variable name given to the particular payload inside the payload.nix 
-- So in this case `-A drive.drive`
-- If you want a single .nix file you can all with just `-A mynixfilename` then have a single output of the file instead of a set
-- There are also currently two arguments to dynamically set the rover and mast's ip for SSHing
 
-`nix-build -o ~/Builds/drive  ~/nova/nixfiles/modules/home/macros/launch -A drive.drive`
-- Allows you to test specific payloads!
-- This will create executable bash files in your specified output destination's launch folder
-- the rover-ip and mast-ip arguments are then handled by the shell files and must be passed through as argument 1 and 2 respectively
-- e.g `~/Builds/drive/launch/run-drive nova@orin-ip`
+`nix-build/nix-shell -A env.nova-git-metadata`
 - This will also create a git metadata file with any dirty changes (non committed changes) as a patch at the end.
 - Find this file in the root directory of the resultant build as `nova-git-metadata`
 
-`nix-build -o ~/Builds/nova-launch-scripts -A nova-launch-scripts` 
-- Same as above but with all payload scripts built at once
-
-`nix-build -o ~/Builds/nova-git-metadata -A nova-git-metadata`
-- Test the git metadata feature 
-
 `ws-build`
 - This will work like nix-build but build all of the payloads at once with the rest of our workspace
-- You can also do 
+- Allows for workspace relevant builds of launch files

@@ -42,16 +42,12 @@ let
   mast-ssh-check = need-mast: if need-mast then ssh-check mast-ip else "";
 
   # usage strings for nix-shell and nix-build respectively
-  usage-string-shell = platform: "You must provide a target for ${platform} ssh commands.\n  Usage: nix-shell shell.nix --argstr ${platform}-ip <user@ip>\n  e.g nix-shell shell.nix --argstr ${platform}-ip nova@10.0.0.11";
+  # usage-string-shell = platform: "You must provide a target for ${platform} ssh commands.\n  Usage: nix-shell shell.nix --argstr ${platform}-ip <user@ip>\n  e.g nix-shell shell.nix --argstr ${platform}-ip nova@10.0.0.11";
   usage-string-build = platform: "${ansi.light-red}ERROR:${ansi.nc} ${platform}-ip is required for ssh commands. \\n  Usage: $0 \[-flag \<value\>\] \<nova@rover-ip\> \[nova@mast-ip\] \\n  e.g $0 nova@10.0.0.2 nova@10.0.0.3";
 
   # check that ip is present and optionally enforce this 
-  rover-check = need-rover: if rover-ip == "$1" && need-rover && inShell
-    then throw (usage-string-shell "rover")
-    else if rover-ip == "$1" && !need-rover then "" else "  echo \"SSHing into rover at ${ansi.light-purple}${rover-ip}${ansi.nc}...\"";
-  mast-check = need-mast: if mast-ip == "$2" && need-mast && inShell
-    then throw (usage-string-shell "mast")
-    else if mast-ip == "$2" && !need-mast then "" else "  echo \"SSHing into mast at ${ansi.light-purple}${mast-ip}${ansi.nc}...\"";
+  rover-check = need-rover: if !need-rover then "" else "  echo \"SSHing into rover at ${ansi.light-purple}${rover-ip}${ansi.nc}...\"";
+  mast-check = need-mast: if !need-mast then "" else "  echo \"SSHing into mast at ${ansi.light-purple}${mast-ip}${ansi.nc}...\"";
 
   # default pre-shell for setup before terminals
   # if statement prevents infinite loop
@@ -131,16 +127,16 @@ let
   bashBuilder = struct: shellName: shellAndBuild (mkBashScript struct) shellName;
 
   callPackage = pkgs.lib.callPackageWith {inherit pkgs base base-nix rover rover-nix mast pre-shell post-shell bashBuilder route;};
-in
-rec { 
-  # import more payloads here
+
+    # import more payloads here
   auto = callPackage ./auto.nix   { };
   drive = callPackage ./drive.nix { };
   gui = callPackage ./gui.nix     { };
 
   # pull nested setups and flatten into attributes of one set
   all-setups = builtins.removeAttrs (builtins.foldl' pkgs.lib.mergeAttrs { } [auto drive gui]) ["override" "overrideDerivation"];
-
+in
+{ 
   # build all setup scripts
   nova-launch-scripts = pkgs.stdenv.mkDerivation rec {
     pname = "nova-launch-scripts";
@@ -156,6 +152,14 @@ rec {
     buildPhase = builtins.concatStringsSep "\n" (
       builtins.attrValues (builtins.mapAttrs (_: drv: drv.buildPhase) all-setups)
     );
+
+    # Run the same script generation as buildPhase, but output to temp_folder/launch instead of $out/launch
+    shellHook = ''
+      ${builtins.replaceStrings ["$out/launch"] ["$NIX_BUILD_TOP/launch"] (builtins.concatStringsSep "\n" (
+        builtins.attrValues (builtins.mapAttrs (_: drv: drv.buildPhase) all-setups)
+      ))}
+      export PATH="$NIX_BUILD_TOP/launch:$PATH"
+    '';
   };
 
   # git metadata derivation
