@@ -71,6 +71,11 @@ class CMDHardware(HardwareInterface):
                  can_id: int=0,
                  max_effort: float=1.0, max_effort_can: int=0x7FFF,
                  max_velocity: float=0.0, max_velocity_can: int=0x7FFF):
+        """ Constructor, deferred until the control manager has been spun.
+        If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
+
+        :param contexts: A collection of dependency injection class instances you can index by class type.
+        """
         super().__init__(contexts)
 
         self.bus = contexts[jcan.Bus]
@@ -87,6 +92,15 @@ class CMDHardware(HardwareInterface):
         self.declare_parameter("max_velocity_can", max_velocity_can)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
+        """ Used to set up your HardwareInterface. Run once before any other class method.
+        Use this method to get data from self.node, and get references to any command or state interface you need.
+
+        :param command_interfaces: A collection of Interfaces used to send messages to hardware. Get any command
+        interfaces you need from this, then store them in member variables.
+        :param state_interfaces: A collection of Interfaces containing the current state of the robot. Get any state
+        interfaces you need from this, then store them in member variables.
+        :returns: None or True if configured successfully. False otherwise.
+        """
         # Update params
         self.can_id: int = self.get_parameter("can_id").value
         self.joint: str = self.get_parameter("joint").value
@@ -125,9 +139,17 @@ class CMDHardware(HardwareInterface):
         return True
 
     def on_read(self, now: float, period: float):
+        """ Called to read values from hardware, and put them into stored state interfaces.
+        :param now: The current time, in seconds
+        :param period: The time elapsed since the last update, in seconds.
+        """
         pass
 
     def on_write(self, now: float, period: float):
+        """ Called to write to hardware using values stored in command interfaces.
+        :param now: The current time, in seconds
+        :param period: The time elapsed since the last update, in seconds.
+        """
         if self.effort_cmd:
             self.effort_handle.send_value(self.bus, self.can_id, self.effort_cmd.value)
         elif self.velocity_cmd:

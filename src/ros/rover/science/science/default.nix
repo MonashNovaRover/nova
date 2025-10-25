@@ -13,6 +13,7 @@
 , nova-python-control
 , nova-camera-msgs
 , nova-python-control2
+, teleop-modular-python-utils
 }:
 
 buildRosPackage {
@@ -43,6 +44,7 @@ buildRosPackage {
     nova-python-control2
     nova-input-interfaces
     nova-camera-msgs
+    teleop-modular-python-utils
   ];
 }
 

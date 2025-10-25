@@ -6,6 +6,7 @@ from python_control2 import PythonControl, Controller, Contexts, InterfaceCollec
 import random
 
 from python_control2.hardware_interfaces import CMDHardware
+from teleop_python_utils import Inputs
 
 
 class TestController(Controller):
@@ -13,11 +14,14 @@ class TestController(Controller):
     state: Interface
     joint_cmd: Interface
 
-    def __init__(self, contexts: Contexts, joint: str="joint"):
+    def __init__(self, contexts: Contexts, joint: str="joint", button: str="button"):
         super().__init__(contexts)
         self.logger.info(f"Controller -- I have been __init__ialized")
 
         self.joint = self.declare_parameter("joint", joint).value
+        self.button_name = self.declarr_parameter("button", button)
+
+        self.button = contexts[Inputs].get_button(self.button_name)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         self.cmd = command_interfaces["cmd"]
@@ -31,6 +35,9 @@ class TestController(Controller):
         self.joint_cmd.value = self.state.value * 0.1
         self.logger.info(f"{self.state.value} -> {self.cmd.value}")
         self.logger.info(f"{self.state.value} -> {self.joint_cmd.value} ({self.joint})")
+
+        if self.button:
+            print(f"{self.button_name} is pressed")
 
 class TestHardware(HardwareInterface):
     state: Interface
@@ -72,4 +79,5 @@ if __name__ == "__main__":
         .with_hardware("j2_cmd", CMDHardware, "j2", can_id=0x1F) \
         .with_hardware("j3_cmd", CMDHardware, "j3", can_id=0x043) \
         .with_jcan() \
+        .with_teleop(lambda node: Inputs(node).with_topic("science/inputs")) \
         .spin()

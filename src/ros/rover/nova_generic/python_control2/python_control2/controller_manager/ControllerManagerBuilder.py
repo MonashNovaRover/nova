@@ -1,7 +1,7 @@
 import jcan, logging
 import rclpy
 from rclpy.node import Node, ParameterDescriptor
-from typing import Type, TypeVar, List, Any, Optional
+from typing import Type, TypeVar, List, Any, Optional, Callable
 from teleop_python_utils.Inputs import Inputs
 from .ControllerManager import ControllerManager
 from ..controllers.Controller import Controller
@@ -133,7 +133,10 @@ class ControllerManagerBuilder:
         return self
 
     def with_jcan(self) -> "ControllerManagerBuilder":
-        can_bus = self._cm.contexts[Node].declare_parameter("can_bus", "can1", ParameterDescriptor(description="CAN Bus."))
+        """ Adds a jcan bus to the control managers contexts. The bus is spun every update loop before on_read is
+        called for each hardware interface. CAN Bus defaults to can1.
+        """
+        can_bus = self._cm.declare_parameter("can_bus", "can1", "CAN Bus.")
         # jcan_spin_speed = self.node.declare_parameter("jcan_update_rate", 100, ParameterDescriptor(name="How often to spin jcan per second."))
 
         self.with_context(jcan.Bus)
@@ -145,8 +148,15 @@ class ControllerManagerBuilder:
 
         return self
 
-    def with_teleop(self, inputs: Inputs) -> "ControllerManagerBuilder":
-        self._cm.contexts[Inputs] = inputs
+    def with_teleop(self, input_constructor: Callable[[Node], Inputs]) -> "ControllerManagerBuilder":
+        """ Adds teleop_modular functionality. Inputs are received by an Inputs object where Buttons and Axes can be
+        retrieved.
+
+        :param input_constructor: Function that takes in a node and returns a teleop python util Inputs
+        see the teleop docs for configuration options:
+        https://github.com/BaileyChessum/teleop_modular/blob/main/teleop_python_utils/teleop_python_utils/modules/Inputs.py
+        """
+        self._cm.contexts[Inputs] = input_constructor(self._cm.contexts[Node])
         return self
 
     def spin(self, default_update_rate: float=20, auto_run_rclpy: bool=True) -> None:
