@@ -34,6 +34,7 @@ TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions& options)
   , sent_lock_msg_(false)
   , locked_(true)
   , drive_mode_(DriveMode::PIVOT)
+  , handbrake_pressed_(false)
 {
 }
 
@@ -266,10 +267,21 @@ void TeleopDriveJoy::send_drive_command(const sensor_msgs::msg::Joy::SharedPtr j
   angular *= controller_params.scale_angular;
   angular = std::clamp(angular, -controller_params.limit_angular, controller_params.limit_angular);
 
+  // handbrake
   if (std::abs(joy_msg->axes[params_.axis_handbrake]) > params_.trigger_pressed_threshold)
   {
+	if (!handbrake_pressed_)
+	{
+	  handbrake_pressed_ = true;
+	  RCLCPP_INFO_STREAM(this->get_logger(), C_SUCCESS << "Handbrake activated" << C_END);
+	}
     linear.first *= params_.handbrake_speed_multiplier;
     linear.second *= params_.handbrake_speed_multiplier;
+  }
+  else if (handbrake_pressed_)
+  {
+    handbrake_pressed_ = false;
+    RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Handbrake deactivated" << C_END);
   }
 
   auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
