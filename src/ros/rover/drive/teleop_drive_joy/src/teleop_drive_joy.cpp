@@ -183,7 +183,7 @@ void TeleopDriveJoy::map_button_callbacks()
     switch_controller(DriveMode::DIFF);
   };
 
-  auto changeSpeed = [this](double speed_change)
+  auto change_speed = [this](double speed_change)
   {
     if (!locked_)
     {
@@ -194,29 +194,24 @@ void TeleopDriveJoy::map_button_callbacks()
     }
   };
   button_callbacks_[params_.button_speed_decrease_fine] =
-    [this, changeSpeed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+    [this, change_speed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
-    changeSpeed(-params_.speed_change_fine_val);
+    change_speed(-params_.speed_change_fine_val);
   };
   button_callbacks_[params_.button_speed_increase_fine] =
-    [this, changeSpeed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+    [this, change_speed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
-    changeSpeed(params_.speed_change_fine_val);
+    change_speed(params_.speed_change_fine_val);
   };
   button_callbacks_[params_.button_speed_decrease_coarse] =
-    [this, changeSpeed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+    [this, change_speed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
-    changeSpeed(-params_.speed_change_coarse_val);
+    change_speed(-params_.speed_change_coarse_val);
   };
   button_callbacks_[params_.button_speed_increase_coarse] =
-    [this, changeSpeed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+    [this, change_speed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
-    changeSpeed(params_.speed_change_coarse_val);
-  };
-  button_callbacks_[-(params_.axis_hold_position)] =
-    [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
-  {
-    RCLCPP_ERROR_STREAM(this->get_logger(), C_FAIL << "Failed to hold position: not implemented" << C_END);
+    change_speed(params_.speed_change_coarse_val);
   };
 }
 
@@ -240,8 +235,7 @@ void TeleopDriveJoy::handle_button_callbacks(const sensor_msgs::msg::Joy::Shared
 
   auto isPressedAndDebounced = [this, &now, joy_msg](int button_index)
   {
-    bool pressed = (button_index >= 0 && joy_msg->buttons[button_index]) ||
-                   (button_index < 0 && joy_msg->axes[std::abs(button_index)] < -params_.trigger_pressed_threshold);
+    bool pressed = joy_msg->buttons[button_index];
     bool debounced = last_button_press_time_.find(button_index) == last_button_press_time_.end() ||
                      now - last_button_press_time_[button_index] >
                        rclcpp::Duration(std::chrono::milliseconds(params_.button_debounce_time));
@@ -272,10 +266,10 @@ void TeleopDriveJoy::send_drive_command(const sensor_msgs::msg::Joy::SharedPtr j
   angular *= controller_params.scale_angular;
   angular = std::clamp(angular, -controller_params.limit_angular, controller_params.limit_angular);
 
-  if (joy_msg->axes[params_.axis_handbrake] < -params_.trigger_pressed_threshold)
+  if (std::abs(joy_msg->axes[params_.axis_handbrake]) > params_.trigger_pressed_threshold)
   {
     linear.first *= params_.handbrake_speed_multiplier;
-	  linear.second *= params_.handbrake_speed_multiplier;
+    linear.second *= params_.handbrake_speed_multiplier;
   }
 
   auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
