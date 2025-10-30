@@ -1,6 +1,5 @@
 # This is only the schema for Node Parameters
 # This YAML will be converted to teleop_drive_joy_parameters.hpp upon build
-# Look at individual controller config for changing axes / buttons
 # Look here for docs about this YAML : https://github.com/PickNikRobotics/generate_parameter_library
 teleop_drive_joy:
   input_topic:
@@ -79,7 +78,7 @@ teleop_drive_joy:
       Usually mapped to the left stick horizontal axis.
   axis_linear_z:
     type: int
-    default_value: 2
+    default_value: 3
     description: >
       The joy axis corresponding to the Twist axis controlling vertical velocity.
       Usually mapped to the right stick vertical axis.
@@ -87,53 +86,77 @@ teleop_drive_joy:
       the right stick vertical axis value.
   axis_angular_z:
     type: int
-    default_value: 3
+    default_value: 2
     description: >
       The joy axis corresponding to the Twist axis controlling angular velocity.
       Usually mapped to the left stick horizontal axis.
 
-  # TODO: Set to wireless xbox controller defaults
   button_unlock:
     type: int
-    default_value: 9
+    default_value: 6
     description: "Unlock Gamepad"
   button_lock:
     type: int
-    default_value: 10
+    default_value: 4
     description: "Lock Gamepad"
   button_autonomous_mode:
     type: int
-    default_value: 7
+    default_value: 9
     description: "Switch to Autonomous Mode"
   button_manual_mode:
     type: int
-    default_value: 8
+    default_value: 10
     description: "Switch to Manual Mode"
   button_strafe_drive_controller:
     type: int
-    default_value: 6
+    default_value: 2
     description: "Switch to Strafe Mode"
   button_holonomic_drive_controller:
     type: int
-    default_value: 5
+    default_value: 1
     description: "Switch to Holonomic Mode"
   button_pivot_drive_controller:
     type: int
-    default_value: 7
+    default_value: 0
     description: "Switch to Pivot Mode"
   button_diff_drive_controller:
     type: int
-    default_value: 4
+    default_value: 3
     description: "Switch to Tank Mode"
+  button_speed_decrease_fine:
+    type: int
+    default_value: 13
+    description: "Decrease speed on a fine scale"
+  button_speed_increase_fine:
+    type: int
+    default_value: 14
+    description: "Increase speed on a fine scale"
+  button_speed_decrease_coarse:
+    type: int
+    default_value: 12
+    description: "Decrease speed on a coarse scale"
+  button_speed_increase_coarse:
+    type: int
+    default_value: 11
+    description: "Increase speed on a coarse scale"
 
-  axis_speed_change_fine:
+  axis_hold_position:
     type: int
-    default_value: 6
-    description: "Axis to increment current speed on a coarse scale. This is usually mapped to DPad Horizontal"
-  axis_speed_change_coarse:
+    default_value: 4
+    description: "NOT IMPLEMENTED: Hold position (for Holonomic Drive)"
+  axis_handbrake:
     type: int
-    default_value: 7
-    description: "Axis to increment current speed on a coarse scale. This is usually mapped to DPad Vertical"
+    default_value: 5
+    description: "Decrease linear velocity by a fixed proportion"
+  handbrake_speed_multiplier:
+    type: double
+    default_value: 0.6
+    description: "Multiplier that applies to linear velocity when handbrake is pressed"
+  trigger_pressed_threshold:
+    type: double
+    default_value: 0.1
+    description: "Proportion that right/left trigger must move beyond to be interpreted as pressed"
+
   speed_change_coarse_val:
     type: double
     default_value: 0.1

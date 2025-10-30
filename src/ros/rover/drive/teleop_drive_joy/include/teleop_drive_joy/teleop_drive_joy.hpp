@@ -183,6 +183,7 @@ private:
   double speed_;  // Linear Speed Multiplier that can be incremented
   std::map<int, rclcpp::Time> last_button_press_time_;
   std::map<int, std::function<void(const sensor_msgs::msg::Joy::SharedPtr)>> button_callbacks_;
+  bool handbrake_pressed_;
 };
 
 }  // namespace teleop_drive_joy
