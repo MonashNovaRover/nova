@@ -39,6 +39,7 @@ add_library(${PROJECT_NAME} SHARED
   src/collision/collision_plugin.cpp
   src/collision/fcl/fcl_collision_plugin.cpp
   src/collision/fcl/allowed_collision_matrix.cpp
+  src/collision/fcl/geometry_cache.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17
@@ -55,23 +56,25 @@ install(FILES plugins.xml
 )
 
 # Test cases
-find_package(ament_cmake_gtest REQUIRED)
-set(TEST_INPUTS_SOURCE_FILES
-  test/collision/fcl/test_allowed_collision_matrix.cpp
-)
-ament_add_gtest(test_kinematics
-  ${TEST_INPUTS_SOURCE_FILES}
-)
-target_link_libraries(test_kinematics
-  ${PROJECT_NAME}
-)
-target_include_directories(test_kinematics PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-)
-set_tests_properties(test_kinematics
-  PROPERTIES
-  ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{LD_LIBRARY_PATH}"
-)
+if(TR)
+  find_package(ament_cmake_gtest REQUIRED)
+  set(TEST_KINEMATICS_SOURCE_FILES
+    test/collision/fcl/test_allowed_collision_matrix.cpp
+  )
+  ament_add_gtest(test_kinematics
+    ${TEST_KINEMATICS_SOURCE_FILES}
+  )
+  target_link_libraries(test_kinematics
+    ${PROJECT_NAME}
+  )
+  target_include_directories(test_kinematics PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  )
+  set_tests_properties(test_kinematics
+    PROPERTIES
+    ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{LD_LIBRARY_PATH}"
+  )
+endif()
 
 # -- Install
 
