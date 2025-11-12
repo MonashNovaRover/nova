@@ -16,6 +16,7 @@
 , ament-lint-auto
 , transmission-interface
 , fcl
+, kdl-parser
 }:
 
 buildRosPackage {
@@ -50,6 +51,7 @@ buildRosPackage {
     orocos-kdl
     transmission-interface
     fcl
+    kdl-parser
   ];
 
   propagatedBuildInputs = [ 
