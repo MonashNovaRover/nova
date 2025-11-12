@@ -61,25 +61,22 @@ find_package(ament_cmake_gtest REQUIRED)
 
 # Add tests
 
-#set(TEST_INPUTS_SOURCE_FILES
-#  test/test_inputs.cpp
-#  test/test_state.cpp
-#  test/test_input_map.cpp
-#  test/test_input_pipeline.cpp
-#)
-#ament_add_gtest(test_inputs
-#  ${TEST_INPUTS_SOURCE_FILES}
-#)
-#target_link_libraries(test_inputs
-#  ${PROJECT_NAME}
-#)
-#target_include_directories(test_inputs PUBLIC
-#  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#)
-#set_tests_properties(test_inputs
-#  PROPERTIES
-#  ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{LD_LIBRARY_PATH}"
-#)
+set(TEST_INPUTS_SOURCE_FILES
+  test/collision/fcl/test_allowed_collision_matrix.cpp
+)
+ament_add_gtest(test_inputs
+  ${TEST_INPUTS_SOURCE_FILES}
+)
+target_link_libraries(test_inputs
+  ${PROJECT_NAME}
+)
+target_include_directories(test_inputs PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+set_tests_properties(test_inputs
+  PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{LD_LIBRARY_PATH}"
+)
 
 # Enable linting
 #  ament_lint_auto_find_test_dependencies()
