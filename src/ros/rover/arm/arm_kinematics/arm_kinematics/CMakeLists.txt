@@ -11,9 +11,9 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2_geometry_msgs
   Eigen3
   tf2_eigen
-  moveit_core
   transmission_interface
   fcl
+  kdl_parser
 )
 
 find_package(ament_cmake REQUIRED)
@@ -55,32 +55,23 @@ install(FILES plugins.xml
 )
 
 # Test cases
-#if(TR)
 find_package(ament_cmake_gtest REQUIRED)
-#  find_package(ament_lint_auto REQUIRED)
-
-# Add tests
-
 set(TEST_INPUTS_SOURCE_FILES
   test/collision/fcl/test_allowed_collision_matrix.cpp
 )
-ament_add_gtest(test_inputs
+ament_add_gtest(test_kinematics
   ${TEST_INPUTS_SOURCE_FILES}
 )
-target_link_libraries(test_inputs
+target_link_libraries(test_kinematics
   ${PROJECT_NAME}
 )
-target_include_directories(test_inputs PUBLIC
+target_include_directories(test_kinematics PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
-set_tests_properties(test_inputs
+set_tests_properties(test_kinematics
   PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{LD_LIBRARY_PATH}"
 )
-
-# Enable linting
-#  ament_lint_auto_find_test_dependencies()
-#endif()
 
 # -- Install
 
@@ -91,10 +82,10 @@ install(
 )
 
 # Install config files
-install(
-  DIRECTORY config/
-  DESTINATION share/${PROJECT_NAME}/config
-)
+#install(
+#  DIRECTORY config/
+#  DESTINATION share/${PROJECT_NAME}/config
+#)
 
 install(TARGETS ${PROJECT_NAME}
   EXPORT export_${PROJECT_NAME}
