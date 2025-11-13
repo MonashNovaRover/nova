@@ -6,6 +6,7 @@
 #define ARM_KINEMATICS_COLLISION_PLUGIN_HPP
 
 #include <arm_kinematics/kinematics_plugins/forward_kinematics_plugin.hpp>
+#include <arm_kinematics/aliases.hpp>
 
 namespace arm_kinematics {
 
@@ -30,6 +31,40 @@ public:
   bool initialize(
     KinematicsBase::KinematicsNodeInterfaces node_interfaces,
     const ForwardKinematicsPlugin::SharedPtr & fk);
+
+  /**
+   * Perform a self intersection check with the given joint states.
+   *
+   * \param joint_states Positions of all joints, as provided by your joint map
+   * \param chain The FK plugin chain that maps joint_states to
+   *
+   * \returns true if there is an intersection, false if there is no intersection
+   */
+  virtual bool collide(const Isometry3dVector & collider_poses) = 0;
+
+  /**
+   * Perform a self intersection check with the given joint states.
+   *
+   * \param joint_states Positions of all joints, as provided by your joint map
+   * \param chain The FK plugin chain that maps joint_states to
+   *
+   * \returns true if there is an intersection, false if there is no intersection
+   */
+  bool collide(
+    const std::vector<double>& joint_states,
+    const ForwardKinematicsPlugin::Chain::SharedPtr & chain,
+    const Isometry3dVector & collider_poses) {
+
+    chain->map(joint_states, collider_poses);
+    return collide(collider_poses);
+  }
+
+  /**
+   * Perform a self intersection check with the given joint states.
+   * \param joint_states Positions of all joints, as provided by your joint map
+   * \returns true if there is an intersection, false if there is no intersection
+   */
+  virtual bool collide(const std::vector<double>& joint_states) = 0;
 
   /// Gets the ForwardKinematicsPlugin used to position colliders correctly in a common reference frame
   [[nodiscard]] const ForwardKinematicsPlugin::SharedPtr & get_fk() const noexcept;

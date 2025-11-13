@@ -46,6 +46,7 @@ namespace arm_kinematics {
    * \returns frame as an Eigen::Isometry3d
    */
   Eigen::Isometry3d kdl_to_eigen(const KDL::Frame & frame);
+
 }
 
 #endif //ARM_KINEMATICS_UTILITIES_HPP

@@ -60,7 +60,7 @@ bool ForwardKinematicsPlugin::get_position_fk(const std::vector<double> &joint_a
   KDL::ChainFkSolverPos_recursive fk_solver(kdl_chain_);
   KDL::Frame out = KDL::Frame::Identity();  //< Should all be stack allocated!
 
-  joint_map.copy_values_to_jnts(joint_angles, kdl_chain_jnts);
+  joint_map.map(joint_angles, kdl_chain_jnts);
   bool result = fk_solver.JntToCart(kdl_chain_jnts, out) >= 0;
 
   kdl_to_eigen(out, solution_pose);
