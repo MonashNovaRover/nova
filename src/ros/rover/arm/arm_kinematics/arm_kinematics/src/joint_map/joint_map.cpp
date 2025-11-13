@@ -6,11 +6,12 @@
 
 namespace arm_kinematics {
 
-JointMap::JointMap(const std::vector<std::string> & input_names, const std::vector<std::string> & output_names,
-                   const std::map<std::string, std::shared_ptr<urdf::JointMimic>> & mimic_joints) {
-
-  input_count = output_names.size();
-  output_count = output_names.size();
+JointMap::JointMap(
+  const std::vector<std::string> & input_names,
+  const std::vector<std::string> & output_names,
+  const std::map<std::string,
+  std::shared_ptr<urdf::JointMimic>> & mimic_joints)
+    : input_count(input_names.size()), output_count(output_names.size()) {
 
   sources.clear();
   multipliers.clear();
@@ -31,35 +32,60 @@ JointMap::JointMap(const std::vector<std::string> & input_names, const std::vect
   }
 }
 
-void JointMap::copy_values_to_jnts(const std::vector<double> & inputs, KDL::JntArray & jnts) const {
-  if (inputs.size() != input_count) {
-    throw std::runtime_error("Wrong number of elements in inputs");
-    return;
-  }
-  if (jnts.rows() != input_count) {
-    throw std::runtime_error("Wrong number of rows in jnts");
-    return;
+void JointMap::map(const std::vector<double> & inputs, KDL::JntArray & jnts) const {
+  assert(inputs.size() == input_count); //< Wrong number of elements in inputs
+  assert(jnts.rows() == output_count);  //< Wrong number of elements in outputs
+
+  // The Jeston Orin Nano should have FP64 NEON SIMD instructions
+  // Thought I might try coax the compiler into using it
+
+  // __restrict__ just tells the compiler that each memory address is unique here, so no dependencies exist
+  auto* __restrict__ out = jnts.data.data();
+  auto* __restrict__ in  = inputs.data();
+  auto* __restrict__ mul = multipliers.data();
+  auto* __restrict__ off = offsets.data();
+  auto* __restrict__ src = sources.data();
+
+  // Step 1 -- gather source inputs into outputs so it can be vectorized.
+  // I can't find any vector gathers for the Orin, so I've split it into its own loop
+  // I've reused out[] assuming the number of elements would easily fit in L1 cache.
+  for (size_t i = 0; i < output_count; ++i) {
+    auto source = src[i];
+    out[i] = in[source];
   }
 
-  for (size_t i = 0; i < output_count; i++) {
-    auto source = sources[i];
-    jnts.data[static_cast<Eigen::Index>(i)] = multipliers[i] * inputs[source] + offsets[i];
+  // Step 2 -- Multiply and offset values, hopefully vectorized
+#pragma omp simd
+  for (size_t i = 0; i < output_count; ++i) {
+    out[i] = out[i] * mul[i] + off[i];
   }
 }
 
-void JointMap::copy_values(const std::vector<double> & inputs, std::vector<double> & outputs) const {
-  if (inputs.size() != input_count) {
-    throw std::runtime_error("Wrong number of elements in inputs");
-    return;
-  }
-  if (outputs.size() != input_count) {
-    throw std::runtime_error("Wrong number of elements in outputs");
-    return;
+void JointMap::map(const std::vector<double> & inputs, std::vector<double> & outputs) const {
+  assert(inputs.size() == input_count);   //< Wrong number of elements in inputs
+  assert(outputs.size() == output_count); //< Wrong number of elements in outputs
+
+  // The Jeston Orin Nano should have FP64 NEON SIMD instructions
+  // Thought I might try coax the compiler into using it
+
+  auto* __restrict__ out = outputs.data();
+  auto* __restrict__ in  = inputs.data();
+  auto* __restrict__ mul = multipliers.data();
+  auto* __restrict__ off = offsets.data();
+  auto* __restrict__ src = sources.data();
+
+  // Step 1 -- gather source inputs into outputs so it can be vectorized.
+  // I can't find any vector gathers for the Orin, so I've split it into its own loop
+  // I've reused out[] assuming the number of elements would easily fit in L1 cache.
+  for (size_t i = 0; i < output_count; ++i) {
+    auto source = src[i];
+    out[i] = in[source];
   }
 
-  for (size_t i = 0; i < output_count; i++) {
-    auto source = sources[i];
-    outputs[i] = multipliers[i] * inputs[source] + offsets[i];
+  // Step 2 -- Multiply and offset values, hopefully vectorized
+  #pragma omp simd
+  for (size_t i = 0; i < output_count; ++i) {
+    out[i] = out[i] * mul[i] + off[i];
   }
 }
 

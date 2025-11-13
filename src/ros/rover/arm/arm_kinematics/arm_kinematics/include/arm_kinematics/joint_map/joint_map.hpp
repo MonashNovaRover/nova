@@ -22,6 +22,7 @@ namespace arm_kinematics {
 
 /**
  * Helper class to map between the parameterized set of joints and the KDL chain/JntArray joints.
+ * \see JointMapBuilder
  */
 class ARM_KINEMATICS_PUBLIC JointMap {
 public:
@@ -30,16 +31,45 @@ public:
            const std::vector<std::string>& output_names,
            const std::map<std::string, std::shared_ptr<urdf::JointMimic>> & mimic_joints = {});
 
-  void copy_values_to_jnts(const std::vector<double> & inputs, KDL::JntArray & jnts) const;
+  /**
+   * \brief Maps all the given input joint positions to output joint positions based on transmissions and mimic joints.
+   * \note The values in inputs and outputs should correspond to input_names and output_names provided in the class
+   * constructor respectively.
+   *
+   * \param[in] inputs The position values for each joint defined by input_names in the constructor
+   * \param[out] outputs The position values for each joint defined by output_names in the constructor.
+   *
+   * \warning inputs and outputs must be pre-allocated to the correct size!
+   * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
+   */
+  void map(const std::vector<double> & inputs, std::vector<double> & outputs) const;
 
-  void copy_values(const std::vector<double> & inputs, std::vector<double> & outputs) const;
+  /**
+   * \brief Same as map, but outputs to a KDL::JntArray. Maps all the given input joint positions,
+   * to joint positions in outputs based on transmissions and mimic joints.
+   * \see JointMap::map
+   * \note The values in inputs and outputs should correspond to input_names and output_names provided in the class
+   * constructor respectively.
+   *
+   * \param[in] inputs The position values for each joint defined by input_names in the constructor
+   * \param[out] outputs The position values for each joint defined by output_names in the constructor.
+   *
+   * \warning inputs and outputs must be pre-allocated to the correct size!
+   * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
+   */
+  void map(const std::vector<double> & inputs, KDL::JntArray & jnts) const;
 
+  /// output_count elements, the index of the value in inputs to use to calculate the value for each output.
   std::vector<size_t> sources{};
+  /// output_count elements, the values to multiply each input by when calculating the value for each output.
   std::vector<double> multipliers{};
+  /// output_count elements, the values to add when calculating the value for each output.
   std::vector<double> offsets{};
 
-  size_t input_count = 0;
-  size_t output_count = 0;
+  /// The number of elements in inputs and input_names.
+  const size_t input_count = 0;
+  /// The number of elements in outputs and output_names.
+  const size_t output_count = 0;
 
 private:
   /**
