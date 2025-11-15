@@ -172,6 +172,10 @@ in
     buildInputs = [pkgs.git];
     buildPhase = ''
       mkdir -p $out
+      if [ ! -d .git ]; then
+        echo "Not a git repository." > $out/nova-git-metadata
+        exit 0
+      fi
       echo -e "Checking git status at $(basename `git rev-parse --show-toplevel`)"
       GIT_COMMIT=$(git rev-parse HEAD)
       GIT_DATE=$(git show -s --format=%ci HEAD)
