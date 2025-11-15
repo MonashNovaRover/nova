@@ -20,6 +20,7 @@ class GeometryCache {
 public:
   using GeoPtr = std::shared_ptr<const fcl::CollisionGeometryd>;
 
+  GeometryCache() = default;
   explicit GeometryCache(rclcpp::Logger logger);
 
   static GeoPtr get_box(double x, double y, double z);

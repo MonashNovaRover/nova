@@ -6,4 +6,10 @@
 
 namespace arm_kinematics {
 
+bool FclCollisionPlugin::collide(const Isometry3dVector& collider_poses) {
+
+
+
+}
+
 } // arm_kinematics

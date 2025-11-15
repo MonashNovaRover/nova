@@ -40,6 +40,7 @@ add_library(${PROJECT_NAME} SHARED
   src/collision/fcl/fcl_collision_plugin.cpp
   src/collision/fcl/allowed_collision_matrix.cpp
   src/collision/fcl/geometry_cache.cpp
+  src/frame_definitions.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17

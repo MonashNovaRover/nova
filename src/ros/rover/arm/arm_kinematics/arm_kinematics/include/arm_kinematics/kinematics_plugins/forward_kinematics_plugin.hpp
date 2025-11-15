@@ -8,9 +8,7 @@
 #include <arm_kinematics/visibility_control.h>
 #include <string>
 #include <vector>
-#include <geometry_msgs/msg/pose.hpp>
 #include <Eigen/Geometry>
-#include <optional>
 #include <urdf/model.h>
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl/jntarray.hpp>
@@ -18,6 +16,7 @@
 #include <arm_kinematics/joint_map/joint_map.hpp>
 #include <arm_kinematics/joint_map/joint_map_builder.hpp>
 #include <arm_kinematics/aliases.hpp>
+#include <arm_kinematics/frame_definitions.hpp>
 
 
 namespace arm_kinematics {
@@ -60,9 +59,9 @@ public:
      * \warning inputs and outputs must be pre-allocated to the correct size!
      * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
      */
-    virtual void map(const std::vector<double> & joint_states, Isometry3dVector & link_poses) = 0;
+    virtual void position_fk(const std::vector<double> & joint_states, Isometry3dVector & link_poses) = 0;
 
-    explicit Chain(size_t link_count) : link_count(link_count) {}
+    explicit Chain(const size_t link_count) : link_count(link_count) {}
 
     const size_t link_count = 0;
   };
@@ -71,9 +70,12 @@ public:
    * \brief Constructs the plugin implementation's Chain subclass.
    * \see ForwardKinematicsPlugin::Chain
    *
-   * \param joint_names The name of the joints to use as inputs
-   * \param link_names The names of the links to calculate Eigen::Isometry3d values for in \c Chain::map()
-   * \param joint_map_builder The builder used to construct the joint map neeeded for
+   * \param joint_names[in] The name of the joints to use as inputs
+   * \param frames[in] The names and offsets from links to calculate Eigen::Isometry3d values for in \c Chain::position_fk().
+   * You can also just wrap a string or vector of strings in {} if you don't care about the origin from FrameDefinitions
+   * \param joint_map_builder[in] The builder used to construct the joint map needed for
+   * \returns a chain that you can call .map() on with joint positions to get the poses for all the frames defined in
+   * frames.
    *
    * \warning Likely very expensive, and obviously not real-time safe.
    * \warning Assume the parent ForwardKinematicsPlugin must stay alive for the lifetime of any chains it produces,
@@ -81,61 +83,8 @@ public:
    */
   virtual Chain::SharedPtr make_chain(
     const std::vector<std::string> & joint_names,
-    const std::vector<std::string> & link_names,
+    FrameDefinitions frames,  //< You can std::move() here
     const JointMapBuilder & joint_map_builder) = 0;
-
-  /**
-   * \brief Constructs the plugin implementation's Chain subclass.
-   * \see ForwardKinematicsPlugin::Chain
-   *
-   * \param joint_names The name of the joints to use as inputs
-   * \param link_name The name of the link to calculate Eigen::Isometry3d value for in \c Chain::map()
-   * \param joint_map_builder The builder used to construct the joint map neeeded for
-   *
-   * \warning Likely very expensive, and obviously not real-time safe.
-   * \warning Assume the parent ForwardKinematicsPlugin must stay alive for the lifetime of any chains it produces,
-   * chain implementations may reference memory from the parent.
-   */
-  virtual Chain::SharedPtr make_chain(
-    const std::vector<std::string> & joint_names,
-    const std::vector<std::string> & link_names,
-    const JointMapBuilder & joint_map_builder) = 0;
-
-  /**
-   * Overload of make_chain that uses the default joint map builder from get_joint_map_builder().
-   * \brief Constructs the plugin implementation's Chain subclass.
-   *
-   * \param joint_names The name of the joints to use as inputs
-   * \param link_names The names of the links to calculate Eigen::Isometry3d values for in \c Chain::map()
-   *
-   * \warning Likely very expensive, and obviously not real-time safe.
-   * \warning Assume the parent ForwardKinematicsPlugin must stay alive for the lifetime of any chains it produces,
-   * chain implementations may reference memory from the parent.
-   */
-  Chain::SharedPtr make_chain(
-    const std::vector<std::string> & joint_names,
-    const std::vector<std::string> & link_names)
-  {
-    return make_chain(joint_names, link_names, get_joint_map_builder());
-  }
-
-  /**
-   * Overload of make_chain that uses the default joint map builder from get_joint_map_builder().
-   * \brief Constructs the plugin implementation's Chain subclass.
-   *
-   * \param joint_names The name of the joints to use as inputs
-   * \param link_names The names of the links to calculate Eigen::Isometry3d values for in \c Chain::map()
-   *
-   * \warning Likely very expensive, and obviously not real-time safe.
-   * \warning Assume the parent ForwardKinematicsPlugin must stay alive for the lifetime of any chains it produces,
-   * chain implementations may reference memory from the parent.
-   */
-  Chain::SharedPtr make_chain(
-    const std::vector<std::string> & joint_names,
-    const std::string & link_name)
-  {
-    return make_chain(joint_names, {link_name}, get_joint_map_builder());
-  }
 
   /**
    * Effectively replaces the constructor for the class, as we can only use a default constructor in plugins.
@@ -162,12 +111,12 @@ public:
    *
    * \returns True if a solution could be found. False otherwise.
    */
-  virtual bool get_position_fk(
-    const std::vector<double> & joint_angles,
-    const JointMap & joint_map,
-    const KDL::Chain & kdl_chain,
-    KDL::JntArray & kdl_chain_jnts,
-    Eigen::Isometry3d & solution_pose) const;
+  // virtual bool get_position_fk(
+  //   const std::vector<double> & joint_angles,
+  //   const JointMap & joint_map,
+  //   const KDL::Chain & kdl_chain,
+  //   KDL::JntArray & kdl_chain_jnts,
+  //   Eigen::Isometry3d & solution_pose) const;
 
   /**
     * Do Forward Kinematics to find the position of the main End Effector link.

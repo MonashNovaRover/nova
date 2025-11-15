@@ -7,11 +7,15 @@
 
 #include <arm_kinematics/kinematics_plugins/forward_kinematics_plugin.hpp>
 #include <arm_kinematics/aliases.hpp>
+#include <arm_kinematics/span.hpp>
 
 namespace arm_kinematics {
 
 /**
  * Base class for plugins used to perform inverse kinematics.
+ *
+ * \note The responsibility of understanding where colliders are in space and how they relate to different links on the
+ * robot is delegated to the caller!
  */
 class CollisionPlugin {
 public:
@@ -30,7 +34,8 @@ public:
    */
   bool initialize(
     KinematicsBase::KinematicsNodeInterfaces node_interfaces,
-    const ForwardKinematicsPlugin::SharedPtr & fk);
+    const FrameDefinitions & collider_frames,
+    const std::vector<urdf::Collision> & collider_geometries);
 
   /**
    * Perform a self intersection check with the given joint states.
@@ -40,7 +45,7 @@ public:
    *
    * \returns true if there is an intersection, false if there is no intersection
    */
-  virtual bool collide(const Isometry3dVector & collider_poses) = 0;
+  virtual bool collide(span<const Eigen::Isometry3d> collider_poses) = 0;
 
   /**
    * Perform a self intersection check with the given joint states.
@@ -50,21 +55,9 @@ public:
    *
    * \returns true if there is an intersection, false if there is no intersection
    */
-  bool collide(
-    const std::vector<double>& joint_states,
-    const ForwardKinematicsPlugin::Chain::SharedPtr & chain,
-    const Isometry3dVector & collider_poses) {
-
-    chain->map(joint_states, collider_poses);
-    return collide(collider_poses);
+  bool collide(const Isometry3dVector & collider_poses) {
+    return collide({collider_poses.data(), collider_poses.size()});
   }
-
-  /**
-   * Perform a self intersection check with the given joint states.
-   * \param joint_states Positions of all joints, as provided by your joint map
-   * \returns true if there is an intersection, false if there is no intersection
-   */
-  virtual bool collide(const std::vector<double>& joint_states) = 0;
 
   /// Gets the ForwardKinematicsPlugin used to position colliders correctly in a common reference frame
   [[nodiscard]] const ForwardKinematicsPlugin::SharedPtr & get_fk() const noexcept;
@@ -80,7 +73,7 @@ protected:
    *
    * \returns True if initialization was successful. False otherwise.
    */
-  virtual bool on_initialize() = 0;
+  virtual bool on_initialize(const std::vector<urdf::Collision> & collider_geometries) = 0;
 
 private:
   ForwardKinematicsPlugin::SharedPtr fk_ = nullptr;
