@@ -23,6 +23,8 @@ namespace arm_kinematics {
  */
 class ARM_KINEMATICS_PUBLIC KinematicsBase {
 public:
+  virtual ~KinematicsBase() = default;
+
   using KinematicsNodeInterfaces =
     rclcpp::node_interfaces::NodeInterfaces<
       rclcpp::node_interfaces::NodeBaseInterface,

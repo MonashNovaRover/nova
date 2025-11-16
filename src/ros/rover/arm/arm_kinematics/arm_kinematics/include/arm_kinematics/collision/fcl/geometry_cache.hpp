@@ -18,7 +18,7 @@ namespace arm_kinematics {
  */
 class GeometryCache {
 public:
-  using GeoPtr = std::shared_ptr<const fcl::CollisionGeometryd>;
+  using GeoPtr = std::shared_ptr<fcl::CollisionGeometryd>;
 
   GeometryCache() = default;
   explicit GeometryCache(rclcpp::Logger logger);
@@ -34,6 +34,9 @@ public:
    * \param link_name the link name the collider belongs to, used in logging warning messages.
    */
   GeoPtr from_urdf(const urdf::Collision& col, const std::string& link_name);
+  GeoPtr from_urdf(const urdf::Collision& col) {
+    return from_urdf(col, col.name);
+  }
 
 private:
   rclcpp::Logger logger_ = rclcpp::get_logger("geometry_cache");

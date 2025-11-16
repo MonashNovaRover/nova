@@ -67,6 +67,8 @@ public:
   /// Gets interfaces from the owning ROS2 node, allowing plugins to access to parameters, logging, etc.
   [[nodiscard]] const CollisionNodeInterfaces & get_node_interfaces() const;
 
+  virtual ~CollisionPlugin() = default;
+
 protected:
   /**
    * Called when the collision plugin is created. Override this to add any set up logic for the collision plugin.

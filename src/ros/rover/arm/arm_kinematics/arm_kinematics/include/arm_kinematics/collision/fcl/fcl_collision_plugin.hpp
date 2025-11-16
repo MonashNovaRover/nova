@@ -61,120 +61,18 @@ namespace arm_kinematics {
 /**
  * FCL Callback
  */
-struct QueryData {
-  // const CollidersSoA* S;
-  const AllowedCollisionMatrix* acm;
-  bool hit = false;
-};
-
-/**
- * FCL Callback to filter out allowed collisions
- */
-inline bool collide_with_acm(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* ud)
-{
-  auto* q = static_cast<QueryData*>(ud);
-  // TODO: Manage memory properly as to set the user defined data up correctly
-  auto id1 = *static_cast<uint32_t*>(o1->getUserData());
-  auto id2 = *static_cast<uint32_t*>(o2->getUserData());
-
-  if (q->acm->get(id1, id2))
-    return true; // skip narrow-phase
-
-  static thread_local fcl::CollisionRequestd req = []{
-    fcl::CollisionRequestd r;
-    r.num_max_contacts = 1;
-    r.enable_contact = false;
-    r.enable_cost = false;
-    r.gjk_solver_type = fcl::GJKSolverType::GST_LIBCCD;
-    return r;
-  }();
-
-  fcl::CollisionResultd res;
-  fcl::collide(o1, o2, req, res);
-
-  if (res.isCollision()) {
-    q->hit = true;
-    return false;
-  }
-
-  return true;
-}
 
 class FclCollisionPlugin : public CollisionPlugin {
 
-  bool on_initialize(const std::vector<urdf::Collision> & collider_geometries) override
-  {
-    colliders_ = {};
-    for (auto urdf_geometry : collider_geometries) {
-      auto geometry = geometry_cache_.from_urdf(geometry);
-      colliders_.emplace_back(geometry, Eigen::Isometry3d::Identity());
-    }
-
-
-
-    // auto fk = get_fk();
-    // auto & urdf_model = fk->get_urdf_model();
-    //
-    // // Map link name -> dense link index
-    // std::unordered_map<std::string, uint32_t> link_index;
-    // link_index.reserve(urdf_model.links_.size());
-    // uint32_t next_link_i = 0;
-    //
-    // // Generate FCL collision objects for all links with colliders
-    // for (const auto& [name, link] : urdf_model.links_) {
-    //   // Collect all colliders for this link
-    //   std::vector<std::shared_ptr<urdf::Collision>> colliders = link->collision_array;
-    //   if (colliders.empty() && link->collision)
-    //     colliders = {link->collision};
-    //
-    //   // Skip links without colliders
-    //   if (colliders.empty())
-    //     continue;
-    //
-    //   // Convert all colliders to equivalents in FCL
-    //   std::vector<fcl::CollisionObjectd> fcl_colliders{};
-    //   std::vector<Eigen::Isometry3d> fcl_collider_origins{};
-    //   fcl_colliders.reserve(colliders.size());
-    //
-    //   for (const auto & collider : colliders) {
-    //     if (!collider)
-    //       continue;
-    //
-    //     const auto & col = link->collision;
-    //
-    //     // Create FCL geo
-    //     std::shared_ptr<fcl::CollisionGeometryd> fcl_col_geo;
-    //
-    //     bool hasFoundCylinder = false;
-    //
-    //     // Convert the URDF origin to Eigen::Isometry3d
-    //     Eigen::Isometry3d origin{};
-    //     origin.translation() = Eigen::Vector3d(
-    //       col->origin.position.x,
-    //       col->origin.position.y,
-    //       col->origin.position.z
-    //     );
-    //
-    //     // URDF defines a quaternion, so we need to convert that to the eigen equivalent
-    //     double rotation_data[4];
-    //     col->origin.rotation.getQuaternion(rotation_data[0], rotation_data[1], rotation_data[2], rotation_data[3]);
-    //     Eigen::Quaterniond rotation{rotation_data};
-    //     origin.linear() = rotation.toRotationMatrix();
-    //
-    //     // Finally construct FCL collision object
-    //     fcl::Transform3d fcl_origin(origin.matrix());
-    //     fcl::CollisionObjectd obj(fcl_col_geo, fcl_origin);
-    //   }
-    // }
-  }
-
-
-
-  bool collide(const Isometry3dVector& collider_poses) override;
+  bool on_initialize(const std::vector<urdf::Collision> & collider_geometries) override;
+  bool collide(span<const Eigen::Isometry3d> collider_poses) override;
 
 private:
+  AllowedCollisionMatrix acm_;
   std::vector<fcl::CollisionObjectd> colliders_ = {};
   GeometryCache geometry_cache_{};
+
+  fcl::DynamicAABBTreeCollisionManagerd manager_{};
 };
 
 } // arm_kinematics

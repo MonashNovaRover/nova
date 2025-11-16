@@ -21,77 +21,49 @@ bool ForwardKinematicsPlugin::initialize(ForwardKinematicsPlugin::KinematicsNode
                   "forward_kinematics"))
     return false;
 
-  // Set up URDF and KDL kinematics
+  // Set up URDF
   RCLCPP_INFO(get_logger(), "Parsing URDF and creating KDL Tree...");
   if (!urdf_model_.initString(robot_description)) {
     RCLCPP_ERROR(get_logger(), "Failed to init URDF model from robot_description string.");
     return false;
   }
 
-  if (!kdl_parser::treeFromUrdfModel(urdf_model_, kdl_tree_)) {
-    RCLCPP_ERROR(get_logger(), "Failed to convert URDF to KDL tree.");
-    return false;
-  }
-
-  if (!kdl_tree_.getChain(get_kinematics_params().base_link_name, get_kinematics_params().ee_link_name,
-                          kdl_chain_)) {
-    RCLCPP_ERROR(get_logger(), "Failed to get KDL chain from \"%s\" to \"%s\".",
-                 get_kinematics_params().base_link_name.c_str(), get_kinematics_params().ee_link_name.c_str());
-    return false;
-  }
-
-  // Pre-allocate a JntArray to use with KDL in real-time contexts
-  preallocated_jnts_ = KDL::JntArray(kdl_chain_.getNrOfJoints());
-
   joint_map_builder_ = JointMapBuilder()
     .with_urdf(urdf_model_)
     .with_transmissions(robot_description);
-  chain_joint_map_ = joint_map_builder_.build(joint_names, kdl_chain_);
 
   return on_initialize();
 }
 
-bool ForwardKinematicsPlugin::get_position_fk(const std::vector<double> &joint_angles,
-                                              const JointMap & joint_map,
-                                              const KDL::Chain & kdl_chain,
-                                              KDL::JntArray & kdl_chain_jnts,
-                                              Eigen::Isometry3d & solution_pose) const {
-  // Default implementation using KDL. I am assuming construction here is real-time safe with no heap allocations
-  KDL::ChainFkSolverPos_recursive fk_solver(kdl_chain_);
-  KDL::Frame out = KDL::Frame::Identity();  //< Should all be stack allocated!
-
-  joint_map.map(joint_angles, kdl_chain_jnts);
-  bool result = fk_solver.JntToCart(kdl_chain_jnts, out) >= 0;
-
-  kdl_to_eigen(out, solution_pose);
-  return result;
-}
-
-bool ForwardKinematicsPlugin::get_position_fk(const std::vector<double> &joint_angles,
-                                              Eigen::Isometry3d &solution_pose) {
-  // Default implementation just uses the general case implementation
-  // But you could override this if you have an analytical solution
-  return get_position_fk(joint_angles, chain_joint_map_, kdl_chain_, preallocated_jnts_, solution_pose);
-}
+// bool ForwardKinematicsPlugin::get_position_fk(const std::vector<double> &joint_angles,
+//                                               const JointMap & joint_map,
+//                                               const KDL::Chain & kdl_chain,
+//                                               KDL::JntArray & kdl_chain_jnts,
+//                                               Eigen::Isometry3d & solution_pose) const {
+//   // Default implementation using KDL. I am assuming construction here is real-time safe with no heap allocations
+//   KDL::ChainFkSolverPos_recursive fk_solver(kdl_chain_);
+//   KDL::Frame out = KDL::Frame::Identity();  //< Should all be stack allocated!
+//
+//   joint_map.map(joint_angles, kdl_chain_jnts);
+//   bool result = fk_solver.JntToCart(kdl_chain_jnts, out) >= 0;
+//
+//   kdl_to_eigen(out, solution_pose);
+//   return result;
+// }
+//
+// bool ForwardKinematicsPlugin::get_position_fk(const std::vector<double> &joint_angles,
+//                                               Eigen::Isometry3d &solution_pose) {
+//   // Default implementation just uses the general case implementation
+//   // But you could override this if you have an analytical solution
+//   return get_position_fk(joint_angles, chain_joint_map_, kdl_chain_, preallocated_jnts_, solution_pose);
+// }
 
 const urdf::Model & ForwardKinematicsPlugin::get_urdf_model() const noexcept {
   return urdf_model_;
 }
 
-const KDL::Tree & ForwardKinematicsPlugin::get_kdl_tree() const noexcept {
-  return kdl_tree_;
-}
-
-const KDL::Chain & ForwardKinematicsPlugin::get_kdl_chain() const noexcept {
-  return kdl_chain_;
-}
-
 const JointMapBuilder & ForwardKinematicsPlugin::get_joint_map_builder() const noexcept {
   return joint_map_builder_;
-}
-
-const JointMap & ForwardKinematicsPlugin::get_kdl_chain_joint_map() const noexcept {
-  return chain_joint_map_;
 }
 
 } // arm_kinematics

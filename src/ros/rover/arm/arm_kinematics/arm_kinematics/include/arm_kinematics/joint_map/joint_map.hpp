@@ -21,7 +21,7 @@ namespace arm_kinematics {
 // TODO: Support Transmissions. This will probably involve moving away from the sources, multipliers, offsets approach.
 
 /**
- * Helper class to map between the parameterized set of joints and the KDL chain/JntArray joints.
+ * Helper class to map between the parameterized set of joints and the joints required for FK with transmissions applied
  * \see JointMapBuilder
  */
 class ARM_KINEMATICS_PUBLIC JointMap {

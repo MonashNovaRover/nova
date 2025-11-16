@@ -14,8 +14,8 @@
 // Created by Bailey Chessum on 7/6/25.
 //
 
-#ifndef TELEOP_MODULAR_INPUT_SOURCE_SPAN_HPP
-#define TELEOP_MODULAR_INPUT_SOURCE_SPAN_HPP
+#ifndef ARM_KINEMATICS_INPUT_SOURCE_SPAN_HPP
+#define ARM_KINEMATICS_INPUT_SOURCE_SPAN_HPP
 
 #include <vector>
 #include <cstddef>
@@ -92,4 +92,4 @@ struct span
 
 }  // namespace arm_kinematics
 
-#endif  // TELEOP_MODULAR_INPUT_SOURCE_SPAN_HPP
+#endif  // ARM_KINEMATICS_INPUT_SOURCE_SPAN_HPP
