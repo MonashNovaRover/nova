@@ -1,4 +1,5 @@
-from . import candevice
+
+from candevice import candevice
 import jcan
 
 class LEDStrip(candevice.CanDevice):
@@ -12,7 +13,7 @@ class LEDStrip(candevice.CanDevice):
         LedCommand.BRIGHTNESS: {
             0x8000: 1, #100%
             0x6000: 0.75, #75%
-            0x4000: 0.5 #50%
+            0x4000: 0.5, #50%
             0x0000: 0 # off
         },
         #colour
@@ -23,9 +24,8 @@ class LEDStrip(candevice.CanDevice):
         },
         LedCommand.PINK: "pink"
     }
-
     
-    def __init__(self, name:str, interface:str):
+    def __init__(self, name:str, interface):
         super.__init__(name, interface)
         self.brightness = 0
         self.colour=None
@@ -36,10 +36,20 @@ class LEDStrip(candevice.CanDevice):
 
 
     
-    def set_brightness_cb(self, frame:jcan.Frame)
-        self.brightness = commandsDict[frame.id]
+    # def set_brightness_cb(self, frame:jcan.Frame):
+    #     self.brightness = commandsDict[frame.id][]
 
     def set_colour_cb(self, frame:jcan.Frame):
         #TODO: Handle pink
         #TODO: Handle data being integer list of hexes
+        print(frame.data)
         self.colour = commandsDict[frame.id][frame.data]
+
+
+def main():
+    led = LEDStrip("led", "can0")
+    while true:
+        led.spin()
+
+if __name__=="__main__":
+    main()

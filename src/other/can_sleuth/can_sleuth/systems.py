@@ -60,11 +60,16 @@ def drive25_26(interface="can0", emulate=False):
             devices.append(blcmd_emulator.BLCMDEmulator(names[id_], id_, interface, hasResolver=hasResolver))
     return devices
 
+def led(interface = "can", emulate=False):
+    devices = [LEDStrip("led", interface)]
+    return devices
+
 # List of everything for help message:
 allSystems = {
         "drive": drive25_26,
         "taipan": taipan_spherical,
         "drive25_26": drive25_26,
         "taipan_spherical": taipan_spherical,
+        "led": led
         }
 
