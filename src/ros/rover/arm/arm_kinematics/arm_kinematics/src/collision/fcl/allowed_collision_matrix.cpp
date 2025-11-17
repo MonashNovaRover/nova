@@ -6,16 +6,16 @@
 
 namespace arm_kinematics {
 
-static inline size_t packed_word_count(uint32_t N) {
+static inline size_t packed_word_count(std::size_t N) {
   const uint64_t pairs = (static_cast<uint64_t>(N) * (N - 1)) / 2;
   return static_cast<size_t>((pairs + 63) / 64);
 }
 
-AllowedCollisionMatrix::AllowedCollisionMatrix(uint64_t capacity) : capacity(capacity) {
+AllowedCollisionMatrix::AllowedCollisionMatrix(std::size_t capacity) : capacity(capacity) {
   acm_bits.resize(packed_word_count(capacity), 0);
 }
 
-AllowedCollisionMatrix::AllowedCollisionMatrix(const AllowedCollisionMatrix & other, uint64_t capacity) : capacity(capacity) {
+AllowedCollisionMatrix::AllowedCollisionMatrix(const AllowedCollisionMatrix & other, std::size_t capacity) : capacity(capacity) {
   // Only allow for growing, not shrinking
   if (capacity < other.capacity) {
     this->capacity = other.capacity;

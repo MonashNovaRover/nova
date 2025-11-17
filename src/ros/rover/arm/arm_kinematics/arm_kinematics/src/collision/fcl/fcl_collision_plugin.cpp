@@ -24,8 +24,8 @@ struct QueryData {
 inline bool collide_with_acm(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* ud)
 {
   auto* q = static_cast<QueryData*>(ud);
-  auto id1 = static_cast<uint32_t>(reinterpret_cast<std::uintptr_t>(o1->getUserData()));
-  auto id2 = static_cast<uint32_t>(reinterpret_cast<std::uintptr_t>(o2->getUserData()));
+  auto id1 = static_cast<size_t>(reinterpret_cast<std::uintptr_t>(o1->getUserData()));
+  auto id2 = static_cast<size_t>(reinterpret_cast<std::uintptr_t>(o2->getUserData()));
 
   if (q->acm->get(id1, id2))
     return true; // skip narrow-phase
