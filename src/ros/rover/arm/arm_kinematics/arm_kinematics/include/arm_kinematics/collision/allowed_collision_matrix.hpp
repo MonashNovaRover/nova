@@ -26,7 +26,7 @@ struct AllowedCollisionMatrix {
    * Constructor -- Specify the number of collision elements here, then set each allowed collision before using
    * \param capacity The number of collision objects, which determines the max size of the matrix.
    */
-  explicit AllowedCollisionMatrix(uint64_t capacity);
+  explicit AllowedCollisionMatrix(std::size_t capacity);
 
   /**
    * Makes a copy of a given ACM but with a different capacity.
@@ -36,29 +36,44 @@ struct AllowedCollisionMatrix {
   explicit AllowedCollisionMatrix(const AllowedCollisionMatrix& other, std::size_t capacity);
 
   AllowedCollisionMatrix() : AllowedCollisionMatrix(0) {}
-  AllowedCollisionMatrix(AllowedCollisionMatrix&& other) noexcept;
+  AllowedCollisionMatrix(AllowedCollisionMatrix&& other) noexcept
+    : acm_bits(std::move(other.acm_bits)), capacity(other.capacity)
+  {
+    other.capacity = 0;
+  }
 
-  inline void resize(std::size_t new_size) {
+  AllowedCollisionMatrix & operator=(AllowedCollisionMatrix && other) noexcept {
+    // A self move causes acm_bits to become empty. This guards against that, despite being annoying.
+    if (this == &other)
+      return *this;
+
+    acm_bits = std::move(other.acm_bits);
+    capacity = other.capacity;
+    other.capacity = 0;
+    return *this;
+  }
+
+  void resize(const std::size_t new_size) {
     auto temp = AllowedCollisionMatrix(*this, new_size);
     acm_bits = std::move(temp.acm_bits);
     capacity = temp.capacity;
   }
 
-  inline void reserve(std::size_t new_capacity) {
+  void reserve(const std::size_t new_capacity) {
     if (capacity >= new_capacity)
       return;
     resize(new_capacity);
   }
 
-  [[nodiscard]] inline bool get(std::size_t a, std::size_t b) const {
+  [[nodiscard]] bool get(const std::size_t a, const std::size_t b) const {
     if (a == b)
       return true;
 
-    std::size_t i = tri_index(a, b);
+    const std::size_t i = tri_index(a, b);
     return (acm_bits[i >> 6] >> (i & 63)) & 1ULL;
   }
 
-  inline void set(std::size_t a, std::size_t b, bool allowed) {
+  void set(const std::size_t a, const std::size_t b, const bool allowed) {
     if (a == b)
       return;
 
@@ -66,8 +81,8 @@ struct AllowedCollisionMatrix {
       resize(std::max<std::size_t>(capacity ? capacity * 2 : 1, std::max(a, b) + 1));
     }
 
-    std::size_t i = tri_index(a, b);
-    std::uint64_t m = 1ULL << (i & 63);
+    const std::size_t i = tri_index(a, b);
+    const std::uint64_t m = 1ULL << (i & 63);
 
     if (allowed)
       acm_bits[i >> 6] |= m;
@@ -81,8 +96,8 @@ private:
       std::swap(a, b);
 
     // base for row a in upper triangle without diagonal
-    std::size_t N = capacity;
-    std::size_t base = a * N - (a * (a + 1)) / 2;
+    const std::size_t N = capacity;
+    const std::size_t base = a * N - (a * (a + 1)) / 2;
     return base + (b - a - 1);
   }
 };

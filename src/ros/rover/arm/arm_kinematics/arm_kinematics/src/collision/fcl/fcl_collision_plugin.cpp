@@ -11,7 +11,7 @@ namespace arm_kinematics {
  */
 struct QueryData {
   // const CollidersSoA* S;
-  const AllowedCollisionMatrix* acm;
+  const AllowedCollisionMatrix & acm;
   bool hit = false;
 };
 
@@ -24,10 +24,10 @@ struct QueryData {
 inline bool collide_with_acm(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* ud)
 {
   auto* q = static_cast<QueryData*>(ud);
-  auto id1 = static_cast<size_t>(reinterpret_cast<std::uintptr_t>(o1->getUserData()));
-  auto id2 = static_cast<size_t>(reinterpret_cast<std::uintptr_t>(o2->getUserData()));
+  const auto id1 = static_cast<size_t>(reinterpret_cast<std::uintptr_t>(o1->getUserData()));
+  const auto id2 = static_cast<size_t>(reinterpret_cast<std::uintptr_t>(o2->getUserData()));
 
-  if (q->acm->get(id1, id2))
+  if (q->acm.get(id1, id2))
     return true; // skip narrow-phase
 
   static thread_local fcl::CollisionRequestd req = []{
@@ -59,7 +59,7 @@ bool FclCollisionPlugin::collide(span<const Eigen::Isometry3d> collider_poses) {
   }
 
   QueryData query {
-    &acm_
+    get_allowed_collision_matrix()
   };
 
   manager_.update();
@@ -67,6 +67,76 @@ bool FclCollisionPlugin::collide(span<const Eigen::Isometry3d> collider_poses) {
 
   return query.hit;
 }
+
+/**
+ * Struct used in FCL callback with pairs
+ */
+struct QueryDataWithPairs : QueryData {
+  std::vector<std::pair<size_t, size_t>> & pairs;
+};
+
+/**
+ * FCL Callback to filter out allowed collisions
+ *
+ * \warning indices to lookup in the ACM must be stored as the pointer itself for the collider user data fields.
+ * Reinterpret cast to std::uintptr_t.
+ */
+inline bool collide_with_acm_and_pairs(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* ud)
+{
+  auto* q = static_cast<QueryDataWithPairs*>(ud);
+  const auto id1 = static_cast<size_t>(reinterpret_cast<std::uintptr_t>(o1->getUserData()));
+  const auto id2 = static_cast<size_t>(reinterpret_cast<std::uintptr_t>(o2->getUserData()));
+
+  if (q->acm.get(id1, id2))
+    return true; // skip narrow-phase
+
+  // Collision narrow phase
+  static thread_local fcl::CollisionRequestd req = []{
+    fcl::CollisionRequestd r;
+    r.num_max_contacts = 1;
+    r.enable_contact = false;
+    r.enable_cost = false;
+    r.gjk_solver_type = fcl::GJKSolverType::GST_LIBCCD;
+    return r;
+  }();
+
+  fcl::CollisionResultd res;
+  fcl::collide(o1, o2, req, res);
+
+  if (res.isCollision()) {
+    q->hit = true;
+    q->pairs.emplace_back(id1, id2);
+  }
+
+  return true;
+}
+
+bool FclCollisionPlugin::collide(
+  const span<const Eigen::Isometry3d> collider_poses,
+  std::vector<std::pair<size_t, size_t>> & colliding_pairs)
+{
+  // Copy poses into the colliders
+  auto pose_it = collider_poses.begin();
+  for (auto& collider : colliders_) {
+    collider.setTransform(*pose_it);
+    ++pose_it;
+  }
+
+  // Ensure collisions output is reset
+  colliding_pairs.clear();
+
+  QueryDataWithPairs query {
+    get_allowed_collision_matrix(),
+    false,
+    colliding_pairs
+  };
+
+  manager_.update();
+  manager_.collide(&query, collide_with_acm);
+
+  return query.hit;
+}
+
 
 bool FclCollisionPlugin::on_initialize(const std::vector<urdf::Collision>& collider_geometries) {
   geometry_cache_ = {};

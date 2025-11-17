@@ -2,20 +2,20 @@
 // Created by Bailey Chessum on 12/11/2025.
 //
 
-#include <arm_kinematics/collision/fcl/allowed_collision_matrix.hpp>
+#include <arm_kinematics/collision/allowed_collision_matrix.hpp>
 
 namespace arm_kinematics {
 
-static inline size_t packed_word_count(std::size_t N) {
+static constexpr inline size_t packed_word_count(const std::size_t N) {
   const uint64_t pairs = (static_cast<uint64_t>(N) * (N - 1)) / 2;
   return static_cast<size_t>((pairs + 63) / 64);
 }
 
-AllowedCollisionMatrix::AllowedCollisionMatrix(std::size_t capacity) : capacity(capacity) {
+AllowedCollisionMatrix::AllowedCollisionMatrix(const std::size_t capacity) : capacity(capacity) {
   acm_bits.resize(packed_word_count(capacity), 0);
 }
 
-AllowedCollisionMatrix::AllowedCollisionMatrix(const AllowedCollisionMatrix & other, std::size_t capacity) : capacity(capacity) {
+AllowedCollisionMatrix::AllowedCollisionMatrix(const AllowedCollisionMatrix & other, const std::size_t capacity) : capacity(capacity) {
   // Only allow for growing, not shrinking
   if (capacity < other.capacity) {
     this->capacity = other.capacity;
@@ -31,12 +31,6 @@ AllowedCollisionMatrix::AllowedCollisionMatrix(const AllowedCollisionMatrix & ot
       set(a, b, other.get(a, b));
     }
   }
-}
-
-AllowedCollisionMatrix::AllowedCollisionMatrix(AllowedCollisionMatrix && other) noexcept
-  : capacity(other.capacity), acm_bits(std::move(other.acm_bits))
-{
-  other.capacity = 0;
 }
 
 } // arm_kinematics

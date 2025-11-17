@@ -6,20 +6,17 @@
 
 namespace arm_kinematics {
 
-bool CollisionPlugin::initialize(KinematicsBase::KinematicsNodeInterfaces node_interfaces,
-                                 const ForwardKinematicsPlugin::SharedPtr & fk) {
-  if (!fk)
-    return false;
-
-  fk_ = fk;
+bool CollisionPlugin::initialize(
+  CollisionNodeInterfaces node_interfaces,
+  const std::vector<urdf::Collision> & collider_geometries,
+  AllowedCollisionMatrix acm)
+{
   node_interfaces_ = node_interfaces;
   logger_ = node_interfaces.get_node_logging_interface()->get_logger().get_child("collision");
+  acm_ = std::move(acm);
 
-  return on_initialize();
-}
-
-const ForwardKinematicsPlugin::SharedPtr & CollisionPlugin::get_fk() const noexcept {
-  return fk_;
+  // Implementation specific initialization
+  return on_initialize(collider_geometries);
 }
 
 const rclcpp::Logger & CollisionPlugin::get_logger() const noexcept {
