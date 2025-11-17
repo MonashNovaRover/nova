@@ -8,6 +8,7 @@
 #include <arm_kinematics/kinematics_plugins/forward_kinematics_plugin.hpp>
 #include <arm_kinematics/aliases.hpp>
 #include <arm_kinematics/span.hpp>
+#include <limits>
 
 #include "allowed_collision_matrix.hpp"
 
@@ -53,11 +54,29 @@ public:
    * \warning This is much more expensive than the other function overload! Use only when you need the pairs.
    * \param[in] collider_poses The transforms of all colliders provided in initialization
    * \param[out] colliding_pairs Collision pairs found in collision
+   * \param max_colliding_pairs The maximum number of pairs to populate colliding pairs with.
    * \returns true if there is an intersection, false if there is no intersection
    */
   virtual bool collide(
     span<const Eigen::Isometry3d> collider_poses,
-    std::vector<std::pair<size_t, size_t>> & colliding_pairs) = 0;
+    std::vector<std::pair<size_t, size_t>> & colliding_pairs,
+    size_t max_colliding_pairs) = 0;
+
+  /**
+   * Perform a self intersection check with the given joint states, preserving which colliders would intersect.
+   * This overload is included for helping to build the allowed collision matrix. Unlimited colliding pairs.
+   * \warning This is much more expensive than the other function overload! Use only when you need the pairs.
+   * \param[in] collider_poses The transforms of all colliders provided in initialization
+   * \param[out] colliding_pairs Collision pairs found in collision
+   * \returns true if there is an intersection, false if there is no intersection
+   */
+  bool collide(
+    const span<const Eigen::Isometry3d> collider_poses,
+    std::vector<std::pair<size_t, size_t>> & colliding_pairs)
+  {
+    // virtual functions cannot include default arguments, so this separate overload need be created.
+    return collide(collider_poses, colliding_pairs, std::numeric_limits<size_t>::max());
+  }
 
   /// Logger to use for logging
   [[nodiscard]] const rclcpp::Logger & get_logger() const noexcept;

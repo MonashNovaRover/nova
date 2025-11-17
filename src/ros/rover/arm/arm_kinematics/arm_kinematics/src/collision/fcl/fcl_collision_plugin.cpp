@@ -28,7 +28,7 @@ inline bool collide_with_acm(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o
   const auto id2 = static_cast<size_t>(reinterpret_cast<std::uintptr_t>(o2->getUserData()));
 
   if (q->acm.get(id1, id2))
-    return true; // skip narrow-phase
+    return true;  //< Skip narrow-phase, continue collision checks
 
   static thread_local fcl::CollisionRequestd req = []{
     fcl::CollisionRequestd r;
@@ -44,10 +44,10 @@ inline bool collide_with_acm(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o
 
   if (res.isCollision()) {
     q->hit = true;
-    return false;
+      return false;   //< Stop collision checks
   }
 
-  return true;
+  return true;  //< Continue collision checks
 }
 
 bool FclCollisionPlugin::collide(span<const Eigen::Isometry3d> collider_poses) {
@@ -73,6 +73,7 @@ bool FclCollisionPlugin::collide(span<const Eigen::Isometry3d> collider_poses) {
  */
 struct QueryDataWithPairs : QueryData {
   std::vector<std::pair<size_t, size_t>> & pairs;
+  const size_t max_pairs;
 };
 
 /**
@@ -88,7 +89,7 @@ inline bool collide_with_acm_and_pairs(fcl::CollisionObjectd* o1, fcl::Collision
   const auto id2 = static_cast<size_t>(reinterpret_cast<std::uintptr_t>(o2->getUserData()));
 
   if (q->acm.get(id1, id2))
-    return true; // skip narrow-phase
+    return true;  //< Skip narrow-phase, continue collision checks
 
   // Collision narrow phase
   static thread_local fcl::CollisionRequestd req = []{
@@ -106,14 +107,18 @@ inline bool collide_with_acm_and_pairs(fcl::CollisionObjectd* o1, fcl::Collision
   if (res.isCollision()) {
     q->hit = true;
     q->pairs.emplace_back(id1, id2);
+
+    if (q->pairs.size() >= q->max_pairs)
+      return false;   //< Stop collision checks
   }
 
-  return true;
+  return true;  //< Continue collision checks
 }
 
 bool FclCollisionPlugin::collide(
   const span<const Eigen::Isometry3d> collider_poses,
-  std::vector<std::pair<size_t, size_t>> & colliding_pairs)
+  std::vector<std::pair<size_t, size_t>> & colliding_pairs,
+  const size_t max_colliding_pairs)
 {
   // Copy poses into the colliders
   auto pose_it = collider_poses.begin();
@@ -128,7 +133,8 @@ bool FclCollisionPlugin::collide(
   QueryDataWithPairs query {
     get_allowed_collision_matrix(),
     false,
-    colliding_pairs
+    colliding_pairs,
+    max_colliding_pairs
   };
 
   manager_.update();

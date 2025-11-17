@@ -19,7 +19,8 @@ public:
   bool collide(span<const Eigen::Isometry3d> collider_poses) override;
   bool collide(
     span<const Eigen::Isometry3d> collider_poses,
-    std::vector<std::pair<size_t, size_t>> & colliding_pairs) override;
+    std::vector<std::pair<size_t, size_t>> & colliding_pairs,
+    size_t max_colliding_pairs) override;
 
 protected:
   bool on_initialize(const std::vector<urdf::Collision> & collider_geometries) override;
