@@ -24,5 +24,5 @@ setup(
         'pyside6'
         ],
     python_requires='>=3.10',
-    scripts=["scripts/can_sleuth"],
+    scripts=["scripts/can_sleuth", "scripts/led_test"],
 )
