@@ -102,12 +102,12 @@ class ARM_KINEMATICS_PUBLIC InverseKinematicsPlugin : public KinematicsBase {
    *
    * \returns True if a solution was found.
    */
-  virtual bool get_velocity_ik(
-    const Eigen::Matrix<double, 6, 1> & ik_twist,
-    ForwardKinematicsPlugin::SharedPtr fk,
-    const std::vector<double> & ik_seed_state,
-    std::vector<double> & solution_velocities,
-    double time_step) const;
+  // virtual bool get_velocity_ik(
+  //   const Eigen::Matrix<double, 6, 1> & ik_twist,
+  //   ForwardKinematicsPlugin::SharedPtr fk,
+  //   const std::vector<double> & ik_seed_state,
+  //   std::vector<double> & solution_velocities,
+  //   double time_step) const;
 
 protected:
   /**

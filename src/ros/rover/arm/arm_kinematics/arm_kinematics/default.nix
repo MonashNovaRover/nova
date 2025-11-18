@@ -19,7 +19,7 @@
 , kdl-parser
 }:
 
-buildRosPackage {
+buildRosPackage rec {
   name = "nova-arm-kinematics";
   buildType = "ament_cmake";
 
@@ -69,4 +69,7 @@ buildRosPackage {
   ];
 
   doCheck = true;
+  cmakeFlags = [
+    "-DNIX_DO_CHECK=${if doCheck then "ON" else "OFF"}"
+  ];
 }

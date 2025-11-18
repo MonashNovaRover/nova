@@ -6,7 +6,7 @@
 #define ARM_KINEMATICS_GEOMETRY_CACHE_HPP
 
 #include <memory>
-#include <fcl/fcl.h>
+#include <fcl/geometry/collision_geometry.h>
 #include <urdf/model.h>
 #include <rclcpp/logger.hpp>
 

@@ -45,22 +45,4 @@ bool InverseKinematicsPlugin::get_velocity_ik(const Eigen::Matrix<double, 6, 1> 
   return true;
 }
 
-bool InverseKinematicsPlugin::get_velocity_ik(const Eigen::Matrix<double, 6, 1> &ik_twist,
-                                              const ForwardKinematicsPlugin::SharedPtr fk,
-                                              const std::vector<double> &ik_seed_state,
-                                              std::vector<double> &solution_velocities,
-                                              double time_step) const
-{
-  if (!fk) {
-    RCLCPP_ERROR(get_logger(), "Given ForwardKinematicsPlugin::SharedPtr is not valid!");
-    return false;
-  }
-
-  // Just call the above method, getting ik_seed_pose from forward kinematics
-  Eigen::Isometry3d ik_seed_pose;
-  const auto fk_result = fk->get_position_fk(ik_seed_state, ik_seed_pose);
-
-  return fk_result && get_velocity_ik(ik_twist, ik_seed_pose, ik_seed_state, solution_velocities, time_step);
-}
-
 } // arm_kinematics

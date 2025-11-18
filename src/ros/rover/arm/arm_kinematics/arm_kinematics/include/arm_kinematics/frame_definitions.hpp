@@ -23,7 +23,7 @@ struct FrameDefinitions {
     assert(parent_link_names.size() == origins.size());
   }
   FrameDefinitions(std::string parent_link_name, Eigen::Isometry3d origin)
-    : FrameDefinitions({std::move(parent_link_name)}, {std::move(origin)}) {}
+    : FrameDefinitions(std::vector{std::move(parent_link_name)}, {std::move(origin)}) {}
 
   // Constructor overloads that use identity origins
   FrameDefinitions(std::vector<std::string> link_names)

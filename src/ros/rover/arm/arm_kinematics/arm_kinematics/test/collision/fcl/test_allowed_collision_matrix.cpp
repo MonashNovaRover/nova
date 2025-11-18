@@ -1,14 +1,11 @@
 #include <gtest/gtest.h>
-#include <arm_kinematics/collision//fcl/allowed_collision_matrix.hpp>
+#include <arm_kinematics/collision/allowed_collision_matrix.hpp>
 #include <algorithm>
-
 
 using arm_kinematics::AllowedCollisionMatrix;
 
 class AllowedCollisionMatrixTest : public ::testing::Test
 {
-public:
-
 protected:
   void SetUp() override
   {

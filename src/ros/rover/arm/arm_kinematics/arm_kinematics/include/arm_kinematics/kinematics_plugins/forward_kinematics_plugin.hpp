@@ -8,7 +8,6 @@
 #include <arm_kinematics/visibility_control.h>
 #include <string>
 #include <vector>
-#include <Eigen/Geometry>
 #include <urdf/model.h>
 #include "kinematics_base.hpp"
 #include <arm_kinematics/joint_map/joint_map_builder.hpp>
@@ -28,26 +27,6 @@ public:
   using SharedPtr = std::shared_ptr<ForwardKinematicsPlugin>;
 
   /**
-   * \brief Abstract Base Class for the chains produced by FK plugins, which map joint states to a single
-   * Eigen::Isometry3d transform for some linkage.
-   */
-  class Chain {
-  public:
-    using SharedPtr = std::shared_ptr<Chain>;
-    virtual ~Chain() = default;
-
-    /**
-     * Maps joint states to link poses.
-     * \param[in]  joint_states The current positions of each joint
-     * \param[out] link_pose The transform of each link requested in make_chain
-     *
-     * \warning inputs and outputs must be pre-allocated to the correct size!
-     * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
-     */
-    virtual void position_fk(const std::vector<double> & joint_states, Isometry3dVector & link_pose) = 0;
-  };
-
-  /**
    * \brief Abstract Base Class for the trees produced by FK plugins, which map joint states to Eigen::Isometry3d
    * transforms for different linkages.
    *
@@ -57,13 +36,13 @@ public:
    * collision checking where the transforms of many colliders on the robot need to be updated.
    *
    * \note for implementing analytical Forward Kinematics -- Suppose you wanted to implement special case FK chains, you
-   * can can make your ForwardKinematicsPlugin inherit from the KDL implementation, then have make_chain(...) return
+   * can make your ForwardKinematicsPlugin inherit from the KDL implementation, then have make_chain(...) return
    * special implementations of Chain for special cases (such as when only the end effector is requested), and the
    * parent class implementation of make_chain otherwise.
    */
   class Tree {
   public:
-    using SharedPtr = std::shared_ptr<Chain>;
+    using SharedPtr = std::shared_ptr<Tree>;
     virtual ~Tree() = default;
 
     /**
@@ -101,31 +80,6 @@ public:
     const std::vector<std::string> & joint_names,
     const std::string & base_link_name,
     FrameDefinitions frames,  //< You can std::move() here
-    const JointMapBuilder & joint_map_builder) = 0;
-
-  /**
-   * \brief Constructs the plugin implementation's Chain subclass.
-   * \see ForwardKinematicsPlugin::Chain
-   *
-   * \param joint_names[in] The name of the joints to use as inputs
-   * \param base_link_name[in] The name of the frame to act as the origin
-   * \param frame_parent_link_name[in] The name of the link to calculate an Eigen::Isometry3d value for in \c
-   * Chain::position_fk().
-   * \param frame_parent_link_name[in] The offset from the previously named link to calculate an Eigen::Isometry3d value
-   * for in \c Chain::position_fk().
-   * \param joint_map_builder[in] The builder used to construct the joint map needed. Use get_joint_map_builder()
-   * \returns a chain that you can call .map() on with joint positions to get the poses for all the frames defined in
-   * frames.
-   *
-   * \warning Likely very expensive, and obviously not real-time safe.
-   * \warning Assume the parent ForwardKinematicsPlugin must stay alive for the lifetime of any chains it produces,
-   * chain implementations may reference memory from the parent.
-   */
-  virtual Tree::SharedPtr make_tree(
-    const std::vector<std::string> & joint_names,
-    const std::string & base_link_name,
-    const std::string & frame_parent_link_name,
-    const Eigen::Isometry3d & frame_origin,
     const JointMapBuilder & joint_map_builder) = 0;
 
   /**

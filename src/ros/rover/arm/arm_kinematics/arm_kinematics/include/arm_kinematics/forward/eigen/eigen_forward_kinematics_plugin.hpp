@@ -1,0 +1,65 @@
+//
+// Created by Bailey Chessum on 17/11/2025.
+//
+
+#ifndef ARM_KINEMATICS_EIGEN_FORWARD_KINEMATICS_PLUGIN_HPP
+#define ARM_KINEMATICS_EIGEN_FORWARD_KINEMATICS_PLUGIN_HPP
+
+#include <arm_kinematics/kinematics_plugins/forward_kinematics_plugin.hpp>
+#include <arm_kinematics/forward/eigen/eigen_fk_mapper.hpp>
+#include <arm_kinematics/forward/eigen/eigen_fk_detail.hpp>
+
+namespace arm_kinematics {
+
+using detail::build_fk_mapper_from_urdf;
+
+class EigenForwardKinematicsPlugin : public ForwardKinematicsPlugin {
+public:
+  /**
+   * ForwardKinematicsPlugin::Tree implementation using EigenFKTree and EigenFKMapping
+   */
+  class TreeImpl final : public ForwardKinematicsPlugin::Tree {
+  public:
+    TreeImpl(const size_t output_count, const EigenFKMapper& mapper, JointMap joint_map)
+    : Tree(output_count),
+      mapper_(std::move(mapper)),
+      joint_map_(std::move(joint_map)),
+      mapped_joint_states_(joint_map_.output_count)
+    {
+    }
+
+    /**
+     * Maps joint states to link poses.
+     * \param[in]  joint_states The current positions of each joint
+     * \param[out] link_poses The transform of each link requested in make_chain
+     *
+     * \warning inputs and outputs must be pre-allocated to the correct size!
+     * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
+     */
+    void position_fk(const std::vector<double> & joint_states, Isometry3dVector & link_poses) override {
+      // Map to the joint state ordering decided by the out ref from build_fk_mapper_from_urdf
+      joint_map_.map(joint_states, mapped_joint_states_);
+
+      // Map those joint states to frames
+      mapper_.update(mapped_joint_states_, link_poses);
+    }
+
+  private:
+    EigenFKMapper mapper_;
+    JointMap joint_map_;
+    std::vector<double> mapped_joint_states_{};
+  };
+
+  /**
+   * \copydoc ForwardKinematicsPlugin::make_tree
+   */
+  ForwardKinematicsPlugin::Tree::SharedPtr make_tree(
+    const std::vector<std::string> & joint_names,
+    const std::string & base_link_name,
+    FrameDefinitions frames,
+    const JointMapBuilder & joint_map_builder) override;
+};
+
+} // arm_kinematics
+
+#endif //ARM_KINEMATICS_EIGEN_FORWARD_KINEMATICS_PLUGIN_HPP

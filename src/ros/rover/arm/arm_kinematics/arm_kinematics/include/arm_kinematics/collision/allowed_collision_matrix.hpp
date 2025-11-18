@@ -90,7 +90,6 @@ struct AllowedCollisionMatrix {
       acm_bits[i >> 6] &= ~m;
   }
 
-private:
   [[nodiscard]] inline std::size_t tri_index(std::size_t a, std::size_t b) const {
     if (a > b)
       std::swap(a, b);

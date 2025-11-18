@@ -38,10 +38,13 @@ add_library(${PROJECT_NAME} SHARED
   src/kinematics_plugins/inverse_kinematics_plugin.cpp
   src/collision/collision_plugin.cpp
   src/collision/fcl/fcl_collision_plugin.cpp
-  src/collision/fcl/allowed_collision_matrix.cpp
+  src/collision/allowed_collision_matrix.cpp
   src/collision/fcl/geometry_cache.cpp
   src/frame_definitions.cpp
   src/kinematics_plugin_spawner.cpp
+  src/forward/eigen/eigen_fk_tree.cpp
+  src/forward/eigen/eigen_fk_mapper.cpp
+  src/forward/eigen/eigen_forward_kinematics_plugin.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17
@@ -58,16 +61,19 @@ install(FILES plugins.xml
 )
 
 # Test cases
-if(TR)
+if(NIX_DO_CHECK)
   find_package(ament_cmake_gtest REQUIRED)
   set(TEST_KINEMATICS_SOURCE_FILES
     test/collision/fcl/test_allowed_collision_matrix.cpp
+    test/forward/eigen/test_eigen_fk_mapper.cpp
   )
   ament_add_gtest(test_kinematics
     ${TEST_KINEMATICS_SOURCE_FILES}
   )
   target_link_libraries(test_kinematics
     ${PROJECT_NAME}
+
+    fcl
   )
   target_include_directories(test_kinematics PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

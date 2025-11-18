@@ -6,13 +6,14 @@
 #define ARM_KINEMATICS_FCL_COLLISION_PLUGIN_HPP
 
 #include <arm_kinematics/collision/collision_plugin.hpp>
-#include <fcl/fcl.h>
 #include <arm_kinematics/collision/fcl/geometry_cache.hpp>
+#include <fcl/broadphase/broadphase_dynamic_AABB_tree.h>
+#include <fcl/narrowphase/collision_object.h>
 
 namespace arm_kinematics {
 
 /**
- * FCL Callback
+ * Collision checking implementation using the FCL collision library
  */
 class FclCollisionPlugin : public CollisionPlugin {
 public:
@@ -26,9 +27,9 @@ protected:
   bool on_initialize(const std::vector<urdf::Collision> & collider_geometries) override;
 
 private:
-  std::vector<fcl::CollisionObjectd> colliders_ = {};
+  /// The collider geometries used in collision checking. DO NOT ADD/REMOVE ELEMENTS OUTSIDE on_initialize()
+  std::vector<fcl::CollisionObjectd> colliders_{};
   GeometryCache geometry_cache_{};
-
   fcl::DynamicAABBTreeCollisionManagerd manager_{};
 };
 

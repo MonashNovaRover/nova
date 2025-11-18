@@ -4,6 +4,9 @@
 
 #include <arm_kinematics/collision/fcl/geometry_cache.hpp>
 #include <utility>
+#include <fcl/geometry/shape/box.h>
+#include <fcl/geometry/shape/capsule.h>
+#include <fcl/geometry/shape/sphere.h>
 #include <rclcpp/logging.hpp>
 
 namespace arm_kinematics {

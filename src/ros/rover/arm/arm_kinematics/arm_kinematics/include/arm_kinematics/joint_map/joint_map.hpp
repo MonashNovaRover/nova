@@ -31,6 +31,20 @@ public:
            const std::vector<std::string>& output_names,
            const std::map<std::string, std::shared_ptr<urdf::JointMimic>> & mimic_joints = {});
 
+  JointMap(const size_t input_count, const size_t output_count) : input_count(input_count), output_count(output_count) {
+    sources.resize(output_count, 0);
+    multipliers.resize(output_count, 1.0);
+    offsets.resize(output_count, 0.0);
+  }
+
+  static JointMap identity(const size_t element_count) {
+    JointMap jm{element_count, element_count};
+    for (size_t i = 0; i < element_count; ++i) {
+      jm.sources[i] = i;
+    }
+    return jm;
+  }
+
   /**
    * \brief Maps all the given input joint positions to output joint positions based on transmissions and mimic joints.
    * \note The values in inputs and outputs should correspond to input_names and output_names provided in the class

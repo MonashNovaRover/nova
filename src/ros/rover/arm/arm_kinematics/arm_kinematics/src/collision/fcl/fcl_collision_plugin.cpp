@@ -3,6 +3,7 @@
 //
 
 #include <arm_kinematics/collision/fcl/fcl_collision_plugin.hpp>
+#include <fcl/fcl.h>
 
 namespace arm_kinematics {
 
@@ -10,7 +11,6 @@ namespace arm_kinematics {
  * Struct used in FCL callback
  */
 struct QueryData {
-  // const CollidersSoA* S;
   const AllowedCollisionMatrix & acm;
   bool hit = false;
 };
@@ -44,7 +44,7 @@ inline bool collide_with_acm(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o
 
   if (res.isCollision()) {
     q->hit = true;
-      return false;   //< Stop collision checks
+    return false;   //< Stop collision checks
   }
 
   return true;  //< Continue collision checks
@@ -73,7 +73,7 @@ bool FclCollisionPlugin::collide(span<const Eigen::Isometry3d> collider_poses) {
  */
 struct QueryDataWithPairs : QueryData {
   std::vector<std::pair<size_t, size_t>> & pairs;
-  const size_t max_pairs;
+  const size_t max_pairs{};
 };
 
 /**
@@ -142,7 +142,6 @@ bool FclCollisionPlugin::collide(
 
   return query.hit;
 }
-
 
 bool FclCollisionPlugin::on_initialize(const std::vector<urdf::Collision>& collider_geometries) {
   geometry_cache_ = {};
