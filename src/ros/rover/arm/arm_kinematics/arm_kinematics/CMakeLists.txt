@@ -45,6 +45,7 @@ add_library(${PROJECT_NAME} SHARED
   src/forward/eigen/eigen_fk_tree.cpp
   src/forward/eigen/eigen_fk_mapper.cpp
   src/forward/eigen/eigen_forward_kinematics_plugin.cpp
+  src/forward/eigen/tree_ordering.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17
@@ -72,7 +73,6 @@ if(NIX_DO_CHECK)
   )
   target_link_libraries(test_kinematics
     ${PROJECT_NAME}
-
     fcl
   )
   target_include_directories(test_kinematics PUBLIC

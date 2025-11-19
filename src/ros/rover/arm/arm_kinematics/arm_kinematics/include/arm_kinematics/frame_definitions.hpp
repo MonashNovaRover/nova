@@ -30,6 +30,11 @@ struct FrameDefinitions {
     : FrameDefinitions(std::move(link_names), Isometry3dVector(link_names.size(), Eigen::Isometry3d::Identity())) {}
   FrameDefinitions(std::string link_name)
     : FrameDefinitions({std::move(link_name)}, {Eigen::Isometry3d::Identity()}) {}
+
+  [[nodiscard]] constexpr size_t size() const noexcept {
+    assert(parent_link_names.size() == origins.size());
+    return parent_link_names.size();
+  }
 };
 
 } // namespace arm_kinematics

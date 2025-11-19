@@ -18,9 +18,9 @@ namespace arm_kinematics {
 class EigenFKTree {
 public:
   enum class JointType {
-    FIXED,
     REVOLUTE,
     PRISMATIC,
+    CONTINUOUS
   };
 
   EigenFKTree(std::vector<JointType> joint_types,

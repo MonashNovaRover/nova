@@ -16,17 +16,21 @@ public:
                 Isometry3dVector offsets)
     : tree_pose_indices_(std::move(tree_pose_indices)),
       offsets_(std::move(offsets)),
-      tree_(std::move(tree))
+      tree_(std::move(tree)),
+      varyings_(tree_pose_indices.size())
   {
     assert(tree_pose_indices_.size() == offsets_.size());
   }
 
   /// Joint states must match joint_names() order
-  void update(const std::vector<double> & joint_states, Isometry3dVector & poses) {
+  /// Any element of poses
+  void update(const std::vector<double> & joint_states, Eigen::Isometry3d * data) {
+    assert(data);
+
     tree_.update(joint_states);
 
     const auto & tree_poses = tree_.poses;
-    for (size_t i = 0; i < poses.size(); ++i) {
+    for (size_t i = 0; i < varyings_; ++i) {
       const size_t idx = tree_pose_indices_[i];
       poses[i] = tree_poses[idx] * offsets_[i];
     }
@@ -34,14 +38,17 @@ public:
 
 private:
   /// Index of the pose in tree_ to use as the parent for the output pose at index i
-  std::vector<size_t> tree_pose_indices_;
+  const std::vector<size_t> tree_pose_indices_;
   /// Final offset to apply in the output pose at index i.
   /// All the output poses we typically care about will have an offset from the closest parent joint that actuates.
   /// Probably std::move()-d from FrameDefinitions
-  Isometry3dVector offsets_;
+  const Isometry3dVector offsets_;
 
   /// Used to do mapping for non-fixed joints
   EigenFKTree tree_;
+
+  /// The number of non-constants
+  const size_t varyings_;
 };
 
 } // arm_kinematics
