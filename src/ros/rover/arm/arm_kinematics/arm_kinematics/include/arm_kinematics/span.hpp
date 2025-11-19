@@ -62,19 +62,19 @@ struct span
     return size_ == 0;
   }
 
-  constexpr T & operator[](std::size_t idx) const noexcept
+  constexpr T & operator[](std::size_t idx) const
   {
     assert(idx < size_);
     return data_[idx];
   }
 
-  constexpr T & front() const noexcept
+  constexpr T & front() const
   {
     assert(size_ > 0);
     return data_[0];
   }
 
-  constexpr T & back() const noexcept
+  constexpr T & back() const
   {
     assert(size_ > 0);
     return data_[size_ - 1];

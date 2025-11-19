@@ -23,16 +23,14 @@ public:
   }
 
   /// Joint states must match joint_names() order
-  /// Any element of poses
   void update(const std::vector<double> & joint_states, Eigen::Isometry3d * data) {
     assert(data);
 
     tree_.update(joint_states);
 
-    const auto & tree_poses = tree_.poses;
     for (size_t i = 0; i < varyings_; ++i) {
       const size_t idx = tree_pose_indices_[i];
-      poses[i] = tree_poses[idx] * offsets_[i];
+      data[i] = tree_.poses[idx] * offsets_[i];
     }
   }
 

@@ -18,6 +18,8 @@
 #include "name_to_vector.hpp"
 #include <arm_kinematics/frame_definitions.hpp>
 
+#include "arm_kinematics/utilities/ordering.hpp"
+
 namespace arm_kinematics::detail {
 
 struct EigenFKMapperProps {
@@ -174,25 +176,12 @@ public:
       }
     }
 
-    std::vector<size_t> new_to_old_links(links_.size() - links_to_delete);
-    size_t new_link_id = 0;
-    for (size_t old_link_id = 0; old_link_id < links_.size(); ++old_link_id) {
-      if (link_deletion_mask[old_link_id])
-        continue;
+    Order link_order{};
+    link_order.push_back_deletions(span<bool>(link_deletion_mask));
 
-      new_to_old_links[new_link_id] = old_link_id;
-      ++new_link_id;
-    }
+    Order joint_order{};
 
     std::vector<size_t> new_to_old_joints(joints_.size() - joints_to_delete);
-    size_t new_joint_id = 0;
-    for (size_t old_joint_id = 0; old_joint_id < joints_.size(); ++old_joint_id) {
-      if (joint_deletion_mask[old_joint_id])
-        continue;
-
-      new_to_old_joints[new_joint_id] = old_joint_id;
-      ++new_joint_id;
-    }
 
     ///
 
