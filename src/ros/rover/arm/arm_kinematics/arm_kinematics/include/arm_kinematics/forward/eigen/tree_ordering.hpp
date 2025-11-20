@@ -70,6 +70,19 @@ inline Eigen::Isometry3d to_eigen(const urdf::Pose & p)
   return T;
 }
 
+/**
+ * New idea
+ *   - Should always contain the frames mapping
+ *   - Should construct once and be used for all future building
+ *   - When adding joints, also accumulates and returns the origin for the added frame
+ *      - add() should be add_frame() -> size_t of link, origin from link
+ *      - check for existing frames first, before existing links
+ *   - Should maybe have a separate class for finish() that uses TreeOrdering, and can produce EigenFKTrees and Mappings
+ *   - link_ 0 should always be treated as a dud.
+ *
+ * New invariants
+ *   - Never ever includes a fixed joint, except for the root at 0
+ */
 class TreeOrdering {
 public:
   /// Traverses up the fake root link's parents, adding them in reverse, where the parent-child relationships are
@@ -140,13 +153,18 @@ public:
    * Once you run this you can't add anythign else to the ordering
    */
   EigenFKMapperProps finish() {
+    if (root_path_length_ > 0) {
+      throw std::logic_error("Called finish() without a root path. Have you called finish twice, or did initialization "
+                             "fail (.empty() == true after calling constructor)?");
+    }
+
     // deletion_mask[i] is true if the link should be deleted
     std::vector<bool> link_deletion_mask(links_.size());
     assert(link_deletion_mask.size() == links_.size());  //< Just double-checking my understanding
-    std::vector<bool> joint_deletion_mask(joints_.size());
+    // std::vector<bool> joint_deletion_mask(joints_.size());
 
     uint links_to_delete = 0;
-    uint joints_to_delete = 0;
+    // uint joints_to_delete = 0;
 
     // Squash all fixed links
     for (size_t link_id = 0; link_id < links_.size(); ++link_id) {
@@ -170,37 +188,59 @@ public:
 
       // mark anything unnecessary for deletion
       link_deletion_mask[i] = true;
-      if (link.joint.has_value()) {
-        joint_deletion_mask[link.joint.value()] = true;
-        ++joints_to_delete;
-      }
+      // if (link.joint.has_value()) {
+        // joint_deletion_mask[link.joint.value()] = true;
+        // ++joints_to_delete;
+      // }
     }
 
+    // Make new ordering of links from internal order in links_ to final order for the EigenFKTree
     Order link_order{};
-    link_order.push_back_deletions(span<bool>(link_deletion_mask));
+    assert(links_.size() > 0);  //< Should be true when root_path_length_ is > 0 at start of method
+    auto & root_link = links_[0];
+    link_order.push_back_deletions(link_deletion_mask);
 
+    // EigenFKTree assumes one joint per link, so they are treated as one and the same. Reorder joints to match
+    // Requires link_order to be finalized.
     Order joint_order{};
+    for (const auto & link_id : link_order.map) {
+      auto & link = links_[link_id];
+      assert(link.joint.has_value());   //< Post condition of simplification
 
-    std::vector<size_t> new_to_old_joints(joints_.size() - joints_to_delete);
+      joint_order.push_back(link.joint.value());
+    }
 
-    ///
+    // This is needed to determine the parent of links in the EigenFKTree
+    const auto link_order_inverse = link_order.inverse(links_.size());
 
 
+
+
+    // TODO: Swap out frames relative to the root, so they aren't part of the EigenFKMapping, and kinda just dangle at
+    //       the end of the poses vector -- so we need an ordering of frames, and ensure correctness at caller, this
+    //       needs to be made available to the caller.
 
 
     // Build the props!
+    // Joints need to be paired with links
 
-    std::vector<EigenFKTree::JointType> joint_types(joints_.size() - joints_to_delete);
-    for (size_t i = 0; i < joint_types.size(); ++i)
-      joint_types[i] = joints_[new_to_old_joints[i]].type;
+    std::vector<EigenFKTree::JointType> joint_types(link_order.map.size());
+    auto joint_it = joint_order.map.begin();
+    for (auto & type : joint_types)
+      type = joints_[*joint_it++].type;
+    assert(joint_it == joint_order.map.end());
 
-    std::vector<std::string> joint_names(joints_.size() - joints_to_delete);
-    for (size_t i = 0; i < joint_names.size(); ++i)
-      joint_names[i] = joints_.names[new_to_old_links[i]];
+    std::vector<std::string> joint_names(link_order.map.size());
+    joint_it = joint_order.map.begin();
+    for (auto & name : joint_names)
+      name = joints_.names[*joint_it++];
+    assert(joint_it == joint_order.map.end());
 
-    Vector3dVector joint_axes(joints_.size() - joints_to_delete);
-    for (size_t i = 0; i < joint_axes.size(); ++i)
-      joint_axes[i] = joints_[new_to_old_joints[i]].axis;
+    Vector3dVector joint_axes(link_order.map.size());
+    joint_it = joint_order.map.begin();
+    for (auto & axis : joint_axes)
+      axis = joints_[*joint_it++].axis;
+    assert(joint_it == joint_order.map.end());
 
     Isometry3dVector origins;
     std::vector<size_t> parents;

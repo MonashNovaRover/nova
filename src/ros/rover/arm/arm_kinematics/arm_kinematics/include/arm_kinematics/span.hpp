@@ -25,6 +25,8 @@ namespace arm_kinematics
 
 /**
  * Substitute for std::span to support more C++ versions
+ *
+ * \warning This will not work for std::vector<bool>
  */
 template<typename T>
 struct span
@@ -42,12 +44,14 @@ struct span
   : data_(data), size_(size)
   {
   }
-  template<typename TAlloc>
+
+  template<typename TAlloc = std::allocator<T>>
   constexpr explicit span(std::vector<T, TAlloc> & vector) noexcept
   : data_(vector.data()), size_(vector.size())
   {
   }
-  template<typename TAlloc>
+
+  template<typename TAlloc = std::allocator<T>>
   constexpr explicit span(const std::vector<T, TAlloc> & vector) noexcept
   : data_(vector.data()), size_(vector.size())
   {
