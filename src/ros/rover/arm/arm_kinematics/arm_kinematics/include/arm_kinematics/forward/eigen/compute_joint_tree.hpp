@@ -15,7 +15,12 @@
 namespace arm_kinematics {
 
 
-class EigenFKTree {
+/**
+ * Computes transforms of joint actuated links.
+ *
+ * \note This does not handle fixed joints, or fixed offset frames. Use a \c ComputeFrameTree instead for that purpose.
+ */
+class ComputeJointTree {
 public:
   enum class JointType {
     REVOLUTE,
@@ -23,7 +28,7 @@ public:
     CONTINUOUS
   };
 
-  EigenFKTree(std::vector<JointType> joint_types,
+  ComputeJointTree(std::vector<JointType> joint_types,
                 std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> joint_axes,
                 Isometry3dVector origins,
                 std::vector<size_t> parents,
@@ -44,7 +49,8 @@ public:
 
   inline static void apply_joint(Eigen::Isometry3d & pose, const double state, const Eigen::Vector3d & axis, const JointType type) {
     switch (type) {
-      case JointType::REVOLUTE: {
+      case JointType::REVOLUTE:
+      case JointType::CONTINUOUS: {
         const auto rotation = Eigen::AngleAxisd(state, axis);
         pose.linear() *= rotation.toRotationMatrix();
       }

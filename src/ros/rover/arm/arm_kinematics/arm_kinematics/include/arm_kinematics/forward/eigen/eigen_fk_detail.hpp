@@ -11,8 +11,8 @@
 #include <urdf_model/joint.h>
 #include <urdf_model/pose.h>
 
-#include "eigen_fk_tree.hpp"
-#include "eigen_fk_mapper.hpp"
+#include "compute_joint_tree.hpp"
+#include "compute_frame_tree.hpp"
 #include "arm_kinematics/frame_definitions.hpp"
 
 namespace arm_kinematics::detail {
@@ -29,7 +29,6 @@ inline Eigen::Isometry3d eigen_from_urdf_pose(const urdf::Pose & p)
   return T;
 }
 
-
 /**
  * For a requested frame (parent_link_name, origin),
  * walk *up* through fixed joints, accumulating them into offset,
@@ -38,11 +37,11 @@ inline Eigen::Isometry3d eigen_from_urdf_pose(const urdf::Pose & p)
  *   - the URDF root (no parent_joint).
  *
  * Returns:
- *   base_link_name: link whose pose will come from EigenFKTree::poses
+ *   base_link_name: link whose pose will come from ComputeJointTree::poses
  *   offset:         transform base_link -> requested frame
  *
  * NOTE:
- *   We do NOT collapse actuated joints into offset. They are handled by EigenFKTree.
+ *   We do NOT collapse actuated joints into offset. They are handled by ComputeJointTree.
  */
 struct BaseFrameInfo {
   std::string base_link_name;
@@ -180,7 +179,7 @@ inline bool baileys_build_fk_mapper_from_urdf(
 
 }
 
-EigenFKMapper build_fk_mapper_from_urdf(
+ComputeFrameTree build_fk_mapper_from_urdf(
     const urdf::ModelInterface & model,
     const std::string & root_link_name,
     FrameDefinitions frames,
@@ -267,16 +266,16 @@ EigenFKMapper build_fk_mapper_from_urdf(
 
   dfs(root_link);
 
-  // 4) Build EigenFKTree data: only actuated joints become tree nodes.
+  // 4) Build ComputeJointTree data: only actuated joints become tree nodes.
   //    Each node corresponds to *one actuated joint* and stores:
   //      - its type (REVOLUTE/PRISMATIC)
   //      - axis
   //      - origin (parent->child at zero state)
   //      - parent node index (another actuated joint) or "root-relative"
   //
-  //    We do not include FIXED joints in EigenFKTree.
+  //    We do not include FIXED joints in ComputeJointTree.
 
-  std::vector<EigenFKTree::JointType> joint_types;
+  std::vector<ComputeJointTree::JointType> joint_types;
   std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> joint_axes;
   Isometry3dVector origins;
   std::vector<size_t> parents;
@@ -318,14 +317,14 @@ EigenFKMapper build_fk_mapper_from_urdf(
       // Save the URDF joint name
       tree_joint_names.push_back(pj->name);
 
-      EigenFKTree::JointType jt =
+      ComputeJointTree::JointType jt =
           (pj->type == urdf::Joint::PRISMATIC)
-              ? EigenFKTree::JointType::PRISMATIC
-              : EigenFKTree::JointType::REVOLUTE;
+              ? ComputeJointTree::JointType::PRISMATIC
+              : ComputeJointTree::JointType::REVOLUTE;
 
       joint_types.push_back(jt);
-      if (jt == EigenFKTree::JointType::REVOLUTE ||
-          jt == EigenFKTree::JointType::PRISMATIC)
+      if (jt == ComputeJointTree::JointType::REVOLUTE ||
+          jt == ComputeJointTree::JointType::PRISMATIC)
       {
         joint_axes.emplace_back(pj->axis.x, pj->axis.y, pj->axis.z);
       }
@@ -355,7 +354,7 @@ EigenFKMapper build_fk_mapper_from_urdf(
     // No actuated joints; FK tree is empty.
     // For the frames we care about, the mapper will just apply static offsets.
     out_joint_names.clear();
-    // We can still build a degenerate EigenFKTree with zero joints if you like,
+    // We can still build a degenerate ComputeJointTree with zero joints if you like,
     // but in your use case you normally expect at least one actuated joint.
     throw std::runtime_error("build_fk_mapper_from_urdf: no actuated joints found on paths to requested frames");
   }
@@ -381,7 +380,7 @@ EigenFKMapper build_fk_mapper_from_urdf(
   assert(root_relative_count == N);
 
   // Remap data into compact order:
-  std::vector<EigenFKTree::JointType> jt2(N);
+  std::vector<ComputeJointTree::JointType> jt2(N);
   std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> ax2(N);
   Isometry3dVector origins2(N);
   std::vector<size_t> parents2;  // size N - root_relative_count; here 0, but kept for generality
@@ -401,7 +400,7 @@ EigenFKMapper build_fk_mapper_from_urdf(
   // the second pass could be extended to support multi-root trees. For your current
   // simple chain tests, N == root_relative_count and parents2 is empty, which is fine.
 
-  EigenFKTree tree(std::move(jt2),
+  ComputeJointTree tree(std::move(jt2),
                    std::move(ax2),
                    std::move(origins2),
                    std::move(parents2),
@@ -452,7 +451,7 @@ EigenFKMapper build_fk_mapper_from_urdf(
     out_joint_names[new_i] = std::move(tree_joint_names[old_i]);
   }
 
-  return EigenFKMapper(std::move(tree),
+  return ComputeFrameTree(std::move(tree),
                        std::move(tree_pose_indices),
                        std::move(offsets));
 }

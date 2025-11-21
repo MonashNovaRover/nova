@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <urdf/model.h>
 
-#include "eigen_fk_tree.hpp"
+#include "compute_joint_tree.hpp"
 #include "name_to_vector.hpp"
 #include <arm_kinematics/frame_definitions.hpp>
 
@@ -23,7 +23,7 @@
 namespace arm_kinematics::detail {
 
 struct EigenFKMapperProps {
-  std::vector<EigenFKTree::JointType> joint_types;
+  std::vector<ComputeJointTree::JointType> joint_types;
   std::vector<std::string> joint_names;
 
   Vector3dVector joint_axes;
@@ -36,18 +36,18 @@ struct EigenFKMapperProps {
 };
 
 /**
- * Gets the equivalent EigenFKTree type for a urdf joint
+ * Gets the equivalent ComputeJointTree type for a URDF joint
  * \param joint The joint
  * \return std::nullopt, or a joint type
  */
-inline std::optional<EigenFKTree::JointType> get_type(const urdf::JointConstSharedPtr & joint) {
+inline std::optional<ComputeJointTree::JointType> get_type(const urdf::JointConstSharedPtr & joint) {
   switch (joint->type) {
     case urdf::Joint::REVOLUTE:
-      return EigenFKTree::JointType::REVOLUTE;
+      return ComputeJointTree::JointType::REVOLUTE;
     case urdf::Joint::PRISMATIC:
-      return EigenFKTree::JointType::PRISMATIC;
+      return ComputeJointTree::JointType::PRISMATIC;
     case urdf::Joint::CONTINUOUS:
-      return EigenFKTree::JointType::CONTINUOUS;
+      return ComputeJointTree::JointType::CONTINUOUS;
     default:
       return std::nullopt;
   }
@@ -70,11 +70,22 @@ inline Eigen::Isometry3d to_eigen(const urdf::Pose & p)
   return T;
 }
 
-class TreeOrdering {
+/**
+ * A class used to convert a urdf::Model into a representation that can later be used by a \c ComputeFrameTreeBuilder to
+ * construct \c ComputeJointTree and \c ComputeFrameTree instances.
+ *
+ * Link 0 is always a dud.
+ *
+ * Invariants:
+ *   - Always topologically sorted
+ *   - Always forward constructed (No reversed joints/links)
+ *     - Reversing to a fake root is the responsibility of the <<Insert Constructor Here>>
+ */
+class AnalysisTree {
 public:
   /// Traverses up the fake root link's parents, adding them in reverse, where the parent-child relationships are
   /// swapped making the fake root the actual root of the tree we are constructing
-  explicit TreeOrdering(const urdf::LinkConstSharedPtr & fake_root, size_t capacity) {
+  explicit AnalysisTree(const urdf::LinkConstSharedPtr & fake_root, size_t capacity) {
     if (!fake_root)
       return;
 
@@ -111,11 +122,32 @@ public:
     }
   }
 
-  TreeOrdering(
+  AnalysisTree(
     const urdf::Model & model,
     const std::string & fake_root_name,
     FrameDefinitions frames)
-  : TreeOrdering(model.getLink(fake_root_name), model.links_.size())
+  : AnalysisTree(model.getLink(fake_root_name), model.links_.size())
+  {
+    if (empty())
+      return; //< Fake root link not found in URDF
+
+    // Move members from frames
+    frame_origins_ = std::move(frames.origins);
+    frame_links_.resize(frame_origins_.size());
+    const std::vector frame_names_{std::move(frames.parent_link_names)};
+
+    // Get link ids for each frame
+    for (size_t i = 0; i < frame_links_.size(); ++i) {
+      const auto link_id = add(model.getLink(frame_names_[i]));
+      // frame_links[i] = link_id;  //< This step is redundant, as it will later be set from backlinks
+
+      // Add backlink from link to frame
+      links_[link_id].frames.insert(i);
+    }
+  }
+
+  AnalysisTree(const urdf::Model & model)
+  : AnalysisTree(model.getLink(fake_root_name), model.links_.size())
   {
     if (empty())
       return; //< Fake root link not found in URDF
@@ -190,7 +222,7 @@ public:
 
     // Build the props!
 
-    std::vector<EigenFKTree::JointType> joint_types(joints_.size() - joints_to_delete);
+    std::vector<ComputeJointTree::JointType> joint_types(joints_.size() - joints_to_delete);
     for (size_t i = 0; i < joint_types.size(); ++i)
       joint_types[i] = joints_[new_to_old_joints[i]].type;
 
@@ -231,14 +263,6 @@ public:
     return true;
   }
 
-  /**
-   * Ensures the controllers are sorted
-   */
-  void sort() {
-    // if (!is_sorted_)
-      order();
-  }
-
   /// If true, the fake root link was invalid
   [[nodiscard]] constexpr bool empty() const {
     return links_.size() == 0;
@@ -271,26 +295,40 @@ public:
     return tree_origins;
   }
 
-private:
+
+  /**
+   * Data to describe a joint
+   */
   struct JointDescription {
-    EigenFKTree::JointType type;
+    ComputeJointTree::JointType type;
     Eigen::Vector3d axis;
   };
 
-  struct LinkHandle
+  /**
+   * Defines a link with a joint in the tree. Fixed links are considered to be 'frames'.
+   */
+  struct Link
   {
-    size_t parent = 0; //< 0 is the root
+    /// ID of the frame that this link actuates relative to.
+    /// If 0, it is relative to the root. The root will have itself as the parent.
+    size_t parent = 0; //< 0 is the root, and is always a dummy
 
     /// The type represented by this joint. Fixed if std::nullopt
-    std::optional<size_t> joint = std::nullopt;
+    JointDescription joint{};
     /// Defines the reference frame of the link relative to the parent
     Eigen::Isometry3d origin = Eigen::Isometry3d::Identity();
 
+    /// The IDs of all other frames that actuate relative to this link. All elements of this set should be larger than
+    /// this link's id.
     std::set<size_t> children{};
-
     /// The ids of all frames that point to this handle
     std::set<size_t> frames{};
 
+    /**
+     * Removes a child from children
+     * @param link_id The child link's id to remove
+     * @returns true if the child was removed, false otherwise
+     */
     bool remove_child(const size_t link_id) {
       const auto it = children.find(link_id);
       if (it == children.end())
@@ -299,8 +337,38 @@ private:
       children.erase(it);
       return true;
     }
+
+    /**
+     * Removes a frame from frames
+     * @param link_id The frame's id to remove
+     * @returns true if the frame was removed, false otherwise
+     */
+    bool remove_frame(const size_t link_id) {
+      const auto it = frames.find(link_id);
+      if (it == frames.end())
+        return false; //< This has already been removed!
+
+      frames.erase(it);
+      return true;
+    }
   };
 
+  /**
+   * A non-actuated link relative to some actuated link
+   */
+  struct Frame
+  {
+    /// The ID of the link this is relative
+    size_t parent = 0;
+    /// The transform from the parent link to this frame
+    Eigen::Isometry3d origin;
+  };
+
+  // Accessors
+  [[nodiscard]] const NameToVector<Link> & get_links() const noexcept { return links_; }
+  [[nodiscard]] const NameToVector<Frame> & get_frames() const noexcept { return frames_; }
+
+private:
   /**
    * Gets the id of a link handle in the
    * \param link
@@ -349,7 +417,7 @@ private:
       : Eigen::Isometry3d::Identity();
 
     const auto new_id = links_.size();
-    links_.add(link->name, LinkHandle{
+    links_.add(link->name, Link{
       new_id,
       find_or_create_joint(link->parent_joint),
       origin
@@ -459,8 +527,10 @@ private:
     });
   }
 
-  NameToVector<JointDescription> joints_{};
-  NameToVector<LinkHandle> links_{};
+  // NameToVector<JointDescription> joints_{};
+  NameToVector<Link> links_{};
+
+  NameToVector<Frame> frames_{};
 
   std::vector<size_t> frame_links_{}; //< TODO: Remove, as we don't want to maintain its invariants
   Isometry3dVector frame_origins_{};

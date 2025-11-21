@@ -2,10 +2,10 @@
 // Created by Bailey Chessum on 19/11/2025.
 //
 
-#include <arm_kinematics/forward/eigen/tree_ordering.hpp>
+#include <arm_kinematics/forward/eigen/analysis_tree.hpp>
 
 namespace arm_kinematics::detail {
-void TreeOrdering::order() {
+void AnalysisTree::order() {
   std::vector<size_t> in_degrees{};   //< stores for each handle the number of dependencies of the handle
   in_degrees.reserve(handles_.size());
 

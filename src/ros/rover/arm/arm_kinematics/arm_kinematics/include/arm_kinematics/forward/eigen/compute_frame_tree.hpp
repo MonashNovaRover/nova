@@ -5,13 +5,23 @@
 #ifndef ARM_KINEMATICS_EIGENFKMAPPER_HPP
 #define ARM_KINEMATICS_EIGENFKMAPPER_HPP
 
-#include "eigen_fk_tree.hpp"
+#include "compute_joint_tree.hpp"
 
 namespace arm_kinematics {
 
-class EigenFKMapper {
+/**
+ * Computes transforms of any frames (that aren't relative to the root frame) by applying fixed offsets from a given
+ * \c ComputeJointTree 's poses.
+ *
+ * \note To handle fixed links/frames relative to the root, just use a Isometry3dVector larger than your
+ * \c ComputeFrameTree needs, and use the values that aren't modified by the tree for these links/frames, setting their
+ * value once. They will never change!
+ *
+ * \see ComputeJointTree
+ */
+class ComputeFrameTree {
 public:
-  EigenFKMapper(EigenFKTree tree,
+  ComputeFrameTree(ComputeJointTree tree,
                 std::vector<size_t> tree_pose_indices,
                 Isometry3dVector offsets)
     : tree_pose_indices_(std::move(tree_pose_indices)),
@@ -43,7 +53,7 @@ private:
   const Isometry3dVector offsets_;
 
   /// Used to do mapping for non-fixed joints
-  EigenFKTree tree_;
+  ComputeJointTree tree_;
 
   /// The number of non-constants
   const size_t varyings_;

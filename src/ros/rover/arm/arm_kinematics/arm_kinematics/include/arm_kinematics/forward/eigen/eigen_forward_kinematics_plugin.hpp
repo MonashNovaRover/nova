@@ -6,7 +6,7 @@
 #define ARM_KINEMATICS_EIGEN_FORWARD_KINEMATICS_PLUGIN_HPP
 
 #include <arm_kinematics/kinematics_plugins/forward_kinematics_plugin.hpp>
-#include <arm_kinematics/forward/eigen/eigen_fk_mapper.hpp>
+#include <arm_kinematics/forward/eigen/compute_frame_tree.hpp>
 #include <arm_kinematics/forward/eigen/eigen_fk_detail.hpp>
 
 namespace arm_kinematics {
@@ -16,11 +16,11 @@ using detail::build_fk_mapper_from_urdf;
 class EigenForwardKinematicsPlugin : public ForwardKinematicsPlugin {
 public:
   /**
-   * ForwardKinematicsPlugin::Tree implementation using EigenFKTree and EigenFKMapping
+   * ForwardKinematicsPlugin::Tree implementation using ComputeJointTree and EigenFKMapping
    */
   class TreeImpl final : public ForwardKinematicsPlugin::Tree {
   public:
-    TreeImpl(const size_t output_count, const EigenFKMapper& mapper, JointMap joint_map)
+    TreeImpl(const size_t output_count, const ComputeFrameTree& mapper, JointMap joint_map)
     : Tree(output_count),
       mapper_(std::move(mapper)),
       joint_map_(std::move(joint_map)),
@@ -45,7 +45,7 @@ public:
     }
 
   private:
-    EigenFKMapper mapper_;
+    ComputeFrameTree mapper_;
     JointMap joint_map_;
     std::vector<double> mapped_joint_states_{};
   };

@@ -16,7 +16,7 @@ ForwardKinematicsPlugin::Tree::SharedPtr EigenForwardKinematicsPlugin::make_tree
   std::vector<std::string> mapper_joint_names{};
   const size_t output_count = frames.origins.size();
 
-  EigenFKMapper mapper = build_fk_mapper_from_urdf(
+  ComputeFrameTree mapper = build_fk_mapper_from_urdf(
     get_urdf_model(),
     base_link_name,
     std::move(frames), //< changed method call signature to remove const and &
