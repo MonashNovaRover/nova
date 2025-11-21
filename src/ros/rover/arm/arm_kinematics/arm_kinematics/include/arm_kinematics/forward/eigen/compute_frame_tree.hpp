@@ -33,10 +33,13 @@ public:
     assert(tree_pose_indices_.size() == offsets_.size());
   }
 
-  ComputeFrameTree(const detail::AnalysisTree & analysis, const std::string & root_name)
+  ComputeFrameTree(
+    const detail::AnalysisTree & analysis,
+    const std::string & root_name
+    FrameDefinitions frames)
   {
     const auto & joints = analysis.get_joints();
-    const auto & frames = analysis.get_frames();
+    const auto & links = analysis.get_frames();
 
     // First figure out root
     const auto root_id = frames.get(root_name);
