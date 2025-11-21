@@ -40,6 +40,42 @@ public:
   }
 
   /**
+   * Get the index of a name in the well-ordering_
+   */
+  size_t operator[](const TKey & name) const {
+    const auto it = ids.find(name);
+
+    if (it == ids.end())
+      throw std::out_of_range(name + " is not in the controller ordering_.");
+
+    return it->second;
+  }
+
+  /**
+   * Get the index of a name in the well-ordering_
+   */
+  std::optional<size_t> get(const TKey & name) {
+    const auto it = ids.find(name);
+
+    if (it == ids.end())
+      throw std::out_of_range(name + " is not in the controller ordering_.");
+
+    return it->second;
+  }
+
+  /**
+   * Get the index of a name in the well-ordering_
+   */
+  std::optional<size_t> get(const TKey & name) const {
+    const auto it = ids.find(name);
+
+    if (it == ids.end())
+      throw std::out_of_range(name + " is not in the controller ordering_.");
+
+    return it->second;
+  }
+
+  /**
    * Returns true if the map defines an id for the given name
    */
   [[nodiscard]] bool contains(const std::string & name) const noexcept {
@@ -51,9 +87,13 @@ public:
    * Get the name in the well-ordering_ at the given index
    */
   TValue & operator[](const size_t id) {
-    if (id > data.size())
-      throw std::out_of_range("Requested controller name larger than the number of elements in the well-ordering_.");
+    return data[id];
+  }
 
+  /**
+   * Get the name in the well-ordering_ at the given index
+   */
+  TValue & operator[](const size_t id) const {
     return data[id];
   }
 

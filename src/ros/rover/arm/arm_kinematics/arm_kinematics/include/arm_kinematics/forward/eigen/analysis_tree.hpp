@@ -127,6 +127,8 @@ public:
     /// ID of the frame that this link actuates relative to.
     /// If 0, it is relative to the root. The root will have itself as the parent.
     size_t parent = 0; //< 0 is the root, and is always a dummy
+    /// Distance from the root node (id = 0)
+    size_t depth = 0;
 
     /// The type represented by this joint. Fixed if std::nullopt
     JointDescription joint{};
@@ -234,7 +236,6 @@ private:
     return nullptr;
   }
 
-  // TODO: Make private
   /**
    * Creates a joint link for the given child link's urdf::Joint, or returns the existing construction from joints_.
    * \param child_link The link that is the immediate child of the non-fixed urdf::Joint being converted
@@ -259,6 +260,7 @@ private:
     // Create new link
     const size_t id = joints_.add(child_link->parent_joint->name, {
       parent_id,
+      joints_[parent_id].depth + 1,
       JointDescription(*child_link->parent_joint),
       origin,
     });

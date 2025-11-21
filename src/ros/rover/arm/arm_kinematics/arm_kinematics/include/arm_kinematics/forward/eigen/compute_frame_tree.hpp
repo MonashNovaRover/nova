@@ -5,6 +5,7 @@
 #ifndef ARM_KINEMATICS_EIGENFKMAPPER_HPP
 #define ARM_KINEMATICS_EIGENFKMAPPER_HPP
 
+#include "analysis_tree.hpp"
 #include "compute_joint_tree.hpp"
 
 namespace arm_kinematics {
@@ -32,6 +33,20 @@ public:
     assert(tree_pose_indices_.size() == offsets_.size());
   }
 
+  ComputeFrameTree(const detail::AnalysisTree & analysis, const std::string & root_name)
+  {
+    const auto & joints = analysis.get_joints();
+    const auto & frames = analysis.get_frames();
+
+    // First figure out root
+    const auto root_id = frames.get(root_name);
+    if (!root_id.has_value())
+      throw std::invalid_argument("Given root_name is not in the AnalysisTree");
+
+
+
+  }
+
   /// Joint states must match joint_names() order
   void update(const std::vector<double> & joint_states, Eigen::Isometry3d * data) {
     assert(data);
@@ -46,17 +61,17 @@ public:
 
 private:
   /// Index of the pose in tree_ to use as the parent for the output pose at index i
-  const std::vector<size_t> tree_pose_indices_;
+  std::vector<size_t> tree_pose_indices_;
   /// Final offset to apply in the output pose at index i.
   /// All the output poses we typically care about will have an offset from the closest parent joint that actuates.
   /// Probably std::move()-d from FrameDefinitions
-  const Isometry3dVector offsets_;
+  Isometry3dVector offsets_;
 
   /// Used to do mapping for non-fixed joints
   ComputeJointTree tree_;
 
   /// The number of non-constants
-  const size_t varyings_;
+  size_t varyings_;
 };
 
 } // arm_kinematics
