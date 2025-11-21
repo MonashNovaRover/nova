@@ -83,6 +83,75 @@ inline Eigen::Isometry3d to_eigen(const urdf::Pose & p)
  */
 class AnalysisTree {
 public:
+
+  /**
+   * Data to describe a joint
+   */
+  struct JointDescription {
+    ComputeJointTree::JointType type;
+    Eigen::Vector3d axis;
+  };
+
+  /**
+   * Defines a link with a joint in the tree. Fixed links are considered to be 'frames'.
+   */
+  struct Link
+  {
+    /// ID of the frame that this link actuates relative to.
+    /// If 0, it is relative to the root. The root will have itself as the parent.
+    size_t parent = 0; //< 0 is the root, and is always a dummy
+
+    /// The type represented by this joint. Fixed if std::nullopt
+    JointDescription joint{};
+    /// Defines the reference frame of the link relative to the parent
+    Eigen::Isometry3d origin = Eigen::Isometry3d::Identity();
+
+    /// The IDs of all other frames that actuate relative to this link. All elements of this set should be larger than
+    /// this link's id.
+    std::set<size_t> children{};
+    /// The ids of all frames that point to this handle
+    std::set<size_t> frames{};
+
+    /**
+     * Removes a child from children
+     * @param link_id The child link's id to remove
+     * @returns true if the child was removed, false otherwise
+     */
+    bool remove_child(const size_t link_id) {
+      const auto it = children.find(link_id);
+      if (it == children.end())
+        return false; //< This has already been removed!
+
+      children.erase(it);
+      return true;
+    }
+
+    /**
+     * Removes a frame from frames
+     * @param link_id The frame's id to remove
+     * @returns true if the frame was removed, false otherwise
+     */
+    bool remove_frame(const size_t link_id) {
+      const auto it = frames.find(link_id);
+      if (it == frames.end())
+        return false; //< This has already been removed!
+
+      frames.erase(it);
+      return true;
+    }
+  };
+
+  /**
+   * A non-actuated link relative to some actuated link
+   */
+  struct Frame
+  {
+    /// The ID of the link this is relative
+    size_t parent = 0;
+    /// The transform from the parent link to this frame
+    Eigen::Isometry3d origin;
+  };
+
   /// Traverses up the fake root link's parents, adding them in reverse, where the parent-child relationships are
   /// swapped making the fake root the actual root of the tree we are constructing
   explicit AnalysisTree(const urdf::LinkConstSharedPtr & fake_root, size_t capacity) {
@@ -146,16 +215,28 @@ public:
     }
   }
 
-  AnalysisTree(const urdf::Model & model)
-  : AnalysisTree(model.getLink(fake_root_name), model.links_.size())
+  explicit AnalysisTree(const urdf::Model & model)
   {
-    if (empty())
-      return; //< Fake root link not found in URDF
+    // Reserve links_, assume 1 link for each non-fixed joint
+    size_t joint_count = 0;
+    for (const auto & [name, joint] : model.joints_)
+      if (joint->type != urdf::Joint::FIXED)  //< Our tree model does not consider fixed joints to be joints
+        joint_count++;
+    links_.reserve(joint_count + 1);  //< +1 for the dummy root
+    // Add the dummy root
+    links_.add("", {});
+    root_path_length_ = 1;
 
-    // Move members from frames
-    frame_origins_ = std::move(frames.origins);
-    frame_links_.resize(frame_origins_.size());
-    const std::vector frame_names_{std::move(frames.parent_link_names)};
+    // Create frames for each link in model
+    frames_.reserve(model.links_.size());
+
+    for (const auto & link : model.links_) {
+
+    }
+
+
+
+
 
     // Get link ids for each frame
     for (size_t i = 0; i < frame_links_.size(); ++i) {
@@ -165,6 +246,46 @@ public:
       // Add backlink from link to frame
       links_[link_id].frames.insert(i);
     }
+  }
+
+  Frame to_frame(const urdf::LinkConstSharedPtr & link) {
+    // Base case 1 -- is root
+    if (!link->parent_joint)
+      return {0, Eigen::Isometry3d::Identity() };
+
+    Eigen::Isometry3d origin = Eigen::Isometry3d::Identity();
+
+
+
+    // Base case 1 -- is root
+
+    auto thing = find_next_non_fixed_joint(link);
+    auto raw = thing.get();
+
+    return {
+      0,
+      Eigen::Isometry3d::Identity()
+    };
+  }
+
+  /**
+   * Finds the closest parent joint that is not fixed, accumulating fixed joint offsets in accumulator.
+   * \param link The link to find the closest actuated parent joint of.
+   * \param accumulator The isometry to accumulate any fixed joint offsets into. Value is still useful, even when
+   * nullopt is returned.
+   * \return ref to the joint or nullopt if there is no joint, and this is relative to the root
+   */
+  static std::optional<urdf::JointSharedPtr &> find_next_non_fixed_joint(const urdf::LinkConstSharedPtr & link, Eigen::Isometry3d & accumulator) {
+    // Base case 1 -- is root
+    if (!link->parent_joint)
+      return {std::nullopt};
+
+    // Base case 2 -- has non-fixed joint parent
+    if (link->parent_joint->type != urdf::Joint::FIXED)
+      return link->parent_joint;
+
+    // Recursive case
+
   }
 
   /**
@@ -296,73 +417,6 @@ public:
   }
 
 
-  /**
-   * Data to describe a joint
-   */
-  struct JointDescription {
-    ComputeJointTree::JointType type;
-    Eigen::Vector3d axis;
-  };
-
-  /**
-   * Defines a link with a joint in the tree. Fixed links are considered to be 'frames'.
-   */
-  struct Link
-  {
-    /// ID of the frame that this link actuates relative to.
-    /// If 0, it is relative to the root. The root will have itself as the parent.
-    size_t parent = 0; //< 0 is the root, and is always a dummy
-
-    /// The type represented by this joint. Fixed if std::nullopt
-    JointDescription joint{};
-    /// Defines the reference frame of the link relative to the parent
-    Eigen::Isometry3d origin = Eigen::Isometry3d::Identity();
-
-    /// The IDs of all other frames that actuate relative to this link. All elements of this set should be larger than
-    /// this link's id.
-    std::set<size_t> children{};
-    /// The ids of all frames that point to this handle
-    std::set<size_t> frames{};
-
-    /**
-     * Removes a child from children
-     * @param link_id The child link's id to remove
-     * @returns true if the child was removed, false otherwise
-     */
-    bool remove_child(const size_t link_id) {
-      const auto it = children.find(link_id);
-      if (it == children.end())
-        return false; //< This has already been removed!
-
-      children.erase(it);
-      return true;
-    }
-
-    /**
-     * Removes a frame from frames
-     * @param link_id The frame's id to remove
-     * @returns true if the frame was removed, false otherwise
-     */
-    bool remove_frame(const size_t link_id) {
-      const auto it = frames.find(link_id);
-      if (it == frames.end())
-        return false; //< This has already been removed!
-
-      frames.erase(it);
-      return true;
-    }
-  };
-
-  /**
-   * A non-actuated link relative to some actuated link
-   */
-  struct Frame
-  {
-    /// The ID of the link this is relative
-    size_t parent = 0;
-    /// The transform from the parent link to this frame
-    Eigen::Isometry3d origin;
-  };
 
   // Accessors
   [[nodiscard]] const NameToVector<Link> & get_links() const noexcept { return links_; }

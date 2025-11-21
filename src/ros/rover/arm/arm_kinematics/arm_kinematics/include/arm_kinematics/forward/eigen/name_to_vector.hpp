@@ -61,7 +61,7 @@ public:
     return data.size();
   }
 
-  void reserve(const size_t N) const noexcept {
+  void reserve(const size_t N) noexcept {
     data.reserve(N);
     names.reserve(N);
   }
