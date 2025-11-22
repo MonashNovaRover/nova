@@ -93,7 +93,7 @@ public:
   /**
    * Get the name in the well-ordering_ at the given index
    */
-  TValue & operator[](const size_t id) const {
+  const TValue & operator[](const size_t id) const {
     return data[id];
   }
 

@@ -11,14 +11,10 @@
 #include <map>
 #include <optional>
 #include <rclcpp/logging.hpp>
-#include <algorithm>
 #include <urdf/model.h>
-
 #include "compute_joint_tree.hpp"
 #include "name_to_vector.hpp"
 #include <arm_kinematics/frame_definitions.hpp>
-
-#include "compute_joint_tree.hpp"
 #include "arm_kinematics/utilities/ordering.hpp"
 
 namespace arm_kinematics::detail {
@@ -102,7 +98,6 @@ inline Eigen::Isometry3d to_eigen(const urdf::Pose & p)
  */
 class AnalysisTree {
 public:
-
   /**
    * Data to describe a joint
    */
@@ -302,8 +297,12 @@ private:
     joints_.swap(a, b);
   }
 
+  /// Links with a non-fixed parent joint from the URDF, named after the parent joint
+  /// In my model, I treat these as the same thing. The link will have a frame in frames_ relative to the joint with an
+  /// Eigen::Isometry3d::Identity origin.
   NameToVector<Joint> joints_{};
 
+  /// Links from the URDF
   NameToVector<Frame> frames_{};
 };
 
