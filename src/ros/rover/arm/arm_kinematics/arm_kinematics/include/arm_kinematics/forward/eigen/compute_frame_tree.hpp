@@ -55,8 +55,9 @@ public:
       throw std::invalid_argument("Given root_name is not in the AnalysisTree");
     const auto root_joint_id = frames[*root_frame_id].parent;
 
-    // Find reversed path
+    // Find reversed path (path from root_joint_id to 0, 0 is the URDF root)
     std::vector<bool> reversed_mask(joints.size(), false);
+    size_t reversed_joint_count = 0; //< Number of elements in the subtree, used to construct topological Order<true>
     size_t current = root_joint_id;
     while (current != 0) {
       reversed_mask[current] = true;
@@ -66,14 +67,16 @@ public:
 
     // First find out what is in the subtree
     std::vector<bool> subtree_mask(joints.size(), false);
+    size_t subtree_joint_count = 0; //< Number of elements in the subtree, used to construct topological Order<true>
 
-    // O(definitions.size() + subtree size)
+    // complexity O(definitions.size() + subtree size)
     size_t reversed_path_end = root_joint_id;
     for (const auto & frame_id : definition_frame_ids) {
       current = frames[frame_id].parent;  //< current joint id
 
       while (!subtree_mask[current]) {
         subtree_mask[current] = true; //< Don't traverse the same place twice
+        subtree_joint_count++;
 
         if (reversed_mask[current]) {
           // Found reversed path, stop traversing
@@ -92,9 +95,16 @@ public:
     // Fill in the rest of the reversed path up until reversed_path_end
     current = root_joint_id;
     while (current < reversed_path_end) {
-      subtree_mask[current] = true;
+      if (!subtree_mask[current]) {
+        subtree_mask[current] = true;
+        ++subtree_joint_count;
+      }
       current = joints[current].parent;
     }
+
+
+    // Create topological order
+    Order topological{}
 
     // Traverse down reverse path to collect subtree sizes (reversed parents are children in the child joint's data).
     

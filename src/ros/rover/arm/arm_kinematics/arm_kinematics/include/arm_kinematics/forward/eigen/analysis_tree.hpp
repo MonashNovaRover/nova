@@ -15,22 +15,9 @@
 #include "compute_joint_tree.hpp"
 #include "name_to_vector.hpp"
 #include <arm_kinematics/frame_definitions.hpp>
-#include "arm_kinematics/utilities/ordering.hpp"
+#include "arm_kinematics/utilities/order.hpp"
 
-namespace arm_kinematics::detail {
-
-struct EigenFKMapperProps {
-  std::vector<ComputeJointTree::JointType> joint_types;
-  std::vector<std::string> joint_names;
-
-  Vector3dVector joint_axes;
-  Isometry3dVector origins;
-  std::vector<size_t> parents;
-  size_t root_relative_count;
-
-  Isometry3dVector mapper_offsets;
-  std::vector<size_t> tree_pose_indices;
-};
+namespace arm_kinematics {
 
 /**
  * Gets the equivalent ComputeJointTree type for a URDF joint
