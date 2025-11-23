@@ -117,10 +117,47 @@ AnalysisSubtree::AnalysisSubtree(
   assert(topological_length == subtree_joint_count);
 
   subtree_sizes_old_ = std::vector<size_t>(joints.size());
+  const auto & inverse_reversed_path_old = get_inverse_reversed_path_old();
+
+  for (size_t i = 0; i < frames.size(); i++) {
+    const auto & frame_id = definition_frame_ids[i];
+    const auto & joint_id = frames[frame_id].parent;
+
+    if (!reversed_mask_old_[joint_id]) {
+      // Forward joint -- easy case
+      frame_parents[i] = joint_id;
+      frame_origins[i] = definitions.origins[i];
+      subtree_sizes_old_[joint_id] += 1;
+      continue;
+    }
+
+    if (joint_id == root_joint_id_) {
+      // This has no previous reversed joint id, as it is at the start of the path.
+      // It instead needs to become root relative, so we give it an invalid value
+      frame_parents[i] = std::numeric_limits<size_t>::max();
+      frame_origins[i] = frames[*root_frame_id].origin.inverse() * frames[frame_id].origin * definitions.origins[i];
+      // TODO: This needs to be put at the end of the definition order because it is fixed
+      break;
+    }
+
+    // attach to previous joint in the parent path
+    const auto & previous_reversed_joint_id =
+
+  }
+  // subtree_sizes_old_ now contains the number of immediate child frames from FrameDefinitions
 
   for (auto it = topological.rbegin(); it != topological.rend(); ++it)
   {
-    // NOT DONE :)
+    const auto & joint_id = *it;
+    const auto & joint = joints[joint_id];
+
+    if (reversed_mask_old_[joint_id]) {
+
+      continue;
+    }
+
+
+
   }
 
 

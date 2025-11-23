@@ -46,9 +46,7 @@ add_library(${PROJECT_NAME} SHARED
   src/forward/eigen/compute_frame_tree.cpp
   src/forward/eigen/eigen_forward_kinematics_plugin.cpp
   src/forward/eigen/analysis_tree.cpp
-        include/arm_kinematics/forward/eigen/analysis_subtree.cpp
-        include/arm_kinematics/forward/eigen/analysis_subtree.h
-        include/arm_kinematics/utilities/reordered.hpp
+  src/forward/eigen/analysis_subtree.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17

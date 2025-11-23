@@ -63,17 +63,23 @@ public:
     };
   }
 
+  [[nodiscard]] constexpr Order<> & get_inverse_topological() const noexcept {
+    return inverse_topological_.size() == 0 ? inverse_topological_ = topological.inverse() : inverse_topological_;
+  }
+
+
   /**
    * Reversed path, indexed by path index, outputs subtree index
    * \warning This value will immediately segfault if you so much as look at reversed_path_old_ in a non-const way.
    */
-  [[nodiscard]] constexpr Reordered<const Order<>> get_reversed_path() const noexcept
+  [[nodiscard]] constexpr Reordered<Order<>> get_reversed_path() const noexcept
   {
     return Reordered{
-      topological.inverse(),
+      get_inverse_topological(),
       reversed_path_old_
     };
   }
+
 
 private:
   explicit AnalysisSubtree(const AnalysisTree & tree) : tree(tree) {}
@@ -88,6 +94,16 @@ private:
   std::vector<size_t> subtree_sizes_old_{};
 
   Order<> reversed_path_old_{0};
+
+  [[nodiscard]] constexpr Order<> & get_inverse_reversed_path_old() const noexcept {
+    return inverse_reversed_path_old_.size() == 0
+      ? inverse_reversed_path_old_ = reversed_path_old_.inverse()
+      : inverse_reversed_path_old_;
+  }
+  mutable Order<> inverse_reversed_path_old_{0};
+
+  // Set by get_reversed_path()
+  mutable Order<> inverse_topological_{0};
 };
 
 } // arm_kinematics

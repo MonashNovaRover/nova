@@ -4,100 +4,159 @@
 
 #include <arm_kinematics/forward/eigen/analysis_tree.hpp>
 
-namespace arm_kinematics::detail {
-void AnalysisTree::order() {
-  std::vector<size_t> in_degrees{};   //< stores for each handle the number of dependencies of the handle
-  in_degrees.reserve(handles_.size());
+namespace arm_kinematics {
 
-  std::vector<size_t> ordering{};
-  ordering.reserve(handles_.size());
+arm_kinematics::AnalysisTree::AnalysisTree(
+  const AnalysisTree& other,
+  const std::string& root_name,
+  const FrameDefinitions& definitions)
+{
+  // First figure out root
+  const auto root_frame_id = other.frames_.get(root_name);
+  if (!root_frame_id.has_value())
+    throw std::invalid_argument("Given root_name is not in the AnalysisTree");
+  auto root_joint_id = other.frames_[*root_frame_id].parent;
 
-  size_t root_count = 0;
+  // Find reversed path (path from root_joint_id_ to 0, 0 is the URDF root)
+  auto reversed_mask_old = std::vector(other.joints_.size(), false);
+  size_t reversed_joint_count = 0; //< Number of elements in the subtree, used to construct topological Order<true>
+  size_t current = root_joint_id;
+  while (current != 0) {
+    reversed_mask_old[current] = true;
+    current = other.joints_[current].parent;
+  }
+  reversed_mask_old[0] = true;
 
-  // Get the in_degree for every handle, and keep track of any root handles
-  for (size_t i = 0; i < handles_.size(); ++i)
-  {
-    in_degrees.emplace_back(handles_[i].dependencies->size());
-    if (in_degrees[i] == 0)
-    {
-      // This element is a root, so we can safely add it to the ordering_
-      ordering.emplace_back(i);
-      ++root_count;
+  // First find out what is in the subtree
+  std::vector<bool> subtree_mask(other.joints_.size(), false);
+  size_t subtree_joint_count = 0; //< Number of elements in the subtree, used to construct topological Order<true>
+  size_t forward_joint_count = 0; //< subtree_joint_count - reversed_path_length
+
+  // indices of frames for each definition
+  frames_.reserve(definitions.size());
+  auto frame_new_to_old = Order<size_t>(definitions.size(), other.frames_.size());
+  // frame_parents.reserve(definitions.size());
+  // frame_origins.reserve(definitions.size());
+  for (size_t i = 0; i < other.frames_.size(); ++i) {
+    frame_new_to_old[i] = other.frames_[definitions.parent_link_names[i]];
+  }
+
+  // Find which elements are in the subtree, and the end of the reversed path as the lowest id in the subtree
+  // complexity O(definitions.size() + subtree size)
+  auto reversed_path_end = root_joint_id;
+  for (const auto & frame_id : frame_new_to_old) {
+    current = other.frames_[frame_id].parent;  //< current joint id
+
+    while (!subtree_mask[current]) {
+      subtree_mask[current] = true; //< Don't traverse the same place twice
+      subtree_joint_count++;
+
+      if (reversed_mask_old[current]) {
+        // Found reversed path, stop traversing
+        // Record the lowest node in the tree that is on the reversed path
+        if (current < reversed_path_end)
+          reversed_path_end = current;
+
+        break;  //< Stop traversal at reversed path
+      }
+
+      forward_joint_count++;
+      current = other.joints_[current].parent; //< Move to next parent
     }
   }
+  assert(subtree_mask[reversed_path_end]);
 
-  // Iterate over every element in the ordering_ to try add its children to the ordering_
-  for (size_t i = 0; i < ordering.size(); ++i)
-  {
-    const auto id = ordering[i];
-    const auto& children = handles_[id].children;
-
-    for (const auto& child : *children)
-    {
-      // decrement the in_degree
-      const auto child_in_degree = --in_degrees[child];
-
-      // If we decremented to 0, we can safely add it to the ordering_
-      if (child_in_degree == 0)
-        ordering.emplace_back(child);
+  // Fill subtree_mask in for the rest of the reversed path up until reversed_path_end_
+  current = root_joint_id;
+  while (current < reversed_path_end) {
+    if (!subtree_mask[current]) {
+      subtree_mask[current] = true;
+      ++subtree_joint_count;
     }
+    current = joints_[current].parent;
   }
 
-  if (ordering.size() != handles_.size())
+  // Create topological order
+  assert(subtree_joint_count > 0);
+  auto topological = Order(subtree_joint_count + 1, other.joints_.size());
+  auto reversed_path_old_ = Order(subtree_joint_count - forward_joint_count, other.joints_.size());
+  assert(reversed_path_old_.size() >= 1); //< Must contain at least the root node
+
+  // First push back reverse path
+  reversed_path_old_[0] = root_joint_id;
+  topological[0] = 0;
+  topological[1] = root_joint_id;
+  size_t topological_length = 1;      //< Number of elements we have pushed back onto topological
+
+  current = root_joint_id;
+  while (current > reversed_path_end)
   {
-    // Uh oh! The graph is not acyclic!
-    const auto logger = rclcpp::get_logger("controller_ordering");
-    RCLCPP_ERROR(logger,
-                 "Failed to create a well-ordering_ for controller activation! You had a cycle in activation order "
-                 "that might involve these controller names:");
+    // We have to push the parent rather than the value we just checked in the while statement, so that we can push a
+    // reversed_path_end_ of 0 (which has itself as its parent) without accepting an index of 0 in the condition.
+    current = other.joints_[current].parent;
+    reversed_path_old_[topological_length] = current;
+    topological[topological_length + 1] = current;  //< Push back reversed path element
+    ++topological_length;
+  }
+  size_t reversed_path_length = topological_length;
 
-    // Log the names of all handles_ with an in_degree > 0
-    // And incorporate stray handles anyway
-    for (size_t j = 0; j < in_degrees.size(); ++j)
-    {
-      if (in_degrees[j] == 0)
-        continue;
-      RCLCPP_ERROR(logger, "  - \"%s\"", handles_[j].name.c_str());
+  // Add all other subtree joints to the ordering, inherit existing topological order from other.joints.
+  for (size_t i = 0; i < other.joints_.size(); ++i)
+  {
+    if (!subtree_mask[i] || reversed_mask_old[i])
+      continue;
 
-      // Incorporate the stray handle
-      ordering.emplace_back(j);
+    topological[topological_length + 1] = i;  //< Push back forward element
+    ++topological_length;
+  }
+
+  // topological order now complete
+  assert(topological_length == topological.size());
+  assert(topological_length == subtree_joint_count);
+
+  const auto & inverse_reversed_path_old = get_inverse_reversed_path_old();
+
+  for (size_t i = 0; i < frames_.size(); i++) {
+    const auto & old_frame_id = frame_new_to_old.inverse[i];
+    const auto & old_joint_id = other.frames_[old_frame_id].parent;
+
+    if (!reversed_mask_old[old_joint_id]) {
+      // Forward joint -- easy case
+      frame_parents[i] = joint_id;
+      frame_origins[i] = definitions.origins[i];
+      subtree_sizes_old_[joint_id] += 1;
+      continue;
     }
 
-    RCLCPP_ERROR(logger,
-                 "All controllers need to be specified in the same order for each control mode. You have likely "
-                 "changed the order you've listed controllers between different control modes.");
+    if (joint_id == root_joint_id_) {
+      // This has no previous reversed joint id, as it is at the start of the path.
+      // It instead needs to become root relative, so we give it an invalid value
+      frame_parents[i] = std::numeric_limits<size_t>::max();
+      frame_origins[i] = frames[*root_frame_id].origin.inverse() * frames[frame_id].origin * definitions.origins[i];
+      // TODO: This needs to be put at the end of the definition order because it is fixed
+      break;
+    }
+
+    // attach to previous joint in the parent path
+    const auto & previous_reversed_joint_id =
+
   }
+  // subtree_sizes_old_ now contains the number of immediate child frames from FrameDefinitions
 
-  // Sort handles to match order
-  std::vector<size_t> inverse_ordering{};   //< Maps old ids to ordered ids
-  inverse_ordering.resize(ordering.size(), 0);
+  for (auto it = topological.rbegin(); it != topological.rend(); ++it)
+  {
+    const auto & joint_id = *it;
+    const auto & joint = joints[joint_id];
 
-  for (size_t i = 0; i < ordering.size(); ++i) {
-    inverse_ordering[ordering[i]] = i;
+    if (reversed_mask_old_[joint_id]) {
+
+      continue;
+    }
+
+
+
   }
-
-  // Move handles to match the new ordering_
-  std::vector<Handle> new_handles{};
-  for (size_t i = 0; i < ordering.size(); ++i) {
-    const auto& old_handle = handles_[ordering[i]];
-
-    auto dependencies = std::make_unique<std::set<size_t>>();
-    for (const auto dependency : *old_handle.dependencies)
-      dependencies->insert(ordering[dependency]);
-
-    auto children = std::make_unique<std::set<size_t>>();
-    for (const auto child : *old_handle.children)
-      children->insert(ordering[child]);
-
-    new_handles.emplace_back(Handle{old_handle.name, std::move(dependencies), std::move(children)});
-  }
-  handles_ = std::move(new_handles);
-
-  // Update the ids in the name_to_id_ map to match new ordering_
-  for (auto& [_, id] : name_to_id_) {
-    id = inverse_ordering[id];
-  }
-
-  is_sorted_ = true;
 }
+
 }
+

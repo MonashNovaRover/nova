@@ -180,6 +180,11 @@ public:
       frames_.add(name, to_frame(link));
   }
 
+  explicit AnalysisTree(
+    const AnalysisTree & tree,
+    const std::string & root_name,
+    const FrameDefinitions & definitions);
+
   Frame to_frame(const urdf::LinkConstSharedPtr & link) {
     auto origin = Eigen::Isometry3d::Identity();
     const auto joint = find_next_non_fixed_joint(link.get(), origin);

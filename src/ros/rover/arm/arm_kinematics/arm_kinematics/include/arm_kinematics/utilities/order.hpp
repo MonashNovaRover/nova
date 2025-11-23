@@ -12,96 +12,101 @@
 
 namespace arm_kinematics {
 
-template<bool FixedSize = true, typename T = std::size_t>
+template<typename T = std::size_t>
 class Order {
 public:
   using value_type      = T;
-  using Container       = std::conditional_t<
-    FixedSize,
-    std::vector<T>,
-    std::deque<T>
-  >;
+  using Container       = std::vector<T>;
   using size_type       = typename Container::size_type;
-  using reference       = typename Container::reference;
   using const_reference = typename Container::const_reference;
   using iterator        = typename Container::iterator;
   using const_iterator  = typename Container::const_iterator;
   using reverse_iterator       = typename Container::reverse_iterator;
   using const_reverse_iterator = typename Container::const_reverse_iterator;
 
-  // Enabled only if FixedSize
-  template<bool B = FixedSize, std::enable_if_t<B, int> = 0>
-  explicit Order(size_type n)
-    : map(n) {}
+  struct InverseProxy {
+    Order* parent;
+    value_type v;
 
-  // Provide a default ctor only for the non-fixed case
-  template<bool B = FixedSize, std::enable_if_t<!B, int> = 0>
-  Order() : map() {}
+    // Assignment from value_type
+    InverseProxy& operator=(const T& idx) {
+      parent->set(idx, v);        // side-effect: update inverse map
+      return *this;
+    }
 
-  // Enabled only if not FixedSize
-  template<bool B = FixedSize, std::enable_if_t<!B, int> = 0>
-  void push_back(size_type idx) noexcept {
-    reset_inverse();
-    map.emplace_back(idx);
-  }
+    // Support chained assignments: a[i] = a[j];
+    InverseProxy& operator=(const InverseProxy& other) {
+      auto idx = static_cast<T>(other);
+      parent->set(idx, v);
+      return *this;
+    }
 
-  // Enabled only if not FixedSize
-  template<bool B = FixedSize, std::enable_if_t<!B, int> = 0>
-  void push_back_deletions(const span<bool> deletions) {
-    reset_inverse();
-    for (size_type i = 0; i < deletions.size(); ++i)
-      if (!deletions[i])
-        push_back(i);
-  }
+    // Conversion to value_type so it behaves like a reference
+    operator value_type() const {
+      return parent->inverse_map[v];
+    }
+  };
 
-  // Enabled only if not FixedSize
-  template<bool B = FixedSize, std::enable_if_t<!B, int> = 0>
-  void push_back_deletions(const size_type begin_idx, const span<bool> deletions) {
-    reset_inverse();
-    for (size_type i = 0; i < deletions.size(); ++i)
-      if (!deletions[i])
-        push_back(i + begin_idx);
+  struct Proxy {
+    Order* parent;
+    T idx;
+
+    // Assignment from value_type
+    Proxy& operator=(const value_type& v) {
+      parent->set(idx, v);        // side-effect: update inverse map
+      return *this;
+    }
+
+    // Support chained assignments: a[i] = a[j];
+    Proxy& operator=(const Proxy& other) {
+      auto v = static_cast<value_type>(other);
+      parent->set(idx, v);
+      return *this;
+    }
+
+    // Conversion to value_type so it behaves like a reference
+    operator value_type() const {
+      return parent->map[idx];
+    }
+  };
+
+  struct Inverse {
+    Order& parent;
+
+    using reference = InverseProxy;
+    using const_reference = const T &;
+
+    reference operator[](T value) noexcept {
+      return InverseProxy{&parent, value};
+    }
+
+    const_reference operator[](T value) const noexcept {
+      return parent.inverse_map[value];
+    }
+  };
+
+  using reference = Proxy;
+
+  explicit Order(size_type in_size, size_type out_size)
+    : map(in_size), inverse_map(out_size) {}
+
+  void set(size_type new_id, size_type old_id) {
+    map[new_id] = old_id;
+    inverse_map[old_id] = new_id;
   }
 
   // Indexing into the order
   reference operator[](size_type idx) noexcept {
-    reset_inverse();
-    return map[idx];
+    return Proxy{this, idx};
   }
 
   const_reference operator[](size_type idx) const noexcept {
     return map[idx];
   }
 
-  [[nodiscard]] constexpr const Order<true, T> & inverse(const size_type capacity) const
-  {
-    if (inverse_)
-      return *inverse_;
-
-    inverse_ = std::make_unique<Order<true, T>>(capacity);
-    for (size_type i = 0; i < map.size(); ++i)
-      (*inverse_)[map[i]] = i;
-
-    return *inverse_;
-  }
-
-  [[nodiscard]] constexpr const Order<true, T> & inverse() const
-  {
-    if (inverse_)
-      return *inverse_;
-
-    T max = 0;
-    for (const auto & idx : map)
-      if (idx > max)
-        max = idx;
-
-    return inverse(max);
-  }
-
   // Iteration over the indices
   iterator begin() noexcept
   {
-    reset_inverse();
     return map.begin();
   }
   const_iterator begin() const noexcept { return map.begin(); }
@@ -109,7 +114,6 @@ public:
 
   iterator end() noexcept
   {
-    reset_inverse();
     return map.end();
   }
   const_iterator end() const noexcept { return map.end(); }
@@ -117,7 +121,6 @@ public:
 
   reverse_iterator rbegin() noexcept
   {
-    reset_inverse();
     return map.rbegin();
   }
   const_reverse_iterator rbegin() const noexcept { return map.rbegin(); }
@@ -129,16 +132,16 @@ public:
 
   size_type size() const noexcept { return map.size(); }
 
-  Container map{};
+  Inverse inverse{this};
 
 private:
-  void reset_inverse() noexcept
-  {
-    inverse_ = nullptr;
-  }
+
+  Container map{};
+  Container inverse_map{};
+
 
   // Lazily evaluated reverse order
-  mutable std::unique_ptr<Order<true, T>> inverse_;
+  // mutable std::unique_ptr<Order<true, T>> inverse_;
 };
 
 } // namespace arm_kinematics
