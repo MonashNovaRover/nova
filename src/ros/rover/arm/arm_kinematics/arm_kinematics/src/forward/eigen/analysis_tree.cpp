@@ -43,7 +43,7 @@ arm_kinematics::AnalysisTree::AnalysisTree(
 
   // Find which elements are in the subtree, and the end of the reversed path as the lowest id in the subtree
   // complexity O(definitions.size() + subtree size)
-  auto reversed_path_end = root_joint_id;
+  auto reversed_path_end_old = root_joint_id;
   for (const auto & frame_id : frame_new_to_old) {
     current = other.frames_[frame_id].parent;  //< current joint id
 
@@ -54,8 +54,8 @@ arm_kinematics::AnalysisTree::AnalysisTree(
       if (reversed_mask_old[current]) {
         // Found reversed path, stop traversing
         // Record the lowest node in the tree that is on the reversed path
-        if (current < reversed_path_end)
-          reversed_path_end = current;
+        if (current < reversed_path_end_old)
+          reversed_path_end_old = current;
 
         break;  //< Stop traversal at reversed path
       }
@@ -64,11 +64,11 @@ arm_kinematics::AnalysisTree::AnalysisTree(
       current = other.joints_[current].parent; //< Move to next parent
     }
   }
-  assert(subtree_mask[reversed_path_end]);
+  assert(subtree_mask[reversed_path_end_old]);
 
   // Fill subtree_mask in for the rest of the reversed path up until reversed_path_end_
   current = root_joint_id;
-  while (current < reversed_path_end) {
+  while (current < reversed_path_end_old) {
     if (!subtree_mask[current]) {
       subtree_mask[current] = true;
       ++subtree_joint_count;
@@ -89,49 +89,85 @@ arm_kinematics::AnalysisTree::AnalysisTree(
   joints_[0].children.insert(1);  //< Reversed root joint
 
   // Add reversed root joint
-  topological[
-    add_joint(
-      other.joints_.names[root_joint_id],
-      joints_.size() - 1,
-      other.joints_[root_joint_id].joint.reversed(),
-      other.frames_[*root_frame_id].origin.inverse()
-    )
-  ] = root_joint_id;
+  topological.inverse[root_joint_id] = add_joint(
+    other.joints_.names[root_joint_id],
+    joints_.size() - 1,
+    other.joints_[root_joint_id].joint.reversed(),
+    other.frames_[*root_frame_id].origin.inverse()
+  );
+
+  topological.inverse[root_joint_id] = add_joint(
+    other.joints_.names[root_joint_id],
+    joints_.size() - 1,
+    other.joints_[root_joint_id].joint.reversed(),
+    other.frames_[*root_frame_id].origin.inverse()
+  );
 
   // First push back reverse path
-  // size_t topological_length = 2;      //< Number of elements we have pushed back onto topological
-
   current = root_joint_id;
-  while (current > reversed_path_end)
+  while (current > reversed_path_end_old)
   {
     // We have to push the parent rather than the value we just checked in the while statement, so that we can push a
     // reversed_path_end_ of 0 (which has itself as its parent) without accepting an index of 0 in the condition.
     auto inverse_previous_origin = other.joints_[current].origin.inverse();
     current = other.joints_[current].parent;
-    // topological[topological_length++] = current;  //< Push back reversed path element
 
     // TODO: This will push the dummy root. We probably dont want that.
     const auto & other_joint = other.joints_[current];
 
-    topological[
-      add_joint(
-        other.joints_.names[current],
-        joints_.size() - 1,
-        other_joint.joint.reversed(),
-        inverse_previous_origin
-      )
-    ] = root_joint_id;
+    topological.inverse[current] = add_joint(
+      other.joints_.names[current],
+      joints_.size() - 1,
+      other_joint.joint.reversed(),
+      inverse_previous_origin
+    );
   }
-  // size_t reversed_path_length = topological_length;
 
   // Add all other subtree joints to the ordering, inherit existing topological order from other.joints.
-  for (size_t i = 0; i < other.joints_.size(); ++i)
+  for (size_t i = 1; i < other.joints_.size(); ++i) //< start at 1 to skip dummy root
   {
     if (!subtree_mask[i] || reversed_mask_old[i])
       continue;
 
-    topological[topological_length + 1] = i;  //< Push back forward element
-    ++topological_length;
+    const auto & other_joint = other.joints_[current];
+
+    // Fucked up edge case, where we must fold the dummy root into the end of the reversed path
+    if (other_joint.parent == 0)
+    {
+      // TODO: Calculate fucked up origin transform
+
+      topological.inverse[i] = add_joint(
+        other.joints_.names[i],
+        topological.inverse[reversed_path_end_old],
+        other_joint.joint,
+        other_joint.origin
+      );
+      continue;
+    }
+
+    // Reversed parent case
+    if (reversed_mask_old[other_joint.parent])
+    {
+      // The parent of the current joints parent in the reversed path (i.e. the current joints to be grandparent)
+      const auto & reverse_path_grandparent = other.joints_[topological[topological.inverse[other_joint.parent] - 1]];
+      // TODO: Calculate origin
+
+      topological.inverse[i] = add_joint(
+        other.joints_.names[i],
+        topological.inverse[other_joint.parent] - 1,  //< TODO: check iPad notes
+        other_joint.joint,
+        other_joint.origin
+      );
+      continue;
+    }
+
+    // Normal case
+    topological.inverse[i] = add_joint(
+      other.joints_.names[i],
+      topological.inverse[other_joint.parent],
+      other_joint.joint,
+      other_joint.origin
+    );
   }
 
   // topological order now complete

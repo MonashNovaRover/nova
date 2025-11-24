@@ -71,17 +71,17 @@ public:
   };
 
   struct Inverse {
-    Order& parent;
+    Order& inverse;
 
     using reference = InverseProxy;
     using const_reference = const T &;
 
     reference operator[](T value) noexcept {
-      return InverseProxy{&parent, value};
+      return InverseProxy{&inverse, value};
     }
 
     const_reference operator[](T value) const noexcept {
-      return parent.inverse_map[value];
+      return inverse.inverse_map[value];
     }
   };
 
