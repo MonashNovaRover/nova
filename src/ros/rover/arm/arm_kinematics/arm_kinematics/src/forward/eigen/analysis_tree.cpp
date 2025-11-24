@@ -89,17 +89,17 @@ arm_kinematics::AnalysisTree::AnalysisTree(
   joints_[0].children.insert(1);  //< Reversed root joint
 
   // Add reversed root joint
-  topological[1] = root_joint_id;
-  joints_.add(other.joints_.names[root_joint_id], {
-    joints_.size() - 1,
-    0,
-    other.joints_[root_joint_id].joint.reversed(),
-    other.frames_[*root_frame_id].origin.inverse()
-  });
+  topological[
+    add_joint(
+      other.joints_.names[root_joint_id],
+      joints_.size() - 1,
+      other.joints_[root_joint_id].joint.reversed(),
+      other.frames_[*root_frame_id].origin.inverse()
+    )
+  ] = root_joint_id;
 
   // First push back reverse path
-  topological[1] = root_joint_id;
-  size_t topological_length = 2;      //< Number of elements we have pushed back onto topological
+  // size_t topological_length = 2;      //< Number of elements we have pushed back onto topological
 
   current = root_joint_id;
   while (current > reversed_path_end)
@@ -108,18 +108,21 @@ arm_kinematics::AnalysisTree::AnalysisTree(
     // reversed_path_end_ of 0 (which has itself as its parent) without accepting an index of 0 in the condition.
     auto inverse_previous_origin = other.joints_[current].origin.inverse();
     current = other.joints_[current].parent;
-    topological[topological_length++] = current;  //< Push back reversed path element
+    // topological[topological_length++] = current;  //< Push back reversed path element
 
     // TODO: This will push the dummy root. We probably dont want that.
     const auto & other_joint = other.joints_[current];
-    joints_.add(other.joints_.names[current], {
-      joints_.size() - 1,
-      0,
-      other_joint.joint.reversed(),
-      inverse_previous_origin,
-    });
+
+    topological[
+      add_joint(
+        other.joints_.names[current],
+        joints_.size() - 1,
+        other_joint.joint.reversed(),
+        inverse_previous_origin
+      )
+    ] = root_joint_id;
   }
-  size_t reversed_path_length = topological_length;
+  // size_t reversed_path_length = topological_length;
 
   // Add all other subtree joints to the ordering, inherit existing topological order from other.joints.
   for (size_t i = 0; i < other.joints_.size(); ++i)

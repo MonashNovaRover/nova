@@ -202,6 +202,45 @@ public:
     };
   }
 
+  size_t add_joint(
+    const std::string & name,
+    size_t parent_id,
+    const JointDescription & joint_description,
+    const Eigen::Isometry3d & origin)
+  {
+    auto & parent = joints_[parent_id];
+
+    size_t id = joints_.add(name, {
+      parent_id,
+      joints_[parent_id].depth + 1,
+      joint_description,
+      origin
+    });
+
+    // Add as child of parent
+    parent.children.emplace_hint(parent.children.end(), id);  //< id is current largest, and will be last
+
+    return id;
+  }
+
+  size_t add_frame(
+    const std::string & name,
+    size_t parent_id,
+    const Eigen::Isometry3d & origin)
+  {
+    auto & parent = joints_[parent_id];
+
+    size_t id = frames_.add(name, {
+      parent_id,
+      origin
+    });
+
+    // Add as child of parent
+    parent.frames.emplace_hint(parent.frames.end(), id);  //< id is current largest, and will be last
+
+    return id;
+  }
+
   // Accessors
   [[nodiscard]] const NameToVector<Joint> & get_joints() const noexcept { return joints_; }
   [[nodiscard]] const NameToVector<Frame> & get_frames() const noexcept { return frames_; }
