@@ -28,6 +28,7 @@ public:
     CONTINUOUS
   };
 
+  ComputeJointTree() = default;
   ComputeJointTree(std::vector<JointType> joint_types,
                 std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> joint_axes,
                 Isometry3dVector origins,
@@ -106,7 +107,7 @@ private:
 
   /// The index of the parent of all non-root joint links. Excludes those relative to the root! This is shorter than
   /// all the other vectors.
-  std::vector<size_t> parents_;
+  std::vector<size_t> parents_{};
 
   /// The first N elements in the tree are relative to the root frame. This is that value of N.
   size_t root_relative_count_ = 0;

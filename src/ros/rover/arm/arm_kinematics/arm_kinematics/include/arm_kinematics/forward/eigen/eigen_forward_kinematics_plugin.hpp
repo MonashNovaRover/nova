@@ -8,6 +8,7 @@
 #include <arm_kinematics/kinematics_plugins/forward_kinematics_plugin.hpp>
 #include <arm_kinematics/forward/eigen/compute_frame_tree.hpp>
 #include <arm_kinematics/forward/eigen/eigen_fk_detail.hpp>
+#include <utility>
 
 namespace arm_kinematics {
 
@@ -18,9 +19,9 @@ public:
   /**
    * ForwardKinematicsPlugin::Tree implementation using ComputeJointTree and EigenFKMapping
    */
-  class TreeImpl final : public ForwardKinematicsPlugin::Tree {
+  class TreeImpl final : public Tree {
   public:
-    TreeImpl(const size_t output_count, const ComputeFrameTree& mapper, JointMap joint_map)
+    TreeImpl(const size_t output_count, ComputeFrameTree mapper, JointMap joint_map)
     : Tree(output_count),
       mapper_(std::move(mapper)),
       joint_map_(std::move(joint_map)),
@@ -41,7 +42,7 @@ public:
       joint_map_.map(joint_states, mapped_joint_states_);
 
       // Map those joint states to frames
-      mapper_.update(mapped_joint_states_, link_poses);
+      mapper_.update(mapped_joint_states_, link_poses.data());
     }
 
   private:
@@ -53,11 +54,16 @@ public:
   /**
    * \copydoc ForwardKinematicsPlugin::make_tree
    */
-  ForwardKinematicsPlugin::Tree::SharedPtr make_tree(
+  Tree::SharedPtr make_tree(
     const std::vector<std::string> & joint_names,
     const std::string & base_link_name,
     FrameDefinitions frames,
     const JointMapBuilder & joint_map_builder) override;
+
+  bool on_initialize() override;
+
+private:
+  AnalysisTree tree_{};
 };
 
 } // arm_kinematics

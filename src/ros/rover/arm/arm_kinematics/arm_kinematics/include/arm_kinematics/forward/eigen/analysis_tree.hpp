@@ -170,6 +170,12 @@ public:
     Eigen::Isometry3d origin;
   };
 
+  explicit AnalysisTree() {
+    // Only include dummy root
+    joints_.reserve(1);
+    joints_.add("", {});
+  }
+
   explicit AnalysisTree(const urdf::Model & model)
   {
     // Reserve joints_, assume 1 link for each non-fixed joint

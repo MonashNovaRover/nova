@@ -35,11 +35,10 @@ public:
     assert(tree_pose_indices_.size() == offsets_.size());
   }
 
-  ComputeFrameTree(
-    const detail::AnalysisTree & analysis,
-    const std::string & root_name,
-    const FrameDefinitions & definitions)
-  {
+  explicit ComputeFrameTree(AnalysisTree subtree) : tree_(ComputeJointTree()), varyings_(0) {
+
+
+    // TODO: Alternative case when it is unsorted -- include the extra
   }
 
   /// Joint states must match joint_names() order
@@ -60,13 +59,13 @@ private:
   /// Final offset to apply in the output pose at index i.
   /// All the output poses we typically care about will have an offset from the closest parent joint that actuates.
   /// Probably std::move()-d from FrameDefinitions
-  Isometry3dVector offsets_;
+  Isometry3dVector offsets_{};
 
   /// Used to do mapping for non-fixed joints
-  ComputeJointTree tree_;
+  ComputeJointTree tree_{};
 
   /// The number of non-constants
-  size_t varyings_;
+  size_t varyings_ = 0;
 };
 
 } // arm_kinematics
