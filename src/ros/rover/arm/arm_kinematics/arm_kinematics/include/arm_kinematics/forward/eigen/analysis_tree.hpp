@@ -99,6 +99,13 @@ public:
     {
       *this = joint ? JointDescription(*joint) : JointDescription();
     }
+
+    [[nodiscard]] JointDescription reversed() const noexcept {
+      auto reversed_joint = JointDescription();
+      reversed_joint.type = type;
+      reversed_joint.axis = -axis;
+      return reversed_joint;
+    }
   };
 
   /**

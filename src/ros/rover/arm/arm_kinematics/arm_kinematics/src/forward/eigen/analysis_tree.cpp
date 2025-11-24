@@ -79,24 +79,45 @@ arm_kinematics::AnalysisTree::AnalysisTree(
   // Create topological order
   assert(subtree_joint_count > 0);
   auto topological = Order(subtree_joint_count + 1, other.joints_.size());
-  auto reversed_path_old_ = Order(subtree_joint_count - forward_joint_count, other.joints_.size());
-  assert(reversed_path_old_.size() >= 1); //< Must contain at least the root node
+
+  // Create joints
+  joints_.reserve(subtree_joint_count + 1); //< +1 for the dummy root
+
+  // Add dummy root joint
+  topological[0] = 0;
+  joints_.add("", {0});
+  joints_[0].children.insert(1);  //< Reversed root joint
+
+  // Add reversed root joint
+  topological[1] = root_joint_id;
+  joints_.add(other.joints_.names[root_joint_id], {
+    joints_.size() - 1,
+    0,
+    other.joints_[root_joint_id].joint.reversed(),
+    other.frames_[*root_frame_id].origin.inverse()
+  });
 
   // First push back reverse path
-  reversed_path_old_[0] = root_joint_id;
-  topological[0] = 0;
   topological[1] = root_joint_id;
-  size_t topological_length = 1;      //< Number of elements we have pushed back onto topological
+  size_t topological_length = 2;      //< Number of elements we have pushed back onto topological
 
   current = root_joint_id;
   while (current > reversed_path_end)
   {
     // We have to push the parent rather than the value we just checked in the while statement, so that we can push a
     // reversed_path_end_ of 0 (which has itself as its parent) without accepting an index of 0 in the condition.
+    auto inverse_previous_origin = other.joints_[current].origin.inverse();
     current = other.joints_[current].parent;
-    reversed_path_old_[topological_length] = current;
-    topological[topological_length + 1] = current;  //< Push back reversed path element
-    ++topological_length;
+    topological[topological_length++] = current;  //< Push back reversed path element
+
+    // TODO: This will push the dummy root. We probably dont want that.
+    const auto & other_joint = other.joints_[current];
+    joints_.add(other.joints_.names[current], {
+      joints_.size() - 1,
+      0,
+      other_joint.joint.reversed(),
+      inverse_previous_origin,
+    });
   }
   size_t reversed_path_length = topological_length;
 
@@ -113,8 +134,6 @@ arm_kinematics::AnalysisTree::AnalysisTree(
   // topological order now complete
   assert(topological_length == topological.size());
   assert(topological_length == subtree_joint_count);
-
-  const auto & inverse_reversed_path_old = get_inverse_reversed_path_old();
 
   for (size_t i = 0; i < frames_.size(); i++) {
     const auto & old_frame_id = frame_new_to_old.inverse[i];
