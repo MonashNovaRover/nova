@@ -11,23 +11,29 @@ static_assert(std::is_base_of_v<
   EigenForwardKinematicsPlugin::TreeImpl>);
 
 ForwardKinematicsPlugin::Tree::SharedPtr EigenForwardKinematicsPlugin::make_tree(
-  const std::vector<std::string> & joint_names, const std::string & base_link_name, FrameDefinitions frames,
-  const JointMapBuilder & joint_map_builder) {
+  const std::vector<std::string> & joint_names,
+  const std::string & base_link_name,
+  FrameDefinitions frames,
+  const JointMapBuilder & joint_map_builder)
+{
   std::vector<std::string> mapper_joint_names{};
   const size_t output_count = frames.origins.size();
 
-  EigenFKMapper mapper = build_fk_mapper_from_urdf(
-    get_urdf_model(),
-    base_link_name,
-    std::move(frames), //< changed method call signature to remove const and &
-    mapper_joint_names);
+  AnalysisTree subtree(tree_, base_link_name, frames);
+  // TODO: Sort subtree to minimize cache misses
 
-  std::shared_ptr<TreeImpl> ptr = std::make_shared<TreeImpl>(
+  auto ptr = std::make_shared<TreeImpl>(
     output_count,
-    mapper,
+    std::move(mapper),
     joint_map_builder.build(joint_names, mapper_joint_names));
 
   return ptr;
+}
+
+bool EigenForwardKinematicsPlugin::on_initialize() {
+  tree_ = AnalysisTree(get_urdf_model());
+
+  return true;
 }
 
 } // arm_kinematics

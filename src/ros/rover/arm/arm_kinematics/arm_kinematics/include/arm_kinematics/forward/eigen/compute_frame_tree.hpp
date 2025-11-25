@@ -5,13 +5,26 @@
 #ifndef ARM_KINEMATICS_EIGENFKMAPPER_HPP
 #define ARM_KINEMATICS_EIGENFKMAPPER_HPP
 
-#include "eigen_fk_tree.hpp"
+#include <queue>
+
+#include "analysis_tree.hpp"
+#include "compute_joint_tree.hpp"
 
 namespace arm_kinematics {
 
-class EigenFKMapper {
+/**
+ * Computes transforms of any frames (that aren't relative to the root frame) by applying fixed offsets from a given
+ * \c ComputeJointTree 's poses.
+ *
+ * \note To handle fixed links/frames relative to the root, just use a Isometry3dVector larger than your
+ * \c ComputeFrameTree needs, and use the values that aren't modified by the tree for these links/frames, setting their
+ * value once. They will never change!
+ *
+ * \see ComputeJointTree
+ */
+class ComputeFrameTree {
 public:
-  EigenFKMapper(EigenFKTree tree,
+  ComputeFrameTree(ComputeJointTree tree,
                 std::vector<size_t> tree_pose_indices,
                 Isometry3dVector offsets)
     : tree_pose_indices_(std::move(tree_pose_indices)),
@@ -20,6 +33,12 @@ public:
       varyings_(tree_pose_indices.size())
   {
     assert(tree_pose_indices_.size() == offsets_.size());
+  }
+
+  explicit ComputeFrameTree(AnalysisTree subtree) : tree_(ComputeJointTree()), varyings_(0) {
+
+
+    // TODO: Alternative case when it is unsorted -- include the extra
   }
 
   /// Joint states must match joint_names() order
@@ -36,17 +55,17 @@ public:
 
 private:
   /// Index of the pose in tree_ to use as the parent for the output pose at index i
-  const std::vector<size_t> tree_pose_indices_;
+  std::vector<size_t> tree_pose_indices_;
   /// Final offset to apply in the output pose at index i.
   /// All the output poses we typically care about will have an offset from the closest parent joint that actuates.
   /// Probably std::move()-d from FrameDefinitions
-  const Isometry3dVector offsets_;
+  Isometry3dVector offsets_{};
 
   /// Used to do mapping for non-fixed joints
-  EigenFKTree tree_;
+  ComputeJointTree tree_{};
 
   /// The number of non-constants
-  const size_t varyings_;
+  size_t varyings_ = 0;
 };
 
 } // arm_kinematics

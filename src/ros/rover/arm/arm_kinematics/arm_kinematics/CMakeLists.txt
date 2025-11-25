@@ -42,10 +42,11 @@ add_library(${PROJECT_NAME} SHARED
   src/collision/fcl/geometry_cache.cpp
   src/frame_definitions.cpp
   src/kinematics_plugin_spawner.cpp
-  src/forward/eigen/eigen_fk_tree.cpp
-  src/forward/eigen/eigen_fk_mapper.cpp
+  src/forward/eigen/compute_joint_tree.cpp
+  src/forward/eigen/compute_frame_tree.cpp
   src/forward/eigen/eigen_forward_kinematics_plugin.cpp
-  src/forward/eigen/tree_ordering.cpp
+  src/forward/eigen/analysis_tree.cpp
+  src/forward/eigen/analysis_subtree.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17
