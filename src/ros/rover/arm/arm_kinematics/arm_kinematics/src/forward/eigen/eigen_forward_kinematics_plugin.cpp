@@ -16,11 +16,14 @@ ForwardKinematicsPlugin::Tree::SharedPtr EigenForwardKinematicsPlugin::make_tree
   FrameDefinitions frames,
   const JointMapBuilder & joint_map_builder)
 {
-  std::vector<std::string> mapper_joint_names{};
   const size_t output_count = frames.origins.size();
 
   AnalysisTree subtree(tree_, base_link_name, frames);
   // TODO: Sort subtree to minimize cache misses
+
+  const std::vector<std::string> & mapper_joint_names = subtree.get_joints().names;
+
+
 
   auto ptr = std::make_shared<TreeImpl>(
     output_count,

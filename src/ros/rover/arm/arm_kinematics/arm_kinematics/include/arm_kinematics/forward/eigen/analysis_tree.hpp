@@ -247,6 +247,25 @@ public:
     return id;
   }
 
+  std::vector<size_t> get_subtree_joint_count() {
+    std::vector<size_t> subtree_sizes(joints_.size(), 1);
+
+    for (size_t i = joints_.size() - 1; i > 0; ++i) {
+      const auto & joint = joints_[i];
+
+      for (const auto & child_id : joint.children) {
+        subtree_sizes[i] += subtree_sizes[child_id];
+      }
+    }
+    subtree_sizes[0] = joints_.size();
+
+    return subtree_sizes;
+  }
+
+  void sort() {
+
+  }
+
   // Accessors
   [[nodiscard]] const NameToVector<Joint> & get_joints() const noexcept { return joints_; }
   [[nodiscard]] const NameToVector<Frame> & get_frames() const noexcept { return frames_; }
