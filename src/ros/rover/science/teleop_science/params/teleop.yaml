@@ -1,0 +1,96 @@
+teleop_science:
+  ros__parameters:
+    # The maximum rate at which updates should occur, and hence the max rate at which commands are sent.
+    # Leaving this unset makes the max update rate unlimited.
+    # update_rate: 50.0
+
+    # The minimum rate at which updates occur.
+    # Leaving this unset will allow for indefinite lapses between updates.
+    #min_update_rate: 2.0
+
+    input_sources:
+      names: [
+        "game_controller_source"
+      ]
+
+      # Declare types for the sources
+      game_controller_source:
+        type: "teleop_modular_joy/JoyInputSource"
+
+    control_modes:
+      names: [
+        # First in the list gets activated at startup
+        "input_publisher_mode"
+      ]
+
+      # Declare types for the modes
+      input_publisher_mode:
+        display_name: "Input Publisher Control Mode"
+        type: "input_publisher_mode/InputPublisherMode"
+        active: true
+
+game_controller_source:
+  ros__parameters:
+    topic: "/joy"
+    # These are the default mappings for a game_controller_node.
+    # https://docs.ros.org/en/ros2_packages/rolling/api/joy/index.html
+    # If you use joy_node, you'll need to figure out what the mapping is yourself.
+    # So, run joy, `ros2 topic echo /joy`, and mess around with your controller to figure out what it is for you.
+    button_definitions: [
+      "A",
+      "B",
+      "X",
+      "Y",
+      "BACK",
+      "GUIDE",
+      "START",
+      "LEFTSTICK",
+      "RIGHTSTICK",
+      "LEFTSHOULDER",
+      "RIGHTSHOULDER",
+      "DPAD_UP",
+      "DPAD_DOWN",
+      "DPAD_LEFT",
+      "DPAD_RIGHT",
+      "MISC1",
+      "PADDLE1",
+      "PADDLE2",
+      "PADDLE3",
+      "PADDLE4",
+      "TOUCHPAD"
+    ]
+    axis_definitions: [
+      "LEFTX",
+      "LEFTY",
+      "RIGHTX",
+      "RIGHTY",
+      "TRIGGERLEFT",
+      "TRIGGERRIGHT"
+    ]
+
+    remap:
+      axes:
+        auger_actuation:
+          from: "RIGHTY"
+        cbeam_actuation:
+          from: "LEFTY"
+
+      buttons:
+        sweeper_sweep:
+          from: "A"
+        twitch:
+          from: "B"
+        spinny_pos_1:
+          from: "X"
+
+input_publisher_mode:
+  ros__parameters:
+    input_names_topic: "/science/input"
+
+    axis_names:
+      - "auger_actuation"
+      - "cbeam_actuation"
+    button_names:
+      - "sweeper_sweep"
+      - "twitch"
+      - "spinny_pos_1"
