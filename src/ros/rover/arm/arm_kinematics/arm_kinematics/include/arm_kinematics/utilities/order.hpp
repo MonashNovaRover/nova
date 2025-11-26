@@ -31,7 +31,7 @@ namespace arm_kinematics {
  *
  * @tparam TValue the type stored in the collection for indices
  */
-template<typename TKey = std::size_t, typename TValue = std::vector<std::size_t>::size_type, bool StoresInverse = true>
+template<typename TKey = std::size_t, typename TValue = std::size_t, bool StoresInverse = true>
 class Order {
 public:
   using Container        = std::vector<TValue>;
@@ -84,7 +84,7 @@ public:
     using difference_type   = std::ptrdiff_t;
     using reference         = Proxy;
 
-    Order & parent = nullptr;
+    Order & parent;
     size_type index = 0;
 
     reference operator*() const noexcept {
@@ -113,7 +113,7 @@ public:
     using difference_type   = std::ptrdiff_t;
     using reference         = Proxy;
 
-    Order & parent = nullptr;
+    Order & parent;
     size_type index   = 0;  // index into order, counting backwards
 
     reference operator*() const noexcept {
@@ -138,12 +138,12 @@ public:
   };
 
   // Forward constructor -- only enabled if StoresInverse
-  template<bool B = StoresInverse, std::enable_if_t<B>>
-  explicit Order(size_type in_size, size_type out_size)
+  template<bool B = StoresInverse, std::enable_if_t<B, int> = 0>
+  explicit Order(size_t in_size, size_t out_size)
     : inverse(out_size, *this), data_(in_size) {}
 
   // Forward default constructor -- only enabled if StoresInverse
-  template<bool B = StoresInverse, std::enable_if_t<B>>
+  template<bool B = StoresInverse, std::enable_if_t<B, int> = 0>
   explicit Order()
     : inverse(0, *this), data_(0) {}
 
@@ -180,7 +180,7 @@ public:
 
   // Indexing into the order
   reference operator[](size_type idx) noexcept {
-    return Proxy{this, idx};
+    return Proxy{*this, idx};
   }
   const_reference operator[](size_type idx) const noexcept {
     return data_[idx];
@@ -229,18 +229,22 @@ public:
   InverseRef inverse{};
 
 private:
+  // Allow all Order<*,*,*> specializations to access private members
+  template<typename, typename, bool>
+  friend class Order;
+
   // Forward constructor for data directly -- only enabled if StoresInverse
-  template<bool B = StoresInverse, std::enable_if_t<B>>
+  template<bool B = StoresInverse, std::enable_if_t<B, int> = 0>
   explicit Order(Container forward_data, typename InverseType::Container inverse_data)
     : inverse(std::move(inverse_data), *this), data_(std::move(forward_data)) {}
 
   // Inverse constructor -- only enabled if not StoresInverse
-  template<bool B = StoresInverse, std::enable_if_t<B>>
+  template<bool B = StoresInverse, std::enable_if_t<!B, int> = 0>
   explicit Order(size_type out_size, Order<TValue, TKey, true> & parent)
     : inverse(parent), data_(out_size) {}
 
   // Inverse constructor -- only enabled if not StoresInverse
-  template<bool B = StoresInverse, std::enable_if_t<B>>
+  template<bool B = StoresInverse, std::enable_if_t<!B, int> = 0>
   explicit Order(Container data, Order<TValue, TKey, true> & parent)
     : inverse(parent), data_(std::move(data)) {}
 
