@@ -44,6 +44,21 @@ static void ExpectIsometryNear(const Eigen::Isometry3d & actual,
   EXPECT_TRUE(actual.linear().isApprox(expected.linear(), tol)) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix() << "\n";
 }
 
+Eigen::Isometry3d to_isometry(
+    double r00, double r01, double r02, double tx,
+    double r10, double r11, double r12, double ty,
+    double r20, double r21, double r22, double tz)
+{
+  Eigen::Matrix4d m;
+  m << r00, r01, r02, tx,
+       r10, r11, r12, ty,
+       r20, r21, r22, tz,
+       0.0, 0.0, 0.0, 1.0;
+
+  Eigen::Isometry3d T(m);   // or: Eigen::Isometry3d T = m;
+  return T;
+}
+
 
 // ---------------------------------------------------------------------------
 // Test fixture: builds a small URDF model with fixed + actuated joints.
@@ -277,7 +292,7 @@ protected:
         <joint name="joint2" type="revolute">
           <parent link="link1"/>
           <child  link="link2"/>
-          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <origin xyz="0 0 1" rpy="0 0 0"/>
           <axis   xyz="0 0 1"/>
           <limit  lower="-3.14159" upper="3.14159" effort="10.0" velocity="10.0"/>
         </joint>
@@ -297,11 +312,9 @@ protected:
   std::shared_ptr<rclcpp::Node> node_;
 };
 
-TEST_F(EigenForwardKinematicsPluginTreeTest, SimpleComputeFrameTree)
+TEST_F(EigenForwardKinematicsPluginTreeTest, SimpleUrdfComputeJointTree)
 {
   // One frame attached to link2 with identity origin
-  FrameDefinitions frames("link2");
-  const size_t output_count = frames.origins.size();
   std::vector<std::string> joint_names{"joint1", "joint2"};
 
   // Build mapper + joint names from URDF
@@ -319,22 +332,59 @@ TEST_F(EigenForwardKinematicsPluginTreeTest, SimpleComputeFrameTree)
   RCLCPP_INFO(node_->get_logger(), "Creating FK Tree");
   auto anal = AnalysisTree(plugin->get_urdf_model());
 
+  ExpectIsometryNear(anal.get_joints()[0].origin, Eigen::Isometry3d::Identity(),
+    "dummy root origin is incorrect");
+  ExpectIsometryNear(anal.get_joints()[1].origin, to_isometry(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 0.0, 1.0, 0.0
+  ), "joint 1 origin is incorrect");
+  ExpectIsometryNear(anal.get_joints()[2].origin, to_isometry(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 1.0
+  ), "joint 2 origin is incorrect");
+
   auto joint_order = anal.sort_joints();
+
+  ExpectIsometryNear(anal.get_joints()[0].origin, Eigen::Isometry3d::Identity(),
+    "dummy root origin is incorrect");
+  ExpectIsometryNear(anal.get_joints()[1].origin, to_isometry(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 0.0, 1.0, 0.0
+  ), "joint 1 origin is incorrect");
+  ExpectIsometryNear(anal.get_joints()[2].origin, to_isometry(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 1.0
+  ), "joint 2 origin is incorrect");
+
   auto tree = anal.make_compute_joint_tree();
 
-  ASSERT_EQ(tree.poses.size(), joint_states.size());
+  ASSERT_EQ(tree.poses.size(), joint_states.size()) << "Wrong number of joints in the tree. Is there redundancy?";
+  ASSERT_EQ(tree.get_root_relative_count(), 1) << "Wrong root relative joint count!";
 
   RCLCPP_INFO(node_->get_logger(), "Performing FK");
   tree.update(joint_states);
 
   // Compare against truth
   RCLCPP_INFO(node_->get_logger(), "Testing against true poses");
-  arm_kinematics::Isometry3dVector true_poses(output_count);
 
   ExpectVectorNear(tree.get_axes()[0], Eigen::Vector3d(1, 0, 0), "ComputeJointTree axis[0] is incorrect!");
   ExpectVectorNear(tree.get_axes()[1], Eigen::Vector3d(0, 0, 1), "ComputeJointTree axis[1] is incorrect!");
   EXPECT_EQ(tree.get_types()[0], arm_kinematics::JointType::PRISMATIC);
   EXPECT_EQ(tree.get_types()[1], arm_kinematics::JointType::REVOLUTE);
+  ExpectIsometryNear(tree.get_origins()[0], to_isometry(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 0.0, 1.0, 0.0
+  ), "origin 0 is incorrect");
+  ExpectIsometryNear(tree.get_origins()[1], to_isometry(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 1.0
+  ), "origin 1 is incorrect");
 
   Eigen::Isometry3d link1_truth = Eigen::Isometry3d::Identity();
   link1_truth.translation() = Eigen::Vector3d(0.5, 1, 0);
@@ -343,16 +393,9 @@ TEST_F(EigenForwardKinematicsPluginTreeTest, SimpleComputeFrameTree)
 
   Eigen::Isometry3d link2_truth = Eigen::Isometry3d::Identity();
   link2_truth.linear() = Eigen::AngleAxisd(M_PI / 2.0, Eigen::Vector3d(0, 0, 1)).toRotationMatrix();
-  link2_truth.translation() = Eigen::Vector3d(0.5, 1, 0);
+  link2_truth.translation() = Eigen::Vector3d(0.5, 1, 1);
 
-  ExpectIsometryNear(tree.poses[tree.poses.size() - 1], link2_truth, "link2 pose is wrong");
-
-  // true_poses = result.order->map(true_poses);
-  //
-  // ASSERT_EQ(link_poses.size(), true_poses.size());
-  // for (size_t i = 0; i < link_poses.size(); ++i) {
-  //   ExpectIsometryNear(true_poses[i], link_poses[i]);
-  // }
+  ExpectIsometryNear(tree.poses[1], link2_truth, "link2 pose is wrong");
 }
 
 TEST_F(EigenForwardKinematicsPluginTreeTest, TreePositionFkMatchesMapper)
@@ -372,7 +415,7 @@ TEST_F(EigenForwardKinematicsPluginTreeTest, TreePositionFkMatchesMapper)
 
   const double theta = M_PI / 2.0;
   const double d     = 0.5;
-  std::vector<double> joint_states{ theta, d };
+  std::vector<double> joint_states{ d, theta };
 
   RCLCPP_INFO(node_->get_logger(), "Creating FK Tree");
   auto result = plugin->make_tree(joint_names, std::string("base_link"), frames);
@@ -393,7 +436,7 @@ TEST_F(EigenForwardKinematicsPluginTreeTest, TreePositionFkMatchesMapper)
   arm_kinematics::Isometry3dVector true_poses(output_count);
 
   Eigen::Isometry3d & link2_truth = true_poses[0] = Eigen::Isometry3d::Identity();
-  link2_truth.translation() = Eigen::Vector3d(0.5, 1, 0);
+  link2_truth.translation() = Eigen::Vector3d(0.5, 1, 1);
   link2_truth.linear() = Eigen::AngleAxisd(M_PI / 2.0, Eigen::Vector3d(0, 0, 1)).toRotationMatrix();
 
   true_poses = result.order->map(true_poses);

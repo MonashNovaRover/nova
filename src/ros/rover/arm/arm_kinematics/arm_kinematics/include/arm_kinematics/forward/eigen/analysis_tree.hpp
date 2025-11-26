@@ -411,6 +411,7 @@ public:
     const size_t root_relative_count = joints_[0].children.size();
     for (size_t i = 0; i < root_relative_count; ++i) {
       const auto & joint = joints_[i + 1];
+      RCLCPP_INFO_STREAM(rclcpp::get_logger("root_relative"), "pushing joint " << std::to_string(i + 1) << " origin:\n" << joint.origin.matrix());
 
       origins[i] = joint.origin;
       types[i] = joint.joint.type;
@@ -419,6 +420,7 @@ public:
 
     for (size_t i = root_relative_count; i < joints_.size() - 1; ++i) {
       const auto & joint = joints_[i + 1];
+      RCLCPP_INFO_STREAM(rclcpp::get_logger("non_root_relative"), "pushing joint " << std::to_string(i + 1) << " origin:\n" << joint.origin.matrix());
 
       parents.emplace_back(joint.parent - 1);
       origins[i] = joint.origin;
@@ -483,7 +485,7 @@ private:
       return joints_[child_link->parent_joint->name];
 
     // To keep in topological order, we must ensure the parent exists first
-    auto origin = Eigen::Isometry3d::Identity();
+    auto origin = to_eigen(child_link->parent_joint->parent_to_joint_origin_transform);
     const auto grandparent_joint = find_next_non_fixed_joint(child_link->getParent().get(), origin); //< may be nullptr!
     const size_t parent_id = find_or_create_joint_link(grandparent_joint);                     //< handles nullptr
 

@@ -41,7 +41,6 @@ public:
     poses = origins_;
 
     auto logger = rclcpp::get_logger("compute_joint_tree");
-
   }
 
   inline static void apply_joint(Eigen::Isometry3d & pose, const double state, const Eigen::Vector3d & axis, const JointType type) {
@@ -91,6 +90,9 @@ public:
   [[nodiscard]] const std::vector<size_t> & get_parents() const noexcept {
     return parents_;
   }
+  [[nodiscard]] const size_t & get_root_relative_count() const noexcept {
+    return root_relative_count_;
+  }
 
 private:
   // Helpers
@@ -105,7 +107,6 @@ private:
 
   /// Origin of each frame relative to the parent. Transforms from parent to child frame (when joint state is 0)
   Isometry3dVector origins_{};
-
 
   /// The index of the parent of all non-root joint links. Excludes those relative to the root! This is shorter than
   /// all the other vectors.

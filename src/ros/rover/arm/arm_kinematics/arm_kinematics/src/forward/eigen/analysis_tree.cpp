@@ -129,6 +129,11 @@ AnalysisTree::AnalysisTree(
 
   RCLCPP_INFO(rclcpp::get_logger("fresh_new_subtree_started_adding_joints"), "reverse path is %s", order.to_string().c_str());
 
+  auto case2_common_origin = root_joint_id == 0
+    ? other.frames_[*root_frame_id].origin.inverse() * other.joints_[reversed_path_end_old].origin.inverse()
+    : other.joints_[reversed_path_end_old].origin.inverse();
+  auto case2_common_parent = order.inverse[reversed_path_end_old];
+
   // Add all other subtree joints to the ordering, inherit existing topological order from other.joints.
   for (size_t joint_id_old = 1; joint_id_old < other.joints_.size(); ++joint_id_old) //< start at 1 to skip dummy root
   {
@@ -151,14 +156,13 @@ AnalysisTree::AnalysisTree(
     // Case 2 -- Edge case, where we must fold the dummy root into the end of the reversed path
     if (other_joint.parent == 0)  //< parented to the other tree's dummy root
     {
-      const auto & reversed_path_end_old_joint = other.joints_[reversed_path_end_old];
-      auto origin = reversed_path_end_old_joint.origin.inverse() * other_joint.origin;
+      auto origin = case2_common_origin * other_joint.origin;
 
       order.inverse[joint_id_old] = add_joint(
         other.joints_.names[joint_id_old],
-        order.inverse[reversed_path_end_old], //< TODO: Should we precompute and reuse this value?
+        case2_common_parent,
         other_joint.joint,
-        origin
+        case2_common_origin * origin
       );
       continue;
     }
@@ -182,6 +186,7 @@ AnalysisTree::AnalysisTree(
 
   // All joints should now be finished -> move onto constructing frames
   assert(joints_.size() == subtree_joint_count + 1);
+
 
   // Calculate all frames to match the given definitions
   for (size_t frame_id = 0; frame_id < definitions.size(); ++frame_id)
@@ -207,14 +212,13 @@ AnalysisTree::AnalysisTree(
     }
 
     // Case 2 -- Edge case, where we must fold the dummy root into the end of the reversed path
-    if (frame_id_old == 0)  //< parented to the other tree's dummy root
+    if (joint_id_old == 0)  //< parented to the other tree's dummy root
     {
-      const auto & reversed_path_end_old_joint = other.joints_[reversed_path_end_old];
-      auto origin = reversed_path_end_old_joint.origin.inverse() * definition_origin;
+      auto origin = case2_common_origin * definition_origin;
 
       add_frame(
         "",
-        order.inverse[reversed_path_end_old], //< TODO: Should we precompute and reuse this value?
+        case2_common_parent,
         origin
       );
       continue;
