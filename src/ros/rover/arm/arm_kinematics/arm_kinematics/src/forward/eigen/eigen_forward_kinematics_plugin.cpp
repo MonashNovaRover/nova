@@ -3,6 +3,7 @@
 //
 
 #include <arm_kinematics/forward/eigen/eigen_forward_kinematics_plugin.hpp>
+#include <arm_kinematics/forward/eigen/compute_frame_tree.hpp>
 
 namespace arm_kinematics {
 
@@ -23,12 +24,12 @@ ForwardKinematicsPlugin::MakeTreeResult EigenForwardKinematicsPlugin::make_tree(
   const std::vector<std::string> & mapper_joint_names = subtree.get_joints().names;
 
   // Sort frames such that any root relative frames are placed at the end of the array
-  Order<> frame_order = subtree.sort_frames();
+  auto frame_order = std::make_unique<Order<>>(subtree.sort_frames());
 
   // Create the compute tree
-  tl::expected<ComputeFrameTree, std::string> compute_frame_tree = subtree.make_compute_frame_tree();
+  auto compute_frame_tree = subtree.make_compute_frame_tree();
   if (!compute_frame_tree.has_value()) {
-    RCLCPP_ERROR(get_logger(), "Failed to make FK Tree: %s", compute_frame_tree.error().c_str());
+    RCLCPP_ERROR(get_logger(), "Failed to make FK Tree: %s", compute_frame_tree.error().data());
     compute_frame_tree = ComputeFrameTree();  //< Use an empty tree that will do nothing
   }
 
@@ -37,7 +38,7 @@ ForwardKinematicsPlugin::MakeTreeResult EigenForwardKinematicsPlugin::make_tree(
     std::move(compute_frame_tree.value()),
     joint_map_builder.build(joint_names, mapper_joint_names));
 
-  return {
+  return MakeTreeResult{
     std::move(ptr),
     std::move(frame_order)
   };

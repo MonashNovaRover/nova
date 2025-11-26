@@ -35,8 +35,8 @@ public:
 
   /// The URDF being used.
   [[nodiscard]] const std::string & get_robot_description() const;
-  /// The name of every joint considered in IK and FK calculations.
-  [[nodiscard]] const std::vector<std::string> & get_joint_names() const noexcept;
+  // /// The name of every joint considered in IK and FK calculations.
+  // [[nodiscard]] const std::vector<std::string> & get_joint_names() const noexcept;
   /// Logger to use for logging
   [[nodiscard]] const rclcpp::Logger & get_logger() const noexcept;
   /// Gets the KinematicsParams common to both FK and IK plugins.
@@ -48,15 +48,15 @@ protected:
   /**
    * Initializer for common KinematicsBase base class.
    */
-  bool initialize_base(KinematicsNodeInterfaces node_interfaces,
-                       std::string & robot_description,
-                       const std::vector<std::string> & joint_names,
-                       KinematicsParams params,
-                       const std::string & logger_name);
+  bool initialize_base(
+    KinematicsNodeInterfaces node_interfaces,
+    const std::string & robot_description,
+    KinematicsParams params,
+    const std::string & logger_name);
 
 private:
   /// The URDF being used. You can get this from within a ros2_control controller.
-  std::string * robot_description_ = nullptr;
+  const std::string * robot_description_ = nullptr;
   /// Params common to both FK and IK plugins.
   KinematicsParams kinematics_params_;
   /// The name of every joint considered in IK and FK calculations.

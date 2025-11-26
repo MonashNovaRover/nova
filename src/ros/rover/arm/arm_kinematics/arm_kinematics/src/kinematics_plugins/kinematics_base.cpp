@@ -6,27 +6,30 @@
 
 namespace arm_kinematics {
 
-bool KinematicsBase::initialize_base(KinematicsBase::KinematicsNodeInterfaces node_interfaces,
-                                     std::string &robot_description, const std::vector<std::string> &joint_names,
-                                     KinematicsParams params, const std::string& logger_name) {
-  robot_description_ = &robot_description;
+bool KinematicsBase::initialize_base(
+  KinematicsNodeInterfaces node_interfaces,
+  const std::string & robot_description,
+  KinematicsParams params,
+  const std::string& logger_name)
+{
+  robot_description_ = & robot_description;
   node_interfaces_ = node_interfaces;
   logger_ = node_interfaces.get_node_logging_interface()->get_logger().get_child(logger_name);
 
-  if (joint_names.empty()) {
-    RCLCPP_ERROR(logger_, "Tried to initialize kinematics plugin with no joint names. You must define at least one.");
-    return false;
-  }
-  joint_names_ = joint_names;
+  // if (joint_names.empty()) {
+  //   RCLCPP_ERROR(logger_, "Tried to initialize kinematics plugin with no joint names. You must define at least one.");
+  //   return false;
+  // }
+  // joint_names_ = joint_names;
 
   kinematics_params_ = std::move(params);
 
   return true;
 }
 
-const std::vector<std::string> &KinematicsBase::get_joint_names() const noexcept {
-  return joint_names_;
-}
+// const std::vector<std::string> &KinematicsBase::get_joint_names() const noexcept {
+//   return joint_names_;
+// }
 
 const std::string & KinematicsBase::get_robot_description() const {
   if (!robot_description_)

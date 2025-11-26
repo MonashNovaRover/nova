@@ -107,7 +107,7 @@ public:
    * \param frames[in] The names and offsets from links to calculate Eigen::Isometry3d values for in \c Tree::position_fk().
    * You can also just wrap a string or vector of strings in {} if you don't care about the origin from FrameDefinitions
    * \param joint_map_builder[in] The builder used to construct the joint map needed for
-   * \returns a chain that you can call .map() on with joint positions to get the poses for all the frames defined in
+   * \returns a tree that you can call .position_fk() on with joint positions to get the poses for all the frames defined in
    * frames.
    *
    * \warning Likely very expensive, and obviously not real-time safe.
@@ -117,8 +117,20 @@ public:
   virtual MakeTreeResult make_tree(
     const std::vector<std::string> & joint_names,
     const std::string & base_link_name,
-    const FrameDefinitions & frames,  //< You can std::move() here
+    const FrameDefinitions & frames,
     const JointMapBuilder & joint_map_builder) = 0;
+
+  /**
+   * Helper overload to provide the joint_map_builder automatically as the default joint map builder
+   * TODO: Header comment.
+   */
+  MakeTreeResult make_tree(
+    const std::vector<std::string> & joint_names,
+    const std::string & base_link_name,
+    const FrameDefinitions & frames)
+  {
+    return make_tree(joint_names, base_link_name, frames, get_joint_map_builder());
+  };
 
   /**
    * Effectively replaces the constructor for the class, as we can only use a default constructor in plugins.
@@ -129,7 +141,6 @@ public:
   bool initialize(
     KinematicsNodeInterfaces node_interfaces,
     std::string & robot_description,
-    const std::vector<std::string>& joint_names = {},
     KinematicsParams kinematics_params = {});
 
   /**

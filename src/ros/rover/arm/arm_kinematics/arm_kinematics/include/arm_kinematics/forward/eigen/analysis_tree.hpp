@@ -17,8 +17,9 @@
 #include <arm_kinematics/utilities/order.hpp>
 #include <arm_kinematics/forward/eigen/joint_type.hpp>
 
-#include "compute_frame_tree.hpp"
-#include "arm_kinematics/utilities/expected.hpp"
+#include <arm_kinematics/forward/eigen/compute_frame_tree.hpp>
+#include <arm_kinematics/forward/eigen/compute_joint_tree.hpp>
+#include <arm_kinematics/utilities/expected.hpp>
 
 namespace arm_kinematics {
 
@@ -311,7 +312,7 @@ public:
     Order frame_order{frames_.size(), frames_.size()};
 
     size_t i = 0;
-    for (size_t joint_id = 1; i < joints_.size(); ++i) {
+    for (size_t joint_id = 1; i < joints_.size(); ++joint_id) {
       auto & joint = joints_[joint_id];
       for (const auto frame_id : joint.frames) {
         frame_order[i++] = frame_id;
@@ -332,14 +333,14 @@ public:
   /**
    * You need to have sorted joints then frames before calling.
    */
-  tl::expected<ComputeFrameTree, std::string> make_compute_frame_tree() {
+  tl::expected<ComputeFrameTree, std::string_view> make_compute_frame_tree() {
     std::set<size_t> root_children(joints_[0].children.begin(), joints_[0].children.end());
     // Root children must occupy the start of the joints_ array
     const bool root_joint_precondition = root_children.empty() ||
       *root_children.begin() == 1 && *root_children.rbegin() == root_children.size();
 
     if (!root_joint_precondition)
-      return tl::unexpected("Cannot create a ComputeFrameTree from an unsorted AnalysisTree! Please call "
+      return tl::make_unexpected("Cannot create a ComputeFrameTree from an unsorted AnalysisTree! Please call "
                             ".sort_joints() first, and reorder your input data from the returned Order<>.");
 
     std::vector<size_t> parents{};
@@ -353,11 +354,11 @@ public:
     for (const auto & frame : frames_.data)
       origins.emplace_back(frame.origin);
 
-    return ComputeFrameTree{
+    return ComputeFrameTree(
       make_compute_joint_tree(),
       std::move(parents),
       std::move(origins)
-    };
+    );
   }
 
   /**
@@ -395,26 +396,6 @@ public:
   // Accessors
   [[nodiscard]] const NameToVector<Joint> & get_joints() const noexcept { return joints_; }
   [[nodiscard]] const NameToVector<Frame> & get_frames() const noexcept { return frames_; }
-
-  [[nodiscard]] Isometry3dVector get_frame_origins() const noexcept {
-    Isometry3dVector origins{};
-
-    origins.reserve(frames_.size());
-    for (const auto & frame : frames_.data)
-      origins.emplace_back(frame.origin);
-
-    return std::move(origins);
-  }
-
-  [[nodiscard]] std::vector<size_t> get_frame_parents() const noexcept {
-    std::vector<size_t> parents{};
-
-    parents.reserve(frames_.size());
-    for (const auto & frame : frames_.data)
-      parents.emplace_back(frame.parent);
-
-    return std::move(parents);
-  }
 
 private:
   /**

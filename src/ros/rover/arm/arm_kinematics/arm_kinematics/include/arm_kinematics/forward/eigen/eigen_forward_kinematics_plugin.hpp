@@ -7,12 +7,11 @@
 
 #include <arm_kinematics/kinematics_plugins/forward_kinematics_plugin.hpp>
 #include <arm_kinematics/forward/eigen/compute_frame_tree.hpp>
-#include <arm_kinematics/forward/eigen/eigen_fk_detail.hpp>
+#include <arm_kinematics/forward/eigen/analysis_tree.hpp>
 #include <utility>
 
 namespace arm_kinematics {
 
-using detail::build_fk_mapper_from_urdf;
 
 class EigenForwardKinematicsPlugin : public ForwardKinematicsPlugin {
 public:

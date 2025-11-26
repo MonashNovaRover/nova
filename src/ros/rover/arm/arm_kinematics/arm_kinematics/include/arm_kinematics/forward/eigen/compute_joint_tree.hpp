@@ -2,8 +2,8 @@
 // Created by Bailey Chessum on 17/11/2025.
 //
 
-#ifndef ARM_KINEMATICS_EIGENFKTREE_HPP
-#define ARM_KINEMATICS_EIGENFKTREE_HPP
+#ifndef ARM_KINEMATICS_COMPUTE_JOINT_TREE_HPP
+#define ARM_KINEMATICS_COMPUTE_JOINT_TREE_HPP
 
 #include <cstddef>
 #include <Eigen/Geometry>
@@ -11,7 +11,6 @@
 #include "joint_type.hpp"
 
 namespace arm_kinematics {
-
 
 /**
  * Computes transforms of joint actuated links.
@@ -108,4 +107,4 @@ private:
 
 } // arm_kinematics
 
-#endif //ARM_KINEMATICS_EIGENFKTREE_HPP
+#endif //ARM_KINEMATICS_COMPUTE_JOINT_TREE_HPP

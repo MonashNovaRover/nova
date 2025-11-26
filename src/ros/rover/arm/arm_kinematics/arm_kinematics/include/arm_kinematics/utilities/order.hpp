@@ -96,9 +96,6 @@ public:
     a.parent.set(a.idx, old_b);
     b.parent.set(b.idx, old_a);
   }
-  friend void swap(reference a, reference b) noexcept {
-    swap(Proxy(a), Proxy(b));
-  }
 
   struct iterator {
     using iterator_category = std::forward_iterator_tag;
@@ -169,12 +166,12 @@ public:
     : inverse(0, *this), data_(0) {}
 
   // Forward copy constructor -- only enabled if StoresInverse
-  template<bool OtherStoresInverse, std::enable_if_t<StoresInverse, int> = 0>
+  template<bool OtherStoresInverse, bool B = StoresInverse, std::enable_if_t<B, int> = 0>
   explicit Order(const Order<TKey, TValue, OtherStoresInverse> & other)
     : inverse(other.inverse.data_, *this), data_(other.data_) {}
 
   // Forward move constructor -- only enabled if StoresInverse
-  template<bool OtherStoresInverse, std::enable_if_t<StoresInverse, int> = 0>
+  template<bool OtherStoresInverse, bool B = StoresInverse, std::enable_if_t<B, int> = 0>
   explicit Order(Order<TKey, TValue, OtherStoresInverse> && other) noexcept
     : inverse(std::move(other.inverse.data_), *this), data_(std::move(other.data_)) {}
 
@@ -232,13 +229,13 @@ public:
    * @param original The vector to take elements from
    * @return A copy of the original vector, with the items sorted to match the order
    */
-  template<typename U>
-  [[nodiscard]] std::vector<U> map(const std::vector<U> & original) const noexcept {
-    std::vector<U> mapped{};
+  template<typename U, typename UAlloc>
+  [[nodiscard]] std::vector<U, UAlloc> map(const std::vector<U, UAlloc> & original) const noexcept {
+    std::vector<U, UAlloc> mapped{};
     mapped.reserve(data_.size());
 
     for (const auto & i : data_) {
-      mapped.emplace_back(original[i]);
+      mapped.emplace_back(std::move(original[i]));
     }
 
     return mapped;
@@ -248,9 +245,6 @@ public:
    * Stores the inverse mapping for this order, accepting old indices and outputting new indices.
    */
   InverseRef inverse{};
-
-
-
 
 private:
   // Allow all Order<*,*,*> specializations to access private members

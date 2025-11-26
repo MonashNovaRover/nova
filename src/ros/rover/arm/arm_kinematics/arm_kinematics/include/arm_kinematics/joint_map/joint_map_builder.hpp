@@ -90,7 +90,7 @@ private:
    * \return text of for the tag
    * \throws std::runtime_error if text is not found
    */
-  std::string get_text_for_element(
+  static std::string get_text_for_element(
     const tinyxml2::XMLElement * element_it, const std::string & tag_name);
 
   /// Gets value of the attribute on an XMLelement.
@@ -103,7 +103,7 @@ private:
    * \return attribute value
    * \throws std::runtime_error if attribute is not found
    */
-  std::string get_attribute_value(
+  static std::string get_attribute_value(
     const tinyxml2::XMLElement * element_it, const char * attribute_name, std::string tag_name);
 
   /// Gets value of the attribute on an XMLelement.
@@ -116,12 +116,12 @@ private:
    * \return attribute value
    * \throws std::runtime_error if attribute is not found
    */
-  std::string get_attribute_value(
+  static std::string get_attribute_value(
     const tinyxml2::XMLElement * element_it, const char * attribute_name, const char * tag_name);
 
-  hardware_interface::JointInfo parse_transmission_joint_from_xml(const tinyxml2::XMLElement * element_it);
+  static hardware_interface::JointInfo parse_transmission_joint_from_xml(const tinyxml2::XMLElement * element_it);
 
-  hardware_interface::ActuatorInfo parse_transmission_actuator_from_xml(const tinyxml2::XMLElement * element_it);
+  static hardware_interface::ActuatorInfo parse_transmission_actuator_from_xml(const tinyxml2::XMLElement * element_it);
 
   /// Gets value of the parameter on an XMLelement.
 /**
@@ -132,7 +132,7 @@ private:
  * \param[in] default_value When the attribute is not found, this value is returned instead
  * \return attribute value or default
  */
-  double get_parameter_value_or(
+  static double get_parameter_value_or(
     const tinyxml2::XMLElement * params_it, const char * parameter_name, const double default_value);
 
   /// Search XML snippet from URDF for parameters.

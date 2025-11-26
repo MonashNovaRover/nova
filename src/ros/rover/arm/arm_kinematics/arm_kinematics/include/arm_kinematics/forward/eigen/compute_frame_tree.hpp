@@ -2,12 +2,11 @@
 // Created by Bailey Chessum on 17/11/2025.
 //
 
-#ifndef ARM_KINEMATICS_EIGENFKMAPPER_HPP
-#define ARM_KINEMATICS_EIGENFKMAPPER_HPP
+#ifndef ARM_KINEMATICS_COMPUTE_FRAME_TREE_HPP
+#define ARM_KINEMATICS_COMPUTE_FRAME_TREE_HPP
 
 #include <queue>
 
-#include "analysis_tree.hpp"
 #include "compute_joint_tree.hpp"
 
 namespace arm_kinematics {
@@ -36,12 +35,6 @@ public:
   }
 
   ComputeFrameTree() = default;
-
-  explicit ComputeFrameTree(AnalysisTree subtree) : tree_(ComputeJointTree()), varyings_(0) {
-
-
-    // TODO: Alternative case when it is unsorted -- include the extra
-  }
 
   /// Joint states must match joint_names() order
   void update(const std::vector<double> & joint_states, Eigen::Isometry3d * data) {
@@ -72,4 +65,4 @@ private:
 
 } // arm_kinematics
 
-#endif //ARM_KINEMATICS_EIGENFKMAPPER_HPP
+#endif //ARM_KINEMATICS_COMPUTE_FRAME_TREE_HPP

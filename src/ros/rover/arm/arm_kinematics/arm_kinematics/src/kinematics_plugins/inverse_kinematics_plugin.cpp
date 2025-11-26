@@ -10,8 +10,7 @@ namespace arm_kinematics {
 bool InverseKinematicsPlugin::initialize(KinematicsNodeInterfaces node_interfaces, std::string & robot_description,
                                          const std::vector<std::string> & joint_names,
                                          KinematicsParams kinematics_params) {
-  if (!initialize_base(node_interfaces, robot_description, joint_names, std::move(kinematics_params),
-                  "inverse_kinematics"))
+  if (!initialize_base(node_interfaces, robot_description, std::move(kinematics_params), "inverse_kinematics"))
     return false;
 
   return true;
