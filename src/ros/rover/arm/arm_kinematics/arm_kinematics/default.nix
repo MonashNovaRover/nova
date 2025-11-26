@@ -69,7 +69,27 @@ buildRosPackage rec {
   ];
 
   doCheck = true;
+#  cmakeFlags = [
+#    "-DNIX_DO_CHECK=${if doCheck then "ON" else "OFF"}"
+#  ];
+
+  # Added to debug a crazy segfault
+  dontStrip = true;
+  CMAKE_BUILD_TYPE = "RelWithDebInfo";
   cmakeFlags = [
-    "-DNIX_DO_CHECK=${if doCheck then "ON" else "OFF"}"
+    "-DCMAKE_BUILD_TYPE=Debug"
+    "-DCMAKE_CXX_FLAGS=-g"
   ];
+  cmakeBuildType = "Debug";
+#  NIX_CFLAGS_COMPILE = [
+#    "-fsanitize=address"
+#    "-fno-omit-frame-pointer"
+#    "-g"
+#  ];
+#
+#  NIX_LDFLAGS = [
+#    "-fsanitize=address"
+#  ];
+
+  hardeningDisable = [ "fortify" "stackprotector" ];
 }

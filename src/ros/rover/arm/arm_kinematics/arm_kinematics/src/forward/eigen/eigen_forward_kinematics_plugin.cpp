@@ -19,9 +19,13 @@ ForwardKinematicsPlugin::MakeTreeResult EigenForwardKinematicsPlugin::make_tree(
 {
   AnalysisTree subtree(tree_, base_link_name, frames);
 
+  subtree.log(get_logger());
+
   // Joints need to be in the right order to be able to construct a compute frame tree
   subtree.sort_joints();
   const std::vector<std::string> & mapper_joint_names = subtree.get_joints().names;
+
+  subtree.log(get_logger());
 
   // Sort frames such that any root relative frames are placed at the end of the array
   auto frame_order = std::make_unique<Order<>>(subtree.sort_frames());
@@ -48,6 +52,7 @@ bool EigenForwardKinematicsPlugin::on_initialize() {
   // TODO: Could we precompute joints we wouldn't have the values for here?
 
   tree_ = AnalysisTree(get_urdf_model());
+  tree_.log(get_logger());
 
   return true;
 }

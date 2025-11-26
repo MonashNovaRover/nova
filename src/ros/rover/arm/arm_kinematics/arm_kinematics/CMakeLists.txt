@@ -62,15 +62,11 @@ install(FILES plugins.xml
 )
 
 # Test cases
+set(TEST_KINEMATICS_SOURCE_FILES
+  test/collision/fcl/test_allowed_collision_matrix.cpp
+  test/forward/eigen/test_eigen_fk_mapper.cpp
+)
 if(NIX_DO_CHECK)
-  find_package(ament_cmake_gtest REQUIRED)
-  set(TEST_KINEMATICS_SOURCE_FILES
-    test/collision/fcl/test_allowed_collision_matrix.cpp
-    test/forward/eigen/test_eigen_fk_mapper.cpp
-  )
-  ament_add_gtest(test_kinematics
-    ${TEST_KINEMATICS_SOURCE_FILES}
-  )
   target_link_libraries(test_kinematics
     ${PROJECT_NAME}
     fcl
@@ -108,6 +104,29 @@ install(TARGETS ${PROJECT_NAME}
 ament_export_libraries(
   ${PROJECT_NAME}
 )
+
+
+# Manual test cases
+find_package(GTest REQUIRED)
+find_package(Threads REQUIRED)
+# At the bottom of your CMakeLists.txt
+add_executable(test_manual
+  ${TEST_KINEMATICS_SOURCE_FILES}
+)
+target_link_libraries(test_manual
+  ${PROJECT_NAME}
+  GTest::gtest_main
+  Threads::Threads
+  fcl
+)
+target_include_directories(test_manual PUBLIC
+  include
+)
+install(TARGETS
+  test_manual
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 
 ament_export_targets(
   #  ${PROJECT_NAME}Targets

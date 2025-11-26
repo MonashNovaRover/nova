@@ -31,7 +31,7 @@ bool ForwardKinematicsPlugin::initialize(
 
   joint_map_builder_ = JointMapBuilder()
     .with_urdf(urdf_model_)
-    .with_transmissions(robot_description);
+    .with_transmissions(robot_description, get_logger());
 
   return on_initialize();
 }

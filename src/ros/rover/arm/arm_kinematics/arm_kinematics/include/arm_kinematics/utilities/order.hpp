@@ -231,6 +231,9 @@ public:
    */
   template<typename U, typename UAlloc>
   [[nodiscard]] std::vector<U, UAlloc> map(const std::vector<U, UAlloc> & original) const noexcept {
+    if (original.empty())
+      return {};
+
     std::vector<U, UAlloc> mapped{};
     mapped.reserve(data_.size());
 
@@ -239,6 +242,22 @@ public:
     }
 
     return mapped;
+  }
+
+  [[nodiscard]] std::string to_string() const {
+    std::stringstream ss;
+    ss << "Order{";
+
+    auto first = true;
+
+    for (const auto value : data_) {
+      if (!first)
+        ss << ",";
+      ss << std::to_string(value);
+      first = false;
+    }
+    ss << "}";
+    return ss.str();
   }
 
   /**
@@ -268,6 +287,58 @@ private:
 
   Container data_{};
 };
+
+/// Function style composition, where output applies mapping r, then l
+template<typename TA, typename TB, typename TC, bool StoresInverseL, bool StoresInverseR>
+Order<TA, TB, true>
+operator*(
+  const Order<TB, TC, StoresInverseL>& l,
+  const Order<TA, TB, StoresInverseR>& r)
+{
+  Order<TA, TC, true> order(r.size(), l.inverse.size());
+
+  // TODO: Generalize to TA other than size_t
+  for (size_t i = 0; i < r.size(); i++) {
+    order[i] = l[r[i]];
+  }
+
+  return order;
+}
+
+/// Function style composition with a vector
+template<typename TKey, typename TValue, typename TKeyAlloc, typename TValueAlloc = std::allocator<TKey>, bool StoresInverse>
+std::vector<TValue, TValueAlloc>
+operator*(
+  const Order<TKey, TValue, StoresInverse>& order,
+  const std::vector<TKey, TKeyAlloc>& indices)
+{
+  std::vector<TValue> out;
+  out.reserve(indices.size());
+
+  for (const auto i : indices) {
+    out.push_back(order[i]);
+  }
+
+  return out;
+}
+
+/// Function style composition with a vector
+template<typename TValue, typename TValueAlloc, bool StoresInverse>
+std::vector<TValue>
+operator*(
+  const std::vector<TValue, TValueAlloc>& indices,
+  const Order<size_t, size_t, StoresInverse>& order)
+{
+  std::vector<TValue, TValueAlloc> out;
+  out.reserve(order.size());
+
+  for (size_t i : order) {
+    out.push_back(order[i]);
+  }
+
+  return out;
+}
+
 
 } // namespace arm_kinematics
 

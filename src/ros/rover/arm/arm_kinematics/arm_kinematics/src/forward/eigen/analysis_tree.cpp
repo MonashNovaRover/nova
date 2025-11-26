@@ -34,10 +34,13 @@ AnalysisTree::AnalysisTree(
 
   // indices of frames for each definition
   frames_.reserve(definitions.size());
-  auto frame_new_to_old = Order(definitions.size(), other.frames_.size()); //< I never use this?
+  auto frame_new_to_old = Order(definitions.size(), other.frames_.size());  //< TODO: make better name
   // frame_parents.reserve(definitions.size());
   // frame_origins.reserve(definitions.size());
-  for (size_t i = 0; i < other.frames_.size(); ++i) {
+  for (size_t i = 0; i < definitions.size(); ++i) {
+    if (!other.frames_.contains(definitions.parent_link_names[i]))
+      throw std::invalid_argument(std::string("Given link name for definition \"") + std::to_string(i) + definitions.parent_link_names[i] + std::string("\" is not in the URDF AnalysisTree."));
+
     frame_new_to_old[i] = other.frames_[definitions.parent_link_names[i]];
   }
 
@@ -49,7 +52,8 @@ AnalysisTree::AnalysisTree(
 
     while (!subtree_mask[current]) {
       subtree_mask[current] = true; //< Don't traverse the same place twice
-      subtree_joint_count++;
+      if (current)
+        subtree_joint_count++;
 
       if (reversed_mask_old[current]) {
         // Found reversed path, stop traversing
@@ -60,7 +64,7 @@ AnalysisTree::AnalysisTree(
         break;  //< Stop traversal at reversed path
       }
 
-      forward_joint_count++;
+      forward_joint_count++;  //< Impossible for the dummy root to be forward
       current = other.joints_[current].parent; //< Move to next parent
     }
   }
@@ -76,6 +80,8 @@ AnalysisTree::AnalysisTree(
     current = joints_[current].parent;
   }
 
+  RCLCPP_INFO(rclcpp::get_logger("fresh_new_subtree_before_adding_joints"), "reverse path end is %lu", reversed_path_end_old);
+
   // Create topological order of new joint ids to old joint ids
   assert(subtree_joint_count > 0);
   auto order = Order(subtree_joint_count + 1, other.joints_.size());
@@ -85,16 +91,18 @@ AnalysisTree::AnalysisTree(
 
   // Add dummy root joint
   order[0] = 0;
+  log(rclcpp::get_logger("fresh_new_subtree_before_adding_joints"));
   joints_.add("", {0});
-  joints_[0].children.emplace_back(1);  //< Reversed root joint
 
   // Add reversed root joint off the dummy root
-  order.inverse[root_joint_id] = add_joint(
-    other.joints_.names[root_joint_id],
-    0,
-    other.joints_[root_joint_id].joint.reversed(),
-    other.frames_[*root_frame_id].origin.inverse()
-  );
+  if (root_joint_id != 0) {
+    order.inverse[root_joint_id] = add_joint(
+      other.joints_.names[root_joint_id],
+      0,
+      other.joints_[root_joint_id].joint.reversed(),
+      other.frames_[*root_frame_id].origin.inverse()
+    );
+  }
 
   // First push back reverse path
   current = root_joint_id;
@@ -118,6 +126,8 @@ AnalysisTree::AnalysisTree(
       inverse_previous_origin
     );
   }
+
+  RCLCPP_INFO(rclcpp::get_logger("fresh_new_subtree_started_adding_joints"), "reverse path is %s", order.to_string().c_str());
 
   // Add all other subtree joints to the ordering, inherit existing topological order from other.joints.
   for (size_t joint_id_old = 1; joint_id_old < other.joints_.size(); ++joint_id_old) //< start at 1 to skip dummy root
@@ -171,12 +181,12 @@ AnalysisTree::AnalysisTree(
   }
 
   // All joints should now be finished -> move onto constructing frames
-  assert(frames_.size() == subtree_joint_count + 1);
+  assert(joints_.size() == subtree_joint_count + 1);
 
   // Calculate all frames to match the given definitions
   for (size_t frame_id = 0; frame_id < definitions.size(); ++frame_id)
   {
-    auto frame_id_old = other.joints_[definitions.parent_link_names[frame_id]];
+    auto frame_id_old = other.frames_[definitions.parent_link_names[frame_id]];
     const auto & frame_old = other.frames_[frame_id_old];
     auto joint_id_old = frame_old.parent;
 
@@ -232,9 +242,8 @@ void AnalysisTree::sort_joint_children_strategy_a() {
   const std::vector<size_t> subtree_sizes = get_subtree_joint_count();
   std::vector<size_t> leaf_child_count(joints_.size(), 0);
 
-  auto it = joints_.data.rbegin();
   size_t i = joints_.size();
-  while (it != joints_.data.rend()) {
+  for (auto it = joints_.data.rbegin(); it != joints_.data.rend(); ++it) {
     --i;
     auto & joint = *it;
 
@@ -258,8 +267,6 @@ void AnalysisTree::sort_joint_children_strategy_a() {
     std::sort(child_leaf_it, joint.children.end(), [&subtree_sizes](auto a, auto b) {
       return subtree_sizes[a] < subtree_sizes[b];
     });
-
-    ++it;
   }
 }
 
@@ -269,9 +276,11 @@ Order<> AnalysisTree::sort_joints(bool sort_children) {
   if (sort_children)
     sort_joint_children_strategy_a();
 
+  log(rclcpp::get_logger("sort_joints"));
+
   Order order(joints_.size(), joints_.size());
 
-  order[0] = order[0];
+  order[0] = 0;
   size_t order_count = 1;   //< Current index in order to set
   // size_t current = 0;
 
@@ -279,9 +288,14 @@ Order<> AnalysisTree::sort_joints(bool sort_children) {
     const auto & joint = joints_[joint_id];
 
     for (const auto child_id : joint.children) {
-      order[order_count++] = child_id;
+      assert(child_id < joints_.size());
+      order[order_count] = child_id;
+      ++order_count;
     }
   }
+
+  RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "forward %s", order.to_string().c_str());
+  RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "inverse %s", order.inverse.to_string().c_str());
 
   sort_joints(order);
   sorted_joints_ = true;

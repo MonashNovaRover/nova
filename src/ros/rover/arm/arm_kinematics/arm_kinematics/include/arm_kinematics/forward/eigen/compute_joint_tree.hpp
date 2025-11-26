@@ -8,6 +8,8 @@
 #include <cstddef>
 #include <Eigen/Geometry>
 #include <arm_kinematics/aliases.hpp>
+#include <rclcpp/logger.hpp>
+
 #include "joint_type.hpp"
 
 namespace arm_kinematics {
@@ -25,20 +27,22 @@ public:
                 std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> joint_axes,
                 Isometry3dVector origins,
                 std::vector<size_t> parents,
-                size_t root_relative_count)
+                const size_t root_relative_count)
       : joint_types_(std::move(joint_types)),
         joint_axes_(std::move(joint_axes)),
         origins_(std::move(origins)),
         parents_(std::move(parents)),
-        root_relative_count_(root_relative_count),
-        poses(origins_.size(), Eigen::Isometry3d::Identity())
+        root_relative_count_(root_relative_count)
   {
-    assert(joint_types_.size() == origins_.size());
-    assert(joint_axes_.size()   == origins_.size());
-    assert(parents_.size() + root_relative_count_ == origins_.size());
-  }
+    assert(joint_types_.size() == joint_axes_.size());
+    assert(joint_types_.size() >= parents_.size());
+    assert(joint_types_.size() - root_relative_count_ == parents_.size());
+    assert(joint_types_.size()  == origins_.size());
+    poses = origins_;
 
-  // ... construction omitted, will set up the vectors appropriately ...
+    auto logger = rclcpp::get_logger("compute_joint_tree");
+
+  }
 
   inline static void apply_joint(Eigen::Isometry3d & pose, const double state, const Eigen::Vector3d & axis, const JointType type) {
     switch (type) {
@@ -49,7 +53,7 @@ public:
       }
       break;
       case JointType::PRISMATIC: {
-        const auto translation = pose.linear() * axis * state;
+        const Eigen::Vector3d translation = pose.linear() * axis * state;
         pose.translation().noalias() += translation;
       }
       break;
@@ -75,12 +79,18 @@ public:
     }
   }
 
-  /**
-   * All the poses of links in the tree,
-   * with the invariant that for all i, poses[0...i-1] are independent of poses[i...poses.size()].
-   * This invariant allows us to calculate each pose in order, using previous values in poses in calculations.
-   */
-  Isometry3dVector poses{};
+  [[nodiscard]] const Isometry3dVector & get_origins() const noexcept {
+    return origins_;
+  }
+  [[nodiscard]] const Vector3dVector & get_axes() const noexcept {
+    return joint_axes_;
+  }
+  [[nodiscard]] const std::vector<JointType> & get_types() const noexcept {
+    return joint_types_;
+  }
+  [[nodiscard]] const std::vector<size_t> & get_parents() const noexcept {
+    return parents_;
+  }
 
 private:
   // Helpers
@@ -103,6 +113,14 @@ private:
 
   /// The first N elements in the tree are relative to the root frame. This is that value of N.
   size_t root_relative_count_ = 0;
+
+public:
+  /**
+   * All the poses of links in the tree,
+   * with the invariant that for all i, poses[0...i-1] are independent of poses[i...poses.size()].
+   * This invariant allows us to calculate each pose in order, using previous values in poses in calculations.
+   */
+  Isometry3dVector poses{}; //< Moved to bottom for correct initialization order
 };
 
 } // arm_kinematics

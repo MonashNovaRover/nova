@@ -48,7 +48,16 @@ JointMapBuilder & JointMapBuilder::with_urdf(const urdf::Model & urdf_model) {
   return *this;
 }
 
-JointMapBuilder & JointMapBuilder::with_transmissions(const std::string & urdf_string) {
+JointMapBuilder & JointMapBuilder::with_transmissions(const std::string & urdf_string, rclcpp::Logger logger) {
+  try {
+    return with_transmissions_dangerous(urdf_string);
+  } catch (std::runtime_error e) {
+    RCLCPP_WARN(logger, "Error trying to add transmissions to JointMapBuilder: %s", e.what());
+    return *this;
+  }
+}
+
+JointMapBuilder & JointMapBuilder::with_transmissions_dangerous(const std::string & urdf_string) {
   tinyxml2::XMLDocument doc;
   doc.Parse(urdf_string.c_str());
 

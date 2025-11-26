@@ -70,10 +70,21 @@ public:
   /**
    * Manually parses the given URDF string to get transmission definitions to include in the joint map.
    *
+   * \note This overload gracefully fails with a log message rather than throwing an exception. No transmissions are
+   *       added in the case of an exception occuring.
+   *
+   * \param urdf_string The URDF as a string, containing a ros2_control definition
+   * \param logger the logger to log any caught exceptions to
+   */
+  JointMapBuilder & with_transmissions(const std::string & urdf_string, rclcpp::Logger logger);
+
+  /**
+   * Manually parses the given URDF string to get transmission definitions to include in the joint map.
+   *
    * \param urdf_string The URDF as a string, containing a ros2_control definition
    * \throws std::runtime_error for invalid URDFs
    */
-  JointMapBuilder & with_transmissions(const std::string & urdf_string);
+  JointMapBuilder & with_transmissions_dangerous(const std::string & urdf_string);
 
   std::vector<hardware_interface::TransmissionInfo> transmissions_{};
   std::map<std::string, std::shared_ptr<urdf::JointMimic>> mimic_joints{};
@@ -141,7 +152,7 @@ private:
    * \return key-value map with parameters
    * \throws std::runtime_error if a component attribute or tag is not found
    */
-  std::unordered_map<std::string, std::string> parse_parameters_from_xml(const tinyxml2::XMLElement * params_it);
+  static std::unordered_map<std::string, std::string> parse_parameters_from_xml(const tinyxml2::XMLElement * params_it);
 
   /// Search XML snippet from URDF for information about a transmission.
   /**
@@ -149,7 +160,7 @@ private:
    * \return TransmissionInfo filled with information about transmission
    * \throws std::runtime_error if an attribute or tag is not found
    */
-  hardware_interface::TransmissionInfo parse_transmission_from_xml(const tinyxml2::XMLElement * transmission_it);
+  static hardware_interface::TransmissionInfo parse_transmission_from_xml(const tinyxml2::XMLElement * transmission_it);
 };
 
 } // arm_kinematics

@@ -21,17 +21,29 @@ using arm_kinematics::JointMap;
 using arm_kinematics::JointMapBuilder;
 using arm_kinematics::ForwardKinematicsPlugin;
 using arm_kinematics::EigenForwardKinematicsPlugin;
+using arm_kinematics::AnalysisTree;
+
+static void ExpectVectorNear(const Eigen::Vector3d & actual,
+                             const Eigen::Vector3d & expected,
+                             const char * message = "", double tol = 1e-10)
+{
+  EXPECT_NEAR(actual.x(), expected.x(), tol) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix();
+  EXPECT_NEAR(actual.y(), expected.y(), tol) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix();
+  EXPECT_NEAR(actual.z(), expected.z(), tol) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix();
+}
 
 // Small helper for comparing isometries
 static void ExpectIsometryNear(const Eigen::Isometry3d & actual,
                                const Eigen::Isometry3d & expected,
-                               double tol = 1e-10)
+                               const char * message = "", double tol = 1e-10)
 {
-  EXPECT_NEAR(actual.translation().x(), expected.translation().x(), tol);
-  EXPECT_NEAR(actual.translation().y(), expected.translation().y(), tol);
-  EXPECT_NEAR(actual.translation().z(), expected.translation().z(), tol);
-  EXPECT_TRUE(actual.linear().isApprox(expected.linear(), tol));
+  ExpectVectorNear(actual.translation(), expected.translation(), message, tol);
+  // EXPECT_NEAR(actual.translation().x(), expected.translation().x(), tol) << actual.matrix() << " \n vs \n" << expected.matrix();
+  // EXPECT_NEAR(actual.translation().y(), expected.translation().y(), tol) << actual.matrix() << "\n vs \n" << expected.matrix();
+  // EXPECT_NEAR(actual.translation().z(), expected.translation().z(), tol) << actual.matrix() << "\n vs \n" << expected.matrix();
+  EXPECT_TRUE(actual.linear().isApprox(expected.linear(), tol)) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix() << "\n";
 }
+
 
 // ---------------------------------------------------------------------------
 // Test fixture: builds a small URDF model with fixed + actuated joints.
@@ -104,7 +116,7 @@ protected:
 TEST_F(EigenFKMapperTest, SingleFrameOnLink1)
 {
   // FrameDefinitions: one frame attached directly to link1 with identity origin
-  FrameDefinitions frames("link1");  // parent_link_names = { "link1" }, origins = { I }
+  FrameDefinitions frames({"link1"}, {Eigen::Isometry3d::Identity()});  // parent_link_names = { "link1" }, origins = { I }
 
   // std::vector<std::string> fk_joint_names;
   // EigenFKMapper mapper = build_fk_mapper_from_urdf(
@@ -254,20 +266,20 @@ protected:
         <link name="link1"/>
         <link name="link2"/>
 
-        <joint name="joint2" type="revolute">
-          <parent link="link1"/>
-          <child  link="link2"/>
-          <origin xyz="0 0 0" rpy="0 0 0"/>
-          <axis   xyz="0 0 1"/>
-          <limit  lower="-3.14159" upper="3.14159" effort="10.0" velocity="10.0"/>
-        </joint>
-
         <joint name="joint1" type="prismatic">
           <parent link="base_link"/>
           <child  link="link1"/>
           <origin xyz="0 1 0" rpy="0 0 0"/>
           <axis   xyz="1 0 0"/>
           <limit  lower="-1.0" upper="1.0" effort="10.0" velocity="10.0"/>
+        </joint>
+
+        <joint name="joint2" type="revolute">
+          <parent link="link1"/>
+          <child  link="link2"/>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <axis   xyz="0 0 1"/>
+          <limit  lower="-3.14159" upper="3.14159" effort="10.0" velocity="10.0"/>
         </joint>
       </robot>
     )";
@@ -285,6 +297,64 @@ protected:
   std::shared_ptr<rclcpp::Node> node_;
 };
 
+TEST_F(EigenForwardKinematicsPluginTreeTest, SimpleComputeFrameTree)
+{
+  // One frame attached to link2 with identity origin
+  FrameDefinitions frames("link2");
+  const size_t output_count = frames.origins.size();
+  std::vector<std::string> joint_names{"joint1", "joint2"};
+
+  // Build mapper + joint names from URDF
+  RCLCPP_INFO(node_->get_logger(), "Creating plugin");
+  ForwardKinematicsPlugin::SharedPtr plugin = std::make_shared<EigenForwardKinematicsPlugin>();
+  RCLCPP_INFO(node_->get_logger(), "Initializing plugin");
+  auto init_result = plugin->initialize(*node_, robot_description_);
+
+  ASSERT_TRUE(init_result) << "Failed to initialize plugin";
+
+  const double theta = M_PI / 2.0;
+  const double d     = 0.5;
+  std::vector<double> joint_states{ d, theta };
+
+  RCLCPP_INFO(node_->get_logger(), "Creating FK Tree");
+  auto anal = AnalysisTree(plugin->get_urdf_model());
+
+  auto joint_order = anal.sort_joints();
+  auto tree = anal.make_compute_joint_tree();
+
+  ASSERT_EQ(tree.poses.size(), joint_states.size());
+
+  RCLCPP_INFO(node_->get_logger(), "Performing FK");
+  tree.update(joint_states);
+
+  // Compare against truth
+  RCLCPP_INFO(node_->get_logger(), "Testing against true poses");
+  arm_kinematics::Isometry3dVector true_poses(output_count);
+
+  ExpectVectorNear(tree.get_axes()[0], Eigen::Vector3d(1, 0, 0), "ComputeJointTree axis[0] is incorrect!");
+  ExpectVectorNear(tree.get_axes()[1], Eigen::Vector3d(0, 0, 1), "ComputeJointTree axis[1] is incorrect!");
+  EXPECT_EQ(tree.get_types()[0], arm_kinematics::JointType::PRISMATIC);
+  EXPECT_EQ(tree.get_types()[1], arm_kinematics::JointType::REVOLUTE);
+
+  Eigen::Isometry3d link1_truth = Eigen::Isometry3d::Identity();
+  link1_truth.translation() = Eigen::Vector3d(0.5, 1, 0);
+
+  ExpectIsometryNear(tree.poses[0], link1_truth, "link1 pose is wrong");
+
+  Eigen::Isometry3d link2_truth = Eigen::Isometry3d::Identity();
+  link2_truth.linear() = Eigen::AngleAxisd(M_PI / 2.0, Eigen::Vector3d(0, 0, 1)).toRotationMatrix();
+  link2_truth.translation() = Eigen::Vector3d(0.5, 1, 0);
+
+  ExpectIsometryNear(tree.poses[tree.poses.size() - 1], link2_truth, "link2 pose is wrong");
+
+  // true_poses = result.order->map(true_poses);
+  //
+  // ASSERT_EQ(link_poses.size(), true_poses.size());
+  // for (size_t i = 0; i < link_poses.size(); ++i) {
+  //   ExpectIsometryNear(true_poses[i], link_poses[i]);
+  // }
+}
+
 TEST_F(EigenForwardKinematicsPluginTreeTest, TreePositionFkMatchesMapper)
 {
   // One frame attached to link2 with identity origin
@@ -293,13 +363,18 @@ TEST_F(EigenForwardKinematicsPluginTreeTest, TreePositionFkMatchesMapper)
   std::vector<std::string> joint_names{"joint1", "joint2"};
 
   // Build mapper + joint names from URDF
+  RCLCPP_INFO(node_->get_logger(), "Creating plugin");
   ForwardKinematicsPlugin::SharedPtr plugin = std::make_shared<EigenForwardKinematicsPlugin>();
-  plugin->initialize(*node_, robot_description_);
+  RCLCPP_INFO(node_->get_logger(), "Initializing plugin");
+  auto init_result = plugin->initialize(*node_, robot_description_);
+
+  ASSERT_TRUE(init_result) << "Failed to initialize plugin";
 
   const double theta = M_PI / 2.0;
   const double d     = 0.5;
   std::vector<double> joint_states{ theta, d };
 
+  RCLCPP_INFO(node_->get_logger(), "Creating FK Tree");
   auto result = plugin->make_tree(joint_names, std::string("base_link"), frames);
 
   ASSERT_TRUE(result.order) << "Failed to create order";
@@ -308,10 +383,13 @@ TEST_F(EigenForwardKinematicsPluginTreeTest, TreePositionFkMatchesMapper)
   ForwardKinematicsPlugin::Tree::SharedPtr tree = std::move(result.tree);
   ASSERT_TRUE(tree) << "Failed to create tree";
 
-  arm_kinematics::Isometry3dVector link_poses(output_count);
+  RCLCPP_INFO(node_->get_logger(), "Allocating pose outputs");
+  arm_kinematics::Isometry3dVector link_poses(output_count, Eigen::Isometry3d::Identity());
+  RCLCPP_INFO(node_->get_logger(), "Performing FK");
   tree->position_fk(joint_states, link_poses);
 
   // Compare against truth
+  RCLCPP_INFO(node_->get_logger(), "Testing against true poses");
   arm_kinematics::Isometry3dVector true_poses(output_count);
 
   Eigen::Isometry3d & link2_truth = true_poses[0] = Eigen::Isometry3d::Identity();
@@ -322,10 +400,9 @@ TEST_F(EigenForwardKinematicsPluginTreeTest, TreePositionFkMatchesMapper)
 
   ASSERT_EQ(link_poses.size(), true_poses.size());
   for (size_t i = 0; i < link_poses.size(); ++i) {
-    ExpectIsometryNear(link_poses[i], true_poses[i]);
+    ExpectIsometryNear(true_poses[i], link_poses[i]);
   }
 }
-
 
 int main(int argc, char ** argv)
 {
@@ -337,7 +414,6 @@ int main(int argc, char ** argv)
     "--ros-args",
     "--disable-external-lib-logs",
     "--disable-rosout-logs",   // optional: no /rosout
-    "--disable-stdout-logs"    // optional: no console logs either
   };
   int ros_argc = static_cast<int>(sizeof(ros_argv) / sizeof(ros_argv[0]));
 

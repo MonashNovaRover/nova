@@ -169,9 +169,7 @@ public:
     void sort(const Order<> & order) {
       parent = order.inverse[parent];
 
-      children = order.map(children);
-      frames = order.map(frames);
-
+      children = order.inverse * children;
     }
   };
 
@@ -266,7 +264,7 @@ public:
   [[nodiscard]] std::vector<size_t> get_subtree_joint_count() const noexcept {
     std::vector<size_t> subtree_sizes(joints_.size(), 1);
 
-    for (size_t i = joints_.size() - 1; i > 0; ++i) {
+    for (size_t i = joints_.size() - 1; i != static_cast<size_t>(-1); --i) {
       const auto & joint = joints_[i];
 
       for (const auto & child_id : joint.children) {
@@ -312,16 +310,49 @@ public:
     Order frame_order{frames_.size(), frames_.size()};
 
     size_t i = 0;
-    for (size_t joint_id = 1; i < joints_.size(); ++joint_id) {
+    for (size_t joint_id = 0; joint_id < joints_.size(); ++joint_id) {
+
       auto & joint = joints_[joint_id];
-      for (const auto frame_id : joint.frames) {
-        frame_order[i++] = frame_id;
+      RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "joint %lu ---- %s", joint_id, joints_.names[joint_id].c_str());
+
+      for (auto frame_id : joint.frames) {
+        RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "frame %lu = %lu", i, frame_id);
+        assert(frame_id < frame_order.size());
+        assert(i < frame_order.size());
+
+        frame_order[i] = frame_id;
+        frame_id = i;
+        ++i;
       }
-      joint.frames = frame_order.map(joint.frames);
     }
+
+
+    frames_.sort(frame_order);
 
     sorted_frames_ = true;
     return frame_order;
+  }
+
+  void log(rclcpp::Logger logger) {
+
+    std::stringstream ss{};
+    ss << "Tree:";
+    for (size_t i = 0; i < joints_.size(); ++i) {
+      const auto & joint = joints_[i];
+      const auto & name = joints_.names[i];
+
+      ss << "\n";
+      ss << "[" << std::to_string(i) << "] \"" << name << "\"\t-> ";
+
+      for (const auto & child : joint.children) {
+        if (child < joints_.names.size())
+          ss << "\"" << joints_.names[child] << "\" (" << std::to_string(child) << "), ";
+        else
+          ss << "<invalid> (" << std::to_string(child) << "), ";
+      }
+    }
+
+    RCLCPP_INFO(logger, "%s", ss.str().c_str());
   }
 
   /**
@@ -370,15 +401,26 @@ public:
     Isometry3dVector origins{};
     std::vector<size_t> parents{};
 
-    types.reserve(joints_.size() - 1);
-    axes.reserve(joints_.size() - 1);
-    origins.reserve(joints_.size() - 1);
+    assert(joints_.size() > 0); //< Dummy root MUST exist
+
+    types.resize(joints_.size() - 1);
+    axes.resize(joints_.size() - 1);
+    origins.resize(joints_.size() - 1, Eigen::Isometry3d::Identity());
     parents.reserve(joints_.size() - 1);
 
-    for (size_t i = 0; i < joints_.size(); ++i) {
+    const size_t root_relative_count = joints_[0].children.size();
+    for (size_t i = 0; i < root_relative_count; ++i) {
       const auto & joint = joints_[i + 1];
 
-      parents[i] = joint.parent - 1;
+      origins[i] = joint.origin;
+      types[i] = joint.joint.type;
+      axes[i] = joint.joint.axis;
+    }
+
+    for (size_t i = root_relative_count; i < joints_.size() - 1; ++i) {
+      const auto & joint = joints_[i + 1];
+
+      parents.emplace_back(joint.parent - 1);
       origins[i] = joint.origin;
       types[i] = joint.joint.type;
       axes[i] = joint.joint.axis;
@@ -431,6 +473,9 @@ private:
     if (!child_link || !child_link->parent_joint)
       return 0; //< dummy root
 
+    RCLCPP_INFO(rclcpp::get_logger("analysis_tree"), "Creating joint %s at link %s",
+      child_link->parent_joint->name.c_str(), child_link->name.c_str());
+
     assert(child_link->parent_joint->type != urdf::Joint::FIXED);
 
     // Check for existing construction.
@@ -439,7 +484,7 @@ private:
 
     // To keep in topological order, we must ensure the parent exists first
     auto origin = Eigen::Isometry3d::Identity();
-    const auto grandparent_joint = find_next_non_fixed_joint(child_link, origin); //< may be nullptr!
+    const auto grandparent_joint = find_next_non_fixed_joint(child_link->getParent().get(), origin); //< may be nullptr!
     const size_t parent_id = find_or_create_joint_link(grandparent_joint);                     //< handles nullptr
 
     // Create new link
