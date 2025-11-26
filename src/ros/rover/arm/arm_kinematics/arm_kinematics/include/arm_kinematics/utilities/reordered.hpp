@@ -4,8 +4,8 @@
 
 #ifndef ARM_KINEMATICS_REORDERED_HPP
 #define ARM_KINEMATICS_REORDERED_HPP
-#include <vector>
 
+#include <vector>
 #include "order.hpp"
 
 namespace arm_kinematics {
@@ -49,7 +49,6 @@ struct Reordered
   }
 
   // iterator types
-
   struct iterator {
     using iterator_category = std::forward_iterator_tag;
     using difference_type   = std::ptrdiff_t;
@@ -215,7 +214,7 @@ struct Reordered
   }
 
   reverse_iterator rend() noexcept {
-    // rend() is “one past” the end of reverse traversal → index = -1
+    // rend() is one past the end of reverse traversal -> index = -1
     return reverse_iterator{this, static_cast<size_type>(-1)};
   }
 
