@@ -14,14 +14,25 @@ class TestController(Controller):
     state: Interface
     joint_cmd: Interface
 
-    def __init__(self, contexts: Contexts, joint: str="joint", button: str="button"):
+    def __init__(self, contexts: Contexts, joint: str="joint", button: str="sweeper_sweep", axis: str="auger_actuation"):
         super().__init__(contexts)
         self.logger.info(f"Controller -- I have been __init__ialized")
 
         self.joint = self.declare_parameter("joint", joint).value
-        self.button_name = self.declarr_parameter("button", button)
+        self.button_name = self.declare_parameter("button", button).value
+        self.axis_name = self.declare_parameter("axis", axis).value
+
+        # For debugging purposes
+        self.logger.info(f"Buttons: {list(contexts[Inputs].buttons)}")
+        self.logger.info(f"Axes: {list(contexts[Inputs].axes)}")
 
         self.button = contexts[Inputs].get_button(self.button_name)
+        self.axis = contexts[Inputs].get_axis(self.axis_name)
+
+        # For debugging purposes
+        self.logger.info(f"Buttons: {list(contexts[Inputs].buttons)}")
+        self.logger.info(f"Axes: {list(contexts[Inputs].axes)}")
+
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         self.cmd = command_interfaces["cmd"]
@@ -35,9 +46,10 @@ class TestController(Controller):
         self.joint_cmd.value = self.state.value * 0.1
         self.logger.info(f"{self.state.value} -> {self.cmd.value}")
         self.logger.info(f"{self.state.value} -> {self.joint_cmd.value} ({self.joint})")
+        self.logger.info(f"{self.axis_name} -> {self.axis.value}")
 
         if self.button:
-            print(f"{self.button_name} is pressed")
+            self.logger.info(f"{self.button_name} is pressed")
 
 class TestHardware(HardwareInterface):
     state: Interface
@@ -79,5 +91,5 @@ if __name__ == "__main__":
         .with_hardware("j2_cmd", CMDHardware, "j2", can_id=0x1F) \
         .with_hardware("j3_cmd", CMDHardware, "j3", can_id=0x043) \
         .with_jcan() \
-        .with_teleop(lambda node: Inputs(node).with_topic("science/inputs")) \
+        .with_teleop(lambda node: Inputs(node).with_topics("science/input")) \
         .spin()
