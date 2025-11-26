@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import logging
+
 import jcan
 import rclpy
 from typing import Optional
@@ -16,6 +18,8 @@ class TestController(Controller):
 
     def __init__(self, contexts: Contexts, joint: str="joint", button: str="sweeper_sweep", axis: str="auger_actuation"):
         super().__init__(contexts)
+        self.logger.set_level(logging.DEBUG)
+        self.logger.warn("testing warn")
         self.logger.info(f"Controller -- I have been __init__ialized")
 
         self.joint = self.declare_parameter("joint", joint).value
@@ -28,6 +32,8 @@ class TestController(Controller):
 
         self.button = contexts[Inputs].get_button(self.button_name)
         self.axis = contexts[Inputs].get_axis(self.axis_name)
+
+        contexts[Inputs].on_update.add_callback(lambda : self.logger.info("hi"))
 
         # For debugging purposes
         self.logger.info(f"Buttons: {list(contexts[Inputs].buttons)}")
