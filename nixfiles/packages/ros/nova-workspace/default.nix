@@ -130,6 +130,8 @@
       nova-teleop-arm
       nova-launch-scripts
       nova-git-metadata
+      nova-legacy-input-mode
+      nova-teleop-science
       ;
     nova-can-sleuth = pythonPackages.nova-can-sleuth;
   }
