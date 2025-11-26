@@ -18,7 +18,7 @@ struct Reordered
   using size_type = std::size_t;
 
   TCollection & collection{};
-  const Order<FixedSize, TKey> & order{0};
+  Order<FixedSize, TKey> & order{0};
 
   constexpr Reordered(TCollection & collection, const Order<FixedSize, TKey> & order) : collection(collection), order(order) {}
 
@@ -32,7 +32,6 @@ struct Reordered
   template<typename U=TCollection,
            std::enable_if_t<std::is_same_v<U, const Order<>>, int> = 0>
   Reordered(const Reordered &) = delete;
-
 
   /**
    * Get the value at the key for this id in the order

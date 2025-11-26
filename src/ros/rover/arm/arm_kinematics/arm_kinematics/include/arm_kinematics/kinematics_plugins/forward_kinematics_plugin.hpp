@@ -14,6 +14,8 @@
 #include <arm_kinematics/aliases.hpp>
 #include <arm_kinematics/frame_definitions.hpp>
 
+#include "arm_kinematics/utilities/order.hpp"
+
 
 namespace arm_kinematics {
 
@@ -61,6 +63,42 @@ public:
   };
 
   /**
+   * When you create a Tree, the order in which you provide the requested frames might need to change. So, I can't just
+   * provide you with the tree that you created, but also with information about how you might need to rearrange your
+   * data to match the input order it needs. Hence, this struct exists. Sorry!
+   */
+  struct MakeTreeResult {
+    /**
+     * The pointer that you wanted to make. std::move() me outta here!
+     */
+    Tree::SharedPtr tree;
+
+    /**
+     * The frames you requested when calling make_tree were rearranged. This encodes how it was rearranged.
+     *
+     * order[i] is the original index for the frame at the new index i.
+     * order.inverse[i] is the new index for the frame originally at index i.
+     *
+     * You can shuffle an array to be in this new order (vectors are reordered my making a copy) by:
+     * \code
+     *   std::vector<std::string> my_vec;
+     *   // ...
+     *   my_vec = order.map(my_vec);
+     * \endcode
+     *
+     * If you don't want to modify the original collection, the \c Reordered struct provides a helper for indexing into
+     * your collection through the new \c order :
+     * \code
+     *   std::vector<std::string> my_original_vec;
+     *   // ...
+     *   auto my_reordered_vec = Reordered(my_original_vec, order);
+     *   auto element = my_reordered_vec[0];  //< Index in, or loop over it, etc...
+     * \endcode
+     */
+    std::unique_ptr<Order<>> order;
+  };
+
+  /**
    * \brief Constructs the plugin implementation's Tree subclass.
    * \see ForwardKinematicsPlugin::Tree
    *
@@ -76,10 +114,10 @@ public:
    * \warning Assume the parent ForwardKinematicsPlugin must stay alive for the lifetime of any chains it produces,
    * chain implementations may reference memory from the parent.
    */
-  virtual Tree::SharedPtr make_tree(
+  virtual MakeTreeResult make_tree(
     const std::vector<std::string> & joint_names,
     const std::string & base_link_name,
-    FrameDefinitions frames,  //< You can std::move() here
+    const FrameDefinitions & frames,  //< You can std::move() here
     const JointMapBuilder & joint_map_builder) = 0;
 
   /**

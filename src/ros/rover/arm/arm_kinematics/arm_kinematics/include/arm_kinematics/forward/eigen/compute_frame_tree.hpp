@@ -35,6 +35,8 @@ public:
     assert(tree_pose_indices_.size() == offsets_.size());
   }
 
+  ComputeFrameTree() = default;
+
   explicit ComputeFrameTree(AnalysisTree subtree) : tree_(ComputeJointTree()), varyings_(0) {
 
 

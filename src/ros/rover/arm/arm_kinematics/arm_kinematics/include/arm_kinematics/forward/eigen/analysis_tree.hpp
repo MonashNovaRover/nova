@@ -6,16 +6,19 @@
 #define ARM_KINEMATICS_TREEORDERING_HPP
 
 #include <vector>
-#include <set>
 #include <string>
 #include <map>
 #include <optional>
+#include <set>
 #include <rclcpp/logging.hpp>
 #include <urdf/model.h>
-#include "compute_joint_tree.hpp"
 #include "name_to_vector.hpp"
 #include <arm_kinematics/frame_definitions.hpp>
-#include "arm_kinematics/utilities/order.hpp"
+#include <arm_kinematics/utilities/order.hpp>
+#include <arm_kinematics/forward/eigen/joint_type.hpp>
+
+#include "compute_frame_tree.hpp"
+#include "arm_kinematics/utilities/expected.hpp"
 
 namespace arm_kinematics {
 
@@ -24,14 +27,14 @@ namespace arm_kinematics {
  * \param joint The joint
  * \return std::nullopt, or a joint type
  */
-inline std::optional<ComputeJointTree::JointType> get_type(const urdf::JointConstSharedPtr & joint) {
+inline std::optional<JointType> get_type(const urdf::JointConstSharedPtr & joint) {
   switch (joint->type) {
     case urdf::Joint::REVOLUTE:
-      return ComputeJointTree::JointType::REVOLUTE;
+      return JointType::REVOLUTE;
     case urdf::Joint::PRISMATIC:
-      return ComputeJointTree::JointType::PRISMATIC;
+      return JointType::PRISMATIC;
     case urdf::Joint::CONTINUOUS:
-      return ComputeJointTree::JointType::CONTINUOUS;
+      return JointType::CONTINUOUS;
     default:
       return std::nullopt;
   }
@@ -42,14 +45,14 @@ inline std::optional<ComputeJointTree::JointType> get_type(const urdf::JointCons
  * \param joint The joint
  * \return std::nullopt, or a joint type
  */
-inline std::optional<ComputeJointTree::JointType> get_type(const urdf::Joint & joint) {
+inline std::optional<JointType> get_type(const urdf::Joint & joint) {
   switch (joint.type) {
   case urdf::Joint::REVOLUTE:
-    return ComputeJointTree::JointType::REVOLUTE;
+    return JointType::REVOLUTE;
   case urdf::Joint::PRISMATIC:
-    return ComputeJointTree::JointType::PRISMATIC;
+    return JointType::PRISMATIC;
   case urdf::Joint::CONTINUOUS:
-    return ComputeJointTree::JointType::CONTINUOUS;
+    return JointType::CONTINUOUS;
   default:
     return std::nullopt;
   }
@@ -89,12 +92,12 @@ public:
    * Data to describe a joint
    */
   struct JointDescription {
-    ComputeJointTree::JointType type = ComputeJointTree::JointType::CONTINUOUS;
+    JointType type = JointType::CONTINUOUS;
     Eigen::Vector3d axis = Eigen::Vector3d::Zero();
 
     JointDescription() = default;
     explicit JointDescription(const urdf::Joint & joint)
-    : type(get_type(joint).value_or(ComputeJointTree::JointType::CONTINUOUS)), axis(to_eigen(joint.axis)) {}
+    : type(get_type(joint).value_or(JointType::CONTINUOUS)), axis(to_eigen(joint.axis)) {}
     explicit JointDescription(const urdf::Joint * joint)
     {
       *this = joint ? JointDescription(*joint) : JointDescription();
@@ -126,36 +129,48 @@ public:
 
     /// The IDs of all other frames that actuate relative to this link. All elements of this set should be larger than
     /// this link's id.
-    std::set<size_t> children{};
+    std::vector<size_t> children{};
     /// The ids of all frames that point to this handle
-    std::set<size_t> frames{};
+    std::vector<size_t> frames{};
 
     /**
      * Removes a child from children
      * @param link_id The child link's id to remove
      * @returns true if the child was removed, false otherwise
      */
-    bool remove_child(const size_t link_id) {
-      const auto it = children.find(link_id);
-      if (it == children.end())
-        return false; //< This has already been removed!
-
-      children.erase(it);
-      return true;
-    }
+    // bool remove_child(const size_t link_id) {
+    //   const auto it = children.find(link_id);
+    //   if (it == children.end())
+    //     return false; //< This has already been removed!
+    //
+    //   children.erase(it);
+    //   return true;
+    // }
 
     /**
      * Removes a frame from frames
      * @param link_id The frame's id to remove
      * @returns true if the frame was removed, false otherwise
      */
-    bool remove_frame(const size_t link_id) {
-      const auto it = frames.find(link_id);
-      if (it == frames.end())
-        return false; //< This has already been removed!
+    // bool remove_frame(const size_t link_id) {
+    //   const auto it = frames.find(link_id);
+    //   if (it == frames.end())
+    //     return false; //< This has already been removed!
+    //
+    //   frames.erase(it);
+    //   return true;
+    // }
 
-      frames.erase(it);
-      return true;
+    /**
+     * Update internal indices to match the given order.
+     * @param order The order to be applied
+     */
+    void sort(const Order<> & order) {
+      parent = order.inverse[parent];
+
+      children = order.map(children);
+      frames = order.map(frames);
+
     }
   };
 
@@ -194,7 +209,7 @@ public:
   }
 
   explicit AnalysisTree(
-    const AnalysisTree & tree,
+    const AnalysisTree & other,
     const std::string & root_name,
     const FrameDefinitions & definitions);
 
@@ -210,7 +225,7 @@ public:
 
   size_t add_joint(
     const std::string & name,
-    size_t parent_id,
+    const size_t parent_id,
     const JointDescription & joint_description,
     const Eigen::Isometry3d & origin)
   {
@@ -224,14 +239,14 @@ public:
     });
 
     // Add as child of parent
-    parent.children.emplace_hint(parent.children.end(), id);  //< id is current largest, and will be last
+    parent.children.emplace_back(id);  //< id is current largest, and will be last
 
     return id;
   }
 
   size_t add_frame(
     const std::string & name,
-    size_t parent_id,
+    const size_t parent_id,
     const Eigen::Isometry3d & origin)
   {
     auto & parent = joints_[parent_id];
@@ -242,12 +257,12 @@ public:
     });
 
     // Add as child of parent
-    parent.frames.emplace_hint(parent.frames.end(), id);  //< id is current largest, and will be last
+    parent.frames.emplace_back(id);  //< id is current largest, and will be last
 
     return id;
   }
 
-  std::vector<size_t> get_subtree_joint_count() {
+  [[nodiscard]] std::vector<size_t> get_subtree_joint_count() const noexcept {
     std::vector<size_t> subtree_sizes(joints_.size(), 1);
 
     for (size_t i = joints_.size() - 1; i > 0; ++i) {
@@ -262,13 +277,144 @@ public:
     return subtree_sizes;
   }
 
-  void sort() {
+  [[nodiscard]] std::vector<size_t> get_subtree_joint_branch_count() const noexcept {
+    std::vector<size_t> branch_count(joints_.size(), 0);
 
+    for (size_t i = joints_.size() - 1; i > 0; ++i) {
+      const auto & joint = joints_[i];
+
+      for (const auto & child_id : joint.children) {
+        branch_count[i] += branch_count[child_id];
+      }
+    }
+    branch_count[0] = joints_.size();
+
+    return branch_count;
+  }
+
+  void sort_joints(const Order<> & order) noexcept {
+    assert(order[0] == 0);
+
+    joints_.sort(order);
+    for (auto & joint : joints_.data) {
+      joint.sort(order);
+    }
+
+    for (auto & frame : frames_.data) {
+      frame.parent = order.inverse[frame.parent];
+    }
+  }
+
+  Order<> sort_joints(bool sort_children = true);
+
+  Order<> sort_frames() noexcept {
+    Order frame_order{frames_.size(), frames_.size()};
+
+    size_t i = 0;
+    for (size_t joint_id = 1; i < joints_.size(); ++i) {
+      auto & joint = joints_[joint_id];
+      for (const auto frame_id : joint.frames) {
+        frame_order[i++] = frame_id;
+      }
+      joint.frames = frame_order.map(joint.frames);
+    }
+
+    sorted_frames_ = true;
+    return frame_order;
+  }
+
+  /**
+   *
+   * @returns the number of leaf children in children
+   */
+  void sort_joint_children_strategy_a();
+
+  /**
+   * You need to have sorted joints then frames before calling.
+   */
+  tl::expected<ComputeFrameTree, std::string> make_compute_frame_tree() {
+    std::set<size_t> root_children(joints_[0].children.begin(), joints_[0].children.end());
+    // Root children must occupy the start of the joints_ array
+    const bool root_joint_precondition = root_children.empty() ||
+      *root_children.begin() == 1 && *root_children.rbegin() == root_children.size();
+
+    if (!root_joint_precondition)
+      return tl::unexpected("Cannot create a ComputeFrameTree from an unsorted AnalysisTree! Please call "
+                            ".sort_joints() first, and reorder your input data from the returned Order<>.");
+
+    std::vector<size_t> parents{};
+    parents.reserve(frames_.size() - joints_[0].frames.size());
+    for (const auto & frame : frames_.data)
+      if (frame.parent != 0)
+        parents.emplace_back(frame.parent - 1);
+
+    Isometry3dVector origins{};
+    origins.reserve(frames_.size());
+    for (const auto & frame : frames_.data)
+      origins.emplace_back(frame.origin);
+
+    return ComputeFrameTree{
+      make_compute_joint_tree(),
+      std::move(parents),
+      std::move(origins)
+    };
+  }
+
+  /**
+   * You need to have sorted joints before calling.
+   */
+  ComputeJointTree make_compute_joint_tree() {
+    std::vector<JointType> types{};
+    Vector3dVector axes{};
+    Isometry3dVector origins{};
+    std::vector<size_t> parents{};
+
+    types.reserve(joints_.size() - 1);
+    axes.reserve(joints_.size() - 1);
+    origins.reserve(joints_.size() - 1);
+    parents.reserve(joints_.size() - 1);
+
+    for (size_t i = 0; i < joints_.size(); ++i) {
+      const auto & joint = joints_[i + 1];
+
+      parents[i] = joint.parent - 1;
+      origins[i] = joint.origin;
+      types[i] = joint.joint.type;
+      axes[i] = joint.joint.axis;
+    }
+
+    return {
+      std::move(types),
+      std::move(axes),
+      std::move(origins),
+      std::move(parents),
+      joints_[0].children.size()
+    };
   }
 
   // Accessors
   [[nodiscard]] const NameToVector<Joint> & get_joints() const noexcept { return joints_; }
   [[nodiscard]] const NameToVector<Frame> & get_frames() const noexcept { return frames_; }
+
+  [[nodiscard]] Isometry3dVector get_frame_origins() const noexcept {
+    Isometry3dVector origins{};
+
+    origins.reserve(frames_.size());
+    for (const auto & frame : frames_.data)
+      origins.emplace_back(frame.origin);
+
+    return std::move(origins);
+  }
+
+  [[nodiscard]] std::vector<size_t> get_frame_parents() const noexcept {
+    std::vector<size_t> parents{};
+
+    parents.reserve(frames_.size());
+    for (const auto & frame : frames_.data)
+      parents.emplace_back(frame.parent);
+
+    return std::move(parents);
+  }
 
 private:
   /**
@@ -326,39 +472,38 @@ private:
     // Register as child of parent
     assert(id > parent_id);
     // We know id will be last, so we can use emplace hint
-    joints_[parent_id].children.emplace_hint(joints_[parent_id].children.end());
+    joints_[parent_id].children.emplace_back(id);
 
     return id;
   }
 
   /// Swaps the links at index a and index b
-  /// Note:
-  void swap(const size_t a, const size_t b) {
-    if (a == b)
-      return;
-
-    const auto & link_a = joints_[a];
-    const auto & link_b = joints_[b];
-
-    // Swap parents
-    auto & parent_a = joints_[link_a.parent];
-    auto & parent_b = joints_[link_b.parent];
-    // Remove from old parents
-    parent_a.remove_child(a);
-    parent_b.remove_child(b);
-    // Add to new parents
-    parent_b.children.emplace(a);
-    parent_a.children.emplace(b);
-
-    // Fix children
-    for (const auto child : link_a.children)
-      joints_[child].parent = b;
-    for (const auto child : link_b.children)
-      joints_[child].parent = a;
-
-    // swap the actual data
-    joints_.swap(a, b);
-  }
+  // void swap(const size_t a, const size_t b) {
+  //   if (a == b)
+  //     return;
+  //
+  //   const auto & link_a = joints_[a];
+  //   const auto & link_b = joints_[b];
+  //
+  //   // Swap parents
+  //   auto & parent_a = joints_[link_a.parent];
+  //   auto & parent_b = joints_[link_b.parent];
+  //   // Remove from old parents
+  //   parent_a.remove_child(a);
+  //   parent_b.remove_child(b);
+  //   // Add to new parents
+  //   parent_b.children.emplace(a);
+  //   parent_a.children.emplace(b);
+  //
+  //   // Fix children
+  //   for (const auto child : link_a.children)
+  //     joints_[child].parent = b;
+  //   for (const auto child : link_b.children)
+  //     joints_[child].parent = a;
+  //
+  //   // swap the actual data
+  //   joints_.swap(a, b);
+  // }
 
   /// Links with a non-fixed parent joint from the URDF, named after the parent joint
   /// In my model, I treat these as the same thing. The link will have a frame in frames_ relative to the joint with an
@@ -367,6 +512,9 @@ private:
 
   /// Links from the URDF
   NameToVector<Frame> frames_{};
+
+  bool sorted_joints_ = false;
+  bool sorted_frames_ = false;
 };
 
 }

@@ -54,10 +54,10 @@ public:
   /**
    * \copydoc ForwardKinematicsPlugin::make_tree
    */
-  Tree::SharedPtr make_tree(
+  MakeTreeResult make_tree(
     const std::vector<std::string> & joint_names,
     const std::string & base_link_name,
-    FrameDefinitions frames,
+    const FrameDefinitions & frames,
     const JointMapBuilder & joint_map_builder) override;
 
   bool on_initialize() override;

@@ -5,31 +5,40 @@
 #ifndef ARM_KINEMATICS_ORDERING_HPP
 #define ARM_KINEMATICS_ORDERING_HPP
 
-#include <deque>
 #include <vector>
 
 namespace arm_kinematics {
 
 /**
- * order[i] is the original index for the frame at the new index i.
- * order.inverse[i] is the new index for the frame originally at index i.
+ * Represents a permutation between 'original' and 'reordered' indices.
  *
- * You can shuffle an array to be in this new order (vectors are reordered my making a copy) by:
+ * Let the original sequence be indexed 0..N-1.
+ *   - order[i]         = original index of the element that is now at new index i
+ *   - order.inverse[j] = new index of the element that originally was at index j
+
+ * To create a reordered copy of a vector:
  * \code
  *   std::vector<std::string> my_vec;
  *   // ...
  *   my_vec = order.map(my_vec);
  * \endcode
  *
- * If you don't want to modify the original collection, the \c Reordered struct provides a helper for indexing into
- * your collection through the new \c order :
+ * If you don't want to modify the original collection, the \c Reordered helper lets you index through the
+ * permutation without modifying the original container:
  * \code
- *   std::vector<std::string> my_original_vec;
+ *   std::vector<std::string> names = { ... };
+ *   Order<> order(num_in, num_out);
  *   // ...
- *   auto my_reordered_vec = Reordered(my_original_vec, order);
+ *
+ *   auto view = Reordered(names, order);
+ *   // view[i] gives names[ order[i] ] without copying
  * \endcode
  *
- * @tparam TValue the type stored in the collection for indices
+ * \tparam TKey the type used to index into the underlying collection
+ * \tparam TValue the type stored in the collection for indices
+ * \tparam StoresInverse
+ *   - When true, this specialization owns the forward mapping and stores the inverse mapping internally.
+ *   - When false, this specialization represents the inverse view, referring back to the owning forward specialization.
  */
 template<typename TKey = std::size_t, typename TValue = std::size_t, bool StoresInverse = true>
 class Order {
@@ -38,7 +47,7 @@ public:
   using InverseContainer = std::vector<TKey>;
 
   using InverseType      = Order<TValue, TKey, !StoresInverse>;
-  // When StoresInverse, this stores the actual inverse directly, otherwise it is a reference to its owning parent
+  /// When StoresInverse=true, this stores the actual inverse directly, otherwise it is a reference to its owning parent
   using InverseRef       = std::conditional_t<
     StoresInverse,
     Order<TValue, TKey, false>,
@@ -57,7 +66,7 @@ public:
    */
   struct Proxy {
     Order & parent;
-    size_type idx;
+    TKey idx;
 
     // Assignment from value_type
     Proxy & operator=(const value_type& value) {
@@ -76,8 +85,20 @@ public:
     operator value_type() const {
       return parent.data_[idx];
     }
+
   };
   using reference = Proxy;
+
+  friend void swap(Proxy a, Proxy b) noexcept {
+    // Read values
+    auto old_a = static_cast<value_type>(a);
+    auto old_b = static_cast<value_type>(b);
+    a.parent.set(a.idx, old_b);
+    b.parent.set(b.idx, old_a);
+  }
+  friend void swap(reference a, reference b) noexcept {
+    swap(Proxy(a), Proxy(b));
+  }
 
   struct iterator {
     using iterator_category = std::forward_iterator_tag;
@@ -227,6 +248,9 @@ public:
    * Stores the inverse mapping for this order, accepting old indices and outputting new indices.
    */
   InverseRef inverse{};
+
+
+
 
 private:
   // Allow all Order<*,*,*> specializations to access private members

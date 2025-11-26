@@ -31,7 +31,7 @@ struct FrameDefinitions {
   FrameDefinitions(std::string link_name)
     : FrameDefinitions({std::move(link_name)}, {Eigen::Isometry3d::Identity()}) {}
 
-  [[nodiscard]] constexpr size_t size() const noexcept {
+  [[nodiscard]] size_t size() const noexcept {
     assert(parent_link_names.size() == origins.size());
     return parent_link_names.size();
   }

@@ -8,9 +8,7 @@
 #include <cstddef>
 #include <Eigen/Geometry>
 #include <arm_kinematics/aliases.hpp>
-#include <urdf_model/joint.h>
-#include <urdf_model/model.h>
-#include <urdf_model/pose.h>
+#include "joint_type.hpp"
 
 namespace arm_kinematics {
 
@@ -22,11 +20,6 @@ namespace arm_kinematics {
  */
 class ComputeJointTree {
 public:
-  enum class JointType {
-    REVOLUTE,
-    PRISMATIC,
-    CONTINUOUS
-  };
 
   ComputeJointTree() = default;
   ComputeJointTree(std::vector<JointType> joint_types,
@@ -92,8 +85,8 @@ public:
 
 private:
   // Helpers
-  static JointType joint_type_from_urdf(const urdf::Joint & j);
-  static Eigen::Isometry3d eigen_from_urdf_pose(const urdf::Pose & p);
+  // static JointType joint_type_from_urdf(const urdf::Joint & j);
+  // static Eigen::Isometry3d eigen_from_urdf_pose(const urdf::Pose & p);
 
   /// Type for each joint
   std::vector<JointType> joint_types_{};

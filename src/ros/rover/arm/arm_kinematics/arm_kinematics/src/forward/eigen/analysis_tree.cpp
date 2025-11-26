@@ -6,7 +6,7 @@
 
 namespace arm_kinematics {
 
-arm_kinematics::AnalysisTree::AnalysisTree(
+AnalysisTree::AnalysisTree(
   const AnalysisTree& other,
   const std::string& root_name,
   const FrameDefinitions& definitions)
@@ -29,8 +29,8 @@ arm_kinematics::AnalysisTree::AnalysisTree(
 
   // First find out what is in the subtree
   std::vector<bool> subtree_mask(other.joints_.size(), false);
-  size_t subtree_joint_count = 0; //< Number of elements in the subtree, used to construct topological Order<true>
-  size_t forward_joint_count = 0; //< subtree_joint_count - reversed_path_length
+  size_t subtree_joint_count = 0;   //< Number of elements in the subtree, used to construct topological Order<true>
+  size_t forward_joint_count = 0;   //< subtree_joint_count - reversed_path_length
 
   // indices of frames for each definition
   frames_.reserve(definitions.size());
@@ -86,7 +86,7 @@ arm_kinematics::AnalysisTree::AnalysisTree(
   // Add dummy root joint
   order[0] = 0;
   joints_.add("", {0});
-  joints_[0].children.insert(1);  //< Reversed root joint
+  joints_[0].children.emplace_back(1);  //< Reversed root joint
 
   // Add reversed root joint off the dummy root
   order.inverse[root_joint_id] = add_joint(
@@ -104,6 +104,9 @@ arm_kinematics::AnalysisTree::AnalysisTree(
     // reversed_path_end_ of 0 (which has itself as its parent) without accepting an index of 0 in the condition.
     auto inverse_previous_origin = other.joints_[current].origin.inverse();
     current = other.joints_[current].parent;
+
+    if (current == 0)
+      break;  //< Changed my mind -- we don't want the dummy root in this order
 
     // TODO: This will push the dummy root. We probably dont want that.
     const auto & other_joint = other.joints_[current];
@@ -223,6 +226,66 @@ arm_kinematics::AnalysisTree::AnalysisTree(
   }
 
   assert(frames_.size() == definitions.size());
+}
+
+void AnalysisTree::sort_joint_children_strategy_a() {
+  const std::vector<size_t> subtree_sizes = get_subtree_joint_count();
+  std::vector<size_t> leaf_child_count(joints_.size(), 0);
+
+  auto it = joints_.data.rbegin();
+  size_t i = joints_.size();
+  while (it != joints_.data.rend()) {
+    --i;
+    auto & joint = *it;
+
+    if (joint.children.empty())
+      continue;
+
+    // Move all leaves to the beginning of children
+    auto child_leaf_it = joint.children.begin();  //< Making this an iterator lets us reuse it as begin() in std::sort
+
+    for (size_t j = 0; j < joint.children.size(); ++j) {
+      // const auto & child = joints_[j];
+
+      // Move leaf nodes to the start with the rest of the leaf children
+      if (subtree_sizes[j] == 1) {
+        std::swap(*child_leaf_it, joint.children[j]);
+        ++child_leaf_it;
+        ++leaf_child_count[i];
+      }
+    }
+
+    std::sort(child_leaf_it, joint.children.end(), [&subtree_sizes](auto a, auto b) {
+      return subtree_sizes[a] < subtree_sizes[b];
+    });
+
+    ++it;
+  }
+}
+
+Order<> AnalysisTree::sort_joints(bool sort_children) {
+  sorted_frames_ = false;
+
+  if (sort_children)
+    sort_joint_children_strategy_a();
+
+  Order order(joints_.size(), joints_.size());
+
+  order[0] = order[0];
+  size_t order_count = 1;   //< Current index in order to set
+  // size_t current = 0;
+
+  for (const auto & joint_id : order) {
+    const auto & joint = joints_[joint_id];
+
+    for (const auto child_id : joint.children) {
+      order[order_count++] = child_id;
+    }
+  }
+
+  sort_joints(order);
+  sorted_joints_ = true;
+  return order;
 }
 
 }

@@ -10,6 +10,10 @@
 #include <string>
 #include <vector>
 
+#include "arm_kinematics/utilities/order.hpp"
+
+namespace arm_kinematics {
+
 template<typename TValue, typename TKey = std::string, typename TAlloc = std::allocator<TValue>>
 class NameToVector {
 public:
@@ -115,11 +119,21 @@ public:
     std::swap(names[a], names[b]);
   }
 
+  void sort(const Order<> & order) noexcept {
+    data = order.map(data);
+    names = order.map(names);
+
+    for (auto & [key, id] : ids) {
+      id = order.inverse[id];
+    }
+  }
+
   std::vector<TValue, TAlloc> data;
   std::vector<TKey, std::allocator<TKey>> names;
   std::map<TKey, size_t> ids;
 };
 
+}
 
 
 #endif //ARM_KINEMATICS_NAME_TO_VECTOR_HPP
