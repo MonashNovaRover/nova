@@ -1,0 +1,6 @@
+<library path="legacy_input_mode">
+    <!-- Control Modes -->
+    <class name="legacy_input_mode/LegacyInputMode" type="legacy_input_mode::LegacyInputMode" base_class_type="control_mode::ControlMode">
+        <description>Publishes old input types for new teleop.</description>
+    </class>
+</library>

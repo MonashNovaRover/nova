@@ -69,7 +69,8 @@
 , nova-teleop-arm ? throw "nova-teleop-arm is need, but not available!"
 , nova-launch-scripts
 , nova-git-metadata
-
+, nova-legacy-input-mode ? throw "nova-joint-space-control-mode is need, but not available!"
+, nova-teleop-science ? throw "nova-teleop-science is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -129,9 +130,11 @@
       nova-teleop-arm
       nova-launch-scripts
       nova-git-metadata
+      nova-legacy-input-mode
+      nova-teleop-science
       ;
     nova-can-sleuth = pythonPackages.nova-can-sleuth;
-  } 
+  }
 
   ## Extra packages to add to the workspace.
 , extraPackages ? { 
