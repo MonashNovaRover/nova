@@ -3,6 +3,7 @@ import logging
 
 import jcan
 import rclpy
+from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
 import random
@@ -90,12 +91,15 @@ if __name__ == "__main__":
 
     rclpy.init()
 
-    PythonControl("control_test", update_rate=5, can_bus="can1") \
+    node = Node("control_test")
+    inputs = Inputs(node).with_topics("science/input")
+
+    PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("test_controller", TestController, joint="j1") \
         .with_hardware("test_hw", TestHardware) \
         .with_hardware("j1_cmd", CMDHardware, "j1", can_id=0x1) \
         .with_hardware("j2_cmd", CMDHardware, "j2", can_id=0x1F) \
         .with_hardware("j3_cmd", CMDHardware, "j3", can_id=0x043) \
         .with_jcan() \
-        .with_teleop(lambda node: Inputs(node).with_topics("science/input")) \
+        .with_teleop(inputs) \
         .spin()
