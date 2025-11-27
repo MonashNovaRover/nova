@@ -29,4 +29,5 @@ nova_end_effector_controller:
     default_value: true,
     description: "True if the arm should apply position, velocity and acceleration limits",
   }
-  # joint_limits: # yes this is long but this is how get_joint_limits() expects it. units are radians and seconds
+  joint_limits: # yes this is long but this is how get_joint_limits() expects it. units are radians and seconds
+  # TODO: Add appropriate joint limits

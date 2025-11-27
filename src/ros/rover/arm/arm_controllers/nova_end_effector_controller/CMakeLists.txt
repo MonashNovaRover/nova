@@ -47,12 +47,12 @@ ament_target_dependencies(nova_end_effector_controller PUBLIC ${THIS_PACKAGE_INC
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(nova_end_effector_controller PRIVATE "NOVA_end_effector_CONTROLLER_BUILDING_DLL")
-# pluginlib_export_plugin_description_file(controller_interface end_effector_plugin.xml)
+pluginlib_export_plugin_description_file(controller_interface end_effector_plugin.xml)
 
-# install(DIRECTORY
-#   launch
-#   DESTINATION share/${PROJECT_NAME}
-# )
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 install(
   DIRECTORY include/
