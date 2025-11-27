@@ -31,7 +31,7 @@ public:
       tree_(std::move(tree)),
       varyings_(tree_pose_indices.size())
   {
-    assert(tree_pose_indices_.size() == offsets_.size());
+    assert(tree_pose_indices_.size() <= offsets_.size());
   }
 
   ComputeFrameTree() = default;
@@ -42,11 +42,19 @@ public:
 
     tree_.update(joint_states);
 
-    for (size_t i = 0; i < varyings_; ++i) {
+    for (size_t i = 0; i < tree_pose_indices_.size(); ++i) {
       const size_t idx = tree_pose_indices_[i];
       data[i] = tree_.poses[idx] * offsets_[i];
     }
+
+    // TODO: We have to do the below for correctness for constant poses. But could we just assign this once?
+    for (size_t i = tree_pose_indices_.size(); i < offsets_.size(); ++i)
+      data[i] = offsets_[i];
   }
+
+  [[nodiscard]] const Isometry3dVector & get_origins() const noexcept { return offsets_; }
+  [[nodiscard]] const std::vector<size_t> & get_parents() const noexcept { return tree_pose_indices_; }
+  [[nodiscard]] const ComputeJointTree & get_tree() const noexcept { return tree_; }  //< For access in tests
 
 private:
   /// Index of the pose in tree_ to use as the parent for the output pose at index i

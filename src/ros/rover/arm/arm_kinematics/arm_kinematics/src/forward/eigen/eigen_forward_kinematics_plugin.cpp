@@ -23,7 +23,7 @@ ForwardKinematicsPlugin::MakeTreeResult EigenForwardKinematicsPlugin::make_tree(
 
   // Joints need to be in the right order to be able to construct a compute frame tree
   subtree.sort_joints();
-  const std::vector<std::string> & mapper_joint_names = subtree.get_joints().names;
+  const std::vector<std::string> & mapper_joint_names = {subtree.get_joints().names.begin() + 1, subtree.get_joints().names.end()};
 
   subtree.log(get_logger());
 

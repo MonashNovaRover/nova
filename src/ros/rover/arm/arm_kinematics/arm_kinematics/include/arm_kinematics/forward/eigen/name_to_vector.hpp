@@ -62,7 +62,7 @@ public:
     const auto it = ids.find(name);
 
     if (it == ids.end())
-      throw std::out_of_range(name + " is not in the controller ordering_.");
+      throw std::out_of_range(name + " is not in the collection.");
 
     return it->second;
   }
@@ -74,7 +74,7 @@ public:
     const auto it = ids.find(name);
 
     if (it == ids.end())
-      throw std::out_of_range(name + " is not in the controller ordering_.");
+      throw std::out_of_range(name + " is not in the collection.");
 
     return it->second;
   }
@@ -92,6 +92,15 @@ public:
    */
   TValue & operator[](const size_t id) {
     return data[id];
+  }
+
+  TValue & by_name(const std::string & name) const {
+    const auto it = ids.find(name);
+
+    if (it == ids.end())
+      throw std::out_of_range(name + " is not in the collection.");
+
+    return data[it->second];
   }
 
   /**

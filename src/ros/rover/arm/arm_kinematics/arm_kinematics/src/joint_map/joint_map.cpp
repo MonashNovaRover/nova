@@ -26,9 +26,9 @@ JointMap::JointMap(
 
     auto source = find_source(input_names, mimic_joints, name, multiplier, offset);
 
-    sources.emplace_back(source);
-    multipliers.emplace_back(multiplier);
-    offsets.emplace_back(offset);
+    sources.push_back(source);
+    multipliers.push_back(multiplier);
+    offsets.push_back(offset);
   }
 }
 
@@ -65,6 +65,12 @@ void JointMap::map(const std::vector<double> & inputs, std::vector<double> & out
   assert(inputs.size() == input_count);   //< Wrong number of elements in inputs
   assert(outputs.size() == output_count); //< Wrong number of elements in outputs
 
+  for (size_t i = 0; i < output_count; ++i) {
+    outputs[i] = inputs[sources[i]] * multipliers[i] + offsets[i];
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("joe"), std::to_string(i) << " = " << multipliers[i] << " * (" << std::to_string(sources[i]) << ", " << std::to_string(inputs[sources[i]]) << ") + " << offsets[i] << " = " << std::to_string(outputs[i]));
+  }
+  return;
+
   // The Jeston Orin Nano should have FP64 NEON SIMD instructions
   // Thought I might try coax the compiler into using it
 
@@ -94,7 +100,7 @@ size_t JointMap::find_source(const std::vector<std::string> & joint_names,
                              const std::string & name, double & multiplier, double & offset) {
   // Base case 1: If this joint is in joint_names, return its index
   auto names_it = std::find(joint_names.begin(), joint_names.end(), name);
-  if (names_it != joint_names.begin()) {
+  if (names_it != joint_names.end()) {
     return names_it - joint_names.begin();
   }
 

@@ -248,15 +248,17 @@ public:
     const size_t parent_id,
     const Eigen::Isometry3d & origin)
   {
-    auto & parent = joints_[parent_id];
-
-    size_t id = frames_.add(name, {
+    const size_t id = frames_.add(name, {
       parent_id,
       origin
     });
 
     // Add as child of parent
-    parent.frames.emplace_back(id);  //< id is current largest, and will be last
+    if (parent_id >= joints_.size())
+      throw std::runtime_error(std::to_string(parent_id) + " (parent_id) >= (joints_.size()) " + std::to_string(joints_.size()));
+    assert(parent_id < joints_.size());
+    auto & parent = joints_[parent_id];
+    parent.frames.push_back(id);  //< id is current largest, and will be last
 
     return id;
   }
@@ -306,32 +308,7 @@ public:
 
   Order<> sort_joints(bool sort_children = true);
 
-  Order<> sort_frames() noexcept {
-    Order frame_order{frames_.size(), frames_.size()};
-
-    size_t i = 0;
-    for (size_t joint_id = 0; joint_id < joints_.size(); ++joint_id) {
-
-      auto & joint = joints_[joint_id];
-      RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "joint %lu ---- %s", joint_id, joints_.names[joint_id].c_str());
-
-      for (auto frame_id : joint.frames) {
-        RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "frame %lu = %lu", i, frame_id);
-        assert(frame_id < frame_order.size());
-        assert(i < frame_order.size());
-
-        frame_order[i] = frame_id;
-        frame_id = i;
-        ++i;
-      }
-    }
-
-
-    frames_.sort(frame_order);
-
-    sorted_frames_ = true;
-    return frame_order;
-  }
+  Order<> sort_frames() noexcept;
 
   void log(rclcpp::Logger logger) {
 
@@ -364,78 +341,12 @@ public:
   /**
    * You need to have sorted joints then frames before calling.
    */
-  tl::expected<ComputeFrameTree, std::string_view> make_compute_frame_tree() {
-    std::set<size_t> root_children(joints_[0].children.begin(), joints_[0].children.end());
-    // Root children must occupy the start of the joints_ array
-    const bool root_joint_precondition = root_children.empty() ||
-      *root_children.begin() == 1 && *root_children.rbegin() == root_children.size();
-
-    if (!root_joint_precondition)
-      return tl::make_unexpected("Cannot create a ComputeFrameTree from an unsorted AnalysisTree! Please call "
-                            ".sort_joints() first, and reorder your input data from the returned Order<>.");
-
-    std::vector<size_t> parents{};
-    parents.reserve(frames_.size() - joints_[0].frames.size());
-    for (const auto & frame : frames_.data)
-      if (frame.parent != 0)
-        parents.emplace_back(frame.parent - 1);
-
-    Isometry3dVector origins{};
-    origins.reserve(frames_.size());
-    for (const auto & frame : frames_.data)
-      origins.emplace_back(frame.origin);
-
-    return ComputeFrameTree(
-      make_compute_joint_tree(),
-      std::move(parents),
-      std::move(origins)
-    );
-  }
+  tl::expected<ComputeFrameTree, std::string_view> make_compute_frame_tree();
 
   /**
    * You need to have sorted joints before calling.
    */
-  ComputeJointTree make_compute_joint_tree() {
-    std::vector<JointType> types{};
-    Vector3dVector axes{};
-    Isometry3dVector origins{};
-    std::vector<size_t> parents{};
-
-    assert(joints_.size() > 0); //< Dummy root MUST exist
-
-    types.resize(joints_.size() - 1);
-    axes.resize(joints_.size() - 1);
-    origins.resize(joints_.size() - 1, Eigen::Isometry3d::Identity());
-    parents.reserve(joints_.size() - 1);
-
-    const size_t root_relative_count = joints_[0].children.size();
-    for (size_t i = 0; i < root_relative_count; ++i) {
-      const auto & joint = joints_[i + 1];
-      RCLCPP_INFO_STREAM(rclcpp::get_logger("root_relative"), "pushing joint " << std::to_string(i + 1) << " origin:\n" << joint.origin.matrix());
-
-      origins[i] = joint.origin;
-      types[i] = joint.joint.type;
-      axes[i] = joint.joint.axis;
-    }
-
-    for (size_t i = root_relative_count; i < joints_.size() - 1; ++i) {
-      const auto & joint = joints_[i + 1];
-      RCLCPP_INFO_STREAM(rclcpp::get_logger("non_root_relative"), "pushing joint " << std::to_string(i + 1) << " origin:\n" << joint.origin.matrix());
-
-      parents.emplace_back(joint.parent - 1);
-      origins[i] = joint.origin;
-      types[i] = joint.joint.type;
-      axes[i] = joint.joint.axis;
-    }
-
-    return {
-      std::move(types),
-      std::move(axes),
-      std::move(origins),
-      std::move(parents),
-      joints_[0].children.size()
-    };
-  }
+  ComputeJointTree make_compute_joint_tree();
 
   // Accessors
   [[nodiscard]] const NameToVector<Joint> & get_joints() const noexcept { return joints_; }

@@ -20,9 +20,11 @@ public:
    */
   class TreeImpl final : public Tree {
   public:
+    using SharedPtr = std::shared_ptr<TreeImpl>;
+
     TreeImpl(const size_t output_count, ComputeFrameTree mapper, JointMap joint_map)
     : Tree(output_count),
-      mapper_(std::move(mapper)),
+      tree_(std::move(mapper)),
       joint_map_(std::move(joint_map)),
       mapped_joint_states_(joint_map_.output_count)
     {
@@ -41,11 +43,15 @@ public:
       joint_map_.map(joint_states, mapped_joint_states_);
 
       // Map those joint states to frames
-      mapper_.update(mapped_joint_states_, link_poses.data());
+      tree_.update(mapped_joint_states_, link_poses.data());
     }
 
+    [[nodiscard]] const auto & get_tree() const noexcept { return tree_; }  //< For access in tests
+    [[nodiscard]] const auto & get_joint_map() const noexcept { return joint_map_; }  //< For access in tests
+    [[nodiscard]] const auto & get_mapped_joint_states() const noexcept { return mapped_joint_states_; }  //< For access in tests
+
   private:
-    ComputeFrameTree mapper_;
+    ComputeFrameTree tree_;
     JointMap joint_map_;
     std::vector<double> mapped_joint_states_{};
   };

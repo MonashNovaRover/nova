@@ -62,6 +62,8 @@ public:
   }
 
   void update(const std::vector<double> & joint_states) {
+    assert(joint_states.size() == poses.size());
+
     // Calculate joints relative to the root
     for (size_t i = 0; i < root_relative_count_; ++i) {
       poses[i] = origins_[i];
