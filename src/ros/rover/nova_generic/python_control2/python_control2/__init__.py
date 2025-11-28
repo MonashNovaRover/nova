@@ -5,11 +5,13 @@ from .controller_manager.ControllerManagerBuilder import ControllerManagerBuilde
 from .controller_manager.ControllerManager import ControllerManager
 from .controller_manager.Contexts import Contexts
 
-def PythonControl(system_name: str, **kwargs) -> ControllerManagerBuilder:
+from rclpy.node import Node
+
+def PythonControl(node: Node, **kwargs) -> ControllerManagerBuilder:
     """ Creates a ControllerManagerBuilder for a system with the given name.
 
-    :param system_name: A name for your python control system.
+    :param node: The node for your python control system.
     :param kwargs: Allows you to define default parameters as kwargs (i.e. can_bus="can1").
     :return: A new ControllerManagerBuilder.
     """
-    return ControllerManagerBuilder.NewControllerManager(system_name, default_params=kwargs)
+    return ControllerManagerBuilder.NewControllerManager(node, default_params=kwargs)
