@@ -98,6 +98,6 @@ there on how `teleop_modular` works.
 
 Python Control 2 works with `teleop_modular` through `Inputs` which you can read the documentation for 
 [here](https://github.com/BaileyChessum/teleop_modular/blob/main/teleop_python_utils/teleop_python_utils/modules/Inputs.py).
-Again please see [`control_test.py`](../../science/science/science/control_test.py) for example of how this can be used.
+Again please see [`control_test.py`](../../science/science/science/control_test.py) for examples of how this can be used.
 
 
