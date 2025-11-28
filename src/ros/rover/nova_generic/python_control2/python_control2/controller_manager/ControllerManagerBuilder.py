@@ -1,7 +1,7 @@
-import jcan, logging
+import jcan
 import rclpy
-from rclpy.node import Node, ParameterDescriptor
-from typing import Type, TypeVar, List, Any, Optional, Callable
+from rclpy.node import Node
+from typing import Type, TypeVar, List, Any, Optional
 from teleop_python_utils import Inputs
 from .ControllerManager import ControllerManager
 from ..controllers.Controller import Controller

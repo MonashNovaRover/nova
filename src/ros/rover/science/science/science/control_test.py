@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-import logging
-
 import jcan
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, DurabilityPolicy
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
 import random
