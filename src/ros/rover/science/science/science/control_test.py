@@ -4,6 +4,7 @@ import logging
 import jcan
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, DurabilityPolicy
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
 import random
@@ -19,8 +20,6 @@ class TestController(Controller):
 
     def __init__(self, contexts: Contexts, joint: str="joint", button: str="sweeper_sweep", axis: str="auger_actuation"):
         super().__init__(contexts)
-        self.logger.set_level(logging.DEBUG)
-        self.logger.warn("testing warn")
         self.logger.info(f"Controller -- I have been __init__ialized")
 
         self.joint = self.declare_parameter("joint", joint).value
@@ -32,14 +31,8 @@ class TestController(Controller):
         self.logger.info(f"Axes: {list(contexts[Inputs].axes)}")
 
         self.button = contexts[Inputs].get_button(self.button_name)
+        contexts[Inputs].get_event(f"{self.button_name}/down").add_callback(lambda : self.logger.info(f"{self.button_name}/down event triggered"))
         self.axis = contexts[Inputs].get_axis(self.axis_name)
-
-        contexts[Inputs].on_update.add_callback(lambda : self.logger.info("hi"))
-
-        # For debugging purposes
-        self.logger.info(f"Buttons: {list(contexts[Inputs].buttons)}")
-        self.logger.info(f"Axes: {list(contexts[Inputs].axes)}")
-
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         self.cmd = command_interfaces["cmd"]
@@ -92,7 +85,7 @@ if __name__ == "__main__":
     rclpy.init()
 
     node = Node("control_test")
-    inputs = Inputs(node).with_topics("science/input")
+    inputs = Inputs(node).with_topics("/science/input")
 
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("test_controller", TestController, joint="j1") \
@@ -100,6 +93,6 @@ if __name__ == "__main__":
         .with_hardware("j1_cmd", CMDHardware, "j1", can_id=0x1) \
         .with_hardware("j2_cmd", CMDHardware, "j2", can_id=0x1F) \
         .with_hardware("j3_cmd", CMDHardware, "j3", can_id=0x043) \
-        .with_jcan() \
         .with_teleop(inputs) \
+        .with_jcan() \
         .spin()
