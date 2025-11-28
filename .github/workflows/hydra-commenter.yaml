@@ -2,6 +2,7 @@ name: Hydra Commenter 🐍
 
 on:
   pull_request:
+    types: [opened]
 
 jobs:
   comment:
