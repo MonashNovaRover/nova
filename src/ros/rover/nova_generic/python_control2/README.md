@@ -89,11 +89,11 @@ but you may have multiple Hardware Interfaces that all need access to it.
 The Controller Manager has a Contexts which gets added to during the building process, and is then passed to each Controller/Hardware
 Interface upon initialisation, where they can obtain a reference to the resource. Resources are accessed and stored via their Class.
 
-The `.with_context(item)` builder option should be used if multiple Controller/Hardware need access to a shared resource.
+The `.with_context(item)` builder option should be used if multiple Controller/Hardware Interfaces need access to a shared resource.
 
 ### Teleop Modular Integration
 
-Python Control 2 support [`teleop_modular`](https://github.com/BaileyChessum/teleop_modular). Please see the documentation
+Python Control 2 supports [`teleop_modular`](https://github.com/BaileyChessum/teleop_modular). Please see the documentation
 there on how `teleop_modular` works.
 
 Python Control 2 works with `teleop_modular` through `Inputs` which you can read the documentation for 
