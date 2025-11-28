@@ -581,6 +581,96 @@ TEST_F(EigenForwardKinematicsPluginTreeTest, SimpleUrdfComputeJointTreeReversed)
   ExpectIsometryNear(tree.poses[1], j2_truth, "joint 2 pose is wrong");
 }
 
+class FixedJointUrdfTest : public ::testing::Test
+{
+protected:
+  void SetUp() override
+  {
+    // x is a main branch is a dynamic joint
+    // y is a dynamic joint
+    // z is a fixed joint
+    robot_description_ = R"(
+      <robot name="test_robot">
+        <link name="base"/>
+
+        <link name="z"/>
+        <joint name="z" type="fixed">
+          <parent link="base"/>
+          <child  link="z"/>
+          <origin xyz="0 0 1" rpy="0 0 0"/>
+        </joint>
+
+        <link name="zx"/>
+        <joint name="zx" type="prismatic">
+          <parent link="z"/>
+          <child  link="zx"/>
+          <origin xyz="1 0 0" rpy="0 0 0"/>
+          <axis   xyz="1 0 0"/>
+          <limit  lower="-1.0" upper="1.0" effort="10.0" velocity="10.0"/>
+        </joint>
+
+        <link name="zxz"/>
+        <joint name="zxz" type="fixed">
+          <parent link="zx"/>
+          <child  link="zxz"/>
+          <origin xyz="0 0 1" rpy="0 0 0"/>
+        </joint>
+
+        <link name="zxzx"/>
+        <joint name="zxzx" type="prismatic">
+          <parent link="zxz"/>
+          <child  link="zxzx"/>
+          <origin xyz="1 0 0" rpy="0 0 0"/>
+          <axis   xyz="1 0 0"/>
+          <limit  lower="-1.0" upper="1.0" effort="10.0" velocity="10.0"/>
+        </joint>
+
+        <link name="zxzxz"/>
+        <joint name="zxzxz" type="fixed">
+          <parent link="zxzx"/>
+          <child  link="zxzxz"/>
+          <origin xyz="0 0 1" rpy="0 0 0"/>
+        </joint>
+
+        <link name="zy"/>
+        <joint name="zy" type="prismatic">
+          <parent link="z"/>
+          <child  link="zx"/>
+          <origin xyz="0 1 0" rpy="0 0 0"/>
+          <axis   xyz="0 1 0"/>
+          <limit  lower="-1.0" upper="1.0" effort="10.0" velocity="10.0"/>
+        </joint>
+
+        <link name="zyz"/>
+        <joint name="zyz" type="fixed">
+          <parent link="zy"/>
+          <child  link="zyz"/>
+          <origin xyz="0 0 1" rpy="0 0 0"/>
+        </joint>
+
+        <link name="zyz"/>
+        <link name="zz"/>
+        <link name=""/>
+        <link name="link2"/>
+
+      </robot>
+    )";
+    ASSERT_TRUE(model_.initString(robot_description_));
+
+    node_ = std::make_shared<rclcpp::Node>("test_eigen_fk_mapper");
+    logger_ = node_->get_logger();
+  }
+
+  void TearDown() override {
+    node_.reset();
+  }
+
+  std::string robot_description_;
+  urdf::Model model_;
+  std::shared_ptr<rclcpp::Node> node_;
+  rclcpp::Logger logger_ = rclcpp::get_logger("not_initialized");
+};
+
 int main(int argc, char ** argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
