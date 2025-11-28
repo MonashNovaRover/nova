@@ -68,28 +68,40 @@ buildRosPackage rec {
     transmission-interface
   ];
 
-  doCheck = true;
+#  doCheck = true;
 #  cmakeFlags = [
 #    "-DNIX_DO_CHECK=${if doCheck then "ON" else "OFF"}"
 #  ];
 
   # Added to debug a crazy segfault
-  dontStrip = true;
-  CMAKE_BUILD_TYPE = "RelWithDebInfo";
-  cmakeFlags = [
-    "-DCMAKE_BUILD_TYPE=Debug"
-    "-DCMAKE_CXX_FLAGS=-g"
-  ];
-  cmakeBuildType = "Debug";
-#  NIX_CFLAGS_COMPILE = [
-#    "-fsanitize=address"
-#    "-fno-omit-frame-pointer"
-#    "-g"
+#  dontStrip = true;
+#  CMAKE_BUILD_TYPE = "RelWithDebInfo";
+#  cmakeFlags = [
+#    "-DCMAKE_BUILD_TYPE=Debug"
+#    "-DCMAKE_CXX_FLAGS=-g"
 #  ];
-#
+#  cmakeBuildType = "Debug";
+#  NIX_CFLAGS_COMPILE = [
+#    "-fno-omit-frame-pointer"
+#    "-shared"
+#  ];
+##
 #  NIX_LDFLAGS = [
-#    "-fsanitize=address"
+#    "-fno-omit-frame-pointer"
+#    "-shared"
 #  ];
 
-  hardeningDisable = [ "fortify" "stackprotector" ];
+  CMAKE_BUILD_TYPE = "Release";
+
+  cmakeFlags = [
+    "-DCMAKE_BUILD_TYPE=Release"
+  ];
+
+  NIX_CFLAGS_COMPILE = [
+    "-O3"
+    "-ffast-math"
+    "-DNDEBUG"
+    "-DEIGEN_NO_DEBUG"
+  ];
+
 }

@@ -13,6 +13,9 @@
 #include <arm_kinematics/joint_map/joint_map_builder.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <arm_kinematics/utilities/reordered.hpp>
+#include <chrono>
+
+
 
 using arm_kinematics::ComputeFrameTree;
 using arm_kinematics::ComputeJointTree;
@@ -618,6 +621,52 @@ TEST_F(FixedJointUrdfTest, BackwardFromAll) {
       EXPECT_EQ(actual[j].translation(), expected[j] - base) << "Incorrect pose from " << base_name << " to " << names[j];
     }
   }
+}
+
+using Clock = std::chrono::steady_clock;
+
+TEST_F(FixedJointUrdfTest, StressTest) {
+  ASSERT_TRUE(init_result_) << "Failed to init plugin";
+
+  size_t us_total = 0;
+
+  for (size_t i = 0; i < frame_names_.size(); ++i) {
+    const auto & base_name = frame_names_[i];
+
+    auto tree_start = Clock::now();
+    auto [tree, order] = plugin_->make_tree(
+      {}, base_name, {frame_names_});
+    auto tree_end   = Clock::now();
+    auto tree_dur   = tree_end - tree_start;
+    auto tree_us = std::chrono::duration_cast<std::chrono::microseconds>(tree_dur).count();
+    std::cout << "Tree construction took " << tree_us << " µs\n\n";
+
+    ASSERT_TRUE(tree) << "Failed to make tree from root \"" << joint_names_[i] << "\"";
+
+    const auto names = Reordered{frame_names_, order};
+    const auto expected = Reordered{expected_frame_poses_, order};
+
+    // Do FK
+    auto actual = arm_kinematics::Isometry3dVector(expected.size());
+
+    std::cout << "Stress testing from root \"" << base_name << "\"\n";
+
+    auto start = Clock::now();
+    for (size_t k = 0; k < 10000000; ++k) {
+      tree->position_fk({}, actual);
+    }
+    auto end   = Clock::now();
+    auto dur   = end - start;
+
+    auto us = std::chrono::duration_cast<std::chrono::microseconds>(dur).count();
+    std::cout << "Took " << us << " µs\n\n";
+    us_total += us;
+  }
+
+  size_t total_count = 10000000 * frame_names_.size();
+
+  std::cout << "Average of " << static_cast<long double>(us_total) / static_cast<long double>(total_count) << " µs per FK calculation\n";
+  std::cout << "Average of " << 1e9 * static_cast<long double>(total_count) / static_cast<long double>(us_total) << " hz\n\n";
 }
 
 int main(int argc, char ** argv)
