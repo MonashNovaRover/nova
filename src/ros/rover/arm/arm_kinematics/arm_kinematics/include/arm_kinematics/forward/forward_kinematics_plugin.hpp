@@ -9,13 +9,11 @@
 #include <string>
 #include <vector>
 #include <urdf/model.h>
-#include "kinematics_base.hpp"
+#include <arm_kinematics/common/kinematics_base.hpp>
 #include <arm_kinematics/joint_map/joint_map_builder.hpp>
-#include <arm_kinematics/aliases.hpp>
-#include <arm_kinematics/frame_definitions.hpp>
-
-#include "arm_kinematics/utilities/order.hpp"
-
+#include <arm_kinematics/utilities/aliases.hpp>
+#include <arm_kinematics/forward/frame_definitions.hpp>
+#include <arm_kinematics/utilities/order.hpp>
 
 namespace arm_kinematics {
 
@@ -56,6 +54,8 @@ public:
      * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
      */
     virtual void position_fk(const std::vector<double> & joint_states, Isometry3dVector & link_poses) = 0;
+
+    // TODO: velocity_fk?
 
   protected:
     explicit Tree(const size_t link_count) : link_count(link_count) {}
@@ -139,15 +139,18 @@ public:
    * \returns True if initialization was successful. False otherwise.
    */
   bool initialize(
-    KinematicsNodeInterfaces node_interfaces,
-    std::string & robot_description,
-    KinematicsParams kinematics_params = {});
+    const KinematicsNodeInterfaces & node_interfaces,
+    KinematicsParams::SharedPtr kinematics_params = {});
 
   /**
-   * Gets the default joint map builder used for constructing chains
+   * Gets the default joint map builder used for constructing trees
    */
   [[nodiscard]] virtual const JointMapBuilder & get_joint_map_builder() const noexcept;
-  [[nodiscard]] const urdf::Model & get_urdf_model() const noexcept;
+
+  /**
+   * Gets the URDF model from KinematicsParams
+   */
+  [[nodiscard]] const urdf::Model & get_urdf_model() const;
 
 protected:
   /**
@@ -158,7 +161,6 @@ protected:
   virtual bool on_initialize() = 0;
 
 private:
-  urdf::Model urdf_model_;
   JointMapBuilder joint_map_builder_{};
 };
 

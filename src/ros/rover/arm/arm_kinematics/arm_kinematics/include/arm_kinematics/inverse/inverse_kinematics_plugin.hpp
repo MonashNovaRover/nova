@@ -9,9 +9,7 @@
 #include <vector>
 #include <Eigen/Geometry>
 #include <memory>
-#include <arm_kinematics/kinematics_plugins/kinematics_base.hpp>
-#include <arm_kinematics/kinematics_plugins/forward_kinematics_plugin.hpp>
-
+#include <arm_kinematics/common/kinematics_base.hpp>
 
 namespace arm_kinematics {
 
@@ -22,6 +20,7 @@ namespace arm_kinematics {
  * faced reliability issues in the past when trying to use numerical solvers (URC 2025).
  */
 class ARM_KINEMATICS_PUBLIC InverseKinematicsPlugin : public KinematicsBase {
+public:
   using SharedPtr = std::shared_ptr<InverseKinematicsPlugin>;
 
   /**
@@ -32,10 +31,8 @@ class ARM_KINEMATICS_PUBLIC InverseKinematicsPlugin : public KinematicsBase {
    * \returns True if initialization was successful. False otherwise.
    */
   bool initialize(
-    KinematicsNodeInterfaces node_interfaces,
-    std::string & robot_description,
-    const std::vector<std::string>& joint_names,
-    KinematicsParams kinematics_params);
+    const KinematicsNodeInterfaces & node_interfaces,
+    KinematicsParams::SharedPtr kinematics_params);
 
   /**
    * Get the positions of all joints given the desired final position of the ee_link.
@@ -45,7 +42,7 @@ class ARM_KINEMATICS_PUBLIC InverseKinematicsPlugin : public KinematicsBase {
    * seed state.
    * \param[out] solution_state The set of joint positions that would result in the end effector being moved to ik_pose.
    *
-   * \note Make sure to pre-allocate vectors outside of the real-time loop with the correct number of elements (same
+   * \note Make sure to pre-allocate vectors outside the real-time loop with the correct number of elements (same
    * number of joints as in joint names).
    *
    * \returns True if a solution was found

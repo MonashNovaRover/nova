@@ -29,23 +29,24 @@ include_directories(
 
 # Add plugin implementations here!
 add_library(${PROJECT_NAME} SHARED
-  src/utilities.cpp
+  src/utilities/utilities.cpp
   src/joint_map/joint_map.cpp
   src/joint_map/joint_map_builder.cpp
-  src/kinematics_plugins/kinematics_params.cpp
-  src/kinematics_plugins/kinematics_base.cpp
-  src/kinematics_plugins/forward_kinematics_plugin.cpp
-  src/kinematics_plugins/inverse_kinematics_plugin.cpp
+  src/common/kinematics_params.cpp
+  src/common/kinematics_base.cpp
+  src/forward/forward_kinematics_plugin.cpp
+  src/inverse/inverse_kinematics_plugin.cpp
   src/collision/collision_plugin.cpp
   src/collision/fcl/fcl_collision_plugin.cpp
   src/collision/allowed_collision_matrix.cpp
   src/collision/fcl/geometry_cache.cpp
-  src/frame_definitions.cpp
-  src/kinematics_plugin_spawner.cpp
-  src/forward/eigen/compute_joint_tree.cpp
-  src/forward/eigen/compute_frame_tree.cpp
-  src/forward/eigen/eigen_forward_kinematics_plugin.cpp
-  src/forward/eigen/analysis_tree.cpp
+  src/forward/frame_definitions.cpp
+  src/forward/utilities/compute_joint_tree.cpp
+  src/forward/utilities/compute_frame_tree.cpp
+  src/forward/utilities/eigen_forward_kinematics_plugin.cpp
+  src/forward/utilities/analysis_tree.cpp
+
+  src/plugin_loader.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17

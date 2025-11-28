@@ -5,7 +5,8 @@
 #ifndef SCIENCE_FRAME_DEFINITIONS_HPP
 #define SCIENCE_FRAME_DEFINITIONS_HPP
 
-#include <arm_kinematics/aliases.hpp>
+#include <arm_kinematics/utilities/aliases.hpp>
+#include <arm_kinematics/visibility_control.h>
 #include <Eigen/Geometry>
 
 namespace arm_kinematics {
@@ -13,7 +14,7 @@ namespace arm_kinematics {
 /**
  * Struct to help request some pose relative to a link in FK
  */
-struct FrameDefinitions {
+struct ARM_KINEMATICS_PUBLIC FrameDefinitions {
   Isometry3dVector origins;
   std::vector<std::string> parent_link_names;
 

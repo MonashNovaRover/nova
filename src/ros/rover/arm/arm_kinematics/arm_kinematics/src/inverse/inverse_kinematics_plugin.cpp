@@ -2,15 +2,14 @@
 // Created by Bailey Chessum on 15/10/2025.
 //
 
-#include <arm_kinematics/kinematics_plugins/inverse_kinematics_plugin.hpp>
-#include <arm_kinematics/utilities.hpp>
+#include <arm_kinematics/inverse/inverse_kinematics_plugin.hpp>
+#include <arm_kinematics/utilities/utilities.hpp>
 
 namespace arm_kinematics {
 
-bool InverseKinematicsPlugin::initialize(KinematicsNodeInterfaces node_interfaces, std::string & robot_description,
-                                         const std::vector<std::string> & joint_names,
-                                         KinematicsParams kinematics_params) {
-  if (!initialize_base(node_interfaces, robot_description, std::move(kinematics_params), "inverse_kinematics"))
+bool InverseKinematicsPlugin::initialize(const KinematicsNodeInterfaces & node_interfaces,
+                                         KinematicsParams::SharedPtr kinematics_params) {
+  if (!initialize_base(node_interfaces, std::move(kinematics_params), "inverse_kinematics"))
     return false;
 
   return true;

@@ -7,9 +7,9 @@
 
 #include <cstddef>
 #include <Eigen/Geometry>
-#include <arm_kinematics/aliases.hpp>
+#include <arm_kinematics/utilities/aliases.hpp>
 #include <rclcpp/logger.hpp>
-
+#include <arm_kinematics/visibility_control.h>
 #include "joint_type.hpp"
 
 namespace arm_kinematics {
@@ -19,7 +19,7 @@ namespace arm_kinematics {
  *
  * \note This does not handle fixed joints, or fixed offset frames. Use a \c ComputeFrameTree instead for that purpose.
  */
-class ComputeJointTree {
+class ARM_KINEMATICS_PUBLIC ComputeJointTree {
 public:
 
   ComputeJointTree() = default;

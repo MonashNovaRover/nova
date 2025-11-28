@@ -12,14 +12,14 @@
 #include <rclcpp/node_interfaces/node_logging_interface.hpp>
 #include <rclcpp/node_interfaces/node_parameters_interface.hpp>
 #include <rclcpp/node_interfaces/node_interfaces.hpp>
-#include "kinematics_params.hpp"
+#include <arm_kinematics/common/kinematics_params.hpp>
 
 namespace arm_kinematics {
 
 /**
  * Base class for the two kinematics plugin types,
- *   - ForwardKinematicsPluginBase
- *   - InverseKinematicsPluginBase
+ *   - ForwardKinematicsPlugin
+ *   - InverseKinematicsPlugin
  */
 class ARM_KINEMATICS_PUBLIC KinematicsBase {
 public:
@@ -35,12 +35,10 @@ public:
 
   /// The URDF being used.
   [[nodiscard]] const std::string & get_robot_description() const;
-  // /// The name of every joint considered in IK and FK calculations.
-  // [[nodiscard]] const std::vector<std::string> & get_joint_names() const noexcept;
   /// Logger to use for logging
   [[nodiscard]] const rclcpp::Logger & get_logger() const noexcept;
   /// Gets the KinematicsParams common to both FK and IK plugins.
-  [[nodiscard]] const KinematicsParams & get_kinematics_params() const noexcept;
+  [[nodiscard]] const KinematicsParams & get_kinematics_params() const;
   /// Gets interfaces from the owning ROS2 node, allowing plugins to access to parameters, logging, etc.
   [[nodiscard]] const KinematicsNodeInterfaces & get_node_interfaces() const;
 
@@ -50,15 +48,14 @@ protected:
    */
   bool initialize_base(
     KinematicsNodeInterfaces node_interfaces,
-    const std::string & robot_description,
-    KinematicsParams params,
+    KinematicsParams::SharedPtr params,
     const std::string & logger_name);
 
 private:
   /// The URDF being used. You can get this from within a ros2_control controller.
   const std::string * robot_description_ = nullptr;
   /// Params common to both FK and IK plugins.
-  KinematicsParams kinematics_params_;
+  KinematicsParams::SharedPtr kinematics_params_;
   /// The name of every joint considered in IK and FK calculations.
   std::vector<std::string> joint_names_{};
   /// Allows us to access various things from the owning node if we need, like loggers, parameters, or in the future,

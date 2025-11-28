@@ -13,51 +13,16 @@
 #include <rclcpp/logging.hpp>
 #include <urdf/model.h>
 #include "name_to_vector.hpp"
-#include <arm_kinematics/frame_definitions.hpp>
+#include <arm_kinematics/forward/frame_definitions.hpp>
 #include <arm_kinematics/utilities/order.hpp>
-#include <arm_kinematics/forward/eigen/joint_type.hpp>
+#include <arm_kinematics/forward/utilities/joint_type.hpp>
+#include <arm_kinematics/visibility_control.h>
 
-#include <arm_kinematics/forward/eigen/compute_frame_tree.hpp>
-#include <arm_kinematics/forward/eigen/compute_joint_tree.hpp>
+#include <arm_kinematics/forward/utilities/compute_frame_tree.hpp>
+#include <arm_kinematics/forward/utilities/compute_joint_tree.hpp>
 #include <arm_kinematics/utilities/expected.hpp>
 
 namespace arm_kinematics {
-
-/**
- * Gets the equivalent ComputeJointTree type for a URDF joint
- * \param joint The joint
- * \return std::nullopt, or a joint type
- */
-inline std::optional<JointType> get_type(const urdf::JointConstSharedPtr & joint) {
-  switch (joint->type) {
-    case urdf::Joint::REVOLUTE:
-      return JointType::REVOLUTE;
-    case urdf::Joint::PRISMATIC:
-      return JointType::PRISMATIC;
-    case urdf::Joint::CONTINUOUS:
-      return JointType::CONTINUOUS;
-    default:
-      return std::nullopt;
-  }
-}
-
-/**
- * Gets the equivalent ComputeJointTree type for a URDF joint
- * \param joint The joint
- * \return std::nullopt, or a joint type
- */
-inline std::optional<JointType> get_type(const urdf::Joint & joint) {
-  switch (joint.type) {
-  case urdf::Joint::REVOLUTE:
-    return JointType::REVOLUTE;
-  case urdf::Joint::PRISMATIC:
-    return JointType::PRISMATIC;
-  case urdf::Joint::CONTINUOUS:
-    return JointType::CONTINUOUS;
-  default:
-    return std::nullopt;
-  }
-}
 
 inline Eigen::Vector3d to_eigen(const urdf::Vector3 & p)
 {
@@ -87,7 +52,7 @@ inline Eigen::Isometry3d to_eigen(const urdf::Pose & p)
  *   - Always forward constructed (No reversed joints/links)
  *     - Reversing to a fake root is the responsibility of the <<Insert Constructor Here>>
  */
-class AnalysisTree {
+class ARM_KINEMATICS_PUBLIC AnalysisTree {
 public:
   /**
    * Data to describe a joint

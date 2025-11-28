@@ -6,8 +6,9 @@
 #define ARM_KINEMATICS_COMPUTE_FRAME_TREE_HPP
 
 #include <queue>
-
+#include <arm_kinematics/visibility_control.h>
 #include "compute_joint_tree.hpp"
+#include <arm_kinematics/utilities/aliases.hpp>
 
 namespace arm_kinematics {
 
@@ -21,7 +22,7 @@ namespace arm_kinematics {
  *
  * \see ComputeJointTree
  */
-class ComputeFrameTree {
+class ARM_KINEMATICS_PUBLIC ComputeFrameTree {
 public:
   ComputeFrameTree(ComputeJointTree tree,
                 std::vector<size_t> tree_pose_indices,

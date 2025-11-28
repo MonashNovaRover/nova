@@ -6,13 +6,10 @@
 #define ARM_KINEMATICS_JOINT_MAP_HPP
 
 #include <arm_kinematics/visibility_control.h>
-#include <cstddef>
-#include <urdf/model.h>
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl/jntarray.hpp>
 #include <rclcpp/logger.hpp>
 #include <rclcpp/logging.hpp>
-
 
 namespace arm_kinematics {
 

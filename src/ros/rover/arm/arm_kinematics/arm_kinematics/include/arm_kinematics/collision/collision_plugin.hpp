@@ -5,11 +5,14 @@
 #ifndef ARM_KINEMATICS_COLLISION_PLUGIN_HPP
 #define ARM_KINEMATICS_COLLISION_PLUGIN_HPP
 
-#include <arm_kinematics/kinematics_plugins/forward_kinematics_plugin.hpp>
-#include <arm_kinematics/aliases.hpp>
-#include <arm_kinematics/span.hpp>
+#include <arm_kinematics/forward/forward_kinematics_plugin.hpp>
+#include <arm_kinematics/utilities/aliases.hpp>
+#include <arm_kinematics/utilities/span.hpp>
 #include <limits>
-
+#include <rclcpp/node_interfaces/node_base_interface.hpp>
+#include <rclcpp/node_interfaces/node_interfaces.hpp>
+#include <rclcpp/node_interfaces/node_logging_interface.hpp>
+#include <rclcpp/node_interfaces/node_parameters_interface.hpp>
 #include "allowed_collision_matrix.hpp"
 
 namespace arm_kinematics {
@@ -22,6 +25,7 @@ namespace arm_kinematics {
  */
 class CollisionPlugin {
 public:
+  using SharedPtr = std::shared_ptr<CollisionPlugin>;
   using CollisionNodeInterfaces =
     rclcpp::node_interfaces::NodeInterfaces<
       rclcpp::node_interfaces::NodeBaseInterface,

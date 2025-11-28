@@ -2,24 +2,19 @@
 // Created by Bailey Chessum on 14/10/2025.
 //
 
-#include <arm_kinematics/kinematics_plugins/forward_kinematics_plugin.hpp>
-
+#include <arm_kinematics/forward/forward_kinematics_plugin.hpp>
 #include <urdf/model.h>
 #include <stdexcept>
-
-#include <arm_kinematics/utilities.hpp>
-#include "arm_kinematics/joint_map/joint_map_builder.hpp"
-#include <kdl/chainfksolverpos_recursive.hpp>
-
+#include <arm_kinematics/utilities/utilities.hpp>
+#include <arm_kinematics/joint_map/joint_map_builder.hpp>
 
 namespace arm_kinematics {
 
 bool ForwardKinematicsPlugin::initialize(
-  KinematicsNodeInterfaces node_interfaces,
-  std::string & robot_description,
-  KinematicsParams kinematics_params)
+  const KinematicsNodeInterfaces & node_interfaces,
+  KinematicsParams::SharedPtr kinematics_params)
 {
-  if (!initialize_base(node_interfaces, robot_description, std::move(kinematics_params), "forward_kinematics"))
+  if (!initialize_base(node_interfaces, std::move(kinematics_params), "forward_kinematics"))
     return false;
 
   // Set up URDF
@@ -36,8 +31,8 @@ bool ForwardKinematicsPlugin::initialize(
   return on_initialize();
 }
 
-const urdf::Model & ForwardKinematicsPlugin::get_urdf_model() const noexcept {
-  return urdf_model_;
+const urdf::Model & ForwardKinematicsPlugin::get_urdf_model() const {
+  return get_kinematics_params().get_urdf_model();
 }
 
 const JointMapBuilder & ForwardKinematicsPlugin::get_joint_map_builder() const noexcept {

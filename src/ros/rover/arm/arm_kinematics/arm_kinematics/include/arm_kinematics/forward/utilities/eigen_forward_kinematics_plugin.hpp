@@ -5,18 +5,18 @@
 #ifndef ARM_KINEMATICS_EIGEN_FORWARD_KINEMATICS_PLUGIN_HPP
 #define ARM_KINEMATICS_EIGEN_FORWARD_KINEMATICS_PLUGIN_HPP
 
-#include <arm_kinematics/kinematics_plugins/forward_kinematics_plugin.hpp>
-#include <arm_kinematics/forward/eigen/compute_frame_tree.hpp>
-#include <arm_kinematics/forward/eigen/analysis_tree.hpp>
+#include <arm_kinematics/forward/forward_kinematics_plugin.hpp>
+#include <arm_kinematics/forward/utilities/compute_frame_tree.hpp>
+#include <arm_kinematics/forward/utilities/analysis_tree.hpp>
 #include <utility>
+#include <arm_kinematics/visibility_control.h>
 
 namespace arm_kinematics {
 
-
-class EigenForwardKinematicsPlugin : public ForwardKinematicsPlugin {
+class ARM_KINEMATICS_PUBLIC EigenForwardKinematicsPlugin : public ForwardKinematicsPlugin {
 public:
   /**
-   * ForwardKinematicsPlugin::Tree implementation using ComputeJointTree and EigenFKMapping
+   * ForwardKinematicsPlugin::Tree implementation using ComputeFrameTree
    */
   class TreeImpl final : public Tree {
   public:
