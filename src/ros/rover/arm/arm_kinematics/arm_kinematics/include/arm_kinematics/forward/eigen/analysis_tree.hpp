@@ -135,34 +135,6 @@ public:
     std::vector<size_t> frames{};
 
     /**
-     * Removes a child from children
-     * @param link_id The child link's id to remove
-     * @returns true if the child was removed, false otherwise
-     */
-    // bool remove_child(const size_t link_id) {
-    //   const auto it = children.find(link_id);
-    //   if (it == children.end())
-    //     return false; //< This has already been removed!
-    //
-    //   children.erase(it);
-    //   return true;
-    // }
-
-    /**
-     * Removes a frame from frames
-     * @param link_id The frame's id to remove
-     * @returns true if the frame was removed, false otherwise
-     */
-    // bool remove_frame(const size_t link_id) {
-    //   const auto it = frames.find(link_id);
-    //   if (it == frames.end())
-    //     return false; //< This has already been removed!
-    //
-    //   frames.erase(it);
-    //   return true;
-    // }
-
-    /**
      * Update internal indices to match the given order.
      * @param order The order to be applied
      */
@@ -415,34 +387,6 @@ private:
 
     return id;
   }
-
-  /// Swaps the links at index a and index b
-  // void swap(const size_t a, const size_t b) {
-  //   if (a == b)
-  //     return;
-  //
-  //   const auto & link_a = joints_[a];
-  //   const auto & link_b = joints_[b];
-  //
-  //   // Swap parents
-  //   auto & parent_a = joints_[link_a.parent];
-  //   auto & parent_b = joints_[link_b.parent];
-  //   // Remove from old parents
-  //   parent_a.remove_child(a);
-  //   parent_b.remove_child(b);
-  //   // Add to new parents
-  //   parent_b.children.emplace(a);
-  //   parent_a.children.emplace(b);
-  //
-  //   // Fix children
-  //   for (const auto child : link_a.children)
-  //     joints_[child].parent = b;
-  //   for (const auto child : link_b.children)
-  //     joints_[child].parent = a;
-  //
-  //   // swap the actual data
-  //   joints_.swap(a, b);
-  // }
 
   /// Links with a non-fixed parent joint from the URDF, named after the parent joint
   /// In my model, I treat these as the same thing. The link will have a frame in frames_ relative to the joint with an
