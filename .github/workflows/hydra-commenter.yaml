@@ -3,6 +3,12 @@ name: Hydra Commenter 🐍
 on:
   pull_request:
     types: [opened]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to comment on'
+        required: true
+        type: number
 
 jobs:
   comment:
@@ -11,13 +17,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Determine PR number
+        id: get_pr_number
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "pr_number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ -z "${{ github.event.inputs.pr_number }}" ]; then
+              echo "Error: pr_number input is required for manual runs" >&2
+              exit 1
+            fi
+            echo "pr_number=${{ github.event.inputs.pr_number }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Comment PR
         uses: thollander/actions-comment-pull-request@v3
         with:
           message: |
-            You can find the hydra build for this PR [at this link](https://hydra.novarover.space/jobset/nova/workspaces-pr-nova-${{ github.event.pull_request.number }}). 🐍 
+            You can find the hydra build for this PR [at this link](https://hydra.novarover.space/jobset/nova/workspaces-pr-nova-${{ steps.get_pr_number.outputs.pr_number }}). 🐍 
 
             Username: `nova`
             Password: [link](https://github.com/MonashNovaRover/secrets/blob/master/hydra-password.txt)
 
-            Please check it builds before merging! 
+            Please check it builds before merging!
+          pr-number: ${{ steps.get_pr_number.outputs.pr_number }}
