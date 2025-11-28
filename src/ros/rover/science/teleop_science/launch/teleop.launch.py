@@ -25,6 +25,12 @@ def launch_setup(context, *args, **kwargs):
             output='screen',
             emulate_tty=True,
         ),
+        Node(
+            package='science',
+            executable='control_test.py',
+            output='screen',
+            emulate_tty=True,
+        ),
         # Automatically run joy alongside teleop
         Node(
             package='joy',

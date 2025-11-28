@@ -1,6 +1,6 @@
 from typing import Optional, Any, final, TypeVar
 
-import rclpy
+import rclpy, logging
 from rcl_interfaces.msg import ParameterDescriptor
 from rclpy import Parameter
 
@@ -9,18 +9,18 @@ from ..controller_manager.Interface import Interface, InterfaceCollection
 from ..controllers.Controller import Controller
 from ..hardware_interfaces.HardwareInterface import HardwareInterface
 from rclpy.node import Node
-from teleop_python_utils.Event import Event
+from teleop_python_utils import Event
 
 T = TypeVar("T")
 
 class ControllerManager:
 
-    def __init__(self, system_name: str, default_params: Optional[dict[str, Any]]=None):
+    def __init__(self, node: Node, default_params: Optional[dict[str, Any]]=None):
         """ Constructor.
         :param system_name: The name of the control system (e.g. 'auger', 'science_platform', etc.)
         :param default_params: A map of param names to default param values.
         """
-        self.system_name = system_name
+        self.system_name = node.get_name()
 
         if default_params is None:
             default_params = {}
@@ -46,8 +46,12 @@ class ControllerManager:
         # Called before hardware interfaces write to hardware
         self.on_write: Event[[float, float]] = Event()
 
-        # The node used by this controller manager. Only guaranteed to have a value after being spun.
-        self.node: Optional[Node] = None
+        # The node used by this controller manager.
+        self.node = node
+        self.contexts[Node] = node
+        logging_level = self.node.declare_parameter("logging_level", "INFO", ParameterDescriptor(name="Logging level.")).value
+        self.node.get_logger().set_level(logging.getLevelNamesMapping()[logging_level])
+
         self._update_rate_param = None
 
         # The last recorded update start time
@@ -83,13 +87,6 @@ class ControllerManager:
         :param auto_run_rclpy: When True (the default), rclpy.spin() and rclpy.shutdown() will be called automatically
         :return: None
         """
-        # Make sure node is set
-        if Node not in self.contexts:
-            # TODO: Create node
-            self.node = self.contexts.construct(Node, self.system_name)
-        elif self.node is None:
-            self.node = self.contexts[Node]
-
         def set_populated(interface: Interface):
             """ Called whenever a controller gets a command interface or a hardware interface gets a state interface.
             """

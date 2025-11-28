@@ -2,7 +2,7 @@ import jcan, logging
 import rclpy
 from rclpy.node import Node, ParameterDescriptor
 from typing import Type, TypeVar, List, Any, Optional, Callable
-from teleop_python_utils.Inputs import Inputs
+from teleop_python_utils import Inputs
 from .ControllerManager import ControllerManager
 from ..controllers.Controller import Controller
 from ..controllers.DeferredConstructor import DeferredConstructor
@@ -19,19 +19,14 @@ class ControllerManagerBuilder:
         self.hardware_constructors: List[DeferredConstructor] = []
 
     @classmethod
-    def NewControllerManager(cls, system_name: str, default_params: Optional[dict[str, Any]]=None) -> "ControllerManagerBuilder":
-        cm = ControllerManager(system_name, default_params)
+    def NewControllerManager(cls, node: Node, default_params: Optional[dict[str, Any]]=None) -> "ControllerManagerBuilder":
+        cm = ControllerManager(node, default_params)
 
         if not rclpy.ok():
             print("You should run rclpy.init() before creating python control!")
             rclpy.init()
 
         cmb = ControllerManagerBuilder(cm)
-        cmb.with_context(Node, system_name)
-
-        node = cm.contexts[Node]
-        logging_level = node.declare_parameter("logging_level", "INFO", ParameterDescriptor(name="Logging level.")).value
-        node.get_logger().set_level(logging.getLevelNamesMapping()[logging_level])
 
         return cmb
 
@@ -148,15 +143,15 @@ class ControllerManagerBuilder:
 
         return self
 
-    def with_teleop(self, input_constructor: Callable[[Node], Inputs]) -> "ControllerManagerBuilder":
+    def with_teleop(self, inputs: Inputs) -> "ControllerManagerBuilder":
         """ Adds teleop_modular functionality. Inputs are received by an Inputs object where Buttons and Axes can be
         retrieved.
 
-        :param input_constructor: Function that takes in a node and returns a teleop python util Inputs
+        :param inputs: teleop python util Inputs
         see the teleop docs for configuration options:
         https://github.com/BaileyChessum/teleop_modular/blob/main/teleop_python_utils/teleop_python_utils/modules/Inputs.py
         """
-        self._cm.contexts[Inputs] = input_constructor(self._cm.contexts[Node])
+        self._cm.contexts[Inputs] = inputs
         return self
 
     def spin(self, default_update_rate: float=20, auto_run_rclpy: bool=True) -> None:
@@ -165,13 +160,6 @@ class ControllerManagerBuilder:
         :param auto_run_rclpy: When True (the default), rclpy.spin() and rclpy.shutdown() will be called automatically
         :return: None
         """
-        # Make sure node is set
-        if Node not in self._cm.contexts:
-            # TODO: Create node
-            self._cm.node = self._cm.contexts.construct(Node, self._cm.system_name)
-        elif self._cm.node is None:
-            self._cm.node = self._cm.contexts[Node]
-
         self._cm.contexts[Node].get_logger().info(f"Starting python control")
 
         # Do deferred initialization
