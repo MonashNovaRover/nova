@@ -23,10 +23,6 @@ class TestController(Controller):
         self.button_name = self.declare_parameter("button", button).value
         self.axis_name = self.declare_parameter("axis", axis).value
 
-        # For debugging purposes
-        self.logger.info(f"Buttons: {list(contexts[Inputs].buttons)}")
-        self.logger.info(f"Axes: {list(contexts[Inputs].axes)}")
-
         self.button = contexts[Inputs].get_button(self.button_name)
         contexts[Inputs].get_event(f"{self.button_name}/down").add_callback(lambda : self.logger.info(f"{self.button_name}/down event triggered"))
         self.axis = contexts[Inputs].get_axis(self.axis_name)
