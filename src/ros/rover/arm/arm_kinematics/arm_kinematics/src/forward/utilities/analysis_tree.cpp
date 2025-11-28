@@ -80,7 +80,7 @@ AnalysisTree::AnalysisTree(
     current = joints_[current].parent;
   }
 
-  RCLCPP_INFO(rclcpp::get_logger("fresh_new_subtree_before_adding_joints"), "reverse path end is %lu", reversed_path_end_old);
+  // RCLCPP_INFO(rclcpp::get_logger("fresh_new_subtree_before_adding_joints"), "reverse path end is %lu", reversed_path_end_old);
 
   // Create topological order of new joint ids to old joint ids
   assert(subtree_joint_count > 0);
@@ -91,7 +91,7 @@ AnalysisTree::AnalysisTree(
 
   // Add dummy root joint
   order[0] = 0;
-  log(rclcpp::get_logger("fresh_new_subtree_before_adding_joints"));
+  // log(rclcpp::get_logger("fresh_new_subtree_before_adding_joints"));
   joints_.add("", {0});
 
   // Add reversed root joint off the dummy root
@@ -130,7 +130,9 @@ AnalysisTree::AnalysisTree(
     );
   }
 
-  RCLCPP_INFO(rclcpp::get_logger("fresh_new_subtree_started_adding_joints"), "reverse path is %s", order.to_string().c_str());
+  // RCLCPP_INFO(rclcpp::get_logger("fresh_new_subtree_started_adding_joints"), "reverse path is %s", order.to_string().c_str());
+
+  // rclcpp::Logger logger = rclcpp::get_logger("joint_additions");
 
   auto case2_common_origin = root_joint_id == 0
     ? other.frames_[*root_frame_id].origin.inverse() * other.joints_[rootless_reversed_path_end_old].origin.inverse()
@@ -146,8 +148,11 @@ AnalysisTree::AnalysisTree(
 
     const auto & other_joint = other.joints_[joint_id_old];
 
+    // RCLCPP_INFO_STREAM(logger, "Joint (-< " << joint_id_old << " \"" << other.joints_.names[joint_id_old] << "\") other_joint.parent=" << other_joint.parent << " \"" << other.joints_.names[other_joint.parent] << "\"");
+
     // Normal case
     if (!reversed_mask_old[other_joint.parent]) {
+      // RCLCPP_INFO_STREAM(logger, " -- Normal Case");
       order.inverse[joint_id_old] = add_joint(
         other.joints_.names[joint_id_old],
         order.inverse[other_joint.parent],
@@ -161,12 +166,13 @@ AnalysisTree::AnalysisTree(
     if (other_joint.parent == 0)  //< parented to the other tree's dummy root
     {
       auto origin = case2_common_origin * other_joint.origin;
+      // RCLCPP_INFO_STREAM(logger, " -- Case 2 -- common_parent=" << case2_common_parent << " \"" << joints_.names[case2_common_parent] << "\", origin:\n" << origin.matrix());
 
       order.inverse[joint_id_old] = add_joint(
         other.joints_.names[joint_id_old],
         case2_common_parent,
         other_joint.joint,
-        case2_common_origin * origin
+        origin
       );
       continue;
     }
@@ -178,6 +184,7 @@ AnalysisTree::AnalysisTree(
     // We have to use the origin transform from the new subtree to handle the reversed path root joint (Case 0)
     const auto & other_parent_new = joints_[order.inverse[other_joint.parent]]; //< bad name
     const auto origin = other_parent_new.origin * other_joint.origin;
+    // RCLCPP_INFO_STREAM(logger, " -- Case 1 -- grandparent_id=" << reverse_path_grandparent_id << ", other_parent_id_new=" << order.inverse[joint_id_old] << ", origin:\n" << origin.matrix());
 
     order.inverse[joint_id_old] = add_joint(
       other.joints_.names[joint_id_old],
@@ -190,7 +197,8 @@ AnalysisTree::AnalysisTree(
   // All joints should now be finished -> move onto constructing frames
   assert(joints_.size() == subtree_joint_count + 1);
 
-  rclcpp::Logger logger = rclcpp::get_logger("frame_additions");
+  // logger = rclcpp::get_logger("frame_additions");
+  // log(rclcpp::get_logger("subtree"));
 
   // Calculate all frames to match the given definitions
   for (size_t frame_id = 0; frame_id < definitions.size(); ++frame_id)
@@ -206,12 +214,12 @@ AnalysisTree::AnalysisTree(
 
     assert(subtree_mask[joint_id_old]);
 
-    RCLCPP_INFO_STREAM(logger, "Frame " << frame_id << " (-< " << frame_id_old << " \"" << other.frames_.names[frame_id_old] << "\") joint_id_old=" << joint_id_old << " \"" << other.joints_.names[joint_id_old] << "\"");
+    // RCLCPP_INFO_STREAM(logger, "Frame " << frame_id << " (-< " << frame_id_old << " \"" << other.frames_.names[frame_id_old] << "\") joint_id_old=" << joint_id_old << " \"" << other.joints_.names[joint_id_old] << "\"");
     const auto & other_joint = other.joints_[joint_id_old];
 
     // Normal case
     if (!reversed_mask_old[joint_id_old]) {
-      RCLCPP_INFO_STREAM(logger, "Frame " << frame_id << " -- Normal Case");
+      // RCLCPP_INFO_STREAM(logger, "Frame " << frame_id << " -- Normal Case");
       add_frame(
         frame_name, //< TODO: Change signature to allow std::move
         order.inverse[joint_id_old],
@@ -224,7 +232,7 @@ AnalysisTree::AnalysisTree(
     if (joint_id_old == 0)  //< parented to the other tree's dummy root
     {
       auto origin = case2_common_origin * definition_origin;
-      RCLCPP_INFO_STREAM(logger, "Frame " << frame_id << " -- Case 2 -- common_parent=" << case2_common_parent << ", origin:\n" << origin.matrix());
+      // RCLCPP_INFO_STREAM(logger, "Frame " << frame_id << " -- Case 2 -- common_parent=" << case2_common_parent << ", origin:\n" << origin.matrix());
 
       add_frame(
         frame_name,
@@ -239,7 +247,7 @@ AnalysisTree::AnalysisTree(
     // We have to use the origin transform from the new subtree to handle the reversed path root joint (Case 0)
     const auto & other_parent_new = joints_[order.inverse[joint_id_old]]; //< bad name
     const auto origin = other_parent_new.origin * definition_origin;
-    RCLCPP_INFO_STREAM(logger, "Frame " << frame_id << " -- Case 1 -- grandparent_id=" << reverse_path_grandparent_id << ", other_parent_id_new=" << order.inverse[joint_id_old] << ", origin:\n" << origin.matrix());
+    // RCLCPP_INFO_STREAM(logger, "Frame " << frame_id << " -- Case 1 -- grandparent_id=" << reverse_path_grandparent_id << ", other_parent_id_new=" << order.inverse[joint_id_old] << ", origin:\n" << origin.matrix());
 
     add_frame(
       frame_name,
@@ -327,7 +335,7 @@ ComputeJointTree AnalysisTree::make_compute_joint_tree() {
   const size_t root_relative_count = joints_[0].children.size();
   for (size_t i = 0; i < root_relative_count; ++i) {
     const auto & joint = joints_[i + 1];
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("root_relative"), "pushing joint " << std::to_string(i + 1) << " origin:\n" << joint.origin.matrix());
+    // RCLCPP_INFO_STREAM(rclcpp::get_logger("root_relative"), "pushing joint " << std::to_string(i + 1) << " origin:\n" << joint.origin.matrix());
 
     origins[i] = joint.origin;
     types[i] = joint.joint.type;
@@ -336,7 +344,7 @@ ComputeJointTree AnalysisTree::make_compute_joint_tree() {
 
   for (size_t i = root_relative_count; i < joints_.size() - 1; ++i) {
     const auto & joint = joints_[i + 1];
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("non_root_relative"), "pushing joint " << std::to_string(i + 1) << " origin:\n" << joint.origin.matrix());
+    // RCLCPP_INFO_STREAM(rclcpp::get_logger("non_root_relative"), "pushing joint " << std::to_string(i + 1) << " origin:\n" << joint.origin.matrix());
 
     parents.emplace_back(joint.parent - 1);
     origins[i] = joint.origin;
@@ -359,7 +367,7 @@ Order<> AnalysisTree::sort_joints(const bool sort_children) {
   if (sort_children)
     sort_joint_children_strategy_a();
 
-  log(rclcpp::get_logger("sort_joints"));
+  // log(rclcpp::get_logger("sort_joints"));
 
   Order order(joints_.size(), joints_.size());
 
@@ -377,8 +385,8 @@ Order<> AnalysisTree::sort_joints(const bool sort_children) {
     }
   }
 
-  RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "forward %s", order.to_string().c_str());
-  RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "inverse %s", order.inverse.to_string().c_str());
+  // RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "forward %s", order.to_string().c_str());
+  // RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "inverse %s", order.inverse.to_string().c_str());
 
   sort_joints(order);
   sorted_joints_ = true;
@@ -392,10 +400,10 @@ Order<> AnalysisTree::sort_frames() noexcept {
   for (size_t joint_id = 1; joint_id < joints_.size(); ++joint_id) {
 
     auto & joint = joints_[joint_id];
-    RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "joint %lu ---- %s", joint_id, joints_.names[joint_id].c_str());
+    // RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "joint %lu ---- %s", joint_id, joints_.names[joint_id].c_str());
 
     for (auto frame_id : joint.frames) {
-      RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "frame %lu = %lu", i, frame_id);
+      // RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "frame %lu = %lu", i, frame_id);
       assert(frame_id < frame_order.size());
       assert(i < frame_order.size());
 
@@ -406,10 +414,10 @@ Order<> AnalysisTree::sort_frames() noexcept {
   }
 
   auto & dummy_root = joints_[0];
-  RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "dummy root ---- %s", joints_.names[0].c_str());
+  // RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "dummy root ---- %s", joints_.names[0].c_str());
 
   for (auto frame_id : dummy_root.frames) {
-    RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "frame %lu = %lu", i, frame_id);
+    // RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "frame %lu = %lu", i, frame_id);
     assert(frame_id < frame_order.size());
     assert(i < frame_order.size());
 

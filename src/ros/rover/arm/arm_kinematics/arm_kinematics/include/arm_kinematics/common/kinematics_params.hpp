@@ -7,6 +7,7 @@
 
 #include <string>
 #include <arm_kinematics/visibility_control.h>
+#include <rclcpp/node_interfaces/node_interfaces.hpp>
 #include <rclcpp/node_interfaces/node_parameters_interface.hpp>
 #include <urdf/model.h>
 
@@ -17,6 +18,7 @@ namespace arm_kinematics {
  */
 struct ARM_KINEMATICS_PUBLIC KinematicsParams {
   using NodeParametersInterface = rclcpp::node_interfaces::NodeParametersInterface;
+  using NodeInterfaces = rclcpp::node_interfaces::NodeInterfaces<NodeParametersInterface>;
   using SharedPtr = std::shared_ptr<KinematicsParams>;
 
   /// The name of the link in the URDF to treat as the 'origin' for kinematics
@@ -36,8 +38,17 @@ struct ARM_KINEMATICS_PUBLIC KinematicsParams {
    * @param node The parameter interface to get params from
    * @param robot_description The URDF string used in kinematics
    */
-  explicit KinematicsParams(
+  KinematicsParams(
     const NodeParametersInterface::SharedPtr & node,
+    const std::string & robot_description);
+
+  /**
+   * Constructor
+   * @param node The parameter interface to get params from
+   * @param robot_description The URDF string used in kinematics
+   */
+  KinematicsParams(
+    NodeInterfaces node,
     const std::string & robot_description);
 
 private:

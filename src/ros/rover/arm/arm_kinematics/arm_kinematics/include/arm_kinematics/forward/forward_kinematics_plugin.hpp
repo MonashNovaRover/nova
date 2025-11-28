@@ -95,7 +95,7 @@ public:
      *   auto element = my_reordered_vec[0];  //< Index in, or loop over it, etc...
      * \endcode
      */
-    std::unique_ptr<Order<>> order;
+    Order<> order;
   };
 
   /**

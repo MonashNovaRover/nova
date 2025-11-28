@@ -19,14 +19,10 @@ bool ForwardKinematicsPlugin::initialize(
 
   // Set up URDF
   RCLCPP_INFO(get_logger(), "Parsing URDF and creating KDL Tree...");
-  if (!urdf_model_.initString(robot_description)) {
-    RCLCPP_ERROR(get_logger(), "Failed to init URDF model from robot_description string.");
-    return false;
-  }
 
   joint_map_builder_ = JointMapBuilder()
-    .with_urdf(urdf_model_)
-    .with_transmissions(robot_description, get_logger());
+    .with_urdf(get_urdf_model())
+    .with_transmissions(get_kinematics_params().robot_description, get_logger());
 
   return on_initialize();
 }

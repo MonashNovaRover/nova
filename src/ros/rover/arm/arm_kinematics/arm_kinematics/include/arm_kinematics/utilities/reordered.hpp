@@ -11,27 +11,17 @@
 namespace arm_kinematics {
 
 // Please only use this for temporary values
-template<typename TCollection, typename TKey = std::size_t, bool FixedSize = true>
+template<typename TCollection, typename TOrderKey, typename TKey, bool StoresInverse = true>
 struct Reordered
 {
   using key_type = TKey;
   using size_type = std::size_t;
 
   TCollection & collection{};
-  Order<FixedSize, TKey> & order{0};
+  const Order<TOrderKey, TKey, StoresInverse> & order{0};
 
-  constexpr Reordered(TCollection & collection, const Order<FixedSize, TKey> & order) : collection(collection), order(order) {}
-
-  // Don't allow const reorders to be copied
-  // Enable only if T != Forbidden
-  template<typename U=TCollection,
-           std::enable_if_t<!std::is_same_v<U, const Order<>>, int> = 0>
-  Reordered(const Reordered &) = default;
-
-  // Enable only if T == Forbidden
-  template<typename U=TCollection,
-           std::enable_if_t<std::is_same_v<U, const Order<>>, int> = 0>
-  Reordered(const Reordered &) = delete;
+  constexpr Reordered(TCollection & collection, const Order<TOrderKey, TKey, StoresInverse> & order)
+  : collection(collection), order(order) {}
 
   /**
    * Get the value at the key for this id in the order
@@ -229,6 +219,9 @@ struct Reordered
   const_reverse_iterator crbegin() const noexcept { return rbegin(); }
   const_reverse_iterator crend() const noexcept { return rend(); }
 
+  constexpr size_type size() const noexcept {
+    return order.size();
+  }
 };
 
 } // namespace arm_kinematics

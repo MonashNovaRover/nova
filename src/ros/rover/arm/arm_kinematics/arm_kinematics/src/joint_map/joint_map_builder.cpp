@@ -2,6 +2,7 @@
 // Created by Bailey Chessum on 15/10/2025.
 //
 
+#include <optional>
 #include <arm_kinematics/joint_map/joint_map_builder.hpp>
 
 namespace arm_kinematics {
@@ -155,6 +156,44 @@ JointMapBuilder::parse_transmission_actuator_from_xml(const tinyxml2::XMLElement
   return actuator_info;
 }
 
+namespace impl
+{
+std::optional<double> stod(const std::string & s)
+{
+#if __cplusplus < 202002L
+  // convert from string using no locale
+  // Impl with std::istringstream
+  std::istringstream stream(s);
+  stream.imbue(std::locale::classic());
+  double result;
+  stream >> result;
+  if (stream.fail() || !stream.eof())
+  {
+    return std::nullopt;
+  }
+  return result;
+#else
+  // Impl with std::from_chars
+  double result_value;
+  const auto parse_result = std::from_chars(s.data(), s.data() + s.size(), result_value);
+  if (parse_result.ec == std::errc())
+  {
+    return result_value;
+  }
+  return std::nullopt;
+#endif
+}
+}  // namespace impl
+
+double stod(const std::string & s)
+{
+  if (const auto result = impl::stod(s))
+  {
+    return *result;
+  }
+  throw std::invalid_argument("Failed converting string to real number");
+}
+
 double JointMapBuilder::get_parameter_value_or(const tinyxml2::XMLElement * params_it, const char * parameter_name,
                                                const double default_value) {
   while (params_it)
@@ -168,7 +207,7 @@ double JointMapBuilder::get_parameter_value_or(const tinyxml2::XMLElement * para
         const auto tag_text = params_it->GetText();
         if (tag_text)
         {
-          return hardware_interface::stod(tag_text);
+          return stod(tag_text);
         }
       }
     }

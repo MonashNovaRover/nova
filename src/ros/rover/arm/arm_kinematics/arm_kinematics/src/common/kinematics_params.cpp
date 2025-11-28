@@ -16,12 +16,22 @@ const urdf::Model & KinematicsParams::get_urdf_model() const {
   return *urdf_model_;
 }
 
-KinematicsParams::KinematicsParams(const NodeParametersInterface::ConstSharedPtr & node,
-  const std::string & robot_description): robot_description(robot_description) {
+KinematicsParams::KinematicsParams(
+  const NodeParametersInterface::SharedPtr & node,
+  const std::string & robot_description)
+: robot_description(robot_description)
+{
   const ParamReader params(node);
 
   base_link_name = params.get_or<std::string>("base_link_name", "base_link");
-  ee_link_name = params.get_or<std::string>("base_link_name", "base_link");
+  ee_link_name = params.get_or<std::string>("ee_link_name", "ee_link");
+}
+
+KinematicsParams::KinematicsParams(
+  NodeInterfaces node,
+  const std::string & robot_description)
+: KinematicsParams(node.get_node_parameters_interface(), robot_description)
+{
 }
 
 } // arm_kinematics

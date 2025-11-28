@@ -62,22 +62,26 @@ void JointMap::map(const std::vector<double> & inputs, KDL::JntArray & jnts) con
 }
 
 void JointMap::map(const std::vector<double> & inputs, std::vector<double> & outputs) const {
-  assert(inputs.size() == input_count);   //< Wrong number of elements in inputs
+  assert(!input_count || inputs.size() == input_count);   //< Wrong number of elements in inputs
   assert(outputs.size() == output_count); //< Wrong number of elements in outputs
-
-  for (size_t i = 0; i < output_count; ++i) {
-    outputs[i] = inputs[sources[i]] * multipliers[i] + offsets[i];
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("joe"), std::to_string(i) << " = " << multipliers[i] << " * (" << std::to_string(sources[i]) << ", " << std::to_string(inputs[sources[i]]) << ") + " << offsets[i] << " = " << std::to_string(outputs[i]));
-  }
-  return;
 
   // The Jeston Orin Nano should have FP64 NEON SIMD instructions
   // Thought I might try coax the compiler into using it
 
   auto* __restrict__ out = outputs.data();
+  auto* __restrict__ off = offsets.data();
+
+  if (!input_count) {
+    // This allows empty input maps to work
+    #pragma omp simd
+    for (size_t i = 0; i < output_count; ++i) {
+      out[i] = off[i];
+    }
+    return;
+  }
+
   auto* __restrict__ in  = inputs.data();
   auto* __restrict__ mul = multipliers.data();
-  auto* __restrict__ off = offsets.data();
   auto* __restrict__ src = sources.data();
 
   // Step 1 -- gather source inputs into outputs so it can be vectorized.

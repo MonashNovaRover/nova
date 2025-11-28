@@ -6,13 +6,13 @@
 #include <urdf_model/model.h>
 #include <Eigen/Geometry>
 
-#include <arm_kinematics/forward/eigen/compute_joint_tree.hpp>
-#include <arm_kinematics/forward/eigen/compute_frame_tree.hpp>
-#include <arm_kinematics/forward/eigen/eigen_forward_kinematics_plugin.hpp>
+#include <arm_kinematics/forward/utilities/compute_joint_tree.hpp>
+#include <arm_kinematics/forward/utilities/compute_frame_tree.hpp>
+#include <arm_kinematics/forward/utilities/eigen_forward_kinematics_plugin.hpp>
 #include <arm_kinematics/joint_map/joint_map.hpp>
 #include <arm_kinematics/joint_map/joint_map_builder.hpp>
-
 #include <rclcpp/rclcpp.hpp>
+#include <arm_kinematics/utilities/reordered.hpp>
 
 using arm_kinematics::ComputeFrameTree;
 using arm_kinematics::ComputeJointTree;
@@ -22,6 +22,8 @@ using arm_kinematics::JointMapBuilder;
 using arm_kinematics::ForwardKinematicsPlugin;
 using arm_kinematics::EigenForwardKinematicsPlugin;
 using arm_kinematics::AnalysisTree;
+using arm_kinematics::KinematicsParams;
+using arm_kinematics::Reordered;
 
 static void ExpectVectorNear(const Eigen::Vector3d & actual,
                              const Eigen::Vector3d & expected,
@@ -59,218 +61,7 @@ Eigen::Isometry3d to_isometry(
   return T;
 }
 
-
-// ---------------------------------------------------------------------------
-// Test fixture: builds a small URDF model with fixed + actuated joints.
-//
-//  base_link
-//    └─ joint1 (revolute Z) -> link1
-//         └─ joint2 (prismatic X, origin y=1) -> link2
-//              └─ joint3 (fixed, origin z=0.1) -> link3
-//
-// We use this to test:
-//  * FK tree over {joint1, joint2} only (no fixed joint3).
-//  * Mapping frames attached to link1, link2, and link3.
-// ---------------------------------------------------------------------------
-
-class EigenFKMapperTest : public ::testing::Test
-{
-protected:
-  void SetUp() override
-  {
-    const std::string urdf_xml = R"(
-      <robot name="test_robot">
-        <link name="base_link"/>
-        <link name="link1"/>
-        <link name="link2"/>
-        <link name="link3"/>
-
-        <!-- Revolute joint about Z between base_link and link1 -->
-        <joint name="joint1" type="revolute">
-          <parent link="base_link"/>
-          <child  link="link1"/>
-          <origin xyz="0 0 0" rpy="0 0 0"/>
-          <axis   xyz="0 0 1"/>
-          <limit  lower="-3.14159" upper="3.14159" effort="10.0" velocity="10.0"/>
-        </joint>
-
-        <!-- Prismatic joint along X between link1 and link2, offset in Y -->
-        <joint name="joint2" type="prismatic">
-          <parent link="link1"/>
-          <child  link="link2"/>
-          <origin xyz="0 1 0" rpy="0 0 0"/>
-          <axis   xyz="1 0 0"/>
-          <limit  lower="-1.0" upper="1.0" effort="10.0" velocity="10.0"/>
-        </joint>
-
-        <!-- Fixed joint from link2 to link3, offset along Z -->
-        <joint name="joint3" type="fixed">
-          <parent link="link2"/>
-          <child  link="link3"/>
-          <origin xyz="0 0 0.1" rpy="0 0 0"/>
-        </joint>
-      </robot>
-    )";
-
-
-    ASSERT_TRUE(model_.initString(urdf_xml))
-      << "Failed to initialise URDF model from string";
-  }
-
-  urdf::Model model_;
-};
-
-// ---------------------------------------------------------------------------
-// 1) Basic check: build mapper for a single frame on link1 (identity offset).
-//    Ensures:
-//    * Only actuated joints are used.
-//    * joint_names order is { "joint1" }.
-//    * FK for link1 is correct for a simple rotation about Z.
-// ---------------------------------------------------------------------------
-
-TEST_F(EigenFKMapperTest, SingleFrameOnLink1)
-{
-  // FrameDefinitions: one frame attached directly to link1 with identity origin
-  FrameDefinitions frames({"link1"}, {Eigen::Isometry3d::Identity()});  // parent_link_names = { "link1" }, origins = { I }
-
-  // std::vector<std::string> fk_joint_names;
-  // EigenFKMapper mapper = build_fk_mapper_from_urdf(
-  //   model_,
-  //   "base_link",
-  //   std::move(frames),
-  //   fk_joint_names);
-  //
-  // // Expect only joint1 is needed
-  // ASSERT_EQ(fk_joint_names.size(), 1u);
-  // EXPECT_EQ(fk_joint_names[0], "joint1");
-  //
-  // // Provide a single joint state: theta about Z
-  // const double theta = M_PI / 4.0;
-  // std::vector<double> joint_states{ theta };
-  //
-  // arm_kinematics::Isometry3dVector poses(1);
-  // mapper.update(joint_states, poses);
-  //
-  // Eigen::Isometry3d expected = Eigen::Isometry3d::Identity();
-  // expected.linear() =
-  //   Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ()).toRotationMatrix();
-  // expected.translation().setZero();
-  //
-  // ExpectIsometryNear(poses[0], expected);
-}
-
-// ---------------------------------------------------------------------------
-// 2) Frame on link2 (child of prismatic joint).
-//    FrameDefinitions: parent_link = "link2", origin = I.
-//    Checks that:
-//      * joint_names = { "joint1", "joint2" } in some consistent order.
-//      * FK includes revolute + prismatic behaviour, with the correct offset
-//        from link1 to link2 (y = 1.0 + x translation along joint2 axis).
-// ---------------------------------------------------------------------------
-
-TEST_F(EigenFKMapperTest, FrameOnLink2WithRevoluteAndPrismatic)
-{
-  FrameDefinitions frames("link2");
-
-  // std::vector<std::string> fk_joint_names;
-  // EigenFKMapper mapper = build_fk_mapper_from_urdf(
-  //   model_,
-  //   "base_link",
-  //   std::move(frames),
-  //   fk_joint_names);
-  //
-  // ASSERT_EQ(fk_joint_names.size(), 2u);
-  // // We expect joint1 and joint2 in some order that matches the tree. For this
-  // // simple chain, a natural ordering is [joint1, joint2].
-  // EXPECT_EQ(fk_joint_names[0], "joint1");
-  // EXPECT_EQ(fk_joint_names[1], "joint2");
-  //
-  // const double theta = M_PI / 2.0;  // 90deg about Z
-  // const double d     = 0.5;         // 0.5m along +X in link1 frame
-  //
-  // std::vector<double> joint_states{ theta, d };
-  // arm_kinematics::Isometry3dVector poses(1);
-  // mapper.update(joint_states, poses);
-  //
-  // // Kinematics:
-  // //  base -> link1: rotation Rz(theta), no translation
-  // //  link1 -> link2: origin (0,1,0) then prismatic along +X by d
-  // //
-  // // In base frame:
-  // //  link2 translation = Rz(theta) * [d, 1, 0]^T
-  // //  link2 rotation    = Rz(theta)
-  // Eigen::Isometry3d expected = Eigen::Isometry3d::Identity();
-  // Eigen::Vector3d local( d, 1.0, 0.0 );
-  // Eigen::Matrix3d R = Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ()).toRotationMatrix();
-  //
-  // expected.linear() = R;
-  // expected.translation() = R * local;
-  //
-  // ExpectIsometryNear(poses[0], expected);
-}
-
-// ---------------------------------------------------------------------------
-// 3) Frame on link3, which is reachable only through a FIXED joint3 from link2.
-//    We request a frame attached to link3 with identity offset.
-//    Checks that:
-//      * joint_names still only reference {joint1, joint2} (no joint3).
-//      * mapper offset correctly bakes the fixed joint into the result.
-// ---------------------------------------------------------------------------
-
-TEST_F(EigenFKMapperTest, FrameOnLink3BakesFixedJointIntoOffset)
-{
-  FrameDefinitions frames("link3");
-
-  // std::vector<std::string> fk_joint_names;
-  // EigenFKMapper mapper = build_fk_mapper_from_urdf(
-  //   model_,
-  //   "base_link",
-  //   std::move(frames),
-  //   fk_joint_names);
-  //
-  // // Still only two actuated joints
-  // ASSERT_EQ(fk_joint_names.size(), 2u);
-  // EXPECT_EQ(fk_joint_names[0], "joint1");
-  // EXPECT_EQ(fk_joint_names[1], "joint2");
-  //
-  // const double theta = M_PI / 2.0;
-  // const double d     = 0.5;
-  //
-  // std::vector<double> joint_states{ theta, d };
-  // arm_kinematics::Isometry3dVector poses(1);
-  // mapper.update(joint_states, poses);
-  //
-  // // link3 sits at a fixed offset (0,0,0.1) from link2 in link2's frame.
-  // //
-  // // base -> link2 as in previous test:
-  // //   p2 = Rz(theta) * [d, 1, 0]^T
-  // //   R2 = Rz(theta)
-  // //
-  // // link2 -> link3: [0, 0, 0.1]^T
-  // // so:
-  // //   p3 = p2 + R2 * [0, 0, 0.1]^T
-  // Eigen::Vector3d local2(d, 1.0, 0.0);
-  // Eigen::Matrix3d R = Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ()).toRotationMatrix();
-  // Eigen::Vector3d p2 = R * local2;
-  // Eigen::Vector3d local_fix(0.0, 0.0, 0.1);
-  // Eigen::Vector3d p3 = p2 + R * local_fix;
-  //
-  // Eigen::Isometry3d expected = Eigen::Isometry3d::Identity();
-  // expected.linear() = R;
-  // expected.translation() = p3;
-  //
-  // ExpectIsometryNear(poses[0], expected);
-}
-
-// ---------------------------------------------------------------------------
-// 4) Integration: EigenForwardKinematicsPlugin::Tree
-//    Uses:
-//     * build_fk_mapper_from_urdf for mapping
-//     * JointMap with identity mapping (no mimic/transmission)
-//    Then checks that Tree::position_fk matches mapper's result.
-// ---------------------------------------------------------------------------
-
-class EigenForwardKinematicsPluginTreeTest : public ::testing::Test
+class SimpleUrdfTests : public ::testing::Test
 {
 protected:
   void SetUp() override
@@ -302,6 +93,7 @@ protected:
 
     node_ = std::make_shared<rclcpp::Node>("test_eigen_fk_mapper");
     logger_ = node_->get_logger();
+    kinematics_params_ = std::make_shared<KinematicsParams>(*node_, robot_description_);
   }
 
   void TearDown() override {
@@ -312,9 +104,10 @@ protected:
   urdf::Model model_;
   std::shared_ptr<rclcpp::Node> node_;
   rclcpp::Logger logger_ = rclcpp::get_logger("not_initialized");
+  KinematicsParams::SharedPtr kinematics_params_;
 };
 
-TEST_F(EigenForwardKinematicsPluginTreeTest, SimpleUrdfComputeJointTree)
+TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTree)
 {
   // One frame attached to link2 with identity origin
   std::vector<std::string> joint_names{"joint1", "joint2"};
@@ -323,7 +116,7 @@ TEST_F(EigenForwardKinematicsPluginTreeTest, SimpleUrdfComputeJointTree)
   RCLCPP_INFO(node_->get_logger(), "Creating plugin");
   ForwardKinematicsPlugin::SharedPtr plugin = std::make_shared<EigenForwardKinematicsPlugin>();
   RCLCPP_INFO(node_->get_logger(), "Initializing plugin");
-  auto init_result = plugin->initialize(*node_, robot_description_);
+  auto init_result = plugin->initialize(*node_, kinematics_params_);
 
   ASSERT_TRUE(init_result) << "Failed to initialize plugin";
 
@@ -400,7 +193,7 @@ TEST_F(EigenForwardKinematicsPluginTreeTest, SimpleUrdfComputeJointTree)
   ExpectIsometryNear(tree.poses[1], link2_truth, "link2 pose is wrong");
 }
 
-TEST_F(EigenForwardKinematicsPluginTreeTest, SimpleUrdfEigenFKPluginTree)
+TEST_F(SimpleUrdfTests, SimpleUrdfEigenFKPluginTree)
 {
   // One frame attached to link2 with identity origin
   FrameDefinitions frames = {std::vector<std::string>{"link1", "link2"}};
@@ -411,7 +204,7 @@ TEST_F(EigenForwardKinematicsPluginTreeTest, SimpleUrdfEigenFKPluginTree)
   RCLCPP_INFO(node_->get_logger(), "Creating plugin");
   EigenForwardKinematicsPlugin::SharedPtr plugin = std::make_shared<EigenForwardKinematicsPlugin>();
   RCLCPP_INFO(node_->get_logger(), "Initializing plugin");
-  auto init_result = plugin->initialize(*node_, robot_description_);
+  auto init_result = plugin->initialize(*node_, kinematics_params_);
 
   ASSERT_TRUE(init_result) << "Failed to initialize plugin";
 
@@ -424,15 +217,13 @@ TEST_F(EigenForwardKinematicsPluginTreeTest, SimpleUrdfEigenFKPluginTree)
   weird_joint_map.map(joint_states, mapped_joint_states_weird);
 
   RCLCPP_INFO(node_->get_logger(), "Creating FK Tree");
-  auto result = plugin->make_tree(joint_names, std::string("base_link"), frames);
+  auto [__tree, order] = plugin->make_tree(joint_names, std::string("base_link"), frames);
 
-  ASSERT_TRUE(result.order) << "Failed to create order";
-  ASSERT_TRUE(result.order->size() > 0) << "Failed to create tree with order";
+  ASSERT_TRUE(order.size() > 0) << "Failed to create tree with order";
 
   EigenForwardKinematicsPlugin::TreeImpl::SharedPtr tree =
-    std::dynamic_pointer_cast<EigenForwardKinematicsPlugin::TreeImpl>(result.tree);
+    std::dynamic_pointer_cast<EigenForwardKinematicsPlugin::TreeImpl>(__tree);
   ASSERT_TRUE(tree) << "Failed to create tree";
-
 
   std::vector<double> mapped_joint_states(tree->get_joint_map().output_count);
   tree->get_joint_map().map(joint_states, mapped_joint_states);
@@ -481,7 +272,7 @@ TEST_F(EigenForwardKinematicsPluginTreeTest, SimpleUrdfEigenFKPluginTree)
   ExpectIsometryNear(link_poses[1], link2_truth, "link2 pose is wrong");
 }
 
-TEST_F(EigenForwardKinematicsPluginTreeTest, SimpleUrdfComputeJointTreeReversed)
+TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTreeReversed)
 {
   // One frame attached to link2 with identity origin
   std::vector<std::string> joint_names{"joint1", "joint2"};
@@ -490,7 +281,7 @@ TEST_F(EigenForwardKinematicsPluginTreeTest, SimpleUrdfComputeJointTreeReversed)
   RCLCPP_INFO(node_->get_logger(), "Creating plugin");
   ForwardKinematicsPlugin::SharedPtr plugin = std::make_shared<EigenForwardKinematicsPlugin>();
   RCLCPP_INFO(node_->get_logger(), "Initializing plugin");
-  auto init_result = plugin->initialize(*node_, robot_description_);
+  auto init_result = plugin->initialize(*node_, kinematics_params_);
 
   ASSERT_TRUE(init_result) << "Failed to initialize plugin";
 
@@ -635,7 +426,7 @@ protected:
         <link name="zy"/>
         <joint name="zy" type="prismatic">
           <parent link="z"/>
-          <child  link="zx"/>
+          <child  link="zy"/>
           <origin xyz="0 1 0" rpy="0 0 0"/>
           <axis   xyz="0 1 0"/>
           <limit  lower="-1.0" upper="1.0" effort="10.0" velocity="10.0"/>
@@ -648,17 +439,68 @@ protected:
           <origin xyz="0 0 1" rpy="0 0 0"/>
         </joint>
 
-        <link name="zyz"/>
-        <link name="zz"/>
-        <link name=""/>
-        <link name="link2"/>
+        <link name="x"/>
+        <joint name="x" type="prismatic">
+          <parent link="base"/>
+          <child  link="x"/>
+          <origin xyz="1 0 0" rpy="0 0 0"/>
+          <axis   xyz="1 0 0"/>
+          <limit  lower="-1.0" upper="1.0" effort="10.0" velocity="10.0"/>
+        </joint>
 
+        <link name="y"/>
+        <joint name="y" type="prismatic">
+          <parent link="base"/>
+          <child  link="y"/>
+          <origin xyz="0 1 0" rpy="0 0 0"/>
+          <axis   xyz="0 1 0"/>
+          <limit  lower="-1.0" upper="1.0" effort="10.0" velocity="10.0"/>
+        </joint>
+
+        <link name="zz"/>
+        <joint name="zz" type="fixed">
+          <parent link="z"/>
+          <child  link="zz"/>
+          <origin xyz="0 0 1" rpy="0 0 0"/>
+        </joint>
+
+        <link name="zzz"/>
+        <joint name="zzz" type="fixed">
+          <parent link="zz"/>
+          <child  link="zzz"/>
+          <origin xyz="0 0 1" rpy="0 0 0"/>
+        </joint>
+
+        <link name="zxzy"/>
+        <joint name="zxzy" type="prismatic">
+          <parent link="zxz"/>
+          <child  link="zxzy"/>
+          <origin xyz="0 1 0" rpy="0 0 0"/>
+          <axis   xyz="0 1 0"/>
+          <limit  lower="-1.0" upper="1.0" effort="10.0" velocity="10.0"/>
+        </joint>
+
+        <link name="zxy"/>
+        <joint name="zxy" type="prismatic">
+          <parent link="zx"/>
+          <child  link="zxy"/>
+          <origin xyz="0 1 0" rpy="0 0 0"/>
+          <axis   xyz="0 1 0"/>
+          <limit  lower="-1.0" upper="1.0" effort="10.0" velocity="10.0"/>
+        </joint>
+
+        <ros2_control>
+        </ros2_control>
       </robot>
     )";
     ASSERT_TRUE(model_.initString(robot_description_));
 
     node_ = std::make_shared<rclcpp::Node>("test_eigen_fk_mapper");
     logger_ = node_->get_logger();
+    kinematics_params_ = std::make_shared<KinematicsParams>(*node_, robot_description_);
+
+    plugin_ = std::make_shared<EigenForwardKinematicsPlugin>();
+    init_result_ = plugin_->initialize(*node_, kinematics_params_);
   }
 
   void TearDown() override {
@@ -669,22 +511,124 @@ protected:
   urdf::Model model_;
   std::shared_ptr<rclcpp::Node> node_;
   rclcpp::Logger logger_ = rclcpp::get_logger("not_initialized");
+  KinematicsParams::SharedPtr kinematics_params_;
+
+  ForwardKinematicsPlugin::SharedPtr plugin_;
+  bool init_result_ = false;
+
+  const std::vector<std::string> joint_names_{"zx", "zxzx", "zy", "x", "y", "zxzy", "zxy"};
+  const std::vector<std::string> frame_names_{
+    "base",
+    "z",
+    "zx",
+    "zxz",
+    "zxzx",
+    "zxzxz",
+    "zy",
+    "zyz",
+    "x",
+    "y",
+    "zz",
+    "zzz",
+    "zxzy",
+    "zxy",
+  };
+  const arm_kinematics::Vector3dVector expected_frame_poses_{
+    {0,0,0},
+    {0,0,1},
+    {1,0,1},
+    {1,0,2},
+    {2,0,2},
+    {2,0,3},
+    {0,1,1},
+    {0,1,2},
+    {1,0,0},
+    {0,1,0},
+    {0,0,2},
+    {0,0,3},
+    {1,1,2},
+    {1,1,1}
+  };
 };
+
+TEST_F(FixedJointUrdfTest, ForwardFromRoot) {
+  ASSERT_TRUE(init_result_) << "Failed to init plugin";
+
+  auto [tree, order] = plugin_->make_tree({}, "base", {frame_names_});
+  ASSERT_TRUE(tree) << "Failed to make tree";
+
+  const auto names = Reordered{frame_names_, order};
+  const auto expected = Reordered{expected_frame_poses_, order};
+
+  // Do FK
+  auto actual = arm_kinematics::Isometry3dVector(expected.size());
+  tree->position_fk({}, actual);
+
+  for (size_t i = 0; i < actual.size(); ++i) {
+    ExpectVectorNear(actual[i].translation(), expected[i], names[i].c_str());
+  }
+}
+
+TEST_F(FixedJointUrdfTest, ForwardFromRootWithActuations) {
+  ASSERT_TRUE(init_result_) << "Failed to init plugin";
+
+  auto [tree, order] = plugin_->make_tree(joint_names_, "base", {frame_names_});
+  ASSERT_TRUE(tree) << "Failed to make tree";
+
+  const auto names = Reordered{frame_names_, order};
+  const auto expected = Reordered{expected_frame_poses_, order};
+
+  // Set joint states to cancel out all axes but the z axis
+  const std::vector<double> joint_states(joint_names_.size(), -1.0);
+
+  // Do FK
+  auto actual = arm_kinematics::Isometry3dVector(expected.size());
+  tree->position_fk(joint_states, actual);
+
+  for (size_t i = 0; i < actual.size(); ++i) {
+    ExpectVectorNear(actual[i].translation(), Eigen::Vector3d(0,0,expected[i].z()), names[i].c_str());
+  }
+}
+
+TEST_F(FixedJointUrdfTest, BackwardFromAll) {
+  ASSERT_TRUE(init_result_) << "Failed to init plugin";
+
+  for (size_t i = 0; i < frame_names_.size(); ++i) {
+    const auto & base_name = frame_names_[i];
+
+    auto [tree, order] = plugin_->make_tree(
+      {}, base_name, {frame_names_});
+    ASSERT_TRUE(tree) << "Failed to make tree from root \"" << joint_names_[i] << "\"";
+
+    const auto names = Reordered{frame_names_, order};
+    const auto expected = Reordered{expected_frame_poses_, order};
+
+    // Do FK
+    auto actual = arm_kinematics::Isometry3dVector(expected.size());
+    tree->position_fk({}, actual);
+
+    const auto base = expected_frame_poses_[i];
+
+    for (size_t j = 0; j < actual.size(); ++j) {
+      if (actual[j].translation() == expected[j] - base)
+        std::cout << "\033[0;32m[PASS] " << base_name << " -> " << names[j] << " \033[0m\n";
+      else
+        std::cerr << "\033[0;31m[FAIL] " << base_name << " -> " << names[j] << " \033[0m\n";
+
+      EXPECT_EQ(actual[j].translation(), expected[j] - base) << "Incorrect pose from " << base_name << " to " << names[j];
+    }
+  }
+}
 
 int main(int argc, char ** argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
 
-  // Build a small argv for ROS, with logging to file disabled
-  const char * ros_argv[] = {
-    argv[0],
-    "--ros-args",
-    "--disable-external-lib-logs",
-    "--disable-rosout-logs",   // optional: no /rosout
-  };
-  int ros_argc = static_cast<int>(sizeof(ros_argv) / sizeof(ros_argv[0]));
+  rclcpp::InitOptions options;
+  options.auto_initialize_logging(false);
+  options.set_domain_id(222);
 
-  rclcpp::init(ros_argc, const_cast<char **>(ros_argv));
+  rclcpp::init(argc, argv, options);
 
   int ret = RUN_ALL_TESTS();
 

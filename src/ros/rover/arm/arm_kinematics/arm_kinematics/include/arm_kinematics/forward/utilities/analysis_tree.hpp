@@ -323,9 +323,6 @@ private:
     if (!child_link || !child_link->parent_joint)
       return 0; //< dummy root
 
-    RCLCPP_INFO(rclcpp::get_logger("analysis_tree"), "Creating joint %s at link %s",
-      child_link->parent_joint->name.c_str(), child_link->name.c_str());
-
     assert(child_link->parent_joint->type != urdf::Joint::FIXED);
 
     // Check for existing construction.
@@ -368,3 +365,4 @@ private:
 }
 
 #endif //ARM_KINEMATICS_TREEORDERING_HPP
+
