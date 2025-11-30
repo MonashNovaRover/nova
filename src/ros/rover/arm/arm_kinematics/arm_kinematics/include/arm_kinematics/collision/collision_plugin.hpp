@@ -6,7 +6,6 @@
 #define ARM_KINEMATICS_COLLISION_PLUGIN_HPP
 
 #include <arm_kinematics/forward/forward_kinematics_plugin.hpp>
-#include <arm_kinematics/utilities/aliases.hpp>
 #include <arm_kinematics/utilities/span.hpp>
 #include <limits>
 #include <rclcpp/node_interfaces/node_base_interface.hpp>
@@ -93,6 +92,9 @@ public:
   /// Gets the allowed collision matrix for this collision plugin instance.
   [[nodiscard]] const AllowedCollisionMatrix & get_allowed_collision_matrix() const noexcept { return acm_; }
 
+  /// Gets the number of colliders simulated, which equals the number of poses to be passed in
+  [[nodiscard]] constexpr size_t size() const noexcept { return size_; }
+
   virtual ~CollisionPlugin() = default;
 
 protected:
@@ -112,6 +114,8 @@ private:
   /// Allows us to access various things from the owning node if we need, like loggers, parameters, or in the future,
   /// maybe even topics.
   std::optional<CollisionNodeInterfaces> node_interfaces_ = std::nullopt;
+  /// The number of colliders simulated, which equals the number of poses to be passed in
+  size_t size_ = 0;
 };
 
 } // arm_kinematics

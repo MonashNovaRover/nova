@@ -7,19 +7,9 @@
 
 namespace arm_kinematics {
 
-CollisionManager::MakeCollisionResult::MakeCollisionResult(
-  const std::vector<std::string> & joint_names,
-  PluginLoader& loader,
-  const ForwardKinematicsPlugin::SharedPtr& fk)
-{
-}
-
-CollisionManager::CollisionManager(
-  const std::vector<std::string> & joint_names,
-  PluginLoader & loader,
-  const ForwardKinematicsPlugin::SharedPtr & fk)
-: data(joint_names, loader, fk)
-{
+bool CollisionManager::collide(const std::vector<double>& joint_states) {
+  tree_->position_fk(joint_states, collider_poses_);
+  return plugin_->collide({collider_poses_.data(), collider_poses_.size()});
 }
 
 } // arm_kinematics

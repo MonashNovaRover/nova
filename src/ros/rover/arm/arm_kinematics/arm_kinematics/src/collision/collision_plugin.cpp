@@ -8,12 +8,13 @@ namespace arm_kinematics {
 
 bool CollisionPlugin::initialize(
   CollisionNodeInterfaces node_interfaces,
-  const std::vector<urdf::Collision> & collider_geometries,
+  const std::vector<std::reference_wrapper<const urdf::Collision>>& collider_geometries,
   AllowedCollisionMatrix acm)
 {
   node_interfaces_ = node_interfaces;
   logger_ = node_interfaces.get_node_logging_interface()->get_logger().get_child("collision");
   acm_ = std::move(acm);
+  size_ = collider_geometries.size();
 
   // Implementation specific initialization
   return on_initialize(collider_geometries);
