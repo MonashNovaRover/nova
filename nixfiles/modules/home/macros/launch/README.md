@@ -39,14 +39,13 @@ in
   (Good for race conditions)
 
 
-### Build and/or Run
+### Build
 Follow this basic structure and then you can run it through any of the following means:\
 `nix-build nova/nixfiles -A env.nova-launch-scripts`
  - This will create executable bash files in your specified output destination's launch folder
  - The rover-ip and mast-ip arguments are then handled by the shell files and must be passed through as argument 1 and 2 respectively. There may also be argument flags you can specify.
 `nix-shell nova/nixfiles-A env.nova-launch-scripts` 
  - Same as the nix-build except the runnable shell scripts will be on path to test
-
 
 `nix-build/nix-shell -A env.nova-git-metadata`
 - This will also create a git metadata file with any dirty changes (non committed changes) as a patch at the end.
@@ -55,3 +54,7 @@ Follow this basic structure and then you can run it through any of the following
 `ws-build`
 - This will work like nix-build but build all of the payloads at once with the rest of our workspace
 - Allows for workspace relevant builds of launch files
+
+### Run
+Once built, you can run them with the launch script name defined in the finall attribute definition\ 
+e.g for the example above you would run `run-drive` in the `launch` folder (or from PATH)
