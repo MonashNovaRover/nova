@@ -32,7 +32,7 @@ let
   };
 in
 {
-  ma-one = bashBuilder one ("run-"+task-name+"-one");
-  ma-two = bashBuilder two ("run-"+task-name+"-two");
-  ma-combined = bashBuilder combined ("run-"+task-name+"-combined");
+  ma-one = bashBuilder one (task-name+"-one");
+  ma-two = bashBuilder two (task-name+"-two");
+  ma-combined = bashBuilder combined (task-name+"-combined");
 }

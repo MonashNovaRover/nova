@@ -32,7 +32,7 @@ let
   };
 in
 {
-  de-one = bashBuilder one ("run-"+task-name+"-one");
-  de-two = bashBuilder two ("run-"+task-name+"-two");
-  de-combined = bashBuilder combined ("run-"+task-name+"-combined");
+  de-one = bashBuilder one (task-name+"-one");
+  de-two = bashBuilder two (task-name+"-two");
+  de-combined = bashBuilder combined (task-name+"-combined");
 }

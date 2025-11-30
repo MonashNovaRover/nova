@@ -32,7 +32,7 @@ let
   };
 in
 {
-  ec-one = bashBuilder one ("run-"+task-name+"-one");
-  ec-two = bashBuilder two ("run-"+task-name+"-two");
-  ec-combined = bashBuilder combined ("run-"+task-name+"-combined");
+  ec-one = bashBuilder one (task-name+"-one");
+  ec-two = bashBuilder two (task-name+"-two");
+  ec-combined = bashBuilder combined (task-name+"-combined");
 }

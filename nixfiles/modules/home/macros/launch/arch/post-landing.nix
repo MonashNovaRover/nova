@@ -32,7 +32,7 @@ let
   };
 in
 {
-  pl-one = bashBuilder one ("run-"+task-name+"-one");
-  pl-two = bashBuilder two ("run-"+task-name+"-two");
-  pl-combined = bashBuilder combined ("run-"+task-name+"-combined");
+  pl-one = bashBuilder one (task-name+"-one");
+  pl-two = bashBuilder two (task-name+"-two");
+  pl-combined = bashBuilder combined (task-name+"-combined");
 }

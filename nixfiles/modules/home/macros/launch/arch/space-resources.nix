@@ -32,7 +32,7 @@ let
   };
 in
 {
-  sr-one = bashBuilder one ("run-"+task-name+"-one");
-  sr-two = bashBuilder two ("run-"+task-name+"-two");
-  sr-combined = bashBuilder combined ("run-"+task-name+"-combined");
+  sr-one = bashBuilder one (task-name+"-one");
+  sr-two = bashBuilder two (task-name+"-two");
+  sr-combined = bashBuilder combined (task-name+"-combined");
 }
