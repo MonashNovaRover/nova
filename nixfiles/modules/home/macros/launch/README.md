@@ -44,7 +44,7 @@ Follow this basic structure and then you can run it through any of the following
 `nix-build nova/nixfiles -A env.nova-launch-scripts`
  - This will create executable bash files in your specified output destination's launch folder
  - The rover-ip and mast-ip arguments are then handled by the shell files and must be passed through as argument 1 and 2 respectively. There may also be argument flags you can specify.
-`nix-shell nova/nixfiles-A env.nova-launch-scripts` 
+`nix-shell nova/nixfiles -A env.nova-launch-scripts` 
  - Same as the nix-build except the runnable shell scripts will be on path to test
 
 `nix-build/nix-shell -A env.nova-git-metadata`
