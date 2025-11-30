@@ -3,7 +3,7 @@
 //
 
 #include <arm_kinematics/plugin_loader.hpp>
-#include <arm_kinematics/utilities/collider_definitions.hpp>
+#include <../include/arm_kinematics/collision/collider_definitions.hpp>
 #include <arm_kinematics/utilities/param_reader.hpp>
 #include <arm_kinematics/utilities/to_eigen.hpp>
 
