@@ -57,6 +57,10 @@ game_controller_source:
           from: "LEFTY"
 
       buttons:
+        lock:
+          from: "BACK"
+        unlock:
+          from: "START"
         sweeper_sweep:
           from: "A"
         twitch:
