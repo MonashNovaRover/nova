@@ -2,28 +2,7 @@
 
 Nova-GUI is the Primary Means of Communication and Control of the Rover During Operation and contains the end to end implementation of the Graphical User Interface for the Rover. Nova-GUI is designed to be modular in nature, where Layouts are composed using Individul Components which work independent of each other.
 
-<details>
-<summary>Common Commands</summary>
-
-```
-nova-shell -A pkgs.ros.nova-gui
-```
-```
-ln -sf "$ROS_TS_DEFINITIONS" src/ros/rosTypes.ts
-```
-```
-ros2 launch rosbridge_server rosbridge_websocket_launch.xml
-```
-```
-cd nova-gui 
-```
-```
-yarn install
-```
-```
-yarn dev
-```
-</details>
+To run the GUI please see the [instructions below](#dev-workflow). For development intructions and information please see the [project README](./nova-gui). `nova-gui` documentation can be found [here](./docs).
 
 ## Tech Stack
 
@@ -84,33 +63,16 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    nova-shell -A pkgs.ros.nova-gui
    ```
 
-2. Enter the nova-gui directory
+2. Install the dependencies*
 
-   You must be in the nova-gui directory to install the correct packages and run nova-gui. If your nova-gui directory is in the standard location, you may run the command.
    ```sh
-   gui
+   gui-yarn install
    # alias for:
-   cd ~/nova/src/ros/nova-gui/nova-gui
-   ```
-   
-   > If your nova-gui directory is in a non-standard
-   > location, you can find it using the fzf program.
-   ```sh
-   # Install the program to find the directory
-   nix-shell -p fzf
-   # Find the directory then make it the current directory
-   cd $(fzf | dirname src/ros/nova-gui/nova-gui/yarn.lock)
-   fzf > nova-gui/nova-gui
-   ```
-
-3. Install the dependencies
-
-   ```sh
-   yarn install
+   yarn --cwd ~/nova/src/ros/nova-gui/nova-gui install
    ```
    Errors are likely caused by network issues. Try setting your DNS and restarting your connection. 
 
-5. Link in the generated message definitions
+3. Link in the generated message definitions*
    
    This will create a symlink at `nova-gui/src/ros/rosTypes.ts` to the nix store file containing ros type definitions.
 
@@ -119,46 +81,15 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    > your copy is out of date.
    
    ```sh
-   # Run with dev dependencies
    gui-link
    # alias for
-   ln -sf "$ROS_TS_DEFINITIONS" src/ros/rosTypes.ts
+   ln -sf \"$ROS_TS_DEFINITIONS\" ~/nova/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts
    ```
    
    If getting `No such file or directory` errors, ensure that the path is correct 
-   and the `pkgs.ros.nova-gui` nova shell is used.
+   and the `pkgs.ros.nova-gui` (`gui-shell`) nova shell is used.
 
-
-6. Start rosbridge
-
-   On ros2 terminal (seperate)
-
-   ```sh
-   gui-rosbridge # alias for
-   ~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml
-   ```
-
-7. Offline Maps (OPTIONAL)
-   On separate terminal
-
-   ```sh
-   # enter the shell environment
-   gui-shell
-
-   gui-tilelink 
-   # alias for 
-   ln -s ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-styles ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-light/node_modules/tileserver-gl-styles
-
-   # Run tileserver
-   gui-tilerun path/to/file.mbtiles
-   yarn --cwd ~/nova/src/ros/nova-gui/nova-gui tileserver-gl-light --file path/to/file.mbtiles
-   ```
-
-   If you are getting errors first ensure that the gui and rosbridge is running.
-
-   Instructions for how to find and generate these tiles can be found [here](https://www.notion.so/Creating-Map-Tiles-for-Cartographer-GUI-page-1dab71396171808893f8d37f5410992b)
-
-8. Launch the gui
+4. Launch the gui
 
    ```sh
    # Launch the server for the gui
@@ -172,3 +103,37 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    # If you need to launch GUI accessible by other devices on local network
    gui-run --host
    ```
+
+5. Start rosbridge
+
+   Open a new terminal. Rosbridge allows the GUI to interact with the ROS2 network.
+
+   ```sh
+   gui-rosbridge
+   # alias for
+   ~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+   ```
+
+6. Offline Maps (OPTIONAL)
+
+   Open a new terminal. This runs the maps server that is needed for the URC GPS Cartographer.
+
+   ```sh
+   # enter the shell environment
+   gui-shell
+
+   gui-tilelink 
+   # alias for:
+   ln -s ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-styles ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-light/node_modules/tileserver-gl-styles
+
+   # Run tileserver
+   gui-tilerun path/to/file.mbtiles
+   # alias for:
+   yarn --cwd ~/nova/src/ros/nova-gui/nova-gui tileserver-gl-light --file path/to/file.mbtiles
+   ```
+
+   If you are getting errors first ensure that the gui and rosbridge is running.
+
+   Instructions for how to find and generate these tiles can be found [here](https://www.notion.so/Creating-Map-Tiles-for-Cartographer-GUI-page-1dab71396171808893f8d37f5410992b).
+
+\* Steps 2 and 3 only need to be run the first time you run the GUI, or whenever a `yarn` dependancy or ROS2 interface respectively changes.
