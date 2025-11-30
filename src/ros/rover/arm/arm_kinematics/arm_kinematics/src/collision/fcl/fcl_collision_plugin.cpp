@@ -143,7 +143,9 @@ bool FclCollisionPlugin::collide(
   return query.hit;
 }
 
-bool FclCollisionPlugin::on_initialize(const std::vector<urdf::Collision>& collider_geometries) {
+bool FclCollisionPlugin::on_initialize(
+  const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries)
+{
   geometry_cache_ = {};
   colliders_ = {};
   colliders_.reserve(collider_geometries.size());

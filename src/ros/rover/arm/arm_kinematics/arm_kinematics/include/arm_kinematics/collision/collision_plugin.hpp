@@ -22,6 +22,7 @@ namespace arm_kinematics {
  *
  * \note The responsibility of understanding where colliders are in space and how they relate to different links on the
  * robot is delegated to the caller!
+ * \note The ACM can also be modified externally
  */
 class CollisionPlugin {
 public:
@@ -42,7 +43,7 @@ public:
    */
   bool initialize(
     CollisionNodeInterfaces node_interfaces,
-    const std::vector<urdf::Collision> & collider_geometries,
+    const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries,
     AllowedCollisionMatrix acm);
 
   /**
@@ -101,7 +102,7 @@ protected:
    * \returns True if initialization was successful. False otherwise.
    */
   virtual bool on_initialize(
-    const std::vector<urdf::Collision> & collider_geometries) = 0;
+    const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries) = 0;
 
 private:
   /// Used to filter out collisions we don't care about (i.e. colliders on the same link or joint rotation point).

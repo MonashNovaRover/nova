@@ -9,7 +9,6 @@
 #include <string>
 #include <map>
 #include <optional>
-#include <set>
 #include <rclcpp/logging.hpp>
 #include <urdf/model.h>
 #include "name_to_vector.hpp"
@@ -17,29 +16,13 @@
 #include <arm_kinematics/utilities/order.hpp>
 #include <arm_kinematics/forward/utilities/joint_type.hpp>
 #include <arm_kinematics/visibility_control.h>
-
 #include <arm_kinematics/forward/utilities/compute_frame_tree.hpp>
 #include <arm_kinematics/forward/utilities/compute_joint_tree.hpp>
 #include <arm_kinematics/utilities/expected.hpp>
+#include <arm_kinematics/utilities/to_eigen.hpp>
 
 namespace arm_kinematics {
 
-inline Eigen::Vector3d to_eigen(const urdf::Vector3 & p)
-{
-  return {p.x, p.y, p.z};
-}
-
-inline Eigen::Isometry3d to_eigen(const urdf::Pose & p)
-{
-  Eigen::Isometry3d T = Eigen::Isometry3d::Identity();
-  T.translation() = Eigen::Vector3d(p.position.x, p.position.y, p.position.z);
-
-  double x, y, z, w;
-  p.rotation.getQuaternion(x, y, z, w);
-  Eigen::Quaterniond q(w, x, y, z);
-  T.linear() = q.toRotationMatrix();
-  return T;
-}
 
 /**
  * A class used to convert a urdf::Model into a representation that can later be used by a \c ComputeFrameTreeBuilder to

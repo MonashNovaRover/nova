@@ -15,9 +15,10 @@ namespace arm_kinematics {
  * Struct to help request some pose relative to a link in FK
  */
 struct ARM_KINEMATICS_PUBLIC FrameDefinitions {
-  Isometry3dVector origins;
-  std::vector<std::string> parent_link_names;
+  Isometry3dVector origins{};
+  std::vector<std::string> parent_link_names{};
 
+  FrameDefinitions() = default;
   FrameDefinitions(std::vector<std::string> parent_link_names, Isometry3dVector origins)
     : origins(std::move(origins)), parent_link_names(std::move(parent_link_names))
   {

@@ -24,7 +24,7 @@ public:
     size_t max_colliding_pairs) override;
 
 protected:
-  bool on_initialize(const std::vector<urdf::Collision> & collider_geometries) override;
+  bool on_initialize(const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries) override;
 
 private:
   /// The collider geometries used in collision checking. DO NOT ADD/REMOVE ELEMENTS OUTSIDE on_initialize()

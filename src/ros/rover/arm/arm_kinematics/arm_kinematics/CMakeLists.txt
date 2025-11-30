@@ -47,6 +47,8 @@ add_library(${PROJECT_NAME} SHARED
   src/forward/utilities/analysis_tree.cpp
 
   src/plugin_loader.cpp
+  include/arm_kinematics/collision/collision_manager.cpp
+  include/arm_kinematics/collision/collision_manager.hpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17
@@ -66,6 +68,8 @@ install(FILES plugins.xml
 set(TEST_KINEMATICS_SOURCE_FILES
   test/collision/fcl/test_allowed_collision_matrix.cpp
   test/forward/eigen/test_eigen_fk_mapper.cpp
+  include/arm_kinematics/utilities/collider_definitions.cpp
+  include/arm_kinematics/utilities/collider_definitions.hpp
 )
 if(NIX_DO_CHECK)
   target_link_libraries(test_kinematics

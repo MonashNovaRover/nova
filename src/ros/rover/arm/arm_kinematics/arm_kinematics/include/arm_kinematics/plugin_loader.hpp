@@ -26,9 +26,9 @@ public:
 
   /**
    * Constructor
-   * @param node Node to pass to created plugins, to get read default plugin types from parameters from, and (if needed)
+   * \param node Node to pass to created plugins, to get read default plugin types from parameters from, and (if needed)
    * to read KinematicsParams from.
-   * @param robot_description The URDF string to provide to any spawned kinematics plugins. Lifetime must exceed this.
+   * \param robot_description The URDF string to provide to any spawned kinematics plugins. Lifetime must exceed this.
    */
   explicit PluginLoader(PluginLoaderNodeInterfaces node, const std::string & robot_description);
 
@@ -42,15 +42,32 @@ public:
   /// Make an IK plugin, manually specifying the plugin name.
   InverseKinematicsPlugin::SharedPtr make_ik(const std::string & name);
 
-  /// Make a collision plugin using the plugin name defined in the `kinematics.inverse_kinematics_plugin` parameter.
+  /// Make a collision plugin using the plugin name defined in the `kinematics.collision_plugin` parameter.
   CollisionPlugin::SharedPtr make_collision(
-    const std::vector<urdf::Collision> & collider_geometries,
+    const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries,
     AllowedCollisionMatrix acm);
-  /// Make an IK plugin, manually specifying the plugin name.
+  /// Make a collision plugin, manually specifying the plugin name.
   CollisionPlugin::SharedPtr make_collision(
     const std::string & name,
-    const std::vector<urdf::Collision> & collider_geometries,
+    const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries,
     AllowedCollisionMatrix acm);
+
+  /// Used to return a FK tree and collision plugin at the same time. Get each with structured bindings.
+  struct MakeCollisionResult {
+    ForwardKinematicsPlugin::Tree::SharedPtr fk_tree;
+    CollisionPlugin::SharedPtr collision;
+  };
+
+  /// Make a collision plugin with associated ForwardKinematicsPlugin::Tree, using the plugin name defined in the
+  /// `kinematics.collision_plugin` parameter
+  MakeCollisionResult make_collision(
+    const std::vector<std::string> & joint_names,
+    const ForwardKinematicsPlugin::SharedPtr & fk);
+  /// Make a collision plugin with associated ForwardKinematicsPlugin::Tree, manually specifying the plugin name.
+  MakeCollisionResult make_collision(
+    const std::string & name,
+    const std::vector<std::string> & joint_names,
+    const ForwardKinematicsPlugin::SharedPtr & fk);
 
   /// Lazy gets kinematics params
   [[nodiscard]] const KinematicsParams::SharedPtr & get_kinematics_params() noexcept;
