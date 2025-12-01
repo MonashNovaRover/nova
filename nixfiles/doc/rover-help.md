@@ -130,3 +130,11 @@ tileserver-install (first time only)
 tileserver-run <path to map>
 
 ---------------------------
+
+# Launch Scripts [WIP]
+
+There are WIP launch scripts under nixfiles/home/macros/launch which when the system is built can be run by calling them from the build/launch directory
+e.g for master, to list them:
+ls ~/Builds/master/launch
+e.g to run drive:
+~/Builds/master/launch/run-drive
