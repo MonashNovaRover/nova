@@ -128,13 +128,23 @@ let
 
   callPackage = pkgs.lib.callPackageWith {inherit pkgs base base-nix rover rover-nix mast pre-shell post-shell bashBuilder route;};
 
-    # import more payloads here
-  auto = callPackage ./auto.nix   { };
-  drive = callPackage ./drive.nix { };
-  gui = callPackage ./gui.nix     { };
+  search-folders = [ "arch" "urc" "other" ];
+  nix-setups = builtins.concatLists (builtins.attrValues (
+    builtins.listToAttrs (
+      map (folder: {
+        name = folder;
+        value = map (name: ./${folder}/${name})
+          (builtins.filter
+            (name: builtins.match ".*\\.nix$" name != null)
+            (builtins.attrNames (builtins.readDir ./${folder})));
+      }) search-folders
+    )
+  ));
+  
+  imported-nix-files = map (file: callPackage file { }) nix-setups;
 
   # pull nested setups and flatten into attributes of one set
-  all-setups = builtins.removeAttrs (builtins.foldl' pkgs.lib.mergeAttrs { } [auto drive gui]) ["override" "overrideDerivation"];
+  all-setups = builtins.removeAttrs (builtins.foldl' pkgs.lib.mergeAttrs { } imported-nix-files) ["override" "overrideDerivation"];
 in
 { 
   # build all setup scripts
