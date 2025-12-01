@@ -60,7 +60,7 @@ InverseKinematicsPlugin::SharedPtr PluginLoader::make_ik() {
   return make_ik(name);
 }
 
-CollisionPlugin::SharedPtr PluginLoader::make_collision(
+DiscreteCollisionPlugin::SharedPtr PluginLoader::make_collision(
   const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries,
   AllowedCollisionMatrix acm)
 {
@@ -72,7 +72,7 @@ CollisionPlugin::SharedPtr PluginLoader::make_collision(
   return make_collision(name, collider_geometries, std::move(acm));
 }
 
-CollisionPlugin::SharedPtr PluginLoader::make_collision(
+DiscreteCollisionPlugin::SharedPtr PluginLoader::make_collision(
   const std::string & name,
   const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries,
   AllowedCollisionMatrix acm)
@@ -140,10 +140,10 @@ pluginlib::ClassLoader<InverseKinematicsPlugin> & PluginLoader::get_ik_loader() 
   return *ik_loader_;
 }
 
-pluginlib::ClassLoader<CollisionPlugin> & PluginLoader::get_collision_loader() const noexcept {
+pluginlib::ClassLoader<DiscreteCollisionPlugin> & PluginLoader::get_collision_loader() const noexcept {
   if (!collision_loader_)
-    collision_loader_ = std::make_unique<pluginlib::ClassLoader<CollisionPlugin>>(
-      "arm_kinematics", "arm_kinematics::CollisionPlugin");
+    collision_loader_ = std::make_unique<pluginlib::ClassLoader<DiscreteCollisionPlugin>>(
+      "arm_kinematics", "arm_kinematics::DiscreteCollisionPlugin");
 
   return *collision_loader_;
 }

@@ -23,9 +23,9 @@ namespace arm_kinematics {
  * robot is delegated to the caller!
  * \note The ACM can also be modified externally
  */
-class CollisionPlugin {
+class DiscreteCollisionPlugin {
 public:
-  using SharedPtr = std::shared_ptr<CollisionPlugin>;
+  using SharedPtr = std::shared_ptr<DiscreteCollisionPlugin>;
   using CollisionNodeInterfaces =
     rclcpp::node_interfaces::NodeInterfaces<
       rclcpp::node_interfaces::NodeBaseInterface,
@@ -45,24 +45,12 @@ public:
     const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries,
     AllowedCollisionMatrix acm);
 
-  void update_pose(size_t idx, const Eigen::Isometry3d & collider_pose) = 0;
-  void update_poses(size_t start_idx, span<const Eigen::Isometry3d> collider_poses);
-
-  /**
-   * Perform a self intersection check with the given joint states.
-   * \param collider_poses The transforms of all colliders provided in initialization
-   * \returns true if there is an intersection, false if there is no intersection
-   */
-  bool collide() override;
-
-  /**
-   * Perform a self intersection check with the given joint states.
-   * \param collider_poses The transforms of all colliders provided in initialization
-   * \returns true if there is an intersection, false if there is no intersection
-   */
-  bool collide(
-    std::vector<std::pair<size_t, size_t>> & colliding_pairs,
-    size_t max_colliding_pairs) override;
+  virtual void update_pose(size_t idx, const Eigen::Isometry3d & collider_pose) = 0;
+  virtual void update_poses(size_t start_idx, span<const Eigen::Isometry3d> collider_poses) {
+    for (size_t i = 0; i < collider_poses.size(); ++i) {
+      update_pose(start_idx + i, collider_poses[i]);
+    }
+  }
 
   virtual bool collide() = 0;
 
@@ -88,11 +76,10 @@ public:
    * \returns true if there is an intersection, false if there is no intersection
    */
   bool collide(
-    const span<const Eigen::Isometry3d> collider_poses,
     std::vector<std::pair<size_t, size_t>> & colliding_pairs)
   {
     // virtual functions cannot include default arguments, so this separate overload need be created.
-    return collide(collider_poses, colliding_pairs, std::numeric_limits<size_t>::max());
+    return collide(colliding_pairs, std::numeric_limits<size_t>::max());
   }
 
   /// Logger to use for logging
@@ -108,7 +95,7 @@ public:
   /// Gets the number of colliders simulated, which equals the number of poses to be passed in
   [[nodiscard]] constexpr size_t size() const noexcept { return size_; }
 
-  virtual ~CollisionPlugin() = default;
+  virtual ~DiscreteCollisionPlugin() = default;
 
 protected:
   /**

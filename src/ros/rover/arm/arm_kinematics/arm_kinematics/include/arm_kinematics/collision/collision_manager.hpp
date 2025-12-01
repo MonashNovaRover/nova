@@ -18,18 +18,19 @@ class CollisionManager {
 public:
   CollisionManager(
     ForwardKinematicsPlugin::Tree::SharedPtr tree,
-    CollisionPlugin::SharedPtr plugin);
+    DiscreteCollisionPlugin::SharedPtr plugin);
 
   CollisionManager(
     PluginLoader & loader,
     const ForwardKinematicsPlugin::SharedPtr & fk,
     const std::vector<std::string> & joint_names);
 
-  bool collide(const std::vector<double> & joint_states);
+  bool collide();
+  void update_poses(const std::vector<double> & joint_states);
 
 private:
   ForwardKinematicsPlugin::Tree::SharedPtr tree_{};
-  CollisionPlugin::SharedPtr plugin_{};
+  DiscreteCollisionPlugin::SharedPtr plugin_{};
   Isometry3dVector collider_poses_{};
 };
 

@@ -43,11 +43,11 @@ public:
   InverseKinematicsPlugin::SharedPtr make_ik(const std::string & name);
 
   /// Make a collision plugin using the plugin name defined in the `kinematics.collision_plugin` parameter.
-  CollisionPlugin::SharedPtr make_collision(
+  DiscreteCollisionPlugin::SharedPtr make_collision(
     const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries,
     AllowedCollisionMatrix acm);
   /// Make a collision plugin, manually specifying the plugin name.
-  CollisionPlugin::SharedPtr make_collision(
+  DiscreteCollisionPlugin::SharedPtr make_collision(
     const std::string & name,
     const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries,
     AllowedCollisionMatrix acm);
@@ -55,7 +55,7 @@ public:
   /// Used to return a FK tree and collision plugin at the same time. Get each with structured bindings.
   struct MakeCollisionResult {
     ForwardKinematicsPlugin::Tree::SharedPtr fk_tree;
-    CollisionPlugin::SharedPtr collision;
+    DiscreteCollisionPlugin::SharedPtr collision;
   };
 
   /// Make a collision plugin with associated ForwardKinematicsPlugin::Tree, using the plugin name defined in the
@@ -79,7 +79,7 @@ public:
   [[nodiscard]] pluginlib::ClassLoader<InverseKinematicsPlugin> & get_ik_loader() const noexcept;
 
   /// Lazy loads a ClassLoader for CollisionPlugin instances
-  [[nodiscard]] pluginlib::ClassLoader<CollisionPlugin> & get_collision_loader() const noexcept;
+  [[nodiscard]] pluginlib::ClassLoader<DiscreteCollisionPlugin> & get_collision_loader() const noexcept;
 
 private:
   PluginLoaderNodeInterfaces node_;
@@ -91,7 +91,7 @@ private:
   // Lazily created class loaders
   mutable std::unique_ptr<pluginlib::ClassLoader<ForwardKinematicsPlugin>> fk_loader_;
   mutable std::unique_ptr<pluginlib::ClassLoader<InverseKinematicsPlugin>> ik_loader_;
-  mutable std::unique_ptr<pluginlib::ClassLoader<CollisionPlugin>> collision_loader_;
+  mutable std::unique_ptr<pluginlib::ClassLoader<DiscreteCollisionPlugin>> collision_loader_;
 };
 
 } // arm_kinematics

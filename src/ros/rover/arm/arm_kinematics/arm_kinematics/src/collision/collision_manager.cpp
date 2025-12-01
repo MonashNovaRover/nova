@@ -9,7 +9,7 @@ namespace arm_kinematics {
 
 CollisionManager::CollisionManager(
   ForwardKinematicsPlugin::Tree::SharedPtr tree,
-  CollisionPlugin::SharedPtr plugin)
+  DiscreteCollisionPlugin::SharedPtr plugin)
 : tree_(std::move(tree)),
   plugin_(std::move(plugin)),
   collider_poses_(plugin_->size())
@@ -27,9 +27,13 @@ CollisionManager::CollisionManager(
   collider_poses_.resize(plugin_->size());
 }
 
-bool CollisionManager::collide(const std::vector<double>& joint_states) {
+bool CollisionManager::collide() {
+  return plugin_->collide();
+}
+
+void CollisionManager::update_poses(const std::vector<double> & joint_states) {
   tree_->position_fk(joint_states, collider_poses_);
-  return plugin_->collide({collider_poses_.data(), collider_poses_.size()});
+  plugin_->update_poses(0, {collider_poses_.data(), collider_poses_.size()});
 }
 
 } // arm_kinematics
