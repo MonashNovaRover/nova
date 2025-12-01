@@ -45,12 +45,26 @@ public:
     const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries,
     AllowedCollisionMatrix acm);
 
+  void update_pose(size_t idx, const Eigen::Isometry3d & collider_pose) = 0;
+  void update_poses(size_t start_idx, span<const Eigen::Isometry3d> collider_poses);
+
   /**
    * Perform a self intersection check with the given joint states.
    * \param collider_poses The transforms of all colliders provided in initialization
    * \returns true if there is an intersection, false if there is no intersection
    */
-  virtual bool collide(span<const Eigen::Isometry3d> collider_poses) = 0;
+  bool collide() override;
+
+  /**
+   * Perform a self intersection check with the given joint states.
+   * \param collider_poses The transforms of all colliders provided in initialization
+   * \returns true if there is an intersection, false if there is no intersection
+   */
+  bool collide(
+    std::vector<std::pair<size_t, size_t>> & colliding_pairs,
+    size_t max_colliding_pairs) override;
+
+  virtual bool collide() = 0;
 
   /**
    * Perform a self intersection check with the given joint states, preserving which colliders would intersect.
@@ -62,7 +76,6 @@ public:
    * \returns true if there is an intersection, false if there is no intersection
    */
   virtual bool collide(
-    span<const Eigen::Isometry3d> collider_poses,
     std::vector<std::pair<size_t, size_t>> & colliding_pairs,
     size_t max_colliding_pairs) = 0;
 

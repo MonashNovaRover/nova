@@ -128,8 +128,8 @@ public:
   }
 
   void sort(const Order<> & order) noexcept {
-    data = order.map(data);
-    names = order.map(names);
+    data = order.reorder(data);
+    names = order.reorder(names);
 
     for (auto & [key, id] : ids) {
       id = order.inverse[id];

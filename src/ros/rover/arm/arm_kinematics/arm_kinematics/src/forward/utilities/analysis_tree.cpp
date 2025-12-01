@@ -3,6 +3,7 @@
 //
 
 #include <arm_kinematics/forward/utilities/analysis_tree.hpp>
+#include <set>
 
 namespace arm_kinematics {
 

@@ -4,7 +4,7 @@
 
 #ifndef ARM_KINEMATICS_COLLISION_MANAGER_HPP
 #define ARM_KINEMATICS_COLLISION_MANAGER_HPP
-#include "collision_plugin.hpp"
+#include "discrete_collision_plugin.hpp"
 #include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
 
 namespace arm_kinematics {

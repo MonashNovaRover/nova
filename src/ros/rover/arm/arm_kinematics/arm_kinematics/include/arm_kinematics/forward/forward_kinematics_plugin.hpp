@@ -66,10 +66,15 @@ public:
    * When you create a Tree, the order in which you provide the requested frames might need to change. So, I can't just
    * provide you with the tree that you created, but also with information about how you might need to rearrange your
    * data to match the input order it needs. Hence, this struct exists. Sorry!
+   *
+   * Get data out with structured bindings:
+   * \code
+   *   auto [tree, order] = plugin->make_tree({"j1", "j2"}, "base_link", {"ee_link"});
+   * \endcode
    */
   struct MakeTreeResult {
     /**
-     * The pointer that you wanted to make. std::move() me outta here!
+     * The FK tree pointer that you wanted to make.
      */
     Tree::SharedPtr tree;
 
@@ -83,7 +88,7 @@ public:
      * \code
      *   std::vector<std::string> my_vec;
      *   // ...
-     *   my_vec = order.map(my_vec);
+     *   my_vec = order.reorder(my_vec);
      * \endcode
      *
      * If you don't want to modify the original collection, the \c Reordered struct provides a helper for indexing into
@@ -117,7 +122,7 @@ public:
   virtual MakeTreeResult make_tree(
     const std::vector<std::string> & joint_names,
     const std::string & base_link_name,
-    const FrameDefinitions & frames,
+    const FrameDefinitions & frames,  //< TODO: Maybe make pass by copy to allow for std::move where appropriate
     const JointMapBuilder & joint_map_builder) = 0;
 
   /**

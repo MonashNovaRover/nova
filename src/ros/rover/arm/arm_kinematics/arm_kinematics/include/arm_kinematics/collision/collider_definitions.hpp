@@ -6,8 +6,14 @@
 #define SCIENCE_COLLIDER_DEFINITIONS_HPP
 
 #include <vector>
-#include <urdf/model.h>
 #include <arm_kinematics/forward/frame_definitions.hpp>
+
+#include "allowed_collision_matrix.hpp"
+
+namespace urdf {
+  class Collision;
+  class Model;
+}
 
 namespace arm_kinematics {
 
@@ -19,7 +25,7 @@ struct ColliderDefinitions {
   FrameDefinitions frames{};
   AllowedCollisionMatrix acm{};
 
-  ColliderDefinitions(const urdf::Model & urdf_model);
+  explicit ColliderDefinitions(const urdf::Model & urdf_model);
 };
 
 } // arm_kinematics

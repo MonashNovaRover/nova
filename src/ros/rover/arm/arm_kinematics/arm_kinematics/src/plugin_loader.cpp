@@ -3,7 +3,7 @@
 //
 
 #include <arm_kinematics/plugin_loader.hpp>
-#include <../include/arm_kinematics/collision/collider_definitions.hpp>
+#include <arm_kinematics/collision/collider_definitions.hpp>
 #include <arm_kinematics/utilities/param_reader.hpp>
 #include <arm_kinematics/utilities/to_eigen.hpp>
 
@@ -96,7 +96,7 @@ PluginLoader::MakeCollisionResult PluginLoader::make_collision(
 
   return MakeCollisionResult{
     std::move(tree),
-    make_collision(order.map(std::move(colliders)), std::move(acm))
+    make_collision(order.reorder(std::move(colliders)), std::move(acm))
   };
 }
 
@@ -107,11 +107,11 @@ PluginLoader::MakeCollisionResult PluginLoader::make_collision(
 {
   const auto & urdf_model = get_kinematics_params()->get_urdf_model();
   auto [colliders, frames, acm] = ColliderDefinitions(urdf_model);
-  auto [tree, order] = fk->make_tree(joint_names, urdf_model.getRoot()->name, std::move(frames));
+  auto [tree, order] = fk->make_tree(joint_names, urdf_model.getRoot()->name, frames);
 
   return MakeCollisionResult{
     std::move(tree),
-    make_collision(name, order.map(std::move(colliders)), std::move(acm))
+    make_collision(name, order.reorder(std::move(colliders)), std::move(acm))
   };
 }
 

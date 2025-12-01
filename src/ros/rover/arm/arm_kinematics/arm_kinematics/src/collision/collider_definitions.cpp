@@ -5,6 +5,7 @@
 #include <arm_kinematics/collision/collider_definitions.hpp>
 #include <arm_kinematics/collision/allowed_collision_matrix.hpp>
 #include <arm_kinematics/utilities/to_eigen.hpp>
+#include <urdf/model.h>
 
 namespace arm_kinematics {
 

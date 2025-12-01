@@ -17,9 +17,11 @@ namespace arm_kinematics {
  */
 class FclCollisionPlugin : public CollisionPlugin {
 public:
-  bool collide(span<const Eigen::Isometry3d> collider_poses) override;
+  void update_pose(size_t idx, const Eigen::Isometry3d & collider_pose) = 0;
+  void update_poses(size_t start_idx, span<const Eigen::Isometry3d> collider_poses);
+
+  bool collide() override;
   bool collide(
-    span<const Eigen::Isometry3d> collider_poses,
     std::vector<std::pair<size_t, size_t>> & colliding_pairs,
     size_t max_colliding_pairs) override;
 

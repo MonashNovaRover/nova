@@ -230,7 +230,7 @@ public:
    * @return A copy of the original vector, with the items sorted to match the order
    */
   template<typename U, typename UAlloc>
-  [[nodiscard]] std::vector<U, UAlloc> map(const std::vector<U, UAlloc> & original) const noexcept {
+  [[nodiscard]] std::vector<U, UAlloc> reorder(const std::vector<U, UAlloc> & original) const noexcept {
     if (original.empty())
       return {};
 
@@ -241,6 +241,28 @@ public:
       mapped.emplace_back(std::move(original[i]));
     }
 
+    return mapped;
+  }
+
+  /**
+   * Creates a copy of a given vector with elements from indices in original for each element in the order.
+   * @tparam U The type contained in the vector
+   * @param original The vector to take elements from
+   * @return A copy of the original vector, with the items sorted to match the order
+   */
+  template<typename U, typename UAlloc>
+  [[nodiscard]] std::vector<U, UAlloc> reorder(std::vector<U, UAlloc> && original) const noexcept {
+    if (original.empty())
+      return {};
+
+    std::vector<U, UAlloc> mapped{};
+    mapped.reserve(data_.size());
+
+    for (const auto & i : data_) {
+      mapped.emplace_back(std::move(original[i]));
+    }
+
+    original.clear();
     return mapped;
   }
 
@@ -307,8 +329,7 @@ operator*(
 
 /// Function style composition with a vector
 template<typename TKey, typename TValue, typename TKeyAlloc, typename TValueAlloc = std::allocator<TKey>, bool StoresInverse>
-std::vector<TValue, TValueAlloc>
-operator*(
+std::vector<TValue, TValueAlloc> operator*(
   const Order<TKey, TValue, StoresInverse>& order,
   const std::vector<TKey, TKeyAlloc>& indices)
 {
@@ -324,8 +345,7 @@ operator*(
 
 /// Function style composition with a vector
 template<typename TValue, typename TValueAlloc, bool StoresInverse>
-std::vector<TValue>
-operator*(
+std::vector<TValue> operator*(
   const std::vector<TValue, TValueAlloc>& indices,
   const Order<size_t, size_t, StoresInverse>& order)
 {

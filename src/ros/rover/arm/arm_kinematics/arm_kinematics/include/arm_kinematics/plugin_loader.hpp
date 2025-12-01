@@ -9,7 +9,7 @@
 #include <arm_kinematics/inverse/inverse_kinematics_plugin.hpp>
 #include <pluginlib/class_loader.hpp>
 #include <arm_kinematics/visibility_control.h>
-#include <arm_kinematics/collision/collision_plugin.hpp>
+#include <arm_kinematics/collision/discrete_collision_plugin.hpp>
 
 namespace arm_kinematics {
 
