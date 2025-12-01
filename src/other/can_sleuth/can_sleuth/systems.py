@@ -13,6 +13,7 @@ EDITED BY: Orlando Chamberlain
 
 from can_sleuth.devices import blcmd
 from can_sleuth.devices import blcmd_emulator
+from can_sleuth.devices import led as LED
 
 # Interface specifies the bus (usually a canbus) that the system/payload is connected to,
 # emulate indicates if in addition to tracing the state of the system/payload, if we should
@@ -60,8 +61,8 @@ def drive25_26(interface="can0", emulate=False):
             devices.append(blcmd_emulator.BLCMDEmulator(names[id_], id_, interface, hasResolver=hasResolver))
     return devices
 
-def led(interface = "can", emulate=False):
-    devices = [LEDStrip("led", interface)]
+def led(interface = "can0", emulate=False):
+    devices = [LED.LEDStrip("led", interface)]
     return devices
 
 # List of everything for help message:

@@ -1,5 +1,6 @@
 
-from candevice import candevice
+from . import candevice
+from enum import Enum
 import jcan
 
 class LEDStrip(candevice.CanDevice):
@@ -26,31 +27,30 @@ class LEDStrip(candevice.CanDevice):
     }
     
     def __init__(self, name:str, interface):
-        super.__init__(name, interface)
+        super().__init__(name, interface)
         self.brightness = 0
         self.colour=None
         #add callback functions
-        #brightness
-        self.addCallback(LedCommand.BRIGHTNESS, self.set_brightness_cb)
-        self.addCallback(LedCommand.COLOUR, self.set_colour_cb)
-
-
+        self.addCallback(LEDStrip.LedCommand.BRIGHTNESS.value, self.set_brightness_cb) #brightness
+        self.addCallback(LEDStrip.LedCommand.COLOUR.value, self.set_colour_cb) #colour
     
+    def update(self):
+        pass
+
     def set_brightness_cb(self, frame:jcan.Frame):
-        #this is kind of hardcoding, but oh well
         self.brightness = commandsDict[frame.id][frame.data[0]]
 
     def set_colour_cb(self, frame:jcan.Frame):
-        #TODO: Handle pink
-        #TODO: Handle data being integer list of hexes
         print(frame.data)
-        self.colour = commandsDict[frame.id][frame.data[0]]
+        #pink
+        if frame.dlc== 0 and frame.id == LedCommand.PINK: 
+            self.colour = commandsDict[LedCommand.PINK]
+        else:
+            self.colour = commandsDict[frame.id][frame.data[0]]
+    
+    #getters for tracing
+    def get_colour(self):
+        return self.colour
 
-
-# def main():
-#     led = LEDStrip("led", "can0")
-#     while true:
-#         led.spin()
-
-# if __name__=="__main__":
-#     main()
+    def get_brightness(self):
+        return self.brightness
