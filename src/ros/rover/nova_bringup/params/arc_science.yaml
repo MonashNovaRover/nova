@@ -15,22 +15,22 @@ auger:
     auger_actuation_canid: 0x0D1
     max_percent: 0.6
 
-AnalysisArm:
+analysis_arm:
   ros__parameters:
     cmd_id: 0x0D2
     active: true
-    active_button: "btn_bottom_r1_state"
+    active_button: "btn_bottom_l1_state"
     inactive_button_pool:
-      - "btn_bottom_r4_state"
+      - "btn_bottom_l4_state"
     using_left_joystick: true
 
-CBeam:
+c_beam:
   ros__parameters:
-    cmd_id: 0x000
+    cmd_id: 0x0C2
     active: false
-    active_button: "btn_bottom_r4_state"
+    active_button: "btn_bottom_l4_state"
     inactive_button_pool:
-      - "btn_bottom_r1_state"
+      - "btn_bottom_l1_state"
     using_left_joystick: true
 
 arc_sweeper_servo:
