@@ -31,9 +31,11 @@ class SpinnyPartNode(JoystickControllerNode):
     CAN_BUS = "can1"
 
     # SENDING CARD IDS
+    SERVO_ID_PARAM = "servo_id"
     SERVO_ID = 0x0A0
 
     # SENDING COMMAND IDS
+    MOVE_SERVO_COMMAND_PARAM = "servo_command"
     MOVE_SERVO_COMMAND = 0x04
 
     # CONTROL PARAMETERS
@@ -77,6 +79,8 @@ class SpinnyPartNode(JoystickControllerNode):
         logger = self.get_logger()
 
         self.offset_step = self.OFFSET_STEP_DEFAULT
+        self.declare_parameter(self.SERVO_ID_PARAM, self.SERVO_ID)
+        self.declare_parameter(self.MOVE_SERVO_COMMAND_PARAM, self.MOVE_SERVO_COMMAND)
         self.declare_parameter(self.OFFSET_MAX_STEP_PARAM, self.OFFSET_MAX_STEP_DEFAULT)
         logger.info(f"Max offset step: {self.get_parameter(self.OFFSET_MAX_STEP_PARAM).value} | Current offset step: {self.offset_step}")
 
@@ -95,8 +99,8 @@ class SpinnyPartNode(JoystickControllerNode):
         self.spinny_part_controller = JonoPositionController(
             logger=logger,
             bus=self.bus,
-            pos_command=self.MOVE_SERVO_COMMAND,
-            frame_id=self.SERVO_ID,
+            pos_command=self.get_parameter(self.MOVE_SERVO_COMMAND_PARAM).value,
+            frame_id=self.get_parameter(self.SERVO_ID_PARAM).value,
             control=self.spinny_part,
             max_value=self.MAX_VALUE
         )
