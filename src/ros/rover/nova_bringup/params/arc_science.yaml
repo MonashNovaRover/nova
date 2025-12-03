@@ -1,0 +1,49 @@
+# ==========================================================
+# Monash Nova Rover
+# ARC Science – Default Parameter File
+# ==========================================================
+
+nir_probe_publisher:
+  ros__parameters: {}
+
+kiln_server:
+  ros__parameters: {}
+
+auger:
+  ros__parameters:
+    auger_drill_canid: 0x0C1
+    auger_actuation_canid: 0x0D1
+    max_percent: 0.6
+
+analysis_arm:
+  ros__parameters:
+    cmd_id: 0x0D2
+    active: true
+    active_button: "btn_bottom_l1_state"
+    inactive_button_pool:
+      - "btn_bottom_l4_state"
+    using_left_joystick: true
+
+c_beam:
+  ros__parameters:
+    cmd_id: 0x0C2
+    active: false
+    active_button: "btn_bottom_l4_state"
+    inactive_button_pool:
+      - "btn_bottom_l1_state"
+    using_left_joystick: true
+
+arc_sweeper_servo:
+  ros__parameters:
+    servo_id: 0x0A0
+    clockwise_command: 0x01
+    anticlockwise_command: 0x02
+
+arc_spinny_part:
+  ros__parameters:
+    servo_id: 0x0A0
+    servo_command: 0x04
+
+scimbal_cam:
+  ros__parameters:
+    servo_ids: [0x0B0, 0x0B0]

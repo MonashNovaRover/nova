@@ -31,11 +31,14 @@ class SweeperNode(JoystickControllerNode):
     CAN_BUS = "can1"
 
     # SENDING CARD IDS
+    SERVO_ID_PARAM = "servo_id"
     SERVO_ID = 0x0A0
     COMMAND_PERIOD = 0.3
 
     # SENDING COMMAND IDS
+    SWEEP_CLOCKWISE_PARAM = "clockwise_command"
     SWEEP_CLOCKWISE = 0x01
+    SWEEP_ANTICLOCKWISE_PARAM = "anticlockwise_command"
     SWEEP_ANTICLOCKWISE = 0x02
 
     # CONTROL PARAMETERS
@@ -54,6 +57,11 @@ class SweeperNode(JoystickControllerNode):
 
         self.velocity = 0.5
 
+        # Declare parameters
+        self.declare_parameter(self.SERVO_ID_PARAM, self.SERVO_ID)
+        self.declare_parameter(self.SWEEP_CLOCKWISE_PARAM, self.SWEEP_CLOCKWISE)
+        self.declare_parameter(self.SWEEP_ANTICLOCKWISE_PARAM, self.SWEEP_ANTICLOCKWISE)
+
         ## Create CONTROLS
         self.sweeper_servo = OneAxisVelocityControl(
             logger=logger,
@@ -64,9 +72,9 @@ class SweeperNode(JoystickControllerNode):
         self.sweeper_servo_controller = JonoVelocityController(
             logger=logger,
             bus=self.bus,
-            frame_id=self.SERVO_ID,
-            pos_command=self.SWEEP_CLOCKWISE,
-            neg_command=self.SWEEP_ANTICLOCKWISE,
+            frame_id=self.get_parameter(self.SERVO_ID_PARAM).value,
+            pos_command=self.get_parameter(self.SWEEP_CLOCKWISE_PARAM).value,
+            neg_command=self.get_parameter(self.SWEEP_ANTICLOCKWISE_PARAM).value,
             control=self.sweeper_servo,
         )
 
