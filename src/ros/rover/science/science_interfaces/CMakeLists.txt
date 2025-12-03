@@ -15,13 +15,35 @@ find_package(rosidl_default_generators REQUIRED)
 # Include all interfaces
 rosidl_generate_interfaces(${PROJECT_NAME}
   # Message definitions
-#  "msg/Example.msg"
+  "msg/ActiveNodeStatus.msg"
+  "msg/ActuatorLimit.msg"
+  "msg/BMESensor.msg"
+  "msg/DistanceData.msg"
+  "msg/EMCData.msg"
+  "msg/HydraprobeData.msg"
+  "msg/KilnData.msg"
+  "msg/MicroscopeServoInfo.msg"
+  "msg/NIRProbeData.msg"
+  "msg/RamanSpectrum.msg"
+  "msg/RamanState.msg"
+  "msg/SpectrometerData.msg"
+  "msg/UVVisSpecData.msg"
 
   # Service definitions
-
+  "srv/CacheCommand.srv"
+  "srv/KilnCommand.srv"
+  "srv/LoadCellPoller.srv"
+  "srv/MoveHydraprobe.srv"
+  "srv/MoveMicroscopeServo.srv"
+  "srv/MoveScimbalCam.srv"
+  "srv/RamanSpec.srv"
+  "srv/RamanMech.srv"
+  "srv/ScienceCommand.srv"
+  "srv/TakeNIRProbeReading.srv"
 
   # Action definitions
-
+  "action/Pumps.action"
+  "action/Stepper.action"
 
   # add any msg dependencies here
   # e.g. DEPENDENCIES std_msgs geometry_msgs
