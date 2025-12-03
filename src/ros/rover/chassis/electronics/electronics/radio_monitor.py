@@ -108,6 +108,7 @@ class RadioMonitor(Node):
         # Publish data over ROS
         if self.is_ros:
             radio_msg = RadioStatus()
+            radio_msg.stamp = self.get_clock().now().to_msg()
             radio_msg.signal = int(signal)
             radio_msg.sent = int(sent)
             radio_msg.recv = int(recv)

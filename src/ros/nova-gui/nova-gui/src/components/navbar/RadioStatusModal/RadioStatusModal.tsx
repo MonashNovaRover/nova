@@ -36,17 +36,18 @@ export const RadioStatusModal = () => {
     const onClose = () => uiActions.setRadioStatusModalOpen(false);
 
 
-    
+
     let maxPoints = 30;
 
     const [allData, setData] = useState({
+        time: [] as number[],
         signal: [] as number[],
         recv: [] as number[],
         sent: [] as number[],
         ping: [] as number[],
     });
 
-
+    
     const addPoint = (currentData: number[], newValue: number) => {
         const newData = [...currentData, newValue];
 
@@ -60,20 +61,22 @@ export const RadioStatusModal = () => {
 
     // Update existing data
     useEffect(() => {
-        setData(allData => ({
-            signal: addPoint(allData.signal, radioStatus.signal),
-            recv: addPoint(allData.recv, radioStatus.recv),
-            sent: addPoint(allData.sent, radioStatus.sent),
-            ping: addPoint(allData.ping, radioStatus.ping),
-        }));
+        if (radioStatus && radioStatus.stamp) {
+            setData(allData => ({
+                time: addPoint(allData.time, radioStatus.stamp.sec * 1000 + radioStatus.stamp.nanosec / 1_000_000),
+                signal: addPoint(allData.signal, radioStatus.signal),
+                recv: addPoint(allData.recv, radioStatus.recv),
+                sent: addPoint(allData.sent, radioStatus.sent),
+                ping: addPoint(allData.ping, radioStatus.ping),
+            }));
+        } else return;
     }, [radioStatus]);
 
-
     const radioData = {
-        signal: { name: 'Signal strength', data: allData.signal.map((v, i) => [i, v]) },
-        recv: { name: 'Received bandwidth', data: allData.recv.map((v, i) => [i, v]) },
-        sent: { name: 'Sent bandwidth', data: allData.sent.map((v, i) => [i, v]) },
-        ping: { name: 'Ping', data: allData.ping.map((v, i) => [i, v]) },
+        signal: { name: 'Signal strength', data: allData.signal.map((v, i) => [allData.time[i], v]) },
+        recv: { name: 'Received bandwidth', data: allData.recv.map((v, i) => [allData.time[i], v]) },
+        sent: { name: 'Sent bandwidth', data: allData.sent.map((v, i) => [allData.time[i], v]) },
+        ping: { name: 'Ping', data: allData.ping.map((v, i) => [allData.time[i], v]) },
     };
 
     // const [maxPoints, setMaxPoints] = useState(300);

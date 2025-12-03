@@ -103,6 +103,7 @@ class RadioTest (Node):
 
             # Create the ROS message
             msg = RadioStatus()
+            msg.stamp = self.get_clock().now().to_msg()
             msg.recv = int(self.recv)
             msg.sent = int(self.sent)
             msg.ping = int(self.ping)
