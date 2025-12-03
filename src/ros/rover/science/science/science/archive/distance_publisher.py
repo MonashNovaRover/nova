@@ -18,7 +18,7 @@ import rclpy
 import time
 from rclpy.node import Node
 
-from nova_interfaces.msg import DistanceData 
+from science_interfaces.msg import DistanceData
     
 # The ID for the CAN frame
 CAN_ID = 0x004

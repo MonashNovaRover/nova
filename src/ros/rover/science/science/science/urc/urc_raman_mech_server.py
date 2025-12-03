@@ -26,8 +26,8 @@ import rclpy
 from rclpy.node import Node
 import jcan
 
-from nova_interfaces.msg import RamanState
-from nova_interfaces.srv import RamanMech
+from science_interfaces.msg import RamanState
+from science_interfaces.srv import RamanMech
 
 
 class RamanMechServer(Node):

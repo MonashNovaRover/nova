@@ -21,7 +21,7 @@ import rclpy
 from python_control.ControllerNode import ControllerNode
 from python_control.controls.OneAxisPositionControl import OneAxisPositionControl
 from python_control.controllers.JonoPositionController import JonoPositionController
-from nova_interfaces.srv import CacheCommand
+from science_interfaces.srv import CacheCommand
 
 class URCCache(ControllerNode):
     # CAN BUS NAME

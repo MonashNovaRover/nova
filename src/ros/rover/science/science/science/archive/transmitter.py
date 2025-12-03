@@ -22,7 +22,7 @@ EDITED:		15/05/2022
 # Include all ROS dependencies
 import rclpy
 from rclpy.node import Node
-from nova_interfaces.srv import ScienceCommand
+from science_interfaces.srv import ScienceCommand
 
 # Include utilities for publishing CAN data
 from coms_utils.can_interface import CANTransceiver

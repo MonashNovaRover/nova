@@ -8,7 +8,7 @@
 , geometry-msgs
 , nav-msgs
 , trajectory-msgs
-, nova-interfaces
+, nova-science-interfaces
 , nova-input-interfaces
 , nova-python-control
 , nova-camera-msgs
@@ -47,12 +47,3 @@ buildRosPackage {
     teleop-modular-python-utils
   ];
 }
-
-/*
-nix-shell -p 'with import /home/nova/nova/nixfiles { }; pkgs.ros.nova-workspace.override {
-	novaPackages = {
-		inherit (pkgs.ros)
-		nova-science
-	};
-}'
-*/
