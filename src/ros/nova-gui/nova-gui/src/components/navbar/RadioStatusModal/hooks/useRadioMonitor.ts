@@ -1,8 +1,7 @@
 import { useEffect } from "react";
-
+import { RadioConnectionStatus } from "../RadioTypes.ts";
 import { RosTopic } from "../../../../ros/topics/rosTopic";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction";
-
 
 export function useRadioMonitor() {
 
@@ -11,5 +10,5 @@ export function useRadioMonitor() {
     bifrost.syncWithTopic();
   }, [bifrost]);
 
-  return 'Strong';
+  return RadioConnectionStatus.STRONG;
 }
