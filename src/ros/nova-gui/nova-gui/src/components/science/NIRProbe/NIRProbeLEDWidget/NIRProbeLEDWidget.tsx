@@ -6,7 +6,7 @@ import {useSelector} from "react-redux";
 import {RootState} from "../../../../redux/RootState.ts";
 import {RosService} from "../../../../ros/services/rosService.ts";
 import SpinnerButton from "../../../shared/components/buttons/SpinnerButton.tsx";
-import {IRosNovaInterfacesNirProbeDataConst} from "../../../../ros/rosTypes.ts";
+import {IRosScienceInterfacesNirProbeDataConst} from "../../../../ros/rosTypes.ts";
 import {NIRProbeReadingTypeInfo} from "../SpaceResourcesSiteType.tsx";
 
 interface INIRProbeLEDWidgetProps extends CardProps {
@@ -35,14 +35,14 @@ const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({readingInfo, ...c
       </CardHeader>
       <CardBody className="grid grid-cols-2 gap-3">
         <SpinnerButton
-          onClick={() => takeReading(IRosNovaInterfacesNirProbeDataConst.LED_WATER)}
-          isLoading={status === IRosNovaInterfacesNirProbeDataConst.LED_WATER}
+          onClick={() => takeReading(IRosScienceInterfacesNirProbeDataConst.LED_WATER)}
+          isLoading={status === IRosScienceInterfacesNirProbeDataConst.LED_WATER}
         >
           Take {readingInfo[1].name} LED Reading
         </SpinnerButton>
         <SpinnerButton
-          onClick={() => takeReading(IRosNovaInterfacesNirProbeDataConst.LED_ICE)}
-          isLoading={status === IRosNovaInterfacesNirProbeDataConst.LED_ICE}
+          onClick={() => takeReading(IRosScienceInterfacesNirProbeDataConst.LED_ICE)}
+          isLoading={status === IRosScienceInterfacesNirProbeDataConst.LED_ICE}
         >
           Take {readingInfo[2].name} LED Reading
         </SpinnerButton>

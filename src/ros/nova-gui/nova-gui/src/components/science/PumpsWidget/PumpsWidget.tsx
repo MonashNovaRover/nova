@@ -2,7 +2,7 @@ import {Button, Card, CardBody, CardHeader, CardProps, Input, Progress} from "@n
 import React, { useEffect, useState } from "react";
 import SegmentedPicker from "../../shared/components/SegmentedPicker/SegmentedPicker.tsx";
 import { RosAction } from "../../../ros/actions/RosAction.ts";
-import { IRosNovaInterfacesPumpsActionFeedback, IRosNovaInterfacesPumpsActionGoal, IRosNovaInterfacesPumpsActionResult } from "../../../ros/rosTypes.ts";
+import { IRosScienceInterfacesPumpsActionFeedback, IRosScienceInterfacesPumpsActionGoal, IRosScienceInterfacesPumpsActionResult } from "../../../ros/rosTypes.ts";
 import { useRosAction } from "../../../hooks/ros/useRosAction.ts";
 import toast from "react-hot-toast";
 import {Database, Search, Square} from "react-feather";
@@ -32,8 +32,8 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
   const [timeToRun, setTimeToRun] = useState<string>("");
   const { sendGoal, cancelGoal, feedback, goalResponse } = useRosAction(RosAction.PUMPS);
 
-  const pumpsFeedback = feedback as IRosNovaInterfacesPumpsActionFeedback;
-  const pumpsGoalResponse = goalResponse as IRosNovaInterfacesPumpsActionResult;
+  const pumpsFeedback = feedback as IRosScienceInterfacesPumpsActionFeedback;
+  const pumpsGoalResponse = goalResponse as IRosScienceInterfacesPumpsActionResult;
 
   const picker = (
       <SegmentedPicker onIndexChange={setSelectedPumpIndex} selectedIndex={selectedPumpIndex} isDisabled={actionSent}>
@@ -78,7 +78,7 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
     const goal = {
       "pump": PUMPS[selectedPumpIndex].value,
       ...(!invalidTimeToRun && {"time_to_run":  time}),
-    } as IRosNovaInterfacesPumpsActionGoal;
+    } as IRosScienceInterfacesPumpsActionGoal;
 
     console.log(`${goal.time_to_run}`);
 
