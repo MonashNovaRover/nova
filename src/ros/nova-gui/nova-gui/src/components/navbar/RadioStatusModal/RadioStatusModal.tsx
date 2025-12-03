@@ -14,8 +14,6 @@ import DataChart from "./DataChart.tsx";
 import { ChartOptions, ChartStyle } from "./ChartOptions.ts";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../redux/RootState";
-import { RosTopic } from "../../../ros/topics/rosTopic";
-import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";
 import { useUIActions } from "../../../redux/actions/useUIActions.ts";
 
 export const RadioStatusModal = () => {
@@ -23,11 +21,6 @@ export const RadioStatusModal = () => {
     const uiActions = useUIActions();
 
     const radioStatus = useSelector((state: RootState) => state.radioStore);
-    const bifrost = useBifrost({ topic: RosTopic.RADIO_STATUS });
-
-    useEffect(() => {
-        bifrost.syncWithTopic();
-    }, [bifrost]);
 
     const modalOpen = useSelector(
         (state: RootState) => state.uiState.radioStatusModalOpen
