@@ -1,6 +1,7 @@
 export enum RadioConnectionStatus {
+  STARTING = "Starting...",
   STRONG = "Strong",
   WEAK = "Weak",
   LOST = "Lost",
-  ERROR  = "Error",
+  ERROR  = "Monitor error",
 }

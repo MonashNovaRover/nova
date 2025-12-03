@@ -11,7 +11,7 @@ const radioConnectionStatusColor: {
   [RadioConnectionStatus.STRONG]: "success",
   [RadioConnectionStatus.WEAK]: "warning",
   [RadioConnectionStatus.LOST]: "danger",
-  [RadioConnectionStatus.ERROR]:  "danger",
+  [RadioConnectionStatus.ERROR]: "danger",
 };
 
 export function RadioStatusButton() {
@@ -24,13 +24,14 @@ export function RadioStatusButton() {
       <Button
         size="sm"
         variant="shadow"
+        isDisabled={radioHealth === RadioConnectionStatus.STARTING}
         color={radioConnectionStatusColor[radioHealth]}
         onPress={() => uiActions.setRadioStatusModalOpen(true)}
       >
         <Radio className="w-4 h-4" />
         {radioHealth.toString()}
       </Button>
-      <RadioStatusModal/>
+      <RadioStatusModal />
     </div>
   );
 }
