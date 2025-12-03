@@ -16,7 +16,7 @@ in
       };
     };
 
-    programs.dconf.profiles.gdm.databases = lib.mkIf config.services.xserver.displayManager.gdm.enable [{
+    programs.dconf.profiles.gdm.databases = lib.mkIf config.services.displayManager.gdm.enable [{
       settings = {
         "org/gnome/login-screen".logo = "${pkgs.nova.nova-icons}/share/icons/hicolor/512x512/apps/nova-logo-white.png";
       };
