@@ -32,7 +32,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   # Service definitions
   "srv/CacheCommand.srv"
   "srv/KilnCommand.srv"
-  "srv/LoadCellPoller.srv"
   "srv/MoveHydraprobe.srv"
   "srv/MoveMicroscopeServo.srv"
   "srv/MoveScimbalCam.srv"
