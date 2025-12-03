@@ -20,7 +20,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DriveInput.msg"
   "msg/DriveInputStamped.msg"
   "msg/EMCData.msg"
-  "msg/Heartbeat.msg"
+  "msg/RadioStatus.msg"
   "msg/HydraprobeData.msg"
   "msg/KilnData.msg"
   "msg/KilnMassData.msg"

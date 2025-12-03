@@ -31,7 +31,7 @@ import {
   IRosNovaInterfacesStatus,
   IRosSensorMsgsNavSatFix,
   IRosArmInterfacesSequencerFeedback,
-  IRosNovaInterfacesHeartbeat,
+  IRosNovaInterfacesRadioStatus,
 
 } from "../ros/rosTypes";
 
@@ -50,6 +50,9 @@ export interface RootState {
   // Bifrost Stores
   bifrostStatus: BifrostStatus;
   poseStore: IRosGeometryMsgsPose;
+
+  // Radio Stores
+  radioStore: IRosNovaInterfacesRadioStatus;
 
   // Drive Stores
   driveStore: IRosDriveInterfacesDriveInfo;
@@ -115,6 +118,4 @@ export interface RootState {
   batteryStore: IRosSensorMsgsBatteryState;
 
   activeStatusStore: IRosNovaInterfacesActiveNodeStatus;
-
-  radioStatusStore: IRosNovaInterfacesHeartbeat;
 }

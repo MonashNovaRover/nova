@@ -309,13 +309,13 @@ export const reduxStores = {
     }
   ),
 
-  radioStatusStore: createBifrostStore(
+  radioStore: createBifrostStore(
     { topic: RosTopic.RADIO_STATUS },
     {
       recv: 0,
       sent: 0,
       ping: 0,
-      signal: -65,
+      signal: -96,
     }
   ),
 

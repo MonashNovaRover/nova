@@ -9,7 +9,7 @@ published over ROS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: radio_tester_pub
 TOPICS:
-  - /electronics/radio_status  [Heartbeat]   [Published]
+  - /electronics/radio_status  [RadioStatus]   [Published]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios
@@ -24,7 +24,7 @@ from rclpy.node import Node
 import time, math, random, sys
 
 # Get the RoverPose message type
-from nova_interfaces.msg import Heartbeat
+from nova_interfaces.msg import RadioStatus
 
 # This class handles all movement and testing of the GPS
 class RadioTest (Node):
@@ -58,7 +58,7 @@ class RadioTest (Node):
         print("Initialising ROS Radio Tester")
 
         # Message Type, Topic Name, Quality of Service 
-        self.pub = self.create_publisher(Heartbeat, '/electronics/radio_status', 10)
+        self.pub = self.create_publisher(RadioStatus, '/electronics/radio_status', 10)
 
         # Set the starting variables
         self.run = True
@@ -80,7 +80,7 @@ class RadioTest (Node):
         self.signal_flag = True
 
         # Stores the previous data
-        self.prevData = Heartbeat()
+        self.prevData = RadioStatus()
 
         # Start the randomisers
         self.Randomise("recv")
@@ -102,7 +102,7 @@ class RadioTest (Node):
             self.ChangeValue("signal")
 
             # Create the ROS message
-            msg = Heartbeat()
+            msg = RadioStatus()
             msg.recv = int(self.recv)
             msg.sent = int(self.sent)
             msg.ping = int(self.ping)

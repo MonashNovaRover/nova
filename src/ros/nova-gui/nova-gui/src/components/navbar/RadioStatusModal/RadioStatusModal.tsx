@@ -22,7 +22,7 @@ export const RadioStatusModal = () => {
 
     const uiActions = useUIActions();
 
-    const radioStatus = useSelector((state: RootState) => state.radioStatusStore);
+    const radioStatus = useSelector((state: RootState) => state.radioStore);
     const bifrost = useBifrost({ topic: RosTopic.RADIO_STATUS });
 
     useEffect(() => {
