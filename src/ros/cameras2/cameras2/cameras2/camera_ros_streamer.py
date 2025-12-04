@@ -266,7 +266,7 @@ class CameraSplitROSWebRTCBin:
         self,
         serial: str,
         device_node: str,
-        mime: str = "video/x-raw",
+        mime: str = "video/x-h264",
         width: Optional[int] = None,
         height: Optional[int] = None,
         framerate: Optional[int] = None,

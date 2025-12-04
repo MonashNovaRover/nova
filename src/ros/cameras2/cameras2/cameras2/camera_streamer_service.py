@@ -217,7 +217,7 @@ class CameraStreamerService(Node):
         param_defaults = read_camera_configuration(
             CameraStreamerService.CameraConfiguration(
                 autostart=True,
-                mime="video/x-raw",
+                mime="video/x-h264",
                 width=0,
                 height=0,
                 framerate=0,
