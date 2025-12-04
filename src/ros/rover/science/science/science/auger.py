@@ -1,191 +1,102 @@
 #!/usr/bin/env python3
-
-from python_control.sensors.ToggleCommandSensor import ToggleCommandSensor
-from python_control.limits.LimitSwitchLimit import LimitSwitchLimit
-from python_control.controls.Direction import Direction
-from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
-from python_control.controllers.CMDVelocityController import CMDVelocityController
-from python_control.sensors.CommandSensor import CommandSensor
-from python_control.ActivatedJoystickControllerNode import ActivatedJoystickControllerNode
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<insert purpose here>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: AugerController
+TOPICS:
+  - publisher: <topic> [<msg type>]
+SERVICES:
+	- service: <service> [<srv type>]
+ACTIONS: None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:        science
+AUTHOR(S):      <insert your name>
+CREATION:       <current date>
+EDITED:         <current date>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 import rclpy
-from input_interfaces.msg import InputJoystick
-from std_msgs.msg import Bool
+from rclpy.node import Node
+from typing import Optional
+from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface
+
+from python_control2.hardware_interfaces import CMDHardware
+from teleop_python_utils import Inputs
 
 
-class URCAuger(ActivatedJoystickControllerNode):
+class AugerController(Controller):
+    # Command interfaces
+    actuation_cmd: Interface
+    drill_cmd: Interface
 
-    # CAN BUS NAME
-    # The name of the CAN bus to use
-    CAN_BUS = "can1"
+    # State interfaces
+    # state: Interface
 
-    # SENDING CARD IDS
-    # Add any CONTROL FRAME / CARD IDS here
-    AUGER_ACTUATION_CANID_PARAM = "auger_actuation_canid"
-    AUGER_ACTUATION_SEND_FRAME_ID = 0x0C2
-    AUGER_DRILL_CANID_PARAM = "auger_drill_canid"
-    AUGER_DRILL_SEND_FRAME_ID = 0x0C1
+    def __init__(self, contexts: Contexts):
+        """ Constructor, deferred until the control manager has been spun.
+        If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
-    # RECEIVING CARD IDS
-    # Add any SENSOR FRAME / CARD IDS here
-    AUGER_LIMIT_RECV_ID = 0x452
+        :param contexts: A collection of dependency injection class instances you can index by class type.
+        """
+        super().__init__(contexts)
+        self.logger.info(f"AugerController -- I have been __init__ialized")
+        self.logger.get_child(self.name).info()
 
+        # Do any setup logic here, save any contexts you want reference to in the future.
+        # Save Input references here
+        self.active_button_name = self.declare_parameter("active_button", f"{self.name}_active").value
+        self.inactive_button_pool_names = self.declare_parameter("inactive_button_pool", []).value
+        self.active = self.declare_parameter("start_active", True)
 
-    # DEPTH HALL SENSORS CAN INFO
-    AUGER_HALL_SENSOR_CANID_PARAM = "auger_hall_sensor_canid"
-    DEFAULT_AUGER_HALL_SENSOR_CANID_PARAM = 0x4A2
-    DEPTH_HIT_DATA = 0x01
-    DEPTH_NOT_HIT_DATA = 0x00
+        # Get inputs
+        self.actuation_axis_name = self.declare_parameter("actuation_axis", "auger_actuation").value
+        self.drill_axis_name = self.declare_parameter("drill_axis", "auger_drill").value
+        self.speed_axis_name = self.declare_parameter("speed_axis", "auger_speed").value
 
-    # PUBLISHING DEPTH INFORMATION
-    AUGER_DEPTH_TOPIC_PREFIX = "/science/auger_depth/"
-
-    # CONTROL NAMES
-    # Add any CONTROL names here
-    AUGER_ACTUATION_NAME = "auger_actuation"
-    AUGER_DRILL_NAME = "auger_drill"
-
-    # CONTROL PARAMETERS
-    # Max Speed as a Percentage (0.0 to 1.0)
-    AUGER_ACTUATION_MAX_PERCENT = 0.75
-    AUGER_DRILL_MAX_PERCENT = 0.6
-    AUGER_DRILL_MAX_PERCENT_PARAM = "max_percent"
-
-    # SENDING COMMAND IDS
-    # Add any CONTROL command ids here
-    STEPPER_SEND_COMMAND_ID = 0x01
-
-    # RECEIVING COMMAND IDS
-    # Add any SENSOR command ids here
-    AUGER_RECV_LIMIT_BOTTOM_COMMAND_ID = 0x01
-    AUGER_RECV_DEPTH_LIMIT_HIT_COMMAND_ID = 0x01
-
-    # CONTROL DIRECTIONS
-    # Add any CONTROL DIRECTIONS here
-    AUGER_ACTUATION_UP = Direction.NEGATIVE
-    AUGER_ACTUATION_DOWN = Direction.POSITIVE
-    AUGER_DRILL_CLOCKWISE = Direction.POSITIVE
-    AUGER_DRILL_COUNTERCLOCKWISE = Direction.NEGATIVE
-
-    def __init__(self):
-        super(URCAuger, self).__init__(name="Auger", can_bus=self.CAN_BUS)
-        logger = self.get_logger()
-
-        # Setting ROS parameters
-        self.declare_parameter(self.AUGER_ACTUATION_CANID_PARAM, self.AUGER_ACTUATION_SEND_FRAME_ID)
-        self.declare_parameter(self.AUGER_DRILL_CANID_PARAM, self.AUGER_DRILL_SEND_FRAME_ID)
-        self.declare_parameter(self.AUGER_DRILL_MAX_PERCENT_PARAM, self.AUGER_DRILL_MAX_PERCENT)
-        self.declare_parameter(self.AUGER_HALL_SENSOR_CANID_PARAM, self.DEFAULT_AUGER_HALL_SENSOR_CANID_PARAM)
-        self.get_logger().info(f"CAN IDs: Actuation = {self.get_parameter(self.AUGER_ACTUATION_CANID_PARAM).value} Drill = {self.get_parameter(self.AUGER_DRILL_CANID_PARAM).value}")
-
-        ## Add publishers
-        self.depth_publisher = self.create_publisher(
-            Bool,
-            self.AUGER_DEPTH_TOPIC_PREFIX + self.get_name(),
-            10
-        )
-
-        ## Add CAN ID Filters
-        self.bus.set_id_filter([self.AUGER_LIMIT_RECV_ID, self.get_parameter(self.AUGER_HALL_SENSOR_CANID_PARAM).value])
-
-        ## Create sensors
-        self.bottom_limit_hall_effect = CommandSensor(
-            logger=logger,
-            bus=self.bus,
-            frame_id=self.AUGER_LIMIT_RECV_ID,
-            command_id=self.AUGER_RECV_LIMIT_BOTTOM_COMMAND_ID,
-            run_can=False
-        )
-
-        self.depth_hall_effect_sensor = ToggleCommandSensor(
-            logger=logger,
-            bus=self.bus,
-            frame_id=self.get_parameter(self.AUGER_HALL_SENSOR_CANID_PARAM).value,
-            state_id_on=self.DEPTH_HIT_DATA,
-            state_id_off=self.DEPTH_NOT_HIT_DATA,
-            publisher = self.depth_publisher,
-        )
-
-        # Create limits
-        self.auger_bottom_limit = LimitSwitchLimit(
-            logger=logger,
-            bus=self.bus,
-            limit_switch=self.bottom_limit_hall_effect,
-        )
-
-        ## Create controls
-        self.auger_actuation = OneAxisVelocityControl(
-            logger=logger,
-            max_percent=self.AUGER_ACTUATION_MAX_PERCENT,
-            direction=self.AUGER_ACTUATION_UP,
-            neg_limit=self.auger_bottom_limit,
-        )
-        self.auger_drill = OneAxisVelocityControl(
-            logger=logger,
-            max_percent=self.get_parameter(self.AUGER_DRILL_MAX_PERCENT_PARAM).value,
-            direction=self.AUGER_DRILL_CLOCKWISE,
-        )
+        inputs = contexts[Inputs]
+        self.actuation_input = inputs.get_button(self.actuation_axis_name)
+        self.drill_input = inputs.get_axis(self.drill_axis_name)
+        self.speed_input = inputs.get_axis(self.speed_axis_name)
 
 
-        ## Create controllers
-        self.auger_actuation_controller = CMDVelocityController(
-            logger=logger,
-            bus=self.bus,
-            frame_id=self.get_parameter(self.AUGER_ACTUATION_CANID_PARAM).value,
-            control=self.auger_actuation
-        )
-        self.auger_drill_controller = CMDVelocityController(
-            logger=logger,
-            bus=self.bus,
-            frame_id=self.get_parameter(self.AUGER_DRILL_CANID_PARAM).value,
-            control=self.auger_drill
-        )
+    def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
+        """ Used to set up your Controller. Run once before any other class method.
+        Use this method to get data from self.node, and get references to any command or state interface you need.
 
-        ## Add the controllers to the node's of controllers
-        self.add_controller(self.AUGER_ACTUATION_NAME, self.auger_actuation_controller)
-        self.add_controller(self.AUGER_DRILL_NAME, self.auger_drill_controller)
+        :param command_interfaces: A collection of Interfaces used to send messages to hardware. Get any command
+        interfaces you need from this, then store them in member variables.
+        :param state_interfaces: A collection of Interfaces containing the current state of the robot. Get any state
+        interfaces you need from this, then store them in member variables.
+        :returns: None or True if configured successfully. False otherwise.
+        """
+        # Save references to interfaces
+        self.logger.info(f"Getting actuation/effort and drill/effort")
+        self.actuation_cmd = command_interfaces["actuation/effort"]
+        self.drill_cmd = command_interfaces["drill/effort"]
 
-        ## Start the CAN bus
-        self.start_can()
-
-    def update_auger_actuation(self, joystick_r: InputJoystick):
-        # Auger height direction is determined by the right joystick's x-axis direction
-        self.auger_actuation.update_direction(self.AUGER_ACTUATION_UP if joystick_r.ax_stick_x <= 0 else self.AUGER_ACTUATION_DOWN)
-
-        # Auger velocity is determined by the right joystick's x-axis magnitude
-        if joystick_r.btn_thumb_d_state >= 1 or joystick_r.ax_stick_x < 0:
-            self.bottom_limit_hall_effect.set_sensor_value(False)
-            self.auger_bottom_limit.update_limit_hit(False)
-        self.auger_actuation.update_velocity(velocity=abs(joystick_r.ax_stick_x))
-
-
-    def update_auger_drill(self, joystick_r: InputJoystick):
-        # Drill spin direction is determined by the right joystick thumb buttons
-        # Thumb right = clockwise, Thumb left = counterclockwise
-        if joystick_r.btn_thumb_r_state >= 1:
-            self.auger_drill.update_direction(self.AUGER_DRILL_CLOCKWISE)
-        elif joystick_r.btn_thumb_l_state >= 1:
-            self.auger_drill.update_direction(self.AUGER_DRILL_COUNTERCLOCKWISE)
-
-        # Drill spin velocity is determined by the right joystick trigger
-        if joystick_r.btn_thumb_u_state >= 1:
-            self.auger_drill.update_velocity(1.0)
-        else:
-            self.auger_drill.update_velocity(0)
-
-    def joystick_l(self, joystick_l: InputJoystick):
-        pass
-
-    def joystick_r(self, joystick_r: InputJoystick):
-        self.update_auger_actuation(joystick_r)
-        self.update_auger_drill(joystick_r)
-
-
-def main():
-    rclpy.init()
-    node = URCAuger()
-    rclpy.spin(node)
-    rclpy.shutdown()
-
+    def on_update(self, now: float, period: float):
+        """ Called on every update. You should read values from state interfaces, and set values on command interfaces
+            here.
+        :param now: The current time, in seconds
+        :param period: The time elapsed since the last update, in seconds.
+        """
+        # Update Command Interfaces
+        # self.cmd.value = 2 * self.state.value
+        # self.logger.info(f"{self.state.value} -> {self.cmd.value}")
 
 if __name__ == "__main__":
-    main()
+    print("Setting up!")
+
+    rclpy.init()
+
+    node = Node("auger")
+    inputs = Inputs(node).with_topics("/science/input")
+
+    PythonControl(node, update_rate=5, can_bus="can1") \
+        .with_controller("controller", AugerController) \
+        .with_hardware("actuation", CMDHardware, can_id=0x0C2, max_effort=0.75) \
+        .with_hardware("drill", CMDHardware, can_id=0x0C1, max_effort=0.6) \
+        .with_teleop(inputs) \
+        .with_jcan() \
+        .spin()
