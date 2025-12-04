@@ -15,7 +15,6 @@ find_package(rosidl_default_generators REQUIRED)
 # Include all interfaces
 rosidl_generate_interfaces(${PROJECT_NAME}
   # Message definitions
-  "msg/ActiveNodeStatus.msg"
   "msg/ActuatorLimit.msg"
   "msg/BMESensor.msg"
   "msg/DistanceData.msg"

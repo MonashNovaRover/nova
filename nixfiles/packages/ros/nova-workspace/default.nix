@@ -133,7 +133,7 @@
       nova-git-metadata
       nova-legacy-input-mode
       nova-teleop-science
-      nova-science-interface
+      nova-science-interfaces
       ;
     nova-can-sleuth = pythonPackages.nova-can-sleuth;
   }

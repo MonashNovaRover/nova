@@ -28,7 +28,7 @@ buildRosPackage {
 
   nativeBuildInputs = [ ament-cmake ];
 
-  buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs trajectory-msgs nova-interfaces ];
+  buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs trajectory-msgs ];
 
   propagatedBuildInputs = with pythonPackages; [
     jcan
@@ -45,5 +45,6 @@ buildRosPackage {
     nova-input-interfaces
     nova-camera-msgs
     teleop-modular-python-utils
+    nova-science-interfaces
   ];
 }

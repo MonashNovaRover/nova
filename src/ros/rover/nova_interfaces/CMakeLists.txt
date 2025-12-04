@@ -13,6 +13,7 @@ find_package(sensor_msgs REQUIRED)
 # Include all interfaces
 rosidl_generate_interfaces(${PROJECT_NAME}
   # Message definitions
+  "msg/ActiveNodeStatus.msg"
   "msg/ArmFkVelocityTargets.msg"
   "msg/DriveInfo.msg"
   "msg/DriveInput.msg"

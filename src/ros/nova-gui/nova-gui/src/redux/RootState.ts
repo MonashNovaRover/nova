@@ -24,7 +24,7 @@ import {
   IRosStdSrvsSetBoolResponse,
   IRosScienceInterfacesBmeSensor,
   IRosSensorMsgsBatteryState,
-  IRosScienceInterfacesActiveNodeStatus,
+  IRosNovaInterfacesActiveNodeStatus,
   IRosArmInterfacesStringTriggerResponse,
   IRosArmInterfacesKeyboardPoints,
   IRosNovaInterfacesCartographerCommandResponse,
@@ -113,5 +113,5 @@ export interface RootState {
 
   batteryStore: IRosSensorMsgsBatteryState;
 
-  activeStatusStore: IRosScienceInterfacesActiveNodeStatus;
+  activeStatusStore: IRosNovaInterfacesActiveNodeStatus;
 }

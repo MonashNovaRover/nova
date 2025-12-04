@@ -19,7 +19,7 @@ import {
   IRosScienceInterfacesBmeSensor,
   IRosArmInterfacesKeyboardPoints,
   IRosSensorMsgsBatteryState,
-  IRosScienceInterfacesActiveNodeStatus,
+  IRosNovaInterfacesActiveNodeStatus,
   IRosNovaInterfacesStatus,
   IRosSensorMsgsNavSatFix,
   IRosArmInterfacesSequencerFeedback,
@@ -77,5 +77,5 @@ export interface RosTopicInterfaces {
 
   // Other
   [RosTopic.BATTERY_STATE]: IRosSensorMsgsBatteryState;
-  [RosTopic.ACTIVATED_NODES]: IRosScienceInterfacesActiveNodeStatus;
+  [RosTopic.ACTIVATED_NODES]: IRosNovaInterfacesActiveNodeStatus;
 }
