@@ -20,7 +20,7 @@
     "@types/geolib": "^2.0.23",
     "@types/uuid": "^9.0.8",
     "@uidotdev/usehooks": "^2.4.1",
-    "apexcharts": "^3.47.0",
+    "apexcharts": "^5.3.6",
     "bootstrap-icons": "^1.11.2",
     "broadcast-channel": "^7.0.0",
     "deck.gl": "^9.0.11",
