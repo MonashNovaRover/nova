@@ -1,10 +1,11 @@
 //
-// Created by nova on 11/16/25.
+// Created by Bailey Chessum on 11/16/25.
 //
 
 #include <arm_kinematics/plugin_loader.hpp>
-
-#include "arm_kinematics/utilities/param_reader.hpp"
+#include <arm_kinematics/collision/collider_definitions.hpp>
+#include <arm_kinematics/utilities/param_reader.hpp>
+#include <arm_kinematics/utilities/to_eigen.hpp>
 
 namespace arm_kinematics {
 PluginLoader::PluginLoader(
@@ -44,7 +45,6 @@ InverseKinematicsPlugin::SharedPtr PluginLoader::make_ik(const std::string & nam
   return nullptr;
 }
 
-
 InverseKinematicsPlugin::SharedPtr PluginLoader::make_ik() {
   const ParamReader params(node_.get_node_parameters_interface());
   const auto name = params.get_or<std::string>("kinematics.inverse_kinematics_plugin", "");
@@ -60,8 +60,8 @@ InverseKinematicsPlugin::SharedPtr PluginLoader::make_ik() {
   return make_ik(name);
 }
 
-CollisionPlugin::SharedPtr PluginLoader::make_collision(
-  const std::vector<urdf::Collision> & collider_geometries,
+DiscreteCollisionPlugin::SharedPtr PluginLoader::make_collision(
+  const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries,
   AllowedCollisionMatrix acm)
 {
   const ParamReader params(node_.get_node_parameters_interface());
@@ -72,9 +72,9 @@ CollisionPlugin::SharedPtr PluginLoader::make_collision(
   return make_collision(name, collider_geometries, std::move(acm));
 }
 
-CollisionPlugin::SharedPtr PluginLoader::make_collision(
+DiscreteCollisionPlugin::SharedPtr PluginLoader::make_collision(
   const std::string & name,
-  const std::vector<urdf::Collision> & collider_geometries,
+  const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries,
   AllowedCollisionMatrix acm)
 {
   auto plugin = get_collision_loader().createSharedInstance(name);
@@ -84,6 +84,35 @@ CollisionPlugin::SharedPtr PluginLoader::make_collision(
   auto logger = node_.get_node_logging_interface()->get_logger();
   RCLCPP_ERROR(logger, "Failed to initialize collision plugin \"%s\".", name.c_str());
   return nullptr;
+}
+
+PluginLoader::MakeCollisionResult PluginLoader::make_collision(
+  const std::vector<std::string> & joint_names,
+  const ForwardKinematicsPlugin::SharedPtr & fk)
+{
+  const auto & urdf_model = get_kinematics_params()->get_urdf_model();
+  auto [colliders, frames, acm] = ColliderDefinitions(urdf_model);
+  auto [tree, order] = fk->make_tree(joint_names, urdf_model.getRoot()->name, std::move(frames));
+
+  return MakeCollisionResult{
+    std::move(tree),
+    make_collision(order.reorder(std::move(colliders)), std::move(acm))
+  };
+}
+
+PluginLoader::MakeCollisionResult PluginLoader::make_collision(
+  const std::string & name,
+  const std::vector<std::string> & joint_names,
+  const ForwardKinematicsPlugin::SharedPtr & fk)
+{
+  const auto & urdf_model = get_kinematics_params()->get_urdf_model();
+  auto [colliders, frames, acm] = ColliderDefinitions(urdf_model);
+  auto [tree, order] = fk->make_tree(joint_names, urdf_model.getRoot()->name, frames);
+
+  return MakeCollisionResult{
+    std::move(tree),
+    make_collision(name, order.reorder(std::move(colliders)), std::move(acm))
+  };
 }
 
 const KinematicsParams::SharedPtr & PluginLoader::get_kinematics_params() noexcept {
@@ -111,10 +140,10 @@ pluginlib::ClassLoader<InverseKinematicsPlugin> & PluginLoader::get_ik_loader() 
   return *ik_loader_;
 }
 
-pluginlib::ClassLoader<CollisionPlugin> & PluginLoader::get_collision_loader() const noexcept {
+pluginlib::ClassLoader<DiscreteCollisionPlugin> & PluginLoader::get_collision_loader() const noexcept {
   if (!collision_loader_)
-    collision_loader_ = std::make_unique<pluginlib::ClassLoader<CollisionPlugin>>(
-      "arm_kinematics", "arm_kinematics::CollisionPlugin");
+    collision_loader_ = std::make_unique<pluginlib::ClassLoader<DiscreteCollisionPlugin>>(
+      "arm_kinematics", "arm_kinematics::DiscreteCollisionPlugin");
 
   return *collision_loader_;
 }

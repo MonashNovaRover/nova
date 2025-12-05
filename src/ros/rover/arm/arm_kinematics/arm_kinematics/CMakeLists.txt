@@ -36,7 +36,7 @@ add_library(${PROJECT_NAME} SHARED
   src/common/kinematics_base.cpp
   src/forward/forward_kinematics_plugin.cpp
   src/inverse/inverse_kinematics_plugin.cpp
-  src/collision/collision_plugin.cpp
+  src/collision/discrete_collision_plugin.cpp
   src/collision/fcl/fcl_collision_plugin.cpp
   src/collision/allowed_collision_matrix.cpp
   src/collision/fcl/geometry_cache.cpp
@@ -45,8 +45,9 @@ add_library(${PROJECT_NAME} SHARED
   src/forward/utilities/compute_frame_tree.cpp
   src/forward/utilities/eigen_forward_kinematics_plugin.cpp
   src/forward/utilities/analysis_tree.cpp
-
   src/plugin_loader.cpp
+  src/collision/collision_manager.cpp
+  src/collision/collider_definitions.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17
@@ -65,6 +66,7 @@ install(FILES plugins.xml
 # Test cases
 set(TEST_KINEMATICS_SOURCE_FILES
   test/collision/fcl/test_allowed_collision_matrix.cpp
+  test/collision/fcl/test_fcl_collision_plugin.cpp
   test/forward/eigen/test_eigen_fk_mapper.cpp
 )
 if(NIX_DO_CHECK)

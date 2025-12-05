@@ -50,14 +50,7 @@ inline bool collide_with_acm(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o
   return true;  //< Continue collision checks
 }
 
-bool FclCollisionPlugin::collide(span<const Eigen::Isometry3d> collider_poses) {
-  // Copy poses into the colliders
-  auto pose_it = collider_poses.begin();
-  for (auto& collider : colliders_) {
-    collider.setTransform(*pose_it);
-    ++pose_it;
-  }
-
+bool FclCollisionPlugin::collide() {
   QueryData query {
     get_allowed_collision_matrix()
   };
@@ -116,17 +109,9 @@ inline bool collide_with_acm_and_pairs(fcl::CollisionObjectd* o1, fcl::Collision
 }
 
 bool FclCollisionPlugin::collide(
-  const span<const Eigen::Isometry3d> collider_poses,
   std::vector<std::pair<size_t, size_t>> & colliding_pairs,
   const size_t max_colliding_pairs)
 {
-  // Copy poses into the colliders
-  auto pose_it = collider_poses.begin();
-  for (auto& collider : colliders_) {
-    collider.setTransform(*pose_it);
-    ++pose_it;
-  }
-
   // Ensure collisions output is reset
   colliding_pairs.clear();
 
@@ -143,7 +128,23 @@ bool FclCollisionPlugin::collide(
   return query.hit;
 }
 
-bool FclCollisionPlugin::on_initialize(const std::vector<urdf::Collision>& collider_geometries) {
+void FclCollisionPlugin::update_pose(const size_t idx, const Eigen::Isometry3d& collider_pose) {
+  colliders_[idx].setTransform(collider_pose);
+}
+
+void FclCollisionPlugin::update_poses(const size_t start_idx, const span<const Eigen::Isometry3d> collider_poses) {
+  // Copy poses into the colliders
+  const size_t end = start_idx + collider_poses.size();
+  auto pose_it = collider_poses.begin();
+  for (size_t i = start_idx; i < end; ++i) {
+    colliders_[i].setTransform(*pose_it);
+    ++pose_it;
+  }
+}
+
+bool FclCollisionPlugin::on_initialize(
+  const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries)
+{
   geometry_cache_ = {};
   colliders_ = {};
   colliders_.reserve(collider_geometries.size());

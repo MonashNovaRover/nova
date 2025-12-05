@@ -6,7 +6,6 @@
 #define ARM_KINEMATICS_COLLISION_PLUGIN_HPP
 
 #include <arm_kinematics/forward/forward_kinematics_plugin.hpp>
-#include <arm_kinematics/utilities/aliases.hpp>
 #include <arm_kinematics/utilities/span.hpp>
 #include <limits>
 #include <rclcpp/node_interfaces/node_base_interface.hpp>
@@ -22,10 +21,11 @@ namespace arm_kinematics {
  *
  * \note The responsibility of understanding where colliders are in space and how they relate to different links on the
  * robot is delegated to the caller!
+ * \note The ACM can also be modified externally
  */
-class CollisionPlugin {
+class DiscreteCollisionPlugin {
 public:
-  using SharedPtr = std::shared_ptr<CollisionPlugin>;
+  using SharedPtr = std::shared_ptr<DiscreteCollisionPlugin>;
   using CollisionNodeInterfaces =
     rclcpp::node_interfaces::NodeInterfaces<
       rclcpp::node_interfaces::NodeBaseInterface,
@@ -42,15 +42,17 @@ public:
    */
   bool initialize(
     CollisionNodeInterfaces node_interfaces,
-    const std::vector<urdf::Collision> & collider_geometries,
+    const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries,
     AllowedCollisionMatrix acm);
 
-  /**
-   * Perform a self intersection check with the given joint states.
-   * \param collider_poses The transforms of all colliders provided in initialization
-   * \returns true if there is an intersection, false if there is no intersection
-   */
-  virtual bool collide(span<const Eigen::Isometry3d> collider_poses) = 0;
+  virtual void update_pose(size_t idx, const Eigen::Isometry3d & collider_pose) = 0;
+  virtual void update_poses(size_t start_idx, span<const Eigen::Isometry3d> collider_poses) {
+    for (size_t i = 0; i < collider_poses.size(); ++i) {
+      update_pose(start_idx + i, collider_poses[i]);
+    }
+  }
+
+  virtual bool collide() = 0;
 
   /**
    * Perform a self intersection check with the given joint states, preserving which colliders would intersect.
@@ -62,7 +64,6 @@ public:
    * \returns true if there is an intersection, false if there is no intersection
    */
   virtual bool collide(
-    span<const Eigen::Isometry3d> collider_poses,
     std::vector<std::pair<size_t, size_t>> & colliding_pairs,
     size_t max_colliding_pairs) = 0;
 
@@ -75,11 +76,10 @@ public:
    * \returns true if there is an intersection, false if there is no intersection
    */
   bool collide(
-    const span<const Eigen::Isometry3d> collider_poses,
     std::vector<std::pair<size_t, size_t>> & colliding_pairs)
   {
     // virtual functions cannot include default arguments, so this separate overload need be created.
-    return collide(collider_poses, colliding_pairs, std::numeric_limits<size_t>::max());
+    return collide(colliding_pairs, std::numeric_limits<size_t>::max());
   }
 
   /// Logger to use for logging
@@ -92,7 +92,10 @@ public:
   /// Gets the allowed collision matrix for this collision plugin instance.
   [[nodiscard]] const AllowedCollisionMatrix & get_allowed_collision_matrix() const noexcept { return acm_; }
 
-  virtual ~CollisionPlugin() = default;
+  /// Gets the number of colliders simulated, which equals the number of poses to be passed in
+  [[nodiscard]] constexpr size_t size() const noexcept { return size_; }
+
+  virtual ~DiscreteCollisionPlugin() = default;
 
 protected:
   /**
@@ -101,7 +104,7 @@ protected:
    * \returns True if initialization was successful. False otherwise.
    */
   virtual bool on_initialize(
-    const std::vector<urdf::Collision> & collider_geometries) = 0;
+    const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries) = 0;
 
 private:
   /// Used to filter out collisions we don't care about (i.e. colliders on the same link or joint rotation point).
@@ -111,6 +114,8 @@ private:
   /// Allows us to access various things from the owning node if we need, like loggers, parameters, or in the future,
   /// maybe even topics.
   std::optional<CollisionNodeInterfaces> node_interfaces_ = std::nullopt;
+  /// The number of colliders simulated, which equals the number of poses to be passed in
+  size_t size_ = 0;
 };
 
 } // arm_kinematics
