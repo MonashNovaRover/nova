@@ -16,6 +16,8 @@ class PluginLoader;
  */
 class CollisionManager {
 public:
+  CollisionManager() = default;
+
   CollisionManager(
     ForwardKinematicsPlugin::Tree::SharedPtr tree,
     DiscreteCollisionPlugin::SharedPtr plugin);

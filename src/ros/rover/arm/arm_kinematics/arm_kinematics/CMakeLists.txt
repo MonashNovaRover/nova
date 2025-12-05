@@ -66,6 +66,7 @@ install(FILES plugins.xml
 # Test cases
 set(TEST_KINEMATICS_SOURCE_FILES
   test/collision/fcl/test_allowed_collision_matrix.cpp
+  test/collision/fcl/test_fcl_collision_plugin.cpp
   test/forward/eigen/test_eigen_fk_mapper.cpp
 )
 if(NIX_DO_CHECK)

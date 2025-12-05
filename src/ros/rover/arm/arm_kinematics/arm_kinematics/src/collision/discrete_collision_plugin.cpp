@@ -6,7 +6,7 @@
 
 namespace arm_kinematics {
 
-bool CollisionPlugin::initialize(
+bool DiscreteCollisionPlugin::initialize(
   CollisionNodeInterfaces node_interfaces,
   const std::vector<std::reference_wrapper<const urdf::Collision>>& collider_geometries,
   AllowedCollisionMatrix acm)
@@ -20,11 +20,11 @@ bool CollisionPlugin::initialize(
   return on_initialize(collider_geometries);
 }
 
-const rclcpp::Logger & CollisionPlugin::get_logger() const noexcept {
+const rclcpp::Logger & DiscreteCollisionPlugin::get_logger() const noexcept {
   return logger_;
 }
 
-const CollisionPlugin::CollisionNodeInterfaces & CollisionPlugin::get_node_interfaces() const {
+const DiscreteCollisionPlugin::CollisionNodeInterfaces & DiscreteCollisionPlugin::get_node_interfaces() const {
   if (!node_interfaces_.has_value())
     throw std::logic_error("Used a collision plugin before calling initialize() or after initialize() failed.");
 
