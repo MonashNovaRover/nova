@@ -25,7 +25,7 @@ let
   two = {
     pre = pre-shell {payload-name=task-name + " two"; need-rover=true; };
     terminals = [
-      {name="Base:Teleop"; platform=base; cmd="./ros2 launch teleop_drive_joy teleop.launch.py";}
+      {name="Base:Teleop"; platform=base; cmd="./ros2 launch teleop_drive_joy teleop.launch.py";} # this is just in case operator needs to take over
       {name="Rover:Drive"; platform=rover; cmd="./ros2 launch drive_bringup drive.launch.py auto:=True";}
       {name="Run:Gui+Maps"; platform=base; cmd="../launch/run-gui-maps -r urc/autonomous-navigation -t $TILE_FILE; exit"; }
     ];
