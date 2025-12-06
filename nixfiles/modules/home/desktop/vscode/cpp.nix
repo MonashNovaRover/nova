@@ -5,7 +5,7 @@ let
 in
 {
   config = lib.mkIf cfg.enable {
-    programs.vscode = {
+    programs.vscode.profiles.default = {
       extensions = with pkgs.vscode-extensions; [
         (ms-vscode.cpptools.overrideAttrs ({ meta, ... }: {
           meta = meta // {
