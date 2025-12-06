@@ -23,8 +23,9 @@ in
 - Terminals is an array of sets expecting {name, platform, cmd}
 - `need-rover` and `need-mast` adds the checks to ssh into the rover and mast respectively, if you don't add them SSHs may fail!
 - payload-name just prints it out in console, purely *a e s t h e t i c*
-- By default, terminals will open in the result directory's bin folder that this package was built to however this behaviour is not shared with SSHing as SSH may not have the same build directory. Thus you must implement this behaviour manually.
+- By default, terminals will open in the result directory's bin folder. If the nix store cannot be found on the device it will attempt to search for a nova-workspace build with a matching commit id (NOTE: it won't match exact clean/dirty changes)
   - In the scripts you can use `$STORE_DIR` to access the store directory that the local terminals will point to if needed.
+    - For ssh terminals, use `$REMOTE_STORE_DIR`
   - To use the binaries in the bin folder, append `./` to your commands so that it uses the binaries in that folder instead of the binaries in path
 - When SSHing keep in mind that aliases are defined on a per user basis (nova aliases won't work in non-nova users)
 - Optional flags are also supported where you can define the letter of the flag, the variable that gets assigned, a default value and a description. You can then call the variable of these flags to use them in the commands.
@@ -37,7 +38,6 @@ in
   ```
   - This will make command 2 run 10 seconds after command 1 while command 3 will still run immediately after command 1
   (Good for race conditions)
-
 
 ### Build
 Follow this basic structure and then you can run it through any of the following means:\
@@ -58,3 +58,24 @@ Follow this basic structure and then you can run it through any of the following
 ### Run
 Once built, you can run them with the launch script name defined in the finall attribute definition\ 
 e.g for the example above you would run `run-drive` in the `launch` folder (or from PATH)
+
+### Debugging
+I found this nix file helpful to build the workspace with the launch files decoupled, just make sure you comment out git metadata and launch scripts from `nixfiles/packages/ros/nova-workspace/default.nix`
+```nix
+{ pkgs ? import <nixpkgs> {} }:
+
+let
+    # Import the top-level nixfiles/default.nix (adjust path if needed)
+    nova = import /home/nova/nova/nixfiles {};
+    launch = import /home/nova/nova/nixfiles/modules/home/macros/launch {};
+
+    novaWorkspace = nova.pkgs.ros.nova-workspace;
+    novaLaunchScripts = launch.nova-launch-scripts;
+    novaGitMetadata = launch.nova-git-metadata;
+in
+pkgs.symlinkJoin {
+  name = "launch-testing";
+  paths = [ novaWorkspace novaLaunchScripts novaGitMetadata];
+}
+```
+That way you won't have to wait for the entire workspace to build each time you trial it

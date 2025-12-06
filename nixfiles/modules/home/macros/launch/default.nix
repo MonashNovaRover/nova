@@ -5,14 +5,12 @@
     pkgs ? import <nixpkgs> {}, 
     rover-ip ? "$1",
     mast-ip ? "$2",
-    store ? "$(realpath $(dirname \"$\{BASH_SOURCE[0]\}\")/..)", # assuming shell script is in result/launch
     route ? "",
 }:
 
 let 
   # are we running nix-shell or nix-build
   inShell = builtins.getEnv "IN_NIX_SHELL" != "";
-  bin-dir = store + "/bin";
 
   # ansi strings for nice colours
   ansi = {
@@ -25,10 +23,10 @@ let
   };
 
   # these run a single command, and record it in history, you will need to make a custom line for multiple commands
-  local-terminal = name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab -d "${bin-dir}" --title="${name} " -x "bash -ic '${cmd}; history -s \"${cmd}\"; exec bash'"'';
-  local-nix-terminal = shell: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab -d "${bin-dir}" --title="${name} " -x "bash -ic '${shell} --command \"${cmd}; history -s \\\"${cmd}\\\"; exec bash -l\"; history -s \"${shell}\"; exec bash -l'; exec bash -l"'';
-  ssh-terminal = target: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab --title="${name} " -x "bash -ic 'ssh -t ${target} \"bash -ic \\\"cd ${bin-dir}; ${cmd}; history -s ${cmd}; exec bash -l\\\"\"; history -s \"ssh -t ${target}\"; exec bash -l'"'';
-  ssh-nix-terminal = target: shell: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab --title="${name} " -x "bash -ic 'ssh -t ${target} \"bash -ic \\\"${shell} --command \\\\\\\"cd ${bin-dir}; ${cmd}; history -s \\\\\\\\\\\\\\\"${cmd}\\\\\\\\\\\\\\\"; exec bash -l\\\\\\\"; history -s \\\\\\\"${shell}\\\\\\\"; exec bash -l\\\"\"; history -s \"ssh -t ${target}\"; exec bash -l'"'';
+  local-terminal = name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab -d "$STORE_DIR/bin" --title="${name} " -x "bash -ic '${cmd}; history -s \"${cmd}\"; exec bash'"'';
+  local-nix-terminal = shell: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab -d "$STORE_DIR/bin" --title="${name} " -x "bash -ic '${shell} --command \"${cmd}; history -s \\\"${cmd}\\\"; exec bash -l\"; history -s \"${shell}\"; exec bash -l'; exec bash -l"'';
+  ssh-terminal = target: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab --title="${name} " -x "bash -ic 'ssh -t ${target} \"bash -ic \\\"cd $REMOTE_STORE_DIR/bin; ${cmd}; history -s ${cmd}; exec bash -l\\\"\"; history -s \"ssh -t ${target}\"; exec bash -l'"'';
+  ssh-nix-terminal = target: shell: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab --title="${name} " -x "bash -ic 'ssh -t ${target} \"bash -ic \\\"${shell} --command \\\\\\\"cd $REMOTE_STORE_DIR/bin; ${cmd}; history -s \\\\\\\\\\\\\\\"${cmd}\\\\\\\\\\\\\\\"; exec bash -l\\\\\\\"; history -s \\\\\\\"${shell}\\\\\\\"; exec bash -l\\\"\"; history -s \"ssh -t ${target}\"; exec bash -l'"'';
   
   # aliases for each simple command
   base = local-terminal;
@@ -50,6 +48,44 @@ let
   rover-check = need-rover: if !need-rover then "" else "  echo \"SSHing into rover at ${ansi.light-purple}${rover-ip}${ansi.nc}...\"";
   mast-check = need-mast: if !need-mast then "" else "  echo \"SSHing into mast at ${ansi.light-purple}${mast-ip}${ansi.nc}...\"";
 
+  # check if the store path exists on the rover, otherwise look for commit id
+  rover-store-check = need-rover: if !need-rover then "" else ''
+    GREP_PATTERN="nova-workspace"
+    TARGET_COMMIT_ID=$(grep '^commit:' "$STORE_DIR/nova-git-metadata" | awk '{print $2}')
+
+    SSH_OUT=$(ssh "${rover-ip}" bash <<EndOF
+    set -e
+    if [ ! -d "$STORE_DIR" ]; then
+      found_alternative=false
+      echo ERROR: $STORE_DIR not found on rover, searching for build with matching commit id...
+      MATCHED_PATHS=\$(ls /nix/store | grep "$GREP_PATTERN")
+      for path in \$MATCHED_PATHS; do
+          META_FILE="/nix/store/\$path/nova-git-metadata"
+          if [[ -f "\$META_FILE" ]]; then
+              COMMIT_ID=\$(grep '^commit:' "\$META_FILE" | awk '{print \$2}')
+              if [[ "\$COMMIT_ID" == "$TARGET_COMMIT_ID" ]]; then
+                  echo FOUND_PATH: /nix/store/\$path
+                  found_alternative=true
+                  break
+              fi
+          fi
+      done
+      if [ "$found_alternative" = false ]; then
+        echo Build with commit id could not be found, commands may break!
+      else
+        echo Alternative has been found, warning unexpected behaviour may occur!
+      fi
+    fi
+    EndOF
+    )
+    echo $SSH_OUT
+    FOUND_PATH=$(echo "$SSH_OUT" | grep '^FOUND_PATH:' | cut -d: -f2-)
+    if [ -n "$FOUND_PATH" ]; then
+      REMOTE_STORE_DIR="$FOUND_PATH"
+    fi
+  '';
+  # i am so sorry to whoever tries to debug this in the future
+
   # default pre-shell for setup before terminals
   # if statement prevents infinite loop
   # create tmp dir for nix-shell inception having no access to /tmp
@@ -60,11 +96,12 @@ let
     if [ -z "$SHELL_STARTED" ]; then
       export SHELL_STARTED=1
       export TMPDIR=/tmp
-      echo -e "Launching ${ansi.light-green}${payload-name}${ansi.nc} \nRunning in ${ansi.orange}${store}${ansi.nc}"
+      echo -e "Launching ${ansi.light-green}${payload-name}${ansi.nc} \nRunning in ${ansi.orange}$STORE_DIR${ansi.nc}"
       ${rover-check need-rover}
       ${mast-check need-mast}
       ${rover-ssh-check need-rover}
       ${mast-ssh-check need-mast}
+      ${rover-store-check need-rover}
   '';
   # combine all the terminals together so that they all run simultaneously
   assembleTerminal = setup: "  " + (builtins.foldl' (acc: el: el.platform el.name el.cmd + "\ \\n  & " + acc ) "" setup);
@@ -101,7 +138,8 @@ let
       cat > $out/launch/${shellName} <<'EOF'
       #!${pkgs.bash}/bin/bash
       # THIS FILE IS AUTO GENERATED BY NIX, DO NOT MODIFY UNLESS YOU KNOW WHAT YOU ARE DOING
-      BUILD_DIR="${store}"
+      STORE_DIR=$(realpath $(dirname $BASH_SOURCE)/..)
+      REMOTE_STORE_DIR=$STORE_DIR
       ${builtins.concatStringsSep "\n" (map (opt: opt.variable + "=\"" + opt.default + "\"") (builtins.filter (x: !(x ? required && x.required == true)) flag-args))}
       while getopts "${builtins.concatStringsSep ":" (map (opt: opt.letter) flag-args)}:" opt; do
         case "$opt" in
