@@ -24,7 +24,7 @@ in
 - `need-rover` and `need-mast` adds the checks to ssh into the rover and mast respectively, if you don't add them SSHs may fail!
 - payload-name just prints it out in console, purely *a e s t h e t i c*
 - By default, terminals will open in the result directory's bin folder that this package was built to however this behaviour is not shared with SSHing as SSH may not have the same build directory. Thus you must implement this behaviour manually.
-  - In the scripts you can use `$BUILD_DIR` to access the bin directory that the local terminals will point to if needed.
+  - In the scripts you can use `$STORE_DIR` to access the store directory that the local terminals will point to if needed.
   - To use the binaries in the bin folder, append `./` to your commands so that it uses the binaries in that folder instead of the binaries in path
 - When SSHing keep in mind that aliases are defined on a per user basis (nova aliases won't work in non-nova users)
 - Optional flags are also supported where you can define the letter of the flag, the variable that gets assigned, a default value and a description. You can then call the variable of these flags to use them in the commands.

@@ -12,8 +12,8 @@ let
   one = {
     pre = pre-shell {payload-name=task-name + " one"; need-rover=true;};
     terminals = [
-      {name="Base:Rviz"; platform=base; cmd="ros2 launch auto_bringup rviz.launch.py";}
-      {name="Rover:Software"; platform=rover; cmd="ros2 launch auto_bringup software.launch.py";}
+      {name="Base:Rviz"; platform=base; cmd="./ros2 launch auto_bringup rviz.launch.py";}
+      {name="Rover:Software"; platform=rover; cmd="./ros2 launch auto_bringup software.launch.py";}
     ];
     post = post-shell;
   };
@@ -21,10 +21,10 @@ let
   two = {
     pre = pre-shell {payload-name=task-name + " two"; need-rover=true; };
     terminals = [
-      {name="Base:Teleop"; platform=base; cmd="ros2 launch teleop_drive_joy teleop.launch.py";}
-      {name="Rover:Drive"; platform=rover; cmd="ros2 launch drive_bringup drive.launch.py auto:=True";}
-      {name="Rover:Cameras"; platform=rover; cmd="ros2 launch auto_bringup camera.launch.py";}
-      {name="Run:Gui+Maps"; platform=base; cmd="run-gui-maps";} # need to test if this works
+      {name="Base:Teleop"; platform=base; cmd="./ros2 launch teleop_drive_joy teleop.launch.py";}
+      {name="Rover:Drive"; platform=rover; cmd="./ros2 launch drive_bringup drive.launch.py auto:=True";}
+      {name="Rover:Cameras"; platform=rover; cmd="./ros2 launch auto_bringup camera.launch.py";}
+      {name="Run:Gui+Maps"; platform=base; cmd="../launch/run-gui-maps";} # need to test if this works
     ];
     post = post-shell;
   };
@@ -32,6 +32,8 @@ let
   mast-setup = { # this won't be added to combined
       pre = pre-shell {payload-name=task-name + " mast"; need-mast=true; };
       terminals = [
+        # note the cd will fail but it shouldn't matter as long as ros2 is installed
+        # mast is not nixos
         {name="Mast:GPS"; platform=mast; cmd="ros2 launch nova_bringup gps_base.launch.py gps_params:=/home/nova/gps.yaml";}
     ];
     post = post-shell;

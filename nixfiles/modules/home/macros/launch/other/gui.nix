@@ -26,31 +26,24 @@ let
     flag-args = [ gui-route-flag ];
   };
 
-  gui-local-setup = { # no aliases, with options to change paths etc
-    pre = pre-shell {payload-name="Nova Gui";};
+  gui-local-setup = gui-setup // { # no aliases, with options to change paths etc
     terminals = [
       {name = "Base:Gui"; platform=base-nix "nix-shell $NOVA_REPO_PATH/nixfiles -A pkgs.ros.nova-gui"; cmd="ln -sf \"$ROS_TS_DEFINITIONS\" $NOVA_REPO_PATH/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts; cd $NOVA_REPO_PATH/src/ros/nova-gui/nova-gui; yarn dev";}
       {name = "Base:Rosbridge"; platform=base; cmd="./ros2 launch rosbridge_server rosbridge_websocket_launch.xml";}
     ];
-    post = delayed-browser-launch + post-shell; 
-    buildInputs = [ pkgs.xdg-utils ];
-    flag-args = [ nova-repo-flag gui-route-flag ];
+    flag-args = gui-setup.flag-args ++ [ nova-repo-flag ];
   };
   
-  gui-maps-setup = {
+  gui-maps-setup = gui-local-setup // {
     pre = pre-shell {payload-name="Nova GUI + Tileserver";};
-    terminals = [
-      {name = "Base:Gui"; platform=base-nix "nix-shell $NOVA_REPO_PATH/nixfiles -A pkgs.ros.nova-gui"; cmd="ln -sf \"$ROS_TS_DEFINITIONS\" $NOVA_REPO_PATH/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts; cd $NOVA_REPO_PATH/src/ros/nova-gui/nova-gui; yarn dev";}
-      {name = "Base:Rosbridge"; platform=base; cmd="./ros2 launch rosbridge_server rosbridge_websocket_launch.xml";}
+    terminals = gui-local-setup.terminals ++ [
       {
         name = "Base:Tileserver"; 
         platform=base-nix "nix-shell $NOVA_REPO_PATH/nixfiles -A pkgs.ros.nova-gui"; 
         cmd="ln -s $NOVA_REPO_PATH/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-styles $NOVA_REPO_PATH/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-light/node_modules/tileserver-gl-styles; yarn --cwd $NOVA_REPO_PATH/src/ros/nova-gui/nova-gui tileserver-gl-light --file $TILE_FILE";
       }
     ];
-    post = delayed-browser-launch + post-shell; 
-    buildInputs = [ pkgs.xdg-utils ];
-    flag-args = [ nova-repo-flag gui-route-flag tile-file-flag ];
+    flag-args = gui-local-setup.flag-args ++ [ tile-file-flag ];
   };
 in
 {
