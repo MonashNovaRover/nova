@@ -15,8 +15,10 @@ in
     programs.vscode = {
       enable = true;
       package = pkgs.vscodium;
-      enableUpdateCheck = false;
-      enableExtensionUpdateCheck = false;
+      profiles.default = {
+        enableUpdateCheck = false;
+        enableExtensionUpdateCheck = false;
+      };
       mutableExtensionsDir = false;
     };
   };
