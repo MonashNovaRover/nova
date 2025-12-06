@@ -27,7 +27,7 @@ let
       {name="Base:Teleop"; platform=base; cmd="./ros2 launch teleop_drive_joy teleop.launch.py";}
       {name="Rover:Drive"; platform=rover; cmd="./ros2 launch drive_bringup drive.launch.py auto:=True";}
       {name="Rover:Cameras"; platform=rover; cmd="./ros2 launch auto_bringup camera.launch.py";}
-      {name="Run:Gui+Maps"; platform=base; cmd="../launch/run-gui-maps -t $TILE_FILE";} # dunno if this will run correctly but flag works!
+      {name="Run:Gui+Maps"; platform=base; cmd="../launch/run-gui-maps -t $TILE_FILE; exit"; }
     ];
     post = post-shell;
     flag-args = [ tile-file-flag ];
