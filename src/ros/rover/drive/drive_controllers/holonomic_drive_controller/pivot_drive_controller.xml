@@ -1,0 +1,9 @@
+<library path="holonomic_drive_controller">
+  <class name="holonomic_drive_controller/HolonomicDriveController"
+         type="holonomic_drive_controller::HolonomicDriveController"
+         base_class_type="controller_interface::ControllerInterface">
+  <description>
+    The holonomic drive controller interprets Twist messages into signals for each wheel and pivot on a 4 wheel steering mobile base using a pivot drive model.
+  </description>
+  </class>
+</library>

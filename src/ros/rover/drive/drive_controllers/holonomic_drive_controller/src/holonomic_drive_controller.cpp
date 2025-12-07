@@ -1,0 +1,235 @@
+// Copyright (c) 2025 Monash Nova Rover
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Monash Nova Rover Team
+ * 
+ * PACKAGE: holonomic_drive_controller
+ * AUTHORS:	Terry Tian, Jonathan Jia
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
+
+#include <algorithm>
+#include <cmath>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "controller_interface/controller_interface.hpp"
+#include "rclcpp/rclcpp.hpp"
+
+// #include "pivot_drive_controller/kinematics.hpp"
+#include "holonomic_drive_controller/holonomic_drive_controller.hpp"
+
+namespace holonomic_drive_controller
+{
+
+using geometry_msgs::msg::Twist;
+using nova_drive_controller_base::Commands;
+
+HolonomicDriveController::HolonomicDriveController()
+  : nova_drive_controller_base::NovaDriveControllerBase()
+{
+}
+
+void HolonomicDriveController::init_params()
+{
+  // Initialize parameters specific to the pivot drive controller
+  param_listener_ = std::make_shared<ParamListener>(get_node());
+  params_ = param_listener_->get_params();
+
+  half_wheel_base_ = base_params_->wheel_base / 2;
+  half_steering_track_ = base_params_->steering_track / 2;
+  zero_radius_ = std::hypot(half_wheel_base_, half_steering_track_);
+  RCLCPP_INFO_STREAM(get_node()->get_logger(), "zero_radius_: " << zero_radius_);
+
+  // Let r = the turning radius, x = half_steering_track_, y = half_wheel_base_.
+  // sqrt((r - x)^2 + y^2) is the radius of the circle that the wheel on the side
+  // of the turn makes.
+  // Solve for r = sqrt((r - x)^2 + y^2)
+  inner_radius_ = (std::pow(half_steering_track_, 2) + std::pow(half_wheel_base_, 2)) /
+                  (2 * half_steering_track_);
+  RCLCPP_INFO_STREAM(get_node()->get_logger(), "inner_radius_: " << inner_radius_);
+}
+
+void HolonomicDriveController::update_params()
+{
+  if (param_listener_->is_old(params_))
+  {
+    params_ = param_listener_->get_params();
+    RCLCPP_INFO(get_node()->get_logger(), "Parameters were updated");
+  }
+}
+
+Commands HolonomicDriveController::twist_to_commands(
+  const Twist& twist_msg, bool autonomous_mode, const rclcpp::Duration& period)
+{
+  auto logger = get_node()->get_logger();
+
+  double linear_input = twist_msg.linear.x;
+  double angular_input = twist_msg.angular.z;
+  double linear_velocity, angular_velocity;
+  bool turning_left;
+  double speed, turning_radius;
+
+  // Brake if cmd_vel has timed out, override the stored command
+  if (autonomous_mode)
+  {
+    angular_velocity = angular_input;
+    linear_velocity = linear_input;
+    speed = linear_velocity == 0 ? std::abs(zero_radius_ * angular_velocity) : linear_input;
+
+    limiter_drive_.limit(speed, previous_speeds_[1], previous_speeds_[0], period.seconds());
+
+    turning_radius = get_radius_from_velocities(linear_velocity, angular_velocity);
+    turning_left = turning_radius == 0 ? angular_input > 0 : turning_radius > 0;
+
+    const auto [max_requested_angle, left] = limit_radius_by_pivots(
+      turning_radius, turning_left, half_steering_track_, half_wheel_base_, limiter_pivot_,
+      previous_left_pivot_positions_, previous_right_pivot_positions_, period.seconds());
+
+    const double requested_angular = angular_velocity;
+    limiter_angular_.limit(
+      angular_velocity, previous_angular_velocities_[1], previous_angular_velocities_[0],
+      period.seconds());
+    if (angular_velocity != requested_angular)
+    {
+      limit_speed_and_radius_by_angular(
+        speed, turning_radius, angular_velocity, zero_radius_, inner_radius_, limiter_drive_,
+        previous_speeds_, period.seconds());
+    }
+
+    // TODO: DELETE THIS
+    // hotfix until electrical increases pivot limits
+    if (turning_radius == 0)
+    {
+      turning_radius = turning_left ? 0.001 : -0.001;
+    }
+
+    // To ensure better intended movement in autonomous mode, we wait for the pivots to reach
+    // the desired angle before moving. Lenience may be adjusted by pivot_rate_tolerance.
+    const auto& prev_positions =
+      left ? previous_left_pivot_positions_ : previous_right_pivot_positions_;
+    double limited_angle = max_requested_angle;
+    limiter_pivot_.limit(
+      limited_angle, prev_positions[2], prev_positions[1], prev_positions[0],
+      params_.pivot_rate_tolerance);
+    if (limited_angle != max_requested_angle)
+    {
+      speed = 0.0;  // wait for the pivot to be within tolerance before moving
+      limiter_drive_.limit(speed, previous_speeds_[1], previous_speeds_[0], period.seconds());
+    }
+
+    // Recalculate linear and angular velocities at the end
+    linear_velocity = turning_radius == 0 ? 0.0 : speed;
+    angular_velocity = get_angular_from_radius_and_speed(
+      turning_radius, speed, turning_left, zero_radius_, inner_radius_);
+  }
+  else
+  {
+    // Manual operation: left stick controls speed and right stick controls the pivot angle
+    // Process raw angular input through a curve to calculate the turning radius
+    // Prioritise keeping turning radius over speed
+    turning_radius = turning_radius_from_angular_input(angular_input);
+    turning_left = turning_radius == 0 ? angular_input > 0 : turning_radius > 0;
+
+    limit_radius_by_pivots(
+      turning_radius, turning_left, half_steering_track_, half_wheel_base_, limiter_pivot_,
+      previous_left_pivot_positions_, previous_right_pivot_positions_, period.seconds());
+
+    speed = linear_input * base_params_->drive.max_velocity;
+    const double requested_speed = speed;
+    limiter_drive_.limit(speed, previous_speeds_[1], previous_speeds_[0], period.seconds());
+    if (speed != requested_speed)
+    {
+      RCLCPP_DEBUG(logger, "Speed limited to %.2f", speed);
+    }
+    RCLCPP_DEBUG(logger, "Received: Speed = %.2f, Turning radius = %f", speed, turning_radius);
+
+    // Calculate the angular velocity based on the limited speed
+    angular_velocity = get_angular_from_radius_and_speed(
+      turning_radius, speed, turning_left, zero_radius_, inner_radius_);
+    RCLCPP_DEBUG(logger, "Calculated angular velocity = %.2f", angular_velocity);
+
+    const double requested_angular = angular_velocity;
+    limiter_angular_.limit(
+      angular_velocity, previous_angular_velocities_[1], previous_angular_velocities_[0],
+      period.seconds());
+    if (angular_velocity != requested_angular)
+    {
+      limit_speed_and_radius_by_angular(
+        speed, turning_radius, angular_velocity, zero_radius_, inner_radius_, limiter_drive_,
+        previous_speeds_, period.seconds());
+    }
+    linear_velocity = turning_radius == 0 ? 0 : speed;
+  }
+
+  // Calculate commands
+  const double left_angle = get_pivot_angle_from_radius(
+    turning_radius, true, turning_left, half_steering_track_, half_wheel_base_);
+  const double right_angle = get_pivot_angle_from_radius(
+    turning_radius, false, turning_left, half_steering_track_, half_wheel_base_);
+  double left_ratio = get_speed_ratio(
+    turning_radius, true, half_steering_track_, half_wheel_base_, zero_radius_, inner_radius_);
+  double right_ratio = get_speed_ratio(
+    turning_radius, false, half_steering_track_, half_wheel_base_, zero_radius_, inner_radius_);
+  const double left_speed = speed * left_ratio;
+  const double right_speed = speed * right_ratio;
+
+  // Update the previous command values for limiting
+  previous_speeds_.pop_front();
+  previous_speeds_.push_back(speed);
+  previous_angular_velocities_.pop_front();
+  previous_angular_velocities_.push_back(angular_velocity);
+  previous_left_pivot_positions_.pop_front();
+  previous_left_pivot_positions_.push_back(left_angle);
+  previous_right_pivot_positions_.pop_front();
+  previous_right_pivot_positions_.push_back(right_angle);
+
+  RCLCPP_DEBUG(logger, "speed ratios: left = %.2f, right = %.2f", left_ratio, right_ratio);
+
+  RCLCPP_DEBUG(
+    logger, "Set drive commands: left_speed = %.2f, right_speed = %.2f", left_speed, right_speed);
+  RCLCPP_DEBUG(
+    logger, "Set pivot commands: left_angle = %.2f, right_angle = %.2f", left_angle, right_angle);
+  RCLCPP_DEBUG(
+    logger, "------------------------------------------------------------------------------------");
+
+  return {
+    .linear_velocity_x = linear_velocity,
+    .linear_velocity_y = 0.0,
+    .angular_velocity = angular_velocity,
+    .left_drive_speeds = std::vector<double>(wheels_per_side_, left_speed),
+    .right_drive_speeds = std::vector<double>(wheels_per_side_, right_speed),
+    .left_pivot_positions = {left_angle, -left_angle},
+    .right_pivot_positions = {right_angle, -right_angle},
+  };
+}
+
+void HolonomicDriveController::reset_limiter_buffers()
+{
+  // Reset the previous command values for limiting
+  previous_speeds_ = {0.0, 0.0};
+  previous_angular_velocities_ = {0.0, 0.0};
+  previous_left_pivot_positions_ = {0.0, 0.0, 0.0};
+  previous_right_pivot_positions_ = {0.0, 0.0, 0.0};
+}
+
+}  // namespace holonomic_drive_controller
+
+#include "class_loader/register_macro.hpp"
+
+CLASS_LOADER_REGISTER_CLASS(
+  holonomic_drive_controller::HolonomicDriveController, controller_interface::ControllerInterface)

@@ -1,0 +1,7 @@
+holonomic_drive_controller:
+  pivot_rate_tolerance:
+    type: double
+    default_value: 0.1 # seconds
+    description: >
+      Used in autonomous mode to determine how long before the pivots reach their target positions to start
+      moving. This is to prevent moving too soon before the pivots are in position.
