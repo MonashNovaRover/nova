@@ -8,5 +8,78 @@ updates:
   - package-ecosystem: "npm" # See documentation for possible values (yarn = npm)
     directory: "/src/ros/nova-gui/nova-gui" # Location of package manifests
     schedule:
-      interval: "daily" # Packages will be very out of date so will do it regularly for a bit then make this longer.
+      interval: "weekly" # Packages will be very out of date so will do it regularly for a bit then make this longer.
     open-pull-requests-limit: 10 # Will likely reduce later as well.
+
+    # Group logically related dependencies
+    groups:
+      gui-react-core:
+        patterns:
+          - "react"
+          - "react-*"
+          - "@types/react*"
+          - "@vitejs/plugin-react"
+          - "react-router*"
+
+      gui-state-management:
+        patterns:
+          - "@redux*"
+          - "redux*"
+          - "broadcast-channel"
+          - "*websocket*"
+          - "*timer*"
+          - "@uidotdev/*"
+
+      gui-mapping-visualisation:
+        patterns:
+          - "@maptiler/*"
+          - "deck.gl"
+          - "*plotly*"
+          - "@types/plotly*"
+          - "apexcharts"
+          - "react-apexcharts"
+          - "tileserver-*"
+          - "*glsl*"
+
+      gui-ui:
+        patterns:
+          - "@dnd-kit/*"
+          - "@nextui-org/*"
+          - "framer-motion"
+          - "*icons*"
+          - "react-feather"
+          - "react-hot-toast"
+          - "tailwind-variants"
+
+      gui-utility-types:
+        patterns:
+          - "lodash*"
+          - "@types/lodash*"
+          - "uuid"
+          - "@types/uuid*"
+          - "geolib"
+          - "@types/geolib*"
+          - "file-saver"
+          - "@types/file-saver*"
+          - "humanize-string"
+          - "roslib"
+          - "@types/roslib*"
+          - "*polyfill*"
+
+      gui-tooling-build:
+        patterns:
+          - "typescript"
+          - "typescript-*"
+          - "@typescript-eslint/*"
+          - "eslint*"
+          - "@eslint/*"
+          - "prettier"
+          - "postcss"
+          - "autoprefixer"
+          - "tailwindcss"
+          - "vite"
+          - "yarn"
+
+      gui-misc:
+        patterns:
+          - "*"
