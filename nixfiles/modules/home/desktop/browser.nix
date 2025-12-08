@@ -12,6 +12,9 @@ in
       commandLineArgs = [
         "--profile-directory=nova"
       ];
+      extensions = [
+        "ddkjiahejlhfcafbddmgiahcphecmpfh" # ublock origin lite
+      ];
     };
   };
 }
