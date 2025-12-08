@@ -9,8 +9,11 @@ export default function useProgramRenderEffect(program: GLProgramState,
                                                deps: React.DependencyList = [])
 {
   const renderQueueItem =
-    useRef<RenderQueueItem<[WebGL2RenderingContext, WebGLProgram, GLStateRenderInfo]>>();
-  const itemID = useRef<number>();
+    useRef<RenderQueueItem<[WebGL2RenderingContext, WebGLProgram, GLStateRenderInfo]>>({
+      setup: () => {},
+      render: effect,
+    });
+  const itemID = useRef<number>(program.renderQueue.push(renderQueueItem.current!));
 
   if (renderQueueItem.current === undefined) {
     renderQueueItem.current = {

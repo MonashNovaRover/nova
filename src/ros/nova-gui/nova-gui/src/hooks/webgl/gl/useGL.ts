@@ -6,7 +6,7 @@ import GLStateRenderInfo from "./GLStateRenderInfo.ts";
 const useGL_aux = (): GLState => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const gl = useRef<GLState>();
+  const gl = useRef<GLState>(new GLState(canvasRef));
   if (gl.current === undefined) {
     gl.current = new GLState(canvasRef);
   }

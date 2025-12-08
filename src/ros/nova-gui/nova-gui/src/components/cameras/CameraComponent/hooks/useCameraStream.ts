@@ -57,7 +57,9 @@ export const useCameraStream = (
 
   const [sessionId, setSessionId] = useState<string>();
   const [erroredOut, setErroredOut] = useState(false);
-  const rtcRef = useRef<RTCPeerConnection>();
+  const rtcRef = useRef<RTCPeerConnection>( new RTCPeerConnection({
+    iceServers: ICE_SERVERS,
+  }));
   const peerId = useSelector(
     (state: RootState) => state.cameraStreamerState.cameras[cameraSerial]
   );

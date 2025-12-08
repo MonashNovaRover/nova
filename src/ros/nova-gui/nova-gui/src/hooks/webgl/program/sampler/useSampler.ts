@@ -9,7 +9,15 @@ import {useMappedGLint} from "../MappedGLint.ts";
 function useSampler_aux(programState: GLProgramState, textureUnit: number, name: string,
                         sampler: HTMLImageElement | HTMLVideoElement | null | undefined,
                         options?: Partial<GLSamplerStateOptions>): GLSamplerState {
-  const samplerRef = useRef<GLSamplerState>();
+
+  const filledOptions = {
+    target: GLTexture2DTarget.TEXTURE_2D,
+    format: HTMLTextureFormat.RGBA,
+    wrapT: GLWrapMode.REPEAT,
+    wrapS: GLWrapMode.REPEAT,
+    ...options
+  }
+  const samplerRef = useRef<GLSamplerState>(new GLSamplerState(programState, textureUnit, name, sampler, filledOptions));
 
   if (samplerRef.current === undefined) {
     const filledOptions = {

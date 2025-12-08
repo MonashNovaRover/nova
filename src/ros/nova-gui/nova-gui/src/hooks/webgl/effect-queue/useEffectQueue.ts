@@ -6,7 +6,7 @@ import EffectQueue from "./EffectQueue.ts";
  * A queue to help run synchronous set up functions, with setup being set by independent effects.
  */
 const useEffectQueue = <T extends unknown[]>() : EffectQueue<T> => {
-  const queueRef = useRef<EffectQueue<T>>();
+  const queueRef = useRef<EffectQueue<T>>(new EffectQueue<T>());
   if (queueRef.current === undefined)
     queueRef.current = new EffectQueue<T>();
 
