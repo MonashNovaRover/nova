@@ -19,7 +19,7 @@ EDITED:         <current date>
 import rclpy
 from rclpy.node import Node
 from typing import Optional
-from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface
+from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, Direction
 
 from python_control2.hardware_interfaces import CMDHardware
 from teleop_python_utils import Inputs
@@ -41,7 +41,8 @@ class AugerController(Controller):
         """
         super().__init__(contexts)
         self.logger.info(f"AugerController -- I have been __init__ialized")
-        self.logger.get_child(self.name).info()
+
+        self.drill_direction = Direction.POSITIVE
 
         # Do any setup logic here, save any contexts you want reference to in the future.
         # Save Input references here
@@ -50,15 +51,22 @@ class AugerController(Controller):
         self.active = self.declare_parameter("start_active", True)
 
         # Get inputs
+        # Actuation axis
         self.actuation_axis_name = self.declare_parameter("actuation_axis", "auger_actuation").value
-        self.drill_axis_name = self.declare_parameter("drill_axis", "auger_drill").value
-        self.speed_axis_name = self.declare_parameter("speed_axis", "auger_speed").value
 
         inputs = contexts[Inputs]
-        self.actuation_input = inputs.get_button(self.actuation_axis_name)
-        self.drill_input = inputs.get_axis(self.drill_axis_name)
-        self.speed_input = inputs.get_axis(self.speed_axis_name)
+        self.actuation_axis = inputs.get_axis(self.actuation_axis_name)
 
+        # Drill activate, speed and direction buttons and axes
+        self.drill_button_name = self.declare_parameter("drill_button", "auger_drill").value
+        self.speed_axis_name = self.declare_parameter("speed_axis", "auger_speed").value
+        self.drill_clockwise_button_name = self.declare_parameter("drill_clockwise_button", "auger_drill_clockwise").value
+        self.drill_anticlockwise_button_name = self.declare_parameter("drill_anticlockwise_button", "auger_drill_anticlockwise").value
+
+        self.drill_button = inputs.get_button(self.drill_button_name)
+        self.speed_axis = inputs.get_axis(self.speed_axis_name)
+        inputs.get_event(f"{self.drill_clockwise_button_name}/down").add_callback(self.update_drill_direction(Direction.POSITIVE))
+        inputs.get_event(f"{self.drill_anticlockwise_button_name}/down").add_callback(self.update_drill_direction(Direction.NEGATIVE))
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -82,8 +90,17 @@ class AugerController(Controller):
         :param period: The time elapsed since the last update, in seconds.
         """
         # Update Command Interfaces
-        # self.cmd.value = 2 * self.state.value
-        # self.logger.info(f"{self.state.value} -> {self.cmd.value}")
+        # Update drill speed
+        self.drill_cmd.value = self.drill_button.value * self.speed_axis.value * self.drill_direction
+
+        # Update actuation
+        self.actuation_cmd.value = self.actuation_axis.value
+
+    def update_drill_direction(self, direction: Direction):
+        def update_drill():
+            self.drill_direction = direction
+        return update_drill
+
 
 if __name__ == "__main__":
     print("Setting up!")

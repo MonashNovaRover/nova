@@ -41,7 +41,6 @@ buildRosPackage {
   ] ++
   [
     nova-python-control
-    nova-python-control2
     nova-input-interfaces
     nova-camera-msgs
     teleop-modular-python-utils
