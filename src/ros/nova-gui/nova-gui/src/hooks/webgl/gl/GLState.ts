@@ -43,7 +43,6 @@ export default class GLState {
     return this._context;
   }
 
-
   /**
    * Mutator for the rendering context, which has the side effect of setting up everything in the renderQueue.
    * @param newContext
@@ -55,6 +54,15 @@ export default class GLState {
       return;
 
     this.renderQueue.setup(this._context, defaultGLStateRenderInfo);
+
+    this.canvasRef.current!.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault();
+    })
+
+    this.canvasRef.current!.addEventListener('webglcontextrestored', (e) => {
+      console.info('WebGL context restored, we need to recreate textures and buffers.', e);
+      this.renderQueue.setup(newContext!, defaultGLStateRenderInfo);
+    });
   }
 
   /**

@@ -16,32 +16,53 @@ export default function useResolutionUniform(gl: GLState, program: GLProgramStat
     const absoluteSizeTarget = sampler ?? gl.canvasRef.current.parentElement ?? gl.canvasRef.current;
 
     const boxObserver = new ResizeObserver((entries) => {
-      const entry = entries.find((entry) => entry.target === absoluteSizeTarget);
+      const entry = entries.find((e) => e.target === absoluteSizeTarget);
+      if (!entry) return;
 
-      if (!entry)
-        return;
+      let width: number;
+      let height: number;
 
-      const width = entry.devicePixelContentBoxSize[0].inlineSize;
-      const height = entry.devicePixelContentBoxSize[0].blockSize;
+      if (entry.devicePixelContentBoxSize && entry.devicePixelContentBoxSize.length > 0) {
+        // Chromium-style high-DPI box
+        width = entry.devicePixelContentBoxSize[0].inlineSize;
+        height = entry.devicePixelContentBoxSize[0].blockSize;
+      } else if (entry.contentBoxSize) {
+        // Different browsers differ: array vs single object
+        const boxSize = Array.isArray(entry.contentBoxSize)
+          ? entry.contentBoxSize[0]
+          : entry.contentBoxSize;
+
+        width = boxSize.inlineSize;
+        height = boxSize.blockSize;
+      } else {
+        // Oldest fallback
+        width = entry.contentRect.width;
+        height = entry.contentRect.height;
+      }
 
       frameID = program.queue.update(frameID, (context, program) => {
         const location = context.getUniformLocation(program, name);
-
-        if (location === null)
-          return;
+        if (location === null) return;
 
         if (!sampler) {
           context.uniform2f(location, width, height);
-        }
-        else if (sampler instanceof HTMLVideoElement) {
+        } else if (sampler instanceof HTMLVideoElement) {
           context.uniform2f(location, sampler.videoWidth, sampler.videoHeight);
-        }
-        else {
+        } else {
           context.uniform2f(location, sampler.naturalWidth, sampler.naturalHeight);
         }
       });
     });
-    boxObserver.observe(absoluteSizeTarget, { box: "device-pixel-content-box" });
+
+    if (absoluteSizeTarget === undefined)
+      return;
+
+    try {
+      // This will be ignored/throw on browsers that don't support it.
+      boxObserver.observe(absoluteSizeTarget, { box: "device-pixel-content-box" });
+    } catch {
+      boxObserver.observe(absoluteSizeTarget);
+    }
 
     return () => {
       boxObserver.disconnect();

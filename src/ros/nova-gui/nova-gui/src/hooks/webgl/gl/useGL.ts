@@ -30,6 +30,8 @@ const useGL = (webContextAttributes?: WebGLContextAttributes )
     if (gl.context === undefined)
       console.warn("A WebGL2RenderingContext was regenerated in useGL.");
 
+    // Add event listeners to the canvas element
+
     gl.context = gl.canvasRef.current.getContext("webgl2", {
       ...webContextAttributes,
     }) ?? undefined;

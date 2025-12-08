@@ -19,8 +19,9 @@ function useSampler_aux(programState: GLProgramState, textureUnit: number, name:
 
   const samplerRef = useRef<GLSamplerState | undefined>(undefined);
 
-  if (samplerRef.current === undefined)
+  if (samplerRef.current === undefined) {
     samplerRef.current = new GLSamplerState(programState, textureUnit, name, sampler, filledOptions);
+  }
 
   useEffect(() => {
     samplerRef.current!.target.value = filledOptions.target;
