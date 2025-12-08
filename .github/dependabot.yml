@@ -13,7 +13,7 @@ updates:
 
     # Group logically related dependencies
     groups:
-      gui-react-core:
+      react-core:
         patterns:
           - "react"
           - "react-*"
@@ -21,7 +21,7 @@ updates:
           - "@vitejs/plugin-react"
           - "react-router*"
 
-      gui-state-management:
+      state-management:
         patterns:
           - "@redux*"
           - "redux*"
@@ -30,7 +30,7 @@ updates:
           - "*timer*"
           - "@uidotdev/*"
 
-      gui-mapping-visualisation:
+      mapping-visualisation:
         patterns:
           - "@maptiler/*"
           - "deck.gl"
@@ -41,7 +41,7 @@ updates:
           - "tileserver-*"
           - "*glsl*"
 
-      gui-ui:
+      ui:
         patterns:
           - "@dnd-kit/*"
           - "@nextui-org/*"
@@ -51,7 +51,7 @@ updates:
           - "react-hot-toast"
           - "tailwind-variants"
 
-      gui-utility-types:
+      utility-types:
         patterns:
           - "lodash*"
           - "@types/lodash*"
@@ -66,7 +66,7 @@ updates:
           - "@types/roslib*"
           - "*polyfill*"
 
-      gui-tooling-build:
+      tooling-build:
         patterns:
           - "typescript"
           - "typescript-*"
@@ -80,6 +80,6 @@ updates:
           - "vite"
           - "yarn"
 
-      gui-misc:
+      misc:
         patterns:
           - "*"
