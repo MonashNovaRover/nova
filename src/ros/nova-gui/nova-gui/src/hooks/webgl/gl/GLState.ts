@@ -37,7 +37,7 @@ export default class GLState {
   }
 
   /**
-   * Allows the context to be retrieved, while still having side effects for mutating the context.
+   * Allows the context to be retrieved while still having side effects for mutating the context.
    */
   public get context() {
     return this._context;

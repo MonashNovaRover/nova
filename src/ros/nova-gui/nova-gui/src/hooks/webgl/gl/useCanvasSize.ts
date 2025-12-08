@@ -4,8 +4,8 @@ import GLState from "./GLState.ts";
 /**
  * Automatically calculates the size of a canvas used for webgl to match the size, in screen pixels, of some element
  * (the canvas itself by default).
- * @param gl The object contain the reference to the canvas, and the rendering context for the canvas.
- * @param sizeTarget The element to try match the pixel size of. Uses canvasRef when not specified.
+ * @param gl The object containing the reference to the canvas, and the rendering context for the canvas.
+ * @param sizeTarget The element to try to match the pixel size of. Uses canvasRef when not specified.
  */
 export default function useCanvasSize(gl : GLState, sizeTarget?: Element | null): void {
   useLayoutEffect(() => {

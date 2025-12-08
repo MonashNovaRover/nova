@@ -6,12 +6,11 @@ import GLStateRenderInfo from "./GLStateRenderInfo.ts";
 const useGL_aux = (): GLState => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const gl = useRef<GLState>(new GLState(canvasRef));
-  if (gl.current === undefined) {
+  const gl = useRef<GLState | undefined>(undefined);
+  if (gl.current === undefined)
     gl.current = new GLState(canvasRef);
-  }
 
-  return gl.current;
+  return gl.current!;
 }
 
 /**
@@ -39,8 +38,6 @@ const useGL = (webContextAttributes?: WebGLContextAttributes )
       console.warn("Failed to set up a rendering context in useGL!");
       return;
     }
-
-
   }, [gl, webContextAttributes]);
 
   const renderCallback = useCallback((milliseconds: DOMHighResTimeStamp, deltaMilliseconds: number) => {

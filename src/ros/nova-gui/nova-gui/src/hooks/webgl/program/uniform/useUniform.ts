@@ -35,7 +35,6 @@ export function applyUniform(context: WebGL2RenderingContext, program: WebGLProg
     return;
   }
 
-
   if      (uniform.length === 1) context.uniform1f(location, ...uniform);
   else if (uniform.length === 2) context.uniform2f(location, ...uniform);
   else if (uniform.length === 3) context.uniform3f(location, ...uniform);

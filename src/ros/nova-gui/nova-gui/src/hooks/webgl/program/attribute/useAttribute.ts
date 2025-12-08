@@ -31,7 +31,7 @@ export const defaultUseAttributeOptions = {
 export default function useAttribute(program: GLProgramState, name: string,
                                       factoryOrAttribute: (() => vecArray) | vecArray, deps: DependencyList = [],
                                       options?: Partial<UseAttributeOptions>) {
-  const buffer = useRef<WebGLBuffer>(new WebGLBuffer);
+  const buffer = useRef<WebGLBuffer | undefined>(undefined);
 
   const filledOptions: UseAttributeOptions = {
     ...defaultUseAttributeOptions,

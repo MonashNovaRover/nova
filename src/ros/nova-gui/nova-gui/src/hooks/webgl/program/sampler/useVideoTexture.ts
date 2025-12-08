@@ -1,4 +1,4 @@
-import {useCallback, useEffect} from "react";
+import React, {useCallback, useEffect} from "react";
 
 /**
  * A hook, which plays a given video file url on a given video ref
