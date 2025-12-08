@@ -1,4 +1,4 @@
-from typing import Optional, Any, final, TypeVar
+from typing import Optional, Any, final, TypeVar, List, Dict
 
 import rclpy, logging
 from rcl_interfaces.msg import ParameterDescriptor
@@ -37,6 +37,7 @@ class ControllerManager:
         # Control Components
         self.hardware_interfaces: list[HardwareInterface] = []
         self.controllers: list[Controller] = []
+        self.controller_name_to_idx: Dict[str, int] = {}
 
         # Events
         # Called before hardware interfaces read from hardware
@@ -45,6 +46,8 @@ class ControllerManager:
         self.on_update: Event[[float, float]] = Event()
         # Called before hardware interfaces write to hardware
         self.on_write: Event[[float, float]] = Event()
+        # Called when parameters change
+        self.on_set_parameters: Event[[List[Parameter]]] = Event()
 
         # The node used by this controller manager.
         self.node = node
@@ -75,7 +78,8 @@ class ControllerManager:
 
         self.on_update.invoke(now, period)
         for controller in self.controllers:
-            controller.on_update(now, period)
+            if controller.active:
+                controller.on_update(now, period)
 
         self.on_write.invoke(now, period)
         for hardware_interface in self.hardware_interfaces:
@@ -123,13 +127,40 @@ class ControllerManager:
             rclpy.shutdown()
 
     @final
-    def declare_parameter(self, name: str, initial_value: T, description: str=""):
+    def add_controller(self, controller: Controller) -> None:
+        """ Adds a controller to self.controllers, making sure controller_name_to_idx is kept up to date.
+        :param controller: The controller to add
+        """
+        self.controller_name_to_idx[controller.name] = len(self.controllers)
+        self.controllers.append(controller)
+
+    @final
+    def declare_parameter(self, name: str, initial_value: T, description: str="") -> Parameter:
         """ Declare and initialize a parameter. """
         if name in self.default_params:
             initial_value = self.default_params[name]
         return self.node.declare_parameter(name, initial_value, ParameterDescriptor(description=description))
 
     @final
-    def get_parameter(self, name: str):
+    def get_parameter(self, name: str) -> Parameter:
         """ Get a parameter by name. """
         return self.node.get_parameter(name)
+
+    @final
+    def __on_set_parameters_callback(self, params: List[Parameter]) -> None:
+        """ Called whenever any parameter changes on the node.
+        :param params: The list of changed parameters
+        """
+        updated_controller = [False] * len(self.controllers)
+
+        # Update appropriate Controllers
+        for param in params:
+            name: str = param.name
+
+            if not name.startswith("controllers."):
+                continue
+
+            controller_name =
+
+
+

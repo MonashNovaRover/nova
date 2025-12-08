@@ -103,7 +103,8 @@ class ControllerManagerBuilder:
             return self
 
         if isinstance(controller, Controller):
-            self._cm.controllers.append(controller)
+            # TODO: Should we be setting the name of the controller instance here?
+            self._cm.add_controller(controller)
             return self
 
         type_name = controller.__name__ if isinstance(controller, type) \
@@ -164,7 +165,7 @@ class ControllerManagerBuilder:
 
         # Do deferred initialization
         for constructor in self.controller_constructors:
-            self._cm.controllers.append(constructor.construct(self._cm.contexts, self._cm.node))
+            self._cm.add_controller(constructor.construct(self._cm.contexts, self._cm.node))
         for constructor in self.hardware_constructors:
             self._cm.hardware_interfaces.append(constructor.construct(self._cm.contexts, self._cm.node))
 

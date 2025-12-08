@@ -1,14 +1,15 @@
-from rclpy.node import Node, ParameterDescriptor
+from rclpy.node import Node, ParameterDescriptor, Parameter
 from rclpy.impl.rcutils_logger import RcutilsLogger
-from typing import final, Optional, TypeVar
+from typing import final, Optional, TypeVar, List, override, overload
 from abc import ABC, abstractmethod
-from .DeferredConstructor import DeferredConstructor
+from ..common.ControlComponent import ControlComponent
 from ..controller_manager.Interface import InterfaceCollection
 from ..controller_manager.Contexts import Contexts
 
 T = TypeVar("T")
+TController = TypeVar("TController", bound="Controller[object]")
 
-class Controller(ABC):
+class Controller(ControlComponent[TController]):
     """
     Controllers are what you usually write to implement some system on the rover.
 
@@ -23,15 +24,12 @@ class Controller(ABC):
     reads the latest hardware state from State Interfaces retrieved in configure(), and writes the desired hardware
     state to the Command Interface retrieved in configure().
     """
+    # Automatically populated member variables. Populated before even __init__ is called by the DeferredConstructor.
     name: str
     node: Node
     logger: RcutilsLogger
 
-    @final
-    def __new__(cls, *args, **kwargs):
-        """ Overrides construction of Controller instances to defer calling __init__ until contexts are available. """
-        return DeferredConstructor(cls, *args, **kwargs)
-
+    @abstractmethod
     def __init__(self, contexts: Contexts):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
@@ -55,12 +53,14 @@ class Controller(ABC):
 
         if not successfully_configured:
             self.logger.error(f"Failed to configure controller \"{self.name}\".")
+            self.__active = False
             return False
+
+        if self.__active:
         return True
 
     @abstractmethod
-    def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[
-        bool]:
+    def _on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
         Use this method to get data from self.node, and get references to any command or state interface you need.
 
@@ -72,8 +72,19 @@ class Controller(ABC):
         """
         pass
 
+    @final
+    def activate(self) -> None:
+
+    def on_activate(self):
+        """ Called whenever the Controller becomes active
+        :return:
+        """
+        pass
+
+
+
     @abstractmethod
-    def on_update(self, now: float, period: float):
+    def on_update(self, now: float, period: float) -> None:
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
             here.
         :param now: The current time, in seconds
@@ -81,12 +92,74 @@ class Controller(ABC):
         """
         pass
 
+    def on_deactivate(self):
+        """ Called whenever the Controller becomes inactive
+        :return:
+        """
+        pass
+
     @final
-    def declare_parameter(self, name: str, initial_value: T, description: str=""):
+    def set_active(self, active: bool) -> None:
+        """ Sets this controller to be active or inactive, updating the associated .active param to reflect the new
+        value.
+        :param active: Whether the controller should be updated
+        """
+        if active == self.__active:
+            return
+
+        self.__active = active
+        # Keep the parameter in sync for any external system that tracks the param
+        self.node.set_parameters_atomically([
+            Parameter(f"controllers.{self.name}.active", Parameter.Type.BOOL, active)
+        ])
+
+        if active:
+            self.on_activate()
+        else:
+            self.on_deactivate()
+
+    @final
+    def on_set_parameters_callback(self, params: List[Parameter]) -> None:
+        """ Callback method for when parameters change. Calls self.on_set_parameters
+        :param params: The list of parameters that have changed --
+                       all names are still prefixed with controllers.{self.name}.
+        """
+        # Check for any changes to being active
+        new_active = self.get_parameter("active").value
+        if new_active != self.__active:
+            self.__active = new_active
+            if new_active:
+                self.on_activate()
+            else:
+                self.on_deactivate()
+
+        self._on_set_parameters(params)
+
+    def _on_set_parameters(self, params: List[Parameter]) -> None:
+        """ Virtual method called whenever parameters for this controller are updated.
+        :param params: The list of parameters that have changed --
+                       all names are still prefixed with controllers.{self.name}.
+        """
+        pass
+
+    @final
+    def declare_parameter(self, name: str, initial_value: T, description: str="") -> Parameter:
         """ Declare and initialize a parameter. """
         return self.node.declare_parameter(f"controllers.{self.name}.{name}", initial_value, ParameterDescriptor(description=description))
 
     @final
-    def get_parameter(self, name: str):
+    def get_parameter(self, name: str) -> Parameter:
         """ Get a parameter by name. """
         return self.node.get_parameter(f"controllers.{self.name}.{name}")
+
+
+class TestController(Controller):
+    def __init__(self, contexts: Contexts, thing: int):
+        pass
+
+    def on_update(self, now: float, period: float) -> None:
+        pass
+
+    def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[
+        bool]:
+        pass
