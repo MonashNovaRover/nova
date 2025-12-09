@@ -1,6 +1,7 @@
 { lib
 , buildPythonPackage
 , jcan
+, pyside6
 }:
 
 buildPythonPackage {
@@ -12,5 +13,5 @@ buildPythonPackage {
     filter = lib.novaSourceFilter [ ] path;
   };
 
-  propagatedBuildInputs = [ jcan ];
+  propagatedBuildInputs = [ jcan pyside6 ];
 }

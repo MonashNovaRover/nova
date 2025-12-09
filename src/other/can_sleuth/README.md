@@ -28,6 +28,7 @@ Helper functions for creating all the devices in real systems/payloads are in
 
 Output
 - Terminal Curses TUI
+- Graphical Qt
 - CSV (just an idea)
 - json (just an idea)
 

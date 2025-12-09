@@ -37,7 +37,7 @@ class TUI(output.Output):
         self._stdscr.nodelay(1)
         curses.curs_set(0)
 
-    def __del__(self):
+    def cleanup(self):
         # stuff from curses.wrapper to put the terminal back to normal
         self._stdscr.keypad(0)
         curses.echo()
