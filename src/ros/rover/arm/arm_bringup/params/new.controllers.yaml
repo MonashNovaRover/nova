@@ -10,6 +10,9 @@ arm:
 
       nova_arm_position_controller:
         type: nova_arm_controller/NovaArmController
+      
+      nova_end_effector_position_controller:
+        type: nova_end_effector_controller/NovaEndEffectorController
 
       nova_twistmapper:
         type: nova_twistmapper/NovaTwistmapper
@@ -46,6 +49,13 @@ arm:
         - J6
       use_position_control: true
       use_collision_limits: true
+      use_limits: true
+    
+  nova_end_effector_position_controller:
+    ros__parameters:
+      topic: "/arm/joint_position_command"
+      joint_names:
+        - actuator_head
       use_limits: true
 
   nova_twistmapper:

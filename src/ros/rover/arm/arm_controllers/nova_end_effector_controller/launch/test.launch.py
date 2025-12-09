@@ -17,7 +17,7 @@ def generate_launch_description():
         Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['velocity_controller'], #, '-t', 'velocity_controller/nova_arm_controller'],
+            arguments=['velocity_controller'], #, '-t', 'velocity_controller/nova_end_effector_controller'],
         ),
         GroupAction(
             actions=[

@@ -28,7 +28,8 @@ teleop_arm:
         type: "joint_space_control_mode/JointSpaceControlMode"
         active: true
         controllers:
-          - "nova_arm_velocity_controller"
+          - nova_arm_velocity_controller
+          - nova_end_effector_position_controller
 
       task_space_mode:
         display_name: "Task Space (IK)"
@@ -90,12 +91,22 @@ joint_space_mode:
     use_speed_input: true
 
     joint_definitions:
+<<<<<<< HEAD
       - "j1"
       - "j2"
       - "j3"
       - "j4"
       - "j5"
       - "j6"
+=======
+      - j1
+      - j2
+      - j3
+      - j4
+      - j5
+      - j6
+      - actuator_head
+>>>>>>> eb04a461 (wip: teleop joint space mode left stick control)
 
     joints:
       j1:
@@ -121,6 +132,10 @@ joint_space_mode:
       j6:
         name: "J6"
         input_name: "j6"
+        scale: 0.36
+      actuator_head:
+        name: "actuator_head"
+        input_name: "actuator_head"
         scale: 0.36
 
 
@@ -217,6 +232,8 @@ joy_input_source:
           from_buttons:
             positive: "X"
             negative: "B"
+        actuator_head:
+          from: LEFTY
 
         # Task space
         linear:
