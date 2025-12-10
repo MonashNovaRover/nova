@@ -11,14 +11,16 @@ NODES:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	auto_bringup
 CREATION:	27/04/2023
+EDITED:     26/09/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction, TimerAction, ExecuteProcess, RegisterEventHandler
 from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.substitutions import FindPackageShare
+from launch.event_handlers import OnProcessExit
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
@@ -41,8 +43,9 @@ def launch_setup(context, *args, **kwargs):
     sim_params = LaunchConfiguration('sim_params')
     use_respawn = LaunchConfiguration('use_respawn')
     world = LaunchConfiguration('world')
+    rtabmap = LaunchConfiguration('rtabmap')
 
-    return [
+    nodes = GroupAction([
         IncludeLaunchDescription(
             condition=IfCondition(gazebo),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
@@ -89,6 +92,40 @@ def launch_setup(context, *args, **kwargs):
                 'use_sim_time': gazebo,
                 'map_params': map_params,
             }.items()
+        ),
+    ])
+
+    wait_for_cameras = ExecuteProcess(
+        cmd=[
+            'python3',
+            PathJoinSubstitution([auto_bringup_dir, 'topic', 'wait_for_topic.py']),
+        ],
+        name='wait_for_cameras_topic',
+        output='screen',
+    )
+
+    return [
+        GroupAction(
+            condition=IfCondition(rtabmap),
+            actions=[
+                IncludeLaunchDescription(
+                    launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rtabmap.launch.py'])),
+                    launch_arguments={'pointclouds': 'False'}.items(),
+                ),
+                wait_for_cameras,
+                RegisterEventHandler(
+                    OnProcessExit(
+                        target_action=wait_for_cameras,
+                        on_exit=[nodes],
+                    ),
+                ),
+            ],
+        ),
+        GroupAction(
+            condition=UnlessCondition(rtabmap),
+            actions=[
+                nodes,
+            ],
         ),
     ]
 
@@ -183,6 +220,11 @@ def generate_launch_description():
             name='world',
             default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'urc_obstacles.sdf']),
             description='Full path to world model file to load',
+        ),
+        DeclareLaunchArgument(
+            name='rtabmap',
+            default_value='False',
+            description='Launch rtabmap?',
         ),
     ]
 
