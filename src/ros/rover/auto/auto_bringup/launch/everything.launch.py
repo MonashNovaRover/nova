@@ -153,7 +153,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='gps',
-            default_value='True',
+            default_value='False',
             description='Fuse GPS?',
         ),
         DeclareLaunchArgument(
@@ -183,7 +183,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='nav2_params_dir',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_arch']),
             description='Full path to the folder with ROS2 parameters files to use with all nodes',
         ),
         DeclareLaunchArgument(
@@ -193,7 +193,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='rl_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir,'params','rl_urc.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir,'params','rl_arch.yaml']),
             description='',
         ),
         DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
@@ -223,7 +223,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='rtabmap',
-            default_value='False',
+            default_value='True',
             description='Launch rtabmap?',
         ),
     ]

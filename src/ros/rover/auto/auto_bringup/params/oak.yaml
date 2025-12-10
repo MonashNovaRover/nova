@@ -1,7 +1,7 @@
 /oak:
   ros__parameters:
     camera:
-      i_nn_type: rgb
+      i_nn_type: none
       i_enable_sync: true
       i_enable_imu: true
       i_mx_id: 18443010315748F500 # Look for the O-Camera Sticker
@@ -22,7 +22,7 @@
     rgb:
       i_enable_nn: false
       i_enable_preview: false
-      i_fps: 5.0
+      i_fps: 30.0
       i_preview_height: 640 #300
       i_preview_size: 640
       i_preview_width: 640 #300
@@ -31,11 +31,11 @@
       i_isp_num: 2
     left:
       i_set_isp_scale: true
-      i_fps: 5.0
+      i_fps: 30.0
       #WLS filter
       #i_publish_topic: true
     right:
-      i_fps: 5.0
+      i_fps: 30.0
     stereo:
       i_align_depth: true
       i_enable_speckle_filter: true
@@ -43,7 +43,7 @@
       i_decimation_filter_decimation_factor: 2
       i_decimation_filter_decimation_mode: NON_ZERO_MEDIAN
       i_subpixel: false
-      i_fps: 5.0
+      i_fps: 30.0
       i_enable_threshold_filter: true
       i_publish_right_rect: true
       #WLS filter

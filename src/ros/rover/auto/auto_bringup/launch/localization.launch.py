@@ -38,6 +38,9 @@ from launch_ros.substitutions import FindPackageShare
 def launch_setup(context, *args, **kwargs):
     nova_bringup_dir = FindPackageShare('nova_bringup')
 
+    arch = str(LaunchConfiguration('comp').perform(context).lower() == 'arch')
+    urc = str(LaunchConfiguration('comp').perform(context).lower() == 'urc')
+
     gazebo = LaunchConfiguration('gazebo')
     gps = LaunchConfiguration('gps')
     rl_params = LaunchConfiguration('rl_params')
@@ -52,41 +55,54 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         Node(
+            condition=IfCondition(arch),
             package='robot_localization',
             executable='ekf_node',
-            name='ekf_filter_node_odom',
+            name='ekf_filter_node',
             output='screen',
             parameters=[rl_params, {'use_sim_time': gazebo}],
-            remappings=[('odometry/filtered', 'odometry/local')],
         ),
-        Node(
-            package='robot_localization',
-            executable='ekf_node',
-            name='ekf_filter_node_map',
-            output='screen',
-            parameters=[rl_params, {'use_sim_time': gazebo}],
-            remappings=[('odometry/filtered', 'odometry/global')],
-        ),
-        Node(
-            condition=UnlessCondition(gps),
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='static_transform_publisher',
-            output='screen',
-            arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
-        ),
-        # Why is there more nodes for GPS?
-        # https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html
-        Node(
-            condition=IfCondition(gps),
-            package='robot_localization',
-            executable='navsat_transform_node',
-            name='navsat_transform',
-            output='screen',
-            parameters=[rl_params, {'use_sim_time': gazebo}],
-            remappings=[('odometry/filtered', 'odometry/global'),
-                        ('gps/fix', 'gps_rover/fix'),
-                        ('imu', 'oak/imu/transformed')],
+        GroupAction(
+            condition=IfCondition(urc), 
+            actions=[
+                Node(
+                    package='robot_localization',
+                    executable='ekf_node',
+                    name='ekf_filter_node_odom',
+                    output='screen',
+                    parameters=[rl_params, {'use_sim_time': gazebo}],
+                    remappings=[('odometry/filtered', 'odometry/local')],
+                ),
+                Node(
+                    package='robot_localization',
+                    executable='ekf_node',
+                    name='ekf_filter_node_map',
+                    output='screen',
+                    parameters=[rl_params, {'use_sim_time': gazebo}],
+                    remappings=[('odometry/filtered', 'odometry/global')],
+                ),
+                Node(
+                    condition=UnlessCondition(gps),
+                    package='tf2_ros',
+                    executable='static_transform_publisher',
+                    name='static_transform_publisher',
+                    output='screen',
+                    arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
+                ),
+                # Why is there more nodes for GPS?
+                # https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html
+                Node(
+                    condition=IfCondition(gps),
+                    package='robot_localization',
+                    executable='navsat_transform_node',
+                    name='navsat_transform',
+                    output='screen',
+                    parameters=[rl_params, {'use_sim_time': gazebo}],
+                    remappings=[('odometry/filtered', 'odometry/global'),
+                                ('gps/fix', 'gps_rover/fix'),
+                                ('imu', 'oak/imu/transformed')],
+                ),
+            ],
         ),
     ]
 
@@ -96,18 +112,23 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
+            name='comp',
+            default_value='arch',
+            description='ARCh or URC',
+        ),
+        DeclareLaunchArgument(
             name='gazebo',
             default_value='False',
             description='Flag if using gazebo',
         ),
         DeclareLaunchArgument(
             name='gps',
-            default_value='True',
+            default_value='False',
             description='Fuse GPS?',
         ),
         DeclareLaunchArgument(
             name='rl_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir,'params','rl_urc.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir,'params','rl_arch.yaml']),
             description='',
         ),
         DeclareLaunchArgument(
