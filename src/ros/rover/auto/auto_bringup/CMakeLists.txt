@@ -28,6 +28,7 @@ install(DIRECTORY
   resources
   rviz
   maps
+  topic
   DESTINATION share/${PROJECT_NAME}
 )
 
