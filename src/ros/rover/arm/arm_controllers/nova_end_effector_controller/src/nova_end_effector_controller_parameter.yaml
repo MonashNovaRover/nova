@@ -30,4 +30,32 @@ nova_end_effector_controller:
     description: "True if the arm should apply position, velocity and acceleration limits",
   }
   joint_limits: # yes this is long but this is how get_joint_limits() expects it. units are radians and seconds
-  # TODO: Add appropriate joint limits
+    actuator_head:
+        has_position_limits: {
+          type: bool,
+          default_value: false,
+        }
+        max_position: {
+          type: double,
+          default_value: 1.57079632679,
+        }
+        min_position: {
+          type: double,
+          default_value: -1.57079632679,
+        }
+        has_velocity_limits: {
+          type: bool,
+          default_value: true,
+        }
+        max_velocity: {
+          type: double,
+          default_value: 0.364467013889,
+        }
+        has_acceleration_limits: {
+          type: bool,
+          default_value: false,
+        }
+        max_acceleration: {
+          type: double,
+          default_value: 15.7079632679,
+        }

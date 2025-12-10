@@ -29,7 +29,7 @@ teleop_arm:
         active: true
         controllers:
           - nova_arm_velocity_controller
-          - nova_end_effector_position_controller
+          - nova_end_effector_velocity_controller
 
       task_space_mode:
         display_name: "Task Space (IK)"
