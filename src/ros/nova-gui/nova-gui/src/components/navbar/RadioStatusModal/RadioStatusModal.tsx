@@ -2,15 +2,13 @@ import {
     Modal,
     ModalBody,
     ModalContent,
-    // ModalFooter,
     ModalHeader,
     Tab,
     Tabs,
-    // Tooltip
 } from "@nextui-org/react";
 
 import { useEffect, useState } from "react";
-import DataChart from "./DataChart.tsx";
+import ReactApexChart from "react-apexcharts";
 import { ChartOptions, ChartStyle } from "./ChartOptions.ts";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../redux/RootState";
@@ -28,9 +26,7 @@ export const RadioStatusModal = () => {
 
     const onClose = () => uiActions.setRadioStatusModalOpen(false);
 
-
-
-    let maxPoints = 30;
+    const maxPoints = 30;
 
     const [allData, setData] = useState({
         time: [] as number[],
@@ -40,7 +36,7 @@ export const RadioStatusModal = () => {
         ping: [] as number[],
     });
 
-    
+
     const addPoint = (currentData: number[], newValue: number) => {
         const newData = [...currentData, newValue];
 
@@ -72,28 +68,6 @@ export const RadioStatusModal = () => {
         ping: { name: 'Ping', data: allData.ping.map((v, i) => [allData.time[i], v]) },
     };
 
-    // const [maxPoints, setMaxPoints] = useState(300);
-
-    // const timeLimit = (
-    //     <Tooltip
-    //         className="text-tiny text-default-500 rounded-md"
-    //         content="Press Enter to confirm"
-    //         placement="left"
-    //     >
-    //         <input
-    //             aria-label="Seconds value"
-    //             className="px-1 py-0.5 w-14 text-right text-small text-default-700 font-medium bg-default-100 outline-none transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
-    //             type="number"
-    //             value={maxPoints}
-    //             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-    //                 const v = Number(e.target.value);
-    //                 if (!isNaN(v)) setMaxPoints(v);
-    //             }}
-    //         />
-    //     </Tooltip>
-    // )
-
-
     return (
         <Modal
             isOpen={modalOpen}
@@ -113,20 +87,37 @@ export const RadioStatusModal = () => {
                         }}
                     >
                         <Tab title="Signal">
-                            <DataChart dataset={[radioData.signal]} chartOptions={ChartOptions(ChartStyle.Signal, maxPoints)} />
+                            <ReactApexChart
+                                type="line"
+                                options={ChartOptions(ChartStyle.Signal, radioData.signal.name, maxPoints)}
+                                series={[radioData.signal]}
+                            />
                         </Tab>
 
                         <Tab title="Received">
-                            <DataChart dataset={[radioData.recv]} chartOptions={ChartOptions(ChartStyle.Received, maxPoints)} />
+                            <ReactApexChart
+                                type="line"
+                                options={ChartOptions(ChartStyle.Received, radioData.recv.name, maxPoints)}
+                                series={[radioData.recv]}
+                            />
                         </Tab>
 
                         <Tab title="Sent">
-                            <DataChart dataset={[radioData.sent]} chartOptions={ChartOptions(ChartStyle.Sent, maxPoints)} />
+                            <ReactApexChart
+                                type="line"
+                                options={ChartOptions(ChartStyle.Sent, radioData.sent.name, maxPoints)}
+                                series={[radioData.sent]}
+                            />
                         </Tab>
 
                         <Tab title="Ping">
-                            <DataChart dataset={[radioData.ping]} chartOptions={ChartOptions(ChartStyle.Ping, maxPoints)} />
+                            <ReactApexChart
+                                type="line"
+                                options={ChartOptions(ChartStyle.Ping, radioData.ping.name, maxPoints)}
+                                series={[radioData.ping]}
+                            />
                         </Tab>
+
                     </Tabs>
                 </ModalBody>
             </ModalContent>
