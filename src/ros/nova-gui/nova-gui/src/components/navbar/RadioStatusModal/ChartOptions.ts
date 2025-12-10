@@ -57,6 +57,7 @@ export const ChartOptions = (style: ChartStyle, numPoints: number): ApexOptions 
         },
         labels: {
           show: true,
+          datetimeUTC: false,
         }
       },
       yaxis: {
@@ -122,6 +123,7 @@ export const ChartOptions = (style: ChartStyle, numPoints: number): ApexOptions 
         },
         labels: {
           show: true,
+          datetimeUTC: false,
         }
       },
       yaxis: {
@@ -187,6 +189,7 @@ export const ChartOptions = (style: ChartStyle, numPoints: number): ApexOptions 
         },
         labels: {
           show: true,
+          datetimeUTC: false,
         }
       },
       yaxis: {
@@ -252,6 +255,7 @@ export const ChartOptions = (style: ChartStyle, numPoints: number): ApexOptions 
         },
         labels: {
           show: true,
+          datetimeUTC: false,
         }
       },
       yaxis: {
