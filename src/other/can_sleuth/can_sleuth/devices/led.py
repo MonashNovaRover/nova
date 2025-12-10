@@ -29,10 +29,13 @@ class LEDStrip(candevice.CanDevice):
     def __init__(self, name:str, interface):
         super().__init__(name, interface)
         self.brightness = 0
-        self.colour=None
+        self.colour= None
         #add callback functions
-        self.addCallback(LEDStrip.LedCommand.BRIGHTNESS.value, self.set_brightness_cb) #brightness
+        self.addCallback(LEDStrip.LedCommand.brightness.value, self.set_brightness_cb) #brightness
         self.addCallback(LEDStrip.LedCommand.COLOUR.value, self.set_colour_cb) #colour
+        #register attributes
+        self.registerAttr("brightness", self.get_brightness, 3)
+        self.registerAttr("colour", self.get_colour, 10)
     
     def update(self):
         pass
@@ -50,7 +53,7 @@ class LEDStrip(candevice.CanDevice):
     
     #getters for tracing
     def get_colour(self):
-        return self.colour
+        return str(self.colour)
 
     def get_brightness(self):
-        return self.brightness
+        return str(self.brightness)
