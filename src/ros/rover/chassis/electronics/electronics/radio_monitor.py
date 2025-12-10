@@ -26,6 +26,7 @@ If you have issues connecting to the radio device
 
 # Include all relevant packages
 import rclpy
+from rclpy import qos
 from rclpy.node import Node
 from rclpy.timer import Rate
 from nova_interfaces.msg import RadioStatus
@@ -81,7 +82,15 @@ class RadioMonitor(Node):
         
         if self.is_ros:
             super().__init__("radio_monitor")
-            self.publisher = self.create_publisher(RadioStatus, "/electronics/radio_status", 10)
+            self.publisher = self.create_publisher(
+                RadioStatus,
+                "/electronics/radio_status",
+                qos.QoSProfile(
+                    history=qos.HistoryPolicy.KEEP_LAST,
+                    depth=1,
+                    reliability=qos.ReliabilityPolicy.RELIABLE,
+                    durability=qos.DurabilityPolicy.TRANSIENT_LOCAL,
+            ),)
 
 
     def connect_to_radio(self):
