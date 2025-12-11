@@ -29,7 +29,6 @@ def launch_setup(context, *args, **kwargs):
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
     angle = LaunchConfiguration('angle')
-    camera = LaunchConfiguration('camera')
     gz_params = LaunchConfiguration('gz_params')
     gz_qos_params = LaunchConfiguration('gz_qos_params')
     controller_params = LaunchConfiguration('controller_params')
@@ -58,13 +57,12 @@ def launch_setup(context, *args, **kwargs):
             launch_arguments={'auto': 'True', 'auto_params': controller_params, 'gazebo': 'True'}.items(),
         ),
         IncludeLaunchDescription(
-            condition=IfCondition(camera),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
             launch_arguments={'gazebo': 'True'}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'angle': angle, 'camera': camera}.items(),
+            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'angle': angle}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
@@ -106,11 +104,6 @@ def generate_launch_description():
             name='angle',
             default_value='15',
             description='Angle (in degrees) at which the camera is mounted',
-        ),
-        DeclareLaunchArgument(
-            name='camera',
-            default_value='True',
-            description='Whether to spawn auto mount on the rover.',
         ),
         DeclareLaunchArgument(
             name='gz_params',
