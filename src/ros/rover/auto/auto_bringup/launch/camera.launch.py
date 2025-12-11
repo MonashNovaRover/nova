@@ -13,7 +13,7 @@ CREATION:	13/11/2024
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, AndSubstitution, NotSubstitution
@@ -44,22 +44,42 @@ def launch_setup(context, *args, **kwargs):
             namespace='',
             executable='component_container',
             composable_node_descriptions=[
-                ComposableNode(
+                GroupAction(
                     condition=UnlessCondition(gazebo),
-                    package='depthai_ros_driver',
-                    plugin='depthai_ros_driver::Camera',
-                    name=front_name,
-                    parameters=[front_params],
-                ),
-                ComposableNode(
-                    condition=IfCondition(rectify_image),
-                    package='image_proc',
-                    plugin='image_proc::RectifyNode',
-                    name=f'{front_name}_rectify_color_node',
-                    remappings=[
-                        ('image', f'{front_name}/rgb/image_raw'),
-                        ('camera_info', f'{front_name}/rgb/camera_info'),
-                        ('image_rect', f'{front_name}/rgb/image_rect')],
+                    actions=[
+                        ComposableNode(
+                            package='depthai_ros_driver',
+                            plugin='depthai_ros_driver::Camera',
+                            name=front_name,
+                            parameters=[front_params],
+                        ),
+                        ComposableNode(
+                            condition=IfCondition(mag),
+                            package='imu_filter_madgwick',
+                            plugin='ImuFilterMadgwickRos',
+                            name=f'{front_name}_imu_filter_node',
+                            remappings=[('imu/data_raw', f'/{front_name}/imu/data'),
+                                        ('imu/mag', f'/{front_name}/imu/mag'),
+                                        ('imu/data', f'/{front_name}/imu/fused')],
+                            parameters=[{'use_mag': True,
+                                        'world_frame': 'enu',
+                                        'fixed_frame': 'odom',
+                                        'publish_tf': False,
+                                        'reverse_accel': False,
+                                        'mag_bias_x': 0.0,
+                                        'mag_bias_y': 0.0,
+                                        'mag_bias_z': 0.0}]
+                        ),
+                        ComposableNode(
+                            condition=IfCondition(imu),
+                            package='imu_transformer',
+                            plugin='imu_transformer::ImuTransformer',
+                            name=f'{front_name}_imu_transformer_node',
+                            remappings=[('/imu_in', f'/{front_name}/imu/data'),
+                                        ('/imu_out', f'/{front_name}/imu/transformed')],
+                            parameters=[{'target_frame': f'{front_name}_imu_frame'}]
+                        ),
+                    ],
                 ),
                 ComposableNode(
                     condition=IfCondition(pointcloud),
@@ -74,30 +94,14 @@ def launch_setup(context, *args, **kwargs):
                                 ('cloud', f'{front_name}/points')],
                 ),
                 ComposableNode(
-                    condition=IfCondition(AndSubstitution(mag, NotSubstitution(gazebo))),
-                    package='imu_filter_madgwick',
-                    plugin='ImuFilterMadgwickRos',
-                    name=f'{front_name}_imu_filter_node',
-                    remappings=[('imu/data_raw', f'/{front_name}/imu/data'),
-                                ('imu/mag', f'/{front_name}/imu/mag'),
-                                ('imu/data', f'/{front_name}/imu/fused')],
-                    parameters=[{'use_mag': True,
-                                 'world_frame': 'enu',
-                                 'fixed_frame': 'odom',
-                                 'publish_tf': False,
-                                 'reverse_accel': False,
-                                 'mag_bias_x': 0.0,
-                                 'mag_bias_y': 0.0,
-                                 'mag_bias_z': 0.0}]
-                ),
-                ComposableNode(
-                    condition=IfCondition(AndSubstitution(imu, NotSubstitution(gazebo))),
-                    package='imu_transformer',
-                    plugin='imu_transformer::ImuTransformer',
-                    name=f'{front_name}_imu_transformer_node',
-                    remappings=[('/imu_in', f'/{front_name}/imu/data'),
-                                ('/imu_out', f'/{front_name}/imu/transformed')],
-                    parameters=[{'target_frame': f'{front_name}_imu_frame'}]
+                    condition=IfCondition(rectify_image),
+                    package='image_proc',
+                    plugin='image_proc::RectifyNode',
+                    name=f'{front_name}_rectify_color_node',
+                    remappings=[
+                        ('image', f'{front_name}/rgb/image_raw'),
+                        ('camera_info', f'{front_name}/rgb/camera_info'),
+                        ('image_rect', f'{front_name}/rgb/image_rect')],
                 ),
             ],
         ),
@@ -108,12 +112,42 @@ def launch_setup(context, *args, **kwargs):
             namespace='',
             executable='component_container',
             composable_node_descriptions=[
-                ComposableNode(
+                GroupAction(
                     condition=UnlessCondition(gazebo),
-                    package='depthai_ros_driver',
-                    plugin='depthai_ros_driver::Camera',
-                    name=back_name,
-                    parameters=[back_params],
+                    actions=[
+                        ComposableNode(
+                            package='depthai_ros_driver',
+                            plugin='depthai_ros_driver::Camera',
+                            name=back_name,
+                            parameters=[back_params],
+                        ),
+                        ComposableNode(
+                            condition=IfCondition(mag),
+                            package='imu_filter_madgwick',
+                            plugin='ImuFilterMadgwickRos',
+                            name=f'{back_name}_imu_filter_node',
+                            remappings=[('imu/data_raw', f'/{back_name}/imu/data'),
+                                        ('imu/mag', f'/{back_name}/imu/mag'),
+                                        ('imu/data', f'/{back_name}/imu/fused')],
+                            parameters=[{'use_mag': True,
+                                        'world_frame': 'enu',
+                                        'fixed_frame': 'odom',
+                                        'publish_tf': False,
+                                        'reverse_accel': False,
+                                        'mag_bias_x': 0.0,
+                                        'mag_bias_y': 0.0,
+                                        'mag_bias_z': 0.0}]
+                        ),
+                        ComposableNode(
+                            condition=IfCondition(imu),
+                            package='imu_transformer',
+                            plugin='imu_transformer::ImuTransformer',
+                            name=f'{back_name}_imu_transformer_node',
+                            remappings=[('/imu_in', f'/{back_name}/imu/data'),
+                                        ('/imu_out', f'/{back_name}/imu/transformed')],
+                            parameters=[{'target_frame': f'{back_name}_imu_frame'}]
+                        ),
+                    ],
                 ),
                 ComposableNode(
                     condition=IfCondition(rectify_image),
@@ -136,32 +170,6 @@ def launch_setup(context, *args, **kwargs):
                     remappings=[('depth/image', f'{back_name}/stereo/image_raw'),
                                 ('depth/camera_info', f'{back_name}/stereo/camera_info'),
                                 ('cloud', f'{back_name}/points')],
-                ),
-                ComposableNode(
-                    condition=IfCondition(AndSubstitution(mag, NotSubstitution(gazebo))),
-                    package='imu_filter_madgwick',
-                    plugin='ImuFilterMadgwickRos',
-                    name=f'{back_name}_imu_filter_node',
-                    remappings=[('imu/data_raw', f'/{back_name}/imu/data'),
-                                ('imu/mag', f'/{back_name}/imu/mag'),
-                                ('imu/data', f'/{back_name}/imu/fused')],
-                    parameters=[{'use_mag': True,
-                                 'world_frame': 'enu',
-                                 'fixed_frame': 'odom',
-                                 'publish_tf': False,
-                                 'reverse_accel': False,
-                                 'mag_bias_x': 0.0,
-                                 'mag_bias_y': 0.0,
-                                 'mag_bias_z': 0.0}]
-                ),
-                ComposableNode(
-                    condition=IfCondition(AndSubstitution(imu, NotSubstitution(gazebo))),
-                    package='imu_transformer',
-                    plugin='imu_transformer::ImuTransformer',
-                    name=f'{back_name}_imu_transformer_node',
-                    remappings=[('/imu_in', f'/{back_name}/imu/data'),
-                                ('/imu_out', f'/{back_name}/imu/transformed')],
-                    parameters=[{'target_frame': f'{back_name}_imu_frame'}]
                 ),
             ]
         ),
