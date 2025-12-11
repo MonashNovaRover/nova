@@ -33,7 +33,7 @@ class LEDStrip(candevice.CanDevice):
         self.brightness = 0
         self.colour= None
         #add callback functions
-        self.addCallback(LEDStrip.LedCommand.brightness.value, self.set_brightness_cb) #brightness
+        self.addCallback(LEDStrip.LedCommand.BRIGHTNESS.value, self.set_brightness_cb) #brightness
         self.addCallback(LEDStrip.LedCommand.COLOUR.value, self.set_colour_cb) #colour
         self.addCallback(LEDStrip.LedCommand.PINK.value, self.set_pink_cb) #pink
         #register attributes

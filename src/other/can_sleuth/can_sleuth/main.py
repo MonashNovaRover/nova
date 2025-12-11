@@ -22,6 +22,7 @@ if __name__ == "__main__":
 from can_sleuth import manager
 from can_sleuth import systems
 from can_sleuth.outputs import allOutputs
+from can_sleuth import outputs
 
 def print_help():
     args = sys.argv

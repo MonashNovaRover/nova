@@ -23,7 +23,7 @@ from . import output
     Output that prints atrributes to the terminal; to use for debugging.
 """
 
-def TerminalOut(output.Output):
+class TerminalOut(output.Output):
     def __init__(self):
         pass
 
