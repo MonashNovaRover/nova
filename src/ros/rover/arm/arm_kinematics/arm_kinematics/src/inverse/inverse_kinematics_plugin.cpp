@@ -16,7 +16,7 @@ bool InverseKinematicsPlugin::initialize(const KinematicsNodeInterfaces & node_i
 }
 
 bool InverseKinematicsPlugin::get_velocity_ik(const Eigen::Matrix<double, 6, 1> &ik_twist,
-                                              const Eigen::Isometry3d &ik_seed_pose,
+                                              const Eigen::Isometry3f &ik_seed_pose,
                                               const std::vector<double> &ik_seed_state,
                                               std::vector<double> &solution_velocities,
                                               double time_step) const
@@ -24,12 +24,11 @@ bool InverseKinematicsPlugin::get_velocity_ik(const Eigen::Matrix<double, 6, 1> 
   assert(time_step != 0);
 
   // Apply the ik_twist over time_step to get another pose
-  auto twist_applied_pose = apply_twist(ik_twist, time_step, ik_seed_pose);
+  const auto twist_applied_pose = apply_twist(ik_twist, time_step, ik_seed_pose);
 
   // solution_velocities will contain twist to avoid allocating a vector
-  auto ik_result = get_position_ik(twist_applied_pose, ik_seed_state, solution_velocities);
+  const auto ik_result = get_position_ik(twist_applied_pose, ik_seed_state, solution_velocities);
 
-  // TODO: Should we attempt to make this real time safe, and avoid early exits?
   if (!ik_result)
     return false;
 

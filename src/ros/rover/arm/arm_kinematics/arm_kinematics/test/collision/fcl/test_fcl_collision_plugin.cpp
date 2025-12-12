@@ -31,8 +31,8 @@ using arm_kinematics::KinematicsParams;
 using arm_kinematics::Reordered;
 using arm_kinematics::FclCollisionPlugin;
 
-static void ExpectVectorNear(const Eigen::Vector3d & actual,
-                             const Eigen::Vector3d & expected,
+static void ExpectVectorNear(const Eigen::Vector3f & actual,
+                             const Eigen::Vector3f & expected,
                              const char * message = "", double tol = 1e-10)
 {
   EXPECT_NEAR(actual.x(), expected.x(), tol) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix();
@@ -41,8 +41,8 @@ static void ExpectVectorNear(const Eigen::Vector3d & actual,
 }
 
 // Small helper for comparing isometries
-static void ExpectIsometryNear(const Eigen::Isometry3d & actual,
-                               const Eigen::Isometry3d & expected,
+static void ExpectIsometryNear(const Eigen::Isometry3f & actual,
+                               const Eigen::Isometry3f & expected,
                                const char * message = "", double tol = 1e-10)
 {
   ExpectVectorNear(actual.translation(), expected.translation(), message, tol);
@@ -52,18 +52,18 @@ static void ExpectIsometryNear(const Eigen::Isometry3d & actual,
   EXPECT_TRUE(actual.linear().isApprox(expected.linear(), tol)) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix() << "\n";
 }
 
-Eigen::Isometry3d to_isometry(
-    double r00, double r01, double r02, double tx,
-    double r10, double r11, double r12, double ty,
-    double r20, double r21, double r22, double tz)
+Eigen::Isometry3f to_isometry(
+    float r00, float r01, float r02, float tx,
+    float r10, float r11, float r12, float ty,
+    float r20, float r21, float r22, float tz)
 {
-  Eigen::Matrix4d m;
+  Eigen::Matrix4f m;
   m << r00, r01, r02, tx,
        r10, r11, r12, ty,
        r20, r21, r22, tz,
        0.0, 0.0, 0.0, 1.0;
 
-  Eigen::Isometry3d T(m);   // or: Eigen::Isometry3d T = m;
+  Eigen::Isometry3f T(m);   // or: Eigen::Isometry3f T = m;
   return T;
 }
 

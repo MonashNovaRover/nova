@@ -209,14 +209,14 @@ AnalysisTree::AnalysisTree(
     auto joint_id_old = frame_old.parent;
 
     const auto & definition_origin = frame_old.origin * definitions.origins[frame_id];
-    std::string frame_name = definitions.origins[frame_id].isApprox(Eigen::Isometry3d::Identity())
+    std::string frame_name = definitions.origins[frame_id].isApprox(Eigen::Isometry3f::Identity())
       ? definitions.parent_link_names[frame_id]
       : "";
 
     assert(subtree_mask[joint_id_old]);
 
     // RCLCPP_INFO_STREAM(logger, "Frame " << frame_id << " (-< " << frame_id_old << " \"" << other.frames_.names[frame_id_old] << "\") joint_id_old=" << joint_id_old << " \"" << other.joints_.names[joint_id_old] << "\"");
-    const auto & other_joint = other.joints_[joint_id_old];
+    // const auto & other_joint = other.joints_[joint_id_old];
 
     // Normal case
     if (!reversed_mask_old[joint_id_old]) {
@@ -308,7 +308,7 @@ tl::expected<ComputeFrameTree, std::string_view> AnalysisTree::make_compute_fram
     if (frame.parent != 0)
       parents.emplace_back(frame.parent - 1);
 
-  Isometry3dVector origins{};
+  Isometry3fVector origins{};
   origins.reserve(frames_.size());
   for (const auto & frame : frames_.data)
     origins.emplace_back(frame.origin);
@@ -322,15 +322,15 @@ tl::expected<ComputeFrameTree, std::string_view> AnalysisTree::make_compute_fram
 
 ComputeJointTree AnalysisTree::make_compute_joint_tree() {
   std::vector<JointType> types{};
-  Vector3dVector axes{};
-  Isometry3dVector origins{};
+  Vector3fVector axes{};
+  Isometry3fVector origins{};
   std::vector<size_t> parents{};
 
   assert(joints_.size() > 0); //< Dummy root MUST exist
 
   types.resize(joints_.size() - 1);
   axes.resize(joints_.size() - 1);
-  origins.resize(joints_.size() - 1, Eigen::Isometry3d::Identity());
+  origins.resize(joints_.size() - 1, Eigen::Isometry3f::Identity());
   parents.reserve(joints_.size() - 1);
 
   const size_t root_relative_count = joints_[0].children.size();

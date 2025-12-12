@@ -10,19 +10,30 @@
 
 namespace arm_kinematics {
 
-inline Eigen::Vector3d to_eigen(const urdf::Vector3 & p)
+inline Eigen::Vector3f to_eigen(const urdf::Vector3 & p)
 {
-  return {p.x, p.y, p.z};
+  return {
+    static_cast<float>(p.x),
+    static_cast<float>(p.y),
+    static_cast<float>(p.z)
+  };
 }
 
-inline Eigen::Isometry3d to_eigen(const urdf::Pose & p)
+inline Eigen::Isometry3f to_eigen(const urdf::Pose & p)
 {
-  Eigen::Isometry3d T = Eigen::Isometry3d::Identity();
-  T.translation() = Eigen::Vector3d(p.position.x, p.position.y, p.position.z);
+  Eigen::Isometry3f T = Eigen::Isometry3f::Identity();
+  T.translation() = Eigen::Vector3f(
+    static_cast<float>(p.position.x),
+    static_cast<float>(p.position.y),
+    static_cast<float>(p.position.z));
 
   double x, y, z, w;
   p.rotation.getQuaternion(x, y, z, w);
-  const Eigen::Quaterniond q(w, x, y, z);
+  const Eigen::Quaternionf q(
+    static_cast<float>(w),
+    static_cast<float>(x),
+    static_cast<float>(y),
+    static_cast<float>(z));
   T.linear() = q.toRotationMatrix();
   return T;
 }

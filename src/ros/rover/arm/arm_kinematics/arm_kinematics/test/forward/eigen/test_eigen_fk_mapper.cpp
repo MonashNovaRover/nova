@@ -28,8 +28,8 @@ using arm_kinematics::AnalysisTree;
 using arm_kinematics::KinematicsParams;
 using arm_kinematics::Reordered;
 
-static void ExpectVectorNear(const Eigen::Vector3d & actual,
-                             const Eigen::Vector3d & expected,
+static void ExpectVectorNear(const Eigen::Vector3f & actual,
+                             const Eigen::Vector3f & expected,
                              const char * message = "", double tol = 1e-10)
 {
   EXPECT_NEAR(actual.x(), expected.x(), tol) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix();
@@ -38,8 +38,8 @@ static void ExpectVectorNear(const Eigen::Vector3d & actual,
 }
 
 // Small helper for comparing isometries
-static void ExpectIsometryNear(const Eigen::Isometry3d & actual,
-                               const Eigen::Isometry3d & expected,
+static void ExpectIsometryNear(const Eigen::Isometry3f & actual,
+                               const Eigen::Isometry3f & expected,
                                const char * message = "", double tol = 1e-10)
 {
   ExpectVectorNear(actual.translation(), expected.translation(), message, tol);
@@ -49,18 +49,18 @@ static void ExpectIsometryNear(const Eigen::Isometry3d & actual,
   EXPECT_TRUE(actual.linear().isApprox(expected.linear(), tol)) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix() << "\n";
 }
 
-Eigen::Isometry3d to_isometry(
-    double r00, double r01, double r02, double tx,
-    double r10, double r11, double r12, double ty,
-    double r20, double r21, double r22, double tz)
+Eigen::Isometry3f to_isometry(
+    float r00, float r01, float r02, float tx,
+    float r10, float r11, float r12, float ty,
+    float r20, float r21, float r22, float tz)
 {
-  Eigen::Matrix4d m;
+  Eigen::Matrix4f m;
   m << r00, r01, r02, tx,
        r10, r11, r12, ty,
        r20, r21, r22, tz,
        0.0, 0.0, 0.0, 1.0;
 
-  Eigen::Isometry3d T(m);   // or: Eigen::Isometry3d T = m;
+  Eigen::Isometry3f T(m);   // or: Eigen::Isometry3f T = m;
   return T;
 }
 
@@ -123,14 +123,14 @@ TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTree)
 
   ASSERT_TRUE(init_result) << "Failed to initialize plugin";
 
-  const double theta = M_PI / 2.0;
-  const double d     = 0.5;
-  std::vector<double> joint_states{ d, theta };
+  const float theta = M_PI / 2.0;
+  const float d     = 0.5;
+  std::vector<float> joint_states{ d, theta };
 
   RCLCPP_INFO(node_->get_logger(), "Creating FK Tree");
   auto anal = AnalysisTree(plugin->get_urdf_model());
 
-  ExpectIsometryNear(anal.get_joints()[0].origin, Eigen::Isometry3d::Identity(),
+  ExpectIsometryNear(anal.get_joints()[0].origin, Eigen::Isometry3f::Identity(),
     "dummy root origin is incorrect");
   ExpectIsometryNear(anal.get_joints()[1].origin, to_isometry(
     1.0, 0.0, 0.0, 0.0,
@@ -145,7 +145,7 @@ TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTree)
 
   auto joint_order = anal.sort_joints();
 
-  ExpectIsometryNear(anal.get_joints()[0].origin, Eigen::Isometry3d::Identity(),
+  ExpectIsometryNear(anal.get_joints()[0].origin, Eigen::Isometry3f::Identity(),
     "dummy root origin is incorrect");
   ExpectIsometryNear(anal.get_joints()[1].origin, to_isometry(
     1.0, 0.0, 0.0, 0.0,
@@ -169,8 +169,8 @@ TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTree)
   // Compare against truth
   RCLCPP_INFO(node_->get_logger(), "Testing against true poses");
 
-  ExpectVectorNear(tree.get_axes()[0], Eigen::Vector3d(1, 0, 0), "ComputeJointTree axis[0] is incorrect!");
-  ExpectVectorNear(tree.get_axes()[1], Eigen::Vector3d(0, 0, 1), "ComputeJointTree axis[1] is incorrect!");
+  ExpectVectorNear(tree.get_axes()[0], Eigen::Vector3f(1, 0, 0), "ComputeJointTree axis[0] is incorrect!");
+  ExpectVectorNear(tree.get_axes()[1], Eigen::Vector3f(0, 0, 1), "ComputeJointTree axis[1] is incorrect!");
   EXPECT_EQ(tree.get_types()[0], arm_kinematics::JointType::PRISMATIC);
   EXPECT_EQ(tree.get_types()[1], arm_kinematics::JointType::REVOLUTE);
   ExpectIsometryNear(tree.get_origins()[0], to_isometry(
@@ -184,14 +184,14 @@ TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTree)
     0.0, 0.0, 1.0, 1.0
   ), "origin 1 is incorrect");
 
-  Eigen::Isometry3d link1_truth = Eigen::Isometry3d::Identity();
-  link1_truth.translation() = Eigen::Vector3d(0.5, 1, 0);
+  Eigen::Isometry3f link1_truth = Eigen::Isometry3f::Identity();
+  link1_truth.translation() = Eigen::Vector3f(0.5, 1, 0);
 
   ExpectIsometryNear(tree.poses[0], link1_truth, "link1 pose is wrong");
 
-  Eigen::Isometry3d link2_truth = Eigen::Isometry3d::Identity();
-  link2_truth.linear() = Eigen::AngleAxisd(M_PI / 2.0, Eigen::Vector3d(0, 0, 1)).toRotationMatrix();
-  link2_truth.translation() = Eigen::Vector3d(0.5, 1, 1);
+  Eigen::Isometry3f link2_truth = Eigen::Isometry3f::Identity();
+  link2_truth.linear() = Eigen::AngleAxisf(M_PI / 2.0, Eigen::Vector3f(0, 0, 1)).toRotationMatrix();
+  link2_truth.translation() = Eigen::Vector3f(0.5, 1, 1);
 
   ExpectIsometryNear(tree.poses[1], link2_truth, "link2 pose is wrong");
 }
@@ -216,19 +216,19 @@ TEST_F(SimpleUrdfTests, SimpleUrdfEigenFKPluginTree)
   std::vector<double> joint_states{ d, theta };
 
   auto weird_joint_map = plugin->get_joint_map_builder().build({"joint1", "joint2"}, {"joint1", "joint2", "joint1", "joint 1", "joint 2"});
-  std::vector<double> mapped_joint_states_weird(weird_joint_map.output_count);
+  std::vector<float> mapped_joint_states_weird(weird_joint_map.output_count);
   weird_joint_map.map(joint_states, mapped_joint_states_weird);
 
   RCLCPP_INFO(node_->get_logger(), "Creating FK Tree");
-  auto [__tree, order] = plugin->make_tree(joint_names, std::string("base_link"), frames);
+  auto [tree_, order] = plugin->make_tree(joint_names, std::string("base_link"), frames);
 
   ASSERT_TRUE(order.size() > 0) << "Failed to create tree with order";
 
   EigenForwardKinematicsPlugin::TreeImpl::SharedPtr tree =
-    std::dynamic_pointer_cast<EigenForwardKinematicsPlugin::TreeImpl>(__tree);
+    std::dynamic_pointer_cast<EigenForwardKinematicsPlugin::TreeImpl>(tree_);
   ASSERT_TRUE(tree) << "Failed to create tree";
 
-  std::vector<double> mapped_joint_states(tree->get_joint_map().output_count);
+  std::vector<float> mapped_joint_states(tree->get_joint_map().output_count);
   tree->get_joint_map().map(joint_states, mapped_joint_states);
   EXPECT_NEAR(mapped_joint_states[0], joint_states[0], 1e-10) << "joint 0 value mapped incorrectly";
   EXPECT_NEAR(mapped_joint_states[1], joint_states[1], 1e-10) << "joint 1 value mapped incorrectly";
@@ -251,7 +251,7 @@ TEST_F(SimpleUrdfTests, SimpleUrdfEigenFKPluginTree)
   EXPECT_EQ(tree->get_tree().get_parents()[1], 1) << "frame 1 has the wrong parent";
 
   RCLCPP_INFO(node_->get_logger(), "Allocating pose outputs");
-  arm_kinematics::Isometry3dVector link_poses(output_count, Eigen::Isometry3d::Identity());
+  arm_kinematics::Isometry3fVector link_poses(output_count, Eigen::Isometry3f::Identity());
   RCLCPP_INFO(node_->get_logger(), "Performing FK");
 
   tree->position_fk(joint_states, link_poses);
@@ -263,14 +263,14 @@ TEST_F(SimpleUrdfTests, SimpleUrdfEigenFKPluginTree)
   // Compare against truth
   RCLCPP_INFO(node_->get_logger(), "Testing against true poses");
 
-  Eigen::Isometry3d link1_truth = Eigen::Isometry3d::Identity();
-  link1_truth.translation() = Eigen::Vector3d(0.5, 1, 0);
+  Eigen::Isometry3f link1_truth = Eigen::Isometry3f::Identity();
+  link1_truth.translation() = Eigen::Vector3f(0.5, 1, 0);
 
   ExpectIsometryNear(link_poses[0], link1_truth, "link1 pose is wrong");
 
-  Eigen::Isometry3d link2_truth = Eigen::Isometry3d::Identity();
-  link2_truth.linear() = Eigen::AngleAxisd(M_PI / 2.0, Eigen::Vector3d(0, 0, 1)).toRotationMatrix();
-  link2_truth.translation() = Eigen::Vector3d(0.5, 1, 1);
+  Eigen::Isometry3f link2_truth = Eigen::Isometry3f::Identity();
+  link2_truth.linear() = Eigen::AngleAxisf(M_PI / 2.0, Eigen::Vector3f(0, 0, 1)).toRotationMatrix();
+  link2_truth.translation() = Eigen::Vector3f(0.5, 1, 1);
 
   ExpectIsometryNear(link_poses[1], link2_truth, "link2 pose is wrong");
 }
@@ -301,7 +301,7 @@ TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTreeReversed)
   const auto & joints = subanal.get_joints();
   const auto & frames = subanal.get_frames();
 
-  ExpectIsometryNear(joints[0].origin, Eigen::Isometry3d::Identity(),
+  ExpectIsometryNear(joints[0].origin, Eigen::Isometry3f::Identity(),
     "dummy root origin is incorrect");
   ExpectIsometryNear(joints[1].origin, to_isometry(
     1.0, 0.0, 0.0, 0.0,
@@ -319,16 +319,16 @@ TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTreeReversed)
   EXPECT_EQ(frames["link2"], 2) << "Frame order modified before sorting";
 
   EXPECT_EQ(joints[0].parent, 0) << "Dummy root is not a dummy root";
-  ExpectIsometryNear(joints[0].origin, Eigen::Isometry3d::Identity(), "Dummy root has non-identity origin.");
+  ExpectIsometryNear(joints[0].origin, Eigen::Isometry3f::Identity(), "Dummy root has non-identity origin.");
 
   EXPECT_EQ(frames[0].parent, joints["joint1"]) << "base_link parent incorrect";
   EXPECT_EQ(frames[1].parent, 0) << "link1 parent incorrect, should be dummy root";
   EXPECT_EQ(frames[2].parent, joints["joint2"]) << "link2 parent incorrect";
   ExpectIsometryNear(frames[0].origin, anal.get_joints()[anal.get_joints()["joint1"]].origin.inverse(),
     "base_link origin is incorrect");
-  ExpectIsometryNear(frames[1].origin, Eigen::Isometry3d::Identity(),
+  ExpectIsometryNear(frames[1].origin, Eigen::Isometry3f::Identity(),
     "link1 origin is incorrect");
-  ExpectIsometryNear(frames[2].origin, Eigen::Isometry3d::Identity(),
+  ExpectIsometryNear(frames[2].origin, Eigen::Isometry3f::Identity(),
     "link2 origin is incorrect");
 
   auto tree = subanal.make_compute_joint_tree();
@@ -340,7 +340,7 @@ TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTreeReversed)
 
   const std::vector<std::string> & mapper_joint_names = {subanal.get_joints().names.begin() + 1, subanal.get_joints().names.end()};
   const auto joint_map = plugin->get_joint_map_builder().build(joint_names, mapper_joint_names);
-  std::vector<double> joint_states_mapped(joint_map.output_count);
+  std::vector<float> joint_states_mapped(joint_map.output_count);
   joint_map.map(joint_states, joint_states_mapped);
 
   tree.update(joint_states_mapped);
@@ -348,8 +348,8 @@ TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTreeReversed)
   // Compare against truth
   RCLCPP_INFO(node_->get_logger(), "Testing against true poses");
 
-  ExpectVectorNear(tree.get_axes()[0], Eigen::Vector3d(-1, 0, 0), "ComputeJointTree axis[0] is incorrect!");
-  ExpectVectorNear(tree.get_axes()[1], Eigen::Vector3d(0, 0, 1), "ComputeJointTree axis[1] is incorrect!");
+  ExpectVectorNear(tree.get_axes()[0], Eigen::Vector3f(-1, 0, 0), "ComputeJointTree axis[0] is incorrect!");
+  ExpectVectorNear(tree.get_axes()[1], Eigen::Vector3f(0, 0, 1), "ComputeJointTree axis[1] is incorrect!");
   EXPECT_EQ(tree.get_types()[0], arm_kinematics::JointType::PRISMATIC);
   EXPECT_EQ(tree.get_types()[1], arm_kinematics::JointType::REVOLUTE);
   ExpectIsometryNear(tree.get_origins()[0], to_isometry(
@@ -363,14 +363,14 @@ TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTreeReversed)
     0.0, 0.0, 1.0, 1.0
   ), "origin 1 is incorrect");
 
-  Eigen::Isometry3d j1_truth = Eigen::Isometry3d::Identity();
-  j1_truth.translation() = Eigen::Vector3d(-0.5, 0, 0);
+  Eigen::Isometry3f j1_truth = Eigen::Isometry3f::Identity();
+  j1_truth.translation() = Eigen::Vector3f(-0.5, 0, 0);
 
   ExpectIsometryNear(tree.poses[0], j1_truth, "joint 1 pose is wrong");
 
-  Eigen::Isometry3d j2_truth = Eigen::Isometry3d::Identity();
-  j2_truth.linear() = Eigen::AngleAxisd(M_PI / 2.0, Eigen::Vector3d(0, 0, 1)).toRotationMatrix();
-  j2_truth.translation() = Eigen::Vector3d(0.0, 0.0, 1);
+  Eigen::Isometry3f j2_truth = Eigen::Isometry3f::Identity();
+  j2_truth.linear() = Eigen::AngleAxisd(M_PI / 2.0, Eigen::Vector3f(0, 0, 1)).toRotationMatrix();
+  j2_truth.translation() = Eigen::Vector3f(0.0, 0.0, 1);
 
   ExpectIsometryNear(tree.poses[1], j2_truth, "joint 2 pose is wrong");
 }
@@ -536,7 +536,7 @@ protected:
     "zxzy",
     "zxy",
   };
-  const arm_kinematics::Vector3dVector expected_frame_poses_{
+  const arm_kinematics::Vector3fVector expected_frame_poses_{
     {0,0,0},
     {0,0,1},
     {1,0,1},
@@ -564,7 +564,7 @@ TEST_F(FixedJointUrdfTest, ForwardFromRoot) {
   const auto expected = Reordered{expected_frame_poses_, order};
 
   // Do FK
-  auto actual = arm_kinematics::Isometry3dVector(expected.size());
+  auto actual = arm_kinematics::Isometry3fVector(expected.size());
   tree->position_fk({}, actual);
 
   for (size_t i = 0; i < actual.size(); ++i) {
@@ -585,11 +585,11 @@ TEST_F(FixedJointUrdfTest, ForwardFromRootWithActuations) {
   const std::vector<double> joint_states(joint_names_.size(), -1.0);
 
   // Do FK
-  auto actual = arm_kinematics::Isometry3dVector(expected.size());
+  auto actual = arm_kinematics::Isometry3fVector(expected.size());
   tree->position_fk(joint_states, actual);
 
   for (size_t i = 0; i < actual.size(); ++i) {
-    ExpectVectorNear(actual[i].translation(), Eigen::Vector3d(0,0,expected[i].z()), names[i].c_str());
+    ExpectVectorNear(actual[i].translation(), Eigen::Vector3f(0,0,expected[i].z()), names[i].c_str());
   }
 }
 
@@ -607,7 +607,7 @@ TEST_F(FixedJointUrdfTest, BackwardFromAll) {
     const auto expected = Reordered{expected_frame_poses_, order};
 
     // Do FK
-    auto actual = arm_kinematics::Isometry3dVector(expected.size());
+    auto actual = arm_kinematics::Isometry3fVector(expected.size());
     tree->position_fk({}, actual);
 
     const auto base = expected_frame_poses_[i];
@@ -647,7 +647,7 @@ TEST_F(FixedJointUrdfTest, StressTest) {
     const auto expected = Reordered{expected_frame_poses_, order};
 
     // Do FK
-    auto actual = arm_kinematics::Isometry3dVector(expected.size());
+    auto actual = arm_kinematics::Isometry3fVector(expected.size());
 
     std::cout << "Stress testing from root \"" << base_name << "\"\n";
 

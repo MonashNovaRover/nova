@@ -27,7 +27,7 @@ public:
   using SharedPtr = std::shared_ptr<ForwardKinematicsPlugin>;
 
   /**
-   * \brief Abstract Base Class for the trees produced by FK plugins, which map joint states to Eigen::Isometry3d
+   * \brief Abstract Base Class for the trees produced by FK plugins, which map joint states to Eigen::Isometry3f
    * transforms for different linkages.
    *
    * It is not responsible for modelling transmissions, and uses JointMaps for responsible.
@@ -53,7 +53,7 @@ public:
      * \warning inputs and outputs must be pre-allocated to the correct size!
      * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
      */
-    virtual void position_fk(const std::vector<double> & joint_states, Isometry3dVector & link_poses) = 0;
+    virtual void position_fk(const std::vector<double> & joint_states, Isometry3fVector & link_poses) = 0;
 
     // TODO: velocity_fk?
 
@@ -109,7 +109,7 @@ public:
    *
    * \param joint_names[in] The name of the joints to use as inputs
    * \param base_link_name[in] The name of the frame to act as the origin
-   * \param frames[in] The names and offsets from links to calculate Eigen::Isometry3d values for in \c Tree::position_fk().
+   * \param frames[in] The names and offsets from links to calculate Eigen::Isometry3f values for in \c Tree::position_fk().
    * You can also just wrap a string or vector of strings in {} if you don't care about the origin from FrameDefinitions
    * \param joint_map_builder[in] The builder used to construct the joint map needed for
    * \returns a tree that you can call .position_fk() on with joint positions to get the poses for all the frames defined in

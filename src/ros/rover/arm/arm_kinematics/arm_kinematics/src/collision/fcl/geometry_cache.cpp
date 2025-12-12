@@ -13,16 +13,18 @@ namespace arm_kinematics {
 
 GeometryCache::GeometryCache(rclcpp::Logger logger) : logger_(std::move(logger)) {}
 
-GeometryCache::GeoPtr GeometryCache::get_box(double x, double y, double z) {
-  return std::make_shared<fcl::Boxd>(x, y, z);
+GeometryCache::GeoPtr GeometryCache::get_box(const double x, const double y, const double z) {
+  return std::make_unique<fcl::Boxf>(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
 }
 
-GeometryCache::GeoPtr GeometryCache::get_sphere(double r) {
-  return std::make_shared<fcl::Sphered>(r);
+GeometryCache::GeoPtr GeometryCache::get_sphere(const double r) {
+  return std::make_unique<fcl::Spheref>(static_cast<float>(r));
 }
 
-GeometryCache::GeoPtr GeometryCache::get_capsule(double r, double halfLen) {
-  return std::make_shared<fcl::Capsuled>(r, halfLen);
+GeometryCache::GeoPtr GeometryCache::get_capsule(const double r, const double halfLen) {
+  return std::make_unique<fcl::Capsulef>(
+    static_cast<float>(r),
+    static_cast<float>(halfLen));
 }
 
 GeometryCache::GeoPtr GeometryCache::from_urdf(const urdf::Collision & col, const std::string & link_name) {
@@ -31,15 +33,15 @@ GeometryCache::GeoPtr GeometryCache::from_urdf(const urdf::Collision & col, cons
 
   switch (col.geometry->type) {
     case urdf::Geometry::BOX: {
-      auto geometry = std::static_pointer_cast<urdf::Box>(col.geometry);
+      const auto geometry = std::static_pointer_cast<urdf::Box>(col.geometry);
       return get_box(geometry->dim.x, geometry->dim.y, geometry->dim.z);
     }
     case urdf::Geometry::SPHERE: {
-      auto geometry = std::static_pointer_cast<urdf::Sphere>(col.geometry);
+      const auto geometry = std::static_pointer_cast<urdf::Sphere>(col.geometry);
       return get_sphere(geometry->radius);
     }
     case urdf::Geometry::CYLINDER: {
-      auto geometry = std::static_pointer_cast<urdf::Cylinder>(col.geometry);
+      const auto geometry = std::static_pointer_cast<urdf::Cylinder>(col.geometry);
       if (warn_on_cylinder_) {
         RCLCPP_WARN(logger_, "Replacing CYLINDER with CAPSULE on link \"%s\" (conservative).",
                     link_name.c_str());

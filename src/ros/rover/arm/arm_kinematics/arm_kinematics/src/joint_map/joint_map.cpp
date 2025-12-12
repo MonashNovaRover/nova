@@ -21,8 +21,8 @@ JointMap::JointMap(
   offsets.reserve(output_count);
 
   for (auto & name : output_names) {
-    double multiplier = 1.0;
-    double offset = 0.0;
+    float multiplier = 1.0;
+    float offset = 0.0;
 
     auto source = find_source(input_names, mimic_joints, name, multiplier, offset);
 
@@ -50,18 +50,18 @@ void JointMap::map(const std::vector<double> & inputs, KDL::JntArray & jnts) con
   // I can't find any vector gathers for the Orin, so I've split it into its own loop
   // I've reused out[] assuming the number of elements would easily fit in L1 cache.
   for (size_t i = 0; i < output_count; ++i) {
-    auto source = src[i];
+    const auto source = src[i];
     out[i] = in[source];
   }
 
   // Step 2 -- Multiply and offset values, hopefully vectorized
-#pragma omp simd
+  #pragma omp simd
   for (size_t i = 0; i < output_count; ++i) {
     out[i] = out[i] * mul[i] + off[i];
   }
 }
 
-void JointMap::map(const std::vector<double> & inputs, std::vector<double> & outputs) const {
+void JointMap::map(const std::vector<double> & inputs, std::vector<float> & outputs) const {
   assert(!input_count || inputs.size() == input_count);   //< Wrong number of elements in inputs
   assert(outputs.size() == output_count); //< Wrong number of elements in outputs
 
@@ -88,8 +88,8 @@ void JointMap::map(const std::vector<double> & inputs, std::vector<double> & out
   // I can't find any vector gathers for the Orin, so I've split it into its own loop
   // I've reused out[] assuming the number of elements would easily fit in L1 cache.
   for (size_t i = 0; i < output_count; ++i) {
-    auto source = src[i];
-    out[i] = in[source];
+    const auto source = src[i];
+    out[i] = static_cast<float>(in[source]);
   }
 
   // Step 2 -- Multiply and offset values, hopefully vectorized
@@ -101,15 +101,15 @@ void JointMap::map(const std::vector<double> & inputs, std::vector<double> & out
 
 size_t JointMap::find_source(const std::vector<std::string> & joint_names,
                              std::map<std::string, std::shared_ptr<urdf::JointMimic>> mimic_joints,
-                             const std::string & name, double & multiplier, double & offset) {
+                             const std::string & name, float & multiplier, float & offset) {
   // Base case 1: If this joint is in joint_names, return its index
-  auto names_it = std::find(joint_names.begin(), joint_names.end(), name);
+  const auto names_it = std::find(joint_names.begin(), joint_names.end(), name);
   if (names_it != joint_names.end()) {
     return names_it - joint_names.begin();
   }
 
   // Base case 2: This joint is not a mimic joint nor a joint in joint_names.
-  auto mimic_it = mimic_joints.find(name);
+  const auto mimic_it = mimic_joints.find(name);
   if (mimic_it == mimic_joints.end()) {
     // Make it always evaluate to 0
     multiplier = 0;
@@ -118,10 +118,10 @@ size_t JointMap::find_source(const std::vector<std::string> & joint_names,
   }
 
   // Otherwise, if this is a mimic joint, call recursively until we find the source
-  auto & mimic = mimic_it->second;
+  const auto & mimic = mimic_it->second;
 
-  offset += multiplier * mimic->offset;
-  multiplier *= mimic->multiplier;
+  offset += multiplier * static_cast<float>(mimic->offset);
+  multiplier *= static_cast<float>(mimic->multiplier);
 
   return find_source(joint_names, mimic_joints, mimic->joint_name, multiplier, offset);
 }

@@ -45,8 +45,8 @@ public:
     const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries,
     AllowedCollisionMatrix acm);
 
-  virtual void update_pose(size_t idx, const Eigen::Isometry3d & collider_pose) = 0;
-  virtual void update_poses(size_t start_idx, span<const Eigen::Isometry3d> collider_poses) {
+  virtual void update_pose(size_t idx, const Eigen::Isometry3f & collider_pose) = 0;
+  virtual void update_poses(size_t start_idx, span<const Eigen::Isometry3f> collider_poses) {
     for (size_t i = 0; i < collider_poses.size(); ++i) {
       update_pose(start_idx + i, collider_poses[i]);
     }

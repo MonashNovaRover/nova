@@ -38,7 +38,7 @@ public:
      * \warning inputs and outputs must be pre-allocated to the correct size!
      * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
      */
-    void position_fk(const std::vector<double> & joint_states, Isometry3dVector & link_poses) override {
+    void position_fk(const std::vector<double> & joint_states, Isometry3fVector & link_poses) override {
       // Map to the joint state ordering decided by the out ref from build_fk_mapper_from_urdf
       joint_map_.map(joint_states, mapped_joint_states_);
 

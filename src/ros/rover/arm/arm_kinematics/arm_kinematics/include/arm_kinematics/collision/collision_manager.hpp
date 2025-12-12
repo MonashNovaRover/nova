@@ -27,13 +27,13 @@ public:
     const ForwardKinematicsPlugin::SharedPtr & fk,
     const std::vector<std::string> & joint_names);
 
-  bool collide();
+  bool collide() const;
   void update_poses(const std::vector<double> & joint_states);
 
 private:
   ForwardKinematicsPlugin::Tree::SharedPtr tree_{};
   DiscreteCollisionPlugin::SharedPtr plugin_{};
-  Isometry3dVector collider_poses_{};
+  Isometry3fVector collider_poses_{};
 };
 
 } // arm_kinematics

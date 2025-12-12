@@ -53,7 +53,7 @@ public:
    * \warning inputs and outputs must be pre-allocated to the correct size!
    * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
    */
-  void map(const std::vector<double> & inputs, std::vector<double> & outputs) const;
+  void map(const std::vector<double> & inputs, std::vector<float> & outputs) const;
 
   /**
    * \brief Same as map, but outputs to a KDL::JntArray. Maps all the given input joint positions,
@@ -62,8 +62,8 @@ public:
    * \note The values in inputs and outputs should correspond to input_names and output_names provided in the class
    * constructor respectively.
    *
-   * \param[in] inputs The position values for each joint defined by input_names in the constructor
-   * \param[out] outputs The position values for each joint defined by output_names in the constructor.
+   * \param[in] inputs The input position values for each joint defined by input_names in the constructor
+   * \param[out] jnts The output position values for each joint defined by output_names in the constructor.
    *
    * \warning inputs and outputs must be pre-allocated to the correct size!
    * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
@@ -73,9 +73,9 @@ public:
   /// output_count elements, the index of the value in inputs to use to calculate the value for each output.
   std::vector<size_t> sources{};
   /// output_count elements, the values to multiply each input by when calculating the value for each output.
-  std::vector<double> multipliers{};
+  std::vector<float> multipliers{};
   /// output_count elements, the values to add when calculating the value for each output.
-  std::vector<double> offsets{};
+  std::vector<float> offsets{};
 
   /// The number of elements in inputs and input_names.
   const size_t input_count = 0;
@@ -93,7 +93,7 @@ private:
    */
   static size_t find_source(const std::vector<std::string> & joint_names,
                             std::map<std::string, std::shared_ptr<urdf::JointMimic>> mimic_joints,
-                            const std::string & name, double & multiplier, double & offset);
+                            const std::string & name, float & multiplier, float & offset);
 };
 
 } // arm_kinematics

@@ -21,7 +21,7 @@ struct QueryData {
  * \warning indices to lookup in the ACM must be stored as the pointer itself for the collider user data fields.
  * Reinterpret cast to std::uintptr_t.
  */
-inline bool collide_with_acm(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* ud)
+inline bool collide_with_acm(fcl::CollisionObjectf* o1, fcl::CollisionObjectf* o2, void* ud)
 {
   auto* q = static_cast<QueryData*>(ud);
   const auto id1 = static_cast<size_t>(reinterpret_cast<std::uintptr_t>(o1->getUserData()));
@@ -75,7 +75,7 @@ struct QueryDataWithPairs : QueryData {
  * \warning indices to lookup in the ACM must be stored as the pointer itself for the collider user data fields.
  * Reinterpret cast to std::uintptr_t.
  */
-inline bool collide_with_acm_and_pairs(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* ud)
+inline bool collide_with_acm_and_pairs(fcl::CollisionObjectf* o1, fcl::CollisionObjectf* o2, void* ud)
 {
   auto* q = static_cast<QueryDataWithPairs*>(ud);
   const auto id1 = static_cast<size_t>(reinterpret_cast<std::uintptr_t>(o1->getUserData()));
@@ -85,8 +85,8 @@ inline bool collide_with_acm_and_pairs(fcl::CollisionObjectd* o1, fcl::Collision
     return true;  //< Skip narrow-phase, continue collision checks
 
   // Collision narrow phase
-  static thread_local fcl::CollisionRequestd req = []{
-    fcl::CollisionRequestd r;
+  static thread_local fcl::CollisionRequestf req = []{
+    fcl::CollisionRequestf r;
     r.num_max_contacts = 1;
     r.enable_contact = false;
     r.enable_cost = false;
@@ -94,7 +94,7 @@ inline bool collide_with_acm_and_pairs(fcl::CollisionObjectd* o1, fcl::Collision
     return r;
   }();
 
-  fcl::CollisionResultd res;
+  fcl::CollisionResultf res;
   fcl::collide(o1, o2, req, res);
 
   if (res.isCollision()) {
@@ -128,11 +128,11 @@ bool FclCollisionPlugin::collide(
   return query.hit;
 }
 
-void FclCollisionPlugin::update_pose(const size_t idx, const Eigen::Isometry3d& collider_pose) {
+void FclCollisionPlugin::update_pose(const size_t idx, const Eigen::Isometry3f& collider_pose) {
   colliders_[idx].setTransform(collider_pose);
 }
 
-void FclCollisionPlugin::update_poses(const size_t start_idx, const span<const Eigen::Isometry3d> collider_poses) {
+void FclCollisionPlugin::update_poses(const size_t start_idx, const span<const Eigen::Isometry3f> collider_poses) {
   // Copy poses into the colliders
   const size_t end = start_idx + collider_poses.size();
   auto pose_it = collider_poses.begin();
@@ -150,8 +150,8 @@ bool FclCollisionPlugin::on_initialize(
   colliders_.reserve(collider_geometries.size());
 
   for (size_t i = 0; i < collider_geometries.size(); ++i) {
-    auto geometry = geometry_cache_.from_urdf(collider_geometries[i]);
-    auto& collider = colliders_.emplace_back(geometry, Eigen::Isometry3d::Identity());
+    std::shared_ptr geometry = geometry_cache_.from_urdf(collider_geometries[i]);
+    auto& collider = colliders_.emplace_back(geometry, Eigen::Isometry3f::Identity());
 
     collider.setUserData(reinterpret_cast<void*>(static_cast<std::uintptr_t>(i)));
   }

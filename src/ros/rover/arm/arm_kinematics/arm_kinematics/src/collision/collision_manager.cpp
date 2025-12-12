@@ -27,7 +27,7 @@ CollisionManager::CollisionManager(
   collider_poses_.resize(plugin_->size());
 }
 
-bool CollisionManager::collide() {
+bool CollisionManager::collide() const {
   return plugin_->collide();
 }
 

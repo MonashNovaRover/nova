@@ -92,14 +92,13 @@ buildRosPackage rec {
 #  ];
 
   CMAKE_BUILD_TYPE = "Release";
-
   cmakeFlags = [
     "-DCMAKE_BUILD_TYPE=Release"
   ];
 
   NIX_CFLAGS_COMPILE = [
     "-O3"
-    "-ffast-math"
+#    "-ffast-math"
     "-DNDEBUG"
     "-DEIGEN_NO_DEBUG"
   ];

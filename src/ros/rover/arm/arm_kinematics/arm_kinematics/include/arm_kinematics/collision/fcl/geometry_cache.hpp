@@ -18,7 +18,7 @@ namespace arm_kinematics {
  */
 class GeometryCache {
 public:
-  using GeoPtr = std::shared_ptr<fcl::CollisionGeometryd>;
+  using GeoPtr = std::shared_ptr<fcl::CollisionGeometryf>;
 
   GeometryCache() = default;
   explicit GeometryCache(rclcpp::Logger logger);
