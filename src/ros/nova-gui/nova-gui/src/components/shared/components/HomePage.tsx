@@ -1,6 +1,6 @@
 import { Button } from "@nextui-org/react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { HomePageProps } from "../../../views/shared/HomePageVIew";
+import { HomePageProps } from "../../../views/shared/HomePageView";
 
 export const HomePage = (props: HomePageProps) => {
   const location = useLocation();

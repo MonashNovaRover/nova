@@ -31,7 +31,7 @@ import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
 import TestOverlayView from "../views/test/TestOverlayView/TestOverlayView.tsx";
 import ARCNIRProbeWidget from "../components/science/NIRProbe/ARCNIRProbeWidget.tsx";
 import URCGazeboView from "../views/urc/URCGazebo.tsx";
-import HomePageView from "../views/shared/HomePageVIew.tsx";
+import HomePageView from "../views/shared/HomePageView.tsx";
 import { arcNavigationData, compNavigationData, generalNavigationData, testNavigationData, urcNavigationData } from "../utils/NavigationRoutes.tsx";
 
 export const arcRoutes: RouteObject[] = [
