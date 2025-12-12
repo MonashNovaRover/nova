@@ -1,6 +1,7 @@
-{ lib
-, buildRosPackage
-, ament-cmake
+{ lib, 
+  buildRosPackage, 
+  ament-cmake, 
+  topic-based-ros2-control, 
 }:
 
 buildRosPackage {
@@ -14,5 +15,5 @@ buildRosPackage {
   };
 
   nativeBuildInputs = [ ament-cmake ];
-  propagatedBuildInputs = [ ];
+  propagatedBuildInputs = [ topic-based-ros2-control ];
 }
