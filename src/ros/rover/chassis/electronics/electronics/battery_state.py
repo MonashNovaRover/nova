@@ -62,7 +62,7 @@ class BatteryStateController(Controller):
         self.publisher_battery_state.publish(msg)
 
 class BatteryStateHardware(HardwareInterface):
-
+    CANID_PARAM = "voltage_current_canid"
     def __init__(self, contexts: Contexts):
         super().__init__(contexts)
         self.logger.info(f"Hardware interface initialised")
@@ -70,10 +70,10 @@ class BatteryStateHardware(HardwareInterface):
 
         self.voltage = float('nan')
         self.current = float('nan')
-        self.declare_parameter("VOLTAGE_CURRENT_CANID", 0x4B2)
+        self.declare_parameter(CANID_PARAM, 0x4B2)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
-        can_id = self.get_parameter("VOLTAGE_CURRENT_CANID").value
+        can_id = self.get_parameter(CANID_PARAM).value
         self.logger.info(f"Checking {can_id:X}")
         self.voltage_state = state_interfaces["battery/voltage"]
         self.current_state = state_interfaces["battery/current"]
@@ -90,7 +90,7 @@ class BatteryStateHardware(HardwareInterface):
         Used for bus.add_callback in on_configure, filters out pack's voltage and current from CanID 0x4B2. 
         converts current(centiamps) & voltage(mV) received from CAN into voltage and amps to be used for the BatteryState publisher.
         """
-        self.logger.info(f"Received data: {frame.data} from: {frame.id:X}")
+        self.logger.debug(f"Received data: {frame.data} from: {frame.id:X}")
         current = int.from_bytes(frame.data[0:2], 'big', signed=True) 
         voltage = int.from_bytes(frame.data[2:4], 'big', signed=False) 
 
@@ -98,7 +98,7 @@ class BatteryStateHardware(HardwareInterface):
         self.parsed_voltage = voltage/1000.0
         self.voltage_state.value = self.parsed_voltage
         self.current_state.value = self.parsed_current
-        self.logger.info(f"current (A): {self.parsed_current}, voltage (V): {self.parsed_voltage}")
+        self.logger.debug(f"current (A): {self.parsed_current}, voltage (V): {self.parsed_voltage}")
 
     def on_write(self, now, period):
         pass
