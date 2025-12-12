@@ -8,6 +8,7 @@
       <param name="joint_commands_topic">/topic_based_joint_commands</param>
       <param name="joint_states_topic">/topic_based_joint_states</param>
       <param name="sum_wrapped_joint_states">true</param>
+      <param name="trigger_joint_command_threshold">-1</param>
     </hardware>
 
     <joint name='flw'>

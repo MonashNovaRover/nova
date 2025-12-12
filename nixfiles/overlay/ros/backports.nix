@@ -8,13 +8,14 @@ self: super:
         ## ROSBRIDGE
 
         rosbridge-library = rosSuper.rosbridge-library.overrideAttrs {
-          version = "1.3.2-unstable-2024-02-12";
+          version = "2.3.0";
           src = self.fetchFromGitHub {
             owner = "RobotWebTools";
             repo = "rosbridge_suite";
-            rev = "7d78af16d30d0ffe232abcc65d0928ce90bd61f7";
-            hash = "sha256-geWbNboZRm6Sr4+aWVTVjPThi8eUYNDZ+MbrHdbWuIo=";
+            rev = "e5a672f6dc1b1144b6dccc698a7b4feb1c157ce7";
+            hash = "sha256-yEmB3Z3pUyK7WeLlX+eZh+wN7Qn1mwWBBzChicvn/Vw=";
           };
+          
           sourceRoot = "source/rosbridge_library";
         };
 
