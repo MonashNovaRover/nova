@@ -86,6 +86,12 @@ def launch_setup(context, *args, **kwargs):
             arguments=spawner_args('diff_drive_controller'),
             ros_arguments=['--log-level', log_level],
         ),
+        Node(
+            package='controller_manager',
+            executable='ros2_control_node',
+            parameters=[params],
+            remappings=[('/controller_manager/robot_description', '/robot_description')],
+        ),
         GroupAction(
             condition=UnlessCondition(sim),
             actions=[

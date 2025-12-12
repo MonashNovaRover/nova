@@ -75,7 +75,7 @@
             <xacro:rover_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
         </xacro:unless>
         <xacro:if value="$(arg gazebo)">
-            <xacro:include filename="$(arg rover_description_dir)/banksia/urdf/gz_ros2_control.xacro" />
+            <xacro:include filename="$(arg rover_description_dir)/banksia/urdf/topic_based_ros2_control.xacro" />
         </xacro:if>
     </xacro:if>
 
