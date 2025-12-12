@@ -14,6 +14,7 @@ EDITED BY: Orlando Chamberlain
 from can_sleuth.devices import blcmd
 from can_sleuth.devices import blcmd_emulator
 from can_sleuth.devices import led as LED #gotta rename some things
+from can_sleuth.devices import battery
 
 # Interface specifies the bus (usually a canbus) that the system/payload is connected to,
 # emulate indicates if in addition to tracing the state of the system/payload, if we should
@@ -52,6 +53,10 @@ def drive25_26(interface="can0", emulate=False):
             }
 
     devices = []
+
+    devices.append(battery.Battery(interface=interface))
+
+    devices.extend(led(interface=interface, emulate=emulate))
 
     for id_ in names.keys():
         devices.append(blcmd.BLCMD(names[id_], id_, interface))
