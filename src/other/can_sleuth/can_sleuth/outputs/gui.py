@@ -18,6 +18,7 @@ from PySide6.QtCore import QTimer
 from multiprocessing import Process, Manager
 import time
 import signal
+import sys
 
 from . import output
 
@@ -77,10 +78,16 @@ class GUI(output.Output):
         """check if there's any new data from the main process and put it on the window if needed."""
 
         # update on the qt thread
-        if (self.sharedDict["pendingUpdate"]):
-            self.label.setText(self.sharedDict["data"])
-            self.sharedDict["pendingUpdate"] = False
-            self.window.update()
+        try:
+            if (self.sharedDict["pendingUpdate"]):
+                self.label.setText(self.sharedDict["data"])
+                self.sharedDict["pendingUpdate"] = False
+                self.window.update()
+        except BrokenPipeError:
+            print("Main Process Died. Gui Exiting.")
+            sys.exit(1)
+
+
 
     def update(self, devices):
         """Update the window with the state of the devices
