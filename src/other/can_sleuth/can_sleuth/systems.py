@@ -15,6 +15,7 @@ from can_sleuth.devices import blcmd
 from can_sleuth.devices import blcmd_emulator
 from can_sleuth.devices import led as LED #gotta rename some things
 from can_sleuth.devices import battery
+from can_sleuth.devices import battery_emulator
 
 # Interface specifies the bus (usually a canbus) that the system/payload is connected to,
 # emulate indicates if in addition to tracing the state of the system/payload, if we should
@@ -64,6 +65,8 @@ def drive25_26(interface="can0", emulate=False):
         for id_ in names.keys():
             hasResolver = names[id_][2] == "P" # only pivots have resolvers/abcoder
             devices.append(blcmd_emulator.BLCMDEmulator(names[id_], id_, interface, hasResolver=hasResolver))
+
+        devices.append(battery_emulator.BatteryEmulator(interface=interface))
     return devices
 
 def led(interface = "can0", emulate=False):
