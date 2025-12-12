@@ -12,6 +12,7 @@ EDITED BY: Orlando Chamberlain
 '''
 
 import abc
+import struct
 from dataclasses import dataclass
 
 class Device(abc.ABC):
@@ -29,6 +30,51 @@ class Device(abc.ABC):
         raw: object = lambda: None # function returning string
         height: int = 1
         units: str = ""
+
+    class SimpleBytesAttribute(Attribute):
+        def __init__(self, bytesFmt, name, toHumanReadable, units):
+            """Helper for making attributes where the data is in a binary format, unpacked and then converted to human units.
+
+            bytesFmt: str, the meaning of these is explained here https://docs.python.org/3/library/struct.html#format-strings
+            name: str, the attribute name
+            toHumanReadable: converter function from unpacked value to human readable value
+            units str: units for this attribute
+            """
+
+            self._bytesFmt = bytesFmt
+
+            self._bytesValue: bytes = None
+            self._unpackedValue: int = None
+            self._toHumanReadable = toHumanReadable # function returning list of strings?
+
+            self._byteLength = struct.calcsize(self._bytesFmt)
+
+            exampleOutput = self._toHumanReadable(0)
+            outputHeight = len(exampleOutput) # how many lines of text
+            outputWidth = max(map(len, exampleOutput)) # widest line of text
+
+            super().__init__(name, self._getValue, outputWidth, self._getRaw, outputHeight, units)
+
+        def updateBytesValue(self, bytesValue: bytes):
+            self._bytesValue = bytesValue
+            val = struct.unpack(self._bytesFmt, self._bytesValue)
+            if len(val) == 1:
+                self._unpackedValue = val[0]
+            else:
+                self._unpackedValue = val
+                
+
+        def getByteLength(self):
+            # Check how many bytes this attribute uses.
+            return self._byteLength
+
+        def _getRaw(self):
+            return "0x"+self._bytesValue
+
+        def _getValue(self):
+            if self._unpackedValue is None:
+                return ""
+            return self._toHumanReadable(self._unpackedValue)
 
     def getName(self):
         return self.name

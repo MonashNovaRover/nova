@@ -45,6 +45,24 @@ class CanDevice(device.Device):
 
         self.bus.open(interface)
 
+    class SimpleCANMessageHandler():
+        def __init__(self, canDevice, canId, fields: List[device.Device.SimpleBytesAttribute]):
+            self._fields = fields
+            for field in self._fields:
+                # I am filled with regret and I can hear my FIT2099 TA shouting at me.
+                canDevice.attrs.append(field)
+
+            canDevice.addCallback(canId, self.onMsg)
+
+        def onMsg(self, frame):
+            position = 0
+            for field in self._fields:
+                length = field.getByteLength()
+                field.updateBytesValue(
+                        bytes(frame.data[position:position+length])
+                    )
+                position += length
+
     def addCallback(self, canId, callback):
         """Add a callback function for a specific CAN ID
 
