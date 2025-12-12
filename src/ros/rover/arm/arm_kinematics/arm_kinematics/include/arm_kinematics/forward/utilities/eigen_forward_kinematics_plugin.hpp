@@ -53,7 +53,7 @@ public:
   private:
     ComputeFrameTree tree_;
     JointMap joint_map_;
-    std::vector<double> mapped_joint_states_{};
+    std::vector<float> mapped_joint_states_{};
   };
 
   /**

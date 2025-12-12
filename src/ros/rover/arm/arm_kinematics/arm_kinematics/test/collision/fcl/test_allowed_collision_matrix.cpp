@@ -16,10 +16,14 @@ protected:
   }
 };
 
+namespace {
+
 // Utility to size the bitset for N
 static inline size_t PackedWordCount(uint32_t N) {
   const uint64_t pairs = (static_cast<uint64_t>(N) * (N - 1)) / 2;
   return static_cast<size_t>((pairs + 63) / 64);
+}
+
 }
 
 TEST_F(AllowedCollisionMatrixTest, SelfPairsAlwaysAllowed) {

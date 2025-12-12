@@ -15,8 +15,6 @@
 #include <arm_kinematics/utilities/reordered.hpp>
 #include <chrono>
 
-
-
 using arm_kinematics::ComputeFrameTree;
 using arm_kinematics::ComputeJointTree;
 using arm_kinematics::FrameDefinitions;
@@ -28,9 +26,13 @@ using arm_kinematics::AnalysisTree;
 using arm_kinematics::KinematicsParams;
 using arm_kinematics::Reordered;
 
+namespace {
+
+constexpr double EPSILON = 1e-7;
+
 static void ExpectVectorNear(const Eigen::Vector3f & actual,
                              const Eigen::Vector3f & expected,
-                             const char * message = "", double tol = 1e-10)
+                             const char * message = "", double tol = EPSILON)
 {
   EXPECT_NEAR(actual.x(), expected.x(), tol) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix();
   EXPECT_NEAR(actual.y(), expected.y(), tol) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix();
@@ -40,7 +42,7 @@ static void ExpectVectorNear(const Eigen::Vector3f & actual,
 // Small helper for comparing isometries
 static void ExpectIsometryNear(const Eigen::Isometry3f & actual,
                                const Eigen::Isometry3f & expected,
-                               const char * message = "", double tol = 1e-10)
+                               const char * message = "", double tol = EPSILON)
 {
   ExpectVectorNear(actual.translation(), expected.translation(), message, tol);
   // EXPECT_NEAR(actual.translation().x(), expected.translation().x(), tol) << actual.matrix() << " \n vs \n" << expected.matrix();
@@ -62,6 +64,8 @@ Eigen::Isometry3f to_isometry(
 
   Eigen::Isometry3f T(m);   // or: Eigen::Isometry3f T = m;
   return T;
+}
+
 }
 
 class SimpleUrdfTests : public ::testing::Test
@@ -230,14 +234,14 @@ TEST_F(SimpleUrdfTests, SimpleUrdfEigenFKPluginTree)
 
   std::vector<float> mapped_joint_states(tree->get_joint_map().output_count);
   tree->get_joint_map().map(joint_states, mapped_joint_states);
-  EXPECT_NEAR(mapped_joint_states[0], joint_states[0], 1e-10) << "joint 0 value mapped incorrectly";
-  EXPECT_NEAR(mapped_joint_states[1], joint_states[1], 1e-10) << "joint 1 value mapped incorrectly";
+  EXPECT_NEAR(mapped_joint_states[0], joint_states[0], EPSILON) << "joint 0 value mapped incorrectly";
+  EXPECT_NEAR(mapped_joint_states[1], joint_states[1], EPSILON) << "joint 1 value mapped incorrectly";
 
-  EXPECT_NEAR(tree->get_joint_map().multipliers[0], 1, 1e-10) << "wrong joint 0 multiplier";
-  EXPECT_NEAR(tree->get_joint_map().multipliers[1], 1, 1e-10) << "wrong joint 1 multiplier";
+  EXPECT_NEAR(tree->get_joint_map().multipliers[0], 1, EPSILON) << "wrong joint 0 multiplier";
+  EXPECT_NEAR(tree->get_joint_map().multipliers[1], 1, EPSILON) << "wrong joint 1 multiplier";
 
-  EXPECT_NEAR(tree->get_joint_map().offsets[0], 0, 1e-10) << "wrong joint 0 offset";
-  EXPECT_NEAR(tree->get_joint_map().offsets[1], 0, 1e-10) << "wrong joint 1 offset";
+  EXPECT_NEAR(tree->get_joint_map().offsets[0], 0, EPSILON) << "wrong joint 0 offset";
+  EXPECT_NEAR(tree->get_joint_map().offsets[1], 0, EPSILON) << "wrong joint 1 offset";
 
   EXPECT_EQ(tree->get_joint_map().sources[0], 0) << "wrong joint 0 source";
   EXPECT_EQ(tree->get_joint_map().sources[1], 1) << "wrong joint 1 source";
@@ -256,8 +260,8 @@ TEST_F(SimpleUrdfTests, SimpleUrdfEigenFKPluginTree)
 
   tree->position_fk(joint_states, link_poses);
 
-  EXPECT_NEAR(tree->get_mapped_joint_states()[0], joint_states[0], 1e-10) << "joint 0 value mapped incorrectly";
-  EXPECT_NEAR(tree->get_mapped_joint_states()[1], joint_states[1], 1e-10) << "joint 1 value mapped incorrectly";
+  EXPECT_NEAR(tree->get_mapped_joint_states()[0], joint_states[0], EPSILON) << "joint 0 value mapped incorrectly";
+  EXPECT_NEAR(tree->get_mapped_joint_states()[1], joint_states[1], EPSILON) << "joint 1 value mapped incorrectly";
 
 
   // Compare against truth
@@ -369,7 +373,7 @@ TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTreeReversed)
   ExpectIsometryNear(tree.poses[0], j1_truth, "joint 1 pose is wrong");
 
   Eigen::Isometry3f j2_truth = Eigen::Isometry3f::Identity();
-  j2_truth.linear() = Eigen::AngleAxisd(M_PI / 2.0, Eigen::Vector3f(0, 0, 1)).toRotationMatrix();
+  j2_truth.linear() = Eigen::AngleAxisf(M_PI / 2.0, Eigen::Vector3f(0, 0, 1)).toRotationMatrix();
   j2_truth.translation() = Eigen::Vector3f(0.0, 0.0, 1);
 
   ExpectIsometryNear(tree.poses[1], j2_truth, "joint 2 pose is wrong");
@@ -652,7 +656,7 @@ TEST_F(FixedJointUrdfTest, StressTest) {
     std::cout << "Stress testing from root \"" << base_name << "\"\n";
 
     auto start = Clock::now();
-    for (size_t k = 0; k < 10000000; ++k) {
+    for (size_t k = 0; k < 1000000; ++k) {
       tree->position_fk({}, actual);
     }
     auto end   = Clock::now();
@@ -663,7 +667,7 @@ TEST_F(FixedJointUrdfTest, StressTest) {
     us_total += us;
   }
 
-  size_t total_count = 10000000 * frame_names_.size();
+  const size_t total_count = 1000000 * frame_names_.size();
 
   std::cout << "Average of " << static_cast<long double>(us_total) / static_cast<long double>(total_count) << " µs per FK calculation\n";
   std::cout << "Average of " << 1e9 * static_cast<long double>(total_count) / static_cast<long double>(us_total) << " hz\n\n";

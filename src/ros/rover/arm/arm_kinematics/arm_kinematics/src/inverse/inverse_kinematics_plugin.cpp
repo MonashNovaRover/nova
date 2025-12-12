@@ -15,7 +15,7 @@ bool InverseKinematicsPlugin::initialize(const KinematicsNodeInterfaces & node_i
   return true;
 }
 
-bool InverseKinematicsPlugin::get_velocity_ik(const Eigen::Matrix<double, 6, 1> &ik_twist,
+bool InverseKinematicsPlugin::get_velocity_ik(const Twistf & ik_twist,
                                               const Eigen::Isometry3f &ik_seed_pose,
                                               const std::vector<double> &ik_seed_state,
                                               std::vector<double> &solution_velocities,

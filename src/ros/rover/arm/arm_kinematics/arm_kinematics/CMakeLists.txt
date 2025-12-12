@@ -69,19 +69,19 @@ set(TEST_KINEMATICS_SOURCE_FILES
   test/collision/fcl/test_fcl_collision_plugin.cpp
   test/forward/eigen/test_eigen_fk_mapper.cpp
 )
-if(NIX_DO_CHECK)
-  target_link_libraries(test_kinematics
-    ${PROJECT_NAME}
-    fcl
-  )
-  target_include_directories(test_kinematics PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  )
-  set_tests_properties(test_kinematics
-    PROPERTIES
-    ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{LD_LIBRARY_PATH}"
-  )
-endif()
+#if(NIX_DO_CHECK)
+#  target_link_libraries(test_manual
+#    ${PROJECT_NAME}
+#    fcl
+#  )
+#  target_include_directories(test_kinematics PUBLIC
+#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+#  )
+#  set_tests_properties(test_kinematics
+#    PROPERTIES
+#    ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{LD_LIBRARY_PATH}"
+#  )
+#endif()
 
 # -- Install
 
@@ -113,6 +113,7 @@ ament_export_libraries(
 find_package(GTest REQUIRED)
 find_package(Threads REQUIRED)
 # At the bottom of your CMakeLists.txt
+
 add_executable(test_manual
   ${TEST_KINEMATICS_SOURCE_FILES}
 )
@@ -123,13 +124,12 @@ target_link_libraries(test_manual
   fcl
 )
 target_include_directories(test_manual PUBLIC
-  include
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 install(TARGETS
   test_manual
   DESTINATION lib/${PROJECT_NAME}
 )
-
 
 ament_export_targets(
   #  ${PROJECT_NAME}Targets

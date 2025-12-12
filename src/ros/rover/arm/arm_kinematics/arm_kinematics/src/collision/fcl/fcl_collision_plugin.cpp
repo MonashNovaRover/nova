@@ -30,8 +30,8 @@ inline bool collide_with_acm(fcl::CollisionObjectf* o1, fcl::CollisionObjectf* o
   if (q->acm.get(id1, id2))
     return true;  //< Skip narrow-phase, continue collision checks
 
-  static thread_local fcl::CollisionRequestd req = []{
-    fcl::CollisionRequestd r;
+  static thread_local fcl::CollisionRequestf req = []{
+    fcl::CollisionRequestf r;
     r.num_max_contacts = 1;
     r.enable_contact = false;
     r.enable_cost = false;
@@ -39,7 +39,7 @@ inline bool collide_with_acm(fcl::CollisionObjectf* o1, fcl::CollisionObjectf* o
     return r;
   }();
 
-  fcl::CollisionResultd res;
+  fcl::CollisionResultf res;
   fcl::collide(o1, o2, req, res);
 
   if (res.isCollision()) {

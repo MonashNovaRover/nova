@@ -9,8 +9,8 @@
 
 namespace arm_kinematics {
 
-inline ColliderDefinitions::ColliderDefinitions(
-  const urdf::Model& urdf_model)
+ColliderDefinitions::ColliderDefinitions(
+  const urdf::Model & urdf_model)
 {
   size_t collider_count = 0;
   for (auto & [name, link] : urdf_model.links_) {

@@ -14,10 +14,10 @@
 #include <rclcpp/rclcpp.hpp>
 #include <arm_kinematics/utilities/reordered.hpp>
 
-#include "arm_kinematics/collision/collider_definitions.hpp"
 #include "arm_kinematics/collision/collision_manager.hpp"
 #include "arm_kinematics/collision/discrete_collision_plugin.hpp"
 #include "arm_kinematics/collision/fcl/fcl_collision_plugin.hpp"
+#include <arm_kinematics/collision/collider_definitions.hpp>
 
 using arm_kinematics::ComputeFrameTree;
 using arm_kinematics::ComputeJointTree;
@@ -31,9 +31,13 @@ using arm_kinematics::KinematicsParams;
 using arm_kinematics::Reordered;
 using arm_kinematics::FclCollisionPlugin;
 
+namespace {
+
+constexpr double EPSILON = 1e-7;
+
 static void ExpectVectorNear(const Eigen::Vector3f & actual,
                              const Eigen::Vector3f & expected,
-                             const char * message = "", double tol = 1e-10)
+                             const char * message = "", double tol = EPSILON)
 {
   EXPECT_NEAR(actual.x(), expected.x(), tol) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix();
   EXPECT_NEAR(actual.y(), expected.y(), tol) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix();
@@ -43,7 +47,7 @@ static void ExpectVectorNear(const Eigen::Vector3f & actual,
 // Small helper for comparing isometries
 static void ExpectIsometryNear(const Eigen::Isometry3f & actual,
                                const Eigen::Isometry3f & expected,
-                               const char * message = "", double tol = 1e-10)
+                               const char * message = "", double tol = EPSILON)
 {
   ExpectVectorNear(actual.translation(), expected.translation(), message, tol);
   // EXPECT_NEAR(actual.translation().x(), expected.translation().x(), tol) << actual.matrix() << " \n vs \n" << expected.matrix();
@@ -67,6 +71,8 @@ Eigen::Isometry3f to_isometry(
   return T;
 }
 
+}
+
 class SimpleUrdfCollisionTests : public ::testing::Test
 {
 protected:
@@ -84,7 +90,7 @@ protected:
           </collision>
         </link>
 
-        <link name="link2"/>
+        <link name="link2">
           <collision>
             <geometry>
               <sphere radius="0.5"/>
@@ -117,7 +123,6 @@ protected:
 
     fk_plugin_ = std::make_shared<EigenForwardKinematicsPlugin>();
     init_result_ = fk_plugin_->initialize(*node_, kinematics_params_);
-
 
     auto collision = std::make_shared<FclCollisionPlugin>();
     auto [colliders, frames, acm] = arm_kinematics::ColliderDefinitions(model_);
@@ -154,7 +159,7 @@ TEST_F(SimpleUrdfCollisionTests, SimpleCollisions)
   ASSERT_FALSE(manager_.collide()) << "Collision found when there should not be a collision!";
 
   manager_.update_poses({-2,-2});
-  ASSERT_FALSE(manager_.collide()) << "Collision not found when there should be a collision!";
+  ASSERT_TRUE(manager_.collide()) << "Collision not found when there should be a collision!";
 
 }
 

@@ -10,6 +10,7 @@
 #include <Eigen/Geometry>
 #include <memory>
 #include <arm_kinematics/common/kinematics_base.hpp>
+#include "arm_kinematics/utilities/aliases.hpp"
 
 namespace arm_kinematics {
 
@@ -73,38 +74,11 @@ public:
    * \returns True if a solution was found.
    */
   virtual bool get_velocity_ik(
-    const Eigen::Matrix<double, 6, 1> & ik_twist,
+    const Twistf & ik_twist,
     const Eigen::Isometry3f & ik_seed_pose,
     const std::vector<double> & ik_seed_state,
     std::vector<double> & solution_velocities,
     double time_step) const;
-
-  /**
-   * Estimate the velocities of each joint needed to have the end effector move at some twist.
-   * This overload uses a ForwardKinematicsPlugin to calculate the ik_seed_pose from the given ik_seed_state.
-   *
-   * \param[in] ik_twist The twist to get equivalent joint velocities for.
-   *   - twist.block<3, 1>(0, 0) is the linear component, and
-   *   - twist.block<3, 1>(3, 0) is the angular component.
-   *   - You can construct this from a Twist message using tf2_eigen's tf2::from_msg() helper.
-   * \param[in] fk The ForwardKinematicsPlugin to calculate the ik_seed_pose from the given ik_seed_state.
-   * \param[in] ik_seed_state The current set of joint positions.
-   * \param[out] solution_velocities The velocities of each joint to sustain an average twist in the end effector equal
-   * to ik_twist over a period of time_step.
-   * \param[in] time_step The change in time used to extrapolate the ik_seed_pose by ik_twist, and estimate the
-   * derivative of joint positions. This must be non-zero!!
-   *
-   * \note Make sure to pre-allocate vectors outside of the real-time loop with the correct number of elements (same
-   * number of joints as in joint names).
-   *
-   * \returns True if a solution was found.
-   */
-  // virtual bool get_velocity_ik(
-  //   const Eigen::Matrix<double, 6, 1> & ik_twist,
-  //   ForwardKinematicsPlugin::SharedPtr fk,
-  //   const std::vector<double> & ik_seed_state,
-  //   std::vector<double> & solution_velocities,
-  //   double time_step) const;
 
 protected:
   /**
