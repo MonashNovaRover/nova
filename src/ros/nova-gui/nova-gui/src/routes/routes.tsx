@@ -31,16 +31,12 @@ import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
 import TestOverlayView from "../views/test/TestOverlayView/TestOverlayView.tsx";
 import ARCNIRProbeWidget from "../components/science/NIRProbe/ARCNIRProbeWidget.tsx";
 import URCGazeboView from "../views/urc/URCGazebo.tsx";
-import ARCHomePageView from "../views/arc/ARCHomePageView.tsx";
-import URCHomePageView from "../views/urc/URCHomePageView.tsx";
-import GeneralHomePageView from "../views/general/GeneralHomePageView.tsx";
-import TestHomePageView from "../views/test/TestHomePageView.tsx";
 import HomePageView from "../views/HomePageVIew.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
     path: "/arc",
-    element: <ARCHomePageView />,
+    element: <HomePageView />,
   },
   {
     path: "/arc/base",
@@ -84,7 +80,7 @@ export const arcRoutes: RouteObject[] = [
 export const urcRoutes: RouteObject[] = [
   {
     path: "/urc",
-    element: <URCHomePageView />,
+    element: <HomePageView />,
   },
   {
     path: "/urc/base",
@@ -143,7 +139,7 @@ export const urcRoutes: RouteObject[] = [
 export const generalRoutes: RouteObject[] = [
   {
     path: "/general",
-    element: <GeneralHomePageView />,
+    element: <HomePageView />,
   },
   {
     path: "/general/cameras",
@@ -158,7 +154,7 @@ export const generalRoutes: RouteObject[] = [
 export const testRoutes: RouteObject[] = [
   {
     path: "/test",
-    element: <TestHomePageView />,
+    element: <HomePageView />,
   },
   {
     path: "/test/webgl",
