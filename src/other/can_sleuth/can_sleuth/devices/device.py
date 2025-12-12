@@ -37,21 +37,25 @@ class Device(abc.ABC):
 
             bytesFmt: str, the meaning of these is explained here https://docs.python.org/3/library/struct.html#format-strings
             name: str, the attribute name
-            toHumanReadable: converter function from unpacked value to human readable value
+            toHumanReadable: converter function from unpacked value to human readable value or none if only raw hex works
             units str: units for this attribute
             """
 
             self._bytesFmt = bytesFmt
 
-            self._bytesValue: bytes = None
-            self._unpackedValue: int = None
             self._toHumanReadable = toHumanReadable # function returning list of strings?
 
             self._byteLength = struct.calcsize(self._bytesFmt)
 
-            exampleOutput = self._toHumanReadable(0)
+            self._bytesValue: bytes = bytes(self._byteLength)
+            self._unpackedValue: int = 0
+
+            exampleOutput = self._getValue()
             outputHeight = len(exampleOutput) # how many lines of text
             outputWidth = max(map(len, exampleOutput)) # widest line of text
+
+            self._bytesValue: bytes = None
+            self._unpackedValue: int = None
 
             super().__init__(name, self._getValue, outputWidth, self._getRaw, outputHeight, units)
 
@@ -71,11 +75,15 @@ class Device(abc.ABC):
             return self._byteLength
 
         def _getRaw(self):
-            return "0x"+self._bytesValue
+            if self._bytesValue is None:
+                return ""
+            return "0x"+self._bytesValue.hex()
 
         def _getValue(self):
             if self._unpackedValue is None:
                 return ""
+            if self._toHumanReadable is None:
+                return self._getRaw()
             return self._toHumanReadable(self._unpackedValue)
 
     def getName(self):

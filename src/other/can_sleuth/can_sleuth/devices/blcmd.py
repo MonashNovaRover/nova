@@ -15,6 +15,8 @@ EDITED BY: Orlando Chamberlain
 
 from . import candevice
 
+import math
+
 def _toHex(x):
     if x:
         ret = "0x"
@@ -50,25 +52,26 @@ class BLCMD(candevice.CanDevice):
         self.lastCommand = BLCMD.commands[commandNumber]["name"] \
                 + str(BLCMD.commands[commandNumber]["fmt"](frame.data))
 
-    # all 16 bit integers
-    telemetryTypes = {
-            1: ["velocity", "Qcurrent"],
-            2: ["interval", "Dcurrent"],
-            3: ["resolverPosition", "resolverVelocity"],
-            4: ["power", "voltage", "temperature", "current"]
+    telemetry = {
+            1: (
+                ("velocity", ">H", "", None),
+                ("Qcurrent", ">H", "", None)
+            ),
+            2: (
+                ("interval", ">H", "", None),
+                ("Dcurrent", ">H", "", None)
+            ),
+            3: (
+                ("resolverPosition", ">h", "°", lambda x: f"{x*360/0x10000:+03.2f}"),
+                ("resolverTurns", ">h", "", None) # only correct for multiturn!
+            ),
+            4: (
+                ("power", ">H", "", None),
+                ("voltage", ">H", "", None),
+                ("temperature", ">H", "", None),
+                ("current", ">H", "", None),
+            ),
             }
-
-    def _telemCb(self, frame):
-        """process telemetry on can
-        """
-        telemetryNumber = frame.id&0xf
-        labels = self.telemetryTypes[telemetryNumber]
-        if len(frame.data) == len(labels)*2:
-            for i, label in enumerate(labels):
-                # TODO: I think this is wrong for negative integers
-                #self.telemetry[label] = frame.data[2*i]*0xff + frame.data[2*i+1]
-                self.telemetry[label] = hex(0x10000+frame.data[2*i]*0xff + frame.data[2*i+1])[3:]
-
 
     errorCodes = {
            0: "NO_STEPS",
@@ -114,7 +117,6 @@ class BLCMD(candevice.CanDevice):
         # we match both commands to the blcmd and telemetry/errors coming back
         self.id = idNumber
         super().__init__(name, interface , canIdMask=0xbf0, canIdMatch=self.id<<4);
-        self.telemetry = {}
 
         # Commands from the computer
         for cmd in BLCMD.commands.keys():
@@ -122,14 +124,15 @@ class BLCMD(candevice.CanDevice):
             self.addCallback(canId, self._cmdCb)
 
         # telemetry from the blcmd
-        for type_ in self.telemetryTypes.keys():
-            canId = 0x400 | (self.id<<4) | type_
-            for label in self.telemetryTypes[type_]:
-                self.telemetry[label]=None
-                def telemAttrGetter(label):
-                    return lambda: self.telemetry[label]
-                self.registerAttr(label, telemAttrGetter(label), 5)
-            self.addCallback(canId, self._telemCb)
+        for telemIdNumber in BLCMD.telemetry:
+            fields = []
+            for name, fmt, units, toReadable in BLCMD.telemetry[telemIdNumber]:
+                fields.append(self.SimpleBytesAttribute(fmt, name, toReadable, units))
+
+            # I can still hear my FIT2099 TA telling me off
+            self.SimpleCANMessageHandler(
+                    self, 0x400 | (self.id << 4) | telemIdNumber, fields
+                    )
 
         # TODO: trace get/set configuration messages on can
 

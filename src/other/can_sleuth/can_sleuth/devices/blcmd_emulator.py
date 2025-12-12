@@ -61,8 +61,8 @@ class BLCMDEmulator(candevice.CanDevice):
         self.registerAttr("Pos", lambda:f"{360*self.pos/(2*math.pi) :+06.1f}", 6, units="°")
         self.registerAttr("Vel", lambda:f"{360*self.vel/(2*math.pi) :+06.1f}", 6, units="°/s")
 
-    def telem3(self):
-        """Send telemetry message 3
+    def telem1(self):
+        """Send telemetry message 1
         """
         data = []
         vel = int(0x8000 * self.vel / self.max_vel)
@@ -70,14 +70,10 @@ class BLCMDEmulator(candevice.CanDevice):
         data.append(vel & 0xff)
         data.append(0) # TODO: Qcurrent
         data.append(0)
-        # ??? why do the telem ids need to be swapped
-        # the blcmd hardware code doesn't look like it
-        # would be swapped, and yet when I log what each
-        # telem callback gets, it has it swapped...
         self.send_message(1, data, 4)
 
-    def telem1(self):
-        """Send telemetry message 1
+    def telem3(self):
+        """Send telemetry message 3
         """
         data = []
         pos = int(0x8000 * self.pos / self.max_pos)
