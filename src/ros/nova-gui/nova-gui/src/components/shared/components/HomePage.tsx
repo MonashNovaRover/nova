@@ -1,21 +1,14 @@
 import { Button } from "@nextui-org/react";
-import { arcNavigationData, compNavigationData, generalNavigationData, testNavigationData, urcNavigationData } from "../../../utils/NavigationRoutes";
 import { useLocation, useNavigate } from "react-router-dom";
+import { HomePageProps } from "../../../views/shared/HomePageVIew";
 
-export const HomePage = () => {
+export const HomePage = (props: HomePageProps) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const currentPath = location.pathname;
-  
-  const navigationData =
-    currentPath === "/" ? compNavigationData :
-    currentPath === "/arc" ? arcNavigationData :
-    currentPath === "/urc" ? urcNavigationData :
-    currentPath === "/general" ? generalNavigationData :
-    currentPath === "/test" ? testNavigationData :
-    {};
+  const navigationData = props.navigationData
 
+  const currentPath = location.pathname;
 
   return (
     <div>

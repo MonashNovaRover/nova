@@ -8,7 +8,7 @@ interface NavigationEntry {
   icon: ReactNode;
 }
 
-interface NavigationInterface {
+export interface NavigationInterface {
   [task: string]: NavigationEntry[];
 }
 
