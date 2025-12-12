@@ -46,7 +46,17 @@ class CanDevice(device.Device):
         self.bus.open(interface)
 
     class SimpleCANMessageHandler():
+        """Helper for processing telemetry messages from can devices
+        """
         def __init__(self, canDevice, canId, fields: List[device.Device.SimpleBytesAttribute]):
+            """
+
+            :param canDevice: the CanDevice that this telemetry message belongs to
+            :param canId: the can id for this telemetry message
+            :param fields: one attribute for every value represented by the payload of this can message
+            construct these with whatever integer size and signed/unsigned and unit conversions as per
+            whatever the can device does.
+            """
             self._fields = fields
             for field in self._fields:
                 # I am filled with regret and I can hear my FIT2099 TA shouting at me.
@@ -55,6 +65,9 @@ class CanDevice(device.Device):
             canDevice.addCallback(canId, self.onMsg)
 
         def onMsg(self, frame):
+            """Callback for when we recieve a can message. We split the message's payload up and
+            send each section of bytes to the respective SimpleBytesAttribute
+            """
             position = 0
             for field in self._fields:
                 length = field.getByteLength()

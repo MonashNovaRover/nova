@@ -56,6 +56,8 @@ class Device(abc.ABC):
             super().__init__(name, self._getValue, outputWidth, self._getRaw, outputHeight, units)
 
         def updateBytesValue(self, bytesValue: bytes):
+            """update the binary (bytes) representation of this attribute
+            """
             self._bytesValue = bytesValue
             val = struct.unpack(self._bytesFmt, self._bytesValue)
             if len(val) == 1:

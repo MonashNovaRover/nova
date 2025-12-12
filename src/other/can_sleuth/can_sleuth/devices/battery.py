@@ -20,8 +20,6 @@ class Battery(candevice.CanDevice):
     """Battery Tracer, shows the state of the battery on the canbus
     """
 
-
-    # all 16 bit integers
     telemetry = {
             0: (
                 ("V(Cell 1)", ">H", "mV", str),
@@ -47,11 +45,11 @@ class Battery(candevice.CanDevice):
         """Create the Battery sniffer
 
         :param name: Display name of the battery
-        :param idNumber: the id of this battery
-        :param interface: the name of the canbus this blcmd is on
+        :param idNumber: the can id of this battery
+        :param interface: the name of the canbus this battery is on
         """
 
-        # we match both commands to the battery and telemetry/errors coming back
+        # we match telemetry from the battery, and the shutdown handshake ids
         self.id = idNumber
         super().__init__(name, interface , canIdMask=0xbf0, canIdMatch=self.id<<4);
 
