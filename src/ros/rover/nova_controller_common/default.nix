@@ -4,6 +4,7 @@
 , hardware-interface
 , rclcpp-lifecycle
 , rclcpp
+, eigen
 }:
 
 buildRosPackage {
@@ -22,5 +23,6 @@ buildRosPackage {
     hardware-interface
     rclcpp-lifecycle
     rclcpp
+    eigen
   ];
 }

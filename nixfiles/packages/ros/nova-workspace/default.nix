@@ -50,6 +50,7 @@
 , nova-controller-common ? throw "nova-controller-common is needed, but not available!"
 , nova-drive-controller-base ? throw "nova-drive-controller-base is needed, but not available!"
 , nova-pivot-drive-controller ? throw "nova-pivot-drive-controller is needed, but not available!"
+, nova-holonomic-drive-controller ? throw "nova-holonomic-drive-controller is needed, but not available!"
 , nova-strafe-drive-controller ? throw "nova-strafe-drive-controller is needed, but not available!"
 , nova-diff-drive-controller ? throw "nova-diff-drive-controller is needed, but not available!"
 , nova-teleop-drive-joy ? throw "nova-teleop-drive-joy is needed, but not available!"
@@ -94,6 +95,7 @@
       nova-controller-common
       nova-drive-controller-base
       nova-pivot-drive-controller
+      nova-holonomic-drive-controller
       nova-strafe-drive-controller
       nova-diff-drive-controller
       nova-teleop-drive-joy

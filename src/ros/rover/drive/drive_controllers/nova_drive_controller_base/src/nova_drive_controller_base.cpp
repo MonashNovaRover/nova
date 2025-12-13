@@ -354,6 +354,10 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
     base_params_->drive.max_velocity, base_params_->drive.min_acceleration,
     base_params_->drive.max_acceleration, base_params_->drive.min_jerk,
     base_params_->drive.max_jerk);
+  limiter_drive_velocity_ = VelocityLimiter(
+    base_params_->drive.has_velocity_limits, base_params_->drive.has_acceleration_limits,
+    base_params_->drive.has_jerk_limits, base_params_->drive.max_velocity,
+    base_params_->drive.max_acceleration, base_params_->drive.max_jerk);
   limiter_angular_ = SpeedLimiter(
     base_params_->angular.has_velocity_limits, base_params_->angular.has_acceleration_limits,
     base_params_->angular.has_jerk_limits, base_params_->angular.min_velocity,

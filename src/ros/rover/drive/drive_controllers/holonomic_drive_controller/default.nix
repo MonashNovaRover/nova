@@ -16,6 +16,7 @@
 , geometry-msgs
 , nova-controller-common
 , nova-drive-controller-base
+, eigen
 }:
 
 buildRosPackage {
@@ -46,5 +47,6 @@ buildRosPackage {
     geometry-msgs
     nova-controller-common
     nova-drive-controller-base
+    eigen
   ];
 }

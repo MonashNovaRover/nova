@@ -25,6 +25,7 @@
   <depend>tf2_msgs</depend>
   <depend>nova_controller_common</depend>
   <depend>nova_drive_controller_base</depend>
+  <depend>eigen</depend>
   <build_depend>pluginlib</build_depend>
 
   <export>

@@ -132,15 +132,13 @@ holonomic_drive_controller:
     left_pivot_names: ["flp", "blp"]
     right_pivot_names: ["frp", "brp"]
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-#    pivot_rate_tolerance: 999.0
     open_loop: false
+    speed_multiplier_exponent: 1.0
     drive: # metres
       has_velocity_limits: true
       has_acceleration_limits: true
       max_velocity: 5.0
-      min_velocity: -1.5
-      max_acceleration: 4.0
-      min_acceleration: -10.0
+      max_acceleration: 10.0
     angular: # radians
       has_velocity_limits: true
       max_velocity: 1.57079632 # PI/2 rad/s = 90 deg/s

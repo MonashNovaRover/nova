@@ -172,6 +172,7 @@ private:
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     switch_controller_client_;
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr pivot_drive_client_;
+  rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr holonomic_drive_client_;
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr strafe_client_;
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr diff_drive_client_;
   std::shared_ptr<ParamListener> param_listener_;

@@ -1,7 +1,20 @@
 holonomic_drive_controller:
-  pivot_rate_tolerance:
+  infinitely_rotating_pivots:
+    type: bool
+    default_value: false
+    description: "Enable use of infinitely rotating pivots"
+
+  speed_multiplier_exponent:
     type: double
-    default_value: 0.1 # seconds
-    description: >
-      Used in autonomous mode to determine how long before the pivots reach their target positions to start
-      moving. This is to prevent moving too soon before the pivots are in position.
+    default_value: 1.0
+    description: "Increase to further decrease linear/angular velocities when pivots are misaligned (disable by setting to 0)"
+
+  pivot_angle_leeway:
+    type: double
+    default_value: 0.01
+    description: "Angles are considered equivalent if they are at most this angle apart"
+
+  pivot_limit_buffer:
+    type: double
+    default_value: 0.0
+    description: "hotfix: stay at least this angle away from pivot limits"

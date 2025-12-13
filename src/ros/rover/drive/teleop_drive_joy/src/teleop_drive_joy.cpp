@@ -77,7 +77,7 @@ void TeleopDriveJoy::set_autonomous_mode_for_controllers(bool enable)
   // Add the parameter to the request
   request->parameters.push_back(param);
 
-  for (const auto& client : {pivot_drive_client_, strafe_client_, diff_drive_client_})
+  for (const auto& client : {pivot_drive_client_, holonomic_drive_client_, strafe_client_, diff_drive_client_})
   {
     if (!client->service_is_ready())
     {
@@ -127,6 +127,8 @@ void TeleopDriveJoy::initialize_interfaces()
     "/controller_manager/switch_controller");
   pivot_drive_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
     "/pivot_drive_controller/set_parameters");
+  holonomic_drive_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
+  "/pivot_drive_controller/set_parameters");
   strafe_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
     "/strafe_drive_controller/set_parameters");
   diff_drive_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(

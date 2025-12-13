@@ -14,6 +14,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   hardware_interface
   rclcpp_lifecycle
   rclcpp
+  Eigen3
 )
 
 find_package(ament_cmake REQUIRED)

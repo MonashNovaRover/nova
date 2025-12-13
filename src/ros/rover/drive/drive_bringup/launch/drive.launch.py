@@ -78,6 +78,11 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='controller_manager',
             executable='spawner',
+            arguments=['holonomic_drive_controller', '--inactive']
+        ),
+        Node(
+            package='controller_manager',
+            executable='spawner',
             arguments=['strafe_drive_controller', '--inactive']
         ),
         Node(

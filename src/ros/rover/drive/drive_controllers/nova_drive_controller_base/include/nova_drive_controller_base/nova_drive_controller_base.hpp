@@ -57,6 +57,7 @@
 #include "realtime_tools/realtime_publisher.h"
 
 #include "nova_controller_common/speed_limiter.hpp"
+#include "nova_controller_common/velocity_limiter.hpp"
 #include "nova_controller_common/position_limiter.hpp"
 #include "nova_controller_common/hardware_interface_wrapper.hpp"
 #include "nova_drive_controller_base/odometry.hpp"
@@ -185,6 +186,7 @@ protected:
 
   // Limiters
   nova_controller_common::SpeedLimiter limiter_drive_;
+  nova_controller_common::VelocityLimiter limiter_drive_velocity_;
   nova_controller_common::SpeedLimiter limiter_angular_;
   nova_controller_common::PositionLimiter limiter_pivot_;
 

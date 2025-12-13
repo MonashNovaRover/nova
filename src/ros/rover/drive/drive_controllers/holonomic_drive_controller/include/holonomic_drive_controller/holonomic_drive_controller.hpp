@@ -38,13 +38,14 @@
 #include <memory>
 #include <deque>
 #include <vector>
+#include <Eigen/Dense>
 
 #include "geometry_msgs/msg/twist.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 #include "nova_drive_controller_base/nova_drive_controller_base.hpp"
 #include "nova_drive_controller_base/odometry.hpp"
-#include "pivot_drive_controller_parameters.hpp"
+#include "holonomic_drive_controller_parameters.hpp"
 
 namespace holonomic_drive_controller
 {
@@ -62,6 +63,11 @@ protected:
     const geometry_msgs::msg::Twist& twist_msg, bool autonomous_mode,
     const rclcpp::Duration& period) override;
 
+  std::tuple<double, double, double> calculate_wheel_speed_and_angle(
+    std::string_view wheel_name, const Eigen::Vector2d& wheel_position, const double& centre_angle,
+    const std::deque<double>& previous_pivot_positions, const Eigen::Vector2d& linear_velocity, const double& angular_velocity,
+    const double dt);
+
   // Parameters from ROS for pivot_drive_controller
   std::shared_ptr<ParamListener> param_listener_;
   Params params_;
@@ -77,10 +83,12 @@ protected:
   double half_wheel_base_;
   double half_steering_track_;
 
-  std::deque<double> previous_speeds_;                 // last two speed commands
+  std::deque<Eigen::Vector2d> previous_velocities_;                 // last two speed commands
   std::deque<double> previous_angular_velocities_;     // last two angular velocity commands
-  std::deque<double> previous_left_pivot_positions_;   // last three left pivot position commands
-  std::deque<double> previous_right_pivot_positions_;  // last three right pivot position commands
+  std::deque<double> previous_front_left_pivot_positions_;   // last three front left pivot position commands
+  std::deque<double> previous_front_right_pivot_positions_;   // last three front right pivot position commands
+  std::deque<double> previous_back_left_pivot_positions_;   // last three back left pivot position commands
+  std::deque<double> previous_back_right_pivot_positions_;   // last three back right pivot position commands
 };
 
 }  // namespace holonomic_drive_controller
