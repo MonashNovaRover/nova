@@ -50,5 +50,5 @@ export enum RosTopic {
   // Other Topics
   BATTERY_STATE = "/battery_state",
   ACTIVATED_NODES = "/activated_nodes",
-  RADIO_STATUS = "/electronics/radio_status"
+  RADIO_STATUS = "/chassis/radio_status"
 }

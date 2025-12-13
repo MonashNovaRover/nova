@@ -10,12 +10,13 @@ Requires radio and destination IPs and ethernet interface
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: radio_monitor
 TOPICS:
-  - /electronics/radio_status       [RadioStatus]
+  - /chassis/radio_status       [RadioStatus]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Emily Kuo
 CREATION:	22/09/2021
-EDITED:		17/12/2021
+EDITED:		11/12/2025
+EDITED BY:  Binuda Kalugalage 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If you have issues connecting to the radio device
     due to SSH connections, run the following line
@@ -50,11 +51,11 @@ DEVICE_INFO = {
     # New Bullet Systems
     "BULLET": {
         "ROS": True,                                                                            # Using ROS or not
-        "dest_IP":      "192.168.1.204",                                                        # Destination IP of Jetson
-        "radio_IP":     "192.168.1.201",                                                        # Base Station Radio IP
+        "dest_IP":      "10.0.0.11",                                                        # Destination IP of Jetson
+        "radio_IP":     "10.0.1.11",                                                        # Base Station Radio IP
         "host":         "novarovabullet",                                                       # Host Name of the Radio
         "password":     open(os.path.expanduser("~/nova/src/other/secrets/bullet-password.txt")).read(),  # Password of Radio device
-        "interface":    "enp3s0f1",                                                             # Ethernet Interface 
+        "interface":    "enp195s0f3u1u1",                                                             # Ethernet Interface 
     },
 }
 
@@ -82,22 +83,14 @@ class RadioMonitor(Node):
         
         if self.is_ros:
             super().__init__("radio_monitor")
-            self.publisher = self.create_publisher(
-                RadioStatus,
-                "/electronics/radio_status",
-                qos.QoSProfile(
-                    history=qos.HistoryPolicy.KEEP_LAST,
-                    depth=1,
-                    reliability=qos.ReliabilityPolicy.RELIABLE,
-                    durability=qos.DurabilityPolicy.TRANSIENT_LOCAL,
-            ),)
+            self.publisher = self.create_publisher(RadioStatus, "/chassis/radio_status", 10)
 
 
     def connect_to_radio(self):
         '''
         Initiates ssh connection to the radio
         '''
-        print("Connecting to radio")
+        print("Connecting to radio...")
         self.ssh_connection.open()
   
 
@@ -203,6 +196,7 @@ def main():
     try:
         # Connect to the radio
         radio_monitor.connect_to_radio()
+        print("Connected to radio!")
 
         # Forevery loop
         while True:
@@ -211,7 +205,7 @@ def main():
     # If issues found, raise exception
     except Exception as e:
         print("An error occurred with the radio monitor.")
-        print(e)
+        print("Error:", e)
 
 
 # Called when the script executes

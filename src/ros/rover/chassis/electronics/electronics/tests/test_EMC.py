@@ -9,7 +9,7 @@ published over ROS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: radio_tester_pub
 TOPICS:
-  - /electronics/radio_status  [RadioStatus]   [Published]
+  - /chassis/radio_status  [RadioStatus]   [Published]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios
