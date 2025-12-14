@@ -1,0 +1,22 @@
+radio_monitor:
+  ros__parameters:
+    device: BULLET
+
+    devices:
+      BULLET:
+        dest_ip: "10.0.0.11"
+        base_ip: "10.0.1.11"
+        host: "novarovabullet"
+        password_path: "~/nova/src/other/secrets/bullet-password.txt"
+        interface: "enp195s0f3u1u1"
+
+      ROCKET:
+        dest_ip: "192.168.1.204"
+        base_ip: "192.168.3.155"
+        host: "nova"
+        password_path: "~/nova/src/other/secrets/rocket-password.txt"
+        interface: "enp3s0f1"
+
+    ping:
+      count: 3
+      timeout: 1
