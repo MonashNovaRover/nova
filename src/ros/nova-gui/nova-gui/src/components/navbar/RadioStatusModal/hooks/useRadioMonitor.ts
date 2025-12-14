@@ -10,7 +10,7 @@ import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction";
 const SIGNAL_LOST = -96;
 const SIGNAL_WEAK = -85;
 const PING_FAILED = 9999;
-const MONITOR_TIMEOUT = 3000;
+const MONITOR_TIMEOUT = 10000;
 
 export function useRadioMonitor(): RadioConnectionStatus {
 
