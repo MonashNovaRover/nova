@@ -15,10 +15,10 @@ class LEDStrip(candevice.CanDevice):
     commandsDict = {
         #Brightness
         LedCommand.BRIGHTNESS.value: {
-            0x80: 1, #100%
-            0x60: 0.75, #75%
-            0x40: 0.5, #50%
-            0x00: 0 # off
+            0x80: "100%", 
+            0x60: "75%", 
+            0x40: "50%", 
+            0x00: "off" 
         },
         #colour
         LedCommand.COLOUR.value: {
@@ -37,7 +37,7 @@ class LEDStrip(candevice.CanDevice):
         self.addCallback(LEDStrip.LedCommand.COLOUR.value, self.set_colour_cb) #colour
         self.addCallback(LEDStrip.LedCommand.PINK.value, self.set_pink_cb) #pink
         #register attributes
-        self.registerAttr("brightness", self.get_brightness, 3)
+        self.registerAttr("brightness", self.get_brightness, 4)
         self.registerAttr("colour", self.get_colour, 10)
     
     def update(self):
