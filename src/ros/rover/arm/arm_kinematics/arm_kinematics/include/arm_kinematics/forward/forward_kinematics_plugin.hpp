@@ -102,7 +102,7 @@ public:
      *   auto element = my_reordered_vec[0];  //< Index in, or loop over it, etc...
      * \endcode
      */
-    Order<> order;
+    Order<> frame_order;
   };
 
   /**
