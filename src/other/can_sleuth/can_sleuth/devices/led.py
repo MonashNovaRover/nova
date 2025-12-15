@@ -22,8 +22,7 @@ class LEDStrip(candevice.CanDevice):
             0x01: "red",
             0x02: "green",
             0x03: "blue"
-        },
-        LedCommand.PINK.value: "pink"
+        }
     }
     
     def __init__(self, name:str, interface):
@@ -33,6 +32,7 @@ class LEDStrip(candevice.CanDevice):
         #add callback functions
         self.addCallback(LEDStrip.LedCommand.BRIGHTNESS.value, self.set_brightness_cb) #brightness
         self.addCallback(LEDStrip.LedCommand.COLOUR.value, self.set_colour_cb) #colour
+        self.addCallback(LEDStrip.LedCommand.PINK.value, self.set_pink_cb) #pink
         #register attributes
         self.registerAttr("brightness", self.get_brightness, 3)
         self.registerAttr("colour", self.get_colour, 10)
@@ -44,12 +44,10 @@ class LEDStrip(candevice.CanDevice):
         self.brightness = self.commandsDict[frame.id][frame.data[0]]
 
     def set_colour_cb(self, frame:jcan.Frame):
-        print(frame.data)
-        #pink
-        if len(frame.data)== 0 and frame.id == LedCommand.PINK.value: 
-            self.colour = self.commandsDict[LedCommand.PINK.value]
-        else:
-            self.colour = self.commandsDict[frame.id][frame.data[0]]
+        self.colour = self.commandsDict[frame.id][frame.data[0]]
+    
+    def set_pink_cb(self, frame:jcan.Frame):
+        self.colour = "pink"
     
     #getters for tracing
     def get_colour(self):
