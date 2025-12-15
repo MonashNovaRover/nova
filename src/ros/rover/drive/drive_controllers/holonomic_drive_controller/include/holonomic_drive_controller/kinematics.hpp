@@ -51,26 +51,43 @@ double get_pivot_angle(const Eigen::Vector2d& wheel_velocity)
   return std::atan2(wheel_velocity.y(), wheel_velocity.x());
 }
 
-void restrict_pivot_angle(double& pivot_angle, const double centre_angle, double& wheel_speed)
+void restrict_pivot_angle(double& pivot_angle, const double centre_angle, const bool prefer_clockwise_rotation, const double epsilon, double& wheel_speed)
 {
-  double angle_between = std::abs(pivot_angle - centre_angle);
+  const double lowest_angle = centre_angle - M_PI_2;
+  const double highest_angle = centre_angle + M_PI_2;
 
-  if (angle_between > M_PI)
+  // pivot_angle less than centre_angle - pi/2
+  if (pivot_angle < (lowest_angle - epsilon))
   {
-    angle_between = 2 * M_PI - angle_between;
+    pivot_angle += M_PI;
+    wheel_speed *= -1;
   }
 
-  if (angle_between > M_PI_2)
+  // pivot_angle approximately equals centre_angle - pi/2
+  else if (pivot_angle <= (lowest_angle + epsilon))
   {
-    if (pivot_angle > 0)
-    {
-      pivot_angle -= M_PI;
-    }
-    else
+    if (not prefer_clockwise_rotation)
     {
       pivot_angle += M_PI;
+      wheel_speed *= -1;
     }
+  }
+
+  // pivot_angle greater than centre_angle + pi/2
+  else if (pivot_angle > (highest_angle + epsilon))
+  {
+    pivot_angle -= M_PI;
     wheel_speed *= -1;
+  }
+
+  // pivot_angle approximately equals centre_angle + pi/2
+  else if (pivot_angle >= (highest_angle - epsilon))
+  {
+    if (prefer_clockwise_rotation)
+    {
+      pivot_angle -= M_PI;
+      wheel_speed *= -1;
+    }
   }
 }
 

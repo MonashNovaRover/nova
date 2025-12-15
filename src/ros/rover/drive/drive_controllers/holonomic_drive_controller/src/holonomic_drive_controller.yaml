@@ -11,8 +11,8 @@ holonomic_drive_controller:
 
   pivot_angle_leeway:
     type: double
-    default_value: 0.01
-    description: "Angles are considered equivalent if they are at most this angle apart"
+    default_value: 0.000001
+    description: "Angles are considered equivalent if they are at most this angle apart (aka 'epsilon')"
 
   pivot_limit_buffer:
     type: double
