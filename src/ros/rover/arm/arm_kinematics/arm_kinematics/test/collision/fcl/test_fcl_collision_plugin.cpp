@@ -10,7 +10,7 @@
 
 #include "arm_kinematics/forward/utilities/compute_joint_tree.hpp"
 #include "arm_kinematics/forward/utilities/compute_frame_tree.hpp"
-#include "arm_kinematics/forward/utilities/eigen_forward_kinematics_plugin.hpp"
+#include "arm_kinematics/plugins/forward/eigen_forward_kinematics_plugin.hpp"
 #include "arm_kinematics/joint_map/joint_map.hpp"
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
 #include "arm_kinematics/utilities/reordered.hpp"

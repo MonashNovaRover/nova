@@ -1,0 +1,11 @@
+<library path="arm_kinematics">
+  <!-- Forward -->
+  <class name="arm_kinematics/EigenForwardKinematicsPlugin" type="arm_kinematics::EigenForwardKinematicsPlugin" base_class_type="arm_kinematics::ForwardKinematicsPlugin">
+    <description>A generic data-oriented FK implementation. Does not take poses from tf2.</description>
+  </class>
+
+  <!-- Inverse -->
+
+  <!-- Discrete Collision -->
+
+</library>

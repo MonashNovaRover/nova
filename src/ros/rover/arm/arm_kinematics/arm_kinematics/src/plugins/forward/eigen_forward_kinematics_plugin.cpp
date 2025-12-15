@@ -2,7 +2,7 @@
 // Created by Bailey Chessum on 17/11/2025.
 //
 
-#include "arm_kinematics/forward/utilities/eigen_forward_kinematics_plugin.hpp"
+#include "../../../include/arm_kinematics/plugins/forward/eigen_forward_kinematics_plugin.hpp"
 #include "arm_kinematics/forward/utilities/compute_frame_tree.hpp"
 
 namespace arm_kinematics {
@@ -51,3 +51,7 @@ bool EigenForwardKinematicsPlugin::on_initialize() {
 }
 
 } // arm_kinematics
+
+#include <pluginlib/class_list_macros.hpp>
+
+PLUGINLIB_EXPORT_CLASS(arm_kinematics::EigenForwardKinematicsPlugin, arm_kinematics::ForwardKinematicsPlugin)
