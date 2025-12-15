@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+
 #include "arm_kinematics/utilities/order.hpp"
 
 namespace arm_kinematics {

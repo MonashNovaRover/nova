@@ -48,6 +48,7 @@ add_library(${PROJECT_NAME} SHARED
   src/plugin_loader.cpp
   src/collision/collision_manager.cpp
   src/collision/collider_definitions.cpp
+  src/common/robot_model.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17

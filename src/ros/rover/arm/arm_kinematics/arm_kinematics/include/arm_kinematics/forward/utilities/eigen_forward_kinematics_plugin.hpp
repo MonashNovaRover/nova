@@ -21,6 +21,7 @@ public:
   class TreeImpl final : public Tree {
   public:
     using SharedPtr = std::shared_ptr<TreeImpl>;
+    using UniquePtr = std::unique_ptr<TreeImpl>;
 
     TreeImpl(const size_t output_count, ComputeFrameTree mapper, JointMap joint_map)
     : Tree(output_count),
@@ -66,9 +67,6 @@ public:
     const JointMapBuilder & joint_map_builder) override;
 
   bool on_initialize() override;
-
-private:
-  AnalysisTree tree_{};
 };
 
 } // arm_kinematics

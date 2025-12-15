@@ -6,9 +6,10 @@
 #define ARM_KINEMATICS_COMPUTE_FRAME_TREE_HPP
 
 #include <queue>
-#include <arm_kinematics/visibility_control.h>
+
+#include "arm_kinematics/visibility_control.h"
 #include "compute_joint_tree.hpp"
-#include <arm_kinematics/utilities/aliases.hpp>
+#include "arm_kinematics/utilities/aliases.hpp"
 
 namespace arm_kinematics {
 

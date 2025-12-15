@@ -43,6 +43,8 @@ public:
   class Tree {
   public:
     using SharedPtr = std::shared_ptr<Tree>;
+    using UniquePtr = std::unique_ptr<Tree>;
+
     virtual ~Tree() = default;
 
     /**
@@ -76,7 +78,7 @@ public:
     /**
      * The FK tree pointer that you wanted to make.
      */
-    Tree::SharedPtr tree;
+    Tree::UniquePtr tree;
 
     /**
      * The frames you requested when calling make_tree were rearranged. This encodes how it was rearranged.
@@ -109,13 +111,15 @@ public:
    *
    * \param joint_names[in] The name of the joints to use as inputs
    * \param base_link_name[in] The name of the frame to act as the origin
-   * \param frames[in] The names and offsets from links to calculate Eigen::Isometry3f values for in \c Tree::position_fk().
-   * You can also just wrap a string or vector of strings in {} if you don't care about the origin from FrameDefinitions
-   * \param joint_map_builder[in] The builder used to construct the joint map needed for
-   * \returns a tree that you can call .position_fk() on with joint positions to get the poses for all the frames defined in
-   * frames.
+   * \param frames[in] The names and offsets from links to calculate Eigen::Isometry3f values for in
+   * \c Tree::position_fk(). You can also just wrap a string or vector of strings in {} if you don't care about the
+   * origins from FrameDefinitions.
+   * \param joint_map_builder[in] The builder used to construct the joint map needed for.
+   * \returns a tree that you can call .position_fk() on with joint positions to get the poses for all the frames
+   * defined in frames.
    *
-   * \warning Likely very expensive, and obviously not real-time safe.
+   * \warning Likely expensive, and obviously not real-time safe.
+   * \note From testing, takes < .1 millisecond on a simple URDF
    * \warning Assume the parent ForwardKinematicsPlugin must stay alive for the lifetime of any chains it produces,
    * chain implementations may reference memory from the parent.
    */
@@ -126,8 +130,22 @@ public:
     const JointMapBuilder & joint_map_builder) = 0;
 
   /**
-   * Helper overload to provide the joint_map_builder automatically as the default joint map builder
-   * TODO: Header comment.
+   * \brief Constructs the plugin implementation's Tree subclass. This helper overload provides the joint_map_builder
+   * automatically as the default joint map builder from get_robot_model().get_joint_map_builder().
+   * \see ForwardKinematicsPlugin::Tree
+   *
+   * \param joint_names[in] The name of the joints to use as inputs
+   * \param base_link_name[in] The name of the frame to act as the origin
+   * \param frames[in] The names and offsets from links to calculate Eigen::Isometry3f values for in
+   * \c Tree::position_fk(). You can also just wrap a string or vector of strings in {} if you don't care about the
+   * origins from FrameDefinitions
+   * \returns a tree that you can call .position_fk() on with joint positions to get the poses for all the frames
+   * defined in frames.
+   *
+   * \warning Likely expensive, and obviously not real-time safe.
+   * \note From testing, takes < .1 millisecond on a simple URDF
+   * \warning Assume the parent ForwardKinematicsPlugin must stay alive for the lifetime of any chains it produces,
+   * chain implementations may reference memory from the parent.
    */
   MakeTreeResult make_tree(
     const std::vector<std::string> & joint_names,
@@ -145,17 +163,16 @@ public:
    */
   bool initialize(
     const KinematicsNodeInterfaces & node_interfaces,
-    KinematicsParams::SharedPtr kinematics_params = {});
+    const RobotModel & robot_model,
+    KinematicsParams::SharedPtr kinematics_params);
 
   /**
-   * Gets the default joint map builder used for constructing trees
+   * \brief Gets the default joint map builder used for constructing trees.
+   *
+   * Different plugin implementations may choose to provide a joint map builder that differs from the default
+   * implementation provided by RobotModel
    */
   [[nodiscard]] virtual const JointMapBuilder & get_joint_map_builder() const noexcept;
-
-  /**
-   * Gets the URDF model from KinematicsParams
-   */
-  [[nodiscard]] const urdf::Model & get_urdf_model() const;
 
 protected:
   /**

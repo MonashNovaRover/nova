@@ -7,9 +7,10 @@
 
 #include <cstddef>
 #include <Eigen/Geometry>
-#include <arm_kinematics/utilities/aliases.hpp>
 #include <rclcpp/logger.hpp>
-#include <arm_kinematics/visibility_control.h>
+
+#include "arm_kinematics/visibility_control.h"
+#include "arm_kinematics/utilities/aliases.hpp"
 #include "joint_type.hpp"
 
 namespace arm_kinematics {
@@ -97,9 +98,6 @@ public:
   }
 
 private:
-  // Helpers
-  // static JointType joint_type_from_urdf(const urdf::Joint & j);
-  // static Eigen::Isometry3f eigen_from_urdf_pose(const urdf::Pose & p);
 
   /// Type for each joint
   std::vector<JointType> joint_types_{};

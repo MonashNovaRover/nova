@@ -5,13 +5,15 @@
 #ifndef ARM_KINEMATICS_COLLISION_PLUGIN_HPP
 #define ARM_KINEMATICS_COLLISION_PLUGIN_HPP
 
-#include <arm_kinematics/forward/forward_kinematics_plugin.hpp>
-#include <arm_kinematics/utilities/span.hpp>
 #include <limits>
 #include <rclcpp/node_interfaces/node_base_interface.hpp>
 #include <rclcpp/node_interfaces/node_interfaces.hpp>
 #include <rclcpp/node_interfaces/node_logging_interface.hpp>
 #include <rclcpp/node_interfaces/node_parameters_interface.hpp>
+
+#include "arm_kinematics/visibility_control.h"
+#include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
+#include "arm_kinematics/utilities/span.hpp"
 #include "allowed_collision_matrix.hpp"
 
 namespace arm_kinematics {
@@ -23,7 +25,7 @@ namespace arm_kinematics {
  * robot is delegated to the caller!
  * \note The ACM can also be modified externally
  */
-class DiscreteCollisionPlugin {
+class ARM_KINEMATICS_PUBLIC DiscreteCollisionPlugin {
 public:
   using SharedPtr = std::shared_ptr<DiscreteCollisionPlugin>;
   using CollisionNodeInterfaces =
@@ -45,20 +47,37 @@ public:
     const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries,
     AllowedCollisionMatrix acm);
 
+  /**
+   * Update the pose for a collider.
+   * @param idx The index of the collider to set the pose for.
+   * @param collider_pose The new pose for that collider.
+   */
   virtual void update_pose(size_t idx, const Eigen::Isometry3f & collider_pose) = 0;
-  virtual void update_poses(size_t start_idx, span<const Eigen::Isometry3f> collider_poses) {
+
+  /**
+   * Update the pose for many colliders contiguously.
+   * @param start_idx The index of the first collider to set the pose for.
+   * @param collider_poses The new poses for colliders starting from start_idx up until
+   * start_idx + collider_poses.size().
+   */
+  virtual void update_poses(const size_t start_idx, const span<const Eigen::Isometry3f> collider_poses) {
     for (size_t i = 0; i < collider_poses.size(); ++i) {
       update_pose(start_idx + i, collider_poses[i]);
     }
   }
 
+  /**
+   * Perform a self intersection check with the last poses given in update_poses(),
+   *
+   * \returns true if there is an intersection, false if there is no intersection.
+   */
   virtual bool collide() = 0;
 
   /**
    * Perform a self intersection check with the given joint states, preserving which colliders would intersect.
    * This overload is included for helping to build the allowed collision matrix.
+   *
    * \warning This is much more expensive than the other function overload! Use only when you need the pairs.
-   * \param[in] collider_poses The transforms of all colliders provided in initialization
    * \param[out] colliding_pairs Collision pairs found in collision
    * \param max_colliding_pairs The maximum number of pairs to populate colliding pairs with.
    * \returns true if there is an intersection, false if there is no intersection
@@ -70,8 +89,8 @@ public:
   /**
    * Perform a self intersection check with the given joint states, preserving which colliders would intersect.
    * This overload is included for helping to build the allowed collision matrix. Unlimited colliding pairs.
+   *
    * \warning This is much more expensive than the other function overload! Use only when you need the pairs.
-   * \param[in] collider_poses The transforms of all colliders provided in initialization
    * \param[out] colliding_pairs Collision pairs found in collision
    * \returns true if there is an intersection, false if there is no intersection
    */

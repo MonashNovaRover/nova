@@ -2,7 +2,8 @@
 // Created by Bailey Chessum on 15/10/2025.
 //
 
-#include <arm_kinematics/collision/fcl/fcl_collision_plugin.hpp>
+#include "arm_kinematics/collision/fcl/fcl_collision_plugin.hpp"
+
 #include <fcl/fcl.h>
 
 namespace arm_kinematics {
@@ -164,8 +165,6 @@ bool FclCollisionPlugin::on_initialize(
   manager_.setup();
 
   return true;
-
 }
-
 
 } // arm_kinematics

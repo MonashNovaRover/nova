@@ -5,17 +5,19 @@
 #ifndef ARM_KINEMATICS_FCL_COLLISION_PLUGIN_HPP
 #define ARM_KINEMATICS_FCL_COLLISION_PLUGIN_HPP
 
-#include <arm_kinematics/collision/discrete_collision_plugin.hpp>
-#include <arm_kinematics/collision/fcl/geometry_cache.hpp>
 #include <fcl/broadphase/broadphase_dynamic_AABB_tree.h>
 #include <fcl/narrowphase/collision_object.h>
+
+#include "arm_kinematics/visibility_control.h"
+#include "arm_kinematics/collision/discrete_collision_plugin.hpp"
+#include "arm_kinematics/collision/fcl/geometry_cache.hpp"
 
 namespace arm_kinematics {
 
 /**
- * Collision checking implementation using the FCL collision library
+ * Collision checking implementation using the FCL collision library.
  */
-class FclCollisionPlugin : public DiscreteCollisionPlugin {
+class ARM_KINEMATICS_PUBLIC FclCollisionPlugin : public DiscreteCollisionPlugin {
 public:
   void update_pose(size_t idx, const Eigen::Isometry3f & collider_pose) override;
   void update_poses(size_t start_idx, span<const Eigen::Isometry3f> collider_poses) override;

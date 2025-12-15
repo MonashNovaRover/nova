@@ -2,7 +2,8 @@
 // Created by Bailey Chessum on 19/11/2025.
 //
 
-#include <arm_kinematics/forward/utilities/analysis_tree.hpp>
+#include "arm_kinematics/forward/utilities/analysis_tree.hpp"
+
 #include <set>
 
 namespace arm_kinematics {

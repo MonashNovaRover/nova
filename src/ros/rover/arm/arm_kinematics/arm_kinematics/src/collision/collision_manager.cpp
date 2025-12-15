@@ -2,8 +2,8 @@
 // Created by nova on 11/30/25.
 //
 
-#include <arm_kinematics/collision/collision_manager.hpp>
-#include <arm_kinematics/plugin_loader.hpp>
+#include "arm_kinematics/collision/collision_manager.hpp"
+#include "arm_kinematics/plugin_loader.hpp"
 
 namespace arm_kinematics {
 

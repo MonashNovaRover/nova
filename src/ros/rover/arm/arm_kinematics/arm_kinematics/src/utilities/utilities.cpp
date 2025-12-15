@@ -2,7 +2,7 @@
 // Created by Bailey Chessum on 14/10/2025.
 //
 
-#include <arm_kinematics/utilities/utilities.hpp>
+#include "arm_kinematics/utilities/utilities.hpp"
 
 namespace
 {

@@ -7,7 +7,8 @@
 
 #include <optional>
 #include <urdf_model/joint.h>
-#include <arm_kinematics/visibility_control.h>
+
+#include "arm_kinematics/visibility_control.h"
 
 namespace arm_kinematics {
 

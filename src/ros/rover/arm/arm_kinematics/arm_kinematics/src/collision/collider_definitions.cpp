@@ -2,10 +2,11 @@
 // Created by Bailey Chessum on 30/11/25.
 //
 
-#include <arm_kinematics/collision/collider_definitions.hpp>
-#include <arm_kinematics/collision/allowed_collision_matrix.hpp>
-#include <arm_kinematics/utilities/to_eigen.hpp>
+#include "arm_kinematics/collision/collider_definitions.hpp"
+
 #include <urdf/model.h>
+#include "arm_kinematics/collision/allowed_collision_matrix.hpp"
+#include "arm_kinematics/utilities/to_eigen.hpp"
 
 namespace arm_kinematics {
 

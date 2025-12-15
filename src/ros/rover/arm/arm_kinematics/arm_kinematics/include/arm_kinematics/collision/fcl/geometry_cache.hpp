@@ -10,13 +10,15 @@
 #include <urdf/model.h>
 #include <rclcpp/logger.hpp>
 
+#include "arm_kinematics/visibility_control.h"
+
 namespace arm_kinematics {
 
 /**
  * Shares identical FCL primitives across many CollisionObjects.
  * TODO: I currently just construct the colliders every time. Add caching
  */
-class GeometryCache {
+class ARM_KINEMATICS_PUBLIC GeometryCache {
 public:
   using GeoPtr = std::shared_ptr<fcl::CollisionGeometryf>;
 

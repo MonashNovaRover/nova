@@ -5,13 +5,14 @@
 #ifndef ARM_KINEMATICS_JOINT_MAP_BUILDER_HPP
 #define ARM_KINEMATICS_JOINT_MAP_BUILDER_HPP
 
-#include <arm_kinematics/visibility_control.h>
 #include <urdf/model.h>
 #include <kdl_parser/kdl_parser.hpp>
 #include <rclcpp/logger.hpp>
 #include <hardware_interface/component_parser.hpp>
 #include <tinyxml2.h>
-#include <arm_kinematics/joint_map/joint_map.hpp>
+
+#include "arm_kinematics/visibility_control.h"
+#include "arm_kinematics/joint_map/joint_map.hpp"
 
 namespace
 {

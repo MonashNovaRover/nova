@@ -2,8 +2,8 @@
 // Created by Bailey Chessum on 17/11/2025.
 //
 
-#include <arm_kinematics/forward/utilities/eigen_forward_kinematics_plugin.hpp>
-#include <arm_kinematics/forward/utilities/compute_frame_tree.hpp>
+#include "arm_kinematics/forward/utilities/eigen_forward_kinematics_plugin.hpp"
+#include "arm_kinematics/forward/utilities/compute_frame_tree.hpp"
 
 namespace arm_kinematics {
 
@@ -17,7 +17,7 @@ ForwardKinematicsPlugin::MakeTreeResult EigenForwardKinematicsPlugin::make_tree(
   const FrameDefinitions & frames,
   const JointMapBuilder & joint_map_builder)
 {
-  AnalysisTree subtree(tree_, base_link_name, frames);
+  AnalysisTree subtree(get_robot_model().get_analysis_tree(), base_link_name, frames);
 
   // Joints need to be in the right order to be able to construct a compute frame tree
   subtree.sort_joints();
@@ -33,7 +33,7 @@ ForwardKinematicsPlugin::MakeTreeResult EigenForwardKinematicsPlugin::make_tree(
     compute_frame_tree = ComputeFrameTree();  //< Use an empty tree that will do nothing
   }
 
-  auto ptr = std::make_shared<TreeImpl>(
+  auto ptr = std::make_unique<TreeImpl>(
     frames.size(),
     std::move(compute_frame_tree.value()),
     joint_map_builder.build(joint_names, mapper_joint_names));
@@ -46,8 +46,6 @@ ForwardKinematicsPlugin::MakeTreeResult EigenForwardKinematicsPlugin::make_tree(
 
 bool EigenForwardKinematicsPlugin::on_initialize() {
   // TODO: Could we precompute joints we wouldn't have the values for here?
-
-  tree_ = AnalysisTree(get_urdf_model());
 
   return true;
 }

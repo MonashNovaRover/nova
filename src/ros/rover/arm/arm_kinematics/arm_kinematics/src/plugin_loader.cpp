@@ -8,17 +8,18 @@
 #include <arm_kinematics/utilities/to_eigen.hpp>
 
 namespace arm_kinematics {
+
 PluginLoader::PluginLoader(
   PluginLoaderNodeInterfaces node,
-  const std::string & robot_description)
+  std::string robot_description)
 : node_(std::move(node)),
-  robot_description_(robot_description)
+  robot_model_(std::make_unique<RobotModel>(std::move(robot_description)))
 {
 }
 
 ForwardKinematicsPlugin::SharedPtr PluginLoader::make_fk(const std::string & name) {
   auto plugin = get_fk_loader().createSharedInstance(name);
-  if (plugin->initialize(node_, get_kinematics_params()))
+  if (plugin->initialize(node_, *robot_model_, get_kinematics_params()))
     return plugin;
 
   auto logger = node_.get_node_logging_interface()->get_logger();
@@ -37,7 +38,7 @@ ForwardKinematicsPlugin::SharedPtr PluginLoader::make_fk() {
 
 InverseKinematicsPlugin::SharedPtr PluginLoader::make_ik(const std::string & name) {
   auto plugin = get_ik_loader().createSharedInstance(name);
-  if (plugin->initialize(node_, get_kinematics_params()))
+  if (plugin->initialize(node_, *robot_model_, get_kinematics_params()))
     return plugin;
 
   auto logger = node_.get_node_logging_interface()->get_logger();
@@ -90,7 +91,7 @@ PluginLoader::MakeCollisionResult PluginLoader::make_collision(
   const std::vector<std::string> & joint_names,
   const ForwardKinematicsPlugin::SharedPtr & fk)
 {
-  const auto & urdf_model = get_kinematics_params()->get_urdf_model();
+  const auto & urdf_model = robot_model_->get_urdf_model();
   auto [colliders, frames, acm] = ColliderDefinitions(urdf_model);
   auto [tree, order] = fk->make_tree(joint_names, urdf_model.getRoot()->name, std::move(frames));
 
@@ -105,7 +106,7 @@ PluginLoader::MakeCollisionResult PluginLoader::make_collision(
   const std::vector<std::string> & joint_names,
   const ForwardKinematicsPlugin::SharedPtr & fk)
 {
-  const auto & urdf_model = get_kinematics_params()->get_urdf_model();
+  const auto & urdf_model = robot_model_->get_urdf_model();
   auto [colliders, frames, acm] = ColliderDefinitions(urdf_model);
   auto [tree, order] = fk->make_tree(joint_names, urdf_model.getRoot()->name, frames);
 
@@ -118,7 +119,7 @@ PluginLoader::MakeCollisionResult PluginLoader::make_collision(
 const KinematicsParams::SharedPtr & PluginLoader::get_kinematics_params() noexcept {
   if (!kinematics_params_) {
     auto params = node_.get<rclcpp::node_interfaces::NodeParametersInterface>();
-    kinematics_params_ = std::make_shared<KinematicsParams>(params, robot_description_);
+    kinematics_params_ = std::make_shared<KinematicsParams>(params);
   }
 
   return kinematics_params_;

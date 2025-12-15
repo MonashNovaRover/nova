@@ -25,6 +25,7 @@ using arm_kinematics::EigenForwardKinematicsPlugin;
 using arm_kinematics::AnalysisTree;
 using arm_kinematics::KinematicsParams;
 using arm_kinematics::Reordered;
+using arm_kinematics::RobotModel;
 
 namespace {
 
@@ -96,11 +97,12 @@ protected:
         </joint>
       </robot>
     )";
-    ASSERT_TRUE(model_.initString(robot_description_));
+    ASSERT_TRUE(urdf::Model().initString(robot_description_));
+    robot_model_ = std::make_unique<RobotModel>(robot_description_);
 
     node_ = std::make_shared<rclcpp::Node>("test_eigen_fk_mapper");
     logger_ = node_->get_logger();
-    kinematics_params_ = std::make_shared<KinematicsParams>(*node_, robot_description_);
+    kinematics_params_ = std::make_shared<KinematicsParams>(*node_);
   }
 
   void TearDown() override {
@@ -108,7 +110,7 @@ protected:
   }
 
   std::string robot_description_;
-  urdf::Model model_;
+  RobotModel::UniquePtr robot_model_;
   std::shared_ptr<rclcpp::Node> node_;
   rclcpp::Logger logger_ = rclcpp::get_logger("not_initialized");
   KinematicsParams::SharedPtr kinematics_params_;
@@ -123,7 +125,7 @@ TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTree)
   RCLCPP_INFO(node_->get_logger(), "Creating plugin");
   ForwardKinematicsPlugin::SharedPtr plugin = std::make_shared<EigenForwardKinematicsPlugin>();
   RCLCPP_INFO(node_->get_logger(), "Initializing plugin");
-  auto init_result = plugin->initialize(*node_, kinematics_params_);
+  auto init_result = plugin->initialize(*node_, *robot_model_, kinematics_params_);
 
   ASSERT_TRUE(init_result) << "Failed to initialize plugin";
 
@@ -132,7 +134,7 @@ TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTree)
   std::vector<float> joint_states{ d, theta };
 
   RCLCPP_INFO(node_->get_logger(), "Creating FK Tree");
-  auto anal = AnalysisTree(plugin->get_urdf_model());
+  auto anal = AnalysisTree(plugin->get_robot_model().get_urdf_model());
 
   ExpectIsometryNear(anal.get_joints()[0].origin, Eigen::Isometry3f::Identity(),
     "dummy root origin is incorrect");
@@ -211,7 +213,7 @@ TEST_F(SimpleUrdfTests, SimpleUrdfEigenFKPluginTree)
   RCLCPP_INFO(node_->get_logger(), "Creating plugin");
   EigenForwardKinematicsPlugin::SharedPtr plugin = std::make_shared<EigenForwardKinematicsPlugin>();
   RCLCPP_INFO(node_->get_logger(), "Initializing plugin");
-  auto init_result = plugin->initialize(*node_, kinematics_params_);
+  auto init_result = plugin->initialize(*node_, *robot_model_, kinematics_params_);
 
   ASSERT_TRUE(init_result) << "Failed to initialize plugin";
 
@@ -228,8 +230,7 @@ TEST_F(SimpleUrdfTests, SimpleUrdfEigenFKPluginTree)
 
   ASSERT_TRUE(order.size() > 0) << "Failed to create tree with order";
 
-  EigenForwardKinematicsPlugin::TreeImpl::SharedPtr tree =
-    std::dynamic_pointer_cast<EigenForwardKinematicsPlugin::TreeImpl>(tree_);
+  auto * tree = dynamic_cast<EigenForwardKinematicsPlugin::TreeImpl *>(tree_.get());
   ASSERT_TRUE(tree) << "Failed to create tree";
 
   std::vector<float> mapped_joint_states(tree->get_joint_map().output_count);
@@ -288,7 +289,7 @@ TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTreeReversed)
   RCLCPP_INFO(node_->get_logger(), "Creating plugin");
   ForwardKinematicsPlugin::SharedPtr plugin = std::make_shared<EigenForwardKinematicsPlugin>();
   RCLCPP_INFO(node_->get_logger(), "Initializing plugin");
-  auto init_result = plugin->initialize(*node_, kinematics_params_);
+  auto init_result = plugin->initialize(*node_, *robot_model_, kinematics_params_);
 
   ASSERT_TRUE(init_result) << "Failed to initialize plugin";
 
@@ -297,7 +298,7 @@ TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTreeReversed)
   std::vector<double> joint_states{ d, theta };
 
   RCLCPP_INFO(node_->get_logger(), "Creating FK Tree");
-  auto anal = AnalysisTree(plugin->get_urdf_model());
+  auto anal = AnalysisTree(plugin->get_robot_model().get_urdf_model());
 
   auto link_names = std::vector<std::string>{"base_link", "link1", "link2"};
   auto subanal = AnalysisTree(anal, "link1", link_names);
@@ -500,14 +501,15 @@ protected:
         </ros2_control>
       </robot>
     )";
-    ASSERT_TRUE(model_.initString(robot_description_));
+    ASSERT_TRUE(urdf::Model().initString(robot_description_));
+    robot_model_ = std::make_unique<RobotModel>(robot_description_);
 
     node_ = std::make_shared<rclcpp::Node>("test_eigen_fk_mapper");
     logger_ = node_->get_logger();
-    kinematics_params_ = std::make_shared<KinematicsParams>(*node_, robot_description_);
+    kinematics_params_ = std::make_shared<KinematicsParams>(*node_);
 
     plugin_ = std::make_shared<EigenForwardKinematicsPlugin>();
-    init_result_ = plugin_->initialize(*node_, kinematics_params_);
+    init_result_ = plugin_->initialize(*node_, *robot_model_, kinematics_params_);
   }
 
   void TearDown() override {
@@ -515,7 +517,7 @@ protected:
   }
 
   std::string robot_description_;
-  urdf::Model model_;
+  RobotModel::UniquePtr robot_model_;
   std::shared_ptr<rclcpp::Node> node_;
   rclcpp::Logger logger_ = rclcpp::get_logger("not_initialized");
   KinematicsParams::SharedPtr kinematics_params_;

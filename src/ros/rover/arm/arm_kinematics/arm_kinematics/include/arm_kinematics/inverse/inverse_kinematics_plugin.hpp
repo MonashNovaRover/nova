@@ -5,11 +5,12 @@
 #ifndef ARM_KINEMATICS_INVERSE_KINEMATICS_PLUGIN_HPP
 #define ARM_KINEMATICS_INVERSE_KINEMATICS_PLUGIN_HPP
 
-#include <arm_kinematics/visibility_control.h>
 #include <vector>
 #include <Eigen/Geometry>
 #include <memory>
-#include <arm_kinematics/common/kinematics_base.hpp>
+
+#include "arm_kinematics/visibility_control.h"
+#include "arm_kinematics/common/kinematics_base.hpp"
 #include "arm_kinematics/utilities/aliases.hpp"
 
 namespace arm_kinematics {
@@ -33,6 +34,7 @@ public:
    */
   bool initialize(
     const KinematicsNodeInterfaces & node_interfaces,
+    const RobotModel & robot_model,
     KinematicsParams::SharedPtr kinematics_params);
 
   /**

@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <vector>
 
+#include "arm_kinematics/visibility_control.h"
+
 namespace arm_kinematics {
 
 /**
@@ -15,7 +17,7 @@ namespace arm_kinematics {
  *
  * \note Must know the max number of elements before constructing. Space complexity O(N^2).
  */
-struct AllowedCollisionMatrix {
+struct ARM_KINEMATICS_PUBLIC AllowedCollisionMatrix {
   /// Allowed Collision Matrix as a packed triangular bitset
   std::vector<std::uint64_t> acm_bits;
 

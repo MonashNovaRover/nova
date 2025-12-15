@@ -2,14 +2,17 @@
 // Created by Bailey Chessum on 15/10/2025.
 //
 
-#include <arm_kinematics/inverse/inverse_kinematics_plugin.hpp>
-#include <arm_kinematics/utilities/utilities.hpp>
+#include "arm_kinematics/inverse/inverse_kinematics_plugin.hpp"
+#include "arm_kinematics/utilities/utilities.hpp"
 
 namespace arm_kinematics {
 
-bool InverseKinematicsPlugin::initialize(const KinematicsNodeInterfaces & node_interfaces,
-                                         KinematicsParams::SharedPtr kinematics_params) {
-  if (!initialize_base(node_interfaces, std::move(kinematics_params), "inverse_kinematics"))
+bool InverseKinematicsPlugin::initialize(
+  const KinematicsNodeInterfaces & node_interfaces,
+  const RobotModel & robot_model,
+  KinematicsParams::SharedPtr kinematics_params)
+{
+  if (!initialize_base(node_interfaces, robot_model, std::move(kinematics_params), "inverse_kinematics"))
     return false;
 
   return true;
@@ -19,7 +22,7 @@ bool InverseKinematicsPlugin::get_velocity_ik(const Twistf & ik_twist,
                                               const Eigen::Isometry3f &ik_seed_pose,
                                               const std::vector<double> &ik_seed_state,
                                               std::vector<double> &solution_velocities,
-                                              double time_step) const
+                                              const double time_step) const
 {
   assert(time_step != 0);
 

@@ -5,14 +5,15 @@
 #ifndef ARM_KINEMATICS_KINEMATICS_BASE_HPP
 #define ARM_KINEMATICS_KINEMATICS_BASE_HPP
 
-#include <arm_kinematics/visibility_control.h>
 #include <string>
 #include <rclcpp/logger.hpp>
 #include <rclcpp/node_interfaces/node_base_interface.hpp>
 #include <rclcpp/node_interfaces/node_logging_interface.hpp>
 #include <rclcpp/node_interfaces/node_parameters_interface.hpp>
 #include <rclcpp/node_interfaces/node_interfaces.hpp>
-#include <arm_kinematics/common/kinematics_params.hpp>
+
+#include "arm_kinematics/visibility_control.h"
+#include "arm_kinematics/common/kinematics_params.hpp"
 
 namespace arm_kinematics {
 
@@ -33,13 +34,27 @@ public:
 
   // Accessors
 
-  /// The URDF being used.
-  [[nodiscard]] const std::string & get_robot_description() const;
-  /// Logger to use for logging
+  /**
+   * \returns The URDF (+derived data from the URDF) being used.
+   * \throws std::logic_error if you call this before initializing
+   */
+  [[nodiscard]] const RobotModel & get_robot_model() const;
+
+  /**
+   * Gets a logger to use for logging
+   */
   [[nodiscard]] const rclcpp::Logger & get_logger() const noexcept;
-  /// Gets the KinematicsParams common to both FK and IK plugins.
+
+  /**
+   * \returns The KinematicsParams common to both FK and IK plugins.
+   * \throws std::logic_error if you call this before initializing
+   */
   [[nodiscard]] const KinematicsParams & get_kinematics_params() const;
-  /// Gets interfaces from the owning ROS2 node, allowing plugins to access to parameters, logging, etc.
+
+  /**
+   * \returns Interfaces from the owning ROS2 node, allowing plugins to access to parameters, logging, etc.
+   * \throws std::logic_error if you call this before initializing
+   */
   [[nodiscard]] const KinematicsNodeInterfaces & get_node_interfaces() const;
 
 protected:
@@ -48,13 +63,16 @@ protected:
    */
   bool initialize_base(
     KinematicsNodeInterfaces node_interfaces,
+    const RobotModel & robot_model,
     KinematicsParams::SharedPtr params,
     const std::string & logger_name);
 
 private:
-  /// The URDF being used. You can get this from within a ros2_control controller.
-  const std::string * robot_description_ = nullptr;
-  /// Params common to both FK and IK plugins.
+  /// The URDF being used with derived data. You can construct this from within a ros2_control controller with
+  /// make_unique<RobotModel>(get_robot_description()).
+  const RobotModel * robot_model_ = nullptr;
+  /// Params common to both FK and IK plugins. Shared pointer to account for parameters potentially being changed
+  /// dynamically
   KinematicsParams::SharedPtr kinematics_params_;
   /// The name of every joint considered in IK and FK calculations.
   std::vector<std::string> joint_names_{};

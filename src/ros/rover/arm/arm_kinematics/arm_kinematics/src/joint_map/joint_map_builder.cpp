@@ -3,7 +3,7 @@
 //
 
 #include <optional>
-#include <arm_kinematics/joint_map/joint_map_builder.hpp>
+#include "arm_kinematics/joint_map/joint_map_builder.hpp"
 
 namespace arm_kinematics {
 

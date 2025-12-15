@@ -5,11 +5,12 @@
 #ifndef ARM_KINEMATICS_KINEMATICS_PLUGIN_SPAWNER_HPP
 #define ARM_KINEMATICS_KINEMATICS_PLUGIN_SPAWNER_HPP
 
-#include <arm_kinematics/forward/forward_kinematics_plugin.hpp>
-#include <arm_kinematics/inverse/inverse_kinematics_plugin.hpp>
 #include <pluginlib/class_loader.hpp>
-#include <arm_kinematics/visibility_control.h>
-#include <arm_kinematics/collision/discrete_collision_plugin.hpp>
+
+#include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
+#include "arm_kinematics/inverse/inverse_kinematics_plugin.hpp"
+#include "arm_kinematics/visibility_control.h"
+#include "arm_kinematics/collision/discrete_collision_plugin.hpp"
 
 namespace arm_kinematics {
 
@@ -30,7 +31,7 @@ public:
    * to read KinematicsParams from.
    * \param robot_description The URDF string to provide to any spawned kinematics plugins. Lifetime must exceed this.
    */
-  explicit PluginLoader(PluginLoaderNodeInterfaces node, const std::string & robot_description);
+  explicit PluginLoader(PluginLoaderNodeInterfaces node, std::string robot_description);
 
   /// Make an FK plugin using the plugin name defined in the `kinematics.forward_kinematics_plugin` parameter.
   ForwardKinematicsPlugin::SharedPtr make_fk();
@@ -83,7 +84,7 @@ public:
 
 private:
   PluginLoaderNodeInterfaces node_;
-  const std::string & robot_description_;
+  RobotModel::UniquePtr robot_model_ = nullptr;
 
   /// Lazily loaded params for kinematics plugins
   KinematicsParams::SharedPtr kinematics_params_;

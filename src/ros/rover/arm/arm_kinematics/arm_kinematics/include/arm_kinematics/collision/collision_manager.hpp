@@ -4,6 +4,8 @@
 
 #ifndef ARM_KINEMATICS_COLLISION_MANAGER_HPP
 #define ARM_KINEMATICS_COLLISION_MANAGER_HPP
+
+#include "arm_kinematics/visibility_control.h"
 #include "discrete_collision_plugin.hpp"
 #include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
 
@@ -14,7 +16,7 @@ class PluginLoader;
 /**
  * Helper class to tie together an FK tree to get collider poses, and a collision plugin
  */
-class CollisionManager {
+class ARM_KINEMATICS_PUBLIC CollisionManager {
 public:
   CollisionManager() = default;
 
@@ -27,7 +29,7 @@ public:
     const ForwardKinematicsPlugin::SharedPtr & fk,
     const std::vector<std::string> & joint_names);
 
-  bool collide() const;
+  [[nodiscard]] bool collide() const;
   void update_poses(const std::vector<double> & joint_states);
 
 private:

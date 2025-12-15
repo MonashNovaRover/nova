@@ -6,9 +6,11 @@
 #define ARM_KINEMATICS_COLLIDER_DEFINITIONS_HPP
 
 #include <vector>
-#include <arm_kinematics/forward/frame_definitions.hpp>
-#include "allowed_collision_matrix.hpp"
 #include <urdf/urdf/model.h>
+
+#include "arm_kinematics/visibility_control.h"
+#include "arm_kinematics/forward/frame_definitions.hpp"
+#include "allowed_collision_matrix.hpp"
 
 namespace arm_kinematics {
 

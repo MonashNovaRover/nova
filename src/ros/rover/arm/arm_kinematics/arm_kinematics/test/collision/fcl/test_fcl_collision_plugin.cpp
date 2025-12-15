@@ -6,18 +6,18 @@
 #include <urdf_model/model.h>
 #include <Eigen/Geometry>
 
-#include <arm_kinematics/forward/utilities/compute_joint_tree.hpp>
-#include <arm_kinematics/forward/utilities/compute_frame_tree.hpp>
-#include <arm_kinematics/forward/utilities/eigen_forward_kinematics_plugin.hpp>
-#include <arm_kinematics/joint_map/joint_map.hpp>
-#include <arm_kinematics/joint_map/joint_map_builder.hpp>
 #include <rclcpp/rclcpp.hpp>
-#include <arm_kinematics/utilities/reordered.hpp>
 
+#include "arm_kinematics/forward/utilities/compute_joint_tree.hpp"
+#include "arm_kinematics/forward/utilities/compute_frame_tree.hpp"
+#include "arm_kinematics/forward/utilities/eigen_forward_kinematics_plugin.hpp"
+#include "arm_kinematics/joint_map/joint_map.hpp"
+#include "arm_kinematics/joint_map/joint_map_builder.hpp"
+#include "arm_kinematics/utilities/reordered.hpp"
 #include "arm_kinematics/collision/collision_manager.hpp"
 #include "arm_kinematics/collision/discrete_collision_plugin.hpp"
 #include "arm_kinematics/collision/fcl/fcl_collision_plugin.hpp"
-#include <arm_kinematics/collision/collider_definitions.hpp>
+#include "arm_kinematics/collision/collider_definitions.hpp"
 
 using arm_kinematics::ComputeFrameTree;
 using arm_kinematics::ComputeJointTree;
@@ -30,6 +30,7 @@ using arm_kinematics::AnalysisTree;
 using arm_kinematics::KinematicsParams;
 using arm_kinematics::Reordered;
 using arm_kinematics::FclCollisionPlugin;
+using arm_kinematics::RobotModel;
 
 namespace {
 
@@ -115,20 +116,23 @@ protected:
         </joint>
       </robot>
     )";
-    ASSERT_TRUE(model_.initString(robot_description_));
+    ASSERT_TRUE(urdf::Model().initString(robot_description_));
 
-    node_ = std::make_shared<rclcpp::Node>("test_eigen_fk_mapper");
+    node_ = std::make_shared<rclcpp::Node>("test_fcl_collision_plugin");
     logger_ = node_->get_logger();
-    kinematics_params_ = std::make_shared<KinematicsParams>(*node_, robot_description_);
+    robot_model_ = std::make_unique<RobotModel>(robot_description_);
+    kinematics_params_ = std::make_shared<KinematicsParams>(*node_);
 
     fk_plugin_ = std::make_shared<EigenForwardKinematicsPlugin>();
-    init_result_ = fk_plugin_->initialize(*node_, kinematics_params_);
+    init_result_ = fk_plugin_->initialize(*node_, *robot_model_, kinematics_params_);
+    ASSERT_TRUE(init_result_);
 
     auto collision = std::make_shared<FclCollisionPlugin>();
-    auto [colliders, frames, acm] = arm_kinematics::ColliderDefinitions(model_);
+    auto [colliders, frames, acm] = arm_kinematics::ColliderDefinitions(robot_model_->get_urdf_model());
 
     auto [tree, order] = fk_plugin_->make_tree(joint_names_, "base_link", std::move(frames));
-    init_result_ = init_result_ && collision->initialize(*node_, order.reorder(std::move(colliders)), std::move(acm));
+    init_result_ = collision->initialize(*node_, order.reorder(std::move(colliders)), std::move(acm));
+    ASSERT_TRUE(init_result_);
 
     manager_ = arm_kinematics::CollisionManager(std::move(tree), std::move(collision));
   }
@@ -138,7 +142,7 @@ protected:
   }
 
   std::string robot_description_;
-  urdf::Model model_;
+  RobotModel::UniquePtr robot_model_;
   std::shared_ptr<rclcpp::Node> node_;
   rclcpp::Logger logger_ = rclcpp::get_logger("not_initialized");
   KinematicsParams::SharedPtr kinematics_params_;
@@ -160,7 +164,6 @@ TEST_F(SimpleUrdfCollisionTests, SimpleCollisions)
 
   manager_.update_poses({-2,-2});
   ASSERT_TRUE(manager_.collide()) << "Collision not found when there should be a collision!";
-
 }
 
 

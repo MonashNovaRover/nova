@@ -7,7 +7,8 @@
 
 #include <Eigen/Geometry>
 #include <kdl/frames.hpp>
-#include <arm_kinematics/utilities/aliases.hpp>
+
+#include "arm_kinematics/utilities/aliases.hpp"
 
 namespace arm_kinematics {
 
