@@ -4,6 +4,9 @@ from enum import Enum
 import jcan
 
 class LEDStrip(candevice.CanDevice):
+    """
+        LED strip device emulator class
+    """
     class LedCommand(Enum):
         BRIGHTNESS = 0x091
         COLOUR = 0x095
@@ -25,7 +28,7 @@ class LEDStrip(candevice.CanDevice):
         }
     }
     
-    def __init__(self, name:str, interface):
+    def __init__(self, name:str, interface:str):
         super().__init__(name, interface)
         self.brightness = 0
         self.colour= None
