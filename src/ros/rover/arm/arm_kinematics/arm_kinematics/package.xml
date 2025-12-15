@@ -3,7 +3,7 @@
 <package format="3">
   <name>arm_kinematics</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Reusable kinematics algorithms, utilities, and plugin base class definitions</description>
   <maintainer email="novaroverteam@monash.edu">nova</maintainer>
   <maintainer email="bailey.chessum1@gmail.com">Bailey Chessum</maintainer>
   <license>TODO: License declaration</license>

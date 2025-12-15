@@ -54,6 +54,7 @@ add_library(${PROJECT_NAME} SHARED
   src/plugins/inverse/banksia_ik_plugin.cpp
 )
 
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -67,6 +68,10 @@ install(FILES plugins.xml
   DESTINATION share/${PROJECT_NAME}
 )
 
+# Causes the visibility macros to use dllexport rather than dllimport,
+# which is appropriate when building the dll but not consuming it.
+target_compile_definitions(${PROJECT_NAME} PRIVATE "ARM_KINEMATICS_BUILDING_LIBRARY")
+
 # Test cases
 set(TEST_KINEMATICS_SOURCE_FILES
   test/collision/fcl/test_allowed_collision_matrix.cpp
@@ -74,19 +79,6 @@ set(TEST_KINEMATICS_SOURCE_FILES
   test/forward/eigen/test_eigen_fk_mapper.cpp
   test/main.cpp
 )
-#if(NIX_DO_CHECK)
-#  target_link_libraries(test_manual
-#    ${PROJECT_NAME}
-#    fcl
-#  )
-#  target_include_directories(test_kinematics PUBLIC
-#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#  )
-#  set_tests_properties(test_kinematics
-#    PROPERTIES
-#    ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{LD_LIBRARY_PATH}"
-#  )
-#endif()
 
 # -- Install
 
@@ -102,7 +94,8 @@ install(
 #  DESTINATION share/${PROJECT_NAME}/config
 #)
 
-install(TARGETS ${PROJECT_NAME}
+install(
+  TARGETS ${PROJECT_NAME}
   EXPORT export_${PROJECT_NAME}
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
@@ -113,12 +106,9 @@ ament_export_libraries(
   ${PROJECT_NAME}
 )
 
-
-
 # Manual test cases
 find_package(GTest REQUIRED)
 find_package(Threads REQUIRED)
-# At the bottom of your CMakeLists.txt
 
 add_executable(test_manual
   ${TEST_KINEMATICS_SOURCE_FILES}
@@ -137,8 +127,13 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME}
 )
 
+ament_export_include_directories(
+  "include/${PROJECT_NAME}"
+)
+ament_export_libraries(
+  ${PROJECT_NAME}
+)
 ament_export_targets(
-  #  ${PROJECT_NAME}Targets
   export_${PROJECT_NAME}
   HAS_LIBRARY_TARGET
 )

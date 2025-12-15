@@ -30,10 +30,10 @@ TODO:
 #include <chrono>
 #include <cmath>
 #include <memory>
-#include <queue>
 #include <string>
 #include <vector>
 
+#include <Eigen/Geometry>
 #include "visibility_control.h"
 #include "controller_interface/controller_interface.hpp"
 #include "geometry_msgs/msg/twist.hpp"
@@ -57,13 +57,18 @@ TODO:
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/collision_detection/collision_common.h>
 
+#include <arm_kinematics/plugin_loader.hpp>
+#include <arm_kinematics/collision/collision_manager.hpp>
+
+#include <realtime_tools/realtime_box.hpp>
+
 // To test in development, run from the root nova_twistmapper dir:
 // generate_parameter_library_cpp include/nova_twistmapper/nova_twistmapper_parameters.hpp src/nova_twistmapper_parameter.yaml
 #include "nova_twistmapper_parameters.hpp"
 
-
 namespace nova_twistmapper
 {
+
 class NovaTwistmapper : public controller_interface::ControllerInterface
 {
 public:
@@ -124,8 +129,8 @@ protected:
    *
    * This will NOT order the joints correctly for MoveIt2.
    */
-  Eigen::Isometry3d integrate_twist(const std::vector<double> &seed_state, const rclcpp::Duration &period,
-                                    const Eigen::Isometry3d &current_target_pose);
+  Eigen::Isometry3f integrate_twist(const std::vector<double> &seed_state, const rclcpp::Duration &period,
+                                    const Eigen::Isometry3f &current_target_pose);
 
   /**
    * @brief Creates an rclcpp::Node to give to the kinematics_sovler_ plugin, as we can't give it an
@@ -211,39 +216,28 @@ protected:
   // Twist input
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_stamped_sub_ = nullptr;
   realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_stamped_ptr_{nullptr};
+
+
   /// The last seen header.frame_id in the twist_stamped_sub_ callback. ONLY ACCESS FROM twist_stamped_sub_!
   std::string last_frame_id_ = "";
 
   /// Result of the twistmapper, and input to IK. Desired position and orientation of the end effector relative to the
   /// base.
-  Eigen::Isometry3d twistmapper_pose_ = Eigen::Isometry3d::Identity();
+  Eigen::Isometry3f twistmapper_pose_ = Eigen::Isometry3f::Identity();
 
   // broadcasting twistmapper
   std::shared_ptr<tf2_ros::TransformBroadcaster> twistmapper_pose_tf_broadcaster_;
 
-  // MoveIt2 Structures
-  /// The URDF model for the arm. Needs to exist for the lifecycle of the kinematics_solver_ and robot_model_.
-  std::shared_ptr<urdf::ModelInterface> urdf_model_;
-  /// The SRDF model for the arm. Needs to exist for the lifecycle of the kinematics_solver_ and robot_model_.
-  std::shared_ptr<srdf::Model> srdf_model_;
-  /// Model of the arm used for kinematics.
-  moveit::core::RobotModelPtr robot_model_;
-  /// Name of the joint group used for kinematics, containing all params_.joint_names (but not necessarily in the same
-  /// order!!!)
-  std::string joint_group_name_;
+  // Kinematics Plugin Structures
+  std::optional<arm_kinematics::PluginLoader> plugin_loader_{};
+
+  arm_kinematics::ForwardKinematicsPlugin::SharedPtr fk_;
+  arm_kinematics::ForwardKinematicsPlugin::Tree::SharedPtr tree_;
+
+  arm_kinematics::InverseKinematicsPlugin::SharedPtr ik_;
 
   // Self intersection check structures
-  /// Structure that allows for intersection checks
-  planning_scene::PlanningScenePtr planning_scene_;
-
-  // Kinematics Plugin Structures
-  /// Compatability node allowing for dependency injection to the MoveIt2 kinematics plugin, as we can't use a
-  /// LifecycleNode for this purpose.
-  rclcpp::Node::SharedPtr kinematics_compat_node_;
-  /// Loads the kinematics_solver_, and needs to stay alive during the whole lifecycle of the kinematics_solver_.
-  std::unique_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase>> kinematics_solver_loader_;
-  /// MoveIt2 plugin for solving forward and inverse kinematics.
-  std::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;
+  arm_kinematics::CollisionManager collision_;
 
   // Timeout to consider cmd_vel commands old
   bool subscriber_is_active_ = false; // not sure what this is for yet
