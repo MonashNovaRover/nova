@@ -46,8 +46,8 @@ class LEDStrip(candevice.CanDevice):
     def set_colour_cb(self, frame:jcan.Frame):
         print(frame.data)
         #pink
-        if len(frame.data)== 0 and frame.id == LedCommand.PINK: 
-            self.colour = self.commandsDict[LedCommand.PINK]
+        if len(frame.data)== 0 and frame.id == LedCommand.PINK.value: 
+            self.colour = self.commandsDict[LedCommand.PINK.value]
         else:
             self.colour = self.commandsDict[frame.id][frame.data[0]]
     
