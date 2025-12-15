@@ -102,5 +102,4 @@ buildRosPackage rec {
     "-DNDEBUG"
     "-DEIGEN_NO_DEBUG"
   ];
-
 }

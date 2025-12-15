@@ -68,6 +68,7 @@ set(TEST_KINEMATICS_SOURCE_FILES
   test/collision/fcl/test_allowed_collision_matrix.cpp
   test/collision/fcl/test_fcl_collision_plugin.cpp
   test/forward/eigen/test_eigen_fk_mapper.cpp
+  test/main.cpp
 )
 #if(NIX_DO_CHECK)
 #  target_link_libraries(test_manual

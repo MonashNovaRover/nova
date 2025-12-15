@@ -634,6 +634,8 @@ TEST_F(FixedJointUrdfTest, StressTest) {
 
   size_t us_total = 0;
 
+  constexpr size_t calculations_per_iteration = 131072;
+
   for (size_t i = 0; i < frame_names_.size(); ++i) {
     const auto & base_name = frame_names_[i];
 
@@ -656,36 +658,21 @@ TEST_F(FixedJointUrdfTest, StressTest) {
     std::cout << "Stress testing from root \"" << base_name << "\"\n";
 
     auto start = Clock::now();
-    for (size_t k = 0; k < 1000000; ++k) {
+    for (size_t k = 0; k < calculations_per_iteration; ++k) {
       tree->position_fk({}, actual);
     }
     auto end   = Clock::now();
     auto dur   = end - start;
 
-    auto us = std::chrono::duration_cast<std::chrono::microseconds>(dur).count();
+    const auto us = std::chrono::duration_cast<std::chrono::microseconds>(dur).count();
     std::cout << "Took " << us << " µs\n\n";
     us_total += us;
   }
 
-  const size_t total_count = 1000000 * frame_names_.size();
+  const size_t total_count = calculations_per_iteration * frame_names_.size();
 
   std::cout << "Average of " << static_cast<long double>(us_total) / static_cast<long double>(total_count) << " µs per FK calculation\n";
-  std::cout << "Average of " << 1e9 * static_cast<long double>(total_count) / static_cast<long double>(us_total) << " hz\n\n";
+  std::cout << "Average of " << 1e6 * static_cast<long double>(total_count) / static_cast<long double>(us_total) << " hz\n\n";
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-
-  rclcpp::InitOptions options;
-  options.auto_initialize_logging(false);
-  options.set_domain_id(222);
-
-  rclcpp::init(argc, argv, options);
-
-  int ret = RUN_ALL_TESTS();
-
-  rclcpp::shutdown();
-  return ret;
-}
 
