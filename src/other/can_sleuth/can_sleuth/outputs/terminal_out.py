@@ -1,7 +1,7 @@
 from . import output
 
 """
-    Output that prints atrributes to the terminal; to use for debugging.
+    Output that prints atrributes to the terminal; to use for debugging so errors aren't hidden.
 """
 
 class TerminalOut(output.Output):
