@@ -18,7 +18,6 @@ from . import output
 class TUI(output.Output):
     """A Terminal User Interface for rendering the state of the system.
     """
-    # TODO: sometimes we crash when the terminal is resized. I think it tries to draw stuff at locations that no longer exist.
     # TODO: need to make sure we don't hide error messages by accident by clearing the screen when we exit
 
     def __init__(self):
@@ -53,16 +52,21 @@ class TUI(output.Output):
         char = None
         for dev in devices:
             win = windows[dev]
+            if win is None:
+                continue # terminal is too small to show this window
 
-            win.box()
-            win.addstr(0,1,f"<{dev.getName()}>")
-            height = 1
-            for attr in dev.attrs:
-                # TODO: proper support for multiline attrs
-                # we limit the string to the width of the box minus the border (-2)
-                win.addnstr(height, 1, f"{attr.name}: {attr.value()}{attr.units}"+" "*attr.width, win.getmaxyx()[1]-2)
-                height += attr.height
-            win.refresh()
+            try:
+                win.box()
+                win.addstr(0,1,f"<{dev.getName()}>")
+                height = 1
+                for attr in dev.attrs:
+                    # TODO: proper support for multiline attrs
+                    # we limit the string to the width of the box minus the border (-2)
+                    win.addnstr(height, 1, f"{attr.name}: {attr.value()}{attr.units}"+" "*attr.width, win.getmaxyx()[1]-2)
+                    height += attr.height
+                win.refresh()
+            except curses.error:
+                continue # window was probably resized
 
         self._stdscr.refresh()
         try:
@@ -97,8 +101,11 @@ class TUI(output.Output):
                 x = nextX
                 y = startHeight
 
-            sub = screen.subpad(height,width, y, x)
-            windows[dev] = sub
+            try:
+                sub = screen.subpad(height,width, y, x)
+                windows[dev] = sub
+            except:
+                windows[dev] = None
             y += height
             nextX = max(nextX, width+x)
         return windows

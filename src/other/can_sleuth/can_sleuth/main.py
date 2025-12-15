@@ -17,7 +17,7 @@ import sys
 if __name__ == "__main__":
     # ensure we can run this from the git tree
     import os
-    sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+    sys.path.insert(0,os.path.join(os.path.dirname(__file__), ".."))
 
 from can_sleuth import manager
 from can_sleuth import systems
