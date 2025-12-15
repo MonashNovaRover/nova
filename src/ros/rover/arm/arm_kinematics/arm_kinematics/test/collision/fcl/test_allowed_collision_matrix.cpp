@@ -1,5 +1,6 @@
+
 #include <gtest/gtest.h>
-#include <arm_kinematics/collision/allowed_collision_matrix.hpp>
+#include "arm_kinematics/collision/allowed_collision_matrix.hpp"
 #include <algorithm>
 
 using arm_kinematics::AllowedCollisionMatrix;

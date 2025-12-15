@@ -7,5 +7,8 @@
   <!-- Inverse -->
 
   <!-- Discrete Collision -->
+  <class name="arm_kinematics/FclCollisionPlugin" type="arm_kinematics::FclCollisionPlugin" base_class_type="arm_kinematics::DiscreteCollisionPlugin">
+    <description>A simple collision implementation using an FCL AABB broad-phase and narrow-phase collision.</description>
+  </class>
 
 </library>

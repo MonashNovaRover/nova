@@ -39,9 +39,9 @@ add_library(${PROJECT_NAME} SHARED
   src/forward/forward_kinematics_plugin.cpp
   src/inverse/inverse_kinematics_plugin.cpp
   src/collision/discrete_collision_plugin.cpp
-  src/collision/fcl/fcl_collision_plugin.cpp
+  src/plugins/collision/fcl/fcl_collision_plugin.cpp
   src/collision/allowed_collision_matrix.cpp
-  src/collision/fcl/geometry_cache.cpp
+  src/plugins/collision/fcl/geometry_cache.cpp
   src/forward/frame_definitions.cpp
   src/forward/utilities/compute_joint_tree.cpp
   src/forward/utilities/compute_frame_tree.cpp

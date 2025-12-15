@@ -2,7 +2,7 @@
 // Created by Bailey Chessum on 15/10/2025.
 //
 
-#include "arm_kinematics/collision/fcl/fcl_collision_plugin.hpp"
+#include "arm_kinematics/plugins/collision/fcl/fcl_collision_plugin.hpp"
 
 #include <fcl/fcl.h>
 
@@ -168,3 +168,7 @@ bool FclCollisionPlugin::on_initialize(
 }
 
 } // arm_kinematics
+
+#include <pluginlib/class_list_macros.hpp>
+
+PLUGINLIB_EXPORT_CLASS(arm_kinematics::FclCollisionPlugin, arm_kinematics::DiscreteCollisionPlugin)

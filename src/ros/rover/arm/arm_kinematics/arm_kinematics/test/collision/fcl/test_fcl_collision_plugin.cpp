@@ -16,7 +16,7 @@
 #include "arm_kinematics/utilities/reordered.hpp"
 #include "arm_kinematics/collision/collision_manager.hpp"
 #include "arm_kinematics/collision/discrete_collision_plugin.hpp"
-#include "arm_kinematics/collision/fcl/fcl_collision_plugin.hpp"
+#include "arm_kinematics/plugins/collision/fcl/fcl_collision_plugin.hpp"
 #include "arm_kinematics/collision/collider_definitions.hpp"
 
 using arm_kinematics::ComputeFrameTree;

@@ -10,7 +10,7 @@
 
 #include "arm_kinematics/visibility_control.h"
 #include "arm_kinematics/collision/discrete_collision_plugin.hpp"
-#include "arm_kinematics/collision/fcl/geometry_cache.hpp"
+#include "geometry_cache.hpp"
 
 namespace arm_kinematics {
 
