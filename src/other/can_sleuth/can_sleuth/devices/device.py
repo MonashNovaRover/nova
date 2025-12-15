@@ -32,7 +32,7 @@ class Device(abc.ABC):
         units: str = ""
 
     class SimpleBytesAttribute(Attribute):
-        def __init__(self, bytesFmt, name, toHumanReadable, units):
+        def __init__(self, name, bytesFmt, units, toHumanReadable):
             """Helper for making attributes where the data is in a binary format, unpacked and then converted to human units.
 
             bytesFmt: str, the meaning of these is explained here https://docs.python.org/3/library/struct.html#format-strings
@@ -47,12 +47,15 @@ class Device(abc.ABC):
 
             self._byteLength = struct.calcsize(self._bytesFmt)
 
-            self._bytesValue: bytes = bytes(self._byteLength)
-            self._unpackedValue: int = 0
+            self.updateBytesValue(bytes(self._byteLength)) # all zeros
 
             exampleOutput = self._getValue()
-            outputHeight = len(exampleOutput) # how many lines of text
-            outputWidth = max(map(len, exampleOutput)) # widest line of text
+            if isinstance(exampleOutput, str):
+                outputHeight = 1
+                outputWidth = len(exampleOutput)
+            else:
+                outputHeight = len(exampleOutput) # how many lines of text
+                outputWidth = max(map(len, exampleOutput)) # widest line of text
 
             self._bytesValue: bytes = None
             self._unpackedValue: int = None

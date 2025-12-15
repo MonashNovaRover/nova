@@ -18,7 +18,7 @@ from typing import List
 from . import device
 
 class CanDevice(device.Device):
-    def __init__(self, name, interface, canIdList=None, canIdMask=None, canIdMatch=None):
+    def __init__(self, name, interface, canIdList=None, canIdMask=None, canIdMatch=None, telemetry={}):
         """Create the can device
 
         :param name: display name
@@ -33,6 +33,11 @@ class CanDevice(device.Device):
         Using a mask:
         :param canIdMask: bitmask for the CAN IDs you want to register callbacks for
         :param canIdMatch: what you want to match
+
+        :param telemetry: dictionary of canIdNumber: (name, fmt, units, toReadable or None).
+        fmt is for struct.unpack, units is str, toReadable is function that takes
+        the output of struct.unpack and makes it human readable or none if you just
+        want raw hex to be displayed.
         """
 
         super().__init__(name)
@@ -44,6 +49,16 @@ class CanDevice(device.Device):
             self.bus.set_id_filter_mask(canIdMatch, canIdMask)
 
         self.bus.open(interface)
+
+        for telemIdNumber in telemetry:
+            fields = []
+            for name, fmt, units, toReadable in telemetry[telemIdNumber]:
+                fields.append(self.SimpleBytesAttribute(name, fmt, units, toReadable))
+
+            # I can still hear my FIT2099 TA telling me off
+            CanDevice.SimpleCANMessageHandler(
+                    self, telemIdNumber, fields
+                    )
 
     class SimpleCANMessageHandler():
         """Helper for processing telemetry messages from can devices

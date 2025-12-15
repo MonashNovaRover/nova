@@ -25,12 +25,12 @@ def taipan_spherical(interface="can1", emulate=False):
     """The Taipan Arm Payload with its exciting four bar linkage and spherical wrist.
     """
     devices = [
-            blcmd.BLCMD(f"J{x}", x, interface) for x in range(1,6+1)
+            blcmd.BLCMD(f"J{x}", x, interface, multiturn=True) for x in range(1,6+1)
             ]
 
     if emulate:
         devices += [
-            blcmd_emulator.BLCMDEmulator(f"J{x}", x, interface) for x in range(1,6+1)
+            blcmd_emulator.BLCMDEmulator(f"J{x}", x, interface, multiturn=True) for x in range(1,6+1)
             ]
 
     return devices

@@ -41,9 +41,9 @@ class BatteryEmulator(candevice.CanDevice):
     def update(self):
         self.state = (self.state+1)%100
 
-        for telemId in battery.Battery.telemetry:
+        for telemId in battery.Battery.telemetry(None, self.id):
             bytes_ = b''
-            for i, (name, fmt, units, toReadable) in enumerate(battery.Battery.telemetry[telemId]):
+            for i, (name, fmt, units, toReadable) in enumerate(battery.Battery.telemetry(None,self.id)[telemId]):
                 # create some values that vary over time
                 val = (10+i*100+(self.state*i))
                 bytes_ += struct.pack(fmt, val)
