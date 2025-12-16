@@ -8,40 +8,31 @@ export const HomePage = (props: HomePageProps) => {
 
   const navigationData = props.navigationData
 
-  const currentPath = location.pathname;
-
   return (
-    <div className="flex justify-evenly items-center h-screen">
+    <div className="flex justify-center items-center h-screen gap-5">
       {Object.keys(navigationData).map((item) => {
         return (
           // TEMP: className values setting width and height in card are temporary!!
           <Card key={item} className="w-[400px] h-[400px]">
-            <CardHeader className="flex gap-3">
+            <CardHeader className="flex gap-3 justify-center">
               <div className="text-sm font-light">{item}</div>
             </CardHeader>
             <Divider />
             <CardBody>
               <div className="flex flex-col gap-2 mt-2">
                 {navigationData[item].map((mode) => {
-                  const isCurrentSelected = currentPath === mode.route;
                   return (
                     <Button
                       onPress={() => navigate(mode.route)}
                       size="md"
-                      variant={isCurrentSelected ? "solid" : "light"}
-                      color={isCurrentSelected ? "primary" : "default"}
+                      variant="bordered"
+                      color="default"
                       fullWidth
                       className="pl-3"
                       key={mode.route}
+                      startContent={mode.icon}
                     >
-                      <div
-                        className={`w-full flex flex-row justify-start gap-3 items-center m-0 ${
-                          !isCurrentSelected && "text-gray-400"
-                        }`}
-                      >
-                        <div>{mode.icon}</div>
-                        <div>{mode.title}</div>
-                      </div>
+                        {mode.title}
                     </Button>
                   );
                 })}
