@@ -23,7 +23,6 @@ import rclpy
 from rclpy.node import Node, ParameterDescriptor
 from sensor_msgs.msg import BatteryState
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
-from python_control2.hardware_interfaces import CMDHardware
 import math
 import jcan
 
@@ -70,10 +69,10 @@ class BatteryStateHardware(HardwareInterface):
 
         self.voltage = float('nan')
         self.current = float('nan')
-        self.declare_parameter(CANID_PARAM, 0x4B2)
+        self.declare_parameter(self.CANID_PARAM, 0x4B2)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
-        can_id = self.get_parameter(CANID_PARAM).value
+        can_id = self.get_parameter(self.CANID_PARAM).value
         self.logger.info(f"Checking {can_id:X}")
         self.voltage_state = state_interfaces["battery/voltage"]
         self.current_state = state_interfaces["battery/current"]
