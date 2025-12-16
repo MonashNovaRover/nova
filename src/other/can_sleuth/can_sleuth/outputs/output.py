@@ -26,3 +26,11 @@ class Output(abc.ABC):
         :param devices: all the devices in the system
         """
         pass
+
+    def cleanup(self):
+        """Close your output's windows/restore the terminal to normal etc
+
+        """
+        pass
+
+
