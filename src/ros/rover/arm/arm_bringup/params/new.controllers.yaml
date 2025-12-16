@@ -53,9 +53,11 @@ arm:
     
   nova_end_effector_velocity_controller:
     ros__parameters:
-      topic: "/arm/end_effector_velocity_command"
+      topic: "/arm/joint_velocity_command"
       joint_names:
         - actuator_head
+        - left_slide
+        - right_slide
       use_position_control: false
       use_limits: true
 

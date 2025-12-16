@@ -22,6 +22,7 @@ teleop_arm:
       names:
         - joint_space_mode
         - task_space_mode
+        - end_effector_mode
 
       joint_space_mode:
         display_name: "Joint Space"
@@ -29,7 +30,6 @@ teleop_arm:
         active: true
         controllers:
           - nova_arm_velocity_controller
-          - nova_end_effector_velocity_controller
 
       task_space_mode:
         display_name: "Task Space (IK)"
@@ -38,31 +38,38 @@ teleop_arm:
           - "nova_twistmapper"
           - "nova_arm_position_controller"
 
+      end_effector_mode:
+        type: "joint_space_control_mode/JointSpaceControlMode"
+        controllers:
+          - nova_end_effector_velocity_controller
+
     commands:
       names:
         - enter_task_space
-        - enter_joint_space
         - lock
         - unlock
         - log_locked
         - log_unlocked
+        - enter_joint_space_from_task_space
+        - enter_joint_space_from_end_effector_mode
+        - enter_end_effector_mode
 
       enter_task_space:
         on: "task_space/down"
         type: switch_control_mode
-        activate:
-          - "task_space_mode"
-        deactivate:
-          - "joint_space_mode"
-      enter_joint_space:
-        on_any:
-          - "task_space/up"
+        to: task_space_mode
+      enter_joint_space_from_task_space:
+        on: "task_space/up"
         type: switch_control_mode
-        activate:
-          - "joint_space_mode"
-        deactivate:
-          - "task_space_mode"
-
+        to: joint_space_mode
+      enter_end_effector_mode:
+        on: "end_effector_mode/down"
+        type: switch_control_mode
+        to: end_effector_mode
+      enter_joint_space_from_end_effector_mode:
+        on: "end_effector_mode/up"
+        type: switch_control_mode
+        to: end_effector_mode
       lock:
         on_any:
           - "lock/down"
@@ -84,6 +91,29 @@ teleop_arm:
         type: log
         message: "Unlocked"
 
+end_effector_mode:
+  ros__parameters:
+    topic: "/arm/joint_velocity_command"
+    use_speed_input: true
+
+    joint_definitions:
+      - actuator_head
+      - left_slide
+      - right_slide
+
+    joints:
+      actuator_head:
+        name: "actuator_head"
+        input_name: "actuator_head"
+        scale: 0.36
+      left_slide:
+        name: "left_slide"
+        input_name: "left_slide"
+        scale: 0.36
+      right_slide:
+        name: "right_slide"
+        input_name: "right_slide"
+        scale: 0.36
 
 joint_space_mode:
   ros__parameters:
@@ -91,23 +121,12 @@ joint_space_mode:
     use_speed_input: true
 
     joint_definitions:
-<<<<<<< HEAD
       - "j1"
       - "j2"
       - "j3"
       - "j4"
       - "j5"
       - "j6"
-=======
-      - j1
-      - j2
-      - j3
-      - j4
-      - j5
-      - j6
-      - actuator_head
->>>>>>> eb04a461 (wip: teleop joint space mode left stick control)
-
     joints:
       j1:
         name: "J1"
@@ -133,11 +152,6 @@ joint_space_mode:
         name: "J6"
         input_name: "j6"
         scale: 0.36
-      actuator_head:
-        name: "actuator_head"
-        input_name: "actuator_head"
-        scale: 0.36
-
 
 task_space_mode:
   ros__parameters:
@@ -235,6 +249,18 @@ joy_input_source:
         actuator_head:
           from: LEFTY
 
+        # End effector mode
+        actuator_head:
+          from: LEFTY
+        left_slide:
+          from_buttons:
+            positive: "Y"
+            negative: "A"
+        right_slide:
+          from_buttons:
+            positive: "X"
+            negative: "B"
+
         # Task space
         linear:
           x:
@@ -266,4 +292,10 @@ joy_input_source:
         unlock:
           from: "START"
         task_space:
+<<<<<<< HEAD
           from: "LEFTSHOULDER"
+=======
+          from: LEFTSHOULDER
+        end_effector_mode:
+          from: RIGHTSHOULDER
+>>>>>>> 1ef1063b (fix: renamed joints to be consistent with preexisting urdf)
