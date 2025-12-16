@@ -1,9 +1,9 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useEffect } from "react";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../../ros/services/rosService.ts";
 import OverlayedCameraComponent from "./OverlayedCameraComponent.tsx";
 import { BaseCameraComponentProps } from "../CameraComponent.tsx";
-import { Input, Tooltip } from "@nextui-org/react";
+import { Input, Tooltip, Switch } from "@nextui-org/react";
 import { useGenericStore } from "../../../../hooks/useGenericStore.ts";
 
 export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> = (props) => {
@@ -28,11 +28,14 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
     responseToast: false
   }), [serviceBifrost]);
 
-
+  
   let clickAndHoldInterval: ReturnType<typeof setInterval>;
+  const [clickAndHoldEnabled, setClickAndHoldEnabled] = React.useState(false);
+  const [windowWideWASD, setWindowWideWASD] = React.useState(false);
 
   // Handle click and hold movement
   const handleClickandHoldDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!clickAndHoldEnabled) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -58,7 +61,7 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
     clearInterval(clickAndHoldInterval)
   }
 
-  // WASD Controls
+  // WASD Controls Component Wide
   const handleInput = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     switch (e.key.toLowerCase()) {
       case 'a': incrementPan(-stepNumber); break;
@@ -67,6 +70,33 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
       case 's': incrementTilt(stepNumber); break;
     }
   }, [incrementPan, incrementTilt, stepNumber])
+
+  useEffect(() => {
+    if(!windowWideWASD) return;
+
+    const handleKey = (e: KeyboardEvent) => {
+    switch (e.key.toLowerCase()) {
+      case 'a':
+        incrementPan(-stepNumber); //negative pan is left
+        break;
+      case 'd':
+        incrementPan(stepNumber);//positive pan is right
+        break;
+      case 'w':
+        incrementTilt(-stepNumber);//negative tilt is up
+        break;
+      case 's':
+        incrementTilt(stepNumber);//positive tilt is down
+        break;
+      default:
+        break;
+    }
+  };
+  
+   
+    window.addEventListener('keyup', handleKey);
+  return () => window.removeEventListener('keyup', handleKey);
+  }, [incrementPan, incrementTilt, stepNumber, windowWideWASD]);
 
 
   const stepSizeInput = (
@@ -87,28 +117,42 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
           onValueChange={setStep}
         />
       </Tooltip>
+      <Switch
+        size="sm"
+        isSelected={clickAndHoldEnabled}
+        onValueChange={setClickAndHoldEnabled}
+      >
+        Enable Click & Hold
+      </Switch>
+      <Switch
+      size="sm"
+      isSelected={windowWideWASD}
+      onValueChange={setWindowWideWASD}
+    >
+      Enable Window Wide WASD
+    </Switch>
     </>
   )
 
   return (
     <div
       tabIndex={0}
-      onKeyDown={handleInput}
+      onKeyDown={windowWideWASD ? undefined : handleInput}
       onMouseDown={handleClickandHoldDown}
-          onMouseUp={handleClickandHoldRelease}
-          onMouseLeave={handleClickandHoldRelease}
-      
+      onMouseUp={handleClickandHoldRelease}
+      onMouseLeave={handleClickandHoldRelease}
+
     >
       <OverlayedCameraComponent
         {...props}
-        overlay={<div 
-          
+        overlay={<div
+
           onMouseDown={(e) => e.stopPropagation()}
-    onMouseUp={(e) => e.stopPropagation()}
-    onMouseLeave={(e) => e.stopPropagation()}
+          onMouseUp={(e) => e.stopPropagation()}
+          onMouseLeave={(e) => e.stopPropagation()}
         />}
         settingsFormChildren={stepSizeInput}
-        
+
       />
     </div>
   );
