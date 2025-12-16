@@ -6,6 +6,11 @@ that allows their state to be presented is a readable/useful manner.
 You can either run `main.py` directly, or from the nova workspace shell, run
 `can_sleuth`.
 
+To build and run just can_sleuth instead of the whole workspace:
+```
+nova-build -A pkgs.python3Packages.nova-can-sleuth -o /tmp/can_sleuth
+/tmp/can_sleuth/bin/can_sleuth --help
+
 ```
 $ ./main.py --help
 usage: ./main.py [[-e | --emulate] [{-i | --interface} INTERFACE ] PAYLOAD]
@@ -28,6 +33,7 @@ Helper functions for creating all the devices in real systems/payloads are in
 
 Output
 - Terminal Curses TUI
+- Graphical Qt
 - CSV (just an idea)
 - json (just an idea)
 
