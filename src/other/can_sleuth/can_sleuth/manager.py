@@ -10,8 +10,6 @@ EDITED BY: Orlando Chamberlain
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 import time
-
-from can_sleuth.outputs import tui, terminal_out
 from can_sleuth.devices import meta
 from can_sleuth.outputs import default_output
 
