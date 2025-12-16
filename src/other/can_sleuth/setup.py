@@ -20,7 +20,8 @@ setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        'jcan'
+        'jcan',
+        'pyside6'
         ],
     python_requires='>=3.10',
     scripts=["scripts/can_sleuth"],
