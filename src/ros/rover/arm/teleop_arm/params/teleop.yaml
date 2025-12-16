@@ -105,15 +105,15 @@ end_effector_mode:
       actuator_head:
         name: "actuator_head"
         input_name: "actuator_head"
-        scale: 0.36
+        scale: 0.1
       left_slide:
         name: "left_slide"
         input_name: "left_slide"
-        scale: 0.36
+        scale: 0.1
       right_slide:
         name: "right_slide"
         input_name: "right_slide"
-        scale: 0.36
+        scale: 0.1
 
 joint_space_mode:
   ros__parameters:
