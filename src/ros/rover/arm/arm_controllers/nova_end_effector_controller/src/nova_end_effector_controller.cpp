@@ -21,7 +21,7 @@ namespace nova_end_effector_controller {
     void NovaEndEffectorController::get_joint_states(trajectory_msgs::msg::JointTrajectoryPoint &current) {
         current.positions.resize(params_.joint_names.size());
         current.velocities.resize(params_.joint_names.size());
-
+        
         for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
         {
             const auto& joint_handle = registered_joint_handles_[i];
@@ -44,6 +44,7 @@ namespace nova_end_effector_controller {
         std::vector<JointHandle> &registered_handles)
     {
         RCLCPP_INFO(get_node()->get_logger(), "Configure joints");
+
 
         auto logger = get_node()->get_logger();
 
@@ -373,6 +374,10 @@ namespace nova_end_effector_controller {
         }
 
         auto velocities = std::map<std::string, double>();
+        for (unsigned int i = 0; i < last_msg->name.size(); ++i) {
+            velocities[last_msg->name[i]] = last_msg->velocity[i];
+        }
+
         for (unsigned int i = 0; i < params_.joint_names.size(); i++) {
             const auto& joint_name = params_.joint_names[i];
 

@@ -69,7 +69,7 @@ teleop_arm:
       enter_joint_space_from_end_effector_mode:
         on: "end_effector_mode/up"
         type: switch_control_mode
-        to: end_effector_mode
+        to: joint_space_mode
       lock:
         on_any:
           - "lock/down"
@@ -93,8 +93,8 @@ teleop_arm:
 
 end_effector_mode:
   ros__parameters:
-    topic: "/arm/joint_velocity_command"
-    use_speed_input: true
+    topic: "/arm/end_effector_joint_velocity_command"
+    use_speed_input: false
 
     joint_definitions:
       - actuator_head
@@ -246,8 +246,6 @@ joy_input_source:
           from_buttons:
             positive: "X"
             negative: "B"
-        actuator_head:
-          from: LEFTY
 
         # End effector mode
         actuator_head:
