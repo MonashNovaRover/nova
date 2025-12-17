@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardHeader, Divider } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
 import { HomePageProps } from "../../../views/shared/HomePageView";
 

@@ -36,6 +36,23 @@ export const compNavigationData: NavigationInterface = {
       route: "/test",
       icon: <Terminal />
     }
+  ],
+  ["Cameras"]: [
+    {
+      title: "ARC Cameras",
+      route: "/arc/cameras",
+      icon: <Camera />
+    },
+    {
+      title: "URC Cameras",
+      route: "/urc/cameras",
+      icon: <Camera />
+    },
+    {
+      title: "General Cameras",
+      route: "/general/cameras",
+      icon: <Camera />
+    }
   ]
 }
 
