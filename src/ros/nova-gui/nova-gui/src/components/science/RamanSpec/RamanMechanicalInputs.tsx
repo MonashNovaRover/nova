@@ -7,7 +7,7 @@
 import { Button, Card, CardHeader, Input, Modal, ModalBody, ModalContent, ModalHeader, useDisclosure, Tabs, Tab, Avatar } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 import { HelpCircle } from "react-feather";
-import { IRosNovaInterfacesRamanMechRequest } from "../../../ros/rosTypes.ts";
+import { IRosScienceInterfacesRamanMechRequest } from "../../../ros/rosTypes.ts";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
 import { RosService } from "../../../ros/services/rosService.ts";
@@ -23,7 +23,7 @@ const RamanMechanicalInputs: React.FC = () => {
     // service bifrost
     const ramanMechRequest = useSelector((state: RootState) => state.ramanMechServiceStore);
     const inputBifrost = useBifrost({ service: RosService.CALL_RAMAN_MECH });
-    const sendRamanMechRequest = (request: IRosNovaInterfacesRamanMechRequest) => inputBifrost.callService(request, { sendToRedux: true });
+    const sendRamanMechRequest = (request: IRosScienceInterfacesRamanMechRequest) => inputBifrost.callService(request, { sendToRedux: true });
 
     // topic bifrost
     const ramanMechState = useSelector((state: RootState) => state.ramanMechMessageStore);

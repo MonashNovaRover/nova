@@ -71,6 +71,7 @@
 , nova-git-metadata
 , nova-legacy-input-mode ? throw "nova-joint-space-control-mode is need, but not available!"
 , nova-teleop-science ? throw "nova-teleop-science is needed, but not available!"
+, nova-science-interfaces ? throw "nova-science-interfaces is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -132,6 +133,7 @@
       nova-git-metadata
       nova-legacy-input-mode
       nova-teleop-science
+      nova-science-interfaces
       ;
     nova-can-sleuth = pythonPackages.nova-can-sleuth;
   }

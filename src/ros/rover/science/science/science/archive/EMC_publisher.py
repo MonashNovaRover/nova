@@ -28,7 +28,7 @@ from rclpy.node import Node
 from pathlib import Path
 from datetime import datetime
 
-from nova_interfaces.msg import EMCData 
+from science_interfaces.msg import EMCData
     
 # The ID for the CAN frame for the EMC sensor module
 EMC_CAN_ID = 0x009

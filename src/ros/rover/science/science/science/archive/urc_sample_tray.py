@@ -8,7 +8,7 @@ from python_control.ControllerNode import ControllerNode
 import rclpy
 from rclpy.action import ActionServer
 from rclpy.executors import MultiThreadedExecutor
-from nova_interfaces.action import Stepper
+from science_interfaces.action import Stepper
 
 
 def meters_to_steps(distance_m, ticks_per_rev, lead_screw_thread_pitch_m):

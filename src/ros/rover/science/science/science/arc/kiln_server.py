@@ -24,8 +24,8 @@ import rclpy
 from rclpy.node import Node
 import jcan
 
-from nova_interfaces.msg import KilnData
-from nova_interfaces.srv import KilnCommand
+from science_interfaces.msg import KilnData
+from science_interfaces.srv import KilnCommand
 
 
 class KilnServer(Node):

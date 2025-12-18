@@ -11,6 +11,7 @@
 , nova-cmd-interfaces
 , nova-interfaces
 , nova-camera-msgs
+, nova-science-interfaces
 }:
 
 let
@@ -24,6 +25,7 @@ let
     nova-cmd-interfaces
     nova-interfaces
     nova-camera-msgs
+    nova-science-interfaces
   ];
 in
 mkYarnPackage {
