@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
 import {Card, CardBody, CardHeader, CardProps, Tab, Tabs} from "@nextui-org/react";
-import {IRosNovaInterfacesCacheCommandResponse} from "../../../ros/rosTypes.ts";
+import {IRosScienceInterfacesCacheCommandResponse} from "../../../ros/rosTypes.ts";
 
 export interface CacheControlWidgetProps extends CardProps {
   label?: string
@@ -20,7 +20,7 @@ const CacheControlWidget: React.FC<CacheControlWidgetProps> = (props) => {
   const onSelectionChange = (key: number | string) => {
     bifrost.callService({angle: Number(key)}, {
       handleResponse: (response) => {
-        const boolResponse = response as IRosNovaInterfacesCacheCommandResponse;
+        const boolResponse = response as IRosScienceInterfacesCacheCommandResponse;
         if (boolResponse?.success) {
           setSelected(Number(key));
         }

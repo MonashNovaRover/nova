@@ -8,7 +8,7 @@
 , geometry-msgs
 , nav-msgs
 , trajectory-msgs
-, nova-interfaces
+, nova-science-interfaces
 , nova-input-interfaces
 , nova-python-control
 , nova-camera-msgs
@@ -28,7 +28,7 @@ buildRosPackage {
 
   nativeBuildInputs = [ ament-cmake ];
 
-  buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs trajectory-msgs nova-interfaces ];
+  buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs trajectory-msgs ];
 
   propagatedBuildInputs = with pythonPackages; [
     jcan
@@ -45,14 +45,6 @@ buildRosPackage {
     nova-input-interfaces
     nova-camera-msgs
     teleop-modular-python-utils
+    nova-science-interfaces
   ];
 }
-
-/*
-nix-shell -p 'with import /home/nova/nova/nixfiles { }; pkgs.ros.nova-workspace.override {
-	novaPackages = {
-		inherit (pkgs.ros)
-		nova-science
-	};
-}'
-*/

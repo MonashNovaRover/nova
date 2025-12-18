@@ -20,7 +20,7 @@ EDITED:		09/03/2025
 import rclpy
 from enum import Enum
 
-from nova_interfaces.srv import MoveScimbalCam
+from science_interfaces.srv import MoveScimbalCam
 from python_control.ControllerNode import ControllerNode
 from python_control.controls.ContinuousOneAxisPositionControl import ContinuousOneAxisPositionControl
 from python_control.controllers.JonoPositionController import JonoPositionController

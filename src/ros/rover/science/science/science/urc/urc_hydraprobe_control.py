@@ -25,7 +25,7 @@ from input_interfaces.msg import InputJoystick
 from python_control.JoystickControllerNode import JoystickControllerNode
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 from python_control.controllers.JonoVelocityController import JonoVelocityController
-from nova_interfaces.srv import MoveHydraprobe
+from science_interfaces.srv import MoveHydraprobe
 
 class HydraprobeControlNode(JoystickControllerNode):
     # CAN BUS NAME

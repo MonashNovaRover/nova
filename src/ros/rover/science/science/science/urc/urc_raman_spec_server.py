@@ -29,8 +29,8 @@ import logging
 import rclpy
 from rclpy.node import Node
 
-from nova_interfaces.msg import RamanSpectrum
-from nova_interfaces.srv import RamanSpec
+from science_interfaces.msg import RamanSpectrum
+from science_interfaces.srv import RamanSpec
 
 import numpy as np
 from serial import Serial, SerialException

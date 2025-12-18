@@ -5,7 +5,7 @@ import {RootState} from "../../../redux/RootState.ts";
 import {useSelector} from "react-redux";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
-import {IRosNovaInterfacesMoveHydraprobeRequestConst} from "../../../ros/rosTypes.ts";
+import {IRosScienceInterfacesMoveHydraprobeRequestConst} from "../../../ros/rosTypes.ts";
 import SensorDataDisplay from "../SensorDataDisplay.tsx";
 
 export interface IHydroprobeProps extends CardProps {}
@@ -14,7 +14,7 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
   props: IHydroprobeProps
 ) => {
   const bifrost = useBifrost({ topic: RosTopic.HYDRAPROBE_DATA, service: RosService.HYDRAPROBE_COMMAND });
-  const moveHydraprobe = (command: IRosNovaInterfacesMoveHydraprobeRequestConst) => {
+  const moveHydraprobe = (command: IRosScienceInterfacesMoveHydraprobeRequestConst) => {
     console.log("moving hydraprobe")
     bifrost.callService({command: command})
   };
@@ -57,9 +57,9 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
         suffixes={["°C", "%", "mS/cm", ""]}
       />
       <div className="grid grid-cols-3 gap-4">
-        <Button onClick={() => moveHydraprobe(IRosNovaInterfacesMoveHydraprobeRequestConst.RESET)}>Reset</Button>
-        <Button onClick={() => moveHydraprobe(IRosNovaInterfacesMoveHydraprobeRequestConst.DEPLOY)}>Deploy</Button>
-        <Button onClick={() => moveHydraprobe(IRosNovaInterfacesMoveHydraprobeRequestConst.RETRACT)}>Retract</Button>
+        <Button onClick={() => moveHydraprobe(IRosScienceInterfacesMoveHydraprobeRequestConst.RESET)}>Reset</Button>
+        <Button onClick={() => moveHydraprobe(IRosScienceInterfacesMoveHydraprobeRequestConst.DEPLOY)}>Deploy</Button>
+        <Button onClick={() => moveHydraprobe(IRosScienceInterfacesMoveHydraprobeRequestConst.RETRACT)}>Retract</Button>
       </div>
       <Button onPress={requestReading} color="primary">
         Request New Reading

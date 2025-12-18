@@ -11,7 +11,7 @@ import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../ros/services/rosService.ts";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
-import { IRosNovaInterfacesRamanSpecRequest } from "../../../ros/rosTypes.ts";
+import { IRosScienceInterfacesRamanSpecRequest } from "../../../ros/rosTypes.ts";
 
 
 function checkPeriods(shPeriod: number, icgPeriod: number) {
@@ -38,7 +38,7 @@ const RamanCCDInputs: React.FC = () => {
     
     const bifrost = useBifrost({ service: RosService.CALL_RAMAN_SPEC });
 
-    const sendRamanRequest = (request: IRosNovaInterfacesRamanSpecRequest) => bifrost.callService(request, { sendToRedux: true });
+    const sendRamanRequest = (request: IRosScienceInterfacesRamanSpecRequest) => bifrost.callService(request, { sendToRedux: true });
 
     useEffect(() => {
         bifrost.syncWithTopic();
