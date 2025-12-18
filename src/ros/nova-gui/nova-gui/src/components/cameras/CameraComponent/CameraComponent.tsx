@@ -38,7 +38,7 @@ export interface CameraComponentProps extends BaseCameraComponentProps {
   settingsFormChildren?: ReactNode
 
   // Camera video component to pass in
-  cameraVideoComponent?: React.FC<CameraVideoProps>
+  cameraVideoComponent?: (props: CameraVideoProps) => React.ReactNode
 
   // Called when the streaming state changes
   onStreamingStateChange?: (s: StreamingState) => void
