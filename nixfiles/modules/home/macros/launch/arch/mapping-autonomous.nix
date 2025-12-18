@@ -11,7 +11,12 @@ let
   one = {
     pre = pre-shell {payload-name=task-name + " one"; need-rover=true;};
     terminals = [
-      {name = "Base:Rviz"; platform=base; cmd="ros2 launch auto_bringup rviz.launch.py";}
+      {name = "Base:Rviz"; platform=base; cmd="./ros2 launch auto_bringup rviz.launch.py";}
+      {name = "Rover:Cameras"; platform=rover; cmd="./ros2 launch auto_bringup camera.launch.py";}
+      # we need to add a ros node that listens for the camera topics before exiting, 
+      # i know chetan made something like this so that we can chain it into rtabmap launch
+      # double note: doesn't have to be on the same device and we will use good ol sleep commands for now
+      {name = "Rover:RTABMAP"; platform=rover; cmd="echo wait for camera launch; sleep 20; ./ros2 launch auto_bringup ros2 launch auto_bringup rtabmap.launch.py";}
     ];
     post = post-shell;
   };
@@ -19,8 +24,10 @@ let
   two = {
     pre = pre-shell {payload-name=task-name + " two"; need-rover=true; };
     terminals = [
-      {name="Base:Teleop"; platform=base; cmd="ros2 launch teleop_drive_joy teleop.launch.py";}
-      {name = "Rover:Drive"; platform=rover; cmd="launch-drive";}
+      {name="Base:Teleop"; platform=base; cmd="./ros2 launch teleop_drive_joy teleop.launch.py";} # this is just in case operator needs to take over
+      {name = "Rover:Drive"; platform=rover; cmd="./ros2 launch drive_bringup drive.launch.py auto:=True";}
+      {name = "Rover:Localization"; platform=rover; cmd="./ros2 launch auto_bringup localization.launch.py";}
+      {name = "Rover:Nav2"; platform=rover; cmd="./ros2 launch auto_bringup navigation.launch.py";}
     ];
     post = post-shell;
   };
