@@ -1,6 +1,8 @@
 import { Button } from "@nextui-org/react";
-import { RadioStatusModal } from "./RadioStatusModal.tsx";
+import { useState } from "react";
 import { Radio } from "react-feather";
+
+import { RadioStatusModal } from "./RadioStatusModal.tsx";
 import { useUIActions } from "../../../redux/actions/useUIActions.ts";
 import { useRadioMonitor } from "./hooks/useRadioMonitor.ts";
 import { RadioConnectionStatus } from "./RadioTypes.ts";
@@ -15,9 +17,10 @@ const radioConnectionStatusColor: {
 };
 
 export function RadioStatusButton() {
-
+  
   const uiActions = useUIActions();
-  const radioHealth = useRadioMonitor();
+  const [rosTimeout, setRosTimeout] = useState(10000);
+  const radioHealth = useRadioMonitor(rosTimeout);
 
   return (
     <div>
@@ -30,9 +33,13 @@ export function RadioStatusButton() {
         onPress={() => uiActions.setRadioStatusModalOpen(true)}
       >
         <Radio className="w-4 h-4" />
-        {radioHealth.toString()}
+        {radioHealth}
       </Button>
-      <RadioStatusModal />
+
+      <RadioStatusModal
+        rosTimeout={rosTimeout}
+        setRosTimeout={setRosTimeout}
+      />
     </div>
   );
 }

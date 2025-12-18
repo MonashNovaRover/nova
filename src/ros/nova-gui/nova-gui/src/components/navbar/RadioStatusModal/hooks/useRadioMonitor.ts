@@ -12,8 +12,8 @@ const SIGNAL_WEAK = -85;
 const PING_FAILED = 9999;
 const MONITOR_TIMEOUT = 10000;
 
-export function useRadioMonitor(): RadioConnectionStatus {
-
+export function useRadioMonitor(monitorTimeout: number = MONITOR_TIMEOUT): RadioConnectionStatus {
+  
   const bifrost = useBifrost({ topic: RosTopic.RADIO_STATUS });
   useEffect(() => {
     bifrost.syncWithTopic();
@@ -53,13 +53,13 @@ export function useRadioMonitor(): RadioConnectionStatus {
   // Check whether monitor is still publishing data 
   useEffect(() => {
     const id = setTimeout(() => {
-      if (updateTime && Date.now() - updateTime > MONITOR_TIMEOUT) {
+      if (updateTime && Date.now() - updateTime > monitorTimeout) {
         setHealth(RadioConnectionStatus.ERROR);
       }
-    }, MONITOR_TIMEOUT);
+    }, monitorTimeout);
 
     return () => clearTimeout(id);
-  }, [updateTime]);
+  }, [updateTime, monitorTimeout]);
 
   return health;
 }
