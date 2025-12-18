@@ -4,6 +4,26 @@ holonomic_drive_controller:
     default_value: false
     description: "Enable use of infinitely rotating pivots"
 
+  front_left_pivot_angle_limits:
+    type: double_array
+    default_value: [-0.8652479375127697, 2.2763447160770234] # [-PI/4, 3 * PI/4] radians
+    description: "lower and upper limits on the front left pivot angle (ignored if infinitely_rotating_pivots is true)"
+
+  front_right_pivot_angle_limits:
+    type: double_array
+    default_value: [-2.2763447160770234,  0.8652479375127697] # [-3 * PI/4, PI/4] radians
+    description: "lower and upper limits on the front right pivot angle (ignored if infinitely_rotating_pivots is true)"
+
+  back_left_pivot_angle_limits:
+    type: double_array
+    default_value: [-2.2763447160770234, 0.8652479375127697] # [-3 * PI/4, PI/4] radians
+    description: "lower and upper limits on the back left pivot angle (ignored if infinitely_rotating_pivots is true)"
+
+  back_right_pivot_angle_limits:
+    type: double_array
+    default_value: [-0.8652479375127697, 2.2763447160770234] # [-PI/4, 3 * PI/4] radians
+    description: "lower and upper limits on the back right pivot angle (ignored if infinitely_rotating_pivots is true)"
+
   speed_multiplier_exponent:
     type: double
     default_value: 1.0
@@ -11,7 +31,7 @@ holonomic_drive_controller:
 
   pivot_angle_leeway:
     type: double
-    default_value: 0.000001
+    default_value: 0.0000000001
     description: "Angles are considered equivalent if they are at most this angle apart (aka 'epsilon')"
 
   pivot_limit_buffer:

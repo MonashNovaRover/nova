@@ -54,9 +54,8 @@ struct Wheel
 {
   std::string name;
   Eigen::Vector2d position;
-  double centre_angle;
-  double previous_angle {0.0};
-  // std::deque<double> previous_pivot_velocities {0.0, 0.0};
+  // pivot_angle_limits[0] is the lower limit, pivot_angle_limits[1] is the upper limit (in radians)
+  std::vector<double> pivot_angle_limits;
   std::deque<double> previous_pivot_positions {0.0, 0.0, 0.0};
 };
 
@@ -73,21 +72,14 @@ protected:
     const geometry_msgs::msg::Twist& twist_msg, bool autonomous_mode,
     const rclcpp::Duration& period) override;
 
-  std::tuple<double, double, double> calculate_wheel_speed_and_angle(const Wheel& wheel, const Eigen::Vector2d& linear_velocity, const double angular_velocity,
-    const double dt);
+  std::tuple<double, double, double> calculate_wheel_speed_and_angle(
+    const Wheel& wheel, const Eigen::Vector2d& linear_velocity,
+    const double angular_velocity, const double dt);
 
-  // Parameters from ROS for pivot_drive_controller
+  // Parameters from ROS for holonomic_drive_controller
   std::shared_ptr<ParamListener> param_listener_;
   Params params_;
 
-  // Radius of the circle the rover makes with its wheels when turning on the spot
-  double zero_radius_;
-  // Turning radius at which the radius of the circle that the wheel on the side of the turn
-  // makes is equal. Any turning radius less than this will cause the radius of the circle that
-  // the wheel on the side of the turn makes to be larger than the turning radius.
-  double inner_radius_;
-  // Offset angle for the pivot joints, used to calculate the pivot angles
-  double offset_angle_;
   double half_wheel_base_;
   double half_steering_track_;
 
@@ -96,12 +88,8 @@ protected:
   Wheel back_left_wheel;
   Wheel back_right_wheel;
 
-  std::deque<Eigen::Vector2d> previous_velocities_;                 // last two speed commands
+  std::deque<Eigen::Vector2d> previous_velocities_;    // last two speed commands
   std::deque<double> previous_angular_velocities_;     // last two angular velocity commands
-  // std::deque<double> previous_front_left_pivot_positions_;   // last three front left pivot position commands
-  // std::deque<double> previous_front_right_pivot_positions_;   // last three front right pivot position commands
-  // std::deque<double> previous_back_left_pivot_positions_;   // last three back left pivot position commands
-  // std::deque<double> previous_back_right_pivot_positions_;   // last three back right pivot position commands
 };
 
 }  // namespace holonomic_drive_controller

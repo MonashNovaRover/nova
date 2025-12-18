@@ -135,6 +135,10 @@ holonomic_drive_controller:
     open_loop: false
     speed_multiplier_exponent: 1.0
     infinitely_rotating_pivots: false
+#    front_left_pivot_angle_limits: [-2.356194, 2.356194]
+#    front_right_pivot_angle_limits: [-2.356194, 2.356194]
+#    back_left_pivot_angle_limits: [-2.356194, 2.356194]
+#    back_right_pivot_angle_limits: [-2.356194, 2.356194]
     drive: # metres
       has_velocity_limits: true
       has_acceleration_limits: true

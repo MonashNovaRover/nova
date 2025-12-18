@@ -37,12 +37,13 @@
 namespace holonomic_drive_controller
 {
 
-Eigen::Vector2d get_wheel_velocity(const Eigen::Vector2d& linear_velocity, const double angular_velocity, const Eigen::Vector2d& wheel_position)
+inline Eigen::Vector2d get_wheel_velocity(const Eigen::Vector2d& linear_velocity, const double angular_velocity, const Eigen::Vector2d& wheel_position)
 {
-  return {linear_velocity.x() - angular_velocity * wheel_position.y(), linear_velocity.y() + angular_velocity * wheel_position.x()};
+  const Eigen::Vector2d angular_component {-angular_velocity * wheel_position.y(), angular_velocity * wheel_position.x()};
+  return linear_velocity + angular_component;
 }
 
-double get_pivot_angle(const Eigen::Vector2d& wheel_velocity)
+inline double get_pivot_angle(const Eigen::Vector2d& wheel_velocity)
 {
   if (wheel_velocity.norm() == 0)
   {
@@ -51,47 +52,38 @@ double get_pivot_angle(const Eigen::Vector2d& wheel_velocity)
   return std::atan2(wheel_velocity.y(), wheel_velocity.x());
 }
 
-void restrict_pivot_angle(double& pivot_angle, const double centre_angle, const bool prefer_clockwise_rotation, const double epsilon, double& wheel_speed)
+inline void optimise_pivot_angle(double& pivot_angle, const double previous_angle, const std::vector<double>& angle_limits, const double epsilon, double& wheel_speed)
 {
-  const double lowest_angle = centre_angle - M_PI_2;
-  const double highest_angle = centre_angle + M_PI_2;
+  int half_rotations = static_cast<int>(std::round((previous_angle - pivot_angle) / M_PI));
 
-  // pivot_angle less than centre_angle - pi/2
-  if (pivot_angle < (lowest_angle - epsilon))
+  pivot_angle += half_rotations * M_PI;
+
+  if (pivot_angle < (angle_limits[0] - epsilon))
   {
     pivot_angle += M_PI;
-    wheel_speed *= -1;
+    half_rotations += 1;
   }
-
-  // pivot_angle approximately equals centre_angle - pi/2
-  else if (pivot_angle <= (lowest_angle + epsilon))
+  else if (pivot_angle < angle_limits[0])
   {
-    if (not prefer_clockwise_rotation)
-    {
-      pivot_angle += M_PI;
-      wheel_speed *= -1;
-    }
+    pivot_angle = angle_limits[0];
   }
-
-  // pivot_angle greater than centre_angle + pi/2
-  else if (pivot_angle > (highest_angle + epsilon))
+  else if (pivot_angle > (angle_limits[1] + epsilon))
   {
     pivot_angle -= M_PI;
-    wheel_speed *= -1;
+    half_rotations -= 1;
+  }
+  else if (pivot_angle > angle_limits[1])
+  {
+    pivot_angle = angle_limits[1];
   }
 
-  // pivot_angle approximately equals centre_angle + pi/2
-  else if (pivot_angle >= (highest_angle - epsilon))
+  if (half_rotations % 2 != 0)
   {
-    if (prefer_clockwise_rotation)
-    {
-      pivot_angle -= M_PI;
-      wheel_speed *= -1;
-    }
+    wheel_speed *= -1;
   }
 }
 
-void wrap_pivot_angle(double& pivot_angle)
+inline void wrap_pivot_angle(double& pivot_angle)
 {
   pivot_angle = std::fmod(pivot_angle, 2 * M_PI);
 
@@ -105,19 +97,7 @@ void wrap_pivot_angle(double& pivot_angle)
   }
 }
 
-// void clamp_pivot_angle(double& pivot_angle, const double& from, const double& to)
-// {
-//   if (from <= to)
-//   {
-//     pivot_angle = std::clamp(pivot_angle, from, to);
-//   }
-//   else
-//   {
-//
-//   }
-// }
-
-double get_angle_between(const double& from, const double& to)
+inline double get_angle_between(const double& from, const double& to)
 {
   double angle = to - from;
 

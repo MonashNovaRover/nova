@@ -54,41 +54,29 @@ void HolonomicDriveController::init_params()
 
   half_wheel_base_ = base_params_->wheel_base / 2;
   half_steering_track_ = base_params_->steering_track / 2;
-  zero_radius_ = std::hypot(half_wheel_base_, half_steering_track_);
-  RCLCPP_INFO_STREAM(get_node()->get_logger(), "zero_radius_: " << zero_radius_);
-
-  // Let r = the turning radius, x = half_steering_track_, y = half_wheel_base_.
-  // sqrt((r - x)^2 + y^2) is the radius of the circle that the wheel on the side
-  // of the turn makes.
-  // Solve for r = sqrt((r - x)^2 + y^2)
-  inner_radius_ = (std::pow(half_steering_track_, 2) + std::pow(half_wheel_base_, 2)) /
-                  (2 * half_steering_track_);
-  RCLCPP_INFO_STREAM(get_node()->get_logger(), "inner_radius_: " << inner_radius_);
 
   front_left_wheel = {
     .name = "front left wheel",
     .position = {half_wheel_base_, half_steering_track_ },
-    .centre_angle = std::atan(half_steering_track_ / half_wheel_base_)
+    .pivot_angle_limits = params_.front_left_pivot_angle_limits
   };
-
-  RCLCPP_INFO(get_node()->get_logger(), std::format("{} created with centre_angle: {} and position: {}, {}", front_left_wheel.name, front_left_wheel.centre_angle, front_left_wheel.position.x(), front_left_wheel.position.y()).c_str());
 
   front_right_wheel = {
     .name = "front right wheel",
     .position = {half_wheel_base_, -half_steering_track_ },
-    .centre_angle = -std::atan(half_steering_track_ / half_wheel_base_)
+    .pivot_angle_limits = params_.front_right_pivot_angle_limits
   };
 
   back_left_wheel = {
     .name = "back left wheel",
     .position = {-half_wheel_base_, half_steering_track_ },
-    .centre_angle = -std::atan(half_steering_track_ / half_wheel_base_)
+    .pivot_angle_limits = params_.back_left_pivot_angle_limits
   };
 
   back_right_wheel = {
     .name = "back right wheel",
     .position = {-half_wheel_base_, -half_steering_track_ },
-    .centre_angle = std::atan(half_steering_track_ / half_wheel_base_)
+    .pivot_angle_limits = params_.back_right_pivot_angle_limits
   };
 }
 
@@ -111,9 +99,7 @@ Commands HolonomicDriveController::twist_to_commands(
 
   limiter_drive_velocity_.limit(linear_velocity, previous_velocities_[1], previous_velocities_[0], period.seconds());
 
-  limiter_angular_.limit(
-  angular_velocity, previous_angular_velocities_[1], previous_angular_velocities_[0],
-  period.seconds());
+  limiter_angular_.limit(angular_velocity, previous_angular_velocities_[1], previous_angular_velocities_[0], period.seconds());
 
   auto [flw_speed, flw_pivot_angle, flw_speed_multiplier] = calculate_wheel_speed_and_angle(front_left_wheel, linear_velocity, angular_velocity, period.seconds());
   auto [frw_speed, frw_pivot_angle, frw_speed_multiplier] = calculate_wheel_speed_and_angle(front_right_wheel, linear_velocity, angular_velocity, period.seconds());
@@ -122,7 +108,7 @@ Commands HolonomicDriveController::twist_to_commands(
 
   const double speed_multiplier = std::min({flw_speed_multiplier, frw_speed_multiplier, blw_speed_multiplier, brw_speed_multiplier});
 
-  RCLCPP_DEBUG(logger, "Speed multiplied by %.2f", speed_multiplier);
+  RCLCPP_INFO(logger, "speed_multiplier = %.2f", speed_multiplier);
 
   flw_speed *= speed_multiplier;
   frw_speed *= speed_multiplier;
@@ -131,11 +117,6 @@ Commands HolonomicDriveController::twist_to_commands(
 
   linear_velocity *= speed_multiplier;
   angular_velocity *= speed_multiplier;
-
-  front_left_wheel.previous_angle = flw_pivot_angle;
-  front_right_wheel.previous_angle = frw_pivot_angle;
-  back_left_wheel.previous_angle = blw_pivot_angle;
-  back_right_wheel.previous_angle = brw_pivot_angle;
 
   // Update the previous command values for limiting
   previous_velocities_.pop_front();
@@ -170,44 +151,33 @@ Commands HolonomicDriveController::twist_to_commands(
   };
 }
 
-std::tuple<double, double, double> HolonomicDriveController::calculate_wheel_speed_and_angle(const Wheel& wheel, const Vector2d& linear_velocity, const double angular_velocity,
-  const double dt)
+std::tuple<double, double, double> HolonomicDriveController::calculate_wheel_speed_and_angle(
+  const Wheel& wheel, const Vector2d& linear_velocity, const double angular_velocity, const double dt)
 {
   Vector2d wheel_velocity = get_wheel_velocity(linear_velocity, angular_velocity, wheel.position);
-  double pivot_angle = get_pivot_angle(wheel_velocity);
   double wheel_speed = wheel_velocity.norm();
-
-  RCLCPP_INFO(get_node()->get_logger(), std::format("{} has requested angle {}", wheel.name, pivot_angle).c_str());
-
-  if (params_.infinitely_rotating_pivots)
-  {
-    restrict_pivot_angle(pivot_angle, wheel.previous_pivot_positions[2], get_angle_between(wheel.previous_pivot_positions[1], wheel.previous_pivot_positions[2]) <= 0, params_.pivot_angle_leeway, wheel_speed);
-  }
-  else
-  {
-    restrict_pivot_angle(pivot_angle, wheel.centre_angle, get_angle_between(wheel.centre_angle, wheel.previous_pivot_positions[2]) <= 0, params_.pivot_angle_leeway, wheel_speed);
-  }
-
-  const double requested_angle = pivot_angle;
-
-  limiter_pivot_.limit(pivot_angle, wheel.previous_pivot_positions[2], wheel.previous_pivot_positions[1], wheel.previous_pivot_positions[0], dt);
-
-  if (params_.infinitely_rotating_pivots)
-  {
-
-  }
-  else
-  {
-    pivot_angle = std::clamp(pivot_angle, wheel.centre_angle - M_PI_2 + params_.pivot_limit_buffer, wheel.centre_angle + M_PI_2 - params_.pivot_limit_buffer);
-  }
-
+  double pivot_angle = get_pivot_angle(wheel_velocity);
   double max_speed_multiplier = 1;
-
-  if (requested_angle != pivot_angle)
+  
+  if (params_.infinitely_rotating_pivots)
   {
-    const double angle_deviation = std::abs(get_angle_between(requested_angle, pivot_angle));
-    wheel_speed *= std::cos(angle_deviation);
-    max_speed_multiplier = std::pow(1 - std::abs(std::sin(angle_deviation)), params_.speed_multiplier_exponent);
+    throw std::runtime_error("infinitely rotating pivots enabled but not supported yet");
+  }
+  else
+  {
+    optimise_pivot_angle(pivot_angle, wheel.previous_pivot_positions[2], wheel.pivot_angle_limits, params_.pivot_angle_leeway, wheel_speed);
+
+    const double requested_angle = pivot_angle;
+
+    limiter_pivot_.limit(pivot_angle, wheel.previous_pivot_positions[2], wheel.previous_pivot_positions[1], wheel.previous_pivot_positions[0], dt);
+    pivot_angle = std::clamp(pivot_angle, wheel.pivot_angle_limits[0] + params_.pivot_limit_buffer, wheel.pivot_angle_limits[1] - params_.pivot_limit_buffer);
+
+    if (requested_angle != pivot_angle)
+    {
+      const double angle_difference = requested_angle - pivot_angle;
+      wheel_speed *= std::cos(angle_difference);
+      max_speed_multiplier = std::pow(1 - std::abs(std::sin(angle_difference)), params_.speed_multiplier_exponent);
+    }
   }
 
   return {wheel_speed, pivot_angle, max_speed_multiplier};
@@ -218,11 +188,6 @@ void HolonomicDriveController::reset_limiter_buffers()
   // Reset the previous command values for limiting
   previous_velocities_ = {{0.0, 0.0}, {0.0, 0.0}};
   previous_angular_velocities_ = {0.0, 0.0};
-
-  // front_right_wheel.previous_pivot_velocities = {0.0, 0.0};
-  // front_left_wheel.previous_pivot_velocities = {0.0, 0.0};
-  // back_right_wheel.previous_pivot_velocities = {0.0, 0.0};
-  // back_left_wheel.previous_pivot_velocities = {0.0, 0.0};
 
   front_left_wheel.previous_pivot_positions = {0.0, 0.0, 0.0};
   front_right_wheel.previous_pivot_positions = {0.0, 0.0, 0.0};
