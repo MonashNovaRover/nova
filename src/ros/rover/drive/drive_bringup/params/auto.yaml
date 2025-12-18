@@ -146,8 +146,10 @@ holonomic_drive_controller:
       max_acceleration: 10.0
     angular: # radians
       has_velocity_limits: true
-      max_velocity: 1.57079632 # PI/2 rad/s = 90 deg/s
-      min_velocity: -1.57079632
+#      max_velocity: 1.57079632 # PI/2 rad/s = 90 deg/s
+#      min_velocity: -1.57079632
+      max_velocity: 5.0
+      min_velocity: -5.0
     pivot:
       has_velocity_limits: true
       max_velocity: 3.53429174 # 2*PI * 0.5625 (defined in firmware)

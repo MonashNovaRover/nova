@@ -128,7 +128,7 @@ void TeleopDriveJoy::initialize_interfaces()
   pivot_drive_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
     "/pivot_drive_controller/set_parameters");
   holonomic_drive_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
-  "/pivot_drive_controller/set_parameters");
+  "/holonomic_drive_controller/set_parameters");
   strafe_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
     "/strafe_drive_controller/set_parameters");
   diff_drive_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
@@ -267,6 +267,10 @@ void TeleopDriveJoy::send_drive_command(const sensor_msgs::msg::Joy::SharedPtr j
   linear.second =
     std::clamp(linear.second, -controller_params.limit_linear, controller_params.limit_linear);
   angular *= controller_params.scale_angular;
+  if (drive_mode_ == DriveMode::HOLONOMIC)
+  {
+    angular *= speed_;
+  }
   angular = std::clamp(angular, -controller_params.limit_angular, controller_params.limit_angular);
 
   // handbrake
@@ -279,6 +283,10 @@ void TeleopDriveJoy::send_drive_command(const sensor_msgs::msg::Joy::SharedPtr j
 	}
     linear.first *= params_.handbrake_speed_multiplier;
     linear.second *= params_.handbrake_speed_multiplier;
+    if (drive_mode_ == DriveMode::HOLONOMIC)
+    {
+      angular *= params_.handbrake_speed_multiplier;
+    }
   }
   else if (handbrake_pressed_)
   {

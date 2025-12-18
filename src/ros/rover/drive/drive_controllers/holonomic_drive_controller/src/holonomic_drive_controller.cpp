@@ -97,6 +97,12 @@ Commands HolonomicDriveController::twist_to_commands(
   Vector2d linear_velocity {twist_msg.linear.x, twist_msg.linear.y};
   double angular_velocity = twist_msg.angular.z;
 
+  if (not autonomous_mode)
+  {
+    linear_velocity *= base_params_->drive.max_velocity;
+    angular_velocity *= base_params_->angular.max_velocity;
+  }
+  
   limiter_drive_velocity_.limit(linear_velocity, previous_velocities_[1], previous_velocities_[0], period.seconds());
 
   limiter_angular_.limit(angular_velocity, previous_angular_velocities_[1], previous_angular_velocities_[0], period.seconds());
@@ -158,7 +164,7 @@ std::tuple<double, double, double> HolonomicDriveController::calculate_wheel_spe
   double wheel_speed = wheel_velocity.norm();
   double pivot_angle = get_pivot_angle(wheel_velocity);
   double max_speed_multiplier = 1;
-  
+
   if (params_.infinitely_rotating_pivots)
   {
     throw std::runtime_error("infinitely rotating pivots enabled but not supported yet");
