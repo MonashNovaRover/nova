@@ -3,7 +3,7 @@
 from python_control.sensors.IntegerSensor import IntegerSensor
 import rclpy
 from python_control.ControllerNode import ControllerNode
-from nova_interfaces.msg import BMESensor
+from science_interfaces.msg import BMESensor
 
 class URCBMESensor(ControllerNode):
 

@@ -30,7 +30,7 @@ from rclpy.node import Node
 
 # ROS2 service/message imports
 from std_srvs.srv import Trigger
-from nova_interfaces.msg import HydraprobeData
+from science_interfaces.msg import HydraprobeData
 
 # Hardware abstraction
 from urc_hydraprobe import NewHydraprobeTransceiver

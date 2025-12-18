@@ -1,4 +1,4 @@
-import { IRosNovaInterfacesPumpsActionFeedback, IRosNovaInterfacesPumpsActionGoal, IRosNovaInterfacesPumpsActionResult, IRosNovaInterfacesStepperActionFeedback, IRosNovaInterfacesStepperActionGoal, IRosNovaInterfacesStepperActionResult } from "../rosTypes";
+import { IRosScienceInterfacesPumpsActionFeedback, IRosScienceInterfacesPumpsActionGoal, IRosScienceInterfacesPumpsActionResult, IRosScienceInterfacesStepperActionFeedback, IRosScienceInterfacesStepperActionGoal, IRosScienceInterfacesStepperActionResult } from "../rosTypes";
 import { RosAction } from "./RosAction";
 
 export interface RosActionInterface {
@@ -19,18 +19,18 @@ export interface RosActionInterface {
     };
   };
   [RosAction.SAMPLE_TRAY]: {
-    goal: IRosNovaInterfacesStepperActionGoal;
-    goalResponse: IRosNovaInterfacesStepperActionResult;
-    feedback: IRosNovaInterfacesStepperActionFeedback;
+    goal: IRosScienceInterfacesStepperActionGoal;
+    goalResponse: IRosScienceInterfacesStepperActionResult;
+    feedback: IRosScienceInterfacesStepperActionFeedback;
   };
   [RosAction.CAROUSEL_ACTION]: {
-    goal: IRosNovaInterfacesStepperActionGoal;
-    goalResponse: IRosNovaInterfacesStepperActionResult;
-    feedback: IRosNovaInterfacesStepperActionFeedback;
+    goal: IRosScienceInterfacesStepperActionGoal;
+    goalResponse: IRosScienceInterfacesStepperActionResult;
+    feedback: IRosScienceInterfacesStepperActionFeedback;
   };
   [RosAction.PUMPS]: {
-    goal: IRosNovaInterfacesPumpsActionGoal;
-    goalResponse: IRosNovaInterfacesPumpsActionResult;
-    feedback: IRosNovaInterfacesPumpsActionFeedback;
+    goal: IRosScienceInterfacesPumpsActionGoal;
+    goalResponse: IRosScienceInterfacesPumpsActionResult;
+    feedback: IRosScienceInterfacesPumpsActionFeedback;
   };
 }

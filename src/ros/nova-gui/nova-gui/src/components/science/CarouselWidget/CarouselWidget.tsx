@@ -7,8 +7,8 @@ import CarouselInputs from "./CarouselInputs.tsx";
 import CarouselControls from "./CarouselControls.tsx";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {
-  IRosNovaInterfacesKilnCommandRequest,
-  IRosNovaInterfacesKilnCommandResponse,
+  IRosScienceInterfacesKilnCommandRequest,
+  IRosScienceInterfacesKilnCommandResponse,
 } from "../../../ros/rosTypes.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
 import toast from "react-hot-toast";
@@ -46,7 +46,7 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
   const toggleActiveStatus = (value: boolean) => {
     bifrost.callService({state: value}, {
       handleResponse: (response) => {
-        const boolResponse = response as IRosNovaInterfacesKilnCommandResponse;
+        const boolResponse = response as IRosScienceInterfacesKilnCommandResponse;
         if (boolResponse?.success) {
           toast.success("Request Successful")
           setStepperActive(value);
@@ -66,9 +66,9 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
       return
     }
 
-    bifrost.callService({state: true, target: steps} as IRosNovaInterfacesKilnCommandRequest, {
+    bifrost.callService({state: true, target: steps} as IRosScienceInterfacesKilnCommandRequest, {
       handleResponse: (response) => {
-        const boolResponse = response as IRosNovaInterfacesKilnCommandResponse;
+        const boolResponse = response as IRosScienceInterfacesKilnCommandResponse;
         if (boolResponse?.success) {
           toast.success("Request Successful")
           setCurrentCuvetteRotation(currentCuvetteRotation + cuvettes);

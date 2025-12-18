@@ -3,26 +3,26 @@ import {
   IRosCameraMsgsGetIpListResponse,
   IRosBlcmdInterfacesBlcmdStatusArray,
   IRosDriveInterfacesDriveInfo,
-  IRosNovaInterfacesMicroscopeServoInfo,
-  IRosNovaInterfacesMoveMicroscopeServoResponse,
-  IRosNovaInterfacesNirProbeData,
-  IRosNovaInterfacesKilnCommandResponse,
-  IRosNovaInterfacesKilnData,
-  IRosNovaInterfacesRamanSpecResponse,
-  IRosNovaInterfacesRamanSpectrum,
+  IRosScienceInterfacesMicroscopeServoInfo,
+  IRosScienceInterfacesMoveMicroscopeServoResponse,
+  IRosScienceInterfacesNirProbeData,
+  IRosScienceInterfacesKilnCommandResponse,
+  IRosScienceInterfacesKilnData,
+  IRosScienceInterfacesRamanSpecResponse,
+  IRosScienceInterfacesRamanSpectrum,
   IRosBlcmdInterfacesTelemetry,
   IRosStdMsgsString,
   IRosStdMsgsBool,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
   IRosCmdInterfacesCmDsFeedback,
-  IRosNovaInterfacesRamanState,
-  IRosNovaInterfacesRamanMechResponse,
-  IRosNovaInterfacesUvVisSpecData,
+  IRosScienceInterfacesRamanState,
+  IRosScienceInterfacesRamanMechResponse,
+  IRosScienceInterfacesUvVisSpecData,
   IRosSensorMsgsCompressedImage,
-  IRosNovaInterfacesHydraprobeData,
+  IRosScienceInterfacesHydraprobeData,
   IRosStdSrvsSetBoolResponse,
-  IRosNovaInterfacesBmeSensor,
+  IRosScienceInterfacesBmeSensor,
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
   IRosArmInterfacesStringTriggerResponse,
@@ -75,21 +75,21 @@ export interface RootState {
 
   // Science Stores
   tofStore: IRosSensorMsgsRange;
-  nirStore: IRosNovaInterfacesNirProbeData;
-  kilnData: IRosNovaInterfacesKilnData;
-  kilnCommand: IRosNovaInterfacesKilnCommandResponse;
-  uvVisSpecStore: IRosNovaInterfacesUvVisSpecData;
+  nirStore: IRosScienceInterfacesNirProbeData;
+  kilnData: IRosScienceInterfacesKilnData;
+  kilnCommand: IRosScienceInterfacesKilnCommandResponse;
+  uvVisSpecStore: IRosScienceInterfacesUvVisSpecData;
   uvVisLED1Store: IRosStdSrvsSetBoolResponse;
   uvVisLED2Store: IRosStdSrvsSetBoolResponse;
-  microscopeServoStore: IRosNovaInterfacesMicroscopeServoInfo;
-  microscopeServiceStore: IRosNovaInterfacesMoveMicroscopeServoResponse;
-  ramanSpecServiceStore: IRosNovaInterfacesRamanSpecResponse;
-  ramanSpecMessageStore: IRosNovaInterfacesRamanSpectrum;
-  ramanMechMessageStore: IRosNovaInterfacesRamanState;
-  ramanMechServiceStore: IRosNovaInterfacesRamanMechResponse;
-  hydraprobeData: IRosNovaInterfacesHydraprobeData;
+  microscopeServoStore: IRosScienceInterfacesMicroscopeServoInfo;
+  microscopeServiceStore: IRosScienceInterfacesMoveMicroscopeServoResponse;
+  ramanSpecServiceStore: IRosScienceInterfacesRamanSpecResponse;
+  ramanSpecMessageStore: IRosScienceInterfacesRamanSpectrum;
+  ramanMechMessageStore: IRosScienceInterfacesRamanState;
+  ramanMechServiceStore: IRosScienceInterfacesRamanMechResponse;
+  hydraprobeData: IRosScienceInterfacesHydraprobeData;
   theta360CamStore: IRosSensorMsgsCompressedImage;
-  bmeSensorStore: IRosNovaInterfacesBmeSensor;
+  bmeSensorStore: IRosScienceInterfacesBmeSensor;
   auger1DepthSensorStore: IRosStdMsgsBool;
   auger2DepthSensorStore: IRosStdMsgsBool;
 
