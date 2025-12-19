@@ -11,9 +11,9 @@ export const HomePage = (props: HomePageProps) => {
     <div className="flex flex-col items-center h-[calc(100vh-5rem)] gap-10 py-5 px-10">
       {Object.keys(navigationData).map((item) => {
         return (
-          <Card key={item} fullWidth className="flex-1 p-5">
-            <div className="text-lg font-semibold text-white">{item}</div>
-            <div className="flex gap-10 p-5 h-full">
+          <Card key={item} fullWidth className="flex-1 p-2">
+            <div className="text-lg font-semibold text-white px-3">{item}</div>
+            <div className="flex gap-10 p-3 px-5 h-full">
               {navigationData[item].map((mode) => {
                 return (
                   <Button
