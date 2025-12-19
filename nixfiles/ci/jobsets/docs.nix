@@ -149,7 +149,7 @@ let
       '';
     };
 
-  allHMOptions = mkOptions (nixfiles + "/home");
+  allHMOptions = mkOptions (nixfiles + "/modules/home");
   novaHMOptions = allHMOptions;
 
   allOSOptions = mkOptions (nixfiles + "/nixos");
