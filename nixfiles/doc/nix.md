@@ -6,7 +6,7 @@
 2. Install [Nix](https://nixos.org/).
 3. Configure Nix to use the [binary caches](./caches.md). This is optional, but highly recommended to cut down on build times.
 4. In the top-level repository directory, run the [checkout script](../scripts/checkout-nova-sources.sh).
-5. Make sure the repositories cloned to [external/src](./external/src) are on up-to-date branches with a `default.nix`.
+5. Make sure the repositories cloned to [../src](./../src) are on up-to-date branches with a `default.nix`.
 
 Any commands in this README starting with `nix-shell`, `nix-build`, etc.
 should be started in the top-level repository directory.
@@ -120,7 +120,7 @@ Development can be done in two styles:
 
 2. Switch to the package directory.
    ```
-   cd external/src/ros/rover/control
+   cd ../src/ros/rover/control
    ```
 
 3. CLI development: Build the package with regular build tools.
@@ -145,7 +145,7 @@ Development can be done in two styles:
 
 2. Switch to a workspace directory.
    ```
-   cd external/src
+   cd ../src
    ```
 
 3. Build the workspace.
