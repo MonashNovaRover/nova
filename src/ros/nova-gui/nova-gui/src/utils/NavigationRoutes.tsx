@@ -130,15 +130,13 @@ export const urcNavigationData: NavigationInterface = {
       title: "Cameras",
       route: `/urc/cameras/${URCCompModes.URC_AUTONOMOUS}`,
       icon: <Camera />,
-    }
-  ],
-  ["Simulation"]: [
+    },
     {
-      title: "Dashboard",
+      title: "Simulation",
       route: "/urc/gazebo",
       icon: <Home />,
     },
-  ],
+  ]
 };
 
 export const arcNavigationData: NavigationInterface = {
