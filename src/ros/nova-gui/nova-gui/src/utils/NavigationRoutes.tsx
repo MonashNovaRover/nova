@@ -37,20 +37,42 @@ export const compNavigationData: NavigationInterface = {
       icon: <Terminal />
     }
   ],
-  ["Cameras"]: [
+  ["ARC Cameras"]: [
     {
-      title: "ARC Cameras",
-      route: "/arc/cameras",
+      title: "Post Landing",
+      route: "/arc/cameras/post-landing",
       icon: <Camera />
     },
     {
-      title: "URC Cameras",
+      title: "Space Resources",
+      route: "/arc/cameras/space-resources",
+      icon: <Camera />
+    },
+    {
+      title: "Excavation and Construction",
+      route: "/arc/cameras/excavation-construction",
+      icon: <Camera />
+    }
+  ],
+  ["URC Cameras"]: [
+    {
+      title: "Base",
       route: "/urc/cameras",
       icon: <Camera />
     },
     {
-      title: "General Cameras",
-      route: "/general/cameras",
+      title: "Science",
+      route: "/urc/cameras/science",
+      icon: <Camera />
+    },
+    {
+      title: "Delivery",
+      route: "/urc/cameras/delivery",
+      icon: <Camera />
+    },
+    {
+      title: "Equipment Servicing",
+      route: "/urc/cameras/equipment-servicing",
       icon: <Camera />
     }
   ]
