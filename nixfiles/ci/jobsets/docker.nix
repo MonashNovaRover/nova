@@ -21,8 +21,8 @@ let
       nixos = import (nixpkgs + "/nixos") {
         configuration = { pkgs, lib, ... }: {
           imports = [
-            (nixfiles + "/nixos")
-            (nixfiles + "/nixos/installer/docker")
+            (nixfiles + "/modules/nixos")
+            (nixfiles + "/modules/nixos/installer/docker")
           ];
 
           nixpkgs.hostPlatform = system;
