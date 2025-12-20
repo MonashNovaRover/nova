@@ -1,7 +1,7 @@
 import { Button } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
 
-export default function PageNotFoundView() {
+const PageNotFoundView = () => {
   const navigate = useNavigate();
 
   return (
@@ -14,3 +14,5 @@ export default function PageNotFoundView() {
     </div>
   );
 }
+
+export default PageNotFoundView
