@@ -7,7 +7,9 @@ export interface HomePageProps {
 
 const HomePageView = (props: HomePageProps) => {
   return (
-    <HomePage navigationData={props.navigationData} />
+    <div className="p-3">
+      <HomePage navigationData={props.navigationData} />
+    </div>
   );
 };
 

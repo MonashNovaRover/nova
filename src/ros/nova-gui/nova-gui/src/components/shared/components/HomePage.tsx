@@ -8,7 +8,7 @@ export const HomePage = (props: HomePageProps) => {
   const navigationData = props.navigationData
 
   return (
-    <div className="flex flex-col items-center h-[calc(100vh-5rem)] gap-10 py-5 px-10">
+    <div className="flex flex-col items-center h-[calc(100vh-6rem)] gap-5">
       {Object.keys(navigationData).map((item) => {
         return (
           <Card key={item} fullWidth className="flex-1 p-2">
