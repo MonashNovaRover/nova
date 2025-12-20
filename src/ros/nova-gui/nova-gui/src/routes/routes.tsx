@@ -33,6 +33,7 @@ import ARCNIRProbeWidget from "../components/science/NIRProbe/ARCNIRProbeWidget.
 import URCGazeboView from "../views/urc/URCGazebo.tsx";
 import HomePageView from "../views/shared/HomePageView.tsx";
 import { arcNavigationData, compNavigationData, generalNavigationData, testNavigationData, urcNavigationData } from "../utils/NavigationRoutes.tsx";
+import PageNotFoundView from "../views/shared/PageNotFound.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -215,6 +216,10 @@ export const routes: RouteObject[] = [
         path: "/cameras",
         children: cameraRoutes,
       },
+      {
+        path: "*",
+        element: <PageNotFoundView />,
+      }
     ],
   },
 ];
