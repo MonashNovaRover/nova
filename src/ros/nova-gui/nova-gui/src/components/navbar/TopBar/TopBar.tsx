@@ -23,6 +23,7 @@ import "./TopBar.css";
 import { List } from "react-bootstrap-icons";
 import { BatteryWidget } from "../BatteryWidget/BatteryWidget.tsx";
 import {RGBInputModal} from "../RGBWidget/RGBModal.tsx";
+import {RadioStatusButton} from "../RadioStatusModal/RadioStatusButton.tsx";
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
@@ -86,6 +87,9 @@ export const NovaTopBar: React.FC = () => {
       <NavbarContent as="div" className="items-center" justify="end">
         <NavbarItem>
           <BLCMDStatusButton />
+        </NavbarItem>
+        <NavbarItem>
+            <RadioStatusButton />
         </NavbarItem>
         <NavbarItem>
           <Dropdown placement="bottom-end">

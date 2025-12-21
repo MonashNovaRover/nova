@@ -38,5 +38,11 @@ export function useUIActions() {
         payload: blcmdStatusModalOpen,
       });
     },
+    setRadioStatusModalOpen(radioStatusModalOpen: boolean) {
+      dispatch({
+        type: UIActions.RADIO_STATUS_MODAL_UPDATE.toString(),
+        payload: radioStatusModalOpen,
+      });
+    },
   };
 }
