@@ -44,6 +44,9 @@ export interface CameraComponentProps extends BaseCameraComponentProps {
 
   // Called when the streaming state changes
   onStreamingStateChange?: (s: StreamingState) => void
+
+  // Custom function to generate screenshot filename
+  getScreenshotName?: (cameraName: string, timestamp: number) => string
 }
 
 export interface CameraFilters {
@@ -71,6 +74,12 @@ export const CameraComponent = (props: CameraComponentProps) => {
     isCameraOnline,
     closeSession,
   } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
+  // const {
+  //   streamingState,
+  //   sendSessionStartMessage,
+  //   isCameraOnline,
+  //   closeSession,
+  // } = useWebcam(videoRef);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
   const onStreamingStateChange = props.onStreamingStateChange
@@ -151,14 +160,20 @@ export const CameraComponent = (props: CameraComponentProps) => {
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
-          link.download = `site${(currentSite+1).toString()}-${cameraSerial}-${Date.now()}.png`;
+          
+          const timestamp = Date.now();
+          const filename = props.getScreenshotName
+            ? props.getScreenshotName(cameraName, timestamp)
+            : `site${(currentSite+1).toString()}-${cameraSerial}-${timestamp}.png`;
+          
+          link.download = filename;
           link.click();
         }
       }
     } else {
       toast("Unable to Take a Screenshot");
     }
-  }, [videoRef, cameraSerial, currentSite]);
+  }, [videoRef, cameraSerial, currentSite, cameraName, props]);
 
   useEffect(() => {
     const handleMouseEnter = () => {

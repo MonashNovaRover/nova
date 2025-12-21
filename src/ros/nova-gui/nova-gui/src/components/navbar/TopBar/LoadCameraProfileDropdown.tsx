@@ -19,7 +19,7 @@ export const LoadCameraProfileDropdown: React.FC<LoadCameraProfileDropdownProps>
   onLoad,
 }) => {
   const [cameraProfiles, setCameraProfiles] = useGenericStore<CameraProfilesState>("cameraProfiles");
-  const profiles = Object.values(cameraProfiles.profiles);
+  const profiles = Object.values(cameraProfiles.profiles).sort((a, b) => b.timestamp - a.timestamp);
 
   const handleLoad = (profileName: string) => {
     const profile = cameraProfiles.profiles[profileName];
@@ -80,6 +80,7 @@ export const LoadCameraProfileDropdown: React.FC<LoadCameraProfileDropdownProps>
         {profiles.map((profile) => (
           <DropdownItem
             key={profile.name}
+            textValue={profile.name}
             description={new Date(profile.timestamp).toLocaleString()}
             endContent={
               <Button

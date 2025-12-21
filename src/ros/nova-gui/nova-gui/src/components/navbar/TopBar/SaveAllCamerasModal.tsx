@@ -12,6 +12,9 @@ import { useGenericStore } from "../../../hooks/useGenericStore";
 import { CameraProfilesState, CameraProfile, CameraSettings } from "../../../redux/models/CameraProfilesState";
 import { CameraProfileEvents, emitSaveProfileEvent } from "../../../utils/cameraProfileEvents";
 
+/**
+ * Modal for saving all camera settings as a named profile
+ */
 interface SaveAllCamerasModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -42,8 +45,6 @@ export const SaveAllCamerasModal: React.FC<SaveAllCamerasModalProps> = ({
     const handleFiltersReady = (event: Event) => {
       const customEvent = event as CustomEvent<{ cameraSerial: string; filters: CameraSettings }>;
       const { cameraSerial, filters } = customEvent.detail;
-      
-      console.log(`Modal received filters from ${cameraSerial}:`, filters);
       
       setCollectedCameras(prev => ({
         ...prev,
@@ -97,8 +98,6 @@ export const SaveAllCamerasModal: React.FC<SaveAllCamerasModalProps> = ({
           [trimmedName]: newProfile,
         },
       });
-
-      console.log("Saved profile:", trimmedName, "with cameras:", camerasToSave);
 
       if (onSave) {
         onSave(trimmedName);

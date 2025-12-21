@@ -11,7 +11,6 @@ import { useGenericStore } from "../../../hooks/useGenericStore";
 import { CameraProfilesState } from "../../../redux/models/CameraProfilesState";
 import { emitLoadProfileEvent } from "../../../utils/cameraProfileEvents";
 import toast from "react-hot-toast";
-import { useState } from "react";
 
 interface CameraPresetDropdownProps {
   onSavePress: () => void;
@@ -21,13 +20,12 @@ export const CameraPresetDropdown: React.FC<CameraPresetDropdownProps> = ({
   onSavePress,
 }) => {
   const [cameraProfiles, setCameraProfiles] = useGenericStore<CameraProfilesState>("cameraProfiles");
-  const profiles = Object.values(cameraProfiles.profiles);
+  const profiles = Object.values(cameraProfiles.profiles).sort((a, b) => b.timestamp - a.timestamp);
 
   const handleLoad = (profileName: string) => {
     const profile = cameraProfiles.profiles[profileName];
     if (profile) {
       const cameraCount = Object.keys(profile.cameras).length;
-      console.log(`Loading profile ${profileName} with cameras:`, profile.cameras);
       toast.success(`Loading ${profileName} (${cameraCount} cameras)`);
       
       // Small delay to ensure all camera components are mounted and listening
