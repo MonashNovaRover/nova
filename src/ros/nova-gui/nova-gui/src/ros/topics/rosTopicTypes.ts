@@ -6,17 +6,17 @@ import {
   IRosSensorMsgsRange,
   IRosCmdInterfacesCmDsFeedback,
   IRosDriveInterfacesDriveInfo,
-  IRosNovaInterfacesKilnData,
-  IRosNovaInterfacesNirProbeData,
-  IRosNovaInterfacesMicroscopeServoInfo,
-  IRosNovaInterfacesRamanSpectrum,
+  IRosScienceInterfacesKilnData,
+  IRosScienceInterfacesNirProbeData,
+  IRosScienceInterfacesMicroscopeServoInfo,
+  IRosScienceInterfacesRamanSpectrum,
   IRosStdMsgsString,
   IRosStdMsgsBool,
-  IRosNovaInterfacesUvVisSpecData,
-  IRosNovaInterfacesRamanState,
-  IRosNovaInterfacesHydraprobeData,
+  IRosScienceInterfacesUvVisSpecData,
+  IRosScienceInterfacesRamanState,
+  IRosScienceInterfacesHydraprobeData,
   IRosSensorMsgsCompressedImage,
-  IRosNovaInterfacesBmeSensor,
+  IRosScienceInterfacesBmeSensor,
   IRosArmInterfacesKeyboardPoints,
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
@@ -56,15 +56,15 @@ export interface RosTopicInterfaces {
 
   // Science Related
   [RosTopic.TOF]: IRosSensorMsgsRange;
-  [RosTopic.KILN_DATA]: IRosNovaInterfacesKilnData;
-  [RosTopic.NIR_DATA]: IRosNovaInterfacesNirProbeData;
-  [RosTopic.MICROSCOPE_SERVO]: IRosNovaInterfacesMicroscopeServoInfo;
-  [RosTopic.RAMAN_SPEC_MSG]: IRosNovaInterfacesRamanSpectrum;
-  [RosTopic.RAMAN_MECH_MSG]: IRosNovaInterfacesRamanState;
-  [RosTopic.UV_VIS_SPEC]: IRosNovaInterfacesUvVisSpecData;
-  [RosTopic.HYDRAPROBE_DATA]: IRosNovaInterfacesHydraprobeData;
+  [RosTopic.KILN_DATA]: IRosScienceInterfacesKilnData;
+  [RosTopic.NIR_DATA]: IRosScienceInterfacesNirProbeData;
+  [RosTopic.MICROSCOPE_SERVO]: IRosScienceInterfacesMicroscopeServoInfo;
+  [RosTopic.RAMAN_SPEC_MSG]: IRosScienceInterfacesRamanSpectrum;
+  [RosTopic.RAMAN_MECH_MSG]: IRosScienceInterfacesRamanState;
+  [RosTopic.UV_VIS_SPEC]: IRosScienceInterfacesUvVisSpecData;
+  [RosTopic.HYDRAPROBE_DATA]: IRosScienceInterfacesHydraprobeData;
   [RosTopic.THETA_360_CAM_IMAGE]: IRosSensorMsgsCompressedImage;
-  [RosTopic.BME_SENSOR]: IRosNovaInterfacesBmeSensor;
+  [RosTopic.BME_SENSOR]: IRosScienceInterfacesBmeSensor;
   [RosTopic.AUGER1_DEPTH_SENSOR]: IRosStdMsgsBool;
   [RosTopic.AUGER2_DEPTH_SENSOR]: IRosStdMsgsBool;
 

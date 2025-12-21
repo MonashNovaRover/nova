@@ -31,8 +31,8 @@ import rclpy, jcan
 from rclpy.node import Node
 
 # import custom messages
-from nova_interfaces.msg import NIRProbeData
-from nova_interfaces.srv import TakeNIRProbeReading
+from science_interfaces.msg import NIRProbeData
+from science_interfaces.srv import TakeNIRProbeReading
 
 class NIRProbePublisher(Node):
 

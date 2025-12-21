@@ -22,7 +22,7 @@ find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 
-find_package(nova_interfaces REQUIRED)
+find_package(science_interfaces REQUIRED)
 find_package(input_interfaces REQUIRED)
 
 # Include the include directory

@@ -30,15 +30,15 @@ export const rosTopicMessages = {
 
   // Science Related
   [RosTopic.TOF]: "sensor_msgs/msg/Range",
-  [RosTopic.KILN_DATA]: "nova_interfaces/msg/KilnData",
-  [RosTopic.NIR_DATA]: "nova_interfaces/msg/NIRProbeData",
-  [RosTopic.MICROSCOPE_SERVO]: "nova_interfaces/msg/MicroscopeServoInfo",
-  [RosTopic.UV_VIS_SPEC]: "nova_interfaces/msg/UVVisSpecData",
+  [RosTopic.KILN_DATA]: "science_interfaces/msg/KilnData",
+  [RosTopic.NIR_DATA]: "science_interfaces/msg/NIRProbeData",
+  [RosTopic.MICROSCOPE_SERVO]: "science_interfaces/msg/MicroscopeServoInfo",
+  [RosTopic.UV_VIS_SPEC]: "science_interfaces/msg/UVVisSpecData",
   [RosTopic.THETA_360_CAM_IMAGE]: "sensor_msgs/msg/CompressedImage",
-  [RosTopic.HYDRAPROBE_DATA]: "nova_interfaces/msg/HydraprobeData",
-  [RosTopic.RAMAN_SPEC_MSG]: "nova_interfaces/msg/RamanSpectrum",
-  [RosTopic.RAMAN_MECH_MSG]: "nova_interfaces/msg/RamanState",
-  [RosTopic.BME_SENSOR]: "nova_interfaces/msg/BMESensor",
+  [RosTopic.HYDRAPROBE_DATA]: "science_interfaces/msg/HydraprobeData",
+  [RosTopic.RAMAN_SPEC_MSG]: "science_interfaces/msg/RamanSpectrum",
+  [RosTopic.RAMAN_MECH_MSG]: "science_interfaces/msg/RamanState",
+  [RosTopic.BME_SENSOR]: "science_interfaces/msg/BMESensor",
   [RosTopic.AUGER1_DEPTH_SENSOR]: "std_msgs/msg/Bool",
   [RosTopic.AUGER2_DEPTH_SENSOR]: "std_msgs/msg/Bool",
 

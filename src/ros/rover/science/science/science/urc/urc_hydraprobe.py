@@ -20,7 +20,7 @@ from pymodbus.client import ModbusSerialClient
 import rclpy
 import time
 from rclpy.node import Node
-from nova_interfaces.msg import HydraprobeData 
+from science_interfaces.msg import HydraprobeData
 import logging
 import logging.handlers as Handlers
 

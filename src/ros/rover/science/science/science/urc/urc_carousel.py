@@ -20,7 +20,7 @@ import time
 import jcan
 import rclpy
 from jcan import Frame
-from nova_interfaces.srv import KilnCommand, KilnCommand_Response, KilnCommand_Request
+from science_interfaces.srv import KilnCommand, KilnCommand_Response, KilnCommand_Request
 from python_control.ControllerNode import ControllerNode
 from rclpy.executors import MultiThreadedExecutor
 

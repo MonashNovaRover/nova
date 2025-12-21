@@ -5,8 +5,8 @@ import {RosTopic} from "../ros/topics/rosTopic";
 import {
   IRosCmdInterfacesCmdFeedback,
   IRosCmdInterfacesCmDsFeedback,
-  IRosNovaInterfacesHydraprobeData,
-  IRosNovaInterfacesNirProbeDataConst, IRosNovaInterfacesStatusConst,
+  IRosScienceInterfacesHydraprobeData,
+  IRosScienceInterfacesNirProbeDataConst, IRosNovaInterfacesStatusConst,
   IRosSensorMsgsRange,
   IRosStdMsgsHeader
 } from "../ros/rosTypes";
@@ -157,7 +157,7 @@ export const reduxStores = {
     { topic: RosTopic.NIR_DATA },
     {
       data: 0,
-      led: IRosNovaInterfacesNirProbeDataConst.LED_OFF,
+      led: IRosScienceInterfacesNirProbeDataConst.LED_OFF,
     }
   ),
   microscopeServoStore: createBifrostStore(
@@ -219,7 +219,7 @@ export const reduxStores = {
       moisture: 0,
       temperature: 0,
       dielectric: 0
-    } as IRosNovaInterfacesHydraprobeData
+    } as IRosScienceInterfacesHydraprobeData
   ),
   bmeSensorStore: createBifrostStore(
     { topic: RosTopic.BME_SENSOR},

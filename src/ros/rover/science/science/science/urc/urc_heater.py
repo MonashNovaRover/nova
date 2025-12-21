@@ -17,8 +17,8 @@ EDITED:		30/05/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
-from nova_interfaces.msg import KilnData
-from nova_interfaces.srv import KilnCommand, KilnCommand_Request, KilnCommand_Response
+from science_interfaces.msg import KilnData
+from science_interfaces.srv import KilnCommand, KilnCommand_Request, KilnCommand_Response
 from python_control.ControllerNode import ControllerNode
 from python_control.controls.OneAxisVelocityControl import OneAxisVelocityControl
 from python_control.controllers.CMDVelocityController import CMDVelocityController
