@@ -29,6 +29,8 @@ struct ARM_KINEMATICS_PUBLIC KinematicsParams {
   /// The name of the link to use by default as the target in FK and IK calculations. Usually the end effector.
   std::string ee_link_name = "";
 
+  std::vector<std::string> joint_names = {};
+
   /**
    * Constructor
    * @param node The parameter interface to get params from

@@ -27,10 +27,29 @@ public:
   }
 
   template<typename T>
-  T get_or(const std::string & name, const T & default_value) const {
+  T declare_and_get(const std::string & name, const T & default_value, const std::string & description) const {
+    const auto parameter_value = rclcpp::ParameterValue(default_value);
+
+    auto descriptor = rcl_interfaces::msg::ParameterDescriptor();
+    descriptor.description = description;
+    descriptor.type = parameter_value.get_type();
+
+    params_->declare_parameter(name, parameter_value, descriptor);
+    return params_->get_parameter(name).get_value<T>();
+  }
+
+  template<typename T>
+  T get(const std::string & name, const T & default_value) const {
     if (!params_->has_parameter(name)) {
-      params_->declare_parameter(name, rclcpp::ParameterValue(default_value));
-      return default_value;
+      return declare_and_get(name, default_value);
+    }
+    return params_->get_parameter(name).get_value<T>();
+  }
+
+  template<typename T>
+  T get(const std::string & name, const T & default_value, const std::string & description) const {
+    if (!params_->has_parameter(name)) {
+      return declare_and_get(name, default_value, description);
     }
     return params_->get_parameter(name).get_value<T>();
   }

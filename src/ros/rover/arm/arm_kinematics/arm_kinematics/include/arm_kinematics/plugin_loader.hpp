@@ -32,6 +32,7 @@ public:
    * \param robot_description The URDF string to provide to any spawned kinematics plugins. Lifetime must exceed this.
    */
   explicit PluginLoader(PluginLoaderNodeInterfaces node, std::string robot_description);
+  explicit PluginLoader() = default;
 
   /// Make an FK plugin using the plugin name defined in the `kinematics.forward_kinematics_plugin` parameter.
   ForwardKinematicsPlugin::SharedPtr make_fk();
@@ -70,8 +71,11 @@ public:
     const std::vector<std::string> & joint_names,
     const ForwardKinematicsPlugin::SharedPtr & fk);
 
+  /// Gets the robot model containing robot_description
+  [[nodiscard]] const RobotModel & get_robot_model() const;
+
   /// Lazy gets kinematics params
-  [[nodiscard]] const KinematicsParams::SharedPtr & get_kinematics_params() noexcept;
+  [[nodiscard]] const KinematicsParams::SharedPtr & get_kinematics_params();
 
   /// Lazy loads a ClassLoader for ForwardKinematicsPlugin instances
   [[nodiscard]] pluginlib::ClassLoader<ForwardKinematicsPlugin> & get_fk_loader() const noexcept;
@@ -81,6 +85,9 @@ public:
 
   /// Lazy loads a ClassLoader for CollisionPlugin instances
   [[nodiscard]] pluginlib::ClassLoader<DiscreteCollisionPlugin> & get_collision_loader() const noexcept;
+
+  /// Returns false if this instance was default constructed
+  [[nodiscard]] bool is_valid() const noexcept;
 
 private:
   PluginLoaderNodeInterfaces node_;

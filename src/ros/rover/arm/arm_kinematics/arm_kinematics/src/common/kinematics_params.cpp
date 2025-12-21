@@ -11,8 +11,13 @@ KinematicsParams::KinematicsParams(const NodeParametersInterface::SharedPtr & no
 {
   const ParamReader params(node);
 
-  // base_link_name = params.get_or<std::string>("base_link_name", "base_link");
-  // ee_link_name = params.get_or<std::string>("ee_link_name", "ee_link");
+  base_link_name = params.get<std::string>("base_link_name", "base_link");
+  ee_link_name = params.get<std::string>("ee_link_name", "ee_link");
+
+  joint_names = params.get<std::vector<std::string>>(
+    "joint_names",
+    {},
+    "The names of all joints in the default kinematics chain, from the base link to the end effector");
 }
 
 KinematicsParams::KinematicsParams(NodeInterfaces node)
