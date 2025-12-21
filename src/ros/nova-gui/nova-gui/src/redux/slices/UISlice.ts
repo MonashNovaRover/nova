@@ -47,6 +47,15 @@ export const uiSlice = createSlice({
         blcmdStatusModalOpen: action.payload,
       };
     },
+    RADIO_STATUS_MODAL_UPDATE: (
+      state: UIState,
+      action: PayloadAction<boolean>
+    ) => {
+      return {
+        ...state,
+        radioStatusModalOpen: action.payload,
+      };
+    },
   },
   initialState: initialUIState,
   name: "UIReducer",

@@ -9,12 +9,13 @@ published over ROS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: radio_tester_pub
 TOPICS:
-  - /electronics/radio_status  [RadioStatus]   [Published]
+  - /chassis/radio_status  [RadioStatus]   [Published]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Harrison Verrios
 CREATION:	26/02/2022
-EDITED:		26/02/2022
+EDITED:		01/12/2025
+EDITED BY:  Binuda Kalugalage 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -29,8 +30,11 @@ from nova_interfaces.msg import RadioStatus
 # This class handles all movement and testing of the GPS
 class RadioTest (Node):
 
-    # Constants
-    FREQUENCY = 1.0 # Rate of change per second
+    # Parameters
+    FREQUENCY_PARAM = "frequency"               # Rate of change per second
+    HEALTH_PARAM = "health"                     # Health of connection
+    SIGNAL_PARAM = "signal"                     # Starting signal value
+    SIGNAL_VARIATION_PARAM = "signal_variation" # Variation of starting signal value
 
     # Data receiving rates
     RECV_SPEED = 723
@@ -52,13 +56,36 @@ class RadioTest (Node):
     SIGNAL_MIN = -71.0
     SIGNAL_MAX = -62.0
 
+    # Health presets
+    HEALTH_PRESETS = {
+    "disconnected": (-96, 0),
+    "strong":       (-65, 3),
+    "weak":         (-90, 3),
+    "intermittent": (-85, 3),
+    }
+
     # Initialises the ROS messages and nodes
     def __init__(self):
         super().__init__('radio_tester_pub')
-        print("Initialising ROS Radio Tester")
 
+        # Declare parameters
+        self.declare_parameter(self.FREQUENCY_PARAM, 1.00)
+        self.declare_parameter(self.HEALTH_PARAM, "strong")
+        starting_signal, variation = self.HEALTH_PRESETS.get(
+            self.get_parameter(self.HEALTH_PARAM).value, 
+            self.HEALTH_PRESETS["strong"]
+        )
+        self.declare_parameter(self.SIGNAL_PARAM, starting_signal)
+        self.declare_parameter(self.SIGNAL_VARIATION_PARAM, variation)
+
+        # Adjust signal window
+        self.SIGNAL_MIN = self.get_parameter(self.SIGNAL_PARAM).value - self.get_parameter(self.SIGNAL_VARIATION_PARAM).value
+        self.SIGNAL_MAX = self.get_parameter(self.SIGNAL_PARAM).value + self.get_parameter(self.SIGNAL_VARIATION_PARAM).value
+
+        print("Initialising ROS Radio Tester")
+        
         # Message Type, Topic Name, Quality of Service 
-        self.pub = self.create_publisher(RadioStatus, '/electronics/radio_status', 10)
+        self.pub = self.create_publisher(RadioStatus, '/chassis/radio_status', 10)
 
         # Set the starting variables
         self.run = True
@@ -75,7 +102,7 @@ class RadioTest (Node):
         self.ping_target = 0
         self.ping_flag = True
 
-        self.signal = -65
+        self.signal = self.get_parameter(self.SIGNAL_PARAM).value
         self.signal_target = 0
         self.signal_flag = True
 
@@ -103,6 +130,7 @@ class RadioTest (Node):
 
             # Create the ROS message
             msg = RadioStatus()
+            msg.stamp = self.get_clock().now().to_msg()
             msg.recv = int(self.recv)
             msg.sent = int(self.sent)
             msg.ping = int(self.ping)
@@ -116,8 +144,7 @@ class RadioTest (Node):
             self.prevPose = msg
 
             # Sleep for some time period
-            time.sleep(1.0/self.FREQUENCY)
-
+            time.sleep(1.0/self.get_parameter(self.FREQUENCY_PARAM).value)
    
     # Changes a value depending on where it is towards target value
     # Takes in a target, flag and speed and then is able to adjust the value
@@ -131,7 +158,7 @@ class RadioTest (Node):
 
         # Checks to see if it has not reached the target yet
         if (value < target and flag) or (value > target and not flag):
-            setattr(self, name, value + (speed / self.FREQUENCY * self.GetFlagMultiplier(flag)))
+            setattr(self, name, value + (speed / self.get_parameter(self.FREQUENCY_PARAM).value * self.GetFlagMultiplier(flag)))
         # If it has reached the target, re-randomise
         else:
             self.Randomise(name)
