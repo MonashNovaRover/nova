@@ -24,9 +24,7 @@ import { List } from "react-bootstrap-icons";
 import { BatteryWidget } from "../BatteryWidget/BatteryWidget.tsx";
 import {RGBInputModal} from "../RGBWidget/RGBModal.tsx";
 import {RadioStatusButton} from "../RadioStatusModal/RadioStatusButton.tsx";
-import { useState } from "react";
-import { SaveAllCamerasModal } from "./SaveAllCamerasModal.tsx";
-import { LoadCameraProfileDropdown } from "./LoadCameraProfileDropdown.tsx";
+
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
@@ -47,7 +45,6 @@ const prettyViewNames = new Map<string, string>([
 
 export const NovaTopBar: React.FC = () => {
   const uiActions = useUIActions();
-  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 
   const uiState = useSelector((state: RootState) => state.uiState);
 
@@ -63,9 +60,6 @@ export const NovaTopBar: React.FC = () => {
 
   const viewName = parsedLocation.length !== 0 ? parsedLocation[0] : "";
   const title = parsedLocation.reverse()[0];
-  
-  // Show camera profile button only on /cameras routes
-  const isOnCamerasPage = location.pathname.includes("/cameras");
 
   return (
     <Navbar maxWidth="full" isBordered position="static">
@@ -95,24 +89,6 @@ export const NovaTopBar: React.FC = () => {
         </NavbarBrand>
       </NavbarContent>
       <NavbarContent as="div" className="items-center" justify="end">
-        {isOnCamerasPage && (
-          <>
-            <NavbarItem>
-              <LoadCameraProfileDropdown />
-            </NavbarItem>
-            <NavbarItem>
-              <Button
-                radius="sm"
-                size="sm"
-                variant="shadow"
-                color="primary"
-                onPress={() => setIsSaveModalOpen(true)}
-              >
-                Save All Cameras
-              </Button>
-            </NavbarItem>
-          </>
-        )}
         <NavbarItem>
           <BLCMDStatusButton />
         </NavbarItem>
@@ -223,10 +199,6 @@ export const NovaTopBar: React.FC = () => {
           </Button>
         </NavbarItem>
       </NavbarContent>
-      <SaveAllCamerasModal
-        isOpen={isSaveModalOpen}
-        onClose={() => setIsSaveModalOpen(false)}
-      />
     </Navbar>
   );
 };

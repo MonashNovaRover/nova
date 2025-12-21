@@ -112,7 +112,6 @@ export const CameraComponent = (props: CameraComponentProps) => {
           // Load filters for this camera
           const loadedFilters = profile.cameras[cameraSerial];
           setFilters(loadedFilters);
-          toast.success(`${cameraSerial} settings loaded`);
         }
       }
     };

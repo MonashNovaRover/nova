@@ -6,6 +6,8 @@ import { useState } from "react";
 import { CameraControlPanelModal } from "../../../components/cameras/CameraComponent/components/CamerasControlPanelModal";
 import SerialMappedCameraComponent from "./SerialMappedCameraComponent.tsx";
 import SegmentedPicker from "../../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
+import { SaveAllCamerasModal } from "../../../components/navbar/TopBar/SaveAllCamerasModal";
+import { CameraPresetDropdown } from "../../../components/navbar/TopBar/CameraPresetDropdown";
 
 export interface CameraPageProps {
   views: CameraView[];
@@ -14,6 +16,7 @@ export interface CameraPageProps {
 export const CameraPage = (props: CameraPageProps) => {
   const { views } = props;
   const [controlPanelOpen, setControlPanelOpen] = useState(false);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 
   const closeControlPanel = () => setControlPanelOpen(false);
 
@@ -59,15 +62,18 @@ export const CameraPage = (props: CameraPageProps) => {
           variant="bordered"
         />
 
-        <Button
-          size="md"
-          color="primary"
-          variant="ghost"
-          className="w-36"
-          onPress={() => setControlPanelOpen(true)}
-        >
-          Control Panel
-        </Button>
+        <div className="flex flex-row gap-3">
+          <CameraPresetDropdown onSavePress={() => setIsSaveModalOpen(true)} />
+          <Button
+            size="md"
+            color="primary"
+            variant="ghost"
+            className="w-36"
+            onPress={() => setControlPanelOpen(true)}
+          >
+            Control Panel
+          </Button>
+        </div>
       </div>
 
       {
@@ -86,6 +92,10 @@ export const CameraPage = (props: CameraPageProps) => {
         showModal={controlPanelOpen}
         closeModal={closeControlPanel}
         refreshAvailabilies={refreshAvailabilities}
+      />
+      <SaveAllCamerasModal
+        isOpen={isSaveModalOpen}
+        onClose={() => setIsSaveModalOpen(false)}
       />
     </div>
   );
