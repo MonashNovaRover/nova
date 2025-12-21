@@ -5,6 +5,7 @@ export interface UIState {
   controllerHelpModalOpen: boolean;
   sidebarIsVisible: boolean;
   blcmdStatusModalOpen: boolean;
+  radioStatusModalOpen: boolean;
 }
 
 export const initialUIState: UIState = {
@@ -14,4 +15,5 @@ export const initialUIState: UIState = {
   controllerHelpModalOpen: false,
   sidebarIsVisible: false,
   blcmdStatusModalOpen: false,
+  radioStatusModalOpen: false,
 };

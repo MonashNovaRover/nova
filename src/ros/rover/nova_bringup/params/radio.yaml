@@ -1,0 +1,16 @@
+radio_monitor:
+  ros__parameters:
+    device: BULLET
+
+    devices:
+      BULLET:
+        dest_ip: "10.0.0.11"
+        base_ip: "10.0.1.11"
+        host: "***REMOVED***"
+        password_path: "~/nova/src/other/secrets/bullet-password.txt"
+
+      ROCKET:
+        dest_ip: "192.168.1.204"
+        base_ip: "192.168.3.155"
+        host: "nova"
+        password_path: "~/nova/src/other/secrets/rocket-password.txt"

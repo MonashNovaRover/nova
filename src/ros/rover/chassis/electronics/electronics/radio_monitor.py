@@ -10,87 +10,96 @@ Requires radio and destination IPs and ethernet interface
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: radio_monitor
 TOPICS:
-  - /electronics/radio_status       [RadioStatus]
+  - /chassis/radio_status       [RadioStatus]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Emily Kuo
 CREATION:	22/09/2021
-EDITED:		17/12/2021
+EDITED:		11/12/2025
+EDITED BY:  Binuda Kalugalage 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If you have issues connecting to the radio device
     due to SSH connections, run the following line
     in the Terminal:
-        ssh-copy-id ***REMOVED***@192.168.1.201
+        ssh-copy-id ***REMOVED***@10.0.1.11
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
 # Include all relevant packages
 import rclpy
 from rclpy.node import Node
-from rclpy.timer import Rate
-# from nova_interfaces.msg import RadioStatus
-# from fabric import Connection
-# import re, time, psutil, subprocess, sys
+from nova_interfaces.msg import RadioStatus
+from fabric import Connection
+import re, time, psutil, subprocess
 import os
-
-# Stores the device information for each of the device settings
-DEVICE_INFO = {
-
-    # Old Rocket Systems
-    "ROCKET": {
-        "ROS": True,                                                                            # Using ROS or not
-        "dest_IP":      "192.168.1.204",                                                        # Destination IP of Jetson
-        "radio_IP":     "192.168.3.155",                                                        # Base Station Radio IP
-        "host":         "nova",                                                                 # Host Name of the Radio
-        "password":     open(os.path.expanduser("~/nova/src/other/secrets/rocket-password.txt")).read(),  # Password of Radio device
-        "interface":    "enp3s0f1",                                                             # Ethernet Interface 
-    },
-
-    # New Bullet Systems
-    "BULLET": {
-        "ROS": True,                                                                            # Using ROS or not
-        "dest_IP":      "192.168.1.204",                                                        # Destination IP of Jetson
-        "radio_IP":     "192.168.1.201",                                                        # Base Station Radio IP
-        "host":         "***REMOVED***",                                                       # Host Name of the Radio
-        "password":     open(os.path.expanduser("~/nova/src/other/secrets/bullet-password.txt")).read(),  # Password of Radio device
-        "interface":    "enp3s0f1",                                                             # Ethernet Interface 
-    },
-}
-
-# Default device
-DEVICE_DEFAULT = "BULLET"
 
 # Main radio monitor class
 class RadioMonitor(Node):
+
+    # Parameters
+    DEVICE_PARAM = "device"
+    DEST_IP_PARAM = "dest_ip"
+    BASE_IP_PARAM = "base_ip"
+    HOST_PARAM = "host"
+    PASSWORD_PATH_PARAM = "password_path"
+    INTERFACE_PARAM = "interface"
     
-    def __init__(self, device):
-        
-        # Print initialisation information
-        print("Initialising Radio Monitor class for %s" % device)
+    def __init__(self):
+        super().__init__("radio_monitor")
 
-        # Get the device info
-        self.is_ros =       DEVICE_INFO[device]["ROS"]
-        self.dest_IP =      DEVICE_INFO[device]["dest_IP"]
-        self.radio_IP =     DEVICE_INFO[device]["radio_IP"]
-        self.password =     DEVICE_INFO[device]["password"]
-        self.interface =    DEVICE_INFO[device]["interface"]
-        self.host =         DEVICE_INFO[device]["host"]
+        # Get device
+        self.declare_parameter(self.DEVICE_PARAM, "BULLET")
+        self.device = self.get_parameter(self.DEVICE_PARAM).value
+        self.device_prefix = f"devices.{self.device}"
 
-        self.command = "ping -c 3 -W 1 " + self.dest_IP #shell command
-        self.ssh_connection = Connection(host=self.host + "@" + self.radio_IP, connect_kwargs={"password":self.password}, connect_timeout=3)
-        
-        if self.is_ros:
-            super().__init__("radio_monitor")
-            self.publisher = self.create_publisher(RadioStatus, "/electronics/radio_status", 10)
+        # Declare parameters
+        self.declare_parameters(
+            namespace=self.device_prefix,
+            parameters=[
+                (self.DEST_IP_PARAM, "10.0.0.11"),
+                (self.BASE_IP_PARAM, "10.0.1.11"),
+                (self.HOST_PARAM, "***REMOVED***"),
+                (self.PASSWORD_PATH_PARAM, "~/nova/src/other/secrets/bullet-password.txt"),
+            ],
+        )
 
+        # Get interface
+        self.declare_parameter(f"{self.device_prefix}.{self.INTERFACE_PARAM}", self.get_interface())
+        self.interface = self.get_parameter(f"{self.device_prefix}.{self.INTERFACE_PARAM}").value
+
+        # SSH commands
+        self.ping_command = f"ping -c 3 -W 1 {self.get_parameter(f"{self.device_prefix}.{self.DEST_IP_PARAM}").value}"
+
+        # Create SSH connection
+        self.ssh_connection = Connection(
+            host=f"{self.get_parameter(f"{self.device_prefix}.{self.HOST_PARAM}").value}@{self.get_parameter(f"{self.device_prefix}.{self.BASE_IP_PARAM}").value}",
+            connect_kwargs={"password": open(os.path.expanduser(self.get_parameter(f"{self.device_prefix}.{self.PASSWORD_PATH_PARAM}").value)).read()},
+            connect_timeout=3,
+        )
+
+        # Message Type, Topic Name, Quality of Service
+        self.publisher = self.create_publisher(RadioStatus, "/chassis/radio_status", 10)
+
+    def get_interface(self):
+        '''
+        Determines local network interface on base station 
+        laptop used to reach base station radio
+        Returns ethernet interface
+        '''
+        output = subprocess.check_output(f"ip route get {self.get_parameter(f"{self.device_prefix}.{self.BASE_IP_PARAM}").value}", shell=True, text=True)
+        matches = re.findall(r"\bdev\s+(\S+)", output)
+        if not matches:
+            raise RuntimeError(f"Could not derive interface from route output: {output}")
+
+        return matches[0]
 
     def connect_to_radio(self):
         '''
         Initiates ssh connection to the radio
         '''
-        print("Connecting to radio")
+        print(f"Connecting to {self.device} radio...")
         self.ssh_connection.open()
-  
+        print("Connected to radio!")
 
     def loop_function(self):
         '''
@@ -103,16 +112,16 @@ class RadioMonitor(Node):
         signal = self.get_signal()
 
         # Print the data
-	#        print("Signal: %ddb, \tSent: %dkb, \tRecv: %dkb, \tPing: %dms" % (signal, sent, recv, ping))
+        # self.get_logger().info("Signal: %ddb, \tSent: %dkb, \tRecv: %dkb, \tPing: %dms" % (signal, sent, recv, ping))
 
         # Publish data over ROS
-        if self.is_ros:
-            radio_msg = RadioStatus()
-            radio_msg.signal = int(signal)
-            radio_msg.sent = int(sent)
-            radio_msg.recv = int(recv)
-            radio_msg.ping = int(ping)
-            self.publisher.publish(radio_msg)
+        radio_msg = RadioStatus()
+        radio_msg.stamp = self.get_clock().now().to_msg()
+        radio_msg.signal = int(signal)
+        radio_msg.sent = int(sent)
+        radio_msg.recv = int(recv)
+        radio_msg.ping = int(ping)
+        self.publisher.publish(radio_msg)
   
 
     def get_bandwidth(self):
@@ -154,8 +163,8 @@ class RadioMonitor(Node):
         Returns ping (ms)
         '''
         try: 
-            output = subprocess.check_output(self.command, shell=True)
-            matches = re.findall(b" time=([\d.]+) ms", output)
+            output = subprocess.check_output(self.ping_command, shell=True)
+            matches = re.findall(rb" time=([\d.]+) ms", output)
             matches = [float(match) for match in matches]
             ms = sum(matches)/len(matches)
 
@@ -167,42 +176,34 @@ class RadioMonitor(Node):
 
 
 # Main function sets up the ROS class
-def main():
-
-    # Grab parameter and check if not existed
-    if len(sys.argv) <= 1:
-        device = DEVICE_DEFAULT
-
-    # Otherwise take the parameter
-    else:
-        
-        # If found an invalid device
-        if sys.argv[1].upper() not in DEVICE_INFO.keys():
-            print("Invalid device. Using default device.")
-            device = DEVICE_DEFAULT
-        
-        # Else set the device
-        else:
-            device = sys.argv[1].upper()
-
+def main (args = None):
     # Run the monitor code
-    rclpy.init()
-    radio_monitor = RadioMonitor(device)
+    rclpy.init(args = args)
 
-    # Attempt to run the radio monitor code
+    # Attempt to initialise the radio monitor
     try:
-        # Connect to the radio
-        radio_monitor.connect_to_radio()
+        radio_monitor = RadioMonitor()
 
-        # Forevery loop
-        while True:
-            radio_monitor.loop_function()
-    
+        # Attempt to run the radio monitor code
+        try:
+            # Connect to the radio
+            radio_monitor.connect_to_radio()
+
+            # Forevery loop
+            while True:
+                radio_monitor.loop_function()
+        
+        # If issues found, raise exception
+        except Exception as e:
+            radio_monitor.get_logger().error(f"\nAn error occurred while running the radio monitor: {e}")
+
+        # Shutdown cleanly
+        radio_monitor.destroy_node()
+        rclpy.shutdown()
+
     # If issues found, raise exception
     except Exception as e:
-        print("An error occurred with the radio monitor.")
-        print(e)
-
+        print(f"\nAn error ocurred in initialising the radio monitor: {e}")
 
 # Called when the script executes
 if __name__=="__main__":

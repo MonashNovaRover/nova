@@ -23,6 +23,7 @@ import {
   IRosNovaInterfacesStatus,
   IRosSensorMsgsNavSatFix,
   IRosArmInterfacesSequencerFeedback,
+  IRosNovaInterfacesRadioStatus,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -78,4 +79,5 @@ export interface RosTopicInterfaces {
   // Other
   [RosTopic.BATTERY_STATE]: IRosSensorMsgsBatteryState;
   [RosTopic.ACTIVATED_NODES]: IRosNovaInterfacesActiveNodeStatus;
+  [RosTopic.RADIO_STATUS]: IRosNovaInterfacesRadioStatus;
 }
