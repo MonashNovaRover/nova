@@ -34,6 +34,7 @@
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <rcl_interfaces/srv/set_parameters.hpp>
 #include <controller_manager_msgs/srv/switch_controller.hpp>
+#include <drive_interfaces/srv/drive_status.hpp>
 
 #include "teleop_drive_joy_parameters.hpp"
 
@@ -81,6 +82,31 @@ inline std::string mode_to_controller(const DriveMode mode)
       return "unknown_controller";
   }
 }
+
+class ButtonHandler
+{
+public:
+  ButtonHandler(const int button_index, const std::chrono::milliseconds debounce_timeout,
+    const std::function<void(const sensor_msgs::msg::Joy::SharedPtr)> on_down,
+    const std::function<void(const sensor_msgs::msg::Joy::SharedPtr)> on_up = {});
+
+  ButtonHandler(const std::function<bool(const sensor_msgs::msg::Joy::SharedPtr)> is_pressed,
+    const std::chrono::milliseconds debounce_timeout,
+    const std::function<void(const sensor_msgs::msg::Joy::SharedPtr)> on_down,
+    const std::function<void(const sensor_msgs::msg::Joy::SharedPtr)> on_up = {});
+
+  bool is_timed_out(const rclcpp::Time& now);
+
+  void update(const sensor_msgs::msg::Joy::SharedPtr joy_msg, const rclcpp::Time now);
+
+private:
+  bool pressed_{false};
+  const rclcpp::Duration debounce_timeout_;
+  std::optional<rclcpp::Time> last_pressed_{};
+  const std::function<bool(const sensor_msgs::msg::Joy::SharedPtr)> is_pressed_;
+  const std::function<void(const sensor_msgs::msg::Joy::SharedPtr)> on_down_;
+  const std::function<void(const sensor_msgs::msg::Joy::SharedPtr)> on_up_;
+};
 
 /**
  * @class TeleopDriveJoy
@@ -161,6 +187,8 @@ private:
    */
   void switch_controller(const DriveMode requested_control_mode);
 
+  void set_hold_position(bool enable);
+
   /**
    * @brief Prints the control mappings to the console.
    */
@@ -175,6 +203,7 @@ private:
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr holonomic_drive_client_;
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr strafe_client_;
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr diff_drive_client_;
+  rclcpp::Client<drive_interfaces::srv::DriveStatus>::SharedPtr set_drive_status_client_;
   std::shared_ptr<ParamListener> param_listener_;
 
   Params params_;
@@ -182,9 +211,8 @@ private:
   bool locked_;
   DriveMode drive_mode_;
   double speed_;  // Linear Speed Multiplier that can be incremented
-  std::map<int, rclcpp::Time> last_button_press_time_;
-  std::map<int, std::function<void(const sensor_msgs::msg::Joy::SharedPtr)>> button_callbacks_;
   bool handbrake_pressed_;
+  std::vector<ButtonHandler> button_handlers_{};
 };
 
 }  // namespace teleop_drive_joy

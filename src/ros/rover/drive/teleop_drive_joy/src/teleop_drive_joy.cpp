@@ -28,8 +28,62 @@ using std::placeholders::_1;
 
 namespace teleop_drive_joy
 {
+  ButtonHandler::ButtonHandler(const int button_index, const std::chrono::milliseconds debounce_timeout,
+    const std::function<void(const sensor_msgs::msg::Joy::SharedPtr)> on_down,
+    const std::function<void(const sensor_msgs::msg::Joy::SharedPtr)> on_up)
+      : debounce_timeout_(debounce_timeout)
+      , on_down_(on_down)
+      , is_pressed_([button_index](const sensor_msgs::msg::Joy::SharedPtr joy_msg) -> bool
+        { return static_cast<bool>(joy_msg->buttons[button_index]); })
+      , on_up_(on_up)
+  {
+  }
 
-TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions& options)
+  ButtonHandler::ButtonHandler(const std::function<bool(const sensor_msgs::msg::Joy::SharedPtr)> is_pressed,
+    const std::chrono::milliseconds debounce_timeout,
+    const std::function<void(const sensor_msgs::msg::Joy::SharedPtr)> on_down,
+    const std::function<void(const sensor_msgs::msg::Joy::SharedPtr)> on_up)
+      : debounce_timeout_(debounce_timeout)
+      , is_pressed_(is_pressed)
+      , on_down_(on_down)
+      , on_up_(on_up)
+  {
+  }
+
+  bool ButtonHandler::is_timed_out(const rclcpp::Time& now)
+  {
+    if (last_pressed_.has_value())
+    {
+      return (now - last_pressed_.value()) <= debounce_timeout_;
+    }
+    else
+    {
+      last_pressed_ = now;
+      return false;
+    }
+  }
+
+  void ButtonHandler::update(const sensor_msgs::msg::Joy::SharedPtr joy_msg, const rclcpp::Time now)
+  {
+    if (is_timed_out(now))
+    {
+      return;
+    }
+
+    if (is_pressed_(joy_msg) and not pressed_)
+    {
+      pressed_ = true;
+      last_pressed_ = now;
+      if (on_down_) { on_down_(joy_msg); }
+    }
+    else if (not is_pressed_(joy_msg) and pressed_)
+    {
+      pressed_ = false;
+      if (on_up_) { on_up_(joy_msg); }
+    }
+  }
+
+  TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions& options)
   : Node("teleop_drive_joy_node", options)
   , sent_lock_msg_(false)
   , locked_(true)
@@ -133,58 +187,99 @@ void TeleopDriveJoy::initialize_interfaces()
     "/strafe_drive_controller/set_parameters");
   diff_drive_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
     "/diff_drive_controller/set_parameters");
+
+  set_drive_status_client_ = this->create_client<drive_interfaces::srv::DriveStatus>(
+    "/drive_controller/set_drive_status");
 }
 
 void TeleopDriveJoy::map_button_callbacks()
 {
-  button_callbacks_[params_.button_unlock] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  const std::chrono::milliseconds debounce_duration { params_.button_debounce_time };
+
+  button_handlers_.emplace_back(params_.button_unlock, debounce_duration,
+    [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     if (locked_)
     {
       locked_ = false;
       RCLCPP_INFO_STREAM(this->get_logger(), C_SUCCESS << "Gamepad unlocked" << C_END);
     }
-  };
-  button_callbacks_[params_.button_lock] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  });
+  button_handlers_.emplace_back(params_.button_lock, debounce_duration,
+    [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     if (!locked_)
     {
       locked_ = true;
       RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Gamepad locked" << C_END);
     }
-  };
-  button_callbacks_[params_.button_autonomous_mode] =
+  });
+
+  button_handlers_.emplace_back(params_.button_autonomous_mode, debounce_duration,
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     set_autonomous_mode_for_controllers(true);
     RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Autonomous mode" << C_END);
-  };
-  button_callbacks_[params_.button_manual_mode] =
+  });
+  button_handlers_.emplace_back(params_.button_manual_mode, debounce_duration,
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     set_autonomous_mode_for_controllers(false);
     RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << "Manual mode" << C_END);
-  };
-  button_callbacks_[params_.button_pivot_drive_controller] =
+  });
+
+  button_handlers_.emplace_back(params_.button_pivot_drive_controller, debounce_duration,
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     switch_controller(DriveMode::PIVOT);
-  };
-  button_callbacks_[params_.button_holonomic_drive_controller] =
+  });
+  button_handlers_.emplace_back(params_.button_holonomic_drive_controller, debounce_duration,
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     switch_controller(DriveMode::HOLONOMIC);
-  };
-  button_callbacks_[params_.button_strafe_drive_controller] =
+  });
+  button_handlers_.emplace_back(params_.button_strafe_drive_controller, debounce_duration,
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     switch_controller(DriveMode::STRAFE);
-  };
-  button_callbacks_[params_.button_diff_drive_controller] =
+  });
+  button_handlers_.emplace_back(params_.button_diff_drive_controller, debounce_duration,
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     switch_controller(DriveMode::DIFF);
-  };
+  });
+
+  button_handlers_.emplace_back(
+    [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+    return std::abs(joy_msg->axes[params_.axis_hold_position]) > params_.trigger_pressed_threshold;
+  },
+    debounce_duration,
+    [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+    set_hold_position(true);
+  },
+    [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+    set_hold_position(false);
+  });
+
+  button_handlers_.emplace_back(
+    [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+    return std::abs(joy_msg->axes[params_.axis_handbrake]) > params_.trigger_pressed_threshold;
+  },
+    debounce_duration,
+    [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+    handbrake_pressed_ = true;
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Handbrake " C_SUCCESS << "activated" << C_END);
+  },
+    [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+    handbrake_pressed_ = false;
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Handbrake " C_FAIL << "deactivated" << C_END);
+  });
 
   auto change_speed = [this](double speed_change)
   {
@@ -196,26 +291,26 @@ void TeleopDriveJoy::map_button_callbacks()
       RCLCPP_INFO_STREAM(this->get_logger(), C_SPEED << "Speed: " << speed_ << C_END);
     }
   };
-  button_callbacks_[params_.button_speed_decrease_fine] =
+  button_handlers_.emplace_back(params_.button_speed_decrease_fine, debounce_duration,
     [this, change_speed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     change_speed(-params_.speed_change_fine_val);
-  };
-  button_callbacks_[params_.button_speed_increase_fine] =
+  });
+  button_handlers_.emplace_back(params_.button_speed_increase_fine, debounce_duration,
     [this, change_speed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     change_speed(params_.speed_change_fine_val);
-  };
-  button_callbacks_[params_.button_speed_decrease_coarse] =
+  });
+  button_handlers_.emplace_back(params_.button_speed_decrease_coarse, debounce_duration,
     [this, change_speed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     change_speed(-params_.speed_change_coarse_val);
-  };
-  button_callbacks_[params_.button_speed_increase_coarse] =
+  });
+  button_handlers_.emplace_back(params_.button_speed_increase_coarse, debounce_duration,
     [this, change_speed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
     change_speed(params_.speed_change_coarse_val);
-  };
+  });
 }
 
 void TeleopDriveJoy::joy_callback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
@@ -236,22 +331,9 @@ void TeleopDriveJoy::handle_button_callbacks(const sensor_msgs::msg::Joy::Shared
 {
   auto now = this->now();
 
-  auto isPressedAndDebounced = [this, &now, joy_msg](int button_index)
+  for (auto& handler : button_handlers_)
   {
-    bool pressed = joy_msg->buttons[button_index];
-    bool debounced = last_button_press_time_.find(button_index) == last_button_press_time_.end() ||
-                     now - last_button_press_time_[button_index] >
-                       rclcpp::Duration(std::chrono::milliseconds(params_.button_debounce_time));
-    return pressed && debounced;
-  };
-
-  for (const auto& [button_index, button_callback] : button_callbacks_)
-  {
-    if (isPressedAndDebounced(button_index))
-    {
-      last_button_press_time_[button_index] = now;
-      button_callback(joy_msg);
-    }
+    handler.update(joy_msg, now);
   }
 }
 
@@ -273,25 +355,14 @@ void TeleopDriveJoy::send_drive_command(const sensor_msgs::msg::Joy::SharedPtr j
   }
   angular = std::clamp(angular, -controller_params.limit_angular, controller_params.limit_angular);
 
-  // handbrake
-  if (std::abs(joy_msg->axes[params_.axis_handbrake]) > params_.trigger_pressed_threshold)
-  {
-	if (!handbrake_pressed_)
+	if (handbrake_pressed_)
 	{
-	  handbrake_pressed_ = true;
-	  RCLCPP_INFO_STREAM(this->get_logger(), C_SUCCESS << "Handbrake activated" << C_END);
-	}
     linear.first *= params_.handbrake_speed_multiplier;
     linear.second *= params_.handbrake_speed_multiplier;
     if (drive_mode_ == DriveMode::HOLONOMIC)
     {
       angular *= params_.handbrake_speed_multiplier;
     }
-  }
-  else if (handbrake_pressed_)
-  {
-    handbrake_pressed_ = false;
-    RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Handbrake deactivated" << C_END);
   }
 
   auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
@@ -353,6 +424,29 @@ void TeleopDriveJoy::switch_controller(const DriveMode requested_control_mode)
 
   drive_mode_ = requested_control_mode;
   RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << pretty_print_mode(drive_mode_) << C_END);
+}
+
+void TeleopDriveJoy::set_hold_position(bool enable)
+{
+  if (!set_drive_status_client_->service_is_ready())
+  {
+    RCLCPP_ERROR_STREAM(this->get_logger(), C_FAIL << "set_drive_status server not available. Not updating drive status" << C_END);
+    return;
+  }
+
+  auto request = std::make_shared<drive_interfaces::srv::DriveStatus::Request>();
+  request->hold_position = enable;
+
+  auto result = set_drive_status_client_->async_send_request(request);
+
+  if (enable)
+  {
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Hold position " << C_SUCCESS << "enabled"<< C_END);
+  }
+  else
+  {
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Hold position " << C_FAIL << "disabled"<< C_END);
+  }
 }
 
 void TeleopDriveJoy::print_controls()

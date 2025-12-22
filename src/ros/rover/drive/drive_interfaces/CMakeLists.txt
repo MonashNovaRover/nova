@@ -19,6 +19,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DriveInput.msg"
   "msg/DriveInputStamped.msg"
   "msg/PivotWheelData.msg"
+  "srv/DriveStatus.srv"
   
   DEPENDENCIES std_msgs
 )
