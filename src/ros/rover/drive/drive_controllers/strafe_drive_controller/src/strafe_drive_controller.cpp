@@ -56,7 +56,11 @@ Commands StrafeDriveController::twist_to_commands(
   double linear_input = twist_msg.linear.y;  // lateral velocity
   double linear_velocity;
 
-  if (autonomous_mode)
+  if (hold_position_)
+  {
+    linear_velocity = 0;
+  }
+  else if (autonomous_mode)
   {
     linear_velocity = linear_input;
   }

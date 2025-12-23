@@ -24,6 +24,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2_msgs
   Eigen3
   nova_controller_common
+  drive_interfaces
 )
 
 find_package(ament_cmake REQUIRED)

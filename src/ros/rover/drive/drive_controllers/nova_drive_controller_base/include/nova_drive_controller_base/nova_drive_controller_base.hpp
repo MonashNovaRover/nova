@@ -55,6 +55,7 @@
 #include "rclcpp_lifecycle/state.hpp"
 #include "realtime_tools/realtime_buffer.h"
 #include "realtime_tools/realtime_publisher.h"
+#include "drive_interfaces/srv/drive_status.hpp"
 
 #include "nova_controller_common/speed_limiter.hpp"
 #include "nova_controller_common/velocity_limiter.hpp"
@@ -190,6 +191,8 @@ protected:
   nova_controller_common::SpeedLimiter limiter_angular_;
   nova_controller_common::PositionLimiter limiter_pivot_;
 
+  std::atomic<bool> hold_position_ = false;
+
 private:
   const char* drive_feedback_type() const;
   const char* pivot_feedback_type() const;
@@ -222,6 +225,9 @@ private:
   std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::TwistStamped>> commanded_twist_publisher_;
   std::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::msg::TwistStamped>>
     realtime_commanded_twist_publisher_;
+
+  rclcpp::Service<drive_interfaces::srv::DriveStatus>::SharedPtr set_drive_status_service_;
+
 };
 
 }  // namespace nova_drive_controller_base

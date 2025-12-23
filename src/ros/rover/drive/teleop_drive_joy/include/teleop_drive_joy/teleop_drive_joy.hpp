@@ -212,6 +212,7 @@ private:
   DriveMode drive_mode_;
   double speed_;  // Linear Speed Multiplier that can be incremented
   bool handbrake_pressed_;
+  bool hold_position_pressed_;
   std::vector<ButtonHandler> button_handlers_{};
 };
 

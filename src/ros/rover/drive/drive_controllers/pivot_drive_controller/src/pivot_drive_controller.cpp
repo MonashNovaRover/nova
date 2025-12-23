@@ -119,14 +119,15 @@ Commands PivotDriveController::twist_to_commands(
     }
 
     // To ensure better intended movement in autonomous mode, we wait for the pivots to reach
-    // the desired angle before moving. Lenience may be adjusted by pivot_rate_tolerance.
+    // the desired angle before moving (and that hold position is not enabled).
+    // Lenience may be adjusted by pivot_rate_tolerance.
     const auto& prev_positions =
       left ? previous_left_pivot_positions_ : previous_right_pivot_positions_;
     double limited_angle = max_requested_angle;
     limiter_pivot_.limit(
       limited_angle, prev_positions[2], prev_positions[1], prev_positions[0],
       params_.pivot_rate_tolerance);
-    if (limited_angle != max_requested_angle)
+    if (limited_angle != max_requested_angle or hold_position_)
     {
       speed = 0.0;  // wait for the pivot to be within tolerance before moving
       limiter_drive_.limit(speed, previous_speeds_[1], previous_speeds_[0], period.seconds());
@@ -142,6 +143,12 @@ Commands PivotDriveController::twist_to_commands(
     // Manual operation: left stick controls speed and right stick controls the pivot angle
     // Process raw angular input through a curve to calculate the turning radius
     // Prioritise keeping turning radius over speed
+
+    if (hold_position_)
+    {
+      linear_input = 0;
+    }
+
     turning_radius = turning_radius_from_angular_input(angular_input);
     turning_left = turning_radius == 0 ? angular_input > 0 : turning_radius > 0;
 

@@ -16,6 +16,7 @@
 , geometry-msgs
 , eigen
 , nova-controller-common
+, nova-drive-interfaces
 }:
 
 buildRosPackage {
@@ -46,5 +47,9 @@ buildRosPackage {
     geometry-msgs
     eigen
     nova-controller-common
+  ];
+
+  propagatedBuildInputs = [
+    nova-drive-interfaces
   ];
 }

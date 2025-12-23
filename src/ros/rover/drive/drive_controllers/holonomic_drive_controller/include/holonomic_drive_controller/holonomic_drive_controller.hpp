@@ -74,7 +74,8 @@ protected:
 
   std::tuple<double, double, double> calculate_wheel_speed_and_angle(
     const Wheel& wheel, const Eigen::Vector2d& linear_velocity,
-    const double angular_velocity, const double dt);
+    const double angular_velocity, const Eigen::Vector2d& requested_linear_velocity,
+    const double requested_angular_velocity, const double dt);
 
   // Parameters from ROS for holonomic_drive_controller
   std::shared_ptr<ParamListener> param_listener_;

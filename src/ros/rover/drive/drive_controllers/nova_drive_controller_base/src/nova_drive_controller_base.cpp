@@ -45,6 +45,7 @@ using geometry_msgs::msg::TwistStamped;
 using hardware_interface::HW_IF_POSITION;
 using hardware_interface::HW_IF_VELOCITY;
 using lifecycle_msgs::msg::State;
+using drive_interfaces::srv::DriveStatus;
 
 NovaDriveControllerBase::NovaDriveControllerBase()
   : controller_interface::ControllerInterface()
@@ -423,6 +424,21 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
           cmd_vel_timeout_.seconds());
       }
     });
+
+  set_drive_status_service_ = get_node()->create_service<DriveStatus>(
+    "/drive_controller/set_drive_status",
+    [this](const std::shared_ptr<DriveStatus::Request> request, const std::shared_ptr<DriveStatus::Response> response)
+    {
+      if (!is_active_)
+      {
+        RCLCPP_WARN_ONCE(
+          get_node()->get_logger(), "Can't update drive status, service is inactive");
+        return;
+      }
+
+      hold_position_ = request->hold_position;
+      response->success = true;
+    }, rclcpp::SystemDefaultsQoS());
 
   return controller_interface::CallbackReturn::SUCCESS;
 }

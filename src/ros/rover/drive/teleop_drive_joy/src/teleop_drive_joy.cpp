@@ -89,6 +89,7 @@ namespace teleop_drive_joy
   , locked_(true)
   , drive_mode_(DriveMode::PIVOT)
   , handbrake_pressed_(false)
+  , hold_position_pressed_(false)
 {
 }
 
@@ -257,10 +258,14 @@ void TeleopDriveJoy::map_button_callbacks()
     debounce_duration,
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
+    hold_position_pressed_ = true;
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Hold position " << C_SUCCESS << "enabled"<< C_END);
     set_hold_position(true);
   },
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
+    hold_position_pressed_ = false;
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Hold position " << C_FAIL << "disabled"<< C_END);
     set_hold_position(false);
   });
 
@@ -414,13 +419,28 @@ void TeleopDriveJoy::switch_controller(const DriveMode requested_control_mode)
     return;
   }
 
+  switch_controller_client_->prune_pending_requests();
+
   auto request = std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
   request->activate_controllers.emplace_back(activate_controller);
   request->deactivate_controllers.emplace_back(deactivate_controller);
   request->strictness = 2;
   request->activate_asap = true;
 
-  auto future = switch_controller_client_->async_send_request(request);
+  auto future = switch_controller_client_->async_send_request(request,
+    [this](rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedFuture future)
+  {
+      auto response = future.get();
+
+      if (response->ok)
+      {
+        set_hold_position(hold_position_pressed_);
+      }
+      else
+      {
+        RCLCPP_ERROR_STREAM(this->get_logger(), C_FAIL << "Failed to switch controller with message: " << response->message << C_END);
+      }
+  });
 
   drive_mode_ = requested_control_mode;
   RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << pretty_print_mode(drive_mode_) << C_END);
@@ -438,15 +458,6 @@ void TeleopDriveJoy::set_hold_position(bool enable)
   request->hold_position = enable;
 
   auto result = set_drive_status_client_->async_send_request(request);
-
-  if (enable)
-  {
-    RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Hold position " << C_SUCCESS << "enabled"<< C_END);
-  }
-  else
-  {
-    RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Hold position " << C_FAIL << "disabled"<< C_END);
-  }
 }
 
 void TeleopDriveJoy::print_controls()

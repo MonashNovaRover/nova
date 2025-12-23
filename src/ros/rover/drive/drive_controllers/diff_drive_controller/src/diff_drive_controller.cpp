@@ -58,6 +58,11 @@ Commands DiffDriveController::twist_to_commands(
   double linear_velocity, angular_velocity;
   double speed;
 
+  if (hold_position_)
+  {
+    linear_input = 0;
+  }
+
   if (autonomous_mode)
   {
     linear_velocity = linear_input;
