@@ -12,7 +12,7 @@
 #include <cameras3_msgs/msg/camera.hpp>
 #include <cameras3_msgs/msg/cameras.hpp>
 
-#include "cameras3.hpp"
+#include "cameras3/cameras3.hpp"
 
 //using namespace std::chrono_literals;
 using namespace std::placeholders;
@@ -21,6 +21,9 @@ using namespace std::placeholders;
 CLONE CAMERAS2 Directory Service TODO:
 - Serial remaps, overrides
 - Watch for changes to camera list
+
+New Features Directory Service TODO:
+- Configurable parameters using "generate_parameter_library"
 */
 
 struct V4lDevice {
@@ -31,7 +34,7 @@ struct V4lDevice {
 
 std::vector<V4lDevice> find_v4l_capture_devices(void);
 
-rclcpp::QoS discover_qos(1);
+
 
 class CameraDirectory : public rclcpp::Node
 {
@@ -115,8 +118,6 @@ std::vector<V4lDevice> find_v4l_capture_devices() {
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  discover_qos.reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE);
-  discover_qos.durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
   rclcpp::spin(std::make_shared<CameraDirectory>());
   rclcpp::shutdown();
   return 0;
