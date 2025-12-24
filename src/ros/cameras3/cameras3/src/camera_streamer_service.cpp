@@ -23,9 +23,8 @@ CLONE CAMERAS2 Streamer Service TODO:
 - gst-launch-1.0 string to pipeline
 */
 
-std::vector<V4lDevice> find_v4l_capture_devices(void);
 
-class CameraDirectory : public rclcpp::Node
+class CameraStreamer : public rclcpp::Node
 {
   public: CameraStreamer()
     : Node("camera_streamer")
@@ -37,7 +36,7 @@ class CameraDirectory : public rclcpp::Node
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<CameraDirectory>());
+  rclcpp::spin(std::make_shared<CameraStreamer>());
   rclcpp::shutdown();
   return 0;
 }
