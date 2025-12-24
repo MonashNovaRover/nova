@@ -28,7 +28,6 @@
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
 , nova-cameras2 ? throw "cameras2 is needed, but not available!"
-, nova-cameras3
 , nova-gui ? throw "gui is needed, but not available!"
 , nova-drive ? throw "drive is needed, but not available!"
 , nova-drive-interfaces ? throw "drive-interfaces is needed, but not available!"
@@ -80,6 +79,8 @@
 , nova-science-bringup ? throw "nova-science-bringup is needed, but not available!"
 , nova-arm-kinematics ? throw "nova-arm-kinematics is needed, but not available!"
 
+, nova-cameras3
+, nova-cameras3-msgs
   # Configuration options
   ## Include graphical applications in the workspace.
 , graphical ? true
@@ -95,7 +96,6 @@
       nova-electronics
       nova-science
       nova-cameras2
-      nova-cameras3
       nova-blcmd-hardware
       nova-blcmd-hardware2
       nova-cmd-hardware
@@ -146,6 +146,8 @@
       nova-science-interfaces
       nova-science-bringup
       nova-arm-kinematics
+      nova-cameras3
+      nova-cameras3-msgs
       ;
     nova-can-sleuth = pythonPackages.nova-can-sleuth;
   }

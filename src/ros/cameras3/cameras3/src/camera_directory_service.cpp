@@ -8,10 +8,12 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
-//#include <camera_msgs/msg/Camera.hpp>
-//#include <camera_msgs/msg/Cameras.hpp>
+#include "std_srvs/srv/empty.hpp"
+#include <cameras3_msgs/msg/camera.hpp>
+#include <cameras3_msgs/msg/cameras.hpp>
 
 using namespace std::chrono_literals;
+using namespace std::placeholders;
 
 struct V4lDevice {
   std::string model;
@@ -23,17 +25,15 @@ std::vector<V4lDevice> find_v4l_capture_devices(void);
 
 class CameraDirectory : public rclcpp::Node
 {
-  public:
-    CameraDirectory()
+  public: CameraDirectory()
     : Node("camera_directory")
     {
       publisher_ = this->create_publisher<std_msgs::msg::String>("/camera_directory/cameras", 1);
-      timer_ = this->create_wall_timer(
-      500ms, std::bind(&CameraDirectory::timer_callback, this));
+      timer_ = this->create_wall_timer(10000ms, std::bind(&CameraDirectory::timer_callback, this));
+      service_ = this->create_service<std_srvs::srv::Empty>("/camera_directory/discover", std::bind(&CameraDirectory::service_callback, this, _1, _2));
     }
 
-  private:
-    void timer_callback()
+  private: void timer_callback()
     {
       auto message = std_msgs::msg::String();
       std::vector<V4lDevice> devices = find_v4l_capture_devices();
@@ -41,8 +41,17 @@ class CameraDirectory : public rclcpp::Node
       RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", message.data.c_str());
       publisher_->publish(message);
     }
-    rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
+
+  private: void service_callback(
+    const std::shared_ptr<std_srvs::srv::Empty::Request> request,
+    std::shared_ptr<std_srvs::srv::Empty::Response> response)
+    {
+      this->timer_callback();
+    }
+
+  rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service_;
 };
 
 std::vector<V4lDevice> find_v4l_capture_devices() {

@@ -5,7 +5,9 @@
 , rclcpp
 , generate-parameter-library
 , std-msgs
+, std-srvs
 , systemd
+, nova-cameras3-msgs
 }:
 
 buildRosPackage {
@@ -22,8 +24,10 @@ buildRosPackage {
   buildInputs = [
     rclcpp
     std-msgs
+    std-srvs
     generate-parameter-library
     systemd
+    nova-cameras3-msgs
   ];
 
 }
