@@ -11,23 +11,26 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_srvs/srv/empty.hpp"
 #include <cameras3_msgs/srv/camera_operation.hpp>
+#include <cameras3_msgs/srv/get_camera_stream_stats.hpp>
+#include <cameras3_msgs/srv/get_ip_list.hpp>
 #include <cameras3_msgs/msg/camera.hpp>
 #include <cameras3_msgs/msg/cameras.hpp>
 
 #include <gst/gst.h>
 
-#include "cameras3.hpp"
+#include "cameras3/cameras3.hpp"
 
 using namespace std::chrono_literals;
 using namespace std::placeholders;
 
 /*
 CLONE CAMERAS2 Streamer Service TODO:
-- Camera stream stats service
-- IP list service
-- Configurable parameters using "generate_parameter_library"
+- Convert stats and ip services from python to c++
 - ROS2 Topic pipeline from parameters
-- gst-launch-1.0 string to pipeline
+
+New Features Streamer Service TODO:
+- Configurable parameters using "generate_parameter_library"
+- gst-launch-1.0 string parameter to pipeline
 */
 
 enum CameraState {STOP = 0, START = 1, PAUSE = 2};
@@ -66,18 +69,28 @@ class CameraStreamer : public rclcpp::Node
   {
     start_service_ = this->create_service<cameras3_msgs::srv::CameraOperation>(
       SERVICE_START, 
-      std::bind(&CameraStreamer::service_callback, 
+      std::bind(&CameraStreamer::operation_callback, 
         this, _1, _2, CameraState::START)
     );
     stop_service_ = this->create_service<cameras3_msgs::srv::CameraOperation>(
       SERVICE_STOP, 
-      std::bind(&CameraStreamer::service_callback, 
+      std::bind(&CameraStreamer::operation_callback, 
         this, _1, _2, CameraState::STOP)
     );
     pause_service_ = this->create_service<cameras3_msgs::srv::CameraOperation>(
       SERVICE_PAUSE, 
-      std::bind(&CameraStreamer::service_callback, 
+      std::bind(&CameraStreamer::operation_callback, 
         this, _1, _2, CameraState::PAUSE)
+    );
+    stats_service_ = this->create_service<cameras3_msgs::srv::GetCameraStreamStats>(
+      SERVICE_STATS, 
+      std::bind(&CameraStreamer::stats_callback, 
+        this, _1, _2)
+    );
+    ips_service_ = this->create_service<cameras3_msgs::srv::GetIPList>(
+      SERVICE_IPS, 
+      std::bind(&CameraStreamer::ips_callback, 
+        this, _1, _2)
     );
 
     subscription_ = this->create_subscription<cameras3_msgs::msg::Cameras>(
@@ -88,6 +101,8 @@ class CameraStreamer : public rclcpp::Node
   rclcpp::Service<cameras3_msgs::srv::CameraOperation>::SharedPtr start_service_;
   rclcpp::Service<cameras3_msgs::srv::CameraOperation>::SharedPtr stop_service_;
   rclcpp::Service<cameras3_msgs::srv::CameraOperation>::SharedPtr pause_service_;
+  rclcpp::Service<cameras3_msgs::srv::GetCameraStreamStats>::SharedPtr stats_service_;
+  rclcpp::Service<cameras3_msgs::srv::GetIPList>::SharedPtr ips_service_;
   rclcpp::Subscription<cameras3_msgs::msg::Cameras>::SharedPtr subscription_;
   std::unordered_map<std::string, Pipeline*> pipelines;
 
@@ -180,7 +195,7 @@ class CameraStreamer : public rclcpp::Node
     return 0;
   }
 
-  private: void service_callback(
+  private: void operation_callback(
     const std::shared_ptr<cameras3_msgs::srv::CameraOperation::Request> request,
     std::shared_ptr<cameras3_msgs::srv::CameraOperation::Response> response,
     CameraState state)  
@@ -226,6 +241,60 @@ class CameraStreamer : public rclcpp::Node
         }
         break;
     }
+  }
+
+  private: void stats_callback(
+    const std::shared_ptr<cameras3_msgs::srv::GetCameraStreamStats::Request> request,
+    std::shared_ptr<cameras3_msgs::srv::GetCameraStreamStats::Response> response)  
+  {
+    /* TODO: convert this python into c++
+      result = {
+        serial: self._camera_bins[serial].webrtc_stats
+        for serial in (request.serials if request.serials else self._camera_bins.keys())
+        if serial in self._camera_bins
+      }
+      response.result_json = json.dumps(result, indent=None if request.indent == 0 else request.indent)
+    */
+    response->result_json = "";
+  }
+
+  private: void ips_callback(
+    const std::shared_ptr<cameras3_msgs::srv::GetIPList::Request> request,
+    std::shared_ptr<cameras3_msgs::srv::GetIPList::Response> response)  
+  {
+    /* TODO: Convert this python to c++
+      if_addrs = psutil.net_if_addrs()
+      if_stats = psutil.net_if_stats()
+      addresses = {
+        interface: address
+        for interface, addresses in if_addrs.items()
+        if (
+            address := next(
+                (address.address for address in addresses if address.family == AddressFamily.AF_INET),
+                None,
+            )
+        )
+        is not None
+      }
+
+      def key(entry: tuple[str, str]) -> int:
+        interface = entry[0]
+        address = entry[1]
+        flags = set(if_stats[interface].flags.split(","))
+        if "loopback" in flags:  # Local
+            return 0
+        elif address.startswith("192.168.1"):  # Nova radios
+            return 1
+        elif address.startswith("192.168.0"):  # Nova Wi-Fi
+            return 2
+        else:  # Other
+            return 3
+
+      response.ips = [address for interface, address in sorted(addresses.items(), key=key)]
+      return response
+    */
+   std::vector<std::string> ips;
+   response->ips = ips;
   }
 };
 
