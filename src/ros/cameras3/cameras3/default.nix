@@ -8,6 +8,10 @@
 , std-srvs
 , systemd
 , nova-cameras3-msgs
+, gst_all_1
+, libnice
+, v4l-utils
+, gst-bridge
 }:
 
 buildRosPackage {
@@ -28,6 +32,19 @@ buildRosPackage {
     generate-parameter-library
     systemd
     nova-cameras3-msgs
+    
+    gst_all_1.gstreamer        # base
+    gst_all_1.gstreamermm      # cpp api
+    gst_all_1.gst-plugins-base
+    gst_all_1.gst-plugins-good
+    gst_all_1.gst-plugins-bad
+    gst_all_1.gst-plugins-ugly
+    gst_all_1.gst-libav
+    gst_all_1.gst-vaapi
+    gst_all_1.gst-plugins-rs  # webrtc
+    libnice                   # needed for webrtc
+    v4l-utils                 # v4l-ctl
+    gst-bridge                # ros-gst-bridge/rosimagesrc
   ];
 
 }
