@@ -12,6 +12,8 @@
 #include <cameras3_msgs/msg/camera.hpp>
 #include <cameras3_msgs/msg/cameras.hpp>
 
+#include "cameras3.hpp"
+
 //using namespace std::chrono_literals;
 using namespace std::placeholders;
 
@@ -29,6 +31,8 @@ struct V4lDevice {
 
 std::vector<V4lDevice> find_v4l_capture_devices(void);
 
+rclcpp::QoS discover_qos(1);
+
 class CameraDirectory : public rclcpp::Node
 {
   public: CameraDirectory() : Node("camera_directory")
@@ -37,11 +41,11 @@ class CameraDirectory : public rclcpp::Node
     rclcpp::QoS publisher_qos(1);
     publisher_qos.reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE);
     publisher_qos.durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
-    publisher_ = this->create_publisher<cameras3_msgs::msg::Cameras>("/camera_directory/cameras", publisher_qos);
+    publisher_ = this->create_publisher<cameras3_msgs::msg::Cameras>(TOPIC_CAMERAS, publisher_qos);
     // timer_ = this->create_wall_timer(10000ms, std::bind(&CameraDirectory::publish_cameras, this));
 
     // setup service
-    service_ = this->create_service<std_srvs::srv::Empty>("/camera_directory/discover", std::bind(&CameraDirectory::service_callback, this, _1, _2));
+    service_ = this->create_service<std_srvs::srv::Empty>(SERVICE_DISCOVERY, std::bind(&CameraDirectory::service_callback, this, _1, _2));
     
     // publish once
     this->publish_cameras();
@@ -111,6 +115,8 @@ std::vector<V4lDevice> find_v4l_capture_devices() {
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
+  discover_qos.reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE);
+  discover_qos.durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
   rclcpp::spin(std::make_shared<CameraDirectory>());
   rclcpp::shutdown();
   return 0;

@@ -16,20 +16,18 @@
 
 #include <gst/gst.h>
 
+#include "cameras3.hpp"
+
 using namespace std::chrono_literals;
 using namespace std::placeholders;
 
 /*
 CLONE CAMERAS2 Streamer Service TODO:
-- Start streaming service
-- Stop streaming service
-- Pause streaming service
-- Create gstreamer pipeline per camera
+- Camera stream stats service
+- IP list service
 - Configurable parameters using "generate_parameter_library"
 - ROS2 Topic pipeline from parameters
 - gst-launch-1.0 string to pipeline
-- Camera stream stats service
-- IP list service
 */
 
 enum CameraState {STOP = 0, START = 1, PAUSE = 2};
@@ -67,25 +65,23 @@ class CameraStreamer : public rclcpp::Node
   public: CameraStreamer() : Node("camera_streamer")
   {
     start_service_ = this->create_service<cameras3_msgs::srv::CameraOperation>(
-      "/camera_streamer/stream/start", 
+      SERVICE_START, 
       std::bind(&CameraStreamer::service_callback, 
         this, _1, _2, CameraState::START)
     );
     stop_service_ = this->create_service<cameras3_msgs::srv::CameraOperation>(
-      "/camera_streamer/stream/stop", 
+      SERVICE_STOP, 
       std::bind(&CameraStreamer::service_callback, 
         this, _1, _2, CameraState::STOP)
     );
     pause_service_ = this->create_service<cameras3_msgs::srv::CameraOperation>(
-      "/camera_streamer/stream/pause", 
+      SERVICE_PAUSE, 
       std::bind(&CameraStreamer::service_callback, 
         this, _1, _2, CameraState::PAUSE)
     );
-      rclcpp::QoS subscriber_qos(1);
-    subscriber_qos.reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE);
-    subscriber_qos.durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
+
     subscription_ = this->create_subscription<cameras3_msgs::msg::Cameras>(
-      "/camera_directory/cameras", subscriber_qos, std::bind(&CameraStreamer::topic_callback, this, _1));
+      TOPIC_CAMERAS, discover_qos, std::bind(&CameraStreamer::topic_callback, this, _1));
     RCLCPP_INFO(this->get_logger(), "Cameras3 Streamer Running...");
   }
 

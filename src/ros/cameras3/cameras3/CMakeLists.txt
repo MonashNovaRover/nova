@@ -30,7 +30,7 @@ link_directories(${GSTREAMERMM_LIB_DIRS})
 
 
 include_directories(
-  include
+  include/cameras3/
 )
 
 add_executable(cameras3_directory_service src/camera_directory_service.cpp)
@@ -40,6 +40,10 @@ ament_target_dependencies(cameras3_directory_service ${THIS_PACKAGE_INCLUDE_DEPE
 add_executable(cameras3_streamer_service src/camera_streamer_service.cpp)
 target_link_libraries(cameras3_streamer_service ${GSTREAMERMM_LIBRARIES})
 ament_target_dependencies(cameras3_streamer_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
+
+ament_export_include_directories(
+  include/cameras3
+)
 
 install(TARGETS cameras3_directory_service DESTINATION lib/${PROJECT_NAME})
 install(TARGETS cameras3_streamer_service DESTINATION lib/${PROJECT_NAME})
