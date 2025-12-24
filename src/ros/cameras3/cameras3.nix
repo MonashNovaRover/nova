@@ -1,9 +1,11 @@
 { lib
 , buildRosPackage
 , ament-cmake
+, pkg-config
 , rclcpp
 , generate-parameter-library
 , std-msgs
+, systemd
 }:
 
 buildRosPackage {
@@ -15,12 +17,13 @@ buildRosPackage {
     path = ./.;
   };
 
-  nativeBuildInputs = [ ament-cmake ];
+  nativeBuildInputs = [ ament-cmake pkg-config ];
 
   buildInputs = [
     rclcpp
     std-msgs
     generate-parameter-library
+    systemd
   ];
 
 }

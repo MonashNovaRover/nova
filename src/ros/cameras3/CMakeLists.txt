@@ -18,12 +18,16 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SYSTEMD REQUIRED libsystemd)
+include_directories(${SYSTEMD_INCLUDE_DIRS})
+
 include_directories(
   include
 )
 
 add_executable(cam3_dir src/camera_directory_service.cpp)
-
+target_link_libraries(cam3_dir ${SYSTEMD_LIBRARIES})
 ament_target_dependencies(cam3_dir ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 install(TARGETS cam3_dir DESTINATION lib/${PROJECT_NAME})
