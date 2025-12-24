@@ -15,6 +15,12 @@
 using namespace std::chrono_literals;
 using namespace std::placeholders;
 
+/*
+CLONE CAMERAS2 Directory Service TODO:
+- Serial remaps, overrides
+- Watch for changes to camera list
+*/
+
 struct V4lDevice {
   std::string model;
   std::string serial;
