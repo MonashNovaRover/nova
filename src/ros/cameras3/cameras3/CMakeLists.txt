@@ -32,7 +32,10 @@ add_executable(cameras3_directory_service src/camera_directory_service.cpp)
 target_link_libraries(cameras3_directory_service ${SYSTEMD_LIBRARIES})
 ament_target_dependencies(cameras3_directory_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
+add_executable(cameras3_streamer_service src/camera_directory_service.cpp)
+
 install(TARGETS cameras3_directory_service DESTINATION lib/${PROJECT_NAME})
+install(TARGETS cameras3_streamer_service DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
 endif()
