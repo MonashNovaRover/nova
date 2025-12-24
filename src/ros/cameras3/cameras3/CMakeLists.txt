@@ -28,11 +28,11 @@ include_directories(
   include
 )
 
-add_executable(cam3_dir src/camera_directory_service.cpp)
-target_link_libraries(cam3_dir ${SYSTEMD_LIBRARIES})
-ament_target_dependencies(cam3_dir ${THIS_PACKAGE_INCLUDE_DEPENDS})
+add_executable(cameras3_directory_service src/camera_directory_service.cpp)
+target_link_libraries(cameras3_directory_service ${SYSTEMD_LIBRARIES})
+ament_target_dependencies(cameras3_directory_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-install(TARGETS cam3_dir DESTINATION lib/${PROJECT_NAME})
+install(TARGETS cameras3_directory_service DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
 endif()
