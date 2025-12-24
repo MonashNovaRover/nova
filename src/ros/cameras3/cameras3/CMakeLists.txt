@@ -24,6 +24,11 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(SYSTEMD REQUIRED libsystemd)
 include_directories(${SYSTEMD_INCLUDE_DIRS})
 
+pkg_check_modules(GSTREAMERMM REQUIRED gstreamermm-1.0)
+include_directories(${GSTREAMERMM_INCLUDE_DIRS})
+link_directories(${GSTREAMERMM_LIB_DIRS})
+
+
 include_directories(
   include
 )
@@ -33,6 +38,7 @@ target_link_libraries(cameras3_directory_service ${SYSTEMD_LIBRARIES})
 ament_target_dependencies(cameras3_directory_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 add_executable(cameras3_streamer_service src/camera_streamer_service.cpp)
+target_link_libraries(cameras3_streamer_service ${GSTREAMERMM_LIBRARIES})
 ament_target_dependencies(cameras3_streamer_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 install(TARGETS cameras3_directory_service DESTINATION lib/${PROJECT_NAME})
