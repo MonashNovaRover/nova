@@ -7,7 +7,7 @@
 #include <systemd/sd-device.h>
 
 #include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/string.hpp"
+//#include "std_msgs/msg/string.hpp"
 #include "std_srvs/srv/empty.hpp"
 #include <cameras3_msgs/msg/camera.hpp>
 #include <cameras3_msgs/msg/cameras.hpp>
@@ -28,17 +28,31 @@ class CameraDirectory : public rclcpp::Node
   public: CameraDirectory()
     : Node("camera_directory")
     {
-      publisher_ = this->create_publisher<std_msgs::msg::String>("/camera_directory/cameras", 1);
-      timer_ = this->create_wall_timer(10000ms, std::bind(&CameraDirectory::timer_callback, this));
+      // set up camera directory publisher
+      rclcpp::QoS publisher_qos(1);
+      publisher_qos.reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE);
+      publisher_qos.durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
+      publisher_ = this->create_publisher<cameras3_msgs::msg::Cameras>("/camera_directory/cameras", publisher_qos);
+      // timer_ = this->create_wall_timer(10000ms, std::bind(&CameraDirectory::publish_cameras, this));
+
+      // setup service
       service_ = this->create_service<std_srvs::srv::Empty>("/camera_directory/discover", std::bind(&CameraDirectory::service_callback, this, _1, _2));
+      
+      // publish once
+      this->publish_cameras();
     }
 
-  private: void timer_callback()
+  private: void publish_cameras()
     {
-      auto message = std_msgs::msg::String();
+      auto message = cameras3_msgs::msg::Cameras();
       std::vector<V4lDevice> devices = find_v4l_capture_devices();
-      message.data = "Camera path: " + devices[0].devname;
-      RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", message.data.c_str());
+      for (V4lDevice device : devices) {
+        auto camera = cameras3_msgs::msg::Camera();
+        camera.serial = device.serial;
+        camera.node = device.devname;
+        message.cameras.push_back(camera);
+      }
+      RCLCPP_INFO(this->get_logger(), "Publishing %ld Cameras...", devices.size());
       publisher_->publish(message);
     }
 
@@ -46,11 +60,11 @@ class CameraDirectory : public rclcpp::Node
     const std::shared_ptr<std_srvs::srv::Empty::Request> request,
     std::shared_ptr<std_srvs::srv::Empty::Response> response)
     {
-      this->timer_callback();
+      this->publish_cameras();
     }
 
   rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
+  rclcpp::Publisher<cameras3_msgs::msg::Cameras>::SharedPtr publisher_;
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service_;
 };
 
