@@ -12,7 +12,7 @@
 #include <cameras3_msgs/msg/camera.hpp>
 #include <cameras3_msgs/msg/cameras.hpp>
 
-using namespace std::chrono_literals;
+//using namespace std::chrono_literals;
 using namespace std::placeholders;
 
 /*
@@ -48,6 +48,10 @@ class CameraDirectory : public rclcpp::Node
       this->publish_cameras();
     }
 
+  rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::Publisher<cameras3_msgs::msg::Cameras>::SharedPtr publisher_;
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service_;
+
   private: void publish_cameras()
     {
       auto message = cameras3_msgs::msg::Cameras();
@@ -68,10 +72,6 @@ class CameraDirectory : public rclcpp::Node
     {
       this->publish_cameras();
     }
-
-  rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<cameras3_msgs::msg::Cameras>::SharedPtr publisher_;
-  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service_;
 };
 
 std::vector<V4lDevice> find_v4l_capture_devices() {
