@@ -10,15 +10,16 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_srvs/srv/empty.hpp"
+#include <gst/gst.h>
+
 #include <cameras3_msgs/srv/camera_operation.hpp>
 #include <cameras3_msgs/srv/get_camera_stream_stats.hpp>
 #include <cameras3_msgs/srv/get_ip_list.hpp>
 #include <cameras3_msgs/msg/camera.hpp>
 #include <cameras3_msgs/msg/cameras.hpp>
 
-#include <gst/gst.h>
-
 #include "cameras3/cameras3.hpp"
+#include "cameras3/streamer_parameters.hpp"
 
 using namespace std::chrono_literals;
 using namespace std::placeholders;
