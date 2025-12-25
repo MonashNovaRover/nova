@@ -28,10 +28,13 @@ using namespace std::placeholders;
 CLONE CAMERAS2 Streamer Service TODO:
 - Convert stats and ip services from python to c++
 - ROS2 Topic pipeline from parameters
+- Handle extra_meta gracefully
 
 New Features Streamer Service TODO:
 - Configurable parameters using "generate_parameter_library"
 - gst-launch-1.0 string parameter to pipeline
+- Add button to GUI to reload for new cameras and cause directory service to poll again
+- Add h264 support (should just be extra optional format meta setting on pipeline for v4l2src)
 */
 
 enum CameraState {STOP = 0, START = 1, PAUSE = 2};

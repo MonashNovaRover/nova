@@ -55,6 +55,7 @@ class CameraDirectory : public rclcpp::Node
     service_ = this->create_service<std_srvs::srv::Empty>(SERVICE_DISCOVERY, std::bind(&CameraDirectory::service_callback, this, _1, _2));
     
     // setup parameters
+    param_listener = std::make_shared<camera_directory_service::ParamListener>(get_node_parameters_interface());
     this->get_configuration();
 
     // publish once
@@ -64,13 +65,13 @@ class CameraDirectory : public rclcpp::Node
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<cameras3_msgs::msg::Cameras>::SharedPtr publisher_;
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service_;
+  std::shared_ptr<camera_directory_service::ParamListener> param_listener;
   std::vector<std::string> blacklist;
   std::unordered_map<std::string, std::string> serial_remaps;
   std::unordered_map<std::string, std::string> serial_overrides;
 
   private: void get_configuration()
   {
-    auto param_listener = std::make_shared<camera_directory_service::ParamListener>(this);
     camera_directory_service::Params params = param_listener->get_params();
 
     std::map<std::string, rclcpp::Parameter> serial_remaps_parameters;
