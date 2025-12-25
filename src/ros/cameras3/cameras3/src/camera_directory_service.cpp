@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 #include <systemd/sd-device.h>
 
 #include "rclcpp/rclcpp.hpp"
@@ -13,32 +14,35 @@
 #include <cameras3_msgs/msg/cameras.hpp>
 
 #include "cameras3/cameras3.hpp"
+#include "cameras3/directory_parameters.hpp"
 
 //using namespace std::chrono_literals;
 using namespace std::placeholders;
 
 /*
-CLONE CAMERAS2 Directory Service TODO:
-- Serial remaps, overrides
-- Watch for changes to camera list
+CAMERAS3 Directory Service TODO:
+- Test overrides and params
+- Test dynamic parameter changes
 
-New Features Directory Service TODO:
-- Configurable parameters using "generate_parameter_library"
 */
 
 struct V4lDevice {
   std::string model;
   std::string serial;
   std::string devname;
+  std::string path;
 };
 
 std::vector<V4lDevice> find_v4l_capture_devices(void);
 
-
-
 class CameraDirectory : public rclcpp::Node
 {
-  public: CameraDirectory() : Node("camera_directory")
+  public: CameraDirectory() 
+    : Node("camera_directory", 
+      rclcpp::NodeOptions()
+        .allow_undeclared_parameters(true)
+        .automatically_declare_parameters_from_overrides(true)
+    )
   {
     // set up camera directory publisher
     rclcpp::QoS publisher_qos(1);
@@ -50,6 +54,9 @@ class CameraDirectory : public rclcpp::Node
     // setup service
     service_ = this->create_service<std_srvs::srv::Empty>(SERVICE_DISCOVERY, std::bind(&CameraDirectory::service_callback, this, _1, _2));
     
+    // setup parameters
+    this->get_configuration();
+
     // publish once
     this->publish_cameras();
   }
@@ -57,14 +64,55 @@ class CameraDirectory : public rclcpp::Node
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<cameras3_msgs::msg::Cameras>::SharedPtr publisher_;
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service_;
+  std::vector<std::string> blacklist;
+  std::unordered_map<std::string, std::string> serial_remaps;
+  std::unordered_map<std::string, std::string> serial_overrides;
+
+  private: void get_configuration()
+  {
+    auto param_listener = std::make_shared<camera_directory_service::ParamListener>(this);
+    camera_directory_service::Params params = param_listener->get_params();
+
+    std::map<std::string, rclcpp::Parameter> serial_remaps_parameters;
+    this->get_parameters("serial_remaps", serial_remaps_parameters);
+    for (const auto& kv: serial_remaps_parameters) {
+      serial_remaps[kv.first] = kv.second.as_string();
+    }
+
+    std::map<std::string, rclcpp::Parameter> serial_overrides_roots_parameters;
+    this->get_parameters("serial_overrides.roots", serial_overrides_roots_parameters);
+    std::unordered_map<std::string, std::string> serial_override_roots;
+    for (const auto& kv : serial_overrides_roots_parameters) {
+        const std::string& root = kv.first;
+        const std::string& name = kv.second.as_string();
+
+        std::string param_prefix = "serial_overrides.paths." + name;
+        std::map<std::string, rclcpp::Parameter> path_params;
+        this->get_parameters(param_prefix, path_params);
+
+        for (const auto& path_pair : path_params) {
+            const std::string& path = path_pair.first;
+            const std::string& serial = path_pair.second.as_string();
+            std::string key = root + "." + path;
+            serial_overrides[key] = serial;
+        }
+    }
+  }
 
   private: void publish_cameras()
   {
     auto message = cameras3_msgs::msg::Cameras();
     std::vector<V4lDevice> devices = find_v4l_capture_devices();
     for (V4lDevice device : devices) {
+      std::string serial = device.serial;
+      if (serial_overrides.find(device.path) != serial_overrides.end()){
+        serial = serial_overrides[device.path];
+      }
+      if (serial_remaps.find(serial) != serial_remaps.end()){
+        serial = serial_remaps[device.path];
+      }
       auto camera = cameras3_msgs::msg::Camera();
-      camera.serial = device.serial;
+      camera.serial = serial;
       camera.node = device.devname;
       message.cameras.push_back(camera);
     }
@@ -76,6 +124,7 @@ class CameraDirectory : public rclcpp::Node
     const std::shared_ptr<std_srvs::srv::Empty::Request>,
     std::shared_ptr<std_srvs::srv::Empty::Response>)
   {
+    this->get_configuration();
     this->publish_cameras();
   }
 };
@@ -91,7 +140,7 @@ std::vector<V4lDevice> find_v4l_capture_devices() {
 
   // Iterate through the devices found
   for (device = sd_device_enumerator_get_device_first(enumerator); device != NULL; device = sd_device_enumerator_get_device_next(enumerator)) {
-    const char *dev_node, *model_id = NULL, *serial = NULL, *capabilities = NULL;
+    const char *dev_node, *model_id = NULL, *serial = NULL, *path_id = NULL, *capabilities = NULL;
 
     // Get the kernel name of the device (e.g., "video0")
     sd_device_get_devname(device, &dev_node);
@@ -99,12 +148,14 @@ std::vector<V4lDevice> find_v4l_capture_devices() {
     // Get device properties
     sd_device_get_property_value(device, "ID_MODEL", &model_id);
     sd_device_get_property_value(device, "ID_SERIAL", &serial);
+    sd_device_get_property_value(device, "ID_PATH", &path_id);
     sd_device_get_property_value(device, "ID_V4L_CAPABILITIES", &capabilities);
 
     V4lDevice v4ldevice;
     v4ldevice.devname = dev_node;
     v4ldevice.model = model_id;
     v4ldevice.serial = serial;
+    v4ldevice.path = path_id;
 
     if (capabilities && strstr(capabilities, ":capture:")) {
       matches.push_back(v4ldevice);

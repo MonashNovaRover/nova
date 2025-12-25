@@ -1,0 +1,35 @@
+
+camera_streamer_service:
+  defaults:
+    width: 
+      type: int
+      default_value: 640
+      description: camera pixel width
+    height: 
+      type: int
+      default_value: 480
+      description: camera pixel height
+    framerate: 
+      type: int
+      default_value: 10
+      description: camera framerate
+    mime:
+      type: string
+      default_value: image/jpeg
+      description: camera data format
+    congestion_control:
+      type: int
+      default_value: 2
+      description: webrtc congestion control
+    do_fec:
+      type: bool
+      default_value: true
+      description: webrtc fec
+    do_retransmission:
+      type: bool
+      default_value: true
+      description: webrtc retransmission
+    show_clock:
+      type: bool
+      default_value: false
+      description: show clock on camera feed

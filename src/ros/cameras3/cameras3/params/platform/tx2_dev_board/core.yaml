@@ -1,0 +1,5 @@
+camera_directory:
+  ros__parameters:
+    serial_overrides:
+      roots:
+        "platform-3530000.xhci-usb-0:2": mast

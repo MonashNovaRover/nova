@@ -15,7 +15,7 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
-#find_package(generate_parameter_library REQUIRED)
+find_package(generate_parameter_library REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
@@ -33,22 +33,52 @@ include_directories(
   include
 )
 
+# Generate parameter libraries
+generate_parameter_library(
+  directory_parameters
+  src/directory_parameters.yaml
+)
+generate_parameter_library(
+  streamer_parameters
+  src/streamer_parameters.yaml
+)
+
 add_executable(cameras3_directory_service src/camera_directory_service.cpp src/camera_globals.cpp)
-target_link_libraries(cameras3_directory_service ${SYSTEMD_LIBRARIES})
+target_link_libraries(cameras3_directory_service ${SYSTEMD_LIBRARIES} directory_parameters)
 ament_target_dependencies(cameras3_directory_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 add_executable(cameras3_streamer_service src/camera_streamer_service.cpp src/camera_globals.cpp)
-target_link_libraries(cameras3_streamer_service ${GSTREAMERMM_LIBRARIES})
+target_link_libraries(cameras3_streamer_service ${GSTREAMERMM_LIBRARIES} streamer_parameters)
 ament_target_dependencies(cameras3_streamer_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-ament_export_include_directories(
-  include
+# Install executables
+install(
+  TARGETS 
+    cameras3_directory_service 
+    directory_parameters 
+  DESTINATION lib/${PROJECT_NAME}
+)
+install(
+  TARGETS 
+    cameras3_streamer_service 
+    streamer_parameters 
+  DESTINATION lib/${PROJECT_NAME}
+)
+# Install config files
+install(
+  DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}/config
 )
 
-install(TARGETS cameras3_directory_service DESTINATION lib/${PROJECT_NAME})
-install(TARGETS cameras3_streamer_service DESTINATION lib/${PROJECT_NAME})
+# Install header files
+install(
+  DIRECTORY include
+  DESTINATION include/${PROJECT_NAME}
+)
+
 
 if(BUILD_TESTING)
 endif()
 
+ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_package()
