@@ -5,7 +5,7 @@ camera_directory_service:
     description: string array of serials to blacklist from the directory service
  
   serial_overrides:
-    description: A root and a path are combined to search for the final path_id to match to a udev device which then gets given the corresponding new serial.
+    # A root and a path are combined to search for the final path_id to match to a udev device which then gets given the corresponding new serial.
     roots:
       type: none
       description: map of original roots (keys) and name (values) to override the serial of a camera with a specific path
