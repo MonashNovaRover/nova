@@ -22,3 +22,5 @@ camera_streamer:
           width: 160
           height: 120
           framerate: 30
+        pipeline_properties:
+          show_clock: true

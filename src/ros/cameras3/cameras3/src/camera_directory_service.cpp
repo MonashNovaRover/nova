@@ -17,11 +17,6 @@
 
 using namespace std::placeholders;
 
-/*
-CAMERAS3 Directory Service TODO:
-- Test overrides and params
-- Test dynamic parameter changes
-*/
 
 struct V4lDevice {
   std::string model;

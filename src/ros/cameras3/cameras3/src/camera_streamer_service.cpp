@@ -25,17 +25,21 @@ using namespace std::chrono_literals;
 using namespace std::placeholders;
 
 /*
-CLONE CAMERAS2 Streamer Service TODO:
-- Convert stats and ip services from python to c++
-- ROS2 Topic pipeline from parameters
-- Handle extra_meta 
-- add profiles
-- add start/pause/stop message from empty serial message
-
-New Features Streamer Service TODO:
+Priority List:
+- Update GUI
+  - Add Start, Pause and Stop buttons to camera components
+  - Add stop button to control panel
+- Implement profiles
+  - These should be applied after default but before other parameters
+- Pipeline element extra settings
+  - E.g look for element factory name like v4l2src then add props 
+- Handle extra params and extra meta
+  - e.g h264 format option etc
+  - hopefully should be easy if pipeline thing works
 - gst-launch-1.0 string parameter to pipeline
-- make buttons on camera components start and stop cameras3 pipelines
-- Add h264 support (should just be extra optional format meta setting on pipeline for v4l2src)
+- ros2 topic pipeline (both ways)
+  - this should hopefully be trivial if string parameter is done
+- Documentation and code comments (LOWEST PRIORITY LOL)
 */
 
 enum CameraState {STOP = 0, START = 1, PAUSE = 2};
@@ -156,12 +160,12 @@ class CameraStreamer : public rclcpp::Node
         pipeline->pipeline_properties->show_clock = pipeline_params.find("show_clock") != pipeline_params.end() ? pipeline_params["show_clock"].as_bool() : pipeline->pipeline_properties->show_clock;
         // i cbb implementing extra_meta we don't use it anyway
       }
-      RCLCPP_INFO(this->get_logger(), "params, %d, %d, %d, %s, %s, %d, %d, %d", 
-        pipeline->camera_properties->width, pipeline->camera_properties->height, 
-        pipeline->camera_properties->framerate, pipeline->camera_properties->mime.c_str(),
-        pipeline->pipeline_properties->congestion_control.c_str(), pipeline->pipeline_properties->do_fec,
-        pipeline->pipeline_properties->do_retransmission, pipeline->pipeline_properties->show_clock
-      );
+      // RCLCPP_INFO(this->get_logger(), "params, %d, %d, %d, %s, %s, %d, %d, %d", 
+      //   pipeline->camera_properties->width, pipeline->camera_properties->height, 
+      //   pipeline->camera_properties->framerate, pipeline->camera_properties->mime.c_str(),
+      //   pipeline->pipeline_properties->congestion_control.c_str(), pipeline->pipeline_properties->do_fec,
+      //   pipeline->pipeline_properties->do_retransmission, pipeline->pipeline_properties->show_clock
+      // );
     }
   }
 
