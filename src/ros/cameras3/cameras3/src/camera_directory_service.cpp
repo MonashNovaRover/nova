@@ -8,22 +8,19 @@
 #include <systemd/sd-device.h>
 
 #include "rclcpp/rclcpp.hpp"
-//#include "std_msgs/msg/string.hpp"
 #include "std_srvs/srv/empty.hpp"
-#include <cameras3_msgs/msg/camera.hpp>
-#include <cameras3_msgs/msg/cameras.hpp>
+#include <camera_msgs/msg/camera.hpp>
+#include <camera_msgs/msg/cameras.hpp>
 
 #include "cameras3/cameras3.hpp"
 #include "cameras3/directory_parameters.hpp"
 
-//using namespace std::chrono_literals;
 using namespace std::placeholders;
 
 /*
 CAMERAS3 Directory Service TODO:
 - Test overrides and params
 - Test dynamic parameter changes
-
 */
 
 struct V4lDevice {
@@ -48,7 +45,7 @@ class CameraDirectory : public rclcpp::Node
     rclcpp::QoS publisher_qos(1);
     publisher_qos.reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE);
     publisher_qos.durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
-    publisher_ = this->create_publisher<cameras3_msgs::msg::Cameras>(TOPIC_CAMERAS, publisher_qos);
+    publisher_ = this->create_publisher<camera_msgs::msg::Cameras>(TOPIC_CAMERAS, publisher_qos);
     // timer_ = this->create_wall_timer(10000ms, std::bind(&CameraDirectory::publish_cameras, this));
 
     // setup service
@@ -63,7 +60,7 @@ class CameraDirectory : public rclcpp::Node
   }
 
   rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<cameras3_msgs::msg::Cameras>::SharedPtr publisher_;
+  rclcpp::Publisher<camera_msgs::msg::Cameras>::SharedPtr publisher_;
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service_;
   std::shared_ptr<camera_directory_service::ParamListener> param_listener;
   std::vector<std::string> blacklist;
@@ -102,7 +99,7 @@ class CameraDirectory : public rclcpp::Node
 
   private: void publish_cameras()
   {
-    auto message = cameras3_msgs::msg::Cameras();
+    auto message = camera_msgs::msg::Cameras();
     std::vector<V4lDevice> devices = find_v4l_capture_devices();
     for (V4lDevice device : devices) {
       std::string serial = device.serial;
@@ -110,9 +107,12 @@ class CameraDirectory : public rclcpp::Node
         serial = serial_overrides[device.path];
       }
       if (serial_remaps.find(serial) != serial_remaps.end()){
-        serial = serial_remaps[device.path];
+        serial = serial_remaps[serial];
       }
-      auto camera = cameras3_msgs::msg::Camera();
+      if (serial != device.serial){
+        RCLCPP_INFO(this->get_logger(), "Remapping %s to %s", device.serial.c_str(), serial.c_str());
+      }
+      auto camera = camera_msgs::msg::Camera();
       camera.serial = serial;
       camera.node = device.devname;
       message.cameras.push_back(camera);

@@ -1,35 +1,48 @@
 
 camera_streamer_service:
   defaults:
-    width: 
-      type: int
-      default_value: 640
-      description: camera pixel width
-    height: 
-      type: int
-      default_value: 480
-      description: camera pixel height
-    framerate: 
-      type: int
-      default_value: 10
-      description: camera framerate
-    mime:
-      type: string
-      default_value: image/jpeg
-      description: camera data format
-    congestion_control:
-      type: int
-      default_value: 2
-      description: webrtc congestion control
-    do_fec:
-      type: bool
-      default_value: true
-      description: webrtc fec
-    do_retransmission:
-      type: bool
-      default_value: true
-      description: webrtc retransmission
-    show_clock:
-      type: bool
-      default_value: false
-      description: show clock on camera feed
+    camera_properties:
+      width: 
+        type: int
+        default_value: 640
+        description: camera pixel width
+      height: 
+        type: int
+        default_value: 480
+        description: camera pixel height
+      framerate: 
+        type: int
+        default_value: 10
+        description: camera framerate
+      mime:
+        type: string
+        default_value: video/x-raw
+        description: camera data format
+    pipeline_properties:
+      congestion_control:
+        type: string
+        default_value: gcc
+        description: webrtc congestion control
+        validation:
+          one_of<>: [["disabled", "homegrown", "gcc"]]
+      do_fec:
+        type: bool
+        default_value: true
+        description: webrtc fec
+      do_retransmission:
+        type: bool
+        default_value: true
+        description: webrtc retransmission
+      show_clock:
+        type: bool
+        default_value: false
+        description: show clock on camera feed
+      extra_meta:
+        type: none
+        description: extra meta data in map format
+
+      # additional properties can also be added to a specific part of the pipeline by specifying the element
+      # this is on a per camera basis, and will be treated similar to an input to gst-launch-1.0 so ensure variable types are added
+      # e.g if the camera is using video/x-h264 there is an additional stream-format that must be specified
+      # v4lsrc:
+      #   stream-format: (string)avc

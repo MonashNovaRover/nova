@@ -1,6 +1,6 @@
 {
   rosPackages = pkgs: with pkgs; {
-    nova-cameras3-msgs = callPackage ./cameras3_msgs { };
+    #nova-camera-msgs = callPackage ./camera_msgs { };
     nova-cameras3 = callPackage ./cameras3 { };
   };
 

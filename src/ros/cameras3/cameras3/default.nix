@@ -7,7 +7,7 @@
 , std-msgs
 , std-srvs
 , systemd
-, nova-cameras3-msgs
+, nova-camera-msgs
 , gst_all_1
 , libnice
 , v4l-utils
@@ -31,7 +31,7 @@ buildRosPackage {
     std-srvs
     generate-parameter-library
     systemd
-    nova-cameras3-msgs
+    nova-camera-msgs
     
     gst_all_1.gstreamer        # base
     gst_all_1.gstreamermm      # cpp api
