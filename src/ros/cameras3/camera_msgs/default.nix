@@ -5,11 +5,11 @@
 }:
 
 buildRosPackage {
-  name = "nova-cameras3-msgs";
+  name = "nova-camera-msgs";
   buildType = "ament_cmake";
 
   src = builtins.path rec {
-    name = "nova-cameras3-msgs-source";
+    name = "nova-camera-msgs-source";
     path = ./.;
     filter = lib.novaSourceFilter [ ] path;
   };

@@ -5,7 +5,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp
   std_msgs
   std_srvs
-  cameras3_msgs
+  camera_msgs
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -64,10 +64,10 @@ install(
     streamer_parameters 
   DESTINATION lib/${PROJECT_NAME}
 )
-# Install config files
+# Install param files
 install(
-  DIRECTORY config
-  DESTINATION share/${PROJECT_NAME}/config
+  DIRECTORY params
+  DESTINATION share/${PROJECT_NAME}/params
 )
 
 # Install header files
