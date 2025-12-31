@@ -11,6 +11,7 @@ import { useState, useEffect, useRef } from "react";
 import { useGenericStore } from "../../../hooks/useGenericStore";
 import { CameraProfilesState, CameraProfile, CameraSettings } from "../../../redux/models/CameraProfilesState";
 import { CameraProfileEvents, emitSaveProfileEvent } from "../../../utils/cameraProfileEvents";
+import toast from "react-hot-toast";
 
 /**
  * Modal for saving all camera settings as a named profile
@@ -18,13 +19,11 @@ import { CameraProfileEvents, emitSaveProfileEvent } from "../../../utils/camera
 interface SaveAllCamerasModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave?: (profileName: string) => void;
 }
 
 export const SaveAllCamerasModal: React.FC<SaveAllCamerasModalProps> = ({
   isOpen,
   onClose,
-  onSave,
 }) => {
   const [profileName, setProfileName] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -99,9 +98,8 @@ export const SaveAllCamerasModal: React.FC<SaveAllCamerasModalProps> = ({
         },
       });
 
-      if (onSave) {
-        onSave(trimmedName);
-      }
+      const cameraCount = Object.keys(camerasToSave).length;
+      toast.success(`Saved profile "${trimmedName}" (${cameraCount} cameras)`);
 
       // Reset and close
       setProfileName("");

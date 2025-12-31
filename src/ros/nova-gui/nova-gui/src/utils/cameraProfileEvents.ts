@@ -1,25 +1,6 @@
 // Custom event system for camera profile save/load operations
 
-export type CameraFiltersData = {
-  flipCamera: boolean;
-  invertCamera: boolean;
-  rotation: number;
-  contrast: number;
-  brightness: number;
-};
-
-export type SaveCameraProfileEvent = CustomEvent<{
-  profileName: string;
-}>;
-
-export type LoadCameraProfileEvent = CustomEvent<{
-  profileName: string;
-}>;
-
-export type CameraFiltersReadyEvent = CustomEvent<{
-  cameraSerial: string;
-  filters: CameraFiltersData;
-}>;
+import { CameraSettings } from "../redux/models/CameraProfilesState";
 
 export const CameraProfileEvents = {
   SAVE_PROFILE: 'camera:save-profile',
@@ -44,7 +25,7 @@ export const emitLoadProfileEvent = (profileName: string) => {
 };
 
 // Emit camera filters ready event
-export const emitCameraFiltersReadyEvent = (cameraSerial: string, filters: CameraFiltersData) => {
+export const emitCameraFiltersReadyEvent = (cameraSerial: string, filters: CameraSettings) => {
   const event = new CustomEvent(CameraProfileEvents.FILTERS_READY, {
     detail: { cameraSerial, filters },
   });
