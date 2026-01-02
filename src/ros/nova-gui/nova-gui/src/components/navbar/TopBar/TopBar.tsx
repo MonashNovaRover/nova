@@ -25,7 +25,6 @@ import { BatteryWidget } from "../BatteryWidget/BatteryWidget.tsx";
 import {RGBInputModal} from "../RGBWidget/RGBModal.tsx";
 import {RadioStatusButton} from "../RadioStatusModal/RadioStatusButton.tsx";
 
-
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
 } = {
