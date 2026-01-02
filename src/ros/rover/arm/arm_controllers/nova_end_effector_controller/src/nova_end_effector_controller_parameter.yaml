@@ -88,32 +88,4 @@ nova_end_effector_controller:
           type: double,
           default_value: 15.7079632679,
         }
-    right_slide:
-        has_position_limits: {
-          type: bool,
-          default_value: true,
-        }
-        max_position: {
-          type: double,
-          default_value: 0.08,
-        }
-        min_position: {
-          type: double,
-          default_value: 0.0,
-        }
-        has_velocity_limits: {
-          type: bool,
-          default_value: true,
-        }
-        max_velocity: {
-          type: double,
-          default_value: 0.1,
-        }
-        has_acceleration_limits: {
-          type: bool,
-          default_value: false,
-        }
-        max_acceleration: {
-          type: double,
-          default_value: 15.7079632679,
-        }
+

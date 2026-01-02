@@ -317,12 +317,12 @@
 	</ros2_control>
 
 
-  <ros2_control name="arm_right_slide" type="system">
+  <!-- <ros2_control name="arm_right_slide" type="system">
 		<xacro:unless value="${use_mock_hardware}">
 			<hardware>
 				<plugin>cmd_hardware/CMDHardware</plugin>
 				<param name="candevice">can1</param> 
-				<param name="canid">5</param> <!-- TODO: Get CAN id, resolver id should be that *4 -->
+				<param name="canid">5</param> TODO: Get CAN id, resolver id should be that *4
 				<param name="resolver_id">20</param>
 				<param name="resolver_reduction">1.0</param>
 				<param name="reversed">false</param>
@@ -351,8 +351,8 @@
         <param name="initial_value">0.0</param>
       </state_interface>
     </joint>
-	</ros2_control>
-  
+	</ros2_control> -->
+
 
   <ros2_control name="arm_left_slide" type="system">
 		<xacro:unless value="${use_mock_hardware}">

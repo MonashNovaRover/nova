@@ -57,7 +57,6 @@ arm:
       joint_names:
         - actuator_head
         - left_slide
-        - right_slide
       use_position_control: false
       use_limits: true
 
@@ -103,5 +102,5 @@ arm:
       interfaces:
          ["position", "velocity"]
 
-      joints: ["J1", "J2", "J3", "J4", "J5", "J6", "actuator_head", "left_slide", "right_slide"]
+      joints: ["J1", "J2", "J3", "J4", "J5", "J6", "actuator_head", "left_slide"]
       use_local_topics: false
