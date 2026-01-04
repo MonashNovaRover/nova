@@ -20,7 +20,7 @@ from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
 
-from python_control2.hardware_interfaces import CMDHardware
+from python_control2.hardware_interfaces import PositionalServoHardware
 from teleop_python_utils import Inputs
 
 
@@ -120,35 +120,6 @@ class SpinnyPartController(Controller):
         self.pos_cmd.value = float(clamped_position)
 
 
-class SpinnyPartHardware(HardwareInterface):
-    pos_cmd: Interface
-
-    def __init__(self, contexts: Contexts):
-        super().__init__(contexts)
-        self.logger.info("SpinnyPartHardware -- I have been __init__ialized")
-        self.bus = contexts[jcan.Bus]
-
-        self.max_angle = float(self.get_parameter("max_angle").value)
-
-        self.frame_id = int(self.declare_parameter("frame_id", 0x0A0).value)
-        self.function_id = int(self.declare_parameter("function_id", 0x04).value)
-
-    def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
-        self.pos_cmd = command_interfaces["spinny/position"]
-
-        if not self.pos_cmd:
-            self.logger.error("pos_cmd not provided!")
-            return False
-
-    def on_read(self, now: float, period: float):
-        pass
-
-    def on_write(self, now: float, period: float):
-        position = self.pos_cmd.value if self.pos_cmd else 0.0
-        can_value = int((position / self.max_angle) * 255) if self.max_angle > 0 else 0
-        self.bus.send(jcan.Frame(self.frame_id, [self.function_id, can_value]))
-        
-
 if __name__ == "__main__":
     print("Setting up!")
 
@@ -159,7 +130,7 @@ if __name__ == "__main__":
 
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("spinny_controller", SpinnyPartController) \
-        .with_hardware("spinny_hw", SpinnyPartHardware) \
+        .with_hardware("spinny_hw", PositionalServoHardware, function_id=0x04, min_angle=0.0, max_angle=180.0) \
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()
