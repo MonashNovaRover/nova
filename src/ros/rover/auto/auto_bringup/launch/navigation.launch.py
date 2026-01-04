@@ -27,13 +27,16 @@ from nav2_common.launch import RewrittenYaml
 from os import listdir
 
 def launch_setup(context, *args, **kwargs):
+    # package directories
     auto_bringup_dir = FindPackageShare('auto_bringup')
 
+    comp = LaunchConfiguration('comp').perform(context).lower()
+    
+    # comp agnostic arguments
     autostart = LaunchConfiguration('autostart')
     log_level = LaunchConfiguration('log_level')
     map_params = LaunchConfiguration('map_params')
     namespace = LaunchConfiguration('namespace')
-    nav2_params_dir = LaunchConfiguration('nav2_params_dir').perform(context).lower()
     sim_params = LaunchConfiguration('sim_params')
     publish_goals = LaunchConfiguration('publish_goals')
     use_respawn = LaunchConfiguration('use_respawn')
@@ -61,6 +64,14 @@ def launch_setup(context, *args, **kwargs):
     nav2_params = [PathJoinSubstitution([nav2_params_dir, params]) for params in listdir(nav2_params_dir) if params[-5:] == '.yaml']
     nav2_params.append(substitution_params)
     nav2_params.append(sim_params) if in_sim else None
+
+    # comp defaults
+    if comp == 'arch':
+        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_arch'])
+    elif comp == 'urc':
+        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc'])
+    else:
+        raise ValueError('"comp" arg must be either "arch" or "urc"')
     
     return [
         GroupAction(

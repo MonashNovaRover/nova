@@ -28,6 +28,7 @@ def launch_setup(context, *args, **kwargs):
     drive_bringup_dir = FindPackageShare('drive_bringup')
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
+    comp = LaunchConfiguration('comp').perform(context).lower()
     angle = LaunchConfiguration('angle')
     camera = LaunchConfiguration('camera')
     gz_params = LaunchConfiguration('gz_params')
@@ -42,7 +43,18 @@ def launch_setup(context, *args, **kwargs):
             'P': LaunchConfiguration('P').perform(context),
             'Y': LaunchConfiguration('Y').perform(context)}
     robot_name = LaunchConfiguration('robot_name')
-    world = LaunchConfiguration('world')
+    
+    # comp defaults
+    if comp == 'arch':
+        world = PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf'])
+    elif comp == 'urc':
+        world = PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'urc_obstacles.sdf'])
+    else:
+        raise ValueError('"comp" arg must be either "arch" or "urc"')
+
+    # comp defaults overrides
+    if LaunchConfiguration('world').perform(context) != '':
+        world = LaunchConfiguration('world')
 
     return [
         AppendEnvironmentVariable(
@@ -103,6 +115,10 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
+            name='comp',
+            description='ARCh or URC',
+        ),
+        DeclareLaunchArgument(
             name='angle',
             default_value='15',
             description='Angle (in degrees) at which the camera is mounted',
@@ -144,7 +160,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='world',
-            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf']),
+            default_value='',
             description='Full path to world model file to load',
         ),
         DeclareLaunchArgument(name='x', default_value='-3.0', description='x_pose'),

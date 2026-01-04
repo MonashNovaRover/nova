@@ -2,16 +2,20 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-Execute this code on the rover to publish the urdf
-    static transforms and associated joint states
+General-purpose launch file to bring up all necessary
+nodes for the rover's autonomous stack.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODES:
-  - robot_state_publisher
-  - rover_state_publisher
+INCLUDED LAUNCH FILES:
+  - gazebo.launch.py
+  - drive.launch.py
+  - localization.launch.py
+  - rviz.launch.py
+  - navigation.launch.py
+  - rtabmap.launch.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	auto_bringup
 CREATION:	27/04/2023
-EDITED:     26/09/2025
+EDITED:     04/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
@@ -23,19 +27,21 @@ from launch_ros.substitutions import FindPackageShare
 from launch.event_handlers import OnProcessExit
 
 def launch_setup(context, *args, **kwargs):
+    # package directories
     auto_bringup_dir = FindPackageShare('auto_bringup')
     drive_bringup_dir = FindPackageShare('drive_bringup')
 
+    comp = LaunchConfiguration('comp').perform(context).lower()
+    
+    # comp agnostic arguments
     autostart = LaunchConfiguration('autostart')
     controller_params = LaunchConfiguration('controller_params')
     gazebo = LaunchConfiguration('gazebo')
-    gps = LaunchConfiguration('gps')
     localization = LaunchConfiguration('localization')
     log_level = LaunchConfiguration('log_level')
     map_params = LaunchConfiguration('map_params')
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
-    nav2_params_dir = LaunchConfiguration('nav2_params_dir')
     navigation = LaunchConfiguration('navigation')
     rl_params = LaunchConfiguration('rl_params')
     rviz = LaunchConfiguration('rviz')
@@ -45,11 +51,32 @@ def launch_setup(context, *args, **kwargs):
     world = LaunchConfiguration('world')
     rtabmap = LaunchConfiguration('rtabmap')
 
+    # comp defaults
+    if comp == 'arch':
+        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_arch'])
+        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'rl_arch.yaml'])
+        gps = 'False'
+    elif comp == 'urc':
+        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc'])
+        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'rl_urc.yaml'])
+        gps = 'True'
+    else:
+        raise ValueError('"comp" arg must be either "arch" or "urc"')
+    
+    # comp defaults overrides
+    if LaunchConfiguration('nav2_params_dir').perform(context) != '':
+        nav2_params_dir = LaunchConfiguration('nav2_params_dir')
+    if LaunchConfiguration('gps').perform(context).lower() != '':
+        gps = LaunchConfiguration('gps')
+    if LaunchConfiguration('rl_params').perform(context) != '':
+        rl_params = LaunchConfiguration('rl_params')
+
     nodes = GroupAction([
         IncludeLaunchDescription(
             condition=IfCondition(gazebo),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
             launch_arguments={
+                'comp': comp,
                 'camera':'True',
                 'controller_params': controller_params,
                 'model': model,
@@ -65,6 +92,7 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(localization),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'localization.launch.py'])),
             launch_arguments={
+                'comp': comp,
                 'gazebo': gazebo,
                 'gps': gps,
                 'rl_params': rl_params,
@@ -137,6 +165,11 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
+            name='comp',
+            description='ARCh or URC',
+        ),
+        # comp agnostic arguments
+        DeclareLaunchArgument(
             name='autostart',
             default_value='True',
             description='Automatically startup the nav2 stack',
@@ -150,11 +183,6 @@ def generate_launch_description():
             name='gazebo',
             default_value='True',
             description='Flag to launch gazebo',
-        ),
-        DeclareLaunchArgument(
-            name='gps',
-            default_value='False',
-            description='Fuse GPS?',
         ),
         DeclareLaunchArgument(
             name='localization',
@@ -182,19 +210,9 @@ def generate_launch_description():
             description='Top-level namespace',
         ),
         DeclareLaunchArgument(
-            name='nav2_params_dir',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_arch']),
-            description='Full path to the folder with ROS2 parameters files to use with all nodes',
-        ),
-        DeclareLaunchArgument(
             name='navigation',
             default_value='True',
             description='Flag to launch navigation stack',
-        ),
-        DeclareLaunchArgument(
-            name='rl_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir,'params','rl_arch.yaml']),
-            description='',
         ),
         DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
             name='rviz',
@@ -217,14 +235,30 @@ def generate_launch_description():
             description='Whether to respawn if a node crashes. Applied when composition is disabled.',
         ),
         DeclareLaunchArgument(
-            name='world',
-            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'urc_obstacles.sdf']),
-            description='Full path to world model file to load',
-        ),
-        DeclareLaunchArgument(
             name='rtabmap',
             default_value='True',
             description='Launch rtabmap?',
+        ),
+        # arguments with comp defaults (can be overridden)
+        DeclareLaunchArgument(
+            name='nav2_params_dir',
+            default_value='',
+            description='Full path to the folder with ROS2 parameters files to use with all nodes',
+        ),
+        DeclareLaunchArgument(
+            name='rl_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir,'params','rl_arch.yaml']),
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='gps',
+            default_value='',
+            description='Fuse GPS?',
+        ),
+        DeclareLaunchArgument(
+            name='world',
+            default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'urc_obstacles.sdf']),
+            description='Full path to world model file to load',
         ),
     ]
 
