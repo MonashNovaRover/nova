@@ -3,15 +3,22 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-Execute this code on the rover to publish the urdf
-    static transforms and associated joint states
+This launch file is responsible for bringing up the
+gazebo simulation environment.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+INCLUDED LAUNCH FILES:
+- drive.launch.py
+- camera.launch.py
+- urdf.launch.py
+- gz_sim.launch.py
+
 NODES:
-  - robot_state_publisher
-  - rover_state_publisher
+  - ros_gz_sim/create
+  - ros_gz_bridge/bridge_node
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	core
+PACKAGE: 	auto_bringup
 CREATION:	27/04/2023
+EDITED:     05/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
@@ -29,6 +36,8 @@ def launch_setup(context, *args, **kwargs):
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
     comp = LaunchConfiguration('comp').perform(context).lower()
+
+    # comp agnostic arguments
     angle = LaunchConfiguration('angle')
     camera = LaunchConfiguration('camera')
     gz_params = LaunchConfiguration('gz_params')
@@ -109,15 +118,16 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
-    nova_gazebo_dir = FindPackageShare('nova_gazebo')
     drive_bringup_dir = FindPackageShare('drive_bringup')
     rover_description_dir = FindPackageShare('rover_description')
 
     declared_arguments = [
         DeclareLaunchArgument(
             name='comp',
+            default_value='arch',
             description='ARCh or URC',
         ),
+        # comp agnostic arguments
         DeclareLaunchArgument(
             name='angle',
             default_value='15',
@@ -158,17 +168,18 @@ def generate_launch_description():
             default_value='Banksia',
             description='name of the robot',
         ),
-        DeclareLaunchArgument(
-            name='world',
-            default_value='',
-            description='Full path to world model file to load',
-        ),
         DeclareLaunchArgument(name='x', default_value='-3.0', description='x_pose'),
         DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
         DeclareLaunchArgument(name='z', default_value='0.5', description='z_pose'),
         DeclareLaunchArgument(name='R', default_value='0.0', description='roll'),
         DeclareLaunchArgument(name='P', default_value='0.0', description='pitch'),
         DeclareLaunchArgument(name='Y', default_value='0.0', description='yaw'),
+        # arguments with comp defaults
+        DeclareLaunchArgument(
+            name='world',
+            default_value='',
+            description='Full path to world model file to load',
+        ),
     ]
 
     return LaunchDescription(
