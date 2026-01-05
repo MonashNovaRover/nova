@@ -45,7 +45,7 @@ class SpinnyPartController(Controller):
 
         # Declare ROS2 parameters here.
         self.offset_step_max = float(self.declare_parameter("offset_step_max", 30.0).value)
-        self.sweeper_pos = float(self.declare_parameter("sweeper_pos", 0.0).value)
+        self.sweeper_pos = float(self.declare_parameter("sweeper_pos", self.min_angle).value)
         self.microscope_pos = float(self.declare_parameter("microscope_pos", (128.0 / 255.0) * self.max_angle).value)
         self.nir_probe_pos = float(self.declare_parameter("nir_probe_pos", self.max_angle).value)
 
@@ -130,7 +130,7 @@ if __name__ == "__main__":
 
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("spinny_controller", SpinnyPartController) \
-        .with_hardware("spinny_hw", PositionalServoHardware, function_id=0x04, min_angle=0.0, max_angle=180.0) \
+        .with_hardware("spinny_hw", PositionalServoHardware, function_id=0x00, min_angle=0.0, max_angle=180.0) \
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()
