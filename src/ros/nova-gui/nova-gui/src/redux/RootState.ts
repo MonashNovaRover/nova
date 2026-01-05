@@ -114,6 +114,8 @@ export interface RootState {
   targetTemp : GenericStoreState<number>;
   theta360CompassHeading : GenericStoreState<number>;
   uvVisBlankStore : GenericStoreState<number[]>;
+  clickAndHold : GenericStoreState<boolean>;
+  windowWideWASD : GenericStoreState<boolean>;
 
   batteryStore: IRosSensorMsgsBatteryState;
 
