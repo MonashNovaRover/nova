@@ -4,7 +4,7 @@ import GLState from "./GLState.ts";
 import GLStateRenderInfo from "./GLStateRenderInfo.ts";
 
 const useGL_aux = (): GLState => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const gl = useRef<GLState | undefined>(undefined);
   if (gl.current === undefined)

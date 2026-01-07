@@ -10,7 +10,7 @@ export default class GLState {
   /**
    * The canvas element that this renders to.
    */
-  public readonly canvasRef: RefObject<HTMLCanvasElement>;
+  public readonly canvasRef: RefObject<HTMLCanvasElement | null>;
 
   /**
    * The rendering context used by the GLState. This is retrieved from the canvasRef, which is made using a useRef hook,
@@ -29,7 +29,7 @@ export default class GLState {
    */
   public readonly renderQueue: RenderQueue<[WebGL2RenderingContext, GLStateRenderInfo]>;
 
-  constructor(canvasRef : RefObject<HTMLCanvasElement>) {
+  constructor(canvasRef : RefObject<HTMLCanvasElement | null>) {
     this.canvasRef = canvasRef;
 
     this.renderQueue = new RenderQueue<[WebGL2RenderingContext, GLStateRenderInfo]>();
