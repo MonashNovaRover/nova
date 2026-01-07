@@ -2,7 +2,7 @@ import {useEffect} from "react";
 
 // used to avoid repeated code, were some enum mapped to a value in a webgl 2 context.
 export default class MappedGLint<T> {
-  private mappingFunction: (context: WebGL2RenderingContext, value: T) => GLint;
+  private readonly mappingFunction: (context: WebGL2RenderingContext, value: T) => GLint;
 
   private _value: T;
   private _mappedValue?: GLint;

@@ -4,14 +4,13 @@ import GLState from "./GLState.ts";
 import GLStateRenderInfo from "./GLStateRenderInfo.ts";
 
 const useGL_aux = (): GLState => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const gl = useRef<GLState>();
-  if (gl.current === undefined) {
+  const gl = useRef<GLState | undefined>(undefined);
+  if (gl.current === undefined)
     gl.current = new GLState(canvasRef);
-  }
 
-  return gl.current;
+  return gl.current!;
 }
 
 /**
@@ -31,6 +30,8 @@ const useGL = (webContextAttributes?: WebGLContextAttributes )
     if (gl.context === undefined)
       console.warn("A WebGL2RenderingContext was regenerated in useGL.");
 
+    // Add event listeners to the canvas element
+
     gl.context = gl.canvasRef.current.getContext("webgl2", {
       ...webContextAttributes,
     }) ?? undefined;
@@ -39,8 +40,6 @@ const useGL = (webContextAttributes?: WebGLContextAttributes )
       console.warn("Failed to set up a rendering context in useGL!");
       return;
     }
-
-
   }, [gl, webContextAttributes]);
 
   const renderCallback = useCallback((milliseconds: DOMHighResTimeStamp, deltaMilliseconds: number) => {
