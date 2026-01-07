@@ -168,7 +168,7 @@ export const RadioStatusModal = ({ rosTimeout, setRosTimeout }: RadioStatusModal
                                                     </DropdownItem>
                                                     <DropdownItem
                                                         description="10.0.1.10"
-                                                        key={"rover-bullet"}
+                                                        key="rover-bullet"
                                                         onPress={() => window.open('https://10.0.1.10', "_blank", "rel=noopener noreferrer")}>
                                                         Rover Bullet
                                                     </DropdownItem>
