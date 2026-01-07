@@ -5,7 +5,7 @@
 //
 // Initialize a shader program, so WebGL knows how to draw our data
 //
-export default function initShaderProgram(gl: WebGLRenderingContext | undefined, vsSource: string, fsSource: string) {
+export default function initShaderProgram(gl: WebGL2RenderingContext | undefined, vsSource: string, fsSource: string) {
   if (gl === undefined)
     return;
 
@@ -36,17 +36,17 @@ export default function initShaderProgram(gl: WebGLRenderingContext | undefined,
 }
 
 
-export const loadVertexShader = (gl : WebGLRenderingContext, source : string) =>
+export const loadVertexShader = (gl : WebGL2RenderingContext, source : string) =>
   loadShader(gl, gl.VERTEX_SHADER, source);
 
-export const loadFragmentShader = (gl : WebGLRenderingContext, source : string) =>
+export const loadFragmentShader = (gl : WebGL2RenderingContext, source : string) =>
   loadShader(gl, gl.FRAGMENT_SHADER, source);
 
 //
 // creates a shader of the given type, uploads the source and
 // compiles it.
 //
-export function loadShader(gl: WebGLRenderingContext, type: number, source: string) {
+export function loadShader(gl: WebGL2RenderingContext, type: number, source: string) {
   const shader = gl.createShader(type);
 
   // Exit early when null
@@ -55,7 +55,7 @@ export function loadShader(gl: WebGLRenderingContext, type: number, source: stri
 
   // Send the source to the shader object
 
-  gl.shaderSource(shader, source);
+  gl.shaderSource(shader, source.trimStart());
 
   // Compile the shader program
 
@@ -64,9 +64,19 @@ export function loadShader(gl: WebGLRenderingContext, type: number, source: stri
   // See if it compiled successfully
 
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    alert(
-      `An error occurred compiling the shaders (type ${type}):\n\t${gl.getShaderInfoLog(shader)}\n\nSource:\n${source}`,
+    const errorMsg = gl.getShaderInfoLog(shader);
+    const typeString = type === gl.VERTEX_SHADER ? "vertex"
+      : type === gl.FRAGMENT_SHADER ? "fragment" : `unknown (${type.toString()})`;
+
+    console.error(
+      `An error occurred compiling the shaders (type ${typeString}):`,
+      '\n', "Error Message: ", errorMsg,
+      '\n', "Source: ", source,
+      '\n', "VERSION: ", gl.getParameter(gl.VERSION),
+      '\n', "SHADING_LANGUAGE_VERSION: ", gl.getParameter(gl.SHADING_LANGUAGE_VERSION)
     );
+    console.error(errorMsg);
+
     gl.deleteShader(shader);
     return undefined;
   }

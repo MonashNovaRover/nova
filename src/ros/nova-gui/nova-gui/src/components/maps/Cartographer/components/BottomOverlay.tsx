@@ -77,124 +77,124 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
           exit={{ height: 0, opacity: 1 }}
           transition={{ duration: 0.4, ease: "easeInOut" }}
           className="overflow-hidden"
-      >
-        <Card fullWidth className="h-full rounded-none" style={{ maxHeight: "400px" }}>
-          <CardHeader className="w-full flex flex-row justify-between gap-3 items-center" style={{ height: "80px" }}>
-              <div className="flex flex-row gap-3">
-              <CopyableInput
-                readOnly
-                value={String(base.latitude)}
-                placeholder={`Base Latitude`}
-                label="Base Latitude"/>
-              <CopyableInput
-                readOnly
-                value={String(base.longitude)}
-                placeholder={`Base Longitude`}
-                label="Base Longitude"/>
-              <CopyableInput
-                readOnly
-                value={String(rover.latitude)}
-                placeholder={`Rover Latitude`}
-                label="Rover Latitude"/>
-              <CopyableInput
-                readOnly
-                value={String(rover.longitude)}
-                placeholder={`Rover Longitude`}
-                label="Rover Longitude"/>
-              <Select
-                selectedKeys={[mapTile]}
-                label="Map Tiles"
-                placeholder="Select Tiles"
-                onChange={(e) => setMapTile(e.target.value as MapTile)}
-                >
-                {Object.values(MapTile).map((tile) => (
-                  <SelectItem
-                    key={tile} >
-                    {tile}
-                  </SelectItem>
+        >
+          <Card fullWidth className="h-full rounded-none" style={{ maxHeight: "400px" }}>
+            <CardHeader className="w-full flex flex-row justify-between gap-3 items-center" style={{ height: "80px" }}>
+                <div className="flex flex-row gap-3">
+                <CopyableInput
+                  readOnly
+                  value={String(base.latitude)}
+                  placeholder={`Base Latitude`}
+                  label="Base Latitude"/>
+                <CopyableInput
+                  readOnly
+                  value={String(base.longitude)}
+                  placeholder={`Base Longitude`}
+                  label="Base Longitude"/>
+                <CopyableInput
+                  readOnly
+                  value={String(rover.latitude)}
+                  placeholder={`Rover Latitude`}
+                  label="Rover Latitude"/>
+                <CopyableInput
+                  readOnly
+                  value={String(rover.longitude)}
+                  placeholder={`Rover Longitude`}
+                  label="Rover Longitude"/>
+                <Select
+                  selectedKeys={[mapTile]}
+                  label="Map Tiles"
+                  placeholder="Select Tiles"
+                  onChange={(e) => setMapTile(e.target.value as MapTile)}
+                  >
+                  {Object.values(MapTile).map((tile) => (
+                    <SelectItem
+                      key={tile} >
+                      {tile}
+                    </SelectItem>
+                  ))}
+                </Select>
+                </div>
+                <div className="flex flex-row gap-3 items-center">
+                {bottomOverlayComponents.map((component, index) => (
+                  <React.Fragment key={index}>
+                    {component}
+                  </React.Fragment>
                 ))}
-              </Select>
-              </div>
-              <div className="flex flex-row gap-3 items-center">
-              {bottomOverlayComponents.map((component, index) => (
-                <React.Fragment key={index}>
-                  {component}
-                </React.Fragment>
-              ))}
-              <Button
-                variant="shadow"
-                fullWidth
-                color={trackRover ? "primary" : "default"}
-                onClick={toggleRoverTracking}
-              >
-                Track Rovey
-              </Button>
-              <ToolTipButton
-                tooltipContent="Center Rover"
-                isIconOnly
-                variant="shadow"
-                color={centerOnRover ? "primary" : "default"}
-                onClick={toggleRoverCentering}
-              >
-                <Navigation className="w-5" />
-              </ToolTipButton>
-              <Button
-                variant="shadow"
-                isIconOnly
-                fullWidth
-                onClick={() => setOverlayOpen(!overlayOpen)}
-              >
-                {overlayOpen ? <ChevronDoubleDown /> : <ChevronDoubleUp />}
-              </Button>
-              </div>
-          </CardHeader>
-          <AnimatePresence>
-            {overlayOpen && (
-              <motion.div
-                className="w-full flex flex-row overflow-hidden"
-                initial={{ opacity: 1, height: 0 }}
-                animate={{ opacity: 1, height: "320px" }}
-                exit={{ opacity: 1, height: 0 }}
-                transition={{ duration: 0.4, ease: "easeInOut" }}
-              >
-                <CardBody className="overflow-y-auto" style={{ height: "320px" }}>
-                  <div className="flex-1">
-                    <Table removeWrapper title="Map Points" aria-label="Map Points" >
-                      <TableHeader>
-                        <TableColumn>Name</TableColumn>
-                        <TableColumn>Latitude</TableColumn>
-                        <TableColumn>Longitude</TableColumn>
-                        <TableColumn>Label</TableColumn>
-                        <TableColumn align="end">
-                          <div className="flex flex-row justify-end">Actions</div>
-                        </TableColumn>
-                      </TableHeader>
-                      <TableBody emptyContent="Add Points on the Map to Display here">
-                        {points.map((point) => (
-                          <TableRow key={point.name}>
-                            <TableCell>{point.name}</TableCell>
-                            <TableCell>{point.lat}</TableCell>
-                            <TableCell>{point.long}</TableCell>
-                            <TableCell>{point.labelName != null ? point.labelName : ''}</TableCell>
-                            <TableCell className="flex flex-row justify-end">
-                              <ToolTipButton
-                                isIconOnly
-                                size="sm"
-                                tooltipContent="Delete"
-                                onClick={() => deletePoint(point)}
-                              >
-                                <Trash className="w-4" />
-                              </ToolTipButton>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardBody>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                <Button
+                  variant="shadow"
+                  fullWidth
+                  color={trackRover ? "primary" : "default"}
+                  onClick={toggleRoverTracking}
+                >
+                  Track Rovey
+                </Button>
+                <ToolTipButton
+                  tooltipContent="Center Rover"
+                  isIconOnly
+                  variant="shadow"
+                  color={centerOnRover ? "primary" : "default"}
+                  onClick={toggleRoverCentering}
+                >
+                  <Navigation className="w-5" />
+                </ToolTipButton>
+                <Button
+                  variant="shadow"
+                  isIconOnly
+                  fullWidth
+                  onClick={() => setOverlayOpen(!overlayOpen)}
+                >
+                  {overlayOpen ? <ChevronDoubleDown /> : <ChevronDoubleUp />}
+                </Button>
+                </div>
+            </CardHeader>
+            <AnimatePresence>
+              {overlayOpen && (
+                <motion.div
+                  className="w-full flex flex-row overflow-hidden"
+                  initial={{ opacity: 1, height: 0 }}
+                  animate={{ opacity: 1, height: "320px" }}
+                  exit={{ opacity: 1, height: 0 }}
+                  transition={{ duration: 0.4, ease: "easeInOut" }}
+                >
+                  <CardBody className="overflow-y-auto" style={{ height: "320px" }}>
+                    <div className="flex-1">
+                      <Table removeWrapper title="Map Points" aria-label="Map Points" >
+                        <TableHeader>
+                          <TableColumn>Name</TableColumn>
+                          <TableColumn>Latitude</TableColumn>
+                          <TableColumn>Longitude</TableColumn>
+                          <TableColumn>Label</TableColumn>
+                          <TableColumn align="end">
+                            <div className="flex flex-row justify-end">Actions</div>
+                          </TableColumn>
+                        </TableHeader>
+                        <TableBody emptyContent="Add Points on the Map to Display here">
+                          {points.map((point) => (
+                            <TableRow key={point.name}>
+                              <TableCell>{point.name}</TableCell>
+                              <TableCell>{point.lat}</TableCell>
+                              <TableCell>{point.long}</TableCell>
+                              <TableCell>{point.labelName != null ? point.labelName : ''}</TableCell>
+                              <TableCell className="flex flex-row justify-end">
+                                <ToolTipButton
+                                  isIconOnly
+                                  size="sm"
+                                  tooltipContent="Delete"
+                                  onClick={() => deletePoint(point)}
+                                >
+                                  <Trash className="w-4" />
+                                </ToolTipButton>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardBody>
+                </motion.div>
+              )}
+            </AnimatePresence>
         </Card>
       </motion.div>
       )}

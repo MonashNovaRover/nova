@@ -7,7 +7,7 @@ export default function useTimeAttribute(programState: GLProgramState, name: str
   factory: (milliseconds: DOMHighResTimeStamp, deltaMilliseconds: number) => vecArray, deps: DependencyList = [],
   options?: Partial<UseAttributeOptions>) {
 
-  const buffer = useRef<WebGLBuffer>();
+  const buffer = useRef<WebGLBuffer | undefined>(undefined);
 
   const filledOptions: UseAttributeOptions = {
     ...defaultUseAttributeOptions,

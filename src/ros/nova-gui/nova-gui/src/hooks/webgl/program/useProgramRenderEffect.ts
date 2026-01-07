@@ -9,8 +9,8 @@ export default function useProgramRenderEffect(program: GLProgramState,
                                                deps: React.DependencyList = [])
 {
   const renderQueueItem =
-    useRef<RenderQueueItem<[WebGL2RenderingContext, WebGLProgram, GLStateRenderInfo]>>();
-  const itemID = useRef<number>();
+    useRef<RenderQueueItem<[WebGL2RenderingContext, WebGLProgram, GLStateRenderInfo]> | undefined>(undefined);
+  const itemID = useRef<number | undefined>(undefined);
 
   if (renderQueueItem.current === undefined) {
     renderQueueItem.current = {
@@ -24,6 +24,7 @@ export default function useProgramRenderEffect(program: GLProgramState,
       itemID.current = program.renderQueue.push(renderQueueItem.current!);
 
     renderQueueItem.current!.render = effect;
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...deps])
+  }, [program, ...deps])
 }

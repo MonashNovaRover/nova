@@ -104,9 +104,9 @@ export const NovaTopBar: React.FC = () => {
               </Button>
             </DropdownTrigger>
             <DropdownMenu aria-label="ROS Connection">
-              <DropdownItem>Shut Down</DropdownItem>
-              <DropdownItem>Restart</DropdownItem>
-              <DropdownItem>Disconnect</DropdownItem>
+              <DropdownItem key={"shut-down"}>Shut Down</DropdownItem>
+              <DropdownItem key={"restart"}>Restart</DropdownItem>
+              <DropdownItem key={"disconnect"}>Disconnect</DropdownItem>
             </DropdownMenu>
           </Dropdown>
         </NavbarItem>
@@ -124,18 +124,21 @@ export const NovaTopBar: React.FC = () => {
               <DropdownItem
                 description="General Tab for Rover Operation"
                 href="/general"
+                key={"general"}
               >
                 General
               </DropdownItem>
               <DropdownItem
                 description="Australian Rover Challenge"
                 href="/arc"
+                key={"arc"}
               >
                 ARC
               </DropdownItem>
               <DropdownItem
                 description="University Rover Challenge"
                 href="/urc"
+                key={"urc"}
               >
                 URC
               </DropdownItem>
