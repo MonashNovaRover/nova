@@ -34,6 +34,7 @@ const connectionStatusColor: {
 };
 
 const prettyViewNames = new Map<string, string>([
+  ["", "Home"],
   ["general", "General"],
   ["arc", "ARC"],
   ["urc", "URC"],
@@ -56,7 +57,7 @@ export const NovaTopBar: React.FC = () => {
     .split("/")
     .filter((val) => !["/", ""].includes(val));
 
-  const viewName = parsedLocation[0];
+  const viewName = parsedLocation.length !== 0 ? parsedLocation[0] : "";
   const title = parsedLocation.reverse()[0];
 
   return (
@@ -149,6 +150,12 @@ export const NovaTopBar: React.FC = () => {
                 href="/test"
               >
                 Test
+              </DropdownItem>
+              <DropdownItem
+                description="Home Page"
+                href="/"
+              >
+                Home
               </DropdownItem>
             </DropdownMenu>
           </Dropdown>
