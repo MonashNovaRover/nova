@@ -24,7 +24,7 @@ export const HomePage = (props: HomePageProps) => {
                       size="lg"
                       variant="ghost"
                       color="default"
-                      className="flex-1 h-full text-3xl font-medium gap-3"
+                      className="flex-1 h-full gap-3"
                       key={mode.route}
                       startContent={mode.icon}
                     >
