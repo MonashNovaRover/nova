@@ -144,6 +144,12 @@ export const NovaTopBar: React.FC = () => {
               >
                 URC
               </DropdownItem>
+              <DropdownItem
+                description="Pages for Testing"
+                href="/test"
+              >
+                Test
+              </DropdownItem>
             </DropdownMenu>
           </Dropdown>
         </NavbarItem>
