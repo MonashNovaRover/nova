@@ -22,6 +22,4 @@ export default function useTimeUniform(programState: GLProgramState, name: strin
     // Start the cycle of endless re-renders
     programState.queue.push();
   }, [programState.queue]);
-
-
 }

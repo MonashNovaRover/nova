@@ -112,6 +112,11 @@ export default class GLProgramState implements RenderQueueItem<[WebGL2RenderingC
    * @param info Info about the render
    */
   public setup(context: WebGL2RenderingContext, info: GLStateRenderInfo): void {
+    if (context === null || context === undefined) {
+      console.error("WebGL context is not ready yet. Skipping setup of GLProgramState.");
+      return;
+    }
+
     this.program = initShaderProgram(context, this.vert, this.frag);
     this.queue.program = this.program;
 

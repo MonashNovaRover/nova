@@ -24,7 +24,7 @@ const OverlayedCameraComponent: FC<OverlayedCameraComponentProps> = (props) => {
     </>
   );
 
-  const cameraVideo: FC<CameraVideoProps> = ({videoRef, filters}: CameraVideoProps) => (
+  const cameraVideo = ({videoRef, filters}: CameraVideoProps) => (
     <Overlay
       overlay={overlayToggle && props.overlay}
     >

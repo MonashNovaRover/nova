@@ -4,12 +4,12 @@ import GLProgramDrawMode from "./GLProgramDrawMode.ts";
 import GLState from "../gl/GLState.ts";
 
 function useProgram_aux(gl: GLState, vert: string, frag: string, options: GLProgramStateOptions): GLProgramState {
-  const programRef = useRef<GLProgramState>();
+  const programRef = useRef<GLProgramState | undefined>(undefined);
 
   if (programRef.current === undefined)
     programRef.current = new GLProgramState(gl, vert, frag, options);
 
-  return programRef.current;
+  return programRef.current!;
 }
 
 /**
