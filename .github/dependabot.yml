@@ -8,7 +8,10 @@ updates:
   - package-ecosystem: "npm" # See documentation for possible values (yarn = npm)
     directory: "/src/ros/nova-gui/nova-gui" # Location of package manifests
     schedule:
-      interval: "weekly" # Packages will be very out of date so will do it regularly for a bit then make this longer.
+      interval: "monthly"
+      day: "monday"
+      time: "03:00"
+      timezone: "Australia/Melbourne"
     open-pull-requests-limit: 10 # Will likely reduce later as well.
 
     # Group logically related dependencies
