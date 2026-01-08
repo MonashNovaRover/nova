@@ -17,6 +17,7 @@
                <joint_name>J4</joint_name>
                <joint_name>J5</joint_name>
                <joint_name>J6</joint_name>
+
                <joint_name>right_slide</joint_name>
                <joint_name>left_slide</joint_name>
                <joint_name>actuator_head</joint_name>

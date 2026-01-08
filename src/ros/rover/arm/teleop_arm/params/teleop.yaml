@@ -113,15 +113,15 @@ joint_space_mode:
       j4:
         name: "J4"
         input_name: "j4"
-        scale: 0.25
+        scale: 0.01
       j5:
         name: "J5"
         input_name: "j5"
-        scale: 0.1
+        scale: 0.01
       j6:
         name: "J6"
         input_name: "j6"
-        scale: 0.36
+        scale: 0.1
 
 
 task_space_mode:
