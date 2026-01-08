@@ -39,7 +39,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
     props;
 
   return {
-    // Private Methods Below. DO NOT USE. I know this isin't a class but helps to keep it private
+    // Private Methods Below. DO NOT USE. I know this isn't a class but helps to keep it private
     _getTopicAction(
       object: RosTopicInterfaces[typeof topic]
     ): () => BifrostActionType<RosTopicInterfaces[typeof topic]> {
@@ -122,7 +122,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
 
         rosTopic.subscribe(() => {});
 
-        rosTopic.on("message", (message: RosTopicInterfaces[typeof topic]) => {
+        rosTopic.on("message", (message: any) => {          // Type used to be RosTopicInterfaces[typeof topic]
           this._updateTopicState(message);
         });
 
@@ -156,7 +156,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
 
         rosService.callService(
           request,
-          (resp: RosServiceInterface[typeof service]["response"]) => {
+          (resp: unknown) => {        // Type used to be RosServiceInterface[typeof service]["response"]
             if (!resp) return;
             if (options.handleResponse) options.handleResponse(resp);
             if (options.responseToast || options.successToastMessage) {
