@@ -14,7 +14,6 @@ struct Kinematics final {
 
   struct Forward final {
     ForwardKinematicsPlugin::SharedPtr plugin = nullptr;
-
   };
 
   struct Collision final {
@@ -22,16 +21,14 @@ struct Kinematics final {
 
     explicit Collision(PluginLoader::MakeCollisionResult result)
 
-
     explicit Collision(
       PluginLoader plugin_loader,
       ForwardKinematicsPlugin::SharedPtr fk)
-        : manager()
+        : manager(plugin_loader, fk) {}
   };
 
   struct Inverse final {
     InverseKinematicsPlugin::SharedPtr plugin = nullptr;
-
   };
 
   PluginLoader plugin_loader{};
@@ -41,12 +38,13 @@ struct Kinematics final {
   Inverse inverse;
 
   explicit Kinematics(PluginLoader plugin_loader)
-  : plugin_loader(std::move(plugin_loader)) {
+  : plugin_loader(std::move(plugin_loader)),
+    forward(),
+    collision(), //< TODO: Make make_collision_manager() constexpr and use it here :/
+    inverse()
+  {
 
   }
-
-
-
 };
 
 } // arm_kinematics

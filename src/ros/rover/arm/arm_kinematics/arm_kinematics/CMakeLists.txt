@@ -53,9 +53,6 @@ add_library(${PROJECT_NAME} SHARED
   src/common/robot_model.cpp
   src/plugins/inverse/banksia_ik_plugin.cpp
   src/kinematics.cpp
-  include/arm_kinematics/kinematics.hpp
-  src/kinematics_builder.cpp
-  include/arm_kinematics/kinematics_builder.hpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17
