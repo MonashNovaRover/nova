@@ -1,9 +1,0 @@
-<library path="nova_end_effector_controller">
-  <class name="nova_end_effector_controller/NovaEndEffectorController"
-         type="nova_end_effector_controller::NovaEndEffectorController"
-         base_class_type="controller_interface::ChainableControllerInterface">
-  <description>
-    The end effector controller
-  </description>
-  </class>
-</library>
