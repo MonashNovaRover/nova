@@ -6,6 +6,7 @@ import { RootState } from "../../RootState";
 import { useBifrost } from "../../actions/bifrost/useBifrostAction";
 import { BifrostConnectionStatus } from "../../models/bifrost/BifrostTypes";
 import { RosContext } from "./RosContext";
+import * as ROSLIB from "roslib";
 
 export const RosProvider = (props: { children: React.ReactNode }) => {
   const uiStore = useSelector((state: RootState) => state.uiState);

@@ -12,7 +12,7 @@ import {RosTopicInterfaces} from "../../ros/topics/rosTopicTypes.ts";
  */
 export const useRosSubscription = (topic: RosTopic, callback: (message: RosTopicInterfaces[typeof topic]) => void) => {
   const ros = useContext(RosContext);
-  const rosTopicRef = useRef<Topic | undefined>(undefined);
+  const rosTopicRef = useRef<Topic<RosTopicInterfaces[typeof topic]> | undefined>(undefined);
 
   useEffect(() => {
     if (ros == undefined)
