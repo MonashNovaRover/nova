@@ -46,6 +46,7 @@ using hardware_interface::HW_IF_POSITION;
 using hardware_interface::HW_IF_VELOCITY;
 using lifecycle_msgs::msg::State;
 using drive_interfaces::srv::DriveStatus;
+using drive_interfaces::msg::DriveCommand;
 
 NovaDriveControllerBase::NovaDriveControllerBase()
   : controller_interface::ControllerInterface()
@@ -53,7 +54,7 @@ NovaDriveControllerBase::NovaDriveControllerBase()
   , DRIVE_COMMAND_TYPE_(HW_IF_VELOCITY)
   , PIVOT_COMMAND_TYPE_(HW_IF_POSITION)
   , DEFAULT_COMMAND_TOPIC_("/cmd_vel")
-  , DEFAULT_COMMAND_OUT_TOPIC_("~/cmd_vel_out")
+  , DEFAULT_COMMAND_OUT_TOPIC_("~/cmd_out")
 {
 }
 
@@ -295,18 +296,37 @@ controller_interface::return_type NovaDriveControllerBase::update(
     }
   }
 
-  // Publish commanded velocities
-  if (base_params_->publish_commanded_velocities && realtime_commanded_twist_publisher_->trylock())
+  // Publish commands
+  if (base_params_->publish_commands && realtime_command_publisher_->trylock())
   {
-    auto& commanded_twist_command = realtime_commanded_twist_publisher_->msg_;
-    commanded_twist_command.header.stamp = time;
-    commanded_twist_command.twist.linear.x = cmds.linear_velocity_x;
-    commanded_twist_command.twist.linear.y = cmds.linear_velocity_y;
-    commanded_twist_command.twist.linear.z = 0.0;
-    commanded_twist_command.twist.angular.x = 0.0;
-    commanded_twist_command.twist.angular.y = 0.0;
-    commanded_twist_command.twist.angular.z = cmds.angular_velocity;
-    realtime_commanded_twist_publisher_->unlockAndPublish();
+    auto& published_command = realtime_command_publisher_->msg_;
+    published_command.header.stamp = time;
+    published_command.twist.linear.x = cmds.linear_velocity_x;
+    published_command.twist.linear.y = cmds.linear_velocity_y;
+    published_command.twist.linear.z = 0;
+    published_command.twist.angular.x = 0.0;
+    published_command.twist.angular.y = 0.0;
+    published_command.twist.angular.z = cmds.angular_velocity;
+
+    auto copy_values {[&logger](const std::vector<double>& from, std::vector<double>& to)
+    {
+      if (from.size() != to.size())
+      {
+        RCLCPP_ERROR(logger, "mismatch between vector lengths; filling with NaNs instead");
+        std::fill(to.begin(), to.end(), NAN);
+      }
+      else
+      {
+        std::copy(from.begin(), from.end(), to.begin());
+      }
+    }};
+
+    copy_values(cmds.left_drive_speeds, published_command.left_drive_speeds);
+    copy_values(cmds.right_drive_speeds, published_command.right_drive_speeds);
+    copy_values(cmds.left_pivot_positions, published_command.left_pivot_positions);
+    copy_values(cmds.right_pivot_positions, published_command.right_pivot_positions);
+
+    realtime_command_publisher_->unlockAndPublish();
   }
 
   return controller_interface::return_type::OK;
@@ -378,12 +398,18 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
   }
 
   // Initialise twist publisher
-  if (base_params_->publish_commanded_velocities)
+  if (base_params_->publish_commands)
   {
-    commanded_twist_publisher_ = get_node()->create_publisher<TwistStamped>(
+    command_publisher_ = get_node()->create_publisher<DriveCommand>(
       DEFAULT_COMMAND_OUT_TOPIC_, rclcpp::SystemDefaultsQoS());
-    realtime_commanded_twist_publisher_ =
-      std::make_shared<realtime_tools::RealtimePublisher<TwistStamped>>(commanded_twist_publisher_);
+    realtime_command_publisher_ =
+      std::make_shared<realtime_tools::RealtimePublisher<DriveCommand>>(command_publisher_);
+
+    auto& published_command = realtime_command_publisher_->msg_;
+    published_command.left_drive_speeds.resize(wheels_per_side_);
+    published_command.right_drive_speeds.resize(wheels_per_side_);
+    published_command.left_pivot_positions.resize(PIVOTS_PER_SIDE_);
+    published_command.right_pivot_positions.resize(PIVOTS_PER_SIDE_);
   }
 
   // Initialise twist subscriber

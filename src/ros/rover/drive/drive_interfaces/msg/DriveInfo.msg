@@ -14,9 +14,13 @@ bool connected
 byte PIVOT = 1
 byte STRAFE = 2
 byte TANK = 3
+byte HOLONOMIC = 4  # not used in old drive
 
 #current drive mode of the rover
 byte drive_mode 
 
 #handbrake on or off
 bool handbrake
+
+#hold position enabled or disabled
+bool hold_position false

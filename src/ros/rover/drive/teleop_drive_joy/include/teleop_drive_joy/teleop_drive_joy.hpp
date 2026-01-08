@@ -35,6 +35,7 @@
 #include <rcl_interfaces/srv/set_parameters.hpp>
 #include <controller_manager_msgs/srv/switch_controller.hpp>
 #include <drive_interfaces/srv/drive_status.hpp>
+#include <drive_interfaces/msg/drive_info.hpp>
 
 #include "teleop_drive_joy_parameters.hpp"
 
@@ -43,10 +44,10 @@ namespace teleop_drive_joy
 
 enum class DriveMode : uint8_t
 {
-  PIVOT,
-  HOLONOMIC,
-  STRAFE,
-  DIFF
+  PIVOT = 1,
+  STRAFE = 2,
+  DIFF = 3,
+  HOLONOMIC = 4
 };
 
 inline std::string pretty_print_mode(const DriveMode mode)
@@ -187,7 +188,22 @@ private:
    */
   void switch_controller(const DriveMode requested_control_mode);
 
+  /**
+   * @brief Sends hold position status to currently active drive controller
+   * @param enable Whether enabled or not
+   */
   void set_hold_position(bool enable);
+
+  /**
+ * @brief Updates connection status to game pad
+ * @param connected Whether game pad is connected or not
+ */
+  void set_connected(bool connected);
+
+  /**
+   * @brief Publishes current state as DriveInfo message
+   */
+  void send_drive_info();
 
   /**
    * @brief Prints the control mappings to the console.
@@ -196,7 +212,11 @@ private:
 
   // Member variables
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_pub_;
+  rclcpp::Publisher<drive_interfaces::msg::DriveInfo>::SharedPtr drive_info_pub_;
+  rclcpp::TimerBase::SharedPtr connection_timer_;
+
   rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub_;
+
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     switch_controller_client_;
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr pivot_drive_client_;
@@ -204,15 +224,21 @@ private:
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr strafe_client_;
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr diff_drive_client_;
   rclcpp::Client<drive_interfaces::srv::DriveStatus>::SharedPtr set_drive_status_client_;
+
   std::shared_ptr<ParamListener> param_listener_;
 
   Params params_;
   bool sent_lock_msg_;
+
+  // corresponds to fields in DriveInfo interface
   bool locked_;
   DriveMode drive_mode_;
   double speed_;  // Linear Speed Multiplier that can be incremented
-  bool handbrake_pressed_;
-  bool hold_position_pressed_;
+  bool handbrake_;
+  bool hold_position_;
+  bool connected_;
+  bool autonomous_mode_;
+
   std::vector<ButtonHandler> button_handlers_{};
 };
 

@@ -56,6 +56,7 @@
 #include "realtime_tools/realtime_buffer.h"
 #include "realtime_tools/realtime_publisher.h"
 #include "drive_interfaces/srv/drive_status.hpp"
+#include "drive_interfaces/msg/drive_command.hpp"
 
 #include "nova_controller_common/speed_limiter.hpp"
 #include "nova_controller_common/velocity_limiter.hpp"
@@ -222,9 +223,9 @@ private:
     received_twist_msg_ptr_;
 
   // Publisher and realtime buffer for commanded TwistStamped messages
-  std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::TwistStamped>> commanded_twist_publisher_;
-  std::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::msg::TwistStamped>>
-    realtime_commanded_twist_publisher_;
+  std::shared_ptr<rclcpp::Publisher<drive_interfaces::msg::DriveCommand>> command_publisher_;
+  std::shared_ptr<realtime_tools::RealtimePublisher<drive_interfaces::msg::DriveCommand>>
+    realtime_command_publisher_;
 
   rclcpp::Service<drive_interfaces::srv::DriveStatus>::SharedPtr set_drive_status_service_;
 

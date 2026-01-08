@@ -129,7 +129,7 @@ Commands HolonomicDriveController::twist_to_commands(
 
   const double speed_multiplier = std::min({flw_speed_multiplier, frw_speed_multiplier, blw_speed_multiplier, brw_speed_multiplier});
 
-  RCLCPP_INFO(logger, "speed_multiplier = %.2f", speed_multiplier);
+  RCLCPP_DEBUG(logger, "speed_multiplier = %.2f", speed_multiplier);
 
   flw_speed *= speed_multiplier;
   frw_speed *= speed_multiplier;
@@ -154,11 +154,11 @@ Commands HolonomicDriveController::twist_to_commands(
   back_right_wheel.previous_pivot_positions.pop_front();
   back_right_wheel.previous_pivot_positions.push_back(brw_pivot_angle);
 
-  RCLCPP_INFO(
+  RCLCPP_DEBUG(
     logger, "Set drive commands: flw_speed = %.2f, frw_speed = %.2f, blw_speed = %.2f, brw_speed = %.2f", flw_speed, frw_speed, blw_speed, brw_speed);
-  RCLCPP_INFO(
+  RCLCPP_DEBUG(
     logger, "Set pivot commands: flw_pivot_angle = %.2f, frw_pivot_angle = %.2f, blw_pivot_angle = %.2f, brw_pivot_angle = %.2f", flw_pivot_angle, frw_pivot_angle, blw_pivot_angle, brw_pivot_angle);
-  RCLCPP_INFO(
+  RCLCPP_DEBUG(
     logger, "------------------------------------------------------------------------------------");
 
   return {

@@ -10,7 +10,11 @@ teleop_drive_joy:
     type: string
     default_value: "/cmd_vel"
     description: "Output Topic for Twist Commands"
-  
+  drive_info_topic:
+    type: string
+    default_value: "/drive/drive_info"
+    description: "Output Topic for DriveInfo messages (update GUI)"
+
   # Deadzone already exists as an input parameter to the joy node (teleop.launch.py)
 
   max_input_threshold:

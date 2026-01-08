@@ -134,18 +134,27 @@ holonomic_drive_controller:
     right_pivot_names: ["frp", "brp"]
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
     open_loop: false
+    speed_multiplier_exponent: 1.0
+    infinitely_rotating_pivots: false
+    #    front_left_pivot_angle_limits: [-2.356194, 2.356194]
+    #    front_right_pivot_angle_limits: [-2.356194, 2.356194]
+    #    back_left_pivot_angle_limits: [-2.356194, 2.356194]
+    #    back_right_pivot_angle_limits: [-2.356194, 2.356194]
     drive: # metres
       has_velocity_limits: true
       has_acceleration_limits: true
       max_velocity: 5.0
-      min_velocity: -1.5
-      max_acceleration: 4.0
-      min_acceleration: -10.0
+      max_acceleration: 10.0
+    #      max_velocity: 1.0
+    #      max_acceleration: 2.0
     angular: # radians
       has_velocity_limits: true
       max_velocity: 1.57079632 # PI/2 rad/s = 90 deg/s
       min_velocity: -1.57079632
+    #      max_velocity: 5.0
+    #      min_velocity: -5.0
     pivot:
       has_velocity_limits: true
       max_velocity: 3.53429174 # 2*PI * 0.5625 (defined in firmware)
       min_velocity: -3.53429174
+#   TODO: disable publish_commands

@@ -109,10 +109,10 @@ nova_drive_controller_base:
     default_value: 0.5 # Seconds
     description: "Timeout on cmd_vel command."
 
-  publish_commanded_velocities:
+  publish_commands:
     type: bool
-    default_value: false
-    description: "Publish the commanded velocities as a TwistStamped message."
+    default_value: true
+    description: "Publish commands (all commanded velocities and pivot positions)."
 
   velocity_rolling_window_size:
     type: int
