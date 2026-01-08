@@ -122,7 +122,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
 
         rosTopic.subscribe(() => {});
 
-        rosTopic.on("message", (message: any) => {
+        rosTopic.on("message", (message: any) => {          // Type used to be RosTopicInterfaces[typeof topic]
           this._updateTopicState(message);
         });
 
@@ -156,7 +156,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
 
         rosService.callService(
           request,
-          (resp: any) => {
+          (resp: unknown) => {        // Type used to be RosServiceInterface[typeof service]["response"]
             if (!resp) return;
             if (options.handleResponse) options.handleResponse(resp);
             if (options.responseToast || options.successToastMessage) {
