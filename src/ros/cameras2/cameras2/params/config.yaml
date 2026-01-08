@@ -1,8 +1,9 @@
 camera_streamer:
   ros__parameters:
     defaults:
-      width: 640
-      framerate: 10
+      mime: image/jpeg
+      width: 800
+      framerate: 30
       profiles:
         snail:
           width: 320
