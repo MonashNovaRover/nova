@@ -78,7 +78,6 @@ class ThermistorHardware(HardwareInterface):
         :param period: The time elapsed since the last update, in seconds.
         """
         self.temperature_state.value = self.last_temperature
-        self.temperature_state.populated = True
 
     def on_write(self, now: float, period: float):
         """ Called to write to hardware using values stored in command interfaces.

@@ -66,7 +66,6 @@ class GenericSensorHardware(HardwareInterface):
         :param period: The time elapsed since the last update, in seconds.
         """
         self.value_state.value = self.last_value
-        self.value_state.populated = True
 
     def on_write(self, now: float, period: float):
         """ Called to write to hardware using values stored in command interfaces.
