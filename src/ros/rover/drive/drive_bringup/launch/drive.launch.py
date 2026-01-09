@@ -88,14 +88,14 @@ def launch_setup(context, *args, **kwargs):
         ),
         Node(
             package='controller_manager',
-            executable='ros2_control_node',
-            parameters=[params, {"use_sim_time": gazebo}],
-            remappings=[('/controller_manager/robot_description', '/robot_description')],
+            executable='spawner',
+            arguments=['joint_state_broadcaster'],
         ),
         Node(
             package='controller_manager',
-            executable='spawner',
-            arguments=['joint_state_broadcaster'],
+            executable='ros2_control_node',
+            parameters=[params, {"use_sim_time": sim}],
+            remappings=[('/controller_manager/robot_description', '/robot_description')],
         ),
         GroupAction(
             condition=UnlessCondition(sim),
