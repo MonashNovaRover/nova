@@ -56,7 +56,6 @@
   },
   "devDependencies": {
     "@eslint/compat": "^2.0.0",
-    "@tailwindcss/postcss": "^4.1.18",
     "@types/file-saver": "^2.0.7",
     "@types/lodash": "^4.17.21",
     "@types/plotly.js": "^3.0.9",
@@ -73,7 +72,7 @@
     "eslint-plugin-react-refresh": "^0.4.26",
     "postcss": "^8.5.6",
     "prettier": "3.7.4",
-    "tailwindcss": "^4.1.18",
+    "tailwindcss": "^3",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"
   }

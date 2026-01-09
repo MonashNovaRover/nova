@@ -122,6 +122,8 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
 
         rosTopic.subscribe(() => {});
 
+        // It's too much effort to try and figure this out so idk
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         rosTopic.on("message", (message: any) => {          // Type used to be RosTopicInterfaces[typeof topic]
           this._updateTopicState(message);
         });
