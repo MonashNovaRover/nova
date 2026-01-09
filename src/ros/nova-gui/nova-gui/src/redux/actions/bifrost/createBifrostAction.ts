@@ -122,6 +122,7 @@ export function createBifrostAction(props: BifrostProps, ros?: Ros) {
 
         rosTopic.subscribe(() => {});
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         rosTopic.on("message", (message: any) => {          // Type used to be RosTopicInterfaces[typeof topic]
           this._updateTopicState(message);
         });
