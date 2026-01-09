@@ -9,14 +9,16 @@ from ..controller_manager.Contexts import Contexts
 class GenericSensorHardware(HardwareInterface):
 
     def __init__(self, contexts: Contexts,
-                 can_id: int = 0,
-                 interpret_data: Callable[[bytes], Any] = lambda x: int.from_bytes(x)):
-        """ Constructor, deferred until the control manager has been spun.
+                 can_message_id: int = 0,
+                 interpret_data: Callable[[bytes], Any] = lambda x: int.from_bytes(x),
+                 sensor_output: str = "value"):
+        """ Constructor for GenericSensorHardware
+        Creates state interface "name/sensor_output"
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
-        :param sensor_name: Name of the sensor
-        :param can_id: CAN ID of messages from the sensor
-        :param interpret_data: Translates CAN data into values output through the sensor_name/value state interface
+        :param can_message_id: CAN ID of messages from the sensor
+        :param interpret_data: Translates raw CAN data into sensor outputs (e.g. velocity, temperature)
+        :param sensor_output: What the sensor outputs (e.g. velocity, temperature)
         """
         super().__init__(contexts)
 
@@ -25,7 +27,8 @@ class GenericSensorHardware(HardwareInterface):
         self.last_value: Any = None
 
         self.declare_parameter("sensor_name", self.name)
-        self.declare_parameter("can_id", can_id)
+        self.declare_parameter("can_message_id", can_message_id)
+        self.declare_parameter("sensor_output", sensor_output)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
         """ Used to set up your HardwareInterface. Run once before any other class method.
@@ -38,17 +41,18 @@ class GenericSensorHardware(HardwareInterface):
         """
         # Update params
         self.sensor_name: str = self.get_parameter("sensor_name").value
-        self.can_id: int = self.get_parameter("can_id").value
+        self.can_message_id: int = self.get_parameter("can_message_id").value
+        self.sensor_output: str = self.get_parameter("sensor_output").value
 
         # Get state interface
-        self.value_state: Interface[Any] = state_interfaces[self.sensor_name + "/value"]
+        self.value_state: Interface[Any] = state_interfaces[f"{self.sensor_name}/{self.sensor_output}"]
 
         # Validate state interface configuration
         if not self.value_state:
             self.logger.warn(f"GenericSensorHardware \"{self.name}\" has no populated state interface. "
-                             f"(\"{self.sensor_name}/value\")")
+                             f"(\"{self.sensor_name}/{self.sensor_output}\")")
 
-        self.bus.add_callback(self.can_id, self.frame_callback)
+        self.bus.add_callback(self.can_message_id, self.frame_callback)
 
         return True
 
