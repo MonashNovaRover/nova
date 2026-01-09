@@ -9,9 +9,8 @@ from ..controller_manager.Contexts import Contexts
 class GenericSensorHardware(HardwareInterface):
 
     def __init__(self, contexts: Contexts,
-                 sensor_name: str = "",
                  can_id: int = 0,
-                 interpret_data: Callable[bytes, Any] = lambda x: int.from_bytes(x)):
+                 interpret_data: Callable[[bytes], Any] = lambda x: int.from_bytes(x)):
         """ Constructor, deferred until the control manager has been spun.
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
@@ -25,11 +24,7 @@ class GenericSensorHardware(HardwareInterface):
         self.interpret_data = interpret_data
         self.last_value: Any = None
 
-        # Default sensor name to the hardware interface name
-        if len(sensor_name) == 0:
-            sensor_name = self.name
-
-        self.declare_parameter("sensor_name", sensor_name)
+        self.declare_parameter("sensor_name", self.name)
         self.declare_parameter("can_id", can_id)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
