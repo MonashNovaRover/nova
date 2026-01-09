@@ -148,12 +148,14 @@ export const NovaTopBar: React.FC = () => {
               <DropdownItem
                 description="Pages for Testing"
                 href="/test"
+                key={"test"}
               >
                 Test
               </DropdownItem>
               <DropdownItem
                 description="GUI Home Page"
                 href="/"
+                key={"home"}
               >
                 Home
               </DropdownItem>
