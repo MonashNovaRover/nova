@@ -79,10 +79,15 @@ updates:
           - "prettier"
           - "postcss"
           - "autoprefixer"
-          - "tailwindcss"
           - "vite"
           - "yarn"
 
       misc:
         patterns:
           - "*"
+      
+    ignore:
+    # Upgrading to version 4 killed the GUI - BE CAREFUL
+    # As of 09/01/2026 chatgpt said that NextUI is not compatible with tailwind v4 yet
+    - dependency-name: "tailwindcss"
+      update-types: ["version-update:semver-major"]
