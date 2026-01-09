@@ -34,11 +34,16 @@ class HeaterController(Controller):
                  command_service: str = "",
                  data_topic: str = "",
                  publish_rate: int = 5):
-        """ Constructor, deferred until the control manager has been spun.
-        If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
+        """ Constructor for HeaterController
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
-        :param thermistors: List of names given to each thermistor (as specified
+        :param thermistors: List of thermistor names (as named in their hardware interfaces)
+        :param cmd_name: Name of the CMDHardware interface that controls the heater
+        :param calculate_reference_temp: given list of temperatures from thermistors, return the
+            "reference" temperature (determines if heaters need to be turned on or off)
+        :param command_service: Name of service that changes heater settings (receives KilnCommand)
+        :param data_topic: Topic that KilnData is published to regularly
+        :param publish_rate: Frequency to which KilnData is published to data_topic
         """
         super().__init__(contexts)
 
@@ -58,7 +63,6 @@ class HeaterController(Controller):
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
-        Use this method to get data from self.node, and get references to any command or state interface you need.
 
         :param command_interfaces: A collection of Interfaces used to send messages to hardware. Get any command
         interfaces you need from this, then store them in member variables.
@@ -77,11 +81,11 @@ class HeaterController(Controller):
         self.logger.debug(f"HeaterController {self.name} populated command interface {self.cmd_joint}/effort")
 
         def get_state_interface(thermistor: str):
-            new_interface: Interface[float] = state_interfaces[thermistor + "/value"]
+            new_interface: Interface[float] = state_interfaces[thermistor + "/temperature"]
             if new_interface:
-                self.logger.debug(f"HeaterController {self.name} found populated state interface {thermistor}/value")
+                self.logger.debug(f"HeaterController {self.name} found populated state interface {thermistor}/temperature")
             else:
-                self.logger.warn(f"HeaterController {self.name} found state interface {thermistor}/value unpopulated")
+                self.logger.warn(f"HeaterController {self.name} found state interface {thermistor}/temperature unpopulated")
             return new_interface
 
         self.thermistor_states = list(map(get_state_interface, self.thermistors))
@@ -91,7 +95,7 @@ class HeaterController(Controller):
 
         self.kiln_command_service = self.node.create_service(KilnCommand, self.command_service, self.on_kiln_command)
 
-        self.logger.info(f"HeaterController {self.name} started")
+        self.logger.info(f"HeaterController {self.name} configured")
 
         return True
 
@@ -145,10 +149,12 @@ if __name__ == "__main__":
                          data_topic = "/science/kiln_data") \
         .with_hardware("kiln_heater", CMDHardware, can_id = 0x051) \
         .with_hardware("kiln_thermistor", GenericSensorHardware,
-                       can_id = 0x4B1,
-                       interpret_data = lambda data: -0.0169 * int.from_bytes(data) + 80.797) \
+                       can_message_id = 0x4B1,
+                       interpret_data = lambda data: -0.0169 * int.from_bytes(data) + 80.797,
+                       sensor_output = "temperature") \
         .with_hardware("condenser_thermistor", GenericSensorHardware,
-                       can_id = 0x4A1,
-                       interpret_data = lambda data: -0.0169 * int.from_bytes(data) + 80.797) \
+                       can_message_id = 0x4A1,
+                       interpret_data = lambda data: -0.0169 * int.from_bytes(data) + 80.797,
+                       sensor_output = "temperature") \
         .with_jcan() \
         .spin()
