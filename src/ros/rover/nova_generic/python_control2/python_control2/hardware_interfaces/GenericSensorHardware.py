@@ -45,26 +45,32 @@ class GenericSensorHardware(HardwareInterface):
         self.sensor_output: str = self.get_parameter("sensor_output").value
 
         # Get state interface
-        self.value_state: Interface[Any] = state_interfaces[f"{self.sensor_name}/{self.sensor_output}"]
+        self.output_state: Interface[Any] = state_interfaces[f"{self.sensor_name}/{self.sensor_output}"]
 
         # Validate state interface configuration
-        if not self.value_state:
-            self.logger.warn(f"GenericSensorHardware \"{self.name}\" has no populated state interface. "
+        if self.output_state:
+            self.logger.debug(f"GenericSensorHardware \"{self.name}\" found populated state interface: "
                              f"(\"{self.sensor_name}/{self.sensor_output}\")")
+        else:
+            self.logger.warn(f"GenericSensorHardware \"{self.name}\" found state interface "
+                             f"\"{self.sensor_name}/{self.sensor_output}\" unpopulated")
 
         self.bus.add_callback(self.can_message_id, self.frame_callback)
+
+        self.logger.info(f"GenericSensorHardware {self.name} configured")
 
         return True
 
     def frame_callback(self, frame: jcan.Frame):
         self.last_value = self.interpret_data(frame.data)
+        self.logger.debug(f"GenericSensorHardware \"{self.name}\" received CAN message: {frame}")
 
     def on_read(self, now: float, period: float):
         """ Called to read values from hardware, and put them into stored state interfaces.
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-        self.value_state.value = self.last_value
+        self.output_state.value = self.last_value
 
     def on_write(self, now: float, period: float):
         """ Called to write to hardware using values stored in command interfaces.
