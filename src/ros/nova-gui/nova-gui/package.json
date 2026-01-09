@@ -18,7 +18,7 @@
     "@nextui-org/react": "^2.3.0",
     "@reduxjs/toolkit": "^2.11.2",
     "@types/geolib": "^2.0.23",
-    "@types/uuid": "^9.0.8",
+    "@types/uuid": "^11.0.0",
     "@uidotdev/usehooks": "^2.4.1",
     "apexcharts": "^5.3.6",
     "bootstrap-icons": "^1.13.1",
