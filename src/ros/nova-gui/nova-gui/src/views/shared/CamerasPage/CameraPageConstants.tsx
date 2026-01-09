@@ -60,15 +60,15 @@ export const allCams = [];
 const mastCams = [
   CameraSerials.MAST_DOWN,
   CameraSerials.MAST_FORWARD,
-  CameraSerials.MAST_BACKWARD,
+  CameraSerials.MAST_DOWN,
   CameraSerials.MAST_ARM_STOW,
 ];
 
 const armCams = [
   CameraSerials.ARM_END_TOP,
-  CameraSerials.ARM_END_FINGER,
+  CameraSerials.MAST_DOWN,
   CameraSerials.ARM_END_PERISCOPE,
-  CameraSerials.ARM_END_SIDE,
+  CameraSerials.MAST_DOWN,
 ];
 
 const ecCams = [

@@ -13,8 +13,6 @@ import {
   Tooltip,
 } from "@nextui-org/react";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
-import { RosTopic } from "../../../../ros/topics/rosTopic.ts";
-import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
 import { RosService } from "../../../../ros/services/rosService.ts";
@@ -22,45 +20,15 @@ import { Pause, Play, ExternalLink } from "react-feather";
 import { useRosNodes } from "../../../../utils/hooks/useRosNodes.ts";
 import { BooleanChip } from "./BooleanChip.tsx";
 import { allCams } from "../../../../views/shared/CamerasPage/CameraPageConstants.tsx";
+import {CameraStreamingButton} from "./CameraStreamingButtons.tsx";
 
 export const CameraControlPanelModal = (props: {
   showModal: boolean;
   closeModal: () => void;
   refreshAvailabilies: () => void;
 }) => {
-  const bifrost = useBifrost({ topic: RosTopic.CAMERAS });
-
-  const bifrostStarter = useBifrost({ service: RosService.START_CAMS });
-
-  const bifrostStopper = useBifrost({ service: RosService.PAUSE_CAMS });
-
   const nodes = useRosNodes();
-
   const cameras2Running = nodes.includes("/camera_streamer");
-
-  useEffect(() => {
-    bifrost.syncWithTopic();
-  }, [bifrost]);
-
-  const startStreaming = () =>
-    bifrostStarter.callService(
-      { serials: [] },
-      {
-        responseToast: true,
-        successToastMessage: "All Cameras Started Up!",
-        handleResponse: () => props.refreshAvailabilies(),
-      }
-    );
-
-  const pauseStreaming = () =>
-    bifrostStopper.callService(
-      { serials: [] },
-      {
-        responseToast: true,
-        successToastMessage: "All Cameras Paused!",
-        handleResponse: () => props.refreshAvailabilies(),
-      }
-    );
 
   return (
     <Modal
@@ -74,12 +42,8 @@ export const CameraControlPanelModal = (props: {
         <ModalBody>
           <div className="flex flex-row m-4 ml-0 gap-4 items-center justify-between">
             <div className="flex flex-row gap-4">
-              <Button size="sm" color="primary" onPress={startStreaming}>
-                <Play size="15px" fill="white" /> Start Streaming
-              </Button>
-              <Button size="sm" color="danger" onPress={pauseStreaming}>
-                <Pause size="15px" fill="white" /> Pause Streaming
-              </Button>
+              <CameraStreamingButton isStartButton={true} refreshAvailabilies={props.refreshAvailabilies} size={"sm"}/>
+              <CameraStreamingButton isStartButton={false} refreshAvailabilies={props.refreshAvailabilies} size={"sm"}/>
             </div>
             <Tooltip
               className="dark text-foreground"

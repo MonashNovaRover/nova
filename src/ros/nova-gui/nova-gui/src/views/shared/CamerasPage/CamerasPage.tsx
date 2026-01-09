@@ -6,6 +6,10 @@ import { useState } from "react";
 import { CameraControlPanelModal } from "../../../components/cameras/CameraComponent/components/CamerasControlPanelModal";
 import SerialMappedCameraComponent from "./SerialMappedCameraComponent.tsx";
 import SegmentedPicker from "../../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
+import {CameraStreamingButton} from "../../../components/cameras/CameraComponent/components/CameraStreamingButtons.tsx";
+import {
+  CamerasCircularProgress
+} from "../../../components/cameras/CameraComponent/components/CameraCircularProgress.tsx";
 import { SaveAllCamerasModal } from "../../../components/navbar/TopBar/SaveAllCamerasModal";
 import { CameraPresetDropdown } from "../../../components/cameras/CameraPresetDropdown";
 
@@ -34,20 +38,24 @@ export const CameraPage = (props: CameraPageProps) => {
             <Button
               size="md"
               color="primary"
-              className="w-28"
+              className="w-32"
               onPress={() => setAllCamsOn(true)}
             >
-              <Play size="15px" fill="white" /> Start All
+              <Play size="15px" fill="white" /> Display All
             </Button>
           ) : (
             <Button
               size="md"
               color="danger"
+              className="w-32"
               onPress={() => setAllCamsOn(false)}
             >
               <Square size="15px" fill="white" /> Stop All
             </Button>
           )}
+
+          <CameraStreamingButton isStartButton={true} refreshAvailabilies={refreshAvailabilities} size={"md"}/>
+          <CamerasCircularProgress/>
         </div>
 
         <SegmentedPicker
