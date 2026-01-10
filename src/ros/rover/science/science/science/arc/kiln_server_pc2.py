@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-<insert purpose here>
+Controls heaters in the kiln using thermistors (replaces kiln_server.py)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: TBD
+NODE: kiln_server_pc2
 TOPICS:
   - publisher: <topic> [<msg type>]
 SERVICES:
@@ -13,7 +13,7 @@ ACTIONS: None
 PACKAGE:        science
 AUTHOR(S):      Jonathan Jia
 CREATION:       09/01/2026
-EDITED:         09/01/2026
+EDITED:         10/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -138,8 +138,8 @@ class HeaterController(Controller):
 if __name__ == "__main__":
     rclpy.init()
 
-    # example node (to be replaced)
-    node = Node("heater_controller_example")
+    # TODO: replace with actual hardware/firmware configuration on rover
+    node = Node("kiln_server_pc2")
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("kiln_controller", HeaterController,
                          thermistors = ["kiln_thermistor", "condenser_thermistor"],
