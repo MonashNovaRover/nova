@@ -39,7 +39,7 @@ class TilePlacerNode(JoystickControllerNode):
     # card IDs
     # only used when card = CMD, works with QCMDs
     # 0x0C? ports can handle slightly higher current on QCMDs, 0x0D? ports are slightly weaker
-    CMD_ID_TILE_PLACER = 0x0D2
+    CMD_ID_TILE_PLACER = 0x032
     # only used when card = JONO
     JONO_ID_TILE_PLACER = 0x0A0
     # jono commands

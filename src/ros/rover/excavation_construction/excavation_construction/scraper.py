@@ -38,9 +38,9 @@ class ScraperNode(JoystickControllerNode):
     # card IDs
     CARD = Card.CMD
     # only used when card = CMD
-    CMD_ID_ARM = 0x0C1
-    CMD_ID_SCOOP = 0x0D1
-    CMD_ID_BUCKET = 0x0C2
+    CMD_ID_ARM = 0x041
+    CMD_ID_SCOOP = 0x031
+    CMD_ID_BUCKET = 0x042
     # only used when card = JONO
     JONO_ID_ARM = 0x0A0
     JONO_ID_SCOOP = 0x0A0
