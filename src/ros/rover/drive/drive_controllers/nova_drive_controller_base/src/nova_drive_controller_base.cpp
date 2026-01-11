@@ -517,18 +517,11 @@ void NovaDriveControllerBase::reset_buffers()
   hwif_wrapper_->reset_handles();
   reset_limiter_buffers();
 
-  // Fill RealtimeBuffer with NaNs so it will contain a known value
-  // but still indicate that no command has yet been sent.
+  // Reset received twist message to zeroes
   received_twist_msg_ptr_.reset();
-  std::shared_ptr<TwistStamped> empty_twist_ptr = std::make_shared<TwistStamped>();
-  empty_twist_ptr->header.stamp = get_node()->now();
-  empty_twist_ptr->twist.linear.x = std::numeric_limits<double>::quiet_NaN();
-  empty_twist_ptr->twist.linear.y = std::numeric_limits<double>::quiet_NaN();
-  empty_twist_ptr->twist.linear.z = std::numeric_limits<double>::quiet_NaN();
-  empty_twist_ptr->twist.angular.x = std::numeric_limits<double>::quiet_NaN();
-  empty_twist_ptr->twist.angular.y = std::numeric_limits<double>::quiet_NaN();
-  empty_twist_ptr->twist.angular.z = std::numeric_limits<double>::quiet_NaN();
-  received_twist_msg_ptr_.writeFromNonRT(empty_twist_ptr);
+  std::shared_ptr<TwistStamped> default_twist_ptr = std::make_shared<TwistStamped>();
+  default_twist_ptr->header.stamp = get_node()->now();
+  received_twist_msg_ptr_.writeFromNonRT(default_twist_ptr);
 }
 
 void NovaDriveControllerBase::halt()
