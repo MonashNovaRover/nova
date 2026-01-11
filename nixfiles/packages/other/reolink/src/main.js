@@ -12,7 +12,7 @@ var HOSTNAME = '10.0.1.100',
 	PORT = 80,
 	USERNAME = 'admin',
   PASSWORD = fs.readFileSync(
-    path.join(os.homedir(), 'nova', 'src', 'other', 'secrets', 'reolink-password.txt'), 'utf8'
+    path.join(os.homedir(), 'nova', 'nixfiles', 'secrets', 'reolink-password.txt'), 'utf8'
   ).trim(),
 	STOP_DELAY_MS = 200
 

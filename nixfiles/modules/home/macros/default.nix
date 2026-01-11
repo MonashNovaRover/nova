@@ -69,7 +69,7 @@ in
 
           # Application 
           code = "codium";
-          urdf-tool = "nix-shell ${cfg.nixfileDir}/home/macros/urdf-tool.nix";
+          urdf-tool = "nix-shell ${cfg.nixfileDir}/modules/home/macros/urdf-tool.nix";
 
           # Nano v Vim
           set_vim = "export EDITOR=vim";
