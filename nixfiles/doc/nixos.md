@@ -45,7 +45,7 @@ Include the [NixOS](https://nixos.org/manual/nixos/stable) module with an import
 ```nix
 {
   imports = [
-    ./path/to/repo/nixos
+    ./path/to/repo/modules/nixos
   ];
 }
 ```

@@ -17,7 +17,7 @@ let
 
   mkDeviceSystem = deviceModule: (import "${nixpkgs}/nixos/lib/eval-config.nix" {
     modules = [
-      (nixfiles + "/nixos")
+      (nixfiles + "/modules/nixos")
       deviceModule
       ({ config, ... }: {
         # Cross-compilation here is not useful, as these jobs are designed to
