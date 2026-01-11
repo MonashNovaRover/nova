@@ -57,7 +57,7 @@ Note that graphical applications will not work in NixOS's imperative containers,
 1. [Install extra-container](https://github.com/erikarvstedt/extra-container#install)
 2. Create a container
    ```
-   $ extra-container create -E 'import ./nixos/installer/container { }'
+   $ extra-container create -E 'import ./modules/nixos/installer/container { }'
    ```
 3. Start the container
    ```
@@ -91,7 +91,7 @@ container.
 
 #### Customising NixOS containers
 
-`./nixos/installer/container` can be called with the following arguments:
+`./modules/nixos/installer/container` can be called with the following arguments:
 
 - `name`: The name of the container (`nova` by default)
 - `modules`: A list of extra NixOS modules to add to the container (empty by default)
@@ -99,7 +99,7 @@ container.
 For example:
 
 ```
-$ extra-container create -E 'import ./nixos/installer/container {
+$ extra-container create -E 'import ./modules/nixos/installer/container {
     name = "nova-headless";
     modules = [{
       services.xserver.enable = false;
@@ -160,8 +160,8 @@ one after installation.
    ```nix
    {
      imports = [
-       /home/nova/nova/nixfiles/nixos
-       /home/nova/nova/nixfiles/nixos/installer/docker
+       /home/nova/nova/nixfiles/modules/nixos
+       /home/nova/nova/nixfiles/modules/nixos/installer/docker
      ];
 
      nova.substituters.nova.password = builtins.readFile ./path/to/hydra-password.txt;
@@ -186,7 +186,7 @@ To create a VM, simply build the derivation and run the result:
 
 ```
 $ nix-build '<nixpkgs/nixos>' \
-    --arg configuration ./nixos \
+    --arg configuration ./modules/nixos \
     -A vm
 ```
 
@@ -226,7 +226,7 @@ in `~/nova/Documents/VM.nix`, the VM should be built like so:
 $ nix-build '<nixpkgs/nixos>' \
     --arg configuration "{
       imports = [
-        ./nixos
+        ./modules/nixos
         ~/nova/Documents/VM.nix
       ];
     }" \

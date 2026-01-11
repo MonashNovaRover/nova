@@ -47,8 +47,6 @@ in
                 repos)))
             cfg.external)}
           chmod -R u+w ~/nova/src
-
-          ln -s ~/nova/src ~/nova/nixfiles/external/
         fi
       ''
     );
