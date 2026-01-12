@@ -5,15 +5,15 @@ Controls heaters in the kiln using temperature sensors (replaces kiln_server.py)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: kiln_server_pc2
 TOPICS:
-  - publisher: <topic> [<msg type>]
+  - publisher: /science/kiln_data [KilnData]
 SERVICES:
-	- service: <service> [<srv type>]
+	- service: /science/kiln_command [KilnCommand]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Jonathan Jia
 CREATION:       09/01/2026
-EDITED:         10/01/2026
+EDITED:         12/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -62,7 +62,7 @@ class HeaterController(Controller):
         self.last_temperatures = [0] * len(self.temp_sensors)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
-        """ Used to set up your Controller. Run once before any other class method.
+        """ Gets state/command interfaces and creates publishers, service servers and timers
 
         :param command_interfaces: A collection of Interfaces used to send messages to hardware. Get any command
         interfaces you need from this, then store them in member variables.
@@ -77,13 +77,18 @@ class HeaterController(Controller):
         self.kiln_data_publisher = self.node.create_publisher(KilnData, self.data_topic, 5)
         self.publisher_timer = self.node.create_timer(1 / self.publish_rate, self.publish_kiln_data)
 
-        self.kiln_command_service = self.node.create_service(KilnCommand, self.command_service, self.on_kiln_command)
+        self.kiln_command_service = self.node.create_service(KilnCommand, self.command_service, self.kiln_command_callback)
 
         self.logger.info(f"HeaterController {self.name} configured")
 
         return True
 
-    def on_kiln_command(self, request: KilnCommand.Request, response: KilnCommand.Response):
+    def kiln_command_callback(self, request: KilnCommand.Request, response: KilnCommand.Response):
+        """ Update heater control settings when received new KilnCommand
+
+        :param request: new settings for heater control (temperature, on or off)
+        :param response: success or fail at applying new settings
+        """
         self.logger.debug(f"HeaterController {self.name} received KilnCommand request: {request}")
 
         self.is_on = request.state
@@ -93,6 +98,8 @@ class HeaterController(Controller):
         return response
 
     def publish_kiln_data(self):
+        """ Publishes latest temperatures and status of kiln """
+
         kiln_data_msg = KilnData()
         kiln_data_msg.state = self.is_on
         kiln_data_msg.temp = self.last_temperatures
@@ -101,8 +108,8 @@ class HeaterController(Controller):
         self.logger.debug(f"HeaterController {self.name} published KilnData: {kiln_data_msg}")
 
     def on_update(self, now: float, period: float):
-        """ Called on every update. You should read values from state interfaces, and set values on command interfaces
-            here.
+        """ Update loop (called update_rate times per second)
+
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
