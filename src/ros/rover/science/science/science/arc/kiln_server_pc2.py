@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Controls heaters in the kiln using thermistors (replaces kiln_server.py)
+Controls heaters in the kiln using temperature sensors (replaces kiln_server.py)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: kiln_server_pc2
 TOPICS:
@@ -28,7 +28,7 @@ from science_interfaces.msg import KilnData
 class HeaterController(Controller):
 
     def __init__(self, contexts: Contexts,
-                 thermistors: list[str] = None,
+                 temp_sensors: list[str] = None,
                  cmd_name: str = "",
                  calculate_reference_temp: Callable[[list[float]], float] = lambda l: max(l),
                  command_service: str = "",
@@ -37,9 +37,9 @@ class HeaterController(Controller):
         """ Constructor for HeaterController
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
-        :param thermistors: List of thermistor names (as named in their hardware interfaces)
+        :param temp_sensors: List of temperature sensor names (as named in their hardware interfaces)
         :param cmd_name: Name of the CMDHardware interface that controls the heater
-        :param calculate_reference_temp: given list of temperatures from thermistors, return the
+        :param calculate_reference_temp: given list of temperatures from temp_sensors, return the
             "reference" temperature (determines if heaters need to be turned on or off)
         :param command_service: Name of service that changes heater settings (receives KilnCommand)
         :param data_topic: Topic that KilnData is published to regularly
@@ -47,10 +47,10 @@ class HeaterController(Controller):
         """
         super().__init__(contexts)
 
-        if not thermistors:
-            thermistors = [""] # mutable default value
+        if not temp_sensors:
+            temp_sensors = [""] # mutable default value
 
-        self.thermistors: list[str] = self.declare_parameter("thermistors", thermistors).value
+        self.temp_sensors: list[str] = self.declare_parameter("temp_sensors", temp_sensors).value
         self.cmd_joint: str = self.declare_parameter("cmd_name", cmd_name).value
         self.calculate_reference_temp = calculate_reference_temp
         self.command_service: str = self.declare_parameter("command_service", command_service).value
@@ -59,7 +59,7 @@ class HeaterController(Controller):
 
         self.is_on = False
         self.target_temp = 0
-        self.last_temperatures = [0] * len(thermistors)
+        self.last_temperatures = [0] * len(self.temp_sensors)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -72,7 +72,7 @@ class HeaterController(Controller):
         """
 
         self.heater_cmd = command_interfaces[self.cmd_joint + "/effort"]
-        self.thermistor_states = [state_interfaces[t + "/temperature"] for t in self.thermistors]
+        self.temp_sensor_states = [state_interfaces[t + "/temperature"] for t in self.temp_sensors]
 
         self.kiln_data_publisher = self.node.create_publisher(KilnData, self.data_topic, 5)
         self.publisher_timer = self.node.create_timer(1 / self.publish_rate, self.publish_kiln_data)
@@ -106,7 +106,7 @@ class HeaterController(Controller):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-        temperatures: list[float] = list(map(lambda s: s.value, self.thermistor_states))
+        temperatures: list[float] = list(map(lambda s: s.value, self.temp_sensor_states))
         self.last_temperatures = temperatures
 
         reference_temp = self.calculate_reference_temp(temperatures)
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     node = Node("kiln_server_pc2")
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("kiln_controller", HeaterController,
-                         thermistors = ["kiln_thermistor", "condenser_thermistor"],
+                         temp_sensors = ["kiln_thermistor", "condenser_thermistor"],
                          cmd_name = "kiln_heater",
                          calculate_reference_temp = lambda l: l[0], # use kiln_thermistor temperature as the current/reference temp
                          command_service = "/science/kiln_command",
