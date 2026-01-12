@@ -1,10 +1,11 @@
 # teleop.launch.py
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction, LogInfo
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
+from launch.conditions import IfCondition, UnlessCondition
 
 
 def launch_setup(context, *args, **kwargs):
@@ -17,25 +18,52 @@ def launch_setup(context, *args, **kwargs):
     teleop_params = LaunchConfiguration('teleop_params')
     log_inputs = LaunchConfiguration('log_inputs')
     log_level = LaunchConfiguration('log_level').perform(context)
+    use_joysticks = LaunchConfiguration('joystick')
+    comp = LaunchConfiguration('comp')
+
+    input_param_file = f"{comp}_{"joysticks.config.yaml" if use_joysticks else "game_controller.config.yaml"}"
+    input_params = PathJoinSubstitution([teleop_science_dir, 'params', input_param_file]),
 
     return [
-        Node(
-            package='science',
-            executable='analysis_arm.py',
-            output='screen',
-            emulate_tty=True,
-        ),
-        Node(
-            package='science',
-            executable='control_test.py',
-            output='screen',
-            emulate_tty=True,
-        ),
+        LogInfo(msg=['Using teleop_science := ', teleop_science_dir]),
+        LogInfo(msg=['Using input parameters := ', input_params]),
+
         # Automatically run joy alongside teleop
         Node(
+            condition=UnlessCondition(use_joysticks),
             package='joy',
             executable='game_controller_node',  # or joy_node
             output="screen"
+        ),
+
+        GroupAction(
+            condition=IfCondition(use_joysticks),
+            actions=[
+                Node(
+                    name="joy_left",
+                    package='joy',
+                    executable='joy_node',
+                    output="screen",
+                    parameters=[
+                        {"device_id": 0, },
+                    ],
+                    remappings=[
+                        ("/joy", "/joy_left")
+                    ],
+                ),
+                Node(
+                    name="joy_right",
+                    package='joy',
+                    executable='joy_node',
+                    output="screen",
+                    parameters=[
+                        {"device_id": 1, },
+                    ],
+                    remappings=[
+                        ("/joy", "/joy_right")
+                    ],
+                ),
+            ],
         ),
 
         # Runs teleop_node with the given parameter files
@@ -50,6 +78,7 @@ def launch_setup(context, *args, **kwargs):
             # You can add multiple parameter files here:
             parameters=[
                 teleop_params,
+                input_params,
                 {'log_inputs': ParameterValue(log_inputs, value_type=bool)}
             ],
 
@@ -84,8 +113,18 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='teleop_params',
-            default_value=PathJoinSubstitution([teleop_science_dir, 'params', 'teleop.yaml']),
+            default_value=PathJoinSubstitution([teleop_science_dir, 'params', 'arc_teleop.yaml']),
             description='The main parameter file to use for the teleop_node',
+        ),
+        DeclareLaunchArgument(
+            name='joystick',
+            default_value="True",
+            description='Whether to use joystick inputs or game controller joy source',
+        ),
+        DeclareLaunchArgument(
+            name='comp',
+            default_value="arc",
+            description='What comp we are launching teleop for, options are "arc" or "urc"',
         ),
         DeclareLaunchArgument(
             name='log_inputs',
