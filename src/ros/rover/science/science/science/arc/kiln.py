@@ -138,7 +138,7 @@ if __name__ == "__main__":
                          calculate_reference_temp = lambda l: l[0], # use kiln_sensor temperature as the current/reference temp
                          command_service = "/science/kiln_command",
                          data_topic = "/science/kiln_data") \
-        .with_hardware("heater", CMDHardware, can_id = 0x031) \
+        .with_hardware("heater", CMDHardware, can_id = 0x07) \
         .with_hardware("kiln_sensor", GenericSensorHardware,
                        can_message_id = 0x4B1,
                        interpret_data = lambda data: round(0.02 * int.from_bytes(data) - 273.15),

@@ -27,7 +27,6 @@ class GenericSensorHardware(HardwareInterface):
         self.bus = contexts[jcan.Bus]
         self.interpret_data = interpret_data
 
-        self.sensor_name: str = self.declare_parameter("sensor_name", self.name).value
         self.can_message_id: int = self.declare_parameter("can_message_id", can_message_id).value
         self.sensor_output: str = self.declare_parameter("sensor_output", sensor_output).value
         self.last_value: Any = self.declare_parameter("initial_value", initial_value).value
@@ -43,15 +42,15 @@ class GenericSensorHardware(HardwareInterface):
         """
 
         # Get state interface
-        self.output_state: Interface[Any] = state_interfaces[f"{self.sensor_name}/{self.sensor_output}"]
+        self.output_state: Interface[Any] = state_interfaces[f"{self.name}/{self.sensor_output}"]
 
         # Validate state interface configuration
         if self.output_state:
             self.logger.debug(f"GenericSensorHardware \"{self.name}\" found populated state interface: "
-                             f"(\"{self.sensor_name}/{self.sensor_output}\")")
+                             f"(\"{self.name}/{self.sensor_output}\")")
         else:
             self.logger.warn(f"GenericSensorHardware \"{self.name}\" found state interface "
-                             f"\"{self.sensor_name}/{self.sensor_output}\" unpopulated")
+                             f"\"{self.name}/{self.sensor_output}\" unpopulated")
 
         self.bus.add_callback(self.can_message_id, self.frame_callback)
 
