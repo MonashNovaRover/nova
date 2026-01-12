@@ -78,17 +78,7 @@ class HeaterController(Controller):
         self.publish_rate: int = self.get_parameter("publish_rate").value
 
         self.heater_cmd = command_interfaces[self.cmd_joint + "/effort"]
-        self.logger.debug(f"HeaterController {self.name} populated command interface {self.cmd_joint}/effort")
-
-        def get_state_interface(thermistor: str):
-            new_interface: Interface[float] = state_interfaces[thermistor + "/temperature"]
-            if new_interface:
-                self.logger.debug(f"HeaterController {self.name} found populated state interface {thermistor}/temperature")
-            else:
-                self.logger.warn(f"HeaterController {self.name} found state interface {thermistor}/temperature unpopulated")
-            return new_interface
-
-        self.thermistor_states = list(map(get_state_interface, self.thermistors))
+        self.thermistor_states = [state_interfaces[t + "/temperature"] for t in self.thermistors]
 
         self.kiln_data_publisher = self.node.create_publisher(KilnData, self.data_topic, 5)
         self.publisher_timer = self.node.create_timer(1 / self.publish_rate, self.publish_kiln_data)
