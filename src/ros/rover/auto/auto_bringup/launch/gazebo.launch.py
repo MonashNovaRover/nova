@@ -30,6 +30,8 @@ def launch_setup(context, *args, **kwargs):
 
     angle = LaunchConfiguration('angle')
     camera = LaunchConfiguration('camera')
+    hitl_camera = LaunchConfiguration('hitl_camera')
+    hitl_camera_bool = hitl_camera.perform(context).lower() == 'true' # Checking if camera is in HILT mode
     gz_params = LaunchConfiguration('gz_params')
     gz_qos_params = LaunchConfiguration('gz_qos_params')
     controller_params = LaunchConfiguration('controller_params')
@@ -60,11 +62,11 @@ def launch_setup(context, *args, **kwargs):
         IncludeLaunchDescription(
             condition=IfCondition(camera),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
-            launch_arguments={'gazebo': 'True'}.items(),
+            launch_arguments={'gazebo': str(not hitl_camera_bool)}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'angle': angle, 'camera': camera}.items(),
+            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'angle': angle, 'camera': camera, 'hitl_camera': hitl_camera}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
@@ -146,6 +148,11 @@ def generate_launch_description():
             name='world',
             default_value=PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf']),
             description='Full path to world model file to load',
+        ),
+        DeclareLaunchArgument(
+            name='hitl_camera',
+            default_value='false',
+            description='Enable HITL camera (use real camera instead of simulated one)',
         ),
         DeclareLaunchArgument(name='x', default_value='-3.0', description='x_pose'),
         DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
