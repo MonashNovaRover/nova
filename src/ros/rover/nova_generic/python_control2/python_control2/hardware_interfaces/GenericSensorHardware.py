@@ -11,7 +11,8 @@ class GenericSensorHardware(HardwareInterface):
     def __init__(self, contexts: Contexts,
                  can_message_id: int = 0,
                  interpret_data: Callable[[bytes], Any] = lambda x: int.from_bytes(x),
-                 sensor_output: str = "value"):
+                 sensor_output: str = "value",
+                 initial_value: Any = 0):
         """ Constructor for GenericSensorHardware
         Creates state interface "name/sensor_output"
 
@@ -19,16 +20,17 @@ class GenericSensorHardware(HardwareInterface):
         :param can_message_id: CAN ID of messages from the sensor
         :param interpret_data: Translates raw CAN data into sensor outputs (e.g. velocity, temperature)
         :param sensor_output: What the sensor outputs (e.g. velocity, temperature)
+        :param initial_value: Value output before receiving first CAN messages
         """
         super().__init__(contexts)
 
         self.bus = contexts[jcan.Bus]
         self.interpret_data = interpret_data
-        self.last_value: Any = None
 
-        self.declare_parameter("sensor_name", self.name)
-        self.declare_parameter("can_message_id", can_message_id)
-        self.declare_parameter("sensor_output", sensor_output)
+        self.sensor_name: str = self.declare_parameter("sensor_name", self.name).value
+        self.can_message_id: int = self.declare_parameter("can_message_id", can_message_id).value
+        self.sensor_output: str = self.declare_parameter("sensor_output", sensor_output).value
+        self.last_value: Any = self.declare_parameter("initial_value", initial_value).value
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
         """ Used to set up your HardwareInterface. Run once before any other class method.
@@ -39,10 +41,6 @@ class GenericSensorHardware(HardwareInterface):
         interfaces you need from this, then store them in member variables.
         :returns: None or True if configured successfully. False otherwise.
         """
-        # Update params
-        self.sensor_name: str = self.get_parameter("sensor_name").value
-        self.can_message_id: int = self.get_parameter("can_message_id").value
-        self.sensor_output: str = self.get_parameter("sensor_output").value
 
         # Get state interface
         self.output_state: Interface[Any] = state_interfaces[f"{self.sensor_name}/{self.sensor_output}"]
