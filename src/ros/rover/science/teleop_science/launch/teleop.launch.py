@@ -19,9 +19,14 @@ def launch_setup(context, *args, **kwargs):
     log_inputs = LaunchConfiguration('log_inputs')
     log_level = LaunchConfiguration('log_level').perform(context)
     use_joysticks = LaunchConfiguration('joystick')
-    comp = LaunchConfiguration('comp')
+    comp = LaunchConfiguration('comp').perform(context)
 
-    input_param_file = f"{comp}_{"joysticks.config.yaml" if use_joysticks else "game_controller.config.yaml"}"
+    input_param_file = PythonExpression([
+        comp,
+        " + ('_joysticks.config.yaml' if ",
+        use_joysticks,
+        " == 'true' else '_game_controller.config.yaml')"
+    ])
     input_params = PathJoinSubstitution([teleop_science_dir, 'params', input_param_file]),
 
     return [
