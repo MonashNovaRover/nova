@@ -29,7 +29,7 @@ class HeaterController(Controller):
 
     def __init__(self, contexts: Contexts,
                  temp_sensors: list[str] = None,
-                 cmd_name: str = "",
+                 heater: str = "",
                  calculate_reference_temp: Callable[[list[float]], float] = lambda l: max(l),
                  command_service: str = "",
                  data_topic: str = "",
@@ -38,9 +38,9 @@ class HeaterController(Controller):
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
         :param temp_sensors: List of temperature sensor names (as named in their hardware interfaces)
-        :param cmd_name: Name of the CMDHardware interface that controls the heater
+        :param heater: Name of the heater (uses "heater/effort" command interface)
         :param calculate_reference_temp: given list of temperatures from temp_sensors, return the
-            "reference" temperature (determines if heaters need to be turned on or off)
+            "reference" temperature (determines if heater needs to be turned on or off)
         :param command_service: Name of service that changes heater settings (receives KilnCommand)
         :param data_topic: Topic that KilnData is published to regularly
         :param publish_rate: Frequency to which KilnData is published to data_topic
@@ -51,7 +51,7 @@ class HeaterController(Controller):
             temp_sensors = [""] # mutable default value
 
         self.temp_sensors: list[str] = self.declare_parameter("temp_sensors", temp_sensors).value
-        self.cmd_joint: str = self.declare_parameter("cmd_name", cmd_name).value
+        self.heater: str = self.declare_parameter("heater", heater).value
         self.calculate_reference_temp = calculate_reference_temp
         self.command_service: str = self.declare_parameter("command_service", command_service).value
         self.data_topic: str = self.declare_parameter("data_topic", data_topic).value
@@ -71,7 +71,7 @@ class HeaterController(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
 
-        self.heater_cmd = command_interfaces[self.cmd_joint + "/effort"]
+        self.heater_cmd = command_interfaces[self.heater + "/effort"]
         self.temp_sensor_states = [state_interfaces[t + "/temperature"] for t in self.temp_sensors]
 
         self.kiln_data_publisher = self.node.create_publisher(KilnData, self.data_topic, 5)
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("kiln_controller", HeaterController,
                          temp_sensors = ["kiln_thermistor", "condenser_thermistor"],
-                         cmd_name = "kiln_heater",
+                         heater = "kiln_heater",
                          calculate_reference_temp = lambda l: l[0], # use kiln_thermistor temperature as the current/reference temp
                          command_service = "/science/kiln_command",
                          data_topic = "/science/kiln_data") \
