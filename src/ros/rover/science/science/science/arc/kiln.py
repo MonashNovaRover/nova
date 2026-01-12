@@ -102,7 +102,7 @@ class HeaterController(Controller):
 
         kiln_data_msg = KilnData()
         kiln_data_msg.state = self.is_on
-        kiln_data_msg.temp = self.last_temperatures
+        kiln_data_msg.temp = [round(t) for t in self.last_temperatures]
         self.kiln_data_publisher.publish(kiln_data_msg)
 
         self.logger.debug(f"HeaterController {self.name} published KilnData: {kiln_data_msg}")
@@ -118,7 +118,7 @@ class HeaterController(Controller):
 
         reference_temp = self.calculate_reference_temp(temperatures)
 
-        if self.is_on and reference_temp <= self.target_temp:
+        if self.is_on and reference_temp < self.target_temp:
             self.heater_cmd.value = 1.0
         else:
             self.heater_cmd.value = 0.0
@@ -141,11 +141,11 @@ if __name__ == "__main__":
         .with_hardware("heater", CMDHardware, can_id = 0x07) \
         .with_hardware("kiln_sensor", GenericSensorHardware,
                        can_message_id = 0x4B1,
-                       interpret_data = lambda data: round(0.02 * int.from_bytes(data) - 273.15),
+                       interpret_data = lambda data: 0.02 * int.from_bytes(data) - 273.15,
                        sensor_output = "temperature") \
         .with_hardware("condenser_sensor", GenericSensorHardware,
                        can_message_id = 0x4A1,
-                       interpret_data = lambda data: round(0.02 * int.from_bytes(data) - 273.15),
+                       interpret_data = lambda data: 0.02 * int.from_bytes(data) - 273.15,
                        sensor_output = "temperature") \
         .with_jcan() \
         .spin()
