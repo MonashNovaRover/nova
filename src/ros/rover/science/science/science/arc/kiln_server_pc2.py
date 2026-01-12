@@ -50,12 +50,12 @@ class HeaterController(Controller):
         if not thermistors:
             thermistors = [""] # mutable default value
 
-        self.declare_parameter("thermistors", thermistors)
-        self.declare_parameter("cmd_name", cmd_name)
+        self.thermistors: list[str] = self.declare_parameter("thermistors", thermistors).value
+        self.cmd_joint: str = self.declare_parameter("cmd_name", cmd_name).value
         self.calculate_reference_temp = calculate_reference_temp
-        self.declare_parameter("command_service", command_service)
-        self.declare_parameter("data_topic", data_topic)
-        self.declare_parameter("publish_rate", publish_rate)
+        self.command_service: str = self.declare_parameter("command_service", command_service).value
+        self.data_topic: str = self.declare_parameter("data_topic", data_topic).value
+        self.publish_rate: int =  self.declare_parameter("publish_rate", publish_rate).value
 
         self.is_on = False
         self.target_temp = 0
@@ -70,12 +70,6 @@ class HeaterController(Controller):
         interfaces you need from this, then store them in member variables.
         :returns: None or True if configured successfully. False otherwise.
         """
-
-        self.thermistors: list[str] = self.get_parameter("thermistors").value
-        self.cmd_joint: str = self.get_parameter("cmd_name").value
-        self.command_service: str = self.get_parameter("command_service").value
-        self.data_topic: str = self.get_parameter("data_topic").value
-        self.publish_rate: int = self.get_parameter("publish_rate").value
 
         self.heater_cmd = command_interfaces[self.cmd_joint + "/effort"]
         self.thermistor_states = [state_interfaces[t + "/temperature"] for t in self.thermistors]
