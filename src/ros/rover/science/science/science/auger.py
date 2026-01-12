@@ -44,12 +44,6 @@ class AugerController(Controller):
 
         self.drill_direction = Direction.POSITIVE
 
-        # Do any setup logic here, save any contexts you want reference to in the future.
-        # Save Input references here
-        self.active_button_name = self.declare_parameter("active_button", f"{self.name}_active").value
-        self.inactive_button_pool_names = self.declare_parameter("inactive_button_pool", []).value
-        self.active = self.declare_parameter("start_active", True)
-
         # Get inputs
         # Actuation axis
         self.actuation_axis_name = self.declare_parameter("actuation_axis", "auger_actuation").value
@@ -65,8 +59,8 @@ class AugerController(Controller):
 
         self.drill_button = inputs.get_button(self.drill_button_name)
         self.speed_axis = inputs.get_axis(self.speed_axis_name)
-        inputs.get_event(f"{self.drill_clockwise_button_name}/down").add_callback(self.update_drill_direction(Direction.POSITIVE))
-        inputs.get_event(f"{self.drill_anticlockwise_button_name}/down").add_callback(self.update_drill_direction(Direction.NEGATIVE))
+        inputs.get_button(self.drill_clockwise_button_name).add_callback(self.update_drill_direction(Direction.POSITIVE))
+        inputs.get_button(self.drill_anticlockwise_button_name).add_callback(self.update_drill_direction(Direction.NEGATIVE))
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.

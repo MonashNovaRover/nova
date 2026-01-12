@@ -2,6 +2,7 @@ from .controller_manager.Interface import Interface, InterfaceCollection
 from .controllers.Controller import Controller
 from .hardware_interfaces.HardwareInterface import HardwareInterface
 from .hardware_interfaces.Direction import Direction
+from .controller_manager.Activation import Activation
 from .controller_manager.ControllerManagerBuilder import ControllerManagerBuilder
 from .controller_manager.ControllerManager import ControllerManager
 from .controller_manager.Contexts import Contexts
