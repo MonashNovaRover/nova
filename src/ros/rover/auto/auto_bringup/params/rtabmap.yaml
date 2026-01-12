@@ -7,7 +7,7 @@ rtabmap_slam:
     subscribe_rgb: False
     subscribe_depth: False
     subscribe_rgbd: True
-    rgbd_cameras: 2
+    rgbd_cameras: 1
     subscribe_odom_info: False
     approx_sync: True
     odom_frame_id: odom
@@ -31,7 +31,7 @@ rtabmap_odom:
     publish_tf: False
     publish_null_when_lost: False
     subscribe_rgbd: True
-    rgbd_cameras: 2
+    rgbd_cameras: 1
 
 oak_rgbd_sync:
   ros__parameters:
