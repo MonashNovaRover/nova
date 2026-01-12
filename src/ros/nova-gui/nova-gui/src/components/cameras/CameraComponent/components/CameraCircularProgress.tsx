@@ -3,7 +3,6 @@ import {RootState} from "../../../../redux/RootState.ts";
 import {CircularProgress} from "@nextui-org/react";
 import {min} from "lodash";
 
-
 export const CamerasCircularProgress = () => {
   const onlineCameras = useSelector(
     (state: RootState) => state.camerasStore.cameras
@@ -14,6 +13,8 @@ export const CamerasCircularProgress = () => {
   const cameraStreamerMap = useSelector(
     (state: RootState) => state.cameraStreamerState.cameras
   );
+
+
 
   const streamingCameras = onlineCameraSerials.filter(v => !!cameraStreamerMap[v])
 

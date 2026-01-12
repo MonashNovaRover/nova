@@ -73,8 +73,9 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
   const onlineCameras = useSelector(
     (state: RootState) => state.camerasStore.cameras
   );
-
   const onlineCameraSerials = onlineCameras.map((cam) => cam.serial);
+
+  console.log(onlineCameraSerials)
 
   const cameras = Array.from(new Set([...onlineCameraSerials, ...allCams]));
 
