@@ -49,8 +49,7 @@ ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
         science/arc/arc_spinny_part.py
         science/arc/arc_sweeper_servo.py
-        science/arc/kiln_server.py
-        science/arc/kiln_server_pc2.py
+        science/arc/kiln.py
         science/urc/hydraprobe_trigger_node.py
         science/urc/urc_bme_sensor.py
         science/urc/urc_cache.py

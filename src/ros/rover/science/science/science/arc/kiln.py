@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Controls heaters in the kiln using temperature sensors (replaces kiln_server.py)
+Controls heaters in the kiln using temperature sensors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: kiln_server_pc2
 TOPICS:
-  - publisher: /science/kiln_data [KilnData]
+    - publisher: /science/kiln_data [KilnData]
 SERVICES:
 	- service: /science/kiln_command [KilnCommand]
 ACTIONS: None
@@ -130,20 +130,20 @@ if __name__ == "__main__":
     rclpy.init()
 
     # TODO: replace with actual hardware/firmware configuration on rover
-    node = Node("kiln_server_pc2")
+    node = Node("kiln")
     PythonControl(node, update_rate=5, can_bus="can1") \
-        .with_controller("kiln_controller", HeaterController,
-                         temp_sensors = ["kiln_thermistor", "condenser_thermistor"],
-                         heater = "kiln_heater",
-                         calculate_reference_temp = lambda l: l[0], # use kiln_thermistor temperature as the current/reference temp
+        .with_controller("controller", HeaterController,
+                         temp_sensors = ["kiln_sensor", "condenser_sensor"],
+                         heater = "heater",
+                         calculate_reference_temp = lambda l: l[0], # use kiln_sensor temperature as the current/reference temp
                          command_service = "/science/kiln_command",
                          data_topic = "/science/kiln_data") \
-        .with_hardware("kiln_heater", CMDHardware, can_id = 0x031) \
-        .with_hardware("kiln_thermistor", GenericSensorHardware,
+        .with_hardware("heater", CMDHardware, can_id = 0x031) \
+        .with_hardware("kiln_sensor", GenericSensorHardware,
                        can_message_id = 0x4B1,
                        interpret_data = lambda data: round(0.02 * int.from_bytes(data) - 273.15),
                        sensor_output = "temperature") \
-        .with_hardware("condenser_thermistor", GenericSensorHardware,
+        .with_hardware("condenser_sensor", GenericSensorHardware,
                        can_message_id = 0x4A1,
                        interpret_data = lambda data: round(0.02 * int.from_bytes(data) - 273.15),
                        sensor_output = "temperature") \
