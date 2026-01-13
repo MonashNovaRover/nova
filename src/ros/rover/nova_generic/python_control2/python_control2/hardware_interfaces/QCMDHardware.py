@@ -1,7 +1,7 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Hardware interface for Quad CAN Motor Drivers (QCMD).
-CMDs are used primarily for motors in the science
+QCMDs are used primarily for motors in the science
 and EC payloads.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
