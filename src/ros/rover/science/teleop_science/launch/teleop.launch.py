@@ -18,20 +18,18 @@ def launch_setup(context, *args, **kwargs):
     teleop_params = LaunchConfiguration('teleop_params')
     log_inputs = LaunchConfiguration('log_inputs')
     log_level = LaunchConfiguration('log_level').perform(context)
-    use_joysticks = LaunchConfiguration('joystick')
-    comp = LaunchConfiguration('comp').perform(context)
+    use_joysticks = LaunchConfiguration('joystick').perform(context)
+    comp = LaunchConfiguration('comp')
 
     input_param_file = PythonExpression([
-        comp,
-        " + ('_joysticks.config.yaml' if ",
-        use_joysticks,
-        " == 'true' else '_game_controller.config.yaml')"
+        '"joysticks.config.yaml" if "', use_joysticks, '".lower() == "true" else "game_controller.config.yaml"'
     ])
-    input_params = PathJoinSubstitution([teleop_science_dir, 'params', input_param_file]),
+    input_params = PathJoinSubstitution([teleop_science_dir, 'params', comp, input_param_file])
 
     return [
         LogInfo(msg=['Using teleop_science := ', teleop_science_dir]),
-        LogInfo(msg=['Using input parameters := ', input_params]),
+        LogInfo(msg=['Using comp := ', comp]),
+        LogInfo(msg=['Using input parameters := ', input_params.perform(context)]),
 
         # Automatically run joy alongside teleop
         Node(
@@ -118,7 +116,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='teleop_params',
-            default_value=PathJoinSubstitution([teleop_science_dir, 'params', 'arc_teleop.yaml']),
+            default_value=PathJoinSubstitution([teleop_science_dir, 'params', 'arc/teleop.yaml']),
             description='The main parameter file to use for the teleop_node',
         ),
         DeclareLaunchArgument(
