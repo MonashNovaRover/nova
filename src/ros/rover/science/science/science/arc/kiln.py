@@ -29,7 +29,7 @@ class HeaterController(Controller):
 
     def __init__(self, contexts: Contexts,
                  temp_sensors: list[str] = None,
-                 heater: str = "",
+                 heaters: list[str] = None,
                  calculate_reference_temp: Callable[[list[float]], float] = lambda l: max(l),
                  command_service: str = "",
                  data_topic: str = "",
@@ -38,7 +38,7 @@ class HeaterController(Controller):
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
         :param temp_sensors: List of temperature sensor names (as named in their hardware interfaces)
-        :param heater: Name of the heater (uses "heater/effort" command interface)
+        :param heaters: List of heater names (uses "heater_name/effort" command interfaces)
         :param calculate_reference_temp: given list of temperatures from temp_sensors, return the
             "reference" temperature (determines if heater needs to be turned on or off)
         :param command_service: Name of service that changes heater settings (receives KilnCommand)
@@ -47,11 +47,14 @@ class HeaterController(Controller):
         """
         super().__init__(contexts)
 
+        # mutable default values
         if not temp_sensors:
-            temp_sensors = [""] # mutable default value
+            temp_sensors = [""]
+        if not heaters:
+            heaters = [""]
 
         self.temp_sensors: list[str] = self.declare_parameter("temp_sensors", temp_sensors).value
-        self.heater: str = self.declare_parameter("heater", heater).value
+        self.heaters: list[str] = self.declare_parameter("heater", heaters).value
         self.calculate_reference_temp = calculate_reference_temp
         self.command_service: str = self.declare_parameter("command_service", command_service).value
         self.data_topic: str = self.declare_parameter("data_topic", data_topic).value
@@ -71,7 +74,7 @@ class HeaterController(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
 
-        self.heater_cmd = command_interfaces[self.heater + "/effort"]
+        self.heater_cmds = [command_interfaces[h + "/effort"] for h in self.heaters]
         self.temp_sensor_states = [state_interfaces[t + "/temperature"] for t in self.temp_sensors]
 
         self.kiln_data_publisher = self.node.create_publisher(KilnData, self.data_topic, 5)
@@ -119,12 +122,15 @@ class HeaterController(Controller):
         reference_temp = self.calculate_reference_temp(temperatures)
 
         if self.is_on and reference_temp < self.target_temp:
-            self.heater_cmd.value = 1.0
+            heater_effort = 1.0
         else:
-            self.heater_cmd.value = 0.0
+            heater_effort = 0.0
+        
+        for heater_cmd in self.heater_cmds:
+            heater_cmd.value = heater_effort
 
         self.logger.debug(f"HeaterController {self.name} updated: "
-                          f"{temperatures} temperatures -> {self.heater_cmd.value} heater level")
+                          f"{temperatures} temperatures -> {heater_effort} heater effort")
 
 if __name__ == "__main__":
     rclpy.init()
@@ -134,11 +140,12 @@ if __name__ == "__main__":
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("controller", HeaterController,
                          temp_sensors = ["kiln_sensor", "condenser_sensor"],
-                         heater = "heater",
+                         heaters = ["left_heater", "right_heater"],
                          calculate_reference_temp = lambda l: l[0], # use kiln_sensor temperature as the current/reference temp
                          command_service = "/science/kiln_command",
                          data_topic = "/science/kiln_data") \
-        .with_hardware("heater", CMDHardware, can_id = 0x07) \
+        .with_hardware("left_heater", CMDHardware, can_id = 0x07) \
+        .with_hardware("right_heater", CMDHardware, can_id = 0x08) \
         .with_hardware("kiln_sensor", GenericSensorHardware,
                        can_message_id = 0x4B1,
                        interpret_data = lambda data: 0.02 * int.from_bytes(data) - 273.15,
