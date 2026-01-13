@@ -3,7 +3,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Controls heaters in the kiln using temperature sensors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: kiln_server_pc2
+NODE: kiln
 TOPICS:
     - publisher: /science/kiln_data [KilnData]
 SERVICES:
