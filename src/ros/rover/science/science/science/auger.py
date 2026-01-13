@@ -15,7 +15,7 @@ EDITED:         13/01/26
 import rclpy
 from rclpy.node import Node
 from typing import Optional
-from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, Direction
+from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, Direction, Activation
 from python_control2.hardware_interfaces import QCMDHardware
 from teleop_python_utils import Inputs
 
@@ -35,6 +35,7 @@ class AugerController(Controller):
         self.logger.info(f"AugerController -- I have been __init__ialized")
 
         self.drill_direction = Direction.POSITIVE
+        self.active = contexts[Activation]
 
         # Get inputs
         # Actuation axis
@@ -75,6 +76,10 @@ class AugerController(Controller):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
+        if not self.active:
+            self.drill_cmd.value = 0
+            self.actuation_cmd.value = 0
+
         # Update Command Interfaces
         # Update drill speed
         self.drill_cmd.value = self.drill_button.value * self.speed_axis.value * self.drill_direction.value
@@ -101,5 +106,6 @@ if __name__ == "__main__":
         .with_hardware("actuation", QCMDHardware, can_id=0xC2, max_effort=1) \
         .with_hardware("drill", QCMDHardware, can_id=0xC1, max_effort=1) \
         .with_teleop(inputs) \
+        .with_activation_buttons(start_active=True, active_button_name="select_auger", inactive_button_pool_names=["select_cbeam"]) \
         .with_jcan() \
         .spin()

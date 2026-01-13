@@ -190,7 +190,8 @@ class ControllerManagerBuilder:
         inactive_button_pool = [inputs.get_button(name) for name in inactive_button_pool_names]
 
         # Create Activation object and add to cm context.
-        self._cm.contexts[Activation] = Activation(active_button, inactive_button_pool, start_active)
+        self._cm.contexts[Activation] = Activation(active_button, inactive_button_pool, self._cm.node, start_active)
+        return self
 
 
     def spin(self, default_update_rate: float=20, auto_run_rclpy: bool=True) -> None:
