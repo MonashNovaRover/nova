@@ -1,27 +1,22 @@
 #!/usr/bin/env python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-<insert purpose here>
+Controller for the science Auger which actuates up
+and down and drills.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: AugerController
-TOPICS:
-  - publisher: <topic> [<msg type>]
-SERVICES:
-	- service: <service> [<srv type>]
-ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
-AUTHOR(S):      <insert your name>
-CREATION:       <current date>
-EDITED:         <current date>
+AUTHOR(S):      Felicity Matthews
+CREATION:       13/01/26
+EDITED:         13/01/26
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
 from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, Direction
-
-from python_control2.hardware_interfaces import CMDHardware
+from python_control2.hardware_interfaces import QCMDHardware
 from teleop_python_utils import Inputs
 
 
@@ -29,9 +24,6 @@ class AugerController(Controller):
     # Command interfaces
     actuation_cmd: Interface
     drill_cmd: Interface
-
-    # State interfaces
-    # state: Interface
 
     def __init__(self, contexts: Contexts):
         """ Constructor, deferred until the control manager has been spun.
@@ -85,7 +77,7 @@ class AugerController(Controller):
         """
         # Update Command Interfaces
         # Update drill speed
-        self.drill_cmd.value = self.drill_button.value * self.speed_axis.value * self.drill_direction
+        self.drill_cmd.value = self.drill_button.value * self.speed_axis.value * self.drill_direction.value
 
         # Update actuation
         self.actuation_cmd.value = self.actuation_axis.value
@@ -106,8 +98,8 @@ if __name__ == "__main__":
 
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("controller", AugerController) \
-        .with_hardware("actuation", CMDHardware, can_id=0x0C2, max_effort=0.75) \
-        .with_hardware("drill", CMDHardware, can_id=0x0C1, max_effort=0.6) \
+        .with_hardware("actuation", QCMDHardware, can_id=0xC2, max_effort=1) \
+        .with_hardware("drill", QCMDHardware, can_id=0xC1, max_effort=1) \
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()

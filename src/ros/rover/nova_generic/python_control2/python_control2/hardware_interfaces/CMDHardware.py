@@ -1,3 +1,16 @@
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Hardware interface for CAN Motor Drivers (CMD).
+CMDs are used primarily for brushed motors on the
+old arm.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:        python_control2
+AUTHOR(S):      Bailey Chessum
+CREATION:       13/01/25
+EDITED:         13/01/25
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
+
 from typing import List
 
 import jcan
@@ -69,7 +82,6 @@ class CMDHardware(HardwareInterface):
     def __init__(self, contexts: Contexts,
                  joint: str="",
                  can_id: int=0,
-                 reverse: bool=False,
                  max_effort: float=1.0, max_effort_can: int=0x7FFF,
                  max_velocity: float=0.0, max_velocity_can: int=0x7FFF):
         """ Constructor, deferred until the control manager has been spun.
@@ -84,8 +96,6 @@ class CMDHardware(HardwareInterface):
         # Default joint name to the hardware interface name
         if len(joint) == 0:
             joint = self.name
-
-        self.reverse = 1 if self.declare_parameter("reverse", reverse).value else -1
 
         self.declare_parameter("joint", joint)
         self.declare_parameter("can_id", can_id)
@@ -154,9 +164,9 @@ class CMDHardware(HardwareInterface):
         :param period: The time elapsed since the last update, in seconds.
         """
         if self.effort_cmd:
-            self.effort_handle.send_value(self.bus, self.can_id, self.effort_cmd.value * self.reverse)
+            self.effort_handle.send_value(self.bus, self.can_id, self.effort_cmd.value)
         elif self.velocity_cmd:
-            self.velocity_handle.send_value(self.bus, self.can_id, self.velocity_cmd.value * self.reverse)
+            self.velocity_handle.send_value(self.bus, self.can_id, self.velocity_cmd.value)
         else:
             # Send a stop command
             frame_id : int = (CanIdPrefix.SEND.value << 8) | (self.can_id << 4) | CMDHardwareCommand.STOP.value
