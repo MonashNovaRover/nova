@@ -203,7 +203,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='nav2_params_dir',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_arch']),
             description='Full path to the folder with ROS2 parameters files to use with all nodes',
         ),
         DeclareLaunchArgument(
