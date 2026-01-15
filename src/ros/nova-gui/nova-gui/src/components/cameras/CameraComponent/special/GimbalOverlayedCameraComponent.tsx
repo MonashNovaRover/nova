@@ -33,7 +33,9 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
   const clickAndHoldInterval = React.useRef<ReturnType<typeof setInterval> | null>(null);
   const [clickAndHoldEnabled, setClickAndHoldEnabled] = useGenericStore<boolean>("clickAndHold");
   const [windowWideWASD, setWindowWideWASD] = useGenericStore<boolean>("windowWideWASD");
-  const [hasFocus, setHasFocus] = React.useState(false);
+  
+
+
 
   // Handle click and hold movement
   const handleClickandHoldDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -66,7 +68,7 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
     }
   };
 
-  const containerRef = React.useRef<HTMLDivElement | null>(null);
+
 
   // WASD Controls Component Wide
   const handleInput = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -105,13 +107,9 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
     window.addEventListener('keyup', handleKey);
     return () => window.removeEventListener('keyup', handleKey);
   }, [incrementPan, incrementTilt, stepNumber, windowWideWASD]);
-  
-  useEffect(() => {
-    if (!windowWideWASD) {
-      containerRef.current?.blur();
-      setHasFocus(false);
-    }
-  }, [windowWideWASD]);
+
+
+
 
 
   const stepSizeInput = (
@@ -151,16 +149,18 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
 
   return (
     <div
-      ref={containerRef}
+
       tabIndex={0}
       onKeyDown={windowWideWASD ? undefined : handleInput}
-      onMouseDown={handleClickandHoldDown}
+      onMouseDown={(e) => {
+  
+        handleClickandHoldDown(e);
+      }}
       onMouseUp={handleClickandHoldRelease}
       onMouseLeave={handleClickandHoldRelease}
-      onFocus={() => setHasFocus(true)}
-      onBlur={() => setHasFocus(false)}
+
       style={
-        windowWideWASD || hasFocus
+        windowWideWASD 
           ? {
             outline: '2px solid #4da3ff',
             outlineOffset: '2px',
@@ -171,12 +171,9 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
     >
       <OverlayedCameraComponent
         {...props}
-        overlay={<div
-
-        // onMouseDown={(_) => undefined}
-        // onMouseUp={( => e.stopPropagation()}
-        // onMouseLeave={(e) => e.stopPropagation()}
-        />}
+        overlay={
+          <div />
+        }
         settingsFormChildren={stepSizeInput}
 
       />
