@@ -406,11 +406,11 @@ nova_arm_controller:
       }
       has_acceleration_limits: {
         type: bool,
-        default_value: false,
+        default_value: true,
       }
       max_acceleration: {
         type: double,
-        default_value: 15.7079632679,
+        default_value: 0.05,
       }
     left_slide:
       has_position_limits: {
@@ -435,10 +435,10 @@ nova_arm_controller:
       }
       has_acceleration_limits: {
         type: bool,
-        default_value: false,
+        default_value: true,
       }
       max_acceleration: {
         type: double,
-        default_value: 15.7079632679,
+        default_value: 0.05,
       }
 
