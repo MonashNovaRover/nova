@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4"
+      main_tree_to_execute="NavigateThroughPosesWReplanningAndRecovery">
+  <BehaviorTree ID="NavigateThroughPosesWReplanningAndRecovery">
+    <ReactiveSequence>
+      <RecoveryNode name="NavigateRecovery"
+                    number_of_retries="6">
+        <PipelineSequence name="NavigateWithReplanning">
+          <ControllerSelector topic_name="controller_selector"
+                              default_controller="FollowPath"
+                              selected_controller="{selected_controller}"/>
+          <PlannerSelector topic_name="planner_selector"
+                           default_planner="GridBased"
+                           selected_planner="{selected_planner}"/>
+          <BlackboardPublisher topic_name="blackboard"
+                               keys="goals"
+                               publish_frequency="1"/>
+          <RateController hz="1.0">
+            <RecoveryNode name="ComputePathThroughPoses"
+                          number_of_retries="1">
+              <ReactiveSequence>
+                <RemovePassedGoals input_goals="{goals}"
+                                   radius="2"
+                                   robot_base_frame=""
+                                   input_waypoint_statuses="{waypoint_statuses}"
+                                   output_goals="{goals}"
+                                   output_waypoint_statuses="{waypoint_statuses}"/>
+                <RemoveInCollisionGoals service_name=""
+                                        input_goals="{goals}"
+                                        use_footprint=""
+                                        cost_threshold=""
+                                        consider_unknown_as_obstacle=""
+                                        input_waypoint_statuses="{waypoint_statuses}"
+                                        output_goals="{goals}"
+                                        output_waypoint_statuses="{waypoint_statuses}"/>
+                <ComputePathThroughPoses goals="{goals}"
+                                         start=""
+                                         server_name=""
+                                         server_timeout=""
+                                         planner_id="{selected_planner}"
+                                         path="{path}"
+                                         last_reached_index=""
+                                         error_code_id="{compute_path_error_code}"
+                                         error_msg=""/>
+              </ReactiveSequence>
+              <Sequence>
+                <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
+                <ClearEntireCostmap name="ClearGlobalCostmap-Context"
+                                    service_name="global_costmap/clear_entirely_global_costmap"
+                                    server_timeout=""/>
+              </Sequence>
+            </RecoveryNode>
+          </RateController>
+          <RecoveryNode name="FollowPath"
+                        number_of_retries="1">
+            <FollowPath controller_id="{selected_controller}"
+                        path="{path}"
+                        goal_checker_id=""
+                        progress_checker_id=""
+                        path_handler_id=""
+                        server_name=""
+                        server_timeout=""
+                        tracking_feedback=""
+                        error_code_id="{follow_path_error_code}"
+                        error_msg=""/>
+            <Sequence>
+              <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
+              <ClearEntireCostmap name="ClearLocalCostmap-Context"
+                                  service_name="local_costmap/clear_entirely_local_costmap"
+                                  server_timeout=""/>
+            </Sequence>
+          </RecoveryNode>
+        </PipelineSequence>
+        <Sequence>
+          <Fallback>
+            <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
+            <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
+          </Fallback>
+          <ReactiveFallback name="RecoveryFallback">
+            <GoalUpdated goal=""
+                         goals=""/>
+            <RoundRobin name="RecoveryActions"
+                        wrap_around="false">
+              <Sequence name="ClearingActions">
+                <ClearEntireCostmap name="ClearLocalCostmap-Subtree"
+                                    service_name="local_costmap/clear_entirely_local_costmap"
+                                    server_timeout=""/>
+                <ClearEntireCostmap name="ClearGlobalCostmap-Subtree"
+                                    service_name="global_costmap/clear_entirely_global_costmap"
+                                    server_timeout=""/>
+              </Sequence>
+              <Spin name="SpinRecovery"
+                    spin_dist="1.57"
+                    time_allowance=""
+                    server_name=""
+                    server_timeout=""
+                    is_recovery=""
+                    disable_collision_checks=""
+                    error_code_id="{spin_error_code}"
+                    error_msg=""/>
+              <Wait name="WaitRecovery"
+                    wait_duration="5.0"
+                    server_name=""
+                    server_timeout=""
+                    error_code_id="{wait_error_code}"
+                    error_msg=""/>
+              <BackUp name="BackUpRecovery"
+                      backup_dist="0.30"
+                      backup_speed="0.15"
+                      time_allowance=""
+                      server_name=""
+                      server_timeout=""
+                      disable_collision_checks="false"
+                      error_code_id="{backup_error_code}"
+                      error_msg=""/>
+            </RoundRobin>
+          </ReactiveFallback>
+        </Sequence>
+      </RecoveryNode>
+    </ReactiveSequence>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="BackUp">
+      <input_port name="backup_dist">Distance to backup</input_port>
+      <input_port name="backup_speed">Speed at which to backup</input_port>
+      <input_port name="time_allowance">Allowed time for reversing</input_port>
+      <input_port name="server_name">Server name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <input_port name="disable_collision_checks"
+                  default="false"
+                  type="bool">Disable collision checking</input_port>
+      <output_port name="error_code_id">"Back up error code"</output_port>
+      <output_port name="error_msg">"Back up error message"</output_port>
+    </Action>
+    <Action ID="BlackboardPublisher">
+      <input_port name="topic_name">ROS topic for publishing</input_port>
+      <input_port name="keys">Blackboard keys to publish</input_port>
+      <input_port name="publish_frequency">Publish rate in hz</input_port>
+    </Action>
+    <Action ID="ClearEntireCostmap">
+      <input_port name="service_name">Service name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+    </Action>
+    <Action ID="ComputePathThroughPoses">
+      <input_port name="goals">Destinations to plan through</input_port>
+      <input_port name="start">Start pose of the path if overriding current robot pose</input_port>
+      <input_port name="server_name">Server name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <input_port name="planner_id">Mapped name to the planner plugin type to use</input_port>
+      <output_port name="path">Path created by ComputePathToPose node</output_port>
+      <output_port name="last_reached_index">Index of the last reached pose from the goals list. -1 if all goals were reached</output_port>
+      <output_port name="error_code_id">"Compute path through poses error code"</output_port>
+      <output_port name="error_msg">"Compute path through poses error message"</output_port>
+    </Action>
+    <Action ID="ControllerSelector">
+      <input_port name="topic_name">Name of the topic to receive controller selection commands</input_port>
+      <input_port name="default_controller">Default controller of the controller selector</input_port>
+      <output_port name="selected_controller">Name of the selected controller received from the topic subscription</output_port>
+    </Action>
+    <Action ID="FollowPath">
+      <input_port name="controller_id"
+                  default="FollowPath"/>
+      <input_port name="path">Path to follow</input_port>
+      <input_port name="goal_checker_id">Goal checker</input_port>
+      <input_port name="progress_checker_id">Progress checker</input_port>
+      <input_port name="path_handler_id">Path handler</input_port>
+      <input_port name="server_name">Action server name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <output_port name="tracking_feedback">Tracking feedback from controller server</output_port>
+      <output_port name="error_code_id">Follow Path error code</output_port>
+      <output_port name="error_msg">Follow Path error message</output_port>
+    </Action>
+    <Condition ID="GoalUpdated">
+      <input_port name="goal">Vector of navigation goals</input_port>
+      <input_port name="goals">Navigation goal</input_port>
+    </Condition>
+    <Control ID="PipelineSequence"/>
+    <Action ID="PlannerSelector">
+      <input_port name="topic_name">Name of the topic to receive planner selection commands</input_port>
+      <input_port name="default_planner">Default planner of the planner selector</input_port>
+      <output_port name="selected_planner">Name of the selected planner received from the topic subscription</output_port>
+    </Action>
+    <Decorator ID="RateController">
+      <input_port name="hz">Rate</input_port>
+    </Decorator>
+    <Control ID="RecoveryNode">
+      <input_port name="number_of_retries">Number of retries</input_port>
+    </Control>
+    <Action ID="RemoveInCollisionGoals">
+      <input_port name="service_name">Costmap service name responsible for getting the cost</input_port>
+      <input_port name="input_goals">A vector of goals to check if in collision</input_port>
+      <input_port name="use_footprint">Whether to use the footprint cost or the point cost.</input_port>
+      <input_port name="cost_threshold">The cost threshold above which a waypoint is considered in collision and should be removed.</input_port>
+      <input_port name="consider_unknown_as_obstacle"> If unknown cost is considered valid </input_port>
+      <input_port name="input_waypoint_statuses">Original waypoint_statuses to mark waypoint status from</input_port>
+      <output_port name="output_goals">A vector of goals containing only those that are not in collision.</output_port>
+      <output_port name="output_waypoint_statuses">Waypoint_statuses with in-collision waypoints marked</output_port>
+    </Action>
+    <Action ID="RemovePassedGoals">
+      <input_port name="input_goals">Input goals to remove if passed</input_port>
+      <input_port name="radius">Radius tolerance on a goal to consider it passed</input_port>
+      <input_port name="robot_base_frame">Robot base frame</input_port>
+      <input_port name="input_waypoint_statuses">Original waypoint_statuses to mark waypoint status from</input_port>
+      <output_port name="output_goals">Set of goals after removing any passed</output_port>
+      <output_port name="output_waypoint_statuses">Waypoint_statuses with passed waypoints marked</output_port>
+    </Action>
+    <Control ID="RoundRobin">
+      <input_port name="wrap_around"
+                  default="false">Enable wrap-around to first child after last child fails</input_port>
+    </Control>
+    <Action ID="Spin">
+      <input_port name="spin_dist">Spin distance</input_port>
+      <input_port name="time_allowance">Allowed time for spinning</input_port>
+      <input_port name="server_name">Server name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <input_port name="is_recovery">If true recovery count will be incremented</input_port>
+      <input_port name="disable_collision_checks">Disable collision checking</input_port>
+      <output_port name="error_code_id">Spin error code</output_port>
+      <output_port name="error_msg">Spin error message</output_port>
+    </Action>
+    <Action ID="Wait">
+      <input_port name="wait_duration">Wait time</input_port>
+      <input_port name="server_name">Server name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <output_port name="error_code_id">Wait error code</output_port>
+      <output_port name="error_msg">Wait error message</output_port>
+    </Action>
+    <Condition ID="WouldAControllerRecoveryHelp">
+      <input_port name="error_code">Error code</input_port>
+    </Condition>
+    <Condition ID="WouldAPlannerRecoveryHelp">
+      <input_port name="error_code">Error code</input_port>
+    </Condition>
+  </TreeNodesModel>
+
+</root>
