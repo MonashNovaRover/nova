@@ -1,113 +1,97 @@
 #!/usr/bin/env python3
 
 """
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Purpose: Control Scimbal Cam movement with respective servos
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: ScimbalCamNode
 TOPICS: None
-SERVICES: 
-    - server: /science/microscope_servo_service [MoveMicroscopeServo]
+SERVICES:
+    - server: /science/scimbal_cam_service [MoveScimbalCam]
 ACTIONS: None
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE:
-AUTHOR(S):	Felicity Matthews
-CREATION:	12/02/2025
-EDITED:		09/03/2025
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE: 
+AUTHOR(S):      Ivan Li
+CREATION:       15/01/2026
+EDITED:         15/01/2026
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
 import rclpy
-from enum import Enum
+import jcan
+from rclpy.node import Node
+from typing import Optional
+from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
 
-from science_interfaces.srv import MoveScimbalCam
-from python_control.ControllerNode import ControllerNode
-from python_control.controls.ContinuousOneAxisPositionControl import ContinuousOneAxisPositionControl
-from python_control.controllers.JonoPositionController import JonoPositionController
-
-class ScimbalCamServos(Enum):
-    TILT = 0
-    PAN = 1
-
-class ScimbalCamNode(ControllerNode):
-    SERVICE_TYPE = MoveScimbalCam
-    SERVICE_NAME = '/science/scimbal_cam_service'
-
-    # can bus
-    CAN_BUS = "can1"
-
-    # card IDs
-    SERVO_IDS = [0x0B0, 0x0B0]
-    SERVO_CONTROL_NAMES = ["TILT", "PAN"]
-
-    # command data
-    MOVE_SERVO_COMMANDS = [0x03, 0x04]
-
-    # angle
-    # position 0 = TILT, 1 = PAN
-    START_ANGLES = [90, 180] # in the middle
-    MAX_ANGLES = [180, 360]
-
-    MAX_VALUE = 0xFF
-
-    SERVO_IDS_PARAM = "servo_ids"
-
-    def __init__(self):
-        super(ScimbalCamNode, self).__init__(name="scimbal_cam", can_bus=self.CAN_BUS)
-        logger = self.get_logger()
-
-        self.declare_parameter(self.SERVO_IDS_PARAM, self.SERVO_IDS)
-
-        ## Add Service
-        self.service = self.create_service(ScimbalCamNode.SERVICE_TYPE, ScimbalCamNode.SERVICE_NAME, self.request_servo)
-
-        self.scimbal_cam: list[ContinuousOneAxisPositionControl] = [None] * len(self.SERVO_IDS)
-        self.scimbal_cam_controllers: list[JonoPositionController] = [None] * len(self.SERVO_IDS)
-
-        for i in range(len(self.SERVO_IDS)):
-            ## Create CONTROLS
-            scimbal_cam_control = ContinuousOneAxisPositionControl(
-                logger=logger,
-                max_angle=self.MAX_ANGLES[i],
-            )
-            scimbal_cam_control.set_position(self.START_ANGLES[i])
-            self.scimbal_cam[i] = scimbal_cam_control
-
-            ## Create CONTROLLERS
-            self.scimbal_cam_controllers[i] = JonoPositionController(
-                logger=logger,
-                bus=self.bus,
-                pos_command=self.MOVE_SERVO_COMMANDS[i],
-                frame_id=self.SERVO_IDS[i],
-                control=scimbal_cam_control,
-                max_value=self.MAX_VALUE,
-            )
-
-            ## Add the CONTROLLERS to the node's controllers
-            self.add_controller(self.SERVO_CONTROL_NAMES[i], self.scimbal_cam_controllers[i])
-
-        ## Start the CAN bus
-        self.start_can()
-
-    def request_servo(self, request, response):
-        try:
-            for i in range(len(request.angles)):
-                angle = request.angles[i]
-                self.scimbal_cam[i].displace(angle)
-            self.get_logger().info(f"Scimbal Cam angles updated: TILT: {self.scimbal_cam[0].get_goal_position()}, PAN: {self.scimbal_cam[1].get_goal_position()}, request: {request.angles}")
-            response.success = True
-        except Exception as e:
-            self.get_logger().error(f"Scimbal Cam angle update request {request.angles} interrupted by error: {str(e)}")
-            response.success = False
-        return response
+from python_control2.hardware_interfaces import CMDHardware
+from teleop_python_utils import Inputs
 
 
-def main():
-    rclpy.init()
-    scimbal_cam = ScimbalCamNode()
-    rclpy.spin(scimbal_cam)
-    rclpy.shutdown()
+class ScimbalCamNode(Controller):
+    # Command interfaces
+    # joint_cmd: Interface
 
+    # State interfaces
+    # state: Interface
+
+    def __init__(self, contexts: Contexts, button: str="some_button", axis: str="some_axis"):
+        """ Constructor, deferred until the control manager has been spun.
+        If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
+
+        :param contexts: A collection of dependency injection class instances you can index by class type.
+        """
+        super().__init__(contexts)
+        self.logger.info(f"ScimbalCamNode -- I have been __init__ialized")
+
+        # Declare ROS2 parameters here.
+        # self.joint = self.declare_parameter("joint", "j1").value
+
+        # Do any setup logic here, save any contexts you want reference to in the future.
+        # Save Input references here
+        self.button_name = self.declare_parameter("button", button).value
+        self.axis_name = self.declare_parameter("axis", axis).value
+
+        inputs = contexts[Inputs]
+        self.button = inputs.get_button(self.button_name)
+        self.axis = inputs.get_axis(self.axis_name)
+        inputs.get_event(f"{self.button_name}/down").add_callback(lambda : self.logger.info(f"{self.button_name}/down event triggered"))
+        
+
+    def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
+        """ Used to set up your Controller. Run once before any other class method.
+        Use this method to get data from self.node, and get references to any command or state interface you need.
+
+        :param command_interfaces: A collection of Interfaces used to send messages to hardware. Get any command
+        interfaces you need from this, then store them in member variables.
+        :param state_interfaces: A collection of Interfaces containing the current state of the robot. Get any state
+        interfaces you need from this, then store them in member variables.
+        :returns: None or True if configured successfully. False otherwise.
+        """
+        # Save references to interfaces
+        # self.logger.info(f"Getting \"{self.joint + "/effort"}\"")
+        # self.joint_cmd = command_interfaces[self.joint + "/effort"]
+
+    def on_update(self, now: float, period: float):
+        """ Called on every update. You should read values from state interfaces, and set values on command interfaces
+            here.
+        :param now: The current time, in seconds
+        :param period: The time elapsed since the last update, in seconds.
+        """
+        # Update Command Interfaces
+        # self.cmd.value = 2 * self.state.value
+        # self.logger.info(f"{self.state.value} -> {self.cmd.value}")
 
 if __name__ == "__main__":
-    main()
+    print("Setting up!")
+
+    rclpy.init()
+
+    node = Node("control_test")
+    inputs = Inputs(node).with_topics("/package/input")
+
+    PythonControl("scimbal_cam", update_rate=5, can_bus="can1") \
+        .with_controller("ScimbalCamNode", ScimbalCamNode) \
+        .with_hardware("test_hw", TestHardware) \
+        .with_teleop(inputs) \
+        .with_jcan() \
+        .spin()
