@@ -29,7 +29,8 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
   }), [serviceBifrost]);
 
 
-  let clickAndHoldInterval: ReturnType<typeof setInterval>;
+
+  const clickAndHoldInterval = React.useRef<ReturnType<typeof setInterval> | null>(null);
   const [clickAndHoldEnabled, setClickAndHoldEnabled] = useGenericStore<boolean>("clickAndHold");
   const [windowWideWASD, setWindowWideWASD] = useGenericStore<boolean>("windowWideWASD");
   const [hasFocus, setHasFocus] = React.useState(false);
@@ -37,6 +38,7 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
   // Handle click and hold movement
   const handleClickandHoldDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!clickAndHoldEnabled) return;
+    if (clickAndHoldInterval.current) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -50,17 +52,21 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
     const verticalDirection = y >= centerY ? 1 : -1
 
 
-    clickAndHoldInterval = setInterval(() => {
-
+    clickAndHoldInterval.current = setInterval(() => {
       incrementPan(stepNumber * horizontalDirection);
       incrementTilt(stepNumber * verticalDirection);
+    }, 50);
 
-    }, 50)
-  }, [incrementPan, incrementTilt, stepNumber])
+  }, [clickAndHoldEnabled, incrementPan, incrementTilt, stepNumber])
 
   const handleClickandHoldRelease = () => {
-    clearInterval(clickAndHoldInterval)
-  }
+    if (clickAndHoldInterval.current) {
+      clearInterval(clickAndHoldInterval.current);
+      clickAndHoldInterval.current = null;
+    }
+  };
+
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
 
   // WASD Controls Component Wide
   const handleInput = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -95,9 +101,17 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
     };
 
 
+
     window.addEventListener('keyup', handleKey);
     return () => window.removeEventListener('keyup', handleKey);
   }, [incrementPan, incrementTilt, stepNumber, windowWideWASD]);
+  
+  useEffect(() => {
+    if (!windowWideWASD) {
+      containerRef.current?.blur();
+      setHasFocus(false);
+    }
+  }, [windowWideWASD]);
 
 
   const stepSizeInput = (
@@ -137,6 +151,7 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
 
   return (
     <div
+      ref={containerRef}
       tabIndex={0}
       onKeyDown={windowWideWASD ? undefined : handleInput}
       onMouseDown={handleClickandHoldDown}
@@ -158,9 +173,9 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
         {...props}
         overlay={<div
 
-          onMouseDown={(e) => e.stopPropagation()}
-          onMouseUp={(e) => e.stopPropagation()}
-          onMouseLeave={(e) => e.stopPropagation()}
+        // onMouseDown={(_) => undefined}
+        // onMouseUp={( => e.stopPropagation()}
+        // onMouseLeave={(e) => e.stopPropagation()}
         />}
         settingsFormChildren={stepSizeInput}
 
