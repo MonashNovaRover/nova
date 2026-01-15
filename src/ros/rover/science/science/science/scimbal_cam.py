@@ -19,10 +19,11 @@ EDITED:         15/01/2026
 
 import rclpy
 import jcan
+
+from enum import Enum
 from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
-
 from python_control2.hardware_interfaces import CMDHardware
 from teleop_python_utils import Inputs
 
@@ -80,6 +81,18 @@ class ScimbalCamNode(Controller):
         # Update Command Interfaces
         # self.cmd.value = 2 * self.state.value
         # self.logger.info(f"{self.state.value} -> {self.cmd.value}")
+
+    def request_servo(self, request, response):
+        try:
+            for i in range(len(request.angles)):
+                angle = request.angles[i]
+                self.scimbal_cam[i].displace(angle)
+            self.get_logger().info(f"Scimbal Cam angles updated: TILT: {self.scimbal_cam[0].get_goal_position()}, PAN: {self.scimbal_cam[1].get_goal_position()}, request: {request.angles}")
+            response.success = True
+        except Exception as e:
+            self.get_logger().error(f"Scimbal Cam angle update request {request.angles} interrupted by error: {str(e)}")
+            response.success = False
+        return response
 
 if __name__ == "__main__":
     print("Setting up!")
