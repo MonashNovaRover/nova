@@ -3,18 +3,17 @@
   ament-cmake,
   std-msgs,
   geometry-msgs,
-  sensor-msgs,
-  sensor-msgs-py,
   geographic-msgs,
   robot-localization,
   nav-msgs,
+  sensor-msgs,
+  sensor-msgs-py,
   vision-msgs,
-  cv-bridge,
   visualization-msgs,
   yolo-msgs,
+  cv-bridge,
   tf2-ros,
   tf-transformations,
-  rerun,
   pythonPackages,
 }:
 
@@ -42,11 +41,9 @@ buildRosPackage rec {
     yolo-msgs
     tf2-ros
     tf-transformations
-    rerun
     cv-bridge
     sensor-msgs
     sensor-msgs-py
     pythonPackages.geographiclib
-    pythonPackages.rerun-sdk
   ];
 }
