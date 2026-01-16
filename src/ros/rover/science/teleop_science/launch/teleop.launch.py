@@ -36,7 +36,10 @@ def launch_setup(context, *args, **kwargs):
             condition=UnlessCondition(use_joysticks),
             package='joy',
             executable='game_controller_node',  # or joy_node
-            output="screen"
+            output="screen",
+            remappings=[
+                ("/joy", "science/joy")
+            ],
         ),
 
         GroupAction(
@@ -51,7 +54,7 @@ def launch_setup(context, *args, **kwargs):
                         {"device_id": 0, },
                     ],
                     remappings=[
-                        ("/joy", "/joy_left")
+                        ("/joy", "science/joy/left")
                     ],
                 ),
                 Node(
@@ -63,7 +66,7 @@ def launch_setup(context, *args, **kwargs):
                         {"device_id": 1, },
                     ],
                     remappings=[
-                        ("/joy", "/joy_right")
+                        ("/joy", "science/joy/right")
                     ],
                 ),
             ],

@@ -15,7 +15,7 @@ teleop_science:
 
 thrustmaster_left:
   ros__parameters:
-    topic: "/joy/left"
+    topic: "science/joy/left"
     button_definitions: [
       "btn_thumb_u_state",        # Up / Trigger (behind the thumbstick)
       "btn_thumb_d_state",        # Down
@@ -57,7 +57,7 @@ thrustmaster_left:
 
 thrustmaster_right:
   ros__parameters:
-    topic: "/joy/right"
+    topic: "/science/joy/right"
     button_definitions: [
       "btn_thumb_u_state",        # Up / Trigger (behind the thumbstick)
       "btn_thumb_d_state",        # Down
