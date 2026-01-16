@@ -33,7 +33,7 @@ teleop_drive_joy:
     default_value:
       [
         "pivot_drive_controller",
-        "holonomic_drive_controller",
+        "ackermann_steering_controller",
         "strafe_drive_controller",
         "diff_drive_controller",
       ]
@@ -111,10 +111,10 @@ teleop_drive_joy:
     type: int
     default_value: 2
     description: "Switch to Strafe Mode"
-  button_holonomic_drive_controller:
+  button_ackermann_drive_controller:
     type: int
     default_value: 1
-    description: "Switch to Holonomic Mode"
+    description: "Switch to Ackermann Mode"
   button_pivot_drive_controller:
     type: int
     default_value: 0
