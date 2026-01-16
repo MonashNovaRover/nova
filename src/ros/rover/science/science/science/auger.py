@@ -79,6 +79,7 @@ class AugerController(Controller):
         if not self.active:
             self.drill_cmd.value = 0
             self.actuation_cmd.value = 0
+            return
 
         # Update Command Interfaces
         # Update drill speed

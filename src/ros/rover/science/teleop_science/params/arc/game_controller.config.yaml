@@ -68,6 +68,6 @@ game_controller_source:
         spinny_pos_1:
           from: "X"
         activate_auger:
-          from: "PADDLE1"
+          from: "DPAD_UP"
         activate_cbeam:
-          from: "PADDLE2"
+          from: "DPAD_LEFT"

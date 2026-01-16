@@ -31,6 +31,7 @@ teleop_science:
         lock:
           on_any:
             - "lock/down"
+            - "start"
           type: set_button
           name: "locked"
           value: true
