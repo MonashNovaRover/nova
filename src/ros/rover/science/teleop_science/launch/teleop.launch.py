@@ -38,7 +38,7 @@ def launch_setup(context, *args, **kwargs):
             executable='game_controller_node',  # or joy_node
             output="screen",
             remappings=[
-                ("/joy", "science/joy")
+                ("/joy", "/science/joy")
             ],
         ),
 
@@ -54,7 +54,7 @@ def launch_setup(context, *args, **kwargs):
                         {"device_id": 0, },
                     ],
                     remappings=[
-                        ("/joy", "science/joy/left")
+                        ("/joy", "/science/joy/left")
                     ],
                 ),
                 Node(
@@ -66,7 +66,7 @@ def launch_setup(context, *args, **kwargs):
                         {"device_id": 1, },
                     ],
                     remappings=[
-                        ("/joy", "science/joy/right")
+                        ("/joy", "/science/joy/right")
                     ],
                 ),
             ],
