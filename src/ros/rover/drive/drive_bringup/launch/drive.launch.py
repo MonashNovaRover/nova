@@ -69,16 +69,28 @@ def launch_setup(context, *args, **kwargs):
     params = IfElseSubstitution(auto, auto_params, nova_params)
 
     return [
-        # Node(
-        #     package='controller_manager',
-        #     executable='spawner',
-        #     arguments=['pivot_drive_controller', '--switch-timeout', '10',
-        #         '--ros-args', '--log-level', log_level]
-        # ),
         Node(
+            condition=UnlessCondition(auto),
             package='controller_manager',
             executable='spawner',
-            arguments=['pivot_drive_controller', '--inactive']
+            arguments=['pivot_drive_controller', '--switch-timeout', '10',
+                '--ros-args', '--log-level', log_level]
+        ),
+        GroupAction(
+            condition=IfCondition(auto),
+            actions = [
+                Node(
+                    package='controller_manager',
+                    executable='spawner',
+                    arguments=['ackermann_steering_controller', '--switch-timeout', '10',
+                        '--ros-args', '--log-level', log_level]
+                ),
+                Node(
+                    package='controller_manager',
+                    executable='spawner',
+                    arguments=['pivot_drive_controller', '--inactive']
+                ),
+            ],
         ),
         Node(
             package='controller_manager',
@@ -89,12 +101,6 @@ def launch_setup(context, *args, **kwargs):
             package='controller_manager',
             executable='spawner',
             arguments=['diff_drive_controller', '--inactive']
-        ),
-        Node(
-            package='controller_manager',
-            executable='spawner',
-            arguments=['ackermann_steering_controller', '--switch-timeout', '10',
-                '--ros-args', '--log-level', log_level]
         ),
         GroupAction(
             condition=UnlessCondition(gazebo),
