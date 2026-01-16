@@ -11,9 +11,19 @@
 
 auger:
   ros__parameters:
-    auger_drill_canid: 0x0C1
-    auger_actuation_canid: 0x0D1
-    max_percent: 0.6
+    can_bus: "can1"
+    active: true
+    active_button: "activate_auger"
+    inactive_button_pool: ["activate_cbeam"]
+    hardware:
+      actuation:
+        can_id: 0x0C2
+        max_effort: 1.0
+        reversed: false
+      drill:
+        can_id: 0x0C1
+        max_effort: 0.5
+        reversed: false
 
 
 # Misc - Nodes for misc components

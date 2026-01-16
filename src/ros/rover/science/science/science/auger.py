@@ -104,8 +104,8 @@ if __name__ == "__main__":
 
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("controller", AugerController) \
-        .with_hardware("actuation", QCMDHardware, can_id=0xC2, max_effort=1) \
-        .with_hardware("drill", QCMDHardware, can_id=0xC1, max_effort=1) \
+        .with_hardware("actuation", QCMDHardware, can_id=0xC2) \
+        .with_hardware("drill", QCMDHardware, can_id=0xC1) \
         .with_teleop(inputs) \
         .with_activation_buttons(start_active=True, active_button_name="activate_auger", inactive_button_pool_names=["activate_cbeam"]) \
         .with_jcan() \
