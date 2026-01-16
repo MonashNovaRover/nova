@@ -1,23 +1,20 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Monash Nova Rover Team
-
-Execute this code on the rover to start all
-   science scripts.
+ARC launch file for science payload
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODES:
+  - science/analysis_arm.py             [analysis_arm]
   - science/nir_probe_publisher.py      [nir_probe_publisher]
-  - science/kiln_server.py              [kiln_server]
-  - science/auger.py                    [auger]
-  - science/analysis_arm.py             [AnalysisArm]
-  - science/analysis_arm.py             [CBeam]
   - science/arc_sweeper_servo.py        [sweeper]
   - science/arc_spinny_part.py          [spinny part] (analysis arm)
+  - science/auger.py                    [auger]
+  - science/analysis_arm.py             [c_beam]
+  - science/kiln_server.py              [kiln_server]
   - science/scimbal_cam.py              [scimbal_cam]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-CREATED:    17/03/2024
-EDITED:     20/03/2025
-EDITED BY: Tristan Clark, Victor Bartlinski, Felicity Matthews
+CREATED:    12/01/2026
+EDITED:     12/01/2026
+EDITED BY:  Felicity Matthews
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 from launch import LaunchDescription
@@ -30,36 +27,7 @@ def launch_setup(context, *args, **kwargs):
     science_params = LaunchConfiguration('science_params')
 
     return [
-        Node(
-            name='nir_probe_publisher',
-            package='science',
-            executable='nir_probe_publisher.py',
-            output='screen',
-            emulate_tty=True,
-            parameters=[
-                science_params,
-            ],
-        ),
-        Node(
-            name='kiln_server',
-            package='science',
-            executable='kiln_server.py',
-            output='screen',
-            emulate_tty=True,
-            parameters=[
-                science_params,
-            ],
-        ),
-        Node(
-            name='auger',
-            package='science',
-            executable='auger.py',
-            output='screen',
-            emulate_tty=True,
-            parameters=[
-                science_params,
-            ],
-        ),
+        # Analysis Arm - Nodes for components on the analysis arm
         Node(
             name='analysis_arm',
             package='science',
@@ -71,9 +39,9 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         Node(
-            name='c_beam',
+            name='nir_probe_publisher',
             package='science',
-            executable='analysis_arm.py',
+            executable='nir_probe_publisher.py',
             output='screen',
             emulate_tty=True,
             parameters=[
@@ -100,6 +68,40 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
+
+        # CBeam - Nodes for components on the CBeam
+        Node(
+            name='auger',
+            package='science',
+            executable='auger.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
+            name='c_beam',
+            package='science',
+            executable='analysis_arm.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
+            name='kiln_server',
+            package='science',
+            executable='kiln_server.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+
+        # Misc - Nodes for misc components
         Node(
             name='scimbal_cam',
             package='science',
@@ -113,10 +115,10 @@ def launch_setup(context, *args, **kwargs):
     ]
 
 def generate_launch_description():
-    nova_bringup_dir = PythonExpression([
-        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/nova_bringup/']),
+    science_bringup_dir = PythonExpression([
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/science_bringup/']),
         '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
-        FindPackageShare('nova_bringup'), '"'
+        FindPackageShare('science_bringup'), '"'
     ])
 
     declared_arguments = [
@@ -124,12 +126,12 @@ def generate_launch_description():
         DeclareLaunchArgument(
             name='local',
             default_value='False',
-            description='Whether to use the local teleop_science source directory instead of the nix store for param files.',
+            description='Whether to use the local source directory instead of the nix store for param files.',
         ),
         DeclareLaunchArgument(
             name='science_params',
-            default_value=PathJoinSubstitution([nova_bringup_dir, 'params', 'arc_science.yaml']),
-            description='The main parameter file to use for the arc science nodes',
+            default_value=PathJoinSubstitution([science_bringup_dir, 'params', 'arc.yaml']),
+            description='The main parameter file to use for the science nodes',
         ),
     ]
 
