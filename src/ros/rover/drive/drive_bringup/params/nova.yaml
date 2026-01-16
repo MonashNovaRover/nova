@@ -121,3 +121,14 @@ diff_drive_controller:
       has_velocity_limits: true
       max_velocity: 0.78539816 # PI/4 rad/s = 45 deg/s
       min_velocity: -0.78539816
+
+ackermann_steering_controller:
+  ros__parameters:
+    rear_wheels_names: ["frw", "flw"] # rear wheels are the driving wheels
+    front_wheels_names: ["frp", "flp"] # front wheels are the steering wheels
+    open_loop: false
+    front_wheel_track: 0.81564001 # 0.76 for Waratah
+    rear_wheel_track: 0.81564001 # 0.76 for Waratah
+    wheelbase: 0.95752883 # 0.875 for Waratah
+    front_wheels_radius: 0.15692321 # 0.15 for Waratah
+    rear_wheels_radius: 0.15692321 # 0.15 for Waratah
