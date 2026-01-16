@@ -50,6 +50,10 @@ thrustmaster_left:
           from: "ax_stick_x"
 
       buttons:
+        lock:
+          from: "btn_bottom_l2_state"
+        unlock:
+            from: "btn_bottom_l5_state"
         twitch:
           from: "btn_bottom_r5_state"
         spinny_pos_1:
