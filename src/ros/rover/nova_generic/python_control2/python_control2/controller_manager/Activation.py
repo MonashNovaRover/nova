@@ -29,13 +29,15 @@ class Activation:
 
     def activate(self):
         """ Activates the system """
+        if not self.active:
+            self.node.get_logger().info(f"{self.node.get_name()} ACTIVATED")
         self.active = True
-        self.node.get_logger().info(f"{self.node.get_name()} ACTIVATED")
 
     def deactivate(self):
         """ Deactivates the system """
+        if self.active:
+            self.node.get_logger().info(f"{self.node.get_name()} DEACTIVATED")
         self.active = False
-        self.node.get_logger().info(f"{self.node.get_name()} DEACTIVATED")
 
     def is_active(self):
         return self.active
