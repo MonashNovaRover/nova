@@ -11,6 +11,8 @@ in
     ./devkit
     ./peripherals
     ./devices
+    # Poor solution
+    (builtins.fetchTarball "https://github.com/anduril/jetpack-nixos/archive/master.tar.gz" + "/modules/default.nix")
   ];
 
   options = {

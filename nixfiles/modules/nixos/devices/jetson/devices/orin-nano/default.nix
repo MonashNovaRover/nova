@@ -17,6 +17,6 @@ in
     # Display output is non-functional on the Orin Nano.
     # https://github.com/anduril/jetpack-nixos/issues/85
     services.xserver.enable = false;
-    nova.desktop.enable = false;
+    #nova.desktop.enable = false;
   };
 }
