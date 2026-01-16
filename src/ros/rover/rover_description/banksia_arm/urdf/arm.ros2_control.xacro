@@ -285,8 +285,8 @@
 			<hardware>
 				<plugin>cmd_hardware/CMDHardware</plugin>
 				<param name="candevice">can1</param> 
-				<param name="canid">5</param> <!-- TODO: Get CAN id, resolver id should be that *4 -->
-				<param name="resolver_id">20</param>
+				<param name="canid">0C1</param> <!-- TODO: Get CAN id, resolver id should be that *4 -->
+				<param name="resolver_id">304</param>
 				<param name="resolver_reduction">1.0</param>
 				<param name="reversed">false</param>
 				<param name="reverse_velocity">true</param>
@@ -322,8 +322,8 @@
 			<hardware>
 				<plugin>cmd_hardware/CMDHardware</plugin>
 				<param name="candevice">can1</param> 
-				<param name="canid">5</param> TODO: Get CAN id, resolver id should be that *4
-				<param name="resolver_id">20</param>
+				<param name="canid">0C2</param>
+				<param name="resolver_id">308</param>
 				<param name="resolver_reduction">1.0</param>
 				<param name="reversed">false</param>
 				<param name="reverse_velocity">true</param>
@@ -359,8 +359,8 @@
 			<hardware>
 				<plugin>cmd_hardware/CMDHardware</plugin>
 				<param name="candevice">can1</param> 
-				<param name="canid">5</param> <!-- TODO: Get CAN id, resolver id should be that *4 -->
-				<param name="resolver_id">20</param>
+				<param name="canid">0D1</param> <!-- TODO: Get CAN id, resolver id should be that *4 -->
+				<param name="resolver_id">344</param>
 				<param name="resolver_reduction">1.0</param>
 				<param name="reversed">false</param>
 				<param name="reverse_velocity">true</param>
