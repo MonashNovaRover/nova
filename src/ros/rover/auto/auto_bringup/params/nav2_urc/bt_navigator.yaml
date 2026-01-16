@@ -19,10 +19,10 @@ bt_navigator:
       plugin: "nav2_bt_navigator::NavigateToPoseNavigator"
     navigate_through_poses:
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
-    # default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/arch/2025_arch_through_poses.xml
+    default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/test/navigate_through_poses_w_replanning_and_recovery.xml
     urc_2025_navigator:
       plugin: "nova_bt_navigators::URC2025Navigator"
-    default_urc_2025_navigator_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/urc/2025_urc_through_poses.xml
+    default_urc_2025_navigator_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/test/navigate_through_poses_w_replanning_and_recovery.xml
     plugin_lib_names:
       # ACTION NODES
       - nova_place_search_goals_action_bt_node
