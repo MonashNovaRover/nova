@@ -1,0 +1,33 @@
+teleop_science:
+  ros__parameters:
+    # The maximum rate at which updates should occur, and hence the max rate at which commands are sent.
+    # Leaving this unset makes the max update rate unlimited.
+    # update_rate: 50.0
+
+    # The minimum rate at which updates occur.
+    # Leaving this unset will allow for indefinite lapses between updates.
+    # min_update_rate: 2.0
+
+    control_modes:
+      names: [
+        # First in the list gets activated at startup
+        "input_publisher_mode"
+      ]
+
+      # Declare types for the modes
+      input_publisher_mode:
+        display_name: "Input Publisher Control Mode"
+        type: "input_publisher_mode/InputPublisherMode"
+        active: true
+
+input_publisher_mode:
+  ros__parameters:
+    input_names_topic: "/science/input"
+
+    axis_names:
+      - "auger_actuation"
+      - "cbeam_actuation"
+    button_names:
+      - "sweeper_sweep"
+      - "twitch"
+      - "spinny_pos_1"

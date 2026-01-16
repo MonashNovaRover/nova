@@ -1,0 +1,10 @@
+# ==========================================================
+# Monash Nova Rover
+# science – Default Parameter File
+# ==========================================================
+
+# TODO
+
+example:
+  ros__parameters:
+    example_param: 0
