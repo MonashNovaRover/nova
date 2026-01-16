@@ -46,7 +46,7 @@ class AugerController(Controller):
 
         # Drill activate, speed and direction buttons and axes
         self.drill_button_name = self.declare_parameter("drill_button", "auger_drill").value
-        self.speed_axis_name = self.declare_parameter("speed_axis", "auger_speed").value
+        self.speed_axis_name = self.declare_parameter("speed_axis", "auger_drill_speed").value
         self.drill_clockwise_button_name = self.declare_parameter("drill_clockwise_button", "auger_drill_clockwise").value
         self.drill_anticlockwise_button_name = self.declare_parameter("drill_anticlockwise_button", "auger_drill_anticlockwise").value
 

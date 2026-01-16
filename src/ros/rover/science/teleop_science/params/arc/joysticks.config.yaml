@@ -90,6 +90,8 @@ thrustmaster_right:
       axes:
         auger_actuation:
           from: "ax_stick_x"
+        auger_drill_speed:
+          from: "ax_slider"
 
       buttons:
         sweeper_sweep:
