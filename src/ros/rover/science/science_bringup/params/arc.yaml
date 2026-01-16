@@ -5,29 +5,7 @@
 
 # Analysis Arm - Nodes for components on the analysis arm
 
-analysis_arm:
-  ros__parameters:
-    cmd_id: 0x0D2
-    active: true
-    active_button: "btn_bottom_l1_state"
-    inactive_button_pool:
-      - "btn_bottom_l4_state"
-    using_left_joystick: true
 
-nir_probe_publisher:
-  ros__parameters: {}
-
-arc_sweeper_servo:
-  ros__parameters:
-    servo_id: 0x0A0
-    clockwise_command: 0x01
-    anticlockwise_command: 0x02
-
-
-arc_spinny_part:
-  ros__parameters:
-    servo_id: 0x0A0
-    servo_command: 0x04
 
 # CBeam - Nodes for components on the CBeam
 
@@ -37,20 +15,6 @@ auger:
     auger_actuation_canid: 0x0D1
     max_percent: 0.6
 
-c_beam:
-  ros__parameters:
-    cmd_id: 0x0C2
-    active: false
-    active_button: "btn_bottom_l4_state"
-    inactive_button_pool:
-      - "btn_bottom_l1_state"
-    using_left_joystick: true
-
-kiln_server:
-  ros__parameters: {}
 
 # Misc - Nodes for misc components
 
-scimbal_cam:
-  ros__parameters:
-    servo_ids: [0x0B0, 0x0B0]

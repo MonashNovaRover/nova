@@ -45,10 +45,6 @@ thrustmaster_left:
     ]
 
     remap:
-      axes:
-        cbeam_actuation:
-          from: "ax_stick_x"
-
       buttons:
         lock:
           from: "btn_bottom_l2_state"
@@ -98,3 +94,7 @@ thrustmaster_right:
       buttons:
         sweeper_sweep:
           from: "btn_bottom_r5_state"
+        activate_auger:
+          from: "btn_bottom_l4_state"
+        activate_cbeam:
+          from: "btn_bottom_l1_state"
