@@ -2,7 +2,7 @@
     "model": {
         "xml": "src/ros/rover/core/resources/YOLO_ARCh_2025/best.xml",
         "bin": "src/ros/rover/core/resources/YOLO_ARCh_2025/best.bin",
-        "model_name": "src/ros/rover/core/resources/YOLO_ARCh_2025/best_openvino_2022.1_6shave.blob",
+        "model_name": "/home/nova/nova/src/ros/rover/auto/auto_bringup/resources/YOLO_ARCh_2025/best_openvino_2022.1_6shave.blob",
         "zoo": "path"
     },
     "nn_config": {

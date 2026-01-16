@@ -1,8 +1,8 @@
-/oak:
+/**:
   ros__parameters:
     camera:
-      i_nn_type: none
-      i_enable_sync: true
+      i_nn_type: spatial
+      i_enable_sync: false
       i_enable_imu: true
       i_mx_id: 18443010315748F500 # Look for the O-Camera Sticker
       i_tf_parent_frame: base_link
@@ -14,11 +14,11 @@
       i_disable_resize: true
       i_num_inference_threads: 2
       i_num_pool_frames: 4
-      i_nn_config_path: auto_bringup/resources/YOLOv11/best.json
+      i_nn_config_path: /home/nova/nova/src/ros/rover/auto/auto_bringup/resources/YOLO_ARCh_2025/best.json
     imu:
       i_enable_rotation: true
       i_message_type: IMU
-        #i_rotation_vector_type: ROTATION_VECTOR
+      #i_rotation_vector_type: ROTATION_VECTOR
     rgb:
       i_enable_nn: false
       i_enable_preview: false
