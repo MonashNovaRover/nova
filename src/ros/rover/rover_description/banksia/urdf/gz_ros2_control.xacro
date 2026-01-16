@@ -140,6 +140,9 @@
   <gazebo>
     <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
       <parameters>$(find drive_bringup)/params/auto.yaml</parameters>
+      <ros>
+        <remapping>/ackermann_steering_controller/reference:=/cmd_vel</remapping>
+      </ros>
     </plugin>
   </gazebo>
 

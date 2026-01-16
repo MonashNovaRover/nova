@@ -168,10 +168,10 @@ void TeleopDriveJoy::map_button_callbacks()
   {
     switch_controller(DriveMode::PIVOT);
   };
-  button_callbacks_[params_.button_holonomic_drive_controller] =
+  button_callbacks_[params_.button_ackermann_drive_controller] =
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
-    switch_controller(DriveMode::HOLONOMIC);
+    switch_controller(DriveMode::ACKERMANN);
   };
   button_callbacks_[params_.button_strafe_drive_controller] =
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
@@ -360,7 +360,7 @@ void TeleopDriveJoy::print_controls()
   RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "       Left Trigger     |  Hold Position (Holonomic Drive) (NOT YET IMPLEMENTED)" << C_END);
   RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "      Right Trigger     |  Handbrake (decrease speed by 40%)" << C_END);
   RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "           Button A     |  Pivot Drive" << C_END);
-  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "           Button B     |  Holonomic Drive (NOT YET IMPLEMENTED)" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "           Button B     |  Ackermann Drive" << C_END);
   RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "           Button X     |  Strafe Drive" << C_END);
   RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "           Button Y     |  Tank Drive" << C_END);
   // clang-format on
