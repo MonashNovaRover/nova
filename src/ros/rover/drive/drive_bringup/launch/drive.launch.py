@@ -69,12 +69,21 @@ def launch_setup(context, *args, **kwargs):
     params = IfElseSubstitution(auto, auto_params, nova_params)
 
     return [
-        Node(
+        GroupAction(
             condition=UnlessCondition(auto),
-            package='controller_manager',
-            executable='spawner',
-            arguments=['pivot_drive_controller', '--switch-timeout', '10',
-                '--ros-args', '--log-level', log_level]
+            actions = [
+                Node(
+                    package='controller_manager',
+                    executable='spawner',
+                    arguments=['pivot_drive_controller', '--switch-timeout', '10',
+                        '--ros-args', '--log-level', log_level]
+                ),
+                Node(
+                    package='controller_manager',
+                    executable='spawner',
+                    arguments=['ackermann_steering_controller', '--inactive']
+                ),
+            ],
         ),
         GroupAction(
             condition=IfCondition(auto),
