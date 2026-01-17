@@ -106,9 +106,11 @@ if __name__ == "__main__":
 
     rclpy.init()
 
+    node = Node("scimbal_cam")
+
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("scimbal_cam_controller", ScimbalCamController) \
-        .with_hardware("scimbal_tilt_hw", PositionalServoHardware, frame_id=0x0B0, function_id=0x03, min_angle=0.0, max_angle=180.0) \
-        .with_hardware("scimbal_pan_hw", PositionalServoHardware, frame_id=0x0B0, function_id=0x04, min_angle=0.0, max_angle=360.0) \
+        .with_hardware("scimbal_tilt_hw", PositionalServoHardware, frame_id=0x0B0, function_id=0x03, max_angle=180.0) \
+        .with_hardware("scimbal_pan_hw", PositionalServoHardware, frame_id=0x0B0, function_id=0x04, max_angle=360.0) \
         .with_jcan() \
         .spin()
