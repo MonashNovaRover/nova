@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Purpose: Control for the Spinny Part of the ARC
-analysis arm
+Controller for the Tool Rotator of the ARC
+analysis arm which switches between instruments.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: SpinnyPartController
-TOPICS:   None
-SERVICES: None
-ACTIONS:  None
+NODE: ToolRotatorController
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Binuda Kalugalage
@@ -15,21 +12,16 @@ CREATION:       03/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
-import jcan
 from rclpy.node import Node
 from typing import Optional
-from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
-
+from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface
 from python_control2.hardware_interfaces import PositionalServoHardware
 from teleop_python_utils import Inputs
 
 
-class SpinnyPartController(Controller):
+class ToolRotatorController(Controller):
     # Command interfaces
     pos_cmd: Interface
-
-    # State interfaces
-    # state: Interface
 
     def __init__(self, contexts: Contexts):
         """ Constructor, deferred until the control manager has been spun.
@@ -38,26 +30,23 @@ class SpinnyPartController(Controller):
         :param contexts: A collection of dependency injection class instances you can index by class type.
         """
         super().__init__(contexts)
-        self.logger.info(f"SpinnyPartController -- I have been __init__ialized")
-
-        self.min_angle = 0.0
-        self.max_angle = 180.0
+        self.logger.info(f"ToolRotatorController -- I have been __init__ialized")
 
         # Declare ROS2 parameters here.
-        self.offset_step_max = float(self.declare_parameter("offset_step_max", 30.0).value)
-        self.sweeper_pos = float(self.declare_parameter("sweeper_pos", self.min_angle).value)
-        self.microscope_pos = float(self.declare_parameter("microscope_pos", (128.0 / 255.0) * self.max_angle).value)
-        self.nir_probe_pos = float(self.declare_parameter("nir_probe_pos", self.max_angle).value)
+        self.offset_step_max = self.declare_parameter("offset_step_max", 30.0).value
+        self.sweeper_pos = self.declare_parameter("sweeper_pos", 0.0).value
+        self.microscope_pos = self.declare_parameter("microscope_pos", 90.35).value
+        self.nir_probe_pos = self.declare_parameter("nir_probe_pos", 168.71).value
 
         # Do any setup logic here, save any contexts you want reference to in the future.
         # Save Input references here
-        self.speed_axis_name = self.declare_parameter("speed_axis", "spinny_speed").value
+        self.speed_axis_name = self.declare_parameter("speed_axis", "rotator_speed").value
 
-        self.button_sweeper_name = self.declare_parameter("sweeper_button", "spinny_sweeper").value
-        self.button_microscope_name = self.declare_parameter("microscope_button", "spinny_microscope").value
-        self.button_nir_name = self.declare_parameter("nir_button", "spinny_nir").value
-        self.button_plus_name = self.declare_parameter("plus_button", "spinny_plus").value
-        self.button_minus_name = self.declare_parameter("minus_button", "spinny_minus").value
+        self.button_sweeper_name = self.declare_parameter("sweeper_button", "rotator_sweeper").value
+        self.button_microscope_name = self.declare_parameter("microscope_button", "rotator_microscope").value
+        self.button_nir_name = self.declare_parameter("nir_button", "rotator_nir").value
+        self.button_plus_name = self.declare_parameter("plus_button", "rotator_plus").value
+        self.button_minus_name = self.declare_parameter("minus_button", "rotator_minus").value
 
         inputs = contexts[Inputs]
         self.speed_axis = inputs.get_axis(self.speed_axis_name)
@@ -82,8 +71,8 @@ class SpinnyPartController(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
         # Save references to interfaces
-        self.logger.info(f"Getting spinny_hw/position")
-        self.pos_cmd = command_interfaces["spinny_hw/position"]
+        self.logger.info(f"Getting rotation/position")
+        self.pos_cmd = command_interfaces["rotation/position"]
 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
@@ -93,18 +82,18 @@ class SpinnyPartController(Controller):
         """
 
         # Update offset step amount
-        offset_step = float(abs(self.speed_axis.value) * self.offset_step_max)
+        offset_step = abs(self.speed_axis.value) * self.offset_step_max
 
         # Change to preset position
-        if self.button_sweeper:
+        if self.button_sweeper.down():
             self.offset = 0.0
             self.current_pos = self.sweeper_pos
             self.logger.info(f"Moved to SWEEPER position {self.current_pos}")
-        elif self.button_microscope:
+        elif self.button_microscope.down():
             self.offset = 0.0
             self.current_pos = self.microscope_pos
             self.logger.info(f"Moved to MICROSCOPE position {self.current_pos}")
-        elif self.button_nir:
+        elif self.button_nir.down():
             self.offset = 0.0
             self.current_pos = self.nir_probe_pos
             self.logger.info(f"Moved to NIR PROBE position {self.current_pos}")
@@ -115,22 +104,21 @@ class SpinnyPartController(Controller):
         elif self.button_minus:
             self.offset -= offset_step
 
-        # Clamp position to between 0-180 and write to command interface
-        clamped_position = max(self.min_angle, min(self.max_angle, self.current_pos + self.offset))
-        self.pos_cmd.value = float(clamped_position)
-
+        # Write to command interface
+        self.pos_cmd.value = self.current_pos + self.offset
+    
 
 if __name__ == "__main__":
     print("Setting up!")
 
     rclpy.init()
 
-    node = Node("spinny_part")
+    node = Node("tool_rotator")
     inputs = Inputs(node).with_topics("/science/input")
 
     PythonControl(node, update_rate=5, can_bus="can1") \
-        .with_controller("spinny_controller", SpinnyPartController) \
-        .with_hardware("spinny_hw", PositionalServoHardware, function_id=0x00, min_angle=0.0, max_angle=180.0) \
+        .with_controller("controller", ToolRotatorController) \
+        .with_hardware("rotation", PositionalServoHardware, function_id=0x00) \
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()

@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Purpose: Control for the chute
+Controller for the science chute which 
+deposits sand into the kiln.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: ChuteController
-TOPICS:   None
-SERVICES: None
-ACTIONS:  None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Binuda Kalugalage
@@ -14,11 +12,9 @@ CREATION:       05/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
-import jcan
 from rclpy.node import Node
 from typing import Optional
-from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
-
+from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface
 from python_control2.hardware_interfaces import PositionalServoHardware
 from teleop_python_utils import Inputs
 
@@ -26,9 +22,6 @@ from teleop_python_utils import Inputs
 class ChuteController(Controller):
     # Command interfaces
     pos_cmd: Interface
-
-    # State interfaces
-    # state: Interface
 
     def __init__(self, contexts: Contexts):
         """ Constructor, deferred until the control manager has been spun.
@@ -39,13 +32,10 @@ class ChuteController(Controller):
         super().__init__(contexts)
         self.logger.info(f"ChuteController -- I have been __init__ialized")
 
-        self.min_angle = 72.0
-        self.max_angle = 108.0
-
         # Declare ROS2 parameters here.
-        self.offset_step_max = float(self.declare_parameter("offset_step_max", 30.0).value)
-        self.disengaged_pos = float(self.declare_parameter("disengaged_pos", self.min_angle).value)
-        self.engaged_pos = float(self.declare_parameter("engaged_pos", self.max_angle).value)
+        self.offset_step_max = self.declare_parameter("offset_step_max", 30.0).value
+        self.disengaged_pos = self.declare_parameter("disengaged_pos", 72.0).value
+        self.engaged_pos = self.declare_parameter("engaged_pos", 108.0).value
 
         # Do any setup logic here, save any contexts you want reference to in the future.
         # Save Input references here
@@ -78,8 +68,8 @@ class ChuteController(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
         # Save references to interfaces
-        self.logger.info(f"Getting chute_hw/position")
-        self.pos_cmd = command_interfaces["chute_hw/position"]
+        self.logger.info(f"Getting rotation/position")
+        self.pos_cmd = command_interfaces["rotation/position"]
 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
@@ -89,14 +79,14 @@ class ChuteController(Controller):
         """
 
         # Update offset step amount
-        offset_step = float(abs(self.speed_axis.value) * self.offset_step_max)
+        offset_step = abs(self.speed_axis.value) * self.offset_step_max
 
         # Change to preset position
-        if self.button_engaged:
+        if self.button_engaged.down():
             self.offset = 0.0
             self.current_pos = self.engaged_pos
             self.logger.info(f"Moved to ENGAGED position {self.current_pos}")
-        elif self.button_disengaged:
+        elif self.button_disengaged.down():
             self.offset = 0.0
             self.current_pos = self.disengaged_pos
             self.logger.info(f"Moved to DISENGAGED position {self.current_pos}")
@@ -107,9 +97,8 @@ class ChuteController(Controller):
         elif self.button_minus:
             self.offset -= offset_step
 
-        # Clamp position to between 72-108 and write to command interface
-        clamped_position = max(self.min_angle, min(self.max_angle, self.current_pos + self.offset))
-        self.pos_cmd.value = float(clamped_position)
+        # Write to command interface
+        self.pos_cmd.value = self.current_pos + self.offset
 
 if __name__ == "__main__":
     print("Setting up!")
@@ -120,8 +109,8 @@ if __name__ == "__main__":
     inputs = Inputs(node).with_topics("/science/input")
 
     PythonControl(node, update_rate=5, can_bus="can1") \
-        .with_controller("chute_controller", ChuteController) \
-        .with_hardware("chute_hw", PositionalServoHardware, function_id=0x03, min_angle=72.0, max_angle=108.0) \
+        .with_controller("controller", ChuteController) \
+        .with_hardware("rotation", PositionalServoHardware, function_id=0x03, min_angle=72.0, max_angle=108.0) \
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()

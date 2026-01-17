@@ -48,7 +48,7 @@ ament_python_install_package(${PROJECT_NAME})
 # Add all Python executables to this list
 install(PROGRAMS
         science/arc/chute.py
-        science/arc/spinny_part.py
+        science/arc/tool_rotator.py
         science/arc/arc_spinny_part.py
         science/arc/arc_sweeper_servo.py
         science/arc/kiln.py
