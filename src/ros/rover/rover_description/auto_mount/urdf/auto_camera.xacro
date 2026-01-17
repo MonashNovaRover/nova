@@ -140,7 +140,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
   </joint>
   
   <joint name="clam_to_mount" type="fixed">
-      <origin xyz="0.2269 0.3285 -0.436186" rpy="3.14159 5.13507e-14 3.14159" />
+      <origin xyz="0.2269 0.3285 -0.3531" rpy="3.14159 5.13507e-14 3.14159" />
       <parent link="clam" />
       <child link="mount" />
       <axis xyz="0 0 1" />
