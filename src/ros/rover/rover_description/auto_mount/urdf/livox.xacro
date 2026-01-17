@@ -13,7 +13,7 @@
   </link>
 
   <joint name="base_link_to_livox" type="fixed">
-    <origin xyz="0.53 0 0.85" rpy=" 0 -0.605 0" />
+    <origin xyz="0.53 0 0.85" rpy=" 0 0.605 0" />
     <parent link="base_link" />
     <child link="livox_frame" />
     <axis xyz="1 0 0" />
