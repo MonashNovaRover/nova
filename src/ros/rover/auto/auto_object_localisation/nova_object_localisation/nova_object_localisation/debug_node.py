@@ -26,7 +26,7 @@ TOPICS:
 PACKAGE:    nova_object_localisation
 AUTHOR(S):	Victor Bartlinski
 CREATION:	24/05/2025
-EDITED:		24/05/2025
+EDITED:		17/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - 
@@ -66,8 +66,8 @@ DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
 
 # Object ids:
 # Note: This has the same order as mappings in the generated .json file
-# IDS_LABEL = { 0: 'blue', 1: 'green', 2: 'red', 3: 'white'} # ARCh 2025
-IDS_LABEL = { 0: 'bottle', 1: 'mallet'} # URC 2025
+IDS_LABEL = { 0: 'blue', 1: 'green', 2: 'red', 3: 'white'} # ARCh 2025
+# IDS_LABEL = { 0: 'bottle', 1: 'mallet'} # URC 2025
 
 
 class DebugNode(LifecycleNode):

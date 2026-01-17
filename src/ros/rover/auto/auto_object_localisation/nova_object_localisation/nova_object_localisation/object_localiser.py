@@ -61,14 +61,14 @@ type BBox = Tuple[float, float, float, float]   # bounding_box = (pos_x, pos_y, 
 type ObjectPoint = Tuple[str, Point]            # object_point = (label, Point)
 
 
-# LABELS = {'red':[1.0,0.0,0.0], 'green':[0.0,1.0,0.0], 'blue':[0.0,0.0,1.0], 'white':[1.0,1.0,1.0]} # ARCh 2025
-LABELS = {'bottle':[0.0,0.0,1.0], 'mallet':[1.0,0.0,0.0]} # URC 2025
+LABELS = {'red':[1.0,0.0,0.0], 'green':[0.0,1.0,0.0], 'blue':[0.0,0.0,1.0], 'white':[1.0,1.0,1.0]} # ARCh 2025
+# LABELS = {'bottle':[0.0,0.0,1.0], 'mallet':[1.0,0.0,0.0]} # URC 2025
 DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
 
 # Object ids:
 # Note: This has the same order as mappings in the generated .json file
-# IDS_LABEL = { 0: 'blue', 1: 'green', 2: 'red', 3: 'white'} # ARCh 2025
-IDS_LABEL = { 0: 'bottle', 1: 'mallet'} # URC 2025
+IDS_LABEL = { 0: 'blue', 1: 'green', 2: 'red', 3: 'white'} # ARCh 2025
+# IDS_LABEL = { 0: 'bottle', 1: 'mallet'} # URC 2025
 
 
 class ObjectLocaliser(Node):
