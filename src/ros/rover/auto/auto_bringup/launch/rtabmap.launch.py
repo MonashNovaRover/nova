@@ -104,15 +104,15 @@ def launch_setup(context, *args, **kwargs):
                 ),
             ],
         ),
-        # Node(
-        #     package='rtabmap_util', executable='obstacles_detection', output='screen',
-        #     parameters=[rtabmap_params],
-        #     remappings=[
-        #         ('cloud',front_name+'/depth/points'),
-        #         ('obstacles', front_name+'/obstacles'),
-        #         ('ground', front_name+'/ground'),
-        #     ],
-        # ),
+         Node(
+             package='rtabmap_util', executable='obstacles_detection', output='screen',
+             parameters=[rtabmap_params],
+             remappings=[
+                 ('cloud','/livox/lidar'),
+                 ('obstacles','/livox/lidar/obstacles'),
+                 ('ground', '/livox/lidar/ground'),
+             ],
+         ),
         Node(
             condition=IfCondition(rtabmap_viz),
             package='rtabmap_viz',
