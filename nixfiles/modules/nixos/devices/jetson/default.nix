@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   cfg = config.devices.jetson;
@@ -11,14 +11,18 @@ in
     ./devkit
     ./peripherals
     ./devices
-    # Poor solution
-    (builtins.fetchTarball "https://github.com/anduril/jetpack-nixos/archive/master.tar.gz" + "/modules/default.nix")
   ];
 
   options = {
     devices.jetson.enable = lib.mkEnableOption "configuration for NVIDIA Jetson SoMs" // { internal = true; };
   } // lib.optionalAttrs (!hasJetpackChannel) {
-    hardware.nvidia-jetpack = lib.mkSinkUndeclaredOptions { };
+    #hardware.nvidia-jetpack = lib.mkSinkUndeclaredOptions { };
+    hardware.nvidia-jetpack = lib.mkOption {
+      description = "Modules for Jetpack 6 as a flake";
+      type = with lib.types; attrsOf (submodule {
+        freeformType = lib.types.anything;
+      });
+    };
   };
 
   config = lib.mkIf cfg.enable ({
