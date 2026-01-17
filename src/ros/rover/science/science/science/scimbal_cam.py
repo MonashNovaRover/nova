@@ -25,12 +25,12 @@ from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
 from python_control2.hardware_interfaces import CMDHardware
-from teleop_python_utils import Inputs
 
 
-class ScimbalCamNode(Controller):
+class ScimbalCamController(Controller):
     # Command interfaces
-    # joint_cmd: Interface
+    tilt_cmd: Interface
+    pan_cmd: Interface
 
     # State interfaces
     # state: Interface
@@ -44,18 +44,19 @@ class ScimbalCamNode(Controller):
         super().__init__(contexts)
         self.logger.info(f"ScimbalCamNode -- I have been __init__ialized")
 
+        self.start_tilt_angle = 90
+        self.start_pan_angle = 180
+
+        self.max_tilt_angle = 180
+        self.max_pan_angle = 360
+
         # Declare ROS2 parameters here.
         # self.joint = self.declare_parameter("joint", "j1").value
+        
 
         # Do any setup logic here, save any contexts you want reference to in the future.
         # Save Input references here
-        self.button_name = self.declare_parameter("button", button).value
-        self.axis_name = self.declare_parameter("axis", axis).value
-
-        inputs = contexts[Inputs]
-        self.button = inputs.get_button(self.button_name)
-        self.axis = inputs.get_axis(self.axis_name)
-        inputs.get_event(f"{self.button_name}/down").add_callback(lambda : self.logger.info(f"{self.button_name}/down event triggered"))
+        
         
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
@@ -69,8 +70,12 @@ class ScimbalCamNode(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
         # Save references to interfaces
-        # self.logger.info(f"Getting \"{self.joint + "/effort"}\"")
-        # self.joint_cmd = command_interfaces[self.joint + "/effort"]
+        self.logger.info(f"Getting scimbal_tilt_hw/position")
+        self.tilt_cmd = command_interfaces["scimbal_tilt_hw/position"]
+
+        self.logger.info(f"Getting scimbal_pan_hw/position")
+        self.pan_cmd = command_interfaces["scimbal_pan_hw/position"]
+
 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
@@ -81,18 +86,20 @@ class ScimbalCamNode(Controller):
         # Update Command Interfaces
         # self.cmd.value = 2 * self.state.value
         # self.logger.info(f"{self.state.value} -> {self.cmd.value}")
-
-    def request_servo(self, request, response):
-        try:
-            for i in range(len(request.angles)):
-                angle = request.angles[i]
-                self.scimbal_cam[i].displace(angle)
-            self.get_logger().info(f"Scimbal Cam angles updated: TILT: {self.scimbal_cam[0].get_goal_position()}, PAN: {self.scimbal_cam[1].get_goal_position()}, request: {request.angles}")
-            response.success = True
-        except Exception as e:
-            self.get_logger().error(f"Scimbal Cam angle update request {request.angles} interrupted by error: {str(e)}")
-            response.success = False
-        return response
+    
+    # OLD displace angle function for reference
+    # 
+    # def request_servo(self, request, response):
+    #     try:
+    #         for i in range(len(request.angles)):
+    #             angle = request.angles[i]
+    #             self.scimbal_cam[i].displace(angle)
+    #         self.get_logger().info(f"Scimbal Cam angles updated: TILT: {self.scimbal_cam[0].get_goal_position()}, PAN: {self.scimbal_cam[1].get_goal_position()}, request: {request.angles}")
+    #         response.success = True
+    #     except Exception as e:
+    #         self.get_logger().error(f"Scimbal Cam angle update request {request.angles} interrupted by error: {str(e)}")
+    #         response.success = False
+    #     return response
 
 if __name__ == "__main__":
     print("Setting up!")
@@ -102,9 +109,9 @@ if __name__ == "__main__":
     node = Node("control_test")
     inputs = Inputs(node).with_topics("/package/input")
 
-    PythonControl("scimbal_cam", update_rate=5, can_bus="can1") \
-        .with_controller("ScimbalCamNode", ScimbalCamNode) \
-        .with_hardware("test_hw", TestHardware) \
-        .with_teleop(inputs) \
+    PythonControl(node, update_rate=5, can_bus="can1") \
+        .with_controller("scimbal_cam_controller", ScimbalCamController) \
+        .with_hardware("scimbal_tilt_hw", PositionalServoHardware, function_id=0x03, min_angle=0.0, max_angle=180.0) \
+        .with_hardware("scimbal_pan_hw", PositionalServoHardware, function_id=0x04, min_angle=0.0, max_angle=360.0) \
         .with_jcan() \
         .spin()
