@@ -4,9 +4,9 @@ rtabmap_slam:
     qos: 1
     frame_id: base_link
     publish_tf: True
-    subscribe_rgb: True
+    subscribe_rgb: False
     subscribe_depth: False
-    subscribe_rgbd: False
+    subscribe_rgbd: True
     subscribe_scan_cloud: True
     subscribe_odom_info: False
     approx_sync: True
@@ -32,7 +32,7 @@ rtabmap_odom:
     publish_tf: False
     publish_null_when_lost: False
     subscribe_rgbd: True
-    rgbd_cameras: 2
+    rgbd_cameras: 1
 
 oak_rgbd_sync:
   ros__parameters:
