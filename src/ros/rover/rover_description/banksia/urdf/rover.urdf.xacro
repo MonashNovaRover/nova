@@ -8,6 +8,7 @@
     <xacro:arg name="gazebo" default="false"/>
     <xacro:arg name="use_mock_hardware" default="false"/>
     <xacro:arg name="arm" default="false"/>
+    <xacro:arg name="hitl_camera" default="false" />
     <xacro:arg name="old_arm" default="false"/>
     <xacro:arg name="auto_camera" default="true"/>
     <xacro:arg name="robot_name" default="Banksia"/>
@@ -21,6 +22,7 @@
 
     <!-- Variables -->
     <xacro:property name="angle" value="$(arg angle)" />
+    <xacro:property name="hitl_camera" value="$(arg hitl_camera)" />
 
 
     <link name="base_link"></link>

@@ -200,107 +200,109 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
     cam_yaw="0.0"
   />
 
-  <!-- EVERYTHING BELOW IS FOR SENSOR PLUGINS! REMOVE IF CAUSING PROBLEMS IRL -->
+  <xacro:unless value="$(arg hitl_camera)">
+    <!-- EVERYTHING BELOW IS FOR SENSOR PLUGINS! REMOVE IF CAUSING PROBLEMS IRL -->
 
-  <link name="oak_link_optical"/>
+    <link name="oak_link_optical"/>
 
-  <joint name="oak_optical_joint" type="fixed">
-    <origin xyz="0.0 0 0.0" rpy="${-pi/2} 0 ${-pi/2}"/>
-    <parent link="oak_link"/>
-    <child link="oak_link_optical"/>
-  </joint>
+    <joint name="oak_optical_joint" type="fixed">
+      <origin xyz="0.0 0 0.0" rpy="${-pi/2} 0 ${-pi/2}"/>
+      <parent link="oak_link"/>
+      <child link="oak_link_optical"/>
+    </joint>
 
-  <link name="bootie_link_optical"/>
+    <link name="bootie_link_optical"/>
 
-  <joint name="bootie_optical_joint" type="fixed">
-    <origin xyz="0.0 0 0.0" rpy="${-pi/2} 0 ${-pi/2}"/>
-    <parent link="bootie_link"/>
-    <child link="bootie_link_optical"/>
-  </joint>
+    <joint name="bootie_optical_joint" type="fixed">
+      <origin xyz="0.0 0 0.0" rpy="${-pi/2} 0 ${-pi/2}"/>
+      <parent link="bootie_link"/>
+      <child link="bootie_link_optical"/>
+    </joint>
 
-  <!-- Used in conjuction with gz_header_republisher to fix pointcloud frame transform-->
-  <link name="oak_link_gz_pointcloud"/>
-  <joint name="oak_pointcloud_joint" type="fixed">
-    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
-    <parent link="oak_link_optical"/>
-    <child link="oak_link_gz_pointcloud"/>
-  </joint>
+    <!-- Used in conjuction with gz_header_republisher to fix pointcloud frame transform-->
+    <link name="oak_link_gz_pointcloud"/>
+    <joint name="oak_pointcloud_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
+      <parent link="oak_link_optical"/>
+      <child link="oak_link_gz_pointcloud"/>
+    </joint>
 
-  <link name="bootie_link_gz_pointcloud"/>
-  <joint name="bootie_pointcloud_joint" type="fixed">
-    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
-    <parent link="bootie_link_optical"/>
-    <child link="bootie_link_gz_pointcloud"/>
-  </joint>
+    <link name="bootie_link_gz_pointcloud"/>
+    <joint name="bootie_pointcloud_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
+      <parent link="bootie_link_optical"/>
+      <child link="bootie_link_gz_pointcloud"/>
+    </joint>
 
-  <!-- Oak Depth Camera for Gazebo-->
-  <gazebo reference="oak_link_optical">
-    <sensor name="oak" type="rgbd_camera">
-      <pose> 0 0 0 0 ${-pi/2} ${pi/2} </pose> <!-- Get camera facing correct way in optical frame -->
-      <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system"></plugin>
-      <gz_frame_id>oak_link_optical</gz_frame_id>
-      <topic>oak</topic>
-      <visualize>true</visualize>
-      <update_rate>30</update_rate>
-      <always_on>1</always_on>
-      <camera name="oak">
-        <horizontal_fov>${radians(82)}</horizontal_fov>
-        <image>
-          <width>1280</width>
-          <height>900</height>
-        </image>
-        <clip>
-          <near>0.4</near>
-          <far>10.0</far>
-        </clip>
-      </camera>
-    </sensor>
-  </gazebo> 
+    <!-- Oak Depth Camera for Gazebo-->
+    <gazebo reference="oak_link_optical">
+      <sensor name="oak" type="rgbd_camera">
+        <pose> 0 0 0 0 ${-pi/2} ${pi/2} </pose> <!-- Get camera facing correct way in optical frame -->
+        <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system"></plugin>
+        <gz_frame_id>oak_link_optical</gz_frame_id>
+        <topic>oak</topic>
+        <visualize>true</visualize>
+        <update_rate>30</update_rate>
+        <always_on>1</always_on>
+        <camera name="oak">
+          <horizontal_fov>${radians(82)}</horizontal_fov>
+          <image>
+            <width>1280</width>
+            <height>900</height>
+          </image>
+          <clip>
+            <near>0.4</near>
+            <far>10.0</far>
+          </clip>
+        </camera>
+      </sensor>
+    </gazebo> 
 
-  <!-- Bootie Depth Camera for Gazebo-->
-  <gazebo reference="bootie_link_optical">
-    <sensor name="bootie" type="rgbd_camera">
-      <pose> 0 0 0 0 ${-pi/2} ${pi/2} </pose> <!-- Get camera facing correct way in optical frame -->
-      <!-- <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
-        <frame_name>bootie_link_optical</frame_name>
-      </plugin> -->
-      <gz_frame_id>bootie_link_optical</gz_frame_id>
-      <topic>bootie</topic>
-      <visualize>true</visualize>
-      <update_rate>30</update_rate>
-      <always_on>1</always_on>
-      <camera name="bootie">
-        <horizontal_fov>${radians(82)}</horizontal_fov>
-        <image>
-          <width>1280</width>
-          <height>900</height>
-        </image>
-        <clip>
-          <near>0.4</near>
-          <far>10.0</far>
-        </clip>
-      </camera>
-    </sensor>
-  </gazebo>
+    <!-- Bootie Depth Camera for Gazebo-->
+    <gazebo reference="bootie_link_optical">
+      <sensor name="bootie" type="rgbd_camera">
+        <pose> 0 0 0 0 ${-pi/2} ${pi/2} </pose> <!-- Get camera facing correct way in optical frame -->
+        <!-- <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
+          <frame_name>bootie_link_optical</frame_name>
+        </plugin> -->
+        <gz_frame_id>bootie_link_optical</gz_frame_id>
+        <topic>bootie</topic>
+        <visualize>true</visualize>
+        <update_rate>30</update_rate>
+        <always_on>1</always_on>
+        <camera name="bootie">
+          <horizontal_fov>${radians(82)}</horizontal_fov>
+          <image>
+            <width>1280</width>
+            <height>900</height>
+          </image>
+          <clip>
+            <near>0.4</near>
+            <far>10.0</far>
+          </clip>
+        </camera>
+      </sensor>
+    </gazebo>
 
-  <gazebo reference="base_link">
-    <sensor name="oak_imu_sensor" type="imu">
-      <topic>oak/imu</topic>
-      <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"></plugin>
-      <gz_frame_id>base_link</gz_frame_id>
-      <always_on>true</always_on>
-      <update_rate>100</update_rate>
-      <visualize>true</visualize>
-    </sensor>
-  </gazebo>
+    <gazebo reference="base_link">
+      <sensor name="oak_imu_sensor" type="imu">
+        <topic>oak/imu</topic>
+        <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"></plugin>
+        <gz_frame_id>base_link</gz_frame_id>
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <visualize>true</visualize>
+      </sensor>
+    </gazebo>
 
-  <gazebo reference="base_link">
-    <sensor name="bootie_imu_sensor" type="imu">
-      <topic>bootie/imu</topic>
-      <gz_frame_id>base_link</gz_frame_id>
-      <always_on>true</always_on>
-      <update_rate>100</update_rate>
-      <visualize>true</visualize>
-    </sensor>
-  </gazebo>
+    <gazebo reference="base_link">
+      <sensor name="bootie_imu_sensor" type="imu">
+        <topic>bootie/imu</topic>
+        <gz_frame_id>base_link</gz_frame_id>
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <visualize>true</visualize>
+      </sensor>
+    </gazebo>
+  </xacro:unless>
 </robot>

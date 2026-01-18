@@ -17,7 +17,7 @@ CREATION:	27/04/2023
 from launch import LaunchDescription
 from launch.conditions import IfCondition
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
+from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, NotSubstitution
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -31,7 +31,6 @@ def launch_setup(context, *args, **kwargs):
     angle = LaunchConfiguration('angle')
     camera = LaunchConfiguration('camera')
     hitl_camera = LaunchConfiguration('hitl_camera')
-    hitl_camera_bool = hitl_camera.perform(context).lower() == 'true' # Checking if camera is in HILT mode
     gz_params = LaunchConfiguration('gz_params')
     gz_qos_params = LaunchConfiguration('gz_qos_params')
     controller_params = LaunchConfiguration('controller_params')
@@ -62,7 +61,7 @@ def launch_setup(context, *args, **kwargs):
         IncludeLaunchDescription(
             condition=IfCondition(camera),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
-            launch_arguments={'gazebo': str(not hitl_camera_bool)}.items(),
+            launch_arguments={'gazebo': NotSubstitution(hitl_camera)}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),

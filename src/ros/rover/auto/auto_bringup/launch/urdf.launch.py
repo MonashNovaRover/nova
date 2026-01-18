@@ -35,7 +35,7 @@ def launch_setup(context, *args, **kwargs):
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[{'robot_description': 
-                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle, ' ', 'auto_camera:=', camera, 'hitl_camera:=', hitl_camera]), value_type=str)
+                ParameterValue(Command(['xacro ', model, ' gazebo:=', gazebo, ' robot_name:=', robot_name, ' angle:=', angle, ' auto_camera:=', camera, ' hitl_camera:=', hitl_camera]), value_type=str)
             }]
         )
     ]
@@ -80,5 +80,3 @@ def generate_launch_description():
     return LaunchDescription(
         declared_arguments + [OpaqueFunction(function=launch_setup)]
     )
-
-## ros2 launch gazebo.launch.py hitl_camera:=true is how we run hilt

@@ -30,6 +30,7 @@ def launch_setup(context, *args, **kwargs):
     controller_params = LaunchConfiguration('controller_params')
     gazebo = LaunchConfiguration('gazebo')
     gps = LaunchConfiguration('gps')
+    hitl_camera = LaunchConfiguration('hitl_camera')
     localization = LaunchConfiguration('localization')
     log_level = LaunchConfiguration('log_level')
     map_params = LaunchConfiguration('map_params')
@@ -52,6 +53,7 @@ def launch_setup(context, *args, **kwargs):
             launch_arguments={
                 'camera':'True',
                 'controller_params': controller_params,
+                'hitl_camera': hitl_camera,
                 'model': model,
                 'namespace': namespace,
                 'world': world,
@@ -155,6 +157,11 @@ def generate_launch_description():
             name='gps',
             default_value='False',
             description='Fuse GPS?',
+        ),
+        DeclareLaunchArgument(
+            name='hitl_camera',
+            default_value='false',
+            description='Enable HITL camera (disable simulated camera plugins)',
         ),
         DeclareLaunchArgument(
             name='localization',
