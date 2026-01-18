@@ -6,13 +6,14 @@ Controls Scraper X (2024-2025 scraper)
 NODE: scraper_x
 TOPICS:
   - subscriber: /ec/input
+  - subscriber: /ec/input/values
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        excavation_construction
 AUTHOR(S):      Jonathan Jia
 CREATION:       17/01/2026
-EDITED:         17/01/2026
+EDITED:         18/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -40,9 +41,15 @@ class ScraperXController(Controller):
                  claw_effort_multiplier = 0.6,
                  minimum_speed = 0.05):
         """ Constructor, deferred until the control manager has been spun.
-        If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
+        :param arm_joint: name of joint connecting the arms of the scraper to the rover chassis
+        :param arm_effort_multiplier: fixed multiplier applied to effort at arm_joint
+        :param scoop_joint: name of joint connecting the bucket to the arms of the scraper
+        :param scoop_effort_multiplier: fixed multiplier applied to effort at scoop_joint
+        :param claw_joint: name of joint that allows the bucket to open or close
+        :param claw_effort_multiplier: fixed multiplier applied to effort at claw_joint
+        :param minimum_speed: minimum speed multiplier when unlocked
         """
         super().__init__(contexts)
 
@@ -75,7 +82,6 @@ class ScraperXController(Controller):
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
-        Use this method to get data from self.node, and get references to any command or state interface you need.
 
         :param command_interfaces: A collection of Interfaces used to send messages to hardware. Get any command
         interfaces you need from this, then store them in member variables.
@@ -91,8 +97,8 @@ class ScraperXController(Controller):
 
 
     def on_update(self, now: float, period: float):
-        """ Called on every update. You should read values from state interfaces, and set values on command interfaces
-            here.
+        """ Called on every update.
+
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
@@ -102,9 +108,9 @@ class ScraperXController(Controller):
         else:
             speed = max(self.speed_axis.value, self.minimum_speed)
 
-        self.arm_joint_cmd.value = self.arm_axis.value * speed
-        self.scoop_joint_cmd.value = self.scoop_axis.value * speed
-        self.claw_joint_cmd.value = self.claw_axis.value * speed
+        self.arm_joint_cmd.value = self.arm_axis.value * self.arm_effort_multiplier * speed
+        self.scoop_joint_cmd.value = self.scoop_axis.value * self.scoop_effort_multiplier * speed
+        self.claw_joint_cmd.value = self.claw_axis.value * self.claw_effort_multiplier * speed
 
         self.logger.debug(f"speed: {speed}, arm effort: {self.arm_joint_cmd.value:.2f}, "
                           f"scoop effort: {self.scoop_joint_cmd.value:.2f}, "
