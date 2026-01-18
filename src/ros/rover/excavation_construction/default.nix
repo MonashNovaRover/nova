@@ -6,6 +6,7 @@
 , nova-python-control
 , nova-input-interfaces
 , nova-python-control-old
+, nova-python-control2
 }:
 
 buildRosPackage {
@@ -24,5 +25,6 @@ buildRosPackage {
     nova-python-control-old
     pythonPackages.jcan
     nova-input-interfaces
+    nova-python-control2
   ];
 }
