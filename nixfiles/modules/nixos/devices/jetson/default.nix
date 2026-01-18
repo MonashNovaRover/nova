@@ -2,11 +2,12 @@
 
 let
   cfg = config.devices.jetson;
-  hasJetpackChannel = (builtins.tryEval <jetpack-nixos>).success;
+  hasJetpackChannel = true; #(builtins.tryEval <jetpack-nixos>).success;
 in
 {
   imports = [
-    (lib.optionalAttrs hasJetpackChannel <jetpack-nixos/modules>)
+    (builtins.getFlake "github:anduril/jetpack-nixos").nixosModules.default
+    #(lib.optionalAttrs hasJetpackChannel <jetpack-nixos/modules>)
     ./boot
     ./devkit
     ./peripherals
