@@ -8,7 +8,7 @@ velocity_smoother:
     min_velocity: [-2.0, 0.0, -0.7]
     max_accel: [0.5, 0.0, 0.5]
     max_decel: [-0.5, 0.0, -0.5]
-    odom_topic: /odometry/local
+    odom_topic: /odometry/filtered
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
