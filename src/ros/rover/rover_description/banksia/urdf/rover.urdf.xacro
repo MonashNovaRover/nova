@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <!-- Generated using onshape-to-robot and modified to include CKCs and ball joints by Anthony Lew -->
 <!-- Collisions added using openscad (see .scad files)-->
 <!-- Note: Exporting from onshape has _continuous at the end of continuous joint names these have been removed post-export -->
@@ -23,11 +23,11 @@
     <xacro:property name="angle" value="$(arg angle)" />
 
 
-    <link name="base_link"></link>
+    <link name="base_link" />
     <joint name="base_link_to_chassis" type="fixed">
-        <parent link="base_link"/>
+        <parent link="base_link" />
         <child link="chassis" />
-        <origin rpy="0.0 0 0" xyz="0 0 0.434263"/>
+        <origin rpy="0.0 0 0" xyz="0 0 0.434263" />
     </joint>
     <!-- Generated URDF -->
     <xacro:include filename="$(arg rover_description_dir)/banksia/urdf/rover.urdf"/>
@@ -38,7 +38,11 @@
     <xacro:if value="$(arg auto_camera)">
         <xacro:include filename="$(arg rover_description_dir)/auto_mount/urdf/auto_camera.xacro"/>
     </xacro:if>
-    
+
+    <xacro:include
+        filename="$(find rover_description)/auto_mount/urdf/livox.xacro"
+    />
+
     <xacro:if value="$(arg arm)">
         <!-- Waratah's arm
         <xacro:include filename="$(arg rover_description_dir)/waratah_arm/urdf/arm.urdf.xacro" />
@@ -50,7 +54,7 @@
         <!-- Banksia's arm -->
         <xacro:include filename="$(arg rover_description_dir)/banksia_arm/urdf/arm.urdf.xacro" />
         <joint name="chassis_to_arm_base" type="fixed">
-            <origin xyz="0.234 -0.001 0.116750" rpy="0 0 1.5708"/>
+            <origin xyz="0.234 -0.001 0.116750" rpy="0 0 1.5708" />
             <parent link="chassis" />
             <child link="arm_link" />
         </joint>
@@ -63,7 +67,7 @@
     <xacro:if value="$(arg old_arm)">
         <xacro:include filename="$(arg rover_description_dir)/waratah_arm/urdf/arm.urdf.xacro" />
         <joint name="chassis_to_arm_base" type="fixed">
-            <origin xyz="0.2 0 -0.06" rpy="0 0 0"/>
+            <origin xyz="0.2 0 -0.06" rpy="0 0 0" />
             <parent link="chassis" />
             <child link="arm_link" />
         </joint>

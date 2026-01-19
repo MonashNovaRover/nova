@@ -7,11 +7,12 @@ rtabmap_slam:
     subscribe_rgb: False
     subscribe_depth: False
     subscribe_rgbd: True
-    rgbd_cameras: 2
+    subscribe_scan_cloud: True
     subscribe_odom_info: False
     approx_sync: True
     odom_frame_id: odom
     Rtabmap/DetectionRate: "3.5"
+    Rtabmap/LoopGPS: "true"
     # Grid Parameters are responsible for the Occupancy Grid Generated
     # Crucial for Costmap Generation
     Grid/MaxGroundAngle: "72"
@@ -31,7 +32,7 @@ rtabmap_odom:
     publish_tf: False
     publish_null_when_lost: False
     subscribe_rgbd: True
-    rgbd_cameras: 2
+    rgbd_cameras: 1
 
 oak_rgbd_sync:
   ros__parameters:
