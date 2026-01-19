@@ -386,7 +386,7 @@ nova_arm_controller:
     actuator_head:
       has_position_limits: {
         type: bool,
-        default_value: true,
+        default_value: false,
       }
       max_position: {
         type: double,
@@ -415,7 +415,7 @@ nova_arm_controller:
     left_slide:
       has_position_limits: {
         type: bool,
-        default_value: true,
+        default_value: false,
       }
       max_position: {
         type: double,

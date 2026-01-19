@@ -283,14 +283,12 @@
 	 <ros2_control name="arm_actuator_head" type="system">
 		<xacro:unless value="${use_mock_hardware}">
 			<hardware>
-				<plugin>cmd_hardware/CMDHardware</plugin>
+				<plugin>qcmd_hardware/QCMDHardware</plugin>
 				<param name="candevice">can1</param> 
 				<param name="canid">0C1</param> <!-- TODO: Get CAN id, resolver id should be that *4 -->
-				<param name="resolver_id">304</param>
-				<param name="resolver_reduction">1.0</param>
-				<param name="reversed">false</param>
-				<param name="reverse_velocity">true</param>
-				<param name="max_velocity">0.365109712045</param>
+				<!-- <param name="reversed">false</param> -->
+				<!-- <param name="reverse_velocity">true</param> -->
+				<!-- <param name="max_velocity">0.365109712045</param> -->
 				<param name="max_effort">1</param>
 			</hardware>
 		</xacro:unless>
@@ -307,10 +305,6 @@
 			</command_interface>
 
 			<state_interface name="velocity">
-			<param name="initial_value">0.0</param>
-			</state_interface>
-
-			<state_interface name="position"> 
 			<param name="initial_value">0.0</param>
 			</state_interface>
 		</joint>
@@ -357,14 +351,14 @@
   <ros2_control name="arm_left_slide" type="system">
 		<xacro:unless value="${use_mock_hardware}">
 			<hardware>
-				<plugin>cmd_hardware/CMDHardware</plugin>
+				<plugin>qcmd_hardware/QCMDHardware</plugin>
 				<param name="candevice">can1</param> 
 				<param name="canid">0D1</param> <!-- TODO: Get CAN id, resolver id should be that *4 -->
-				<param name="resolver_id">344</param>
+				<!-- <param name="resolver_id">344</param>
 				<param name="resolver_reduction">1.0</param>
 				<param name="reversed">false</param>
 				<param name="reverse_velocity">true</param>
-				<param name="max_velocity">0.365109712045</param>
+				<param name="max_velocity">0.365109712045</param> -->
 				<param name="max_effort">1</param>
 			</hardware>
 		</xacro:unless>
@@ -381,10 +375,6 @@
       </command_interface>
 
       <state_interface name="velocity">
-        <param name="initial_value">0.0</param>
-      </state_interface>
-
-      <state_interface name="position"> 
         <param name="initial_value">0.0</param>
       </state_interface>
     </joint>

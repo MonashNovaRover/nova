@@ -72,8 +72,6 @@ arm:
         - J4
         - J5
         - J6
-        - actuator_head
-        - left_slide
       kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
       kinematics_solver_timeout: 0.02
       kinematics_base_frame: "arm_kinematics_origin"
