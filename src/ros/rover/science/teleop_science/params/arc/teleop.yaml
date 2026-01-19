@@ -55,9 +55,11 @@ input_publisher_mode:
 
     axis_names:
       - "auger_actuation"   # actuation for both the auger and the c-beam.
+      - "auger_drill_speed"
     button_names:
       - "sweeper_sweep"
       - "twitch"
       - "spinny_pos_1"
       - "activate_auger"
       - "activate_cbeam"
+      - "auger_drill"
