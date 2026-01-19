@@ -68,18 +68,18 @@ def launch_setup(context, *args, **kwargs):
                         ('rgbd_image',front_name+'/rgbd/image_raw')
                     ],
                 ),
-                ComposableNode(
-                    package='rtabmap_sync',
-                    plugin='rtabmap_sync::RGBDSync',
-                    name=f'{back_name}_rgbd_sync',
-                    parameters=[rtabmap_params],
-                    remappings=[
-                        ('rgb/image', back_name+'/rgb/image_raw'),
-                        ('rgb/camera_info', back_name+'/rgb/camera_info'),
-                        ('depth/image', back_name+'/stereo/image_raw'),
-                        ('rgbd_image',back_name+'/rgbd/image_raw'),
-                    ],
-                ),
+                # ComposableNode(
+                #     package='rtabmap_sync',
+                #     plugin='rtabmap_sync::RGBDSync',
+                #     name=f'{back_name}_rgbd_sync',
+                #     parameters=[rtabmap_params],
+                #     remappings=[
+                #         ('rgb/image', back_name+'/rgb/image_raw'),
+                #         ('rgb/camera_info', back_name+'/rgb/camera_info'),
+                #         ('depth/image', back_name+'/stereo/image_raw'),
+                #         ('rgbd_image',back_name+'/rgbd/image_raw'),
+                #     ],
+                # ),
                 ComposableNode(
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::RGBDOdometry',
@@ -87,8 +87,7 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[rtabmap_params, {'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}', 'use_sim_time': gazebo}],
                     remappings=[
                         ('odom', 'odom/visual'),
-                        ('rgbd_image0',front_name+'/rgbd/image_raw'),
-                        ('rgbd_image1',back_name+'/rgbd/image_raw'),
+                        ('rgbd_image',front_name+'/rgbd/image_raw'),
                     ],
                 ),
                 ComposableNode(
@@ -97,31 +96,33 @@ def launch_setup(context, *args, **kwargs):
                     name='rtabmap_slam',
                     parameters=[rtabmap_params, {'use_sim_time': gazebo, 'rtabmap_args': '--delete_db_on_start'}],
                     remappings=[
-                        ('rgbd_image0',front_name+'/rgbd/image_raw'),
-                        ('rgbd_image1',back_name+'/rgbd/image_raw'),
+                        ('scan_cloud','/livox/lidar'),
+                        ('rgb_image','/oak/rgbd/image_raw'),
+                        ('rgb/camera_info','/oak/rgb/camera_info'),
+                        ('gps/fix','/gps_rover/fix')
                     ],
                 ),
             ],
         ),
-        # Node(
-        #     package='rtabmap_util', executable='obstacles_detection', output='screen',
-        #     parameters=[rtabmap_params],
-        #     remappings=[
-        #         ('cloud',front_name+'/depth/points'),
-        #         ('obstacles', front_name+'/obstacles'),
-        #         ('ground', front_name+'/ground'),
-        #     ],
-        # ),
+         Node(
+             package='rtabmap_util', executable='obstacles_detection', output='screen',
+             parameters=[rtabmap_params],
+             remappings=[
+                 ('cloud','/livox/lidar'),
+                 ('obstacles','/livox/lidar/obstacles'),
+                 ('ground', '/livox/lidar/ground'),
+             ],
+         ),
         Node(
             condition=IfCondition(rtabmap_viz),
             package='rtabmap_viz',
             executable='rtabmap_viz',
             output='screen',
-            parameters=[rtabmap_params, {'use_sim_time': gazebo}],
+            parameters=[rtabmap_params, {'use_sim_time': True}],
             remappings=[
-                ('rgbd_image0',front_name+'/rgbd/image_raw'),
-                ('rgbd_image1',back_name+'/rgbd/image_raw'),
-                ('odom', 'odom/visual'),
+                ('scan_cloud','/livox/lidar'),
+                ('rgb/image','/oak/rgb/image_raw'),
+                ('rgb/camera_info','/oak/rgb/camera_info')
             ]
         ),
     ]

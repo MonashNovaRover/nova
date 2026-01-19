@@ -29,15 +29,16 @@
   nova-bt-navigators,
   nova-cameras2,
   rviz-imu-plugin,
-  rviz-satellite, 
+  rviz-satellite,
   imu-transformer,
   nova-pivot-drive-controller,
   tf2-tools,
+  rqt-tf-tree,
   yolo-ros,
   lattice-primitive-generator,
   spatio-temporal-voxel-layer,
-  nova-interfaces, 
-  imu-filter-madgwick, 
+  nova-interfaces,
+  imu-filter-madgwick,
 }:
 
 buildRosPackage rec {
@@ -84,12 +85,14 @@ buildRosPackage rec {
       rviz-satellite
       nova-pivot-drive-controller
       tf2-tools
+      rqt-tf-tree
       imu-transformer
       yolo-ros # this is only used in sim, so if space is needed on rover, comment out this package. (Used for nova-object-localisation)
       spatio-temporal-voxel-layer
       lattice-primitive-generator
       nova-interfaces
-      imu-filter-madgwick;
+      imu-filter-madgwick
+      ;
   };
 
   # After installing params and resources folders in nix store's auto_bringup,
