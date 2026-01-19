@@ -106,7 +106,7 @@ nova_drive_controller_base:
 
   cmd_vel_timeout:
     type: double
-    default_value: 0.5 # Seconds
+    default_value: 999.0 # Seconds
     description: "Timeout on cmd_vel command."
 
   publish_commanded_velocities:

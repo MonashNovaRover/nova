@@ -128,7 +128,7 @@ ackermann_steering_controller:
   ros__parameters:
     rear_wheels_names: ["frw", "flw"] # rear wheels are the driving wheels
     front_wheels_names: ["frp", "flp"] # front wheels are the steering wheels
-    open_loop: false
+    open_loop: true
     front_wheel_track: 0.81564001 # 0.76 for Waratah
     rear_wheel_track: 0.81564001 # 0.76 for Waratah
     wheelbase: 0.95752883 # 0.875 for Waratah

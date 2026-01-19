@@ -12,7 +12,7 @@
   gz_type_name: "gz.msgs.Image"
   direction: GZ_TO_ROS
 
-# Oak depth camera info 
+# Oak depth camera info
 - ros_topic_name: "/oak/stereo/camera_info"
   gz_topic_name: "/oak/camera_info"
   ros_type_name: "sensor_msgs/msg/CameraInfo"
@@ -47,7 +47,7 @@
   gz_type_name: "gz.msgs.Image"
   direction: GZ_TO_ROS
 
-# Bootie depth camera info 
+# Bootie depth camera info
 - ros_topic_name: "/bootie/stereo/camera_info"
   gz_topic_name: "/bootie/camera_info"
   ros_type_name: "sensor_msgs/msg/CameraInfo"
@@ -73,6 +73,20 @@
   gz_topic_name: "/bootie/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
+
+# Livox LaserScans
+- ros_topic_name: "/livox/lidar"
+  gz_topic_name: "/livox/lidar"
+  ros_type_name: "sensor_msgs/msg/LaserScan"
+  gz_type_name: "gz.msgs.LaserScan"
+  direction: GZ_TO_ROS
+
+# Livox PointClouds
+- ros_topic_name: "/livox/lidar/points"
+  gz_topic_name: "/livox/lidar/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
   direction: GZ_TO_ROS
 
 # GPS
