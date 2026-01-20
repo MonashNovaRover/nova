@@ -51,7 +51,6 @@ class ScimbalCamController(Controller):
 
         self.max_tilt_angle = self.declare_parameter("max_tilt_angle", 180).value
         self.max_pan_angle = self.declare_parameter("max_pan_angle", 360).value        
-        
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -77,7 +76,6 @@ class ScimbalCamController(Controller):
         # Add service
         self.service = self.create_service(self.service_type, self.service_name, self.on_request)
 
-can 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
             here.
@@ -113,6 +111,7 @@ can
             response.success = False
 
         return response
+
 
 if __name__ == "__main__":
     print("Setting up!")
