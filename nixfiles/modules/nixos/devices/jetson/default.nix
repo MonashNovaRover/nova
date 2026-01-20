@@ -2,12 +2,11 @@
 
 let
   cfg = config.devices.jetson;
-  hasJetpackChannel = true; #(builtins.tryEval <jetpack-nixos>).success;
+  hasJetpackChannel = true;
 in
 {
   imports = [
-    (builtins.getFlake "github:anduril/jetpack-nixos").nixosModules.default
-    #(lib.optionalAttrs hasJetpackChannel <jetpack-nixos/modules>)
+    (builtins.getFlake "github:anduril/jetpack-nixos").nixosModules.default    
     ./boot
     ./devkit
     ./peripherals
@@ -17,7 +16,6 @@ in
   options = {
     devices.jetson.enable = lib.mkEnableOption "configuration for NVIDIA Jetson SoMs" // { internal = true; };
   } // lib.optionalAttrs (!hasJetpackChannel) {
-    #hardware.nvidia-jetpack = lib.mkSinkUndeclaredOptions { };
     hardware.nvidia-jetpack = lib.mkOption {
       description = "Modules for Jetpack 6 as a flake";
       type = with lib.types; attrsOf (submodule {
