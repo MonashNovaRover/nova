@@ -13,6 +13,7 @@ in
     ./shortcuts.nix
     ./terminal.nix
     ./vscode
+    ./packages.nix
   ];
 
   options.nova.desktop = {
