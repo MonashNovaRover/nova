@@ -88,7 +88,7 @@ class ScimbalCamController(Controller):
         """
         Called on every request. Applies displacement values of tilt and pan from request angles onto positional servos.
 
-        :param request: Expects an array containing 2 angles displacing current tilt and pan [delta_tilt, delta_pan].
+        :param request: Expects an array angles containing 2 angles displacing current tilt and pan [delta_tilt, delta_pan].
         :param response: Response to return after request has been processed
         :return: Response for request containing if the operation was a success or not.
         """
