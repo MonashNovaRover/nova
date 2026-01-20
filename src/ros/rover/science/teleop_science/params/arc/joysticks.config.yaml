@@ -56,7 +56,7 @@ thrustmaster_right:
   ros__parameters:
     topic: "/science/joy/right"
     button_definitions: [
-      "auger_drill",        # Up / Trigger (behind the thumbstick)
+      "r_btn_thumb_u_state",        # Up / Trigger (behind the thumbstick)
       "r_btn_thumb_d_state",        # Down
       "r_btn_thumb_l_state",        # Buttons located near the thumb stick (Left)
       "r_btn_thumb_r_state",        # Right
@@ -78,7 +78,7 @@ thrustmaster_right:
       "r_ax_stick_x",               # Left/right
       "r_ax_stick_y",               # Forward/backwards
       "r_ax_stick_twist",           # Twist
-      "auger_drill_speed",
+      "r_ax_slider",
       "r_ax_thumb_x",               # Thumb Axis Data (left/right)
       "r_ax_thumb_y"                # Each Thumb axis can be -1, 0 or 1 (up/down)
     ]
