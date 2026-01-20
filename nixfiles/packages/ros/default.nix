@@ -22,6 +22,7 @@
   ros-typescript-definitions = callPackage ./ros-typescript-definitions { };
   spatio-temporal-voxel-layer = callPackage ./spatio-temporal-voxel-layer { };
   vikit-common = callPackage ./vikit-common { };
+  vikit-ros = callPackage ./vikit-ros { };
   yolo-ros = callPackage ./yolo-ros { };
   yolo-msgs = callPackage ./yolo-msgs { };
   yolo-bringup = callPackage ./yolo-bringup { };
