@@ -21,6 +21,7 @@
   rclnodejs = callPackage ./rclnodejs { };
   ros-typescript-definitions = callPackage ./ros-typescript-definitions { };
   spatio-temporal-voxel-layer = callPackage ./spatio-temporal-voxel-layer { };
+  vikit-common = callPackage ./vikit-common { };
   yolo-ros = callPackage ./yolo-ros { };
   yolo-msgs = callPackage ./yolo-msgs { };
   yolo-bringup = callPackage ./yolo-bringup { };
