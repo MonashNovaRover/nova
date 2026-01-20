@@ -5,15 +5,15 @@ Controls Scraper X (2024-2025 scraper)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: scraper_x
 TOPICS:
-  - subscriber: /ec/input
-  - subscriber: /ec/input/values
+  - subscriber: /ec/input [teleop_msgs/msg/InputNames]
+  - subscriber: /ec/input/values [teleop_msgs/msg/CombinedInputValues]
 SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        excavation_construction
 AUTHOR(S):      Jonathan Jia
 CREATION:       17/01/2026
-EDITED:         18/01/2026
+EDITED:         20/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -62,8 +62,7 @@ class ScraperXController(Controller):
         self.claw_effort_multiplier: float = self.declare_parameter("claw_effort_multiplier", claw_effort_multiplier).value
 
         # axis/button names (corresponds to params passed to teleop modular)
-        self.lock_button_name: str = self.declare_parameter("lock_button_name", "lock").value
-        self.speed_axis_name: str = self.declare_parameter("speed_axis_name", "speed").value
+        self.speed_axis_name: str = self.declare_parameter("speed_axis_name", "scraper_speed").value
         self.arm_axis_name: str = self.declare_parameter("arm_axis_name", "arm_joint").value
         self.scoop_axis_name: str = self.declare_parameter("scoop_axis_name", "scoop_joint").value
         self.claw_axis_name: str = self.declare_parameter("claw_axis_name", "claw_joint").value
@@ -71,14 +70,10 @@ class ScraperXController(Controller):
         self.minimum_speed: float = self.declare_parameter("minimum_speed", minimum_speed).value
 
         inputs = contexts[Inputs]
-        self.lock_button = inputs.get_button(self.lock_button_name)
         self.speed_axis = inputs.get_axis(self.speed_axis_name)
         self.arm_axis = inputs.get_axis(self.arm_axis_name)
         self.scoop_axis = inputs.get_axis(self.scoop_axis_name)
         self.claw_axis = inputs.get_axis(self.claw_axis_name)
-
-        # inputs.get_event(f"{self.button_name}/down").add_callback(lambda : self.logger.info(f"{self.button_name}/down event triggered"))
-        
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -102,11 +97,7 @@ class ScraperXController(Controller):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-
-        if self.lock_button:
-            speed = 0.0
-        else:
-            speed = max(self.speed_axis.value, self.minimum_speed)
+        speed = max(self.speed_axis.value, self.minimum_speed)
 
         self.arm_joint_cmd.value = self.arm_axis.value * self.arm_effort_multiplier * speed
         self.scoop_joint_cmd.value = self.scoop_axis.value * self.scoop_effort_multiplier * speed

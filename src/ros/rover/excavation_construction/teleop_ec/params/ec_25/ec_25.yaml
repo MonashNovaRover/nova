@@ -1,0 +1,76 @@
+# control mode for 2025 E&C payload
+
+teleop_ec:
+  ros__parameters:
+    control_modes:
+      names: ["input_publisher_mode"]
+
+      input_publisher_mode:
+        type: "input_publisher_mode/InputPublisherMode"
+        active: true
+
+    commands:
+      names:
+        - set_locked
+        - set_unlocked
+        - log_locked
+        - log_unlocked
+        - initial_scraper_speed
+        - on_increase_scraper_speed
+        - on_decrease_scraper_speed
+
+      # lock controller
+      set_locked:
+        on_any: ["start", "lock/down"]
+        type: "set_button"
+        name: "locked"
+        value: true
+      set_unlocked:
+        on: "unlock/down"
+        type: "set_button"
+        name: "locked"
+        value: false
+      log_locked:
+        on: "locked/down"
+        type: "log"
+        message: "locked game controller"
+      log_unlocked:
+        on: "locked/up"
+        type: "log"
+        message: "unlocked game controller"
+
+      # if using game controller: support
+
+
+      # if using game controller: support speed changes using dpad
+      initial_scraper_speed:
+        on: "start"
+        type: "set_axis"
+        name: "scraper_speed"
+        value: 0.3
+      on_increase_scraper_speed:
+        on: "increase_scraper_speed/down"
+        type: "increment_axis"
+        name: "scraper_speed"
+        by: 0.05
+        until: 1.0
+      on_decrease_scraper_speed:
+        on: "decrease_scraper_speed/down"
+        type: "increment_axis"
+        name: "scraper_speed"
+        by: -0.05
+        until: 0.05
+
+
+
+input_publisher_mode:
+  ros__parameters:
+    input_names_topic: "/ec/input"
+
+    axis_names:
+      - "scraper_speed"
+      - "arm_joint"
+      - "scoop_joint"
+      - "claw_joint"
+
+    button_names: [""]

@@ -1,0 +1,11 @@
+# parameters always passed to teleop node
+
+teleop_ec:
+  ros__parameters:
+    # The maximum rate at which updates should occur, and hence the max rate at which commands are sent.
+    # Leaving this unset makes the max update rate unlimited.
+    # update_rate: 50.0
+
+    # The minimum rate at which updates occur.
+    # Leaving this unset will allow for indefinite lapses between updates.
+    min_update_rate: 2.0

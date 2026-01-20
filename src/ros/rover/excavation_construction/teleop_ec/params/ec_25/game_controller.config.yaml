@@ -1,0 +1,73 @@
+# game pad input source for 2025 E&C payload
+
+teleop_ec:
+  ros__parameters:
+    input_sources:
+      names: ["game_controller_source"]
+
+      game_controller_source:
+        type: "teleop_modular_joy/JoyInputSource"
+
+
+
+game_controller_source:
+  ros__parameters:
+    topic: "/ec/joy"
+
+    button_definitions: [
+      "A",
+      "B",
+      "X",
+      "Y",
+      "BACK",
+      "GUIDE",
+      "START",
+      "LEFTSTICK",
+      "RIGHTSTICK",
+      "LEFTSHOULDER",
+      "RIGHTSHOULDER",
+      "DPAD_UP",
+      "DPAD_DOWN",
+      "DPAD_LEFT",
+      "DPAD_RIGHT",
+      "MISC1",
+      "PADDLE1",
+      "PADDLE2",
+      "PADDLE3",
+      "PADDLE4",
+      "TOUCHPAD"
+    ]
+    axis_definitions: [
+      "LEFTX",
+      "LEFTY",
+      "RIGHTX",
+      "RIGHTY",
+      "TRIGGERLEFT",
+      "TRIGGERRIGHT"
+    ]
+
+    remap:
+      axes:
+        arm_joint:
+          from: "LEFTY"
+
+        scoop_joint:
+          from: "RIGHTY"
+
+        claw_joint:
+          from_buttons:
+            positive: "RIGHTSHOULDER"
+            negative: "LEFTSHOULDER"
+
+      buttons:
+        lock:
+          from: "BACK"
+
+        unlock:
+          from: "START"
+
+        increase_scraper_speed:
+          from: "DPAD_UP"
+
+        decrease_scraper_speed:
+          from: "DPAD_DOWN"
