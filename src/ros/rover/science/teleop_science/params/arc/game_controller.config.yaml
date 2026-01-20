@@ -53,6 +53,8 @@ game_controller_source:
       axes:
         auger_actuation:
           from: "RIGHTY"
+        auger_drill_speed:
+          from: "LEFTY"
         cbeam_actuation:
           from: "LEFTY"
 
@@ -61,9 +63,9 @@ game_controller_source:
           from: "BACK"
         unlock:
           from: "START"
-        sweeper_sweep:
+        auger_drill_clockwise:
           from: "A"
-        twitch:
+        auger_drill_antclockwise:
           from: "B"
         spinny_pos_1:
           from: "X"
@@ -71,3 +73,5 @@ game_controller_source:
           from: "DPAD_UP"
         activate_cbeam:
           from: "DPAD_LEFT"
+        auger_drill:
+          from: "DPAD_DOWN"

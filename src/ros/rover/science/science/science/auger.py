@@ -83,7 +83,7 @@ class AugerController(Controller):
 
         # Update Command Interfaces
         # Update drill speed
-        self.drill_cmd.value = self.drill_button.value * self.speed_axis.value * self.drill_direction.value
+        self.drill_cmd.value = self.drill_button.value * self.get_drill_speed() * self.drill_direction.value
 
         # Update actuation
         self.actuation_cmd.value = self.actuation_axis.value
@@ -92,6 +92,10 @@ class AugerController(Controller):
         def update_drill():
             self.drill_direction = direction
         return update_drill
+
+    def get_drill_speed(self) -> float:
+        """ gets the drill speed, turning an axis [-1, 1] to a speed [0, 1]"""
+        return (self.speed_axis.value + 1) / 2
 
 
 if __name__ == "__main__":

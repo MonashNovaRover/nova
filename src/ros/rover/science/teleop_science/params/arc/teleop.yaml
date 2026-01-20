@@ -54,12 +54,13 @@ input_publisher_mode:
     input_names_topic: "/science/input"
 
     axis_names:
+      # Auger
       - "auger_actuation"   # actuation for both the auger and the c-beam.
       - "auger_drill_speed"
     button_names:
-      - "sweeper_sweep"
-      - "twitch"
-      - "spinny_pos_1"
+      # Auger
       - "activate_auger"
       - "activate_cbeam"
       - "auger_drill"
+      - "auger_drill_clockwise"
+      - "auger_drill_anticlockwise"

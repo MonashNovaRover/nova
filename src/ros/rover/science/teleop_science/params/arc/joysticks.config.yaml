@@ -46,14 +46,11 @@ thrustmaster_left:
 
     remap:
       buttons:
+        # Lock/Unlock
         lock:
           from: "l_btn_bottom_l2_state"
         unlock:
           from: "l_btn_bottom_l5_state"
-        twitch:
-          from: "l_btn_bottom_r5_state"
-        spinny_pos_1:
-          from: "l_btn_bottom_r1_state"
 
 thrustmaster_right:
   ros__parameters:
@@ -88,12 +85,14 @@ thrustmaster_right:
 
     remap:
       axes:
+        # Auger
         auger_actuation:
           from: "r_ax_stick_y"
         auger_drill_speed:
           from: "r_ax_slider"
 
       buttons:
+        # Auger
         auger_drill:
           from: "r_btn_thumb_u_state"
         sweeper_sweep:
@@ -102,3 +101,7 @@ thrustmaster_right:
           from: "r_btn_bottom_l4_state"
         activate_cbeam:
           from: "r_btn_bottom_l1_state"
+        auger_drill_clockwise:
+          from: "r_btn_thumb_r_state"
+        auger_drill_anticlockwise:
+          from: "r_btn_thumb_l_state"
