@@ -13,19 +13,29 @@ EDITED BY: Tristan Clark, Taaj Street,
     Victor Bartlinski
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
+from datetime import datetime
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, OpaqueFunction
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, OpaqueFunction, ExecuteProcess
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    drive_bringup_dir = FindPackageShare('drive_bringup')
-    
     scraper_card_type = LaunchConfiguration('scraper_card_type')
 
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    log_file = f"/home/nova/logs/{timestamp}_ec.txt"
+
     return [
+        ExecuteProcess(
+            cmd=[
+                "bash",
+                "-c",
+                f"candump can0 > {log_file}",
+            ],
+            output="screen"
+        ),
         Node(
             package='excavation_construction', 
             executable='scraper', 
@@ -38,15 +48,10 @@ def launch_setup(context, *args, **kwargs):
             executable='tile_placer', 
             output='screen', 
             emulate_tty=True,
-        ),
-        IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([drive_bringup_dir, 'launch', 'drive.launch.py'])),
-        ),
+        )
     ]
 
 def generate_launch_description():
-    drive_bringup_dir = FindPackageShare('drive_bringup')
-    
     declared_arguments = [ 
         DeclareLaunchArgument(
             name='scraper_card_type', 
