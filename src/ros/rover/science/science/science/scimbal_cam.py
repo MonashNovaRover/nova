@@ -32,9 +32,6 @@ class ScimbalCamController(Controller):
     tilt_cmd: Interface
     pan_cmd: Interface
 
-    # State interfaces
-    # state: Interface
-
     def __init__(self, contexts: Contexts, button: str="some_button", axis: str="some_axis"):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
@@ -44,6 +41,11 @@ class ScimbalCamController(Controller):
         super().__init__(contexts)
         self.logger.info(f"ScimbalCamNode -- I have been __init__ialized")
 
+        # Defining service related variables
+        self.service_type = self.declare_parameter("service_type", "MoveScimbalCam").value
+        self.service_name = self.declare_parameter("service_name", "/science/scimbal_cam_service").value
+
+        # Defining start and max angles
         self.start_tilt_angle = self.declare_parameter("start_tilt_angle", 90).value
         self.start_pan_angle = self.declare_parameter("start_pan_angle", 180).value
 
@@ -70,7 +72,10 @@ class ScimbalCamController(Controller):
 
         # Initialise value to starting angle
         self.tilt_cmd.value = self.start_tilt_angle
-        self.pan_cmd.value = self.start_pan_anlge
+        self.pan_cmd.value = self.start_pan_angle
+
+        # Add service
+        self.service = self.create_service(self.service_type, self.service_name, self.on_request)
 
 can 
     def on_update(self, now: float, period: float):
@@ -101,6 +106,7 @@ can
             self.get_logger().info(f"Scimbal Cam angles updated: TILT: {self.scimbal_cam[0].get_goal_position()}, PAN: {self.scimbal_cam[1].get_goal_position()}, request: {request.angles}")
             
             response.success = True
+
         except Exception as e:
             self.get_logger().error(f"Scimbal Cam angle update request {request.angles} interrupted by error: {str(e)}")
             
