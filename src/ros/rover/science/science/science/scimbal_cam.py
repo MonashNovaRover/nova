@@ -70,11 +70,11 @@ class ScimbalCamController(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
         # Save references to interfaces
-        self.logger.info(f"Getting scimbal_tilt_hw/position")
-        self.tilt_cmd = command_interfaces["scimbal_tilt_hw/position"]
+        self.logger.info(f"Getting tilt_hw/position")
+        self.tilt_cmd = command_interfaces["tilt_hw/position"]
 
-        self.logger.info(f"Getting scimbal_pan_hw/position")
-        self.pan_cmd = command_interfaces["scimbal_pan_hw/position"]
+        self.logger.info(f"Getting pan_hw/position")
+        self.pan_cmd = command_interfaces["pan_hw/position"]
 
 
     def on_update(self, now: float, period: float):
@@ -83,10 +83,21 @@ class ScimbalCamController(Controller):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-        # Update Command Interfaces
-        # self.cmd.value = 2 * self.state.value
-        # self.logger.info(f"{self.state.value} -> {self.cmd.value}")
-    
+        pass
+
+    def on_request(self, request, response):
+        try:
+            delta_tilt, delta_pan = request.angles[0], request.angles[1]
+
+            
+
+            self.get_logger().info(f"Scimbal Cam angles updated: TILT: {self.scimbal_cam[0].get_goal_position()}, PAN: {self.scimbal_cam[1].get_goal_position()}, request: {request.angles}")
+            response.success = True
+        except Exception as e:
+            self.get_logger().error(f"Scimbal Cam angle update request {request.angles} interrupted by error: {str(e)}")
+            response.success = False
+        return response
+
     # OLD displace angle function for reference
     # 
     # def request_servo(self, request, response):
@@ -109,8 +120,8 @@ if __name__ == "__main__":
     node = Node("scimbal_cam")
 
     PythonControl(node, update_rate=5, can_bus="can1") \
-        .with_controller("scimbal_cam_controller", ScimbalCamController) \
-        .with_hardware("scimbal_tilt_hw", PositionalServoHardware, frame_id=0x0B0, function_id=0x03, max_angle=180.0) \
-        .with_hardware("scimbal_pan_hw", PositionalServoHardware, frame_id=0x0B0, function_id=0x04, max_angle=360.0) \
+        .with_controller("controller", ScimbalCamController) \
+        .with_hardware("tilt_hw", PositionalServoHardware, frame_id=0x0B0, function_id=0x03, max_angle=180.0) \
+        .with_hardware("pan_hw", PositionalServoHardware, frame_id=0x0B0, function_id=0x04, max_angle=360.0) \
         .with_jcan() \
         .spin()
