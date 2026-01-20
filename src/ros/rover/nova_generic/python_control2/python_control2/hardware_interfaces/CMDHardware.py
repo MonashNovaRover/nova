@@ -6,7 +6,7 @@ old arm.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
   - <joint>/effort      [value between -1 and 1] or
-  - <joint>/velocity    [value between -1 and 1]
+  - <joint>/velocity    [m/s ???]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        python_control2
 AUTHOR(S):      Bailey Chessum
