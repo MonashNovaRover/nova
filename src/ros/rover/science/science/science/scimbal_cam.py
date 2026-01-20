@@ -72,7 +72,7 @@ class ScimbalCamController(Controller):
         self.tilt_cmd.value = self.start_tilt_angle
         self.pan_cmd.value = self.start_pan_anlge
 
-
+can 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
             here.
@@ -82,18 +82,30 @@ class ScimbalCamController(Controller):
         pass
 
     def on_request(self, request, response):
+        """
+        Called on every request. Applies displacement values of tilt and pan from request angles onto positional servos.
+
+        :param request: Expects an array containing 2 angles displacing current tilt and pan [delta_tilt, delta_pan].
+        :param response: Response to return after request has been processed
+        :return: Response for request containing if the operation was a success or not.
+        """
         try:
-            delta_tilt, delta_pan = request.angles[0], request.angles[1]
+            # Extract variables from request
+            delta_tilt: int = request.angles[0]
+            delta_pan: int = request.angles[1]
 
             # Clamping displaced value
-            self.tilt_cmd.value = max(0, min(self.max_tilt_angle, self.tilt_cmd.value + self.delta_tilt))
-            self.pan_cmd.value = max(0, min(self.max_pan_angle, self.pan_cmd.value + self.delta_pan))
+            self.tilt_cmd.value = max(0, min(self.max_tilt_angle, self.tilt_cmd.value + delta_tilt))
+            self.pan_cmd.value = max(0, min(self.max_pan_angle, self.pan_cmd.value + delta_pan))
 
             self.get_logger().info(f"Scimbal Cam angles updated: TILT: {self.scimbal_cam[0].get_goal_position()}, PAN: {self.scimbal_cam[1].get_goal_position()}, request: {request.angles}")
+            
             response.success = True
         except Exception as e:
             self.get_logger().error(f"Scimbal Cam angle update request {request.angles} interrupted by error: {str(e)}")
+            
             response.success = False
+
         return response
 
 if __name__ == "__main__":
