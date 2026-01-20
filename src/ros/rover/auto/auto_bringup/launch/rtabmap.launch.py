@@ -56,11 +56,15 @@ def launch_setup(context, *args, **kwargs):
             package='rclcpp_components',
             executable='component_container',
             composable_node_descriptions=[
+                # 1.Synchronizes RGB + Depth/Cloud
                 ComposableNode(
                     package='rtabmap_sync',
                     plugin='rtabmap_sync::RGBDSync',
                     name=f'{front_name}_rgbd_sync',
-                    parameters=[rtabmap_params],
+                    parameters=[rtabmap_params, {
+                        'approx_sync': True, 
+                        'use_sim_time': gazebo
+                    }],
                     remappings=[
                         ('rgb/image', front_name+'/rgb/image_raw'),
                         ('rgb/camera_info', front_name+'/rgb/camera_info'),
@@ -68,43 +72,55 @@ def launch_setup(context, *args, **kwargs):
                         ('rgbd_image',front_name+'/rgbd/image_raw')
                     ],
                 ),
-                # ComposableNode(
-                #     package='rtabmap_sync',
-                #     plugin='rtabmap_sync::RGBDSync',
-                #     name=f'{back_name}_rgbd_sync',
-                #     parameters=[rtabmap_params],
-                #     remappings=[
-                #         ('rgb/image', back_name+'/rgb/image_raw'),
-                #         ('rgb/camera_info', back_name+'/rgb/camera_info'),
-                #         ('depth/image', back_name+'/stereo/image_raw'),
-                #         ('rgbd_image',back_name+'/rgbd/image_raw'),
-                #     ],
-                # ),
+
+                # 2.LiDAR ICP instead of Visual Odometry
                 ComposableNode(
                     package='rtabmap_odom',
-                    plugin='rtabmap_odom::RGBDOdometry',
-                    name='rtabmap_odom',
-                    parameters=[rtabmap_params, {'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}', 'use_sim_time': gazebo}],
+                    plugin='rtabmap_odom::ICPOdometry',
+                    name='icp_odometry',
+                    parameters=[rtabmap_params, {
+                        'use_sim_time': gazebo,
+                        'frame_id': 'base_link',
+                        'odom_frame_id': 'odom',
+                        'wait_for_transform': 0.2,
+                        'expected_update_rate': 10.0,
+                        # ICP Specifics
+                        'Icp/VoxelSize': '0.05',      # Downsample cloud for speed
+                        'Icp/PointToPlane': 'true',
+                        'Icp/Epsilon': '0.001',
+                        'Icp/MaxTranslation': '2.0',
+                    }],
                     remappings=[
-                        ('odom', 'odom/visual'),
-                        ('rgbd_image',front_name+'/rgbd/image_raw'),
+                        ('scan_cloud', '/livox/lidar'), # Subscribe to Livox
+                        ('odom', '/odometry/local'),    # Output odom
+                        ('imu', '/livox/imu'),          # Use Livox IMU for deskewing
                     ],
                 ),
+
+                # 3.SLAM NODE
                 ComposableNode(
                     package='rtabmap_slam',
                     plugin='rtabmap_slam::CoreWrapper',
                     name='rtabmap_slam',
-                    parameters=[rtabmap_params, {'use_sim_time': gazebo, 'rtabmap_args': '--delete_db_on_start'}],
+                    parameters=[rtabmap_params, {
+                        'use_sim_time': gazebo, 
+                        'rtabmap_args': '--delete_db_on_start',
+                        'subscribe_depth': False,
+                        'subscribe_rgb': False, 
+                        'subscribe_rgbd': True,
+                        'subscribe_scan_cloud': True,
+                        'approx_sync': True,
+                    }],
                     remappings=[
-                        ('scan_cloud','/livox/lidar'),
-                        ('rgb_image','/oak/rgbd/image_raw'),
-                        ('rgb/camera_info','/oak/rgb/camera_info'),
+                        ('rgbd_image', 'rgbd_image'),   # From Sync Node
+                        ('scan_cloud', '/livox/lidar'), # From Livox
+                        ('odom', '/odometry/local'),    # From ICP Node
                         ('gps/fix','/gps_rover/fix')
                     ],
                 ),
             ],
         ),
-         Node(
+        Node(
              package='rtabmap_util', executable='obstacles_detection', output='screen',
              parameters=[rtabmap_params],
              remappings=[
@@ -122,7 +138,8 @@ def launch_setup(context, *args, **kwargs):
             remappings=[
                 ('scan_cloud','/livox/lidar'),
                 ('rgb/image','/oak/rgb/image_raw'),
-                ('rgb/camera_info','/oak/rgb/camera_info')
+                ('rgb/camera_info','/oak/rgb/camera_info'),
+                ('odom', '/odometry/local')
             ]
         ),
     ]
