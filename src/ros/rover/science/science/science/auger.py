@@ -6,6 +6,10 @@ and down and drills.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: AugerController
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+COMMAND INTERFACES:
+  - actuation/effort    [value between -1 and 1]
+  - drill/effort        [value between -1 and 1]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Felicity Matthews
 CREATION:       13/01/26
