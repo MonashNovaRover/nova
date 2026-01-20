@@ -85,9 +85,9 @@ class ScimbalCamController(Controller):
         try:
             delta_tilt, delta_pan = request.angles[0], request.angles[1]
 
-            # TODO: Clamp values!
-            self.tilt_cmd.value += delta_tilt
-            self.pan_cmd.value += delta.pan
+            # Clamping displaced value
+            self.tilt_cmd.value = max(0, min(self.max_tilt_angle, self.tilt_cmd.value + self.delta_tilt))
+            self.pan_cmd.value = max(0, min(self.max_pan_angle, self.pan_cmd.value + self.delta_pan))
 
             self.get_logger().info(f"Scimbal Cam angles updated: TILT: {self.scimbal_cam[0].get_goal_position()}, PAN: {self.scimbal_cam[1].get_goal_position()}, request: {request.angles}")
             response.success = True
@@ -95,20 +95,6 @@ class ScimbalCamController(Controller):
             self.get_logger().error(f"Scimbal Cam angle update request {request.angles} interrupted by error: {str(e)}")
             response.success = False
         return response
-
-    # OLD displace angle function for reference
-    # 
-    # def request_servo(self, request, response):
-    #     try:
-    #         for i in range(len(request.angles)):
-    #             angle = request.angles[i]
-    #             self.scimbal_cam[i].displace(angle)
-    #         self.get_logger().info(f"Scimbal Cam angles updated: TILT: {self.scimbal_cam[0].get_goal_position()}, PAN: {self.scimbal_cam[1].get_goal_position()}, request: {request.angles}")
-    #         response.success = True
-    #     except Exception as e:
-    #         self.get_logger().error(f"Scimbal Cam angle update request {request.angles} interrupted by error: {str(e)}")
-    #         response.success = False
-    #     return response
 
 if __name__ == "__main__":
     print("Setting up!")
