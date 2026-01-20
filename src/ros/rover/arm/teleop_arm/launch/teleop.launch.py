@@ -19,7 +19,7 @@ def launch_setup(context, *args, **kwargs):
     teleop_params = LaunchConfiguration('teleop_params')
     log_inputs = LaunchConfiguration('log_inputs')
     log_level = LaunchConfiguration('log_level').perform(context)
-    use_joysticks = LaunchConfiguration('teleop_params').perform(context)
+    use_joysticks = LaunchConfiguration('use_joysticks').perform(context)
     
     input_param_file = PythonExpression([
         '"joysticks.config.yaml" if "', use_joysticks, '".lower() == "true" else "controller.config.yaml"'
