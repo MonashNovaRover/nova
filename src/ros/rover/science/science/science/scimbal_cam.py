@@ -24,7 +24,7 @@ from enum import Enum
 from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
-from python_control2.hardware_interfaces import CMDHardware
+from python_control2.hardware_interfaces import PositionalServoHardware
 
 
 class ScimbalCamController(Controller):
@@ -44,19 +44,11 @@ class ScimbalCamController(Controller):
         super().__init__(contexts)
         self.logger.info(f"ScimbalCamNode -- I have been __init__ialized")
 
-        self.start_tilt_angle = 90
-        self.start_pan_angle = 180
+        self.start_tilt_angle = self.declare_parameter("start_tilt_angle", 90).value
+        self.start_pan_angle = self.declare_parameter("start_pan_angle", 180).value
 
-        self.max_tilt_angle = 180
-        self.max_pan_angle = 360
-
-        # Declare ROS2 parameters here.
-        # self.joint = self.declare_parameter("joint", "j1").value
-        
-
-        # Do any setup logic here, save any contexts you want reference to in the future.
-        # Save Input references here
-        
+        self.max_tilt_angle = self.declare_parameter("max_tilt_angle", 180).value
+        self.max_pan_angle = self.declare_parameter("max_pan_angle", 360).value        
         
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
@@ -76,6 +68,10 @@ class ScimbalCamController(Controller):
         self.logger.info(f"Getting pan_hw/position")
         self.pan_cmd = command_interfaces["pan_hw/position"]
 
+        # Initialise value to starting angle
+        self.tilt_cmd.value = self.start_tilt_angle
+        self.pan_cmd.value = self.start_pan_anlge
+
 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
@@ -89,7 +85,9 @@ class ScimbalCamController(Controller):
         try:
             delta_tilt, delta_pan = request.angles[0], request.angles[1]
 
-            
+            # TODO: Clamp values!
+            self.tilt_cmd.value += delta_tilt
+            self.pan_cmd.value += delta.pan
 
             self.get_logger().info(f"Scimbal Cam angles updated: TILT: {self.scimbal_cam[0].get_goal_position()}, PAN: {self.scimbal_cam[1].get_goal_position()}, request: {request.angles}")
             response.success = True
