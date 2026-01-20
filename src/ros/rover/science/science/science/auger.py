@@ -94,6 +94,7 @@ class AugerController(Controller):
 
     def update_drill_direction(self, direction: Direction):
         def update_drill():
+            self.logger.info(f"updated auger drill direction: {"CLOCKWISE" if direction == Direction.POSITIVE else "ANTICLOCKWISE"}")
             self.drill_direction = direction
         return update_drill
 
