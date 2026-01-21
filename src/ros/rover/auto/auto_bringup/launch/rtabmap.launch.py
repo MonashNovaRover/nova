@@ -63,7 +63,8 @@ def launch_setup(context, *args, **kwargs):
                     name=f'{front_name}_rgbd_sync',
                     parameters=[rtabmap_params, {
                         'approx_sync': True, 
-                        'use_sim_time': gazebo
+                        'use_sim_time': gazebo,
+                        'qos': 2,
                     }],
                     remappings=[
                         ('rgb/image', front_name+'/rgb/image_raw'),
@@ -87,8 +88,9 @@ def launch_setup(context, *args, **kwargs):
                         # ICP Specifics
                         'Icp/VoxelSize': '0.05',      # Downsample cloud for speed
                         'Icp/PointToPlane': 'true',
-                        'Icp/Epsilon': '0.001',
-                        'Icp/MaxTranslation': '2.0',
+                        'qos': 2,
+                        'subscribe_scan': False,       # DISABLE looking for 2D /scan
+                        'subscribe_scan_cloud': True,
                     }],
                     remappings=[
                         ('scan_cloud', '/livox/lidar'), # Subscribe to Livox
@@ -110,6 +112,9 @@ def launch_setup(context, *args, **kwargs):
                         'subscribe_rgbd': True,
                         'subscribe_scan_cloud': True,
                         'approx_sync': True,
+                        'qos': 2,
+                        'subscribe_scan': False,       # DISABLE looking for 2D /scan
+                        'subscribe_scan_cloud': True,
                     }],
                     remappings=[
                         ('rgbd_image', 'rgbd_image'),   # From Sync Node
