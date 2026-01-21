@@ -75,6 +75,8 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[rtabmap_params, {
                         'approx_sync': True, 
                         'use_sim_time': gazebo,
+                        'qos': 2,
+                        'queue_size': 20,
                     }],
                     remappings=[
                         ('rgb/image', front_name+'/rgb/image_raw'),
