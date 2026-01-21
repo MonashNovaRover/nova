@@ -65,7 +65,7 @@ game_controller_source:
           from: "START"
         auger_drill_clockwise:
           from: "A"
-        auger_drill_antclockwise:
+        auger_drill_anticlockwise:
           from: "B"
         spinny_pos_1:
           from: "X"
