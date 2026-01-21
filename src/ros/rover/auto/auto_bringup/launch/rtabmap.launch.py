@@ -50,6 +50,17 @@ def launch_setup(context, *args, **kwargs):
                 'gazebo': gazebo,
             }.items()
         ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='base_to_lidar_tf',
+            arguments=[
+                '0', '0', '0.5',     # X, Y, Z
+                '0', '0', '0',       # Roll, Pitch, Yaw
+                'base_link',         # Parent frame
+                'livox_frame'        # Child frame
+            ],
+        ),
         ComposableNodeContainer(
             name='rtabmap_mapping_container',
             namespace='',
@@ -64,7 +75,6 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[rtabmap_params, {
                         'approx_sync': True, 
                         'use_sim_time': gazebo,
-                        'qos': 2,
                     }],
                     remappings=[
                         ('rgb/image', front_name+'/rgb/image_raw'),
@@ -88,7 +98,6 @@ def launch_setup(context, *args, **kwargs):
                         # ICP Specifics
                         'Icp/VoxelSize': '0.05',      # Downsample cloud for speed
                         'Icp/PointToPlane': 'true',
-                        'qos': 2,
                         'subscribe_scan': False,       # DISABLE looking for 2D /scan
                         'subscribe_scan_cloud': True,
                     }],
@@ -112,7 +121,6 @@ def launch_setup(context, *args, **kwargs):
                         'subscribe_rgbd': True,
                         'subscribe_scan_cloud': True,
                         'approx_sync': True,
-                        'qos': 2,
                         'subscribe_scan': False,       # DISABLE looking for 2D /scan
                         'subscribe_scan_cloud': True,
                     }],
