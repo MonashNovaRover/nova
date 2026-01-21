@@ -3,6 +3,8 @@ import rclpy
 from rclpy.node import Node
 from typing import Type, TypeVar, List, Any, Optional
 from teleop_python_utils import Inputs
+
+from .Activation import Activation
 from .ControllerManager import ControllerManager
 from ..controllers.Controller import Controller
 from ..controllers.DeferredConstructor import DeferredConstructor
@@ -153,6 +155,44 @@ class ControllerManagerBuilder:
         """
         self._cm.contexts[Inputs] = inputs
         return self
+
+    def with_activation_buttons(self, start_active: bool=False, active_button_name: str="", inactive_button_pool_names: list[str]=[""]):
+        """
+        Allows a system to be activatable by adding an activation object to the cm context
+        that controllers can use to conditionally run code.
+
+        Can only have one Activation in a python control2 system.
+
+        :param start_active: Whether to start active or not, defaults to False.
+        :param active_button_name: Name of button that activates.
+        :param inactive_button_pool_names: Name of buttons that deactivate.
+        """
+        # Declare parameters
+        start_active: bool = self._cm.declare_parameter(
+            "active",
+            start_active,
+            'On start node status').value
+        active_button_name: str = self._cm.declare_parameter(
+            "active_button",
+            active_button_name,
+            'Button name that activates the system').value
+        inactive_button_pool_names: list[str] = self._cm.declare_parameter(
+            "inactive_button_pool",
+            inactive_button_pool_names,
+            'list of button name that deactivates the system').get_parameter_value().string_array_value
+
+        # Get button references
+        if Inputs not in self._cm.contexts:
+            raise AssertionError("`.with_teleop` must be called before `.with_activation_buttons`")
+
+        inputs = self._cm.contexts[Inputs]
+        active_button = inputs.get_button(active_button_name)
+        inactive_button_pool = [inputs.get_button(name) for name in inactive_button_pool_names]
+
+        # Create Activation object and add to cm context.
+        self._cm.contexts[Activation] = Activation(active_button, inactive_button_pool, self._cm.node, start_active)
+        return self
+
 
     def spin(self, default_update_rate: float=20, auto_run_rclpy: bool=True) -> None:
         """ Repeatedly updates until the program ends.

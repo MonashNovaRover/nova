@@ -2,7 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ARC launch file for science payload
 
-[NEW] version - use teleop science with this.
+[OLD] version - must use launch-base with this
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODES:
   - science/analysis_arm.py             [analysis_arm]
@@ -14,8 +14,8 @@ NODES:
   - science/kiln_server.py              [kiln_server]
   - science/scimbal_cam.py              [scimbal_cam]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-CREATED:    16/01/2026
-EDITED:     16/01/2026
+CREATED:    12/01/2026
+EDITED:     12/01/2026
 EDITED BY:  Felicity Matthews
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
@@ -30,13 +30,40 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         # Analysis Arm - Nodes for components on the analysis arm
-
-
-        # CBeam - Nodes for components on the CBeam
         Node(
-            name='auger',
+            name='analysis_arm',
             package='science',
-            executable='auger.py',
+            executable='analysis_arm.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
+            name='nir_probe_publisher',
+            package='science',
+            executable='nir_probe_publisher.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
+            name='arc_sweeper_servo',
+            package='science',
+            executable='arc_sweeper_servo.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
+            name='arc_spinny_part',
+            package='science',
+            executable='arc_spinny_part.py',
             output='screen',
             emulate_tty=True,
             parameters=[
@@ -44,9 +71,49 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
 
+        # CBeam - Nodes for components on the CBeam
+        Node(
+            name='auger',
+            package='science',
+            executable='auger_old.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
+            name='c_beam',
+            package='science',
+            executable='analysis_arm.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
+            name='kiln_server',
+            package='science',
+            executable='kiln_server.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
 
         # Misc - Nodes for misc components
-
+        Node(
+            name='scimbal_cam',
+            package='science',
+            executable='scimbal_cam.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
     ]
 
 def generate_launch_description():
@@ -65,7 +132,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='science_params',
-            default_value=PathJoinSubstitution([science_bringup_dir, 'params', 'arc.yaml']),
+            default_value=PathJoinSubstitution([science_bringup_dir, 'params', 'arc_old.yaml']),
             description='The main parameter file to use for the science nodes',
         ),
     ]
