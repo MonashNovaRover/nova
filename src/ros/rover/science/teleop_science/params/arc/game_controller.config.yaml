@@ -12,7 +12,7 @@ teleop_science:
 
 game_controller_source:
   ros__parameters:
-    topic: "/joy"
+    topic: "/science/joy"
     # These are the default mappings for a game_controller_node.
     # https://docs.ros.org/en/ros2_packages/rolling/api/joy/index.html
     # If you use joy_node, you'll need to figure out what the mapping is yourself.
@@ -53,13 +53,25 @@ game_controller_source:
       axes:
         auger_actuation:
           from: "RIGHTY"
+        auger_drill_speed:
+          from: "LEFTY"
         cbeam_actuation:
           from: "LEFTY"
 
       buttons:
-        sweeper_sweep:
+        lock:
+          from: "BACK"
+        unlock:
+          from: "START"
+        auger_drill_clockwise:
           from: "A"
-        twitch:
+        auger_drill_anticlockwise:
           from: "B"
         spinny_pos_1:
           from: "X"
+        activate_auger:
+          from: "DPAD_UP"
+        activate_cbeam:
+          from: "DPAD_LEFT"
+        auger_drill:
+          from: "DPAD_DOWN"

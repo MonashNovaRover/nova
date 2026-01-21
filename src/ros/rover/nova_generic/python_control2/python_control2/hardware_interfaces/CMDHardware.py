@@ -1,3 +1,20 @@
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Hardware interface for CAN Motor Drivers (CMD).
+CMDs are used primarily for brushed motors on the
+old arm.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+COMMAND INTERFACES:
+  - <joint>/effort      [value between -1 and 1] or
+  - <joint>/velocity    [m/s ???]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:        python_control2
+AUTHOR(S):      Bailey Chessum
+CREATION:       30/09/25
+EDITED:         30/09/25
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
+
 from typing import List
 
 import jcan
