@@ -59,6 +59,10 @@ game_controller_source:
             positive: "RIGHTSHOULDER"
             negative: "LEFTSHOULDER"
 
+        scraper_speed:
+          from: "TRIGGERRIGHT"
+          invert: true
+
       buttons:
         lock:
           from: "BACK"
@@ -66,8 +70,9 @@ game_controller_source:
         unlock:
           from: "START"
 
-        increase_scraper_speed:
-          from: "DPAD_UP"
-
-        decrease_scraper_speed:
-          from: "DPAD_DOWN"
+        # support speed changes using dpad
+        # NOT WORKING (using right trigger as speed axis instead)
+#        increase_scraper_speed:
+#          from: "DPAD_UP"
+#        decrease_scraper_speed:
+#          from: "DPAD_DOWN"
