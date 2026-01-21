@@ -111,7 +111,8 @@ if __name__ == "__main__":
     node = Node("auger")
     inputs = Inputs(node).with_topics("/science/input")
 
-    PythonControl(node, update_rate=5, can_bus="can1") \
+    # ARCh auger system
+    PythonControl(node, update_rate=10, can_bus="can1") \
         .with_controller("controller", AugerController) \
         .with_hardware("actuation", QCMDHardware, can_id=0xC2) \
         .with_hardware("drill", QCMDHardware, can_id=0xC1) \
