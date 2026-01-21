@@ -98,6 +98,10 @@ thrustmaster_right:
       axes:
         scraper_speed:
           from: "ax_slider"
+          range:
+            in: [-1.0, 1.0]
+            out: [0.0, 1.0]
+            clamp: true
 
         scoop_joint:
           from: "ax_stick_y"
