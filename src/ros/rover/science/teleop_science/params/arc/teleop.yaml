@@ -20,14 +20,47 @@ teleop_science:
         type: "input_publisher_mode/InputPublisherMode"
         active: true
 
+    # Add lock and unlock commands
+    commands:
+      names:
+        - lock
+        - unlock
+        - log_locked
+        - log_unlocked
+
+      lock:
+        on_any:
+          - "lock/down"
+          - "start"
+        type: set_button
+        name: "locked"
+        value: true
+      unlock:
+        on: "unlock/down"
+        type: set_button
+        name: "locked"
+        value: false
+      log_locked:
+        on: "locked/down"
+        type: log
+        message: "Locked"
+      log_unlocked:
+        on: "locked/up"
+        type: log
+        message: "Unlocked"
+
 input_publisher_mode:
   ros__parameters:
     input_names_topic: "/science/input"
 
     axis_names:
-      - "auger_actuation"
-      - "cbeam_actuation"
+      # Auger
+      - "auger_actuation"   # actuation for both the auger and the c-beam.
+      - "auger_drill_speed"
     button_names:
-      - "sweeper_sweep"
-      - "twitch"
-      - "spinny_pos_1"
+      # Auger
+      - "activate_auger"
+      - "activate_cbeam"
+      - "auger_drill"
+      - "auger_drill_clockwise"
+      - "auger_drill_anticlockwise"

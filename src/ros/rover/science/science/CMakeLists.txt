@@ -66,6 +66,7 @@ install(PROGRAMS
         science/urc/urc_uv_vis_spec.py
         science/analysis_arm.py
         science/auger.py
+        science/auger_old.py
         science/nir_probe_publisher.py
         science/scimbal_cam.py
         science/control_test.py
