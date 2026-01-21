@@ -68,7 +68,7 @@ class QCMDHardware(HardwareInterface):
         # Update params
         self.can_id: int = self.get_parameter("can_id").value
         self.joint: str = self.get_parameter("joint").value
-        self.reversed: int = 1 if self.get_parameter("reversed").value else -1
+        self.reversed: int = -1 if self.get_parameter("reversed").value else 1
 
         self.max_effort = self.get_parameter("max_effort").value
         self.max_effort_can = self.get_parameter("max_effort_can").value
