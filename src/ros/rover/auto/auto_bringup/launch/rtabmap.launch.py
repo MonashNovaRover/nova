@@ -100,6 +100,7 @@ def launch_setup(context, *args, **kwargs):
                         'Icp/PointToPlane': 'true',
                         'subscribe_scan': False,       # DISABLE looking for 2D /scan
                         'subscribe_scan_cloud': True,
+                        'expected_update_rate': 15.0,
                     }],
                     remappings=[
                         ('scan_cloud', '/livox/lidar'), # Subscribe to Livox
