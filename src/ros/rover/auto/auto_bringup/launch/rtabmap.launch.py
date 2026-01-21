@@ -71,18 +71,17 @@ def launch_setup(context, *args, **kwargs):
                 ComposableNode(
                     package='rtabmap_sync',
                     plugin='rtabmap_sync::RGBDSync',
-                    name=f'{front_name}_rgbd_sync',
+                    name=f'{front_name}_rgb_sync',
                     parameters=[rtabmap_params, {
                         'approx_sync': True, 
                         'use_sim_time': gazebo,
                         'qos': 2,
-                        'queue_size': 20,
                     }],
                     remappings=[
                         ('rgb/image', front_name+'/rgb/image_raw'),
                         ('rgb/camera_info', front_name+'/rgb/camera_info'),
-                        ('depth/image', front_name+'/stereo/image_raw'),
-                        ('rgbd_image',front_name+'/rgbd/image_raw')
+                        # ('depth/image', front_name+'/stereo/image_raw'),
+                        # ('rgbd_image',front_name+'/rgbd/image_raw')
                     ],
                 ),
 
@@ -128,7 +127,7 @@ def launch_setup(context, *args, **kwargs):
                         'subscribe_scan_cloud': True,
                     }],
                     remappings=[
-                        ('rgbd_image', 'rgbd_image'),   # From Sync Node
+                        ('rgb_image', 'rgb_image'),   # From Sync Node
                         ('scan_cloud', '/livox/lidar'), # From Livox
                         ('odom', '/odometry/local'),    # From ICP Node
                         ('gps/fix','/gps_rover/fix')
