@@ -24,7 +24,7 @@ in
       (final: prev: { cudaPackages = prev.cudaPackages_12_6; })
     ];
 
-    # Add cuda capabilities. Ensure cudaVersion and overlays match version from nvidia-smi
+    # Add cuda capabilities
     nixpkgs.config = {
       allowUnfree = true;
       cudaSupport = true;
