@@ -13,14 +13,14 @@ ACTIONS: None
 PACKAGE:        science
 AUTHOR(S):      Jonathan Jia
 CREATION:       09/01/2026
-EDITED:         12/01/2026
+EDITED:         22/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
 from rclpy.node import Node
 from typing import Optional, Callable
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface
-from python_control2.hardware_interfaces import CMDHardware, GenericSensorHardware
+from python_control2.hardware_interfaces import QCMDHardware, GenericSensorHardware
 from science_interfaces.srv import KilnCommand
 from science_interfaces.msg import KilnData
 
@@ -135,7 +135,6 @@ class HeaterController(Controller):
 if __name__ == "__main__":
     rclpy.init()
 
-    # TODO: replace with actual hardware/firmware configuration on rover
     node = Node("kiln")
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("controller", HeaterController,
@@ -144,8 +143,8 @@ if __name__ == "__main__":
                          calculate_reference_temp = lambda l: l[0], # use kiln_sensor temperature as the current/reference temp
                          command_service = "/science/kiln_command",
                          data_topic = "/science/kiln_data") \
-        .with_hardware("left_heater", CMDHardware, can_id = 0x07) \
-        .with_hardware("right_heater", CMDHardware, can_id = 0x08) \
+        .with_hardware("left_heater", QCMDHardware, can_id = 0x07) \
+        .with_hardware("right_heater", QCMDHardware, can_id = 0x08) \
         .with_hardware("kiln_sensor", GenericSensorHardware,
                        can_message_id = 0x4B1,
                        interpret_data = lambda data: 0.02 * int.from_bytes(data) - 273.15,
