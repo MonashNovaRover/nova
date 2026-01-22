@@ -45,8 +45,8 @@ class ToolRotatorController(Controller):
         self.button_sweeper_name = self.declare_parameter("sweeper_button", "rotator_sweeper").value
         self.button_microscope_name = self.declare_parameter("microscope_button", "rotator_microscope").value
         self.button_nir_name = self.declare_parameter("nir_button", "rotator_nir").value
-        self.button_plus_name = self.declare_parameter("plus_button", "rotator_plus").value
-        self.button_minus_name = self.declare_parameter("minus_button", "rotator_minus").value
+        self.button_twitch_increase_name = self.declare_parameter("plus_button", "rotator_twitch_increase").value
+        self.button_twitch_decrease_name = self.declare_parameter("minus_button", "rotator_twitch_decrease").value
 
         inputs = contexts[Inputs]
         self.speed_axis = inputs.get_axis(self.speed_axis_name)
@@ -54,8 +54,8 @@ class ToolRotatorController(Controller):
         self.button_sweeper = inputs.get_button(self.button_sweeper_name)
         self.button_microscope = inputs.get_button(self.button_microscope_name)
         self.button_nir = inputs.get_button(self.button_nir_name)
-        self.button_plus = inputs.get_button(self.button_plus_name)
-        self.button_minus = inputs.get_button(self.button_minus_name)
+        self.button_twitch_increase = inputs.get_button(self.button_twitch_increase_name)
+        self.button_twitch_decrease = inputs.get_button(self.button_twitch_decrease_name)
 
         self.current_pos = self.nir_probe_pos
         self.offset = 0.0
@@ -99,9 +99,9 @@ class ToolRotatorController(Controller):
             self.logger.info(f"Moved to NIR PROBE position {self.current_pos}")
 
         # Twitch/update offset
-        if self.button_plus:
+        if self.button_twitch_increase:
             self.offset += offset_step
-        elif self.button_minus:
+        elif self.button_twitch_decrease:
             self.offset -= offset_step
 
         # Write to command interface

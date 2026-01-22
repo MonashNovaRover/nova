@@ -14,7 +14,7 @@ CREATION:       05/01/2026
 import rclpy
 from rclpy.node import Node
 from typing import Optional
-from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface
+from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, Activation
 from python_control2.hardware_interfaces import PositionalServoHardware
 from teleop_python_utils import Inputs
 
@@ -32,6 +32,8 @@ class ChuteController(Controller):
         super().__init__(contexts)
         self.logger.info(f"ChuteController -- I have been __init__ialized")
 
+        self.active = contexts[Activation]
+
         # Declare ROS2 parameters here.
         self.offset_step_max = self.declare_parameter("offset_step_max", 30.0).value
         self.disengaged_pos = self.declare_parameter("disengaged_pos", 72.0).value
@@ -43,16 +45,16 @@ class ChuteController(Controller):
 
         self.button_engaged_name = self.declare_parameter("engaged_button", "chute_engaged").value
         self.button_disengaged_name = self.declare_parameter("disengaged_button", "chute_disengaged").value
-        self.button_plus_name = self.declare_parameter("plus_button", "chute_plus").value
-        self.button_minus_name = self.declare_parameter("minus_button", "chute_minus").value
+        self.button_twitch_increase_name = self.declare_parameter("plus_button", "chute_twitch_increase").value
+        self.button_twitch_decrease_name = self.declare_parameter("minus_button", "chute_twitch_decrease").value
 
         inputs = contexts[Inputs]
         self.speed_axis = inputs.get_axis(self.speed_axis_name)
 
         self.button_engaged = inputs.get_button(self.button_engaged_name)
         self.button_disengaged = inputs.get_button(self.button_disengaged_name)
-        self.button_plus = inputs.get_button(self.button_plus_name)
-        self.button_minus = inputs.get_button(self.button_minus_name)
+        self.button_twitch_increase = inputs.get_button(self.button_twitch_increase_name)
+        self.button_twitch_decrease = inputs.get_button(self.button_twitch_decrease_name)
 
         self.current_pos = self.disengaged_pos
         self.offset = 0.0
@@ -77,6 +79,8 @@ class ChuteController(Controller):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
+        if not self.active:
+            return
 
         # Update offset step amount
         offset_step = abs(self.speed_axis.value) * self.offset_step_max
@@ -92,9 +96,9 @@ class ChuteController(Controller):
             self.logger.info(f"Moved to DISENGAGED position {self.current_pos}")
 
         # Twitch/update offset
-        if self.button_plus:
+        if self.button_twitch_increase:
             self.offset += offset_step
-        elif self.button_minus:
+        elif self.button_twitch_decrease:
             self.offset -= offset_step
 
         # Write to command interface
@@ -112,5 +116,12 @@ if __name__ == "__main__":
         .with_controller("controller", ChuteController) \
         .with_hardware("rotation", PositionalServoHardware, function_id=0x03, min_angle=72.0, max_angle=108.0) \
         .with_teleop(inputs) \
+        .with_activation_buttons(
+            active_button_name="activate_chute",
+            inactive_button_pool_names=[
+                "activate_auger",
+                "activate_sweeper",
+            ],
+        ) \
         .with_jcan() \
         .spin()
