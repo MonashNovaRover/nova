@@ -58,7 +58,7 @@ def launch_setup(context, *args, **kwargs):
             executable='game_controller_node',  # or joy_node
             output="screen",
             remappings=[
-                {"/joy", "/arm/joy"}
+                ("/joy", "/arm/joy")
             ]
         ),
         GroupAction(
