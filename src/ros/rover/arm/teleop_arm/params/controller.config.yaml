@@ -10,7 +10,7 @@ teleop_arm:
 
 joy_input_source:
   ros__parameters:
-    topic: "/joy"
+    topic: "/arm/joy"
     # These are the default mappings for a game_controller_node.
     # https://docs.ros.org/en/ros2_packages/rolling/api/joy/index.html
     # If you use joy_node, you'll need to figure out what the mapping is yourself.
