@@ -50,6 +50,7 @@ install(PROGRAMS
         science/arc/arc_spinny_part.py
         science/arc/arc_sweeper_servo.py
         science/arc/kiln.py
+        science/arc/kiln_old.py
         science/urc/hydraprobe_trigger_node.py
         science/urc/urc_bme_sensor.py
         science/urc/urc_cache.py

@@ -25,6 +25,31 @@ auger:
         max_effort: 0.5
         reversed: false
 
+kiln:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    controllers:
+      controller:
+        command_service: "/science/kiln_command"
+        data_topic: "/science/kiln_data"
+        temp_sensors: ["kiln_sensor", "condenser_sensor"]
+        heaters: ["left_heater", "right_heater"]
+    hardware:
+      kiln_sensor:
+        can_message_id: 0x12
+        sensor_output: "temperature"
+      condenser_sensor:
+        can_message_id: 0x13
+        sensor_output: "temperature"
+      left_heater:
+        can_id: 0x10
+        max_effort: 1.0
+        reversed: false
+      right_heater:
+        can_id: 0x11
+        max_effort: 1.0
+        reversed: false
 
 # Misc - Nodes for misc components
 
