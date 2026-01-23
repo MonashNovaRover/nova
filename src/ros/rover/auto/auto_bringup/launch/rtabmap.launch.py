@@ -71,7 +71,7 @@ def launch_setup(context, *args, **kwargs):
                 ComposableNode(
                     package='rtabmap_sync',
                     plugin='rtabmap_sync::RGBDSync',
-                    name=f'{front_name}_rgbd_sync',
+                    name=f'{front_name}_rgb_sync',
                     parameters=[rtabmap_params, {
                         'approx_sync': True, 
                         'use_sim_time': gazebo,
@@ -79,8 +79,8 @@ def launch_setup(context, *args, **kwargs):
                     remappings=[
                         ('rgb/image', front_name+'/rgb/image_raw'),
                         ('rgb/camera_info', front_name+'/rgb/camera_info'),
-                        ('depth/image', front_name+'/stereo/image_raw'),
-                        ('rgbd_image',front_name+'/rgbd/image_raw')
+                        # ('depth/image', front_name+'/stereo/image_raw'),
+                        # ('rgbd_image',front_name+'/rgbd/image_raw')
                     ],
                 ),
 
@@ -118,15 +118,15 @@ def launch_setup(context, *args, **kwargs):
                         'use_sim_time': gazebo, 
                         'rtabmap_args': '--delete_db_on_start',
                         'subscribe_depth': False,
-                        'subscribe_rgb': False, 
-                        'subscribe_rgbd': True,
+                        'subscribe_rgb': True, 
+                        'subscribe_rgbd': False,
                         'subscribe_scan_cloud': True,
                         'approx_sync': True,
                         'subscribe_scan': False,       # DISABLE looking for 2D /scan
                         'subscribe_scan_cloud': True,
                     }],
                     remappings=[
-                        ('rgbd_image', 'rgbd_image'),   # From Sync Node
+                        ('rgb_image', 'rgb_image'),   # From Sync Node
                         ('scan_cloud', '/livox/lidar'), # From Livox
                         ('odom', '/odometry/local'),    # From ICP Node
                         ('gps/fix','/gps_rover/fix')
