@@ -29,16 +29,16 @@
       i_width: 1280
       i_isp_den: 3
       i_isp_num: 2
-      i_resolution: 400P # set resolution
+      i_resolution: 720P # set resolution
     left:
       i_set_isp_scale: true
       i_fps: 30.0
-      i_resolution: 400P # set resolution
+      i_resolution: 720P # set resolution
       #WLS filter
       #i_publish_topic: true
     right:
       i_fps: 30.0
-      i_resolution: 400P # set resolution
+      i_resolution: 720P # set resolution
     stereo:
       i_align_depth: true
       i_enable_speckle_filter: true
