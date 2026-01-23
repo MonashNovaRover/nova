@@ -4,13 +4,13 @@ Hardware interface for positional servos.
 Positional servos are used in the science payload.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
-  - <name>/position  [value between min_angle and 
+  - <servo>/position  [value between min_angle and 
                       max_angle]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        python_control2
 AUTHOR(S):      Binuda Kalugalage
 CREATION:       04/01/25
-EDITED:         17/01/25
+EDITED:         23/01/25
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import jcan
@@ -27,10 +27,9 @@ class PositionalServoHardware(HardwareInterface):
     def __init__(self, contexts: Contexts,
                  frame_id: int=0x0A0,
                  function_id: int=0x01,
+                 angular_range: float=180.0,
                  min_angle: float=0.0,
-                 max_angle: float=180.0,
-                 min_angle_can: int=0x00,
-                 max_angle_can: int=0xFF):
+                 max_angle: float=None, max_angle_can: int=0xFF):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
@@ -40,11 +39,15 @@ class PositionalServoHardware(HardwareInterface):
 
         self.bus = contexts[jcan.Bus]
 
+        # Default max angle to the angular range
+        if not max_angle:
+            max_angle = angular_range
+
         self.declare_parameter("frame_id", frame_id, "Frame ID of the servo")
         self.declare_parameter("function_id", function_id, "Function ID of the servo")
+        self.declare_parameter("angular_range", angular_range, "Angular range of the servo in degrees")
         self.declare_parameter("min_angle", min_angle, "Min allowable angle of the servo in degrees")
         self.declare_parameter("max_angle", max_angle, "Max allowable angle of the servo in degrees")
-        self.declare_parameter("min_angle_can", min_angle_can, "Min CAN message value that can be sent")
         self.declare_parameter("max_angle_can", max_angle_can, "Max CAN message value that can be sent")
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
@@ -60,16 +63,14 @@ class PositionalServoHardware(HardwareInterface):
         # Update params
         self.frame_id: int = self.get_parameter("frame_id").value
         self.function_id: int = self.get_parameter("function_id").value
+        self.angular_range: float = self.get_parameter("angular_range").value
 
         self.min_angle = self.get_parameter("min_angle").value
         self.max_angle = self.get_parameter("max_angle").value
-        self.min_angle_can = self.get_parameter("min_angle_can").value
         self.max_angle_can = self.get_parameter("max_angle_can").value
 
         # Get command interfaces
         self.pos_cmd = command_interfaces[self.name + "/position"]
-
-        isValid: bool = True
 
         # Validate command interface configuration
         if not self.pos_cmd:
@@ -80,13 +81,9 @@ class PositionalServoHardware(HardwareInterface):
         if self.max_angle <= self.min_angle:
             self.logger.error(f'PositionalServoHardware {self.name} has invalid angle range ' 
                               f'min_angle={self.min_angle}, max_angle={self.max_angle}')
-            isValid = False
-        if self.max_angle_can <= self.min_angle_can:
-            self.logger.error(f'PositionalServoHardware {self.name} has invalid CAN range ' 
-                              f'min_angle_can={self.min_angle_can}, max_angle_can={self.max_angle_can}')
-            isValid = False
+            return False
 
-        return isValid
+        return True
 
     def on_read(self, now: float, period: float):
         """ Called to read values from hardware, and put them into stored state interfaces.
@@ -105,14 +102,16 @@ class PositionalServoHardware(HardwareInterface):
 
     def construct_frame(self) -> jcan.Frame:
         """ Construct the jcan Frame based on current command interface """
-        # Convert angle to CAN data using min and max angles and max can angle
-        data = int(self.max_angle_can * (self.pos_cmd.value - self.min_angle) / (self.max_angle - self.min_angle))
+        data = self.pos_cmd.value
 
-        # Clamp to bounds
-        if data > self.max_angle_can: 
-            data = self.max_angle_can
-        elif data < self.min_angle_can: 
-            data = self.min_angle_can
+        # Clamp to physical bounds
+        if data > self.max_angle: 
+            data = self.max_angle
+        elif data < self.min_angle: 
+            data = self.min_angle
+        else:
+            # Convert angle to CAN data using max CAN angle and angular range
+            data = int(self.max_angle_can * data / self.angular_range)
       
         # Return the constructed frame
         return jcan.Frame(self.frame_id, [self.function_id, data])
