@@ -33,10 +33,12 @@
     left:
       i_set_isp_scale: true
       i_fps: 30.0
+      i_resolution: 240P # set resolution
       #WLS filter
       #i_publish_topic: true
     right:
       i_fps: 30.0
+      i_resolution: 240P # set resolution
     stereo:
       i_align_depth: true
       i_enable_speckle_filter: true
