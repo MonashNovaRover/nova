@@ -47,32 +47,32 @@ thrustmaster_left:
     remap:
       axes:
         speed:
-          from: "ax_slider"
+          from: "l_ax_slider"
 
         # Joint space
         j1:
-          from: "ax_stick_twist"
+          from: "l_ax_stick_twist"
         j2:
-          from: "ax_stick_x"
+          from: "l_ax_stick_x"
         j3:
-          from: "ax_stick_y"
+          from: "l_ax_stick_y"
                 # Task space
         linear:
           x:
-            from: "ax_stick_x"
+            from: "l_ax_stick_x"
           y:
-            from: "ax_stick_y"
+            from: "l_ax_stick_y"
         angular:
           x:
-            from: "ax_stick_twist"
+            from: "l_ax_stick_twist"
           
       buttons:
         lock:
-          from: "btn_bottom_l1_state"
+          from: "l_btn_bottom_l1_state"
         unlock:
-          from: "btn_bottom_l2_state"
+          from: "l_btn_bottom_l2_state"
         task_space:
-          from: "btn_thumb_u_state"
+          from: "l_btn_thumb_u_state"
 
 thrustmaster_right:
   ros__parameters:
@@ -110,19 +110,19 @@ thrustmaster_right:
         # Task space
         linear:
           z:
-            from: "ax_stick_x"
+            from: "r_ax_stick_x"
         angular:
           y:
-              from: "ax_stick_y"
+              from: "r_ax_stick_y"
           z:
-            from: "ax_stick_twist"
+            from: "r_ax_stick_twist"
 
         # Joint space
         j4:
-          from: "ax_stick_y"
+          from: "r_ax_stick_y"
         j5:
-          from: "ax_stick_x"
+          from: "r_ax_stick_x"
         j6:
-          from: "ax_stick_twist"
+          from: "r_ax_stick_twist"
 
 
