@@ -73,8 +73,14 @@ InterfaceConfiguration NovaArmController::command_interface_configuration() cons
 InterfaceConfiguration NovaArmController::state_interface_configuration() const {
   std::vector<std::string> conf_names;
   for (const auto &joint_name: params_.joint_names) {
-    conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
-    conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
+    RCLCPP_INFO(get_node()->get_logger(), "JOINT NAME %s %s", joint_name.c_str(), this->joint_command_type());
+    if (this->joint_command_type() == HW_IF_POSITION) {
+      conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
+    }
+
+    if (this->joint_command_type() == HW_IF_VELOCITY) {
+      conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
+    }
   }
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
@@ -157,8 +163,13 @@ void NovaArmController::get_joint_states(trajectory_msgs::msg::JointTrajectoryPo
   {
     const auto& joint_handle = registered_joint_handles_[i];
 
-    current.positions[i] = joint_handle.state_pos.get().get_value();
-    current.velocities[i] = joint_handle.state_vel.get().get_value();
+    if (this->joint_command_type() == HW_IF_POSITION) {
+      current.positions[i] = joint_handle.state_pos.get().get_value();
+    }
+
+    if (this->joint_command_type() == HW_IF_VELOCITY) {
+      current.velocities[i] = joint_handle.state_vel.get().get_value();
+    }
   }
   return;
 }
@@ -263,6 +274,8 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
 {
   auto logger = get_node()->get_logger();
 
+  RCLCPP_INFO(get_node()->get_logger(), "Updating params!");
+
   // update parameters if they have changed
   if (param_listener_->is_old(params_))
   {
@@ -280,9 +293,13 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
     return controller_interface::CallbackReturn::ERROR;
   }
 
+  RCLCPP_INFO(get_node()->get_logger(), "Getting joint states!");
+
   trajectory_msgs::msg::JointTrajectoryPoint current;
   this->get_joint_states(current);
   
+  RCLCPP_INFO(get_node()->get_logger(), "Configuring joint limiter!");
+
   if (!this->joint_limiter.configure(current)) {
     RCLCPP_ERROR(logger, "Failed to configure joint limiter!");
     return controller_interface::CallbackReturn::ERROR;
@@ -438,6 +455,8 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
 
   auto logger = get_node()->get_logger();
 
+  RCLCPP_INFO(get_node()->get_logger(), "Getting joint names");
+
   if (joint_names.empty())
   {
     RCLCPP_ERROR(logger, "No joint names specified");
@@ -445,6 +464,8 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
   }
 
   // register handles
+  RCLCPP_INFO(get_node()->get_logger(), "Register handles");
+
   registered_handles.reserve(joint_names.size());
   for (const auto &joint_name : joint_names)
   {
@@ -467,17 +488,18 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
                  interface.get_interface_name() == HW_IF_VELOCITY;
         });
 
-    if (pos_state_handle == state_interfaces_.cend())
-    {
-      RCLCPP_ERROR(logger, "Unable to obtain position joint state handle for %s", joint_name.c_str());
-      return controller_interface::CallbackReturn::ERROR;
-    }
+    // TODO: Needs better checks for this probably
+    // if (pos_state_handle == state_interfaces_.cend())
+    // {
+    //   RCLCPP_ERROR(logger, "Unable to obtain position joint state handle for %s", joint_name.c_str());
+    //   return controller_interface::CallbackReturn::ERROR;
+    // }
     
-    if (vel_state_handle == state_interfaces_.cend())
-    {
-      RCLCPP_ERROR(logger, "Unable to obtain velocity joint state handle for %s", joint_name.c_str());
-      return controller_interface::CallbackReturn::ERROR;
-    }
+    // if (vel_state_handle == state_interfaces_.cend())
+    // {
+    //   RCLCPP_ERROR(logger, "Unable to obtain velocity joint state handle for %s", joint_name.c_str());
+    //   return controller_interface::CallbackReturn::ERROR;
+    // }
 
     // TODO: Change this filter to be useful, and not get the same as the state_interface
     const auto command_handle = std::find_if(
