@@ -6,9 +6,13 @@ analysis arm which switches between instruments.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: ToolRotatorController
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+COMMAND INTERFACES:
+  - rotation/position    [value between 0 and 180]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Binuda Kalugalage
 CREATION:       03/01/2026
+EDITED:         24/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -23,23 +27,28 @@ class ToolRotatorController(Controller):
     # Command interfaces
     pos_cmd: Interface
 
-    def __init__(self, contexts: Contexts):
-        """ Constructor, deferred until the control manager has been spun.
-        If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
+    def __init__(self, contexts: Contexts,
+                 twitch_max: float = 30.0,
+                 sweeper_pos: float = 0.0,
+                 microscope_pos: float = 90.35,
+                 nir_probe_pos: float = 168.71):
+        """ Constructor for ToolRotatorController
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
+        :param twitch_max: Maximum position the tool rotator will twitch, in degrees.
+        :param sweeper_pos: Position of the sweeper, in degrees.
+        :param microscope_pos: Position of the microscope, in degrees.
+        :param nir_probe_pos: Position of the NIR probe, in degrees.
         """
         super().__init__(contexts)
-        self.logger.info(f"ToolRotatorController -- I have been __init__ialized")
+        self.logger.info(f"ToolRotatorController -- I have been __init__ialized") 
 
-        # Declare ROS2 parameters here.
-        self.offset_step_max = self.declare_parameter("offset_step_max", 30.0).value
-        self.sweeper_pos = self.declare_parameter("sweeper_pos", 0.0).value
-        self.microscope_pos = self.declare_parameter("microscope_pos", 90.35).value
-        self.nir_probe_pos = self.declare_parameter("nir_probe_pos", 168.71).value
+        self.twitch_max: float = self.declare_parameter("twitch_max", twitch_max).value
+        self.sweeper_pos: float = self.declare_parameter("sweeper_pos", sweeper_pos).value
+        self.microscope_pos: float = self.declare_parameter("microscope_pos", microscope_pos).value
+        self.nir_probe_pos: float = self.declare_parameter("nir_probe_pos", nir_probe_pos).value
 
-        # Do any setup logic here, save any contexts you want reference to in the future.
-        # Save Input references here
+        # Get inputs
         self.speed_axis_name = self.declare_parameter("speed_axis", "rotator_speed").value
 
         self.button_sweeper_name = self.declare_parameter("sweeper_button", "rotator_sweeper").value
@@ -81,8 +90,8 @@ class ToolRotatorController(Controller):
         :param period: The time elapsed since the last update, in seconds.
         """
 
-        # Update offset step amount
-        offset_step = abs(self.speed_axis.value) * self.offset_step_max
+        # Update twitch amount
+        twitch_step = abs(self.get_rotator_speed()) * self.twitch_max
 
         # Change to preset position
         if self.button_sweeper.down():
@@ -100,12 +109,16 @@ class ToolRotatorController(Controller):
 
         # Twitch/update offset
         if self.button_twitch_increase:
-            self.offset += offset_step
+            self.offset += twitch_step
         elif self.button_twitch_decrease:
-            self.offset -= offset_step
+            self.offset -= twitch_step
 
         # Write to command interface
         self.pos_cmd.value = self.current_pos + self.offset
+    
+    def get_rotator_speed(self) -> float:
+        """ Gets the tool rotator speed, mapping an axis [-1, 1] to a speed [0, 1]"""
+        return (self.speed_axis.value + 1) / 2
     
 
 if __name__ == "__main__":

@@ -6,9 +6,13 @@ deposits sand into the kiln.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: ChuteController
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+COMMAND INTERFACES:
+  - rotation/position    [value between 72 and 108]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Binuda Kalugalage
 CREATION:       05/01/2026
+EDITED:         24/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -23,24 +27,27 @@ class ChuteController(Controller):
     # Command interfaces
     pos_cmd: Interface
 
-    def __init__(self, contexts: Contexts):
-        """ Constructor, deferred until the control manager has been spun.
-        If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
+    def __init__(self, contexts: Contexts,
+                 twitch_max: float = 30.0,
+                 disengaged_pos: float = 72.0,
+                 engaged_pos: float = 108.0):
+        """ Constructor for ChuteController
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
+        :param twitch_max: Maximum position the chute will twitch, in degrees.
+        :param disengaged_pos: Position of the chute when not aligned with kiln, in degrees.
+        :param engaged_pos: Position of the chute when aligned with kiln, in degrees.
         """
         super().__init__(contexts)
         self.logger.info(f"ChuteController -- I have been __init__ialized")
 
         self.active = contexts[Activation]
 
-        # Declare ROS2 parameters here.
-        self.offset_step_max = self.declare_parameter("offset_step_max", 30.0).value
-        self.disengaged_pos = self.declare_parameter("disengaged_pos", 72.0).value
-        self.engaged_pos = self.declare_parameter("engaged_pos", 108.0).value
+        self.twitch_max: float = self.declare_parameter("twitch_max", twitch_max).value
+        self.disengaged_pos: float = self.declare_parameter("disengaged_pos", disengaged_pos).value
+        self.engaged_pos: float = self.declare_parameter("engaged_pos", engaged_pos).value
 
-        # Do any setup logic here, save any contexts you want reference to in the future.
-        # Save Input references here
+        # Get inputs
         self.speed_axis_name = self.declare_parameter("speed_axis", "chute_speed").value
 
         self.button_engaged_name = self.declare_parameter("engaged_button", "chute_engaged").value
@@ -83,7 +90,7 @@ class ChuteController(Controller):
             return
 
         # Update offset step amount
-        offset_step = abs(self.speed_axis.value) * self.offset_step_max
+        twitch_step = abs(self.get_chute_speed()) * self.twitch_max
 
         # Change to preset position
         if self.button_engaged.down():
@@ -97,12 +104,17 @@ class ChuteController(Controller):
 
         # Twitch/update offset
         if self.button_twitch_increase:
-            self.offset += offset_step
+            self.offset += twitch_step
         elif self.button_twitch_decrease:
-            self.offset -= offset_step
+            self.offset -= twitch_step
 
         # Write to command interface
         self.pos_cmd.value = self.current_pos + self.offset
+
+    def get_chute_speed(self) -> float:
+        """ Gets the chute speed, mapping an axis [-1, 1] to a speed [0, 1]"""
+        return (self.speed_axis.value + 1) / 2
+
 
 if __name__ == "__main__":
     print("Setting up!")
