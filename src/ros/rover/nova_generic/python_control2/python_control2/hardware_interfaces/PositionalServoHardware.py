@@ -109,9 +109,9 @@ class PositionalServoHardware(HardwareInterface):
             data = self.max_angle
         elif data < self.min_angle: 
             data = self.min_angle
-        else:
-            # Convert angle to CAN data using max CAN angle and angular range
-            data = int(self.max_angle_can * data / self.angular_range)
+
+        # Convert angle to CAN data using max CAN angle and angular range
+        data = int(self.max_angle_can * data / self.angular_range)
       
         # Return the constructed frame
         return jcan.Frame(self.frame_id, [self.function_id, data])
