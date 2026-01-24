@@ -8,7 +8,8 @@ NODES:
   - science/analysis_arm.py             [analysis_arm]
   - science/nir_probe_publisher.py      [nir_probe_publisher]
   - science/arc_sweeper_servo.py        [sweeper]
-  - science/arc_spinny_part.py          [spinny part] (analysis arm)
+  - science/tool_rotator.py             [tool_rotator] (analysis arm)
+  - science/chute.py                    [chute]
   - science/auger.py                    [auger]
   - science/analysis_arm.py             [c_beam]
   - science/kiln.py                     [kiln]
@@ -30,7 +31,16 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         # Analysis Arm - Nodes for components on the analysis arm
-
+        Node(
+            name='tool_rotator',
+            package='science',
+            executable='tool_rotator.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
 
         # CBeam - Nodes for components on the CBeam
         Node(
@@ -56,6 +66,16 @@ def launch_setup(context, *args, **kwargs):
 
 
         # Misc - Nodes for misc components
+        Node(
+            name='chute',
+            package='science',
+            executable='chute.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
 
     ]
 
