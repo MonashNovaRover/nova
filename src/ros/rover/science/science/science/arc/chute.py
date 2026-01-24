@@ -52,8 +52,8 @@ class ChuteController(Controller):
 
         self.button_engaged_name = self.declare_parameter("engaged_button", "chute_engaged").value
         self.button_disengaged_name = self.declare_parameter("disengaged_button", "chute_disengaged").value
-        self.button_twitch_increase_name = self.declare_parameter("plus_button", "chute_twitch_increase").value
-        self.button_twitch_decrease_name = self.declare_parameter("minus_button", "chute_twitch_decrease").value
+        self.button_twitch_increase_name = self.declare_parameter("twitch_increase_button", "chute_twitch_increase").value
+        self.button_twitch_decrease_name = self.declare_parameter("twitch_decrease_button", "chute_twitch_decrease").value
 
         inputs = contexts[Inputs]
         self.speed_axis = inputs.get_axis(self.speed_axis_name)
@@ -87,17 +87,18 @@ class ChuteController(Controller):
         :param period: The time elapsed since the last update, in seconds.
         """
         if not self.active:
+            self.pos_cmd.value = self.min_angle
             return
 
         # Update offset step amount
-        twitch_step = abs(self.get_chute_speed()) * self.twitch_max
+        twitch_step = self.get_chute_speed() * self.twitch_max
 
         # Change to preset position
-        if self.button_engaged.down():
+        if self.button_engaged:
             self.offset = 0.0
             self.current_pos = self.engaged_pos
             self.logger.info(f"Moved to ENGAGED position {self.current_pos}")
-        elif self.button_disengaged.down():
+        elif self.button_disengaged:
             self.offset = 0.0
             self.current_pos = self.disengaged_pos
             self.logger.info(f"Moved to DISENGAGED position {self.current_pos}")
@@ -105,8 +106,10 @@ class ChuteController(Controller):
         # Twitch/update offset
         if self.button_twitch_increase:
             self.offset += twitch_step
+            self.logger.info(f"Offset increased by {twitch_step} to {self.offset}")
         elif self.button_twitch_decrease:
             self.offset -= twitch_step
+            self.logger.info(f"Offset decreased by {twitch_step} to {self.offset}")
 
         # Write to command interface
         self.pos_cmd.value = self.current_pos + self.offset

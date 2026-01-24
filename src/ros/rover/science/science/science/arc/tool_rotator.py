@@ -54,8 +54,8 @@ class ToolRotatorController(Controller):
         self.button_sweeper_name = self.declare_parameter("sweeper_button", "rotator_sweeper").value
         self.button_microscope_name = self.declare_parameter("microscope_button", "rotator_microscope").value
         self.button_nir_name = self.declare_parameter("nir_button", "rotator_nir").value
-        self.button_twitch_increase_name = self.declare_parameter("plus_button", "rotator_twitch_increase").value
-        self.button_twitch_decrease_name = self.declare_parameter("minus_button", "rotator_twitch_decrease").value
+        self.button_twitch_increase_name = self.declare_parameter("twitch_increase_button", "rotator_twitch_increase").value
+        self.button_twitch_decrease_name = self.declare_parameter("twitch_decrease_button", "rotator_twitch_decrease").value
 
         inputs = contexts[Inputs]
         self.speed_axis = inputs.get_axis(self.speed_axis_name)
@@ -91,18 +91,18 @@ class ToolRotatorController(Controller):
         """
 
         # Update twitch amount
-        twitch_step = abs(self.get_rotator_speed()) * self.twitch_max
+        twitch_step = self.get_rotator_speed() * self.twitch_max
 
         # Change to preset position
-        if self.button_sweeper.down():
+        if self.button_sweeper:
             self.offset = 0.0
             self.current_pos = self.sweeper_pos
             self.logger.info(f"Moved to SWEEPER position {self.current_pos}")
-        elif self.button_microscope.down():
+        elif self.button_microscope:
             self.offset = 0.0
             self.current_pos = self.microscope_pos
             self.logger.info(f"Moved to MICROSCOPE position {self.current_pos}")
-        elif self.button_nir.down():
+        elif self.button_nir:
             self.offset = 0.0
             self.current_pos = self.nir_probe_pos
             self.logger.info(f"Moved to NIR PROBE position {self.current_pos}")
@@ -110,8 +110,10 @@ class ToolRotatorController(Controller):
         # Twitch/update offset
         if self.button_twitch_increase:
             self.offset += twitch_step
+            self.logger.info(f"Offset increased by {twitch_step} to {self.offset}")
         elif self.button_twitch_decrease:
             self.offset -= twitch_step
+            self.logger.info(f"Offset decreased by {twitch_step} to {self.offset}") 
 
         # Write to command interface
         self.pos_cmd.value = self.current_pos + self.offset
