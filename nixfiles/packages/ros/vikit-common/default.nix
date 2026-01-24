@@ -13,7 +13,7 @@
 
 stdenv.mkDerivation rec {
   name = "vikit-common";
-  version = "3.0";
+  version = "0.0.0";
 
   src = fetchgit {
     url = "https://github.com/Robotic-Developer-Road/rpg_vikit";

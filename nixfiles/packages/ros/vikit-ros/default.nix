@@ -17,7 +17,7 @@
 
 buildRosPackage {
   pname = "vikit-ros";
-  version = "3.5";
+  version = "0.0.0";
 
   src = fetchgit {
     url = "https://github.com/Robotic-Developer-Road/rpg_vikit";

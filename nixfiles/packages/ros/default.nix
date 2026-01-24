@@ -2,6 +2,7 @@
 {
   audio-msgs = callPackage ./audio-msgs { };
   depthai = callPackage ./depthai { };
+  fast-livo2 = callPackage ./fast-livo2 { };
   gst-bridge = callPackage ./gst-bridge { };
   gst-msgs = callPackage ./gst-msgs { };
   gst-pipeline = callPackage ./gst-pipeline { };
