@@ -8,6 +8,7 @@
   fmt,
   tbb_2021_11,
   pkg-config,
+  breakpointHook,
 }:
 
 stdenv.mkDerivation rec {
@@ -28,6 +29,7 @@ stdenv.mkDerivation rec {
   buildType = "ament_cmake";
   nativeBuildInputs = [ 
     ament-cmake 
+    breakpointHook
   ];
 
   buildInputs = [
@@ -38,4 +40,9 @@ stdenv.mkDerivation rec {
     tbb_2021_11
     pkg-config
   ];
+  
+  postPatch = ''
+    sed -i '/lib )/aINSTALL(DIRECTORY ''${CMAKE_CURRENT_BINARY_DIR} DESTINATION ''${CMAKE_INSTALL_PREFIX}/share/''${PROJECT_NAME}/CMakeModules )' CMakeLists.txt
+    # cat CMakeLists.txt
+  '';
 }

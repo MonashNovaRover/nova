@@ -1,6 +1,5 @@
 { 
   buildRosPackage,
-  callPackage,
   fetchgit,
   ament-cmake,
   rclcpp,
@@ -50,4 +49,12 @@ buildRosPackage {
     rosidl-default-generators
     breakpointHook
   ];
+
+  postPatch = ''
+    sed -i '/{CMAKE_SYSTEM_PROCESSOR}")/aSET(CMAKE_PREFIX_PATH ''${CMAKE_PREFIX_PATH} "${vikit-common}/share/vikit_common/CMakeModules/build/")' CMakeLists.txt
+    # sed -i '/\/")/amessage("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA: ''${CMAKE_PREFIX_PATH}")' CMakeLists.txt
+    # substituteInPlace CMakeLists.txt \
+    #   --replace "vikit_common" "vikit-common"
+    # cat CMakeLists.txt
+  '';
 }
