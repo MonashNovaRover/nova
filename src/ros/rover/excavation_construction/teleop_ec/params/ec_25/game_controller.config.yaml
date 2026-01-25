@@ -63,6 +63,15 @@ game_controller_source:
           from: "TRIGGERRIGHT"
           invert: true
 
+        forklift_speed:
+          from: "TRIGGERLEFT"
+          invert: true
+
+        forklift_actuation:
+          from_buttons:
+            positive: "Y"
+            negative: "A"
+
       buttons:
         lock:
           from: "BACK"
@@ -70,7 +79,7 @@ game_controller_source:
         unlock:
           from: "START"
 
-        # support speed changes using dpad
+        # support scraper speed changes using dpad
         # NOT WORKING (using right trigger as speed axis instead)
 #        increase_scraper_speed:
 #          from: "DPAD_UP"

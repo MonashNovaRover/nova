@@ -39,7 +39,7 @@ teleop_ec:
         type: "log"
         message: "unlocked game controller"
 
-      # if using game controller: support speed changes using dpad
+      # if using game controller: support scraper speed changes using dpad
       # NOT WORKING (using right trigger as speed axis instead)
 #      initial_scraper_speed:
 #        on: "start"
@@ -70,5 +70,7 @@ input_publisher_mode:
       - "arm_joint"
       - "scoop_joint"
       - "claw_joint"
+      - "forklift_speed"
+      - "forklift_actuation"
 
     button_names: [""]

@@ -53,6 +53,16 @@ thrustmaster_left:
         arm_joint:
           from: "ax_stick_y"
 
+        forklift_speed:
+          from: "ax_slider"
+          range:
+            in: [ -1.0, 1.0 ]
+            out: [ 0.0, 1.0 ]
+            clamp: true
+
+        forklift_actuation:
+          from: "ax_thumb_x"
+
       buttons:
         lock:
           from: "btn_bottom_l2_state"

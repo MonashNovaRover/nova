@@ -113,7 +113,7 @@ def main():
     node = Node("scraper_x")
     inputs = Inputs(node).with_topics("/ec/input")
 
-    PythonControl(node, update_rate=20, can_bus="can1") \
+    PythonControl(node, update_rate=10, can_bus="can1") \
         .with_controller("controller", ScraperXController,
                          arm_joint = "arm_joint",
                          scoop_joint ="scoop_joint",
