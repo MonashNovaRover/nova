@@ -146,11 +146,11 @@ if __name__ == "__main__":
         .with_hardware("left_heater", QCMDHardware, can_id = 0x00) \
         .with_hardware("right_heater", QCMDHardware, can_id = 0x01) \
         .with_hardware("kiln_sensor", GenericSensorHardware,
-                       can_message_id = 0x02,
+                       can_id = 0x02,
                        interpret_data = lambda data: 0.02 * int.from_bytes(data) - 273.15,
                        sensor_output = "temperature") \
         .with_hardware("condenser_sensor", GenericSensorHardware,
-                       can_message_id = 0x03,
+                       can_id = 0x03,
                        interpret_data = lambda data: 0.02 * int.from_bytes(data) - 273.15,
                        sensor_output = "temperature") \
         .with_jcan() \

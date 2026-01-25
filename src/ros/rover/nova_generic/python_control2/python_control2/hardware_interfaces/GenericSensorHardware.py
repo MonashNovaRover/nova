@@ -1,3 +1,17 @@
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Hardware interface for miscellaneous sensors.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+STATE INTERFACES:
+  - <name>/<sensor_output>  [arbitrary value from interpret_data]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:        python_control2
+AUTHOR(S):      Jonathan Jia
+CREATION:       13/01/26
+EDITED:         25/01/26
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
+
 from collections.abc import Callable
 from typing import Any
 
@@ -9,7 +23,7 @@ from ..controller_manager.Contexts import Contexts
 class GenericSensorHardware(HardwareInterface):
 
     def __init__(self, contexts: Contexts,
-                 can_message_id: int = 0,
+                 can_id: int = 0,
                  interpret_data: Callable[[bytes], Any] = lambda x: int.from_bytes(x),
                  sensor_output: str = "value",
                  initial_value: Any = 0):
@@ -17,7 +31,7 @@ class GenericSensorHardware(HardwareInterface):
         Creates state interface "name/sensor_output"
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
-        :param can_message_id: CAN ID of messages from the sensor
+        :param can_id: CAN ID of messages from the sensor
         :param interpret_data: Translates raw CAN data into sensor outputs (e.g. velocity, temperature)
         :param sensor_output: What the sensor outputs (e.g. velocity, temperature)
         :param initial_value: Value output before receiving first CAN messages
@@ -27,7 +41,7 @@ class GenericSensorHardware(HardwareInterface):
         self.bus = contexts[jcan.Bus]
         self.interpret_data = interpret_data
 
-        self.can_message_id: int = self.declare_parameter("can_message_id", can_message_id).value
+        self.can_id: int = self.declare_parameter("can_id", can_id).value
         self.sensor_output: str = self.declare_parameter("sensor_output", sensor_output).value
         self.last_value: Any = self.declare_parameter("initial_value", initial_value).value
 
@@ -52,7 +66,7 @@ class GenericSensorHardware(HardwareInterface):
             self.logger.warn(f"GenericSensorHardware \"{self.name}\" found state interface "
                              f"\"{self.name}/{self.sensor_output}\" unpopulated")
 
-        self.bus.add_callback(self.can_message_id, self.frame_callback)
+        self.bus.add_callback(self.can_id, self.frame_callback)
 
         self.logger.info(f"GenericSensorHardware {self.name} configured")
 

@@ -37,10 +37,10 @@ kiln:
         heaters: ["left_heater", "right_heater"]
     hardware:
       kiln_sensor:
-        can_message_id: 0x12
+        can_id: 0x12
         sensor_output: "temperature"
       condenser_sensor:
-        can_message_id: 0x13
+        can_id: 0x13
         sensor_output: "temperature"
       left_heater:
         can_id: 0x10
