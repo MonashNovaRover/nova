@@ -21,7 +21,7 @@ from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
 
-from python_control2.hardware_interfaces import CMDHardware
+from python_control2.hardware_interfaces import QCMDHardware
 from teleop_python_utils import Inputs
 
 
@@ -97,12 +97,9 @@ def main():
 
     PythonControl(node, update_rate=10, can_bus="can1") \
         .with_controller("controller", ScraperController) \
-        .with_hardware("arm", CMDHardware, # TODO: replace with QCMD hardware interface
-                       can_id = 0x1) \
-        .with_hardware("scoop", CMDHardware, # TODO: replace with QCMD hardware interface
-                       can_id = 0x2) \
-        .with_hardware("claw", CMDHardware, # TODO: replace with QCMD hardware interface
-                       can_id = 0x3) \
+        .with_hardware("arm", QCMDHardware) \
+        .with_hardware("scoop", QCMDHardware) \
+        .with_hardware("claw", QCMDHardware) \
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()

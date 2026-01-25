@@ -21,7 +21,7 @@ from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
 
-from python_control2.hardware_interfaces import CMDHardware
+from python_control2.hardware_interfaces import QCMDHardware
 from teleop_python_utils import Inputs
 
 class TilePlacerController(Controller):
@@ -82,8 +82,7 @@ def main():
 
     PythonControl(node, update_rate=10, can_bus="can1") \
         .with_controller("controller", TilePlacerController) \
-        .with_hardware("forklift", CMDHardware, # TODO: replace with QCMD hardware interface
-                       can_id = 0x1) \
+        .with_hardware("forklift", QCMDHardware) \
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()
