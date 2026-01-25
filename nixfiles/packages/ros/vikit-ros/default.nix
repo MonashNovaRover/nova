@@ -28,6 +28,10 @@ buildRosPackage {
     hash = "sha256-9+PLaSKqnVC9+WNGXPGMmIelAbG3ry6z0k2zzaEaLnI=";
   };
 
+  patches = [
+    ./patches/timeout.patch
+  ];
+
 
   sourceRoot = "rpg_vikit-4b7abc8/vikit_ros";
   
@@ -52,9 +56,5 @@ buildRosPackage {
 
   postPatch = ''
     sed -i '/{CMAKE_SYSTEM_PROCESSOR}")/aSET(CMAKE_PREFIX_PATH ''${CMAKE_PREFIX_PATH} "${vikit-common}/share/vikit_common/CMakeModules/build/")' CMakeLists.txt
-    # sed -i '/\/")/amessage("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA: ''${CMAKE_PREFIX_PATH}")' CMakeLists.txt
-    # substituteInPlace CMakeLists.txt \
-    #   --replace "vikit_common" "vikit-common"
-    # cat CMakeLists.txt
   '';
 }

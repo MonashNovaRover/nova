@@ -43,6 +43,7 @@
   realsense2-description,
   usb-cam,
   fast-livo2,
+  demo-nodes-cpp,
 }:
 
 buildRosPackage rec {
@@ -99,7 +100,8 @@ buildRosPackage rec {
       realsense2-camera
       realsense2-description
       usb-cam
-      fast-livo2;
+      fast-livo2
+      demo-nodes-cpp;
   };
 
   # After installing params and resources folders in nix store's auto_bringup,
