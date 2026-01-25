@@ -15,9 +15,9 @@ teleop_ec:
         - set_unlocked
         - log_locked
         - log_unlocked
-        - initial_scraper_speed
-        - on_increase_scraper_speed
-        - on_decrease_scraper_speed
+#        - initial_scraper_speed
+#        - on_increase_scraper_speed
+#        - on_decrease_scraper_speed
 
       # lock controller
       set_locked:
@@ -67,9 +67,9 @@ input_publisher_mode:
 
     axis_names:
       - "scraper_speed"
-      - "arm_joint"
-      - "scoop_joint"
-      - "claw_joint"
+      - "arm_actuation"
+      - "scoop_actuation"
+      - "claw_actuation"
       - "forklift_speed"
       - "forklift_actuation"
 

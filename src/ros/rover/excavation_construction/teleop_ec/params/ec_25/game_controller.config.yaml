@@ -48,13 +48,13 @@ game_controller_source:
 
     remap:
       axes:
-        arm_joint:
+        arm_actuation:
           from: "LEFTY"
 
-        scoop_joint:
+        scoop_actuation:
           from: "RIGHTY"
 
-        claw_joint:
+        claw_actuation:
           from_buttons:
             positive: "RIGHTSHOULDER"
             negative: "LEFTSHOULDER"

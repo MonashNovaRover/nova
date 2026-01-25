@@ -50,7 +50,7 @@ thrustmaster_left:
 
     remap:
       axes:
-        arm_joint:
+        arm_actuation:
           from: "ax_stick_y"
 
         forklift_speed:
@@ -113,8 +113,8 @@ thrustmaster_right:
             out: [0.0, 1.0]
             clamp: true
 
-        scoop_joint:
+        scoop_actuation:
           from: "ax_stick_y"
 
-        claw_joint:
+        claw_actuation:
           from: "ax_thumb_x"

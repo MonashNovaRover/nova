@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Controls Scraper X (2024-2025 scraper)
+Controls the scraper (arm, scoop and claw)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: scraper_x
-TOPICS:
-  - subscriber: /ec/input [teleop_msgs/msg/InputNames]
-  - subscriber: /ec/input/values [teleop_msgs/msg/CombinedInputValues]
-SERVICES: None
-ACTIONS: None
+NODE: scraper
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+COMMAND INTERFACES:
+  - arm/effort      [value between -1 and 1]
+  - scoop/effort    [value between -1 and 1]
+  - claw/effort     [value between -1 and 1]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        excavation_construction
 AUTHOR(S):      Jonathan Jia
 CREATION:       17/01/2026
-EDITED:         20/01/2026
+EDITED:         25/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -25,55 +25,40 @@ from python_control2.hardware_interfaces import CMDHardware
 from teleop_python_utils import Inputs
 
 
-class ScraperXController(Controller):
+class ScraperController(Controller):
 
     # Command interfaces
     arm_joint_cmd: Interface[float]
     scoop_joint_cmd: Interface[float]
     claw_joint_cmd: Interface[float]
 
-    def __init__(self, contexts: Contexts,
-                 arm_joint = "arm_joint",
-                 arm_effort_multiplier = 1.0,
-                 scoop_joint ="scoop_joint",
-                 scoop_effort_multiplier = 1.0,
-                 claw_joint ="claw_joint",
-                 claw_effort_multiplier = 0.6,
-                 minimum_speed = 0.05):
+    def __init__(self, contexts: Contexts):
         """ Constructor, deferred until the control manager has been spun.
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
-        :param arm_joint: name of joint connecting the arms of the scraper to the rover chassis
-        :param arm_effort_multiplier: fixed multiplier applied to effort at arm_joint
-        :param scoop_joint: name of joint connecting the bucket to the arms of the scraper
-        :param scoop_effort_multiplier: fixed multiplier applied to effort at scoop_joint
-        :param claw_joint: name of joint that allows the bucket to open or close
-        :param claw_effort_multiplier: fixed multiplier applied to effort at claw_joint
-        :param minimum_speed: minimum speed multiplier when unlocked
         """
         super().__init__(contexts)
 
         # joint names (corresponds to command interfaces) and their effort multipliers
-        self.arm_joint: str = self.declare_parameter("arm_joint", arm_joint).value
-        self.arm_effort_multiplier: float = self.declare_parameter("arm_effort_multiplier", arm_effort_multiplier).value
-        self.scoop_joint: str = self.declare_parameter("scoop_joint", scoop_joint).value
-        self.scoop_effort_multiplier: float = self.declare_parameter("scoop_effort_multiplier", scoop_effort_multiplier).value
-        self.claw_joint: str = self.declare_parameter("claw_joint", claw_joint).value
-        self.claw_effort_multiplier: float = self.declare_parameter("claw_effort_multiplier", claw_effort_multiplier).value
+        self.arm_effort_multiplier: float = self.declare_parameter("arm_effort_multiplier", 1.0).value
+        self.scoop_effort_multiplier: float = self.declare_parameter("scoop_effort_multiplier", 1.0).value
+        self.claw_effort_multiplier: float = self.declare_parameter("claw_effort_multiplier", 0.6).value
 
         # axis/button names (corresponds to params passed to teleop modular)
         self.speed_axis_name: str = self.declare_parameter("speed_axis_name", "scraper_speed").value
-        self.arm_axis_name: str = self.declare_parameter("arm_axis_name", "arm_joint").value
-        self.scoop_axis_name: str = self.declare_parameter("scoop_axis_name", "scoop_joint").value
-        self.claw_axis_name: str = self.declare_parameter("claw_axis_name", "claw_joint").value
+        self.arm_axis_name: str = self.declare_parameter("arm_axis_name", "arm_actuation").value
+        self.scoop_axis_name: str = self.declare_parameter("scoop_axis_name", "scoop_actuation").value
+        self.claw_axis_name: str = self.declare_parameter("claw_axis_name", "claw_actuation").value
 
-        self.minimum_speed: float = self.declare_parameter("minimum_speed", minimum_speed).value
+        self.minimum_speed: float = self.declare_parameter("minimum_speed", 0.05).value
 
         inputs = contexts[Inputs]
         self.speed_axis = inputs.get_axis(self.speed_axis_name)
         self.arm_axis = inputs.get_axis(self.arm_axis_name)
         self.scoop_axis = inputs.get_axis(self.scoop_axis_name)
         self.claw_axis = inputs.get_axis(self.claw_axis_name)
+
+        self.logger.info(f"ScraperController initialised with minimum speed: {self.minimum_speed:.2f}")
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -84,11 +69,13 @@ class ScraperXController(Controller):
         interfaces you need from this, then store them in member variables.
         :returns: None or True if configured successfully. False otherwise.
         """
-        self.arm_joint_cmd = command_interfaces[self.arm_joint + "/effort"]
-        self.scoop_joint_cmd = command_interfaces[self.scoop_joint + "/effort"]
-        self.claw_joint_cmd = command_interfaces[self.claw_joint + "/effort"]
+        self.logger.info(f"Getting arm/effort, scoop/effort and claw/effort command interfaces")
 
-        self.logger.info("ScraperXController configured")
+        self.arm_joint_cmd = command_interfaces["arm/effort"]
+        self.scoop_joint_cmd = command_interfaces["scoop/effort"]
+        self.claw_joint_cmd = command_interfaces["claw/effort"]
+
+        self.logger.info("ScraperController configured")
 
 
     def on_update(self, now: float, period: float):
@@ -110,22 +97,16 @@ class ScraperXController(Controller):
 def main():
     rclpy.init()
 
-    node = Node("scraper_x")
+    node = Node("scraper")
     inputs = Inputs(node).with_topics("/ec/input")
 
     PythonControl(node, update_rate=10, can_bus="can1") \
-        .with_controller("controller", ScraperXController,
-                         arm_joint = "arm_joint",
-                         scoop_joint ="scoop_joint",
-                         claw_joint ="claw_joint") \
-        .with_hardware("arm_actuator", CMDHardware, # TODO: replace with QCMD hardware interface
-                       joint = "arm_joint",
+        .with_controller("controller", ScraperController) \
+        .with_hardware("arm", CMDHardware, # TODO: replace with QCMD hardware interface
                        can_id = 0x1) \
-        .with_hardware("scoop_actuator", CMDHardware, # TODO: replace with QCMD hardware interface
-                       joint = "scoop_joint",
+        .with_hardware("scoop", CMDHardware, # TODO: replace with QCMD hardware interface
                        can_id = 0x2) \
-        .with_hardware("claw_actuator", CMDHardware, # TODO: replace with QCMD hardware interface
-                       joint = "claw_joint",
+        .with_hardware("claw", CMDHardware, # TODO: replace with QCMD hardware interface
                        can_id = 0x3) \
         .with_teleop(inputs) \
         .with_jcan() \
