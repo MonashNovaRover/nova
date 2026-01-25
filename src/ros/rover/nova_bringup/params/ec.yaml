@@ -1,5 +1,42 @@
+# ==========================================================
+# Monash Nova Rover
+# Excavation and Construction – Default Parameter File
+# ==========================================================
+
 scraper:
   ros__parameters:
+    can_bus: "can1"
+    update_rate: 10
+    controllers:
+      controller:
+        arm_effort_multiplier: 1.0
+        scoop_effort_multiplier: 1.0
+        claw_effort_multiplier: 0.6
+        minimum_speed: 0.05
+    hardware:
+      arm:
+        can_id: 0x20
+        max_effort: 1.0
+        reversed: false
+      scoop:
+        can_id: 0x21
+        max_effort: 1.0
+        reversed: false
+      claw:
+        can_id: 0x22
+        max_effort: 1.0
+        reversed: false
 
 tile_placer:
   ros__parameters:
+    can_bus: "can1"
+    update_rate: 10
+    controllers:
+      controller:
+        forklift_effort_multiplier: 0.7
+        minimum_speed: 0.05
+    hardware:
+      forklift:
+        can_id: 0x23
+        max_effort: 1.0
+        reversed: false
