@@ -1,0 +1,5 @@
+scraper:
+  ros__parameters:
+
+tile_placer:
+  ros__parameters:
