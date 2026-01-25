@@ -84,7 +84,7 @@ class HeaterController(Controller):
         self.logger.info(f"Getting {[h + "/effort" for h in self.heaters]} command interfaces")
         self.heater_cmds = [command_interfaces[h + "/effort"] for h in self.heaters]
 
-        self.logger.info(f"Getting {[t + "/temperature" for t in self.temp_sensor]} state interfaces")
+        self.logger.info(f"Getting {[t + "/temperature" for t in self.temp_sensors]} state interfaces")
         self.temp_sensor_states = [state_interfaces[t + "/temperature"] for t in self.temp_sensors]
 
         self.kiln_data_publisher = self.node.create_publisher(KilnData, self.data_topic, 5)
