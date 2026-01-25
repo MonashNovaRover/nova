@@ -1,4 +1,4 @@
-# thrustmaster joystick input source for 2025 E&C payload
+# thrustmaster joystick input source
 
 teleop_ec:
   ros__parameters:

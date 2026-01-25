@@ -1,4 +1,4 @@
-# game pad input source for 2025 E&C payload
+# game pad input source
 
 teleop_ec:
   ros__parameters:

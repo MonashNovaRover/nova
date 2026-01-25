@@ -8,17 +8,14 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 def launch_setup(context, *args, **kwargs):
     log_inputs = LaunchConfiguration('log_inputs')
-    payload = LaunchConfiguration('payload')
     joystick = LaunchConfiguration('joystick')
     log_level = LaunchConfiguration('log_level')
 
-    teleop_ec_dir = FindPackageShare('teleop_ec')
-    payload_params_dir = PathJoinSubstitution([teleop_ec_dir, 'params', payload])
+    params_dir = PathJoinSubstitution([FindPackageShare('teleop_ec'), 'params'])
 
-    base_params = PathJoinSubstitution([teleop_ec_dir, 'params', 'base.yaml'])
-    payload_params = PathJoinSubstitution([payload_params_dir, PythonExpression(['"', payload, '" + ".yaml"'])])
-    joystick_params = PathJoinSubstitution([payload_params_dir, "joysticks.config.yaml"])
-    game_controller_params = PathJoinSubstitution([payload_params_dir, "game_controller.config.yaml"])
+    teleop_params = PathJoinSubstitution([params_dir, 'teleop.yaml'])
+    joystick_params = PathJoinSubstitution([params_dir, "joysticks.config.yaml"])
+    game_controller_params = PathJoinSubstitution([params_dir, "game_controller.config.yaml"])
 
     return [
         # using joysticks
@@ -31,8 +28,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     arguments=['--node-name', 'teleop_ec'],
                     parameters=[
-                        base_params,
-                        payload_params,
+                        teleop_params,
                         joystick_params,
                         {'log_inputs': ParameterValue(log_inputs, value_type=bool)}
                     ],
@@ -72,8 +68,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     arguments=['--node-name', 'teleop_ec'],
                     parameters=[
-                        base_params,
-                        payload_params,
+                        teleop_params,
                         game_controller_params,
                         {'log_inputs': ParameterValue(log_inputs, value_type=bool)}
                     ],
@@ -95,11 +90,6 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     declared_arguments = [
-        DeclareLaunchArgument(
-            name='payload',
-            default_value='ec_25',
-            description='Name of E&C payload used (from different design cycles)',
-        ),
         DeclareLaunchArgument(
             name='joystick',
             default_value='True',
