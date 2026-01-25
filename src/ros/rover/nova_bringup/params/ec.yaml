@@ -9,9 +9,6 @@ scraper:
     update_rate: 10
     controllers:
       controller:
-        arm_effort_multiplier: 1.0
-        scoop_effort_multiplier: 1.0
-        claw_effort_multiplier: 0.6
         minimum_speed: 0.05
     hardware:
       arm:
