@@ -20,7 +20,6 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'scraper_x = excavation_construction.scraper_x:main',
             'scraper = excavation_construction.scraper:main',
             'scraper_old = excavation_construction.scraper_old:main',
             'tile_placer = excavation_construction.tile_placer:main',
