@@ -10,10 +10,15 @@ SERVICES:
 	- service: /science/kiln_command [KilnCommand]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+COMMAND INTERFACES:
+  - <heaters>/effort            [either 0 or 1]
+STATE INTERFACES:
+  - <temp_sensors>/temperature  [number in degrees Celsius]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Jonathan Jia
 CREATION:       09/01/2026
-EDITED:         22/01/2026
+EDITED:         25/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -38,7 +43,7 @@ class HeaterController(Controller):
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
         :param temp_sensors: List of temperature sensor names (as named in their hardware interfaces)
-        :param heaters: List of heater names (uses "heater_name/effort" command interfaces)
+        :param heaters: List of heater names (uses "<heater_name>/effort" command interfaces)
         :param calculate_reference_temp: given list of temperatures from temp_sensors, return the
             "reference" temperature (determines if heater needs to be turned on or off)
         :param command_service: Name of service that changes heater settings (receives KilnCommand)
@@ -64,6 +69,9 @@ class HeaterController(Controller):
         self.target_temp = 0
         self.last_temperatures = [0] * len(self.temp_sensors)
 
+        self.logger.info(f"HeaterController {self.name} initialised with temp sensor names: {self.temp_sensors}"
+                         f" and heater names: {self.heaters}")
+
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Gets state/command interfaces and creates publishers, service servers and timers
 
@@ -73,8 +81,10 @@ class HeaterController(Controller):
         interfaces you need from this, then store them in member variables.
         :returns: None or True if configured successfully. False otherwise.
         """
-
+        self.logger.info(f"Getting {[h + "/effort" for h in self.heaters]} command interfaces")
         self.heater_cmds = [command_interfaces[h + "/effort"] for h in self.heaters]
+
+        self.logger.info(f"Getting {[t + "/temperature" for t in self.temp_sensor]} state interfaces")
         self.temp_sensor_states = [state_interfaces[t + "/temperature"] for t in self.temp_sensors]
 
         self.kiln_data_publisher = self.node.create_publisher(KilnData, self.data_topic, 5)
@@ -92,7 +102,7 @@ class HeaterController(Controller):
         :param request: new settings for heater control (temperature, on or off)
         :param response: success or fail at applying new settings
         """
-        self.logger.debug(f"HeaterController {self.name} received KilnCommand request: {request}")
+        self.logger.info(f"HeaterController {self.name} received KilnCommand request: {request}")
 
         self.is_on = request.state
         self.target_temp = request.target
