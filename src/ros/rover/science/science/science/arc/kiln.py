@@ -148,10 +148,10 @@ if __name__ == "__main__":
         .with_hardware("kiln_sensor", GenericSensorHardware,
                        can_id = 0x02,
                        interpret_data = lambda data: 0.02 * int.from_bytes(data) - 273.15,
-                       sensor_output = "temperature") \
+                       unit = "temperature") \
         .with_hardware("condenser_sensor", GenericSensorHardware,
                        can_id = 0x03,
                        interpret_data = lambda data: 0.02 * int.from_bytes(data) - 273.15,
-                       sensor_output = "temperature") \
+                       unit = "temperature") \
         .with_jcan() \
         .spin()

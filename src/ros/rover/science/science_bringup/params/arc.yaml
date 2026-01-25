@@ -38,10 +38,10 @@ kiln:
     hardware:
       kiln_sensor:
         can_id: 0x12
-        sensor_output: "temperature"
+        unit: "temperature"
       condenser_sensor:
         can_id: 0x13
-        sensor_output: "temperature"
+        unit: "temperature"
       left_heater:
         can_id: 0x10
         max_effort: 1.0

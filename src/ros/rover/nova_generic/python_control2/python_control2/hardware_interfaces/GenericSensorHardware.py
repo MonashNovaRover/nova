@@ -3,7 +3,7 @@
 Hardware interface for miscellaneous sensors.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 STATE INTERFACES:
-  - <name>/<sensor_output>  [arbitrary value from interpret_data]
+  - <name>/<unit>  [arbitrary value from interpret_data]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        python_control2
 AUTHOR(S):      Jonathan Jia
@@ -25,15 +25,15 @@ class GenericSensorHardware(HardwareInterface):
     def __init__(self, contexts: Contexts,
                  can_id: int = 0,
                  interpret_data: Callable[[bytes], Any] = lambda x: int.from_bytes(x),
-                 sensor_output: str = "value",
+                 unit: str = "value",
                  initial_value: Any = 0):
         """ Constructor for GenericSensorHardware
-        Creates state interface "name/sensor_output"
+        Creates state interface "name/unit"
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
         :param can_id: CAN ID of messages from the sensor
         :param interpret_data: Translates raw CAN data into sensor outputs (e.g. velocity, temperature)
-        :param sensor_output: What the sensor outputs (e.g. velocity, temperature)
+        :param unit: What the sensor outputs (e.g. velocity, temperature)
         :param initial_value: Value output before receiving first CAN messages
         """
         super().__init__(contexts)
@@ -42,7 +42,7 @@ class GenericSensorHardware(HardwareInterface):
         self.interpret_data = interpret_data
 
         self.can_id: int = self.declare_parameter("can_id", can_id).value
-        self.sensor_output: str = self.declare_parameter("sensor_output", sensor_output).value
+        self.unit: str = self.declare_parameter("unit", unit).value
         self.last_value: Any = self.declare_parameter("initial_value", initial_value).value
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
@@ -56,15 +56,15 @@ class GenericSensorHardware(HardwareInterface):
         """
 
         # Get state interface
-        self.output_state: Interface[Any] = state_interfaces[f"{self.name}/{self.sensor_output}"]
+        self.output_state: Interface[Any] = state_interfaces[f"{self.name}/{self.unit}"]
 
         # Validate state interface configuration
         if self.output_state:
             self.logger.debug(f"GenericSensorHardware \"{self.name}\" found populated state interface: "
-                             f"(\"{self.name}/{self.sensor_output}\")")
+                             f"(\"{self.name}/{self.unit}\")")
         else:
             self.logger.warn(f"GenericSensorHardware \"{self.name}\" found state interface "
-                             f"\"{self.name}/{self.sensor_output}\" unpopulated")
+                             f"\"{self.name}/{self.unit}\" unpopulated")
 
         self.bus.add_callback(self.can_id, self.frame_callback)
 
