@@ -44,7 +44,11 @@ having a usb camera along side the oak cameras makes the usb camera have very hi
 
 I think it would be good to have 1 oak on the arm, ec, science etc as a camera, and then another in the chassis as an encoder. Need to investigate more around how much encoding we can do of usb cameras. Might get better performance if we get 4 camera feeds, put them in a grid, then encode them together, but not sure.
 
-I really want to make it do red-cyan 3d glasses mode. this would require getting R from left cam, BG from right cam, and putting them together into RGB. https://docs.luxonis.com/software-v3/depthai/tutorials/on-device-programming/#On%20Device%20Programming-Creating%20custom%20NN%20models maybe with this you could do it...
+Red Blue 3d glasses:
 
+gst-launch-1.0 \
+    udpsrc port=5001 ! video/x-h264 ! decodebin ! queue ! compositor name=mix sink_0::alpha=1 sink_1::alpha=1 sink_1::xpos=1920 ! \
+    glupload ! glviewconvert  input-mode-override=side-by-side   ! glimagesink output-multiview-downmix-mode=1  \
+    udpsrc port=5002 ! video/x-h264 ! decodebin ! queue  ! mix.
 
-
+this does happen on the gst end, not on the oak, so it has to decode what the oak sends (i.e. no more h264 unless you do this step at base station)
