@@ -37,8 +37,6 @@ class TilePlacerController(Controller):
         super().__init__(contexts)
 
         self.minimum_speed: float = self.declare_parameter("minimum_speed", 0.05, "minimum forklift speed (if unlocked)").value
-        self.forklift_effort_multiplier: float = self.declare_parameter("forklift_effort_multiplier", 0.70,
-                                                                        "multiplies effort requested from the forklift actuator (is also max effort)").value
 
         self.speed_axis_name: str = self.declare_parameter("speed_axis_name", "forklift_speed").value
         self.forklift_actuation_axis_name: str = self.declare_parameter("forklift_actuation_axis_name", "forklift_actuation").value
@@ -47,8 +45,7 @@ class TilePlacerController(Controller):
         self.speed_axis = inputs.get_axis(self.speed_axis_name)
         self.forklift_actuation_axis = inputs.get_axis(self.forklift_actuation_axis_name)
 
-        self.logger.info(f"TilePlacerController initialised with minimum speed: {self.minimum_speed:.2f} "
-                         f"and forklift effort multiplier: {self.forklift_effort_multiplier:.2f}")
+        self.logger.info(f"TilePlacerController initialised with minimum speed: {self.minimum_speed:.2f}")
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -73,7 +70,7 @@ class TilePlacerController(Controller):
         """
         speed = max(self.speed_axis.value, self.minimum_speed)
 
-        self.forklift_cmd.value = self.forklift_actuation_axis.value * self.forklift_effort_multiplier * speed
+        self.forklift_cmd.value = self.forklift_actuation_axis.value * speed
 
         self.logger.debug(f"speed: {speed}, forklift effort: {self.forklift_cmd.value:.2f}")
 

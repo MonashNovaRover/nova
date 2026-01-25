@@ -39,18 +39,13 @@ class ScraperController(Controller):
         """
         super().__init__(contexts)
 
-        # joint names (corresponds to command interfaces) and their effort multipliers
-        self.arm_effort_multiplier: float = self.declare_parameter("arm_effort_multiplier", 1.0).value
-        self.scoop_effort_multiplier: float = self.declare_parameter("scoop_effort_multiplier", 1.0).value
-        self.claw_effort_multiplier: float = self.declare_parameter("claw_effort_multiplier", 0.6).value
+        self.minimum_speed: float = self.declare_parameter("minimum_speed", 0.05,
+                                                           "minimum scraper actuation speed (if unlocked)").value
 
-        # axis/button names (corresponds to params passed to teleop modular)
         self.speed_axis_name: str = self.declare_parameter("speed_axis_name", "scraper_speed").value
         self.arm_axis_name: str = self.declare_parameter("arm_axis_name", "arm_actuation").value
         self.scoop_axis_name: str = self.declare_parameter("scoop_axis_name", "scoop_actuation").value
         self.claw_axis_name: str = self.declare_parameter("claw_axis_name", "claw_actuation").value
-
-        self.minimum_speed: float = self.declare_parameter("minimum_speed", 0.05).value
 
         inputs = contexts[Inputs]
         self.speed_axis = inputs.get_axis(self.speed_axis_name)
@@ -86,9 +81,9 @@ class ScraperController(Controller):
         """
         speed = max(self.speed_axis.value, self.minimum_speed)
 
-        self.arm_joint_cmd.value = self.arm_axis.value * self.arm_effort_multiplier * speed
-        self.scoop_joint_cmd.value = self.scoop_axis.value * self.scoop_effort_multiplier * speed
-        self.claw_joint_cmd.value = self.claw_axis.value * self.claw_effort_multiplier * speed
+        self.arm_joint_cmd.value = self.arm_axis.value * speed
+        self.scoop_joint_cmd.value = self.scoop_axis.value * speed
+        self.claw_joint_cmd.value = self.claw_axis.value * speed
 
         self.logger.debug(f"speed: {speed}, arm effort: {self.arm_joint_cmd.value:.2f}, "
                           f"scoop effort: {self.scoop_joint_cmd.value:.2f}, "

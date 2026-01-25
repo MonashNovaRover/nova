@@ -24,7 +24,7 @@ scraper:
         reversed: false
       claw:
         can_id: 0x22
-        max_effort: 1.0
+        max_effort: 0.6
         reversed: false
 
 tile_placer:
@@ -33,10 +33,9 @@ tile_placer:
     update_rate: 10
     controllers:
       controller:
-        forklift_effort_multiplier: 0.7
         minimum_speed: 0.05
     hardware:
       forklift:
         can_id: 0x23
-        max_effort: 1.0
+        max_effort: 0.7
         reversed: false
