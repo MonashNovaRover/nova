@@ -4,7 +4,7 @@
 Controller for the science chute which 
 deposits sand into the kiln.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: ChuteController
+NODE: PresetTwitchController
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
   - rotation/position    [value between 72 and 108]

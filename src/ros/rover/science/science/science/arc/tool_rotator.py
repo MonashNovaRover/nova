@@ -4,7 +4,7 @@
 Controller for the Tool Rotator of the ARC
 analysis arm which switches between instruments.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: ToolRotatorController
+NODE: PresetTwitchController
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
   - rotation/position    [value between 0 and 180]
