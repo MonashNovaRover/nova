@@ -40,7 +40,7 @@ with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER_PLUS)) as pipeline:
             outputsToEncode[f"OAK {camName}"] = camOut
 
         anaglyph = Anaglyph()
-        outputsToEncode["OAK L"].link(anaglyph.left)
+        outputsToEncode["OAK C"].link(anaglyph.left)
         outputsToEncode["OAK R"].link(anaglyph.right)
         outputsToEncode["OAK 3D"] = anaglyph.output
 

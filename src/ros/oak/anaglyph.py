@@ -48,23 +48,24 @@ class Anaglyph(dai.node.ThreadedHostNode):
             bufferL = self.left.get()
             bufferR = self.right.get()
 
-            rgbL = bufferL.getCvFrame() # RGB
-            rgbR = bufferR.getCvFrame() # RGB
+            bgrL = bufferL.getCvFrame()
+            bgrR = bufferR.getCvFrame()
 
 
             frame.setWidth(bufferL.getWidth())
             frame.setHeight(bufferL.getHeight())
 
-            bufferL = np.reshape(bufferL.getData(), (bufferL.getWidth(),-1,1))
-            bufferR = np.reshape(bufferR.getData(), (bufferR.getWidth(),-1,1))
 
-            rR = rgbR[:,:,0]
-            gL = rgbL[:,:,1]
-            bL = rgbL[:,:,2]
+            # slower but more accurate? if we can run a shader on oak we'd want to do this I think
+            #https://github.com/dolphin-emu/dolphin/blob/master/Data/Sys/Shaders/Anaglyph/dubois.glsl
 
-            rgb = np.stack((rR,gL, bL), axis=2)
+            bR = bgrR[:,:,0]
+            gR = bgrR[:,:,1]
+            rL = bgrL[:,:,2]
 
-            nv12 = rgb2nv12(rgb)
+            rgb = np.stack((rL,gR, bR), axis=2)
+
+            nv12 = rgb2nv12(rgb.astype(np.uint8))
 
             frame.setData(nv12)
             frame.setType(dai.ImgFrame.Type.NV12)
