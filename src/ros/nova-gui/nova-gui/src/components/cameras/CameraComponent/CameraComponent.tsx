@@ -62,7 +62,7 @@ const getInitialFilters = (cameraSerial: string): CameraFilters => {
 }
 
 export const CameraComponent = (props: CameraComponentProps) => {
-  const { cameraSerial, autostart: allCamerasStarted } = props;
+  const { cameraSerial, autostart: allCamerasStarted, getScreenshotName, onStreamingStateChange } = props;
   const cameraName = humanizeString(cameraSerial);
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -82,7 +82,6 @@ export const CameraComponent = (props: CameraComponentProps) => {
   // } = useWebcam(videoRef);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
-  const onStreamingStateChange = props.onStreamingStateChange
   const [currentSite, _] = useGenericStore<Site>("currentSite");
   const [cameraProfiles] = useGenericStore<CameraProfilesState>("cameraProfiles");
   
@@ -162,8 +161,8 @@ export const CameraComponent = (props: CameraComponentProps) => {
           link.href = url;
           
           const timestamp = Date.now();
-          const filename = props.getScreenshotName
-            ? props.getScreenshotName(cameraName, timestamp)
+          const filename = getScreenshotName
+            ? getScreenshotName(cameraName, timestamp)
             : `site${(currentSite+1).toString()}-${cameraSerial}-${timestamp}.png`;
           
           link.download = filename;
@@ -173,7 +172,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
     } else {
       toast("Unable to Take a Screenshot");
     }
-  }, [videoRef, cameraSerial, currentSite, cameraName, props.getScreenshotName]);
+  }, [videoRef, cameraSerial, currentSite, cameraName, getScreenshotName]);
 
   useEffect(() => {
     const handleMouseEnter = () => {
