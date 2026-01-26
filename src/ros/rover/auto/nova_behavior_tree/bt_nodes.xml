@@ -41,6 +41,17 @@
       <input_port name="input_goals">Original goals to snap if in collision</input_port>
       <output_port name="output_goals">Goals with all in collision goals snapped</output_port>
     </Action>
+    
+    <Action ID="RemoveInCollisionGoals">
+      <input_port name="service_name">Costmap service name responsible for getting the cost</input_port>
+      <input_port name="input_goals">A vector of goals to check if in collision</input_port>
+      <input_port name="use_footprint">Whether to use the footprint cost or the point cost.</input_port>
+      <input_port name="cost_threshold">The cost threshold above which a waypoint is considered in collision and should be removed.</input_port>
+      <input_port name="consider_unknown_as_obstacle"> If unknown cost is considered valid </input_port>
+      <input_port name="input_waypoint_statuses">Original waypoint_statuses to mark waypoint status from</input_port>
+      <output_port name="output_goals">A vector of goals containing only those that are not in collision.</output_port>
+      <output_port name="output_waypoint_statuses">Waypoint_statuses with in-collision waypoints marked</output_port>
+    </Action>
 
     <Action ID="SaveCubePoses">
       <input_port name="cube_poses">List of cube poses</input_port>

@@ -79,6 +79,10 @@ list(APPEND plugin_libs nova_update_urc_goals_action_bt_node)
 add_library(nova_snap_in_collision_goals_action_bt_node SHARED plugins/action/snap_in_collision_goals_action.cpp)
 list(APPEND plugin_libs nova_snap_in_collision_goals_action_bt_node)
 
+add_library(nova_remove_in_collision_goals_action_bt_node SHARED plugins/action/remove_in_collision_goals_action.cpp)
+list(APPEND plugin_libs nova_remove_in_collision_goals_action_bt_node)
+
+
 # ========================================= CONDITION NODES ========================================= #
 
 add_library(nova_ar_tag_detected_condition_bt_node SHARED plugins/condition/ar_tag_detected_condition.cpp)

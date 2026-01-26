@@ -22,7 +22,7 @@ bt_navigator:
     default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/test/navigate_through_poses_w_replanning_and_recovery.xml
     urc_2025_navigator:
       plugin: "nova_bt_navigators::URC2025Navigator"
-    default_urc_2025_navigator_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/test/navigate_through_poses_w_replanning_and_recovery.xml
+    default_urc_2025_navigator_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/urc/2025_urc_through_poses.xml
     plugin_lib_names:
       # ACTION NODES
       - nova_place_search_goals_action_bt_node
@@ -33,6 +33,7 @@ bt_navigator:
       - nova_update_urc_goals_action_bt_node
       - nova_snap_in_collision_goals_action_bt_node
       - nova_get_current_pose_action_bt_node
+      - nova_remove_in_collision_goals_action_bt_node
       # CONDITION NODES
       - nova_ar_tag_detected_condition_bt_node
       - nova_enable_detection_condition_bt_node
