@@ -10,7 +10,7 @@ fi
 for dir in $(echo /sys/bus/usb/drivers/uvcvideo/*/driver); do
   dir=$(echo $dir | rev | cut -d / -f 2- | rev)
   dir=$(readlink -f $dir)/..
-  name="$(cat $dir/idVendor):$(cat $dir/idProduct)_$(cat $dir/manufacturer)_$(cat $dir/product)"
+  name="$(cat $dir/idVendor)_$(cat $dir/idProduct)_$(cat $dir/manufacturer)_$(cat $dir/product)"
   truncate -s 0 "$name.txt"
   for node in $dir/*/video4linux/video*; do
     echo $dir ha $node
