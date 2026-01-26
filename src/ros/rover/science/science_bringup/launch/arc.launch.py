@@ -11,7 +11,7 @@ NODES:
   - science/arc_spinny_part.py          [spinny part] (analysis arm)
   - science/auger.py                    [auger]
   - science/analysis_arm.py             [c_beam]
-  - science/kiln_server.py              [kiln_server]
+  - science/kiln.py                     [kiln]
   - science/scimbal_cam.py              [scimbal_cam]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATED:    16/01/2026
@@ -37,6 +37,16 @@ def launch_setup(context, *args, **kwargs):
             name='auger',
             package='science',
             executable='auger.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
+            name='kiln',
+            package='science',
+            executable='kiln.py',
             output='screen',
             emulate_tty=True,
             parameters=[
