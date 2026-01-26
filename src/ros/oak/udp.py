@@ -11,13 +11,15 @@ import numpy as np
 
 from formats import rgb2nv12
 
+# TODO: ensure we don't block the pipeline by having one src stopped
+# TODO: get namedpipe instead so we can get the NV12 direct from gstreamer
 
 
 class UdpSource(dai.node.ThreadedHostNode):
     def __init__(self):
         super().__init__()
         self.outputs = {}
-        self.reconstructedFrames = {}
+        self.partialFrames = {}
 
     def createUDPInput(self, port, listenip="127.0.0.1"):
         output = self.createOutput()
@@ -34,7 +36,7 @@ class UdpSource(dai.node.ThreadedHostNode):
         print(f"listening for packets on {listenip}:{port}...")
 
         self.outputs[(listenip, port)] = sock, output
-        self.reconstructedFrames[(listenip,port)] = b''
+        self.partialFrames[(listenip,port)] = b''
         return output
 
     def run(self):
@@ -48,24 +50,24 @@ class UdpSource(dai.node.ThreadedHostNode):
         if not data:
             return
 
-        self.reconstructedFrames[ipPort] += data
+        self.partialFrames[ipPort] += data
         JPEG_START = b'\xff\xd8\xff\xe0'
         JPEG_END = b'\xff\xd9'
 
-        start = self.reconstructedFrames[ipPort].find(JPEG_START)
-        end = self.reconstructedFrames[ipPort].find(JPEG_END)
+        start = self.partialFrames[ipPort].find(JPEG_START)
+        end = self.partialFrames[ipPort].find(JPEG_END)
         # if end < start then i think we will drop a frame but that shouldn't occur.
 
         while start != -1 and end != -1:
             # we have a whole frame
-            frame = self.reconstructedFrames[ipPort][start:end+len(JPEG_END)]
-            self.reconstructedFrames[ipPort] = self.reconstructedFrames[ipPort][end+len(JPEG_END):]
+            frame = self.partialFrames[ipPort][start:end+len(JPEG_END)]
+            self.partialFrames[ipPort] = self.partialFrames[ipPort][end+len(JPEG_END):]
 
             if (frame):
                 self.send(frame, output)
         
-            start = self.reconstructedFrames[ipPort].find(JPEG_START)
-            end = self.reconstructedFrames[ipPort].find(JPEG_END)
+            start = self.partialFrames[ipPort].find(JPEG_START)
+            end = self.partialFrames[ipPort].find(JPEG_END)
 
 
     def send(self, data, output):

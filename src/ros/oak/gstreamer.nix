@@ -1,6 +1,8 @@
 
 { pkgs ? import <nixpkgs> {} }:
-
+let 
+  gst-namedpipe = pkgs.callPackage ./gst-namedpipe { };
+in
 pkgs.mkShell {
   buildInputs = with pkgs; [
     # Video/Audio data composition framework tools like "gst-inspect", "gst-launch" ...
@@ -23,5 +25,7 @@ pkgs.mkShell {
 
     python3Packages.pygobject3
     gtk3
+
+    gst-namedpipe
   ];
 }
