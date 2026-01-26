@@ -7,7 +7,7 @@ import { CameraControlPanelModal } from "../../../components/cameras/CameraCompo
 import SerialMappedCameraComponent from "./SerialMappedCameraComponent.tsx";
 import SegmentedPicker from "../../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
 import { SaveAllCamerasModal } from "../../../components/navbar/TopBar/SaveAllCamerasModal";
-import { CameraPresetDropdown } from "../../../components/navbar/TopBar/CameraPresetDropdown";
+import { CameraPresetDropdown } from "../../../components/cameras/CameraPresetDropdown";
 
 export interface CameraPageProps {
   views: CameraView[];
@@ -63,7 +63,6 @@ export const CameraPage = (props: CameraPageProps) => {
         />
 
         <div className="flex flex-row gap-3">
-          <CameraPresetDropdown onSavePress={() => setIsSaveModalOpen(true)} />
           <Button
             size="md"
             color="primary"
@@ -73,6 +72,7 @@ export const CameraPage = (props: CameraPageProps) => {
           >
             Control Panel
           </Button>
+          <CameraPresetDropdown onSavePress={() => setIsSaveModalOpen(true)} />
         </div>
       </div>
 

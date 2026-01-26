@@ -6,11 +6,12 @@ import {
   DropdownSection,
   Button,
 } from "@nextui-org/react";
-import { Trash2, Save, Upload } from "react-feather";
-import { useGenericStore } from "../../../hooks/useGenericStore";
-import { CameraProfilesState } from "../../../redux/models/CameraProfilesState";
-import { emitLoadProfileEvent } from "../../../utils/cameraProfileEvents";
+import { Trash2, Save, Upload, User, Check } from "react-feather";
+import { useGenericStore } from "../../hooks/useGenericStore";
+import { CameraProfilesState } from "../../redux/models/CameraProfilesState";
+import { emitLoadProfileEvent } from "../../utils/cameraProfileEvents";
 import toast from "react-hot-toast";
+import { useEffect } from "react";
 
 interface CameraPresetDropdownProps {
   onSavePress: () => void;
@@ -22,11 +23,28 @@ export const CameraPresetDropdown: React.FC<CameraPresetDropdownProps> = ({
   const [cameraProfiles, setCameraProfiles] = useGenericStore<CameraProfilesState>("cameraProfiles");
   const profiles = Object.values(cameraProfiles.profiles).sort((a, b) => b.timestamp - a.timestamp);
 
+  // Auto-load last loaded profile on mount
+  useEffect(() => {
+    if (cameraProfiles.lastLoadedProfile && cameraProfiles.profiles[cameraProfiles.lastLoadedProfile]) {
+      // Small delay to ensure all camera components are mounted and listening
+      setTimeout(() => {
+        emitLoadProfileEvent(cameraProfiles.lastLoadedProfile!);
+      }, 100);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array - only run on mount
+
   const handleLoad = (profileName: string) => {
     const profile = cameraProfiles.profiles[profileName];
     if (profile) {
       const cameraCount = Object.keys(profile.cameras).length;
       toast.success(`Loading ${profileName} (${cameraCount} cameras)`);
+      
+      // Update last loaded profile
+      setCameraProfiles({
+        ...cameraProfiles,
+        lastLoadedProfile: profileName,
+      });
       
       // Small delay to ensure all camera components are mounted and listening
       setTimeout(() => {
@@ -40,6 +58,7 @@ export const CameraPresetDropdown: React.FC<CameraPresetDropdownProps> = ({
     const { [profileName]: _, ...remainingProfiles } = cameraProfiles.profiles;
     setCameraProfiles({
       profiles: remainingProfiles,
+      lastLoadedProfile: cameraProfiles.lastLoadedProfile === profileName ? null : cameraProfiles.lastLoadedProfile,
     });
     toast.success(`Deleted profile: ${profileName}`);
   };
@@ -48,12 +67,12 @@ export const CameraPresetDropdown: React.FC<CameraPresetDropdownProps> = ({
     <Dropdown placement="bottom-end">
       <DropdownTrigger>
         <Button
+          isIconOnly
           size="md"
           color="primary"
           variant="ghost"
-          className="w-36"
         >
-          Preset
+          <User size={20} />
         </Button>
       </DropdownTrigger>
       <DropdownMenu 
@@ -79,7 +98,14 @@ export const CameraPresetDropdown: React.FC<CameraPresetDropdownProps> = ({
               <DropdownItem
                 key={profile.name}
                 description={new Date(profile.timestamp).toLocaleString()}
-                startContent={<Upload size={16} />}
+                startContent={
+                  cameraProfiles.lastLoadedProfile === profile.name ? (
+                    <Check size={16} className="text-success" />
+                  ) : (
+                    <Upload size={16} />
+                  )
+                }
+                className={cameraProfiles.lastLoadedProfile === profile.name ? "bg-primary/10" : ""}
                 endContent={
                   <Button
                     isIconOnly

@@ -27,8 +27,10 @@ export interface CameraProfilesState {
   profiles: {
     [profileName: string]: CameraProfile;
   };
+  lastLoadedProfile: string | null; // Name of the last loaded profile
 }
 
 export const initialCameraProfilesState: CameraProfilesState = {
   profiles: {},
+  lastLoadedProfile: null,
 };
