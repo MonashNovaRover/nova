@@ -9,6 +9,8 @@ from io import BytesIO
 from PIL import Image
 import numpy as np
 
+from formats import rgb2nv12
+
 
 
 class UdpSource(dai.node.ThreadedHostNode):
@@ -75,9 +77,10 @@ class UdpSource(dai.node.ThreadedHostNode):
             return # bad frame, just skip it
         # TODO: if we can't send a frame, resend last good frame
 
+        nv12 = rgb2nv12(rgb)
         frame = dai.ImgFrame()
-        frame.setData(rgb)
-        frame.setType(dai.ImgFrame.Type.RGB888i)
+        frame.setData(nv12)
+        frame.setType(dai.ImgFrame.Type.NV12)
         # Changing image size at runtime doesn't work for some reason, you need to restart the whole thing :/
         frame.setWidth(img.width)
         frame.setHeight(img.height)

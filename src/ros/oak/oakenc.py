@@ -13,12 +13,12 @@ from udp import UdpSink, UdpSource
 from anaglyph import Anaglyph
 
 streamOak = True
-streamUdp = False
+streamUdp = True
 udpInputPorts = (4996,) # we will listen to these and convert encode them
 currentPort = 5000 # first output port, currently just use sequential ports.
 oakRes = (1920,1200)
 
-FPS=10
+FPS=20
 PROFILE = dai.VideoEncoderProperties.Profile.H264_MAIN # or H265_MAIN, H264_MAIN, MJPEG H264_BASELINE H264_HIGH
 
 with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER_PLUS)) as pipeline:
@@ -39,10 +39,12 @@ with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER_PLUS)) as pipeline:
 
             outputsToEncode[f"OAK {camName}"] = camOut
 
+        """
         anaglyph = Anaglyph()
         outputsToEncode["OAK C"].link(anaglyph.left)
         outputsToEncode["OAK R"].link(anaglyph.right)
         outputsToEncode["OAK 3D"] = anaglyph.output
+        """
 
         """
         # OAK Depth
@@ -69,12 +71,7 @@ with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER_PLUS)) as pipeline:
     source = UdpSource()
     if streamUdp:
         for port in udpInputPorts:
-            manip = pipeline.create(dai.node.ImageManip)
-            manip.setMaxOutputFrameSize(1200*1980*2) #random number tbh. it means you can do bigger resolution but also it ends up broken with the lower section of the image missing...
-            manip.initialConfig.setFrameType(dai.ImgFrame.Type.NV12)
-            source.createUDPInput(port).link(manip.inputImage)
-
-            outputsToEncode[f"UDP {port}"] = manip.out
+            outputsToEncode[f"UDP {port}"] = source.createUDPInput(port)
 
 
     # ENCODERS & UDP OUTPUT
