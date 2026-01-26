@@ -16,6 +16,7 @@ streamOak = True
 streamUdp = False
 udpInputPorts = (4996,) # we will listen to these and convert encode them
 currentPort = 5000 # first output port, currently just use sequential ports.
+oakRes = (1920,1200)
 
 FPS=10
 PROFILE = dai.VideoEncoderProperties.Profile.H264_MAIN # or H265_MAIN, H264_MAIN, MJPEG H264_BASELINE H264_HIGH
@@ -34,7 +35,7 @@ with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER_PLUS)) as pipeline:
         for camName in oakCams:
             cam = pipeline.create(dai.node.Camera)
             cam.build(oakCams[camName])
-            camOut = cam.requestOutput(size=(1920,1200), type=dai.ImgFrame.Type.NV12, fps=FPS)
+            camOut = cam.requestOutput(size=oakRes, type=dai.ImgFrame.Type.NV12, fps=FPS)
 
             outputsToEncode[f"OAK {camName}"] = camOut
 
