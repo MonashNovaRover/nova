@@ -57,6 +57,8 @@ game_controller_source:
           from: "LEFTY"
         cbeam_actuation:
           from: "LEFTY"
+        chute_speed:
+          from: "TRIGGERLEFT"
 
       buttons:
         lock:
@@ -67,11 +69,19 @@ game_controller_source:
           from: "A"
         auger_drill_anticlockwise:
           from: "B"
-        spinny_pos_1:
-          from: "X"
         activate_auger:
           from: "DPAD_UP"
         activate_cbeam:
           from: "DPAD_LEFT"
         auger_drill:
           from: "DPAD_DOWN"
+        activate_chute:
+          from: "DPAD_RIGHT"
+        chute_disengaged:
+          from: "X"
+        chute_engaged:
+          from: "Y"
+        chute_twitch_decrease:
+          from: "LEFTSHOULDER"
+        chute_twitch_increase:
+          from: "RIGHTSHOULDER"

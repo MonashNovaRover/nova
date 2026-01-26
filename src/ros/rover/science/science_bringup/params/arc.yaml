@@ -8,12 +8,18 @@
 tool_rotator:
   ros__parameters:
     can_bus: "can1"
+    controllers:
+      controller:
+        min_angle: 0.0
+        max_angle: 180.0
+        twitch_max: 30.0
+        sweeper: 0.0
+        microscope: 90.35
+        nir_probe: 168.71
     hardware:
       rotation:
         function_id: 0x00
         angular_range: 180.0
-        min_angle: 0.0
-        max_angle: 180.0
 
 
 # CBeam - Nodes for components on the CBeam
@@ -23,7 +29,7 @@ auger:
     can_bus: "can1"
     active: true
     active_button: "activate_auger"
-    inactive_button_pool: ["activate_cbeam"]
+    inactive_button_pool: ["activate_cbeam, activate_chute, activate_sweeper"]
     hardware:
       actuation:
         can_id: 0x0C2
@@ -67,9 +73,14 @@ chute:
     can_bus: "can1"
     active_button: "activate_chute"
     inactive_button_pool: ["activate_auger", "activate_sweeper"]
+    controllers:
+      controller:
+        min_angle: 72.0
+        max_angle: 108.0
+        twitch_max: 6.0
+        disengaged: 72.0
+        engaged: 108.0
     hardware:
       rotation:
         function_id: 0x03
         angular_range: 180.0
-        min_angle: 72.0
-        max_angle: 108.0

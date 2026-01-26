@@ -47,7 +47,7 @@ thrustmaster_left:
     remap:
       axes:
       # Tool Rotator
-        rotator_speed:
+        tool_rotator_speed:
           from: "l_ax_slider"
 
       buttons:
@@ -57,15 +57,15 @@ thrustmaster_left:
         unlock:
           from: "l_btn_bottom_l5_state"
         # Tool Rotator
-        rotator_twitch_decrease:
+        tool_rotator_twitch_decrease:
           from: "l_btn_bottom_r1_state"
-        rotator_twitch_increase:
+        tool_rotator_twitch_increase:
           from: "l_btn_bottom_r2_state"
-        rotator_sweeper:
+        tool_rotator_sweeper:
           from: "l_btn_bottom_r4_state"
-        rotator_microscope:
+        tool_rotator_microscope:
           from: "l_btn_bottom_r5_state"
-        rotator_nir:
+        tool_rotator_nir_probe:
           from: "l_btn_bottom_r6_state"
 
 thrustmaster_right:

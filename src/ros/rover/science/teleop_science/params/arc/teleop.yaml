@@ -60,7 +60,7 @@ input_publisher_mode:
       # Sweeper
       - "sweeper_speed"
       # Tool Rotator
-      - "rotator_speed"
+      - "tool_rotator_speed"
       # Chute
       - "chute_speed"
     button_names:
@@ -74,11 +74,11 @@ input_publisher_mode:
       - "activate_sweeper"
       - "sweeper_sweep"
       # Tool Rotator
-      - "rotator_twitch_decrease"
-      - "rotator_twitch_increase"
-      - "rotator_sweeper"
-      - "rotator_microscope"
-      - "rotator_nir"
+      - "tool_rotator_twitch_decrease"
+      - "tool_rotator_twitch_increase"
+      - "tool_rotator_sweeper"
+      - "tool_rotator_microscope"
+      - "tool_rotator_nir_probe"
       # Chute
       - "activate_chute"
       - "chute_twitch_decrease"
