@@ -122,8 +122,8 @@ def launch_setup(context, *args, **kwargs):
                         'subscribe_rgb': False, 
                         'subscribe_rgbd': True,
                         'subscribe_scan_cloud': True,
-                        'approx_sync': True,
-                        'approx_sync_max_interval': 0.15,
+                        'approx_sync': False,
+                        # 'approx_sync_max_interval': 0.15,
                         'subscribe_scan': False,       # DISABLE looking for 2D /scan
                         'subscribe_stereo': True, 
                     }],
