@@ -281,10 +281,6 @@ joy_input_source:
         unlock:
           from: "START"
         task_space:
-<<<<<<< HEAD
           from: "LEFTSHOULDER"
-=======
-          from: LEFTSHOULDER
         end_effector_mode:
           from: RIGHTSHOULDER
->>>>>>> 1ef1063b (fix: renamed joints to be consistent with preexisting urdf)
