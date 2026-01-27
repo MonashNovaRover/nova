@@ -12,16 +12,17 @@ import numpy as np
 from udp import UdpSink, UdpSource
 from anaglyph import Anaglyph
 
-streamOak = True
-streamUdp = True
-udpInputPorts = (4996,) # we will listen to these and convert encode them
+streamOak = 0
+streamUdp = 1
+anaglyph = 0
+udpInputPorts = (4996,4997) # we will listen to these and convert encode them
 currentPort = 5000 # first output port, currently just use sequential ports.
 oakRes = (1920,1200)
 
 FPS=20
 PROFILE = dai.VideoEncoderProperties.Profile.H264_MAIN # or H265_MAIN, H264_MAIN, MJPEG H264_BASELINE H264_HIGH
 
-with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER_PLUS)) as pipeline:
+with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER)) as pipeline:
 
 
     outputsToEncode = {}
@@ -39,12 +40,11 @@ with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER_PLUS)) as pipeline:
 
             outputsToEncode[f"OAK {camName}"] = camOut
 
-        """
-        anaglyph = Anaglyph()
-        outputsToEncode["OAK C"].link(anaglyph.left)
-        outputsToEncode["OAK R"].link(anaglyph.right)
-        outputsToEncode["OAK 3D"] = anaglyph.output
-        """
+        if anaglyph:
+            anaglyph = Anaglyph()
+            outputsToEncode["OAK C"].link(anaglyph.left)
+            outputsToEncode["OAK R"].link(anaglyph.right)
+            outputsToEncode["OAK 3D"] = anaglyph.output
 
         """
         # OAK Depth
@@ -95,7 +95,7 @@ with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER_PLUS)) as pipeline:
     while pipeline.isRunning():
         try:
             # this is where you'd be clever and change the bitrate dynamically if changing the bitrate actually changed the encoder's output bitrate.
-            time.sleep(0.1)
+            time.sleep(1)
         except KeyboardInterrupt:
             break
 

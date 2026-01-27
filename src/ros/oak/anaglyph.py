@@ -13,12 +13,17 @@ class Anaglyph(dai.node.ThreadedHostNode):
     """
     def __init__(self):
         super().__init__()
-        self.left = self.createInput()
-        self.right = self.createInput()
+        self.left = self.createInput(blocking=False)
+        self.right = self.createInput(blocking=False)
         self.output = self.createOutput()
 
+        self.running = True
+
+    def onStop(self):
+        self.running = False
+
     def run(self):
-        while True:
+        while self.running:
             frame = dai.ImgFrame()
 
             bufferL = self.left.get()
@@ -31,13 +36,9 @@ class Anaglyph(dai.node.ThreadedHostNode):
             frame.setWidth(bufferL.getWidth())
             frame.setHeight(bufferL.getHeight())
 
-
-            # slower but more accurate? if we can run a shader on oak we'd want to do this I think
-            #https://github.com/dolphin-emu/dolphin/blob/master/Data/Sys/Shaders/Anaglyph/dubois.glsl
-
-            bR = bgrR[:,:,0]
-            gR = bgrR[:,:,1]
             rL = bgrL[:,:,2]
+            gR = bgrR[:,:,1]
+            bR = bgrR[:,:,0]
 
             rgb = np.stack((rL,gR, bR), axis=2)
 

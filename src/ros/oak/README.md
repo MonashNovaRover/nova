@@ -25,8 +25,6 @@ done
 
 Didn't get encoded depth output working. - Need to make a hostnode to convert greyscale to NV12
 
-When any of your gst udpsinks stop, the oak stops as it wants all the inputs to be in sync. may be able to solve this by repeating the last good frame till we get new frames.
-
 
 udpsink for gst can't do large frames because of udp packet size.   rndbuffersize max=20000 min=19000  stops the errors, but adds to latency i think. OAK can't convert large mjpeg to NV12 so maybe we just have to do that on the orin side. Can't do that in gst because udp packet size limits... if we can package gst-namedpipe I think that would make this a lot nicer.
 

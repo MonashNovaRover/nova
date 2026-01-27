@@ -11,7 +11,6 @@ import numpy as np
 
 from formats import rgb2nv12
 
-# TODO: ensure we don't block the pipeline by having one src stopped
 # TODO: get namedpipe instead so we can get the NV12 direct from gstreamer
 
 
@@ -20,6 +19,7 @@ class UdpSource(dai.node.ThreadedHostNode):
         super().__init__()
         self.outputs = {}
         self.partialFrames = {}
+        self.running = True
 
     def createUDPInput(self, port, listenip="127.0.0.1"):
         output = self.createOutput()
@@ -32,6 +32,7 @@ class UdpSource(dai.node.ThreadedHostNode):
         # need https://github.com/aler9/gst-namedpipe (or from c,
         # maybe you can set the socket for udpsink manually to a named pipe socket)
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setblocking(False)
         sock.bind((listenip, port))
         print(f"listening for packets on {listenip}:{port}...")
 
@@ -40,14 +41,21 @@ class UdpSource(dai.node.ThreadedHostNode):
         return output
 
     def run(self):
-        while True:
+        # TODO: can we use callbacks instead of polling our udp sockets?
+        while self.running:
             for output in self.outputs:
                 self.processPackets(output)
+            time.sleep(0.01)
+
+
+    def onStop(self):
+        self.running = False
 
     def processPackets(self, ipPort):
         sock, output = self.outputs[ipPort]
-        data, sender = sock.recvfrom(2**16)
-        if not data:
+        try:
+            data = sock.recv(2**16)
+        except socket.error:
             return
 
         self.partialFrames[ipPort] += data
@@ -77,7 +85,6 @@ class UdpSource(dai.node.ThreadedHostNode):
             rgb = np.asarray(img)
         except OSError:
             return # bad frame, just skip it
-        # TODO: if we can't send a frame, resend last good frame
 
         nv12 = rgb2nv12(rgb)
         frame = dai.ImgFrame()
@@ -99,21 +106,26 @@ class UdpSink(dai.node.ThreadedHostNode):
         self.bytes = {}
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.running = True
 
     def createUDPOutput(self, port, ip="127.0.0.1"):
-        self.inputs[(ip,port)] = self.createInput()
+        self.inputs[(ip,port)] = self.createInput(blocking=False)
+        self.inputs[(ip,port)].addCallback(lambda buffer: self.pollInput((ip,port), buffer))
         self.lasttime[(ip,port)] = time.time()
         self.bytes[(ip,port)] = 0
 
         return self.inputs[(ip,port)]
 
     def run(self):
-        while True:
-            for input_ in self.inputs:
-                self.pollInput(input_)
+        while self.running:
+            time.sleep(0.1)
 
-    def pollInput(self, ipPort):
-        buffer = self.inputs[ipPort].get()
+
+    def onStop(self):
+        self.running = False
+
+    def pollInput(self, ipPort, buffer):
+
         buffer = buffer.getData().tobytes()
         self.bytes[ipPort] += len(buffer)
         if (time.time() - self.lasttime[ipPort]) > 1:
