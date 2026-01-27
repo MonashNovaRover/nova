@@ -126,7 +126,7 @@ def launch_setup(context, *args, **kwargs):
                         'subscribe_scan': False,       # DISABLE looking for 2D /scan
                     }],
                     remappings=[
-                        ('/oak/rgbd_image', '/oak/rgbd_image'),   # From Sync Node
+                        ('rgbd_image', '/oak/rgbd_image'),   # From Sync Node
                         ('scan_cloud', '/livox/lidar'), # From Livox
                         ('odom', '/odometry/local'),    # From ICP Node
                         ('gps/fix','/gps_rover/fix')
