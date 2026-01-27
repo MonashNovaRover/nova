@@ -70,17 +70,18 @@ def launch_setup(context, *args, **kwargs):
                 # 1.Synchronizes RGB + Depth/Cloud
                 ComposableNode(
                     package='rtabmap_sync',
-                    plugin='rtabmap_sync::RGBDSync',
-                    name=f'{front_name}_rgbd_sync',
+                    plugin='rtabmap_sync::StereoSync',  # Changed to StereoSync for OAK-D stereo input
+                    name=f'{front_name}_stereo_sync',
                     parameters=[rtabmap_params, {
-                        'approx_sync': True, 
+                        'approx_sync': True,
                         'use_sim_time': gazebo,
                     }],
                     remappings=[
-                        ('/oak/rgbd/image', front_name+'/oak/rgbd/image_raw'),
-                        ('/oak/rgbd/camera_info', front_name+'/oak/rgbdcamera_info'),
-                        ('depth/image', front_name+'/stereo/image_raw'),
-                        ('rgbd_image',front_name+'/rgbd/image_raw')
+                        ('left/image_rect',   '/oak/rgb/image_rect'),    # Using rectified RGB as 'left'
+                        ('left/camera_info',  '/oak/rgb/camera_info'),
+                        ('right/image_rect',  '/oak/stereo/image_raw'),  # Right stereo stream
+                        ('right/camera_info', '/oak/stereo/camera_info'),
+                        ('rgbd_image',        f'{front_name}/rgbd_image') # Output for RTAB-Map
                     ],
                 ),
 
@@ -118,8 +119,8 @@ def launch_setup(context, *args, **kwargs):
                         'use_sim_time': gazebo, 
                         'rtabmap_args': '--delete_db_on_start',
                         'subscribe_depth': False,
-                        'subscribe_rgb': True, 
-                        'subscribe_rgbd': False,
+                        'subscribe_rgb': False, 
+                        'subscribe_rgbd': True,
                         'subscribe_scan_cloud': True,
                         'approx_sync': True,
                         'subscribe_scan': False,       # DISABLE looking for 2D /scan
