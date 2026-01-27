@@ -365,7 +365,7 @@ hardware_interface::CallbackReturn CMDHardware::apply_parameters() {
       RCLCPP_FATAL(rclcpp::get_logger(CMDHardwareLoggerName), "No canid provided");
       return CallbackReturn::ERROR;
     }
-    params_.canid = std::stoul(canid_search->second);
+    params_.canid = std::stoul(canid_search->second, nullptr, 16);
     RCLCPP_INFO(rclcpp::get_logger(CMDHardwareLoggerName), "Using can id %d", params_.canid);
 
     auto resolver_id_search = info_.hardware_parameters.find("resolver_id");
