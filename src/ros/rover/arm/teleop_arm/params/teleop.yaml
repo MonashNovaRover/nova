@@ -117,11 +117,11 @@ joint_space_mode:
       j5:
         name: "J5"
         input_name: "j5"
-        scale: 0.1
+        scale: 0.9
       j6:
         name: "J6"
         input_name: "j6"
-        scale: 0.36
+        scale: 0.9
 
 
 task_space_mode:
@@ -209,14 +209,17 @@ joy_input_source:
             positive: "Y"
             negative: "A"
         j4:
-          from: "RIGHTY"
-          invert: true
-        j5:
-          from: "RIGHTX"
-        j6:
           from_buttons:
             positive: "X"
             negative: "B"
+          
+        j5:
+          from: "RIGHTY"
+
+        j6:
+          from: "LEFTY"
+          invert: true
+          
 
         # Task space
         linear:
