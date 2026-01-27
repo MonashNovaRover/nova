@@ -32,7 +32,7 @@ class ScimbalCamController(Controller):
     tilt_cmd: Interface
     pan_cmd: Interface
 
-    def __init__(self, contexts: Contexts, button: str="some_button", axis: str="some_axis"):
+    def __init__(self, contexts: Contexts):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
@@ -63,11 +63,11 @@ class ScimbalCamController(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
         # Save references to interfaces
-        self.logger.info(f"Getting tilt_hw/position")
-        self.tilt_cmd = command_interfaces["tilt_hw/position"]
+        self.logger.info(f"Getting tilt/position")
+        self.tilt_cmd = command_interfaces["tilt/position"]
 
-        self.logger.info(f"Getting pan_hw/position")
-        self.pan_cmd = command_interfaces["pan_hw/position"]
+        self.logger.info(f"Getting pan/position")
+        self.pan_cmd = command_interfaces["pan/position"]
 
         # Initialise value to starting angle
         self.tilt_cmd.value = self.start_tilt_angle
@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("controller", ScimbalCamController) \
-        .with_hardware("tilt_hw", PositionalServoHardware, frame_id=0x0B0, function_id=0x03, max_angle=180.0) \
-        .with_hardware("pan_hw", PositionalServoHardware, frame_id=0x0B0, function_id=0x04, max_angle=360.0) \
+        .with_hardware("tilt", PositionalServoHardware, frame_id=0x0B0, function_id=0x03, max_angle=180.0) \
+        .with_hardware("pan", PositionalServoHardware, frame_id=0x0B0, function_id=0x04, max_angle=360.0) \
         .with_jcan() \
         .spin()
