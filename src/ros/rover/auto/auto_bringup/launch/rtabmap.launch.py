@@ -81,7 +81,7 @@ def launch_setup(context, *args, **kwargs):
                         ('left/camera_info',  '/oak/left/camera_info'),
                         ('right/image_rect',  '/oak/right/image_raw'),
                         ('right/camera_info', '/oak/right/camera_info'),
-                        ('rgbd_image',        '/oak/rgbd_image')
+                        ('rgbd_image',        '/oak/rgbd_image'),
                         ('rgbd_image',        f'{front_name}/rgbd_image') # Output for RTAB-Map
                     ],
                 ),
