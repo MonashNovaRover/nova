@@ -12,11 +12,11 @@ class NamedPipeSource(dai.node.ThreadedHostNode):
         super().__init__()
         self.outputs = {}
         self.widths = {}
-        self.partialFrames = {}
+        self.heights = {}
         self.running = True
         self.createdpipes = []
 
-    def createNamedPipeInput(self, location, width):
+    def createNamedPipeInput(self, location, width, height):
         output = self.createOutput()
         output.setPossibleDatatypes([
             (dai.DatatypeEnum.ImgFrame, True),
@@ -27,7 +27,7 @@ class NamedPipeSource(dai.node.ThreadedHostNode):
             os.mkfifo(location, 0o600)
             self.createdpipes.append(location)
         except FileExistsError:
-            print(location,"already exists, reusing")
+            pass #print(location,"already exists, reusing")
 
         pipefd = os.open(location, os.O_RDONLY | os.O_NONBLOCK)
         print(f"opened pipe `{location}` as input...")
@@ -40,6 +40,7 @@ class NamedPipeSource(dai.node.ThreadedHostNode):
 
         self.outputs[pipefd] = output
         self.widths[pipefd] = width
+        self.heights[pipefd] = height
         return output
 
     def run(self):
@@ -58,9 +59,8 @@ class NamedPipeSource(dai.node.ThreadedHostNode):
     def onStop(self):
         self.running = False
 
-    def __checkValidSize(self, size, width):
-        height = 2*size//(width*3)
-        return (height *width * 3) //2 == size
+    def __getValidSize(self, width, height):
+        return (height *width * 3) //2
 
     def processPackets(self, fd):
         output = self.outputs[fd]
@@ -73,11 +73,11 @@ class NamedPipeSource(dai.node.ThreadedHostNode):
             return
         size = int.from_bytes(size, byteorder="little")
         width = self.widths[fd]
-        height = 2*size//(width*3)
+        height = self.heights[fd]
 
-        if not self.__checkValidSize(size,width):
+        if self.__getValidSize(width,height) != size:
             print(f"invalid size width {width}, height {height}, size {size}") 
-            #TODO: if we specify the entire width and height, we can search for the 4 bytes with the correct size to sync up again.
+            #TODO: we can search for the 4 bytes with the correct size to sync up again.
             return
 
 
@@ -113,7 +113,7 @@ class NamedPipeSink(dai.node.ThreadedHostNode):
             os.mkfifo(location, 0o600)
             self.createdpipes.append(location)
         except FileExistsError:
-            print(location,"already exists, reusing")
+            pass #print(location,"already exists, reusing")
         print(f"opened pipe `{location}` as output...")
 
         # to open the fifo writeonly there must be a reader connected.
