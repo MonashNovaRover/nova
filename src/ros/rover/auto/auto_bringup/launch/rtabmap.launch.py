@@ -118,8 +118,8 @@ def launch_setup(context, *args, **kwargs):
                         'sync_queue_size': 30,
                     }],
                     remappings=[
-                        # Connect RGB Input DIRECTLY to Camera
-                        ('rgb/image',       '/oak/rgb/image_raw'),
+                        # Connect RGB Input to the CLEANED topic
+                        ('rgb/image',       '/oak/rgb/image_raw/clean'),
                         ('rgb/camera_info', '/oak/rgb/camera_info'),
                         
                         # Connect Geometry Input DIRECTLY to LiDAR
@@ -130,6 +130,17 @@ def launch_setup(context, *args, **kwargs):
                     ],
                 ),
             ],
+        ),
+        Node(
+            package='image_transport',
+            executable='republish',
+            name='rgb_republish',
+            arguments=['raw', 'raw'], # Input -> Output
+            remappings=[
+                ('in', '/oak/rgb/image_raw'),
+                ('out', '/oak/rgb/image_raw/clean') # New clean topic
+            ],
+            output='screen'
         ),
         Node(
              package='rtabmap_util', executable='obstacles_detection', output='screen',
