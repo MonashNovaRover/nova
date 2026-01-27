@@ -1,10 +1,11 @@
 # teleop.launch.py
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, LogInfo
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, LogInfo, GroupAction
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
+from launch.conditions import IfCondition, UnlessCondition
 import os
 
 
@@ -18,6 +19,12 @@ def launch_setup(context, *args, **kwargs):
     teleop_params = LaunchConfiguration('teleop_params')
     log_inputs = LaunchConfiguration('log_inputs')
     log_level = LaunchConfiguration('log_level').perform(context)
+    use_joysticks = LaunchConfiguration('use_joysticks').perform(context)
+    
+    input_param_file = PythonExpression([
+        '"joysticks.config.yaml" if "', use_joysticks, '".lower() == "true" else "controller.config.yaml"'
+    ])
+    input_params = PathJoinSubstitution([teleop_arm_dir, 'params', input_param_file])
 
     return [
         LogInfo(msg=['Using teleop_arm := ', teleop_arm_dir]),
@@ -32,6 +39,7 @@ def launch_setup(context, *args, **kwargs):
             # You can add multiple parameter files here:
             parameters=[
                 teleop_params,
+                input_params,
                 {'log_inputs': ParameterValue(log_inputs, value_type=bool)}
             ],
 
@@ -45,11 +53,45 @@ def launch_setup(context, *args, **kwargs):
 
         # Automatically run joy alongside teleop
         Node(
+            condition=UnlessCondition(use_joysticks),
             package='joy',
             executable='game_controller_node',  # or joy_node
-            output="screen"
+            output="screen",
+            remappings=[
+                ("/joy", "/arm/joy")
+            ]
+        ),
+        GroupAction(
+            condition=IfCondition(use_joysticks),
+            actions=[
+                Node(
+                    name="joy_left",
+                    package='joy',
+                    executable='joy_node',
+                    output="screen",
+                    parameters=[
+                        {"device_id": 0, },
+                    ],
+                    remappings=[
+                        ("/joy", "/arm/joy/left")
+                    ],
+                ),
+                Node(
+                    name="joy_right",
+                    package='joy',
+                    executable='joy_node',
+                    output="screen",
+                    parameters=[
+                        {"device_id": 1, },
+                    ],
+                    remappings=[
+                        ("/joy", "/arm/joy/right")
+                    ],
+                ),
+            ],
         ),
     ]
+
 
 
 def generate_launch_description():
@@ -80,6 +122,11 @@ def generate_launch_description():
             name='log_inputs',
             default_value='False',
             description='Set this true to display all the inputs. Very useful when trying to configure input sources!',
+        ),
+        DeclareLaunchArgument(
+            name='use_joysticks',
+            default_value='False',
+            description='Set this to true to have the mappings be for the Thrustmasters instead of the Xbox controller.',
         ),
     ]
 
