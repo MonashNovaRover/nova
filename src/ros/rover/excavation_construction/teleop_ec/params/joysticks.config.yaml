@@ -21,54 +21,54 @@ thrustmaster_left:
     topic: "/ec/joy/left"
 
     button_definitions: [
-      "btn_thumb_u_state",        # Up / Trigger (behind the thumbstick)
-      "btn_thumb_d_state",        # Down
-      "btn_thumb_l_state",        # Buttons located near the thumb stick (Left)
-      "btn_thumb_r_state",        # Right
-      "btn_bottom_l1_state",      # Buttons located at the bottom left
-      "btn_bottom_l2_state",      # Numbered Left to Right, First then Second row
-      "btn_bottom_l3_state",      # Ordered top left to right, bottom right to left
-      "btn_bottom_l6_state",
-      "btn_bottom_l5_state",
-      "btn_bottom_l4_state",
-      "btn_bottom_r3_state",      # Buttons located at the bottom right
-      "btn_bottom_r2_state",      # Numbered Left to Right, First then Second row
-      "btn_bottom_r1_state",      # Ordered top right to left, bottom left to right
-      "btn_bottom_r4_state",
-      "btn_bottom_r5_state",
-      "btn_bottom_r6_state"
+      "l_btn_thumb_u_state",        # Up / Trigger (behind the thumbstick)
+      "l_btn_thumb_d_state",        # Down
+      "l_btn_thumb_l_state",        # Buttons located near the thumb stick (Left)
+      "l_btn_thumb_r_state",        # Right
+      "l_btn_bottom_l1_state",      # Buttons located at the bottom left
+      "l_btn_bottom_l2_state",      # Numbered Left to Right, First then Second row
+      "l_btn_bottom_l3_state",      # Ordered top left to right, bottom right to left
+      "l_btn_bottom_l6_state",
+      "l_btn_bottom_l5_state",
+      "l_btn_bottom_l4_state",
+      "l_btn_bottom_r3_state",      # Buttons located at the bottom right
+      "l_btn_bottom_r2_state",      # Numbered Left to Right, First then Second row
+      "l_btn_bottom_r1_state",      # Ordered top right to left, bottom left to right
+      "l_btn_bottom_r4_state",
+      "l_btn_bottom_r5_state",
+      "l_btn_bottom_r6_state"
     ]
 
     axis_definitions: [
-      "ax_stick_x",               # Left/right
-      "ax_stick_y",               # Forward/backwards
-      "ax_stick_twist",           # Twist
-      "ax_slider",
-      "ax_thumb_x",               # Thumb Axis Data (left/right)
-      "ax_thumb_y"                # Each Thumb axis can be -1, 0 or 1 (up/down)
+      "l_ax_stick_x",               # Left/right
+      "l_ax_stick_y",               # Forward/backwards
+      "l_ax_stick_twist",           # Twist
+      "l_ax_slider",
+      "l_ax_thumb_x",               # Thumb Axis Data (left/right)
+      "l_ax_thumb_y"                # Each Thumb axis can be -1, 0 or 1 (up/down)
     ]
 
     remap:
       axes:
         arm_actuation:
-          from: "ax_stick_y"
+          from: "l_ax_stick_y"
 
         forklift_speed:
-          from: "ax_slider"
+          from: "l_ax_slider"
           range:
             in: [ -1.0, 1.0 ]
             out: [ 0.0, 1.0 ]
             clamp: true
 
         forklift_actuation:
-          from: "ax_thumb_x"
+          from: "l_ax_thumb_x"
 
       buttons:
         lock:
-          from: "btn_bottom_l2_state"
+          from: "l_btn_bottom_l2_state"
 
         unlock:
-          from: "btn_bottom_l5_state"
+          from: "l_btn_bottom_l5_state"
 
 
 
@@ -77,44 +77,44 @@ thrustmaster_right:
     topic: "/ec/joy/right"
 
     button_definitions: [
-      "btn_thumb_u_state",        # Up / Trigger (behind the thumbstick)
-      "btn_thumb_d_state",        # Down
-      "btn_thumb_l_state",        # Buttons located near the thumb stick (Left)
-      "btn_thumb_r_state",        # Right
-      "btn_bottom_l1_state",      # Buttons located at the bottom left
-      "btn_bottom_l2_state",      # Numbered Left to Right, First then Second row
-      "btn_bottom_l3_state",      # Ordered top left to right, bottom right to left
-      "btn_bottom_l6_state",
-      "btn_bottom_l5_state",
-      "btn_bottom_l4_state",
-      "btn_bottom_r3_state",      # Buttons located at the bottom right
-      "btn_bottom_r2_state",      # Numbered Left to Right, First then Second row
-      "btn_bottom_r1_state",      # Ordered top right to left, bottom left to right
-      "btn_bottom_r4_state",
-      "btn_bottom_r5_state",
-      "btn_bottom_r6_state"
+      "r_btn_thumb_u_state",        # Up / Trigger (behind the thumbstick)
+      "r_btn_thumb_d_state",        # Down
+      "r_btn_thumb_l_state",        # Buttons located near the thumb stick (Left)
+      "r_btn_thumb_r_state",        # Right
+      "r_btn_bottom_l1_state",      # Buttons located at the bottom left
+      "r_btn_bottom_l2_state",      # Numbered Left to Right, First then Second row
+      "r_btn_bottom_l3_state",      # Ordered top left to right, bottom right to left
+      "r_btn_bottom_l6_state",
+      "r_btn_bottom_l5_state",
+      "r_btn_bottom_l4_state",
+      "r_btn_bottom_r3_state",      # Buttons located at the bottom right
+      "r_btn_bottom_r2_state",      # Numbered Left to Right, First then Second row
+      "r_btn_bottom_r1_state",      # Ordered top right to left, bottom left to right
+      "r_btn_bottom_r4_state",
+      "r_btn_bottom_r5_state",
+      "r_btn_bottom_r6_state"
     ]
 
     axis_definitions: [
-      "ax_stick_x",               # Left/right
-      "ax_stick_y",               # Forward/backwards
-      "ax_stick_twist",           # Twist
-      "ax_slider",
-      "ax_thumb_x",               # Thumb Axis Data (left/right)
-      "ax_thumb_y"                # Each Thumb axis can be -1, 0 or 1 (up/down)
+      "r_ax_stick_x",               # Left/right
+      "r_ax_stick_y",               # Forward/backwards
+      "r_ax_stick_twist",           # Twist
+      "r_ax_slider",
+      "r_ax_thumb_x",               # Thumb Axis Data (left/right)
+      "r_ax_thumb_y"                # Each Thumb axis can be -1, 0 or 1 (up/down)
     ]
 
     remap:
       axes:
         scraper_speed:
-          from: "ax_slider"
+          from: "r_ax_slider"
           range:
             in: [-1.0, 1.0]
             out: [0.0, 1.0]
             clamp: true
 
         scoop_actuation:
-          from: "ax_stick_y"
+          from: "r_ax_stick_y"
 
         claw_actuation:
-          from: "ax_thumb_x"
+          from: "r_ax_thumb_x"
