@@ -84,6 +84,12 @@ def launch_setup(context, *args, **kwargs):
                     arguments=['nova_arm_position_controller', 'nova_twistmapper', '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
+                Node(
+                    package='controller_manager',
+                    executable='spawner',
+                    arguments=['nova_end_effector_velocity_controller', '--inactive', "-c", "/arm/controller_manager"],
+                    additional_env=show_colours_additional_env,
+                ),
             ]
         ),
         GroupAction(
@@ -100,7 +106,13 @@ def launch_setup(context, *args, **kwargs):
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['joint_state_broadcaster', "-c", "/arm/controller_manager"],
+                    arguments=['joint_state_broadcaster_arm', "-c", "/arm/controller_manager"],
+                    additional_env=show_colours_additional_env,
+                ),
+                Node(
+                    package='controller_manager',
+                    executable='spawner',
+                    arguments=['joint_state_broadcaster_end_effector', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
                 # IncludeLaunchDescription(
