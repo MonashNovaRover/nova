@@ -39,9 +39,8 @@ PROFILE = dai.VideoEncoderProperties.Profile.H264_MAIN # or H265_MAIN, H264_MAIN
 #TODO: support 2 oak cameras at once
 # TODO: bitrate: investigate VBR CBR settings
 
-with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER)) as pipeline:
-        #pipeline.__enter__()
-
+def run():
+    with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER)) as pipeline:
         outputsToEncode = {}
 
         for camName in oakCams:
@@ -56,27 +55,6 @@ with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER)) as pipeline:
             outputsToEncode["OAK_C"].link(anaglyph.left)
             outputsToEncode["OAK_R"].link(anaglyph.right)
             outputsToEncode["OAK_3D"] = anaglyph.output
-
-        """
-        # OAK Depth
-        stereo = pipeline.create(dai.node.StereoDepth)
-        outL_mono = cam_L.requestOutput(size=(1280,800), type=dai.ImgFrame.Type.YUV400p, fps=FPS)
-        outR_mono = cam_R.requestOutput(size=(1280,800), type=dai.ImgFrame.Type.YUV400p, fps=FPS)
-
-        outL_mono.link(stereo.left)
-        outR_mono.link(stereo.right)
-
-        stereo.setRectification(True)
-        stereo.setExtendedDisparity(True)
-        stereo.setLeftRightCheck(True)
-
-        manip = pipeline.create(dai.node.ImageManip)
-        manip.initialConfig.setFrameType(dai.ImgFrame.Type.YUV400p) # this conversion doesn't seem to work.
-        stereo.depth.link(manip.inputImage)
-
-        outputsToEncode[f"OAK D"] = manip.out
-        """
-
 
         source = NamedPipeSource()
         for i, name in enumerate(inputPipeNames):
@@ -95,15 +73,27 @@ with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER)) as pipeline:
             output.link(encoder.input)
 
             encoder.out.link(sink.createNamedPipeOutput(f"/tmp/{name}_out"))
-
-        if __name__ == "__main__":
-            #oakenc = OakEnc()
-            pipeline.start()
-            #oakenc.start()
+        pipeline.start()
+        try:
             while pipeline.isRunning():
-                try:
-                    time.sleep(1)
-                except KeyboardInterrupt:
-                    pipeline.stop()
-                    break
+                time.sleep(1)
+        except KeyboardInterrupt:
+            pipeline.stop()
 
+
+from multiprocessing import Process
+import multiprocessing as mp
+import signal
+import os
+
+if __name__ == "__main__":
+    mp.set_start_method("spawn") # depthai hangs with fork :/
+    # TODO: puppeteer this from our main ros process
+    p = Process(target=run, args=())
+    p.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        os.kill(p.pid, signal.SIGUSR1) # keyboard interrupt
+    p.join()
