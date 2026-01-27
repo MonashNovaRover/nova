@@ -70,19 +70,17 @@ def launch_setup(context, *args, **kwargs):
                 # 1.Synchronizes RGB + Depth/Cloud
                 ComposableNode(
                     package='rtabmap_sync',
-                    plugin='rtabmap_sync::StereoSync',  # Changed to StereoSync for OAK-D stereo input
+                    plugin='rtabmap_sync::RGBDSync',
                     name=f'{front_name}_stereo_sync',
                     parameters=[rtabmap_params, {
                         'approx_sync': True,
                         'use_sim_time': gazebo,
                     }],
                     remappings=[
-                        ('left/image_rect',   '/oak/left/image_raw'),   # OAK 'raw' is often already rectified if configured
-                        ('left/camera_info',  '/oak/left/camera_info'),
-                        ('right/image_rect',  '/oak/right/image_raw'),
-                        ('right/camera_info', '/oak/right/camera_info'),
-                        ('rgbd_image',        '/oak/rgbd_image'),
-                        ('rgbd_image',        f'{front_name}/rgbd_image') # Output for RTAB-Map
+                        ('rgb/image',         '/oak/rgb/image_rect'),
+                        ('rgb/camera_info',    '/oak/rgb/camera_info'),
+                        ('depth/image',       '/oak/stereo/image_raw'),
+                        ('rgbd_image',        '/oak/rgbd_image')        
                     ],
                 ),
 
