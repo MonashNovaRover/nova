@@ -70,7 +70,7 @@ def launch_setup(context, *args, **kwargs):
                 # 1.Synchronizes RGB + Depth/Cloud
                 ComposableNode(
                     package='rtabmap_sync',
-                    plugin='rtabmap_sync::RGBDSync',
+                    plugin='rtabmap_sync::RGBSync',
                     name=f'{front_name}_stereo_sync',
                     parameters=[rtabmap_params, {
                         'approx_sync': True,
@@ -78,9 +78,9 @@ def launch_setup(context, *args, **kwargs):
                         'approx_sync_max_interval': 0.5,
                     }],
                     remappings=[
-                        ('rgb/image',         '/oak/rgb/image_rect'),
+                        ('rgb/image',         '/oak/rgb/image_raw'),
                         ('rgb/camera_info',    '/oak/rgb/camera_info'),
-                        ('depth/image',       '/oak/stereo/image_raw'),
+                        # ('depth/image',       '/oak/stereo/image_raw'),
                         ('rgbd_image',        '/oak/rgbd_image')        
                     ],
                 ),
