@@ -76,6 +76,14 @@ joy_input_source:
             positive: "X"
             negative: "B"
 
+         # End effector mode
+        actuator_head:
+          from: LEFTY
+        left_slide:
+          from_buttons:
+            positive: "Y"
+            negative: "A"
+
         # Task space
         linear:
           x:
@@ -99,7 +107,7 @@ joy_input_source:
             from: "RIGHTY"
             invert: true
           z:
-            from: "RIGHTX"
+            from: "RIGHTX"  
 
       buttons:
         lock:
@@ -108,3 +116,5 @@ joy_input_source:
           from: "START"
         task_space:
           from: "LEFTSHOULDER"
+        end_effector_mode:
+          from: RIGHTSHOULDER
