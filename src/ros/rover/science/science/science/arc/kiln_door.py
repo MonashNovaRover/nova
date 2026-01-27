@@ -118,7 +118,7 @@ if __name__ == "__main__":
 
     PythonControl("kiln_door", update_rate=5, can_bus="can1") \
         .with_controller("controller", KilnDoorController) \
-        .with_hardware("kiln_door", QCMDHardware, can_id = 0x0C3) \
+        .with_hardware("kiln_door", QCMDHardware, can_id = "") \
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()
