@@ -45,9 +45,12 @@ class ScimbalCamController(Controller):
         self.service_type = self.declare_parameter("service_type", "MoveScimbalCam").value
         self.service_name = self.declare_parameter("service_name", "/science/scimbal_cam_service").value
 
-        # Defining start and max angles
+        # Defining start, min, and max angles
         self.start_tilt_angle = self.declare_parameter("start_tilt_angle", 90).value
         self.start_pan_angle = self.declare_parameter("start_pan_angle", 180).value
+
+        self.min_tilt_angle = self.declare_paramenter("min_tilt_anlge", 0).value
+        self.min_pan_angle = self.declare_paramenter("min_pan_anlge", 0).value
 
         self.max_tilt_angle = self.declare_parameter("max_tilt_angle", 180).value
         self.max_pan_angle = self.declare_parameter("max_pan_angle", 360).value        
@@ -98,8 +101,8 @@ class ScimbalCamController(Controller):
             delta_pan: int = request.angles[1]
 
             # Clamping displaced value
-            self.tilt_cmd.value = max(0, min(self.max_tilt_angle, self.tilt_cmd.value + delta_tilt))
-            self.pan_cmd.value = max(0, min(self.max_pan_angle, self.pan_cmd.value + delta_pan))
+            self.tilt_cmd.value = max(self.min_tilt_angle, min(self.max_tilt_angle, self.tilt_cmd.value + delta_tilt))
+            self.pan_cmd.value = max(self.min_pan_angle, min(self.max_pan_angle, self.pan_cmd.value + delta_pan))
 
             self.get_logger().info(f"Scimbal Cam angles updated: TILT: {self.scimbal_cam[0].get_goal_position()}, PAN: {self.scimbal_cam[1].get_goal_position()}, request: {request.angles}")
             
@@ -122,7 +125,7 @@ if __name__ == "__main__":
 
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("controller", ScimbalCamController) \
-        .with_hardware("tilt", PositionalServoHardware, frame_id=0x0B0, function_id=0x03, max_angle=180.0) \
-        .with_hardware("pan", PositionalServoHardware, frame_id=0x0B0, function_id=0x04, max_angle=360.0) \
+        .with_hardware("tilt", PositionalServoHardware, frame_id=0x0B0, function_id=0x03, min_angle=0.0, max_angle=180.0) \
+        .with_hardware("pan", PositionalServoHardware, frame_id=0x0B0, function_id=0x04, min_angle=0.0, max_angle=360.0) \
         .with_jcan() \
         .spin()
