@@ -9,13 +9,9 @@ from io import BytesIO
 from PIL import Image
 import numpy as np
 
-from udp import UdpSink, UdpSource
 from namedpipe import NamedPipeSink, NamedPipeSource
 from anaglyph import Anaglyph
 
-streamOak = 1
-streamUdp = 1
-anaglyph = 0
 
 """
 gst-launch-1.0 v4l2src device=/dev/video2 ! \
@@ -26,7 +22,6 @@ gst-launch-1.0 namedpipesrc location=/tmp/h264enc0_out ! "video/x-h264"  ! queue
 
 inputPipeNames = ("h264enc0", "h264enc1")
 # TODO: specify heights as well.
-# TODO: make me a ros node.
 inputPipeWidths = (640, 640)
 
 oakCams = {
@@ -36,18 +31,19 @@ oakCams = {
         }
 oakRes = (1920,1200)
 
+doAnaglyph = 0
 
 FPS=20
 PROFILE = dai.VideoEncoderProperties.Profile.H264_MAIN # or H265_MAIN, H264_MAIN, MJPEG H264_BASELINE H264_HIGH
 
 #TODO: support 2 oak cameras at once
 # TODO: bitrate: investigate VBR CBR settings
+
 with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER)) as pipeline:
+        #pipeline.__enter__()
 
+        outputsToEncode = {}
 
-    outputsToEncode = {}
-
-    if streamOak:
         for camName in oakCams:
             cam = pipeline.create(dai.node.Camera)
             cam.build(oakCams[camName])
@@ -55,7 +51,7 @@ with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER)) as pipeline:
 
             outputsToEncode[f"OAK_{camName}"] = camOut
 
-        if anaglyph:
+        if doAnaglyph:
             anaglyph = Anaglyph()
             outputsToEncode["OAK_C"].link(anaglyph.left)
             outputsToEncode["OAK_R"].link(anaglyph.right)
@@ -82,32 +78,32 @@ with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER)) as pipeline:
         """
 
 
-    if streamUdp:
         source = NamedPipeSource()
         for i, name in enumerate(inputPipeNames):
             outputsToEncode[name] = source.createNamedPipeInput(f"/tmp/{name}", width=inputPipeWidths[i])
 
 
-    # ENCODERS & UDP OUTPUT
-    sink = NamedPipeSink()
-    for name in outputsToEncode:
-        output = outputsToEncode[name]
+        # ENCODERS & UDP OUTPUT
+        sink = NamedPipeSink()
+        for name in outputsToEncode:
+            output = outputsToEncode[name]
 
-        encoder = pipeline.create(dai.node.VideoEncoder)
-        #videoEncoder.setBitrate(500*1024) # doesn't seem to have any effect
-        encoder.setDefaultProfilePreset(FPS, PROFILE)
+            encoder = pipeline.create(dai.node.VideoEncoder)
+            #videoEncoder.setBitrate(500*1024) # doesn't seem to have any effect
+            encoder.setDefaultProfilePreset(FPS, PROFILE)
 
-        output.link(encoder.input)
+            output.link(encoder.input)
 
-        encoder.out.link(sink.createNamedPipeOutput(f"/tmp/{name}_out"))
+            encoder.out.link(sink.createNamedPipeOutput(f"/tmp/{name}_out"))
 
-    pipeline.start()
-
-    # Doing nothing here, just keeping the host feeding the watchdog
-    while pipeline.isRunning():
-        try:
-            # this is where you'd be clever and change the bitrate dynamically if changing the bitrate actually changed the encoder's output bitrate.
-            time.sleep(1)
-        except KeyboardInterrupt:
-            break
+        if __name__ == "__main__":
+            #oakenc = OakEnc()
+            pipeline.start()
+            #oakenc.start()
+            while pipeline.isRunning():
+                try:
+                    time.sleep(1)
+                except KeyboardInterrupt:
+                    pipeline.stop()
+                    break
 
