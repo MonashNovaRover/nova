@@ -77,10 +77,11 @@ def launch_setup(context, *args, **kwargs):
                         'use_sim_time': gazebo,
                     }],
                     remappings=[
-                        ('left/image_rect',   '/oak/rgb/image_rect'),    # Using rectified RGB as 'left'
-                        ('left/camera_info',  '/oak/rgb/camera_info'),
-                        ('right/image_rect',  '/oak/stereo/image_raw'),  # Right stereo stream
-                        ('right/camera_info', '/oak/stereo/camera_info'),
+                        ('left/image_rect',   '/oak/left/image_raw'),   # OAK 'raw' is often already rectified if configured
+                        ('left/camera_info',  '/oak/left/camera_info'),
+                        ('right/image_rect',  '/oak/right/image_raw'),
+                        ('right/camera_info', '/oak/right/camera_info'),
+                        ('rgbd_image',        '/oak/rgbd_image')
                         ('rgbd_image',        f'{front_name}/rgbd_image') # Output for RTAB-Map
                     ],
                 ),
@@ -122,8 +123,8 @@ def launch_setup(context, *args, **kwargs):
                         'subscribe_rgb': False, 
                         'subscribe_rgbd': True,
                         'subscribe_scan_cloud': True,
-                        'approx_sync': False,
-                        # 'approx_sync_max_interval': 0.15,
+                        'approx_sync': True,
+                        'approx_sync_max_interval': 0.2,
                         'subscribe_scan': False,       # DISABLE looking for 2D /scan
                         'subscribe_stereo': True, 
                     }],
