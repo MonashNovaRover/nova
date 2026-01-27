@@ -14,38 +14,52 @@ from namedpipe import NamedPipeSink, NamedPipeSource
 from anaglyph import Anaglyph
 
 streamOak = 1
-streamUdp = 0
+streamUdp = 1
 anaglyph = 0
-udpInputPorts = (4996,4997) # we will listen to these and convert encode them
-currentPort = 5000 # first output port, currently just use sequential ports.
+
+"""
+gst-launch-1.0 v4l2src device=/dev/video2 ! \
+        "image/jpeg, width=640" ! decodebin ! videoconvert ! \
+        "video/x-raw, format=NV12" ! namedpipesink location=/tmp/h264enc0
+gst-launch-1.0 namedpipesrc location=/tmp/h264enc0_out ! "video/x-h264"  ! queue ! webrtcsink
+"""
+
+inputPipeNames = ("h264enc0", "h264enc1")
+# TODO: specify heights as well.
+# TODO: make me a ros node.
+inputPipeWidths = (640, 640)
+
+oakCams = {
+        "C": dai.CameraBoardSocket.CAM_A,
+        #"L": dai.CameraBoardSocket.CAM_B,
+        "R": dai.CameraBoardSocket.CAM_C,
+        }
 oakRes = (1920,1200)
+
 
 FPS=20
 PROFILE = dai.VideoEncoderProperties.Profile.H264_MAIN # or H265_MAIN, H264_MAIN, MJPEG H264_BASELINE H264_HIGH
 
+#TODO: support 2 oak cameras at once
+# TODO: bitrate: investigate VBR CBR settings
 with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER)) as pipeline:
 
 
     outputsToEncode = {}
 
     if streamOak:
-        oakCams = {
-                "C": dai.CameraBoardSocket.CAM_A,
-                "L": dai.CameraBoardSocket.CAM_B,
-                "R": dai.CameraBoardSocket.CAM_C,
-                }
         for camName in oakCams:
             cam = pipeline.create(dai.node.Camera)
             cam.build(oakCams[camName])
             camOut = cam.requestOutput(size=oakRes, type=dai.ImgFrame.Type.NV12, fps=FPS)
 
-            outputsToEncode[f"OAK {camName}"] = camOut
+            outputsToEncode[f"OAK_{camName}"] = camOut
 
         if anaglyph:
             anaglyph = Anaglyph()
-            outputsToEncode["OAK C"].link(anaglyph.left)
-            outputsToEncode["OAK R"].link(anaglyph.right)
-            outputsToEncode["OAK 3D"] = anaglyph.output
+            outputsToEncode["OAK_C"].link(anaglyph.left)
+            outputsToEncode["OAK_R"].link(anaglyph.right)
+            outputsToEncode["OAK_3D"] = anaglyph.output
 
         """
         # OAK Depth
@@ -68,11 +82,10 @@ with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER)) as pipeline:
         """
 
 
-    # If one src stops then they all get frozen. maybe repeat last frame to avoid this?
     if streamUdp:
-        source = UdpSource()
-        for port in udpInputPorts:
-            outputsToEncode[f"UDP {port}"] = source.createUDPInput(port)
+        source = NamedPipeSource()
+        for i, name in enumerate(inputPipeNames):
+            outputsToEncode[name] = source.createNamedPipeInput(f"/tmp/{name}", width=inputPipeWidths[i])
 
 
     # ENCODERS & UDP OUTPUT
@@ -80,15 +93,13 @@ with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER)) as pipeline:
     for name in outputsToEncode:
         output = outputsToEncode[name]
 
-        # multiple streams goes bad at high framerates :/
         encoder = pipeline.create(dai.node.VideoEncoder)
         #videoEncoder.setBitrate(500*1024) # doesn't seem to have any effect
         encoder.setDefaultProfilePreset(FPS, PROFILE)
 
         output.link(encoder.input)
 
-        encoder.out.link(sink.createNamedPipeOutput("/tmp/oak"+str(currentPort)))
-        currentPort+=1
+        encoder.out.link(sink.createNamedPipeOutput(f"/tmp/{name}_out"))
 
     pipeline.start()
 
