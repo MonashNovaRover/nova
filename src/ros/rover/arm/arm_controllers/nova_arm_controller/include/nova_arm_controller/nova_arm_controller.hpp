@@ -10,7 +10,6 @@
 
 #include "controller_interface/controller_interface.hpp"
 #include "controller_interface/chainable_controller_interface.hpp"
-#include "controller_interface/controller_interface.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "hardware_interface/handle.hpp"
