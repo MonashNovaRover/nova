@@ -10,10 +10,11 @@ from PIL import Image
 import numpy as np
 
 from udp import UdpSink, UdpSource
+from namedpipe import NamedPipeSink, NamedPipeSource
 from anaglyph import Anaglyph
 
-streamOak = 0
-streamUdp = 1
+streamOak = 1
+streamUdp = 0
 anaglyph = 0
 udpInputPorts = (4996,4997) # we will listen to these and convert encode them
 currentPort = 5000 # first output port, currently just use sequential ports.
@@ -68,14 +69,14 @@ with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER)) as pipeline:
 
 
     # If one src stops then they all get frozen. maybe repeat last frame to avoid this?
-    source = UdpSource()
     if streamUdp:
+        source = UdpSource()
         for port in udpInputPorts:
             outputsToEncode[f"UDP {port}"] = source.createUDPInput(port)
 
 
     # ENCODERS & UDP OUTPUT
-    sink = UdpSink()
+    sink = NamedPipeSink()
     for name in outputsToEncode:
         output = outputsToEncode[name]
 
@@ -86,7 +87,7 @@ with dai.Pipeline(dai.Device(maxUsbSpeed=dai.UsbSpeed.SUPER)) as pipeline:
 
         output.link(encoder.input)
 
-        encoder.out.link(sink.createUDPOutput(currentPort))
+        encoder.out.link(sink.createNamedPipeOutput("/tmp/oak"+str(currentPort)))
         currentPort+=1
 
     pipeline.start()
