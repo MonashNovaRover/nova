@@ -67,25 +67,8 @@ def launch_setup(context, *args, **kwargs):
             package='rclcpp_components',
             executable='component_container',
             composable_node_descriptions=[
-                # 1.Synchronizes RGB + Depth/Cloud
-                ComposableNode(
-                    package='rtabmap_sync',
-                    plugin='rtabmap_sync::RGBSync',
-                    name=f'{front_name}_stereo_sync',
-                    parameters=[rtabmap_params, {
-                        'approx_sync': True,
-                        'use_sim_time': gazebo,
-                        'approx_sync_max_interval': 0.5,
-                    }],
-                    remappings=[
-                        ('rgb/image',         '/oak/rgb/image_raw'),
-                        ('rgb/camera_info',    '/oak/rgb/camera_info'),
-                        # ('depth/image',       '/oak/stereo/image_raw'),
-                        ('rgbd_image',        '/oak/rgbd_image')        
-                    ],
-                ),
 
-                # 2.LiDAR ICP instead of Visual Odometry
+                # 1. ICP Odometry (Tracks Movement using LiDAR)
                 ComposableNode(
                     package='rtabmap_odom',
                     plugin='rtabmap_odom::ICPOdometry',
@@ -95,22 +78,20 @@ def launch_setup(context, *args, **kwargs):
                         'frame_id': 'base_link',
                         'odom_frame_id': 'odom',
                         'wait_for_transform': 0.2,
-                        'expected_update_rate': 10.0,
-                        # ICP Specifics
-                        # 'Icp/VoxelSize': '0.05',      # Downsample cloud for speed
-                        'Icp/PointToPlane': 'true',
-                        'subscribe_scan': False,       # DISABLE looking for 2D /scan
-                        'subscribe_scan_cloud': True,
                         'expected_update_rate': 15.0,
+                        'Icp/PointToPlane': 'true',
+                        'subscribe_scan': 'false', 
+                        'subscribe_scan_cloud': 'true',
+                        'qos': 2, # Critical for Sim
                     }],
                     remappings=[
-                        ('scan_cloud', '/livox/lidar'), # Subscribe to Livox
-                        ('odom', '/odometry/local'),    # Output odom
-                        ('imu', '/livox/imu'),          # Use Livox IMU for deskewing
+                        ('scan_cloud', '/livox/lidar'), 
+                        ('odom', '/odometry/local'),    
+                        ('imu', '/livox/imu'),          
                     ],
                 ),
 
-                # 3.SLAM NODE
+                # 2. SLAM Node (Directly Syncs RGB + LiDAR)
                 ComposableNode(
                     package='rtabmap_slam',
                     plugin='rtabmap_slam::CoreWrapper',
@@ -118,19 +99,33 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[rtabmap_params, {
                         'use_sim_time': gazebo, 
                         'rtabmap_args': '--delete_db_on_start',
-                        'subscribe_depth': False,
-                        'subscribe_rgb': False, 
-                        'subscribe_rgbd': True,
-                        'subscribe_scan_cloud': True,
+                        
+                        # --- DIRECT SYNC CONFIGURATION ---
+                        'subscribe_rgb': True,        # Listen to RGB directly
+                        'subscribe_rgbd': False,      # Don't look for pre-synced msg
+                        'subscribe_scan_cloud': True, # Listen to LiDAR directly
+                        
+                        'subscribe_depth': False,     # Ignore Depth
+                        'subscribe_stereo': False,    # Ignore Stereo
+                        'subscribe_scan': False,      # Ignore 2D Scan
+                        # ---------------------------------
+
                         'approx_sync': True,
-                        'approx_sync_max_interval': 0.5,
-                        'subscribe_scan': False,       # DISABLE looking for 2D /scan
-                        'subscribe_stereo': False, 
+                        'approx_sync_max_interval': 0.5, # Tolerate 0.5s Sim Lag
+                        
+                        'qos': 2,
+                        'topic_queue_size': 30,
+                        'sync_queue_size': 30,
                     }],
                     remappings=[
-                        ('rgbd_image', '/oak/rgbd_image'),   # From Sync Node
-                        ('scan_cloud', '/livox/lidar'), # From Livox
-                        ('odom', '/odometry/local'),    # From ICP Node
+                        # Connect RGB Input DIRECTLY to Camera
+                        ('rgb/image',       '/oak/rgb/image_raw'),
+                        ('rgb/camera_info', '/oak/rgb/camera_info'),
+                        
+                        # Connect Geometry Input DIRECTLY to LiDAR
+                        ('scan_cloud',      '/livox/lidar'),
+                        
+                        ('odom', '/odometry/local'),    
                         ('gps/fix','/gps_rover/fix')
                     ],
                 ),
