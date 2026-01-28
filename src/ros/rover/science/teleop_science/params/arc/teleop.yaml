@@ -71,7 +71,6 @@ input_publisher_mode:
       - "auger_drill_clockwise"
       - "auger_drill_anticlockwise"
       # Sweeper
-      - "activate_sweeper"
       - "sweeper_sweep"
       # Tool Rotator
       - "tool_rotator_twitch_decrease"
@@ -80,7 +79,6 @@ input_publisher_mode:
       - "tool_rotator_microscope"
       - "tool_rotator_nir_probe"
       # Chute
-      - "activate_chute"
       - "chute_twitch_decrease"
       - "chute_twitch_increase"
       - "chute_engaged"

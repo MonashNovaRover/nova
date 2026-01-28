@@ -120,9 +120,6 @@ if __name__ == "__main__":
         .with_activation_buttons(
             start_active=True, 
             active_button_name="activate_auger", 
-            inactive_button_pool_names=[
-                "activate_cbeam", 
-                "activate_chute", 
-                "activate_sweeper"]) \
+            inactive_button_pool_names=["activate_cbeam"]) \
         .with_jcan() \
         .spin()

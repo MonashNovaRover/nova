@@ -30,7 +30,7 @@ auger:
     can_bus: "can1"
     active: true
     active_button: "activate_auger"
-    inactive_button_pool: ["activate_cbeam, activate_chute, activate_sweeper"]
+    inactive_button_pool: ["activate_cbeam"]
     hardware:
       actuation:
         can_id: 0x0C2
@@ -72,8 +72,6 @@ kiln:
 chute:
   ros__parameters:
     can_bus: "can1"
-    active_button: "activate_chute"
-    inactive_button_pool: ["activate_auger", "activate_sweeper"]
     controllers:
       controller:
         min_angle: 72.0

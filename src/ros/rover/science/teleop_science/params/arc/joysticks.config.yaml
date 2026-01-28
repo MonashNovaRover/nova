@@ -126,13 +126,9 @@ thrustmaster_right:
         auger_drill_anticlockwise:
           from: "r_btn_thumb_l_state"
         # Sweeper
-        activate_sweeper:
-          from: "r_btn_bottom_l5_state"
         sweeper_sweep:
           from: "r_btn_bottom_r5_state"
         # Chute
-        activate_chute:
-          from: "r_btn_bottom_l2_state"
         chute_twitch_decrease:
           from: "r_btn_bottom_r2_state"
         chute_twitch_increase:
