@@ -59,7 +59,7 @@ def generate_launch_description():
             description='Angle (in degrees) at which the oak front camera is mounted',
         ),
         DeclareLaunchArgument(
-            name='bootie angle',
+            name='bootie_angle',
             default_value='15',
             description='Angle (in degrees) at which the bootie back camera is mounted',
         ),
