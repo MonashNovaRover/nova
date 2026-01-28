@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Controller for the Tool Rotator of the ARC
+System for the Tool Rotator of the ARC
 analysis arm which switches between instruments.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: PresetTwitchController
@@ -41,7 +41,8 @@ if __name__ == "__main__":
                 "microscope": 169.41,
                 "nir_probe": 337.41,
             },
-            twitch_max=30.0
+            twitch_max=30.0,
+            hardware_name="rotation"
         ) \
         .with_hardware("rotation", PositionalServoHardware, function_id=0x00, angular_range=360.0) \
         .with_teleop(inputs) \

@@ -63,9 +63,6 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
-
-
-        # Misc - Nodes for misc components
         Node(
             name='chute',
             package='science',
@@ -76,6 +73,9 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
+
+        
+        # Misc - Nodes for misc components
 
     ]
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Controller for the science chute which 
-deposits sand into the kiln.
+System for the science chute which deposits sand 
+into the kiln.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: PresetTwitchController
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,10 +38,11 @@ if __name__ == "__main__":
             min_angle=72.0, 
             max_angle=108.0,
             positions={
-            "disengaged": 72.0,
-            "engaged": 108.0
+                "disengaged": 72.0,
+                "engaged": 108.0
             },
-            twitch_max=6.0
+            twitch_max=6.0,
+            hardware_name="rotation"
         ) \
         .with_hardware("rotation", PositionalServoHardware, function_id=0x03) \
         .with_teleop(inputs) \

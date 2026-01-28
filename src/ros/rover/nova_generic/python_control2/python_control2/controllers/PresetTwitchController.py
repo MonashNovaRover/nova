@@ -4,8 +4,8 @@ Controller for systems which take joystick inputs
 to twitch and move to preset positions. 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
-  - command_interface   [value between min_angle
-                         and max_angle]
+  - <hardware_name>/position   [value between 
+                                min_angle and max_angle]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        python_control2
 AUTHOR(S):      Binuda Kalugalage
@@ -32,7 +32,7 @@ class PresetTwitchController(Controller):
         max_angle: float = 180.0,
         positions: Dict[str, float] = None,
         twitch_max: float = 30.0,
-        command_interface: str = "rotation/position"):
+        hardware_name: str = "rotation"):
         """ Constructor for PresetTwitchController
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
@@ -40,7 +40,7 @@ class PresetTwitchController(Controller):
         :param max_angle: Max allowable angle of the system, in degrees.
         :param positions: The system's preset positions. 
         :param twitch_max: Maximum position the system will twitch, in degrees.
-        :param command_interface: The command interface to write to.
+        :param hardware_name: Name of hardware interface being used.
         """
 
         super().__init__(contexts)
@@ -48,11 +48,10 @@ class PresetTwitchController(Controller):
 
         self.active = contexts[Activation]
 
-        self.command_interface = command_interface
-
         self.min_angle: float = self.declare_parameter("min_angle", min_angle).value
         self.max_angle: float = self.declare_parameter("max_angle", max_angle).value
         self.twitch_max: float = self.declare_parameter("twitch_max", twitch_max).value
+        self.hardware_name: str = self.declare_parameter("hardware_name", hardware_name).value
 
         if positions is None:
             positions = {}
@@ -75,7 +74,7 @@ class PresetTwitchController(Controller):
         self.pose_buttons: Dict[str, Button] = {}
 
         for pose, value in positions.items():
-            self.pose_positions[pose] = self.declare_parameter(pose, value).value
+            self.pose_positions[pose] = self.declare_parameter(f"{pose}_pos", value).value
             self.pose_buttons[pose] = inputs.get_button(self.declare_parameter(f"{pose}_button", f"{self.node_name}_{pose}").value)
 
         # Set defaults
@@ -97,8 +96,8 @@ class PresetTwitchController(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
         # Save references to interfaces
-        self.logger.info(f"Getting {self.command_interface}")
-        self.rotation_cmd = command_interfaces[self.command_interface]
+        self.logger.info(f"Getting {self.hardware_name}/position")
+        self.rotation_cmd = command_interfaces[f"{self.hardware_name}/position"]
 
         # Validate angles
         if self.max_angle <= self.min_angle:
@@ -121,10 +120,10 @@ class PresetTwitchController(Controller):
 
         # Change to preset position
         for pose, button in self.pose_buttons.items():
-            if button:
+            if button and self.current_pos != self.pose_positions[pose]:
                 self.offset = 0.0
                 self.current_pos = self.pose_positions[pose]
-                self.logger.info(f"Moved to {pose.upper()} position: {self.current_pos}")
+                self.logger.info(f"Moved to {pose.replace("_", " ").upper()} position: {self.current_pos}")
                 break
 
         # Twitch/update offset
