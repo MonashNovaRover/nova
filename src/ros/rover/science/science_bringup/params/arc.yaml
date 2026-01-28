@@ -12,6 +12,7 @@ tool_rotator:
       controller:
         min_angle: 0.0
         max_angle: 337.41
+        initial_angle: 337.41
         twitch_max: 30.0
         sweeper_pos: 0.0
         microscope_pos: 169.41
@@ -20,7 +21,7 @@ tool_rotator:
     hardware:
       rotation:
         function_id: 0x00
-        angular_range: 360.0
+        angular_limit: 360.0
 
 
 # CBeam - Nodes for components on the CBeam
@@ -83,4 +84,4 @@ chute:
     hardware:
       rotation:
         function_id: 0x03
-        angular_range: 180.0
+        angular_limit: 180.0

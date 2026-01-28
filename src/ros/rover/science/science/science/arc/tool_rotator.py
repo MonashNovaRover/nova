@@ -44,7 +44,7 @@ if __name__ == "__main__":
             twitch_max=30.0,
             hardware_name="rotation"
         ) \
-        .with_hardware("rotation", PositionalServoHardware, function_id=0x00, angular_range=360.0) \
+        .with_hardware("rotation", PositionalServoHardware, function_id=0x00, angular_limit=360.0) \
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()

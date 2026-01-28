@@ -5,7 +5,7 @@ Positional servos are used in the science payload.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
   - <servo>/position     [value between 0 and
-                          angular_range]
+                          angular_limit]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        python_control2
 AUTHOR(S):      Binuda Kalugalage
@@ -21,13 +21,13 @@ from ..controller_manager.Contexts import Contexts
 
 class PositionalServoHardware(HardwareInterface):
     pos_cmd: Interface
-    frame_id: int
+    can_id: int
     function_id: int
 
     def __init__(self, contexts: Contexts,
-                 frame_id: int=0x0A0,
+                 can_id: int=0x0A0,
                  function_id: int=0x01,
-                 angular_range: float=180.0,
+                 angular_limit: float=180.0,
                  min_angle_can: int=0x00,
                  max_angle_can: int=0xFF):
         """ Constructor, deferred until the control manager has been spun.
@@ -41,9 +41,9 @@ class PositionalServoHardware(HardwareInterface):
 
         self.last = None
 
-        self.declare_parameter("frame_id", frame_id, "Frame ID of the servo")
+        self.declare_parameter("can_id", can_id, "CAN ID of the servo")
         self.declare_parameter("function_id", function_id, "Function ID of the servo")
-        self.declare_parameter("angular_range", angular_range, "Angular range of the servo in degrees")
+        self.declare_parameter("angular_limit", angular_limit, "Angular limit of the servo in degrees")
         self.declare_parameter("min_angle_can", min_angle_can, "Min CAN message value that can be sent")
         self.declare_parameter("max_angle_can", max_angle_can, "Max CAN message value that can be sent")
 
@@ -58,9 +58,9 @@ class PositionalServoHardware(HardwareInterface):
         :returns: None or True if configured successfully. False otherwise.
         """
         # Update params
-        self.frame_id: int = self.get_parameter("frame_id").value
+        self.can_id: int = self.get_parameter("can_id").value
         self.function_id: int = self.get_parameter("function_id").value
-        self.angular_range: float = self.get_parameter("angular_range").value
+        self.angular_limit: float = self.get_parameter("angular_limit").value
 
         self.min_angle_can = self.get_parameter("min_angle_can").value
         self.max_angle_can = self.get_parameter("max_angle_can").value
@@ -100,7 +100,7 @@ class PositionalServoHardware(HardwareInterface):
     def construct_frame(self) -> jcan.Frame:
         """ Construct the jcan Frame based on current command interface """
         # Convert angle to CAN data using max CAN angle and angular range
-        data = int(self.max_angle_can * self.pos_cmd.value / self.angular_range)
+        data = int(self.max_angle_can * self.pos_cmd.value / self.angular_limit)
 
         # Clamp to bounds
         if data > self.max_angle_can:
@@ -109,4 +109,4 @@ class PositionalServoHardware(HardwareInterface):
             data = self.min_angle_can
       
         # Return the constructed frame
-        return jcan.Frame(self.frame_id, [self.function_id, data])
+        return jcan.Frame(self.can_id, [self.function_id, data])

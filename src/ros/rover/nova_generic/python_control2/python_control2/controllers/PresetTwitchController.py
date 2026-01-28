@@ -30,6 +30,7 @@ class PresetTwitchController(Controller):
         contexts: Contexts,
         min_angle: float = 0.0,
         max_angle: float = 180.0,
+        initial_angle: float = None,
         positions: Dict[str, float] = None,
         twitch_max: float = 30.0,
         hardware_name: str = "rotation"):
@@ -38,6 +39,7 @@ class PresetTwitchController(Controller):
         :param contexts: A collection of dependency injection class instances you can index by class type.
         :param min_angle: Min allowable angle of the system, in degrees.
         :param max_angle: Max allowable angle of the system, in degrees.
+        :param initial_angle: Starting angle of the system, in degrees.
         :param positions: The system's preset positions. 
         :param twitch_max: Maximum position the system will twitch, in degrees.
         :param hardware_name: Name of hardware interface being used.
@@ -50,6 +52,7 @@ class PresetTwitchController(Controller):
 
         self.min_angle: float = self.declare_parameter("min_angle", min_angle).value
         self.max_angle: float = self.declare_parameter("max_angle", max_angle).value
+        self.initial_angle: float = self.declare_parameter("initial_angle", initial_angle if initial_angle else self.min_angle).value
         self.twitch_max: float = self.declare_parameter("twitch_max", twitch_max).value
         self.hardware_name: str = self.declare_parameter("hardware_name", hardware_name).value
 
@@ -77,13 +80,8 @@ class PresetTwitchController(Controller):
             self.pose_positions[pose] = self.declare_parameter(f"{pose}_pos", value).value
             self.pose_buttons[pose] = inputs.get_button(self.declare_parameter(f"{pose}_button", f"{self.node_name}_{pose}").value)
 
-        # Set defaults
-        if self.pose_positions:
-            self.current_pos = self.pose_positions[next(iter(self.pose_positions))]
-        else:
-            self.current_pos = self.min_angle
-
-        self.offset = 0.0
+        self.current_pos = self.initial_angle
+        self.logger.info(f"Starting at position: {self.current_pos}")
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -115,18 +113,16 @@ class PresetTwitchController(Controller):
             self.rotation_cmd.value = self.current_pos
             return
 
-        # Update twitch amount
-        twitch_step = self.get_speed() * self.twitch_max
-
         # Change to preset position
         for pose, button in self.pose_buttons.items():
             if button and self.current_pos != self.pose_positions[pose]:
-                self.offset = 0.0
                 self.current_pos = self.pose_positions[pose]
                 self.logger.info(f"Moved to {pose.replace("_", " ").upper()} position: {self.current_pos}")
                 break
 
-        # Twitch/update offset
+        # Update twitch amount
+        twitch_step = self.get_speed() * self.twitch_max
+        # Twitch using step
         if self.button_twitch_increase:
             self.twitch(twitch_step)
         elif self.button_twitch_decrease:
@@ -135,7 +131,7 @@ class PresetTwitchController(Controller):
         self.rotation_cmd.value = self.current_pos
     
     def twitch(self, step: float):
-        """Updates the offset by applying a twitch step"""
+        """Updates the position by applying a twitch step"""
         if step:
             updated_pos = self.current_pos + step
 
@@ -149,7 +145,7 @@ class PresetTwitchController(Controller):
             if updated_pos != self.current_pos:
                 offset = updated_pos - self.current_pos
                 self.current_pos = updated_pos
-                self.logger.info(f"Moved to position: {self.current_pos} ({"+" if offset > 0 else ""}{offset})")
+                self.logger.info(f"Moved to position: {self.current_pos:.2f} ({"+" if offset > 0 else ""}{offset:.2f})")
 
     def get_speed(self) -> float:
         """Gets the speed, mapping an axis [-1, 1] to a speed [0, 1]"""
