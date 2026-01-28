@@ -23,18 +23,20 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     scraper_card_type = LaunchConfiguration('scraper_card_type')
+    nova_bringup_dir = FindPackageShare('nova_bringup')
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     log_file = f"/home/nova/logs/{timestamp}_ec.txt"
 
     return [
-        ExecuteProcess(
-            cmd=[
-                "bash",
-                "-c",
-                f"candump can0 > {log_file}",
-            ],
-            output="screen"
+        IncludeLaunchDescription(
+            launch_description_source=PythonLaunchDescriptionSource(
+                PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
+            ),
+            launch_arguments={
+                "bus" : "can1",
+                "log_name" : "ec",
+            }.items()
         ),
         Node(
             package='excavation_construction', 
