@@ -22,7 +22,9 @@ from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    angle = LaunchConfiguration('angle').perform(context)
+    oak_angle = LaunchConfiguration('oak_angle').perform(context)
+    bootie_angle = LaunchConfiguration('bootie_angle').perform(context)
+    lidar_angle = LaunchConfiguration('lidar_angle').perform(context)
     gazebo = LaunchConfiguration('gazebo').perform(context)
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
@@ -33,7 +35,15 @@ def launch_setup(context, *args, **kwargs):
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[{'robot_description': 
-                ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'angle:=', angle, ' ', 'auto_camera:=', camera]), value_type=str)
+                ParameterValue(Command(['xacro ', 
+                                        model, ' ', 
+                                        'gazebo:=', gazebo, ' ', 
+                                        'robot_name:=', robot_name, ' ', 
+                                        'lidar_angle:=', lidar_angle, ' ', 
+                                        'oak_angle:=', oak_angle, ' ',
+                                        'bootie_angle:=', bootie_angle, ' ', 
+                                        'auto_camera:=', camera
+                                       ]), value_type=str)
             }]
         )
     ]
@@ -44,9 +54,19 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='angle',
+            name='oak_angle',
             default_value='15',
-            description='Angle (in degrees) at which the camera is mounted',
+            description='Angle (in degrees) at which the oak front camera is mounted',
+        ),
+        DeclareLaunchArgument(
+            name='bootie angle',
+            default_value='15',
+            description='Angle (in degrees) at which the bootie back camera is mounted',
+        ),
+        DeclareLaunchArgument(
+            name='lidar_angle',
+            default_value='40',
+            description='Angle (in degrees) at which the lidar is mounted',
         ),
         DeclareLaunchArgument(
             name='gazebo', 

@@ -5,150 +5,266 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
   <xacro:arg name="rover_description_dir" default="$(find rover_description)" />
 
+  <!-- Link clam -->
   <link name="clam">
-      <inertial>
-          <origin xyz="3.7286529733e-03 5.0083863736e-02 6.6873566534e-02" rpy="0 0 0" />
-          <mass value="2.24247" />
-          <inertia ixx="8.0102667275e-02" ixy="5.4258492784e-04" ixz="-5.9405379924e-04" iyy="7.0962055048e-02" iyz="1.8867799978e-02" izz="6.1017587486e-02" />
-      </inertial>
-      
-      <visual>
-          <origin xyz="0.138856 0.281 0.00511278" rpy="3.14159 -0.00348764 3.3577e-34" />
-          <geometry>
-              <mesh filename="file://$(arg rover_description_dir)/auto_mount/meshes/clam.stl" />
-          </geometry>
-          <material name="clam_material">
-              <color rgba="0.866667 0.0745098 0.32549 1.0" />
-          </material>
-      </visual>
-      <collision>
-          <origin xyz="0.138821 0.291 0.0151127" rpy="3.14159 -0.00348764 3.3577e-34"/>
-          <geometry>
-              <box size="0.3 0.02 0.06"/>
-          </geometry>
-      </collision>
-      <collision>
-          <origin xyz="0.278786 0.171 0.0256009" rpy="3.14159 -0.00348764 3.3577e-34"/>
-          <geometry>
-              <box size="0.02 0.25 0.04"/>
-          </geometry>
-      </collision>
-      <collision>
-          <origin xyz="-0.00121269 0.171 0.0246244" rpy="3.14159 -0.00348764 3.3577e-34"/>
-          <geometry>
-              <box size="0.02 0.25 0.04"/>
-          </geometry>
-      </collision>
-      <collision>
-          <origin xyz="0.0650716 0.3285 -0.200146" rpy="3.14159 3.01669e-06 -4.11764e-18"/>
-          <geometry>
-              <cylinder length="0.5" radius="0.013"/>
-          </geometry>
-      </collision>
-      <collision>
-          <origin xyz="0.226671 0.3285 -0.199582" rpy="3.14159 3.01669e-06 -4.11764e-18"/>
-          <geometry>
-              <cylinder length="0.5" radius="0.013"/>
-          </geometry>
-      </collision>
+    <inertial>
+      <origin xyz="0.492404 0.00195507 0.165519" rpy="0 0 0"/>
+      <mass value="2.24247"/>
+      <inertia ixx="0.0711053" ixy="-0.000608664" ixz="-0.018908" iyy="0.0802332" iyz="-0.000661704" izz="0.0609173"/>
+    </inertial>
+    <!-- Part clam -->
+    <collision>
+      <origin xyz="0.552061 -0.00205556 0.0880873" rpy="-1.61388e-15 0.00348764 1.5708"/>
+      <geometry>
+        <box size="0.3 0.02 0.06"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.432061 0.137909 0.0775991" rpy="-1.61388e-15 0.00348764 1.5708"/>
+      <geometry>
+        <box size="0.02 0.25 0.04"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.432061 -0.14209 0.0785756" rpy="-1.61388e-15 0.00348764 1.5708"/>
+      <geometry>
+        <box size="0.02 0.25 0.04"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.589561 -0.0758053 0.303346" rpy="-1.61387e-15 -3.01669e-06 1.5708"/>
+      <geometry>
+        <cylinder length="0.5" radius="0.013"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.589561 0.0857938 0.302782" rpy="-1.61387e-15 -3.01669e-06 1.5708"/>
+      <geometry>
+        <cylinder length="0.5" radius="0.013"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="0.542061 -0.00202068 0.0980872" rpy="-1.61388e-15 0.00348764 1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/auto_mount/meshes/clam.stl"/>
+      </geometry>
+      <material name="clam_material">
+        <color rgba="0.647059 0.647059 0.647059 1"/>
+      </material>
+    </visual>
   </link>
-  
+  <!-- Link mount -->
   <link name="mount">
-      <inertial>
-          <origin xyz="1.1693270418e-05 -7.2712111739e-04 -9.4424832751e-07" rpy="0 0 0" />
-          <mass value="0.675321" />
-          <inertia ixx="1.3346354813e-03" ixy="2.0144673110e-06" ixz="-7.4564560876e-12" iyy="1.8911012391e-03" iyz="8.5183270804e-12" izz="2.9426778309e-03" />
-      </inertial>
-      
-      <visual>
-          <origin xyz="0.081 0.000713936 -0.025" rpy="4.93038e-32 6.86401e-31 -3.70732e-33" />
-          <geometry>
-              <mesh filename="file://$(arg rover_description_dir)/auto_mount/meshes/mount.stl" />
-          </geometry>
-          <material name="mount_material">
-              <color rgba="0.866667 0.0745098 0.32549 1.0" />
-          </material>
-      </visual>
-      <collision>
-          <origin xyz="0.081 0.000713936 -0.025" rpy="4.93038e-32 6.86401e-31 -3.70732e-33"/>
-          <geometry>
-              <box size="0.2 0.04 0.05"/>
-          </geometry>
-      </collision>
+    <inertial>
+      <origin xyz="0.081008 -0.00111808 0.0124184" rpy="0 0 0"/>
+      <mass value="1.05279"/>
+      <inertia ixx="0.00248921" ixy="-1.13317e-07" ixz="2.38715e-06" iyy="0.00435856" iyz="6.93827e-08" izz="0.00380497"/>
+    </inertial>
+    <!-- Part mount -->
+    <collision>
+      <origin xyz="0.081 0.0125 0.0124231" rpy="1.5708 2.97004e-16 -8.22153e-19"/>
+      <geometry>
+        <box size="0.204 0.04 0.05"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.132 0.0125 0.0124231" rpy="1.5708 2.97004e-16 -8.22153e-19"/>
+      <geometry>
+        <box size="0.018 0.2 0.05"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.03 0.0125 0.0124231" rpy="1.5708 2.97004e-16 -8.22153e-19"/>
+      <geometry>
+        <box size="0.018 0.2 0.05"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.132 -0.0375 0.0124231" rpy="1.5708 2.97004e-16 -8.22153e-19"/>
+      <geometry>
+        <box size="0.018 0.07 0.1"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.03 -0.0375 0.0124231" rpy="1.5708 2.97004e-16 -8.22153e-19"/>
+      <geometry>
+        <box size="0.018 0.07 0.1"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="0.081 0.0375 -0.0275769" rpy="1.5708 2.97004e-16 -8.22153e-19"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/auto_mount/meshes/mount.stl"/>
+      </geometry>
+      <material name="mount_material">
+        <color rgba="0.615686 0.811765 0.929412 1"/>
+      </material>
+    </visual>
   </link>
-  
-  <link name="camera_holder_front">
-      <inertial>
-          <origin xyz="-3.7228035090e-17 1.6127855240e-02 2.0602657902e-19" rpy="0 0 0" />
-          <mass value="0.138174" />
-          <inertia ixx="1.0267174221e-04" ixy="4.3986965268e-19" ixz="-3.1642726501e-10" iyy="3.8739942592e-04" iyz="-9.5101774211e-22" izz="4.4725908804e-04" />
-      </inertial>
-      
-      <visual>
-          <origin xyz="-0.075 5.55112e-17 0.06" rpy="-1.5708 -1.5708 0" />
-          <geometry>
-              <mesh filename="file://$(arg rover_description_dir)/auto_mount/meshes/camera_holder.stl" />
-          </geometry>
-          <material name="camera_holder_front_material">
-              <color rgba="0.866667 0.0745098 0.32549 1.0" />
-          </material>
-      </visual>
-      <collision>
-          <origin xyz="-0.04 5.55112e-17 0.06" rpy="-1.5708 -1.5708 0"/>
-          <geometry>
-              <box size="0.143 0.086 0.05"/>
-          </geometry>
-      </collision>
+  <!-- Link lidar_holder -->
+  <link name="lidar_holder">
+    <inertial>
+      <origin xyz="-0.0727685 -3.89605e-08 0.0419816" rpy="0 0 0"/>
+      <mass value="0.0910615"/>
+      <inertia ixx="6.52644e-05" ixy="-5.95505e-11" ixz="-5.14357e-07" iyy="0.000172253" iyz="7.22815e-12" izz="0.000108478"/>
+    </inertial>
+    <!-- Part lidar_holder -->
+    <collision>
+      <origin xyz="-0.058 0 0.042" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <box size="0.084 0.136 0.01"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="-0.065 0.115 0.042" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/auto_mount/meshes/lidar_holder.stl"/>
+      </geometry>
+      <material name="lidar_holder_material">
+        <color rgba="0.231373 0.380392 0.705882 1"/>
+      </material>
+    </visual>
   </link>
-  
-  <joint name="mount_to_front_holder" type="fixed">
-      <origin xyz="0.141 0.045 -0.0075" rpy="1.5708 -${angle*(pi/180)} -1.5708" />
-      <parent link="mount" />
-      <child link="camera_holder_front" />
-      <axis xyz="0 0 -1" />
+  <!-- Link lidar_camera_approx -->
+  <link name="lidar_camera_approx">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-09"/>
+      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09"/>
+    </inertial>
+    <!-- Part lidar_camera_approx -->
+    <visual>
+      <origin xyz="0.024 0.018 -0.01975" rpy="-3.14159 9.70415e-18 6.97585e-19"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/auto_mount/meshes/lidar_camera_approx.stl"/>
+      </geometry>
+      <material name="lidar_camera_approx_material">
+        <color rgba="0.439216 0.47451 0.501961 1"/>
+      </material>
+    </visual>
+  </link>
+  <!-- Joint from lidar_holder to lidar_camera_approx -->
+  <joint name="lidar_mate" type="fixed">
+    <origin xyz="-0.114 -0.005 0.06" rpy="-1.5708 4.26348e-17 -4.99937e-17"/>
+    <parent link="lidar_holder"/>
+    <child link="lidar_camera_approx"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10"/>
   </joint>
-
-  <link name="camera_holder_back">
-      <inertial>
-          <origin xyz="-3.7228035090e-17 1.6127855240e-02 2.0602657902e-19" rpy="0 0 0" />
-          <mass value="0.138174" />
-          <inertia ixx="1.0267174221e-04" ixy="4.3986965268e-19" ixz="-3.1642726501e-10" iyy="3.8739942592e-04" iyz="-9.5101774211e-22" izz="4.4725908804e-04" />
-      </inertial>
-      
-      <visual>
-          <origin xyz="-0.075 0 0.06" rpy="1.5708 1.5708 0" />
-          <geometry>
-              <mesh filename="file://$(arg rover_description_dir)/auto_mount/meshes/camera_holder.stl" />
-          </geometry>
-          <material name="camera_holder_back_material">
-              <color rgba="0.866667 0.0745098 0.32549 1.0" />
-          </material>
-      </visual>
-      <collision>
-          <origin xyz="-0.04 8.62817e-34 0.06" rpy="1.5708 1.5708 0"/>
-          <geometry>
-              <box size="0.143 0.086 0.05"/>
-          </geometry>
-      </collision>
-  </link>
-  
-  <joint name="mount_to_back_holder" type="fixed">
-      <origin xyz="0.141 -0.045 -0.0075" rpy="-1.5708 ${-angle*(pi/180)} 1.5708" />
-      <parent link="mount" />
-      <child link="camera_holder_back" />
-      <axis xyz="0 0 1" />
+  <!-- Joint from mount to lidar_holder -->
+  <joint name="mount_to_lidar" type="fixed">
+    <origin xyz="0.123 -0.0775 0.0124231" rpy="-1.5708 0.0662646 1.5708"/>
+    <parent link="mount"/>
+    <child link="lidar_rotator"/>
+    <axis xyz="0 0 1"/>
   </joint>
-  
+    <link name="lidar_rotator"/>
+  <joint name="lidar_rotator_offset" type="fixed">
+    <origin rpy="0 0 ${lidar_angle+90*(pi/180)}"/>
+    <parent link="lidar_rotator"/>
+    <child link="lidar_holder"/>
+  </joint>
+  <!-- Link camera_holder -->
+  <link name="camera_holder">
+    <inertial>
+      <origin xyz="-0.0588704 3.57151e-08 -0.06" rpy="0 0 0"/>
+      <mass value="0.141571"/>
+      <inertia ixx="0.00039694" ixy="4.1712e-11" ixz="7.18456e-13" iyy="0.000458286" iyz="-4.56539e-12" izz="0.000105214"/>
+    </inertial>
+    <!-- Part camera_holder -->
+    <collision>
+      <origin xyz="-0.037 -9.71445e-17 -0.06" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <box size="0.143 0.086 0.05"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="-0.005 0.025 -0.06" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/auto_mount/meshes/camera_holder.stl"/>
+      </geometry>
+      <material name="camera_holder_material">
+        <color rgba="0.647059 0.647059 0.647059 1"/>
+      </material>
+    </visual>
+  </link>
+  <!-- Joint from camera_holder to bootie -->
+  <joint name="bootie_to_mount" type="fixed">
+    <origin xyz="-0.120 -0.004 -0.039" rpy="-1.5708 0 3.14159" />
+    <parent link="camera_holder"/>
+    <child link="bootie_link"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10"/>
+  </joint>
+  <!-- Joint from mount to camera_holder -->
+  <joint name="mount_to_bootie" type="fixed">
+    <origin xyz="0.141 0.0125 0.0474231" rpy="-5.46887e-17 1.5708 0"/>
+    <parent link="mount"/>
+    <child link="bootie_rotator"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+  <link name="bootie_rotator"/>
+  <joint name="bootie_rotator_offset" type="fixed">
+    <origin rpy="0 0 ${-1*bootie_angle*(pi/180)}"/>
+    <parent link="bootie_rotator"/>
+    <child link="camera_holder"/>
+  </joint>
+  <!-- Link camera_holder_2 -->
+  <link name="camera_holder_2">
+    <inertial>
+      <origin xyz="-0.0588704 3.57151e-08 -0.06" rpy="0 0 0"/>
+      <mass value="0.141571"/>
+      <inertia ixx="0.00039694" ixy="4.1712e-11" ixz="7.18456e-13" iyy="0.000458286" iyz="-4.56539e-12" izz="0.000105214"/>
+    </inertial>
+    <!-- Part camera_holder_2 -->
+    <collision>
+      <origin xyz="-0.037 -9.71445e-17 -0.06" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <box size="0.143 0.086 0.05"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="-0.005 0.025 -0.06" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/auto_mount/meshes/camera_holder.stl"/>
+      </geometry>
+      <material name="camera_holder_2_material">
+        <color rgba="0.647059 0.647059 0.647059 1"/>
+      </material>
+    </visual>
+  </link>
+  <!-- Joint from camera_holder_2 to frontoak -->
+  <joint name="oak_to_mount" type="fixed">
+    <origin xyz="-0.120 -0.004 -0.039" rpy="-1.5708 0 3.14159" />
+    <parent link="camera_holder_2"/>
+    <child link="oak_link"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10"/>
+  </joint>
+  <!-- Joint from mount to camera_holder_2 -->
+  <joint name="mount_to_front" type="fixed">
+    <origin xyz="0.021 0.0125 -0.0225769" rpy="1.73923e-17 -1.5708 0"/>
+    <parent link="mount"/>
+    <child link="oak_rotator"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+  <link name="oak_rotator"/>
+  <joint name="oak_rotator_offset" type="fixed">
+    <origin rpy="0 0 ${-1*oak_angle*(pi/180)}"/>
+    <parent link="oak_rotator"/>
+    <child link="camera_holder_2"/>
+  </joint>
+  <!-- Joint from clam to mount -->
   <joint name="clam_to_mount" type="fixed">
-      <origin xyz="0.2269 0.3285 -0.3531" rpy="3.14159 5.13507e-14 3.14159" />
-      <parent link="clam" />
-      <child link="mount" />
-      <axis xyz="0 0 1" />
-      <limit effort="10" velocity="10" />
+    <origin xyz="0.602345 -0.0759769 0.536665" rpy="-1.5708 0.00348764 1.5708"/>
+    <parent link="clam"/>
+    <child link="mount"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10"/>
   </joint>
   
   <joint name="auto_mount_to_chassis" type="fixed">
-      <origin xyz="0.124 -0.141 0.04" rpy="3.14159 -1.01333e-15 1.5708" />
+      <origin xyz="-0.137 0 -0.063" rpy="0 -1.01333e-15 0" />
       <parent link="chassis" />
       <child link="clam" />
       <axis xyz="0 0 1" />
@@ -157,20 +273,6 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
 
   <link name="oak_link"/>
   <link name="bootie_link"/>
-
-  <joint name="oak_to_mount" type="fixed">
-    <origin xyz="-0.120 0.004 0.039" rpy="1.5708 0 3.14159" />
-    <parent link="camera_holder_front" />
-    <child link="oak_link" />
-    <axis xyz="0 0 1" />
-  </joint>
-
-  <joint name="bootie_to_mount" type="fixed">
-    <origin xyz="-0.120 -0.004 0.081" rpy="-1.5708 0 3.14159" />
-    <parent link="camera_holder_back" />
-    <child link="bootie_link" />
-    <axis xyz="0 0 1" />
-  </joint>
 
   <xacro:include filename="$(find depthai_descriptions)/urdf/include/depthai_macro.urdf.xacro"/>
   <xacro:depthai_camera
