@@ -19,7 +19,7 @@ def launch_setup(context, *args, **kwargs):
     teleop_params = LaunchConfiguration('teleop_params')
     log_inputs = LaunchConfiguration('log_inputs')
     log_level = LaunchConfiguration('log_level').perform(context)
-    use_joysticks = LaunchConfiguration('use_joysticks').perform(context)
+    use_joysticks = LaunchConfiguration('joysticks').perform(context)
     
     input_param_file = PythonExpression([
         '"joysticks.config.yaml" if "', use_joysticks, '".lower() == "true" else "controller.config.yaml"'
@@ -124,8 +124,8 @@ def generate_launch_description():
             description='Set this true to display all the inputs. Very useful when trying to configure input sources!',
         ),
         DeclareLaunchArgument(
-            name='use_joysticks',
-            default_value='False',
+            name='joysticks',
+            default_value='True',
             description='Set this to true to have the mappings be for the Thrustmasters instead of the Xbox controller.',
         ),
     ]
