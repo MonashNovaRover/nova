@@ -29,9 +29,8 @@ from python_control2.hardware_interfaces import PositionalServoHardware
 
 
 class ScimbalCamController(Controller):
-    # Service name
+    # Service type
     SERVICE_TYPE = MoveScimbalCam
-    SERVICE_NAME = "/science/scimbal_cam_service"
 
     # Command interfaces
     tilt_cmd: Interface
@@ -45,6 +44,9 @@ class ScimbalCamController(Controller):
         """
         super().__init__(contexts)
         self.logger.info(f"ScimbalCamNode -- I have been __init__ialized")
+
+        # Defining service name
+        self.service_name = self.declare_parameter("service_name", "/science/scimbal_cam_service").value
 
         # Defining start, min, and max angles
         self.start_tilt_angle = self.declare_parameter("start_tilt_angle", 90).value
@@ -78,7 +80,7 @@ class ScimbalCamController(Controller):
         self.pan_cmd.value = self.start_pan_angle
 
         # Add service
-        self.service = self.node.create_service(ScimbalCamController.SERVICE_TYPE, ScimbalCamController.SERVICE_NAME, self.on_request)
+        self.service = self.node.create_service(ScimbalCamController.SERVICE_TYPE, self.service_name, self.on_request)
 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
@@ -98,9 +100,6 @@ class ScimbalCamController(Controller):
         """
         try:
             # Extract variables from request
-            self.logger.info(f"request angles: {request.angles}")
-            self.logger.info(f"current tilt: {self.tilt_cmd.value}")
-            self.logger.info(f"current pan: {self.pan_cmd.value}")
             delta_tilt: int = request.angles[0]
             delta_pan: int = request.angles[1]
 
