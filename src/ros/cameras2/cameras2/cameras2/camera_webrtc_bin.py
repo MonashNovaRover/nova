@@ -49,7 +49,9 @@ class CameraWebRTCBin:
         )
         self.bin.add(self._sink)
 
+        """
         # # Clock overlay
+        # Orlando: why is this after the converter
         if show_clock:
             self._clock_overlay = Gst.ElementFactory.make(
                 "clockoverlay", "clockoverlay"
@@ -59,21 +61,28 @@ class CameraWebRTCBin:
         else:
             self._clock_overlay = None
 
-        # # Converter
-        self._video_converter = Gst.ElementFactory.make("videoconvert", "converter")
-        self.bin.add(self._video_converter)
-        self._video_converter.link(
-            self._clock_overlay if self._clock_overlay is not None else self._sink
-        )
+        """
+        # https://gstreamer.freedesktop.org/documentation/rswebrtc/webrtcsink.html?gi-language=c#video-u
+        if mime not in ("video/x-vp8", "video/x-h264", "video/x-vp9", "video/x-h265", "video/x-av1"):
+            # # Converter
+            self._video_converter = Gst.ElementFactory.make("videoconvert", "converter")
+            self.bin.add(self._video_converter)
+            self._video_converter.link(
+                self._clock_overlay if self._clock_overlay is not None else self._sink
+            )
 
-        # # Decoder
-        self._decoder = Gst.ElementFactory.make("decodebin", "decoder")
-        self._decoder.connect(
-            "pad-added",
-            lambda element, pad: pad.link(self._video_converter.get_static_pad("sink")),
-        )
-        self.bin.add(self._decoder)
+            # # Decoder
+            self._decoder = Gst.ElementFactory.make("decodebin", "decoder")
+            self._decoder.connect(
+                "pad-added",
+                lambda element, pad: pad.link(self._video_converter.get_static_pad("sink")),
+            )
+            self.bin.add(self._decoder)
+        else:
+            self._decoder = self._sink
 
+        caps = Gst.Caps.new_from_str("video/x-h264")
+        """
         # # Capability filter
         caps = Gst.Caps.new_empty()
         caps_structure = Gst.Structure.new_empty(mime)
@@ -84,6 +93,7 @@ class CameraWebRTCBin:
         if framerate is not None:
             caps_structure.set_value("framerate", Gst.Fraction(framerate, 1))
         caps.append_structure(caps_structure)
+        """
 
         self._caps_filter = Gst.ElementFactory.make("capsfilter", "capsfilter")
         self._caps_filter.props.caps = caps
@@ -91,8 +101,17 @@ class CameraWebRTCBin:
         self._caps_filter.link(self._decoder)
 
         # # Source
-        self._source = Gst.ElementFactory.make("v4l2src", "source")
-        self._source.props.device = device_node
+        # TODO: cameras3: don't guess this?
+        from pathlib import Path
+        if Path(devicenode).is_fifo():
+            self._source = Gst.ElementFactory.make("namedpipesrc", "source")
+            self._source.props.location = device_node
+        else:
+            self._source = Gst.ElementFactory.make("v4l2src", "source")
+            self._source.props.device = device_node
+
+        self.bin.add(self._source)
+        self._source.link(self._caps_filter)
         self.bin.add(self._source)
         self._source.link(self._caps_filter)
 
