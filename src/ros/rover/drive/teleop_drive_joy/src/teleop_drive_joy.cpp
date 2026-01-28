@@ -35,6 +35,8 @@ TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions& options)
   , locked_(true)
   , drive_mode_(DriveMode::PIVOT)
   , handbrake_pressed_(false)
+  , autonomous_mode_(false) // assume (maybe incorrectly) until set_autonomous_mode_for_controllers is called
+  , connected_(false)
 {
 }
 
@@ -89,6 +91,9 @@ void TeleopDriveJoy::set_autonomous_mode_for_controllers(bool enable)
     static_cast<void>(client->async_send_request(request));
   }
 
+  autonomous_mode_ = enable;
+  send_drive_info();
+
 }  // namespace teleop_drive_joy
 
 void TeleopDriveJoy::initialize()
@@ -97,6 +102,14 @@ void TeleopDriveJoy::initialize()
   initialize_interfaces();
   map_button_callbacks();
   print_controls();
+
+  // initialize connection timer
+  connection_timer_ = this->create_timer(0.5s, [this]()
+  {
+    set_connected(false);
+    connection_timer_->cancel();
+  });
+
   RCLCPP_INFO_STREAM(
     this->get_logger(), C_INFO << "Initialized with control mode: " << C_MODE
                                << pretty_print_mode(drive_mode_) << C_END ", " << C_SPEED
@@ -131,6 +144,8 @@ void TeleopDriveJoy::initialize_interfaces()
     "/strafe_drive_controller/set_parameters");
   diff_drive_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
     "/diff_drive_controller/set_parameters");
+
+  drive_info_pub_ = this->create_publisher<drive_interfaces::msg::DriveInfo>(params_.drive_info_topic, 10);
 }
 
 void TeleopDriveJoy::map_button_callbacks()
@@ -141,6 +156,7 @@ void TeleopDriveJoy::map_button_callbacks()
     {
       locked_ = false;
       RCLCPP_INFO_STREAM(this->get_logger(), C_SUCCESS << "Gamepad unlocked" << C_END);
+      send_drive_info();
     }
   };
   button_callbacks_[params_.button_lock] = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
@@ -149,6 +165,7 @@ void TeleopDriveJoy::map_button_callbacks()
     {
       locked_ = true;
       RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Gamepad locked" << C_END);
+      send_drive_info();
     }
   };
   button_callbacks_[params_.button_autonomous_mode] =
@@ -192,6 +209,7 @@ void TeleopDriveJoy::map_button_callbacks()
         speed_ + speed_change,
         params_.speed_limit_min, params_.speed_limit_max);
       RCLCPP_INFO_STREAM(this->get_logger(), C_SPEED << "Speed: " << speed_ << C_END);
+      send_drive_info();
     }
   };
   button_callbacks_[params_.button_speed_decrease_fine] =
@@ -228,6 +246,10 @@ void TeleopDriveJoy::joy_callback(const sensor_msgs::msg::Joy::SharedPtr joy_msg
   {
     send_halt_command();
   }
+
+  // update connection status
+  connection_timer_->reset();
+  set_connected(true);
 }
 
 void TeleopDriveJoy::handle_button_callbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
@@ -274,6 +296,7 @@ void TeleopDriveJoy::send_drive_command(const sensor_msgs::msg::Joy::SharedPtr j
 	{
 	  handbrake_pressed_ = true;
 	  RCLCPP_INFO_STREAM(this->get_logger(), C_SUCCESS << "Handbrake activated" << C_END);
+	  send_drive_info();
 	}
     linear.first *= params_.handbrake_speed_multiplier;
     linear.second *= params_.handbrake_speed_multiplier;
@@ -282,6 +305,7 @@ void TeleopDriveJoy::send_drive_command(const sensor_msgs::msg::Joy::SharedPtr j
   {
     handbrake_pressed_ = false;
     RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Handbrake deactivated" << C_END);
+    send_drive_info();
   }
 
   // force zeros to be positive zero so ackermann drive assumes rover will move
@@ -350,6 +374,8 @@ void TeleopDriveJoy::switch_controller(const DriveMode requested_control_mode)
 
   drive_mode_ = requested_control_mode;
   RCLCPP_INFO_STREAM(this->get_logger(), C_MODE << pretty_print_mode(drive_mode_) << C_END);
+
+  send_drive_info();
 }
 
 void TeleopDriveJoy::print_controls()
@@ -373,6 +399,37 @@ void TeleopDriveJoy::print_controls()
   // clang-format on
 }
 
+void TeleopDriveJoy::set_connected(const bool connected)
+{
+    if (connected != connected_)
+    {
+      connected_ = connected;
+      send_drive_info();
+
+      if (connected_)
+      {
+        RCLCPP_ERROR_STREAM(this->get_logger(), C_INFO << "Gamepad " << C_SUCCESS << "connected." << C_END);
+      }
+      else
+      {
+        RCLCPP_ERROR_STREAM(this->get_logger(), C_INFO << "Gamepad " << C_FAIL << "disconnected." << C_END);
+      }
+    }
+}
+
+void TeleopDriveJoy::send_drive_info()
+{
+  drive_interfaces::msg::DriveInfo msg {};
+
+  msg.autonomous_mode = autonomous_mode_;
+  msg.connected = connected_;
+  msg.drive_mode = mode_to_drive_info(drive_mode_);
+  msg.handbrake = handbrake_pressed_;
+  msg.locked = locked_;
+  msg.multiplier = static_cast<float>(speed_);
+
+  drive_info_pub_->publish(msg);
+}
 }  // namespace teleop_drive_joy
 
 int main(int argc, char* argv[])
