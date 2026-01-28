@@ -73,9 +73,9 @@ thrustmaster_left:
           
       buttons:
         lock:
-          from: "l_btn_bottom_l1_state"
-        unlock:
           from: "l_btn_bottom_l2_state"
+        unlock:
+          from: "l_btn_bottom_l5_state"
         task_space:
           from: "l_btn_thumb_u_state"
 
