@@ -20,6 +20,7 @@ EDITED:         15/01/2026
 import rclpy
 import jcan
 
+from science_interfaces.srv import MoveScimbalCam
 from enum import Enum
 from rclpy.node import Node
 from typing import Optional
@@ -28,6 +29,10 @@ from python_control2.hardware_interfaces import PositionalServoHardware
 
 
 class ScimbalCamController(Controller):
+    # Service name
+    SERVICE_TYPE = MoveScimbalCam
+    SERVICE_NAME = "/science/scimbal_cam_service"
+
     # Command interfaces
     tilt_cmd: Interface
     pan_cmd: Interface
@@ -41,16 +46,12 @@ class ScimbalCamController(Controller):
         super().__init__(contexts)
         self.logger.info(f"ScimbalCamNode -- I have been __init__ialized")
 
-        # Defining service related variables
-        self.service_type = self.declare_parameter("service_type", "MoveScimbalCam").value
-        self.service_name = self.declare_parameter("service_name", "/science/scimbal_cam_service").value
-
         # Defining start, min, and max angles
         self.start_tilt_angle = self.declare_parameter("start_tilt_angle", 90).value
         self.start_pan_angle = self.declare_parameter("start_pan_angle", 180).value
 
-        self.min_tilt_angle = self.declare_paramenter("min_tilt_anlge", 0).value
-        self.min_pan_angle = self.declare_paramenter("min_pan_anlge", 0).value
+        self.min_tilt_angle = self.declare_parameter("min_tilt_angle", 0).value
+        self.min_pan_angle = self.declare_parameter("min_pan_angle", 0).value
 
         self.max_tilt_angle = self.declare_parameter("max_tilt_angle", 180).value
         self.max_pan_angle = self.declare_parameter("max_pan_angle", 360).value        
@@ -77,7 +78,7 @@ class ScimbalCamController(Controller):
         self.pan_cmd.value = self.start_pan_angle
 
         # Add service
-        self.service = self.create_service(self.service_type, self.service_name, self.on_request)
+        self.service = self.node.create_service(ScimbalCamController.SERVICE_TYPE, ScimbalCamController.SERVICE_NAME, self.on_request)
 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
@@ -97,6 +98,9 @@ class ScimbalCamController(Controller):
         """
         try:
             # Extract variables from request
+            self.logger.info(f"request angles: {request.angles}")
+            self.logger.info(f"current tilt: {self.tilt_cmd.value}")
+            self.logger.info(f"current pan: {self.pan_cmd.value}")
             delta_tilt: int = request.angles[0]
             delta_pan: int = request.angles[1]
 
@@ -104,12 +108,12 @@ class ScimbalCamController(Controller):
             self.tilt_cmd.value = max(self.min_tilt_angle, min(self.max_tilt_angle, self.tilt_cmd.value + delta_tilt))
             self.pan_cmd.value = max(self.min_pan_angle, min(self.max_pan_angle, self.pan_cmd.value + delta_pan))
 
-            self.get_logger().info(f"Scimbal Cam angles updated: TILT: {self.scimbal_cam[0].get_goal_position()}, PAN: {self.scimbal_cam[1].get_goal_position()}, request: {request.angles}")
+            self.logger.info(f"Scimbal Cam angles updated: TILT: {self.tilt_cmd.value}, PAN: {self.pan_cmd.value}, request: {request.angles}")
             
             response.success = True
 
         except Exception as e:
-            self.get_logger().error(f"Scimbal Cam angle update request {request.angles} interrupted by error: {str(e)}")
+            self.logger.error(f"Scimbal Cam angle update request {request.angles} interrupted by error: {str(e)}")
             
             response.success = False
 
