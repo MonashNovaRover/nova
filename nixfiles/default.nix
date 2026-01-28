@@ -15,6 +15,20 @@ let
     hash = "sha256-ksg95OjJsI88gVUiHX2Iv0y63To4djgLxEof1dibwDk=";
   };
 
+  # https://github.com/NixOS/nixpkgs/pull/402019 depthai v3 
+  # This copy is rebased by orlando as of Jan 2026.
+  nixpkgs-402019 = pkgs.fetchurl {
+    url = "https://github.com/NixOS/nixpkgs/compare/d1cc6bdd4c12c79a7c834ae5e65be863b939ea53...088dfb6b7c4e60a3bc312cad9978149a4041563d.patch";
+    hash = "sha256-ZGkoAxYIWhG23ZhGxSgyMcU3Z3ewmPelMxU9ekD4ZW8=";
+  };
+
+  # https://github.com/NixOS/nixpkgs/pull/393020
+  # cpr is dependency of pr 402019 for depthai
+  nixpkgs-393020 = pkgs.fetchurl {
+    url = "https://github.com/NixOS/nixpkgs/commit/7304146d6c9d27f2be7a022e108999b1d80054ec.patch";
+    hash = "sha256-w5r09KXsz0OglAcEqFC/S0ltMt+AyaO4LshU+d491mU=";
+  };
+
   maybeApplyPatches = { src, patches, ... }@args: if patches == [ ] then src else pkgs.applyPatches args;
 
   # Pin the version of Nixpkgs to ensure reproducibility.
@@ -31,6 +45,8 @@ let
     };
     patches = [
       nixpkgs-481399
+      nixpkgs-402019
+      nixpkgs-393020
     ];
   });
 

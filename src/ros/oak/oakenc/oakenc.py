@@ -5,6 +5,8 @@ from enum import Enum, auto
 import time
 import depthai as dai
 
+from camera_msgs.msg import Camera, Cameras, Encoder, Encoders
+
 from namedpipe import NamedPipeSink, NamedPipeSource
 from anaglyph import Anaglyph
 
@@ -22,25 +24,6 @@ class MessageType(Enum):
     ENCODERS = auto
     STATS = auto
 
-@dataclass
-class Camera:
-    name: str
-    path: str
-    width: int
-    height: int
-    filterHint: str
-
-
-@dataclass
-class Encoder:
-    name: str
-    inputPath: str # /tmp/xxxx
-    outputPath: str # /tmp/xxx_out
-    width: int
-    height: int
-    inputFilter: str # "video/x-raw, encoding=NV12"
-    outputFilter: str # "video/x-h264"
-
 
 # TODO: make this all arguments from rosparams
 inputPipeNames = ("h264enc0", "h264enc1")
@@ -51,6 +34,7 @@ oakCams = {
         "C": dai.CameraBoardSocket.CAM_A,
         #"L": dai.CameraBoardSocket.CAM_B,
         "R": dai.CameraBoardSocket.CAM_C,
+        "3D": None
         }
 oakRes = (1920,1200)
 
@@ -72,10 +56,23 @@ def run(pipe):
         encoders = []
 
         # Cameras
+        anaglyphLeft = "C"
+        anaglyphRight = "R"
         for camName in oakCams:
-            cam = pipeline.create(dai.node.Camera)
-            cam.build(oakCams[camName])
-            camOut = cam.requestOutput(size=oakRes, type=dai.ImgFrame.Type.NV12, fps=FPS)
+            if camName == "3D":
+                a = Anaglyph()
+                left.link(a.left)
+                right.link(a.right)
+                camOut = a.output
+
+            else:
+                cam = pipeline.create(dai.node.Camera)
+                cam.build(oakCams[camName])
+                camOut = cam.requestOutput(size=oakRes, type=dai.ImgFrame.Type.NV12, fps=FPS)
+            if camName == anaglyphLeft:
+                left = camOut
+            if camName == anaglyphRight:
+                right = camOut
 
             encoder = pipeline.create(dai.node.VideoEncoder)
             #videoEncoder.setBitrate(500*1024) # doesn't seem to have any effect
@@ -88,10 +85,8 @@ def run(pipe):
             cameras.append(
                     Camera(
                         name="OAK_"+camName,
-                        path=pipename,
-                        width=oakRes[0],
-                        height=oakRes[1],
-                        filterHint="video/x-h264"
+                        node=pipename,
+                        outputcaps="video/x-h264"
                         )
                     )
 
@@ -112,12 +107,10 @@ def run(pipe):
             encoder.out.link(sink.createNamedPipeOutput(outpipename))
             encoders.append(
                     Encoder(name=name,
-                            inputPath=inpipename,
-                            outputPath=outpipename,
-                            width=width,
-                            height=height,
-                            inputFilter = f"video/x-raw, encoding=NV12, width={width}, height={height}",
-                            outputFilter = "video/x-h264"
+                            inputpath=inpipename,
+                            outputpath=outpipename,
+                            inputcaps = f"video/x-raw, encoding=NV12, width={width}, height={height}",
+                            outputcaps = "video/x-h264"
                             )
                     )
 
@@ -134,26 +127,3 @@ def run(pipe):
             pipeline.stop()
 
 
-from multiprocessing import Process
-import multiprocessing as mp
-import signal
-import os
-
-if __name__ == "__main__":
-    mp.set_start_method("spawn") # depthai hangs with fork :/
-    # TODO: puppeteer this from our main ros process
-    # get cameras
-    # get encoders
-    # get stats?
-    pipe, pipeDepthai = mp.Pipe()
-    p = Process(target=run, args=(pipeDepthai,))
-    p.start()
-    try:
-        while True:
-            if pipe.poll():
-                type_, value = pipe.recv()
-                print(type_, value)
-            time.sleep(1)
-    except KeyboardInterrupt:
-        os.kill(p.pid, signal.SIGUSR1) # keyboard interrupt
-    p.join()

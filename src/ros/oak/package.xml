@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>oakenc</name>
+  <version>1.0.0</version>
+  <description>OAK Depth camera server.</description>
+  <maintainer email="novaroverteam@monash.edu">Monash Nova Rover</maintainer>
+  <license>Only for Monash Nova Rover Team to use and distribute.</license>
+
+  <depend>rclpy</depend>
+  <depend>python-yaml</depend>
+  <depend>std_srvs</depend>
+  <depend>camera_msgs</depend>
+  <depend>cameras2</depend>
+
+  <exec_depend>ros2launch</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

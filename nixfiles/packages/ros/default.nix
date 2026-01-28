@@ -5,6 +5,7 @@
   depthai = callPackage ./depthai { };
   gst-bridge = callPackage ./gst-bridge { };
   gst-msgs = callPackage ./gst-msgs { };
+  gst-namedpipe = callPackage ./gst-namedpipe { };
   gst-pipeline = callPackage ./gst-pipeline { };
   gst-pipeline-plugins = callPackage ./gst-pipeline-plugins { };
   gst-pipeline-plugins-webrtc = callPackage ./gst-pipeline-plugins-webrtc { };
