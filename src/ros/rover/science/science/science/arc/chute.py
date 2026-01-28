@@ -46,12 +46,5 @@ if __name__ == "__main__":
         ) \
         .with_hardware("rotation", PositionalServoHardware, function_id=0x03) \
         .with_teleop(inputs) \
-        .with_activation_buttons(
-            active_button_name="activate_chute",
-            inactive_button_pool_names=[
-                "activate_auger",
-                "activate_sweeper",
-            ],
-        ) \
         .with_jcan() \
         .spin()

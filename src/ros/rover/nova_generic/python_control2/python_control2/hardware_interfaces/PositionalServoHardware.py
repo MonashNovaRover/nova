@@ -39,6 +39,8 @@ class PositionalServoHardware(HardwareInterface):
 
         self.bus = contexts[jcan.Bus]
 
+        self.last = None
+
         self.declare_parameter("frame_id", frame_id, "Frame ID of the servo")
         self.declare_parameter("function_id", function_id, "Function ID of the servo")
         self.declare_parameter("angular_range", angular_range, "Angular range of the servo in degrees")
@@ -91,8 +93,9 @@ class PositionalServoHardware(HardwareInterface):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-        if self.pos_cmd:
+        if self.pos_cmd and self.pos_cmd.value != self.last:
             self.bus.send(self.construct_frame())
+            self.last = self.pos_cmd.value
 
     def construct_frame(self) -> jcan.Frame:
         """ Construct the jcan Frame based on current command interface """

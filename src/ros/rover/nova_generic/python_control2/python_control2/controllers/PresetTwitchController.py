@@ -132,26 +132,24 @@ class PresetTwitchController(Controller):
         elif self.button_twitch_decrease:
             self.twitch(-twitch_step)
         
-        self.rotation_cmd.value = self.current_pos + self.offset
+        self.rotation_cmd.value = self.current_pos
     
     def twitch(self, step: float):
         """Updates the offset by applying a twitch step"""
-        updated_offset = self.offset + step
-        updated_pos = self.current_pos + updated_offset
+        if step:
+            updated_pos = self.current_pos + step
 
-        # Clamp to physical bounds
-        if updated_pos > self.max_angle:
-            updated_pos = self.max_angle
-        elif updated_pos < self.min_angle:
-            updated_pos = self.min_angle
+            # Clamp to physical bounds
+            if updated_pos > self.max_angle:
+                updated_pos = self.max_angle
+            elif updated_pos < self.min_angle:
+                updated_pos = self.min_angle
 
-        # Recalculate offset to account for overshoot
-        updated_offset = updated_pos - self.current_pos
-
-        # Only update if offset has changed
-        if updated_offset != self.offset:
-            self.offset = updated_offset
-            self.logger.info(f"Offset updated: {self.offset}")
+            # Only update if position has changed
+            if updated_pos != self.current_pos:
+                offset = updated_pos - self.current_pos
+                self.current_pos = updated_pos
+                self.logger.info(f"Moved to position: {self.current_pos} ({"+" if offset > 0 else ""}{offset})")
 
     def get_speed(self) -> float:
         """Gets the speed, mapping an axis [-1, 1] to a speed [0, 1]"""
