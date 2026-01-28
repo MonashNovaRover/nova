@@ -1,7 +1,7 @@
 
 { pkgs ? import <nixpkgs> {} }:
 let 
-  gst-namedpipe = pkgs.callPackage ./gst-namedpipe { };
+  gst-namedpipe = pkgs.callPackage ../../../../nixfiles/packages/ros/gst-namedpipe { };
 in
 pkgs.mkShell {
   buildInputs = with pkgs; [

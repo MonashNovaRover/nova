@@ -13,7 +13,7 @@ import multiprocessing as mp
 import signal
 import os
 
-from oakenc import run, MessageType
+from oakenc.oakenc import run, MessageType
 
 class OakCameraDirectoryService(BaseCameraDirectoryService):
     """
@@ -48,19 +48,31 @@ class OakCameraDirectoryService(BaseCameraDirectoryService):
 
         mp.set_start_method("spawn") # depthai hangs with fork :/
 
-        pipe, pipeDepthai = mp.Pipe()
+        self.pipe, pipeDepthai = mp.Pipe()
         self.p = Process(target=run, args=(pipeDepthai,))
         self.p.start()
+
+        self.timer = self.create_timer(1.0, self.spin_once)
+
 
     def is_alive(self):
         return self.p.is_alive()
 
     def spin_once(self):
-        if pipe.poll():
-            type_, value = pipe.recv()
-            print(type_, value)
-            if type_ == MessageType.CAMERAS:
-                self._cameras = value
+        if self.pipe.poll():
+            type_, value = self.pipe.recv()
+
+            match type_:
+                case MessageType.CAMERAS:
+
+                    self.get_logger().info("Got Cameras:")
+                    for camera in value:
+                        self.get_logger().info(f"\t{camera}")
+
+                    self._cameras = value
+                    self._publish_cameras()
+                case _:
+                    self.get_logger().info(f"{type_}, {value}")
 
     def destroy_node(self) -> bool:
         os.kill(self.p.pid, signal.SIGUSR1) # keyboard interrupt
@@ -76,7 +88,7 @@ class OakCameraDirectoryService(BaseCameraDirectoryService):
     def _publish_cameras(self) -> None:
         self._cameras_publisher.publish(
             Cameras(
-                cameras=[self._cameras]
+                cameras=[camera for camera  in self._cameras]
                 )
         )
 
@@ -86,8 +98,7 @@ def main(args=None):
     node = OakCameraDirectoryService()
 
     while node.is_alive():
-        rclpy.spinonce(node)
-        node.spin_once()
+        rclpy.spin(node)
 
     node.destroy_node()
     rclpy.shutdown()

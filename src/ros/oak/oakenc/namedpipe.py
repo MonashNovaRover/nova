@@ -151,7 +151,7 @@ class NamedPipeSink(dai.node.ThreadedHostNode):
         buffer = buffer.getData().tobytes()
         self.bytes[fd] += len(buffer)
         if (time.time() - self.lasttime[fd]) > 1:
-            print(fd, self.bytes[fd]//1000, "kB/s") # TODO: print location?
+            #print(fd, self.bytes[fd]//1000, "kB/s") # TODO: print location?
             self.bytes[fd] = 0
             self.lasttime[fd]=time.time()
 

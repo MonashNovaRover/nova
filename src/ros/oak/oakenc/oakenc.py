@@ -7,8 +7,8 @@ import depthai as dai
 
 from camera_msgs.msg import Camera, Cameras, Encoder, Encoders
 
-from namedpipe import NamedPipeSink, NamedPipeSource
-from anaglyph import Anaglyph
+from oakenc.namedpipe import NamedPipeSink, NamedPipeSource
+from oakenc.anaglyph import Anaglyph
 
 
 """
@@ -20,7 +20,7 @@ gst-launch-1.0 namedpipesrc location=/tmp/h264enc0_out ! "video/x-h264"  ! queue
 
 
 class MessageType(Enum):
-    CAMERAS = auto
+    CAMERAS = 0
     ENCODERS = auto
     STATS = auto
 
@@ -84,7 +84,7 @@ def run(pipe):
             encoder.out.link(sink.createNamedPipeOutput(pipename))
             cameras.append(
                     Camera(
-                        name="OAK_"+camName,
+                        serial="OAK_"+camName,
                         node=pipename,
                         outputcaps="video/x-h264"
                         )

@@ -9,9 +9,7 @@ from io import BytesIO
 from PIL import Image
 import numpy as np
 
-from formats import rgb2nv12
-
-# TODO: get namedpipe instead so we can get the NV12 direct from gstreamer
+from oakenc.formats import rgb2nv12
 
 
 class UdpSource(dai.node.ThreadedHostNode):

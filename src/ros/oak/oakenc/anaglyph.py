@@ -5,7 +5,7 @@ import depthai as dai
 import numpy as np
 import cv2 as cv
 
-from formats import rgb2nv12
+from oakenc.formats import rgb2nv12
 
 class Anaglyph(dai.node.ThreadedHostNode):
     """

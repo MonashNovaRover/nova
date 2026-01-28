@@ -12,6 +12,7 @@
 , nova-camera-msgs
 , pythonPackages
 , gst-bridge
+, gst-namedpipe
 , glib-networking
 , sensor-msgs
 }:
@@ -57,6 +58,7 @@ buildRosPackage {
     gst_all_1.gst-plugins-rs # WebRTC
     libnice # WebRTC
     gst-bridge # ros-gst-bridge/rosimagesrc
+    gst-namedpipe # for oakenc
     glib-networking
   ];
 

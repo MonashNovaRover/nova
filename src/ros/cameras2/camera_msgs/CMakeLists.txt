@@ -33,6 +33,8 @@ endif()
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Camera.msg"
   "msg/Cameras.msg"
+  "msg/Encoder.msg"
+  "msg/Encoders.msg"
   "srv/CameraOperation.srv"
   "srv/GetCameraStreamStats.srv"
   "srv/GetIPList.srv"
