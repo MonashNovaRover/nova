@@ -44,6 +44,16 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         Node(
+            name='cbeam',
+            package='science',
+            executable='cbeam.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
             name='kiln',
             package='science',
             executable='kiln.py',
