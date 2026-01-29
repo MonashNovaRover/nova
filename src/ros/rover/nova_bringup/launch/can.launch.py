@@ -55,7 +55,7 @@ def launch_setup(context, *args, **kwargs):
     log_can = LaunchConfiguration('log_can').perform(context)
     log_dir = LaunchConfiguration('log_dir').perform(context)
     log_dir_expanded = expanduser(log_dir)
-    can_log_name = LaunchConfiguration('can_log_name').perform(context)
+    log_name = LaunchConfiguration('log_name').perform(context)
 
     logger = launch.logging.get_logger()
 
@@ -72,8 +72,8 @@ def launch_setup(context, *args, **kwargs):
 
     # generate log file path
     time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    if can_log_name:
-        log_file_name = f"{can_log_name}_{bus}_{time_stamp}.log"
+    if log_name:
+        log_file_name = f"{log_name}_{bus}_{time_stamp}.log"
     else:
         log_file_name = f"{bus}_{time_stamp}.log"
     log_path = PathJoinSubstitution([log_dir_expanded, log_file_name])
