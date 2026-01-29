@@ -25,6 +25,8 @@ from python_control2 import PythonControl, Controller, Contexts, InterfaceCollec
 from python_control2.hardware_interfaces import CMDHardware
 
 
+
+
 class TimeOfFlightController(Controller):
     # Command interfaces
     # joint_cmd: Interface
@@ -45,6 +47,8 @@ class TimeOfFlightController(Controller):
         # self.joint = self.declare_parameter("joint", "j1").value
 
         # Do any setup logic here, save any contexts you want reference to in the future.
+        self.distance = self.declare_parameter("distance", 0).value
+
         
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
@@ -60,6 +64,7 @@ class TimeOfFlightController(Controller):
         # Save references to interfaces
         # self.logger.info(f"Getting \"{self.joint + "/effort"}\"")
         # self.joint_cmd = command_interfaces[self.joint + "/effort"]
+        self.distance = state_interface["tof/distance"]
 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
@@ -74,11 +79,11 @@ class TimeOfFlightController(Controller):
 if __name__ == "__main__":
     print("Setting up!")
 
-    rclpy.init()
+    # rclpy.init()
 
-    node = Node("control_test")
-    PythonControl("time_of_flight", update_rate=5, can_bus="can1") \
-        .with_controller("TimeOfFlightController", TimeOfFlightController) \
-        .with_hardware("test_hw", TestHardware) \
-        .with_jcan() \
-        .spin()
+    # node = Node("control_test")
+    # PythonControl("time_of_flight", update_rate=5, can_bus="can1") \
+    #     .with_controller("TimeOfFlightController", TimeOfFlightController) \
+    #     .with_hardware("test_hw", TestHardware) \
+    #     .with_jcan() \
+    #     .spin()
