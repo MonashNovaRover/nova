@@ -22,18 +22,23 @@ const DriveSpeedWidget: React.FC<IDriveWidgetProps> = (
     (state: RootState) => state.driveStore.multiplier
   );
 
-  const bifrostTelemetry = useBifrost({ topic: RosTopic.DRIVE_TELEMETRY });
-  const wheelsData = useSelector(
-    (state: RootState) => state.driveTelemetryStore.wheels
+  const wheelJointNames = ["flw", "frw", "blw", "brw"];
+
+  const bifrostJointStates = useBifrost({ topic: RosTopic.DRIVE_JOINT_STATES });
+  const { name: jointNames, velocity: jointVelocities } = useSelector(
+    (state: RootState) => state.driveJointStateStore
   );
-  const averageWheelAngularVelocity =
-    wheelsData
-      .map((w) => Math.abs(w.rotor_velocity))
-      .reduce((v: number, acc: number) => v + acc, 0) / 4;
+
+  const wheelVelocities = jointVelocities.filter((_velocity: number, index: number) => {
+    wheelJointNames.includes(jointNames[index])
+  })
+  const averageWheelAngularVelocity = wheelVelocities.reduce(
+    (acc: number, velocity: number) => { return acc + velocity; }, 0.0)
+    / wheelVelocities.length;
 
   useEffect(() => {
     bifrostDrive.syncWithTopic();
-  }, [bifrostDrive, bifrostTelemetry]);
+  }, [bifrostDrive, bifrostJointStates]);
 
   // Helper function for creating labels in the driveInfoCardBody
   const createLabelCell = (content: ReactNode) => (

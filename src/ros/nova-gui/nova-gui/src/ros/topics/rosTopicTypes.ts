@@ -25,6 +25,7 @@ import {
   IRosArmInterfacesSequencerFeedback,
   IRosNovaInterfacesRadioStatus,
   IRosScienceInterfacesEffortStatus,
+  IRosSensorMsgsJointState,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -42,6 +43,7 @@ export interface RosTopicInterfaces {
   // Drive Related
   [RosTopic.DRIVE_INFO]: IRosDriveInterfacesDriveInfo;
   [RosTopic.DRIVE_TELEMETRY]: IRosBlcmdInterfacesTelemetry;
+  [RosTopic.DRIVE_JOINT_STATES]: IRosSensorMsgsJointState;
 
   // Arm Related
   [RosTopic.ARM_TELEMETRY]: IRosCmdInterfacesCmDsFeedback;

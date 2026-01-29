@@ -32,7 +32,7 @@ import {
   IRosNovaInterfacesStatus,
   IRosSensorMsgsNavSatFix,
   IRosArmInterfacesSequencerFeedback,
-  IRosNovaInterfacesRadioStatus,
+  IRosNovaInterfacesRadioStatus, IRosSensorMsgsJointState,
 
 } from "../ros/rosTypes";
 
@@ -58,6 +58,7 @@ export interface RootState {
   // Drive Stores
   driveStore: IRosDriveInterfacesDriveInfo;
   driveTelemetryStore: IRosBlcmdInterfacesTelemetry;
+  driveJointStateStore: IRosSensorMsgsJointState;
 
   // Arm Stores
   armTelemetryStore: IRosCmdInterfacesCmDsFeedback;
