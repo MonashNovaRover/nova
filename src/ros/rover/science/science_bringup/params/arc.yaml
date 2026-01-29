@@ -87,15 +87,13 @@ scimbal_cam:
     update_rate: 5
     hardware:
       tilt:
-        frame_id: 0x0B0
+        can_id: 0x0B0
         function_id: 0x03
-        min_angle: 0.0
-        max_angle: 180.0
+        angular_limit: 180.0
       pan:
-        frame_id: 0x0B0
+        can_id: 0x0B0
         function_id: 0x04
-        min_angle: 0.0
-        max_angle: 360.0
+        angular_limit: 360.0
 
 
 chute:
