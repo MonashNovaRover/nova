@@ -45,12 +45,28 @@ thrustmaster_left:
     ]
 
     remap:
+      axes:
+      # Tool Rotator
+        tool_rotator_speed:
+          from: "l_ax_slider"
+
       buttons:
         # Lock/Unlock
         lock:
           from: "l_btn_bottom_l2_state"
         unlock:
           from: "l_btn_bottom_l5_state"
+        # Tool Rotator
+        tool_rotator_twitch_decrease:
+          from: "l_btn_bottom_r1_state"
+        tool_rotator_twitch_increase:
+          from: "l_btn_bottom_r2_state"
+        tool_rotator_sweeper:
+          from: "l_btn_bottom_r4_state"
+        tool_rotator_microscope:
+          from: "l_btn_bottom_r5_state"
+        tool_rotator_nir_probe:
+          from: "l_btn_bottom_r6_state"
 
 thrustmaster_right:
   ros__parameters:
@@ -90,18 +106,34 @@ thrustmaster_right:
           from: "r_ax_stick_y"
         auger_drill_speed:
           from: "r_ax_slider"
+        # Chute
+        chute_speed:
+          from: "r_ax_slider"
+        # Sweeper
+        sweeper_speed:
+          from: "r_ax_slider"
 
       buttons:
         # Auger
-        auger_drill:
-          from: "r_btn_thumb_u_state"
-        sweeper_sweep:
-          from: "r_btn_bottom_r5_state"
         activate_auger:
           from: "r_btn_bottom_l4_state"
         activate_cbeam:
           from: "r_btn_bottom_l1_state"
+        auger_drill:
+          from: "r_btn_thumb_u_state"
         auger_drill_clockwise:
           from: "r_btn_thumb_r_state"
         auger_drill_anticlockwise:
           from: "r_btn_thumb_l_state"
+        # Sweeper
+        sweeper_sweep:
+          from: "r_btn_bottom_r5_state"
+        # Chute
+        chute_twitch_decrease:
+          from: "r_btn_bottom_r2_state"
+        chute_twitch_increase:
+          from: "r_btn_bottom_r3_state"
+        chute_engaged:
+          from: "r_btn_bottom_r1_state"
+        chute_disengaged:
+          from: "r_btn_bottom_r4_state"
