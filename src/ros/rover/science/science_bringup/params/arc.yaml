@@ -31,15 +31,27 @@ auger:
     can_bus: "can1"
     active: true
     active_button: "activate_auger"
-    inactive_button_pool: ["activate_cbeam"]
+    inactive_button_pool: [ "activate_cbeam" ]
     hardware:
       actuation:
-        can_id: 0x0C2
+        can_id: 0x0D1
         max_effort: 1.0
         reversed: false
       drill:
         can_id: 0x0C1
         max_effort: 0.5
+        reversed: false
+
+cbeam:
+  ros__parameters:
+    can_bus: "can1"
+    active: false
+    active_button: "activate_cbeam"
+    inactive_button_pool: [ "activate_auger" ]
+    hardware:
+      actuation:
+        can_id: 0x0C2
+        max_effort: 1.0
         reversed: false
 
 kiln:
@@ -50,8 +62,8 @@ kiln:
       controller:
         command_service: "/science/kiln_command"
         data_topic: "/science/kiln_data"
-        temp_sensors: ["kiln_sensor", "condenser_sensor"]
-        heaters: ["left_heater", "right_heater"]
+        temp_sensors: [ "kiln_sensor", "condenser_sensor" ]
+        heaters: [ "left_heater", "right_heater" ]
     hardware:
       kiln_sensor:
         can_id: 0x12

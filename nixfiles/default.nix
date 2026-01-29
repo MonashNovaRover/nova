@@ -8,6 +8,13 @@
 let
   revisions = builtins.fromJSON (builtins.readFile ./revisions.json);
 
+  # backport https://github.com/NixOS/nixpkgs/pull/481399
+  # remove once backported to nixos-unstable
+  nixpkgs-481399 = pkgs.fetchurl {
+    url = "https://github.com/NixOS/nixpkgs/commit/6c6d4daf79263066efae45467cb4a95021ad2bb8.patch";
+    hash = "sha256-ksg95OjJsI88gVUiHX2Iv0y63To4djgLxEof1dibwDk=";
+  };
+
   maybeApplyPatches = { src, patches, ... }@args: if patches == [ ] then src else pkgs.applyPatches args;
 
   # Pin the version of Nixpkgs to ensure reproducibility.
@@ -23,6 +30,7 @@ let
       inherit (revisions.nixpkgs) rev hash;
     };
     patches = [
+      nixpkgs-481399
     ];
   });
 

@@ -1,0 +1,9 @@
+<library path="qcmd_hardware">
+  <class name="qcmd_hardware/QCMDHardware"
+         type="qcmd_hardware::QCMDHardware"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      ros2_control qcmd hardware interface.
+    </description>
+  </class>
+</library>

@@ -1,5 +1,6 @@
 from .controller_manager.Interface import Interface, InterfaceCollection
 from .controllers.Controller import Controller
+from .controllers.ActuateController import ActuateController
 from .hardware_interfaces.HardwareInterface import HardwareInterface
 from .hardware_interfaces.Direction import Direction
 from .controller_manager.Activation import Activation
