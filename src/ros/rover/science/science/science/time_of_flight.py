@@ -21,8 +21,8 @@ import jcan
 from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
-
-from python_control2.hardware_interfaces import CMDHardware
+from sensor_msgs.msg import Range
+from python_control2.hardware_interfaces import CMDHardware, GenericSensorHardware
 
 
 
@@ -34,20 +34,24 @@ class TimeOfFlightController(Controller):
     # State interfaces
     # state: Interface
 
-    def __init__(self, contexts: Contexts):
+    
+
+    def __init__(self, contexts: Contexts, minimum_range: int, maximum_range: int):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
         """
         super().__init__(contexts)
-        self.logger.info(f"TimeOfFlightController -- I have been __init__ialized")
+        self.logger.info(f"TimeOfFlightController Initialised")
 
         # Declare ROS2 parameters here.
         # self.joint = self.declare_parameter("joint", "j1").value
 
         # Do any setup logic here, save any contexts you want reference to in the future.
-        self.distance = self.declare_parameter("distance", 0).value
+        self.tof_publisher = self.create_publisher(Range, "/science/analysis_arm", 10)
+        self.minimum_range = minimum_range
+        self.maximum_range = maximum_range
 
         
 
@@ -64,7 +68,7 @@ class TimeOfFlightController(Controller):
         # Save references to interfaces
         # self.logger.info(f"Getting \"{self.joint + "/effort"}\"")
         # self.joint_cmd = command_interfaces[self.joint + "/effort"]
-        self.distance = state_interface["tof/distance"]
+        self.distance = state_interfaces["tof_sensor/distance"]
 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
@@ -72,18 +76,25 @@ class TimeOfFlightController(Controller):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-        # Update Command Interfaces
-        # self.cmd.value = 2 * self.state.value
-        # self.logger.info(f"{self.state.value} -> {self.cmd.value}")
+        msg = Range()
+        msg.range = float(self.distance.value)
+        msg.min_range = float(self.minimum_range)
+        msg.max_range = float(self.maximum_range)
+        self.tof_publisher.publish(msg)
 
 if __name__ == "__main__":
     print("Setting up!")
 
-    # rclpy.init()
+    rclpy.init()
 
-    # node = Node("control_test")
-    # PythonControl("time_of_flight", update_rate=5, can_bus="can1") \
-    #     .with_controller("TimeOfFlightController", TimeOfFlightController) \
-    #     .with_hardware("test_hw", TestHardware) \
-    #     .with_jcan() \
-    #     .spin()
+    node = Node("control_test")
+    PythonControl("time_of_flight", update_rate=5, can_bus="can1") \
+        .with_controller("TimeOfFlightController", TimeOfFlightController, 
+        minimum_range = 10,
+        maximum_range = 100) \
+        .with_hardware("tof_sensor", GenericSensorHardware,
+        can_id = "",
+        interpret_data = "",
+        unit = "distance") \
+        .with_jcan() \
+        .spin()
