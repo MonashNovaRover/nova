@@ -56,16 +56,21 @@ class KilnDoorController(Controller):
         # #self.axis = inputs.get_axis(self.axis_name)
         # #inputs.get_event(f"{self.button_name}/down").add_callback(lambda : self.logger.info(f"{self.button_name}/down event triggered"))
 
-        self.door_open_effort = self.declare_parameter("door_open_effort", 0.5)
-        self.door_close_effort = self.declare_parameter("door_close_effort",0.5)
+        # self.door_open_effort = self.declare_parameter("door_open_effort", 0.5)
+        # self.door_close_effort = self.declare_parameter("door_close_effort",0.5)
 
         self.door_open_btn_name = self.declare_parameter("open_button", "open_kiln_door").value
         self.door_close_btn_name = self.declare_parameter("close_button", "close_kiln_door").value
+        self.door_speed_name = self.declare_parameter("speed_axis", "door_speed").value
+
+
 
         inputs = contexts[Inputs]
 
         self.door_open_btn  = inputs.get_button(self.door_open_btn_name)
         self.door_close_btn = inputs.get_button(self.door_close_btn_name)
+        self.door_speed = inputs.get_axis(self.door_speed_name)
+
 
         self.door_state = Direction.POSITIVE #1:open -1:closed
         self.door_open_btn.add_callback(self.update_door_direction())
@@ -96,7 +101,7 @@ class KilnDoorController(Controller):
         # Update Command Interfaces
         # self.cmd.value = 2 * self.state.value
         # self.logger.info(f"{self.state.value} -> {self.cmd.value}")
-        self.kiln_door_cmd.value = self.door_state * (self.door_open_effort.value if self.door_state == Direction.POSITIVE else -self.door_close_effort.value)
+        self.kiln_door_cmd.value = self.door_state * self.axis_to_speed(self.door_speed.value)
     
     def update_door_direction(self, direction:Direction):
         """
@@ -107,6 +112,9 @@ class KilnDoorController(Controller):
                 self.logger.info(f"Kiln door {"CLOSING" if self.state == Direction.NEGATIVE else "OPENING"}")
                 self.door_state = direction
         return change_direction
+
+    def axis_to_speed(axis:int):
+        return (axis +1)/2
 
 if __name__ == "__main__":
     print("Setting up!")
