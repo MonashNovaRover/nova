@@ -37,10 +37,10 @@ class ActuateController(Controller):
         self.active = contexts[Activation]
 
         # Get inputs
-        self.hardware_name = self.declare_parameter(hardware_name, "actuation").value
+        self.hardware_name = self.declare_parameter("hardware_name", hardware_name).value
 
         # Actuation axis
-        self.actuation_axis_name = self.declare_parameter(actuation_axis, "actuation").value
+        self.actuation_axis_name = self.declare_parameter("actuation_axis", actuation_axis).value
 
         inputs = contexts[Inputs]
         self.actuation_axis = inputs.get_axis(self.actuation_axis_name)

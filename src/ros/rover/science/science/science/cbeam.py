@@ -37,6 +37,6 @@ if __name__ == "__main__":
         ) \
         .with_hardware("actuation", QCMDHardware, can_id=0xC2) \
         .with_teleop(inputs) \
-        .with_activation_buttons(start_active=True, active_button_name="activate_cbeam", inactive_button_pool_names=["activate_auger"]) \
+        .with_activation_buttons(start_active=False, active_button_name="activate_cbeam", inactive_button_pool_names=["activate_auger"]) \
         .with_jcan() \
         .spin()
