@@ -109,8 +109,4 @@ class PositionalServoHardware(HardwareInterface):
             data = self.min_angle_can
       
         # Return the constructed frame
-<<<<<<< HEAD
         return jcan.Frame(self.can_id, [self.function_id, data])
-=======
-        return jcan.Frame(self.can_id, [self.function_id, data])
->>>>>>> c96ebdf6 (Update positional servo hardware)
