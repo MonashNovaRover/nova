@@ -5,6 +5,23 @@
 
 # Analysis Arm - Nodes for components on the analysis arm
 
+tool_rotator:
+  ros__parameters:
+    can_bus: "can1"
+    controllers:
+      controller:
+        min_angle: 0.0
+        max_angle: 337.41
+        initial_angle: 337.41
+        twitch_max: 30.0
+        sweeper_pos: 0.0
+        microscope_pos: 169.41
+        nir_probe_pos: 337.41
+        hardware_name: "rotation"
+    hardware:
+      rotation:
+        function_id: 0x00
+        angular_limit: 360.0
 
 
 # CBeam - Nodes for components on the CBeam
@@ -65,3 +82,18 @@ kiln:
 
 # Misc - Nodes for misc components
 
+chute:
+  ros__parameters:
+    can_bus: "can1"
+    controllers:
+      controller:
+        min_angle: 72.0
+        max_angle: 108.0
+        twitch_max: 6.0
+        disengaged_pos: 72.0
+        engaged_pos: 108.0
+        hardware_name: "rotation"
+    hardware:
+      rotation:
+        function_id: 0x03
+        angular_limit: 180.0
