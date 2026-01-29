@@ -95,7 +95,7 @@ def main():
     node = Node("scraper")
     inputs = Inputs(node).with_topics("/ec/input")
 
-    PythonControl(node, update_rate=10, can_bus="can1") \
+    PythonControl(node, update_rate=10, can_bus="can0") \
         .with_controller("controller", ScraperController) \
         .with_hardware("arm", QCMDHardware) \
         .with_hardware("scoop", QCMDHardware) \

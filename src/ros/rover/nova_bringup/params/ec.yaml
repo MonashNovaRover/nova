@@ -5,34 +5,34 @@
 
 scraper:
   ros__parameters:
-    can_bus: "can1"
+    can_bus: "can0"
     update_rate: 10
     controllers:
       controller:
         minimum_speed: 0.05
     hardware:
       arm:
-        can_id: 0x20
+        can_id: 0xC1
         max_effort: 1.0
-        reversed: false
+        reversed: true
       scoop:
-        can_id: 0x21
+        can_id: 0xD1
         max_effort: 1.0
         reversed: false
       claw:
-        can_id: 0x22
+        can_id: 0xC2
         max_effort: 0.6
-        reversed: false
+        reversed: true
 
 tile_placer:
   ros__parameters:
-    can_bus: "can1"
+    can_bus: "can0"
     update_rate: 10
     controllers:
       controller:
         minimum_speed: 0.05
     hardware:
       forklift:
-        can_id: 0x23
+        can_id: 0xD2
         max_effort: 0.7
         reversed: false

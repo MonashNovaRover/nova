@@ -80,7 +80,7 @@ def main():
     node = Node("tile_placer")
     inputs = Inputs(node).with_topics("/ec/input")
 
-    PythonControl(node, update_rate=10, can_bus="can1") \
+    PythonControl(node, update_rate=10, can_bus="can0") \
         .with_controller("controller", TilePlacerController) \
         .with_hardware("forklift", QCMDHardware) \
         .with_teleop(inputs) \
