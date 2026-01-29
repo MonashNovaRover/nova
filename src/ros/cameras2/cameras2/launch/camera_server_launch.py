@@ -72,8 +72,17 @@ def generate_launch_description():
             ),
             Node(
                 package="cameras2",
+                executable="camera_republisher_service",
+                parameters=node_parameters,
+            ),
+            Node(
+                package="cameras2",
                 executable="camera_directory_service",
                 parameters=node_parameters,
+                remappings = [
+                    ("/camera_directory/cameras", "/v4l_camera_directory/cameras"),
+                    ("/camera_directory/discover", "/v4l_camera_directory/discover"),
+                    ]
             ),
             Node(
                 package="cameras2",

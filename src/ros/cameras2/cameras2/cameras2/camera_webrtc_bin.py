@@ -1,5 +1,6 @@
 import functools
 from typing import Optional
+from pathlib import Path
 
 import gi
 
@@ -23,7 +24,7 @@ class CameraWebRTCBin:
         self,
         serial: str,
         device_node: str,
-        mime: str = "video/x-raw",
+        mime: str = "image/jpeg",
         width: Optional[int] = None,
         height: Optional[int] = None,
         framerate: Optional[int] = None,
@@ -32,6 +33,9 @@ class CameraWebRTCBin:
         show_clock: bool = True,
         extra_meta: Optional[dict[str, object]] = None,
     ):
+        if Path(device_node).is_fifo():
+            # I tried to set this with params but it wouldn't listen
+            mime = "video/x-h264"
         self.bin = Gst.Bin.new(f"camera-{serial}-bin")
 
         # Create and configure the elements.
@@ -49,37 +53,38 @@ class CameraWebRTCBin:
         )
         self.bin.add(self._sink)
 
-        """
-        # # Clock overlay
-        # Orlando: why is this after the converter
-        if show_clock:
-            self._clock_overlay = Gst.ElementFactory.make(
-                "clockoverlay", "clockoverlay"
-            )
-            self.bin.add(self._clock_overlay)
-            self._clock_overlay.link(self._sink)
-        else:
 
-        """
-        self._clock_overlay = None
         # https://gstreamer.freedesktop.org/documentation/rswebrtc/webrtcsink.html?gi-language=c#video-u
         if mime not in ("video/x-vp8", "video/x-h264", "video/x-vp9", "video/x-h265", "video/x-av1"):
             # # Converter
             self._video_converter = Gst.ElementFactory.make("videoconvert", "converter")
             self.bin.add(self._video_converter)
             self._video_converter.link(
-                self._clock_overlay if self._clock_overlay is not None else self._sink
+                self._sink
             )
+
+            # # Clock overlay
+            if show_clock:
+                self._clock_overlay = Gst.ElementFactory.make(
+                    "clockoverlay", "clockoverlay"
+                )
+                self.bin.add(self._clock_overlay)
+                self._clock_overlay.link(self._video_converter)
+                decoderOutputPad = self._clock_overlay.get_static_pad("video_sink")
+            else:
+                self._clock_overlay = None
+                decoderOutputPad = self._video_converter.get_static_pad("sink")
 
             # # Decoder
             self._decoder = Gst.ElementFactory.make("decodebin", "decoder")
             self._decoder.connect(
                 "pad-added",
-                lambda element, pad: pad.link(self._video_converter.get_static_pad("sink")),
+                lambda element, pad: pad.link(decoderOutputPad),
             )
             self.bin.add(self._decoder)
         else:
-            self._decoder = self._sink
+            self._video_converter = None
+            self._decoder = None
 
 
         # # Capability filter
@@ -98,11 +103,10 @@ class CameraWebRTCBin:
         self._caps_filter = Gst.ElementFactory.make("capsfilter", "capsfilter")
         self._caps_filter.props.caps = caps
         self.bin.add(self._caps_filter)
-        self._caps_filter.link(self._decoder)
+        self._caps_filter.link(self._decoder if self._decoder is not None else self._sink)
 
         # # Source
         # TODO: cameras3: don't guess this?
-        from pathlib import Path
         if Path(device_node).is_fifo():
             self._source = Gst.ElementFactory.make("namedpipesrc", "source")
             self._source.props.location = device_node

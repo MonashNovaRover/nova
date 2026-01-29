@@ -19,6 +19,10 @@ class Anaglyph(dai.node.ThreadedHostNode):
 
         self.running = True
 
+        if (cv.cuda.getCudaEnabledDeviceCount() == 0):
+            # need to test if cuda makes it better :)
+            print("WARN: 3D May Chug CPU without cuda")
+
     def onStop(self):
         self.running = False
 
@@ -29,6 +33,8 @@ class Anaglyph(dai.node.ThreadedHostNode):
             bufferL = self.left.get()
             bufferR = self.right.get()
 
+            # getCvFrame is too expensive on cpu.
+            # maybe it'd be better with cuda?
             bgrL = bufferL.getCvFrame()
             bgrR = bufferR.getCvFrame()
 

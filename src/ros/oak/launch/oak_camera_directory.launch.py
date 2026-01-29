@@ -15,6 +15,10 @@ def generate_launch_description():
                 package="oakenc",
                 executable="oak_camera_directory_service",
                 #parameters=node_parameters,
+                remappings = [
+                    ("/camera_directory/cameras", "/oak_camera_directory/cameras"),
+                    ("/camera_directory/discover", "/oak_camera_directory/discover"),
+                ]
             ),
         ]
     )

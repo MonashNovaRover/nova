@@ -34,11 +34,11 @@ oakCams = {
         "C": dai.CameraBoardSocket.CAM_A,
         #"L": dai.CameraBoardSocket.CAM_B,
         "R": dai.CameraBoardSocket.CAM_C,
-        "3D": None
+        #"3D": None # this is really expensive on cpu, need to optimise (use gpu?)
         }
 oakRes = (1920,1200)
 
-# TODO: put anaglyph back in, add stereo depth
+# TODO: add stereo depth
 
 FPS=20
 PROFILE = dai.VideoEncoderProperties.Profile.H264_MAIN # or H265_MAIN, H264_MAIN, MJPEG H264_BASELINE H264_HIGH

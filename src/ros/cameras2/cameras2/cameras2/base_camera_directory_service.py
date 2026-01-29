@@ -9,8 +9,8 @@ from camera_msgs.msg import Cameras
 
 
 class BaseCameraDirectoryService(Node, ABC):
-    def __init__(self, *args, **kwargs):
-        super().__init__(node_name="camera_directory", *args, **kwargs)
+    def __init__(self, node_name="camera_directory", *args, **kwargs):
+        super().__init__(node_name=node_name, *args, **kwargs)
 
         self.get_logger().info("Creating camera directory publishers...")
         self._cameras_publisher = self.create_publisher(

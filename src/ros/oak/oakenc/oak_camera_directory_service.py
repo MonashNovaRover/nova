@@ -39,6 +39,7 @@ class OakCameraDirectoryService(BaseCameraDirectoryService):
 
     def __init__(self):
         super().__init__(
+            node_name="oak_camera_directory",
             allow_undeclared_parameters=True,
             automatically_declare_parameters_from_overrides=True,
         )

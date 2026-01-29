@@ -27,6 +27,7 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
+            "camera_republisher_service = cameras2.camera_republisher_service:main",
             "camera_directory_service = cameras2.camera_directory_service:main",
             "camera_streamer_service = cameras2.camera_streamer_service:main",
             "camera_ros_streamer = cameras2.camera_ros_streamer:main",
