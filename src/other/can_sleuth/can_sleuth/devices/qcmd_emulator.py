@@ -7,7 +7,6 @@ class QCMDEmulator(candevice.CanDevice):
     def __init__(self, name, bus, canIdList):
         super.__init__(name, bus)
         self.idList = canIdList
-
         self.motors = {}
         #add callback functions and motors to motor dictionary
         for i in range(len(self.idList)):
@@ -20,19 +19,26 @@ class QCMDEmulator(candevice.CanDevice):
         """
         cmd = message.id & 0xf
         controllerId = str(message.id & 0xf0)
-        self.control(controllerId,cmd, message.data)
+        self.control(controllerId,cmd, self.pack_can_data(message.data))
 
-    def control(controller:str, motorCmd:int, data: list[int])
+    def control(controller:str, motorCmd:int, data:int)
         """
             Process qcmd control
         """
-        speed = self.pack_can_data(data)
+        match motorCmd:
+            case 1:
+                self.set_speed(controller, data, 1)
+            case 2:
+                self.set_speed(controller, data, 2)
+            case 3:
+                self.set_current_limit(controller, data, 1)
+            case 4:
+                self.set_current_limit(controller, data,2)
+            
+    def set_speed(controllerId,speed, motor):
         pass
 
-    def set_speed(speed, motor):
-        pass
-
-    def set_current_limit(currentLim, motor):
+    def set_current_limit(controllerId, currentLim, motor):
         pass
     
     def pack_can_data(data:list[int]):
