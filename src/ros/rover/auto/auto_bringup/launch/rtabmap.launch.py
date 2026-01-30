@@ -102,18 +102,16 @@ def launch_setup(context, *args, **kwargs):
                         
                         'subscribe_rgb': False,
                         'subscribe_rgbd': False, #set to true to use depth images
-                        'subscribe_scan_cloud': True,
-                        
                         'subscribe_depth': False,  
                         'subscribe_stereo': False,  
-                        'subscribe_scan': False,      
+                        
+                        'subscribe_scan': False,  
+                        'subscribe_scan_cloud': True,    
 
-                        'approx_sync': True,
-                        'approx_sync_max_interval': 0.5,
+                        # 'approx_sync': True,
+                        # 'approx_sync_max_interval': 0.5,
                         
                         'qos': 2,
-                        'topic_queue_size': 30,
-                        'sync_queue_size': 30,
                     }],
                     remappings=[
                         # Connect RGB Input to the CLEANED topic
