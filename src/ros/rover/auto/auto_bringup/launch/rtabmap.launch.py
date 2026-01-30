@@ -77,12 +77,13 @@ def launch_setup(context, *args, **kwargs):
                         'use_sim_time': gazebo,
                         'frame_id': 'base_link',
                         'odom_frame_id': 'odom',
+                        'publish_tf': False,
                         'wait_for_transform': 0.2,
                         'expected_update_rate': 15.0,
                         'Icp/PointToPlane': 'true',
                         'subscribe_scan': 'false', 
                         'subscribe_scan_cloud': 'true',
-                        'qos': 2, # Critical for Sim
+                        'qos': 2,
                     }],
                     remappings=[
                         ('scan_cloud', '/livox/lidar'), 

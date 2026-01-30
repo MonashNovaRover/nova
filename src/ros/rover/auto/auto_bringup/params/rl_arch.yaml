@@ -23,13 +23,26 @@ ekf_filter_node:
     odom0_relative: false
 
     # Visual Odom
-    odom1: /odom/visual
+    # odom1: /odom/visual
+    # odom1_config:
+    #   [ false,false,false,
+    #     false,false,false,
+    #     true,false,false,
+    #     true,true,true,
+    #     false,false,false,
+    #   ]
+    # odom1_queue_size: 10
+    # odom1_differential: false
+    # odom1_relative: false
+
+    # Lidar Odom
+    odom1: /odometry/local
     odom1_config:
-      [ false,false,false,
-        false,false,false,
-        true,false,false,
-        true,true,true,
-        false,false,false,
+      [ true, true, true,
+        true, true, true,
+        false, false, false,
+        false, false, false,
+        false, false, false
       ]
     odom1_queue_size: 10
     odom1_differential: false
