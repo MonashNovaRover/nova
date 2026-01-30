@@ -9,6 +9,7 @@ in
     ./editor.nix
     ./nix.nix
     ./python.nix
+    ./urdf.nix
   ];
 
   config = lib.mkIf cfg.enable {
