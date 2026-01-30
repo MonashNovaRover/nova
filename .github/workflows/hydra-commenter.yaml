@@ -38,7 +38,7 @@ jobs:
         uses: thollander/actions-comment-pull-request@v3
         with:
           message: |
-            You can find the hydra build for this PR [at this link](https://hydra.novarover.space/jobset/nova/workspaces-pr-nova-${{ steps.get_pr_number.outputs.pr_number }}). 🐍 
+            You can find the hydra build for this PR <a href="https://hydra.novarover.space/jobset/nova/workspaces-pr-nova-${{ steps.get_pr_number.outputs.pr_number }}" target="_blank">at this link</a>. 🐍 
 
             Username: `nova`
             Password: [link](https://github.com/MonashNovaRover/secrets/blob/master/hydra-password.txt)
