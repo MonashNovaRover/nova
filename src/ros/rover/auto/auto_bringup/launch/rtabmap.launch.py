@@ -68,6 +68,25 @@ def launch_setup(context, *args, **kwargs):
             executable='component_container',
             composable_node_descriptions=[
 
+                # 0. RGBD Sync (Bundles OAK RGB + Depth)
+                ComposableNode(
+                    package='rtabmap_sync',
+                    plugin='rtabmap_sync::RGBDSync',
+                    name='rgbd_sync',
+                    parameters=[rtabmap_params, {
+                        'use_sim_time': gazebo,
+                        'approx_sync': False,        # False if RGB/Depth come from same camera (OAK)
+                        # 'queue_size': 10,
+                        'qos': 2,
+                    }],
+                    remappings=[
+                        ('rgb/image',       '/oak/rgb/image_raw'),
+                        ('depth/image',     '/oak/stereo/image_raw'), # Or /oak/depth_image
+                        ('rgb/camera_info', '/oak/rgb/camera_info'),
+                        ('rgbd_image',      'rgbd_image'),            # Output topic
+                    ],
+                ),
+
                 # 1. ICP Odometry (Tracks Movement using LiDAR)
                 ComposableNode(
                     package='rtabmap_odom',
@@ -80,10 +99,13 @@ def launch_setup(context, *args, **kwargs):
                         'publish_tf': False,
                         'wait_for_transform': 0.2,
                         'expected_update_rate': 15.0,
-                        'Icp/PointToPlane': 'true',
-                        'subscribe_scan': 'false', 
-                        'subscribe_scan_cloud': 'true',
+                        'subscribe_scan': False, 
+                        'subscribe_scan_cloud': True,
                         'qos': 2,
+                        
+                        'Icp/VoxelSize': '0.1',       # Downsample cloud
+                        'Icp/RangeMax': '30.0',       # Don't process points far in Meters
+                        'Icp/PointToPlane': 'false',
                     }],
                     remappings=[
                         ('scan_cloud', '/livox/lidar'), 
@@ -102,21 +124,27 @@ def launch_setup(context, *args, **kwargs):
                         'rtabmap_args': '--delete_db_on_start',
                         
                         'subscribe_rgb': False,
-                        'subscribe_rgbd': False, #set to true to use depth images
+                        'subscribe_rgbd': True,
                         'subscribe_depth': False,  
                         'subscribe_stereo': False,  
                         
                         'subscribe_scan': False,  
                         'subscribe_scan_cloud': True,    
 
-                        # 'approx_sync': True,
-                        # 'approx_sync_max_interval': 0.5,
+                        'Kp/MaxFeatures': '400',
+                        'RGBD/ProximityBySpace': 'true',
+
+                        'approx_sync': True,
+                        'approx_sync_max_interval': 0.5,
+
+                        'Grid/Sensor': '2',
+                        'RGBD/ProximityBySpace': 'true',
                         
                         'qos': 2,
                     }],
                     remappings=[
                         # Connect RGB Input to the CLEANED topic
-                        # ('rgb/image',       '/oak/rgb/image_raw/clean'),
+                        ('rgb/image',       '/oak/rgb/image_raw/clean'),
                         # ('rgb/camera_info', '/oak/rgb/camera_info'),
                         
                         # Connect Geometry Input DIRECTLY to LiDAR
