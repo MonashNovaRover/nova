@@ -100,18 +100,16 @@ def launch_setup(context, *args, **kwargs):
                         'use_sim_time': gazebo, 
                         'rtabmap_args': '--delete_db_on_start',
                         
-                        # --- DIRECT SYNC CONFIGURATION ---
-                        'subscribe_rgb': True,        # Listen to RGB directly
-                        'subscribe_rgbd': False,      # Don't look for pre-synced msg
-                        'subscribe_scan_cloud': True, # Listen to LiDAR directly
+                        'subscribe_rgb': False,
+                        'subscribe_rgbd': False, #set to true to use depth images
+                        'subscribe_scan_cloud': True,
                         
-                        'subscribe_depth': False,     # Ignore Depth
-                        'subscribe_stereo': False,    # Ignore Stereo
-                        'subscribe_scan': False,      # Ignore 2D Scan
-                        # ---------------------------------
+                        'subscribe_depth': False,  
+                        'subscribe_stereo': False,  
+                        'subscribe_scan': False,      
 
                         'approx_sync': True,
-                        'approx_sync_max_interval': 0.5, # Tolerate 0.5s Sim Lag
+                        'approx_sync_max_interval': 0.5,
                         
                         'qos': 2,
                         'topic_queue_size': 30,
@@ -119,8 +117,8 @@ def launch_setup(context, *args, **kwargs):
                     }],
                     remappings=[
                         # Connect RGB Input to the CLEANED topic
-                        ('rgb/image',       '/oak/rgb/image_raw/clean'),
-                        ('rgb/camera_info', '/oak/rgb/camera_info'),
+                        # ('rgb/image',       '/oak/rgb/image_raw/clean'),
+                        # ('rgb/camera_info', '/oak/rgb/camera_info'),
                         
                         # Connect Geometry Input DIRECTLY to LiDAR
                         ('scan_cloud',      '/livox/lidar'),
