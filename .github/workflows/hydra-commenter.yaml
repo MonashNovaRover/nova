@@ -41,7 +41,7 @@ jobs:
             You can find the hydra build for this PR <a href="https://hydra.novarover.space/jobset/nova/workspaces-pr-nova-${{ steps.get_pr_number.outputs.pr_number }}" target="_blank">at this link</a>. 🐍 
 
             Username: `nova`
-            Password: [link](https://github.com/MonashNovaRover/secrets/blob/master/hydra-password.txt)
+            Password: <a href="https://github.com/MonashNovaRover/secrets/blob/master/hydra-password.txt" target="_blank">link</a>
 
             Please check it builds before merging!
           pr-number: ${{ steps.get_pr_number.outputs.pr_number }}
