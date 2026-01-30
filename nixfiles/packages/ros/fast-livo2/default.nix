@@ -38,6 +38,10 @@ buildRosPackage {
     hash = "sha256-Dqqs2njlVrUVbzYeUgGp07F0335ntSJPkAvgDhUcH4A=";
   };
 
+  # patches = [
+  #   ./patches/frame.patch
+  # ];
+
   buildType = "ament_cmake";
   nativeBuildInputs = [ 
     ament-cmake 
