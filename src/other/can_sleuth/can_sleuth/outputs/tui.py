@@ -7,7 +7,7 @@ Can Sleuth / Simulator
 Ncurses Terminal Interface Output
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-EDITED BY: Orlando Chamberlain
+EDITED BY: Orlando Chamberlain, Will Middlewick
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 
@@ -28,8 +28,13 @@ class TUI(output.Output):
         self._stdscr.keypad(1)
         try:
             curses.start_color()
+            # add color red
+            curses.init_pair(1, curses.COLOR_RED, -1)
+            self.RED = curses.color_pair(1)
         except curses.error:
+            self.RED = curses.A_NORMAL # disable red if the terminal doesn't support it
             pass
+            
 
         # additional options to configure the terminal
         self._stdscr.clear()
@@ -58,12 +63,42 @@ class TUI(output.Output):
             try:
                 win.box()
                 win.addstr(0,1,f"<{dev.getName()}>")
-                height = 1
-                for attr in dev.attrs:
-                    # TODO: proper support for multiline attrs
-                    # we limit the string to the width of the box minus the border (-2)
-                    win.addnstr(height, 1, f"{attr.name}: {attr.value()}{attr.units}"+" "*attr.width, win.getmaxyx()[1]-2)
-                    height += attr.height
+                max_y, max_x = win.getmaxyx()
+
+                # clearly display when a device is disconnected (no telemetry)
+                if all(attr.value() is None for attr in dev.attrs):
+                    text = "Disconnected"
+                    y = max_y // 2
+                    x = max(1, (max_x - len(text)) // 2)
+                    win.addstr(y, x, text)
+
+                # add attributes to window for alive devices
+                else:
+                    height = 1
+                    for attr in dev.attrs:
+                        label = f"{attr.name}: "
+                        value = f"{attr.value()}{attr.units}"
+
+                        # draw label normally
+                        win.addnstr(height, 1, label, max_x - 2)
+
+                        # choose attribute for the value
+                        if attr.value() == "err":
+                            attr_style = self.RED
+                        else:
+                            attr_style = curses.A_NORMAL
+
+                        # draw value
+                        win.addnstr(
+                            height,
+                            1 + len(label),
+                            value + " " * attr.width,
+                            max_x - 2 - len(label),
+                            attr_style
+                        )
+
+                        height += attr.height
+
                 win.refresh()
             except curses.error:
                 continue # window was probably resized
