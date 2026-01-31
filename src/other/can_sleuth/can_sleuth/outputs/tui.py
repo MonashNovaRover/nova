@@ -75,19 +75,32 @@ class TUI(output.Output):
                 # add attributes to window for alive devices
                 else:
                     height = 1
+                    encoder_err = False
                     for attr in dev.attrs:
-                        label = f"{attr.name}: "
-                        value = f"{attr.value()}{attr.units}"
 
-                        # draw label normally
+                        # check for a disconnected encoder
+                        if attr.name == "velocity":
+                            if f"{attr.value()}" == "8001":
+                                encoder_err = True
+                            else:
+                                encoder_err = False
+                            
+                        label = f"{attr.name}: "
+
+                        if encoder_err and attr.name == "err":
+                            value = f"ENCODER DISCONNECTED" # label a disconnected encoder as an error
+                        else:
+                            value = f"{attr.value()}{attr.units}" # normal telemetry labelling
+
+                        # draw label
                         win.addnstr(height, 1, label, max_x - 2)
 
-                        # choose attribute for the value
-                        if attr.value() == "err":
+                        # choose color for the value
+                        if attr.name == "err":
                             attr_style = self.RED
                         else:
                             attr_style = curses.A_NORMAL
-
+                        
                         # draw value
                         win.addnstr(
                             height,
