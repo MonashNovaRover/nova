@@ -12,9 +12,9 @@
     </visual>
   </link>
 
-  <joint name="base_link_to_livox" type="fixed">
-    <origin xyz="0.53 0 0.85" rpy=" 0 0.605 0" />
-    <parent link="base_link" />
+  <joint name="lidar_camera_approx_to_livox" type="fixed">
+    <origin xyz="0.023 0.023 -0.025" rpy=" 3.14159 0 0" />
+    <parent link="lidar_camera_approx" />
     <child link="livox_frame" />
     <axis xyz="1 0 0" />
   </joint>
