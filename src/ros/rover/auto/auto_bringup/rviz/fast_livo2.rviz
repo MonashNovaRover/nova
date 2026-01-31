@@ -71,7 +71,7 @@ Visualization Manager:
       Length: 0.699999988079071
       Name: Axes
       Radius: 0.10000000149011612
-      Reference Frame: base_link
+      Reference Frame: camera_init
       Value: true
     - Class: rviz_common/Group
       Displays:
@@ -617,7 +617,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 0; 0; 0
-    Fixed Frame: base_link
+    Fixed Frame: camera_init
     Frame Rate: 30
   Name: root
   Tools:

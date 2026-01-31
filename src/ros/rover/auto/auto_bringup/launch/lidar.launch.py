@@ -37,12 +37,12 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(fast_livo2),
             package='fast_livo',
             executable='fastlivo_mapping',
-            name='laserMapping',
+            name='fastlivo2',
             output='screen',
             parameters=[fast_livo2_params, {'use_sim_time': sim}],
-            remappings=[
-                ('/left_camera/image','/oak/rgb/image_raw'),
-            ],
+            # remappings=[
+            #     ('/left_camera/image','/oak/rgb/image_raw'),
+            # ],
         ),
     ])
 
