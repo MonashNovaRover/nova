@@ -37,7 +37,7 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(fast_livo2),
             package='fast_livo',
             executable='fastlivo_mapping',
-            name='fast_livo2',
+            name='laserMapping',
             output='screen',
             parameters=[fast_livo2_params, {'use_sim_time': sim}],
             remappings=[

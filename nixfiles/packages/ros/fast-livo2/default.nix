@@ -38,9 +38,10 @@ buildRosPackage {
     hash = "sha256-Dqqs2njlVrUVbzYeUgGp07F0335ntSJPkAvgDhUcH4A=";
   };
 
-  # patches = [
-  #   ./patches/frame.patch
-  # ];
+  patches = [
+    # ./patches/frame.patch
+    # ./patches/pointcloud2.patch
+  ];
 
   buildType = "ament_cmake";
   nativeBuildInputs = [ 

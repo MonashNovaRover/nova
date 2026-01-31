@@ -1,4 +1,4 @@
-fast_livo2:
+laserMapping:
   ros__parameters:
     common:
       img_topic: "/oak/rgb/image_raw"
