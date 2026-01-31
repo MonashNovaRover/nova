@@ -72,6 +72,7 @@ install(PROGRAMS
         science/cbeam.py
         science/auger_old.py
         science/nir_probe_publisher.py
+        science/scimbal_cam_old.py
         science/scimbal_cam.py
         science/control_test.py
         DESTINATION lib/${PROJECT_NAME}

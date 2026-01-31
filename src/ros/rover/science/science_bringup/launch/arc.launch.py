@@ -86,7 +86,16 @@ def launch_setup(context, *args, **kwargs):
 
         
         # Misc - Nodes for misc components
-
+        Node(
+            name='scimbal_cam',
+            package='science',
+            executable='scimbal_cam.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
     ]
 
 def generate_launch_description():
