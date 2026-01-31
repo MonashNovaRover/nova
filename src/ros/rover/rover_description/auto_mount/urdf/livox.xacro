@@ -10,14 +10,6 @@
     </visual>
   </link>
 
-  <joint name="lidar_camera_approx_to_livox" type="fixed">
-    <origin xyz="0.023 0.023 -0.026" rpy=" 3.14159 0 0" />
-    <parent link="lidar_camera_approx" />
-    <child link="livox_frame" />
-    <axis xyz="1 0 0" />
-  </joint>
-
-
   <gazebo reference="livox_frame">
         <sensor name="gpu_lidar" type="gpu_lidar">
             <update_rate>10</update_rate>
