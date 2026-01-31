@@ -8,7 +8,7 @@ import {
   Spinner,
 } from "@nextui-org/react";
 import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
-import { Camera as CameraIcon, Info } from "react-feather";
+import { Camera as CameraIcon, Settings } from "react-feather";
 import { CameraInfoModal } from "./components/CameraInfoModal.tsx";
 import { StreamingState, useCameraStream } from "./hooks/useCameraStream.ts";
 import { CameraSettingsForm } from "./components/CameraSettingsForm.tsx";
@@ -189,7 +189,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
               >
                 <PopoverTrigger>
                   <Button isIconOnly size="sm">
-                    <Info size="15px" />
+                    <Settings size="15px" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[360px] dark text-foreground">

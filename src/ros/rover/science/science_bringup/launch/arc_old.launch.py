@@ -12,7 +12,7 @@ NODES:
   - science/auger.py                    [auger]
   - science/analysis_arm.py             [c_beam]
   - science/kiln_old.py                 [kiln]
-  - science/scimbal_cam.py              [scimbal_cam]
+  - science/scimbal_cam_old.py              [scimbal_cam]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATED:    12/01/2026
 EDITED:     12/01/2026
@@ -107,7 +107,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             name='scimbal_cam',
             package='science',
-            executable='scimbal_cam.py',
+            executable='scimbal_cam_old.py',
             output='screen',
             emulate_tty=True,
             parameters=[
