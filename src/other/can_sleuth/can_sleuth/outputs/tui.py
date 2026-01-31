@@ -9,7 +9,7 @@ Ncurses Terminal Interface Output
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 EDITED BY: Orlando Chamberlain, Will Middlewick
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-'''
+''' 
 
 import curses
 
