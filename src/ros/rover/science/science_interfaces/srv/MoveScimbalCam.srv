@@ -1,6 +1,6 @@
 # The angle to move each servo
 # position 0 = TILT, 1 = PAN
-int8[2] angles
+int16[2] angles
 
 ---
 

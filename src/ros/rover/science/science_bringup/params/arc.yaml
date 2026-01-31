@@ -81,6 +81,20 @@ kiln:
         reversed: false
 
 # Misc - Nodes for misc components
+scimbal_cam:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    hardware:
+      tilt:
+        can_id: 0x0B0
+        function_id: 0x03
+        angular_limit: 180.0
+      pan:
+        can_id: 0x0B0
+        function_id: 0x04
+        angular_limit: 360.0
+
 
 chute:
   ros__parameters:
