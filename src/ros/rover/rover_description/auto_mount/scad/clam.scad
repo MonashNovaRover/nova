@@ -1,4 +1,4 @@
-mesh_dir = "C:\\Users\\Anthony\\Downloads\\";
+mesh_dir = "D:\\Coding\\nova-onshape\\automount-28-01\\meshes\\";
 mesh = "clam.stl";
 path = str(mesh_dir, mesh);
 % scale(1000) import(path);
