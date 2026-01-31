@@ -153,14 +153,14 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
   </joint>
   <!-- Joint from mount to lidar_holder -->
   <joint name="mount_to_lidar" type="fixed">
-    <origin xyz="0.123 -0.0775 0.0124231" rpy="-1.5708 0.0662646 1.5708"/>
+    <origin xyz="0.123 -0.0775 0.0124231" rpy="-1.5708 -1.5708 1.5708"/>
     <parent link="mount"/>
     <child link="lidar_rotator"/>
     <axis xyz="0 0 1"/>
   </joint>
     <link name="lidar_rotator"/>
   <joint name="lidar_rotator_offset" type="fixed">
-    <origin rpy="0 0 ${lidar_angle+90*(pi/180)}"/>
+    <origin rpy="0 0 ${-lidar_angle*(pi/180)}"/>
     <parent link="lidar_rotator"/>
     <child link="lidar_holder"/>
   </joint>
