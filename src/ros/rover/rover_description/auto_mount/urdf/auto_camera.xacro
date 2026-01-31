@@ -139,7 +139,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
         <mesh filename="file://$(arg rover_description_dir)/auto_mount/meshes/lidar_camera_approx.stl"/>
       </geometry>
       <material name="lidar_camera_approx_material">
-        <color rgba="0.439216 0.47451 0.501961 1"/>
+        <color rgba="0.439216 0.47451 0.501961 0"/>
       </material>
     </visual>
   </link>

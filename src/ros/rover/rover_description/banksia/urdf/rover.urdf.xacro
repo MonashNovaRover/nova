@@ -11,9 +11,9 @@
     <xacro:arg name="old_arm" default="false"/>
     <xacro:arg name="auto_camera" default="true"/>
     <xacro:arg name="robot_name" default="Banksia"/>
-    <xacro:arg name="oak_angle" default="0"/>
-    <xacro:arg name="bootie_angle" default="0"/>
-    <xacro:arg name="lidar_angle" default="0"/>
+    <xacro:arg name="oak_angle" default="15"/>
+    <xacro:arg name="bootie_angle" default="15"/>
+    <xacro:arg name="lidar_angle" default="40"/>
     <xacro:arg name="rover_description_dir" default="$(find rover_description)" />
 
     <!-- Robot properties-->
