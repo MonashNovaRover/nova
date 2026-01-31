@@ -11,7 +11,7 @@ ekf_filter_node:
     world_frame: odom # Defaults to the value of odom_frame if unspecified
 
     # Wheel Odom
-    odom0: /ackermann_steering_controller/odometry
+    odom0: /pivot_drive_controller/odometry
     odom0_config:
       [ false, false, false,
         false, false, false,
