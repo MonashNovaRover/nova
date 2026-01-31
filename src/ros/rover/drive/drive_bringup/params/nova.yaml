@@ -12,6 +12,9 @@ controller_manager:
     diff_drive_controller:
       type: diff_drive_controller/DiffDriveController
 
+    ackermann_steering_controller:
+      type: ackermann_steering_controller/AckermannSteeringController
+
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
