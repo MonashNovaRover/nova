@@ -33,6 +33,13 @@ in
     nixpkgs.hostPlatform = "aarch64-linux";
     hardware.nvidia-jetpack.enable = true;
 
+
+    # Prevent this spam in journalctl:
+    # /etc/udev/rules.d/99-tegra-devices.rules:38 Unknown group 'debug', ignoring
+    users.groups = {
+      debug = {};
+    };
+
     assertions = [{
       assertion = hasJetpackChannel;
       message = "The jetpack-nixos channel is not available! It must be added.";
