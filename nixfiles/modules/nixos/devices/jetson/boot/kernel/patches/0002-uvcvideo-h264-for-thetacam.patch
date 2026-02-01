@@ -1,0 +1,173 @@
+From 0a90f4243744671153d047f313e0888669fb8cc4 Mon Sep 17 00:00:00 2001
+From: Orlando Chamberlain <orlandoch.dev@gmail.com>
+Date: Thu, 22 Jan 2026 16:36:27 +1100
+Subject: [PATCH 2/3] uvcvideo: h264 for thetacam
+
+backported to 5.15
+---
+ drivers/media/usb/uvc/uvc_driver.c | 91 +++++++++++++++++++++++-------
+ drivers/media/usb/uvc/uvcvideo.h   |  5 ++
+ 2 files changed, 77 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 4e86b7e76610..3b178219e23e 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -608,6 +608,22 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 		ftype = UVC_VS_FRAME_MJPEG;
+ 		break;
+ 
++	case UVC_VS_FORMAT_H264:
++		if (buflen < 51) {
++			uvc_dbg(dev, DESCR,
++				"device %d videostreaming interface %d FORMAT error\n",
++				dev->udev->devnum,
++				alts->desc.bInterfaceNumber);
++			return -EINVAL;
++		}
++
++		format->fcc = V4L2_PIX_FMT_H264;
++		format->flags = UVC_FMT_FLAG_COMPRESSED;
++		format->bpp = 0;
++
++		ftype = UVC_VS_FRAME_H264;
++		break;
++
+ 	case UVC_VS_FORMAT_DV:
+ 		if (buflen < 9) {
+ 			uvc_dbg(dev, DESCR,
+@@ -668,13 +684,20 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 
+ 	buflen -= buffer[0];
+ 	buffer += buffer[0];
++			uvc_dbg(dev, DESCR,
++				"e ftype=%d buflen=%d buffer[1,2]=%d,%d]\n", ftype, buflen, buffer[1], buffer[2]);
+ 
+-	/* Parse the frame descriptors. Only uncompressed, MJPEG and frame
++	/*
++	 * Parse the frame descriptors. Only uncompressed, MJPEG, H264 and frame
+ 	 * based formats have frame descriptors.
+ 	 */
+ 	while (buflen > 2 && buffer[1] == USB_DT_CS_INTERFACE &&
+ 	       buffer[2] == ftype) {
++
++		unsigned int maxIntervalIndex;
++
+ 		frame = &format->frame[format->nframes];
++
+ 		if (ftype != UVC_VS_FRAME_FRAME_BASED)
+ 			n = buflen > 25 ? buffer[25] : 0;
+ 		else
+@@ -690,24 +713,46 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 			return -EINVAL;
+ 		}
+ 
+-		frame->bFrameIndex = buffer[3];
+-		frame->bmCapabilities = buffer[4];
+-		frame->wWidth = get_unaligned_le16(&buffer[5])
+-			      * width_multiplier;
+-		frame->wHeight = get_unaligned_le16(&buffer[7]);
+-		frame->dwMinBitRate = get_unaligned_le32(&buffer[9]);
+-		frame->dwMaxBitRate = get_unaligned_le32(&buffer[13]);
+-		if (ftype != UVC_VS_FRAME_FRAME_BASED) {
+-			frame->dwMaxVideoFrameBufferSize =
+-				get_unaligned_le32(&buffer[17]);
+-			frame->dwDefaultFrameInterval =
+-				get_unaligned_le32(&buffer[21]);
+-			frame->bFrameIntervalType = buffer[25];
+-		} else {
+-			frame->dwMaxVideoFrameBufferSize = 0;
+-			frame->dwDefaultFrameInterval =
+-				get_unaligned_le32(&buffer[17]);
+-			frame->bFrameIntervalType = buffer[21];
++
++		int firstIntervalOffset;
++		if (ftype == UVC_VS_FRAME_H264) {
++		    frame->bFrameIndex = buffer[3];
++		    //frame->bmCapabilities = buffer[4];
++		    frame->wWidth = get_unaligned_le16(&buffer[4])
++			          * width_multiplier;
++		    frame->wHeight = get_unaligned_le16(&buffer[6]);
++		    
++		    frame->dwMinBitRate = get_unaligned_le32(&buffer[31]);
++		    frame->dwMaxBitRate = get_unaligned_le32(&buffer[35]);
++
++		    frame->dwMaxVideoFrameBufferSize = 0;
++		    frame->dwDefaultFrameInterval =
++				    get_unaligned_le32(&buffer[39]);
++		    frame->bFrameIntervalType = buffer[43];
++                    firstIntervalOffset = 44;
++
++		}
++		else {
++		    frame->bFrameIndex = buffer[3];
++		    frame->bmCapabilities = buffer[4];
++		    frame->wWidth = get_unaligned_le16(&buffer[5])
++			          * width_multiplier;
++		    frame->wHeight = get_unaligned_le16(&buffer[7]);
++		    frame->dwMinBitRate = get_unaligned_le32(&buffer[9]);
++		    frame->dwMaxBitRate = get_unaligned_le32(&buffer[13]);
++		    if (ftype != UVC_VS_FRAME_FRAME_BASED) {
++			    frame->dwMaxVideoFrameBufferSize =
++				    get_unaligned_le32(&buffer[17]);
++			    frame->dwDefaultFrameInterval =
++				    get_unaligned_le32(&buffer[21]);
++			    frame->bFrameIntervalType = buffer[25];
++		    } else {
++			    frame->dwMaxVideoFrameBufferSize = 0;
++			    frame->dwDefaultFrameInterval =
++				    get_unaligned_le32(&buffer[17]);
++			    frame->bFrameIntervalType = buffer[21];
++		    }
++                    firstIntervalOffset = 26;
+ 		}
+ 		frame->dwFrameInterval = *intervals;
+ 
+@@ -918,6 +963,7 @@ static int uvc_parse_streaming(struct uvc_device *dev,
+ 		case UVC_VS_FORMAT_UNCOMPRESSED:
+ 		case UVC_VS_FORMAT_MJPEG:
+ 		case UVC_VS_FORMAT_FRAME_BASED:
++		case UVC_VS_FORMAT_H264:
+ 			nformats++;
+ 			break;
+ 
+@@ -950,6 +996,12 @@ static int uvc_parse_streaming(struct uvc_device *dev,
+ 			if (_buflen > 21)
+ 				nintervals += _buffer[21] ? _buffer[21] : 3;
+ 			break;
++
++		case UVC_VS_FRAME_H264:
++			nframes++;
++			if (_buflen > 43)
++				nintervals += _buffer[43];
++			break;
+ 		}
+ 
+ 		_buflen -= _buffer[0];
+@@ -984,6 +1036,7 @@ static int uvc_parse_streaming(struct uvc_device *dev,
+ 		case UVC_VS_FORMAT_MJPEG:
+ 		case UVC_VS_FORMAT_DV:
+ 		case UVC_VS_FORMAT_FRAME_BASED:
++		case UVC_VS_FORMAT_H264:
+ 			format->frame = frame;
+ 			ret = uvc_parse_format(dev, streaming, format,
+ 				&interval, buffer, buflen);
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index cce5e38133cd..6aa04956546f 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -20,6 +20,11 @@
+ #include <media/v4l2-fh.h>
+ #include <media/videobuf2-v4l2.h>
+ 
++
++// TODO: move this
++#define UVC_VS_FORMAT_H264                             0x13
++#define UVC_VS_FRAME_H264                              0x14
++
+ /* --------------------------------------------------------------------------
+  * UVC constants
+  */
+-- 
+2.51.2
+

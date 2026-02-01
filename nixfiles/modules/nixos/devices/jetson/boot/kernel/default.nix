@@ -1,5 +1,7 @@
 {
   imports = [
-    ./realsense.nix
+    #./realsense.nix
+    ./can.nix
+    ./cameras.nix
   ];
 }
