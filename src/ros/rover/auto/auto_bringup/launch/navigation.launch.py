@@ -71,29 +71,6 @@ def launch_setup(context, *args, **kwargs):
     nav2_params.append(substitution_params)
     nav2_params.append(sim_params) if in_sim else None
 
-    # comp defaults
-    if comp == 'arch':
-        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_arch'])
-    elif comp == 'urc':
-        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc'])
-    else:
-        raise ValueError('"comp" arg must be either "arch" or "urc"')
-
-    # comp defaults overrides
-    if LaunchConfiguration('nav2_params_dir').perform(context) != '':
-        nav2_params_dir = LaunchConfiguration('nav2_params_dir')
-
-    in_sim = (use_sim_time.perform(context).lower() == 'true')
-    # Substitute params for each node with launch params
-    substitution_params = {
-        'use_sim_time': use_sim_time,
-        'autostart': autostart,
-    }
-    # Combine all params from sim, substitution, and nav2 directory
-    nav2_params = [PathJoinSubstitution([nav2_params_dir, params]) for params in listdir(nav2_params_dir.perform(context)) if params[-5:] == '.yaml']
-    nav2_params.append(substitution_params)
-    nav2_params.append(sim_params) if in_sim else None
-
     lifecycle_nodes = ['controller_server',
                        'smoother_server',
                        'planner_server',
