@@ -4,6 +4,12 @@
 }:
 
 let
+  flakes-compat = fetchFromGitHub {
+    owner = "NixOS";
+    repo = "flake-compat";
+    rev = "5edf11c44bc78a0d334f6334cdaf7d60d732daab";
+    hash = "sha256-vNpUSpF5Nuw8xvDLj2KCwwksIbjua2LZCqhV1LNRDns=";
+  };
   jetpack-nixos  = applyPatches {
     src = fetchFromGitHub {
           owner = "anduril";
@@ -12,10 +18,10 @@ let
           hash = "sha256-SiBHFVVmyCZbZFqCN+tIqbpRDxBErq0fScWJQnr93PM=";
         };
     patches = [
-      ./0001-flake-compat.patch
       ./0002-flash-for-novacarrier.patch
       ./0003-nar-hash.patch
     ];
   };
 in
-(import jetpack-nixos ).outputs.packages.x86_64-linux.flash-orin-nano-novacarrier
+(import ( flakes-compat
+) { src = jetpack-nixos; }).defaultNix.outputs.packages.x86_64-linux.flash-orin-nano-novacarrier
