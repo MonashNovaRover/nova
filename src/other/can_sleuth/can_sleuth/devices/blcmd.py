@@ -15,6 +15,8 @@ EDITED BY: Orlando Chamberlain
 
 from . import candevice
 
+import math
+
 def _toHex(x):
     if x:
         ret = "0x"
@@ -50,25 +52,6 @@ class BLCMD(candevice.CanDevice):
         self.lastCommand = BLCMD.commands[commandNumber]["name"] \
                 + str(BLCMD.commands[commandNumber]["fmt"](frame.data))
 
-    # all 16 bit integers
-    telemetryTypes = {
-            1: ["velocity", "Qcurrent"],
-            2: ["interval", "Dcurrent"],
-            3: ["resolverPosition", "resolverVelocity"],
-            4: ["power", "voltage", "temperature", "current"]
-            }
-
-    def _telemCb(self, frame):
-        """process telemetry on can
-        """
-        telemetryNumber = frame.id&0xf
-        labels = self.telemetryTypes[telemetryNumber]
-        if len(frame.data) == len(labels)*2:
-            for i, label in enumerate(labels):
-                # TODO: I think this is wrong for negative integers
-                #self.telemetry[label] = frame.data[2*i]*0xff + frame.data[2*i+1]
-                self.telemetry[label] = hex(0x10000+frame.data[2*i]*0xff + frame.data[2*i+1])[3:]
-
 
     errorCodes = {
            0: "NO_STEPS",
@@ -84,26 +67,16 @@ class BLCMD(candevice.CanDevice):
             10:"STALL_TRIGGERED",
             11:"OVER_SPEED",
     }
-    def _errCb(self, frame):
-        """process errors on can
-        """
-        if (len(frame.data) != 2):
-            return
 
-        match frame.data[0]:
-            case 0:
-                level = "ERR "
-            case 1:
-                level = "WARN"
-            case 2:
-                level = "INFO"
-            case 3:
-                level = "GATE"
+    errorLevels = {
+            0: "ERR ",
+            1: "WARN",
+            2: "INFO",
+            3: "GATE"
+            }
 
-        message = self.errorCodes.get(frame.data[1], frame.data[1])
-        self.error = f"{level}: {message}"
 
-    def __init__(self, name, idNumber, interface):
+    def __init__(self, name, idNumber, interface, multiturn=False):
         """Create the BLCMD sniffer
 
         :param name: Display name of the blcmd
@@ -113,30 +86,53 @@ class BLCMD(candevice.CanDevice):
 
         # we match both commands to the blcmd and telemetry/errors coming back
         self.id = idNumber
-        super().__init__(name, interface , canIdMask=0xbf0, canIdMatch=self.id<<4);
-        self.telemetry = {}
+
+        if multiturn:
+            telem3 = (
+                ("resolverPosition", ">h", "°", lambda x: f"{x*360*4/0x10000:+03.2f}"),
+                ("resolverTurns", ">h", "", None)
+            )
+        else:
+            telem3 = (
+                ("resolverPosition", ">h", "°", lambda x: f"{x*360/0x10000:+03.2f}"),
+                ("resolverVelocity", ">h", "", None)
+            )
+
+        # telemetry from the blcmd
+        telemetry = {
+                (0x400 | self.id << 4): (
+                    ("err", "BB", "", lambda x:
+                     f"{self.errorLevels.get(x[0],str(x[0]))} {self.errorCodes.get(x[1],str(x[1]))}"
+                     ),
+                ),
+                (0x401 | self.id << 4): (
+                    ("velocity", ">H", "", None),
+                    ("Qcurrent", ">H", "", None),
+                ),
+                (0x402 | self.id << 4): (
+                    ("interval", ">H", "", None),
+                    ("Dcurrent", ">H", "", None),
+                ),
+                (0x403 | self.id << 4): telem3,
+                (0x404 | self.id << 4): (
+                    ("power", ">H", "", None),
+                    ("voltage", ">H", "", None),
+                    ("temperature", ">H", "", None),
+                    ("current", ">H", "", None),
+                ),
+            }
+
+        super().__init__(name, interface , canIdMask=0xbf0, canIdMatch=self.id<<4, telemetry=telemetry);
 
         # Commands from the computer
         for cmd in BLCMD.commands.keys():
             canId = (self.id<<4) | cmd
             self.addCallback(canId, self._cmdCb)
 
-        # telemetry from the blcmd
-        for type_ in self.telemetryTypes.keys():
-            canId = 0x400 | (self.id<<4) | type_
-            for label in self.telemetryTypes[type_]:
-                self.telemetry[label]=None
-                def telemAttrGetter(label):
-                    return lambda: self.telemetry[label]
-                self.registerAttr(label, telemAttrGetter(label), 5)
-            self.addCallback(canId, self._telemCb)
+
 
         # TODO: trace get/set configuration messages on can
 
-        # errors from blcmd
-        self.error = None
-        self.registerAttr("err", lambda: self.error, 25)
-        self.addCallback(0x400 | (self.id<<4), self._errCb);
 
         self.lastCommand = ""
         self.registerAttr("msg", lambda: self.lastCommand, 15)
