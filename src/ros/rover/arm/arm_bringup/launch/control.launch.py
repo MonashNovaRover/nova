@@ -35,6 +35,11 @@ def launch_setup(context, *args, **kwargs):
         '" if bool("', LaunchConfiguration('local'), '") else "',
         FindPackageShare('rover_description'), '"'
     ])
+    nova_bringup_dir = PythonExpression([
+        '"', PathJoinSubstitution([os.path.expanduser("~") + '/nova/src/ros/rover/nova_bringup']),
+        '" if bool("', LaunchConfiguration('local'), '") else "',
+        FindPackageShare('nova_bringup'), '"'
+    ])
 
     controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
@@ -89,6 +94,16 @@ def launch_setup(context, *args, **kwargs):
                     executable='spawner',
                     arguments=['nova_end_effector_velocity_controller', '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
+                ),
+                IncludeLaunchDescription(
+                    launch_description_source=PythonLaunchDescriptionSource(
+                        PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
+                    ),
+                    launch_arguments={
+                        "bus" : "can1",
+                        "bitrate" : "250000",
+                        "log_name" : "arm",
+                    }.items()
                 ),
             ]
         ),

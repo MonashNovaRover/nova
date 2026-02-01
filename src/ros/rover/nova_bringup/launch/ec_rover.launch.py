@@ -34,7 +34,8 @@ def launch_setup(context, *args, **kwargs):
                 PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
             ),
             launch_arguments={
-                "bus" : "can1",
+                "bus" : "can0",
+                "bitrate" : "250000",
                 "log_name" : "ec",
             }.items()
         ),

@@ -113,8 +113,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='bitrate',
-            default_value="250000",
-            description='bitrate of the CAN bus'
+            description='bitrate of the CAN bus (usually 250000 or 200000)'
         ),
         DeclareLaunchArgument(
             name='log_can',
