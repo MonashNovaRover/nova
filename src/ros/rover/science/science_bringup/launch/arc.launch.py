@@ -32,6 +32,16 @@ def launch_setup(context, *args, **kwargs):
     return [
         # Analysis Arm - Nodes for components on the analysis arm
         Node(
+            name='analysis_arm',
+            package='science',
+            executable='analysis_arm_stepper.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
             name='tool_rotator',
             package='science',
             executable='tool_rotator.py',

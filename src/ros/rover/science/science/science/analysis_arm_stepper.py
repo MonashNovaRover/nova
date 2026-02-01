@@ -9,8 +9,8 @@ COMMAND INTERFACES:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Felicity Matthews
-CREATION:       13/01/26
-EDITED:         13/01/26
+CREATION:       01/02/26
+EDITED:         01/02/26
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -35,7 +35,7 @@ if __name__ == "__main__":
         hardware_name="actuation",
         actuation_axis="analysis_arm_actuation"
     ) \
-        .with_hardware("actuation", StepperHardware, can_id=0xC2) \
+        .with_hardware("actuation", StepperHardware, can_id=0x0E6) \
         .with_teleop(inputs) \
         .with_activation_buttons(start_active=True, active_button_name="na", inactive_button_pool_names=["na"]) \
         .with_jcan() \
