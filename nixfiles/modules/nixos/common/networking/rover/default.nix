@@ -6,6 +6,10 @@ in
   options = {
     nova.networking.rover = {
       enable = lib.mkEnableOption "Enable rover networking configuration";
+      wifiIfName = lib.mkOption {
+        type = lib.types.str;
+        description = "interface name of the wifi for the rover";
+      };
       ethernetIfName = lib.mkOption {
         type = lib.types.str;
         description = "interface name of the ethernet for the rover";
@@ -13,7 +17,10 @@ in
       ethernetIpAddr = lib.mkOption {
         type = lib.types.str;
         description = "IP address of the rover over ethernet. must be in 10.0.0.0/23 subnet.";
-#TODO: assert ^
+      };
+      hostname = lib.mkOption {
+        type = lib.types.str;
+        description = "Hostname of the rover";
       };
     };
   };
@@ -35,7 +42,22 @@ in
         "8.8.8.8" # google
         "130.194.1.99" # monash
       ];
-    # TODO: enable wifi hotspot
+      hostName = cfg.hostname;
+    };
+    services.create_ap = {
+      enable = true;
+      settings = {
+        CHANNEL = "6"; # ARCh Rule 3.12.4.1 only allows this channel without restrictions
+	GATEWAY = "10.0.0.1";
+	NO_DNS = "1";
+	#NO_DNSMASQ=0
+	SHARE_METHOD = "bridge"; # People say this is bad for ros, let's see if it really is.
+	FREQ_BAND = "2.4";
+	WIFI_IFACE = cfg.wifiIfName;
+	INTERNET_IFACE = cfg.ethernetIfName;
+	SSID = cfg.hostname + "-hotspot";
+	PASSPHRASE = builtins.readFile ../../../../../secrets/reolink-password.txt;
+  };
     };
     assertions = [
       {
