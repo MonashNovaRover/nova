@@ -246,8 +246,8 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
       <camera name="oak">
         <horizontal_fov>${radians(82)}</horizontal_fov>
         <image>
-          <width>1280</width>
-          <height>900</height>
+          <width>320</width>
+          <height>240</height>
         </image>
         <clip>
           <near>0.4</near>

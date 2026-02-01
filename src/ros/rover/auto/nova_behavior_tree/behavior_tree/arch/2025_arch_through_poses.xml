@@ -15,7 +15,7 @@
           <PlannerSelector topic_name="planner_selector"
                             default_planner="GridBased"
                             selected_planner="{selected_planner}"/>
-          <RateController hz="1.0">
+          <RateController hz="0.2">
             <RecoveryNode name="ComputePathThroughPoses"
                           number_of_retries="1">
               <ReactiveSequence>

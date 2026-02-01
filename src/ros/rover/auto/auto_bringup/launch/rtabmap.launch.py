@@ -50,17 +50,17 @@ def launch_setup(context, *args, **kwargs):
                 'gazebo': gazebo,
             }.items()
         ),
-        Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='base_to_lidar_tf',
-            arguments=[
-                '0', '0', '0.5',     # X, Y, Z
-                '0', '0', '0',       # Roll, Pitch, Yaw
-                'base_link',         # Parent frame
-                'livox_frame'        # Child frame
-            ],
-        ),
+        # Node(
+        #     package='tf2_ros',
+        #     executable='static_transform_publisher',
+        #     name='base_to_lidar_tf',
+        #     arguments=[
+        #         '0', '0', '0.5',     # X, Y, Z
+        #         '0', '0.87', '0',       # Roll, Pitch, Yaw
+        #         'base_link',         # Parent frame
+        #         'livox_frame'        # Child frame
+        #     ],
+        # ),
         ComposableNodeContainer(
             name='rtabmap_mapping_container',
             namespace='',
@@ -75,15 +75,25 @@ def launch_setup(context, *args, **kwargs):
                     name='rgbd_sync',
                     parameters=[rtabmap_params, {
                         'use_sim_time': gazebo,
-                        'approx_sync': False,        # False if RGB/Depth come from same camera (OAK)
-                        # 'queue_size': 10,
+                        'approx_sync': True,
                         'qos': 2,
                     }],
                     remappings=[
                         ('rgb/image',       '/oak/rgb/image_raw'),
-                        ('depth/image',     '/oak/stereo/image_raw'), # Or /oak/depth_image
+                        ('depth/image',     '/oak/stereo/image_raw'), 
                         ('rgb/camera_info', '/oak/rgb/camera_info'),
-                        ('rgbd_image',      'rgbd_image'),            # Output topic
+                        ('rgbd_image',      '/oak/rgbd/image_raw'), 
+                    ],
+                ),
+                # 1. RGBD Odometry (Tracks Movement using OAK RGB + Depth)
+                ComposableNode(
+                    package='rtabmap_odom',
+                    plugin='rtabmap_odom::RGBDOdometry',
+                    name='rtabmap_odom',
+                    parameters=[rtabmap_params, {'initial_pose': f'{x} {y} {z} {roll} {pitch} {yaw}', 'use_sim_time': gazebo}],
+                    remappings=[
+                        ('odom', 'odom/visual'),
+                        ('rgbd_image','/oak/rgbd/image_raw'),
                     ],
                 ),
 
@@ -96,16 +106,16 @@ def launch_setup(context, *args, **kwargs):
                         'use_sim_time': gazebo,
                         'frame_id': 'base_link',
                         'odom_frame_id': 'odom',
-                        'publish_tf': False,
+                        # 'publish_tf': False,
                         'wait_for_transform': 0.2,
-                        'expected_update_rate': 15.0,
                         'subscribe_scan': False, 
                         'subscribe_scan_cloud': True,
                         'qos': 2,
                         
-                        'Icp/VoxelSize': '0.1',       # Downsample cloud
-                        'Icp/RangeMax': '30.0',       # Don't process points far in Meters
+                        'Icp/VoxelSize': '0.2',       # Downsample cloud
+                        'Icp/RangeMax': '15.0',       # Don't process points far in Meters
                         'Icp/PointToPlane': 'false',
+                        'Icp/MaxCorrespondenceDistance': '1.0',
                     }],
                     remappings=[
                         ('scan_cloud', '/livox/lidar'), 
@@ -123,49 +133,43 @@ def launch_setup(context, *args, **kwargs):
                         'use_sim_time': gazebo, 
                         'rtabmap_args': '--delete_db_on_start',
                         
-                        'subscribe_rgb': False,
-                        'subscribe_rgbd': True,
+                        'subscribe_rgb': True,
+                        'subscribe_rgbd': False,
                         'subscribe_depth': False,  
                         'subscribe_stereo': False,  
                         
                         'subscribe_scan': False,  
                         'subscribe_scan_cloud': True,    
 
+                        'subscribe_odom_info': False,
+
                         'Kp/MaxFeatures': '400',
                         'RGBD/ProximityBySpace': 'true',
 
                         'approx_sync': True,
-                        'approx_sync_max_interval': 0.5,
+                        'approx_sync_max_interval': 0.05,
 
                         'Grid/Sensor': '2',
                         'RGBD/ProximityBySpace': 'true',
+                        'Grid/RayTracing': 'true',
+                        'Grid/3D': 'true',
                         
                         'qos': 2,
                     }],
                     remappings=[
-                        # Connect RGB Input to the CLEANED topic
-                        ('rgb/image',       '/oak/rgb/image_raw/clean'),
-                        # ('rgb/camera_info', '/oak/rgb/camera_info'),
+                        # Connect RGB Input
+                        ('rgb/image',       '/oak/rgb/image_raw'),
+                        ('rgb/camera_info', '/oak/rgb/camera_info'),
+                        # ('rgbd_image','/oak/rgbd/image_raw'),
                         
                         # Connect Geometry Input DIRECTLY to LiDAR
-                        ('scan_cloud',      '/livox/lidar'),
+                        ('scan_cloud','/livox/lidar'),
                         
-                        ('odom', '/odometry/local'),    
-                        ('gps/fix','/gps_rover/fix')
+                        # ('odom', '/odometry/local'),    
+                        ('gps/fix','/gps_rover/fix'),
                     ],
                 ),
             ],
-        ),
-        Node(
-            package='image_transport',
-            executable='republish',
-            name='rgb_republish',
-            arguments=['raw', 'raw'], # Input -> Output
-            remappings=[
-                ('in', '/oak/rgb/image_raw'),
-                ('out', '/oak/rgb/image_raw/clean') # New clean topic
-            ],
-            output='screen'
         ),
         Node(
              package='rtabmap_util', executable='obstacles_detection', output='screen',
