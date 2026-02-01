@@ -29,8 +29,9 @@ local_costmap:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
         origin_z: 0.0
-        z_resolution: 0.1
-        z_voxels: 12
+        # z_resolution * z_voxels = height of voxel grid, i.e. the z-bound of the costmap
+        z_resolution: 0.1 # resolution of voxels in height (m)
+        z_voxels: 12 # number of voxels high to mark, maximum 16
         max_obstacle_height: 2.0
         mark_threshold: 0
         observation_sources: ground obstacles

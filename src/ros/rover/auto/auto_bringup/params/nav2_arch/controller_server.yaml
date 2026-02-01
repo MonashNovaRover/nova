@@ -24,61 +24,63 @@ controller_server:
       xy_goal_tolerance: 0.5
       yaw_goal_tolerance: 6.28 # 360 degrees in radians.
       stateful: false # Whether to check for XY position tolerance after rotating to goal orientation in case of minor localization changes.
-    RPP:
-      plugin: # https://docs.nav2.org/configuration/packages/configuring-regulated-pp.html
-        "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
-      desired_linear_vel: 
-        2.0
-      lookahead_dist: # if use_velocity_scaled_lookahead_dist = false
-        5.0
-      min_lookahead_dist: # if use_velocity_scaled_lookahead_dist = true
-        0.3
-      max_lookahead_dist: # if use_velocity_scaled_lookahead_dist = true
-        5.0
-      lookahead_time: # if use_velocity_scaled_lookahead_dist = true
-        1.5
-      rotate_to_heading_angular_vel: # if use_rotate_to_heading = true
-        0.7
-      transform_tolerance: 
-        0.1
-      use_velocity_scaled_lookahead_dist: 
-        false
-      min_approach_linear_velocity: 
-        0.5
-      approach_velocity_scaling_dist: 
-        10.0
-      use_collision_detection: 
-        false
-      max_allowed_time_to_collision_up_to_carrot: # if use_collision_detection = true
-        10.0
-      use_regulated_linear_velocity_scaling: 
-        true
-      use_cost_regulated_linear_velocity_scaling: 
-        false
-      regulated_linear_scaling_min_radius: # if use_regulated_linear_velocity_scaling = true
-        0.5
-      regulated_linear_scaling_min_speed: 
-        0.5
-      use_fixed_curvature_lookahead: 
-        true
-      curvature_lookahead_dist: 
-        1.0
-      use_rotate_to_heading: 
-        false 
-      allow_reversing: 
-        false
-      rotate_to_heading_min_angle: # if use_rotate_to_heading = true
-        0.785398
-      max_angular_accel: # if use_rotate_to_heading = true
-        0.5
-      use_cancel_deceleration: 
-        true
-      cancel_deceleration: # if use_cancel_deceleration = true
-        0.5
-      max_robot_pose_search_dist: 
-        10.0 # Leave as default
-      interpolate_curvature_after_goal: # if use_fixed_curvature_lookahead = true
-        true
+    
+    # RPP
+    # FollowPath:
+    #   plugin: # https://docs.nav2.org/configuration/packages/configuring-regulated-pp.html
+    #     "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
+    #   desired_linear_vel: 
+    #     2.0
+    #   lookahead_dist: # if use_velocity_scaled_lookahead_dist = false
+    #     5.0
+    #   min_lookahead_dist: # if use_velocity_scaled_lookahead_dist = true
+    #     0.3
+    #   max_lookahead_dist: # if use_velocity_scaled_lookahead_dist = true
+    #     5.0
+    #   lookahead_time: # if use_velocity_scaled_lookahead_dist = true
+    #     1.5
+    #   rotate_to_heading_angular_vel: # if use_rotate_to_heading = true
+    #     0.7
+    #   transform_tolerance: 
+    #     0.1
+    #   use_velocity_scaled_lookahead_dist: 
+    #     false
+    #   min_approach_linear_velocity: 
+    #     0.5
+    #   approach_velocity_scaling_dist: 
+    #     10.0
+    #   use_collision_detection: 
+    #     false
+    #   max_allowed_time_to_collision_up_to_carrot: # if use_collision_detection = true
+    #     10.0
+    #   use_regulated_linear_velocity_scaling: 
+    #     true
+    #   use_cost_regulated_linear_velocity_scaling: 
+    #     false
+    #   regulated_linear_scaling_min_radius: # if use_regulated_linear_velocity_scaling = true
+    #     0.5
+    #   regulated_linear_scaling_min_speed: 
+    #     0.5
+    #   use_fixed_curvature_lookahead: 
+    #     true
+    #   curvature_lookahead_dist: 
+    #     1.0
+    #   use_rotate_to_heading: 
+    #     false 
+    #   allow_reversing: 
+    #     false
+    #   rotate_to_heading_min_angle: # if use_rotate_to_heading = true
+    #     0.785398
+    #   max_angular_accel: # if use_rotate_to_heading = true
+    #     0.5
+    #   use_cancel_deceleration: 
+    #     true
+    #   cancel_deceleration: # if use_cancel_deceleration = true
+    #     0.5
+    #   max_robot_pose_search_dist: 
+    #     10.0 # Leave as default
+    #   interpolate_curvature_after_goal: # if use_fixed_curvature_lookahead = true
+    #     true
 
     # MPPI https://docs.nav2.org/configuration/packages/configuring-mppic.html    
     FollowPath:
@@ -89,8 +91,8 @@ controller_server:
       vx_std: 0.2
       vy_std: 0.2
       wz_std: 0.4
-      vx_max: 2.0
-      vx_min: -1.4
+      vx_max: 1.5
+      vx_min: -1.05
       vy_max: 0.5
       wz_max: 1.9
       ax_max: 3.0
