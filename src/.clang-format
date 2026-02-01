@@ -1,0 +1,35 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+
+AccessModifierOffset: -2
+
+AlignAfterOpenBracket: AlwaysBreak
+AlignOperands: AlignAfterOperator
+AlignTrailingComments:
+  Kind: Always
+  OverEmptyLines: 1
+
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: None
+AllowShortLambdasOnASingleLine: None
+
+BreakBeforeBraces: Allman
+BreakBinaryOperations: RespectPrecedence
+BreakConstructorInitializers: BeforeComma
+BreakTemplateDeclarations: Yes
+
+ColumnLimit: 100
+ConstructorInitializerIndentWidth: 2
+ContinuationIndentWidth: 2
+DerivePointerAlignment: false
+IndentCaseLabels: true
+IndentWidth: 2
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: None
+PackConstructorInitializers: Never
+PointerAlignment: Left
+SortIncludes: Never
+TabWidth: 2
+UseTab: Never
