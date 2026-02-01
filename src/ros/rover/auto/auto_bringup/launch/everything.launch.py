@@ -19,12 +19,11 @@ EDITED:     05/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction, TimerAction, ExecuteProcess, RegisterEventHandler
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
 from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.substitutions import FindPackageShare
-from launch.event_handlers import OnProcessExit
 
 def launch_setup(context, *args, **kwargs):
     # package directories
@@ -74,7 +73,7 @@ def launch_setup(context, *args, **kwargs):
     if LaunchConfiguration('gps').perform(context) != '':
         gps = LaunchConfiguration('gps')
 
-    nodes = GroupAction([
+    return [
         IncludeLaunchDescription(
             condition=IfCondition(gazebo),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
@@ -121,45 +120,17 @@ def launch_setup(context, *args, **kwargs):
                 'nav2_params_dir': nav2_params_dir,
                 'sim_params': sim_params,
                 'use_respawn': use_respawn,
-                'use_sim_time': gazebo,
+                'gazebo': gazebo,
                 'map_params': map_params,
             }.items()
         ),
-    ])
-
-    wait_for_cameras = ExecuteProcess(
-        cmd=[
-            'python3',
-            PathJoinSubstitution([auto_bringup_dir, 'topic', 'wait_for_topic.py']),
-        ],
-        name='wait_for_cameras_topic',
-        output='screen',
-    )
-
-    return [
-        GroupAction(
+        IncludeLaunchDescription(
             condition=IfCondition(rtabmap),
-            actions=[
-                IncludeLaunchDescription(
-                    launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rtabmap.launch.py'])),
-                    launch_arguments={'pointclouds': 'False'}.items(),
-                ),
-                wait_for_cameras,
-                RegisterEventHandler(
-                    OnProcessExit(
-                        target_action=wait_for_cameras,
-                        on_exit=[nodes],
-                    ),
-                ),
-            ],
-        ),
-        GroupAction(
-            condition=UnlessCondition(rtabmap),
-            actions=[
-                nodes,
-            ],
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rtabmap.launch.py'])),
+            launch_arguments={'gazebo': gazebo}.items(),
         ),
     ]
+
 
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')

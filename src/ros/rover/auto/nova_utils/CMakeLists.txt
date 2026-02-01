@@ -42,6 +42,7 @@ install(PROGRAMS
   nova_utils/start_auto_2.py
   nova_utils/start_auto.py
   nova_utils/test_start_auto.py
+  nova_utils/topic_waiter.py
 
   DESTINATION lib/${PROJECT_NAME}
 )

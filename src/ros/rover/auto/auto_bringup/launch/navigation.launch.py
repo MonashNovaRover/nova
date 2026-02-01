@@ -26,13 +26,10 @@ EDITED BY:  Anthony Lew, Terry Tian
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable, OpaqueFunction
-from launch.conditions import IfCondition, UnlessCondition
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
-from launch_ros.actions import LoadComposableNodes
+from launch.conditions import IfCondition
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
-from launch_ros.descriptions import ComposableNode, ParameterFile
 from launch_ros.substitutions import FindPackageShare
-from nav2_common.launch import RewrittenYaml
 from os import listdir
 
 def launch_setup(context, *args, **kwargs):
@@ -49,7 +46,7 @@ def launch_setup(context, *args, **kwargs):
     sim_params = LaunchConfiguration('sim_params')
     publish_goals = LaunchConfiguration('publish_goals')
     use_respawn = LaunchConfiguration('use_respawn')
-    use_sim_time = LaunchConfiguration('use_sim_time')
+    gazebo = LaunchConfiguration('gazebo')
 
     # comp defaults
     if comp == 'arch':
@@ -63,10 +60,10 @@ def launch_setup(context, *args, **kwargs):
     if LaunchConfiguration('nav2_params_dir').perform(context) != '':
         nav2_params_dir = LaunchConfiguration('nav2_params_dir')
 
-    in_sim = (use_sim_time.perform(context).lower() == 'true')
+    in_sim = (gazebo.perform(context).lower() == 'true')
     # Substitute params for each node with launch params
     substitution_params = {
-        'use_sim_time': use_sim_time,
+        'use_sim_time': gazebo,
         'autostart': autostart,
     }
     # Combine all params from sim, substitution, and nav2 directory
@@ -176,7 +173,7 @@ def launch_setup(context, *args, **kwargs):
                     name='lifecycle_manager_navigation',
                     output='screen',
                     arguments=['--ros-args', '--log-level', log_level],
-                    parameters=[{'use_sim_time': use_sim_time},
+                    parameters=[{'use_sim_time': gazebo},
                                 {'autostart': autostart},
                                 {'node_names': lifecycle_nodes}],
                 ),
@@ -243,7 +240,7 @@ def generate_launch_description():
             description='Whether to respawn if a node crashes. Applied when composition is disabled.',
         ),
         DeclareLaunchArgument(
-            name='use_sim_time',
+            name='gazebo',
             default_value='False',
             description='Use simulation (Gazebo) clock if True',
         ),
