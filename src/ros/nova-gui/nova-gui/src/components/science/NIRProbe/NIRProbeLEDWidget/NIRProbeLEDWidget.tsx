@@ -23,6 +23,7 @@ const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({readingInfo, ...c
   const bifrost = useBifrost({ topic: RosTopic.NIR_DATA, service: RosService.TAKE_NIR_PROBE_READING });
   const status = useSelector((state: RootState) => state.nirStore.status);
   const takeReading = (led: number) => bifrost.callService({led: led});
+  // const takeReading = (led: number) => bifrost.callService({led: led});
 
   useEffect(() => {
     bifrost.syncWithTopic();
@@ -33,19 +34,19 @@ const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({readingInfo, ...c
       <CardHeader className="pb-0">
         NIR Probe LED
       </CardHeader>
-      <CardBody className="grid grid-cols-2 gap-3">
+      <CardBody className="">
         <SpinnerButton
-          onClick={() => takeReading(IRosScienceInterfacesNirProbeDataConst.LED_WATER)}
+          onPressStart={() => takeReading(IRosScienceInterfacesNirProbeDataConst.LED_WATER)}
           isLoading={status === IRosScienceInterfacesNirProbeDataConst.LED_WATER}
         >
-          Take {readingInfo[1].name} LED Reading
+          Request LED Readings
         </SpinnerButton>
-        <SpinnerButton
-          onClick={() => takeReading(IRosScienceInterfacesNirProbeDataConst.LED_ICE)}
-          isLoading={status === IRosScienceInterfacesNirProbeDataConst.LED_ICE}
-        >
-          Take {readingInfo[2].name} LED Reading
-        </SpinnerButton>
+        {/*<SpinnerButton*/}
+        {/*  onClick={() => takeReading(IRosScienceInterfacesNirProbeDataConst.LED_ICE)}*/}
+        {/*  isLoading={status === IRosScienceInterfacesNirProbeDataConst.LED_ICE}*/}
+        {/*>*/}
+        {/*  Take {readingInfo[2].name} LED Reading*/}
+        {/*</SpinnerButton>*/}
       </CardBody>
     </Card>
   );
