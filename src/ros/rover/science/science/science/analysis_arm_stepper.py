@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Controller for the science CBeam which actuates up
-and down.
+Controller for the science analysis arm which
+actuates up and down.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
   - actuation/effort    [value between -1 and 1]
