@@ -1,16 +1,14 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Hardware interface for Quad CAN Motor Drivers (QCMD).
-QCMDs are used primarily for motors in the science
-and EC payloads.
+Hardware interface for Stepper motors.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
   - <joint>/effort  [value between -1 and 1]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        python_control2
 AUTHOR(S):      Felicity Matthews
-CREATION:       13/01/26
-EDITED:         13/01/26
+CREATION:       01/02/26
+EDITED:         01/02/26
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -22,7 +20,7 @@ from ..controller_manager.Contexts import Contexts
 from struct import pack
 
 
-class QCMDHardware(HardwareInterface):
+class StepperHardware(HardwareInterface):
     effort_cmd: Interface
     can_id: int
     # The name of the joint
@@ -35,7 +33,7 @@ class QCMDHardware(HardwareInterface):
                  joint: str="",
                  can_id: int=0,
                  reversed: bool=False,
-                 max_effort: float=1.0, max_effort_can: int=0x7FFF):
+                 max_effort: float=1.0, max_effort_can: int=0x7F):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
@@ -50,7 +48,7 @@ class QCMDHardware(HardwareInterface):
             joint = self.name
 
         self.declare_parameter("joint", joint, "Name of the joint")
-        self.declare_parameter("can_id", can_id, "CAN ID of the QCMD")
+        self.declare_parameter("can_id", can_id, "CAN ID of the Stepper")
         self.declare_parameter("reversed", reversed, "Whether the output should be reversed")
         self.declare_parameter("max_effort", max_effort, "Max percentage of output to send")
         self.declare_parameter("max_effort_can", max_effort_can, "Max CAN message value that can be sent")
@@ -78,7 +76,7 @@ class QCMDHardware(HardwareInterface):
 
         # Validate command interface configuration
         if not self.effort_cmd:
-            self.logger.warn(f"QCMDHardware \"{self.name}\" has no populated command interfaces. "
+            self.logger.warn(f"Stepper \"{self.name}\" has no populated command interfaces. "
                              f"(\"{self.joint}/effort\")")
 
         return True
@@ -95,8 +93,9 @@ class QCMDHardware(HardwareInterface):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-        frame = self.construct_frame()
-        self.bus.send(frame)
+        if self.effort_cmd.value != 0:
+            frame = self.construct_frame()
+            self.bus.send(frame)
 
     def construct_frame(self) -> jcan.Frame:
         """ Construct the jcan Frame based on current command interface """
@@ -111,8 +110,8 @@ class QCMDHardware(HardwareInterface):
         elif data < -self.max_effort_can:
             data = -self.max_effort_can
 
-        # Pack the data into a list
-        packed_data = list(pack('>h', int(data))) # >h = big-endian signed short (4 hex digits)
+        # # Pack the data into a list
+        packed_data = list(pack('>b', int(data))) # >b = big-endian signed byte (2 hex digits)
 
         # Create and return the frame
         frame = jcan.Frame(id=self.can_id, data=packed_data)
