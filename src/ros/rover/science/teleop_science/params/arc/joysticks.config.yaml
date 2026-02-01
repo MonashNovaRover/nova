@@ -46,7 +46,10 @@ thrustmaster_left:
 
     remap:
       axes:
-      # Tool Rotator
+        # Analysis Arm
+        analysis_arm_actuation:
+          from: "l_ax_stick_y"
+        # Tool Rotator
         tool_rotator_speed:
           from: "l_ax_slider"
 
