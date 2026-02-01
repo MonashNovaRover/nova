@@ -12,6 +12,7 @@ EDITED BY: Orlando Chamberlain
 '''
 
 import abc
+import struct
 from dataclasses import dataclass
 
 class Device(abc.ABC):
@@ -29,6 +30,64 @@ class Device(abc.ABC):
         raw: object = lambda: None # function returning string
         height: int = 1
         units: str = ""
+
+    class SimpleBytesAttribute(Attribute):
+        def __init__(self, name, bytesFmt, units, toHumanReadable):
+            """Helper for making attributes where the data is in a binary format, unpacked and then converted to human units.
+
+            bytesFmt: str, the meaning of these is explained here https://docs.python.org/3/library/struct.html#format-strings
+            name: str, the attribute name
+            toHumanReadable: converter function from unpacked value to human readable value or none if only raw hex works
+            units str: units for this attribute
+            """
+
+            self._bytesFmt = bytesFmt
+
+            self._toHumanReadable = toHumanReadable # function returning list of strings?
+
+            self._byteLength = struct.calcsize(self._bytesFmt)
+
+            self.updateBytesValue(bytes(self._byteLength)) # all zeros
+
+            exampleOutput = self._getValue()
+            if isinstance(exampleOutput, str):
+                outputHeight = 1
+                outputWidth = len(exampleOutput)
+            else:
+                outputHeight = len(exampleOutput) # how many lines of text
+                outputWidth = max(map(len, exampleOutput)) # widest line of text
+
+            self._bytesValue: bytes = None
+            self._unpackedValue: int = None
+
+            super().__init__(name, self._getValue, outputWidth, self._getRaw, outputHeight, units)
+
+        def updateBytesValue(self, bytesValue: bytes):
+            """update the binary (bytes) representation of this attribute
+            """
+            self._bytesValue = bytesValue
+            val = struct.unpack(self._bytesFmt, self._bytesValue)
+            if len(val) == 1:
+                self._unpackedValue = val[0]
+            else:
+                self._unpackedValue = val
+                
+
+        def getByteLength(self):
+            # Check how many bytes this attribute uses.
+            return self._byteLength
+
+        def _getRaw(self):
+            if self._bytesValue is None:
+                return ""
+            return "0x"+self._bytesValue.hex()
+
+        def _getValue(self):
+            if self._unpackedValue is None:
+                return ""
+            if self._toHumanReadable is None:
+                return self._getRaw()
+            return self._toHumanReadable(self._unpackedValue)
 
     def getName(self):
         return self.name

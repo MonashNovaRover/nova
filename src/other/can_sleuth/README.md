@@ -47,7 +47,7 @@ Devices
 - LED Driver (not implemented)
 - Kiln (not implemented)
 - Misc Science stuff (not implemented)
-- Battery (not implemented)
+- Battery
 
 Systems (payloads):
 - Taipan Arm
