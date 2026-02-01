@@ -1,0 +1,82 @@
+From 4a4263953aa59a16dd216b8d5a142ced598ed2d7 Mon Sep 17 00:00:00 2001
+From: Monash Nova Rover <novaroverteam@monash.edu>
+Date: Sun, 1 Feb 2026 12:26:53 +1100
+Subject: [PATCH 1/3] flake-compat
+
+---
+ default.nix | 12 ++++++++++++
+ flake.lock  | 17 +++++++++++++++++
+ flake.nix   |  4 ++++
+ 3 files changed, 33 insertions(+)
+ create mode 100644 default.nix
+
+diff --git a/default.nix b/default.nix
+new file mode 100644
+index 0000000..c03ddc4
+--- /dev/null
++++ b/default.nix
+@@ -0,0 +1,12 @@
++(import (
++  let
++    lock = builtins.fromJSON (builtins.readFile ./flake.lock);
++    nodeName = lock.nodes.root.inputs.flake-compat;
++  in
++  fetchTarball {
++    url =
++      lock.nodes.${nodeName}.locked.url
++        or "https://github.com/NixOS/flake-compat/archive/${lock.nodes.${nodeName}.locked.rev}.tar.gz";
++    sha256 = lock.nodes.${nodeName}.locked.narHash;
++  }
++) { src = ./.; }).defaultNix
+diff --git a/flake.lock b/flake.lock
+index a530075..7a26247 100644
+--- a/flake.lock
++++ b/flake.lock
+@@ -23,6 +23,22 @@
+         "type": "github"
+       }
+     },
++    "flake-compat": {
++      "flake": false,
++      "locked": {
++        "lastModified": 1767039857,
++        "narHash": "sha256-vNpUSpF5Nuw8xvDLj2KCwwksIbjua2LZCqhV1LNRDns=",
++        "owner": "NixOS",
++        "repo": "flake-compat",
++        "rev": "5edf11c44bc78a0d334f6334cdaf7d60d732daab",
++        "type": "github"
++      },
++      "original": {
++        "owner": "NixOS",
++        "repo": "flake-compat",
++        "type": "github"
++      }
++    },
+     "nixpkgs": {
+       "locked": {
+         "lastModified": 1768773494,
+@@ -42,6 +58,7 @@
+     "root": {
+       "inputs": {
+         "cuda-legacy": "cuda-legacy",
++        "flake-compat": "flake-compat",
+         "nixpkgs": "nixpkgs"
+       }
+     }
+diff --git a/flake.nix b/flake.nix
+index ee06a44..deb19cd 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -1,5 +1,9 @@
+ {
+   inputs = {
++    flake-compat = {
++      url = "github:NixOS/flake-compat";
++      flake = false;
++    };
+     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+ 
+     cuda-legacy = {
+-- 
+2.51.2
+
