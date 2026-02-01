@@ -20,6 +20,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DistanceData.msg"
   "msg/EMCData.msg"
   "msg/HydraprobeData.msg"
+  "msg/EffortStatus.msg"
   "msg/KilnData.msg"
   "msg/MicroscopeServoInfo.msg"
   "msg/NIRProbeData.msg"
@@ -30,6 +31,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
   # Service definitions
   "srv/CacheCommand.srv"
+  "srv/EffortCommand.srv"
   "srv/KilnCommand.srv"
   "srv/MoveHydraprobe.srv"
   "srv/MoveMicroscopeServo.srv"

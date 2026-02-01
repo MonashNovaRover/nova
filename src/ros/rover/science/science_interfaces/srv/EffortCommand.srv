@@ -1,0 +1,8 @@
+# Turn system on and off
+bool state
+
+# Set level of effort
+float32 level
+
+---
+bool applied
