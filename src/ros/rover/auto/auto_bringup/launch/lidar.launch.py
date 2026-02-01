@@ -41,7 +41,6 @@ def launch_setup(context, *args, **kwargs):
             output='screen',
             parameters=[fast_livo2_params, {'use_sim_time': sim}],
             # remappings=[
-            #     ('/left_camera/image','/oak/rgb/image_raw'),
             # ],
         ),
     ])
@@ -92,7 +91,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='fast_livo2',
-            default_value='False',
+            default_value='True',
             description='Use FAST-LIVO2?',
         ),
         DeclareLaunchArgument(
