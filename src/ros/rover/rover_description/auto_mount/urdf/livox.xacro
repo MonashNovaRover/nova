@@ -5,20 +5,10 @@
     <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-            <mesh
-                    filename="file://$(find rover_description)/auto_mount/meshes/mid-360-asm.stl"
-                />
+            <mesh filename="file://$(find rover_description)/auto_mount/meshes/mid-360-asm.stl"/>
         </geometry>
     </visual>
   </link>
-
-  <joint name="lidar_camera_approx_to_livox" type="fixed">
-    <origin xyz="0.023 0.023 -0.025" rpy=" 3.14159 0 0" />
-    <parent link="lidar_camera_approx" />
-    <child link="livox_frame" />
-    <axis xyz="1 0 0" />
-  </joint>
-
 
   <gazebo reference="livox_frame">
         <sensor name="gpu_lidar" type="gpu_lidar">
