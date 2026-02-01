@@ -8,8 +8,8 @@ Execute this code on the rover to start the
 PROCESSES:
   - candump
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-CREATION:   27/02/2026
-EDITED:     28/02/2026
+CREATION:   27/01/2026
+EDITED:     01/02/2026
 EDITED BY: Jonathan Jia
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
@@ -96,7 +96,7 @@ def launch_setup(context, *args, **kwargs):
                 can_logger,
                 RegisterEventHandler(OnProcessExit(
                     target_action=can_logger,
-                    on_exit=LogInfo(msg="ERROR: CAN logging stopped") # use LogError when available
+                    on_exit=LogInfo(msg="WARNING: CAN logging stopped")
                 ))
             ]
         )
@@ -107,14 +107,13 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             name='bus',
-            default_value='can1',
             description='name of the CAN bus to start/log',
             # reminder to use can instead of vcan
             choices=[f'can{n}' for n in range(0, 10)],
         ),
         DeclareLaunchArgument(
             name='bitrate',
-            default_value="200000",
+            default_value="250000",
             description='bitrate of the CAN bus'
         ),
         DeclareLaunchArgument(
