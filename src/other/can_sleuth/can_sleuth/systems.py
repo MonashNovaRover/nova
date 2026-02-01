@@ -14,6 +14,8 @@ EDITED BY: Orlando Chamberlain
 from can_sleuth.devices import blcmd
 from can_sleuth.devices import blcmd_emulator
 from can_sleuth.devices import led as LED #gotta rename some things
+from can_sleuth.devices import battery
+from can_sleuth.devices import battery_emulator
 
 # Interface specifies the bus (usually a canbus) that the system/payload is connected to,
 # emulate indicates if in addition to tracing the state of the system/payload, if we should
@@ -23,12 +25,12 @@ def taipan_spherical(interface="can1", emulate=False):
     """The Taipan Arm Payload with its exciting four bar linkage and spherical wrist.
     """
     devices = [
-            blcmd.BLCMD(f"J{x}", x, interface) for x in range(1,6+1)
+            blcmd.BLCMD(f"J{x}", x, interface, multiturn=True) for x in range(1,6+1)
             ]
 
     if emulate:
         devices += [
-            blcmd_emulator.BLCMDEmulator(f"J{x}", x, interface) for x in range(1,6+1)
+            blcmd_emulator.BLCMDEmulator(f"J{x}", x, interface, multiturn=True) for x in range(1,6+1)
             ]
 
     return devices
@@ -53,12 +55,18 @@ def drive25_26(interface="can0", emulate=False):
 
     devices = []
 
+    devices.append(battery.Battery(interface=interface))
+
+    devices.extend(led(interface=interface, emulate=emulate))
+
     for id_ in names.keys():
         devices.append(blcmd.BLCMD(names[id_], id_, interface))
     if emulate:
         for id_ in names.keys():
             hasResolver = names[id_][2] == "P" # only pivots have resolvers/abcoder
             devices.append(blcmd_emulator.BLCMDEmulator(names[id_], id_, interface, hasResolver=hasResolver))
+
+        devices.append(battery_emulator.BatteryEmulator(interface=interface))
     return devices
 
 def led(interface = "can0", emulate=False):
