@@ -8,7 +8,7 @@ updates:
   - package-ecosystem: "npm" # See documentation for possible values (yarn = npm)
     directory: "/src/ros/nova-gui/nova-gui" # Location of package manifests
     schedule:
-      interval: "monthly"
+      interval: "yearly"
       day: "monday"
       time: "03:00"
       timezone: "Australia/Melbourne"
