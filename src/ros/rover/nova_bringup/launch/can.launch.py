@@ -15,7 +15,8 @@ EDITED BY: Jonathan Jia
 '''
 from datetime import datetime
 
-import launch.logging
+from logging import Logger
+from launch.logging import get_logger
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, ExecuteProcess, \
     LogInfo, RegisterEventHandler, GroupAction
@@ -26,8 +27,7 @@ import subprocess
 from os.path import expanduser
 
 
-def start_can(bus: str, bitrate: str):
-    logger = launch.logging.get_logger()
+def start_can(bus: str, bitrate: str, logger: Logger):
 
     def can_is_up():
         try:
@@ -47,7 +47,7 @@ def start_can(bus: str, bitrate: str):
             logger.error(f"Failed to start {bus}: {e}")
     else:
         return logger.warning(f"{bus} is already running "
-                              f"(check bitrate; may differ from requested bitrate: {bitrate})")
+                              f"(check bitrate matches requested: {bitrate})")
 
 def launch_setup(context, *args, **kwargs):
     bus = LaunchConfiguration('bus').perform(context)
@@ -57,10 +57,10 @@ def launch_setup(context, *args, **kwargs):
     log_dir_expanded = expanduser(log_dir)
     log_name = LaunchConfiguration('log_name').perform(context)
 
-    logger = launch.logging.get_logger()
+    logger = get_logger("launch.can")
 
     # start can bus
-    start_can(bus, bitrate)
+    start_can(bus, bitrate, logger)
 
     # create log file directory
     if log_can.lower() == "true":

@@ -14,7 +14,8 @@ CREATION:	15/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression, Command
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression, Command, \
+    IfElseSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction, ExecuteProcess, LogInfo
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -101,7 +102,11 @@ def launch_setup(context, *args, **kwargs):
                     ),
                     launch_arguments={
                         "bus" : "can1",
-                        "bitrate" : "250000",
+                        "bitrate" : IfElseSubstitution(
+                            condition=arm,
+                            if_value="250000",
+                            else_value="200000",
+                        ),
                         "log_name" : "arm",
                     }.items()
                 ),
