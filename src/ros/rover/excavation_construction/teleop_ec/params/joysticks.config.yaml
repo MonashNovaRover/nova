@@ -60,11 +60,6 @@ thrustmaster_left:
             out: [ 0.0, 1.0 ]
             clamp: true
 
-        forklift_actuation:
-          from_buttons:
-            positive: "r_btn_thumb_l_state"
-            negative: "r_btn_thumb_r_state"
-
       buttons:
         lock:
           from: "l_btn_bottom_l2_state"
@@ -114,6 +109,11 @@ thrustmaster_right:
             in: [-1.0, 1.0]
             out: [0.0, 1.0]
             clamp: true
+
+        forklift_actuation:
+          from_buttons:
+            positive: "r_btn_thumb_l_state"
+            negative: "r_btn_thumb_r_state"
 
         scoop_actuation:
           from: "r_ax_stick_y"
