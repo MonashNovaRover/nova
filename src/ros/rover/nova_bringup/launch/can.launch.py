@@ -9,7 +9,7 @@ PROCESSES:
   - candump
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATION:   27/01/2026
-EDITED:     01/02/2026
+EDITED:     02/02/2026
 EDITED BY: Jonathan Jia
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
@@ -71,12 +71,8 @@ def launch_setup(context, *args, **kwargs):
             logger.error(f"Failed to create CAN log directory {log_dir_expanded}: {e}")
 
     # generate log file path
-    time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    if log_name:
-        log_file_name = f"{log_name}_{bus}_{time_stamp}.log"
-    else:
-        log_file_name = f"{bus}_{time_stamp}.log"
-    log_path = PathJoinSubstitution([log_dir_expanded, log_file_name])
+    log_file =  f"{log_name}_{bus}.log" if log_name else f"{bus}.log"
+    log_path = PathJoinSubstitution([log_dir_expanded, log_file])
 
     can_logger = ExecuteProcess(
         cmd=[
@@ -122,7 +118,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='log_dir',
-            default_value='~/.nova/log',
+            default_value='~/log',
             description='directory where CAN message log files are stored'
         ),
         DeclareLaunchArgument(
