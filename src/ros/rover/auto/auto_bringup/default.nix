@@ -43,6 +43,7 @@
   realsense2-description,
   usb-cam,
   fast-livo2,
+  fast-calib,
   demo-nodes-cpp,
 }:
 
@@ -101,6 +102,7 @@ buildRosPackage rec {
       realsense2-description
       usb-cam
       fast-livo2
+      fast-calib
       demo-nodes-cpp;
   };
 
