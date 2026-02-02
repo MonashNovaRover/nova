@@ -87,8 +87,8 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[rtabmap_params, {'use_sim_time': gazebo, 'rtabmap_args': '--delete_db_on_start'}],
                     remappings=[
                         ('scan_cloud','/livox/lidar'),
-                        ('rgb_image','/oak/rgbd/image_raw'),
-                        ('rgb/camera_info','/oak/rgb/camera_info'),
+                        ('rgbd_image','/oak/rgbd/image_raw'),
+                        ('rgbd/camera_info','/oak/rgbd/camera_info'),
                         ('gps/fix','/gps_rover/fix')
                     ],
                 ),
