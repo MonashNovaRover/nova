@@ -6,38 +6,70 @@ This launch file is responsible for navigation.
 It launches our nav2 stack.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODES:
-  -
+  - nav2_controller/controller_server
+  - nav2_smoother/smoother_server
+  - nav2_planner/planner_server
+  - nav2_behaviors/behavior_server
+  - nav2_waypoint_follower/waypoint_follower
+  - nav2_velocity_smoother/velocity_smoother
+  - nav2_map_server/map_server
+  - nav2_lifecycle_manager/lifecycle_manager
+  - nav2_bt_navigator/bt_navigator
+  - nova_utils/goal_marker.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	auto_bringup
 CREATION:	UNKNOWN
-EDITED:     24/04/2025
-EDITED BY:  Anthony Lew
+EDITED:     05/01/2026
+EDITED BY:  Anthony Lew, Terry Tian
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable, OpaqueFunction
-from launch.conditions import IfCondition, UnlessCondition
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
-from launch_ros.actions import LoadComposableNodes
+from launch.conditions import IfCondition
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
-from launch_ros.descriptions import ComposableNode, ParameterFile
 from launch_ros.substitutions import FindPackageShare
-from nav2_common.launch import RewrittenYaml
 from os import listdir
 
 def launch_setup(context, *args, **kwargs):
+    # package directories
     auto_bringup_dir = FindPackageShare('auto_bringup')
 
+    comp = LaunchConfiguration('comp').perform(context).lower()
+    
+    # comp agnostic arguments
     autostart = LaunchConfiguration('autostart')
     log_level = LaunchConfiguration('log_level')
     map_params = LaunchConfiguration('map_params')
     namespace = LaunchConfiguration('namespace')
-    nav2_params_dir = LaunchConfiguration('nav2_params_dir').perform(context).lower()
     sim_params = LaunchConfiguration('sim_params')
     publish_goals = LaunchConfiguration('publish_goals')
     use_respawn = LaunchConfiguration('use_respawn')
-    use_sim_time = LaunchConfiguration('use_sim_time')
+    gazebo = LaunchConfiguration('gazebo')
+
+    # comp defaults
+    if comp == 'arch':
+        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_arch'])
+    elif comp == 'urc':
+        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc'])
+    else:
+        raise ValueError('"comp" arg must be either "arch" or "urc"')
+
+    # comp defaults overrides
+    if LaunchConfiguration('nav2_params_dir').perform(context) != '':
+        nav2_params_dir = LaunchConfiguration('nav2_params_dir')
+
+    in_sim = (gazebo.perform(context).lower() == 'true')
+    # Substitute params for each node with launch params
+    substitution_params = {
+        'use_sim_time': gazebo,
+        'autostart': autostart,
+    }
+    # Combine all params from sim, substitution, and nav2 directory
+    nav2_params = [PathJoinSubstitution([nav2_params_dir, params]) for params in listdir(nav2_params_dir.perform(context)) if params[-5:] == '.yaml']
+    nav2_params.append(substitution_params)
+    nav2_params.append(sim_params) if in_sim else None
 
     lifecycle_nodes = ['controller_server',
                        'smoother_server',
@@ -47,20 +79,10 @@ def launch_setup(context, *args, **kwargs):
                        'waypoint_follower',
                        'velocity_smoother',
                        'map_server']
-    in_sim = (use_sim_time.perform(context).lower() == 'true')
     # Map fully qualified names to relative ones so the node's namespace can be prepended.
     # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
     remappings = [('/tf', 'tf'),
                   ('/tf_static', 'tf_static')]
-    # Substitute params for each node with launch params
-    substitution_params = {
-        'use_sim_time': use_sim_time,
-        'autostart': autostart,
-    }
-    # Combine all params from sim, substitution, and nav2 directory
-    nav2_params = [PathJoinSubstitution([nav2_params_dir, params]) for params in listdir(nav2_params_dir) if params[-5:] == '.yaml']
-    nav2_params.append(substitution_params)
-    nav2_params.append(sim_params) if in_sim else None
     
     return [
         GroupAction(
@@ -151,7 +173,7 @@ def launch_setup(context, *args, **kwargs):
                     name='lifecycle_manager_navigation',
                     output='screen',
                     arguments=['--ros-args', '--log-level', log_level],
-                    parameters=[{'use_sim_time': use_sim_time},
+                    parameters=[{'use_sim_time': gazebo},
                                 {'autostart': autostart},
                                 {'node_names': lifecycle_nodes}],
                 ),
@@ -182,6 +204,12 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
+            name='comp',
+            default_value='arch',
+            description='ARCh or URC',
+        ),
+        # comp agnostic arguments
+        DeclareLaunchArgument(
             name='autostart',
             default_value='True',
             description='Automatically startup the nav2 stack',
@@ -202,11 +230,6 @@ def generate_launch_description():
             description='Top-level namespace',
         ),
         DeclareLaunchArgument(
-            name='nav2_params_dir',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_arch']),
-            description='Full path to the folder with ROS2 parameters files to use with all nodes',
-        ),
-        DeclareLaunchArgument(
             name='publish_goals',
             default_value='True',
             description='Publish Nav2 goals as a MarkerArray?',
@@ -217,7 +240,7 @@ def generate_launch_description():
             description='Whether to respawn if a node crashes. Applied when composition is disabled.',
         ),
         DeclareLaunchArgument(
-            name='use_sim_time',
+            name='gazebo',
             default_value='False',
             description='Use simulation (Gazebo) clock if True',
         ),
@@ -225,6 +248,12 @@ def generate_launch_description():
             name='sim_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_sim.yaml']),
             description='Sim parameters to use if using sim time', 
+        ),
+        # arguments with comp defaults
+        DeclareLaunchArgument(
+            name='nav2_params_dir',
+            default_value='',
+            description='Full path to the folder with ROS2 parameters files to use with all nodes',
         ),
     ]
 
