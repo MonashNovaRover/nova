@@ -33,7 +33,7 @@ def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo')
     imu = LaunchConfiguration('imu')
     mag = LaunchConfiguration('mag')
-    pointcloud = LaunchConfiguration('pointcloud')
+    pointclouds = LaunchConfiguration('pointclouds')
     rectify_image = LaunchConfiguration('rectify_image')
 
     return [
@@ -62,7 +62,7 @@ def launch_setup(context, *args, **kwargs):
                         ('image_rect', f'{front_name}/rgb/image_rect')],
                 ),
                 ComposableNode(
-                    condition=IfCondition(pointcloud),
+                    condition=IfCondition(pointclouds),
                     package='rtabmap_util',
                     plugin='rtabmap_util::PointCloudXYZ',
                     name=f'{front_name}_point_cloud_xyz',
@@ -125,7 +125,7 @@ def launch_setup(context, *args, **kwargs):
                                 ('image_rect', f'{back_name}/rgb/image_rect')],
                 ),
                 ComposableNode(
-                    condition=IfCondition(pointcloud),
+                    condition=IfCondition(pointclouds),
                     package='rtabmap_util',
                     plugin='rtabmap_util::PointCloudXYZ',
                     name=f'{back_name}_point_cloud_xyz',
@@ -239,7 +239,7 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='pointcloud',
+            name='pointclouds',
             default_value='True',
             description='',
         ),
