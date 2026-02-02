@@ -26,28 +26,6 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 import subprocess
 
-def setup_can(context, *args, **kwargs):
-    def can_is_up():
-        try:
-            result = subprocess.run(["ip", "link", "show", "can0"],
-                capture_output=True, text=True, check=True)
-            return "UP" in result.stdout
-        except subprocess.CalledProcessError:
-            return False
-
-    gazebo = LaunchConfiguration('gazebo').perform(context)  # get argument value as string
-    if gazebo.lower() == 'false':
-        if not can_is_up():
-            try:
-                subprocess.run(["can", "start", "can0"], check=True)
-                return [LogInfo(msg="can0 started successfully")]
-            except subprocess.CalledProcessError as e:
-                return [LogInfo(msg=f"Failed to start can0: {e}")]
-        else:
-            return [LogInfo(msg="can0 is already running")]
-    
-    return []
-
 def launch_setup(context, *args, **kwargs):
     auto = LaunchConfiguration('auto')
     nova_params = LaunchConfiguration('nova_params')
@@ -152,6 +130,16 @@ def launch_setup(context, *args, **kwargs):
                 ),
             ],
         ),
+        IncludeLaunchDescription(
+            launch_description_source=PythonLaunchDescriptionSource(
+                PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
+            ),
+            launch_arguments={
+                "bus" : "can0",
+                "bitrate" : "250000",
+                "log_name" : "drive",
+            }.items()
+        ),
     ]
 
 
@@ -215,5 +203,5 @@ def generate_launch_description():
     ]
 
     return LaunchDescription(
-        declared_arguments + [OpaqueFunction(function=launch_setup), OpaqueFunction(function=setup_can)]
+        declared_arguments + [OpaqueFunction(function=launch_setup)]
     )
