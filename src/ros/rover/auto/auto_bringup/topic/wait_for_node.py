@@ -29,7 +29,7 @@ import time
 
 
 REQUIRED_NODES = [
-    '/parameter_blackboard',
+    'parameter_blackboard',
 ]
 
 CHECK_INTERVAL = 1.0  # seconds
@@ -42,7 +42,7 @@ class NodeWaiter(Node):
         self.start_time = time.time()
 
     def all_nodes_active(self):
-        available_nodes = [t[0] for t in self.get_node_names()]
+        available_nodes = self.get_node_names()
         return all(node in available_nodes for node in REQUIRED_NODES)
 
     def spin_until_ready(self):
