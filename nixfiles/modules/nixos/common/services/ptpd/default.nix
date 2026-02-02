@@ -21,7 +21,7 @@ in
       description = "Precision Time Protocol Daemon";
       serviceConfig = {
         Type = "simple";
-        ExecStart = ''${pkgs.nova.ptpd}/bin/ptpd2 -C -i ${cfg.interfaceName}'';
+        ExecStart = ''${pkgs.nova.ptpd}/bin/ptpd2 -C -m -i ${cfg.interfaceName}'';
       };
     };
   };
