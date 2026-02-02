@@ -14,7 +14,8 @@ CREATION:	15/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression, Command
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression, Command, \
+    IfElseSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction, ExecuteProcess, LogInfo
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -34,6 +35,11 @@ def launch_setup(context, *args, **kwargs):
         '"', PathJoinSubstitution([os.path.expanduser("~") + '/nova/src/ros/rover/rover_description']),
         '" if bool("', LaunchConfiguration('local'), '") else "',
         FindPackageShare('rover_description'), '"'
+    ])
+    nova_bringup_dir = PythonExpression([
+        '"', PathJoinSubstitution([os.path.expanduser("~") + '/nova/src/ros/rover/nova_bringup']),
+        '" if bool("', LaunchConfiguration('local'), '") else "',
+        FindPackageShare('nova_bringup'), '"'
     ])
 
     controllers = LaunchConfiguration('controllers')
@@ -89,6 +95,20 @@ def launch_setup(context, *args, **kwargs):
                     executable='spawner',
                     arguments=['nova_end_effector_velocity_controller', '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
+                ),
+                IncludeLaunchDescription(
+                    launch_description_source=PythonLaunchDescriptionSource(
+                        PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
+                    ),
+                    launch_arguments={
+                        "bus" : "can1",
+                        "bitrate" : IfElseSubstitution(
+                            condition=arm,
+                            if_value="250000",
+                            else_value="200000",
+                        ),
+                        "log_name" : "arm",
+                    }.items()
                 ),
             ]
         ),
