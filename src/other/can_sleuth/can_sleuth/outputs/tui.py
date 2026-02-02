@@ -80,7 +80,7 @@ class TUI(output.Output):
 
                         # check for a disconnected encoder
                         if attr.name == "velocity":
-                            if f"{attr.value()}" == "8001":
+                            if f"{attr.value()}" == "8001" or f"{attr.value()}" == "7FFF":
                                 encoder_err = True
                             else:
                                 encoder_err = False
