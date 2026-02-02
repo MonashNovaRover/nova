@@ -59,10 +59,11 @@ game_controller_source:
             positive: "RIGHTSHOULDER"
             negative: "LEFTSHOULDER"
 
+        # commands to set/increment axis don't seem to work
+        # so use triggers to control speed instead
         scraper_speed:
           from: "TRIGGERRIGHT"
           invert: true
-
         forklift_speed:
           from: "TRIGGERLEFT"
           invert: true
@@ -78,10 +79,3 @@ game_controller_source:
 
         unlock:
           from: "START"
-
-        # support scraper speed changes using dpad
-        # NOT WORKING (using right trigger as speed axis instead)
-#        increase_scraper_speed:
-#          from: "DPAD_UP"
-#        decrease_scraper_speed:
-#          from: "DPAD_DOWN"
