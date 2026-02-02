@@ -30,6 +30,7 @@ class KilnDoorController(Controller):
     # Command interfaces
     # joint_cmd: Interface
     kiln_door_cmd: Interface
+    door_current_state: Interface
     # State interfaces
 
     def __init__(self, contexts: Contexts):
@@ -63,8 +64,10 @@ class KilnDoorController(Controller):
         self.door_close_btn_name = self.declare_parameter("close_button", "close_kiln_door").value
         self.door_speed_name = self.declare_parameter("speed_axis", "door_speed").value
 
+        #maximum door current 
+        self.max_door_current = self.declare_parameter("max_door_current")
 
-
+        #inputs
         inputs = contexts[Inputs]
 
         self.door_open_btn  = inputs.get_button(self.door_open_btn_name)
@@ -92,6 +95,9 @@ class KilnDoorController(Controller):
         # self.joint_cmd = command_interfaces[self.joint + "/effort"]
         self.kiln_door_cmd = command_interfaces["kiln_door/effort"]
 
+        #door current state interface
+        self.door_current_state = state_interfaces["kiln_door_sensor/current"]
+
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
             here.
@@ -101,7 +107,13 @@ class KilnDoorController(Controller):
         # Update Command Interfaces
         # self.cmd.value = 2 * self.state.value
         # self.logger.info(f"{self.state.value} -> {self.cmd.value}")
-        self.kiln_door_cmd.value = self.door_state * self.axis_to_speed(self.door_speed.value)
+
+        #check if door current reached max val
+        if self.door_current_state < self.max_door_current.value:
+            #set command interface
+            self.kiln_door_cmd.value = self.door_state * self.axis_to_speed(self.door_speed.value)
+        else:
+            self.kiln_door_cmd.value = 0
     
     def update_door_direction(self, direction:Direction):
         """
@@ -109,7 +121,7 @@ class KilnDoorController(Controller):
         """
         def change_direction():
             if self.door_state != direction:
-                self.logger.info(f"Kiln door {"CLOSING" if self.state == Direction.NEGATIVE else "OPENING"}")
+                self.logger.info(f"Kiln door {"CLOSING" if self.state == Direction.POSITIVE else "OPENING"}")
                 self.door_state = direction
         return change_direction
 
@@ -127,6 +139,7 @@ if __name__ == "__main__":
     PythonControl("kiln_door", update_rate=5, can_bus="can1") \
         .with_controller("controller", KilnDoorController) \
         .with_hardware("kiln_door", QCMDHardware, can_id = "") \
+        .with_hardware("current_sensor",GenericSensorHardware)
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()
