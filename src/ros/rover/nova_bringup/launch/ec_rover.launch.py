@@ -21,7 +21,7 @@ from datetime import datetime
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, OpaqueFunction, ExecuteProcess
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -70,9 +70,18 @@ def launch_setup(context, *args, **kwargs):
     ]
 
 def generate_launch_description():
-    nova_bringup_dir = FindPackageShare('nova_bringup')
+    nova_bringup_dir = PythonExpression([
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/nova_bringup/']),
+        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+        FindPackageShare('nova_bringup'), '"'
+    ])
     
     declared_arguments = [
+        DeclareLaunchArgument(
+            name='local',
+            default_value='False',
+            description='Whether to use the local source directory instead of the nix store for param files.',
+        ),
         DeclareLaunchArgument(
             name='ec_params',
             default_value=PathJoinSubstitution([nova_bringup_dir, 'params', 'ec.yaml']),
