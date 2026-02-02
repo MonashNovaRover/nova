@@ -21,12 +21,19 @@ EDITED BY:  Felicity Matthews
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 from launch import LaunchDescription
-from launch.actions import OpaqueFunction, DeclareLaunchArgument
+from launch.actions import OpaqueFunction, DeclareLaunchArgument, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
+    nova_bringup_dir = PythonExpression([
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/nova_bringup/']),
+        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
+        FindPackageShare('nova_bringup'), '"'
+    ])
+
     science_params = LaunchConfiguration('science_params')
 
     return [
@@ -95,6 +102,18 @@ def launch_setup(context, *args, **kwargs):
             parameters=[
                 science_params,
             ],
+        ),
+
+        # launch CAN bus
+        IncludeLaunchDescription(
+            launch_description_source=PythonLaunchDescriptionSource(
+                PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
+            ),
+            launch_arguments={
+                "bus" : "can1",
+                "bitrate" : "250000",
+                "log_name" : "science-arc",
+            }.items()
         ),
     ]
 
