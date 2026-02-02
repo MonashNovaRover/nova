@@ -26,17 +26,66 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+
+    networking.useDHCP = false;
+    networking.networkmanager.enable = lib.mkForce false;
+    systemd.network = {
+      enable = true;
+      netdevs = {
+        "20-br0" = {
+          netdevConfig = {
+            Kind = "bridge";
+            Name = "br0";
+          };
+        };
+      };
+      networks = {
+        "40-br0" = {
+          matchConfig.Name = "br0";
+          bridgeConfig = {};
+          address = [
+            (cfg.ethernetIpAddr + "/23")
+          ];
+          routes = [
+            { Gateway = "10.0.0.1"; }
+          ];
+        };
+        "30-${cfg.wifiIfName}" = {
+          matchConfig.Name = cfg.wifiIfName;
+          networkConfig.Bridge = "br0";
+          #linkConfig.RequiredForOnline = "enslaved";
+        };
+        "30-${cfg.ethernetIfName}" = {
+          matchConfig.Name = cfg.ethernetIfName;
+          networkConfig.Bridge = "br0";
+
+        };
+        # CAN
+        "60-can0" = {
+          matchConfig.Name = "can0";
+          canConfig = {
+            BitRate = 250000;
+            FDMode = false;
+          };
+        };
+        "60-can1" = {
+          matchConfig.Name = "can1";
+          canConfig = {
+            BitRate = 250000;
+            FDMode = false;
+          };
+        };
+        "60-can2" = {
+          matchConfig.Name = "can2";
+          canConfig = {
+            BitRate = 250000;
+            FDMode = false;
+          };
+        };
+      };
+    };
+
     networking = {
-      interfaces."${cfg.ethernetIfName}" = {
-        ipv4.addresses = [{
-          address = cfg.ethernetIpAddr;
-          prefixLength = 23;
-        }];
-      };
-      defaultGateway = {
-        address = "10.0.0.1";
-        interface = cfg.ethernetIfName;
-      };
       nameservers = [
         "1.1.1.1" # cloudflare
         "8.8.8.8" # google
@@ -44,20 +93,21 @@ in
       ];
       hostName = cfg.hostname;
     };
-    services.create_ap = {
+    services.hostapd = {
+      # there is no dhcp.
+      # doesn't seem to be working right yet.
       enable = true;
-      settings = {
-        CHANNEL = "6"; # ARCh Rule 3.12.4.1 only allows this channel without restrictions
-	GATEWAY = "10.0.0.1";
-	NO_DNS = "1";
-	#NO_DNSMASQ=0
-	SHARE_METHOD = "bridge"; # People say this is bad for ros, let's see if it really is.
-	FREQ_BAND = "2.4";
-	WIFI_IFACE = cfg.wifiIfName;
-	INTERNET_IFACE = cfg.ethernetIfName;
-	SSID = cfg.hostname + "-hotspot";
-	PASSPHRASE = builtins.readFile ../../../../../secrets/reolink-password.txt;
-  };
+      radios."${cfg.wifiIfName}" = {
+        countryCode = "AU";
+        band = "2g";
+        channel = 6;
+        networks."${cfg.wifiIfName}" = {
+          ssid = cfg.hostname + "-hotspot";
+          authentication.saePasswords = [
+            { passwordFile = ../../../../../secrets/reolink-password.txt; }
+          ];
+        };
+      };
     };
     assertions = [
       {
