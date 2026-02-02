@@ -96,6 +96,7 @@ export const SaveAllCamerasModal: React.FC<SaveAllCamerasModalProps> = ({
           ...existingProfiles,
           [trimmedName]: newProfile,
         },
+        lastLoadedProfile: cameraProfiles.lastLoadedProfile,
       });
 
       const cameraCount = Object.keys(camerasToSave).length;
