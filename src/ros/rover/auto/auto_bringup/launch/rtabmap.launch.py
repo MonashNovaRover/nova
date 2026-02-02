@@ -1,13 +1,13 @@
 import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, RegisterEventHandler
 from launch.conditions import IfCondition
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import ComposableNodeContainer
+from launch.event_handlers import OnProcessExit
 
 # This function does what --delete_db_on_start
 # Because we are launching it as a ComposableNode, we can't pass arguments to the executable
@@ -35,21 +35,11 @@ def launch_setup(context, *args, **kwargs):
     roll = LaunchConfiguration('roll').perform(context)
     pitch = LaunchConfiguration('pitch').perform(context)
     yaw = LaunchConfiguration('yaw').perform(context)
-    camera = LaunchConfiguration('camera').perform(context)
     rtabmap_viz = LaunchConfiguration('rtabmap_viz').perform(context)
     rtabmap_params = LaunchConfiguration('rtabmap_params').perform(context)
 
-
-    return [
+    nodes = [
         OpaqueFunction(function=delete_rtabmap_db),
-        IncludeLaunchDescription(
-            condition=IfCondition(camera),
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
-            launch_arguments={
-                'pointclouds':'False',
-                'gazebo': gazebo,
-            }.items()
-        ),
         ComposableNodeContainer(
             name='rtabmap_mapping_container',
             namespace='',
@@ -127,6 +117,32 @@ def launch_setup(context, *args, **kwargs):
         ),
     ]
 
+    wait_for_topics = Node(
+        package='nova_utils',
+        executable='topic_waiter.py',
+        name='rtabmap_wait_for_topics',
+        output='screen',
+        parameters=[
+            {'topics': [
+                f'/{front_name}/rgb/image_raw',
+                f'/{front_name}/rgb/camera_info',
+                f'/{front_name}/stereo/image_raw',
+                '/livox/lidar',
+                ]
+            }
+        ],
+    )
+
+    return [
+        wait_for_topics,
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=wait_for_topics,
+                on_exit=nodes,
+            )
+        ),
+    ]
+
 
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
@@ -136,7 +152,6 @@ def generate_launch_description():
         DeclareLaunchArgument(name='back_name', default_value='bootie'),
         DeclareLaunchArgument(name='rtabmap_viz', default_value='False'),
         DeclareLaunchArgument(name='gazebo', default_value='False'),
-        DeclareLaunchArgument(name='camera', default_value='False'),
         DeclareLaunchArgument(name='x', default_value='0.0'),
         DeclareLaunchArgument(name='y', default_value='0.0'),
         DeclareLaunchArgument(name='z', default_value='0.0'),
