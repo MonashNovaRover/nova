@@ -9,6 +9,9 @@ from launch_ros.substitutions import FindPackageShare
 from launch.actions import OpaqueFunction, ExecuteProcess
 
 def launch_setup(context, *args, **kwargs):
+    # package directories
+    auto_bringup_dir = FindPackageShare('auto_bringup')
+
     gazebo = LaunchConfiguration('gazebo')
     rtabmap_viz = LaunchConfiguration('rtabmap_viz').perform(context)
     rviz_params = LaunchConfiguration('rviz_params')
@@ -20,7 +23,7 @@ def launch_setup(context, *args, **kwargs):
         namespace='',
         executable='rviz2',
         name='rviz2',
-        arguments=['-d', [PathJoinSubstitution([FindPackageShare('auto_bringup'), 'rviz', rviz_params])]]
+        arguments=['-d', [rviz_params]]
     )
 
     rtabmap_ros_node = Node(
@@ -46,6 +49,7 @@ def launch_setup(context, *args, **kwargs):
     return [rviz_node, rtabmap_ros_node, local_urdf]
 
 def generate_launch_description():
+    auto_bringup_dir = FindPackageShare('auto_bringup')
     rover_description_dir = FindPackageShare('rover_description')
 
     launch_args = [
@@ -61,8 +65,8 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='rviz_params',
-            default_value='navigation.rviz',
-            description='',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'rviz', 'navigation.rviz']),
+            description='Full path to the RViz config file to use',
         ),
         DeclareLaunchArgument(
             name='model',
