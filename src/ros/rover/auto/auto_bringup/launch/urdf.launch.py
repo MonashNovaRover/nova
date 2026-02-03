@@ -15,6 +15,7 @@ CREATION:	27/04/2023
 '''
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.conditions import IfCondition
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import Node
@@ -29,6 +30,7 @@ def launch_setup(context, *args, **kwargs):
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
     camera = LaunchConfiguration('camera').perform(context)
+    joints = LaunchConfiguration('joints').perform(context)
 
     return [
         Node(
@@ -45,7 +47,23 @@ def launch_setup(context, *args, **kwargs):
                                         'auto_camera:=', camera
                                        ]), value_type=str)
             }]
-        )
+        ),
+        Node(
+            condition=IfCondition(joints),
+            package = 'joint_state_publisher',
+            executable = 'joint_state_publisher',
+            parameters=[{'robot_description': 
+                ParameterValue(Command(['xacro ', 
+                                        model, ' ', 
+                                        'gazebo:=', gazebo, ' ',
+                                        'robot_name:=', robot_name, ' ',
+                                        'lidar_angle:=', lidar_angle, ' ',
+                                        'oak_angle:=', oak_angle, ' ',
+                                        'bootie_angle:=', bootie_angle, ' ',
+                                        'auto_camera:=', camera
+                                       ]), value_type=str)
+            }],
+        ),
     ]
 
 
@@ -87,6 +105,11 @@ def generate_launch_description():
             name='camera',
             default_value='True',
             description='Whether to spawn auto mount on the rover.',
+        ),
+        DeclareLaunchArgument(
+            name='joints',
+            default_value='False',
+            description='Whether to launch joint_state_publisher.',
         ),
     ]
 
