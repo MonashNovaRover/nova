@@ -39,8 +39,6 @@ buildRosPackage {
   };
 
   patches = [
-    # ./patches/frame.patch
-    # ./patches/pointcloud2.patch
     ./patches/change_root_dir.patch
     ./patches/memory_bug.patch
   ];

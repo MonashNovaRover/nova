@@ -2,37 +2,23 @@
   buildRosPackage,
   fetchgit,
   ament-cmake,
-  mimalloc,
   rclcpp,
-  rclpy,
   geometry-msgs,
   nav-msgs,
   sensor-msgs,
   std-msgs,
-  visualization-msgs,
   pcl-ros,
   pcl-conversions,
-  tf2,
   tf2-ros,
   livox-ros-driver2,
-  vikit-common,
-  vikit-ros,
   cv-bridge,
   image-transport,
   image-geometry,
   eigen,
   pcl,
-  opencv,
   opencv4,
-  sophus,
-  boost,
-  fmt,
-  libusb1,
-  libpcap,
-  breakpointHook,
   rosbag2-cpp,
   rosbag2-storage,
-  message-filters
 }:
 
 buildRosPackage {
@@ -74,11 +60,4 @@ buildRosPackage {
     rosbag2-storage
     cv-bridge
   ];
-
-  #postPatch = ''
-  #  sed -i '/g")/aSET(CMAKE_PREFIX_PATH ''${CMAKE_PREFIX_PATH} "${vikit-common}/share/vikit_common/CMakeModules/build/")' CMakeLists.txt
-  #  sed -i CMakeLists.txt \
-  #    -e 's@''${CMAKE_SOURCE_DIR}/../../install/vikit_common@${vikit-common}@g' \
-  #    -e 's@''${CMAKE_SOURCE_DIR}/../../install/vikit_ros@${vikit-ros}@g'
-  #'';
 }

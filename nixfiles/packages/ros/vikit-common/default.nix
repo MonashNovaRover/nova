@@ -43,6 +43,5 @@ stdenv.mkDerivation rec {
   
   postPatch = ''
     sed -i '/lib )/aINSTALL(DIRECTORY ''${CMAKE_CURRENT_BINARY_DIR} DESTINATION ''${CMAKE_INSTALL_PREFIX}/share/''${PROJECT_NAME}/CMakeModules )' CMakeLists.txt
-    # cat CMakeLists.txt
   '';
 }

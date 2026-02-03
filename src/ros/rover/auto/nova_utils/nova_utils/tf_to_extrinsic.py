@@ -38,7 +38,8 @@ class TFToExtrinsic(Node):
             quat = [q.x, q.y, q.z, q.w]
             rot = R.from_quat(quat).as_matrix()
 
-            print("\n--- Extrinsic Calibration ---")
+            print("--- Extrinsic Calibration f---")
+            print(f"{self.source_frame} to {self.target_frame}")
             print(f"extrinsic_T: [{T[0]:.6f}, {T[1]:.6f}, {T[2]:.6f}]")
             print("extrinsic_R: [")
 
