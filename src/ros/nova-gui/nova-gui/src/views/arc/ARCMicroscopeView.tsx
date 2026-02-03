@@ -4,20 +4,30 @@ import DriveSpeedWidget from "../../components/drive/DriveSpeedWidget/DriveSpeed
 import TOFHeight from "../../components/science/AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
 import KilnWidget from "../../components/science/KilnWidget/KilnWidget.tsx";
 import MicroscopeWidget from "../../components/science/MicroscopeThresholdWidget/MicroscopeWidget.tsx";
+import EffortWidget from "../../components/science/EffortWidget/EffortWidget.tsx";
+import { RosService } from "../../ros/services/rosService.ts";
+import { RosTopic } from "../../ros/topics/rosTopic.ts";
+import { RootState } from "../../redux/RootState.ts";
 
 export const ARCMicroscopeView = () => {
   return (
     <div className="p-3 max-h-full">
       <div className="grid grid-flow-col auto-cols-fr justify-between items-stretch gap-3 ">
-        <div className="flex flex-col flex-grow col-span-3">
+        <div className="flex flex-col flex-grow gap-3 col-span-3">
           <MicroscopeWidget cameraSerial="science_microscope" />
+          <EffortWidget
+            label="Peltier"
+            topic={RosTopic.PELTIER_STATUS}
+            service={RosService.PELTIER_COMMAND}
+            statusSelector={(state: RootState) => state.peltierStatus}
+            storeName="peltierEffort" />
         </div>
         <div className="flex flex-col gap-3 col-span-3">
           <KilnWidget />
           <DriveModeWidget />
           <WheelTelemetryWidget />
           <DriveSpeedWidget />
-          <TOFHeight/>
+          <TOFHeight />
         </div>
       </div>
     </div>

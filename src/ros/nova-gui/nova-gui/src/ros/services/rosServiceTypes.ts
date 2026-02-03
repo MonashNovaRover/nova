@@ -10,6 +10,8 @@ import {
   IRosStdSrvsTriggerResponse,
   IRosScienceInterfacesKilnCommandRequest,
   IRosScienceInterfacesKilnCommandResponse,
+  IRosScienceInterfacesEffortCommandRequest,
+  IRosScienceInterfacesEffortCommandResponse,
   IRosScienceInterfacesRamanSpecRequest,
   IRosScienceInterfacesRamanSpecResponse,
   IRosScienceInterfacesRamanMechRequest,
@@ -41,7 +43,7 @@ interface EmptyMessage {}
 
 export interface RosServiceInterface {
   [RosService.NULL_SERVICE]: RosServiceMessage<EmptyMessage, EmptyMessage>;
-  
+
   // Arm related
   [RosService.READ_RFID]: RosServiceMessage<
     EmptyMessage,
@@ -85,6 +87,14 @@ export interface RosServiceInterface {
     IRosScienceInterfacesKilnCommandRequest,
     IRosScienceInterfacesKilnCommandResponse
   >;
+  [RosService.PELTIER_COMMAND]: RosServiceMessage<
+    IRosScienceInterfacesEffortCommandRequest,
+    IRosScienceInterfacesEffortCommandResponse
+  >;
+  [RosService.DIAPHRAGM_PUMP_COMMAND]: RosServiceMessage<
+    IRosScienceInterfacesEffortCommandRequest,
+    IRosScienceInterfacesEffortCommandResponse
+  >;
   [RosService.TAKE_NIR_PROBE_READING]: RosServiceMessage<
     IRosScienceInterfacesTakeNirProbeReadingRequest,
     IRosScienceInterfacesTakeNirProbeReadingResponse
@@ -102,7 +112,7 @@ export interface RosServiceInterface {
     IRosScienceInterfacesMoveMicroscopeServoResponse
   >;
   [RosService.THETA_360_CAM_CAPTURE]: RosServiceMessage<
-    EmptyMessage, 
+    EmptyMessage,
     IRosStdSrvsTriggerResponse
   >;
   [RosService.CALL_RAMAN_SPEC]: RosServiceMessage<
@@ -134,8 +144,8 @@ export interface RosServiceInterface {
     IRosScienceInterfacesKilnCommandResponse
   >;
   [RosService.REQUEST_HYDRAPROBE_READING]: RosServiceMessage<
-      EmptyMessage,
-      IRosStdSrvsTriggerResponse
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
   >;
   [RosService.CAROUSEL]: RosServiceMessage<
     IRosScienceInterfacesKilnCommandRequest,
@@ -143,8 +153,8 @@ export interface RosServiceInterface {
   >;
 
   [RosService.RGBInput]: RosServiceMessage<
-      IRosNovaInterfacesRgbInputRequest,
-      IRosNovaInterfacesRgbInputResponse
+    IRosNovaInterfacesRgbInputRequest,
+    IRosNovaInterfacesRgbInputResponse
   >;
 
   // Autonomous Related
