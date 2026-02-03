@@ -40,6 +40,14 @@ def launch_setup(context, *args, **kwargs):
 
     nodes = [
         OpaqueFunction(function=delete_rtabmap_db),
+        Node(
+            package='pcl_ros',
+            executable='filter_voxel_grid_node',
+            name='voxel_grid_filter',
+            parameters=[{'leaf_size': 0.05}],
+            remappings=[('input', '/livox/lidar'),
+                        ('output', '/livox/lidar_filtered')],
+        ),
         ComposableNodeContainer(
             name='rtabmap_mapping_container',
             namespace='',
@@ -98,7 +106,7 @@ def launch_setup(context, *args, **kwargs):
              package='rtabmap_util', executable='obstacles_detection', output='screen',
              parameters=[rtabmap_params],
              remappings=[
-                 ('cloud','/livox/lidar'),
+                 ('cloud','/livox/lidar_filtered'),
                  ('obstacles','/livox/lidar/obstacles'),
                  ('ground', '/livox/lidar/ground'),
              ],
