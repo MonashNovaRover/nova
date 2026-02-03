@@ -35,6 +35,7 @@ install(PROGRAMS
   nova_utils/gz_gps_fixer.py
   nova_utils/gz_imu_fixer.py
   nova_utils/load_waypoint.py
+  nova_utils/node_waiter.py
   nova_utils/quaternion_to_euler.py
   nova_utils/record_metrics.py
   nova_utils/save_waypoint.py
@@ -42,6 +43,7 @@ install(PROGRAMS
   nova_utils/start_auto_2.py
   nova_utils/start_auto.py
   nova_utils/test_start_auto.py
+  nova_utils/tf_to_extrinsic.py
   nova_utils/topic_waiter.py
 
   DESTINATION lib/${PROJECT_NAME}

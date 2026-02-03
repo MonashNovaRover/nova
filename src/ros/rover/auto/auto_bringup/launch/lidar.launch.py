@@ -26,31 +26,26 @@ def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
 
     blackboard_params = LaunchConfiguration('blackboard_params')
-    fast_livo2 = LaunchConfiguration('fast_livo2')
-    fast_livo2_params = LaunchConfiguration('fast_livo2_params')
+    fastlivo2 = LaunchConfiguration('fastlivo2')
+    fastlivo2_params = LaunchConfiguration('fastlivo2_params')
     lidar_config = LaunchConfiguration('lidar_config').perform(context)
     lidar_params = LaunchConfiguration('lidar_params')
     sim = LaunchConfiguration('sim')
 
-    fast_livo2_node = GroupAction([
+    fastlivo2_node = GroupAction([
         Node(
-            condition=IfCondition(fast_livo2),
             package='fast_livo',
             executable='fastlivo_mapping',
             name='fastlivo2',
             output='screen',
-            parameters=[fast_livo2_params, {'use_sim_time': sim}],
-            # remappings=[
-            # ],
+            parameters=[fastlivo2_params, {'use_sim_time': sim}],
         ),
     ])
 
-    wait_for_parameter_blackboard = ExecuteProcess(
-        cmd=[
-            'python3',
-            PathJoinSubstitution([auto_bringup_dir, 'topic', 'wait_for_node.py']),
-        ],
-        name='wait_for_parameter_blackboard',
+    wait_for_parameter_blackboard = Node(
+        package='nova_utils',
+        executable='node_waiter.py',
+        name='fastlivo2_wait_for_parameter_blackboard',
         output='screen',
     )
 
@@ -63,20 +58,33 @@ def launch_setup(context, *args, **kwargs):
             output='screen',
             parameters=[lidar_params, {'user_config_path': lidar_config, 'use_sim_time': sim}],
         ),
-        Node(
-            condition=IfCondition(fast_livo2),
-            package='demo_nodes_cpp',
-            executable='parameter_blackboard',
-            name='parameter_blackboard',
-            parameters=[blackboard_params, {'use_sim_time': sim}],
-            output='screen'
-        ),
-        wait_for_parameter_blackboard,
-        RegisterEventHandler(
-            OnProcessExit(
-                target_action=wait_for_parameter_blackboard,
-                on_exit=[fast_livo2_node],
-            ),
+        GroupAction(
+            condition=IfCondition(fastlivo2),
+            actions=[
+                Node(
+                    package='demo_nodes_cpp',
+                    executable='parameter_blackboard',
+                    name='parameter_blackboard',
+                    parameters=[blackboard_params, {'use_sim_time': sim}],
+                    output='screen'
+                ),
+                # Node(
+                #     package='tf2_ros',
+                #     executable='static_transform_publisher',
+                #     namespace='static_transform_publisher',
+                #     name='odom_to_camera_init',
+                #     output='screen',
+                #     parameters=[{'use_sim_time': sim}],
+                #     arguments=['0.541', '0.010', '0.950', '0.005', '0.698', '0.003', 'odom', 'camera_init'],
+                # ),
+                wait_for_parameter_blackboard,
+                RegisterEventHandler(
+                    OnProcessExit(
+                        target_action=wait_for_parameter_blackboard,
+                        on_exit=[fastlivo2_node],
+                    ),
+                ),
+            ],
         ),
     ]
 
@@ -90,13 +98,13 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='fast_livo2',
+            name='fastlivo2',
             default_value='True',
             description='Use FAST-LIVO2?',
         ),
         DeclareLaunchArgument(
-            name='fast_livo2_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2.yaml']),
+            name='fastlivo2_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fastlivo2.yaml']),
             description='',
         ),
         DeclareLaunchArgument(
