@@ -54,7 +54,6 @@ thrustmaster_left:
           invert: true
         j3:
           from: "l_ax_stick_x"
-          invert: true
         
         speed:
           from: "l_ax_slider"
