@@ -41,6 +41,7 @@ def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo')
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
+    urdf = LaunchConfiguration('urdf')
     
     nova_bringup_dir = FindPackageShare('nova_bringup')
     auto_bringup_dir = FindPackageShare('auto_bringup')
@@ -85,21 +86,26 @@ def launch_setup(context, *args, **kwargs):
                         ('/ackermann_steering_controller/reference', '/cmd_vel'),
                     ],
                 ),
-                IncludeLaunchDescription(
-                    condition=IfCondition(auto),
-                    launch_description_source=PythonLaunchDescriptionSource(
-                        PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-                    launch_arguments={'model': model, 'angle': angle}.items(),
-                ),
-                IncludeLaunchDescription(
-                    condition=UnlessCondition(auto),
-                    launch_description_source=PythonLaunchDescriptionSource(
-                        PathJoinSubstitution([nova_bringup_dir, 'launch', 'urdf.launch.py'])),
-                    launch_arguments = {
-                        'arm': arm,
-                        'rover': 'True',
-                        'rviz': rviz
-                    }.items(),
+                GroupAction(
+                    condition=IfCondition(urdf),
+                    actions=[
+                        IncludeLaunchDescription(
+                            condition=IfCondition(auto),
+                            launch_description_source=PythonLaunchDescriptionSource(
+                                PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
+                            launch_arguments={'model': model, 'angle': angle}.items(),
+                        ),
+                        IncludeLaunchDescription(
+                            condition=UnlessCondition(auto),
+                            launch_description_source=PythonLaunchDescriptionSource(
+                                PathJoinSubstitution([nova_bringup_dir, 'launch', 'urdf.launch.py'])),
+                            launch_arguments = {
+                                'arm': arm,
+                                'rover': 'True',
+                                'rviz': rviz
+                            }.items(),
+                        ),
+                    ],
                 ),
                 Node(
                     package='blcmd_utils', 
@@ -178,6 +184,11 @@ def generate_launch_description():
             name='model', 
             default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
+        ),
+        DeclareLaunchArgument(
+            name='urdf',
+            default_value='True',
+            description='Launch URDF?',
         ),
     ]
 
