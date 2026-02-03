@@ -15,6 +15,7 @@ import { ChevronUp } from "react-feather";
 import WheelTelemetryWidgetCell, { IWheelTelemetryWidgetCellProps } from "./WheelTelemetryWidgetCell.tsx";
 import RoverTopDownImage from "../../../assets/rover-top-down-dark.png";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
+import {PIVOT_CURRENT_MAX, WHEEL_CURRENT_MAX} from "../../../constants.ts";
 
 // Properties for the WheelTelemetryWidget component.
 export interface IDriveWheelWidgetProps extends CardProps {
@@ -27,8 +28,6 @@ export interface IDriveWheelWidgetProps extends CardProps {
 const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (
   props: IDriveWheelWidgetProps
 ) => {
-  const pivotEffortMultiplier = 1;
-  const wheelEffortMultiplier = 1;
 
   const bifrost = useBifrost({ topic: RosTopic.DRIVE_JOINT_STATES });
 
@@ -45,7 +44,7 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (
       return efforts[index];
     }
     else {
-      return -1;
+      return 0;
     }
   }
 
@@ -91,8 +90,8 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (
           <WheelTelemetryWidgetCell
             {...cellProp}
             key={index}
-            wheelValue={cellProp.wheelValue * wheelEffortMultiplier}
-            pivotValue={cellProp.pivotValue * pivotEffortMultiplier}
+            wheelValue={cellProp.wheelValue / WHEEL_CURRENT_MAX}
+            pivotValue={cellProp.pivotValue / PIVOT_CURRENT_MAX}
           />
         ))}
       </div>
