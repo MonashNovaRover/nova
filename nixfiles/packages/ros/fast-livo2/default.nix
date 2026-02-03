@@ -42,7 +42,7 @@ buildRosPackage {
     # ./patches/frame.patch
     # ./patches/pointcloud2.patch
     ./patches/change_root_dir.patch
-    ./patches/sanitizers.patch
+    ./patches/memory_bug.patch
   ];
 
   buildType = "ament_cmake";
