@@ -15,16 +15,17 @@ rtabmap_slam:
     Rtabmap/LoopGPS: "true"
     # Grid Parameters are responsible for the Occupancy Grid Generated
     # Crucial for Costmap Generation
+    Grid/Sensor: "0" # 0=laser scan, 1=depth image(s) or 2=both laser scan and depth image(s)
     Grid/MaxGroundAngle: "72"
     Grid/RangeMax: "5.0"
-    Grid/RangeMin: "1.0"
+    Grid/RangeMin: "0.0"
     Grid/3D: "false" # Only Needed for 3D Planning
     Grid/MaxObstacleHeight: "1.0"
     Grid/NoiseFilteringRadius: "0.25"
     Grid/NoiseFilteringMinNeighbors: "5"
     Grid/CellSize: "0.1"
-    GridGlobal/MinSize: "100.0"
-    Grid/RayTracing: "true"
+    GridGlobal/MinSize: "50.0"
+    Grid/RayTracing: "false"
 # Params for RGBD Odom (VO)
 rtabmap_odom:
   ros__parameters:
