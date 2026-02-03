@@ -1,20 +1,20 @@
 { config, lib, ... }:
 
 let
-  cfg = config.devices.jetson.orin-nano;
+  cfg = config.devices.jetson.orin-agx;
 in
 {
   imports = [
     ./boot
   ];
 
-  options.devices.jetson.orin-nano.enable = lib.mkEnableOption "configuration for the NVIDIA Jetson Orin Nano";
+  options.devices.jetson.orin-agx.enable = lib.mkEnableOption "configuration for the NVIDIA Jetson Orin AGX";
 
   config = lib.mkIf cfg.enable {
     devices.jetson.enable = true;
     hardware.nvidia-jetpack = {
       enable = true;
-      som = "orin-nano";
+      som = "orin-agx";
       super = true; # Super speed
     };
 
@@ -49,7 +49,7 @@ in
       ];
     };
 
-    # Display output is non-functional on the Orin Nano.
+    # Display output is non-functional on the Orin AGX.
     # https://github.com/anduril/jetpack-nixos/issues/85
     services.xserver.enable = false;
     nova.desktop.enable = false;
