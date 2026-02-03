@@ -81,6 +81,7 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         Node(
+
             name='chute',
             package='science',
             executable='chute.py',
@@ -90,7 +91,16 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
-
+        Node(
+            name='sweeper',
+            package='science',
+            executable='sweeper.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
         
         # Misc - Nodes for misc components
         Node(

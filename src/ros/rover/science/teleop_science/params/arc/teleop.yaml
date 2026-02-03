@@ -57,12 +57,12 @@ input_publisher_mode:
       # Auger
       - "auger_actuation"   # actuation for both the auger and the c-beam.
       - "auger_drill_speed"
-      # Sweeper
-      - "sweeper_speed"
       # Tool Rotator
       - "tool_rotator_speed"
       # Chute
       - "chute_speed"
+      # Sweeper
+      - "sweeper_sweep"
     button_names:
       # Auger
       - "activate_auger"
@@ -70,8 +70,6 @@ input_publisher_mode:
       - "auger_drill"
       - "auger_drill_clockwise"
       - "auger_drill_anticlockwise"
-      # Sweeper
-      - "sweeper_sweep"
       # Tool Rotator
       - "tool_rotator_twitch_decrease"
       - "tool_rotator_twitch_increase"
@@ -83,3 +81,5 @@ input_publisher_mode:
       - "chute_twitch_increase"
       - "chute_engaged"
       - "chute_disengaged"
+      # Sweeper
+      - "activate_sweeper"
