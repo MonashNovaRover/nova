@@ -1,0 +1,81 @@
+From 07cc4e96285fd401dd74c0eb875f00fdf851ab65 Mon Sep 17 00:00:00 2001
+From: Pavel Rojtberg <rojtberg@gmail.com>
+Date: Sat, 31 Jan 2026 22:33:51 +1100
+Subject: [PATCH 1/3] uvcvideo: extend UVC_QUIRK_FIX_BANDWIDTH to MJPEG streams
+
+attaching two Logitech C615 webcams currently results in
+    VIDIOC_STREAMON: No space left on device
+as the required bandwidth is not estimated correctly by the device.
+In fact it always requests 3060 bytes - no matter the format or resolution.
+
+setting UVC_QUIRK_FIX_BANDWIDTH does not help either as it is only implemented
+for uncompressed streams.
+
+This patch extends UVC_QUIRK_FIX_BANDWIDTH to MJPEG streams by making a
+(conservative) assumption of 4bpp for MJPEG streams.
+As the actual compression ration is often closer to 1bpp this can be overridden
+ via the new mjpeg_bpp parameter.
+
+Based on:
+https://www.mail-archive.com/linux-uvc-devel@lists.berlios.de/msg05724.html
+---
+ drivers/media/usb/uvc/uvc_driver.c | 14 +++++++++++++-
+ drivers/media/usb/uvc/uvc_video.c  |  3 ++-
+ 2 files changed, 15 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 9a791d8ef200..4e86b7e76610 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -34,6 +34,7 @@ unsigned int uvc_no_drop_param;
+ static unsigned int uvc_quirks_param = -1;
+ unsigned int uvc_dbg_param;
+ unsigned int uvc_timeout_param = UVC_CTRL_STREAMING_TIMEOUT;
++static unsigned int uvc_mjpeg_bpp_param;
+ 
+ /* ------------------------------------------------------------------------
+  * Video formats
+@@ -594,7 +595,16 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 		strscpy(format->name, "MJPEG", sizeof(format->name));
+ 		format->fcc = V4L2_PIX_FMT_MJPEG;
+ 		format->flags = UVC_FMT_FLAG_COMPRESSED;
+-		format->bpp = 0;
++		if ((uvc_mjpeg_bpp_param >= 1) && (uvc_mjpeg_bpp_param <= 16)) {
++			format->bpp = uvc_mjpeg_bpp_param;
++		} else {
++			/* conservative estimate. Actual values are around 1bpp.
++			 * see e.g.
++			 * https://developers.google.com/speed/webp/docs/webp_study
++			 */
++			format->bpp = 4;
++		}
++
+ 		ftype = UVC_VS_FRAME_MJPEG;
+ 		break;
+ 
+@@ -2634,6 +2644,8 @@ module_param_named(trace, uvc_dbg_param, uint, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(trace, "Trace level bitmask");
+ module_param_named(timeout, uvc_timeout_param, uint, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(timeout, "Streaming control requests timeout");
++module_param_named(mjpeg_bpp, uvc_mjpeg_bpp_param, uint, S_IRUGO|S_IWUSR);
++MODULE_PARM_DESC(mjpeg_bpp, "MJPEG bits per pixel for bandwidth quirk");
+ 
+ /* ------------------------------------------------------------------------
+  * Driver initialization and cleanup
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index e16464606b14..54b4c6297471 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -192,7 +192,8 @@ static void uvc_fixup_video_ctrl(struct uvc_streaming *stream,
+ 	if ((ctrl->dwMaxPayloadTransferSize & 0xffff0000) == 0xffff0000)
+ 		ctrl->dwMaxPayloadTransferSize &= ~0xffff0000;
+ 
+-	if (!(format->flags & UVC_FMT_FLAG_COMPRESSED) &&
++	if ((!(format->flags & UVC_FMT_FLAG_COMPRESSED) ||
++			(format->fcc == V4L2_PIX_FMT_MJPEG)) &&
+ 	    stream->dev->quirks & UVC_QUIRK_FIX_BANDWIDTH &&
+ 	    stream->intf->num_altsetting > 1) {
+ 		u32 interval;
+-- 
+2.51.2
+
