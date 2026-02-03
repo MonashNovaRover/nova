@@ -1,0 +1,42 @@
+diff --git a/driver/headset.c b/driver/headset.c
+index bfc1717..d4918a9 100644
+--- a/driver/headset.c
++++ b/driver/headset.c
+@@ -399,7 +399,8 @@ static void gip_headset_power_on(struct work_struct *work)
+ 
+ 	/* Check if headset needs authentication before receiving audio samples */
+ 	headset->got_authenticated = true;
+-	for (int i = 0; i < ARRAY_SIZE(GIP_HS_CHECK_AUTH_IDS); i++)
++  int i;
++	for (i = 0; i < ARRAY_SIZE(GIP_HS_CHECK_AUTH_IDS); i++)
+ 		if (client->hardware.vendor == GIP_HS_CHECK_AUTH_IDS[i].vendor &&
+ 		    client->hardware.product == GIP_HS_CHECK_AUTH_IDS[i].product) {
+ 			headset->got_authenticated = false;
+diff --git a/transport/dongle.c b/transport/dongle.c
+index dc9376b..cc2c7dd 100644
+--- a/transport/dongle.c
++++ b/transport/dongle.c
+@@ -900,7 +900,8 @@ static int xone_dongle_fw_requester(const struct firmware **fw,
+ 	int err;
+ 
+ 	dev_dbg(dev, "%s: trying to load firmware %s\n", __func__, fwname);
+-	for (int i = 0; i < XONE_DONGLE_FW_REQ_RETRIES; ++i) {
++  int i;
++	for (i = 0; i < XONE_DONGLE_FW_REQ_RETRIES; ++i) {
+ 		if (dongle->fw_state == XONE_DONGLE_FW_STATE_STOP_LOADING) {
+ 			pr_debug("%s: Stopping firmware load on demand", __func__);
+ 			return 1;
+diff --git a/transport/mt76.c b/transport/mt76.c
+index 11403ef..cfba9c0 100644
+--- a/transport/mt76.c
++++ b/transport/mt76.c
+@@ -719,7 +719,8 @@ static const u8 xone_counterfeit_macs[][ETH_ALEN] = {
+ 
+ static int xone_mt76_mac_looks_counterfeit(const u8* addr)
+ {
+-	for (int i = 0; i < ARRAY_SIZE(xone_counterfeit_macs); i++) {
++  int i;
++	for (i = 0; i < ARRAY_SIZE(xone_counterfeit_macs); i++) {
+ 		if (ether_addr_equal(addr, xone_counterfeit_macs[i]))
+ 			return true;
+ 	}
