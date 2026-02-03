@@ -34,7 +34,7 @@ const DriveSpeedWidget: React.FC<IDriveWidgetProps> = (
   })
   const averageWheelAngularVelocity = wheelVelocities.reduce(
     (acc: number, velocity: number) => { return acc + velocity; }, 0.0)
-    / wheelVelocities.length;
+    / Math.max(wheelVelocities.length, 1);
 
   useEffect(() => {
     bifrostDrive.syncWithTopic();
