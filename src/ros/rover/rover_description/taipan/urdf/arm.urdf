@@ -468,15 +468,15 @@
   <joint name="l1_p_upper" type="revolute">
     <origin xyz="1.87628e-14 -0.1 0.006" rpy="3.14159 -2.86493e-15 -1.5708"/>
     <parent link="l2"/>
-    <child link="l1_p_upper_j2_mimic"/>
+    <child link="l1_p_upper_j3_mimic"/>
     <axis xyz="0 0 1"/>
     <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
     <mimic joint="j2" multiplier="-1" offset="0"/>
   </joint>
   <link name="l1_p_upper_j3_mimic"/>
-  <joint name="l1_p_upper" type="revolute">
+  <joint name="l1_p_upper_mimic" type="revolute">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-    <parent link="l1_p_upper_j2_mimic"/>
+    <parent link="l1_p_upper_j3_mimic"/>
     <child link="l1_prime"/>
     <axis xyz="0 0 1"/>
     <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
@@ -1045,7 +1045,7 @@
     <mimic joint="j3" multiplier="1" offset="0"/>
   </joint>
   <link name="l1_l2_pivot_j2_mimic"/>
-  <joint name="l1_l2_pivot" type="revolute">
+  <joint name="l1_l2_pivot_mimic" type="revolute">
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <parent link="l1_l2_pivot_j2_mimic"/>
     <child link="l2"/>
@@ -1085,15 +1085,15 @@
   <joint name="l1_p_lower" type="revolute">
     <origin xyz="0.1 -2.77556e-17 0" rpy="-3.14159 1.22432e-16 1.5708"/>
     <parent link="l2_prime"/>
-    <child link="l1_prime_fake"/>
+    <child link="l1_p_lower_j3_mimic"/>
     <axis xyz="0 0 1"/>
     <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
     <mimic joint="j2" multiplier="1" offset="0"/>
   </joint>
   <link name="l1_p_lower_j3_mimic"/>
-  <joint name="l1_p_lower" type="revolute">
+  <joint name="l1_p_lower_mimic" type="revolute">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-    <parent link="l2_prime"/>
+    <parent link="l1_p_lower_j3_mimic"/>
     <child link="l1_prime_fake"/>
     <axis xyz="0 0 1"/>
     <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
