@@ -97,6 +97,8 @@ inline uint8_t mode_to_drive_info(const DriveMode mode)
     return drive_interfaces::msg::DriveInfo::STRAFE;
   case DriveMode::DIFF:
     return drive_interfaces::msg::DriveInfo::TANK;
+  default:
+    return std::numeric_limits<uint8_t>::max();
   }
 }
 
