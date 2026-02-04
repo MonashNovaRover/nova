@@ -94,6 +94,7 @@ in
           launch-old-drive = "~/Builds/master/bin/ros2 launch nova_bringup old_drive.launch.py";
           launch-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
           launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
+          launch-teleop-ec = "~/Builds/master/bin/ros2 launch teleop_ec teleop.launch.py";
           launch-science-arc = "~/Builds/master/bin/ros2 launch science_bringup arc.launch.py";
           launch-science-urc = "~/Builds/master/bin/ros2 launch science_bringup urc_old.launch.py";
           launch-theta-orin = "sudo LANG=C ~/Builds/master/bin/ros2 run science urc_theta_360_cam.py";
