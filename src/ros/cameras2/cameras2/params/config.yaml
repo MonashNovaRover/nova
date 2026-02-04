@@ -33,6 +33,7 @@ camera_streamer:
 
       # Science
       science_microscope:
+        mime: video/x-raw
         width: 640
         framerate: 25
         show_clock: false
