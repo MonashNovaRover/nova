@@ -39,7 +39,7 @@
 	  </hardware>
 	  -->
 
-			<joint name="J1">
+			<joint name="j1">
 				<command_interface name="velocity">
 					<param name="max">292.444791137</param>
 					<param name="max">1.0</param>
@@ -84,7 +84,7 @@
 				</hardware>
 			</xacro:if>
 
-			<joint name="J2">
+			<joint name="j2">
 				<command_interface name="velocity">
 					<param name="max">292.444791137</param>
 				</command_interface>
@@ -128,7 +128,7 @@
 				</hardware>
 			</xacro:if>
 
-			<joint name="J3">
+			<joint name="j3">
 				<command_interface name="velocity">
 					<param name="max">292.444791137</param>
 				</command_interface>
@@ -172,7 +172,7 @@
 				</hardware>
 			</xacro:if>
 
-			<joint name="J4">
+			<joint name="j4">
 				<command_interface name="velocity">
 					<param name="max">292.444791137</param>
 				</command_interface>
@@ -216,7 +216,7 @@
 				</hardware>
 			</xacro:if>
 
-			<joint name="J5">
+			<joint name="j5">
 				<command_interface name="velocity">
 					<param name="max">292.444791137</param>
 				</command_interface>
@@ -262,7 +262,7 @@
 				</hardware>
 			</xacro:if>
 
-			<joint name="J6">
+			<joint name="j6">
 				<command_interface name="velocity">
 					<param name="max">292.444791137</param>
 				</command_interface>
@@ -280,7 +280,7 @@
 			</joint>
 		</ros2_control>
 
-	 <ros2_control name="arm_actuator_head" type="system">
+	 <ros2_control name="arm_la_prismatic" type="system">
 		<xacro:unless value="${use_mock_hardware}">
 			<hardware>
 				<plugin>qcmd_hardware/QCMDHardware</plugin>
@@ -299,7 +299,7 @@
 			</hardware>
 		</xacro:if>
 
-		<joint name="actuator_head">
+		<joint name="la_prismatic">
 			<command_interface name="velocity">
 			<param name="max">1</param>
 			</command_interface>
@@ -311,44 +311,7 @@
 	</ros2_control>
 
 
-  <!-- <ros2_control name="arm_right_slide" type="system">
-		<xacro:unless value="${use_mock_hardware}">
-			<hardware>
-				<plugin>cmd_hardware/CMDHardware</plugin>
-				<param name="candevice">can1</param> 
-				<param name="canid">0C2</param>
-				<param name="resolver_id">308</param>
-				<param name="resolver_reduction">1.0</param>
-				<param name="reversed">false</param>
-				<param name="reverse_velocity">true</param>
-				<param name="max_velocity">0.365109712045</param>
-				<param name="max_effort">1</param>
-			</hardware>
-		</xacro:unless>
-		<xacro:if value="${use_mock_hardware}">
-			<hardware>
-				<plugin>mock_components/GenericSystem</plugin>
-				<param name="calculate_dynamics">true</param>
-			</hardware>
-		</xacro:if>
-
-    <joint name="right_slide">
-      <command_interface name="velocity">
-        <param name="max">1</param>
-      </command_interface>
-
-      <state_interface name="velocity">
-        <param name="initial_value">0.0</param>
-      </state_interface>
-
-      <state_interface name="position"> 
-        <param name="initial_value">0.0</param>
-      </state_interface>
-    </joint>
-	</ros2_control> -->
-
-
-  <ros2_control name="arm_left_slide" type="system">
+  <ros2_control name="arm_lead_left" type="system">
 		<xacro:unless value="${use_mock_hardware}">
 			<hardware>
 				<plugin>qcmd_hardware/QCMDHardware</plugin>
@@ -369,7 +332,7 @@
 			</hardware>
 		</xacro:if>
 
-	  <joint name="left_slide">
+	  <joint name="lead_left">
       <command_interface name="velocity">
         <param name="max">1</param>
       </command_interface>

@@ -7,7 +7,7 @@
       <plugin>gz_ros2_control/GazeboSimSystem</plugin>
     </hardware>
 
-    <joint name="J1">
+    <joint name="j1">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -24,7 +24,7 @@
 		</state_interface>
       </joint>
 
-	  <joint name="J2">
+	  <joint name="j2">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -41,7 +41,7 @@
 		</state_interface>
       </joint>
 
-	  <joint name="J3">
+	  <joint name="j3">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -58,49 +58,7 @@
 		</state_interface>
       </joint>
 
-	  <!-- <joint name="l1b_bp">
-		<command_interface name="velocity">
-		  <param name="max">1</param>
-		</command_interface>
-
-		<state_interface name="velocity">
-		  <param name="initial_value">0.0</param>
-		</state_interface>
-
-		<state_interface name="position"> 
-		  <param name="initial_value">0.0</param>
-		</state_interface>
-      </joint>
-
-	  <joint name="l1b_tp">
-		<command_interface name="velocity">
-		  <param name="max">1</param>
-		</command_interface>
-
-		<state_interface name="velocity">
-		  <param name="initial_value">0.0</param>
-		</state_interface>
-
-		<state_interface name="position"> 
-		  <param name="initial_value">0.0</param>
-		</state_interface>
-      </joint>
-
-	  <joint name="l1a_tp">
-		<command_interface name="velocity">
-		  <param name="max">1</param>
-		</command_interface>
-
-		<state_interface name="velocity">
-		  <param name="initial_value">0.0</param>
-		</state_interface>
-
-		<state_interface name="position"> 
-		  <param name="initial_value">0.0</param>
-		</state_interface>
-      </joint> -->
-
-	  <joint name="J4">
+	  <joint name="j4">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -117,7 +75,7 @@
 		</state_interface>
       </joint>
 
-	  <joint name="J5">
+	  <joint name="j5">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -134,7 +92,7 @@
 		</state_interface>
       </joint>
 
-	  <joint name="J6">
+	  <joint name="j6">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -151,7 +109,7 @@
 		</state_interface>
       </joint>
 
-	  <joint name="left_slide">
+	  <joint name="lead_left">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>
@@ -168,7 +126,7 @@
 		</state_interface>
       </joint>
 
-	  <joint name="actuator_head">
+	  <joint name="la_prismatic">
 		<command_interface name="velocity">
 		  <param name="max">1</param>
 		</command_interface>

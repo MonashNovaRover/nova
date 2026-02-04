@@ -1,0 +1,14 @@
+{
+    "configuration": "Length=0.4355+meter",
+    "documentId": "d39c4fc1167c69fc93270f29",
+    "documentMicroversion": "9c5af2ba5a005c0522ca103f",
+    "documentVersion": "faaeaa6751feaa57a58f5b12",
+    "elementId": "ed4d0c360d6fa660600e0f57",
+    "fullConfiguration": "Length=0.4355+meter",
+    "id": "MvhxESxcFZ8KMfpfR",
+    "isStandardContent": false,
+    "name": "RHS 25*38*1.6 450mm <1>",
+    "partId": "JRD",
+    "suppressed": false,
+    "type": "Part"
+}
