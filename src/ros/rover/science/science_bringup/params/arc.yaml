@@ -88,6 +88,31 @@ kiln:
         max_effort: 1.0
         reversed: false
 
+peltier:
+  ros__parameters:
+    can_bus: "can1"
+    controllers:
+      controller:
+        hardware_name: "cooling"
+        service_name: "/science/peltier_command"
+        topic_name: "/science/peltier_status"
+    hardware:
+      cooling:
+        can_id: 0xD2
+        
+diaphragm_pump:
+  ros__parameters:
+    can_bus: "can1"
+    controllers:
+      controller:
+        hardware_name: "flow"
+        service_name: "/science/diaphragm_pump_command"
+        topic_name: "/science/diaphragm_pump_status"
+    hardware:
+      cooling:
+        can_id: 0x0E5
+
+
 # Misc - Nodes for misc components
 scimbal_cam:
   ros__parameters:

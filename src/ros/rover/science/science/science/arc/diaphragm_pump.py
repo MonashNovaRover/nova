@@ -42,8 +42,6 @@ class DiaphragmPumpHardware(HardwareInterface):
 
         self.bus = contexts[jcan.Bus]
 
-        self.last = None
-
         self.declare_parameter("can_id", can_id, "CAN ID of the diaphragm pump")
         self.declare_parameter("max_effort", max_effort, "Max percentage of output to send")
         self.declare_parameter("min_effort_can", min_effort_can, "Min CAN message value that can be sent")
