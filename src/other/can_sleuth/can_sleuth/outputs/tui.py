@@ -7,13 +7,15 @@ Can Sleuth / Simulator
 Ncurses Terminal Interface Output
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-EDITED BY: Orlando Chamberlain
+EDITED BY: Orlando Chamberlain, Will Middlewick
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-'''
+''' 
 
 import curses
 
 from . import output
+
+from can_sleuth.devices.device import Device
 
 class TUI(output.Output):
     """A Terminal User Interface for rendering the state of the system.
@@ -26,10 +28,27 @@ class TUI(output.Output):
         curses.noecho()
         curses.cbreak()
         self._stdscr.keypad(1)
+
+        # colours for each of Device.Attribute.Priority
+        self._colours = {}
         try:
             curses.start_color()
+            curses.use_default_colors()
+
+            for i, (colour, attr, priority) in enumerate((
+                    (curses.COLOR_RED,      curses.A_REVERSE,   Device.Attribute.Priority.FATAL),
+                    (curses.COLOR_RED,      curses.A_NORMAL,    Device.Attribute.Priority.ERROR),
+                    (curses.COLOR_YELLOW,   curses.A_NORMAL,    Device.Attribute.Priority.WARN),
+                    (curses.COLOR_WHITE,    curses.A_NORMAL,    Device.Attribute.Priority.INFO),
+                    (curses.COLOR_WHITE,    curses.A_DIM,       Device.Attribute.Priority.DEBUG),
+                    )):
+                curses.init_pair(i, colour, -1)
+                self._colours[priority] = curses.color_pair(i) | attr
+
         except curses.error:
+            # colour not supported?
             pass
+            
 
         # additional options to configure the terminal
         self._stdscr.clear()
@@ -56,25 +75,63 @@ class TUI(output.Output):
                 continue # terminal is too small to show this window
 
             try:
+                # clearly display when a device is disconnected (no telemetry)
+                if dev.connected():
+                    base_style = curses.A_NORMAL
+                else:
+                    base_style = curses.A_DIM
+
                 win.box()
-                win.addstr(0,1,f"<{dev.getName()}>")
+                win.addstr(0,1,f"<{dev.getName()}>", base_style)
+                max_y, max_x = win.getmaxyx()
+
+
+                # add attributes to window for alive devices
                 height = 1
+                encoder_err = False
                 for attr in dev.attrs:
-                    # TODO: proper support for multiline attrs
-                    # we limit the string to the width of the box minus the border (-2)
-                    win.addnstr(height, 1, f"{attr.name}: {attr.value()}{attr.units}"+" "*attr.width, win.getmaxyx()[1]-2)
+
+                    label = f"{attr.name}: "
+
+                    value = f"{attr.value}{attr.units}"
+
+                    # draw label
+                    win.addnstr(height, 1, label, max_x - 2, base_style)
+
+                    # draw value without overwriting label
+                    lines = value.split("\n")+ [""]*attr.height
+                    for y in range(attr.height):
+                        win.addnstr(
+                            height+y, # y pos
+                            1 + len(label), # x pos
+                            lines[y] + " " * max_x, # text
+                            max_x - 2 - len(label), # max chars to print
+                            self._colours.get(attr.priority, curses.A_NORMAL) | base_style
+                        )
+
                     height += attr.height
+
+                if not dev.connected():
+                    text = "Disconnected"
+                    y = 0
+                    x = max(len(dev.getName())+4, (max_x-len(text))//2)
+                    win.addnstr(y, x, text,
+                                max_x-x, curses.A_REVERSE)
+
                 win.refresh()
             except curses.error:
                 continue # window was probably resized
 
         self._stdscr.refresh()
         try:
-            char = self._stdscr.getkey()
+            char = self._stdscr.getch()
         except curses.error:
             pass # no key was pressed
-        if char == "q":
+        if char == ord("q"):
             raise KeyboardInterrupt
+        elif char == curses.KEY_RESIZE:
+            # get rid of any text where a device was before it gets moved
+            self._stdscr.erase()
 
 
     def _windowSize(self, device):

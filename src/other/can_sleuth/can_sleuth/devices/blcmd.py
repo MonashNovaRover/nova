@@ -49,7 +49,7 @@ class BLCMD(candevice.CanDevice):
         """process commands on can
         """
         commandNumber = frame.id&0xf
-        self.lastCommand = BLCMD.commands[commandNumber]["name"] \
+        self.lastCommand.value = BLCMD.commands[commandNumber]["name"] \
                 + str(BLCMD.commands[commandNumber]["fmt"](frame.data))
 
 
@@ -134,10 +134,33 @@ class BLCMD(candevice.CanDevice):
         # TODO: trace get/set configuration messages on can
 
 
-        self.lastCommand = ""
-        self.registerAttr("msg", lambda: self.lastCommand, 15)
+        self.lastCommand = self.registerAttr("msg", "", 15)
+
+        # update this value as needed
+        EXPECTED_MOST_NUMBER_OF_PROBLEMS_AT_ONCE = 2
+
+        self._diagnosis = self.registerAttr(
+                "diagnosis", "-", 10,
+                height=EXPECTED_MOST_NUMBER_OF_PROBLEMS_AT_ONCE
+                )
+
+        # cache pointers to these so we don't search for them every update
+        self._velocity = self.getAttrByName("velocity")
+        self._err = self.getAttrByName("err")
 
     def update(self):
-        pass
+        diagnosis = []
+
+        if self._velocity.raw in ("0x7f81", "0x7f7f"):
+            diagnosis.append("ENCODER DC'd")
+
+        if self._err.raw[4:6] in ("06", "07"): # "GATE_DRIVER_SPI", "MA302_SPI"
+            diagnosis.append("CHECK FUSE")
+
+        self._diagnosis.value = "\n".join(diagnosis)
+        if diagnosis:
+            self._diagnosis.priority = self.Attribute.Priority.ERROR
+        else:
+            self._diagnosis.priority = self.Attribute.Priority.INFO
 
 
