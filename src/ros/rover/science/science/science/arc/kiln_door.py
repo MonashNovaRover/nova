@@ -43,8 +43,9 @@ class KilnDoorController(Controller):
         self.logger.info(f"KilnDoor -- I have been __init__ialized")
 
         #ros2 parameters
-        self.door_open_btn_name = self.declare_parameter("open_button", "open_kiln_door").value
-        self.door_close_btn_name = self.declare_parameter("close_button", "close_kiln_door").value
+        # self.door_open_btn_name = self.declare_parameter("open_button", "open_kiln_door").value
+        # self.door_close_btn_name = self.declare_parameter("close_button", "close_kiln_door").value
+        self.door_actuation_axis_name = self.declare_parameter("actuation_axis", "door_actuation").value
         self.door_speed_name = self.declare_parameter("speed_axis", "door_speed").value
 
         #maximum door current 
@@ -53,17 +54,11 @@ class KilnDoorController(Controller):
         #inputs
         inputs = contexts[Inputs]
 
-        self.door_open_btn  = inputs.get_button(self.door_open_btn_name)
-        self.door_close_btn = inputs.get_button(self.door_close_btn_name)
+        self.door_actuation = inputs.get_axis(self.door_actuation_axis_name)
         self.door_speed = inputs.get_axis(self.door_speed_name)
 
 
         self.door_state = Direction.POSITIVE #1:open -1:closed
-
-        #button callback functions
-        self.door_open_btn.add_callback(self.update_door_direction())
-        self.door_close_btn.add_callback(self.update_door_direction())
-
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -91,23 +86,20 @@ class KilnDoorController(Controller):
         # Update Command Interfaces
         # self.logger.info(f"{self.state.value} -> {self.cmd.value}")
 
+        #update door state
+
+        if self.door_state!= self.door_actuation.value:
+            self.logger.info(f"Kiln door {"CLOSING" if self.door_state == Direction.POSITIVE else "OPENING"}")
+            self.door_state = self.door_actuation.value
+
         #check if door current reached max val
-        if abs(self.door_current_state) < self.max_door_current.value:
+        if abs(self.door_current_state.value) < self.max_door_current.value:
             #set command interface
             self.kiln_door_cmd.value = self.door_state * self.axis_to_speed(self.door_speed.value)
         else:
             #turn off motor
             self.kiln_door_cmd.value = 0
     
-    def update_door_direction(self, direction:Direction):
-        """
-            Changes whether the kiln door is opening or closing during a button press.
-        """
-        def change_direction():
-            if self.door_state != direction:
-                self.logger.info(f"Kiln door {"CLOSING" if self.state == Direction.POSITIVE else "OPENING"}")
-                self.door_state = direction
-        return change_direction
 
     def axis_to_speed(axis:int):
         return (axis +1)/2
@@ -122,8 +114,8 @@ if __name__ == "__main__":
 
     PythonControl("kiln_door", update_rate=5, can_bus="can1") \
         .with_controller("controller", KilnDoorController) \
-        .with_hardware("kiln_door", QCMDHardware, can_id = "") \
-        .with_hardware("current_sensor",GenericSensorHardware, can_id="", unit = "amp")
+        .with_hardware("kiln_door", QCMDHardware, can_id = 0xD2) \
+        .with_hardware("current_sensor",GenericSensorHardware, can_id=0x4FF, unit = "amp")
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()

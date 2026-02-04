@@ -120,6 +120,11 @@ thrustmaster_right:
         chute_speed:
           from: "r_ax_slider"
 
+        # Kiln Door
+        door_actuation:
+          from: r_ax_thumb_y
+        door_speed: "r_ax_slider"
+
       buttons:
         # Auger
         auger_drill:
