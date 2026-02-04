@@ -32,10 +32,10 @@ class Device(abc.ABC):
 
         class Priority(Enum):
             FATAL = 0
-            ERROR = auto
-            WARN = auto
-            INFO = auto
-            DEBUG = auto
+            ERROR = auto()
+            WARN = auto()
+            INFO = auto()
+            DEBUG = auto()
 
         name: str
         # value is ideally si units or human readable
