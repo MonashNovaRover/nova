@@ -8,11 +8,9 @@ Execute this code on the rover to start all
 NODES:
   - excavation_construction/scraper.py      [scraper]
   - excavation_construction/tile_placer.py  [tile_placer]
-LAUNCH FILES:
-  - drive_bringup/drive.launch.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATION:   11/02/2024
-EDITED:     25/02/2025
+EDITED:     04/02/2026
 EDITED BY: Tristan Clark, Taaj Street, 
     Victor Bartlinski, Jonathan Jia
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -27,7 +25,6 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     nova_bringup_dir = FindPackageShare('nova_bringup')
-    drive_bringup_dir = FindPackageShare('drive_bringup')
     ec_params = LaunchConfiguration('ec_params')
     log_level = LaunchConfiguration('log_level')
 
@@ -60,12 +57,6 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[ec_params],
             ros_arguments=['--log-level', log_level],
-        ),
-        IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(
-                PathJoinSubstitution([drive_bringup_dir, 'launch', 'drive.launch.py'])
-            ),
-            launch_arguments={'log_level' : log_level}.items(),
         ),
     ]
 
