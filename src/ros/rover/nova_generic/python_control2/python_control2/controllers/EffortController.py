@@ -15,7 +15,7 @@ COMMAND INTERFACES:
 PACKAGE:        python_control2
 AUTHOR(S):      Jonathan Jia, Binuda Kalugalage
 CREATION:       31/01/26
-EDITED:         01/02/26
+EDITED:         04/02/26
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 from typing import Optional
@@ -92,7 +92,7 @@ class EffortController(Controller):
         :param request: Specified settings for effort system control (state, effort_level).
         :param response: Whether or not these settings were applied successfully (applied).
         """
-        self.logger.info(f"EffortController {self.name} received request: (state={request.state}, level={request.level:.2f})")
+        self.logger.info(f"EffortController {self.name} received EffortCommand request: (state={request.state}, level={request.level:.2f})")
 
         self.is_on = request.state
         self.effort_level = request.level

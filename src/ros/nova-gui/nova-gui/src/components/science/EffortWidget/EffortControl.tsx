@@ -12,7 +12,7 @@ export interface EffortControlProps {
 }
 
 /**
- * Controls for turning the effort system on/off and adjusting the effort level
+ * Controls for turning the effort system on/off and adjusting the effort level (repurposed from HeaterControl.tsx)
  * @param controlName the name of the effort system
  * @param currentStatus the current state of the effort system (on/off)
  * @param setStatus request the effort system to change state

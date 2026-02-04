@@ -15,12 +15,20 @@ export const ARCMicroscopeView = () => {
       <div className="grid grid-flow-col auto-cols-fr justify-between items-stretch gap-3 ">
         <div className="flex flex-col flex-grow gap-3 col-span-3">
           <MicroscopeWidget cameraSerial="science_microscope" />
-          <EffortWidget
-            label="Peltier"
-            topic={RosTopic.PELTIER_STATUS}
-            service={RosService.PELTIER_COMMAND}
-            statusSelector={(state: RootState) => state.peltierStatus}
-            storeName="peltierEffort" />
+          <div className="grid grid-cols-[1fr_1.1fr] gap-3">
+            <EffortWidget
+              label="Peltier"
+              topic={RosTopic.PELTIER_STATUS}
+              service={RosService.PELTIER_COMMAND}
+              statusSelector={(state: RootState) => state.peltierStatus}
+              storeName="peltierEffort" />
+            <EffortWidget
+              label="Diaphragm Pump"
+              topic={RosTopic.DIAPHRAGM_PUMP_STATUS}
+              service={RosService.DIAPHRAGM_PUMP_COMMAND}
+              statusSelector={(state: RootState) => state.diaphragmPumpStatus}
+              storeName="diaphragmPumpEffort" />
+          </div>
         </div>
         <div className="flex flex-col gap-3 col-span-3">
           <KilnWidget />

@@ -18,7 +18,7 @@ export interface EffortWidgetWidgetProps extends CardProps {
 }
 
 /**
- * Effort control widget.
+ * Effort control widget (repurposed from HeaterWidget.tsx)
  * @param props
  * @constructor
  */
