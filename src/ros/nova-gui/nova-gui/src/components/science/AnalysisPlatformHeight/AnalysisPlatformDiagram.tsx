@@ -30,7 +30,7 @@ const AnalysisArmDiagram: React.FC<AnalysisArmDiagramProps> = ({percent, target}
   const options: ApexOptions = {
     chart: {
       type: "boxPlot",
-      height: 350,
+      // height: 350,
       toolbar: { show: false },
       zoom: { enabled: false },
       selection: { enabled: false },
@@ -89,10 +89,10 @@ const AnalysisArmDiagram: React.FC<AnalysisArmDiagramProps> = ({percent, target}
       labels: {
         formatter: (value) => {
           if (value === 105) {
-            return "max";
+            return "0";
           }
-          else if (value === 0) {
-            return '0'
+          else if (value === -5) {
+            return 'max'
           }
           return "";
         },

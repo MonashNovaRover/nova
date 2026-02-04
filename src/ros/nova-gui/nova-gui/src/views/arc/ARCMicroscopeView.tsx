@@ -4,11 +4,14 @@ import EffortWidget from "../../components/science/EffortWidget/EffortWidget.tsx
 import { RosService } from "../../ros/services/rosService.ts";
 import { RosTopic } from "../../ros/topics/rosTopic.ts";
 import { RootState } from "../../redux/RootState.ts";
+import AnalysisArmWidget from "../../components/science/AnalysisPlatformHeight/AnalysisPlatformWidget.tsx";
 
 export const ARCMicroscopeView = () => {
   return (
     <div className="p-3 max-h-full">
       <div className="grid grid-flow-col auto-cols-fr justify-between items-stretch gap-3 ">
+        <div className="flex flex-col flex-grow col-span-3">
+          <MicroscopeWidget cameraSerial={"science_microscope"} />
         <div className="flex flex-col flex-grow gap-3 col-span-3">
           <MicroscopeWidget cameraSerial="science_microscope" />
           <div className="grid grid-cols-[1fr_1.1fr] gap-3">
@@ -28,7 +31,7 @@ export const ARCMicroscopeView = () => {
         </div>
         <div className="flex flex-col gap-3 col-span-3">
           <KilnWidget />
-          <AnalysisArmDiagram/>
+          <AnalysisArmWidget/>
         </div>
       </div>
     </div>
