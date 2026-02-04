@@ -13,6 +13,7 @@ EDITED BY: Orlando Chamberlain
 
 from . import tui
 from . import gui
+from . import terminal_out
 
 def default_output():
     try:
@@ -25,5 +26,6 @@ def default_output():
 allOutputs = {
         "tui": tui.TUI,
         "gui": gui.GUI,
+        "txt": terminal_out.TerminalOut,
         }
 
