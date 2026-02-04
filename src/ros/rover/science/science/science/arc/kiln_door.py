@@ -42,24 +42,7 @@ class KilnDoorController(Controller):
         super().__init__(contexts)
         self.logger.info(f"KilnDoor -- I have been __init__ialized")
 
-        # # Declare ROS2 parameters here.
-        # self.door_effort= self.declare_parameter("door_effort", 0.5).value #effort of qcmd door
-        # # Do any setup logic here, save any contexts you want reference to in the future.
-        # # Save Input references here
-        # self.kiln_door_button_name = self.declare_parameter("door_button", "kiln_door").value #door open and close button for teleop
-
-        # inputs = contexts[Inputs]
-
-        # self.door_button = inputs.get_button(self.kiln_door_button_name)
-        # self.door_state = Direction.POSITIVE
-
-        # self.door_button.add_callback(self.update_door_direction())
-        # #self.axis = inputs.get_axis(self.axis_name)
-        # #inputs.get_event(f"{self.button_name}/down").add_callback(lambda : self.logger.info(f"{self.button_name}/down event triggered"))
-
-        # self.door_open_effort = self.declare_parameter("door_open_effort", 0.5)
-        # self.door_close_effort = self.declare_parameter("door_close_effort",0.5)
-
+        #ros2 parameters
         self.door_open_btn_name = self.declare_parameter("open_button", "open_kiln_door").value
         self.door_close_btn_name = self.declare_parameter("close_button", "close_kiln_door").value
         self.door_speed_name = self.declare_parameter("speed_axis", "door_speed").value
@@ -76,6 +59,8 @@ class KilnDoorController(Controller):
 
 
         self.door_state = Direction.POSITIVE #1:open -1:closed
+
+        #button callback functions
         self.door_open_btn.add_callback(self.update_door_direction())
         self.door_close_btn.add_callback(self.update_door_direction())
 
@@ -92,11 +77,10 @@ class KilnDoorController(Controller):
         """
         # Save references to interfaces
         # self.logger.info(f"Getting \"{self.joint + "/effort"}\"")
-        # self.joint_cmd = command_interfaces[self.joint + "/effort"]
         self.kiln_door_cmd = command_interfaces["kiln_door/effort"]
 
         #door current state interface
-        self.door_current_state = state_interfaces["kiln_door_sensor/current"]
+        self.door_current_state = state_interfaces["current_sensor/current"]
 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
@@ -105,14 +89,14 @@ class KilnDoorController(Controller):
         :param period: The time elapsed since the last update, in seconds.
         """
         # Update Command Interfaces
-        # self.cmd.value = 2 * self.state.value
         # self.logger.info(f"{self.state.value} -> {self.cmd.value}")
 
         #check if door current reached max val
-        if self.door_current_state < self.max_door_current.value:
+        if abs(self.door_current_state) < self.max_door_current.value:
             #set command interface
             self.kiln_door_cmd.value = self.door_state * self.axis_to_speed(self.door_speed.value)
         else:
+            #turn off motor
             self.kiln_door_cmd.value = 0
     
     def update_door_direction(self, direction:Direction):
@@ -139,7 +123,7 @@ if __name__ == "__main__":
     PythonControl("kiln_door", update_rate=5, can_bus="can1") \
         .with_controller("controller", KilnDoorController) \
         .with_hardware("kiln_door", QCMDHardware, can_id = "") \
-        .with_hardware("current_sensor",GenericSensorHardware)
+        .with_hardware("current_sensor",GenericSensorHardware, can_id="", unit = "amp")
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()
