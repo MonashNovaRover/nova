@@ -6,9 +6,11 @@ TOF Controller to publish distance data to GUI
 NODE: TimeOfFlightController
 TOPICS:
   - publisher: /science/analysis-arm Range
-SERVICES:
-	- service: <service> [<srv type>]
+
 ACTIONS: None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+STATE INTERFACES:
+  - tof_sensor/distance  [distance in mm]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        python_control2
 AUTHOR(S):      Yahya Muayyiduddin
@@ -93,8 +95,8 @@ if __name__ == "__main__":
             minimum_range = 10,
             maximum_range = 100) \
         .with_hardware("tof_sensor", GenericSensorHardware,
-            can_id = 0x01,
-            interpret_data = lambda data: int.from_bytes(data),
+            can_id = 0x01, # Placeholder
+            interpret_data = lambda data: int.from_bytes(data), # Placeholder
             unit = "distance") \
         .with_jcan() \
         .spin()
