@@ -103,7 +103,7 @@ class GUI(output.Output):
             text.append(f"<{dev.getName()}>")
             if dev.connected:
                 for attr in dev.attrs:
-                    text.append(f"\t{attr.name}: {attr.value()}{attr.units}")
+                    text.append(f"\t{attr.name}: {attr.value}{attr.units}")
             else:
                     text.append(f"\tDisconnected")
 
