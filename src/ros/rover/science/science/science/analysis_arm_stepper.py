@@ -9,7 +9,7 @@ COMMAND INTERFACES:
   - actuation/position    [number of steps away from zero position]
 STATE INTERFACES:
   - actuation/position    [number of steps away from zero position]
-  - tof/distance          [distance from ground in ??]
+  - distance/position     [distance from ground in ??]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Felicity Matthews
@@ -22,8 +22,9 @@ from rclpy.node import Node
 from typing import Optional
 
 from python_control2 import PythonControl, Controller, Interface, Contexts, InterfaceCollection
-from python_control2.hardware_interfaces import StepperHardware
+from python_control2.hardware_interfaces import StepperHardware, GenericSensorHardware
 from teleop_python_utils import Inputs, EventCollection
+from science_interfaces import DistanceData
 
 
 class AnalysisArmController(Controller):
@@ -31,6 +32,7 @@ class AnalysisArmController(Controller):
     actuation_effort_cmd: Interface
     actuation_position_cmd: Interface
     actuation_position_state: Interface
+    distance_state: Interface
 
     def __init__(self, contexts: Contexts, hardware_name: str="actuation", actuation_axis: str="actuation"):
         """ Constructor, deferred until the control manager has been spun.
@@ -41,7 +43,7 @@ class AnalysisArmController(Controller):
         super().__init__(contexts)
         self.logger.info(f"AnalysisArmController -- I have been __init__ialized")
 
-        # Get inputs
+        # Define parameters
         self.hardware_name = self.declare_parameter("hardware_name", hardware_name).value
 
         # Actuation axis
@@ -51,13 +53,18 @@ class AnalysisArmController(Controller):
         inputs = contexts[Inputs]
         self.actuation_axis = inputs.get_axis(self.actuation_axis_name)
 
+        # Setup publisher and publish timer
+        self.publisher = self.node.create_publisher(DistanceData, "/science/analysis_arm", 10)
+        interval = self.declare_parameter("publish_rate", 3, "How many times a second to publish data.")
+        self.publish_timer = self.node.create_timer(interval / 10, self.publish_data)
+
         # Get stepper zero event
+        self.zero_event = None
         if EventCollection in contexts:
             events = contexts[EventCollection]
             self.zero_event = events.get(f"{self.hardware_name}/zero")
         else:
             self.logger.error("Could not find EventCollection in the python control contexts, cannot zero analysis arm position.")
-
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -70,8 +77,15 @@ class AnalysisArmController(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
         # Save references to interfaces
-        self.logger.info(f"Getting {self.hardware_name}/effort")
-        self.actuation_cmd = command_interfaces[f"{self.hardware_name}/effort"]
+        # Command interfaces
+        self.logger.info(f"Getting command interfaces: {self.hardware_name}/effort and {self.hardware_name}/position")
+        self.actuation_effort_cmd = command_interfaces[f"{self.hardware_name}/effort"]
+        self.actuation_position_cmd = command_interfaces[f"{self.hardware_name}/position"]
+
+        # State interfaces
+        self.logger.info(f"Getting state interfaces: {self.hardware_name}/position and distance/position")
+        self.actuation_position_state = state_interfaces[f"{self.hardware_name}/position"]
+        self.distance_state = state_interfaces[f"distance/position"]
 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
@@ -85,6 +99,15 @@ class AnalysisArmController(Controller):
 
         # Update actuation
         self.actuation_cmd.value = self.actuation_axis.value
+
+    def publish_data(self):
+        """ Publishes DistanceData """
+        msg = DistanceData()
+        msg.valid = self.distance_state.value >= 0
+        msg.distance = self.distance_state.value
+        msg.steps = self.actuation_position_state.value
+
+        self.publisher.publish(msg)
 
 
 if __name__ == "__main__":
@@ -102,7 +125,8 @@ if __name__ == "__main__":
         AnalysisArmController,
         actuation_axis="analysis_arm_actuation"
     ) \
-        .with_hardware("actuation", StepperHardware, can_id=0x0E4) \
+        .with_hardware("actuation", StepperHardware, can_id=0x0E6) \
+        .with_hardware("distance", GenericSensorHardware, can_id=0x4E1, unit="position", initial_value=-1) \
         .with_teleop(inputs) \
         .with_jcan() \
         .with_event_collection() \
