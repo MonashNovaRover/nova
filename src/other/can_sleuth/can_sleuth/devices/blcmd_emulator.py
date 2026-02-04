@@ -31,6 +31,7 @@ class BLCMDEmulator(candevice.CanDevice):
         :param hasResolver: is there a resolver for position feedback?
         """
         super().__init__(name, bus, canIdMask=0xff0,canIdMatch=id_<<4)
+        self.connected = True
         self.id = id_
 
         for i in range(0xf):

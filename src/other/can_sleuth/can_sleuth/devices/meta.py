@@ -7,6 +7,7 @@ class Meta(device.Device):
     """
     def __init__(self, manager):
         super().__init__("Meta")
+        self.connected = True
         self._manager=manager
 
         # Timekeeping Vars

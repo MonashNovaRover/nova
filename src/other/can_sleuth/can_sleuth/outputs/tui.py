@@ -66,7 +66,7 @@ class TUI(output.Output):
                 max_y, max_x = win.getmaxyx()
 
                 # clearly display when a device is disconnected (no telemetry)
-                if dev.attrs[0].value() is None:
+                if not dev.connected:
                     text = "Disconnected"
                     y = max_y // 2
                     x = max(1, (max_x - len(text)) // 2)

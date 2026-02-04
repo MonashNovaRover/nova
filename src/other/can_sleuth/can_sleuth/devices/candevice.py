@@ -72,6 +72,7 @@ class CanDevice(device.Device):
             construct these with whatever integer size and signed/unsigned and unit conversions as per
             whatever the can device does.
             """
+            self._canDevice = canDevice
             self._fields = fields
             for field in self._fields:
                 # I am filled with regret and I can hear my FIT2099 TA shouting at me.
@@ -83,6 +84,7 @@ class CanDevice(device.Device):
             """Callback for when we recieve a can message. We split the message's payload up and
             send each section of bytes to the respective SimpleBytesAttribute
             """
+            self._canDevice.connected = True # TODO: only for device-> computer messages
             position = 0
             for field in self._fields:
                 length = field.getByteLength()

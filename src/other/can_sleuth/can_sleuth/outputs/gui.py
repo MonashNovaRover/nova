@@ -37,7 +37,7 @@ class GUI(output.Output):
         self.sharedDict["data"] = ""
 
         self.qtProcess.start()
-        time.sleep(0.1)
+        time.sleep(0.3)
         if (not self.qtProcess.is_alive()):
             raise RuntimeError("gui could not start")
 
@@ -101,8 +101,12 @@ class GUI(output.Output):
         text = []
         for dev in devices:
             text.append(f"<{dev.getName()}>")
-            for attr in dev.attrs:
-                text.append(f"\t{attr.name}: {attr.value()}{attr.units}")
+            if dev.connected:
+                for attr in dev.attrs:
+                    text.append(f"\t{attr.name}: {attr.value()}{attr.units}")
+            else:
+                    text.append(f"\tDisconnected")
+
 
         self.sharedDict["data"] = "\n".join(text)
         self.sharedDict["pendingUpdate"] = True

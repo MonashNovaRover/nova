@@ -14,6 +14,7 @@ EDITED BY: Orlando Chamberlain
 import abc
 import struct
 from dataclasses import dataclass
+from enum import Enum, auto
 
 class Device(abc.ABC):
     def __init__(self, name):
@@ -21,8 +22,20 @@ class Device(abc.ABC):
         self._width = 0
         self.attrs = []
 
+        # set to true once you receive any message from the device
+        # not including messages from the computer
+        self.connected = False
+
     @dataclass
     class Attribute:
+
+        class Priority(Enum):
+            FATAL = 0
+            ERROR = auto
+            WARN = auto
+            INFO = auto
+            DEBUG = auto
+
         # TODO: reconsider if value/raw should be functions or just values the device puts there on update()
         name: str
         value: object # function returning string
@@ -30,6 +43,7 @@ class Device(abc.ABC):
         raw: object = lambda: None # function returning string
         height: int = 1
         units: str = ""
+        priority: Priority = Priority.INFO # can change at runtime
 
     class SimpleBytesAttribute(Attribute):
         def __init__(self, name, bytesFmt, units, toHumanReadable):
