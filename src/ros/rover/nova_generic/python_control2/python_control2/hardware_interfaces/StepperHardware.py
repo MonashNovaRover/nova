@@ -2,15 +2,23 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Hardware interface for Stepper motors.
 
-TODO: add position support.
+Can be controlled by effort or position, position
+command interface must be None to use effort
+control.
+
+Can be zeroed by invoking the "<joint>/zero" event.
+(found in the EventCollection context)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
-  - <joint>/effort  [value between -1 and 1]
+  - <joint>/effort      [value between -1 and 1]
+  - <joint>/position    [number of steps away from zero position]
+STATE INTERFACES:
+  - <joint>/position    [number of steps away from zero position]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        python_control2
 AUTHOR(S):      Felicity Matthews
 CREATION:       01/02/26
-EDITED:         01/02/26
+EDITED:         04/02/26
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -31,14 +39,14 @@ class StepperHardware(HardwareInterface):
     # The name of the joint
     joint: str
     reversed: bool
-    max_effort: float
-    max_effort_can: int
+    max_steps_percent: float
+    max_steps_can: int
 
     def __init__(self, contexts: Contexts,
                  joint: str="",
                  can_id: int=0,
                  reversed: bool=False,
-                 max_effort: float=1.0, max_effort_can: int=0x7F):
+                 max_steps_percent: float=1.0, max_steps_can: int=0x7F):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
@@ -56,12 +64,15 @@ class StepperHardware(HardwareInterface):
         self.declare_parameter("joint", joint, "Name of the joint")
         self.declare_parameter("can_id", can_id, "CAN ID of the Stepper")
         self.declare_parameter("reversed", reversed, "Whether the output should be reversed")
-        self.declare_parameter("max_effort", max_effort, "Max percentage of output to send")
-        self.declare_parameter("max_effort_can", max_effort_can, "Max CAN message value that can be sent")
+        self.declare_parameter("max_steps_percent", max_steps_percent, "Max percentage of output to send")
+        self.declare_parameter("max_steps_can", max_steps_can, "Max CAN message value that can be sent")
 
         # Setup zero event callback.
-        events = contexts[EventCollection]
-        events[f"{self.get_parameter("joint").value}/zero"].add_callback(self.zero)
+        if EventCollection in contexts:
+            events = contexts[EventCollection]
+            events[f"{self.get_parameter("joint").value}/zero"].add_callback(self.zero)
+        else:
+            self.logger.error("Could not find EventCollection in the python control contexts, cannot zero StepperHardware.")
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
         """ Used to set up your HardwareInterface. Run once before any other class method.
@@ -78,11 +89,13 @@ class StepperHardware(HardwareInterface):
         self.joint: str = self.get_parameter("joint").value
         self.reversed: int = -1 if self.get_parameter("reversed").value else 1
 
-        self.max_effort = self.get_parameter("max_effort").value
-        self.max_effort_can = self.get_parameter("max_effort_can").value
+        self.max_steps_percent = self.get_parameter("max_steps_percent").value
+        self.max_steps_can = self.get_parameter("max_steps_can").value
 
         # Get command interfaces
         self.effort_cmd = command_interfaces[self.joint + "/effort"]
+        self.position_cmd = command_interfaces[self.joint + "/position"]
+        self.position_state = state_interfaces[self.joint + "/position"]
 
         # Validate command interface configuration
         if not self.effort_cmd:
@@ -100,32 +113,66 @@ class StepperHardware(HardwareInterface):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-        pass
+        self.position_state.value = self.current_position
 
     def on_write(self, now: float, period: float):
         """ Called to write to hardware using values stored in command interfaces.
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-        if self.effort_cmd.value != 0:
-            frame = self.construct_frame()
-            self.bus.send(frame)
+        # Prioritizes position control over effort.
+        if self.position_cmd is not None:
+            steps_to_move = self.position_to_steps(self.position_cmd.value)
 
-    def construct_frame(self) -> jcan.Frame:
-        """ Construct the jcan Frame based on current command interface """
-        # Set the data based on the effort, max percent value, max can value and reversed
-        # Effort is directional.
-        data = int(self.effort_cmd.value * self.max_effort * self.max_effort_can * self.reversed)
+            if steps_to_move > 0:
+                frame = self.construct_frame(steps_to_move)
+                self.bus.send(frame)
+                self.current_position += steps_to_move
+
+        elif self.effort_cmd.value != 0:
+            steps_to_move = self.effort_to_steps(self.effort_cmd.value)
+            frame = self.construct_frame(steps_to_move)
+            self.bus.send(frame)
+            self.current_position += steps_to_move
+
+    def position_to_steps(self, position) -> int:
+        """ Convert goal position to a discrete number of steps. """
+        data = position - self.current_position
 
         # Check if the data is greater than the max value
         # If it is, set the data to the max value
-        if data > self.max_effort_can:
-            data = self.max_effort_can
-        elif data < -self.max_effort_can:
-            data = -self.max_effort_can
+        if data > self.max_steps_can:
+            data = self.max_steps_can
+        elif data < -self.max_steps_can:
+            data = -self.max_steps_can
+
+        data *= self.max_steps_percent
+
+        return data
+
+    def effort_to_steps(self, effort) -> int:
+        """ Convert effort to a discrete number of steps. """
+        # Set the data based on the effort, max percent value, max can value and reversed
+        # Effort is directional.
+        data = int(effort * self.max_steps_percent * self.max_steps_can)
+
+        # Check if the data is greater than the max value
+        # If it is, set the data to the max value
+        if data > self.max_steps_can:
+            data = self.max_steps_can
+        elif data < -self.max_steps_can:
+            data = -self.max_steps_can
+
+        return data
+
+    def construct_frame(self, steps_to_move) -> jcan.Frame:
+        """ Construct the jcan Frame based on how many steps to move """
+        if not -self.max_steps_can <= steps_to_move <= self.max_steps_percent:
+            self.logger.error(f"{steps_to_move} is outside of range [{-self.max_steps_can}, {self.max_steps_percent}]")
+            return jcan.Frame(id=self.can_id, data=[0])
 
         # # Pack the data into a list
-        packed_data = list(pack('>b', int(data))) # >b = big-endian signed byte (2 hex digits)
+        packed_data = list(pack('>b', int(steps_to_move * self.reversed))) # >b = big-endian signed byte (2 hex digits)
 
         # Create and return the frame
         frame = jcan.Frame(id=self.can_id, data=packed_data)
