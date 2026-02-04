@@ -36,6 +36,7 @@ class BatteryEmulator(candevice.CanDevice):
         self.id = idNumber
         self.state = 0
         super().__init__(name, interface , canIdMask=0xfff, canIdMatch=(self.id<<4)|0x3);
+        self.connected = True
 
 
     def update(self):

@@ -12,7 +12,10 @@ class TerminalOut(output.Output):
         for device in devices:
             print(f"Device: {device.name}")
 
-            for attr in device.attrs:
-                print(f"{attr.name}: {attr.value}")
+            if device.connected:
+                for attr in device.attrs:
+                    print(f"{attr.name}: {attr.value()}")
+            else:
+                print("Disconnected")
 
     
