@@ -4,7 +4,7 @@
 teleop_drive_joy:
   input_topic:
     type: string
-    default_value: "/joy"
+    default_value: "/drive/joy"
     description: "Input Topic for Joy Messages"
   output_topic:
     type: string
@@ -14,6 +14,30 @@ teleop_drive_joy:
     type: string
     default_value: "/drive/drive_info"
     description: "Output topic for drive teleop telemetry"
+  joint_states_topic:
+    type: string
+    default_value: "/drive/joint_states"
+    description: "Input topic for wheel/pivot states"
+  joy_feedback_topic:
+    type: string
+    default_value: "/drive/joy/set_feedback"
+    description: "Output topic for game pad feedback (e.g. rumble)"
+
+  rumble_range:
+    type: double_array
+    default_value: [0.4, 0.8]
+    description: >
+      Game pad rumble linearly increases from none to max as wheel effort increase in range. 
+      If less than range, game pad will not rumble. 
+      If greater than range, game pad will have maximum rumble.
+  rumble_joints:
+    type: string_array
+    default_value: ["frw", "flw", "brw", "blw"]
+    description: "Joint names used to derive wheel effort from joint states for rumble_range"
+  rumble_delay:
+    type: int
+    default_value: 0
+    description: "Duration in milliseconds before controller actually starts rumbling"
   
   # Deadzone already exists as an input parameter to the joy node (teleop.launch.py)
 
@@ -60,12 +84,6 @@ teleop_drive_joy:
     limit_angular:
       type: double
       default_value: 1.0
-      description: "A limit parameter applied on angular velocity"
-
-  pivot_drive_controller:
-    limit_angular:
-      type: double
-      default_value: 0.999
       description: "A limit parameter applied on angular velocity"
   
   axis_linear_x:

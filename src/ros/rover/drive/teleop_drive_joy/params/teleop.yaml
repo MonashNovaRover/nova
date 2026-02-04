@@ -1,0 +1,52 @@
+# see teleop_drive_joy.yaml for descriptions given to options
+teleop_drive_joy_node:
+  ros__parameters:
+    initial_speed: 0.1
+    max_input_threshold: 0.97
+    handbrake_speed_multiplier: 0.6
+    trigger_pressed_threshold: 0.1
+
+    rumble_delay: 0
+    rumble_joints: [ frw, flw, brw, blw ]
+    rumble_range: [ 0.4, 0.8 ]
+
+    speed_limit_max: 1.0
+    speed_limit_min: 0.05
+    speed_change_coarse_val: 0.1
+    speed_change_fine_val: 0.025
+
+    input_topic: /drive/joy
+    output_topic: /cmd_vel
+    drive_info_topic: /drive/drive_info
+    joint_states_topic: /drive/joint_states
+    joy_feedback_topic: /drive/joy/set_feedback
+
+    controllers:
+      - pivot_drive_controller
+      - ackermann_steering_controller
+      - strafe_drive_controller
+      - diff_drive_controller
+    pivot_drive_controller:
+      limit_angular: 0.999
+      limit_linear: 1.0
+      scale_angular: 1.0
+      scale_linear: 1.0
+    ackermann_steering_controller:
+      limit_angular: 1.0
+      limit_linear: 1.0
+      scale_angular: 1.0
+      scale_linear: 1.0
+    strafe_drive_controller:
+      limit_angular: 1.0
+      limit_linear: 1.0
+      scale_angular: 1.0
+      scale_linear: 1.0
+    diff_drive_controller:
+      limit_angular: 1.0
+      limit_linear: 1.0
+      scale_angular: 1.0
+      scale_linear: 1.0
+
+
+
+

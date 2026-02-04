@@ -146,6 +146,10 @@ void TeleopDriveJoy::initialize_interfaces()
     "/diff_drive_controller/set_parameters");
 
   drive_info_pub_ = this->create_publisher<drive_interfaces::msg::DriveInfo>(params_.drive_info_topic, 10);
+
+  joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
+    params_.joint_states_topic, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joint_states_callback, this, _1));
+  joy_feedback_pub_ = this->create_publisher<sensor_msgs::msg::JoyFeedback>(params_.joy_feedback_topic, 10);
 }
 
 void TeleopDriveJoy::map_button_callbacks()
@@ -430,6 +434,55 @@ void TeleopDriveJoy::send_drive_info()
 
   drive_info_pub_->publish(msg);
 }
+
+void TeleopDriveJoy::joint_states_callback(const sensor_msgs::msg::JointState::SharedPtr joint_state_msg)
+{
+  // get max effort of joints in rumble_joints
+  double max_effort = 0;
+  const std::vector<std::string>& names = joint_state_msg->name;
+  for (std::string& joint_name : params_.rumble_joints)
+  {
+    auto iterator = std::find(names.begin(), names.end(), joint_name);
+    if (iterator != names.end())
+    {
+      const double effort = joint_state_msg->effort[std::distance(names.begin(), iterator)];
+      if (effort > max_effort)
+      {
+        max_effort = effort;
+      }
+    }
+  }
+
+  // map max_effort to values from 0 to 1, assuming its min = rumble_range[0] and max = rumble_range[1]
+  const double rumble_intensity = std::clamp((max_effort - params_.rumble_range[0])
+    / (params_.rumble_range[1] - params_.rumble_range[0]), 0.0, 1.0);
+
+  if (rumble_intensity > 0)
+  {
+    if (not start_rumble_)
+    {
+      start_rumble_ = this->now();
+    }
+  }
+  else
+  {
+    start_rumble_.reset();
+  }
+
+  RCLCPP_DEBUG(this->get_logger(), "Game pad rumble calculations: rumble_intensity = %.2f, max_effort = %.2f", rumble_intensity, max_effort);
+
+  // only actually rumble if already rumbling for rumble_delay seconds
+  if (start_rumble_ and start_rumble_.value()
+    <= this->now() - rclcpp::Duration(std::chrono::milliseconds(params_.rumble_delay)))
+  {
+    sensor_msgs::msg::JoyFeedback msg {};
+    msg.type = sensor_msgs::msg::JoyFeedback::TYPE_RUMBLE;
+    msg.id = 0;
+    msg.intensity = static_cast<float>(rumble_intensity);
+    joy_feedback_pub_->publish(msg);
+  }
+}
+
 }  // namespace teleop_drive_joy
 
 int main(int argc, char* argv[])

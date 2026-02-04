@@ -31,6 +31,8 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joy.hpp>
+#include <sensor_msgs/msg/joy_feedback.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <rcl_interfaces/srv/set_parameters.hpp>
 #include <controller_manager_msgs/srv/switch_controller.hpp>
@@ -193,15 +195,26 @@ private:
    */
   void send_drive_info();
 
+    /**
+   * @brief Callback function for joint state messages.
+   * @param joint_state_msg Shared pointer to the joint state message.
+   */
+  void joint_states_callback(const sensor_msgs::msg::JointState::SharedPtr joint_state_msg);
+
   // Member variables
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_pub_;
   rclcpp::Publisher<drive_interfaces::msg::DriveInfo>::SharedPtr drive_info_pub_;
   rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub_;
+  rclcpp::Publisher<sensor_msgs::msg::JoyFeedback>::SharedPtr joy_feedback_pub_;
+  rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_sub_;
+
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     switch_controller_client_;
+
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr pivot_drive_client_;
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr strafe_client_;
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr diff_drive_client_;
+
   std::shared_ptr<ParamListener> param_listener_;
   rclcpp::TimerBase::SharedPtr connection_timer_;
 
@@ -215,6 +228,8 @@ private:
   bool handbrake_pressed_;
   bool autonomous_mode_;
   bool connected_;
+
+  std::optional<rclcpp::Time> start_rumble_;
 };
 
 }  // namespace teleop_drive_joy
