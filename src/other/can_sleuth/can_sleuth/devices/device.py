@@ -15,6 +15,7 @@ import abc
 import struct
 from dataclasses import dataclass
 from enum import Enum, auto
+from typing import Union
 
 class Device(abc.ABC):
     def __init__(self, name):
@@ -36,14 +37,35 @@ class Device(abc.ABC):
             INFO = auto
             DEBUG = auto
 
-        # TODO: reconsider if value/raw should be functions or just values the device puts there on update()
         name: str
-        value: object # function returning string
+        # value is ideally si units or human readable
+        _value: object # function returning string OR string
         width: int
-        raw: object = lambda: None # function returning string
+        # raw should be similar to hex bytes or a number unprocessed
+        raw: object = lambda: None # function returning string OR raw data format
         height: int = 1
         units: str = ""
         priority: Priority = Priority.INFO # can change at runtime
+
+        @property
+        def value(self):
+            if callable(self._value):
+                return self._value()
+            else:
+                return self._value
+        @value.setter
+        def value(self, value):
+            self._value = value
+
+        @property
+        def raw(self):
+            if callable(self._raw):
+                return self._raw()
+            else:
+                return self._raw
+        @raw.setter
+        def raw(self, value):
+            self._raw = value
 
     class SimpleBytesAttribute(Attribute):
         def __init__(self, name, bytesFmt, units, toHumanReadable):
@@ -119,10 +141,17 @@ class Device(abc.ABC):
         """register an attribute to this device
 
         :param name: the name of this attribute
-        :param getter: function that returns the value of this attribute as string
+        :param getter: function that returns the value of this attribute as string OR value as string
         :param width: maximum width of the attribute's value in characters (not including units)
         :param height: maximum number of lines this attribute value can take
         :param units: the units for this attribute as string
         """
-        self.attrs.append(Device.Attribute(name, getter, width,height=height, units=units))
+        attr = Device.Attribute(name, getter, width,height=height, units=units)
+        self.attrs.append(attr)
+        return attr
+    
+    def getAttrByName(self, name):
+        f = filter(lambda x: name == x.name, self.attrs)
+        # TODO: complain if there are two attrs of same name?
+        return next(f)
 

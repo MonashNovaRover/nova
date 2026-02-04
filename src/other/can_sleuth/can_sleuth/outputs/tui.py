@@ -78,19 +78,9 @@ class TUI(output.Output):
                     encoder_err = False
                     for attr in dev.attrs:
 
-                        # check for a disconnected encoder
-                        if attr.name == "velocity":
-                            if f"{attr.value()}" == "7f81" or f"{attr.value()}" == "7f7f":
-                                encoder_err = True
-                            else:
-                                encoder_err = False
-                            
                         label = f"{attr.name}: "
 
-                        if encoder_err and attr.name == "err":
-                            value = f"ENCODER DISCONNECTED" # label a disconnected encoder as an error
-                        else:
-                            value = f"{attr.value()}{attr.units}" # normal telemetry labelling
+                        value = f"{attr.value}{attr.units}"
 
                         # draw label
                         win.addnstr(height, 1, label, max_x - 2)
@@ -101,14 +91,16 @@ class TUI(output.Output):
                         else:
                             attr_style = curses.A_NORMAL
                         
-                        # draw value
-                        win.addnstr(
-                            height,
-                            1 + len(label),
-                            value + " " * attr.width,
-                            max_x - 2 - len(label),
-                            attr_style
-                        )
+                        # draw value without overwriting label
+                        lines = value.split("\n")+ [""]*attr.height
+                        for y in range(attr.height):
+                            win.addnstr(
+                                height+y, # y pos
+                                1 + len(label), # x pos
+                                lines[y] + " " * max_x, # text
+                                max_x - 2 - len(label), # max chars to print
+                                attr_style
+                            )
 
                         height += attr.height
 
