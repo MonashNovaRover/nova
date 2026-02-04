@@ -76,7 +76,7 @@ class TUI(output.Output):
 
             try:
                 # clearly display when a device is disconnected (no telemetry)
-                if dev.connected:
+                if dev.connected():
                     base_style = curses.A_NORMAL
                 else:
                     base_style = curses.A_DIM
@@ -111,7 +111,7 @@ class TUI(output.Output):
 
                     height += attr.height
 
-                if not dev.connected:
+                if not dev.connected():
                     text = "Disconnected"
                     y = 0
                     x = max(len(dev.getName())+4, (max_x-len(text))//2)

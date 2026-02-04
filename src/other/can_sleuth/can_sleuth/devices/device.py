@@ -17,15 +17,26 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Union
 
+import time
+
 class Device(abc.ABC):
-    def __init__(self, name):
+    def __init__(self, name, aliveTimeout=1):
         self.name = name
         self._width = 0
         self.attrs = []
 
-        # set to true once you receive any message from the device
-        # not including messages from the computer
-        self.connected = False
+        self._aliveTimeout=aliveTimeout
+        self.lastSeenAlive = 0
+
+    def connected(self):
+        if self._aliveTimeout is -1:
+            return True
+        return time.time() - self.lastSeenAlive < self._aliveTimeout
+
+    def alive(self):
+        """Call this when you get a message from the device
+        """
+        self.lastSeenAlive = time.time()
 
     @dataclass
     class Attribute:

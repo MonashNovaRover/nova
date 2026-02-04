@@ -101,7 +101,7 @@ class GUI(output.Output):
         text = []
         for dev in devices:
             text.append(f"<{dev.getName()}>")
-            if dev.connected:
+            if dev.connected():
                 for attr in dev.attrs:
                     text.append(f"\t{attr.name}: {attr.value}{attr.units}")
             else:

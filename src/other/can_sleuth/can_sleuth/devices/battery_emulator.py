@@ -24,7 +24,7 @@ class BatteryEmulator(candevice.CanDevice):
     """
     # TODO: 4B3 and 0B3 for the shutdown handshake
 
-    def __init__(self, name="Battery", idNumber=0xB, interface="can0"):
+    def __init__(self, name="Battery", idNumber=0xB, interface="can0",aliveTimeout=-1):
         """Create the Battery sniffer
 
         :param name: Display name of the battery
@@ -36,7 +36,6 @@ class BatteryEmulator(candevice.CanDevice):
         self.id = idNumber
         self.state = 0
         super().__init__(name, interface , canIdMask=0xfff, canIdMatch=(self.id<<4)|0x3);
-        self.connected = True
 
 
     def update(self):

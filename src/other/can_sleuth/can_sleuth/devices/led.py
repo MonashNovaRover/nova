@@ -29,8 +29,7 @@ class LEDStrip(candevice.CanDevice):
     }
     
     def __init__(self, name:str, interface:str):
-        super().__init__(name, interface)
-        self.connected = True # Led has no telemetry so we actually can never know
+        super().__init__(name, interface, aliveTimeout=-1)
         self.brightness = 0
         self.colour= None
         #add callback functions
