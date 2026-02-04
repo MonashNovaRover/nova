@@ -5,17 +5,17 @@ TOF Controller to publish distance data to GUI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: TimeOfFlightController
 TOPICS:
-  - publisher: /science/analysis-arm Range
+  - publisher: /science/analysis_arm Range
 
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 STATE INTERFACES:
-  - tof_sensor/distance  [distance in mm]
+  - tof_sensor/distance  [distance]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        python_control2
 AUTHOR(S):      Yahya Muayyiduddin
-CREATION:       24/12/2026
-EDITED:         24/12/2026
+CREATION:       24/12/2025
+EDITED:         04/02/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -71,6 +71,7 @@ class TimeOfFlightController(Controller):
         # self.logger.info(f"Getting \"{self.joint + "/effort"}\"")
         # self.joint_cmd = command_interfaces[self.joint + "/effort"]
         self.distance = state_interfaces["tof_sensor/distance"]
+        return True
 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
