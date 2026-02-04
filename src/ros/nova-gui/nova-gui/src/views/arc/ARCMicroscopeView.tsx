@@ -1,7 +1,3 @@
-import DriveModeWidget from "../../components/drive/DriveModeWidget/DriveModeWidget.tsx";
-import WheelTelemetryWidget from "../../components/drive/WheelTelemetryWidget/WheelTelemetryWidget.tsx";
-import DriveSpeedWidget from "../../components/drive/DriveSpeedWidget/DriveSpeedWidget.tsx";
-import TOFHeight from "../../components/science/AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
 import KilnWidget from "../../components/science/KilnWidget/KilnWidget.tsx";
 import MicroscopeWidget from "../../components/science/MicroscopeThresholdWidget/MicroscopeWidget.tsx";
 import EffortWidget from "../../components/science/EffortWidget/EffortWidget.tsx";
@@ -32,10 +28,7 @@ export const ARCMicroscopeView = () => {
         </div>
         <div className="flex flex-col gap-3 col-span-3">
           <KilnWidget />
-          <DriveModeWidget />
-          <WheelTelemetryWidget />
-          <DriveSpeedWidget />
-          <TOFHeight />
+          <AnalysisArmDiagram/>
         </div>
       </div>
     </div>

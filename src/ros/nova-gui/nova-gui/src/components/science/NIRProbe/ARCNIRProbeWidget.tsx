@@ -3,7 +3,7 @@ import NIRProbeOutputSaveWidget from "./NIRProbeOutputWidget/NIRProbeOutputSaveW
 import NIRProbeLEDWidget from "./NIRProbeLEDWidget/NIRProbeLEDWidget.tsx";
 import NIRProbeFileTableWidget from "./NIRProbeFileTable/NIRProbeFileTableWidget.tsx";
 import NIRCalibrationCurveWidget from "./NIRProbeCalibration/NIRCalibrationCurveWidget.tsx";
-import TOFHeight from "../AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
+import TOFHeight from "../AnalysisPlatformHeight/TOFHeight.tsx";
 import SiteTypeSelectWidget from "../SiteSelectWidget/SiteTypeSelectWidget.tsx";
 import NIRProbeCalcTable from "./NIRProbeFileTable/NIRProbeCalcTable.tsx";
 import NIRCalibrationSettingsModal from "./NIRProbeFileTable/NIRCalibrationSettingsModal.tsx";
