@@ -22,24 +22,24 @@ mono_qr_pattern:
     # p2: 0.000544930726278493
 
     # ouster
-    # fx: 1466.16500795563
-    # fy: 1465.32657394431
-    # cx: 1214.39964380518
-    # cy: 1010.97681425650
-    # k1: -0.0458344972140773
-    # k2: 0.0896961240772692
-    # p1: -0.000731746350601389
-    # p2: -0.000201478932371979
+    fx: 1466.16500795563
+    fy: 1465.32657394431
+    cx: 1214.39964380518
+    cy: 1010.97681425650
+    k1: -0.0458344972140773
+    k2: 0.0896961240772692
+    p1: -0.000731746350601389
+    p2: -0.000201478932371979
 
     # multi-scene
-    fx: 2478.48702288166
-    fy: 2478.58544825456
-    cx: 1230.99707596681
-    cy: 1025.66149498072
-    k1: -0.0493178189623200
-    k2: 0.147394487986097
-    p1: -0.00127118592043482
-    p2: -0.00200379689523022
+    #fx: 2478.48702288166
+    #fy: 2478.58544825456
+    #cx: 1230.99707596681
+    #cy: 1025.66149498072
+    #k1: -0.0493178189623200
+    #k2: 0.147394487986097
+    #p1: -0.00127118592043482
+    #p2: -0.00200379689523022
 
     # Calibration target parameters
     marker_size: 0.20 # ArUco marker size (our test data uses 0.16m; adjust to match your marker size)
@@ -72,15 +72,15 @@ mono_qr_pattern:
     # z_min: 0.0
     # z_max: 2.0
     # multi_scene_33
-    x_min: 2.0
+    x_min: 1.5
     x_max: 5.0
     y_min: -1.0
-    y_max: 4.0
-    z_min: 0.0
+    y_max: 1.0
+    z_min: -0.8
     z_max: 2.0
 
     # Input
-    lidar_topic: "/livox/lidar" # /ouster/points /livox/lidar
+    lidar_topic: "/ouster/points" # /ouster/points /livox/lidar
     bag_path: "/home/nova/Downloads/fast-calib/11/11.db3" # Note: in ROS2, we might pass absolute path
     image_path: "/home/nova/Downloads/fast-calib/11.png"
 
