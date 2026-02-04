@@ -1,0 +1,60 @@
+# params passed to teleop_node (excluding input sources)
+
+teleop_ec:
+  ros__parameters:
+
+    # The maximum rate at which updates should occur, and hence the max rate at which commands are sent.
+    # Leaving this unset makes the max update rate unlimited.
+    # update_rate: 50.0
+
+    # The minimum rate at which updates occur.
+    # Leaving this unset will allow for indefinite lapses between updates.
+    min_update_rate: 2.0
+
+    control_modes:
+      names: ["input_publisher_mode"]
+
+      input_publisher_mode:
+        type: "input_publisher_mode/InputPublisherMode"
+        active: true
+
+    commands:
+      names:
+        - set_locked
+        - set_unlocked
+        - log_locked
+        - log_unlocked
+
+      # lock controller
+      set_locked:
+        on_any: ["start", "lock/down"]
+        type: "set_button"
+        name: "locked"
+        value: true
+      set_unlocked:
+        on: "unlock/down"
+        type: "set_button"
+        name: "locked"
+        value: false
+      log_locked:
+        on: "locked/down"
+        type: "log"
+        message: "locked game controller"
+      log_unlocked:
+        on: "locked/up"
+        type: "log"
+        message: "unlocked game controller"
+
+input_publisher_mode:
+  ros__parameters:
+    input_names_topic: "/ec/input"
+
+    axis_names:
+      - "scraper_speed"
+      - "arm_actuation"
+      - "scoop_actuation"
+      - "claw_actuation"
+      - "forklift_speed"
+      - "forklift_actuation"
+
+    button_names: [""]

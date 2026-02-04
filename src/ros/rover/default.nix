@@ -3,7 +3,6 @@
     nova-bringup = callPackage ./nova_bringup { };
     nova-interfaces = callPackage ./nova_interfaces { };
     nova-rover-description = callPackage ./rover_description { };
-    nova-excavation-construction = callPackage ./excavation_construction { };
     nova-controller-common = callPackage ./nova_controller_common { };
 
     ublox-dgnss-custom = callPackage ./nix/packages/ublox-dgnss { };
@@ -17,7 +16,8 @@
     // import ./nova_generic { inherit pkgs; }
     // import ./old_inputs { inherit pkgs; }
     // import ./science { inherit pkgs; }
-    // import ./simulations { inherit pkgs; };
+    // import ./simulations { inherit pkgs; }
+    // import ./excavation_construction { inherit pkgs; };
 
   #pythonPackages = pythonPackages: with pythonPackages; {
     
