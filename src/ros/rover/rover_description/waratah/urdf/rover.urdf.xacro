@@ -461,7 +461,7 @@
 
   <xacro:if value="$(arg arm)">
         <!-- Attaches waratah's arm -->
-        <xacro:include filename="$(arg rover_description_dir)/waratah_arm/urdf/arm.urdf.xacro" />
+        <xacro:include filename="$(arg rover_description_dir)/old_arm/urdf/arm.urdf.xacro" />
         <joint name="chassis_to_arm_base" type="fixed">
             <origin xyz="0 0.15 -0.06" rpy="0 0 1.57" />
             <parent link="chassis" />

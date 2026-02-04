@@ -49,27 +49,27 @@
 
     <xacro:if value="$(arg arm)">
         <!-- Waratah's arm
-        <xacro:include filename="$(arg rover_description_dir)/waratah_arm/urdf/arm.urdf.xacro" />
+        <xacro:include filename="$(arg rover_description_dir)/old_arm/urdf/arm.urdf.xacro" />
         <joint name="chassis_to_arm_base" type="fixed">
             <origin xyz="0.2 0 -0.06" rpy="0 0 0"/>
             <parent link="chassis" />
             <child link="arm_link" />
         </joint> -->
         <!-- Banksia's arm -->
-        <xacro:include filename="$(arg rover_description_dir)/banksia_arm/urdf/arm.urdf.xacro" />
+        <xacro:include filename="$(arg rover_description_dir)/taipan/urdf/arm.urdf.xacro" />
         <joint name="chassis_to_arm_base" type="fixed">
             <origin xyz="0.234 -0.001 0.116750" rpy="0 0 1.5708" />
             <parent link="chassis" />
             <child link="arm_link" />
         </joint>
-        <xacro:include filename="$(arg rover_description_dir)/banksia_arm/urdf/joint_states_with_arm.xacro"/>
+        <xacro:include filename="$(arg rover_description_dir)/taipan/urdf/joint_states_with_arm.xacro"/>
     </xacro:if>
      <xacro:unless value="$(arg arm)">
         <xacro:include filename="$(arg rover_description_dir)/banksia/urdf/joint_states.xacro"/>
     </xacro:unless>
 
     <xacro:if value="$(arg old_arm)">
-        <xacro:include filename="$(arg rover_description_dir)/waratah_arm/urdf/arm.urdf.xacro" />
+        <xacro:include filename="$(arg rover_description_dir)/old_arm/urdf/arm.urdf.xacro" />
         <joint name="chassis_to_arm_base" type="fixed">
             <origin xyz="0.2 0 -0.06" rpy="0 0 0" />
             <parent link="chassis" />

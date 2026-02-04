@@ -31,7 +31,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/arm_base.stl" />
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/arm_base.stl" />
       </geometry>
       <material
         name="">
@@ -45,7 +45,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/arm_base.stl" />
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/arm_base.stl" />
       </geometry>
     </collision>
   </link>
@@ -71,7 +71,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/base_to_j1.stl" />
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/base_to_j1.stl" />
       </geometry>
       <material
         name="">
@@ -85,7 +85,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/base_to_j1.stl" />
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/base_to_j1.stl" />
       </geometry>
     </collision>
   </link>
@@ -129,7 +129,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j2_to_link1.stl" />
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j2_to_link1.stl" />
       </geometry>
       <material
         name="">
@@ -143,7 +143,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j2_to_link1.stl" />
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j2_to_link1.stl" />
       </geometry>
     </collision>
   </link>
@@ -187,7 +187,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j3_to_link2.stl" />
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j3_to_link2.stl" />
       </geometry>
       <material
         name="">
@@ -201,7 +201,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j3_to_link2.stl" />
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j3_to_link2.stl" />
       </geometry>
     </collision>
   </link>
@@ -245,7 +245,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/link2_to_fixed_j4.stl" />
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/link2_to_fixed_j4.stl" />
       </geometry>
       <material
         name="">
@@ -259,7 +259,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/link2_to_fixed_j4.stl" />
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/link2_to_fixed_j4.stl" />
       </geometry>
     </collision>
   </link>
@@ -298,7 +298,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j4_to_j5.stl" />
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j4_to_j5.stl" />
       </geometry>
       <material
         name="">
@@ -312,7 +312,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j4_to_j5.stl" />
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j4_to_j5.stl" />
       </geometry>
     </collision>
   </link>
@@ -356,7 +356,7 @@
         rpy="0 0 3.14" />
       <geometry>
         <mesh
-          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j5_to_j6.stl" />
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j5_to_j6.stl" />
       </geometry>
       <material
         name="">
@@ -370,7 +370,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j5_to_j6.stl" />
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j5_to_j6.stl" />
       </geometry>
     </collision>
   </link>
@@ -378,14 +378,14 @@
     name="$(arg prefix)_j5"
     type="revolute">
     <origin
-      xyz="0.00022562 0.10236 0.020578"
-      rpy="0 1.5708 0" />
+      xyz="0.00022562 -0.020578 0.10236"
+      rpy="1.5708 0 1.5708" />
     <parent
-      link="$(arg prefix)_j4_to_j5" />
+      link="j5_fixer" />
     <child
       link="$(arg prefix)_j5_to_j6" />
     <axis
-      xyz="0 1 0" />
+      xyz="0 0 1" />
     <limit
       lower="-1.88"
       upper="2.45"
@@ -414,7 +414,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j6_to_ee.stl" />
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j6_to_ee.stl" />
       </geometry>
       <material
         name="">
@@ -428,7 +428,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file://$(arg rover_description_dir)/waratah_arm/meshes/j6_to_ee.stl" />
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j6_to_ee.stl" />
       </geometry>
     </collision>
   </link>
@@ -451,57 +451,18 @@
       velocity="0" />
   </joint>
 
-  <!-- Replace all this with a end effector xacro file that is shared across waratah_arm and banksia_arm-->
-  <!-- EEbase to Actuator transform for auto typing -->
-  <link name="actuator"> <!-- Actuator head position when unextended but fingers are fully open-->
-    <inertial>
-      <origin xyz="-2.0984526232e-09 -1.7951021237e-09 3.6197018104e-02" rpy="0 0 0" />
-      <mass value="0.00499493" />
-      <inertia ixx="1.9746052847e-06" ixy="3.2584721895e-14" ixz="3.1261224204e-13" iyy="1.9775524756e-06" iyz="2.6609843251e-13" izz="7.2954357931e-08" />
-    </inertial>
-  </link>
-
-  <joint name="actuator_j" type="fixed">
-    <origin xyz="-0.006287977 0.159 -0.0075" rpy="0 1.5708 1.57072" />
-    <parent link="rightfinger" />
-    <child link="actuator" />
-    <axis xyz="0 0 1" />
-  </joint>
-
-  <link name="rightfinger">
-    <inertial>
-      <origin xyz="-3.0820093691e-05 -2.4076955607e-02 1.7779582954e-02" rpy="0 0 0" />
-      <mass value="0.259097" />
-      <inertia ixx="8.0113158332e-04" ixy="-2.1276248523e-07" ixz="1.9237282265e-07" iyy="7.8712513524e-05" iyz="5.1221559668e-05" izz="8.1168195146e-04" />
-    </inertial>
-  </link>
-
-  <joint name="right_slide" type="fixed">
-    <origin xyz="-0.0953625 -2.37042e-08 0.0635" rpy="1.5708 -6.15694e-07 1.5708" />
-    <parent link="$(arg prefix)_j6_to_ee" />
-    <child link="rightfinger" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10"/>
-  </joint>
-
-  <!-- EEbase to arm_end_periscope for auto typing-->
-  <link name="arm_end_periscope_optical">
-    <inertial>
-      <origin xyz="5.0388580281e-20 -5.0000002375e-04 -2.0596424901e-20" rpy="0 0 0" />
-      <mass value="1e-09" />
-      <inertia ixx="6.3254056983e-15" ixy="-1.2661721154e-31" ixz="-1.4456719139e-31" iyy="1.2484144714e-14" iyz="7.0639301518e-32" izz="6.3254056983e-15" />
-    </inertial>
-  </link>
-
-  <joint name="camera_ee_periscope" type="fixed">
-     <origin xyz="-0.00015 0.0378336 0.0594947" rpy="0 0 0" />
-    <parent link="$(arg prefix)_j6_to_ee" />
-    <child link="arm_end_periscope_optical" />
-    <axis xyz="0 0 1" />
-    <limit effort="10" velocity="10" />
-  </joint>
 
   <!-- Kinematics -->
+  <link name="j5_fixer"/>
+  <joint name="j5_fixer_joint" type="fixed">
+    <origin xyz="0.0 0.0 0.0" rpy="-1.5708 0.0 0.0" />
+    <parent link="$(arg prefix)_j4_to_j5" />
+    <child link="j5_fixer" />
+  </joint>
+
+
+
+
   <link name="arm_kinematics_origin"/>
   <joint name="arm_kinematics_origin_joint" type="fixed">
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
@@ -517,6 +478,6 @@
     <child link="endeffector_kinematics" />
   </joint>
 
-  <xacro:include filename="$(arg rover_description_dir)/waratah_arm/urdf/arm.ros2_control.xacro" />
+  <xacro:include filename="$(arg rover_description_dir)/old_arm/urdf/arm.ros2_control.xacro" />
   <xacro:arm_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
 </robot>
