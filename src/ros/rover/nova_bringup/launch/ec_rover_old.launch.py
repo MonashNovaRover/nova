@@ -21,7 +21,7 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
-    drive_launch_dir = FindPackageShare('drive_bringup')
+    drive_bringup_dir = FindPackageShare('drive_bringup')
     
     scraper_card_type = LaunchConfiguration('scraper_card_type')
 
