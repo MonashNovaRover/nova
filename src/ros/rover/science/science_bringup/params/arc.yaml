@@ -31,6 +31,19 @@ tool_rotator:
         function_id: 0x00
         angular_limit: 360.0
 
+time_of_flighr_sensor:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    controllers:
+      controller:
+        minimum_range: 10
+        maximum_range: 100
+    hardware:
+      tof_sensor:
+        can_id: 0x01
+        unit: "distance"
+
 
 # CBeam - Nodes for components on the CBeam
 
@@ -39,10 +52,10 @@ auger:
     can_bus: "can1"
     active: true
     active_button: "activate_auger"
-    inactive_button_pool: [ "activate_cbeam" ]
+    inactive_button_pool: ["activate_cbeam"]
     hardware:
       actuation:
-        can_id: 0x0D1
+        can_id: 0x0C2
         max_effort: 1.0
         reversed: false
       drill:
@@ -99,7 +112,7 @@ water_pump:
     hardware:
       cooling:
         can_id: 0xD2
-        
+
 diaphragm_pump:
   ros__parameters:
     can_bus: "can1"
