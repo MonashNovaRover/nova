@@ -2,7 +2,7 @@ import jcan
 import rclpy
 from rclpy.node import Node
 from typing import Type, TypeVar, List, Any, Optional
-from teleop_python_utils import Inputs
+from teleop_python_utils import Inputs, EventCollection
 
 from .Activation import Activation
 from .ControllerManager import ControllerManager
@@ -154,9 +154,20 @@ class ControllerManagerBuilder:
         https://github.com/BaileyChessum/teleop_modular/blob/main/teleop_python_utils/teleop_python_utils/modules/Inputs.py
         """
         self._cm.contexts[Inputs] = inputs
+
+        # Add existing EventCollection to teleop inputs event collection if it exists.
+        if EventCollection in self._cm.contexts:
+            eventCollection = self._cm.contexts[EventCollection]
+            events = inputs.events
+
+            for (name, event) in eventCollection:
+                events[name].callbacks += event.callbacks
+
+            self._cm.contexts[EventCollection] = events
+
         return self
 
-    def with_activation_buttons(self, start_active: bool=False, active_button_name: str="", inactive_button_pool_names: list[str]=[""]):
+    def with_activation_buttons(self, start_active: bool=False, active_button_name: str="", inactive_button_pool_names: list[str]=[""])-> "ControllerManagerBuilder":
         """
         Allows a system to be activatable by adding an activation object to the cm context
         that controllers can use to conditionally run code.
@@ -193,6 +204,35 @@ class ControllerManagerBuilder:
         self._cm.contexts[Activation] = Activation(active_button, inactive_button_pool, self._cm.node, start_active)
         return self
 
+    def with_event_collection(self, eventCollection: EventCollection=None)-> "ControllerManagerBuilder":
+        """
+        Adds an EventCollection to the Contexts.
+
+        Uses the same EventCollection as the one provided by teleop Inputs
+        to make it less error-prone with all events stored here.
+
+        Will combine with teleop inputs if eventCollection is provided.
+        WARNING: Be careful when doing this, unexpected bugs may arise.
+        """
+        # Check if inputs already exists
+        if Inputs not in self._cm.contexts:
+            # Add to contexts, create if not provided.
+            if eventCollection is None:
+                eventCollection = EventCollection()
+            self._cm.contexts[EventCollection] = eventCollection
+            return self
+
+        # if so use it's EventCollection
+        inputs = self._cm.contexts[Inputs]
+        events = inputs.events
+
+        if eventCollection is not None:
+            # Add new events to teleop events
+            for (name, event) in eventCollection:
+                events[name].callbacks += event.callbacks
+
+        self._cm.contexts[EventCollection] = events
+        return self
 
     def spin(self, default_update_rate: float=20, auto_run_rclpy: bool=True) -> None:
         """ Repeatedly updates until the program ends.

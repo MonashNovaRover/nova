@@ -15,6 +15,7 @@ EDITED:         01/02/26
 """
 
 import jcan
+from teleop_python_utils import EventCollection
 
 from ..controller_manager.Interface import Interface, InterfaceCollection
 from .HardwareInterface import HardwareInterface
@@ -24,6 +25,8 @@ from struct import pack
 
 class StepperHardware(HardwareInterface):
     effort_cmd: Interface
+    position_cmd: Interface
+    position_state: Interface
     can_id: int
     # The name of the joint
     joint: str
@@ -44,6 +47,7 @@ class StepperHardware(HardwareInterface):
         super().__init__(contexts)
 
         self.bus = contexts[jcan.Bus]
+        self.current_position = 0
 
         # Default joint name to the hardware interface name
         if len(joint) == 0:
@@ -54,6 +58,10 @@ class StepperHardware(HardwareInterface):
         self.declare_parameter("reversed", reversed, "Whether the output should be reversed")
         self.declare_parameter("max_effort", max_effort, "Max percentage of output to send")
         self.declare_parameter("max_effort_can", max_effort_can, "Max CAN message value that can be sent")
+
+        # Setup zero event callback.
+        events = contexts[EventCollection]
+        events[f"{self.get_parameter("joint").value}/zero"].add_callback(self.zero)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
         """ Used to set up your HardwareInterface. Run once before any other class method.
@@ -82,6 +90,10 @@ class StepperHardware(HardwareInterface):
                              f"(\"{self.joint}/effort\")")
 
         return True
+
+    def zero(self):
+        """ Zeros the hardware """
+        self.current_position = 0
 
     def on_read(self, now: float, period: float):
         """ Called to read values from hardware, and put them into stored state interfaces.
