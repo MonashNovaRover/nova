@@ -103,7 +103,10 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
          Node(
-             package='rtabmap_util', executable='obstacles_detection', output='screen',
+             package='rtabmap_util',
+             executable='obstacles_detection',
+             name='rtabmap_obstacles_detection',
+             output='screen',
              parameters=[rtabmap_params],
              remappings=[
                  ('cloud','/livox/lidar_filtered'),

@@ -32,12 +32,12 @@ local_costmap:
         # z_resolution * z_voxels = height of voxel grid, i.e. the z-bound of the costmap
         z_resolution: 0.1 # resolution of voxels in height (m)
         z_voxels: 16 # number of voxels high to mark, maximum 16
-        max_obstacle_height: 2.0
+        max_obstacle_height: 1.6
         mark_threshold: 0
         observation_sources: ground obstacles
         ground:
           topic: /livox/lidar/ground
-          max_obstacle_height: 0.4
+          max_obstacle_height: 1.6
           clearing: True
           marking: False
           data_type: "PointCloud2"
@@ -45,7 +45,7 @@ local_costmap:
           raytrace_min_range: 0.0
         obstacles:
           topic: /livox/lidar/obstacles
-          max_obstacle_height: 0.4
+          max_obstacle_height: 1.6
           clearing: True
           marking: True
           data_type: "PointCloud2"

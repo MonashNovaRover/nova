@@ -52,17 +52,7 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(joints),
             package = 'joint_state_publisher',
             executable = 'joint_state_publisher',
-            parameters=[{'robot_description': 
-                ParameterValue(Command(['xacro ', 
-                                        model, ' ', 
-                                        'gazebo:=', gazebo, ' ',
-                                        'robot_name:=', robot_name, ' ',
-                                        'lidar_angle:=', lidar_angle, ' ',
-                                        'oak_angle:=', oak_angle, ' ',
-                                        'bootie_angle:=', bootie_angle, ' ',
-                                        'auto_camera:=', camera
-                                       ]), value_type=str)
-            }],
+            parameters=[{'source_list': ['/joint_states']}],
         ),
     ]
 
