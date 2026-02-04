@@ -6,8 +6,7 @@ class Meta(device.Device):
     """A fake device to expose meta stuff like uptime, processing load etc
     """
     def __init__(self, manager):
-        super().__init__("Meta")
-        self.connected = True
+        super().__init__("Meta", aliveTimeout=-1)
         self._manager=manager
 
         # Timekeeping Vars

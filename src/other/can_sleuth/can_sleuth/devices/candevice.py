@@ -18,7 +18,7 @@ from typing import List
 from . import device
 
 class CanDevice(device.Device):
-    def __init__(self, name, interface, canIdList=None, canIdMask=None, canIdMatch=None, telemetry={}):
+    def __init__(self, name, interface, canIdList=None, canIdMask=None, canIdMatch=None, telemetry={}, aliveTimeout=1):
         """Create the can device
 
         :param name: display name
@@ -40,7 +40,7 @@ class CanDevice(device.Device):
         want raw hex to be displayed.
         """
 
-        super().__init__(name)
+        super().__init__(name, aliveTimeout)
         self.bus = jcan.Bus()
 
         if (canIdList is not None):
@@ -84,7 +84,7 @@ class CanDevice(device.Device):
             """Callback for when we recieve a can message. We split the message's payload up and
             send each section of bytes to the respective SimpleBytesAttribute
             """
-            self._canDevice.connected = True # TODO: only for device-> computer messages
+            self._canDevice.alive() # TODO: only for device-> computer messages
             position = 0
             for field in self._fields:
                 length = field.getByteLength()
