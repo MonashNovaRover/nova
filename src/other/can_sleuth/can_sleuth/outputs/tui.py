@@ -124,11 +124,14 @@ class TUI(output.Output):
 
         self._stdscr.refresh()
         try:
-            char = self._stdscr.getkey()
+            char = self._stdscr.getch()
         except curses.error:
             pass # no key was pressed
-        if char == "q":
+        if char == ord("q"):
             raise KeyboardInterrupt
+        elif char == curses.KEY_RESIZE:
+            # get rid of any text where a device was before it gets moved
+            self._stdscr.erase()
 
 
     def _windowSize(self, device):
