@@ -28,9 +28,6 @@ def launch_setup(context, *args, **kwargs):
     ec_params = LaunchConfiguration('ec_params')
     log_level = LaunchConfiguration('log_level')
 
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    log_file = f"/home/nova/logs/{timestamp}_ec.txt"
-
     return [
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(
