@@ -47,6 +47,9 @@ def launch_setup(context, *args, **kwargs):
         executable='node_waiter.py',
         name='fastlivo2_wait_for_parameter_blackboard',
         output='screen',
+        parameters=[
+            {'nodes': ['parameter_blackboard']}
+        ],
     )
 
     return [
@@ -79,9 +82,9 @@ def launch_setup(context, *args, **kwargs):
                 # ),
                 wait_for_parameter_blackboard,
                 RegisterEventHandler(
-                    OnProcessExit(
+                    event_handler=OnProcessExit(
                         target_action=wait_for_parameter_blackboard,
-                        on_exit=[fastlivo2_node],
+                        on_exit=fastlivo2_node,
                     ),
                 ),
             ],

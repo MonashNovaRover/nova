@@ -8,7 +8,8 @@ parameter_blackboard:
     cam_fy: 760.083251953125
     cam_cx: 642.4230346679688
     cam_cy: 394.64129638671875
-    cam_d0: 0.0 # TODO
-    cam_d1: 0.0 # TODO
-    cam_d2: 0.0 # TODO
-    cam_d3: 0.0 # TODO
+    cam_d0: 0.0
+    cam_d1: 0.0
+    cam_d2: 0.0
+    cam_d3: 0.0
+# TODO get accurate camera intrinsics. 

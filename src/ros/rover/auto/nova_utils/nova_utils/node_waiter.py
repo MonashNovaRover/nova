@@ -16,7 +16,7 @@ SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 AUTHOR(S):	Chetan Karthik Edupalli, Victor 
-    Bartlinski
+    Bartlinski, Terry Tian
 CREATION:	26/09/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
@@ -27,48 +27,36 @@ from rclpy.parameter import Parameter
 import sys
 import time
 
-
-REQUIRED_NODES = [
-    'parameter_blackboard',
-]
-
-CHECK_INTERVAL = 1.0  # seconds
-TIMEOUT = 5  # seconds to give up
-
-
 class NodeWaiter(Node):
     def __init__(self):
         super().__init__('node_waiter')
-        self.start_time = time.time()
+        self.declare_parameter('interval', 1.0) # 'interval in seconds to check for topics'
+        self.declare_parameter('nodes', ['parameter_blackboard']) # 'list of nodes to wait for'
+        self.declare_parameter('timeout', float('inf')) # 'timeout in seconds to wait for topics'
+        self.interval = self.get_parameter('interval').get_parameter_value().double_value
+        self.nodes = self.get_parameter('nodes').get_parameter_value().string_array_value
+        self.timeout = self.get_parameter('timeout').get_parameter_value().double_value
+        self.start_time = self.get_clock().now().nanoseconds / 1e9
 
-    def all_nodes_active(self):
-        available_nodes = self.get_node_names()
-        return all(node in available_nodes for node in REQUIRED_NODES)
+        self.get_logger().info(f'Waiting for nodes: {self.nodes}')
+        self.timer = self.create_timer(self.interval, self.check_nodes)
 
-    def spin_until_ready(self):
-        self.get_logger().info(f"Waiting for required nodes: {REQUIRED_NODES}")
-        while rclpy.ok():
-            rclpy.spin_once(self, timeout_sec=CHECK_INTERVAL)
-            if self.all_nodes_active():
-                self.get_logger().info("All required nodes are active.")
-                return True
-            if (time.time() - self.start_time) > TIMEOUT:
-                self.get_logger().error("Timed out waiting for nodes.")
-                return False
-            time.sleep(CHECK_INTERVAL)
+    def check_nodes(self):
+        active_nodes = self.get_node_names()
+        self.get_logger().debug(f'Active nodes: {active_nodes}')
+        
+        if all(node in active_nodes for node in self.nodes):
+            self.get_logger().info('All required nodes are active, exiting.')
+            rclpy.shutdown()
+        elif (self.get_clock().now().nanoseconds / 1e9 - self.start_time) > self.timeout:
+            self.get_logger().error('Timed out waiting for nodes.')
+            rclpy.shutdown()
 
 
 def main(args=None):
     rclpy.init(args=args)
-    node = NodeWaiter()
-
-    success = node.spin_until_ready()
-    node.destroy_node()
-    rclpy.shutdown()
-
-    if not success:
-        sys.exit(1)
-
+    node_waiter = NodeWaiter()
+    rclpy.spin(node_waiter)
 
 if __name__ == '__main__':
     main()
