@@ -16,7 +16,7 @@ EDITED:         01/02/2026
 import rclpy
 from rclpy.node import Node
 from python_control2 import PythonControl
-from python_control2.controllers import EffortController
+from python_control2.controllers import EffortCommandController
 from python_control2.hardware_interfaces import QCMDHardware
 
 if __name__ == "__main__":
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     PythonControl(node, update_rate=10, can_bus="can1") \
         .with_controller(
             "controller",
-            EffortController,
+            EffortCommandController,
             hardware_name="cooling",
             service_name="/science/peltier_command",
             topic_name="/science/peltier_status"

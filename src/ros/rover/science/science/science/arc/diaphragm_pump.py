@@ -19,7 +19,7 @@ import rclpy
 from rclpy.node import Node
 from python_control2 import PythonControl
 from python_control2.controller_manager import Interface, InterfaceCollection, Contexts
-from python_control2.controllers import EffortController
+from python_control2.controllers import EffortCommandController
 from python_control2.hardware_interfaces import HardwareInterface
 
 from struct import pack
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller(
             "controller",
-            EffortController,
+            EffortCommandController,
             hardware_name="flow",
             service_name="/science/diaphragm_pump_command",
             topic_name="/science/diaphragm_pump_status"

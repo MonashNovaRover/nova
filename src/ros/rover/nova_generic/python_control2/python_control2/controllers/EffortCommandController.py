@@ -26,7 +26,7 @@ from science_interfaces.msg import EffortStatus
 from science_interfaces.srv import EffortCommand
 
 
-class EffortController(Controller):
+class EffortCommandController(Controller):
     # Command interfaces
     effort_cmd: Interface
 
@@ -46,7 +46,7 @@ class EffortController(Controller):
 
         """
         super().__init__(contexts)
-        self.logger.info(f"EffortController -- I have been __init__ialized")
+        self.logger.info(f"EffortCommandController -- I have been __init__ialized")
 
         self.hardware_name = self.declare_parameter("hardware_name", hardware_name).value
         self.service_name: str = self.declare_parameter("service_name", service_name).value
@@ -84,7 +84,7 @@ class EffortController(Controller):
         data_msg.state = self.is_on
         self.publisher.publish(data_msg)
 
-        self.logger.debug(f"EffortController {self.name} published EffortStatus: {data_msg}")
+        self.logger.debug(f"EffortCommandController {self.name} published EffortStatus: {data_msg}")
 
     def command_callback(self, request: EffortCommand.Request, response: EffortCommand.Response):
         """ Uses request to update effort system's settings and send system status
@@ -92,7 +92,7 @@ class EffortController(Controller):
         :param request: Specified settings for effort system control (state, effort_level).
         :param response: Whether or not these settings were applied successfully (applied).
         """
-        self.logger.info(f"EffortController {self.name} received EffortCommand request: (state={request.state}, level={request.level:.2f})")
+        self.logger.info(f"EffortCommandController {self.name} received EffortCommand request: (state={request.state}, level={request.level:.2f})")
 
         self.is_on = request.state
         self.effort_level = request.level

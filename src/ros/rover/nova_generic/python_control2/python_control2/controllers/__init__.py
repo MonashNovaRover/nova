@@ -1,4 +1,4 @@
 from .Controller import Controller
 from .ActuateController import ActuateController
 from .PresetTwitchController import PresetTwitchController
-from .EffortController import EffortController
+from .EffortCommandController import EffortCommandController
