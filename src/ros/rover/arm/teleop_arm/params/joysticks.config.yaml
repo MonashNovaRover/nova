@@ -119,10 +119,10 @@ thrustmaster_right:
         j4:
           from: "r_ax_stick_twist"
         j5:
-          from: "r_ax_stick_x"
+          from: "r_ax_stick_y"
           invert: true
         j6:
-          from: "r_ax_stick_y"
+          from: "r_ax_stick_x"
 
         left_slide:
           from: "r_ax_thumb_y"
