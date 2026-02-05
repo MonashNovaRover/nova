@@ -39,8 +39,9 @@ buildRosPackage {
   };
 
   patches = [
-    ./patches/change_root_dir.patch
     ./patches/memory_bug.patch
+    ./patches/pc2_for_livox.patch
+    ./patches/pcd_save_dir.patch
   ];
 
   buildType = "ament_cmake";

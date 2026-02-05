@@ -7,6 +7,7 @@ fastlivo2:
       img_en: 1
       lidar_en: 1
       ros_driver_bug_fix: false
+      livox_custom: false
 
     extrin_calib:
       extrinsic_T: [0.011, 0.02329, -0.04412]

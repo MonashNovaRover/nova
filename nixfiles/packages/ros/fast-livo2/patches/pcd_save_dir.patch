@@ -1,0 +1,28 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index af27e8a..e87b69b 100755
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -37,7 +37,7 @@ else()
+ endif()
+ 
+ # Define project root directory
+-add_definitions(-DROOT_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/\")
++add_definitions(-DROOT_DIR=\"/home/nova/FAST-LIVO2/\")
+ 
+ # Detect CPU core count for potential multithreading optimization
+ include(ProcessorCount)
+diff --git a/src/LIVMapper.cpp b/src/LIVMapper.cpp
+index d67d140..e499ba4 100755
+--- a/src/LIVMapper.cpp
++++ b/src/LIVMapper.cpp
+@@ -554,8 +554,8 @@ void LIVMapper::savePCD()
+ {
+   if (pcd_save_en && (pcl_wait_save->points.size() > 0 || pcl_wait_save_intensity->points.size() > 0) && pcd_save_interval < 0) 
+   {
+-    std::string raw_points_dir = std::string(ROOT_DIR) + "Log/pcd/all_raw_points.pcd";
+-    std::string downsampled_points_dir = std::string(ROOT_DIR) + "Log/pcd/all_downsampled_points.pcd";
++    std::string raw_points_dir = std::string(ROOT_DIR) + "all_raw_points.pcd";
++    std::string downsampled_points_dir = std::string(ROOT_DIR) + "all_downsampled_points.pcd";
+     pcl::PCDWriter pcd_writer;
+ 
+     if (img_en)
