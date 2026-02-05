@@ -6,6 +6,11 @@ in
 {
   options.devices.jetson.devkit.enable = lib.mkEnableOption "configuration for NVIDIA Jetson Developer Kits";
 
+  imports = [
+    ./can.nix
+    ./networking.nix
+  ];
+
   config = lib.mkIf cfg.enable {
     hardware.nvidia-jetpack.carrierBoard = "devkit";
 
