@@ -445,7 +445,7 @@ void TeleopDriveJoy::joint_states_callback(const sensor_msgs::msg::JointState::S
     auto iterator = std::find(names.begin(), names.end(), joint_name);
     if (iterator != names.end())
     {
-      const double effort = joint_state_msg->effort[std::distance(names.begin(), iterator)];
+      const double effort = std::abs(joint_state_msg->effort[std::distance(names.begin(), iterator)]);
       if (effort > max_effort)
       {
         max_effort = effort;

@@ -30,10 +30,10 @@ const DriveSpeedWidget: React.FC<IDriveWidgetProps> = (
   );
 
   const wheelVelocities = jointVelocities.filter((_velocity: number, index: number) => {
-    wheelJointNames.includes(jointNames[index])
+    return wheelJointNames.includes(jointNames[index])
   })
   const averageWheelAngularVelocity = wheelVelocities.reduce(
-    (acc: number, velocity: number) => { return acc + velocity; }, 0.0)
+    (acc: number, velocity: number) => { return acc + Math.abs(velocity); }, 0.0)
     / Math.max(wheelVelocities.length, 1);
 
   useEffect(() => {

@@ -41,7 +41,7 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (
   const getEffort = (name: string) => {
     const index = names.indexOf(name)
     if (index >= 0) {
-      return efforts[index];
+      return Math.abs(efforts[index]);
     }
     else {
       return 0;
