@@ -14,6 +14,7 @@ EDITED BY:  Kabilan Velmurugan Sujatha, Bailey
     Chessum, Victor Bartlinski
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
+import os
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction, ExecuteProcess, RegisterEventHandler
 from launch.event_handlers import OnProcessExit
@@ -21,6 +22,31 @@ from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+
+# Similar to RTABMap, we want to delete previous maps when running FAST-LIVO2
+# due to their large size and limited disk space on the device being run. 
+def delete_fastlivo2_pcd(context, *args, **kwargs):
+    dir_path = os.path.expanduser('~/.ros')
+
+    raw_file_path = f"{dir_path}/all_raw_points.pcd"
+    try:
+        if os.path.exists(raw_file_path):
+            os.remove(raw_file_path)
+            print(f'Deleted all_raw_points.pcd at {raw_file_path}.')
+        else:
+            print(f'all_raw_points.pcd not found at {raw_file_path}. You might have to delete the file manually, wherever it is.')
+    except Exception as e:
+        print(f'Failed to delete file {raw_file_path}: {e}')
+
+    downsampled_file_path = f"{dir_path}/all_downsampled_points.pcd"
+    try:
+        if os.path.exists(downsampled_file_path):
+            os.remove(downsampled_file_path)
+            print(f'Deleted all_downsampled_points.pcd at {downsampled_file_path}.')
+        else:
+            print(f'all_downsampled_points.pcd not found at {downsampled_file_path}. You might have to delete the file manually, wherever it is.')
+    except Exception as e:
+        print(f'Failed to delete file {downsampled_file_path}: {e}')
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
@@ -64,6 +90,7 @@ def launch_setup(context, *args, **kwargs):
         GroupAction(
             condition=IfCondition(fastlivo2),
             actions=[
+                OpaqueFunction(function=delete_fastlivo2_pcd),
                 Node(
                     package='demo_nodes_cpp',
                     executable='parameter_blackboard',
