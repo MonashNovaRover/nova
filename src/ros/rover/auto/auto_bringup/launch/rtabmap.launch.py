@@ -133,8 +133,8 @@ def launch_setup(context, *args, **kwargs):
                         'use_sim_time': gazebo, 
                         'rtabmap_args': '--delete_db_on_start',
                         
-                        'subscribe_rgb': True,
-                        'subscribe_rgbd': False,
+                        'subscribe_rgb': False,
+                        'subscribe_rgbd': True,
                         'subscribe_depth': False,  
                         'subscribe_stereo': False,  
                         
@@ -158,9 +158,9 @@ def launch_setup(context, *args, **kwargs):
                     }],
                     remappings=[
                         # Connect RGB Input
-                        ('rgb/image',       '/oak/rgb/image_raw'),
-                        ('rgb/camera_info', '/oak/rgb/camera_info'),
-                        # ('rgbd_image','/oak/rgbd/image_raw'),
+                        # ('rgb/image',       '/oak/rgb/image_raw'),
+                        ('rgbd/camera_info', '/oak/rgbd/camera_info'),
+                        ('rgbd_image','/oak/rgbd/image_raw'),
                         
                         # Connect Geometry Input DIRECTLY to LiDAR
                         ('scan_cloud','/livox/lidar'),
