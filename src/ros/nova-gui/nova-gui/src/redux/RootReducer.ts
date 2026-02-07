@@ -331,6 +331,9 @@ export const reduxStores = {
   theta360InputDistance: createGenericStore("theta360InputDistance",""),
   rgbLedStore: createGenericStore("rgbLedStore", { r: "0", g: "0", b: "0" }),
   uvVisBlankStore: createGenericStore("uvVisBlankStore", []),
+  clickAndHold: createGenericStore("clickAndHold", false),
+  windowWideWASD: createGenericStore("windowWideWASD", false),
+
 };
 
 // all store reducers
