@@ -22,8 +22,6 @@ from python_control2.controller_manager import Interface, InterfaceCollection, C
 from python_control2.controllers import EffortCommandController
 from python_control2.hardware_interfaces import HardwareInterface
 
-from struct import pack
-
 class DiaphragmPumpHardware(HardwareInterface):
     effort_cmd: Interface
     can_id: int

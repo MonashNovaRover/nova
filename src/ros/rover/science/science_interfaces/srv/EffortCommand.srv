@@ -5,4 +5,4 @@ bool state
 float32 level
 
 ---
-bool applied
+bool success

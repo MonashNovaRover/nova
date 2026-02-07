@@ -71,7 +71,7 @@ class EffortCommandController(Controller):
         self.effort_cmd = command_interfaces[f"{self.hardware_name}/effort"]
 
         # Create status publisher
-        self.publisher = self.node.create_publisher(EffortStatus, self.topic_name, 5)
+        self.publisher = self.node.create_publisher(EffortStatus, self.topic_name, 10)
         self.publisher_timer = self.node.create_timer(1 / self.publish_rate, self.publish_data)
 
         # Create effort service
@@ -97,7 +97,7 @@ class EffortCommandController(Controller):
         self.is_on = request.state
         self.effort_level = request.level
 
-        response.applied = True
+        response.success = True
         return response
     
     def on_update(self, now: float, period: float):

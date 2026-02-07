@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     node = Node("peltier")
 
-    PythonControl(node, update_rate=10, can_bus="can1") \
+    PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller(
             "controller",
             EffortCommandController,
