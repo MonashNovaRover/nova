@@ -22,7 +22,7 @@
     "@uidotdev/usehooks": "^2.4.1",
     "apexcharts": "^5.3.6",
     "bootstrap-icons": "^1.13.1",
-    "broadcast-channel": "^7.2.0",
+    "broadcast-channel": "^7.3.0",
     "deck.gl": "^9.2.5",
     "eslint-plugin-react": "^7.37.5",
     "file-saver": "^2.0.5",
