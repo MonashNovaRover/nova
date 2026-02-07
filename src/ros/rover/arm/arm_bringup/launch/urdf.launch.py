@@ -34,7 +34,7 @@ def launch_setup(context, *args, **kwargs):
         FindPackageShare('rover_description'), '"'
     ])
 
-    gazebo = LaunchConfiguration('gazebo').perform(context)
+    sim = LaunchConfiguration('sim').perform(context)
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
     arm = LaunchConfiguration('arm').perform(context)
@@ -45,7 +45,7 @@ def launch_setup(context, *args, **kwargs):
     fixed_frame = 'base_link'
 
     xacro_args = [
-        'gazebo:=', gazebo, ' ',
+        'gazebo:=', sim, ' ',
         'robot_name:=', robot_name, ' ',
         'arm:=', arm, ' ',
         'old_arm:=', old_arm, ' ',
@@ -100,9 +100,9 @@ def generate_launch_description():
             description='whether to use the local rover_description source directory instead of the nix store.',
         ),
         DeclareLaunchArgument(
-            name='gazebo', 
+            name='sim', 
             default_value='True',
-            description='Launch with gazebo or not',
+            description='Launch with /clock or not',
         ),
         DeclareLaunchArgument(
             name='model',

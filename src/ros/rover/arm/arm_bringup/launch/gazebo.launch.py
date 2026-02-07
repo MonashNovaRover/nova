@@ -52,11 +52,11 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'control.launch.py'])),
-            launch_arguments={'controllers': controllers, 'gazebo': 'True'}.items(),
+            launch_arguments={'controllers': controllers, 'sim': 'True'}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'True', 'robot_name': robot_name, 'arm': arm}.items(),
+            launch_arguments={'model': model, 'sim': 'True', 'robot_name': robot_name, 'arm': arm}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
