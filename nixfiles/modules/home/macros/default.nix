@@ -89,10 +89,13 @@ in
           # Launch rover or payloads
           rover-help = "more ${cfg.nixfileDir}/doc/rover-help.md";
           launch-teleop = "~/Builds/master/bin/ros2 launch teleop_drive_joy teleop.launch.py";
+          launch-teleop-drive = "~/Builds/master/bin/ros2 launch teleop_drive_joy teleop.launch.py";
           launch-drive = "~/Builds/master/bin/ros2 launch drive_bringup drive.launch.py";
           launch-base = "~/Builds/master/bin/ros2 launch nova_bringup base.launch.py";
           launch-old-drive = "~/Builds/master/bin/ros2 launch nova_bringup old_drive.launch.py";
-          launch-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
+          launch-teleop-arm = "~/Builds/master/bin/ros2 launch teleop_arm teleop.launch.py";
+          launch-arm = "~/Builds/master/bin/ros2 launch arm_bringup control.launch.py";
+          launch-old-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
           launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
           launch-teleop-ec = "~/Builds/master/bin/ros2 launch teleop_ec teleop.launch.py";
           launch-science-arc = "~/Builds/master/bin/ros2 launch science_bringup arc.launch.py";
