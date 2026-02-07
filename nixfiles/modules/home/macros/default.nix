@@ -59,6 +59,7 @@ in
           jetson = "ssh -Y nvidia@10.0.0.10";
           jetson-wifi = "ssh -Y nvidia@tegra-ubuntu";
           orin = "ssh -Y nova@10.0.0.11";
+          orin2 = "ssh -Y nova@10.0.0.12"; # for the other devkit
           orin-devkit-1 = "ssh -Y nova@orin-devkit-1";
           J1 = "ssh -Y nvidia@10.0.2.21";
           J2 = "ssh -Y nvidia@10.0.2.22";
@@ -98,6 +99,7 @@ in
           launch-old-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
           launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
           launch-teleop-ec = "~/Builds/master/bin/ros2 launch teleop_ec teleop.launch.py";
+          launch-teleop-science = "~/Builds/master/bin/ros2 launch teleop_science teleop.launch.py";
           launch-science-arc = "~/Builds/master/bin/ros2 launch science_bringup arc.launch.py";
           launch-science-urc = "~/Builds/master/bin/ros2 launch science_bringup urc_old.launch.py";
           launch-theta-orin = "sudo LANG=C ~/Builds/master/bin/ros2 run science urc_theta_360_cam.py";
