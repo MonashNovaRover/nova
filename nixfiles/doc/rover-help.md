@@ -53,7 +53,7 @@ Try the `launch-arm` alias, otherwise use the command below.
 ~/Builds/master/bin/ros2 launch arm_bringup control.launch.py
 
 ## Arm Teleop
-Launch this on the metabox (operator station).
+Launch this on the metabox (base station).
 Try the `launch-teleop-arm` alias, otherwise use the command below.
 ~/Builds/master/bin/ros2 launch teleop_arm teleop.launch.py
 
@@ -64,7 +64,7 @@ Try the `launch-ec` alias, otherwise use the command below.
 ~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py
 
 ## C&E Teleop
-Launch this on the metabox (operator station).
+Launch this on the metabox (base station).
 Try the `launch-teleop-ec` alias, otherwise use the command below.
 ~/Builds/master/bin/ros2 launch teleop_ec teleop.launch.py
 
@@ -75,7 +75,7 @@ Try the `launch-science-arc` alias, otherwise use the command below.
 ~/Builds/master/bin/ros2 launch science_bringup arc.launch.py
 
 ## Science Teleop
-Launch this on the metabox (operator station).
+Launch this on the metabox (base station).
 Try the `launch-teleop-science` alias, otherwise use the command below.
 ~/Builds/master/bin/ros2 launch teleop_science teleop.launch.py
 
