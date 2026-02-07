@@ -62,12 +62,14 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['strafe_drive_controller', '--inactive']
+            arguments=['strafe_drive_controller', '--inactive'],
+            ros_arguments=['--log-level', log_level],
         ),
         Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['diff_drive_controller', '--inactive']
+            arguments=['diff_drive_controller', '--inactive'],
+            ros_arguments=['--log-level', log_level],
         ),
         GroupAction(
             condition=UnlessCondition(gazebo),
@@ -76,6 +78,7 @@ def launch_setup(context, *args, **kwargs):
                     package='controller_manager',
                     executable='spawner',
                     arguments=['joint_state_broadcaster'],
+                    ros_arguments=['--log-level', log_level],
                 ),
                 Node(
                     package='controller_manager',
@@ -85,6 +88,7 @@ def launch_setup(context, *args, **kwargs):
                         ('/controller_manager/robot_description', '/robot_description'),
                         ('/ackermann_steering_controller/reference', '/cmd_vel'),
                     ],
+                    ros_arguments=['--log-level', log_level],
                 ),
                 GroupAction(
                     condition=IfCondition(urdf),
@@ -112,6 +116,7 @@ def launch_setup(context, *args, **kwargs):
                     executable='status_monitor', 
                     output='screen', 
                     emulate_tty=True,
+                    ros_arguments=['--log-level', log_level],
                 ),
                 IncludeLaunchDescription(
                     launch_description_source=PythonLaunchDescriptionSource(
@@ -177,8 +182,9 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='log_level',
-            default_value='warn',
-            description='',
+            default_value='info',
+            description='sets log level of all nodes started by this launch file'
+                        '(set log level of individual node with "log_level:=<node name>:=<log level>")',
         ),
         DeclareLaunchArgument(
             name='model', 
