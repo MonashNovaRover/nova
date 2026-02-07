@@ -167,7 +167,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
         {streamingState === StreamingState.LOADING && <Spinner />}
       </div>
 
-      <CardFooter className="absolute z-1 bottom-0 bg-gradient-to-t from-black/100 to-black/15">
+      <CardFooter className="absolute z-1 bottom-0 bg-gradient-to-t from-black/80 to-black/0">
         <div className="w-full flex flex-row justify-between px-1 items-center">
           <div className="text-lg font-semibold py-1">{cameraName}</div>
           {(isHovered || isSettingsOpen) && (
