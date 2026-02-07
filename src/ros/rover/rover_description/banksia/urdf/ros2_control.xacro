@@ -13,7 +13,7 @@
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
                     <param name="min_interval">122</param>
-                    <param name="gear_ratio">15.0</param>
+                    <param name="gear_ratio">36.0</param>
                     <param name="mock">true</param>
                     <param name="reversed">true</param>
                     <param name="integrate_velocity">true</param>
@@ -55,7 +55,7 @@
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
                     <param name="min_interval">122</param>
-                    <param name="gear_ratio">15.0</param>
+                    <param name="gear_ratio">36.0</param>
                     <param name="mock">true</param>
                     <param name="reversed">true</param>
                     <param name="integrate_velocity">true</param>
@@ -99,7 +99,7 @@
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
                     <param name="min_interval">122</param>
-                    <param name="gear_ratio">15.0</param>
+                    <param name="gear_ratio">36.0</param>
 	                <param name="mock">true</param>
                     <param name="reversed">false</param>
                     <param name="integrate_velocity">true</param>
@@ -142,7 +142,7 @@
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
                     <param name="min_interval">122</param>
-                    <param name="gear_ratio">15.0</param>
+                    <param name="gear_ratio">36.0</param>
 	                <param name="mock">true</param>
                     <param name="reversed">false</param>
                     <param name="integrate_velocity">true</param>
