@@ -43,7 +43,7 @@ def launch_setup(context, *args, **kwargs):
     ])
 
     controllers = LaunchConfiguration('controllers')
-    gazebo = LaunchConfiguration('gazebo')
+    sim = LaunchConfiguration('sim')
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
     arm = LaunchConfiguration('arm').perform(context)
@@ -68,7 +68,7 @@ def launch_setup(context, *args, **kwargs):
     }
 
     xacro_args = [
-        'gazebo:=', gazebo, ' ',
+        'gazebo:=', sim, ' ',
         'robot_name:=', robot_name, ' ',
         'arm:=', arm, ' ',
         'old_arm:=', old_arm, ' ',
@@ -126,7 +126,7 @@ def launch_setup(context, *args, **kwargs):
             ]
         ),
         GroupAction(
-            condition=UnlessCondition(gazebo),
+            condition=UnlessCondition(sim),
             actions=[
                 Node(
                     package='controller_manager',
@@ -158,7 +158,7 @@ def launch_setup(context, *args, **kwargs):
                 ),
                 # IncludeLaunchDescription(
                 #     PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
-                #     launch_arguments={'model': model, 'gazebo': gazebo, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm, 'rviz': rviz}.items(),
+                #     launch_arguments={'model': model, 'sim': sim, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm, 'rviz': rviz}.items(),
                 #     condition=IfCondition(urdf),
                 # )
             ],
@@ -217,9 +217,9 @@ def generate_launch_description():
             description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
-            name='gazebo',
+            name='sim',
             default_value='False',
-            description='Use simulation (Gazebo) clock if True',
+            description='Use simulation (/clock) clock if True',
         ),
         DeclareLaunchArgument(
             name='log_level',
