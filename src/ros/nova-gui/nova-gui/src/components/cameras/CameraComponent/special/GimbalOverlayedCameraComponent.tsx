@@ -164,6 +164,7 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
           ? {
             outline: '2px solid #4da3ff',
             outlineOffset: '2px',
+            borderRadius: '14px',
           }
           : undefined
       }
