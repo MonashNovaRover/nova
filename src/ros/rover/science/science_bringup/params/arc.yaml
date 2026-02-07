@@ -110,7 +110,6 @@ chute:
       rotation:
         function_id: 0x03
         angular_limit: 180.0
-
 sweeper:
   ros__parameters:
     can_bus: "can1"
