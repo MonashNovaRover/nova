@@ -24,6 +24,8 @@ import toast from "react-hot-toast";
 import CameraSessionStartStopButton from "./components/CameraSessionStartStopButton.tsx";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
+import { CameraProfileEvents, emitCameraFiltersReadyEvent } from "../../../utils/cameraProfileEvents.ts";
+import { CameraProfilesState } from "../../../redux/models/CameraProfilesState.ts";
 
 const ASPECT_RATIO = 4 / 3;
 
@@ -42,6 +44,9 @@ export interface CameraComponentProps extends BaseCameraComponentProps {
 
   // Called when the streaming state changes
   onStreamingStateChange?: (s: StreamingState) => void
+
+  // Custom function to generate screenshot filename
+  getScreenshotName?: (cameraName: string, timestamp: number) => string
 }
 
 export interface CameraFilters {
@@ -57,7 +62,7 @@ const getInitialFilters = (cameraSerial: string): CameraFilters => {
 }
 
 export const CameraComponent = (props: CameraComponentProps) => {
-  const { cameraSerial, autostart: allCamerasStarted } = props;
+  const { cameraSerial, autostart: allCamerasStarted, getScreenshotName, onStreamingStateChange } = props;
   const cameraName = humanizeString(cameraSerial);
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -69,10 +74,62 @@ export const CameraComponent = (props: CameraComponentProps) => {
     isCameraOnline,
     closeSession,
   } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
+  // const {
+  //   streamingState,
+  //   sendSessionStartMessage,
+  //   isCameraOnline,
+  //   closeSession,
+  // } = useWebcam(videoRef);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
-  const onStreamingStateChange = props.onStreamingStateChange
   const [currentSite, _] = useGenericStore<Site>("currentSite");
+  const [cameraProfiles] = useGenericStore<CameraProfilesState>("cameraProfiles");
+  
+  // Use ref to always have latest profiles without recreating event listeners
+  const cameraProfilesRef = useRef(cameraProfiles);
+  useEffect(() => {
+    cameraProfilesRef.current = cameraProfiles;
+  }, [cameraProfiles]);
+
+  // Listen for save profile events
+  useEffect(() => {
+    const handleSaveProfile = () => {
+      // Send current filters when save is requested
+      emitCameraFiltersReadyEvent(cameraSerial, filters);
+    };
+
+    window.addEventListener(CameraProfileEvents.SAVE_PROFILE, handleSaveProfile);
+    
+    return () => {
+      window.removeEventListener(CameraProfileEvents.SAVE_PROFILE, handleSaveProfile);
+    };
+  }, [cameraSerial, filters]);
+
+  // Listen for load profile events
+  useEffect(() => {
+    const handleLoadProfile = (event: Event) => {
+      const customEvent = event as CustomEvent<{ profileName: string }>;
+      const { profileName } = customEvent.detail;
+      
+      // Use ref to get current profiles without recreating listener
+      const currentProfiles = cameraProfilesRef.current.profiles;
+      
+      const profile = currentProfiles[profileName];
+      if (profile) {
+        if (profile.cameras[cameraSerial]) {
+          // Load filters for this camera
+          const loadedFilters = profile.cameras[cameraSerial];
+          setFilters(loadedFilters);
+        }
+      }
+    };
+
+    window.addEventListener(CameraProfileEvents.LOAD_PROFILE, handleLoadProfile);
+    
+    return () => {
+      window.removeEventListener(CameraProfileEvents.LOAD_PROFILE, handleLoadProfile);
+    };
+  }, [cameraSerial]);
 
   useEffect(() => {
     if (onStreamingStateChange)
@@ -102,14 +159,20 @@ export const CameraComponent = (props: CameraComponentProps) => {
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
-          link.download = `site${(currentSite+1).toString()}-${cameraSerial}-${Date.now()}.png`;
+          
+          const timestamp = Date.now();
+          const filename = getScreenshotName
+            ? getScreenshotName(cameraName, timestamp)
+            : `site${(currentSite+1).toString()}-${cameraSerial}-${timestamp}.png`;
+          
+          link.download = filename;
           link.click();
         }
       }
     } else {
       toast("Unable to Take a Screenshot");
     }
-  }, [videoRef, cameraSerial, currentSite]);
+  }, [videoRef, cameraSerial, currentSite, cameraName, getScreenshotName]);
 
   useEffect(() => {
     const handleMouseEnter = () => {
