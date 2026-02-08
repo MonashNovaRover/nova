@@ -33,7 +33,7 @@ class KilnDoorController(Controller):
     door_current_state: Interface
     # State interfaces
 
-    def __init__(self, contexts: Contexts):
+    def __init__(self, contexts: Contexts, max_door_current:int):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
@@ -49,7 +49,7 @@ class KilnDoorController(Controller):
         self.door_speed_name = self.declare_parameter("speed_axis", "door_speed").value
 
         #maximum door current 
-        self.max_door_current = self.declare_parameter("max_door_current", 80)
+        self.max_door_current = self.declare_parameter("max_door_current", max_door_current)
 
         #inputs
         inputs = contexts[Inputs]
@@ -90,15 +90,17 @@ class KilnDoorController(Controller):
 
         if self.door_state!= self.door_actuation.value:
             self.logger.info(f"Kiln door {"CLOSING" if self.door_state == Direction.POSITIVE else "OPENING"}")
-            self.door_state = self.door_actuation.value
+        
+        self.door_state = self.door_actuation.value
 
         #check if door current reached max val
         if abs(self.door_current_state.value) < self.max_door_current.value:
+            self.logger.info(f"current state: {self.door_current_state.value}, max: {self.max_door_current.value}")
             #set command interface
             self.kiln_door_cmd.value = self.door_state * self.axis_to_speed(self.door_speed.value)
         else:
             #turn off motor
-            self.logger.infor("Current limit reached! Turning off motor...")
+            self.logger.info("Current limit reached! Turning off motor...")
             self.kiln_door_cmd.value = 0
 
     def axis_to_speed(self, axis:int):
@@ -113,9 +115,9 @@ if __name__ == "__main__":
     inputs = Inputs(node).with_topics("/science/input")
 
     PythonControl(node, update_rate=5, can_bus="can1") \
-        .with_controller("controller", KilnDoorController) \
+        .with_controller("controller", KilnDoorController, max_door_current = 0x0800) \
         .with_hardware("kiln_door", QCMDHardware, can_id = 0xD2) \
-        .with_hardware("current_sensor",GenericSensorHardware, can_id=0x4FF, unit = "amp") \
+        .with_hardware("current_sensor",GenericSensorHardware, can_id=0x4FF, unit = "current") \
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()

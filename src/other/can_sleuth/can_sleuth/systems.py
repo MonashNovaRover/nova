@@ -77,7 +77,7 @@ def led(interface = "can0", emulate=False):
     return devices
 
 def current_sensor(interface="can1", emulate=False):
-    canId = 0x3FF
+    canId = 0x4FF
     
     def update_function(state:int) -> int:
         """
