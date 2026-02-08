@@ -22,7 +22,7 @@ from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface, Direction
 
-from python_control2.hardware_interfaces import CMDHardware
+from python_control2.hardware_interfaces import QCMDHardware, GenericSensorHardware
 from teleop_python_utils import Inputs
 
 
@@ -49,7 +49,7 @@ class KilnDoorController(Controller):
         self.door_speed_name = self.declare_parameter("speed_axis", "door_speed").value
 
         #maximum door current 
-        self.max_door_current = self.declare_parameter("max_door_current")
+        self.max_door_current = self.declare_parameter("max_door_current", 80)
 
         #inputs
         inputs = contexts[Inputs]
@@ -98,10 +98,10 @@ class KilnDoorController(Controller):
             self.kiln_door_cmd.value = self.door_state * self.axis_to_speed(self.door_speed.value)
         else:
             #turn off motor
+            self.logger.infor("Current limit reached! Turning off motor...")
             self.kiln_door_cmd.value = 0
-    
 
-    def axis_to_speed(axis:int):
+    def axis_to_speed(self, axis:int):
         return (axis +1)/2
 
 if __name__ == "__main__":
@@ -112,10 +112,10 @@ if __name__ == "__main__":
     node = Node("kiln_door")
     inputs = Inputs(node).with_topics("/science/input")
 
-    PythonControl("kiln_door", update_rate=5, can_bus="can1") \
+    PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("controller", KilnDoorController) \
         .with_hardware("kiln_door", QCMDHardware, can_id = 0xD2) \
-        .with_hardware("current_sensor",GenericSensorHardware, can_id=0x4FF, unit = "amp")
+        .with_hardware("current_sensor",GenericSensorHardware, can_id=0x4FF, unit = "amp") \
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()
