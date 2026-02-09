@@ -18,7 +18,7 @@ import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
 import { RosService } from "../../../../ros/services/rosService.ts";
-import { Pause, Play } from "react-feather";
+import { Pause, Play, ExternalLink } from "react-feather";
 import { useRosNodes } from "../../../../utils/hooks/useRosNodes.ts";
 import { BooleanChip } from "./BooleanChip.tsx";
 import { allCams } from "../../../../views/shared/CamerasPage/CameraPageConstants.tsx";
@@ -194,6 +194,19 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
             </TableCell>
             <TableCell>
               <div className="flex flex-row gap-2 justify-end">
+                <Button
+                  isIconOnly
+                  size="sm"
+                  color="secondary"
+                  onPress={() => window.open(
+                      `/cameras/${serial}`,
+                      "_blank",
+                      "rel=noopener noreferrer"
+                    )
+                  }
+                >
+                  <ExternalLink size="15px" fill="white" />
+                </Button>
                 <Button
                   isIconOnly
                   size="sm"
