@@ -1,0 +1,144 @@
+From 0db5ccc63ee89638ac191c83467e150a3911ae10 Mon Sep 17 00:00:00 2001
+From: Orlando Chamberlain <orlandoch.dev@gmail.com>
+Date: Sat, 31 Jan 2026 13:24:54 +1100
+Subject: [PATCH 2/3] flash for novacarrier
+
+I know there must be a proper way to do this but I don't understand
+flakes and nix build so this is the best I got (and it works so good
+enough)
+
+to build the flasher script:
+nix --extra-experimental-features nix-command --extra-experimental-features flakes build .#flash-orin-nano-novacarrier -o flash
+
+there is a copy of this on the workshop build pc in /home/nova/src/jetpack-nixos/flash_with_kernel_dtb_hopefully
+
+this flashes the orin so that its uefi firmware has the devicetree
+for our hardware. you don't need this patch when you are doing nixos
+rebuild etc as the kernel will ignore any changes you make to the
+devicetree and get the devicetree from uefi instead.
+---
+ flake.nix                       |  2 ++
+ modules/default.nix             |  1 +
+ modules/devices.nix             |  2 +-
+ modules/flash-script.nix        | 18 +++++++++++++++++-
+ pkgs/kernels/r36/devicetree.nix | 18 +++++++++++++++++-
+ 5 files changed, 38 insertions(+), 3 deletions(-)
+
+diff --git a/flake.nix b/flake.nix
+index deb19cd..0ae82da 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -61,8 +61,10 @@
+         { som = "orin-nx"; carrierBoard = "devkit"; }
+         { som = "orin-nx"; carrierBoard = "xavierNxDevkit"; }
+         { som = "orin-nano"; carrierBoard = "devkit"; }
++        { som = "orin-nano"; carrierBoard = "novacarrier"; }
+         { som = "orin-nx"; carrierBoard = "devkit"; super = true; }
+         { som = "orin-nano"; carrierBoard = "devkit"; super = true; }
++        { som = "orin-nano"; carrierBoard = "novacarrier"; super = true; }
+         { som = "orin-agx"; carrierBoard = "devkit"; majorVersion = "5"; }
+         { som = "orin-agx-industrial"; carrierBoard = "devkit"; majorVersion = "5"; }
+         { som = "orin-nx"; carrierBoard = "devkit"; majorVersion = "5"; }
+diff --git a/modules/default.nix b/modules/default.nix
+index 0223c48..1cc65d8 100644
+--- a/modules/default.nix
++++ b/modules/default.nix
+@@ -92,6 +92,7 @@ in
+         type = types.enum [
+           "generic"
+           "devkit"
++          "novacarrier"
+ 
+           # Use this, if you would like to use Orin NX SOM with the original Xavier NX Devkit module (p3509-a02),
+           "xavierNxDevkit"
+diff --git a/modules/devices.nix b/modules/devices.nix
+index 4cf85fd..2a6f72d 100644
+--- a/modules/devices.nix
++++ b/modules/devices.nix
+@@ -118,7 +118,7 @@ in
+         (mkIf (cfg.som == "orin-nx" || cfg.som == "orin-nano") {
+           targetBoard =
+             let
+-              defaultConf = mkDefault "jetson-orin-nano-devkit${lib.optionalString cfg.super "-super"}";
++              defaultConf = mkDefault "novacarrier";
+               xavierConf =
+                 if cfg.majorVersion == "5" then
+                   mkDefault "p3509-a02+p3767-0000"
+diff --git a/modules/flash-script.nix b/modules/flash-script.nix
+index 45bb191..f31f021 100644
+--- a/modules/flash-script.nix
++++ b/modules/flash-script.nix
+@@ -9,6 +9,12 @@ let
+     types;
+ 
+   cfg = config.hardware.nvidia-jetpack;
++  novacarrier-assets = pkgs.fetchFromGitHub {
++    owner = "MonashNovaRover";
++    repo = "novacarrier-assets";
++    rev = "3576101ddc254cebbf5ce06a3d6f4fbc72d8fbfe";
++    hash = "sha256-41/LFjLIuYniRdDJ5RXfbOSIqWClzQ38o/a6mxK9C2Q=";
++  };
+ in
+ {
+   imports = with lib; [
+@@ -287,7 +293,17 @@ in
+ 
+         postPatch = mkOption {
+           type = types.lines;
+-          default = "";
++          default = ''
++# Add required files
++echo "Copying required files..."
++cp ${novacarrier-assets}/flash/novacarrier.conf novacarrier.conf
++cp ${novacarrier-assets}/flash/tegra234-mb1-bct-padvoltage-p3767-dp-a03.dtsi bootloader/generic/BCT/tegra234-mb1-bct-padvoltage-p3767-dp-a03.dtsi
++cp ${novacarrier-assets}/flash/tegra234-mb1-bct-pinmux-p3767-dp-a03.dtsi bootloader/generic/BCT/tegra234-mb1-bct-pinmux-p3767-dp-a03.dtsi
++cp ${novacarrier-assets}/flash/tegra234-mb1-bct-gpio-p3767-dp-a03.dtsi bootloader/tegra234-mb1-bct-gpio-p3767-dp-a03.dtsi
++
++echo "Setting carrier board EEPROM read size to 0..."
++sed -i 's|cvb_eeprom_read_size = <0x100>;|cvb_eeprom_read_size = <0x0>;|' bootloader/generic/BCT/tegra234-mb2-bct-misc-p3767-0000.dts            
++            '';
+           description = "Additional commands to run when building flash-tools";
+         };
+ 
+diff --git a/pkgs/kernels/r36/devicetree.nix b/pkgs/kernels/r36/devicetree.nix
+index 9790233..2897ffa 100644
+--- a/pkgs/kernels/r36/devicetree.nix
++++ b/pkgs/kernels/r36/devicetree.nix
+@@ -6,9 +6,16 @@
+ , runCommand
+ , stdenv
+ , buildPackages
++, fetchFromGitHub
+ , ...
+ }:
+ let
++  novacarrier-assets = fetchFromGitHub {
++    owner = "MonashNovaRover";
++    repo = "novacarrier-assets";
++    rev = "3576101ddc254cebbf5ce06a3d6f4fbc72d8fbfe";
++    hash = "sha256-41/LFjLIuYniRdDJ5RXfbOSIqWClzQ38o/a6mxK9C2Q=";
++  };
+   l4t-devicetree-sources = runCommand "l4t-devicetree-sources" { }
+     (lib.strings.concatStrings
+       ([ "mkdir -p $out ; cp ${bspSrc}/source/Makefile $out/Makefile ;" ] ++
+@@ -20,7 +27,16 @@ let
+               mkdir -p "$out/${project}"
+               cp --no-preserve=all -vr "${lib.attrsets.attrByPath [project] 0 gitRepos}"/. "$out/${project}"
+             ''
+-          )));
++          )++[
++          ''
++			# dummy sudo function
++			sudo () { $@; }
++			source ${novacarrier-assets}/flash/libsetup.sh
++			# Edit device tree
++			export COMMON_DTSI=$out/hardware/nvidia/t23x/nv-public/nv-platform/tegra234-p3768-0000+p3767-xxxx-nv-common.dtsi
++			edit_nvidia_dts $COMMON_DTSI
++			cp ${novacarrier-assets}/flash/tegra234-novacarrier.dtsi $out/hardware/nvidia/t23x/nv-public/tegra234-p3768-0000.dtsi
++          '']));
+ in
+ stdenv.mkDerivation (finalAttrs: {
+   pname = "l4t-devicetree";
+-- 
+2.51.2
+
