@@ -89,7 +89,7 @@ in
 
           # Launch rover or payloads
           rover-help = "more ${cfg.nixfileDir}/doc/rover-help.md";
-          launch-teleop = "~/Builds/master/bin/ros2 launch teleop_drive_joy teleop.launch.py";
+          launch-teleop = "echo 'DEPRECATED - Please use launch-teleop-drive instead for drive teleop'";
           launch-teleop-drive = "~/Builds/master/bin/ros2 launch teleop_drive_joy teleop.launch.py";
           launch-drive = "~/Builds/master/bin/ros2 launch drive_bringup drive.launch.py";
           launch-base = "~/Builds/master/bin/ros2 launch nova_bringup base.launch.py";
