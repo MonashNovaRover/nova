@@ -13,10 +13,9 @@
       };
     };
 
-    # TODO: get the exact ID_PATH from `udevadm info -p $(udevadm info --query=path --path=/sys/class/net/can1)`
     systemd.network.links."20-can1" = {
       matchConfig = {
-        Path = "*spi0*";
+        Path = "platform-3210000.spi-cs-0";
         Driver = "mcp251xfd";
       };
       linkConfig = {
@@ -24,10 +23,9 @@
       };
     };
 
-    # TODO: get the exact ID_PATH from `udevadm info -p $(udevadm info --query=path --path=/sys/class/net/can2)`
     systemd.network.links."20-can2" = {
       matchConfig = {
-        Path = "*spi1*";
+        Path = "platform-3230000.spi-cs-0";
         Driver = "mcp251xfd";
       };
       linkConfig = {
