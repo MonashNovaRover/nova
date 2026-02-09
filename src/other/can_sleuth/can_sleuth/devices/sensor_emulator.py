@@ -1,8 +1,10 @@
 
 from . import candevice
 
-class Sensor(candevice.CanDevice):
+class SensorEmulator(candevice.CanDevice):
     def __init__(self, name:str, id_:int, bus:str , attr: str, unit:str, initState:int, update_state):
+        """
+        """
 
         super().__init__(name, bus)
         self.id = id_
@@ -32,6 +34,8 @@ class Sensor(candevice.CanDevice):
     
     def pack_data(self, data:int, byteLength:int)-> list[int]:
         return list(data.to_bytes(byteLength,'big', signed = True))
+
+class SensorTracer(candevice.CanDevice):
 
     
         

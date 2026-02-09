@@ -13,7 +13,7 @@ EDITED BY: Orlando Chamberlain
 
 from can_sleuth.devices import blcmd
 from can_sleuth.devices import blcmd_emulator
-from can_sleuth.devices import sensor
+from can_sleuth.devices import sensor_emulator
 import random
 
 from can_sleuth.devices import led as LED #gotta rename some things
@@ -87,7 +87,7 @@ def current_sensor(interface="can1", emulate=False):
         return random.randint(-32767, 32767)
 
 
-    currentSensor = sensor.Sensor("current sensor", canId, interface, "current", "amps", 0, update_function)
+    currentSensor = sensor_emulator.SensorEmulator("current sensor_emulator", canId, interface, "current", "amps", 0, update_function)
 
     return [currentSensor]
 
@@ -99,7 +99,7 @@ allSystems = {
         "taipan": taipan_spherical,
         "drive25_26": drive25_26,
         "taipan_spherical": taipan_spherical,
-        "current_sensor": current_sensor,
+        "current_sensor_emulator": current_sensor,
         "led": led
         }
 
