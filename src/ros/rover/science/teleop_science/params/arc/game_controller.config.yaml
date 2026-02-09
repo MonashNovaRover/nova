@@ -55,7 +55,7 @@ game_controller_source:
           from: "RIGHTY"
         auger_drill_speed:
           from: "LEFTY"
-        cbeam_actuation:
+        analysis_arm_actuation:
           from: "LEFTY"
         chute_speed:
           from: "TRIGGERLEFT"

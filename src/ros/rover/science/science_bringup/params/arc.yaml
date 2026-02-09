@@ -4,6 +4,14 @@
 # ==========================================================
 
 # Analysis Arm - Nodes for components on the analysis arm
+analysis_arm:
+  ros__parameters:
+    can_bus: "can1"
+    hardware:
+      actuation:
+        can_id: 0x0E6
+        max_effort: 1.0
+        reversed: false
 
 tool_rotator:
   ros__parameters:
