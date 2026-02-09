@@ -32,12 +32,5 @@ lib.novaForAllSystems (nova: {
     pluginlib
     ## Nav2
     nav2-bringup
-    navigation2
-    ;
-  # Non ROS things:
-  inherit (nova.pkgs)
-    # Novacarrier Flash
-    # this may only work on x86
-    novacarrier-flash
-    ;
+    navigation2;
 })
