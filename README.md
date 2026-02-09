@@ -55,6 +55,7 @@ In general:
     ```
 1. To run the different payloads and systems look in the relevant directory, or look at the [launch overview](./nixfiles/doc/rover-help.md).
     - There are also WIP launch scripts under `nixfiles/home/macros/launch` for more details, see the launch overview file above.
+    - Aliases for common commands are defined [here](./nixfiles/modules/home/macros/default.nix).
 
 ## Contributing
 
