@@ -1,12 +1,19 @@
 { lib, config, pkgs, ... }:
 let
   cfg = config.nova.networking.rover;
-  netcfg = config.nova.networking;
 in
 {
   options = {
     nova.networking.rover = {
       enable = lib.mkEnableOption "Enable rover networking configuration";
+      wifiIfName = lib.mkOption {
+        type = lib.types.str;
+        description = "interface name of the wifi for the rover";
+      };
+      ethernetIfName = lib.mkOption {
+        type = lib.types.str;
+        description = "interface name of the ethernet for the rover";
+      };
       ethernetIpAddr = lib.mkOption {
         type = lib.types.str;
         description = "IP address of the rover over ethernet. must be in 10.0.0.0/23 subnet.";
@@ -21,7 +28,7 @@ in
   config = lib.mkIf cfg.enable {
 
     networking.useDHCP = false;
-    #networking.networkmanager.enable = lib.mkForce false;
+    networking.networkmanager.enable = lib.mkForce false;
     systemd.network = {
       enable = true;
       netdevs = {
@@ -43,13 +50,13 @@ in
             { Gateway = "10.0.0.1"; }
           ];
         };
-        "30-${netcfg.wifiIfName}" = {
-          matchConfig.Name = netcfg.wifiIfName;
+        "30-${cfg.wifiIfName}" = {
+          matchConfig.Name = cfg.wifiIfName;
           networkConfig.Bridge = "br0";
           #linkConfig.RequiredForOnline = "enslaved";
         };
-        "30-${netcfg.ethernetIfName}" = {
-          matchConfig.Name = netcfg.ethernetIfName;
+        "30-${cfg.ethernetIfName}" = {
+          matchConfig.Name = cfg.ethernetIfName;
           networkConfig.Bridge = "br0";
 
         };
@@ -89,12 +96,12 @@ in
     services.hostapd = {
       # there is no dhcp.
       # doesn't seem to be working right yet.
-      enable = false;
-      radios."${netcfg.wifiIfName}" = {
+      enable = true;
+      radios."${cfg.wifiIfName}" = {
         countryCode = "AU";
         band = "2g";
         channel = 6;
-        networks."${netcfg.wifiIfName}" = {
+        networks."${cfg.wifiIfName}" = {
           ssid = cfg.hostname + "-hotspot";
           authentication.saePasswords = [
             { passwordFile = ../../../../../secrets/reolink-password.txt; }
