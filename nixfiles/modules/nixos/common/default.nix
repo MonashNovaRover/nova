@@ -6,6 +6,7 @@
     ./mocking
     ./networking
     ./peripherals
+    ./services
     ./substituters
     ./users
     ./virtualisation
