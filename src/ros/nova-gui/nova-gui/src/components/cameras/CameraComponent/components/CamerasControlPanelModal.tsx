@@ -197,19 +197,6 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
                 <Button
                   isIconOnly
                   size="sm"
-                  color="secondary"
-                  onPress={() => window.open(
-                      `/cameras/${serial}`,
-                      "_blank",
-                      "rel=noopener noreferrer"
-                    )
-                  }
-                >
-                  <ExternalLink size="15px" fill="white" />
-                </Button>
-                <Button
-                  isIconOnly
-                  size="sm"
                   color="primary"
                   disabled={!onlineCameraSerials.includes(serial)}
                   onPress={() => startStreaming(serial)}
@@ -224,6 +211,19 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
                   onPress={() => pauseStreaming(serial)}
                 >
                   <Pause size="15px" fill="white" />
+                </Button>
+                <Button
+                  isIconOnly
+                  size="sm"
+                  color="default"
+                  onPress={() => window.open(
+                    `/cameras/${serial}`,
+                    "_blank",
+                    "rel=noopener noreferrer"
+                  )
+                  }
+                >
+                  <ExternalLink size="15px" fill="white" />
                 </Button>
               </div>
             </TableCell>
