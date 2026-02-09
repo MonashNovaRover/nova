@@ -122,27 +122,27 @@ joint_space_mode:
       j1:
         name: "J1"
         input_name: "j1"
-        scale: 0.8
+        scale: 0.0535
       j2:
         name: "J2"
         input_name: "j2"
-        scale: 0.4
+        scale: 0.040
       j3:
         name: "J3"
         input_name: "j3"
-        scale: 0.12
+        scale: 0.040
       j4:
         name: "J4"
         input_name: "j4"
-        scale: 0.25
+        scale: 0.048
       j5:
         name: "J5"
         input_name: "j5"
-        scale: 1.0
+        scale: 4.0
       j6:
         name: "J6"
         input_name: "j6"
-        scale: 0.36
+        scale: 4.0
 
 task_space_mode:
   ros__parameters:
