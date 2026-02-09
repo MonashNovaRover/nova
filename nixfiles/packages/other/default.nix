@@ -16,4 +16,5 @@
   foxglove = callPackage ./foxglove { };
   reolink = callPackage ./reolink { };
   ptpd = callPackage ./ptpd { };
+  novacarrier-flash = callPackage ./novacarrier-flash { };
 } // import ./nova-launch { inherit pkgs; }
