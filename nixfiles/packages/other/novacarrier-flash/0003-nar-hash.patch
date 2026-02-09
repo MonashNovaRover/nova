@@ -1,0 +1,40 @@
+From 9ff43ff2310160987d3ca51678e8750772ed9b36 Mon Sep 17 00:00:00 2001
+From: Monash Nova Rover <novaroverteam@monash.edu>
+Date: Sun, 1 Feb 2026 12:42:48 +1100
+Subject: [PATCH 3/3] nar hash
+
+error: attribute 'narHash' missing
+at /nix/store/iqlfwhdl32dl1z6h2wfq1adcwc577nhv-source-patched/flake.nix:151:50:
+   150|         # were applied and the order in which they were applied.
+   151|         if prev."jetpack-nixos-overlay-applied-${self.narHash}" or false then
+      |                                                  ^
+   152|           { }
+---
+ flake.nix | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/flake.nix b/flake.nix
+index 0ae82da..4670df5 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -148,7 +148,7 @@
+         # We've already applied our overlay and should not apply it again.
+         # TODO(@connorbaker): Create a general "named overlay" mechanism which provides visibility into which overlays
+         # were applied and the order in which they were applied.
+-        if prev."jetpack-nixos-overlay-applied-${self.narHash}" or false then
++        if prev."jetpack-nixos-overlay-applied" or false then
+           { }
+         else
+           nixpkgs.lib.composeManyExtensions [
+@@ -158,7 +158,7 @@
+             # We apply cuda-legacy first because Connor says so.
+             cuda-legacy.overlays.default
+             (import ./overlay.nix)
+-            (_: _: { "jetpack-nixos-overlay-applied-${self.narHash}" = true; })
++            (_: _: { "jetpack-nixos-overlay-applied" = true; })
+           ]
+             final
+             prev;
+-- 
+2.51.2
+
