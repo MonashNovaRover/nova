@@ -217,7 +217,7 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
                   size="sm"
                   color="default"
                   onPress={() => window.open(
-                    `/cameras/${serial}`,
+                    `/cameras/${serial}?autostart=true`,
                     "_blank",
                     "rel=noopener noreferrer"
                   )
