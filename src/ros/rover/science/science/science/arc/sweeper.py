@@ -43,13 +43,8 @@ class SweeperController(Controller):
         self.sweeper_axis_name = self.declare_parameter("sweeper_axis", "sweeper_sweep").value
 
         inputs = contexts[Inputs]
-        self.actuation_axis = inputs.get_axis(self.actuation_axis_name)
-
-
-        # Activate sweeper
-        self.sweeper_axis = inputs.get_axis(self.sweeper_axis)
-
-        inputs.get_axis(self.sweeper_axis_name).add_callback(self.update_sweep())
+        self.sweeper_axis = inputs.get_axis(self.sweeper_axis_name)
+        self.sweeper_axis.value = self.to_int16(self.sweeper_axis.value)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -72,29 +67,26 @@ class SweeperController(Controller):
         :param period: The time elapsed since the last update, in seconds.
         """
         if not self.active:
-            self.sweep_cmd.value = self.to_16bit(0)
+            self.sweep_cmd.value = self.to_16bit(int(0))
             return
 
         # Update Command Interfaces
         # Update sweeping
+        # Check if sweeping direction has changed
+        match (new_direction := self.get_sweeper_direction()):
+            case self.sweeper_direction:
+                return
+            case Direction.POSITIVE:
+                self.sweeper_direction = Direction.POSITIVE
+            case Direction.NEGATIVE:
+                self.sweeper_direction = Direction.NEGATIVE
+            case _:
+                self.logger.error(f"Updated to invalid sweeper direction: {new_direction}")
+
+        self.logger.info(f"Updated sweeper direction: {"CLOCKWISE" if self.sweeper_direction == Direction.POSITIVE else "ANTICLOCKWISE"}")
+
         # Convert to 16 bit integer
         self.sweep_cmd.value = self.to_int16(self.get_sweep_speed() * self.sweep_direction.value)
-
-    def update_sweep(self):
-        def update_sweep():
-            # Check if sweeping direction has changed
-            match (new_direction := self.get_sweeper_direction()):
-                case self.sweeper_direction:
-                    return
-                case Direction.POSITIVE:
-                    self.sweeper_direction = Direction.POSITIVE
-                case Direction.NEGATIVE:
-                    self.sweeper_direction = Direction.NEGATIVE
-                case _:
-                    self.logger.error(f"Updated to invalid sweeper direction: {new_direction}")
-
-            self.logger.info(f"Updated sweeper direction: {"CLOCKWISE" if self.sweeper_direction == Direction.POSITIVE else "ANTICLOCKWISE"}")
-        return update_sweep
 
     def get_sweeper_speed(self) -> int:
         """ gets the sweeper speed, turning an axis [-1, 1] to a speed [0, 1]"""
@@ -125,7 +117,7 @@ if __name__ == "__main__":
     # ARCh auger system
     PythonControl(node, update_rate=10, can_bus="can1") \
         .with_controller("controller", SweeperController) \
-        .with_hardware("sweeper", QCMDHardware, can_id=0x0E4) \
+        .with_hardware("sweep", QCMDHardware, can_id=0x0E4) \
         .with_teleop(inputs) \
         .with_activation_buttons(start_active=True, active_button_name="activate_sweeper", inactive_button_pool_names=["activate_cbeam","activate_auger"]) \
         .with_jcan() \
