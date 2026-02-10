@@ -1,7 +1,6 @@
 import {useSelector} from "react-redux";
 import {RootState} from "../../../../redux/RootState.ts";
 import {CircularProgress} from "@nextui-org/react";
-import {min} from "lodash";
 import {useEffect} from "react";
 
 export const CamerasCircularProgress = () => {

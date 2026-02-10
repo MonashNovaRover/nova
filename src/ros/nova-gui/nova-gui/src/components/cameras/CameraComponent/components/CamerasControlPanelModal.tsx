@@ -76,17 +76,11 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
   );
   const onlineCameraSerials = onlineCameras.map((cam) => cam.serial);
 
-  console.log(onlineCameraSerials)
-
   const cameras = Array.from(new Set([...onlineCameraSerials, ...allCams]));
 
   const cameraStreamerMap = useSelector(
     (state: RootState) => state.cameraStreamerState.cameras
   );
-
-  useEffect(() => {
-    console.log(cameraStreamerMap)
-  }, [cameraStreamerMap]);
 
   const bifrostStarter = useBifrost({ service: RosService.START_CAMS });
 

@@ -4,7 +4,6 @@ import {RosTopic} from "../../../../ros/topics/rosTopic.ts";
 import {useEffect} from "react";
 import {RosService} from "../../../../ros/services/rosService.ts";
 import {Pause, Play} from "react-feather";
-import {useRosNodes} from "../../../../utils/hooks/useRosNodes.ts";
 
 export interface CameraStreamingButtonsProps{
   isStartButton: boolean
