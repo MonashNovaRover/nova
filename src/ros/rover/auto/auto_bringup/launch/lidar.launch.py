@@ -16,7 +16,7 @@ EDITED BY:  Kabilan Velmurugan Sujatha, Bailey
 '''
 import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction, ExecuteProcess, RegisterEventHandler
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction, RegisterEventHandler
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import IfCondition, UnlessCondition
@@ -49,8 +49,6 @@ def delete_fastlivo2_pcd(context, *args, **kwargs):
         print(f'Failed to delete file {downsampled_file_path}: {e}')
 
 def launch_setup(context, *args, **kwargs):
-    auto_bringup_dir = FindPackageShare('auto_bringup')
-
     blackboard_params = LaunchConfiguration('blackboard_params')
     fastlivo2 = LaunchConfiguration('fastlivo2')
     fastlivo2_params = LaunchConfiguration('fastlivo2_params')
