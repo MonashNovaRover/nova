@@ -85,7 +85,9 @@ def launch_setup(context, *args, **kwargs):
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['joint_state_broadcaster'],
+                    arguments=['joint_state_broadcaster',
+                               '--controller-ros-args', '-r /joint_states:=/drive/joint_states',
+                               '--controller-ros-args', '-r /dynamic_joint_states:=/drive/dynamic_joint_states'],
                     ros_arguments=['--log-level', log_level],
                 ),
                 Node(
@@ -94,8 +96,6 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[params],
                     remappings=[
                         ('/controller_manager/robot_description', '/robot_description'),
-                        ('/joint_states', '/drive/joint_states'),
-                        ('/dynamic_joint_states', '/drive/dynamic_joint_states'),
                     ],
                     ros_arguments=['--log-level', log_level],
                 ),
