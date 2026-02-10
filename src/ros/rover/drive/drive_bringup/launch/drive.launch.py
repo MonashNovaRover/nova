@@ -65,7 +65,8 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='controller_manager',
             executable='spawner',
-            arguments=spawner_args('ackermann_steering_controller'),
+            arguments=[*spawner_args('ackermann_steering_controller'),
+                       '--controller-ros-args', '-r /ackermann_steering_controller/reference:=/cmd_vel'],
             ros_arguments=['--log-level', log_level],
         ),
         Node(
@@ -95,7 +96,6 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[params],
                     remappings=[
                         ('/controller_manager/robot_description', '/robot_description'),
-                        ('/ackermann_steering_controller/reference', '/cmd_vel'),
                     ],
                     ros_arguments=['--log-level', log_level],
                 ),
