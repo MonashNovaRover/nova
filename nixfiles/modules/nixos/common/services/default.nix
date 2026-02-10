@@ -1,5 +1,6 @@
 {
   imports = [
     ./ptpd
+    ./nova-gui
   ];
 }

@@ -1,6 +1,7 @@
 { lib
 , buildEnv
 , mkYarnPackage
+, writers
 , rosbridge-server
 , ros-typescript-definitions
 , ros-core
@@ -12,7 +13,6 @@
 , nova-interfaces
 , nova-camera-msgs
 , nova-science-interfaces
-, static-web-server
 }:
 
 let
@@ -28,6 +28,7 @@ let
     nova-camera-msgs
     nova-science-interfaces
   ];
+  serve-gui-script = writers.writePython3 "serve-gui" { doCheck = false; } (builtins.readFile ../../../serve.py);
 in
 mkYarnPackage {
   name = "gui";
@@ -74,14 +75,7 @@ mkYarnPackage {
     mkdir -p "$out/bin/"
 
     echo "#!/bin/bash
-    ${static-web-server}/bin/static-web-server --root $out/share/nova-gui/www --page-fallback $out/share/nova-gui/www/index.html --cache-control-headers false \$@
-    err=\$?
-    if [ \$err -ne 0 ]; then
-      echo If it says permission denied, maybe you want to specify a non-default port, e.g.
-      echo -e \\\\t \$0 -p 8080
-    fi
-    exit \$err
-    " > "$out/bin/serve-gui"
+    ${serve-gui-script} \"$out/share/nova-gui/www\" \$@" > "$out/bin/serve-gui"
     chmod +x "$out/bin/serve-gui"
 
     runHook postInstall
