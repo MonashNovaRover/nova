@@ -113,17 +113,17 @@ def launch_setup(context, *args, **kwargs):
                     output='screen', 
                     emulate_tty=True,
                 ),
+                IncludeLaunchDescription(
+                    launch_description_source=PythonLaunchDescriptionSource(
+                        PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
+                    ),
+                    launch_arguments={
+                        "bus" : "can0",
+                        "bitrate" : "250000",
+                        "log_name" : "drive",
+                    }.items()
+                ),
             ],
-        ),
-        IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(
-                PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
-            ),
-            launch_arguments={
-                "bus" : "can0",
-                "bitrate" : "250000",
-                "log_name" : "drive",
-            }.items()
         ),
     ]
 

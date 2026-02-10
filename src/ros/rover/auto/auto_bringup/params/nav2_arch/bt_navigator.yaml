@@ -14,10 +14,10 @@ bt_navigator:
     navigators: ["navigate_to_pose", "navigate_through_poses"]
     navigate_to_pose:
       plugin: "nav2_bt_navigator::NavigateToPoseNavigator"
-      default_nav_to_pose_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/arch/nav_to_pose.xml
+    default_nav_to_pose_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/arch/nav_to_pose.xml
     navigate_through_poses:
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
-      default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/arch/nav_through_poses.xml
+    default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/arch/nav_through_poses.xml
     plugin_lib_names:
       - nova_blackboard_publisher_bt_node
       - nova_snap_in_collision_goals_action_bt_node

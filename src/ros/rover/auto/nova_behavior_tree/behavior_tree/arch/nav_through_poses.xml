@@ -2,9 +2,11 @@
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="6" name="NavigateRecovery">
       <PipelineSequence name="NavigateWithReplanning">
+        <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
         <RateController hz="1.0">
           <ReactiveSequence>
             <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="0.7"/>
+            <SnapInCollisionGoals goals_offset="1.5" input_goals="{goals}" output_goals="{goals}"/>
             <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="GridBased"/>
           </ReactiveSequence>
         </RateController>
