@@ -49,7 +49,7 @@ class SweeperController(Controller):
         # Activate sweeper
         self.sweeper_axis = inputs.get_axis(self.sweeper_axis)
 
-        inputs.get_axis(self.sweeper_axis_name).add_callback(self.update_sweeper_sweep())
+        inputs.get_axis(self.sweeper_axis_name).add_callback(self.update_sweep())
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -80,7 +80,7 @@ class SweeperController(Controller):
         # Convert to 16 bit integer
         self.sweep_cmd.value = self.to_int16(self.get_sweep_speed() * self.sweep_direction.value)
 
-    def update_sweep_direction(self):
+    def update_sweep(self):
         def update_sweep():
             # Check if sweeping direction has changed
             match (new_direction := self.get_sweeper_direction()):
@@ -96,19 +96,22 @@ class SweeperController(Controller):
             self.logger.info(f"Updated sweeper direction: {"CLOCKWISE" if self.sweeper_direction == Direction.POSITIVE else "ANTICLOCKWISE"}")
         return update_sweep
 
-    def get_sweeper_speed(self) -> float:
+    def get_sweeper_speed(self) -> int:
         """ gets the sweeper speed, turning an axis [-1, 1] to a speed [0, 1]"""
-        return abs(self.sweeper_axis.value)
+        return abs(self.from_int16(self.sweeper_axis.value))
 
-    def get_sweeper_direction(self) -> float:
+    def get_sweeper_direction(self) -> int:
         """ gets the sweeper direction, turning an axis [-1, 1] to -1 or 1"""
-        if self.sweeper_axis.value >= 0:
+        if self.from_int16(self.sweeper_axis.value) >= 0:
             return Direction.POSITIVE
         else:
             return Direction.NEGATIVE
 
-    def to_int16(self, number: float) -> bytes:
+    def to_int16(self, number: int) -> bytes:
         return int(number).to_bytes(2, byteorder='big', signed=True)
+
+    def from_int16(self, number: bytes) -> int:
+        return int.from_bytes(number, byteorder='big', signed=True)
 
 
 if __name__ == "__main__":

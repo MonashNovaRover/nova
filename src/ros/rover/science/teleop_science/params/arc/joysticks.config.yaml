@@ -52,6 +52,7 @@ thrustmaster_left:
         # Sweeper
         sweeper_sweep:
           from: "l_ax_thumb_y"
+
       buttons:
         # Lock/Unlock
         lock:
@@ -69,6 +70,10 @@ thrustmaster_left:
           from: "l_btn_bottom_r5_state"
         tool_rotator_nir_probe:
           from: "l_btn_bottom_r6_state"
+        # Sweeper
+        activate_sweeper:
+          from: "r_btn_bottom_r4_state"
+
         # Sweeper
         activate_sweeper:
           from: "r_btn_bottom_r4_state"
