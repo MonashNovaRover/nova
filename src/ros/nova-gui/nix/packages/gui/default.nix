@@ -54,6 +54,11 @@ mkYarnPackage {
   buildPhase = ''
     runHook preBuild
 
+    # without this, the built css file is missing 2/3rds of the content
+    # maybe the deps we pull in aren't specifically marked as deps of nova-gui
+    rm deps/nova-gui/node_modules
+    ln -s $PWD/node_modules deps/nova-gui/node_modules
+
     yarn --offline build
 
     runHook postBuild
