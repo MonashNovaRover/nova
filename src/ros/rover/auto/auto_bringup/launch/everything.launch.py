@@ -48,6 +48,7 @@ def launch_setup(context, *args, **kwargs):
     sim_params = LaunchConfiguration('sim_params')
     use_respawn = LaunchConfiguration('use_respawn')
     rtabmap = LaunchConfiguration('rtabmap')
+    rtabmap_params = LaunchConfiguration('rtabmap_params')
 
     # comp defaults
     if comp == 'arch':
@@ -127,7 +128,10 @@ def launch_setup(context, *args, **kwargs):
         IncludeLaunchDescription(
             condition=IfCondition(rtabmap),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rtabmap.launch.py'])),
-            launch_arguments={'gazebo': gazebo}.items(),
+            launch_arguments={
+                'rtabmap_params': rtabmap_params,
+                'gazebo': gazebo,
+            }.items(),
         ),
     ]
 
@@ -213,6 +217,11 @@ def generate_launch_description():
             name='rtabmap',
             default_value='True',
             description='Launch rtabmap?',
+        ),
+        DeclareLaunchArgument(
+            name='rtabmap_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'rtabmap.yaml']),
+            description='Params file for RTABMap Nodes',
         ),
         # arguments with comp defaults
         DeclareLaunchArgument(

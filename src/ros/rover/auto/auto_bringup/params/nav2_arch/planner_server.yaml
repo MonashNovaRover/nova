@@ -4,7 +4,8 @@ planner_server:
     use_sim_time: False
     planner_plugins: ["GridBased"]
 
-    # SMAC:
+    # Smac State Lattice
+    # GridBased:
     #   allow_reverse_expansion:
     #     false # If true, allows the robot to use the primitives to expand in the mirrored opposite direction of the current robot's orientation (to
     #     # reverse).
@@ -24,7 +25,7 @@ planner_server:
     #     false # For Hybrid/Lattice nodes: Whether to publish expansions on the /expansions topic as an array of poses (the orientation has no meaning)
     #     # and the path's footprints on the /planned_footprints topic. WARNING: heavy to compute and to display, for debug only as it degrades the
     #     # performance.
-    #   lattice_filepath: "/home/nova/nova/src/ros/rover/auto_bringup/params/nav2_arch/state_lattice.json" # The filepath to the state lattice graph
+    #   lattice_filepath: "/home/nova/nova/src/ros/rover/auto/auto_bringup/params/nav2_arch/state_lattice.json" # The filepath to the state lattice graph
     #   lookup_table_size: 20.0 # Size of the dubin/reeds-sheep distance window to cache, in meters.
     #   max_iterations: 1000000 # Maximum total iterations to search for before failing (in case unreachable), set to -1 to disable
     #   max_on_approach_iterations: 1000 # Maximum number of iterations after within tolerances to continue to try to find exact solution
@@ -47,12 +48,14 @@ planner_server:
     #   terminal_checking_interval: 5000 # Number of iterations between checking if the goal has been cancelled or planner timed out
     #   tolerance: 0.25 # dist-to-goal heuristic cost (distance) for valid tolerance endpoints if exact goal cannot be found.
 
+    # NavFn
     # GridBased:
     #   plugin: "nav2_navfn_planner::NavfnPlanner"
     #   tolerance: 1.0
     #   use_astar: true
     #   allow_unknown: true
 
+    # Smac Hybrid
     GridBased:
       plugin: "nav2_smac_planner::SmacPlannerHybrid"
       tolerance: 0.5 # tolerance for planning if unable to reach exact pose, in meters
@@ -89,7 +92,8 @@ planner_server:
         tolerance: 1.0e-10
         do_refinement: true # Whether to recursively run the smoother 3 times on the results from prior runs to refine the results further
 
-    # ThetaStar:
+    # Theta Star
+    # GridBased:
     #   plugin: "nav2_theta_star_planner::ThetaStarPlanner"
     #   how_many_corners: 8
     #   w_euc_cost: 1.0
