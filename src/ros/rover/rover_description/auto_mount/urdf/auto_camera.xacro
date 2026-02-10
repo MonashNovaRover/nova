@@ -131,7 +131,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
     />
   <!-- Joint from lidar_holder to livox_frame -->
   <joint name="lidar_mate" type="fixed">
-    <origin xyz="-0.09 -0.03 0.0375" rpy="1.5708 0 0"/>
+    <origin xyz="-0.09 -0.03 0.045" rpy="1.5708 3.14159 0"/>
     <parent link="lidar_holder"/>
     <child link="livox_frame"/>
   </joint>

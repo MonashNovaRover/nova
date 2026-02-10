@@ -41,43 +41,23 @@ def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo')
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
+    urdf = LaunchConfiguration('urdf')
     
     nova_bringup_dir = FindPackageShare('nova_bringup')
     auto_bringup_dir = FindPackageShare('auto_bringup')
     params = IfElseSubstitution(auto, auto_params, nova_params)
 
     return [
-        GroupAction(
-            condition=UnlessCondition(auto),
-            actions = [
-                Node(
-                    package='controller_manager',
-                    executable='spawner',
-                    arguments=['pivot_drive_controller', '--switch-timeout', '10',
-                        '--ros-args', '--log-level', log_level]
-                ),
-                Node(
-                    package='controller_manager',
-                    executable='spawner',
-                    arguments=['ackermann_steering_controller', '--inactive']
-                ),
-            ],
+        Node(
+            package='controller_manager',
+            executable='spawner',
+            arguments=['pivot_drive_controller', '--switch-timeout', '10',
+                '--ros-args', '--log-level', log_level]
         ),
-        GroupAction(
-            condition=IfCondition(auto),
-            actions = [
-                Node(
-                    package='controller_manager',
-                    executable='spawner',
-                    arguments=['ackermann_steering_controller', '--switch-timeout', '10',
-                        '--ros-args', '--log-level', log_level]
-                ),
-                Node(
-                    package='controller_manager',
-                    executable='spawner',
-                    arguments=['pivot_drive_controller', '--inactive']
-                ),
-            ],
+        Node(
+            package='controller_manager',
+            executable='spawner',
+            arguments=['ackermann_steering_controller', '--inactive']
         ),
         Node(
             package='controller_manager',
@@ -106,21 +86,26 @@ def launch_setup(context, *args, **kwargs):
                         ('/ackermann_steering_controller/reference', '/cmd_vel'),
                     ],
                 ),
-                IncludeLaunchDescription(
-                    condition=IfCondition(auto),
-                    launch_description_source=PythonLaunchDescriptionSource(
-                        PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-                    launch_arguments={'model': model, 'angle': angle}.items(),
-                ),
-                IncludeLaunchDescription(
-                    condition=UnlessCondition(auto),
-                    launch_description_source=PythonLaunchDescriptionSource(
-                        PathJoinSubstitution([nova_bringup_dir, 'launch', 'urdf.launch.py'])),
-                    launch_arguments = {
-                        'arm': arm,
-                        'rover': 'True',
-                        'rviz': rviz
-                    }.items(),
+                GroupAction(
+                    condition=IfCondition(urdf),
+                    actions=[
+                        IncludeLaunchDescription(
+                            condition=IfCondition(auto),
+                            launch_description_source=PythonLaunchDescriptionSource(
+                                PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
+                            launch_arguments={'model': model, 'angle': angle}.items(),
+                        ),
+                        IncludeLaunchDescription(
+                            condition=UnlessCondition(auto),
+                            launch_description_source=PythonLaunchDescriptionSource(
+                                PathJoinSubstitution([nova_bringup_dir, 'launch', 'urdf.launch.py'])),
+                            launch_arguments = {
+                                'arm': arm,
+                                'rover': 'True',
+                                'rviz': rviz
+                            }.items(),
+                        ),
+                    ],
                 ),
                 Node(
                     package='blcmd_utils', 
@@ -128,17 +113,17 @@ def launch_setup(context, *args, **kwargs):
                     output='screen', 
                     emulate_tty=True,
                 ),
+                IncludeLaunchDescription(
+                    launch_description_source=PythonLaunchDescriptionSource(
+                        PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
+                    ),
+                    launch_arguments={
+                        "bus" : "can0",
+                        "bitrate" : "250000",
+                        "log_name" : "drive",
+                    }.items()
+                ),
             ],
-        ),
-        IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(
-                PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
-            ),
-            launch_arguments={
-                "bus" : "can0",
-                "bitrate" : "250000",
-                "log_name" : "drive",
-            }.items()
         ),
     ]
 
@@ -199,6 +184,11 @@ def generate_launch_description():
             name='model', 
             default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
+        ),
+        DeclareLaunchArgument(
+            name='urdf',
+            default_value='True',
+            description='Launch URDF?',
         ),
     ]
 
