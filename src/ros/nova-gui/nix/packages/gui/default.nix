@@ -34,7 +34,7 @@ mkYarnPackage {
   src = builtins.path rec {
     name = "gui";
     path = ../../../nova-gui;
-    filter = lib.novaSourceFilter [ ] path;
+    filter = lib.novaSourceFilter [ "node_modules" "dist" ] path;
   };
 
   ROS_TS_DEFINITIONS = (ros-typescript-definitions.override {
