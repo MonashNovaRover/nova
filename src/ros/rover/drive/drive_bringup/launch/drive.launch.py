@@ -18,14 +18,12 @@ EDITED BY:  Max Tory, Taaj Street,
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, PythonExpression, \
-    TextSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution
 from launch.conditions import IfCondition, UnlessCondition
-from launch.actions import LogInfo, DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-import subprocess
 
 def launch_setup(context, *args, **kwargs):
     auto = LaunchConfiguration('auto')
