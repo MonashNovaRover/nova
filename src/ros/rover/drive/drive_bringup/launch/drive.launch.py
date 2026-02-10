@@ -18,7 +18,8 @@ EDITED BY:  Max Tory, Taaj Street,
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, PythonExpression
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, PythonExpression, \
+    TextSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.actions import LogInfo, DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -42,33 +43,41 @@ def launch_setup(context, *args, **kwargs):
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
     urdf = LaunchConfiguration('urdf')
+    active_controller = LaunchConfiguration('active_controller')
     
     nova_bringup_dir = FindPackageShare('nova_bringup')
     auto_bringup_dir = FindPackageShare('auto_bringup')
     params = IfElseSubstitution(auto, auto_params, nova_params)
 
+    def spawner_args(controller: str) -> list[str]:
+        arguments = [controller]
+        if controller != active_controller.perform(context):
+            arguments.append('--inactive')
+        return arguments
+
     return [
         Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['pivot_drive_controller', '--switch-timeout', '10',
-                '--ros-args', '--log-level', log_level]
-        ),
-        Node(
-            package='controller_manager',
-            executable='spawner',
-            arguments=['ackermann_steering_controller', '--inactive']
-        ),
-        Node(
-            package='controller_manager',
-            executable='spawner',
-            arguments=['strafe_drive_controller', '--inactive'],
+            arguments=[*spawner_args('pivot_drive_controller'), '--switch-timeout', '10'],
             ros_arguments=['--log-level', log_level],
         ),
         Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['diff_drive_controller', '--inactive'],
+            arguments=spawner_args('ackermann_steering_controller'),
+            ros_arguments=['--log-level', log_level],
+        ),
+        Node(
+            package='controller_manager',
+            executable='spawner',
+            arguments=spawner_args('strafe_drive_controller'),
+            ros_arguments=['--log-level', log_level],
+        ),
+        Node(
+            package='controller_manager',
+            executable='spawner',
+            arguments=spawner_args('diff_drive_controller'),
             ros_arguments=['--log-level', log_level],
         ),
         GroupAction(
@@ -195,6 +204,11 @@ def generate_launch_description():
             name='urdf',
             default_value='True',
             description='Launch URDF?',
+            name='active_controller',
+            default_value='pivot_drive_controller',
+            choices=['pivot_drive_controller', 'ackermann_steering_controller',
+                     'strafe_drive_controller', 'diff_drive_controller'],
+            description='Name of controller that is initially active',
         ),
     ]
 
