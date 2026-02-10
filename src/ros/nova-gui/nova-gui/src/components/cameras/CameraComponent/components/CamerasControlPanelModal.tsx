@@ -21,6 +21,7 @@ import { useRosNodes } from "../../../../utils/hooks/useRosNodes.ts";
 import { BooleanChip } from "./BooleanChip.tsx";
 import { allCams } from "../../../../views/shared/CamerasPage/CameraPageConstants.tsx";
 import {CameraStreamingButton} from "./CameraStreamingButtons.tsx";
+import {useEffect} from "react";
 
 export const CameraControlPanelModal = (props: {
   showModal: boolean;
@@ -82,6 +83,10 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
   const cameraStreamerMap = useSelector(
     (state: RootState) => state.cameraStreamerState.cameras
   );
+
+  useEffect(() => {
+    console.log(cameraStreamerMap)
+  }, [cameraStreamerMap]);
 
   const bifrostStarter = useBifrost({ service: RosService.START_CAMS });
 

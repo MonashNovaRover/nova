@@ -2,6 +2,7 @@ import {useSelector} from "react-redux";
 import {RootState} from "../../../../redux/RootState.ts";
 import {CircularProgress} from "@nextui-org/react";
 import {min} from "lodash";
+import {useEffect} from "react";
 
 export const CamerasCircularProgress = () => {
   const onlineCameras = useSelector(
@@ -14,15 +15,25 @@ export const CamerasCircularProgress = () => {
     (state: RootState) => state.cameraStreamerState.cameras
   );
 
-
-
   const streamingCameras = onlineCameraSerials.filter(v => !!cameraStreamerMap[v])
+
+  useEffect(() => {
+    console.log(cameraStreamerMap)
+  }, [cameraStreamerMap]);
+
+  useEffect(() => {
+    console.log(onlineCameras)
+  }, [onlineCameras]);
 
   return (
     <CircularProgress
-      maxValue={min([onlineCameraSerials.length, 8])}
+      maxValue={onlineCameraSerials.length}
       value={streamingCameras.length}
-      color={"success"}
+      valueLabel={`${streamingCameras.length}/${onlineCameraSerials.length}`}
+      color={"success"} // filled part
+      classNames={{
+        track: onlineCameraSerials.length > 0 ? "stroke-primary" : "stroke-default-300",   // empty part
+      }}
       showValueLabel
     />
   )

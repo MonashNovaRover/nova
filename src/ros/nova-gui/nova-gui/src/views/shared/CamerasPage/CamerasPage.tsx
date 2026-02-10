@@ -32,13 +32,13 @@ export const CameraPage = (props: CameraPageProps) => {
 
   return (
     <div className="p-3 flex flex-col gap-0">
-      <div className="flex flex-row justify-between items-center gap-32 pl-1 mb-3">
-        <div className="flex flex-row gap-3 items-center">
+      <div className="relative flex items-center mb-3 gap-16">
+        <div className="flex-1 flex flex-row gap-3 items-center">
           {!allCamsOn ? (
             <Button
               size="md"
               color="primary"
-              className="w-32"
+              className="w-36"
               onPress={() => setAllCamsOn(true)}
             >
               <Play size="15px" fill="white" /> Display All
@@ -47,7 +47,7 @@ export const CameraPage = (props: CameraPageProps) => {
             <Button
               size="md"
               color="danger"
-              className="w-32"
+              className="w-36"
               onPress={() => setAllCamsOn(false)}
             >
               <Square size="15px" fill="white" /> Stop All
@@ -65,12 +65,12 @@ export const CameraPage = (props: CameraPageProps) => {
             views.map(v => v.viewTitle)
           ]}
           color="primary"
-          className="pb-0"
+          className="pb-0 mx-auto"
           fullWidth
           variant="bordered"
         />
 
-        <div className="flex flex-row gap-3">
+        <div className="flex-1 flex flex-row gap-3 ml-auto pl-36">
           <Button
             size="md"
             color="primary"
