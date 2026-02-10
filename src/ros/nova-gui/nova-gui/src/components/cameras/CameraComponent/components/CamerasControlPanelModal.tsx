@@ -21,7 +21,6 @@ import { useRosNodes } from "../../../../utils/hooks/useRosNodes.ts";
 import { BooleanChip } from "./BooleanChip.tsx";
 import { allCams } from "../../../../views/shared/CamerasPage/CameraPageConstants.tsx";
 import {CameraStreamingButton} from "./CameraStreamingButtons.tsx";
-import {useEffect} from "react";
 
 export const CameraControlPanelModal = (props: {
   showModal: boolean;
