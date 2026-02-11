@@ -18,13 +18,12 @@ EDITED BY:  Max Tory, Taaj Street,
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, PythonExpression
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution
 from launch.conditions import IfCondition, UnlessCondition
-from launch.actions import LogInfo, DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-import subprocess
 
 def launch_setup(context, *args, **kwargs):
     auto = LaunchConfiguration('auto')
@@ -42,32 +41,43 @@ def launch_setup(context, *args, **kwargs):
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
     urdf = LaunchConfiguration('urdf')
+    active_controller = LaunchConfiguration('active_controller')
     
     nova_bringup_dir = FindPackageShare('nova_bringup')
     auto_bringup_dir = FindPackageShare('auto_bringup')
     params = IfElseSubstitution(auto, auto_params, nova_params)
 
+    def spawner_args(controller: str) -> list[str]:
+        arguments = [controller]
+        if controller != active_controller.perform(context):
+            arguments.append('--inactive')
+        return arguments
+
     return [
         Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['pivot_drive_controller', '--switch-timeout', '10',
-                '--ros-args', '--log-level', log_level]
+            arguments=[*spawner_args('pivot_drive_controller'), '--switch-timeout', '10'],
+            ros_arguments=['--log-level', log_level],
         ),
         Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['ackermann_steering_controller', '--inactive']
+            arguments=[*spawner_args('ackermann_steering_controller'),
+                       '--controller-ros-args', '-r /ackermann_steering_controller/reference:=/cmd_vel'],
+            ros_arguments=['--log-level', log_level],
         ),
         Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['strafe_drive_controller', '--inactive']
+            arguments=spawner_args('strafe_drive_controller'),
+            ros_arguments=['--log-level', log_level],
         ),
         Node(
             package='controller_manager',
             executable='spawner',
-            arguments=['diff_drive_controller', '--inactive']
+            arguments=spawner_args('diff_drive_controller'),
+            ros_arguments=['--log-level', log_level],
         ),
         GroupAction(
             condition=UnlessCondition(gazebo),
@@ -76,6 +86,7 @@ def launch_setup(context, *args, **kwargs):
                     package='controller_manager',
                     executable='spawner',
                     arguments=['joint_state_broadcaster'],
+                    ros_arguments=['--log-level', log_level],
                 ),
                 Node(
                     package='controller_manager',
@@ -83,8 +94,8 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[params],
                     remappings=[
                         ('/controller_manager/robot_description', '/robot_description'),
-                        ('/ackermann_steering_controller/reference', '/cmd_vel'),
                     ],
+                    ros_arguments=['--log-level', log_level],
                 ),
                 GroupAction(
                     condition=IfCondition(urdf),
@@ -112,6 +123,7 @@ def launch_setup(context, *args, **kwargs):
                     executable='status_monitor', 
                     output='screen', 
                     emulate_tty=True,
+                    ros_arguments=['--log-level', log_level],
                 ),
                 IncludeLaunchDescription(
                     launch_description_source=PythonLaunchDescriptionSource(
@@ -177,8 +189,9 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='log_level',
-            default_value='warn',
-            description='',
+            default_value='info',
+            description='sets log level of all nodes started by this launch file'
+                        '(set log level of individual node with "log_level:=<node name>:=<log level>")',
         ),
         DeclareLaunchArgument(
             name='model', 
@@ -189,6 +202,13 @@ def generate_launch_description():
             name='urdf',
             default_value='True',
             description='Launch URDF?',
+        ),
+        DeclareLaunchArgument(
+            name='active_controller',
+            default_value='pivot_drive_controller',
+            choices=['pivot_drive_controller', 'ackermann_steering_controller',
+                     'strafe_drive_controller', 'diff_drive_controller'],
+            description='Name of controller that is initially active',
         ),
     ]
 
