@@ -24,8 +24,6 @@ def delete_rtabmap_db(context, *args, **kwargs):
         print(f'Failed to delete file {file_path}: {e}')
 
 def launch_setup(context, *args, **kwargs):
-    auto_bringup_dir = FindPackageShare('auto_bringup')
-
     gazebo = LaunchConfiguration('gazebo')
     front_name = LaunchConfiguration('front_name').perform(context)
     back_name = LaunchConfiguration('back_name').perform(context)
@@ -35,8 +33,17 @@ def launch_setup(context, *args, **kwargs):
     roll = LaunchConfiguration('roll').perform(context)
     pitch = LaunchConfiguration('pitch').perform(context)
     yaw = LaunchConfiguration('yaw').perform(context)
-    rtabmap_viz = LaunchConfiguration('rtabmap_viz').perform(context)
+    core = LaunchConfiguration('core')
+    rtabmap_viz = LaunchConfiguration('rtabmap_viz')
     rtabmap_params = LaunchConfiguration('rtabmap_params').perform(context)
+
+    wait_topics = ['/livox/lidar']
+    if core.perform(context).lower() == 'true':
+        wait_topics += [
+            f'/{front_name}/rgb/image_raw',
+            f'/{front_name}/rgb/camera_info',
+            f'/{front_name}/stereo/image_raw',
+        ]
 
     nodes = [
         OpaqueFunction(function=delete_rtabmap_db),
@@ -49,6 +56,7 @@ def launch_setup(context, *args, **kwargs):
                         ('output', '/livox/lidar_filtered')],
         ),
         ComposableNodeContainer(
+            condition=IfCondition(core),
             name='rtabmap_mapping_container',
             namespace='',
             package='rclcpp_components',
@@ -133,15 +141,7 @@ def launch_setup(context, *args, **kwargs):
         executable='topic_waiter.py',
         name='rtabmap_wait_for_topics',
         output='screen',
-        parameters=[
-            {'topics': [
-                f'/{front_name}/rgb/image_raw',
-                f'/{front_name}/rgb/camera_info',
-                f'/{front_name}/stereo/image_raw',
-                '/livox/lidar',
-                ]
-            }
-        ],
+        parameters=[{'topics': wait_topics}],
     )
 
     return [
@@ -161,6 +161,7 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(name='front_name', default_value='oak'),
         DeclareLaunchArgument(name='back_name', default_value='bootie'),
+        DeclareLaunchArgument(name='core', default_value='True'),
         DeclareLaunchArgument(name='rtabmap_viz', default_value='False'),
         DeclareLaunchArgument(name='gazebo', default_value='False'),
         DeclareLaunchArgument(name='x', default_value='0.0'),

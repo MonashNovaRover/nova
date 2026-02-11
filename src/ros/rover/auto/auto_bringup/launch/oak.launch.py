@@ -240,7 +240,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='pointclouds',
-            default_value='True',
+            default_value='False',
             description='',
         ),
         DeclareLaunchArgument(
