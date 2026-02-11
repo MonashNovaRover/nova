@@ -284,6 +284,13 @@ void TeleopDriveJoy::send_drive_command(const sensor_msgs::msg::Joy::SharedPtr j
     RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Handbrake deactivated" << C_END);
   }
 
+  // force zeros to be positive zero so ackermann drive assumes rover will move
+  // forward when stopped (positioning pivots in the correct direction)
+  if (linear.first == -0.0)
+  {
+    linear.first = +0.0;
+  }
+
   auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
   cmd_vel_msg->twist.linear.x = linear.first;
   cmd_vel_msg->twist.linear.y = linear.second;
