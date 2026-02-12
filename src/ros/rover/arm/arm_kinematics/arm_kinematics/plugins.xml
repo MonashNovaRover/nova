@@ -1,0 +1,17 @@
+<library path="arm_kinematics">
+  <!-- Forward -->
+  <class name="arm_kinematics/EigenForwardKinematicsPlugin" type="arm_kinematics::EigenForwardKinematicsPlugin" base_class_type="arm_kinematics::ForwardKinematicsPlugin">
+    <description>A generic data-oriented FK implementation. Does not take poses from tf2.</description>
+  </class>
+
+  <!-- Inverse -->
+  <class name="arm_kinematics/BanksiaIKPlugin" type="arm_kinematics::BanksiaIKPlugin" base_class_type="arm_kinematics::InverseKinematicsPlugin">
+    <description>IK plugin for Taipan with the original (bad) carbon fibre wrist.</description>
+  </class>
+
+  <!-- Discrete Collision -->
+  <class name="arm_kinematics/FclCollisionPlugin" type="arm_kinematics::FclCollisionPlugin" base_class_type="arm_kinematics::DiscreteCollisionPlugin">
+    <description>A simple collision implementation using an FCL AABB broad-phase and narrow-phase collision.</description>
+  </class>
+
+</library>

@@ -81,7 +81,6 @@ protected:
   joint_limits::JointSaturationLimiter<trajectory_msgs::msg::JointTrajectoryPoint> joint_limiter;
   SelfCollisionLimiter collision_limiter;
 
-
   controller_interface::CallbackReturn configure_joints(
       const std::vector<std::string> &joint_names,
       std::vector<JointHandle> &registered_handles);
