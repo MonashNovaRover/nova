@@ -22,6 +22,7 @@
 , teleop-modular-node
 , teleop-modular-python-utils
 , livox-ros-driver2
+, can-utils
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -161,6 +162,7 @@
       teleop-modular-node
       teleop-modular-python-utils
       livox-ros-driver2
+      can-utils
       ;
 }
 }:
