@@ -9,22 +9,37 @@
 
 namespace arm_kinematics {
 
+/// Example construction of various objects from arm_kinematics
 struct Kinematics final {
   using Optional = std::optional<Kinematics>;
 
   struct Forward final {
     ForwardKinematicsPlugin::SharedPtr plugin = nullptr;
+
+    explicit Forward(PluginLoader& plugin_loader)
+      : plugin(plugin_loader.make_fk())
+    {
+    }
   };
 
   struct Collision final {
     CollisionManager manager{};
 
-    explicit Collision(PluginLoader::MakeCollisionResult result)
+    explicit Collision(tl::expected<CollisionManager, const char *> maybe_collision_manager) {
+      if (!maybe_collision_manager.has_value()) {
+        RCLCPP_FATAL(rclcpp::get_logger("arm_kinematics"), "%s", maybe_collision_manager.error());
+        throw std::runtime_error(maybe_collision_manager.error());
+      }
+
+      manager = maybe_collision_manager.value();
+    }
 
     explicit Collision(
-      PluginLoader plugin_loader,
-      ForwardKinematicsPlugin::SharedPtr fk)
-        : manager(plugin_loader, fk) {}
+      PluginLoader& plugin_loader,
+      const ForwardKinematicsPlugin::SharedPtr & fk)
+        : Collision(make_collision_manager(plugin_loader, fk))
+    {
+    }
   };
 
   struct Inverse final {
@@ -34,13 +49,13 @@ struct Kinematics final {
   PluginLoader plugin_loader{};
 
   Forward forward;
-  CollisionManager collision;
+  Collision collision;
   Inverse inverse;
 
   explicit Kinematics(PluginLoader plugin_loader)
   : plugin_loader(std::move(plugin_loader)),
-    forward(),
-    collision(), //< TODO: Make make_collision_manager() constexpr and use it here :/
+    forward(plugin_loader),
+    collision(plugin_loader, forward.plugin), //< TODO: Make make_collision_manager() constexpr and use it here :/
     inverse()
   {
 

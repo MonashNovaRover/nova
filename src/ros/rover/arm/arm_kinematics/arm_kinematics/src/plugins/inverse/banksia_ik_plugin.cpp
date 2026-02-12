@@ -141,7 +141,7 @@ public:
   // substitutes values into our DH table.
   // see: https://www.notion.so/Inverse-Kinematics-ddfe35179c1f4959850bd28b2195be8a
   // equivalent line: DHs = [cos(the) -sin(the) 0 a; sin(the)*cos(alp) cos(the)*cos(alp) -sin(alp) -sin(alp)*d; sin(the)*sin(alp) cos(the)*sin(alp) cos(alp) cos(alp)*d; 0 0 0 1];
-  static Eigen::Matrix4d sub_dh(double alp, double a, double d, double the) const
+  static Eigen::Matrix4d sub_dh(double alp, double a, double d, double the)
   {
     return Eigen::Matrix4d {
         { cos(the), 			-sin(the), 			0, 			a },
