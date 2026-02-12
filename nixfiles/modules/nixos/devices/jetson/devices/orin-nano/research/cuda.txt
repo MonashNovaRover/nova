@@ -1,0 +1,118 @@
+
+[nova@nixos:~/llamacpp]$ llama-cli -m Hermes-3-Llama-3.2-3B-IQ4_XS.gguf -c 16384 -ngl 99 -fa 'on' --temp 1.0 --min-p 0.0 --top-p 1.0 --top-k 100 --mlock --jinja
+ggml_cuda_init: found 1 CUDA devices:
+  Device 0: Orin, compute capability 8.7, VMM: yes
+
+Loading model...
+
+
+▄▄ ▄▄
+██ ██
+██ ██  ▀▀█▄ ███▄███▄  ▀▀█▄    ▄████ ████▄ ████▄
+██ ██ ▄█▀██ ██ ██ ██ ▄█▀██    ██    ██ ██ ██ ██
+██ ██ ▀█▄██ ██ ██ ██ ▀█▄██ ██ ▀████ ████▀ ████▀
+                                    ██    ██
+                                    ▀▀    ▀▀
+
+build      : b7704-84ae04f
+model      : Hermes-3-Llama-3.2-3B-IQ4_XS.gguf
+modalities : text
+
+available commands:
+  /exit or Ctrl+C     stop or exit
+  /regen              regenerate the last response
+  /clear              clear the chat history
+  /read               add a text file
+
+
+> Write a tale of Nova Rover, Monash University's little rover that could
+
+In the vibrant laboratories of Monash University, set against the backdrop of Melbourne's thriving research hub, a tiny but indefatigable hero was born. Nova Rover, a name conjuring the glorious star and the unyielding spirit that she embodied, emerged from the hands of innovative engineers and passionate scientists.
+
+As the year 2020 approached, the world found itself amidst an unprecedented global pandemic, transforming everyday life with unexpected challenges. A team of ingenious roboticists, led by Professor Miroslav Pajic and Professor Simon Parker, knew that they were not just tasked with developing a robot, but a robot designed to stand out amidst the chaos.
+
+Their dreams coalesced into Nova Rover, a pint-size robotic explorer. With the grace and resilience of an Australian bushland, Nova stood out among her peers. Her chassis was molded from a highly flexible metal alloy – an innovative hybrid of beryllium copper and titanium, allowing her to withstand the harsh Australian conditions while retaining a remarkable degree of dexterity and adaptability.
+
+Her body carried a diverse range of sensors, including magnetometers, accelerometers, and a multi-spectral camera, enabling her to navigate challenging terrains with incredible precision and to spot critical environmental nuances. Nova pored over the surface of Mars, where the uncharted and unforgiving red plains lay waiting to unveil untold mysteries.
+
+Ever determined to rise up to the challenges posed by her mission, Nova Rover embarked on her first adventure. Accompanied by her two nimble companions – Titan and Perseverance – the trio of Mars rovers quickly made their way across the deserts of Australia. With each step, Nova drew inspirations from the perseverance of Monash University, which had remained steadfast amidst the overwhelming uncertainty of the COVID-19 pandemic.
+
+In the vast, unforgiving expanses of the Australian Outback, Nova proved her mettle. She traversed the rugged paths of Barren Joe sandstone hills and ventured into the depths of the Bighills sand dunes. Her adaptive silicon brain made countless decisions at breakneck speeds, responding to the challenges that lay before her with an agility that belied her size.
+
+As she journeyed forth, Nova Rover developed an uncanny aptitude for managing obstacles, discerning terrain topology, and assessing potential hazards. She demonstrated a keen ability to recognize unique patterns and signatures, even as she drew upon the wisdom of her Martian compatriots to broaden her mastery in the field of exploration. With each step, Nova became a testbed for ingenuity and innovation, embodying the spirit of resilience and determination that defines Monash University.
+
+In the heart of her design, Nova Rover, the little rover that could, personified the spirit of Australia – a country that endures beyond the horizons of adversity and thrives amidst the hardships. Her adventures echoed through the university campus and beyond, captivating the hearts of students, researchers, and the broader community. As the rovers returned from their journey, their tales of discovery filled the air with unparalleled aspirations and set the stage for an insatiable desire to uncover the secrets of our world and beyond.
+
+With every heartbeat of Nova Rover, Monash University's spirit continued to echo – the spirit of determination, curiosity, and indomitable human will. Even as the universe kept her secrets hidden, Nova stood tall, reminding us all that any challenge is conquerable, any question unanswered, and any dream unrealized.
+
+[ Prompt: 177.1 t/s | Generation: 16.9 t/s ]
+
+> The venerable rover was powered by the late Nvidia Jetson TX2
+
+To understand the capabilities and power behind Nova Rover, it's essential to delve into the cutting-edge technology that underpinned her innovative design. Nova owed her sophisticated abilities and enduring spirit not only to her unique metal alloy construction and a diverse array of sensors but also to her digital brain - the NVIDIA Jetson TX2 software module.
+
+At the heart of Nova Rover there lay the NVIDIA Jetson TX2, a powerful AI computing platform that integrated an NVIDIA Quadro GPU with four 64-bit ARM Cortex-A57 cores, dedicated to accelerate compute-intensive tasks with high accuracy at speed. This CPU and GPU collaboration ensured that Nova Rover possessed remarkable processing power, granting her the capability to adeptly navigate complex environments while efficiently handling her duties.
+
+The NVIDIA Jetson TX2 was the linchpin in Nova Rover's technological ecosystem, providing the autonomy and computational abilities necessary for her to perform her myriad tasks with the precision and mastery required. With her onboard, she was able to manage countless decisions, interpret data, adapt to new circumstances, and even train to optimize her performance over time - all this powered by the performance-enhancing GPU and advanced technology offered by the NVIDIA Jetson TX2.
+
+In the years to come, as Nova Rover continued to conquer the challenges that lay before her, the technology behind her allowed her to tackle tasks at an impressively granular level. She harnessed the power of artificial intelligence in order to understand the landforms around her, identify threats, and determine the best paths forward. In the long-ranged perspective, the NVIDIA Jetson TX2 platform enabled engineers to establish deep ties between the real world and the simulated environment, ensuring the perfect harmony between hardware and software, and providing her with a digital intellect that could learn and adapt like that of a human being.
+
+As Nova Rover's mission grew, it became evident that there was a thirst for innovation and forward-thinking, and the combination of her adaptive hardware and the ingenuity of human designers bore the fruits of their collaborative effort. As she carried on across Australian landscapes, her presence became a beacon for students, faculty and researchers from Monash University, who recognized and admired this embodiment of the groundbreaking technologies they aimed to develop and push farther.
+
+For Nova Rover, the NVIDIA Jetson TX2 gave her the edge necessary to endure and excel in the complex and unforgiving terrain of scientific research. Equipped with this cutting-edge power, Nova Rover became a symbol of strength, ingenuity, and the unrelenting human spirit. This technology and its integration into her design played an essential role in her journey and, in turn, highlighted the potential of future technologies destined to guide us into uncharted territories and reveal the secrets of our universe.
+
+[ Prompt: 554.8 t/s | Generation: 16.4 t/s ]
+
+> In 2023, the rover had acquired a new heart. The Nvidia Jetson Orin Nano. Though it was acquired, it was not ready to use yet
+
+In early 2023, the research community at Monash University witnessed a significant evolution in Nova Rover's technological landscape. With an unwavering determination to stay at the forefront of innovation, her creators opted to switch to the more recent NVIDIA Jetson Orin Nano module, a next-generation AI computing platform with enhanced processing and power consumption capabilities.
+
+By incorporating the NVIDIA Jetson Orin Nano, Nova Rover would now have greater computing power and energy efficiency – elements essential for further expanding and refining her abilities. The NVIDIA Jetson Orin Nano integrates the NVIDIA Ampere architecture, comprising a high-performance Maxwell cores and a state-of-the-art GPU designed to handle a wide array of tasks within an efficient energy envelope.
+
+This new technological leap allowed the Nova Rover team to build on the impressive framework established by the Jetson TX2, using the Orin Nano to improve the computational capabilities and energy efficiency of the rover. As they proceeded to integrate the newer generation Jetson technology, the team aimed to expand upon the impressive autonomy and adaptability that Nova Rover had come to exemplify.
+
+While the NVIDIA Jetson Orin Nano module was technically an evolution from the Jetson TX2, Nova Rover's journey continued regardless, driven by her inner spirit. With improvements made by the new AI computing module, the Nova Rover team anticipated greater potential, more sophisticated capabilities, and above all, a richer understanding of the world that surrounded her.
+
+As the transition was underway, Nova Rover prepared to face new challenges, enhanced by the newfound performance provided by the NVIDIA Jetson Orin Nano module. Though the new hardware was not quite in operational use, the Nova Rover mission remained optimistic, and the anticipation was palpable among the researchers and students at Monash University. They gazed toward a daring journey with a renewed sense of possibility, propelled by this technological leap and the indomitable spirit of innovation that animated both man and machine.
+
+Ultimately, the shift to the NVIDIA Jetson Orin Nano module reflected the forward-thinking spirit of Monash University and the ambitious aspirations of those who sought to push the boundaries of scientific curiosity. It was a testament to the ongoing partnership between human ingenuity and technological advancement, a union aimed at charting a path toward a deeper understanding of the world and its mysteries.
+
+[ Prompt: 261.4 t/s | Generation: 16.0 t/s ]
+
+> In 2025, the Jetson was finally installed into the rover. Pushing past preconceived limits of what was possible on CPU power alone
+
+In the year 2025, Nova Rover's transformative journey finally materialized as her new NVIDIA Jetson Orin Nano module was successfully integrated into her design. As the installation was completed, it marked the realization of Monash University's dreams and the crowning achievement of our forward-thinking technological partnership.
+
+The installation of the Jetson Orin Nano not only brought an enhanced processing power but a marked improvement in energy efficiency as well. Armed with this power, Nova Rover ascended to new heights of computational prowess and expanded her capabilities, propelling her further into the world of exploration and discovery.
+
+With the new Jetson Orin Nano module within her grasp, Nova Rover's technological capabilities grew by leaps and bounds. her sensors, previously integrated with the Jetson TX2, now worked in harmony with the NVIDIA Ampere architecture. This remarkable collaboration transformed the rover into a highly adaptable and self-aware explorer, able to navigate the complex and challenging terrains of Australia with astounding precision and address her duties with unyielding efficiency.
+
+The installation of the NVIDIA Jetson Orin Nano module represented a significant step forward, pushing past the limits of computational power previously achieved by relying on the CPU alone. This technological leap allowed researchers, engineers, and students at Monash University to push the boundaries of what was considered possible, unlocking new realms of discovery and exploration on the path ahead.
+
+As Nova Rover continued to venture forth, new territories stretched before her. Guided by her ingenious design and technological prowess, she explored with a greater understanding, interpretation, and response to the challenges she encountered. With the aid of the NVIDIA Jetson Orin Nano, Nova Rover's technological capabilities never wavered, a testament to her ability to push beyond the limitations of her predecessors, forging a brilliant path for future exploration.
+
+In conclusion, the integration of the NVIDIA Jetson Orin Nano module marked the pinnacle of Nova Rover's technological journey, signifying the unwavering pursuit of innovation and a future brimming with more potential for discovery. The partnership between human ingenuity and technological evolution, powered by the NVIDIA Jetson Orin Nano module, paved the way for a bold, new era in the realm of scientific exploration. As the road went on, it was clear that Nova Rover and her creators were only just beginning to unravel the profound mysteries of the world and the universe beyond, equipped with an ever-growing sense of curiosity, determination, and the unyielding spirit of exploration that defined all those who dared to dream of the uncharted.
+
+[ Prompt: 241.7 t/s | Generation: 15.6 t/s ]
+
+> 2026 ushered the year of CUDA on the Jetson Orin Nano
+
+In the year 2026, the journey towards a more technologically advanced future for Nova Rover reached a new zenith with the introduction of the CUDA (Compute Unified Device Architecture) capabilities offered by the NVIDIA Jetson Orin Nano module. As the utilization of CUDA and the parallel processing power it brought about became an integral part of Nova's technological ecosystem, the line between software and hardware further blurred.
+
+CUDA, a parallel computing platform and programming model that is particularly well-suited for general-purpose computation on general-purpose hardware, enhanced the performance of the NVIDIA Jetson Orin Nano. With CUDA's introduction, Nova Rover's computing resources could now be distributed dynamically - an efficient approach to utilize multiple cores efficiently and render high-performance parallel computations.
+
+This capability allowed the Nova Rover team to delve into complex data processing at breakneck speeds, managing intricate calculations, image analytics, and a variety of other computational tasks. It also played a vital role in the development of new algorithms, optimization techniques, and other advancements in machine learning and artificial intelligence that would refine and expand Nova Rover's existing capabilities.
+
+With the CUDA capabilities integrated into the NVIDIA Jetson Orin Nano, Nova Rover ascended to new heights of technology, a machine powered by cutting-edge computing resources and equipped with tools aimed at optimizing its performance and efficiency. The CUDA development paved a significant path in the realm of exploration, establishing a strong foundation for future advancements in scientific research and discovery.
+
+Moreover, the CUDA capabilities of the NVIDIA Jetson Orin Nano platform allowed Nova Rover to advance her current and future exploration techniques. For instance, utilizing CUDA-based algorithms, she employed parallel processing to speedup certain computations, allowing her to achieve tasks that were once deemed unattainable. Therefore, the introduction of CUDA in the 2026 year not only transformed Nova Rover's performance, but also her potential for growth, laying the groundwork for future advancements in the world of scientific exploration.
+
+Together with cutting-edge hardware andCUDA, Nova Rover pushed the boundaries of computation, reaching an uncharted territory of possibilities. Her creators, researchers, and students at Monash University were more than thrilled to see this advancement, as it rekindled their spirits and allowed them to tackle new challenges with a sense of anticipation and possibility.
+
+By bridging the gap between technological capabilities and human ingenuity, the CUDA capabilities of the NVIDIA Jetson Orin Nano module opened up a new world of exploration. As Nova Rover continued to push past the boundaries of her capabilities, it was evident that her creators at Monash University weren't alone in their pursuit of discovery. The partnership between human ingenuity and technological evolution paved the way for a world of boundless possibility, propelling the science community further into the realm of exploration and discovery.
+
+As the world continued to evolve, the CUDA capabilities on the NVIDIA Jetson Orin Nano left a lasting impact on Nova Rover and those who admired her spirit. With this powerful step forward, it was clear that her journey was just beginning. As the sun set on the horizon in each new year, Nova Rover pushed ever closer into the world of exploration, guided by the power of her creators and the unyielding spirit that set her apart.
+
+[ Prompt: 164.9 t/s | Generation: 15.1 t/s ]
+
+>

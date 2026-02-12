@@ -21,8 +21,8 @@ let
       nixos = import (nixpkgs + "/nixos") {
         configuration = { pkgs, lib, ... }: {
           imports = [
-            (nixfiles + "/nixos")
-            (nixfiles + "/nixos/installer/docker")
+            (nixfiles + "/modules/nixos")
+            (nixfiles + "/modules/nixos/installer/docker")
           ];
 
           nixpkgs.hostPlatform = system;
@@ -32,7 +32,7 @@ let
           installer.cloneConfig = false;
 
           nova = {
-            substituters.nova.password = builtins.readFile ../../../src/other/secrets/hydra-password.txt;
+            substituters.nova.password = builtins.readFile ../../secrets/hydra-password.txt;
             
             desktop.enable = false;
           };

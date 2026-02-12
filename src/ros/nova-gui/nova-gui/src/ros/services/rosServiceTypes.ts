@@ -3,32 +3,32 @@ import {
   IRosCameraMsgsCameraOperationResponse,
   IRosBlcmdInterfacesBlcmdResetRequest,
   IRosBlcmdInterfacesBlcmdResetResponse,
-  IRosNovaInterfacesMoveMicroscopeServoRequest,
-  IRosNovaInterfacesMoveMicroscopeServoResponse,
+  IRosScienceInterfacesMoveMicroscopeServoRequest,
+  IRosScienceInterfacesMoveMicroscopeServoResponse,
   IRosArmInterfacesTypeSequenceRequest,
   IRosArmInterfacesTypeSequenceResponse,
   IRosStdSrvsTriggerResponse,
-  IRosNovaInterfacesKilnCommandRequest,
-  IRosNovaInterfacesKilnCommandResponse,
-  IRosNovaInterfacesRamanSpecRequest,
-  IRosNovaInterfacesRamanSpecResponse,
-  IRosNovaInterfacesRamanMechRequest,
-  IRosNovaInterfacesRamanMechResponse,
+  IRosScienceInterfacesKilnCommandRequest,
+  IRosScienceInterfacesKilnCommandResponse,
+  IRosScienceInterfacesRamanSpecRequest,
+  IRosScienceInterfacesRamanSpecResponse,
+  IRosScienceInterfacesRamanMechRequest,
+  IRosScienceInterfacesRamanMechResponse,
   IRosCameraMsgsGetIpListResponse,
   IRosStdSrvsSetBoolResponse,
   IRosStdSrvsSetBoolRequest,
-  IRosNovaInterfacesMoveScimbalCamRequest,
-  IRosNovaInterfacesMoveScimbalCamResponse,
-  IRosNovaInterfacesTakeNirProbeReadingRequest,
-  IRosNovaInterfacesTakeNirProbeReadingResponse,
+  IRosScienceInterfacesMoveScimbalCamRequest,
+  IRosScienceInterfacesMoveScimbalCamResponse,
+  IRosScienceInterfacesTakeNirProbeReadingRequest,
+  IRosScienceInterfacesTakeNirProbeReadingResponse,
   IRosNovaInterfacesRgbInputRequest,
   IRosNovaInterfacesRgbInputResponse,
-  IRosNovaInterfacesCacheCommandRequest,
-  IRosNovaInterfacesCacheCommandResponse,
+  IRosScienceInterfacesCacheCommandRequest,
+  IRosScienceInterfacesCacheCommandResponse,
   IRosNovaInterfacesCartographerCommandRequest,
   IRosNovaInterfacesCartographerCommandResponse,
-  IRosNovaInterfacesMoveHydraprobeRequest,
-  IRosNovaInterfacesMoveHydraprobeResponse,
+  IRosScienceInterfacesMoveHydraprobeRequest,
+  IRosScienceInterfacesMoveHydraprobeResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -82,36 +82,36 @@ export interface RosServiceInterface {
     IRosStdSrvsSetBoolResponse
   >;
   [RosService.KILN_COMMAND]: RosServiceMessage<
-    IRosNovaInterfacesKilnCommandRequest,
-    IRosNovaInterfacesKilnCommandResponse
+    IRosScienceInterfacesKilnCommandRequest,
+    IRosScienceInterfacesKilnCommandResponse
   >;
   [RosService.TAKE_NIR_PROBE_READING]: RosServiceMessage<
-    IRosNovaInterfacesTakeNirProbeReadingRequest,
-    IRosNovaInterfacesTakeNirProbeReadingResponse
+    IRosScienceInterfacesTakeNirProbeReadingRequest,
+    IRosScienceInterfacesTakeNirProbeReadingResponse
   >;
   [RosService.SCIMBAL_COMMAND]: RosServiceMessage<
-    IRosNovaInterfacesMoveScimbalCamRequest,
-    IRosNovaInterfacesMoveScimbalCamResponse
+    IRosScienceInterfacesMoveScimbalCamRequest,
+    IRosScienceInterfacesMoveScimbalCamResponse
   >;
   [RosService.HYDRAPROBE_COMMAND]: RosServiceMessage<
-    IRosNovaInterfacesMoveHydraprobeRequest,
-    IRosNovaInterfacesMoveHydraprobeResponse
+    IRosScienceInterfacesMoveHydraprobeRequest,
+    IRosScienceInterfacesMoveHydraprobeResponse
   >;
   [RosService.MOVE_MICROSCOPE_SERVO]: RosServiceMessage<
-    IRosNovaInterfacesMoveMicroscopeServoRequest,
-    IRosNovaInterfacesMoveMicroscopeServoResponse
+    IRosScienceInterfacesMoveMicroscopeServoRequest,
+    IRosScienceInterfacesMoveMicroscopeServoResponse
   >;
   [RosService.THETA_360_CAM_CAPTURE]: RosServiceMessage<
     EmptyMessage, 
     IRosStdSrvsTriggerResponse
   >;
   [RosService.CALL_RAMAN_SPEC]: RosServiceMessage<
-    IRosNovaInterfacesRamanSpecRequest,
-    IRosNovaInterfacesRamanSpecResponse
+    IRosScienceInterfacesRamanSpecRequest,
+    IRosScienceInterfacesRamanSpecResponse
   >;
   [RosService.CALL_RAMAN_MECH]: RosServiceMessage<
-    IRosNovaInterfacesRamanMechRequest,
-    IRosNovaInterfacesRamanMechResponse
+    IRosScienceInterfacesRamanMechRequest,
+    IRosScienceInterfacesRamanMechResponse
   >;
   [RosService.UV_VIS_LED_1]: RosServiceMessage<
     IRosStdSrvsSetBoolRequest,
@@ -122,24 +122,24 @@ export interface RosServiceInterface {
     IRosStdSrvsSetBoolResponse
   >;
   [RosService.CACHE_1]: RosServiceMessage<
-    IRosNovaInterfacesCacheCommandRequest,
-    IRosNovaInterfacesCacheCommandResponse
+    IRosScienceInterfacesCacheCommandRequest,
+    IRosScienceInterfacesCacheCommandResponse
   >;
   [RosService.CACHE_2]: RosServiceMessage<
-    IRosNovaInterfacesCacheCommandRequest,
-    IRosNovaInterfacesCacheCommandResponse
+    IRosScienceInterfacesCacheCommandRequest,
+    IRosScienceInterfacesCacheCommandResponse
   >;
   [RosService.HEATER]: RosServiceMessage<
-    IRosNovaInterfacesKilnCommandRequest,
-    IRosNovaInterfacesKilnCommandResponse
+    IRosScienceInterfacesKilnCommandRequest,
+    IRosScienceInterfacesKilnCommandResponse
   >;
   [RosService.REQUEST_HYDRAPROBE_READING]: RosServiceMessage<
       EmptyMessage,
       IRosStdSrvsTriggerResponse
   >;
   [RosService.CAROUSEL]: RosServiceMessage<
-    IRosNovaInterfacesKilnCommandRequest,
-    IRosNovaInterfacesKilnCommandResponse
+    IRosScienceInterfacesKilnCommandRequest,
+    IRosScienceInterfacesKilnCommandResponse
   >;
 
   [RosService.RGBInput]: RosServiceMessage<

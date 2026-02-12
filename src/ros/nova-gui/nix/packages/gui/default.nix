@@ -11,6 +11,7 @@
 , nova-cmd-interfaces
 , nova-interfaces
 , nova-camera-msgs
+, nova-science-interfaces
 }:
 
 let
@@ -24,6 +25,7 @@ let
     nova-cmd-interfaces
     nova-interfaces
     nova-camera-msgs
+    nova-science-interfaces
   ];
 in
 mkYarnPackage {
@@ -32,7 +34,7 @@ mkYarnPackage {
   src = builtins.path rec {
     name = "gui";
     path = ../../../nova-gui;
-    filter = lib.novaSourceFilter [ ] path;
+    filter = lib.novaSourceFilter [ "node_modules" "dist" ] path;
   };
 
   ROS_TS_DEFINITIONS = (ros-typescript-definitions.override {

@@ -1,4 +1,4 @@
-import {Navigate, RouteObject} from "react-router-dom";
+import { RouteObject } from "react-router-dom";
 import ARCExcavationConstructionView from "../views/arc/ARCEscavationConstructionView";
 import ARCAutonomousView from "../views/arc/ARCMappingAutonomous";
 import ARCPostLandingView from "../views/arc/ARCPostLandingView";
@@ -31,11 +31,18 @@ import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
 import TestOverlayView from "../views/test/TestOverlayView/TestOverlayView.tsx";
 import ARCNIRProbeWidget from "../components/science/NIRProbe/ARCNIRProbeWidget.tsx";
 import URCGazeboView from "../views/urc/URCGazebo.tsx";
+import HomePageView from "../views/shared/HomePageView.tsx";
+import { arcNavigationData, compNavigationData, generalNavigationData, testNavigationData, urcNavigationData } from "../utils/NavigationRoutes.tsx";
+import PageNotFoundView from "../views/shared/PageNotFound.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
     path: "/arc",
-    element: <ARCBaseView />,
+    element: <HomePageView navigationData={arcNavigationData} />,
+  },
+  {
+    path: "/arc/base",
+    element: <ARCBaseView />
   },
   {
     path: "/arc/post-landing",
@@ -75,11 +82,15 @@ export const arcRoutes: RouteObject[] = [
 export const urcRoutes: RouteObject[] = [
   {
     path: "/urc",
-    element: <URCBaseView />,
+    element: <HomePageView navigationData={urcNavigationData} />,
+  },
+  {
+    path: "/urc/base",
+    element: <URCBaseView />
   },
   {
     path: "/urc/science",
-    element: <URCScienceView />,
+    element: <URCScienceView />
   },
   {
     path: "/urc/delivery",
@@ -129,6 +140,10 @@ export const urcRoutes: RouteObject[] = [
 
 export const generalRoutes: RouteObject[] = [
   {
+    path: "/general",
+    element: <HomePageView navigationData={generalNavigationData} />,
+  },
+  {
     path: "/general/cameras",
     element: <CameraPage views={arcCameraSetup[ARCCompModes.ARC_POST_LANDING]} />,
   },
@@ -139,6 +154,10 @@ export const generalRoutes: RouteObject[] = [
 ];
 
 export const testRoutes: RouteObject[] = [
+  {
+    path: "/test",
+    element: <HomePageView navigationData={testNavigationData} />,
+  },
   {
     path: "/test/webgl",
     element: <TestWebGLView/>
@@ -175,7 +194,7 @@ export const routes: RouteObject[] = [
     children: [
       {
         path: "/",
-        element: <Navigate to="/urc/cameras" />,
+        element: <HomePageView navigationData={compNavigationData} />,
       },
       {
         path: "/arc",
@@ -197,6 +216,10 @@ export const routes: RouteObject[] = [
         path: "/cameras",
         children: cameraRoutes,
       },
+      {
+        path: "*",
+        element: <PageNotFoundView />,
+      }
     ],
   },
 ];

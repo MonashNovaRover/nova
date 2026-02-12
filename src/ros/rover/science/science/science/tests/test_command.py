@@ -5,7 +5,7 @@ import rclpy, json
 from rclpy.node import Node
 
 # Import the service from the science package
-from nova_interfaces.srv import ScienceCommand
+from science_interfaces.srv import ScienceCommand
 
 # This is the main Node class that controls the functions
 class ClientNode (Node):

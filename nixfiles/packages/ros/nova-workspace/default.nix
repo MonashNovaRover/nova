@@ -47,6 +47,7 @@
 , nova-blcmd-hardware ? throw "nova-blcmd-hardware is needed, but not available!"
 , nova-blcmd-hardware2 ? throw "nova-blcmd-hardware2 is needed, but not available!"
 , nova-cmd-hardware ? throw "nova-cmd-hardware is needed, but not available!"
+, nova-qcmd-hardware ? throw "nova-qcmd-hardware is needed, but not available!"
 , nova-controller-common ? throw "nova-controller-common is needed, but not available!"
 , nova-drive-controller-base ? throw "nova-drive-controller-base is needed, but not available!"
 , nova-pivot-drive-controller ? throw "nova-pivot-drive-controller is needed, but not available!"
@@ -58,6 +59,7 @@
 , nova-python-control ? throw "python-control is needed, but not available!"
 , nova-python-control2 ? throw "python-control2 is needed, but not available!"
 , nova-excavation-construction ? throw "excavation-construction is needed, but not available!"
+, nova-teleop-ec ? throw "teleop-ec is needed, but not available!"
 , nova-utils ? throw "nova-utils is needed, but not available!"
 , nova-arm-controller ? throw "nova-arm-controller is needed, but not available!"
 , nova-twistmapper ? throw "nova-twistmapper is needed, but not available!"
@@ -67,6 +69,12 @@
 , gpsd-client ? throw "gpsd-client is needed, but not available!"
 , nova-joint-space-control-mode ? throw "nova-joint-space-control-mode is need, but not available!"
 , nova-teleop-arm ? throw "nova-teleop-arm is need, but not available!"
+, nova-launch-scripts
+, nova-git-metadata
+, nova-legacy-input-mode ? throw "nova-joint-space-control-mode is need, but not available!"
+, nova-teleop-science ? throw "nova-teleop-science is needed, but not available!"
+, nova-science-interfaces ? throw "nova-science-interfaces is needed, but not available!"
+, nova-science-bringup ? throw "nova-science-bringup is needed, but not available!"
 , nova-arm-kinematics ? throw "nova-arm-kinematics is needed, but not available!"
 
   # Configuration options
@@ -87,6 +95,7 @@
       nova-blcmd-hardware
       nova-blcmd-hardware2
       nova-cmd-hardware
+      nova-qcmd-hardware
       nova-controller-common
       nova-drive-controller-base
       nova-pivot-drive-controller
@@ -116,6 +125,7 @@
       nova-python-control
       nova-python-control2
       nova-excavation-construction
+      nova-teleop-ec
       nova-utils
       nova-arm-controller
       nova-twistmapper
@@ -125,9 +135,15 @@
       reolink
       nova-joint-space-control-mode
       nova-teleop-arm
+      nova-launch-scripts
+      nova-git-metadata
+      nova-legacy-input-mode
+      nova-teleop-science
+      nova-science-interfaces
+      nova-science-bringup
       nova-arm-kinematics
       ;
-      nova-can-sleuth = pythonPackages.nova-can-sleuth;
+    nova-can-sleuth = pythonPackages.nova-can-sleuth;
   }
 
   ## Extra packages to add to the workspace.

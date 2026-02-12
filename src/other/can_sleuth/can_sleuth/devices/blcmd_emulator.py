@@ -22,7 +22,7 @@ from . import candevice
 class BLCMDEmulator(candevice.CanDevice):
     """BLCMD Emulator class
     """
-    def __init__(self, name, id_, bus, hasResolver=True):
+    def __init__(self, name, id_, bus, hasResolver=True, multiturn=False):
         """Create a BLCMD emulator
 
         :param name: Display name for this blcmd
@@ -30,7 +30,7 @@ class BLCMDEmulator(candevice.CanDevice):
         :param bus: the name of the canbus to use
         :param hasResolver: is there a resolver for position feedback?
         """
-        super().__init__(name, bus, canIdMask=0xff0,canIdMatch=id_<<4)
+        super().__init__(name, bus, canIdMask=0xff0,canIdMatch=id_<<4,aliveTimeout=-1)
         self.id = id_
 
         for i in range(0xf):
@@ -54,6 +54,8 @@ class BLCMDEmulator(candevice.CanDevice):
         self.hasResolver = int(bool(hasResolver)) # ensure this is 0 or 1
         self.minInterval = 122 # I don't know what this physically means
 
+        self.multiturn = multiturn
+
         # in radians, corresponding to 0x8000
         self.max_pos = 4*math.pi; 
         self.max_vel = 2*math.pi;
@@ -61,8 +63,8 @@ class BLCMDEmulator(candevice.CanDevice):
         self.registerAttr("Pos", lambda:f"{360*self.pos/(2*math.pi) :+06.1f}", 6, units="°")
         self.registerAttr("Vel", lambda:f"{360*self.vel/(2*math.pi) :+06.1f}", 6, units="°/s")
 
-    def telem3(self):
-        """Send telemetry message 3
+    def telem1(self):
+        """Send telemetry message 1
         """
         data = []
         vel = int(0x8000 * self.vel / self.max_vel)
@@ -70,24 +72,24 @@ class BLCMDEmulator(candevice.CanDevice):
         data.append(vel & 0xff)
         data.append(0) # TODO: Qcurrent
         data.append(0)
-        # ??? why do the telem ids need to be swapped
-        # the blcmd hardware code doesn't look like it
-        # would be swapped, and yet when I log what each
-        # telem callback gets, it has it swapped...
         self.send_message(1, data, 4)
 
-    def telem1(self):
-        """Send telemetry message 1
+    def telem3(self):
+        """Send telemetry message 3
         """
         data = []
         pos = int(0x8000 * self.pos / self.max_pos)
-        turns = (pos << 2) % 0xffff
-        # TODO: I think this format is for multiturn, im not sure if it is correct for
-        # blcmds without https://github.com/MonashNovaRover/pics/commit/24fc219b7e7aa04ab15c95b6f487e0b8a9c38043
         data.append((pos >> 8) & 0xff)
         data.append(pos & 0xff)
-        data.append((turns >> 8 ) & 0xff)
-        data.append(turns & 0xff)
+        if (self.multiturn):
+            turns = (pos << 2) % 0xffff
+            data.append((turns >> 8 ) & 0xff)
+            data.append(turns & 0xff)
+        else:
+            vel = int(0x8000 * self.vel / self.max_vel)
+            data.append((vel >> 8 ) & 0xff)
+            data.append(vel & 0xff)
+
         self.send_message(3, data, 4)
 
     def update(self):

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 import jcan
 import rclpy
+from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
 import random
 
 from python_control2.hardware_interfaces import CMDHardware
+from teleop_python_utils import Inputs
 
 
 class TestController(Controller):
@@ -13,11 +15,18 @@ class TestController(Controller):
     state: Interface
     joint_cmd: Interface
 
-    def __init__(self, contexts: Contexts, joint: str="joint"):
+    def __init__(self, contexts: Contexts, joint: str="joint", button: str="sweeper_sweep", axis: str="auger_actuation"):
         super().__init__(contexts)
         self.logger.info(f"Controller -- I have been __init__ialized")
 
         self.joint = self.declare_parameter("joint", joint).value
+        self.button_name = self.declare_parameter("button", button).value
+        self.axis_name = self.declare_parameter("axis", axis).value
+
+        inputs = contexts[Inputs]
+        self.button = inputs.get_button(self.button_name)
+        inputs.get_event(f"{self.button_name}/down").add_callback(lambda : self.logger.info(f"{self.button_name}/down event triggered"))
+        self.axis = inputs.get_axis(self.axis_name)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         self.cmd = command_interfaces["cmd"]
@@ -31,6 +40,10 @@ class TestController(Controller):
         self.joint_cmd.value = self.state.value * 0.1
         self.logger.info(f"{self.state.value} -> {self.cmd.value}")
         self.logger.info(f"{self.state.value} -> {self.joint_cmd.value} ({self.joint})")
+        self.logger.info(f"{self.axis_name} -> {self.axis.value}")
+
+        if self.button:
+            self.logger.info(f"{self.button_name} is pressed")
 
 class TestHardware(HardwareInterface):
     state: Interface
@@ -65,11 +78,15 @@ if __name__ == "__main__":
 
     rclpy.init()
 
-    PythonControl("control_test", update_rate=5, can_bus="can1") \
+    node = Node("control_test")
+    inputs = Inputs(node).with_topics("/science/input")
+
+    PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("test_controller", TestController, joint="j1") \
         .with_hardware("test_hw", TestHardware) \
         .with_hardware("j1_cmd", CMDHardware, "j1", can_id=0x1) \
         .with_hardware("j2_cmd", CMDHardware, "j2", can_id=0x1F) \
         .with_hardware("j3_cmd", CMDHardware, "j3", can_id=0x043) \
+        .with_teleop(inputs) \
         .with_jcan() \
         .spin()

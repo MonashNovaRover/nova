@@ -1,0 +1,138 @@
+teleop_arm:
+  ros__parameters:
+
+    input_sources:
+      names: [
+        "thrustmaster_left",
+        "thrustmaster_right"
+      ]
+
+      # Declare types for the sources
+      thrustmaster_left:
+        type: "teleop_modular_joy/JoyInputSource"
+      thrustmaster_right:
+        type: "teleop_modular_joy/JoyInputSource"
+
+thrustmaster_left:
+  ros__parameters:
+    topic: "/arm/joy/left"
+    button_definitions: [
+      "l_btn_thumb_u_state",        # Up / Trigger (behind the thumbstick)
+      "l_btn_thumb_d_state",        # Down
+      "l_btn_thumb_l_state",        # Buttons located near the thumb stick (Left)
+      "l_btn_thumb_r_state",        # Right
+      "l_btn_bottom_l1_state",      # Buttons located at the bottom left
+      "l_btn_bottom_l2_state",      # Numbered Left to Right, First then Second row
+      "l_btn_bottom_l3_state",      # Ordered top left to right, bottom right to left
+      "l_btn_bottom_l6_state",
+      "l_btn_bottom_l5_state",
+      "l_btn_bottom_l4_state",
+      "l_btn_bottom_r3_state",      # Buttons located at the bottom right
+      "l_btn_bottom_r2_state",      # Numbered Left to Right, First then Second row
+      "l_btn_bottom_r1_state",      # Ordered top right to left, bottom left to right
+      "l_btn_bottom_r4_state",
+      "l_btn_bottom_r5_state",
+      "l_btn_bottom_r6_state"
+    ]
+
+    axis_definitions: [
+      "l_ax_stick_x",               # Left/right
+      "l_ax_stick_y",               # Forward/backwards
+      "l_ax_stick_twist",           # Twist
+      "l_ax_slider",
+      "l_ax_thumb_x",               # Thumb Axis Data (left/right)
+      "l_ax_thumb_y"                # Each Thumb axis can be -1, 0 or 1 (up/down)
+    ]
+
+    remap:
+      axes:
+        # Joint space
+        j1:
+          from: "l_ax_stick_twist"
+        j2:
+          from: "l_ax_stick_x"
+        j6:
+          from: "l_ax_stick_y"
+        
+        speed:
+          from: "l_ax_slider"
+        
+        # End effector mode
+        actuator_head:
+          from: "l_ax_thumb_y"
+        
+        # Task space
+        linear:
+          x:
+            from: "l_ax_stick_x"
+          y:
+            from: "l_ax_stick_y"
+        angular:
+          x:
+            from: "l_ax_stick_twist"
+          
+      buttons:
+        lock:
+          from: "l_btn_bottom_l2_state"
+        unlock:
+          from: "l_btn_bottom_l5_state"
+        task_space:
+          from: "l_btn_thumb_u_state"
+
+thrustmaster_right:
+  ros__parameters:
+    topic: "/arm/joy/right"
+    button_definitions: [
+      "r_btn_thumb_u_state",        # Up / Trigger (behind the thumbstick)
+      "r_btn_thumb_d_state",        # Down
+      "r_btn_thumb_l_state",        # Buttons located near the thumb stick (Left)
+      "r_btn_thumb_r_state",        # Right
+      "r_btn_bottom_l1_state",      # Buttons located at the bottom left
+      "r_btn_bottom_l2_state",      # Numbered Left to Right, First then Second row
+      "r_btn_bottom_l3_state",      # Ordered top left to right, bottom right to left
+      "r_btn_bottom_l6_state",
+      "r_btn_bottom_l5_state",
+      "r_btn_bottom_l4_state",
+      "r_btn_bottom_r3_state",      # Buttons located at the bottom right
+      "r_btn_bottom_r2_state",      # Numbered Left to Right, First then Second row
+      "r_btn_bottom_r1_state",      # Ordered top right to left, bottom left to right
+      "r_btn_bottom_r4_state",
+      "r_btn_bottom_r5_state",
+      "r_btn_bottom_r6_state"
+    ]
+
+    axis_definitions: [
+      "r_ax_stick_x",               # Left/right
+      "r_ax_stick_y",               # Forward/backwards
+      "r_ax_stick_twist",           # Twist
+      "r_ax_slider",
+      "r_ax_thumb_x",               # Thumb Axis Data (left/right)
+      "r_ax_thumb_y"                # Each Thumb axis can be -1, 0 or 1 (up/down)
+    ]
+
+    remap:
+      axes:
+        # Joint space
+        j3:
+          from: "r_ax_stick_twist"
+        j4:
+          from: "r_ax_stick_y"
+        j5:
+          from: "r_ax_stick_x"
+
+        left_slide:
+          from: "r_ax_thumb_y"
+
+        # Task space
+        linear:
+          z:
+            from: "r_ax_stick_x"
+        angular:
+          y:
+              from: "r_ax_stick_y"
+          z:
+            from: "r_ax_stick_twist"
+      buttons:
+        end_effector_mode:
+          from: "r_btn_thumb_u_state"
+

@@ -34,6 +34,7 @@ TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions& options)
   , sent_lock_msg_(false)
   , locked_(true)
   , drive_mode_(DriveMode::PIVOT)
+  , handbrake_pressed_(false)
 {
 }
 
@@ -167,10 +168,10 @@ void TeleopDriveJoy::map_button_callbacks()
   {
     switch_controller(DriveMode::PIVOT);
   };
-  button_callbacks_[params_.button_holonomic_drive_controller] =
+  button_callbacks_[params_.button_ackermann_drive_controller] =
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
-    switch_controller(DriveMode::HOLONOMIC);
+    switch_controller(DriveMode::ACKERMANN);
   };
   button_callbacks_[params_.button_strafe_drive_controller] =
     [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
@@ -182,28 +183,36 @@ void TeleopDriveJoy::map_button_callbacks()
   {
     switch_controller(DriveMode::DIFF);
   };
-  // mark axis buttons as negative
-  button_callbacks_[-(params_.axis_speed_change_fine)] =
-    [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+
+  auto change_speed = [this](double speed_change)
   {
     if (!locked_)
     {
       speed_ = std::clamp(
-        speed_ + joy_msg->axes[params_.axis_speed_change_fine] * params_.speed_change_fine_val,
+        speed_ + speed_change,
         params_.speed_limit_min, params_.speed_limit_max);
       RCLCPP_INFO_STREAM(this->get_logger(), C_SPEED << "Speed: " << speed_ << C_END);
     }
   };
-  button_callbacks_[-(params_.axis_speed_change_coarse)] =
-    [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  button_callbacks_[params_.button_speed_decrease_fine] =
+    [this, change_speed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
   {
-    if (!locked_)
-    {
-      speed_ = std::clamp(
-        speed_ + joy_msg->axes[params_.axis_speed_change_coarse] * params_.speed_change_coarse_val,
-        params_.speed_limit_min, params_.speed_limit_max);
-      RCLCPP_INFO_STREAM(this->get_logger(), C_SPEED << "Speed: " << speed_ << C_END);
-    }
+    change_speed(-params_.speed_change_fine_val);
+  };
+  button_callbacks_[params_.button_speed_increase_fine] =
+    [this, change_speed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+    change_speed(params_.speed_change_fine_val);
+  };
+  button_callbacks_[params_.button_speed_decrease_coarse] =
+    [this, change_speed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+    change_speed(-params_.speed_change_coarse_val);
+  };
+  button_callbacks_[params_.button_speed_increase_coarse] =
+    [this, change_speed](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+  {
+    change_speed(params_.speed_change_coarse_val);
   };
 }
 
@@ -227,8 +236,7 @@ void TeleopDriveJoy::handle_button_callbacks(const sensor_msgs::msg::Joy::Shared
 
   auto isPressedAndDebounced = [this, &now, joy_msg](int button_index)
   {
-    bool pressed = (button_index >= 0 && joy_msg->buttons[button_index]) ||
-                   (button_index < 0 && joy_msg->axes[std::abs(button_index)]);
+    bool pressed = joy_msg->buttons[button_index];
     bool debounced = last_button_press_time_.find(button_index) == last_button_press_time_.end() ||
                      now - last_button_press_time_[button_index] >
                        rclcpp::Duration(std::chrono::milliseconds(params_.button_debounce_time));
@@ -258,6 +266,30 @@ void TeleopDriveJoy::send_drive_command(const sensor_msgs::msg::Joy::SharedPtr j
     std::clamp(linear.second, -controller_params.limit_linear, controller_params.limit_linear);
   angular *= controller_params.scale_angular;
   angular = std::clamp(angular, -controller_params.limit_angular, controller_params.limit_angular);
+
+  // handbrake
+  if (std::abs(joy_msg->axes[params_.axis_handbrake]) > params_.trigger_pressed_threshold)
+  {
+	if (!handbrake_pressed_)
+	{
+	  handbrake_pressed_ = true;
+	  RCLCPP_INFO_STREAM(this->get_logger(), C_SUCCESS << "Handbrake activated" << C_END);
+	}
+    linear.first *= params_.handbrake_speed_multiplier;
+    linear.second *= params_.handbrake_speed_multiplier;
+  }
+  else if (handbrake_pressed_)
+  {
+    handbrake_pressed_ = false;
+    RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Handbrake deactivated" << C_END);
+  }
+
+  // force zeros to be positive zero so ackermann drive assumes rover will move
+  // forward when stopped (positioning pivots in the correct direction)
+  if (linear.first == -0.0)
+  {
+    linear.first = +0.0;
+  }
 
   auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
   cmd_vel_msg->twist.linear.x = linear.first;
@@ -333,9 +365,9 @@ void TeleopDriveJoy::print_controls()
   RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "        Left Bumper     |  Autonomous Mode" << C_END);
   RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "       Right Bumper     |  Manual Mode" << C_END);
   RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "       Left Trigger     |  Hold Position (Holonomic Drive) (NOT YET IMPLEMENTED)" << C_END);
-  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "      Right Trigger     |  Handbrake (decrease speed by 40%) (NOT YET IMPLEMENTED)" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "      Right Trigger     |  Handbrake (decrease speed by 40%)" << C_END);
   RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "           Button A     |  Pivot Drive" << C_END);
-  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "           Button B     |  Holonomic Drive (NOT YET IMPLEMENTED)" << C_END);
+  RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "           Button B     |  Ackermann Drive" << C_END);
   RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "           Button X     |  Strafe Drive" << C_END);
   RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "           Button Y     |  Tank Drive" << C_END);
   // clang-format on

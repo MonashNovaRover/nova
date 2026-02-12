@@ -5,8 +5,8 @@ import {RosTopic} from "../ros/topics/rosTopic";
 import {
   IRosCmdInterfacesCmdFeedback,
   IRosCmdInterfacesCmDsFeedback,
-  IRosNovaInterfacesHydraprobeData,
-  IRosNovaInterfacesNirProbeDataConst, IRosNovaInterfacesStatusConst,
+  IRosScienceInterfacesHydraprobeData,
+  IRosScienceInterfacesNirProbeDataConst, IRosNovaInterfacesStatusConst,
   IRosSensorMsgsRange,
   IRosStdMsgsHeader
 } from "../ros/rosTypes";
@@ -22,6 +22,7 @@ import {initialSiteDataState} from "./models/genericStores/SiteDataState.ts";
 import {filterStores, getReducers} from "./store/rootReducerFilters.ts";
 import {StoreType} from "./models/StoreContext.ts";
 import {DEFAULT_NIR_PROBE_CALIBRATION_DATA} from "./models/genericStores/NIRProbeCalibrationData.ts";
+import {initialCameraProfilesState} from "./models/CameraProfilesState.ts";
 
 /**
  * reduxStores contains all stores in redux as either it's Reducer
@@ -157,7 +158,7 @@ export const reduxStores = {
     { topic: RosTopic.NIR_DATA },
     {
       data: 0,
-      led: IRosNovaInterfacesNirProbeDataConst.LED_OFF,
+      led: IRosScienceInterfacesNirProbeDataConst.LED_OFF,
     }
   ),
   microscopeServoStore: createBifrostStore(
@@ -219,7 +220,7 @@ export const reduxStores = {
       moisture: 0,
       temperature: 0,
       dielectric: 0
-    } as IRosNovaInterfacesHydraprobeData
+    } as IRosScienceInterfacesHydraprobeData
   ),
   bmeSensorStore: createBifrostStore(
     { topic: RosTopic.BME_SENSOR},
@@ -309,6 +310,17 @@ export const reduxStores = {
     }
   ),
 
+  radioStore: createBifrostStore(
+    { topic: RosTopic.RADIO_STATUS },
+    {
+      recv: 0,
+      sent: 0,
+      ping: 0,
+      signal: -96,
+    }
+  ),
+
+
   // Generic stores
   currentSite: createGenericStore("currentSite", Site.SITE_1),
   siteData: createGenericStore("siteData", initialSiteDataState),
@@ -320,6 +332,9 @@ export const reduxStores = {
   theta360InputDistance: createGenericStore("theta360InputDistance",""),
   rgbLedStore: createGenericStore("rgbLedStore", { r: "0", g: "0", b: "0" }),
   uvVisBlankStore: createGenericStore("uvVisBlankStore", []),
+  cameraProfiles: createGenericStore("cameraProfiles", initialCameraProfilesState),
+  clickAndHold: createGenericStore("clickAndHold", false),
+  windowWideWASD: createGenericStore("windowWideWASD", false),
 };
 
 // all store reducers

@@ -314,6 +314,7 @@
     <child link="rightfinger" />
     <axis xyz="0 0 1" />
     <limit effort="10" velocity="10" lower="0" upper="0.084" />
+    <mimic joint="left_slide" multiplier="1" offset="0"/>
   </joint>
 
   <link name="leftfinger">

@@ -26,8 +26,10 @@ in
 
       git = {
         enable = true;
-        userName = "Monash Nova Rover";
-        userEmail = "novaroverteam@monash.edu";
+        settings.user = {
+          name = "Monash Nova Rover";
+          email = "novaroverteam@monash.edu";
+        };
         lfs = {
           enable = true;
         };
@@ -106,7 +108,7 @@ in
         edge = microsoft-edge;
       };
 
-      packages = with pkgs; builtins.filter (lib.meta.availableOn hostPlatform) ([
+      packages = with pkgs; builtins.filter (lib.meta.availableOn stdenv.hostPlatform) ([
         # Shell utilities
         pciutils
         usbutils

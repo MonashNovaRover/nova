@@ -14,7 +14,7 @@ from rclpy.node import Node
 import jcan
 
 # import custom messages
-from nova_interfaces.msg import ActuatorLimit
+from science_interfaces.msg import ActuatorLimit
 
 
 class ActuatorLimitPublisher(Node):

@@ -1,0 +1,121 @@
+# ==========================================================
+# Monash Nova Rover
+# ARC Science – Default Parameter File
+# ==========================================================
+
+# Analysis Arm - Nodes for components on the analysis arm
+analysis_arm:
+  ros__parameters:
+    can_bus: "can1"
+    hardware:
+      actuation:
+        can_id: 0x0E6
+        max_effort: 1.0
+        reversed: false
+
+tool_rotator:
+  ros__parameters:
+    can_bus: "can1"
+    controllers:
+      controller:
+        min_angle: 0.0
+        max_angle: 337.41
+        initial_angle: 337.41
+        twitch_max: 30.0
+        sweeper_pos: 0.0
+        microscope_pos: 169.41
+        nir_probe_pos: 337.41
+        hardware_name: "rotation"
+    hardware:
+      rotation:
+        function_id: 0x00
+        angular_limit: 360.0
+
+
+# CBeam - Nodes for components on the CBeam
+
+auger:
+  ros__parameters:
+    can_bus: "can1"
+    active: true
+    active_button: "activate_auger"
+    inactive_button_pool: [ "activate_cbeam" ]
+    hardware:
+      actuation:
+        can_id: 0x0D1
+        max_effort: 1.0
+        reversed: false
+      drill:
+        can_id: 0x0C1
+        max_effort: 0.5
+        reversed: false
+
+cbeam:
+  ros__parameters:
+    can_bus: "can1"
+    active: false
+    active_button: "activate_cbeam"
+    inactive_button_pool: [ "activate_auger" ]
+    hardware:
+      actuation:
+        can_id: 0x0C2
+        max_effort: 1.0
+        reversed: false
+
+kiln:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    controllers:
+      controller:
+        command_service: "/science/kiln_command"
+        data_topic: "/science/kiln_data"
+        temp_sensors: [ "kiln_sensor", "condenser_sensor" ]
+        heaters: [ "left_heater", "right_heater" ]
+    hardware:
+      kiln_sensor:
+        can_id: 0x12
+        unit: "temperature"
+      condenser_sensor:
+        can_id: 0x13
+        unit: "temperature"
+      left_heater:
+        can_id: 0x10
+        max_effort: 1.0
+        reversed: false
+      right_heater:
+        can_id: 0x11
+        max_effort: 1.0
+        reversed: false
+
+# Misc - Nodes for misc components
+scimbal_cam:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    hardware:
+      tilt:
+        can_id: 0x0B0
+        function_id: 0x03
+        angular_limit: 180.0
+      pan:
+        can_id: 0x0B0
+        function_id: 0x04
+        angular_limit: 360.0
+
+
+chute:
+  ros__parameters:
+    can_bus: "can1"
+    controllers:
+      controller:
+        min_angle: 72.0
+        max_angle: 108.0
+        twitch_max: 6.0
+        disengaged_pos: 72.0
+        engaged_pos: 108.0
+        hardware_name: "rotation"
+    hardware:
+      rotation:
+        function_id: 0x03
+        angular_limit: 180.0

@@ -1,0 +1,34 @@
+From d184dc37da8e7a071c7a18b49c21196cadf1e374 Mon Sep 17 00:00:00 2001
+From: Orlando Chamberlain <orlandoch.dev@gmail.com>
+Date: Mon, 29 Dec 2025 20:51:23 +1100
+Subject: [PATCH 3/3] uvcvideo: Add FIX_BANDWIDTH quirk to Microsoft Lifecam
+ HD-3000
+
+backported to 5.15
+---
+ drivers/media/usb/uvc/uvc_driver.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 3b178219e23e..a4f9fa35a816 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -2779,6 +2779,15 @@ static const struct usb_device_id uvc_ids[] = {
+ 	  .bInterfaceSubClass	= 1,
+ 	  .bInterfaceProtocol	= 0,
+ 	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
++	/* Microsoft Lifecam HD-3000 */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0x045e,
++	  .idProduct		= 0x0810,
++	  .bInterfaceClass	= USB_CLASS_VIDEO,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0,
++	  .driver_info		= (kernel_ulong_t)&uvc_quirk_fix_bandwidth },
+ 	/* Logitech, Webcam C910 */
+ 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+ 				| USB_DEVICE_ID_MATCH_INT_INFO,
+-- 
+2.51.2
+

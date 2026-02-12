@@ -4,5 +4,6 @@
     ./webcams
     ./oak-d
     ./hydraprobe
+    ./xone
   ];
 }

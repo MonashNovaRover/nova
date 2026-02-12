@@ -22,7 +22,7 @@ find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 
-find_package(nova_interfaces REQUIRED)
+find_package(science_interfaces REQUIRED)
 find_package(input_interfaces REQUIRED)
 
 # Include the include directory
@@ -47,9 +47,12 @@ ament_python_install_package(${PROJECT_NAME})
 
 # Add all Python executables to this list
 install(PROGRAMS
+        science/arc/chute.py
+        science/arc/tool_rotator.py
         science/arc/arc_spinny_part.py
         science/arc/arc_sweeper_servo.py
-        science/arc/kiln_server.py
+        science/arc/kiln.py
+        science/arc/kiln_old.py
         science/urc/hydraprobe_trigger_node.py
         science/urc/urc_bme_sensor.py
         science/urc/urc_cache.py
@@ -65,8 +68,12 @@ install(PROGRAMS
         science/urc/urc_uv_vis_leds.py
         science/urc/urc_uv_vis_spec.py
         science/analysis_arm.py
+        science/analysis_arm_stepper.py
         science/auger.py
+        science/cbeam.py
+        science/auger_old.py
         science/nir_probe_publisher.py
+        science/scimbal_cam_old.py
         science/scimbal_cam.py
         science/control_test.py
         DESTINATION lib/${PROJECT_NAME}

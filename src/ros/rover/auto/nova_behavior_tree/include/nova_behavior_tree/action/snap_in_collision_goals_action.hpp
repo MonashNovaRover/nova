@@ -95,7 +95,7 @@ public:
   static BT::PortsList providedPorts()
   {
     return {
-      BT::InputPort<double>("goals_offset" "Approximate distance goals are offset"),
+      BT::InputPort<double>("goals_offset", "Approximate distance goals are offset"),
       BT::InputPort<double>("max_snap_radius", 5.0, "Maximum radius (m) to snap goals to"),
       BT::InputPort<Goals>("input_goals", "Original goals to snap if in collision"),
       BT::OutputPort<Goals>("output_goals", "Goals with all in collision goals snapped"),

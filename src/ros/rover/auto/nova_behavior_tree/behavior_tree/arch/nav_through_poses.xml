@@ -1,0 +1,24 @@
+<root BTCPP_format="4" main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="6" name="NavigateRecovery">
+      <PipelineSequence name="NavigateWithReplanning">
+        <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
+        <RateController hz="1.0">
+          <ReactiveSequence>
+            <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="0.7"/>
+            <SnapInCollisionGoals goals_offset="1.5" input_goals="{goals}" output_goals="{goals}"/>
+            <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="GridBased"/>
+          </ReactiveSequence>
+        </RateController>
+        <FollowPath path="{path}" controller_id="FollowPath" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
+      </PipelineSequence>
+      <ReactiveFallback name="RecoveryFallback">
+        <GoalUpdated/>
+        <Sequence name="ClearingActions">
+          <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+          <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
+        </Sequence>
+      </ReactiveFallback>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>

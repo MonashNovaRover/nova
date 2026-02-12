@@ -56,7 +56,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'arm': arm}.items(),
+            launch_arguments={'model': model, 'gazebo': 'True', 'robot_name': robot_name, 'arm': arm}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
@@ -137,7 +137,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='arm',
-            default_value='true',
+            default_value='True',
             description='whether to launch arm',
         ),
         DeclareLaunchArgument(name='x', default_value='13.22', description='x_pose'),

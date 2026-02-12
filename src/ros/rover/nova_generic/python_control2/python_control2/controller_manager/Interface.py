@@ -1,5 +1,5 @@
 from typing import TypeVar, Generic
-from teleop_python_utils.Event import Event
+from teleop_python_utils import Event
 
 T = TypeVar('T')
 

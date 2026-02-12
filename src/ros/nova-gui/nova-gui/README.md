@@ -28,7 +28,41 @@ A component can do one or more of the following functions
 - Send a command to the Rover to perform a Task
 - Please the Rover Operator by looking Cute and Cheerfull
 
-## Linting
+## Development
+
+We use the [`yarn` package manager](https://yarnpkg.com/cli). To use yarn you must be in a nix-shell with yarn, this can be achieved by running `gui-shell`. To run `yarn` commands you can run one of:
+
+```bash
+# you must be in the yarn project directory: /nova/src/ros/nova-gui/nova-gui
+yarn
+
+# can be run anywhere
+gui-yarn
+# alias for:
+yarn --cwd ~/nova/src/ros/nova-gui/nova-gui
+```
+
+External packages are managed through `yarn` and defined in the package.json file. You can search external dependancies [here](https://www.npmjs.com/). To install new dependencies, run:
+
+```bash
+yarn add <package-name>
+```
+
+All external packages are installed into the `node_modules` directory and can be imported directly into the project’s source files as needed.
+
+To install the project's dependancies run:
+
+```bash
+yarn install
+```
+
+The GUI can be built, if it fails to build `ws-build` will fail, impacting all development. Please ensure that you run the follow before raising a PR/merging:
+
+```bash
+yarn build
+```
+
+### Linting
 
 `eslint` has been set up for this repository, to utilise this locally, you can run in the development shell:
 

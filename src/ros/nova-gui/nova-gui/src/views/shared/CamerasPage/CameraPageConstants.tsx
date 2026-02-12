@@ -97,6 +97,11 @@ const driveCams = [
   CameraSerials.DRIVE_TELEMETRY,
 ]
 
+const autoCams = [
+  CameraSerials.AUTO_OAK,
+  CameraSerials.AUTO_BOOTIE,
+]
+
 export const post_landing_views: CameraView[] = [
   {
     cameraSerials: [...mastCams, ...armCams, ...driveCams],
@@ -174,7 +179,7 @@ export const space_resources_views: CameraView[] = [
 
 export const autonomous_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams, ...driveCams],
+    cameraSerials: [...mastCams, ...driveCams, ...autoCams],
     viewTitle: "All Cams",
   },
   {
@@ -185,7 +190,7 @@ export const autonomous_views: CameraView[] = [
 
 export const urc_autonomous_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams, ...driveCams, CameraSerials.AUTO_OAK, CameraSerials.AUTO_BOOTIE],
+    cameraSerials: [...mastCams, ...driveCams, ...autoCams],
     viewTitle: "All Cams",
   },
   {

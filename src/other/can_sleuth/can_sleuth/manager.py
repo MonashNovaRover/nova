@@ -11,8 +11,8 @@ EDITED BY: Orlando Chamberlain
 '''
 import time
 
-from can_sleuth.outputs import tui
 from can_sleuth.devices import meta
+from can_sleuth.outputs import default_output
 
 class Manager:
     def __init__(self, devices, outputs=None, updatePeriod=0.2, spinPeriod=0.05, includeMeta=True):
@@ -31,7 +31,7 @@ class Manager:
             self._devices.append(meta.Meta(self))
 
         if outputs is None:
-            outputs = [tui.TUI()]
+            outputs = [default_output()]
 
         self._outputs = outputs
 
@@ -61,12 +61,9 @@ class Manager:
             self._sleptTime += sleepTime
             time.sleep(sleepTime)
 
-        except Exception as e:
-            # this is important for the tui as when it is garbage collected it clears the screen, hiding the error.
-            # instead, do this before we print the error so it does not get cleared.
+        except (Exception, KeyboardInterrupt) as e:
             for output in self._outputs:
-                if hasattr(output, "__del__"):
-                    output.__del__()
+                output.cleanup()
             raise e
 
     def _update(self):

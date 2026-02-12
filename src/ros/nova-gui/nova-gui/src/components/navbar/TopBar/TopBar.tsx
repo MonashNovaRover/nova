@@ -16,13 +16,14 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
 import { useUIActions } from "../../../redux/actions/useUIActions.ts";
 import { BifrostConnectionStatus } from "../../../redux/models/bifrost/BifrostTypes.ts";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import humanizeString from "humanize-string";
 import { BLCMDStatusButton } from "../BLCMDStatusModal/BLCMDStatusButton.tsx";
 import "./TopBar.css";
 import { List } from "react-bootstrap-icons";
 import { BatteryWidget } from "../BatteryWidget/BatteryWidget.tsx";
 import {RGBInputModal} from "../RGBWidget/RGBModal.tsx";
+import {RadioStatusButton} from "../RadioStatusModal/RadioStatusButton.tsx";
 
 const connectionStatusColor: {
   [key: string]: "success" | "warning" | "danger";
@@ -33,6 +34,7 @@ const connectionStatusColor: {
 };
 
 const prettyViewNames = new Map<string, string>([
+  ["", "Home"],
   ["general", "General"],
   ["arc", "ARC"],
   ["urc", "URC"],
@@ -55,7 +57,7 @@ export const NovaTopBar: React.FC = () => {
     .split("/")
     .filter((val) => !["/", ""].includes(val));
 
-  const viewName = parsedLocation[0];
+  const viewName = parsedLocation.length !== 0 ? parsedLocation[0] : "";
   const title = parsedLocation.reverse()[0];
 
   return (
@@ -72,7 +74,9 @@ export const NovaTopBar: React.FC = () => {
       </Button>
       <NavbarContent justify="start" className="ml-7">
         <NavbarBrand>
-          <img src={novaLogo} className="w-16" alt="Nova Logo" />
+          <Link to="/">
+            <img src={novaLogo} className="w-16" alt="Nova Logo" />
+          </Link>
           {!!title && (
             <>
               <Divider orientation="vertical" className="h-10 w-[2px] mx-2" />
@@ -88,6 +92,9 @@ export const NovaTopBar: React.FC = () => {
           <BLCMDStatusButton />
         </NavbarItem>
         <NavbarItem>
+            <RadioStatusButton />
+        </NavbarItem>
+        <NavbarItem>
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
               <Button
@@ -100,9 +107,9 @@ export const NovaTopBar: React.FC = () => {
               </Button>
             </DropdownTrigger>
             <DropdownMenu aria-label="ROS Connection">
-              <DropdownItem>Shut Down</DropdownItem>
-              <DropdownItem>Restart</DropdownItem>
-              <DropdownItem>Disconnect</DropdownItem>
+              <DropdownItem key={"shut-down"}>Shut Down</DropdownItem>
+              <DropdownItem key={"restart"}>Restart</DropdownItem>
+              <DropdownItem key={"disconnect"}>Disconnect</DropdownItem>
             </DropdownMenu>
           </Dropdown>
         </NavbarItem>
@@ -120,20 +127,37 @@ export const NovaTopBar: React.FC = () => {
               <DropdownItem
                 description="General Tab for Rover Operation"
                 href="/general"
+                key={"general"}
               >
                 General
               </DropdownItem>
               <DropdownItem
                 description="Australian Rover Challenge"
                 href="/arc"
+                key={"arc"}
               >
                 ARC
               </DropdownItem>
               <DropdownItem
                 description="University Rover Challenge"
                 href="/urc"
+                key={"urc"}
               >
                 URC
+              </DropdownItem>
+              <DropdownItem
+                description="Pages for Testing"
+                href="/test"
+                key={"test"}
+              >
+                Test
+              </DropdownItem>
+              <DropdownItem
+                description="GUI Home Page"
+                href="/"
+                key={"home"}
+              >
+                Home
               </DropdownItem>
             </DropdownMenu>
           </Dropdown>

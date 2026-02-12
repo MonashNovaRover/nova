@@ -20,7 +20,7 @@ from rclpy.node import Node
 import cv2
 import math
 from typing import List
-from nova_interfaces.msg import UVVisSpecData
+from science_interfaces.msg import UVVisSpecData
 
 
 def rgb_to_luminance(rgb: [int, int, int]) -> float: # type: ignore

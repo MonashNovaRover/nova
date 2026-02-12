@@ -16,13 +16,13 @@ in
   config = lib.mkIf cfg.enable {
     nova.desktop.browser.enable = true;
 
-    services.xserver = {
+    services = {
       displayManager.gdm = {
         enable = true;
         wayland = cfg.wayland.enable;
       };
       desktopManager.gnome.enable = true;
-      excludePackages = with pkgs; [
+      xserver.excludePackages = with pkgs; [
         xterm # Use the desktop environment's terminal instead.
       ];
     };

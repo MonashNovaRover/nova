@@ -45,6 +45,16 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[{'use_sim_time': gazebo}],
         ),
+        Node(
+            package='electronics',
+            executable='radio_monitor.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                PathJoinSubstitution([nova_bringup_dir, 'params', 'radio.yaml']),
+                {'device': LaunchConfiguration('radio_device')},
+            ],
+            ),
         IncludeLaunchDescription(
             condition=IfCondition(urdf),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'urdf.launch.py'])),
@@ -84,6 +94,11 @@ def generate_launch_description():
             name='urdf', 
             default_value='False',
             description='Publish robot_description?',
+        ),
+        DeclareLaunchArgument(
+            name='radio_device',
+            default_value='BULLET',
+            description='Which radio device to use (BULLET/ROCKET)',
         ),
     ]
 

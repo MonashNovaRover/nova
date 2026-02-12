@@ -14,7 +14,7 @@ import {
 } from "@nextui-org/react";
 import CopyableInput from "../../../shared/components/CopyableInput/CopyableInput.tsx";
 import { useState } from "react";
-import { ChevronDoubleDown, ChevronDoubleUp } from "react-bootstrap-icons";
+import { ChevronCompactDown, ChevronCompactUp, ChevronDoubleDown, ChevronDoubleUp } from "react-bootstrap-icons";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
 import { AnimatePresence, motion } from "framer-motion";
@@ -22,19 +22,19 @@ import { Navigation, Trash } from "react-feather";
 import { ToolTipButton } from "../../../shared/components/TooltipButton.tsx";
 import { useCartographerActions } from "../../../../redux/actions/useCartographerActions.ts";
 import { MapTile } from "../config.tsx";
-import { GoalType, MapPoint } from "../../../../redux/models/CartographerState.ts";
-import { CartographerGoalModal } from "./CartographerGoalModal.tsx";
-import AutoStatus from "./AutoStatus.tsx";
+import { MapPoint } from "../../../../redux/models/CartographerState.ts";
+import React from "react";
 
 interface BottomOverlayProps {
   mapTile: MapTile;
   setMapTile: (tile: MapTile) => void;
   deletePoint: (point: MapPoint) => void;
+  bottomOverlayComponents?: React.ReactNode[];
 }
 
-export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint}) => {
+export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint, bottomOverlayComponents = []}) => {
+  const [overlayVisible, setOverlayVisible] = useState(true);
   const [overlayOpen, setOverlayOpen] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
   const { points, centerOnRover, trackRover } = useSelector(
     (state: RootState) => state.cartographerState
   );
@@ -43,149 +43,162 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
 
   const { toggleRoverCentering, toggleRoverTracking } =
     useCartographerActions();
+  
+  const toggleOverlay = () => {
+    setOverlayVisible(!overlayVisible);
+    if (!overlayVisible) {
+      setOverlayOpen(false);
+    }
+  };
 
   return (
-    <motion.div
-      animate={{
-        height: overlayOpen ? "400px" : "unset",
-      }}
-      transition={{ duration: 0.3 }}
-    >
-      <Card fullWidth className="h-full">
-        <CardHeader className="w-full flex flex-row justify-between">
-          <AutoStatus/>
-          <div className=""></div>
-          <div className="flex flex-row align-middle gap-3">
-            <CopyableInput
-              readOnly
-              value={String(base.latitude)}
-              placeholder={`Base Latitude`}
-              label="Base Latitude"/>
-            <CopyableInput
-              readOnly
-              value={String(base.longitude)}
-              placeholder={`Base Longitude`}
-              label="Base Longitude"/>
-            <CopyableInput
-              readOnly
-              value={String(rover.latitude)}
-              placeholder={`Rover Latitude`}
-              label="Rover Latitude"/>
-            <CopyableInput
-              readOnly
-              value={String(rover.longitude)}
-              placeholder={`Rover Longitude`}
-              label="Rover Longitude"/>
-            <Select
-              selectedKeys={[mapTile]}
-              label="Map Tiles"
-              placeholder="Select Tiles"
-              onChange={(e) => setMapTile(e.target.value as MapTile)}
-              >
-              {Object.values(MapTile).map((tile) => (
-                <SelectItem
-                  key={tile} >
-                  {tile}
-                </SelectItem>
-              ))}
-            </Select>
-            <Button
-              variant="shadow"
-              fullWidth
-              onClick={() => setModalOpen(true)}
-            >
-              Publish Goals
-            </Button>
-            <Button
-              variant="shadow"
-              color={trackRover ? "primary" : "default"}
-              onClick={toggleRoverTracking}
-            >
-              Track Rovey
-            </Button>
-            <ToolTipButton
-              tooltipContent="Center Rover"
-              isIconOnly
-              variant="shadow"
-              color={centerOnRover ? "primary" : "default"}
-              onClick={toggleRoverCentering}
-            >
-              <Navigation className="w-5" />
-            </ToolTipButton>
-            <Button
-              variant="shadow"
-              isIconOnly
-              fullWidth
-              onClick={() => setOverlayOpen(!overlayOpen)}
-            >
-              {overlayOpen ? <ChevronDoubleDown /> : <ChevronDoubleUp />}
-            </Button>
-          </div>
-        </CardHeader>
-        <AnimatePresence>
-          {overlayOpen && (
-            <CardBody>
-              <motion.div
-                className="w-full flex flex-row"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <motion.div className="flex-1">
-                  <Table removeWrapper title="Map Points" aria-label="Map Points">
-                    <TableHeader>
-                      <TableColumn>Name</TableColumn>
-                      <TableColumn>Latitude</TableColumn>
-                      <TableColumn>Longitude</TableColumn>
-                      <TableColumn>Goal Type</TableColumn>
-                      <TableColumn align="end">
-                        <div className="flex flex-row justify-end">Actions</div>
-                      </TableColumn>
-                    </TableHeader>
-                    <TableBody emptyContent="Add Points on the Map to Display here">
-                      {points.map((point) => (
-                        <TableRow key={point.name}>
-                          <TableCell>{point.name}</TableCell>
-                          <TableCell>{point.lat}</TableCell>
-                          <TableCell>{point.long}</TableCell>
-                          <TableCell>{GoalType[point.goalType]}</TableCell>
-                          <TableCell className="flex flex-row justify-end">
-                            <ToolTipButton
-                              isIconOnly
-                              size="sm"
-                              tooltipContent="Delete"
-                              onClick={() => deletePoint(point)}
-                            >
-                              <Trash className="w-4" />
-                            </ToolTipButton>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  <CopyableInput className="grow basis-1"
-                     size="md" labelPlacement="outside"
-                     label={"ROS2 Action Goal Poses"}
-                     //value={`${points.map(point => `{latitude: ${point.lat.toString()}, longitude: ${point.long.toString()}}`)}`}  
-                     value={`./bt-navigator/bin/ros2 action send_goal /urc_navigator nova_auto_interfaces/action/NavigateURC "{gps_poses: [{${points.map(point => `position: {latitude: ${point.lat.toString()}, longitude: ${point.long.toString()}}`)}}], behavior_tree: '$HOME/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/urc/urc_through_poses_search.xml'}" `}
-                     copyValue={`./bt-navigator/bin/ros2 action send_goal /urc_navigator nova_auto_interfaces/action/NavigateURC "{gps_poses: [{${points.map(point => `position: {latitude: ${point.lat.toString()}, longitude: ${point.long.toString()}}`)}}], behavior_tree: '$HOME/src/ros/rover/nav2_autonomous/nova_behavior_tree/behavior_tree/urc/urc_through_poses_search.xml'}"`}
-                     classNames={{
-                       input: "font-mono",
-                       inputWrapper: "data-[hover=true]:bg-default-100"
-                     }}
-                     placeholder={"##.#### %"}>
-                  </CopyableInput>
+    <div className="relative w-full">
+      <div className="flex justify-end p-2 z-50">
+      <Button
+          variant="shadow"
+          isIconOnly
+          onClick={toggleOverlay}
+          className="absolute -top-4 shadow-md w-20 h-8 flex items-center justify-center"
+          style={{
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+            borderTopLeftRadius: "8px",
+            borderTopRightRadius: "8px",
+          }}
+        >
+          {overlayVisible ? <ChevronCompactDown /> : <ChevronCompactUp />}
+        </Button>
+      </div>
+      <AnimatePresence>
+      {overlayVisible && ( 
+        <motion.div
+          initial={{ height: 0 }}
+          animate={{ height: overlayOpen ? 400 : "auto" }}
+          exit={{ height: 0, opacity: 1 }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
+          className="overflow-hidden"
+        >
+          <Card fullWidth className="h-full rounded-none" style={{ maxHeight: "400px" }}>
+            <CardHeader className="w-full flex flex-row justify-between gap-3 items-center" style={{ height: "80px" }}>
+                <div className="flex flex-row gap-3">
+                <CopyableInput
+                  readOnly
+                  value={String(base.latitude)}
+                  placeholder={`Base Latitude`}
+                  label="Base Latitude"/>
+                <CopyableInput
+                  readOnly
+                  value={String(base.longitude)}
+                  placeholder={`Base Longitude`}
+                  label="Base Longitude"/>
+                <CopyableInput
+                  readOnly
+                  value={String(rover.latitude)}
+                  placeholder={`Rover Latitude`}
+                  label="Rover Latitude"/>
+                <CopyableInput
+                  readOnly
+                  value={String(rover.longitude)}
+                  placeholder={`Rover Longitude`}
+                  label="Rover Longitude"/>
+                <Select
+                  selectedKeys={[mapTile]}
+                  label="Map Tiles"
+                  placeholder="Select Tiles"
+                  onChange={(e) => setMapTile(e.target.value as MapTile)}
+                  >
+                  {Object.values(MapTile).map((tile) => (
+                    <SelectItem
+                      key={tile} >
+                      {tile}
+                    </SelectItem>
+                  ))}
+                </Select>
+                </div>
+                <div className="flex flex-row gap-3 items-center">
+                {bottomOverlayComponents.map((component, index) => (
+                  <React.Fragment key={index}>
+                    {component}
+                  </React.Fragment>
+                ))}
+                <Button
+                  variant="shadow"
+                  fullWidth
+                  color={trackRover ? "primary" : "default"}
+                  onClick={toggleRoverTracking}
+                >
+                  Track Rovey
+                </Button>
+                <ToolTipButton
+                  tooltipContent="Center Rover"
+                  isIconOnly
+                  variant="shadow"
+                  color={centerOnRover ? "primary" : "default"}
+                  onClick={toggleRoverCentering}
+                >
+                  <Navigation className="w-5" />
+                </ToolTipButton>
+                <Button
+                  variant="shadow"
+                  isIconOnly
+                  fullWidth
+                  onClick={() => setOverlayOpen(!overlayOpen)}
+                >
+                  {overlayOpen ? <ChevronDoubleDown /> : <ChevronDoubleUp />}
+                </Button>
+                </div>
+            </CardHeader>
+            <AnimatePresence>
+              {overlayOpen && (
+                <motion.div
+                  className="w-full flex flex-row overflow-hidden"
+                  initial={{ opacity: 1, height: 0 }}
+                  animate={{ opacity: 1, height: "320px" }}
+                  exit={{ opacity: 1, height: 0 }}
+                  transition={{ duration: 0.4, ease: "easeInOut" }}
+                >
+                  <CardBody className="overflow-y-auto" style={{ height: "320px" }}>
+                    <div className="flex-1">
+                      <Table removeWrapper title="Map Points" aria-label="Map Points" >
+                        <TableHeader>
+                          <TableColumn>Name</TableColumn>
+                          <TableColumn>Latitude</TableColumn>
+                          <TableColumn>Longitude</TableColumn>
+                          <TableColumn>Label</TableColumn>
+                          <TableColumn align="end">
+                            <div className="flex flex-row justify-end">Actions</div>
+                          </TableColumn>
+                        </TableHeader>
+                        <TableBody emptyContent="Add Points on the Map to Display here">
+                          {points.map((point) => (
+                            <TableRow key={point.name}>
+                              <TableCell>{point.name}</TableCell>
+                              <TableCell>{point.lat}</TableCell>
+                              <TableCell>{point.long}</TableCell>
+                              <TableCell>{point.labelName != null ? point.labelName : ''}</TableCell>
+                              <TableCell className="flex flex-row justify-end">
+                                <ToolTipButton
+                                  isIconOnly
+                                  size="sm"
+                                  tooltipContent="Delete"
+                                  onClick={() => deletePoint(point)}
+                                >
+                                  <Trash className="w-4" />
+                                </ToolTipButton>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardBody>
                 </motion.div>
-              </motion.div>
-            </CardBody>
-          )}
-        </AnimatePresence>
-      </Card>
-      <CartographerGoalModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        points={points}
-      />
-    </motion.div>
+              )}
+            </AnimatePresence>
+        </Card>
+      </motion.div>
+      )}
+      </AnimatePresence>
+    </div>
   );
 };

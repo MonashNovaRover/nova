@@ -45,7 +45,7 @@ let
     nodes =
       let
         novaCommon = { config, lib, ... }: {
-          imports = [ ../nixos ];
+          imports = [ ../modules/nixos ];
 
           # Use the shared profile, as all team devices do.
           nova.profile = "shared";

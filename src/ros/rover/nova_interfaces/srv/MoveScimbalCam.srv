@@ -1,8 +1,0 @@
-# The angle to move each servo
-# position 0 = TILT, 1 = PAN
-int8[2] angles
-
----
-
-# Each action could fail. This flag shows the output success of the action
-bool success

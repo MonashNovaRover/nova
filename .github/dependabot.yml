@@ -1,0 +1,93 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# 
+
+version: 2
+updates:
+  - package-ecosystem: "npm" # See documentation for possible values (yarn = npm)
+    directory: "/src/ros/nova-gui/nova-gui" # Location of package manifests
+    schedule:
+      interval: "yearly"
+      day: "monday"
+      time: "03:00"
+      timezone: "Australia/Melbourne"
+    open-pull-requests-limit: 10 # Will likely reduce later as well.
+
+    # Group logically related dependencies
+    groups:
+      react-core:
+        patterns:
+          - "react"
+          - "react-*"
+          - "@types/react*"
+          - "@vitejs/plugin-react"
+          - "react-router*"
+
+      state-management:
+        patterns:
+          - "@redux*"
+          - "redux*"
+          - "broadcast-channel"
+          - "*websocket*"
+          - "*timer*"
+          - "@uidotdev/*"
+
+      mapping-visualisation:
+        patterns:
+          - "@maptiler/*"
+          - "deck.gl"
+          - "*plotly*"
+          - "@types/plotly*"
+          - "apexcharts"
+          - "react-apexcharts"
+          - "tileserver-*"
+          - "*glsl*"
+
+      ui:
+        patterns:
+          - "@dnd-kit/*"
+          - "@nextui-org/*"
+          - "framer-motion"
+          - "*icons*"
+          - "react-feather"
+          - "react-hot-toast"
+          - "tailwind-variants"
+
+      utility-types:
+        patterns:
+          - "lodash*"
+          - "@types/lodash*"
+          - "uuid"
+          - "@types/uuid*"
+          - "geolib"
+          - "@types/geolib*"
+          - "file-saver"
+          - "@types/file-saver*"
+          - "humanize-string"
+          - "roslib"
+          - "@types/roslib*"
+          - "*polyfill*"
+
+      tooling-build:
+        patterns:
+          - "typescript"
+          - "typescript-*"
+          - "@typescript-eslint/*"
+          - "eslint*"
+          - "@eslint/*"
+          - "prettier"
+          - "postcss"
+          - "autoprefixer"
+          - "vite"
+          - "yarn"
+
+      misc:
+        patterns:
+          - "*"
+      
+    ignore:
+    # Upgrading to version 4 killed the GUI - BE CAREFUL
+    # As of 09/01/2026 chatgpt said that NextUI is not compatible with tailwind v4 yet
+    - dependency-name: "tailwindcss"
+      update-types: ["version-update:semver-major"]

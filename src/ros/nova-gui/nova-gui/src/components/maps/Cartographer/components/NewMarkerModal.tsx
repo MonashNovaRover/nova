@@ -23,19 +23,15 @@ interface NewMarkerModalProps {
   addPoint: (point: MapPoint) => void;
   latitude?: number;
   longitude?: number;
+  labels?: { key: number; text: string }[];
 }
 
 export const NewMarkerModal = (props: NewMarkerModalProps) => {
   const [name, setName] = useState<string>();
   const [longitude, setLongitude] = useState("");
   const [latitude, setLatitude] = useState("");
-  const [goalType, setGoalType] = useState<number>(0);
-
-  const goalTypes = [
-    { key: 0, label: "GNSS" },
-    { key: 1, label: "AR Tag" },
-    { key: 2, label: "Object" },
-  ]
+  const [labelNumber, setLabelNumber] = useState<number | null>(null);
+  const [labelName, setLabelName] = useState<string | null>(null);
 
   const points = useSelector(
     (state: RootState) => state.cartographerState.points
@@ -56,7 +52,8 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
       const newPoint = {
         lat: Number(latitude),
         long: Number(longitude),
-        goalType: Number(goalType),
+        labelNumber: labelNumber,
+        labelName: labelName,
         name: !name || name === "" ? `Point ${points.length + 1}` : name,
       } as MapPoint
       props.addPoint(newPoint);
@@ -71,7 +68,8 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
   useEffect(() => {
       setLongitude(props.longitude?.toString() ?? "");
       setLatitude(props.latitude?.toString() ?? "");
-      setGoalType(0);
+      setLabelNumber(props.labels && props.labels.length > 0 ? 0 : null);
+      setLabelName(props.labels && props.labels.length > 0 ? props.labels[0].text : null);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [props.isOpen]
@@ -120,17 +118,24 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
               }
             }}
           />
-          <Select
-            label="Goal Type"
-            defaultSelectedKeys={["0"]}
-            onChange={(e) => setGoalType(Number(e.target.value))}
-          >
-            {goalTypes.map((goalType) => (
-              <SelectItem key={goalType.key}>
-                {goalType.label}
-              </SelectItem>
-            ))}
-          </Select>
+          {props.labels && props.labels.length > 0 && (
+            <Select
+              label="Label"
+              defaultSelectedKeys={["0"]}
+              onChange={(e) => {
+                setLabelNumber(Number(e.target.value))
+                if (props.labels) {
+                  setLabelName(
+                    props.labels.find((label) => label.key === Number(e.target.value))?.text ?? null
+                  );
+                }
+              }}
+            >
+              {props.labels.map((label) => (
+                <SelectItem key={label.key}>{label.text}</SelectItem>
+              ))}
+            </Select>
+          )}
         </ModalBody>
         <ModalFooter>
           <Button fullWidth onClick={handleDropPin}>

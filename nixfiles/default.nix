@@ -8,6 +8,13 @@
 let
   revisions = builtins.fromJSON (builtins.readFile ./revisions.json);
 
+  # backport https://github.com/NixOS/nixpkgs/pull/481399
+  # remove once backported to nixos-unstable
+  nixpkgs-481399 = pkgs.fetchurl {
+    url = "https://github.com/NixOS/nixpkgs/commit/6c6d4daf79263066efae45467cb4a95021ad2bb8.patch";
+    hash = "sha256-ksg95OjJsI88gVUiHX2Iv0y63To4djgLxEof1dibwDk=";
+  };
+
   maybeApplyPatches = { src, patches, ... }@args: if patches == [ ] then src else pkgs.applyPatches args;
 
   # Pin the version of Nixpkgs to ensure reproducibility.
@@ -23,6 +30,7 @@ let
       inherit (revisions.nixpkgs) rev hash;
     };
     patches = [
+      nixpkgs-481399
     ];
   });
 
@@ -44,6 +52,9 @@ let
       #   url = "https://github.com/lopsided98/nix-ros-overlay/compare/6d04148eac0727be34e5333f6e12cfc7e86673c3...eca9687ce15335bbb2d4b7b14fbf74ce0e957f43.patch";
       #   hash = "sha256-c6DD2U6Lo2dcs0APxEHg9l0bz1Ioa5aX5FoATajXYAc=";
       # })
+
+      # speed up ws-build by avoiding wrapping qt apps twice.
+      ./overlay/ros/patches/0001-don-t-wrap-qt-apps-for-the-whole-env.patch
     ];
   });
 
@@ -61,8 +72,8 @@ let
 
   # Extend Nixpkgs with custom packages.
   novaPkgs = import nixpkgs {
-    localSystem = pkgs.buildPlatform.system;
-    crossSystem = pkgs.hostPlatform.system;
+    localSystem = pkgs.stdenv.buildPlatform.system;
+    crossSystem = pkgs.stdenv.hostPlatform.system;
     config = pkgs.config // {
       permittedInsecurePackages = pkgs.config.permittedInsecurePackages or [ ] ++ [
         "freeimage-unstable-2021-11-01"
@@ -99,7 +110,7 @@ let
       })) + "/overlay.nix"))
 
       # Add internally defined packages.
-      (self: super: import ./packages/other { inherit (self) callPackage; })
+      (self: super: import ./packages/other { inherit (self) pkgs callPackage; })
       (self: super: {
         pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
           (pyself: pysuper: import ./packages/python { inherit (pyself) callPackage; })

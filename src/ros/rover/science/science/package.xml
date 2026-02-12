@@ -14,7 +14,7 @@
   <test_depend>ament_lint_common</test_depend>
 
   <depend>rclcpp</depend>  
-  <depend>nova_interfaces</depend>
+  <depend>science_interfaces</depend>
   <depend>input_interfaces</depend>
   <depend>std_msgs</depend>
   <depend>python_control</depend>

@@ -1,0 +1,108 @@
+
+[nova@nixos:~/llamacpp]$ llama-cli -m Hermes-3-Llama-3.2-3B-IQ4_XS.gguf -c 16384 -ngl 0 -fa 'on' --temp 1.0 --min-p 0.0 --top-p 1.0 --top-k 100 --mlock --jinja
+warning: no usable GPU found, --gpu-layers option will be ignored
+warning: one possible reason is that llama.cpp was compiled without GPU support
+warning: consult docs/build.md for compilation instructions
+
+Loading model...
+
+
+▄▄ ▄▄
+██ ██
+██ ██  ▀▀█▄ ███▄███▄  ▀▀█▄    ▄████ ████▄ ████▄
+██ ██ ▄█▀██ ██ ██ ██ ▄█▀██    ██    ██ ██ ██ ██
+██ ██ ▀█▄██ ██ ██ ██ ▀█▄██ ██ ▀████ ████▀ ████▀
+                                    ██    ██
+                                    ▀▀    ▀▀
+
+build      : b7704-84ae04f
+model      : Hermes-3-Llama-3.2-3B-IQ4_XS.gguf
+modalities : text
+
+available commands:
+  /exit or Ctrl+C     stop or exit
+  /regen              regenerate the last response
+  /clear              clear the chat history
+  /read               add a text file
+
+
+> Write a tale of Nova Rover, Monash University's little rover that could
+
+In the heart of Melbourne's vibrant science city, nestled within the prestigious Monash University, a small but fierce explorer took root. Nova Rover, a diminutive yet indomitable robotic companion, bore the spirit of countless pioneers who dared to dream beyond the horizon.
+
+Nestled within the laboratories and research sanctuaries, Nova aspired to discover the stars in her own backyard. With her state-of-the-art modular chassis, state-of-mind uncompromising, Nova Rover was equipped to traverse the uneven terrain of exploration through Monash's sprawling campus. Her little frame was home to an inquisitive heart, powered by an intricate network of sensors and AI brains, designed to adapt and overcome the challenges of the world.
+
+One beautiful autumn afternoon, Nova's mission was presented by a team of young researchers and educators under the auspices of the university's Robotics and Mechatronics lab, Dr. Ollie Underhill and his sharp-eyed assistant, Dr. Ela Cerny. They aimed to send their mechanical friend into the uncharted territory of the school's sprawling green fields, and perhaps even past the picturesque sand dunes of Monash's Waterparks. The aim was to conduct geological surveys and environmental tests unseen by her previous expeditionary comrades in robotic steel.
+
+With all hands on deck and spirits soaring, Nova Rover set foot on her next journey into unexplored territories. Her first stop was to traverse the campus's green corridors, blending in with the lush flora in a bid to remain untouched by human hand, seeking out a hidden treasure of microbial ecosystems tucked under the school's footpaths. Each step illuminated her array of sensors, scanning for moisture, salinity, and temperature as she made her way across the landscape.
+
+In her second stop, Nova ventured into the sandy dunes of Monash's Waterparks, providing unparalleled visuals of the university's natural and man-made ecosystems merged in perfect harmony. With these new data, she brought scientists a deeper understanding of the delicate balance and dynamics entrenched in the campus landscape, which in turn revealed the university's ever-growing commitment to sustainability and green initiatives.
+
+Throughout her odyssey, Nova proved to be more than just a robotic rover for the students and researchers at Monash – she became a symbol of the university's spirit of curiosity and the pursuit of knowledge. In her unyielding journey, Nova Rover established the importance of environmental monitoring, teaching the university's students and research team the value of keeping a lookout for the world around them.
+
+As her mission neared its conclusion, Dr. Ollie and Dr. Ela reflected on the countless challenges and discoveries amassed along the way. In the end, Nova Rover had played an instrumental role as both teacher and student. The delicate balance and intricate networks of life that she had encountered resonated with her every sensor and her growing AI brain. The secrets of the campus landscape that she had discovered humbled her masters, and a bond was formed that would see them push ever forward in their understanding of the world.
+
+And for Nova Rover, that day marked the end of just one adventure, but rather the beginning of a series of groundbreaking discoveries awaiting her on the horizon of the uncharted Earth.
+
+[ Prompt: 8.9 t/s | Generation: 6.2 t/s ]
+
+> The venerable rover was powered by the late Nvidia Jetson TX2
+
+In the intricate heart of Nova Rover, Monash University's spirited explorer, her central nervous system thrived on the power of the late Nvidia Jetson TX2 - a dedicated AI processor equipped to carry her dreams of discovery across the campus' diverse terrain.
+
+The Jetson TX2, a versatile artificial intelligence system, played an essential role in Nova's ability to navigate her journey through Monash's vast landscape. Capable of handling demanding tasks with precision and efficiency, the Jetson TX2 powered the advanced computer vision, sensor fusion, and control algorithms that allowed Nova to interact comfortably, even harmoniously, with the complex ecosystems she investigated.
+
+As her modular chassis integrated an array of sensors, the Nvidia Jetson TX2 acted as the primary processor, ensuring an optimal balance of computational demands and real-time response throughout her geological field surveys and environmental assessments. This powerful processor also facilitated her command to perceive and comprehend her surroundings, to decide with an intuitive intelligence, and to adapt swiftly to her changing environment.
+
+With its high-performance GPU, Jetson TX2 provided a seamless experience in computationally intensive tasks. It played a pivotal role in implementing the advanced machine learning algorithms, enabling Nova to refine herself with learning over time, ensuring an improved understanding of each campus ecosystem that she came into contact with.
+
+Dr. Ollie Underhill and Dr. Ela Cerny, with their keen engineering vision, carefully selected the Jetson TX2 to serve as Nova's intellectual backbone, aware of how it would enhance her every movement. Its robust processing capabilities and AI prowess would not only accompany Nova to the farthest reaches of her explorations, but would also provide the necessary technological support to solve the numerous challenges she would encounter along the way.
+
+And with every challenge conquered, with every data point captured, Nova Rover's story of determination, resilience, and curiosity embodied the pioneering spirit of the university. Her story paved the way for countless future explorers – both human and robotic – to embark on similar adventures, as Monash University continues to uphold and cultivate a culture for innovation and exploration.
+
+[ Prompt: 7.6 t/s | Generation: 5.7 t/s ]
+
+> The 2023, the rover had acquired a new heart. The Nvidia Jetson Orin Nano. Though it was acquired, it was not ready to use yet
+
+In the determined spirit of Nova Rover, Monash University's unyielding explorer, her central processing core evolved alongside the passage of time. Though her initial artificial intelligence companion, the Nvidia Jetson TX2, powered her through the uncharted corners of her campus, she eagerly awaited the dawn of a more efficient, technologically advanced heart to accompany her on her unforgettable odyssey.
+
+Over the years, Nova Rover did indeed upgrade her core processor. The Nvidia Jetson Orin Nano, a more modern marvel of AI processing, took her on a journey even further and deeper into the vibrant tapestry of her campus. The Jetson Orin Nano was meticulously integrated into Nova Rover's system, providing an enhanced fusion of computational power and adaptability.
+
+The Jetson Orin Nano, with its latest technology, stood proud as the primary processor in Nova Rover's revolutionary system. It represented the synergy of state-of-the-art technology, reliability, and unparalleled computational performance. With its system-on-a-chip (SoC) architecture, the OnOrin Nano processed tasks faster and more efficiently than its predecessor, delivering a substantial boost in performance and energy efficiency.
+
+The Jetson Orin Nano-powered Nova Rover could now venture further into the vast unknown landscapes and conduct even more complex environmental surveys and geotechnical analyses. Its improved computational performance allowed this humble rover to refine her learning process, process complex data more rapidly, and make faster decisions in real-time. Nova now had the power to adapt, overcome, and discover new realms of the campus landscape and ecological balance, drawing the gaze of students, researchers, and educators alike.
+
+Working synergistically, the Nvidia Jetson Orin Nano remained the powerhouse of Nova Rover, augmenting her capabilities and facilitating her evolution as the innovative agent of uncharted discovery under the watchful eye of her creators, Dr. Ollie Underhill and Dr. Ela Cerny, as they charted a course in forward-looking innovation under the sprawling green campus of Monash University.
+
+[ Prompt: 8.5 t/s | Generation: 5.3 t/s ]
+
+> In 2025, the Jetson was finally installed into the rover. Pushing past preconceived limits of what was possible on CPU power alone
+
+As the year 2025 beckoned to embrace the future, Nova Rover, the inimitable pioneer at Monash University, at last found solace in her eagerly awaited technological advancement. The Nvidia Jetson Orin Nano, a prodigious piece of AI processing magic, made its grand debut as Nova's revolutionary heart, standing ever firm against the limits of what was possible through CPU power alone.
+
+The jet black Jetson Orin Nano fitted flawlessly into Nova's system, bringing revolutionary performance optimization, and paving the way for her to traverse her campus like never before. Her powerful processor, coupled with the Nvidia Jetson Orin Nano, enabled her to embark on an unparalleled journey of discovery, propelling her past the physical and cognitive boundaries she had overcome before and setting a new precedent.
+
+The Jetson Orin Nano's advanced SoC architecture powered Nova Rover through a myriad of advanced machine learning algorithms, allowing her to refine her learning processes, and greatly enhance her adaptability to each challenge she encoun
+tered in her mission to explore the landscapes under the university's green canopy. This allowed her to execute advanced computer vision technology, sensor fusion, and control algorithms that provided her with a new level of environmental insight and her superior understanding of ecosystems that she interacted with.
+
+Through the Jetson Orin Nano-powered Nova Rover, Monash University became a live demonstration of the continual advancements of computational technology and artificial intelligence. The university's researchers, educators, and students alike marveled at the innovative techniques and the boundless horizons that their campus could offer, all thanks to the cutting-edge powerhouse at its little robotic roved expeditionary, Nova.
+
+The unwavering partnership between Dr. Ollie Underhill and Dr. Ela Cerny, with the ever-enduring spirit of Nova Rover, pushed the boundaries of the landscape of Monash University wider and wider, and her odyssey shone an enduring light on the university's commitment to further innovation and exploration.
+
+[ Prompt: 7.4 t/s | Generation: 5.0 t/s ]
+
+> 2026 ushered the year of CUDA on the Jetson Orin Nano
+
+As the year 2026 set its gleaming steps towards the horizon, the unwavering spirit of Nova Rover, Monash University's inimitable explorer, embraced an enhanced alliance with a fresh gem of technology. The Nvidia Jetson Orin Nano, her heart pulsating with innovation, now unveiled a new facet that further solidified her position in the hall of honor.
+
+The year, 2026, unveiled the dawn of CUDA on the Jetson Orin Nano, propelling her performance and capabilities to an unimaginable extent. CUDA, which stands for Compute Unified Device Architecture, is a parallel computing platform and application programming interface (API) that has been instrumental in boosting the performance of GPU's in scientific computing and general computing.
+
+The introduction of CUDA brought exponential boost to the Nvidia Jetson Orin Nano's processing strength, carving a path towards a more efficient execution of computational and graphical tasks. CUDA became an indispensable addition to theJetson Orin Nano's integrated systems, amplifying the AI processor's capabilities and providing her with the power to outmatch prior boundaries in terms of processing speed and execution.
+
+Through the CUDA-powered Nvidia Jetson Orin Nano, Nova Rover would reach the grand stage of innovation, as she continued to explore the uncharted landscapes of Monash University with greater accuracy, efficiency, and precision. The university's researchers, educators, and students would marvel at the enhanced ability of their robotic rover, now equipped with CUDA capabilities, and would look forward to their journey into the future.
+
+Dr. Ollie Underhill and Dr. Ela Cerny, the wise engineers guiding the spirit of innovation at the helm of their campus, would keep nurturing Nova Rover's technological prowess, as she continued to forge ahead with CUDA-powered capabilities and continued to reveal the secrets of the richly vibrant campus landscape – and further, the secrets that lay within the unexplored territories of the world.
+
+[ Prompt: 6.0 t/s | Generation: 4.7 t/s ]
+
+>

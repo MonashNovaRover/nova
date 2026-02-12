@@ -7,23 +7,26 @@ rtabmap_slam:
     subscribe_rgb: False
     subscribe_depth: False
     subscribe_rgbd: True
-    rgbd_cameras: 2
+    subscribe_scan_cloud: True
     subscribe_odom_info: False
     approx_sync: True
     odom_frame_id: odom
     Rtabmap/DetectionRate: "3.5"
+    Rtabmap/LoopGPS: "true"
     # Grid Parameters are responsible for the Occupancy Grid Generated
     # Crucial for Costmap Generation
+    Grid/Sensor: "0" # 0=laser scan, 1=depth image(s) or 2=both laser scan and depth image(s)
     Grid/MaxGroundAngle: "72"
     Grid/RangeMax: "5.0"
-    Grid/RangeMin: "1.0"
+    Grid/RangeMin: "0.0"
     Grid/3D: "false" # Only Needed for 3D Planning
-    Grid/MaxObstacleHeight: "1.0"
+    Grid/MaxObstacleHeight: "1.6"
     Grid/NoiseFilteringRadius: "0.25"
     Grid/NoiseFilteringMinNeighbors: "5"
     Grid/CellSize: "0.1"
-    GridGlobal/MinSize: "100.0"
-    Grid/RayTracing: "true"
+    GridGlobal/MinSize: "50.0"
+    Grid/RayTracing: "false"
+
 # Params for RGBD Odom (VO)
 rtabmap_odom:
   ros__parameters:
@@ -31,7 +34,13 @@ rtabmap_odom:
     publish_tf: False
     publish_null_when_lost: False
     subscribe_rgbd: True
-    rgbd_cameras: 2
+    rgbd_cameras: 1
+
+# Params for obstacles detection
+rtabmap_obstacles_detection:
+  ros__parameters:
+    max_obstacle_height: 1.6
+    ground_normal_angle: 1.25664 # ~72 degrees in radians
 
 oak_rgbd_sync:
   ros__parameters:

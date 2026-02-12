@@ -10,6 +10,9 @@ arm:
 
       nova_arm_position_controller:
         type: nova_arm_controller/NovaArmController
+      
+      nova_end_effector_velocity_controller:
+        type: nova_arm_controller/NovaArmController
 
       nova_twistmapper:
         type: nova_twistmapper/NovaTwistmapper
@@ -17,7 +20,10 @@ arm:
       nova_path_planner:
         type: nova_path_planner/NovaPathPlanner
 
-      joint_state_broadcaster:
+      joint_state_broadcaster_arm:
+        type: joint_state_broadcaster/JointStateBroadcaster
+      
+      joint_state_broadcaster_end_effector:
         type: joint_state_broadcaster/JointStateBroadcaster
 
   nova_arm_velocity_controller:
@@ -46,6 +52,17 @@ arm:
         - J6
       use_position_control: true
       use_collision_limits: true
+      use_limits: true
+    
+  nova_end_effector_velocity_controller:
+    ros__parameters:
+      topic: "/arm/end_effector_joint_velocity_command"
+      joint_names:
+        - left_slide
+        - actuator_head
+      use_position_control: false
+      use_position_limits: false
+      use_collision_limits: false
       use_limits: true
 
   nova_twistmapper:
@@ -85,10 +102,18 @@ arm:
       add_chain_to_srdf: false
       add_allowed_collisions_to_srdf: false
 
-  joint_state_broadcaster:
+  joint_state_broadcaster_arm:
     ros__parameters:
       interfaces:
          ["position", "velocity"]
 
       joints: ["J1", "J2", "J3", "J4", "J5", "J6"]
+      use_local_topics: false
+  
+  joint_state_broadcaster_end_effector:
+    ros__parameters:
+      interfaces:
+         ["velocity"]
+
+      joints: ["actuator_head", "left_slide"]
       use_local_topics: false

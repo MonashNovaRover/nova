@@ -14,7 +14,7 @@ OTHER_REPOS=(
     libcanmd
 )
 
-SRCDIR="$(git rev-parse --show-toplevel)/external/src"
+SRCDIR="$(git rev-parse --show-toplevel)/../src"
 mkdir -p "$SRCDIR"
 
 # Check for the use of SSH or HTTPS

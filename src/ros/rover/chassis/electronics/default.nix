@@ -36,5 +36,6 @@ buildRosPackage {
   ] ++ [ 
     ublox-ubx-msgs
     sensor-msgs
+    fabric
   ];
 }

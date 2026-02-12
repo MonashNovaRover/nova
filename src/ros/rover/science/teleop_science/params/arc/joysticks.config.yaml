@@ -1,0 +1,142 @@
+teleop_science:
+  ros__parameters:
+
+    input_sources:
+      names: [
+        "thrustmaster_left",
+        "thrustmaster_right"
+      ]
+
+      # Declare types for the sources
+      thrustmaster_left:
+        type: "teleop_modular_joy/JoyInputSource"
+      thrustmaster_right:
+          type: "teleop_modular_joy/JoyInputSource"
+
+thrustmaster_left:
+  ros__parameters:
+    topic: "/science/joy/left"
+    button_definitions: [
+      "l_btn_thumb_u_state",        # Up / Trigger (behind the thumbstick)
+      "l_btn_thumb_d_state",        # Down
+      "l_btn_thumb_l_state",        # Buttons located near the thumb stick (Left)
+      "l_btn_thumb_r_state",        # Right
+      "l_btn_bottom_l1_state",      # Buttons located at the bottom left
+      "l_btn_bottom_l2_state",      # Numbered Left to Right, First then Second row
+      "l_btn_bottom_l3_state",      # Ordered top left to right, bottom right to left
+      "l_btn_bottom_l6_state",
+      "l_btn_bottom_l5_state",
+      "l_btn_bottom_l4_state",
+      "l_btn_bottom_r3_state",      # Buttons located at the bottom right
+      "l_btn_bottom_r2_state",      # Numbered Left to Right, First then Second row
+      "l_btn_bottom_r1_state",      # Ordered top right to left, bottom left to right
+      "l_btn_bottom_r4_state",
+      "l_btn_bottom_r5_state",
+      "l_btn_bottom_r6_state"
+    ]
+
+    axis_definitions: [
+      "l_ax_stick_x",               # Left/right
+      "l_ax_stick_y",               # Forward/backwards
+      "l_ax_stick_twist",           # Twist
+      "l_ax_slider",
+      "l_ax_thumb_x",               # Thumb Axis Data (left/right)
+      "l_ax_thumb_y"                # Each Thumb axis can be -1, 0 or 1 (up/down)
+    ]
+
+    remap:
+      axes:
+        # Analysis Arm
+        analysis_arm_actuation:
+          from: "l_ax_stick_y"
+        # Tool Rotator
+        tool_rotator_speed:
+          from: "l_ax_slider"
+
+      buttons:
+        # Lock/Unlock
+        lock:
+          from: "l_btn_bottom_l2_state"
+        unlock:
+          from: "l_btn_bottom_l5_state"
+        # Tool Rotator
+        tool_rotator_twitch_decrease:
+          from: "l_btn_bottom_r1_state"
+        tool_rotator_twitch_increase:
+          from: "l_btn_bottom_r2_state"
+        tool_rotator_sweeper:
+          from: "l_btn_bottom_r4_state"
+        tool_rotator_microscope:
+          from: "l_btn_bottom_r5_state"
+        tool_rotator_nir_probe:
+          from: "l_btn_bottom_r6_state"
+
+thrustmaster_right:
+  ros__parameters:
+    topic: "/science/joy/right"
+    button_definitions: [
+      "r_btn_thumb_u_state",        # Up / Trigger (behind the thumbstick)
+      "r_btn_thumb_d_state",        # Down
+      "r_btn_thumb_l_state",        # Buttons located near the thumb stick (Left)
+      "r_btn_thumb_r_state",        # Right
+      "r_btn_bottom_l1_state",      # Buttons located at the bottom left
+      "r_btn_bottom_l2_state",      # Numbered Left to Right, First then Second row
+      "r_btn_bottom_l3_state",      # Ordered top left to right, bottom right to left
+      "r_btn_bottom_l6_state",
+      "r_btn_bottom_l5_state",
+      "r_btn_bottom_l4_state",
+      "r_btn_bottom_r3_state",      # Buttons located at the bottom right
+      "r_btn_bottom_r2_state",      # Numbered Left to Right, First then Second row
+      "r_btn_bottom_r1_state",      # Ordered top right to left, bottom left to right
+      "r_btn_bottom_r4_state",
+      "r_btn_bottom_r5_state",
+      "r_btn_bottom_r6_state"
+    ]
+
+    axis_definitions: [
+      "r_ax_stick_x",               # Left/right
+      "r_ax_stick_y",               # Forward/backwards
+      "r_ax_stick_twist",           # Twist
+      "r_ax_slider",
+      "r_ax_thumb_x",               # Thumb Axis Data (left/right)
+      "r_ax_thumb_y"                # Each Thumb axis can be -1, 0 or 1 (up/down)
+    ]
+
+    remap:
+      axes:
+        # Auger
+        auger_actuation:
+          from: "r_ax_stick_y"
+        auger_drill_speed:
+          from: "r_ax_slider"
+        # Chute
+        chute_speed:
+          from: "r_ax_slider"
+        # Sweeper
+        sweeper_speed:
+          from: "r_ax_slider"
+
+      buttons:
+        # Auger
+        activate_auger:
+          from: "r_btn_bottom_l4_state"
+        activate_cbeam:
+          from: "r_btn_bottom_l1_state"
+        auger_drill:
+          from: "r_btn_thumb_u_state"
+        auger_drill_clockwise:
+          from: "r_btn_thumb_r_state"
+        auger_drill_anticlockwise:
+          from: "r_btn_thumb_l_state"
+        # Sweeper
+        sweeper_sweep:
+          from: "r_btn_bottom_r5_state"
+        # Chute
+        chute_twitch_decrease:
+          from: "r_btn_bottom_r2_state"
+        chute_twitch_increase:
+          from: "r_btn_bottom_r3_state"
+        chute_engaged:
+          from: "r_btn_bottom_r1_state"
+        chute_disengaged:
+          from: "r_btn_bottom_r4_state"

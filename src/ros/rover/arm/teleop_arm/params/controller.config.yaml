@@ -1,0 +1,120 @@
+teleop_arm:
+  ros__parameters:
+ 
+    input_sources:
+      names:
+        - joy_input_source
+
+      joy_input_source:
+        type: "teleop_modular_joy/JoyInputSource"
+
+joy_input_source:
+  ros__parameters:
+    topic: "/arm/joy"
+    # These are the default mappings for a game_controller_node.
+    # https://docs.ros.org/en/ros2_packages/rolling/api/joy/index.html
+    # If you use joy_node, you'll need to figure out what the mapping is yourself.
+    # So, run joy, `ros2 topic echo /joy`, and mess around with your controller to figure out what it is for you.
+    button_definitions:
+      - "A"
+      - "B"
+      - "X"
+      - "Y"
+      - "BACK"
+      - "GUIDE"
+      - "START"
+      - "LEFTSTICK"
+      - "RIGHTSTICK"
+      - "LEFTSHOULDER"
+      - "RIGHTSHOULDER"
+      - "DPAD_UP"
+      - "DPAD_DOWN"
+      - "DPAD_LEFT"
+      - "DPAD_RIGHT"
+      - "MISC1"
+      - "PADDLE1"
+      - "PADDLE2"
+      - "PADDLE3"
+      - "PADDLE4"
+      - "TOUCHPAD"
+    axis_definitions:
+      - "LEFTX"
+      - "LEFTY"
+      - "RIGHTX"
+      - "RIGHTY"
+      - "TRIGGERLEFT"
+      - "TRIGGERRIGHT"
+
+    remap:
+      axes:
+        speed:
+          from: "TRIGGERRIGHT"
+          invert: true
+
+        # Joint space
+        j1:
+          from_buttons:
+            positive: "DPAD_RIGHT"
+            negative: "DPAD_LEFT"
+          invert: true
+        j2:
+          from_buttons:
+            positive: "DPAD_UP"
+            negative: "DPAD_DOWN"
+          invert: true
+        j3:
+          from_buttons:
+            positive: "Y"
+            negative: "A"
+        j4:
+          from: "RIGHTY"
+          invert: true
+        j5:
+          from: "RIGHTX"
+        j6:
+          from_buttons:
+            positive: "X"
+            negative: "B"
+
+         # End effector mode
+        actuator_head:
+          from: LEFTY
+        left_slide:
+          from_buttons:
+            positive: "Y"
+            negative: "A"
+
+        # Task space
+        linear:
+          x:
+            from_buttons:
+              positive: "DPAD_UP"
+              negative: "DPAD_DOWN"
+          y:
+            from_buttons:
+              positive: "DPAD_RIGHT"
+              negative: "DPAD_LEFT"
+          z:
+            from_buttons:
+              positive: "Y"
+              negative: "A"
+        angular:
+          x:
+            from_buttons:
+              positive: "X"
+              negative: "B"
+          y:
+            from: "RIGHTY"
+            invert: true
+          z:
+            from: "RIGHTX"  
+
+      buttons:
+        lock:
+          from: "BACK"
+        unlock:
+          from: "START"
+        task_space:
+          from: "LEFTSHOULDER"
+        end_effector_mode:
+          from: RIGHTSHOULDER

@@ -1,8 +1,9 @@
 camera_streamer:
   ros__parameters:
     defaults:
-      width: 640
-      framerate: 10
+      mime: image/jpeg
+      width: 800
+      framerate: 30
       profiles:
         snail:
           width: 320
@@ -32,6 +33,7 @@ camera_streamer:
 
       # Science
       science_microscope:
+        mime: video/x-raw
         width: 640
         framerate: 25
         show_clock: false

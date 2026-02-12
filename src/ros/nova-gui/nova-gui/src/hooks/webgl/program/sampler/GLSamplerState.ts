@@ -38,6 +38,8 @@ export default class GLSamplerState implements RenderQueueItem<[WebGL2RenderingC
   // The result of requestVideoFrameCallback in this.startVideoFrameLoop
   private frameID?: number;
 
+  private recentlyLoggedError: boolean = false;
+
   constructor(program: GLProgramState, textureUnit: number, name: string,
               sampler: HTMLImageElement | HTMLVideoElement | null | undefined, options: GLSamplerStateOptions) {
     this.textureUnit = textureUnit;
@@ -176,17 +178,19 @@ export default class GLSamplerState implements RenderQueueItem<[WebGL2RenderingC
     if (!this.texture || !this._sampler)
       return;
 
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
     this.ensureValuesAreMapped(gl);
 
     const location = gl.getUniformLocation(program, this.name);
 
-    if (location === null) {
+    if (location === null && !this.recentlyLoggedError) {
       console.warn(`Sampler2D "${this.name}" does not exist on the current program. Did you spell it wrong?`);
+      this.recentlyLoggedError = true;
+      setTimeout(() => this.recentlyLoggedError = false, 5000);
     }
 
     gl.activeTexture(gl.TEXTURE0 + this.textureUnit);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.bindTexture(this.target.value, this.texture);
 
     gl.uniform1i(location, this.textureUnit)

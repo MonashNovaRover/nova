@@ -18,7 +18,7 @@ from typing import List
 from . import device
 
 class CanDevice(device.Device):
-    def __init__(self, name, interface, canIdList=None, canIdMask=None, canIdMatch=None):
+    def __init__(self, name, interface, canIdList=None, canIdMask=None, canIdMatch=None, telemetry={}, aliveTimeout=1):
         """Create the can device
 
         :param name: display name
@@ -33,9 +33,14 @@ class CanDevice(device.Device):
         Using a mask:
         :param canIdMask: bitmask for the CAN IDs you want to register callbacks for
         :param canIdMatch: what you want to match
+
+        :param telemetry: dictionary of canIdNumber: (name, fmt, units, toReadable or None).
+        fmt is for struct.unpack, units is str, toReadable is function that takes
+        the output of struct.unpack and makes it human readable or none if you just
+        want raw hex to be displayed.
         """
 
-        super().__init__(name)
+        super().__init__(name, aliveTimeout)
         self.bus = jcan.Bus()
 
         if (canIdList is not None):
@@ -44,6 +49,49 @@ class CanDevice(device.Device):
             self.bus.set_id_filter_mask(canIdMatch, canIdMask)
 
         self.bus.open(interface)
+
+        for telemIdNumber in telemetry:
+            fields = []
+            for name, fmt, units, toReadable in telemetry[telemIdNumber]:
+                fields.append(self.SimpleBytesAttribute(name, fmt, units, toReadable))
+
+            # I can still hear my FIT2099 TA telling me off
+            CanDevice.SimpleCANMessageHandler(
+                    self, telemIdNumber, fields
+                    )
+
+    class SimpleCANMessageHandler():
+        """Helper for processing telemetry messages from can devices
+        """
+        def __init__(self, canDevice, canId, fields: List[device.Device.SimpleBytesAttribute]):
+            """
+
+            :param canDevice: the CanDevice that this telemetry message belongs to
+            :param canId: the can id for this telemetry message
+            :param fields: one attribute for every value represented by the payload of this can message
+            construct these with whatever integer size and signed/unsigned and unit conversions as per
+            whatever the can device does.
+            """
+            self._canDevice = canDevice
+            self._fields = fields
+            for field in self._fields:
+                # I am filled with regret and I can hear my FIT2099 TA shouting at me.
+                canDevice.attrs.append(field)
+
+            canDevice.addCallback(canId, self.onMsg)
+
+        def onMsg(self, frame):
+            """Callback for when we recieve a can message. We split the message's payload up and
+            send each section of bytes to the respective SimpleBytesAttribute
+            """
+            self._canDevice.alive() # TODO: only for device-> computer messages
+            position = 0
+            for field in self._fields:
+                length = field.getByteLength()
+                field.updateBytesValue(
+                        bytes(frame.data[position:position+length])
+                    )
+                position += length
 
     def addCallback(self, canId, callback):
         """Add a callback function for a specific CAN ID

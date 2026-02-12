@@ -7,7 +7,9 @@ export interface MapCoordinate {
 
 export interface MapPoint extends MapCoordinate {
   name: string;
-  goalType: GoalType;
+  labelNumber: number | null;
+  labelName: string | null;
+  selected: boolean;
 }
 
 export enum MapInteractionMode {

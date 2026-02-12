@@ -43,7 +43,7 @@ namespace teleop_drive_joy
 enum class DriveMode : uint8_t
 {
   PIVOT,
-  HOLONOMIC,
+  ACKERMANN,
   STRAFE,
   DIFF
 };
@@ -54,8 +54,8 @@ inline std::string pretty_print_mode(const DriveMode mode)
   {
     case DriveMode::PIVOT:
       return "Pivot mode";
-    case DriveMode::HOLONOMIC:
-      return "Holonomic mode";
+    case DriveMode::ACKERMANN:
+      return "Ackermann mode";
     case DriveMode::STRAFE:
       return "Strafe mode";
     case DriveMode::DIFF:
@@ -71,8 +71,8 @@ inline std::string mode_to_controller(const DriveMode mode)
   {
     case DriveMode::PIVOT:
       return "pivot_drive_controller";
-    case DriveMode::HOLONOMIC:
-      return "holonomic_drive_controller";
+    case DriveMode::ACKERMANN:
+      return "ackermann_steering_controller";
     case DriveMode::STRAFE:
       return "strafe_drive_controller";
     case DriveMode::DIFF:
@@ -183,6 +183,7 @@ private:
   double speed_;  // Linear Speed Multiplier that can be incremented
   std::map<int, rclcpp::Time> last_button_press_time_;
   std::map<int, std::function<void(const sensor_msgs::msg::Joy::SharedPtr)>> button_callbacks_;
+  bool handbrake_pressed_;
 };
 
 }  // namespace teleop_drive_joy
