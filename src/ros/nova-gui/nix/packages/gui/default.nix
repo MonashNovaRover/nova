@@ -81,6 +81,11 @@ mkYarnPackage {
     runHook postInstall
   '';
 
+  postInstall = ''
+    mkdir -p "$out/nix-support"
+    echo doc GUI "$out/share/nova-gui/www" > "$out/nix-support/hydra-build-products"
+  '';
+
   distPhase = "true";
   passthru.workspacePackages = {
     inherit rosbridge-server;
