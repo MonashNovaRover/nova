@@ -415,11 +415,11 @@ void TeleopDriveJoy::set_connected(const bool connected)
 
       if (connected_)
       {
-        RCLCPP_ERROR_STREAM(this->get_logger(), C_INFO << "Gamepad " << C_SUCCESS << "connected." << C_END);
+        RCLCPP_ERROR_STREAM(this->get_logger(), C_INFO << "Gamepad connected" << C_END);
       }
       else
       {
-        RCLCPP_ERROR_STREAM(this->get_logger(), C_INFO << "Gamepad " << C_FAIL << "disconnected." << C_END);
+        RCLCPP_ERROR_STREAM(this->get_logger(), C_INFO << "Gamepad disconnected" << C_END);
       }
     }
 }
