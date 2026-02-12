@@ -83,7 +83,7 @@ mkYarnPackage {
 
   postInstall = ''
     mkdir -p "$out/nix-support"
-    echo doc GUI "$out/share/nova-gui/www" > "$out/nix-support/hydra-build-products"
+    echo doc GUI "$out/share/nova-gui/www/index.html" > "$out/nix-support/hydra-build-products"
   '';
 
   distPhase = "true";
