@@ -23,6 +23,10 @@ teleop_drive_joy:
     default_value: "/drive/joy/set_feedback"
     description: "Output topic for game pad feedback (e.g. rumble)"
 
+  rumble_enable:
+    type: bool
+    default_value: true
+    description: "Enable controller rumbling if wheel effort is sufficiently high"
   rumble_range:
     type: double_array
     default_value: [0.4, 0.8]

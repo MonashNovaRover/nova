@@ -147,9 +147,12 @@ void TeleopDriveJoy::initialize_interfaces()
 
   drive_info_pub_ = this->create_publisher<drive_interfaces::msg::DriveInfo>(params_.drive_info_topic, 10);
 
-  joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
-    params_.joint_states_topic, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joint_states_callback, this, _1));
-  joy_feedback_pub_ = this->create_publisher<sensor_msgs::msg::JoyFeedback>(params_.joy_feedback_topic, 10);
+  if (params_.rumble_enable)
+  {
+    joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
+      params_.joint_states_topic, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joint_states_callback, this, _1));
+    joy_feedback_pub_ = this->create_publisher<sensor_msgs::msg::JoyFeedback>(params_.joy_feedback_topic, 10);
+  }
 }
 
 void TeleopDriveJoy::map_button_callbacks()
