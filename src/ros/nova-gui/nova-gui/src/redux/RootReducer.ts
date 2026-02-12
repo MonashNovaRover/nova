@@ -22,6 +22,7 @@ import {initialSiteDataState} from "./models/genericStores/SiteDataState.ts";
 import {filterStores, getReducers} from "./store/rootReducerFilters.ts";
 import {StoreType} from "./models/StoreContext.ts";
 import {DEFAULT_NIR_PROBE_CALIBRATION_DATA} from "./models/genericStores/NIRProbeCalibrationData.ts";
+import {initialCameraProfilesState} from "./models/CameraProfilesState.ts";
 
 /**
  * reduxStores contains all stores in redux as either it's Reducer
@@ -331,6 +332,9 @@ export const reduxStores = {
   theta360InputDistance: createGenericStore("theta360InputDistance",""),
   rgbLedStore: createGenericStore("rgbLedStore", { r: "0", g: "0", b: "0" }),
   uvVisBlankStore: createGenericStore("uvVisBlankStore", []),
+  cameraProfiles: createGenericStore("cameraProfiles", initialCameraProfilesState),
+  clickAndHold: createGenericStore("clickAndHold", false),
+  windowWideWASD: createGenericStore("windowWideWASD", false),
 };
 
 // all store reducers

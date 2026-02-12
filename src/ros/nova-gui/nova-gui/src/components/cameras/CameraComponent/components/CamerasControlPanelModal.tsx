@@ -18,7 +18,7 @@ import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
 import { RosService } from "../../../../ros/services/rosService.ts";
-import { Pause, Play } from "react-feather";
+import { Pause, Play, ExternalLink } from "react-feather";
 import { useRosNodes } from "../../../../utils/hooks/useRosNodes.ts";
 import { BooleanChip } from "./BooleanChip.tsx";
 import { allCams } from "../../../../views/shared/CamerasPage/CameraPageConstants.tsx";
@@ -211,6 +211,19 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
                   onPress={() => pauseStreaming(serial)}
                 >
                   <Pause size="15px" fill="white" />
+                </Button>
+                <Button
+                  isIconOnly
+                  size="sm"
+                  color="default"
+                  onPress={() => window.open(
+                    `/cameras/${serial}?autostart=true`,
+                    "_blank",
+                    "rel=noopener noreferrer"
+                  )
+                  }
+                >
+                  <ExternalLink size="15px" fill="white" />
                 </Button>
               </div>
             </TableCell>

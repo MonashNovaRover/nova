@@ -2,7 +2,8 @@ import os
 from launch import LaunchDescription
 from launch.conditions.unless_condition import IfCondition
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -16,37 +17,40 @@ def launch_setup(context, *args, **kwargs):
     rtabmap_viz = LaunchConfiguration('rtabmap_viz').perform(context)
     rviz_params = LaunchConfiguration('rviz_params')
     model = LaunchConfiguration('model').perform(context)
+    urdf = LaunchConfiguration('urdf')
 
-
-    rviz_node = Node(
-        package='rviz2',
-        namespace='',
-        executable='rviz2',
-        name='rviz2',
-        arguments=['-d', [rviz_params]]
-    )
-
-    rtabmap_ros_node = Node(
-        condition=IfCondition(rtabmap_viz),
-        package='rtabmap_viz',
-        executable='rtabmap_viz',
-        output='screen',
-        parameters=[{
-            "subscribe_rgbd": True,
-            "use_sim_time": gazebo}],
-        remappings=[
-            ('rgbd_image','oak/rgbd/image_raw'),
-            ('odom', 'odom/visual'),
-        ],
-    )
-
-    output_path = os.path.expanduser("~/rviz.urdf")
-    local_urdf = ExecuteProcess(
-        cmd=["xacro", model, '-o', output_path],
-        output="screen"
-    )
-
-    return [rviz_node, rtabmap_ros_node, local_urdf]
+    return [
+        Node(
+            package='rviz2',
+            namespace='',
+            executable='rviz2',
+            name='rviz2',
+            arguments=['-d', [rviz_params]]
+        ),
+        Node(
+            condition=IfCondition(rtabmap_viz),
+            package='rtabmap_viz',
+            executable='rtabmap_viz',
+            output='screen',
+            parameters=[{
+                "subscribe_rgbd": True,
+                "use_sim_time": gazebo}],
+            remappings=[
+                ('rgbd_image','oak/rgbd/image_raw'),
+                ('odom', 'odom/visual'),
+            ],
+        ),
+        ExecuteProcess(
+            cmd=["xacro", model, '-o', os.path.expanduser("~/rviz.urdf")],
+            output="screen"
+        ),
+        IncludeLaunchDescription(
+            condition=IfCondition(urdf),
+            launch_description_source=PythonLaunchDescriptionSource(
+                PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
+            launch_arguments={'model': model}.items(),
+        ),
+    ]
 
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')
@@ -72,6 +76,11 @@ def generate_launch_description():
             name='model',
             default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
+        ),
+        DeclareLaunchArgument(
+            name='urdf',
+            default_value='False',
+            description='Launch URDF?',
         ),
     ]
 

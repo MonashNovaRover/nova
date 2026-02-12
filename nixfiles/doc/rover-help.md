@@ -19,15 +19,15 @@ Radios (Orin): ssh nova@10.0.0.11
 
 ---------------------------
 
-# Base
-Launch this on the metabox.
-Try the 'launch-base' alias, otherwise use the command below.
-~/Builds/master/bin/ros2 launch nova_bringup base.launch.py
-
 # Drive
 Launch this on the jetson.
-Try the 'launch-drive' alias, otherwise use the command below.
-~/Builds/master/bin/ros2 launch nova_bringup drive.launch.py
+Try the `launch-drive` alias, otherwise use the command below.
+~/Builds/master/bin/ros2 launch drive_bringup drive.launch.py
+
+## Drive Teleop
+Launch this on the metabox (base station).
+Try the `launch-teleop` or `launch-teleop-drive` alias, otherwise use the command below.
+~/Builds/master/bin/ros2 launch teleop_drive_joy teleop.launch.py
 
 ---------------------------
 
@@ -49,33 +49,53 @@ In another terminal:
 
 # Arm
 Launch this on the jetson.
-When running the arm payload, you DO need to run drive.
-Try the 'launch-arm' alias, otherwise use the command below.
-~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py
+Try the `launch-arm` alias, otherwise use the command below.
+~/Builds/master/bin/ros2 launch arm_bringup control.launch.py
+
+## Arm Teleop
+Launch this on the metabox (base station).
+Try the `launch-teleop-arm` alias, otherwise use the command below.
+~/Builds/master/bin/ros2 launch teleop_arm teleop.launch.py
+
 
 # C&E
 Launch this on the jetson.
-When running the excavation & construction payload, you DON'T need to run drive.
-Try the 'launch-ec' alias, otherwise use the command below.
+Try the `launch-ec` alias, otherwise use the command below.
 ~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py
+
+## C&E Teleop
+Launch this on the metabox (base station).
+Try the `launch-teleop-ec` alias, otherwise use the command below.
+~/Builds/master/bin/ros2 launch teleop_ec teleop.launch.py
+
 
 # Science (ARC)
 Launch this on the jetson.
-When running the science payload, you DO need to run drive.
-Try the 'launch-science-arc' alias, otherwise use the command below.
-~/Builds/master/bin/ros2 launch nova_bringup arc_science.launch.py
+Try the `launch-science-arc` alias, otherwise use the command below.
+~/Builds/master/bin/ros2 launch science_bringup arc.launch.py
+
+## Science Teleop
+Launch this on the metabox (base station).
+Try the `launch-teleop-science` alias, otherwise use the command below.
+~/Builds/master/bin/ros2 launch teleop_science teleop.launch.py
+
 
 # Science (URC)
 Launch this on the jetson.
-When running the science payload, you DO need to run drive.
-Try the 'launch-science-urc' alias, otherwise use the command below.
-~/Builds/master/bin/ros2 launch nova_bringup urc_science.launch.py
+Try the `launch-science-urc` alias, otherwise use the command below.
+~/Builds/master/bin/ros2 launch science_bringup urc_old.launch.py
+
+# Base (needed for science urc and any old code)
+Launch this on the metabox.
+Try the `launch-base` alias, otherwise use the command below.
+~/Builds/master/bin/ros2 launch nova_bringup base.launch.py
+
 
 ---------------------------
 
 # Cameras
 Launch this on the jetson
-Replace '?' with either 'arm', 'ec', or 'arc_science'.
+Replace '?' with either 'arm', 'ec', 'science-arc' or 'science-urc'.
 launch-cameras payload:=?
 
 if that doesn't work try:

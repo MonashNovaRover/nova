@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import {useParams, useSearchParams} from "react-router-dom";
 import { useCameraStreamer } from "../../../components/cameras/CameraComponent/hooks/useCameraStreamer";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState";
@@ -7,6 +7,8 @@ import SerialMappedCameraComponent from "../CamerasPage/SerialMappedCameraCompon
 
 export const SingleCameraPage = () => {
   const { serial } = useParams<{ serial: string }>();
+  const [searchParams] = useSearchParams();
+  const autostart = searchParams.get("autostart") === "true";
 
   useCameraStreamer();
 
@@ -29,5 +31,5 @@ export const SingleCameraPage = () => {
       </div>
     );
 
-  return <SerialMappedCameraComponent cameraSerial={serial} />;
+  return <SerialMappedCameraComponent cameraSerial={serial} autostart={autostart}/>;
 };

@@ -52,6 +52,9 @@ let
       #   url = "https://github.com/lopsided98/nix-ros-overlay/compare/6d04148eac0727be34e5333f6e12cfc7e86673c3...eca9687ce15335bbb2d4b7b14fbf74ce0e957f43.patch";
       #   hash = "sha256-c6DD2U6Lo2dcs0APxEHg9l0bz1Ioa5aX5FoATajXYAc=";
       # })
+
+      # speed up ws-build by avoiding wrapping qt apps twice.
+      ./overlay/ros/patches/0001-don-t-wrap-qt-apps-for-the-whole-env.patch
     ];
   });
 
