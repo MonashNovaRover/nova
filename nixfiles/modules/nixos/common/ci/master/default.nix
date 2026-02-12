@@ -46,6 +46,9 @@ in
   config = lib.mkIf cfg.enable {
     nova.ci.common.enable = true;
 
+    nix.distributedBuilds = true;
+    nix.settings.builders-use-substitutes = true;
+
     services.hydra = {
       enable = true;
       package = (options.services.hydra.package.default.override { nix = pkgs.nixVersions.nix_2_20; }).overrideAttrs ({ patches ? [ ], ... }: {
