@@ -32,7 +32,9 @@ teleop_arm:
           - "nova_arm_position_controller"
 
       end_effector_mode:
+        display_name: "End Effector"
         type: "joint_space_control_mode/JointSpaceControlMode"
+        active: true
         controllers:
           - nova_end_effector_velocity_controller
 
@@ -43,26 +45,23 @@ teleop_arm:
         - unlock
         - log_locked
         - log_unlocked
-        - enter_joint_space_from_task_space
-        - enter_joint_space_from_end_effector_mode
-        - enter_end_effector_mode
 
       enter_task_space:
         on: "task_space/down"
         type: switch_control_mode
-        to: task_space_mode
-      enter_joint_space_from_task_space:
-        on: "task_space/up"
+        activate:
+          - "task_space_mode"
+        deactivate:
+          - "joint_space_mode"
+      enter_joint_space:
+        on_any:
+          - "task_space/up"
         type: switch_control_mode
-        to: joint_space_mode
-      enter_end_effector_mode:
-        on: "end_effector_mode/down"
-        type: switch_control_mode
-        to: end_effector_mode
-      enter_joint_space_from_end_effector_mode:
-        on: "end_effector_mode/up"
-        type: switch_control_mode
-        to: joint_space_mode
+        activate:
+          - "joint_space_mode"
+        deactivate:
+          - "task_space_mode"
+
       lock:
         on_any:
           - "lock/down"

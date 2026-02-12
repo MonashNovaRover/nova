@@ -174,7 +174,6 @@ private:
 
         /// An offset to apply to all readings, in radians, such that it is added to resolver messages, and subtracted from commands
         double position_offset = 0.0;
-        
     };
 
     std::string BLCMDHardwareLoggerName;
