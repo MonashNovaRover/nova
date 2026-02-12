@@ -58,14 +58,7 @@ teleop_arm:
         type: switch_control_mode
         activate: ["joint_space_mode"]
         deactivate: ["task_space_mode"]
-      enter_end_effector_mode:
-        on: "end_effector_mode/down"
-        type: switch_control_mode
-        activate: ["end_effector_mode"]
-      enter_joint_space_from_end_effector_mode:
-        on: "end_effector_mode/up"
-        type: switch_control_mode
-        activate: ["joint_space_mode"]
+
       lock:
         on_any:
           - "lock/down"

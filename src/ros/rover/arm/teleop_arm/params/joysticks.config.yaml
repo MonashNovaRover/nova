@@ -58,7 +58,7 @@ thrustmaster_left:
         speed:
           from: "l_ax_slider"
         
-        # End effector mode
+        # End effector
         actuator_head:
           from: "l_ax_thumb_y"
           invert: true
@@ -137,7 +137,5 @@ thrustmaster_right:
               from: "r_ax_stick_y"
           z:
             from: "r_ax_stick_twist"
-      buttons:
-        end_effector_mode:
-          from: "r_btn_thumb_u_state"
+
 
