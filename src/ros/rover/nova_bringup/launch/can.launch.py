@@ -49,8 +49,8 @@ def start_can(bus: str, bitrate: str, logger: Logger):
         except subprocess.CalledProcessError as e:
             logger.error(f"{Colour.FAIL}Failed to start {bus} with error:{Colour.END}\n {e}")
     else:
-        return logger.warning(f"{bus} is already running "
-                              f"(check bitrate matches requested: {bitrate})")
+        logger.warning(f"{bus} is already running "
+                       f"(check bitrate matches requested: {bitrate})")
 
 def launch_setup(context, *args, **kwargs):
     bus = LaunchConfiguration('bus').perform(context)
