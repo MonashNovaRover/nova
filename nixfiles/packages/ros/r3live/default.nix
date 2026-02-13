@@ -69,6 +69,6 @@ buildRosPackage rec {
   ];
 
   patches = [
-    ./patches/cv_upgrade.patch
+    ./patches/cv_upgrade_and_bug_fix.patch
   ];
 }
