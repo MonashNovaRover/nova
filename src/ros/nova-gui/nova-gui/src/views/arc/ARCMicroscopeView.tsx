@@ -17,11 +17,11 @@ export const ARCMicroscopeView = () => {
           <MicroscopeWidget cameraSerial="science_microscope" />
           <div className="grid grid-cols-[1fr_1.1fr] gap-3">
             <EffortWidget
-              label="Peltier"
-              topic={RosTopic.PELTIER_STATUS}
-              service={RosService.PELTIER_COMMAND}
-              statusSelector={(state: RootState) => state.peltierStatus}
-              storeName="peltierEffort" />
+              label="Water Pump"
+              topic={RosTopic.WATER_PUMP_STATUS}
+              service={RosService.WATER_PUMP_COMMAND}
+              statusSelector={(state: RootState) => state.waterPumpStatus}
+              storeName="waterPumpEffort" />
             <EffortWidget
               label="Diaphragm Pump"
               topic={RosTopic.DIAPHRAGM_PUMP_STATUS}

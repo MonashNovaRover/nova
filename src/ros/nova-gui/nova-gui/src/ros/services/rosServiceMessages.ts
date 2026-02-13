@@ -19,7 +19,7 @@ export const rosServiceMessages = {
   // Science Related
   [RosService.MIXERS]: "std_srvs/srv/SetBool",
   [RosService.KILN_COMMAND]: "science_interfaces/srv/KilnCommand",
-  [RosService.PELTIER_COMMAND]: "science_interfaces/srv/EffortCommand",
+  [RosService.WATER_PUMP_COMMAND]: "science_interfaces/srv/EffortCommand",
   [RosService.DIAPHRAGM_PUMP_COMMAND]: "science_interfaces/srv/EffortCommand",
   [RosService.SCIMBAL_COMMAND]: 'science_interfaces/srv/MoveScimbalCam',
   [RosService.HYDRAPROBE_COMMAND]: 'science_interfaces/srv/MoveHydraprobe',

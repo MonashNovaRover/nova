@@ -91,9 +91,9 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         Node(
-            name='peltier',
+            name='water_pump',
             package='science',
-            executable='peltier.py',
+            executable='water_pump.py',
             output='screen',
             emulate_tty=True,
             parameters=[

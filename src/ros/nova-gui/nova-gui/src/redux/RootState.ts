@@ -81,7 +81,7 @@ export interface RootState {
   // Science Stores
   tofStore: IRosSensorMsgsRange;
   nirStore: IRosScienceInterfacesNirProbeData;
-  peltierStatus: IRosScienceInterfacesEffortStatus;
+  waterPumpStatus: IRosScienceInterfacesEffortStatus;
   diaphragmPumpStatus: IRosScienceInterfacesEffortStatus;
   kilnData: IRosScienceInterfacesKilnData;
   kilnCommand: IRosScienceInterfacesKilnCommandResponse;
@@ -115,7 +115,7 @@ export interface RootState {
   rgbLedStore: GenericStoreState<{ r: string; g: string; b: string }>;
   scimbalStepSize : GenericStoreState<string>;
   targetTemp : GenericStoreState<number>;
-  peltierEffort: GenericStoreState<number>,
+  waterPumpEffort: GenericStoreState<number>,
   diaphragmPumpEffort: GenericStoreState<number>,
   theta360CompassHeading : GenericStoreState<number>;
   uvVisBlankStore : GenericStoreState<number[]>;

@@ -88,14 +88,14 @@ kiln:
         max_effort: 1.0
         reversed: false
 
-peltier:
+water_pump:
   ros__parameters:
     can_bus: "can1"
     controllers:
       controller:
         hardware_name: "cooling"
-        service_name: "/science/peltier_command"
-        topic_name: "/science/peltier_status"
+        service_name: "/science/water_pump_command"
+        topic_name: "/science/water_pump_status"
     hardware:
       cooling:
         can_id: 0xD2

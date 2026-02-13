@@ -31,7 +31,7 @@ export enum RosTopic {
   // Science Related topics
   TOF = "/science/analysis_arm",
   KILN_DATA = "/science/kiln_data",
-  PELTIER_STATUS = "/science/peltier_status",
+  WATER_PUMP_STATUS = "/science/water_pump_status",
   DIAPHRAGM_PUMP_STATUS = "/science/diaphragm_pump_status",
   NIR_DATA = "/science/nir_probe_data",
   MICROSCOPE_SERVO = "/science/microscope_servo_info",

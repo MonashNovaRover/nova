@@ -87,7 +87,7 @@ export interface RosServiceInterface {
     IRosScienceInterfacesKilnCommandRequest,
     IRosScienceInterfacesKilnCommandResponse
   >;
-  [RosService.PELTIER_COMMAND]: RosServiceMessage<
+  [RosService.WATER_PUMP_COMMAND]: RosServiceMessage<
     IRosScienceInterfacesEffortCommandRequest,
     IRosScienceInterfacesEffortCommandResponse
   >;

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-System for the science Peltier which cools the
+System for the science Water Pump which cools the
 condenser.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
@@ -24,15 +24,15 @@ if __name__ == "__main__":
 
     rclpy.init()
 
-    node = Node("peltier")
+    node = Node("water_pump")
 
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller(
             "controller",
             EffortCommandController,
             hardware_name="cooling",
-            service_name="/science/peltier_command",
-            topic_name="/science/peltier_status"
+            service_name="/science/water_pump_command",
+            topic_name="/science/water_pump_status"
         ) \
         .with_hardware("cooling", QCMDHardware, can_id=0xD2) \
         .with_jcan() \
