@@ -39,6 +39,7 @@
   spatio-temporal-voxel-layer,
   nova-interfaces,
   imu-filter-madgwick,
+  r3live
 }:
 
 buildRosPackage rec {
@@ -92,6 +93,7 @@ buildRosPackage rec {
       lattice-primitive-generator
       nova-interfaces
       imu-filter-madgwick
+      r3live
       ;
   };
 
