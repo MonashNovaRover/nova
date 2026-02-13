@@ -45,8 +45,6 @@ teleop_arm:
         - log_locked
         - log_unlocked
         - enter_joint_space_from_task_space
-        - enter_joint_space_from_end_effector_mode
-        - enter_end_effector_mode
 
       enter_task_space:
         on: "task_space/down"
@@ -115,27 +113,27 @@ joint_space_mode:
       j1:
         name: "J1"
         input_name: "j1"
-        scale: 0.0535
+        scale: 0.131503125
       j2:
         name: "J2"
         input_name: "j2"
-        scale: 0.040
+        scale: 0.099523125
       j3:
         name: "J3"
         input_name: "j3"
-        scale: 0.040
+        scale: 0.099510938
       j4:
         name: "J4"
         input_name: "j4"
-        scale: 0.048
+        scale: 0.0768
       j5:
         name: "J5"
         input_name: "j5"
-        scale: 4.0
+        scale: 2.5
       j6:
         name: "J6"
         input_name: "j6"
-        scale: 4.0
+        scale: 2.5
 
 task_space_mode:
   ros__parameters:
