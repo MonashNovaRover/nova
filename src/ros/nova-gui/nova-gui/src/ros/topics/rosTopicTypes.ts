@@ -24,6 +24,7 @@ import {
   IRosSensorMsgsNavSatFix,
   IRosArmInterfacesSequencerFeedback,
   IRosNovaInterfacesRadioStatus,
+  IRosScienceInterfacesEffortStatus,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -57,6 +58,8 @@ export interface RosTopicInterfaces {
   // Science Related
   [RosTopic.TOF]: IRosSensorMsgsRange;
   [RosTopic.KILN_DATA]: IRosScienceInterfacesKilnData;
+  [RosTopic.WATER_PUMP_STATUS]: IRosScienceInterfacesEffortStatus;
+  [RosTopic.DIAPHRAGM_PUMP_STATUS]: IRosScienceInterfacesEffortStatus;
   [RosTopic.NIR_DATA]: IRosScienceInterfacesNirProbeData;
   [RosTopic.MICROSCOPE_SERVO]: IRosScienceInterfacesMicroscopeServoInfo;
   [RosTopic.RAMAN_SPEC_MSG]: IRosScienceInterfacesRamanSpectrum;
