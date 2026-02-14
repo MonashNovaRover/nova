@@ -116,5 +116,3 @@ joy_input_source:
           from: "START"
         task_space:
           from: "LEFTSHOULDER"
-        end_effector_mode:
-          from: RIGHTSHOULDER

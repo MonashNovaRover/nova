@@ -19,10 +19,10 @@ def launch_setup(context, *args, **kwargs):
     teleop_params = LaunchConfiguration('teleop_params')
     log_inputs = LaunchConfiguration('log_inputs')
     log_level = LaunchConfiguration('log_level').perform(context)
-    use_joysticks = LaunchConfiguration('joysticks').perform(context)
+    joysticks = LaunchConfiguration('joysticks').perform(context)
     
     input_param_file = PythonExpression([
-        '"joysticks.config.yaml" if "', use_joysticks, '".lower() == "true" else "controller.config.yaml"'
+        '"joysticks.config.yaml" if "', joysticks, '".lower() == "true" else "controller.config.yaml"'
     ])
     input_params = PathJoinSubstitution([teleop_arm_dir, 'params', input_param_file])
 
@@ -53,7 +53,7 @@ def launch_setup(context, *args, **kwargs):
 
         # Automatically run joy alongside teleop
         Node(
-            condition=UnlessCondition(use_joysticks),
+            condition=UnlessCondition(joysticks),
             package='joy',
             executable='game_controller_node',  # or joy_node
             output="screen",
@@ -62,7 +62,7 @@ def launch_setup(context, *args, **kwargs):
             ]
         ),
         GroupAction(
-            condition=IfCondition(use_joysticks),
+            condition=IfCondition(joysticks),
             actions=[
                 Node(
                     name="joy_left",

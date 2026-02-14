@@ -121,7 +121,7 @@ def launch_setup(context, *args, **kwargs):
                     executable='ros2_control_node',
                     namespace="/arm",
                     parameters=[controllers],
-                    remappings=[('/arm/controller_manager/robot_description', '/robot_description'), ('/arm/robot_description', '/robot_description'), ('/joint_states', '/arm/joint_states')],
+                    remappings=[('/arm/controller_manager/robot_description', '/arm/robot_description'), ('/joint_states', '/arm/joint_states')],
                     additional_env=show_colours_additional_env,
                 ),
                 Node(
@@ -147,19 +147,20 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
+            namespace='/arm',
             parameters=[{'robot_description': urdf_value}],
             additional_env=show_colours_additional_env,
         ),
-        Node(
-            package='joint_state_publisher',
-            executable='joint_state_publisher',
-            namespace='',
-            output='screen',
-            emulate_tty=True,
-            parameters=[{
-                'source_list': ['/arm/joint_states', '/joint_states']
-            }]
-        ),
+        # Node(
+        #     package='joint_state_publisher',
+        #     executable='joint_state_publisher',
+        #     namespace='/arm',
+        #     output='screen',
+        #     emulate_tty=True,
+        #     parameters=[{
+        #         'source_list': ['/arm/joint_states', '/joint_states']
+        #     }]
+        # ),
         Node(
             package='rviz2',
             namespace='',

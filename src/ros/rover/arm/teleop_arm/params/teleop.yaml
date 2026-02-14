@@ -41,6 +41,7 @@ teleop_arm:
     commands:
       names:
         - enter_task_space
+        - enter_joint_space
         - lock
         - unlock
         - log_locked
