@@ -31,7 +31,7 @@ tool_rotator:
         function_id: 0x00
         angular_limit: 360.0
 
-time_of_flighr_sensor:
+time_of_flight_sensor:
   ros__parameters:
     can_bus: "can1"
     update_rate: 5
