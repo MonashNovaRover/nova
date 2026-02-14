@@ -15,7 +15,7 @@ STATE INTERFACES:
 PACKAGE:        python_control2
 AUTHOR(S):      Yahya Muayyiduddin
 CREATION:       24/12/2025
-EDITED:         04/02/2026
+EDITED:         14/02/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -30,13 +30,7 @@ from python_control2.hardware_interfaces import CMDHardware, GenericSensorHardwa
 
 
 class TimeOfFlightController(Controller):
-    # Command interfaces
-    # joint_cmd: Interface
 
-    # State interfaces
-    # state: Interface
-
-    
 
     def __init__(self, contexts: Contexts, minimum_range: int, maximum_range: int):
         """ Constructor, deferred until the control manager has been spun.
@@ -47,13 +41,11 @@ class TimeOfFlightController(Controller):
         super().__init__(contexts)
         self.logger.info(f"TimeOfFlightController Initialised")
 
-        # Declare ROS2 parameters here.
-        # self.joint = self.declare_parameter("joint", "j1").value
 
         # Do any setup logic here, save any contexts you want reference to in the future.
         self.tof_publisher = self.create_publisher(Range, "/science/analysis_arm", 10)
-        self.minimum_range = minimum_range
-        self.maximum_range = maximum_range
+        self.minimum_range = self.declare_parameter("minimum_range", minimum_range).value
+        self.maximum_range = self.declare_parameter("maximum_range", maximum_range).value
 
         
 
@@ -67,9 +59,6 @@ class TimeOfFlightController(Controller):
         interfaces you need from this, then store them in member variables.
         :returns: None or True if configured successfully. False otherwise.
         """
-        # Save references to interfaces
-        # self.logger.info(f"Getting \"{self.joint + "/effort"}\"")
-        # self.joint_cmd = command_interfaces[self.joint + "/effort"]
         self.distance = state_interfaces["tof_sensor/distance"]
         return True
 
@@ -92,7 +81,7 @@ if __name__ == "__main__":
 
     node = Node("time_of_flight")
     PythonControl(node, update_rate=5, can_bus="can1") \
-        .with_controller("TimeOfFlightController", TimeOfFlightController, 
+        .with_controller("TimeOfFlightController", TsimeOfFlightController, 
             minimum_range = 10,
             maximum_range = 100) \
         .with_hardware("tof_sensor", GenericSensorHardware,
