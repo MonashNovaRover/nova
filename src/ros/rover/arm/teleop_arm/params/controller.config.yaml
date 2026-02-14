@@ -115,5 +115,6 @@ joy_input_source:
         unlock:
           from: "START"
         task_space:
-          from: "TRIGGERLEFT"
+          from_axis:
+            axis: "TRIGGERLEFT"
 
