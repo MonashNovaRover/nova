@@ -57,7 +57,7 @@ namespace banksia_kinematics_plugin
     return true;
   }
 
-  // See Keenan's IK notes
+
   // TODO: remember to add something for the effector pose
   std::array<double, 6> BanksiaKinematicsPlugin::calculate_ik(tf2::Transform pose, std::array<double, 3> lengths) const {
     auto origin = pose.getOrigin();

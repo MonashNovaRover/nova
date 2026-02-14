@@ -1,0 +1,24 @@
+ioctl: VIDIOC_ENUM_FMT
+	Type: Video Capture
+
+	[0]: 'Y16 ' (16-bit Greyscale)
+		Size: Discrete 752x480
+			Interval: Discrete 0.017s (60.000 fps)
+			Interval: Discrete 0.033s (30.000 fps)
+		Size: Discrete 640x480
+			Interval: Discrete 0.017s (60.000 fps)
+			Interval: Discrete 0.033s (30.000 fps)
+		Size: Discrete 320x240
+			Interval: Discrete 0.017s (60.000 fps)
+	[1]: 'BGR3' (24-bit BGR 8-8-8)
+		Size: Discrete 752x480
+			Interval: Discrete 0.017s (60.000 fps)
+			Interval: Discrete 0.033s (30.000 fps)
+		Size: Discrete 640x480
+			Interval: Discrete 0.017s (60.000 fps)
+			Interval: Discrete 0.033s (30.000 fps)
+		Size: Discrete 320x240
+			Interval: Discrete 0.017s (60.000 fps)
+ioctl: VIDIOC_ENUM_FMT
+	Type: Video Capture
+

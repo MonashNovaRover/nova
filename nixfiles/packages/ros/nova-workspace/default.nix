@@ -22,6 +22,7 @@
 , teleop-modular-node
 , teleop-modular-python-utils
 , livox-ros-driver2
+, can-utils
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -75,6 +76,7 @@
 , nova-teleop-science ? throw "nova-teleop-science is needed, but not available!"
 , nova-science-interfaces ? throw "nova-science-interfaces is needed, but not available!"
 , nova-science-bringup ? throw "nova-science-bringup is needed, but not available!"
+, nova-arm-kinematics ? throw "nova-arm-kinematics is needed, but not available!"
 
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -140,6 +142,7 @@
       nova-teleop-science
       nova-science-interfaces
       nova-science-bringup
+      nova-arm-kinematics
       ;
     nova-can-sleuth = pythonPackages.nova-can-sleuth;
   }
@@ -159,6 +162,7 @@
       teleop-modular-node
       teleop-modular-python-utils
       livox-ros-driver2
+      can-utils
       ;
 }
 }:
