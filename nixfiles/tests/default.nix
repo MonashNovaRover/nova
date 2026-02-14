@@ -72,10 +72,11 @@ let
 
           # Log in automatically.
           services.getty.autologinUser = config.users.users.nova.name;
-          services.xserver.displayManager.autoLogin = {
-            enable = true;
-            user = config.users.users.nova.name;
-          };
+          # TODO: https://github.com/NixOS/nixpkgs/blob/master/nixos/tests/common/auto.nix ??
+          #services.displayManager.autoLogin = {
+          #  enable = true;
+          #  user = config.users.users.nova.name;
+          #};
 
           # https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
           systemd.services."getty@tty1".enable = lib.mkIf config.services.xserver.enable false;
@@ -95,8 +96,8 @@ let
             memorySize = lib.mkDefault (2 * 1024); # ROS is not very efficient!
           };
 
-          # Use a similar kernel version to the rover. JetPack 5 uses Linux 5.10.
-          boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_10;
+          # Use a similar kernel version to the rover. JetPack 6 uses Linux 5.15.
+          #boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_15;
         };
 
         base = ({ config, lib, ... }: {
@@ -108,19 +109,18 @@ let
             qemu.options = lib.optionals config.nova.desktop.wayland.enable [ "-vga virtio" ];
           };
 
-          services.xserver = {
-            enable = true;
-            xrandrHeads = [{
-              output = "Virtual-1";
-              monitorConfig = ''
-                Option "PreferredMode" "1360x768"
-              '';
-            }];
-          };
+          #services.xserver = {
+          #  enable = true;
+          #  xrandrHeads = [{
+          #    output = "Virtual-1";
+          #    monitorConfig = ''
+          #      Option "PreferredMode" "1360x768"
+          #    '';
+          #  }];
+          #};
 
           nova.desktop = {
             enable = true;
-            wayland.enable = false; # Wayland is not as easy to control remotely as Xorg.
           };
         });
       };

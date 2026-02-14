@@ -136,7 +136,7 @@
       nova-joint-space-control-mode
       nova-teleop-arm
       nova-launch-scripts
-      nova-git-metadata
+      #nova-git-metadata
       nova-legacy-input-mode
       nova-teleop-science
       nova-science-interfaces
