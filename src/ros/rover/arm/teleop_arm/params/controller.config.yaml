@@ -116,5 +116,4 @@ joy_input_source:
           from: "START"
         task_space:
           from: "TRIGGERLEFT"
-        end_effector_mode:
-          from: RIGHTSHOULDER
+
