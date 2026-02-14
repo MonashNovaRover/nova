@@ -72,7 +72,7 @@ let
 
           # Log in automatically.
           services.getty.autologinUser = config.users.users.nova.name;
-          services.xserver.displayManager.autoLogin = {
+          services.displayManager.autoLogin = {
             enable = true;
             user = config.users.users.nova.name;
           };
@@ -95,8 +95,11 @@ let
             memorySize = lib.mkDefault (2 * 1024); # ROS is not very efficient!
           };
 
-          # Use a similar kernel version to the rover. JetPack 5 uses Linux 5.10.
-          boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_10;
+          # Use a similar kernel version to the rover. JetPack 6 uses Linux 5.15.
+          boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_15;
+          # upstream xone is broken for linux 5.15.
+          peripherals.xone0_4_12.enable = true;
+
         };
 
         base = ({ config, lib, ... }: {
@@ -122,6 +125,23 @@ let
             enable = true;
             wayland.enable = false; # Wayland is not as easy to control remotely as Xorg.
           };
+
+          # Gnome doesn't work with x11 anymore for this
+          # copied from https://github.com/NixOS/nixpkgs/blob/master/nixos/tests/common/x11.nix
+          services.displayManager.defaultSession = lib.mkDefault "none+icewm";
+          services.xserver.windowManager.icewm.enable = true;
+
+          environment.etc = {
+            # Help with OCR
+            "icewm/theme".text = ''
+              Theme="gtk2/default.theme"
+            '';
+            # Remove task bar to avoid non-determinism
+            "icewm/preferences".text = ''
+              ShowTaskBar=0
+            '';
+          };
+
         });
       };
 
