@@ -69,7 +69,7 @@ def launch_setup(context, *args, **kwargs):
         'use_mock_hardware:=', use_mock_hardware, ' ',
         'auto_camera:=false ',
         'rover_description_dir:=', rover_description_dir, ' ',
-        'drive_control:=True ', 'arm_control:=False '
+        'drive_control:=False ', 'arm_control:=True '
     ]
     urdf_value = ParameterValue(Command(['xacro ', model, ' '] + xacro_args), value_type=str)
 
