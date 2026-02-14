@@ -3,6 +3,7 @@ import {
   IRosCameraMsgsGetIpListResponse,
   IRosBlcmdInterfacesBlcmdStatusArray,
   IRosDriveInterfacesDriveInfo,
+  IRosScienceInterfacesEffortStatus,
   IRosScienceInterfacesMicroscopeServoInfo,
   IRosScienceInterfacesMoveMicroscopeServoResponse,
   IRosScienceInterfacesNirProbeData,
@@ -80,6 +81,8 @@ export interface RootState {
   // Science Stores
   tofStore: IRosSensorMsgsRange;
   nirStore: IRosScienceInterfacesNirProbeData;
+  waterPumpStatus: IRosScienceInterfacesEffortStatus;
+  diaphragmPumpStatus: IRosScienceInterfacesEffortStatus;
   kilnData: IRosScienceInterfacesKilnData;
   kilnCommand: IRosScienceInterfacesKilnCommandResponse;
   uvVisSpecStore: IRosScienceInterfacesUvVisSpecData;
@@ -112,6 +115,8 @@ export interface RootState {
   rgbLedStore: GenericStoreState<{ r: string; g: string; b: string }>;
   scimbalStepSize : GenericStoreState<string>;
   targetTemp : GenericStoreState<number>;
+  waterPumpEffort: GenericStoreState<number>,
+  diaphragmPumpEffort: GenericStoreState<number>,
   theta360CompassHeading : GenericStoreState<number>;
   uvVisBlankStore : GenericStoreState<number[]>;
   clickAndHold : GenericStoreState<boolean>;
