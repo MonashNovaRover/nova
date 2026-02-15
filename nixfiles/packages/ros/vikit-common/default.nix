@@ -24,6 +24,10 @@ stdenv.mkDerivation rec {
     hash = "sha256-egPWl/qiqmkg/LP7hxnZ5P2/OonSBALYQqbdpUplpi8=";
   };
 
+  patches = [
+    ./patches/cmake.patch
+  ];
+
   sourceRoot = "rpg_vikit-4b7abc8/vikit_common";
   
   buildType = "ament_cmake";
