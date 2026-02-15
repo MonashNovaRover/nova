@@ -96,11 +96,11 @@ end_effector_mode:
       actuator_head:
         name: "actuator_head"
         input_name: "actuator_head"
-        scale: 0.1
+        scale: 0.5
       left_slide:
         name: "left_slide"
         input_name: "left_slide"
-        scale: 0.1
+        scale: 0.5
 
 joint_space_mode:
   ros__parameters:
@@ -118,27 +118,27 @@ joint_space_mode:
       j1:
         name: "J1"
         input_name: "j1"
-        scale: 0.1
+        scale: 0.131503125
       j2:
         name: "J2"
         input_name: "j2"
-        scale: 0.1
+        scale: 0.099523125
       j3:
         name: "J3"
         input_name: "j3"
-        scale: 0.1
+        scale: 0.099510938
       j4:
         name: "J4"
         input_name: "j4"
-        scale: 0.25
+        scale: 0.0768
       j5:
         name: "J5"
         input_name: "j5"
-        scale: 0.1
+        scale: 2.5
       j6:
         name: "J6"
         input_name: "j6"
-        scale: 0.36
+        scale: 2.5
 
 task_space_mode:
   ros__parameters:

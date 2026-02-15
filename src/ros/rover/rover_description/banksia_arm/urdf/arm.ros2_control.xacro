@@ -22,7 +22,7 @@
 					<param name="integrate_velocity">false</param>
 					<param name="max_position">3.141592654</param>
 					<param name="position_offset">0.0</param>
-					<param name="max_velocity">1.779309114</param>
+					<param name="max_velocity">2.3</param>
 				</hardware>
 			</xacro:unless>
 			<xacro:if value="${use_mock_hardware}">

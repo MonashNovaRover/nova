@@ -50,16 +50,18 @@ thrustmaster_left:
         j1:
           from: "l_ax_stick_twist"
         j2:
-          from: "l_ax_stick_x"
-        j6:
           from: "l_ax_stick_y"
+          invert: true
+        j3:
+          from: "l_ax_stick_x"
         
         speed:
           from: "l_ax_slider"
         
-        # End effector mode
+        # End effector
         actuator_head:
           from: "l_ax_thumb_y"
+          invert: true
         
         # Task space
         linear:
@@ -113,15 +115,19 @@ thrustmaster_right:
     remap:
       axes:
         # Joint space
-        j3:
-          from: "r_ax_stick_twist"
+
         j4:
-          from: "r_ax_stick_y"
+          from: "r_ax_stick_twist"
         j5:
           from: "r_ax_stick_x"
+          invert: true
+        j6:
+          from: "r_ax_stick_y"
+          invert: true
 
         left_slide:
           from: "r_ax_thumb_y"
+          invert: true
 
         # Task space
         linear:
@@ -132,7 +138,5 @@ thrustmaster_right:
               from: "r_ax_stick_y"
           z:
             from: "r_ax_stick_twist"
-      buttons:
-        end_effector_mode:
-          from: "r_btn_thumb_u_state"
+
 
