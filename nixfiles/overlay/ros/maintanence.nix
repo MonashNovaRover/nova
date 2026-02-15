@@ -278,28 +278,12 @@ self: super:
               );
           in
           {
-            rtabmap = self.rtabmap.overrideAttrs (
+            rtabmap = rosSuper.rtabmap.overrideAttrs (
               {
-                patches ? [], 
-                propagatedBuildInputs ? [], 
                 ...
             }: 
             {
-              inherit (rosSuper.rtabmap) pname;
-              version = "0.21.10-r1";
-              src = self.fetchurl {
-                url = "https://github.com/ros2-gbp/rtabmap-release/archive/release/jazzy/rtabmap/0.21.10-1.tar.gz";
-                name = "0.21.10-1.tar.gz";
-                sha256 = "sha256-qT2xYc1I/J0sWffxH1yOtYJV9h6sc1SybI2t2YoGb+I=";
-              };
-              propagatedBuildInputs = propagatedBuildInputs ++ [ self.qt5.wrapQtAppsHook self.librealsense self.octomap ];
-              patches = patches ++ [
-                # Fix compilation with boost >= 1.87
-                (self.fetchpatch {
-                  url = "https://github.com/introlab/rtabmap/commit/08f031e11c45589fc2b68440383a3e40982dc06f.patch";
-                  hash = "sha256-avU8I19qHFcKBBdIsE4rPJZIHwSy4Wssmwt10cPmk6k=";
-                })
-              ];
+              patches = [];
             });
 
             rtabmap-ros = rosSuper.rtabmap-ros.overrideAttrs (
