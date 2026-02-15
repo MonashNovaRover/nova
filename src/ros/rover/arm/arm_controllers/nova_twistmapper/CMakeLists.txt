@@ -22,6 +22,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   moveit_ros_planning
   moveit_ros_planning_interface
   urdf
+  arm_kinematics
 )
 
 find_package(ament_cmake REQUIRED)

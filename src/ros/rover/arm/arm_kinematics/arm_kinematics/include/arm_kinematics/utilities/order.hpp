@@ -7,6 +7,8 @@
 
 #include <vector>
 
+#include "../collision/allowed_collision_matrix.hpp"
+
 namespace arm_kinematics {
 
 /**
@@ -263,6 +265,23 @@ public:
     }
 
     original.clear();
+    return mapped;
+  }
+
+  /**
+   * Creates a copy of a given acm with elements from indices in original for each element in the order.
+   * @param original The acm to take elements from
+   * @return A copy of the original acm, with the items sorted to match the order
+   */
+  [[nodiscard]] AllowedCollisionMatrix reorder(const AllowedCollisionMatrix & original) const noexcept {
+    AllowedCollisionMatrix mapped{original.capacity};
+
+    for (size_t i = 0; i < data_.size(); ++i) {
+      for (size_t j = 0; j < i; ++j) {
+        mapped.set(i, j, original.get(data_[i], data_[j]));
+      }
+    }
+
     return mapped;
   }
 

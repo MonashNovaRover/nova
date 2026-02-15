@@ -54,6 +54,8 @@ namespace nova_twistmapper
 
       kinematics_solver_loader_ = std::make_unique<pluginlib::ClassLoader<kinematics::KinematicsBase>>(
         "moveit_core", "kinematics::KinematicsBase");
+
+      kinematics_ = arm_kinematics::Kinematics(*get_node(), get_robot_description());
     }
     catch (const std::exception &e)
     {
@@ -713,44 +715,13 @@ namespace nova_twistmapper
       }
     }
 
-    // Create state matching joint_positions
-    moveit::core::RobotState& state = planning_scene_->getCurrentStateNonConst();
-    state.setToDefaultValues();
-    state.setJointGroupPositions(joint_group_name_, joint_positions);
-    state.update();
+    kinematics_.collision.manager.update_poses(joint_positions);
 
-    // Just in case, also try update mimic joints
-    for (const auto* joint_model : robot_model_->getMimicJointModels()) {
-      if (!joint_model)
-        continue;
-
-      const auto* source_joint = joint_model->getMimic();
-      if (!source_joint)
-        continue;
-
-      const auto* position_ptr = state.getJointPositions(source_joint);
-      if (!position_ptr)
-        continue;
-
-      const auto position = joint_model->getMimicFactor() * (*position_ptr) + joint_model->getMimicOffset();
-      state.setVariablePosition(joint_model->getName(), position);
-    }
-    state.update();
-
-    collision_detection::CollisionRequest req;
-    collision_detection::CollisionResult res;
-
-    // TODO: Only do this when requested
-    req.contacts = true;           // Request contact info
-    req.max_contacts = 10;         // Limit contact count
-
-    planning_scene_->checkSelfCollision(req, res, state);
-
-    if (res.collision) {
-      RCLCPP_WARN(logger, "Self intersection detected for pose. Found collisions between:");
-      for (const auto& contact : res.contacts) {
-        RCLCPP_WARN(logger, "  - \"%s\" and \"%s\"", contact.first.first.c_str(), contact.first.second.c_str());
-      }
+    if (bool is_collision = kinematics_.collision.manager.collide()) {
+      RCLCPP_WARN(logger, "Self intersection detected for pose.");
+      // for (const auto& contact : res.contacts) {
+      //   RCLCPP_WARN(logger, "  - \"%s\" and \"%s\"", contact.first.first.c_str(), contact.first.second.c_str());
+      // }
       return true;
     }
 

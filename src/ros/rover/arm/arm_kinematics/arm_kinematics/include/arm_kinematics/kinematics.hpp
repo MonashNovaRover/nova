@@ -32,6 +32,9 @@ struct Kinematics final {
       }
 
       manager = maybe_collision_manager.value();
+
+      // TODO: Make this behaviour configurable, in case the zero pose IS invalid
+      manager.allow_current_colliding_pairs();
     }
 
     explicit Collision(
@@ -44,6 +47,11 @@ struct Kinematics final {
 
   struct Inverse final {
     InverseKinematicsPlugin::SharedPtr plugin = nullptr;
+
+    explicit Inverse(PluginLoader& plugin_loader)
+      : plugin(plugin_loader.make_ik())
+    {
+    }
   };
 
   PluginLoader plugin_loader{};
@@ -56,9 +64,13 @@ struct Kinematics final {
   : plugin_loader(std::move(plugin_loader)),
     forward(plugin_loader),
     collision(plugin_loader, forward.plugin), //< TODO: Make make_collision_manager() constexpr and use it here :/
-    inverse()
+    inverse(plugin_loader)
   {
+  }
 
+  explicit Kinematics(PluginLoader::PluginLoaderNodeInterfaces node, std::string robot_description)
+    : Kinematics(PluginLoader(std::move(node), std::move(robot_description)))
+  {
   }
 };
 

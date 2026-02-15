@@ -97,7 +97,7 @@ PluginLoader::MakeCollisionResult PluginLoader::make_collision(
 
   return MakeCollisionResult{
     std::move(tree),
-    make_collision(order.reorder(std::move(colliders)), std::move(acm))
+    make_collision(order.reorder(std::move(colliders)), order.reorder(std::move(acm)))
   };
 }
 

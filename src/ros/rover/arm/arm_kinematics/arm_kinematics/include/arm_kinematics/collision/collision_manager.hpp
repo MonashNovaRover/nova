@@ -14,22 +14,57 @@ namespace arm_kinematics {
 class PluginLoader;
 
 /**
- * Helper class to tie together an FK tree to get collider poses, and a collision plugin
+ * Helper class to tie together an FK tree to get collider poses, and a collision plugin.
+ *
+ * Create an instance of this with make_collision_manager() -- (see bottom of file)
+ *
+ * If you want to change allowed collisions, mess with plugin.get_allowed_collision_matrix()
  */
 struct ARM_KINEMATICS_PUBLIC CollisionManager {
   CollisionManager() = default;
 
   CollisionManager(
     ForwardKinematicsPlugin::Tree::SharedPtr tree,
-    DiscreteCollisionPlugin::SharedPtr plugin);
+    DiscreteCollisionPlugin::SharedPtr plugin,
+    size_t joint_count);
 
+  /// Returns true if there is an intersection, and false otherwise
   [[nodiscard]] bool collide() const;
   void update_poses(const std::vector<double> & joint_states);
 
-private:
-  ForwardKinematicsPlugin::Tree::SharedPtr tree_{};
-  DiscreteCollisionPlugin::SharedPtr plugin_{};
-  Isometry3fVector collider_poses_{};
+  /**
+   * Perform a self intersection check with the given joint states, preserving which colliders would intersect.
+   * Included for helping to build the allowed collision matrix. Unlimited colliding pairs.
+   *
+   * \warning This is much more expensive than the other function overload! Use only when you need the pairs.
+   * \param[out] colliding_pairs Collision pairs found in collision
+   * \param max_colliding_pairs The maximum number of pairs to populate colliding pairs with.
+   * \returns true if there is an intersection, false if there is no intersection
+   */
+  bool get_colliding_pairs(
+    std::vector<std::pair<size_t, size_t>> & colliding_pairs,
+    const size_t max_colliding_pairs = std::numeric_limits<size_t>::max()) const
+  {
+    return plugin->collide(colliding_pairs, max_colliding_pairs);
+  }
+
+  /**
+   * Gets the current colliding pairs for the current collider poses, and allows those colliding pairs in the allowed
+   * collision matrix.
+   *
+   * \warning Not real-time safe.
+   */
+  void allow_current_colliding_pairs() const {
+    std::vector<std::pair<size_t, size_t>> pairs;
+    plugin->collide(pairs);
+    for (const auto [i, j] : pairs) {
+      plugin->get_allowed_collision_matrix().set(i, j, true);
+    }
+  }
+
+  ForwardKinematicsPlugin::Tree::SharedPtr tree{};
+  DiscreteCollisionPlugin::SharedPtr plugin{};
+  Isometry3fVector collider_poses{};
 };
 
 /**
