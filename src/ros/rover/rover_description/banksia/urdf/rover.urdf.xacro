@@ -16,6 +16,10 @@
     <xacro:arg name="lidar_angle" default="40"/>
     <xacro:arg name="rover_description_dir" default="$(find rover_description)" />
 
+    <!-- Needed to prevent arm control from launching hardware interfaces for the wheels/pivots -->
+    <xacro:arg name="drive_control" default="true"/>
+    <xacro:arg name="arm_control" default="false"/>
+
     <!-- Robot properties-->
     <gazebo>
         <self_collide>false</self_collide>
@@ -73,13 +77,14 @@
         </joint>
     </xacro:if>
 
-    <xacro:unless value="$(arg gazebo)">
-        <xacro:include filename="$(arg rover_description_dir)/banksia/urdf/ros2_control.xacro" />
-        <xacro:rover_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
-    </xacro:unless>
-
-    <xacro:if value="$(arg gazebo)">
-        <xacro:include filename="$(arg rover_description_dir)/banksia/urdf/gz_ros2_control.xacro" />
+    <xacro:if value="$(arg drive_control)">
+        <xacro:unless value="$(arg gazebo)">
+            <xacro:include filename="$(arg rover_description_dir)/banksia/urdf/ros2_control.xacro" />
+            <xacro:rover_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
+        </xacro:unless>
+        <xacro:if value="$(arg gazebo)">
+            <xacro:include filename="$(arg rover_description_dir)/banksia/urdf/gz_ros2_control.xacro" />
+        </xacro:if>
     </xacro:if>
 
     <xacro:include filename="$(arg rover_description_dir)/banksia/urdf/p3d.xacro"/>
