@@ -35,16 +35,15 @@ if __name__ == "__main__":
         .with_controller(
             "controller", 
             PresetTwitchController, 
-            min_angle=72.0, 
-            max_angle=108.0,
+            max_angle=90.0,
             positions={
-                "disengaged": 72.0,
-                "engaged": 108.0
+                "disengaged": 0.0,
+                "engaged": 90.0
             },
-            twitch_max=6.0,
+            twitch_max=10.0,
             hardware_name="rotation"
         ) \
-        .with_hardware("rotation", PositionalServoHardware, function_id=0x03) \
+        .with_hardware("rotation", PositionalServoHardware, can_id=0x0E3) \
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()

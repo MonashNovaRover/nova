@@ -128,7 +128,7 @@ if __name__ == "__main__":
 
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("controller", ScimbalCamController) \
-        .with_hardware("tilt", PositionalServoHardware, can_id=0x0B0, function_id=0x03, angular_limit=180.0) \
-        .with_hardware("pan", PositionalServoHardware, can_id=0x0B0, function_id=0x04, angular_limit=360.0) \
+        .with_hardware("tilt", PositionalServoHardware, can_id=0x0E2, angular_limit=180.0) \
+        .with_hardware("pan", PositionalServoHardware, can_id=0x0E1, angular_limit=360.0) \
         .with_jcan() \
         .spin()
