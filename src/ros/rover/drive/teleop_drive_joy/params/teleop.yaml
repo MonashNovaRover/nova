@@ -6,10 +6,10 @@ teleop_drive_joy_node:
     handbrake_speed_multiplier: 0.6
     trigger_pressed_threshold: 0.1
 
-    rumble_enable: false
-    rumble_delay: 0
+    rumble_enable: true
+    rumble_delay: 100
     rumble_joints: [ frw, flw, brw, blw ]
-    rumble_range: [ 0.4, 0.8 ]
+    rumble_range: [ 0.075, 0.2 ]
 
     speed_limit_max: 1.0
     speed_limit_min: 0.05
