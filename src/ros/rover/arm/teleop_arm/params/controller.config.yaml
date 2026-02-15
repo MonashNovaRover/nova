@@ -81,8 +81,8 @@ joy_input_source:
           from: LEFTY
         left_slide:
           from_buttons:
-            positive: "Y"
-            negative: "A"
+            positive: "LEFTSHOULDER"
+            negative: "RIGHTSHOULDER"
 
         # Task space
         linear:
@@ -115,4 +115,6 @@ joy_input_source:
         unlock:
           from: "START"
         task_space:
-          from: "LEFTSHOULDER"
+          from_axis:
+            axis: "TRIGGERLEFT"
+

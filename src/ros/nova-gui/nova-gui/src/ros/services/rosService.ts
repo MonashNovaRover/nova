@@ -22,6 +22,8 @@ export enum RosService {
   // Science Related
   MIXERS = "/science/mixers",
   KILN_COMMAND = "/science/kiln_command",
+  WATER_PUMP_COMMAND = "/science/water_pump_command",
+  DIAPHRAGM_PUMP_COMMAND = "/science/diaphragm_pump_command",
   SCIMBAL_COMMAND = "/science/scimbal_cam_service",
   HYDRAPROBE_COMMAND = "/science/move_hydraprobe",
   TAKE_NIR_PROBE_READING = "/science/take_nir_probe_reading",
