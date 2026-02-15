@@ -22,11 +22,9 @@ from ..controller_manager.Contexts import Contexts
 class PositionalServoHardware(HardwareInterface):
     pos_cmd: Interface
     can_id: int
-    function_id: int
 
     def __init__(self, contexts: Contexts,
-                 can_id: int=0x0A0,
-                 function_id: int=0x01,
+                 can_id: int=0x000,
                  angular_limit: float=180.0,
                  min_angle_can: int=0x00,
                  max_angle_can: int=0xFF):
@@ -42,7 +40,6 @@ class PositionalServoHardware(HardwareInterface):
         self.last = None
 
         self.declare_parameter("can_id", can_id, "CAN ID of the servo")
-        self.declare_parameter("function_id", function_id, "Function ID of the servo")
         self.declare_parameter("angular_limit", angular_limit, "Angular limit of the servo in degrees")
         self.declare_parameter("min_angle_can", min_angle_can, "Min CAN message value that can be sent")
         self.declare_parameter("max_angle_can", max_angle_can, "Max CAN message value that can be sent")
@@ -59,7 +56,6 @@ class PositionalServoHardware(HardwareInterface):
         """
         # Update params
         self.can_id: int = self.get_parameter("can_id").value
-        self.function_id: int = self.get_parameter("function_id").value
         self.angular_limit: float = self.get_parameter("angular_limit").value
 
         self.min_angle_can = self.get_parameter("min_angle_can").value
@@ -109,4 +105,4 @@ class PositionalServoHardware(HardwareInterface):
             data = self.min_angle_can
       
         # Return the constructed frame
-        return jcan.Frame(self.can_id, [self.function_id, data])
+        return jcan.Frame(self.can_id, [data])
