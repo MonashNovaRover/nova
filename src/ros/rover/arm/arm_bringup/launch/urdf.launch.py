@@ -52,6 +52,7 @@ def launch_setup(context, *args, **kwargs):
         'use_mock_hardware:=', use_mock_hardware, ' ',
         'auto_camera:=false ',
         'rover_description_dir:=', rover_description_dir, ' ',
+        'drive_control:=False ', 'arm_control:=True '
     ]
     urdf_value = ParameterValue(Command(['xacro ', model, ' '] + xacro_args), value_type=str)
 
@@ -59,13 +60,15 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
-            parameters=[{'robot_description': urdf_value}]
+            namespace="/arm",
+            parameters=[{'robot_description': urdf_value}],
+            # remappings=[('/robot_description', '/arm/robot_description')],
         ),
         # Launch joint states for arm
         Node(
             package='joint_state_publisher',
             executable='joint_state_publisher',
-            namespace='',
+            namespace="/arm",
             output='screen',
             emulate_tty=True,
             parameters=[{
