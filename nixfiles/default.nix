@@ -118,7 +118,7 @@ let
       })
       (self: super: {
         rosPackages = super.rosPackages.appendDistroOverlay
-          (rosSelf: rosSuper: import ./packages/ros { inherit (rosSelf) callPackage; })
+          (rosSelf: rosSuper: import ./packages/ros { inherit (rosSelf) callPackage; pkgs = rosSelf;})
           super.rosPackages;
       })
 
