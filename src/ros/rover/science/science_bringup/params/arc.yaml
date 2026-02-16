@@ -21,14 +21,14 @@ tool_rotator:
         min_angle: 0.0
         max_angle: 337.41
         initial_angle: 337.41
-        twitch_max: 30.0
+        twitch_max: 40.0
         sweeper_pos: 0.0
         microscope_pos: 169.41
         nir_probe_pos: 337.41
         hardware_name: "rotation"
     hardware:
       rotation:
-        function_id: 0x00
+        can_id: 0x0E0
         angular_limit: 360.0
 
 time_of_flight_sensor:
@@ -133,12 +133,10 @@ scimbal_cam:
     update_rate: 5
     hardware:
       tilt:
-        can_id: 0x0B0
-        function_id: 0x03
+        can_id: 0x0E2
         angular_limit: 180.0
       pan:
-        can_id: 0x0B0
-        function_id: 0x04
+        can_id: 0x0E1
         angular_limit: 360.0
 
 chute:
@@ -146,15 +144,15 @@ chute:
     can_bus: "can1"
     controllers:
       controller:
-        min_angle: 72.0
-        max_angle: 108.0
-        twitch_max: 6.0
-        disengaged_pos: 72.0
-        engaged_pos: 108.0
+        min_angle: 0.0
+        max_angle: 90.0
+        twitch_max: 10.0
+        disengaged_pos: 0.0
+        engaged_pos: 90.0
         hardware_name: "rotation"
     hardware:
       rotation:
-        function_id: 0x03
+        can_id: 0x0E3
         angular_limit: 180.0
 
 sweeper:

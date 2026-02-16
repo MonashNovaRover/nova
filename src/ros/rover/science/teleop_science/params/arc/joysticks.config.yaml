@@ -138,6 +138,6 @@ thrustmaster_right:
         chute_twitch_increase:
           from: "r_btn_bottom_r3_state"
         chute_engaged:
-          from: "r_btn_bottom_r1_state"
+          from: "r_btn_bottom_r6_state"
         chute_disengaged:
-          from: "r_btn_bottom_r4_state"
+          from: "r_btn_bottom_r5_state"
