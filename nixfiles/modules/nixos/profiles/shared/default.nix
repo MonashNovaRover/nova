@@ -49,5 +49,6 @@ in
     peripherals.realsense.enable = false;
     peripherals.oak-d.enable = true;
     peripherals.hydraprobe.enable = true;
+    peripherals.gps.enable = true;
   };
 }

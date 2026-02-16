@@ -5,5 +5,6 @@
     ./oak-d
     ./hydraprobe
     ./xone
+    ./gps
   ];
 }
