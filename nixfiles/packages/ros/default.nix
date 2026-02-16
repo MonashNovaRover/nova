@@ -1,5 +1,4 @@
-{ callPackage }:
-
+{ callPackage, pkgs }:
 {
   audio-msgs = callPackage ./audio-msgs { };
   depthai = callPackage ./depthai { };
@@ -12,6 +11,14 @@
   livox-ros-driver2 = callPackage ./livox-ros-driver2 { };
   livox-sdk2 = callPackage ./livox-sdk2 { };
   nova-workspace = callPackage ./nova-workspace { };
+  nova-workspace-mast = callPackage ./nova-workspace {
+    graphical = false;
+    novaPackages = {
+      nova-electronics = pkgs.nova-electronics;
+      nova-bringup = pkgs.nova-bringup;
+    };
+    extraPackages = {};
+  };
   rclnodejs = callPackage ./rclnodejs { };
   realsense-udev = callPackage ./realsense-udev { };
   ros-typescript-definitions = callPackage ./ros-typescript-definitions { };
