@@ -114,6 +114,7 @@ class HeaterController(Controller):
         """ Publishes latest temperatures and status of kiln """
 
         kiln_data_msg = KilnData()
+        kiln_data_msg.stamp = self.node.get_clock().now().to_msg()
         kiln_data_msg.state = self.is_on
         kiln_data_msg.temp = [round(t) for t in self.last_temperatures]
         self.kiln_data_publisher.publish(kiln_data_msg)

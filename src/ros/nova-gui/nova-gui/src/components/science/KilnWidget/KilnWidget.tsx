@@ -11,6 +11,8 @@ import { SubCardLabel } from "../../shared/components/Labels.tsx";
 import { Square, Power } from "react-feather";
 import { OverlayedProgress } from "../../shared/components/OverlayedProgress/OverlayedProgress.tsx";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
+import ReactApexChart from "react-apexcharts";
+import { ChartOptions, ChartStyle } from "./ChartOptions.ts";
 
 interface KilnWidgetProps extends CardProps {
 
@@ -20,6 +22,10 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
   const [maxTemp, setMaxTemp] = useState(150);
   const [goalTemp, setGoalTemp] = useGenericStore<number>("targetTemp");
   const [inputGoalTemp, setInputGoalTemp] = useState<string>(goalTemp.toString());
+  const [allData, setData] = useState({
+    time: [] as number[],
+    temp: [] as number[],
+  });
 
   // set up to 'refresh' kilnData state
   const kilnData = useSelector(
@@ -71,6 +77,26 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataBifrost]);
+
+  const addPoint = (currentData: number[], newValue: number) => {
+    const newData = [...currentData, newValue];
+    return newData;
+  };
+
+  // Update existing data
+  useEffect(() => {
+    if (kilnData && kilnData.stamp) {
+      setData(allData => ({
+        time: addPoint(allData.time, kilnData.stamp.sec * 1000 + kilnData.stamp.nanosec / 1_000_000),
+        temp: addPoint(allData.temp, kilnData.temp[0]),
+      }));
+    } else return;
+  }, [kilnData]);
+
+  const tempSeries = {
+    name: "Kiln temperature",
+    data: allData.temp.map((v, i) => [allData.time[i], v, ]),
+  };
 
   const toggleKiln = (
     <div className="flex flex-row justify-between gap-5">
@@ -157,21 +183,31 @@ const KilnWidget: React.FC<KilnWidgetProps> = (props) => {
         {goalTempSlider}
         {sensors.map((element, index) =>
           (element.enabled) &&
-            <OverlayedProgress
-                key={index}
-                size="lg"
-                value={kilnData.temp[index]}
-                maxValue={maxTemp}
-                aria-label="Temperature Sensor Reading"
-                autoColor={true}
-                disableAnimation={false}
-            >
-                <div className="grid grid-flow-col gap-3 text-small">
-                    <span>{element.name}</span>
-                    <span> {kilnData.temp[index]}&deg;C</span>
-                </div>
-            </OverlayedProgress>
+          <OverlayedProgress
+            key={index}
+            size="lg"
+            value={kilnData.temp[index]}
+            maxValue={maxTemp}
+            aria-label="Temperature Sensor Reading"
+            autoColor={true}
+            disableAnimation={false}
+          >
+            <div className="grid grid-flow-col gap-3 text-small">
+              <span>{element.name}</span>
+              <span> {kilnData.temp[index]}&deg;C</span>
+            </div>
+          </OverlayedProgress>
         )}
+        <div className="pt-2">
+          <ReactApexChart
+            type="line"
+            options={ChartOptions(
+              ChartStyle.Temperature,
+              tempSeries.name
+            )}
+            series={[tempSeries]}
+          />
+        </div>
       </Card>
 
     </Card>
