@@ -13,6 +13,7 @@ in
   config = lib.mkIf cfg.enable {
     devices.raspberry-pi.enable = true;
 
-    nova.desktop.enable = false; # too big for sd card
+    nova.networking.wifiInterface = "wlan0";
+    nova.networking.ethernetInterface = "end0";
   };
 }
