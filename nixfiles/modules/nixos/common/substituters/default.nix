@@ -16,6 +16,7 @@ in
       password = lib.mkOption {
         type = with lib.types; str;
         description = "The password for the Nova Rover binary cache";
+        default = builtins.readFile ../../../../secrets/hydra-password.txt;
       };
       publicKey = lib.mkOption {
         type = with lib.types; str;

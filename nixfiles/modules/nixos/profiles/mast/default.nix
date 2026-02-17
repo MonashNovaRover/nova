@@ -7,6 +7,8 @@ let
 in
 {
   config = lib.mkIf (profile == "mast") {
+    nova.networking.mast.enable = true;
+
     environment.systemPackages = with pkgs; [
       nova.ros.nova-workspace-mast
     ];
