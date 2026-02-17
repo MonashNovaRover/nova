@@ -1,17 +1,17 @@
 { config, lib, ... }:
 
+let
+  cfg = config.nova.laptops.aftershock-jason;
+in
 {
-  imports = [
-    ./compute.nix
-    ./video.nix
-  ];
+  # GTX 1050ti Mobile
+  config = lib.mkIf cfg.enable {
 
-  config = lib.mkIf config.devices.metabox-n850hk.enable {
     hardware.nvidia = {
-      modesetting.enable = true;
+      package = config.boot.kernelPackages.nvidiaPackages.legacy_535;
       prime = {
         intelBusId = "PCI:0:2:0";
-        nvidiaBusId = "PCI:1:0:0";
+        nvidiaBusId = "PCI:1:0:0"; 
         offload = {
           # The 1050 Ti does not seem to like PRIME offloading.
           enable = false;
@@ -19,11 +19,12 @@
         };
         sync.enable = true; # Render everything on the NVIDIA GPU to work around offloading issues.
       };
+      open = false;
     };
 
-    services.xserver.videoDrivers = [ "modesetting" "nvidia" ];
-
-    services.switcherooControl.enable = true;
+    nixpkgs.config = {
+      cudaCapabilities = [ "6.0" ];
+    };
 
     # GDM seems to have weird issues on Wayland when the NVIDIA driver is enabled.
     # - The login screen restarts once after logging in
