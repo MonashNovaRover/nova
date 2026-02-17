@@ -118,12 +118,10 @@ chute:
       rotation:
         function_id: 0x03
         angular_limit: 180.0
+
 sweeper:
   ros__parameters:
     can_bus: "can1"
-    active: true
-    active_button: "activate_sweeper"
-    inactive_button_pool: ["activate_auger","activate_cbeam"]
     hardware:
       sweep:
         can_id: 0x0E4

@@ -64,7 +64,8 @@ input_publisher_mode:
       # Chute
       - "chute_speed"
       # Sweeper
-      - "sweeper_sweep"
+      - "sweeper_actuation"
+      - "sweeper_speed"
     button_names:
       # Auger
       - "activate_auger"
@@ -83,5 +84,3 @@ input_publisher_mode:
       - "chute_twitch_increase"
       - "chute_engaged"
       - "chute_disengaged"
-      # Sweeper
-      - "activate_sweeper"

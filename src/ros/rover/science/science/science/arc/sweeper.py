@@ -11,7 +11,7 @@ COMMAND INTERFACES:
 PACKAGE:        science
 AUTHOR(S):      Brandon Chung
 CREATION:       05/02/26
-EDITED:         05/02/26
+EDITED:         17/02/26
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -35,16 +35,18 @@ class SweeperController(Controller):
         super().__init__(contexts)
         self.logger.info(f"SweeperController -- I have been __init__ialized")
 
-        self.sweeper_direction = Direction.POSITIVE
         self.active = contexts[Activation]
 
         # Get inputs
-        # Sweeper axis
-        self.sweeper_axis_name = self.declare_parameter("sweeper_axis", "sweeper_sweep").value
-
         inputs = contexts[Inputs]
+
+        # Sweeper actuation
+        self.sweeper_axis_name = self.declare_parameter("sweeper_axis", "sweeper_actuation").value
         self.sweeper_axis = inputs.get_axis(self.sweeper_axis_name)
-        self.sweeper_axis.value = self.to_int16(self.sweeper_axis.value)
+
+        # Sweeper speed
+        self.speed_axis_name = self.declare_parameter("speed_axis", "sweeper_speed").value
+        self.speed_axis = inputs.get_axis(self.speed_axis)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -66,45 +68,11 @@ class SweeperController(Controller):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-        if not self.active:
-            self.sweep_cmd.value = self.to_16bit(int(0))
-            return
 
         # Update Command Interfaces
-        # Update sweeping
-        # Check if sweeping direction has changed
-        match (new_direction := self.get_sweeper_direction()):
-            case self.sweeper_direction:
-                return
-            case Direction.POSITIVE:
-                self.sweeper_direction = Direction.POSITIVE
-            case Direction.NEGATIVE:
-                self.sweeper_direction = Direction.NEGATIVE
-            case _:
-                self.logger.error(f"Updated to invalid sweeper direction: {new_direction}")
 
-        self.logger.info(f"Updated sweeper direction: {"CLOCKWISE" if self.sweeper_direction == Direction.POSITIVE else "ANTICLOCKWISE"}")
-
-        # Convert to 16 bit integer
-        self.sweep_cmd.value = self.to_int16(self.get_sweep_speed() * self.sweep_direction.value)
-
-    def get_sweeper_speed(self) -> int:
-        """ gets the sweeper speed, turning an axis [-1, 1] to a speed [0, 1]"""
-        return abs(self.from_int16(self.sweeper_axis.value))
-
-    def get_sweeper_direction(self) -> int:
-        """ gets the sweeper direction, turning an axis [-1, 1] to -1 or 1"""
-        if self.from_int16(self.sweeper_axis.value) >= 0:
-            return Direction.POSITIVE
-        else:
-            return Direction.NEGATIVE
-
-    def to_int16(self, number: int) -> bytes:
-        return int(number).to_bytes(2, byteorder='big', signed=True)
-
-    def from_int16(self, number: bytes) -> int:
-        return int.from_bytes(number, byteorder='big', signed=True)
-
+        # Set new command for sweep
+        self.sweep_cmd.value = self.sweeper_axis.value * self.speed_axis.value
 
 if __name__ == "__main__":
     print("Setting up!")
@@ -119,6 +87,5 @@ if __name__ == "__main__":
         .with_controller("controller", SweeperController) \
         .with_hardware("sweep", QCMDHardware, can_id=0x0E4) \
         .with_teleop(inputs) \
-        .with_activation_buttons(start_active=True, active_button_name="activate_sweeper", inactive_button_pool_names=["activate_cbeam","activate_auger"]) \
         .with_jcan() \
         .spin()

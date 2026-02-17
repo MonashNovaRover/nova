@@ -7,7 +7,7 @@ ARC launch file for science payload
 NODES:
   - science/analysis_arm.py             [analysis_arm]
   - science/nir_probe_publisher.py      [nir_probe_publisher]
-  - science/arc_sweeper_servo.py        [sweeper]
+  - science/sweeper.py        [sweeper]
   - science/tool_rotator.py             [tool_rotator] (analysis arm)
   - science/chute.py                    [chute]
   - science/auger.py                    [auger]
