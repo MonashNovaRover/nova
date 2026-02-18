@@ -27,23 +27,23 @@ in
 
     # Enable everything
     hardware = {
-      enableAllHardware = true;
-      enableAllFirmware = true;
+      enableAllHardware = lib.mkDefault true;
+      enableAllFirmware = lib.mkDefault true;
     };
 
     # Detect other OS on boot
     boot.loader = {
-      efi.canTouchEfiVariables = true;
-      systemd-boot.enable = true;
-      timeout = 30;
+      efi.canTouchEfiVariables = lib.mkDefault true;
+      systemd-boot.enable = lib.mkDefault true;
+      timeout = lib.mkDefault 30;
     };
 
     nixpkgs = {
       # Allow non-free drivers
-      config.allowUnfree = true;
+      config.allowUnfree = lib.mkDefault true;
 
       # Define platform as x86_64
-      hostPlatform = "x86_64-linux";
+      hostPlatform = lib.mkDefault "x86_64-linux";
     };
   };
 }
