@@ -113,6 +113,9 @@ in
         pciutils
         usbutils
         gpsd
+        v4l-utils
+        btop
+        nix-output-monitor
       ] ++ lib.optionals config.nova.desktop.enable [
         # Desktop apps
         gitkraken

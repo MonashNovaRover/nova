@@ -1,0 +1,11 @@
+--- a/tools/realsense-viewer/CMakeLists.txt
++++ b/tools/realsense-viewer/CMakeLists.txt
+@@ -256,7 +256,7 @@ install(
+ )
+ #https://cmake.org/cmake/help/latest/command/install.html
+ install(DIRECTORY presets/
+-    DESTINATION $ENV{HOME}/Documents/librealsense2/presets
++    DESTINATION ${CMAKE_INSTALL_PREFIX}/librealsense2/presets
+     FILES_MATCHING PATTERN "*.preset"
+ )
+ endif()

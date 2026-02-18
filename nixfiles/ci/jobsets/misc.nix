@@ -17,9 +17,6 @@ let
 in
 lib.novaForAllSystems (nova: {
   inherit (if rosDistro == null then nova.pkgs.ros else nova.pkgs.rosPackages.${rosDistro})
-    # Autonomous
-    librealsense2-gui
-
     # Arm
     moveit-ros
 

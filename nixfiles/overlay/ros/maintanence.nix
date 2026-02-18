@@ -8,6 +8,35 @@ self: super:
       (
         rosSelf: rosSuper:
         {
+          usb-cam = rosSuper.usb-cam.overrideAttrs (
+            {
+              postPatch ? [ ],
+              ...
+            }:
+            {
+              postPatch = postPatch ++ [
+                "sed -i '/AV_PIX_FMT_XVMC/d' include/usb_cam/formats/av_pixel_format_helper.hpp"
+              ];
+            }
+          );
+
+          librealsense2 = rosSuper.librealsense2.overrideAttrs (
+            {
+              cmakeFlags ? [],
+              patches ? [],
+              ...
+            }:
+            {
+              cmakeFlags = cmakeFlags ++ [
+                "-DCHECK_FOR_UPDATES=OFF"
+              ];
+
+              patches = patches ++ [
+                ./patches/librealsense2.patch
+              ];
+            }
+          );
+
           fastrtps = rosSuper.fastrtps.overrideAttrs (
             {
             ...
