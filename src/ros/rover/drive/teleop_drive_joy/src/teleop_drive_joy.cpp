@@ -145,7 +145,8 @@ void TeleopDriveJoy::initialize_interfaces()
   diff_drive_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
     "/diff_drive_controller/set_parameters");
 
-  drive_info_pub_ = this->create_publisher<drive_interfaces::msg::DriveInfo>(params_.drive_info_topic, 10);
+  drive_info_pub_ = this->create_publisher<drive_interfaces::msg::DriveInfo>(
+    params_.drive_info_topic, rclcpp::QoS(1).transient_local());
 
   if (params_.rumble_enable)
   {
