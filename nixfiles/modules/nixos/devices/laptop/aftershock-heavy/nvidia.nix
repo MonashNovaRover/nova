@@ -12,13 +12,14 @@ in
         intelBusId = "PCI:0:2:0";
         nvidiaBusId = "PCI:1:0:0";
         offload = {
-          enable = false;
-          enableOffloadCmd = false;
+          enable = lib.mkDefault true;
+          enableOffloadCmd = lib.mkDefault true;
         };
       };
     };
 
     nixpkgs.config = {
+      cudaSupport = lib.mkDefault true;
       cudaCapabilities = [ "12.0" ];
     };
   };
