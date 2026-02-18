@@ -11,13 +11,13 @@ COMMAND INTERFACES:
 PACKAGE:        science
 AUTHOR(S):      Brandon Chung
 CREATION:       05/02/26
-EDITED:         17/02/26
+EDITED:         18/02/26
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
 from rclpy.node import Node
 from typing import Optional
-from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, Direction, Activation
+from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface
 from python_control2.hardware_interfaces import QCMDHardware
 from teleop_python_utils import Inputs
 
@@ -35,8 +35,6 @@ class SweeperController(Controller):
         super().__init__(contexts)
         self.logger.info(f"SweeperController -- I have been __init__ialized")
 
-        self.active = contexts[Activation]
-
         # Get inputs
         inputs = contexts[Inputs]
 
@@ -46,7 +44,7 @@ class SweeperController(Controller):
 
         # Sweeper speed
         self.speed_axis_name = self.declare_parameter("speed_axis", "sweeper_speed").value
-        self.speed_axis = inputs.get_axis(self.speed_axis)
+        self.speed_axis = inputs.get_axis(self.speed_axis_name)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -72,7 +70,11 @@ class SweeperController(Controller):
         # Update Command Interfaces
 
         # Set new command for sweep
-        self.sweep_cmd.value = self.sweeper_axis.value * self.speed_axis.value
+        self.sweep_cmd.value = self.sweeper_axis.value * self.get_sweeper_speed()
+
+    def get_sweeper_speed(self) -> float:
+        """ gets the sweeper speed, turning an axis [-1, 1] to a speed [0, 1]"""
+        return (self.speed_axis.value + 1) / 2
 
 if __name__ == "__main__":
     print("Setting up!")
