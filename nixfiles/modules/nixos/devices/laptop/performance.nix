@@ -26,7 +26,7 @@ in
       enable = true;
       scheduler = "scx_lavd";
       extraArgs = [
-        "--performance"
+        "--autopower"
       ];
       package = pkgs.scx.rustscheds;
     };

@@ -17,7 +17,7 @@ in
     hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 
     # Optimize thermal limits
-    services.thermald.enable = true;
+    services.thermald.enable = lib.mkDefault true;
      
     # GPU https://github.com/intel/libvpl?tab=readme-ov-file#dispatcher-behavior-when-targeting-intel-gpus
     hardware.graphics = {

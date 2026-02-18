@@ -18,6 +18,7 @@ in
     # Nvidia driver support
     hardware.nvidia = {
       modesetting.enable = true;
+      dynamicBoost.enable = false; # Only for RTX 3000 and newer
       powerManagement.enable = false; # Only enable if tested properly
       powerManagement.finegrained = false; # Only for RTX 2000 and newer
       open = lib.mkOverride 990 (nvidiaPackage ? open && nvidiaPackage ? firmware);

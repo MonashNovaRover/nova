@@ -8,15 +8,15 @@ in
   config = lib.mkIf cfg.enable { 
 
     hardware.nvidia = {
-      dynamicBoost.enable = true;
+      dynamicBoost.enable = lib.mkDefault true;
       powerManagement.enable = lib.mkDefault true;
       powerManagement.finegrained = lib.mkDefault true;
       prime = {
         intelBusId = "PCI:0:2:0";
         nvidiaBusId = "PCI:1:0:0";
         offload = {
-          enable = true;
-          enableOffloadCmd = true;
+          enable = lib.mkDefault true;
+          enableOffloadCmd = lib.mkDefault true;
         };
       };
     };

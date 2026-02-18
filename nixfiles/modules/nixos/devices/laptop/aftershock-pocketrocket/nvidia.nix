@@ -8,7 +8,7 @@ in
   config = lib.mkIf cfg.enable {
 
     hardware.nvidia = {
-      dynamicBoost.enable = true;
+      dynamicBoost.enable = lib.mkDefault true;
       powerManagement.enable = lib.mkDefault true;
       powerManagement.finegrained = lib.mkDefault true;
       prime = {
