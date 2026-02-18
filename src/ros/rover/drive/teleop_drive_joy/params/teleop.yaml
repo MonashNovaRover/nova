@@ -7,7 +7,9 @@ teleop_drive_joy_node:
     trigger_pressed_threshold: 0.1
 
     rumble_enable: true
-    rumble_delay: 100
+    # rumble is currently updated every 50ms (period that drive joint states is published at),
+    # so rumble_delay is actually ceiling(rumble_delay / 50) * 50
+    rumble_delay: 110
     rumble_joints: [ frw, flw, brw, blw ]
     rumble_range: [ 0.075, 0.2 ]
 
