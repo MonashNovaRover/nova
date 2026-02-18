@@ -1,17 +1,17 @@
 { config, lib, ... }:
 
 let
-  cfg = config.nova.laptops.aftershock-pocketrocket;
+  cfg = config.devices.laptop.gigabyte;
 in
 {
   imports = [
     ./nvidia.nix
   ];
 
-  options.nova.laptops.aftershock-pocketrocket.enable = lib.mkEnableOption "configuration for the Aftershock Pocket Rocket";
+  options.devices.laptop.gigabyte.enable = lib.mkEnableOption "configuration for the Gigabyte";
 
   config = lib.mkIf cfg.enable {
-    nova.laptops = {
+    devices.laptop = {
       enable = true;
       intel.enable = true;
       intel-new.enable = true;

@@ -1,17 +1,17 @@
 { config, lib, ... }:
 
 let
-  cfg = config.nova.laptops.aftershock-heavy;
+  cfg = config.devices.laptop.metabox-new;
 in
 {
   imports = [
     ./nvidia.nix
   ];
 
-  options.nova.laptops.aftershock-heavy.enable = lib.mkEnableOption "configuration for the Aftershock Heavy";
+  options.devices.laptop.metabox-new.enable = lib.mkEnableOption "configuration for the Metabox New";
 
   config = lib.mkIf cfg.enable {
-    nova.laptops = {
+    devices.laptop = {
       enable = true;
       intel.enable = true;
       intel-new.enable = true;

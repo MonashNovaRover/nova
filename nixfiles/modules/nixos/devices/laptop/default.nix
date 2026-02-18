@@ -1,7 +1,7 @@
 { config, lib, ... }:
 
 let
-  cfg = config.nova.laptops;
+  cfg = config.devices.laptop;
 in
 {
   imports = [
@@ -21,7 +21,7 @@ in
     ./performance.nix
   ];
 
-  options.nova.laptops.enable = lib.mkEnableOption "Nova Rover base station laptop configuration";
+  options.devices.laptop.enable = lib.mkEnableOption "Nova Rover base station laptop configuration";
 
   config = lib.mkIf cfg.enable {
 

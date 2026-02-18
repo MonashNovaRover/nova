@@ -1,7 +1,7 @@
 { config, lib, ... }:
 
 let
-  cfg = config.nova.laptops.aftershock-jason;
+  cfg = config.devices.laptop.aftershock-jason;
 in
 {
   # GTX 1050ti Mobile

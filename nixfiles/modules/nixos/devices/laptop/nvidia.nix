@@ -1,11 +1,11 @@
 { config, lib, ... }:
 
 let
-  cfg = config.nova.laptops.nvidia;
+  cfg = config.devices.laptop.nvidia;
   nvidiaPackage = config.hardware.nvidia.package;
 in
 {
-  options.nova.laptops.nvidia.enable = lib.mkEnableOption "Nova Rover base station laptop Nvidia configuration";
+  options.devices.laptop.nvidia.enable = lib.mkEnableOption "Nova Rover base station laptop Nvidia configuration";
 
   config = lib.mkIf cfg.enable { 
 

@@ -1,10 +1,10 @@
 { config, lib, pkgs, ... }:
 
 let
-  cfg = config.nova.laptops.performance;
+  cfg = config.devices.laptop.performance;
 in
 {
-  options.nova.laptops.performance.enable = lib.mkEnableOption "Nova Rover base station laptop performance configuration";
+  options.devices.laptop.performance.enable = lib.mkEnableOption "Nova Rover base station laptop performance configuration";
 
   config = lib.mkIf cfg.enable {
 

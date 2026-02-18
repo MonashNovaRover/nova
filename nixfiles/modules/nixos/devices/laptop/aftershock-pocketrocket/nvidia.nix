@@ -1,7 +1,7 @@
 { config, lib, ... }:
 
 let
-  cfg = config.nova.laptops.aftershock-heavy;
+  cfg = config.devices.laptop.aftershock-pocketrocket;
 in
 {
   # RTX 5060 Mobile

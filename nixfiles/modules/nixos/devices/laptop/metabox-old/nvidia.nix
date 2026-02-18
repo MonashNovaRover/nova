@@ -1,7 +1,7 @@
 { config, lib, ... }:
 
 let
-  cfg = config.nova.laptops.metabox-old;
+  cfg = config.devices.laptop.metabox-old;
 in
 {
   # GTX 1650 Mobile

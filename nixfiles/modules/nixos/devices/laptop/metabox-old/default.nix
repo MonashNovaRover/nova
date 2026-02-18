@@ -1,20 +1,20 @@
 { config, lib, ... }:
 
 let
-  cfg = config.nova.laptops.gigabyte;
+  cfg = config.devices.laptop.metabox-old;
 in
 {
   imports = [
     ./nvidia.nix
   ];
 
-  options.nova.laptops.gigabyte.enable = lib.mkEnableOption "configuration for the Gigabyte";
+  options.devices.laptop.metabox-old.enable = lib.mkEnableOption "configuration for the Metabox Old";
 
   config = lib.mkIf cfg.enable {
-    nova.laptops = {
+    devices.laptop = {
       enable = true;
       intel.enable = true;
-      intel-new.enable = true;
+      intel-old.enable = true;
       nvidia.enable = true;
       performance.enable = true;
     };

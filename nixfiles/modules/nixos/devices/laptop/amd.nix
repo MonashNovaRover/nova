@@ -1,10 +1,10 @@
 { config, lib, ... }:
 
 let
-  cfg = config.nova.laptops.amd;
+  cfg = config.devices.laptop.amd;
 in
 {
-  options.nova.laptops.amd.enable = lib.mkEnableOption "Nova Rover base station laptop amd cpu configuration";
+  options.devices.laptop.amd.enable = lib.mkEnableOption "Nova Rover base station laptop amd cpu configuration";
 
   config = lib.mkIf cfg.enable {
     # CPU

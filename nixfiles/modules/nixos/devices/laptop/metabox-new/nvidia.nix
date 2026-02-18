@@ -1,11 +1,11 @@
 { config, lib, ... }:
 
 let
-  cfg = config.nova.laptops.gigabyte;
+  cfg = config.devices.laptop.metabox-new;
 in
 {
-  # RTX 4060 Mobile
-  config = lib.mkIf cfg.enable { 
+  # GTX 1650 Mobile
+  config = lib.mkIf cfg.enable {
 
     hardware.nvidia = {
       prime = {
@@ -15,11 +15,12 @@ in
           enable = false;
           enableOffloadCmd = false;
         };
+        sync.enable = true; # Render everything on the NVIDIA GPU to work around offloading issues.
       };
     };
 
     nixpkgs.config = {
-      cudaCapabilities = [ "8.9" ];
+      cudaCapabilities = [ "7.5" ];
     };
   };
 }

@@ -1,17 +1,17 @@
 { config, lib, ... }:
 
 let
-  cfg = config.nova.laptops.metabox-old;
+  cfg = config.devices.laptop.aftershock-jason;
 in
 {
   imports = [
     ./nvidia.nix
   ];
 
-  options.nova.laptops.metabox-old.enable = lib.mkEnableOption "configuration for the Metabox Old";
+  options.devices.laptop.aftershock-jason.enable = lib.mkEnableOption "configuration for the Aftershock Jason";
 
   config = lib.mkIf cfg.enable {
-    nova.laptops = {
+    devices.laptop = {
       enable = true;
       intel.enable = true;
       intel-old.enable = true;
