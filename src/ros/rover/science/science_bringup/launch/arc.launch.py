@@ -39,6 +39,16 @@ def launch_setup(context, *args, **kwargs):
     return [
         # Analysis Arm - Nodes for components on the analysis arm
         Node(
+            name='time_of_flight_sensor',
+            package='science',
+            executable='time_of_flight.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params
+            ],
+        ),
+        Node(
             name='analysis_arm',
             package='science',
             executable='analysis_arm_stepper.py',
@@ -58,16 +68,6 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
-        Node(
-            name='time_of_flight_sensor',
-            package='science',
-            executable='time_of_flight.py',
-            output='screen',
-            emulate_tty=True,
-            parameters=[
-                science_params
-            ],
-        )
 
         # CBeam - Nodes for components on the CBeam
         Node(
@@ -141,6 +141,7 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
 
+        
         # Misc - Nodes for misc components
         Node(
             name='scimbal_cam',
