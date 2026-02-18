@@ -77,9 +77,9 @@ joy_input_source:
             negative: "B"
 
          # End effector mode
-        actuator_head:
+        la_prismatic:
           from: LEFTY
-        left_slide:
+        lead_left:
           from_buttons:
             positive: "LEFTSHOULDER"
             negative: "RIGHTSHOULDER"

@@ -30,12 +30,12 @@ arm:
     ros__parameters:
       topic: "/arm/joint_velocity_command"
       joint_names:
-        - J1
-        - J2
-        - J3
-        - J4
-        - J5
-        - J6
+        - j1
+        - j2
+        - j3
+        - j4
+        - j5
+        - j6
       use_position_control: false
       use_collision_limits: false
       use_limits: false
@@ -44,12 +44,12 @@ arm:
     ros__parameters:
       topic: "/arm/joint_position_command"
       joint_names:
-        - J1
-        - J2
-        - J3
-        - J4
-        - J5
-        - J6
+        - j1
+        - j2
+        - j3
+        - j4
+        - j5
+        - j6
       use_position_control: true
       use_collision_limits: true
       use_limits: true
@@ -58,8 +58,8 @@ arm:
     ros__parameters:
       topic: "/arm/end_effector_joint_velocity_command"
       joint_names:
-        - left_slide
-        - actuator_head
+        - lead_left
+        - la_prismatic
       use_position_control: false
       use_position_limits: false
       use_collision_limits: false
@@ -70,12 +70,12 @@ arm:
       chained_controller_name: "nova_arm_position_controller"
       twist_stamped_topic: "/arm/task_space_twist_command"
       joint_names:
-        - J1
-        - J2
-        - J3
-        - J4
-        - J5
-        - J6
+        - j1
+        - j2
+        - j3
+        - j4
+        - j5
+        - j6
       kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
       kinematics_solver_timeout: 0.02
       kinematics_base_frame: "arm_kinematics_origin"
@@ -89,12 +89,12 @@ arm:
   #    chained_controller_name: "nova_arm_position_controller"
       chained_controller_name: ""
       joint_names:
-        - J1
-        - J2
-        - J3
-        - J4
-        - J5
-        - J6
+        - j1
+        - j2
+        - j3
+        - j4
+        - j5
+        - j6
       kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
       kinematics_solver_timeout: 1.0
       kinematics_base_frame: "arm_kinematics_origin"
@@ -107,7 +107,7 @@ arm:
       interfaces:
          ["position", "velocity"]
 
-      joints: ["J1", "J2", "J3", "J4", "J5", "J6"]
+      joints: ["j1", "j2", "j3", "j4", "j5", "j6"]
       use_local_topics: false
   
   joint_state_broadcaster_end_effector:
@@ -115,5 +115,5 @@ arm:
       interfaces:
          ["velocity"]
 
-      joints: ["actuator_head", "left_slide"]
+      joints: ["la_prismatic", "lead_left"]
       use_local_topics: false

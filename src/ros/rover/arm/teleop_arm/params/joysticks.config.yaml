@@ -58,8 +58,8 @@ thrustmaster_left:
         speed:
           from: "l_ax_slider"
         
-        # End effector
-        actuator_head:
+        # End effector mode
+        la_prismatic:
           from: "l_ax_thumb_y"
           invert: true
         
@@ -125,7 +125,7 @@ thrustmaster_right:
           from: "r_ax_stick_y"
           invert: true
 
-        left_slide:
+        lead_left:
           from: "r_ax_thumb_y"
           invert: true
 
