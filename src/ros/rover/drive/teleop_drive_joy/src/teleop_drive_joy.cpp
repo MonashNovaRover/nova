@@ -442,18 +442,25 @@ void TeleopDriveJoy::send_drive_info()
 void TeleopDriveJoy::joint_states_callback(const sensor_msgs::msg::JointState::SharedPtr joint_state_msg)
 {
   // get max effort of joints in rumble_joints
+  const auto joint_effort = [joint_state_msg](const std::string& joint) -> double
+  {
+    for (int i = 0; i <= joint_state_msg->name.size(); ++i)
+    {
+      if (joint_state_msg->name[i] == joint)
+      {
+        return joint_state_msg->effort[i];
+      }
+    }
+    return -1.0;
+  };
+
   double max_effort = 0;
-  const std::vector<std::string>& names = joint_state_msg->name;
   for (std::string& joint_name : params_.rumble_joints)
   {
-    auto iterator = std::find(names.begin(), names.end(), joint_name);
-    if (iterator != names.end())
+    double effort = std::abs(joint_effort(joint_name));
+    if (effort > max_effort)
     {
-      const double effort = std::abs(joint_state_msg->effort[std::distance(names.begin(), iterator)]);
-      if (effort > max_effort)
-      {
-        max_effort = effort;
-      }
+      max_effort = effort;
     }
   }
 

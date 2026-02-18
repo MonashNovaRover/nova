@@ -16,6 +16,7 @@ import WheelTelemetryWidgetCell, { IWheelTelemetryWidgetCellProps } from "./Whee
 import RoverTopDownImage from "../../../assets/rover-top-down-dark.png";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import {PIVOT_CURRENT_MAX, WHEEL_CURRENT_MAX} from "../../../constants.ts";
+import {getJointEffort} from "../../../utils.ts";
 
 // Properties for the WheelTelemetryWidget component.
 export interface IDriveWheelWidgetProps extends CardProps {
@@ -31,48 +32,37 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (
 
   const bifrost = useBifrost({ topic: RosTopic.DRIVE_JOINT_STATES });
 
-  const names = useSelector((state: RootState) => state.driveJointStateStore.name);
-  const efforts = useSelector((state: RootState) => state.driveJointStateStore.effort);
+  const jointState = useSelector((state: RootState) => state.driveJointStateStore);
 
   useEffect(() => {
     bifrost.syncWithTopic();
   }, [bifrost]);
-
-  const getEffort = (name: string) => {
-    const index = names.indexOf(name)
-    if (index >= 0) {
-      return Math.abs(efforts[index]);
-    }
-    else {
-      return 0;
-    }
-  }
 
   // Props to give to each cell. The order of names matches the order of SingleTelemetry entries in the Telemetry arrays
   const cellProps: IWheelTelemetryWidgetCellProps[] = [
     {
       label: <>Front Left</>,
       className: "row-start-1 col-start-1",
-      wheelValue: getEffort("flw"),
-      pivotValue: getEffort("flp"),
+      wheelName: "flw",
+      pivotName: "flp",
     } as IWheelTelemetryWidgetCellProps,
     {
       label: <>Back Left</>,
       className: "row-start-2 col-start-1",
-      wheelValue: getEffort("blw"),
-      pivotValue: getEffort("blp"),
+      wheelName: "blw",
+      pivotName: "blp",
     } as IWheelTelemetryWidgetCellProps,
     {
       label: <>Back Right</>,
       className: "row-start-2 col-start-3",
-      wheelValue: getEffort("brw"),
-      pivotValue: getEffort("brp"),
+      wheelName: "brw",
+      pivotName: "brp",
     } as IWheelTelemetryWidgetCellProps,
     {
       label: <>Front Right</>,
       className: "row-start-1 col-start-3",
-      wheelValue: getEffort("frw"),
-      pivotValue: getEffort("frp"),
+      wheelName: "frw",
+      pivotName: "frp",
     } as IWheelTelemetryWidgetCellProps,
   ];
 
@@ -90,8 +80,8 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (
           <WheelTelemetryWidgetCell
             {...cellProp}
             key={index}
-            wheelValue={cellProp.wheelValue / WHEEL_CURRENT_MAX}
-            pivotValue={cellProp.pivotValue / PIVOT_CURRENT_MAX}
+            wheelValue={Math.abs(getJointEffort(cellProp.wheelName, jointState)) / WHEEL_CURRENT_MAX}
+            pivotValue={Math.abs(getJointEffort(cellProp.pivotName, jointState)) / PIVOT_CURRENT_MAX}
           />
         ))}
       </div>

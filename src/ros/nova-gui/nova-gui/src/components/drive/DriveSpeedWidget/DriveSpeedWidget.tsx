@@ -7,6 +7,7 @@ import { RootState } from "../../../redux/RootState.ts";
 import { useSelector } from "react-redux";
 import { DRIVE_VEL_MAX } from "../../../constants.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
+import {getJointVelocity} from "../../../utils.ts";
 
 // Properties for the DriveModeWidget component.
 export interface IDriveWidgetProps extends CardProps {}
@@ -25,16 +26,12 @@ const DriveSpeedWidget: React.FC<IDriveWidgetProps> = (
   const wheelJointNames = ["flw", "frw", "blw", "brw"];
 
   const bifrostJointStates = useBifrost({ topic: RosTopic.DRIVE_JOINT_STATES });
-  const { name: jointNames, velocity: jointVelocities } = useSelector(
+  const jointState = useSelector(
     (state: RootState) => state.driveJointStateStore
   );
 
-  const wheelVelocities = jointVelocities.filter((_velocity: number, index: number) => {
-    return wheelJointNames.includes(jointNames[index])
-  })
-  const averageWheelAngularVelocity = wheelVelocities.reduce(
-    (acc: number, velocity: number) => { return acc + Math.abs(velocity); }, 0.0)
-    / Math.max(wheelVelocities.length, 1);
+  const averageWheelAngularVelocity = wheelJointNames.map((joint: string) => { return getJointVelocity(joint, jointState)})
+    .reduce((acc: number, value: number) => { return acc + Math.abs(value); }, 0.0) / wheelJointNames.length;
 
   useEffect(() => {
     bifrostDrive.syncWithTopic();

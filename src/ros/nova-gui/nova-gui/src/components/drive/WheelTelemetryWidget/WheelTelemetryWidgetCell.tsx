@@ -11,6 +11,8 @@ import { OverlayedProgress } from "../../shared/components/OverlayedProgress/Ove
 
 // Properties for the DriveWidgetWheelData component.
 export interface IWheelTelemetryWidgetCellProps extends CardProps {
+  wheelName: string,
+  pivotName: string,
   wheelValue: number,
   pivotValue: number,
   label: ReactNode
