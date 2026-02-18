@@ -18,9 +18,8 @@ import rclpy
 from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface
-from python_control2.hardware_interfaces import QCMDHardware
+from python_control2.hardware_interfaces import ContinousServoHardware
 from teleop_python_utils import Inputs
-
 
 class SweeperController(Controller):
     # Command interfaces
@@ -87,7 +86,7 @@ if __name__ == "__main__":
     # ARCh auger system
     PythonControl(node, update_rate=10, can_bus="can1") \
         .with_controller("controller", SweeperController) \
-        .with_hardware("sweep", QCMDHardware, can_id=0x0E4) \
+        .with_hardware("sweep", ContinousServoHardware, can_id=0x0E4) \
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()
