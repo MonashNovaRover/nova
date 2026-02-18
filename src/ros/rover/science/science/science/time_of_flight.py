@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
     node = Node("time_of_flight")
     PythonControl(node, update_rate=5, can_bus="can1") \
-        .with_controller("TimeOfFlightController", TsimeOfFlightController, 
+        .with_controller("TimeOfFlightController", TimeOfFlightController,
             minimum_range = 10,
             maximum_range = 100) \
         .with_hardware("tof_sensor", GenericSensorHardware,
