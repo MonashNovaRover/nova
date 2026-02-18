@@ -13,8 +13,7 @@ in
   config = lib.mkIf cfg.enable {
     devices.laptop = {
       enable = true;
-      intel.enable = true;
-      intel-new.enable = true;
+      amd.enable = true;
       nvidia.enable = true;
       performance.enable = true;
     };
