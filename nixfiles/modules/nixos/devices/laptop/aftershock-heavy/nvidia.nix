@@ -8,6 +8,8 @@ in
   config = lib.mkIf cfg.enable {
 
     hardware.nvidia = {
+      powerManagement.enable = lib.mkDefault true;
+      powerManagement.finegrained = lib.mkDefault true;
       prime = {
         intelBusId = "PCI:0:2:0";
         nvidiaBusId = "PCI:1:0:0";
