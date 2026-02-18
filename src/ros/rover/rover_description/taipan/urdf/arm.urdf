@@ -480,7 +480,7 @@
     <child link="l1_prime"/>
     <axis xyz="0 0 1"/>
     <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
-    <mimic joint="j3" multiplier="1" offset="0"/>
+    <mimic joint="j3" multiplier="-1" offset="0"/>
   </joint>
   <!-- Link cf_link -->
   <link name="cf_link">
@@ -1042,7 +1042,7 @@
     <child link="l1_l2_pivot_j2_mimic"/>
     <axis xyz="0 0 1"/>
     <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
-    <mimic joint="j3" multiplier="1" offset="0"/>
+    <mimic joint="j3" multiplier="-1" offset="0"/>
   </joint>
   <link name="l1_l2_pivot_j2_mimic"/>
   <joint name="l1_l2_pivot_mimic" type="revolute">
@@ -1097,7 +1097,7 @@
     <child link="l1_prime_fake"/>
     <axis xyz="0 0 1"/>
     <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
-    <mimic joint="j3" multiplier="-1" offset="0"/>
+    <mimic joint="j3" multiplier="1" offset="0"/>
   </joint>
   <!-- Joint from base_frame to l2_prime -->
   <joint name="j3" type="revolute">
