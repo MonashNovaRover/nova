@@ -8,17 +8,20 @@ in
   config = lib.mkIf cfg.enable { 
 
     hardware.nvidia = {
+      powerManagement.enable = lib.mkDefault true;
+      powerManagement.finegrained = lib.mkDefault true;
       prime = {
         intelBusId = "PCI:0:2:0";
         nvidiaBusId = "PCI:1:0:0";
         offload = {
-          enable = false;
-          enableOffloadCmd = false;
+          enable = true;
+          enableOffloadCmd = true;
         };
       };
     };
 
     nixpkgs.config = {
+      cudaSupport = lib.mkDefault true;
       cudaCapabilities = [ "8.9" ];
     };
   };
