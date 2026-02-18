@@ -1,6 +1,6 @@
 {
   imports = [
     ./jetson
-    ./laptops
+    ./laptop
   ];
 }
