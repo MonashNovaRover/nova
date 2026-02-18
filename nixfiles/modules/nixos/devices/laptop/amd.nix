@@ -19,6 +19,9 @@ in
       enable32Bit = lib.mkDefault true;
     };
 
-    hardware.amdgpu.initrd.enable = lib.mkDefault true;
+    hardware.amdgpu = {
+      initrd.enable = lib.mkDefault true;
+      opencl.enable = lib.mkDefault true;
+    };
   };
 }
