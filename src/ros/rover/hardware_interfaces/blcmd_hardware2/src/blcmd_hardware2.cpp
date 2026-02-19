@@ -238,7 +238,7 @@ hardware_interface::return_type BLCMDHardware::write(
 
             if (hw_position_.command.has_value()) {
 
-                auto offset_value = hw_position_.command.value() * reversed_multiplier_ - params_.position_offset;
+                auto offset_value = hw_position_.command.value() * reversed_multiplier_ - params_.position_offset; // XXX are we missing appling the resolver reduction here?
 
                 RCLCPP_DEBUG_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                    "Sending Position Command " << hw_position_.command.value()
