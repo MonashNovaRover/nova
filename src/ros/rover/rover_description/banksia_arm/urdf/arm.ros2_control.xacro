@@ -20,8 +20,8 @@
 					<param name="mock">true</param>
 					<param name="reversed">false</param>
 					<param name="integrate_velocity">false</param>
-					<param name="max_position">3.141592654</param>
-					<param name="position_offset">0.0</param>
+					<param name="max_position">12.56637</param>
+          <param name="position_offset">-3.1416885303149615</param> <!-- electrical's home is 0x2000 -->
 					<param name="max_velocity">2.3</param>
 				</hardware>
 			</xacro:unless>
@@ -72,8 +72,8 @@
 					<param name="mock">true</param>
 					<param name="reversed">true</param>
 					<param name="integrate_velocity">false</param>
-					<param name="max_position">2.337929417</param>
-					<param name="position_offset">0.0</param>
+					<param name="max_position">12.56637</param>
+          <param name="position_offset">4.448680047809272</param> <!-- right angle is 0x2d50 -->
 					<param name="max_velocity">1.740138699</param>
 				</hardware>
 			</xacro:unless>
@@ -116,8 +116,8 @@
 					<param name="mock">true</param>
 					<param name="reversed">false</param>
 					<param name="integrate_velocity">false</param>
-					<param name="max_position">2.337929417</param>
-					<param name="position_offset">0.0</param>
+					<param name="max_position">12.56637</param>
+          <param name="position_offset">-3.1416885303149615</param> <!-- electrical's home is 0x2000 XXX THIS IS WRONG, elec's home is not right angle -->
 					<param name="max_velocity">1.740138699</param>
 				</hardware>
 			</xacro:unless>
@@ -147,30 +147,10 @@
 		</ros2_control>
 
 		<ros2_control name="arm_J4" type="system">
-			<xacro:unless value="${use_mock_hardware}">
-				<hardware>
-					<plugin>blcmd_hardware2/BLCMDHardware</plugin>
-					<param name="candevice">can1</param>
-					<param name="canid">4</param>
-					<param name="resolver_reduction">15</param>
-					<param name="clock_rate">100000000</param>
-					<param name="revolution_pulses">8192</param>
-					<param name="min_interval">1728</param>
-					<param name="gear_ratio">15.0</param>
-					<param name="mock">true</param>
-					<param name="reversed">true</param>
-					<param name="integrate_velocity">true</param>
-					<param name="max_position">12.5663706144</param>
-					<param name="position_offset">0.0</param>
-					<param name="max_velocity">19.4963194091</param>
-				</hardware>
-			</xacro:unless>
-			<xacro:if value="${use_mock_hardware}">
 				<hardware>
 					<plugin>mock_components/GenericSystem</plugin>
 					<param name="calculate_dynamics">true</param>
 				</hardware>
-			</xacro:if>
 
 			<joint name="J4">
 				<command_interface name="velocity">
@@ -191,30 +171,10 @@
 		</ros2_control>
 
 		<ros2_control name="arm_J5" type="system">
-			<xacro:unless value="${use_mock_hardware}">
-				<hardware>
-					<plugin>blcmd_hardware2/BLCMDHardware</plugin>
-					<param name="candevice">can1</param>
-					<param name="canid">5</param>
-					<param name="resolver_reduction">1.0</param>
-					<param name="clock_rate">100000000</param>
-					<param name="revolution_pulses">8192</param>
-          			<param name="min_interval">1792</param>
-					<param name="gear_ratio">1.0</param>
-					<param name="mock">true</param>
-					<param name="reversed">false</param>
-					<param name="integrate_velocity">false</param>
-					<param name="max_position">12.5663706144</param>
-					<param name="position_offset">3.14159265359</param>
-					<param name="max_velocity">292.444791136</param>
-				</hardware>
-			</xacro:unless>
-			<xacro:if value="${use_mock_hardware}">
 				<hardware>
 					<plugin>mock_components/GenericSystem</plugin>
 					<param name="calculate_dynamics">true</param>
 				</hardware>
-			</xacro:if>
 
 			<joint name="J5">
 				<command_interface name="velocity">
@@ -235,32 +195,10 @@
 		</ros2_control>
 
 		<ros2_control name="arm_J6" type="system">
-			<xacro:unless value="${use_mock_hardware}">
-				<hardware>
-					<plugin>blcmd_hardware2/BLCMDHardware</plugin>
-					<param name="candevice">can1</param>
-					<param name="canid">6</param>
-					<param name="resolver_reduction">1.0</param>
-					<param name="clock_rate">100000000</param>
-					<param name="revolution_pulses">8192</param>
-          			<param name="min_interval">1792</param>
-					<param name="gear_ratio">1.0</param>
-					<param name="mock">true</param>
-					<param name="reversed">false</param>
-					<param name="integrate_velocity">false</param>
-					<param name="max_position">12.5663706144</param>
-					<param name="position_offset">3.14159265359</param>
-					<!-- <param name="max_velocity">146.222395568</param> -->
-					<param name="max_velocity">292.444791136</param>
-
-				</hardware>
-			</xacro:unless>
-			<xacro:if value="${use_mock_hardware}">
 				<hardware>
 					<plugin>mock_components/GenericSystem</plugin>
 					<param name="calculate_dynamics">true</param>
 				</hardware>
-			</xacro:if>
 
 			<joint name="J6">
 				<command_interface name="velocity">
@@ -281,23 +219,10 @@
 		</ros2_control>
 
 	 <ros2_control name="arm_actuator_head" type="system">
-		<xacro:unless value="${use_mock_hardware}">
-			<hardware>
-				<plugin>qcmd_hardware/QCMDHardware</plugin>
-				<param name="candevice">can1</param> 
-				<param name="canid">0C1</param> <!-- TODO: Get CAN id, resolver id should be that *4 -->
-				<!-- <param name="reversed">false</param> -->
-				<!-- <param name="reverse_velocity">true</param> -->
-				<!-- <param name="max_velocity">0.365109712045</param> -->
-				<param name="max_effort">1</param>
-			</hardware>
-		</xacro:unless>
-		<xacro:if value="${use_mock_hardware}">
 			<hardware>
 				<plugin>mock_components/GenericSystem</plugin>
 				<param name="calculate_dynamics">true</param>
 			</hardware>
-		</xacro:if>
 
 		<joint name="actuator_head">
 			<command_interface name="velocity">
@@ -349,25 +274,10 @@
 
 
   <ros2_control name="arm_left_slide" type="system">
-		<xacro:unless value="${use_mock_hardware}">
-			<hardware>
-				<plugin>qcmd_hardware/QCMDHardware</plugin>
-				<param name="candevice">can1</param> 
-				<param name="canid">0D1</param> <!-- TODO: Get CAN id, resolver id should be that *4 -->
-				<!-- <param name="resolver_id">344</param>
-				<param name="resolver_reduction">1.0</param>
-				<param name="reversed">false</param>
-				<param name="reverse_velocity">true</param>
-				<param name="max_velocity">0.365109712045</param> -->
-				<param name="max_effort">1</param>
-			</hardware>
-		</xacro:unless>
-		<xacro:if value="${use_mock_hardware}">
 			<hardware>
 				<plugin>mock_components/GenericSystem</plugin>
 				<param name="calculate_dynamics">true</param>
 			</hardware>
-		</xacro:if>
 
 	  <joint name="left_slide">
       <command_interface name="velocity">
