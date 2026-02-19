@@ -17,9 +17,12 @@
                <joint_name>j4</joint_name>
                <joint_name>j5</joint_name>
                <joint_name>j6</joint_name>
-               <joint_name>lead_left</joint_name>
-               <joint_name>lead_right</joint_name>
-               <joint_name>la_prismatic</joint_name>
+
+		     <xacro:unless value="${use_mock_hardware}">
+                    <joint_name>lead_left</joint_name>
+                    <joint_name>lead_right</joint_name>
+                    <joint_name>la_prismatic</joint_name>
+               </xacro:unless>
           </plugin>
      </gazebo>
 </robot>
