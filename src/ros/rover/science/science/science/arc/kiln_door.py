@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-<insert purpose here>
+Controller for the kiln door. It opens and closes and current
+senses the door motor.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: KilnDoor
-TOPICS:
-  - publisher: <topic> [<msg type>]
-SERVICES:
-	- service: <service> [<srv type>]
-ACTIONS: None
+NODE: KilnDoorController
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE:        kiln_door
-AUTHOR(S):      <insert your name>
-CREATION:       <current date>
-EDITED:         <current date>
+PACKAGE:        science
+AUTHOR(S):      Angel Aguinaldo
+CREATION:       20/02/26
+EDITED:         20/02/26
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -28,10 +25,9 @@ from teleop_python_utils import Inputs
 
 class KilnDoorController(Controller):
     # Command interfaces
-    # joint_cmd: Interface
     kiln_door_cmd: Interface
-    door_current_state: Interface
     # State interfaces
+    door_current_state: Interface
 
     def __init__(self, contexts: Contexts, max_door_current:int):
         """ Constructor, deferred until the control manager has been spun.
@@ -43,8 +39,6 @@ class KilnDoorController(Controller):
         self.logger.info(f"KilnDoor -- I have been __init__ialized")
 
         #ros2 parameters
-        # self.door_open_btn_name = self.declare_parameter("open_button", "open_kiln_door").value
-        # self.door_close_btn_name = self.declare_parameter("close_button", "close_kiln_door").value
         self.door_actuation_axis_name = self.declare_parameter("actuation_axis", "door_actuation").value
         self.door_speed_name = self.declare_parameter("speed_axis", "door_speed").value
 
@@ -71,7 +65,6 @@ class KilnDoorController(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
         # Save references to interfaces
-        # self.logger.info(f"Getting \"{self.joint + "/effort"}\"")
         self.kiln_door_cmd = command_interfaces["kiln_door/effort"]
 
         #door current state interface
@@ -84,18 +77,15 @@ class KilnDoorController(Controller):
         :param period: The time elapsed since the last update, in seconds.
         """
         # Update Command Interfaces
-        # self.logger.info(f"{self.state.value} -> {self.cmd.value}")
 
         #update door state
-
         if self.door_state!= self.door_actuation.value:
-            self.logger.info(f"Kiln door {"CLOSING" if self.door_state == Direction.POSITIVE else "OPENING"}")
+            self.logger.info(f"Kiln door {"CLOSING" if self.door_state == Direction.POSITIVE else ("OPENING" if self.door_state == Direction.NEGATIVE else pass)}")
         
         self.door_state = self.door_actuation.value
 
         #check if door current reached max val
         if abs(self.door_current_state.value) < self.max_door_current.value:
-            self.logger.info(f"current state: {self.door_current_state.value}, max: {self.max_door_current.value}")
             #set command interface
             self.kiln_door_cmd.value = self.door_state * self.axis_to_speed(self.door_speed.value)
         else:
