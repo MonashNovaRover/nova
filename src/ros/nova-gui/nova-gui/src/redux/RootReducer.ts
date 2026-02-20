@@ -174,6 +174,14 @@ export const reduxStores = {
     } as IRosStdMsgsHeader,
     min_range: 0.0,
     max_range: 150.0,
+    range: 40.0,
+  } as IRosSensorMsgsRange),
+  aaPosStore: createBifrostStore({ topic: RosTopic.AA_POS }, {
+    header: {
+      frame_id: "",
+    } as IRosStdMsgsHeader,
+    min_range: 0.0,
+    max_range: 150.0,
     range: 0.0,
   } as IRosSensorMsgsRange),
   nirStore: createBifrostStore(
