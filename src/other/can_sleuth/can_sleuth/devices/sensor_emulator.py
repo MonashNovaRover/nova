@@ -35,7 +35,7 @@ class SensorEmulator(candevice.CanDevice):
     def pack_data(self, data:int, byteLength:int)-> list[int]:
         return list(data.to_bytes(byteLength,'big', signed = True))
 
-class SensorTracer(candevice.CanDevice):
+# class SensorTracer(candevice.CanDevice):
 
     
         
