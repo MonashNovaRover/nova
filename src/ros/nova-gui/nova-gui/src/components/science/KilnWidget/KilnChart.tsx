@@ -45,6 +45,28 @@ const chartConfig = {
       },
     },
   },
+  tooltip: {
+    trigger: "axis",
+    axisPointer: {
+      type: "line",
+      lineStyle: { color: "rgba(255,255,255,0.5)" },
+    },
+    backgroundColor: "rgba(0,0,0,0.7)",
+    borderWidth: 0,
+    textStyle: { color: "#fff" },
+    extraCssText: "border-radius:10px;",
+
+    formatter: (params: any) => {
+      const point = params[0].value;
+      if (point) {
+        const time = new Date(point[0]).toLocaleTimeString("en-GB", { hour12: false });
+        const temp = point[1].toFixed(2);
+
+        return `${time}<br/><b>${temp}°C</b>`;
+      } else return ""
+
+    },
+  },
 };
 
 const KilnChart: React.FC<KilnChartProps> = (props) => {
@@ -102,7 +124,7 @@ const KilnChart: React.FC<KilnChartProps> = (props) => {
   }, [chartConfig, seriesData]);
 
   const currentTemp = kilnData?.temp?.[0];
-  const currentTempText = currentTemp === undefined || currentTemp === null ? "--" : `${currentTemp.toFixed(1)}°C`;
+  const currentTempText = currentTemp === undefined || currentTemp === null ? "--" : `${currentTemp.toFixed(2)}°C`;
 
   const exportChart = useCallback(() => {
     const chartInstance = chartRef.current?.getEchartsInstance?.();
