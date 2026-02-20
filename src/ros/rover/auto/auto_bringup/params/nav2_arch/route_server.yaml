@@ -1,0 +1,35 @@
+route_server:
+  ros__parameters:
+
+    base_frame: "base_link"                       # Robot's base frame
+    route_frame: "map"                            # Global reference frame
+    path_density: 0.05                            # Density of points for generating the dense nav_msgs/Path from route (m)
+    max_iterations: 0                             # Maximum number of search iterations, if 0, uses maximum possible
+    max_planning_time: 2.0                        # Maximum planning time (seconds)
+    smoothing_corners: true                       # Whether to smooth corners formed by adjacent edges or not
+    smoothing_radius: 1.0                         # Radius of corner to fit into the corner
+    costmap_topic: "global_costmap/costmap_raw"   # The costmap to use for the server-level costmap subscriber
+
+    graph_file_loader: "GeoJsonGraphFileLoader"     # Name of default file loader
+      plugins: ["nav2_route::GeoJsonGraphFileLoader"  # file loader plugin to use
+    graph_filepath: "/home/nova/nova/src/ros/rover/auto/auto_bringup/maps/routes/courtyard-route.geojson" # file path to graph to use
+
+    edge_cost_functions: ["DistanceScorer"]  # Edge scoring cosros2 log verboset functions to use
+    DistanceScorer:
+      plugin: "nav2_route::DistanceScorer"
+
+    operations: ["AdjustSpeedLimit", "ReroutingService"] # Route operations plugins to use
+    AdjustSpeedLimit:
+      plugin: "nav2_route::AdjustSpeedLimit"
+    ReroutingService:
+      plugin: "nav2_route::ReroutingService"
+
+    tracker_update_rate: 50.0                     # Rate at which to check the status of path tracking
+    aggregate_blocked_ids: false                  # Whether to aggregate the blocked IDs reported by route operations over the lifespan of the navigation request or only use the currently blocked IDs.
+    boundary_radius_to_achieve_node: 1.0          # Radius (m) near boundary nodes (e.g. start/end) to enable evaluation of achievement metric
+    radius_to_achieve_node: 2.0                   # Radius (m) near route nodes as preliminary condition for evaluation of achievement metric
+
+    max_prune_dist_from_edge: 8.0                       # Max distance from an edge to consider pruning it as in-progress (e.g. if we're too far away from the edge, its nonsensical to prune it)
+    min_prune_dist_from_goal: 0.15                      # Min distance from goal node away from goal pose to consider goal node pruning as considering it as being passed (in case goal pose is very close to a goal node, but not exact)
+    min_prune_dist_from_start: 0.10                     # Min distance from start node away from start pose to consider start node pruning as considering it as being passed (in case start pose is very close to a start node, but not exact)
+    prune_goal: true                              # Whether pruning the goal nodes from the route due to being past the goal pose requested is possible (pose requests only)
