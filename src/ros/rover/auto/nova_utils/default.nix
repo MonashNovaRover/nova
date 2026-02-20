@@ -1,6 +1,8 @@
 {
   buildRosPackage,
   ament-cmake,
+  rclpy,
+  rclcpp,
   std-msgs,
   geometry-msgs,
   sensor-msgs,
@@ -13,6 +15,7 @@
   visualization-msgs,
   yolo-msgs,
   tf2-ros,
+  tf2-msgs,
   tf-transformations,
   rerun,
   pythonPackages,
@@ -29,10 +32,12 @@ buildRosPackage rec {
 
   nativeBuildInputs = [ ament-cmake ];
   buildInputs = [
+    rclpy
+    rclcpp
     std-msgs
     nav-msgs
   ];
-  propagatedBuildInputs = with pythonPackages; [
+  propagatedBuildInputs = [
     vision-msgs
     visualization-msgs
     geometry-msgs
@@ -41,6 +46,7 @@ buildRosPackage rec {
     std-msgs
     yolo-msgs
     tf2-ros
+    tf2-msgs
     tf-transformations
     rerun
     cv-bridge
