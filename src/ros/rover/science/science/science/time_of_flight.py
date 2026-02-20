@@ -43,7 +43,7 @@ class TimeOfFlightController(Controller):
 
 
         # Do any setup logic here, save any contexts you want reference to in the future.
-        self.tof_publisher = self.create_publisher(Range, "/science/analysis_arm", 10)
+        self.tof_publisher = self.node.create_publisher(Range, "/science/analysis_arm", 10)
         self.minimum_range = self.declare_parameter("minimum_range", minimum_range).value
         self.maximum_range = self.declare_parameter("maximum_range", maximum_range).value
 
