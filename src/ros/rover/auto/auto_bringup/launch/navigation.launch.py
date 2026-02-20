@@ -47,6 +47,7 @@ def launch_setup(context, *args, **kwargs):
     publish_goals = LaunchConfiguration('publish_goals')
     use_respawn = LaunchConfiguration('use_respawn')
     gazebo = LaunchConfiguration('gazebo')
+    graph_filepath = LaunchConfiguration('graph_filepath')
 
     # comp defaults
     if comp == 'arch':
@@ -78,6 +79,7 @@ def launch_setup(context, *args, **kwargs):
                        'bt_navigator',
                        'waypoint_follower',
                        'velocity_smoother',
+                       'route_server',
                        'map_server']
     # Map fully qualified names to relative ones so the node's namespace can be prepended.
     # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
@@ -87,6 +89,17 @@ def launch_setup(context, *args, **kwargs):
     return [
         GroupAction(
             actions=[
+                Node(
+                    package='nav2_route',
+                    executable='route_server',
+                    name='route_server',
+                    output='screen',
+                    respawn=use_respawn,
+                    respawn_delay=2.0,
+                    parameters=nav2_params + [{'graph_filepath': graph_filepath}],
+                    arguments=['--ros-args', '--log-level', log_level],
+                    remappings=remappings
+                ),
                 Node(
                     package='nav2_controller',
                     executable='controller_server',
@@ -255,8 +268,12 @@ def generate_launch_description():
             default_value='',
             description='Full path to the folder with ROS2 parameters files to use with all nodes',
         ),
+        DeclareLaunchArgument(
+            name='graph_filepath',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'maps', 'routes', 'courtyard-route.geojson']),
+            description='Full path to the geoJSON graph to use for route_server',
+        ),
     ]
-
     return LaunchDescription(
         declared_arguments + [OpaqueFunction(function=launch_setup)]
     )
