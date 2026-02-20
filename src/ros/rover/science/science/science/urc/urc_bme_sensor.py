@@ -1,93 +1,89 @@
 #!/usr/bin/env python3
-
-from python_control.sensors.IntegerSensor import IntegerSensor
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<insert purpose here>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: URCBMESensorController
+TOPICS:
+  - publisher: <topic> [<msg type>]
+SERVICES:
+	- service: <service> [<srv type>]
+ACTIONS: None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+STATE INTERFACES:
+  - <sensors>/<unit>  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:        science
+AUTHOR(S):      Yahya Muayyiduddin
+CREATION:       19/02/2026 
+EDITED:         19/02/2026 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 import rclpy
-from python_control.ControllerNode import ControllerNode
-from science_interfaces.msg import BMESensor
+import jcan
+from rclpy.node import Node
+from typing import Optional
+from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
 
-class URCBMESensor(ControllerNode):
-
-    # CAN BUS NAME
-    # The name of the CAN bus to use
-    CAN_BUS = "can1"
-
-    # RECEIVING CARD IDS
-    # Add any CONTROL FRAME / CARD IDS here
-    BME_TEMP_RECV_FRAME_ID = 0x4F3
-    BME_HUMIDITY_RECV_FRAME_ID = 0x4F2
-    BME_PRESSURE_RECV_FRAME_ID = 0x4F4
-    BME_ALTITUDE_RECV_FRAME_ID = 0x4F5
-
-    # CONTROL NAMES
-    # Add any CONTROL names here
-    BME_TEMP_NAME = "bme_temperature"
-    BME_HUMIDITY_NAME = "bme_humidity"
-    BME_PRESSURE_NAME = "bme_pressure"
-    BME_ALTITUDE_NAME = "bme_altitude"
-
-    # SENSOR CONSTANTS
-    BME_TEMP_FACTOR = 100
-    BME_HUMIDITY_FACTOR = 100
+from python_control2.hardware_interfaces import CMDHardware
 
 
-    def __init__(self):
-        super(URCBMESensor, self).__init__(name="URCBMESensor", can_bus=self.CAN_BUS)
-        logger = self.get_logger()
+class URCBMESensorController(Controller):
+    # Command interfaces
+    # joint_cmd: Interface
 
-        # ## Add Publishers
-        self.bme_publisher = self.create_publisher(BMESensor, "/science/bme_sensor", 10)
+    # State interfaces
+    # state: Interface
 
-        # ## Create Sensors
-        self.temperature = IntegerSensor(
-            bus=self.bus,
-            logger=logger,
-            frame_id=self.BME_TEMP_RECV_FRAME_ID,
-            run_can=True,        
-        )
-        self.humidity = IntegerSensor(
-            bus=self.bus,
-            logger=logger,
-            frame_id=self.BME_HUMIDITY_RECV_FRAME_ID,
-            run_can=True,        
-        )
-        self.pressure = IntegerSensor(
-            bus=self.bus,
-            logger=logger,
-            frame_id=self.BME_PRESSURE_RECV_FRAME_ID,
-            run_can=True,
-        )
-        self.altitude = IntegerSensor(
-            bus=self.bus,
-            logger=logger,
-            frame_id=self.BME_ALTITUDE_RECV_FRAME_ID,
-            run_can=True,
-        )
+    def __init__(self, contexts: Contexts, sensors: list[tuple[str,str]]):
+        """ Constructor, deferred until the control manager has been spun.
+        If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
-        ## Add the controllers to the node's of controllers
-        self.add_sensor(sensor_name=self.BME_TEMP_NAME, sensor=self.temperature)
-        self.add_sensor(sensor_name=self.BME_HUMIDITY_NAME, sensor=self.humidity)
-        self.add_sensor(sensor_name=self.BME_PRESSURE_NAME, sensor=self.pressure)
-        self.add_sensor(sensor_name=self.BME_ALTITUDE_NAME, sensor=self.altitude)
+        :param contexts: A collection of dependency injection class instances you can index by class type.
+        """
+        super().__init__(contexts)
+        self.logger.info(f"URCBMESensorController -- I have been __init__ialized")
 
-        self.create_timer(1.0, self.publish_data)
+        # Declare ROS2 parameters here.
+        # self.joint = self.declare_parameter("joint", "j1").value
+        self.sensors = self.declare_parameter("sensors", sensors).value
 
-        ## Start the CAN bus
-        self.start_can()
+        # Do any setup logic here, save any contexts you want reference to in the future.
+        
 
-    def publish_data(self):
-        msg = BMESensor()
-        msg.temperature = float(self.temperature.get_sensor_value() / self.BME_TEMP_FACTOR)
-        msg.humidity = float(self.humidity.get_sensor_value() / self.BME_HUMIDITY_FACTOR)
-        msg.pressure = int(self.pressure.get_sensor_value())
-        msg.altitude = int(self.altitude.get_sensor_value())
-        self.bme_publisher.publish(msg)
+    def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
+        """ Used to set up your Controller. Run once before any other class method.
+        Use this method to get data from self.node, and get references to any command or state interface you need.
 
-def main():
-    rclpy.init()
-    node = URCBMESensor()
-    rclpy.spin(node)
-    rclpy.shutdown()
+        :param command_interfaces: A collection of Interfaces used to send messages to hardware. Get any command
+        interfaces you need from this, then store them in member variables.
+        :param state_interfaces: A collection of Interfaces containing the current state of the robot. Get any state
+        interfaces you need from this, then store them in member variables.
+        :returns: None or True if configured successfully. False otherwise.
+        """
+        # Save references to interfaces
+        # self.logger.info(f"Getting \"{self.joint + "/effort"}\"")
+        # self.joint_cmd = command_interfaces[self.joint + "/effort"]
+        self.sensor_states = [state_interfaces[f"{name}/{unit}"] for name, unit in self.sensors]
 
+    def on_update(self, now: float, period: float):
+        """ Called on every update. You should read values from state interfaces, and set values on command interfaces
+            here.
+        :param now: The current time, in seconds
+        :param period: The time elapsed since the last update, in seconds.
+        """
+        # Update Command Interfaces
+        # self.cmd.value = 2 * self.state.value
+        # self.logger.info(f"{self.state.value} -> {self.cmd.value}")
 
 if __name__ == "__main__":
-    main()
+    print("Setting up!")
+
+    rclpy.init()
+
+    node = Node("control_test")
+    PythonControl("urc_bme_sensor", update_rate=5, can_bus="can1") \
+        .with_controller("URCBMESensorController", URCBMESensorController) \
+        .with_hardware("test_hw", TestHardware) \
+        .with_jcan() \
+        .spin()
