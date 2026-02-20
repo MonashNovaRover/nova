@@ -42,6 +42,7 @@
   realsense2-camera,
   realsense2-description,
   usb-cam,
+  nav2-route
 }:
 
 buildRosPackage rec {
@@ -98,6 +99,7 @@ buildRosPackage rec {
       realsense2-camera
       realsense2-description
       usb-cam
+      nav2-route
       ;
   };
 
