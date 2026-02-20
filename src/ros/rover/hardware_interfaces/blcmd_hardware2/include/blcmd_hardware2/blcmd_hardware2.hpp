@@ -140,39 +140,27 @@ private:
         /// The 2nd hexadecimal digit in the 12-bit CAN id used in messages to/from the BLCMD board.
         uint32_t canid = 0;
 
-        /// Unknown.
-        uint32_t clock_rate = 100000000;
-
-        /// Unconfirmed. The number of pulses in the resolver for a single revolution.
-        uint16_t revolution_pulses = 8192;
-
         /// Unconfirmed. The ratio of the connected gearbox.
         double gear_ratio = 1.0;
-
-        /// Unconfirmed. When true, the hardware interface will use min_interval from parameters. When false,
-        /// min_interval is determined through requesting configuration from the BLCMD board.
-        bool mock = false;
-
-        /// Unknown.
-        uint16_t min_interval = 122;
 
         /// Unconfirmed. When true, the sign of all inputs and outputs are reversed.
         bool reversed = false;
 
-        /// Unconfirmed. When true, the hardware interface will ignore resolver data, and determine position through
-        /// integrating velocity feedback.
-        bool integrate_velocity = false;
-
         /// The maximum position in radians, to be mapped to the largest position in CAN; 0x7FFF. This is not a limit.
+        /// Currenly for multiturn this is 4pi, and 1pi for single turn
+        /// this is because the resolvers have 14 bits of precision per 360 degrees, and the multi turn resolvers have an extra 2 bits added as well
+        /// on the non multiturns they bitshift it so the last 2 bits are always zero and the value is x4.
         std::optional<double> max_position = std::nullopt;
         
         /// The maximum velocity in radians per second, to be mapped to the largest velocity in CAN; 0x7FFF. This is not a limit.
         std::optional<double> max_velocity = std::nullopt;
 
-        /// A reduction ratio resolver readings are scaled by.
+        /// A reduction ratio resolver readings are scaled by. When the actual joint does one full revolution, the resolver revolves this many times.
         double resolver_reduction {std::numeric_limits<double>::quiet_NaN()};
 
         /// An offset to apply to all readings, in radians, such that it is added to resolver messages, and subtracted from commands
+        /// This is the difference between electrical's Zero and the URDF's zero. Note that rn electrical has the reset position of the j123
+        /// blcmds as 0x2000 currently as they are scared of negative numbers so the reset position is not zero.
         double position_offset = 0.0;
     };
 
@@ -223,6 +211,8 @@ private:
     void packet_1_callback(leigh::jcan::Frame);
 
     void packet_3_callback(leigh::jcan::Frame);
+
+    void packet_4_callback(leigh::jcan::Frame);
 
     template<typename T>
     double convert_scaled(const uint8_t *bytes, double max);
