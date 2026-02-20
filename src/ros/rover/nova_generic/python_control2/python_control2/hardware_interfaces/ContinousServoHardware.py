@@ -33,7 +33,7 @@ class ContinousServoHardware(HardwareInterface):
                  joint: str="",
                  can_id: int=0,
                  reversed: bool=False,
-                 max_effort: float=1.0, max_effort_can: int=0xFF):
+                 max_effort: float=1.0, max_effort_can: int=0x7F):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
@@ -93,9 +93,8 @@ class ContinousServoHardware(HardwareInterface):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-        if self.effort_cmd.value != 0:
-            frame = self.construct_frame()
-            self.bus.send(frame)
+        frame = self.construct_frame()
+        self.bus.send(frame)
 
     def construct_frame(self) -> jcan.Frame:
         """ Construct the jcan Frame based on current command interface """
@@ -105,7 +104,6 @@ class ContinousServoHardware(HardwareInterface):
 
         # Check if the data is greater than the max value
         # If it is, set the data to the max value
-        # If it goes past FF, it is probably an error
         if data > self.max_effort_can:
             data = self.max_effort_can
         elif data < -self.max_effort_can:
