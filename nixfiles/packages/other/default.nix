@@ -6,6 +6,7 @@
   groot2 = callPackage ({ libsForQt5 }: libsForQt5.callPackage ./groot2 { }) { };
   gstthetauvc = callPackage ./gstthetauvc { };
   jcan = callPackage ./jcan { };
+  sm76 = callPackage ./SM76 { };
   libuvc-theta = callPackage ./libuvc-theta { };
   novafox = callPackage ./novafox { } { };
   nova-backgrounds = callPackage ./nova-backgrounds { };
