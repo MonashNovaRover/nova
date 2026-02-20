@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import { Card, CardProps } from "@nextui-org/react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { Button, Card, CardProps } from "@nextui-org/react";
 
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
@@ -7,6 +7,7 @@ import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 
 import ReactECharts from "echarts-for-react";
+import { Download } from "react-feather";
 
 interface KilnChartProps extends CardProps {
 
@@ -100,8 +101,48 @@ const KilnChart: React.FC<KilnChartProps> = (props) => {
     };
   }, [chartConfig, seriesData]);
 
+  const currentTemp = kilnData?.temp?.[0];
+  const currentTempText = currentTemp === undefined || currentTemp === null ? "--" : `${currentTemp.toFixed(1)}°C`;
+
+  const exportChart = useCallback(() => {
+    const chartInstance = chartRef.current?.getEchartsInstance?.();
+
+    if (chartInstance) {
+      const url = chartInstance.getDataURL({
+        type: "png",
+        pixelRatio: 2,
+        backgroundColor: "transparent",
+      });
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `kiln-temperature-${Date.now()}.png`;
+      link.click();
+
+    } else return;
+  }, []);
+
+  const resetTimescale = () => {
+    setSeriesData({ time: [], temp: [] });
+  };
+
   return (
     <Card {...props} className="space-y-3 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <Button
+          isDisabled
+          className={"text-lg opacity-100 bg-content3"}>
+          {currentTempText}
+        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="flat" isIconOnly onPress={exportChart}>
+            <Download size={16} />
+          </Button>
+          <Button size="sm" variant="flat" onPress={resetTimescale}>
+            Reset timescale
+          </Button>
+        </div>
+      </div>
       <div className="w-full" style={{ height: 280 }}>
         <ReactECharts
           ref={chartRef}
