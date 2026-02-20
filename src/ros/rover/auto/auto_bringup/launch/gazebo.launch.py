@@ -8,7 +8,7 @@ gazebo simulation environment.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INCLUDED LAUNCH FILES:
 - drive.launch.py
-- camera.launch.py
+- oak.launch.py
 - urdf.launch.py
 - gz_sim.launch.py
 
@@ -80,7 +80,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             condition=IfCondition(camera),
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'oak.launch.py'])),
             launch_arguments={'gazebo': 'True'}.items(),
         ),
         IncludeLaunchDescription(
