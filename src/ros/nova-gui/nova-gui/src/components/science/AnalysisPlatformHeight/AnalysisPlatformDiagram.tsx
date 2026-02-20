@@ -4,8 +4,14 @@ import {ApexOptions} from "apexcharts";
 export interface AnalysisArmDiagramProps {
   // Percentage the analysis arm is up (100 = top)
   percent: number // Integer between [0, 100]
-  // Target percentage (100 = top)
+  // Target percentage (100 = top), out of range = no target e.g. -100
   target: number // Integer between [0, 100]
+  // Distance from analysis arm to ground (float) in mm
+  bottomDistance: number
+  // Analysis arm stepper position.
+  topSteps: number
+  // Distance from top in mm.
+  topDistance: number
 }
 
 /**
@@ -13,7 +19,7 @@ export interface AnalysisArmDiagramProps {
  * @param props
  * @constructor
  */
-const AnalysisArmDiagram: React.FC<AnalysisArmDiagramProps> = ({percent, target}: AnalysisArmDiagramProps) => {
+const AnalysisArmDiagram: React.FC<AnalysisArmDiagramProps> = ({percent, target, bottomDistance, topSteps, topDistance}: AnalysisArmDiagramProps) => {
 
   const series = [
     {
@@ -104,12 +110,41 @@ const AnalysisArmDiagram: React.FC<AnalysisArmDiagramProps> = ({percent, target}
           y: target, // exact Y value to attach to
           label: {
             text: "Target",
-            borderColor: "#666",
+            borderWidth: 0,
             style: {
-              color: "#000",
-              fontSize: "12px",
+              background: "#26262a",
+              color: "#edecee",
+              fontSize: "14px",
             },
           },
+        },
+        {
+          y: -4,
+          label: {
+            text: `${bottomDistance.toFixed(2)} mm`,
+            offsetX: 32,
+            borderWidth: 0,
+            style: {
+              background: "transparent",
+              color: "#666",
+              fontSize: "16px",
+            },
+          },
+          borderColor: "transparent",
+        },
+        {
+          y: 96,
+          label: {
+            text: `${topSteps} steps / ${topDistance} mm`,
+            offsetX: 32,
+            borderWidth: 0,
+            style: {
+              background: "transparent",
+              color: "#666",
+              fontSize: "16px",
+            },
+          },
+          borderColor: "transparent",
         },
       ],
     },
