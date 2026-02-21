@@ -10,9 +10,9 @@ route_server:
     smoothing_radius: 1.0                         # Radius of corner to fit into the corner
     costmap_topic: "global_costmap/costmap_raw"   # The costmap to use for the server-level costmap subscriber
 
-    graph_file_loader: "GeoJsonGraphFileLoader"     # Name of default file loader
-      plugins: ["nav2_route::GeoJsonGraphFileLoader"  # file loader plugin to use
-    graph_filepath: "/home/nova/nova/src/ros/rover/auto/auto_bringup/maps/routes/courtyard-route.geojson" # file path to graph to use
+    graph_file_loader: "GeoJsonGraphFileLoader"
+    graph_file_loader.plugin: nav2_route::GeoJsonGraphFileLoader # Name of default file loader
+    graph_filepath: "/home/nova/nova/src/ros/rover/auto/auto_bringup/maps/routes/test-route.geojson" # file path to graph to use
 
     edge_cost_functions: ["DistanceScorer"]  # Edge scoring cosros2 log verboset functions to use
     DistanceScorer:
