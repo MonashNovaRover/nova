@@ -79,9 +79,13 @@ class KilnDoorController(Controller):
         # Update Command Interfaces
 
         #update door state
-        if self.door_state!= self.door_actuation.value:
-            self.logger.info(f"Kiln door {"CLOSING" if self.door_state == Direction.POSITIVE else ("OPENING" if self.door_state == Direction.NEGATIVE else pass)}")
-        
+        if self.door_state!= self.door_actuation.value and self.door_actuation.value != 0 :
+            match self.door_state:
+                case Direction.POSITIVE :
+                    self.logger.info(f"Kiln door CLOSING")
+                case Direction.NEGATIVE:
+                    self.logger.info(f"Kiln door OPENING")
+    
         self.door_state = self.door_actuation.value
 
         #check if door current reached max val
