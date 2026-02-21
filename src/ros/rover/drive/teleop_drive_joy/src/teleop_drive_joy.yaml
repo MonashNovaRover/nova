@@ -31,9 +31,10 @@ teleop_drive_joy:
     type: double_array
     default_value: [0.4, 0.8]
     description: >
-      Game pad rumble linearly increases from none to max as wheel effort increase in range. 
-      If less than range, game pad will not rumble. 
-      If greater than range, game pad will have maximum rumble.
+      Game pad rumble intensity increases proportionally to increases in wheel effort within rumble range. 
+      If effort is less than rumble range, game pad will not rumble. 
+      If effort is greater than rumble range, game pad will have maximum rumble.
+      Both rumble intensity and wheel effort can vary from 0 to 1.
   rumble_joints:
     type: string_array
     default_value: ["frw", "flw", "brw", "blw"]
