@@ -7,7 +7,7 @@ ARC launch file for science payload
 NODES:
   - science/analysis_arm.py             [analysis_arm]
   - science/nir_probe_publisher.py      [nir_probe_publisher]
-  - science/arc_sweeper_servo.py        [sweeper]
+  - science/sweeper.py        [sweeper]
   - science/tool_rotator.py             [tool_rotator] (analysis arm)
   - science/chute.py                    [chute]
   - science/auger.py                    [auger]
@@ -91,6 +91,7 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         Node(
+
             name='water_pump',
             package='science',
             executable='water_pump.py',
@@ -120,7 +121,16 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
-
+        Node(
+            name='sweeper',
+            package='science',
+            executable='sweeper.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
         
         # Misc - Nodes for misc components
         Node(

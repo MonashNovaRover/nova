@@ -52,6 +52,11 @@ thrustmaster_left:
         # Tool Rotator
         tool_rotator_speed:
           from: "l_ax_slider"
+        # Sweeper
+        sweeper_actuation:
+          from: "l_ax_thumb_y"
+        sweeper_speed:
+          from: "l_ax_slider"
 
       buttons:
         # Lock/Unlock
@@ -112,12 +117,11 @@ thrustmaster_right:
         # Chute
         chute_speed:
           from: "r_ax_slider"
-        # Sweeper
-        sweeper_speed:
-          from: "r_ax_slider"
 
       buttons:
         # Auger
+        auger_drill:
+          from: "r_btn_thumb_u_state"
         activate_auger:
           from: "r_btn_bottom_l4_state"
         activate_cbeam:
@@ -128,9 +132,6 @@ thrustmaster_right:
           from: "r_btn_thumb_r_state"
         auger_drill_anticlockwise:
           from: "r_btn_thumb_l_state"
-        # Sweeper
-        sweeper_sweep:
-          from: "r_btn_bottom_r5_state"
         # Chute
         chute_twitch_decrease:
           from: "r_btn_bottom_r2_state"
