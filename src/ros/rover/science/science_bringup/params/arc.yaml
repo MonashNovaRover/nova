@@ -142,18 +142,21 @@ scimbal_cam:
 chute:
   ros__parameters:
     can_bus: "can1"
-    controllers:
-      controller:
-        min_angle: 0.0
-        max_angle: 90.0
-        twitch_max: 10.0
-        disengaged_pos: 0.0
-        engaged_pos: 90.0
-        hardware_name: "rotation"
     hardware:
       rotation:
-        can_id: 0x0E3
-        angular_limit: 180.0
+        can_id: 0x0E2
+        max_effort: 1.0
+        reversed: false
+
+sweeper:
+  ros__parameters:
+    can_bus: "can1"
+    hardware:
+      sweep:
+        can_id: 0x0E4
+        max_effort: 1.0
+        reversed: false
+
 
 sweeper:
   ros__parameters:
