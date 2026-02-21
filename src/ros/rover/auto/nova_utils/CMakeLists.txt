@@ -56,6 +56,7 @@ install(PROGRAMS
   scripts/start_auto.py
   scripts/test_start_auto.py
   scripts/topic_waiter.py
+  scripts/node_waiter.py
 
   DESTINATION lib/${PROJECT_NAME}
 )
