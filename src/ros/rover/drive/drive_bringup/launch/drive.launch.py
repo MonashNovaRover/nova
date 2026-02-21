@@ -86,8 +86,7 @@ def launch_setup(context, *args, **kwargs):
                     package='controller_manager',
                     executable='spawner',
                     arguments=['joint_state_broadcaster',
-                               '--controller-ros-args', '-r /joint_states:=/drive/joint_states',
-                               '--controller-ros-args', '-r /dynamic_joint_states:=/drive/dynamic_joint_states'],
+                               '--controller-ros-args', '-r __ns:=/drive'],
                     ros_arguments=['--log-level', log_level],
                 ),
                 Node(

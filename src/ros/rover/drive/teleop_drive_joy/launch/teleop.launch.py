@@ -19,14 +19,11 @@ def launch_setup(context, *args, **kwargs):
             package='joy',
             executable='game_controller_node',
             name='game_controller_node',
+            namespace='/drive',
             parameters=[
                 {'device_id': device_id,
                  'deadzone': 0.1,
                  'autorepeat_rate': 20.0} | {'device_name': device_name} if device_name else {}
-            ],
-            remappings=[
-                ('/joy', '/drive/joy'),
-                ('/joy/set_feedback', '/drive/joy/set_feedback'),
             ],
         ),
         Node(
