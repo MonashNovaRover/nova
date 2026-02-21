@@ -270,7 +270,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='graph_filepath',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'maps', 'routes', 'courtyard-route.geojson']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'maps', 'routes', 'test-route.geojson']),
             description='Full path to the geoJSON graph to use for route_server',
         ),
     ]
