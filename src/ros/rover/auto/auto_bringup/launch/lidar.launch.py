@@ -55,6 +55,7 @@ def launch_setup(context, *args, **kwargs):
     lidar_config = LaunchConfiguration('lidar_config').perform(context)
     lidar_params = LaunchConfiguration('lidar_params')
     nav2_tfs = LaunchConfiguration('nav2_tfs')
+    republisher_params = LaunchConfiguration('republisher_params')
     sim = LaunchConfiguration('sim')
 
     fastlivo2_node = GroupAction([
@@ -129,12 +130,7 @@ def launch_setup(context, *args, **kwargs):
                     package='nova_utils',
                     executable='transform_republisher',
                     name='odom_to_base_link_republisher',
-                    parameters=[{
-                        'source_parents': ["camera_init"],
-                        'source_children': ["aft_mapped"],
-                        'repub_parents': ["odom"],
-                        'repub_children': ["base_link"],
-                    }],
+                    parameters=[republisher_params],
                     output='screen',
                 ),
             ],
@@ -174,6 +170,11 @@ def generate_launch_description():
             name='nav2_tfs',
             default_value='True',
             description='Publish Nav2-required transforms? (map -> odom -> base_link)',
+        ),
+        DeclareLaunchArgument(
+            name='republisher_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir,'params','republisher.yaml']),
+            description='',
         ),
         DeclareLaunchArgument(
             name='sim',

@@ -57,8 +57,11 @@ TransformRepublisher::TransformRepublisher()
   for (size_t i = 0; i < n; ++i)
   {
     auto key = source_parents[i] + " -> " + source_children[i];
-    auto value = std::make_tuple(repub_parents[i], repub_children[i], rclcpp::Time(0));
+    auto value = std::make_tuple(repub_parents[i], repub_children[i], rclcpp::Time(0LL, RCL_ROS_TIME));
     repub_map_[key] = value;
+    RCLCPP_INFO(
+      this->get_logger(), "Republishing %s on %s -> %s", key.c_str(), repub_parents[i].c_str(),
+      repub_children[i].c_str());
   }
 
   sub_ = this->create_subscription<tf2_msgs::msg::TFMessage>(
@@ -87,6 +90,9 @@ void TransformRepublisher::tf_callback(const tf2_msgs::msg::TFMessage::SharedPtr
         std::get<2>(repub_map_[key]) = repub_tf.header.stamp;
 
         repub_tfs.push_back(repub_tf);
+        RCLCPP_INFO_THROTTLE(
+          this->get_logger(), *this->get_clock(), 1000, "Republished %s onto %s -> %s", key.c_str(),
+          repub_parent_frame.c_str(), repub_child_frame.c_str());
       }
     }
   }

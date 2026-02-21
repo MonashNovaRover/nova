@@ -1,0 +1,6 @@
+transform_republisher:
+  ros__parameters:
+    source_parents: ["camera_init"]
+    source_children: ["aft_mapped"]
+    repub_parents: ["odom"]
+    repub_children: ["base_link"]
