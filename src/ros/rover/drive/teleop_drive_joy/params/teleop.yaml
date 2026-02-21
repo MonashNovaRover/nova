@@ -30,6 +30,8 @@ teleop_drive_joy_node:
       - strafe_drive_controller
       - diff_drive_controller
     pivot_drive_controller:
+      # angular input is limited to avoid having pivots rotate to their maximum position
+      # (which currently causes them to "wrap around" to their minimum position instead)
       limit_angular: 0.999
       limit_linear: 1.0
       scale_angular: 1.0
