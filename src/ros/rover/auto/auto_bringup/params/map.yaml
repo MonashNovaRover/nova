@@ -24,7 +24,7 @@
 # free_thresh: 0.196          # Pixels with occupancy probability less than this threshold are considered completely free.
 
 # clear map (no obstacles)
-image: ../maps/clear_map_2.png     
+image: ../maps/static/clear_map_2.png     
 resolution: 0.1
 origin: [-100, -100, 0]
 negate: 0
