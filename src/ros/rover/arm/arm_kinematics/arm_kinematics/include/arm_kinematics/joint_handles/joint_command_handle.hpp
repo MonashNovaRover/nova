@@ -1,0 +1,10 @@
+//
+// Created by nova on 12/28/25.
+//
+
+#ifndef SCIENCE_JOINT_COMMAND_HANDLE_HPP
+#define SCIENCE_JOINT_COMMAND_HANDLE_HPP
+
+
+
+#endif //SCIENCE_JOINT_COMMAND_HANDLE_HPP

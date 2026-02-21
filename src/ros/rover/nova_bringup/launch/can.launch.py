@@ -9,7 +9,7 @@ PROCESSES:
   - candump
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATION:   27/01/2026
-EDITED:     02/02/2026
+EDITED:     10/02/2026
 EDITED BY: Jonathan Jia
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
@@ -26,6 +26,9 @@ from launch.event_handlers import OnProcessExit
 import subprocess
 from os.path import expanduser
 
+class Colour:
+    FAIL = '\033[1;31m'
+    END = '\033[0m'
 
 def start_can(bus: str, bitrate: str, logger: Logger):
 
@@ -44,10 +47,10 @@ def start_can(bus: str, bitrate: str, logger: Logger):
                            capture_output=True, text=True, check=True)
             logger.info(f"{bus} started successfully")
         except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to start {bus}: {e}")
+            logger.error(f"{Colour.FAIL}Failed to start {bus} with error:{Colour.END}\n {e}")
     else:
-        return logger.warning(f"{bus} is already running "
-                              f"(check bitrate matches requested: {bitrate})")
+        logger.warning(f"{bus} is already running "
+                       f"(check bitrate matches requested: {bitrate})")
 
 def launch_setup(context, *args, **kwargs):
     bus = LaunchConfiguration('bus').perform(context)
@@ -68,7 +71,7 @@ def launch_setup(context, *args, **kwargs):
             subprocess.run(['mkdir', '-p', log_dir_expanded],
                            capture_output=True, text=True, check=True)
         except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to create CAN log directory {log_dir_expanded}: {e}")
+            logger.error(f'{Colour.FAIL}Failed to create CAN log directory "{log_dir_expanded}" with error:{Colour.END}\n {e}')
 
     # generate log file path
     log_file =  f"{log_name}_{bus}.log" if log_name else f"{bus}.log"
@@ -92,7 +95,7 @@ def launch_setup(context, *args, **kwargs):
                 can_logger,
                 RegisterEventHandler(OnProcessExit(
                     target_action=can_logger,
-                    on_exit=LogInfo(msg="WARNING: CAN logging stopped")
+                    on_exit=LogInfo(msg=[Colour.FAIL, "ERROR: CAN logging stopped", Colour.END])
                 ))
             ]
         )

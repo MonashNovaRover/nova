@@ -92,6 +92,26 @@ def launch_setup(context, *args, **kwargs):
         ),
         Node(
 
+            name='water_pump',
+            package='science',
+            executable='water_pump.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
+            name='diaphragm_pump',
+            package='science',
+            executable='diaphragm_pump.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
             name='chute',
             package='science',
             executable='chute.py',

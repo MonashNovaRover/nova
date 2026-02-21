@@ -133,6 +133,18 @@ export const reduxStores = {
   ),
 
   // Science Reducers
+  waterPumpStatus: createBifrostStore(
+    { topic: RosTopic.WATER_PUMP_STATUS },
+    {
+      state: false, // current status of Water Pump: True if On
+    }
+  ),
+  diaphragmPumpStatus: createBifrostStore(
+    { topic: RosTopic.DIAPHRAGM_PUMP_STATUS },
+    {
+      state: false, // current status of Diaphragm Pump: True if On
+    }
+  ),
   kilnData: createBifrostStore(
     { topic: RosTopic.KILN_DATA },
     {
@@ -328,6 +340,8 @@ export const reduxStores = {
   counter: createGenericStore("counter", 0),
   scimbalStepSize: createGenericStore("scimbalStepSize", "1"),
   targetTemp: createGenericStore("targetTemp", 150),
+  waterPumpEffort: createGenericStore("waterPumpEffort", 0),
+  diaphragmPumpEffort: createGenericStore("diaphragmPumpEffort", 0),
   theta360CompassHeading: createGenericStore("theta360CompassHeading",180),
   theta360InputDistance: createGenericStore("theta360InputDistance",""),
   rgbLedStore: createGenericStore("rgbLedStore", { r: "0", g: "0", b: "0" }),

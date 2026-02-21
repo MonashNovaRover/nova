@@ -54,6 +54,8 @@ install(PROGRAMS
         science/arc/kiln_old.py
         science/arc/sweeper.py
         science/arc/sweeper_old.py
+        science/arc/water_pump.py
+        science/arc/diaphragm_pump.py
         science/urc/hydraprobe_trigger_node.py
         science/urc/urc_bme_sensor.py
         science/urc/urc_cache.py

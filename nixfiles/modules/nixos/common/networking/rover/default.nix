@@ -28,7 +28,6 @@ in
   config = lib.mkIf cfg.enable {
 
     networking.useDHCP = false;
-    networking.networkmanager.enable = lib.mkForce false;
     systemd.network = {
       enable = true;
       netdevs = {
