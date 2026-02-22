@@ -34,7 +34,8 @@ if __name__ == "__main__":
             "controller", 
             ActuateController,
             hardware_name="rotation",
-            actuation_axis="chute_actuation"
+            actuation_axis="chute_actuation",
+            speed_axis="chute_speed"
         ) \
         .with_hardware("rotation", ContinousServoHardware, can_id=0x0E2) \
         .with_teleop(inputs) \

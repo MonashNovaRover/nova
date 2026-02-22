@@ -57,8 +57,10 @@ game_controller_source:
           from: "LEFTY"
         analysis_arm_actuation:
           from: "LEFTY"
+        chute_actuation:
+          from: "RIGHTX"
         chute_speed:
-          from: "TRIGGERLEFT"
+          from: "LEFTX"
 
       buttons:
         lock:
