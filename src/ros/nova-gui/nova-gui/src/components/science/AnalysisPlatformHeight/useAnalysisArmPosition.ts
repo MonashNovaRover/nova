@@ -2,8 +2,15 @@ import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
+import {RosService} from "../../../ros/services/rosService.ts";
+import {IRosScienceInterfacesKilnCommandResponse} from "../../../ros/rosTypes.ts";
+import toast from "react-hot-toast";
+import {set} from "lodash";
 
+/**
+ * Bifrost wrapper for analysis arm and tof published data.
+ */
 export function useAnalysisArmPosition() {
   const tofStore = useSelector(
     (state: RootState) => state.tofStore
@@ -24,6 +31,32 @@ export function useAnalysisArmPosition() {
   return [aaPosStore, tofStore]
 }
 
+/**
+ * Bifrost wrapper for calling analysis arm position services.
+ */
 export function useAnalysisArmServices() {
+  const bifrostZero = useBifrost({service: RosService.ZERO_ANALYSIS_ARM});
+  const bifrostSetPos = useBifrost({service: RosService.SET_AA_POSITION});
 
+  const zeroAA = () => {
+    bifrostZero.callService({})
+  }
+
+  const setPos = (newPos: number) => {
+    bifrostSetPos.callService({position: newPos})
+  }
+
+  // const toggleActiveStatus = (value: boolean) => {
+  //   bifrost.callService({state: value}, {
+  //     handleResponse: (response) => {
+  //       const boolResponse = response as IRosScienceInterfacesKilnCommandResponse;
+  //       if (boolResponse?.success) {
+  //         toast.success("Request Successful")
+  //         setStepperActive(value);
+  //       }
+  //     }
+  //   });
+  // }
+
+  return [zeroAA, setPos]
 }

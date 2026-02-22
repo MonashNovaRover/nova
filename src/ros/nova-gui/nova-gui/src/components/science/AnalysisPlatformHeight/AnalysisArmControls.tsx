@@ -5,7 +5,7 @@ import {ArrowDown, ArrowUp} from "react-feather";
 export interface AnalysisArmControlsProps {
   currentPos: number
   TOFReading: number
-  setPosition: (number) => void
+  setPosition: (pos: number) => void
   zeroPosition: () => void
 }
 
@@ -68,7 +68,7 @@ const AnalysisArmControls: React.FC<AnalysisArmControlsProps> = ({currentPos, TO
           type="number"
           label="Move to distance from ground"
           labelPlacement="outside"
-          description="Not accurate when TOF reading > 200mm."
+          description="Not accurate when TOF reading > 100mm."
           endContent={
             <div className="pointer-events-none flex items-center">
               <span className="text-default-400 text-small">mm</span>
