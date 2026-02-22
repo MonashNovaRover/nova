@@ -17,7 +17,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   # Message definitions
   "msg/ActuatorLimit.msg"
   "msg/BMESensor.msg"
-  "msg/DistanceData.msg"
   "msg/EMCData.msg"
   "msg/HydraprobeData.msg"
   "msg/EffortStatus.msg"
@@ -39,6 +38,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/RamanSpec.srv"
   "srv/RamanMech.srv"
   "srv/ScienceCommand.srv"
+  "srv/SetPosition.srv"
   "srv/TakeNIRProbeReading.srv"
 
   # Action definitions

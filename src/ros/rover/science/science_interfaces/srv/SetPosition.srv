@@ -1,0 +1,9 @@
+# Sets the position of a 1 dimensional component.
+
+# Desired position.
+float64 position
+
+---
+
+# Each action could fail. This flag shows the output success of the action
+bool success
