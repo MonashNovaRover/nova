@@ -127,6 +127,20 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                 ),
                 Node(
+                    package='tf2_ros',
+                    executable='static_transform_publisher',
+                    name='odom_to_camera_init_publisher',
+                    arguments=["0.541", "0.002", "0.950", "0", "0", "0", "odom", "camera_init"],
+                    output='screen',
+                ),
+                Node(
+                    package='tf2_ros',
+                    executable='static_transform_publisher',
+                    name='aft_mapped_to_base_link_publisher',
+                    arguments=["0.196", "0.001", "-1.076", "0.003", "-0.698", "0", "aft_mapped", "base_link"],
+                    output='screen',
+                ),
+                Node(
                     package='nova_utils',
                     executable='transform_republisher',
                     name='odom_to_base_link_republisher',

@@ -9,7 +9,7 @@ class TFToExtrinsic(Node):
     def __init__(self):
         super().__init__('tf_to_extrinsic')
 
-        self.declare_parameter('source_frame', 'oak_rgb_camera_optical_frame')
+        self.declare_parameter('source_frame', 'base_link')
         self.declare_parameter('target_frame', 'livox_frame')
 
         self.source_frame = self.get_parameter('source_frame').value
