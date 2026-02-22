@@ -71,6 +71,9 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
         const rclcpp_lifecycle::State & previous_state)
 {
     auto params_result = apply_parameters();
+
+    (void)previous_state; // Silence unused warning
+
     if (params_result != CallbackReturn::SUCCESS)
         return params_result;
 
@@ -196,6 +199,9 @@ hardware_interface::CallbackReturn BLCMDHardware::on_deactivate(
 hardware_interface::return_type BLCMDHardware::read(
         const rclcpp::Time & time, const rclcpp::Duration & period)
 {
+    (void)time;
+    (void)period;
+
     bus_->spin();
     return hardware_interface::return_type::OK;
 }
@@ -208,20 +214,25 @@ hardware_interface::return_type BLCMDHardware::write(
             break;
         case blcmd_hardware::ControlMode::Position:
             if (hw_position_.command.has_value()) {
+                double jointRads = (hw_position_.command.value() * reversed_multiplier_);
+                double resRads = jointRads * params_.resolver_reduction;
+                double resRevs = resRads / (2*M_PI);
+                double resTicks = resRevs * params_.res_ticks_per_rev + params_.home_offset;
+                RCLCPP_INFO_THROTTLE(rclcpp::get_logger(BLCMDHardwareLoggerName), *get_clock(), 2000,
+                    "%f %f %f %f", jointRads, resRads, resRevs, resTicks);
 
-              // hex(int(0xffff * 0.1*4 / (8*pi))+0x2000)
-              // 0xffff ticks total
-              // 8pi radians per 0xffff ticks
-              // 0.1 angle
-              // 4 reduction ratio
-              // 0x2000 electrical offset
-                auto offset_value = (hw_position_.command.value() * reversed_multiplier_)*params_.resolver_reduction - params_.position_offset;
+                /// Make sure we never tell the blcmd to go close to the discontinuity around
+                /// 0x7fff (largest positive) and 0x8000 (smallest negative)
+                if (std::abs(resTicks) > std::numeric_limits<int16_t>::max() - 50) {
+                  RCLCPP_WARN_THROTTLE(rclcpp::get_logger(BLCMDHardwareLoggerName), *get_clock(), 2000,
+                      "Position Command %f is too close to/beyond the int16 discontinuity. Ignoring...", resTicks);
+                  return hardware_interface::return_type::OK;
+                }
 
                 RCLCPP_DEBUG_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                                   "Sending Position Command " << hw_position_.command.value()
-                                   << " " << hw_position_.max);
-                send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION),
-                                     offset_value, hw_position_.max);
+                                   "Sending Position Command " << hw_position_.command.value());
+
+                send_raw<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION), static_cast<int16_t>(resTicks));
             } else {
                 RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No position command");
                 return hardware_interface::return_type::ERROR;
@@ -387,36 +398,23 @@ hardware_interface::CallbackReturn BLCMDHardware::apply_parameters() {
   RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                      "Got gear ratio: " << params_.gear_ratio);
 
-  auto max_position_search = info_.hardware_parameters.find("max_position");
-  if (max_position_search != info_.hardware_parameters.end()) {
-    params_.max_position = std::stod(max_position_search->second);
-    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using max_position of %f", params_.max_position.value());
-  }
-  else {
-    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "max_position parameter was undefined. Will use "
-                                                             "max_position from command interface.");
-  }
-
-  auto max_velocity_search = info_.hardware_parameters.find("max_velocity");
-  if (max_velocity_search != info_.hardware_parameters.end()) {
-    params_.max_velocity = std::stod(max_velocity_search->second);
-    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using max_velocity of %f", params_.max_velocity.value());
-  }
-  else {
-    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "max_velocity parameter was undefined. Will use "
-                                                             "complex formula to make this value.");
-  }
-
   auto resolver_reduction_search = info_.hardware_parameters.find("resolver_reduction");
   if (resolver_reduction_search != info_.hardware_parameters.end()) {
     params_.resolver_reduction = std::stod(resolver_reduction_search->second);
   }
-  
-  auto position_offset_search = info_.hardware_parameters.find("position_offset");
-  if (position_offset_search != info_.hardware_parameters.end()) {
-    params_.position_offset = std::stod(position_offset_search->second);
+
+  auto home_offset_search = info_.hardware_parameters.find("home_offset");
+  if (home_offset_search != info_.hardware_parameters.end()) {
+    params_.home_offset = std::stoul(home_offset_search->second);
     
-    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using position_offest of: %f", params_.position_offset);
+    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using home_offset of: 0x%x", params_.home_offset);
+  }
+
+  auto res_ticks_per_rev_search = info_.hardware_parameters.find("res_ticks_per_rev");
+  if (res_ticks_per_rev_search != info_.hardware_parameters.end()) {
+    params_.res_ticks_per_rev = std::stoul(res_ticks_per_rev_search->second);
+    
+    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using 0x%x ticks per revolution", params_.res_ticks_per_rev);
   }
 
   return CallbackReturn::SUCCESS;
@@ -428,8 +426,12 @@ bool BLCMDHardware::set_control_interface(
     if (interface_info.name == hardware_interface::HW_IF_POSITION){
         // TODO: deal with case with state interface and no command interface
         if (command){
-            hw_position_.max = params_.max_position.has_value() ? params_.max_position.value()
-              : std::stod(interface_info.max);
+            hw_position_.max = std::stod(interface_info.max);
+            if (params_.res_ticks_per_rev == 0) {
+                RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No resolver ticks per revolution provided, "
+                                                                          "but a position command interface is used.");
+                return false;
+            }
             if (std::isnan(params_.resolver_reduction)) {
                 RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No resolver reduction provided, "
                                                                           "but a position command interface is used.");
@@ -442,7 +444,7 @@ bool BLCMDHardware::set_control_interface(
     }
     else if (interface_info.name == hardware_interface::HW_IF_VELOCITY){
         if (command) {
-            hw_velocity_.max = params_.max_velocity.value();
+            hw_velocity_.max = std::stod(interface_info.max);
             RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
             "Configured velocity interface with max velocity: " << hw_velocity_.max);
             hw_velocity_.command = 0.0;
@@ -530,31 +532,38 @@ bool BLCMDHardware::set_control_interface(
     }
 
     void BLCMDHardware::packet_3_callback(leigh::jcan::Frame frame) {
-      // (8*pi*(0x4000-0x2000)/0xffff)/4
-      // 0xffff is 8pi radians
-      // 0x4000 is the reading
-      // 0x2000 is electrical offset
-      // 0xffff is max int16
-      // 4 is resolver ratio
         if(hw_position_.state.has_value()) {
-            //float raw_pos = static_cast<double>(from_bytes<int16_t>(&frame.data[0]));
-            //hw_position_.state = raw_pos
-            hw_position_.state = (convert_scaled<int16_t>(&frame.data[0], hw_position_.max) * reversed_multiplier_
-                                 + params_.position_offset)/params_.resolver_reduction;
-        RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                           "Packet 3: %x\n", from_bytes<int16_t>(&frame.data[0]));
-        RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                           "Packet 3: %f\n", hw_position_.state);
+          const Telem3_t *telem3 = (const Telem3_t*)frame.data.data();
+
+          if (frame.data.size() != sizeof(Telem3_t)) {
+              RCLCPP_WARN(rclcpp::get_logger(BLCMDHardwareLoggerName), "Telemetry 3 Incorrect size: %ld", frame.data.size());
+              hw_position_.state = std::numeric_limits<double>::quiet_NaN();
+              return;
+          }
+
+          int16_t resolverPosTicks = beToCPU16(telem3->resPosition) - params_.home_offset;
+          
+          double resolverPosRevs = static_cast<double>(resolverPosTicks) / params_.res_ticks_per_rev;
+          double resolverPosRads = 2*M_PI*resolverPosRevs;
+          double jointPosRads = resolverPosRads * reversed_multiplier_ / params_.resolver_reduction;
+
+          hw_position_.state = jointPosRads;
         }
     }
 
     void BLCMDHardware::packet_4_callback(leigh::jcan::Frame frame) {
-        int16_t power = from_bytes<int16_t>(&frame.data[0]);
-        int16_t voltage = from_bytes<int16_t>(&frame.data[2]);
-        int16_t temp = from_bytes<int16_t>(&frame.data[4]);
-        int16_t current = from_bytes<int16_t>(&frame.data[6]);
-        RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName),
-                           "Packet 4: %x %x %x %x\n", power, voltage, temp, current);
+        const Telem4_t *telem4 = (const Telem4_t*)frame.data.data();
+
+        if (frame.data.size() != sizeof(Telem4_t)) {
+            RCLCPP_WARN(rclcpp::get_logger(BLCMDHardwareLoggerName), "Telemetry 4 Incorrect size: %ld", frame.data.size());
+        }
+
+        int16_t power = beToCPU16(telem4->power);
+        int16_t voltage = beToCPU16(telem4->voltage);
+        int16_t temperature = beToCPU16(telem4->temperature);
+        int16_t current = beToCPU16(telem4->current);
+        RCLCPP_INFO_ONCE(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                           "Packet 4: %x %x %x %x\n", power, voltage, temperature, current);
     }
 
   template<typename T>

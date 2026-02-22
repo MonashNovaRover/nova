@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <bit>
 
 #include "rclcpp/rclcpp.hpp"
 #include "hardware_interface/system_interface.hpp"
@@ -31,6 +32,46 @@
 
 namespace blcmd_hardware
 {
+
+#ifdef IS_BIG_ENDIAN
+
+#define cpuToBE16(val) val
+#define beToCPU16(val) val
+
+#else
+
+#define cpuToBE16(val) std::byteswap(val)
+#define beToCPU16(val) std::byteswap(val)
+
+#endif
+
+struct __attribute__((packed)) Telem1_t {
+    int16_t velocity;
+    int16_t Qcurrent;
+};
+
+static_assert(sizeof(struct Telem1_t) == 4);
+
+struct __attribute__((packed)) Telem2_t {
+    int16_t interval;
+    int16_t Dcurrent;
+};
+static_assert(sizeof(struct Telem2_t) == 4);
+
+struct __attribute__((packed)) Telem3_t {
+    int16_t resPosition;
+    int16_t resVelocity;
+};
+static_assert(sizeof(struct Telem3_t) == 4);
+
+struct __attribute__((packed)) Telem4_t {
+    int16_t power;
+    int16_t voltage;
+    int16_t temperature;
+    int16_t current;
+};
+static_assert(sizeof(struct Telem4_t) == 8);
+
 struct PIConfig {
     int16_t kp;
     int16_t ki_ts;
@@ -146,22 +187,17 @@ private:
         /// Unconfirmed. When true, the sign of all inputs and outputs are reversed.
         bool reversed = false;
 
-        /// The maximum position in radians, to be mapped to the largest position in CAN; 0x7FFF. This is not a limit.
-        /// Currenly for multiturn this is 4pi, and 1pi for single turn
-        /// this is because the resolvers have 14 bits of precision per 360 degrees, and the multi turn resolvers have an extra 2 bits added as well
-        /// on the non multiturns they bitshift it so the last 2 bits are always zero and the value is x4.
-        std::optional<double> max_position = std::nullopt;
-        
-        /// The maximum velocity in radians per second, to be mapped to the largest velocity in CAN; 0x7FFF. This is not a limit.
-        std::optional<double> max_velocity = std::nullopt;
-
         /// A reduction ratio resolver readings are scaled by. When the actual joint does one full revolution, the resolver revolves this many times.
         double resolver_reduction {std::numeric_limits<double>::quiet_NaN()};
 
-        /// An offset to apply to all readings, in radians, such that it is added to resolver messages, and subtracted from commands
-        /// This is the difference between electrical's Zero and the URDF's zero. Note that rn electrical has the reset position of the j123
-        /// blcmds as 0x2000 currently as they are scared of negative numbers so the reset position is not zero.
-        double position_offset = 0.0;
+        /// An offset to apply to raw resolver readings before they are converted to radians. Subtracted from resolver messages and added to commands.
+        /// For Taipan arm electrical have decided that the 0x0000 position is not the reset/home position, the reset/home position is 0x2000.
+        /// Apply an offset here so their "home" position is moved to actually be 0x0000. This is seperate from position_offset as it's added for a
+        /// different reason and more readable when its in hex not radians
+        int16_t home_offset = 0;
+
+        /// how many integer ticks the is equal for a 360 degree revolution for the resolver
+        int16_t res_ticks_per_rev = 0;
     };
 
     std::string BLCMDHardwareLoggerName;

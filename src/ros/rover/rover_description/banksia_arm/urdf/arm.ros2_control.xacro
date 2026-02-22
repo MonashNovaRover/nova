@@ -15,9 +15,8 @@
 					<param name="resolver_reduction">4</param>
 					<param name="gear_ratio">100.0</param>
 					<param name="reversed">false</param>
-					<param name="max_position">12.56637</param>
-          <param name="position_offset">-3.1416885303149615</param> <!-- electrical's home is 0x2000 -->
-					<param name="max_velocity">2.3</param>
+          <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
+          <param name="home_offset">8192</param> <!-- electrical's "home" is 0x2000 -->
 				</hardware>
 			</xacro:unless>
 			<xacro:if value="${use_mock_hardware}">
@@ -27,27 +26,19 @@
 				</hardware>
 			</xacro:if>
 
-			<!--
-	  <hardware>
-        TODO: Figure out and add the Hardware interface
-	  <plugin>${ros2_control_plugin}</plugin>
-	  </hardware>
-	  -->
-
 			<joint name="J1">
 				<command_interface name="velocity">
-					<param name="max">292.444791137</param>
-					<param name="max">1.0</param>
+					<param name="max">2.3</param>
 				</command_interface>
 				<command_interface name="position">
-					<param name="max">12.5663706144</param>
+					<param name="max">3.1415</param>
 				</command_interface>
 				<state_interface name="velocity">
-					<param name="max">292.444791137</param>
+          <param name="max">3.1415</param> <!-- TODO -->
 					<param name="initial_value">0.0</param>
 				</state_interface>
 				<state_interface name="position">
-					<param name="max">12.5663706144</param>
+					<param name="max">3.1415</param>
 					<param name="initial_value">0.0</param>
 				</state_interface>
 			</joint>
@@ -62,9 +53,8 @@
 					<param name="resolver_reduction">5.375</param>
 					<param name="gear_ratio">100.0</param>
 					<param name="reversed">true</param>
-					<param name="max_position">12.56637</param>
-          <param name="position_offset">4.448680047809272</param> <!-- right angle is 0x2d50 -->
-					<param name="max_velocity">1.740138699</param>
+          <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
+          <param name="home_offset">8192</param> <!-- electrical's "home" is 0x2000 -->
 				</hardware>
 			</xacro:unless>
 			<xacro:if value="${use_mock_hardware}">
@@ -76,17 +66,17 @@
 
 			<joint name="J2">
 				<command_interface name="velocity">
-					<param name="max">292.444791137</param>
+					<param name="max">1.740138699</param>
 				</command_interface>
 				<command_interface name="position">
-					<param name="max">12.5663706144</param>
+					<param name="max">3.1415</param>
 				</command_interface>
 				<state_interface name="velocity">
-					<param name="max">292.444791137</param>
+          <param name="max">3.1415</param> <!-- TODO -->
 					<param name="initial_value">0.0</param>
 				</state_interface>
 				<state_interface name="position">
-					<param name="max">12.5663706144</param>
+					<param name="max">3.1415</param>
 					<param name="initial_value">0.0</param>
 				</state_interface>
 			</joint>
@@ -101,9 +91,8 @@
 					<param name="resolver_reduction">5.375</param>
 					<param name="gear_ratio">100.0</param>
 					<param name="reversed">false</param>
-					<param name="max_position">12.56637</param>
-          <param name="position_offset">-3.1416885303149615</param> <!-- electrical's home is 0x2000 XXX THIS IS WRONG, elec's home is not right angle -->
-					<param name="max_velocity">1.740138699</param>
+          <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
+          <param name="home_offset">8192</param> <!-- electrical's "home" is 0x2000 -->
 				</hardware>
 			</xacro:unless>
 			<xacro:if value="${use_mock_hardware}">
@@ -115,18 +104,17 @@
 
 			<joint name="J3">
 				<command_interface name="velocity">
-					<param name="max">292.444791137</param>
+					<param name="max">1.0</param>
 				</command_interface>
 				<command_interface name="position">
-					<param name="max">12.5663706144</param>
+					<param name="max">3.1415</param>
 				</command_interface>
 				<state_interface name="velocity">
-					<param name="max">292.444791137</param>
+          <param name="max">3.1415</param> <!-- TODO -->
 					<param name="initial_value">0.0</param>
 				</state_interface>
 				<state_interface name="position">
-					<param name="max">12.5663706144</param>
-					<param name="initial_value">0.0</param>
+					<param name="max">3.1415</param>
 				</state_interface>
 			</joint>
 		</ros2_control>
