@@ -9,7 +9,7 @@ analysis_arm:
     can_bus: "can1"
     hardware:
       actuation:
-        can_id: 0x0E6
+        can_id: 0x0E4
         max_effort: 1.0
         reversed: false
 
@@ -28,7 +28,7 @@ tool_rotator:
         hardware_name: "rotation"
     hardware:
       rotation:
-        can_id: 0x0E0
+        can_id: 0x0F0
         angular_limit: 360.0
 
 time_of_flight_sensor:
@@ -61,6 +61,15 @@ auger:
       drill:
         can_id: 0x0C1
         max_effort: 0.5
+        reversed: false
+
+chute:
+  ros__parameters:
+    can_bus: "can1"
+    hardware:
+      rotation:
+        can_id: 0x0E2
+        max_effort: 1.0
         reversed: false
 
 cbeam:
@@ -111,8 +120,8 @@ water_pump:
         topic_name: "/science/water_pump_status"
     hardware:
       cooling:
-        can_id: 0xD2
-
+        can_id: 0x031
+        
 diaphragm_pump:
   ros__parameters:
     can_bus: "can1"
@@ -123,7 +132,7 @@ diaphragm_pump:
         topic_name: "/science/diaphragm_pump_status"
     hardware:
       cooling:
-        can_id: 0x0E5
+        can_id: 0x0E6
 
 
 # Misc - Nodes for misc components
@@ -132,37 +141,18 @@ scimbal_cam:
     can_bus: "can1"
     update_rate: 5
     hardware:
-      tilt:
-        can_id: 0x0E2
-        angular_limit: 180.0
       pan:
-        can_id: 0x0E1
+        can_id: 0x0E0
         angular_limit: 360.0
-
-chute:
-  ros__parameters:
-    can_bus: "can1"
-    hardware:
-      rotation:
-        can_id: 0x0E2
-        max_effort: 1.0
-        reversed: false
+      tilt:
+        can_id: 0x0E1
+        angular_limit: 180.0
 
 sweeper:
   ros__parameters:
     can_bus: "can1"
     hardware:
       sweep:
-        can_id: 0x0E4
-        max_effort: 1.0
-        reversed: false
-
-
-sweeper:
-  ros__parameters:
-    can_bus: "can1"
-    hardware:
-      sweep:
-        can_id: 0x0E4
+        can_id: 0x0E3
         max_effort: 1.0
         reversed: false

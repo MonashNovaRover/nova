@@ -86,7 +86,7 @@ if __name__ == "__main__":
     # ARCh auger system
     PythonControl(node, update_rate=10, can_bus="can1") \
         .with_controller("controller", SweeperController) \
-        .with_hardware("sweep", ContinousServoHardware, can_id=0x0E4) \
+        .with_hardware("sweep", ContinousServoHardware, can_id=0x0E3) \
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()
