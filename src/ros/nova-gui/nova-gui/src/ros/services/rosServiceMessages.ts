@@ -1,4 +1,5 @@
 import { RosService } from "./rosService";
+import {Ros} from "roslib";
 
 export const rosServiceMessages = {
   [RosService.NULL_SERVICE]: "",
@@ -35,6 +36,10 @@ export const rosServiceMessages = {
   [RosService.HEATER]: "science_interfaces/srv/KilnCommand",
   [RosService.REQUEST_HYDRAPROBE_READING]: "std_srvs/srv/Trigger",
   [RosService.CAROUSEL]: "science_interfaces/srv/KilnCommand",
+  [RosService.ZERO_ANALYSIS_ARM]: "std_srvs/srv/Trigger",
+  [RosService.SET_AA_POSITION]: "science_interfaces/srv/SetPosition",
+
+  // General
   [RosService.RGBInput]: "nova_interfaces/srv/RGBInput",
 
   // Autonomous Related

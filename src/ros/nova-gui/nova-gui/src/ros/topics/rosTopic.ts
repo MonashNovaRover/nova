@@ -31,7 +31,7 @@ export enum RosTopic {
 
   // Science Related topics
   TOF = "/science/analysis_arm_tof",
-  AA_POS = "/science/analysis_arm_position",
+  AA_POS = "/science/analysis_arm/position",
   KILN_DATA = "/science/kiln_data",
   WATER_PUMP_STATUS = "/science/water_pump_status",
   DIAPHRAGM_PUMP_STATUS = "/science/diaphragm_pump_status",

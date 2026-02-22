@@ -38,6 +38,10 @@ export enum RosService {
   HEATER = "/science/heater",
   CAROUSEL = "/science/carousel_service",
   RGBInput = "/set_RGBInput",
+  ZERO_ANALYSIS_ARM = "/science/analysis_arm/zero",
+  SET_AA_POSITION = "/science/analysis_arm/set_position",
+
+  // General
   REQUEST_HYDRAPROBE_READING = "/science/request_hydraprobe_reading",
 
   // Autononomous Related

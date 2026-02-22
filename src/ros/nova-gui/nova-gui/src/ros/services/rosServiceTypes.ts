@@ -30,7 +30,8 @@ import {
   IRosNovaInterfacesCartographerCommandRequest,
   IRosNovaInterfacesCartographerCommandResponse,
   IRosScienceInterfacesMoveHydraprobeRequest,
-  IRosScienceInterfacesMoveHydraprobeResponse,
+  IRosScienceInterfacesMoveHydraprobeResponse, IRosScienceInterfacesSetPositionRequest,
+  IRosScienceInterfacesSetPositionResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -151,7 +152,16 @@ export interface RosServiceInterface {
     IRosScienceInterfacesKilnCommandRequest,
     IRosScienceInterfacesKilnCommandResponse
   >;
+  [RosService.ZERO_ANALYSIS_ARM]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
+  [RosService.SET_AA_POSITION]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionRequest,
+    IRosScienceInterfacesSetPositionResponse
+  >;
 
+  // General
   [RosService.RGBInput]: RosServiceMessage<
     IRosNovaInterfacesRgbInputRequest,
     IRosNovaInterfacesRgbInputResponse
