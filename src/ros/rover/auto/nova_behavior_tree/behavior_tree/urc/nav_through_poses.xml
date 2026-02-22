@@ -7,12 +7,12 @@
           <ReactiveSequence>
             <ForceSuccess>
               <Sequence>
-                <GetCurrentPose current_pose="{current_pose}"/>
                 <RunOnce>
-                  <PlaceSearchGoals search_radius="7.0" search_corners="3" current_pose="{current_pose}" input_goals="{goals}" output_goals="{goals}"/>
+                  <PlaceSearchGoals search_radius="7.0" search_corners="3" input_goals="{goals}" output_goals="{goals}"/>
                 </RunOnce>
                 <ARTagDetected detections_topic="/aruco_detections" min_detections="2" buffer_time="5.0" cluster_radius="1.5" detections="{detected_goals}"/>
                 <GetGoal index="0" input_goals="{detected_goals}" output_goal="{detected_goal}"/>
+                <GetCurrentPose current_pose="{current_pose}"/>
                 <UpdateURCGoals detected_goal="{detected_goal}" current_pose="{current_pose}" input_goals="{goals}" output_goals="{goals}"/>
               </Sequence>
             </ForceSuccess>
