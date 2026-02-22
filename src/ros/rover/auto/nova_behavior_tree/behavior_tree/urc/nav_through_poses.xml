@@ -1,0 +1,42 @@
+<root BTCPP_format="4" main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="6" name="NavigateRecovery">
+      <PipelineSequence name="NavigateWithReplanning">
+        <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
+        <RateController hz="1.0">
+          <ReactiveSequence>
+            <ForceSuccess>
+              <Sequence>
+                <GetCurrentPose current_pose="{current_pose}"/>
+                <RunOnce>
+                  <PlaceSearchGoals search_radius="7.0" search_corners="3" current_pose="{current_pose}" input_goals="{goals}" output_goals="{goals}"/>
+                </RunOnce>
+                <ARTagDetected detections_topic="/aruco_detections" min_detections="2" buffer_time="5.0" cluster_radius="1.5" detections="{detected_goals}"/>
+                <GetGoal index="0" input_goals="{detected_goals}" output_goal="{detected_goal}"/>
+                <UpdateURCGoals detected_goal="{detected_goal}" current_pose="{current_pose}" input_goals="{goals}" output_goals="{goals}"/>
+              </Sequence>
+            </ForceSuccess>
+            <ReactiveSequence>
+              <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="1.0"/>
+              <SnapInCollisionGoals goals_offset="1.5" input_goals="{goals}" output_goals="{goals}"/>
+              <GetGoal index="0" input_goals="{goals}" output_goal="{current_goal}"/>
+              <GetDistBetweenPoses ref_pose="{current_pose}" target_pose="{current_goal}" dist="{dist_to_goal}"/>
+              <ComputePathThroughPoses _skipIf="dist_to_goal < 2.0" goals="{goals}" path="{path}" planner_id="GridBased"/>
+            </ReactiveSequence>
+          </ReactiveSequence>
+        </RateController>
+        <RecoveryNode number_of_retries="1" name="FollowPath">
+          <FollowPath path="{path}" controller_id="FollowPath" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
+          <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+        </RecoveryNode>
+      </PipelineSequence>
+      <Sequence name="GlobalRecovery">
+        <Sequence name="ClearingActions">
+          <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+          <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
+        </Sequence>
+        <BackUp backup_dist="0.5" backup_speed="0.25"/>
+      </Sequence>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>
