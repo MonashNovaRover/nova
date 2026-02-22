@@ -9,7 +9,7 @@ in
   config = lib.mkIf cfg.enable {
     # CPU
     hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-    boot.kernelParams = [ "amd_pstate=active" ];
+    boot.kernelParams = lib.mkDefault [ "amd_pstate=active" ];
     
     # GPU
     services.xserver.videoDrivers = lib.mkDefault [ "modesetting" ];

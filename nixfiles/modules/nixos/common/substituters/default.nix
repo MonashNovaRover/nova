@@ -23,6 +23,7 @@ in
         default = builtins.readFile ../../../../secrets/hydra-public-key.txt;
       };
     };
+    nvidia.enable = lib.mkEnableOption "the upstream nvidia binary caches";
   };
 
   config.nix.settings = lib.mkMerge [
@@ -38,6 +39,16 @@ in
         login nova
         password ${cfg.nova.password}
       '';
+    })
+    (lib.mkIf cfg.nvidia.enable {
+      substituters = [
+        "https://cache.nixos-cuda.org"
+        "https://cache.flox.dev"
+      ];
+      trusted-public-keys = [
+        "cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E="
+        "flox-cache-public-1:7F4OyH7ZCnFhcze3fJdfyXYLQw/aV7GEed86nQ7IsOs="
+      ];
     })
   ];
 }

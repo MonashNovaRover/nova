@@ -10,41 +10,37 @@ in
 
     # Faster scheduler for flash store
     hardware.block = {
-      scheduler = {
+      scheduler = lib.mkDefault {
         "mmblk[0-9]*" = "none";
         "nvme[0-9]*" = "none";
         "sd[a-z]*" = "none";
       };
-      defaultScheduler = "none";
+      defaultScheduler = lib.mkDefault "none";
     };
 
     # SSD Maintainence
-    services.fstrim.enable = true;
+    services.fstrim.enable = lib.mkDefault true;
 
     # Faster CPU scheduler
     services.scx = {
-      enable = true;
-      scheduler = "scx_lavd";
-      extraArgs = [
+      enable = lib.mkDefault true;
+      scheduler = lib.mkDefault "scx_lavd";
+      extraArgs = lib.mkDefault [
         "--autopower"
       ];
-      package = pkgs.scx.rustscheds;
+      package = lib.mkDefault pkgs.scx.rustscheds;
     };
 
     # Deprioritzes the nix daemon, increasing responsiveness for laptop
     nix = {
-      daemonCPUSchedPolicy = "idle";
-      daemonIOSchedClass = "idle";
-      daemonIOSchedPriority = 7;
-      gc = { # No gc for now
-        #automatic = true;
-        #dates = "monthly";
-        #options = "--delete-older-than 30d";
-      };
+      daemonCPUSchedPolicy = lib.mkDefault "idle";
+      daemonIOSchedClass = lib.mkDefault "idle";
+      daemonIOSchedPriority = lib.mkDefault 7;
+
       # Reduces space after each build
       optimise = {
-        automatic = true;
-        dates = "weekly";
+        automatic = lib.mkDefault true;
+        dates = lib.mkDefault "weekly";
       };
     };
   };

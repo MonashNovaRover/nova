@@ -35,7 +35,13 @@ in
     boot.loader = {
       efi.canTouchEfiVariables = lib.mkDefault true;
       systemd-boot.enable = lib.mkDefault true;
-      timeout = lib.mkDefault 30;
+      timeout = lib.mkDefault 10;
+    };
+
+    # Enable nova substituters
+    nova = {
+      profile = lib.mkDefault "shared";
+      substituters.nova.password = lib.mkDefault (builtins.readFile /home/nova/nova/nixfiles/secrets/hydra-password.txt);
     };
 
     nixpkgs = {
