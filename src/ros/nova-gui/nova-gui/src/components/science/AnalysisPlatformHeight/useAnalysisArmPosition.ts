@@ -23,3 +23,7 @@ export function useAnalysisArmPosition() {
 
   return [aaPosStore, tofStore]
 }
+
+export function useAnalysisArmServices() {
+
+}

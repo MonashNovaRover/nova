@@ -25,13 +25,6 @@ const AnalysisArmWidget: React.FC<AnalysisArmWidgetProps> = () => {
         <div className="grid grid-cols-2">
           <div className="flex flex-col">
             <AnalysisArmDiagram percent={40} target={60} bottomDistance={tofDist.range} topDistance={convertStepsToDistance(aaPos.range)} topSteps={aaPos.range}/>
-
-            <div className="flex flex-row justify-center gap-8">
-              <p>Diagram uses:</p>
-              <p>Steps</p>
-              <Switch isSelected={useTOFData} onValueChange={setUseTOFData}/>
-              <p>TOF</p>
-            </div>
           </div>
           <AnalysisArmControls/>
         </div>

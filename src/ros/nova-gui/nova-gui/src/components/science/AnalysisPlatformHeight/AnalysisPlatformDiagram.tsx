@@ -8,8 +8,6 @@ export interface AnalysisArmDiagramProps {
   target: number // Integer between [0, 100]
   // Distance from analysis arm to ground (float) in mm
   bottomDistance: number
-  // Analysis arm stepper position.
-  topSteps: number
   // Distance from top in mm.
   topDistance: number
 }
@@ -19,7 +17,7 @@ export interface AnalysisArmDiagramProps {
  * @param props
  * @constructor
  */
-const AnalysisArmDiagram: React.FC<AnalysisArmDiagramProps> = ({percent, target, bottomDistance, topSteps, topDistance}: AnalysisArmDiagramProps) => {
+const AnalysisArmDiagram: React.FC<AnalysisArmDiagramProps> = ({percent, target, bottomDistance, topDistance}: AnalysisArmDiagramProps) => {
 
   const series = [
     {
@@ -135,7 +133,7 @@ const AnalysisArmDiagram: React.FC<AnalysisArmDiagramProps> = ({percent, target,
         {
           y: 96,
           label: {
-            text: `${topSteps} steps / ${topDistance} mm`,
+            text: `${topDistance.toFixed(2)} mm`,
             offsetX: 32,
             borderWidth: 0,
             style: {

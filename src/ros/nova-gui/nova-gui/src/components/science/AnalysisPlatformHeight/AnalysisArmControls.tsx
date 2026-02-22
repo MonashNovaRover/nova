@@ -1,61 +1,74 @@
-import ReactApexChart from "react-apexcharts";
-import {ApexOptions} from "apexcharts";
-import {Button, Card, CardBody, CardHeader, Input, Switch} from "@nextui-org/react";
-import AnalysisArmDiagram from "./AnalysisPlatformDiagram.tsx";
+import {Button, Input} from "@nextui-org/react";
 import {useState} from "react";
-import {number} from "framer-motion";
+import {ArrowDown, ArrowUp} from "react-feather";
 
 export interface AnalysisArmControlsProps {
-  currentStepperPos: number
-  moveStepperTo: (number) => void
-  moveToDistance: (number) => void
+  currentPos: number
+  TOFReading: number
+  setPosition: (number) => void
+  zeroPosition: () => void
 }
 
 /**
  * Analysis arm movement controls
  * @constructor
  */
-const AnalysisArmControls: React.FC<AnalysisArmControlsProps> = ({currentStepperPos, moveStepperTo, moveToDistance} : AnalysisArmControlsProps) => {
+const AnalysisArmControls: React.FC<AnalysisArmControlsProps> = ({currentPos, TOFReading, setPosition, zeroPosition} : AnalysisArmControlsProps) => {
   const [stepperTargetInput, setStepperTargetInput] = useState("0")
   const [stepperIncrementInput, setStepperIncrementInput] = useState("5")
   const [distanceTargetInput, setDistanceTargetInput] = useState("50")
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-3 gap-3 content-center">
-        <p className="content-center">Go to abs step</p>
+    <div className="flex flex-col justify-evenly">
+
+      <Button
+        color="primary"
+        onPressStart={zeroPosition}
+      >
+        Zero Analysis Arm
+      </Button>
+
+      <div className="grid grid-cols-2 gap-3 items-end">
         <Input
           type="number"
+          label="Move to absoulte position"
+          labelPlacement="outside"
           endContent={
             <div className="pointer-events-none flex items-center">
-              <span className="text-default-400 text-small">steps</span>
+              <span className="text-default-400 text-small">mm</span>
             </div>
           }
           value={stepperTargetInput}
           onValueChange={setStepperTargetInput}
         />
-        <Button onPressStart={() => moveStepperTo(parseInt(stepperIncrementInput))}>Go to</Button>
+        <Button onPressStart={() => setPosition(parseInt(stepperTargetInput))}>Go to</Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 content-center">
-        <Button onPressStart={() => moveStepperTo(currentStepperPos + parseInt(stepperIncrementInput))}>Move down</Button>
+      <div className="grid grid-cols-2 gap-3 items-end">
         <Input
           type="number"
+          label="Increment position"
+          labelPlacement="outside"
           endContent={
             <div className="pointer-events-none flex items-center">
-              <span className="text-default-400 text-small">steps</span>
+              <span className="text-default-400 text-small">mm</span>
             </div>
           }
           value={stepperIncrementInput}
           onValueChange={setStepperIncrementInput}
         />
-        <Button onPressStart={() => moveStepperTo(currentStepperPos - parseInt(stepperIncrementInput))}>Move up</Button>
+        <div className="grid grid-cols-2 gap-3 content-center">
+          <Button onPressStart={() => setPosition(currentPos - parseInt(stepperIncrementInput))}><ArrowUp/></Button>
+          <Button onPressStart={() => setPosition(currentPos + parseInt(stepperIncrementInput))}><ArrowDown/></Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 content-center">
-        <p className="content-center">Go to distance from ground</p>
+      <div className="grid grid-cols-2 gap-3 items-center">
         <Input
           type="number"
+          label="Move to distance from ground"
+          labelPlacement="outside"
+          description="Not accurate when TOF reading > 200mm."
           endContent={
             <div className="pointer-events-none flex items-center">
               <span className="text-default-400 text-small">mm</span>
@@ -64,7 +77,7 @@ const AnalysisArmControls: React.FC<AnalysisArmControlsProps> = ({currentStepper
           value={distanceTargetInput}
           onValueChange={setDistanceTargetInput}
         />
-        <Button onPressStart={() => moveToDistance(parseInt(distanceTargetInput))}>Go to</Button>
+        <Button onPressStart={() => setPosition(currentPos + TOFReading - parseInt(distanceTargetInput))}>Go to</Button>
       </div>
     </div>
   );
