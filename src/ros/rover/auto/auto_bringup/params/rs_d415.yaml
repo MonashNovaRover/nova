@@ -1,0 +1,22 @@
+RS_D415:
+  ros__parameters:
+    enable_color: true
+    enable_depth: false
+    enable_infra: false
+    enable_infra1: false
+    enable_infra2: false
+    publish_tf: true
+    
+    # Available options are:
+    # 1280x720x10
+    # 1280x720x15
+    # 1280x720x6
+    # 1920x1080x8
+    # 424x240x15
+    # 424x240x30
+    # 424x240x6
+    # 424x240x60
+    # 640x480x15
+    # 640x480x30
+    # 640x480x6
+    rgb_camera.color_profile: 1280x720x10
