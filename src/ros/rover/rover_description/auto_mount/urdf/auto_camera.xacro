@@ -133,6 +133,13 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
     <parent link="lidar_holder"/>
     <child link="livox_frame"/>
   </joint>
+  <!-- Joint from aft_mapped to livox_frame (for FAST-LIVO2) -->
+  <link name="aft_mapped" />
+  <joint name="livox_frame_to_aft_mapped" type="fixed">
+      <parent link="livox_frame" />
+      <child link="aft_mapped" />
+      <origin rpy="0 0 0" xyz="0 0 0" />
+  </joint>
   <!-- Joint from mount to lidar_holder -->
   <joint name="mount_to_lidar" type="fixed">
     <origin xyz="0.123 -0.0775 0.0124231" rpy="-1.5708 -1.5708 1.5708"/>
