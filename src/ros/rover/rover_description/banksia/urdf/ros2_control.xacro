@@ -9,14 +9,9 @@
                     <plugin>blcmd_hardware2/BLCMDHardware</plugin>
                     <param name="candevice">can0</param>
                     <param name="canid">1</param>
-                    <param name="resolver_reduction">1.33333333333</param>
-                    <param name="clock_rate">100000000</param>
-                    <param name="revolution_pulses">8192</param>
-                    <param name="min_interval">122</param>
                     <param name="gear_ratio">15.0</param>
-                    <param name="mock">true</param>
+                    <param name="max_input_vel">626.66</param>
                     <param name="reversed">true</param>
-                    <param name="integrate_velocity">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -27,7 +22,7 @@
             </xacro:if>
 
             <joint name="flw">
-		        <command_interface name="velocity">
+		            <command_interface name="velocity">
                     <param name="max">1</param>
                 </command_interface>
 
@@ -39,7 +34,7 @@
                     <param name="initial_value">0.0</param>
                 </state_interface>
 
-                <state_interface name="position"> 
+                <state_interface name="effort"> 
                     <param name="initial_value">0.0</param>
                 </state_interface>
             </joint>
@@ -51,14 +46,9 @@
                     <plugin>blcmd_hardware2/BLCMDHardware</plugin>
                     <param name="candevice">can0</param>
                     <param name="canid">2</param>
-                    <param name="resolver_reduction">1.33333333333</param>
-                    <param name="clock_rate">100000000</param>
-                    <param name="revolution_pulses">8192</param>
-                    <param name="min_interval">122</param>
                     <param name="gear_ratio">15.0</param>
-                    <param name="mock">true</param>
+                    <param name="max_input_vel">626.66</param>
                     <param name="reversed">true</param>
-                    <param name="integrate_velocity">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -69,10 +59,9 @@
             </xacro:if>
 
             <joint name="blw">
-                <command_interface name="velocity">
+		            <command_interface name="velocity">
                     <param name="max">1</param>
                 </command_interface>
-
 
                 <command_interface name="effort">
                     <param name="max">1</param>
@@ -82,10 +71,9 @@
                     <param name="initial_value">0.0</param>
                 </state_interface>
 
-                <state_interface name="position"> 
+                <state_interface name="effort"> 
                     <param name="initial_value">0.0</param>
                 </state_interface>
-
             </joint>
         </ros2_control>
 
@@ -95,14 +83,9 @@
                     <plugin>blcmd_hardware2/BLCMDHardware</plugin>
                     <param name="candevice">can0</param>
                     <param name="canid">3</param>
-                    <param name="resolver_reduction">1.33333333333</param>
-                    <param name="clock_rate">100000000</param>
-                    <param name="revolution_pulses">8192</param>
-                    <param name="min_interval">122</param>
                     <param name="gear_ratio">15.0</param>
-	                <param name="mock">true</param>
-                    <param name="reversed">false</param>
-                    <param name="integrate_velocity">true</param>
+                    <param name="max_input_vel">626.66</param>
+                    <param name="reversed">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -113,7 +96,7 @@
             </xacro:if>
 
             <joint name="brw">
-                <command_interface name="velocity">
+		            <command_interface name="velocity">
                     <param name="max">1</param>
                 </command_interface>
 
@@ -125,10 +108,9 @@
                     <param name="initial_value">0.0</param>
                 </state_interface>
 
-                <state_interface name="position"> 
+                <state_interface name="effort"> 
                     <param name="initial_value">0.0</param>
                 </state_interface>
-
             </joint>
         </ros2_control>
 
@@ -138,14 +120,9 @@
                     <plugin>blcmd_hardware2/BLCMDHardware</plugin>
                     <param name="candevice">can0</param>
                     <param name="canid">4</param>
-                    <param name="resolver_reduction">1.33333333333</param>
-                    <param name="clock_rate">100000000</param>
-                    <param name="revolution_pulses">8192</param>
-                    <param name="min_interval">122</param>
                     <param name="gear_ratio">15.0</param>
-	                <param name="mock">true</param>
-                    <param name="reversed">false</param>
-                    <param name="integrate_velocity">true</param>
+                    <param name="max_input_vel">626.66</param>
+                    <param name="reversed">true</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -156,7 +133,7 @@
             </xacro:if>
 
             <joint name="frw">
-                <command_interface name="velocity">
+		            <command_interface name="velocity">
                     <param name="max">1</param>
                 </command_interface>
 
@@ -168,10 +145,9 @@
                     <param name="initial_value">0.0</param>
                 </state_interface>
 
-                <state_interface name="position"> 
+                <state_interface name="effort"> 
                     <param name="initial_value">0.0</param>
                 </state_interface>
-
             </joint>
         </ros2_control>
 
@@ -181,14 +157,12 @@
                     <plugin>blcmd_hardware2/BLCMDHardware</plugin>
                     <param name="candevice">can0</param>
                     <param name="canid">5</param>
-		            <param name="resolver_reduction">1.33333333333</param>
-                    <param name="clock_rate">100000000</param>
-                    <param name="revolution_pulses">8192</param>
-                    <param name="min_interval">233</param>
+		                <param name="resolver_reduction">1.33333333333</param>
+                    <param name="home_offset">14717</param>
+                    <param name="res_ticks_per_rev">98304</param>
+                    <param name="max_input_vel">328.12</param>
                     <param name="gear_ratio">36.0</param>
-	                <param name="mock">true</param>
                     <param name="reversed">true</param>
-                    <param name="position_offset">-0.70554839</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -210,13 +184,16 @@
                     <param name="max">1</param>
                 </command_interface>
 
+                <state_interface name="effort">
+                    <param name="initial_value">0.0</param>
+                </state_interface>
+
                 <state_interface name="velocity">
                     <param name="initial_value">0.0</param>
                 </state_interface>
 
                 <state_interface name="position">
                     <param name="inital_value">0.0</param>
-                    <param name="max">1.57079632679</param>    
                 </state_interface>
             </joint>
         </ros2_control>
@@ -228,13 +205,10 @@
                     <param name="candevice">can0</param>
                     <param name="canid">6</param>
                     <param name="resolver_reduction">1.33333333333</param>
-                    <param name="clock_rate">100000000</param>
-                    <param name="revolution_pulses">8192</param>
-                    <param name="min_interval">233</param>
+                    <param name="home_offset">14717</param>
+                    <param name="res_ticks_per_rev">98304</param>
+                    <param name="max_input_vel">328.12</param>
                     <param name="gear_ratio">36.0</param>
-                    <param name="revolution_pulses">8192</param>
-                    <param name="mock">true</param>
-                    <param name="position_offset">-0.70554839</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -276,13 +250,11 @@
                     <param name="candevice">can0</param>
                     <param name="canid">7</param>
                     <param name="resolver_reduction">1.33333333333</param>
-                    <param name="clock_rate">100000000</param>
-                    <param name="revolution_pulses">8192</param>
-                    <param name="min_interval">233</param>
+                    <param name="home_offset">14717</param>
+                    <param name="res_ticks_per_rev">98304</param>
+                    <param name="max_input_vel">328.12</param>
                     <param name="gear_ratio">36.0</param>
-	                <param name="mock">true</param>
                     <param name="reversed">true</param>
-                    <param name="position_offset">-0.70554839</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -323,12 +295,12 @@
                     <param name="candevice">can0</param>
                     <param name="canid">8</param>
                     <param name="resolver_reduction">1.33333333333</param>
-                    <param name="clock_rate">100000000</param>
-                    <param name="revolution_pulses">8192</param>
-                    <param name="min_interval">233</param>
+                    <param name="home_offset">14717</param>
+                    <!-- This seems wrong, it should be 2^16, but this is the value that
+                    preserves old behaviour. Maybe the resolver reduction is incorrect? -->
+                    <param name="res_ticks_per_rev">98304</param>
+                    <param name="max_input_vel">328.12</param>
                     <param name="gear_ratio">36.0</param>
-	                <param name="mock">true</param>
-                    <param name="position_offset">-0.70554839</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -344,7 +316,7 @@
                 </command_interface>
 
                 <command_interface name="velocity">
-                    <param name="max">1.0</param>
+                    <param name="max">1</param>
                 </command_interface>
 
                 <command_interface name="effort">

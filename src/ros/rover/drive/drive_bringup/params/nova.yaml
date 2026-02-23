@@ -36,10 +36,6 @@ pivot_position_controller:
 
 joint_state_broadcaster:
   ros__parameters:
-    interfaces:
-       ["position",
-      "velocity"]
-      
     joints:
       ["blp", "brp", "flp", "frp",
       "blw", "brw", "flw", "frw"]

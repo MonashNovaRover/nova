@@ -108,7 +108,9 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
         }
         RCLCPP_FATAL_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                             "Error with resolver request on BLCMD" << params_.canid);
-        return CallbackReturn::ERROR;
+        // Don't die if a blcmd is unplugged. It is what it is but we don't want all
+        // of the arm to fail to load because of one joint.
+        // return CallbackReturn::ERROR;
     }
     
   return CallbackReturn::SUCCESS;
@@ -218,8 +220,6 @@ hardware_interface::return_type BLCMDHardware::write(
                 double resRads = jointRads * params_.resolver_reduction;
                 double resRevs = resRads / (2*M_PI);
                 double resTicks = resRevs * params_.res_ticks_per_rev + params_.home_offset;
-                RCLCPP_INFO_THROTTLE(rclcpp::get_logger(BLCMDHardwareLoggerName), *get_clock(), 2000,
-                    "%f %f %f %f", jointRads, resRads, resRevs, resTicks);
 
                 /// Make sure we never tell the blcmd to go close to the discontinuity around
                 /// 0x7fff (largest positive) and 0x8000 (smallest negative)
@@ -389,6 +389,15 @@ hardware_interface::CallbackReturn BLCMDHardware::apply_parameters() {
     reversed_multiplier_ = -1;
   }
 
+  auto max_input_vel_search = info_.hardware_parameters.find("max_input_vel");
+  if (max_input_vel_search == info_.hardware_parameters.end()) {
+    RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No max gearbox input velocity provided");
+    return CallbackReturn::ERROR;
+  }
+  params_.max_input_vel = std::stod(max_input_vel_search->second);
+  RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                     "Got max gearbox input velocity: " << params_.max_input_vel);
+
   auto gear_ratio_search = info_.hardware_parameters.find("gear_ratio");
   if (gear_ratio_search == info_.hardware_parameters.end()) {
     RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No gear ratio provided");
@@ -444,7 +453,7 @@ bool BLCMDHardware::set_control_interface(
     }
     else if (interface_info.name == hardware_interface::HW_IF_VELOCITY){
         if (command) {
-            hw_velocity_.max = std::stod(interface_info.max);
+            hw_velocity_.max = params_.max_input_vel / params_.gear_ratio;
             RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
             "Configured velocity interface with max velocity: " << hw_velocity_.max);
             hw_velocity_.command = 0.0;

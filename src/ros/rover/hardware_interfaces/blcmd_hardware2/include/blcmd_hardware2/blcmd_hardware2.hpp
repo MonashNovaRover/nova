@@ -184,6 +184,11 @@ private:
         /// Unconfirmed. The ratio of the connected gearbox.
         double gear_ratio = 1.0;
 
+        /// The largest velocity the input of the gearbox can go to. Historically this is equivelant to
+        /// 2pi*clock_rate/(revolution_pulses*min_interval), and I assume that's the way to get it in si units,
+        /// however this is all a lie because electrical divides our velocity commands by 2.4 so I'm confused.
+        double max_input_vel = 1.0;
+
         /// Unconfirmed. When true, the sign of all inputs and outputs are reversed.
         bool reversed = false;
 
@@ -197,7 +202,7 @@ private:
         int16_t home_offset = 0;
 
         /// how many integer ticks the is equal for a 360 degree revolution for the resolver
-        int16_t res_ticks_per_rev = 0;
+        int32_t res_ticks_per_rev = 0;
     };
 
     std::string BLCMDHardwareLoggerName;

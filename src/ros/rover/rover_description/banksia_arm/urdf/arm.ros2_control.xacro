@@ -14,6 +14,7 @@
 					<param name="canid">1</param>
 					<param name="resolver_reduction">4</param>
 					<param name="gear_ratio">100.0</param>
+          <param name="max_input_vel">230</param>
 					<param name="reversed">false</param>
           <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
           <param name="home_offset">8192</param> <!-- electrical's "home" is 0x2000 -->
@@ -34,11 +35,9 @@
 					<param name="max">3.1415</param>
 				</command_interface>
 				<state_interface name="velocity">
-          <param name="max">3.1415</param> <!-- TODO -->
 					<param name="initial_value">0.0</param>
 				</state_interface>
 				<state_interface name="position">
-					<param name="max">3.1415</param>
 					<param name="initial_value">0.0</param>
 				</state_interface>
 			</joint>
@@ -52,6 +51,7 @@
 					<param name="canid">2</param>
 					<param name="resolver_reduction">5.375</param>
 					<param name="gear_ratio">100.0</param>
+          <param name="max_input_vel">170</param>
 					<param name="reversed">true</param>
           <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
           <param name="home_offset">8192</param> <!-- electrical's "home" is 0x2000 -->
@@ -72,11 +72,9 @@
 					<param name="max">3.1415</param>
 				</command_interface>
 				<state_interface name="velocity">
-          <param name="max">3.1415</param> <!-- TODO -->
 					<param name="initial_value">0.0</param>
 				</state_interface>
 				<state_interface name="position">
-					<param name="max">3.1415</param>
 					<param name="initial_value">0.0</param>
 				</state_interface>
 			</joint>
@@ -90,6 +88,7 @@
 					<param name="canid">3</param>
 					<param name="resolver_reduction">5.375</param>
 					<param name="gear_ratio">100.0</param>
+          <param name="max_input_vel">100</param>
 					<param name="reversed">false</param>
           <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
           <param name="home_offset">8192</param> <!-- electrical's "home" is 0x2000 -->
@@ -110,87 +109,85 @@
 					<param name="max">3.1415</param>
 				</command_interface>
 				<state_interface name="velocity">
-          <param name="max">3.1415</param> <!-- TODO -->
 					<param name="initial_value">0.0</param>
 				</state_interface>
 				<state_interface name="position">
-					<param name="max">3.1415</param>
+					<param name="initial_value">0.0</param>
 				</state_interface>
 			</joint>
 		</ros2_control>
 
 		<ros2_control name="arm_J4" type="system">
- <xacro:unless value="${use_mock_hardware}">
-                               <hardware>
-                                       <plugin>blcmd_hardware2/BLCMDHardware</plugin>
-                                       <param name="candevice">can1</param>
-                                       <param name="canid">4</param>
-                                       <param name="resolver_reduction">4</param>
-                                       <param name="gear_ratio">15.0</param>
-          <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
-                                       <param name="reversed">true</param>
-                                       <param name="home_offset">8192</param>
-                               </hardware>
-                       </xacro:unless>
-                       <xacro:if value="${use_mock_hardware}">
-                               <hardware>
-                                       <plugin>mock_components/GenericSystem</plugin>
-                                       <param name="calculate_dynamics">true</param>
-                               </hardware>
-                       </xacro:if>
+      <xacro:unless value="${use_mock_hardware}">
+      <hardware>
+        <plugin>blcmd_hardware2/BLCMDHardware</plugin>
+        <param name="candevice">can1</param>
+        <param name="canid">4</param>
+        <param name="resolver_reduction">4</param>
+        <param name="gear_ratio">15.0</param>
+        <param name="max_input_vel">292.35</param>
+        <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
+        <param name="reversed">true</param>
+        <param name="home_offset">8192</param>
+      </hardware>
+      </xacro:unless>
+      <xacro:if value="${use_mock_hardware}">
+      <hardware>
+        <plugin>mock_components/GenericSystem</plugin>
+        <param name="calculate_dynamics">true</param>
+      </hardware>
+      </xacro:if>
 
 			<joint name="J4">
 				<command_interface name="velocity">
 					<param name="max">19.49</param>
 				</command_interface>
-				<!--<command_interface name="position">
+				<command_interface name="position">
 					<param name="max">12.5663706144</param>
-				</command_interface>-->
+				</command_interface>
 				<state_interface name="velocity">
-					<param name="max">292.444791137</param>
 					<param name="initial_value">0.0</param>
 				</state_interface>
-				<!--<state_interface name="position">
-					<param name="max">12.5663706144</param>
+				<state_interface name="position">
 					<param name="initial_value">0.0</param>
-				</state_interface>-->
+				</state_interface>
 			</joint>
 		</ros2_control>
 
 		<ros2_control name="arm_J5" type="system">
-                      <xacro:unless value="${use_mock_hardware}">
-                               <hardware>
-                                       <plugin>blcmd_hardware2/BLCMDHardware</plugin>
-                                       <param name="candevice">can1</param>
-                                       <param name="canid">5</param>
-                                       <param name="resolver_reduction">1.25</param>
-                                       <param name="gear_ratio">1.0</param>
-          <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
-                                       <param name="reversed">false</param>
-                                       <param name="home_offset">8192</param>
-                               </hardware>
-                       </xacro:unless>
-                       <xacro:if value="${use_mock_hardware}">
-                               <hardware>
-                                       <plugin>mock_components/GenericSystem</plugin>
-                                       <param name="calculate_dynamics">true</param>
-                               </hardware>
-                       </xacro:if>
+    <xacro:unless value="${use_mock_hardware}">
+    <hardware>
+      <plugin>blcmd_hardware2/BLCMDHardware</plugin>
+      <param name="candevice">can1</param>
+      <param name="canid">5</param>
+      <param name="resolver_reduction">1.25</param>
+      <param name="gear_ratio">1.0</param>
+      <param name="max_input_vel">292.35</param>
+      <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
+      <param name="reversed">false</param>
+      <param name="home_offset">8192</param>
+    </hardware>
+    </xacro:unless>
+    <xacro:if value="${use_mock_hardware}">
+    <hardware>
+      <plugin>mock_components/GenericSystem</plugin>
+      <param name="calculate_dynamics">true</param>
+    </hardware>
+    </xacro:if>
+
 			<joint name="J5">
 				<command_interface name="velocity">
 					<param name="max">292.444791137</param>
 				</command_interface>
-				<!--<command_interface name="position">
+				<command_interface name="position">
 					<param name="max">12.5663706144</param>
-				</command_interface>-->
+				</command_interface>
 				<state_interface name="velocity">
-					<param name="max">292.444791137</param>
 					<param name="initial_value">0.0</param>
 				</state_interface>
-				<!--<state_interface name="position">
-					<param name="max">12.5663706144</param>
+				<state_interface name="position">
 					<param name="initial_value">0.0</param>
-				</state_interface>-->
+				</state_interface>
 			</joint>
 		</ros2_control>
 
@@ -202,34 +199,32 @@
 				<param name="canid">6</param>
 				<param name="resolver_reduction">1.25</param>
 				<param name="gear_ratio">1.0</param>
+        <param name="max_input_vel">292.35</param>
 				<param name="reversed">false</param>
 				<param name="home_offset">8192</param>
-          	<param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
-
-                               </hardware>
-                       </xacro:unless>
-                       <xacro:if value="${use_mock_hardware}">
-                               <hardware>
-                                       <plugin>mock_components/GenericSystem</plugin>
-                                       <param name="calculate_dynamics">true</param>
-                               </hardware>
-                       </xacro:if>
+       	<param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
+      </hardware>
+      </xacro:unless>
+      <xacro:if value="${use_mock_hardware}">
+      <hardware>
+        <plugin>mock_components/GenericSystem</plugin>
+        <param name="calculate_dynamics">true</param>
+      </hardware>
+      </xacro:if>
 
 			<joint name="J6">
 				<command_interface name="velocity">
 					<param name="max">292.444791137</param>
 				</command_interface>
-				<!--<command_interface name="position">
+				<command_interface name="position">
 					<param name="max">12.5663706144</param>
-				</command_interface>-->
+				</command_interface>
 				<state_interface name="velocity">
-					<param name="max">292.444791137</param>
 					<param name="initial_value">0.0</param>
 				</state_interface>
-				<!--<state_interface name="position">
+				<state_interface name="position">
 					<param name="initial_value">0.0</param>
-					<param name="max">12.5663706144</param>
-				</state_interface>-->
+				</state_interface>
 			</joint>
 		</ros2_control>
 
