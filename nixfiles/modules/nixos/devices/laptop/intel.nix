@@ -31,5 +31,9 @@ in
       ++ lib.optional cfg-new.enable vpl-gpu-rt
       ++ lib.optional cfg-old.enable intel-media-sdk;
     };
+
+    nixpkgs.config.permittedInsecurePackages = [
+      "intel-media-sdk-23.2.2"
+    ];
   };
 }
