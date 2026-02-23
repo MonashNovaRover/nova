@@ -22,7 +22,7 @@ in
     hardware.nvidia = {
       modesetting.enable = lib.mkDefault true;
       dynamicBoost.enable = lib.mkDefault false; # Only for RTX 3000 and newer
-      powerManagement.enable = lib.mkDeafult false; # Only enable if tested properly
+      powerManagement.enable = lib.mkDefault false; # Only enable if tested properly
       powerManagement.finegrained = lib.mkDefault false; # Only for RTX 2000 and newer
       open = lib.mkOverride 990 (nvidiaPackage ? open && nvidiaPackage ? firmware);
       package = lib.mkDefault config.boot.kernelPackages.nvidiaPackages.production;

@@ -31,6 +31,9 @@ in
       enableAllFirmware = lib.mkDefault true;
     };
 
+    # Enable gui
+    services.xserver.enable = lib.mkDefault true;
+
     # Detect other OS on boot
     boot.loader = {
       efi.canTouchEfiVariables = lib.mkDefault true;
