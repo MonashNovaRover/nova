@@ -47,9 +47,9 @@ arm:
         - J1
         - J2
         - J3
-        - J4
-        - J5
-        - J6
+        #- J4
+        #- J5
+        #- J6
       use_position_control: true
       use_collision_limits: true
       use_limits: true
@@ -73,9 +73,9 @@ arm:
         - J1
         - J2
         - J3
-        - J4
-        - J5
-        - J6
+        #- J4
+        #- J5
+        #- J6
       kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
       kinematics_solver_timeout: 0.02
       kinematics_base_frame: "arm_kinematics_origin"
@@ -105,7 +105,7 @@ arm:
   joint_state_broadcaster_arm:
     ros__parameters:
       interfaces:
-         ["position", "velocity"]
+         ["velocity"]
 
       joints: ["J1", "J2", "J3", "J4", "J5", "J6"]
       use_local_topics: false
