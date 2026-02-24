@@ -30,8 +30,8 @@ controller_server:
       # plugin: "nav2_mppi_controller::MPPIController"
       plugin: "nav2_rotation_shim_controller::RotationShimController"
       primary_controller: "nav2_mppi_controller::MPPIController"
-      angular_dist_threshold: 2.0       # ~115 degrees
-      angular_disengage_threshold: 1.99 # hand control back over to MPPI ASAP
+      angular_dist_threshold: 2.0         # ~115 degrees
+      angular_disengage_threshold: 0.3925 # ~22 degrees
       forward_sampling_distance: 0.5
       rotate_to_heading_angular_vel: 1.57
       max_angular_accel: 3.2
@@ -43,13 +43,13 @@ controller_server:
       time_steps: 40
       model_dt: 0.1
       batch_size: 2000
-      vx_std: 0.3  # higher sampled velocities are likely to give higher speed trajectories (still capped at vx_max)
+      vx_std: 0.3  # higher sampled velocities are likely to give higher speed trajectories (capped at vx_max)
       vy_std: 0.2  # only used in Omni motion model
       wz_std: 0.8  # similar to vx_std, higher values allow trajectories with higher rotation
       vx_max: 1.0  # max linear velocity, ~3.6 km/h
       vx_min: -0.7 # vx_max * 0.7
       vy_max: 0.5  # only used in Omni motion model
-      wz_max: 1.57 # max angular velocity (rad/s)
+      wz_max: 1.57 # max angular velocity (rad/s), ~90 degrees/s
       ax_max: 4.0  # max linear acceleration. going lower gives preference to rotational trajectories
       ax_min: -4.0 
       ay_max: 3.0  # only used in Omni motion model
@@ -59,7 +59,7 @@ controller_server:
       transform_tolerance: 0.1
       temperature: 0.3
       motion_model: "DiffDrive" # if holonomic drive works, can try "Omni"
-      prune_distance: 2.0       # slightly longer than prediction horizon
+      prune_distance: 4.6       # slightly longer than prediction horizon
       visualize: false          # TURN OFF when not debugging, as this is very costly
       TrajectoryVisualizer:
         trajectory_step: 10
@@ -75,7 +75,7 @@ controller_server:
         enabled: true
         cost_power: 1
         cost_weight: 5.0
-        threshold_to_consider: 2.8 # prediction horizon
+        threshold_to_consider: 4.0 # prediction horizon
       GoalAngleCritic:
         enabled: true
         cost_power: 1
@@ -99,19 +99,19 @@ controller_server:
         max_path_occupancy_ratio: 0.05
         trajectory_point_step: 4
         threshold_to_consider: 0.5
-        offset_from_furthest: 18 # prediction horizon / path_resolution / 3.0
+        offset_from_furthest: 26 # prediction horizon / path_resolution / 3.0
         use_path_orientations: false
       PathFollowCritic:
         enabled: true
         cost_power: 1
         cost_weight: 5.0
         offset_from_furthest: 6
-        threshold_to_consider: 2.8 # prediction horizon
+        threshold_to_consider: 4.0 # prediction horizon
       PathAngleCritic:
         enabled: true
         cost_power: 1
         cost_weight: 2.0
-        offset_from_furthest: 9
+        offset_from_furthest: 13 # ~PathAlignCritic.offset_from_furthest / 2.0 (not thoroughly tuned)
         threshold_to_consider: 0.5
         max_angle_to_furthest: 1.0
         mode: 0
