@@ -6,23 +6,28 @@ Can be controlled by effort or position, position
 command interface must be None to use effort
 control.
 
+Position is zeroed on startup.
+
 Can be zeroed by invoking the "<joint>/zero" event.
 (found in the EventCollection context)
+This will set the current positon as the "zero"
+position.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
   - <joint>/effort      [value between -1 and 1]
-  - <joint>/position    [number of steps away from zero position]
+  - <joint>/position    [distance from zero position]
 STATE INTERFACES:
-  - <joint>/position    [number of steps away from zero position]
+  - <joint>/position    [distance from zero position]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        python_control2
 AUTHOR(S):      Felicity Matthews
 CREATION:       01/02/26
-EDITED:         04/02/26
+EDITED:         24/02/26
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
 import jcan
+from collections.abc import Callable
 from teleop_python_utils import EventCollection
 
 from ..controller_manager.Interface import Interface, InterfaceCollection
@@ -30,6 +35,24 @@ from .HardwareInterface import HardwareInterface
 from ..controller_manager.Contexts import Contexts
 from struct import pack
 
+
+class Limits:
+    """ Helper class for apply optional limits """
+    def __init__(self, max_position, min_position, use_max_position, use_min_position):
+        self.max_position = max_position
+        self.min_position = min_position
+        self.use_max_position = use_max_position
+        self.use_min_position = use_min_position
+
+    def limit(self, num):
+        """ Limits the number based on provided limits. """
+        if self.use_min_position and num < self.min_position:
+            return self.min_position
+
+        if self.use_max_position and num > self.max_position:
+            return self.max_position
+
+        return num
 
 class StepperHardware(HardwareInterface):
     effort_cmd: Interface
@@ -41,16 +64,34 @@ class StepperHardware(HardwareInterface):
     reversed: bool
     max_steps_percent: float
     max_steps_can: int
+    limits: Limits
 
     def __init__(self, contexts: Contexts,
                  joint: str="",
                  can_id: int=0,
                  reversed: bool=False,
-                 max_steps_percent: float=1.0, max_steps_can: int=0x7F):
-        """ Constructor, deferred until the control manager has been spun.
-        If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
+                 position_to_steps: Callable[float | int, int]=lambda x: x,
+                 steps_to_position: Callable[int, int | float]=lambda x: x,
+                 max_steps_percent: float=1.0, max_steps_can: int=0x7F,
+                 max_position: float=300.0, min_position: float= 0.0,
+                 use_max_position: bool=False, use_min_position: bool=False):
+        """Constructor, deferred until the control manager has been spun.
 
-        :param contexts: A collection of dependency injection class instances you can index by class type.
+        If you override this method and want to add your own arguments,
+        ensure `contexts` remains the FIRST argument.
+
+        :param contexts: A collection of dependency injection class instances accessible by class type.
+        :param joint: Name of the joint. Defaults to the hardware interface name if empty.
+        :param can_id: CAN ID of the stepper motor.
+        :param reversed: Whether the output direction should be reversed.
+        :param steps_to_position: Function used to convert stepper steps to an SI unit.
+        :param position_to_steps: Function used to convert SI units to stepper steps.
+        :param max_steps_percent: Maximum percentage of output that can be sent.
+        :param max_steps_can: Maximum CAN message value that can be sent.
+        :param max_position: Maximum allowed joint position (in joint units).
+        :param min_position: Minimum allowed joint position (in joint units).
+        :param use_max_position: Enable enforcement of the max_position limit.
+        :param use_min_position: Enable enforcement of the min_position limit.
         """
         super().__init__(contexts)
 
@@ -66,6 +107,16 @@ class StepperHardware(HardwareInterface):
         self.declare_parameter("reversed", reversed, "Whether the output should be reversed")
         self.declare_parameter("max_steps_percent", max_steps_percent, "Max percentage of output to send")
         self.declare_parameter("max_steps_can", max_steps_can, "Max CAN message value that can be sent")
+
+        # Setup limits
+        self.declare_parameter("max_position", max_position, "Maximum allowed joint position (in joint units)")
+        self.declare_parameter("min_position", min_position, "Minimum allowed joint position (in joint units)")
+        self.declare_parameter("use_max_position", use_max_position, "Enable enforcement of max_position limit")
+        self.declare_parameter("use_min_position", use_min_position, "Enable enforcement of min_position limit")
+
+        # Setup conversion functions
+        self.position_to_steps_conversion = position_to_steps
+        self.steps_to_position_conversion = steps_to_position
 
         # Setup zero event callback.
         if EventCollection in contexts:
@@ -92,15 +143,23 @@ class StepperHardware(HardwareInterface):
         self.max_steps_percent = self.get_parameter("max_steps_percent").value
         self.max_steps_can = self.get_parameter("max_steps_can").value
 
-        # Get command interfaces
+        # Initialise limits
+        self.limits = Limits(
+            self.get_parameter("max_position").value,
+            self.get_parameter("min_position").value,
+            self.get_parameter("use_max_position").value,
+            self.get_parameter("use_min_position").value
+        )
+
+        # Get command and state interfaces
         self.effort_cmd = command_interfaces[self.joint + "/effort"]
         self.position_cmd = command_interfaces[self.joint + "/position"]
         self.position_state = state_interfaces[self.joint + "/position"]
 
         # Validate command interface configuration
-        if not self.effort_cmd:
+        if not self.effort_cmd and not self.position_cmd:
             self.logger.warn(f"Stepper \"{self.name}\" has no populated command interfaces. "
-                             f"(\"{self.joint}/effort\")")
+                             f"(\"{self.joint}/effort\", \"{self.joint}/position\")")
 
         return True
 
@@ -120,35 +179,35 @@ class StepperHardware(HardwareInterface):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
+        steps_to_move = 0
         # Prioritizes position control over effort.
         if self.position_cmd is not None:
             steps_to_move = self.position_to_steps(self.position_cmd.value)
 
-            if steps_to_move > 0:
-                frame = self.construct_frame(steps_to_move)
-                self.bus.send(frame)
-                self.current_position += steps_to_move
-
         elif self.effort_cmd.value != 0:
             steps_to_move = self.effort_to_steps(self.effort_cmd.value)
+
+        if abs(steps_to_move) > 0:
             frame = self.construct_frame(steps_to_move)
             self.bus.send(frame)
-            self.current_position += steps_to_move
+
+        self.current_position += self.steps_to_position_conversion(steps_to_move)
 
     def position_to_steps(self, position) -> int:
         """ Convert goal position to a discrete number of steps. """
-        data = position - self.current_position
+        desired_position = self.limits.limit(position)
+        steps = self.position_to_steps_conversion(desired_position) - self.current_position
 
         # Check if the data is greater than the max value
         # If it is, set the data to the max value
-        if data > self.max_steps_can:
-            data = self.max_steps_can
-        elif data < -self.max_steps_can:
-            data = -self.max_steps_can
+        if steps > self.max_steps_can:
+            steps = self.max_steps_can
+        elif steps < -self.max_steps_can:
+            steps = -self.max_steps_can
 
-        data *= self.max_steps_percent
+        steps *= self.max_steps_percent
 
-        return data
+        return steps
 
     def effort_to_steps(self, effort) -> int:
         """ Convert effort to a discrete number of steps. """
@@ -163,6 +222,11 @@ class StepperHardware(HardwareInterface):
         elif data < -self.max_steps_can:
             data = -self.max_steps_can
 
+        # Limit desired position
+        data = self.position_to_steps_conversion(
+            self.limits.limit(self.current_position + self.steps_to_position_conversion(data))
+        )
+
         return data
 
     def construct_frame(self, steps_to_move) -> jcan.Frame:
@@ -171,7 +235,7 @@ class StepperHardware(HardwareInterface):
             self.logger.error(f"{steps_to_move} is outside of range [{-self.max_steps_can}, {self.max_steps_percent}]")
             return jcan.Frame(id=self.can_id, data=[0])
 
-        # # Pack the data into a list
+        # Pack the data into a list
         packed_data = list(pack('>b', int(steps_to_move * self.reversed))) # >b = big-endian signed byte (2 hex digits)
 
         # Create and return the frame
