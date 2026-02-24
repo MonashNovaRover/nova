@@ -250,13 +250,13 @@
 				</state_interface>
 			</joint>
 
-			<!-- <transmission name="diff_wrist_transmission">
+			<transmission name="diff_wrist_transmission">
 				<plugin>transmission_interface/DifferentialTransmission</plugin>
-				<actuator name="arm_J5" role="actuator1"/>
-				<actuator name="arm_J6" role="actuator2"/>
+				<actuator name="diff_wrist_pitch" role="actuator1"/>
+				<actuator name="diff_wrist_yaw" role="actuator2"/>
 				<joint name="j5" role="joint1"/>
 				<joint name="j6" role="joint2"/>
-			</transmission> -->
+			</transmission>
 		</ros2_control>
 
 		<!-- <ros2_control name="arm_J5" type="system">
@@ -354,10 +354,7 @@
 					<hardware>
 						<plugin>qcmd_hardware/QCMDHardware</plugin>
 						<param name="candevice">can1</param> 
-						<param name="canid">0C1</param> <!-- TODO: Get CAN id, resolver id should be that *4 -->
-						<!-- <param name="reversed">false</param> -->
-						<!-- <param name="reverse_velocity">true</param> -->
-						<!-- <param name="max_velocity">0.365109712045</param> -->
+						<param name="canid">0C1</param> 
 						<param name="max_effort">1</param>
 					</hardware>
 				<xacro:if value="${use_mock_hardware}">
@@ -386,12 +383,7 @@
 			<hardware>
 				<plugin>qcmd_hardware/QCMDHardware</plugin>
 				<param name="candevice">can1</param> 
-				<param name="canid">0D1</param> <!-- TODO: Get CAN id, resolver id should be that *4 -->
-				<!-- <param name="resolver_id">344</param>
-				<param name="resolver_reduction">1.0</param>
-				<param name="reversed">false</param>
-				<param name="reverse_velocity">true</param>
-				<param name="max_velocity">0.365109712045</param> -->
+				<param name="canid">0D1</param>
 				<param name="max_effort">1</param>
 			</hardware>
 			<xacro:if value="${use_mock_hardware}">

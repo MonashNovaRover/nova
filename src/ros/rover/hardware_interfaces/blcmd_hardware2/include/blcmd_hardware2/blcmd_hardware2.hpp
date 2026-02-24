@@ -26,6 +26,7 @@
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
 #include "rclcpp/macros.hpp"
 #include "rclcpp_lifecycle/state.hpp"
+#include "transmission_interface/transmission.hpp"
 
 #include "jcan/jcan.h"
 
@@ -181,6 +182,22 @@ private:
     std::vector<ControlInterface> hw_velocities_;
     std::vector<PositionInterface> hw_positions_;
     std::vector<ControlInterface> hw_efforts_;
+
+    std::vector<std::shared_ptr<transmission_interface::Transmission>> transmissions_;
+
+    struct InterfaceData
+    {
+      explicit InterfaceData(const std::string & name);
+
+      std::string name_;
+      double command_;
+      double state_;
+
+      double transmission_passthrough_;
+    };
+
+    std::vector<InterfaceData> joint_interfaces_;
+    std::vector<InterfaceData> actuator_interfaces_;
 
     ControlMode control_mode_;
 
