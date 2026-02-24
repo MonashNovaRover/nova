@@ -124,7 +124,7 @@
         <param name="candevice">can1</param>
         <param name="canid">4</param>
         <param name="resolver_reduction">4</param>
-        <param name="gear_ratio">15.0</param>
+        <param name="gear_ratio">8.0</param>
         <param name="max_input_vel">292.35</param>
         <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
         <param name="reversed">true</param>
@@ -161,7 +161,7 @@
       <param name="candevice">can1</param>
       <param name="canid">5</param>
       <param name="resolver_reduction">1.25</param>
-      <param name="gear_ratio">1.0</param>
+      <param name="gear_ratio">10.0</param>
       <param name="max_input_vel">292.35</param>
       <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
       <param name="reversed">false</param>
@@ -198,7 +198,7 @@
 				<param name="candevice">can1</param>
 				<param name="canid">6</param>
 				<param name="resolver_reduction">1.25</param>
-				<param name="gear_ratio">1.0</param>
+				<param name="gear_ratio">10.0</param>
         <param name="max_input_vel">292.35</param>
 				<param name="reversed">false</param>
 				<param name="home_offset">8192</param>
