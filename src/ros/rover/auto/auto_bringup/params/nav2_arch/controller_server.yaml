@@ -50,7 +50,7 @@ controller_server:
       vx_min: -0.7 # vx_max * 0.7
       vy_max: 0.5  # only used in Omni motion model
       wz_max: 1.57 # max angular velocity (rad/s)
-      ax_max: 4.0  # max linear acceleration. best not to modify, going lower gives preference to rotational trajectories
+      ax_max: 4.0  # max linear acceleration. going lower gives preference to rotational trajectories
       ax_min: -4.0 
       ay_max: 3.0  # only used in Omni motion model
       ay_min: -3.0 # only used in Omni motion model
@@ -60,7 +60,7 @@ controller_server:
       temperature: 0.3
       motion_model: "DiffDrive" # if holonomic drive works, can try "Omni"
       prune_distance: 2.0       # slightly longer than prediction horizon
-      visualize: true
+      visualize: false          # TURN OFF when not debugging, as this is very costly
       TrajectoryVisualizer:
         trajectory_step: 10
         time_step: 6
