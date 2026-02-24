@@ -603,22 +603,37 @@ bool BLCMDHardware::set_control_interface(
     }
 
     void BLCMDHardware::packet_1_callback(leigh::jcan::Frame frame) {
-        auto canid = frame.id;
-        auto i = std::distance(params_.canids.begin(), std::find(params_.canids.begin(), params_.canids.end(), canid));
-        if(hw_velocities_[i].state.has_value()) {
-            hw_velocities_[i].state = convert_scaled<int16_t>(&frame.data[0], hw_velocities_[i].max) * 
+        auto canid = (frame.id & 0x0f0) >> 4;
+        auto id_location = std::find(params_.canids.begin(), params_.canids.end(), canid);
+
+        if (id_location == params_.canids.end()) {
+          RCLCPP_ERROR(rclcpp::get_logger(BLCMDHardwareLoggerName), "%s: %d is not in our canid list.", __func__, canid);
+          return;
+        }
+
+        auto i = std::distance(params_.canids.begin(), id_location);
+        if(hw_velocities_.at(i).state.has_value()) {
+            hw_velocities_.at(i).state = convert_scaled<int16_t>(&frame.data[0], hw_velocities_.at(i).max) *
             reversed_multiplier_*-1*0.5; // Dear Bro, ask chassis why this is -1
         }
-        if(hw_efforts_[i].state.has_value()) {
-            hw_efforts_[i].state = convert_scaled<int16_t>(&frame.data[2], hw_efforts_[i].max);
+        if(hw_efforts_.at(i).state.has_value()) {
+            hw_efforts_.at(i).state = convert_scaled<int16_t>(&frame.data[2], hw_efforts_.at(i).max);
         }
     }
 
     void BLCMDHardware::packet_3_callback(leigh::jcan::Frame frame) {
-        auto canid = frame.id;
-        auto i = std::distance(params_.canids.begin(), std::find(params_.canids.begin(), params_.canids.end(), canid));
-        if(hw_positions_[i].state.has_value()) {
-            hw_positions_[i].state = convert_scaled<int16_t>(&frame.data[0], hw_positions_[i].max) *
+        auto canid = (frame.id & 0x0f0) >> 4;
+        auto id_location = std::find(params_.canids.begin(), params_.canids.end(), canid);
+
+        if (id_location == params_.canids.end()) {
+          RCLCPP_ERROR(rclcpp::get_logger(BLCMDHardwareLoggerName), "%s: %d is not in our canid list.", __func__, canid);
+          return;
+        }
+
+        auto i = std::distance(params_.canids.begin(), id_location);
+
+        if(hw_positions_.at(i).state.has_value()) {
+            hw_positions_.at(i).state = convert_scaled<int16_t>(&frame.data[0], hw_positions_.at(i).max) *
                                  params_.resolver_reduction * reversed_multiplier_
                                  + params_.position_offset;
         }
