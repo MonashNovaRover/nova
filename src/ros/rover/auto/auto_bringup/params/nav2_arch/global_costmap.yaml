@@ -8,10 +8,11 @@ global_costmap:
       use_sim_time: True
       # [x, y], where x is length and y is width
       # local_costmap footprint * 1.2
-      footprint: "[[0.76, 0.68], [0.76, -0.68], [-0.76, -0.68], [-0.76, 0.68]]"
+      footprint: "[[0.64, 0.57], [0.64, -0.57], [-0.64, -0.57], [-0.64, 0.57]]"
       resolution: 0.05
       track_unknown_space: false
-      plugins: ["static_layer", "rtabmap_layer", "denoise_layer", "inflation_layer"]
+      always_send_full_costmap: false
+      plugins: ["static_layer", "denoise_layer", "inflation_layer"]
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"
         enabled: True
@@ -27,6 +28,5 @@ global_costmap:
         map_topic: /static_map
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 0.1
-        inflation_radius: 0.7
-      always_send_full_costmap: True
+        cost_scaling_factor: 4.0
+        inflation_radius: 1.28 # robot radius * 2
