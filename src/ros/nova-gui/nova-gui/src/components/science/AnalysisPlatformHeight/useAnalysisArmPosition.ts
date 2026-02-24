@@ -2,11 +2,8 @@ import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
-import {useEffect, useState} from "react";
+import {useEffect} from "react";
 import {RosService} from "../../../ros/services/rosService.ts";
-import {IRosScienceInterfacesKilnCommandResponse} from "../../../ros/rosTypes.ts";
-import toast from "react-hot-toast";
-import {set} from "lodash";
 
 /**
  * Bifrost wrapper for analysis arm and tof published data.
@@ -34,7 +31,7 @@ export function useAnalysisArmPosition() {
 /**
  * Bifrost wrapper for calling analysis arm position services.
  */
-export function useAnalysisArmServices() {
+export function useAnalysisArmServices(): [() => void, (newPos: number) => void] {
   const bifrostZero = useBifrost({service: RosService.ZERO_ANALYSIS_ARM});
   const bifrostSetPos = useBifrost({service: RosService.SET_AA_POSITION});
 

@@ -18,9 +18,9 @@ const AnalysisArmWidget: React.FC<AnalysisArmWidgetProps> = () => {
   // Target position
   const [target, setTarget] = useState(-100)
 
-  const setPos = (newPos: number) => {
-    setTarget(newPos)
-    setAAPos(newPos)
+  const setPos = (pos: number) => {
+    setTarget(pos)
+    setAAPos(pos)
   }
 
   // remove target market when the position is reached.
@@ -38,7 +38,7 @@ const AnalysisArmWidget: React.FC<AnalysisArmWidgetProps> = () => {
 
     // TOF distance is invalid outside its range.
     // When tof values are valid
-    if (tofDist.min_range <= curTofDist <= tofDist.max_range) {
+    if (tofDist.min_range <=  curTofDist && curTofDist <= tofDist.max_range) {
       const sum = num + curTofDist
       return 100 - (num / sum)
     }

@@ -1,5 +1,4 @@
 import { RosService } from "./rosService";
-import {Ros} from "roslib";
 
 export const rosServiceMessages = {
   [RosService.NULL_SERVICE]: "",
