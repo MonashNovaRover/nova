@@ -64,10 +64,11 @@ install(
   DESTINATION include/${PROJECT_NAME}
 )
 
-# Install launch files
-install(
-  DIRECTORY launch/
-  DESTINATION share/${PROJECT_NAME}/launch
+# Install launch and param files
+install(DIRECTORY
+  launch
+  params
+  DESTINATION share/${PROJECT_NAME}
 )
 
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
