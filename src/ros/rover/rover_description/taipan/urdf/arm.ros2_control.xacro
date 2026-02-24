@@ -190,7 +190,76 @@
 			</joint>
 		</ros2_control>
 
-		<ros2_control name="arm_J5" type="system">
+		<ros2_control name="arm_diff_wrist" type="system">
+			<xacro:unless value="${use_mock_hardware}">
+				<hardware>
+					<plugin>blcmd_hardware2/BLCMDHardware</plugin>
+					<param name="candevice">can1</param>
+					<param name="canid">5 6</param>
+					<param name="resolver_reduction">1.0</param>
+					<param name="clock_rate">100000000</param>
+					<param name="revolution_pulses">8192</param>
+          			<param name="min_interval">1792</param>
+					<param name="gear_ratio">1.0</param>
+					<param name="mock">true</param>
+					<param name="reversed">false</param>
+					<param name="integrate_velocity">false</param>
+					<param name="max_position">12.5663706144</param>
+					<param name="position_offset">3.14159265359</param>
+					<param name="max_velocity">292.444791136</param>
+				</hardware>
+			</xacro:unless>
+			<xacro:if value="${use_mock_hardware}">
+				<hardware>
+					<plugin>mock_components/GenericSystem</plugin>
+					<param name="calculate_dynamics">true</param>
+				</hardware>
+			</xacro:if>
+
+			<joint name="j5">
+				<command_interface name="velocity">
+					<param name="max">292.444791137</param>
+				</command_interface>
+				<command_interface name="position">
+					<param name="max">12.5663706144</param>
+				</command_interface>
+				<state_interface name="velocity">
+					<param name="max">292.444791137</param>
+					<param name="initial_value">0.0</param>
+				</state_interface>
+				<state_interface name="position">
+					<param name="max">12.5663706144</param>
+					<param name="initial_value">0.0</param>
+				</state_interface>
+			</joint>
+
+			<joint name="j6">
+				<command_interface name="velocity">
+					<param name="max">292.444791137</param>
+				</command_interface>
+				<command_interface name="position">
+					<param name="max">12.5663706144</param>
+				</command_interface>
+				<state_interface name="velocity">
+					<param name="max">292.444791137</param>
+					<param name="initial_value">0.0</param>
+				</state_interface>
+				<state_interface name="position">
+					<param name="max">12.5663706144</param>
+					<param name="initial_value">0.0</param>
+				</state_interface>
+			</joint>
+
+			<!-- <transmission name="diff_wrist_transmission">
+				<plugin>transmission_interface/DifferentialTransmission</plugin>
+				<actuator name="arm_J5" role="actuator1"/>
+				<actuator name="arm_J6" role="actuator2"/>
+				<joint name="j5" role="joint1"/>
+				<joint name="j6" role="joint2"/>
+			</transmission> -->
+		</ros2_control>
+
+		<!-- <ros2_control name="arm_J5" type="system">
 			<xacro:unless value="${use_mock_hardware}">
 				<hardware>
 					<plugin>blcmd_hardware2/BLCMDHardware</plugin>
@@ -232,9 +301,9 @@
 					<param name="initial_value">0.0</param>
 				</state_interface>
 			</joint>
-		</ros2_control>
+		</ros2_control> -->
 
-		<ros2_control name="arm_J6" type="system">
+		<!-- <ros2_control name="arm_J6" type="system">
 			<xacro:unless value="${use_mock_hardware}">
 				<hardware>
 					<plugin>blcmd_hardware2/BLCMDHardware</plugin>
@@ -250,7 +319,7 @@
 					<param name="integrate_velocity">false</param>
 					<param name="max_position">12.5663706144</param>
 					<param name="position_offset">3.14159265359</param>
-					<!-- <param name="max_velocity">146.222395568</param> -->
+					<!-/- <param name="max_velocity">146.222395568</param> -/->
 					<param name="max_velocity">292.444791136</param>
 
 				</hardware>
@@ -277,8 +346,8 @@
 					<param name="initial_value">0.0</param>
 					<param name="max">12.5663706144</param>
 				</state_interface>
-			</joint>
-		</ros2_control>
+			</joint>	
+		</ros2_control> -->
 
 		<xacro:unless value="${use_mock_hardware}">
 			<ros2_control name="arm_la_prismatic" type="system">

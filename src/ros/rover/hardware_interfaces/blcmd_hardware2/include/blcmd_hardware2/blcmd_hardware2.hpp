@@ -138,7 +138,7 @@ private:
         std::string candevice = "";
 
         /// The 2nd hexadecimal digit in the 12-bit CAN id used in messages to/from the BLCMD board.
-        uint32_t canid = 0;
+        std::vector<uint32_t> canids;
 
         /// Unknown.
         uint32_t clock_rate = 100000000;
@@ -178,9 +178,9 @@ private:
 
     std::string BLCMDHardwareLoggerName;
 
-    ControlInterface hw_velocity_;
-    PositionInterface hw_position_;
-    ControlInterface hw_effort_;
+    std::vector<ControlInterface> hw_velocities_;
+    std::vector<PositionInterface> hw_positions_;
+    std::vector<ControlInterface> hw_efforts_;
 
     ControlMode control_mode_;
 
@@ -191,7 +191,7 @@ private:
 
     hardware_interface::CallbackReturn apply_parameters();
 
-    bool set_control_interface(const hardware_interface::InterfaceInfo & interface_info, bool command);
+    bool set_control_interface(const hardware_interface::InterfaceInfo & interface_info, bool command, int index);
 
     bool stop_interface(const std::string &interface);
 
@@ -203,22 +203,22 @@ private:
     /// @param      command - The config value to get
     /// @returns    The optional with config value if received, empty optional otherwise
     template<typename T>
-    std::optional<T> get_config(BLCMDConfigCommand command);
+    std::optional<T> get_config(BLCMDConfigCommand command, uint32_t canid);
 
     /// @brief      Create the can ID for a given BLCMDSendCommand
     /// @param      command - The command to send
     /// @returns    The can ID
-    uint32_t make_can_id(BLCMDSendCommand command) const;
+    uint32_t make_can_id(BLCMDSendCommand command, uint32_t canid) const;
 
     /// @brief      Create the can ID for a given BLCMDReceiveCommand
     /// @param      command - The command to send
     /// @returns    The can ID
-    uint32_t make_can_id(BLCMDReceiveCommand command) const;
+    uint32_t make_can_id(BLCMDReceiveCommand command, uint32_t canid) const;
 
     /// @brief      Create the can ID for a given TelemetryPacket
     /// @param      command - The command to send
     /// @returns    The can ID
-    uint32_t make_can_id(TelemetryPacket packet) const;
+    uint32_t make_can_id(TelemetryPacket packet, uint32_t canid) const;
 
     void packet_1_callback(leigh::jcan::Frame);
 
