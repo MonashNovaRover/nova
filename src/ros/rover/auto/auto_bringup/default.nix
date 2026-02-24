@@ -40,6 +40,7 @@
   nova-interfaces,
   imu-filter-madgwick,
   realsense2-camera,
+  realsense2-description,
   usb-cam,
 }:
 
@@ -95,6 +96,7 @@ buildRosPackage rec {
       nova-interfaces
       imu-filter-madgwick
       realsense2-camera
+      realsense2-description
       usb-cam
       ;
   };

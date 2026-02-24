@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <link name="d415_link">
+    <visual>
+        <origin xyz="0 -0.0377 0" rpy="3.14159 0 1.5708" />
+        <geometry>
+            <mesh filename="file://$(find rover_description)/auto_mount/meshes/intel_d415.stl"/>
+        </geometry>
+    </visual>
+  </link>
+
+  <link name="d415_rgb_camera_frame"/>
+  <joint name="d415_link_to_rgb" type="fixed">
+    <origin xyz="0.02 0.036 0" rpy="0 0 0" />
+    <parent link="d415_link"/>
+    <child link="d415_rgb_camera_frame"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+</robot>
