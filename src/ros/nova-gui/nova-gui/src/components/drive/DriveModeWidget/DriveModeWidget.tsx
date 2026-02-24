@@ -67,7 +67,7 @@ const DriveModeWidget: React.FC<IDriveModeWidgetProps> = (
       </CardHeader>
       <CardBody className="flex justify-center flex-col content-center">
         <div>
-          <div className="grid grid-flow-col gap-3 auto-cols-fr">
+          <div className="grid grid-flow-row grid-cols-[repeat(auto-fit,_minmax(10em,_1fr))] gap-3">
             {driveModes.map((mode, index) => (
               <DriveModeButton
                 key={index}

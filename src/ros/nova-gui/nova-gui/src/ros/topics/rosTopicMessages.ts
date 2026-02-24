@@ -15,6 +15,7 @@ export const rosTopicMessages = {
   // Drive Related
   [RosTopic.DRIVE_INFO]: "drive_interfaces/msg/DriveInfo",
   [RosTopic.DRIVE_TELEMETRY]: "blcmd_interfaces/msg/Telemetry",
+  [RosTopic.DRIVE_JOINT_STATES]: "sensor_msgs/msg/JointState",
 
   // Arm Related
   [RosTopic.ARM_TELEMETRY]: "cmd_interfaces/msg/CMDsFeedback",

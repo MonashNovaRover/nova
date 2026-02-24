@@ -14,6 +14,7 @@ bool connected
 byte PIVOT = 1
 byte STRAFE = 2
 byte TANK = 3
+byte ACKERMANN = 4
 
 #current drive mode of the rover
 byte drive_mode 

@@ -5,8 +5,9 @@ import {RosTopic} from "../ros/topics/rosTopic";
 import {
   IRosCmdInterfacesCmdFeedback,
   IRosCmdInterfacesCmDsFeedback,
+  IRosNovaInterfacesStatusConst,
   IRosScienceInterfacesHydraprobeData,
-  IRosScienceInterfacesNirProbeDataConst, IRosNovaInterfacesStatusConst,
+  IRosScienceInterfacesNirProbeDataConst,
   IRosSensorMsgsRange,
   IRosStdMsgsHeader
 } from "../ros/rosTypes";
@@ -80,6 +81,15 @@ export const reduxStores = {
         voltage: 0,
         temperature: 0,
       })),
+    }
+  ),
+  driveJointStateStore: createBifrostStore(
+    { topic: RosTopic.DRIVE_JOINT_STATES },
+    {
+      name: [],
+      position: [],
+      velocity: [],
+      effort: [],
     }
   ),
 
