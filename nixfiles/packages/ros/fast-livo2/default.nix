@@ -42,6 +42,7 @@ buildRosPackage {
     ./patches/memory_bug.patch
     ./patches/pc2_for_livox.patch
     ./patches/pcd_save_dir.patch
+    ./patches/remove_mimalloc.patch
   ];
 
   buildType = "ament_cmake";
