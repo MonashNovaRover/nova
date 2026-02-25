@@ -16,7 +16,7 @@ This repository contains [Nix](https://nixos.org) files for:
 ├ modules                # ???
 | ├ common               # ???
 | ├ home                 # ???
-| | ├ ...                # Miscellaneous non-ros software
+| | ├ ...                
 | | └ macros             # idk but important stuff
 | |   ├ launch           # Terminal launch scripts
 | |   └ default.nix      # Alias definitions
