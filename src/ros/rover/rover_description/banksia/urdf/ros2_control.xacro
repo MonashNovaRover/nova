@@ -194,14 +194,15 @@
                     <plugin>blcmd_hardware2/BLCMDHardware</plugin>
                     <param name="candevice">can0</param>
                     <param name="canid">5</param>
-		            <param name="resolver_reduction">1.33333333333</param>
+		                <param name="resolver_reduction">1.33333333333</param>
                     <param name="clock_rate">100000000</param>
                     <param name="revolution_pulses">8192</param>
                     <param name="min_interval">233</param>
                     <param name="gear_ratio">36.0</param>
-	                <param name="mock">true</param>
+	                  <param name="mock">true</param>
                     <param name="reversed">true</param>
-                    <param name="position_offset">-0.70554839</param>
+                    <param name="zero_offset">14717</param>
+                    <param name="res_ticks_per_rev">98304</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -251,7 +252,8 @@
                     <param name="gear_ratio">36.0</param>
                     <param name="revolution_pulses">8192</param>
                     <param name="mock">true</param>
-                    <param name="position_offset">-0.70554839</param>
+                    <param name="zero_offset">14717</param>
+                    <param name="res_ticks_per_rev">98304</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -301,9 +303,10 @@
                     <param name="revolution_pulses">8192</param>
                     <param name="min_interval">233</param>
                     <param name="gear_ratio">36.0</param>
-	                <param name="mock">true</param>
+	                  <param name="mock">true</param>
                     <param name="reversed">true</param>
-                    <param name="position_offset">-0.70554839</param>
+                    <param name="zero_offset">14717</param>
+                    <param name="res_ticks_per_rev">98304</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -352,8 +355,9 @@
                     <param name="revolution_pulses">8192</param>
                     <param name="min_interval">233</param>
                     <param name="gear_ratio">36.0</param>
-	                <param name="mock">true</param>
-                    <param name="position_offset">-0.70554839</param>
+	                  <param name="mock">true</param>
+                    <param name="zero_offset">14717</param>
+                    <param name="res_ticks_per_rev">98304</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
