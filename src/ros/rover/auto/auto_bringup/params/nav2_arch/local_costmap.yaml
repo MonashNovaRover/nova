@@ -62,6 +62,7 @@ local_costmap:
         enabled: True
         minimal_group_size: 3
         group_connectivity_type: 8
+      # DO NOT modify lightly, see https://docs.nav2.org/configuration/packages/configuring-mppic.html#general-words-of-wisdom
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
