@@ -227,14 +227,6 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
   <xacro:sensor_d415 parent="camera_holder_2" name="d415">
     <origin xyz="-0.09 0.0115 -0.058" rpy="-1.5708 0 3.14159" />
   </xacro:sensor_d415>
-  <!-- Joint from camera_holder_2 to realsense d415 -->
-  <!-- <xacro:include filename="$(find rover_description)/auto_mount/urdf/rs_d415.xacro"/>
-  <joint name="d415_to_mount" type="fixed">
-    <origin xyz="-0.09 0.0115 -0.058" rpy="-1.5708 0 3.14159" />
-    <parent link="camera_holder_2"/>
-    <child link="d415_link"/>
-    <axis xyz="0 0 1"/>
-  </joint> -->
   <!-- Joint from mount to camera_holder_2 -->
   <joint name="mount_to_front" type="fixed">
     <origin xyz="0.021 0.0125 -0.0225769" rpy="1.73923e-17 -1.5708 0"/>
