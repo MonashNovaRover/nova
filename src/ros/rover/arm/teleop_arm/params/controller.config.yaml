@@ -117,4 +117,5 @@ joy_input_source:
         task_space:
           from_axis:
             axis: "TRIGGERLEFT"
+          from: "PADDLE1"
 

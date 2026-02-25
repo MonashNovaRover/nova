@@ -51,7 +51,7 @@ arm:
         - j5
         - j6
       use_position_control: true
-      use_collision_limits: true
+      use_collision_limits: false
       use_limits: true
     
   nova_end_effector_velocity_controller:
