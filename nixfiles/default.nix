@@ -42,16 +42,12 @@ let
       inherit (revisions.nix-ros-overlay) rev hash;
     };
     patches = [
-      # # fix: gz vendor
-      # # https://github.com/lopsided98/nix-ros-overlay/pull/472
-      # ./overlay/ros/patches/nix-ros-workspace.patch
-
-      # # Some more Gazebo improvements
-      # # https://github.com/muellerbernd/nix-ros-overlay/pull/2
-      # (pkgs.fetchpatch {
-      #   url = "https://github.com/lopsided98/nix-ros-overlay/compare/6d04148eac0727be34e5333f6e12cfc7e86673c3...eca9687ce15335bbb2d4b7b14fbf74ce0e957f43.patch";
-      #   hash = "sha256-c6DD2U6Lo2dcs0APxEHg9l0bz1Ioa5aX5FoATajXYAc=";
-      # })
+      # ros-gz-sim: Fix patching
+      # https://github.com/lopsided98/nix-ros-overlay/pull/686
+      (pkgs.fetchpatch {
+        url = "https://github.com/muellerbernd/nix-ros-overlay/commit/508039a6d970647d1b046e859a556fc62d863272.patch";
+        hash = "sha256-phTkwqhxgUtM/jvzg9Bw+dNVTsFdhe+FhqhF0KzK3wc=";
+      })
 
       # speed up ws-build by avoiding wrapping qt apps twice.
       ./overlay/ros/patches/0001-don-t-wrap-qt-apps-for-the-whole-env.patch
