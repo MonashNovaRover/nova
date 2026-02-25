@@ -31,6 +31,17 @@
 
 namespace blcmd_hardware
 {
+
+void differential_convert_to_motors(double pitch, double yaw, double& j5, double& j6) {
+  j5 = (pitch + yaw);
+  j6 = (pitch - yaw);
+}
+
+void differential_convert_from_motors(double j5, double j6, double& pitch, double& yaw) {
+  pitch = (j5 + j6) / 2.0;
+  yaw = (j5 - j6) / 2.0;
+}
+
 hardware_interface::CallbackReturn BLCMDHardware::on_init(
         const hardware_interface::HardwareInfo & info)
 {
@@ -73,61 +84,6 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
         }
 
     }
-
-    // if (info_.transmissions.size() == 1 && info_.transmissions[0].type == "transmission_interface/DifferentialTransmission") {
-    //   hardware_interface::TransmissionInfo transmission_info = info_.transmissions[0];
-    //   std::shared_ptr<transmission_interface::Transmission> transmission;
-    //   auto transmission_loader = transmission_interface::DifferentialTransmissionLoader();
-
-    //   try
-    //   {
-    //     transmission = transmission_loader.load(transmission_info);
-    //   }
-    //   catch (const transmission_interface::TransmissionInterfaceException & exc)
-    //   {
-    //     RCLCPP_FATAL(
-    //       get_logger(), "Error while loading %s: %s", transmission_info.name.c_str(), exc.what());
-    //     return hardware_interface::CallbackReturn::ERROR;
-    //   }
-
-    //   std::vector<transmission_interface::JointHandle> joint_handles;
-    //   for (const auto & joint_info : transmission_info.joints)
-    //     {
-    //       const auto joint_interface =
-    //         joint_interfaces_.insert(joint_interfaces_.end(), InterfaceData(joint_info.name));
-
-    //       transmission_interface::JointHandle joint_handle(
-    //         joint_info.name, hardware_interface::HW_IF_POSITION,
-    //         &joint_interface->transmission_passthrough_);
-    //       joint_handles.push_back(joint_handle);
-    //     }
-
-    //   std::vector<transmission_interface::ActuatorHandle> actuator_handles;
-    //   for (const auto & actuator_info : transmission_info.actuators)
-    //   {
-    //     // no check for actuators types
-
-    //     const auto actuator_interface =
-    //       actuator_interfaces_.insert(actuator_interfaces_.end(), InterfaceData(actuator_info.name));
-    //     transmission_interface::ActuatorHandle actuator_handle(
-    //       actuator_info.name, hardware_interface::HW_IF_POSITION,
-    //       &actuator_interface->transmission_passthrough_);
-    //     actuator_handles.push_back(actuator_handle);
-    //   }
-
-    //   try
-    //   {
-    //     transmission->configure(joint_handles, actuator_handles);
-    //   }
-    //   catch (const transmission_interface::TransmissionInterfaceException & exc)
-    //   {
-    //     RCLCPP_FATAL(
-    //       get_logger(), "Error while configuring %s: %s", transmission_info.name.c_str(), exc.what());
-    //     return hardware_interface::CallbackReturn::ERROR;
-    //   }
-
-    //   transmissions_.push_back(transmission);
-    // }
     
     control_mode_ = blcmd_hardware::ControlMode::Undefined;
 	
@@ -301,22 +257,7 @@ hardware_interface::return_type BLCMDHardware::read(
 
         }
     }
-
-    // std::for_each(
-    //   actuator_interfaces_.begin(), actuator_interfaces_.end(), [](auto & actuator_interface)
-    //   { actuator_interface.transmission_passthrough_ = actuator_interface.state_; });
-
-    // // transmission: actuator -> joint
-    // std::for_each(
-    //   transmissions_.begin(), transmissions_.end(),
-    //   [](auto & transmission) { transmission->actuator_to_joint(); });
-
-    // // joint: transmission -> state
-    // std::for_each(
-    //   joint_interfaces_.begin(), joint_interfaces_.end(), [](auto & joint_interface)
-    //   { joint_interface.state_ = joint_interface.transmission_passthrough_; });
-
-
+    
     return hardware_interface::return_type::OK;
 }
 
@@ -581,6 +522,13 @@ hardware_interface::CallbackReturn BLCMDHardware::apply_parameters() {
     params_.position_offset = std::stod(position_offset_search->second);
     
     RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using position_offest of: %f", params_.position_offset);
+  }
+  
+  auto diff_wrist_search = info_.hardware_parameters.find("diff_wrist");
+  if (diff_wrist_search != info_.hardware_parameters.end() && is_true(diff_wrist_search->second)) {
+    RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                    "Diff Wrist Enabled");
+    params_.integrate_velocity = true;
   }
 
   return CallbackReturn::SUCCESS;
