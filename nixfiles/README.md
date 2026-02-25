@@ -6,6 +6,28 @@ This repository contains [Nix](https://nixos.org) files for:
 - Configuring NixOS for various devices
 - Setting up [Hydra](https://nixos.org/hydra) for CI/CD
 
+## Project Structure
+
+```
+├ ci                     # Hydra source code
+├ doc                    # Documentation for our nixos/package systems
+├ external               # ???
+├ lib                    # ??? why is there a whole root folder for one file??
+├ modules                # ???
+| ├ common               # ???
+| ├ home                 # ???
+| | ├ ...                # Miscellaneous non-ros software
+| | └ macros             # idk but important stuff
+| |   ├ launch           # Terminal launch scripts
+| |   └ default.nix      # Alias definitions
+| └ nixos                # ???
+├ overlay                # ???
+├ packages               # ???
+├ scripts                # Bash scripts
+├ secrets                # Symlink to secrets repo
+└ tests                  # Tests for ???
+```
+
 ## Contributing
 
 ### Code standards
