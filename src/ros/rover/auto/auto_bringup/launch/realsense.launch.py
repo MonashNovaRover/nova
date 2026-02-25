@@ -31,20 +31,13 @@ def launch_setup(context, *args, **kwargs):
     return [
         Node(
             package='realsense2_camera',
-            name=cam_name,
+            name='realsense_d415',
             namespace='',
             executable='realsense2_camera_node',
-            parameters=[rs_params],
+            parameters=[rs_params, {'camera_name': cam_name}],
             output='screen',
             arguments=['--ros-args', '--log-level', log_level],
             emulate_tty=True,
-        ),
-        Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='RS_D415_to_oak_link_static_tf_publisher',
-            arguments=["0", "0", "0", "0", "0", "0", "RS_D415_link", "oak_link"],
-            output='screen',
         ),
         Node(
             condition=IfCondition(ar),
@@ -62,12 +55,12 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             name='cam_name',
-            default_value='RS_D415',
+            default_value='d415',
             description='Name of camera',
         ),
         DeclareLaunchArgument(
             name='rs_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'rs_d415.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'd415.yaml']),
             description='Path to realsense params file',
         ),
         DeclareLaunchArgument(

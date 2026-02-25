@@ -1,0 +1,12 @@
+realsense2_camera:
+  ros__parameters:
+    camera_name: d415
+    enable_color: true
+    enable_depth: false
+    enable_infra: false
+    enable_infra1: false
+    enable_infra2: false
+    publish_tf: true
+    
+    # run rs_enumerate_devices for available configurations
+    rgb_camera.color_profile: 640x360x15
