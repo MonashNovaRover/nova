@@ -7,6 +7,7 @@ in
   options.peripherals.realsense.enable = lib.mkEnableOption "configuration for Intel RealSense peripherals";
 
   config = lib.mkIf cfg.enable {
-    services.udev.packages = [ pkgs.nova.ros.realsense-udev ];
+    hardware.enableRedistributableFirmware = true;
+    services.udev.packages = [ pkgs.librealsense ];
   };
 }

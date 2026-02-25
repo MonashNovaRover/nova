@@ -153,7 +153,7 @@ in
           launch-auto-hardware = "~/Builds/master/bin/ros2 launch auto_bringup hardware.launch.py";
           launch-auto-software = "~/Builds/master/bin/ros2 launch auto_bringup software.launch.py";
           launch-auto-drive = "~/Builds/master/bin/ros2 launch drive_bringup drive.launch.py auto:=True";
-          launch-oak = "~/Builds/master/bin/ros2 launch auto_bringup camera.launch.py";
+          launch-oak = "~/Builds/master/bin/ros2 launch auto_bringup oak.launch.py";
           launch-localization = "~/Builds/master/bin/ros2 launch auto_bringup localization.launch.py";
           launch-rtabmap = "~/Builds/master/bin/ros2 launch auto_bringup rtabmap.launch.py";
           launch-nav = "~/Builds/master/bin/ros2 launch auto_bringup navigation.launch.py";
