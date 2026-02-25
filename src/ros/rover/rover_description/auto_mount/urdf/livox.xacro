@@ -3,7 +3,7 @@
 
   <link name="livox_frame">
     <visual>
-        <origin xyz="0 0 0" rpy="0 0 0" />
+        <origin xyz="0 0.0055 0" rpy="0 0 3.14159" />
         <geometry>
             <mesh filename="file://$(find rover_description)/auto_mount/meshes/mid-360-asm.stl"/>
         </geometry>
