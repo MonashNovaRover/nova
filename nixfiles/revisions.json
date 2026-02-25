@@ -4,8 +4,8 @@
     "hash": "sha256-C0CZcQB9wAsfvk5fQuO1ET1GCCYVzPB8Yj/j2MbBkkg="
   }, 
   "nix-ros-overlay": {
-    "rev": "508039a6d970647d1b046e859a556fc62d863272",
-    "hash": "sha256-8WAaE1sjW4LmcbOAFKTiMlH/8X0tNnU2zfPjZTggAT4="
+    "rev": "dd31a43c6e8d340f955ac73072131e8ffea37ce1",
+    "hash": "sha256-RmHRILodekWFtUGgOTtZmnEpHODE/6wEChEz5GEZr7w="
   }, 
   "nix-ros-workspace": {
     "rev": "e341a5fd27af73be15bc0396c5745c54398193aa",
