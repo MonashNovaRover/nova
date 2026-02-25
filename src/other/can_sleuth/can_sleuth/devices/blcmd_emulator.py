@@ -51,6 +51,7 @@ class BLCMDEmulator(candevice.CanDevice):
         self.vel = 0;
 
         self.minInterval = 122
+        # TODO drive
         self.resRatio = 1;
         self.incRatio = 1;
         # config
@@ -82,8 +83,6 @@ class BLCMDEmulator(candevice.CanDevice):
                     self.minInterval = 122
                     self.resRatio = 1.25
                     self.incRatio = 10
-        else:
-            panic
 
         self.EPR = 8192
         self.clock_speed = 100*1e6
