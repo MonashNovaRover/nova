@@ -131,7 +131,7 @@ joint_space_mode:
       j4:
         name: "j4"
         input_name: "j4"
-        scale: 0.5
+        scale: 0.08
       j5:
         name: "j5"
         input_name: "j5"
