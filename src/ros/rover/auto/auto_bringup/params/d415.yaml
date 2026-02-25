@@ -1,4 +1,4 @@
-realsense2_camera:
+d415:
   ros__parameters:
     camera_name: d415
     enable_color: true

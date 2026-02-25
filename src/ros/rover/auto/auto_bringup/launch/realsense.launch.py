@@ -31,7 +31,7 @@ def launch_setup(context, *args, **kwargs):
     return [
         Node(
             package='realsense2_camera',
-            name='realsense_d415',
+            name='d415',
             namespace='',
             executable='realsense2_camera_node',
             parameters=[rs_params, {'camera_name': cam_name}],
