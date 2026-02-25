@@ -4,7 +4,7 @@ fastlivo2:
       img_topic: "/oak/rgb/image_raw"
       lid_topic: "/livox/lidar"
       imu_topic: "/livox/imu"
-      img_en: 0
+      img_en: 1
       lidar_en: 1
       ros_driver_bug_fix: false
       livox_custom: false
@@ -94,7 +94,7 @@ fastlivo2:
       type: 0 # 0: World Frame, 1: Body Frame;
       colmap_output_en: false # need to set interval = -1
       filter_size_pcd: 0.15
-      interval: -1
+      interval: 10
       # how many LiDAR frames saved in each pcd file;
       # -1 : all frames will be saved in ONE pcd file, may lead to memory crash when having too much frames.
     
