@@ -64,13 +64,13 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
       return CallbackReturn::ERROR;
     }
 
-    for (int i = 0; i < params_.canids.size(); i++) {
+    for (long unsigned int i = 0; i < params_.canids.size(); i++) {
       hw_positions_.push_back(PositionInterface{});
       hw_velocities_.push_back(ControlInterface{});
       hw_efforts_.push_back(ControlInterface{});
     }
 
-    for (int i = 0; i < params_.canids.size(); i++) {
+    for (long unsigned int i = 0; i < params_.canids.size(); i++) {
         for (const auto& interface : info_.joints[i].command_interfaces){
             if(!set_control_interface(interface, true, i)){
                 return CallbackReturn::ERROR;
@@ -96,6 +96,8 @@ hardware_interface::CallbackReturn BLCMDHardware::on_init(
 hardware_interface::CallbackReturn BLCMDHardware::on_configure(
         const rclcpp_lifecycle::State & previous_state)
 {
+    (void)previous_state; // Silence unused warning
+
     auto params_result = apply_parameters();
     if (params_result != CallbackReturn::SUCCESS)
         return params_result;
@@ -114,7 +116,7 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
 
     if (!params_.mock) {
         //get min_interval
-        for (int i = 0; i < params_.canids.size(); i++) {
+        for (long unsigned int i = 0; i < params_.canids.size(); i++) {
             if (hw_velocities_[i].state.has_value()) {
                 RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                 "Getting min interval on BLCMD " << params_.canids[i]);
@@ -191,7 +193,7 @@ std::optional<T> BLCMDHardware::get_config(BLCMDConfigCommand command, uint32_t 
 std::vector<hardware_interface::StateInterface> BLCMDHardware::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
-  for (int i = 0; i < params_.canids.size(); i++) {
+  for (long unsigned int i = 0; i < params_.canids.size(); i++) {
     if (hw_positions_[i].state.has_value()) {
       state_interfaces.emplace_back(
               info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_positions_[i].state.value());
@@ -212,7 +214,7 @@ std::vector<hardware_interface::StateInterface> BLCMDHardware::export_state_inte
 std::vector<hardware_interface::CommandInterface> BLCMDHardware::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
-  for (int i = 0; i < params_.canids.size(); i++) {
+  for (long unsigned int i = 0; i < params_.canids.size(); i++) {
         if (hw_positions_[i].command.has_value()) {
             command_interfaces.emplace_back(
                     info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_positions_[i].command.value());
@@ -241,14 +243,16 @@ hardware_interface::CallbackReturn BLCMDHardware::on_deactivate(
     const rclcpp_lifecycle::State & /*previous_state*/)
 {
     bus_->set_callbacks_enabled(false);
+    //TODO: halt
     return CallbackReturn::SUCCESS;
 }
 
 hardware_interface::return_type BLCMDHardware::read(
-        const rclcpp::Time & time, const rclcpp::Duration & period)
+        const rclcpp::Time & /*time*/, const rclcpp::Duration & period)
 {
     bus_->spin();
-    for (int i = 0; i < params_.canids.size(); i++) {
+
+    for (long unsigned int i = 0; i < params_.canids.size(); i++) {
         if(params_.integrate_velocity && hw_positions_[i].state.has_value() && hw_velocities_[i].state.has_value()){
             //RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName), "Velocity state: " << hw_velocity_.state.value()
             //<< ", Position state: " << hw_position_.state.value() << ", Period: " << period.seconds());
@@ -261,6 +265,8 @@ hardware_interface::return_type BLCMDHardware::read(
     return hardware_interface::return_type::OK;
 }
 
+#define INT16_DISCONTINUITY_GUARD 200
+
 hardware_interface::return_type BLCMDHardware::write(
         const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
@@ -268,16 +274,26 @@ hardware_interface::return_type BLCMDHardware::write(
         case blcmd_hardware::ControlMode::Undefined:
             break;
         case blcmd_hardware::ControlMode::Position:
-            for (int i = 0; i < params_.canids.size(); i++) {
+            for (long unsigned int i = 0; i < params_.canids.size(); i++) {
                 if (hw_positions_[i].command.has_value()) {
 
-                    auto offset_value = hw_positions_[i].command.value() * reversed_multiplier_ - params_.position_offset;
+                    double joint_rads = hw_positions_[i].command.value() * reversed_multiplier_;
+                    double resRads = joint_rads * params_.resolver_reduction;
+                    double resRevs = resRads / (2*M_PI);
+                    double resTicks = resRevs * params_.res_ticks_per_rev + params_.zero_offset;
+                    /// Make sure we never tell the blcmd to go close to the discontinuity around
+                    /// 0x7fff (largest positive) and 0x8000 (smallest negative)
+                    if (std::abs(resTicks) > std::numeric_limits<int16_t>::max() - INT16_DISCONTINUITY_GUARD) {
+                      RCLCPP_WARN_THROTTLE(rclcpp::get_logger(BLCMDHardwareLoggerName), *get_clock(), 2000,
+                        "Position Command %f is too close to/beyond the int16 discontinuity. Ignoring...", resTicks);
+                      return hardware_interface::return_type::OK;
+                    }
 
                     RCLCPP_DEBUG_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                     "Sending Position Command " << hw_positions_[i].command.value()
                                     << " " << hw_positions_[i].max);
-                    send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION, params_.canids[i]),
-                                        offset_value, hw_positions_[i].max);
+                    send_raw<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION, params_.canids[i]),
+                        static_cast<int16_t>(resTicks));
                 } else {
                     RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No position command");
                     return hardware_interface::return_type::ERROR;
@@ -285,7 +301,7 @@ hardware_interface::return_type BLCMDHardware::write(
             }
             break;
         case blcmd_hardware::ControlMode::Velocity:
-            for (int i = 0; i < params_.canids.size(); i++) {
+            for (long unsigned int i = 0; i < params_.canids.size(); i++) {
                 if (hw_velocities_[i].command.has_value()) {
                 RCLCPP_DEBUG_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                     "Sending velocity command " << hw_velocities_[i].command.value() * reversed_multiplier_
@@ -299,7 +315,7 @@ hardware_interface::return_type BLCMDHardware::write(
             }
             break;
         case blcmd_hardware::ControlMode::Effort:
-            for (int i = 0; i < params_.canids.size(); i++) {
+            for (long unsigned int i = 0; i < params_.canids.size(); i++) {
                 if (hw_efforts_[i].command.has_value()) {
                     send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_CURRENT, params_.canids[i]),
                                         hw_efforts_[i].command.value() * reversed_multiplier_, hw_efforts_[i].max);
@@ -492,16 +508,6 @@ hardware_interface::CallbackReturn BLCMDHardware::apply_parameters() {
   RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                      "Got gear ratio: " << params_.gear_ratio);
 
-  auto max_position_search = info_.hardware_parameters.find("max_position");
-  if (max_position_search != info_.hardware_parameters.end()) {
-    params_.max_position = std::stod(max_position_search->second);
-    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using max_position of %f", params_.max_position.value());
-  }
-  else {
-    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "max_position parameter was undefined. Will use "
-                                                             "max_position from command interface.");
-  }
-
   auto max_velocity_search = info_.hardware_parameters.find("max_velocity");
   if (max_velocity_search != info_.hardware_parameters.end()) {
     params_.max_velocity = std::stod(max_velocity_search->second);
@@ -517,13 +523,19 @@ hardware_interface::CallbackReturn BLCMDHardware::apply_parameters() {
     params_.resolver_reduction = std::stod(resolver_reduction_search->second);
   }
   
-  auto position_offset_search = info_.hardware_parameters.find("position_offset");
-  if (position_offset_search != info_.hardware_parameters.end()) {
-    params_.position_offset = std::stod(position_offset_search->second);
-    
-    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using position_offest of: %f", params_.position_offset);
+  auto zero_offset_search = info_.hardware_parameters.find("zero_offset");
+  if (zero_offset_search != info_.hardware_parameters.end()) {
+    params_.zero_offset = std::stoul(zero_offset_search->second);
+
+    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using zero_offset of: 0x%x", params_.zero_offset);
   }
-  
+
+  auto res_ticks_per_rev_search = info_.hardware_parameters.find("res_ticks_per_rev");
+  if (res_ticks_per_rev_search != info_.hardware_parameters.end()) {
+    params_.res_ticks_per_rev = std::stoul(res_ticks_per_rev_search->second);
+    RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using 0x%x ticks per absolute encoder revolution", params_.res_ticks_per_rev);
+  }
+
   auto diff_wrist_search = info_.hardware_parameters.find("diff_wrist");
   if (diff_wrist_search != info_.hardware_parameters.end() && is_true(diff_wrist_search->second)) {
     RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
@@ -540,13 +552,18 @@ bool BLCMDHardware::set_control_interface(
     if (interface_info.name == hardware_interface::HW_IF_POSITION){
         // TODO: deal with case with state interface and no command interface
         if (command){
-            hw_positions_[index].max = params_.max_position.has_value() ? params_.max_position.value()
-              : std::stod(interface_info.max);
+              if (params_.res_ticks_per_rev==0) {
+                  RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No resolver ticks per rev provided, "
+                                                                          "but a position command interface is used.");
+                  return false;
+              }
               if (std::isnan(params_.resolver_reduction)) {
                   RCLCPP_FATAL(rclcpp::get_logger(BLCMDHardwareLoggerName), "No resolver reduction provided, "
                                                                           "but a position command interface is used.");
                   return false;
               }
+              //TODO: this isn't actually correct as if the zero offset is non zero there will be a different max and min.
+              hw_positions_[index].max = 2 * M_PI * (0x7fff-INT16_DISCONTINUITY_GUARD) / (params_.res_ticks_per_rev*params_.resolver_reduction);
               hw_positions_[index].command = 0.0;
             
         } else {
@@ -581,7 +598,7 @@ bool BLCMDHardware::set_control_interface(
 
     void BLCMDHardware::can_setup() {
         std::vector<uint32_t> ids = {};
-        for (int i = 0; i < params_.canids.size(); i++) {
+        for (long unsigned int i = 0; i < params_.canids.size(); i++) {
             ids.push_back(make_can_id(BLCMDReceiveCommand::CONFIG_DATA, params_.canids[i]));
             if (hw_velocities_[i].state.has_value() || hw_efforts_[i].state.has_value()) {
                 ids.push_back(make_can_id(TelemetryPacket::PACKET_1, params_.canids[i]));
@@ -591,7 +608,7 @@ bool BLCMDHardware::set_control_interface(
             }
         }
 	      bus_->set_id_filter(ids);
-        for (int i = 0; i < params_.canids.size(); i++) {
+        for (long unsigned int i = 0; i < params_.canids.size(); i++) {
             if (hw_velocities_[i].state.has_value() || hw_efforts_[i].state.has_value()) {
                 RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                 "Adding packet 1 callback to ID:" << make_can_id(TelemetryPacket::PACKET_1, params_.canids[i]));
@@ -655,9 +672,22 @@ bool BLCMDHardware::set_control_interface(
         auto i = std::distance(params_.canids.begin(), id_location);
 
         if(hw_positions_.at(i).state.has_value()) {
-            hw_positions_.at(i).state = convert_scaled<int16_t>(&frame.data[0], hw_positions_.at(i).max) *
-                                 params_.resolver_reduction * reversed_multiplier_
-                                 + params_.position_offset;
+          const Telem3_t *telem3;
+
+          if (frame.data.size() != sizeof(Telem3_t)) {
+              RCLCPP_WARN(rclcpp::get_logger(BLCMDHardwareLoggerName), "Telemetry 3 Incorrect size: %ld", frame.data.size());
+              hw_positions_.at(i).state = std::numeric_limits<double>::quiet_NaN();
+              return;
+          }
+
+          telem3 = (const Telem3_t*)frame.data.data();
+
+          int32_t resolverPosTicks = beToCPU16(telem3->resPosition) - params_.zero_offset;
+          double resolverPosRevs = static_cast<double>(resolverPosTicks) / params_.res_ticks_per_rev;
+          double resolverPosRads = 2*M_PI*resolverPosRevs;
+          double jointPosRads = resolverPosRads * reversed_multiplier_ / params_.resolver_reduction;
+
+          hw_positions_.at(i).state = jointPosRads;
         }
     }
 

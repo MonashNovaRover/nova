@@ -15,14 +15,13 @@
 					<param name="resolver_reduction">4</param>
 					<param name="clock_rate">100000000</param>
 					<param name="revolution_pulses">8192</param>
-					<param name="min_interval">1728</param>
+					<param name="min_interval">233</param>
 					<param name="gear_ratio">100.0</param>
 					<param name="mock">true</param>
 					<param name="reversed">false</param>
 					<param name="integrate_velocity">false</param>
-					<param name="max_position">3.141592654</param>
-					<param name="position_offset">0.0</param>
-					<param name="max_velocity">2.3</param>
+          <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
+          <param name="zero_offset">8192</param> <!-- electrical's "home" is 0x2000 -->
 				</hardware>
 			</xacro:unless>
 			<xacro:if value="${use_mock_hardware}">
@@ -67,14 +66,13 @@
 					<param name="resolver_reduction">5.375</param>
 					<param name="clock_rate">100000000</param>
 					<param name="revolution_pulses">8192</param>
-					<param name="min_interval">1728</param>
+					<param name="min_interval">233</param>
 					<param name="gear_ratio">100.0</param>
 					<param name="mock">true</param>
 					<param name="reversed">true</param>
 					<param name="integrate_velocity">false</param>
-					<param name="max_position">2.337929417</param>
-					<param name="position_offset">0.0</param>
-					<param name="max_velocity">1.740138699</param>
+          <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
+          <param name="zero_offset">8192</param> <!-- electrical's "home" is 0x2000 -->
 				</hardware>
 			</xacro:unless>
 			<xacro:if value="${use_mock_hardware}">
@@ -111,14 +109,13 @@
 					<param name="resolver_reduction">5.375</param>
 					<param name="clock_rate">100000000</param>
 					<param name="revolution_pulses">8192</param>
-					<param name="min_interval">1728</param>
+					<param name="min_interval">233</param>
 					<param name="gear_ratio">100.0</param>
 					<param name="mock">true</param>
 					<param name="reversed">false</param>
 					<param name="integrate_velocity">false</param>
-					<param name="max_position">2.337929417</param>
-					<param name="position_offset">0.0</param>
-					<param name="max_velocity">1.740138699</param>
+          <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
+          <param name="zero_offset">8192</param> <!-- electrical's "home" is 0x2000 -->
 				</hardware>
 			</xacro:unless>
 			<xacro:if value="${use_mock_hardware}">
@@ -152,17 +149,16 @@
 					<plugin>blcmd_hardware2/BLCMDHardware</plugin>
 					<param name="candevice">can1</param>
 					<param name="canid">4</param>
-					<param name="resolver_reduction">15</param>
+					<param name="resolver_reduction">4</param>
 					<param name="clock_rate">100000000</param>
 					<param name="revolution_pulses">8192</param>
-					<param name="min_interval">1728</param>
-					<param name="gear_ratio">15.0</param>
+					<param name="min_interval">122</param>
+					<param name="gear_ratio">8.0</param>
 					<param name="mock">true</param>
 					<param name="reversed">true</param>
-					<param name="integrate_velocity">true</param>
-					<param name="max_position">12.5663706144</param>
-					<param name="position_offset">0.0</param>
-					<param name="max_velocity">19.4963194091</param>
+					<param name="integrate_velocity">false</param>
+          <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
+          <param name="zero_offset">8192</param> <!-- electrical's "home" is 0x2000 -->
 				</hardware>
 			</xacro:unless>
 			<xacro:if value="${use_mock_hardware}">
@@ -174,17 +170,13 @@
 
 			<joint name="j4">
 				<command_interface name="velocity">
-					<param name="max">292.444791137</param>
 				</command_interface>
 				<command_interface name="position">
-					<param name="max">12.5663706144</param>
 				</command_interface>
 				<state_interface name="velocity">
-					<param name="max">292.444791137</param>
 					<param name="initial_value">0.0</param>
 				</state_interface>
 				<state_interface name="position">
-					<param name="max">12.5663706144</param>
 					<param name="initial_value">0.0</param>
 				</state_interface>
 			</joint>
@@ -196,17 +188,16 @@
 					<plugin>blcmd_hardware2/BLCMDHardware</plugin>
 					<param name="candevice">can1</param>
 					<param name="canid">5 6</param>
-					<param name="resolver_reduction">1.0</param>
+					<param name="resolver_reduction">1.25</param>
 					<param name="clock_rate">100000000</param>
 					<param name="revolution_pulses">8192</param>
-          			<param name="min_interval">1792</param>
-					<param name="gear_ratio">1.0</param>
+          <param name="min_interval">122</param>
+					<param name="gear_ratio">10.0</param>
 					<param name="mock">true</param>
 					<param name="reversed">false</param>
 					<param name="integrate_velocity">false</param>
-					<param name="max_position">12.5663706144</param>
-					<param name="position_offset">3.14159265359</param>
-					<param name="max_velocity">292.444791136</param>
+          <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
+          <param name="zero_offset">8192</param> <!-- electrical's "home" is 0x2000 -->
 				</hardware>
 			</xacro:unless>
 			<xacro:if value="${use_mock_hardware}">

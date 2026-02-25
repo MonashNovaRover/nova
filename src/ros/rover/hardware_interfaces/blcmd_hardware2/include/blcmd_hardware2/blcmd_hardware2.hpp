@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <bit>
 
 #include "rclcpp/rclcpp.hpp"
 #include "hardware_interface/system_interface.hpp"
@@ -32,6 +33,50 @@
 
 namespace blcmd_hardware
 {
+
+#ifdef IS_BIG_ENDIAN
+
+#define cpuToBE16(val) val
+#define beToCPU16(val) val
+
+#else
+
+#define cpuToBE16(val) std::byteswap(val)
+#define beToCPU16(val) std::byteswap(val)
+
+#endif
+
+// you must use the above macros to access
+// these variables to ensure the byteorder
+// is right
+struct __attribute__((packed)) Telem1_t {
+    int16_t velocity;
+    int16_t Qcurrent;
+};
+
+static_assert(sizeof(struct Telem1_t) == 4);
+
+struct __attribute__((packed)) Telem2_t {
+    int16_t interval;
+    int16_t Dcurrent;
+};
+static_assert(sizeof(struct Telem2_t) == 4);
+
+struct __attribute__((packed)) Telem3_t {
+    int16_t resPosition;
+    int16_t resVelocity;
+};
+static_assert(sizeof(struct Telem3_t) == 4);
+
+struct __attribute__((packed)) Telem4_t {
+    int16_t power;
+    int16_t voltage;
+    int16_t temperature;
+    int16_t current;
+};
+static_assert(sizeof(struct Telem4_t) == 8);
+
+
 struct PIConfig {
     int16_t kp;
     int16_t ki_ts;
@@ -141,24 +186,28 @@ private:
         /// The 2nd hexadecimal digit in the 12-bit CAN id used in messages to/from the BLCMD board.
         std::vector<uint32_t> canids;
 
-        /// Unknown.
+        /// The clock rate of the blcmd's processor.
         uint32_t clock_rate = 100000000;
 
-        /// Unconfirmed. The number of pulses in the resolver for a single revolution.
-        uint16_t revolution_pulses = 8192;
+        /// The number of pulses per revolution of the incremental encoder. This changes if you flip the dip switches on
+        /// the incremental encoder. The datasheet lists numbers for each quarter turn, so you multiply the number on the
+        /// datasheet by 4
+        uint16_t revolution_pulses = 2048*4;
 
-        /// Unconfirmed. The ratio of the connected gearbox.
+        /// The gear ratio between the incremental encoder's rotation and the actual joint's rotation
         double gear_ratio = 1.0;
+
+        /// If the motor is going at 0x7fff velocity, there are this many blcmd processor instruction clock cycles between
+        /// pulses of the incremental encoder.
+        uint16_t min_interval = 122;
+
+        /// Unconfirmed. When true, the sign of all inputs and outputs are reversed.
+        /// TODO: just make the gear ratio and resolver reduction negative?
+        bool reversed = false;
 
         /// Unconfirmed. When true, the hardware interface will use min_interval from parameters. When false,
         /// min_interval is determined through requesting configuration from the BLCMD board.
         bool mock = false;
-
-        /// Unknown.
-        uint16_t min_interval = 122;
-
-        /// Unconfirmed. When true, the sign of all inputs and outputs are reversed.
-        bool reversed = false;
 
         /// Unconfirmed. When true, the hardware interface will ignore resolver data, and determine position through
         /// integrating velocity feedback.
@@ -173,8 +222,11 @@ private:
         /// A reduction ratio resolver readings are scaled by.
         double resolver_reduction {std::numeric_limits<double>::quiet_NaN()};
 
-        /// An offset to apply to all readings, in radians, such that it is added to resolver messages, and subtracted from commands
-        double position_offset = 0.0;
+        /// What the resolver reads when it is at the URDF's zero radians position.
+        int16_t zero_offset = 0;
+
+        /// How many integer ticks of the resolver value correspond to 360 degrees of revolution for the resolver
+        int32_t res_ticks_per_rev = 0;
 
         bool diff_wrist = false;
         
