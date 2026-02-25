@@ -21,6 +21,7 @@ in
         "urdf-visualizer.packages" = {
             "rover_description" = "/home/nova/nova/src/ros/rover/rover_description";
             "depthai_descriptions" = "/home/nova/Builds/master/share/depthai_descriptions";
+            "realsense2_description" = "/home/nova/Builds/master/share/realsense2_description";
         };
       };
     };

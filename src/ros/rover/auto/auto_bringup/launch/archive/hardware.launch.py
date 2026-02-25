@@ -32,7 +32,7 @@ def launch_setup(context, *args, **kwargs):
             }.items(),
         ),
         IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'camera.launch.py'])),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'oak.launch.py'])),
             launch_arguments={
                 'front_params': front_params,
                 'back_params': back_params,
