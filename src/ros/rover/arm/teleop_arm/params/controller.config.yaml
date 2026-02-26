@@ -115,10 +115,6 @@ joy_input_source:
         unlock:
           from: "START"
         task_space:
-<<<<<<< HEAD
           from_axis:
             axis: "TRIGGERLEFT"
 
-=======
-          from: "LEFTSHOULDER"
->>>>>>> 25c6bc11 (fix: namespaces and weirdness in teleop)
