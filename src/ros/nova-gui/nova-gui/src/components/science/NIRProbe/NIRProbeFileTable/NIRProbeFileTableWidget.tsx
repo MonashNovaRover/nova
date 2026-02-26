@@ -10,6 +10,7 @@ import NIRProbeFileTable from "./NIRProbeFileTable.tsx";
 import {MoreHorizontal} from "react-feather";
 import {NIRSettingsModalProps} from "./NIRCalibrationSettingsModal.tsx";
 import {NIRProbeReadingTypeInfo} from "../SpaceResourcesSiteType.tsx";
+import {NIRProbeCSVDownloadButton} from "./NIRProbeCSVDownloadButton.tsx";
 
 export interface NIRProbeFileTableWidgetProps extends CardProps {
   Modal?: React.FC<NIRSettingsModalProps>
@@ -32,8 +33,9 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
 
   return (
     <Card {...cardProps}>
-      <CardHeader className="pb-0 flex flex-row justify-center">
+      <CardHeader className="pb-0 flex flex-row justify-center gap-3">
         <div className="grow">NIR Probe File Table</div>
+        <NIRProbeCSVDownloadButton/>
         {Modal &&
           <Button
             variant={"light"}
