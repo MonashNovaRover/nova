@@ -40,6 +40,7 @@ export enum RosService {
   RGBInput = "/set_RGBInput",
   ZERO_ANALYSIS_ARM = "/science/analysis_arm/zero",
   SET_AA_POSITION = "/science/analysis_arm/set_position",
+  RESET_TOF = "/science/tof/reset",
 
   // General
   REQUEST_HYDRAPROBE_READING = "/science/request_hydraprobe_reading",

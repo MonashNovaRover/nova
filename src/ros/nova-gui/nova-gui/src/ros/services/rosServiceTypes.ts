@@ -160,6 +160,10 @@ export interface RosServiceInterface {
     IRosScienceInterfacesSetPositionRequest,
     IRosScienceInterfacesSetPositionResponse
   >;
+  [RosService.RESET_TOF]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
 
   // General
   [RosService.RGBInput]: RosServiceMessage<

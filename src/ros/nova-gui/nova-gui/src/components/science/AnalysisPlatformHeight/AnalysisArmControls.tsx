@@ -1,19 +1,20 @@
 import {Button, Input} from "@nextui-org/react";
 import {useState} from "react";
-import {ArrowDown, ArrowUp} from "react-feather";
+import {Anchor, ArrowDown, ArrowUp, RefreshCcw} from "react-feather";
 
 export interface AnalysisArmControlsProps {
   currentPos: number
   TOFReading: number
   setPosition: (pos: number) => void
   zeroPosition: () => void
+  resetTOF: () => void
 }
 
 /**
  * Analysis arm movement controls
  * @constructor
  */
-const AnalysisArmControls: React.FC<AnalysisArmControlsProps> = ({currentPos, TOFReading, setPosition, zeroPosition} : AnalysisArmControlsProps) => {
+const AnalysisArmControls: React.FC<AnalysisArmControlsProps> = ({currentPos, TOFReading, setPosition, zeroPosition, resetTOF} : AnalysisArmControlsProps) => {
   const [stepperTargetInput, setStepperTargetInput] = useState("0")
   const [stepperIncrementInput, setStepperIncrementInput] = useState("5")
   const [distanceTargetInput, setDistanceTargetInput] = useState("50")
@@ -21,12 +22,22 @@ const AnalysisArmControls: React.FC<AnalysisArmControlsProps> = ({currentPos, TO
   return (
     <div className="flex flex-col justify-evenly">
 
-      <Button
-        color="primary"
-        onPressStart={zeroPosition}
-      >
-        Zero Analysis Arm
-      </Button>
+      <div className="grid grid-cols-2 gap-3 items-end">
+        <Button
+          color="primary"
+          onPressStart={zeroPosition}
+          startContent={<Anchor size={16}/>}
+        >
+          Zero Analysis Arm
+        </Button>
+        <Button
+          color="primary"
+          startContent={<RefreshCcw size={16}/>}
+          onPressStart={resetTOF}
+        >
+          Reset TOF
+        </Button>
+      </div>
 
       <div className="grid grid-cols-2 gap-3 items-end">
         <Input

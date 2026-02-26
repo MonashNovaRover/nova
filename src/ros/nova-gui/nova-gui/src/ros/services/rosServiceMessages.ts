@@ -37,6 +37,7 @@ export const rosServiceMessages = {
   [RosService.CAROUSEL]: "science_interfaces/srv/KilnCommand",
   [RosService.ZERO_ANALYSIS_ARM]: "std_srvs/srv/Trigger",
   [RosService.SET_AA_POSITION]: "science_interfaces/srv/SetPosition",
+  [RosService.RESET_TOF]: "std_srvs/srv/Trigger",
 
   // General
   [RosService.RGBInput]: "nova_interfaces/srv/RGBInput",
