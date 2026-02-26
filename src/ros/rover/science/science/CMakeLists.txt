@@ -79,6 +79,7 @@ install(PROGRAMS
         science/scimbal_cam_old.py
         science/scimbal_cam.py
         science/control_test.py
+        science/time_of_flight.py
         DESTINATION lib/${PROJECT_NAME}
 )
 
