@@ -31,7 +31,7 @@ export const NIRProbeCSVDownloadButton = () => {
     const timestamp = new Date()
       .toISOString()
       .replace(/[:.]/g, "-");
-    link.download = `data_${timestamp}.csv`;
+    link.download = `nir-probe-data_${timestamp}.csv`;
     link.click();
   }, [readings])
 
