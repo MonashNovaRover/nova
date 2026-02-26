@@ -52,6 +52,11 @@ const formatRow = (row, headers) =>
     .map(field => {
       let value = row[field] ?? "";
 
+      // Remove "auto_" prefix from label only
+      if (field === "label" && typeof value === "string") {
+        value = value.replace(/^auto_/, "");
+      }
+
       if (typeof value === "object") {
         value = JSON.stringify(value);
       }
