@@ -63,7 +63,7 @@ controller_server:
       temperature: 0.3
       motion_model: "DiffDrive" # if holonomic drive works, can try "Omni"
       prune_distance: 4.6       # slightly longer than prediction horizon
-      visualize: false          # TURN OFF when not debugging, as this is very costly
+      visualize: true
       TrajectoryVisualizer:
         trajectory_step: 10
         time_step: 6
