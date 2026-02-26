@@ -52,10 +52,10 @@ auger:
     can_bus: "can1"
     active: true
     active_button: "activate_auger"
-    inactive_button_pool: ["activate_cbeam"]
+    inactive_button_pool: [ "activate_cbeam" ]
     hardware:
       actuation:
-        can_id: 0x0C2
+        can_id: 0x0D1
         max_effort: 1.0
         reversed: false
       drill:
