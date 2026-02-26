@@ -35,14 +35,16 @@ namespace blcmd_hardware
 
 template<typename T>
 void differential_convert_to_motors(T pitch, T yaw, T& j5, T& j6) {
-  j5 = (pitch + yaw);
-  j6 = (pitch - yaw);
+  // yaw is pitch
+  // pitch is roll
+  j5 = (pitch + yaw*3);
+  j6 = -(pitch - yaw*3);
 }
 
 template<typename T>
 void differential_convert_from_motors(T j5, T j6, T& pitch, T& yaw) {
-  pitch = (j5 + j6) / 2.0;
-  yaw = (j5 - j6) / 2.0;
+  pitch = (j5 + (-j6)) / 2.0;
+  yaw = (j5 - (-j6)) / 6.0;
 }
 
 hardware_interface::CallbackReturn BLCMDHardware::on_init(
