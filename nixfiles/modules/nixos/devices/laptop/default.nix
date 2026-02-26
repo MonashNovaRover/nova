@@ -5,15 +5,6 @@ let
 in
 {
   imports = [
-    # Laptops
-    ./aftershock-heavy
-    ./aftershock-jason
-    ./aftershock-light
-    ./aftershock-pocketrocket
-    ./gigabyte
-    ./metabox-new
-    ./metabox-old
-
     # Config files
     ./amd.nix
     ./intel.nix
