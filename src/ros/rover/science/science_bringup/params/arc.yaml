@@ -19,17 +19,18 @@ tool_rotator:
     controllers:
       controller:
         min_angle: 0.0
-        max_angle: 337.41
-        initial_angle: 337.41
+        max_angle: 360.0
+        initial_angle: 360.0
         twitch_max: 40.0
         sweeper_pos: 0.0
-        microscope_pos: 169.41
-        nir_probe_pos: 337.41
+        microscope_pos: 120.0
+        nir_probe_pos: 240.0
         hardware_name: "rotation"
     hardware:
       rotation:
         can_id: 0x0F0
         angular_limit: 360.0
+        gear_ratio: 0.8333
 
 time_of_flight_sensor:
   ros__parameters:
