@@ -11,21 +11,21 @@ This repository contains [Nix](https://nixos.org) files for:
 ```
 ├ ci                     # Hydra source code
 ├ doc                    # Documentation for our nixos/package systems
-├ external               # ???
-├ lib                    # ??? why is there a whole root folder for one file??
-├ modules                # ???
+├ external               # Templates for how nova's and out-of-tree packages should be defined
+├ lib                    # ???
+├ modules                # All toggleable nova modules live here
 | ├ common               # ???
-| ├ home                 # ???
+| ├ home                 # Home manager only options https://home-manager-options.extranix.com/
 | | ├ ...                
-| | └ macros             # idk but important stuff
+| | └ macros             # ???
 | |   ├ launch           # Terminal launch scripts
 | |   └ default.nix      # Alias definitions
-| └ nixos                # ???
-├ overlay                # ???
-├ packages               # ???
+| └ nixos                # Nixos stuff that you can enable through https://search.nixos.org/options?channel=unstable
+├ overlay                # Modifying the default build path/ configuration for ANY nix package
+├ packages               # Packing any out-of-nix packages into nix, normally from github
 ├ scripts                # Bash scripts
 ├ secrets                # Symlink to secrets repo
-└ tests                  # Tests for ???
+└ tests                  # Legacy tests for vm camera testing?
 ```
 
 ## Contributing
