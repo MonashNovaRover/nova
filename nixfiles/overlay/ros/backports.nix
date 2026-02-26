@@ -153,6 +153,11 @@ self: super:
               url = "https://github.com/ros-navigation/navigation2/commit/a33e8d2bef0984c3eef8a03c7f05dc69704225c7.diff";
               hash = "sha256-FISECyT0ZaSHJ10sqjrvawD0A6UAQg+0ASwzT9sdefg=";
             })
+
+            # Optimize MPPI visualization to skip processing when no subscribers
+            # https://github.com/ros-navigation/navigation2/pull/5807
+            # custom patch needed because of conflicts with previous Eigen patch
+            ./patches/mppi-visualisation.patch
           ];
 
           nativeBuildInputs = with rosSelf; [ ament-cmake ];
