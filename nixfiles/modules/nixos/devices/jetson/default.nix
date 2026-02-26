@@ -32,6 +32,7 @@ in
   config = lib.mkIf cfg.enable ({
     nixpkgs.hostPlatform = "aarch64-linux";
     hardware.nvidia-jetpack.enable = true;
+    nova.substituters.nvidia.enable = true;
 
 
     # Prevent this spam in journalctl:
