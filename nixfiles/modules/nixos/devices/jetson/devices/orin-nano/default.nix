@@ -32,22 +32,7 @@ in
       cudaVersion = "12.6";
       cudaCapabilities = [ "8.7" ]; # For orin
     };
-    hardware.graphics.enable = true; # Enable GPU for CUDA
-    
-    # Add nvidia cachix
-    nix.settings = {
-      extra-experimental-features = [ "nix-command" "flakes" ];
-      substituters = [
-        "https://nix-community.cachix.org"
-        "https://cache.nixos-cuda.org"
-        "https://cache.flox.dev"
-      ];
-      trusted-public-keys = [
-        "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-        "cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E="
-        "flox-cache-public-1:7F4OyH7ZCnFhcze3fJdfyXYLQw/aV7GEed86nQ7IsOs="
-      ];
-    };
+    hardware.graphics.enable = true; # Enable GPU for CUDA 
 
     # Display output is non-functional on the Orin Nano.
     # https://github.com/anduril/jetpack-nixos/issues/85
