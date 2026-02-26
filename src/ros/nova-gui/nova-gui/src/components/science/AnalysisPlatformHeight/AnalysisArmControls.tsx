@@ -31,7 +31,7 @@ const AnalysisArmControls: React.FC<AnalysisArmControlsProps> = ({currentPos, TO
           Zero Analysis Arm
         </Button>
         <Button
-          color="primary"
+          color="warning"
           startContent={<RefreshCcw size={16}/>}
           onPressStart={resetTOF}
         >
