@@ -1,0 +1,48 @@
+{
+  "0x511": "BLCMD_FRD",
+  "0x512": "BLCMD_FLD",
+  "0x513": "BLCMD_RRD",
+  "0x514": "BLCMD_RLD",
+
+  "0x515": "BLCMD_FRP",
+  "0x516": "BLCMD_FLP",
+  "0x517": "BLCMD_RRP",
+  "0x518": "BLCMD_RLP",
+
+  "0x519": "BLCMD_J1",
+  "0x51A": "BLCMD_J2",
+  "0x51B": "BLCMD_J3",
+  "0x51C": "BLCMD_J4",
+  "0x51D": "BLCMD_J5",
+  "0x51E": "BLCMD_J6",
+
+  "0x521": "QCMD_1",
+  "0x522": "QCMD_2",
+  "0x523": "QCMD_3",
+  "0x524": "QCMD_4",
+
+  "0x531": "VV2_1",
+  "0x532": "VV2_2",
+  "0x533": "VV2_3",
+  "0x534": "VV2_4",
+
+  "0x541": "Fancard_1",
+  "0x542": "Fancard_2",
+  "0x543": "Fancard_3",
+  "0x544": "Fancard_4",
+
+  "0x551": "Breakout Board_1",
+  "0x552": "Breakout Board_2",
+  "0x553": "Breakout Board_3",
+  "0x554": "Breakout Board_4",
+
+  "0x561": "B&B Science Card_1",
+  "0x562": "B&B Science Card_2",
+  "0x563": "B&B Science Card_3",
+  "0x564": "B&B Science Card_4",
+
+  "0x5F1": "Battery board V5",
+  "0x5F2": "IO card",
+  "0x5F3": "EESAA",
+  "0x5F4": "LED Novacard"
+}

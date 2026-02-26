@@ -1,0 +1,50 @@
+body {
+  font-family: sans-serif;
+}
+
+body > h1 {
+  text-align:center;
+}
+
+#status_list {
+  display: flex;
+}
+
+#status_list > section {
+  width: 33%;
+  padding: 1em;
+  margin: 1em;
+  border: 1px solid black;
+}
+
+#status_list > section > h2 {
+  margin: unset;
+}
+
+#status_list > section > div {
+  padding-left: 0.5em;
+}
+
+#status_list > section > div > div {
+  padding: 0.5em 0 0.5em 0; 
+}
+
+#status_list > section > div > div > h3 {
+  margin: unset;
+}
+
+#status_list > section > div > div > p {
+  margin: unset;
+}
+
+.board_good {
+  color: black;
+}
+
+.board_okay {
+  color: orange;
+}
+
+.board_bad {
+  color: red;
+}

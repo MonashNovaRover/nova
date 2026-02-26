@@ -1,0 +1,14 @@
+{
+  "config_name": "ec_can0",
+  "expected_id_categories": {
+    "BLCMD": [
+      "0x511", "0x512", "0x513", "0x514", "0x515", "0x516", "0x517", "0x518"
+    ],
+    "Critical": [
+      "0x521", "0x531"
+    ],
+    "Misc": [
+      "0x541", "0x551", "0x5F1", "0x5F2", "0x5F4"
+    ]
+  }
+}
