@@ -115,18 +115,17 @@ kiln_door:
   ros__parameters:
     can_bus: "can1"
     update_rate: 5
-  
-  controllers:
-    controller:
-      max_door_current: 0x0200
-  hardware:
-    kiln_door:
-      can_id: 0x0D2
-      max_effort: 1.0
-      reversed: false
-    current_sensor:
-      can_id: 0x4FF
-      unit: "current"
+    controllers:
+      controller:
+        max_door_current: 0x0200
+    hardware:
+      kiln_door:
+        can_id: 0x0D2
+        max_effort: 0.387
+        reversed: false
+      current_sensor:
+        can_id: 0x4FF
+        unit: "current"
 
 
 

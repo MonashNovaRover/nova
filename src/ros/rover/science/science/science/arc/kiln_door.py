@@ -87,15 +87,16 @@ class KilnDoorController(Controller):
                     self.logger.info(f"Kiln door OPENING")
     
         self.door_state = self.door_actuation.value
+        self.kiln_door_cmd.value = self.door_state * self.axis_to_speed(self.door_speed.value)
 
-        #check if door current reached max val
-        if abs(self.door_current_state.value) < self.max_door_current.value:
-            #set command interface
-            self.kiln_door_cmd.value = self.door_state * self.axis_to_speed(self.door_speed.value)
-        else:
-            #turn off motor
-            self.logger.info("Current limit reached! Turning off motor...")
-            self.kiln_door_cmd.value = 0
+        # #check if door current reached max val
+        # if abs(self.door_current_state.value) < self.max_door_current.value:
+        #     #set command interface
+        #     self.kiln_door_cmd.value = self.door_state * self.axis_to_speed(self.door_speed.value)
+        # else:
+        #     #turn off motor
+        #     self.logger.info("Current limit reached! Turning off motor...")
+        #     self.kiln_door_cmd.value = 0
 
     def axis_to_speed(self, axis:int):
         return (axis +1)/2

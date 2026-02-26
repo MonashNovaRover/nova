@@ -76,7 +76,7 @@ def led(interface = "can0", emulate=False):
     devices = [LED.LEDStrip("led", interface)]
     return devices
 
-def current_sensor(interface="can1", emulate=False):
+def science25_26(interface="can1", emulate=False):
     canId = 0x4FF
     
     def update_function(state:int) -> int:
@@ -99,7 +99,7 @@ allSystems = {
         "taipan": taipan_spherical,
         "drive25_26": drive25_26,
         "taipan_spherical": taipan_spherical,
-        "current_sensor_emulator": current_sensor,
+        "science25_26": science25_26,
         "led": led
         }
 
