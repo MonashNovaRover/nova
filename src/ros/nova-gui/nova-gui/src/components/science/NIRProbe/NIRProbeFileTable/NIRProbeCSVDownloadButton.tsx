@@ -1,7 +1,7 @@
 import {useNIRSiteData} from "../useNIRSiteData.ts";
 import {Button} from "@nextui-org/react";
 import {Download} from "react-feather";
-import {NIRProbeReadingType} from "../SpaceResourcesSiteType.tsx";
+import {ISpaceResourcesEntry, NIRProbeReadingType} from "../SpaceResourcesSiteType.tsx";
 import {useCallback} from "react";
 
 /**
@@ -47,10 +47,10 @@ export const NIRProbeCSVDownloadButton = () => {
 }
 
 // Formats the row based on the headers.
-const formatRow = (row, headers) =>
+const formatRow = (row: ISpaceResourcesEntry, headers: string[]) =>
   headers
     .map(field => {
-      let value = row[field] ?? "";
+      let value = row[field as keyof ISpaceResourcesEntry] ?? "";
 
       // Remove "auto_" prefix from label only
       if (field === "label" && typeof value === "string") {
