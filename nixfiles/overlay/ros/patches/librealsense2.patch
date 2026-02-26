@@ -1,6 +1,7 @@
+diff --git a/tools/realsense-viewer/CMakeLists.txt b/tools/realsense-viewer/CMakeLists.txt
 --- a/tools/realsense-viewer/CMakeLists.txt
 +++ b/tools/realsense-viewer/CMakeLists.txt
-@@ -256,7 +256,7 @@ install(
+@@ -263,7 +263,7 @@ install(
  )
  #https://cmake.org/cmake/help/latest/command/install.html
  install(DIRECTORY presets/
