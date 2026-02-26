@@ -23,7 +23,7 @@ let
     terminals = [
       {name="Base:driveTeleop"; platform=base; cmd="ros2 launch teleop_drive_joy teleop.launch.py";}
       {name = "Rover:Drive"; platform=rover; cmd="ros2 launch drive_bringup drive.launch.py";}
-      {name="Base:Reolink"; platform=base; cmd="reolink"}
+      {name="Base:Reolink"; platform=base; cmd="reolink";}
     ];
     post = post-shell;
   };
