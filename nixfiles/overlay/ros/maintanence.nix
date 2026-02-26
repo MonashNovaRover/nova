@@ -23,7 +23,7 @@ self: super:
           librealsense2 = rosSuper.librealsense2.overrideAttrs (
             {
               cmakeFlags ? [],
-              patches ? [],
+              # patches ? [],
               ...
             }:
             {
@@ -31,9 +31,9 @@ self: super:
                 "-DCHECK_FOR_UPDATES=OFF"
               ];
 
-              patches = patches ++ [
-                ./patches/librealsense2.patch
-              ];
+              # patches = patches ++ [
+              #   ./patches/librealsense2.patch
+              # ];
             }
           );
 
