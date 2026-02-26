@@ -58,6 +58,16 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
+        Node(
+            name='time_of_flight_sensor',
+            package='science',
+            executable='time_of_flight.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params
+            ],
+        ),
 
         # CBeam - Nodes for components on the CBeam
         Node(
@@ -91,7 +101,6 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         Node(
-
             name='water_pump',
             package='science',
             executable='water_pump.py',
@@ -131,6 +140,7 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
+
         
         # Misc - Nodes for misc components
         Node(
