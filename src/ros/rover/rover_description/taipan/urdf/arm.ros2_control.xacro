@@ -196,8 +196,9 @@
 					<param name="mock">true</param>
 					<param name="reversed">false</param>
 					<param name="integrate_velocity">false</param>
-          <param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
-          <param name="zero_offset">8192</param> <!-- electrical's "home" is 0x2000 -->
+					<param name="res_ticks_per_rev">4096</param> <!-- 0x1000 is proportional to 2pi -->
+					<param name="zero_offset">8192</param> <!-- electrical's "home" is 0x2000 -->
+					<param name="diff_wrist">true</param>
 				</hardware>
 			</xacro:unless>
 			<xacro:if value="${use_mock_hardware}">

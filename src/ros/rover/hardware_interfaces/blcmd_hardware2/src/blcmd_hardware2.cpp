@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
+// This file contains a bunch of hardcoded logic for the differential wrist that doesn't really belong here.
+// We should find a better solution at some point. - Jackson
+
 #include <limits>
 #include <vector>
 #include <chrono>
@@ -22,9 +26,6 @@
 
 #include "blcmd_hardware2/blcmd_hardware2.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
-#include "transmission_interface/transmission.hpp"
-#include "transmission_interface/differential_transmission_loader.hpp"
-#include "transmission_interface/transmission_interface_exception.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 #include "jcan/jcan.h"
@@ -32,12 +33,14 @@
 namespace blcmd_hardware
 {
 
-void differential_convert_to_motors(double pitch, double yaw, double& j5, double& j6) {
+template<typename T>
+void differential_convert_to_motors(T pitch, T yaw, T& j5, T& j6) {
   j5 = (pitch + yaw);
   j6 = (pitch - yaw);
 }
 
-void differential_convert_from_motors(double j5, double j6, double& pitch, double& yaw) {
+template<typename T>
+void differential_convert_from_motors(T j5, T j6, T& pitch, T& yaw) {
   pitch = (j5 + j6) / 2.0;
   yaw = (j5 - j6) / 2.0;
 }
@@ -101,6 +104,10 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
     auto params_result = apply_parameters();
     if (params_result != CallbackReturn::SUCCESS)
         return params_result;
+
+    if (params_.diff_wrist == true) {
+        RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Using Diff Wrist Mode");
+    }
 
     // open the can bus
     try {
@@ -274,6 +281,48 @@ hardware_interface::return_type BLCMDHardware::write(
         case blcmd_hardware::ControlMode::Undefined:
             break;
         case blcmd_hardware::ControlMode::Position:
+            if (params_.diff_wrist) {
+                assert(hw_positions_.size() == 2 && params_.canids.size() == 2);
+
+                double joint_rads1 = hw_positions_[0].command.value() * reversed_multiplier_;
+                double resRads1 = joint_rads1 * params_.resolver_reduction;
+                double resRevs1 = resRads1 / (2*M_PI);
+                double resTicks1 = resRevs1 * params_.res_ticks_per_rev + params_.zero_offset;
+                /// Make sure we never tell the blcmd to go close to the discontinuity around
+                /// 0x7fff (largest positive) and 0x8000 (smallest negative)
+                if (std::abs(resTicks1) > std::numeric_limits<int16_t>::max() - INT16_DISCONTINUITY_GUARD) {
+                    RCLCPP_WARN_THROTTLE(rclcpp::get_logger(BLCMDHardwareLoggerName), *get_clock(), 2000,
+                    "Position Command %f is too close to/beyond the int16 discontinuity. Ignoring...", resTicks1);
+                    return hardware_interface::return_type::OK;
+                }
+
+                double joint_rads2 = hw_positions_[1].command.value() * reversed_multiplier_;
+                double resRads2 = joint_rads2 * params_.resolver_reduction;
+                double resRevs2 = resRads2 / (2*M_PI);
+                double resTicks2 = resRevs2 * params_.res_ticks_per_rev + params_.zero_offset;
+                /// Make sure we never tell the blcmd to go close to the discontinuity around
+                /// 0x7fff (largest positive) and 0x8000 (smallest negative)
+                if (std::abs(resTicks1) > std::numeric_limits<int16_t>::max() - INT16_DISCONTINUITY_GUARD) {
+                    RCLCPP_WARN_THROTTLE(rclcpp::get_logger(BLCMDHardwareLoggerName), *get_clock(), 2000,
+                    "Position Command %f is too close to/beyond the int16 discontinuity. Ignoring...", resTicks2);
+                    return hardware_interface::return_type::OK;
+                }
+
+                auto offset_value1 = resTicks1;
+                auto offset_value2 = resTicks2;
+                double value1, value2;
+                differential_convert_to_motors(offset_value1, offset_value2, value1, value2);
+
+                RCLCPP_DEBUG_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                "Sending Diff Wrist Position Command ");
+                RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Diff wrist Position");
+                send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION, params_.canids[0]),
+                                    value1, hw_positions_[0].max);
+                send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION, params_.canids[1]),
+                                    value2, hw_positions_[1].max);
+
+                break;
+            }
             for (long unsigned int i = 0; i < params_.canids.size(); i++) {
                 if (hw_positions_[i].command.has_value()) {
 
@@ -301,6 +350,22 @@ hardware_interface::return_type BLCMDHardware::write(
             }
             break;
         case blcmd_hardware::ControlMode::Velocity:
+            if (params_.diff_wrist) {
+                assert(hw_velocities_.size() == 2 && params_.canids.size() == 2);
+
+                double value1, value2;
+                differential_convert_to_motors(hw_velocities_[0].command.value(), hw_velocities_[1].command.value(), value1, value2);
+
+                RCLCPP_DEBUG_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                    "Sending diff wrist velocity command");
+
+                send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_VELOCITY, params_.canids[0]),
+                                    value1 * reversed_multiplier_, hw_velocities_[0].max);
+                send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_VELOCITY, params_.canids[1]),
+                                    value2 * reversed_multiplier_, hw_velocities_[1].max);
+                break;
+            }
+
             for (long unsigned int i = 0; i < params_.canids.size(); i++) {
                 if (hw_velocities_[i].command.has_value()) {
                 RCLCPP_DEBUG_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
@@ -315,6 +380,22 @@ hardware_interface::return_type BLCMDHardware::write(
             }
             break;
         case blcmd_hardware::ControlMode::Effort:
+            if (params_.diff_wrist) {
+                assert(hw_efforts_.size() == 2 && params_.canids.size() == 2);
+
+                double value1, value2;
+                differential_convert_to_motors(hw_efforts_[0].command.value(), hw_efforts_[1].command.value(), value1, value2);
+
+                RCLCPP_DEBUG_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+                                    "Sending diff wrist velocity command");                
+
+                send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_VELOCITY, params_.canids[0]),
+                                    value1 * reversed_multiplier_, hw_efforts_[0].max);
+                send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_VELOCITY, params_.canids[1]),
+                                    value2 * reversed_multiplier_, hw_efforts_[1].max);
+                break;
+            }
+
             for (long unsigned int i = 0; i < params_.canids.size(); i++) {
                 if (hw_efforts_[i].command.has_value()) {
                     send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_CURRENT, params_.canids[i]),
@@ -540,7 +621,7 @@ hardware_interface::CallbackReturn BLCMDHardware::apply_parameters() {
   if (diff_wrist_search != info_.hardware_parameters.end() && is_true(diff_wrist_search->second)) {
     RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                     "Diff Wrist Enabled");
-    params_.integrate_velocity = true;
+    params_.diff_wrist= true;
   }
 
   return CallbackReturn::SUCCESS;
@@ -652,11 +733,44 @@ bool BLCMDHardware::set_control_interface(
 
         auto i = std::distance(params_.canids.begin(), id_location);
         if(hw_velocities_.at(i).state.has_value()) {
-            hw_velocities_.at(i).state = convert_scaled<int16_t>(&frame.data[0], hw_velocities_.at(i).max) *
-            reversed_multiplier_*-1*0.5; // Dear Bro, ask chassis why this is -1
+            if (params_.diff_wrist && i == 0) {
+               differential_actual_value1 = convert_scaled<int16_t>(&frame.data[0], hw_velocities_.at(i).max) *
+                 reversed_multiplier_*-1*0.5; // Dear Bro, ask chassis why this is -1
+                                              //
+                double converted_value1, converted_value2;
+                differential_convert_from_motors(differential_actual_value1, differential_actual_value2, converted_value1, converted_value2);
+               hw_velocities_.at(0).state = converted_value1;
+               hw_velocities_.at(1).state = converted_value2;
+            } else if (params_.diff_wrist && i == 1) {
+               differential_actual_value2 = convert_scaled<int16_t>(&frame.data[0], hw_velocities_.at(i).max) *
+                 reversed_multiplier_*-1*0.5; // Dear Bro, ask chassis why this is -1
+                                              //
+                double converted_value1, converted_value2;
+                differential_convert_from_motors(differential_actual_value1, differential_actual_value2, converted_value1, converted_value2);
+               hw_velocities_.at(0).state = converted_value1;
+               hw_velocities_.at(1).state = converted_value2;
+            } else {
+              hw_velocities_.at(i).state = convert_scaled<int16_t>(&frame.data[0], hw_velocities_.at(i).max) *
+              reversed_multiplier_*-1*0.5; // Dear Bro, ask chassis why this is -1
+            }
         }
+
         if(hw_efforts_.at(i).state.has_value()) {
-            hw_efforts_.at(i).state = convert_scaled<int16_t>(&frame.data[2], hw_efforts_.at(i).max);
+             if (params_.diff_wrist && i == 0) {
+               differential_actual_value1 = convert_scaled<int16_t>(&frame.data[0], hw_efforts_.at(i).max);
+                double converted_value1, converted_value2;
+                differential_convert_from_motors(differential_actual_value1, differential_actual_value2, converted_value1, converted_value2);
+                hw_efforts_.at(0).state = converted_value1;
+                hw_efforts_.at(1).state = converted_value2;
+            } else if (params_.diff_wrist && i == 1) {
+               differential_actual_value2 = convert_scaled<int16_t>(&frame.data[0], hw_efforts_.at(i).max);
+                double converted_value1, converted_value2;
+                differential_convert_from_motors(differential_actual_value1, differential_actual_value2, converted_value1, converted_value2);
+                hw_efforts_.at(0).state = converted_value1;
+                hw_efforts_.at(1).state = converted_value2;
+            } else {
+              hw_efforts_.at(i).state = convert_scaled<int16_t>(&frame.data[2], hw_efforts_.at(i).max);
+            }
         }
     }
 
@@ -672,22 +786,66 @@ bool BLCMDHardware::set_control_interface(
         auto i = std::distance(params_.canids.begin(), id_location);
 
         if(hw_positions_.at(i).state.has_value()) {
-          const Telem3_t *telem3;
+            if (params_.diff_wrist && i == 0) {
+                const Telem3_t *telem3;
 
-          if (frame.data.size() != sizeof(Telem3_t)) {
-              RCLCPP_WARN(rclcpp::get_logger(BLCMDHardwareLoggerName), "Telemetry 3 Incorrect size: %ld", frame.data.size());
-              hw_positions_.at(i).state = std::numeric_limits<double>::quiet_NaN();
-              return;
-          }
+                if (frame.data.size() != sizeof(Telem3_t)) {
+                    RCLCPP_WARN(rclcpp::get_logger(BLCMDHardwareLoggerName), "Telemetry 3 Incorrect size: %ld", frame.data.size());
+                    hw_positions_.at(i).state = std::numeric_limits<double>::quiet_NaN();
+                    return;
+                }
 
-          telem3 = (const Telem3_t*)frame.data.data();
+                telem3 = (const Telem3_t*)frame.data.data();
 
-          int32_t resolverPosTicks = beToCPU16(telem3->resPosition) - params_.zero_offset;
-          double resolverPosRevs = static_cast<double>(resolverPosTicks) / params_.res_ticks_per_rev;
-          double resolverPosRads = 2*M_PI*resolverPosRevs;
-          double jointPosRads = resolverPosRads * reversed_multiplier_ / params_.resolver_reduction;
+                int32_t resolverPosTicks = beToCPU16(telem3->resPosition) - params_.zero_offset;
+                double resolverPosRevs = static_cast<double>(resolverPosTicks) / params_.res_ticks_per_rev;
+                double resolverPosRads = 2*M_PI*resolverPosRevs;
+                double jointPosRads = resolverPosRads * reversed_multiplier_ / params_.resolver_reduction;
 
-          hw_positions_.at(i).state = jointPosRads;
+                differential_actual_value1 = jointPosRads;
+                double converted_value1, converted_value2;
+                differential_convert_from_motors(differential_actual_value1, differential_actual_value2, converted_value1, converted_value2);
+                hw_positions_.at(0).state = converted_value1;
+                hw_positions_.at(1).state = converted_value2;
+            } else if (params_.diff_wrist && i == 1) {
+                const Telem3_t *telem3;
+
+                if (frame.data.size() != sizeof(Telem3_t)) {
+                    RCLCPP_WARN(rclcpp::get_logger(BLCMDHardwareLoggerName), "Telemetry 3 Incorrect size: %ld", frame.data.size());
+                    hw_positions_.at(i).state = std::numeric_limits<double>::quiet_NaN();
+                    return;
+                }
+
+                telem3 = (const Telem3_t*)frame.data.data();
+
+                int32_t resolverPosTicks = beToCPU16(telem3->resPosition) - params_.zero_offset;
+                double resolverPosRevs = static_cast<double>(resolverPosTicks) / params_.res_ticks_per_rev;
+                double resolverPosRads = 2*M_PI*resolverPosRevs;
+                double jointPosRads = resolverPosRads * reversed_multiplier_ / params_.resolver_reduction;
+
+                differential_actual_value2 = jointPosRads;
+                double converted_value1, converted_value2;
+                differential_convert_from_motors(differential_actual_value1, differential_actual_value2, converted_value1, converted_value2);
+                hw_positions_.at(0).state = converted_value1;
+                hw_positions_.at(1).state = converted_value2;
+            } else {
+                const Telem3_t *telem3;
+
+                if (frame.data.size() != sizeof(Telem3_t)) {
+                    RCLCPP_WARN(rclcpp::get_logger(BLCMDHardwareLoggerName), "Telemetry 3 Incorrect size: %ld", frame.data.size());
+                    hw_positions_.at(i).state = std::numeric_limits<double>::quiet_NaN();
+                    return;
+                }
+
+                telem3 = (const Telem3_t*)frame.data.data();
+
+                int32_t resolverPosTicks = beToCPU16(telem3->resPosition) - params_.zero_offset;
+                double resolverPosRevs = static_cast<double>(resolverPosTicks) / params_.res_ticks_per_rev;
+                double resolverPosRads = 2*M_PI*resolverPosRevs;
+                double jointPosRads = resolverPosRads * reversed_multiplier_ / params_.resolver_reduction;
+
+                hw_positions_.at(i).state = jointPosRads;
+            }
         }
     }
 

@@ -21,7 +21,6 @@ find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
-find_package(transmission_interface REQUIRED)
 
 # find jcan
 find_package(PkgConfig)
@@ -49,7 +48,6 @@ ament_target_dependencies(
   hardware_interface
   rclcpp
   rclcpp_lifecycle
-  transmission_interface
 )
 # prevent pluginlib from using boost
 target_compile_definitions(blcmd_hardware2 PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
@@ -89,7 +87,6 @@ if(BUILD_TESTING)
     hardware_interface
     pluginlib
     ros2_control_test_assets
-    transmission_interface
   )
 endif()
 
@@ -104,7 +101,6 @@ ament_export_dependencies(
   pluginlib
   rclcpp
   rclcpp_lifecycle
-  transmission_interface
 )
 
 ament_package()

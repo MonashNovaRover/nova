@@ -11,8 +11,6 @@
 
   <depend>hardware_interface</depend>
 
-  <depend>transmission_interface</depend>
-
   <depend>pluginlib</depend>
 
   <depend>rclcpp</depend>
