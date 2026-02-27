@@ -1,19 +1,12 @@
 { lib, config, pkgs, ... }:
 let
+  netcfg = config.nova.networking;
   cfg = config.nova.networking.rover;
 in
 {
   options = {
     nova.networking.rover = {
       enable = lib.mkEnableOption "Enable rover networking configuration";
-      wifiIfName = lib.mkOption {
-        type = lib.types.str;
-        description = "interface name of the wifi for the rover";
-      };
-      ethernetIfName = lib.mkOption {
-        type = lib.types.str;
-        description = "interface name of the ethernet for the rover";
-      };
       ethernetIpAddr = lib.mkOption {
         type = lib.types.str;
         description = "IP address of the rover over ethernet. must be in 10.0.0.0/23 subnet.";
@@ -26,8 +19,12 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    # Don't let networkmanager touch interfaces
+    # we are configuring decleratively with networkd
+    networking.networkmanager.unmanaged = [
+      netcfg.ethernetInterface
+    ];
 
-    networking.useDHCP = false;
     systemd.network = {
       enable = true;
       netdevs = {
@@ -82,13 +79,12 @@ in
             { Gateway = "10.0.0.1"; }
           ];
         };
-        "30-${cfg.wifiIfName}" = {
-          matchConfig.Name = cfg.wifiIfName;
+        "30-${netcfg.wifiInterface}" = {
+          matchConfig.Name = netcfg.wifiInterface;
           networkConfig.Bridge = "br0";
-          #linkConfig.RequiredForOnline = "enslaved";
         };
-        "30-${cfg.ethernetIfName}" = {
-          matchConfig.Name = cfg.ethernetIfName;
+        "30-${netcfg.ethernetInterface}" = {
+          matchConfig.Name = netcfg.ethernetInterface;
           networkConfig.Bridge = "br0";
 
         };
@@ -124,22 +120,6 @@ in
         "130.194.1.99" # monash
       ];
       hostName = cfg.hostname;
-    };
-    services.hostapd = {
-      # there is no dhcp.
-      # doesn't seem to be working right yet.
-      enable = true;
-      radios."${cfg.wifiIfName}" = {
-        countryCode = "AU";
-        band = "2g";
-        channel = 6;
-        networks."${cfg.wifiIfName}" = {
-          ssid = cfg.hostname + "-hotspot";
-          authentication.saePasswords = [
-            { passwordFile = ../../../../../secrets/reolink-password.txt; }
-          ];
-        };
-      };
     };
     assertions = [
       {
