@@ -62,6 +62,7 @@ input_publisher_mode:
       # Tool Rotator
       - "tool_rotator_speed"
       # Chute
+      - "chute_actuation"
       - "chute_speed"
       # Sweeper
       - "sweeper_actuation"
@@ -79,8 +80,3 @@ input_publisher_mode:
       - "tool_rotator_sweeper"
       - "tool_rotator_microscope"
       - "tool_rotator_nir_probe"
-      # Chute
-      - "chute_twitch_decrease"
-      - "chute_twitch_increase"
-      - "chute_engaged"
-      - "chute_disengaged"

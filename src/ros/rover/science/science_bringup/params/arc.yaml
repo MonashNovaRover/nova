@@ -9,7 +9,7 @@ analysis_arm:
     can_bus: "can1"
     hardware:
       actuation:
-        can_id: 0x0E6
+        can_id: 0x0E4
         max_effort: 1.0
         reversed: false
 
@@ -19,17 +19,18 @@ tool_rotator:
     controllers:
       controller:
         min_angle: 0.0
-        max_angle: 337.41
-        initial_angle: 337.41
-        twitch_max: 30.0
+        max_angle: 360.0
+        initial_angle: 360.0
+        twitch_max: 40.0
         sweeper_pos: 0.0
-        microscope_pos: 169.41
-        nir_probe_pos: 337.41
+        microscope_pos: 120.0
+        nir_probe_pos: 240.0
         hardware_name: "rotation"
     hardware:
       rotation:
-        function_id: 0x00
+        can_id: 0x0F0
         angular_limit: 360.0
+        gear_ratio: 0.8333
 
 time_of_flight_sensor:
   ros__parameters:
@@ -63,6 +64,15 @@ auger:
         max_effort: 0.5
         reversed: false
 
+chute:
+  ros__parameters:
+    can_bus: "can1"
+    hardware:
+      rotation:
+        can_id: 0x0E2
+        max_effort: 1.0
+        reversed: false
+
 cbeam:
   ros__parameters:
     can_bus: "can1"
@@ -93,11 +103,11 @@ kiln:
         can_id: 0x13
         unit: "temperature"
       left_heater:
-        can_id: 0x10
+        can_id: 0x41
         max_effort: 1.0
         reversed: false
       right_heater:
-        can_id: 0x11
+        can_id: 0x42
         max_effort: 1.0
         reversed: false
 
@@ -111,7 +121,8 @@ water_pump:
         topic_name: "/science/water_pump_status"
     hardware:
       cooling:
-        can_id: 0xD2
+        can_id: 0x031
+        max_effort: 0.3870967741935484 # (for QCMD)
 
 diaphragm_pump:
   ros__parameters:
@@ -123,7 +134,7 @@ diaphragm_pump:
         topic_name: "/science/diaphragm_pump_status"
     hardware:
       cooling:
-        can_id: 0x0E5
+        can_id: 0x0E6
 
 
 # Misc - Nodes for misc components
@@ -132,29 +143,11 @@ scimbal_cam:
     can_bus: "can1"
     update_rate: 5
     hardware:
-      tilt:
-        can_id: 0x0B0
-        function_id: 0x03
-        angular_limit: 180.0
       pan:
-        can_id: 0x0B0
-        function_id: 0x04
+        can_id: 0x0E0
         angular_limit: 360.0
-
-chute:
-  ros__parameters:
-    can_bus: "can1"
-    controllers:
-      controller:
-        min_angle: 72.0
-        max_angle: 108.0
-        twitch_max: 6.0
-        disengaged_pos: 72.0
-        engaged_pos: 108.0
-        hardware_name: "rotation"
-    hardware:
-      rotation:
-        function_id: 0x03
+      tilt:
+        can_id: 0x0E1
         angular_limit: 180.0
 
 sweeper:
@@ -162,6 +155,6 @@ sweeper:
     can_bus: "can1"
     hardware:
       sweep:
-        can_id: 0x0E4
+        can_id: 0x0E3
         max_effort: 1.0
         reversed: false

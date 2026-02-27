@@ -34,6 +34,6 @@ if __name__ == "__main__":
             service_name="/science/water_pump_command",
             topic_name="/science/water_pump_status"
         ) \
-        .with_hardware("cooling", QCMDHardware, can_id=0xD2) \
+        .with_hardware("cooling", QCMDHardware, can_id=0x031) \
         .with_jcan() \
         .spin()
