@@ -122,7 +122,8 @@ water_pump:
     hardware:
       cooling:
         can_id: 0x031
-        
+        max_effort: 0.3870967741935484 # (for QCMD)
+
 diaphragm_pump:
   ros__parameters:
     can_bus: "can1"
