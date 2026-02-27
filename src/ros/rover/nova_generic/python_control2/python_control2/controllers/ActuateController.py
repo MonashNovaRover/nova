@@ -25,7 +25,7 @@ class ActuateController(Controller):
     # Command interfaces
     actuation_cmd: Interface
 
-    def __init__(self, contexts: Contexts, hardware_name: str="hardware_name", actuation_axis: str="actuation"):
+    def __init__(self, contexts: Contexts, hardware_name: str="hardware_name", actuation_axis: str="actuation", speed_axis: str="speed"):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
@@ -42,8 +42,12 @@ class ActuateController(Controller):
         # Actuation axis
         self.actuation_axis_name = self.declare_parameter("actuation_axis", actuation_axis).value
 
+        # Speed axis
+        self.speed_axis_name = self.declare_parameter("speed_axis", speed_axis).value
+
         inputs = contexts[Inputs]
         self.actuation_axis = inputs.get_axis(self.actuation_axis_name)
+        self.speed_axis = inputs.get_axis(self.speed_axis_name)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -65,9 +69,13 @@ class ActuateController(Controller):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-        if not self.active:
+        if self.active is not None and not self.active:
             self.actuation_cmd.value = 0
             return
 
         # Update actuation
-        self.actuation_cmd.value = self.actuation_axis.value
+        self.actuation_cmd.value = self.actuation_axis.value * self.get_speed()
+
+    def get_speed(self) -> float:
+        """ gets the speed, turning an axis [-1, 1] to a speed [0, 1]"""
+        return (self.speed_axis.value + 1) / 2  if self.speed_axis_name != "speed" else 1
