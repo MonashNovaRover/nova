@@ -42,7 +42,7 @@ class PositionalServoHardware(HardwareInterface):
 
         self.declare_parameter("can_id", can_id, "CAN ID of the servo")
         self.declare_parameter("angular_limit", angular_limit, "Angular limit of the servo in degrees")
-        self.declare_parameter("gear_ratio", gear_ratio, "Gear ratio of the servo in degrees")
+        self.declare_parameter("gear_ratio", gear_ratio, "Gear ratio of the servo")
         self.declare_parameter("min_angle_can", min_angle_can, "Min CAN message value that can be sent")
         self.declare_parameter("max_angle_can", max_angle_can, "Max CAN message value that can be sent")
 
