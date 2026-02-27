@@ -1,0 +1,14 @@
+{
+    "configuration": "default",
+    "documentId": "12c88c9a36047dd0d3d2b7a5",
+    "documentMicroversion": "c8b8cf255e940c12775ba915",
+    "documentVersion": "fad37873d726de3774241a7b",
+    "elementId": "446628e68cac4fa9b16cc0e7",
+    "fullConfiguration": "default",
+    "id": "MgRs9kz66uLI9mhr8",
+    "isStandardContent": false,
+    "name": "R80 Motor <1>",
+    "partId": "JFD",
+    "suppressed": false,
+    "type": "Part"
+}

@@ -151,16 +151,17 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{'robot_description': urdf_value}],
             additional_env=show_colours_additional_env,
         ),
-        # Node(
-        #     package='joint_state_publisher',
-        #     executable='joint_state_publisher',
-        #     namespace='/arm',
-        #     output='screen',
-        #     emulate_tty=True,
-        #     parameters=[{
-        #         'source_list': ['/arm/joint_states', '/joint_states']
-        #     }]
-        # ),
+        Node(
+            package='joint_state_publisher',
+            executable='joint_state_publisher',
+            namespace='',
+            output='screen',
+            emulate_tty=True,
+            parameters=[{
+                'source_list': ['/arm/joint_states', '/joint_states'],
+                'publish_default_positions': True,
+            }],
+        ),
         Node(
             package='rviz2',
             namespace='',
