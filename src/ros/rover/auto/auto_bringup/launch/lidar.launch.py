@@ -50,12 +50,13 @@ def delete_fastlivo2_pcd(context, *args, **kwargs):
 
 def launch_setup(context, *args, **kwargs):
     blackboard_params = LaunchConfiguration('blackboard_params')
+    fastcalib = LaunchConfiguration('fastcalib')
+    fastcalib_params = LaunchConfiguration('fastcalib_params')
     fastlivo2 = LaunchConfiguration('fastlivo2')
     fastlivo2_params = LaunchConfiguration('fastlivo2_params')
     lidar_config = LaunchConfiguration('lidar_config').perform(context)
     lidar_params = LaunchConfiguration('lidar_params')
-    nav2_tfs = LaunchConfiguration('nav2_tfs')
-    republisher_params = LaunchConfiguration('republisher_params')
+    tfs = LaunchConfiguration('tfs')
     sim = LaunchConfiguration('sim')
 
     fastlivo2_node = GroupAction([
@@ -87,6 +88,25 @@ def launch_setup(context, *args, **kwargs):
             output='screen',
             parameters=[lidar_params, {'user_config_path': lidar_config, 'use_sim_time': sim}],
         ),
+        Node(
+        # NOTE image_transport only creates subscribers if subscribers exist for its publishers. 
+            package="image_transport",
+            executable="republish",
+            name="republish",
+            output="screen",
+            parameters=[{'in_transport': 'compressed', 
+                         'out_transport': 'raw'}],
+            remappings=[("in/compressed",  "/oak/rgb/image_raw/compressed"), 
+                        ("out", "/oak/rgb/image_raw")],
+        ),
+        Node(
+            condition=IfCondition(fastcalib),
+            package='fast_calib',
+            executable='fast_calib',
+            name='mono_qr_pattern',
+            output='screen',
+            parameters=[fastcalib_params]
+        ),
         GroupAction(
             condition=IfCondition(fastlivo2),
             actions=[
@@ -98,15 +118,6 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[blackboard_params, {'use_sim_time': sim}],
                     output='screen'
                 ),
-                # Node(
-                #     package='tf2_ros',
-                #     executable='static_transform_publisher',
-                #     namespace='static_transform_publisher',
-                #     name='odom_to_camera_init',
-                #     output='screen',
-                #     parameters=[{'use_sim_time': sim}],
-                #     arguments=['0.541', '0.010', '0.950', '0.005', '0.698', '0.003', 'odom', 'camera_init'],
-                # ),
                 wait_for_parameter_blackboard,
                 RegisterEventHandler(
                     event_handler=OnProcessExit(
@@ -117,7 +128,7 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         GroupAction(
-            condition = IfCondition(nav2_tfs),
+            condition = IfCondition(tfs),
             actions = [
                 Node(
                     package='tf2_ros',
@@ -140,13 +151,6 @@ def launch_setup(context, *args, **kwargs):
                     arguments=["0.196", "0.001", "-1.076", "0.003", "-0.698", "0", "aft_mapped", "base_link"],
                     output='screen',
                 ),
-                Node(
-                    package='nova_utils',
-                    executable='transform_republisher',
-                    name='odom_to_base_link_republisher',
-                    parameters=[republisher_params],
-                    output='screen',
-                ),
             ],
         ),
     ]
@@ -158,6 +162,16 @@ def generate_launch_description():
         DeclareLaunchArgument(
             name='blackboard_params',
             default_value=PathJoinSubstitution([auto_bringup_dir,'params','blackboard.yaml']),
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='fastcalib',
+            default_value='False',
+            description='Use FAST-Calib?',
+        ),
+        DeclareLaunchArgument(
+            name='fastcalib_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fastcalib.yaml']),
             description='',
         ),
         DeclareLaunchArgument(
@@ -181,14 +195,9 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='nav2_tfs',
+            name='tfs',
             default_value='True',
             description='Publish Nav2-required transforms? (map -> odom -> base_link)',
-        ),
-        DeclareLaunchArgument(
-            name='republisher_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir,'params','republisher.yaml']),
-            description='',
         ),
         DeclareLaunchArgument(
             name='sim',
