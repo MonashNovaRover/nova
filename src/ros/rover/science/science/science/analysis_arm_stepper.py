@@ -6,25 +6,35 @@ actuates up and down.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
   - actuation/effort      [value between -1 and 1]
-  - actuation/position    [number of steps away from zero position]
+  - actuation/position    [distance (mm) from zero position]
 STATE INTERFACES:
-  - actuation/position    [number of steps away from zero position]
-  - distance/position     [distance from ground in ??]
+  - actuation/position    [distance (mm) from zero position]
+  - distance/position     [distance from ground (mm)]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: AnalysisArmController
+TOPICS:
+    -  /science/analysis_arm/position     [sensor_msgs/msg/Range]
+SERVICES:
+    - /science/analysis_arm/zero          [science_interfaces/srv/SetPosition]
+    - /science/analysis_arm/set_position  [std_srvs/srv/Trigger]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Felicity Matthews
 CREATION:       01/02/26
-EDITED:         04/02/26
+EDITED:         27/02/26
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
+import math
 import rclpy
 from rclpy.node import Node
 from typing import Optional
 
-from python_control2 import PythonControl, Controller, Interface, Contexts, InterfaceCollection
+from python_control2 import PythonControl, Controller, Interface, Contexts, InterfaceCollection, Activation
 from python_control2.hardware_interfaces import StepperHardware, GenericSensorHardware
 from teleop_python_utils import Inputs, EventCollection
-from science_interfaces import DistanceData
+from sensor_msgs.msg import Range
+from std_srvs.srv import Trigger, Trigger_Request, Trigger_Response
+from science_interfaces.srv import SetPosition, SetPosition_Request, SetPosition_Response
 
 
 class AnalysisArmController(Controller):
@@ -34,7 +44,7 @@ class AnalysisArmController(Controller):
     actuation_position_state: Interface
     distance_state: Interface
 
-    def __init__(self, contexts: Contexts, hardware_name: str="actuation", actuation_axis: str="actuation"):
+    def __init__(self, contexts: Contexts, hardware_name: str="actuation", actuation_axis: str="actuation", max_position: float=300.0):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
@@ -42,9 +52,14 @@ class AnalysisArmController(Controller):
         """
         super().__init__(contexts)
         self.logger.info(f"AnalysisArmController -- I have been __init__ialized")
+        self.active = contexts[Activation]
+
+        self.target_position = 0
 
         # Define parameters
         self.hardware_name = self.declare_parameter("hardware_name", hardware_name).value
+        self.max_position = self.declare_parameter("max_position", max_position, "Maximum allowed joint position (in mm)").value
+        self.min_position = 0.0 # Analysis arm stepper will always have zero position at the top.
 
         # Actuation axis
         self.actuation_axis_name = self.declare_parameter("actuation_axis", actuation_axis).value
@@ -54,9 +69,13 @@ class AnalysisArmController(Controller):
         self.actuation_axis = inputs.get_axis(self.actuation_axis_name)
 
         # Setup publisher and publish timer
-        self.publisher = self.node.create_publisher(DistanceData, "/science/analysis_arm", 10)
-        interval = self.declare_parameter("publish_rate", 3, "How many times a second to publish data.")
+        self.publisher = self.node.create_publisher(Range, "/science/analysis_arm/position", 10)
+        interval = self.declare_parameter("publish_rate", 3, "How many times a second to publish data.").value
         self.publish_timer = self.node.create_timer(interval / 10, self.publish_data)
+
+        # Setup service servers
+        self.zero_service = self.node.create_service(Trigger, "/science/analysis_arm/zero", self.zero_callback)
+        self.set_position_service = self.node.create_service(SetPosition, "/science/analysis_arm/set_position", self.set_position_callback)
 
         # Get stepper zero event
         self.zero_event = None
@@ -85,7 +104,6 @@ class AnalysisArmController(Controller):
         # State interfaces
         self.logger.info(f"Getting state interfaces: {self.hardware_name}/position and distance/position")
         self.actuation_position_state = state_interfaces[f"{self.hardware_name}/position"]
-        self.distance_state = state_interfaces[f"distance/position"]
 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
@@ -93,21 +111,52 @@ class AnalysisArmController(Controller):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-        if not self.active:
-            self.actuation_cmd.value = 0
-            return
+        # Update actuation if there is an effort value and is active
+        if self.active and abs(self.actuation_effort_cmd.value) > 0.1:
+            self.actuation_position_cmd.value = None
+            self.actuation_effort_cmd.value = self.actuation_axis.value
 
-        # Update actuation
-        self.actuation_cmd.value = self.actuation_axis.value
+        # Otherwise use position control
+        else:
+            self.actuation_position_cmd.value = self.target_position
+            self.actuation_effort_cmd.value = 0
+
 
     def publish_data(self):
-        """ Publishes DistanceData """
-        msg = DistanceData()
-        msg.valid = self.distance_state.value >= 0
-        msg.distance = self.distance_state.value
-        msg.steps = self.actuation_position_state.value
-
+        """ Publishes the current position """
+        msg = Range()
+        msg.max_range = self.max_position
+        msg.min_range = self.min_position
+        msg.range = self.actuation_position_state.value
         self.publisher.publish(msg)
+
+    def zero_callback(self, _: Trigger_Request, response: Trigger_Response):
+        """ Zero Callback function when zero service is called """
+        try:
+            self.target_position = 0
+            self.zero_event.invoke()
+            self.logger.info("Successfully zeroed Analysis Arm.")
+            response.success = True
+
+        except Exception as e:
+            self.logger.error(f"An error occurred while attempting to zero the analysis arm: {e}")
+            response.success = False
+
+        return response
+
+    def set_position_callback(self, request: SetPosition_Request, response: SetPosition_Response):
+        """ Sets the target position when service is called """
+        # Check it is within range
+        # Allow if it is outside, the hardware interface will deal with limits (it does allow them to be turned off if needed)
+        if request.position > self.max_position:
+            self.logger.warn(f"Requested position [{request.position}] is greater than max allowed position [{self.max_position}]")
+
+        # Update target position
+        self.target_position = request.position
+        response.success = True
+        self.logger.info(f"Updating target position: {self.target_position}")
+
+        return response
 
 
 if __name__ == "__main__":
@@ -121,13 +170,22 @@ if __name__ == "__main__":
     # ARCh analysis arm system with stepper
     PythonControl(node, update_rate=2, can_bus="can1") \
         .with_controller(
-        "controller",
-        AnalysisArmController,
-        actuation_axis="analysis_arm_actuation"
-    ) \
-        .with_hardware("actuation", StepperHardware, can_id=0x0E6) \
-        .with_hardware("distance", GenericSensorHardware, can_id=0x4E1, unit="position", initial_value=-1) \
+            "controller",
+            AnalysisArmController,
+            actuation_axis="analysis_arm_actuation",
+            max_position=270.0
+        ) \
+        .with_hardware("actuation", StepperHardware, can_id=0x0E6,
+            max_position=270.0, use_max_position=True,
+            position_to_steps=lambda x: math.floor((x / 0.04) + 0.5), # rounding each time reduces floating point errors.
+            steps_to_position=lambda x: round(x * 0.04, 2),
+        ) \
         .with_teleop(inputs) \
+        .with_activation_buttons(
+            start_active=True,
+            active_button_name="activate_analysis_arm",
+            inactive_button_pool_names=["activate_cbeam"]) \
         .with_jcan() \
         .with_event_collection() \
         .spin()
+        # .with_hardware("distance", GenericSensorHardware, can_id=0x4E1, unit="position", initial_value=-1) \

@@ -40,12 +40,12 @@ const AnalysisArmWidget: React.FC<AnalysisArmWidgetProps> = () => {
     // When tof values are valid
     if (tofDist.min_range <=  curTofDist && curTofDist <= tofDist.max_range) {
       const sum = num + curTofDist
-      return 100 - (num / sum)
+      return (1 - (num / sum)) * 100
     }
 
     // when tof values are invalid (must not be close enough to the ground).
     // fall back to the aamax pos?
-    return num / aaPos.max_range
+    return (1 - num / aaPos.max_range) * 100
   }, [aaPos.max_range, aaPos.min_range, tofDist.min_range, tofDist.max_range])
 
   const percent = useMemo(() => convertToPercent(aaPos.range, tofDist.range), [aaPos.range, tofDist.range])
@@ -59,7 +59,7 @@ const AnalysisArmWidget: React.FC<AnalysisArmWidgetProps> = () => {
       <CardBody>
         <div className="grid grid-cols-2">
           <div className="flex flex-col">
-            <AnalysisArmDiagram percent={percent} target={targetPercent} bottomDistance={tofDist.range} topDistance={convertStepsToDistance(aaPos.range)}/>
+            <AnalysisArmDiagram percent={percent} target={targetPercent} bottomDistance={tofDist.range} topDistance={aaPos.range}/>
           </div>
           <AnalysisArmControls currentPos={aaPos.range} TOFReading={tofDist.range} setPosition={setPos} zeroPosition={zeroAA} resetTOF={resetTOF}/>
         </div>
@@ -67,7 +67,5 @@ const AnalysisArmWidget: React.FC<AnalysisArmWidgetProps> = () => {
     </Card>
   );
 }
-
-const convertStepsToDistance = (steps: number) => steps / 2
 
 export default AnalysisArmWidget

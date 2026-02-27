@@ -55,10 +55,12 @@ input_publisher_mode:
 
     axis_names:
       # Auger
-      - "auger_actuation"   # actuation for both the auger and the c-beam.
+      - "auger_actuation"
       - "auger_drill_speed"
       # Analysis Arm
       - "analysis_arm_actuation"
+      # CBeam
+      - "cbeam_actuation"
       # Tool Rotator
       - "tool_rotator_speed"
       # Chute
@@ -69,11 +71,12 @@ input_publisher_mode:
       - "sweeper_speed"
     button_names:
       # Auger
-      - "activate_auger"
       - "activate_cbeam"
       - "auger_drill"
       - "auger_drill_clockwise"
       - "auger_drill_anticlockwise"
+      # Analysis Arm
+      - "activate_analysis_arm"
       # Tool Rotator
       - "tool_rotator_twitch_decrease"
       - "tool_rotator_twitch_increase"

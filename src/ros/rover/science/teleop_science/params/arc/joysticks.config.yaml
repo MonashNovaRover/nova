@@ -46,6 +46,9 @@ thrustmaster_left:
 
     remap:
       axes:
+        # CBeam
+        cbeam_actuation:
+          from: "l_ax_stick_y"
         # Analysis Arm
         analysis_arm_actuation:
           from: "l_ax_stick_y"
@@ -122,9 +125,7 @@ thrustmaster_right:
 
       buttons:
         # Auger
-        auger_drill:
-          from: "r_btn_thumb_u_state"
-        activate_auger:
+        activate_analysis_arm:
           from: "r_btn_bottom_l4_state"
         activate_cbeam:
           from: "r_btn_bottom_l1_state"

@@ -25,6 +25,7 @@ CREATION:       01/02/26
 EDITED:         24/02/26
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
+import math
 
 import jcan
 from collections.abc import Callable
@@ -70,8 +71,8 @@ class StepperHardware(HardwareInterface):
                  joint: str="",
                  can_id: int=0,
                  reversed: bool=False,
-                 position_to_steps: Callable[float | int, int]=lambda x: x,
-                 steps_to_position: Callable[int, int | float]=lambda x: x,
+                 position_to_steps: Callable[[float | int], int]=lambda x: x,
+                 steps_to_position: Callable[[int], int | float]=lambda x: x,
                  max_steps_percent: float=1.0, max_steps_can: int=0x7F,
                  max_position: float=300.0, min_position: float= 0.0,
                  use_max_position: bool=False, use_min_position: bool=False):
@@ -96,7 +97,7 @@ class StepperHardware(HardwareInterface):
         super().__init__(contexts)
 
         self.bus = contexts[jcan.Bus]
-        self.current_position = 0
+        self.current_position = 0    # position in units
 
         # Default joint name to the hardware interface name
         if len(joint) == 0:
@@ -180,7 +181,7 @@ class StepperHardware(HardwareInterface):
         :param period: The time elapsed since the last update, in seconds.
         """
         steps_to_move = 0
-        # Prioritizes position control over effort.
+        # Prioritises position control over effort.
         if self.position_cmd is not None:
             steps_to_move = self.position_to_steps(self.position_cmd.value)
 
@@ -189,6 +190,8 @@ class StepperHardware(HardwareInterface):
 
         if abs(steps_to_move) > 0:
             frame = self.construct_frame(steps_to_move)
+            if frame is None:
+                return
             self.bus.send(frame)
 
         self.current_position += self.steps_to_position_conversion(steps_to_move)
@@ -196,7 +199,7 @@ class StepperHardware(HardwareInterface):
     def position_to_steps(self, position) -> int:
         """ Convert goal position to a discrete number of steps. """
         desired_position = self.limits.limit(position)
-        steps = self.position_to_steps_conversion(desired_position) - self.current_position
+        steps = self.position_to_steps_conversion(desired_position - self.current_position)
 
         # Check if the data is greater than the max value
         # If it is, set the data to the max value
@@ -206,6 +209,10 @@ class StepperHardware(HardwareInterface):
             steps = -self.max_steps_can
 
         steps *= self.max_steps_percent
+        steps = math.floor(steps + 0.5)
+
+        if steps > 0:
+            self.logger.info(f"moving position steps: {steps}   | current position: {self.current_position}, desired position: {desired_position}")
 
         return steps
 
@@ -223,17 +230,21 @@ class StepperHardware(HardwareInterface):
             data = -self.max_steps_can
 
         # Limit desired position
-        data = self.position_to_steps_conversion(
+        steps = self.position_to_steps_conversion(
             self.limits.limit(self.current_position + self.steps_to_position_conversion(data))
         )
+        steps = math.floor(steps + 0.5)
 
-        return data
+        if steps > 0:
+            self.logger.info(f"moving effort steps: {steps}")
 
-    def construct_frame(self, steps_to_move) -> jcan.Frame:
+        return steps
+
+    def construct_frame(self, steps_to_move) -> jcan.Frame | None:
         """ Construct the jcan Frame based on how many steps to move """
-        if not -self.max_steps_can <= steps_to_move <= self.max_steps_percent:
-            self.logger.error(f"{steps_to_move} is outside of range [{-self.max_steps_can}, {self.max_steps_percent}]")
-            return jcan.Frame(id=self.can_id, data=[0])
+        if not -self.max_steps_can <= steps_to_move <= self.max_steps_can:
+            self.logger.error(f"{steps_to_move} is outside of range [{-self.max_steps_can}, {self.max_steps_can}]")
+            return None
 
         # Pack the data into a list
         packed_data = list(pack('>b', int(steps_to_move * self.reversed))) # >b = big-endian signed byte (2 hex digits)
