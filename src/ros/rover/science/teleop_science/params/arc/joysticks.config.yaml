@@ -115,6 +115,8 @@ thrustmaster_right:
         auger_drill_speed:
           from: "r_ax_slider"
         # Chute
+        chute_actuation:
+          from: "r_ax_stick_twist"
         chute_speed:
           from: "r_ax_slider"
 
@@ -132,12 +134,3 @@ thrustmaster_right:
           from: "r_btn_thumb_r_state"
         auger_drill_anticlockwise:
           from: "r_btn_thumb_l_state"
-        # Chute
-        chute_twitch_decrease:
-          from: "r_btn_bottom_r2_state"
-        chute_twitch_increase:
-          from: "r_btn_bottom_r3_state"
-        chute_engaged:
-          from: "r_btn_bottom_r1_state"
-        chute_disengaged:
-          from: "r_btn_bottom_r4_state"
