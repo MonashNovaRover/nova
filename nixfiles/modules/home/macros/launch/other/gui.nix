@@ -15,7 +15,7 @@ let
   gui-setup = {
     pre = pre-shell {payload-name="Nova Gui";};
     terminals = [
-      {name = "Base:Gui"; platform=base; cmd="./serve-gui 5173";}
+      {name = "Base:Gui"; platform=base; cmd="./gui-serve 5173";}
       {name = "Base:Rosbridge"; platform=base; cmd="./ros2 launch rosbridge_server rosbridge_websocket_launch.xml";}
     ];
     # open web browser after 2 seconds while continuing with post-shell

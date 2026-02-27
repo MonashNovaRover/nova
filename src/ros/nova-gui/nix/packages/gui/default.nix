@@ -28,7 +28,7 @@ let
     nova-camera-msgs
     nova-science-interfaces
   ];
-  serve-gui-script = writers.writePython3 "serve-gui" { doCheck = false; } (builtins.readFile ../../../serve.py);
+  serve-gui-script = writers.writePython3 "gui-serve" { doCheck = false; } (builtins.readFile ../../../serve.py);
 in
 mkYarnPackage {
   name = "gui";
@@ -75,8 +75,8 @@ mkYarnPackage {
     mkdir -p "$out/bin/"
 
     echo "#!/bin/bash
-    ${serve-gui-script} \"$out/share/nova-gui/www\" \$@" > "$out/bin/serve-gui"
-    chmod +x "$out/bin/serve-gui"
+    ${serve-gui-script} \"$out/share/nova-gui/www\" \$@" > "$out/bin/gui-serve"
+    chmod +x "$out/bin/gui-serve"
 
     runHook postInstall
   '';

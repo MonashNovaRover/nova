@@ -5,6 +5,8 @@ import socketserver
 import os
 import sys
 
+# This script is used to serve the built gui as a http server and be compatible with how
+# vite builds websites.
 
 class CustomHTTPRequestHandler(
     http.server.SimpleHTTPRequestHandler

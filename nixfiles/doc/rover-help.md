@@ -34,16 +34,17 @@ Try the `launch-teleop` or `launch-teleop-drive` alias, otherwise use the comman
 # GUI
 Launch the following on the metabox.
 
-In one terminal:
-1. Try the 'gui-shell' alias otherwise:
-     nova-shell -A pkgs.ros.nova-gui
-2. Try the 'gui-run' alias otherwise:
-     cd ~/nova/src/ros/nova-gui/nova-gui
-     yarn dev
+```
+~/Builds/master/launch/run-gui
+```
 
-In another terminal:
-1. Try the 'gui-rosbridge' alias, otherwise: 
-    ~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+Alternatively, in two seperate terminals run:
+```
+gui-serve
+gui-rosbridge
+```
+
+Open the link gui-serve prints.
 
 ---------------------------
 
@@ -136,7 +137,7 @@ Type 'zero-arm' and follow the prompts.
 
 ---------------------------
 
-# NixOS
+# Nix
 nix-enable: sudo systemctl enable nix-daemon.service
 nix-start: sudo systemctl start nix-daemon.service
 
@@ -144,10 +145,8 @@ nix-start: sudo systemctl start nix-daemon.service
 
 # Tile Server (For GUI Cartography Page)
 
-tileserver-build (first time only)
-tileserver-shell
-tileserver-install (first time only)
-tileserver-run <path to map>
+Put the .mbtiles in ~/maps. Then run:
+`tileserver`
 
 ---------------------------
 

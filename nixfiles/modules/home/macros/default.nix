@@ -122,6 +122,8 @@ in
           list-blcmds = "more ${cfg.nixfileDir}/doc/blcmd-ids.md";
 
           # GUI
+          gui-serve = "~/Builds/master/bin/gui-serve 5173 && echo http://localhost:5173";
+
           gui-shell = "nova-shell -A pkgs.ros.nova-gui";
           gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" ~/nova/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts";
           gui-rosbridge = "~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
@@ -129,7 +131,7 @@ in
           gui-yarn = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui";
 
           # Tile server
-          tileserver = "~/Builds/master/bin/mbtileserver -p 8080 --missing-image-tile-404 -d ~/tiles";
+          tileserver = "~/Builds/master/bin/mbtileserver -p 8080 --missing-image-tile-404 -d ~/maps";
 
           # LEDs
           leds-red = "cansend can0 095#0100";

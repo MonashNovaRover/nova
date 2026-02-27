@@ -34,7 +34,7 @@ in
       description = "Nova GUI";
       serviceConfig = {
         Type = "simple";
-        ExecStart = ''${pkgs.nova.ros.nova-gui}/bin/serve-gui ${toString cfg.port}'';
+        ExecStart = ''${pkgs.nova.ros.nova-gui}/bin/gui-serve ${toString cfg.port}'';
       };
     };
   };
