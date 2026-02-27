@@ -1,0 +1,1169 @@
+<?xml version="1.0" ?>
+<!-- Generated using onshape-to-robot -->
+<!-- Onshape document_id: 226e4acb3f4645fcb2c5e12b -->
+<robot name="Arm" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- Link arm_link -->
+  <link name="arm_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-09"/>
+      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09"/>
+    </inertial>
+  </link>
+  <!-- Link arm_box -->
+  <link name="arm_box">
+    <inertial>
+      <origin xyz="3.64747e-06 -0.0222276 -0.0436739" rpy="0 0 0"/>
+      <mass value="2.25468"/>
+      <inertia ixx="0.0268897" ixy="-1.18096e-06" ixz="-5.52952e-06" iyy="0.0382436" iyz="-0.000606399" izz="0.0405873"/>
+    </inertial>
+    <!-- Part leftpannel -->
+    <visual>
+      <origin xyz="0.00436 -0.035 -0.16" rpy="-8.13152e-20 -1.04382e-15 -6.34533e-21"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/leftpannel.stl"/>
+      </geometry>
+      <material name="leftpannel_material">
+        <color rgba="0.882353 0.176471 0.415686 1"/>
+      </material>
+    </visual>
+    <!-- Part bellypan -->
+    <collision>
+      <origin xyz="1.59132e-24 -0.034 -0.08" rpy="-1.0842e-19 -1.98523e-23 3.13101e-24"/>
+      <geometry>
+        <box size="0.33 0.256 0.167"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="0 -0.035 -0.16" rpy="-1.0842e-19 -1.98523e-23 3.13101e-24"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/bellypan.stl"/>
+      </geometry>
+      <material name="bellypan_material">
+        <color rgba="0.882353 0.176471 0.415686 1"/>
+      </material>
+    </visual>
+    <!-- Part interface_plate -->
+    <visual>
+      <origin xyz="5.90006e-12 -0.02 -0.18984" rpy="-1.0842e-19 -1.98523e-23 3.14393e-24"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/interface_plate.stl"/>
+      </geometry>
+      <material name="interface_plate_material">
+        <color rgba="0.647059 0.647059 0.647059 1"/>
+      </material>
+    </visual>
+    <!-- Part hatch -->
+    <visual>
+      <origin xyz="4.44089e-16 -0.035 -0.16" rpy="-8.13152e-20 -9.64681e-16 -6.3807e-16"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/hatch.stl"/>
+      </geometry>
+      <material name="hatch_material">
+        <color rgba="0.882353 0.176471 0.415686 1"/>
+      </material>
+    </visual>
+    <!-- Part j1_housing -->
+    <collision>
+      <origin xyz="1.18002e-11 2.22043e-16 0.03616" rpy="-8.13152e-20 -9.92617e-24 3.14474e-24"/>
+      <geometry>
+        <cylinder length="0.056" radius="0.07"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="1.18002e-11 2.22045e-16 0.00816" rpy="-8.13152e-20 -9.92617e-24 3.14474e-24"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/j1_housing.stl"/>
+      </geometry>
+      <material name="j1_housing_material">
+        <color rgba="0.701961 0.701961 0.701961 1"/>
+      </material>
+    </visual>
+    <!-- Part right_pannel -->
+    <visual>
+      <origin xyz="-0.00436 -0.035 -0.16" rpy="-8.13152e-20 -1.04382e-15 -6.34533e-21"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/right_pannel.stl"/>
+      </geometry>
+      <material name="right_pannel_material">
+        <color rgba="0.882353 0.176471 0.415686 1"/>
+      </material>
+    </visual>
+  </link>
+  <!-- Link base_frame -->
+  <link name="base_frame">
+    <inertial>
+      <origin xyz="-0.00016042 0.000583921 0.0693277" rpy="0 0 0"/>
+      <mass value="1.88885"/>
+      <inertia ixx="0.00893328" ixy="3.29719e-05" ixz="-2.89732e-05" iyy="0.0248478" iyz="7.11125e-05" izz="0.018744"/>
+    </inertial>
+    <!-- Part pivot_shaft -->
+    <visual>
+      <origin xyz="7.77233e-16 -9.23919e-17 0.131" rpy="1.35526e-18 -8.77999e-20 8.32667e-17"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/pivot_shaft.stl"/>
+      </geometry>
+      <material name="pivot_shaft_material">
+        <color rgba="0.647059 0.647059 0.647059 1"/>
+      </material>
+    </visual>
+    <!-- Part gearbox_plate -->
+    <visual>
+      <origin xyz="2.22045e-16 -1.89751e-24 -0.062" rpy="1.35525e-18 -8.77979e-20 -8.32667e-17"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/gearbox_plate.stl"/>
+      </geometry>
+      <material name="gearbox_plate_material">
+        <color rgba="0.8 0.8 0.8 1"/>
+      </material>
+    </visual>
+    <!-- Part base_plate -->
+    <collision>
+      <origin xyz="-1.11487e-20 -1.72117e-19 0.065" rpy="1.35525e-18 -8.77854e-20 1.38778e-16"/>
+      <geometry>
+        <box size="0.1514 0.11 0.13"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.68548e-20 -2.60209e-19 0.13" rpy="-1.38778e-16 1.5708 0"/>
+      <geometry>
+        <cylinder length="0.1514" radius="0.055"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-1.68548e-20 -2.60209e-19 0.13" rpy="-1.38778e-16 1.5708 0"/>
+      <geometry>
+        <cylinder length="0.3164" radius="0.0435"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="1.61559e-27 0 -0.062" rpy="1.35525e-18 -8.77854e-20 1.38778e-16"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/base_plate.stl"/>
+      </geometry>
+      <material name="base_plate_material">
+        <color rgba="0.701961 0.701961 0.701961 1"/>
+      </material>
+    </visual>
+    <!-- Part gearbox_plate_2 -->
+    <visual>
+      <origin xyz="-1.11022e-15 8.88178e-16 -0.062" rpy="-4.27934e-15 3.47934e-15 3.14159"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/gearbox_plate.stl"/>
+      </geometry>
+      <material name="gearbox_plate_2_material">
+        <color rgba="0.8 0.8 0.8 1"/>
+      </material>
+    </visual>
+    <!-- Part r80_motor -->
+    <visual>
+      <origin xyz="-0.1307 4.78443e-16 0.131" rpy="-1.5708 -3.60831e-15 -4.38372e-17"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/r80_motor.stl"/>
+      </geometry>
+      <material name="r80_motor_material">
+        <color rgba="0.262745 0.258824 0.258824 1"/>
+      </material>
+    </visual>
+    <!-- Part r80_motor_2 -->
+    <visual>
+      <origin xyz="0.1307 -1.06866e-15 0.131" rpy="-4.27934e-15 3.16709e-15 3.14159"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/r80_motor.stl"/>
+      </geometry>
+      <material name="r80_motor_2_material">
+        <color rgba="0.262745 0.258824 0.258824 1"/>
+      </material>
+    </visual>
+    <!-- Part r80_motor_3 -->
+    <visual>
+      <origin xyz="-1.10991e-16 1.18503e-16 0.0155" rpy="1.32912e-17 1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/r80_motor.stl"/>
+      </geometry>
+      <material name="r80_motor_3_material">
+        <color rgba="0.262745 0.258824 0.258824 1"/>
+      </material>
+    </visual>
+    <!-- Part j1_output_hat -->
+    <visual>
+      <origin xyz="1.61559e-27 0 -0.062" rpy="0 -0 -6.39879e-40"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/j1_output_hat.stl"/>
+      </geometry>
+      <material name="j1_output_hat_material">
+        <color rgba="0.701961 0.701961 0.701961 1"/>
+      </material>
+    </visual>
+  </link>
+  <!-- Link l1 -->
+  <link name="l1">
+    <inertial>
+      <origin xyz="-5.06847e-10 0.257412 -0.0458086" rpy="0 0 0"/>
+      <mass value="0.860602"/>
+      <inertia ixx="0.0303936" ixy="-9.43278e-11" ixz="-2.13905e-10" iyy="0.00125769" iyz="-3.71632e-05" izz="0.0295195"/>
+    </inertial>
+    <!-- Part elbow_outer__configuration_default -->
+    <visual>
+      <origin xyz="-2.92286e-15 0.4685 -0.0805" rpy="-1.5708 1.43375e-14 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/elbow_outer__configuration_default.stl"/>
+      </geometry>
+      <material name="elbow_outer__configuration_default_material">
+        <color rgba="0.647059 0.647059 0.647059 1"/>
+      </material>
+    </visual>
+    <!-- Part rhs_25_38_1_6_450mm__length_0_4355_meter -->
+    <collision>
+      <origin xyz="2.26798e-14 0.26275 -0.0109" rpy="1.09635e-13 -1.5708 0"/>
+      <geometry>
+        <box size="0.025 0.4355 0.038"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="0.019 0.4805 -0.0234" rpy="1.09635e-13 -1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/rhs_25_38_1_6_450mm__length_0_4355_meter.stl"/>
+      </geometry>
+      <material name="rhs_25_38_1_6_450mm__length_0_4355_meter_material">
+        <color rgba="0.301961 0.301961 0.301961 1"/>
+      </material>
+    </visual>
+    <!-- Part elbow_outer__configuration_default_2 -->
+    <visual>
+      <origin xyz="-2.44045e-15 0.4685 -0.0109" rpy="1.5708 2.21056e-14 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/elbow_outer__configuration_default.stl"/>
+      </geometry>
+      <material name="elbow_outer__configuration_default_2_material">
+        <color rgba="0.647059 0.647059 0.647059 1"/>
+      </material>
+    </visual>
+    <!-- Part l1_l2_shaft__configuration_default -->
+    <visual>
+      <origin xyz="-2.18161e-15 0.5 -0.0457" rpy="1.5708 2.98806e-14 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/l1_l2_shaft__configuration_default.stl"/>
+      </geometry>
+      <material name="l1_l2_shaft__configuration_default_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <!-- Part base_link_mount__a03957968346c8acd79caf7f9fd382ce -->
+    <visual>
+      <origin xyz="-1.57772e-30 0 -0.0218" rpy="-1.5708 -1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/base_link_mount__a03957968346c8acd79caf7f9fd382ce.stl"/>
+      </geometry>
+      <material name="base_link_mount__a03957968346c8acd79caf7f9fd382ce_material">
+        <color rgba="0.6 0.6 0.6 1"/>
+      </material>
+    </visual>
+    <!-- Part base_link_mount__95090c0ab9bafeab4c654c9b227b8bf7 -->
+    <visual>
+      <origin xyz="-1.14445e-15 2.77556e-16 -0.0696" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/base_link_mount__95090c0ab9bafeab4c654c9b227b8bf7.stl"/>
+      </geometry>
+      <material name="base_link_mount__95090c0ab9bafeab4c654c9b227b8bf7_material">
+        <color rgba="0.6 0.6 0.6 1"/>
+      </material>
+    </visual>
+    <!-- Part part_9 -->
+    <visual>
+      <origin xyz="-0.019 0.053 -0.0805" rpy="-1.5708 -1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/part_9.stl"/>
+      </geometry>
+      <material name="part_9_material">
+        <color rgba="0.498039 0.498039 0.498039 1"/>
+      </material>
+    </visual>
+    <!-- Part rhs_25_38_1_6_450mm__length_0_4355_meter_2 -->
+    <collision>
+      <origin xyz="2.64268e-14 0.26275 -0.0805" rpy="1.27613e-13 -1.5708 0"/>
+      <geometry>
+        <box size="0.025 0.4355 0.038"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="0.019 0.4805 -0.093" rpy="1.27613e-13 -1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/rhs_25_38_1_6_450mm__length_0_4355_meter.stl"/>
+      </geometry>
+      <material name="rhs_25_38_1_6_450mm__length_0_4355_meter_2_material">
+        <color rgba="0.301961 0.301961 0.301961 1"/>
+      </material>
+    </visual>
+  </link>
+  <!-- Link l2 -->
+  <link name="l2">
+    <inertial>
+      <origin xyz="-0.00337932 0.0761659 7.26392e-05" rpy="0 0 0"/>
+      <mass value="0.373908"/>
+      <inertia ixx="0.00209301" ixy="4.15918e-05" ixz="2.972e-07" iyy="0.00034213" iyz="-1.39074e-06" izz="0.00205921"/>
+    </inertial>
+    <!-- Part dust_cover___top_front -->
+    <visual>
+      <origin xyz="-1.60705e-06 0.0989657 9.13144e-05" rpy="1.5708 -1.47715e-15 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/dust_cover___top_front.stl"/>
+      </geometry>
+      <material name="dust_cover___top_front_material">
+        <color rgba="0.301961 0.301961 0.301961 1"/>
+      </material>
+    </visual>
+    <!-- Part dust_cover___top_rear -->
+    <visual>
+      <origin xyz="-1.60705e-06 0.0989972 9.13144e-05" rpy="1.5708 -1.08857e-15 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/dust_cover___top_rear.stl"/>
+      </geometry>
+      <material name="dust_cover___top_rear_material">
+        <color rgba="0.301961 0.301961 0.301961 1"/>
+      </material>
+    </visual>
+    <!-- Part static_plate -->
+    <collision>
+      <origin xyz="-0.009 0.031387 9.13144e-05" rpy="1.5708 2.1654e-17 -1.5708"/>
+      <geometry>
+        <box size="0.262787 0.0954 0.092274"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="-1.63203e-14 0.098787 9.13144e-05" rpy="1.5708 2.1654e-17 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/static_plate.stl"/>
+      </geometry>
+      <material name="static_plate_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <!-- Part dust_cover___bottom -->
+    <visual>
+      <origin xyz="-0.000842898 0.0994707 -0.000344138" rpy="1.59424 -4.69479e-15 -1.56452"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/dust_cover___bottom.stl"/>
+      </geometry>
+      <material name="dust_cover___bottom_material">
+        <color rgba="0.301961 0.301961 0.301961 1"/>
+      </material>
+    </visual>
+    <!-- Part sheet_metal_sidearm -->
+    <visual>
+      <origin xyz="-1.67644e-14 0.099 -4.05234e-15" rpy="-1.5708 6.48587e-14 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/sheet_metal_sidearm.stl"/>
+      </geometry>
+      <material name="sheet_metal_sidearm_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <!-- Part new_linkage_mount -->
+    <visual>
+      <origin xyz="-2.83107e-14 0.15 -4.29739e-16" rpy="1.5708 -2.86493e-15 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/new_linkage_mount.stl"/>
+      </geometry>
+      <material name="new_linkage_mount_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <!-- Part sheet_metal_sidearm_2 -->
+    <visual>
+      <origin xyz="-1.66533e-14 0.099 -3.80254e-15" rpy="1.5708 2.1654e-17 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/sheet_metal_sidearm.stl"/>
+      </geometry>
+      <material name="sheet_metal_sidearm_2_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+  </link>
+  <!-- Link l1_prime -->
+  <link name="l1_prime">
+    <inertial>
+      <origin xyz="5.72116e-15 -0.25 0.006" rpy="0 0 0"/>
+      <mass value="0.189434"/>
+      <inertia ixx="0.0041285" ixy="3.54476e-17" ixz="8.65573e-19" iyy="1.67198e-05" iyz="-3.17046e-16" izz="0.0041283"/>
+    </inertial>
+    <!-- Part elbow_joint_2_outer__configuration_default -->
+    <visual>
+      <origin xyz="8.88178e-16 -0.063 0.0155" rpy="1.5708 1.1805e-13 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/elbow_joint_2_outer__configuration_default.stl"/>
+      </geometry>
+      <material name="elbow_joint_2_outer__configuration_default_material">
+        <color rgba="0.8 0.8 0.8 1"/>
+      </material>
+    </visual>
+    <!-- Part elbow_joint_2_outer__configuration_default_2 -->
+    <visual>
+      <origin xyz="6.77236e-15 -0.437 0.0155" rpy="1.5708 -1.12612e-13 1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/elbow_joint_2_outer__configuration_default.stl"/>
+      </geometry>
+      <material name="elbow_joint_2_outer__configuration_default_2_material">
+        <color rgba="0.8 0.8 0.8 1"/>
+      </material>
+    </visual>
+    <!-- Part rhs_19_05_19_05_1_2_480mm__length_0_4_meter -->
+    <collision>
+      <origin xyz="6.68493e-15 -0.25 0.006" rpy="3.14159 1.5708 0"/>
+      <geometry>
+        <box size="0.019 0.4 0.019"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="7.25808e-15 -0.45 0.006" rpy="3.14159 1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/rhs_19_05_19_05_1_2_480mm__length_0_4_meter.stl"/>
+      </geometry>
+      <material name="rhs_19_05_19_05_1_2_480mm__length_0_4_meter_material">
+        <color rgba="0.301961 0.301961 0.301961 1"/>
+      </material>
+    </visual>
+    <!-- Part elbow_joint_2_outer__configuration_default_3 -->
+    <visual>
+      <origin xyz="6.57807e-15 -0.437 -0.0035" rpy="-1.5708 -1.0905e-13 1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/elbow_joint_2_outer__configuration_default.stl"/>
+      </geometry>
+      <material name="elbow_joint_2_outer__configuration_default_3_material">
+        <color rgba="0.8 0.8 0.8 1"/>
+      </material>
+    </visual>
+    <!-- Part elbow_joint_2_outer__configuration_default_4 -->
+    <visual>
+      <origin xyz="2.77556e-17 -0.063 -0.0035" rpy="-1.5708 2.98388e-17 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/elbow_joint_2_outer__configuration_default.stl"/>
+      </geometry>
+      <material name="elbow_joint_2_outer__configuration_default_4_material">
+        <color rgba="0.8 0.8 0.8 1"/>
+      </material>
+    </visual>
+    <!-- Part elbow_joint_2__configuration_default -->
+    <visual>
+      <origin xyz="6.50868e-15 -0.437 0.006" rpy="1.5708 -1.13944e-13 1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/elbow_joint_2__configuration_default.stl"/>
+      </geometry>
+      <material name="elbow_joint_2__configuration_default_material">
+        <color rgba="0.8 0.8 0.8 1"/>
+      </material>
+    </visual>
+    <!-- Part elbow_joint_2__configuration_default_2 -->
+    <visual>
+      <origin xyz="4.02456e-16 -0.063 0.006" rpy="1.5708 1.13165e-13 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/elbow_joint_2__configuration_default.stl"/>
+      </geometry>
+      <material name="elbow_joint_2__configuration_default_2_material">
+        <color rgba="0.8 0.8 0.8 1"/>
+      </material>
+    </visual>
+  </link>
+  <!-- Joint from l2 to l1_prime -->
+  <joint name="l1_p_upper" type="revolute">
+    <origin xyz="1.87628e-14 -0.1 0.006" rpy="3.14159 -2.86493e-15 -1.5708"/>
+    <parent link="l2"/>
+    <child link="l1_p_upper_j3_mimic"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+    <mimic joint="j2" multiplier="1" offset="0"/>
+  </joint>
+  <link name="l1_p_upper_j3_mimic"/>
+  <joint name="l1_p_upper_mimic" type="revolute">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="l1_p_upper_j3_mimic"/>
+    <child link="l1_prime"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+    <mimic joint="j3" multiplier="-1" offset="0"/>
+  </joint>
+  <!-- Link cf_link -->
+  <link name="cf_link">
+    <inertial>
+      <origin xyz="-2.65717e-08 -0.00268363 -0.226589" rpy="0 0 0"/>
+      <mass value="0.785381"/>
+      <inertia ixx="0.0202529" ixy="1.56099e-10" ixz="2.92544e-09" iyy="0.0209655" iyz="-0.000275905" izz="0.00124897"/>
+    </inertial>
+    <!-- Part tensioner_v2___bracket -->
+    <visual>
+      <origin xyz="2.96476e-15 -3.94129e-14 -0.405" rpy="-1.5708 9.79933e-15 -3.14159"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/tensioner_v2___bracket.stl"/>
+      </geometry>
+      <material name="tensioner_v2___bracket_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <!-- Part bracket -->
+    <visual>
+      <origin xyz="2.69695e-18 0 -0.044" rpy="-3.14159 -6.12323e-17 -8.67231e-32"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/bracket.stl"/>
+      </geometry>
+      <material name="bracket_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <!-- Part a185t_5m_9mm_wide_belt -->
+    <visual>
+      <origin xyz="0.057798 2.36478e-14 -0.044" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/a185t_5m_9mm_wide_belt.stl"/>
+      </geometry>
+      <material name="a185t_5m_9mm_wide_belt_material">
+        <color rgba="0.2 0.2 0.2 1"/>
+      </material>
+    </visual>
+    <!-- Part j5_6_plug -->
+    <visual>
+      <origin xyz="-6.6692e-17 -2.22045e-16 -0.044" rpy="-3.14159 1.84659e-14 -3.14159"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/j5_6_plug.stl"/>
+      </geometry>
+      <material name="j5_6_plug_material">
+        <color rgba="0.301961 0.301961 0.301961 1"/>
+      </material>
+    </visual>
+    <!-- Part link_mount___j5_6 -->
+    <visual>
+      <origin xyz="2.68721e-15 -3.89688e-14 -0.405" rpy="-1.5708 9.50036e-15 -3.14159"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/link_mount___j5_6.stl"/>
+      </geometry>
+      <material name="link_mount___j5_6_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <!-- Part cf_tube -->
+    <collision>
+      <origin xyz="5.99128e-16 -0.0075 -0.2455" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <box size="0.445 0.125 0.0955"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="2.57285e-15 -4.32987e-14 -0.45" rpy="-1.5708 9.80567e-15 -3.14159"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/cf_tube.stl"/>
+      </geometry>
+      <material name="cf_tube_material">
+        <color rgba="0.301961 0.301961 0.301961 1"/>
+      </material>
+    </visual>
+    <!-- Part j5_6_plug_2 -->
+    <visual>
+      <origin xyz="2.69695e-18 0 -0.044" rpy="3.14159 8.69065e-17 -1.13074e-15"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/j5_6_plug.stl"/>
+      </geometry>
+      <material name="j5_6_plug_2_material">
+        <color rgba="0.301961 0.301961 0.301961 1"/>
+      </material>
+    </visual>
+    <!-- Part a185t_5m_9mm_wide_belt_2 -->
+    <visual>
+      <origin xyz="-0.057798 2.63123e-14 -0.044" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/a185t_5m_9mm_wide_belt.stl"/>
+      </geometry>
+      <material name="a185t_5m_9mm_wide_belt_2_material">
+        <color rgba="0.2 0.2 0.2 1"/>
+      </material>
+    </visual>
+    <!-- Part side_panel -->
+    <visual>
+      <origin xyz="2.76962e-15 -4.58522e-14 -0.47199" rpy="-2.02804e-13 -1.79217e-14 4.7588e-15"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/side_panel.stl"/>
+      </geometry>
+      <material name="side_panel_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <!-- Part link_mount___j5_6_2 -->
+    <visual>
+      <origin xyz="6.72558e-16 -4.996e-15 -0.085" rpy="1.5708 9.78527e-15 -3.14159"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/link_mount___j5_6.stl"/>
+      </geometry>
+      <material name="link_mount___j5_6_2_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <!-- Part side_panel_2 -->
+    <visual>
+      <origin xyz="3.35249e-15 -4.56302e-14 -0.47199" rpy="2.03151e-13 1.79521e-14 -3.14159"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/side_panel.stl"/>
+      </geometry>
+      <material name="side_panel_2_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <!-- Part tensioner_v2___bracket_mirrored -->
+    <visual>
+      <origin xyz="2.68721e-15 -3.89688e-14 -0.405" rpy="-1.5708 -9.45659e-15 3.76605e-15"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/tensioner_v2___bracket_mirrored.stl"/>
+      </geometry>
+      <material name="tensioner_v2___bracket_mirrored_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+  </link>
+  <!-- Link diff_support -->
+  <link name="diff_support">
+    <inertial>
+      <origin xyz="7.45247e-05 -0.00679756 -0.04071" rpy="0 0 0"/>
+      <mass value="0.105741"/>
+      <inertia ixx="0.000135607" ixy="9.98648e-08" ixz="-4.77717e-11" iyy="0.000159587" iyz="1.43474e-11" izz="6.98364e-05"/>
+    </inertial>
+    <!-- Part diff_support -->
+    <visual>
+      <origin xyz="0 -0.02199 -0.04071" rpy="-1.5708 -1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/diff_support.stl"/>
+      </geometry>
+      <material name="diff_support_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <!-- Part diff_dust_cover -->
+    <visual>
+      <origin xyz="4.44089e-16 -0.02199 -0.04071" rpy="-1.5708 -1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/diff_dust_cover.stl"/>
+      </geometry>
+      <material name="diff_dust_cover_material">
+        <color rgba="0.301961 0.301961 0.301961 1"/>
+      </material>
+    </visual>
+  </link>
+  <!-- Link ee_base -->
+  <link name="ee_base">
+    <inertial>
+      <origin xyz="5.73654e-17 -4.00619e-17 -0.0120252" rpy="0 0 0"/>
+      <mass value="0.0852658"/>
+      <inertia ixx="2.40181e-05" ixy="1.18305e-06" ixz="3.24468e-20" iyy="2.15163e-05" iyz="-1.65451e-20" izz="3.43273e-05"/>
+    </inertial>
+    <!-- Part active___linear_rod__configuration_default -->
+    <visual>
+      <origin xyz="-0.119775 -0.0320936 -0.1035" rpy="-1.309 -1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___linear_rod__configuration_default.stl"/>
+      </geometry>
+      <material name="active___linear_rod__configuration_default_material">
+        <color rgba="0.65098 0.619608 0.588235 1"/>
+      </material>
+    </visual>
+    <!-- Part active___left_frame_piece__configuration_default -->
+    <visual>
+      <origin xyz="0.113979 0.0305406 -0.0785" rpy="-0.261799 1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___left_frame_piece__configuration_default.stl"/>
+      </geometry>
+      <material name="active___left_frame_piece__configuration_default_material">
+        <color rgba="0.792157 0.819608 0.933333 1"/>
+      </material>
+    </visual>
+    <!-- Part active___motor_protector__configuration_default -->
+    <visual>
+      <origin xyz="0.0490594 0.0518209 -0.0585" rpy="8.22035e-15 -5.63424e-14 1.8326"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___motor_protector__configuration_default.stl"/>
+      </geometry>
+      <material name="active___motor_protector__configuration_default_material">
+        <color rgba="1 0.501961 1 1"/>
+      </material>
+    </visual>
+    <!-- Part ee_connector -->
+    <visual>
+      <origin xyz="0 1.11022e-16 -0.001" rpy="-8.45896e-17 -2.38753e-17 -2.94563e-17"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/ee_connector.stl"/>
+      </geometry>
+      <material name="ee_connector_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <!-- Part j6_ee_interface_block -->
+    <visual>
+      <origin xyz="1.38778e-16 5.55112e-16 3.33067e-16" rpy="1.5708 -5.90431e-15 -2.87979"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/j6_ee_interface_block.stl"/>
+      </geometry>
+      <material name="j6_ee_interface_block_material">
+        <color rgba="0.647059 0.647059 0.647059 1"/>
+      </material>
+    </visual>
+    <!-- Part active___gear_cover_bottom__configuration_default -->
+    <visual>
+      <origin xyz="0.11849 0.0291611 -0.0585" rpy="1.309 1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___gear_cover_bottom__configuration_default.stl"/>
+      </geometry>
+      <material name="active___gear_cover_bottom__configuration_default_material">
+        <color rgba="1 0.501961 1 1"/>
+      </material>
+    </visual>
+    <!-- Part active___dual_lead_screw__configuration_default -->
+    <visual>
+      <origin xyz="0.135132 0.036213 -0.0586743" rpy="1.8326 -1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___dual_lead_screw__configuration_default.stl"/>
+      </geometry>
+      <material name="active___dual_lead_screw__configuration_default_material">
+        <color rgba="0.776471 0.756863 0.737255 1"/>
+      </material>
+    </visual>
+    <!-- Part active___middle_piece__configuration_default -->
+    <visual>
+      <origin xyz="0.00193185 0.000517638 -0.0785" rpy="-1.8326 1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___middle_piece__configuration_default.stl"/>
+      </geometry>
+      <material name="active___middle_piece__configuration_default_material">
+        <color rgba="0.792157 0.819608 0.933333 1"/>
+      </material>
+    </visual>
+    <!-- Part active___ee_base_plate__configuration_default -->
+    <visual>
+      <origin xyz="0.00517638 -0.0193185 -0.0315" rpy="-1.06045e-14 4.9743e-16 0.261799"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___ee_base_plate__configuration_default.stl"/>
+      </geometry>
+      <material name="active___ee_base_plate__configuration_default_material">
+        <color rgba="0.792157 0.819608 0.933333 1"/>
+      </material>
+    </visual>
+    <!-- Part active___mirror_camera_lid__configuration_default -->
+    <visual>
+      <origin xyz="0.00828221 -0.0309096 -0.047" rpy="-3.14159 2.02097e-14 -2.87979"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___mirror_camera_lid__configuration_default.stl"/>
+      </geometry>
+      <material name="active___mirror_camera_lid__configuration_default_material">
+        <color rgba="1 0.501961 1 1"/>
+      </material>
+    </visual>
+    <!-- Part active___gear_cover_top__configuration_default -->
+    <visual>
+      <origin xyz="0.109233 0.067574 -0.0585" rpy="1.309 1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___gear_cover_top__configuration_default.stl"/>
+      </geometry>
+      <material name="active___gear_cover_top__configuration_default_material">
+        <color rgba="1 0.501961 1 1"/>
+      </material>
+    </visual>
+    <!-- Part active___pololu_gear_motor__configuration_default -->
+    <visual>
+      <origin xyz="0.049152 0.0514755 -0.0585" rpy="1.309 1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___pololu_gear_motor__configuration_default.stl"/>
+      </geometry>
+      <material name="active___pololu_gear_motor__configuration_default_material">
+        <color rgba="0.792157 0.819608 0.933333 1"/>
+      </material>
+    </visual>
+    <!-- Part active___right_frame_piece__configuration_default -->
+    <visual>
+      <origin xyz="-0.113979 -0.0305406 -0.0785" rpy="2.87979 1.5708 0"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___right_frame_piece__configuration_default.stl"/>
+      </geometry>
+      <material name="active___right_frame_piece__configuration_default_material">
+        <color rgba="0.792157 0.819608 0.933333 1"/>
+      </material>
+    </visual>
+    <!-- Part active___middle_piece_attachment__configuration_default -->
+    <visual>
+      <origin xyz="-1.83187e-15 -1.9984e-15 -0.0315" rpy="-1.5708 4.20561e-15 0.261799"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___middle_piece_attachment__configuration_default.stl"/>
+      </geometry>
+      <material name="active___middle_piece_attachment__configuration_default_material">
+        <color rgba="0.898039 0.917647 0.929412 1"/>
+      </material>
+    </visual>
+    <!-- Part active___mirror_mount_base__configuration_default -->
+    <visual>
+      <origin xyz="0.00517638 -0.0193185 -0.0475" rpy="3.14159 2.18029e-16 0.261799"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___mirror_mount_base__configuration_default.stl"/>
+      </geometry>
+      <material name="active___mirror_mount_base__configuration_default_material">
+        <color rgba="1 0.501961 1 1"/>
+      </material>
+    </visual>
+  </link>
+
+  <!-- Link right_finger -->
+  <link name="right_finger">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-09"/>
+      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09"/>
+    </inertial>
+    <!-- Part active___gripper_pad__configuration_default -->
+    <visual>
+      <origin xyz="-0.071 -1.66533e-15 0.0945" rpy="-3.14159 -4.6728e-14 2.03858e-14"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___gripper_pad__configuration_default.stl"/>
+      </geometry>
+      <material name="active___gripper_pad__configuration_default_material">
+        <color rgba="1 0 1 1"/>
+      </material>
+    </visual>
+    <!-- Part active____ee_finger_2_taper__configuration_default -->
+    <visual>
+      <origin xyz="-0.131 -2.44249e-15 0.1055" rpy="8.86939e-15 -4.99053e-15 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active____ee_finger_2_taper__configuration_default.stl"/>
+      </geometry>
+      <material name="active____ee_finger_2_taper__configuration_default_material">
+        <color rgba="0.792157 0.819608 0.933333 1"/>
+      </material>
+    </visual>
+    <!-- Part active___neoprene_grip_layer__configuration_default -->
+    <visual>
+      <origin xyz="-0.071 -2.22045e-16 0.0856" rpy="1.5708 -8.85897e-15 -1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___neoprene_grip_layer__configuration_default.stl"/>
+      </geometry>
+      <material name="active___neoprene_grip_layer__configuration_default_material">
+        <color rgba="0.298039 0.298039 0.298039 1"/>
+      </material>
+    </visual>
+  </link>
+  <!-- Joint from ee_base to right_finger -->
+	<xacro:unless value="$(arg use_mock_hardware)">
+    <joint name="lead_right" type="prismatic">
+      <origin xyz="-3.0892e-14 -5.32907e-15 -0.1035" rpy="-2.87979 -1.5708 0"/>
+      <parent link="ee_base"/>
+      <child link="right_finger"/>
+      <axis xyz="0 0 1"/>
+      <limit effort="10" velocity="10" lower="-0.0855" upper="0"/>
+      <mimic joint="lead_left" multiplier="1" offset="0"/>
+    </joint>
+  </xacro:unless>
+  <xacro:if value="$(arg use_mock_hardware)">
+    <joint name="lead_right" type="fixed">
+      <origin xyz="-3.0892e-14 -5.32907e-15 -0.1035" rpy="-2.87979 -1.5708 0"/>
+      <parent link="ee_base"/>
+      <child link="right_finger"/>
+      <axis xyz="0 0 1"/>
+      <limit effort="10" velocity="10" lower="-0.0855" upper="0"/>
+      <!-- <mimic joint="lead_left" multiplier="1" offset="0"/> -->
+    </joint>
+  </xacro:if>
+  
+  <!-- Link left_finger -->
+  <link name="left_finger">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-09"/>
+      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09"/>
+    </inertial>
+    <!-- Part active___linear_actuator_holder__configuration_default -->
+    <visual>
+      <origin xyz="-1.11022e-16 -0.0185 -0.02" rpy="1.5708 3.57492e-14 5.05433e-14"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___linear_actuator_holder__configuration_default.stl"/>
+      </geometry>
+      <material name="active___linear_actuator_holder__configuration_default_material">
+        <color rgba="1 0.501961 1 1"/>
+      </material>
+    </visual>
+    <!-- Part active____ee_finger_2_taper__configuration_default_2 -->
+    <visual>
+      <origin xyz="1.11022e-16 -0.131 -0.011" rpy="1.89565e-30 -2.94625e-30 -4.6055e-18"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active____ee_finger_2_taper__configuration_default.stl"/>
+      </geometry>
+      <material name="active____ee_finger_2_taper__configuration_default_2_material">
+        <color rgba="0.792157 0.819608 0.933333 1"/>
+      </material>
+    </visual>
+    <!-- Part active___zoom_finger___universal_camera_shell__configuration_default -->
+    <visual>
+      <origin xyz="0.0001 -0.014 0.013" rpy="-3.14159 3.33067e-16 -2.10205e-17"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___zoom_finger___universal_camera_shell__configuration_default.stl"/>
+      </geometry>
+      <material name="active___zoom_finger___universal_camera_shell__configuration_default_material">
+        <color rgba="1 0.501961 1 1"/>
+      </material>
+    </visual>
+    <!-- Part active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default -->
+    <visual>
+      <origin xyz="-7.77156e-16 -0.0555 -0.0125" rpy="3.60143e-15 -1.60982e-14 1.90934e-15"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default.stl"/>
+      </geometry>
+      <material name="active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default_material">
+        <color rgba="0.792157 0.819608 0.933333 1"/>
+      </material>
+    </visual>
+    <!-- Part active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default_2 -->
+    <visual>
+      <origin xyz="-0.0001 -0.0555 -0.0125" rpy="3.5103e-15 -1.57652e-14 2.52817e-15"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default__2.stl"/>
+      </geometry>
+      <material name="active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default_2_material">
+        <color rgba="0.792157 0.819608 0.933333 1"/>
+      </material>
+    </visual>
+    <!-- Part active___linear_actuator_clamp__configuration_default -->
+    <visual>
+      <origin xyz="5.55112e-16 -0.109 -0.02" rpy="1.5708 -3.77476e-14 -3.14159"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___linear_actuator_clamp__configuration_default.stl"/>
+      </geometry>
+      <material name="active___linear_actuator_clamp__configuration_default_material">
+        <color rgba="1 0.501961 1 1"/>
+      </material>
+    </visual>
+    <!-- Part active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default_3 -->
+    <visual>
+      <origin xyz="-7.77156e-16 -0.0555 -0.0125" rpy="3.55322e-15 -1.5099e-14 1.72639e-15"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default__3.stl"/>
+      </geometry>
+      <material name="active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default_3_material">
+        <color rgba="0.792157 0.819608 0.933333 1"/>
+      </material>
+    </visual>
+    <!-- Part active___zoom_finger___universal_camera_lid__configuration_default -->
+    <visual>
+      <origin xyz="0.0001 -0.025 0.013" rpy="-3.14159 1.38778e-13 3.14159"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___zoom_finger___universal_camera_lid__configuration_default.stl"/>
+      </geometry>
+      <material name="active___zoom_finger___universal_camera_lid__configuration_default_material">
+        <color rgba="1 0.501961 1 1"/>
+      </material>
+    </visual>
+    <!-- Part active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default_4 -->
+    <visual>
+      <origin xyz="-0.0001 -0.0555 -0.0125" rpy="4.58838e-16 -1.63203e-14 -1.35523e-15"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default__4.stl"/>
+      </geometry>
+      <material name="active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default_4_material">
+        <color rgba="0.792157 0.819608 0.933333 1"/>
+      </material>
+    </visual>
+    <!-- Part active___gripper_pad__configuration_default_2 -->
+    <visual>
+      <origin xyz="1.11022e-16 -0.071 -0.022" rpy="3.14159 1.95191e-14 1.5708"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___gripper_pad__configuration_default.stl"/>
+      </geometry>
+      <material name="active___gripper_pad__configuration_default_2_material">
+        <color rgba="1 0 1 1"/>
+      </material>
+    </visual>
+    <!-- Part active___neoprene_grip_layer__configuration_default_2 -->
+    <visual>
+      <origin xyz="1.11022e-15 -0.071 -0.0309" rpy="1.5708 3.59712e-14 5.04241e-14"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___neoprene_grip_layer__configuration_default.stl"/>
+      </geometry>
+      <material name="active___neoprene_grip_layer__configuration_default_2_material">
+        <color rgba="0.298039 0.298039 0.298039 1"/>
+      </material>
+    </visual>
+  </link>
+  <!-- Link linear_actuator -->
+  <link name="linear_actuator">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-09"/>
+      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09"/>
+    </inertial>
+    <!-- Part active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default_5 -->
+    <visual>
+      <origin xyz="-1.11022e-16 -2.77556e-17 0.062005" rpy="1.5708 -8.9885e-17 3.66819e-17"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default__5.stl"/>
+      </geometry>
+      <material name="active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default_5_material">
+        <color rgba="0.792157 0.819608 0.933333 1"/>
+      </material>
+    </visual>
+    <!-- Part active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default_6 -->
+    <visual>
+      <origin xyz="2.22045e-16 -1.38778e-17 0.062105" rpy="1.5708 1.9988e-15 1.06948e-14"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default__6.stl"/>
+      </geometry>
+      <material name="active___2020_09_28_l12_50mm_in_2020_8_8___configuration_default_6_material">
+        <color rgba="0.792157 0.819608 0.933333 1"/>
+      </material>
+    </visual>
+  </link>
+	<xacro:unless value="$(arg use_mock_hardware)">
+    <!-- Joint from left_finger to linear_actuator -->
+    <joint name="la_prismatic" type="prismatic">
+    <origin xyz="-0.0001 -0.1175 -0.0125" rpy="-1.5708 -1.57652e-14 2.52817e-15"/>
+    <parent link="left_finger"/>
+    <child link="linear_actuator"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-0.05" upper="8.5652e-17"/>
+  </joint>
+  <!-- Joint from ee_base to left_finger -->
+  <joint name="lead_left" type="prismatic">
+    <origin xyz="-0.11253 -0.0301524 -0.1035" rpy="1.5708 -1.43108e-14 -1.309"/>
+    <parent link="ee_base"/>
+    <child link="left_finger"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-0.0855" upper="0"/>
+  </joint>
+  </xacro:unless>
+  <xacro:if value="$(arg use_mock_hardware)">
+    <!-- Joint from left_finger to linear_actuator -->
+    <joint name="la_prismatic" type="fixed">
+      <origin xyz="-0.0001 -0.1175 -0.0125" rpy="-1.5708 -1.57652e-14 2.52817e-15"/>
+      <parent link="left_finger"/>
+      <child link="linear_actuator"/>
+      <axis xyz="0 0 1"/>
+      <limit effort="10" velocity="10" lower="-0.05" upper="8.5652e-17"/>
+    </joint>
+    <!-- Joint from ee_base to left_finger -->
+    <joint name="lead_left" type="fixed">
+      <origin xyz="-0.11253 -0.0301524 -0.1035" rpy="1.5708 -1.43108e-14 -1.309"/>
+      <parent link="ee_base"/>
+      <child link="left_finger"/>
+      <axis xyz="0 0 1"/>
+      <limit effort="10" velocity="10" lower="-0.0855" upper="0"/>
+    </joint>
+  </xacro:if>
+  <!-- Joint from diff_support to ee_base -->
+  <joint name="j6" type="revolute">
+    <origin xyz="0 -0.02099 -0.04071" rpy="-1.5708 1.309 2.14032e-13"/>
+    <parent link="diff_support"/>
+    <child link="ee_base"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+  </joint>
+  <!-- Joint from cf_link to diff_support -->
+  <joint name="j5" type="revolute">
+    <origin xyz="0.04071 -4.09672e-14 -0.45" rpy="1.5708 -0.611293 1.5708"/>
+    <parent link="cf_link"/>
+    <child link="diff_support"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+  </joint>
+  <!-- Joint from l2 to cf_link -->
+  <joint name="j4" type="revolute">
+    <origin xyz="-2.93099e-14 0.169287 9.13144e-05" rpy="1.5708 1.5708 0"/>
+    <parent link="l2"/>
+    <child link="cf_link"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+  </joint>
+  <!-- Joint from l1 to l2 -->
+  <joint name="l1_l2_pivot" type="revolute">
+    <origin xyz="-2.18226e-15 0.5 -0.0457" rpy="-3.14159 2.98806e-14 -1.5708"/>
+    <parent link="l1"/>
+    <child link="l1_l2_pivot_j2_mimic"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+    <mimic joint="j3" multiplier="-1" offset="0"/>
+  </joint>
+  <link name="l1_l2_pivot_j2_mimic"/>
+  <joint name="l1_l2_pivot_mimic" type="revolute">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="l1_l2_pivot_j2_mimic"/>
+    <child link="l2"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+    <mimic joint="j2" multiplier="1" offset="0"/>
+  </joint>
+  <!-- Joint from base_frame to l1 -->
+  <joint name="j2" type="revolute">
+    <origin xyz="0.0457 -8.85866e-17 0.131" rpy="1.5708 -4.70948e-14 1.5708"/>
+    <parent link="base_frame"/>
+    <child link="l1"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+  </joint>
+  <!-- Link l2_prime -->
+  <link name="l2_prime">
+    <inertial>
+      <origin xyz="0.0372146 0.000822346 -0.00598549" rpy="0 0 0"/>
+      <mass value="0.0907937"/>
+      <inertia ixx="3.76969e-05" ixy="-1.4454e-06" ixz="4.9032e-08" iyy="0.000124485" iyz="1.08348e-09" izz="0.000160007"/>
+    </inertial>
+    <!-- Part base_cam_2__configuration_default -->
+    <visual>
+      <origin xyz="6.16298e-32 0 -0.006" rpy="1.5708 -1.22241e-30 1.2326e-32"/>
+      <geometry>
+        <mesh filename="file://$(arg rover_description_dir)/taipan/meshes/base_cam_2__configuration_default.stl"/>
+      </geometry>
+      <material name="base_cam_2__configuration_default_material">
+        <color rgba="0.701961 0.701961 0.701961 1"/>
+      </material>
+    </visual>
+  </link>
+  <!-- Link l1_prime_2 -->
+  <link name="l1_prime_fake"/>
+  <!-- Joint from l2_prime to l1_prime_fake -->
+  <joint name="l1_p_lower" type="revolute">
+    <origin xyz="0.1 -2.77556e-17 0" rpy="-3.14159 1.22432e-16 1.5708"/>
+    <parent link="l2_prime"/>
+    <child link="l1_p_lower_j3_mimic"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+    <mimic joint="j2" multiplier="1" offset="0"/>
+  </joint>
+  <link name="l1_p_lower_j3_mimic"/>
+  <joint name="l1_p_lower_mimic" type="revolute">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="l1_p_lower_j3_mimic"/>
+    <child link="l1_prime_fake"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+    <mimic joint="j3" multiplier="1" offset="0"/>
+  </joint>
+  <link name="ee_base_l2_prime_mimic"/>
+  <!-- Joint from base_frame to l2_prime -->
+  <joint name="l2_p_j2_mimic" type="revolute">
+    <origin xyz="0.006 -9.18923e-17 0.131" rpy="1.5708 7.26102e-16 1.5708"/>
+    <parent link="base_frame"/>
+    <child link="ee_base_l2_prime_mimic"/>
+    <mimic joint="j2" multiplier="0" offset="0"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+  </joint>
+
+  <joint name="j3" type="revolute">
+    <parent link="ee_base_l2_prime_mimic"/>
+    <child link="l2_prime"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+  </joint>
+  <!-- Joint from arm_box to base_frame -->
+  <joint name="j1" type="revolute">
+    <origin xyz="1.18002e-11 -1.52659e-16 0.07016" rpy="3.22131e-17 1.98639e-23 5.2382e-14"/>
+    <parent link="arm_box"/>
+    <child link="base_frame"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+  </joint>
+  <!-- Joint from base_link to arm_box -->
+  <joint name="arm_link_to_arm_box" type="fixed">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <parent link="arm_link"/>
+    <child link="arm_box"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10"/>
+  </joint>
+</robot>

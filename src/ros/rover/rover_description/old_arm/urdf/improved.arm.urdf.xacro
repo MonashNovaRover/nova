@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="URDF_PART_ASSEMBLY_URDFONLY"
+  xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+	<xacro:arg name="prefix" default="arm" />
+  <xacro:arg name="rover_description_dir" default="$(find rover_description)" />
+
+  <link
+    name="$(arg prefix)_link">
+    <inertial>
+      <origin
+        xyz="0.0463984559338307 -0.000244629347594955 0.105803300473719"
+        rpy="0 0 0" />
+      <mass
+        value="0.964885521729071" />
+      <inertia
+        ixx="0.00586330404665839"
+        ixy="4.42994692638961E-08"
+        ixz="-0.000899960613155479"
+        iyy="0.00737801555838317"
+        iyz="3.46523353363265E-08"
+        izz="0.0112664844620711" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/arm_base.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/arm_base.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="$(arg prefix)_base_to_j1">
+    <inertial>
+      <origin
+        xyz="-0.0011594973564611 0.0892985869596572 -0.000828732075412786"
+        rpy="0 0 0" />
+      <mass
+        value="1.06782865454781" />
+      <inertia
+        ixx="0.00136349514209711"
+        ixy="-0.000120523153646633"
+        ixz="-4.27584675271316E-07"
+        iyy="0.00110158912271039"
+        iyz="8.73000906376955E-07"
+        izz="0.00106684454111778" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/base_to_j1.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/base_to_j1.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="$(arg prefix)_j1"
+    type="revolute">
+    <origin
+      xyz="0 0 0.1795"
+      rpy="1.5707963267949 0 -1.57079632679489" />
+    <parent
+      link="$(arg prefix)_link" />
+    <child
+      link="$(arg prefix)_base_to_j1" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-2"
+      upper="2"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="$(arg prefix)_j2_to_j3">
+    <inertial>
+      <origin
+        xyz="0.302150544196856 -0.00272064453324986 0.0215545407301324"
+        rpy="0 0 0" />
+      <mass
+        value="0.692670468382813" />
+      <inertia
+        ixx="0.000749127415490433"
+        ixy="3.9226287616403E-05"
+        ixz="1.68457558241151E-07"
+        iyy="0.00521089609335111"
+        iyz="-1.840147885579E-06"
+        izz="0.00581175230962762" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j2_to_link1.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j2_to_link1.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="$(arg prefix)_j2"
+    type="revolute">
+    <origin
+      xyz="0.0932995582406649 0.0723000000000009 -0.000287109904390681"
+      rpy="1.5707963267949 0 1.5707963267949" />
+    <parent
+      link="$(arg prefix)_base_to_j1" />
+    <child
+      link="$(arg prefix)_j2_to_j3" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-1.75"
+      upper="1.55"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="$(arg prefix)_j3_to_j4">
+    <inertial>
+      <origin
+        xyz="0.129966189327722 0.0732399519418239 -0.0854948314565011"
+        rpy="0 0 0" />
+      <mass
+        value="1.15373120443012" />
+      <inertia
+        ixx="0.00112066300003723"
+        ixy="7.23793330717775E-05"
+        ixz="-1.74454352295001E-05"
+        iyy="0.00375619318284003"
+        iyz="0.00018874261573637"
+        izz="0.00391910919823546" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j3_to_link2.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j3_to_link2.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="$(arg prefix)_j3"
+    type="revolute">
+    <origin
+      xyz="0.48498 -0.0042617 -1.3115E-05"
+      rpy="0 0 0" />
+    <parent
+      link="$(arg prefix)_j2_to_j3" />
+    <child
+      link="$(arg prefix)_j3_to_j4" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.85"
+      upper="2.5"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="$(arg prefix)_j4_to_j4_base">
+    <inertial>
+      <origin
+        xyz="-0.000854379754758439 -0.00771635785912593 -0.0386037875911855"
+        rpy="0 0 0" />
+      <mass
+        value="0.154860932901363" />
+      <inertia
+        ixx="0.000107515397522057"
+        ixy="-1.35212786806066E-07"
+        ixz="2.57896496508754E-08"
+        iyy="9.97191040148142E-05"
+        iyz="1.40048478553512E-06"
+        izz="0.000103535419768887" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/link2_to_fixed_j4.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/link2_to_fixed_j4.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="$(arg prefix)_j4_base"
+    type="fixed">
+    <origin
+      xyz="0.46967 0.038251 0.032284"
+      rpy="0 0 0" />
+    <parent
+      link="$(arg prefix)_j3_to_j4" />
+    <child
+      link="$(arg prefix)_j4_to_j4_base" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="$(arg prefix)_j4_to_j5">
+    <inertial>
+      <origin
+        xyz="-0.000364137980536805 0.0341611309238566 0.0243774183852719"
+        rpy="0 0 0" />
+      <mass
+        value="0.198378721031921" />
+      <inertia
+        ixx="0.000132808935473041"
+        ixy="-1.64125650537469E-07"
+        ixz="-8.70461792617826E-08"
+        iyy="0.000109691860796545"
+        iyz="-1.48854544793139E-06"
+        izz="0.0001341658859767" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j4_to_j5.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j4_to_j5.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="$(arg prefix)_j4"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="$(arg prefix)_j4_to_j4_base" />
+    <child
+      link="$(arg prefix)_j4_to_j5" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.85"
+      upper="0.75"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="$(arg prefix)_j5_to_j6">
+    <inertial>
+      <origin
+        xyz="0.000960068820124615 0.0034018297209792 0.0213979775114195"
+        rpy="0 0 0" />
+      <mass
+        value="0.171055632724638" />
+      <inertia
+        ixx="0.000112193318899533"
+        ixy="-2.61131401507366E-07"
+        ixz="-5.05759999511561E-09"
+        iyy="0.000121789710790359"
+        iyz="-1.61568500189792E-07"
+        izz="9.87854347259818E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 -0.02 0"
+        rpy="0 0 3.14" />
+      <geometry>
+        <mesh
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j5_to_j6.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j5_to_j6.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="$(arg prefix)_j5"
+    type="revolute">
+    <origin
+      xyz="0.00022562 -0.020578 0.10236"
+      rpy="1.5708 0 1.5708" />
+    <parent
+      link="j5_fixer" />
+    <child
+      link="$(arg prefix)_j5_to_j6" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-1.88"
+      upper="2.45"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="$(arg prefix)_j6_to_ee">
+    <inertial>
+      <origin
+        xyz="0.0313403405158062 -0.0154054918426727 0.0972054188871159"
+        rpy="0 0 0" />
+      <mass
+        value="0.55463240309873" />
+      <inertia
+        ixx="0.000376073601172609"
+        ixy="-1.35551673726115E-05"
+        ixz="-9.98929458571701E-07"
+        iyy="0.000644904140123714"
+        iyz="1.10813236363224E-05"
+        izz="0.000454272721612088" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j6_to_ee.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file://$(arg rover_description_dir)/old_arm/meshes/j6_to_ee.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="$(arg prefix)_j6"
+    type="revolute">
+    <origin
+      xyz="0.00096086 0.00055601 0.081482"
+      rpy="0 0 3.14159" />
+    <parent
+      link="$(arg prefix)_j5_to_j6" />
+    <child
+      link="$(arg prefix)_j6_to_ee" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-1.57079632679"
+      upper="1.57079632679"
+      effort="0"
+      velocity="0" />
+  </joint>
+
+
+  <!-- Kinematics -->
+  <link name="j5_fixer"/>
+  <joint name="j5_fixer_joint" type="fixed">
+    <origin xyz="0.0 0.0 0.0" rpy="-1.5708 0.0 0.0" />
+    <parent link="$(arg prefix)_j4_to_j5" />
+    <child link="j5_fixer" />
+  </joint>
+
+
+
+
+  <link name="arm_kinematics_origin"/>
+  <joint name="arm_kinematics_origin_joint" type="fixed">
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    <parent link="$(arg prefix)_link" />
+    <child link="arm_kinematics_origin" />
+  </joint>
+
+  <link name="endeffector_kinematics"/>
+  <joint name="endeffector_kinematics_joint" type="fixed">
+    <!-- before rotating to match IK function expected 0: 1.5707963 0.0 1.5707963 -->
+    <origin xyz="0.0067503 -0.0012 0.2225" rpy="-1.57079632679 -1.57079632679 0.0" />
+    <parent link="$(arg prefix)_j6_to_ee" />
+    <child link="endeffector_kinematics" />
+  </joint>
+
+  <xacro:include filename="$(arg rover_description_dir)/old_arm/urdf/arm.ros2_control.xacro" />
+  <xacro:arm_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
+</robot>

@@ -50,18 +50,61 @@ class BLCMDEmulator(candevice.CanDevice):
         self.pos = 0;
         self.vel = 0;
 
+        self.minInterval = 122
+        # TODO drive
+        self.resRatio = 1;
+        self.incRatio = 1;
         # config
         self.hasResolver = int(bool(hasResolver)) # ensure this is 0 or 1
-        self.minInterval = 122 # I don't know what this physically means
+        # TODO: don't hard code this
+        if bus == "can1": # ARM
+            match (id_):
+                case 1:
+                    self.minInterval = 233
+                    self.resRatio = 4
+                    self.incRatio = 100
+                case 2:
+                    self.minInterval = 233
+                    self.resRatio = 5.375
+                    self.incRatio = 100
+                case 3:
+                    self.minInterval = 233
+                    self.resRatio = 5.375
+                    self.incRatio = 100
+                case 4:
+                    self.minInterval = 122
+                    self.resRatio = 4
+                    self.incRatio = 8
+                case 5:
+                    self.minInterval = 122
+                    self.resRatio = 1.25
+                    self.incRatio = 10
+                case 6:
+                    self.minInterval = 122
+                    self.resRatio = 1.25
+                    self.incRatio = 10
+
+        self.EPR = 8192
+        self.clock_speed = 100*1e6
 
         self.multiturn = multiturn
 
-        # in radians, corresponding to 0x8000
-        self.max_pos = 4*math.pi; 
-        self.max_vel = 2*math.pi;
 
-        self.registerAttr("Pos", lambda:f"{360*self.pos/(2*math.pi) :+06.1f}", 6, units="°")
-        self.registerAttr("Vel", lambda:f"{360*self.vel/(2*math.pi) :+06.1f}", 6, units="°/s")
+        # in radians, corresponding to 0x8000
+        if self.multiturn:
+            self.zero_offset = 0x2000
+            self.max_pos = (2**4 /2)*math.pi; 
+        else:
+            self.zero_offset = 0x0
+            self.max_pos = math.pi;
+
+        self.max_vel = self.clock_speed * 2*math.pi / (self.minInterval*self.EPR)
+
+        # these should be 2pi but something is wrong so its off by a factor of 2 and i have to compensate
+        self.registerAttr("Pos", lambda:f"{360*self.pos/(math.pi*self.resRatio) :+06.1f}", 6, units="°")
+        self.registerAttr("Vel", lambda:f"{360*self.vel/(math.pi*self.incRatio) :+06.1f}", 6, units="°/s")
+
+        self.outbox = [] # messages to be sent in format of argument lambda functions
 
     def telem1(self):
         """Send telemetry message 1
@@ -78,17 +121,12 @@ class BLCMDEmulator(candevice.CanDevice):
         """Send telemetry message 3
         """
         data = []
-        pos = int(0x8000 * self.pos / self.max_pos)
+        pos = int(0x8000 * self.pos / self.max_pos) + self.zero_offset
         data.append((pos >> 8) & 0xff)
         data.append(pos & 0xff)
-        if (self.multiturn):
-            turns = (pos << 2) % 0xffff
-            data.append((turns >> 8 ) & 0xff)
-            data.append(turns & 0xff)
-        else:
-            vel = int(0x8000 * self.vel / self.max_vel)
-            data.append((vel >> 8 ) & 0xff)
-            data.append(vel & 0xff)
+
+        data.append(0) # not implemented in electrial's firmware
+        data.append(0)
 
         self.send_message(3, data, 4)
 
@@ -101,6 +139,10 @@ class BLCMDEmulator(candevice.CanDevice):
         """Process any new messages and track our state.
         """
         super().spin() # process can messages
+
+        while self.outbox:
+            # send an outgoing message
+            self.outbox.pop()()
 
         newTime = time.time();
         delta = newTime - self.lastTimestep;
@@ -144,15 +186,13 @@ class BLCMDEmulator(candevice.CanDevice):
             self.vel_cmd(-0x1fff)
 
     def vel_cmd(self, speed):
-        # assume max vel is 2pi rads/s?
+        speed = speed / 2.4 # Jono Factor
         self.target_vel = self.max_vel*speed/0x8000
         self.pos_control = False
         self.vel_control = True
         self.prev_command_time = time.time()
 
     def pos_cmd(self, pos):
-        # -720 to + 720 deg
-        # -4pi to + 4pi rads
         self.target_pos = self.max_pos *pos / 0x8000
         self.pos_control = True
         self.vel_control = False
@@ -177,7 +217,7 @@ class BLCMDEmulator(candevice.CanDevice):
                 self.vel_cmd(speed)
             case 0x4: # drive to position
                 assert len(message.data) == 2
-                position = int.from_bytes(message.data, signed=True, byteorder='big');
+                position = int.from_bytes(message.data, signed=True, byteorder='big')-self.zero_offset;
                 self.pos_cmd(position)
             case 0x5: # drive at current
                 pass # current = data[0]<<8 | data[1]
@@ -205,11 +245,12 @@ class BLCMDEmulator(candevice.CanDevice):
     def get_cfg(self, var_index):
         """Reply with configuration data
         """
+        
         match var_index:
             case 0x0: # HAS_RESOLVER
-                self.send_message(9, [var_index,self.hasResolver], 2);
+                self.outbox.append(lambda: self.send_message(9, [var_index,self.hasResolver], 2))
             case 0x7: # MIN_INTERVAL
-                self.send_message(9, [var_index, (self.minInterval>>8)&0xff, self.minInterval&0xff], 3);
+                self.outbox.append(lambda: self.send_message(9, [var_index, (self.minInterval>>8)&0xff, self.minInterval&0xff], 3))
 
     def send_message(self,command, data, dlc):
         """Send a telemetry or response message

@@ -1,0 +1,14 @@
+{
+    "configuration": "default",
+    "documentId": "06fc0bc35511bce76431e35c",
+    "documentMicroversion": "c06e42bc1c23ea6471910f8e",
+    "documentVersion": "cb38b94d4cc3cc17651664d6",
+    "elementId": "51824e835cc79fa998cbe933",
+    "fullConfiguration": "default",
+    "id": "MOBas/98JqqPltwcg",
+    "isStandardContent": false,
+    "name": "J1 Housing <1>",
+    "partId": "JwD",
+    "suppressed": false,
+    "type": "Part"
+}
