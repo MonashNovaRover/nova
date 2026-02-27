@@ -1,0 +1,19 @@
+{
+    "documentId": "226e4acb3f4645fcb2c5e12b",
+    "outputFormat": "urdf",
+    "onshape_api": "https://monashnova.onshape.com",
+    "onshape_access_key": "",
+    "onshape_secret_key": "",
+
+    "assemblyName": "URDFAssembly",
+    "robotName": "Arm",
+    "output_filename": "arm",
+
+    "addDummyBaseLink": true,
+    "merge_stls": false,
+
+    "use_scads": true,
+    "ball_to_euler": true,
+    "convex_decomposition": false,
+
+}

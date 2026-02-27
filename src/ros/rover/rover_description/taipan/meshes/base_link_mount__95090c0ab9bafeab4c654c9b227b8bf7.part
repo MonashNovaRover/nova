@@ -1,0 +1,14 @@
+{
+    "configuration": "Bearing_Outer_D=0.078+meter;Bearing_b=0.01+meter;Bolt_Holes=false;List_9oD2X0VEHQNVwr=Opt_3;List_9sg93qasusYLni=Left___Right;List_kOKFXvzd51KkRs=None;Origin_to_End_Length=0.075+meter",
+    "documentId": "d39c4fc1167c69fc93270f29",
+    "documentMicroversion": "05f544f4e8a23b2eeac6ab0d",
+    "documentVersion": "a744a9959fdae9ec914d5b3a",
+    "elementId": "dd1cefcdf0c9fb79193d4682",
+    "fullConfiguration": "Bearing_Outer_D=0.078+meter;Bearing_b=0.01+meter;Bolt_Holes=false;List_9oD2X0VEHQNVwr=Opt_3;List_9sg93qasusYLni=Left___Right;List_kOKFXvzd51KkRs=None;Origin_to_End_Length=0.075+meter",
+    "id": "MictgeD+tHqaykfRH",
+    "isStandardContent": false,
+    "name": "Base Link Mount <2>",
+    "partId": "JHD",
+    "suppressed": false,
+    "type": "Part"
+}

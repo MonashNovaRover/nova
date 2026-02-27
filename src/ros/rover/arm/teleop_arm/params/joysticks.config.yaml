@@ -51,15 +51,15 @@ thrustmaster_left:
           from: "l_ax_stick_twist"
         j2:
           from: "l_ax_stick_y"
-          invert: true
         j3:
           from: "l_ax_stick_x"
+          invert: true
         
         speed:
           from: "l_ax_slider"
         
-        # End effector
-        actuator_head:
+        # End effector mode
+        la_prismatic:
           from: "l_ax_thumb_y"
           invert: true
         
@@ -119,13 +119,12 @@ thrustmaster_right:
         j4:
           from: "r_ax_stick_twist"
         j5:
+          from: "r_ax_stick_y"
+        j6:
           from: "r_ax_stick_x"
           invert: true
-        j6:
-          from: "r_ax_stick_y"
-          invert: true
 
-        left_slide:
+        lead_left:
           from: "r_ax_thumb_y"
           invert: true
 

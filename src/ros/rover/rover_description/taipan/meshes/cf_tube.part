@@ -1,0 +1,14 @@
+{
+    "configuration": "default",
+    "documentId": "6af30063d5178341f228a88e",
+    "documentMicroversion": "0561d6df72e1828f4dbc69f4",
+    "documentVersion": "2f6f63aa539e50d372ef178b",
+    "elementId": "80184eebb679058e2464fc71",
+    "fullConfiguration": "default",
+    "id": "MYq3lE+xpu/lS7tWU",
+    "isStandardContent": false,
+    "name": "CF Tube <1>",
+    "partId": "RFID",
+    "suppressed": false,
+    "type": "Part"
+}

@@ -33,12 +33,12 @@ controller_manager:
 nova_arm_controller:
   ros__parameters:
     joint_names:
-      - J1
-      - J2
-      - J3
-      - J4
-      - J5
-      - J6
+      - j1
+      - j2
+      - j3
+      - j4
+      - j5
+      - j6
 
     command_interfaces: ["velocity"]
     state_interfaces: ["position", "velocity"]
@@ -69,7 +69,7 @@ joint_state_broadcaster:
     joints:
       ["blp", "brp", "flp", "frp",
        "blw", "brw", "flw", "frw",
-       "J1", "J2", "J3", "J4", "J5", "J6"]
+       "j1", "j2", "j3", "j4", "j5", "j6"]
 
     use_local_topics: false
 

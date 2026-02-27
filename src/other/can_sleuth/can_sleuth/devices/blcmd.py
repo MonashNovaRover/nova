@@ -89,12 +89,12 @@ class BLCMD(candevice.CanDevice):
 
         if multiturn:
             telem3 = (
-                ("resolverPosition", ">h", "°", lambda x: f"{x*360*4/0x10000:+03.2f}"),
+                ("resolverPosition", ">h", "", None),# lambda x: f"{(x-0x2000)*360*(2**4)/0x10000:+03.2f}"),
                 ("resolverTurns", ">h", "", None)
             )
         else:
             telem3 = (
-                ("resolverPosition", ">h", "°", lambda x: f"{x*360/0x10000:+03.2f}"),
+                ("resolverPosition", ">h", "", None), #lambda x: f"{x*360/0x10000:+03.2f}"),
                 ("resolverVelocity", ">h", "", None)
             )
 
