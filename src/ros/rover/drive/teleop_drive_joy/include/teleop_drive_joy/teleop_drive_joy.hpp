@@ -31,9 +31,12 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joy.hpp>
+#include <sensor_msgs/msg/joy_feedback.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <rcl_interfaces/srv/set_parameters.hpp>
 #include <controller_manager_msgs/srv/switch_controller.hpp>
+#include <drive_interfaces/msg/drive_info.hpp>
 
 #include "teleop_drive_joy_parameters.hpp"
 
@@ -79,6 +82,23 @@ inline std::string mode_to_controller(const DriveMode mode)
       return "diff_drive_controller";
     default:
       return "unknown_controller";
+  }
+}
+
+inline uint8_t mode_to_drive_info(const DriveMode mode)
+{
+  switch (mode)
+  {
+  case DriveMode::PIVOT:
+    return drive_interfaces::msg::DriveInfo::PIVOT;
+  case DriveMode::ACKERMANN:
+    return drive_interfaces::msg::DriveInfo::ACKERMANN;
+  case DriveMode::STRAFE:
+    return drive_interfaces::msg::DriveInfo::STRAFE;
+  case DriveMode::DIFF:
+    return drive_interfaces::msg::DriveInfo::TANK;
+  default:
+    return std::numeric_limits<uint8_t>::max();
   }
 }
 
@@ -166,15 +186,39 @@ private:
    */
   void print_controls();
 
+  /**
+   * @brief Updates connection status to game pad
+   * @param connected Whether game pad is connected or not
+   */
+  void set_connected(bool connected);
+
+  /**
+   * @brief Sends current state of teleop drive joy as drive info
+   */
+  void send_drive_info();
+
+    /**
+   * @brief Callback function for joint state messages.
+   * @param joint_state_msg Shared pointer to the joint state message.
+   */
+  void joint_states_callback(const sensor_msgs::msg::JointState::SharedPtr joint_state_msg);
+
   // Member variables
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_pub_;
+  rclcpp::Publisher<drive_interfaces::msg::DriveInfo>::SharedPtr drive_info_pub_;
   rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub_;
+  rclcpp::Publisher<sensor_msgs::msg::JoyFeedback>::SharedPtr joy_feedback_pub_;
+  rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_sub_;
+
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     switch_controller_client_;
+
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr pivot_drive_client_;
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr strafe_client_;
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr diff_drive_client_;
+
   std::shared_ptr<ParamListener> param_listener_;
+  rclcpp::TimerBase::SharedPtr connection_timer_;
 
   Params params_;
   bool sent_lock_msg_;
@@ -184,6 +228,10 @@ private:
   std::map<int, rclcpp::Time> last_button_press_time_;
   std::map<int, std::function<void(const sensor_msgs::msg::Joy::SharedPtr)>> button_callbacks_;
   bool handbrake_pressed_;
+  bool autonomous_mode_;
+  bool connected_;
+
+  std::optional<rclcpp::Time> start_rumble_;
 };
 
 }  // namespace teleop_drive_joy

@@ -50,9 +50,10 @@ install(PROGRAMS
         science/arc/chute.py
         science/arc/tool_rotator.py
         science/arc/arc_spinny_part.py
-        science/arc/arc_sweeper_servo.py
         science/arc/kiln.py
         science/arc/kiln_old.py
+        science/arc/sweeper.py
+        science/arc/sweeper_old.py
         science/arc/water_pump.py
         science/arc/diaphragm_pump.py
         science/urc/hydraprobe_trigger_node.py
@@ -78,6 +79,7 @@ install(PROGRAMS
         science/scimbal_cam_old.py
         science/scimbal_cam.py
         science/control_test.py
+        science/time_of_flight.py
         DESTINATION lib/${PROJECT_NAME}
 )
 

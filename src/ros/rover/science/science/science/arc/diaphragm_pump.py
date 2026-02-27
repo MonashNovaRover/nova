@@ -27,7 +27,7 @@ class DiaphragmPumpHardware(HardwareInterface):
     can_id: int
 
     def __init__(self, contexts: Contexts,
-                 can_id: int=0x0E5,
+                 can_id: int=0x0E6,
                  max_effort: float=1.0,
                  min_effort_can: int=0x00,
                  max_effort_can: int=0xFF):

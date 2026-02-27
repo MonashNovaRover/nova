@@ -57,8 +57,10 @@ game_controller_source:
           from: "LEFTY"
         analysis_arm_actuation:
           from: "LEFTY"
+        chute_actuation:
+          from: "RIGHTX"
         chute_speed:
-          from: "TRIGGERLEFT"
+          from: "LEFTX"
 
       buttons:
         lock:
@@ -75,11 +77,3 @@ game_controller_source:
           from: "DPAD_LEFT"
         auger_drill:
           from: "DPAD_DOWN"
-        chute_disengaged:
-          from: "X"
-        chute_engaged:
-          from: "Y"
-        chute_twitch_decrease:
-          from: "LEFTSHOULDER"
-        chute_twitch_increase:
-          from: "RIGHTSHOULDER"

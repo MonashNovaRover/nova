@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- publish joints for arm -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+     <gazebo>
+          <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+               <topic>joint_states</topic>
+
+               <joint_name>arm_kinematics_origin_joint</joint_name>
+
+               <joint_name>j1</joint_name>
+               <joint_name>j2</joint_name>
+               <joint_name>j3</joint_name>
+               <joint_name>l1_p_lower</joint_name>
+               <joint_name>l1_p_upper</joint_name>
+               <joint_name>l1_l2_pivot</joint_name>
+               
+               <joint_name>j4</joint_name>
+               <joint_name>j5</joint_name>
+               <joint_name>j6</joint_name>
+
+		     <xacro:unless value="${use_mock_hardware}">
+                    <joint_name>lead_left</joint_name>
+                    <joint_name>lead_right</joint_name>
+                    <joint_name>la_prismatic</joint_name>
+               </xacro:unless>
+          </plugin>
+     </gazebo>
+</robot>

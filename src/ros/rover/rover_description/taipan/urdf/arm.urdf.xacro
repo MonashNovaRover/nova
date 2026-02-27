@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated using onshape-to-robot -->
+<robot name="arm"
+  xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:arg name="rover_description_dir" default="$(find rover_description)" />
+
+  <xacro:include filename="$(arg rover_description_dir)/taipan/urdf/arm.urdf"/>
+
+  <!-- Kinematics -->
+  <!-- THESE NEED FIXING 4/02/2026 !!! -->
+  <!-- Origin of arm for IK. Should align with J1, but not -->
+  <link name="arm_kinematics_origin"/>
+  <joint name="arm_kinematics_origin_joint" type="fixed">
+    <origin xyz="0.0 0.0 0.196" rpy="0.0 0.0 -1.57079632679" />
+    <parent link="arm_link" />
+    <child link="arm_kinematics_origin" />
+  </joint>
+  <!-- Origin of arm for IK -->
+
+  <link name="endeffector_kinematics"/>
+  <joint name="endeffector_kinematics_joint" type="fixed">
+    <!-- before rotating to match IK function expected 0: 1.5707963 0.0 1.5707963 -->
+    <origin xyz="0.0067503 -0.0012 0.2225" rpy="-1.57079632679 -1.57079632679 0.0" />
+    <parent link="ee_base" />
+    <child link="endeffector_kinematics" />
+  </joint>
+  <!--    z at 1.2321-->
+
+  <!--    1.0232 0.012512 1.2183-->
+
+  <!--    up 0.0138-->
+  <!--    forward 0.012512-->
+
+  <!-- Gazebo / IRL Control -->
+  <xacro:include filename="$(arg rover_description_dir)/taipan/urdf/arm_ckc.xacro"/>
+
+  <xacro:if value="$(arg gazebo)">
+    <xacro:include filename="$(arg rover_description_dir)/taipan/urdf/arm.gz_ros2_control.xacro" />
+    <xacro:include filename="$(arg rover_description_dir)/taipan/urdf/arm_sensors.xacro"/>
+  </xacro:if>
+  <xacro:unless value="$(arg gazebo)">
+    <xacro:include filename="$(arg rover_description_dir)/taipan/urdf/arm.ros2_control.xacro" />
+    <xacro:arm_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
+  </xacro:unless>
+
+</robot>

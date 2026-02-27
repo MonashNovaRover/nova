@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Publish dynamic joint states for Rover with banksia's arm-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <gazebo>
+        <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+            <topic>joint_states</topic>
+
+            <joint_name>blp</joint_name>
+            <joint_name>brp</joint_name>
+            <joint_name>flp</joint_name>
+            <joint_name>frp</joint_name>
+            <joint_name>blw</joint_name>
+            <joint_name>brw</joint_name>
+            <joint_name>flw</joint_name>
+            <joint_name>frw</joint_name>
+            <joint_name>r_leg</joint_name>
+            <joint_name>l_leg</joint_name>
+            <joint_name>diffbar_pivot</joint_name>
+            <joint_name>diffbar_slide</joint_name>
+            <joint_name>tl_ball_roll</joint_name>
+            <joint_name>tl_ball_pitch</joint_name>
+            <joint_name>tl_ball_yaw</joint_name>
+            <joint_name>tr_ball_roll</joint_name>
+            <joint_name>tr_ball_pitch</joint_name>
+            <joint_name>tr_ball_yaw</joint_name>
+            <joint_name>bl_ball_roll</joint_name>
+            <joint_name>bl_ball_pitch</joint_name>
+            <joint_name>bl_ball_yaw</joint_name>
+            <joint_name>br_ball_roll</joint_name>
+            <joint_name>br_ball_pitch</joint_name>
+            <joint_name>br_ball_yaw</joint_name>
+
+            <!-- Arm joints -->
+            <joint_name>j1</joint_name>
+            <joint_name>j2</joint_name>
+            <joint_name>j3</joint_name>
+            <joint_name>l1_p_lower</joint_name>
+            <joint_name>l1_p_upper</joint_name>
+            <joint_name>l1_l2_pivot</joint_name>
+            
+            <joint_name>j4</joint_name>
+            <joint_name>j5</joint_name>
+            <joint_name>j6</joint_name>
+            <joint_name>lead_left</joint_name>
+            <joint_name>la_prismatic</joint_name>
+        </plugin>
+    </gazebo>
+</robot>

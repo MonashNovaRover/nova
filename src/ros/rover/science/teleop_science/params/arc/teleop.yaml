@@ -59,12 +59,14 @@ input_publisher_mode:
       - "auger_drill_speed"
       # Analysis Arm
       - "analysis_arm_actuation"
-      # Sweeper
-      - "sweeper_speed"
       # Tool Rotator
       - "tool_rotator_speed"
       # Chute
+      - "chute_actuation"
       - "chute_speed"
+      # Sweeper
+      - "sweeper_actuation"
+      - "sweeper_speed"
     button_names:
       # Auger
       - "activate_auger"
@@ -72,16 +74,9 @@ input_publisher_mode:
       - "auger_drill"
       - "auger_drill_clockwise"
       - "auger_drill_anticlockwise"
-      # Sweeper
-      - "sweeper_sweep"
       # Tool Rotator
       - "tool_rotator_twitch_decrease"
       - "tool_rotator_twitch_increase"
       - "tool_rotator_sweeper"
       - "tool_rotator_microscope"
       - "tool_rotator_nir_probe"
-      # Chute
-      - "chute_twitch_decrease"
-      - "chute_twitch_increase"
-      - "chute_engaged"
-      - "chute_disengaged"
