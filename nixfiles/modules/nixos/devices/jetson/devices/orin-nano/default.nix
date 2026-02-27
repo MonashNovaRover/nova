@@ -18,6 +18,11 @@ in
       super = true; # Super speed
     };
 
+    nova.networking = {
+      wifiInterface = "wlP1p1s0";
+      ethernetInterface = "enP8p1s0";
+    };
+
     # Apply global cuda overlays
     nixpkgs.overlays = [
       (final: _: { inherit (final.nvidia-jetpack) cudaPackages; })
