@@ -5,10 +5,11 @@ let
     "personal"
     "shared"
     "server"
+    "mast"
   ];
 in
 {
-  imports = map (profile: ./. + (/. + profile)) profiles;
+  imports = map (profile: ./. + (/. + profile)) profiles ++ [ ./common ];
 
   options.nova.profile = lib.mkOption {
     type = with lib.types; enum profiles;

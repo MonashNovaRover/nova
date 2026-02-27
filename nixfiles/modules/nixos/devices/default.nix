@@ -1,6 +1,7 @@
 {
   imports = [
     ./jetson
+    ./raspberry
     ./laptop
   ];
 }
