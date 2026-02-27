@@ -1,0 +1,1150 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c5f5c788..3f6f6192 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -16,6 +16,7 @@ set(CMAKE_AUTOMOC ON)
+ 
+ find_package(ament_cmake REQUIRED)
+ find_package(geometry_msgs REQUIRED)
++find_package(nav2_route REQUIRED)
+ find_package(nav2_util REQUIRED)
+ find_package(nav2_lifecycle_manager REQUIRED)
+ find_package(nav2_msgs REQUIRED)
+@@ -40,12 +41,15 @@ set(nav2_rviz_plugins_headers_to_moc
+   include/nav2_rviz_plugins/goal_common.hpp
+   include/nav2_rviz_plugins/goal_tool.hpp
+   include/nav2_rviz_plugins/nav2_panel.hpp
++  include/nav2_rviz_plugins/route_tool.hpp
+   include/nav2_rviz_plugins/selector.hpp
+   include/nav2_rviz_plugins/utils.hpp
+   include/nav2_rviz_plugins/particle_cloud_display/flat_weighted_arrows_array.hpp
+   include/nav2_rviz_plugins/particle_cloud_display/particle_cloud_display.hpp
+ )
+ 
++qt_wrap_ui(route_tool_UIS_H resource/route_tool.ui)
++
+ include_directories(
+   include
+ )
+@@ -57,15 +61,18 @@ add_library(${library_name} SHARED
+   src/docking_panel.cpp
+   src/goal_tool.cpp
+   src/nav2_panel.cpp
++  src/route_tool.cpp
+   src/selector.cpp
+   src/utils.cpp
+   src/particle_cloud_display/flat_weighted_arrows_array.cpp
+   src/particle_cloud_display/particle_cloud_display.cpp
+   ${nav2_rviz_plugins_headers_to_moc}
++  ${route_tool_UIS_H}
+ )
+ 
+ set(dependencies
+   geometry_msgs
++  nav2_route
+   nav2_util
+   nav2_lifecycle_manager
+   nav2_msgs
+@@ -90,10 +97,12 @@ ament_target_dependencies(${library_name}
+ target_include_directories(${library_name} PUBLIC
+   ${Qt5Widgets_INCLUDE_DIRS}
+   ${OGRE_INCLUDE_DIRS}
++  ${nav2_route_INCLUDE_DIRS}
+ )
+ 
+ target_link_libraries(${library_name}
+   rviz_common::rviz_common
++  nav2_route::route_server_core
+ )
+ 
+ # Causes the visibility macros to use dllexport rather than dllimport,
+@@ -119,9 +128,13 @@ install(
+ 
+ install(
+   DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/icons"
++            "${CMAKE_CURRENT_SOURCE_DIR}/resource"
++            "${CMAKE_CURRENT_SOURCE_DIR}/rviz"
++            "${CMAKE_CURRENT_SOURCE_DIR}/launch"
+   DESTINATION "share/${PROJECT_NAME}"
+ )
+ 
++
+ if(BUILD_TESTING)
+   find_package(ament_lint_auto REQUIRED)
+   ament_lint_auto_find_test_dependencies()
+@@ -136,6 +149,7 @@ ament_export_dependencies(
+   map_msgs
+   nav_msgs
+   rclcpp
++  nav2_route
+ )
+ 
+ ament_package()
+diff --git a/include/nav2_rviz_plugins/route_tool.hpp b/include/nav2_rviz_plugins/route_tool.hpp
+new file mode 100644
+index 00000000..50beca8d
+--- /dev/null
++++ b/include/nav2_rviz_plugins/route_tool.hpp
+@@ -0,0 +1,120 @@
++// Copyright (c) 2024 John Chrosniak
++//
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++//     http://www.apache.org/licenses/LICENSE-2.0
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++#ifndef NAV2_RVIZ_PLUGINS__ROUTE_TOOL_HPP_
++#define NAV2_RVIZ_PLUGINS__ROUTE_TOOL_HPP_
++
++#include <ui_route_tool.h>
++#include <limits>
++#include <memory>
++#include <string>
++#include <vector>
++#include "geometry_msgs/msg/point_stamped.hpp"
++#include "nav_msgs/msg/occupancy_grid.hpp"
++#include "nav2_route/graph_loader.hpp"
++#include "nav2_route/graph_saver.hpp"
++#include "nav2_route/types.hpp"
++#include "nav2_route/utils.hpp"
++#include "rclcpp/rclcpp.hpp"
++#include "nav2_util/lifecycle_node.hpp"
++#include "rviz_common/panel.hpp"
++#include "std_msgs/msg/int16.hpp"
++#include "std_msgs/msg/string.hpp"
++
++
++namespace nav2_rviz_plugins
++{
++/**
++     *  Here we declare our new subclass of rviz::Panel. Every panel which
++     *  can be added via the Panels/Add_New_Panel menu is a subclass of
++     *  rviz::Panel.
++     */
++
++class RouteTool : public rviz_common::Panel
++{
++  /**
++       * This class uses Qt slots and is a subclass of QObject, so it needs
++       * the Q_OBJECT macro.
++       */
++  Q_OBJECT
++
++public:
++  /**
++           *  QWidget subclass constructors usually take a parent widget
++           *  parameter (which usually defaults to 0).  At the same time,
++           *  pluginlib::ClassLoader creates instances by calling the default
++           *  constructor (with no arguments). Taking the parameter and giving
++           *  a default of 0 let's the default constructor work and also let's
++           *  someone using the class for something else to pass in a parent
++           *  widget as they normally would with Qt.
++           */
++  explicit RouteTool(QWidget * parent = nullptr);
++
++  void onInitialize() override;
++
++  /**
++           *  Now we declare overrides of rviz_common::Panel functions for saving and
++           *  loading data from the config file.  Here the data is the topic name.
++           */
++  virtual void save(rviz_common::Config config) const;
++  virtual void load(const rviz_common::Config & config);
++
++
++  /**
++       *  Here we declare some internal slots.
++       */
++
++private Q_SLOTS:
++  void on_load_button_clicked(void);
++
++  void on_save_button_clicked(void);
++
++  void on_create_button_clicked(void);
++
++  void on_confirm_button_clicked(void);
++
++  void on_delete_button_clicked(void);
++
++  void on_add_node_button_toggled(void);
++
++  void on_edit_node_button_toggled(void);
++
++  /**
++       *  Finally, we close up with protected member variables
++       */
++
++protected:
++  // UI pointer
++  std::unique_ptr<Ui::route_tool> ui_;
++
++private:
++  void update_route_graph(void);
++  nav2_util::LifecycleNode::SharedPtr node_;
++  std::shared_ptr<nav2_route::GraphLoader> graph_loader_;
++  std::shared_ptr<nav2_route::GraphSaver> graph_saver_;
++  std::shared_ptr<tf2_ros::Buffer> tf_;
++  nav2_route::Graph graph_;
++  nav2_route::GraphToIDMap graph_to_id_map_;
++  nav2_route::GraphToIDMap edge_to_node_map_;
++  nav2_route::GraphToIncomingEdgesMap graph_to_incoming_edges_map_;
++
++  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr
++    graph_vis_publisher_;
++  rclcpp::Subscription<geometry_msgs::msg::PointStamped>::SharedPtr
++    clicked_point_subscription_;
++
++  unsigned int next_node_id_ = 0;
++};
++}  // namespace nav2_rviz_plugins
++#endif  // NAV2_RVIZ_PLUGINS__ROUTE_TOOL_HPP_
+diff --git a/launch/route_tool.launch.py b/launch/route_tool.launch.py
+new file mode 100644
+index 00000000..e0914b9d
+--- /dev/null
++++ b/launch/route_tool.launch.py
+@@ -0,0 +1,75 @@
++# Copyright (c) 2025 John Chrosniak
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++import os
++
++from ament_index_python.packages import get_package_share_directory
++from launch import LaunchDescription
++from launch.actions import DeclareLaunchArgument
++from launch.substitutions import LaunchConfiguration
++import launch_ros.actions
++
++
++def generate_launch_description() -> LaunchDescription:
++
++    # Nodes launching commands
++    map_file = LaunchConfiguration('yaml_filename')
++
++    declare_map_file_cmd = DeclareLaunchArgument(
++        'yaml_filename',
++        default_value='',
++        description='Full path to an occupancy grid map yaml file',
++    )
++
++    start_route_tool_cmd = launch_ros.actions.Node(
++        package='rviz2',
++        executable='rviz2',
++        output='screen',
++        arguments=[
++            '-d'
++            + os.path.join(
++                get_package_share_directory('nav2_rviz_plugins'),
++                'rviz',
++                'route_tool.rviz',
++            )
++        ],
++    )
++
++    start_map_server = launch_ros.actions.Node(
++        package='nav2_map_server',
++        executable='map_server',
++        output='screen',
++        parameters=[{'yaml_filename': map_file}],
++    )
++
++    start_lifecycle_manager_cmd = launch_ros.actions.Node(
++        package='nav2_lifecycle_manager',
++        executable='lifecycle_manager',
++        name='lifecycle_manager',
++        output='screen',
++        parameters=[
++            {'use_sim_time': False},
++            {'autostart': True},
++            {'node_names': ['map_server']},
++        ],
++    )
++
++    return LaunchDescription(
++        [
++            declare_map_file_cmd,
++            start_route_tool_cmd,
++            start_map_server,
++            start_lifecycle_manager_cmd,
++        ]
++    )
+diff --git a/package.xml b/package.xml
+index 562f00d9..33fb69bc 100644
+--- a/package.xml
++++ b/package.xml
+@@ -2,7 +2,7 @@
+ <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+ <package format="3">
+   <name>nav2_rviz_plugins</name>
+-  <version>1.3.9</version>
++  <version>1.3.10</version>
+   <description>Navigation 2 plugins for rviz</description>
+   <maintainer email="michael.jeronimo@intel.com">Michael Jeronimo</maintainer>
+   <license>Apache-2.0</license>
+@@ -28,6 +28,7 @@
+   <depend>urdf</depend>
+   <depend>visualization_msgs</depend>
+   <depend>yaml_cpp_vendor</depend>
++  <depend>nav2_route</depend>
+ 
+   <exec_depend>libqt5-core</exec_depend>
+   <exec_depend>libqt5-gui</exec_depend>
+diff --git a/plugins_description.xml b/plugins_description.xml
+index a28b1d99..b79e18d3 100644
+--- a/plugins_description.xml
++++ b/plugins_description.xml
+@@ -35,5 +35,11 @@
+          base_class_type="rviz_common::Display">
+     <description>The Particle Cloud rviz display.</description>
+   </class>
++  
++  <class name="nav2_rviz_plugins/RouteTool"
++         type="nav2_rviz_plugins::RouteTool"
++         base_class_type="rviz_common::Panel">
++    <description>A tool used to create route graphs.</description>
++  </class>
+ 
+ </library>
+diff --git a/resource/route_tool.ui b/resource/route_tool.ui
+new file mode 100644
+index 00000000..ba166a46
+--- /dev/null
++++ b/resource/route_tool.ui
+@@ -0,0 +1,386 @@
++<?xml version="1.0" encoding="UTF-8"?>
++
++<!--
++ Copyright (c) 2024 John Chrosniak
++ Licensed under the Apache License, Version 2.0 (the "License"); you may not
++ use this file except in compliance with the License. You may obtain a copy of
++ the License at
++ http://www.apache.org/licenses/LICENSE-2.0
++ Unless required by applicable law or agreed to in writing, software
++ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ License for the specific language governing permissions and limitations under
++ the License.
++-->
++
++<ui version="4.0">
++ <class>route_tool</class>
++ <widget class="QWidget" name="route_tool">
++  <property name="geometry">
++   <rect>
++    <x>0</x>
++    <y>0</y>
++    <width>394</width>
++    <height>461</height>
++   </rect>
++  </property>
++  <property name="windowTitle">
++   <string>MainWindow</string>
++  </property>
++  <layout class="QVBoxLayout" name="verticalLayout_8">
++   <item>
++    <layout class="QVBoxLayout" name="verticalLayout">
++     <item>
++      <layout class="QVBoxLayout" name="verticalLayout_7">
++       <item alignment="Qt::AlignHCenter|Qt::AlignTop">
++        <widget class="QTabWidget" name="tabWidget">
++         <property name="currentIndex">
++          <number>0</number>
++         </property>
++         <widget class="QWidget" name="add_tab">
++          <property name="minimumSize">
++           <size>
++            <width>0</width>
++            <height>0</height>
++           </size>
++          </property>
++          <attribute name="title">
++           <string>Add</string>
++          </attribute>
++          <layout class="QGridLayout" name="gridLayout_2">
++           <item row="0" column="0">
++            <layout class="QVBoxLayout" name="verticalLayout_3">
++             <item>
++              <layout class="QHBoxLayout" name="horizontalLayout">
++               <item alignment="Qt::AlignHCenter">
++                <widget class="QRadioButton" name="add_node_button">
++                 <property name="text">
++                  <string>Node</string>
++                 </property>
++                 <property name="iconSize">
++                  <size>
++                   <width>16</width>
++                   <height>16</height>
++                  </size>
++                 </property>
++                 <property name="shortcut">
++                  <string>Del</string>
++                 </property>
++                </widget>
++               </item>
++               <item alignment="Qt::AlignHCenter">
++                <widget class="QRadioButton" name="add_edge_button">
++                 <property name="text">
++                  <string>Edge</string>
++                 </property>
++                </widget>
++               </item>
++              </layout>
++             </item>
++             <item>
++              <layout class="QHBoxLayout" name="horizontalLayout_4">
++               <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
++                <widget class="QLabel" name="add_text">
++                 <property name="text">
++                  <string>Text:</string>
++                 </property>
++                </widget>
++               </item>
++              </layout>
++             </item>
++             <item>
++              <layout class="QVBoxLayout" name="verticalLayout_2">
++               <item>
++                <layout class="QHBoxLayout" name="horizontalLayout_3">
++                 <item>
++                  <widget class="QLabel" name="add_label_1">
++                   <property name="maximumSize">
++                    <size>
++                     <width>16777215</width>
++                     <height>50</height>
++                    </size>
++                   </property>
++                   <property name="text">
++                    <string>Field 1:</string>
++                   </property>
++                  </widget>
++                 </item>
++                 <item>
++                  <widget class="QTextEdit" name="add_field_1">
++                   <property name="maximumSize">
++                    <size>
++                     <width>500</width>
++                     <height>30</height>
++                    </size>
++                   </property>
++                  </widget>
++                 </item>
++                </layout>
++               </item>
++               <item>
++                <layout class="QHBoxLayout" name="horizontalLayout_2">
++                 <item>
++                  <widget class="QLabel" name="add_label_2">
++                   <property name="maximumSize">
++                    <size>
++                     <width>16777215</width>
++                     <height>50</height>
++                    </size>
++                   </property>
++                   <property name="text">
++                    <string>Field 2:</string>
++                   </property>
++                  </widget>
++                 </item>
++                 <item>
++                  <widget class="QTextEdit" name="add_field_2">
++                   <property name="maximumSize">
++                    <size>
++                     <width>16777215</width>
++                     <height>30</height>
++                    </size>
++                   </property>
++                  </widget>
++                 </item>
++                </layout>
++               </item>
++              </layout>
++             </item>
++             <item alignment="Qt::AlignVCenter">
++              <widget class="QPushButton" name="create_button">
++               <property name="text">
++                <string>Create</string>
++               </property>
++              </widget>
++             </item>
++            </layout>
++           </item>
++          </layout>
++         </widget>
++         <widget class="QWidget" name="edit_tab">
++          <attribute name="title">
++           <string>Edit</string>
++          </attribute>
++          <layout class="QGridLayout" name="gridLayout">
++           <item row="0" column="0">
++            <layout class="QVBoxLayout" name="verticalLayout_4">
++             <item>
++              <layout class="QHBoxLayout" name="horizontalLayout_6">
++               <item>
++                <widget class="QRadioButton" name="edit_node_button">
++                 <property name="text">
++                  <string>Node</string>
++                 </property>
++                 <property name="iconSize">
++                  <size>
++                   <width>16</width>
++                   <height>16</height>
++                  </size>
++                 </property>
++                 <property name="shortcut">
++                  <string>Del</string>
++                 </property>
++                </widget>
++               </item>
++               <item>
++                <widget class="QRadioButton" name="edit_edge_button">
++                 <property name="text">
++                  <string>Edge</string>
++                 </property>
++                </widget>
++               </item>
++              </layout>
++             </item>
++             <item>
++              <layout class="QHBoxLayout" name="horizontalLayout_11">
++               <item>
++                <widget class="QLabel" name="label_7">
++                 <property name="text">
++                  <string>ID:</string>
++                 </property>
++                </widget>
++               </item>
++               <item>
++                <widget class="QTextEdit" name="edit_id">
++                 <property name="maximumSize">
++                  <size>
++                   <width>16777215</width>
++                   <height>50</height>
++                  </size>
++                 </property>
++                </widget>
++               </item>
++              </layout>
++             </item>
++             <item>
++              <layout class="QHBoxLayout" name="horizontalLayout_7">
++               <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
++                <widget class="QLabel" name="edit_text">
++                 <property name="text">
++                  <string>Text:</string>
++                 </property>
++                </widget>
++               </item>
++              </layout>
++             </item>
++             <item>
++              <layout class="QVBoxLayout" name="verticalLayout_5">
++               <item>
++                <layout class="QHBoxLayout" name="horizontalLayout_8">
++                 <item>
++                  <widget class="QLabel" name="edit_label_1">
++                   <property name="text">
++                    <string>Field 1:</string>
++                   </property>
++                  </widget>
++                 </item>
++                 <item>
++                  <widget class="QTextEdit" name="edit_field_1">
++                   <property name="maximumSize">
++                    <size>
++                     <width>16777215</width>
++                     <height>50</height>
++                    </size>
++                   </property>
++                  </widget>
++                 </item>
++                </layout>
++               </item>
++               <item>
++                <layout class="QHBoxLayout" name="horizontalLayout_9">
++                 <item>
++                  <widget class="QLabel" name="edit_label_2">
++                   <property name="text">
++                    <string>Field 2:</string>
++                   </property>
++                  </widget>
++                 </item>
++                 <item>
++                  <widget class="QTextEdit" name="edit_field_2">
++                   <property name="maximumSize">
++                    <size>
++                     <width>16777215</width>
++                     <height>50</height>
++                    </size>
++                   </property>
++                  </widget>
++                 </item>
++                </layout>
++               </item>
++              </layout>
++             </item>
++             <item alignment="Qt::AlignVCenter">
++              <widget class="QPushButton" name="confirm_button">
++               <property name="text">
++                <string>Confirm</string>
++               </property>
++              </widget>
++             </item>
++             <item>
++              <layout class="QHBoxLayout" name="horizontalLayout_10"/>
++             </item>
++            </layout>
++           </item>
++          </layout>
++         </widget>
++         <widget class="QWidget" name="remove_tab">
++          <attribute name="title">
++           <string>Remove</string>
++          </attribute>
++          <layout class="QGridLayout" name="gridLayout_3">
++           <item row="0" column="0">
++            <layout class="QVBoxLayout" name="verticalLayout_6">
++             <item>
++              <layout class="QHBoxLayout" name="horizontalLayout_12">
++               <item>
++                <widget class="QRadioButton" name="remove_node_button">
++                 <property name="text">
++                  <string>Node</string>
++                 </property>
++                 <property name="iconSize">
++                  <size>
++                   <width>16</width>
++                   <height>16</height>
++                  </size>
++                 </property>
++                 <property name="shortcut">
++                  <string>Del</string>
++                 </property>
++                </widget>
++               </item>
++               <item>
++                <widget class="QRadioButton" name="remove_edge_button">
++                 <property name="text">
++                  <string>Edge</string>
++                 </property>
++                </widget>
++               </item>
++              </layout>
++             </item>
++             <item>
++              <layout class="QHBoxLayout" name="horizontalLayout_13">
++               <item>
++                <widget class="QLabel" name="remove_label">
++                 <property name="text">
++                  <string>ID:</string>
++                 </property>
++                </widget>
++               </item>
++               <item>
++                <widget class="QTextEdit" name="remove_id">
++                 <property name="maximumSize">
++                  <size>
++                   <width>16777215</width>
++                   <height>50</height>
++                  </size>
++                 </property>
++                </widget>
++               </item>
++              </layout>
++             </item>
++             <item alignment="Qt::AlignVCenter">
++              <widget class="QPushButton" name="delete_button">
++               <property name="text">
++                <string>Delete</string>
++               </property>
++              </widget>
++             </item>
++             <item>
++              <layout class="QHBoxLayout" name="horizontalLayout_17"/>
++             </item>
++            </layout>
++           </item>
++          </layout>
++         </widget>
++        </widget>
++       </item>
++      </layout>
++     </item>
++     <item>
++      <layout class="QHBoxLayout" name="horizontalLayout_5">
++       <item>
++        <widget class="QPushButton" name="load_button">
++         <property name="text">
++          <string>Load</string>
++         </property>
++        </widget>
++       </item>
++       <item>
++        <widget class="QPushButton" name="save_button">
++         <property name="text">
++          <string>Save</string>
++         </property>
++        </widget>
++       </item>
++      </layout>
++     </item>
++    </layout>
++   </item>
++   <item>
++    <widget class="QStatusBar" name="statusbar"/>
++   </item>
++  </layout>
++ </widget>
++ <resources/>
++ <connections/>
++</ui>
+\ No newline at end of file
+diff --git a/rviz/route_tool.rviz b/rviz/route_tool.rviz
+new file mode 100644
+index 00000000..521b90a1
+--- /dev/null
++++ b/rviz/route_tool.rviz
+@@ -0,0 +1,150 @@
++Panels:
++  - Class: rviz_common/Displays
++    Help Height: 78
++    Name: Displays
++    Property Tree Widget:
++      Expanded:
++        - /Route Graph1/Topic1
++        - /Map1
++        - /Map1/Topic1
++      Splitter Ratio: 0.5
++    Tree Height: 305
++  - Class: rviz_common/Selection
++    Name: Selection
++  - Class: rviz_common/Tool Properties
++    Expanded:
++      - /2D Goal Pose1
++      - /Publish Point1
++    Name: Tool Properties
++    Splitter Ratio: 0.5886790156364441
++  - Class: rviz_common/Views
++    Expanded:
++      - /Current View1
++    Name: Views
++    Splitter Ratio: 0.5
++  - Class: rviz_common/Time
++    Experimental: false
++    Name: Time
++    SyncMode: 0
++    SyncSource: ""
++  - Class: nav2_rviz_plugins/Route Tool
++    Name: Route Tool
++Visualization Manager:
++  Class: ""
++  Displays:
++    - Class: rviz_default_plugins/MarkerArray
++      Enabled: true
++      Name: Route Graph
++      Namespaces:
++        {}
++      Topic:
++        Depth: 5
++        Durability Policy: Transient Local
++        History Policy: Keep Last
++        Reliability Policy: Reliable
++        Value: /route_graph
++      Value: true
++    - Alpha: 0.699999988079071
++      Class: rviz_default_plugins/Map
++      Color Scheme: map
++      Draw Behind: false
++      Enabled: true
++      Name: Map
++      Topic:
++        Depth: 5
++        Durability Policy: Transient Local
++        Filter size: 10
++        History Policy: Keep Last
++        Reliability Policy: Reliable
++        Value: /map
++      Update Topic:
++        Depth: 5
++        Durability Policy: Volatile
++        History Policy: Keep Last
++        Reliability Policy: Reliable
++        Value: /map_updates
++      Use Timestamp: false
++      Value: true
++  Enabled: true
++  Global Options:
++    Background Color: 48; 48; 48
++    Fixed Frame: map
++    Frame Rate: 30
++  Name: root
++  Tools:
++    - Class: rviz_default_plugins/Interact
++      Hide Inactive Objects: true
++    - Class: rviz_default_plugins/MoveCamera
++    - Class: rviz_default_plugins/Select
++    - Class: rviz_default_plugins/FocusCamera
++    - Class: rviz_default_plugins/Measure
++      Line color: 128; 128; 0
++    - Class: rviz_default_plugins/SetInitialPose
++      Covariance x: 0.25
++      Covariance y: 0.25
++      Covariance yaw: 0.06853891909122467
++      Topic:
++        Depth: 5
++        Durability Policy: Volatile
++        History Policy: Keep Last
++        Reliability Policy: Reliable
++        Value: /initialpose
++    - Class: rviz_default_plugins/SetGoal
++      Topic:
++        Depth: 5
++        Durability Policy: Volatile
++        History Policy: Keep Last
++        Reliability Policy: Reliable
++        Value: /goal_pose
++    - Class: rviz_default_plugins/PublishPoint
++      Single click: true
++      Topic:
++        Depth: 5
++        Durability Policy: Volatile
++        History Policy: Keep Last
++        Reliability Policy: Reliable
++        Value: /clicked_point
++  Transformation:
++    Current:
++      Class: rviz_default_plugins/TF
++  Value: true
++  Views:
++    Current:
++      Angle: 0
++      Class: rviz_default_plugins/TopDownOrtho
++      Enable Stereo Rendering:
++        Stereo Eye Separation: 0.05999999865889549
++        Stereo Focal Distance: 1
++        Swap Stereo Eyes: false
++        Value: false
++      Invert Z Axis: false
++      Name: Current View
++      Near Clip Distance: 0.009999999776482582
++      Scale: 22.106815338134766
++      Target Frame: <Fixed Frame>
++      Value: TopDownOrtho (rviz_default_plugins)
++      X: 0
++      Y: 0
++    Saved: ~
++Window Geometry:
++  Displays:
++    collapsed: false
++  Height: 1003
++  Hide Left Dock: false
++  Hide Right Dock: false
++  QMainWindow State: 000000ff00000000fd0000000400000000000001560000034dfc020000000afb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d000001bc000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000120072006f0075007400650054006f006f006c00000001a4000001e60000006e00fffffffb000000140052006f00750074006500200054006f006f006c01000001ff0000018b0000018b00ffffff000000010000010f0000034dfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003d0000034d000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000073a0000003efc0100000002fb0000000800540069006d006501000000000000073a000002fb00fffffffb0000000800540069006d00650100000000000004500000000000000000000004c90000034d00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
++  Route Tool:
++    collapsed: false
++  Selection:
++    collapsed: false
++  Time:
++    collapsed: false
++  Tool Properties:
++    collapsed: false
++  Views:
++    collapsed: false
++  Width: 1850
++  X: 70
++  Y: 27
++  routeTool:
++    collapsed: false
+\ No newline at end of file
+diff --git a/src/route_tool.cpp b/src/route_tool.cpp
+new file mode 100644
+index 00000000..7befe4c8
+--- /dev/null
++++ b/src/route_tool.cpp
+@@ -0,0 +1,268 @@
++// Copyright (c) 2024 John Chrosniak
++//
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++//     http://www.apache.org/licenses/LICENSE-2.0
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++#include "nav2_rviz_plugins/route_tool.hpp"
++#include <QDesktopServices>
++#include <QUrl>
++#include <sys/types.h>
++#include <QFileDialog>
++#include "rviz_common/display_context.hpp"
++
++
++namespace nav2_rviz_plugins
++{
++RouteTool::RouteTool(QWidget * parent)
++:   rviz_common::Panel(parent),
++  ui_(std::make_unique<Ui::route_tool>())
++{
++  // Extend the widget with all attributes and children from UI file
++  ui_->setupUi(this);
++  node_ = std::make_shared<nav2_util::LifecycleNode>("route_tool_node", "", rclcpp::NodeOptions());
++  node_->configure();
++  graph_vis_publisher_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(
++    "route_graph", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
++  node_->activate();
++  tf_ = std::make_shared<tf2_ros::Buffer>(node_->get_clock());
++  graph_loader_ = std::make_shared<nav2_route::GraphLoader>(node_, tf_, "map");
++  graph_saver_ = std::make_shared<nav2_route::GraphSaver>(node_, tf_, "map");
++  ui_->add_node_button->setChecked(true);
++  ui_->edit_node_button->setChecked(true);
++  ui_->remove_node_button->setChecked(true);
++  // Needed to prevent memory addresses moving from resizing
++  // when adding nodes and edges
++  graph_.reserve(1000);
++}
++
++void RouteTool::onInitialize(void)
++{
++  auto ros_node_abstraction = getDisplayContext()->getRosNodeAbstraction().lock();
++  if (!ros_node_abstraction) {
++    RCLCPP_ERROR(
++      node_->get_logger(), "Unable to get ROS node abstraction");
++    return;
++  }
++  auto node = ros_node_abstraction->get_raw_node();
++
++  clicked_point_subscription_ = node->create_subscription<geometry_msgs::msg::PointStamped>(
++    "clicked_point", 1, [this](const geometry_msgs::msg::PointStamped::SharedPtr msg) {
++      ui_->add_field_1->setText(std::to_string(msg->point.x).c_str());
++      ui_->add_field_2->setText(std::to_string(msg->point.y).c_str());
++      ui_->edit_field_1->setText(std::to_string(msg->point.x).c_str());
++      ui_->edit_field_2->setText(std::to_string(msg->point.y).c_str());
++    });
++}
++
++void RouteTool::on_load_button_clicked(void)
++{
++  graph_to_id_map_.clear();
++  edge_to_node_map_.clear();
++  graph_to_incoming_edges_map_.clear();
++  graph_.clear();
++  QString filename = QFileDialog::getOpenFileName(
++    this,
++    tr("Open Address Book"), "",
++    tr("Address Book (*.geojson);;All Files (*)"));
++  graph_loader_->loadGraphFromFile(graph_, graph_to_id_map_, filename.toStdString());
++  unsigned int max_node_id = 0;
++  for (const auto & node : graph_) {
++    max_node_id = std::max(node.nodeid, max_node_id);
++    for (const auto & edge : node.neighbors) {
++      max_node_id = std::max(edge.edgeid, max_node_id);
++      edge_to_node_map_[edge.edgeid] = node.nodeid;
++      if (graph_to_incoming_edges_map_.find(edge.end->nodeid) !=
++        graph_to_incoming_edges_map_.end())
++      {
++        graph_to_incoming_edges_map_[edge.end->nodeid].push_back(edge.edgeid);
++      } else {
++        graph_to_incoming_edges_map_[edge.end->nodeid] = std::vector<unsigned int> {edge.edgeid};
++      }
++    }
++  }
++  next_node_id_ = max_node_id + 1;
++  update_route_graph();
++}
++
++void RouteTool::on_save_button_clicked(void)
++{
++  QString filename = QFileDialog::getSaveFileName(
++    this,
++    tr("Open Address Book"), "",
++    tr("Address Book (*.geojson);;All Files (*)"));
++  RCLCPP_INFO(node_->get_logger(), "Save graph to: %s", filename.toStdString().c_str());
++  graph_saver_->saveGraphToFile(graph_, filename.toStdString());
++}
++
++void RouteTool::on_create_button_clicked(void)
++{
++  if (ui_->add_field_1->toPlainText() == "" || ui_->add_field_2->toPlainText() == "") {return;}
++  if (ui_->add_node_button->isChecked()) {
++    auto longitude = ui_->add_field_1->toPlainText().toFloat();
++    auto latitude = ui_->add_field_2->toPlainText().toFloat();
++    nav2_route::Node new_node;
++    new_node.nodeid = next_node_id_;
++    new_node.coords.x = longitude;
++    new_node.coords.y = latitude;
++    graph_.push_back(new_node);
++    graph_to_id_map_[next_node_id_++] = graph_.size() - 1;
++    RCLCPP_INFO(node_->get_logger(), "Adding node at: (%f, %f)", longitude, latitude);
++    update_route_graph();
++  } else if (ui_->add_edge_button->isChecked()) {
++    auto start_node = ui_->add_field_1->toPlainText().toInt();
++    auto end_node = ui_->add_field_2->toPlainText().toInt();
++    nav2_route::EdgeCost edge_cost;
++    graph_[graph_to_id_map_[start_node]].addEdge(
++      edge_cost, &(graph_[graph_to_id_map_[end_node]]),
++      next_node_id_);
++    if (graph_to_incoming_edges_map_.find(end_node) != graph_to_incoming_edges_map_.end()) {
++      graph_to_incoming_edges_map_[end_node].push_back(next_node_id_);
++    } else {
++      graph_to_incoming_edges_map_[end_node] = std::vector<unsigned int> {next_node_id_};
++    }
++    edge_to_node_map_[next_node_id_++] = start_node;
++    RCLCPP_INFO(node_->get_logger(), "Adding edge from %d to %d", start_node, end_node);
++    update_route_graph();
++  }
++  ui_->add_field_1->setText("");
++  ui_->add_field_2->setText("");
++}
++
++void RouteTool::on_confirm_button_clicked(void)
++{
++  if (ui_->edit_id->toPlainText() == "" || ui_->edit_field_1->toPlainText() == "" ||
++    ui_->edit_field_2->toPlainText() == "") {return;}
++  if (ui_->edit_node_button->isChecked()) {
++    auto node_id = ui_->edit_id->toPlainText().toInt();
++    auto new_longitude = ui_->edit_field_1->toPlainText().toFloat();
++    auto new_latitude = ui_->edit_field_2->toPlainText().toFloat();
++    if (graph_to_id_map_.find(node_id) != graph_to_id_map_.end()) {
++      graph_[graph_to_id_map_[node_id]].coords.x = new_longitude;
++      graph_[graph_to_id_map_[node_id]].coords.y = new_latitude;
++      update_route_graph();
++    }
++  } else if (ui_->edit_edge_button->isChecked()) {
++    auto edge_id = (unsigned int) ui_->edit_id->toPlainText().toInt();
++    auto new_start = ui_->edit_field_1->toPlainText().toInt();
++    auto new_end = ui_->edit_field_2->toPlainText().toInt();
++    // Find and remove current edge
++    auto current_start_node = &graph_[graph_to_id_map_[edge_to_node_map_[edge_id]]];
++    for (auto itr = current_start_node->neighbors.begin();
++      itr != current_start_node->neighbors.end(); itr++)
++    {
++      if (itr->edgeid == edge_id) {
++        current_start_node->neighbors.erase(itr);
++        break;
++      }
++    }
++    // Create new edge with same ID using new start and stop nodes
++    nav2_route::EdgeCost edge_cost;
++    graph_[graph_to_id_map_[new_start]].addEdge(
++      edge_cost, &(graph_[graph_to_id_map_[new_end]]),
++      edge_id);
++    edge_to_node_map_[edge_id] = new_start;
++    if (graph_to_incoming_edges_map_.find(new_end) != graph_to_incoming_edges_map_.end()) {
++      graph_to_incoming_edges_map_[new_end].push_back(edge_id);
++    } else {
++      graph_to_incoming_edges_map_[new_end] = std::vector<unsigned int> {edge_id};
++    }
++    update_route_graph();
++  }
++  ui_->edit_id->setText("");
++  ui_->edit_field_1->setText("");
++  ui_->edit_field_2->setText("");
++}
++
++void RouteTool::on_delete_button_clicked(void)
++{
++  if (ui_->remove_id->toPlainText() == "") {return;}
++  if (ui_->remove_node_button->isChecked()) {
++    unsigned int node_id = ui_->remove_id->toPlainText().toInt();
++    // Remove edges pointing to the removed node
++    for (auto edge_id : graph_to_incoming_edges_map_[node_id]) {
++      auto start_node = &graph_[graph_to_id_map_[edge_to_node_map_[edge_id]]];
++      for (auto itr = start_node->neighbors.begin(); itr != start_node->neighbors.end(); itr++) {
++        if (itr->edgeid == edge_id) {
++          start_node->neighbors.erase(itr);
++          edge_to_node_map_.erase(edge_id);
++          break;
++        }
++      }
++    }
++    if (graph_[graph_to_id_map_[node_id]].nodeid == node_id) {
++      // Use max int to mark the node as deleted
++      graph_[graph_to_id_map_[node_id]].nodeid = std::numeric_limits<int>::max();
++      graph_to_id_map_.erase(node_id);
++      graph_to_incoming_edges_map_.erase(node_id);
++      RCLCPP_INFO(node_->get_logger(), "Removed node %d", node_id);
++    }
++    update_route_graph();
++  } else if (ui_->remove_edge_button->isChecked()) {
++    auto edge_id = (unsigned int) ui_->remove_id->toPlainText().toInt();
++    auto start_node = &graph_[graph_to_id_map_[edge_to_node_map_[edge_id]]];
++    for (auto itr = start_node->neighbors.begin(); itr != start_node->neighbors.end(); itr++) {
++      if (itr->edgeid == edge_id) {
++        RCLCPP_INFO(node_->get_logger(), "Removed edge %d", edge_id);
++        start_node->neighbors.erase(itr);
++        edge_to_node_map_.erase(edge_id);
++        break;
++      }
++    }
++    update_route_graph();
++  }
++  ui_->remove_id->setText("");
++}
++
++void RouteTool::on_add_node_button_toggled(void)
++{
++  if (ui_->add_node_button->isChecked()) {
++    ui_->add_text->setText("Position:");
++    ui_->add_label_1->setText("X:");
++    ui_->add_label_2->setText("Y:");
++  } else {
++    ui_->add_text->setText("Connections:");
++    ui_->add_label_1->setText("Start Node ID:");
++    ui_->add_label_2->setText("End Node ID:");
++  }
++}
++
++void RouteTool::on_edit_node_button_toggled(void)
++{
++  if (ui_->edit_node_button->isChecked()) {
++    ui_->edit_text->setText("Position:");
++    ui_->edit_label_1->setText("X:");
++    ui_->edit_label_2->setText("Y:");
++  } else {
++    ui_->edit_text->setText("Connections:");
++    ui_->edit_label_1->setText("Start Node ID:");
++    ui_->edit_label_2->setText("End Node ID:");
++  }
++}
++
++void RouteTool::update_route_graph(void)
++{
++  graph_vis_publisher_->publish(nav2_route::utils::toMsg(graph_, "map", node_->now()));
++}
++
++void RouteTool::save(rviz_common::Config config) const
++{
++  rviz_common::Panel::save(config);
++}
++
++void RouteTool::load(const rviz_common::Config & config)
++{
++  rviz_common::Panel::load(config);
++}
++}  // namespace nav2_rviz_plugins
++
++#include <pluginlib/class_list_macros.hpp>
++PLUGINLIB_EXPORT_CLASS(nav2_rviz_plugins::RouteTool, rviz_common::Panel)

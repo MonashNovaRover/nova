@@ -70,17 +70,23 @@ self: super:
         });
 
         # nav2_rviz_plugins: Add route_tool
-        # nav2-rviz-plugins = rosSuper.nav2-rviz-plugins.overrideAttrs ({ patches ? [ ], ... }: {
-        #   patchFlags = [ "-p2" ];
-        #   patches = patches ++ [
-        #     # Backport of nav2_rviz_plugins::RouteTool plugin to Jazzy
-        #     # https://github.com/ros-navigation/navigation2/issues/5663
-        #     (self.fetchpatch {
-        #       url = "https://github.com/ros-navigation/navigation2/commit/617ede9c16665eaf59bb4a55969ff44496e58617.diff";
-        #       hash = "sha256-2SFH6gtQFWuultdMrdxLyZ//jr6tFEuCYsKihVd7QdM=";
-        #     })
-        #   ];
-        # });
+        nav2-rviz-plugins =
+          rosSuper.nav2-rviz-plugins.overrideAttrs (old: {
+            patchFlags = [ "-p1" ];
+
+            patches = (old.patches or []) ++ [
+              # Backport of nav2_rviz_plugins::RouteTool plugin to Jazzy
+              ./patches/nav2-route-tool.patch
+            ];
+
+            buildInputs = (old.buildInputs or []) ++ [
+              rosSuper.nav2-route
+            ];
+
+            propagatedBuildInputs = (old.propagatedBuildInputs or []) ++ [
+              rosSuper.nav2-route
+            ];
+        });
 
         # nav2-smoother = rosSuper.nav2-smoother.overrideAttrs ({ patches ? [ ], ... }: {
         #   patchFlags = [ "-p2" ];
