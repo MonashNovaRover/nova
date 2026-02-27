@@ -51,9 +51,9 @@ thrustmaster_left:
           from: "l_ax_stick_twist"
         j2:
           from: "l_ax_stick_y"
-          invert: true
         j3:
           from: "l_ax_stick_x"
+          invert: true
         
         speed:
           from: "l_ax_slider"
@@ -119,10 +119,9 @@ thrustmaster_right:
         j4:
           from: "r_ax_stick_twist"
         j5:
-          from: "r_ax_stick_x"
-          invert: true
-        j6:
           from: "r_ax_stick_y"
+        j6:
+          from: "r_ax_stick_x"
           invert: true
 
         lead_left:
