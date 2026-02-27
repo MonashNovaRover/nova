@@ -103,11 +103,11 @@ kiln:
         can_id: 0x13
         unit: "temperature"
       left_heater:
-        can_id: 0x10
+        can_id: 0x41
         max_effort: 1.0
         reversed: false
       right_heater:
-        can_id: 0x11
+        can_id: 0x42
         max_effort: 1.0
         reversed: false
 

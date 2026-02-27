@@ -153,8 +153,8 @@ if __name__ == "__main__":
                          calculate_reference_temp = lambda l: l[0], # use kiln_sensor temperature as the current/reference temp
                          command_service = "/science/kiln_command",
                          data_topic = "/science/kiln_data") \
-        .with_hardware("left_heater", QCMDHardware, can_id = 0x00) \
-        .with_hardware("right_heater", QCMDHardware, can_id = 0x01) \
+        .with_hardware("left_heater", QCMDHardware, can_id = 0x41) \
+        .with_hardware("right_heater", QCMDHardware, can_id = 0x42) \
         .with_hardware("kiln_sensor", GenericSensorHardware,
                        can_id = 0x02,
                        interpret_data = lambda data: 0.02 * int.from_bytes(data) - 273.15,
