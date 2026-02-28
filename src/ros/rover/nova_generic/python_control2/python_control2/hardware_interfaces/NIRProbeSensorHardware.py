@@ -19,6 +19,7 @@ import jcan
 from ..controller_manager.Interface import Interface, InterfaceCollection
 from .HardwareInterface import HardwareInterface
 from ..controller_manager.Contexts import Contexts
+from teleop_python_utils import Inputs, EventCollection
 
 
 class NIRProbeSensorHardware(HardwareInterface):
@@ -66,13 +67,13 @@ class NIRProbeSensorHardware(HardwareInterface):
 
     def frame_callback(self, frame: jcan.Frame):
         """
-        Callback invoked when a CAN frame for a sensor is received.
+        Callback invoked when a CAN frame for sensor is received.
         """
         values: list[int] = self.interpret_data(frame.data)
         for i in range(len(self.sensor_states)):
             self.sensor_states[i].value = values[i]  
 
-        self.logger.debug(f"NIRProbeSensorHardware received CAN message for {sensor}: {frame}")
+        self.logger.debug(f"NIRProbeSensorHardware received CAN message: {frame}")
         self.publish_reading_event.invoke()
 
     def on_read(self, now: float, period: float):

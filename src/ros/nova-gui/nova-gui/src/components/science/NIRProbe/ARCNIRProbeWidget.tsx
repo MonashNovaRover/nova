@@ -24,8 +24,8 @@ const ARCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
   return (
     <div className="grid grid-flow-col auto-cols-fr gap-3">
       <div className="flex flex-col gap-3 col-span-3">
-        {/*<NIRProbeLEDWidget readingInfo={ARCNIRPRobeReadingTypeInfo}/>*/}
-        <NIRProbeOutputSaveWidgetDupe
+        {/* <NIRProbeLEDWidget readingInfo={ARCNIRPRobeReadingTypeInfo}/> */}
+         <NIRProbeOutputSaveWidgetDupe
           showAdvanced={showAdvanced}
           setShowAdvanced={setShowAdvanced}
           readingInfo={ARCNIRPRobeReadingTypeInfo}

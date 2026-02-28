@@ -27,6 +27,7 @@ import {
   NIRProbeReadingTypeInfo,
 } from "../SpaceResourcesSiteType.tsx";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
+import { IRosScienceInterfacesNirProbeData } from "../../../../ros/rosTypes.ts";
 
 export interface NIRProbeOutputSaveWidgetProps extends CardProps {
   showAdvanced : boolean,
@@ -66,45 +67,83 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
     <PD2Icon size={18}/>,
   ], [OffIcon, PD1Icon, PD2Icon])
 
+  // Take reading buttons
+  const status = useSelector((state: RootState) => state.nirStore.status);
+  const takeReading = () => bifrost.callService({});
+
   // Used for autosaving
-  const previousDataRef = useRef<number | undefined>(undefined);
+  const previousDataRef = useRef<number[] | undefined>(undefined);
 
   useEffect(() => {
     bifrost.syncWithTopic();
   }, [bifrost]);
 
+  // const onSave = useCallback(() => {
+  //   if (!showAdvanced && nirData.led === 0)
+  //     return
+
+  //   const saveType = showAdvanced && type ? type : nirData.led as keyof ISpaceResourcesEntries
+  //   setReadings({
+  //     ...readings,
+  //     [saveType]: [
+  //       {
+  //         data: showAdvanced && data ? data : nirData.data,
+  //         type: saveType,
+  //         label: showAdvanced ? advancedSampleLabel : sampleLabel,
+  //       } as ISpaceResourcesEntry,
+  //       ...readings[saveType],
+  //     ]
+  //   })
+  // }, [readings, setReadings, data, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
+
+
+
   const onSave = useCallback(() => {
-    if (!showAdvanced && nirData.led === 0)
+  if (!nirData.data || nirData.data.length < 2) return;
+
+  setReadings({
+    ...readings,
+    [NIRProbeReadingType.PD1]: [
+      {
+        data: showAdvanced && data ? data : nirData.data[0],
+        type: NIRProbeReadingType.PD1,
+        label: showAdvanced ? advancedSampleLabel : sampleLabel,
+      },
+      ...readings[NIRProbeReadingType.PD1],
+    ],
+    [NIRProbeReadingType.PD2]: [
+      {
+        data: showAdvanced && data ? data : nirData.data[1],
+        type: NIRProbeReadingType.PD2,
+        label: showAdvanced ? advancedSampleLabel : sampleLabel,
+      },
+      ...readings[NIRProbeReadingType.PD2],
+    ]
+  });
+  }, [readings, setReadings, data, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
+
+  const save = useCallback((reading: IRosScienceInterfacesNirProbeData) => {
+    if (!showAdvanced && nirData.status === 0)
       return
 
-    const saveType = showAdvanced && type ? type : nirData.led as keyof ISpaceResourcesEntries
+    
     setReadings({
       ...readings,
-      [saveType]: [
+      [NIRProbeReadingType.PD1]: [
         {
-          data: showAdvanced && data ? data : nirData.data,
-          type: saveType,
-          label: showAdvanced ? advancedSampleLabel : sampleLabel,
-        } as ISpaceResourcesEntry,
-        ...readings[saveType],
-      ]
-    })
-  }, [readings, setReadings, data, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
-
-  const save = useCallback((reading: number) => {
-    if (!showAdvanced && nirData.led === 0)
-      return
-
-    const saveType = showAdvanced && type ? type : nirData.led as keyof ISpaceResourcesEntries
-    setReadings({
-      ...readings,
-      [saveType]: [
-        {
-          data: reading,
-          type: saveType,
+          data: reading.data[0],
+          type: NIRProbeReadingType.PD1,
           label: "auto_" + (showAdvanced ? advancedSampleLabel : sampleLabel),
         } as ISpaceResourcesEntry,
-        ...readings[saveType],
+        ...readings[NIRProbeReadingType.PD1],
+      ],
+      [NIRProbeReadingType.PD2]: [
+        {
+          data: reading.data[1],
+          type: NIRProbeReadingType.PD2,
+          label: "auto_" + (showAdvanced ? advancedSampleLabel : sampleLabel),
+        } as ISpaceResourcesEntry,
+        ...readings[NIRProbeReadingType.PD2],
       ]
     })
   }, [readings, setReadings, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
@@ -120,7 +159,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
       return;
 
     previousDataRef.current = nirData.data;
-    save(nirData.data);
+    save(nirData);
   }, [autosave, save, nirData.data, previousDataRef]);
 
   const onTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -155,6 +194,12 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
         </Dropdown>
       </CardHeader>
       <CardBody className="flex flex-col gap-3">
+        <SpinnerButton
+          onPressStart={takeReading({})}
+          isLoading={isLoading}
+        >
+          Request LED Readings
+        </SpinnerButton>
         <div className="flex flex-row gap-3 items-center">
           <Chip size="lg"
                 startContent={icons[nirData.led]}
@@ -166,11 +211,29 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
             {readingInfo[nirData.led].name}
           </Chip>
           <CopyableOutput className="tracking-wide grow" classNames={{pre: "text-lg pt-1"}}>
-            {nirData.data}
+            {nirData.data[0]}
           </CopyableOutput>
           <Input onValueChange={setSampleLabel} value={sampleLabel} size="sm"
                  labelPlacement="inside" label="Sample Label"
                   className="w-1/4">
+          </Input>
+        </div>
+        <div className="flex flex-row gap-3 items-center">
+          <Chip size="lg"
+                startContent={icons[nirData2.led]}
+                color={readingInfo[nirData2.led].colour as "default" | "secondary" | "primary"}
+                classNames={{
+                  base: "min-w-24",
+                }}
+          >
+            {readingInfo[nirData2.led].name}
+          </Chip>
+          <CopyableOutput className="tracking-wide grow" classNames={{pre: "text-lg pt-1"}}>
+            {nirData.data[1]}
+          </CopyableOutput>
+          <Input onValueChange={setSampleLabel} value={sampleLabel} size="sm"
+                 labelPlacement="inside" label="Sample Label"
+                 className="w-1/4">
           </Input>
         </div>
         <div className="grid auto-cols-fr gap-3 grid-flow-col">

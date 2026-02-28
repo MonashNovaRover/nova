@@ -27,6 +27,7 @@ from python_control2 import PythonControl, Controller, Contexts, InterfaceCollec
 from science_interfaces.msg import NIRProbe
 from std_srvs.srv import Trigger, Trigger_Request, Trigger_Response
 from python_control2.hardware_interfaces import CMDHardware
+from teleop_python_utils import Inputs, EventCollection
 
 
 class NIRProbeController(Controller):
@@ -63,6 +64,8 @@ class NIRProbeController(Controller):
         if EventCollection in contexts:
             events = contexts[EventCollection]
             self.take_reading_event = events.get(f"{self.hardware_name}/take_reading")
+
+            # listen to <hardware>/publish_reading events to publish reading to GUI
             events[f"{self.hardware_name}/publish_reading"].add_callback(self.publish_reading)
         else:
             self.logger.error("Could not find EventCollection in the python control contexts, cannot take take NIR reading.")
@@ -122,6 +125,7 @@ if __name__ == "__main__":
                         hardware_name = "NIR_Probe",
                         photodiode_sensors = ["PD1", "PD2"],
                         update_rate = 5,
+                        command_service = "/science/take_nir_probe_reading",
                         data_topic = "/science/nir_probe_data") \
         .with_hardware("NIRProbeHardware", NIRProbeHardware,
                         hardware = "NIRProbeHardware",

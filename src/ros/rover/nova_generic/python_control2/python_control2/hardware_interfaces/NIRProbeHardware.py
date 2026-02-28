@@ -19,13 +19,13 @@ from ..controller_manager.Interface import Interface, InterfaceCollection
 from .HardwareInterface import HardwareInterface
 from ..controller_manager.Contexts import Contexts
 from struct import pack
+from teleop_python_utils import Inputs, EventCollection
 
 
 class NIRProbeHardware(HardwareInterface):
     effort_cmd: Interface
     can_id: int
-    # The name of the joint
-    joint: str
+    hardware: str
  
 
     def __init__(self, contexts: Contexts,
@@ -40,14 +40,15 @@ class NIRProbeHardware(HardwareInterface):
         super().__init__(contexts)
 
         self.bus = contexts[jcan.Bus]
-         # Setup zero event callback.
+        self.can_id = self.declare_parameter("can_id", can_id).value
+        self.hardware = self.declare_parameter("hardware", hardware).value
 
-        self.hardware = self.declare_parameter("hardware", hardware).vallue
         if EventCollection in contexts:
             events = contexts[EventCollection]
-            events[f"{self.get_parameter("hardware").value}/take_reading"].add_callback(self.take_reading)
+            # Listen for <hardware>/take reading events to send CAN command
+            events[f"{self.hardware}/take_reading"].add_callback(self.take_reading)
         else:
-            self.logger.error("Could not find EventCollection in the python control contexts, cannot zero StepperHardware.")
+            self.logger.error("Could not find EventCollection in the python control contexts.")
 
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
