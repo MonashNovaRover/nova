@@ -22,6 +22,7 @@ in
 
     nova = {
       desktop.enable = lib.mkDefault true;
+      workspace.enable = lib.mkDefault true;
     };
 
     peripherals.webcams.enable = true;

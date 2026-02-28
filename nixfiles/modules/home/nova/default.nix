@@ -114,11 +114,14 @@ in
         usbutils
         gpsd
         v4l-utils
+        can-utils
         btop
         nix-output-monitor
+        ffmpeg
       ] ++ lib.optionals config.nova.desktop.enable [
         # Desktop apps
         gitkraken
+        libreoffice-qt6-fresh
       ]);
     };
   };
