@@ -6,6 +6,28 @@ This repository contains [Nix](https://nixos.org) files for:
 - Configuring NixOS for various devices
 - Setting up [Hydra](https://nixos.org/hydra) for CI/CD
 
+## Project Structure
+
+```
+├ ci                     # Hydra configuration
+├ doc                    # Documentation for our nixos/package systems
+├ external               # Templates for how nova's and out-of-tree packages should be defined
+├ lib                    # Library of nix functions to help with nova packaging
+├ modules                # All toggleable nova modules live here
+| ├ common               # Legacy from before monorepo
+| ├ home                 # Home manager only options, see: https://hydra.novarover.space/manual/home-manager or https://hydra.novarover.space/manual/nixos or https://home-manager-options.extranix.com/
+| | ├ ...                
+| | └ macros             # Scripts and aliases
+| |   ├ launch           # Terminal launch scripts
+| |   └ default.nix      # Alias definitions
+| └ nixos                # Nixos stuff that you can enable through https://search.nixos.org/options?channel=unstable
+├ overlay                # Modifying the default build path/ configuration for ANY nix package
+├ packages               # Packing any out-of-nix packages into nix, normally from github
+├ scripts                # Bash scripts
+├ secrets                # Symlink to secrets repo
+└ tests                  # End to end tests for the rover and base station using vms
+```
+
 ## Contributing
 
 ### Code standards
