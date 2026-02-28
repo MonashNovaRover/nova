@@ -30,13 +30,13 @@ The [`nova`](https://github.com/MonashNovaRover/nova) repository encapsulates:
     - Camera discovery and streaming services between rover and base station.
 
 ```
-├─ nixfiles               # Package manager
-├─ src/                   # Source code
-│  ├─ other               # Miscellaneous non-ros software
-│  ├─ ros                 # The main folder containing all of our ROS2 software
-│  │  ├─ cameras2         # Custom camera stack
-│  │  ├─ nova-gui         # Graphical user interface for operators
-│  │  ├─ rover            # Code for our autonomous system, robotic arm, drive and other payload controls.
+├ nixfiles             # Package manager
+└ src                  # Source code
+  ├ other              # Miscellaneous non-ros software
+  └ ros                # The main folder containing all of our ROS2 software
+    ├ cameras2         # Custom camera stack
+    ├ nova-gui         # Graphical user interface for operators
+    └ rover            # Code for our autonomous system, robotic arm, drive and other payload controls.
 ```
 
 ## Development
