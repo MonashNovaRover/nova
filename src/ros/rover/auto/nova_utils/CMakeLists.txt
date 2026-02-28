@@ -57,7 +57,6 @@ install(PROGRAMS
   scripts/test_start_auto.py
   scripts/topic_waiter.py
   scripts/node_waiter.py
-  scripts/tf_to_extrinsic.py
 
   DESTINATION lib/${PROJECT_NAME}
 )

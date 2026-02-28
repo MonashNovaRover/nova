@@ -1,0 +1,28 @@
+# run tf2_echo from lidar frame to camera optical frame for Pcl and Rcl
+# it will give you a message like:
+# - Translation: [0.102, -0.019, -0.022]
+# - Rotation: in Quaternion [-0.380, 0.380, -0.596, 0.596]
+# - Rotation: in RPY (radian) [-1.134, -0.000, -1.571]
+# - Rotation: in RPY (degree) [-65.000, -0.001, -90.000]
+# - Matrix:
+#  -0.000  0.423  0.906  0.102
+#  -1.000 -0.000  0.000 -0.019
+#   0.000 -0.906  0.423 -0.022
+#   0.000  0.000  0.000  1.000
+#
+# For Pcl, just use the Translation vector.
+# For Rcl, disregard the bottom row and rightmost column, then
+# transpose the remaining 3x3 matrix.
+
+fastlivo2:
+  ros__parameters:
+    extrin_calib:
+      extrinsic_T: [0.011, 0.02329, -0.04412]
+      extrinsic_R: [1.0, 0.0, 0.0, 
+                    0.0, 1.0, 0.0, 
+                    0.0, 0.0, 1.0]
+      # TODO
+      # Pcl: [0.102, -0.019, -0.022]
+      # Rcl: [-0.000001, -1.000000,  0.000009,
+      #        0.422619, -0.000009, -0.906307,
+      #        0.906307,  0.000003,  0.422619]

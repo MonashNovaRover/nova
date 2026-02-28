@@ -50,7 +50,8 @@ def zip_fastlivo2_pcd(context, save_folder='fastlivo2', zip_path='~/pcd.zip'):
         print(f"Warning: Directory {dir_path} does not exist and could not be zipped.")
 
 def launch_setup(context, *args, **kwargs):
-    blackboard_params = LaunchConfiguration('blackboard_params')
+    intrinsics_params = LaunchConfiguration('intrinsics_params')
+    extrinsics_params = LaunchConfiguration('extrinsics_params')
     fastcalib = LaunchConfiguration('fastcalib')
     fastcalib_params = LaunchConfiguration('fastcalib_params')
     fastlivo2 = LaunchConfiguration('fastlivo2')
@@ -67,7 +68,8 @@ def launch_setup(context, *args, **kwargs):
         executable='fastlivo_mapping',
         name='fastlivo2',
         output='screen',
-        parameters=[fastlivo2_params, {'use_sim_time': sim, 'save_folder': save_folder}],
+        parameters=[fastlivo2_params, extrinsics_params,
+                    {'use_sim_time': sim, 'save_folder': save_folder}],
     )
 
     wait_for_parameter_blackboard = Node(
@@ -119,7 +121,7 @@ def launch_setup(context, *args, **kwargs):
                     package='demo_nodes_cpp',
                     executable='parameter_blackboard',
                     name='parameter_blackboard',
-                    parameters=[blackboard_params, {'use_sim_time': sim}],
+                    parameters=[intrinsics_params, {'use_sim_time': sim}],
                     output='screen'
                 ),
                 wait_for_parameter_blackboard,
@@ -154,13 +156,15 @@ def launch_setup(context, *args, **kwargs):
                     package='tf2_ros',
                     executable='static_transform_publisher',
                     name='odom_to_camera_init_publisher',
-                    arguments=["0.541", "0.002", "0.950", "0", "0", "0", "odom", "camera_init"],
+                    # tf2_echo base_link to camera_init on first published frame
+                    arguments=["0.539", "-0.001", "0.948", "-0.028", "0.062", "0.005", "odom", "camera_init"],
                     output='screen',
                 ),
                 Node(
                     package='tf2_ros',
                     executable='static_transform_publisher',
                     name='aft_mapped_to_base_link_publisher',
+                    # tf2_echo livox_frame to base_link
                     arguments=["0.196", "0.001", "-1.076", "0.003", "-0.698", "0", "aft_mapped", "base_link"],
                     output='screen',
                 ),
@@ -173,8 +177,13 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='blackboard_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir,'params','blackboard.yaml']),
+            name='intrinsics_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','oak_intrinsics.yaml']),
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='extrinsics_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','oak_extrinsics.yaml']),
             description='',
         ),
         DeclareLaunchArgument(
@@ -184,7 +193,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='fastcalib_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fastcalib.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','fastcalib.yaml']),
             description='',
         ),
         DeclareLaunchArgument(
@@ -194,7 +203,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='fastlivo2_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fastlivo2.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','fastlivo2.yaml']),
             description='',
         ),
         DeclareLaunchArgument(
@@ -204,7 +213,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='zip_path',
-            default_value='~/pcd.zip',
+            default_value='~/pcd',
             description='The path to save the zipped FAST-LIVO2 PCD files.',
         ),
         DeclareLaunchArgument(

@@ -9,16 +9,6 @@ fastlivo2:
       ros_driver_bug_fix: false
       livox_custom: false
 
-    extrin_calib:
-      extrinsic_T: [0.011, 0.02329, -0.04412]
-      extrinsic_R: [1.0, 0.0, 0.0, 
-                    0.0, 1.0, 0.0, 
-                    0.0, 0.0, 1.0]
-      Pcl: [-0.018000, -0.063028, -0.082855]
-      Rcl: [-0.000001, -1.000000,  0.000009,
-             0.422619, -0.000009, -0.906307,
-             0.906307,  0.000003,  0.422619]
-
     time_offset: 
       imu_time_offset: 0.0
       img_time_offset: 0.1
