@@ -8,6 +8,7 @@
             <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="0.7"/>
             <SnapInCollisionGoals goals_offset="1.5" input_goals="{goals}" output_goals="{goals}"/>
             <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="GridBased"/>
+            <SmoothPath unsmoothed_path="{path}" smoothed_path="{path}" smoother_id="savitzky_golay_smoother"/>
           </ReactiveSequence>
         </RateController>
         <FollowPath path="{path}" controller_id="FollowPath" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
