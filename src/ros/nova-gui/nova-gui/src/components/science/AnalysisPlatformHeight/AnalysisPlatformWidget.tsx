@@ -13,7 +13,7 @@ export interface AnalysisArmWidgetProps {
  */
 const AnalysisArmWidget: React.FC<AnalysisArmWidgetProps> = () => {
   const [aaPos, tofDist] = useAnalysisArmPosition()
-  const [zeroAA, setAAPos, resetTOF] = useAnalysisArmServices()
+  const [zeroAA, setAAPos, stopAA, resetTOF] = useAnalysisArmServices()
 
   // Target position
   const [target, setTarget] = useState(-100)
@@ -61,7 +61,7 @@ const AnalysisArmWidget: React.FC<AnalysisArmWidgetProps> = () => {
           <div className="flex flex-col">
             <AnalysisArmDiagram percent={percent} target={targetPercent} bottomDistance={tofDist.range} topDistance={aaPos.range}/>
           </div>
-          <AnalysisArmControls currentPos={aaPos.range} TOFReading={tofDist.range} setPosition={setPos} zeroPosition={zeroAA} resetTOF={resetTOF}/>
+          <AnalysisArmControls currentPos={aaPos.range} TOFReading={tofDist.range} setPosition={setPos} zeroPosition={zeroAA} stopAA={stopAA} resetTOF={resetTOF}/>
         </div>
       </CardBody>
     </Card>

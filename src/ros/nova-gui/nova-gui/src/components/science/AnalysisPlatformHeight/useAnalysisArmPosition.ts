@@ -31,9 +31,10 @@ export function useAnalysisArmPosition() {
 /**
  * Bifrost wrapper for calling analysis arm position services.
  */
-export function useAnalysisArmServices(): [() => void, (newPos: number) => void, () => void] {
+export function useAnalysisArmServices(): [() => void, (newPos: number) => void, () => void, () => void] {
   const bifrostZero = useBifrost({service: RosService.ZERO_ANALYSIS_ARM});
   const bifrostSetPos = useBifrost({service: RosService.SET_AA_POSITION});
+  const bifrostStopAA = useBifrost({service: RosService.STOP_AA_MOVEMENT});
   const birfrostTofReset = useBifrost({service: RosService.RESET_TOF});
 
   const zeroAA = () => {
@@ -42,6 +43,10 @@ export function useAnalysisArmServices(): [() => void, (newPos: number) => void,
 
   const setPos = (newPos: number) => {
     bifrostSetPos.callService({position: newPos})
+  }
+
+  const stopAA = () => {
+    bifrostStopAA.callService({})
   }
 
   const resetTOF = () => {
@@ -60,5 +65,5 @@ export function useAnalysisArmServices(): [() => void, (newPos: number) => void,
   //   });
   // }
 
-  return [zeroAA, setPos, resetTOF]
+  return [zeroAA, setPos, stopAA, resetTOF]
 }

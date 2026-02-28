@@ -17,6 +17,10 @@ TOPICS:
 SERVICES:
     - /science/analysis_arm/zero          [science_interfaces/srv/SetPosition]
     - /science/analysis_arm/set_position  [std_srvs/srv/Trigger]
+    - /science/analysis_arm/stop          [std_srvs/srv/Trigger]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+EVENTS:
+  - actuation/zero
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Felicity Matthews
@@ -30,7 +34,7 @@ from rclpy.node import Node
 from typing import Optional
 
 from python_control2 import PythonControl, Controller, Interface, Contexts, InterfaceCollection, Activation
-from python_control2.hardware_interfaces import StepperHardware, GenericSensorHardware
+from python_control2.hardware_interfaces import StepperHardware
 from teleop_python_utils import Inputs, EventCollection
 from sensor_msgs.msg import Range
 from std_srvs.srv import Trigger, Trigger_Request, Trigger_Response
@@ -44,7 +48,7 @@ class AnalysisArmController(Controller):
     actuation_position_state: Interface
     distance_state: Interface
 
-    def __init__(self, contexts: Contexts, hardware_name: str="actuation", actuation_axis: str="actuation", max_position: float=300.0):
+    def __init__(self, contexts: Contexts, hardware_name: str="actuation", actuation_axis: str="analysis_arm_actuation", max_position: float=300.0):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
@@ -55,6 +59,7 @@ class AnalysisArmController(Controller):
         self.active = contexts[Activation]
 
         self.target_position = 0
+        self.moving_to_target = False
 
         # Define parameters
         self.hardware_name = self.declare_parameter("hardware_name", hardware_name).value
@@ -75,6 +80,7 @@ class AnalysisArmController(Controller):
 
         # Setup service servers
         self.zero_service = self.node.create_service(Trigger, "/science/analysis_arm/zero", self.zero_callback)
+        self.stop_service = self.node.create_service(Trigger, "/science/analysis_arm/stop", self.stop_callback)
         self.set_position_service = self.node.create_service(SetPosition, "/science/analysis_arm/set_position", self.set_position_callback)
 
         # Get stepper zero event
@@ -111,15 +117,29 @@ class AnalysisArmController(Controller):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-        # Update actuation if there is an effort value and is active
+        # Update actuation if there is an effort value and is active and is not currently moving to a target pos.
+        self.logger.info(str(self.actuation_effort_cmd.value))
         if self.active and abs(self.actuation_effort_cmd.value) > 0.1:
-            self.actuation_position_cmd.value = None
-            self.actuation_effort_cmd.value = self.actuation_axis.value
+            self.logger.info("am active and have input")
+            if self.moving_to_target:
+                self.logger.warn("Analysis arm is currently moving to target position. Please stop the movement if effort control is desired.")
+            else:
+                self.actuation_position_cmd.value = None
+                self.actuation_effort_cmd.value = self.actuation_axis.value
+                return
 
-        # Otherwise use position control
-        else:
+        # Check if we have reached the target position.
+        if self.target_position == self.actuation_position_state.value:
+            self.moving_to_target = False
+
+        # use position control if moving to target
+        if self.moving_to_target:
             self.actuation_position_cmd.value = self.target_position
             self.actuation_effort_cmd.value = 0
+            return
+
+        # otherwise set to current position
+        self.actuation_position_cmd.value = self.actuation_position_state.value
 
 
     def publish_data(self):
@@ -128,6 +148,7 @@ class AnalysisArmController(Controller):
         msg.max_range = self.max_position
         msg.min_range = self.min_position
         msg.range = self.actuation_position_state.value
+        msg.variance = 1 if self.moving_to_target else 0    # telemetry of whether it is moving or not.
         self.publisher.publish(msg)
 
     def zero_callback(self, _: Trigger_Request, response: Trigger_Response):
@@ -144,6 +165,18 @@ class AnalysisArmController(Controller):
 
         return response
 
+    def stop_callback(self, _: Trigger_Request, response: Trigger_Response):
+        """ Stop Callback function when stop service is called
+
+        Sets current position to target position so that the analysis arm stops
+        moving.
+        """
+        self.target_position = self.actuation_position_state.value
+        self.moving_to_target = False
+        self.logger.info("Stopped Analysis Arm - current position is now target position.")
+        response.success = True
+        return response
+
     def set_position_callback(self, request: SetPosition_Request, response: SetPosition_Response):
         """ Sets the target position when service is called """
         # Check it is within range
@@ -153,6 +186,7 @@ class AnalysisArmController(Controller):
 
         # Update target position
         self.target_position = request.position
+        self.moving_to_target = True
         response.success = True
         self.logger.info(f"Updating target position: {self.target_position}")
 
@@ -188,4 +222,3 @@ if __name__ == "__main__":
         .with_jcan() \
         .with_event_collection() \
         .spin()
-        # .with_hardware("distance", GenericSensorHardware, can_id=0x4E1, unit="position", initial_value=-1) \

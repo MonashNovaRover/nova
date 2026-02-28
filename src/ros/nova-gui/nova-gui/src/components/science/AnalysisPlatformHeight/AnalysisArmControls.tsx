@@ -1,12 +1,13 @@
 import {Button, Input} from "@nextui-org/react";
 import {useState} from "react";
-import {Anchor, ArrowDown, ArrowUp, RefreshCcw} from "react-feather";
+import {Anchor, ArrowDown, ArrowUp, RefreshCcw, Square} from "react-feather";
 
 export interface AnalysisArmControlsProps {
   currentPos: number
   TOFReading: number
-  setPosition: (pos: number) => void
   zeroPosition: () => void
+  setPosition: (pos: number) => void
+  stopAA: () => void
   resetTOF: () => void
 }
 
@@ -14,7 +15,7 @@ export interface AnalysisArmControlsProps {
  * Analysis arm movement controls
  * @constructor
  */
-const AnalysisArmControls: React.FC<AnalysisArmControlsProps> = ({currentPos, TOFReading, setPosition, zeroPosition, resetTOF} : AnalysisArmControlsProps) => {
+const AnalysisArmControls: React.FC<AnalysisArmControlsProps> = ({currentPos, TOFReading, zeroPosition, setPosition, stopAA, resetTOF} : AnalysisArmControlsProps) => {
   const [stepperTargetInput, setStepperTargetInput] = useState("0")
   const [stepperIncrementInput, setStepperIncrementInput] = useState("5")
   const [distanceTargetInput, setDistanceTargetInput] = useState("50")
@@ -22,13 +23,13 @@ const AnalysisArmControls: React.FC<AnalysisArmControlsProps> = ({currentPos, TO
   return (
     <div className="flex flex-col justify-evenly">
 
-      <div className="grid grid-cols-2 gap-3 items-end">
+      <div className="grid grid-cols-3 gap-3 items-end">
         <Button
           color="primary"
           onPressStart={zeroPosition}
           startContent={<Anchor size={16}/>}
         >
-          Zero Analysis Arm
+          Zero Position
         </Button>
         <Button
           color="warning"
@@ -36,6 +37,13 @@ const AnalysisArmControls: React.FC<AnalysisArmControlsProps> = ({currentPos, TO
           onPressStart={resetTOF}
         >
           Reset TOF
+        </Button>
+        <Button
+          color="danger"
+          startContent={<Square size={16}/>}
+          onPressStart={stopAA}
+        >
+          Stop
         </Button>
       </div>
 
@@ -52,7 +60,7 @@ const AnalysisArmControls: React.FC<AnalysisArmControlsProps> = ({currentPos, TO
           value={stepperTargetInput}
           onValueChange={setStepperTargetInput}
         />
-        <Button onPressStart={() => setPosition(parseInt(stepperTargetInput))}>Go to</Button>
+        <Button onPressStart={() => setPosition(parseFloat(stepperTargetInput))}>Go to</Button>
       </div>
 
       <div className="grid grid-cols-2 gap-3 items-end">
@@ -69,8 +77,8 @@ const AnalysisArmControls: React.FC<AnalysisArmControlsProps> = ({currentPos, TO
           onValueChange={setStepperIncrementInput}
         />
         <div className="grid grid-cols-2 gap-3 content-center">
-          <Button onPressStart={() => setPosition(currentPos - parseInt(stepperIncrementInput))}><ArrowUp/></Button>
-          <Button onPressStart={() => setPosition(currentPos + parseInt(stepperIncrementInput))}><ArrowDown/></Button>
+          <Button onPressStart={() => setPosition(currentPos - parseFloat(stepperIncrementInput))}><ArrowUp/></Button>
+          <Button onPressStart={() => setPosition(currentPos + parseFloat(stepperIncrementInput))}><ArrowDown/></Button>
         </div>
       </div>
 
@@ -88,7 +96,7 @@ const AnalysisArmControls: React.FC<AnalysisArmControlsProps> = ({currentPos, TO
           value={distanceTargetInput}
           onValueChange={setDistanceTargetInput}
         />
-        <Button onPressStart={() => setPosition(currentPos + TOFReading - parseInt(distanceTargetInput))}>Go to</Button>
+        <Button onPressStart={() => setPosition(currentPos + TOFReading - parseFloat(distanceTargetInput))}>Go to</Button>
       </div>
     </div>
   );

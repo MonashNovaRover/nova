@@ -7,11 +7,19 @@
 analysis_arm:
   ros__parameters:
     can_bus: "can1"
+    active: true
+    active_button: "activate_analysis_arm"
+    inactive_button_pool: [ "activate_cbeam" ]
+    controllers:
+      controller:
+        max_position: 260.0 # mm  (should be same as hardware)
     hardware:
       actuation:
         can_id: 0x0E4
         max_effort: 1.0
         reversed: false
+        max_position: 260.0 # mm  (should be same as controller)
+        use_max_position: true # change to false to disable position limits
 
 tool_rotator:
   ros__parameters:
@@ -35,14 +43,14 @@ tool_rotator:
 time_of_flight_sensor:
   ros__parameters:
     can_bus: "can1"
-    update_rate: 5
+    update_rate: 3
     controllers:
       controller:
         minimum_range: 10
         maximum_range: 100
     hardware:
       tof_sensor:
-        can_id: 0x01
+        can_id: 0x4E1
         unit: "distance"
 
 
@@ -52,8 +60,8 @@ auger:
   ros__parameters:
     can_bus: "can1"
     active: true
-    active_button: "activate_auger"
-    inactive_button_pool: [ "activate_cbeam" ]
+    active_button: ""
+    inactive_button_pool: []
     hardware:
       actuation:
         can_id: 0x0D1
@@ -78,7 +86,7 @@ cbeam:
     can_bus: "can1"
     active: false
     active_button: "activate_cbeam"
-    inactive_button_pool: [ "activate_auger" ]
+    inactive_button_pool: [ "activate_analysis_arm" ]
     hardware:
       actuation:
         can_id: 0x0C2

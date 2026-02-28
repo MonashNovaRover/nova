@@ -13,6 +13,9 @@ Can be zeroed by invoking the "<joint>/zero" event.
 This will set the current positon as the "zero"
 position.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+EVENTS:
+  - <joint>/zero
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
   - <joint>/effort      [value between -1 and 1]
   - <joint>/position    [distance from zero position]
@@ -212,7 +215,7 @@ class StepperHardware(HardwareInterface):
         steps = math.floor(steps + 0.5)
 
         if steps > 0:
-            self.logger.info(f"moving position steps: {steps}   | current position: {self.current_position}, desired position: {desired_position}")
+            self.logger.debug(f"moving position steps: {steps}   | current position: {self.current_position}, desired position: {desired_position}")
 
         return steps
 

@@ -160,6 +160,10 @@ export interface RosServiceInterface {
     IRosScienceInterfacesSetPositionRequest,
     IRosScienceInterfacesSetPositionResponse
   >;
+  [RosService.STOP_AA_MOVEMENT]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
   [RosService.RESET_TOF]: RosServiceMessage<
     EmptyMessage,
     IRosStdSrvsTriggerResponse
