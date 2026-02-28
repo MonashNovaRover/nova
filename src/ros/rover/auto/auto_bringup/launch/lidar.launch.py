@@ -14,7 +14,8 @@ EDITED BY:  Kabilan Velmurugan Sujatha, Bailey
     Chessum, Victor Bartlinski
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
-import os
+from pathlib import Path
+import shutil
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction, RegisterEventHandler
 from launch.event_handlers import OnProcessExit
@@ -25,28 +26,28 @@ from launch_ros.substitutions import FindPackageShare
 
 # Similar to RTABMap, we want to delete previous maps when running FAST-LIVO2
 # due to their large size and limited disk space on the device being run. 
-def delete_fastlivo2_pcd(context, *args, **kwargs):
-    dir_path = os.path.expanduser('~/.ros')
+def delete_fastlivo2_pcd(context, save_folder='fastlivo2'):
+    dir_path = Path(f'~/.ros/{save_folder}/pcd').expanduser()
+    if dir_path.exists() and dir_path.is_dir():
+        for item in dir_path.iterdir():
+            if item.is_file():
+                item.unlink()
+            else:
+                print(f"Warning: {item} is not a file and was not deleted.")
+    else:
+        print(f"Warning: Directory {dir_path} does not exist.")
 
-    raw_file_path = f"{dir_path}/all_raw_points.pcd"
-    try:
-        if os.path.exists(raw_file_path):
-            os.remove(raw_file_path)
-            print(f'Deleted all_raw_points.pcd at {raw_file_path}.')
-        else:
-            print(f'all_raw_points.pcd not found at {raw_file_path}. You might have to delete the file manually, wherever it is.')
-    except Exception as e:
-        print(f'Failed to delete file {raw_file_path}: {e}')
-
-    downsampled_file_path = f"{dir_path}/all_downsampled_points.pcd"
-    try:
-        if os.path.exists(downsampled_file_path):
-            os.remove(downsampled_file_path)
-            print(f'Deleted all_downsampled_points.pcd at {downsampled_file_path}.')
-        else:
-            print(f'all_downsampled_points.pcd not found at {downsampled_file_path}. You might have to delete the file manually, wherever it is.')
-    except Exception as e:
-        print(f'Failed to delete file {downsampled_file_path}: {e}')
+def zip_fastlivo2_pcd(context, save_folder='fastlivo2', zip_path='~/pcd.zip'):
+    dir_path = Path(f'~/.ros/{save_folder}/pcd').expanduser()
+    zip_path = Path(zip_path).expanduser()
+    if dir_path.exists() and dir_path.is_dir():
+        shutil.make_archive(
+            base_name=zip_path,
+            format='zip',
+            root_dir=dir_path
+        )
+    else:
+        print(f"Warning: Directory {dir_path} does not exist and could not be zipped.")
 
 def launch_setup(context, *args, **kwargs):
     blackboard_params = LaunchConfiguration('blackboard_params')
@@ -54,20 +55,20 @@ def launch_setup(context, *args, **kwargs):
     fastcalib_params = LaunchConfiguration('fastcalib_params')
     fastlivo2 = LaunchConfiguration('fastlivo2')
     fastlivo2_params = LaunchConfiguration('fastlivo2_params')
+    save_folder = LaunchConfiguration('save_folder').perform(context)
+    zip_path = LaunchConfiguration('zip_path').perform(context)
     lidar_config = LaunchConfiguration('lidar_config').perform(context)
     lidar_params = LaunchConfiguration('lidar_params')
     tfs = LaunchConfiguration('tfs')
     sim = LaunchConfiguration('sim')
 
-    fastlivo2_node = GroupAction([
-        Node(
-            package='fast_livo',
-            executable='fastlivo_mapping',
-            name='fastlivo2',
-            output='screen',
-            parameters=[fastlivo2_params, {'use_sim_time': sim}],
-        ),
-    ])
+    fastlivo2_node = Node(
+        package='fast_livo',
+        executable='fastlivo_mapping',
+        name='fastlivo2',
+        output='screen',
+        parameters=[fastlivo2_params, {'use_sim_time': sim, 'save_folder': save_folder}],
+    )
 
     wait_for_parameter_blackboard = Node(
         package='nova_utils',
@@ -110,7 +111,10 @@ def launch_setup(context, *args, **kwargs):
         GroupAction(
             condition=IfCondition(fastlivo2),
             actions=[
-                OpaqueFunction(function=delete_fastlivo2_pcd),
+                OpaqueFunction(
+                    function=delete_fastlivo2_pcd,
+                    kwargs={'save_folder': save_folder}
+                ),
                 Node(
                     package='demo_nodes_cpp',
                     executable='parameter_blackboard',
@@ -123,6 +127,15 @@ def launch_setup(context, *args, **kwargs):
                     event_handler=OnProcessExit(
                         target_action=wait_for_parameter_blackboard,
                         on_exit=fastlivo2_node,
+                    ),
+                ),
+                RegisterEventHandler(
+                    event_handler=OnProcessExit(
+                        target_action=fastlivo2_node,
+                        on_exit=OpaqueFunction(
+                            function=zip_fastlivo2_pcd,
+                            kwargs={'save_folder': save_folder, 'zip_path': zip_path}
+                        ),
                     ),
                 ),
             ],
@@ -183,6 +196,16 @@ def generate_launch_description():
             name='fastlivo2_params',
             default_value=PathJoinSubstitution([auto_bringup_dir,'params','fastlivo2.yaml']),
             description='',
+        ),
+        DeclareLaunchArgument(
+            name='save_folder',
+            default_value='fastlivo2',
+            description='The folder to save FAST-LIVO2 outputs to, relative to ~/.ros.',
+        ),
+        DeclareLaunchArgument(
+            name='zip_path',
+            default_value='~/pcd.zip',
+            description='The path to save the zipped FAST-LIVO2 PCD files.',
         ),
         DeclareLaunchArgument(
             name='lidar_config',
