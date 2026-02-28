@@ -45,6 +45,7 @@
   fast-livo2,
   fast-calib,
   demo-nodes-cpp,
+  pcl,
 }:
 
 buildRosPackage rec {
@@ -103,7 +104,8 @@ buildRosPackage rec {
       usb-cam
       fast-livo2
       fast-calib
-      demo-nodes-cpp;
+      demo-nodes-cpp
+      pcl;
   };
 
   # After installing params and resources folders in nix store's auto_bringup,
