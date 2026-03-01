@@ -18,7 +18,7 @@ local_costmap:
       # sqrt((wheel_base / 2 + wheel_radius)^2 + (steering_track / 2 + wheel_radius)^2)
       robot_radius: 0.85
       track_unknown_space: False
-      always_send_full_costmap: false
+      always_send_full_costmap: True # SnapInCollisionGoals needs this to work
       trinary_costmap: true
       plugins: ["voxel_layer","denoise_layer", "inflation_layer"] # haven't added static map yet'
       #rtabmap_layer:
