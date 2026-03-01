@@ -20,7 +20,7 @@ local_costmap:
       track_unknown_space: False
       always_send_full_costmap: True # SnapInCollisionGoals needs this to work
       trinary_costmap: true
-      plugins: ["voxel_layer","denoise_layer", "inflation_layer"] # haven't added static map yet'
+      plugins: ["voxel_layer","denoise_layer", "inflation_layer"]
       #rtabmap_layer:
       #  plugin: "nav2_costmap_2d::StaticLayer"
       #  map_subscribe_transient_local: True
@@ -53,20 +53,17 @@ local_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 5.0
           obstacle_min_range: 0.0
-      static_map_layer: # To be chucked in once we have a static map
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: True
-        map_topic: /static_map
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"
         enabled: True
         minimal_group_size: 3
         group_connectivity_type: 8
-      # DO NOT modify lightly, see https://docs.nav2.org/configuration/packages/configuring-mppic.html#general-words-of-wisdom
+      # DO NOT modify lightly, see the section on MPPI in controller_server.yaml
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0
-        inflation_radius: 1.28 # robot radius * 2
+        cost_scaling_factor: 4.0
+        # robot radius = 0.64
+        inflation_radius: 1.6 # robot radius * 2.5
 
       # voxel_layer:
       #   plugin: "nav2_costmap_2d::VoxelLayer"
