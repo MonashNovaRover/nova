@@ -18,4 +18,10 @@ in
       pkgs.ffmpeg
     ];
   };
+
+  # Fix directories at a later date
+  # programs = {
+  #   bash.initExtra = "eval \"$(mk-workspace-shell-setup)\"";
+  #   zsh.initExtra = "eval \"$(mk-workspace-shell-setup)\"";
+  # };
 }
