@@ -14,16 +14,8 @@ in
 
   config = lib.mkIf cfg.enable {
     home.packages = [
-      (cfg.package.override {
-        graphical = cfg.gui.enable;
-      })
       pkgs.libreoffice-qt6-fresh
       pkgs.ffmpeg
     ];
-
-    programs = {
-      bash.initExtra = "eval \"$(mk-workspace-shell-setup)\"";
-      zsh.initExtra = "eval \"$(mk-workspace-shell-setup)\"";
-    };
   };
 }
