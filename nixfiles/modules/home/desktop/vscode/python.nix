@@ -32,6 +32,12 @@ in
 
         "python.experiments.enabled" = false;
         "python.languageServer" = "None";
+        
+        "basedpyright.analysis.typeCheckingMode" = "standard";
+        "basedpyright.analysis.extraPaths" = [
+          "~/Builds/master/lib/python3.12/site-packages"
+        ];
+        "basedpyright.disableOrganizeImports" = true; # Use ruff
       };
     };
   };
