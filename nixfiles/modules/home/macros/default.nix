@@ -24,11 +24,22 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    programs.bash.initExtra = lib.mkAfter ''
-      COMPAL_AUTO_UNMASK=1
-      . '${pkgs.complete-alias}/bin/complete_alias'
-      complete -F _complete_alias "''${!BASH_ALIASES[@]}"
-    '';
+    programs.bash = {
+      initExtra = lib.mkAfter ''
+        COMPAL_AUTO_UNMASK=1
+        . '${pkgs.complete-alias}/bin/complete_alias'
+        complete -F _complete_alias "''${!BASH_ALIASES[@]}"
+      '';
+
+      bashrcExtra = lib.mkAfter ''
+        # Source the ROS2 DDS configuration if it exists
+        # (this allows the use of the use_fastdds and use_cyclonedds
+        # aliases to persist across terminal sessions)
+        if [ -f /tmp/ros_dds ]; then
+          . /tmp/ros_dds
+        fi
+      '';
+    };
 
     home = {
       shellAliases = lib.mkMerge [
@@ -75,6 +86,11 @@ in
           # Nano v Vim
           set_vim = "export EDITOR=vim";
           set_nano = "export EDITOR=nano";
+
+          # ROS2 DDS Configuration
+          # Will be sourced in .bashrc to persist across terminal sessions
+          use_fastdds = "echo 'export RMW_IMPLEMENTATION=rmw_fastrtps_cpp' > /tmp/ros_dds; source /tmp/ros_dds";
+          use_cyclonedds = "echo 'export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp' > /tmp/ros_dds; source /tmp/ros_dds";
 
           # ROS Discovery Server
           base_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_client_configuration.xml}";
