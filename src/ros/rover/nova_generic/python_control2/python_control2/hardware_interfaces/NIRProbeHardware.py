@@ -23,7 +23,6 @@ from teleop_python_utils import Inputs, EventCollection
 
 
 class NIRProbeHardware(HardwareInterface):
-    effort_cmd: Interface
     can_id: int
     hardware: str
  

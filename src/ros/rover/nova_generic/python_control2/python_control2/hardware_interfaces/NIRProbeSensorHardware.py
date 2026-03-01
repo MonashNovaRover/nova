@@ -46,11 +46,11 @@ class NIRProbeSensorHardware(HardwareInterface):
 
         # CAN bus
         self.bus: jcan.Bus = contexts[jcan.Bus]
-
+        
+        
         # Setup event to trigger data publishing to gui
         if EventCollection in contexts:
             events = contexts[EventCollection]
-            self.publish_reading_event = events.get(f"{self.hardware_name}/publish_reading")
         else:
             self.logger.error("Could not find EventCollection in the python control contexts, cannot zero StepperHardware.")
 
@@ -74,7 +74,7 @@ class NIRProbeSensorHardware(HardwareInterface):
             self.sensor_states[i].value = values[i]  
 
         self.logger.debug(f"NIRProbeSensorHardware received CAN message: {frame}")
-        self.publish_reading_event.invoke()
+
 
     def on_read(self, now: float, period: float):
         """ Called to read values from hardware, and put them into stored state interfaces.

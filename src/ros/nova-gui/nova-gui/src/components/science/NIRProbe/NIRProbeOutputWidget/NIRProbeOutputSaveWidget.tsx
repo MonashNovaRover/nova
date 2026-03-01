@@ -28,11 +28,21 @@ import {
 } from "../SpaceResourcesSiteType.tsx";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
 import { IRosScienceInterfacesNirProbeData } from "../../../../ros/rosTypes.ts";
+import SpinnerButton from "../../../shared/components/buttons/SpinnerButton.tsx";
 
 export interface NIRProbeOutputSaveWidgetProps extends CardProps {
   showAdvanced : boolean,
   setShowAdvanced : (newShowAdvanced: boolean) => void,
   readingInfo: NIRProbeReadingTypeInfo[], // list of NIRProbeReadingTypeInfo: [off, PD1, PD2]
+}
+
+/**
+ * Constants for NIR Leds
+ * 
+ */
+const LED = {
+  nir1 : 1,
+  nir2 : 2 
 }
 
 /**
@@ -68,7 +78,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   ], [OffIcon, PD1Icon, PD2Icon])
 
   // Take reading buttons
-  const status = useSelector((state: RootState) => state.nirStore.status);
+  // const status = useSelector((state: RootState) => state.nirStore.status);
   const takeReading = () => bifrost.callService({});
 
   // Used for autosaving
@@ -77,26 +87,6 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   useEffect(() => {
     bifrost.syncWithTopic();
   }, [bifrost]);
-
-  // const onSave = useCallback(() => {
-  //   if (!showAdvanced && nirData.led === 0)
-  //     return
-
-  //   const saveType = showAdvanced && type ? type : nirData.led as keyof ISpaceResourcesEntries
-  //   setReadings({
-  //     ...readings,
-  //     [saveType]: [
-  //       {
-  //         data: showAdvanced && data ? data : nirData.data,
-  //         type: saveType,
-  //         label: showAdvanced ? advancedSampleLabel : sampleLabel,
-  //       } as ISpaceResourcesEntry,
-  //       ...readings[saveType],
-  //     ]
-  //   })
-  // }, [readings, setReadings, data, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
-
-
 
   const onSave = useCallback(() => {
   if (!nirData.data || nirData.data.length < 2) return;
@@ -195,20 +185,20 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
       </CardHeader>
       <CardBody className="flex flex-col gap-3">
         <SpinnerButton
-          onPressStart={takeReading({})}
-          isLoading={isLoading}
+          onPressStart={takeReading}
+         
         >
           Request LED Readings
         </SpinnerButton>
         <div className="flex flex-row gap-3 items-center">
           <Chip size="lg"
-                startContent={icons[nirData.led]}
-                color={readingInfo[nirData.led].colour as "default" | "secondary" | "primary"}
+                startContent={icons[LED.nir1]}
+                color={readingInfo[LED.nir1].colour as "default" | "secondary" | "primary"}
                 classNames={{
                   base: "min-w-24",
                 }}
           >
-            {readingInfo[nirData.led].name}
+            {readingInfo[LED.nir1].name}
           </Chip>
           <CopyableOutput className="tracking-wide grow" classNames={{pre: "text-lg pt-1"}}>
             {nirData.data[0]}
@@ -220,13 +210,13 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
         </div>
         <div className="flex flex-row gap-3 items-center">
           <Chip size="lg"
-                startContent={icons[nirData2.led]}
-                color={readingInfo[nirData2.led].colour as "default" | "secondary" | "primary"}
+                startContent={icons[LED.nir2]}
+                color={readingInfo[LED.nir2].colour as "default" | "secondary" | "primary"}
                 classNames={{
                   base: "min-w-24",
                 }}
           >
-            {readingInfo[nirData2.led].name}
+            {readingInfo[LED.nir2].name}
           </Chip>
           <CopyableOutput className="tracking-wide grow" classNames={{pre: "text-lg pt-1"}}>
             {nirData.data[1]}

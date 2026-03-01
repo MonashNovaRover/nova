@@ -64,9 +64,6 @@ class NIRProbeController(Controller):
         if EventCollection in contexts:
             events = contexts[EventCollection]
             self.take_reading_event = events.get(f"{self.hardware_name}/take_reading")
-
-            # listen to <hardware>/publish_reading events to publish reading to GUI
-            events[f"{self.hardware_name}/publish_reading"].add_callback(self.publish_reading)
         else:
             self.logger.error("Could not find EventCollection in the python control contexts, cannot take take NIR reading.")
         
@@ -93,7 +90,12 @@ class NIRProbeController(Controller):
         :param period: The time elapsed since the last update, in seconds.
         """
 
-        self.last_sensor_values = list(map(lambda x: x.value, self.sensor_states))
+        read_values = list(map(lambda x: x.value, self.sensor_states))
+        if read_values != self.last_sensor_values:
+            msg = NIRProbe()
+            msg.data = [x for x in read_values]
+            self.nir_data_publisher.publish(msg)
+        self.last_sensor_values = read_values
 
     def take_reading_callback(self, _: Trigger_Request, response: Trigger_Response):
         """ Callback function when take_nir_probe_reading service is called """
@@ -108,10 +110,10 @@ class NIRProbeController(Controller):
 
         return response 
     
-    def publish_reading(self):
-        msg = NIRProbe()
-        msg.data = [x for x in self.last_sensor_values]
-        self.nir_data_publisher.publish(msg)
+    # def publish_reading(self):
+    #     msg = NIRProbe()
+    #     msg.data = [x for x in self.last_sensor_values]
+    #     self.nir_data_publisher.publish(msg)
 
 
 if __name__ == "__main__":
