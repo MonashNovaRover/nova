@@ -1,0 +1,14 @@
+/**:
+  v4l2_camera:
+    ros__parameters:
+      video_device: "/dev/video0"
+      pixel_format: "YUYV"
+      output_encoding: "rgb8"
+      image_size: [640, 480]
+      io_method: "mmap"
+      brightness: 0
+      contrast: 32
+      saturation: 53
+      white_balance_automatic: true
+      gamma: 106
+      gain: 0
