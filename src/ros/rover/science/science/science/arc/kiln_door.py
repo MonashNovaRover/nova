@@ -29,7 +29,7 @@ class KilnDoorController(Controller):
     # State interfaces
     door_current_state: Interface
 
-    def __init__(self, contexts: Contexts, max_door_current:int):
+    def __init__(self, contexts: Contexts):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
@@ -41,9 +41,6 @@ class KilnDoorController(Controller):
         #ros2 parameters
         self.door_actuation_axis_name = self.declare_parameter("actuation_axis", "door_actuation").value
         self.door_speed_name = self.declare_parameter("speed_axis", "door_speed").value
-
-        #maximum door current 
-        self.max_door_current = self.declare_parameter("max_door_current", max_door_current)
 
         #inputs
         inputs = contexts[Inputs]
@@ -110,7 +107,7 @@ if __name__ == "__main__":
     inputs = Inputs(node).with_topics("/science/input")
 
     PythonControl(node, update_rate=5, can_bus="can1") \
-        .with_controller("controller", KilnDoorController, max_door_current = 0x3000) \
+        .with_controller("controller", KilnDoorController) \
         .with_hardware("kiln_door", QCMDHardware, can_id = 0xD2) \
         .with_hardware("current_sensor",GenericSensorHardware, can_id=0x4FF, unit = "current") \
         .with_teleop(inputs) \

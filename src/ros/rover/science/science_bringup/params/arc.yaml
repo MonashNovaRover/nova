@@ -115,9 +115,6 @@ kiln_door:
   ros__parameters:
     can_bus: "can1"
     update_rate: 5
-    controllers:
-      controller:
-        max_door_current: 0x0200
     hardware:
       kiln_door:
         can_id: 0x0D2
