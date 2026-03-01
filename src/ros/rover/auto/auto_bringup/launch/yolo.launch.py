@@ -143,7 +143,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='yolo_model',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'resources', 'YOLO_ARCh_2025', 'best.pt']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'resources', 'YOLO_URC_2025', 'yolo11s.pt']),
             description='Absolute path to yolo weights file for yolo_ros',
         ),
         DeclareLaunchArgument(

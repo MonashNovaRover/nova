@@ -195,8 +195,11 @@ class ObjectLocaliser(Node):
         if (self.use_markers):
             msg = MarkerArray()
             for i, obj in enumerate(objects):
-                marker = self.get_marker(i, obj[0], obj[1], stamp, self.map_frame)
-                msg.markers.append(marker)
+                cube_marker = self.get_marker(i, obj[0], obj[1], stamp, self.map_frame)
+                text_marker = self.get_text_marker(i + 1000, obj[0], obj[1], stamp, self.map_frame)
+
+                msg.markers.append(cube_marker)
+                msg.markers.append(text_marker)
             
             self.publisher.publish(msg)
         
@@ -420,6 +423,41 @@ class ObjectLocaliser(Node):
         marker.header.stamp = stamp
         marker.header.frame_id = frame
 
+        return marker
+
+    def get_text_marker(self, id:int, label:str, point: Point, stamp: Time, frame:str) -> Marker:
+        '''Returns a text marker showing the label and coordinates'''
+        marker = Marker()
+        marker.header.stamp = stamp
+        marker.header.frame_id = frame
+        marker.ns = self.marker_ns + "_text"
+        marker.id = id
+        
+        # Use the text view facing type so it always looks at the camera in RViz
+        marker.type = Marker.TEXT_VIEW_FACING
+        marker.action = Marker.ADD
+        
+        # Position the text slightly above the bounding box cube
+        marker.pose.position.x, marker.pose.position.y, marker.pose.position.z = point
+        if marker.pose.position.z < 0:
+            marker.pose.position.z = 0
+        marker.pose.position.z += self.marker_size + 0.1 
+        
+        marker.pose.orientation.x, marker.pose.orientation.y, marker.pose.orientation.z, marker.pose.orientation.w = DEFAULT_QUATERNION
+        
+        marker.scale.z = 0.15 
+        
+        # text color
+        marker.color.r = 1.0
+        marker.color.g = 1.0
+        marker.color.b = 1.0
+        marker.color.a = 1.0
+        
+        # Format the text to show the label and the X, Y, Z coordinates rounded to 2 decimals
+        marker.text = f"{label}\n({point[0]:.2f}, {point[1]:.2f}, {point[2]:.2f})"
+        
+        marker.lifetime = Duration(seconds=self.marker_duration).to_msg()
+        
         return marker
 
     def remove_outlier_pos(self, pos_vals: List[T]) -> List[T]:

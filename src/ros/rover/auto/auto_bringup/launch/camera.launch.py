@@ -35,6 +35,8 @@ def launch_setup(context, *args, **kwargs):
     mag = LaunchConfiguration('mag')
     pointcloud = LaunchConfiguration('pointcloud')
     rectify_image = LaunchConfiguration('rectify_image')
+    # use_webcam_val = LaunchConfiguration('use_webcam').perform(context) == 'True'
+    # should_run_oak = not gazebo and not use_webcam_val
 
     return [
         ComposableNodeContainer(
@@ -51,6 +53,13 @@ def launch_setup(context, *args, **kwargs):
                     name=front_name,
                     parameters=[front_params],
                 ),
+                # ComposableNode(
+                #     condition=IfCondition('True' if should_run_oak else 'False'),
+                #     package='depthai_ros_driver',
+                #     plugin='depthai_ros_driver::Camera',
+                #     name=front_name,
+                #     parameters=[front_params],
+                # ),
                 ComposableNode(
                     condition=IfCondition(rectify_image),
                     package='image_proc',
@@ -171,6 +180,17 @@ def launch_setup(context, *args, **kwargs):
             executable='aruco_tracker_autostart',
             arguments=['--ros-args', '--params-file', ar_params],
         ),
+        # Node(
+        #     condition=IfCondition(LaunchConfiguration('use_webcam')),
+        #     package='v4l2_camera',
+        #     executable='v4l2_camera_node',
+        #     name='usb_camera',
+        #     parameters=[LaunchConfiguration('webcam_params')],
+        #     remappings=[
+        #         ('/image_raw', '/image_raw'),
+        #         ('/camera_info', '/oak/rgb/camera_info'),
+        #     ]
+        # ),
     ]
 
 
@@ -248,6 +268,16 @@ def generate_launch_description():
             default_value='True',
             description='',
         ),
+        # DeclareLaunchArgument(
+        #     name='use_webcam',
+        #     default_value='False',
+        #     description='Use USB camera instead of OAK-D'
+        # ),
+        # DeclareLaunchArgument(
+        #     name='webcam_params',
+        #     default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'webcam.yaml']),
+        #     description='Path to USB camera parameters'
+        # ),
     ]
 
     return LaunchDescription(

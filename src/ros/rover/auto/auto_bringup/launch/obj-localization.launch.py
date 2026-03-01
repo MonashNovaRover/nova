@@ -2,8 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
 
-Execute this code to run cube detection on sim
-    Launches obj-localization.launch.py with specified args
+Execute this code to run object localization on sim
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODES:
   - object_localiser
@@ -11,11 +10,8 @@ NODES:
 TOPICS:
   INPUTS:
     - /oak/nn/spatial_detections [vision_msgs/Detection3DArray]
-                                  (Primary input for localisation)
     - /oak/nn/detections         [vision_msgs/Detection2DArray] 
-                                  (Used by debug_node for bounding boxes)
     - /oak/rgb/image_raw         [sensor_msgs/Image]
-                                  (Used by debug_node for visualization)
   OUTPUTS:
     - /yolo/objects              [visualization_msgs/MarkerArray]
     - /yolo/debug_image          [sensor_msgs/Image]

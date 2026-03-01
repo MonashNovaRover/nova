@@ -2,7 +2,7 @@
     "model": {
         "xml": "src/ros/rover/core/resources/YOLO_URC_2025/yolo11s.xml",
         "bin": "src/ros/rover/core/resources/YOLO_URC_2025/yolo11s.bin",
-        "model_name": "src/ros/rover/core/resources/YOLO_URC_2025/yolo11s.1_6shave.blob",
+        "model_name": "src/ros/rover/auto/auto_bringup/resources/YOLO_URC_2025/yolo11s_openvino_2022.1_6shave.blob",
         "zoo": "path"
     },
     "nn_config": {
