@@ -3,8 +3,9 @@
 let
   cfg = config.nova.desktop;
 in
-{
+{ 
   config = lib.mkIf cfg.enable {
+    nixpkgs.system = "x86_64-linux";
     programs.vscode.profiles.default = {
       extensions = with pkgs.vscode-extensions; [
         (ms-python.python.overrideAttrs ({ meta, ... }: {
@@ -14,7 +15,8 @@ in
             platforms = meta.platforms ++ [ "aarch64-linux" ];
           };
         }))
-        ms-python.vscode-pylance
+        charliermarsh.ruff
+        detachhead.basedpyright
       ];
 
       userSettings = {
@@ -29,6 +31,7 @@ in
         ''}/bin/python";
 
         "python.experiments.enabled" = false;
+        "python.languageServer" = "None";
       };
     };
   };
