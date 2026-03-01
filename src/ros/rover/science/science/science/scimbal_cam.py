@@ -104,8 +104,8 @@ class ScimbalCamController(Controller):
             delta_pan: int = request.angles[1]
 
             # Clamping displaced value
-            self.tilt_cmd.value = max(self.min_tilt_angle, min(self.max_tilt_angle, self.tilt_cmd.value + delta_tilt))
-            self.pan_cmd.value = max(self.min_pan_angle, min(self.max_pan_angle, self.pan_cmd.value + delta_pan))
+            self.tilt_cmd.value = float(max(self.min_tilt_angle, min(self.max_tilt_angle, self.tilt_cmd.value + delta_tilt)))
+            self.pan_cmd.value = float(max(self.min_pan_angle, min(self.max_pan_angle, self.pan_cmd.value + delta_pan)))
 
             self.logger.info(f"Scimbal Cam angles updated: TILT: {self.tilt_cmd.value}, PAN: {self.pan_cmd.value}, request: {request.angles}")
             

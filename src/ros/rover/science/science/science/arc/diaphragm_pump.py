@@ -20,7 +20,7 @@ from rclpy.node import Node
 from python_control2 import PythonControl
 from python_control2.controller_manager import Interface, InterfaceCollection, Contexts
 from python_control2.controllers import EffortCommandController
-from python_control2.hardware_interfaces import HardwareInterface
+from python_control2.hardware_interfaces import HardwareInterface, QCMDHardware
 
 class DiaphragmPumpHardware(HardwareInterface):
     effort_cmd: Interface
@@ -121,6 +121,6 @@ if __name__ == "__main__":
             service_name="/science/diaphragm_pump_command",
             topic_name="/science/diaphragm_pump_status"
         ) \
-        .with_hardware("flow", DiaphragmPumpHardware) \
+        .with_hardware("flow", QCMDHardware, can_id=0x032) \
         .with_jcan() \
         .spin()

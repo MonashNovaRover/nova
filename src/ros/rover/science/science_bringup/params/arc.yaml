@@ -123,10 +123,7 @@ kiln:
         heaters: [ "left_heater", "right_heater" ]
     hardware:
       kiln_sensor:
-        can_id: 0x12
-        unit: "temperature"
-      condenser_sensor:
-        can_id: 0x13
+        can_id: 0x4E1
         unit: "temperature"
       left_heater:
         can_id: 0x41
@@ -163,7 +160,7 @@ water_pump:
     hardware:
       cooling:
         can_id: 0x031
-        max_effort: 0.3870967741935484 # (for QCMD)
+        max_effort: 0.1935483870967742
 
 diaphragm_pump:
   ros__parameters:
@@ -175,7 +172,8 @@ diaphragm_pump:
         topic_name: "/science/diaphragm_pump_status"
     hardware:
       cooling:
-        can_id: 0x0E6
+        can_id: 0x032
+        max_effort: 0.1612903225806452
 
 
 # Misc - Nodes for misc components
