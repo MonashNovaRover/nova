@@ -52,6 +52,7 @@ def zip_fastlivo2_pcd(context, save_folder='fastlivo2', zip_path='~/pcd.zip'):
 def launch_setup(context, *args, **kwargs):
     intrinsics_params = LaunchConfiguration('intrinsics_params')
     extrinsics_params = LaunchConfiguration('extrinsics_params')
+    img_topic = LaunchConfiguration('img_topic').perform(context)
     fastcalib = LaunchConfiguration('fastcalib')
     fastcalib_params = LaunchConfiguration('fastcalib_params')
     fastlivo2 = LaunchConfiguration('fastlivo2')
@@ -69,7 +70,9 @@ def launch_setup(context, *args, **kwargs):
         name='fastlivo2',
         output='screen',
         parameters=[fastlivo2_params, extrinsics_params,
-                    {'use_sim_time': sim, 'save_folder': save_folder}],
+                    {'use_sim_time': sim,
+                     'save_folder': save_folder
+                     'img_topic': img_topic}],
     )
 
     wait_for_parameter_blackboard = Node(
@@ -178,12 +181,17 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             name='intrinsics_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','oak_intrinsics.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_intrinsics.yaml']),
             description='',
         ),
         DeclareLaunchArgument(
             name='extrinsics_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','oak_extrinsics.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_extrinsics.yaml']),
+            description='',
+        ),
+        DeclareLaunchArgument(
+            name='img_topic',
+            default_value='/d415/color/image_raw',
             description='',
         ),
         DeclareLaunchArgument(
