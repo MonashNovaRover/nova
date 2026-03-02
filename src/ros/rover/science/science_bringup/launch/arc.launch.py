@@ -151,6 +151,17 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
+        Node(
+            name='nir_probe',
+            package='science',
+            executable='nir_probe.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[science_params],
+        ),
+
+
+
         
         # Misc - Nodes for misc components
         Node(

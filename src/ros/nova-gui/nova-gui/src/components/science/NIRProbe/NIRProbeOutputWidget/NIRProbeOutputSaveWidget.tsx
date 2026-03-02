@@ -21,14 +21,14 @@ import {useSelector} from "react-redux";
 import {RootState} from "../../../../redux/RootState.ts";
 import {Check, MoreHorizontal} from "react-feather";
 import {
-  ISpaceResourcesEntries,
+  // ISpaceResourcesEntries,
   ISpaceResourcesEntry,
   NIRProbeReadingType,
   NIRProbeReadingTypeInfo,
 } from "../SpaceResourcesSiteType.tsx";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
 import { IRosScienceInterfacesNirProbeData } from "../../../../ros/rosTypes.ts";
-import SpinnerButton from "../../../shared/components/buttons/SpinnerButton.tsx";
+// import SpinnerButton from "../../../shared/components/buttons/SpinnerButton.tsx";
 import { RosService } from "../../../../ros/services/rosService.ts";
 
 export interface NIRProbeOutputSaveWidgetProps extends CardProps {

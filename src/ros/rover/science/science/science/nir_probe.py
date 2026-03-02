@@ -24,7 +24,7 @@ import jcan
 from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
-from science_interfaces.msg import NIRProbe
+from science_interfaces.msg import NIRProbeData
 from std_srvs.srv import Trigger, Trigger_Request, Trigger_Response
 from python_control2.hardware_interfaces import TriggerHardware, GenericSensorHardware
 from teleop_python_utils import Inputs, EventCollection
@@ -43,10 +43,10 @@ class NIRProbeController(Controller):
 
     def __init__(self, contexts: Contexts, 
                 hardware_name: str = "NIR_Probe",
-                photodiode_sensors: list[str], 
+                photodiode_sensors: list[str] = [""], 
                 update_rate: int = 5,
-                command_service: str,
-                data_topic: str):
+                command_service: str = "",
+                data_topic: str = ""):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
@@ -88,7 +88,7 @@ class NIRProbeController(Controller):
 
         self.sensor_states = [state_interfaces[f"{x}/data"] for x in self.sensors]
         self.take_reading_command = self.node.create_service(Trigger, self.command_service, self.take_reading_callback)
-        self.nir_data_publisher = self.node.create_publisher(NIRProbe, self.data_topic, 5)
+        self.nir_data_publisher = self.node.create_publisher(NIRProbeData, self.data_topic, 5)
 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
@@ -119,7 +119,7 @@ class NIRProbeController(Controller):
         return response 
     
     def publish_msg(self):
-        msg = NIRProbe()
+        msg = NIRProbeData()
         msg.data = [x for x in self.last_sensor_values]
         msg.reading_taken = self.reading_taken
         msg.status = self.status
@@ -153,7 +153,7 @@ if __name__ == "__main__":
 
     rclpy.init()
 
-    node = Node("control_test")
+    node = Node("nir_probe")
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("NIRProbeController", NIRProbeController,
                         hardware_name = "NIR_Probe",
@@ -161,9 +161,6 @@ if __name__ == "__main__":
                         update_rate = 5,
                         command_service = "/science/take_nir_probe_reading",
                         data_topic = "/science/nir_probe_data") \
-        .with_hardware("NIR_Probe_take_reading", TriggerHardware,
-                        can_id=0x0E89,
-                        can_message=[]) \
         .with_hardware("PD1", GenericSensorHardware,
                         can_id = 0x4E2,
                         interpret_data = lambda x: NIRProbeController.calculate_PD1(x),
@@ -172,6 +169,13 @@ if __name__ == "__main__":
                         can_id = 0x4E2,
                         interpret_data = lambda x: NIRProbeController.calculate_PD2(x),
                         unit = "data") \
+        .with_hardware("NIR_Probe_take_reading", TriggerHardware,
+                        can_id=0x0E9,
+                        can_message=[]) \
         .with_jcan() \
         .with_event_collection() \
         .spin()
+
+
+        
+        
