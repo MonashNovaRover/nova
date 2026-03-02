@@ -183,11 +183,11 @@ scimbal_cam:
     update_rate: 5
     hardware:
       pan:
-        can_id: 0x0E0
+        can_id: 0x0E1
         angular_limit: 360.0
       tilt:
-        can_id: 0x0E1
-        angular_limit: 180.0
+        can_id: 0x0E0
+        angular_limit: 90.0
 
 sweeper:
   ros__parameters:
