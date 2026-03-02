@@ -156,8 +156,8 @@ def launch_setup(context, *args, **kwargs):
                     package='tf2_ros',
                     executable='static_transform_publisher',
                     name='odom_to_camera_init_publisher',
-                    # tf2_echo base_link to camera_init on first published frame
-                    arguments=["0.539", "-0.001", "0.948", "-0.028", "0.062", "0.005", "odom", "camera_init"],
+                    # tf2_echo base_link to livox_frame
+                    arguments=["0.541", "0", "0.950", "0", "0", "0", "odom", "camera_init"],
                     output='screen',
                 ),
                 Node(
@@ -165,7 +165,7 @@ def launch_setup(context, *args, **kwargs):
                     executable='static_transform_publisher',
                     name='aft_mapped_to_base_link_publisher',
                     # tf2_echo livox_frame to base_link
-                    arguments=["0.196", "0.001", "-1.076", "0.003", "-0.698", "0", "aft_mapped", "base_link"],
+                    arguments=["0.196", "0", "-1.076", "0", "-0.698", "0", "aft_mapped", "base_link"],
                     output='screen',
                 ),
             ],
