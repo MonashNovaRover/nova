@@ -1,6 +1,7 @@
 { lib
 , buildEnv
 , mkYarnPackage
+, writers
 , rosbridge-server
 , ros-typescript-definitions
 , ros-core
@@ -27,6 +28,7 @@ let
     nova-camera-msgs
     nova-science-interfaces
   ];
+  serve-gui-script = writers.writePython3 "gui-serve" { doCheck = false; } (builtins.readFile ../../../serve.py);
 in
 mkYarnPackage {
   name = "gui";
@@ -54,6 +56,11 @@ mkYarnPackage {
   buildPhase = ''
     runHook preBuild
 
+    # without this, the built css file is missing 2/3rds of the content
+    # maybe the deps we pull in aren't specifically marked as deps of nova-gui
+    rm deps/nova-gui/node_modules
+    ln -s "$PWD/node_modules" deps/nova-gui/node_modules
+
     yarn --offline build
 
     runHook postBuild
@@ -64,6 +71,12 @@ mkYarnPackage {
 
     mkdir -p "$out/share/nova-gui"
     cp -r deps/nova-gui/dist "$out/share/nova-gui/www"
+
+    mkdir -p "$out/bin/"
+
+    echo "#!/bin/bash
+    ${serve-gui-script} \"$out/share/nova-gui/www\" \$@" > "$out/bin/gui-serve"
+    chmod +x "$out/bin/gui-serve"
 
     runHook postInstall
   '';
