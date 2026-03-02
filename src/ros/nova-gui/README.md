@@ -2,7 +2,10 @@
 
 Nova-GUI is the Primary Means of Communication and Control of the Rover During Operation and contains the end to end implementation of the Graphical User Interface for the Rover. Nova-GUI is designed to be modular in nature, where Layouts are composed using Individul Components which work independent of each other.
 
-To run the GUI please see the [instructions below](#dev-workflow). For development intructions and information please see the [project README](./nova-gui). `nova-gui` documentation can be found [here](./docs).
+To run the GUI please see the [instructions below](#running-the-gui).
+
+For development intructions and information please see the [instructions below](#dev-workflow) and the [project README](./nova-gui). `nova-gui` documentation can be found [here](./docs).
+
 
 ## Tech Stack
 
@@ -51,9 +54,54 @@ Rosbridge server and redux have been combined and abstracted away for simplicity
 │   │  ├─ views               # Collection of Components that form a page
 ```
 
+## Running the GUI
+
+The quickest way is to use the launch scripts:
+
+```sh
+# Launch the gui and rosbridge:
+~/Builds/master/launch/run-gui
+# Or to additionally run the tileserver for cartographer:
+~/Builds/master/launch/run-gui-maps
+```
+
+To run each componenet individually:
+
+1. Open a new terminal. This will serve the gui website at port 5173. 
+
+   ```sh
+   gui-serve
+   # alias for
+   ~/Builds/master/bin/gui-serve 5173 && echo http://localhost:5173
+   ```
+
+2. Start rosbridge
+
+   Open a new terminal. Rosbridge allows the GUI to interact with the ROS2 network.
+
+   ```sh
+   gui-rosbridge
+   # alias for
+   ~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+   ```
+
+3. Offline Maps (OPTIONAL)
+
+   Open a new terminal. This runs the maps server that is needed for the URC GPS Cartographer.
+
+   ```sh
+   tileserver
+   # alias for
+   ~/Builds/master/bin/mbtileserver -p 8080 --missing-image-tile-404 -d ~/tiles
+   ```
+
+   If you are getting errors first ensure that the gui and rosbridge is running.
+
+   Instructions for how to find and generate these tiles can be found [here](https://www.notion.so/Creating-Map-Tiles-for-Cartographer-GUI-page-1dab71396171808893f8d37f5410992b).
+
 ## Dev Workflow
 
-For Developing Nova-GUI, the reccomended method of development is using `nova-shell`, which loads in essential dependencies such as `yarn` and `rosbridge_server` and other ROS Stuff that's essential for getting GUI up and running.
+For Developing Nova-GUI, the reccomended method of development is using `nova-shell`, which loads in essential dependencies such as `yarn` and `rosbridge_server` and other ROS Stuff that's essential for getting GUI up and running. This method means that the gui will reload whenever you edit a file, so you will be able to see and test your changes in real time.
 
 1. Enter the shell environment
 
@@ -103,37 +151,5 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    # If you need to launch GUI accessible by other devices on local network
    gui-run --host
    ```
-
-5. Start rosbridge
-
-   Open a new terminal. Rosbridge allows the GUI to interact with the ROS2 network.
-
-   ```sh
-   gui-rosbridge
-   # alias for
-   ~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml
-   ```
-
-6. Offline Maps (OPTIONAL)
-
-   Open a new terminal. This runs the maps server that is needed for the URC GPS Cartographer.
-
-   ```sh
-   # enter the shell environment
-   gui-shell
-
-   gui-tilelink 
-   # alias for:
-   ln -s ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-styles ~/nova/src/ros/nova-gui/nova-gui/node_modules/tileserver-gl-light/node_modules/tileserver-gl-styles
-
-   # Run tileserver
-   gui-tilerun path/to/file.mbtiles
-   # alias for:
-   yarn --cwd ~/nova/src/ros/nova-gui/nova-gui tileserver-gl-light --file path/to/file.mbtiles
-   ```
-
-   If you are getting errors first ensure that the gui and rosbridge is running.
-
-   Instructions for how to find and generate these tiles can be found [here](https://www.notion.so/Creating-Map-Tiles-for-Cartographer-GUI-page-1dab71396171808893f8d37f5410992b).
 
 \* Steps 2 and 3 only need to be run the first time you run the GUI, or whenever a `yarn` dependancy or ROS2 interface respectively changes.
