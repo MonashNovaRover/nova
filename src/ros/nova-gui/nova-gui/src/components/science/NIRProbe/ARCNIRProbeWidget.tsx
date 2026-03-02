@@ -8,7 +8,7 @@ import SiteTypeSelectWidget from "../SiteSelectWidget/SiteTypeSelectWidget.tsx";
 import NIRProbeCalcTable from "./NIRProbeFileTable/NIRProbeCalcTable.tsx";
 import NIRCalibrationSettingsModal from "./NIRProbeFileTable/NIRCalibrationSettingsModal.tsx";
 import {ARCNIRPRobeReadingTypeInfo} from "./SpaceResourcesSiteType.tsx";
-import NIRProbeOutputSaveWidgetDupe from "./NIRProbeOutputWidget/NIRProbeOutputSaveWidgetDupe.tsx";
+// import NIRProbeOutputSaveWidgetDupe from "./NIRProbeOutputWidget/NIRProbeOutputSaveWidgetDupe.tsx";
 
 interface INIRProbeWidgetProps {
 }
@@ -24,7 +24,7 @@ const ARCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
   return (
     <div className="grid grid-flow-col auto-cols-fr gap-3">
       <div className="flex flex-col gap-3 col-span-3">
-        {/* <NIRProbeLEDWidget readingInfo={ARCNIRPRobeReadingTypeInfo}/> */}
+        <NIRProbeLEDWidget readingInfo={ARCNIRPRobeReadingTypeInfo}/>
          <NIRProbeOutputSaveWidget
           showAdvanced={showAdvanced}
           setShowAdvanced={setShowAdvanced}

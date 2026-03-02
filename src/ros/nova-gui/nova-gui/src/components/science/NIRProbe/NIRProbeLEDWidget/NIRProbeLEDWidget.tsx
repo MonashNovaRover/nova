@@ -6,7 +6,7 @@ import {useSelector} from "react-redux";
 import {RootState} from "../../../../redux/RootState.ts";
 import {RosService} from "../../../../ros/services/rosService.ts";
 import SpinnerButton from "../../../shared/components/buttons/SpinnerButton.tsx";
-import {IRosScienceInterfacesNirProbeDataConst} from "../../../../ros/rosTypes.ts";
+// import {IRosScienceInterfacesNirProbeDataConst} from "../../../../ros/rosTypes.ts";
 import {NIRProbeReadingTypeInfo} from "../SpaceResourcesSiteType.tsx";
 
 interface INIRProbeLEDWidgetProps extends CardProps {
@@ -21,7 +21,7 @@ interface INIRProbeLEDWidgetProps extends CardProps {
  */
 const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({readingInfo, ...cardProps}) => {
   const bifrost = useBifrost({ topic: RosTopic.NIR_DATA, service: RosService.TAKE_NIR_PROBE_READING });
-  const status = useSelector((state: RootState) => state.nirStore.status);
+  // const status = useSelector((state: RootState) => state.nirStore.status);
   const takeReading = (led: number) => bifrost.callService({led: led});
   // const takeReading = (led: number) => bifrost.callService({led: led});
 
@@ -36,17 +36,11 @@ const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({readingInfo, ...c
       </CardHeader>
       <CardBody className="">
         <SpinnerButton
-          onPressStart={() => takeReading(IRosScienceInterfacesNirProbeDataConst.LED_WATER)}
-          isLoading={status === IRosScienceInterfacesNirProbeDataConst.LED_WATER}
+          onPressStart={() => takeReading(1)}
+          
         >
           Request LED Readings
         </SpinnerButton>
-        {/*<SpinnerButton*/}
-        {/*  onClick={() => takeReading(IRosScienceInterfacesNirProbeDataConst.LED_ICE)}*/}
-        {/*  isLoading={status === IRosScienceInterfacesNirProbeDataConst.LED_ICE}*/}
-        {/*>*/}
-        {/*  Take {readingInfo[2].name} LED Reading*/}
-        {/*</SpinnerButton>*/}
       </CardBody>
     </Card>
   );
