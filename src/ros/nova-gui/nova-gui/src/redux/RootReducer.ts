@@ -188,6 +188,7 @@ export const reduxStores = {
     {
       data: [0,0],
       status: 1,
+      reading_taken: false
     }
   ),
   microscopeServoStore: createBifrostStore(

@@ -26,7 +26,7 @@ from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
 from science_interfaces.msg import NIRProbe
 from std_srvs.srv import Trigger, Trigger_Request, Trigger_Response
-from python_control2.hardware_interfaces import CMDHardware
+from python_control2.hardware_interfaces import TriggerHardware, GenericSensorHardware
 from teleop_python_utils import Inputs, EventCollection
 
 
@@ -36,6 +36,10 @@ class NIRProbeController(Controller):
 
     # State interfaces
     # state: Interface
+
+    PHOTODIODES_OFF = 0
+    PHOTODIODES_ON = 1
+
 
     def __init__(self, contexts: Contexts, 
                 hardware_name: str = "NIR_Probe",
@@ -58,12 +62,15 @@ class NIRProbeController(Controller):
 
 
         self.last_sensor_values = [0] * len(photodiode_sensors)
+        self.status = 0
+        self.reading_taken = False
 
+        self.last_read_timer = self.node.create_timer(0.1, self.publish_msg)
 
         self.take_reading_event = None
         if EventCollection in contexts:
             events = contexts[EventCollection]
-            self.take_reading_event = events.get(f"{self.hardware_name}/take_reading")
+            self.take_reading_event = events.get(f"{self.hardware_name}_take_reading/trigger")
         else:
             self.logger.error("Could not find EventCollection in the python control contexts, cannot take take NIR reading.")
         
@@ -92,28 +99,53 @@ class NIRProbeController(Controller):
 
         read_values = list(map(lambda x: x.value, self.sensor_states))
         if read_values != self.last_sensor_values:
-            msg = NIRProbe()
-            msg.data = [x for x in read_values]
-            self.nir_data_publisher.publish(msg)
-        self.last_sensor_values = read_values
+            self.last_sensor_values = read_values
+            self.status = self.PHOTODIODES_OFF
+            self.reading_taken = True
+            self.publish_msg()
 
     def take_reading_callback(self, _: Trigger_Request, response: Trigger_Response):
         """ Callback function when take_nir_probe_reading service is called """
         try:
+
             self.take_reading_event.invoke()
             self.logger.info("Taking NIR reading.")
             response.success = True
-
+            self.status = self.PHOTODIODES_ON
         except Exception as e:
             self.logger.error(f"An error occurred while attempting to take NIR reading: {e}")
             response.success = False
 
         return response 
     
-    # def publish_reading(self):
-    #     msg = NIRProbe()
-    #     msg.data = [x for x in self.last_sensor_values]
-    #     self.nir_data_publisher.publish(msg)
+    def publish_msg(self):
+        msg = NIRProbe()
+        msg.data = [x for x in self.last_sensor_values]
+        msg.reading_taken = self.reading_taken
+        msg.status = self.status
+        self.nir_data_publisher.publish(msg)
+
+    @staticmethod
+    def calculate_PD1(data: bytes) -> int:
+        if len(data) < 8:
+            raise ValueError(f"Expected 8 bytes, got {len(data)}")
+        PD1_LEDon = int.from_bytes(data[2:4], "little")   # bytes 2-3
+        PD1_LEDoff = int.from_bytes(data[6:8], "little")  # bytes 6-7
+        PD1_diff = max(PD1_LEDon - PD1_LEDoff, 0)
+   
+
+
+        return PD1_diff
+
+    @staticmethod
+    def calculate_PD2(data: bytes) -> int:
+        if len(data) < 8:
+            raise ValueError(f"Expected 8 bytes, got {len(data)}")
+        PD2_LEDon = int.from_bytes(data[0:2], "little")   # bytes 0-1
+        PD2_LEDoff = int.from_bytes(data[4:6], "little")  # bytes 4-5
+        PD2_diff = max(PD2_LEDon - PD2_LEDoff, 0)
+
+        return PD2_diff
 
 
 if __name__ == "__main__":
@@ -129,12 +161,17 @@ if __name__ == "__main__":
                         update_rate = 5,
                         command_service = "/science/take_nir_probe_reading",
                         data_topic = "/science/nir_probe_data") \
-        .with_hardware("NIRProbeHardware", NIRProbeHardware,
-                        hardware = "NIRProbeHardware",
-                        can_id = 0x0E9) \
-        .with_hardware("NIRProbeSensorHardware", NIRProbeSensorHardware,
-                        sensors = ["PD1", "PD2"],
-                        can_id = 0x4E2) \
+        .with_hardware("NIR_Probe_take_reading", TriggerHardware,
+                        can_id=0x0E89,
+                        can_message=[]) \
+        .with_hardware("PD1", GenericSensorHardware,
+                        can_id = 0x4E2,
+                        interpret_data = lambda x: NIRProbeController.calculate_PD1(x),
+                        unit = "data") \
+        .with_hardware("PD2", GenericSensorHardware,
+                        can_id = 0x4E2,
+                        interpret_data = lambda x: NIRProbeController.calculate_PD2(x),
+                        unit = "data") \
         .with_jcan() \
         .with_event_collection() \
         .spin()

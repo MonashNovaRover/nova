@@ -6,5 +6,8 @@ int16[] data
 
 
 # Status of the NIR Probe
-# 0 = Off, 1 = Currently taking LED Water reading, 2 = Currently taking LED Ice reading
+# 0 = Off, 1 = Currently taking reading
 byte status
+
+# False = No reading has been taken, True = A reading has been taken
+bool reading_taken

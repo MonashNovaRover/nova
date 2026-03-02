@@ -190,13 +190,13 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
         </SpinnerButton> */}
         <div className="flex flex-row gap-3 items-center">
           <Chip size="lg"
-                startContent={icons[LED.nir1]}
-                color={readingInfo[LED.nir1].colour as "default" | "secondary" | "primary"}
+                startContent={icons[nirData.reading_taken ? LED.nir1 : 0]}
+                color={readingInfo[nirData.reading_taken ? LED.nir1 : 0].colour as "default" | "secondary" | "primary"}
                 classNames={{
                   base: "min-w-24",
                 }}
           >
-            {readingInfo[LED.nir1].name}
+            {readingInfo[nirData.reading_taken ? LED.nir1 : 0].name}
           </Chip>
           <CopyableOutput className="tracking-wide grow" classNames={{pre: "text-lg pt-1"}}>
             {nirData.data[0]}
@@ -208,13 +208,13 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
         </div>
         <div className="flex flex-row gap-3 items-center">
           <Chip size="lg"
-                startContent={icons[LED.nir2]}
-                color={readingInfo[LED.nir2].colour as "default" | "secondary" | "primary"}
+                startContent={icons[nirData.reading_taken ? LED.nir2 : 0]}
+                color={readingInfo[nirData.reading_taken ? LED.nir2 : 0].colour as "default" | "secondary" | "primary"}
                 classNames={{
                   base: "min-w-24",
                 }}
           >
-            {readingInfo[LED.nir2].name}
+            {readingInfo[nirData.reading_taken ? LED.nir2 : 0].name}
           </Chip>
           <CopyableOutput className="tracking-wide grow" classNames={{pre: "text-lg pt-1"}}>
             {nirData.data[1]}
