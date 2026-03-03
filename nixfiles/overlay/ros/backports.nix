@@ -69,25 +69,6 @@ self: super:
           ];
         });
 
-        # nav2_rviz_plugins: Add route_tool
-        nav2-rviz-plugins =
-          rosSuper.nav2-rviz-plugins.overrideAttrs (old: {
-            patchFlags = [ "-p1" ];
-
-            patches = (old.patches or []) ++ [
-              # Backport of nav2_rviz_plugins::RouteTool plugin to Jazzy
-              ./patches/nav2-route-tool.patch
-            ];
-
-            buildInputs = (old.buildInputs or []) ++ [
-              rosSuper.nav2-route
-            ];
-
-            propagatedBuildInputs = (old.propagatedBuildInputs or []) ++ [
-              rosSuper.nav2-route
-            ];
-        });
-
         # nav2-smoother = rosSuper.nav2-smoother.overrideAttrs ({ patches ? [ ], ... }: {
         #   patchFlags = [ "-p2" ];
         #   patches = patches ++ [
@@ -120,15 +101,6 @@ self: super:
               revert = true; 
               hash = "sha256-VJveHIlHiAfOZVkNZ2oWB246xRLpqY7fy7eLLFNQjtQ="; 
             })
-
-            # Backport bidirectional settings #4954 to Jazzy
-            # https://github.com/ros-navigation/navigation2/pull/5260 
-            (self.fetchpatch { 
-              url = "https://github.com/ros-navigation/navigation2/commit/b47bcfa5e633e4c06b7def8a615e16cfdbec397c.diff";
-              revert = true; 
-              excludes = [ "nav2_bringup/params/nav2_params.yaml" ];
-              hash = "sha256-kl6YqprEbUUJXq05C9CxOMZ7CQ6gMoTcLcimAPAvoNI="; 
-            }) 
 
             # mppi parameters_handler: Improve verbose handling (#4704)
             # https://github.com/ros-navigation/navigation2/pull/4711

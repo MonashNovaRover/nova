@@ -23,7 +23,7 @@ self: super:
           librealsense2 = rosSuper.librealsense2.overrideAttrs (
             {
               cmakeFlags ? [],
-              # patches ? [],
+              patches ? [],
               ...
             }:
             {
@@ -31,9 +31,9 @@ self: super:
                 "-DCHECK_FOR_UPDATES=OFF"
               ];
 
-              # patches = patches ++ [
-              #   ./patches/librealsense2.patch
-              # ];
+              patches = patches ++ [
+                ./patches/librealsense2.patch
+              ];
             }
           );
 
@@ -278,12 +278,28 @@ self: super:
               );
           in
           {
-            rtabmap = rosSuper.rtabmap.overrideAttrs (
+            rtabmap = self.rtabmap.overrideAttrs (
               {
+                patches ? [], 
+                propagatedBuildInputs ? [], 
                 ...
             }: 
             {
-              patches = [];
+              inherit (rosSuper.rtabmap) pname;
+              version = "0.21.10-r1";
+              src = self.fetchurl {
+                url = "https://github.com/ros2-gbp/rtabmap-release/archive/release/jazzy/rtabmap/0.21.10-1.tar.gz";
+                name = "0.21.10-1.tar.gz";
+                sha256 = "sha256-qT2xYc1I/J0sWffxH1yOtYJV9h6sc1SybI2t2YoGb+I=";
+              };
+              propagatedBuildInputs = propagatedBuildInputs ++ [ self.qt5.wrapQtAppsHook self.librealsense self.octomap ];
+              patches = patches ++ [
+                # Fix compilation with boost >= 1.87
+                (self.fetchpatch {
+                  url = "https://github.com/introlab/rtabmap/commit/08f031e11c45589fc2b68440383a3e40982dc06f.patch";
+                  hash = "sha256-avU8I19qHFcKBBdIsE4rPJZIHwSy4Wssmwt10cPmk6k=";
+                })
+              ];
             });
 
             rtabmap-ros = rosSuper.rtabmap-ros.overrideAttrs (
@@ -466,6 +482,61 @@ self: super:
 
           jazzy = super.rosPackages.jazzy.overrideScope (
             rosSelf: rosSuper: 
+            let
+              gz-msgs-source = self.fetchgit {
+                url = "https://github.com/gazebosim/gz-msgs.git";
+                rev = "gz-msgs10_10.3.2";
+                name = "gz-msgs10_10.3.2";
+                sha256 = "sha256-lVQ7azT/HesBi3bnk8E5jFYORZh7jAIk6vDK7BcT0Ds=";
+                postFetch = ''
+                  cd $out
+                  patch -p1 < ${self.fetchpatch {
+                    url = "https://github.com/gazebosim/gz-msgs/commit/22c57006798470db63e8ecaff7b49dce34d5e76f.patch";
+                    hash = "sha256-Qkf3JgN8twh6fRLblZj9NmsOxT6jTBgCV1SDJHUk3+w=";
+                  }}
+                '';
+              };
+              gz-msgs-tarball = rosSelf.lib.tarSource {} gz-msgs-source;
+
+              gz-transport-source = self.fetchgit {
+                url = "https://github.com/gazebosim/gz-transport.git";
+                rev = "gz-transport13_13.4.1";
+                name = "gz-transport13_13.4.1";
+                sha256 = "sha256-flyDskV+FD1tMSnVLFEqf1e/tbgVuZjqPpF/M3jVFyU=";
+                postFetch = ''
+                  cd $out
+                  patch -p1 <  ${./patches/gz-transport.patch}
+                '';
+              };
+              gz-transport-tarball = rosSelf.lib.tarSource {} gz-transport-source;
+              
+              gz-gui-source = self.fetchgit {
+                url = "https://github.com/gazebosim/gz-gui.git";
+                rev = "gz-gui8_8.4.0";
+                name = "gz-gui8_8.4.0";
+                sha256 = "sha256-JT3eq0HG9OnSQhmPvXMd78w7xnVliosHNZ0I1TMpfjY=";
+                postFetch = ''
+                  cd $out
+                  patch -p1 < ${self.fetchpatch {
+                    url = "https://patch-diff.githubusercontent.com/raw/gazebosim/gz-gui/pull/677.patch";
+                    hash = "sha256-9nX3/Yyxp5WSE8VvY+TWcfPFNlS8pdbtex0mujqiilw=";
+                  }}
+                '';
+              };
+              gz-gui-tarball = rosSelf.lib.tarSource {} gz-gui-source;
+
+              gz-sim-source = self.fetchgit {
+                url = "https://github.com/gazebosim/gz-sim.git";
+                rev = "gz-sim8_8.9.0";
+                name = "gz-sim8_8.9.0";
+                sha256 = "sha256-ZzInawfKfuIZ/YsE4ogkBBKzAg8T7bMj/dbo8Hy+hKU=";
+                postFetch = ''
+                  cd $out
+                  patch -p1 <  ${./patches/gz-sim.patch}
+                '';
+              };
+              gz-sim-tarball = rosSelf.lib.tarSource {} gz-sim-source;
+            in
             {
               # Gazebo Classic is EOL, and the ROS packages have been removed from the
               # distro. The Iron releases still work, though, so add them back.
@@ -551,93 +622,61 @@ self: super:
                 }
               );
 
-              gz-msgs-vendor = (rosSelf.lib.patchAmentVendorGit rosSuper.gz-msgs-vendor {}).overrideAttrs(finalAttrs:
+              # gz-sensors-vendor = (
+              #   rosSelf.lib.patchAmentVendorGit rosSuper.gz-sensors-vendor {
+              #     url = "https://github.com/gazebosim/gz-sensors";
+              #     rev = "gz-sensors8_8.2.1";
+              #     fetchgitArgs.hash = "sha256-wEUJoHbvvImuFbaKk84maw5AoKhoEhdU0uOYVBtHhI0=";
+              #   }
+              # );
+
+              gz-msgs-vendor = rosSuper.gz-msgs-vendor.overrideAttrs (
                 {
-                  passthru ? {}, ...
+                  postPatch ? "",
+                  ...
                 }:
                 {
-                  passthru = self.lib.recursiveUpdate passthru {
-                    amentVendorSrcs.gz_msgs_vendor =
-                    let
-                      src = passthru.amentVendorSrcs.gz_msgs_vendor;
-                    in
-                      self.applyPatches {
-                        inherit src;
-                        name = src.rev;
-                        patches = [ 
-                          (self.fetchpatch {
-                            url = "https://github.com/gazebosim/gz-msgs/commit/22c57006798470db63e8ecaff7b49dce34d5e76f.patch";
-                            hash = "sha256-Qkf3JgN8twh6fRLblZj9NmsOxT6jTBgCV1SDJHUk3+w=";
-                          })
-                        ];
-                      };
-                  };
+                  postPatch = postPatch + ''
+                    sed -i 's|file:///nix/store/[^"]*gz-msgs10_10\.3\.2\.tar|file://${gz-msgs-tarball}|' CMakeLists.txt
+                  ''; 
                 }
               );
-              
-              gz-transport-vendor = (rosSelf.lib.patchAmentVendorGit rosSuper.gz-transport-vendor {}).overrideAttrs(finalAttrs:
+
+              gz-transport-vendor = rosSuper.gz-transport-vendor.overrideAttrs (
                 {
-                  passthru ? {}, ...
+                  # nativeBuildInputs ? [ ],
+                  postPatch ? "",
+                  ...
                 }:
                 {
-                  passthru = self.lib.recursiveUpdate passthru {
-                    amentVendorSrcs.gz_transport_vendor =
-                    let
-                      src = passthru.amentVendorSrcs.gz_transport_vendor;
-                    in
-                      self.applyPatches {
-                        inherit src;
-                        name = src.rev;
-                        patches = [ 
-                          ./patches/gz-transport.patch
-                        ];
-                      };
-                  };
+                  # nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
+                  postPatch = postPatch + ''
+                    sed -i 's|file:///nix/store/[^"]*gz-transport13_13\.4\.1\.tar|file://${gz-transport-tarball}|' CMakeLists.txt
+                  ''; 
                 }
               );
-              
-              gz-gui-vendor = (rosSelf.lib.patchAmentVendorGit rosSuper.gz-gui-vendor {}).overrideAttrs(finalAttrs:
+
+              gz-gui-vendor = rosSuper.gz-gui-vendor.overrideAttrs (
                 {
-                  passthru ? {}, ...
+                  postPatch ? "",
+                  ...
                 }:
                 {
-                  passthru = self.lib.recursiveUpdate passthru {
-                    amentVendorSrcs.gz_gui_vendor =
-                    let
-                      src = passthru.amentVendorSrcs.gz_gui_vendor;
-                    in
-                      self.applyPatches {
-                        inherit src;
-                        name = src.rev;
-                        patches = [ 
-                          (self.fetchpatch {
-                            url = "https://patch-diff.githubusercontent.com/raw/gazebosim/gz-gui/pull/677.patch";
-                            hash = "sha256-9nX3/Yyxp5WSE8VvY+TWcfPFNlS8pdbtex0mujqiilw=";
-                          })
-                        ];
-                      };
-                  };
+                  postPatch = postPatch + ''
+                    sed -i 's|file:///nix/store/[^"]*gz-gui8_8\.4\.0\.tar|file://${gz-gui-tarball}|' CMakeLists.txt
+                  ''; 
                 }
               );
-              
-              gz-sim-vendor = (rosSelf.lib.patchAmentVendorGit rosSuper.gz-sim-vendor {}).overrideAttrs(finalAttrs:
+
+              gz-sim-vendor = rosSuper.gz-sim-vendor.overrideAttrs (
                 {
-                  passthru ? {}, ...
+                  postPatch ? "",
+                  ...
                 }:
                 {
-                  passthru = self.lib.recursiveUpdate passthru {
-                    amentVendorSrcs.gz_sim_vendor =
-                    let
-                      src = passthru.amentVendorSrcs.gz_sim_vendor;
-                    in
-                      self.applyPatches {
-                        inherit src;
-                        name = src.rev;
-                        patches = [ 
-                          ./patches/gz-sim.patch
-                        ];
-                      };
-                  };
+                  postPatch = postPatch + ''
+                    sed -i 's|file:///nix/store/[^"]*gz-sim8_8\.9\.0\.tar|file://${gz-sim-tarball}|' CMakeLists.txt
+                  ''; 
                 }
               );
               
