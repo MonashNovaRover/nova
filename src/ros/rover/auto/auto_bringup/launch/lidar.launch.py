@@ -71,7 +71,7 @@ def launch_setup(context, *args, **kwargs):
         output='screen',
         parameters=[fastlivo2_params, extrinsics_params,
                     {'use_sim_time': sim,
-                     'save_folder': save_folder
+                     'save_folder': save_folder,
                      'img_topic': img_topic}],
     )
 
@@ -102,8 +102,8 @@ def launch_setup(context, *args, **kwargs):
             output="screen",
             parameters=[{'in_transport': 'compressed', 
                          'out_transport': 'raw'}],
-            remappings=[("in/compressed",  "/oak/rgb/image_raw/compressed"), 
-                        ("out", "/oak/rgb/image_raw")],
+            remappings=[("in/compressed",  "/d415/color/image_raw/compressed"), 
+                        ("out", "/d415/color/image_raw")],
         ),
         Node(
             condition=IfCondition(fastcalib),
