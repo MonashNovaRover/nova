@@ -1,2 +1,0 @@
-string serial
-string node
