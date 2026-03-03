@@ -130,85 +130,6 @@ self: super:
             }
           );
 
-          # # osqp-vendor CMakeLists patched to not try to pull from osqp during build
-          # osqp-vendor =
-          #   (rosSelf.lib.patchExternalProjectGit rosSuper.osqp-vendor {
-          #     url = "https://github.com/osqp/osqp.git";
-          #     originalRev = "";
-          #     rev = "v0.6.2";
-          #     fetchgitArgs.hash = "sha256-RYk3zuZrJXPcF27eMhdoZAio4DZ+I+nFaUEg1g/aLNk=";
-          #   }).overrideAttrs
-          #     (
-          #       {
-          #         preFixup ? "",
-          #         nativeBuildInputs ? "",
-          #         ...
-          #       }:
-          #       {
-          #         nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
-          #         preFixup = preFixup + ''
-          #           mv "$out/lib64/cmake/"* "$out/lib/cmake"
-          #           rmdir "$out/lib64/cmake"
-          #         '';
-          #       }
-          #     );
-
-          # geometric-shapes = rosSuper.geometric-shapes.overrideAttrs (
-          #   {
-          #     patches ? [ ],
-          #     ...
-          #   }:
-          #   {
-          #     patches = patches ++ [
-          #       # https://github.com/moveit/geometric_shapes/pull/241
-          #       (self.fetchpatch {
-          #         url = "https://github.com/moveit/geometric_shapes/commit/78898826b16b7547c69c63ce28b9bddcd167a09e.patch";
-          #         includes = [ "CMakeLists.txt" ];
-          #         revert = true;
-          #         hash = "sha256-elLSrqVnyTyG5P+iPXIx0RccC7TmdPVAZtbhpJcYUO0=";
-          #       })
-          #     ];
-          #   }
-          # );
-
-          # moveit-core = rosSuper.moveit-core.overrideAttrs (
-          #   {
-          #     postPatch ? "",
-          #     ...
-          #   }:
-          #   {
-          #     src = self.fetchzip {
-          #       name = "moveit-core";
-          #       url = "https://github.com/ros2-gbp/moveit2-release/archive/release/jazzy/moveit_core/2.10.0-1.tar.gz";
-          #       sha256 = "sha256-WwWn+S+POgbqVVFiTNS9YCPW4HwH0UtkvCrAYRmEuIE=";
-          #     };
-          #     postPatch =
-          #       postPatch
-          #       + ''
-          #         substituteInPlace CMakeLists.txt --replace 'find_package(octomap 1.9.7...<1.10.0 REQUIRED)' 'find_package(octomap 1.9.7...1.10.0 REQUIRED)'
-          #       '';
-          #   }
-          # );
-
-          # moveit-ros-occupancy-map-monitor = rosSuper.moveit-ros-occupancy-map-monitor.overrideAttrs (
-          #   {
-          #     postPatch ? "",
-          #     ...
-          #   }:
-          #   {
-          #     src = self.fetchzip {
-          #       name = "ros-jazzy-moveit-ros-occupancy-map-monitor";
-          #       url = "https://github.com/ros2-gbp/moveit2-release/archive/release/jazzy/moveit_ros_occupancy_map_monitor/2.10.0-1.tar.gz";
-          #       hash = "sha256-WHbMOwEkQoPOrHQOeH/0GJyEa7g/ez3LJsJTZw6jUUw=";
-          #     };
-          #     postPatch =
-          #       postPatch
-          #       + ''
-          #         substituteInPlace CMakeLists.txt --replace 'find_package(octomap 1.9.7...<1.10.0 REQUIRED)' 'find_package(octomap 1.9.7...1.10.0 REQUIRED)'
-          #       '';
-          #   }
-          # );
-
           nav2-rviz-plugins = rosSuper.nav2-rviz-plugins.overrideAttrs (
             {
               postPatch ? "",
@@ -226,32 +147,6 @@ self: super:
                 '';
             }
           );
-
-          # controller-manager = rosSuper.controller-manager.overrideAttrs (
-          #   {
-          #     prePatch ? "",
-          #     patches ? [ ],
-          #     ...
-          #   }:
-          #   {
-          #     patches = patches ++ [
-          #       (self.fetchpatch {
-          #         url = "https://github.com/ros-controls/ros2_control/commit/23bd1c3c06c30d706f010628d85133a7198e226d.patch";
-          #         hash = "sha256-bM3I5Q4J1DQNJuP2l3mxF7Kh/4DgjjKyRa5FBZS9t9s=";
-          #         stripLen = 2;
-          #         extraPrefix = "";
-          #         excludes = [ "release_notes.rst" ];
-          #       })
-          #     ];
-
-          #     prePatch =
-          #       prePatch
-          #       + ''
-          #         pwd
-          #       '';
-          #   }
-          # );
-
         }
         // (
           let
@@ -451,35 +346,6 @@ self: super:
       (
         super.rosPackages
         // {
-          # foxy = super.rosPackages.foxy.overrideScope (
-          #   rosSelf: rosSuper: {
-          #     # Use ros2doctor from Humble: https://github.com/lopsided98/nix-ros-overlay/issues/75#issuecomment-1567281292
-          #     ros2doctor = rosSelf.callPackage self.rosPackages.humble.ros2doctor.override { };
-          #   }
-          # );
-
-          # humble = super.rosPackages.humble.overrideScope (
-          #   rosSelf: rosSuper: {
-          #     nav2-mppi-controller = rosSuper.nav2-mppi-controller.overrideAttrs (
-          #       {
-          #         patches ? [ ],
-          #         ...
-          #       }:
-          #       {
-          #         patches = patches ++ [
-          #           # Ignore warnings in included xtensor library
-          #           # https://github.com/ros-navigation/navigation2/pull/4285
-          #           (self.fetchpatch {
-          #             url = "https://github.com/ros-navigation/navigation2/commit/c6ccd8e6db1edc138c6cf3650e192cc595d44e7f.patch";
-          #             stripLen = 1;
-          #             hash = "sha256-4g2ESEJz7kuPGT4F0OcAkLbZVJ+84R3NQdpFEZW61Ao=";
-          #           })
-          #         ];
-          #       }
-          #     );
-          #   }
-          # );
-
           jazzy = super.rosPackages.jazzy.overrideScope (
             rosSelf: rosSuper: 
             let
@@ -538,78 +404,6 @@ self: super:
               gz-sim-tarball = rosSelf.lib.tarSource {} gz-sim-source;
             in
             {
-              # Gazebo Classic is EOL, and the ROS packages have been removed from the
-              # distro. The Iron releases still work, though, so add them back.
-              gazebo-dev = rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-dev") { };
-              gazebo-plugins =
-                (rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-plugins") { }).overrideAttrs
-                  (
-                    {
-                      patches ? [ ],
-                      ...
-                    }:
-                    {
-                      patches = patches ++ [
-                        # Fix deprecation warnings
-                        # https://github.com/ros-simulation/gazebo_ros_pkgs/pull/1429
-                        (self.fetchpatch {
-                          url = "https://github.com/ros-simulation/gazebo_ros_pkgs/commit/4505d7ba69ce1cbf59553d3c499b6f2447cbbbb8.patch";
-                          stripLen = 1;
-                          includes = [
-                            "CMakeLists.txt"
-                            "src/**"
-                          ];
-                          hash = "sha256-JnCbQrhrVl5jKYAmemUFk+u0W+ByCG/QJPMGAFAxGkA=";
-                        })
-                      ];
-                    }
-                  );
-              gazebo-ros =
-                (rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-ros") { }).overrideAttrs
-                  (
-                    {
-                      patches ? [ ],
-                      ...
-                    }:
-                    {
-                      patches = patches ++ [
-                        # Fix deprecation warnings
-                        # https://github.com/ros-simulation/gazebo_ros_pkgs/pull/1429
-                        (self.fetchpatch {
-                          url = "https://github.com/ros-simulation/gazebo_ros_pkgs/commit/4505d7ba69ce1cbf59553d3c499b6f2447cbbbb8.patch";
-                          stripLen = 1;
-                          includes = [ "**.py" ];
-                          hash = "sha256-2l6Ft+3F7dskjjOpTeQj202AMnEjQSF+h9j81rxrqzk=";
-                        })
-                      ];
-                    }
-                  );
-              gazebo-ros2-control =
-                (rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-ros2-control") { }).overrideAttrs
-                  rec {
-                    version = "0.7.2";
-                    src = self.fetchFromGitHub {
-                      owner = "ros-controls";
-                      repo = "gazebo_ros2_control";
-                      rev = version;
-                      hash = "sha256-ya+HFf6qOGMVpKOVWlv8+Kp3h/G011MZA+Wnrztq3zg=";
-                    };
-                    sourceRoot = src.name + "/gazebo_ros2_control";
-                  };
-              gazebo-ros-pkgs = rosSelf.callPackage (self.nix-ros-overlay + "/distros/iron/gazebo-ros-pkgs") { };
-
-              # image-proc = rosSuper.image-proc.overrideAttrs (
-              #   {
-              #     patches ? [ ],
-              #     ...
-              #   }:
-              #   {
-              #     patches = patches ++ [
-              #       ./patches/image_proc.patch
-              #     ];
-              #   }
-              # );
-
               joint-limits = rosSuper.joint-limits.overrideAttrs (
                 {
                   patches ? [ ],
@@ -621,14 +415,6 @@ self: super:
                   ];
                 }
               );
-
-              # gz-sensors-vendor = (
-              #   rosSelf.lib.patchAmentVendorGit rosSuper.gz-sensors-vendor {
-              #     url = "https://github.com/gazebosim/gz-sensors";
-              #     rev = "gz-sensors8_8.2.1";
-              #     fetchgitArgs.hash = "sha256-wEUJoHbvvImuFbaKk84maw5AoKhoEhdU0uOYVBtHhI0=";
-              #   }
-              # );
 
               gz-msgs-vendor = rosSuper.gz-msgs-vendor.overrideAttrs (
                 {
@@ -644,12 +430,10 @@ self: super:
 
               gz-transport-vendor = rosSuper.gz-transport-vendor.overrideAttrs (
                 {
-                  # nativeBuildInputs ? [ ],
                   postPatch ? "",
                   ...
                 }:
                 {
-                  # nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
                   postPatch = postPatch + ''
                     sed -i 's|file:///nix/store/[^"]*gz-transport13_13\.4\.1\.tar|file://${gz-transport-tarball}|' CMakeLists.txt
                   ''; 
@@ -679,43 +463,6 @@ self: super:
                   ''; 
                 }
               );
-              
-              # rosapi = rosSuper.rosapi.overrideAttrs (
-              #   {
-              #     patches ? [ ],
-              #     ...
-              #   }:
-              #   {
-              #     patches = patches ++ [
-              #       # Fix invalid import of get_parameter_value in rosapi for ROS2 Jazzy.
-              #       # https://github.com/RobotWebTools/rosbridge_suite/pull/932
-              #       (self.fetchpatch {
-              #         url = "https://github.com/RobotWebTools/rosbridge_suite/commit/d22f102b59e7d9fdeea0ec5e74aa8b98358585d7.patch";
-              #         stripLen = 1;
-              #         hash = "sha256-zmRHt7EgZk8kF2Dv1+QvTmox47RR7TBZOOdKfnIySog=";
-              #       })
-              #     ];
-              #   }
-              # );
-
-              # robot-localization = rosSuper.robot-localization.overrideAttrs (
-              #   {
-              #     patches ? [ ],
-              #     ...
-              #   }:
-              #   {
-              #     patches = patches ++ [
-              #       # Add stamped_control as a parameter to support TwistStamped msgs.
-              #       # https://github.com/cra-ros-pkg/robot_localization/pull/900
-              #       (self.fetchpatch {
-              #         url = "https://patch-diff.githubusercontent.com/raw/cra-ros-pkg/robot_localization/pull/900.patch";
-              #         stripLen = 1;
-              #         extraPrefix = "";
-              #         hash = "sha256-Wh3WOLYYHGL25eFRqpGUbvosle2QW6g7OIhXrZ8EG6A=";
-              #       })
-              #     ];
-              #   }
-              # );
 
               ntrip-client-node = rosSuper.ntrip-client-node.overrideAttrs rec {
                 version = "0.5.5-r3";
@@ -768,6 +515,24 @@ self: super:
                   url = "https://github.com/ros2-gbp/ublox_dgnss-release/archive/release/jazzy/ublox_ubx_msgs/0.5.5-3.tar.gz";
                   name = "0.5.5-3.tar.gz";
                   sha256 = "sha256-agwbwcFQv0MlgSdL8gSez1+8GHIF8d99yOoy1RAVCsE=";
+                };
+              };
+
+              nav2-core = rosSuper.nav2-core.overrideAttrs rec {
+                version = "1.3.11-r1";
+                src = self.fetchurl {
+                  url = "https://github.com/SteveMacenski/navigation2-release/archive/release/jazzy/nav2_core/1.3.11-1.tar.gz";
+                  name = "1.3.11-1.tar.gz";
+                  sha256 = "868d901037a294caaf9aa3df96f2f909e2625cae88a8f8c203145f1df98b1a64";
+                };
+              };
+
+              nav2-msgs = rosSuper.nav2-msgs.overrideAttrs rec {
+                version = "1.3.11-r1";
+                src = self.fetchurl {
+                  url = "https://github.com/SteveMacenski/navigation2-release/archive/release/jazzy/nav2_msgs/1.3.11-1.tar.gz";
+                  name = "1.3.11-1.tar.gz";
+                  sha256 = "0829be46734689ff6e325d5f3701d96e9fe68371261b49c5622221b511f05789";
                 };
               };
             }
