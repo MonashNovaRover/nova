@@ -518,7 +518,8 @@ self: super:
                 };
               };
 
-              nav2-core = rosSuper.nav2-core.overrideAttrs rec {
+              nav2-core = rosSuper.nav2-core.overrideAttrs
+              {
                 version = "1.3.11-r1";
                 src = self.fetchurl {
                   url = "https://github.com/SteveMacenski/navigation2-release/archive/release/jazzy/nav2_core/1.3.11-1.tar.gz";
@@ -527,7 +528,18 @@ self: super:
                 };
               };
 
-              nav2-msgs = rosSuper.nav2-msgs.overrideAttrs rec {
+              nav2-behavior-tree = rosSuper.nav2-behavior-tree.overrideAttrs
+              {
+                version = "1.3.11-r1";
+                src = self.fetchurl {
+                  url = "https://github.com/SteveMacenski/navigation2-release/archive/release/jazzy/nav2_behavior_tree/1.3.11-1.tar.gz";
+                  name = "1.3.11-1.tar.gz";
+                  sha256 = "4103ab7588bcbfbbd7f03a1d35a92630141b37af85d65d6fcb1ae0191a26b9e0";
+                };
+              };
+
+              nav2-msgs = rosSuper.nav2-msgs.overrideAttrs
+              {
                 version = "1.3.11-r1";
                 src = self.fetchurl {
                   url = "https://github.com/SteveMacenski/navigation2-release/archive/release/jazzy/nav2_msgs/1.3.11-1.tar.gz";
@@ -535,6 +547,24 @@ self: super:
                   sha256 = "0829be46734689ff6e325d5f3701d96e9fe68371261b49c5622221b511f05789";
                 };
               };
+
+              nav2-rviz-plugins = rosSuper.nav2-rviz-plugins.overrideAttrs
+              (
+                {
+                  propagatedBuildInputs ? [ ], ...
+                }:
+                {
+                  version = "1.3.11-r1";
+                  src = self.fetchurl {
+                    url = "https://github.com/SteveMacenski/navigation2-release/archive/release/jazzy/nav2_rviz_plugins/1.3.11-1.tar.gz";
+                    name = "1.3.11-1.tar.gz";
+                    sha256 = "aa446a165ce5a23952a1e2637964e07f43df8a54d71f473094d59b509d28b668";
+                  };
+                  propagatedBuildInputs = propagatedBuildInputs ++ ( with rosSuper; [
+                    nav2-route
+                  ]);
+                }
+              );
             }
           );
         }

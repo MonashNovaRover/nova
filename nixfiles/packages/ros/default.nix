@@ -9,7 +9,6 @@
   gst-pipeline-plugins-webrtc = callPackage ./gst-pipeline-plugins-webrtc { };
   livox-ros-driver2 = callPackage ./livox-ros-driver2 { };
   livox-sdk2 = callPackage ./livox-sdk2 { };
-  nav2-route = callPackage ./nav2-route { };
   nova-workspace = callPackage ./nova-workspace { };
   nova-workspace-mast = callPackage ./nova-workspace {
     graphical = false;
