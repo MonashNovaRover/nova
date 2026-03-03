@@ -66,7 +66,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "port",
-                default_value="8080",
+                default_value="8443",
                 description="Specify a port for the gst-webrtc-signalling-server",
             ),
             ExecuteProcess(
