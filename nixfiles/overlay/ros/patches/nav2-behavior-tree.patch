@@ -388,13 +388,18 @@ diff --git a/nav2_behavior_tree/test/CMakeLists.txt b/nav2_behavior_tree/test/CM
 index eff6e78c5db..1d958ae4927 100644
 --- a/nav2_behavior_tree/test/CMakeLists.txt
 +++ b/nav2_behavior_tree/test/CMakeLists.txt
-@@ -1,7 +1,22 @@
+@@ -1,12 +1,27 @@
  ament_add_gtest(test_bt_utils test_bt_utils.cpp)
 -ament_target_dependencies(test_bt_utils ${dependencies})
 +target_link_libraries(test_bt_utils
 +  ${library_name}
 +  ${geometry_msgs_TARGETS}
 +)
+
+ ament_add_gtest(test_json_utils test_json_utils.cpp)
+ target_link_libraries(test_json_utils
+   ${library_name}
+   ${geometry_msgs_TARGETS})
  
 -include_directories(.)
 +function(plugin_add_test target filename plugin)
@@ -417,7 +422,7 @@ diff --git a/nav2_behavior_tree/test/plugins/action/CMakeLists.txt b/nav2_behavi
 index 513a19caec2..1be5a262ba2 100644
 --- a/nav2_behavior_tree/test/plugins/action/CMakeLists.txt
 +++ b/nav2_behavior_tree/test/plugins/action/CMakeLists.txt
-@@ -1,117 +1,64 @@
+@@ -1,137 +1,74 @@
  find_package(test_msgs REQUIRED)
  
  ament_add_gtest(test_bt_action_node test_bt_action_node.cpp)
@@ -543,6 +548,11 @@ index 513a19caec2..1be5a262ba2 100644
 -ament_add_gtest(test_get_pose_from_path_action test_get_pose_from_path_action.cpp)
 -target_link_libraries(test_get_pose_from_path_action nav2_get_pose_from_path_action_bt_node)
 -ament_target_dependencies(test_get_pose_from_path_action ${dependencies})
++plugin_add_test(test_get_current_pose_action test_get_current_pose_action.cpp nav2_get_current_pose_action_bt_node)
+
+-ament_add_gtest(test_get_current_pose_action test_get_current_pose_action.cpp)
+-target_link_libraries(test_get_current_pose_action nav2_get_current_pose_action_bt_node)
+-ament_target_dependencies(test_get_current_pose_action ${dependencies})
 +plugin_add_test(test_planner_selector_node test_planner_selector_node.cpp nav2_planner_selector_bt_node)
  
 -ament_add_gtest(test_planner_selector_node test_planner_selector_node.cpp)
@@ -563,11 +573,31 @@ index 513a19caec2..1be5a262ba2 100644
 -ament_add_gtest(test_goal_checker_selector_node test_goal_checker_selector_node.cpp)
 -target_link_libraries(test_goal_checker_selector_node nav2_goal_checker_selector_bt_node)
 -ament_target_dependencies(test_goal_checker_selector_node ${dependencies})
--
++plugin_add_test(test_progress_checker_selector_node test_progress_checker_selector_node.cpp nav2_progress_checker_selector_bt_node)
+
 -ament_add_gtest(test_progress_checker_selector_node test_progress_checker_selector_node.cpp)
 -target_link_libraries(test_progress_checker_selector_node nav2_progress_checker_selector_bt_node)
 -ament_target_dependencies(test_progress_checker_selector_node ${dependencies})
-+plugin_add_test(test_progress_checker_selector_node test_progress_checker_selector_node.cpp nav2_progress_checker_selector_bt_node)
++plugin_add_test(test_compute_and_track_route test_compute_and_track_route.cpp nav2_compute_and_track_route_bt_node)
+
+-ament_add_gtest(test_compute_and_track_route test_compute_and_track_route_action.cpp)
+-target_link_libraries(test_compute_and_track_route nav2_compute_and_track_route_bt_node)
+-ament_target_dependencies(test_compute_and_track_route ${dependencies})
++plugin_add_test(test_compute_route test_compute_route.cpp nav2_compute_route_bt_node)
+
+-ament_add_gtest(test_compute_route test_compute_route_action.cpp)
+-target_link_libraries(test_compute_route nav2_compute_route_bt_node)
+-ament_target_dependencies(test_compute_route ${dependencies})
++plugin_add_test(test_concatenate_paths_action test_concatenate_paths_action.cpp nav2_concatenate_paths_action_bt_node)
+
+-ament_add_gtest(test_concatenate_paths_action test_concatenate_paths_action.cpp)
+-target_link_libraries(test_concatenate_paths_action nav2_concatenate_paths_action_bt_node)
+-ament_target_dependencies(test_concatenate_paths_action ${dependencies})
+-
+-ament_add_gtest(test_compute_and_track_route_cancel test_compute_and_track_route_cancel_node.cpp)
+-target_link_libraries(test_compute_and_track_route_cancel nav2_compute_and_track_route_cancel_bt_node)
+-ament_target_dependencies(test_compute_and_track_route_cancel ${dependencies})
++plugin_add_test(test_compute_and_track_route_cancel test_compute_and_track_route_cancel.cpp nav2_compute_and_track_route_cancel_bt_node)
 diff --git a/nav2_behavior_tree/test/plugins/action/test_assisted_teleop_action.cpp b/nav2_behavior_tree/test/plugins/action/test_assisted_teleop_action.cpp
 index c5d40f0f4e6..7968545870f 100644
 --- a/nav2_behavior_tree/test/plugins/action/test_assisted_teleop_action.cpp
@@ -912,7 +942,7 @@ diff --git a/nav2_behavior_tree/test/plugins/condition/CMakeLists.txt b/nav2_beh
 index d2ba3c1179d..de380c769af 100644
 --- a/nav2_behavior_tree/test/plugins/condition/CMakeLists.txt
 +++ b/nav2_behavior_tree/test/plugins/condition/CMakeLists.txt
-@@ -1,63 +1,37 @@
+@@ -1,67 +1,39 @@
 -ament_add_gtest(test_condition_distance_traveled test_distance_traveled.cpp)
 -target_link_libraries(test_condition_distance_traveled nav2_distance_traveled_condition_bt_node)
 -ament_target_dependencies(test_condition_distance_traveled ${dependencies})
@@ -978,6 +1008,11 @@ index d2ba3c1179d..de380c769af 100644
 -ament_target_dependencies(test_are_error_codes_present ${dependencies})
 +plugin_add_test(test_are_error_codes_present test_are_error_codes_present.cpp nav2_would_a_controller_recovery_help_condition_bt_node)
  
+-ament_add_gtest(test_are_poses_near test_are_poses_near.cpp)
+-target_link_libraries(test_are_poses_near nav2_are_poses_near_condition_bt_node)
+-ament_target_dependencies(test_are_poses_near ${dependencies})
++plugin_add_test(test_are_poses_near test_are_poses_near.cpp nav2_are_poses_near_condition_bt_node)
+
 -ament_add_gtest(test_would_a_controller_recovery_help test_would_a_controller_recovery_help.cpp)
 -target_link_libraries(test_would_a_controller_recovery_help nav2_would_a_controller_recovery_help_condition_bt_node)
 -ament_target_dependencies(test_would_a_controller_recovery_help ${dependencies})
