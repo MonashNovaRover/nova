@@ -187,7 +187,7 @@ export const reduxStores = {
     { topic: RosTopic.NIR_DATA },
     {
       data: [0,0],
-      status: 1,
+      status: 0,
       reading_taken: false
     }
   ),

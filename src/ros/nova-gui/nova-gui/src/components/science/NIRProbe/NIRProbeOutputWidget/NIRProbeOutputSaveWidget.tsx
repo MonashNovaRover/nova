@@ -30,6 +30,7 @@ import {useNIRSiteData} from "../useNIRSiteData.ts";
 import { IRosScienceInterfacesNirProbeData } from "../../../../ros/rosTypes.ts";
 // import SpinnerButton from "../../../shared/components/buttons/SpinnerButton.tsx";
 import { RosService } from "../../../../ros/services/rosService.ts";
+import { isEqual } from "lodash";
 
 export interface NIRProbeOutputSaveWidgetProps extends CardProps {
   showAdvanced : boolean,
@@ -43,7 +44,8 @@ export interface NIRProbeOutputSaveWidgetProps extends CardProps {
  */
 const LED = {
   nir1 : 1,
-  nir2 : 2 
+  nir2 : 2,
+  off : 0
 }
 
 /**
@@ -68,6 +70,12 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   const [advancedSampleLabel, setAdvancedSampleLabel] = useState<string>("");
 
   const [autosave, setAutosave] = useState<boolean>(true)
+//   const defaultEntries: ISpaceResourcesEntries = {
+//   [NIRProbeReadingType.PD1]: [],
+//   [NIRProbeReadingType.PD2]: [],
+// };
+
+// setReadings(defaultEntries);
 
   const OffIcon = useMemo(() => readingInfo[0].icon, [readingInfo])
   const PD1Icon = useMemo(() => readingInfo[1].icon, [readingInfo])
@@ -143,10 +151,10 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
     if (nirData.data === undefined)
       return;
 
-    if (nirData.data === previousDataRef.current)
+    if (isEqual(nirData.data,previousDataRef.current))
       return;
 
-    previousDataRef.current = nirData.data;
+    previousDataRef.current = [...nirData.data];;
     save(nirData);
   }, [autosave, save, nirData.data, previousDataRef]);
 
