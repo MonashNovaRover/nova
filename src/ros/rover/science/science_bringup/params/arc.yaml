@@ -66,12 +66,10 @@ nir_probe:
     hardware:
       NIR_Probe_take_reading:
         can_id: 0x0E9
-      PD1:
+      NIR_Sensors:
         can_id: 0x4E2
         unit: "data"
-      PD2:
-        can_id: 0x4E2
-        unit: "data"
+        initial_value: [0,0]
 
 
 # CBeam - Nodes for components on the CBeam
