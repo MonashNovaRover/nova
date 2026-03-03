@@ -38,13 +38,19 @@ export const CameraControlPanelModal = (props: {
 
   const cameras2Running = nodes.includes("/camera_streamer");
 
+  const onlineCameras = useSelector(
+    (state: RootState) => state.camerasStore.cameras
+  );
+
+  const onlineCameraSerials = onlineCameras.map((cam) => cam.serial);
+
   useEffect(() => {
     bifrost.syncWithTopic();
   }, [bifrost]);
 
   const startStreaming = () =>
     bifrostStarter.callService(
-      { serials: [] },
+      { serials: onlineCameraSerials },
       {
         responseToast: true,
         successToastMessage: "All Cameras Started Up!",
@@ -54,7 +60,7 @@ export const CameraControlPanelModal = (props: {
 
   const pauseStreaming = () =>
     bifrostStopper.callService(
-      { serials: [] },
+      { serials: onlineCameraSerials },
       {
         responseToast: true,
         successToastMessage: "All Cameras Paused!",

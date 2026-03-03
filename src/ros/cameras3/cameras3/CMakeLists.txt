@@ -67,7 +67,7 @@ install(
 # Install param files
 install(
   DIRECTORY params
-  DESTINATION share/${PROJECT_NAME}/params
+  DESTINATION share/${PROJECT_NAME}
 )
 
 # Install header files
@@ -77,9 +77,9 @@ install(
 )
 
 # Install launch files
-install(DIRECTORY
-  launch
-  DESTINATION share/${PROJECT_NAME}/launch
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
 )
 
 
