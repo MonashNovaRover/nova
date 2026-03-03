@@ -14,7 +14,7 @@ let
       {name = "Rover:Arm Control"; platform=rover; cmd="./ros2 launch arm_bringup control.launch.py local:=True | grep -v not.defined.in";}
       {name = "Rover:Arm Can Sleuth"; platform=rover; cmd="./can_sleuth -o tui taipan";}
       {name = "Base:Arm Teleop"; platform=base; cmd="./ros2 launch teleop_arm teleop.launch.py local:=True log_inputs:=True";}
-      {name = "Base:Rviz"; platform=base; cmd="./rviz2 ../share/arm-bringup/rviz/arm.rviz";}
+      {name = "Base:Rviz"; platform=base; cmd="./rviz2 -d ../share/arm-bringup/rviz/arm.rviz";}
       {name = "Rover:Reolink Ctl"; platform=rover; cmd="./reolink-ctl";}
       # TODO: this needs ffmpeg so it dont work
       {name = "Rover:Reolink"; platform=base; cmd="reolink low";}
