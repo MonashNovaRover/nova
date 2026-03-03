@@ -13,6 +13,14 @@ camera_streamer:
           framerate: 10
 
     cameras:
+      openaicam_openaicam_2505121128:
+        mime: image/jpeg
+        width: 1280 # or 1920
+        framerate: 30
+      webcamvendor_SK_series1_20220325JWGD2093:
+        mime: video/x-h264 # or video/x-h264
+        width: 1920
+        framerate: 30
       # Mast
       mast_backward:
         meta:
