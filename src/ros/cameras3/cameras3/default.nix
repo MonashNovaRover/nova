@@ -47,4 +47,13 @@ buildRosPackage {
     gst-bridge                # ros-gst-bridge/rosimagesrc
   ];
 
+  postInstall = ''
+    mkdir $out/bin
+    if [ -d "${gst_all_1.gst-plugins-rs}/bin" ]; then
+      for file in ${gst_all_1.gst-plugins-rs}/bin/*; do
+        ln -sf "$file" "$out/bin/"
+      done
+    fi
+  '';
+
 }

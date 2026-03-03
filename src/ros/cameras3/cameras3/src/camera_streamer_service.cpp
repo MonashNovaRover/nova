@@ -26,9 +26,6 @@ using namespace std::placeholders;
 
 /*
 Priority List:
-- Update GUI
-  - Add Start, Pause and Stop buttons to camera components
-  - Add stop button to control panel
 - Implement profiles
   - These should be applied after default but before other parameters
 - Pipeline element extra settings
@@ -312,7 +309,7 @@ class CameraStreamer : public rclcpp::Node
     const std::shared_ptr<camera_msgs::srv::GetCameraStreamStats::Request>,
     std::shared_ptr<camera_msgs::srv::GetCameraStreamStats::Response> response)  
   {
-    /* TODO: convert this python into c++
+    /* TODO: convert this python into c++ (its not used for now anyway)
       result = {
         serial: self._camera_bins[serial].webrtc_stats
         for serial in (request.serials if request.serials else self._camera_bins.keys())
@@ -327,7 +324,7 @@ class CameraStreamer : public rclcpp::Node
     const std::shared_ptr<camera_msgs::srv::GetIPList::Request>,
     std::shared_ptr<camera_msgs::srv::GetIPList::Response> response)  
   {
-    /* TODO: Convert this python to c++
+    /* TODO: Convert this python to c++ (its not used for now anyway)
       if_addrs = psutil.net_if_addrs()
       if_stats = psutil.net_if_stats()
       addresses = {

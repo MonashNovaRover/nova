@@ -15,6 +15,7 @@ def generate_launch_description():
     autostart = LaunchConfiguration("autostart")
     profile = LaunchConfiguration("profile")
     task = LaunchConfiguration("task")
+    port = LaunchConfiguration("port")
 
     node_parameters = [
         _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "directory.yaml"])),
@@ -63,8 +64,13 @@ def generate_launch_description():
                 default_value="",
                 description="Select a specific task.",
             ),
+            DeclareLaunchArgument(
+                "port",
+                default_value="8080",
+                description="Specify a port for the gst-webrtc-signalling-server",
+            ),
             ExecuteProcess(
-                cmd=["gst-webrtc-signalling-server"],
+                cmd=["gst-webrtc-signalling-server", "--port", port],
                 additional_env={
                     "WEBRTCSINK_SIGNALLING_SERVER_LOG": "warn",
                 },
@@ -72,12 +78,12 @@ def generate_launch_description():
             ),
             Node(
                 package="cameras3",
-                executable="camera_directory_service",
+                executable="cameras3_directory_service",
                 parameters=node_parameters,
             ),
             Node(
                 package="cameras3",
-                executable="camera_streamer_service",
+                executable="cameras3_streamer_service",
                 parameters=node_parameters,
             ),
         ]
