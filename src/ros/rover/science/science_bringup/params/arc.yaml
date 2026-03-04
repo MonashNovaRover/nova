@@ -118,8 +118,8 @@ kiln_door:
     hardware:
       kiln_door:
         can_id: 0x0D2
-        max_effort: 0.387
-        reversed: false
+        max_effort: 0.16129
+        reversed: true
       current_sensor:
         can_id: 0x4FF
         unit: "current"
