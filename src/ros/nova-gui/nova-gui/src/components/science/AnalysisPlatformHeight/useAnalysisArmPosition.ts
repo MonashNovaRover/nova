@@ -53,17 +53,5 @@ export function useAnalysisArmServices(): [() => void, (newPos: number) => void,
     birfrostTofReset.callService({})
   }
 
-  // const toggleActiveStatus = (value: boolean) => {
-  //   bifrost.callService({state: value}, {
-  //     handleResponse: (response) => {
-  //       const boolResponse = response as IRosScienceInterfacesKilnCommandResponse;
-  //       if (boolResponse?.success) {
-  //         toast.success("Request Successful")
-  //         setStepperActive(value);
-  //       }
-  //     }
-  //   });
-  // }
-
   return [zeroAA, setPos, stopAA, resetTOF]
 }
