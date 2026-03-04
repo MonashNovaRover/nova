@@ -1009,7 +1009,6 @@
       </material>
     </visual>
   </link>
-	<xacro:unless value="$(arg use_mock_hardware)">
     <!-- Joint from left_finger to linear_actuator -->
     <joint name="la_prismatic" type="prismatic">
     <origin xyz="-0.0001 -0.1175 -0.0125" rpy="-1.5708 -1.57652e-14 2.52817e-15"/>
@@ -1026,25 +1025,6 @@
     <axis xyz="0 0 1"/>
     <limit effort="10" velocity="10" lower="-0.0855" upper="0"/>
   </joint>
-  </xacro:unless>
-  <xacro:if value="$(arg use_mock_hardware)">
-    <!-- Joint from left_finger to linear_actuator -->
-    <joint name="la_prismatic" type="fixed">
-      <origin xyz="-0.0001 -0.1175 -0.0125" rpy="-1.5708 -1.57652e-14 2.52817e-15"/>
-      <parent link="left_finger"/>
-      <child link="linear_actuator"/>
-      <axis xyz="0 0 1"/>
-      <limit effort="10" velocity="10" lower="-0.05" upper="8.5652e-17"/>
-    </joint>
-    <!-- Joint from ee_base to left_finger -->
-    <joint name="lead_left" type="fixed">
-      <origin xyz="-0.11253 -0.0301524 -0.1035" rpy="1.5708 -1.43108e-14 -1.309"/>
-      <parent link="ee_base"/>
-      <child link="left_finger"/>
-      <axis xyz="0 0 1"/>
-      <limit effort="10" velocity="10" lower="-0.0855" upper="0"/>
-    </joint>
-  </xacro:if>
   <!-- Joint from diff_support to ee_base -->
   <joint name="j6" type="revolute">
     <origin xyz="0 -0.02099 -0.04071" rpy="-1.5708 1.309 2.14032e-13"/>

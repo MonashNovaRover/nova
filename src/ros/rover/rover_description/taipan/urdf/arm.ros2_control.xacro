@@ -341,14 +341,15 @@
 			</joint>	
 		</ros2_control> -->
 
-		<xacro:unless value="${use_mock_hardware}">
 			<ros2_control name="arm_la_prismatic" type="system">
+        <xacro:unless value="${use_mock_hardware}">
 					<hardware>
 						<plugin>qcmd_hardware/QCMDHardware</plugin>
 						<param name="candevice">can1</param> 
 						<param name="canid">0C1</param> 
 						<param name="max_effort">1</param>
 					</hardware>
+        </xacro:unless>
 				<xacro:if value="${use_mock_hardware}">
 					<hardware>
 						<plugin>mock_components/GenericSystem</plugin>
@@ -366,24 +367,23 @@
 					</state_interface>
 				</joint>
 			</ros2_control>
-		</xacro:unless>
 
-
-	<xacro:unless value="${use_mock_hardware}">
 
 		<ros2_control name="arm_lead_left" type="system">
+	  <xacro:unless value="${use_mock_hardware}">
 			<hardware>
 				<plugin>qcmd_hardware/QCMDHardware</plugin>
 				<param name="candevice">can1</param> 
 				<param name="canid">0D1</param>
 				<param name="max_effort">1</param>
 			</hardware>
-			<xacro:if value="${use_mock_hardware}">
-				<hardware>
-					<plugin>mock_components/GenericSystem</plugin>
-					<param name="calculate_dynamics">true</param>
-				</hardware>
-			</xacro:if>
+    </xacro:unless>
+    <xacro:if value="${use_mock_hardware}">
+      <hardware>
+        <plugin>mock_components/GenericSystem</plugin>
+        <param name="calculate_dynamics">true</param>
+      </hardware>
+    </xacro:if>
 
 			<joint name="lead_left">
 				<command_interface name="velocity">
@@ -395,7 +395,6 @@
 				</state_interface>
 			</joint>
 		</ros2_control>
-	</xacro:unless>
 
 
 	</xacro:macro>

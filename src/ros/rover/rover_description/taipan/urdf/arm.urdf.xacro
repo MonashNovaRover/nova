@@ -21,7 +21,7 @@
   <link name="endeffector_kinematics"/>
   <joint name="endeffector_kinematics_joint" type="fixed">
     <!-- before rotating to match IK function expected 0: 1.5707963 0.0 1.5707963 -->
-    <origin xyz="0.0067503 -0.0012 0.2225" rpy="-1.57079632679 -1.57079632679 0.0" />
+    <origin xyz="0.0067503 -0.0012 -0.2225" rpy="0.0 1.5707963 1.5707963" />
     <parent link="ee_base" />
     <child link="endeffector_kinematics" />
   </joint>
