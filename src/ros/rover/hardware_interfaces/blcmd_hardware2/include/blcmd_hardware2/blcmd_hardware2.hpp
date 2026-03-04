@@ -237,7 +237,9 @@ private:
     std::vector<PositionInterface> hw_positions_;
     std::vector<ControlInterface> hw_efforts_;
 
-    double differential_actual_value1, differential_actual_value2;
+    double differential_position_actual_value1, differential_position_actual_value2;
+    double differential_velocity_actual_value1, differential_velocity_actual_value2;
+    double differential_effort_actual_value1, differential_effort_actual_value2;
 
     ControlMode control_mode_;
 
