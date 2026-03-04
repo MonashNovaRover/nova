@@ -158,7 +158,7 @@ if __name__ == "__main__":
         .with_hardware("right_heater", QCMDHardware, can_id = 0x42) \
         .with_hardware("kiln_sensor", GenericSensorHardware,
                        can_id = 0x4E1,
-                       interpret_data=lambda data: (data[0] | (data[1] << 8)) - 273.15,
+                       interpret_data=lambda data: ((data[0]  << 8) | data[1]) - 273.15,
                        unit = "temperature") \
         .with_jcan() \
         .spin()

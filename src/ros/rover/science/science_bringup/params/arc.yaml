@@ -29,14 +29,14 @@ tool_rotator:
         min_angle: 0.0
         max_angle: 360.0
         initial_angle: 360.0
-        twitch_max: 40.0
+        twitch_max: 5.0
         sweeper_pos: 0.0
         microscope_pos: 120.0
         nir_probe_pos: 240.0
         hardware_name: "rotation"
     hardware:
       rotation:
-        can_id: 0x0F0
+        can_id: 0x0EA
         angular_limit: 360.0
         gear_ratio: 0.8333
 
@@ -171,7 +171,7 @@ diaphragm_pump:
         service_name: "/science/diaphragm_pump_command"
         topic_name: "/science/diaphragm_pump_status"
     hardware:
-      cooling:
+      flow:
         can_id: 0x032
         max_effort: 0.1612903225806452
 
