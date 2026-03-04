@@ -100,7 +100,7 @@ class StepperHardware(HardwareInterface):
         super().__init__(contexts)
 
         self.bus = contexts[jcan.Bus]
-        self.current_position = 0    # position in units
+        self.current_position = 0.0    # position in units
 
         # Default joint name to the hardware interface name
         if len(joint) == 0:
@@ -169,14 +169,14 @@ class StepperHardware(HardwareInterface):
 
     def zero(self):
         """ Zeros the hardware """
-        self.current_position = 0
+        self.current_position = 0.0
 
     def on_read(self, now: float, period: float):
         """ Called to read values from hardware, and put them into stored state interfaces.
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-        self.position_state.value = self.current_position
+        self.position_state.value = round(self.current_position, 2)
 
     def on_write(self, now: float, period: float):
         """ Called to write to hardware using values stored in command interfaces.
@@ -185,7 +185,7 @@ class StepperHardware(HardwareInterface):
         """
         steps_to_move = 0
         # Prioritises position control over effort.
-        if self.position_cmd is not None:
+        if self.position_cmd.value is not None:
             steps_to_move = self.position_to_steps(self.position_cmd.value)
 
         elif self.effort_cmd.value != 0:
@@ -225,21 +225,22 @@ class StepperHardware(HardwareInterface):
         # Effort is directional.
         data = int(effort * self.max_steps_percent * self.max_steps_can)
 
-        # Check if the data is greater than the max value
-        # If it is, set the data to the max value
-        if data > self.max_steps_can:
-            data = self.max_steps_can
-        elif data < -self.max_steps_can:
-            data = -self.max_steps_can
-
         # Limit desired position
-        steps = self.position_to_steps_conversion(
-            self.limits.limit(self.current_position + self.steps_to_position_conversion(data))
-        )
+        projected_pos = self.current_position + self.steps_to_position_conversion(data)
+        limited_pos = self.limits.limit(projected_pos)
+
+        steps = self.position_to_steps_conversion(limited_pos - self.current_position)
         steps = math.floor(steps + 0.5)
 
+        # Check if the data is greater than the max value
+        # If it is, set the data to the max value
+        if steps > self.max_steps_can:
+            steps = self.max_steps_can
+        elif steps < -self.max_steps_can:
+            steps = -self.max_steps_can
+
         if steps > 0:
-            self.logger.info(f"moving effort steps: {steps}")
+            self.logger.debug(f"moving effort steps: {steps}")
 
         return steps
 

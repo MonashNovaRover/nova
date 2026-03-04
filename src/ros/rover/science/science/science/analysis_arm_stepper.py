@@ -118,7 +118,7 @@ class AnalysisArmController(Controller):
         :param period: The time elapsed since the last update, in seconds.
         """
         # Update actuation if there is an effort value and is active and is not currently moving to a target pos.
-        if self.active and abs(self.actuation_effort_cmd.value) > 0.1:
+        if self.active and abs(self.actuation_axis.value) > 0.1:
             if self.moving_to_target:
                 self.logger.warn("Analysis arm is currently moving to target position. Please stop the movement if effort control is desired.")
             else:
