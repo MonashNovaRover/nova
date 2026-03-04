@@ -57,6 +57,7 @@ class Device(abc.ABC):
         height: int = 1
         units: str = ""
         priority: Priority = Priority.INFO # can change at runtime
+        lastUpdated: float = 0
 
         @property
         def value(self):
@@ -67,6 +68,7 @@ class Device(abc.ABC):
         @value.setter
         def value(self, value):
             self._value = value
+            self.lastUpdated = time.time()
 
         @property
         def raw(self):
@@ -94,9 +96,8 @@ class Device(abc.ABC):
 
             self._byteLength = struct.calcsize(self._bytesFmt)
 
-            self.updateBytesValue(bytes(self._byteLength)) # all zeros
+            _, exampleOutput = self.formatBytesValue(bytes(self._byteLength)) # all zeros
 
-            exampleOutput = self._getValue()
             if isinstance(exampleOutput, str):
                 outputHeight = 1
                 outputWidth = len(exampleOutput)
@@ -107,34 +108,36 @@ class Device(abc.ABC):
             self._bytesValue: bytes = None
             self._unpackedValue: int = None
 
-            super().__init__(name, self._getValue, outputWidth, self._getRaw, outputHeight, units)
+            super().__init__(name, "", outputWidth, "", outputHeight, units)
+
+        def formatBytesValue(self, bytesValue: bytes):
+            """update the binary (bytes) representation of this attribute
+            """
+
+            raw = "0x"+bytesValue.hex()
+
+            val = struct.unpack(self._bytesFmt, bytesValue)
+            if len(val) == 1:
+                val = val[0]
+            else:
+                val = val
+                
+
+            if self._toHumanReadable is None:
+                value = raw
+            else: 
+                value = self._toHumanReadable(val)
+            return raw, value
 
         def updateBytesValue(self, bytesValue: bytes):
             """update the binary (bytes) representation of this attribute
             """
             self._bytesValue = bytesValue
-            val = struct.unpack(self._bytesFmt, self._bytesValue)
-            if len(val) == 1:
-                self._unpackedValue = val[0]
-            else:
-                self._unpackedValue = val
-                
+            self.raw, self.value = self.formatBytesValue(bytesValue)
 
         def getByteLength(self):
             # Check how many bytes this attribute uses.
             return self._byteLength
-
-        def _getRaw(self):
-            if self._bytesValue is None:
-                return ""
-            return "0x"+self._bytesValue.hex()
-
-        def _getValue(self):
-            if self._unpackedValue is None:
-                return ""
-            if self._toHumanReadable is None:
-                return self._getRaw()
-            return self._toHumanReadable(self._unpackedValue)
 
     def getName(self):
         return self.name
