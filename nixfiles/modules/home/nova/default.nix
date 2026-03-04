@@ -111,6 +111,7 @@ in
       packages = with pkgs; builtins.filter (lib.meta.availableOn stdenv.hostPlatform) ([
         # Shell utilities
         pciutils
+        pcl
         usbutils
         gpsd
         v4l-utils
