@@ -24,6 +24,7 @@
 , livox-ros-driver2
 , can-utils
 , mbtileserver
+, ros2plugin
 
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
@@ -165,6 +166,7 @@
       livox-ros-driver2
       can-utils
       mbtileserver
+      ros2plugin
       ;
 }
 }:

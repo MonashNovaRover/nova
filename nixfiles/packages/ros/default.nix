@@ -20,6 +20,7 @@
   };
   rclnodejs = callPackage ./rclnodejs { };
   ros-typescript-definitions = callPackage ./ros-typescript-definitions { };
+  ros2plugin = callPackage ./ros2plugin { };
   spatio-temporal-voxel-layer = callPackage ./spatio-temporal-voxel-layer { };
   yolo-ros = callPackage ./yolo-ros { };
   yolo-msgs = callPackage ./yolo-msgs { };

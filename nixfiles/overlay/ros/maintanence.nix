@@ -548,6 +548,14 @@ self: super:
                 };
               };
 
+              # nav2-route = rosSuper.nav2-route.overrideAttrs
+              # {
+              #   src = builtins.path {
+              #     name = "nav2-route-source";
+              #     path = ../../../../other/navigation2/nav2_route;
+              #   };
+              # };
+
               nav2-rviz-plugins = rosSuper.nav2-rviz-plugins.overrideAttrs
               (
                 {
@@ -560,6 +568,10 @@ self: super:
                     name = "1.3.11-1.tar.gz";
                     sha256 = "aa446a165ce5a23952a1e2637964e07f43df8a54d71f473094d59b509d28b668";
                   };
+                  # src = builtins.path {
+                  #   name = "nav2-rviz-plugins-source";
+                  #   path = ../../../../other/navigation2/nav2_rviz_plugins;
+                  # };
                   propagatedBuildInputs = propagatedBuildInputs ++ ( with rosSuper; [
                     nav2-route
                   ]);
