@@ -13,6 +13,7 @@
 , v4l-utils
 , gst-bridge
 , wrapGAppsNoGuiHook
+, gobject-introspection
 }:
 
 buildRosPackage {
@@ -24,7 +25,7 @@ buildRosPackage {
     path = ./.;
   };
 
-  nativeBuildInputs = [ ament-cmake pkg-config gst_all_1.gstreamer wrapGAppsNoGuiHook ];
+  nativeBuildInputs = [ ament-cmake pkg-config gst_all_1.gstreamer wrapGAppsNoGuiHook gobject-introspection];
 
   buildInputs = [
     rclcpp
@@ -48,8 +49,6 @@ buildRosPackage {
     gst-bridge                # ros-gst-bridge/rosimagesrc
   ];
 
-  dontWrapGapps = true;
-
   postInstall = ''
     mkdir $out/bin
     if [ -d "${gst_all_1.gstreamer }/bin" ]; then
@@ -58,28 +57,14 @@ buildRosPackage {
       done
     fi
     if [ -d "${gst_all_1.gst-plugins-rs}/bin" ]; then
-      for file in ${gst_all_1.gst-plugins-rs}/bin/*; do
-        ln -sf "$file" "$out/bin/"
-      done
+      ln -sf "${gst_all_1.gst-plugins-rs}/bin/gst-webrtc-signalling-server" "$out/bin/gst-webrtc-signalling-server"
     fi
     if [ -d "${v4l-utils}/bin" ]; then
-      for file in ${v4l-utils}/bin/*; do
-        ln -sf "$file" "$out/bin/"
-      done
+      ln -sf "${v4l-utils}/bin/v4l2-ctl" "$out/bin/v4l2-ctl"
     fi
+    '';
 
-    wrapGApp "$out/lib/cameras3/cameras3_streamer_service"\
-      --prefix GST_PLUGIN_SYSTEM_PATH_1_0 : "${gst_all_1.gst-plugins-base}/lib/gstreamer-1.0\
-        :${gst_all_1.gst-plugins-good}/lib/gstreamer-1.0\
-        :${gst_all_1.gst-plugins-bad}/lib/gstreamer-1.0\
-        :${gst_all_1.gst-plugins-ugly}/lib/gstreamer-1.0\
-        :${gst_all_1.gst-libav}/lib/gstreamer-1.0\
-        :${gst_all_1.gst-vaapi}/lib/gstreamer-1.0\
-        :${gst_all_1.gst-plugins-rs}/lib/gstreamer-1.0\
-        :${gst-bridge}/lib/gstreamer-1.0"
-    if [ -f "$out/lib/cameras3/.cameras3_streamer_service-wrapped" ]; then
-      mv "$out/lib/cameras3/.cameras3_streamer_service-wrapped" "$out/lib/cameras3/cameras3_streamer_service"
-    fi
+  preFixup = ''
+      wrapGApp "$out/lib/cameras3/cameras3_streamer_service"
   '';
-
 }
