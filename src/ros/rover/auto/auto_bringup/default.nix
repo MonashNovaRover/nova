@@ -104,8 +104,7 @@ buildRosPackage rec {
       usb-cam
       fast-livo2
       fast-calib
-      demo-nodes-cpp
-      pcl;
+      demo-nodes-cpp;
   };
 
   # After installing params and resources folders in nix store's auto_bringup,
@@ -115,6 +114,10 @@ buildRosPackage rec {
     pkgs.jq
     pkgs.yq
   ];
+  postPatch = ''
+    sed -i launch/lidar.launch.py \
+      -e 's@pcl_concatenate_points_pcd@${pcl}/bin/pcl_concatenate_points_pcd@g'
+  '';
   postInstall = ''
     # Generate absolute nix store filepaths for JSON files
     jsonFilepath="$out/share/auto_bringup/resources/YOLO_URC_2025/yolo11s.json"

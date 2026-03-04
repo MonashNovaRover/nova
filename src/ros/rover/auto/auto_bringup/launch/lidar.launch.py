@@ -16,38 +16,52 @@ EDITED BY:  Kabilan Velmurugan Sujatha, Bailey
 '''
 from pathlib import Path
 import shutil
+import subprocess
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction, RegisterEventHandler
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import IfCondition, UnlessCondition
+from launch.logging import get_logger
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from logging import Logger
+
+class Colour:
+    RED = '\033[1;31m'
+    GREEN = '\033[1;32m'
+    YELLOW = '\033[0;33m'
+    END = '\033[0m'
 
 # Similar to RTABMap, we want to delete previous maps when running FAST-LIVO2
-# due to their large size and limited disk space on the device being run. 
-def delete_fastlivo2_pcd(context, save_folder='fastlivo2'):
-    dir_path = Path(f'~/.ros/{save_folder}/pcd').expanduser()
+# for minimised disk space and convenient use. 
+def on_launch(context, output_dir, logger):
+    # Delete existing .pcd's in FAST-LIVO2 save directory.
+    dir_path = Path(f'~/.ros/{output_dir}/pcd').expanduser()
     if dir_path.exists() and dir_path.is_dir():
         for item in dir_path.iterdir():
             if item.is_file():
                 item.unlink()
             else:
-                print(f"Warning: {item} is not a file and was not deleted.")
+                logger.warning(f"{Colour.YELLOW}{item} is not a file and was not deleted.{Colour.END}")
+        logger.info(f"{Colour.GREEN}Directory {dir_path}/ cleared.{Colour.END}")
     else:
-        print(f"Warning: Directory {dir_path} does not exist.")
+        logger.error(f"{Colour.RED}Directory {dir_path} does not exist.{Colour.END}")
 
-def zip_fastlivo2_pcd(context, save_folder='fastlivo2', zip_path='~/pcd.zip'):
-    dir_path = Path(f'~/.ros/{save_folder}/pcd').expanduser()
-    zip_path = Path(zip_path).expanduser()
+def on_exit(context, output_dir, save_dir, logger):
+    # Concatenate .pcd's in FAST-LIVO2 save directory into single .pcd.
+    dir_path = Path(f'~/.ros/{output_dir}/pcd').expanduser()
+    save_dir = Path(save_dir).expanduser()
     if dir_path.exists() and dir_path.is_dir():
-        shutil.make_archive(
-            base_name=zip_path,
-            format='zip',
-            root_dir=dir_path
-        )
+        subprocess.run([
+            "/bin/sh", 
+            "-c", 
+            f"cd {save_dir} && /nix/store/ql7zsxy9wa4lkrnw6mzvndbnnqn8pbg5-pcl-1.15.0/bin/pcl_concatenate_points_pcd {dir_path}/*"
+        ])
+        logger.info(f"{Colour.GREEN}Map saved to {save_dir}/output.pcd.{Colour.END}")
     else:
-        print(f"Warning: Directory {dir_path} does not exist and could not be zipped.")
+        logger.error(f"{Colour.RED}Directory {dir_path} does not exist and could not be concatenated.{Colour.END}")
 
 def launch_setup(context, *args, **kwargs):
     intrinsics_params = LaunchConfiguration('intrinsics_params')
@@ -57,12 +71,14 @@ def launch_setup(context, *args, **kwargs):
     fastcalib_params = LaunchConfiguration('fastcalib_params')
     fastlivo2 = LaunchConfiguration('fastlivo2')
     fastlivo2_params = LaunchConfiguration('fastlivo2_params')
-    save_folder = LaunchConfiguration('save_folder').perform(context)
-    zip_path = LaunchConfiguration('zip_path').perform(context)
+    output_dir = LaunchConfiguration('output_dir').perform(context)
+    save_dir = LaunchConfiguration('save_dir').perform(context)
     lidar_config = LaunchConfiguration('lidar_config').perform(context)
     lidar_params = LaunchConfiguration('lidar_params')
     tfs = LaunchConfiguration('tfs')
     sim = LaunchConfiguration('sim')
+
+    logger = get_logger("lidar_launch")
 
     fastlivo2_node = Node(
         package='fast_livo',
@@ -71,7 +87,7 @@ def launch_setup(context, *args, **kwargs):
         output='screen',
         parameters=[fastlivo2_params, extrinsics_params,
                     {'use_sim_time': sim,
-                     'save_folder': save_folder,
+                     'save_folder': output_dir,
                      'img_topic': img_topic}],
     )
 
@@ -117,8 +133,9 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(fastlivo2),
             actions=[
                 OpaqueFunction(
-                    function=delete_fastlivo2_pcd,
-                    kwargs={'save_folder': save_folder}
+                    function=on_launch,
+                    kwargs={'output_dir': output_dir,
+                            'logger': logger}
                 ),
                 Node(
                     package='demo_nodes_cpp',
@@ -138,8 +155,10 @@ def launch_setup(context, *args, **kwargs):
                     event_handler=OnProcessExit(
                         target_action=fastlivo2_node,
                         on_exit=OpaqueFunction(
-                            function=zip_fastlivo2_pcd,
-                            kwargs={'save_folder': save_folder, 'zip_path': zip_path}
+                            function=on_exit,
+                            kwargs={'output_dir': output_dir, 
+                                    'save_dir': save_dir,
+                                    'logger': logger}
                         ),
                     ),
                 ),
@@ -180,18 +199,8 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='intrinsics_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_intrinsics.yaml']),
-            description='',
-        ),
-        DeclareLaunchArgument(
             name='extrinsics_params',
             default_value=PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_extrinsics.yaml']),
-            description='',
-        ),
-        DeclareLaunchArgument(
-            name='img_topic',
-            default_value='/d415/color/image_raw',
             description='',
         ),
         DeclareLaunchArgument(
@@ -215,14 +224,14 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='save_folder',
-            default_value='fastlivo2',
-            description='The folder to save FAST-LIVO2 outputs to, relative to ~/.ros.',
+            name='img_topic',
+            default_value='/d415/color/image_raw',
+            description='',
         ),
         DeclareLaunchArgument(
-            name='zip_path',
-            default_value='~/pcd',
-            description='The path to save the zipped FAST-LIVO2 PCD files.',
+            name='intrinsics_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_intrinsics.yaml']),
+            description='',
         ),
         DeclareLaunchArgument(
             name='lidar_config',
@@ -235,14 +244,24 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='tfs',
-            default_value='True',
-            description='Publish Nav2-required transforms? (map -> odom -> base_link)',
+            name='output_dir',
+            default_value='fastlivo2',
+            description='The folder to save FAST-LIVO2 outputs to, relative to ~/.ros.',
+        ),
+        DeclareLaunchArgument(
+            name='save_dir',
+            default_value='~',
+            description='The path to save the zipped FAST-LIVO2 PCD files.',
         ),
         DeclareLaunchArgument(
             name='sim',
             default_value='False',
             description='Use /clock instead of system clock?',
+        ),
+        DeclareLaunchArgument(
+            name='tfs',
+            default_value='True',
+            description='Publish Nav2-required transforms? (map -> odom -> base_link)',
         ),
     ]
 
