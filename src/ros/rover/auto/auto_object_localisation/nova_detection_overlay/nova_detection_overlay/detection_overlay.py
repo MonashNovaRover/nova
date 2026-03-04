@@ -14,25 +14,21 @@ class Detection2DOverlay(Node):
     def __init__(self):
         super().__init__('detection_overlay')
 
+        image_topic = self.declare_parameter('image_topic', '/camera/color/image_raw').value
+        det_2d_topic = self.declare_parameter('detections_2d_topic', '/detections/2d').value
+        det_3d_topic = self.declare_parameter('detections_3d_topic', '/detections/3d').value
+        self.frame_id = self.declare_parameter('frame_id', 'camera_color_optical_frame').value
+
         self.preview_sub = self.create_subscription(
-            Image,
-            '/oak/rgb/preview/image_raw',
-            self.preview_callback,
-            qos_profile=qos_profile_sensor_data)
+            Image, image_topic, self.preview_callback, qos_profile=qos_profile_sensor_data)
+        
         self.det_sub = self.create_subscription(
-            Detection2DArray,
-            '/oak/nn/detections',
-            self.det_callback,
-            qos_profile=qos_profile_sensor_data)
+            Detection2DArray, det_2d_topic, self.det_callback, qos_profile=qos_profile_sensor_data)
+            
         self.det3d_sub = self.create_subscription(
-            Detection3DArray,
-            '/oak/nn/spatial_detections',
-            self.det3d_callback,
-            qos_profile=qos_profile_sensor_data)
-        self.overlay_pub = self.create_publisher(
-            Image,
-            'overlay', 
-            10)
+            Detection3DArray, det_3d_topic, self.det3d_callback, qos_profile=qos_profile_sensor_data)
+            
+        self.overlay_pub = self.create_publisher(Image, 'overlay', 10)
         self.preview = None
 
     def preview_callback(self, preview):

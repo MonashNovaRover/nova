@@ -28,14 +28,14 @@ object_localiser:
     
 
     use_markers: True
-    marker_ns: detected_cubes           # the marker namespace
+    marker_ns: detected_frame           # the marker namespace
     marker_duration: 1.0                # in seconds
     marker_size: 0.15
 
     tf_publisher_timer_period: 0.1      # how often to publish tf
 
     map_frame: "map"                    # the reference frame to transform cubes to (e.g cubes start as a position defined relative to the camera, so this will define cubes relative to the map)
-    camera_frame: "oak_rgb_camera_optical_frame" # the starting reference frame 
+    camera_frame: "camera_color_optical_frame" # the starting reference frame 
 
     min_samples: 5      # number of samples of a cube before publishing its transform
     max_std_dev: 1.0    # maximum standard deviation in cube samples before the node stops publishing the transform of the cube
@@ -43,10 +43,15 @@ object_localiser:
   # using_oak: False    # are we using the oak camera? Commented out so it can be changed in launch file
   # using_3d: False     # are we using the 3D node of yolo_ros or spatial mode of the oak nn? If false, the node will calculate positions based on the detection bounding boxes
 
-    depth_info_topic:  /oak/stereo/camera_info   # topic for depth info
-    depth_image_topic:  /oak/stereo/image_raw    # topic for depth image
-    detection_topic:  /oak/nn/detections         # "/oak/nn/spatial_detections" (if using spatial detections topic, make sure to set using_3D to true)
-    marker_topic:  /yolo/objects                   # topic to publish markers
+    use_vision_msgs: True
+    using_3d: False
+    use_pointcloud: False
+
+    depth_info_topic:  /camera/depth/camera_info   
+    depth_image_topic: /camera/depth/image_rect_raw    
+    pointcloud_topic:  /camera/depth/color/points # Or /velodyne_points for Lidar
+    detection_topic:   /detections         
+    marker_topic:      /yolo/objects
 
 debug_node:
   ros__parameters:

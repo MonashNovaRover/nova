@@ -27,6 +27,11 @@ buildRosPackage rec
 
   sourceRoot = "${src.name}/yolo_ros";
 
+  postPatch = ''
+    substituteInPlace yolo_ros/debug_node.py \
+      --replace "np.int0" "np.intp"
+  '';
+
   propagatedBuildInputs = [
     rclpy
     python3Packages.typing-extensions

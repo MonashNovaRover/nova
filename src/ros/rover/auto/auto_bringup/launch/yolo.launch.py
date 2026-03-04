@@ -22,8 +22,8 @@ TOPICS:
                             for cube localisation)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	auto_bringup
-AUTHOR:     Anthony Lew
-CREATION:	06/02/2025
+AUTHOR:     Anthony Lew, Chetan Edupalli
+EDITED:	    04/03/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
@@ -35,29 +35,24 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
-
-    using_oak = LaunchConfiguration('using_oak')
-    using_3d = LaunchConfiguration('using_3d')
+    use_vision_msgs_config = LaunchConfiguration('use_vision_msgs')
+    use_debug_config = LaunchConfiguration('use_debug')
+    use_vision_msgs_val = use_vision_msgs_config.perform(context).lower() == 'true'
+    using_3d_val = LaunchConfiguration('using_3d').perform(context).lower() == 'true'
     namespace = LaunchConfiguration('namespace')
     yolo_params = LaunchConfiguration('yolo_params')
     rgb_image = LaunchConfiguration('rgb_image')
-    use_debug = LaunchConfiguration('use_debug')
     debug_image = LaunchConfiguration('debug_image')
-    depth_image = LaunchConfiguration('depth_image')
-    depth_camera_info = LaunchConfiguration('depth_camera_info')
     gazebo = (LaunchConfiguration('gazebo').perform(context).lower() == 'true')
-    yolo_model = LaunchConfiguration('yolo_model') # for yolo_ros only
+    yolo_model = LaunchConfiguration('yolo_model') 
     detections = LaunchConfiguration('detections')
-    detections_3d = LaunchConfiguration('detections_3d')
 
     if gazebo:
         yolo_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'yolo_sim.yaml'])
 
     return [
-        # yolo_ros nodes only run if using_oak is false
-        # 3d mode is not supported for yolo_ros as the 3d yolo_ros code is copied into object_localiser anyway
         Node(
-            condition=UnlessCondition(using_oak), 
+            condition=UnlessCondition(use_vision_msgs_config),
             package='yolo_ros',
             executable='yolo_node',
             name='yolo_ros_node',
@@ -67,19 +62,19 @@ def launch_setup(context, *args, **kwargs):
                         ('detections', detections)],
         ),
         Node(
-            condition=IfCondition(AndSubstitution(use_debug, NotSubstitution(using_oak))),
+            condition=UnlessCondition(use_vision_msgs_config), 
             package='yolo_ros',
             executable='debug_node',
             name='yolo_ros_debug_node',
             namespace=namespace,
             parameters=[yolo_params],
             remappings=[('image_raw', rgb_image), 
-                        ('dbg_image', debug_image),
+                        ('debug_image', debug_image),
                         ('detections', detections)],
         ),
         Node(
-            condition=IfCondition(AndSubstitution(use_debug, using_oak)),
-            package='nova_object_localisation',
+            condition=IfCondition(use_vision_msgs_config),
+            package='nova_object_localisation', 
             executable='debug_node',
             name='debug_node',
             namespace=namespace,
@@ -92,7 +87,11 @@ def launch_setup(context, *args, **kwargs):
             package='nova_object_localisation',
             executable='object_localiser',
             name='object_localiser',
-            parameters=[{'using_oak': using_oak, 'using_3d': using_3d}, yolo_params],
+            parameters=[{
+                'use_vision_msgs': use_vision_msgs_val, 
+                'using_3d': using_3d_val, 
+                'frame_id': LaunchConfiguration('frame_id')
+            }, yolo_params],
             namespace=namespace,
         ),
     ]
@@ -102,9 +101,9 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='using_oak',
+            name='use_vision_msgs',
             default_value='True',
-            description='Are we running this with the OAK camera?',
+            description='use vision_msgs types for yolo_ros output',
         ),
         DeclareLaunchArgument(
             name='using_3d',
@@ -123,7 +122,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='rgb_image',
-            default_value='/oak/rgb/image_raw',
+            default_value='/camera/color/image_raw',
             description='RGB image topic used for yolo_ros',
         ),
         DeclareLaunchArgument(
@@ -148,23 +147,28 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='depth_image',
-            default_value='/oak/stereo/image_raw',
+            default_value='/camera/depth/image_raw',
             description='Depth image topic used for yolo_ros',
         ),
         DeclareLaunchArgument(
             name='depth_camera_info',
-            default_value='/oak/stereo/camera_info',
+            default_value='/camera/depth/camera_info',
             description='Depth image info topic used for yolo_ros',
         ),
         DeclareLaunchArgument(
             name='detections',
-            default_value='/oak/nn/detections',
+            default_value='/detections_2d',
             description='Output detection topic used for yolo_ros',
         ),
         DeclareLaunchArgument(
             name='detections_3d',
-            default_value='/oak/nn/spatial_detections',
+            default_value='/detections_3d',
             description='Output 3d detection topic used for yolo_ros',
+        ),
+        DeclareLaunchArgument(
+            name='frame_id', 
+            default_value='camera_color_optical_frame',
+            description='frame_id to use for 3D detections'
         ),
     ]
 

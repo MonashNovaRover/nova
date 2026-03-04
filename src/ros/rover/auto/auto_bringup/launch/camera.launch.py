@@ -191,8 +191,25 @@ def launch_setup(context, *args, **kwargs):
         #         ('/camera_info', '/oak/rgb/camera_info'),
         #     ]
         # ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution([FindPackageShare('auto_bringup'), 'launch', 'yolo.launch.py']) 
+            ),
+            launch_arguments={
+                # 'False' triggers yolo_ros to run on the host computer
+                'use_vision_msgs': 'False',  
+                
+                # 'False' forces object_localiser to calculate 3D points from the depth image
+                'using_3d': 'False',         
+                
+                # Feed the OAK's raw streams into the generic YOLO inputs
+                'rgb_image': f'/{back_name}/rgb/image_raw',
+                'depth_image': f'/{back_name}/stereo/image_raw',
+                'depth_camera_info': f'/{back_name}/stereo/camera_info',
+                'frame_id': f'{back_name}_rgb_camera_optical_frame',
+            }.items(),
+        ),
     ]
-
 
 def generate_launch_description():
     auto_bringup_dir = FindPackageShare('auto_bringup')

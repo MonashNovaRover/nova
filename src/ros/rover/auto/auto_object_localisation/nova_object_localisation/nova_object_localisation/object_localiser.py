@@ -16,9 +16,9 @@ SERVICES: None
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:    nova_utils
-AUTHOR(S):	Anthony Lew
+AUTHOR(S):	Anthony Lew, Chetan Edupalli
 CREATION:	20/02/2025
-EDITED:		20/02/2025
+EDITED:		04/03/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Check for errors after replacing cube with object and colour with label in code lol
@@ -48,6 +48,8 @@ from tf2_ros.transform_broadcaster import TransformBroadcaster
 from tf2_ros import Buffer, TransformListener
 from cv_bridge import CvBridge
 
+from sensor_msgs.msg import PointCloud2
+
 import message_filters
 import tf2_geometry_msgs
 
@@ -61,14 +63,14 @@ type BBox = Tuple[float, float, float, float]   # bounding_box = (pos_x, pos_y, 
 type ObjectPoint = Tuple[str, Point]            # object_point = (label, Point)
 
 
-LABELS = {'red':[1.0,0.0,0.0], 'green':[0.0,1.0,0.0], 'blue':[0.0,0.0,1.0], 'white':[1.0,1.0,1.0]} # ARCh 2025
-# LABELS = {'bottle':[0.0,0.0,1.0], 'mallet':[1.0,0.0,0.0]} # URC 2025
+# LABELS = {'red':[1.0,0.0,0.0], 'green':[0.0,1.0,0.0], 'blue':[0.0,0.0,1.0], 'white':[1.0,1.0,1.0]} # ARCh 2025
+LABELS = {'bottle':[0.0,0.0,1.0], 'mallet':[1.0,0.0,0.0]} # URC 2025
 DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
 
 # Object ids:
 # Note: This has the same order as mappings in the generated .json file
-IDS_LABEL = { 0: 'blue', 1: 'green', 2: 'red', 3: 'white'} # ARCh 2025
-# IDS_LABEL = { 0: 'bottle', 1: 'mallet'} # URC 2025
+# IDS_LABEL = { 0: 'blue', 1: 'green', 2: 'red', 3: 'white'} # ARCh 2025
+IDS_LABEL = { 0: 'bottle', 1: 'mallet'} # URC 2025
 
 
 class ObjectLocaliser(Node):
@@ -99,16 +101,22 @@ class ObjectLocaliser(Node):
         self.min_samples = self.declare_parameter('min_samples', 5).get_parameter_value().integer_value
         self.max_std_dev = self.declare_parameter('max_std_dev', 0.2).get_parameter_value().double_value
 
-        # variables determining the mode of use
-        self.using_oak = self.declare_parameter('using_oak', True).get_parameter_value().bool_value
-        self.using_3d = self.declare_parameter('using_3d', False).get_parameter_value().bool_value
+        # # variables determining the mode of use
+        # self.using_oak = self.declare_parameter('using_oak', True).get_parameter_value().bool_value
+        # self.using_3d = self.declare_parameter('using_3d', False).get_parameter_value().bool_value
+
+        # variables for compatibility with different detection message types
+        self.use_vision_msgs = self.declare_parameter('use_vision_msgs', True).value
+        self.using_3d = self.declare_parameter('using_3d', False).value
+        self.use_pointcloud = self.declare_parameter('use_pointcloud', False).value
 
         # Topics to subscribe to:
-        self.depth_info_topic = self.declare_parameter('depth_info_topic', 'camera_info').get_parameter_value().string_value
-        self.depth_image_topic = self.declare_parameter('depth_image_topic', 'image_raw').get_parameter_value().string_value
-        self.detection_topic = self.declare_parameter('detection_topic', 'detections').get_parameter_value().string_value
+        self.depth_info_topic = self.declare_parameter('depth_info_topic', '/camera/camera_info').value
+        self.depth_image_topic = self.declare_parameter('depth_image_topic', '/camera/depth/image_raw').value
+        self.pointcloud_topic = self.declare_parameter('pointcloud_topic', '/camera/depth/color/points').value
+        self.detection_topic = self.declare_parameter('detection_topic', '/detections').value
         # Topic to publish to:
-        self.marker_topic = self.declare_parameter('marker_topic', 'objects').get_parameter_value().string_value
+        self.marker_topic = self.declare_parameter('marker_topic', '/yolo/objects').value
 
         self.transform_broadcaster = TransformBroadcaster(self)
         self.tf_buffer = Buffer()
@@ -125,42 +133,26 @@ class ObjectLocaliser(Node):
 
         # subscribe and synchronise depth image topics if not using 3D
         if not self.using_3d:
-            self.depth_sub = message_filters.Subscriber(
-                self, Image, self.depth_image_topic, qos_profile=self.default_qos_profile
-            )
-            self.depth_info_sub = message_filters.Subscriber(
-                self, CameraInfo, self.depth_info_topic, qos_profile=self.default_qos_profile
-            )
-            detection_type = None
-            if not self.using_oak:
-                detection_type = DetectionArray
-            else:
-                detection_type = Detection2DArray
-            
-            self.detections_sub = message_filters.Subscriber(
-                self, detection_type, self.detection_topic
-            )
-            # synchronise information from topics and run function upon all information received
-            self._synchronizer = message_filters.ApproximateTimeSynchronizer(
-                (self.depth_sub, self.depth_info_sub, self.detections_sub), 10, 0.5)
-            self._synchronizer.registerCallback(self.on_detections)
+            self.depth_info_sub = message_filters.Subscriber(self, CameraInfo, self.depth_info_topic, qos_profile=self.default_qos_profile)
+            detection_type = Detection2DArray if self.use_vision_msgs else DetectionArray
+            self.detections_sub = message_filters.Subscriber(self, detection_type, self.detection_topic)
 
-            self.get_logger().info(
-                f"[{self.get_name()}] Using depth topics to calculate pose: {self.depth_image_topic} and {self.depth_info_topic} for {self.detection_topic}"
-            )
+            if self.use_pointcloud:
+                self.pc_sub = message_filters.Subscriber(self, PointCloud2, self.pointcloud_topic, qos_profile=self.default_qos_profile)
+                self._synchronizer = message_filters.ApproximateTimeSynchronizer((self.pc_sub, self.depth_info_sub, self.detections_sub), 10, 0.5)
+                self._synchronizer.registerCallback(self.on_detections_pc)
+                self.get_logger().info(f"Using PointCloud topic: {self.pointcloud_topic}")
+            else:
+                self.depth_sub = message_filters.Subscriber(self, Image, self.depth_image_topic, qos_profile=self.default_qos_profile)
+                self._synchronizer = message_filters.ApproximateTimeSynchronizer((self.depth_sub, self.depth_info_sub, self.detections_sub), 10, 0.5)
+                self._synchronizer.registerCallback(self.on_detections)
+                self.get_logger().info(f"Using depth image topic: {self.depth_image_topic}")
 
         # otherwise just subscribe to DetectionArray
         else:
-            if not self.using_oak:
-                detection_type = DetectionArray
-            else:
-                detection_type = Detection3DArray
-            self.detections_sub = self.create_subscription(
-                detection_type, self.detection_topic, self.on_detections_3d, 10
-            )
-            self.get_logger().info(
-                f"[{self.get_name()}] Reusing pose from detection topic: {self.detection_topic}"
-            )
+            detection_type = Detection3DArray if self.use_vision_msgs else DetectionArray
+            self.detections_sub = self.create_subscription(detection_type, self.detection_topic, self.on_detections_3d, 10)
+            self.get_logger().info(f"Reusing pose from detection topic: {self.detection_topic}")
 
         # publish to the marker topic
         if self.use_markers:
@@ -181,6 +173,10 @@ class ObjectLocaliser(Node):
         detections = self.process_detections(depth_msg, depth_info_msg, detections_msg)
         self.process_objects(detections, detections_msg.header.stamp)
 
+    def on_detections_pc(self, pc_msg: PointCloud2, depth_info_msg: CameraInfo, detections_msg) -> None:
+        '''If using LiDAR, you must project the unorganized 3D Lidar points onto the 2D bounding box using camera_info intrinsics.'''
+        self.get_logger().warn("PointCloud2 to 2D Bounding Box conversion requires PCL projection logic")
+        pass
 
     def on_detections_3d(self, detections_3d_msg: DetectionArray | Detection3DArray) -> None:
         '''Process and publish detected objects for 3D/spatial mode'''
@@ -250,7 +246,7 @@ class ObjectLocaliser(Node):
             return None
 
         depth_image = self.cv_bridge.imgmsg_to_cv2(depth_msg, desired_encoding='32FC1')
-        if self.using_oak:
+        if self.use_vision_msgs:
             for detection in detections_msg.detections:
                 # Detection will be of type Detection2D from vision_msgs
 
@@ -286,7 +282,7 @@ class ObjectLocaliser(Node):
         def get_pose_point(pose: Pose) -> Point:
             return float(pose.position.x), float(pose.position.y), float(pose.position.z)
 
-        if self.using_oak:
+        if self.use_vision_msgs:
             # detections_msg will be of Detection3DArray type. (vision_msgs)
             detection: Detection3D
             for detection in detections_msg.detections:

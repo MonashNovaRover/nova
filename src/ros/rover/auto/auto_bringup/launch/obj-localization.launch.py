@@ -19,7 +19,7 @@ TOPICS:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	auto_bringup
 AUTHOR:     Chetan Edupalli
-CREATION:	17/01/2026
+CREATION:	04/03/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
@@ -74,9 +74,6 @@ def launch_setup(context, *args, **kwargs):
         ),
 
         # Debug Node
-        # Visualizes 2D bounding boxes on the RGB image.
-        # Note: Debug node requires 2D detections (/oak/nn/detections), 
-        # not the spatial 3D topic.
         Node(
             condition=IfCondition(use_debug),
             package='nova_object_localisation',
@@ -91,7 +88,6 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
     ]
-
     return nodes
 
 def generate_launch_description():
@@ -115,17 +111,17 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='rgb_image',
-            default_value='/oak/rgb/image_raw',
+            default_value='/camera/color/image_raw',
             description='RGB image topic used for debug visualization',
         ),
         DeclareLaunchArgument(
             name='detections_2d',
-            default_value='/oak/nn/detections',
+            default_value='/detections_2d',
             description='2D detection topic used for debug visualization (vision_msgs/Detection2DArray)',
         ),
         DeclareLaunchArgument(
             name='detections_3d',
-            default_value='/oak/nn/spatial_detections',
+            default_value='/detections_3d',
             description='3D spatial detection topic used for localisation (vision_msgs/Detection3DArray)',
         ),
         DeclareLaunchArgument(
