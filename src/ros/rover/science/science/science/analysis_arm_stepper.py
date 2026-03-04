@@ -207,7 +207,7 @@ if __name__ == "__main__":
             actuation_axis="analysis_arm_actuation",
             max_position=270.0
         ) \
-        .with_hardware("actuation", StepperHardware, can_id=0x0E6,
+        .with_hardware("actuation", StepperHardware, can_id=0x0E4,
             max_position=270.0, use_max_position=True,
             position_to_steps=lambda x: math.floor((x / 0.04) + 0.5), # rounding each time reduces floating point errors.
             steps_to_position=lambda x: round(x * 0.04, 2),
