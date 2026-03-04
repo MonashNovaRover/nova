@@ -112,6 +112,7 @@ in
         # Shell utilities
         pciutils
         pcl
+        cloudcompare
         usbutils
         gpsd
         v4l-utils
