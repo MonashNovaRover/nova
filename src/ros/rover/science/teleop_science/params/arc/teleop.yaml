@@ -57,6 +57,9 @@ input_publisher_mode:
       # Auger
       - "auger_actuation"   # actuation for both the auger and the c-beam.
       - "auger_drill_speed"
+      # Kiln Door
+      - "door_actuation"
+      - "door_speed"
       # Analysis Arm
       - "analysis_arm_actuation"
       # Tool Rotator
