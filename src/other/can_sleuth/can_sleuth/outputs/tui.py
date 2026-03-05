@@ -12,6 +12,7 @@ EDITED BY: Orlando Chamberlain, Will Middlewick
 ''' 
 
 import curses
+import time
 
 from . import output
 
@@ -90,6 +91,12 @@ class TUI(output.Output):
                 height = 1
                 encoder_err = False
                 for attr in dev.attrs:
+                    # make attr values that are old dim
+                    age = time.time() - attr.lastUpdated
+                    if age > 0.2: #TODO: paramaterise this value
+                        value_style = curses.A_DIM
+                    else:
+                        value_style = base_style
 
                     label = f"{attr.name}: "
 
@@ -106,7 +113,7 @@ class TUI(output.Output):
                             1 + len(label), # x pos
                             lines[y] + " " * max_x, # text
                             max_x - 2 - len(label), # max chars to print
-                            self._colours.get(attr.priority, curses.A_NORMAL) | base_style
+                            self._colours.get(attr.priority, curses.A_NORMAL) | value_style
                         )
 
                     height += attr.height
