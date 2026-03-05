@@ -27,6 +27,7 @@ let
   local-nix-terminal = shell: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab -d "$STORE_DIR/bin" --title="${name} " -x "bash -ic '${shell} --command \"${cmd}; history -s \\\"${cmd}\\\"; exec bash -l\"; history -s \"${shell}\"; exec bash -l'; exec bash -l"'';
   ssh-terminal = target: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab --title="${name} " -x "bash -ic 'ssh -t ${target} \"bash -ic \\\"cd $REMOTE_STORE_DIR/bin; ${cmd}; history -s ${cmd}; exec bash -l\\\"\"; history -s \"ssh -t ${target}\"; exec bash -l'"'';
   ssh-nix-terminal = target: shell: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab --title="${name} " -x "bash -ic 'ssh -t ${target} \"bash -ic \\\"${shell} --command \\\\\\\"cd $REMOTE_STORE_DIR/bin; ${cmd}; history -s \\\\\\\\\\\\\\\"${cmd}\\\\\\\\\\\\\\\"; exec bash -l\\\\\\\"; history -s \\\\\\\"${shell}\\\\\\\"; exec bash -l\\\"\"; history -s \"ssh -t ${target}\"; exec bash -l'"'';
+  local-window = name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab -s -d "$STORE_DIR/bin" --title="${name} " -x "bash -ic '${cmd}; history -s \"${cmd}\"; exec bash'"'';
   local-nix-window = shell: name: cmd: ''${pkgs.ptyxis}/bin/ptyxis --tab -s -d "$STORE_DIR/bin" --title="${name} " -x "bash -ic '${shell} --command \"${cmd}; history -s \\\"${cmd}\\\"; exec bash -l\"; history -s \"${shell}\"; exec bash -l'; exec bash -l"'';
 
   # aliases for each simple command
@@ -35,6 +36,7 @@ let
   rover = ssh-terminal rover-ip;
   rover-nix = ssh-nix-terminal rover-ip;
   mast = ssh-terminal mast-ip;
+  base-window = local-window;
   base-window-nix =   local-nix-window;
 
   # commands to automatically ssh into the targeted device

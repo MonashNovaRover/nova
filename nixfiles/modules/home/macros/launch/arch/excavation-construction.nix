@@ -1,7 +1,7 @@
 { 
     base,
     base-nix,
-    base-window-nix,
+    base-window,
     rover,
     pre-shell,
     post-shell,
@@ -26,7 +26,7 @@ let
       {name="Base:driveTeleop"; platform=base; cmd="./ros2 launch teleop_drive_joy teleop.launch.py";}
       {name = "Rover:Drive"; platform=rover; cmd="./ros2 launch drive_bringup drive.launch.py";}
       {name="Base:Reolink"; platform=base-nix "nix-shell -p ffmpeg"; cmd="reolink";}
-      {name="Base:Reolink-ctl"; platform=base-window-nix "nix-shell -p ffmpeg"; cmd="reolink";}
+      {name="Base:Reolink-ctl"; platform=base-window-nix "nix-shell -p ffmpeg"; cmd="~/Builds/master/bin/reolink-ctl";}
     ];
     post = post-shell;
   };
