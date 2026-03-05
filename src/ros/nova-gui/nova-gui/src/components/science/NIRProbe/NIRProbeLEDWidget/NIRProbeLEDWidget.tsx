@@ -4,7 +4,6 @@ import {useBifrost} from "../../../../redux/actions/bifrost/useBifrostAction.ts"
 import {RosTopic} from "../../../../ros/topics/rosTopic.ts";
 import {RosService} from "../../../../ros/services/rosService.ts";
 import SpinnerButton from "../../../shared/components/buttons/SpinnerButton.tsx";
-// import {IRosScienceInterfacesNirProbeDataConst} from "../../../../ros/rosTypes.ts";
 import {NIRProbeReadingTypeInfo} from "../SpaceResourcesSiteType.tsx";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";

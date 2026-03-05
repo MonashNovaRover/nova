@@ -8,7 +8,6 @@ import SiteTypeSelectWidget from "../SiteSelectWidget/SiteTypeSelectWidget.tsx";
 import NIRProbeCalcTable from "./NIRProbeFileTable/NIRProbeCalcTable.tsx";
 import NIRCalibrationSettingsModal from "./NIRProbeFileTable/NIRCalibrationSettingsModal.tsx";
 import {ARCNIRPRobeReadingTypeInfo} from "./SpaceResourcesSiteType.tsx";
-// import NIRProbeOutputSaveWidgetDupe from "./NIRProbeOutputWidget/NIRProbeOutputSaveWidgetDupe.tsx";
 
 interface INIRProbeWidgetProps {
 }
