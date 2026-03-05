@@ -1,0 +1,8 @@
+# Position for each preset
+string[] names
+int16[] positions
+
+---
+
+# Each action could fail. This flag shows the output success of the action
+bool success

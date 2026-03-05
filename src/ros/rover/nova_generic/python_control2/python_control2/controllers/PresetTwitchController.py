@@ -20,6 +20,7 @@ from ..controller_manager.Contexts import Contexts
 from ..controller_manager.Activation import Activation
 from ..controllers.Controller import Controller
 from teleop_python_utils import Inputs, Button
+from science_interfaces.srv import SetPositionPresets, SetPositionPresets_Request, SetPositionPresets_Response
 
 
 class PresetTwitchController(Controller):
@@ -33,7 +34,10 @@ class PresetTwitchController(Controller):
         initial_angle: float = None,
         positions: Dict[str, float] = None,
         twitch_max: float = 30.0,
-        hardware_name: str = "rotation"):
+        hardware_name: str = "rotation",
+        set_position_service: str = "",
+        set_presets_service: str = ""
+        ):
         """ Constructor for PresetTwitchController
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
@@ -58,6 +62,15 @@ class PresetTwitchController(Controller):
 
         if positions is None:
             positions = {}
+
+        # Set up optional services
+        preset_service_name = self.declare_parameter("set_presets_service", set_presets_service, "Optional service name that will sets pose presets.").value
+        if preset_service_name != "":
+            self.set_presets_service = self.node.create_service(SetPositionPresets, preset_service_name, self.set_preset_callback)
+
+        position_service_name = self.declare_parameter("set_position_service", set_position_service, "Optional service name that will set position.").value
+        if position_service_name != "":
+            self.set_presets_service = self.node.create_service(SetPositionPresets, position_service_name, self.set_preset_callback)
 
         # Get inputs
         inputs = contexts[Inputs]
@@ -146,6 +159,41 @@ class PresetTwitchController(Controller):
                 offset = updated_pos - self.current_pos
                 self.current_pos = updated_pos
                 self.logger.info(f"Moved to position: {self.current_pos:.2f} ({"+" if offset > 0 else ""}{offset:.2f})")
+
+    def set_preset_callback(self, request: SetPositionPresets_Request, response: SetPositionPresets_Response):
+        """ Service callback to update the pose presets """
+        # Check each position has a name
+        if len(request.names) != len(request.positions):
+            response.success = False
+
+        for i in range(len(request.names)):
+            self.pose_positions[request.names[i]] = request.positions[i]
+
+        self.logger.info(f"Updated pose positions: {self.pose_positions}")
+
+        response.success = True
+        return response
+
+    def set_position_callback(self, request: SetPositionPresets_Request, response: SetPositionPresets_Response):
+        """ Service callback to set the position """
+        # TODO change to SetPosition service message
+        if len(request.positions) < 1:
+            response.success = False
+            return response
+
+        desired_angle = request.positions[0]
+
+        if desired_angle > self.max_angle:
+            desired_angle = self.max_angle
+        elif desired_angle < self.min_angle:
+            desired_angle = self.min_angle
+
+        self.current_pos = desired_angle
+
+        self.logger.info(f"Set position to: {self.current_pos}")
+
+        response.success = True
+        return response
 
     def get_speed(self) -> float:
         """Gets the speed, mapping an axis [-1, 1] to a speed [0, 1]"""
