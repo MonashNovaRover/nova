@@ -152,7 +152,6 @@ if __name__ == "__main__":
         .with_hardware("NIR_Probe_take_reading", TriggerHardware,
                         can_id=0x0E9,
                         can_message=[]) \
-        .with_hardware("")
         .with_jcan() \
         .with_event_collection() \
         .spin()
