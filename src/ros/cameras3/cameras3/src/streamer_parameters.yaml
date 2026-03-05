@@ -31,7 +31,7 @@ camera_streamer_service:
         description: webrtc fec
       do_retransmission:
         type: bool
-        default_value: true
+        default_value: false
         description: webrtc retransmission
       show_clock:
         type: bool

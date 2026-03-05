@@ -2,7 +2,7 @@ camera_streamer:
   ros__parameters:
     defaults:
       width: 640
-      height: 480
+      #height: 480
       framerate: 10
       mime: image/jpeg
 
@@ -17,6 +17,20 @@ camera_streamer:
     #     framerate: 10
 
     cameras:
+      # Waveshare
+      openaicam_openaicam_2505121128:
+        camera_properties:
+          mime: image/jpeg
+          framerate: 30
+          width: 1920
+          height: 1080
+      webcamvendor_SK_series1_20220325JWGD2093:
+        camera_properties:
+          mime: video/x-h264 #image/jpeg
+          framerate: 30
+          width: 1920
+          height: 1080
+
       mast_forward: 
         camera_properties:
           width: 160
