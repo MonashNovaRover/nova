@@ -1,6 +1,6 @@
 # Position for each preset
 string[] names
-int16[] positions
+float32[] positions
 
 ---
 

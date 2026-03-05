@@ -42,6 +42,10 @@ if __name__ == "__main__":
                 "microscope": 120.0,
                 "nir_probe": 240.0,
             },
+            twitch_max=40.0,
+            hardware_name="rotation",
+            set_position_service="/science/tool_rotator/set_position",
+            set_presets_service= "/science/tool_rotator/set_presets"
             twitch_max=5.0,
             hardware_name="rotation"
         ) \

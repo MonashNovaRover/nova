@@ -70,7 +70,7 @@ class PresetTwitchController(Controller):
 
         position_service_name = self.declare_parameter("set_position_service", set_position_service, "Optional service name that will set position.").value
         if position_service_name != "":
-            self.set_presets_service = self.node.create_service(SetPositionPresets, position_service_name, self.set_preset_callback)
+            self.set_presets_service = self.node.create_service(SetPositionPresets, position_service_name, self.set_position_callback)
 
         # Get inputs
         inputs = contexts[Inputs]
