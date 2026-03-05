@@ -197,6 +197,14 @@ in
           ducket-neg = "cansend can0 0C1#9000";
           ducket = "cansend can0 0C1#7000";
           ducketn = "cansend can0 0C1#9000";
+
+          # can
+          can-sleuth = "can_sleuth";
+          can_sleuth = "~/Builds/master/bin/can_sleuth";
+
+          # use this as `can_viewer can0` for example to get "-c can0"
+          can-viewer = "can_viewer";
+          can_viewer = "~/Builds/master/bin/can_viewer -i socketcan -c";
         }
       ];
 

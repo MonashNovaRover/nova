@@ -14,6 +14,7 @@ EDITED BY: Orlando Chamberlain
 
 import jcan
 from typing import List
+import struct
 
 from . import device
 
@@ -88,9 +89,12 @@ class CanDevice(device.Device):
             position = 0
             for field in self._fields:
                 length = field.getByteLength()
-                field.updateBytesValue(
-                        bytes(frame.data[position:position+length])
-                    )
+                try:
+                    field.updateBytesValue(
+                            bytes(frame.data[position:position+length])
+                        )
+                except struct.error:
+                    pass # message didn't have all the data :/ maybe old firmware?
                 position += length
 
     def addCallback(self, canId, callback):
