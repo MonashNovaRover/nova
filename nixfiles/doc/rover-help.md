@@ -15,7 +15,10 @@ N2: ssh nova@10.0.2.12
 N3: ssh nova@10.0.2.13
 
 Radios (Jetson): ssh nvidia@10.0.0.10
-Radios (Orin): ssh nova@10.0.0.11
+Radios (Orin SSD1): ssh nova@10.0.0.11
+Radios (Orin SSD2): ssh nova@10.0.0.12
+
+The orin SSDs have printed labels on them with their IP address.
 
 ---------------------------
 
