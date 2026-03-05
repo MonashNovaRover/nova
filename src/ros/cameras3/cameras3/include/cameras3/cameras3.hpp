@@ -7,5 +7,6 @@
 #define SERVICE_IPS         "/camera_streamer/get_host_ip"
 #define SERVICE_DISCOVERY   "/camera_directory/discover"
 #define TOPIC_CAMERAS       "/camera_directory/cameras"
+#define POLLING_PERIOD      5000
 
 extern rclcpp::QoS discover_qos; 
