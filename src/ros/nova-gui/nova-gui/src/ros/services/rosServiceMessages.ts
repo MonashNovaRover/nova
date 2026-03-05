@@ -42,6 +42,8 @@ export const rosServiceMessages = {
 
   // General
   [RosService.RGBInput]: "nova_interfaces/srv/RGBInput",
+  [RosService.TOOL_ROTATOR_PRESETS]: "science_interfaces/srv/SetPositionPresets",
+  [RosService.TOOL_ROTATOR_POSITION]: "science_interfaces/srv/SetPositionPresets", // TODO change to set position
 
   // Autonomous Related
   [RosService.CARTOGRAPHER_COMMAND]: "nova_interfaces/srv/CartographerCommand",

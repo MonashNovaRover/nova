@@ -45,6 +45,8 @@ export enum RosService {
 
   // General
   REQUEST_HYDRAPROBE_READING = "/science/request_hydraprobe_reading",
+  TOOL_ROTATOR_PRESETS = "/science/tool_rotator/set_presets",
+  TOOL_ROTATOR_POSITION = "/science/tool_rotator/set_position",
 
   // Autononomous Related
   CARTOGRAPHER_COMMAND = "/autonomous/cartographer_command",

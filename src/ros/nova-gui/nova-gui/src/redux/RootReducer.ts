@@ -23,6 +23,7 @@ import {filterStores, getReducers} from "./store/rootReducerFilters.ts";
 import {StoreType} from "./models/StoreContext.ts";
 import {DEFAULT_NIR_PROBE_CALIBRATION_DATA} from "./models/genericStores/NIRProbeCalibrationData.ts";
 import {initialCameraProfilesState} from "./models/CameraProfilesState.ts";
+import {PresetPositions} from "../components/science/ToolRotatorWidget/ToolRotatorWidget.tsx";
 
 /**
  * reduxStores contains all stores in redux as either it's Reducer
@@ -367,6 +368,7 @@ export const reduxStores = {
   cameraProfiles: createGenericStore("cameraProfiles", initialCameraProfilesState),
   clickAndHold: createGenericStore("clickAndHold", false),
   windowWideWASD: createGenericStore("windowWideWASD", false),
+  toolRotatorPresets: createGenericStore("toolRotatorPresets", {sweeper: 0.0, microscope: 120.0, nir_probe: 240.0} as PresetPositions)
 };
 
 // all store reducers
