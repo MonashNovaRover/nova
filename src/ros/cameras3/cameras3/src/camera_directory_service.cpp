@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <chrono>
 #include <unordered_map>
 #include <systemd/sd-device.h>
 
@@ -41,7 +42,7 @@ class CameraDirectory : public rclcpp::Node
     publisher_qos.reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE);
     publisher_qos.durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
     publisher_ = this->create_publisher<camera_msgs::msg::Cameras>(TOPIC_CAMERAS, publisher_qos);
-    // timer_ = this->create_wall_timer(10000ms, std::bind(&CameraDirectory::publish_cameras, this));
+    timer_ = this->create_wall_timer(std::chrono::milliseconds(POLLING_PERIOD), std::bind(&CameraDirectory::publish_cameras, this));
 
     // setup service
     service_ = this->create_service<std_srvs::srv::Empty>(SERVICE_DISCOVERY, std::bind(&CameraDirectory::service_callback, this, _1, _2));
@@ -52,6 +53,7 @@ class CameraDirectory : public rclcpp::Node
 
     // publish once
     this->publish_cameras();
+    RCLCPP_INFO(this->get_logger(), "Polling v4l capture devices every %dms", POLLING_PERIOD);
   }
 
   rclcpp::TimerBase::SharedPtr timer_;
@@ -61,6 +63,8 @@ class CameraDirectory : public rclcpp::Node
   std::vector<std::string> blacklist;
   std::unordered_map<std::string, std::string> serial_remaps;
   std::unordered_map<std::string, std::string> serial_overrides;
+  std::unordered_map<std::string, std::string> camera_map;
+  size_t last_device_count;
 
   private: void get_configuration()
   {
@@ -96,6 +100,7 @@ class CameraDirectory : public rclcpp::Node
   {
     auto message = camera_msgs::msg::Cameras();
     std::vector<V4lDevice> devices = find_v4l_capture_devices();
+    std::unordered_map<std::string, std::string> new_camera_map;
     for (V4lDevice device : devices) {
       std::string serial = device.serial;
       if (serial_overrides.find(device.path) != serial_overrides.end()){
@@ -104,15 +109,22 @@ class CameraDirectory : public rclcpp::Node
       if (serial_remaps.find(serial) != serial_remaps.end()){
         serial = serial_remaps[serial];
       }
-      if (serial != device.serial){
-        RCLCPP_INFO(this->get_logger(), "Remapping %s to %s", device.serial.c_str(), serial.c_str());
-      }
       auto camera = camera_msgs::msg::Camera();
       camera.serial = serial;
       camera.node = device.devname;
       message.cameras.push_back(camera);
+      if (camera_map.find(serial) == camera_map.end())
+      {
+        new_camera_map[serial] = device.devname;
+        if (serial != device.serial) RCLCPP_INFO(this->get_logger(), "New device found: %s serial remapped to: %s", device.serial.c_str(), serial.c_str());
+        else RCLCPP_INFO(this->get_logger(), "New device found: %s", serial.c_str());
+      }
     }
-    RCLCPP_INFO(this->get_logger(), "Publishing %ld Cameras...", devices.size());
+    if (devices.size() != last_device_count) {
+      RCLCPP_INFO(this->get_logger(), "Publishing %ld Cameras...", devices.size());
+      last_device_count = devices.size();
+      camera_map = new_camera_map;
+    }
     publisher_->publish(message);
   }
 
