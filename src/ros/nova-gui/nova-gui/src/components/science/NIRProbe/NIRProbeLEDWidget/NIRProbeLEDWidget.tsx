@@ -2,14 +2,13 @@ import {Card, CardBody, CardHeader, CardProps} from "@nextui-org/react";
 import {useEffect} from "react";
 import {useBifrost} from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../../ros/topics/rosTopic.ts";
-// import {useSelector} from "react-redux";
-// import {RootState} from "../../../../redux/RootState.ts";
 import {RosService} from "../../../../ros/services/rosService.ts";
 import SpinnerButton from "../../../shared/components/buttons/SpinnerButton.tsx";
 // import {IRosScienceInterfacesNirProbeDataConst} from "../../../../ros/rosTypes.ts";
 import {NIRProbeReadingTypeInfo} from "../SpaceResourcesSiteType.tsx";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
+
 
 interface INIRProbeLEDWidgetProps extends CardProps {
   readingInfo: NIRProbeReadingTypeInfo[], // list of NIRProbeReadingTypeInfo: [off, PD1, PD2]
@@ -23,9 +22,9 @@ interface INIRProbeLEDWidgetProps extends CardProps {
  */
 const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({readingInfo, ...cardProps}) => {
   const bifrost = useBifrost({ topic: RosTopic.NIR_DATA, service: RosService.TAKE_NIR_PROBE_READING });
-  const status = useSelector((state: RootState) => state.nirStore.status);
+  const taking_reading = useSelector((state: RootState) => state.nirStore.status);
   const takeReading = () => bifrost.callService({});
-  // const takeReading = (led: number) => bifrost.callService({led: led});
+
 
   useEffect(() => {
     bifrost.syncWithTopic();
@@ -39,7 +38,7 @@ const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({readingInfo, ...c
       <CardBody className="">
         <SpinnerButton
           onPressStart={() => takeReading()}
-          isLoading = {status === 1}
+          isLoading = {taking_reading}
         >
           Request LED Readings
         </SpinnerButton>

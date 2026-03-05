@@ -35,8 +35,6 @@ from teleop_python_utils import Inputs, EventCollection
 
 class NIRProbeController(Controller):
  
-    PHOTODIODES_OFF : int = 0
-    PHOTODIODES_ON : int = 1
 
 
     def __init__(self, contexts: Contexts, 
@@ -60,7 +58,7 @@ class NIRProbeController(Controller):
 
 
         self.last_sensor_values: list[int] = [0] * len(photodiode_sensors)
-        self.status : int = 0
+        self.taking_reading_status : bool = False
         self.reading_taken : bool = False
 
         self.last_read_timer = self.node.create_timer(0.1, self.publish_msg)
@@ -84,7 +82,6 @@ class NIRProbeController(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
 
-        # self.sensor_states = [state_interfaces[f"{sensor}/data"] for sensor in self.sensors]
         self.sensor_state = state_interfaces[f"NIR_Sensors/data"] 
         self.take_reading_command = self.node.create_service(TakeNIRProbeReading, self.command_service, self.take_reading_callback)
         self.nir_data_publisher = self.node.create_publisher(NIRProbeData, self.data_topic, 5)
@@ -102,9 +99,10 @@ class NIRProbeController(Controller):
         read_values : list[int] = self.sensor_state.value
         if read_values != self.last_sensor_values:
             self.last_sensor_values = read_values
-            self.status = self.PHOTODIODES_OFF
+            self.taking_reading_status = False
             self.reading_taken = True
             self.publish_msg()
+
        
 
     def take_reading_callback(self, _ : TakeNIRProbeReading.Request, response: TakeNIRProbeReading.Response):
@@ -113,31 +111,25 @@ class NIRProbeController(Controller):
             self.take_reading_event.invoke()
             self.logger.info("Taking NIR reading.")
             response.success = True
-            self.status = self.PHOTODIODES_ON
+            self.taking_reading_status = True
+            self.publish_msg()
         except Exception as e:
             self.logger.error(f"An error occurred while attempting to take NIR reading: {e}")
             response.success = False
-
         return response 
     
     def publish_msg(self):
         msg = NIRProbeData()
         msg.data = self.last_sensor_values
         msg.reading_taken = self.reading_taken
-        msg.status = self.status
+        msg.taking_reading_status = self.taking_reading_status
         self.nir_data_publisher.publish(msg)
 
-    
-    def calculate_Photodiodes(data: bytes) -> list[int, int]:
-        if len(data) < 8:
-            self.logger.error(f"Expected 8 bytes, got {len(data)}")
-        PD2_LEDon = int.from_bytes(data[0:2], "little")   # bytes 0-1
-        PD2_LEDoff = int.from_bytes(data[4:6], "little")  # bytes 4-5
-        PD2_diff = max(PD2_LEDon - PD2_LEDoff, 0)
-        PD1_LEDon = int.from_bytes(data[2:4], "little")   # bytes 2-3
-        PD1_LEDoff = int.from_bytes(data[6:8], "little")  # bytes 6-7
-        PD1_diff = max(PD1_LEDon - PD1_LEDoff, 0)
-        return [PD1_diff, PD2_diff]
+
+def calculate_photodiodes(data: bytes) -> list[int, int]:
+        PD1_reading = int.from_bytes(data[2:4], "big")
+        PD2_reading = int.from_bytes(data[0:2], "big")
+        return [PD1_reading, PD2_reading]
 
 if __name__ == "__main__":
     print("Setting up!")
@@ -154,7 +146,7 @@ if __name__ == "__main__":
                         data_topic = "/science/nir_probe_data") \
         .with_hardware("NIR_Sensors", GenericSensorHardware,
                         can_id = 0x4E2,
-                        interpret_data = lambda x: NIRProbeController.calculate_Photodiodes(x),
+                        interpret_data = calculate_photodiodes,
                         unit = "data",
                         initial_value = [0,0]) \
         .with_hardware("NIR_Probe_take_reading", TriggerHardware,
@@ -164,9 +156,6 @@ if __name__ == "__main__":
         .with_jcan() \
         .with_event_collection() \
         .spin()
-
-      
-
-
+ 
         
         

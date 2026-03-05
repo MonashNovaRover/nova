@@ -6,8 +6,8 @@ int16[] data
 
 
 # Status of the NIR Probe
-# 0 = Off, 1 = Currently taking reading
-byte status
+# False = Off, True = Currently taking reading
+bool status
 
 # False = No reading has been taken, True = A reading has been taken
 bool reading_taken

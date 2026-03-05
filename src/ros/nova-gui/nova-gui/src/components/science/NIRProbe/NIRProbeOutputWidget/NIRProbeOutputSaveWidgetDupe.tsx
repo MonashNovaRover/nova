@@ -17,11 +17,8 @@ import CopyableOutput from "../../../shared/components/CopyableOutput/CopyableOu
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {useBifrost} from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../../ros/topics/rosTopic.ts";
-// import {useSelector} from "react-redux";
-// import {RootState} from "../../../../redux/RootState.ts";
 import {Check, MoreHorizontal} from "react-feather";
 import {
-//   ISpaceResourcesEntries,
   ISpaceResourcesEntry,
   NIRProbeReadingType,
   NIRProbeReadingTypeInfo,
@@ -64,7 +61,7 @@ const NIRProbeOutputSaveWidgetDupe: React.FC<NIRProbeOutputSaveWidgetProps> = ({
 //     data: 0, led: 0, status: 1
 //   } as IRosScienceInterfacesNirProbeData)
   const [nirData, setNirData] = useState({
-    data: [0,0], status: 0, reading_taken: false 
+    data: [0,0], status: false, reading_taken: false 
   } as IRosScienceInterfacesNirProbeData)
   const [sampleLabel, setSampleLabel] = useState<string>("");
 
@@ -119,7 +116,7 @@ const NIRProbeOutputSaveWidgetDupe: React.FC<NIRProbeOutputSaveWidgetProps> = ({
     }, [readings, setReadings, data, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
   
   const save = useCallback((reading: IRosScienceInterfacesNirProbeData) => {
-      if (!showAdvanced && nirData.status === 0)
+      if (!showAdvanced && !nirData.status)
         return
   
       
@@ -164,7 +161,7 @@ const NIRProbeOutputSaveWidgetDupe: React.FC<NIRProbeOutputSaveWidgetProps> = ({
 
   const takeFakeReadings = () => {
     setNirData({
-      data: [Math.floor(Math.random() * 553) + 35800, Math.floor(Math.random() * 553) + 33800], status: 1, reading_taken: true
+      data: [Math.floor(Math.random() * 553) + 35800, Math.floor(Math.random() * 553) + 33800], status: false, reading_taken: true
     })
 
 

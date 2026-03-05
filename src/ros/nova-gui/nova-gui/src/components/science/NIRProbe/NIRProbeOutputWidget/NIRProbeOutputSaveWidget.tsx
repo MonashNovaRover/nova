@@ -28,7 +28,6 @@ import {
 } from "../SpaceResourcesSiteType.tsx";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
 import { IRosScienceInterfacesNirProbeData } from "../../../../ros/rosTypes.ts";
-// import SpinnerButton from "../../../shared/components/buttons/SpinnerButton.tsx";
 import { RosService } from "../../../../ros/services/rosService.ts";
 import { isEqual } from "lodash";
 
@@ -70,12 +69,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   const [advancedSampleLabel, setAdvancedSampleLabel] = useState<string>("");
 
   const [autosave, setAutosave] = useState<boolean>(true)
-//   const defaultEntries: ISpaceResourcesEntries = {
-//   [NIRProbeReadingType.PD1]: [],
-//   [NIRProbeReadingType.PD2]: [],
-// };
 
-// setReadings(defaultEntries);
 
   const OffIcon = useMemo(() => readingInfo[0].icon, [readingInfo])
   const PD1Icon = useMemo(() => readingInfo[1].icon, [readingInfo])
@@ -119,7 +113,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   }, [readings, setReadings, data, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
 
   const save = useCallback((reading: IRosScienceInterfacesNirProbeData) => {
-    if (!showAdvanced && nirData.status === 0)
+    if (!showAdvanced && !nirData.status)
       return
 
     
@@ -142,7 +136,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
         ...readings[NIRProbeReadingType.PD2],
       ]
     })
-  }, [readings, setReadings, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
+  }, [readings, setReadings, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
 
   useEffect(() => {
     if (!autosave)
@@ -156,7 +150,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
 
     previousDataRef.current = [...nirData.data];;
     save(nirData);
-  }, [autosave, save, nirData.data, previousDataRef]);
+  }, [autosave, save, nirData, previousDataRef]);
 
   const onTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (+e.target.value !== 0)
