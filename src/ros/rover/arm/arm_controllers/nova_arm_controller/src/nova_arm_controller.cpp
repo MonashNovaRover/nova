@@ -73,11 +73,11 @@ InterfaceConfiguration NovaArmController::command_interface_configuration() cons
 InterfaceConfiguration NovaArmController::state_interface_configuration() const {
   std::vector<std::string> conf_names;
   for (const auto &joint_name: params_.joint_names) {
-    if (this->joint_command_type() == HW_IF_POSITION) {
+    if (params_.position_feedback) {
       conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
     }
 
-    if (this->joint_command_type() == HW_IF_VELOCITY) {
+    if (params_.velocity_feedback) {
       conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
     }
   }
@@ -155,18 +155,22 @@ controller_interface::return_type NovaArmController::update_velocity_reference_f
 // this assumes that the number of joints match
 void NovaArmController::get_joint_states(trajectory_msgs::msg::JointTrajectoryPoint &current) {
   //TODO: maybe try to calculate accel as well - this is needed for jerk limits
-  current.positions.resize(params_.joint_names.size());
-  current.velocities.resize(params_.joint_names.size());
+  if (params_.position_feedback) {
+    current.positions.resize(params_.joint_names.size());
+  }
+  if (params_.velocity_feedback) {
+    current.velocities.resize(params_.joint_names.size());
+  }
 
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
   {
     const auto& joint_handle = registered_joint_handles_[i];
 
-    if (this->joint_command_type() == HW_IF_POSITION) {
+    if (params_.position_feedback) {
       current.positions[i] = joint_handle.state_pos.get().get_value();
     }
 
-    if (this->joint_command_type() == HW_IF_VELOCITY) {
+    if (params_.velocity_feedback) {
       current.velocities[i] = joint_handle.state_vel.get().get_value();
     }
   }
@@ -201,12 +205,14 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     return controller_interface::return_type::ERROR;
   }
 
-  trajectory_msgs::msg::JointTrajectoryPoint desired, current;
+  trajectory_msgs::msg::JointTrajectoryPoint originalDesired, desired, current;
 
   if (this->joint_command_type() == HW_IF_POSITION) {
     desired.positions.resize(params_.joint_names.size());
+    originalDesired.positions.resize(params_.joint_names.size());
   } else { // velocity
     desired.velocities.resize(params_.joint_names.size());
+    originalDesired.velocities.resize(params_.joint_names.size());
   }
 
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
@@ -222,9 +228,11 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     if (this->joint_command_type() == HW_IF_POSITION) {
       desired.positions[i] = std::isnan(reference_interfaces_[i]) ? joint_handle.state_pos.get().get_value()
         : reference_interfaces_[i];
+      originalDesired.positions[i] = desired.positions[i];
     } else { // velocity
       desired.velocities[i] = std::isnan(reference_interfaces_[i]) ? 0.0
         : reference_interfaces_[i];
+      originalDesired.velocities[i] = desired.velocities[i];
     }
   }
   this->get_joint_states(current);
@@ -242,9 +250,40 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     const auto& joint_handle = registered_joint_handles_[i];
     double reference_value;
     if (this->joint_command_type() == HW_IF_POSITION) {
-      reference_value = desired.positions.at(i);
+      //TODO: test this
+      double currentPos = current.positions.at(i);
+      double desiredPos = originalDesired.positions.at(i);
+      double limitedPos = desired.positions.at(i);
+
+      double desiredDeltaPos = (desiredPos - currentPos);
+      double limitedDeltaPos = (limitedPos - currentPos);
+      if (desiredDeltaPos * limitedDeltaPos < 0) {
+        // limited to go away from target position. Stop
+        reference_value = currentPos;
+      } else if (std::abs(desiredDeltaPos) < std::abs(limitedDeltaPos)) {
+        // limited to move further than we wanted. don't.
+        // TODO: this may impact deceleration limits
+        reference_value = desiredPos;
+      } else {
+        reference_value = limitedPos;
+      }
+
+
     } else { // velocity
-      reference_value = desired.velocities.at(i);
+      double limitedVel = desired.velocities.at(i);
+      double desiredVel = originalDesired.velocities.at(i);
+
+      if ((limitedVel * desiredVel) < 0) {
+        // check that both are the same sign. if we are limited to going
+        // the opposite direction compared to what we asked, just stop.
+        reference_value = 0;
+      } else if (std::abs(limitedVel) > std::abs(desiredVel)) {
+        // if we are limited to going faster than what we asked then don't
+        // TODO: consider if this impacts deceleration limits
+        reference_value = std::copysign(desiredVel, limitedVel);
+      } else {
+        reference_value = limitedVel;
+      }
     }
     if (std::isnan(reference_value)) {
       // When dealing with invalid or missing inputs, don't move
@@ -469,6 +508,14 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
                  interface.get_interface_name() == HW_IF_POSITION;
         });
 
+    if (params_.position_feedback) {
+      if (pos_state_handle == state_interfaces_.cend())
+      {
+        RCLCPP_ERROR(logger, "Unable to obtain position joint state handle for %s", joint_name.c_str());
+        return controller_interface::CallbackReturn::ERROR;
+      }
+    }
+
     const auto vel_state_handle = std::find_if(
         state_interfaces_.cbegin(), state_interfaces_.cend(),
         [&joint_name](const auto &interface)
@@ -477,18 +524,14 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
                  interface.get_interface_name() == HW_IF_VELOCITY;
         });
 
-    // TODO: Needs better checks for this probably
-    // if (pos_state_handle == state_interfaces_.cend())
-    // {
-    //   RCLCPP_ERROR(logger, "Unable to obtain position joint state handle for %s", joint_name.c_str());
-    //   return controller_interface::CallbackReturn::ERROR;
-    // }
-    
-    // if (vel_state_handle == state_interfaces_.cend())
-    // {
-    //   RCLCPP_ERROR(logger, "Unable to obtain velocity joint state handle for %s", joint_name.c_str());
-    //   return controller_interface::CallbackReturn::ERROR;
-    // }
+    if (params_.velocity_feedback) {
+      if (vel_state_handle == state_interfaces_.cend())
+      {
+        RCLCPP_ERROR(logger, "Unable to obtain velocity joint state handle for %s", joint_name.c_str());
+        return controller_interface::CallbackReturn::ERROR;
+      }
+    }
+
 
     // TODO: Change this filter to be useful, and not get the same as the state_interface
     const auto command_handle = std::find_if(

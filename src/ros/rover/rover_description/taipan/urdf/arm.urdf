@@ -409,9 +409,9 @@
     </visual>
     <!-- Part rhs_19_05_19_05_1_2_480mm__length_0_4_meter -->
     <collision>
-      <origin xyz="6.68493e-15 -0.25 0.006" rpy="3.14159 1.5708 0"/>
+      <origin xyz="6.68493e-15 -0.26 0.006" rpy="3.14159 1.5708 0"/>
       <geometry>
-        <box size="0.019 0.4 0.019"/>
+        <box size="0.019 0.41 0.019"/>
       </geometry>
     </collision>
     <visual>
@@ -1035,7 +1035,7 @@
   </joint>
   <!-- Joint from cf_link to diff_support -->
   <joint name="j5" type="revolute">
-    <origin xyz="0.04071 -4.09672e-14 -0.45" rpy="1.5708 -0.611293 1.5708"/>
+    <origin xyz="0.04071 -4.09672e-14 -0.45" rpy="1.5708 -1.5708 1.5708"/>
     <parent link="cf_link"/>
     <child link="diff_support"/>
     <axis xyz="0 0 1"/>
@@ -1092,6 +1092,12 @@
         <color rgba="0.701961 0.701961 0.701961 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="0.05 0.00 -0.005" rpy="1.57 0.0 -0.25"/>
+      <geometry>
+        <box size="0.17 0.03 0.05"/>
+      </geometry>
+    </collision>
   </link>
   <!-- Link l1_prime_2 -->
   <link name="l1_prime_fake"/>
