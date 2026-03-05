@@ -13,6 +13,7 @@ NODES:
   - science/auger.py                    [auger]
   - science/analysis_arm.py             [c_beam]
   - science/kiln.py                     [kiln]
+  - science/kiln_door.py                [kiln_door]
   - science/scimbal_cam.py              [scimbal_cam]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATED:    16/01/2026
@@ -134,6 +135,16 @@ def launch_setup(context, *args, **kwargs):
             name='sweeper',
             package='science',
             executable='sweeper.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
+            name ='kiln_door',
+            package = 'science',
+            executable ='kiln_door.py',
             output='screen',
             emulate_tty=True,
             parameters=[
