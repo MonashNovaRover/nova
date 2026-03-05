@@ -21,7 +21,6 @@ import {useSelector} from "react-redux";
 import {RootState} from "../../../../redux/RootState.ts";
 import {Check, MoreHorizontal} from "react-feather";
 import {
-  // ISpaceResourcesEntries,
   ISpaceResourcesEntry,
   NIRProbeReadingType,
   NIRProbeReadingTypeInfo,
