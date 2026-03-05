@@ -150,6 +150,31 @@ Put the .mbtiles in ~/maps. Then run:
 
 ---------------------------
 
+# Tracing CAN bus
+
+## Using can sleuth
+
+examples: `can_sleuth taipan` `can_sleuth drive`
+
+Run it without specifying a payload to see usage instructions.
+
+You can also run it from a build:
+
+`~/Builds/master/bin/can_sleuth`
+
+If you do `can_sleuth -e taipan` it will emulate the payload
+and send fake telemetry messages. You probably only want this
+on vcan.
+
+## Using can viewer:
+
+`can_viewer can0`
+
+or `~/Builds/master/bin/can_viewer -i socketcan -c can0`
+
+
+---------------------------
+
 # Launch Scripts [WIP]
 
 There are WIP launch scripts under nixfiles/modules/home/macros/launch which when the system is built can be run by calling them from the build/launch directory
