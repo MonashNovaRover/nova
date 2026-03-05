@@ -35,7 +35,7 @@ def generate_launch_description():
         [
             DeclareLaunchArgument(
                 "param-dir",
-                default_value=PathJoinSubstitution([FindPackageShare("cameras3"), "params"]),
+                default_value=PathJoinSubstitution([FindPackageShare("cameras"), "params"]),
                 description="The path to the directory holding camera parameter files.",
             ),
             DeclareLaunchArgument(
@@ -77,13 +77,13 @@ def generate_launch_description():
                 output="screen",
             ),
             Node(
-                package="cameras3",
-                executable="cameras3_directory_service",
+                package="cameras",
+                executable="cameras_directory_service",
                 parameters=node_parameters,
             ),
             Node(
-                package="cameras3",
-                executable="cameras3_streamer_service",
+                package="cameras",
+                executable="cameras_streamer_service",
                 parameters=node_parameters,
             ),
         ]

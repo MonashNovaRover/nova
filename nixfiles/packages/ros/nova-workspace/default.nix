@@ -79,7 +79,7 @@
 , nova-science-bringup ? throw "nova-science-bringup is needed, but not available!"
 , nova-arm-kinematics ? throw "nova-arm-kinematics is needed, but not available!"
 
-, nova-cameras3
+, nova-cameras
 , nova-camera-msgs
   # Configuration options
   ## Include graphical applications in the workspace.
@@ -146,7 +146,7 @@
       nova-science-interfaces
       nova-science-bringup
       nova-arm-kinematics
-      nova-cameras3
+      nova-cameras
       nova-camera-msgs
       ;
     nova-can-sleuth = pythonPackages.nova-can-sleuth;

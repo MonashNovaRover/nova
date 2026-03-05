@@ -1,4 +1,4 @@
-#include "cameras3/cameras3.hpp"
+#include "cameras/cameras.hpp"
 
 rclcpp::QoS make_discover_qos() {
     rclcpp::QoS qos(1);

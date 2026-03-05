@@ -17,11 +17,11 @@
 }:
 
 buildRosPackage {
-  name = "nova-cameras3";
+  name = "nova-cameras";
   buildType = "ament_cmake";
 
   src = builtins.path rec {
-    name = "nova-cameras3-source";
+    name = "nova-cameras-source";
     path = ./.;
   };
 
@@ -65,6 +65,6 @@ buildRosPackage {
     '';
 
   preFixup = ''
-      wrapGApp "$out/lib/cameras3/cameras3_streamer_service"
+      wrapGApp "$out/lib/cameras/cameras_streamer_service"
   '';
 }

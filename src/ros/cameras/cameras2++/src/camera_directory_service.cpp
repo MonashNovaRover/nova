@@ -13,8 +13,8 @@
 #include <camera_msgs/msg/camera.hpp>
 #include <camera_msgs/msg/cameras.hpp>
 
-#include "cameras3/cameras3.hpp"
-#include "cameras3/directory_parameters.hpp"
+#include "cameras/cameras.hpp"
+#include "cameras/directory_parameters.hpp"
 
 using namespace std::placeholders;
 

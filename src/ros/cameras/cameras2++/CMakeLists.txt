@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(cameras3)
+project(cameras)
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp
@@ -43,24 +43,24 @@ generate_parameter_library(
   src/streamer_parameters.yaml
 )
 
-add_executable(cameras3_directory_service src/camera_directory_service.cpp src/camera_globals.cpp)
-target_link_libraries(cameras3_directory_service ${SYSTEMD_LIBRARIES} directory_parameters)
-ament_target_dependencies(cameras3_directory_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
+add_executable(cameras_directory_service src/camera_directory_service.cpp src/camera_globals.cpp)
+target_link_libraries(cameras_directory_service ${SYSTEMD_LIBRARIES} directory_parameters)
+ament_target_dependencies(cameras_directory_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-add_executable(cameras3_streamer_service src/camera_streamer_service.cpp src/camera_globals.cpp)
-target_link_libraries(cameras3_streamer_service ${GSTREAMERMM_LIBRARIES} streamer_parameters)
-ament_target_dependencies(cameras3_streamer_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
+add_executable(cameras_streamer_service src/camera_streamer_service.cpp src/camera_globals.cpp)
+target_link_libraries(cameras_streamer_service ${GSTREAMERMM_LIBRARIES} streamer_parameters)
+ament_target_dependencies(cameras_streamer_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 # Install executables
 install(
   TARGETS 
-    cameras3_directory_service 
+    cameras_directory_service 
     directory_parameters 
   DESTINATION lib/${PROJECT_NAME}
 )
 install(
   TARGETS 
-    cameras3_streamer_service 
+    cameras_streamer_service 
     streamer_parameters 
   DESTINATION lib/${PROJECT_NAME}
 )

@@ -18,8 +18,8 @@
 #include <camera_msgs/msg/camera.hpp>
 #include <camera_msgs/msg/cameras.hpp>
 
-#include "cameras3/cameras3.hpp"
-#include "cameras3/streamer_parameters.hpp"
+#include "cameras/cameras.hpp"
+#include "cameras/streamer_parameters.hpp"
 
 using namespace std::chrono_literals;
 using namespace std::placeholders;
@@ -106,7 +106,7 @@ class CameraStreamer : public rclcpp::Node
 
     subscription_ = this->create_subscription<camera_msgs::msg::Cameras>(
       TOPIC_CAMERAS, discover_qos, std::bind(&CameraStreamer::topic_callback, this, _1));
-    RCLCPP_INFO(this->get_logger(), "Cameras3 Streamer Running...");
+    RCLCPP_INFO(this->get_logger(), "Cameras2++ Streamer Running...");
 
     param_listener = std::make_shared<camera_streamer_service::ParamListener>(get_node_parameters_interface());
     

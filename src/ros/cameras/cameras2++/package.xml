@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>cameras3</name>
+  <name>cameras</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Cameras 2++, a rewrite of cameras 2 in c++!</description>
   <maintainer email="anthony@v01dbreaker.cc">nova</maintainer>
   <license>TODO: License declaration</license>
 
