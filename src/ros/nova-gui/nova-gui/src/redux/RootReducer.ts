@@ -7,7 +7,6 @@ import {
   IRosCmdInterfacesCmDsFeedback,
   IRosNovaInterfacesStatusConst,
   IRosScienceInterfacesHydraprobeData,
-  IRosScienceInterfacesNirProbeDataConst,
   IRosSensorMsgsRange,
   IRosStdMsgsHeader
 } from "../ros/rosTypes";
@@ -187,8 +186,9 @@ export const reduxStores = {
   nirStore: createBifrostStore(
     { topic: RosTopic.NIR_DATA },
     {
-      data: 0,
-      led: IRosScienceInterfacesNirProbeDataConst.LED_OFF,
+      data: [0,0],
+      status: 0,
+      reading_taken: false
     }
   ),
   microscopeServoStore: createBifrostStore(
