@@ -69,6 +69,16 @@ def launch_setup(context, *args, **kwargs):
                 science_params
             ],
         ),
+        Node(
+            name='sweeper',
+            package='science',
+            executable='sweeper.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
 
         # CBeam - Nodes for components on the CBeam
         Node(
@@ -132,16 +142,6 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         Node(
-            name='sweeper',
-            package='science',
-            executable='sweeper.py',
-            output='screen',
-            emulate_tty=True,
-            parameters=[
-                science_params,
-            ],
-        ),
-        Node(
             name ='kiln_door',
             package = 'science',
             executable ='kiln_door.py',
@@ -151,7 +151,6 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
-
         
         # Misc - Nodes for misc components
         Node(
