@@ -56,7 +56,7 @@ const AnalysisArmWidget: React.FC<AnalysisArmWidgetProps> = () => {
       <CardHeader>
         Analysis Arm
       </CardHeader>
-      <CardBody>
+      <CardBody className="py-0">
         <div className="grid grid-cols-2">
           <div className="flex flex-col">
             <AnalysisArmDiagram percent={percent} target={targetPercent} bottomDistance={tofDist.range} topDistance={aaPos.range}/>
