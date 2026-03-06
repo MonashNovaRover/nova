@@ -13,6 +13,9 @@ EDITED BY: Orlando Chamberlain
 
 from can_sleuth.devices import blcmd
 from can_sleuth.devices import blcmd_emulator
+from can_sleuth.devices import sensor_emulator
+import random
+
 from can_sleuth.devices import led as LED #gotta rename some things
 from can_sleuth.devices import battery
 from can_sleuth.devices import battery_emulator
@@ -73,12 +76,30 @@ def led(interface = "can0", emulate=False):
     devices = [LED.LEDStrip("led", interface)]
     return devices
 
+def science25_26(interface="can1", emulate=False):
+    canId = 0x4FF
+    
+    def update_function(state:int) -> int:
+        """
+            Randomly generates current sensor data 
+        """
+        #generate random signed integer between 0x7FFF - 0x80000 (-32767, 32767)
+        return random.randint(-32767, 32767)
+
+
+    currentSensor = sensor_emulator.SensorEmulator("current sensor_emulator", canId, interface, "current", "amps", 0, update_function)
+
+    return [currentSensor]
+
+    
+
 # List of everything for help message:
 allSystems = {
         "drive": drive25_26,
         "taipan": taipan_spherical,
         "drive25_26": drive25_26,
         "taipan_spherical": taipan_spherical,
+        "science25_26": science25_26,
         "led": led
         }
 

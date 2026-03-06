@@ -119,6 +119,21 @@ kiln:
         max_effort: 1.0
         reversed: false
 
+kiln_door:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    hardware:
+      kiln_door:
+        can_id: 0x0D2
+        max_effort: 0.16129
+        reversed: true
+      current_sensor:
+        can_id: 0x4FF
+        unit: "current"
+
+
+
 water_pump:
   ros__parameters:
     can_bus: "can1"

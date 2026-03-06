@@ -15,7 +15,10 @@ N2: ssh nova@10.0.2.12
 N3: ssh nova@10.0.2.13
 
 Radios (Jetson): ssh nvidia@10.0.0.10
-Radios (Orin): ssh nova@10.0.0.11
+Radios (Orin SSD1): ssh nova@10.0.0.11
+Radios (Orin SSD2): ssh nova@10.0.0.12
+
+The orin SSDs have printed labels on them with their IP address.
 
 ---------------------------
 
@@ -147,6 +150,31 @@ nix-start: sudo systemctl start nix-daemon.service
 
 Put the .mbtiles in ~/maps. Then run:
 `tileserver`
+
+---------------------------
+
+# Tracing CAN bus
+
+## Using can sleuth
+
+examples: `can_sleuth taipan` `can_sleuth drive`
+
+Run it without specifying a payload to see usage instructions.
+
+You can also run it from a build:
+
+`~/Builds/master/bin/can_sleuth`
+
+If you do `can_sleuth -e taipan` it will emulate the payload
+and send fake telemetry messages. You probably only want this
+on vcan.
+
+## Using can viewer:
+
+`can_viewer can0`
+
+or `~/Builds/master/bin/can_viewer -i socketcan -c can0`
+
 
 ---------------------------
 
