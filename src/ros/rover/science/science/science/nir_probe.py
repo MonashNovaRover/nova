@@ -23,7 +23,6 @@ EDITED:         3/3/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
-import jcan
 from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
@@ -34,8 +33,6 @@ from teleop_python_utils import Inputs, EventCollection
 
 
 class NIRProbeController(Controller):
- 
-
 
     def __init__(self, contexts: Contexts, 
                 hardware_name: str = "NIR_Probe",
@@ -103,7 +100,6 @@ class NIRProbeController(Controller):
             self.reading_taken = True
             self.publish_msg()
 
-       
 
     def take_reading_callback(self, _ : TakeNIRProbeReading.Request, response: TakeNIRProbeReading.Response):
         """ Callback function when take_nir_probe_reading service is called """
