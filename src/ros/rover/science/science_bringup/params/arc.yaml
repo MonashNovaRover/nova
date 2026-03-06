@@ -147,8 +147,6 @@ kiln_door:
         can_id: 0x4FF
         unit: "current"
 
-
-
 water_pump:
   ros__parameters:
     can_bus: "can1"
@@ -160,7 +158,7 @@ water_pump:
     hardware:
       cooling:
         can_id: 0x031
-        max_effort: 0.1935483870967742
+        max_effort: 0.19354
 
 diaphragm_pump:
   ros__parameters:
@@ -173,7 +171,7 @@ diaphragm_pump:
     hardware:
       flow:
         can_id: 0x032
-        max_effort: 0.1612903225806452
+        max_effort: 0.16129
 
 
 # Misc - Nodes for misc components
