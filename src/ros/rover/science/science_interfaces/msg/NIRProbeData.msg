@@ -2,7 +2,7 @@
 
 # The latest reading from the NIR probe
 # Units are arbitrary, and need to be applied to a calibration curve to get meaningful data.
-int16[] data
+int32[] data
 
 
 # Status of the NIR Probe

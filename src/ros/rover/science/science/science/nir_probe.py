@@ -118,13 +118,13 @@ class NIRProbeController(Controller):
         msg = NIRProbeData()
         msg.data = self.last_sensor_values
         msg.reading_taken = self.reading_taken
-        msg.taking_reading_status = self.taking_reading_status
+        msg.status = self.taking_reading_status
         self.nir_data_publisher.publish(msg)
 
 
 def calculate_photodiodes(data: bytes) -> list[int, int]:
-        PD1_reading = int.from_bytes(data[2:4], "big")
-        PD2_reading = int.from_bytes(data[0:2], "big")
+        PD1_reading = int.from_bytes(data[4:8], "big")
+        PD2_reading = int.from_bytes(data[0:4], "big")
         return [PD1_reading, PD2_reading]
 
 if __name__ == "__main__":
