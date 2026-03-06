@@ -188,6 +188,7 @@ controller_interface::return_type NovaDriveControllerBase::update(
   else
   {
     cmds = twist_to_commands(command_msg_ptr->twist, base_params_->autonomous_mode, period);
+    last_commanded_time_ = get_node()->now();
   }
 
   // ################### Update and publish odometry #####################
@@ -313,8 +314,6 @@ controller_interface::return_type NovaDriveControllerBase::update(
     realtime_commanded_twist_publisher_->unlockAndPublish();
   }
   
-  last_commanded_time_ = get_node()->now();
-
   return controller_interface::return_type::OK;
 }
 
