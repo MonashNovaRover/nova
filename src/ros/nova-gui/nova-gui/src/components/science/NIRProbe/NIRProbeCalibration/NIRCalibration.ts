@@ -10,19 +10,19 @@ import {useMemo} from "react";
 export const COEFFICIENT_QUANTITY = 6;
 
 export const defaultCoefficients = [
-  -0.0000007,
-  -0.00000071,
-  -0.00000156,
-  0.07925015,
-  0.08339676,
-  -2186.33845245
+  -0.000000007,
+  -0.0000000071,
+  -0.0000000156,
+  0,
+  0,
+  41.6
 ]
 
-export const defaultXRange = [18000, 27000]
-export const defaultYRange = [18000, 27000]
+export const defaultXRange = [33000, 42000]
+export const defaultYRange = [33000, 42000]
 
-export const defaultXOffset = 0;
-export const defaultYOffset = 0;
+export const defaultXOffset = 400;
+export const defaultYOffset = 400;
 
 // const absorbCoef = 3000
 

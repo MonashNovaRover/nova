@@ -43,7 +43,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             name='nir_probe_publisher',
             package='science',
-            executable='nir_probe_publisher.py',
+            executable='nir_probe_publisher_old.py',
             output='screen',
             emulate_tty=True,
             parameters=[
