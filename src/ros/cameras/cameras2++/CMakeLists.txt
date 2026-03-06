@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.8)
 project(cameras)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp
   std_msgs
@@ -47,7 +49,7 @@ add_executable(cameras_directory_service src/camera_directory_service.cpp src/ca
 target_link_libraries(cameras_directory_service ${SYSTEMD_LIBRARIES} directory_parameters)
 ament_target_dependencies(cameras_directory_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-add_executable(cameras_streamer_service src/camera_streamer_service.cpp src/camera_globals.cpp)
+add_executable(cameras_streamer_service src/camera_streamer_service.cpp src/camera_globals.cpp src/camera_pipelines.cpp)
 target_link_libraries(cameras_streamer_service ${GSTREAMERMM_LIBRARIES} streamer_parameters)
 ament_target_dependencies(cameras_streamer_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 

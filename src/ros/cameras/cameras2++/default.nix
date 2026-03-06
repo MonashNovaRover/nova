@@ -1,19 +1,19 @@
 { lib
-, buildRosPackage
 , ament-cmake
+, buildRosPackage
+, generate-parameter-library
+, gobject-introspection
+, gst_all_1
+, gst-bridge
+, libnice
+, nova-camera-msgs
 , pkg-config
 , rclcpp
-, generate-parameter-library
 , std-msgs
 , std-srvs
 , systemd
-, nova-camera-msgs
-, gst_all_1
-, libnice
 , v4l-utils
-, gst-bridge
 , wrapGAppsNoGuiHook
-, gobject-introspection
 }:
 
 buildRosPackage {
@@ -25,7 +25,13 @@ buildRosPackage {
     path = ./.;
   };
 
-  nativeBuildInputs = [ ament-cmake pkg-config gst_all_1.gstreamer wrapGAppsNoGuiHook gobject-introspection];
+  nativeBuildInputs = [ 
+    ament-cmake 
+    pkg-config 
+    gst_all_1.gstreamer 
+    wrapGAppsNoGuiHook 
+    gobject-introspection
+  ];
 
   buildInputs = [
     rclcpp

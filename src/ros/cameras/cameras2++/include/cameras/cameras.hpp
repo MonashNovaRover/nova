@@ -1,4 +1,6 @@
 #include "rclcpp/rclcpp.hpp"
+#include "cameras/pipeline.hpp"
+#include <camera_msgs/msg/camera.hpp>
 
 #define SERVICE_START       "/camera_streamer/stream/start"
 #define SERVICE_STOP        "/camera_streamer/stream/stop"
@@ -10,3 +12,20 @@
 #define POLLING_PERIOD      5000
 
 extern rclcpp::QoS discover_qos; 
+
+struct Pipeline
+{
+  GstElement* gst_pipeline;
+  Properties* props;
+  camera_msgs::msg::Camera* camera;
+};
+
+enum PipelineTypes
+{
+  V4l2WEBRTC = 0,
+};
+
+GstElement* v4l2webrtc_pipeline(rclcpp::Node* log_node, v4l2webrtcPipelineProperties* props);
+struct v4l2webrtcPipelineProperties : Properties, v4lProperties, webRTCProperties, clockProperties {};
+
+v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera camera);
