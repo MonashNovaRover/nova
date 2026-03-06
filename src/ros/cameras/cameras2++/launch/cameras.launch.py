@@ -12,22 +12,15 @@ def generate_launch_description():
     param_dir = LaunchConfiguration("param-dir")
     platform = LaunchConfiguration("platform")
     payload = LaunchConfiguration("payload")
-    autostart = LaunchConfiguration("autostart")
-    profile = LaunchConfiguration("profile")
-    task = LaunchConfiguration("task")
     port = LaunchConfiguration("port")
 
     node_parameters = [
         _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "directory.yaml"])),
-        _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "config.yaml"])),
+        _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "streamer.yaml"])),
         _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "platform", platform, "core.yaml"])),
         _substitute_if_not_empties(
             (param_dir, payload),
             PathJoinSubstitution([param_dir, "platform", platform, "payload", _cat_substitutions([payload, ".yaml"])]),
-        ),
-        _substitute_if_not_empties(
-            (param_dir, task),
-            PathJoinSubstitution([param_dir, "tasks", _cat_substitutions([task, ".yaml"])]),
         ),
     ]
 
@@ -49,26 +42,11 @@ def generate_launch_description():
                 description="The payload type.",
             ),
             DeclareLaunchArgument(
-                "autostart",
-                choices=["true", "false"],
-                default_value="false",
-                description="Enable the camera streamer autostart parameter.",
-            ),
-            DeclareLaunchArgument(
-                "profile",
-                default_value="",
-                description="Select a stream profile.",
-            ),
-            DeclareLaunchArgument(
-                "task",
-                default_value="",
-                description="Select a specific task.",
-            ),
-            DeclareLaunchArgument(
                 "port",
                 default_value="8443",
                 description="Specify a port for the gst-webrtc-signalling-server",
             ),
+
             ExecuteProcess(
                 cmd=["gst-webrtc-signalling-server", "--port", port],
                 additional_env={
