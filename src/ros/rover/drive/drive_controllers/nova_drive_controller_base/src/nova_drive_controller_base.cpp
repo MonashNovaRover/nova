@@ -97,6 +97,8 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_init()
   // Initialise odometry
   odometry_ = std::make_unique<Odometry>(get_node(), base_params_);
 
+  last_received_time_ = rclcpp::Time(0, 0, get_node()->get_clock()->get_clock_type());
+
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -347,7 +349,7 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
   }
 
   cmd_vel_receive_timeout_ = rclcpp::Duration::from_seconds(base_params_->cmd_vel_receive_timeout);
-  cmd_vel_command_timeout_ = rclcpp::Duration::from_seconds(base_params_->cmd_vel_receive_timeout);
+  cmd_vel_command_timeout_ = rclcpp::Duration::from_seconds(base_params_->cmd_vel_command_timeout);
 
   limiter_drive_ = SpeedLimiter(
     base_params_->drive.has_velocity_limits, base_params_->drive.has_acceleration_limits,
@@ -409,6 +411,7 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
         current_time_diff < cmd_vel_receive_timeout_)
       {
         received_twist_msg_ptr_.writeFromNonRT(msg);
+        last_received_time_ = get_node()->now();
       }
       else
       {
@@ -419,8 +422,6 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
           rclcpp::Time(msg->header.stamp).seconds(), current_time_diff.seconds(),
           cmd_vel_receive_timeout_.seconds());
       }
-
-      last_received_time_ = get_node()->now();
     });
 
   return controller_interface::CallbackReturn::SUCCESS;
