@@ -19,7 +19,6 @@
 #include <camera_msgs/msg/cameras.hpp>
 
 #include "cameras/cameras.hpp"
-#include "cameras/streamer_parameters.hpp"
 
 using namespace std::placeholders;
 
@@ -78,9 +77,6 @@ class CameraStreamer : public rclcpp::Node
     subscription_ = this->create_subscription<camera_msgs::msg::Cameras>(
       TOPIC_CAMERAS, discover_qos, std::bind(&CameraStreamer::topic_callback, this, _1));
     RCLCPP_INFO(this->get_logger(), "Cameras2++ Streamer Running...");
-
-    param_listener = std::make_shared<camera_streamer_service::ParamListener>(get_node_parameters_interface());
-    
   }
 
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr start_service_;
@@ -89,7 +85,6 @@ class CameraStreamer : public rclcpp::Node
   rclcpp::Service<camera_msgs::srv::GetCameraStreamStats>::SharedPtr stats_service_;
   rclcpp::Service<camera_msgs::srv::GetIPList>::SharedPtr ips_service_;
   rclcpp::Subscription<camera_msgs::msg::Cameras>::SharedPtr subscription_;
-  std::shared_ptr<camera_streamer_service::ParamListener> param_listener;
   std::unordered_map<std::string, Pipeline*> pipelines;
 
 
@@ -104,27 +99,25 @@ class CameraStreamer : public rclcpp::Node
         // reset camera? now with the change
       } else {
       // otherwise make the pipeline
-        Pipeline* pipeline;
+        Pipeline* pipeline = new Pipeline;
         pipeline->camera = &camera;
 
-        Properties* props;
-        PipelineTypes pipeline_type = PipelineTypes::V4l2WEBRTC; // TODO: find pipeline type for the serial
-        std::string pipeline_name = "";
+        std::string pipeline_type;
+        this->get_parameter_or<std::string>((PIPELINE_PREFIX + camera.serial + ".width").c_str(), pipeline_type, "v4l2webrtc"); 
 
-        switch (pipeline_type) {
-          case PipelineTypes::V4l2WEBRTC:
-            pipeline->props = props = get_v4l2webrtc_pipeline_properties(this, camera);
-            pipeline->gst_pipeline = v4l2webrtc_pipeline(this, props);
-            pipeline_name = "v4l2webrtc"; // probably could be better structured but oh well
-            break;
-        }
+        if (pipeline_type == "v4l2webrtc")
+        {
+          auto props = get_v4l2webrtc_pipeline_properties(this, &camera);
+          pipeline->props = props;
+          pipeline->gst_pipeline = v4l2webrtc_pipeline(this, props);
+          break;
+        } //else if (pipeline_type == "nextpipelinetype") {}
 
-        RCLCPP_INFO(this->get_logger(), "Creating %s pipeline for %s", pipeline_name, camera.serial.c_str());
+        RCLCPP_INFO(this->get_logger(), "Creating %s pipeline for %s", pipeline_type.c_str(), camera.serial.c_str());
         this->pipelines[camera.serial] = pipeline;
       }
     }
   }
-
 
 
   private: void operation_callback(
@@ -132,7 +125,6 @@ class CameraStreamer : public rclcpp::Node
     std::shared_ptr<camera_msgs::srv::CameraOperation::Response> response,
     CameraState state)  
   {
-    int ret;
     response->success = true;
     switch (state) {
       case CameraState::START:

@@ -8,8 +8,7 @@
 #include <camera_msgs/msg/camera.hpp>
 
 
-//figure out how to return gstelement address or null
-GstElement* v4l2webrtc_pipeline(rclcpp::Node* log_node, v4l2webrtcPipelineProperties* props)
+GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineProperties* props)
 {
   // A simple v4l camera to webrtc pipeline
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
@@ -23,10 +22,10 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* log_node, v4l2webrtcPipelineProper
   if (!gst_pipeline || !source || !filter || !decode || !convert || !webrtc
       || (props->show_clock && !clock) 
       ) {
-      RCLCPP_ERROR(log_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
+      RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
-  RCLCPP_INFO(log_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate);
+  RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate);
   g_object_set(source, "device", props->node.c_str(), NULL);
   GstCaps *caps = gst_caps_new_simple(
       props->mime.c_str(),
@@ -72,55 +71,36 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* log_node, v4l2webrtcPipelineProper
   }
 
   if (!ret) {
-      RCLCPP_ERROR(log_node->get_logger(), "Could not link elements of pipeline for %s", props->serial.c_str());
+      RCLCPP_ERROR(streamer_node->get_logger(), "Could not link elements of pipeline for %s", props->serial.c_str());
       return nullptr;
   }
 
   return gst_pipeline;
 }
 
-v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera camera)
+v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
 {
-  return nullptr;
-  // v4l2webrtcPipelineProperties* props; 
-  // camera_streamer_service::Params params = param_listener->get_params();
-  // std::map<std::string, rclcpp::Parameter> serial_params;
+  v4l2webrtcPipelineProperties* props = new v4l2webrtcPipelineProperties; 
 
-  // // set defaults
-  // props->width = params.defaults.camera_properties.width;
-  // props->height = params.defaults.camera_properties.height;
-  // props->framerate = params.defaults.camera_properties.framerate;
-  // props->mime = params.defaults.camera_properties.mime;
-  // props->congestion_control = params.defaults.pipeline_properties.congestion_control;
-  // props->do_fec = params.defaults.pipeline_properties.do_fec;
-  // props->do_retransmission = params.defaults.pipeline_properties.do_retransmission;
-  // props->show_clock = params.defaults.pipeline_properties.show_clock;
+  std::map<std::string, rclcpp::Parameter> serial_params;
 
-  // // override any defaults with params
-  // log_node->get_parameters("cameras." + serial, serial_params);
-  // RCLCPP_INFO(log_node->get_logger(), "get props for %s", serial.c_str());
-  // if (!serial_params.empty()) {
-  //   std::map<std::string, rclcpp::Parameter> camera_params;
-  //   log_node->get_parameters("cameras." + serial + ".camera_properties", camera_params);
-  //   if (!camera_params.empty()) {
-  //     props->width = camera_params.find("width") != camera_params.end() ? camera_params["width"].as_int() : props->width;
-  //     props->height = camera_params.find("height") != camera_params.end() ? camera_params["height"].as_int() : props->height;
-  //     props->framerate = camera_params.find("framerate") != camera_params.end() ? camera_params["framerate"].as_int() : props->framerate;
-  //     props->mime = camera_params.find("mime") != camera_params.end() ? camera_params["mime"].as_string() : props->mime;
-  //   }
-  //   std::map<std::string, rclcpp::Parameter> pipeline_params;
-  //   log_node->get_parameters("cameras." + serial + ".pipeline_properties", pipeline_params);
-  //   if (!camera_params.empty()) {
-  //     props->congestion_control = pipeline_params.find("congestion_control") != pipeline_params.end() ? pipeline_params["congestion_control"].as_string() : props->congestion_control;
-  //     props->do_fec = pipeline_params.find("do_fec") != pipeline_params.end() ? pipeline_params["do_fec"].as_bool() : props->do_fec;
-  //     props->do_retransmission = pipeline_params.find("do_retransmission") != pipeline_params.end() ? pipeline_params["do_retransmission"].as_bool() : props->do_retransmission;
-  //     props->show_clock = pipeline_params.find("show_clock") != pipeline_params.end() ? pipeline_params["show_clock"].as_bool() : props->show_clock;
-  //   }
-    // RCLCPP_INFO(log_node->get_logger(), "params, %d, %d, %d, %s, %s, %d, %d, %d", 
-    //   props->width, props->height, 
-    //   props->framerate, props->mime.c_str(),
-    //   props->congestion_control.c_str(), props->do_fec,
-    //   props->do_retransmission, props->show_clock
-    // );
-  // }
+  // override any defaults with params
+  RCLCPP_INFO(streamer_node->get_logger(), "get props for %s", camera->serial.c_str());
+  streamer_node->get_parameter_or((PIPELINE_PREFIX + camera->serial + ".width").c_str(), props->width, 640); 
+  streamer_node->get_parameter_or((PIPELINE_PREFIX + camera->serial + ".height").c_str(), props->height, 480); 
+  streamer_node->get_parameter_or((PIPELINE_PREFIX + camera->serial + ".framerate").c_str(), props->framerate, 10); 
+  streamer_node->get_parameter_or<std::string>((PIPELINE_PREFIX + camera->serial + ".mime").c_str(), props->mime, "image/jpeg"); 
+  streamer_node->get_parameter_or<std::string>((PIPELINE_PREFIX + camera->serial + ".congestion_control").c_str(), props->congestion_control, "gcc"); 
+  streamer_node->get_parameter_or((PIPELINE_PREFIX + camera->serial + ".do_fec").c_str(), props->do_fec, false); 
+  streamer_node->get_parameter_or((PIPELINE_PREFIX + camera->serial + ".do_retransmission").c_str(), props->do_retransmission, false); 
+  streamer_node->get_parameter_or((PIPELINE_PREFIX + camera->serial + ".show_clock").c_str(), props->show_clock, false); 
+
+  // RCLCPP_INFO(streamer_node->get_logger(), "params, %d, %d, %d, %s, %s, %d, %d, %d", 
+  //   props->width, props->height, 
+  //   props->framerate, props->mime.c_str(),
+  //   props->congestion_control.c_str(), props->do_fec,
+  //   props->do_retransmission, props->show_clock
+  // );
+
+  return props;
 }
