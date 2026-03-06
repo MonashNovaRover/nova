@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<NetworkDefinition xmlns="http://kayak.2codeornot2code.org/1.0" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+	<!-- included macros -->
+	<xacro:include filename="blcmd.kcd.xacro"/>
+
+	<Document name="Banksia Drive" version="0.0.1" author="Jonathan Jia" date="2026-03-06">
+		CAN Description file for Banksia's drive system
+	</Document>
+
+	<Node id="0" name="Orin"/>
+	<Node id="1" name="Front Left Wheel"/>
+	<Node id="2" name="Back Left Wheel"/>
+	<Node id="3" name="Back Right Wheel"/>
+	<Node id="4" name="Front Right Wheel"/>
+	<Node id="5" name="Front Left Pivot"/>
+	<Node id="6" name="Back Left Pivot"/>
+	<Node id="7" name="Back Right Pivot"/>
+	<Node id="8" name="Front Right Pivot"/>
+
+	<!-- shared parameters -->
+	<xacro:property name="wheel_max_velocity" value="41.912"/>
+	<xacro:property name="pivot_max_velocity" value="9.1439"/>
+
+	<!-- calculate position_multiplier and position_offset for pivots
+	using parameters copied directly from ros2_control.xacro
+	and reversing the calculation used in blcmd_hardware2.cpp -->
+	<xacro:property name="resolver_reduction" value="1.33333333333"/>
+	<xacro:property name="res_ticks_per_rev" value="98304"/>
+	<xacro:property name="zero_offset" value="14717"/>
+
+	<xacro:property name="pivot_position_multiplier" value="${ (2 * pi) / (resolver_reduction * res_ticks_per_rev) }"/>
+	<xacro:property name="pivot_position_offset" value="${ -1 * zero_offset * pivot_position_multiplier }"/>
+
+
+	<Bus name="can0" baudrate="250000">
+
+		<xacro:blcmd_messages
+				blcmd_id="1"
+				joint_name="flw"
+				max_velocity="${wheel_max_velocity}"/>
+
+		<xacro:blcmd_messages
+				blcmd_id="2"
+				joint_name="blw"
+				max_velocity="${wheel_max_velocity}"/>
+
+		<xacro:blcmd_messages
+				blcmd_id="3"
+				joint_name="brw"
+				max_velocity="${wheel_max_velocity}"/>
+
+		<xacro:blcmd_messages
+				blcmd_id="4"
+				joint_name="frw"
+				max_velocity="${wheel_max_velocity}"/>
+
+		<xacro:blcmd_messages
+				blcmd_id="5"
+				joint_name="flp"
+				max_velocity="${pivot_max_velocity}"
+				position_multiplier="${-1 * pivot_position_multiplier}"
+				position_offset="${-1 * pivot_position_offset}"/>
+
+		<xacro:blcmd_messages
+				blcmd_id="6"
+				joint_name="blp"
+				max_velocity="${pivot_max_velocity}"
+				position_multiplier="${pivot_position_multiplier}"
+				position_offset="${pivot_position_offset}"/>
+
+		<xacro:blcmd_messages
+				blcmd_id="7"
+				joint_name="brp"
+				max_velocity="${pivot_max_velocity}"
+				position_multiplier="${-1 * pivot_position_multiplier}"
+				position_offset="${-1 * pivot_position_offset}"/>
+
+		<xacro:blcmd_messages
+				blcmd_id="8"
+				joint_name="frp"
+				max_velocity="${pivot_max_velocity}"
+				position_multiplier="${pivot_position_multiplier}"
+				position_offset="${pivot_position_offset}"/>
+
+	</Bus>
+</NetworkDefinition>
