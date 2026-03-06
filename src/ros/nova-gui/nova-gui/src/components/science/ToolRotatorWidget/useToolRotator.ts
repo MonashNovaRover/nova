@@ -13,7 +13,7 @@ export function useToolRotatorServices(): [(name: string, position: number) => v
   }
 
   const setPos = (newPos: number) => {
-    bifrostSetPos.callService({positions: [newPos]})
+    bifrostSetPos.callService({position: newPos})
   }
 
   return [setPresets, setPos]

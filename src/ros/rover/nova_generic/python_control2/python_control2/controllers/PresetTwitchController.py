@@ -20,7 +20,7 @@ from ..controller_manager.Contexts import Contexts
 from ..controller_manager.Activation import Activation
 from ..controllers.Controller import Controller
 from teleop_python_utils import Inputs, Button
-from science_interfaces.srv import SetPositionPresets, SetPositionPresets_Request, SetPositionPresets_Response
+from science_interfaces.srv import SetPositionPresets, SetPositionPresets_Request, SetPositionPresets_Response, SetPosition, SetPosition_Request, SetPosition_Response
 
 
 class PresetTwitchController(Controller):
@@ -70,7 +70,7 @@ class PresetTwitchController(Controller):
 
         position_service_name = self.declare_parameter("set_position_service", set_position_service, "Optional service name that will set position.").value
         if position_service_name != "":
-            self.set_presets_service = self.node.create_service(SetPositionPresets, position_service_name, self.set_position_callback)
+            self.set_presets_service = self.node.create_service(SetPosition, position_service_name, self.set_position_callback)
 
         # Get inputs
         inputs = contexts[Inputs]
@@ -176,12 +176,7 @@ class PresetTwitchController(Controller):
 
     def set_position_callback(self, request: SetPositionPresets_Request, response: SetPositionPresets_Response):
         """ Service callback to set the position """
-        # TODO change to SetPosition service message
-        if len(request.positions) < 1:
-            response.success = False
-            return response
-
-        desired_angle = request.positions[0]
+        desired_angle = request.position
 
         if desired_angle > self.max_angle:
             desired_angle = self.max_angle

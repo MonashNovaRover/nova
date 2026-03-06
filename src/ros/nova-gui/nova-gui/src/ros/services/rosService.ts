@@ -42,11 +42,11 @@ export enum RosService {
   SET_AA_POSITION = "/science/analysis_arm/set_position",
   STOP_AA_MOVEMENT = "/science/analysis_arm/stop",
   RESET_TOF = "/science/tof/reset",
+  TOOL_ROTATOR_PRESETS = "/science/tool_rotator/set_presets",
+  TOOL_ROTATOR_POSITION = "/science/tool_rotator/set_position",
 
   // General
   REQUEST_HYDRAPROBE_READING = "/science/request_hydraprobe_reading",
-  TOOL_ROTATOR_PRESETS = "/science/tool_rotator/set_presets",
-  TOOL_ROTATOR_POSITION = "/science/tool_rotator/set_position",
 
   // Autononomous Related
   CARTOGRAPHER_COMMAND = "/autonomous/cartographer_command",

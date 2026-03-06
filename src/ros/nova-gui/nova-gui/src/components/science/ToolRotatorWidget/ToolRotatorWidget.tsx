@@ -9,6 +9,10 @@ export interface PresetPositions {
   sweeper: number
 }
 
+/**
+ * Widget to set ToolRotator preset positions and set the current position.
+ * @constructor
+ */
 const ToolRotatorWidget: React.FC = () => {
   const [setPreset, setPosition] = useToolRotatorServices()
   const [savedPresets, setSavedPresets] = useGenericStore<PresetPositions>("toolRotatorPresets")

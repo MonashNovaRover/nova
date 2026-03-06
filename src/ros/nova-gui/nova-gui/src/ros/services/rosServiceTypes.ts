@@ -30,9 +30,10 @@ import {
   IRosNovaInterfacesCartographerCommandRequest,
   IRosNovaInterfacesCartographerCommandResponse,
   IRosScienceInterfacesMoveHydraprobeRequest,
-  IRosScienceInterfacesMoveHydraprobeResponse, IRosScienceInterfacesSetPositionPresetsRequest,
+  IRosScienceInterfacesMoveHydraprobeResponse,
+  IRosScienceInterfacesSetPositionPresetsRequest,
   IRosScienceInterfacesSetPositionPresetsResponse,
-  IRosScienceInterfacesMoveHydraprobeResponse, IRosScienceInterfacesSetPositionRequest,
+  IRosScienceInterfacesSetPositionRequest,
   IRosScienceInterfacesSetPositionResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
@@ -154,14 +155,6 @@ export interface RosServiceInterface {
     IRosScienceInterfacesKilnCommandRequest,
     IRosScienceInterfacesKilnCommandResponse
   >;
-  [RosService.TOOL_ROTATOR_PRESETS]: RosServiceMessage<
-    IRosScienceInterfacesSetPositionPresetsRequest,
-    IRosScienceInterfacesSetPositionPresetsResponse
-  >;
-  [RosService.TOOL_ROTATOR_POSITION]: RosServiceMessage<
-    IRosScienceInterfacesSetPositionPresetsRequest,   // TODO use setPosition instead
-    IRosScienceInterfacesSetPositionPresetsResponse
-  >;
   [RosService.ZERO_ANALYSIS_ARM]: RosServiceMessage<
     EmptyMessage,
     IRosStdSrvsTriggerResponse
@@ -177,6 +170,14 @@ export interface RosServiceInterface {
   [RosService.RESET_TOF]: RosServiceMessage<
     EmptyMessage,
     IRosStdSrvsTriggerResponse
+  >;
+  [RosService.TOOL_ROTATOR_PRESETS]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionPresetsRequest,
+    IRosScienceInterfacesSetPositionPresetsResponse
+  >;
+  [RosService.TOOL_ROTATOR_POSITION]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionRequest,
+    IRosScienceInterfacesSetPositionResponse
   >;
 
   // General
