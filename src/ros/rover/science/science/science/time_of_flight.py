@@ -124,7 +124,7 @@ if __name__ == "__main__":
             can_message=[]) \
         .with_hardware("tof_sensor", GenericSensorHardware,
             can_id = 0x4E1,
-            interpret_data = lambda data: int(data[2]), # data in third byte
+            interpret_data = lambda data: int(data[5]), # data in third byte
             unit = "distance") \
         .with_jcan() \
         .with_event_collection() \

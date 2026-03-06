@@ -16,7 +16,7 @@ analysis_arm:
     hardware:
       actuation:
         can_id: 0x0E4
-        max_effort: 1.0
+        max_effort: 0.6
         reversed: false
         max_position: 260.0 # mm  (should be same as controller)
         use_max_position: true # change to false to disable position limits
