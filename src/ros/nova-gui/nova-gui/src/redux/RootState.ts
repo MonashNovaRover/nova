@@ -81,6 +81,7 @@ export interface RootState {
 
   // Science Stores
   tofStore: IRosSensorMsgsRange;
+  aaPosStore: IRosSensorMsgsRange;
   nirStore: IRosScienceInterfacesNirProbeData;
   waterPumpStatus: IRosScienceInterfacesEffortStatus;
   diaphragmPumpStatus: IRosScienceInterfacesEffortStatus;
