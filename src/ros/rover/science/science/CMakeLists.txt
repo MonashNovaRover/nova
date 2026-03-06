@@ -76,7 +76,8 @@ install(PROGRAMS
         science/auger.py
         science/cbeam.py
         science/auger_old.py
-        science/nir_probe_publisher.py
+        science/nir_probe_publisher_old.py
+        science/nir_probe.py
         science/scimbal_cam_old.py
         science/scimbal_cam.py
         science/control_test.py

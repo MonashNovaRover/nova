@@ -53,6 +53,24 @@ time_of_flight_sensor:
         can_id: 0x4E1
         unit: "distance"
 
+nir_probe:
+  ros__parameters:
+    can_bus: "can1"
+    controllers:
+      controller:
+        update_rate: 5
+        photodiode_sensors: ["PD1", "PD2"]
+        hardware_name: "NIR_Probe"
+        command_service: "/science/take_nir_probe_reading"
+        data_topic: "/science/nir_probe_data"
+    hardware:
+      NIR_Probe_take_reading:
+        can_id: 0x0E9
+      NIR_Sensors:
+        can_id: 0x4E2
+        unit: "data"
+        initial_value: [0,0]
+
 
 # CBeam - Nodes for components on the CBeam
 
