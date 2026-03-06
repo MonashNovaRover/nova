@@ -8,9 +8,9 @@ COMMAND INTERFACES:
                                 min_angle and max_angle]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        python_control2
-AUTHOR(S):      Binuda Kalugalage
+AUTHOR(S):      Binuda Kalugalage, Felicity Matthews
 CREATION:       24/01/2026
-EDITED:         26/01/2026
+EDITED:         07/03/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 from typing import Optional, Dict
