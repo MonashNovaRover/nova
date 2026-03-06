@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Button, Card, CardProps } from "@nextui-org/react";
+import { Button, CardProps } from "@nextui-org/react";
 
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
@@ -56,7 +56,7 @@ const chartConfig = {
     textStyle: { color: "#fff" },
     extraCssText: "border-radius:10px;",
 
-    formatter: (params: any) => {
+    formatter: (params: { value: [number, number] }[]) => {
       const point = params[0].value;
       if (point) {
         const time = new Date(point[0]).toLocaleTimeString("en-GB", { hour12: false });
@@ -69,7 +69,7 @@ const chartConfig = {
   },
 };
 
-const KilnChart: React.FC<KilnChartProps> = (props) => {
+const KilnChart: React.FC<KilnChartProps> = () => {
   const [maxTemp, setMaxTemp] = useState(150);
 
   const [seriesData, setSeriesData] = useState({
@@ -148,33 +148,34 @@ const KilnChart: React.FC<KilnChartProps> = (props) => {
     setSeriesData({ time: [], temp: [] });
   };
 
-return (
-  <>
-    <div className="flex items-center justify-between gap-2">
-      <Button
-        isDisabled
-        className={"text-lg opacity-100 bg-content3"}>
-        {currentTempText}
-      </Button>
-      <div className="flex items-center gap-2">
-        <Button size="sm" variant="flat" isIconOnly onPress={exportChart}>
-          <Download size={16} />
+  return (
+    <>
+      <div className="flex items-center justify-between gap-2">
+        <Button
+          isDisabled
+          className={"text-lg opacity-100 bg-content3"}>
+          {currentTempText}
         </Button>
-        <Button size="sm" variant="flat" onPress={resetTimescale}>
-          Reset timescale
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="flat" isIconOnly onPress={exportChart}>
+            <Download size={16} />
+          </Button>
+          <Button size="sm" variant="flat" onPress={resetTimescale}>
+            Reset timescale
+          </Button>
+        </div>
       </div>
-    </div>
-    <div className="w-full" style={{ height: 240 }}>
-      <ReactECharts
-        ref={chartRef}
-        option={chartOption}
-        style={{ height: "100%", width: "100%" }}
-        lazyUpdate={true}
-        opts={{ renderer: "canvas" }}
-      />
-    </div>
-  </>
-);};
+      <div className="w-full" style={{ height: 240 }}>
+        <ReactECharts
+          ref={chartRef}
+          option={chartOption}
+          style={{ height: "100%", width: "100%" }}
+          lazyUpdate={true}
+          opts={{ renderer: "canvas" }}
+        />
+      </div>
+    </>
+  );
+};
 
 export default KilnChart;
