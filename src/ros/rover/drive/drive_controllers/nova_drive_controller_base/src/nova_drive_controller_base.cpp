@@ -169,12 +169,7 @@ controller_interface::return_type NovaDriveControllerBase::update(
   // ####################### Process input ###############################
   Commands cmds;
 
-  if (last_commanded_time_.nanoseconds() == 0)
-  {
-    last_commanded_time_ = get_node()->now();
-  }
-  
-  const auto age_of_last_command = time - last_commanded_time_;
+  const auto age_of_last_command = time - last_received_time_;
   if (age_of_last_command > cmd_vel_command_timeout_)
   {
     cmds.linear_velocity_x = 0.0;
@@ -188,7 +183,6 @@ controller_interface::return_type NovaDriveControllerBase::update(
   else
   {
     cmds = twist_to_commands(command_msg_ptr->twist, base_params_->autonomous_mode, period);
-    last_commanded_time_ = get_node()->now();
   }
 
   // ################### Update and publish odometry #####################
@@ -425,6 +419,8 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
           rclcpp::Time(msg->header.stamp).seconds(), current_time_diff.seconds(),
           cmd_vel_receive_timeout_.seconds());
       }
+
+      last_received_time_ = get_node()->now();
     });
 
   return controller_interface::CallbackReturn::SUCCESS;
