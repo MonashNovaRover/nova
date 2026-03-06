@@ -6,3 +6,4 @@ from .GenericSensorHardware import GenericSensorHardware
 from .PositionalServoHardware import PositionalServoHardware
 from .StepperHardware import StepperHardware
 from .ContinousServoHardware import ContinousServoHardware
+from .TriggerHardware import TriggerHardware

@@ -1,13 +1,10 @@
-import DriveModeWidget from "../../components/drive/DriveModeWidget/DriveModeWidget.tsx";
-import WheelTelemetryWidget from "../../components/drive/WheelTelemetryWidget/WheelTelemetryWidget.tsx";
-import DriveSpeedWidget from "../../components/drive/DriveSpeedWidget/DriveSpeedWidget.tsx";
-import TOFHeight from "../../components/science/AnalysisPlatformHeight/AnalysisPlatformHeight.tsx";
 import KilnWidget from "../../components/science/KilnWidget/KilnWidget.tsx";
 import MicroscopeWidget from "../../components/science/MicroscopeThresholdWidget/MicroscopeWidget.tsx";
 import EffortWidget from "../../components/science/EffortWidget/EffortWidget.tsx";
 import { RosService } from "../../ros/services/rosService.ts";
 import { RosTopic } from "../../ros/topics/rosTopic.ts";
 import { RootState } from "../../redux/RootState.ts";
+import AnalysisArmWidget from "../../components/science/AnalysisPlatformHeight/AnalysisPlatformWidget.tsx";
 
 export const ARCMicroscopeView = () => {
   return (
@@ -32,10 +29,7 @@ export const ARCMicroscopeView = () => {
         </div>
         <div className="flex flex-col gap-3 col-span-3">
           <KilnWidget />
-          <DriveModeWidget />
-          <WheelTelemetryWidget />
-          <DriveSpeedWidget />
-          <TOFHeight />
+          <AnalysisArmWidget/>
         </div>
       </div>
     </div>
