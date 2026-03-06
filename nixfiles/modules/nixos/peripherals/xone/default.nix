@@ -9,7 +9,7 @@ in
   options.peripherals.xone0_4_12.enable = lib.mkEnableOption "Enable xone driver version 0.4.12, the last version supported by linux 5.15";
 
   config = lib.mkIf cfg.enable {
-    hardware.firmware = [ pkgs.xow_dongle-firmware ];
+    hardware.firmware = [ pkgs.xone-dongle-firmware ];
     boot = {
       blacklistedKernelModules = [
         "xpad"

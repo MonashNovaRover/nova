@@ -25,10 +25,9 @@ in
         ethernetInterface = "ethA";
         wifiInterface = "none";
         secondaryEthernetInterface = "ethB";
-        rover = {
+        prp = {
           enable = true;
-          ethernetIpAddr = "10.0.0.10";
-          hostname = "rover";
+          address = "0.10";
         };
       };
     };
@@ -40,10 +39,9 @@ in
         ethernetInterface = "ethA";
         wifiInterface = "none";
         secondaryEthernetInterface = "ethB";
-        rover = {
+        prp = {
           enable = true;
-          ethernetIpAddr = "10.0.0.1";
-          hostname = "base";
+          address = "0.1";
         };
       };
     };

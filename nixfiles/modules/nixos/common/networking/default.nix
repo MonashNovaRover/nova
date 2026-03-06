@@ -18,6 +18,7 @@
   imports = [
     ./rover
     ./mast
+    ./prp
   ];
 
   config = {
