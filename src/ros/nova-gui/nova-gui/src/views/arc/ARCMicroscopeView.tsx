@@ -1,5 +1,4 @@
 import KilnWidget from "../../components/science/KilnWidget/KilnWidget.tsx";
-import KilnChart from "../../components/science/KilnWidget/KilnChart.tsx";
 import MicroscopeWidget from "../../components/science/MicroscopeThresholdWidget/MicroscopeWidget.tsx";
 import EffortWidget from "../../components/science/EffortWidget/EffortWidget.tsx";
 import { RosService } from "../../ros/services/rosService.ts";
@@ -30,7 +29,6 @@ export const ARCMicroscopeView = () => {
         </div>
         <div className="flex flex-col gap-3 col-span-3">
           <KilnWidget />
-          <KilnChart />
           <AnalysisArmWidget/>
         </div>
       </div>

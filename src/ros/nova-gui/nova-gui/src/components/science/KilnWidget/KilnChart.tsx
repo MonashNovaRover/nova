@@ -148,34 +148,33 @@ const KilnChart: React.FC<KilnChartProps> = (props) => {
     setSeriesData({ time: [], temp: [] });
   };
 
-  return (
-    <Card {...props} className="space-y-3 p-3">
-      <div className="flex items-center justify-between gap-2">
-        <Button
-          isDisabled
-          className={"text-lg opacity-100 bg-content3"}>
-          {currentTempText}
+return (
+  <>
+    <div className="flex items-center justify-between gap-2">
+      <Button
+        isDisabled
+        className={"text-lg opacity-100 bg-content3"}>
+        {currentTempText}
+      </Button>
+      <div className="flex items-center gap-2">
+        <Button size="sm" variant="flat" isIconOnly onPress={exportChart}>
+          <Download size={16} />
         </Button>
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="flat" isIconOnly onPress={exportChart}>
-            <Download size={16} />
-          </Button>
-          <Button size="sm" variant="flat" onPress={resetTimescale}>
-            Reset timescale
-          </Button>
-        </div>
+        <Button size="sm" variant="flat" onPress={resetTimescale}>
+          Reset timescale
+        </Button>
       </div>
-      <div className="w-full" style={{ height: 280 }}>
-        <ReactECharts
-          ref={chartRef}
-          option={chartOption}
-          style={{ height: "100%", width: "100%" }}
-          lazyUpdate={true}
-          opts={{ renderer: "canvas" }}
-        />
-      </div>
-    </Card>
-  );
-};
+    </div>
+    <div className="w-full" style={{ height: 240 }}>
+      <ReactECharts
+        ref={chartRef}
+        option={chartOption}
+        style={{ height: "100%", width: "100%" }}
+        lazyUpdate={true}
+        opts={{ renderer: "canvas" }}
+      />
+    </div>
+  </>
+);};
 
 export default KilnChart;
