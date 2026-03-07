@@ -59,6 +59,7 @@ export interface RosTopicInterfaces {
 
   // Science Related
   [RosTopic.TOF]: IRosSensorMsgsRange;
+  [RosTopic.AA_POS]: IRosSensorMsgsRange;
   [RosTopic.KILN_DATA]: IRosScienceInterfacesKilnData;
   [RosTopic.WATER_PUMP_STATUS]: IRosScienceInterfacesEffortStatus;
   [RosTopic.DIAPHRAGM_PUMP_STATUS]: IRosScienceInterfacesEffortStatus;

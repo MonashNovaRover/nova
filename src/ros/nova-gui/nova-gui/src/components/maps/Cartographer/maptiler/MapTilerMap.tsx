@@ -44,7 +44,7 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile 
         sources: {
           tiles: {
             tiles: [
-              `http://${baseStationIp}:8080/data/${mapTile}/{z}/{x}/{y}.png`,
+              `http://${baseStationIp}:8080/services/${mapTile}/maps/{z}/{x}/{y}.png`,
             ],
             type: "raster",
             bounds: MAP_BOUNDS[mapTile],

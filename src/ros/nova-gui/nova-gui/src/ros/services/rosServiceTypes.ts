@@ -31,6 +31,10 @@ import {
   IRosNovaInterfacesCartographerCommandResponse,
   IRosScienceInterfacesMoveHydraprobeRequest,
   IRosScienceInterfacesMoveHydraprobeResponse,
+  IRosScienceInterfacesSetPositionPresetsRequest,
+  IRosScienceInterfacesSetPositionPresetsResponse,
+  IRosScienceInterfacesSetPositionRequest,
+  IRosScienceInterfacesSetPositionResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -151,7 +155,32 @@ export interface RosServiceInterface {
     IRosScienceInterfacesKilnCommandRequest,
     IRosScienceInterfacesKilnCommandResponse
   >;
+  [RosService.ZERO_ANALYSIS_ARM]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
+  [RosService.SET_AA_POSITION]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionRequest,
+    IRosScienceInterfacesSetPositionResponse
+  >;
+  [RosService.STOP_AA_MOVEMENT]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
+  [RosService.RESET_TOF]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
+  [RosService.TOOL_ROTATOR_PRESETS]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionPresetsRequest,
+    IRosScienceInterfacesSetPositionPresetsResponse
+  >;
+  [RosService.TOOL_ROTATOR_POSITION]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionRequest,
+    IRosScienceInterfacesSetPositionResponse
+  >;
 
+  // General
   [RosService.RGBInput]: RosServiceMessage<
     IRosNovaInterfacesRgbInputRequest,
     IRosNovaInterfacesRgbInputResponse

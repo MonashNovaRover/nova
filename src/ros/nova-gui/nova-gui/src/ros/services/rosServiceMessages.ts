@@ -35,6 +35,14 @@ export const rosServiceMessages = {
   [RosService.HEATER]: "science_interfaces/srv/KilnCommand",
   [RosService.REQUEST_HYDRAPROBE_READING]: "std_srvs/srv/Trigger",
   [RosService.CAROUSEL]: "science_interfaces/srv/KilnCommand",
+  [RosService.ZERO_ANALYSIS_ARM]: "std_srvs/srv/Trigger",
+  [RosService.SET_AA_POSITION]: "science_interfaces/srv/SetPosition",
+  [RosService.STOP_AA_MOVEMENT]:  "std_srvs/srv/Trigger",
+  [RosService.RESET_TOF]: "std_srvs/srv/Trigger",
+  [RosService.TOOL_ROTATOR_PRESETS]: "science_interfaces/srv/SetPositionPresets",
+  [RosService.TOOL_ROTATOR_POSITION]:"science_interfaces/srv/SetPosition",
+
+  // General
   [RosService.RGBInput]: "nova_interfaces/srv/RGBInput",
 
   // Autonomous Related

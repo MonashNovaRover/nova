@@ -52,6 +52,7 @@ install(PROGRAMS
         science/arc/arc_spinny_part.py
         science/arc/kiln.py
         science/arc/kiln_old.py
+        science/arc/kiln_door.py
         science/arc/sweeper.py
         science/arc/sweeper_old.py
         science/arc/water_pump.py
@@ -75,7 +76,8 @@ install(PROGRAMS
         science/auger.py
         science/cbeam.py
         science/auger_old.py
-        science/nir_probe_publisher.py
+        science/nir_probe_publisher_old.py
+        science/nir_probe.py
         science/scimbal_cam_old.py
         science/scimbal_cam.py
         science/control_test.py

@@ -53,6 +53,8 @@ game_controller_source:
       axes:
         auger_actuation:
           from: "RIGHTY"
+        cbeam_actuation:
+          from: "RIGHTX"
         auger_drill_speed:
           from: "LEFTY"
         analysis_arm_actuation:
@@ -71,7 +73,7 @@ game_controller_source:
           from: "A"
         auger_drill_anticlockwise:
           from: "B"
-        activate_auger:
+        activate_analysis_arm:
           from: "DPAD_UP"
         activate_cbeam:
           from: "DPAD_LEFT"

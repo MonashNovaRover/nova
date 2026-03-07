@@ -23,7 +23,7 @@ const NIRProbeCalcTable: React.FC<NIRProbeCalcTableProps> = () => {
         <TableCell key={2}>
           {averageY.toFixed(4)}
         </TableCell>
-        <TableCell key={3}>
+        <TableCell key={3} className={"font-extrabold text-[#22d3ee]"}>
           {calibratedResult}
         </TableCell>
         <TableCell key={0}>{""}</TableCell>

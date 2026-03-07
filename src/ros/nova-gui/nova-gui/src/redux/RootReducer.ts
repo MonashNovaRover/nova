@@ -7,7 +7,6 @@ import {
   IRosCmdInterfacesCmDsFeedback,
   IRosNovaInterfacesStatusConst,
   IRosScienceInterfacesHydraprobeData,
-  IRosScienceInterfacesNirProbeDataConst,
   IRosSensorMsgsRange,
   IRosStdMsgsHeader
 } from "../ros/rosTypes";
@@ -24,6 +23,7 @@ import {filterStores, getReducers} from "./store/rootReducerFilters.ts";
 import {StoreType} from "./models/StoreContext.ts";
 import {DEFAULT_NIR_PROBE_CALIBRATION_DATA} from "./models/genericStores/NIRProbeCalibrationData.ts";
 import {initialCameraProfilesState} from "./models/CameraProfilesState.ts";
+import {PresetPositions} from "../components/science/ToolRotatorWidget/ToolRotatorWidget.tsx";
 
 /**
  * reduxStores contains all stores in redux as either it's Reducer
@@ -173,14 +173,23 @@ export const reduxStores = {
       frame_id: "",
     } as IRosStdMsgsHeader,
     min_range: 0.0,
+    max_range: 100.0,
+    range: 120.0,
+  } as IRosSensorMsgsRange),
+  aaPosStore: createBifrostStore({ topic: RosTopic.AA_POS }, {
+    header: {
+      frame_id: "",
+    } as IRosStdMsgsHeader,
+    min_range: 0.0,
     max_range: 150.0,
     range: 0.0,
   } as IRosSensorMsgsRange),
   nirStore: createBifrostStore(
     { topic: RosTopic.NIR_DATA },
     {
-      data: 0,
-      led: IRosScienceInterfacesNirProbeDataConst.LED_OFF,
+      data: [0,0],
+      status: 0,
+      reading_taken: false
     }
   ),
   microscopeServoStore: createBifrostStore(
@@ -359,6 +368,7 @@ export const reduxStores = {
   cameraProfiles: createGenericStore("cameraProfiles", initialCameraProfilesState),
   clickAndHold: createGenericStore("clickAndHold", false),
   windowWideWASD: createGenericStore("windowWideWASD", false),
+  toolRotatorPresets: createGenericStore("toolRotatorPresets", {sweeper: 0.0, microscope: 120.0, nir_probe: 240.0} as PresetPositions)
 };
 
 // all store reducers

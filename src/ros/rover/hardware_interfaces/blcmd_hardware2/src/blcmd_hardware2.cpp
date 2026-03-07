@@ -33,17 +33,15 @@
 namespace blcmd_hardware
 {
 
-template<typename T>
-void differential_convert_to_motors(T pitch, T yaw, T& j5, T& j6) {
+void differential_convert_to_motors(double pitch, double yaw, double& j5, double& j6) {
   // yaw is pitch
   // pitch is roll
   j5 = (pitch + yaw*3);
   j6 = -(pitch - yaw*3);
 }
 
-template<typename T>
-void differential_convert_from_motors(T j5, T j6, T& pitch, T& yaw) {
-  pitch = (j5 + (-j6)) / 2.0;
+void differential_convert_from_motors(double j5, double j6, double& pitch, double& yaw) {
+  pitch = -(j5 + (-j6)) / 2.0;
   yaw = (j5 - (-j6)) / 6.0;
 }
 
@@ -317,7 +315,6 @@ hardware_interface::return_type BLCMDHardware::write(
 
                 RCLCPP_DEBUG_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                 "Sending Diff Wrist Position Command ");
-                RCLCPP_INFO(rclcpp::get_logger(BLCMDHardwareLoggerName), "Diff wrist Position");
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION, params_.canids[0]),
                                     value1, hw_positions_[0].max);
                 send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION, params_.canids[1]),
@@ -736,19 +733,19 @@ bool BLCMDHardware::set_control_interface(
         auto i = std::distance(params_.canids.begin(), id_location);
         if(hw_velocities_.at(i).state.has_value()) {
             if (params_.diff_wrist && i == 0) {
-               differential_actual_value1 = convert_scaled<int16_t>(&frame.data[0], hw_velocities_.at(i).max) *
+               differential_velocity_actual_value1 = convert_scaled<int16_t>(&frame.data[0], hw_velocities_.at(i).max) *
                  reversed_multiplier_*-1*0.5; // Dear Bro, ask chassis why this is -1
                                               //
-                double converted_value1, converted_value2;
-                differential_convert_from_motors(differential_actual_value1, differential_actual_value2, converted_value1, converted_value2);
+                double converted_value1, converted_value2 = 0.0;
+                differential_convert_from_motors(differential_velocity_actual_value1, differential_velocity_actual_value2, converted_value1, converted_value2);
                hw_velocities_.at(0).state = converted_value1;
                hw_velocities_.at(1).state = converted_value2;
             } else if (params_.diff_wrist && i == 1) {
-               differential_actual_value2 = convert_scaled<int16_t>(&frame.data[0], hw_velocities_.at(i).max) *
+               differential_velocity_actual_value2 = convert_scaled<int16_t>(&frame.data[0], hw_velocities_.at(i).max) *
                  reversed_multiplier_*-1*0.5; // Dear Bro, ask chassis why this is -1
                                               //
-                double converted_value1, converted_value2;
-                differential_convert_from_motors(differential_actual_value1, differential_actual_value2, converted_value1, converted_value2);
+                double converted_value1, converted_value2 = 0.0;
+                differential_convert_from_motors(differential_velocity_actual_value1, differential_velocity_actual_value2, converted_value1, converted_value2);
                hw_velocities_.at(0).state = converted_value1;
                hw_velocities_.at(1).state = converted_value2;
             } else {
@@ -759,15 +756,15 @@ bool BLCMDHardware::set_control_interface(
 
         if(hw_efforts_.at(i).state.has_value()) {
              if (params_.diff_wrist && i == 0) {
-               differential_actual_value1 = convert_scaled<int16_t>(&frame.data[0], hw_efforts_.at(i).max);
-                double converted_value1, converted_value2;
-                differential_convert_from_motors(differential_actual_value1, differential_actual_value2, converted_value1, converted_value2);
+               differential_effort_actual_value1 = convert_scaled<int16_t>(&frame.data[0], hw_efforts_.at(i).max);
+                double converted_value1, converted_value2 = 0.0;
+                differential_convert_from_motors(differential_effort_actual_value1, differential_effort_actual_value2, converted_value1, converted_value2);
                 hw_efforts_.at(0).state = converted_value1;
                 hw_efforts_.at(1).state = converted_value2;
             } else if (params_.diff_wrist && i == 1) {
-               differential_actual_value2 = convert_scaled<int16_t>(&frame.data[0], hw_efforts_.at(i).max);
-                double converted_value1, converted_value2;
-                differential_convert_from_motors(differential_actual_value1, differential_actual_value2, converted_value1, converted_value2);
+               differential_effort_actual_value2 = convert_scaled<int16_t>(&frame.data[0], hw_efforts_.at(i).max);
+                double converted_value1, converted_value2 = 0.0;
+                differential_convert_from_motors(differential_effort_actual_value1, differential_effort_actual_value2, converted_value1, converted_value2);
                 hw_efforts_.at(0).state = converted_value1;
                 hw_efforts_.at(1).state = converted_value2;
             } else {
@@ -804,9 +801,9 @@ bool BLCMDHardware::set_control_interface(
                 double resolverPosRads = 2*M_PI*resolverPosRevs;
                 double jointPosRads = resolverPosRads * reversed_multiplier_ / params_.resolver_reduction;
 
-                differential_actual_value1 = jointPosRads;
-                double converted_value1, converted_value2;
-                differential_convert_from_motors(differential_actual_value1, differential_actual_value2, converted_value1, converted_value2);
+                differential_position_actual_value1 = jointPosRads;
+                double converted_value1, converted_value2 = 0.0;
+                differential_convert_from_motors(differential_position_actual_value1, differential_position_actual_value2, converted_value1, converted_value2);
                 hw_positions_.at(0).state = converted_value1;
                 hw_positions_.at(1).state = converted_value2;
             } else if (params_.diff_wrist && i == 1) {
@@ -825,9 +822,9 @@ bool BLCMDHardware::set_control_interface(
                 double resolverPosRads = 2*M_PI*resolverPosRevs;
                 double jointPosRads = resolverPosRads * reversed_multiplier_ / params_.resolver_reduction;
 
-                differential_actual_value2 = jointPosRads;
-                double converted_value1, converted_value2;
-                differential_convert_from_motors(differential_actual_value1, differential_actual_value2, converted_value1, converted_value2);
+                differential_position_actual_value2 = jointPosRads;
+                double converted_value1, converted_value2 = 0.0;
+                differential_convert_from_motors(differential_position_actual_value1, differential_position_actual_value2, converted_value1, converted_value2);
                 hw_positions_.at(0).state = converted_value1;
                 hw_positions_.at(1).state = converted_value2;
             } else {

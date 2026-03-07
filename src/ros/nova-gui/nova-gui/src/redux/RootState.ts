@@ -46,6 +46,7 @@ import { GenericStoreState } from "./models/genericStores/GenericStoreState.ts";
 import {Site} from "./models/genericStores/CurrentSiteStore.ts";
 import {SiteDataState} from "./models/genericStores/SiteDataState.ts";
 import {NIRProbeCalibrationData} from "./models/genericStores/NIRProbeCalibrationData.ts";
+import {PresetPositions} from "../components/science/ToolRotatorWidget/ToolRotatorWidget.tsx";
 
 export interface RootState {
   // Bifrost Stores
@@ -81,6 +82,7 @@ export interface RootState {
 
   // Science Stores
   tofStore: IRosSensorMsgsRange;
+  aaPosStore: IRosSensorMsgsRange;
   nirStore: IRosScienceInterfacesNirProbeData;
   waterPumpStatus: IRosScienceInterfacesEffortStatus;
   diaphragmPumpStatus: IRosScienceInterfacesEffortStatus;
@@ -122,6 +124,7 @@ export interface RootState {
   uvVisBlankStore : GenericStoreState<number[]>;
   clickAndHold : GenericStoreState<boolean>;
   windowWideWASD : GenericStoreState<boolean>;
+  toolRotatorPresets: GenericStoreState<PresetPositions>
 
   batteryStore: IRosSensorMsgsBatteryState;
 

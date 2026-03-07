@@ -35,17 +35,19 @@ if __name__ == "__main__":
         .with_controller(
             "controller", 
             PresetTwitchController, 
-            max_angle=337.41,
-            initial_angle=337.41,
+            max_angle=360.0,
+            initial_angle=360.0,
             positions={
                 "sweeper": 0.0,
-                "microscope": 169.41,
-                "nir_probe": 337.41,
+                "microscope": 120.0,
+                "nir_probe": 240.0,
             },
-            twitch_max=40.0,
-            hardware_name="rotation"
+            twitch_max=5.0,
+            hardware_name="rotation",
+            set_position_service="/science/tool_rotator/set_position",
+            set_presets_service= "/science/tool_rotator/set_presets"
         ) \
-        .with_hardware("rotation", PositionalServoHardware, can_id=0x0F0, angular_limit=360.0, gear_ratio=0.8333) \
+        .with_hardware("rotation", PositionalServoHardware, can_id=0x0EA, angular_limit=360.0, gear_ratio=0.8333) \
         .with_teleop(inputs) \
         .with_jcan() \
         .spin()

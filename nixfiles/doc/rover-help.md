@@ -15,7 +15,10 @@ N2: ssh nova@10.0.2.12
 N3: ssh nova@10.0.2.13
 
 Radios (Jetson): ssh nvidia@10.0.0.10
-Radios (Orin): ssh nova@10.0.0.11
+Radios (Orin SSD1): ssh nova@10.0.0.11
+Radios (Orin SSD2): ssh nova@10.0.0.12
+
+The orin SSDs have printed labels on them with their IP address.
 
 ---------------------------
 
@@ -34,16 +37,17 @@ Try the `launch-teleop` or `launch-teleop-drive` alias, otherwise use the comman
 # GUI
 Launch the following on the metabox.
 
-In one terminal:
-1. Try the 'gui-shell' alias otherwise:
-     nova-shell -A pkgs.ros.nova-gui
-2. Try the 'gui-run' alias otherwise:
-     cd ~/nova/src/ros/nova-gui/nova-gui
-     yarn dev
+```
+~/Builds/master/launch/run-gui
+```
 
-In another terminal:
-1. Try the 'gui-rosbridge' alias, otherwise: 
-    ~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+Alternatively, in two seperate terminals run:
+```
+gui-serve
+gui-rosbridge
+```
+
+Open the link gui-serve prints.
 
 ---------------------------
 
@@ -136,7 +140,7 @@ Type 'zero-arm' and follow the prompts.
 
 ---------------------------
 
-# NixOS
+# Nix
 nix-enable: sudo systemctl enable nix-daemon.service
 nix-start: sudo systemctl start nix-daemon.service
 
@@ -144,10 +148,33 @@ nix-start: sudo systemctl start nix-daemon.service
 
 # Tile Server (For GUI Cartography Page)
 
-tileserver-build (first time only)
-tileserver-shell
-tileserver-install (first time only)
-tileserver-run <path to map>
+Put the .mbtiles in ~/maps. Then run:
+`tileserver`
+
+---------------------------
+
+# Tracing CAN bus
+
+## Using can sleuth
+
+examples: `can_sleuth taipan` `can_sleuth drive`
+
+Run it without specifying a payload to see usage instructions.
+
+You can also run it from a build:
+
+`~/Builds/master/bin/can_sleuth`
+
+If you do `can_sleuth -e taipan` it will emulate the payload
+and send fake telemetry messages. You probably only want this
+on vcan.
+
+## Using can viewer:
+
+`can_viewer can0`
+
+or `~/Builds/master/bin/can_viewer -i socketcan -c can0`
+
 
 ---------------------------
 

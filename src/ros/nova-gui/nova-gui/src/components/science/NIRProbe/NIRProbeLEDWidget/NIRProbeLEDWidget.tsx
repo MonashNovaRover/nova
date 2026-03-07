@@ -2,12 +2,12 @@ import {Card, CardBody, CardHeader, CardProps} from "@nextui-org/react";
 import {useEffect} from "react";
 import {useBifrost} from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../../ros/topics/rosTopic.ts";
-import {useSelector} from "react-redux";
-import {RootState} from "../../../../redux/RootState.ts";
 import {RosService} from "../../../../ros/services/rosService.ts";
 import SpinnerButton from "../../../shared/components/buttons/SpinnerButton.tsx";
-import {IRosScienceInterfacesNirProbeDataConst} from "../../../../ros/rosTypes.ts";
 import {NIRProbeReadingTypeInfo} from "../SpaceResourcesSiteType.tsx";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../../redux/RootState.ts";
+
 
 interface INIRProbeLEDWidgetProps extends CardProps {
   readingInfo: NIRProbeReadingTypeInfo[], // list of NIRProbeReadingTypeInfo: [off, PD1, PD2]
@@ -21,8 +21,9 @@ interface INIRProbeLEDWidgetProps extends CardProps {
  */
 const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({readingInfo, ...cardProps}) => {
   const bifrost = useBifrost({ topic: RosTopic.NIR_DATA, service: RosService.TAKE_NIR_PROBE_READING });
-  const status = useSelector((state: RootState) => state.nirStore.status);
-  const takeReading = (led: number) => bifrost.callService({led: led});
+  const taking_reading = useSelector((state: RootState) => state.nirStore.status);
+  const takeReading = () => bifrost.callService({});
+
 
   useEffect(() => {
     bifrost.syncWithTopic();
@@ -33,18 +34,12 @@ const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({readingInfo, ...c
       <CardHeader className="pb-0">
         NIR Probe LED
       </CardHeader>
-      <CardBody className="grid grid-cols-2 gap-3">
+      <CardBody className="">
         <SpinnerButton
-          onClick={() => takeReading(IRosScienceInterfacesNirProbeDataConst.LED_WATER)}
-          isLoading={status === IRosScienceInterfacesNirProbeDataConst.LED_WATER}
+          onPressStart={() => takeReading()}
+          isLoading = {taking_reading}
         >
-          Take {readingInfo[1].name} LED Reading
-        </SpinnerButton>
-        <SpinnerButton
-          onClick={() => takeReading(IRosScienceInterfacesNirProbeDataConst.LED_ICE)}
-          isLoading={status === IRosScienceInterfacesNirProbeDataConst.LED_ICE}
-        >
-          Take {readingInfo[2].name} LED Reading
+          Request LED Readings
         </SpinnerButton>
       </CardBody>
     </Card>
