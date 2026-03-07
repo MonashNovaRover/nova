@@ -11,7 +11,6 @@ import {MoreHorizontal} from "react-feather";
 import {NIRSettingsModalProps} from "./NIRCalibrationSettingsModal.tsx";
 import {NIRProbeReadingTypeInfo} from "../SpaceResourcesSiteType.tsx";
 import {NIRProbeCSVDownloadButton} from "./NIRProbeCSVDownloadButton.tsx";
-import {max} from "lodash";
 
 export interface NIRProbeFileTableWidgetProps extends CardProps {
   Modal?: React.FC<NIRSettingsModalProps>

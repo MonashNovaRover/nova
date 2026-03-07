@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Aperture, Camera, Circle, Globe, Home, Image, List, Map, Terminal, Tv } from "react-feather";
+import { Aperture, Camera, Circle, Globe, Home, List, Map, Terminal, Tv } from "react-feather";
 import { URCCompModes } from "../views/shared/CamerasPage/CameraPageConstants";
 
 interface NavigationEntry {

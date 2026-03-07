@@ -190,6 +190,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
       <CardBody className="flex flex-col gap-3">
         <SpinnerButton
           onPressStart={() => takeReading()}
+          isLoading={nirData.status}
         >
           Request LED Readings
         </SpinnerButton>
