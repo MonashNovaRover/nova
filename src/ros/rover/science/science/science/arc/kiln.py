@@ -128,7 +128,6 @@ class HeaterController(Controller):
         :param period: The time elapsed since the last update, in seconds.
         """
         temperatures: list[float] = self.temp_sensors_state.value
-        self.logger.debug(f"temperatures: {temperatures}")
         self.last_temperatures = temperatures
 
         reference_temp = self.calculate_reference_temp(temperatures)

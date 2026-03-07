@@ -36,7 +36,7 @@ const KilnWidget: React.FC<KilnWidgetWidgetProps> = (props) => {
     const setKilnStatus = (state: boolean) => sendCommand(state, targetTemp)
 
     return <Card {...props}>
-        <CardBody className="flex flex-col gap-3">
+        <CardBody className="flex flex-col gap-4">
             <HeaterControl
                 heaterName="Kiln"
                 currentHeaterStatus={tempReadings.state}
