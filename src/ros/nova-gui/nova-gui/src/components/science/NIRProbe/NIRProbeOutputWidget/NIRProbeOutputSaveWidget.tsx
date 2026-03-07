@@ -29,6 +29,7 @@ import {useNIRSiteData} from "../useNIRSiteData.ts";
 import { IRosScienceInterfacesNirProbeData } from "../../../../ros/rosTypes.ts";
 import { RosService } from "../../../../ros/services/rosService.ts";
 import { isEqual } from "lodash";
+import SpinnerButton from "../../../shared/components/buttons/SpinnerButton.tsx";
 
 export interface NIRProbeOutputSaveWidgetProps extends CardProps {
   showAdvanced : boolean,
@@ -59,6 +60,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
 }) => {
   const bifrost = useBifrost({ topic: RosTopic.NIR_DATA, service: RosService.TAKE_NIR_PROBE_READING });
   const nirData = useSelector((state: RootState) => state.nirStore);
+  const takeReading = () => bifrost.callService({});
   const [sampleLabel, setSampleLabel] = useState<string>("");
 
   const [readings, setReadings] = useNIRSiteData();
@@ -69,6 +71,9 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
 
   const [autosave, setAutosave] = useState<boolean>(true)
 
+  useEffect(() => {
+    bifrost.syncWithTopic();
+  }, [bifrost]);
 
   const OffIcon = useMemo(() => readingInfo[0].icon, [readingInfo])
   const PD1Icon = useMemo(() => readingInfo[1].icon, [readingInfo])
@@ -183,12 +188,11 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
         </Dropdown>
       </CardHeader>
       <CardBody className="flex flex-col gap-3">
-        {/* <SpinnerButton
-          onPressStart={() => takeReading(1)}
-         
+        <SpinnerButton
+          onPressStart={() => takeReading()}
         >
           Request LED Readings
-        </SpinnerButton> */}
+        </SpinnerButton>
         <div className="flex flex-row gap-3 items-center">
           <Chip size="lg"
                 startContent={icons[nirData.reading_taken ? LED.nir1 : 0]}

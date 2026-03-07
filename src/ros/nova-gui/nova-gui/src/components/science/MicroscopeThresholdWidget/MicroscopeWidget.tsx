@@ -4,6 +4,7 @@ import {Card, CardBody, Tab, Tabs} from "@nextui-org/react";
 import MicroscopeThresholdWidget from "./MicroscopeThresholdWidget.tsx";
 import {CameraSerials} from "../../../views/shared/CamerasPage/CameraPageConstants.tsx";
 import MicroscopeCamerasWidget from "./MicroscopeCamerasWidget.tsx";
+import {ARCNIRProbeWidgetOneCol} from "../NIRProbe/ARCNIRProbeWidget.tsx";
 
 const MicroscopeWidget: React.FC<CameraComponentProps> = () => {
 
@@ -21,6 +22,9 @@ const MicroscopeWidget: React.FC<CameraComponentProps> = () => {
           color="primary"
           variant="underlined"
         >
+          <Tab title="NIR Probe">
+            <ARCNIRProbeWidgetOneCol/>
+          </Tab>
           <Tab title="Camera Feed">
             <MicroscopeCamerasWidget/>
           </Tab>

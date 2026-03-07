@@ -16,7 +16,7 @@ interface INIRProbeWidgetProps {
  * View of all NIR Probe widgets for ARCh
  * @constructor
  */
-const ARCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
+export const ARCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
   // whether to show the advanced capabilities
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
 
@@ -44,4 +44,30 @@ const ARCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
   );
 }
 
-export default ARCNIRProbeWidget;
+/**
+ * View of all NIR Probe widgets for ARCh
+ * @constructor
+ */
+export const ARCNIRProbeWidgetOneCol: React.FC<INIRProbeWidgetProps> = () => {
+  // whether to show the advanced capabilities
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
+
+  return (
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-3">
+          <NIRProbeOutputSaveWidget
+            showAdvanced={showAdvanced}
+            setShowAdvanced={setShowAdvanced}
+            readingInfo={ARCNIRPRobeReadingTypeInfo}
+          />
+          <SiteTypeSelectWidget/>
+        </div>
+        <NIRProbeFileTableWidget
+          Modal={NIRCalibrationSettingsModal}
+          headerTable={<NIRProbeCalcTable/>}
+          readingInfo={ARCNIRPRobeReadingTypeInfo}
+        />
+    </div>
+  );
+}
+
