@@ -5,6 +5,7 @@ import { RosService } from "../../ros/services/rosService.ts";
 import { RosTopic } from "../../ros/topics/rosTopic.ts";
 import { RootState } from "../../redux/RootState.ts";
 import AnalysisArmWidget from "../../components/science/AnalysisPlatformHeight/AnalysisPlatformWidget.tsx";
+import ToolRotatorWidget from "../../components/science/ToolRotatorWidget/ToolRotatorWidget.tsx";
 
 export const ARCMicroscopeView = () => {
   return (
@@ -26,6 +27,7 @@ export const ARCMicroscopeView = () => {
               statusSelector={(state: RootState) => state.diaphragmPumpStatus}
               storeName="diaphragmPumpEffort" />
           </div>
+          <ToolRotatorWidget/>
         </div>
         <div className="flex flex-col gap-3 col-span-3">
           <KilnWidget />

@@ -39,6 +39,8 @@ export const rosServiceMessages = {
   [RosService.SET_AA_POSITION]: "science_interfaces/srv/SetPosition",
   [RosService.STOP_AA_MOVEMENT]:  "std_srvs/srv/Trigger",
   [RosService.RESET_TOF]: "std_srvs/srv/Trigger",
+  [RosService.TOOL_ROTATOR_PRESETS]: "science_interfaces/srv/SetPositionPresets",
+  [RosService.TOOL_ROTATOR_POSITION]:"science_interfaces/srv/SetPosition",
 
   // General
   [RosService.RGBInput]: "nova_interfaces/srv/RGBInput",
