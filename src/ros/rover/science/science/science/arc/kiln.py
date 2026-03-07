@@ -16,9 +16,9 @@ STATE INTERFACES:
   - <temp_sensors>/temperature  [number in degrees Celsius]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
-AUTHOR(S):      Jonathan Jia
+AUTHOR(S):      Jonathan Jia, Binuda Kalugalage
 CREATION:       09/01/2026
-EDITED:         25/01/2026
+EDITED:         05/03/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -84,8 +84,8 @@ class HeaterController(Controller):
         self.logger.info(f"Getting {[h + "/effort" for h in self.heaters]} command interfaces")
         self.heater_cmds = [command_interfaces[h + "/effort"] for h in self.heaters]
 
-        self.logger.info(f"Getting {[t + "/temperature" for t in self.temp_sensors]} state interfaces")
-        self.temp_sensor_states = [state_interfaces[t + "/temperature"] for t in self.temp_sensors]
+        self.logger.info("Getting temp_sensors/temperature state interface")
+        self.temp_sensors_state = state_interfaces["temp_sensors/temperature"]
 
         self.kiln_data_publisher = self.node.create_publisher(KilnData, self.data_topic, 5)
         self.publisher_timer = self.node.create_timer(1 / self.publish_rate, self.publish_kiln_data)
@@ -114,6 +114,7 @@ class HeaterController(Controller):
         """ Publishes latest temperatures and status of kiln """
 
         kiln_data_msg = KilnData()
+        kiln_data_msg.stamp = self.node.get_clock().now().to_msg()
         kiln_data_msg.state = self.is_on
         kiln_data_msg.temp = [round(t) for t in self.last_temperatures]
         self.kiln_data_publisher.publish(kiln_data_msg)
@@ -126,7 +127,7 @@ class HeaterController(Controller):
         :param now: The current time, in seconds
         :param period: The time elapsed since the last update, in seconds.
         """
-        temperatures: list[float] = list(map(lambda s: s.value, self.temp_sensor_states))
+        temperatures: list[float] = self.temp_sensors_state.value
         self.last_temperatures = temperatures
 
         reference_temp = self.calculate_reference_temp(temperatures)
@@ -155,13 +156,11 @@ if __name__ == "__main__":
                          data_topic = "/science/kiln_data") \
         .with_hardware("left_heater", QCMDHardware, can_id = 0x41) \
         .with_hardware("right_heater", QCMDHardware, can_id = 0x42) \
-        .with_hardware("kiln_sensor", GenericSensorHardware,
-                       can_id = 0x02,
-                       interpret_data = lambda data: 0.02 * int.from_bytes(data) - 273.15,
-                       unit = "temperature") \
-        .with_hardware("condenser_sensor", GenericSensorHardware,
-                       can_id = 0x03,
-                       interpret_data = lambda data: 0.02 * int.from_bytes(data) - 273.15,
+        .with_hardware("temp_sensors", GenericSensorHardware,
+                       can_id=0x4E1,
+                       interpret_data=lambda data: [((data[0] << 8) | data[1]) - 273.15, 
+                                                    ((data[2] << 8) | data[3]) - 273.15],
+                       initial_value=[0.0, 0.0],
                        unit = "temperature") \
         .with_jcan() \
         .spin()
