@@ -11,7 +11,7 @@ import AnalysisArmWidget from "../../components/science/AnalysisPlatformHeight/A
 const ARCSpaceResourcesView: React.FC = () => {
   return (
     <div className="p-3 max-h-full">
-      <div className="grid grid-flow-col auto-cols-fr justify-between items-stretch gap-3 ">
+      <div className="grid grid-flow-col auto-cols-fr justify-between items-stretch gap-3">
         <div className="flex flex-col flex-grow gap-3 col-span-3">
           <MicroscopeWidget cameraSerial="science_microscope" />
           <div className="grid grid-cols-[1fr_1.1fr] gap-3">

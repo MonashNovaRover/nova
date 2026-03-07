@@ -22,13 +22,13 @@ const MicroscopeWidget: React.FC<CameraComponentProps> = () => {
           color="primary"
           variant="underlined"
         >
-          <Tab title="NIR Probe">
+          <Tab title="NIR Probe" className="p-0 pt-3">
             <ARCNIRProbeWidgetOneCol/>
           </Tab>
-          <Tab title="Camera Feed">
+          <Tab title="Camera Feed" className="p-0 pt-3">
             <MicroscopeCamerasWidget/>
           </Tab>
-          <Tab title="Thresholding">
+          <Tab title="Thresholding" className="p-0 pt-3">
             <MicroscopeThresholdWidget cameraSerial={CameraSerials.SCIENCE_MICROSCOPE}/>
           </Tab>
         </Tabs>

@@ -38,6 +38,7 @@ export const ARCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
           Modal={NIRCalibrationSettingsModal}
           headerTable={<NIRProbeCalcTable/>}
           readingInfo={ARCNIRPRobeReadingTypeInfo}
+          maxHeightPercent={40}
         />
       </div>
     </div>
@@ -66,6 +67,7 @@ export const ARCNIRProbeWidgetOneCol: React.FC<INIRProbeWidgetProps> = () => {
           Modal={NIRCalibrationSettingsModal}
           headerTable={<NIRProbeCalcTable/>}
           readingInfo={ARCNIRPRobeReadingTypeInfo}
+          maxHeightPercent={20}
         />
     </div>
   );
