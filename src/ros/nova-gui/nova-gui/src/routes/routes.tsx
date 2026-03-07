@@ -57,10 +57,6 @@ export const arcRoutes: RouteObject[] = [
     element: <ARCNIRProbeView />,
   },
   {
-    path: "/arc/space-resources/microscope",
-    element: <ARCMicroscopeView />,
-  },
-  {
     path: "/arc/excavation-construction",
     element: <ARCExcavationConstructionView />,
   },

@@ -186,11 +186,6 @@ export const arcNavigationData: NavigationInterface = {
       icon: <Aperture />,
     },
     {
-      title: "Microscope",
-      route: "/arc/space-resources/microscope",
-      icon: <Image />,
-    },
-    {
       title: "Cameras",
       route: "/arc/cameras/space-resources",
       icon: <Camera />,
