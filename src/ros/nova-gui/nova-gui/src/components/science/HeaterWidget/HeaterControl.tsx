@@ -4,6 +4,7 @@ import {Power, Square} from "react-feather";
 import {isArray} from "lodash";
 
 export interface HeaterControlProps {
+  heaterName?: string
   currentHeaterStatus: boolean
   setHeaterStatus: (x : boolean) => void
   targetTemp: number
@@ -12,13 +13,14 @@ export interface HeaterControlProps {
 
 /**
  * Controls for turning the heater on/off and adjusting the target temperature
+ * @param heaterName the name of the heater
  * @param currentHeaterStatus the current state of the heater (on/off)
  * @param setHeaterStatus request the heater to change state
  * @param targetTemp the current target temperature
  * @param setTargetTemp request a change in target temperature
  * @constructor
  */
-const HeaterControl: React.FC<HeaterControlProps> = ({currentHeaterStatus, setHeaterStatus, targetTemp, setTargetTemp}) => {
+const HeaterControl: React.FC<HeaterControlProps> = ({heaterName = "Heater", currentHeaterStatus, setHeaterStatus, targetTemp, setTargetTemp}) => {
   const [targetInput, setTargetInput] = useState<number>(targetTemp)
   const [maxTemp, setMaxTemp] = useState<number>(100)
 
@@ -31,7 +33,7 @@ const HeaterControl: React.FC<HeaterControlProps> = ({currentHeaterStatus, setHe
   }, [targetTemp]);
 
   const heatStatus = (
-    <div className="flex flex-row justify-between gap-5">
+    <div className="flex flex-row justify-between gap-3">
       <Button
         isDisabled
         className={`w-2/3 opacity-100 ${currentHeaterStatus ? "bg-success" : "bg-content3"}`}>
@@ -54,7 +56,7 @@ const HeaterControl: React.FC<HeaterControlProps> = ({currentHeaterStatus, setHe
         label: "text-medium",
       }}
       color="primary"
-      label="Heater Target Temperature"
+      label={`${heaterName} Target Temperature`}
       maxValue={maxTemp}
       minValue={0}
       step={1}
