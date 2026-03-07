@@ -1,12 +1,12 @@
-import React, {useEffect, useState} from "react";
-import {Button, Slider, Tooltip} from "@nextui-org/react";
-import {Power, Square} from "react-feather";
-import {isArray} from "lodash";
+import React, { useEffect, useState } from "react";
+import { Button, Slider, Tooltip } from "@nextui-org/react";
+import { Power, Square } from "react-feather";
+import { isArray } from "lodash";
 
 export interface EffortControlProps {
   controlName: string
   currentStatus: boolean
-  setStatus: (x : boolean) => void
+  setStatus: (x: boolean) => void
   currentEffort: number
   setEffort: (x: number) => void
 }
@@ -20,35 +20,35 @@ export interface EffortControlProps {
  * @param setEffort request a change in effort
  * @constructor
  */
-const EffortControl: React.FC<EffortControlProps> = ({controlName, currentStatus, setStatus, currentEffort, setEffort}) => {
-  const [effortInput, setTargetInput] = useState<number>(currentEffort)
+const EffortControl: React.FC<EffortControlProps> = ({ controlName, currentStatus, setStatus, currentEffort, setEffort }) => {
+  const [effortInput, setEffortInput] = useState<number>(currentEffort)
 
   useEffect(() => {
-    setTargetInput(currentEffort)
+    setEffortInput(currentEffort)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentEffort]);
 
-const systemStatus = (
-  <div className="flex flex-row items-stretch gap-3">
-    <Button
-      isDisabled
-      className={`flex-1 opacity-100 ${currentStatus ? "bg-success" : "bg-content3"}`}>
-      {currentStatus ? "POWERED ON" : "POWERED OFF"}
-    </Button>
-    <Button
-      className="shrink-0 text-h1"
-      color="primary"
-      onPress={() => setStatus(!currentStatus)}>
-      {currentStatus ? `STOP ${controlName.toUpperCase()}` : `START ${controlName.toUpperCase()}`}
-      {currentStatus ? <Square size="15" fill="white" /> : <Power size="15" />}
-    </Button>
-  </div>
-);
+  const systemStatus = (
+    <div className="flex flex-row items-stretch gap-3">
+      <Button
+        isDisabled
+        className={`flex-1 opacity-100 ${currentStatus ? "bg-success" : "bg-content3"}`}>
+        {currentStatus ? "POWERED ON" : "POWERED OFF"}
+      </Button>
+      <Button
+        className="shrink-0 text-h1"
+        color="primary"
+        onPress={() => setStatus(!currentStatus)}>
+        {currentStatus ? `STOP ${controlName.toUpperCase()}` : `START ${controlName.toUpperCase()}`}
+        {currentStatus ? <Square size="15" fill="white" /> : <Power size="15" />}
+      </Button>
+    </div>
+  );
 
   const targetSlider = (
     <Slider
       value={effortInput}
-      onChange={v => isArray(v) ? setTargetInput(v[0]) : setTargetInput(v)}
+      onChange={v => isArray(v) ? setEffortInput(v[0]) : setEffortInput(v)}
       onChangeEnd={(v) => isArray(v) ? setEffort(v[0]) : setEffort(v)}
       size="lg"
       classNames={{
@@ -59,7 +59,7 @@ const systemStatus = (
       maxValue={100}
       minValue={0}
       step={1}
-      renderValue={({children, ...props}) => (
+      renderValue={({ children, ...props }) => (
         <output {...props}>
           <Tooltip
             className="text-tiny text-default-500 rounded-md"
@@ -73,7 +73,7 @@ const systemStatus = (
               value={effortInput}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 const v = Number(e.target.value);
-                setTargetInput(Math.min(100, Math.max(0, v)));
+                setEffortInput(Math.min(100, Math.max(0, v)));
               }}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === "Enter" && !isNaN(Number(effortInput))) {
