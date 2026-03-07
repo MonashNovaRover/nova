@@ -7,7 +7,7 @@
 , joint-state-publisher
 , foxglove-bridge
 , foxglove-msgs
-
+, can-utils
 }:
 
 buildRosPackage {
@@ -22,4 +22,9 @@ buildRosPackage {
 
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
   propagatedBuildInputs = [ launch launch-ros joint-state-publisher  foxglove-bridge foxglove-msgs];
+
+  postPatch = ''
+    sed -i launch/can.launch.py \
+      -e 's@"candump"@"${can-utils}/bin/candump"@g'
+  '';
 }
