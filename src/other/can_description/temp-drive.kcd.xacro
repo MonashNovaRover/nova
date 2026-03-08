@@ -43,6 +43,7 @@
 				<Consumer>
 					<NodeRef id="${blcmd_node_id}"/>
 				</Consumer>
+                <Value type="bool"/>
 			</Signal>
 		</Message>
 		<Message id="0x0${blcmd_id}2" name="${joint_name}_twitch_backward">
