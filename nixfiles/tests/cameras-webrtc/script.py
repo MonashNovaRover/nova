@@ -1,5 +1,7 @@
 import yaml
 
+start_all()
+
 rover.wait_for_unit("default.target")
 rover.wait_for_unit("nova-mock-cameras.service")
 
@@ -29,18 +31,29 @@ with subtest("Check the camera list"):
     # them. Keep trying until they all show up.
     retry(check_camera_list)
 
+base.wait_for_unit("nova-gui.service")
+base.wait_for_unit("rosbridge.service")
+
 with subtest("Start streaming the cameras"):
+    # gui expects these addresses
+    # TODO: put this in nix conf
+    base.succeed("sudo ip addr add dev eth1 10.0.0.101/23")
+    rover.succeed("sudo ip addr add dev eth1 10.0.0.10/23")
+
     rover.succeed("ros2 service call camera_streamer/stream/start camera_msgs/CameraOperation '{ serials: [ ] }'")
-    rover.succeed("gst-webrtc-ui-server >&2 &")
+    #base.succeed("gui-serve >&2 &")
+    #base.succeed("ros2 launch rosbridge_server rosbridge_websocket_launch.xml >&2 &")
+
+
 
 with subtest("Check the camera stream playback"):
     # Start the browser
     init_graphical()
-    base.succeed(f"{run_graphical('firefox --kiosk rover:8000')} >&2 &")
+    base.succeed(f"{run_graphical('chromium-browser --kiosk --password-store=basic http://localhost:80/cameras/camera1/?autostart=true')} >&2 &")
 
     def check_text(last: bool) -> bool:
         text = base.get_screen_text()
-        return all(f"Test stream {i}" in text for i in range(1, camera_count + 1))
+        return "Test stream 1" in text
 
     with base.nested("Waiting for all streams to connect"):
         retry(check_text)
