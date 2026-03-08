@@ -116,8 +116,9 @@ in {
       [HSR]
       Protocol = prp
       Ports = ${netcfg.ethernetInterface}
-      Ports = vxlan0
+      Ports = ${netcfg.secondaryEthernetInterface}
     '';
+      #Ports = vxlan0
 
     assertions = [
       {
