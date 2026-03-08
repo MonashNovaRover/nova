@@ -10,7 +10,7 @@ controller_server:
                             # infinite, 0 to disable, and any positive value for the appropriate timeout.
     progress_checker_plugins: ["progress_checker"]
     goal_checker_plugins: ["goal_checker"]
-    controller_plugins: ["rotation_shim_mppi"]
+    controller_plugins: ["RotationShimMPPI"]
     use_realtime_priority: False
     enable_stamped_cmd_vel: True
     odom_topic: /odometry/filtered
