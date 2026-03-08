@@ -129,24 +129,6 @@ self: super:
               CXXFLAGS = "${CXXFLAGS} -Wno-error=stringop-overflow";
             }
           );
-
-          nav2-rviz-plugins = rosSuper.nav2-rviz-plugins.overrideAttrs (
-            {
-              postPatch ? "",
-              ...
-            }:
-            {
-              # remove broken updateAutoDeactivate() symbol, 20/11/2024, Navigation2 1.3.2
-              # https://github.com/MonashNovaRover/nova/issues/96
-              postPatch =
-                postPatch
-                + ''
-                  substituteInPlace src/costmap_cost_tool.cpp --replace "SLOT(updateAutoDeactivate())" "nullptr"
-                  substituteInPlace include/nav2_rviz_plugins/costmap_cost_tool.hpp --replace "private Q_SLOTS:" ""
-                  substituteInPlace include/nav2_rviz_plugins/costmap_cost_tool.hpp --replace "void updateAutoDeactivate();" ""
-                '';
-            }
-          );
         }
         // (
           let
@@ -552,14 +534,15 @@ self: super:
               # {
               #   src = builtins.path {
               #     name = "nav2-route-source";
-              #     path = ../../../../other/navigation2/nav2_route;
+              #     path = ../../../../other/navigation2-jazzy/nav2_route;
               #   };
               # };
 
               nav2-rviz-plugins = rosSuper.nav2-rviz-plugins.overrideAttrs
               (
                 {
-                  propagatedBuildInputs ? [ ], ...
+                  propagatedBuildInputs ? [ ], 
+                  nativeBuildInputs ? [ ], ...
                 }:
                 {
                   version = "1.3.11-r1";
@@ -568,15 +551,47 @@ self: super:
                     name = "1.3.11-1.tar.gz";
                     sha256 = "aa446a165ce5a23952a1e2637964e07f43df8a54d71f473094d59b509d28b668";
                   };
+                  
+                  # src = self.fetchFromGitHub {
+                  #   owner = "SteveMacenski";
+                  #   repo = "navigation2";
+                  #   rev = "617ede9c16665eaf59bb4a55969ff44496e58617";
+                  #   sha256 = "sha256-O+0wQatDvZwvvQdrA2PJvX18Aebq2O2WKQk+UZTlqck=";
+                  # };
+                  # sourceRoot = "source/nav2_rviz_plugins";
+
                   # src = builtins.path {
                   #   name = "nav2-rviz-plugins-source";
-                  #   path = ../../../../other/navigation2/nav2_rviz_plugins;
+                  #   path = ../../../../other/navigation2-jazzy/nav2_rviz_plugins;
                   # };
                   propagatedBuildInputs = propagatedBuildInputs ++ ( with rosSuper; [
                     nav2-route
                   ]);
+                  # patches = [ ];
+                  nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
                 }
               );
+
+              pluginlib = rosSuper.pluginlib.overrideAttrs
+              {
+                version = "5.4.4-r1";
+                src = self.fetchurl {
+                  url = "https://github.com/ros2-gbp/pluginlib-release/archive/release/jazzy/pluginlib/5.4.4-1.tar.gz";
+                  name = "5.4.4-1.tar.gz";
+                  sha256 = "c2a9289c24eeda5841e4da61fbcd87fccfee9ae0239d41186449dc4f3cedd8b3";
+                };
+              };
+
+              nav2-util = rosSuper.nav2-util.overrideAttrs
+              {
+                version = "1.3.11-r1";
+                src = self.fetchurl {
+                  url = "https://github.com/SteveMacenski/navigation2-release/archive/release/jazzy/nav2_util/1.3.11-1.tar.gz";
+                  name = "1.3.11-1.tar.gz";
+                  sha256 = "8773ca86829eabae6e7bf22b5bcb6676125282b16b9e60c235db35ba9698859d";
+                };
+              };
+
             }
           );
         }
