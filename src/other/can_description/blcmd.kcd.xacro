@@ -45,125 +45,83 @@
         </xacro:macro>
 
         <Message id="0x0${blcmd_id}0" name="${joint_name}_all_stop">
-            <Producer>
-                <NodeRef id="${orin_node_id}"/>
-            </Producer>
+            <xacro:producer_orin/>
             <Signal name="all_stop_requested" offset="0">
-                <Consumer>
-                    <NodeRef id="${blcmd_node_id}"/>
-                </Consumer>
+                <xacro:consumer_blcmd/>
             </Signal>
         </Message>
         <Message id="0x0${blcmd_id}1" name="${joint_name}_twitch_forward">
-            <Producer>
-                <NodeRef id="${orin_node_id}"/>
-            </Producer>
+            <xacro:producer_orin/>
             <Signal name="twitch_forward_requested" offset="0">
-                <Consumer>
-                    <NodeRef id="${blcmd_node_id}"/>
-                </Consumer>
+                <xacro:consumer_blcmd/>
             </Signal>
         </Message>
         <Message id="0x0${blcmd_id}2" name="${joint_name}_twitch_backward">
-            <Producer>
-                <NodeRef id="${orin_node_id}"/>
-            </Producer>
+            <xacro:producer_orin/>
             <Signal name="twitch_backward_requested" offset="0">
-                <Consumer>
-                    <NodeRef id="${blcmd_node_id}"/>
-                </Consumer>
+                <xacro:consumer_blcmd/>
             </Signal>
         </Message>
 
         <Message id="0x0${blcmd_id}3" name="${joint_name}_drive_at_speed">
-            <Producer>
-                <NodeRef id="${orin_node_id}"/>
-            </Producer>
+            <xacro:producer_orin/>
             <Signal name="velocity_requested" offset="0" length="16" endianess="big">
                 <Notes>Target velocity (radians per second)</Notes>
-                <Consumer>
-                    <NodeRef id="${blcmd_node_id}"/>
-                </Consumer>
+                <xacro:consumer_blcmd/>
                 <Value type="signed" unit="rad/s" slope="${velocity_multiplier}"/>
             </Signal>
         </Message>
 
         <Message id="0x0${blcmd_id}4" name="${joint_name}_drive_to_position">
-            <Producer>
-                <NodeRef id="${orin_node_id}"/>
-            </Producer>
+            <xacro:producer_orin/>
             <Signal name="position_requested" offset="0" length="16" endianess="big">
                 <Notes>Target position (radians from zero)</Notes>
-                <Consumer>
-                    <NodeRef id="${blcmd_node_id}"/>
-                </Consumer>
+                <xacro:consumer_blcmd/>
                 <Value type="signed" unit="rad" slope="${position_multiplier}" intercept="${position_offset}"/>
             </Signal>
         </Message>
 
         <Message id="0x0${blcmd_id}5" name="${joint_name}_drive_at_current">
-            <Producer>
-                <NodeRef id="${orin_node_id}"/>
-            </Producer>
+            <xacro:producer_orin/>
             <Signal name="effort_requested" offset="0" length="16" endianess="big">
                 <Notes>Target effort (proportion of max effort)</Notes>
-                <Consumer>
-                    <NodeRef id="${blcmd_node_id}"/>
-                </Consumer>
+                <xacro:consumer_blcmd/>
                 <Value type="signed" unit="1" slope="${effort_multiplier}"/>
             </Signal>
         </Message>
 
         <Message id="0x0${blcmd_id}6" name="${joint_name}_drive_open_loop">
-            <Producer>
-                <NodeRef id="${orin_node_id}"/>
-            </Producer>
+            <xacro:producer_orin/>
 
             <!-- not implemented in blcmd firmware, so only raw values provided -->
             <Signal name="open_loop_current_requested_raw" offset="0" length="16" endianess="big">
-                <Consumer>
-                    <NodeRef id="${blcmd_node_id}"/>
-                </Consumer>
+                <xacro:consumer_blcmd/>
                 <Value type="signed"/>
             </Signal>
             <Signal name="open_loop_velocity_requested_raw" offset="16" length="16" endianess="big">
-                <Consumer>
-                    <NodeRef id="${blcmd_node_id}"/>
-                </Consumer>
+                <xacro:consumer_blcmd/>
                 <Value type="signed"/>
             </Signal>
         </Message>
 
         <Message id="0x0${blcmd_id}7" name="${joint_name}_home_rotor">
-            <Producer>
-                <NodeRef id="${orin_node_id}"/>
-            </Producer>
+            <xacro:producer_orin/>
             <Signal name="home_rotor_requested" offset="0">
-                <Consumer>
-                    <NodeRef id="${blcmd_node_id}"/>
-                </Consumer>
+                <xacro:consumer_blcmd/>
             </Signal>
         </Message>
 
         <Message id="0x0${blcmd_id}8" name="${joint_name}_zero_resolver">
-            <Producer>
-                <NodeRef id="${orin_node_id}"/>
-            </Producer>
+            <xacro:producer_orin/>
             <Signal name="zero_resolver_requested" offset="0">
-                <Consumer>
-                    <NodeRef id="${blcmd_node_id}"/>
-                </Consumer>
+                <xacro:consumer_blcmd/>
             </Signal>
         </Message>
 
         <Message id="0x0${blcmd_id}9" name="${joint_name}_get_configuration">
-            <Producer>
-                <NodeRef id="${orin_node_id}"/>
-            </Producer>
+            <xacro:producer_orin/>
             <Signal name="configuration_requested" offset="0" length="8" endianess="big">
-                <Consumer>
-                    <NodeRef id="${blcmd_node_id}"/>
-                </Consumer>
+                <xacro:consumer_blcmd/>
                 <Value type="signed"/>
                 <LabelSet>
                     <Label name="has_resolver" value="0"/>
@@ -186,15 +144,11 @@
         </Message>
 
         <Message id="0x0${blcmd_id}A" name="${joint_name}_set_configuration">
-            <Producer>
-                <NodeRef id="${orin_node_id}"/>
-            </Producer>
+            <xacro:producer_orin/>
 
             <!-- set configuration is "multiplexed" (so value of first byte determines what remaining bytes mean) -->
             <Multiplex name="configuration_set" offset="0" length="8" endianess="big">
-                <Consumer>
-                    <NodeRef id="${blcmd_node_id}"/>
-                </Consumer>
+                <xacro:consumer_blcmd/>
                 <Value type="signed"/>
 
                 <LabelSet>
