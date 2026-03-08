@@ -8,15 +8,15 @@
 		CAN Description file for Banksia's drive system
 	</Document>
 
-	<Node id="0" name="Orin"/>
-	<Node id="1" name="Front Left Wheel"/>
-	<Node id="2" name="Back Left Wheel"/>
-	<Node id="3" name="Back Right Wheel"/>
-	<Node id="4" name="Front Right Wheel"/>
-	<Node id="5" name="Front Left Pivot"/>
-	<Node id="6" name="Back Left Pivot"/>
-	<Node id="7" name="Back Right Pivot"/>
-	<Node id="8" name="Front Right Pivot"/>
+	<Node id="0" name="orin"/>
+	<Node id="1" name="front_left_wheel"/>
+	<Node id="2" name="back_left_wheel"/>
+	<Node id="3" name="back_right_wheel"/>
+	<Node id="4" name="front_right_wheel"/>
+	<Node id="5" name="front_left_pivot"/>
+	<Node id="6" name="back_left_pivot"/>
+	<Node id="7" name="back_right_pivot"/>
+	<Node id="8" name="front_right_pivot"/>
 
 	<!-- shared parameters -->
 	<xacro:property name="wheel_max_velocity" value="41.912"/>
