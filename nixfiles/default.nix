@@ -43,7 +43,7 @@ let
     };
     patches = [
       # speed up ws-build by avoiding wrapping qt apps twice.
-      # ./overlay/ros/patches/0001-don-t-wrap-qt-apps-for-the-whole-env.patch
+      ./overlay/ros/patches/0001-don-t-wrap-qt-apps-for-the-whole-env.patch
 
       # adds nav2-route to rosSuper before ./overlay is evaluated so it can 
       # be added to nav2-msgs propogatedBuildInputs
