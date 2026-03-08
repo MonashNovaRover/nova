@@ -533,8 +533,7 @@ self: super:
               nav2-rviz-plugins = rosSuper.nav2-rviz-plugins.overrideAttrs
               (
                 {
-                  propagatedBuildInputs ? [ ], 
-                  patches ? [ ], ...
+                  propagatedBuildInputs ? [ ], ...
                 }:
                 {
                   version = "1.3.11-r1";
@@ -543,10 +542,8 @@ self: super:
                     name = "1.3.11-1.tar.gz";
                     sha256 = "aa446a165ce5a23952a1e2637964e07f43df8a54d71f473094d59b509d28b668";
                   };
-
-                  patches = patches ++ [
-                    ./patches/route-tool.patch
-                  ];
+                  # https://github.com/lopsided98/nix-ros-overlay/issues/811
+                  env.LDFLAGS = "-Wl,--as-needed";
 
                   propagatedBuildInputs = propagatedBuildInputs ++ ( with rosSuper; [
                     nav2-route
