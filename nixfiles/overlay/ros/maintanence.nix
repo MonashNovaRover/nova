@@ -530,19 +530,11 @@ self: super:
                 };
               };
 
-              # nav2-route = rosSuper.nav2-route.overrideAttrs
-              # {
-              #   src = builtins.path {
-              #     name = "nav2-route-source";
-              #     path = ../../../../other/navigation2-jazzy/nav2_route;
-              #   };
-              # };
-
               nav2-rviz-plugins = rosSuper.nav2-rviz-plugins.overrideAttrs
               (
                 {
                   propagatedBuildInputs ? [ ], 
-                  nativeBuildInputs ? [ ], ...
+                  patches ? [ ], ...
                 }:
                 {
                   version = "1.3.11-r1";
@@ -551,24 +543,14 @@ self: super:
                     name = "1.3.11-1.tar.gz";
                     sha256 = "aa446a165ce5a23952a1e2637964e07f43df8a54d71f473094d59b509d28b668";
                   };
-                  
-                  # src = self.fetchFromGitHub {
-                  #   owner = "SteveMacenski";
-                  #   repo = "navigation2";
-                  #   rev = "617ede9c16665eaf59bb4a55969ff44496e58617";
-                  #   sha256 = "sha256-O+0wQatDvZwvvQdrA2PJvX18Aebq2O2WKQk+UZTlqck=";
-                  # };
-                  # sourceRoot = "source/nav2_rviz_plugins";
 
-                  # src = builtins.path {
-                  #   name = "nav2-rviz-plugins-source";
-                  #   path = ../../../../other/navigation2-jazzy/nav2_rviz_plugins;
-                  # };
+                  patches = patches ++ [
+                    ./patches/route-tool.patch
+                  ];
+
                   propagatedBuildInputs = propagatedBuildInputs ++ ( with rosSuper; [
                     nav2-route
                   ]);
-                  # patches = [ ];
-                  nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
                 }
               );
 
