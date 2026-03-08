@@ -70,9 +70,15 @@
             <Producer>
                 <NodeRef id="2"/>
                 <NodeRef id="18"/>
+                <
             </Producer>
-
-            <Multiplex name="ABS_InfoMux" offset="16" length="2">
+            <Signal name="a" offset="1">
+                <LabelSet>
+                    <
+                </LabelSet>
+            </Signal>
+            <Multiplex name="ABS_InfoMux" offset="16" length="2" >
+                <
                 <MuxGroup count="0">
                     <Signal name="Info0" offset="0" length="8"/>
                     <Signal name="Info1" offset="8" length="8"/>
@@ -106,6 +112,7 @@
                 <Consumer>
                     <NodeRef id="12"/>
                 </Consumer>
+                <Value
                 <Value slope="0.2" intercept="0" unit="km/h"/>
                 <LabelSet>
                     <Label type="error" name="invalid" value="16777215"/>
@@ -387,6 +394,6 @@
             </Signal>
         </Message>
     </Bus>
-</NetworkDefinition>
+</wrapper>
 
 
