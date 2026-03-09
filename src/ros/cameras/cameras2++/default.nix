@@ -20,10 +20,7 @@ buildRosPackage {
   name = "nova-cameras";
   buildType = "ament_cmake";
 
-  src = builtins.path rec {
-    name = "nova-cameras-source";
-    path = ./.;
-  };
+  src = builtins.filterSource (path: type: baseNameOf path != "build") ./.;
 
   nativeBuildInputs = [ 
     ament-cmake 
