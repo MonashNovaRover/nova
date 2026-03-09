@@ -18,21 +18,6 @@
 	<Node id="7" name="back_right_pivot"/>
 	<Node id="8" name="front_right_pivot"/>
 
-	<!-- shared parameters -->
-	<xacro:property name="wheel_max_velocity" value="41.912"/>
-	<xacro:property name="pivot_max_velocity" value="9.1439"/>
-
-	<!-- calculate position_multiplier and position_offset for pivots
-	using parameters copied directly from ros2_control.xacro
-	and reversing the calculation used in blcmd_hardware2.cpp -->
-	<xacro:property name="resolver_reduction" value="1.33333333333"/>
-	<xacro:property name="res_ticks_per_rev" value="98304"/>
-	<xacro:property name="zero_offset" value="14717"/>
-
-	<xacro:property name="pivot_position_multiplier" value="${ (2 * pi) / (resolver_reduction * res_ticks_per_rev) }"/>
-	<xacro:property name="pivot_position_offset" value="${ -1 * zero_offset * pivot_position_multiplier }"/>
-
-
 	<Bus name="can0" baudrate="250000">
 
 		<xacro:blcmd_messages blcmd_id="1" joint_name="flw"/>

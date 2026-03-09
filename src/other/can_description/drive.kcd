@@ -17,19 +17,6 @@
   <Node id="7" name="back_right_pivot"/>
   <Node id="8" name="front_right_pivot"/>
   <Bus baudrate="250000" name="can0">
-    <!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
-    <!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
-    <!-- output raw values (if requested) by modifying variables -->
-    <!--        <xacro:if value="${raw_velocity}">-->
-    <!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
-    <!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
-    <!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
-    <!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
-    <!--        <xacro:if value="${raw_effort}">-->
-    <!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x010" name="flw_all_stop">
       <Producer>
@@ -528,19 +515,6 @@
         </MuxGroup>
       </Multiplex>
     </Message>
-    <!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
-    <!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
-    <!-- output raw values (if requested) by modifying variables -->
-    <!--        <xacro:if value="${raw_velocity}">-->
-    <!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
-    <!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
-    <!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
-    <!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
-    <!--        <xacro:if value="${raw_effort}">-->
-    <!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x020" name="blw_all_stop">
       <Producer>
@@ -1039,19 +1013,6 @@
         </MuxGroup>
       </Multiplex>
     </Message>
-    <!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
-    <!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
-    <!-- output raw values (if requested) by modifying variables -->
-    <!--        <xacro:if value="${raw_velocity}">-->
-    <!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
-    <!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
-    <!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
-    <!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
-    <!--        <xacro:if value="${raw_effort}">-->
-    <!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x030" name="brw_all_stop">
       <Producer>
@@ -1550,19 +1511,6 @@
         </MuxGroup>
       </Multiplex>
     </Message>
-    <!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
-    <!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
-    <!-- output raw values (if requested) by modifying variables -->
-    <!--        <xacro:if value="${raw_velocity}">-->
-    <!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
-    <!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
-    <!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
-    <!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
-    <!--        <xacro:if value="${raw_effort}">-->
-    <!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x040" name="frw_all_stop">
       <Producer>
@@ -2061,19 +2009,6 @@
         </MuxGroup>
       </Multiplex>
     </Message>
-    <!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
-    <!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
-    <!-- output raw values (if requested) by modifying variables -->
-    <!--        <xacro:if value="${raw_velocity}">-->
-    <!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
-    <!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
-    <!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
-    <!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
-    <!--        <xacro:if value="${raw_effort}">-->
-    <!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x050" name="flp_all_stop">
       <Producer>
@@ -2572,19 +2507,6 @@
         </MuxGroup>
       </Multiplex>
     </Message>
-    <!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
-    <!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
-    <!-- output raw values (if requested) by modifying variables -->
-    <!--        <xacro:if value="${raw_velocity}">-->
-    <!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
-    <!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
-    <!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
-    <!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
-    <!--        <xacro:if value="${raw_effort}">-->
-    <!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x060" name="blp_all_stop">
       <Producer>
@@ -3083,19 +3005,6 @@
         </MuxGroup>
       </Multiplex>
     </Message>
-    <!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
-    <!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
-    <!-- output raw values (if requested) by modifying variables -->
-    <!--        <xacro:if value="${raw_velocity}">-->
-    <!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
-    <!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
-    <!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
-    <!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
-    <!--        <xacro:if value="${raw_effort}">-->
-    <!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x070" name="brp_all_stop">
       <Producer>
@@ -3594,19 +3503,6 @@
         </MuxGroup>
       </Multiplex>
     </Message>
-    <!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
-    <!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
-    <!-- output raw values (if requested) by modifying variables -->
-    <!--        <xacro:if value="${raw_velocity}">-->
-    <!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
-    <!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
-    <!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
-    <!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
-    <!--        <xacro:if value="${raw_effort}">-->
-    <!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
-    <!--        </xacro:if>-->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x080" name="frp_all_stop">
       <Producer>
