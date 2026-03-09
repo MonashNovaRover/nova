@@ -329,6 +329,75 @@
             </Signal>
         </Message>
 
+        <Message id="0x4${blcmd_id}0" name="${joint_name}_log">
+            <xacro:producer_blcmd/>
+            <Multiplex name="log_message" offset="0" length="8" endianess="big">
+                <xacro:consumer_orin/>
+                <Value type="signed"/>
+                
+                <LabelSet>
+                    <Label name="error" value="0" type="error"/>
+                    <Label name="warning" value="1" type="error"/>
+                    <Label name="info" value="2"/>
+                    <Label name="gate_driver_condition" value="3" type="error"/>
+                </LabelSet>
+                
+                <MuxGroup count="0">
+                    <Signal name="error_message" offset="8" length="8" endianess="big">
+                        <Value type="signed"/>
+                        <LabelSet>
+                            <Label name="no_steps" value="0"/>
+                            <Label name="magnetic_encoder_error" value="1"/>
+                            <Label name="resolver_error" value="2"/>
+                            <Label name="resolver_failed_checksum" value="3"/>
+                            <Label name="unexpected_position_command" value="4"/>
+                            <Label name="gate_driver_fault" value="5"/>
+                            <Label name="gate_driver_spi_failed" value="6"/>
+                            <Label name="ma302_spi_failed" value="7"/>
+                            <Label name="rotor_home_failed" value="8"/>
+                            <Label name="resolver_zero_failure" value="9"/>
+                            <Label name="stall_triggered" value="10"/>
+                            <Label name="over_speed" value="11"/>
+                        </LabelSet>
+                    </Signal>
+                </MuxGroup>
+
+                <MuxGroup count="1">
+                    <Signal name="warning_message" offset="8" length="8" endianess="big">
+                        <Value type="signed"/>
+                        <LabelSet>
+                            <Label name="missing_steps" value="0"/>
+                            <Label name="duty_cycle_threshold" value="1"/>
+                            <Label name="current_threshold" value="2"/>
+                            <Label name="velocity_threshold" value="3"/>
+                            <Label name="position_out_of_range" value="4"/>
+                        </LabelSet>
+                    </Signal>
+                </MuxGroup>
+
+                <MuxGroup count="2">
+                    <Signal name="info_message" offset="8" length="8" endianess="big">
+                        <Value type="signed"/>
+                        <LabelSet>
+                            <Label name="gate_driver_config_success" value="0"/>
+                            <Label name="ma302_config_success" value="1"/>
+                            <Label name="gate_driver_fault_recovered" value="2"/>
+                            <Label name="rotor_home_success" value="3"/>
+                            <Label name="resolver_zero_success" value="4"/>
+                        </LabelSet>
+                    </Signal>
+                </MuxGroup>
+
+                <MuxGroup count="3">
+                    <Signal name="gate_driver_condition" offset="8" length="8" endianess="big">
+                        <LabelSet>
+                            <Label name="log_sequence_complete" value="255"/>
+                        </LabelSet>
+                    </Signal>
+                </MuxGroup>
+            </Multiplex>
+        </Message>
+
     </xacro:macro>
 </wrapper>
 
