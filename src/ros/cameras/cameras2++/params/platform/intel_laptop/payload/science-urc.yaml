@@ -1,0 +1,5 @@
+camera_directory:
+  ros__parameters:
+    serial_overrides:
+      roots:
+        "pci-0000:00:14.0-usb-0:2": science-urc

@@ -1,0 +1,19 @@
+camera_directory_service:
+  blacklist:
+    type: string_array
+    default_value: []
+    description: string array of serials to blacklist from the directory service
+ 
+  serial_overrides:
+    # A root and a path are combined to search for the final path_id to match to a udev device which then gets given the corresponding new serial.
+    roots:
+      type: none
+      description: map of original roots (keys) and name (values) to override the serial of a camera with a specific path
+    paths:
+      type: none
+      description: map with name of payload (1st level keys) and the following; original path (2nd level keys) and the new serial (2nd level value)
+
+  serial_remaps:
+    type: none
+    description: map of original serials (keys) and new serials (values) to remap camera serials.
+    # Note: serial_remaps is applied after serial_overrides

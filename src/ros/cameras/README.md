@@ -1,0 +1,2 @@
+`Cameras2++` will be renamed everywhere as just `cameras` as per Orlando's request.
+However the folder name of Cameras2++ will be kept as cameras2++ as well as the package.xml description so that we know where we came from :) 
