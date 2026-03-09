@@ -17,7 +17,7 @@ let
       {name = "Base:Rviz"; platform=base; cmd="./rviz2 -d ../share/arm-bringup/rviz/arm.rviz";}
       {name = "Rover:Reolink Ctl"; platform=rover; cmd="./reolink-ctl";}
       # TODO: this needs ffmpeg so it dont work
-      {name = "Rover:Reolink"; platform=base; cmd="reolink low";}
+      {name = "Rover:Reolink"; platform=base; cmd="nix-shell -p ffmpeg --command \"reolink low\"";}
     ];
     post = post-shell;
   };
@@ -27,9 +27,34 @@ let
     terminals = [
       {name="Base:Teleop"; platform=base; cmd="ros2 launch teleop_drive_joy teleop.launch.py";}
       {name = "Rover:Drive"; platform=rover; cmd="launch-drive";}
+      {name = "Rover:GUI"; platform=base; cmd="gui-shell --command \"gui-run\"";}
+      {name = "Rover:GUI Rosbridge"; platform=base; cmd="gui-rosbridge";}
     ];
     post = post-shell;
   };
+
+  mock = {
+    pre = pre-shell {payload-name=task-name + " mock"; need-rover=false;};
+    terminals = [
+      {name = "Rover:Arm Control"; platform=base; cmd="./ros2 launch arm_bringup mock.launch.py local:=True | grep -v not.defined.in";}
+      {name = "Rover:Arm Can Sleuth"; platform=base; cmd="./can_sleuth -e taipan -o tui";}
+      {name = "Base:Arm Teleop"; platform=base; cmd="./ros2 launch teleop_arm teleop.launch.py local:=True log_inputs:=True";}
+      {name = "Base:Rviz"; platform=base; cmd="./rviz2 -d ../share/arm-bringup/rviz/arm.rviz";}
+    ];
+    post = post-shell;
+  };
+
+  mock-controller = {
+    pre = pre-shell {payload-name=task-name + " mock with controller"; need-rover=false;};
+    terminals = [
+      {name = "Rover:Arm Control"; platform=base; cmd="./ros2 launch arm_bringup mock.launch.py local:=True | grep -v not.defined.in";}
+      {name = "Rover:Arm Can Sleuth"; platform=base; cmd="./can_sleuth -e taipan -o tui";}
+      {name = "Base:Arm Teleop"; platform=base; cmd="./ros2 launch teleop_arm teleop.launch.py local:=True log_inputs:=True joysticks:=false";}
+      {name = "Base:Rviz"; platform=base; cmd="./rviz2 -d ../share/arm-bringup/rviz/arm.rviz";}
+    ];
+    post = post-shell;
+  };
+
 
   combined = {
     pre = pre-shell {payload-name=task-name+" combined"; need-rover=true; };
@@ -40,5 +65,7 @@ in
 {
   pl-one = bashBuilder one (task-name+"-one");
   pl-two = bashBuilder two (task-name+"-two");
+  pl-mock = bashBuilder mock (task-name+"-mock");
+  pl-mock-controller = bashBuilder mock-controller (task-name+"-mock-controller");
   pl-combined = bashBuilder combined (task-name+"-combined");
 }
