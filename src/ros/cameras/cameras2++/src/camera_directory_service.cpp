@@ -118,6 +118,7 @@ class CameraDirectory : public rclcpp::Node
         new_camera_map[serial] = device.devname;
         if (serial != device.serial) RCLCPP_INFO(this->get_logger(), "New device found: %s serial remapped to: %s", device.serial.c_str(), serial.c_str());
         else RCLCPP_INFO(this->get_logger(), "New device found: %s", serial.c_str());
+        camera_map = new_camera_map;
       }
     }
     if (devices.size() != last_device_count) {

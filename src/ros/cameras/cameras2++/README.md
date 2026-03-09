@@ -33,7 +33,7 @@ or individually\
 `result/bin/ros2 run cameras camera_streamer_service`\
 `result/bin/gst-webrtc-signalling-server`\
 then run the `nova-gui` \
-or clone the gst-plugins-rs repo (v0.10) and run:\
+or clone the gst-plugins-rs repo (v0.10.2) and run:\
 `cd gst-plugins-rs/net/webrtc`\
 `python3 -m http.server -d www/`
 

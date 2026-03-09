@@ -16,25 +16,25 @@ camera_streamer:
     #     height: 720
     #     framerate: 10
 
-    cameras:
+    serial_pipelines:
       # Waveshare
-      openaicam_openaicam_2505121128:
-        camera_properties:
-          mime: image/jpeg
-          framerate: 30
-          width: 1920
-          height: 1080
-      webcamvendor_SK_series1_20220325JWGD2093:
-        camera_properties:
-          mime: video/x-h264 #image/jpeg
-          framerate: 30
-          width: 1920
-          height: 1080
+      openaicam_openaicam_2505121128: # need to test again
+        mime: image/jpeg
+        framerate: 30
+        width: 1920
+        height: 1080
+      webcamvendor_SK_series1_20220325JWGD2093: # need to test again
+        mime: video/x-h264 #image/jpeg
+        framerate: 30
+        width: 1920
+        height: 1080
 
-      mast_forward: 
-        camera_properties:
-          width: 160
-          height: 120
-          framerate: 30
-        pipeline_properties:
-          show_clock: true
+    serial_pipelines:
+      anthony-cam:
+        pipeline_type: v4l2webrtc
+        width: 1280
+        height: 720
+        framerate: 30
+        mime: image/jpeg
+        show_clock: true
+        video_caps: video/x-vp9

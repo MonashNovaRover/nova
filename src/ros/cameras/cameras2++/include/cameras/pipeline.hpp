@@ -16,6 +16,7 @@ struct v4lProperties
 
 struct webRTCProperties
 {
+  std::string video_caps;
   bool do_fec;
   bool do_retransmission;
   std::string congestion_control;

@@ -34,16 +34,20 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
       "framerate", GST_TYPE_FRACTION, props->framerate, 1, NULL);
   g_object_set(filter, "caps", caps, NULL);
   gst_caps_unref(caps);
+
   GstStructure *meta = gst_structure_new("meta", "serial", G_TYPE_STRING, props->serial.c_str(), NULL); 
+  GstCaps *webrtc_caps = gst_caps_from_string(props->video_caps.c_str());
   g_object_set(webrtc,
       "do-fec", props->do_fec,
       "do-retransmission", props->do_retransmission,
       "congestion-control", (
-      props->congestion_control == "disabled" ? 0 :
-      props->congestion_control == "homegrown" ? 1 :
-      props->congestion_control == "gcc" ? 2 : -1),
+        props->congestion_control == "disabled" ? 0 :
+        props->congestion_control == "homegrown" ? 1 :
+        props->congestion_control == "gcc" ? 2 : -1),
       "meta", meta, 
+      "video-caps", webrtc_caps,
       NULL);
+  gst_caps_unref(webrtc_caps);
   gst_structure_free(meta);
 
   gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, decode, convert, webrtc, NULL);
@@ -84,17 +88,21 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
 
   std::map<std::string, rclcpp::Parameter> serial_params;
 
-  // override any defaults with params
   RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
-  streamer_node->get_parameter_or((PIPELINE_PREFIX + camera->serial + ".width").c_str(), props->width, 640); 
-  streamer_node->get_parameter_or((PIPELINE_PREFIX + camera->serial + ".height").c_str(), props->height, 480); 
-  streamer_node->get_parameter_or((PIPELINE_PREFIX + camera->serial + ".framerate").c_str(), props->framerate, 10); 
-  streamer_node->get_parameter_or<std::string>((PIPELINE_PREFIX + camera->serial + ".mime").c_str(), props->mime, "image/jpeg"); 
-  streamer_node->get_parameter_or<std::string>((PIPELINE_PREFIX + camera->serial + ".congestion_control").c_str(), props->congestion_control, "gcc"); 
-  streamer_node->get_parameter_or((PIPELINE_PREFIX + camera->serial + ".do_fec").c_str(), props->do_fec, false); 
-  streamer_node->get_parameter_or((PIPELINE_PREFIX + camera->serial + ".do_retransmission").c_str(), props->do_retransmission, false); 
-  streamer_node->get_parameter_or((PIPELINE_PREFIX + camera->serial + ".show_clock").c_str(), props->show_clock, false); 
+  props->node = camera->node;
+
+  // override any defaults with params
+  std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
+  streamer_node->get_parameter_or((camera_prefix + ".width").c_str(), props->width, 640); 
+  streamer_node->get_parameter_or((camera_prefix + ".height").c_str(), props->height, 480); 
+  streamer_node->get_parameter_or((camera_prefix + ".framerate").c_str(), props->framerate, 10); 
+  streamer_node->get_parameter_or<std::string>((camera_prefix + ".mime").c_str(), props->mime, "image/jpeg"); 
+  streamer_node->get_parameter_or<std::string>((camera_prefix + ".congestion_control").c_str(), props->congestion_control, "gcc"); 
+  streamer_node->get_parameter_or((camera_prefix + ".do_fec").c_str(), props->do_fec, false); 
+  streamer_node->get_parameter_or((camera_prefix + ".do_retransmission").c_str(), props->do_retransmission, false); 
+  streamer_node->get_parameter_or((camera_prefix + ".show_clock").c_str(), props->show_clock, false); 
+  streamer_node->get_parameter_or<std::string>((camera_prefix + ".video_caps").c_str(), props->video_caps, "video/x-vp8"); 
 
   // RCLCPP_INFO(streamer_node->get_logger(), "params, %d, %d, %d, %s, %s, %d, %d, %d", 
   //   props->width, props->height, 
