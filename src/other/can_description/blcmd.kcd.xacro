@@ -22,18 +22,21 @@
                 <NodeRef id="${orin_node_id}"/>
             </Producer>
         </xacro:macro>
+
         <Message id="0x0${blcmd_id}0" name="${joint_name}_all_stop">
             <xacro:producer_orin/>
             <Signal name="all_stop_requested" offset="0">
                 <xacro:consumer_blcmd/>
             </Signal>
         </Message>
+
         <Message id="0x0${blcmd_id}1" name="${joint_name}_twitch_forward">
             <xacro:producer_orin/>
             <Signal name="twitch_forward_requested" offset="0">
                 <xacro:consumer_blcmd/>
             </Signal>
         </Message>
+
         <Message id="0x0${blcmd_id}2" name="${joint_name}_twitch_backward">
             <xacro:producer_orin/>
             <Signal name="twitch_backward_requested" offset="0">
