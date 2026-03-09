@@ -1,0 +1,6 @@
+camera_directory:
+  ros__parameters:
+    serial_overrides:
+      roots:
+        "platform-3530000.xhci-usb-0:1": science_urc_mast
+        "platform-3530000.xhci-usb-0:3": science-urc
