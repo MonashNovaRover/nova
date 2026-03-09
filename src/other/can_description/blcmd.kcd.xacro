@@ -109,134 +109,130 @@
             </Signal>
         </Message>
 
+        <!-- labels for configuration signal/multiplex (i.e. associates configuration id with name) -->
+        <xacro:macro name="configuration_labels">
+            <LabelSet>
+                <Label name="has_resolver" value="0"/>
+                <Label name="current_kp" value="1"/>
+                <Label name="current_ki" value="2"/>
+                <Label name="max_current_threshold" value="3"/>
+                <Label name="velocity_kp" value="4"/>
+                <Label name="velocity_ki" value="5"/>
+                <Label name="max_velocity_threshold" value="6"/>
+                <Label name="min_interval" value="7"/>
+                <Label name="position_kp" value="8"/>
+                <Label name="position_ki" value="9"/>
+                <Label name="max_position_threshold" value="10"/>
+                <Label name="telemetry_packet_1_speed" value="11"/>
+                <Label name="telemetry_packet_2_speed" value="12"/>
+                <Label name="telemetry_packet_3_speed" value="13"/>
+                <Label name="telemetry_packet_4_speed" value="14"/>
+            </LabelSet>
+        </xacro:macro>
+
         <Message id="0x0${blcmd_id}9" name="${joint_name}_get_configuration">
             <xacro:producer_orin/>
-            <Signal name="configuration_requested" offset="0" length="8" endianess="big">
+            <Signal name="configuration" offset="0" length="8" endianess="big">
                 <xacro:consumer_blcmd/>
                 <Value type="signed"/>
-                <LabelSet>
-                    <Label name="has_resolver" value="0"/>
-                    <Label name="current_kp" value="1"/>
-                    <Label name="current_ki" value="2"/>
-                    <Label name="max_current_threshold" value="3"/>
-                    <Label name="velocity_kp" value="4"/>
-                    <Label name="velocity_ki" value="5"/>
-                    <Label name="max_velocity_threshold" value="6"/>
-                    <Label name="min_interval" value="7"/>
-                    <Label name="position_kp" value="8"/>
-                    <Label name="position_ki" value="9"/>
-                    <Label name="max_position_threshold" value="10"/>
-                    <Label name="telemetry_packet_1_speed" value="11"/>
-                    <Label name="telemetry_packet_2_speed" value="12"/>
-                    <Label name="telemetry_packet_3_speed" value="13"/>
-                    <Label name="telemetry_packet_4_speed" value="14"/>
-                </LabelSet>
+                <xacro:configuration_labels/>
             </Signal>
         </Message>
 
-        <Message id="0x0${blcmd_id}A" name="${joint_name}_set_configuration">
+        <!-- message macro for both set_configuration (from orin to blcmd)
+        and current_configuration (from blcmd to orin) -->
+        <xacro:macro name="configuration_messages" params="id name *producer_block *consumer_block">
+            <Message id="${id}" name="${name}">
+                <xacro:insert_block name="producer_block"/>
+
+                <!-- set configuration is "multiplexed" (so value of first byte determines what remaining bytes mean) -->
+                <Multiplex name="configuration" offset="0" length="8" endianess="big">
+                    <xacro:insert_block name="consumer_block"/>
+                    <xacro:configuration_labels/>
+
+                    <!-- signals for has_resolver -->
+                    <MuxGroup count="0">
+                        <Signal name="value" offset="8" length="8" endianess="big">
+                            <LabelSet>
+                                <Label name="false" value="0"/>
+                                <Label name="true" value="1"/>
+                            </LabelSet>
+                        </Signal>
+                    </MuxGroup>
+
+                    <!-- signals for current_kp and current_ki -->
+                    <MuxGroup count="1">
+                        <Signal name="fractional" offset="8" length="16" endianess="big"/>
+                        <Signal name="shift_amount" offset="24" length="8" endianess="big"/>
+                    </MuxGroup>
+                    <MuxGroup count="2">
+                        <Signal name="fractional" offset="8" length="16" endianess="big"/>
+                        <Signal name="shift_amount" offset="24" length="8" endianess="big"/>
+                    </MuxGroup>
+
+                    <!-- signals for max_current_threshold -->
+                    <MuxGroup count="3">
+                        <Signal name="max_current" offset="8" length="16" endianess="big"/>
+                    </MuxGroup>
+
+                    <!-- signals for velocity_kp and velocity_ki -->
+                    <MuxGroup count="4">
+                        <Signal name="fractional" offset="8" length="16" endianess="big"/>
+                        <Signal name="shift_amount" offset="24" length="8" endianess="big"/>
+                    </MuxGroup>
+                    <MuxGroup count="5">
+                        <Signal name="fractional" offset="8" length="16" endianess="big"/>
+                        <Signal name="shift_amount" offset="24" length="8" endianess="big"/>
+                    </MuxGroup>
+
+                    <!-- signals for max_velocity_threshold -->
+                    <MuxGroup count="6">
+                        <Signal name="max_velocity" offset="8" length="16" endianess="big"/>
+                    </MuxGroup>
+
+                    <!-- signals for min_interval -->
+                    <MuxGroup count="7">
+                        <!-- WARNING: in blcmd firmware, this value appears not to be used -->
+                        <Signal name="min_interval" offset="8" length="16" endianess="big"/>
+                    </MuxGroup>
+
+                    <!-- signals for position_kp and position_ki-->
+                    <MuxGroup count="8">
+                        <Signal name="fractional" offset="8" length="16" endianess="big"/>
+                        <Signal name="shift_amount" offset="24" length="8" endianess="big"/>
+                    </MuxGroup>
+                    <MuxGroup count="9">
+                        <Signal name="fractional" offset="8" length="16" endianess="big"/>
+                        <Signal name="shift_amount" offset="24" length="8" endianess="big"/>
+                    </MuxGroup>
+
+                    <!-- signals for max_position_threshold -->
+                    <MuxGroup count="10">
+                        <Signal name="max_position" offset="8" length="16" endianess="big"/>
+                    </MuxGroup>
+
+                    <!-- signals for telemetry_packet_1_speed, telemetry_packet_2_speed
+                    telemetry_packet_3_speed and telemetry_packet_4_speed -->
+                    <MuxGroup count="11">
+                        <Signal name="speed" offset="8" length="8" endianess="big"/>
+                    </MuxGroup>
+                    <MuxGroup count="12">
+                        <Signal name="speed" offset="8" length="8" endianess="big"/>
+                    </MuxGroup>
+                    <MuxGroup count="13">
+                        <Signal name="speed" offset="8" length="8" endianess="big"/>
+                    </MuxGroup>
+                    <MuxGroup count="14">
+                        <Signal name="speed" offset="8" length="8" endianess="big"/>
+                    </MuxGroup>
+                </Multiplex>
+            </Message>
+        </xacro:macro>
+
+        <xacro:configuration_messages id="0x0${blcmd_id}A" name="${joint_name}_set_configuration">
             <xacro:producer_orin/>
-
-            <!-- set configuration is "multiplexed" (so value of first byte determines what remaining bytes mean) -->
-            <Multiplex name="configuration_set" offset="0" length="8" endianess="big">
-                <xacro:consumer_blcmd/>
-                <Value type="signed"/>
-
-                <LabelSet>
-                    <Label name="has_resolver" value="0"/>
-                    <Label name="current_kp" value="1"/>
-                    <Label name="current_ki" value="2"/>
-                    <Label name="max_current_threshold" value="3"/>
-                    <Label name="velocity_kp" value="4"/>
-                    <Label name="velocity_ki" value="5"/>
-                    <Label name="max_velocity_threshold" value="6"/>
-                    <Label name="min_interval" value="7"/>
-                    <Label name="position_kp" value="8"/>
-                    <Label name="position_ki" value="9"/>
-                    <Label name="max_position_threshold" value="10"/>
-                    <Label name="telemetry_packet_1_speed" value="11"/>
-                    <Label name="telemetry_packet_2_speed" value="12"/>
-                    <Label name="telemetry_packet_3_speed" value="13"/>
-                    <Label name="telemetry_packet_4_speed" value="14"/>
-                </LabelSet>
-
-                <!-- signals for has_resolver -->
-                <MuxGroup count="0">
-                    <Signal name="value" offset="8" length="8" endianess="big">
-                        <LabelSet>
-                            <Label name="false" value="0"/>
-                            <Label name="true" value="1"/>
-                        </LabelSet>
-                    </Signal>
-                </MuxGroup>
-
-                <!-- signals for current_kp and current_ki -->
-                <MuxGroup count="1">
-                    <Signal name="fractional" offset="8" length="16" endianess="big"/>
-                    <Signal name="shift_amount" offset="24" length="8" endianess="big"/>
-                </MuxGroup>
-                <MuxGroup count="2">
-                    <Signal name="fractional" offset="8" length="16" endianess="big"/>
-                    <Signal name="shift_amount" offset="24" length="8" endianess="big"/>
-                </MuxGroup>
-
-                <!-- signals for max_current_threshold -->
-                <MuxGroup count="3">
-                    <Signal name="max_current" offset="8" length="16" endianess="big"/>
-                </MuxGroup>
-
-                <!-- signals for velocity_kp and velocity_ki -->
-                <MuxGroup count="4">
-                    <Signal name="fractional" offset="8" length="16" endianess="big"/>
-                    <Signal name="shift_amount" offset="24" length="8" endianess="big"/>
-                </MuxGroup>
-                <MuxGroup count="5">
-                    <Signal name="fractional" offset="8" length="16" endianess="big"/>
-                    <Signal name="shift_amount" offset="24" length="8" endianess="big"/>
-                </MuxGroup>
-
-                <!-- signals for max_velocity_threshold -->
-                <MuxGroup count="6">
-                    <Signal name="max_velocity" offset="8" length="16" endianess="big"/>
-                </MuxGroup>
-
-                <!-- signals for min_interval -->
-                <MuxGroup count="7">
-                    <!-- WARNING: in blcmd firmware, this value appears not to be used -->
-                    <Signal name="min_interval" offset="8" length="16" endianess="big"/>
-                </MuxGroup>
-
-                <!-- signals for position_kp and position_ki-->
-                <MuxGroup count="8">
-                    <Signal name="fractional" offset="8" length="16" endianess="big"/>
-                    <Signal name="shift_amount" offset="24" length="8" endianess="big"/>
-                </MuxGroup>
-                <MuxGroup count="9">
-                    <Signal name="fractional" offset="8" length="16" endianess="big"/>
-                    <Signal name="shift_amount" offset="24" length="8" endianess="big"/>
-                </MuxGroup>
-
-                <!-- signals for max_position_threshold -->
-                <MuxGroup count="10">
-                    <Signal name="max_position" offset="8" length="16" endianess="big"/>
-                </MuxGroup>
-
-                <!-- signals for telemetry_packet_1_speed, telemetry_packet_2_speed
-                telemetry_packet_3_speed and telemetry_packet_4_speed -->
-                <MuxGroup count="11">
-                    <Signal name="speed" offset="8" length="8" endianess="big"/>
-                </MuxGroup>
-                <MuxGroup count="12">
-                    <Signal name="speed" offset="8" length="8" endianess="big"/>
-                </MuxGroup>
-                <MuxGroup count="13">
-                    <Signal name="speed" offset="8" length="8" endianess="big"/>
-                </MuxGroup>
-                <MuxGroup count="14">
-                    <Signal name="speed" offset="8" length="8" endianess="big"/>
-                </MuxGroup>
-            </Multiplex>
-        </Message>
+            <xacro:consumer_blcmd/>
+        </xacro:configuration_messages>
 
         <Message id="0x0${blcmd_id}B" name="${joint_name}_reset_blcmd">
             <xacro:producer_orin/>
@@ -397,6 +393,11 @@
                 </MuxGroup>
             </Multiplex>
         </Message>
+
+        <xacro:configuration_messages id="0x4${blcmd_id}9" name="${joint_name}_current_configuration">
+            <xacro:producer_blcmd/>
+            <xacro:consumer_orin/>
+        </xacro:configuration_messages>
 
     </xacro:macro>
 </wrapper>
