@@ -22,20 +22,6 @@
 
 using namespace std::placeholders;
 
-/*
-Priority List:
-- Implement profiles
-  - These should be applied after default but before other parameters
-- Pipeline element extra settings
-  - E.g look for element factory name like v4l2src then add props 
-- Handle extra params and extra meta
-  - e.g h264 format option etc
-  - hopefully should be easy if pipeline thing works
-- gst-launch-1.0 string parameter to pipeline
-- ros2 topic pipeline (both ways)
-  - this should hopefully be trivial if string parameter is done
-- Documentation and code comments (LOWEST PRIORITY LOL)
-*/
 
 enum CameraState {STOP = 0, START = 1, PAUSE = 2};
 
@@ -103,7 +89,7 @@ class CameraStreamer : public rclcpp::Node
         pipeline->camera = &camera;
 
         std::string pipeline_type;
-        this->get_parameter_or<std::string>((PIPELINE_PREFIX + camera.serial + ".width").c_str(), pipeline_type, "v4l2webrtc"); 
+        this->get_parameter_or<std::string>((PIPELINE_PREFIX + camera.serial + ".pipeline_type").c_str(), pipeline_type, "v4l2webrtc"); 
         if (pipeline_type == "v4l2webrtc")
         {
           auto props = get_v4l2webrtc_pipeline_properties(this, &camera);

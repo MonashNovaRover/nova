@@ -10,7 +10,15 @@
 
 GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineProperties* props)
 {
-  // A simple v4l camera to webrtc pipeline
+  /* 
+     This creates a v4l2src to webrtc pipeline with the following structure:
+     v4l2src ! capsfilter ! decodebin -> videoconvert ! (clockoverlay) ! webrtcsink
+     @param streamer_node pointer to the ros2 streamer node
+     @param props pointer to the pipeline properties
+     @return GstElement* pointer to the created GStreamer pipeline
+  */
+
+  // create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
   GstElement* filter = gst_element_factory_make("capsfilter", "filter");
@@ -26,6 +34,8 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
       return nullptr;
   }
   RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate);
+  
+  // set element properties
   g_object_set(source, "device", props->node.c_str(), NULL);
   GstCaps *caps = gst_caps_new_simple(
       props->mime.c_str(),
@@ -50,6 +60,7 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
   gst_caps_unref(webrtc_caps);
   gst_structure_free(meta);
 
+  // add elements to pipeline and link
   gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, decode, convert, webrtc, NULL);
 
   g_signal_connect(decode, "pad-added", G_CALLBACK(+[](GstElement* /*decode*/, GstPad* new_pad, gpointer user_data) {
@@ -84,6 +95,12 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
 
 v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
 {
+  /*
+    Pulls ros2 parameters for a given camera and returns a properties struct for the v4l2webrtc pipeline creation function.
+    @param streamer_node pointer to the ros2 streamer node
+    @param camera pointer to the camera message containing at least the serial and node for the camera
+    @return pointer to a v4l2webrtcPipelineProperties struct containing the properties for the pipeline
+  */
   v4l2webrtcPipelineProperties* props = new v4l2webrtcPipelineProperties; 
 
   std::map<std::string, rclcpp::Parameter> serial_params;
@@ -103,13 +120,6 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
   streamer_node->get_parameter_or((camera_prefix + ".do_retransmission").c_str(), props->do_retransmission, false); 
   streamer_node->get_parameter_or((camera_prefix + ".show_clock").c_str(), props->show_clock, false); 
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".video_caps").c_str(), props->video_caps, "video/x-vp8"); 
-
-  // RCLCPP_INFO(streamer_node->get_logger(), "params, %d, %d, %d, %s, %s, %d, %d, %d", 
-  //   props->width, props->height, 
-  //   props->framerate, props->mime.c_str(),
-  //   props->congestion_control.c_str(), props->do_fec,
-  //   props->do_retransmission, props->show_clock
-  // );
 
   return props;
 }
