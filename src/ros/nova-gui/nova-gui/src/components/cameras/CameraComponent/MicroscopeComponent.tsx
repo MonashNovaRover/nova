@@ -1,5 +1,4 @@
 import { Card, Slider } from "@nextui-org/react";
-import { CameraComponent } from "./CameraComponent.tsx";
 import { useCameraStreamer } from "./hooks/useCameraStreamer.ts";
 import { RootState } from "../../../redux/RootState.ts";
 import { useSelector } from "react-redux";
@@ -8,6 +7,7 @@ import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { useEffect, useState } from "react";
 import { RosService } from "../../../ros/services/rosService.ts";
 import { CameraSerials } from "../../../views/shared/CamerasPage/CameraPageConstants.tsx";
+import MicroscopeScaleOverlayedCameraComponent from "./special/MicroscopeScaleOverlayedCameraComponent.tsx";
 
 const MicroscopeComponent: React.FC = () => {
   // Invoking Bifrost and pointing it towards MICROSCOPE_SERVO
@@ -47,7 +47,7 @@ const MicroscopeComponent: React.FC = () => {
 
   return (
     <Card className={`m-4`}>
-      <CameraComponent cameraSerial={CameraSerials.SCIENCE_MICROSCOPE} />
+      <MicroscopeScaleOverlayedCameraComponent cameraSerial={CameraSerials.SCIENCE_MICROSCOPE} />
       <Slider
         className="max-w-full pt-2 pb-6 pl-8 pr-8"
         size="lg"
