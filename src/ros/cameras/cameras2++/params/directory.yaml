@@ -1,0 +1,54 @@
+camera_directory:
+  ros__parameters:
+    blacklist:
+      # The RealSense cameras expose many video device nodes, all with the same serial number and USB device path.
+      # This is incompatible with the design of the camera_directory node.
+      - Intel_R__RealSense_TM__Depth_Camera_455_Intel_R__RealSense_TM__Depth_Camera_455_210523060485
+      - Intel_R__RealSense_TM__Depth_Camera_455_Intel_R__RealSense_TM__Depth_Camera_455 # Jetson TX2 does not see the serial number??
+    serial_overrides:
+      paths:
+        mast:
+          '1:1.0': mast_arm_stow
+          '2:1.0': mast_down
+          '3:1.0': mast_forward
+          '4:1.0': mast_backward
+        science:
+          '1:1.0': science_spectrometer_top
+          '2:1.0': science_spectrometer_side
+          '4.1:1.0': science_microscope
+          '4.2:1.0': science_backward
+          '4.3:1.0': science_shotglass
+          '4.4:1.0': science_rock_flipper
+          '3:1.0': science_gantry
+        science-urc:
+          '1:1.0': science_gimbal_cam
+          '2:1.0': science_microscope
+          '3:1.0': science_spectroscope
+          '4.1:1.0': science_cuvettes
+        science_urc_mast:
+          '1:1.0': mast_arm_stow
+          '2:1.0': mast_down
+          '3:1.0': mast_forward
+          '4:1.0': mast_backward
+        science-arc:
+          '3:1.0': science_gimbal_cam     # science hub port 1
+          '2:1.0': science_kiln           # science hub port 2
+          '1:1.0': science_kiln_bottom    # science hub port 3
+          '4:1.0': science_microscope     # science hub port 4  
+        arm_es:
+          '1:1.0': arm_end_finger
+          '2:1.0': arm_end_side
+          '3:1.0': arm_end_periscope
+          '4:1.0': arm_end_top
+        arm:
+          '1:1.0': arm_end_finger
+          '2:1.0': arm_end_side
+          '3:1.0': arm_end_periscope
+          '4:1.0': arm_end_top
+        ec:
+          '4:1.0': ec_scraper             # ec hub 1 -> camera in USB position 1 as labeled on the E&C CAMS USB Hub
+          '3:1.0': ec_forklift_down       # ec hub 2
+          '2:1.0': ec_forklift_forward    # ec hub 3
+          '1:1.0': ec_scraper_leg         # ec hub 4
+    serial_remaps:
+      046d_C270_HD_WEBCAM_2A3D8660: anthony-cam
