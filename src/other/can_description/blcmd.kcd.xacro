@@ -3,32 +3,26 @@
     <xacro:macro name="blcmd_messages" params="
     blcmd_id
     joint_name
-    max_velocity
-    position_multiplier:=${None}
-    position_offset:=${None}
     blcmd_node_id:=${None}
     orin_node_id:=0
-    raw_velocity:=false
-    raw_position:=false
-    raw_effort:=false
     ">
         <!-- variables -->
-        <xacro:property name="limit_16_bit_signed_integer" value="${2**15 - 1}"/>
+<!--        <xacro:property name="limit_16_bit_signed_integer" value="${2**15 - 1}"/>-->
         <xacro:property name="blcmd_node_id" value="${blcmd_id if blcmd_node_id is None else blcmd_node_id}" lazy_eval="false"/>
-        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>
-        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>
+<!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
+<!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
 
         <!-- output raw values (if requested) by modifying variables -->
-        <xacro:if value="${raw_velocity}">
-            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>
-        </xacro:if>
-        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">
-            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>
-            <xacro:property name="position_offset" value="0" lazy_eval="false"/>
-        </xacro:if>
-        <xacro:if value="${raw_effort}">
-            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>
-        </xacro:if>
+<!--        <xacro:if value="${raw_velocity}">-->
+<!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
+<!--        </xacro:if>-->
+<!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
+<!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
+<!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
+<!--        </xacro:if>-->
+<!--        <xacro:if value="${raw_effort}">-->
+<!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
+<!--        </xacro:if>-->
 
         <!-- messages sent from orin to blcmd -->
 
@@ -66,27 +60,24 @@
         <Message id="0x0${blcmd_id}3" name="${joint_name}_drive_at_speed">
             <xacro:producer_orin/>
             <Signal name="velocity_requested" offset="0" length="16" endianess="big">
-                <Notes>Target velocity (radians per second)</Notes>
                 <xacro:consumer_blcmd/>
-                <Value type="signed" unit="rad/s" slope="${velocity_multiplier}"/>
+                <Value type="signed"/>
             </Signal>
         </Message>
 
         <Message id="0x0${blcmd_id}4" name="${joint_name}_drive_to_position">
             <xacro:producer_orin/>
             <Signal name="position_requested" offset="0" length="16" endianess="big">
-                <Notes>Target position (radians from zero)</Notes>
                 <xacro:consumer_blcmd/>
-                <Value type="signed" unit="rad" slope="${position_multiplier}" intercept="${position_offset}"/>
+                <Value type="signed"/>
             </Signal>
         </Message>
 
         <Message id="0x0${blcmd_id}5" name="${joint_name}_drive_at_current">
             <xacro:producer_orin/>
             <Signal name="effort_requested" offset="0" length="16" endianess="big">
-                <Notes>Target effort (proportion of max effort)</Notes>
                 <xacro:consumer_blcmd/>
-                <Value type="signed" unit="1" slope="${effort_multiplier}"/>
+                <Value type="signed"/>
             </Signal>
         </Message>
 
@@ -94,11 +85,11 @@
             <xacro:producer_orin/>
 
             <!-- not implemented in blcmd firmware, so only raw values provided -->
-            <Signal name="open_loop_current_requested_raw" offset="0" length="16" endianess="big">
+            <Signal name="open_loop_current_requested" offset="0" length="16" endianess="big">
                 <xacro:consumer_blcmd/>
                 <Value type="signed"/>
             </Signal>
-            <Signal name="open_loop_velocity_requested_raw" offset="16" length="16" endianess="big">
+            <Signal name="open_loop_velocity_requested" offset="16" length="16" endianess="big">
                 <xacro:consumer_blcmd/>
                 <Value type="signed"/>
             </Signal>
@@ -285,11 +276,59 @@
         <Message id="0x4${blcmd_id}1" name="${joint_name}_telemetry_packet_1">
             <xacro:producer_blcmd/>
             <Signal name="velocity" offset="0" length="16" endianess="big">
-                <Notes>Velocity (radians per second)</Notes>
                 <xacro:consumer_orin/>
-                <Value type="signed" unit="rad/s" slope="${velocity_multiplier}"/>
+                <Value type="signed"/>
+            </Signal>
+            <Signal name="q_current" offset="16" length="16" endianess="big">
+                <xacro:consumer_orin/>
+                <Value type="signed"/>
             </Signal>
         </Message>
+
+        <Message id="0x4${blcmd_id}2" name="${joint_name}_telemetry_packet_2">
+            <xacro:producer_blcmd/>
+            <Signal name="interval" offset="0" length="16" endianess="big">
+                <xacro:consumer_orin/>
+                <Value type="signed"/>
+            </Signal>
+            <Signal name="d_current" offset="16" length="16" endianess="big">
+                <xacro:consumer_orin/>
+                <Value type="signed"/>
+            </Signal>
+        </Message>
+
+        <Message id="0x4${blcmd_id}3" name="${joint_name}_telemetry_packet_3">
+            <xacro:producer_blcmd/>
+            <Signal name="resolver_position" offset="0" length="16" endianess="big">
+                <xacro:consumer_orin/>
+                <Value type="signed"/>
+            </Signal>
+            <Signal name="resolver_velocity" offset="16" length="16" endianess="big">
+                <xacro:consumer_orin/>
+                <Value type="signed"/>
+            </Signal>
+        </Message>
+
+        <Message id="0x4${blcmd_id}4" name="${joint_name}_telemetry_packet_4">
+            <xacro:producer_blcmd/>
+            <Signal name="power" offset="0" length="16" endianess="big">
+                <xacro:consumer_orin/>
+                <Value type="signed"/>
+            </Signal>
+            <Signal name="voltage" offset="16" length="16" endianess="big">
+                <xacro:consumer_orin/>
+                <Value type="signed"/>
+            </Signal>
+            <Signal name="temperature" offset="32" length="16" endianess="big">
+                <xacro:consumer_orin/>
+                <Value type="signed"/>
+            </Signal>
+            <Signal name="current" offset="48" length="16" endianess="big">
+                <xacro:consumer_orin/>
+                <Value type="signed"/>
+            </Signal>
+        </Message>
+
     </xacro:macro>
 </wrapper>
 
