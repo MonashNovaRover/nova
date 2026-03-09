@@ -98,10 +98,15 @@ class CameraDirectory : public rclcpp::Node
 
   private: void publish_cameras()
   {
+    /*
+      Add each camera to a cameras message and publish their final serial and dev node.    
+    */
     auto message = camera_msgs::msg::Cameras();
     std::vector<V4lDevice> devices = find_v4l_capture_devices();
     std::unordered_map<std::string, std::string> new_camera_map;
     for (V4lDevice device : devices) {
+
+      // get final serial with remaps and overrides
       std::string serial = device.serial;
       if (serial_overrides.find(device.path) != serial_overrides.end()){
         serial = serial_overrides[device.path];
@@ -109,10 +114,13 @@ class CameraDirectory : public rclcpp::Node
       if (serial_remaps.find(serial) != serial_remaps.end()){
         serial = serial_remaps[serial];
       }
+      // add to message
       auto camera = camera_msgs::msg::Camera();
       camera.serial = serial;
       camera.node = device.devname;
       message.cameras.push_back(camera);
+
+      // check if new camera or serial changed
       if (camera_map.find(serial) == camera_map.end())
       {
         new_camera_map[serial] = device.devname;
@@ -139,6 +147,10 @@ class CameraDirectory : public rclcpp::Node
 };
 
 std::vector<V4lDevice> find_v4l_capture_devices() {
+  /*
+    Finds all V4L2 capture devices on the system and returns a vector of V4lDevice structs.
+    @return std::vector<V4lDevice> vector of V4lDevice structs representing the found devices
+  */
   sd_device_enumerator *enumerator = NULL;
   sd_device *device = NULL;
   std::vector<V4lDevice> matches;
