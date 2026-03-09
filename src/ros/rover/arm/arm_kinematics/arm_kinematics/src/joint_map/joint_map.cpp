@@ -61,6 +61,45 @@ void JointMap::map(const std::vector<double> & inputs, KDL::JntArray & jnts) con
   }
 }
 
+//TODO: make this not the same function twice
+void JointMap::map(const std::vector<double> & inputs, std::vector<double> & outputs) const {
+  assert(!input_count || inputs.size() == input_count);   //< Wrong number of elements in inputs
+  assert(outputs.size() == output_count); //< Wrong number of elements in outputs
+
+  // The Jeston Orin Nano should have FP64 NEON SIMD instructions
+  // Thought I might try coax the compiler into using it
+
+  auto* __restrict__ out = outputs.data();
+  auto* __restrict__ off = offsets.data();
+
+  if (!input_count) {
+    // This allows empty input maps to work
+    #pragma omp simd
+    for (size_t i = 0; i < output_count; ++i) {
+      out[i] = off[i];
+    }
+    return;
+  }
+
+  auto* __restrict__ in  = inputs.data();
+  auto* __restrict__ mul = multipliers.data();
+  auto* __restrict__ src = sources.data();
+
+  // Step 1 -- gather source inputs into outputs so it can be vectorized.
+  // I can't find any vector gathers for the Orin, so I've split it into its own loop
+  // I've reused out[] assuming the number of elements would easily fit in L1 cache.
+  for (size_t i = 0; i < output_count; ++i) {
+    const auto source = src[i];
+    out[i] = static_cast<double>(in[source]);
+  }
+
+  // Step 2 -- Multiply and offset values, hopefully vectorized
+  #pragma omp simd
+  for (size_t i = 0; i < output_count; ++i) {
+    out[i] = out[i] * mul[i] + off[i];
+  }
+}
+
 void JointMap::map(const std::vector<double> & inputs, std::vector<float> & outputs) const {
   assert(!input_count || inputs.size() == input_count);   //< Wrong number of elements in inputs
   assert(outputs.size() == output_count); //< Wrong number of elements in outputs

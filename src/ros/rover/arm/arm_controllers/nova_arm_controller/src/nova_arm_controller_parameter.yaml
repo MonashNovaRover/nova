@@ -4,6 +4,11 @@ nova_arm_controller:
     default_value: [],
     description: "Names of the joints in the arm. Other arrays in this config must be in the same order",
   }
+  mimic_joint_names: {
+    type: string_array,
+    default_value: [],
+    description: "Names of any mimic joints we don't directly actuate but do have limits for.",
+  }
   topic: {
     type: string,
     default_value: "/arm/forward_command",

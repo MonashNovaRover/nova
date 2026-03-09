@@ -24,6 +24,7 @@
 #include "joint_limits/joint_saturation_limiter.hpp"
 #include "trajectory_msgs/msg/joint_trajectory_point.hpp"
 #include "nova_arm_controller/self_collision_limiter.hpp"
+#include <arm_kinematics/joint_map/joint_map.hpp>
 
 #include <nova_arm_controller/nova_arm_controller_parameters.hpp>
 
@@ -78,8 +79,11 @@ protected:
     // store per joint odometry here maybe?
   };
 
-  joint_limits::JointSaturationLimiter<trajectory_msgs::msg::JointTrajectoryPoint> joint_limiter;
+  joint_limits::JointSaturationLimiter<trajectory_msgs::msg::JointTrajectoryPoint> joint_limiter, mimic_joint_limiter;
   SelfCollisionLimiter collision_limiter;
+  
+  // map joints to mimic joints and back again.
+  std::unique_ptr<arm_kinematics::JointMap> joint_map, reverse_joint_map;
 
   controller_interface::CallbackReturn configure_joints(
       const std::vector<std::string> &joint_names,
@@ -117,7 +121,7 @@ protected:
   bool reset();
   void halt();
 
-  void get_joint_states(trajectory_msgs::msg::JointTrajectoryPoint &);
+  void get_joint_states(trajectory_msgs::msg::JointTrajectoryPoint &, trajectory_msgs::msg::JointTrajectoryPoint &);
 
 };
 } // namespace nova_arm_controller

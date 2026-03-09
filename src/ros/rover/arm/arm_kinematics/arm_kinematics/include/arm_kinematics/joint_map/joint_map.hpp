@@ -55,6 +55,8 @@ public:
    * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
    */
   void map(const std::vector<double> & inputs, std::vector<float> & outputs) const;
+  // using template gave me linker errors :/ I don't know how to cpp
+  void map(const std::vector<double> & inputs, std::vector<double> & outputs) const;
 
   /**
    * \brief Same as map, but outputs to a KDL::JntArray. Maps all the given input joint positions,
