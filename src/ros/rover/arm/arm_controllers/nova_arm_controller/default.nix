@@ -17,7 +17,6 @@
 , tf2-msgs
 , geometry-msgs
 , nova-interfaces
-, nova-arm-kinematics
 , moveit-core
 , moveit-ros-planning
 , moveit-ros-planning-interface
@@ -51,7 +50,6 @@ buildRosPackage {
     tf2-msgs
     geometry-msgs
     nova-interfaces
-    nova-arm-kinematics
     moveit-core
     moveit-ros-planning
     moveit-ros-planning-interface

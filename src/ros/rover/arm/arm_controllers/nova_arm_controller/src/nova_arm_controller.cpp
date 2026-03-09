@@ -9,9 +9,13 @@
 #include "lifecycle_msgs/msg/state.hpp"
 #include "rclcpp/logging.hpp"
 #include "joint_limits/joint_limits_rosparam.hpp"
-#include <urdf_parser/urdf_parser.h>
 
-#include <arm_kinematics/joint_map/joint_map_builder.hpp>
+
+namespace
+{
+  constexpr auto DEFAULT_INPUT_TOPIC_ARM_JOINT_VELOCITY = "/arm_fk_velocity_target";
+} // namespace
+
 
 namespace nova_arm_controller
 {
@@ -45,19 +49,6 @@ controller_interface::CallbackReturn NovaArmController::on_init()
   
   if (!this->joint_limiter.init(params_.joint_names, get_node())) {
     RCLCPP_ERROR(get_node()->get_logger(), "Failed to init joint limiter");
-    return controller_interface::CallbackReturn::ERROR;
-  }
-
-  //TODO: reuse this for collison limiter
-  urdf::Model urdf_model;
-  urdf_model.initString(get_robot_description());
-
-  auto builder = arm_kinematics::JointMapBuilder().with_urdf(urdf_model);
-  joint_map = std::make_unique<arm_kinematics::JointMap>(builder.build(params_.joint_names, params_.mimic_joint_names));
-  reverse_joint_map = std::make_unique<arm_kinematics::JointMap>(builder.build(params_.mimic_joint_names, params_.joint_names));
-
-  if (!this->mimic_joint_limiter.init(params_.mimic_joint_names, get_node())) {
-    RCLCPP_ERROR(get_node()->get_logger(), "Failed to init mimic joint limiter");
     return controller_interface::CallbackReturn::ERROR;
   }
 
@@ -162,18 +153,13 @@ controller_interface::return_type NovaArmController::update_velocity_reference_f
 }
 
 // this assumes that the number of joints match
-void NovaArmController::get_joint_states(
-    trajectory_msgs::msg::JointTrajectoryPoint &current,
-    trajectory_msgs::msg::JointTrajectoryPoint &mimicCurrent
-    ) {
+void NovaArmController::get_joint_states(trajectory_msgs::msg::JointTrajectoryPoint &current) {
   //TODO: maybe try to calculate accel as well - this is needed for jerk limits
   if (params_.position_feedback) {
     current.positions.resize(params_.joint_names.size());
-    mimicCurrent.positions.resize(params_.mimic_joint_names.size());
   }
   if (params_.velocity_feedback) {
     current.velocities.resize(params_.joint_names.size());
-    mimicCurrent.velocities.resize(params_.mimic_joint_names.size());
   }
 
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
@@ -188,15 +174,6 @@ void NovaArmController::get_joint_states(
       current.velocities[i] = joint_handle.state_vel.get().get_value();
     }
   }
-
-  if (params_.position_feedback) {
-    joint_map.get()->map(current.positions, mimicCurrent.positions);
-  }
-
-  if (params_.velocity_feedback) {
-    joint_map.get()->map(current.velocities, mimicCurrent.velocities);
-  }
-
   return;
 }
 
@@ -228,16 +205,14 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     return controller_interface::return_type::ERROR;
   }
 
-  trajectory_msgs::msg::JointTrajectoryPoint originalDesired, desired, current, mimicDesired, mimicCurrent;
+  trajectory_msgs::msg::JointTrajectoryPoint originalDesired, desired, current;
 
   if (this->joint_command_type() == HW_IF_POSITION) {
     desired.positions.resize(params_.joint_names.size());
     originalDesired.positions.resize(params_.joint_names.size());
-    mimicDesired.positions.resize(params_.mimic_joint_names.size());
   } else { // velocity
     desired.velocities.resize(params_.joint_names.size());
     originalDesired.velocities.resize(params_.joint_names.size());
-    mimicDesired.velocities.resize(params_.mimic_joint_names.size());
   }
 
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
@@ -260,78 +235,55 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
       originalDesired.velocities[i] = desired.velocities[i];
     }
   }
-  this->get_joint_states(current, mimicCurrent);
-
-  auto mostRestrictivePos = [](double state, double pos1, double pos2) -> double {
-    double deltaPos1 = pos1-state;
-    double deltaPos2 = pos2-state;
-    if (deltaPos1 * deltaPos2 < 0) {
-      return state; // different directions
-    } else if (std::abs(deltaPos1) < std::abs(deltaPos2)) {
-      return deltaPos1;
-    } else {
-      return deltaPos2;
-    }
-  };
-
-  auto mostRestrictiveVel = [](double vel1, double vel2) -> double {
-    if (vel1 * vel2 < 0) {
-      return 0; // different directions
-    } else if (std::abs(vel1) < std::abs(vel2)) {
-      return vel1;
-    } else {
-      return vel2;
-    }
-  };
-
-  std::vector<double> posFromMimicLimits(desired.positions);
-  std::vector<double> velFromMimicLimits(desired.velocities);
+  this->get_joint_states(current);
 
   if (params_.use_limits) {
-
-    if (this->joint_command_type() == HW_IF_POSITION) {
-      joint_map.get()->map(desired.positions, mimicDesired.positions);
-    } else { // velocity
-      joint_map.get()->map(desired.velocities, mimicDesired.velocities);
-    }
-
     this->joint_limiter.enforce(current, desired, period);
-    this->mimic_joint_limiter.enforce(mimicCurrent, mimicDesired, period);
-
-    if (this->joint_command_type() == HW_IF_POSITION) {
-      reverse_joint_map.get()->map(mimicDesired.positions, posFromMimicLimits);
-    } else { // velocity
-      reverse_joint_map.get()->map(mimicDesired.velocities, velFromMimicLimits);
-    }
   }
 
   if (params_.use_collision_limits) {
     this->collision_limiter.enforce(current, desired, period);
   }
 
-
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
   {
     const auto& joint_handle = registered_joint_handles_[i];
     double reference_value;
     if (this->joint_command_type() == HW_IF_POSITION) {
-      reference_value = mostRestrictivePos(
-          current.positions.at(i),
-          mostRestrictivePos(
-            current.positions.at(i),
-            desired.positions.at(i),
-            posFromMimicLimits.at(i)
-            ),
-          originalDesired.positions.at(i)
-          );
+      //TODO: test this
+      double currentPos = current.positions.at(i);
+      double desiredPos = originalDesired.positions.at(i);
+      double limitedPos = desired.positions.at(i);
+
+      double desiredDeltaPos = (desiredPos - currentPos);
+      double limitedDeltaPos = (limitedPos - currentPos);
+      if (desiredDeltaPos * limitedDeltaPos < 0) {
+        // limited to go away from target position. Stop
+        reference_value = currentPos;
+      } else if (std::abs(desiredDeltaPos) < std::abs(limitedDeltaPos)) {
+        // limited to move further than we wanted. don't.
+        // TODO: this may impact deceleration limits
+        reference_value = desiredPos;
+      } else {
+        reference_value = limitedPos;
+      }
+
+
     } else { // velocity
-      reference_value = mostRestrictiveVel(
-          mostRestrictiveVel(
-            desired.velocities.at(i),
-            velFromMimicLimits.at(i)
-            ),
-          originalDesired.velocities.at(i)
-          );
+      double limitedVel = desired.velocities.at(i);
+      double desiredVel = originalDesired.velocities.at(i);
+
+      if ((limitedVel * desiredVel) < 0) {
+        // check that both are the same sign. if we are limited to going
+        // the opposite direction compared to what we asked, just stop.
+        reference_value = 0;
+      } else if (std::abs(limitedVel) > std::abs(desiredVel)) {
+        // if we are limited to going faster than what we asked then don't
+        // TODO: consider if this impacts deceleration limits
+        reference_value = std::copysign(desiredVel, limitedVel);
+      } else {
+        reference_value = limitedVel;
+      }
     }
     if (std::isnan(reference_value)) {
       // When dealing with invalid or missing inputs, don't move
@@ -377,8 +329,8 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  trajectory_msgs::msg::JointTrajectoryPoint current, mimicCurrent;
-  this->get_joint_states(current, mimicCurrent);
+  trajectory_msgs::msg::JointTrajectoryPoint current;
+  this->get_joint_states(current);
   
   if (!this->joint_limiter.configure(current)) {
     RCLCPP_ERROR(logger, "Failed to configure joint limiter!");
