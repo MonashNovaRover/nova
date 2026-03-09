@@ -85,7 +85,8 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
   std::map<std::string, rclcpp::Parameter> serial_params;
 
   // override any defaults with params
-  RCLCPP_INFO(streamer_node->get_logger(), "get props for %s", camera->serial.c_str());
+  RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
+  props->serial = camera->serial;
   streamer_node->get_parameter_or((PIPELINE_PREFIX + camera->serial + ".width").c_str(), props->width, 640); 
   streamer_node->get_parameter_or((PIPELINE_PREFIX + camera->serial + ".height").c_str(), props->height, 480); 
   streamer_node->get_parameter_or((PIPELINE_PREFIX + camera->serial + ".framerate").c_str(), props->framerate, 10); 

@@ -104,13 +104,11 @@ class CameraStreamer : public rclcpp::Node
 
         std::string pipeline_type;
         this->get_parameter_or<std::string>((PIPELINE_PREFIX + camera.serial + ".width").c_str(), pipeline_type, "v4l2webrtc"); 
-
         if (pipeline_type == "v4l2webrtc")
         {
           auto props = get_v4l2webrtc_pipeline_properties(this, &camera);
           pipeline->props = props;
           pipeline->gst_pipeline = v4l2webrtc_pipeline(this, props);
-          break;
         } //else if (pipeline_type == "nextpipelinetype") {}
 
         RCLCPP_INFO(this->get_logger(), "Creating %s pipeline for %s", pipeline_type.c_str(), camera.serial.c_str());

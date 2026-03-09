@@ -51,8 +51,5 @@ Extensions:
 Workflow:\
 `nix-shell nova/nixfiles -A pkgs.ros.cameras`\
 `cd src/ros/cameras/cameras2++`\
-`mkdir build`\
-`cd build`\
-`cmake ..`\
-`cd ..`\
+`code .`
 Now you can start editing :)
