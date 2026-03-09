@@ -17,6 +17,19 @@
   <Node id="7" name="back_right_pivot"/>
   <Node id="8" name="front_right_pivot"/>
   <Bus baudrate="250000" name="can0">
+    <!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
+    <!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
+    <!-- output raw values (if requested) by modifying variables -->
+    <!--        <xacro:if value="${raw_velocity}">-->
+    <!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
+    <!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
+    <!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
+    <!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
+    <!--        <xacro:if value="${raw_effort}">-->
+    <!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x010" name="flw_all_stop">
       <Producer>
@@ -53,11 +66,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="velocity_requested" offset="0">
-        <Notes>Target velocity (radians per second)</Notes>
         <Consumer>
           <NodeRef id="1"/>
         </Consumer>
-        <Value slope="0.0012790917691579942" type="signed" unit="rad/s"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x014" name="flw_drive_to_position">
@@ -65,11 +77,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="position_requested" offset="0">
-        <Notes>Target position (radians from zero)</Notes>
         <Consumer>
           <NodeRef id="1"/>
         </Consumer>
-        <Value intercept="0" slope="1" type="signed" unit="rad"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x015" name="flw_drive_at_current">
@@ -77,11 +88,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="effort_requested" offset="0">
-        <Notes>Target effort (proportion of max effort)</Notes>
         <Consumer>
           <NodeRef id="1"/>
         </Consumer>
-        <Value slope="3.051850947599719e-05" type="signed" unit="1"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x016" name="flw_drive_open_loop">
@@ -89,13 +99,13 @@
         <NodeRef id="0"/>
       </Producer>
       <!-- not implemented in blcmd firmware, so only raw values provided -->
-      <Signal endianess="big" length="16" name="open_loop_current_requested_raw" offset="0">
+      <Signal endianess="big" length="16" name="open_loop_current_requested" offset="0">
         <Consumer>
           <NodeRef id="1"/>
         </Consumer>
         <Value type="signed"/>
       </Signal>
-      <Signal endianess="big" length="16" name="open_loop_velocity_requested_raw" offset="16">
+      <Signal endianess="big" length="16" name="open_loop_velocity_requested" offset="16">
         <Consumer>
           <NodeRef id="1"/>
         </Consumer>
@@ -282,13 +292,94 @@
         <NodeRef id="1"/>
       </Producer>
       <Signal endianess="big" length="16" name="velocity" offset="0">
-        <Notes>Velocity (radians per second)</Notes>
         <Consumer>
           <NodeRef id="0"/>
         </Consumer>
-        <Value slope="0.0012790917691579942" type="signed" unit="rad/s"/>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="q_current" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
       </Signal>
     </Message>
+    <Message id="0x412" name="flw_telemetry_packet_2">
+      <Producer>
+        <NodeRef id="1"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="interval" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="d_current" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x413" name="flw_telemetry_packet_3">
+      <Producer>
+        <NodeRef id="1"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="resolver_position" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="resolver_velocity" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x414" name="flw_telemetry_packet_4">
+      <Producer>
+        <NodeRef id="1"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="power" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="voltage" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="temperature" offset="32">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="current" offset="48">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
+    <!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
+    <!-- output raw values (if requested) by modifying variables -->
+    <!--        <xacro:if value="${raw_velocity}">-->
+    <!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
+    <!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
+    <!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
+    <!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
+    <!--        <xacro:if value="${raw_effort}">-->
+    <!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x020" name="blw_all_stop">
       <Producer>
@@ -325,11 +416,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="velocity_requested" offset="0">
-        <Notes>Target velocity (radians per second)</Notes>
         <Consumer>
           <NodeRef id="2"/>
         </Consumer>
-        <Value slope="0.0012790917691579942" type="signed" unit="rad/s"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x024" name="blw_drive_to_position">
@@ -337,11 +427,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="position_requested" offset="0">
-        <Notes>Target position (radians from zero)</Notes>
         <Consumer>
           <NodeRef id="2"/>
         </Consumer>
-        <Value intercept="0" slope="1" type="signed" unit="rad"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x025" name="blw_drive_at_current">
@@ -349,11 +438,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="effort_requested" offset="0">
-        <Notes>Target effort (proportion of max effort)</Notes>
         <Consumer>
           <NodeRef id="2"/>
         </Consumer>
-        <Value slope="3.051850947599719e-05" type="signed" unit="1"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x026" name="blw_drive_open_loop">
@@ -361,13 +449,13 @@
         <NodeRef id="0"/>
       </Producer>
       <!-- not implemented in blcmd firmware, so only raw values provided -->
-      <Signal endianess="big" length="16" name="open_loop_current_requested_raw" offset="0">
+      <Signal endianess="big" length="16" name="open_loop_current_requested" offset="0">
         <Consumer>
           <NodeRef id="2"/>
         </Consumer>
         <Value type="signed"/>
       </Signal>
-      <Signal endianess="big" length="16" name="open_loop_velocity_requested_raw" offset="16">
+      <Signal endianess="big" length="16" name="open_loop_velocity_requested" offset="16">
         <Consumer>
           <NodeRef id="2"/>
         </Consumer>
@@ -554,13 +642,94 @@
         <NodeRef id="2"/>
       </Producer>
       <Signal endianess="big" length="16" name="velocity" offset="0">
-        <Notes>Velocity (radians per second)</Notes>
         <Consumer>
           <NodeRef id="0"/>
         </Consumer>
-        <Value slope="0.0012790917691579942" type="signed" unit="rad/s"/>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="q_current" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
       </Signal>
     </Message>
+    <Message id="0x422" name="blw_telemetry_packet_2">
+      <Producer>
+        <NodeRef id="2"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="interval" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="d_current" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x423" name="blw_telemetry_packet_3">
+      <Producer>
+        <NodeRef id="2"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="resolver_position" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="resolver_velocity" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x424" name="blw_telemetry_packet_4">
+      <Producer>
+        <NodeRef id="2"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="power" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="voltage" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="temperature" offset="32">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="current" offset="48">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
+    <!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
+    <!-- output raw values (if requested) by modifying variables -->
+    <!--        <xacro:if value="${raw_velocity}">-->
+    <!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
+    <!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
+    <!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
+    <!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
+    <!--        <xacro:if value="${raw_effort}">-->
+    <!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x030" name="brw_all_stop">
       <Producer>
@@ -597,11 +766,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="velocity_requested" offset="0">
-        <Notes>Target velocity (radians per second)</Notes>
         <Consumer>
           <NodeRef id="3"/>
         </Consumer>
-        <Value slope="0.0012790917691579942" type="signed" unit="rad/s"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x034" name="brw_drive_to_position">
@@ -609,11 +777,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="position_requested" offset="0">
-        <Notes>Target position (radians from zero)</Notes>
         <Consumer>
           <NodeRef id="3"/>
         </Consumer>
-        <Value intercept="0" slope="1" type="signed" unit="rad"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x035" name="brw_drive_at_current">
@@ -621,11 +788,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="effort_requested" offset="0">
-        <Notes>Target effort (proportion of max effort)</Notes>
         <Consumer>
           <NodeRef id="3"/>
         </Consumer>
-        <Value slope="3.051850947599719e-05" type="signed" unit="1"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x036" name="brw_drive_open_loop">
@@ -633,13 +799,13 @@
         <NodeRef id="0"/>
       </Producer>
       <!-- not implemented in blcmd firmware, so only raw values provided -->
-      <Signal endianess="big" length="16" name="open_loop_current_requested_raw" offset="0">
+      <Signal endianess="big" length="16" name="open_loop_current_requested" offset="0">
         <Consumer>
           <NodeRef id="3"/>
         </Consumer>
         <Value type="signed"/>
       </Signal>
-      <Signal endianess="big" length="16" name="open_loop_velocity_requested_raw" offset="16">
+      <Signal endianess="big" length="16" name="open_loop_velocity_requested" offset="16">
         <Consumer>
           <NodeRef id="3"/>
         </Consumer>
@@ -826,13 +992,94 @@
         <NodeRef id="3"/>
       </Producer>
       <Signal endianess="big" length="16" name="velocity" offset="0">
-        <Notes>Velocity (radians per second)</Notes>
         <Consumer>
           <NodeRef id="0"/>
         </Consumer>
-        <Value slope="0.0012790917691579942" type="signed" unit="rad/s"/>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="q_current" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
       </Signal>
     </Message>
+    <Message id="0x432" name="brw_telemetry_packet_2">
+      <Producer>
+        <NodeRef id="3"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="interval" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="d_current" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x433" name="brw_telemetry_packet_3">
+      <Producer>
+        <NodeRef id="3"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="resolver_position" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="resolver_velocity" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x434" name="brw_telemetry_packet_4">
+      <Producer>
+        <NodeRef id="3"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="power" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="voltage" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="temperature" offset="32">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="current" offset="48">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
+    <!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
+    <!-- output raw values (if requested) by modifying variables -->
+    <!--        <xacro:if value="${raw_velocity}">-->
+    <!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
+    <!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
+    <!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
+    <!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
+    <!--        <xacro:if value="${raw_effort}">-->
+    <!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x040" name="frw_all_stop">
       <Producer>
@@ -869,11 +1116,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="velocity_requested" offset="0">
-        <Notes>Target velocity (radians per second)</Notes>
         <Consumer>
           <NodeRef id="4"/>
         </Consumer>
-        <Value slope="0.0012790917691579942" type="signed" unit="rad/s"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x044" name="frw_drive_to_position">
@@ -881,11 +1127,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="position_requested" offset="0">
-        <Notes>Target position (radians from zero)</Notes>
         <Consumer>
           <NodeRef id="4"/>
         </Consumer>
-        <Value intercept="0" slope="1" type="signed" unit="rad"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x045" name="frw_drive_at_current">
@@ -893,11 +1138,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="effort_requested" offset="0">
-        <Notes>Target effort (proportion of max effort)</Notes>
         <Consumer>
           <NodeRef id="4"/>
         </Consumer>
-        <Value slope="3.051850947599719e-05" type="signed" unit="1"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x046" name="frw_drive_open_loop">
@@ -905,13 +1149,13 @@
         <NodeRef id="0"/>
       </Producer>
       <!-- not implemented in blcmd firmware, so only raw values provided -->
-      <Signal endianess="big" length="16" name="open_loop_current_requested_raw" offset="0">
+      <Signal endianess="big" length="16" name="open_loop_current_requested" offset="0">
         <Consumer>
           <NodeRef id="4"/>
         </Consumer>
         <Value type="signed"/>
       </Signal>
-      <Signal endianess="big" length="16" name="open_loop_velocity_requested_raw" offset="16">
+      <Signal endianess="big" length="16" name="open_loop_velocity_requested" offset="16">
         <Consumer>
           <NodeRef id="4"/>
         </Consumer>
@@ -1098,13 +1342,94 @@
         <NodeRef id="4"/>
       </Producer>
       <Signal endianess="big" length="16" name="velocity" offset="0">
-        <Notes>Velocity (radians per second)</Notes>
         <Consumer>
           <NodeRef id="0"/>
         </Consumer>
-        <Value slope="0.0012790917691579942" type="signed" unit="rad/s"/>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="q_current" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
       </Signal>
     </Message>
+    <Message id="0x442" name="frw_telemetry_packet_2">
+      <Producer>
+        <NodeRef id="4"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="interval" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="d_current" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x443" name="frw_telemetry_packet_3">
+      <Producer>
+        <NodeRef id="4"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="resolver_position" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="resolver_velocity" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x444" name="frw_telemetry_packet_4">
+      <Producer>
+        <NodeRef id="4"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="power" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="voltage" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="temperature" offset="32">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="current" offset="48">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
+    <!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
+    <!-- output raw values (if requested) by modifying variables -->
+    <!--        <xacro:if value="${raw_velocity}">-->
+    <!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
+    <!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
+    <!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
+    <!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
+    <!--        <xacro:if value="${raw_effort}">-->
+    <!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x050" name="flp_all_stop">
       <Producer>
@@ -1141,11 +1466,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="velocity_requested" offset="0">
-        <Notes>Target velocity (radians per second)</Notes>
         <Consumer>
           <NodeRef id="5"/>
         </Consumer>
-        <Value slope="0.00027905819879757074" type="signed" unit="rad/s"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x054" name="flp_drive_to_position">
@@ -1153,11 +1477,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="position_requested" offset="0">
-        <Notes>Target position (radians from zero)</Notes>
         <Consumer>
           <NodeRef id="5"/>
         </Consumer>
-        <Value intercept="0.7054873517302944" slope="-4.793689962154613e-05" type="signed" unit="rad"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x055" name="flp_drive_at_current">
@@ -1165,11 +1488,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="effort_requested" offset="0">
-        <Notes>Target effort (proportion of max effort)</Notes>
         <Consumer>
           <NodeRef id="5"/>
         </Consumer>
-        <Value slope="3.051850947599719e-05" type="signed" unit="1"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x056" name="flp_drive_open_loop">
@@ -1177,13 +1499,13 @@
         <NodeRef id="0"/>
       </Producer>
       <!-- not implemented in blcmd firmware, so only raw values provided -->
-      <Signal endianess="big" length="16" name="open_loop_current_requested_raw" offset="0">
+      <Signal endianess="big" length="16" name="open_loop_current_requested" offset="0">
         <Consumer>
           <NodeRef id="5"/>
         </Consumer>
         <Value type="signed"/>
       </Signal>
-      <Signal endianess="big" length="16" name="open_loop_velocity_requested_raw" offset="16">
+      <Signal endianess="big" length="16" name="open_loop_velocity_requested" offset="16">
         <Consumer>
           <NodeRef id="5"/>
         </Consumer>
@@ -1370,13 +1692,94 @@
         <NodeRef id="5"/>
       </Producer>
       <Signal endianess="big" length="16" name="velocity" offset="0">
-        <Notes>Velocity (radians per second)</Notes>
         <Consumer>
           <NodeRef id="0"/>
         </Consumer>
-        <Value slope="0.00027905819879757074" type="signed" unit="rad/s"/>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="q_current" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
       </Signal>
     </Message>
+    <Message id="0x452" name="flp_telemetry_packet_2">
+      <Producer>
+        <NodeRef id="5"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="interval" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="d_current" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x453" name="flp_telemetry_packet_3">
+      <Producer>
+        <NodeRef id="5"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="resolver_position" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="resolver_velocity" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x454" name="flp_telemetry_packet_4">
+      <Producer>
+        <NodeRef id="5"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="power" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="voltage" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="temperature" offset="32">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="current" offset="48">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
+    <!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
+    <!-- output raw values (if requested) by modifying variables -->
+    <!--        <xacro:if value="${raw_velocity}">-->
+    <!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
+    <!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
+    <!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
+    <!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
+    <!--        <xacro:if value="${raw_effort}">-->
+    <!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x060" name="blp_all_stop">
       <Producer>
@@ -1413,11 +1816,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="velocity_requested" offset="0">
-        <Notes>Target velocity (radians per second)</Notes>
         <Consumer>
           <NodeRef id="6"/>
         </Consumer>
-        <Value slope="0.00027905819879757074" type="signed" unit="rad/s"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x064" name="blp_drive_to_position">
@@ -1425,11 +1827,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="position_requested" offset="0">
-        <Notes>Target position (radians from zero)</Notes>
         <Consumer>
           <NodeRef id="6"/>
         </Consumer>
-        <Value intercept="-0.7054873517302944" slope="4.793689962154613e-05" type="signed" unit="rad"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x065" name="blp_drive_at_current">
@@ -1437,11 +1838,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="effort_requested" offset="0">
-        <Notes>Target effort (proportion of max effort)</Notes>
         <Consumer>
           <NodeRef id="6"/>
         </Consumer>
-        <Value slope="3.051850947599719e-05" type="signed" unit="1"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x066" name="blp_drive_open_loop">
@@ -1449,13 +1849,13 @@
         <NodeRef id="0"/>
       </Producer>
       <!-- not implemented in blcmd firmware, so only raw values provided -->
-      <Signal endianess="big" length="16" name="open_loop_current_requested_raw" offset="0">
+      <Signal endianess="big" length="16" name="open_loop_current_requested" offset="0">
         <Consumer>
           <NodeRef id="6"/>
         </Consumer>
         <Value type="signed"/>
       </Signal>
-      <Signal endianess="big" length="16" name="open_loop_velocity_requested_raw" offset="16">
+      <Signal endianess="big" length="16" name="open_loop_velocity_requested" offset="16">
         <Consumer>
           <NodeRef id="6"/>
         </Consumer>
@@ -1642,13 +2042,94 @@
         <NodeRef id="6"/>
       </Producer>
       <Signal endianess="big" length="16" name="velocity" offset="0">
-        <Notes>Velocity (radians per second)</Notes>
         <Consumer>
           <NodeRef id="0"/>
         </Consumer>
-        <Value slope="0.00027905819879757074" type="signed" unit="rad/s"/>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="q_current" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
       </Signal>
     </Message>
+    <Message id="0x462" name="blp_telemetry_packet_2">
+      <Producer>
+        <NodeRef id="6"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="interval" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="d_current" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x463" name="blp_telemetry_packet_3">
+      <Producer>
+        <NodeRef id="6"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="resolver_position" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="resolver_velocity" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x464" name="blp_telemetry_packet_4">
+      <Producer>
+        <NodeRef id="6"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="power" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="voltage" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="temperature" offset="32">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="current" offset="48">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
+    <!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
+    <!-- output raw values (if requested) by modifying variables -->
+    <!--        <xacro:if value="${raw_velocity}">-->
+    <!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
+    <!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
+    <!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
+    <!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
+    <!--        <xacro:if value="${raw_effort}">-->
+    <!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x070" name="brp_all_stop">
       <Producer>
@@ -1685,11 +2166,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="velocity_requested" offset="0">
-        <Notes>Target velocity (radians per second)</Notes>
         <Consumer>
           <NodeRef id="7"/>
         </Consumer>
-        <Value slope="0.00027905819879757074" type="signed" unit="rad/s"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x074" name="brp_drive_to_position">
@@ -1697,11 +2177,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="position_requested" offset="0">
-        <Notes>Target position (radians from zero)</Notes>
         <Consumer>
           <NodeRef id="7"/>
         </Consumer>
-        <Value intercept="0.7054873517302944" slope="-4.793689962154613e-05" type="signed" unit="rad"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x075" name="brp_drive_at_current">
@@ -1709,11 +2188,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="effort_requested" offset="0">
-        <Notes>Target effort (proportion of max effort)</Notes>
         <Consumer>
           <NodeRef id="7"/>
         </Consumer>
-        <Value slope="3.051850947599719e-05" type="signed" unit="1"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x076" name="brp_drive_open_loop">
@@ -1721,13 +2199,13 @@
         <NodeRef id="0"/>
       </Producer>
       <!-- not implemented in blcmd firmware, so only raw values provided -->
-      <Signal endianess="big" length="16" name="open_loop_current_requested_raw" offset="0">
+      <Signal endianess="big" length="16" name="open_loop_current_requested" offset="0">
         <Consumer>
           <NodeRef id="7"/>
         </Consumer>
         <Value type="signed"/>
       </Signal>
-      <Signal endianess="big" length="16" name="open_loop_velocity_requested_raw" offset="16">
+      <Signal endianess="big" length="16" name="open_loop_velocity_requested" offset="16">
         <Consumer>
           <NodeRef id="7"/>
         </Consumer>
@@ -1914,13 +2392,94 @@
         <NodeRef id="7"/>
       </Producer>
       <Signal endianess="big" length="16" name="velocity" offset="0">
-        <Notes>Velocity (radians per second)</Notes>
         <Consumer>
           <NodeRef id="0"/>
         </Consumer>
-        <Value slope="0.00027905819879757074" type="signed" unit="rad/s"/>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="q_current" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
       </Signal>
     </Message>
+    <Message id="0x472" name="brp_telemetry_packet_2">
+      <Producer>
+        <NodeRef id="7"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="interval" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="d_current" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x473" name="brp_telemetry_packet_3">
+      <Producer>
+        <NodeRef id="7"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="resolver_position" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="resolver_velocity" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x474" name="brp_telemetry_packet_4">
+      <Producer>
+        <NodeRef id="7"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="power" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="voltage" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="temperature" offset="32">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="current" offset="48">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <!--        <xacro:property name="velocity_multiplier" value="${max_velocity / limit_16_bit_signed_integer}"/>-->
+    <!--        <xacro:property name="effort_multiplier" value="${1 / limit_16_bit_signed_integer}"/>-->
+    <!-- output raw values (if requested) by modifying variables -->
+    <!--        <xacro:if value="${raw_velocity}">-->
+    <!--            <xacro:property name="velocity_multiplier" value="1" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
+    <!--        <xacro:if value="${raw_position or position_multiplier is None or position_offset is None}">-->
+    <!--            <xacro:property name="position_multiplier" value="1" lazy_eval="false"/>-->
+    <!--            <xacro:property name="position_offset" value="0" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
+    <!--        <xacro:if value="${raw_effort}">-->
+    <!--            <xacro:property name="effort_multiplier" value="1" lazy_eval="false"/>-->
+    <!--        </xacro:if>-->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x080" name="frp_all_stop">
       <Producer>
@@ -1957,11 +2516,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="velocity_requested" offset="0">
-        <Notes>Target velocity (radians per second)</Notes>
         <Consumer>
           <NodeRef id="8"/>
         </Consumer>
-        <Value slope="0.00027905819879757074" type="signed" unit="rad/s"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x084" name="frp_drive_to_position">
@@ -1969,11 +2527,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="position_requested" offset="0">
-        <Notes>Target position (radians from zero)</Notes>
         <Consumer>
           <NodeRef id="8"/>
         </Consumer>
-        <Value intercept="-0.7054873517302944" slope="4.793689962154613e-05" type="signed" unit="rad"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x085" name="frp_drive_at_current">
@@ -1981,11 +2538,10 @@
         <NodeRef id="0"/>
       </Producer>
       <Signal endianess="big" length="16" name="effort_requested" offset="0">
-        <Notes>Target effort (proportion of max effort)</Notes>
         <Consumer>
           <NodeRef id="8"/>
         </Consumer>
-        <Value slope="3.051850947599719e-05" type="signed" unit="1"/>
+        <Value type="signed"/>
       </Signal>
     </Message>
     <Message id="0x086" name="frp_drive_open_loop">
@@ -1993,13 +2549,13 @@
         <NodeRef id="0"/>
       </Producer>
       <!-- not implemented in blcmd firmware, so only raw values provided -->
-      <Signal endianess="big" length="16" name="open_loop_current_requested_raw" offset="0">
+      <Signal endianess="big" length="16" name="open_loop_current_requested" offset="0">
         <Consumer>
           <NodeRef id="8"/>
         </Consumer>
         <Value type="signed"/>
       </Signal>
-      <Signal endianess="big" length="16" name="open_loop_velocity_requested_raw" offset="16">
+      <Signal endianess="big" length="16" name="open_loop_velocity_requested" offset="16">
         <Consumer>
           <NodeRef id="8"/>
         </Consumer>
@@ -2186,11 +2742,79 @@
         <NodeRef id="8"/>
       </Producer>
       <Signal endianess="big" length="16" name="velocity" offset="0">
-        <Notes>Velocity (radians per second)</Notes>
         <Consumer>
           <NodeRef id="0"/>
         </Consumer>
-        <Value slope="0.00027905819879757074" type="signed" unit="rad/s"/>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="q_current" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x482" name="frp_telemetry_packet_2">
+      <Producer>
+        <NodeRef id="8"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="interval" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="d_current" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x483" name="frp_telemetry_packet_3">
+      <Producer>
+        <NodeRef id="8"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="resolver_position" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="resolver_velocity" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+    </Message>
+    <Message id="0x484" name="frp_telemetry_packet_4">
+      <Producer>
+        <NodeRef id="8"/>
+      </Producer>
+      <Signal endianess="big" length="16" name="power" offset="0">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="voltage" offset="16">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="temperature" offset="32">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
+      </Signal>
+      <Signal endianess="big" length="16" name="current" offset="48">
+        <Consumer>
+          <NodeRef id="0"/>
+        </Consumer>
+        <Value type="signed"/>
       </Signal>
     </Message>
   </Bus>
