@@ -239,6 +239,44 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
 
   if (params_.use_limits) {
     this->joint_limiter.enforce(current, desired, period);
+
+    // this is terrible
+    if (params_.do_4bar) {
+      //TODO: find this by matching the index with the correct name in joint_names
+      // I really don't like how cpp has no simple "get the first index in this array with this value"
+      // I know there are iterators for doing it but it seems like so much boilerplate...
+      int J2 = params_.j2_minus_j3.j2_idx;
+      int J3 = params_.j2_minus_j3.j3_idx;
+      double j2_minus_j3;
+      double j2_minus_j3_curr_pos = current.positions.at(J2) - current.positions.at(J3);
+      if (this->joint_command_type() == HW_IF_POSITION) {
+        j2_minus_j3 = desired.positions.at(J2) - desired.positions.at(J3);
+        if (j2_minus_j3 < params_.j2_minus_j3.min_position) {
+          // TODO: this should let it move up to the limit - not stop
+          // in fact this should be done in an altogether nicer way
+          desired.positions.at(J2) = 0;
+          desired.positions.at(J3) = 0;
+        } else if (j2_minus_j3 > params_.j2_minus_j3.max_position) {
+          desired.positions.at(J2) = 0;
+          desired.positions.at(J3) = 0;
+        }
+
+      } else {
+        double j2_minus_j3_vel = desired.velocities.at(J2) - desired.velocities.at(J3);
+        j2_minus_j3 = j2_minus_j3_curr_pos + period.seconds()*j2_minus_j3_vel;
+        // if we hit the limit, ensure we are moving towards the allowed range.
+        if (j2_minus_j3 < params_.j2_minus_j3.min_position) {
+          //TODO: throttle
+          RCLCPP_WARN(logger, "4bar beyond MIN. limiting...");
+          desired.velocities.at(J2) = desired.velocities.at(J2) < 0 ? 0 : desired.velocities.at(J2); // must be pos
+          desired.velocities.at(J3) = desired.velocities.at(J3) > 0 ? 0 : desired.velocities.at(J3); // must be neg
+        } else if (j2_minus_j3 > params_.j2_minus_j3.max_position) {
+          RCLCPP_WARN(logger, "4bar beyond MAX. limiting...");
+          desired.velocities.at(J2) = desired.velocities.at(J2) > 0 ? 0 : desired.velocities.at(J2); // must be neg
+          desired.velocities.at(J3) = desired.velocities.at(J3) < 0 ? 0 : desired.velocities.at(J3); // must be pos
+        }
+      }
+    }
   }
 
   if (params_.use_collision_limits) {

@@ -38,6 +38,12 @@ arm:
         - j6
       use_position_control: false
       use_collision_limits: true
+      do_4bar: true
+      j2_minus_j3:
+        j2_idx: 1 # this is badly designed.
+        j3_idx: 2
+        max_position: 0.75
+        min_position: -0.9
       velocity_feedback: true
       position_feedback: true
       use_limits: true
@@ -60,8 +66,8 @@ arm:
           min_position: -1.57
         j5: # wrist pitch
           has_position_limits: true
-          max_position: 0.0
-          min_position: -3.14
+          max_position: -0.14
+          min_position: -3.0
         j6: # wrist roll
           has_position_limits: true
           max_position: 1.57
@@ -80,8 +86,14 @@ arm:
       use_position_control: true
       velocity_feedback: true
       position_feedback: true
-      use_collision_limits: false
+      use_collision_limits: true
       use_limits: true
+      do_4bar: true
+      j2_minus_j3:
+        j2_idx: 1 # this is badly designed.
+        j3_idx: 2
+        max_position: 0.75
+        min_position: -0.9
       joint_limits:
         j1:
           has_position_limits: true
