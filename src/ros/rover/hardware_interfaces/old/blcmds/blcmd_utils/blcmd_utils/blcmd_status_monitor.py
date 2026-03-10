@@ -41,10 +41,12 @@ class BLCMDStatusMonitor(Node):
         #declare parameters
         self.declare_parameter("num_blcmds", 8)
         self.declare_parameter("canbus", "can0")
+        self.output_rate_limit = int(self.declare_parameter("output_rate_limit", 1).value) # in min seconds per repeated message
 
         #initialise blcmd status array and fault times dict
         self.blcmds_status = []
-        self.fault_times = {}
+        self.fault_times = {} # bug: fault times are global, not per blcmd
+        self.output_times = [{} for _ in range(self.get_parameter("num_blcmds").value)]
         for i in range(self.get_parameter("num_blcmds").value):
             self.blcmds_status.append(BLCMDStatus())
             self.blcmds_status[i].id = i + 1
@@ -99,6 +101,13 @@ class BLCMDStatusMonitor(Node):
             res.success = False
         return res
 
+    def log_blcmd_error(self, blcmd: int, fault: str, output: str) -> None:
+        blcmd_output_times = self.output_times[blcmd]
+        if (fault not in blcmd_output_times
+          or (self.get_clock().now() - blcmd_output_times[fault]) >= Duration(seconds=self.output_rate_limit)):
+            self.get_logger().error(output)
+            blcmd_output_times[fault] = self.get_clock().now()
+
     def get_callback(self, blcmd: int):
         """
         Returns a callback function for the given blcmd
@@ -108,28 +117,28 @@ class BLCMDStatusMonitor(Node):
         def callback(frame):
             if frame.data[0] == 0:
                 if frame.data[1] == 0x2:
-                    self.get_logger().error(f'RESOLVER Fault on BLCMD {blcmd + 1}')
+                    self.log_blcmd_error(blcmd, "resolver_fault", f'RESOLVER Fault on BLCMD {blcmd + 1}')
                     if self.resolver_fault_count[blcmd] < 5:
                         self.resolver_fault_count[blcmd] += 1
                     self.fault_times["resolver_fault"] = self.get_clock().now()
                 elif frame.data[1] == 0x5:
-                    self.get_logger().error(f'Gate Driver Fault on BLCMD {blcmd + 1}')
+                    self.log_blcmd_error(blcmd, "gate_fault", f'Gate Driver Fault on BLCMD {blcmd + 1}')
                     self.blcmds_status[blcmd].gate_fault = True
                     self.fault_times["gate_fault"] = self.get_clock().now()
                 elif frame.data[1] == 0xA:
-                    self.get_logger().error(f'Stall Fault on BLCMD {blcmd + 1}')
+                    self.log_blcmd_error(blcmd, "stall_fault", f'Stall Fault on BLCMD {blcmd + 1}')
                     self.blcmds_status[blcmd].stall_fault = True
                     self.fault_times["stall_fault"] = self.get_clock().now()
                 elif frame.data[1] == 0xB:
-                    self.get_logger().error(f'Over Speed Fault on BLCMD {blcmd + 1}')
+                    self.log_blcmd_error(blcmd, "overspeed_fault", f'Over Speed Fault on BLCMD {blcmd + 1}')
                     self.blcmds_status[blcmd].overspeed_fault = True
                     self.fault_times["overspeed_fault"] = self.get_clock().now()
                 elif frame.data[1] == 0xC:
-                    self.get_logger().error(f'Over Acceleration Fault on BLCMD {blcmd + 1}')
+                    self.log_blcmd_error(blcmd, "overacceleration_fault", f'Over Acceleration Fault on BLCMD {blcmd + 1}')
                     self.blcmds_status[blcmd].overacceleration_fault = True
                     self.fault_times["overacceleration_fault"] = self.get_clock().now()
                 elif frame.data[1] == 0xD:
-                    self.get_logger().error(f'ENCODER Fault on BLCMD {blcmd + 1}')
+                    self.log_blcmd_error(blcmd, "encoder_fault", f'ENCODER Fault on BLCMD {blcmd + 1}')
                     self.blcmds_status[blcmd].encoder_fault = True
                     self.fault_times["encoder_fault"] = self.get_clock().now()
         return callback
