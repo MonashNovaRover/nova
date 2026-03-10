@@ -280,9 +280,17 @@ hardware_interface::return_type BLCMDHardware::write(
             break;
         case blcmd_hardware::ControlMode::Position:
             if (params_.diff_wrist) {
+                double j5, j6, pitch, roll;
+
                 assert(hw_positions_.size() == 2 && params_.canids.size() == 2);
 
-                double joint_rads1 = hw_positions_[0].command.value() * reversed_multiplier_;
+                pitch = hw_positions_[0].command.value();
+                roll = hw_positions_[1].command.value();
+
+                differential_convert_to_motors(pitch, roll, j5, j6);
+
+                // J5
+                double joint_rads1 = j5 * reversed_multiplier_;
                 double resRads1 = joint_rads1 * params_.resolver_reduction;
                 double resRevs1 = resRads1 / (2*M_PI);
                 double resTicks1 = resRevs1 * params_.res_ticks_per_rev + params_.zero_offset;
@@ -294,7 +302,8 @@ hardware_interface::return_type BLCMDHardware::write(
                     return hardware_interface::return_type::OK;
                 }
 
-                double joint_rads2 = hw_positions_[1].command.value() * reversed_multiplier_;
+                // J6
+                double joint_rads2 = j6 * reversed_multiplier_;
                 double resRads2 = joint_rads2 * params_.resolver_reduction;
                 double resRevs2 = resRads2 / (2*M_PI);
                 double resTicks2 = resRevs2 * params_.res_ticks_per_rev + params_.zero_offset;
@@ -306,17 +315,12 @@ hardware_interface::return_type BLCMDHardware::write(
                     return hardware_interface::return_type::OK;
                 }
 
-                auto offset_value1 = resTicks1;
-                auto offset_value2 = resTicks2;
-                double value1, value2;
-                differential_convert_to_motors(offset_value1, offset_value2, value1, value2);
-
                 RCLCPP_DEBUG_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
                                 "Sending Diff Wrist Position Command ");
-                send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION, params_.canids[0]),
-                                    value1, hw_positions_[0].max);
-                send_scaled<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION, params_.canids[1]),
-                                    value2, hw_positions_[1].max);
+                send_raw<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION, params_.canids[0]),
+                                    static_cast<int16_t>(resTicks1));
+                send_raw<int16_t>(make_can_id(BLCMDSendCommand::DRIVE_POSITION, params_.canids[1]),
+                                    static_cast<int16_t>(resTicks2));
 
                 break;
             }

@@ -254,11 +254,13 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
         if (j2_minus_j3 < params_.j2_minus_j3.min_position) {
           // TODO: this should let it move up to the limit - not stop
           // in fact this should be done in an altogether nicer way
-          desired.positions.at(J2) = 0;
-          desired.positions.at(J3) = 0;
+          RCLCPP_WARN(logger, "4bar beyond MIN. limiting...");
+          desired.positions.at(J2) = current.positions.at(J2);
+          desired.positions.at(J3) = current.positions.at(J3);
         } else if (j2_minus_j3 > params_.j2_minus_j3.max_position) {
-          desired.positions.at(J2) = 0;
-          desired.positions.at(J3) = 0;
+          RCLCPP_WARN(logger, "4bar beyond MAX. limiting...");
+          desired.positions.at(J2) = current.positions.at(J2);
+          desired.positions.at(J3) = current.positions.at(J3);
         }
 
       } else {
