@@ -411,7 +411,7 @@
     <collision>
       <origin xyz="6.68493e-15 -0.26 0.006" rpy="3.14159 1.5708 0"/>
       <geometry>
-        <box size="0.019 0.51 0.019"/>
+        <box size="0.019 0.45 0.019"/>
       </geometry>
     </collision>
     <visual>
@@ -1092,12 +1092,6 @@
         <color rgba="0.701961 0.701961 0.701961 1"/>
       </material>
     </visual>
-    <collision>
-      <origin xyz="0.05 0.00 -0.005" rpy="1.57 0.0 -0.25"/>
-      <geometry>
-        <box size="0.17 0.03 0.05"/>
-      </geometry>
-    </collision>
   </link>
   <!-- Link l1_prime_2 -->
   <link name="l1_prime_fake"/>
