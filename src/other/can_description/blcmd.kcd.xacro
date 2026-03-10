@@ -25,28 +25,19 @@
 
         <Message id="0x0${blcmd_id}0" name="${joint_name}_all_stop">
             <xacro:producer_orin/>
-            <Signal name="all_stop_requested" offset="0">
-                <xacro:consumer_blcmd/>
-            </Signal>
         </Message>
 
         <Message id="0x0${blcmd_id}1" name="${joint_name}_twitch_forward">
             <xacro:producer_orin/>
-            <Signal name="twitch_forward_requested" offset="0">
-                <xacro:consumer_blcmd/>
-            </Signal>
         </Message>
 
         <Message id="0x0${blcmd_id}2" name="${joint_name}_twitch_backward">
             <xacro:producer_orin/>
-            <Signal name="twitch_backward_requested" offset="0">
-                <xacro:consumer_blcmd/>
-            </Signal>
         </Message>
 
         <Message id="0x0${blcmd_id}3" name="${joint_name}_drive_at_speed">
             <xacro:producer_orin/>
-            <Signal name="velocity_requested" offset="0" length="16" endianess="big">
+            <Signal name="velocity" offset="0" length="16" endianess="big">
                 <xacro:consumer_blcmd/>
                 <Value type="signed"/>
             </Signal>
@@ -54,7 +45,7 @@
 
         <Message id="0x0${blcmd_id}4" name="${joint_name}_drive_to_position">
             <xacro:producer_orin/>
-            <Signal name="position_requested" offset="0" length="16" endianess="big">
+            <Signal name="position" offset="0" length="16" endianess="big">
                 <xacro:consumer_blcmd/>
                 <Value type="signed"/>
             </Signal>
@@ -62,7 +53,7 @@
 
         <Message id="0x0${blcmd_id}5" name="${joint_name}_drive_at_current">
             <xacro:producer_orin/>
-            <Signal name="effort_requested" offset="0" length="16" endianess="big">
+            <Signal name="effort" offset="0" length="16" endianess="big">
                 <xacro:consumer_blcmd/>
                 <Value type="signed"/>
             </Signal>
@@ -72,11 +63,11 @@
             <xacro:producer_orin/>
 
             <!-- not implemented in blcmd firmware, so only raw values provided -->
-            <Signal name="open_loop_current_requested" offset="0" length="16" endianess="big">
+            <Signal name="open_loop_current" offset="0" length="16" endianess="big">
                 <xacro:consumer_blcmd/>
                 <Value type="signed"/>
             </Signal>
-            <Signal name="open_loop_velocity_requested" offset="16" length="16" endianess="big">
+            <Signal name="open_loop_velocity" offset="16" length="16" endianess="big">
                 <xacro:consumer_blcmd/>
                 <Value type="signed"/>
             </Signal>
@@ -84,16 +75,10 @@
 
         <Message id="0x0${blcmd_id}7" name="${joint_name}_home_rotor">
             <xacro:producer_orin/>
-            <Signal name="home_rotor_requested" offset="0">
-                <xacro:consumer_blcmd/>
-            </Signal>
         </Message>
 
         <Message id="0x0${blcmd_id}8" name="${joint_name}_zero_resolver">
             <xacro:producer_orin/>
-            <Signal name="zero_resolver_requested" offset="0">
-                <xacro:consumer_blcmd/>
-            </Signal>
         </Message>
 
         <!-- labels for configuration signal/multiplex (i.e. associates configuration id with name) -->
@@ -223,23 +208,14 @@
 
         <Message id="0x0${blcmd_id}B" name="${joint_name}_reset_blcmd">
             <xacro:producer_orin/>
-            <Signal name="reset_blcmd_requested" offset="0">
-                <xacro:consumer_blcmd/>
-            </Signal>
         </Message>
 
         <Message id="0x0${blcmd_id}C" name="${joint_name}_reset_resolver">
             <xacro:producer_orin/>
-            <Signal name="reset_resolver_requested" offset="0">
-                <xacro:consumer_blcmd/>
-            </Signal>
         </Message>
 
         <Message id="0x0${blcmd_id}D" name="${joint_name}_read_gate_driver_fault">
             <xacro:producer_orin/>
-            <Signal name="read_gate_driver_fault_requested" offset="0">
-                <xacro:consumer_blcmd/>
-            </Signal>
         </Message>
 
         <!-- messages sent from blcmd to orin -->

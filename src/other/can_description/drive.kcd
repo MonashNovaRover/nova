@@ -22,37 +22,22 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="all_stop_requested" offset="0">
-        <Consumer>
-          <NodeRef id="1"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x011" name="flw_twitch_forward">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="twitch_forward_requested" offset="0">
-        <Consumer>
-          <NodeRef id="1"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x012" name="flw_twitch_backward">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="twitch_backward_requested" offset="0">
-        <Consumer>
-          <NodeRef id="1"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x013" name="flw_drive_at_speed">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="velocity_requested" offset="0">
+      <Signal endianess="big" length="16" name="velocity" offset="0">
         <Consumer>
           <NodeRef id="1"/>
         </Consumer>
@@ -63,7 +48,7 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="position_requested" offset="0">
+      <Signal endianess="big" length="16" name="position" offset="0">
         <Consumer>
           <NodeRef id="1"/>
         </Consumer>
@@ -74,7 +59,7 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="effort_requested" offset="0">
+      <Signal endianess="big" length="16" name="effort" offset="0">
         <Consumer>
           <NodeRef id="1"/>
         </Consumer>
@@ -86,13 +71,13 @@
         <NodeRef id="0"/>
       </Producer>
       <!-- not implemented in blcmd firmware, so only raw values provided -->
-      <Signal endianess="big" length="16" name="open_loop_current_requested" offset="0">
+      <Signal endianess="big" length="16" name="open_loop_current" offset="0">
         <Consumer>
           <NodeRef id="1"/>
         </Consumer>
         <Value type="signed"/>
       </Signal>
-      <Signal endianess="big" length="16" name="open_loop_velocity_requested" offset="16">
+      <Signal endianess="big" length="16" name="open_loop_velocity" offset="16">
         <Consumer>
           <NodeRef id="1"/>
         </Consumer>
@@ -103,21 +88,11 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="home_rotor_requested" offset="0">
-        <Consumer>
-          <NodeRef id="1"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x018" name="flw_zero_resolver">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="zero_resolver_requested" offset="0">
-        <Consumer>
-          <NodeRef id="1"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x019" name="flw_get_configuration">
       <Producer>
@@ -246,31 +221,16 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="reset_blcmd_requested" offset="0">
-        <Consumer>
-          <NodeRef id="1"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x01C" name="flw_reset_resolver">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="reset_resolver_requested" offset="0">
-        <Consumer>
-          <NodeRef id="1"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x01D" name="flw_read_gate_driver_fault">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="read_gate_driver_fault_requested" offset="0">
-        <Consumer>
-          <NodeRef id="1"/>
-        </Consumer>
-      </Signal>
     </Message>
     <!-- messages sent from blcmd to orin -->
     <Message id="0x411" name="flw_telemetry_packet_1">
@@ -520,37 +480,22 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="all_stop_requested" offset="0">
-        <Consumer>
-          <NodeRef id="2"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x021" name="blw_twitch_forward">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="twitch_forward_requested" offset="0">
-        <Consumer>
-          <NodeRef id="2"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x022" name="blw_twitch_backward">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="twitch_backward_requested" offset="0">
-        <Consumer>
-          <NodeRef id="2"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x023" name="blw_drive_at_speed">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="velocity_requested" offset="0">
+      <Signal endianess="big" length="16" name="velocity" offset="0">
         <Consumer>
           <NodeRef id="2"/>
         </Consumer>
@@ -561,7 +506,7 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="position_requested" offset="0">
+      <Signal endianess="big" length="16" name="position" offset="0">
         <Consumer>
           <NodeRef id="2"/>
         </Consumer>
@@ -572,7 +517,7 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="effort_requested" offset="0">
+      <Signal endianess="big" length="16" name="effort" offset="0">
         <Consumer>
           <NodeRef id="2"/>
         </Consumer>
@@ -584,13 +529,13 @@
         <NodeRef id="0"/>
       </Producer>
       <!-- not implemented in blcmd firmware, so only raw values provided -->
-      <Signal endianess="big" length="16" name="open_loop_current_requested" offset="0">
+      <Signal endianess="big" length="16" name="open_loop_current" offset="0">
         <Consumer>
           <NodeRef id="2"/>
         </Consumer>
         <Value type="signed"/>
       </Signal>
-      <Signal endianess="big" length="16" name="open_loop_velocity_requested" offset="16">
+      <Signal endianess="big" length="16" name="open_loop_velocity" offset="16">
         <Consumer>
           <NodeRef id="2"/>
         </Consumer>
@@ -601,21 +546,11 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="home_rotor_requested" offset="0">
-        <Consumer>
-          <NodeRef id="2"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x028" name="blw_zero_resolver">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="zero_resolver_requested" offset="0">
-        <Consumer>
-          <NodeRef id="2"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x029" name="blw_get_configuration">
       <Producer>
@@ -744,31 +679,16 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="reset_blcmd_requested" offset="0">
-        <Consumer>
-          <NodeRef id="2"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x02C" name="blw_reset_resolver">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="reset_resolver_requested" offset="0">
-        <Consumer>
-          <NodeRef id="2"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x02D" name="blw_read_gate_driver_fault">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="read_gate_driver_fault_requested" offset="0">
-        <Consumer>
-          <NodeRef id="2"/>
-        </Consumer>
-      </Signal>
     </Message>
     <!-- messages sent from blcmd to orin -->
     <Message id="0x421" name="blw_telemetry_packet_1">
@@ -1018,37 +938,22 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="all_stop_requested" offset="0">
-        <Consumer>
-          <NodeRef id="3"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x031" name="brw_twitch_forward">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="twitch_forward_requested" offset="0">
-        <Consumer>
-          <NodeRef id="3"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x032" name="brw_twitch_backward">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="twitch_backward_requested" offset="0">
-        <Consumer>
-          <NodeRef id="3"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x033" name="brw_drive_at_speed">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="velocity_requested" offset="0">
+      <Signal endianess="big" length="16" name="velocity" offset="0">
         <Consumer>
           <NodeRef id="3"/>
         </Consumer>
@@ -1059,7 +964,7 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="position_requested" offset="0">
+      <Signal endianess="big" length="16" name="position" offset="0">
         <Consumer>
           <NodeRef id="3"/>
         </Consumer>
@@ -1070,7 +975,7 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="effort_requested" offset="0">
+      <Signal endianess="big" length="16" name="effort" offset="0">
         <Consumer>
           <NodeRef id="3"/>
         </Consumer>
@@ -1082,13 +987,13 @@
         <NodeRef id="0"/>
       </Producer>
       <!-- not implemented in blcmd firmware, so only raw values provided -->
-      <Signal endianess="big" length="16" name="open_loop_current_requested" offset="0">
+      <Signal endianess="big" length="16" name="open_loop_current" offset="0">
         <Consumer>
           <NodeRef id="3"/>
         </Consumer>
         <Value type="signed"/>
       </Signal>
-      <Signal endianess="big" length="16" name="open_loop_velocity_requested" offset="16">
+      <Signal endianess="big" length="16" name="open_loop_velocity" offset="16">
         <Consumer>
           <NodeRef id="3"/>
         </Consumer>
@@ -1099,21 +1004,11 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="home_rotor_requested" offset="0">
-        <Consumer>
-          <NodeRef id="3"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x038" name="brw_zero_resolver">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="zero_resolver_requested" offset="0">
-        <Consumer>
-          <NodeRef id="3"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x039" name="brw_get_configuration">
       <Producer>
@@ -1242,31 +1137,16 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="reset_blcmd_requested" offset="0">
-        <Consumer>
-          <NodeRef id="3"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x03C" name="brw_reset_resolver">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="reset_resolver_requested" offset="0">
-        <Consumer>
-          <NodeRef id="3"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x03D" name="brw_read_gate_driver_fault">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="read_gate_driver_fault_requested" offset="0">
-        <Consumer>
-          <NodeRef id="3"/>
-        </Consumer>
-      </Signal>
     </Message>
     <!-- messages sent from blcmd to orin -->
     <Message id="0x431" name="brw_telemetry_packet_1">
@@ -1516,37 +1396,22 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="all_stop_requested" offset="0">
-        <Consumer>
-          <NodeRef id="4"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x041" name="frw_twitch_forward">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="twitch_forward_requested" offset="0">
-        <Consumer>
-          <NodeRef id="4"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x042" name="frw_twitch_backward">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="twitch_backward_requested" offset="0">
-        <Consumer>
-          <NodeRef id="4"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x043" name="frw_drive_at_speed">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="velocity_requested" offset="0">
+      <Signal endianess="big" length="16" name="velocity" offset="0">
         <Consumer>
           <NodeRef id="4"/>
         </Consumer>
@@ -1557,7 +1422,7 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="position_requested" offset="0">
+      <Signal endianess="big" length="16" name="position" offset="0">
         <Consumer>
           <NodeRef id="4"/>
         </Consumer>
@@ -1568,7 +1433,7 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="effort_requested" offset="0">
+      <Signal endianess="big" length="16" name="effort" offset="0">
         <Consumer>
           <NodeRef id="4"/>
         </Consumer>
@@ -1580,13 +1445,13 @@
         <NodeRef id="0"/>
       </Producer>
       <!-- not implemented in blcmd firmware, so only raw values provided -->
-      <Signal endianess="big" length="16" name="open_loop_current_requested" offset="0">
+      <Signal endianess="big" length="16" name="open_loop_current" offset="0">
         <Consumer>
           <NodeRef id="4"/>
         </Consumer>
         <Value type="signed"/>
       </Signal>
-      <Signal endianess="big" length="16" name="open_loop_velocity_requested" offset="16">
+      <Signal endianess="big" length="16" name="open_loop_velocity" offset="16">
         <Consumer>
           <NodeRef id="4"/>
         </Consumer>
@@ -1597,21 +1462,11 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="home_rotor_requested" offset="0">
-        <Consumer>
-          <NodeRef id="4"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x048" name="frw_zero_resolver">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="zero_resolver_requested" offset="0">
-        <Consumer>
-          <NodeRef id="4"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x049" name="frw_get_configuration">
       <Producer>
@@ -1740,31 +1595,16 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="reset_blcmd_requested" offset="0">
-        <Consumer>
-          <NodeRef id="4"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x04C" name="frw_reset_resolver">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="reset_resolver_requested" offset="0">
-        <Consumer>
-          <NodeRef id="4"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x04D" name="frw_read_gate_driver_fault">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="read_gate_driver_fault_requested" offset="0">
-        <Consumer>
-          <NodeRef id="4"/>
-        </Consumer>
-      </Signal>
     </Message>
     <!-- messages sent from blcmd to orin -->
     <Message id="0x441" name="frw_telemetry_packet_1">
@@ -2014,37 +1854,22 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="all_stop_requested" offset="0">
-        <Consumer>
-          <NodeRef id="5"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x051" name="flp_twitch_forward">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="twitch_forward_requested" offset="0">
-        <Consumer>
-          <NodeRef id="5"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x052" name="flp_twitch_backward">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="twitch_backward_requested" offset="0">
-        <Consumer>
-          <NodeRef id="5"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x053" name="flp_drive_at_speed">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="velocity_requested" offset="0">
+      <Signal endianess="big" length="16" name="velocity" offset="0">
         <Consumer>
           <NodeRef id="5"/>
         </Consumer>
@@ -2055,7 +1880,7 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="position_requested" offset="0">
+      <Signal endianess="big" length="16" name="position" offset="0">
         <Consumer>
           <NodeRef id="5"/>
         </Consumer>
@@ -2066,7 +1891,7 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="effort_requested" offset="0">
+      <Signal endianess="big" length="16" name="effort" offset="0">
         <Consumer>
           <NodeRef id="5"/>
         </Consumer>
@@ -2078,13 +1903,13 @@
         <NodeRef id="0"/>
       </Producer>
       <!-- not implemented in blcmd firmware, so only raw values provided -->
-      <Signal endianess="big" length="16" name="open_loop_current_requested" offset="0">
+      <Signal endianess="big" length="16" name="open_loop_current" offset="0">
         <Consumer>
           <NodeRef id="5"/>
         </Consumer>
         <Value type="signed"/>
       </Signal>
-      <Signal endianess="big" length="16" name="open_loop_velocity_requested" offset="16">
+      <Signal endianess="big" length="16" name="open_loop_velocity" offset="16">
         <Consumer>
           <NodeRef id="5"/>
         </Consumer>
@@ -2095,21 +1920,11 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="home_rotor_requested" offset="0">
-        <Consumer>
-          <NodeRef id="5"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x058" name="flp_zero_resolver">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="zero_resolver_requested" offset="0">
-        <Consumer>
-          <NodeRef id="5"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x059" name="flp_get_configuration">
       <Producer>
@@ -2238,31 +2053,16 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="reset_blcmd_requested" offset="0">
-        <Consumer>
-          <NodeRef id="5"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x05C" name="flp_reset_resolver">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="reset_resolver_requested" offset="0">
-        <Consumer>
-          <NodeRef id="5"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x05D" name="flp_read_gate_driver_fault">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="read_gate_driver_fault_requested" offset="0">
-        <Consumer>
-          <NodeRef id="5"/>
-        </Consumer>
-      </Signal>
     </Message>
     <!-- messages sent from blcmd to orin -->
     <Message id="0x451" name="flp_telemetry_packet_1">
@@ -2512,37 +2312,22 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="all_stop_requested" offset="0">
-        <Consumer>
-          <NodeRef id="6"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x061" name="blp_twitch_forward">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="twitch_forward_requested" offset="0">
-        <Consumer>
-          <NodeRef id="6"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x062" name="blp_twitch_backward">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="twitch_backward_requested" offset="0">
-        <Consumer>
-          <NodeRef id="6"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x063" name="blp_drive_at_speed">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="velocity_requested" offset="0">
+      <Signal endianess="big" length="16" name="velocity" offset="0">
         <Consumer>
           <NodeRef id="6"/>
         </Consumer>
@@ -2553,7 +2338,7 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="position_requested" offset="0">
+      <Signal endianess="big" length="16" name="position" offset="0">
         <Consumer>
           <NodeRef id="6"/>
         </Consumer>
@@ -2564,7 +2349,7 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="effort_requested" offset="0">
+      <Signal endianess="big" length="16" name="effort" offset="0">
         <Consumer>
           <NodeRef id="6"/>
         </Consumer>
@@ -2576,13 +2361,13 @@
         <NodeRef id="0"/>
       </Producer>
       <!-- not implemented in blcmd firmware, so only raw values provided -->
-      <Signal endianess="big" length="16" name="open_loop_current_requested" offset="0">
+      <Signal endianess="big" length="16" name="open_loop_current" offset="0">
         <Consumer>
           <NodeRef id="6"/>
         </Consumer>
         <Value type="signed"/>
       </Signal>
-      <Signal endianess="big" length="16" name="open_loop_velocity_requested" offset="16">
+      <Signal endianess="big" length="16" name="open_loop_velocity" offset="16">
         <Consumer>
           <NodeRef id="6"/>
         </Consumer>
@@ -2593,21 +2378,11 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="home_rotor_requested" offset="0">
-        <Consumer>
-          <NodeRef id="6"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x068" name="blp_zero_resolver">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="zero_resolver_requested" offset="0">
-        <Consumer>
-          <NodeRef id="6"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x069" name="blp_get_configuration">
       <Producer>
@@ -2736,31 +2511,16 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="reset_blcmd_requested" offset="0">
-        <Consumer>
-          <NodeRef id="6"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x06C" name="blp_reset_resolver">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="reset_resolver_requested" offset="0">
-        <Consumer>
-          <NodeRef id="6"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x06D" name="blp_read_gate_driver_fault">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="read_gate_driver_fault_requested" offset="0">
-        <Consumer>
-          <NodeRef id="6"/>
-        </Consumer>
-      </Signal>
     </Message>
     <!-- messages sent from blcmd to orin -->
     <Message id="0x461" name="blp_telemetry_packet_1">
@@ -3010,37 +2770,22 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="all_stop_requested" offset="0">
-        <Consumer>
-          <NodeRef id="7"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x071" name="brp_twitch_forward">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="twitch_forward_requested" offset="0">
-        <Consumer>
-          <NodeRef id="7"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x072" name="brp_twitch_backward">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="twitch_backward_requested" offset="0">
-        <Consumer>
-          <NodeRef id="7"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x073" name="brp_drive_at_speed">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="velocity_requested" offset="0">
+      <Signal endianess="big" length="16" name="velocity" offset="0">
         <Consumer>
           <NodeRef id="7"/>
         </Consumer>
@@ -3051,7 +2796,7 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="position_requested" offset="0">
+      <Signal endianess="big" length="16" name="position" offset="0">
         <Consumer>
           <NodeRef id="7"/>
         </Consumer>
@@ -3062,7 +2807,7 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="effort_requested" offset="0">
+      <Signal endianess="big" length="16" name="effort" offset="0">
         <Consumer>
           <NodeRef id="7"/>
         </Consumer>
@@ -3074,13 +2819,13 @@
         <NodeRef id="0"/>
       </Producer>
       <!-- not implemented in blcmd firmware, so only raw values provided -->
-      <Signal endianess="big" length="16" name="open_loop_current_requested" offset="0">
+      <Signal endianess="big" length="16" name="open_loop_current" offset="0">
         <Consumer>
           <NodeRef id="7"/>
         </Consumer>
         <Value type="signed"/>
       </Signal>
-      <Signal endianess="big" length="16" name="open_loop_velocity_requested" offset="16">
+      <Signal endianess="big" length="16" name="open_loop_velocity" offset="16">
         <Consumer>
           <NodeRef id="7"/>
         </Consumer>
@@ -3091,21 +2836,11 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="home_rotor_requested" offset="0">
-        <Consumer>
-          <NodeRef id="7"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x078" name="brp_zero_resolver">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="zero_resolver_requested" offset="0">
-        <Consumer>
-          <NodeRef id="7"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x079" name="brp_get_configuration">
       <Producer>
@@ -3234,31 +2969,16 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="reset_blcmd_requested" offset="0">
-        <Consumer>
-          <NodeRef id="7"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x07C" name="brp_reset_resolver">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="reset_resolver_requested" offset="0">
-        <Consumer>
-          <NodeRef id="7"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x07D" name="brp_read_gate_driver_fault">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="read_gate_driver_fault_requested" offset="0">
-        <Consumer>
-          <NodeRef id="7"/>
-        </Consumer>
-      </Signal>
     </Message>
     <!-- messages sent from blcmd to orin -->
     <Message id="0x471" name="brp_telemetry_packet_1">
@@ -3508,37 +3228,22 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="all_stop_requested" offset="0">
-        <Consumer>
-          <NodeRef id="8"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x081" name="frp_twitch_forward">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="twitch_forward_requested" offset="0">
-        <Consumer>
-          <NodeRef id="8"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x082" name="frp_twitch_backward">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="twitch_backward_requested" offset="0">
-        <Consumer>
-          <NodeRef id="8"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x083" name="frp_drive_at_speed">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="velocity_requested" offset="0">
+      <Signal endianess="big" length="16" name="velocity" offset="0">
         <Consumer>
           <NodeRef id="8"/>
         </Consumer>
@@ -3549,7 +3254,7 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="position_requested" offset="0">
+      <Signal endianess="big" length="16" name="position" offset="0">
         <Consumer>
           <NodeRef id="8"/>
         </Consumer>
@@ -3560,7 +3265,7 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal endianess="big" length="16" name="effort_requested" offset="0">
+      <Signal endianess="big" length="16" name="effort" offset="0">
         <Consumer>
           <NodeRef id="8"/>
         </Consumer>
@@ -3572,13 +3277,13 @@
         <NodeRef id="0"/>
       </Producer>
       <!-- not implemented in blcmd firmware, so only raw values provided -->
-      <Signal endianess="big" length="16" name="open_loop_current_requested" offset="0">
+      <Signal endianess="big" length="16" name="open_loop_current" offset="0">
         <Consumer>
           <NodeRef id="8"/>
         </Consumer>
         <Value type="signed"/>
       </Signal>
-      <Signal endianess="big" length="16" name="open_loop_velocity_requested" offset="16">
+      <Signal endianess="big" length="16" name="open_loop_velocity" offset="16">
         <Consumer>
           <NodeRef id="8"/>
         </Consumer>
@@ -3589,21 +3294,11 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="home_rotor_requested" offset="0">
-        <Consumer>
-          <NodeRef id="8"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x088" name="frp_zero_resolver">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="zero_resolver_requested" offset="0">
-        <Consumer>
-          <NodeRef id="8"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x089" name="frp_get_configuration">
       <Producer>
@@ -3732,31 +3427,16 @@
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="reset_blcmd_requested" offset="0">
-        <Consumer>
-          <NodeRef id="8"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x08C" name="frp_reset_resolver">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="reset_resolver_requested" offset="0">
-        <Consumer>
-          <NodeRef id="8"/>
-        </Consumer>
-      </Signal>
     </Message>
     <Message id="0x08D" name="frp_read_gate_driver_fault">
       <Producer>
         <NodeRef id="0"/>
       </Producer>
-      <Signal name="read_gate_driver_fault_requested" offset="0">
-        <Consumer>
-          <NodeRef id="8"/>
-        </Consumer>
-      </Signal>
     </Message>
     <!-- messages sent from blcmd to orin -->
     <Message id="0x481" name="frp_telemetry_packet_1">
