@@ -37,7 +37,7 @@ let
   rover-nix = ssh-nix-terminal rover-ip;
   mast = ssh-terminal mast-ip;
   base-window = local-window;
-  base-window-nix =   local-nix-window;
+  base-window-nix = local-nix-window;
 
   # commands to automatically ssh into the targeted device
   ssh-check = payload-ip: "ssh-copy-id ${payload-ip}";
@@ -170,7 +170,7 @@ let
   # final single function to pass to child nix files to make defining setups easy
   bashBuilder = struct: shellName: shellAndBuild (mkBashScript struct) shellName;
 
-  callPackage = pkgs.lib.callPackageWith {inherit pkgs base base-nix base-window-nix rover rover-nix mast pre-shell post-shell bashBuilder route;};
+  callPackage = pkgs.lib.callPackageWith {inherit pkgs base base-nix base-window base-window-nix rover rover-nix mast pre-shell post-shell bashBuilder route;};
 
   search-folders = [ "arch" "urc" "other" ];
   nix-setups = builtins.concatLists (builtins.attrValues (

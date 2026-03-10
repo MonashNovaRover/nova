@@ -2,6 +2,7 @@
     base,
     base-nix,
     base-window,
+    base-window-nix,
     rover,
     pre-shell,
     post-shell,
