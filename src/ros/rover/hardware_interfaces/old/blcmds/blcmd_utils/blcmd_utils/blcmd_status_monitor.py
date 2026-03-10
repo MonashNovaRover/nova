@@ -52,6 +52,8 @@ class BLCMDStatusMonitor(Node):
             self.blcmds_status[i].stall_fault = False
             self.blcmds_status[i].resolver_fault = False
             self.blcmds_status[i].overspeed_fault = False
+            self.blcmds_status[i].overacceleration_fault = False
+            self.blcmds_status[i].encoder_fault = False
         
         self.resolver_fault_count = [0 for _ in range(self.get_parameter("num_blcmds").value)]
 
@@ -106,7 +108,7 @@ class BLCMDStatusMonitor(Node):
         def callback(frame):
             if frame.data[0] == 0:
                 if frame.data[1] == 0x2:
-                    self.get_logger().error(f'Resolver Fault on BLCMD {blcmd + 1}')
+                    self.get_logger().error(f'RESOLVER Fault on BLCMD {blcmd + 1}')
                     if self.resolver_fault_count[blcmd] < 5:
                         self.resolver_fault_count[blcmd] += 1
                     self.fault_times["resolver_fault"] = self.get_clock().now()
@@ -122,6 +124,14 @@ class BLCMDStatusMonitor(Node):
                     self.get_logger().error(f'Over Speed Fault on BLCMD {blcmd + 1}')
                     self.blcmds_status[blcmd].overspeed_fault = True
                     self.fault_times["overspeed_fault"] = self.get_clock().now()
+                elif frame.data[1] == 0xC:
+                    self.get_logger().error(f'Over Acceleration Fault on BLCMD {blcmd + 1}')
+                    self.blcmds_status[blcmd].overacceleration_fault = True
+                    self.fault_times["overacceleration_fault"] = self.get_clock().now()
+                elif frame.data[1] == 0xD:
+                    self.get_logger().error(f'ENCODER Fault on BLCMD {blcmd + 1}')
+                    self.blcmds_status[blcmd].encoder_fault = True
+                    self.fault_times["encoder_fault"] = self.get_clock().now()
         return callback
 
     def check_status(self):
@@ -144,6 +154,12 @@ class BLCMDStatusMonitor(Node):
             if self.blcmds_status[i].overspeed_fault:
                 if (self.get_clock().now() - self.fault_times["overspeed_fault"]) > Duration(seconds=2):
                     self.blcmds_status[i].overspeed_fault = False
+            if self.blcmds_status[i].overacceleration_fault:
+                if (self.get_clock().now() - self.fault_times["overacceleration_fault"]) > Duration(seconds=2):
+                    self.blcmds_status[i].overacceleration_fault = False
+            if self.blcmds_status[i].encoder_fault:
+                if (self.get_clock().now() - self.fault_times["encoder_fault"]) > Duration(seconds=2):
+                    self.blcmds_status[i].encoder_fault = False
 
 
     def publish_status(self):
