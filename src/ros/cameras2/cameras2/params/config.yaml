@@ -2,7 +2,7 @@ camera_streamer:
   ros__parameters:
     defaults:
       mime: image/jpeg
-      width: 800
+      width: 1920
       framerate: 30
       profiles:
         snail:
@@ -13,6 +13,22 @@ camera_streamer:
           framerate: 10
 
     cameras:
+      openaicam_openaicam_2505121128:
+        mime: image/jpeg
+        width: 1920
+        framerate: 30
+        show_clock: false
+      HZ_USB_Camera_20220301104:
+        mime: image/jpeg
+        width: 1920
+        framerate: 30
+        show_clock: false
+      webcamvendor_SK_series1_20220325JWGD2093:
+        mime: video/x-h264
+        width: 1920
+        framerate: 30
+        show_clock: false
+
       # Mast
       mast_backward:
         meta:

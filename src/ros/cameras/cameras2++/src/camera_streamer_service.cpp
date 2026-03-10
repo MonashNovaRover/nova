@@ -95,7 +95,15 @@ class CameraStreamer : public rclcpp::Node
           auto props = get_v4l2webrtc_pipeline_properties(this, &camera);
           pipeline->props = props;
           pipeline->gst_pipeline = v4l2webrtc_pipeline(this, props);
-        } //else if (pipeline_type == "nextpipelinetype") {}
+        } else if (pipeline_type == "mjpeg2h264") {
+          auto props = get_mjpeg2h264_pipeline_properties(this, &camera);
+          pipeline->props = props;
+          pipeline->gst_pipeline = mjpeg2h264_pipeline(this, props);
+        } else if (pipeline_type == "mjpeg2h265") {
+          auto props = get_mjpeg2h265_pipeline_properties(this, &camera);
+          pipeline->props = props;
+          pipeline->gst_pipeline = mjpeg2h265_pipeline(this, props);
+        }
 
         RCLCPP_INFO(this->get_logger(), "Creating %s pipeline for %s", pipeline_type.c_str(), camera.serial.c_str());
         this->pipelines[camera.serial] = pipeline;

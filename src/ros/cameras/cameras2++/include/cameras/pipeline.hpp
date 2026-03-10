@@ -22,6 +22,20 @@ struct webRTCProperties
   std::string congestion_control;
 };
 
+struct x264encProperties
+{
+  std::string tune;
+  std::string speed_preset;
+  int bitrate;
+};
+
+struct x265encProperties
+{
+  std::string tune;
+  std::string speed_preset;
+  int bitrate;
+};
+
 struct clockProperties
 {
     bool show_clock;

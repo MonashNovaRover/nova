@@ -23,13 +23,19 @@ camera_streamer:
         framerate: 30
         width: 1920
         height: 1080
+        pipeline_type: mjpeg2h265
+        bitrate: 1024
+        video_caps: video/x-h265
       webcamvendor_SK_series1_20220325JWGD2093: # need to test again
-        mime: video/x-h264 #image/jpeg
+        mime: video/x-h264
+        #mime: video/x-h264
+        pipeline_type: mjpeg2h264
         framerate: 30
         width: 1920
         height: 1080
-
-    serial_pipelines:
+        video_caps: video/x-h264
+        speed_preset: fast
+        bitrate: 8192
       anthony-cam:
         pipeline_type: v4l2webrtc
         width: 1280
