@@ -105,7 +105,8 @@ bool SelfCollisionLimiter::on_enforce(
       target_pos = desired_joint_states.positions.at(i);
     } else { // velocity
       // TODO: consider current velocity and expected accel
-      target_pos = current_joint_states.positions.at(i) + desired_joint_states.velocities.at(i)*dt_seconds*1.1;
+      // XXX: If real physical arm gets stuck in a collider, add a *1.1 or smth to the end of this so it overestimates velocity
+      target_pos = current_joint_states.positions.at(i) + desired_joint_states.velocities.at(i)*dt_seconds;
     }
     robot_state.setVariablePosition(this->joint_names_.at(i), target_pos);
   }

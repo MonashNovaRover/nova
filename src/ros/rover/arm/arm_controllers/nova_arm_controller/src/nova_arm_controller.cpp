@@ -47,11 +47,6 @@ controller_interface::CallbackReturn NovaArmController::on_init()
     return controller_interface::CallbackReturn::ERROR;
   }
   
-  if (!this->fake_joint_limiter.init(params_.fake_joint_names, get_node())) {
-    RCLCPP_ERROR(get_node()->get_logger(), "Failed to init fake joint limiter");
-    return controller_interface::CallbackReturn::ERROR;
-  }
-  
   if (!this->joint_limiter.init(params_.joint_names, get_node())) {
     RCLCPP_ERROR(get_node()->get_logger(), "Failed to init joint limiter");
     return controller_interface::CallbackReturn::ERROR;
@@ -157,66 +152,6 @@ controller_interface::return_type NovaArmController::update_velocity_reference_f
   return controller_interface::return_type::OK;
 }
 
-/*void NovaArmController::from_fake_joints(
-    trajectory_msgs::msg::JointTrajectoryPoint &real,
-    trajectory_msgs::msg::JointTrajectoryPoint &fake) {
-
-  if (fake.velocities.size()) {
-    for (auto real_joint_name : params_.joint_names) {
-      double vel = 0.0;
-      std::vector<double> multipliers = params_.fake_joints.fake_joint_names_map.at(fake_joint_name).multipliers;
-      for (int i = 0; i < multipliers.size(); i++) {
-        vel += multiplers.at(i)*real.velocities.at(i);
-      }
-      fake.velocities.push_back(vel);
-    }
-  }
-
-  if (fake.positions.size()) {
-    for (auto fake_joint_name : params_.fake_joint_names) {
-      auto cfg = params_.fake_joints.fake_joint_names_map.at(fake_joint_name);
-      double pos = cfg.offset;
-      std::vector<double> multipliers = cfg.multipliers;
-      for (int i = 0; i < multipliers.size(); i++) {
-        pos += multiplers.at(i)*real.positions.at(i);
-      }
-      fake.positions.push_back(pos);
-    }
-  }
-  //TODO: effort
-
-}*/
-
-void NovaArmController::to_fake_joints(
-    trajectory_msgs::msg::JointTrajectoryPoint &real,
-    trajectory_msgs::msg::JointTrajectoryPoint &fake) {
-
-  if (real.velocities.size()) {
-    for (auto fake_joint_name : params_.fake_joint_names) {
-      double vel = 0.0;
-      std::vector<double> multipliers = params_.fake_joints.fake_joint_names_map.at(fake_joint_name).multipliers;
-      for (int i = 0; i < multipliers.size(); i++) {
-        vel += multiplers.at(i)*real.velocities.at(i);
-      }
-      fake.velocities.push_back(vel);
-    }
-  }
-
-  if (real.positions.size()) {
-    for (auto fake_joint_name : params_.fake_joint_names) {
-      auto cfg = params_.fake_joints.fake_joint_names_map.at(fake_joint_name);
-      double pos = cfg.offset;
-      std::vector<double> multipliers = cfg.multipliers;
-      for (int i = 0; i < multipliers.size(); i++) {
-        pos += multiplers.at(i)*real.positions.at(i);
-      }
-      fake.positions.push_back(pos);
-    }
-  }
-  //TODO: effort
-
-}
-
 // this assumes that the number of joints match
 void NovaArmController::get_joint_states(trajectory_msgs::msg::JointTrajectoryPoint &current) {
   //TODO: maybe try to calculate accel as well - this is needed for jerk limits
@@ -304,11 +239,6 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
 
   if (params_.use_limits) {
     this->joint_limiter.enforce(current, desired, period);
-    /*for (auto vjoint : params_.virtual_joint_names) {
-      state = 0;
-      for (auto rjoint : params_.joint_names) {
-      }
-    }*/
   }
 
   if (params_.use_collision_limits) {

@@ -78,7 +78,7 @@ protected:
     // store per joint odometry here maybe?
   };
 
-  joint_limits::JointSaturationLimiter<trajectory_msgs::msg::JointTrajectoryPoint> joint_limiter, fake_joint_limiter;
+  joint_limits::JointSaturationLimiter<trajectory_msgs::msg::JointTrajectoryPoint> joint_limiter;
   SelfCollisionLimiter collision_limiter;
 
   controller_interface::CallbackReturn configure_joints(
