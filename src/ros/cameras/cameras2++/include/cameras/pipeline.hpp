@@ -27,13 +27,14 @@ struct x264encProperties
   std::string tune;
   std::string speed_preset;
   int bitrate;
+  std::string me;
+  int threads;
 };
 
 struct x265encProperties
 {
   std::string tune;
   std::string speed_preset;
-  int bitrate;
 };
 
 struct clockProperties

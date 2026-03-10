@@ -183,6 +183,8 @@ GstElement* mjpeg2h264_pipeline(rclcpp::Node* streamer_node, mjpeg2h264PipelineP
       "tune", props->tune,
       "speed-preset", props->speed_preset,
       "bitrate", props->bitrate,
+      "me", props->me,
+      "threads", props->threads,
       NULL);
   gst_caps_unref(webrtc_caps);
   gst_structure_free(meta);
@@ -244,7 +246,9 @@ mjpeg2h264PipelineProperties* get_mjpeg2h264_pipeline_properties(rclcpp::Node* s
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".video_caps").c_str(), props->video_caps, "video/x-h264");
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".tune").c_str(), props->tune, "zerolatency");
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".speed_preset").c_str(), props->speed_preset, "ultrafast");
-  streamer_node->get_parameter_or((camera_prefix + ".bitrate").c_str(), props->bitrate, 4096); 
+  streamer_node->get_parameter_or((camera_prefix + ".bitrate").c_str(), props->bitrate, 4096);
+  streamer_node->get_parameter_or<std::string>((camera_prefix + ".me").c_str(), props->me, "dia");
+  streamer_node->get_parameter_or((camera_prefix + ".threads").c_str(), props->threads, 1);
 
   // RCLCPP_INFO(streamer_node->get_logger(), "params, %d, %d, %d, %s, %s, %d, %d, %d", 
   //   props->width, props->height, 
@@ -307,7 +311,6 @@ GstElement* mjpeg2h265_pipeline(rclcpp::Node* streamer_node, mjpeg2h265PipelineP
   g_object_set(encode,
       "tune", props->tune,
       "speed-preset", props->speed_preset,
-      "bitrate", props->bitrate,
       NULL);
   gst_caps_unref(webrtc_caps);
   gst_structure_free(meta);
@@ -369,7 +372,6 @@ mjpeg2h265PipelineProperties* get_mjpeg2h265_pipeline_properties(rclcpp::Node* s
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".video_caps").c_str(), props->video_caps, "video/x-h265");
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".tune").c_str(), props->tune, "zerolatency");
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".speed_preset").c_str(), props->speed_preset, "ultrafast");
-  streamer_node->get_parameter_or((camera_prefix + ".bitrate").c_str(), props->bitrate, 4096); 
 
   // RCLCPP_INFO(streamer_node->get_logger(), "params, %d, %d, %d, %s, %s, %d, %d, %d", 
   //   props->width, props->height, 
