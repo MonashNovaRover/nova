@@ -36,8 +36,20 @@ arm:
         - j4
         - j5
         - j6
+      fake_joint_names:
+        - j2_minus_j3
+      fake_joints:
+        j2_minus_j3:
+          offset: 0.0
+          multipliers:
+            - 0.0
+            - 1.0 # j2
+            - -1.0 # j3
+            - 0.0
+            - 0.0
+            - 0.0
       use_position_control: false
-      use_collision_limits: true
+      use_collision_limits: false
       velocity_feedback: true
       position_feedback: true
       use_limits: true

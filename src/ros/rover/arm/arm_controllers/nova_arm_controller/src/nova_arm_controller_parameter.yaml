@@ -2,8 +2,25 @@ nova_arm_controller:
   joint_names: {
     type: string_array,
     default_value: [],
-    description: "Names of the joints in the arm. Other arrays in this config must be in the same order",
+    description: "Names of the joints (actuators) in the arm. Other arrays in this config must be in the same order",
   }
+  fake_joint_names: {
+    type: string_array,
+    default_value: [],
+    description: "Names of the virtual joints in the arm that you need limits for",
+  }
+  fake_joints:
+    __map_fake_joint_names:
+      offset: {
+        type: double,
+        default_value: 0.0,
+        description: "Offset for this fake joint"
+      }
+      multipliers: {
+        type: double_array,
+        default_value: [],
+        description: "How much one revolution of each real joint moves this virtual joint. same order as joint_names"
+      }
   topic: {
     type: string,
     default_value: "/arm/forward_command",
