@@ -20,72 +20,23 @@ in
 
   config = lib.mkIf cfg.enable {
     # Don't let networkmanager touch interfaces
-    # we are configuring decleratively with networkd
+    # we are configuring declaratively my with networkd
     networking.networkmanager.unmanaged = [
       netcfg.ethernetInterface
     ];
 
     systemd.network = {
       enable = true;
-      netdevs = {
-        "20-br0" = {
-          netdevConfig = {
-            Kind = "bridge";
-            Name = "br0";
-          };
-        };
-      };
-
-      links = {
-        "20-can0" = {
-          matchConfig = {
-            Path = "platform-c310000.mttcan";
-            Driver = "mttcan";
-          };
-          linkConfig = {
-            Name = "can0";
-          };
-        };
-
-        "20-can1" = {
-          matchConfig = {
-            Path = "platform-3210000.spi-cs-0";
-            Driver = "mcp251xfd";
-          };
-          linkConfig = {
-            Name = "can1";
-          };
-        };
-
-        "20-can2" = {
-          matchConfig = {
-            Path = "platform-3230000.spi-cs-0";
-            Driver = "mcp251xfd";
-          };
-          linkConfig = {
-            Name = "can2";
-          };
-        };
-      };
 
       networks = {
-        "40-br0" = {
-          matchConfig.Name = "br0";
-          bridgeConfig = {};
+        "30-${netcfg.ethernetInterface}" = {
+          matchConfig.Name = netcfg.ethernetInterface;
           address = [
             (cfg.ethernetIpAddr + "/23")
           ];
           routes = [
             { Gateway = "10.0.0.1"; }
           ];
-        };
-        "30-${netcfg.wifiInterface}" = {
-          matchConfig.Name = netcfg.wifiInterface;
-          networkConfig.Bridge = "br0";
-        };
-        "30-${netcfg.ethernetInterface}" = {
-          matchConfig.Name = netcfg.ethernetInterface;
-          networkConfig.Bridge = "br0";
 
         };
         # CAN
