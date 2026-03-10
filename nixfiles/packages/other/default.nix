@@ -17,4 +17,5 @@
   reolink = callPackage ./reolink { };
   ptpd = callPackage ./ptpd { };
   novacarrier-flash = callPackage ./novacarrier-flash { };
+  nova-unity-sim = callPackage ./nova-unity-sim { };
 } // import ./nova-launch { inherit pkgs; }
