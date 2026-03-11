@@ -14,7 +14,7 @@ function MicroscopeCamerasWidget () {
       <SiteSelectWidget pickerClassName="mt-4 mb-1"/>
       <div className="grid grid-cols-2 gap-3 mt-3">
         <SerialMappedCameraComponent cameraSerial={CameraSerials.SCIENCE_GIMBAL}/>
-        <SerialMappedCameraComponent cameraSerial={CameraSerials.SCIENCE_KILN_BOTTOM}/>
+        <SerialMappedCameraComponent cameraSerial={CameraSerials.SCIENCE_ANALYSIS_ARM_DOWN}/>
       </div>
     </div>
   )

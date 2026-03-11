@@ -39,8 +39,8 @@ export enum CameraSerials {
   EC_FORKLIFT_FORWARD = "ec_forklift_forward",
   EC_SCRAPER_LEG = "ec_scraper_leg",
 
-  SCIENCE_KILN = "science_kiln",
-  SCIENCE_KILN_BOTTOM = "science_kiln_bottom",
+  SCIENCE_KILN_BOOM = "science_kiln_boom",
+  SCIENCE_ANALYSIS_ARM_DOWN = "science_analysis_arm_down",
   SCIENCE_MICROSCOPE = "science_microscope",
   SCIENCE_GIMBAL = "science_gimbal_cam",
 
@@ -79,10 +79,10 @@ const ecCams = [
 ];
 
 const arcScienceCams = [
-  CameraSerials.SCIENCE_KILN,
-  CameraSerials.SCIENCE_KILN_BOTTOM,
-  CameraSerials.SCIENCE_MICROSCOPE,
+  CameraSerials.SCIENCE_KILN_BOOM,
   CameraSerials.SCIENCE_GIMBAL,
+  CameraSerials.SCIENCE_ANALYSIS_ARM_DOWN,
+  CameraSerials.SCIENCE_MICROSCOPE,
 ];
 
 const urcScienceCams = [

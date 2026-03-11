@@ -31,10 +31,10 @@ camera_directory:
           '3:1.0': mast_forward
           '4:1.0': mast_backward
         science-arc:
-          '3:1.0': science_gimbal_cam     # science hub port 1
-          '2:1.0': science_kiln           # science hub port 2
-          '1:1.0': science_kiln_bottom    # science hub port 3
-          '4:1.0': science_microscope     # science hub port 4  
+          '3:1.0': science_gimbal_cam           # science hub port 1
+          '2:1.0': science_kiln_boom            # science hub port 2
+          '1:1.0': science_analysis_arm_down    # science hub port 3
+          '4:1.0': science_microscope           # science hub port 4  
         arm_es:
           '1:1.0': arm_end_finger
           '2:1.0': arm_end_side

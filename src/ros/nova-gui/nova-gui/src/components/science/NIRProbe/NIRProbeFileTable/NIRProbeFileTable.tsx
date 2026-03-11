@@ -17,6 +17,7 @@ import {Trash2} from "react-feather";
 
 export interface NIRProbeFileTableProps extends CardProps {
   readingInfo: NIRProbeReadingTypeInfo[] // list of NIRProbeReadingTypeInfo: [off, PD1, PD2]
+  maxTableHeight?: number
 }
 
 /**
@@ -24,7 +25,7 @@ export interface NIRProbeFileTableProps extends CardProps {
  * @param readingInfo display information about each photodiode, should be of the form [off, PD1, PD2]
  * @constructor
  */
-const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({readingInfo}: NIRProbeFileTableProps) => {
+const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({readingInfo, maxTableHeight}: NIRProbeFileTableProps) => {
 
   // NIR Probe readings data corresponding to the currently selected site.
   const [readings, setReadings] = useNIRSiteData();
@@ -73,16 +74,19 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({readingInfo}: NIRP
     )), [readings, deleteEntry, setLabel])
 
   const table = useCallback((type: NIRProbeReadingType.PD1 | NIRProbeReadingType.PD2) => (
-    <Table
-      removeWrapper
-      layout={"fixed"}
-      aria-label="NIR probe readings table"
-    >
-      {tableHeader()}
-      <TableBody emptyContent={"No readings recorded."}>
-        {entryRows(type)}
-      </TableBody>
-    </Table>
+    <div className="overflow-y-auto" style={{ maxHeight: `${maxTableHeight}vh`}}>
+        <Table
+        removeWrapper
+        layout={"fixed"}
+        aria-label="NIR probe readings table"
+        isHeaderSticky
+      >
+        {tableHeader()}
+        <TableBody emptyContent={"No readings recorded."}>
+          {entryRows(type)}
+        </TableBody>
+      </Table>
+    </div>
   ), [entryRows, tableHeader])
 
   const PD1Table = useMemo(() => table(NIRProbeReadingType.PD1), [table])
