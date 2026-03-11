@@ -13,17 +13,17 @@ camera_streamer:
           framerate: 10
 
     cameras:
-      openaicam_openaicam_2505121128:
+      cheap-cam:
         mime: image/jpeg
         width: 1920
         framerate: 30
         show_clock: false
-      HZ_USB_Camera_20220301104:
+      autofocus-cam:
         mime: image/jpeg
         width: 1920
         framerate: 30
         show_clock: false
-      webcamvendor_SK_series1_20220325JWGD2093:
+      fisheye-cam:
         mime: video/x-h264
         width: 1920
         framerate: 30

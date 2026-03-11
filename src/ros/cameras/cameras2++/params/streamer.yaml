@@ -33,11 +33,11 @@ camera_streamer:
         width: 1920
         height: 1080
         framerate: 30
-      SunplusIT_Inc_ACER_FHD_User_Facing_01.00.00:
+      brandon-cam:
+        pipeline_type: mjpeg2h264
         width: 1920
         height: 1080
         framerate: 30
-        pipeline_type: mjpeg2h265 
       anthony-cam:
         pipeline_type: v4l2webrtc
         width: 1280
