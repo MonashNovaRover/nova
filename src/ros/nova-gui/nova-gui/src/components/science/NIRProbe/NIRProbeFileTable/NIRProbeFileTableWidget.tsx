@@ -32,8 +32,6 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
 }: NIRProbeFileTableWidgetProps) => {
   const [calibrationModalIsOpen, setCalibrationModalIsOpen] = useState<boolean>(false)
 
-  console.log(maxHeightPercent)
-
   return (
     <Card {...cardProps}>
       <CardHeader className="pb-0 flex flex-row justify-center gap-3">

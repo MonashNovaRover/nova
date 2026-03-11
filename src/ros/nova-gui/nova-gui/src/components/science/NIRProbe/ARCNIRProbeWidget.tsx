@@ -1,6 +1,5 @@
 import React, {useState} from "react";
 import NIRProbeOutputSaveWidget from "./NIRProbeOutputWidget/NIRProbeOutputSaveWidget.tsx";
-import NIRProbeLEDWidget from "./NIRProbeLEDWidget/NIRProbeLEDWidget.tsx";
 import NIRProbeFileTableWidget from "./NIRProbeFileTable/NIRProbeFileTableWidget.tsx";
 import NIRCalibrationCurveWidget from "./NIRProbeCalibration/NIRCalibrationCurveWidget.tsx";
 import TOFHeight from "../AnalysisPlatformHeight/TOFHeight.tsx";
@@ -23,7 +22,6 @@ export const ARCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
   return (
     <div className="grid grid-flow-col auto-cols-fr gap-3">
       <div className="flex flex-col gap-3 col-span-3">
-        {/*<NIRProbeLEDWidget readingInfo={ARCNIRPRobeReadingTypeInfo}/>*/}
         <NIRProbeOutputSaveWidget
           showAdvanced={showAdvanced}
           setShowAdvanced={setShowAdvanced}

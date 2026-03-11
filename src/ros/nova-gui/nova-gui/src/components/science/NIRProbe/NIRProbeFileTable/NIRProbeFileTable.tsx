@@ -74,8 +74,8 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({readingInfo, maxTa
     )), [readings, deleteEntry, setLabel])
 
   const table = useCallback((type: NIRProbeReadingType.PD1 | NIRProbeReadingType.PD2) => (
-    <div className={`max-h-[${maxTableHeight}vh] overflow-y-auto`}>
-      <Table
+    <div className="overflow-y-auto" style={{ maxHeight: `${maxTableHeight}vh`}}>
+        <Table
         removeWrapper
         layout={"fixed"}
         aria-label="NIR probe readings table"
