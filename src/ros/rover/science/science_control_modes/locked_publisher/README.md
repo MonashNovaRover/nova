@@ -2,7 +2,7 @@
 
 Control Mode that publishes the locked status of Teleop Modular.
 
-Publishes [teleop_msgs/LockedStatus](../../teleop_msgs/msg/LockedStatus.msg) messages.
+Publishes [nova_interfaces/msg/LockedStatus](../../../nova_interfaces/msg/LockedStatus.msg) messages.
 
 Created using [control_mode_template](https://github.com/BaileyChessum/control_mode_template).
 
