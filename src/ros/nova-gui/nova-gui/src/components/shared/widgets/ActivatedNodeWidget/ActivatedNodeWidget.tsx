@@ -21,13 +21,11 @@ const ActivatedNodeWidget: React.FC<URCActivatedNodeWidgetProps> = (
   const activeStatusBifrost = useBifrost({ topic: RosTopic.ACTIVATED_NODES });
   const lockedStatusBifrost = useBifrost({ topic: RosTopic.ACTIVATED_NODES });
 
-  // TODO: Change to 2 different selectors
-  const lastMessage = useSelector(
-    (state: RootState) => state.activeStatusStore
-  );
+  // TODO: Change to 2 different selectors (LOCKED STATUS STORE DOESNT EXIST YET!!)
+  const activeStatusMessage = useSelector((state: RootState) => state.activeStatusStore);
+  const lockedStatusMessage = useSelector((state: RootState) => state.lockedStatusStore);
 
   const [currentStatus, setCurrentStatus] = useState(props.config.map(_ => false))
-  const [currentLockedStatus, setCurrentLockedStatus] = useState(true)
 
   useEffect(() => {
     activeStatusBifrost.syncWithTopic();
@@ -36,18 +34,10 @@ const ActivatedNodeWidget: React.FC<URCActivatedNodeWidgetProps> = (
 
   // update currentStatus with every new message
   useEffect(() => {
-    props.config.map((value, index) => value.name === lastMessage.name ? setCurrentStatus(
-      currentStatus.map((v, i) => i === index ? lastMessage.active : v)
+    props.config.map((value, index) => value.name === activeStatusMessage.name ? setCurrentStatus(
+      currentStatus.map((v, i) => i === index ? activeStatusMessage.active : v)
     ) : null)
-  }, [lastMessage, setCurrentStatus, props.config, currentStatus]);
-
-  // update currentLockedStatus with every new message
-  // TODO: Change to update one variable simply
-  useEffect(() => {
-    props.config.map((value, index) => value.name === lastMessage.name ? setCurrentLockedStatus(
-      currentLockedStatus.map((v, i) => i === index ? lastMessage.locked : v)
-    ) : null)
-  }, [lastMessage, setCurrentLockedStatus, props.config, currentLockedStatus]);
+  }, [activeStatusMessage, setCurrentStatus, props.config]);
 
   return (
     <Card {...props}>
@@ -61,7 +51,7 @@ const ActivatedNodeWidget: React.FC<URCActivatedNodeWidgetProps> = (
               text={data.displayName}
               icon={data.icon}
               isSelected={currentStatus[i]}
-              isLocked={currentLockedStatus}
+              isLocked={lockedStatusMessage.locked}
             />
           ))}
         </div>
