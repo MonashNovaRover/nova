@@ -16,6 +16,7 @@ export interface NIRProbeFileTableWidgetProps extends CardProps {
   Modal?: React.FC<NIRSettingsModalProps>
   headerTable: ReactNode
   readingInfo: NIRProbeReadingTypeInfo[] // list of NIRProbeReadingTypeInfo: [off, PD1, PD2]
+  maxHeightPercent?: number
 }
 
 /**
@@ -27,7 +28,7 @@ export interface NIRProbeFileTableWidgetProps extends CardProps {
  * @constructor
  */
 const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
-  Modal, headerTable, readingInfo, ...cardProps
+  Modal, headerTable, readingInfo, maxHeightPercent, ...cardProps
 }: NIRProbeFileTableWidgetProps) => {
   const [calibrationModalIsOpen, setCalibrationModalIsOpen] = useState<boolean>(false)
 
@@ -48,7 +49,7 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
       </CardHeader>
       <CardBody className="flex flex-col gap-3 p-3">
         {headerTable}
-        <NIRProbeFileTable readingInfo={readingInfo}/>
+        <NIRProbeFileTable readingInfo={readingInfo} maxTableHeight={maxHeightPercent}/>
       </CardBody>
       {Modal && <Modal
         isOpen={calibrationModalIsOpen}

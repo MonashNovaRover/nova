@@ -18,13 +18,13 @@ const NIRProbeCalcTable: React.FC<NIRProbeCalcTableProps> = () => {
   const tableRows = [
       <TableRow key="average">
         <TableCell key={1}>
-          {averageX.toFixed(4)}
+          {Math.floor(averageX + 0.5)}
         </TableCell>
         <TableCell key={2}>
-          {averageY.toFixed(4)}
+          {Math.floor(averageY + 0.5)}  {/*readings are also integers to round to closest int*/}
         </TableCell>
         <TableCell key={3} className={"font-extrabold text-[#22d3ee]"}>
-          {calibratedResult}
+          {calibratedResult.toFixed(4)}
         </TableCell>
         <TableCell key={0}>{""}</TableCell>
       </TableRow>,
