@@ -27,8 +27,13 @@ struct x264encProperties
   std::string tune;
   std::string speed_preset;
   int bitrate;
+  bool byte_stream;
   std::string me;
   int threads;
+
+  std::string alignment;
+  std::string stream_format;
+  std::string format;
 };
 
 struct x265encProperties
@@ -39,5 +44,5 @@ struct x265encProperties
 
 struct clockProperties
 {
-    bool show_clock;
+  bool show_clock;
 };

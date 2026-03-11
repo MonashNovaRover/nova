@@ -95,6 +95,10 @@ class CameraStreamer : public rclcpp::Node
           auto props = get_v4l2webrtc_pipeline_properties(this, &camera);
           pipeline->props = props;
           pipeline->gst_pipeline = v4l2webrtc_pipeline(this, props);
+        } else if (pipeline_type == "h264direct") {
+          auto props = get_h264direct_pipeline_properties(this, &camera);
+          pipeline->props = props;
+          pipeline->gst_pipeline = h264direct_pipeline(this, props);
         } else if (pipeline_type == "mjpeg2h264") {
           auto props = get_mjpeg2h264_pipeline_properties(this, &camera);
           pipeline->props = props;

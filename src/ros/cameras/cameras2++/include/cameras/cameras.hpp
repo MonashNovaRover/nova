@@ -26,6 +26,10 @@ struct v4l2webrtcPipelineProperties : Properties, v4lProperties, webRTCPropertie
 v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* v4l2webrtc_pipeline(rclcpp::Node* log_node, v4l2webrtcPipelineProperties* props);
 
+struct h264directPipelineProperties : Properties, v4lProperties, webRTCProperties, x264encProperties, clockProperties {};
+h264directPipelineProperties* get_h264direct_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
+GstElement* h264direct_pipeline(rclcpp::Node* log_node, h264directPipelineProperties* props);
+
 struct mjpeg2h264PipelineProperties : Properties, v4lProperties, webRTCProperties, x264encProperties, clockProperties {};
 mjpeg2h264PipelineProperties* get_mjpeg2h264_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* mjpeg2h264_pipeline(rclcpp::Node* log_node, mjpeg2h264PipelineProperties* props);
