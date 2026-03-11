@@ -1,0 +1,6 @@
+<library path="locked_publisher">
+    <!-- Control Modes -->
+    <class name="locked_publisher/LockedPublisher" type="locked_publisher::LockedPublisher" base_class_type="control_mode::ControlMode">
+        <description>Control Mode that publishes the locked status of Teleop Modular.</description>
+    </class>
+</library>
