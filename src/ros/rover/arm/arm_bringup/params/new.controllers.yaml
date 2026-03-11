@@ -37,8 +37,41 @@ arm:
         - j5
         - j6
       use_position_control: false
-      use_collision_limits: false
-      use_limits: false
+      use_collision_limits: true
+      do_4bar: true
+      j2_minus_j3:
+        j2_idx: 1 # this is badly designed.
+        j3_idx: 2
+        max_position: 0.75
+        min_position: -0.9
+      velocity_feedback: true
+      position_feedback: true
+      use_limits: true
+      joint_limits:
+        j1:
+          has_position_limits: true
+          max_position: 3.14
+          min_position: -3.14
+        j2:
+          has_position_limits: true
+          max_position: 2.35
+          min_position: -1.57
+        j3:
+          has_position_limits: true
+          max_position: 2.9
+          min_position: -0.78
+        j4:
+          has_position_limits: true
+          max_position: 1.57
+          min_position: -1.57
+        j5: # wrist pitch
+          has_position_limits: true
+          max_position: -0.14
+          min_position: -3.0
+        j6: # wrist roll
+          has_position_limits: true
+          max_position: 1.57
+          min_position: -1.57
 
   nova_arm_position_controller:
     ros__parameters:
@@ -51,8 +84,41 @@ arm:
         - j5
         - j6
       use_position_control: true
-      use_collision_limits: false
+      velocity_feedback: true
+      position_feedback: true
+      use_collision_limits: true
       use_limits: true
+      do_4bar: true
+      j2_minus_j3:
+        j2_idx: 1 # this is badly designed.
+        j3_idx: 2
+        max_position: 0.75
+        min_position: -0.9
+      joint_limits:
+        j1:
+          has_position_limits: true
+          max_position: 3.14
+          min_position: -3.14
+        j2:
+          has_position_limits: true
+          max_position: 2.35
+          min_position: -1.57
+        j3:
+          has_position_limits: true
+          max_position: 2.9
+          min_position: -0.78
+        j4:
+          has_position_limits: true
+          max_position: 1.57
+          min_position: -1.57
+        j5: # wrist pitch
+          has_position_limits: true
+          max_position: 0.0
+          min_position: -3.14
+        j6: # wrist roll
+          has_position_limits: true
+          max_position: 1.57
+          min_position: -1.57
     
   nova_end_effector_velocity_controller:
     ros__parameters:
@@ -61,9 +127,17 @@ arm:
         - lead_left
         - la_prismatic
       use_position_control: false
-      use_position_limits: false
       use_collision_limits: false
       use_limits: true
+      velocity_feedback: false
+      position_feedback: false
+      joint_limits:
+        lead_left:
+          has_velocity_limits: true
+          max_velocity: 10000.0 # these are crazy numbers
+        la_prismatic:
+          has_velocity_limits: true
+          max_velocity: 100000.0
 
   nova_twistmapper:
     ros__parameters:
