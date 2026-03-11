@@ -18,17 +18,21 @@ export interface URCActivatedNodeWidgetProps extends CardProps {
 const ActivatedNodeWidget: React.FC<URCActivatedNodeWidgetProps> = (
   props: URCActivatedNodeWidgetProps
 ) => {
-  const bifrost = useBifrost({ topic: RosTopic.ACTIVATED_NODES });
+  const activeStatusBifrost = useBifrost({ topic: RosTopic.ACTIVATED_NODES });
+  const lockedStatusBifrost = useBifrost({ topic: RosTopic.ACTIVATED_NODES });
+
+  // TODO: Change to 2 different selectors
   const lastMessage = useSelector(
     (state: RootState) => state.activeStatusStore
   );
 
   const [currentStatus, setCurrentStatus] = useState(props.config.map(_ => false))
-  const [currentLockedStatus, setCurrentLockedStatus] = useState(props.config.map(_ => true))
+  const [currentLockedStatus, setCurrentLockedStatus] = useState(true)
 
   useEffect(() => {
-    bifrost.syncWithTopic();
-  }, [bifrost]);
+    activeStatusBifrost.syncWithTopic();
+    lockedStatusBifrost.syncWithTopic();
+  }, [activeStatusBifrost, lockedStatusBifrost]);
 
   // update currentStatus with every new message
   useEffect(() => {
@@ -38,6 +42,7 @@ const ActivatedNodeWidget: React.FC<URCActivatedNodeWidgetProps> = (
   }, [lastMessage, setCurrentStatus, props.config, currentStatus]);
 
   // update currentLockedStatus with every new message
+  // TODO: Change to update one variable simply
   useEffect(() => {
     props.config.map((value, index) => value.name === lastMessage.name ? setCurrentLockedStatus(
       currentLockedStatus.map((v, i) => i === index ? lastMessage.locked : v)
@@ -56,7 +61,7 @@ const ActivatedNodeWidget: React.FC<URCActivatedNodeWidgetProps> = (
               text={data.displayName}
               icon={data.icon}
               isSelected={currentStatus[i]}
-              isLocked={currentLockedStatus[i]}
+              isLocked={currentLockedStatus}
             />
           ))}
         </div>
