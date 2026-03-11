@@ -50,3 +50,9 @@ camera_directory:
           '3:1.0': ec_forklift_down       # ec hub 2
           '2:1.0': ec_forklift_forward    # ec hub 3
           '1:1.0': ec_scraper_leg         # ec hub 4
+
+    serial_remaps:
+      openaicam_openaicam_2505121128: cheap-cam
+      HZ_USB_Camera_20220301104: autofocus-cam
+      webcamvendor_SK_series1_20220325JWGD2093: fisheye-cam
+
