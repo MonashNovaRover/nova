@@ -1,5 +1,6 @@
 from rclpy.node import Node
 from teleop_python_utils import Button
+from nova_interfaces.msg import ActiveNodeStatus
 
 class Activation:
     """
@@ -25,7 +26,22 @@ class Activation:
         for but in inactive_button_pool:
             but.add_callback(self.deactivate)
 
+        # Publisher for active controller telemetry
+        self.active_node_publisher = self.node.create_publisher(ActiveNodeStatus, "/activated_nodes", 10)
+
         self.node.get_logger().info(f"{self.node.get_name()} is {"ACTIVE" if self.active else "INACTIVE"}")
+
+    def publish_msg(self):
+        """ Publishes message containing name and active status of controller node """
+        # Creating active node msg data type
+        msg = ActiveNodeStatus()
+
+        msg.name = self.node.get_name()
+        msg.active = self.is_active()
+        msg.locked = False
+
+        # Sending message over topic
+        self.active_node_publisher.publish(msg)
 
     def activate(self):
         """ Activates the system """
