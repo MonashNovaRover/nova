@@ -38,7 +38,7 @@ arm:
         - j6
       use_position_control: false
       use_collision_limits: true
-      do_4bar: true
+      do_4bar: false
       j2_minus_j3:
         j2_idx: 1 # this is badly designed.
         j3_idx: 2
