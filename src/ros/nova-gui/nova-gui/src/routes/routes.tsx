@@ -20,7 +20,6 @@ import {
 } from "../views/shared/CamerasPage/CameraPageConstants";
 import GeneralBaseView from "../views/general/GeneralBaseView.tsx";
 import { ARCNIRProbeView } from "../views/arc/ARCNIRProbeView.tsx";
-import { ARCMicroscopeView } from "../views/arc/ARCMicroscopeView.tsx";
 import TestWebGLView from "../views/test/TestWebGLView/TestWebGLView.tsx";
 import URCUVVisSpecView from "../views/urc/URCUVVisSpecView.tsx";
 import URC360CamView from "../views/urc/URC360CamView.tsx";
@@ -29,7 +28,6 @@ import URCAutoTypingView from "../views/urc/URCAutoTypingView.tsx";
 import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
 import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
 import TestOverlayView from "../views/test/TestOverlayView/TestOverlayView.tsx";
-import ARCNIRProbeWidget from "../components/science/NIRProbe/ARCNIRProbeWidget.tsx";
 import URCGazeboView from "../views/urc/URCGazebo.tsx";
 import HomePageView from "../views/shared/HomePageView.tsx";
 import { arcNavigationData, compNavigationData, generalNavigationData, testNavigationData, urcNavigationData } from "../utils/NavigationRoutes.tsx";
@@ -55,10 +53,6 @@ export const arcRoutes: RouteObject[] = [
   {
     path: "/arc/space-resources/nir-spectroscopy",
     element: <ARCNIRProbeView />,
-  },
-  {
-    path: "/arc/space-resources/microscope",
-    element: <ARCMicroscopeView />,
   },
   {
     path: "/arc/excavation-construction",
@@ -170,7 +164,7 @@ export const testRoutes: RouteObject[] = [
     path: "/test/nirprobe",
     element:
       <div className="p-3">
-        <ARCNIRProbeWidget/>
+        <ARCNIRProbeView/>
       </div>,
   },
   {

@@ -36,7 +36,7 @@ const ToolRotatorWidget: React.FC = () => {
         Tool Rotator
       </CardHeader>
 
-      <CardBody className="flex flex-col">
+      <CardBody className="flex flex-col pt-0">
         <div className="grid grid-cols-3 gap-3">
           <div className="flex flex-col gap-3">
             <Input

@@ -33,10 +33,10 @@ if __name__ == "__main__":
             "controller",
             ActuateController,
             hardware_name="actuation",
-            actuation_axis="auger_actuation"
+            actuation_axis="cbeam_actuation"
         ) \
         .with_hardware("actuation", QCMDHardware, can_id=0xC2) \
         .with_teleop(inputs) \
-        .with_activation_buttons(start_active=False, active_button_name="activate_cbeam", inactive_button_pool_names=["activate_auger"]) \
+        .with_activation_buttons(start_active=False, active_button_name="activate_cbeam", inactive_button_pool_names=["activate_analysis_arm"]) \
         .with_jcan() \
         .spin()
