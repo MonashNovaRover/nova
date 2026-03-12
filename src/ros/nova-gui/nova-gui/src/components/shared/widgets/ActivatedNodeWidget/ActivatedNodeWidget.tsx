@@ -6,6 +6,8 @@ import {ActivatedNodeConfig} from "./ActivatedNodeWidgetConfig.tsx";
 import {ActivatedNodeButton} from "./ActivatedNodeButton.tsx";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../../redux/RootState.ts";
+import Overlay from "../../components/Overlay/Overlay.tsx";
+import {Lock} from "react-feather";
 
 // Properties for the URCActivatedNodeWidget component.
 interface ActivatedNodeWidgetProps extends CardProps {
@@ -47,16 +49,25 @@ const ActivatedNodeWidget: React.FC<ActivatedNodeWidgetProps> = (
         <span>Active Controllers</span>
       </CardHeader>
       <CardBody>
-        <div className="grid grid-cols-2 gap-3">
-          {props.config.map((data, i) => (
-            <ActivatedNodeButton
-              text={data.displayName}
-              icon={data.icon}
-              isSelected={currentStatus[i]}
-              isLocked={lockedStatusMessage.locked}
-            />
-          ))}
-        </div>
+        <Overlay
+          overlay={lockedStatusMessage.locked && <div className="flex flex-col justify-center">
+            <Lock/>
+          </div>}
+        >
+          <Overlay
+            overlay={lockedStatusMessage.locked && <div className="grow backdrop-blur-[2px]"/>}
+          >
+            <div className="grid grid-cols-2 gap-3">
+              {props.config.map((data, i) => (
+                <ActivatedNodeButton
+                  text={data.displayName}
+                  icon={data.icon}
+                  isSelected={currentStatus[i]}
+                />
+              ))}
+            </div>
+          </Overlay>
+        </Overlay>
       </CardBody>
     </Card>
   );
