@@ -209,7 +209,9 @@ private:
   std::unique_ptr<Odometry> odometry_;
 
   // Timeout to consider cmd_vel commands old
-  rclcpp::Duration cmd_vel_timeout_ = rclcpp::Duration::from_seconds(0.5);
+  rclcpp::Duration cmd_vel_receive_timeout_ = rclcpp::Duration::from_seconds(0.5);
+  rclcpp::Duration cmd_vel_command_timeout_ = rclcpp::Duration::from_seconds(0.5);
+  rclcpp::Time last_received_time_;
 
   // Subscriber and realtime buffer for received TwistStamped messages
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_subscriber_;

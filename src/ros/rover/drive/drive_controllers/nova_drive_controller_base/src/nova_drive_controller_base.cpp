@@ -97,6 +97,8 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_init()
   // Initialise odometry
   odometry_ = std::make_unique<Odometry>(get_node(), base_params_);
 
+  last_received_time_ = rclcpp::Time(0, 0, get_node()->get_clock()->get_clock_type());
+
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -161,7 +163,7 @@ controller_interface::return_type NovaDriveControllerBase::update(
             std::isnan(command_msg_ptr->twist.angular.z)))
   {
     RCLCPP_WARN_SKIPFIRST_THROTTLE(
-      logger, *get_node()->get_clock(), cmd_vel_timeout_.seconds() * 1000,
+      logger, *get_node()->get_clock(), cmd_vel_receive_timeout_.seconds() * 1000,
       "Command message contains NaNs. Not updating reference interfaces.");
     return controller_interface::return_type::OK;
   }
@@ -169,8 +171,8 @@ controller_interface::return_type NovaDriveControllerBase::update(
   // ####################### Process input ###############################
   Commands cmds;
 
-  const auto age_of_last_command = time - command_msg_ptr->header.stamp;
-  if (age_of_last_command > cmd_vel_timeout_)
+  const auto age_of_last_command = time - last_received_time_;
+  if (age_of_last_command > cmd_vel_command_timeout_)
   {
     cmds.linear_velocity_x = 0.0;
     cmds.linear_velocity_y = 0.0;
@@ -307,7 +309,7 @@ controller_interface::return_type NovaDriveControllerBase::update(
     commanded_twist_command.twist.angular.z = cmds.angular_velocity;
     realtime_commanded_twist_publisher_->unlockAndPublish();
   }
-
+  
   return controller_interface::return_type::OK;
 }
 
@@ -346,7 +348,8 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  cmd_vel_timeout_ = rclcpp::Duration::from_seconds(base_params_->cmd_vel_timeout);
+  cmd_vel_receive_timeout_ = rclcpp::Duration::from_seconds(base_params_->cmd_vel_receive_timeout);
+  cmd_vel_command_timeout_ = rclcpp::Duration::from_seconds(base_params_->cmd_vel_command_timeout);
 
   limiter_drive_ = SpeedLimiter(
     base_params_->drive.has_velocity_limits, base_params_->drive.has_acceleration_limits,
@@ -404,10 +407,11 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
       const auto current_time_diff = get_node()->now() - msg->header.stamp;
 
       if (
-        cmd_vel_timeout_ == rclcpp::Duration::from_seconds(0.0) ||
-        current_time_diff < cmd_vel_timeout_)
+        cmd_vel_receive_timeout_ == rclcpp::Duration::from_seconds(0.0) ||
+        current_time_diff < cmd_vel_receive_timeout_)
       {
         received_twist_msg_ptr_.writeFromNonRT(msg);
+        last_received_time_ = get_node()->now();
       }
       else
       {
@@ -416,7 +420,7 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
           "Ignoring the received message (timestamp %.10f) because it is older than "
           "the current time by %.10f seconds, which exceeds the allowed timeout (%.4f)",
           rclcpp::Time(msg->header.stamp).seconds(), current_time_diff.seconds(),
-          cmd_vel_timeout_.seconds());
+          cmd_vel_receive_timeout_.seconds());
       }
     });
 
