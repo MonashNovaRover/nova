@@ -34,9 +34,11 @@ const ActivatedNodeWidget: React.FC<ActivatedNodeWidgetProps> = (
 
   // update currentStatus with every new message
   useEffect(() => {
-    props.config.map((value, index) => value.name === activeStatusMessage.name ? setCurrentStatus(
-      currentStatus.map((v, i) => i === index ? activeStatusMessage.active : v)
-    ) : null)
+    props.config.forEach((value, index) => {
+      if (value.name === activeStatusMessage.name) {
+        setCurrentStatus(currentStatus.map((v, i) => i === index ? activeStatusMessage.active : v))
+      }
+    })
   }, [activeStatusMessage, setCurrentStatus, props.config]);
 
   return (
