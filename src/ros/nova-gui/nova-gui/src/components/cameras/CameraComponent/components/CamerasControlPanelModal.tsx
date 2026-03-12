@@ -18,7 +18,7 @@ import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
 import { RosService } from "../../../../ros/services/rosService.ts";
-import { Pause, Play, ExternalLink } from "react-feather";
+import { Pause, Play, Square, ExternalLink } from "react-feather";
 import { useRosNodes } from "../../../../utils/hooks/useRosNodes.ts";
 import { BooleanChip } from "./BooleanChip.tsx";
 import { allCams } from "../../../../views/shared/CamerasPage/CameraPageConstants.tsx";
@@ -32,11 +32,13 @@ export const CameraControlPanelModal = (props: {
 
   const bifrostStarter = useBifrost({ service: RosService.START_CAMS });
 
-  const bifrostStopper = useBifrost({ service: RosService.PAUSE_CAMS });
+  const bifrostPauser = useBifrost({ service: RosService.PAUSE_CAMS });
+
+  const bifrostStopper = useBifrost({ service: RosService.STOP_CAMS });
 
   const nodes = useRosNodes();
 
-  const cameras2Running = nodes.includes("/camera_streamer");
+  const camerasRunning = nodes.includes("/camera_streamer");
 
   const onlineCameras = useSelector(
     (state: RootState) => state.camerasStore.cameras
@@ -59,11 +61,21 @@ export const CameraControlPanelModal = (props: {
     );
 
   const pauseStreaming = () =>
-    bifrostStopper.callService(
+    bifrostPauser.callService(
       { serials: onlineCameraSerials },
       {
         responseToast: true,
         successToastMessage: "All Cameras Paused!",
+        handleResponse: () => props.refreshAvailabilies(),
+      }
+    );
+  
+  const stopStreaming = () =>
+    bifrostStopper.callService(
+      { serials: onlineCameraSerials },
+      {
+        responseToast: true,
+        successToastMessage: "All Cameras Stopped!",
         handleResponse: () => props.refreshAvailabilies(),
       }
     );
@@ -76,15 +88,18 @@ export const CameraControlPanelModal = (props: {
       onClose={props.closeModal}
     >
       <ModalContent>
-        <ModalHeader>Cameras 2 Control Panel</ModalHeader>
+        <ModalHeader>Cameras Control Panel</ModalHeader>
         <ModalBody>
           <div className="flex flex-row m-4 ml-0 gap-4 items-center justify-between">
             <div className="flex flex-row gap-4">
               <Button size="sm" color="primary" onPress={startStreaming}>
                 <Play size="15px" fill="white" /> Start Streaming
               </Button>
-              <Button size="sm" color="danger" onPress={pauseStreaming}>
+              <Button size="sm" color="warning" onPress={pauseStreaming}>
                 <Pause size="15px" fill="white" /> Pause Streaming
+              </Button>
+              <Button size="sm" color="danger" onPress={stopStreaming}>
+                <Pause size="15px" fill="white" /> Stop Streaming
               </Button>
             </div>
             <Tooltip
@@ -93,10 +108,10 @@ export const CameraControlPanelModal = (props: {
               closeDelay={100}
             >
               <BooleanChip
-                boolean={cameras2Running}
+                boolean={camerasRunning}
                 variant="dot"
-                trueText="Cameras2 Running"
-                falseText="Cameras2 Stopped"
+                trueText="Cameras Running"
+                falseText="Cameras Stopped"
                 size="lg"
               />
             </Tooltip>
@@ -126,7 +141,9 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
 
   const bifrostStarter = useBifrost({ service: RosService.START_CAMS });
 
-  const bifrostStopper = useBifrost({ service: RosService.PAUSE_CAMS });
+  const bifrostPauser = useBifrost({ service: RosService.PAUSE_CAMS });
+
+  const bifrostStopper = useBifrost({ service: RosService.STOP_CAMS });
 
   const startStreaming = (cameraSerial: string) =>
     bifrostStarter.callService(
@@ -140,12 +157,22 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
     );
 
   const pauseStreaming = (cameraSerial: string) =>
-    bifrostStopper.callService(
+    bifrostPauser.callService(
       { serials: [cameraSerial] },
       {
         responseToast: true,
         successToastMessage: `${cameraSerial} Paused!`,
         errorToastMessage: `${cameraSerial} Failed to Pause!`,
+        handleResponse: refreshAvailabilies,
+      }
+    );
+  const stopStreaming = (cameraSerial: string) =>
+    bifrostStopper.callService(
+      { serials: [cameraSerial] },
+      {
+        responseToast: true,
+        successToastMessage: `${cameraSerial} Stopped!`,
+        errorToastMessage: `${cameraSerial} Failed to Stop!`,
         handleResponse: refreshAvailabilies,
       }
     );
@@ -166,7 +193,7 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
         </TableColumn>
       </TableHeader>
       <TableBody
-        emptyContent={"No Cameras Detected. Check if Cameras2 is running"}
+        emptyContent={"No Cameras Detected. Check if Cameras is running"}
       >
         {cameras.map((serial) => (
           <TableRow>
@@ -212,11 +239,20 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
                 <Button
                   isIconOnly
                   size="sm"
-                  color="danger"
+                  color="warning"
                   disabled={!onlineCameraSerials.includes(serial)}
                   onPress={() => pauseStreaming(serial)}
                 >
                   <Pause size="15px" fill="white" />
+                </Button>
+                <Button
+                  isIconOnly
+                  size="sm"
+                  color="danger"
+                  disabled={!onlineCameraSerials.includes(serial)}
+                  onPress={() => stopStreaming(serial)}
+                >
+                  <Square size="15px" fill="white" />
                 </Button>
                 <Button
                   isIconOnly

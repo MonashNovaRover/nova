@@ -11,6 +11,7 @@ export const rosServiceMessages = {
   // Camera Related
   [RosService.START_CAMS]: "camera_msgs/srv/CameraOperation",
   [RosService.PAUSE_CAMS]: "camera_msgs/srv/CameraOperation",
+  [RosService.STOP_CAMS]: "camera_msgs/srv/CameraOperation",
   [RosService.GET_IP_LIST]: "camera_msgs/srv/GetIPList",
 
   // Error Related

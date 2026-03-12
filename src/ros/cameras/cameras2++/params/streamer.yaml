@@ -1,20 +1,6 @@
 camera_streamer:
   ros__parameters:
-    defaults:
-      width: 640
-      #height: 480
-      framerate: 10
-      mime: image/jpeg
-
-    # profiles:
-    #   snail:
-    #     width: 320
-    #     height: 240
-    #     framerate: 7.5
-    #   super:
-    #     width: 1280
-    #     height: 720
-    #     framerate: 10
+    autostart: true
 
     serial_pipelines:
       # Waveshare
@@ -39,10 +25,7 @@ camera_streamer:
         height: 1080
         framerate: 30
       anthony-cam:
-        pipeline_type: v4l2webrtc
-        width: 1280
-        height: 720
+        pipeline_type: h264direct
+        width: 1920
+        height: 1080
         framerate: 30
-        mime: image/jpeg
-        show_clock: true
-        video_caps: video/x-vp9

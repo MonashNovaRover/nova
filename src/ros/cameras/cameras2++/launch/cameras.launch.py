@@ -33,7 +33,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "platform",
-                default_value="rover",
+                default_value="",
                 description="The target platform.",
             ),
             DeclareLaunchArgument(

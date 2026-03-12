@@ -19,6 +19,7 @@ struct Pipeline
 {
   GstElement* gst_pipeline;
   Properties* props;
+  std::string pipeline_type;
   camera_msgs::msg::Camera* camera;
 };
 
