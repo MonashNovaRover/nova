@@ -47,6 +47,7 @@ def launch_setup(context, *args, **kwargs):
     publish_goals = LaunchConfiguration('publish_goals')
     use_respawn = LaunchConfiguration('use_respawn')
     gazebo = LaunchConfiguration('gazebo')
+    mppi_params = LaunchConfiguration('mppi_params')
 
     # comp defaults
     if comp == 'arch':
@@ -69,7 +70,8 @@ def launch_setup(context, *args, **kwargs):
     # Combine all params from sim, substitution, and nav2 directory
     nav2_params = [PathJoinSubstitution([nav2_params_dir, params]) for params in listdir(nav2_params_dir.perform(context)) if params[-5:] == '.yaml']
     nav2_params.append(substitution_params)
-    nav2_params.append(sim_params) if in_sim else None
+    if mppi_params.perform(context) != '':
+        nav2_params.append(mppi_params)
 
     lifecycle_nodes = ['controller_server',
                        'smoother_server',
@@ -248,6 +250,11 @@ def generate_launch_description():
             name='sim_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_sim.yaml']),
             description='Sim parameters to use if using sim time', 
+        ),
+        DeclareLaunchArgument(
+            name='mppi_params',
+            default_value='',
+            description='MPPI parameters to use', 
         ),
         # arguments with comp defaults
         DeclareLaunchArgument(
