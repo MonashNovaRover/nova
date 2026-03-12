@@ -11,7 +11,7 @@ const SciencePowerCycle = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const bifrost = useBifrost({ service: RosService.POWER_CYCLE_SCIENCE });
 
-  const handlePowerCycle = () => {
+  const handlePowerCycle = async () => {
     const duration = parseFloat(sleepTime);
     if (isNaN(duration) || duration <= 0) {
       toast.error("Enter a valid sleep duration:");
@@ -19,24 +19,26 @@ const SciencePowerCycle = () => {
     }
 
     setIsLoading(true);
+    const toastId = toast.loading('Power cycling');
 
-    const requestPayload: IRosScienceInterfacesPowerCycleRequest = {
-      sleep_duration: duration,
-    };
+    try {
+      const requestPayload: IRosScienceInterfacesPowerCycleRequest = {
+        sleep_duration: duration,
+      };
 
-    bifrost.callService(
-      requestPayload,
-      {
-        responseToast: true,
-        successToastMessage: `Power cycle successful`,
-        errorToastMessage: `Failed to power cycle`,
-        handleResponse: () => setIsLoading(false),
-      }
-    )
+      await bifrost.callService(requestPayload);
+      toast.success('Power cycle complete!', { id: toastId });
+      
+    } catch (error) {
+      console.error("Bifrost Service Error:", error);
+      toast.error('Failed to reach PC2 controller.', { id: toastId });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="grid grid-cols-2 items-end gap-3">
+    <div className="flex flex-row items-end gap-3 p-4 bg-gray-800 rounded-xl w-max border border-gray-700">
       <Input
         type="number"
         label="Sleep Time"
@@ -44,6 +46,7 @@ const SciencePowerCycle = () => {
         endContent={<div className="text-small text-default-400">sec</div>}
         value={sleepTime}
         onChange={(e) => setSleepTime(e.target.value)}
+        className="w-28"
         size="sm"
         min="0.1"
         step="0.1"
@@ -51,9 +54,8 @@ const SciencePowerCycle = () => {
       <Button 
         color="warning" 
         variant="shadow"
-        size="lg"
         isLoading={isLoading} 
-        onPressStart={handlePowerCycle}
+        onClick={handlePowerCycle}
         startContent={!isLoading && <Zap size={18} />}
       >
         Cycle Rails
