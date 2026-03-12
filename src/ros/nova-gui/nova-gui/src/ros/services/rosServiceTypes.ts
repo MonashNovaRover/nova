@@ -35,6 +35,8 @@ import {
   IRosScienceInterfacesSetPositionPresetsResponse,
   IRosScienceInterfacesSetPositionRequest,
   IRosScienceInterfacesSetPositionResponse,
+  IRosScienceInterfacesPowerCycleRequest, 
+  IRosScienceInterfacesPowerCycleResponse
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -182,6 +184,10 @@ export interface RosServiceInterface {
   [RosService.TOOL_ROTATOR_POSITION]: RosServiceMessage<
     IRosScienceInterfacesSetPositionRequest,
     IRosScienceInterfacesSetPositionResponse
+  >;
+  [RosService.POWER_CYCLE_SCIENCE]:  RosServiceMessage<
+    IRosScienceInterfacesPowerCycleRequest,
+    IRosScienceInterfacesPowerCycleResponse
   >;
 
   // General

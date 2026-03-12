@@ -9,6 +9,8 @@ import random
 from python_control2.hardware_interfaces import CMDHardware
 from teleop_python_utils import Inputs
 
+from .PowerCycleController import PowerCycleController
+
 
 class TestController(Controller):
     cmd: Interface
@@ -83,6 +85,7 @@ if __name__ == "__main__":
 
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("test_controller", TestController, joint="j1") \
+        .with_controller("power_cycle_controller", PowerCycleController, node=node) \
         .with_hardware("test_hw", TestHardware) \
         .with_hardware("j1_cmd", CMDHardware, "j1", can_id=0x1) \
         .with_hardware("j2_cmd", CMDHardware, "j2", can_id=0x1F) \

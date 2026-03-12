@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'raman = science.raman_spec_server:main'
+            'control_test = science.control_test:main',
         ],
     },
 )
