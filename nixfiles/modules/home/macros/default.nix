@@ -71,6 +71,7 @@ in
           jetson-wifi = "ssh -Y nvidia@tegra-ubuntu";
           orin = "ssh -Y nova@10.0.0.11";
           orin2 = "ssh -Y nova@10.0.0.12"; # for the other devkit
+          pi5 = "ssh -Y nova@10.0.0.50";
           orin-devkit-1 = "ssh -Y nova@orin-devkit-1";
           J1 = "ssh -Y nvidia@10.0.2.21";
           J2 = "ssh -Y nvidia@10.0.2.22";
