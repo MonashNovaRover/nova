@@ -49,11 +49,15 @@ class Activation:
             self.node.get_logger().info(f"{self.node.get_name()} ACTIVATED")
         self.active = True
 
+        self.publish_msg()
+
     def deactivate(self):
         """ Deactivates the system """
         if self.active:
             self.node.get_logger().info(f"{self.node.get_name()} DEACTIVATED")
         self.active = False
+
+        self.publish_msg()
 
     def is_active(self):
         return self.active
