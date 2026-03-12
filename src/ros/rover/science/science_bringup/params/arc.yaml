@@ -161,7 +161,8 @@ water_pump:
     hardware:
       cooling:
         can_id: 0x0D1
-        max_effort: 0.19354
+        max_effort: 0.387
+        reversed: true
 
 diaphragm_pump:
   ros__parameters:
@@ -175,6 +176,7 @@ diaphragm_pump:
       flow:
         can_id: 0x0C2
         max_effort: 0.16129
+        reversed: true
 
 
 # Misc - Nodes for misc components
