@@ -104,10 +104,15 @@ nova_drive_controller_base:
     default_value: true
     description: "Publish transformation between ``odom_frame_id`` and ``base_frame_id``."
 
-  cmd_vel_timeout:
+  cmd_vel_receive_timeout:
     type: double
     default_value: 999.0 # Seconds
-    description: "Timeout on cmd_vel command."
+    description: "Timeout to receive cmd_vel commands from base."
+
+  cmd_vel_command_timeout:
+    type: double
+    default_value: 0.5 # Seconds
+    description: "Timeout since last commanded velocity from cmd_vel."
 
   publish_commanded_velocities:
     type: bool
