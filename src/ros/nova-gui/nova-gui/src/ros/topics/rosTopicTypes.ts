@@ -27,6 +27,7 @@ import {
   IRosScienceInterfacesEffortStatus,
   IRosSensorMsgsJointState,
   IRosStdMsgsFloat64,
+  IRosNovaInterfacesLockedStatus,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -88,4 +89,5 @@ export interface RosTopicInterfaces {
   [RosTopic.BATTERY_STATE]: IRosSensorMsgsBatteryState;
   [RosTopic.ACTIVATED_NODES]: IRosNovaInterfacesActiveNodeStatus;
   [RosTopic.RADIO_STATUS]: IRosNovaInterfacesRadioStatus;
+  [RosTopic.LOCKED_STATUS]: IRosNovaInterfacesLockedStatus;
 }
