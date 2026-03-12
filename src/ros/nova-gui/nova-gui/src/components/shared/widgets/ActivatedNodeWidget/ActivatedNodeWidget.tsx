@@ -6,7 +6,6 @@ import {ActivatedNodeConfig} from "./ActivatedNodeWidgetConfig.tsx";
 import {ActivatedNodeButton} from "./ActivatedNodeButton.tsx";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../../redux/RootState.ts";
-import Overlay from "../../components/Overlay/Overlay.tsx";
 import {Lock} from "react-feather";
 
 // Properties for the URCActivatedNodeWidget component.
@@ -21,9 +20,8 @@ const ActivatedNodeWidget: React.FC<ActivatedNodeWidgetProps> = (
   props: ActivatedNodeWidgetProps
 ) => {
   const activeStatusBifrost = useBifrost({ topic: RosTopic.ACTIVATED_NODES });
-  const lockedStatusBifrost = useBifrost({ topic: RosTopic.ACTIVATED_NODES });
+  const lockedStatusBifrost = useBifrost({ topic: RosTopic.LOCKED_STATUS });
 
-  // TODO: Change to 2 different selectors (LOCKED STATUS STORE DOESNT EXIST YET!!)
   const activeStatusMessage = useSelector((state: RootState) => state.activeStatusStore);
   const lockedStatusMessage = useSelector((state: RootState) => state.lockedStatusStore);
 
@@ -43,31 +41,36 @@ const ActivatedNodeWidget: React.FC<ActivatedNodeWidgetProps> = (
     })
   }, [activeStatusMessage, setCurrentStatus, props.config]);
 
+  // Message to show when locked
+  const lockedMessage = (
+    <div className="flex flex-row justify-center gap-2">
+      <Lock /> <span>Locked</span>
+    </div>
+  );
+
+  // Blur put over buttons when disconnected or locked
+  const blurOverlay = (
+    <div className="absolute inset-0 flex flex-col justify-center items-center backdrop-blur-[1px] z-10" />
+  );
+
   return (
     <Card {...props}>
       <CardHeader className="pb-0 flex flex-row content-center gap-5">
         <span>Active Controllers</span>
+        <div className="grow" />
+        {lockedStatusMessage.locked ? lockedMessage : <></>}
       </CardHeader>
       <CardBody>
-        <Overlay
-          overlay={lockedStatusMessage.locked && <div className="flex flex-col justify-center">
-            <Lock/>
-          </div>}
-        >
-          <Overlay
-            overlay={lockedStatusMessage.locked && <div className="grow backdrop-blur-[2px]"/>}
-          >
-            <div className="grid grid-cols-2 gap-3">
-              {props.config.map((data, i) => (
-                <ActivatedNodeButton
-                  text={data.displayName}
-                  icon={data.icon}
-                  isSelected={currentStatus[i]}
-                />
-              ))}
-            </div>
-          </Overlay>
-        </Overlay>
+        <div className="grid grid-cols-2 gap-3">
+          {props.config.map((data, i) => (
+            <ActivatedNodeButton
+              text={data.displayName}
+              icon={data.icon}
+              isSelected={currentStatus[i]}
+            />
+          ))}
+        </div>
+        {lockedStatusMessage.locked ? blurOverlay : <></>}
       </CardBody>
     </Card>
   );
