@@ -8,15 +8,15 @@ import {useSelector} from "react-redux";
 import {RootState} from "../../../../redux/RootState.ts";
 
 // Properties for the URCActivatedNodeWidget component.
-export interface URCActivatedNodeWidgetProps extends CardProps {
+interface ActivatedNodeWidgetProps extends CardProps {
   config: ActivatedNodeConfig[]
 }
 
 /**
  * A component that displays whether activated nodes are active or inactive
  */
-const ActivatedNodeWidget: React.FC<URCActivatedNodeWidgetProps> = (
-  props: URCActivatedNodeWidgetProps
+const ActivatedNodeWidget: React.FC<ActivatedNodeWidgetProps> = (
+  props: ActivatedNodeWidgetProps
 ) => {
   const activeStatusBifrost = useBifrost({ topic: RosTopic.ACTIVATED_NODES });
   const lockedStatusBifrost = useBifrost({ topic: RosTopic.ACTIVATED_NODES });

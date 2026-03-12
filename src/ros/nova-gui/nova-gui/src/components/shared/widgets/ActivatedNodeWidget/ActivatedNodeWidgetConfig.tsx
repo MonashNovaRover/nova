@@ -29,3 +29,16 @@ export const URCActivatedNodeConfig: ActivatedNodeConfig[] = [
     icon: <Search/>,
   },
 ]
+
+export const ARCActivatedNodeConfig: ActivatedNodeConfig[] = [
+  {
+    name: "CBeam",
+    displayName: "C Beam",
+    icon: <Pocket/>,
+  },
+  {
+    name: "AnalysisArm",
+    displayName: "Analysis Arm",
+    icon: <Search/>,
+  },
+]
