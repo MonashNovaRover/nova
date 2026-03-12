@@ -9,7 +9,7 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    param_dir = LaunchConfiguration("param-dir")
+    param_dir = LaunchConfiguration("param_dir")
     platform = LaunchConfiguration("platform")
     payload = LaunchConfiguration("payload")
     port = LaunchConfiguration("port")
