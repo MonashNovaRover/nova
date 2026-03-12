@@ -8,12 +8,9 @@
 #include <camera_msgs/msg/camera.hpp>
 
 /*
- * Generic One
- *
- *
- * 
- *
- *
+ * V4l camera to webrtc pipeline
+ * converts any v4l source to raw video and then encodes a format for webrtc
+ * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1 ! decodebin3 ! videoconvert ! webrtcsink meta='meta, serial=(string){props->serial}' video-caps={props->video_caps}
  */
 GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineProperties* props)
 {
@@ -100,6 +97,9 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
   return gst_pipeline;
 }
 
+/*
+ * Retrieve ros2 parameters for v4l2webrtc pipeline or sets defaults
+*/
 v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
 {
   /*
@@ -132,16 +132,12 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
 }
 
 /*
- * H264 Direct
- *
- *
- * 
- *
- *
+ * V4l camera (h264) to webrtc pipeline (direct)
+ * Enforces alignment from h264 v4l camera and feeds directly to webrtc 
+ * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1,alignment={props->alignment},stream-format={props->stream_format},format={props->format}! webrtcsink meta='meta, serial=(string){props->serial}' video-caps=video/x-h264
  */
 GstElement* h264direct_pipeline(rclcpp::Node* streamer_node, h264directPipelineProperties* props)
 {
-  // A simple v4l camera to webrtc pipeline
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
   GstElement* filter = gst_element_factory_make("capsfilter", "filter");
@@ -208,6 +204,9 @@ GstElement* h264direct_pipeline(rclcpp::Node* streamer_node, h264directPipelineP
   return gst_pipeline;
 }
 
+/*
+ * Retrieve ros2 parameters for h264direct pipeline or sets defaults
+*/
 h264directPipelineProperties* get_h264direct_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
 {
   h264directPipelineProperties* props = new h264directPipelineProperties; 
@@ -233,13 +232,6 @@ h264directPipelineProperties* get_h264direct_pipeline_properties(rclcpp::Node* s
   streamer_node->get_parameter_or((camera_prefix + ".show_clock").c_str(), props->show_clock, false);
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".video_caps").c_str(), props->video_caps, "video/x-h264");
 
-  // RCLCPP_INFO(streamer_node->get_logger(), "params, %d, %d, %d, %s, %s, %d, %d, %d", 
-  //   props->width, props->height, 
-  //   props->framerate, props->mime.c_str(),
-  //   props->congestion_control.c_str(), props->do_fec,
-  //   props->do_retransmission, props->show_clock
-  // );
-
   return props;
 }
 
@@ -247,7 +239,7 @@ h264directPipelineProperties* get_h264direct_pipeline_properties(rclcpp::Node* s
 
 /*
  * Mjpeg 2 H264
- *
+ * 
  *
  * 
  *
@@ -334,7 +326,7 @@ GstElement* mjpeg2h264_pipeline(rclcpp::Node* streamer_node, mjpeg2h264PipelineP
     
   gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, decode, convert, encode, parse, webrtc, NULL);
 
-  g_signal_connect(decode, "pad-added", G_CALLBACK(+[](GstElement* /*decode*/, GstPad* new_pad, gpointer user_data) {
+  g_signal_connect(decode, "pad-added", G_CALLBACK(+[](GstElement* , GstPad* new_pad, gpointer user_data) {
       GstElement* convert = static_cast<GstElement*>(user_data);
       GstPad* sink_pad = gst_element_get_static_pad(convert, "sink");
       if (sink_pad && !gst_pad_is_linked(sink_pad)) {
@@ -481,7 +473,7 @@ GstElement* mjpeg2h265_pipeline(rclcpp::Node* streamer_node, mjpeg2h265PipelineP
 
   gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, decode, convert, encode, parse, webrtc, NULL);
 
-  g_signal_connect(decode, "pad-added", G_CALLBACK(+[](GstElement* /*decode*/, GstPad* new_pad, gpointer user_data) {
+  g_signal_connect(decode, "pad-added", G_CALLBACK(+[](GstElement* , GstPad* new_pad, gpointer user_data) {
       GstElement* convert = static_cast<GstElement*>(user_data);
       GstPad* sink_pad = gst_element_get_static_pad(convert, "sink");
       if (sink_pad && !gst_pad_is_linked(sink_pad)) {
@@ -537,13 +529,6 @@ mjpeg2h265PipelineProperties* get_mjpeg2h265_pipeline_properties(rclcpp::Node* s
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".video_caps").c_str(), props->video_caps, "video/x-h265");
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".tune").c_str(), props->tune, "zerolatency");
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".speed_preset").c_str(), props->speed_preset, "ultrafast");
-
-  // RCLCPP_INFO(streamer_node->get_logger(), "params, %d, %d, %d, %s, %s, %d, %d, %d", 
-  //   props->width, props->height, 
-  //   props->framerate, props->mime.c_str(),
-  //   props->congestion_control.c_str(), props->do_fec,
-  //   props->do_retransmission, props->show_clock
-  // );
 
   return props;
 }
