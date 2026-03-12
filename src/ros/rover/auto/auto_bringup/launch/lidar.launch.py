@@ -71,12 +71,14 @@ def launch_setup(context, *args, **kwargs):
     fastcalib_params = LaunchConfiguration('fastcalib_params')
     fastlivo2 = LaunchConfiguration('fastlivo2')
     fastlivo2_params = LaunchConfiguration('fastlivo2_params')
+    obstacles_detection = LaunchConfiguration('obstacles_detection')
     output_dir = LaunchConfiguration('output_dir').perform(context)
     save_dir = LaunchConfiguration('save_dir').perform(context)
     lidar_config = LaunchConfiguration('lidar_config').perform(context)
     lidar_params = LaunchConfiguration('lidar_params')
     tfs = LaunchConfiguration('tfs')
     sim = LaunchConfiguration('sim')
+    uncompress_img = LaunchConfiguration('uncompress_img')
 
     logger = get_logger("lidar_launch")
 
@@ -111,7 +113,8 @@ def launch_setup(context, *args, **kwargs):
             parameters=[lidar_params, {'user_config_path': lidar_config, 'use_sim_time': sim}],
         ),
         Node(
-        # NOTE image_transport only creates subscribers if subscribers exist for its publishers. 
+            # NOTE image_transport only creates subscribers if subscribers exist for its publishers. 
+            condition=IfCondition(uncompress_img),
             package="image_transport",
             executable="republish",
             name="republish",
@@ -161,6 +164,32 @@ def launch_setup(context, *args, **kwargs):
                                     'logger': logger}
                         ),
                     ),
+                ),
+            ],
+        ),
+        GroupAction(
+            condition=IfCondition(obstacles_detection),
+            actions = [
+                Node(
+                    package='pcl_ros',
+                    executable='filter_voxel_grid_node',
+                    name='voxel_grid_filter',
+                    parameters=[{'leaf_size': 0.05}],
+                    remappings=[('input', '/livox/lidar'),
+                                ('output', '/livox/lidar_filtered')],
+                ),
+                Node(
+                    package='rtabmap_util',
+                    executable='obstacles_detection',
+                    name='rtabmap_obstacles_detection',
+                    output='screen',
+                    parameters=[{'max_obstacle_height': 1.6,
+                                 'ground_normal_angle': 1.25664}], # ~72 degrees in radians
+                    remappings=[
+                        ('cloud','/livox/lidar_filtered'),
+                        ('obstacles','/livox/lidar/obstacles'),
+                        ('ground', '/livox/lidar/ground'),
+                    ],
                 ),
             ],
         ),
@@ -244,6 +273,11 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
+            name='obstacles_detection',
+            default_value='True',
+            description='Run RTAB-Map node for obstacle detection?',
+        ),
+        DeclareLaunchArgument(
             name='output_dir',
             default_value='fastlivo2',
             description='The folder to save FAST-LIVO2 outputs to, relative to ~/.ros.',
@@ -262,6 +296,11 @@ def generate_launch_description():
             name='tfs',
             default_value='True',
             description='Publish Nav2-required transforms? (map -> odom -> base_link)',
+        ),
+        DeclareLaunchArgument(
+            name='uncompress_img',
+            default_value='False',
+            description='Uncompress compressed image stream? (for playing back from rosbag)',
         ),
     ]
 
