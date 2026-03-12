@@ -82,11 +82,11 @@ auger:
     inactive_button_pool: []
     hardware:
       actuation:
-        can_id: 0x0D1
+        can_id: 0x031
         max_effort: 1.0
         reversed: false
       drill:
-        can_id: 0x0C1
+        can_id: 0x041
         max_effort: 0.5
         reversed: false
 
@@ -110,7 +110,7 @@ cbeam:
         actuation_axis: "cbeam_actuation"
     hardware:
       actuation:
-        can_id: 0x0C2
+        can_id: 0x042
         max_effort: 1.0
         reversed: false
 
@@ -129,11 +129,11 @@ kiln:
         can_id: 0x4E1
         unit: "temperature"
       left_heater:
-        can_id: 0x41
+        can_id: 0x0C1
         max_effort: 1.0
         reversed: false
       right_heater:
-        can_id: 0x42
+        can_id: 0x0D2
         max_effort: 1.0
         reversed: false
 
@@ -143,7 +143,7 @@ kiln_door:
     update_rate: 5
     hardware:
       kiln_door:
-        can_id: 0x0D2
+        can_id: 0x032
         max_effort: 0.16129
         reversed: true
       current_sensor:
@@ -160,7 +160,7 @@ water_pump:
         topic_name: "/science/water_pump_status"
     hardware:
       cooling:
-        can_id: 0x031
+        can_id: 0x0D1
         max_effort: 0.19354
 
 diaphragm_pump:
@@ -173,7 +173,7 @@ diaphragm_pump:
         topic_name: "/science/diaphragm_pump_status"
     hardware:
       flow:
-        can_id: 0x032
+        can_id: 0x0C2
         max_effort: 0.16129
 
 
@@ -184,10 +184,10 @@ scimbal_cam:
     update_rate: 5
     hardware:
       pan:
-        can_id: 0x0E1
+        can_id: 0x0E0
         angular_limit: 360.0
       tilt:
-        can_id: 0x0E0
+        can_id: 0x0E1
         angular_limit: 90.0
 
 sweeper:
