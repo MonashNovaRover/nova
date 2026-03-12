@@ -1,22 +1,27 @@
 import time
 import jcan 
-from rclpy.callback_groups import ReentrantCallbackGroup
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from .Controller import Controller 
-from PowerCycle.srv import PowerCycle
+from science_interfaces.srv import PowerCycle
+from ..controller_manager.Interface import InterfaceCollection
+from ..controller_manager.Contexts import Contexts
 
 class PowerCycleController(Controller):
-    def __init__(self, node, name, contexts, **kwargs):
-        super().__init__(node, name, contexts)
-        self.node = node
-        self.bus = contexts.get(jcan.Bus) 
-        
-        self.cb_group = ReentrantCallbackGroup()
+    def __init__(self, contexts: Contexts):
+        super().__init__(contexts)
+        self.cbg = MutuallyExclusiveCallbackGroup()
         self.srv = self.node.create_service(
-            PowerCycleScience, 
+            PowerCycle, 
             '/pc2/power_cycle_science', 
             self.power_cycle_callback,
-            callback_group=self.cb_group
+            callback_group=self.cbg
         )
+    def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> bool:
+        return True
+
+    def on_update(self, now: float, period: float):
+        # We don't need a continuous control loop, we just wait for the service callback to fire.
+        pass
 
     def power_cycle_callback(self, request, response):
         self.node.get_logger().info(f'Power cycling science rails. Sleep: {request.sleep_duration}s')
