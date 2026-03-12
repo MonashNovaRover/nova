@@ -69,7 +69,7 @@ class BatteryStateHardware(HardwareInterface):
 
         self.voltage = float('nan')
         self.current = float('nan')
-        self.declare_parameter(self.CANID_PARAM, 0x4B2)
+        self.declare_parameter(self.CANID_PARAM, 0x4B0)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
         can_id = self.get_parameter(self.CANID_PARAM).value

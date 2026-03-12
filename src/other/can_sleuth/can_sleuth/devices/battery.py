@@ -24,21 +24,9 @@ class Battery(candevice.CanDevice):
         strPadded = lambda width: lambda x: str(x).ljust(width)
         return {
                 (0x400 | idNumber << 4): (
-                    ("V(Cell 1)", ">H", "mV", strPadded(4)),
-                    ("V(Cell 2)", ">H", "mV", strPadded(4)),
-                    ("V(Cell 3)", ">H", "mV", strPadded(4)),
-                    ("V(Cell 4)", ">H", "mV", strPadded(4))
-                ),
-                (0x401 | idNumber << 4): (
-                    ("V(Cell 5)", ">H", "mV", strPadded(4)),
-                    ("V(Cell 6)", ">H", "mV", strPadded(4)),
-                    ("V(Cell 7)", ">H", "mV", strPadded(4)),
-                    ("V(Cell 8)", ">H", "mV", strPadded(4))
-                ),
-                (0x402 | idNumber << 4): (
                     ("I(Peak)", ">h", "mA", lambda x: strPadded(4)(x*10)), # centi-amps to mili-amps
                     ("V(Peak)", ">H", "mV", strPadded(4))
-                )
+                ),
                 }
 
     # TODO: 4B3 and 0B3 for the shutdown handshake
