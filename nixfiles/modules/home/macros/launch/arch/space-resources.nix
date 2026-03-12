@@ -25,9 +25,9 @@ let
     terminals = [
       {name = "Base:driveTeleop"; platform=base; cmd="./ros2 launch teleop_drive_joy teleop.launch.py";}
       {name = "Rover:drive"; platform=rover; cmd="./ros2 launch drive_bringup drive.launch.py";}
-      {name = "Rover:scienceCameras"; platform=rover; cmd="cameras-orin payload:=science";}
+      {name = "Rover:scienceCameras"; platform=rover; cmd="cameras-orin payload:=science-arc";}
       {name = "Rover:reolink"; platform=base-nix "nix-shell -p ffmpeg"; cmd="reolink";}
-      {name = "Rover:reolinkCtl"; platform=rover "nix-shell -p ffmpeg"; cmd="~/Builds/master/bin/reolink-ctl";}
+      {name = "Rover:reolinkCtl"; platform=base-nix"nix-shell -p ffmpeg"; cmd="~/Builds/master/bin/reolink-ctl";}
 
     ];
     post = post-shell;
