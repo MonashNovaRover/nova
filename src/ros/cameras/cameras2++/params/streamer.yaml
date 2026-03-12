@@ -5,7 +5,7 @@ camera_streamer:
     serial_pipelines:
       # Waveshare
       openaicam_openaicam_2505121128:
-        pipeline_type: mjpeg2h264
+        pipeline_type: v4l2webrtc
         width: 1920
         height: 1080
         framerate: 30
@@ -15,15 +15,18 @@ camera_streamer:
         height: 1080
         framerate: 30
       HZ_USB_Camera_20220301104:
-        pipeline_type: mjpeg2h264
+        pipeline_type: v4l2webrtc
         width: 1920
         height: 1080
         framerate: 30
       brandon-cam:
-        pipeline_type: mjpeg2h264
+        pipeline_type: v4l2webrtc
         width: 1920
         height: 1080
         framerate: 30
+        bitrate: 2048000
+        #video_caps: video/x-h264,profile=constrained-baseline
+        video_caps: video/x-h264,profile=high-4:2:2-intra
       anthony-cam:
         pipeline_type: h264direct
         width: 1920

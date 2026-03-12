@@ -84,15 +84,7 @@ class CameraStreamer : public rclcpp::Node
       auto props = get_h264direct_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = h264direct_pipeline(this, props);
-    } else if (pipeline->pipeline_type == "mjpeg2h264") {
-      auto props = get_mjpeg2h264_pipeline_properties(this, pipeline->camera);
-      pipeline->props = props;
-      pipeline->gst_pipeline = mjpeg2h264_pipeline(this, props);
-    } else if (pipeline->pipeline_type == "mjpeg2h265") {
-      auto props = get_mjpeg2h265_pipeline_properties(this, pipeline->camera);
-      pipeline->props = props;
-      pipeline->gst_pipeline = mjpeg2h265_pipeline(this, props);
-    }
+    } 
   }
 
   private: void topic_callback(const camera_msgs::msg::Cameras msg)
@@ -111,7 +103,7 @@ class CameraStreamer : public rclcpp::Node
         pipeline->camera->node=camera.node;
 
         std::string pipeline_type;
-        this->get_parameter_or<std::string>((PIPELINE_PREFIX + camera.serial + ".pipeline_type").c_str(), pipeline_type, "v4l2webrtc"); 
+        this->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera.serial + ".pipeline_type").c_str(), pipeline_type, "v4l2webrtc");
         pipeline->pipeline_type = pipeline_type;
         bool autostart;
         this->get_parameter_or("autostart", autostart, true);
