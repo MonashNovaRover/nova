@@ -11,6 +11,19 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
+            DeclareLaunchArgument(
+                'start_sim',
+                default_value='True'
+            ),
+            DeclareLaunchArgument(
+                'world',
+                default_value='ARC2025'
+            ),
+            DeclareLaunchArgument(
+                'rover',
+                default_value='default'
+            ),
+
             ExecuteProcess(
                 cmd=['ros2', 'launch', 'drive_bringup', 'drive.launch.py', 'sim:=True'],
                 output='screen'
@@ -28,8 +41,9 @@ def generate_launch_description():
                 output='screen'
             ),
             ExecuteProcess(
-                cmd=['nova-unity-sim', '-screen-fullscreen', '0'],
-                output='screen'
+                cmd=['nova-unity-sim', '-screen-fullscreen', '0', ['scene=', LaunchConfiguration("world")], ['robot=', LaunchConfiguration("rover")]],
+                output='screen',
+                condition=IfCondition(LaunchConfiguration("start_sim"))
             )
         ]
     )
