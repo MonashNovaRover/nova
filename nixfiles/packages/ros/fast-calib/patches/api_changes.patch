@@ -1,0 +1,217 @@
+diff --git a/rviz_cfg/fast_livo2.rviz b/rviz_cfg/fast_livo2.rviz
+index b953418..ed85e6b 100755
+--- a/rviz_cfg/fast_livo2.rviz
++++ b/rviz_cfg/fast_livo2.rviz
+@@ -1,5 +1,5 @@
+ Panels:
+-  - Class: rviz/Displays
++  - Class: rviz_common/Displays
+     Help Height: 0
+     Name: Displays
+     Property Tree Widget:
+@@ -14,21 +14,21 @@ Panels:
+         - /PointCloud27
+       Splitter Ratio: 0.4987277388572693
+     Tree Height: 1154
+-  - Class: rviz/Selection
++  - Class: rviz_common/Selection
+     Name: Selection
+-  - Class: rviz/Tool Properties
++  - Class: rviz_common/Tool Properties
+     Expanded:
+       - /2D Pose Estimate1
+       - /2D Nav Goal1
+       - /Publish Point1
+     Name: Tool Properties
+     Splitter Ratio: 0.5886790156364441
+-  - Class: rviz/Views
++  - Class: rviz_common/Views
+     Expanded:
+       - /Current View1
+     Name: Views
+     Splitter Ratio: 0.5
+-  - Class: rviz/Time
++  - Class: rviz_common/Time
+     Name: Time
+     SyncMode: 0
+     SyncSource: PointCloud2
+@@ -47,7 +47,7 @@ Visualization Manager:
+         Value: true
+       Axis: Z
+       Channel Name: intensity
+-      Class: rviz/PointCloud2
++      Class: rviz_default_plugins/PointCloud2
+       Color: 255; 255; 255
+       Color Transformer: Intensity
+       Decay Time: 0
+@@ -75,7 +75,7 @@ Visualization Manager:
+         Value: true
+       Axis: Z
+       Channel Name: intensity
+-      Class: rviz/PointCloud2
++      Class: rviz_default_plugins/PointCloud2
+       Color: 255; 255; 255
+       Color Transformer: Intensity
+       Decay Time: 0
+@@ -103,7 +103,7 @@ Visualization Manager:
+         Value: true
+       Axis: Z
+       Channel Name: intensity
+-      Class: rviz/PointCloud2
++      Class: rviz_default_plugins/PointCloud2
+       Color: 239; 41; 41
+       Color Transformer: FlatColor
+       Decay Time: 0
+@@ -131,7 +131,7 @@ Visualization Manager:
+         Value: true
+       Axis: Z
+       Channel Name: intensity
+-      Class: rviz/PointCloud2
++      Class: rviz_default_plugins/PointCloud2
+       Color: 239; 41; 41
+       Color Transformer: FlatColor
+       Decay Time: 0
+@@ -159,7 +159,7 @@ Visualization Manager:
+         Value: true
+       Axis: Z
+       Channel Name: intensity
+-      Class: rviz/PointCloud2
++      Class: rviz_default_plugins/PointCloud2
+       Color: 0; 255; 0
+       Color Transformer: FlatColor
+       Decay Time: 0
+@@ -187,7 +187,7 @@ Visualization Manager:
+         Value: true
+       Axis: Z
+       Channel Name: intensity
+-      Class: rviz/PointCloud2
++      Class: rviz_default_plugins/PointCloud2
+       Color: 239; 41; 41
+       Color Transformer: FlatColor
+       Decay Time: 0
+@@ -215,7 +215,7 @@ Visualization Manager:
+         Value: true
+       Axis: Z
+       Channel Name: intensity
+-      Class: rviz/PointCloud2
++      Class: rviz_default_plugins/PointCloud2
+       Color: 255; 255; 255
+       Color Transformer: RGB8
+       Decay Time: 0
+@@ -243,26 +243,26 @@ Visualization Manager:
+     Frame Rate: 30
+   Name: root
+   Tools:
+-    - Class: rviz/Interact
++    - Class: rviz_default_plugins/Interact
+       Hide Inactive Objects: true
+-    - Class: rviz/MoveCamera
+-    - Class: rviz/Select
+-    - Class: rviz/FocusCamera
+-    - Class: rviz/Measure
+-    - Class: rviz/SetInitialPose
++    - Class: rviz_default_plugins/MoveCamera
++    - Class: rviz_default_plugins/Select
++    - Class: rviz_default_plugins/FocusCamera
++    - Class: rviz_default_plugins/Measure
++    - Class: rviz_default_plugins/SetInitialPose
+       Theta std deviation: 0.2617993950843811
+       Topic: /initialpose
+       X std deviation: 0.5
+       Y std deviation: 0.5
+-    - Class: rviz/SetGoal
++    - Class: rviz_default_plugins/SetGoal
+       Topic: /move_base_simple/goal
+-    - Class: rviz/PublishPoint
++    - Class: rviz_default_plugins/PublishPoint
+       Single click: true
+       Topic: /clicked_point
+   Value: true
+   Views:
+     Current:
+-      Class: rviz/ThirdPersonFollower
++      Class: rviz_default_plugins/ThirdPersonFollower
+       Distance: 1.8288813829421997
+       Enable Stereo Rendering:
+         Stereo Eye Separation: 0.05999999865889549
+@@ -283,7 +283,7 @@ Visualization Manager:
+       Target Frame: drone
+       Yaw: 4.71826171875
+     Saved:
+-      - Class: rviz/Orbit
++      - Class: rviz_default_plugins/Orbit
+         Distance: 117.53474426269531
+         Enable Stereo Rendering:
+           Stereo Eye Separation: 0.05999999865889549
+@@ -303,7 +303,7 @@ Visualization Manager:
+         Pitch: 0.19539840519428253
+         Target Frame: <Fixed Frame>
+         Yaw: 0.17540442943572998
+-      - Class: rviz/Orbit
++      - Class: rviz_default_plugins/Orbit
+         Distance: 109.3125
+         Enable Stereo Rendering:
+           Stereo Eye Separation: 0.05999999865889549
+@@ -323,7 +323,7 @@ Visualization Manager:
+         Pitch: 0.035398442298173904
+         Target Frame: <Fixed Frame>
+         Yaw: 5.793589115142822
+-      - Class: rviz/Orbit
++      - Class: rviz_default_plugins/Orbit
+         Distance: 85.65605163574219
+         Enable Stereo Rendering:
+           Stereo Eye Separation: 0.05999999865889549
+@@ -343,7 +343,7 @@ Visualization Manager:
+         Pitch: 0.5653983950614929
+         Target Frame: <Fixed Frame>
+         Yaw: 0.9104044437408447
+-      - Class: rviz/Orbit
++      - Class: rviz_default_plugins/Orbit
+         Distance: 60.1053581237793
+         Enable Stereo Rendering:
+           Stereo Eye Separation: 0.05999999865889549
+diff --git a/src/qr_detect.hpp b/src/qr_detect.hpp
+index cc53e3a..15ece76 100644
+--- a/src/qr_detect.hpp
++++ b/src/qr_detect.hpp
+@@ -13,7 +13,7 @@ which is included as part of this source code package.
+ #include <cv_bridge/cv_bridge.h>
+ #endif
+ #include <image_geometry/pinhole_camera_model.hpp>
+-#include <message_filters/subscriber.hpp>
++#include <message_filters/subscriber.h>
+ #include <rclcpp/rclcpp.hpp>
+ #include <opencv2/aruco.hpp>
+ #include "common_lib.h"
+@@ -24,7 +24,7 @@ class QRDetect
+     double marker_size_, delta_width_qr_center_, delta_height_qr_center_;
+     double delta_width_circles_, delta_height_circles_;
+     int min_detected_markers_;
+-    cv::Ptr<cv::aruco::Dictionary> dictionary_;
++    cv::aruco::Dictionary dictionary_;
+   
+   public:
+     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr qr_pub_;
+@@ -149,10 +149,10 @@ class QRDetect
+ 
+       std::vector<int> boardIds{1, 2, 4, 3};  // IDs order as explained above
+       cv::Ptr<cv::aruco::Board> board =
+-          cv::aruco::Board::create(boardCorners, dictionary_, boardIds);
++          cv::makePtr<cv::aruco::Board>(boardCorners, dictionary_, boardIds);
+ 
+       cv::Ptr<cv::aruco::DetectorParameters> parameters =
+-          cv::aruco::DetectorParameters::create();
++          cv::makePtr<cv::aruco::DetectorParameters>();
+       // set tp use corner refinement for accuracy, values obtained
+       // for pixel coordinates are more accurate than the neaterst pixel
+ 
+@@ -165,7 +165,8 @@ class QRDetect
+       // Detect markers
+       std::vector<int> ids;
+       std::vector<std::vector<cv::Point2f>> corners;
+-      cv::aruco::detectMarkers(image, dictionary_, corners, ids, parameters);
++      cv::aruco::ArucoDetector detector(dictionary_, *parameters);
++      detector.detectMarkers(image, corners, ids);
+ 
+       // Draw detections if at least one marker detected
+       if (ids.size() > 0) cv::aruco::drawDetectedMarkers(imageCopy_, corners, ids);

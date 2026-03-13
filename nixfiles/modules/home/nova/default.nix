@@ -111,6 +111,8 @@ in
       packages = with pkgs; builtins.filter (lib.meta.availableOn stdenv.hostPlatform) ([
         # Shell utilities
         pciutils
+        pcl
+        cloudcompare
         usbutils
         gpsd
         v4l-utils
@@ -118,6 +120,9 @@ in
         btop
         nix-output-monitor
         ffmpeg
+        unzip
+        zip
+        micro
       ] ++ lib.optionals config.nova.desktop.enable [
         # Desktop apps
         gitkraken

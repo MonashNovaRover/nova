@@ -1,0 +1,115 @@
+diff --git a/include/LIVMapper.h b/include/LIVMapper.h
+index 7477e2f..498e3c7 100644
+--- a/include/LIVMapper.h
++++ b/include/LIVMapper.h
+@@ -90,6 +90,7 @@ public:
+   double _first_lidar_time = 0.0;
+   double match_time = 0, solve_time = 0, solve_const_H_time = 0;
+ 
++  string save_folder;
+   bool lidar_map_inited = false, pcd_save_en = false, img_save_en = false, pub_effect_point_en = false, pose_output_en = false, ros_driver_fix_en = false, hilti_en = false;
+   int img_save_interval = 1, pcd_save_interval = -1, pcd_save_type = 0;
+   int pub_scan_num = 1;
+diff --git a/src/LIVMapper.cpp b/src/LIVMapper.cpp
+index d67d140..1aa8e45 100755
+--- a/src/LIVMapper.cpp
++++ b/src/LIVMapper.cpp
+@@ -12,6 +12,7 @@ which is included as part of this source code package.
+ 
+ #include "LIVMapper.h"
+ #include <vikit/camera_loader.h>
++#include <filesystem>
+ 
+ using namespace Sophus;
+ LIVMapper::LIVMapper(rclcpp::Node::SharedPtr &node, std::string node_name)
+@@ -89,13 +90,14 @@ void LIVMapper::readParameters(rclcpp::Node::SharedPtr &node)
+   this->node->declare_parameter<bool>("imu.ba_bg_est_en", true);
+ 
+   this->node->declare_parameter<double>("preprocess.blind", 0.01);
+-    this->node->declare_parameter<bool>("preprocess.hilti_en", false);
++  this->node->declare_parameter<bool>("preprocess.hilti_en", false);
+   this->node->declare_parameter<double>("preprocess.filter_size_surf", 0.5);
+   this->node->declare_parameter<int>("preprocess.lidar_type", AVIA);
+   this->node->declare_parameter<int>("preprocess.scan_line",6);
+   this->node->declare_parameter<int>("preprocess.point_filter_num", 3);
+   this->node->declare_parameter<bool>("preprocess.feature_extract_enabled", false);
+ 
++  this->node->declare_parameter<std::string>("save_folder", "fastlivo2");
+   this->node->declare_parameter<int>("pcd_save.interval", -1);
+   this->node->declare_parameter<bool>("pcd_save.pcd_save_en", false);
+   this->node->declare_parameter<bool>("image_save.img_save_en", false);
+@@ -159,6 +161,7 @@ void LIVMapper::readParameters(rclcpp::Node::SharedPtr &node)
+   this->node->get_parameter("preprocess.point_filter_num", p_pre->point_filter_num);
+   this->node->get_parameter("preprocess.feature_extract_enabled", p_pre->feature_enabled);
+ 
++  this->node->get_parameter("save_folder", save_folder);
+   this->node->get_parameter("pcd_save.interval", pcd_save_interval);
+   this->node->get_parameter("pcd_save.pcd_save_en", pcd_save_en);
+   this->node->get_parameter("pcd_save.colmap_output_en", colmap_output_en);
+@@ -248,9 +251,9 @@ void LIVMapper::initializeFiles()
+           return;
+       }
+   }
+-  if(colmap_output_en) fout_points.open(std::string(ROOT_DIR) + "Log/Colmap/sparse/0/points3D.txt", std::ios::out);
+-  if(pcd_save_en) fout_lidar_pos.open(std::string(ROOT_DIR) + "Log/pcd/lidar_poses.txt", std::ios::out);
+-  if(img_save_en) fout_visual_pos.open(std::string(ROOT_DIR) + "Log/image/image_poses.txt", std::ios::out);
++  if(colmap_output_en) fout_points.open(std::string(ROOT_DIR) + save_folder + "/Colmap/sparse/0/points3D.txt", std::ios::out);
++  if(pcd_save_en) fout_lidar_pos.open(std::string(ROOT_DIR) + save_folder + "/pcd/lidar_poses.txt", std::ios::out);
++  if(img_save_en) fout_visual_pos.open(std::string(ROOT_DIR) + save_folder + "/image/image_poses.txt", std::ios::out);
+   fout_pre.open(DEBUG_FILE_DIR("mat_pre.txt"), std::ios::out);
+   fout_out.open(DEBUG_FILE_DIR("mat_out.txt"), std::ios::out);
+ }
+@@ -457,13 +460,13 @@ void LIVMapper::handleLIO()
+     std::ofstream outFile, evoFile;
+     if (!pos_opend) 
+     {
+-      evoFile.open(std::string(ROOT_DIR) + "Log/result/" + seq_name + ".txt", std::ios::out);
++      evoFile.open(std::string(ROOT_DIR) + save_folder + "/result/" + seq_name + ".txt", std::ios::out);
+       pos_opend = true;
+       if (!evoFile.is_open()) RCLCPP_ERROR(this->node->get_logger(), "open fail\n");
+     } 
+     else 
+     {
+-      evoFile.open(std::string(ROOT_DIR) + "Log/result/" + seq_name + ".txt", std::ios::app);
++      evoFile.open(std::string(ROOT_DIR) + save_folder + "/result/" + seq_name + ".txt", std::ios::app);
+       if (!evoFile.is_open()) RCLCPP_ERROR(this->node->get_logger(), "open fail\n");
+     }
+     Eigen::Matrix4d outT;
+@@ -554,9 +557,11 @@ void LIVMapper::savePCD()
+ {
+   if (pcd_save_en && (pcl_wait_save->points.size() > 0 || pcl_wait_save_intensity->points.size() > 0) && pcd_save_interval < 0) 
+   {
+-    std::string raw_points_dir = std::string(ROOT_DIR) + "Log/pcd/all_raw_points.pcd";
+-    std::string downsampled_points_dir = std::string(ROOT_DIR) + "Log/pcd/all_downsampled_points.pcd";
++    std::string raw_points_dir = std::string(ROOT_DIR) + save_folder + "/pcd/all_raw_points.pcd";
++    std::string downsampled_points_dir = std::string(ROOT_DIR) + save_folder + "/pcd/all_downsampled_points.pcd";
+     pcl::PCDWriter pcd_writer;
++    // PCDWriter will not create directories, so we need to ensure the directory exists before saving
++    std::filesystem::create_directories(std::string(ROOT_DIR) + save_folder + "/pcd");
+ 
+     if (img_en)
+     {
+@@ -1319,10 +1324,13 @@ void LIVMapper::publish_frame_world(const rclcpp::Publisher<sensor_msgs::msg::Po
+     }
+     if ((pcl_wait_save->size() > 0 || pcl_wait_save_intensity->size() > 0) && pcd_save_interval > 0 && scan_wait_num >= pcd_save_interval)
+     {
+-      string all_points_dir(string(string(ROOT_DIR) + "Log/pcd/") + ss_time.str() + string(".pcd"));
++      string all_points_dir(string(string(ROOT_DIR) + save_folder + "/pcd/") + ss_time.str() + string(".pcd"));
+ 
+       pcl::PCDWriter pcd_writer;
+ 
++      // PCDWriter will not create directories, so we need to ensure the directory exists before saving
++      std::filesystem::create_directories(std::string(ROOT_DIR) + save_folder + "/pcd");
++
+       cout << "current scan saved to " << all_points_dir << endl;
+       if (pcl_wait_save->points.size() > 0)
+       {
+@@ -1352,7 +1360,7 @@ void LIVMapper::publish_frame_world(const rclcpp::Publisher<sensor_msgs::msg::Po
+ 
+     if (img_save_interval > 0 && img_wait_num >= img_save_interval)
+     {
+-      imwrite(string(string(ROOT_DIR) + "Log/image/") + ss_time.str() + string(".png"), vio_manager->img_rgb);
++      imwrite(string(string(ROOT_DIR) + save_folder + "/image/") + ss_time.str() + string(".png"), vio_manager->img_rgb);
+       
+       Eigen::Quaterniond q(_state.rot_end);
+       fout_visual_pos << std::fixed << std::setprecision(6);
