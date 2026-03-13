@@ -4,7 +4,7 @@ smoother_server:
     footprint_topic: global_costmap/published_footprint
     robot_base_frame: base_link
     transform_timeout: 0.1
-    smoother_plugins: ["simple_smoother"]
+    smoother_plugins: ["simple_smoother", "savitzky_golay_smoother"]
     simple_smoother:
       plugin: "nav2_smoother::SimpleSmoother"
       tolerance: 1.0e-10
@@ -13,3 +13,11 @@ smoother_server:
       max_its: 1000
       w_data: 0.2
       w_smooth: 0.3
+      enforce_path_inversion: False # disable for NavFn or Route Server
+    savitzky_golay_smoother:
+      plugin: "nav2_smoother::SavitzkyGolaySmoother"
+      window_size: 7
+      poly_order: 3
+      do_refinement: True
+      refinement_num: 2
+      enforce_path_inversion: False

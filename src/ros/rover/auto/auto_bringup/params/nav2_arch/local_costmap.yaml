@@ -10,9 +10,7 @@ local_costmap:
       rolling_window: True
       width: 10
       height: 10
-      origin_x: -5.0
-      origin_y: -5.0
-      resolution: 0.1
+      resolution: 0.05
       # [x, y], where x is length and y is width
       # ([wheel_base, steering_track] / 2) + wheel_radius
       footprint: "[[0.64, 0.57], [0.64, -0.57], [-0.64, -0.57], [-0.64, 0.57]]"
@@ -20,7 +18,9 @@ local_costmap:
       # sqrt((wheel_base / 2 + wheel_radius)^2 + (steering_track / 2 + wheel_radius)^2)
       robot_radius: 0.85
       track_unknown_space: False
-      plugins: ["voxel_layer","denoise_layer", "inflation_layer"] # haven't added static map yet'
+      always_send_full_costmap: True # SnapInCollisionGoals needs this to work
+      trinary_costmap: true
+      plugins: ["voxel_layer","denoise_layer", "inflation_layer"]
       #rtabmap_layer:
       #  plugin: "nav2_costmap_2d::StaticLayer"
       #  map_subscribe_transient_local: True
@@ -41,7 +41,7 @@ local_costmap:
           clearing: True
           marking: False
           data_type: "PointCloud2"
-          raytrace_max_range: 5.0
+          raytrace_max_range: 7.0
           raytrace_min_range: 0.0
         obstacles:
           topic: /livox/lidar/obstacles
@@ -49,24 +49,21 @@ local_costmap:
           clearing: True
           marking: True
           data_type: "PointCloud2"
-          raytrace_max_range: 5.0
+          raytrace_max_range: 7.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
+          obstacle_max_range: 5.0
           obstacle_min_range: 0.0
-      static_map_layer: # To be chucked in once we have a static map
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: True
-        map_topic: /static_map
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"
         enabled: True
         minimal_group_size: 3
         group_connectivity_type: 8
+      # DO NOT modify lightly, see the section on MPPI in controller_server.yaml
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 0.1
-        inflation_radius: 0.7
-      always_send_full_costmap: True
+        cost_scaling_factor: 4.0
+        # robot radius = 0.64
+        inflation_radius: 1.6 # robot radius * 2.5
 
       # voxel_layer:
       #   plugin: "nav2_costmap_2d::VoxelLayer"

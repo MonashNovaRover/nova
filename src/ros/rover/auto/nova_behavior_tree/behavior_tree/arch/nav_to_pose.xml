@@ -2,13 +2,14 @@
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="6" name="NavigateRecovery">
       <PipelineSequence name="NavigateWithReplanning">
+        <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
         <RateController hz="1.0">
           <Sequence name="ComputeAndSmoothPath">
             <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
             <SmoothPath unsmoothed_path="{path}" smoothed_path="{path}" smoother_id="simple_smoother"/>
           </Sequence>
         </RateController>
-        <FollowPath path="{path}" controller_id="FollowPath"/>
+        <FollowPath path="{path}" controller_id="RotationShimMPPI"/>
       </PipelineSequence>
       <ReactiveFallback name="RecoveryFallback">
         <GoalUpdated/>
