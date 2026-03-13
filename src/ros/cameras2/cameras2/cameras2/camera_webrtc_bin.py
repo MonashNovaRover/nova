@@ -42,6 +42,8 @@ class CameraWebRTCBin:
         self._sink.props.do_fec = do_fec
         self._sink.props.do_retransmission = do_retransmission
         self._sink.props.stun_server = None
+        if (mime == "video/x-h264"):
+            self._sink.props.video_caps = mime
         # ## Metadata
         self._sink.props.meta = dict_to_gst_structure(
             "meta",
@@ -49,30 +51,52 @@ class CameraWebRTCBin:
         )
         self.bin.add(self._sink)
 
-        # # Clock overlay
-        if show_clock:
-            self._clock_overlay = Gst.ElementFactory.make(
-                "clockoverlay", "clockoverlay"
-            )
-            self.bin.add(self._clock_overlay)
-            self._clock_overlay.link(self._sink)
+        if (mime == "video/x-h264"):
+
+            h264_caps = Gst.Caps.new_empty()
+            h264_caps_structure = Gst.Structure.new_empty(mime)
+            h264_caps_structure.set_value("stream-format", "avc")
+            h264_caps_structure.set_value("alignment", "au")
+            h264_caps.append_structure(h264_caps_structure)
+
+            self._h264_caps_filter = Gst.ElementFactory.make("capsfilter", "h264_capsfilter")
+            self._h264_caps_filter.props.caps = caps
+            self.bin.add(self._h264_caps_filter)
+            self._h264_caps_filter.link(self._sink)
+
+            self._h264_parse = Gst.ElementFactory.make("h264parse", "parser")
+            self.bin.add(self._h264_parse)
+
+            self._h264_parse.link(self._h264_caps_filter)
+
+            caps_link_to = self._h264_parse
         else:
-            self._clock_overlay = None
+            # # Clock overlay
+            if show_clock:
+                self._clock_overlay = Gst.ElementFactory.make(
+                    "clockoverlay", "clockoverlay"
+                )
+                self.bin.add(self._clock_overlay)
+                self._clock_overlay.link(self._sink)
+            else:
+                self._clock_overlay = None
 
-        # # Converter
-        self._video_converter = Gst.ElementFactory.make("videoconvert", "converter")
-        self.bin.add(self._video_converter)
-        self._video_converter.link(
-            self._clock_overlay if self._clock_overlay is not None else self._sink
-        )
+            # # Converter
+            self._video_converter = Gst.ElementFactory.make("videoconvert", "converter")
+            self.bin.add(self._video_converter)
+            self._video_converter.link(
+                self._clock_overlay if self._clock_overlay is not None else self._sink
+            )
 
-        # # Decoder
-        self._decoder = Gst.ElementFactory.make("decodebin", "decoder")
-        self._decoder.connect(
-            "pad-added",
-            lambda element, pad: pad.link(self._video_converter.get_static_pad("sink")),
-        )
-        self.bin.add(self._decoder)
+            # # Decoder
+            self._decoder = Gst.ElementFactory.make("decodebin", "decoder")
+            self._decoder.connect(
+                "pad-added",
+                lambda element, pad: pad.link(self._video_converter.get_static_pad("sink")),
+            )
+            self.bin.add(self._decoder)
+
+            caps_link_to = self._decoder
 
         # # Capability filter
         caps = Gst.Caps.new_empty()
@@ -88,7 +112,7 @@ class CameraWebRTCBin:
         self._caps_filter = Gst.ElementFactory.make("capsfilter", "capsfilter")
         self._caps_filter.props.caps = caps
         self.bin.add(self._caps_filter)
-        self._caps_filter.link(self._decoder)
+        self._caps_filter.link(caps_link_to)
 
         # # Source
         self._source = Gst.ElementFactory.make("v4l2src", "source")
