@@ -2,7 +2,7 @@
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Power cycles the science payload voltage rails
+Power cycles the science payload voltage
 
 This is not good practice for python control2,
 please look at other files for proper practices.
