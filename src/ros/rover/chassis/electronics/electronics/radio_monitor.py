@@ -59,7 +59,7 @@ class RadioMonitor(Node):
                 (self.DEST_IP_PARAM, "10.0.0.11"),
                 (self.BASE_IP_PARAM, "10.0.1.11"),
                 (self.HOST_PARAM, "novarovabullet"),
-                (self.PASSWORD_PATH_PARAM, "~/nova/src/other/secrets/bullet-password.txt"),
+                (self.PASSWORD_PATH_PARAM, "~/nova/nixfiles/secrets/bullet-password.txt"),
             ],
         )
 
