@@ -19,13 +19,11 @@ const SciencePowerCycle = () => {
     }
 
     setIsLoading(true);
-    // const toastId = toast.loading('Power cycling');
 
     const requestPayload: IRosScienceInterfacesPowerCycleRequest = {
       sleep_duration: duration,
     };
 
-    // bifrost.callService(requestPayload);
     bifrost.callService(
       requestPayload,
       {
@@ -35,14 +33,6 @@ const SciencePowerCycle = () => {
         handleResponse: () => setIsLoading(false),
       }
     )
-      // toast.success('Power cycle complete!', { id: toastId });
-      
-    // } catch (error) {
-    //   console.error("Bifrost Service Error:", error);
-    //   toast.error('Failed to reach PC2 controller.', { id: toastId });
-    // } finally {
-    //   setIsLoading(false);
-    // }
   };
 
   return (
