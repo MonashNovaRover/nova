@@ -1,5 +1,24 @@
 # Python Control 2
 
+## Overview
+
+```mermaid
+flowchart TD
+
+    subgraph Python Control2
+        controller-->|command interfaces|hardware-interface
+        hardware-interface-->|state interface|controller
+    end
+
+    subgraph User Input
+        input-->|service calls / teleop|controller
+    end
+
+    subgraph Hardware
+        hardware-interface-->|can bus / serial|hardware
+    end
+```
+
 ## Concepts
 
 ### Controllers
