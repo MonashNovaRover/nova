@@ -1,18 +1,42 @@
+#!/usr/bin/env python3
+
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Power cycles the science payload voltage
+
+This is not good practice for python control2,
+please look at other files for proper practices.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: PowerCycleController
+SERVICES:
+    - server: /science/power_cycle [MoveScimbalCam]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:        science
+AUTHOR(S):      Chetan Edupalli, Felicity Matthews
+CREATION:       12/03/2026
+EDITED:         13/03/2026
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 import time
-import jcan 
+import jcan
+import rclpy
+from rclpy.node import Node
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
-from .Controller import Controller 
 from science_interfaces.srv import PowerCycle
-from ..controller_manager.Interface import InterfaceCollection
-from ..controller_manager.Contexts import Contexts
+from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection
+
 
 class PowerCycleController(Controller):
     def __init__(self, contexts: Contexts):
         super().__init__(contexts)
+
+        self.bus = contexts[jcan.Bus]
+
+    # Ensures callbacks in this group run one at a time, preventing concurrent execution.
         self.cbg = MutuallyExclusiveCallbackGroup()
         self.srv = self.node.create_service(
-            PowerCycle, 
-            '/pc2/power_cycle_science', 
+            PowerCycle,
+            '/science/power_cycle',
             self.power_cycle_callback,
             callback_group=self.cbg
         )
@@ -30,7 +54,7 @@ class PowerCycleController(Controller):
             # send 001#01 and 001#10
             self.bus.send(jcan.Frame(0x001, [0x01]))
             self.bus.send(jcan.Frame(0x001, [0x10]))
-            
+
             # sleep from GUI input
             time.sleep(request.sleep_duration)
 
@@ -46,3 +70,15 @@ class PowerCycleController(Controller):
             self.node.get_logger().error(response.message)
 
         return response
+
+if __name__ == "__main__":
+    print("Setting up!")
+
+    rclpy.init()
+
+    node = Node("power_cycle")
+
+    PythonControl(node, update_rate=5, can_bus="can1") \
+        .with_controller("controller", PowerCycleController) \
+        .with_jcan() \
+        .spin()
