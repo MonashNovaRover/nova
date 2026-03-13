@@ -200,7 +200,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
             name='rviz_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'rviz', 'navigation.rviz']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'rviz', 'everything.rviz']),
             description='Full path to the RViz config file to use',
         ),
         DeclareLaunchArgument(

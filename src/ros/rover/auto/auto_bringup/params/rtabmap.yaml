@@ -16,7 +16,7 @@ rtabmap_slam:
     # Grid Parameters are responsible for the Occupancy Grid Generated
     # Crucial for Costmap Generation
     Grid/Sensor: "0" # 0=laser scan, 1=depth image(s) or 2=both laser scan and depth image(s)
-    Grid/MaxGroundAngle: "72"
+    Grid/MaxGroundAngle: "45"
     Grid/RangeMax: "5.0"
     Grid/RangeMin: "0.0"
     Grid/3D: "false" # Only Needed for 3D Planning
@@ -40,7 +40,7 @@ rtabmap_odom:
 rtabmap_obstacles_detection:
   ros__parameters:
     max_obstacle_height: 1.6
-    ground_normal_angle: 1.25664 # ~72 degrees in radians
+    ground_normal_angle: 0.785398 # ~45 degrees in radians
 
 oak_rgbd_sync:
   ros__parameters:
