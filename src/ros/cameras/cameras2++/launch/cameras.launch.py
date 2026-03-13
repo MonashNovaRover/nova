@@ -27,7 +27,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
-                "param-dir",
+                "param_dir",
                 default_value=PathJoinSubstitution([FindPackageShare("cameras"), "params"]),
                 description="The path to the directory holding camera parameter files.",
             ),
