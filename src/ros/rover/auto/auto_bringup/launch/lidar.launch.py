@@ -121,8 +121,8 @@ def launch_setup(context, *args, **kwargs):
             output="screen",
             parameters=[{'in_transport': 'compressed', 
                          'out_transport': 'raw'}],
-            remappings=[("in/compressed",  "/d415/color/image_raw/compressed"), 
-                        ("out", "/d415/color/image_raw")],
+            remappings=[("in/compressed",  f"{img_topic}/compressed"), 
+                        ("out", img_topic)],
         ),
         Node(
             condition=IfCondition(fastcalib),
