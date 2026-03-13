@@ -53,6 +53,7 @@ def launch_setup(context, *args, **kwargs):
             package = 'joint_state_publisher',
             executable = 'joint_state_publisher',
             parameters=[{'source_list': ['/joint_states']}],
+            output='screen',
         ),
     ]
 

@@ -1,0 +1,15 @@
+# Intrinsics for the OAK-D LR camera for use with FAST-LIVO2
+parameter_blackboard:
+  ros__parameters:
+    cam_model: Pinhole
+    cam_width: 1280
+    cam_height: 800
+    scale: 0.5
+    cam_fx: 760.3927612304688
+    cam_fy: 760.083251953125
+    cam_cx: 642.4230346679688
+    cam_cy: 394.64129638671875
+    cam_d0: 0.0
+    cam_d1: 0.0
+    cam_d2: 0.0
+    cam_d3: 0.0
