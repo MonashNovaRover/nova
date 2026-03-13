@@ -45,7 +45,7 @@ export enum RosService {
   RESET_TOF = "/science/tof/reset",
   TOOL_ROTATOR_PRESETS = "/science/tool_rotator/set_presets",
   TOOL_ROTATOR_POSITION = "/science/tool_rotator/set_position",
-  POWER_CYCLE_SCIENCE = "/pc2/power_cycle_science",
+  POWER_CYCLE_SCIENCE = "/science/power_cycle",
   
   // General
   REQUEST_HYDRAPROBE_READING = "/science/request_hydraprobe_reading",
