@@ -8,8 +8,8 @@ arm:
       nova_arm_velocity_controller:
         type: nova_arm_controller/NovaArmController
 
-      nova_arm_position_controller:
-        type: nova_arm_controller/NovaArmController
+      #nova_arm_position_controller:
+      #  type: nova_arm_controller/NovaArmController
       
       nova_end_effector_velocity_controller:
         type: nova_arm_controller/NovaArmController
