@@ -25,16 +25,12 @@ def generate_launch_description():
             ),
 
             ExecuteProcess(
-                cmd=['ros2', 'launch', 'drive_bringup', 'drive.launch.py', 'sim:=True'],
+                cmd=['ros2', 'launch', 'drive_bringup', 'drive.launch.py'],
                 output='screen'
             ),
             Node(
                 package='ros_tcp_endpoint',
                 executable='default_server_endpoint',
-            ),
-            ExecuteProcess(
-                cmd=['ros2', 'launch', 'auto_bringup', 'urdf.launch.py', 'sim:=True'],
-                output='screen'
             ),
             ExecuteProcess(
                 cmd=['ros2', 'launch', 'teleop_drive_joy', 'teleop.launch.py'],
