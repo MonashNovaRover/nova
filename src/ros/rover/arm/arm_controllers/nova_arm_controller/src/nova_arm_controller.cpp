@@ -183,6 +183,17 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
   auto logger = get_node()->get_logger();
   (void)time;(void)period; // slience unused vars
 
+  if (param_listener_->is_old(params_))
+  {
+    params_ = param_listener_->get_params();
+    pending_param_update = true;
+    if (hot_param_update() != controller_interface::CallbackReturn::SUCCESS) {
+      RCLCPP_ERROR(logger, "Parameters were updated but applying failed.");
+      return controller_interface::return_type::ERROR;
+    }
+    RCLCPP_INFO(logger, "Parameters were updated. Some may not apply till we are reconfigured.");
+  }
+
   // TODO: change implementation to use values from reference_interfaces_ rather than the subscriber message.
   // (anything related to the subscriber should not exist in this function)
   //RCLCPP_INFO(logger, "Update and write commands");
@@ -347,15 +358,30 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
   return controller_interface::return_type::OK;
 }
 
+controller_interface::CallbackReturn NovaArmController::hot_param_update() {
+  auto logger = get_node()->get_logger();
+  // process parameter updates that we can apply without reconfigure
+  trajectory_msgs::msg::JointTrajectoryPoint current;
+  this->get_joint_states(current);
+  
+  if (!this->joint_limiter.configure(current)) {
+    RCLCPP_ERROR(logger, "Failed to configure joint limiter!");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+
+  return controller_interface::CallbackReturn::SUCCESS;
+} 
+
 controller_interface::CallbackReturn NovaArmController::on_configure(
     const rclcpp_lifecycle::State &)
 {
   auto logger = get_node()->get_logger();
 
   // update parameters if they have changed
-  if (param_listener_->is_old(params_))
+  if (param_listener_->is_old(params_) || pending_param_update)
   {
     params_ = param_listener_->get_params();
+    pending_param_update = false;
     RCLCPP_INFO(logger, "Parameters were updated");
   }
   if (params_.joint_names.empty())
