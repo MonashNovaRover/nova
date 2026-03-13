@@ -12,7 +12,7 @@ let
   one = {
     pre = pre-shell {payload-name=task-name + " one"; need-rover=true;};
     terminals = [
-      {name = "Rover:Arm Control"; platform=rover; cmd="./ros2 launch arm_bringup control.launch.py local:=True | grep -v not.defined.in";}
+      {name = "Rover:Arm Control"; platform=rover; cmd="./ros2 launch arm_bringup control.launch.py local:=True";}
       {name = "Rover:Arm Can Sleuth"; platform=rover; cmd="./can_sleuth -o tui taipan";}
       {name = "Base:Arm Teleop"; platform=base; cmd="./ros2 launch teleop_arm teleop.launch.py local:=True log_inputs:=True";}
       {name = "Base:Rviz"; platform=base; cmd="./rviz2 -d ../share/arm_bringup/rviz/arm.rviz | grep -v TF_NAN";}
@@ -36,7 +36,7 @@ let
   mock = {
     pre = pre-shell {payload-name=task-name + " mock"; need-rover=false;};
     terminals = [
-      {name = "Rover:Arm Control"; platform=base; cmd="./ros2 launch arm_bringup mock.launch.py local:=True | grep -v not.defined.in";}
+      {name = "Rover:Arm Control"; platform=base; cmd="./ros2 launch arm_bringup mock.launch.py local:=True";}
       {name = "Base:Arm Teleop"; platform=base; cmd="./ros2 launch teleop_arm teleop.launch.py local:=True log_inputs:=True";}
       {name = "Base:Rviz"; platform=base; cmd="./rviz2 -d ../share/arm_bringup/rviz/arm.rviz | grep -v TF_NAN";}
     ];
@@ -46,7 +46,7 @@ let
   mock-controller = {
     pre = pre-shell {payload-name=task-name + " mock with controller"; need-rover=false;};
     terminals = [
-      {name = "Rover:Arm Control"; platform=base; cmd="./ros2 launch arm_bringup mock.launch.py local:=True | grep -v not.defined.in";}
+      {name = "Rover:Arm Control"; platform=base; cmd="./ros2 launch arm_bringup mock.launch.py local:=True";}
       {name = "Base:Arm Teleop"; platform=base; cmd="./ros2 launch teleop_arm teleop.launch.py local:=True log_inputs:=True joysticks:=false";}
       {name = "Base:Rviz"; platform=base; cmd="./rviz2 -d ../share/arm_bringup/rviz/arm.rviz | grep -v TF_NAN";}
     ];

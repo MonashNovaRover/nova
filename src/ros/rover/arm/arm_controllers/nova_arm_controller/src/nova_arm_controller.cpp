@@ -141,7 +141,9 @@ controller_interface::return_type NovaArmController::update_velocity_reference_f
 
     // Ensure the map contains the handle
     if (velocities.find(joint_name) == velocities.end()) {
-      RCLCPP_WARN(logger, "Joint '%s' not defined in input message from teleop-arm-joy.", joint_name.c_str());
+      if (last_msg->name.size() != 0) {
+        RCLCPP_WARN(logger, "Joint '%s' not defined in input message from teleop-arm-joy.", joint_name.c_str());
+      }
       reference_interfaces_[i] = 0;
       continue;
     }
