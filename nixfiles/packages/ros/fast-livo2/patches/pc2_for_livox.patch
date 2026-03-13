@@ -1,0 +1,207 @@
+diff --git a/include/LIVMapper.h b/include/LIVMapper.h
+index 7477e2f..111679a 100644
+--- a/include/LIVMapper.h
++++ b/include/LIVMapper.h
+@@ -124,6 +124,7 @@ public:
+   double plot_time;
+   int frame_cnt;
+   double img_time_offset = 0.0;
++  bool livox_custom = true;
+   deque<PointCloudXYZI::Ptr> lid_raw_data_buffer;
+   deque<double> lid_header_time_buffer;
+   deque<sensor_msgs::msg::Imu::ConstSharedPtr> imu_buffer;
+diff --git a/include/preprocess.h b/include/preprocess.h
+index bb550cf..f72ce68 100755
+--- a/include/preprocess.h
++++ b/include/preprocess.h
+@@ -63,6 +63,23 @@ struct orgtype
+   }
+ };
+ 
++/*** Livox ***/
++namespace livox_ros
++{
++struct EIGEN_ALIGN16 Point
++{
++  PCL_ADD_POINT4D;
++  float intensity;
++  std::uint8_t tag;
++  std::uint8_t line;
++  double timestamp;
++  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
++};
++} // namespace livox_ros
++POINT_CLOUD_REGISTER_POINT_STRUCT(livox_ros::Point,
++                                  (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)(std::uint8_t, tag, tag)(std::uint8_t, line, line)(double, timestamp, timestamp))
++/****************/
++
+ /*** Velodyne ***/
+ namespace velodyne_ros
+ {
+@@ -173,6 +190,7 @@ public:
+ 
+ private:
+   void avia_handler(const livox_ros_driver2::msg::CustomMsg::SharedPtr &msg);
++  void avia_handler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &msg);
+   void oust64_handler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &msg);
+   void velodyne_handler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &msg);
+   void xt32_handler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &msg);
+diff --git a/src/LIVMapper.cpp b/src/LIVMapper.cpp
+index d67d140..83db9c8 100755
+--- a/src/LIVMapper.cpp
++++ b/src/LIVMapper.cpp
+@@ -59,6 +59,7 @@ void LIVMapper::readParameters(rclcpp::Node::SharedPtr &node)
+   this->node->declare_parameter<int>("common.img_en", 1);
+   this->node->declare_parameter<int>("common.lidar_en", 1);
+   this->node->declare_parameter<std::string>("common.img_topic", "/left_camera/image");
++  this->node->declare_parameter<bool>("common.livox_custom", true);
+ 
+   this->node->declare_parameter<bool>("vio.normal_en", true);
+   this->node->declare_parameter<bool>("vio.inverse_composition_en", false);
+@@ -123,6 +124,7 @@ void LIVMapper::readParameters(rclcpp::Node::SharedPtr &node)
+   this->node->get_parameter("common.img_en", img_en);
+   this->node->get_parameter("common.lidar_en", lidar_en);
+   this->node->get_parameter("common.img_topic", img_topic);
++  this->node->get_parameter("common.livox_custom", livox_custom);
+ 
+   this->node->get_parameter("vio.normal_en", normal_en);
+   this->node->get_parameter("vio.inverse_composition_en", inverse_composition_en);
+@@ -258,7 +260,7 @@ void LIVMapper::initializeFiles()
+ void LIVMapper::initializeSubscribersAndPublishers(rclcpp::Node::SharedPtr &node, image_transport::ImageTransport &it_)
+ {
+   image_transport::ImageTransport it(this->node);
+-  if (p_pre->lidar_type == AVIA) {
++  if (p_pre->lidar_type == AVIA && livox_custom) {
+     sub_pcl = this->node->create_subscription<livox_ros_driver2::msg::CustomMsg>(lid_topic, 200000, std::bind(&LIVMapper::livox_pcl_cbk, this, std::placeholders::_1));
+   } else {
+     sub_pcl = this->node->create_subscription<sensor_msgs::msg::PointCloud2>(lid_topic, 200000, std::bind(&LIVMapper::standard_pcl_cbk, this, std::placeholders::_1));
+diff --git a/src/preprocess.cpp b/src/preprocess.cpp
+index bf0d497..8482133 100755
+--- a/src/preprocess.cpp
++++ b/src/preprocess.cpp
+@@ -61,6 +61,10 @@ void Preprocess::process(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &ms
+ {
+   switch (lidar_type)
+   {
++  case AVIA:
++    avia_handler(msg);
++    break;
++
+   case OUST64:
+     oust64_handler(msg);
+     break;
+@@ -200,6 +204,114 @@ void Preprocess::avia_handler(const livox_ros_driver2::msg::CustomMsg::SharedPtr
+   printf("[ Preprocess ] Output point number: %zu \n", pl_surf.points.size());
+ }
+ 
++void Preprocess::avia_handler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &msg)
++{
++  pl_surf.clear();
++  pl_corn.clear();
++  pl_full.clear();
++
++  pcl::PointCloud<livox_ros::Point> pl_orig;
++  pcl::fromROSMsg(*msg, pl_orig);
++  int plsize = pl_orig.size();
++
++  pl_corn.reserve(plsize);
++  pl_surf.reserve(plsize);
++  pl_full.resize(plsize);
++
++  for (int i = 0; i < N_SCANS; i++)
++  {
++    pl_buff[i].clear();
++    pl_buff[i].reserve(plsize);
++  }
++  uint valid_num = 0;
++
++  if (feature_enabled)
++  {
++    for (uint i = 1; i < plsize; i++)
++    {
++      if ((pl_orig.points[i].line < N_SCANS) && ((pl_orig.points[i].tag & 0x30) == 0x10))
++      {
++        pl_full[i].x = pl_orig.points[i].x;
++        pl_full[i].y = pl_orig.points[i].y;
++        pl_full[i].z = pl_orig.points[i].z;
++        pl_full[i].intensity = pl_orig.points[i].intensity;
++        pl_full[i].curvature = pl_orig.points[i].timestamp / float(1000000); // use curvature as time of each laser points TODO
++
++        bool is_new = false;
++        if ((abs(pl_full[i].x - pl_full[i - 1].x) > 1e-7) || (abs(pl_full[i].y - pl_full[i - 1].y) > 1e-7) ||
++            (abs(pl_full[i].z - pl_full[i - 1].z) > 1e-7))
++        {
++          pl_buff[pl_orig.points[i].line].push_back(pl_full[i]);
++        }
++      }
++    }
++    static int count = 0;
++    static double time = 0.0;
++    count++;
++    double t0 = omp_get_wtime();
++    for (int j = 0; j < N_SCANS; j++)
++    {
++      if (pl_buff[j].size() <= 5) continue;
++      pcl::PointCloud<PointType> &pl = pl_buff[j];
++      plsize = pl.size();
++      vector<orgtype> &types = typess[j];
++      types.clear();
++      types.resize(plsize);
++      plsize--;
++      for (uint i = 0; i < plsize; i++)
++      {
++        types[i].range = pl[i].x * pl[i].x + pl[i].y * pl[i].y;
++        vx = pl[i].x - pl[i + 1].x;
++        vy = pl[i].y - pl[i + 1].y;
++        vz = pl[i].z - pl[i + 1].z;
++        types[i].dista = vx * vx + vy * vy + vz * vz;
++      }
++      types[plsize].range = pl[plsize].x * pl[plsize].x + pl[plsize].y * pl[plsize].y;
++      give_feature(pl, types);
++      // pl_surf += pl;
++    }
++    time += omp_get_wtime() - t0;
++    printf("Feature extraction time: %lf \n", time / count);
++  }
++  else
++  {
++    for (uint i = 0; i < plsize; i++)
++    {
++      if ((pl_orig.points[i].line < N_SCANS)) // && ((pl_orig.points[i].tag & 0x30) == 0x10))
++      {
++        valid_num++;
++
++        pl_full[i].x = pl_orig.points[i].x;
++        pl_full[i].y = pl_orig.points[i].y;
++        pl_full[i].z = pl_orig.points[i].z;
++        pl_full[i].intensity = pl_orig.points[i].intensity;
++        pl_full[i].curvature = pl_orig.points[i].timestamp / float(1000000); // use curvature as time of each laser points
++
++        if (i == 0)
++          pl_full[i].curvature = fabs(pl_full[i].curvature) < 1.0 ? pl_full[i].curvature : 0.0;
++        else
++        {
++          // if(fabs(pl_full[i].curvature - pl_full[i - 1].curvature) > 1.0) ROS_ERROR("time jump: %f", fabs(pl_full[i].curvature - pl_full[i - 1].curvature));
++          pl_full[i].curvature = fabs(pl_full[i].curvature - pl_full[i - 1].curvature) < 1.0
++                                     ? pl_full[i].curvature
++                                     : pl_full[i - 1].curvature + 0.004166667f; // float(100/24000)
++        }
++
++        if (valid_num % point_filter_num == 0)
++        {
++          if (pl_full[i].x * pl_full[i].x + pl_full[i].y * pl_full[i].y + pl_full[i].z * pl_full[i].z >= blind_sqr)
++          {
++            pl_surf.push_back(pl_full[i]);
++            // if (i % 100 == 0 || i == 0) printf("pl_full[i].curvature: %f \n",
++            // pl_full[i].curvature);
++          }
++        }
++      }
++    }
++  }
++  printf("[ Preprocess ] Output point number: %zu \n", pl_surf.points.size());
++}
++
+ void Preprocess::l515_handler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &msg)
+ {
+   pl_surf.clear();

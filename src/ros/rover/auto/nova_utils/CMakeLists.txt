@@ -6,44 +6,64 @@ if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
 endif()
 
-# Default to C++14
+# Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# Find dependencies
-find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
-find_package(nav_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
-find_package(vision_msgs REQUIRED)
-find_package(visualization_msgs REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(yolo_msgs REQUIRED)
+set(THIS_PACKAGE_INCLUDE_DEPENDS
+  ament_cmake
+  rclpy
+  rclcpp
+  nav_msgs
+  geometry_msgs
+  vision_msgs
+  visualization_msgs
+  std_msgs
+  sensor_msgs
+  yolo_msgs
+  tf2_ros
+  tf2_msgs
+)
 
+foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
+  find_package(${Dependency} REQUIRED)
+endforeach()
+
+add_executable(transform_republisher src/transform_republisher.cpp)
+ament_target_dependencies(transform_republisher ${THIS_PACKAGE_INCLUDE_DEPENDS})
+target_include_directories(transform_republisher PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
+  $<INSTALL_INTERFACE:include>)
+
+# Python executables
 install(PROGRAMS
-  nova_utils/detection_overlay.py
-  nova_utils/goal_marker.py
-  nova_utils/gz_frame_fixer.py
-  nova_utils/gz_gps_fixer.py
-  nova_utils/gz_imu_fixer.py
-  nova_utils/load_waypoint.py
-  nova_utils/quaternion_to_euler.py
-  nova_utils/record_metrics.py
-  nova_utils/save_waypoint.py
-  nova_utils/service_listener.py
-  nova_utils/start_auto_2.py
-  nova_utils/start_auto.py
-  nova_utils/test_start_auto.py
-  nova_utils/topic_waiter.py
+  scripts/detection_overlay.py
+  scripts/goal_marker.py
+  scripts/gz_frame_fixer.py
+  scripts/gz_gps_fixer.py
+  scripts/gz_imu_fixer.py
+  scripts/load_waypoint.py
+  scripts/quaternion_to_euler.py
+  scripts/record_metrics.py
+  scripts/save_waypoint.py
+  scripts/service_listener.py
+  scripts/start_auto_2.py
+  scripts/start_auto.py
+  scripts/test_start_auto.py
+  scripts/topic_waiter.py
+  scripts/node_waiter.py
 
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+# C++ executables
+install(TARGETS
+  transform_republisher
   DESTINATION lib/${PROJECT_NAME}
 )
 

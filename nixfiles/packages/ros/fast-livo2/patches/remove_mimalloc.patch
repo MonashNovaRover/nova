@@ -1,0 +1,31 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index af27e8a..a847197 100755
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -67,14 +67,6 @@ else()
+   message(STATUS "OpenMP not found, proceeding without it")
+ endif()
+ 
+-# Check for mimalloc support
+-find_package(mimalloc QUIET)
+-if(mimalloc_FOUND)
+-  message(STATUS "mimalloc found")
+-else()
+-  message(STATUS "mimalloc not found, proceeding without it")
+-endif()
+-
+ # Find ament and required dependencies
+ find_package(ament_cmake REQUIRED)
+ find_package(rclcpp REQUIRED)
+@@ -176,11 +168,6 @@ target_link_libraries(fastlivo_mapping
+   ${Boost_LIBRARIES}
+ )
+ 
+-# Link mimalloc if found
+-if(mimalloc_FOUND)
+-  target_link_libraries(fastlivo_mapping mimalloc)
+-endif()
+-
+ # Install the executable
+ install(TARGETS
+   fastlivo_mapping

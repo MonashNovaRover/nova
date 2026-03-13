@@ -1,0 +1,15 @@
+# Intrinsics for the RealSense D415 camera for use with FAST-LIVO2
+parameter_blackboard:
+  ros__parameters:
+    cam_model: Pinhole
+    cam_width: 640
+    cam_height: 360
+    scale: 1.0
+    cam_fx: 461.870697021484
+    cam_fy: 460.873168945312
+    cam_cx: 321.814239501953
+    cam_cy: 183.026351928711
+    cam_d0: 0.0
+    cam_d1: 0.0
+    cam_d2: 0.0
+    cam_d3: 0.0

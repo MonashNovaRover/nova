@@ -1,0 +1,41 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index af27e8a..95dcb06 100755
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -209,4 +209,5 @@ ament_export_dependencies(
+   Sophus
+ )
+ 
++
+ ament_package()
+\ No newline at end of file
+diff --git a/src/LIVMapper.cpp b/src/LIVMapper.cpp
+index d67d140..7b6f47e 100755
+--- a/src/LIVMapper.cpp
++++ b/src/LIVMapper.cpp
+@@ -906,7 +906,6 @@ cv::Mat LIVMapper::getImageFromMsg(const sensor_msgs::msg::Image::ConstSharedPtr
+ void LIVMapper::img_cbk(const sensor_msgs::msg::Image::ConstSharedPtr &msg_in)
+ {
+   if (!img_en) return;
+-  sensor_msgs::msg::Image::SharedPtr msg(new sensor_msgs::msg::Image(*msg_in));
+   // if ((abs(stamp2Sec(msg->header.stamp) - last_timestamp_img) > 0.2 && last_timestamp_img > 0) || sync_jump_flag)
+   // {
+   //   RCLCPP_WARN(this->node->get_logger(), "img jumps %.3f\n", stamp2Sec(msg->header.stamp) - last_timestamp_img);
+@@ -921,7 +920,7 @@ void LIVMapper::img_cbk(const sensor_msgs::msg::Image::ConstSharedPtr &msg_in)
+     if (++frame_counter % 4 != 0) return;
+   }
+   // double msg_header_time =  stamp2Sec(msg->header.stamp);
+-  double msg_header_time = stamp2Sec(msg->header.stamp) + img_time_offset;
++  double msg_header_time = stamp2Sec(msg_in->header.stamp) + img_time_offset;
+   if (abs(msg_header_time - last_timestamp_img) < 0.001) return;
+   RCLCPP_INFO(this->node->get_logger(), "Get image, its header time: %.6f", msg_header_time);
+   if (last_timestamp_lidar < 0) return;
+@@ -944,7 +943,7 @@ void LIVMapper::img_cbk(const sensor_msgs::msg::Image::ConstSharedPtr &msg_in)
+     return;
+   }
+ 
+-  cv::Mat img_cur = getImageFromMsg(msg);
++  cv::Mat img_cur = getImageFromMsg(msg_in).clone();
+   img_buffer.push_back(img_cur);
+   img_time_buffer.push_back(img_time_correct);
+ 
