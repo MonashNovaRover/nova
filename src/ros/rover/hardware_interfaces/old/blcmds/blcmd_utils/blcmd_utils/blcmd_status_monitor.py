@@ -33,14 +33,16 @@ class BLCMDStatusMonitor(Node):
 
     def __init__(self):
         super().__init__("blcmd_status_monitor")
-        #publisher to publish the status of the blcmd
-        self.publisher = self.create_publisher(BLCMDStatusArray, "/blcmds/blcmd_status", 10)
-        #service to reset the blcmd
-        self.reset_service = self.create_service(BLCMDReset, "/blcmds/blcmd_reset", self.reset)
 
         #declare parameters
+        self.declare_parameter("prefix", "/blcmds")
         self.declare_parameter("num_blcmds", 8)
         self.declare_parameter("canbus", "can0")
+
+        #publisher to publish the status of the blcmd
+        self.publisher = self.create_publisher(BLCMDStatusArray, self.get_parameter("prefix").value+"/blcmd_status", 10)
+        #service to reset the blcmd
+        self.reset_service = self.create_service(BLCMDReset, self.get_parameter("prefix").value+"/blcmd_reset", self.reset)
 
         #initialise blcmd status array and fault times dict
         self.blcmds_status = []
@@ -93,7 +95,7 @@ class BLCMDStatusMonitor(Node):
                 self.get_logger().info(f'Reset resolver on BLCMD {req.id}')
             res.success = True
         except :
-            self.get_logger.error('BLCMD Reset or Resolver Reset Failed');
+            self.get_logger().error('BLCMD Reset or Resolver Reset Failed');
             res.success = False
         return res
 

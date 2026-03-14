@@ -97,6 +97,11 @@ def launch_setup(context, *args, **kwargs):
                     arguments=['nova_end_effector_velocity_controller', '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
+            ]
+        ),
+        GroupAction(
+            condition=UnlessCondition(use_mock_hardware),
+            actions=[
                 IncludeLaunchDescription(
                     launch_description_source=PythonLaunchDescriptionSource(
                         PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
@@ -110,6 +115,18 @@ def launch_setup(context, *args, **kwargs):
                         ),
                         "log_name" : "arm",
                     }.items()
+                ),
+                Node(
+                    package='blcmd_utils',
+                    executable='status_monitor',
+                    output='screen',
+                    parameters=[{
+                        "prefix": "/arm/blcmds",
+                        "num_blcmds": 6,
+                        "canbus": "can1"
+                        }],
+                    emulate_tty=True,
+                    ros_arguments=['--log-level', log_level],
                 ),
             ]
         ),
