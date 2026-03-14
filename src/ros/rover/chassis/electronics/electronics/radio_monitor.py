@@ -56,10 +56,10 @@ class RadioMonitor(Node):
         self.declare_parameters(
             namespace=self.device_prefix,
             parameters=[
-                (self.DEST_IP_PARAM, "10.0.0.11"),
+                (self.DEST_IP_PARAM, "10.0.1.10"),
                 (self.BASE_IP_PARAM, "10.0.1.11"),
                 (self.HOST_PARAM, "***REMOVED***"),
-                (self.PASSWORD_PATH_PARAM, "~/nova/src/other/secrets/bullet-password.txt"),
+                (self.PASSWORD_PATH_PARAM, "~/nova/nixfiles/secrets/bullet-password.txt"),
             ],
         )
 
