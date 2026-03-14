@@ -167,9 +167,10 @@ GstElement* h264direct_pipeline(rclcpp::Node* streamer_node, h264directPipelineP
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
   GstElement* filter = gst_element_factory_make("capsfilter", "filter");
   GstElement* parse = gst_element_factory_make("h264parse", "parser");
+  GstElement* queue = gst_element_factory_make("queue", "queue");
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
 
-  if (!gst_pipeline || !source || !filter || !parse || !webrtc) {
+  if (!gst_pipeline || !source || !filter || !parse || !queue || !webrtc) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
@@ -183,6 +184,9 @@ GstElement* h264direct_pipeline(rclcpp::Node* streamer_node, h264directPipelineP
       "alignment", G_TYPE_STRING, "au", NULL);
   g_object_set(filter, "caps", caps, NULL);
   gst_caps_unref(caps);
+  
+  g_object_set(parse, "config-interval", 1, NULL);
+  g_object_set(queue, "leaky", 2, "max-size-buffers", 1, NULL); //reduce latency by dropping old frames
 
   GstStructure *meta = gst_structure_new("meta", "serial", G_TYPE_STRING, props->serial.c_str(), NULL); 
   GstCaps *webrtc_caps = gst_caps_from_string(props->video_caps.c_str());
