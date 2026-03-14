@@ -19,6 +19,7 @@
 #include <camera_msgs/msg/cameras.hpp>
 
 #include "cameras/cameras.hpp"
+#include "cameras/pipeline.hpp"
 
 using namespace std::placeholders;
 

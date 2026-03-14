@@ -1,4 +1,3 @@
-#include "cameras/cameras.hpp"
 #include <optional>
 #include <string>
 
@@ -6,6 +5,8 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include <camera_msgs/msg/camera.hpp>
+
+#include "cameras/pipeline.hpp"
 
 /*
  * Customize the encoder with constant defaults. Currently not working
@@ -166,13 +167,9 @@ GstElement* h264direct_pipeline(rclcpp::Node* streamer_node, h264directPipelineP
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
   GstElement* filter = gst_element_factory_make("capsfilter", "filter");
   GstElement* parse = gst_element_factory_make("h264parse", "parser");
-  GstElement* parse_filter = gst_element_factory_make("capsfilter", "parse_filter");
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
-  GstElement* clock = props->show_clock ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
 
-  if (!gst_pipeline || !source || !filter || !parse || !parse_filter || !webrtc
-      || (props->show_clock && !clock) 
-      ) {
+  if (!gst_pipeline || !source || !filter || !parse || !webrtc) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
@@ -182,8 +179,8 @@ GstElement* h264direct_pipeline(rclcpp::Node* streamer_node, h264directPipelineP
       props->mime.c_str(),
       "width", G_TYPE_INT, props->width,
       "height", G_TYPE_INT, props->height,
-      "framerate", GST_TYPE_FRACTION, props->framerate,
-      1, NULL);
+      "framerate", GST_TYPE_FRACTION, props->framerate, 1,
+      "alignment", G_TYPE_STRING, "au", NULL);
   g_object_set(filter, "caps", caps, NULL);
   gst_caps_unref(caps);
 
@@ -202,31 +199,14 @@ GstElement* h264direct_pipeline(rclcpp::Node* streamer_node, h264directPipelineP
       NULL);
   gst_caps_unref(webrtc_caps);
   gst_structure_free(meta);
-
-  GstCaps *parse_caps = gst_caps_new_simple(
-      "video/x-h264",
-      "alignment", "avc"
-      "stream-format", "au",
-      1, NULL);
-  g_object_set(parse_filter, "caps", parse_caps, NULL);
-  gst_caps_unref(parse_caps);
     
-  gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, parse, parse_filter, webrtc, NULL);
+  gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, parse, webrtc, NULL);
 
   bool ret = true;
 
   ret = gst_element_link(source, filter) ? ret : false;
   ret = gst_element_link(filter, parse) ? ret : false;
-
-  ret = gst_element_link(parse, parse_filter) ? ret : false;
-
-  if (props->show_clock) {
-      gst_bin_add(GST_BIN(gst_pipeline), clock);
-      ret = gst_element_link(parse_filter, clock) ? ret : false;
-      ret = gst_element_link(clock, webrtc) ? ret : false;
-  } else {
-      ret = gst_element_link(parse_filter, webrtc) ? ret : false;
-  }
+  ret = gst_element_link(parse, webrtc) ? ret : false;
 
   if (!ret) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not link elements of pipeline for %s", props->serial.c_str());
@@ -260,7 +240,6 @@ h264directPipelineProperties* get_h264direct_pipeline_properties(rclcpp::Node* s
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".congestion_control").c_str(), props->congestion_control, "gcc");
   streamer_node->get_parameter_or((camera_prefix + ".do_fec").c_str(), props->do_fec, false); 
   streamer_node->get_parameter_or((camera_prefix + ".do_retransmission").c_str(), props->do_retransmission, false); 
-  streamer_node->get_parameter_or((camera_prefix + ".show_clock").c_str(), props->show_clock, false);
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".video_caps").c_str(), props->video_caps, "video/x-h264");
 
   return props;
