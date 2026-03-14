@@ -24,4 +24,6 @@ stdenv.mkDerivation {
     makeWrapper ${steam-run-free}/bin/steam-run $out/bin/nova-unity-sim \
       --add-flags $out/share/build.x86_64
   '';
+
+  platforms = [ "x86_64-linux" ];
 }
