@@ -58,7 +58,7 @@ class BLCMDStatusMonitor(Node):
         4 : "Position out of range warning"
     }
 
-    # add new blcmd errors here
+    # add new blcmd info messages here
     INFO_MESSAGES = {
         0 : "Gate driver config success",
         1 : "MA302 config success",
