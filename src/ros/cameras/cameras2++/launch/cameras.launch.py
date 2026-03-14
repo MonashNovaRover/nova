@@ -56,12 +56,12 @@ def generate_launch_description():
             ),
             Node(
                 package="cameras",
-                executable="cameras_directory_service",
+                executable="camera_directory_service",
                 parameters=node_parameters,
             ),
             Node(
                 package="cameras",
-                executable="cameras_streamer_service",
+                executable="camera_streamer_service",
                 parameters=node_parameters,
             ),
         ]

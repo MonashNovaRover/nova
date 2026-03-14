@@ -70,6 +70,6 @@ buildRosPackage {
     '';
 
   preFixup = ''
-      wrapGApp "$out/lib/cameras/cameras_streamer_service"
+      wrapGApp "$out/lib/cameras/camera_streamer_service"
   '';
 }

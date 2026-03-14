@@ -41,24 +41,24 @@ generate_parameter_library(
   src/directory_parameters.yaml
 )
 
-add_executable(cameras_directory_service src/camera_directory_service.cpp src/camera_globals.cpp)
-target_link_libraries(cameras_directory_service ${SYSTEMD_LIBRARIES} directory_parameters)
-ament_target_dependencies(cameras_directory_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
+add_executable(camera_directory_service src/camera_directory_service.cpp src/camera_globals.cpp)
+target_link_libraries(camera_directory_service ${SYSTEMD_LIBRARIES} directory_parameters)
+ament_target_dependencies(camera_directory_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-add_executable(cameras_streamer_service src/camera_streamer_service.cpp src/camera_globals.cpp src/camera_pipelines.cpp)
-target_link_libraries(cameras_streamer_service ${GSTREAMERMM_LIBRARIES})
-ament_target_dependencies(cameras_streamer_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
+add_executable(camera_streamer_service src/camera_streamer_service.cpp src/camera_globals.cpp src/camera_pipelines.cpp)
+target_link_libraries(camera_streamer_service ${GSTREAMERMM_LIBRARIES})
+ament_target_dependencies(camera_streamer_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 # Install executables
 install(
   TARGETS 
-    cameras_directory_service 
+    camera_directory_service 
     directory_parameters 
   DESTINATION lib/${PROJECT_NAME}
 )
 install(
   TARGETS 
-    cameras_streamer_service 
+    camera_streamer_service 
   DESTINATION lib/${PROJECT_NAME}
 )
 # Install param files
