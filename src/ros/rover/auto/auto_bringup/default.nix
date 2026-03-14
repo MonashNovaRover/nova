@@ -65,6 +65,8 @@ buildRosPackage rec {
   propagatedBuildInputs = [
     launch
     launch-ros
+  ] ++ lib.optionals (lib.systems.elaborate builtins.currentSystem).isx86_64 [
+    nova-unity-sim
   ];
 
   passthru.workspacePackages = {
@@ -112,8 +114,7 @@ buildRosPackage rec {
       direct-visual-lidar-calibration
       nova-auto-start
       ros-tcp-endpoint
-      nova-unity-sim
-      ;
+      nova-unity-sim;
   };
 
   # After installing params and resources folders in nix store's auto_bringup,
