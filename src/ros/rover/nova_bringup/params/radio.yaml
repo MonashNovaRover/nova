@@ -4,13 +4,13 @@ radio_monitor:
 
     devices:
       BULLET:
-        dest_ip: "10.0.0.11"
+        dest_ip: "10.0.1.10"
         base_ip: "10.0.1.11"
         host: "novarovabullet"
-        password_path: "~/nova/src/other/secrets/bullet-password.txt"
+        password_path: "~/nova/nixfiles/secrets/bullet-password.txt"
 
       ROCKET:
         dest_ip: "192.168.1.204"
         base_ip: "192.168.3.155"
         host: "nova"
-        password_path: "~/nova/src/other/secrets/rocket-password.txt"
+        password_path: "~/nova/nixfiles/secrets/rocket-password.txt"
