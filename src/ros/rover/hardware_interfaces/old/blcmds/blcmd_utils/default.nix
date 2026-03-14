@@ -4,6 +4,7 @@
 , rclpy
 , pythonPackages
 , nova-blcmd-interfaces
+, nova-interfaces
 }:
 
 buildRosPackage {
@@ -19,6 +20,7 @@ buildRosPackage {
   propagatedBuildInputs = [
     rclpy
     nova-blcmd-interfaces
+    nova-interfaces
     pythonPackages.jcan
   ];
 
