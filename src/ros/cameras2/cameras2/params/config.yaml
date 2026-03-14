@@ -29,7 +29,18 @@ camera_streamer:
         width: 1920
         framerate: 30
         show_clock: false
-
+      SunplusIT_Inc_ACER_FHD_User_Facing_01.00.00:
+        mime: image/jpeg
+        width: 1920
+        framerate: 30
+        show_clock: false
+        # bitrate: 1000000
+        # video_caps: video/x-h264
+      SYX_Hua_Que_200901010001:
+        mime: image/jpeg
+        width: 1920
+        framerate: 30
+        show_clock: false
       # Mast
       mast_backward:
         meta:

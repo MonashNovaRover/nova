@@ -273,6 +273,8 @@ class CameraSplitROSWebRTCBin:
         do_fec: bool = True,
         do_retransmission: bool = True,
         show_clock: bool = True,
+        # max_bitrate: Optional[int] = None,
+        # video_caps: str = "video/x-h264,stream-format=avc,profile=constrained-baseline",
         extra_meta: Optional[dict[str, object]] = None,
     ):
         ros_topic = extra_meta['ros_topic']
@@ -287,6 +289,8 @@ class CameraSplitROSWebRTCBin:
         self._websink.props.do_fec = do_fec
         self._websink.props.do_retransmission = do_retransmission
         self._websink.props.stun_server = None
+        # self._websink.props.max_bitrate = max_bitrate
+        # self._websink.props.video_caps = video_caps
         # ## Metadata
         self._websink.props.meta = dict_to_gst_structure(
             "meta",

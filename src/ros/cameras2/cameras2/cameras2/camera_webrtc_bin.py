@@ -30,6 +30,8 @@ class CameraWebRTCBin:
         do_fec: bool = True,
         do_retransmission: bool = True,
         show_clock: bool = True,
+        # max_bitrate: Optional[int] = None,
+        # video_caps: str = "video/x-h264,stream-format=avc,profile=constrained-baseline",
         extra_meta: Optional[dict[str, object]] = None,
     ):
         self.bin = Gst.Bin.new(f"camera-{serial}-bin")
@@ -42,6 +44,8 @@ class CameraWebRTCBin:
         self._sink.props.do_fec = do_fec
         self._sink.props.do_retransmission = do_retransmission
         self._sink.props.stun_server = None
+        # self._sink.props.max_bitrate = max_bitrate
+        # self._sink.props.video_caps = video_caps
         # ## Metadata
         self._sink.props.meta = dict_to_gst_structure(
             "meta",
