@@ -19,28 +19,24 @@ camera_streamer:
         width: 1920
         framerate: 30
         show_clock: false
+        video_caps: "video/x-h264,stream-format=avc,profile=constrained-baseline"
       autofocus-cam:
         mime: image/jpeg
         width: 1920
         framerate: 30
         show_clock: false
+        video_caps: "video/x-h264,stream-format=avc,profile=high-10-intra"
       fisheye-cam:
         mime: video/x-h264
         width: 1920
         framerate: 30
         show_clock: false
-      SunplusIT_Inc_ACER_FHD_User_Facing_01.00.00:
+      brandon-cam:
         mime: image/jpeg
         width: 1920
         framerate: 30
         show_clock: false
-        # bitrate: 1000000
-        # video_caps: video/x-h264
-      SYX_Hua_Que_200901010001:
-        mime: image/jpeg
-        width: 1920
-        framerate: 30
-        show_clock: false
+        video_caps: "video/x-h264,stream-format=avc,profile=high-10-intra"
       # Mast
       mast_backward:
         meta:

@@ -61,8 +61,8 @@ class CameraStreamerService(Node):
         do_fec: bool
         do_retransmission: bool
         show_clock: bool
-        # max_bitrate: int
-        # video_caps: str
+        max_bitrate: int
+        video_caps: str
         meta: dict[str, object]
         profile_name: str | None
         profiles: dict[str, dict[str, Parameter | dict]]
@@ -198,8 +198,8 @@ class CameraStreamerService(Node):
             do_fec = get_parameter_value("do_fec", lambda p: p.bool_value)
             do_retransmission = get_parameter_value("do_retransmission", lambda p: p.bool_value)
             show_clock = get_parameter_value("show_clock", lambda p: p.bool_value)
-            # max_bitrate = get_parameter_value("max_bitrate", lambda p: p.integer_value)
-            # video_caps = get_parameter_value("video_caps", lambda p: p.string_value)
+            max_bitrate = get_parameter_value("max_bitrate", lambda p: p.integer_value)
+            video_caps = get_parameter_value("video_caps", lambda p: p.string_value)
 
             # TODO: This default merging system incorrectly mixes low-level parameters with high-level configuration objects,
             # storing the former inside the latter. It also has issues with nested dictionaries.
@@ -213,8 +213,8 @@ class CameraStreamerService(Node):
                 do_fec=do_fec if do_fec is not None else defaults.do_fec,
                 do_retransmission=do_retransmission if do_retransmission is not None else defaults.do_retransmission,
                 show_clock=show_clock if show_clock is not None else defaults.show_clock,
-                # max_bitrate=max_bitrate if max_bitrate is not None else defaults.max_bitrate,
-                # video_caps=video_caps if video_caps is not None else defaults.video_caps,
+                max_bitrate=max_bitrate if max_bitrate is not None else defaults.max_bitrate,
+                video_caps=video_caps if video_caps is not None else defaults.video_caps,
                 meta={**defaults.meta, **read_meta(profile.get("meta", parameters.get("meta", {})))},
                 profile_name=profile_name,
                 profiles=profiles,
@@ -230,8 +230,8 @@ class CameraStreamerService(Node):
                 do_fec=True,
                 do_retransmission=True,
                 show_clock=True,
-                # max_bitrate=4096000,
-                # video_caps="video/x-h264,stream-format=avc,profile=constrained-baseline",
+                max_bitrate=16384000,
+                video_caps="video/x-h264,stream-format=avc,profile=constrained-baseline",
                 meta={},
                 profile_name=None,
                 profiles={},
@@ -340,8 +340,8 @@ class CameraStreamerService(Node):
             do_fec=camera_configuration.do_fec,
             do_retransmission=camera_configuration.do_retransmission,
             show_clock=camera_configuration.show_clock,
-            # max_bitrate=camera_configuration.max_bitrate,
-            # video_caps=Gst.Caps.from_string(camera_configuration.video_caps),
+            max_bitrate=camera_configuration.max_bitrate,
+            video_caps=Gst.Caps.from_string(camera_configuration.video_caps),
             extra_meta=camera_configuration.meta,
         )
         return camera_bin
