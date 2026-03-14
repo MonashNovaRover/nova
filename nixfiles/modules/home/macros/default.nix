@@ -49,8 +49,8 @@ in
           off = "sudo poweroff";
 
           # Nix CLI shortcuts
-          nova-build = "nix-build ${cfg.nixfileDir}";
-          nova-shell = "nix-shell ${cfg.nixfileDir}";
+          nova-build = "nom-build ${cfg.nixfileDir}";
+          nova-shell = "nom-shell ${cfg.nixfileDir}";
           ws-build = "${nova-build} -A pkgs.ros.nova-workspace";
           ws-shell = "${nova-shell} -A pkgs.ros.nova-workspace.env";
 
@@ -85,7 +85,7 @@ in
 
           # Application 
           code = "codium";
-          urdf-tool = "nix-shell ${cfg.nixfileDir}/modules/home/macros/urdf-tool.nix";
+          urdf-tool = "nom-shell ${cfg.nixfileDir}/modules/home/macros/urdf-tool.nix";
 
           # Nano v Vim
           set_vim = "export EDITOR=vim";
@@ -204,7 +204,7 @@ in
           run-joy = "~/Builds/master/bin/ros2 run joy joy_node";
 
           # Science
-          predict-shell = "nix-shell ~/nova/src/other/ilmenite_ml"; # please come up with a more descriptive and less generic alias
+          predict-shell = "nom-shell ~/nova/src/other/ilmenite_ml"; # please come up with a more descriptive and less generic alias
 
           # ros2_control
           controllers-list = "~/Builds/master/bin/ros2 control list_controllers";
